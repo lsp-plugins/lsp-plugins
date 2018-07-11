@@ -44,19 +44,19 @@ namespace lsp
         {
         }
 
-        status_t CtlEdit::slot_on_submit(void *ptr, void *data)
+        status_t CtlEdit::slot_on_submit(LSPWidget *sender, void *ptr, void *data)
         {
             CtlEdit *_this      = static_cast<CtlEdit *>(ptr);
             return (_this != NULL) ? _this->on_menu_submit() : STATUS_OK;
         }
 
-        status_t CtlEdit::slot_on_action(void *ptr, void *data)
+        status_t CtlEdit::slot_on_action(LSPWidget *sender, void *ptr, void *data)
         {
             lsp_trace("Successful action");
             return STATUS_OK;
         }
 
-        status_t CtlEdit::slot_on_cancel(void *ptr, void *data)
+        status_t CtlEdit::slot_on_cancel(LSPWidget *sender, void *ptr, void *data)
         {
             lsp_trace("Cancelled action");
             return STATUS_OK;

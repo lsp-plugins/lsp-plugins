@@ -6,7 +6,7 @@
 
 #include <core/types.h>
 #include <core/dsp.h>
-#include <core/LatencyDetector.h>
+#include <core/util/LatencyDetector.h>
 #include <cstdlib>
 #include <ctime>
 

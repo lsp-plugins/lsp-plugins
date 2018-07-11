@@ -9,7 +9,7 @@
 #define UI_WS_ISURFACE_H_
 
 #include <core/types.h>
-#include <core/Color.h>
+#include <core/util/Color.h>
 
 #define SURFMASK_LT_CORNER      0x01
 #define SURFMASK_RT_CORNER      0x02

@@ -78,6 +78,14 @@ namespace lsp
                 return (index < nItems) ? pvItems[index] : NULL;
             }
 
+            inline bool set_item(size_t index, void *ptr)
+            {
+                if (index >= nItems)
+                    return false;
+                pvItems[index] = ptr;
+                return true;
+            }
+
             inline bool do_remove(size_t i, bool fast)
             {
                 if (i < (--nItems))
@@ -208,6 +216,8 @@ namespace lsp
                 inline bool insert(T *item, size_t index) { return basic_vector::insert_item(item, index); }
 
                 inline T *get(size_t index) { return reinterpret_cast<T *>(basic_vector::get_item(index)); }
+
+                inline bool set(size_t index, T *item) { return basic_vector::set_item(index, item); }
 
                 inline bool remove(const T *item, bool fast = false) { return basic_vector::remove_item(item, fast); }
 

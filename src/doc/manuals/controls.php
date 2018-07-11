@@ -6,9 +6,11 @@
 
 <p>Each plugin consists of the following elements:</p>
 <ul>
+	<li><b>AudioFile</b> - audio file chooser and editor.</li>
 	<li><b>Button</b> - button control.</li>
 	<li><b>Combo</b> - combo box control.</li>
-	<li><b>File</b> - file chooser control.</li>
+	<li><b>Fader</b> - fader control.</li>
+	<li><b>FileSaver</b> - file saving control.</li>
 	<li><b>Graph</b> - graphical output area.</li>
 	<li><b>Group</b> - group control.</li>
 	<li><b>Indicator</b> - digital LED indicator.</li>
@@ -37,6 +39,36 @@
 </ul>
 
 <p>Below the detailed description of controls is present.</p>
+
+<h2>AudioFile</h2>
+
+<p>AudioFile widget is used for loading and editing audio files. It tells to the plugin the actual location of file on
+file system.</p>
+
+<p>By default there is no file associated with plugin, so the file widget displays
+<b style="color: #00c000">'Click to load'</b> text.</p>
+<div class="images">
+	<img src="<?= $CTL ?>file_unloaded.png">
+</div>
+
+<p>By clicking left mouse button on the widget you may open file choosing dialog and select the file
+to use by plugin.</p>
+
+<p>After the path to the file will be passed to plugin, the plugin starts to load the file, and the status
+displayed by the file widget changes. If file was successfully loaded, file widget will display
+the corresponding content of the file and it's name (without path). On error, error message is displayed
+with red color.</p>
+<div class="images">
+	<img src="<?= $CTL ?>file_error.png">
+</div>
+
+<p>There is also the way to force plugin to unload file. For this purpose simply double-click by right
+mouse button on widget's area.</p>
+
+<p>Example of file widget:</p>
+<div class="images">
+	<img src="<?= $CTL ?>file_loaded.png">
+</div>
 
 <h2>Button</h2>
 
@@ -82,34 +114,22 @@ control groups.</p>
 	<img src="<?= $CTL ?>combo.png">
 </div>
 
-<h2>File</h2>
-
-<p>File widget is used for loading files. It tells to the plugin the actual location of file on
-file system.</p>
-
-<p>By default there is no file associated with plugin, so the file widget displays
-<b style="color: #00c000">'Click to load'</b> text.</p>
+<h2>Fader</h2>
+<p>The Fader widget allows to adjust value for continuous parameters in the pre-defined range.</p>
+<p>It is possible to achieve more precision by using the right mouse button instead of left when changing fader's value.</p>
+<p>To cancel editing, the opposite mouse button should be pressed (right if used left and vice verse).</p> 
+<p>To reset parameter to it's default value, issue double click by the left mouse button.</p>
 <div class="images">
-	<img src="<?= $CTL ?>file_unloaded.png">
+	<img src="<?= $CTL ?>fader.png">
 </div>
 
-<p>By clicking left mouse button on the widget you may open file choosing dialog and select the file
-to use by plugin.</p>
-
-<p>After the path to the file will be passed to plugin, the plugin starts to load the file, and the status
-displayed by the file widget changes. If file was successfully loaded, file widget will display
-the corresponding content of the file and it's name (without path). On error, error message is displayed
-with red color.</p>
+<h2>FileSaver</h2>
+<p>This widget allows to choose the file and tell plugin to save some data to it. It also allows to display progress
+and status of operation.</p>
 <div class="images">
-	<img src="<?= $CTL ?>file_error.png">
-</div>
-
-<p>There is also the way to force plugin to unload file. For this purpose simply double-click by right
-mouse button on widget's area.</p>
-
-<p>Example of file widget:</p>
-<div class="images">
-	<img src="<?= $CTL ?>file_loaded.png">
+	<img src="<?= $CTL ?>save_v1.png">
+	<img src="<?= $CTL ?>save_v2.png">
+	<img src="<?= $CTL ?>save_v3.png">
 </div>
 
 <h2>Graph</h2>
@@ -185,7 +205,7 @@ There are many ways to adjust the controlled parameter.<p>
 button and moving cursor up and down. To apply more accurate adjustment, right button of mouse may be pressed
 while moving cursor.</p>
 <p>The second way to change parameter's value may be reached by using mouse scroll. To perform more accurate
-adjustment, shift button may be pressed on keyboard.</p>
+adjustment, shift key may be pressed on keyboard. To accelerate the adjustment, control key may be pressed on keyboard.</p>
 <p>For all knobs (especially when they are stiff) quick adjustment of parameter may be achived by left-clicking
 knob's scale. Also, additionally mouse button may be hold and parameter will be adjusted by moving mouse
 clockwise/counter-clockwise.</p>

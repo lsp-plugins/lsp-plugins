@@ -14,7 +14,7 @@ INSTALL                 = install
 
 # Package version
 ifndef VERSION
-VERSION                 = 1.1.0
+VERSION                 = 1.1.1
 endif
 
 # Directories
@@ -31,30 +31,54 @@ INC_FLAGS               = -I"${CURDIR}/include"
 INSTALLATIONS           = install_ladspa install_lv2 install_jack install_doc install_vst
 RELEASES                = release_ladspa release_lv2 release_jack release_src release_doc release_vst
 
-# Flags
+# Build profile
+ifeq ($(BUILD_PROFILE),i586)
+export CPU_ARCH         = i586
+export CC_ARCH          = -m32
+export LD_ARCH          = -m elf_i386
+export LD_PATH          = /usr/lib:/lib:/usr/local/lib
+endif
+
+ifeq ($(BUILD_PROFILE),x86_64)
+export CPU_ARCH         = x86_64
+export CC_ARCH          = -m64
+export LD_ARCH          = -m elf_x86_64
+export LD_PATH          = /usr/lib:/lib:/usr/local/lib
+endif
+
+ifeq ($(BUILD_PROFILE),armv6a)
+export CPU_ARCH         = armv6a
+export CC_ARCH          = -march=armv6-a
+export LD_ARCH          = 
+export LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
+endif
+
+ifeq ($(BUILD_PROFILE),armv7a)
+export CPU_ARCH         = armv7a
+export CC_ARCH          = -march=armv7-a
+export LD_ARCH          = 
+export LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
+endif
+
 ifndef CPU_ARCH
 export CPU_ARCH         = x86_64
 export CC_ARCH          = -m64
 export LD_ARCH          = -m elf_x86_64
-export LD_PATH          = /usr/lib64:/lib64
-
-#export CPU_ARCH         = i586
-#export CC_ARCH          = -m32 -msse -msse2
-#export LD_ARCH          = -m elf_i386
-#export LD_PATH          = /usr/lib:/lib
+export LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
+# Location
 export BASEDIR          = ${CURDIR}
 export INCLUDE          = ${INC_FLAGS}
 export MAKE_OPTS        = -s
-export CFLAGS           = $(CC_ARCH) -std=c++98 -fPIC -fno-exceptions -fno-asynchronous-unwind-tables -Wall -pthread -pipe -fno-rtti $(CC_FLAGS) -DLSP_MAIN_VERSION=\"$(VERSION)\"
+export CFLAGS           = $(CC_ARCH) -std=c++98 -fPIC -fdata-sections -ffunction-sections -fno-exceptions -fno-asynchronous-unwind-tables -Wall -pthread -pipe -fno-rtti $(CC_FLAGS) -DLSP_MAIN_VERSION=\"$(VERSION)\"
 export CC               = g++
 export PHP              = php
 export LD               = ld
 export LDFLAGS          = $(LD_ARCH) -L$(LD_PATH)
-export SO_FLAGS         = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -shared -Llibrary -lc -lm -fPIC -lpthread
+export SO_FLAGS         = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,--gc-sections -shared -Llibrary -lc -lm -fPIC -lpthread
 export MERGE_FLAGS      = $(LD_ARCH) -r
-export EXE_FLAGS        = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -lm -fPIC -pthread
+export EXE_FLAGS        = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,--gc-sections -lm -fPIC -pthread
 
 # Objects
 export OBJ_CORE         = $(OBJDIR)/core.o
@@ -245,7 +269,7 @@ release_profile: release_prepare
 	@tar -C $(RELEASE) -czf $(RELEASE)/$(PROFILE_ID).tar.gz $(PROFILE_ID)
 	@rm -rf $(RELEASE)/$(PROFILE_ID)
 
-release_src: release_prepare
+release_src:
 	@echo "Releasing source code binaries"
 	@mkdir -p $(RELEASE)/$(SRC_ID)
 	@cp -R $(RELEASE_SRC) $(RELEASE)/$(SRC_ID)/

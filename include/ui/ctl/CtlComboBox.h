@@ -25,7 +25,7 @@ namespace lsp
                 ui_handler_id_t idChange;
 
             protected:
-                static status_t    slot_change(void *ptr, void *data);
+                static status_t    slot_change(LSPWidget *sender, void *ptr, void *data);
 
                 void submit_value();
                 void do_destroy();

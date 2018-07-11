@@ -28,6 +28,7 @@
 #include <core/x86/sse/msmatrix.h>
 #include <core/x86/sse/search.h>
 #include <core/x86/sse/resampling.h>
+#include <core/x86/sse/3dmath.h>
 #include <core/x86/sse/native.h>
 
 #undef CORE_X86_SSE_IMPL
@@ -85,7 +86,7 @@ namespace lsp
             dsp::abs_mul2                   = sse::abs_mul2;
             dsp::abs_div2                   = sse::abs_div2;
 
-    //        dsp::abs_normalized             = sse::abs_normalized;
+            dsp::abs_normalized             = sse::abs_normalized;
             dsp::normalize                  = sse::normalize;
             dsp::min                        = sse::min;
             dsp::max                        = sse::max;
@@ -94,8 +95,12 @@ namespace lsp
             dsp::minmax                     = sse::minmax;
             dsp::abs_minmax                 = sse::abs_minmax;
 
-    //        dsp::min_index                  = sse::min_index;
-    //        dsp::max_index                  = sse::max_index;
+//            dsp::min_index                  = sse::min_index;
+//            dsp::max_index                  = sse::max_index;
+//            dsp::minmax_index               = sse::minmax_index;
+//            dsp::abs_max_index              = sse::abs_max_index;
+//            dsp::abs_min_index              = sse::abs_min_index;
+//            dsp::abs_minmax_index           = sse::abs_minmax_index;
 
             dsp::add2                       = sse::add2;
             dsp::sub2                       = sse::sub2;
@@ -112,7 +117,7 @@ namespace lsp
             dsp::h_sum                      = sse::h_sum;
             dsp::h_sqr_sum                  = sse::h_sqr_sum;
             dsp::h_abs_sum                  = sse::h_abs_sum;
-    //        dsp::scalar_mul                 = sse::scalar_mul;
+//            dsp::scalar_mul                 = sse::scalar_mul;
 
             dsp::scale_add3                 = sse::scale_add3;
             dsp::scale_sub3                 = sse::scale_sub3;
@@ -154,6 +159,7 @@ namespace lsp
 //            dsp::complex_cvt2modarg         = sse::complex_cvt2modarg;
 //            dsp::complex_cvt2reim           = sse::complex_cvt2reim;
             dsp::complex_mod                = sse::complex_mod;
+//            dsp::packed_complex_mod         = sse::packed_complex_mod; // TODO: test it
             dsp::lr_to_ms                   = sse::lr_to_ms;
             dsp::lr_to_mid                  = sse::lr_to_mid;
             dsp::lr_to_side                 = sse::lr_to_side;
@@ -185,6 +191,94 @@ namespace lsp
             dsp::downsample_4x              = sse::downsample_4x;
             dsp::downsample_6x              = sse::downsample_6x;
             dsp::downsample_8x              = sse::downsample_8x;
+
+            // 3D Math
+            dsp::init_point_xyz             = sse::init_point_xyz;
+            dsp::init_point                 = sse::init_point;
+            dsp::normalize_point            = sse::normalize_point;
+            dsp::scale_point1               = sse::scale_point1;
+            dsp::scale_point2               = sse::scale_point2;
+
+            dsp::init_vector_dxyz           = sse::init_vector_dxyz;
+            dsp::init_vector                = sse::init_vector;
+            dsp::normalize_vector           = sse::normalize_vector;
+            dsp::scale_vector1              = sse::scale_vector1;
+            dsp::scale_vector2              = sse::scale_vector2;
+
+            dsp::init_ray_xyz               = sse::init_ray_xyz;
+            dsp::init_ray_dxyz              = sse::init_ray_dxyz;
+            dsp::init_ray_pdv               = sse::init_ray_pdv;
+            dsp::init_ray_p2                = sse::init_ray_p2;
+            dsp::init_ray_pv                = sse::init_ray_pv;
+            dsp::init_ray                   = sse::init_ray;
+            dsp::calc_ray_xyz               = sse::calc_ray_xyz;
+            dsp::calc_ray_dxyz              = sse::calc_ray_dxyz;
+            dsp::calc_ray_pdv               = sse::calc_ray_pdv;
+            dsp::calc_ray_p2                = sse::calc_ray_p2;
+            dsp::calc_ray_pv                = sse::calc_ray_pv;
+            dsp::calc_ray                   = sse::calc_ray;
+
+            dsp::init_segment_xyz           = sse::init_segment_xyz;
+            dsp::init_segment_p2            = sse::init_segment_p2;
+            dsp::init_segment_pv            = sse::init_segment_pv;
+
+            dsp::init_matrix3d              = sse::init_matrix3d;
+            dsp::init_matrix3d_zero         = sse::init_matrix3d_zero;
+            dsp::init_matrix3d_one          = sse::init_matrix3d_one;
+            dsp::init_matrix3d_identity     = sse::init_matrix3d_identity;
+            dsp::init_matrix3d_translate    = sse::init_matrix3d_translate;
+            dsp::init_matrix3d_scale        = sse::init_matrix3d_scale;
+            dsp::init_matrix3d_rotate_x     = sse::init_matrix3d_rotate_x;
+            dsp::init_matrix3d_rotate_y     = sse::init_matrix3d_rotate_y;
+            dsp::init_matrix3d_rotate_z     = sse::init_matrix3d_rotate_z;
+            dsp::init_matrix3d_rotate_xyz   = sse::init_matrix3d_rotate_xyz;
+            dsp::apply_matrix3d_mv2         = sse::apply_matrix3d_mv2;
+            dsp::apply_matrix3d_mv1         = sse::apply_matrix3d_mv1;
+            dsp::apply_matrix3d_mp2         = sse::apply_matrix3d_mp2;
+            dsp::apply_matrix3d_mp1         = sse::apply_matrix3d_mp1;
+            dsp::apply_matrix3d_mm2         = sse::apply_matrix3d_mm2;
+            dsp::apply_matrix3d_mm1         = sse::apply_matrix3d_mm1;
+            dsp::transpose_matrix3d1        = sse::transpose_matrix3d1;
+            dsp::transpose_matrix3d2        = sse::transpose_matrix3d2;
+
+//            dsp::check_point3d_location_tp  = sse::check_point3d_location_tp;
+//            dsp::check_point3d_location_pvp = sse::check_point3d_location_pvp;
+//            dsp::check_point3d_location_p3p = sse::check_point3d_location_p3p;
+
+            dsp::check_point3d_on_triangle_p3p  = sse::check_point3d_on_triangle_p3p;
+            dsp::check_point3d_on_triangle_pvp  = sse::check_point3d_on_triangle_pvp;
+            dsp::check_point3d_on_triangle_tp   = sse::check_point3d_on_triangle_tp;
+
+            dsp::check_point3d_on_edge_p2p  = sse::check_point3d_on_edge_p2p;
+            dsp::check_point3d_on_edge_pvp  = sse::check_point3d_on_edge_pvp;
+
+            dsp::longest_edge3d_p3          = sse::longest_edge3d_p3;
+            dsp::longest_edge3d_pv          = sse::longest_edge3d_pv;
+
+            dsp::check_triplet3d_p3n        = sse::check_triplet3d_p3n;
+            dsp::check_triplet3d_pvn        = sse::check_triplet3d_pvn;
+            dsp::check_triplet3d_v2n        = sse::check_triplet3d_v2n;
+            dsp::check_triplet3d_vvn        = sse::check_triplet3d_vvn;
+            dsp::check_triplet3d_vv         = sse::check_triplet3d_vv;
+            dsp::check_triplet3d_t          = sse::check_triplet3d_t;
+            dsp::check_triplet3d_tn         = sse::check_triplet3d_tn;
+
+            dsp::find_intersection3d_rt     = sse::find_intersection3d_rt;
+//            dsp::reflect_ray                = sse::reflect_ray;
+
+            dsp::calc_angle3d_v2            = sse::calc_angle3d_v2;
+            dsp::calc_angle3d_vv            = sse::calc_angle3d_vv;
+
+            dsp::calc_normal3d_p3           = sse::calc_normal3d_p3;
+            dsp::calc_normal3d_pv           = sse::calc_normal3d_pv;
+            dsp::calc_normal3d_v2           = sse::calc_normal3d_v2;
+            dsp::calc_normal3d_vv           = sse::calc_normal3d_vv;
+
+            dsp::move_point3d_p2            = sse::move_point3d_p2;
+            dsp::move_point3d_pv            = sse::move_point3d_pv;
+
+//            dsp::init_octant3d_v            = native::init_octant3d_v;
+            dsp::check_octant3d_rv          = sse::check_octant3d_rv;
         }
     }
 

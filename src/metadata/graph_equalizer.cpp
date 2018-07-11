@@ -123,6 +123,8 @@ namespace lsp
     #define EQ_MS_PORTS \
             PAN_CTL("bal", "Output balance", 0.0f), \
             SWITCH("lstn", "Mid/Side listen", 0.0f), \
+            AMP_GAIN100("gain_m", "Mid gain", GAIN_AMP_0_DB), \
+            AMP_GAIN100("gain_s", "Side gain", GAIN_AMP_0_DB), \
             MESH("ag_m", "Amplitude graph Mid", 2, graph_equalizer_base_metadata::FILTER_MESH_POINTS), \
             METER_GAIN("sml", "Output signal meter Left", GAIN_AMP_P_12_DB), \
             MESH("fftg_m", "FFT channel Mid", 2, graph_equalizer_base_metadata::MESH_POINTS), \
@@ -139,8 +141,9 @@ namespace lsp
         COMBO("mode", "Equalizer mode", 0, band_eq_modes), \
         COMBO("slope", "Filter slope", 0, band_slopes), \
         COMBO("fft", "FFT analysis", 0, band_fft_mode), \
-        LOG_CONTROL("react", "FFT reactivity", U_MSEC, para_equalizer_base_metadata::REACT_TIME), \
-        AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f)
+        LOG_CONTROL("react", "FFT reactivity", U_MSEC, graph_equalizer_base_metadata::REACT_TIME), \
+        AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
+        LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, graph_equalizer_base_metadata::ZOOM)
 
     #define BAND_SELECT(fselect) \
         COMBO("fsel", "Band select", 0, fselect)
@@ -292,7 +295,7 @@ namespace lsp
         "graph_equalizer_x16_mono",
         "rvwk",
         LSP_GRAPH_EQUALIZER_BASE + 0,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         graph_equalizer_classes,
         graph_equalizer_x16_mono_ports,
         "equalizer/graphic/x16/mono.xml",
@@ -308,7 +311,7 @@ namespace lsp
         "graph_equalizer_x32_mono",
         "vnca",
         LSP_GRAPH_EQUALIZER_BASE + 1,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         graph_equalizer_classes,
         graph_equalizer_x32_mono_ports,
         "equalizer/graphic/x32/mono.xml",
@@ -324,7 +327,7 @@ namespace lsp
         "graph_equalizer_x16_stereo",
         "argl",
         LSP_GRAPH_EQUALIZER_BASE + 2,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         graph_equalizer_classes,
         graph_equalizer_x16_stereo_ports,
         "equalizer/graphic/x16/stereo.xml",
@@ -340,7 +343,7 @@ namespace lsp
         "graph_equalizer_x32_stereo",
         "nvsd",
         LSP_GRAPH_EQUALIZER_BASE + 3,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         graph_equalizer_classes,
         graph_equalizer_x32_stereo_ports,
         "equalizer/graphic/x32/stereo.xml",
@@ -356,7 +359,7 @@ namespace lsp
         "graph_equalizer_x16_lr",
         "zefi",
         LSP_GRAPH_EQUALIZER_BASE + 4,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         graph_equalizer_classes,
         graph_equalizer_x16_lr_ports,
         "equalizer/graphic/x16/lr.xml",
@@ -372,7 +375,7 @@ namespace lsp
         "graph_equalizer_x32_lr",
         "0heu",
         LSP_GRAPH_EQUALIZER_BASE + 5,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         graph_equalizer_classes,
         graph_equalizer_x32_lr_ports,
         "equalizer/graphic/x32/lr.xml",
@@ -388,7 +391,7 @@ namespace lsp
         "graph_equalizer_x16_ms",
         "woys",
         LSP_GRAPH_EQUALIZER_BASE + 6,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         graph_equalizer_classes,
         graph_equalizer_x16_ms_ports,
         "equalizer/graphic/x16/ms.xml",
@@ -404,7 +407,7 @@ namespace lsp
         "graph_equalizer_x32_ms",
         "ku8j",
         LSP_GRAPH_EQUALIZER_BASE + 7,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         graph_equalizer_classes,
         graph_equalizer_x32_ms_ports,
         "equalizer/graphic/x32/ms.xml",

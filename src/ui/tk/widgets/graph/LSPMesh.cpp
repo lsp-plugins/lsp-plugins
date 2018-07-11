@@ -139,7 +139,7 @@ namespace lsp
             size_t n_vecs   = (nDimensions > basis) ? basis : nDimensions;
             if (n_vecs <= 0)
             {
-                lsp_trace("n_vecs <= 0");
+//                lsp_trace("n_vecs <= 0");
                 return;
             }
 

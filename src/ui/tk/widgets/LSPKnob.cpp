@@ -164,7 +164,7 @@ namespace lsp
 
             // Store new value
             set_value(fMin + (fMax - fMin) * value);
-            sSlots.execute(LSPSLOT_CHANGE);
+            sSlots.execute(LSPSLOT_CHANGE, this);
         }
 
         void LSPKnob::update_value(float delta)
@@ -173,7 +173,7 @@ namespace lsp
 
             // Check that value is in range
             set_value(fValue + delta);
-            sSlots.execute(LSPSLOT_CHANGE);
+            sSlots.execute(LSPSLOT_CHANGE, this);
         }
 
         void LSPKnob::on_click(ssize_t x, ssize_t y)
@@ -323,7 +323,7 @@ namespace lsp
                 return STATUS_OK;
 
             set_value(fDflValue);
-            sSlots.execute(LSPSLOT_CHANGE);
+            sSlots.execute(LSPSLOT_CHANGE, this);
 
             return STATUS_OK;
         }

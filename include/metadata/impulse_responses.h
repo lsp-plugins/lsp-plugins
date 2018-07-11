@@ -24,6 +24,23 @@ namespace lsp
         static const float PREDELAY_DFL             = 0.0f;     // Pre-delay length (ms)
         static const float PREDELAY_STEP            = 0.01f;    // Pre-delay step (ms)
 
+        static const float LCF_MIN                  = 10.0f;
+        static const float LCF_MAX                  = 1000.0f;
+        static const float LCF_DFL                  = 50.0f;
+        static const float LCF_STEP                 = 0.001f;
+
+        static const float HCF_MIN                  = 2000.0f;
+        static const float HCF_MAX                  = 22000.0f;
+        static const float HCF_DFL                  = 10000.0f;
+        static const float HCF_STEP                 = 0.001f;
+
+        static const float BA_MIN                   = GAIN_AMP_M_12_DB;
+        static const float BA_MAX                   = GAIN_AMP_P_12_DB;
+        static const float BA_DFL                   = GAIN_AMP_0_DB;
+        static const float BA_STEP                  = 0.0025f;
+
+        static const size_t EQ_BANDS                = 8;        // 8 bands for equalization
+
         static const size_t MESH_SIZE               = 600;      // Maximum mesh size
         static const size_t TRACKS_MAX              = 2;        // Maximum tracks per mesh/sample
 

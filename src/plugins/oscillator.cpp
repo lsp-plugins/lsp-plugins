@@ -10,7 +10,7 @@
 
 #include <core/debug.h>
 #include <core/colors.h>
-#include <core/Color.h>
+#include <core/util/Color.h>
 
 // Maximum size of temporary buffer in samples
 #define TMP_BUF_SIZE        1024

@@ -1,8 +1,8 @@
 <plugin resizable="false">
-	<grid rows="2" cols="2">
+	<grid rows="3" cols="2" hspacing="4" vspacing="4">
 		<!-- IR editor -->
 		<group text="Impulse Response" expand="true">
-			<vbox>
+			<vbox spacing="4">
 				<!-- File editor -->
 				<align hpos="-1">
 					<hbox spacing="4">
@@ -10,6 +10,8 @@
 						<combo id="fsel" />
 						<label text="FFT frame:" />
 						<combo id="fft" />
+						<label text="IR equalizer" />
+						<button id="wpp" color="green" led="true" />
 					</hbox>
 				</align>
 				
@@ -19,7 +21,9 @@
 							id="ifn${i}" head_id="ihc${i}" tail_id="itc${i}"
 							fadein_id="ifi${i}" fadeout_id="ifo${i}" length_id="ifl${i}"
 							status_id="ifs${i}" mesh_id="ifd${i}"
-							width="600" height="128" />
+							width="600" height="128"
+							path_id="ui:dlg_ir_path"
+						/>
 					</hbox>
 					
 					<grid rows="3" cols="6" visibility=":fsel == ${i}">
@@ -100,7 +104,10 @@
 						<label text="${i}" />
 						<knob id="cim${i}" size="20" />
 						<knob id="pd${i}" size="20" />
-						<combo id="cs${i}" />
+						<vbox spacing="2">
+							<combo id="csf${i}" fill="true" />
+							<combo id="cst${i}" fill="true" />
+						</vbox>
 						<knob id="mk${i}" size="20" />
 						<knob id="com${i}" size="20" />
 						
@@ -108,6 +115,8 @@
 						<value id="cim${i}" same_line="true" />
 						<value id="pd${i}" same_line="true" />
 						<hbox fill="false">
+							<button id="cam${i}" size="12" color="red" led="true" />
+							<label text="Mute" font_size="9" />
 							<led id="ca${i}" />
 							<label text="Active" />
 						</hbox>
@@ -128,7 +137,10 @@
 						<label text="${i}" />
 						<knob id="cim${i}" size="20" />
 						<knob id="pd${i}" size="20" />
-						<combo id="cs${i}" />
+						<vbox spacing="2">
+							<combo id="csf${i}" fill="true" />
+							<combo id="cst${i}" fill="true" />
+						</vbox>
 						<knob id="mk${i}" size="20" />
 						<knob id="com${i}" size="20" />
 						
@@ -136,8 +148,10 @@
 						<value id="cim${i}" same_line="true" />
 						<value id="pd${i}" same_line="true" />
 						<hbox fill="false">
+							<button id="cam${i}" size="12" color="red" led="true" />
+							<label text="Mute" font_size="9" />
 							<led id="ca${i}" />
-							<label text="Active" />
+							<label text="Active" font_size="9" />
 						</hbox>
 						<value id="mk${i}" same_line="true" />
 						<value id="com${i}" same_line="true" />
@@ -145,5 +159,51 @@
 				</grid>
 			</hbox>
 		</group>
+		
+		<!-- Wet equalization -->
+		<cell cols="2" visibility=":wpp">
+			<group text="Wet Signal Equalization">
+				<grid rows="5" cols="10">
+					<label text="Low-cut" />
+					<label text="50" />
+					<label text="107" />
+					<label text="227" />
+					<label text="484" />
+					<label text="1k" />
+					<label text="2.2k" />
+					<label text="4.7k" />
+					<label text="10k" />
+					<label text="High-cut" />
+					
+					<combo id="lcm" />
+					<cell rows="3"><fader id="eq_0" angle="1" /></cell>
+					<cell rows="3"><fader id="eq_1" angle="1" /></cell>
+					<cell rows="3"><fader id="eq_2" angle="1" /></cell>
+					<cell rows="3"><fader id="eq_3" angle="1" /></cell>
+					<cell rows="3"><fader id="eq_4" angle="1" /></cell>
+					<cell rows="3"><fader id="eq_5" angle="1" /></cell>
+					<cell rows="3"><fader id="eq_6" angle="1" /></cell>
+					<cell rows="3"><fader id="eq_7" angle="1" /></cell>
+					<combo id="hcm" />
+					
+					<label text="Freq" />
+					<label text="Freq" />
+					
+					<knob id="lcf" logarithmic="true" />
+					<knob id="hcf" logarithmic="true" />
+					
+					<value id="lcf" />
+					<value id="eq_0" />
+					<value id="eq_1" />
+					<value id="eq_2" />
+					<value id="eq_3" />
+					<value id="eq_4" />
+					<value id="eq_5" />
+					<value id="eq_6" />
+					<value id="eq_7" />
+					<value id="hcf" />
+				</grid>
+			</group>
+		</cell>
 	</grid>
 </plugin>

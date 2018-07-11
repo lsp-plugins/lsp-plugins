@@ -65,29 +65,30 @@ namespace lsp
     };
 
     #define SA_INPUT(x, total) \
-            AUDIO_INPUT_N(x), \
-            AUDIO_OUTPUT_N(x), \
-            { "on_" #x, "Analyse " #x, U_BOOL, R_CONTROL, F_IN, 0, 0, (x == 0) ? 1.0f : 0.0f, 0, NULL    }, \
-            { "solo_" #x, "Solo " #x, U_BOOL, R_CONTROL, F_IN, 0, 0, 0, 0, NULL    }, \
-            { "frz_" #x, "Freeze " #x, U_BOOL, R_CONTROL, F_IN, 0, 0, 0, 0, NULL    }, \
-            { "hue_" #x, "Hue " #x, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }, \
-            AMP_GAIN("sh_" #x, "Shift gain " #x, 1.0f, 1000.0f), \
-            MESH("spc_" #x, "Spectrum " #x, 2, spectrum_analyzer_base_metadata::MESH_POINTS)
+        AUDIO_INPUT_N(x), \
+        AUDIO_OUTPUT_N(x), \
+        { "on_" #x, "Analyse " #x, U_BOOL, R_CONTROL, F_IN, 0, 0, (x == 0) ? 1.0f : 0.0f, 0, NULL    }, \
+        { "solo_" #x, "Solo " #x, U_BOOL, R_CONTROL, F_IN, 0, 0, 0, 0, NULL    }, \
+        { "frz_" #x, "Freeze " #x, U_BOOL, R_CONTROL, F_IN, 0, 0, 0, 0, NULL    }, \
+        { "hue_" #x, "Hue " #x, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }, \
+        AMP_GAIN("sh_" #x, "Shift gain " #x, 1.0f, 1000.0f), \
+        MESH("spc_" #x, "Spectrum " #x, 2, spectrum_analyzer_base_metadata::MESH_POINTS)
 
     #define SA_COMMON(c) \
-            BYPASS, \
-            { "tol", "FFT Tolerance", U_ENUM, R_CONTROL, F_IN, 0, 0, spectrum_analyzer_base_metadata::RANK_DFL - spectrum_analyzer_base_metadata::RANK_MIN, 0, fft_tolerance }, \
-            { "wnd", "FFT Window", U_ENUM, R_CONTROL, F_IN, 0, 0, spectrum_analyzer_base_metadata::WND_DFL, 0, windows::windows }, \
-            { "env", "FFT Envelope", U_ENUM, R_CONTROL, F_IN, 0, 0, spectrum_analyzer_base_metadata::ENV_DFL, 0, envelope::envelopes }, \
-            AMP_GAIN("pamp", "Preamp gain", spectrum_analyzer_base_metadata::PREAMP_DFL, 1000.0f), \
-            { "react",          "Reactivity",       U_SEC,          R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_LOG, \
-                 spectrum_analyzer_base_metadata::REACT_TIME_MIN, spectrum_analyzer_base_metadata::REACT_TIME_MAX, spectrum_analyzer_base_metadata::REACT_TIME_DFL, spectrum_analyzer_base_metadata::REACT_TIME_STEP, NULL }, \
-            { "chn", "Channel", U_ENUM, R_CONTROL, F_IN, 0, 0, 0, 0, spectrum_analyzer_x ## c ## _channels }, \
-            { "sel", "Selector", U_PERCENT, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_LOG, \
-                 spectrum_analyzer_base_metadata::SELECTOR_MIN, spectrum_analyzer_base_metadata::SELECTOR_MAX, spectrum_analyzer_base_metadata::SELECTOR_DFL, spectrum_analyzer_base_metadata::SELECTOR_STEP, NULL }, \
-            { "freq", "Frequency", U_HZ, R_METER, F_OUT | F_UPPER | F_LOWER, \
-                spectrum_analyzer_base_metadata::FREQ_MIN, spectrum_analyzer_base_metadata::FREQ_MAX, spectrum_analyzer_base_metadata::FREQ_DFL, 0, NULL }, \
-            { "lvl", "Level", U_GAIN_AMP, R_METER, F_OUT | F_UPPER | F_LOWER, 0, 10000, 0, 0, NULL }
+        BYPASS, \
+        { "tol", "FFT Tolerance", U_ENUM, R_CONTROL, F_IN, 0, 0, spectrum_analyzer_base_metadata::RANK_DFL - spectrum_analyzer_base_metadata::RANK_MIN, 0, fft_tolerance }, \
+        { "wnd", "FFT Window", U_ENUM, R_CONTROL, F_IN, 0, 0, spectrum_analyzer_base_metadata::WND_DFL, 0, windows::windows }, \
+        { "env", "FFT Envelope", U_ENUM, R_CONTROL, F_IN, 0, 0, spectrum_analyzer_base_metadata::ENV_DFL, 0, envelope::envelopes }, \
+        AMP_GAIN("pamp", "Preamp gain", spectrum_analyzer_base_metadata::PREAMP_DFL, 1000.0f), \
+        LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, spectrum_analyzer_base_metadata::ZOOM), \
+        { "react",          "Reactivity",       U_SEC,          R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_LOG, \
+             spectrum_analyzer_base_metadata::REACT_TIME_MIN, spectrum_analyzer_base_metadata::REACT_TIME_MAX, spectrum_analyzer_base_metadata::REACT_TIME_DFL, spectrum_analyzer_base_metadata::REACT_TIME_STEP, NULL }, \
+        { "chn", "Channel", U_ENUM, R_CONTROL, F_IN, 0, 0, 0, 0, spectrum_analyzer_x ## c ## _channels }, \
+        { "sel", "Selector", U_PERCENT, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP | F_LOG, \
+             spectrum_analyzer_base_metadata::SELECTOR_MIN, spectrum_analyzer_base_metadata::SELECTOR_MAX, spectrum_analyzer_base_metadata::SELECTOR_DFL, spectrum_analyzer_base_metadata::SELECTOR_STEP, NULL }, \
+        { "freq", "Frequency", U_HZ, R_METER, F_OUT | F_UPPER | F_LOWER, \
+            spectrum_analyzer_base_metadata::FREQ_MIN, spectrum_analyzer_base_metadata::FREQ_MAX, spectrum_analyzer_base_metadata::FREQ_DFL, 0, NULL }, \
+        { "lvl", "Level", U_GAIN_AMP, R_METER, F_OUT | F_UPPER | F_LOWER, 0, 10000, 0, 0, NULL }
 
     static const port_t spectrum_analyzer_x1_ports[] =
     {

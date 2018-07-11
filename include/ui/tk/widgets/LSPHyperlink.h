@@ -35,8 +35,8 @@ namespace lsp
                 LSPMenu        *pPopup;
 
             protected:
-                static status_t         slot_on_submit(void *ptr, void *data);
-                static status_t         slot_copy_link_action(void *ptr, void *data);
+                static status_t         slot_on_submit(LSPWidget *sender, void *ptr, void *data);
+                static status_t         slot_copy_link_action(LSPWidget *sender, void *ptr, void *data);
 
             public:
                 explicit LSPHyperlink(LSPDisplay *dpy);

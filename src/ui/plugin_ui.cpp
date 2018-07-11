@@ -7,9 +7,9 @@
 
 #include <core/debug.h>
 #include <core/alloc.h>
+#include <core/buffer.h>
 
 #include <ui/ui.h>
-#include <ui/buffer.h>
 
 #include <ui/serialize.h>
 
@@ -361,6 +361,10 @@ namespace lsp
     {
         SWITCH(UI_MOUNT_STUD_PORT_ID, "Visibility of mount studs in the UI", 1.0f),
         PATH(UI_LAST_VERSION_PORT_ID, "Last version of the product installed"),
+        PATH(UI_DLG_SAMPLE_PATH_ID, "Dialog path for selecting sample files"),
+        PATH(UI_DLG_IR_PATH_ID, "Dialog path for selecting impulse response files"),
+        PATH(UI_DLG_CONFIG_PATH_ID, "Dialog path for saving/loading configuration files"),
+        PATH(UI_DLG_DEFAULT_PATH_ID, "Dialog default path for other files"),
         PORTS_END
     };
 

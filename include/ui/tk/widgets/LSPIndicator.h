@@ -8,7 +8,7 @@
 #ifndef UI_TK_LSPINDICATOR_H_
 #define UI_TK_LSPINDICATOR_H_
 
-#include <ui/buffer.h>
+#include <core/buffer.h>
 
 namespace lsp
 {

@@ -83,8 +83,7 @@ namespace lsp
 
             uint8_t *at(size_t index)
             {
-                uint8_t *res = &vItems[index * nSizeOf];
-                return res;
+                return &vItems[index * nSizeOf];
             }
 
             uint8_t *c_at(size_t index)

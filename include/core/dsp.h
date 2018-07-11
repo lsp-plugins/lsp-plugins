@@ -13,188 +13,20 @@
 #include <math.h>
 #include <string.h>
 
-#define DSP_OPTION_CPU_UNKNOWN          0UL
-#define DSP_OPTION_CPU_INTEL            1UL
-#define DSP_OPTION_CPU_AMD              2UL
-#define DSP_OPTION_CPU_MASK             0x3UL
-#define DSP_OPTION_FPU                  (1UL << 2)
-#define DSP_OPTION_CMOV                 (1UL << 3)
-#define DSP_OPTION_MMX                  (1UL << 4)
-#define DSP_OPTION_SSE                  (1UL << 5)
-#define DSP_OPTION_SSE2                 (1UL << 6)
-#define DSP_OPTION_SSE3                 (1UL << 7)
-#define DSP_OPTION_SSSE3                (1UL << 8)
-#define DSP_OPTION_SSE4_1               (1UL << 9)
-#define DSP_OPTION_SSE4_2               (1UL << 10)
-#define DSP_OPTION_SSE4A                (1UL << 11)
-#define DSP_OPTION_FMA3                 (1UL << 12)
-#define DSP_OPTION_FMA4                 (1UL << 13)
-#define DSP_OPTION_AVX                  (1UL << 14)
-#define DSP_OPTION_AVX2                 (1UL << 15)
+#define __CORE_DSP_DEFS
+
+#include <core/dsp/context.h>
+#include <core/dsp/filters.h>
+#include <core/dsp/resampling.h>
+#include <core/dsp/3dmath.h>
+
+#undef __CORE_DSP_DEFS
 
 namespace lsp
 {
-    //-----------------------------------------------------------------------
-    // DSP context parameters
-    typedef struct dsp_context_t
-    {
-        uint32_t        top;
-        uint32_t        data[15];
-    } dsp_context_t;
-
-    //-----------------------------------------------------------------------
-    // Digital filtering
-    #pragma pack(push, 1)
-    /*
-         Normalized biquad filter:
-                   a0 + a1*z^-1 + a2*z^-2
-           h[z] = ------------------------
-                   1 - b1*z^-1 - b2*z^-2
-     */
-
-    // These constants should be redefined if structure of biquad_t changes
-    #define BIQUAD_X8_A0_OFF    0x40
-    #define BIQUAD_X8_A0_SOFF   "0x40"
-    #define BIQUAD_X8_I0_OFF    0x50
-    #define BIQUAD_X8_I0_SOFF   "0x50"
-    #define BIQUAD_X8_A1_OFF    0x60
-    #define BIQUAD_X8_A1_SOFF   "0x60"
-    #define BIQUAD_X8_I1_OFF    0x70
-    #define BIQUAD_X8_I1_SOFF   "0x70"
-    #define BIQUAD_X8_A2_OFF    0x80
-    #define BIQUAD_X8_A2_SOFF   "0x80"
-    #define BIQUAD_X8_I2_OFF    0x90
-    #define BIQUAD_X8_I2_SOFF   "0x90"
-    #define BIQUAD_X8_B1_OFF    0xa0
-    #define BIQUAD_X8_B1_SOFF   "0xa0"
-    #define BIQUAD_X8_J1_OFF    0xb0
-    #define BIQUAD_X8_J1_SOFF   "0xb0"
-    #define BIQUAD_X8_B2_OFF    0xc0
-    #define BIQUAD_X8_B2_SOFF   "0xc0"
-    #define BIQUAD_X8_J2_OFF    0xd0
-    #define BIQUAD_X8_J2_SOFF   "0xd0"
-
-    #define BIQUAD_X4_A0_OFF    0x40
-    #define BIQUAD_X4_A0_SOFF   "0x40"
-    #define BIQUAD_X4_A1_OFF    0x50
-    #define BIQUAD_X4_A1_SOFF   "0x50"
-    #define BIQUAD_X4_A2_OFF    0x60
-    #define BIQUAD_X4_A2_SOFF   "0x60"
-    #define BIQUAD_X4_B1_OFF    0x70
-    #define BIQUAD_X4_B1_SOFF   "0x70"
-    #define BIQUAD_X4_B2_OFF    0x80
-    #define BIQUAD_X4_B2_SOFF   "0x80"
-
-    #define BIQUAD_X2_A_OFF     BIQUAD_X4_A0_OFF
-    #define BIQUAD_X2_A_SOFF    BIQUAD_X4_A0_SOFF
-    #define BIQUAD_X2_I_OFF     BIQUAD_X4_A1_OFF
-    #define BIQUAD_X2_I_SOFF    BIQUAD_X4_A1_SOFF
-    #define BIQUAD_X2_B_OFF     BIQUAD_X4_A2_OFF
-    #define BIQUAD_X2_B_SOFF    BIQUAD_X4_A2_SOFF
-    #define BIQUAD_X2_J_OFF     BIQUAD_X4_B1_OFF
-    #define BIQUAD_X2_J_SOFF    BIQUAD_X4_B1_SOFF
-
-    #define BIQUAD_X1_A_OFF     BIQUAD_X4_A0_OFF
-    #define BIQUAD_X1_A_SOFF    BIQUAD_X4_A0_SOFF
-    #define BIQUAD_X1_B_OFF     BIQUAD_X4_A1_OFF
-    #define BIQUAD_X1_B_SOFF    BIQUAD_X4_A1_SOFF
-
-    #define BIQUAD_D0_OFF       0x00
-    #define BIQUAD_D0_SOFF      "0x00"
-    #define BIQUAD_D1_OFF       0x10
-    #define BIQUAD_D1_SOFF      "0x10"
-    #define BIQUAD_D2_OFF       0x20
-    #define BIQUAD_D2_SOFF      "0x20"
-    #define BIQUAD_D3_OFF       0x30
-    #define BIQUAD_D3_SOFF      "0x30"
-
-    #define BIQUAD_D_ITEMS      16
-    #define BIQUAD_ALIGN        0x40
-
-    typedef struct biquad_x8_t
-    {
-        float   a0[8];
-        float   a1[8];
-        float   a2[8];
-        float   b1[8];
-        float   b2[8];
-    } biquad_x8_t;
-
-    typedef struct biquad_x4_t
-    {
-        float   a0[4];
-        float   a1[4];
-        float   a2[4];
-        float   b1[4];
-        float   b2[4];
-    } biquad_x4_t;
-
-    typedef struct biquad_x2_t
-    {
-        float   a[8];  //  a0 a0 a1 a2 i0 i1 i2 i3
-        float   b[8];  //  b1 b2 0  0  j0 j1 j2 j3
-    } biquad_x2_t;
-
-    typedef struct biquad_x1_t
-    {
-        float   a[4];  //  a0 a0 a1 a2
-        float   b[4];  //  b1 b2 0  0
-    } biquad_x1_t;
-
-    // This is main filter structure
-    // It should be aligned at least to 16-byte boundary
-    // For best purposes it should be aligned to 64-byte boundary
-    typedef struct biquad_t
-    {
-        float   d[BIQUAD_D_ITEMS];
-        union
-        {
-            biquad_x1_t x1;
-            biquad_x2_t x2;
-            biquad_x4_t x4;
-            biquad_x8_t x8;
-        };
-        float   __pad[8];
-    } __lsp_aligned(BIQUAD_ALIGN) biquad_t;
-
-    #pragma pack(pop)
-
-    //-----------------------------------------------------------------------
-    // Resampling
-    /** Resampling/oversampling funtion type.
-     * Remember that destination buffer must be times greater and have additional gap (>=64 samples) at
-     * the tail to contain complete convolution after resampling
-     *
-     * @param dst destination buffer
-     * @param src source buffer
-     * @param count number of samples to process
-     */
-    typedef void (* resampling_function_t)(float *dst, const float *src, size_t count);
-
     // Namespace containing function
     namespace dsp
     {
-        // Start and finish types
-        typedef void (* start_t)(dsp_context_t *ctx);
-        typedef void (* finish_t)(dsp_context_t *ctx);
-
-        /** Initialize DSP
-         *
-         */
-        void init();
-
-        /** Start DSP processing, save machine context
-         *
-         * @param ctx structure to save context
-         */
-        extern void (* start)(dsp_context_t *ctx);
-
-        /** Finish DSP processing, restore machine context
-         *
-         * @param ctx structure to restore context
-         */
-        extern void (* finish)(dsp_context_t *ctx);
-
         /** Copy data: dst[i] = src[i]
          *
          * @param dst destination pointer
@@ -225,7 +57,7 @@ namespace lsp
          * @param src source pointer
          * @param count number of elements
          */
-        extern void (*move)(float *dst, const float *src, size_t count);
+        extern void (* move)(float *dst, const float *src, size_t count);
 
         extern void (* fill)(float *dst, float value, size_t count);
         extern void (* fill_zero)(float *dst, size_t count);
@@ -359,6 +191,15 @@ namespace lsp
          */
         extern size_t (* max_index)(const float *src, size_t count);
 
+        /** Calculate @ minmax { src }
+         *
+         * @param src source vector
+         * @param count number of elements
+         * @param min pointer to store minimum value index
+         * @param max pointer to store maximum value index
+         */
+        extern void (* minmax_index)(const float *src, size_t count, size_t *min, size_t *max);
+
         /** Calculate @ max { abs(src) }
          *
          * @param src source
@@ -374,6 +215,15 @@ namespace lsp
          * @return index of maximum element
          */
         extern size_t  (* abs_min_index)(const float *src, size_t count);
+
+        /** Calculate @ minmax { abs(src) }
+         *
+         * @param src source vector
+         * @param count number of elements
+         * @param min pointer to store absolute minimum value index
+         * @param max pointer to store absolute maximum value index
+         */
+        extern void (* abs_minmax_index)(const float *src, size_t count, size_t *min, size_t *max);
 
         /** Calculate horizontal sum: result = sum (i) from 0 to count-1 src[i]
          *
@@ -627,16 +477,6 @@ namespace lsp
          */
         extern void (* packed_reverse_fft)(float *dst, const float *src, size_t rank);
 
-//        /** Build 2x larger FFT from 2 FFTs located one after other
-//         *
-//         * @param dst_re real part of signal
-//         * @param dst_im imaginary part of signal
-//         * @param src_re real part of spectrum of 2x FFTs
-//         * @param src_im imaginary part of spectrum of 2x FFTs
-//         * @param rank current rank of FFT
-//         */
-//        extern void (* join_fft)(float *dst_re, float *dst_im, float *src_re, float *src_im, size_t rank);
-
         /** Normalize FFT coefficients
          *
          * @param dst_re target array for real part of signal
@@ -666,6 +506,14 @@ namespace lsp
          * @param rank rank of FFT
          */
         extern void (* combine_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+
+        /** Leave only harmonics with positive frequencies
+         *
+         * @param dst target array for complex data
+         * @param src source array for complex data
+         * @param rank rank of FFT
+         */
+        extern void (* packed_combine_fft)(float *dst, const float *src, size_t rank);
 
         /** Calculate complex multiplication
          *
@@ -743,6 +591,14 @@ namespace lsp
                 const float *src_re, const float *src_im,
                 size_t count
             );
+
+        /** Get module for complex numbers
+         *
+         * @param dst_mod array to sore module
+         * @param src packed complex number data
+         * @param count count number of elements to process
+         */
+        extern void (* packed_complex_mod)(float *dst_mod, const float *src, size_t count);
 
         /** Convert polar-form of complex number to real+imaginary
          *
@@ -843,7 +699,7 @@ namespace lsp
          * @param s side signal
          * @param count number of samples to process
          */
-        extern void    (* ms_to_left)(float *l, const float *m, const float *s, size_t count);
+        extern void (* ms_to_left)(float *l, const float *m, const float *s, size_t count);
 
         /** Convert mid-side signal to right signal
          *
@@ -852,25 +708,7 @@ namespace lsp
          * @param s side signal
          * @param count number of samples to process
          */
-        extern void    (* ms_to_right)(float *r, const float *m, const float *s, size_t count);
-
-        /** Process bi-quadratic filter for multiple samples
-         *
-         * @param dst destination samples
-         * @param src source samples
-         * @param count number of samples to process
-         * @param f bi-quadratic filter structure
-         */
-        extern void (* biquad_process_x1)(float *dst, const float *src, size_t count, biquad_t *f);
-
-        /** Process two bi-quadratic filters for multiple samples simultaneously
-         *
-         * @param dst destination samples
-         * @param src source samples
-         * @param count number of samples to process
-         * @param f bi-quadratic filter structure
-         */
-        extern void (* biquad_process_x2)(float *dst, const float *src, size_t count, biquad_t *f);
+        extern void (* ms_to_right)(float *r, const float *m, const float *s, size_t count);
 
         /** Avoid denormal values
          *
@@ -879,24 +717,6 @@ namespace lsp
          * @param count number of samples
          */
         extern void (* avoid_denormals)(float *dst, const float *src, size_t count);
-
-        /** Process four bi-quadratic filters for multiple samples simultaneously
-         *
-         * @param dst destination samples
-         * @param src source samples
-         * @param count number of samples to process
-         * @param f bi-quadratic filter structure
-         */
-        extern void (* biquad_process_x4)(float *dst, const float *src, size_t count, biquad_t *f);
-
-        /** Process eight bi-quadratic filters for multiple samples simultaneously
-         *
-         * @param dst destination samples
-         * @param src source samples
-         * @param count number of samples to process
-         * @param f bi-quadratic filter structure
-         */
-        extern void (* biquad_process_x8)(float *dst, const float *src, size_t count, biquad_t *f);
 
         /** Do logarithmic vector apply:
          *  x[i] = x[i] + norm_x * logf(absf(v[i]*zero))
@@ -918,136 +738,6 @@ namespace lsp
          * @param count number of samples to process
          */
         extern void (* rgba32_to_bgra32)(void *dst, const void *src, size_t count);
-
-        /** Perform lanczos resampling, destination buffer must be cleared and contain only
-         * convolution tail from previous resampling
-         *
-         * @param dst destination buffer of count*2 samples + 64 samples for convolution tail
-         * @param src source buffer of count samples
-         * @param count number of samples
-         */
-        extern void (* lanczos_resample_2x2)(float *dst, const float *src, size_t count);
-
-        /** Perform lanczos resampling, destination buffer must be cleared and contain only
-         * convolution tail from previous resampling
-         *
-         * @param dst destination buffer of count*2 samples + 64 samples for convolution tail
-         * @param src source buffer of count samples
-         * @param count number of samples
-         */
-        extern void (* lanczos_resample_2x3)(float *dst, const float *src, size_t count);
-
-        /** Perform lanczos resampling, destination buffer must be cleared and contain only
-         * convolution tail from previous resampling
-         *
-         * @param dst destination buffer of count*3 samples + 64 samples for convolution tail
-         * @param src source buffer of count samples
-         * @param count number of samples
-         */
-        extern void (* lanczos_resample_3x2)(float *dst, const float *src, size_t count);
-
-        /** Perform lanczos resampling, destination buffer must be cleared and contain only
-         * convolution tail from previous resampling
-         *
-         * @param dst destination buffer of count*3 samples + 64 samples for convolution tail
-         * @param src source buffer of count samples
-         * @param count number of samples
-         */
-        extern void (* lanczos_resample_3x3)(float *dst, const float *src, size_t count);
-
-        /** Perform lanczos resampling, destination buffer must be cleared and contain only
-         * convolution tail from previous resampling
-         *
-         * @param dst destination buffer of count*4 samples + 64 samples for convolution tail
-         * @param src source buffer of count samples
-         * @param count number of samples
-         */
-        extern void (* lanczos_resample_4x2)(float *dst, const float *src, size_t count);
-
-        /** Perform lanczos resampling, destination buffer must be cleared and contain only
-         * convolution tail from previous resampling
-         *
-         * @param dst destination buffer of count*4 samples + 64 samples for convolution tail
-         * @param src source buffer of count samples
-         * @param count number of samples
-         */
-        extern void (* lanczos_resample_4x3)(float *dst, const float *src, size_t count);
-
-        /** Perform lanczos resampling, destination buffer must be cleared and contain only
-         * convolution tail from previous resampling
-         *
-         * @param dst destination buffer of count*6 samples + 64 samples for convolution tail
-         * @param src source buffer of count samples
-         * @param count number of samples
-         */
-        extern void (* lanczos_resample_6x2)(float *dst, const float *src, size_t count);
-
-        /** Perform lanczos resampling, destination buffer must be cleared and contain only
-         * convolution tail from previous resampling
-         *
-         * @param dst destination buffer of count*6 samples + 64 samples for convolution tail
-         * @param src source buffer of count samples
-         * @param count number of samples
-         */
-        extern void (* lanczos_resample_6x3)(float *dst, const float *src, size_t count);
-
-        /** Perform lanczos resampling, destination buffer must be cleared and contain only
-         * convolution tail from previous resampling
-         *
-         * @param dst destination buffer of count*8 samples + 64 samples for convolution tail
-         * @param src source buffer of count samples
-         * @param count number of samples
-         */
-        extern void (* lanczos_resample_8x2)(float *dst, const float *src, size_t count);
-
-        /** Perform lanczos resampling, destination buffer must be cleared and contain only
-         * convolution tail from previous resampling
-         *
-         * @param dst destination buffer of count*8 samples + 64 samples for convolution tail
-         * @param src source buffer of count samples
-         * @param count number of samples
-         */
-        extern void (* lanczos_resample_8x3)(float *dst, const float *src, size_t count);
-
-        /** Copy each even sample to output buffer
-         *
-         * @param dst destination buffer
-         * @param src source buffer
-         * @param count number of samples to process
-         */
-        extern void (* downsample_2x)(float *dst, const float *src, size_t count);
-
-        /** Copy each 3rd sample to output buffer
-         *
-         * @param dst destination buffer
-         * @param src source buffer
-         * @param count number of samples to process
-         */
-        extern void (* downsample_3x)(float *dst, const float *src, size_t count);
-
-        /** Copy each 4th sample to output buffer
-         *
-         * @param dst destination buffer
-         * @param src source buffer
-         * @param count number of samples to process
-         */
-        extern void (* downsample_4x)(float *dst, const float *src, size_t count);
-
-        /** Copy each 6th sample to output buffer
-         *
-         * @param dst destination buffer
-         * @param src source buffer
-         * @param count number of samples to process
-         */
-        extern void (* downsample_6x)(float *dst, const float *src, size_t count);
-
-        /** Copy each 8th sample to output buffer
-         *
-         * @param dst destination buffer
-         * @param src source buffer
-         * @param count number of samples to process
-         */
-        extern void (* downsample_8x)(float *dst, const float *src, size_t count);
     }
 
 } /* namespace forzee */

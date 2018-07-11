@@ -330,9 +330,8 @@ namespace lsp
             size_t bw = nBorder;
 
             s->fill_round_rect(0, 0, sSize.nWidth, sSize.nHeight, nBorder, SURFMASK_ALL_CORNER, sColor);
-//            draw_border_back(s, 0, 0, sSize.nWidth, sSize.nHeight, nRadius, nBorder, SURFMASK_ALL_CORNER, sColor);
 
-            // Draw glaph content
+            // Draw graph content
             size_t bs   = bw * M_SQRT2 * 0.5;
             ssize_t gw  = sSize.nWidth  - (bs << 1);
             ssize_t gh  = sSize.nHeight - (bs << 1);

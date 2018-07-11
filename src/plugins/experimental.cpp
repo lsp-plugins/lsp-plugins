@@ -7,7 +7,7 @@
 
 #include <core/debug.h>
 #include <plugins/experimental.h>
-#include <core/Color.h>
+#include <core/util/Color.h>
 #include <core/colors.h>
 
 namespace lsp

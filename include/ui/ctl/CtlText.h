@@ -16,6 +16,7 @@ namespace lsp
         {
             protected:
                 CtlExpression   sCoord;
+                CtlExpression   sBasis;
                 CtlColor        sColor;
 
             protected:

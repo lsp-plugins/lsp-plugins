@@ -52,6 +52,15 @@ namespace lsp
         NULL
     };
 
+    static const char *filter_slope[] =
+    {
+        "off",
+        "6dB/oct",
+        "12dB/oct",
+        "18dB/oct",
+        NULL
+    };
+
     #define IR_COMMON \
         BYPASS, \
         COMBO("fft", "FFT size", impulse_responses_base_metadata::FFT_RANK_DEFAULT, ir_fft_rank), \
@@ -76,6 +85,24 @@ namespace lsp
         BLINK("ca" id, "Channel activity" label), \
         CONTROL("pd" id, "Pre-delay" label, U_MSEC, impulse_responses_base_metadata::PREDELAY)
 
+    #define IR_EQ_BAND(id, freq)    \
+        CONTROL("eq_" #id, "Band " freq "Hz gain", U_GAIN_AMP, impulse_responses_base_metadata::BA)
+
+    #define IR_EQUALIZER    \
+        SWITCH("wpp", "Wet post-process", 0),    \
+        COMBO("lcm", "Low-cut mode", 0, filter_slope),      \
+        CONTROL("lcf", "Low-cut frequency", U_HZ, impulse_responses_base_metadata::LCF),   \
+        IR_EQ_BAND(0, "50"), \
+        IR_EQ_BAND(1, "107"), \
+        IR_EQ_BAND(2, "227"), \
+        IR_EQ_BAND(3, "484"), \
+        IR_EQ_BAND(4, "1 k"), \
+        IR_EQ_BAND(5, "2.2 k"), \
+        IR_EQ_BAND(6, "4.7 k"), \
+        IR_EQ_BAND(7, "10 k"), \
+        COMBO("hcm", "High-cut mode", 0, filter_slope),      \
+        CONTROL("hcf", "High-cut frequency", U_HZ, impulse_responses_base_metadata::HCF)
+
     static const port_t impulse_responses_mono_ports[] =
     {
         // Input audio ports
@@ -85,6 +112,7 @@ namespace lsp
         // Input controls
         IR_SAMPLE_FILE("", ""),
         IR_SOURCE("", "", ir_source_mono),
+        IR_EQUALIZER,
 
         PORTS_END
     };
@@ -101,6 +129,7 @@ namespace lsp
         IR_SAMPLE_FILE("1", " 2"),
         IR_SOURCE("_l", " Left", ir_source_stereo),
         IR_SOURCE("_r", " Right", ir_source_stereo),
+        IR_EQUALIZER,
 
         PORTS_END
     };
@@ -116,7 +145,7 @@ namespace lsp
         "impulse_responses_mono",
         "wvwt",
         LSP_IMPULSE_RESPONSES_BASE + 0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         impulse_responses_classes,
         impulse_responses_mono_ports,
         "convolution/impulse_responses/mono.xml",
@@ -132,7 +161,7 @@ namespace lsp
         "impulse_responses_stereo",
         "1khz",
         LSP_IMPULSE_RESPONSES_BASE + 1,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         impulse_responses_classes,
         impulse_responses_stereo_ports,
         "convolution/impulse_responses/stereo.xml",

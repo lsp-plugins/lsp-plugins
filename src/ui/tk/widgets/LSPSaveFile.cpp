@@ -42,16 +42,16 @@ namespace lsp
         {
         }
 
-        status_t LSPSaveFile::slot_on_submit(void *ptr, void *data)
+        status_t LSPSaveFile::slot_on_submit(LSPWidget *sender, void *ptr, void *data)
         {
             LSPSaveFile *_this = widget_ptrcast<LSPSaveFile>(ptr);
             return (_this != NULL) ? _this->on_submit() : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPSaveFile::slot_on_file_submit(void *ptr, void *data)
+        status_t LSPSaveFile::slot_on_file_submit(LSPWidget *sender, void *ptr, void *data)
         {
             LSPSaveFile *_this = widget_ptrcast<LSPSaveFile>(ptr);
-            return (_this != NULL) ? _this->sSlots.execute(LSPSLOT_SUBMIT) : STATUS_BAD_ARGUMENTS;
+            return (_this != NULL) ? _this->sSlots.execute(LSPSLOT_SUBMIT, sender) : STATUS_BAD_ARGUMENTS;
         }
 
         status_t LSPSaveFile::init()

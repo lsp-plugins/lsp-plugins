@@ -10,10 +10,9 @@
 
 #include <metadata/plugins.h>
 #include <core/plugin.h>
-#include <core/Bypass.h>
-#include <core/Crossover.h>
-#include <core/Equalizer.h>
-#include <core/Analyzer.h>
+#include <core/util/Bypass.h>
+#include <core/util/Analyzer.h>
+#include <core/filters/Equalizer.h>
 
 namespace lsp
 {
@@ -61,6 +60,7 @@ namespace lsp
                 Bypass              sBypass;        // Bypass
 
                 size_t              nSync;          // Chart state
+                float               fInGain;        // Input gain
                 float               fOutGain;       // Output gain
                 eq_band_t          *vBands;         // Bands
                 float              *vIn;            // Input buffer
@@ -72,6 +72,7 @@ namespace lsp
 
                 IPort              *pIn;            // Input port
                 IPort              *pOut;           // Output port
+                IPort              *pInGain;        // Input gain
                 IPort              *pTrAmp;         // Amplitude chart
                 IPort              *pFft;           // FFT chart
                 IPort              *pVisible;       // Visibility flag
@@ -94,6 +95,7 @@ namespace lsp
             bool                bListen;        // Listen
             bool                bMatched;       // Matched transorm/Bilinear transform flag
             float               fInGain;        // Input gain
+            float               fZoom;          // Zoom gain
             float              *vFreqs;         // Frequency list
             uint32_t           *vIndexes;       // FFT indexes
             float_buffer_t     *pIDisplay;      // Inline display buffer
@@ -107,6 +109,7 @@ namespace lsp
             IPort              *pFftMode;       // FFT mode
             IPort              *pReactivity;    // FFT reactivity
             IPort              *pShiftGain;     // Shift gain
+            IPort              *pZoom;          // Graph zoom
             IPort              *pBalance;       // Output balance
 
         public:

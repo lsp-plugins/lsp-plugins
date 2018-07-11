@@ -139,7 +139,7 @@ namespace lsp
             SWITCH("xm" id "_" #x, "Filter mute " label #x, 0.0f), \
             LOG_CONTROL_DFL("f" id "_" #x, "Frequency " label #x, U_HZ, para_equalizer_base_metadata::FREQ, f), \
             { "g" id "_" #x, "Gain " label # x, U_GAIN_AMP, R_CONTROL, F_IN | F_LOG | F_UPPER | F_LOWER | F_STEP, GAIN_AMP_M_36_DB, GAIN_AMP_P_36_DB, GAIN_AMP_0_DB, 0.01, NULL, NULL }, \
-            { "q" id "_" #x, "Quality factor " label #x, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP, 0.0f, 100.0f, 0.0f, 0.5f, NULL        }, \
+            { "q" id "_" #x, "Quality factor " label #x, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP, 0.0f, 100.0f, 0.0f, 0.025f, NULL        }, \
             { "hue" id "_" #x, "Hue " label #x, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }, \
             BLINK("fv" id "_" #x, "Filter visibility " label #x), \
             MESH("agf" id "_" #x, "Amplitude graph " label #x, 2, para_equalizer_base_metadata::FILTER_MESH_POINTS)
@@ -157,6 +157,7 @@ namespace lsp
             COMBO("fft", "FFT analysis", 0, equalizer_fft_mode), \
             LOG_CONTROL("react", "FFT reactivity", U_MSEC, para_equalizer_base_metadata::REACT_TIME), \
             AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
+            LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, graph_equalizer_base_metadata::ZOOM), \
             COMBO("fsel", "Filter select", 0, fselect)
 
     #define EQ_MONO_PORTS \
@@ -188,6 +189,8 @@ namespace lsp
     #define EQ_MS_PORTS \
             PAN_CTL("bal", "Output balance", 0.0f), \
             SWITCH("lstn", "Mid/Side listen", 0.0f), \
+            AMP_GAIN100("gain_m", "Mid gain", GAIN_AMP_0_DB), \
+            AMP_GAIN100("gain_s", "Side gain", GAIN_AMP_0_DB), \
             MESH("ag_m", "Amplitude graph Mid", 2, para_equalizer_base_metadata::MESH_POINTS), \
             METER_GAIN("sml", "Output signal meter Left", GAIN_AMP_P_12_DB), \
             MESH("fftg_m", "FFT channel Mid", 2, para_equalizer_base_metadata::MESH_POINTS), \
@@ -470,7 +473,7 @@ namespace lsp
         "para_equalizer_x16_mono",
         "dh3y",
         LSP_PARA_EQUALIZER_BASE + 0,
-        LSP_VERSION(1, 0, 2),
+        LSP_VERSION(1, 0, 3),
         para_equalizer_classes,
         para_equalizer_x16_mono_ports,
         "equalizer/parametric/x16/mono.xml",
@@ -486,7 +489,7 @@ namespace lsp
         "para_equalizer_x32_mono",
         "i0px",
         LSP_PARA_EQUALIZER_BASE + 1,
-        LSP_VERSION(1, 0, 2),
+        LSP_VERSION(1, 0, 3),
         para_equalizer_classes,
         para_equalizer_x32_mono_ports,
         "equalizer/parametric/x32/mono.xml",
@@ -502,7 +505,7 @@ namespace lsp
         "para_equalizer_x16_stereo",
         "a5er",
         LSP_PARA_EQUALIZER_BASE + 2,
-        LSP_VERSION(1, 0, 2),
+        LSP_VERSION(1, 0, 3),
         para_equalizer_classes,
         para_equalizer_x16_stereo_ports,
         "equalizer/parametric/x16/stereo.xml",
@@ -518,7 +521,7 @@ namespace lsp
         "para_equalizer_x32_stereo",
         "s2nz",
         LSP_PARA_EQUALIZER_BASE + 3,
-        LSP_VERSION(1, 0, 2),
+        LSP_VERSION(1, 0, 3),
         para_equalizer_classes,
         para_equalizer_x32_stereo_ports,
         "equalizer/parametric/x32/stereo.xml",
@@ -534,7 +537,7 @@ namespace lsp
         "para_equalizer_x16_lr",
         "4kef",
         LSP_PARA_EQUALIZER_BASE + 4,
-        LSP_VERSION(1, 0, 2),
+        LSP_VERSION(1, 0, 3),
         para_equalizer_classes,
         para_equalizer_x16_lr_ports,
         "equalizer/parametric/x16/lr.xml",
@@ -550,7 +553,7 @@ namespace lsp
         "para_equalizer_x32_lr",
         "ilqj",
         LSP_PARA_EQUALIZER_BASE + 5,
-        LSP_VERSION(1, 0, 2),
+        LSP_VERSION(1, 0, 3),
         para_equalizer_classes,
         para_equalizer_x32_lr_ports,
         "equalizer/parametric/x32/lr.xml",
@@ -566,7 +569,7 @@ namespace lsp
         "para_equalizer_x16_ms",
         "opjs",
         LSP_PARA_EQUALIZER_BASE + 6,
-        LSP_VERSION(1, 0, 2),
+        LSP_VERSION(1, 0, 3),
         para_equalizer_classes,
         para_equalizer_x16_ms_ports,
         "equalizer/parametric/x16/ms.xml",
@@ -582,7 +585,7 @@ namespace lsp
         "para_equalizer_x32_ms",
         "lgz9",
         LSP_PARA_EQUALIZER_BASE + 7,
-        LSP_VERSION(1, 0, 2),
+        LSP_VERSION(1, 0, 3),
         para_equalizer_classes,
         para_equalizer_x32_ms_ports,
         "equalizer/parametric/x32/ms.xml",

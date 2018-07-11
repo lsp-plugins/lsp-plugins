@@ -119,7 +119,7 @@ namespace lsp
             return value;
         }
 
-        status_t LSPScrollBar::slot_on_change(void *ptr, void *data)
+        status_t LSPScrollBar::slot_on_change(LSPWidget *sender, void *ptr, void *data)
         {
             LSPScrollBar *_this = widget_ptrcast<LSPScrollBar>(ptr);
             return (_this != NULL) ? _this->on_change() : STATUS_BAD_ARGUMENTS;
@@ -381,7 +381,7 @@ namespace lsp
                 if (value != fValue)
                 {
                     fValue      = value;
-                    sSlots.execute(LSPSLOT_CHANGE);
+                    sSlots.execute(LSPSLOT_CHANGE, this);
                 }
             }
 
@@ -475,7 +475,7 @@ namespace lsp
             if (value != fValue)
             {
                 fValue      = value;
-                sSlots.execute(LSPSLOT_CHANGE);
+                sSlots.execute(LSPSLOT_CHANGE, this);
             }
 
             return STATUS_OK;
@@ -518,7 +518,7 @@ namespace lsp
                     fValue      = result;
                     query_draw();
 
-                    sSlots.execute(LSPSLOT_CHANGE);
+                    sSlots.execute(LSPSLOT_CHANGE, this);
                 }
             }
             else
@@ -589,7 +589,7 @@ namespace lsp
             {
                 fValue          = result;
                 query_draw();
-                sSlots.execute(LSPSLOT_CHANGE);
+                sSlots.execute(LSPSLOT_CHANGE, this);
             }
 
             return STATUS_OK;
@@ -628,7 +628,7 @@ namespace lsp
                 fValue      = value;
                 query_draw();
 
-                sSlots.execute(LSPSLOT_CHANGE);
+                sSlots.execute(LSPSLOT_CHANGE, this);
             }
         }
 

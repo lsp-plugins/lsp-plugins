@@ -17,6 +17,16 @@ namespace test
 {
     using namespace lsp;
 
+    inline bool float_ck(float a, float b, float tolerance=1e-6)
+    {
+        if (a == 0.0f)
+            return (fabs(b) < tolerance);
+        else if (b == 0.0f)
+            return (fabs(a) < tolerance);
+
+        return fabs(1.0f - b/a) < tolerance;
+    }
+
     class FBuffer
     {
         private:
@@ -132,7 +142,7 @@ namespace test
                 const float *a = pBuffer, *b = src.pBuffer;
                 for (size_t i=0; i<nLength; ++i)
                 {
-                    if (fabs(1.0f - b[i]/a[i]) >= tolerance)
+                    if (!float_ck(b[i], a[i], tolerance))
                         return false;
                 }
                 return true;

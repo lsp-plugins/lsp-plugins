@@ -34,6 +34,8 @@ namespace lsp
                     float           fMax;
                     float           fValue;
                     float           fStep;
+                    float           fTinyStep;
+                    float           fBigStep;
                     float           fLast;
                 } param_t;
 
@@ -77,18 +79,24 @@ namespace lsp
                 inline float        x_maximum() const   { return sLeft.fMax;        }
                 inline float        x_value() const     { return sLeft.fValue;      }
                 inline float        x_step() const      { return sLeft.fStep;       }
+                inline float        x_tiny_step() const { return sLeft.fTinyStep;   }
+                inline float        x_big_step() const  { return sLeft.fBigStep;    }
                 inline bool         x_editable() const  { return nFlags & F_X_EDITABLE; }
 
                 inline float        y_minimum() const   { return sTop.fMin;         }
                 inline float        y_maximum() const   { return sTop.fMax;         }
                 inline float        y_value() const     { return sTop.fValue;       }
                 inline float        y_step() const      { return sTop.fStep;        }
+                inline float        y_tiny_step() const { return sTop.fTinyStep;    }
+                inline float        y_big_step() const  { return sTop.fBigStep;     }
                 inline bool         y_editable() const  { return nFlags & F_Y_EDITABLE; }
 
                 inline float        z_minimum() const   { return sScroll.fMin;      }
                 inline float        z_maximum() const   { return sScroll.fMax;      }
                 inline float        z_value() const     { return sScroll.fValue;    }
                 inline float        z_step() const      { return sScroll.fStep;     }
+                inline float        z_tiny_step() const { return sScroll.fTinyStep; }
+                inline float        z_big_step() const  { return sScroll.fBigStep;  }
                 inline bool         z_editable() const  { return nFlags & F_Z_EDITABLE; }
 
                 inline size_t       size() const        { return nSize;             }
@@ -105,18 +113,24 @@ namespace lsp
                 inline void         set_x_maximum(float value)  { set_value(&sLeft.fMax, value);        }
                 inline void         set_x_value(float value)    { set_limit_value(&sLeft, F_X_EDITABLE, value);  }
                 inline void         set_x_step(float value)     { set_value(&sLeft.fStep, value);       }
+                inline void         set_x_tiny_step(float value){ set_value(&sLeft.fTinyStep, value);   }
+                inline void         set_x_big_step(float value) { set_value(&sLeft.fBigStep, value);    }
                 inline void         set_x_editable(bool value=true) { set_flag(F_X_EDITABLE, value);    }
 
                 inline void         set_y_minimum(float value)  { set_value(&sTop.fMin, value);         }
                 inline void         set_y_maximum(float value)  { set_value(&sTop.fMax, value);         }
                 inline void         set_y_value(float value)    { set_limit_value(&sTop, F_Y_EDITABLE, value);        }
                 inline void         set_y_step(float value)     { set_value(&sTop.fStep, value);        }
+                inline void         set_y_tiny_step(float value){ set_value(&sTop.fTinyStep, value);    }
+                inline void         set_y_big_step(float value) { set_value(&sTop.fBigStep, value);     }
                 inline void         set_y_editable(bool value=true) { set_flag(F_Y_EDITABLE, value);    }
 
                 inline void         set_z_minimum(float value)  { set_value(&sScroll.fMin, value);      }
                 inline void         set_z_maximum(float value)  { set_value(&sScroll.fMax, value);      }
                 inline void         set_z_value(float value)    { set_limit_value(&sScroll, F_Z_EDITABLE, value);     }
                 inline void         set_z_step(float value)     { set_value(&sScroll.fStep, value);     }
+                inline void         set_z_tiny_step(float value){ set_value(&sScroll.fTinyStep, value); }
+                inline void         set_z_big_step(float value) { set_value(&sScroll.fBigStep, value);  }
                 inline void         set_z_editable(bool value=true) { set_flag(F_Z_EDITABLE, value);    }
 
                 void                set_size(size_t value);

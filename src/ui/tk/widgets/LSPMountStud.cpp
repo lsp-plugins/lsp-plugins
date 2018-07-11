@@ -57,7 +57,7 @@ namespace lsp
             LSPWidget::destroy();
         }
 
-        status_t LSPMountStud::slot_on_submit(void *ptr, void *data)
+        status_t LSPMountStud::slot_on_submit(LSPWidget *sender, void *ptr, void *data)
         {
             LSPMountStud *_this = widget_ptrcast<LSPMountStud>(ptr);
             return (_this != NULL) ? _this->on_submit() : STATUS_BAD_ARGUMENTS;
@@ -369,7 +369,7 @@ namespace lsp
                 if (over)
                 {
                     ws_event_t ev = *e;
-                    sSlots.execute(LSPSLOT_SUBMIT, &ev);
+                    sSlots.execute(LSPSLOT_SUBMIT, this, &ev);
                 }
             }
             return STATUS_OK;

@@ -125,49 +125,49 @@ namespace lsp
             sListBox.destroy();
         }
 
-        status_t LSPComboBox::slot_on_change(void *ptr, void *data)
+        status_t LSPComboBox::slot_on_change(LSPWidget *sender, void *ptr, void *data)
         {
             LSPComboBox *_this = widget_ptrcast<LSPComboBox>(ptr);
             return (ptr != NULL) ? _this->on_change() : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPComboBox::slot_on_submit(void *ptr, void *data)
+        status_t LSPComboBox::slot_on_submit(LSPWidget *sender, void *ptr, void *data)
         {
             LSPComboBox *_this = widget_ptrcast<LSPComboBox>(ptr);
             return (ptr != NULL) ? _this->on_submit() : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPComboBox::slot_on_list_change(void *ptr, void *data)
+        status_t LSPComboBox::slot_on_list_change(LSPWidget *sender, void *ptr, void *data)
         {
             LSPComboBox *_this = widget_ptrcast<LSPComboBox>(ptr);
             return (ptr != NULL) ? _this->on_list_change() : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPComboBox::slot_on_list_submit(void *ptr, void *data)
+        status_t LSPComboBox::slot_on_list_submit(LSPWidget *sender, void *ptr, void *data)
         {
             LSPComboBox *_this = widget_ptrcast<LSPComboBox>(ptr);
             return (ptr != NULL) ? _this->on_list_submit() : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPComboBox::slot_on_list_focus_out(void *ptr, void *data)
+        status_t LSPComboBox::slot_on_list_focus_out(LSPWidget *sender, void *ptr, void *data)
         {
             LSPComboBox *_this = widget_ptrcast<LSPComboBox>(ptr);
             return (ptr != NULL) ? _this->on_list_focus_out() : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPComboBox::slot_on_list_mouse_down(void *ptr, void *data)
+        status_t LSPComboBox::slot_on_list_mouse_down(LSPWidget *sender, void *ptr, void *data)
         {
             LSPComboBox *_this = widget_ptrcast<LSPComboBox>(ptr);
             return (ptr != NULL) ? _this->on_grab_mouse_down(static_cast<ws_event_t *>(data)) : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPComboBox::slot_on_list_key_down(void *ptr, void *data)
+        status_t LSPComboBox::slot_on_list_key_down(LSPWidget *sender, void *ptr, void *data)
         {
             LSPComboBox *_this = widget_ptrcast<LSPComboBox>(ptr);
             return (ptr != NULL) ? _this->on_grab_key_down(static_cast<ws_event_t *>(data)) : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPComboBox::slot_on_list_show(void *ptr, void *data)
+        status_t LSPComboBox::slot_on_list_show(LSPWidget *sender, void *ptr, void *data)
         {
             LSPComboBox *_this = widget_ptrcast<LSPComboBox>(ptr);
             return (ptr != NULL) ? _this->on_list_show() : STATUS_BAD_ARGUMENTS;
@@ -175,7 +175,7 @@ namespace lsp
 
         status_t LSPComboBox::on_list_change()
         {
-            return sSlots.execute(LSPSLOT_CHANGE);
+            return sSlots.execute(LSPSLOT_CHANGE, this);
         }
 
         status_t LSPComboBox::on_list_submit()
@@ -183,7 +183,7 @@ namespace lsp
             if (!(nFlags & F_OPENED))
                 return STATUS_OK;
             close();
-            return sSlots.execute(LSPSLOT_SUBMIT);
+            return sSlots.execute(LSPSLOT_SUBMIT, this);
         }
 
         status_t LSPComboBox::on_change()
@@ -451,8 +451,8 @@ namespace lsp
             if (sListBox.selection()->value() == old)
                 return STATUS_OK;
 
-            sSlots.execute(LSPSLOT_CHANGE);
-            return sSlots.execute(LSPSLOT_SUBMIT);
+            sSlots.execute(LSPSLOT_CHANGE, this);
+            return sSlots.execute(LSPSLOT_SUBMIT, this);
         }
 
         ssize_t LSPComboBox::estimate_max_size(ISurface *s)

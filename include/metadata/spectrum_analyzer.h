@@ -36,6 +36,11 @@ namespace lsp
         static const float          SELECTOR_MAX        = 100;
         static const float          SELECTOR_STEP       = 0.005;
 
+        static const float          ZOOM_MIN            = GAIN_AMP_M_36_DB;
+        static const float          ZOOM_MAX            = GAIN_AMP_0_DB;
+        static const float          ZOOM_DFL            = GAIN_AMP_0_DB;
+        static const float          ZOOM_STEP           = 0.025f;
+
         static const float          PREAMP_DFL          = 1.0;
 
         static const size_t         REFRESH_RATE        = 20;

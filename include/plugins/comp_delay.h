@@ -9,8 +9,8 @@
 #define CORE_PLUGINS_COMP_DELAY_H_
 
 #include <core/plugin.h>
-#include <core/Delay.h>
-#include <core/Bypass.h>
+#include <core/util/Delay.h>
+#include <core/util/Bypass.h>
 
 #include <metadata/plugins.h>
 

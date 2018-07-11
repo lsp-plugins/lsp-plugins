@@ -218,12 +218,20 @@ enum AEffectOpcodes
     effGetProgram,
 
     /** Set current program name, maximum string length is kVstMaxProgNameLen
+     * Please be aware that the string lengths supported by the default VST interface
+     * are normally limited to kVstMaxProgNameLen characters. If you copy too much data
+     * into the buffers provided, you will break the Host application.
+     *
      * @param ptr pointer to string with new program name
      * @see kVstMaxProgNameLen
      */
     effSetProgramName,
 
     /** Get current program name, maximum string length is kVstMaxProgNameLen characters
+     * Please be aware that the string lengths supported by the default VST interface
+     * are normally limited to kVstMaxProgNameLen characters. If you copy too much data
+     * into the buffers provided, you will break the Host application.
+     *
      * @param ptr pointer to buffer to store string with current program name
      * @see kVstMaxProgNameLen
      */
@@ -333,6 +341,11 @@ enum AEffectOpcodes
     effIdentify,
 
     /** Get program chunk
+     *  If your plug-in is configured to use chunks (see AudioEffect::programsAreChunks),
+     *  the Host will ask for a block of memory describing the current plug-in state for saving.
+     *  To restore the state at a later stage, the same data is passed back by effSetChunk.
+     *  Alternatively, when not using chunk, the Host will simply save all parameter values.
+     *
      * @param ptr double pointer to void (void **) for obtaining chunk data address
      * @param index type of the chunk: 0 for bank, 1 for program
      */
@@ -370,6 +383,7 @@ enum AEffectOpcodes
     effGetNumProgramCategories,
 
     /** Fill text with name of program index (category deprecated in VST 2.4)
+     *
      * @param index program index
      * @param ptr buffer for program name limited to kVstMaxProgNameLen
      * @return true for success
@@ -709,7 +723,11 @@ enum AEffectOpcodes
  */
 enum AudioMasterOpcodes
 {
-    /** Automate parameter
+    /**
+     * An important thing to notice is that if the user changes a parameter in your editor, which is
+     * out of the Host's control if you are not using the default string based interface, you should
+     * issue audioMasterAutomate callback. This ensures that the Host is notified of the parameter
+     * change, which allows it to record these changes for automation.
      * @param index parameter index
      * @param opt parameter value
      *
@@ -2183,11 +2201,22 @@ typedef struct AEffect
     AEffectProcessProc process;
 
     /** Assign new value to automatable parameter
+     * Parameters are the individual parameter settings the user can adjust.
+     * A VST Host can automate these parameters.
+     *
+     * Parameter values, like all VST parameters, are declared as floats with an inclusive range of
+     * 0.0 to 1.0. How data is presented to the user is merely in the user-interface handling. This is a
+     * convention, but still worth regarding. Maybe the VST-Host's automation system depends on this range.
+     *
+     * @param index parameter index
+     * @param parameter parameter value between 0.0 and 1.0 inclusive
      *
      */
     AEffectSetParameterProc setParameter;
 
     /** Return current value of automatable parameter
+     * @param index parameter index
+     * @return parameter value in range between 0.0 and 1.0 inclusive
      *
      */
     AEffectGetParameterProc getParameter;
@@ -2261,6 +2290,11 @@ typedef struct AEffect
      * http://service.steinberg.de/databases/plugin.nsf/plugIn?openForm
      * This is used to identify a plug-in during save+load of preset and project.
      *
+     * The Host uses this to identify the plug-in, for instance when it is loading
+     * effect programs and banks. On Steinberg Web Page you can find an UniqueID Database
+     * where you can record your UniqueID, it will check if the ID is already used by an
+     * another vendor. You can use CCONST('a','b','c','d') (defined in VST 2.0) to be
+     * platform independent to initialize an UniqueID.
      */
     VstInt32 uniqueID;
 
@@ -2271,6 +2305,11 @@ typedef struct AEffect
 
     /** Process audio samples in replacing mode, the main processing method
      *
+     * @warning Never call any Mac OS 9 functions (or other functions which call into the OS) inside your
+     * audio process function! This will crash the system when your plug-in is run in MP (multiprocessor) mode.
+     * If you must call into the OS, you must use MPRemoteCall () (see Apples' documentation), or
+     * explicitly use functions which are documented by Apple to be MP safe. On Mac OS X read the system
+     * header files to be sure that you only call thread safe functions.
      */
     AEffectProcessProc processReplacing;
 

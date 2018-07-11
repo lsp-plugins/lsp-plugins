@@ -31,7 +31,9 @@ namespace lsp
         "Bad hierarchy",
         "Duplicated",
         "Too big",
+        "Permission denied",
         "I/O error",
+        "End of file",
         "The resource is closed",
         "The feature is not supported",
         NULL

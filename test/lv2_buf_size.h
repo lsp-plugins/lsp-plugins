@@ -8,7 +8,7 @@
 #include <core/fade.h>
 #include <metadata/metadata.h>
 #include <plugins/plugins.h>
-#include <container/lv2ext.h>
+#include <container/lv2/extensions.h>
 
 namespace lv2bufsize_test
 {

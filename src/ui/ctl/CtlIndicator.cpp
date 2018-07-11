@@ -39,10 +39,22 @@ namespace lsp
 
         void CtlIndicator::commit_value(float value)
         {
-            lsp_trace("commit value=%f", value);
+//            lsp_trace("commit value=%f", value);
             if (pWidget == NULL)
                 return;
             LSPIndicator *ind = static_cast<LSPIndicator *>(pWidget);
+
+            if (pPort != NULL)
+            {
+                const port_t *meta = pPort->metadata();
+                if (meta != NULL)
+                {
+                    if (meta->unit == U_GAIN_AMP)
+                        value = 20.0 * logf(value) / M_LN10;
+                    else if (meta->unit == U_GAIN_POW)
+                        value = 10.0 * logf(value) / M_LN10;
+                }
+            }
 
             ind->set_value(value);
         }

@@ -12,19 +12,30 @@
 						<ui:for id="f" first="2000" last="9000" step="1000"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
 						<marker value="20000" color="gray" basis="0" parallel="1" />
 						
-						<marker value="63.09575" color="gray" basis="1" parallel="0" /> <!-- +36 dB -->
-						<marker value="3.98107" color="gray" basis="1" parallel="0" /> <!-- +12 dB -->
-						<marker value="0.25119" color="gray" basis="1" parallel="0" /> <!-- -12 dB -->
-						<marker value="0.01585" color="gray" basis="1" parallel="0" /> <!-- -36 dB -->
+						<marker value="+36 db" color="gray" basis="1" parallel="0" /> <!-- +36 dB -->
+						<marker value="+12 db" color="gray" basis="1" parallel="0" /> <!-- +12 dB -->
+						<marker value="-12 db" color="gray" basis="1" parallel="0" /> <!-- -12 dB -->
+						<marker value="-36 db" color="gray" basis="1" parallel="0" /> <!-- -36 dB -->
+						
+						<!-- Additional markers for zoom -->
+						<marker value="+18 db" color="gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
+						<marker value="+6 db" color="gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
+						<marker value="-6 db" color="gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
+						<marker value="-18 db" color="gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
+						
+						<marker value="+9 db" color="gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
+						<marker value="+3 db" color="gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
+						<marker value="-3 db" color="gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
+						<marker value="-9 db" color="gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
 						
 						<!-- Yellow grid -->
 						<marker value="100" color="yellow" basis="0" parallel="1" /> <!-- 100 Hz -->
 						<marker value="1000" color="yellow" basis="0" parallel="1" /> <!-- 1 kHz -->
 						<marker value="10000" color="yellow" basis="0" parallel="1" /> <!-- 10 kHz -->
 		
-						<marker value="15.84893" color="yellow" basis="1" parallel="0" /> <!-- 24 dB -->
-						<marker value="1" color="white" basis="1" parallel="0" /> <!-- 0 dB -->
-						<marker value="0.06310" color="yellow" basis="1" parallel="0" /> <!-- -24 dB -->
+						<marker value="+24 db" color="yellow" basis="1" parallel="0" /> <!-- 24 dB -->
+						<marker value="0 db" color="white" basis="1" parallel="0" /> <!-- 0 dB -->
+						<marker value="-24 db" color="yellow" basis="1" parallel="0" /> <!-- -24 dB -->
 		
 						<!-- Amplitude graph -->
 						<mesh id="fftg_l" width="2" color="left_channel" visibility_id="fftv_l" />
@@ -65,28 +76,40 @@
 						<dot hpos="16000" vpos_id="g_30" visibility_id="fv_30" editable="true" color="middle_channel" />
 						<dot hpos="20000" vpos_id="g_31" visibility_id="fv_31" editable="true" color="middle_channel" />
 						
-						<!-- Boundaries -->
-						<marker value="251.18861" color="white" basis="1" parallel="0" /> <!-- +48 dB -->
+												<!-- Boundaries -->
+						<marker value="1" color="white" basis="2" parallel="0" /> <!-- +48 dB -->
 						<marker value="24000" color="white" basis="0" parallel="1" />
 						
 						<!-- Axis -->
 						<axis min="10" max="24000" color="white" angle="0.0" logarithmic="true" />
-						<axis min="0.00398" max="251.18861" color="white" angle="0.5" logarithmic="true" /> <!-- -48..+48 dB -->
+						<axis min="-48 db / :zoom" max="48 db * :zoom" color="white" angle="0.5" logarithmic="true" /> <!-- -48..+48 dB -->
+						<axis min="-1" max="1" visible="false" angle="0.5" />
 						
 						<!-- Text -->
-						<text text="Hz" coord="10;0.00398" halign="1" valign="1" />
-						<text text="100" coord="100;0.00398" halign="1" valign="1" />
-						<text text="1K" coord="1000;0.00398" halign="1" valign="1" />
-						<text text="10K" coord="10000;0.00398" halign="1" valign="1" />
+						<text text="Hz" basis="0;2" coord="10;0" halign="1" valign="1" />
+						<text text="100" basis="0;2" coord="100;0" halign="1" valign="1" />
+						<text text="1K" basis="0;2" coord="1000;0" halign="1" valign="1" />
+						<text text="10K" basis="0;2" coord="10000;0" halign="1" valign="1" />
 						
-						<text text="+36" coord="10;63.09575" halign="1" valign="-1" />
-						<text text="+24" coord="10;15.84893" halign="1" valign="-1" />
-						<text text="+12" coord="10;3.98107" halign="1" valign="-1" />
-						<text text="0" coord="10;1" halign="1" valign="1" />
-						<text text="-12" coord="10;0.25119" halign="1" valign="1" />
-						<text text="-24" coord="10;0.06310" halign="1" valign="1" />
-						<text text="-36" coord="10;0.01585" halign="1" valign="1" />
-						<text text="dB" coord="10;251.18861" halign="1" valign="-1" />
+						<text text="+36" coord="10;36 db" halign="1" valign="-1" />
+						<text text="+24" coord="10;24 db" halign="1" valign="-1" />
+						<text text="+12" coord="10;12 db" halign="1" valign="-1" />
+						<text text="0" coord="10;0 db" halign="1" valign="1" />
+						<text text="-12" coord="10;-12 db" halign="1" valign="1" />
+						<text text="-24" coord="10;-24 db" halign="1" valign="1" />
+						<text text="-36" coord="10;-36 db" halign="1" valign="1" />
+						<text text="dB" basis="0;2" coord="10;1" halign="1" valign="-1" />
+						
+						<!-- Additional text -->
+						<text text="+18" coord="10;18 db" halign="1" valign="-1" visibility=":zoom le -18 db" />
+						<text text="+6" coord="10;6 db" halign="1" valign="-1" visibility=":zoom le -18 db" />
+						<text text="-6" coord="10;-6 db" halign="1" valign="1" visibility=":zoom le -18 db" />
+						<text text="-18" coord="10;-18 db" halign="1" valign="1" visibility=":zoom le -18 db" />
+
+						<text text="+9" coord="10;9 db" halign="1" valign="-1" visibility=":zoom le -33 db" />
+						<text text="+3" coord="10;3 db" halign="1" valign="-1" visibility=":zoom le -33 db" />
+						<text text="-3" coord="10;-3 db" halign="1" valign="1" visibility=":zoom le -33 db" />
+						<text text="-9" coord="10;-9 db" halign="1" valign="1" visibility=":zoom le -33 db" />
 					</graph>
 				</align>
 				<hbox spacing="8">
@@ -105,6 +128,11 @@
 					</align>
 					<align pad_right="4" hpos="1"  expand="true"><label text="SPECTRUM GRAPH" /></align>
 				</hbox>
+			</vbox>
+			<vbox>
+				<label text="Zoom" />
+				<fader id="zoom" angle="1" expand="true" />
+				<value id="zoom" />
 			</vbox>
 			<vbox spacing="4">
 				<group text="Signal" expand="true">

@@ -57,7 +57,7 @@ namespace lsp
             }
 
             // Execute slot
-            sSlots.execute(LSPSLOT_DESTROY);
+            sSlots.execute(LSPSLOT_DESTROY, NULL);
             sSlots.destroy();
         }
 

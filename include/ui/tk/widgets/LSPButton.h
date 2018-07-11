@@ -52,8 +52,8 @@ namespace lsp
             protected:
                 bool            check_mouse_over(ssize_t x, ssize_t y);
 
-                static status_t slot_on_change(void *ptr, void *data);
-                static status_t slot_on_submit(void *ptr, void *data);
+                static status_t slot_on_change(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_on_submit(LSPWidget *sender, void *ptr, void *data);
 
             public:
                 inline bool     is_trigger() const      { return nState & S_TRIGGER; }

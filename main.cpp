@@ -49,11 +49,17 @@
 #include "test/downsampling_test.h"
 #include "test/oversampler_test.h"
 
+#include "test/geometry3d_test.h"
+#include "test/objfile3d_test.h"
+#include "test/anyfile3d_test.h"
+
 #include "test/latencydetector_test.h"
 #include "test/lspstring.h"
+#include "test/lspc_test.h"
 #include "test/clipbrd_test.h"
+#include "test/solutions3d_test.h"
 
-#define TEST jack_test
+//#define TEST jack_test
 //#define TEST xwindow_test
 //#define TEST limiter_test
 //#define TEST fft_conv_test
@@ -105,8 +111,12 @@
 //#define TEST oversampler_test
 
 //#define TEST sse_test
-
 //#define TEST latencydetector_test
+//#define TEST geometry3d_test
+#define TEST solutions3d_test
+//#define TEST objfile3d_test
+//#define TEST anyfile3d_test
+//#define TEST lspc_test
 
 int main(int argc, const char**argv)
 {

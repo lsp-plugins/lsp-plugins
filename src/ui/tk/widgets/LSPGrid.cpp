@@ -403,7 +403,9 @@ namespace lsp
                 visible ++;
                 if ((force) || (w->pWidget->redraw_pending()))
                 {
-
+//                    lsp_trace("render child=%p (%s), force=%d, pending=%d",
+//                            w->pWidget, w->pWidget->get_class()->name,
+//                            int(force), int(w->pWidget->redraw_pending()));
                     if (force)
                     {
                         s->fill_frame(

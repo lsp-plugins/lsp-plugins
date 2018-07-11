@@ -72,6 +72,7 @@ namespace lsp
                     status_t        do_main_iteration(timestamp_t ts);
                     void            do_destroy();
                     X11Window      *get_locked(X11Window *wnd);
+                    X11Window      *get_redirect(X11Window *wnd);
                     static void     compress_long_data(void *data, size_t nitems);
                     Atom            gen_selection_id();
                     cb_request_t   *find_request(Window requestor, Atom selection, Time time);

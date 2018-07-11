@@ -9,15 +9,15 @@
 
 #include <data/cvector.h>
 
-#include <container/lv2ext.h>
+#include <ui/ui.h>
+
+#include <container/lv2/extensions.h>
 #include <container/lv2/types.h>
 #include <container/lv2/ports.h>
 #include <container/lv2/executor.h>
 #include <container/lv2/wrapper.h>
-
-#include <ui/ui.h>
-#include <container/lv2ui/ports.h>
-#include <container/lv2ui/wrapper.h>
+#include <container/lv2/ui_ports.h>
+#include <container/lv2/ui_wrapper.h>
 
 namespace lsp
 {
@@ -78,8 +78,8 @@ namespace lsp
         plugin_t *p = NULL;
         const char *uri = NULL;
 
-        #define MOD_LV2(plugin) \
-            if ((!p) && (!strcmp(descriptor->URI, LSP_PLUGIN_URI(lv2, plugin)))) \
+        #define MOD_PLUGIN(plugin) \
+            if ((!p) && (plugin::metadata.lv2_uid != NULL) && (!strcmp(descriptor->URI, LSP_PLUGIN_URI(lv2, plugin)))) \
             { \
                 p   = new plugin(); \
                 if (p == NULL) \

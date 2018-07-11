@@ -12,9 +12,9 @@
 
 #include <core/plugin.h>
 #include <core/midi.h>
-#include <core/MeterGraph.h>
-#include <core/Blink.h>
-#include <core/Sidechain.h>
+#include <core/util/MeterGraph.h>
+#include <core/util/Blink.h>
+#include <core/util/Sidechain.h>
 
 #include <plugins/sampler.h>
 

@@ -1,4 +1,4 @@
-#include <core/SamplePlayer.h>
+#include <core/sampling/SamplePlayer.h>
 
 namespace sample_player_test
 {

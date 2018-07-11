@@ -41,7 +41,7 @@ namespace lsp
             dot->slots()->bind(LSPSLOT_CHANGE, slot_change, this);
         }
 
-        status_t CtlDot::slot_change(void *ptr, void *data)
+        status_t CtlDot::slot_change(LSPWidget *sender, void *ptr, void *data)
         {
             CtlDot *_this       = static_cast<CtlDot *>(ptr);
             if (_this != NULL)
@@ -239,7 +239,11 @@ namespace lsp
                     if (p->flags & F_UPPER)
                         dot->set_z_maximum(max);
                     if (p->flags & F_STEP)
-                        dot->set_z_step(p->step);
+                    {
+                        dot->set_z_tiny_step(p->step);
+                        dot->set_z_step(p->step * 10.0f);
+                        dot->set_z_big_step(p->step * 100.0f);
+                    }
                 }
             }
 

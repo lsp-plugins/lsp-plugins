@@ -8,7 +8,9 @@
 #ifndef CORE_NATIVE_FLOAT_H_
 #define CORE_NATIVE_FLOAT_H_
 
-#include <core/types.h>
+#ifndef __DSP_NATIVE_IMPL
+    #error "This header should not be included directly"
+#endif /* __DSP_NATIVE_IMPL */
 
 namespace lsp
 {

@@ -17,10 +17,17 @@ namespace lsp
             public:
                 static const w_class_t    metadata;
 
-            private:
+            protected:
+                typedef struct coord_t
+                {
+                    size_t      nBasis;
+                    float       fCoord;
+                } coord_t;
+
+            protected:
                 LSPString       sText;
                 size_t          nCoords;
-                float          *vCoords;
+                coord_t        *vCoords;
                 float           fHAlign;
                 float           fVAlign;
                 size_t          nCenter;
@@ -38,7 +45,8 @@ namespace lsp
 
             public:
                 inline size_t get_axes() const { return nCoords; }
-                inline float get_coord(size_t axis) const;
+                float get_coord(size_t axis) const;
+                size_t get_basis(size_t axis) const;
                 inline const char     *text() const { return sText.get_native(); }
                 inline status_t        get_text(LSPString *dst) const { return (dst->set(&sText)) ? STATUS_OK : STATUS_NO_MEM; };
                 inline float halign() const { return fHAlign; }
@@ -49,6 +57,7 @@ namespace lsp
             public:
                 status_t set_axes(size_t axes);
                 status_t set_coord(size_t axis, float value);
+                status_t set_basis(size_t axis, size_t value);
                 status_t set_text(const char *text);
                 status_t set_text(const LSPString *text);
                 void set_halign(float value);

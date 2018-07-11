@@ -150,6 +150,7 @@ namespace lsp
             LSPSLOT_CLOSE,           //!< LSPSLOT_CLOSE Triggered when the window is requested to close
             LSPSLOT_HSCROLL,         //!< LSPSLOT_HSCROLL Triggered when the horizontal scrolling is applied
             LSPSLOT_VSCROLL,         //!< LSPSLOT_VSCROLL Triggered when the vertical scrolling is applied
+            LSPSLOT_ACTIVATE         //!< LSPSLOT_ACTIVATE Triggered some user-interaction
         };
 
         typedef struct w_class_t

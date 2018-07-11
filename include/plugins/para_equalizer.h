@@ -10,10 +10,10 @@
 
 #include <metadata/plugins.h>
 #include <core/plugin.h>
-#include <core/Bypass.h>
-#include <core/Filter.h>
-#include <core/Equalizer.h>
-#include <core/Analyzer.h>
+#include <core/util/Bypass.h>
+#include <core/util/Analyzer.h>
+#include <core/filters/Filter.h>
+#include <core/filters/Equalizer.h>
 
 namespace lsp
 {
@@ -66,6 +66,7 @@ namespace lsp
                 Bypass              sBypass;        // Bypass
 
                 size_t              nLatency;       // Latency of the channel
+                float               fInGain;        // Input gain
                 float               fOutGain;       // Output gain
                 eq_filter_t        *vFilters;       // List of filters
                 float              *vBuffer;        // Buffer for temporary data
@@ -78,6 +79,7 @@ namespace lsp
 
                 IPort              *pIn;            // Input port
                 IPort              *pOut;           // Output port
+                IPort              *pInGain;        // Input gain
                 IPort              *pTrAmp;         // Amplitude chart
                 IPort              *pFft;           // FFT chart
                 IPort              *pVisible;       // Visibility flag
@@ -92,6 +94,7 @@ namespace lsp
             float              *vFreqs;                 // Frequency list
             uint32_t           *vIndexes;               // FFT indexes
             float               fGainIn;                // Input gain
+            float               fZoom;                  // Zoom gain
             bool                bListen;                // Listen mode (only for MS para_equalizer)
             fft_position_t      nFftPosition;           // FFT position
             float_buffer_t     *pIDisplay;              // Inline display buffer
@@ -103,6 +106,7 @@ namespace lsp
             IPort              *pReactivity;            // FFT reactivity
             IPort              *pListen;                // Listen mode (only for MS equalizer)
             IPort              *pShiftGain;             // Shift gain
+            IPort              *pZoom;                  // Graph zoom
             IPort              *pEqMode;                // Equalizer mode
             IPort              *pBalance;               // Output balance
 

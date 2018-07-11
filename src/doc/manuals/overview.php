@@ -15,6 +15,6 @@
 
 <p>Supported architectures are <b>i586</b> and <b>x86_64</b>.</p>
 
-<p>Currently project is founded, developed and maintained by only one person - Vladimir Sadovnikov.</p>
+<p>Currently project is developed and maintained by LSP Project Team with the main founder and developer at the head - Vladimir Sadovnikov.</p>
 
 <p>The official site ot the project is located here: <a href="http://lsp-plug.in/">http://lsp-plug.in/</a></p>

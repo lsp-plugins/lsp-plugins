@@ -324,7 +324,7 @@ namespace lsp
         bUpdateSettings     = true;
 
         // Update refresh rate
-        nSyncSamples        = srate / MESH_REFRESH_RATE;
+        nSyncSamples        = srate / pExt->ui_refresh_rate();
         nClients            = 0;
     }
 

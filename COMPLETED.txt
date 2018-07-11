@@ -1,0 +1,66 @@
+*******************************************************************************
+* FEATURE REQUESTS AND BUG REPORTS: Completed
+*******************************************************************************
+
+==== Equalizer ====
+  Norlick:
+    Any way to make the EQ frequency display focus on a smaller range? Most of my EQing is
+    within 5dB of change so on the current spectrum it looks like very miniscule changes.
+
+==== Convolvers ====
+  Anton Stankevich
+    I often use a Calf Eq 5 after reberb effect. It will be nice to have some parametric equalization for reverb wet signal.
+    This feature can help to give more presence for vocal with reverb for example.
+
+==== UI bugs ====
+  Tom Moody:
+    2. Oscillator, VST:
+      The controls underneath the dropdown menu in "Oscillator Function" are missing. You can switch between waveforms in the menu.
+      The  Oversampling function does not appear under "General."
+      Everthing else in the "General" section works well. So does the Waveform graph.
+      Screenshot: https://www.tommoody.us/images/dec17/LSP_VST_oscillator.png
+    3. Oscillator, LV2:
+      The LV2 has similar issues to the VST but they can be corrected (somewhat) by closing and reopening the plugin interface.
+      The main ones are: The controls underneath the dropdown menu in "Oscillator Function" freeze, and don't change when you
+      select a new waveform. Sometimes "Oversampling" appears, sometimes it's blank. 
+
+  JohnR
+    I just tried 1.1.0 JACK version of the plugins. In the trigger plugins the Instrument menu
+    item doesn't open a file chooser, so samples can't be loaded.
+    In the IR plugins the file chooser works fine and I can load IR files without a problem.
+    I use cwm window manager on Debian 9 amd64. I don't have any LV2 hosts on my system (I'm
+    using non-DAW which is LADSPA only), hence the need for the standalone JACK versions.
+
+==== Delays ====
+  jonetsu:
+    The benefit with using delays is that there are no tails to manage. Also, those delays can be colorized by
+    EQ (dull is farther, bright is closer) and adjusted accordingly with compression. The compression has to work
+    in the same way as the EQ, not against.
+
+  sadko4u:
+	Your explanations helped me to understand what another plugin we are currently missing in linux audio. I think that
+	plugin that allows to simulate set of slap back delays combined with equalization will be very helpful while doing
+	spacial processing. What do you think about it?
+
+==== Lookahead option ====
+  Some dynamics plugins feature lookahead, some don't. As it is a very useful feature
+  (eg. on a sidechain gate, having the gate start closing 1ms or so before the trigger makes it even more
+  effective) and the code is there already, I feel it would be a welcome addition.
+
+  Seconding this request, lookahead would be incredible and make the dynamics plugins very hard to beat.
+  
+==== Limiter issue ====
+  Tom Moody:
+    On the limiter issue:
+    1. I am using Ubuntu Studio 16.04, Ardour 5.6. No Calf plugins (one reason I tried out LSP is I kept having
+       Ardour crashes and am trying to have a "life without Calf")
+    2. The limiter doesn't crash Ardour. I have had the limiter GUI freeze but I can't duplicate this at the moment.
+       Possibly this was an issue with Ardour 5.5 -- I'll let you know if it happens again.
+    3. If the limiter GUI is open, when I open the export dialog, the limiter GUI stays on top of the export window.
+       To view the export window, I have to move the limiter GUI to one side. When I export, the export window shows
+       no moving progress bar, it just sits there until the file is exported, then the "analysis window" pops up on
+       conclusion of the export. There is no movement in the limiter GUI window during the export, either, until the
+       very conclusion of the export, then a little squiggle of audio appears in the graph, just at the fade.
+    It's a minor issue. One thing I wanted to mention, on a positive note. I've been using the PSP Vintage Warmer plugin
+    on Windows as a maximizer for a final, admittedly non-expert master. I am gradually moving everything to Linux, and your
+    limiter in "boost" mode is an excellent replacement for the PSP. Much appreciated.

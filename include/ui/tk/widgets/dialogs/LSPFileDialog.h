@@ -78,14 +78,14 @@ namespace lsp
                 size_t              nUIDGen;
 
             protected:
-                static status_t     slot_on_action(void *ptr, void *data);
-                static status_t     slot_on_confirm(void *ptr, void *data);
-                static status_t     slot_on_cancel(void *ptr, void *data);
-                static status_t     slot_on_search(void *ptr, void *data);
-                static status_t     slot_mouse_dbl_click(void *ptr, void *data);
-                static status_t     slot_list_change(void *ptr, void *data);
-                static status_t     slot_on_go(void *ptr, void *data);
-                static status_t     slot_on_up(void *ptr, void *data);
+                static status_t     slot_on_action(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_confirm(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_cancel(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_search(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_mouse_dbl_click(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_list_change(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_go(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_up(LSPWidget *sender, void *ptr, void *data);
 
                 virtual status_t    on_action(void *data);
                 virtual status_t    on_confirm(void *data);

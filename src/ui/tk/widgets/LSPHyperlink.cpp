@@ -76,13 +76,13 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPHyperlink::slot_on_submit(void *ptr, void *data)
+        status_t LSPHyperlink::slot_on_submit(LSPWidget *sender, void *ptr, void *data)
         {
             LSPHyperlink *_this = widget_ptrcast<LSPHyperlink>(ptr);
             return (_this != NULL) ? _this->on_submit() : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPHyperlink::slot_copy_link_action(void *ptr, void *data)
+        status_t LSPHyperlink::slot_copy_link_action(LSPWidget *sender, void *ptr, void *data)
         {
             LSPHyperlink *_this = widget_ptrcast<LSPHyperlink>(ptr);
             if (_this == NULL)
@@ -290,7 +290,7 @@ namespace lsp
             if (inside(e->nLeft, e->nTop))
             {
                 if ((flags == (1 << MCB_LEFT)) && (e->nCode == MCB_LEFT))
-                    sSlots.execute(LSPSLOT_SUBMIT);
+                    sSlots.execute(LSPSLOT_SUBMIT, this);
                 else if ((flags == (1 << MCB_RIGHT)) && (e->nCode == MCB_RIGHT) && (pPopup != NULL))
                     pPopup->show(this, e);
             }

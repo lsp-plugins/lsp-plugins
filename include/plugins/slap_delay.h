@@ -11,10 +11,9 @@
 #include <metadata/plugins.h>
 
 #include <core/plugin.h>
-#include <core/Bypass.h>
-#include <core/Delay.h>
-#include <core/Equalizer.h>
-#include <core/ShiftBuffer.h>
+#include <core/util/Bypass.h>
+#include <core/util/ShiftBuffer.h>
+#include <core/filters/Equalizer.h>
 
 namespace lsp
 {

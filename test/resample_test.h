@@ -5,7 +5,7 @@
 #include <core/dsp.h>
 #include <core/windows.h>
 #include <core/envelope.h>
-#include <core/AudioFile.h>
+#include <core/files/AudioFile.h>
 
 namespace resample_test
 {

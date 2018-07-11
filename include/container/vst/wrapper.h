@@ -29,6 +29,7 @@ namespace lsp
             IExecutor                  *pExecutor;
             vst_state_buffer           *pState;
             bool                        bUpdateSettings;
+            float                       fLatency;
 
             cvector<VSTAudioPort>       vInputs;        // List of input audio ports
             cvector<VSTAudioPort>       vOutputs;       // List of output audio ports
@@ -45,7 +46,7 @@ namespace lsp
             void create_ports(const port_t *meta);
 
         protected:
-            static status_t slot_ui_resize(void *ptr, void *data);
+            static status_t slot_ui_resize(LSPWidget *sender, void *ptr, void *data);
 
         public:
             VSTWrapper(
@@ -65,6 +66,7 @@ namespace lsp
                 sRect.left      = 0;
                 sRect.bottom    = 0;
                 sRect.right     = 0;
+                fLatency        = 0.0f;
                 bUpdateSettings = true;
             }
 
@@ -422,11 +424,15 @@ namespace lsp
 
         // Report latency
         float latency           = pPlugin->get_latency();
-        if (pEffect->initialDelay != latency)
+        if (fLatency != latency)
         {
             pEffect->initialDelay   = latency;
+            fLatency                = latency;
             if (pMaster)
+            {
+                lsp_trace("Reporting latency = %d samples to the host", int(latency));
                 pMaster(pEffect, audioMasterIOChanged, 0, 0, 0, 0);
+            }
         }
 
         // Post-process ALL ports
@@ -504,6 +510,13 @@ namespace lsp
         sRect.left      = 0;
         sRect.right     = sr.nMinWidth;
         sRect.bottom    = sr.nMinHeight;
+
+        realize_t r;
+        r.nLeft         = 0;
+        r.nTop          = 0;
+        r.nWidth        = sr.nMinWidth;
+        r.nHeight       = sr.nMinHeight;
+        resize_ui(&r);
 //
 //        wnd->set_width(sr.nMinWidth);
 //        wnd->set_height(sr.nMinHeight);
@@ -546,7 +559,7 @@ namespace lsp
         }
     }
 
-    status_t VSTWrapper::slot_ui_resize(void *ptr, void *data)
+    status_t VSTWrapper::slot_ui_resize(LSPWidget *sender, void *ptr, void *data)
     {
         VSTWrapper *_this = static_cast<VSTWrapper *>(ptr);
         _this->resize_ui(static_cast<realize_t *>(data));

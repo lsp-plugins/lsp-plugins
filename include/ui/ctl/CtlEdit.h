@@ -18,9 +18,9 @@ namespace lsp
                 LSPFileDialog      *pDialog;
 
             protected:
-                static status_t slot_on_submit(void *ptr, void *data);
-                static status_t slot_on_action(void *ptr, void *data);
-                static status_t slot_on_cancel(void *ptr, void *data);
+                static status_t slot_on_submit(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_on_action(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_on_cancel(LSPWidget *sender, void *ptr, void *data);
 
             public:
                 CtlEdit(CtlRegistry *src, LSPEdit *widget);

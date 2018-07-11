@@ -10,8 +10,8 @@
 
 #include <core/plugin.h>
 #include <metadata/plugins.h>
-#include <core/LatencyDetector.h>
-#include <core/Bypass.h>
+#include <core/util/Bypass.h>
+#include <core/util/LatencyDetector.h>
 
 namespace lsp
 {

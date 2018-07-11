@@ -6,7 +6,7 @@
 #include <metadata/metadata.h>
 #include <plugins/plugins.h>
 
-#include <container/lv2ext.h>
+#include <container/lv2/extensions.h>
 
 #define LSP_LV2_EMIT_HEADER(count, text)    \
     if (count == 0) \
@@ -189,15 +189,6 @@ namespace lsp
             }
             u++;
         }
-    }
-
-    static void print_ladspa_replacement(FILE *out, const plugin_metadata_t &m, const char *name)
-    {
-        #define MOD_LADSPA(plugin) \
-            if ((m.ladspa_id > 0) && (!strcmp(name, #plugin))) \
-                fprintf(out, "\tdc:replaces <urn:ladspa:%ld> ;\n", long(m.ladspa_id));
-
-        #include <metadata/modules.h>
     }
 
     void gen_plugin_ui_ttl (FILE *out, size_t requirements, const plugin_metadata_t &m, const char *name, const char *ui_uri, const char *uri)
@@ -409,6 +400,7 @@ namespace lsp
         fprintf(out, "@prefix units:     <" LV2_UNITS_PREFIX "> .\n");
         fprintf(out, "@prefix atom:      <" LV2_ATOM_PREFIX "> .\n");
         fprintf(out, "@prefix urid:      <" LV2_URID_PREFIX "> .\n");
+        fprintf(out, "@prefix opts:      <" LV2_OPTIONS_PREFIX "> .\n");
         if (requirements & REQ_WORKER)
             fprintf(out, "@prefix work:      <" LV2_WORKER_PREFIX "> .\n");
         fprintf(out, "@prefix rsz:       <" LV2_RESIZE_PORT_PREFIX "> .\n");
@@ -549,7 +541,13 @@ namespace lsp
             fprintf(out, " ;\n");
         }
 
-        print_ladspa_replacement(out, m, m.lv2_uid);
+        // Different supported options
+        if (requirements & REQ_LV2UI)
+            fprintf(out, "\topts:supportedOption ui:updateRate ;\n");
+
+        // Replacement for LADSPA plugin
+        if (m.ladspa_id > 0)
+            fprintf(out, "\tdc:replaces <urn:ladspa:%ld> ;\n", long(m.ladspa_id));
         fprintf(out, "\n");
 
         size_t port_id = 0;
@@ -873,8 +871,12 @@ namespace lsp
 
         // Output plugins
         size_t id = 0;
-        #define MOD_LV2(plugin) \
-            gen_plugin_ttl(path, plugin::metadata, LSP_PLUGIN_URI(lv2, plugin)); id++;
+        #define MOD_PLUGIN(plugin) \
+        if (plugin::metadata.lv2_uid != NULL) \
+        { \
+            gen_plugin_ttl(path, plugin::metadata, LSP_PLUGIN_URI(lv2, plugin)); \
+            id++; \
+        }
         #include <metadata/modules.h>
     }
 }

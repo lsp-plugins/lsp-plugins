@@ -1,84 +1,134 @@
 <plugin resizable="false">
-	<!-- IR editor -->
-	<group text="Impulse Response">
-		<vbox spacing="4">
-			<!-- File editor -->
-			<align hpos="-1">
-				<hbox spacing="4" fill="false">
-					<label text="FFT frame:" />
-					<combo id="fft" />
-				</hbox>
-			</align>
-			
-			<hbox border="2">
-				<file
-					id="ifn" head_id="ihc" tail_id="itc"
-					fadein_id="ifi" fadeout_id="ifo" length_id="ifl"
-					status_id="ifs" mesh_id="ifd"
-					width="600" height="128" />
-			</hbox>
-
-			<hbox>
-				<grid rows="3" cols="5" expand="true">
-					<label text="Head cut" />
-					<label text="Tail cut" />
-					<label text="Fade in" />
-					<label text="Fade out" />
-					<label text="Listen" />
-					
-					<knob id="ihc" size="20" />
-					<knob id="itc" size="20" />
-					<knob id="ifi" size="20" scale_color="yellow" />
-					<knob id="ifo" size="20" scale_color="yellow" />
-					<button id="ils" size="32" toggle="false" />
-					
-					<value id="ihc" />
-					<value id="itc" />
-					<value id="ifi" />
-					<value id="ifo" />
-					<led id="ils" />
-				</grid>
-				
-				<vsep />
-				
-				<grid rows="3" cols="1" expand="true">
-					<label text="Source" />
-					<combo id="cs" />
-					<hbox fill="false">
-						<led id="ca" />
-						<label text="Active" />
+	<vbox spacing="4">
+		<!-- IR editor -->
+		<group text="Impulse Response">
+			<vbox spacing="4">
+				<!-- File editor -->
+				<align hpos="-1">
+					<hbox spacing="4" fill="false">
+						<label text="FFT frame:" />
+						<combo id="fft" />
+						<label text="IR equalizer" />
+						<button id="wpp" color="green" led="true" />
 					</hbox>
-				</grid>
-				<vsep />
+				</align>
 				
-				<grid rows="3" cols="2" expand="true">
-					<label text="Pre-delay" />
-					<label text="Makeup" />
+				<hbox border="2">
+					<file
+						id="ifn" head_id="ihc" tail_id="itc"
+						fadein_id="ifi" fadeout_id="ifo" length_id="ifl"
+						status_id="ifs" mesh_id="ifd"
+						width="600" height="128"
+						path_id="ui:dlg_ir_path"
+					/>
+				</hbox>
+	
+				<hbox>
+					<grid rows="3" cols="5" expand="true">
+						<label text="Head cut" />
+						<label text="Tail cut" />
+						<label text="Fade in" />
+						<label text="Fade out" />
+						<label text="Listen" />
+						
+						<knob id="ihc" size="20" />
+						<knob id="itc" size="20" />
+						<knob id="ifi" size="20" scale_color="yellow" />
+						<knob id="ifo" size="20" scale_color="yellow" />
+						<button id="ils" size="32" toggle="false" />
+						
+						<value id="ihc" />
+						<value id="itc" />
+						<value id="ifi" />
+						<value id="ifo" />
+						<led id="ils" />
+					</grid>
 					
-					<knob id="pd" />
-					<knob id="mk" />
+					<vsep />
 					
-					<value id="pd" />
-					<value id="mk" />
-				</grid>
-				<vsep />
-				<grid rows="3" cols="2" expand="true">
-					<label text="Dry" scale_color="yellow" />
-					<label text="Wet" scale_color="yellow" />
+					<grid rows="3" cols="1" expand="true">
+						<label text="Source" />
+						<combo id="cs" />
+						<hbox fill="false">
+							<led id="ca" />
+							<label text="Active" />
+						</hbox>
+					</grid>
+					<vsep />
 					
-					<knob id="dry" />
-					<knob id="wet" />
-					
-					<value id="dry" />
-					<value id="wet" />
-				</grid>
-				<vsep />
-				<grid rows="3" cols="1" expand="true">
-					<label text="Output" />
-					<knob id="g_out" />
-					<value id="g_out" />
-				</grid>
-			</hbox>
-		</vbox>
-	</group>
+					<grid rows="3" cols="2" expand="true">
+						<label text="Pre-delay" />
+						<label text="Makeup" />
+						
+						<knob id="pd" />
+						<knob id="mk" />
+						
+						<value id="pd" />
+						<value id="mk" />
+					</grid>
+					<vsep />
+					<grid rows="3" cols="2" expand="true">
+						<label text="Dry" scale_color="yellow" />
+						<label text="Wet" scale_color="yellow" />
+						
+						<knob id="dry" />
+						<knob id="wet" />
+						
+						<value id="dry" />
+						<value id="wet" />
+					</grid>
+					<vsep />
+					<grid rows="3" cols="1" expand="true">
+						<label text="Output" />
+						<knob id="g_out" />
+						<value id="g_out" />
+					</grid>
+				</hbox>
+			</vbox>
+		</group>
+		
+		<!-- Wet equalization -->
+		<group text="Wet Signal Equalization" visibility=":wpp">
+			<grid rows="5" cols="10">
+				<label text="Low-cut" />
+				<label text="50" />
+				<label text="107" />
+				<label text="227" />
+				<label text="484" />
+				<label text="1k" />
+				<label text="2.2k" />
+				<label text="4.7k" />
+				<label text="10k" />
+				<label text="High-cut" />
+				
+				<combo id="lcm" />
+				<cell rows="3"><fader id="eq_0" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_1" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_2" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_3" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_4" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_5" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_6" angle="1" /></cell>
+				<cell rows="3"><fader id="eq_7" angle="1" /></cell>
+				<combo id="hcm" />
+				
+				<label text="Freq" />
+				<label text="Freq" />
+				
+				<knob id="lcf" logarithmic="true" />
+				<knob id="hcf" logarithmic="true" />
+				
+				<value id="lcf" />
+				<value id="eq_0" />
+				<value id="eq_1" />
+				<value id="eq_2" />
+				<value id="eq_3" />
+				<value id="eq_4" />
+				<value id="eq_5" />
+				<value id="eq_6" />
+				<value id="eq_7" />
+				<value id="hcf" />
+			</grid>
+		</group>
+	</vbox>
 </plugin>

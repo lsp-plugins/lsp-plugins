@@ -124,10 +124,6 @@ namespace lsp
                     return t->enType   = TT_LBRACE;
                 case ')': // TT_RBRACE
                     return t->enType   = TT_RBRACE;
-                case '+': // TT_ADD
-                    return t->enType   = TT_ADD;
-                case '-': // TT_SUB
-                    return t->enType   = TT_SUB;
                 case '*': // TT_MUL
                     return t->enType   = TT_MUL;
                 case '/': // TT_DIV
@@ -670,16 +666,40 @@ namespace lsp
                 // Defaults
                 default: // TT_VALUE
                 {
-                    const char *p = &t->pStr[-1];
+                    const char *p   = &t->pStr[-1];
 
                     // Try to parse float value
-                    char *endptr    = NULL;
+                    char *ep        = NULL;
                     errno           = 0;
-                    t->fValue       = strtof(p, &endptr);
+                    t->fValue       = strtof(p, &ep);
                     if (errno != 0)
-                        return t->enType    = TT_UNKNOWN;
+                    {
+                        if (c == '+')
+                            t->enType   = TT_ADD;
+                        else if (c == '-')
+                            t->enType   = TT_SUB;
+                        else
+                            t->enType    = TT_UNKNOWN;
+                        return t->enType;
+                    }
 
-                    t->pStr     = endptr;
+                    t->pStr     = ep;
+
+                    // Lookup for the extra measurements
+                    if (ep != NULL)
+                    {
+                        // Skip spaces
+                        while (*ep == ' ')
+                            ep++;
+                        // Check data
+                        if (((ep[0] == 'd') || (ep[0] == 'D')) &&
+                            ((ep[1] == 'b') || (ep[1] == 'B')))
+                        {
+                            t->pStr     = &ep[2];
+                            t->fValue   = expf(t->fValue * M_LN10 * 0.05);
+                        }
+                    }
+
                     return t->enType    = TT_VALUE;
                 }
             }

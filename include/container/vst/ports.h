@@ -25,19 +25,21 @@ namespace lsp
                 // Set value as integer or normalized
                 if (pMetadata->unit == U_BOOL)
                     value = (value >= 0.5f) ? 1.0f : 0.0f;
-                else if (pMetadata->unit == U_ENUM) { /* nothing */ }
-                else if (pMetadata->unit == U_SAMPLES)
-                    value = truncf(value);
+//                else if (pMetadata->unit == U_ENUM) { /* nothing */ }
+//                else if (pMetadata->unit == U_SAMPLES)
+//                    value = truncf(value);
                 else
                 {
-                    if (pMetadata->flags & F_INT)
-                        value = truncf(value);
-                    else
-                    {
+//                    if (pMetadata->flags & F_INT)
+//                        value = truncf(value);
+//                    else
+//                    {
                         float min = 0.0f, max = 1.0f;
                         get_port_parameters(pMetadata, &min, &max, NULL);
                         value = min + value * (max - min);
-                    }
+//                    }
+                     if ((pMetadata->flags & F_INT) || (pMetadata->unit == U_ENUM) || (pMetadata->unit == U_SAMPLES))
+                         value  = truncf(value);
                 }
 
 //                lsp_trace("result = %.3f", value);
@@ -48,19 +50,23 @@ namespace lsp
             {
 //                lsp_trace("input = %.3f", value);
                 // Set value as integer or normalized
-                if (pMetadata->unit == U_BOOL) { /* nothing */ }
-                else if (pMetadata->unit == U_ENUM) { /* nothing */ }
-                else if (pMetadata->unit == U_SAMPLES) { /* nothing */ }
+                if (pMetadata->unit == U_BOOL) // { /* nothing */ }
+                    value = (value >= 0.5f) ? 1.0f : 0.0f;
+//                else if (pMetadata->unit == U_ENUM) { /* nothing */ }
+//                else if (pMetadata->unit == U_SAMPLES) { /* nothing */ }
                 else
                 {
-                    if (pMetadata->flags & F_INT) { /* nothing */ }
-                    else
-                    {
+                    if ((pMetadata->flags & F_INT) || (pMetadata->unit == U_ENUM) || (pMetadata->unit == U_SAMPLES))
+                        value  = truncf(value);
+
+//                    if (pMetadata->flags & F_INT) { /* nothing */ }
+//                    else
+//                    {
                         // Normalize value
                         float min = 0.0f, max = 1.0f;
                         get_port_parameters(pMetadata, &min, &max, NULL);
                         value = (max != min) ? (value - min) / (max - min) : 0.0f;
-                    }
+//                    }
                 }
 
 //                lsp_trace("result = %.3f", value);
@@ -151,7 +157,7 @@ namespace lsp
         public:
             virtual void setValue(float value)
             {
-                int32_t v = value;
+                int32_t v   = value;
                 if ((v >= 0) && (v < ssize_t(nRows)))
                     nCurrRow        = v;
             }
@@ -267,8 +273,8 @@ namespace lsp
                 setValue(value);
                 if ((nID >= 0) && (pEffect != NULL) && (hCallback != NULL))
                 {
-                    lsp_trace("hCallback=%p, pEffect=%p, operation=%d, id=%d, value=%.5f",
-                            hCallback, pEffect, int(audioMasterAutomate), int(nID), value);
+                    lsp_trace("hCallback=%p, pEffect=%p, operation=%d, id=%d, value=%.5f, vst_value=%.5f",
+                            hCallback, pEffect, int(audioMasterAutomate), int(nID), value, fVstValue);
                     hCallback(pEffect, audioMasterAutomate, nID, 0, NULL, fVstValue);
                 }
             }

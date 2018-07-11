@@ -40,6 +40,7 @@ namespace lsp
                 bool                bHasFocus;
                 bool                bOverridePointer;
                 bool                bSizeRequest;
+                bool                bMapFlag;
                 float               nVertPos;
                 float               nHorPos;
                 float               nVertScale;
@@ -52,7 +53,7 @@ namespace lsp
             // Slot handlers
             protected:
                 static status_t     tmr_redraw_request(timestamp_t ts, void *args);
-                static status_t     slot_window_close(void *ptr, void *data);
+                static status_t     slot_window_close(LSPWidget *sender, void *ptr, void *data);
 
                 virtual LSPWidget  *find_widget(ssize_t x, ssize_t y);
                 status_t            do_render();

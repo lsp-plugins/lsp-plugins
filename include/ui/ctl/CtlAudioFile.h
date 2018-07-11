@@ -18,6 +18,7 @@ namespace lsp
                 CtlColor        sColor;
                 CtlColor        sBgColor;
                 CtlPadding      sPadding;
+                char           *pPathID;
 
                 CtlPort        *pFile;
                 CtlPort        *pMesh;
@@ -27,6 +28,7 @@ namespace lsp
                 CtlPort        *pTailCut;
                 CtlPort        *pFadeIn;
                 CtlPort        *pFadeOut;
+                CtlPort        *pPath;
 
             protected:
                 void            sync_status();
@@ -35,8 +37,11 @@ namespace lsp
                 void            sync_fades();
 
                 void            commit_file();
+                void            update_path();
 
-                static status_t     slot_on_submit(void *ptr, void *data);
+                static status_t     slot_on_activate(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_submit(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_close(LSPWidget *sender, void *ptr, void *data);
 
             public:
                 CtlAudioFile(CtlRegistry *src, LSPAudioFile *af);

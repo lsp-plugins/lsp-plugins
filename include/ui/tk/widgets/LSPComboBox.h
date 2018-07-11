@@ -79,15 +79,15 @@ namespace lsp
                 status_t    on_list_change();
                 status_t    on_list_submit();
 
-                static status_t slot_on_change(void *ptr, void *data);
-                static status_t slot_on_submit(void *ptr, void *data);
-                static status_t slot_on_list_change(void *ptr, void *data);
-                static status_t slot_on_list_submit(void *ptr, void *data);
-                static status_t slot_on_list_focus_out(void *ptr, void *data);
+                static status_t slot_on_change(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_on_submit(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_on_list_change(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_on_list_submit(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_on_list_focus_out(LSPWidget *sender, void *ptr, void *data);
 
-                static status_t slot_on_list_show(void *ptr, void *data);
-                static status_t slot_on_list_mouse_down(void *ptr, void *data);
-                static status_t slot_on_list_key_down(void *ptr, void *data);
+                static status_t slot_on_list_show(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_on_list_mouse_down(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_on_list_key_down(LSPWidget *sender, void *ptr, void *data);
 
                 ssize_t     estimate_max_size(ISurface *s);
 

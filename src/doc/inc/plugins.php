@@ -46,6 +46,12 @@
 		}
 	}
 	
+	function out_image($id, $alt)
+	{
+		global $DOCROOT;
+		echo "<img src=\"${DOCROOT}/img/{$id}.png\" alt=\"{$alt}\">\n";
+	}
+	
 	function plugin_ref($id)
 	{
 		global $DOCROOT;

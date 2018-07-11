@@ -22,7 +22,7 @@ namespace lsp
         {
         }
 
-        status_t CtlButton::slot_change(void *ptr, void *data)
+        status_t CtlButton::slot_change(LSPWidget *sender, void *ptr, void *data)
         {
             CtlButton *_this    = static_cast<CtlButton *>(ptr);
             if (_this != NULL)

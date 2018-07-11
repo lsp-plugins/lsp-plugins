@@ -24,41 +24,71 @@ namespace lsp
     typedef struct jack_wrapper_t
     {
         JACKWrapper    *pWrapper;
-        LSPWindow      *pWindow;
-        LSPMessageBox  *pDialog;
+//        LSPWindow      *pWindow;
+//        LSPMessageBox  *pDialog;
+        timespec        nLastReconnect;
     } jack_wrapper_t;
 
     static status_t jack_ui_sync(timestamp_t time, void *arg)
     {
         if (arg == NULL)
             return STATUS_BAD_STATE;
+
         jack_wrapper_t *wrapper = static_cast<jack_wrapper_t *>(arg);
-        if (wrapper->pWrapper->transfer_dsp_to_ui())
-            return STATUS_OK;
+        JACKWrapper *jw         = wrapper->pWrapper;
 
-        if (!wrapper->pWrapper->connected())
-            return STATUS_OK;
-
-        // Notify user
-        wrapper->pWrapper->set_connected(false);
-
-        if (wrapper->pWindow == NULL)
-            return STATUS_OK;
-
-        if (wrapper->pDialog == NULL)
+        // If connection to JACK was lost - notify
+        if (jw->connection_lost())
         {
-            LSPMessageBox *dlg  = new LSPMessageBox(wrapper->pWindow->display());
+            lsp_trace("Connection to JACK was lost");
+            // Perform disconnect action
+            jw->disconnect();
 
-            dlg->init();
-            dlg->set_title("JACK connection error");
-            dlg->set_heading("Alert");
-            dlg->set_message("JACK backend has been shutdown. Further sound processing is not possible.\n"
-                            "Please consider to save the configuration of the plugin before shutting it down.");
-            dlg->add_button("OK");
-            wrapper->pDialog    = dlg;
+            // Remember last connection time
+            clock_gettime(CLOCK_REALTIME, &wrapper->nLastReconnect);
+
+//            // Notify user TODO: remove this notification in future
+//            if (wrapper->pWindow != NULL)
+//            {
+//                if (wrapper->pDialog == NULL)
+//                {
+//                    LSPMessageBox *dlg  = new LSPMessageBox(wrapper->pWindow->display());
+//
+//                    dlg->init();
+//                    dlg->set_title("JACK connection error");
+//                    dlg->set_heading("Alert");
+//                    dlg->set_message("JACK backend has been shutdown. Further sound processing is not possible.\n"
+//                                    "Please consider to save the configuration of the plugin before shutting it down.");
+//                    dlg->add_button("OK");
+//                    wrapper->pDialog    = dlg;
+//                }
+//
+//                wrapper->pDialog->show(wrapper->pWindow);
+//            }
         }
 
-        wrapper->pDialog->show(wrapper->pWindow);
+        // If we are currently in disconnected state - try to perform a connection
+        if (jw->disconnected())
+        {
+            timespec ctime;
+            clock_gettime(CLOCK_REALTIME, &ctime);
+            wssize_t delta = (ctime.tv_sec - wrapper->nLastReconnect.tv_sec) * 1000 + (ctime.tv_nsec - wrapper->nLastReconnect.tv_nsec) / 1000000;
+
+            // Try each second to make new connection
+            if (delta >= 1000)
+            {
+                lsp_trace("Trying to connect to JACK");
+                if (jw->connect() == STATUS_OK)
+                {
+                    lsp_trace("Successful connected to JACK");
+                }
+                wrapper->nLastReconnect     = ctime;
+            }
+        }
+
+        // If we are connected - do usual stuff
+        if (jw->connected())
+            wrapper->pWrapper->transfer_dsp_to_ui();
 
         return STATUS_OK;
     }
@@ -86,18 +116,23 @@ namespace lsp
             JACKWrapper w(plugin, &ui);
 
             // Initialize
-            lsp_trace("Initializing UI");
+            lsp_trace("Initializing wrapper");
             status                  = w.init(argc, argv);
             if (status == STATUS_OK)
             {
                 dsp_context_t ctx;
                 dsp::start(&ctx);
 
+                // Perform initial connection
+                lsp_trace("Connecting to JACK server");
+                w.connect();
+                clock_gettime(CLOCK_REALTIME, &wrapper.nLastReconnect);
+
                 // Create timer for transferring DSP -> UI data
                 lsp_trace("Creating timer");
-                wrapper.pWindow     = ui.root_window();
+//                wrapper.pWindow     = ui.root_window();
                 wrapper.pWrapper    = &w;
-                wrapper.pDialog     = NULL;
+//                wrapper.pDialog     = NULL;
 
                 LSPTimer tmr;
                 tmr.bind(ui.display());
@@ -110,12 +145,12 @@ namespace lsp
                 tmr.cancel();
 
                 // Destroy dialog if present
-                if (wrapper.pDialog != NULL)
-                {
-                    wrapper.pDialog->destroy();
-                    delete wrapper.pDialog;
-                    wrapper.pDialog = NULL;
-                }
+//                if (wrapper.pDialog != NULL)
+//                {
+//                    wrapper.pDialog->destroy();
+//                    delete wrapper.pDialog;
+//                    wrapper.pDialog = NULL;
+//                }
 
                 dsp::finish(&ctx);
             }

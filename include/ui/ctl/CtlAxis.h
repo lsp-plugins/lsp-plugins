@@ -25,8 +25,10 @@ namespace lsp
 
             protected:
                 size_t          nFlags;
-                float           fMin;
-                float           fMax;
+//                float           fMin;
+//                float           fMax;
+                CtlExpression   sMin;
+                CtlExpression   sMax;
                 CtlPort        *pPort;
                 CtlColor        sColor;
 

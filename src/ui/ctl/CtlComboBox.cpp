@@ -62,7 +62,7 @@ namespace lsp
             do_destroy();
         }
 
-        status_t CtlComboBox::slot_change(void *ptr, void *data)
+        status_t CtlComboBox::slot_change(LSPWidget *sender, void *ptr, void *data)
         {
             CtlComboBox *_this    = static_cast<CtlComboBox *>(ptr);
             if (_this != NULL)

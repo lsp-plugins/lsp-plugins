@@ -16,10 +16,22 @@
 #include <string.h>
 
 #define TMP_BUF_SIZE            4096
+#define CONV_RANK               10
 #define TRACE_PORT(p)           lsp_trace("  port id=%s", (p)->metadata()->id);
 
 namespace lsp
 {
+    static float band_freqs[] =
+    {
+        73.0f,
+        156.0f,
+        332.0f,
+        707.0f,
+        1507.0f,
+        3213.0f,
+        6849.0f
+    };
+
     void impulse_reverb_base::IRLoader::init(impulse_reverb_base *base, af_descriptor_t *descr)
     {
         pCore       = base;
@@ -44,7 +56,8 @@ namespace lsp
             sReconfig.bRender[i]    = false;
         for (size_t i=0; i<impulse_reverb_base_metadata::CONVOLVERS; ++i)
         {
-            sReconfig.nSource[i]    = 0;
+            sReconfig.nFile[i]      = 0;
+            sReconfig.nTrack[i]     = 0;
             sReconfig.nRank[i]      = 0;
         }
     }
@@ -141,6 +154,7 @@ namespace lsp
     void impulse_reverb_base::destroy_channel(channel_t *c)
     {
         c->sPlayer.destroy(false);
+        c->sEqualizer.destroy();
         c->vOut     = NULL;
         c->vBuffer  = NULL;
     }
@@ -231,7 +245,8 @@ namespace lsp
             cv->nRank           = 0;
             cv->nRankReq        = 0;
             cv->nSource         = 0;
-            cv->nSourceReq      = 0;
+            cv->nFileReq        = 0;
+            cv->nTrackReq       = 0;
 
             cv->vBuffer         = reinterpret_cast<float *>(ptr);
             ptr                += tmp_buf_size;
@@ -244,8 +259,10 @@ namespace lsp
             cv->pMakeup         = NULL;
             cv->pPanIn          = NULL;
             cv->pPanOut         = NULL;
-            cv->pSource         = NULL;
+            cv->pFile           = NULL;
+            cv->pTrack          = NULL;
             cv->pPredelay       = NULL;
+            cv->pMute           = NULL;
             cv->pActivity       = NULL;
         }
 
@@ -256,6 +273,9 @@ namespace lsp
 
             if (!c->sPlayer.init(impulse_reverb_base_metadata::FILES, 32))
                 return;
+            if (!c->sEqualizer.init(impulse_reverb_base_metadata::EQ_BANDS + 2, CONV_RANK))
+                return;
+            c->sEqualizer.set_mode(EQM_BYPASS);
 
             c->fDryPan[0]   = 0.0f;
             c->fDryPan[1]   = 0.0f;
@@ -265,6 +285,15 @@ namespace lsp
             ptr            += tmp_buf_size;
 
             c->pOut         = NULL;
+
+            c->pWetEq       = NULL;
+            c->pLowCut      = NULL;
+            c->pLowFreq     = NULL;
+            c->pHighCut     = NULL;
+            c->pHighFreq    = NULL;
+
+            for (size_t j=0; j<impulse_reverb_base_metadata::EQ_BANDS; ++j)
+                c->pFreqGain[j]     = NULL;
         }
 
         // Bind ports
@@ -347,15 +376,47 @@ namespace lsp
             }
 
             TRACE_PORT(vPorts[port_id]);
-            c->pSource      = vPorts[port_id++];
+            c->pFile        = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pTrack       = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             c->pMakeup      = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pMute        = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             c->pActivity    = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             c->pPredelay    = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             c->pPanOut      = vPorts[port_id++];
+        }
+
+        // Bind wet processing ports
+        lsp_trace("Binding wet processing ports");
+        size_t port         = port_id;
+        for (size_t i=0; i<2; ++i)
+        {
+            channel_t *c        = &vChannels[i];
+
+            TRACE_PORT(vPorts[port_id]);
+            c->pWetEq           = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pLowCut          = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pLowFreq         = vPorts[port_id++];
+
+            for (size_t j=0; j<impulse_reverb_base_metadata::EQ_BANDS; ++j)
+            {
+                TRACE_PORT(vPorts[port_id]);
+                c->pFreqGain[j]     = vPorts[port_id++];
+            }
+
+            TRACE_PORT(vPorts[port_id]);
+            c->pHighCut         = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pHighFreq        = vPorts[port_id++];
+
+            port_id         = port;
         }
     }
 
@@ -423,6 +484,67 @@ namespace lsp
             channel_t *c        = &vChannels[i];
             c->sBypass.set_bypass(bypass);
             c->sPlayer.set_gain(out_gain);
+
+            // Update equalization parameters
+            Equalizer *eq               = &c->sEqualizer;
+            equalizer_mode_t eq_mode    = (c->pWetEq->getValue() >= 0.5f) ? EQM_IIR : EQM_BYPASS;
+            eq->set_mode(eq_mode);
+
+            if (eq_mode != EQM_BYPASS)
+            {
+                filter_params_t fp;
+                size_t band     = 0;
+
+                // Set-up parametric equalizer
+                while (band < impulse_reverb_base_metadata::EQ_BANDS)
+                {
+                    if (band == 0)
+                    {
+                        fp.fFreq        = band_freqs[band];
+                        fp.fFreq2       = fp.fFreq;
+                        fp.nType        = FLT_MT_LRX_LOSHELF;
+                    }
+                    else if (band == (impulse_reverb_base_metadata::EQ_BANDS - 1))
+                    {
+                        fp.fFreq        = band_freqs[band-1];
+                        fp.fFreq2       = fp.fFreq;
+                        fp.nType        = FLT_MT_LRX_HISHELF;
+                    }
+                    else
+                    {
+                        fp.fFreq        = band_freqs[band-1];
+                        fp.fFreq2       = band_freqs[band];
+                        fp.nType        = FLT_MT_LRX_LADDERPASS;
+                    }
+
+                    fp.fGain        = c->pFreqGain[band]->getValue();
+                    fp.nSlope       = 2;
+                    fp.fQuality     = 0.0f;
+
+                    // Update filter parameters
+                    eq->set_params(band++, &fp);
+                }
+
+                // Setup hi-pass filter
+                size_t hp_slope = c->pLowCut->getValue() * 2;
+                fp.nType        = (hp_slope > 0) ? FLT_BT_BWC_HIPASS : FLT_NONE;
+                fp.fFreq        = c->pLowFreq->getValue();
+                fp.fFreq2       = fp.fFreq;
+                fp.fGain        = 1.0f;
+                fp.nSlope       = hp_slope;
+                fp.fQuality     = 0.0f;
+                eq->set_params(band++, &fp);
+
+                // Setup low-pass filter
+                size_t lp_slope = c->pHighCut->getValue() * 2;
+                fp.nType        = (lp_slope > 0) ? FLT_BT_BWC_LOPASS : FLT_NONE;
+                fp.fFreq        = c->pHighFreq->getValue();
+                fp.fFreq2       = fp.fFreq;
+                fp.fGain        = 1.0f;
+                fp.nSlope       = lp_slope;
+                fp.fQuality     = 0.0f;
+                eq->set_params(band++, &fp);
+            }
         }
 
         // Apply panning to each convolver
@@ -450,11 +572,13 @@ namespace lsp
             cv->sDelay.set_delay(millis_to_samples(fSampleRate, predelay + cv->pPredelay->getValue()));
 
             // Analyze source
-            size_t source       = cv->pSource->getValue();
-            if ((source != cv->nSourceReq) || (rank != cv->nRankReq))
+            size_t file         = (cv->pMute->getValue() < 0.5f) ? cv->pFile->getValue() : 0;
+            size_t track        = cv->pTrack->getValue();
+            if ((file != cv->nFileReq) || (track != cv->nTrackReq) || (rank != cv->nRankReq))
             {
                 nReconfigReq        ++;
-                cv->nSourceReq      = source;
+                cv->nFileReq        = file;
+                cv->nTrackReq       = track;
                 cv->nRankReq        = rank;
             }
         }
@@ -517,7 +641,10 @@ namespace lsp
             vConvolvers[i].sDelay.init(millis_to_samples(sr, impulse_reverb_base_metadata::PREDELAY_MAX * 4.0f));
 
         for (size_t i=0; i<2; ++i)
+        {
             vChannels[i].sBypass.init(sr);
+            vChannels[i].sEqualizer.set_sample_rate(sr);
+        }
     }
 
     void impulse_reverb_base::process(size_t samples)
@@ -534,7 +661,8 @@ namespace lsp
                     sConfigurator.set_render(i, vFiles[i].bRender);
                 for (size_t i=0; i<impulse_reverb_base_metadata::CONVOLVERS; ++i)
                 {
-                    sConfigurator.set_source(i, vConvolvers[i].nSourceReq);
+                    sConfigurator.set_file(i, vConvolvers[i].nFileReq);
+                    sConfigurator.set_track(i, vConvolvers[i].nTrackReq);
                     sConfigurator.set_rank(i, vConvolvers[i].nRankReq);
                 }
 
@@ -634,15 +762,9 @@ namespace lsp
             if (to_do > samples)
                 to_do               = samples;
 
-            // Pass dry sound to output channels
-            for (size_t i=0; i<2; ++i)
-            {
-                channel_t *c        = &vChannels[i];
-                if (nInputs == 1)
-                    dsp::scale3(c->vBuffer, vInputs[0].vIn, c->fDryPan[0], to_do);
-                else
-                    dsp::mix_copy2(c->vBuffer, vInputs[0].vIn, vInputs[1].vIn, c->fDryPan[0], c->fDryPan[1], to_do);
-            }
+            // Clear temporary channel buffer
+            dsp::fill_zero(vChannels[0].vBuffer, to_do);
+            dsp::fill_zero(vChannels[1].vBuffer, to_do);
 
             // Call convolvers
             for (size_t i=0; i<impulse_reverb_base_metadata::CONVOLVERS; ++i)
@@ -667,10 +789,21 @@ namespace lsp
                 dsp::scale_add3(vChannels[1].vBuffer, c->vBuffer, c->fPanOut[1], to_do);
             }
 
-            // Now apply bypass control and players
+            // Now apply equalization, bypass control and players
             for (size_t i=0; i<2; ++i)
             {
                 channel_t *c        = &vChannels[i];
+
+                // Apply equalization
+                c->sEqualizer.process(c->vBuffer, c->vBuffer, to_do);
+
+                // Pass dry sound to output channels
+                if (nInputs == 1)
+                    dsp::scale_add3(c->vBuffer, vInputs[0].vIn, c->fDryPan[0], to_do);
+                else
+                    dsp::mix_add2(c->vBuffer, vInputs[0].vIn, vInputs[1].vIn, c->fDryPan[0], c->fDryPan[1], to_do);
+
+                // Apply player and bypass
                 c->sPlayer.process(c->vBuffer, c->vBuffer, to_do);
                 c->sBypass.process(c->vOut, vInputs[i%nInputs].vIn, c->vBuffer, to_do);
 
@@ -686,7 +819,6 @@ namespace lsp
 
         //---------------------------------------------------------------------
         // Stage 3: output parameters
-
         for (size_t i=0; i<impulse_reverb_base_metadata::CONVOLVERS; ++i)
         {
             // Output information about the convolver
@@ -894,19 +1026,16 @@ namespace lsp
             }
 
             // Check that routing has changed
-            size_t ch   = cfg->nSource[i];
-            if ((ch--) == 0)
+            size_t file     = cfg->nFile[i];
+            size_t track    = cfg->nTrack[i];
+            if ((file <= 0) || (file > impulse_reverb_base_metadata::FILES))
             {
                 c->nSource  = 0;
                 c->nRank    = cfg->nRank[i];
                 continue;
             }
-
-            // Apply new routing
-            size_t track    = ch % impulse_reverb_base_metadata::TRACKS_MAX;
-            size_t file     = ch / impulse_reverb_base_metadata::TRACKS_MAX;
-            if (file >= impulse_reverb_base_metadata::FILES)
-                continue;
+            else
+                file --;
 
             // Analyze sample
             Sample *s       = (vFiles[file].bSwap) ? vFiles[file].pSwapSample : vFiles[file].pCurrSample;

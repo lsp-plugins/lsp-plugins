@@ -153,6 +153,7 @@ namespace lsp
             "url",
             "command_id",
             "progress_id",
+            "path_id",
             NULL
         };
 

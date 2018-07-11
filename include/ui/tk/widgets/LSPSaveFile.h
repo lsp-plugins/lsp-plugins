@@ -54,8 +54,8 @@ namespace lsp
 
             protected:
                 ISurface   *render_disk(ISurface *s, ssize_t w, const Color &c);
-                static status_t slot_on_submit(void *ptr, void *data);
-                static status_t slot_on_file_submit(void *ptr, void *data);
+                static status_t slot_on_submit(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_on_file_submit(LSPWidget *sender, void *ptr, void *data);
 
             public:
                 explicit LSPSaveFile(LSPDisplay *dpy);

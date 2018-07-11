@@ -18,8 +18,8 @@ namespace lsp
                 LSPMessageBox      *pDialog;
 
             protected:
-                static status_t     slot_submit(void *ptr, void *data);
-                static status_t     slot_on_ok(void *ptr, void *data);
+                static status_t     slot_submit(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_ok(LSPWidget *sender, void *ptr, void *data);
 
             protected:
                 status_t            on_submit();

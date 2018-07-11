@@ -61,13 +61,13 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPButton::slot_on_change(void *ptr, void *data)
+        status_t LSPButton::slot_on_change(LSPWidget *sender, void *ptr, void *data)
         {
             LSPButton *_this = widget_ptrcast<LSPButton>(ptr);
             return (_this != NULL) ? _this->on_change() : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPButton::slot_on_submit(void *ptr, void *data)
+        status_t LSPButton::slot_on_submit(LSPWidget *sender, void *ptr, void *data)
         {
             LSPButton *_this = widget_ptrcast<LSPButton>(ptr);
             return (_this != NULL) ? _this->on_submit() : STATUS_BAD_ARGUMENTS;
@@ -425,13 +425,13 @@ namespace lsp
                 {
                     nState      |= S_DOWN;
                     nChanges    ++;
-                    sSlots.execute(LSPSLOT_CHANGE);
+                    sSlots.execute(LSPSLOT_CHANGE, this);
                 }
                 else if ((!(nState & S_PRESSED)) && (nState & S_DOWN))
                 {
                     nState      &= ~S_DOWN;
                     nChanges    ++;
-                    sSlots.execute(LSPSLOT_CHANGE);
+                    sSlots.execute(LSPSLOT_CHANGE, this);
                 }
             }
 
@@ -472,13 +472,13 @@ namespace lsp
                     {
                         nState      |= S_DOWN;
                         nChanges    ++;
-                        sSlots.execute(LSPSLOT_CHANGE);
+                        sSlots.execute(LSPSLOT_CHANGE, this);
                     }
                     else if ((!(nState & S_PRESSED)) && (nState & S_DOWN))
                     {
                         nState      &= ~S_DOWN;
                         nChanges    ++;
-                        sSlots.execute(LSPSLOT_CHANGE);
+                        sSlots.execute(LSPSLOT_CHANGE, this);
                     }
                 }
             }
@@ -493,13 +493,13 @@ namespace lsp
                     {
                         nState      |= S_DOWN;
                         nChanges    ++;
-                        sSlots.execute(LSPSLOT_CHANGE);
+                        sSlots.execute(LSPSLOT_CHANGE, this);
                     }
                     else if ((!(nState & S_TOGGLED)) && (nState & S_DOWN))
                     {
                         nState      &= ~S_DOWN;
                         nChanges    ++;
-                        sSlots.execute(LSPSLOT_CHANGE);
+                        sSlots.execute(LSPSLOT_CHANGE, this);
                     }
                 }
             }
@@ -512,7 +512,7 @@ namespace lsp
                     if (m_over)
                     {
                         nChanges    ++;
-                        sSlots.execute(LSPSLOT_CHANGE);
+                        sSlots.execute(LSPSLOT_CHANGE, this);
                     }
                 }
             }
@@ -524,7 +524,7 @@ namespace lsp
 
             if ((mask == size_t(1 << e->nCode)) && (nChanges > 0))
             {
-                sSlots.execute(LSPSLOT_SUBMIT);
+                sSlots.execute(LSPSLOT_SUBMIT, this);
                 nChanges = 0;
             }
 
@@ -555,13 +555,13 @@ namespace lsp
                 {
                     nState      |= S_DOWN;
                     nChanges    ++;
-                    sSlots.execute(LSPSLOT_CHANGE);
+                    sSlots.execute(LSPSLOT_CHANGE, this);
                 }
                 else if ((!(nState & S_PRESSED)) && (nState & S_DOWN))
                 {
                     nState      &= ~S_DOWN;
                     nChanges    ++;
-                    sSlots.execute(LSPSLOT_CHANGE);
+                    sSlots.execute(LSPSLOT_CHANGE, this);
                 }
             }
 

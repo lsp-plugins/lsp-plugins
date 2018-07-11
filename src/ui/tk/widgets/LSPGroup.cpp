@@ -164,6 +164,8 @@ namespace lsp
             if (nFlags & REDRAW_SURFACE)
                 force = true;
 
+//            lsp_trace("Rendering this=%p, force=%d", this, int(force));
+
             if (force)
             {
                 // Get resource

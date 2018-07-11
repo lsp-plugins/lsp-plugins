@@ -71,6 +71,7 @@ Known list of supported plugin hosts:
   * Bitwig Studio
   * Carla
   * Mixbus
+  * Qtractor
   * Reaper native linux version
   * Renoise
   * Tracktion

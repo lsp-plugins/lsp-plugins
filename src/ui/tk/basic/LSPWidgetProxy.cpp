@@ -46,6 +46,18 @@ namespace lsp
             nLevel--;
         }
 
+        void LSPWidgetProxy::commit_redraw()
+        {
+            LSPWidgetContainer::commit_redraw();
+
+            if (!(nLevel++))
+            {
+                if (pWidget != NULL)
+                    pWidget->commit_redraw();
+            }
+            nLevel--;
+        }
+
         status_t LSPWidgetProxy::add(LSPWidget *child)
         {
             if (pWidget != NULL)

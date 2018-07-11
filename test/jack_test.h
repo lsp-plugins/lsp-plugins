@@ -71,7 +71,7 @@ namespace jack_test
 //                "graph_equalizer_x32_ms";
 //                "graph_equalizer_x32_stereo";
 //                "para_equalizer_x16_lr";
-//                "para_equalizer_x16_mono";
+                "para_equalizer_x16_mono";
 //                "para_equalizer_x16_ms";
 //                "para_equalizer_x16_stereo";
 //                "para_equalizer_x32_lr";
@@ -92,7 +92,7 @@ namespace jack_test
 //                "trigger_midi_stereo";
 //                "phase_detector";
 //                "oscillator_mono";
-                "latency_meter";
+//                "latency_meter";
 
 //                "test_plugin";
 

@@ -37,6 +37,11 @@ namespace lsp
         static const float          BAND_GAIN_DFL       = GAIN_AMP_0_DB;
         static const float          BAND_GAIN_STEP      = 0.025f;
 
+        static const float          ZOOM_MIN            = GAIN_AMP_M_36_DB;
+        static const float          ZOOM_MAX            = GAIN_AMP_0_DB;
+        static const float          ZOOM_DFL            = GAIN_AMP_0_DB;
+        static const float          ZOOM_STEP           = 0.025f;
+
         static const float          IN_GAIN_DFL         = 1.0f;
         static const float          OUT_GAIN_DFL        = 1.0f;
         static const size_t         MODE_DFL            = 0;

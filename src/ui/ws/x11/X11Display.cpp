@@ -165,7 +165,7 @@ namespace lsp
                         vCursors[i] = XCreateFontCursor(pDisplay, id);
                 }
 
-                return STATUS_SUCCESS;
+                return IDisplay::init(argc, argv);
             }
 
             INativeWindow *X11Display::createWindow()
@@ -761,84 +761,19 @@ namespace lsp
 //                lsp_trace("Received event: %d (%s), serial = %ld, window = %x",
 //                    int(ev->type), event_name(ev->type), long(ev->xany.serial), int(ev->xany.window));
 
-                bool grab = false;
-                size_t nwnd = vWindows.size();
-                sTargets.clear();
-
-                // Find relative window and pass event to it
-                if (sGrab.size() > 0)
+                // Find the target window
+                X11Window *target = NULL;
+                for (size_t i=0, nwnd=vWindows.size(); i<nwnd; ++i)
                 {
-                    // Translate coordinates
-                    Window child = 0;
-
-                    switch (ev->type)
+                    X11Window *wnd = vWindows[i];
+                    if (wnd == NULL)
+                        continue;
+                    if (wnd->x11handle() == ev->xany.window)
                     {
-                        case ButtonPress:
-                        case ButtonRelease:
-                            XTranslateCoordinates(pDisplay,
-                                ev->xbutton.window, ev->xbutton.root,
-                                ev->xbutton.x, ev->xbutton.y,
-                                &ev->xbutton.x, &ev->xbutton.y,
-                                &child);
-                            break;
-
-                        case MotionNotify:
-                            XTranslateCoordinates(pDisplay,
-                                ev->xmotion.window, ev->xmotion.root,
-                                ev->xmotion.x, ev->xmotion.y,
-                                &ev->xmotion.x, &ev->xmotion.y,
-                                &child);
-                            break;
-
-                        case KeyPress:
-                        case KeyRelease:
-                            XTranslateCoordinates(pDisplay,
-                                ev->xkey.window, ev->xkey.root,
-                                ev->xkey.x, ev->xkey.y,
-                                &ev->xkey.x, &ev->xkey.y,
-                                &child);
-                            break;
-
-                        default:
-                            goto SKIP;
-                    }
-
-                    // Add listeners
-                    for (size_t i=0; i<nwnd; ++i)
-                    {
-                        X11Window *wnd = vWindows.get(i);
-                        if (wnd == NULL)
-                            continue;
-                        if (sGrab.index_of(wnd) < 0)
-                            continue;
-
-//                        lsp_trace("found grab for window %x", int(wnd->x11handle()));
-                        if (!sTargets.add(wnd))
-                            return;
-                        grab = true;
+                        target      = wnd;
                         break;
                     }
-
-                    SKIP: ;
                 }
-
-                if (sTargets.size() <= 0)
-                {
-                    for (size_t i=0; i<nwnd; ++i)
-                    {
-                        X11Window *wnd = vWindows[i];
-                        if (wnd == NULL)
-                            continue;
-                        if (wnd->x11handle() != ev->xany.window)
-                            continue;
-                        if (!sTargets.add(wnd))
-                            continue;
-                    }
-                }
-
-                size_t n_targets = sTargets.size();
-                if (n_targets <= 0)
-                    return;
 
                 ws_event_t ue;
                 ue.nType        = UIE_UNKNOWN;
@@ -856,13 +791,10 @@ namespace lsp
                     case KeyPress:
                     case KeyRelease:
                     {
-//                        lsp_trace("key time = %ld", long(ev->xkey.time));
                         char ret[32];
                         KeySym ksym;
                         XComposeStatus status;
 
-                        //                        ws_code_t key   = decode_keycode(XLookupKeysym(&ev->xkey, 0));
-//                        lsp_trace("result=%s, keysym=%x, chars_matched=%d", ret, ksym, status.chars_matched);
                         XLookupString(&ev->xkey, ret, sizeof(ret), &ksym, &status);
                         ws_code_t key   = decode_keycode(ksym);
 
@@ -875,9 +807,6 @@ namespace lsp
                             ue.nState       = decode_state(ev->xkey.state);
                             ue.nTime        = ev->xkey.time;
                         }
-
-                        if (grab)
-                            XAllowEvents(pDisplay, ReplayKeyboard, CurrentTime);
                         break;
                     }
 
@@ -911,9 +840,6 @@ namespace lsp
                             ue.nTime        = ev->xbutton.time;
                             break;
                         }
-
-                        if (grab && (ev->type == ButtonPress))
-                            XAllowEvents(pDisplay, ReplayPointer, CurrentTime);
 
                         // Unknown button
                         break;
@@ -1002,70 +928,95 @@ namespace lsp
                 // Analyze event type
                 if (ue.nType != UIE_UNKNOWN)
                 {
-                    for (size_t i=0; i<n_targets; ++i)
+                    Window child        = None;
+                    ws_event_t se       = ue;
+
+                    // Clear the collection
+                    sTargets.clear();
+
+                    switch (se.nType)
                     {
-                        X11Window *target = sTargets.at(i);
-                        if (target == NULL)
-                            continue;
+                        case UIE_CLOSE:
+                            if ((target != NULL) && (get_locked(target) == NULL))
+                                sTargets.add(target);
+                            break;
 
-                        ws_event_t se = ue;
-                        realize_t r;
-
-                        if (grab)
+                        case UIE_MOUSE_DOWN:
+                        case UIE_MOUSE_UP:
+                        case UIE_MOUSE_SCROLL:
+                        case UIE_MOUSE_MOVE:
+                        case UIE_KEY_DOWN:
+                        case UIE_KEY_UP:
                         {
-                            switch (se.nType)
+                            // Check if there is grab enabled
+                            if (sGrab.size() > 0)
                             {
-                                case UIE_MOUSE_DOWN:
-                                case UIE_MOUSE_UP:
-                                case UIE_MOUSE_SCROLL:
-                                case UIE_MOUSE_MOVE:
-                                case UIE_KEY_DOWN:
-                                case UIE_KEY_UP:
-                                    target->get_absolute_geometry(&r);
-//                                    lsp_trace("translating event coordinates, absolute geometry: %d, %d", int(r.nLeft), int(r.nTop));
-                                    se.nLeft   -= r.nLeft;
-                                    se.nTop    -= r.nTop;
-                                    break;
-                            }
-                        }
-
-                        // Ignore input events if window is locked
-
-                        switch (se.nType)
-                        {
-                            case UIE_MOUSE_DOWN:
-                            case UIE_MOUSE_UP:
-                            case UIE_MOUSE_SCROLL:
-                            case UIE_KEY_DOWN:
-                            case UIE_KEY_UP:
-                            case UIE_CLOSE:
-                            case UIE_MOUSE_MOVE:
-                                while (true)
+                                // Add listeners from grabbing windows
+                                for (size_t i=0, nwnd = vWindows.size(); i<nwnd; ++i)
                                 {
-                                    X11Window *redirect = get_locked(target);
-                                    if (redirect == NULL)
-                                        break;
-//                                    lsp_trace("Window %x is currently locked", int(target->x11handle()));
-//                                    lsp_trace("Redirecting event to window %x", int(target->x11handle()));
-                                    target->get_absolute_geometry(&r);
-                                    target = redirect;
-                                    se.nLeft   -= r.nLeft;
-                                    se.nTop    -= r.nTop;
+                                    X11Window *wnd = vWindows.at(i);
+                                    if (wnd == NULL)
+                                        continue;
+                                    if (sGrab.index_of(wnd) < 0)
+                                        continue;
+                                    sTargets.add(wnd);
+//                                    lsp_trace("Grabbing window: %p", wnd);
                                 }
-                                break;
-//                                if (get_locked(target) != NULL)
-//                                {
-//                                    lsp_trace("Window %x is currently locked, ignoring event", int(target->x11handle()));
-//                                    continue;
-//                                }
-//                                break;
-                            default:
-                                break;
+
+                                // Allow event replay
+                                if ((se.nType == UIE_KEY_DOWN) || (se.nType == UIE_KEY_UP))
+                                    XAllowEvents(pDisplay, ReplayKeyboard, CurrentTime);
+                                else if (se.nType != UIE_CLOSE)
+                                    XAllowEvents(pDisplay, ReplayPointer, CurrentTime);
+                            }
+                            else if (target != NULL)
+                                sTargets.add(target);
+
+                            // Get the final window
+                            for (size_t i=0, nwnd=sTargets.size(); i<nwnd; ++i)
+                            {
+                                // Get target window
+                                X11Window *wnd = sTargets.at(i);
+                                if (wnd == NULL)
+                                    continue;
+
+                                // Get the locking window
+                                X11Window *redirect = get_redirect(wnd);
+                                if (wnd != redirect)
+                                {
+//                                    lsp_trace("Redirect window: %p", wnd);
+                                    sTargets.set(i, wnd);
+                                }
+                            }
+
+                            break;
+                        }
+                        default:
+                            if (target != NULL)
+                                sTargets.add(target);
+                            break;
+                    }
+
+                    // Deliver the message to target windows
+                    for (size_t i=0, nwnd = sTargets.size(); i<nwnd; ++i)
+                    {
+                        X11Window *wnd = sTargets.at(i);
+
+                        // Translate coordinates if originating and target window differs
+                        if (wnd != target)
+                        {
+                            int x, y;
+                            XTranslateCoordinates(pDisplay,
+                                ev->xany.window, wnd->x11handle(),
+                                ue.nLeft, ue.nTop,
+                                &x, &y, &child);
+                            se.nLeft    = x;
+                            se.nTop     = y;
                         }
 
-//                        lsp_trace("sending event to target=%p", target);
-                        target->handle_event(&se);
-                    } // for
+//                        lsp_trace("Sending event to target=%p", wnd);
+                        wnd->handle_event(&se);
+                    }
                 }
             }
 
@@ -1257,6 +1208,21 @@ namespace lsp
                         return lk->pOwner;
                 }
                 return NULL;
+            }
+
+            X11Window *X11Display::get_redirect(X11Window *wnd)
+            {
+                X11Window *redirect = get_locked(wnd);
+                if (redirect == NULL)
+                    return wnd;
+
+                do
+                {
+                    wnd         = redirect;
+                    redirect    = get_locked(wnd);
+                } while (redirect != NULL);
+
+                return wnd;
             }
 
             status_t X11Display::ungrab_events(X11Window *wnd)

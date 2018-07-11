@@ -7,7 +7,7 @@
 
 #include <core/debug.h>
 #include <core/colors.h>
-#include <core/Color.h>
+#include <core/util/Color.h>
 #include <plugins/compressor.h>
 
 #define COMP_BUF_SIZE           0x1000

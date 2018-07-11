@@ -3,7 +3,7 @@
 #include <dlfcn.h>
 #include <stddef.h>
 
-#include <core/Crossover.h>
+#include <core/util/Crossover.h>
 
 namespace crossover_test
 {

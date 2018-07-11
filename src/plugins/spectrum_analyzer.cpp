@@ -12,7 +12,7 @@
 #include <core/windows.h>
 #include <core/envelope.h>
 #include <core/colors.h>
-#include <core/Color.h>
+#include <core/util/Color.h>
 
 #include <string.h>
 
@@ -49,7 +49,7 @@ namespace lsp
         size_t max_fft_buf_size = sizeof(float) * max_fft_items;
         size_t freq_buf_size    = sizeof(float) * spectrum_analyzer_base_metadata::MESH_POINTS;
         size_t ind_buf_size     = sizeof(uint32_t) * spectrum_analyzer_base_metadata::MESH_POINTS;
-        size_t buffers          = channels * 2 + 6; // FFT buffers: (sig_re + fft_amp) * channels + sig_re + sig_im + fft_re + fft_im + window + envelope
+        size_t buffers          = channels * 2 + 5; // FFT buffers: (sig_re + fft_amp) * channels + sig_re + fft_re + fft_im + window + envelope
         size_t alloc            = hdr_size + freq_buf_size + ind_buf_size + buffers * max_fft_buf_size;
 
         lsp_trace("header_size = %d", int(hdr_size));
@@ -97,20 +97,10 @@ namespace lsp
         dsp::fill_zero(core->vSigRe, max_fft_items);
         lsp_trace("vSigRe = %p", core->vSigRe);
 
-        core->vSigIm        = reinterpret_cast<float *>(ptr);
-        ptr                += max_fft_buf_size;
-        dsp::fill_zero(core->vSigIm, max_fft_items);
-        lsp_trace("vSigIm = %p", core->vSigIm);
-
-        core->vFftRe        = reinterpret_cast<float *>(ptr);
-        ptr                += max_fft_buf_size;
-        dsp::fill_zero(core->vFftRe, max_fft_items);
-        lsp_trace("vFftRe = %p", core->vFftRe);
-
-        core->vFftIm        = reinterpret_cast<float *>(ptr);
-        ptr                += max_fft_buf_size;
-        dsp::fill_zero(core->vFftIm, max_fft_items);
-        lsp_trace("vFftIm = %p", core->vFftIm);
+        core->vFftReIm      = reinterpret_cast<float *>(ptr);
+        ptr                += max_fft_buf_size << 1;
+        dsp::fill_zero(core->vFftReIm, max_fft_items << 1);
+        lsp_trace("vFftReIm = %p", core->vFftReIm);
 
         core->vWindow       = reinterpret_cast<float *>(ptr);
         ptr                += max_fft_buf_size;
@@ -237,6 +227,7 @@ namespace lsp
         pChannels->pWindow      = vPorts[port_id++];
         pChannels->pEnvelope    = vPorts[port_id++];
         pChannels->pPreamp      = vPorts[port_id++];
+        pChannels->pZoom        = vPorts[port_id++];
         pChannels->pReactivity  = vPorts[port_id++];
         pChannels->pChannel     = vPorts[port_id++];
         pChannels->pSelector    = vPorts[port_id++];
@@ -307,6 +298,7 @@ namespace lsp
         pChannels->nChannel     = pChannels->pChannel->getValue();
         pChannels->fSelector    = pChannels->pSelector->getValue() * 0.01;
         pChannels->fPreamp      = pChannels->pPreamp->getValue();
+        pChannels->fZoom        = pChannels->pZoom->getValue();
 
         set_reactivity(pChannels->pReactivity->getValue());
 
@@ -486,14 +478,13 @@ namespace lsp
                         {
                             // Apply window to the temporary buffer
                             dsp::mul3(pChannels->vSigRe, c->vSigRe, pChannels->vWindow, fft_size);
+                            dsp::packed_real_to_complex(pChannels->vFftReIm, pChannels->vSigRe, fft_size);
                             // Do FFT
-                            dsp::direct_fft(pChannels->vFftRe, pChannels->vFftIm, pChannels->vSigRe, pChannels->vSigIm, pChannels->nRank);
-                            // Leave only positive frequencies
-                            dsp::combine_fft(pChannels->vFftRe, pChannels->vFftIm, pChannels->vFftRe, pChannels->vFftIm, pChannels->nRank);
+                            dsp::packed_direct_fft(pChannels->vFftReIm, pChannels->vFftReIm, pChannels->nRank);
                             // Get complex argument
-                            dsp::complex_mod(pChannels->vFftRe, pChannels->vFftRe, pChannels->vFftIm, fft_csize);
+                            dsp::packed_complex_mod(pChannels->vFftReIm, pChannels->vFftReIm, fft_csize);
                             // Mix with the previous value
-                            dsp::mix2(c->vFftAmp, pChannels->vFftRe, 1.0 - pChannels->fTau, pChannels->fTau, fft_csize);
+                            dsp::mix2(c->vFftAmp, pChannels->vFftReIm, 1.0 - pChannels->fTau, pChannels->fTau, fft_csize);
                         }
                     }
 
@@ -571,7 +562,7 @@ namespace lsp
         windows::window(core->vWindow, fft_size, windows::window_t(core->nWindow));
 
         // Calculate normalization multiplier
-        float norm          = (1.0f / float(fft_minsize));
+        float norm          = 1.0f / (fft_minsize * sqrtf(1 << (core->nRank - spectrum_analyzer_base_metadata::RANK_MIN)));
 
         // Normalize window
         dsp::scale2(core->vWindow, norm, fft_size);
@@ -601,9 +592,9 @@ namespace lsp
         cv->set_line_width(1.0);
 
         float zx    = 1.0f/SPEC_FREQ_MIN;
-        float zy    = 1.0f/GAIN_AMP_M_72_DB;
+        float zy    = pChannels->fZoom/GAIN_AMP_M_72_DB;
         float dx    = width/(logf(SPEC_FREQ_MAX)-logf(SPEC_FREQ_MIN));
-        float dy    = height/(logf(GAIN_AMP_M_72_DB)-logf(GAIN_AMP_P_24_DB));
+        float dy    = height/(logf(GAIN_AMP_M_72_DB/pChannels->fZoom)-logf(GAIN_AMP_P_24_DB*pChannels->fZoom));
 
         // Draw vertical lines
         cv->set_color_rgb(CV_YELLOW, 0.5f);
@@ -615,7 +606,7 @@ namespace lsp
 
         // Draw horizontal lines
         cv->set_color_rgb(CV_WHITE, 0.5f);
-        for (float i=GAIN_AMP_M_48_DB; i<GAIN_AMP_P_24_DB; i *= GAIN_AMP_P_24_DB)
+        for (float i=GAIN_AMP_M_60_DB; i<GAIN_AMP_P_24_DB; i *= GAIN_AMP_P_12_DB)
         {
             float ay = height + dy*(logf(i*zy));
             cv->line(0, ay, width, ay);

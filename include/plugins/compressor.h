@@ -11,11 +11,11 @@
 #include <metadata/plugins.h>
 
 #include <core/plugin.h>
-#include <core/Bypass.h>
-#include <core/Sidechain.h>
-#include <core/Compressor.h>
-#include <core/Delay.h>
-#include <core/MeterGraph.h>
+#include <core/util/Bypass.h>
+#include <core/util/Sidechain.h>
+#include <core/util/Delay.h>
+#include <core/util/MeterGraph.h>
+#include <core/dynamics/Compressor.h>
 
 namespace lsp
 {

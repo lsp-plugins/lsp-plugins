@@ -8,6 +8,10 @@
 #ifndef CORE_NATIVE_RESAMPLING_H_
 #define CORE_NATIVE_RESAMPLING_H_
 
+#ifndef __DSP_NATIVE_IMPL
+    #error "This header should not be included directly"
+#endif /* __DSP_NATIVE_IMPL */
+
 /*
 
     The Lanczos kernel can be evaluated by using this code:
@@ -26,27 +30,27 @@
 
     int main(void)
     {
-            ssize_t leaf = KERNEL_SIZE * KERNEL_TIMES;
-            ssize_t dots = leaf * 2 + 1;
+        ssize_t leaf = KERNEL_SIZE * KERNEL_TIMES;
+        ssize_t dots = leaf * 2 + 1;
 
-            printf("leaf=%d, dots=%d, kernel_size=%d, kernel_times=%d\n", int(leaf), int(dots), KERNEL_SIZE, KERNEL_TIMES);
+        printf("leaf=%d, dots=%d, kernel_size=%d, kernel_times=%d\n", int(leaf), int(dots), KERNEL_SIZE, KERNEL_TIMES);
 
-            for (ssize_t i=0; i<KERNEL_MAX; ++i)
+        for (ssize_t i=0; i<KERNEL_MAX; ++i)
+        {
+            if (i >= dots)
+                kernel[i] = 0.0;
+            else if (i == leaf)
+                kernel[i] = 1.0;
+            else
             {
-                    if (i >= dots)
-                            kernel[i] = 0.0;
-                    else if (i == leaf)
-                            kernel[i] = 1.0;
-                    else
-                    {
-                            double px = M_PI * (i - leaf) / KERNEL_TIMES;
-                            kernel[i] = leaf * sin(px) * sin(px / double(leaf)) / (px * px);
-                    }
-
-                    printf("%.16f\n", kernel[i]);
+                double px = M_PI * (i - leaf) / KERNEL_TIMES;
+                kernel[i] = leaf * sin(px) * sin(px / double(leaf)) / (px * px);
             }
 
-            return 0;
+            printf("%.16f\n", kernel[i]);
+        }
+
+        return 0;
     }
 
  */

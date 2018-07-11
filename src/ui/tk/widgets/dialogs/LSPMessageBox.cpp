@@ -147,7 +147,7 @@ namespace lsp
             return result;
         }
 
-        status_t LSPMessageBox::slot_on_button_submit(void *ptr, void *data)
+        status_t LSPMessageBox::slot_on_button_submit(LSPWidget *sender, void *ptr, void *data)
         {
             // Hide message box
             LSPMessageBox *mbox = widget_ptrcast<LSPMessageBox>(ptr);

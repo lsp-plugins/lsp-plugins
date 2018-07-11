@@ -29,10 +29,19 @@ namespace lsp
                 return;
 
             sCoord.evaluate();
+            if (sBasis.valid())
+                sBasis.evaluate();
+
             size_t n = sCoord.results();
             text->set_axes(n);
             for (size_t i=0; i<n; ++i)
+            {
                 text->set_coord(i, sCoord.result(i));
+                if ((sBasis.valid()) && (i < sBasis.results()))
+                    text->set_basis(i, sBasis.result(i));
+                else
+                    text->set_basis(i, i);
+            }
         }
 
         void CtlText::init()
@@ -63,6 +72,9 @@ namespace lsp
                 case A_COORD:
                     sCoord.parse(value, EXPR_FLAGS_MULTIPLE);
                     break;
+                case A_BASIS:
+                    sBasis.parse(value, EXPR_FLAGS_MULTIPLE);
+                    break;
                 case A_HALIGN:
                     if (text != NULL)
                         PARSE_FLOAT(value, text->set_halign(__));
@@ -83,7 +95,6 @@ namespace lsp
                     if (text != NULL)
                         text->set_text(value);
                     break;
-
                 default:
                 {
                     bool set = sColor.set(att, value);

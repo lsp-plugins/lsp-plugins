@@ -10,11 +10,12 @@
 
 #include <core/plugin.h>
 #include <core/IExecutor.h>
-#include <core/AudioFile.h>
-#include <core/Convolver.h>
-#include <core/Bypass.h>
-#include <core/Delay.h>
-#include <core/SamplePlayer.h>
+#include <core/util/Convolver.h>
+#include <core/util/Bypass.h>
+#include <core/util/Delay.h>
+#include <core/filters/Equalizer.h>
+#include <core/sampling/SamplePlayer.h>
+#include <core/files/AudioFile.h>
 
 #include <metadata/plugins.h>
 
@@ -70,6 +71,7 @@ namespace lsp
                 Bypass          sBypass;
                 Delay           sDelay;
                 SamplePlayer    sPlayer;
+                Equalizer       sEqualizer;     // Wet signal equalizer
 
                 Convolver      *pCurr;
                 Convolver      *pSwap;
@@ -91,6 +93,13 @@ namespace lsp
                 IPort          *pMakeup;
                 IPort          *pActivity;
                 IPort          *pPredelay;
+
+                IPort          *pWetEq;         // Wet equalization flag
+                IPort          *pLowCut;        // Low-cut flag
+                IPort          *pLowFreq;       // Low-cut frequency
+                IPort          *pHighCut;       // High-cut flag
+                IPort          *pHighFreq;      // Low-cut frequency
+                IPort          *pFreqGain[impulse_responses_base_metadata::EQ_BANDS];   // Gain for each band of the Equalizer
             } channel_t;
 
             class IRLoader: public ITask

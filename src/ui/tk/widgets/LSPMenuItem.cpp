@@ -25,7 +25,7 @@ namespace lsp
         {
         }
 
-        status_t LSPMenuItem::slot_on_submit(void *ptr, void *data)
+        status_t LSPMenuItem::slot_on_submit(LSPWidget *sender, void *ptr, void *data)
         {
             LSPMenuItem *_this = widget_ptrcast<LSPMenuItem>(ptr);
             return (ptr != NULL) ? _this->on_submit() : STATUS_BAD_ARGUMENTS;

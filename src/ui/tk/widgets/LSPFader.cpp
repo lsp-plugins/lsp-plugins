@@ -74,7 +74,7 @@ namespace lsp
         {
         }
 
-        status_t LSPFader::slot_on_change(void *ptr, void *data)
+        status_t LSPFader::slot_on_change(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFader *_this = widget_ptrcast<LSPFader>(ptr);
             return (_this != NULL) ? _this->on_change() : STATUS_BAD_ARGUMENTS;
@@ -274,7 +274,7 @@ namespace lsp
             {
                 fValue      = value;
                 query_draw();
-                sSlots.execute(LSPSLOT_CHANGE);
+                sSlots.execute(LSPSLOT_CHANGE, this);
             }
 
             return STATUS_OK;
@@ -315,7 +315,7 @@ namespace lsp
             {
                 fValue      = value;
                 query_draw();
-                sSlots.execute(LSPSLOT_CHANGE);
+                sSlots.execute(LSPSLOT_CHANGE, this);
             }
 
             return STATUS_OK;
@@ -365,7 +365,7 @@ namespace lsp
                 lsp_trace("set value to %f, min=%f, max=%f", fValue, fMin, fMax);
                 query_draw();
 
-                sSlots.execute(LSPSLOT_CHANGE);
+                sSlots.execute(LSPSLOT_CHANGE, this);
             }
 
             return STATUS_OK;
@@ -383,7 +383,7 @@ namespace lsp
             {
                 fValue          = result;
                 query_draw();
-                sSlots.execute(LSPSLOT_CHANGE);
+                sSlots.execute(LSPSLOT_CHANGE, this);
             }
 
             return STATUS_OK;
@@ -399,7 +399,7 @@ namespace lsp
 
             fValue          = value;
             query_draw();
-            return sSlots.execute(LSPSLOT_CHANGE);
+            return sSlots.execute(LSPSLOT_CHANGE, this);
         }
 
         void LSPFader::draw(ISurface *s)

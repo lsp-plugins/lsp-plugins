@@ -14,8 +14,8 @@ namespace lsp
         CtlAxis::CtlAxis(CtlRegistry *src, LSPAxis *axis): CtlWidget(src, axis)
         {
             nFlags      = 0;
-            fMin        = 0.0f;
-            fMax        = 0.0f;
+//            fMin        = 0.0f;
+//            fMax        = 0.0f;
             pPort       = NULL;
         }
 
@@ -26,6 +26,9 @@ namespace lsp
         void CtlAxis::init()
         {
             CtlWidget::init();
+            sMin.init(pRegistry, this);
+            sMax.init(pRegistry, this);
+
             if (pWidget == NULL)
                 return;
 
@@ -49,10 +52,14 @@ namespace lsp
                         PARSE_FLOAT(value, axis->set_angle(__ * M_PI));
                     break;
                 case A_MIN:
-                    PARSE_FLOAT(value, { fMin = __; nFlags |= F_MIN_SET; } );
+//                    PARSE_FLOAT(value, { fMin = __; nFlags |= F_MIN_SET; } );
+                    BIND_EXPR(sMin, value);
+                    nFlags |= F_MIN_SET;
                     break;
                 case A_MAX:
-                    PARSE_FLOAT(value, { fMax = __; nFlags |= F_MAX_SET; } );
+//                    PARSE_FLOAT(value, { fMax = __; nFlags |= F_MAX_SET; } );
+                    BIND_EXPR(sMax, value);
+                    nFlags |= F_MAX_SET;
                     break;
                 case A_CENTER:
                     if (axis != NULL)
@@ -98,20 +105,23 @@ namespace lsp
             if (axis == NULL)
                 return;
 
+            float amin = (sMin.valid()) ? sMin.evaluate() : 0.0f;
+            float amax = (sMax.valid()) ? sMax.evaluate() : 0.0f;
+
             const port_t *mdata = (pPort != NULL) ? pPort->metadata() : NULL;
             if (mdata == NULL)
             {
                 if (nFlags & F_MIN_SET)
-                    axis->set_min_value(fMin);
+                    axis->set_min_value(amin);
                 if (nFlags & F_MAX_SET)
-                    axis->set_max_value(fMax);
+                    axis->set_max_value(amax);
                 if (nFlags & F_LOG_SET)
                     axis->set_log_scale(nFlags & F_LOG);
                 return;
             }
 
-            axis->set_min_value((nFlags & F_MIN_SET) ? pPort->get_value() * fMin : mdata->min);
-            axis->set_max_value((nFlags & F_MAX_SET) ? pPort->get_value() * fMax : mdata->max);
+            axis->set_min_value((nFlags & F_MIN_SET) ? pPort->get_value() * amin : mdata->min);
+            axis->set_max_value((nFlags & F_MAX_SET) ? pPort->get_value() * amax : mdata->max);
             if (nFlags & F_LOG_SET)
                 axis->set_log_scale(nFlags & F_LOG);
             else
@@ -121,8 +131,8 @@ namespace lsp
         void CtlAxis::notify(CtlPort *port)
         {
             CtlWidget::notify(port);
-            if (pPort == port)
-                update_axis();
+//            if (pPort == port)
+            update_axis();
         }
 
     } /* namespace ctl */

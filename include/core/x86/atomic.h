@@ -29,10 +29,10 @@ ATOMIC_XCHG_DEF(uint16_t)
 ATOMIC_XCHG_DEF(int32_t)
 ATOMIC_XCHG_DEF(uint32_t)
 
-#ifdef __x86_64__
+#ifdef ARCH_X86_64
     ATOMIC_XCHG_DEF(int64_t)
     ATOMIC_XCHG_DEF(uint64_t)
-#endif /* __x86_64__ */
+#endif /* ARCH_X86_64 */
 
 #undef ATOMIC_XCHG_DEF
 

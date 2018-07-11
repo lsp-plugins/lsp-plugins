@@ -37,6 +37,19 @@ namespace lsp
                 copy(dst, src, count);
         }
 
+        void abs_normalized(float *dst, const float *src, size_t count)
+        {
+            // Calculate absolute values
+            abs2(dst, src, count);
+
+            // Find the maximum value
+            float maxv = max(dst, count);
+
+            // Divide if it is possible
+            if (maxv != 0.0f)
+                scale2(dst, 1.0f / maxv, count);
+        }
+
         void normalize_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
         {
             rank            = 1 << rank;

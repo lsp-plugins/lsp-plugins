@@ -11,12 +11,12 @@
 #include <metadata/plugins.h>
 
 #include <core/plugin.h>
-#include <core/Bypass.h>
-#include <core/Blink.h>
-#include <core/Oversampler.h>
-#include <core/Limiter.h>
-#include <core/MeterGraph.h>
-#include <core/Dither.h>
+#include <core/util/Bypass.h>
+#include <core/util/Blink.h>
+#include <core/util/Oversampler.h>
+#include <core/util/MeterGraph.h>
+#include <core/util/Dither.h>
+#include <core/dynamics/Limiter.h>
 
 namespace lsp
 {

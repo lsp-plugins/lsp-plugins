@@ -83,7 +83,7 @@
 		<li><b>Multiply</b> - multiply the plugin input by the oscillator wave (amplitude modulation).</li>
 		<li><b>Replace</b> - replace the plugin input with the oscillator wave.</li>
 	</ul>
-	<li><b>Oversampling</b> - oversampling mode.</li>
+	<li><b>Oversampling</b> - oversampling mode, available only for <b>band limited synthesis</b>.</li>
 	<ul>
 		<li><b>None</b> - oversampling is not used.</li>
 		<li><b>x2</b> - 2x downsampling of band-limited signal.</li>

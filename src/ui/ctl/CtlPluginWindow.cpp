@@ -10,9 +10,6 @@
 #include <ui/ui.h>
 #include <ui/plugin_ui.h>
 
-#define MSTUD_PORT      UI_CONFIG_PORT_PREFIX UI_MOUNT_STUD_PORT_ID
-#define VERSION_PORT    UI_CONFIG_PORT_PREFIX UI_LAST_VERSION_PORT_ID
-
 namespace lsp
 {
     namespace ctl
@@ -33,6 +30,7 @@ namespace lsp
             pPMStud     = NULL;
             pPVersion   = NULL;
             pPBypass    = NULL;
+            pPath       = NULL;
         }
         
         CtlPluginWindow::~CtlPluginWindow()
@@ -48,14 +46,14 @@ namespace lsp
             }
         }
 
-        status_t CtlPluginWindow::slot_window_close(void *ptr, void *data)
+        status_t CtlPluginWindow::slot_window_close(LSPWidget *sender, void *ptr, void *data)
         {
             LSPDisplay *dpy = static_cast<LSPDisplay *>(ptr);
             dpy->quit_main();
             return STATUS_OK;
         }
 
-        status_t CtlPluginWindow::slot_window_show(void *ptr, void *data)
+        status_t CtlPluginWindow::slot_window_show(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
             __this->show_notification();
@@ -82,6 +80,7 @@ namespace lsp
             // Bind ports
             BIND_PORT(pRegistry, pPMStud, MSTUD_PORT);
             BIND_PORT(pRegistry, pPVersion, VERSION_PORT);
+            BIND_PORT(pRegistry, pPath, CONFIG_PATH_PORT);
             BIND_PORT(pRegistry, pPBypass, "bypass");
 
             const plugin_metadata_t *meta   = pUI->metadata();
@@ -94,6 +93,7 @@ namespace lsp
             if (!pWnd->nested())
                 pWnd->actions()->deny_actions(WA_RESIZE);
 
+            {
                 // Initialize menu
                 pMenu = new LSPMenu(dpy);
                 vWidgets.add(pMenu);
@@ -210,7 +210,7 @@ namespace lsp
                     mstud->font()->set_size(16);
                     mstud->slots()->bind(LSPSLOT_SUBMIT, slot_show_menu_right, this);
                     grd->add(mstud);
-
+            }
 
             // Bind close handler
             pWnd->slots()->bind(LSPSLOT_CLOSE, slot_window_close, pWidget->display());
@@ -276,7 +276,7 @@ namespace lsp
             return pBox->add(child);
         }
 
-        status_t CtlPluginWindow::slot_export_settings(void *ptr, void *data)
+        status_t CtlPluginWindow::slot_export_settings(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
             LSPFileDialog *dlg = __this->pExport;
@@ -294,12 +294,14 @@ namespace lsp
                 dlg->add_filter("*.cfg", "LSP plugin configuration file (*.cfg)");
                 dlg->add_filter("*", "All files (*.*)");
                 dlg->bind_action(slot_call_export_settings, ptr);
+                dlg->slots()->bind(LSPSLOT_SHOW, slot_fetch_path, __this);
+                dlg->slots()->bind(LSPSLOT_HIDE, slot_commit_path, __this);
             }
 
             return dlg->show(__this->pWnd);
         }
 
-        status_t CtlPluginWindow::slot_import_settings(void *ptr, void *data)
+        status_t CtlPluginWindow::slot_import_settings(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
             LSPFileDialog *dlg = __this->pImport;
@@ -316,12 +318,14 @@ namespace lsp
                 dlg->add_filter("*.cfg", "Configuration file (*.cfg)");
                 dlg->add_filter("*", "All files (*.*)");
                 dlg->bind_action(slot_call_import_settings, ptr);
+                dlg->slots()->bind(LSPSLOT_SHOW, slot_fetch_path, __this);
+                dlg->slots()->bind(LSPSLOT_HIDE, slot_commit_path, __this);
             }
 
             return dlg->show(__this->pWnd);
         }
 
-        status_t CtlPluginWindow::slot_toggle_rack_mount(void *ptr, void *data)
+        status_t CtlPluginWindow::slot_toggle_rack_mount(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
             CtlPort *mstud = __this->pPMStud;
@@ -335,19 +339,19 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t CtlPluginWindow::slot_show_menu_top(void *ptr, void *data)
+        status_t CtlPluginWindow::slot_show_menu_top(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
             return __this->show_menu(0, data);
         }
 
-        status_t CtlPluginWindow::slot_show_menu_left(void *ptr, void *data)
+        status_t CtlPluginWindow::slot_show_menu_left(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
             return __this->show_menu(1, data);
         }
 
-        status_t CtlPluginWindow::slot_show_menu_right(void *ptr, void *data)
+        status_t CtlPluginWindow::slot_show_menu_right(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
             return __this->show_menu(2, data);
@@ -365,25 +369,59 @@ namespace lsp
             return pMenu->show(actor);
         }
 
-        status_t CtlPluginWindow::slot_call_export_settings(void *ptr, void *data)
+        status_t CtlPluginWindow::slot_call_export_settings(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
             __this->pUI->export_settings(__this->pExport->selected_file());
             return STATUS_OK;
         }
 
-        status_t CtlPluginWindow::slot_call_import_settings(void *ptr, void *data)
+        status_t CtlPluginWindow::slot_call_import_settings(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
             __this->pUI->import_settings(__this->pImport->selected_file());
             return STATUS_OK;
         }
 
-        status_t CtlPluginWindow::slot_message_close(void *ptr, void *data)
+        status_t CtlPluginWindow::slot_message_close(LSPWidget *sender, void *ptr, void *data)
         {
             CtlPluginWindow *__this = static_cast<CtlPluginWindow *>(ptr);
             if (__this->pMessage != NULL)
                 __this->pMessage->hide();
+            return STATUS_OK;
+        }
+
+        status_t CtlPluginWindow::slot_fetch_path(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlPluginWindow *_this = static_cast<CtlPluginWindow *>(ptr);
+            if ((_this == NULL) || (_this->pPath == NULL))
+                return STATUS_BAD_STATE;
+
+            LSPFileDialog *dlg = widget_cast<LSPFileDialog>(sender);
+            if (dlg == NULL)
+                return STATUS_OK;
+
+            dlg->set_path(_this->pPath->get_buffer<char>());
+            return STATUS_OK;
+        }
+
+        status_t CtlPluginWindow::slot_commit_path(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlPluginWindow *_this = static_cast<CtlPluginWindow *>(ptr);
+            if ((_this == NULL) || (_this->pPath == NULL))
+                return STATUS_BAD_STATE;
+
+            LSPFileDialog *dlg = widget_cast<LSPFileDialog>(sender);
+            if (dlg == NULL)
+                return STATUS_OK;
+
+            const char *path = dlg->path();
+            if (path != NULL)
+            {
+                _this->pPath->write(path, strlen(path));
+                _this->pPath->notify_all();
+            }
+
             return STATUS_OK;
         }
 

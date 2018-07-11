@@ -1,4 +1,4 @@
-#include <core/plugins.h>
+#include <core/plugin.h>
 #include <stdio.h>
 
 //float in[]=

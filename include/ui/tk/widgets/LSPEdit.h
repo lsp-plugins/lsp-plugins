@@ -79,7 +79,6 @@ namespace lsp
                 LSPMenu        *pPopup;
 
             protected:
-                static status_t slot_on_change(void *ptr, void *data);
                 static status_t timer_handler(timestamp_t time, void *arg);
                 ssize_t         mouse_to_cursor_pos(ssize_t x, ssize_t y);
                 void            run_scroll(ssize_t dir);
@@ -92,9 +91,10 @@ namespace lsp
                 status_t        copy_data(size_t bufid);
                 status_t        paste_data(size_t bufid);
 
-                static status_t slot_popup_cut_action(void *ptr, void *data);
-                static status_t slot_popup_copy_action(void *ptr, void *data);
-                static status_t slot_popup_paste_action(void *ptr, void *data);
+                static status_t slot_on_change(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_popup_cut_action(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_popup_copy_action(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_popup_paste_action(LSPWidget *sender, void *ptr, void *data);
 
             public:
                 explicit LSPEdit(LSPDisplay *dpy);

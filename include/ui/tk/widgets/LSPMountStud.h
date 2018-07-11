@@ -28,7 +28,8 @@ namespace lsp
                 realize_t           sLogo;
 
             protected:
-                static status_t slot_on_submit(void *ptr, void *data);
+                static status_t slot_on_submit(LSPWidget *sender, void *ptr, void *data);
+
                 bool mouse_over_logo(ssize_t x, ssize_t y);
                 void draw_screw(ISurface *s, ssize_t x, ssize_t y, float angle);
 

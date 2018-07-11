@@ -44,6 +44,7 @@ namespace lsp
             protected:
                 LSPString           sFileName;
                 LSPString           sHint;
+                LSPString           sPath;
                 LSPWidgetFont       sFont;
                 LSPWidgetFont       sHintFont;
                 LSPSizeConstraints  sConstraints;
@@ -57,7 +58,6 @@ namespace lsp
                 float              *vDecimX;        // Decimation buffer data for x
                 float              *vDecimY;        // Decimation buffer data for y
 
-//                status_t            nFileStatus;
                 ISurface           *pGlass;
                 ISurface           *pGraph;
                 cvector<channel_t>  vChannels;
@@ -79,8 +79,11 @@ namespace lsp
                 void                drop_glass();
                 void                render_channel(ISurface *s, channel_t *c, ssize_t y, ssize_t w, ssize_t h); //, const Color &fill, const Color &wire);
 
-                static status_t     slot_on_dialog_submit(void *ptr, void *data);
-                static status_t     slot_on_submit(void *ptr, void *data);
+                static status_t     slot_on_dialog_submit(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_dialog_close(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_activate(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_submit(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_close(LSPWidget *sender, void *ptr, void *data);
 
             public:
                 LSPAudioFile(LSPDisplay *dpy);
@@ -107,7 +110,8 @@ namespace lsp
                 inline Color           *bg_color() { return &sBgColor; }
                 inline Color           *axis_color() { return &sAxisColor; }
 
-//                inline status_t         get_file_status() { return nFileStatus; }
+                inline const char      *get_path() const { return sPath.get_native(); }
+                inline status_t         get_path(LSPString *dst) const { return (dst->set(&sPath)) ? STATUS_OK : STATUS_NO_MEM; }
 
                 inline size_t           channels() const { return vChannels.size(); }
                 inline ssize_t          channel_samples(size_t i) const { const channel_t *c = (const_cast<LSPAudioFile *>(this))->vChannels.get(i); return (c != NULL) ? c->nSamples : -1; }
@@ -131,8 +135,6 @@ namespace lsp
                 status_t        set_hint(const char *text);
                 status_t        set_hint(const LSPString *text);
 
-//                status_t        set_file_status(status_t status);
-
                 status_t        set_channels(size_t n);
                 status_t        add_channel();
                 status_t        add_channels(size_t n);
@@ -147,6 +149,8 @@ namespace lsp
 
                 status_t        set_radius(size_t radius);
                 status_t        set_border(size_t border);
+                status_t        set_path(const LSPString *path);
+                status_t        set_path(const char *path);
 
                 void            set_show_data(bool value = true);
                 void            set_show_hint(bool value = true);
@@ -168,6 +172,10 @@ namespace lsp
                 virtual status_t on_mouse_dbl_click(const ws_event_t *e);
 
                 virtual status_t on_submit();
+
+                virtual status_t on_close();
+
+                virtual status_t on_activate();
 
                 virtual void realize(const realize_t *r);
         };

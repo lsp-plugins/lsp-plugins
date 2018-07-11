@@ -23,7 +23,7 @@ namespace lsp
         {
         }
 
-        status_t CtlSwitch::slot_change(void *ptr, void *data)
+        status_t CtlSwitch::slot_change(LSPWidget *sender, void *ptr, void *data)
         {
             CtlSwitch *_this    = static_cast<CtlSwitch *>(ptr);
             if (_this != NULL)

@@ -64,7 +64,7 @@ namespace lsp
             }
         }
 
-        status_t CtlSaveFile::slot_on_file_submit(void *ptr, void *data)
+        status_t CtlSaveFile::slot_on_file_submit(LSPWidget *sender, void *ptr, void *data)
         {
             CtlSaveFile *_this   = static_cast<CtlSaveFile *>(ptr);
             return (_this != NULL) ? _this->commit_state() : STATUS_BAD_ARGUMENTS;

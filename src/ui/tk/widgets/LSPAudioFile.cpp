@@ -63,15 +63,29 @@ namespace lsp
 
             ui_handler_id_t id = 0;
             id = sSlots.add(LSPSLOT_SUBMIT, slot_on_submit, self());
+            if (id >= 0) id = sSlots.add(LSPSLOT_CLOSE, slot_on_close, self());
+            if (id >= 0) id = sSlots.add(LSPSLOT_ACTIVATE, slot_on_close, self());
             if (id < 0) return -id;
 
             return result;
         }
 
-        status_t LSPAudioFile::slot_on_submit(void *ptr, void *data)
+        status_t LSPAudioFile::slot_on_submit(LSPWidget *sender, void *ptr, void *data)
         {
             LSPAudioFile *_this = widget_ptrcast<LSPAudioFile>(ptr);
             return (_this != NULL) ? _this->on_submit() : STATUS_BAD_ARGUMENTS;
+        }
+
+        status_t LSPAudioFile::slot_on_close(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPAudioFile *_this = widget_ptrcast<LSPAudioFile>(ptr);
+            return (_this != NULL) ? _this->on_close() : STATUS_BAD_ARGUMENTS;
+        }
+
+        status_t LSPAudioFile::slot_on_activate(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPAudioFile *_this = widget_ptrcast<LSPAudioFile>(ptr);
+            return (_this != NULL) ? _this->on_activate() : STATUS_BAD_ARGUMENTS;
         }
 
         void LSPAudioFile::destroy()
@@ -530,6 +544,7 @@ namespace lsp
                     c    = vChannels.at(ci);
                     if (c != NULL)
                         render_channel(pGraph, c, yc, w, ye - yc); //, fill, c->sColor);
+                    ++ci;
 
                     pGraph->set_antialiasing(false);
                     pGraph->line(0.0f, yc, w, yc, 1.0f, sAxisColor);
@@ -667,6 +682,22 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t LSPAudioFile::set_path(const LSPString *path)
+        {
+            if (!sPath.set(path))
+                return STATUS_NO_MEM;
+            return ((pDialog != NULL) && (pDialog->visible())) ?
+                    pDialog->set_path(&sPath) : STATUS_OK;
+        }
+
+        status_t LSPAudioFile::set_path(const char *path)
+        {
+            if (!sPath.set_native(path))
+                return STATUS_NO_MEM;
+            return ((pDialog != NULL) && (pDialog->visible())) ?
+                    pDialog->set_path(&sPath) : STATUS_OK;
+        }
+
         void LSPAudioFile::set_show_data(bool value)
         {
             size_t flags = nStatus;
@@ -773,7 +804,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPAudioFile::slot_on_dialog_submit(void *ptr, void *data)
+        status_t LSPAudioFile::slot_on_dialog_submit(LSPWidget *sender, void *ptr, void *data)
         {
             // Cast widget
             LSPAudioFile *_this = widget_ptrcast<LSPAudioFile>(ptr);
@@ -787,7 +818,19 @@ namespace lsp
 
             // OK, file name was submitted
             _this->query_draw();
-            return _this->sSlots.execute(LSPSLOT_SUBMIT, data);
+            return _this->sSlots.execute(LSPSLOT_SUBMIT, _this, data);
+        }
+
+        status_t LSPAudioFile::slot_on_dialog_close(LSPWidget *sender, void *ptr, void *data)
+        {
+            // Cast widget
+            LSPAudioFile *_this = widget_ptrcast<LSPAudioFile>(ptr);
+            if (_this == NULL)
+                return STATUS_BAD_STATE;
+
+            // Remember the last path used
+            _this->pDialog->get_path(&_this->sPath);
+            return _this->sSlots.execute(LSPSLOT_CLOSE, _this, data);
         }
 
         status_t LSPAudioFile::show_dialog()
@@ -809,9 +852,11 @@ namespace lsp
 
                 pDialog->set_action_title("Load");
                 pDialog->bind_action(slot_on_dialog_submit, self());
+                pDialog->slots()->bind(LSPSLOT_HIDE, slot_on_dialog_close, self());
             }
 
             // Initialize dialog
+            pDialog->set_path(&sPath);
             pDialog->show(this);
 
             return STATUS_OK;
@@ -833,7 +878,11 @@ namespace lsp
             }
 
             if ((pressed) && (nBMask == 0) && (e->nCode == MCB_LEFT))
-                show_dialog();
+            {
+                status_t result = sSlots.execute(LSPSLOT_ACTIVATE, NULL);
+                if (result == STATUS_OK)
+                    show_dialog();
+            }
 
             return STATUS_OK;
         }
@@ -865,6 +914,16 @@ namespace lsp
         }
 
         status_t LSPAudioFile::on_submit()
+        {
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::on_close()
+        {
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::on_activate()
         {
             return STATUS_OK;
         }

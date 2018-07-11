@@ -139,7 +139,9 @@
 						id="sf[ssel]" head_id="hc[ssel]" tail_id="tc[ssel]"
 						fadein_id="fi[ssel]" fadeout_id="fo[ssel]" length_id="fl[ssel]"
 						status_id="fs[ssel]" mesh_id="fd[ssel]"
-						width="320" height="127" />
+						width="320" height="127"
+						path_id="ui:dlg_sample_path"
+					/>
 						
 					<grid rows="3" cols="7" vspacing="2" expand="true">
 						<label text="Head cut" />

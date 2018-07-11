@@ -40,6 +40,7 @@
 	<li><b>Window</b> - the window applied to the audio data before processing.</li>
 	<li><b>Tolerance</b> - the number of points for the FFT (Fast Fourier Transform) analysis.</li>
 	<li><b>Envelope</b> - the envelope compensation of the signal.</li>
+	<li><b>Zoom</b> - zoom fader, allows to adjust zoom on the frequency chart.</li>
 </ul>
 
 <p><b>Meters:</b></p>

@@ -7,7 +7,7 @@
 
 #include <core/debug.h>
 #include <core/colors.h>
-#include <core/Color.h>
+#include <core/util/Color.h>
 
 #include <plugins/limiter.h>
 

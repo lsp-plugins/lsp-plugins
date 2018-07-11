@@ -30,6 +30,8 @@ namespace lsp
             public:
                 virtual void    query_draw(size_t flags);
 
+                virtual void    commit_redraw();
+
                 /** Add child to widget container
                  *
                  * @param child child widget to add

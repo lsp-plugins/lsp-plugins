@@ -12,6 +12,17 @@ namespace lsp
 {
     namespace tk
     {
+        class LSPWidget;
+
+        /** Event handler type
+         *
+         * @param sender the widget that initiated an event
+         * @param ptr additional pointer
+         * @param data data structure to process (handle)
+         * @return status of operation
+         */
+        typedef status_t (* ui_event_handler_t)(LSPWidget *sender, void *ptr, void *data);
+
         class LSPSlot
         {
             protected:
@@ -137,10 +148,11 @@ namespace lsp
     
                 /** Execute slot handlers
                  *
+                 * @param sender the object that initiated event
                  * @param data data to process
                  * @return status of operation
                  */
-                status_t execute(void *data);
+                status_t execute(LSPWidget *sender, void *data);
         };
     }
 } /* namespace lsp */

@@ -52,12 +52,15 @@ namespace lsp
                 return result;
 
             init_color(C_GRAPH_TEXT, sFont.color());
-            vCoords             = reinterpret_cast<float *>(malloc(2 * sizeof(float)));
+            vCoords             = reinterpret_cast<coord_t *>(malloc(2 * sizeof(coord_t)));
             if (vCoords == NULL)
                 return STATUS_NO_MEM;
             nCoords             = 2;
             for (size_t i=0; i<nCoords; ++i)
-                vCoords[i]          = 0.0f;
+            {
+                vCoords[i].nBasis   = i;
+                vCoords[i].fCoord   = 0.0f;
+            }
 
             sFont.set_size(10.0f);
 
@@ -80,13 +83,16 @@ namespace lsp
                 return STATUS_OK;
             }
 
-            float *ptr = (vCoords != NULL) ?
-                    reinterpret_cast<float *>(realloc(vCoords, sizeof(float) * axes)) :
-                    reinterpret_cast<float *>(malloc(sizeof(float) * axes));
+            coord_t *ptr = (vCoords != NULL) ?
+                    reinterpret_cast<coord_t *>(realloc(vCoords, sizeof(coord_t) * axes)) :
+                    reinterpret_cast<coord_t *>(malloc(sizeof(coord_t) * axes));
             if (ptr == NULL)
                 return STATUS_NO_MEM;
             for (size_t i=nCoords; i<axes; ++i)
-                ptr[i]      = 0.0f;
+            {
+                ptr[i].nBasis   = i;
+                ptr[i].fCoord   = 0.0f;
+            }
 
             vCoords     = ptr;
             nCoords     = axes;
@@ -97,12 +103,34 @@ namespace lsp
         {
             if ((axis < 0) || (axis >= nCoords))
                 return STATUS_OVERFLOW;
-            if (vCoords[axis] == value)
+            if (vCoords[axis].fCoord == value)
                 return STATUS_OK;
-            vCoords[axis] = value;
+            vCoords[axis].fCoord = value;
             query_draw();
 
             return STATUS_OK;
+        }
+
+        status_t LSPText::set_basis(size_t axis, size_t value)
+        {
+            if ((axis < 0) || (axis >= nCoords))
+                return STATUS_OVERFLOW;
+            if (vCoords[axis].nBasis == value)
+                return STATUS_OK;
+            vCoords[axis].nBasis = value;
+            query_draw();
+
+            return STATUS_OK;
+        }
+
+        float LSPText::get_coord(size_t axis) const
+        {
+            return ((axis < 0) || (axis >= nCoords)) ? vCoords[axis].fCoord : 0.0f;
+        }
+
+        size_t LSPText::get_basis(size_t axis) const
+        {
+            return ((axis < 0) || (axis >= nCoords)) ? vCoords[axis].nBasis : 0;
         }
 
         void LSPText::set_halign(float value)
@@ -145,12 +173,13 @@ namespace lsp
             // Apply all axis
             for (size_t i=0; i<nCoords; ++i)
             {
+                coord_t *coord = &vCoords[i];
                 // Get axis
-                LSPAxis *axis = cv->axis(i);
+                LSPAxis *axis = cv->axis(coord->nBasis);
                 if (axis == NULL)
                     return;
                 // Apply changes
-                if (!axis->apply(&x, &y, &vCoords[i], 1))
+                if (!axis->apply(&x, &y, &coord->fCoord, 1))
                     return;
             }
 

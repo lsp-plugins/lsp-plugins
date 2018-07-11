@@ -71,7 +71,7 @@ namespace lsp
                 void            update();
                 void            update_cursor_state(ssize_t x, ssize_t y, bool set);
 
-                static status_t slot_on_change(void *ptr, void *data);
+                static status_t slot_on_change(LSPWidget *sender, void *ptr, void *data);
                 static status_t timer_handler(timestamp_t time, void *arg);
 
             public:

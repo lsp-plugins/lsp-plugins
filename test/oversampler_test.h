@@ -6,7 +6,7 @@
 
 #include <core/types.h>
 #include <core/dsp.h>
-#include <core/Oversampler.h>
+#include <core/util/Oversampler.h>
 
 #define RTEST_BUF_SIZE  0x100
 

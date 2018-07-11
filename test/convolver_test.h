@@ -5,7 +5,7 @@
 
 #include <core/types.h>
 #include <core/dsp.h>
-#include <core/Convolver.h>
+#include <core/util/Convolver.h>
 
 #ifndef CONVOLVER_RANK_SMALLEST
     #define UNDEF_CONVOLVER_RANK_SMALLEST

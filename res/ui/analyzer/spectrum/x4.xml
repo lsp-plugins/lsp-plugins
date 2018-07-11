@@ -1,69 +1,99 @@
 <plugin resizable="false">
 	<vbox spacing="4">
-		<graph width="640" height="360" expand="true" fill="true">
-			<center hpos="-1" vpos="-1" visible="false" />
-			
-			<!-- Gray grid -->
-			<ui:for id="f" first="20" last="90" step="10"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
-			<ui:for id="f" first="200" last="900" step="100"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
-			<ui:for id="f" first="2000" last="9000" step="1000"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
-			<marker value="20000" color="gray" basis="0" parallel="1" />
-			
-			<marker value="3.98107" color="gray" basis="1" parallel="0" /> <!-- +12 dB -->
-			<marker value="0.251189" color="gray" basis="1" parallel="0" /> <!-- -12 dB -->
-			<marker value="0.0158489" color="gray" basis="1" parallel="0" /> <!-- -36 dB -->
-			<marker value="0.001" color="gray" basis="1" parallel="0" /> <!-- -60 dB -->
+		<grid rows="2" cols="2" hspacing="4" vspacing="4">
+			<graph width="640" height="360" expand="true" fill="true">
+				<center hpos="-1" vpos="-1" visible="false" />
+				
+				<!-- Gray grid -->
+				<ui:for id="f" first="20" last="90" step="10"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
+				<ui:for id="f" first="200" last="900" step="100"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
+				<ui:for id="f" first="2000" last="9000" step="1000"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
+				<marker value="20000" color="gray" basis="0" parallel="1" />
+				
+				<marker value="+12 db" color="gray" basis="1" parallel="0" /> <!-- +12 dB -->
+				<marker value="-12 db" color="gray" basis="1" parallel="0" /> <!-- -12 dB -->
+				<marker value="-36 db" color="gray" basis="1" parallel="0" /> <!-- -36 dB -->
+				<marker value="-60 db" color="gray" basis="1" parallel="0" /> <!-- -60 dB -->
+				
+				<!-- Additional markers for zoom -->
+				<marker value="-6 db" color="gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
+				<marker value="-18 db" color="gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
+				<marker value="-30 db" color="gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
+				<marker value="-42 db" color="gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
+				
+				<marker value="-15 db" color="gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
+				<marker value="-21 db" color="gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
+				<marker value="-27 db" color="gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
+				<marker value="-33 db" color="gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
+				
+				<!-- Yellow grid -->
+				<marker value="100" color="yellow" basis="0" parallel="1" /> <!-- 100 Hz -->
+				<marker value="1000" color="yellow" basis="0" parallel="1" /> <!-- 1 kHz -->
+				<marker value="10000" color="yellow" basis="0" parallel="1" /> <!-- 10 kHz -->
 
-			<!-- Yellow grid -->
-			<marker value="100" color="yellow" basis="0" parallel="1" /> <!-- 100 Hz -->
-			<marker value="1000" color="yellow" basis="0" parallel="1" /> <!-- 1 kHz -->
-			<marker value="10000" color="yellow" basis="0" parallel="1" /> <!-- 10 kHz -->
+				<marker value="0 db" color="yellow" basis="1" parallel="0" /> <!-- 0 dB -->
+				<marker value="-24 db" color="yellow" basis="1" parallel="0" /> <!-- -24 dB -->
+				<marker value="-48 db" color="yellow" basis="1" parallel="0" /> <!-- -48 dB -->
+	
+				<!-- Meshes -->
+				<ui:for id="i" first="0" last="4"><mesh id="spc_${i}" width="3" visibility_id="on_${i}" hue_id="hue_${i}" /></ui:for>
+				
+				<!-- Boundaries -->
+				<marker value="1" color="white" basis="2" parallel="0" /> <!-- +48 dB -->
+				<marker value="24000" color="white" basis="0" parallel="1" />
+				
+				<!-- Axis -->
+				<axis min="10" max="24000" angle="0.0" color="white" logarithmic="true" />
+				<axis min="-72 db / :zoom" max="24 db * :zoom" color="white" angle="0.5" logarithmic="true" /> <!-- -72..+24 dB -->
+				<axis min="-1" max="1" visible="false" angle="0.5" />
+				
+				<!-- Marker -->
+				<marker id="freq" color="red" basis="0" parallel="1" />
+				<marker id="lvl" color="red" basis="1" parallel="0" />
+				
+				<!-- Text -->
+				<text text="Hz" basis="0;2" coord="10;0" halign="1" valign="1" />
+				<text text="100" basis="0;2" coord="100;0" halign="1" valign="1" />
+				<text text="1K" basis="0;2" coord="1000;0" halign="1" valign="1" />
+				<text text="10K" basis="0;2" coord="10000;0" halign="1" valign="1" />
+				
+				<text text="0" coord="10;0 db" halign="1" valign="1" />
+				<text text="12" coord="10;12 db" halign="1" valign="1" />
+				<text text="-12" coord="10;-12 db" halign="1" valign="1" />
+				<text text="-24" coord="10;-24 db" halign="1" valign="1" />
+				<text text="-36" coord="10;-36 db" halign="1" valign="1" />
+				<text text="-48" coord="10;-48 db" halign="1" valign="1" />
+				<text text="-60" coord="10;-60 db" halign="1" valign="1" />
+				<text text="dB" basis="0;2" coord="10;1" halign="1" valign="-1" />
+				
+				<!-- Additional text -->
+				<text text="-6" coord="10;-6 db" halign="1" valign="1" visibility=":zoom le -18 db" />
+				<text text="-18" coord="10;-18 db" halign="1" valign="1" visibility=":zoom le -18 db" />
+				<text text="-30" coord="10;-30 db" halign="1" valign="1" visibility=":zoom le -18 db" />
+				<text text="-42" coord="10;-42 db" halign="1" valign="1" visibility=":zoom le -18 db" />
 
-			<marker value="1" color="yellow" basis="1" parallel="0" /> <!-- 0 dB -->
-			<marker value="0.0630957" color="yellow" basis="1" parallel="0" /> <!-- -24 dB -->
-			<marker value="0.00398107" color="yellow" basis="1" parallel="0" /> <!-- -48 dB -->
-
-			<!-- Meshes -->
-			<ui:for id="i" first="0" last="4"><mesh id="spc_${i}" width="3" visibility_id="on_${i}" hue_id="hue_${i}" /></ui:for>
-			
-			<!-- Boundaries -->
-			<marker value="15.8489" color="white" basis="1" parallel="0" /> <!-- +24 dB -->
-			<marker value="24000" color="white" basis="0" parallel="1" />
-			
-			<!-- Marker -->
-			<marker id="freq" color="red" basis="0" parallel="1" />
-			<marker id="lvl" color="red" basis="1" parallel="0" />
-			
-			<!-- Axis -->
-			<axis id="freq" color="white" angle="0.0" logarithmic="true" />
-			<axis min="0.000251189" max="15.8489" color="white" angle="0.5" logarithmic="true" />
-			
-			<!-- Text -->
-			<text text="Hz" coord="10;2.51e-4" halign="1" valign="1" />
-			<text text="100" coord="100;2.51e-4" halign="1" valign="1" />
-			<text text="1K" coord="1000;2.51e-4" halign="1" valign="1" />
-			<text text="10K" coord="10000;2.51e-4" halign="1" valign="1" />
-			
-			<text text="+12" coord="10;3.98107" halign="1" valign="-1" />
-			<text text="0" coord="10;1" halign="1" valign="1" />
-			<text text="-12" coord="10;0.251189" halign="1" valign="1" />
-			<text text="-24" coord="10;0.0630957" halign="1" valign="1" />
-			<text text="-36" coord="10;0.0158489" halign="1" valign="1" />
-			<text text="-48" coord="10;0.00398107" halign="1" valign="1" />
-			<text text="-60" coord="10;0.001" halign="1" valign="1" />
-			<text text="dB" coord="10;15.8489" halign="1" valign="-1" />
-		</graph>
-		
-		<hbox spacing="8" border="4">
-			<align pad_right="4" fill="true" hpos="0"><label text="FREQUENCY GRAPH" /></align>
-			<label text="Window" />
-			<combo id="wnd" />
-			<label text="Tolerance" />
-			<combo id="tol" />
-			<label text="Envelope" />
-			<combo id="env" />
-		</hbox>
-		
+				<text text="-15" coord="10;-15 db" halign="1" valign="1" visibility=":zoom le -33 db" />
+				<text text="-21" coord="10;-21 db" halign="1" valign="1" visibility=":zoom le -33 db" />
+				<text text="-27" coord="10;-27 db" halign="1" valign="1" visibility=":zoom le -33 db" />
+				<text text="-33" coord="10;-33 db" halign="1" valign="1" visibility=":zoom le -33 db" />
+			</graph>
+			<cell rows="2">
+				<vbox>
+					<label text="Zoom" />
+					<fader id="zoom" angle="1" expand="true" />
+					<value id="zoom" />
+				</vbox>
+			</cell>
+			<hbox spacing="8" border="4">
+				<align pad_right="4" fill="true" hpos="0"><label text="FREQUENCY GRAPH" /></align>
+				<label text="Window" />
+				<combo id="wnd" />
+				<label text="Tolerance" />
+				<combo id="tol" />
+				<label text="Envelope" />
+				<combo id="env" />
+			</hbox>
+		</grid>
 		<hbox spacing="4">
 			<group text="Channels" expand="true">
 				<grid rows="7" cols="5" transpose="true">

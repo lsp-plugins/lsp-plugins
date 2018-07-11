@@ -54,6 +54,7 @@ namespace lsp
                 float           fReactivity;        // Reactivity
                 float           fTau;               // Time constant (dependent on reactivity)
                 float           fPreamp;            // Preamplification level
+                float           fZoom;              // Zoom
 
                 size_t          nWindow;
                 size_t          nEnvelope;
@@ -64,6 +65,7 @@ namespace lsp
                 IPort          *pWindow;
                 IPort          *pEnvelope;
                 IPort          *pPreamp;
+                IPort          *pZoom;
                 IPort          *pReactivity;
                 IPort          *pChannel;
                 IPort          *pSelector;
@@ -72,10 +74,11 @@ namespace lsp
 
                 float          *vFrequences;
                 uint32_t       *vIndexes;
-                float          *vFftRe;
-                float          *vFftIm;
+//                float          *vFftRe;
+//                float          *vFftIm;
+                float          *vFftReIm;
                 float          *vSigRe;
-                float          *vSigIm;
+//                float          *vSigIm;
                 float          *vWindow;
                 float          *vEnvelope;
 

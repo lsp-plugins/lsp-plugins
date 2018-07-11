@@ -28,6 +28,7 @@ namespace lsp
             pPointed        = NULL;
             bHasFocus       = false;
             bOverridePointer= false;
+            bMapFlag        = false;
             bSizeRequest    = true;
             nVertPos        = 0.5f;
             nHorPos         = 0.5f;
@@ -165,8 +166,8 @@ namespace lsp
                 if (sr.nMinHeight > 0)
                     r.nHeight       = sr.nMinHeight;
             }
-//            if (pNativeHandle == NULL)
-                pWindow->resize(r.nWidth, r.nHeight);
+
+            pWindow->resize(r.nWidth, r.nHeight);
 
             return STATUS_OK;
         }
@@ -208,7 +209,7 @@ namespace lsp
             return (_this != NULL) ? _this->do_render() : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPWindow::slot_window_close(void *ptr, void *data)
+        status_t LSPWindow::slot_window_close(LSPWidget *sender, void *ptr, void *data)
         {
             if ((ptr == NULL) || (data == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -224,9 +225,11 @@ namespace lsp
 
             if (bSizeRequest)
             {
+                lsp_trace("Synchronizing size");
                 sync_size();
                 bSizeRequest    = false;
-                query_draw();
+                query_draw(REDRAW_CHILD | REDRAW_SURFACE);
+                realize(&sSize);
             }
 
             if (!redraw_pending())
@@ -266,7 +269,6 @@ namespace lsp
             {
                 if ((force) || (pChild->redraw_pending()))
                 {
-//                    lsp_trace("Rendering this=%p, tgt=%p, force=%d", this, pChild, int(force));
                     pChild->render(s, force);
                     pChild->commit_redraw();
                 }
@@ -330,7 +332,7 @@ namespace lsp
         {
             window_poilicy_t old = enPolicy;
             enPolicy = policy;
-            if ((old == policy) || (!nFlags & F_VISIBLE))
+            if ((old == policy) || (!(nFlags & F_VISIBLE)))
                 return;
 
             query_resize();
@@ -376,7 +378,10 @@ namespace lsp
                 pParent->query_resize();
 
             if (pWindow == NULL)
+            {
+                sSlots.execute(LSPSLOT_SHOW, this);
                 return true;
+            }
 
             // Evaluate layering
             LSPWindow *wnd = (actor != NULL) ? widget_cast<LSPWindow>(actor->toplevel()) : NULL;
@@ -466,19 +471,32 @@ namespace lsp
             switch (e->nType)
             {
                 case UIE_FOCUS_IN:
-                    result = sSlots.execute(LSPSLOT_FOCUS_IN, &ev);
+                    result = sSlots.execute(LSPSLOT_FOCUS_IN, this, &ev);
                     break;
 
                 case UIE_FOCUS_OUT:
-                    result = sSlots.execute(LSPSLOT_FOCUS_OUT, &ev);
+                    result = sSlots.execute(LSPSLOT_FOCUS_OUT, this, &ev);
                     break;
 
                 case UIE_SHOW:
-                    result = sSlots.execute(LSPSLOT_SHOW, &ev);
+                    sRedraw.launch(-1, 40);
+                    query_draw();
+                    if (bMapFlag != bool(nFlags & F_VISIBLE))
+                    {
+                        lsp_trace("SHOW ptr=%p", this);
+                        result      = sSlots.execute(LSPSLOT_SHOW, this, &ev);
+                        bMapFlag    = nFlags & F_VISIBLE;
+                    }
                     break;
 
                 case UIE_HIDE:
-                    result =sSlots.execute(LSPSLOT_HIDE, &ev);
+                    sRedraw.cancel();
+                    if (bMapFlag != bool(nFlags & F_VISIBLE))
+                    {
+                        lsp_trace("HIDE ptr=%p", this);
+                        result      = sSlots.execute(LSPSLOT_HIDE, this, &ev);
+                        bMapFlag    = nFlags & F_VISIBLE;
+                    }
                     break;
 
                 case UIE_REDRAW:
@@ -486,7 +504,7 @@ namespace lsp
                     break;
 
                 case UIE_CLOSE:
-                    result = sSlots.execute(LSPSLOT_CLOSE, &ev);
+                    result = sSlots.execute(LSPSLOT_CLOSE, this, &ev);
                     break;
 
                 case UIE_KEY_DOWN:
@@ -922,6 +940,7 @@ namespace lsp
 
         void LSPWindow::realize(const realize_t *r)
         {
+            lsp_trace("width=%d, height=%d", int(r->nWidth), int(r->nHeight));
             LSPWidgetContainer::realize(r);
             bSizeRequest        = false;
 

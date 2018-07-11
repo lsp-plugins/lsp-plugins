@@ -157,7 +157,13 @@ namespace lsp
             {
                 float value = sVisibility.evaluate();
                 if (pWidget != NULL)
+                {
+//                    lsp_trace("set visible widget %s ptr=%p to %s",
+//                            pWidget->get_class()->name,
+//                            pWidget,
+//                            (value >= 0.5f) ? "true" : "false");
                     pWidget->set_visible(value >= 0.5f);
+                }
             }
         }
 

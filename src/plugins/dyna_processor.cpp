@@ -7,7 +7,7 @@
 
 #include <core/debug.h>
 #include <core/colors.h>
-#include <core/Color.h>
+#include <core/util/Color.h>
 #include <plugins/dyna_processor.h>
 
 #define DYNA_PROC_BUF_SIZE           0x1000
@@ -466,17 +466,14 @@ namespace lsp
             c->sProc.set_attack_time(0, c->pAttackTime[0]->getValue());
             c->sProc.set_release_time(0, c->pReleaseTime[0]->getValue());
 
-            for (size_t j=0; j<dyna_processor_base_metadata::RANGES; ++j)
-            {
-                c->sProc.set_attack_level(j, (c->pAttackOn[j]->getValue() >= 0.5f) ? c->pAttackLvl[j]->getValue() : -1.0f);
-                c->sProc.set_attack_time(j, c->pAttackTime[j]->getValue());
-
-                c->sProc.set_release_level(j, (c->pReleaseOn[j]->getValue() >= 0.5f) ? c->pReleaseLvl[j]->getValue() : -1.0f);
-                c->sProc.set_release_time(j, c->pReleaseTime[j]->getValue());
-            }
-
             for (size_t j=0; j<dyna_processor_base_metadata::DOTS; ++j)
             {
+                c->sProc.set_attack_level(j, (c->pAttackOn[j]->getValue() >= 0.5f) ? c->pAttackLvl[j]->getValue() : -1.0f);
+                c->sProc.set_attack_time(j, c->pAttackTime[j+1]->getValue());
+
+                c->sProc.set_release_level(j, (c->pReleaseOn[j]->getValue() >= 0.5f) ? c->pReleaseLvl[j]->getValue() : -1.0f);
+                c->sProc.set_release_time(j, c->pReleaseTime[j+1]->getValue());
+
                 if ((c->pDotOn[j] != NULL) && (c->pDotOn[j]->getValue() >= 0.5f))
                     c->sProc.set_dot(j, c->pThreshold[j]->getValue(), c->pGain[j]->getValue(), c->pKnee[j]->getValue());
                 else

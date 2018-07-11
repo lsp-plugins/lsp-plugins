@@ -45,7 +45,7 @@ namespace lsp
         return v;
     }
 
-    #ifdef __x86_64__
+    #ifdef ARCH_X86_64
         inline uint64_t __lsp_forced_inline    byte_swap(uint64_t v)
         {
             __asm__ __volatile__ (
@@ -65,7 +65,7 @@ namespace lsp
             );
             return v;
         }
-    #else /* __i386__ */
+    #else /* ARCH_I386 */
         inline uint64_t __lsp_forced_inline    byte_swap(uint64_t v)
         {
             __asm__ __volatile__ (

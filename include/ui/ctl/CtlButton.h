@@ -21,7 +21,7 @@ namespace lsp
                 CtlColor        sColor;
 
             protected:
-                static status_t    slot_change(void *ptr, void *data);
+                static status_t    slot_change(LSPWidget *sender, void *ptr, void *data);
 
                 void        commit_value(float value);
                 void        submit_value();

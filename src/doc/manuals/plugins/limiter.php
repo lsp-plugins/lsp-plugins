@@ -12,6 +12,35 @@
 </p>
 <p><u>Attention:</u> this plugin implements set of limiting modes, most of them are iterative. That means that CPU load may be not stable, in other
 words: the more work should be done, the more CPU resources will be used. Beware from extreme settings.</p>
+<p>The short description how does the limiter work can be explained with this iterative algorithm:</p>
+<ol>
+<li>Initializes gain reduction curve as all samples are reduced by 0 dB</li>
+<li>Detects peaks of the input signal that was adjusted according to the gain reduction curve</li>
+<li>If there are no peaks, it finally applies gain reduction curve to the signal and completes processing of the signal</li>
+<li>Eliminates peaks by applying patch to the gain reduction curve</li>
+<li>Repeats step 2</li>
+</ol>
+<p>Simplified peak processing example is shown on the following picture:</p>
+<?php out_image('graph/limiter-reduction', 'Simplified peak processing example') ?>
+<p>Of course, the output signal does not repeat the envelope form of input signal because it's amplitude is changed smoothly, so actually the form of output signal is more complicated.</p> 
+<p>
+	Currently there are three forms of patches applied to the gain curve -
+	<b>hermite</b> (using cubic polynom for interpolation transients), <b>exponential</b> and <b>linear</b>.
+	These forms can be explained with following picture:
+</p>
+<?php out_image('graph/limiter-patches', 'Forms of patches applied to signal') ?>
+<p>
+	Gain reduction patch affects not only the peak sample, but also surrounding samples.
+	The position and form of this interpolation is related to the peak, so there are four different variants of patch envelope -
+	<b>thin</b>, <b>tail</b>, <b>duck</b> and <b>wide</b>. All these forms related to the peak are shown on the following picture:
+</p>
+<?php out_image('graph/limiter-envelope', 'Envelope forms of the patch') ?>
+<p>
+	On this image, sloping lines mean the transision part of the patch.
+	The flat cap in the middle before the peak is a half of attack time, the flat cap in the middle after the peak is a half of release time.
+	Also it's obvious that different envelope forms differently affect dynamics of the signal.
+</p>
+
 <p><b>Controls:</b></p>
 <ul>
 	<li>

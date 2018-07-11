@@ -7,7 +7,7 @@
 
 #include <core/debug.h>
 #include <core/colors.h>
-#include <core/Color.h>
+#include <core/util/Color.h>
 #include <plugins/graph_equalizer.h>
 
 #define EQ_BUFFER_SIZE          0x1000
@@ -33,6 +33,7 @@ namespace lsp
         bListen         = false;
         bMatched        = false;
         fInGain         = 1.0f;
+        fZoom           = 1.0f;
         vFreqs          = NULL;
         vIndexes        = NULL;
         pIDisplay       = NULL;
@@ -46,6 +47,7 @@ namespace lsp
         pFftMode        = NULL;
         pReactivity     = NULL;
         pShiftGain      = NULL;
+        pZoom           = NULL;
         pBalance        = NULL;
     }
 
@@ -105,6 +107,7 @@ namespace lsp
             // Allocate data
             eq_channel_t *c     = &vChannels[i];
             c->nSync            = CS_UPDATE;
+            c->fInGain          = 1.0f;
             c->fOutGain         = 1.0f;
             c->vBands           = new eq_band_t[nBands];
             if (c->vBands == NULL)
@@ -121,6 +124,7 @@ namespace lsp
 
             c->pIn              = NULL;
             c->pOut             = NULL;
+            c->pInGain          = NULL;
             c->pTrAmp           = NULL;
             c->pFft             = NULL;
             c->pVisible         = NULL;
@@ -182,6 +186,8 @@ namespace lsp
         pReactivity             = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pShiftGain              = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pZoom                   = vPorts[port_id++];
         // Skip band select port
         if (nBands > 16)
         {
@@ -206,6 +212,10 @@ namespace lsp
         {
             TRACE_PORT(vPorts[port_id]);
             pListen                 = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[0].pInGain    = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[1].pInGain    = vPorts[port_id++];
         }
 
         for (size_t i=0; i<channels; ++i)
@@ -331,9 +341,18 @@ namespace lsp
         // Update common settings
         if (pInGain != NULL)
             fInGain     = pInGain->getValue();
+        if (pZoom != NULL)
+        {
+            float zoom  = pZoom->getValue();
+            if (zoom != fZoom)
+            {
+                fZoom       = zoom;
+                pWrapper->query_display_draw();
+            }
+        }
 
         // Calculate balance
-        float bal[2] = { 1.0f, 1.0f };
+        float bal[2]    = { 1.0f, 1.0f };
         if (pBalance != NULL)
         {
             float xbal      = pBalance->getValue();
@@ -398,6 +417,8 @@ namespace lsp
             if (c->sBypass.set_bypass(bypass))
                 pWrapper->query_display_draw();
             c->fOutGain         = bal[i];
+            if (c->pInGain != NULL)
+                c->fInGain          = c->pInGain->getValue();
 
             // Update each band solo
             for (size_t j=0; j<nBands; ++j)
@@ -577,6 +598,8 @@ namespace lsp
 
                 // Process the signal by the equalizer
                 c->sEqualizer.process(c->vBuffer, c->vBuffer, to_process);
+                if (c->fInGain != 1.0f)
+                    dsp::scale2(c->vBuffer, c->fInGain, to_process);
 
                 // Do FFT in 'POST'-position
                 if (fft_pos == FFTP_POST)
@@ -729,9 +752,9 @@ namespace lsp
         cv->set_line_width(1.0);
 
         float zx    = 1.0f/SPEC_FREQ_MIN;
-        float zy    = 1.0f/GAIN_AMP_M_48_DB;
+        float zy    = fZoom/GAIN_AMP_M_48_DB;
         float dx    = width/(logf(SPEC_FREQ_MAX)-logf(SPEC_FREQ_MIN));
-        float dy    = height/(logf(GAIN_AMP_M_48_DB)-logf(GAIN_AMP_P_48_DB));
+        float dy    = height/(logf(GAIN_AMP_M_48_DB/fZoom)-logf(GAIN_AMP_P_48_DB*fZoom));
 
         // Draw vertical lines
         cv->set_color_rgb(CV_YELLOW, 0.5f);
@@ -743,7 +766,7 @@ namespace lsp
 
         // Draw horizontal lines
         cv->set_color_rgb(CV_WHITE, 0.5f);
-        for (float i=GAIN_AMP_M_48_DB; i<GAIN_AMP_P_48_DB; i *= GAIN_AMP_P_24_DB)
+        for (float i=GAIN_AMP_M_48_DB; i<GAIN_AMP_P_48_DB; i *= GAIN_AMP_P_12_DB)
         {
             float ay = height + dy*(logf(i*zy));
             cv->line(0, ay, width, ay);

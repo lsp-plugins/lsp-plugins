@@ -233,7 +233,7 @@ namespace lsp
         void LSPSwitch::on_click(bool down)
         {
             lsp_trace("switch clicked: down=%s", (down) ? "true" : "false");
-            sSlots.execute(LSPSLOT_CHANGE);
+            sSlots.execute(LSPSLOT_CHANGE, this);
         }
 
         void LSPSwitch::size_request(size_request_t *r)

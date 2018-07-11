@@ -2,6 +2,32 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.1.1 ===
+
+* Plugins have been tested under QTractor 0.9.5 and it seems that they are working well.
+* Fixed UI resize issue in Carla host.
+* Fixed UI redraw issue that didn't show widgets for several cases.
+* Optimized spectrum analysis modules by changing code so it now uses more cache-friendly FFT routines.
+* Added graph amplitude scaling to Graphic and Parametric equalizers.
+* Added graph amplitude scaling to Spectrum Analyzer plugin.
+* Fixed possible memory corruption while redrawing the inline display image of parametric equalizer.
+* Fixed possible memory corruption in the Dynamic Processor plugin.
+* Fixed latency report for equalizer plugins.
+* Updated wrapper to make plugins properly supported by Bitwig Studio that doesn't know anything about
+  kVstParameterUsesIntStep and kVstParameterUsesIntegerMinMax flags.
+* Refactored event handling mechanism for widgets: added 'sender' parameter to indicate the widget that
+  initiated slot execution.
+* UI now stores last used path when loading samples, impulse response files and configuration files in
+  the global configuration file.
+* Fixed problem with UI update in cases when window size does not change. Now works properly.
+* Added Mid/Side adjustment knobs for Mid/Side versions of equalizer plugins.
+* Reorganized core modules into more comfortable source code tree.
+* Added support of UI:updateRate parameter reported by the LV2 host to the UI.
+* Added multiple-channel (up to 8 channels) audio file support to Impulse Reverb plugin.
+* Updated documentation related to the Limiter plugin.
+* Added possibility to equalize the processed signal in convolution plugins.
+* JACK version of plugins now automatically handles JACK startup/shutdown and does not require to restart plugin.
+
 === 1.1.0 ===
 
 * Ported all widgets from GTK+ 2.x to raw X11 + cairo

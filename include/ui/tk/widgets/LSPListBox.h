@@ -84,13 +84,13 @@ namespace lsp
                 ISurface               *pArea;
 
             protected:
-                static status_t slot_on_change(void *ptr, void *data);
-                static status_t slot_on_submit(void *ptr, void *data);
-                static status_t slot_on_sbar_vscroll(void *ptr, void *data);
-                static status_t slot_on_sbar_hscroll(void *ptr, void *data);
+                static status_t slot_on_change(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_on_submit(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_on_sbar_vscroll(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_on_sbar_hscroll(LSPWidget *sender, void *ptr, void *data);
 
-                static status_t slot_on_vscroll(void *ptr, void *data);
-                static status_t slot_on_hscroll(void *ptr, void *data);
+                static status_t slot_on_vscroll(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_on_hscroll(LSPWidget *sender, void *ptr, void *data);
 
                 virtual LSPWidget    *find_widget(ssize_t x, ssize_t y);
 

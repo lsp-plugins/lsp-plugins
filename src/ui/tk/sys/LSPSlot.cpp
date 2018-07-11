@@ -249,7 +249,7 @@ namespace lsp
             return enable_all(false, true);
         }
 
-        status_t LSPSlot::execute(void *data)
+        status_t LSPSlot::execute(LSPWidget *sender, void *data)
         {
             // First iteration, iterate all interceptors
             for (handler_item_t *ptr = pRoot; ptr != NULL; ptr = ptr->pNext)
@@ -257,7 +257,7 @@ namespace lsp
                 // Execute handler in the chain
                 if ((ptr->nFlags & (BIND_ENABLED | BIND_INTERCEPT)) == (BIND_ENABLED | BIND_INTERCEPT))
                 {
-                    status_t result      = ptr->pHandler(ptr->pPtr, data);
+                    status_t result      = ptr->pHandler(sender, ptr->pPtr, data);
                     if (result != STATUS_OK)
                         return STATUS_OK;
                 }
@@ -269,7 +269,7 @@ namespace lsp
                 // Execute handler in the chain
                 if ((ptr->nFlags & (BIND_ENABLED | BIND_INTERCEPT)) == BIND_ENABLED)
                 {
-                    status_t result      = ptr->pHandler(ptr->pPtr, data);
+                    status_t result      = ptr->pHandler(sender, ptr->pPtr, data);
                     if (result != STATUS_OK)
                         return result;
                 }

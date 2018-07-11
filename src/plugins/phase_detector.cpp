@@ -10,7 +10,7 @@
 #include <plugins/phase_detector.h>
 #include <core/debug.h>
 #include <core/colors.h>
-#include <core/Color.h>
+#include <core/util/Color.h>
 
 #include <string.h>
 
@@ -226,7 +226,7 @@ namespace lsp
         }
 
         // Now analyze average function in the time
-        ssize_t best    = nVectorSize, worst = nVectorSize;
+        size_t best     = nVectorSize, worst = nVectorSize;
         ssize_t sel     = nFuncSize * (1.0 - (fSelector + SELECTOR_MAX) / (SELECTOR_MAX - SELECTOR_MIN));
         if (sel >= ssize_t(nFuncSize))
             sel             = nFuncSize - 1;
@@ -234,19 +234,12 @@ namespace lsp
             sel             = 0;
 
         dsp::normalize(vNormalized, vAccumulated, nFuncSize);
-
-        for (size_t i=0; i<nFuncSize; ++i)
-        {
-            if (vNormalized[i] > vNormalized[best])
-                best        = i;
-            if (vNormalized[i] < vNormalized[worst])
-                worst       = i;
-        }
+        dsp::minmax_index(vNormalized, nFuncSize, &worst, &best);
 
         // Output values
-        nSelected               = ssize_t(nVectorSize) - sel;
-        nBest                   = ssize_t(nVectorSize) - best;
-        nWorst                  = ssize_t(nVectorSize) - worst;
+        nSelected               = ssize_t(nVectorSize - sel);
+        nBest                   = ssize_t(nVectorSize - best);
+        nWorst                  = ssize_t(nVectorSize - worst);
 
         vPorts[BEST_TIME]       -> setValue(samples_to_millis(fSampleRate, nBest));
         vPorts[BEST_SAMPLES]    -> setValue(nBest);

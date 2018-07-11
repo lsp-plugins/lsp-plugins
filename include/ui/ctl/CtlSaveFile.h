@@ -25,7 +25,7 @@ namespace lsp
                 status_t    commit_state();
 
             protected:
-                static status_t slot_on_file_submit(void *ptr, void *data);
+                static status_t slot_on_file_submit(LSPWidget *sender, void *ptr, void *data);
 
             public:
                 explicit CtlSaveFile(CtlRegistry *reg, LSPSaveFile *save);

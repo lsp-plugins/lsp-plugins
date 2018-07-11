@@ -6,7 +6,7 @@
 
 #include <core/types.h>
 #include <core/dsp.h>
-#include <core/Limiter.h>
+#include <core/dynamics/Limiter.h>
 
 #define LIMITER_BUF_SIZE        128
 #define LIMITER_SAMPLE_RATE     48000

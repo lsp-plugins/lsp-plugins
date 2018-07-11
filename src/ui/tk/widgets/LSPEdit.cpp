@@ -434,7 +434,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPEdit::slot_on_change(void *ptr, void *data)
+        status_t LSPEdit::slot_on_change(LSPWidget *sender, void *ptr, void *data)
         {
             LSPEdit *_this = widget_ptrcast<LSPEdit>(ptr);
             return (_this != NULL) ? _this->on_change() : STATUS_BAD_ARGUMENTS;
@@ -682,7 +682,7 @@ namespace lsp
                         sText.insert(sCursor.location(), lsp_wchar_t(key));
 
                     sCursor.move(1);
-                    sSlots.execute(LSPSLOT_CHANGE);
+                    sSlots.execute(LSPSLOT_CHANGE, this);
                     return STATUS_OK;
                 }
                 else if (e->nState & MCF_CONTROL)
@@ -761,7 +761,7 @@ namespace lsp
                         sCursor.set_location(pos-1);
                     }
                     query_draw();
-                    sSlots.execute(LSPSLOT_CHANGE);
+                    sSlots.execute(LSPSLOT_CHANGE, this);
                     break;
                 }
                 case WSK_DELETE:
@@ -781,7 +781,7 @@ namespace lsp
                         sCursor.set_location(pos);
                     }
                     query_draw();
-                    sSlots.execute(LSPSLOT_CHANGE);
+                    sSlots.execute(LSPSLOT_CHANGE, this);
                     break;
                 }
                 case WSK_INSERT:
@@ -850,19 +850,19 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPEdit::slot_popup_cut_action(void *ptr, void *data)
+        status_t LSPEdit::slot_popup_cut_action(LSPWidget *sender, void *ptr, void *data)
         {
             LSPEdit *_this = widget_ptrcast<LSPEdit>(ptr);
             return (_this != NULL) ? _this->cut_data(CBUF_CLIPBOARD) : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPEdit::slot_popup_copy_action(void *ptr, void *data)
+        status_t LSPEdit::slot_popup_copy_action(LSPWidget *sender, void *ptr, void *data)
         {
             LSPEdit *_this = widget_ptrcast<LSPEdit>(ptr);
             return (_this != NULL) ? _this->copy_data(CBUF_CLIPBOARD) : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPEdit::slot_popup_paste_action(void *ptr, void *data)
+        status_t LSPEdit::slot_popup_paste_action(LSPWidget *sender, void *ptr, void *data)
         {
             LSPEdit *_this = widget_ptrcast<LSPEdit>(ptr);
             return (_this != NULL) ? _this->paste_data(CBUF_CLIPBOARD) : STATUS_BAD_ARGUMENTS;

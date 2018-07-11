@@ -655,7 +655,7 @@ namespace lsp
                 if (item != NULL)
                 {
                     ws_event_t ev = *e;
-                    item->slots()->execute(LSPSLOT_SUBMIT, &ev);
+                    item->slots()->execute(LSPSLOT_SUBMIT, this, &ev);
                 }
             }
             else

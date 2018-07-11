@@ -6,6 +6,7 @@
  */
 
 #include <ui/ctl/ctl.h>
+#include <ui/common.h>
 
 namespace lsp
 {
@@ -16,16 +17,24 @@ namespace lsp
         {
             pFile           = NULL;
             pMesh           = NULL;
+            pPathID         = NULL;
+
             pStatus         = NULL;
             pLength         = NULL;
             pHeadCut        = NULL;
             pTailCut        = NULL;
             pFadeIn         = NULL;
             pFadeOut        = NULL;
+            pPath           = NULL;
         }
         
         CtlAudioFile::~CtlAudioFile()
         {
+            if (pPathID != NULL)
+            {
+                free(pPathID);
+                pPathID = NULL;
+            }
         }
 
         void CtlAudioFile::init()
@@ -43,7 +52,9 @@ namespace lsp
             sBgColor.init_basic(pRegistry, af, af->bg_color(), A_BG_COLOR);
             sPadding.init(af->padding());
 
+            af->slots()->bind(LSPSLOT_ACTIVATE, slot_on_activate, this);
             af->slots()->bind(LSPSLOT_SUBMIT, slot_on_submit, this);
+            af->slots()->bind(LSPSLOT_CLOSE, slot_on_close, this);
         }
 
         void CtlAudioFile::sync_status()
@@ -200,6 +211,11 @@ namespace lsp
                 case A_MESH_ID:
                     BIND_PORT(pRegistry, pMesh, value);
                     break;
+                case A_PATH_ID:
+                    if (pPathID != NULL)
+                        free(pPathID);
+                    pPathID = (value != NULL) ? strdup(value) : NULL;
+                    break;
                 case A_WIDTH:
                     if (af != NULL)
                         PARSE_INT(value, af->constraints()->set_width(__, __));
@@ -227,15 +243,40 @@ namespace lsp
             sync_file();
             sync_mesh();
 
+            const char *path = (pPathID != NULL) ? pPathID : DEFAULT_PATH_PORT;
+            BIND_PORT(pRegistry, pPath, path);
+
             CtlWidget::end();
         }
 
-        status_t CtlAudioFile::slot_on_submit(void *ptr, void *data)
+        status_t CtlAudioFile::slot_on_activate(LSPWidget *sender, void *ptr, void *data)
         {
             CtlAudioFile *ctl = static_cast<CtlAudioFile *>(ptr);
-            if (ptr == NULL)
+            if ((ctl == NULL) || (ctl->pPath == NULL))
+                return STATUS_BAD_ARGUMENTS;
+            LSPAudioFile *af    = widget_cast<LSPAudioFile>(ctl->pWidget);
+            if (af == NULL)
+                return STATUS_BAD_STATE;
+
+            af->set_path(ctl->pPath->get_buffer<char>());
+            return STATUS_OK;
+        }
+
+        status_t CtlAudioFile::slot_on_submit(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlAudioFile *ctl = static_cast<CtlAudioFile *>(ptr);
+            if (ctl == NULL)
                 return STATUS_BAD_ARGUMENTS;
             ctl->commit_file();
+            return STATUS_OK;
+        }
+
+        status_t CtlAudioFile::slot_on_close(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlAudioFile *ctl = static_cast<CtlAudioFile *>(ptr);
+            if (ctl == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            ctl->update_path();
             return STATUS_OK;
         }
 
@@ -250,6 +291,20 @@ namespace lsp
             // Write new path request
             pFile->write(fname, (fname != NULL) ? strlen(fname) : 0);
             pFile->notify_all();
+        }
+
+        void CtlAudioFile::update_path()
+        {
+            LSPAudioFile *af    = widget_cast<LSPAudioFile>(pWidget);
+            if ((af == NULL) || (pPath == NULL))
+                return;
+
+            const char *path = af->get_path();
+            if (path != NULL)
+            {
+                pPath->write(path, strlen(path));
+                pPath->notify_all();
+            }
         }
 
         void CtlAudioFile::notify(CtlPort *port)

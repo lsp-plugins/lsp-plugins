@@ -8,6 +8,10 @@
 #ifndef CORE_NATIVE_COMPLEX_H_
 #define CORE_NATIVE_COMPLEX_H_
 
+#ifndef __DSP_NATIVE_IMPL
+    #error "This header should not be included directly"
+#endif /* __DSP_NATIVE_IMPL */
+
 namespace lsp
 {
     namespace native
@@ -151,6 +155,17 @@ namespace lsp
                 float re        = *(src_re++);
                 float im        = *(src_im++);
                 *(dst_mod++)    = sqrtf(re*re + im*im);
+            }
+        }
+
+        void packed_complex_mod(float *dst_mod, const float *src, size_t count)
+        {
+            while (count--)
+            {
+                float re        = src[0];
+                float im        = src[1];
+                *(dst_mod++)    = sqrtf(re*re + im*im);
+                src            += 2;
             }
         }
     }

@@ -186,11 +186,6 @@ namespace lsp
             set_border_style(BS_DIALOG);
             actions()->set_actions(WA_DIALOG | WA_RESIZE | WA_CLOSE);
 
-            // Initialize current directory
-            char cwd[PATH_MAX];
-            if (getcwd(cwd, sizeof(cwd)) != NULL)
-                sWPath.set_text(cwd);
-
             sync_mode();
 
             return STATUS_OK;
@@ -527,8 +522,15 @@ namespace lsp
 
             // Store current path to variable
             const char *cpath = sWPath.text();
-            if (cpath == NULL)
-                return STATUS_BAD_STATE;
+            if ((cpath == NULL) || (strlen(cpath) <= 0))
+            {
+                char cwd[PATH_MAX];
+                if (getcwd(cwd, sizeof(cwd)) != NULL)
+                    sWPath.set_text(cwd);
+                cpath = sWPath.text();
+                if (cpath == NULL)
+                    return STATUS_NO_MEM;
+            }
 
             // Try to open directory
             errno       = 0;
@@ -807,49 +809,49 @@ namespace lsp
             return a->sName.compare_to(&b->sName);
         }
 
-        status_t LSPFileDialog::slot_on_action(void *ptr, void *data)
+        status_t LSPFileDialog::slot_on_action(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
             return (dlg != NULL) ? dlg->on_action(data) : STATUS_BAD_STATE;
         }
 
-        status_t LSPFileDialog::slot_on_confirm(void *ptr, void *data)
+        status_t LSPFileDialog::slot_on_confirm(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
             return (dlg != NULL) ? dlg->on_confirm(data) : STATUS_BAD_STATE;
         }
 
-        status_t LSPFileDialog::slot_on_cancel(void *ptr, void *data)
+        status_t LSPFileDialog::slot_on_cancel(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
             return (dlg != NULL) ? dlg->on_cancel(data) : STATUS_BAD_STATE;
         }
 
-        status_t LSPFileDialog::slot_on_search(void *ptr, void *data)
+        status_t LSPFileDialog::slot_on_search(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
             return (dlg != NULL) ? dlg->on_search(data) : STATUS_BAD_STATE;
         }
 
-        status_t LSPFileDialog::slot_mouse_dbl_click(void *ptr, void *data)
+        status_t LSPFileDialog::slot_mouse_dbl_click(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
             return (dlg != NULL) ? dlg->on_mouse_dbl_click(data) : STATUS_BAD_STATE;
         }
 
-        status_t LSPFileDialog::slot_list_change(void *ptr, void *data)
+        status_t LSPFileDialog::slot_list_change(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
             return (dlg != NULL) ? dlg->on_list_change(data) : STATUS_BAD_STATE;
         }
 
-        status_t LSPFileDialog::slot_on_go(void *ptr, void *data)
+        status_t LSPFileDialog::slot_on_go(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
             return (dlg != NULL) ? dlg->on_go(data) : STATUS_BAD_STATE;
         }
 
-        status_t LSPFileDialog::slot_on_up(void *ptr, void *data)
+        status_t LSPFileDialog::slot_on_up(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
             return (dlg != NULL) ? dlg->on_up(data) : STATUS_BAD_STATE;
@@ -1062,7 +1064,7 @@ namespace lsp
             destroy_file_entries(&vFiles);
 
             // Execute slots
-            return sAction.execute(data);
+            return sAction.execute(this, data);
         }
 
         status_t LSPFileDialog::on_cancel(void *data)
@@ -1074,7 +1076,7 @@ namespace lsp
             destroy_file_entries(&vFiles);
 
             // Execute slots
-            return sCancel.execute(data);
+            return sCancel.execute(this, data);
         }
 
         status_t LSPFileDialog::on_show()

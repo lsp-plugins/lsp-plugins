@@ -28,25 +28,37 @@ namespace lsp
 {
     class JACKPort;
     class JACKUIPort;
+    class JACKDataPort;
 
     class JACKWrapper: public IWrapper, public IUIWrapper
     {
-        private:
-            plugin_t           *pPlugin;
-            plugin_ui          *pUI;
-            IExecutor          *pExecutor;
-            jack_client_t      *pClient;
-            atomic_t            nQueryDraw;
-            atomic_t            nQueryDrawLast;
-            CairoCanvas        *pCanvas;
-            bool                bUpdateSettings;
-            bool                bConnected;
-            size_t              nCounter;
+        protected:
+            enum state_t
+            {
+                S_CREATED,
+                S_INITIALIZED,
+                S_CONNECTED,
+                S_CONN_LOST,
+                S_DISCONNECTED
+            };
 
-            cvector<JACKPort>   vPorts;
-            cvector<JACKUIPort> vUIPorts;
-            cvector<JACKUIPort> vSyncPorts;
-            cvector<port_t>     vGenMetadata;   // Generated metadata
+        private:
+            plugin_t               *pPlugin;
+            plugin_ui              *pUI;
+            IExecutor              *pExecutor;
+            jack_client_t          *pClient;
+            atomic_t                nQueryDraw;
+            atomic_t                nQueryDrawLast;
+            CairoCanvas            *pCanvas;
+            bool                    bUpdateSettings;
+            state_t                 nState;
+            size_t                  nCounter;
+
+            cvector<JACKPort>       vPorts;
+            cvector<JACKDataPort>   vDataPorts;
+            cvector<JACKUIPort>     vUIPorts;
+            cvector<JACKUIPort>     vSyncPorts;
+            cvector<port_t>         vGenMetadata;   // Generated metadata
 
         public:
             JACKWrapper(plugin_t *plugin, plugin_ui *ui)
@@ -60,7 +72,7 @@ namespace lsp
                 pCanvas         = NULL;
                 bUpdateSettings = true;
                 nCounter        = 0;
-                bConnected      = false;
+                nState          = S_CREATED;
             }
 
             virtual ~JACKWrapper()
@@ -80,21 +92,24 @@ namespace lsp
             int run(size_t samples);
 
             void create_port(const port_t *port, const char *postfix);
-            void create_ports(const port_t *meta);
 
         public:
             virtual IExecutor *get_executor();
 
         public:
-            inline const char *client_id();
             inline jack_client_t *client() { return pClient; };
 
-            int init(int argc, const char **argv);
+            status_t init(int argc, const char **argv);
+            status_t connect();
+            status_t disconnect();
+
             void destroy();
             bool transfer_dsp_to_ui();
 
-            inline bool connected() const { return bConnected; }
-            inline void set_connected(bool connected) { bConnected = connected; }
+            inline bool initialized() const     { return nState != S_CREATED;       }
+            inline bool connected() const       { return nState == S_CONNECTED;     }
+            inline bool disconnected() const    { return nState == S_DISCONNECTED;  }
+            inline bool connection_lost() const { return nState == S_CONN_LOST;     }
 
             // Inline display interface
             canvas_data_t *render_inline_display(size_t width, size_t height);
@@ -181,12 +196,8 @@ namespace lsp
     {
         // Reset the client state
         JACKWrapper *_this  = reinterpret_cast<JACKWrapper *>(arg);
-        _this->pClient      = NULL;
-    }
-
-    inline const char *JACKWrapper::client_id()
-    {
-        return (pClient != NULL) ? jack_get_client_name(pClient) : NULL;
+        _this->nState       = S_CONN_LOST;
+        lsp_warn("JACK NOTIFICATION: shutdown");
     }
 
     void JACKWrapper::create_port(const port_t *port, const char *postfix)
@@ -205,8 +216,12 @@ namespace lsp
 
             case R_MIDI:
             case R_AUDIO:
-                jp      = new JACKDataPort(port, this);
+            {
+                JACKDataPort *jdp = new JACKDataPort(port, this);
+                vDataPorts.add(jdp);
+                jp      = jdp;
                 break;
+            }
 
             case R_PATH:
                 jp      = new JACKPathPort(port, this);
@@ -293,42 +308,96 @@ namespace lsp
         }
     }
 
-    void JACKWrapper::create_ports(const port_t *meta)
+    status_t JACKWrapper::init(int argc, const char **argv)
     {
         // Create ports
-        for ( ; meta->id != NULL; ++meta)
+        for (const port_t *meta = pPlugin->get_metadata()->ports ; meta->id != NULL; ++meta)
             create_port(meta, NULL);
+
+        // Initialize plugin and UI
+        if (pPlugin != NULL)
+            pPlugin->init(this);
+        if (pUI != NULL)
+            pUI->init(this, argc, argv);
+
+        // Update state, mark initialized
+        nState      = S_INITIALIZED;
+
+        return STATUS_OK;
     }
 
-    int JACKWrapper::init(int argc, const char **argv)
+    status_t JACKWrapper::connect()
     {
+        // Check connection state
+        switch (nState)
+        {
+            case S_CREATED:
+                lsp_error("connect() on uninitialized JACK wrapper");
+                return STATUS_BAD_STATE;
+            case S_CONNECTED:
+                return STATUS_OK;
+
+            case S_INITIALIZED:
+            case S_DISCONNECTED:
+                // OK, valid states
+                break;
+
+            case S_CONN_LOST:
+                lsp_error("connect() from CONNECTION_LOST state, need to perform disconnect() first");
+                return STATUS_BAD_STATE;
+
+            default:
+                lsp_error("connect() from invalid state");
+                return STATUS_BAD_STATE;
+        }
+
         // Get JACK client
         jack_status_t jack_status;
         pClient     = jack_client_open(pPlugin->get_metadata()->lv2_uid, JackNoStartServer, &jack_status);
         if (pClient == NULL)
         {
-            lsp_error("Could not connect to JACK (status=0x%08x)", int(jack_status));
+            lsp_warn("Could not connect to JACK (status=0x%08x)", int(jack_status));
+            nState = S_DISCONNECTED;
             return STATUS_DISCONNECTED;
         }
-        bConnected  = true;
 
         // Set-up shutdown handler
-        jack_on_shutdown (pClient, shutdown, this);
+        jack_on_shutdown(pClient, shutdown, this);
 
-        // Get sample rate
-        jack_nframes_t sr   = jack_get_sample_rate (pClient);
+        // Connect data ports
+        for (size_t i=0, n=vDataPorts.size(); i<n; ++i)
+        {
+            JACKDataPort *dp = vDataPorts.at(i);
+            dp->connect();
+        }
 
-        // Bind ports
-        create_ports(pPlugin->get_metadata()->ports);
+        // Set plugin sample rate and call for settings update
+        jack_nframes_t sr   = jack_get_sample_rate(pClient);
+        pPlugin->set_sample_rate(sr);
+        bUpdateSettings = true;
 
-        // Initialize plugin and UI
-        pPlugin->init(this);
-        pUI->init(this, argc, argv);
+        // Now we ready for processing
+        if (pPlugin != NULL)
+            pPlugin->activate();
+        if (pUI != NULL)
+            pPlugin->activate_ui();
 
-        char buf[PATH_MAX];
-        const plugin_metadata_t *meta = pPlugin->get_metadata();
-        sprintf(buf, "%s %s - %s (Client ID: %s)", LSP_ACRONYM, meta->description, meta->name, jack_get_client_name(pClient));
-        pUI->set_title(buf);
+        // Add processing callback
+        if (jack_set_process_callback(pClient, process, this))
+        {
+            lsp_error("Could not initialize JACK client");
+            nState = S_CONN_LOST;
+            return STATUS_DISCONNECTED;
+        }
+
+        // Update the caption of the UI
+        if (pUI != NULL)
+        {
+            char buf[PATH_MAX];
+            const plugin_metadata_t *meta = pPlugin->get_metadata();
+            sprintf(buf, "%s %s - %s (Client ID: %s)", LSP_ACRONYM, meta->description, meta->name, jack_get_client_name(pClient));
+            pUI->set_title(buf);
+        }
 
         // Sync all ports
         size_t n_ui_ports   = vUIPorts.size();
@@ -339,39 +408,70 @@ namespace lsp
                 p->notify_all();
         }
 
-        // Add processing callback
-        if (jack_set_process_callback(pClient, process, this) != 0)
-        {
-            lsp_error("Could not initialize JACK client");
-            destroy();
-            return STATUS_DISCONNECTED;
-        }
-
-        // Set plugin sample rate and call for settings update
-        pPlugin->set_sample_rate(sr);
-        bUpdateSettings = true;
-
-        // Now we ready for processing
-        pPlugin->activate();
-        pPlugin->activate_ui();
-        if (jack_activate (pClient))
+        // Activate JACK client
+        if (jack_activate(pClient))
         {
             lsp_error("Could not activate JACK client");
+            nState  = S_CONN_LOST;
             return STATUS_DISCONNECTED;
         }
+
+        nState = S_CONNECTED;
+        return STATUS_OK;
+    }
+
+    status_t JACKWrapper::disconnect()
+    {
+        // Check connection state
+        switch (nState)
+        {
+            case S_CREATED:
+            case S_DISCONNECTED:
+            case S_INITIALIZED:
+                // OK, valid state
+                return STATUS_OK;
+
+            case S_CONNECTED:
+            case S_CONN_LOST:
+                // OK, perform disconnect
+                break;
+
+            default:
+                lsp_error("disconnect() from invalid state");
+                return STATUS_BAD_STATE;
+        }
+
+        // Try to deactivate application
+        if (pClient != NULL)
+            jack_deactivate(pClient);
+
+        // Deactivate plugin
+        if ((pUI != NULL) && (pPlugin->ui_active()))
+            pPlugin->deactivate_ui();
+        if (pPlugin != NULL)
+            pPlugin->deactivate();
+
+        // Try to disconnect all data ports
+        for (size_t i=0, n=vDataPorts.size(); i<n; ++i)
+        {
+            JACKDataPort *dp = vDataPorts.at(i);
+            dp->disconnect();
+        }
+
+        // Destroy jack client
+        if (pClient != NULL)
+            jack_client_close(pClient);
+
+        nState      = S_DISCONNECTED;
+        pClient     = NULL;
 
         return STATUS_OK;
     }
 
     void JACKWrapper::destroy()
     {
-        // Destroy jack client
-        if (pClient != NULL)
-        {
-            jack_deactivate(pClient);
-            jack_client_close(pClient);
-            pClient     = NULL;
-        }
+        // Disconnect
+        disconnect();
 
         // Destroy UI ports
         for (size_t i=0; i<vUIPorts.size(); ++i)
@@ -379,6 +479,7 @@ namespace lsp
             lsp_trace("destroy ui port id=%s", vUIPorts[i]->metadata()->id);
             delete vUIPorts[i];
         }
+        vUIPorts.clear();
 
         // Destroy ports
         for (size_t i=0; i<vPorts.size(); ++i)
@@ -387,22 +488,17 @@ namespace lsp
             vPorts[i]->destroy();
             delete vPorts[i];
         }
+        vPorts.clear();
 
-        // Forget plugin (will be destroyed by caller)
-        if (pPlugin != NULL)
-        {
-            if (pPlugin->ui_active())
-                pPlugin->deactivate_ui();
-            if (pPlugin->active())
-                pPlugin->deactivate();
+        // Clear all other port containers
+        vDataPorts.clear();
+        vSyncPorts.clear();
 
-            pPlugin = NULL;
-        }
-
-        // Forget plugin UI
+        // Forget plugin and UI
         pUI     = NULL;
+        pPlugin = NULL;
 
-        // Destroy executor
+        // Destroy executor service
         if (pExecutor != NULL)
         {
             pExecutor->shutdown();
@@ -412,7 +508,8 @@ namespace lsp
 
     bool JACKWrapper::transfer_dsp_to_ui()
     {
-        if (pClient == NULL)
+        // Validate state
+        if (nState != S_CONNECTED)
             return false;
 
         dsp_context_t ctx;

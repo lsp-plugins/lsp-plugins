@@ -22,7 +22,7 @@ namespace lsp
         {
         }
 
-        status_t CtlKnob::slot_change(void *ptr, void *data)
+        status_t CtlKnob::slot_change(LSPWidget *sender, void *ptr, void *data)
         {
             CtlKnob *_this      = static_cast<CtlKnob *>(ptr);
             if (_this != NULL)

@@ -8,6 +8,10 @@
 #ifndef CORE_NATIVE_MSMATRIX_H_
 #define CORE_NATIVE_MSMATRIX_H_
 
+#ifndef __DSP_NATIVE_IMPL
+    #error "This header should not be included directly"
+#endif /* __DSP_NATIVE_IMPL */
+
 namespace lsp
 {
     namespace native

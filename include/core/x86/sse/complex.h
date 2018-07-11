@@ -1166,6 +1166,132 @@ namespace lsp
 
             SFENCE;
         }
+
+        // TODO: test it
+        void packed_complex_mod(float *dst, const float *src, size_t count)
+        {
+            #define packed_complex_mod_core(MV_DST, MV_SRC) \
+                __ASM_EMIT("sub         $12, %[count]") \
+                __ASM_EMIT("jb          2f") \
+                /* Do with 12x blocks */ \
+                __ASM_EMIT(".align 16") \
+                __ASM_EMIT("1:") \
+                /* Load data */ \
+                __ASM_EMIT(MV_SRC "     0x00(%[src]), %%xmm0")  /* xmm0  = r0 i0 r1 i1 */ \
+                __ASM_EMIT(MV_SRC "     0x10(%[src]), %%xmm5")  /* xmm5  = r2 i2 r3 i3 */ \
+                __ASM_EMIT(MV_SRC "     0x20(%[src]), %%xmm2")  /* xmm2  = r4 i4 r5 i5 */ \
+                __ASM_EMIT(MV_SRC "     0x30(%[src]), %%xmm6")  /* xmm6  = r6 i6 r7 i7 */ \
+                __ASM_EMIT(MV_SRC "     0x40(%[src]), %%xmm4")  /* xmm4  = r8 i8 r9 i9 */ \
+                __ASM_EMIT(MV_SRC "     0x50(%[src]), %%xmm7")  /* xmm7  = r10 i10 r11 i11 */ \
+                __ASM_EMIT("movaps      %%xmm0, %%xmm1")        /* xmm1  = r0 i0 r1 i1 */ \
+                __ASM_EMIT("movaps      %%xmm2, %%xmm3")        /* xmm3  = r4 i4 r5 i5 */ \
+                /* Pack data and calculate mod */ \
+                __ASM_EMIT("shufps      $0x88, %%xmm5, %%xmm0") /* xmm0  = r0 r1 r2 r3 */ \
+                __ASM_EMIT("shufps      $0x88, %%xmm6, %%xmm2") /* xmm2  = r4 r5 r6 r7 */ \
+                __ASM_EMIT("shufps      $0xdd, %%xmm5, %%xmm1") /* xmm1  = i0 i1 i2 i3 */ \
+                __ASM_EMIT("mulps       %%xmm0, %%xmm0")        /* xmm0  = r0*r0 r1*r1 r2*r2 r3*r3 */ \
+                __ASM_EMIT("movaps      %%xmm4, %%xmm5")        /* xmm5  = r8 i8 r9 i9 */ \
+                __ASM_EMIT("mulps       %%xmm1, %%xmm1")        /* xmm1  = i0*i0 i1*i1 i2*i2 i3*i3 */ \
+                __ASM_EMIT("shufps      $0xdd, %%xmm6, %%xmm3") /* xmm3  = i4 i5 i6 i7 */ \
+                __ASM_EMIT("mulps       %%xmm2, %%xmm2")    \
+                __ASM_EMIT("shufps      $0x88, %%xmm7, %%xmm4") /* xmm4  = r8 r9 r10 r11 */ \
+                __ASM_EMIT("mulps       %%xmm3, %%xmm3") \
+                __ASM_EMIT("shufps      $0xdd, %%xmm7, %%xmm5") /* xmm5  = i8 i9 i10 i11 */ \
+                __ASM_EMIT("mulps       %%xmm4, %%xmm4") \
+                __ASM_EMIT("mulps       %%xmm5, %%xmm5") \
+                __ASM_EMIT("addps       %%xmm1, %%xmm0") \
+                __ASM_EMIT("addps       %%xmm3, %%xmm2") \
+                __ASM_EMIT("addps       %%xmm5, %%xmm4") \
+                __ASM_EMIT("sqrtps      %%xmm0, %%xmm0") \
+                __ASM_EMIT("sqrtps      %%xmm2, %%xmm2") \
+                __ASM_EMIT("sqrtps      %%xmm4, %%xmm4") \
+                /* Store data */ \
+                __ASM_EMIT(MV_DST "     %%xmm0, 0x00(%[dst])") \
+                __ASM_EMIT(MV_DST "     %%xmm2, 0x10(%[dst])") \
+                __ASM_EMIT(MV_DST "     %%xmm4, 0x20(%[dst])") \
+                /* Repeat loop */ \
+                __ASM_EMIT("add         $0x60, %[src]") \
+                __ASM_EMIT("add         $0x30, %[dst]") \
+                __ASM_EMIT("sub         $12, %[count]") \
+                __ASM_EMIT("jae         1b") \
+                /* 4x iterations */ \
+                __ASM_EMIT("2:") \
+                __ASM_EMIT("add         $8, %[count]") \
+                __ASM_EMIT("jl          4f") \
+                __ASM_EMIT("3:") \
+                /* Load data */ \
+                __ASM_EMIT(MV_SRC "     0x00(%[src]), %%xmm0")  /* xmm0  = r0 i0 r1 i1 */ \
+                __ASM_EMIT(MV_SRC "     0x10(%[src]), %%xmm2")  /* xmm2  = r2 i2 r3 i3 */ \
+                __ASM_EMIT("movaps      %%xmm0, %%xmm1")        /* xmm1  = r0 i0 r1 i1 */ \
+                /* Pack data and calculate mod */ \
+                __ASM_EMIT("shufps      $0x88, %%xmm2, %%xmm0") /* xmm0  = r0 r1 r2 r3 */ \
+                __ASM_EMIT("shufps      $0xdd, %%xmm2, %%xmm1") /* xmm1  = i0 i1 i2 i3 */ \
+                __ASM_EMIT("mulps       %%xmm0, %%xmm0")        /* xmm0  = r0*r0 r1*r1 r2*r2 r3*r3 */ \
+                __ASM_EMIT("mulps       %%xmm1, %%xmm1")        /* xmm1  = i0*i0 i1*i1 i2*i2 i3*i3 */ \
+                __ASM_EMIT("addps       %%xmm1, %%xmm0") \
+                __ASM_EMIT("sqrtps      %%xmm0, %%xmm0") \
+                /* Store data */ \
+                __ASM_EMIT(MV_DST "     %%xmm0, 0x00(%[dst])") \
+                /* Repeat loop */ \
+                __ASM_EMIT("add         $0x20, %[src]") \
+                __ASM_EMIT("add         $0x10, %[dst]") \
+                __ASM_EMIT("sub         $4, %[count]") \
+                __ASM_EMIT("jae         3b") \
+                /* 1x iterations */ \
+                __ASM_EMIT("4:") \
+                __ASM_EMIT("add         $4, %[count]") \
+                __ASM_EMIT("jle         1000f")
+
+            __asm__ __volatile__
+            (
+                /* Do block processing */
+                __ASM_EMIT("test %[count], %[count]")
+                __ASM_EMIT("jz 1000f")
+                __ASM_EMIT("test $0x0f, %[dst]")
+                __ASM_EMIT("jnz 110f")
+                    __ASM_EMIT("test $0x0f, %[src]")
+                    __ASM_EMIT("jnz 101f")
+                        packed_complex_mod_core("movaps", "movaps")
+                        __ASM_EMIT("jmp 5f")
+                    __ASM_EMIT("101:")
+                        packed_complex_mod_core("movaps", "movups")
+                        __ASM_EMIT("jmp 5f")
+
+                __ASM_EMIT("110:")
+                    __ASM_EMIT("test $0x0f, %[src]")
+                    __ASM_EMIT("jnz 111f")
+                        packed_complex_mod_core("movups", "movaps")
+                        __ASM_EMIT("jmp 5f")
+                    __ASM_EMIT("111:")
+                        packed_complex_mod_core("movups", "movups")
+
+                // End of routine
+                __ASM_EMIT("5:")
+                /* Load data */
+                __ASM_EMIT("movss       0x00(%[src]), %%xmm0")  /* xmm0  = r0 */
+                __ASM_EMIT("movss       0x04(%[src]), %%xmm1")  /* xmm1  = i0 */
+                __ASM_EMIT("mulss       %%xmm0, %%xmm0")        /* xmm0  = r0*r0 */
+                __ASM_EMIT("mulss       %%xmm1, %%xmm1")        /* xmm1  = i0*i0 */
+                __ASM_EMIT("addps       %%xmm1, %%xmm0")        /* xmm0  = r0*r0 + i0*i0 */
+                __ASM_EMIT("sqrtss      %%xmm0, %%xmm0")        /* xmm0  = sqrt(r0*r0 + i0*i0) */
+                /* Store data */
+                __ASM_EMIT("movss       %%xmm0, 0x00(%[dst])")
+                /* Repeat loop */
+                __ASM_EMIT("add         $0x8, %[src]")
+                __ASM_EMIT("add         $0x4, %[dst]")
+                __ASM_EMIT("dec         %[count]")
+                __ASM_EMIT("jnz         5b")
+
+                __ASM_EMIT("1000:")
+
+                : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+                :
+                : "cc", "memory",
+                  "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+            );
+
+            #undef packed_complex_mod_core
+        }
     }
 }
 

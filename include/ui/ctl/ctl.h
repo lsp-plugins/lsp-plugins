@@ -175,7 +175,8 @@ namespace lsp
             A_RADIUS,
             A_URL,
             A_COMMAND_ID,
-            A_PROGRESS_ID
+            A_PROGRESS_ID,
+            A_PATH_ID
         };
 
         // Helper functions
@@ -202,64 +203,8 @@ namespace lsp
     }
 }
 
-// Data parsing
-#define PARSE_INT(var, code) \
-    { \
-        errno = 0; \
-        long __ = strtoll(var, NULL, 10); \
-        if (errno == 0) \
-            { code; } \
-    }
-
-#define PARSE_BOOL(var, code) \
-    { \
-        bool __ = !strcasecmp(var, "true"); \
-        if (! __ ) \
-            __ = !strcasecmp(var, "1"); \
-        { code; } \
-    }
-
-#define PARSE_FLAG(var, dst, flag) PARSE_BOOL(var, if (__) dst |= flag; else dst &= ~flag)
-#define UPDATE_LOCALE(out_var, lc, value) \
-       char *out_var = setlocale(lc, NULL); \
-       if (out_var != NULL) \
-       { \
-           size_t ___len = strlen(out_var) + 1; \
-           char *___copy = static_cast<char *>(alloca(___len)); \
-           memcpy(___copy, out_var, ___len); \
-           out_var = ___copy; \
-       } \
-       setlocale(lc, value);
-
-#define PARSE_FLOAT(var, code) \
-    { \
-        UPDATE_LOCALE(saved_locale, LC_NUMERIC, "C"); \
-        errno = 0; \
-        float __ = strtof(var, NULL); \
-        if (errno == 0) \
-            { code; } \
-        if (saved_locale != NULL) \
-            setlocale(LC_NUMERIC, saved_locale); \
-    }
-
-#define PARSE_DOUBLE(var, code) \
-    { \
-        UPDATE_LOCALE(saved_locale, LC_NUMERIC, "C"); \
-        errno = 0; \
-        double __ = strtod(var, NULL); \
-        if (errno == 0) \
-            { code; } \
-        if (saved_locale != NULL) \
-            setlocale(LC_NUMERIC, saved_locale); \
-    }
-
-#define BIND_PORT(ctl, field, id) \
-    field   = ctl->port(id); \
-    if (field != NULL) \
-        field->bind(this);
-
-#define BIND_EXPR(field, expr) \
-    (field).parse(expr);
+// Parsing header
+#include <ui/ctl/parse.h>
 
 // Core headers
 #include <ui/ctl/CtlRegistry.h>

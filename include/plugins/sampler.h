@@ -13,13 +13,13 @@
 #include <core/plugin.h>
 #include <core/midi.h>
 
-#include <core/Bypass.h>
-#include <core/Toggle.h>
-#include <core/Blink.h>
-#include <core/AudioFile.h>
-#include <core/SamplePlayer.h>
-#include <core/Randomizer.h>
 #include <core/ITrigger.h>
+#include <core/util/Bypass.h>
+#include <core/util/Toggle.h>
+#include <core/util/Blink.h>
+#include <core/util/Randomizer.h>
+#include <core/files/AudioFile.h>
+#include <core/sampling/SamplePlayer.h>
 
 
 namespace lsp

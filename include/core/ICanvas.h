@@ -9,7 +9,7 @@
 #define CORE_ICANVAS_H_
 
 #include <core/types.h>
-#include <core/Color.h>
+#include <core/util/Color.h>
 
 namespace lsp
 {

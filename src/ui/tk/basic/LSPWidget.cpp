@@ -85,7 +85,7 @@ namespace lsp
             }
 
             // Execute slots and unbind all to prevent duplicate on_destroy calls
-            sSlots.execute(LSPSLOT_DESTROY);
+            sSlots.execute(LSPSLOT_DESTROY, this);
             sSlots.destroy();
         }
 
@@ -115,7 +115,7 @@ namespace lsp
             color->copy(&c);
         }
 
-        status_t LSPWidget::slot_mouse_move(void *ptr, void *data)
+        status_t LSPWidget::slot_mouse_move(LSPWidget *sender, void *ptr, void *data)
         {
             if ((ptr == NULL) || (data == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -125,7 +125,7 @@ namespace lsp
             return _this->on_mouse_move(ev);
         }
 
-        status_t LSPWidget::slot_mouse_down(void *ptr, void *data)
+        status_t LSPWidget::slot_mouse_down(LSPWidget *sender, void *ptr, void *data)
         {
             if ((ptr == NULL) || (data == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -135,7 +135,7 @@ namespace lsp
             return _this->on_mouse_down(ev);
         }
 
-        status_t LSPWidget::slot_mouse_up(void *ptr, void *data)
+        status_t LSPWidget::slot_mouse_up(LSPWidget *sender, void *ptr, void *data)
         {
             if ((ptr == NULL) || (data == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -145,7 +145,7 @@ namespace lsp
             return _this->on_mouse_up(ev);
         }
 
-        status_t LSPWidget::slot_mouse_dbl_click(void *ptr, void *data)
+        status_t LSPWidget::slot_mouse_dbl_click(LSPWidget *sender, void *ptr, void *data)
         {
             if ((ptr == NULL) || (data == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -155,7 +155,7 @@ namespace lsp
             return _this->on_mouse_dbl_click(ev);
         }
 
-        status_t LSPWidget::slot_mouse_tri_click(void *ptr, void *data)
+        status_t LSPWidget::slot_mouse_tri_click(LSPWidget *sender, void *ptr, void *data)
         {
             if ((ptr == NULL) || (data == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -165,7 +165,7 @@ namespace lsp
             return _this->on_mouse_tri_click(ev);
         }
 
-        status_t LSPWidget::slot_mouse_scroll(void *ptr, void *data)
+        status_t LSPWidget::slot_mouse_scroll(LSPWidget *sender, void *ptr, void *data)
         {
             if ((ptr == NULL) || (data == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -175,7 +175,7 @@ namespace lsp
             return _this->on_mouse_scroll(ev);
         }
 
-        status_t LSPWidget::slot_mouse_in(void *ptr, void *data)
+        status_t LSPWidget::slot_mouse_in(LSPWidget *sender, void *ptr, void *data)
         {
             if ((ptr == NULL) || (data == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -185,7 +185,7 @@ namespace lsp
             return _this->on_mouse_in(ev);
         }
 
-        status_t LSPWidget::slot_mouse_out(void *ptr, void *data)
+        status_t LSPWidget::slot_mouse_out(LSPWidget *sender, void *ptr, void *data)
         {
             if ((ptr == NULL) || (data == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -195,7 +195,7 @@ namespace lsp
             return _this->on_mouse_out(ev);
         }
 
-        status_t LSPWidget::slot_key_down(void *ptr, void *data)
+        status_t LSPWidget::slot_key_down(LSPWidget *sender, void *ptr, void *data)
         {
             if ((ptr == NULL) || (data == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -205,7 +205,7 @@ namespace lsp
             return _this->on_key_down(ev);
         }
 
-        status_t LSPWidget::slot_key_up(void *ptr, void *data)
+        status_t LSPWidget::slot_key_up(LSPWidget *sender, void *ptr, void *data)
         {
             if ((ptr == NULL) || (data == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -215,7 +215,7 @@ namespace lsp
             return _this->on_key_up(ev);
         }
 
-        status_t LSPWidget::slot_hide(void *ptr, void *data)
+        status_t LSPWidget::slot_hide(LSPWidget *sender, void *ptr, void *data)
         {
             if (ptr == NULL)
                 return STATUS_BAD_ARGUMENTS;
@@ -224,7 +224,7 @@ namespace lsp
             return _this->on_hide();
         }
 
-        status_t LSPWidget::slot_show(void *ptr, void *data)
+        status_t LSPWidget::slot_show(LSPWidget *sender, void *ptr, void *data)
         {
             if (ptr == NULL)
                 return STATUS_BAD_ARGUMENTS;
@@ -233,7 +233,7 @@ namespace lsp
             return _this->on_show();
         }
 
-        status_t LSPWidget::slot_destroy(void *ptr, void *data)
+        status_t LSPWidget::slot_destroy(LSPWidget *sender, void *ptr, void *data)
         {
             if (ptr == NULL)
                 return STATUS_BAD_ARGUMENTS;
@@ -242,7 +242,7 @@ namespace lsp
             return _this->on_destroy();
         }
 
-        status_t LSPWidget::slot_resize(void *ptr, void *data)
+        status_t LSPWidget::slot_resize(LSPWidget *sender, void *ptr, void *data)
         {
             if ((ptr == NULL) || (data == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -252,7 +252,7 @@ namespace lsp
             return _this->on_resize(ev);
         }
 
-        status_t LSPWidget::slot_focus_in(void *ptr, void *data)
+        status_t LSPWidget::slot_focus_in(LSPWidget *sender, void *ptr, void *data)
         {
             if ((ptr == NULL) || (data == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -262,7 +262,7 @@ namespace lsp
             return _this->on_focus_in(ev);
         }
 
-        status_t LSPWidget::slot_focus_out(void *ptr, void *data)
+        status_t LSPWidget::slot_focus_out(LSPWidget *sender, void *ptr, void *data)
         {
             if ((ptr == NULL) || (data == NULL))
                 return STATUS_BAD_ARGUMENTS;
@@ -318,6 +318,7 @@ namespace lsp
             if (!(nFlags & F_VISIBLE))
                 return false;
             nFlags &= ~F_VISIBLE;
+//            lsp_trace("class = %s, this=%p", get_class()->name, this);
 
             // Drop surface to not to eat memory
             if (pSurface != NULL)
@@ -328,7 +329,7 @@ namespace lsp
             }
 
             // Execute slot
-            sSlots.execute(LSPSLOT_HIDE);
+            sSlots.execute(LSPSLOT_HIDE, this);
 
             // Query draw for parent widget
             if (pParent != NULL)
@@ -341,11 +342,13 @@ namespace lsp
         {
             if (nFlags & F_VISIBLE)
                 return false;
+//            lsp_trace("class = %s, this=%p", get_class()->name, this);
 
             nFlags |= F_VISIBLE;
             if (pParent != NULL)
                 pParent->query_resize();
-            sSlots.execute(LSPSLOT_SHOW);
+            query_draw(REDRAW_CHILD | REDRAW_SURFACE);
+            sSlots.execute(LSPSLOT_SHOW, this);
 
             return true;
         }
@@ -379,86 +382,18 @@ namespace lsp
                 pParent->query_draw(REDRAW_CHILD);
         }
 
+        void LSPWidget::commit_redraw()
+        {
+            nFlags &= ~(REDRAW_SURFACE | REDRAW_CHILD);
+        }
+
         void LSPWidget::query_resize()
         {
 //            query_draw(REDRAW_CHILD | REDRAW_SURFACE);
-            query_draw();
 
             LSPWidget *w = toplevel();
             if ((w != NULL) && (w != this))
                 w->query_resize();
-
-//            size_request_t  sr;
-//            sr.nMinWidth        = -1;
-//            sr.nMinHeight       = -1;
-//            sr.nMaxWidth        = -1;
-//            sr.nMaxHeight       = -1;
-//
-//            // Request self for size
-//            size_request(&sr);
-//
-//            // Analyze size of area relative to the size of widget
-//            if (
-//                (pParent != NULL) &&
-//                (
-//                    ((sr.nMinWidth >= 0) && (sr.nMinWidth > sSize.nWidth)) ||
-//                    ((sr.nMinHeight >= 0) && (sr.nMinHeight > sSize.nHeight))
-//                )
-//               )
-//            {
-//                // The calculated size of area is larger than current size
-//                pParent->query_resize();
-//            }
-//            else
-//            {
-//                // The calculated size of area is not larger than current size
-//                realize_t r         = sSize;
-//                realize(&r);
-//
-//                LSPWidget *top      = toplevel();
-//                if ((top != NULL) && (top != this))
-//                    top->query_resize();
-//            }
-
-//            // And also query for redraw
-//            query_draw();
-//
-//            // Analyze size of area relative to the size of widget
-//            if (pParent != NULL)
-//            {
-//                // The calculated size of area is larger than current size
-//                pParent->query_resize();
-//                lsp_trace("parent query_resize");
-//            }
-//            else
-//            {
-//                // Request self for size
-//                size_request_t  sr;
-//                sr.nMinWidth        = -1;
-//                sr.nMinHeight       = -1;
-//                sr.nMaxWidth        = -1;
-//                sr.nMaxHeight       = -1;
-//
-//                size_request(&sr);
-//
-//                // The calculated size of area is not larger than current size
-//                realize_t r         = sSize;
-//                if ((sr.nMaxWidth >= 0) && (sr.nMaxWidth < sSize.nWidth))
-//                    sSize.nWidth        = sr.nMaxWidth;
-//                if ((sr.nMaxHeight >= 0) && (sr.nMaxHeight < sSize.nHeight))
-//                    sSize.nHeight       = sr.nMaxHeight;
-//                if ((sr.nMinWidth >= 0) && (sr.nMinWidth > sSize.nWidth))
-//                    sSize.nWidth        = sr.nMinWidth;
-//                if ((sr.nMinHeight >= 0) && (sr.nMinHeight > sSize.nHeight))
-//                    sSize.nHeight       = sr.nMinHeight;
-//
-//                realize(&r);
-//                lsp_trace("realize");
-//            }
-
-            // And also query for redraw
-//            lsp_trace("query_draw");
-//            query_draw(REDRAW_CHILD | REDRAW_SURFACE);
         }
 
         void LSPWidget::set_expand(bool value)
@@ -579,7 +514,7 @@ namespace lsp
 
             // Update size and execute slot
             sSize       = *r;
-            sSlots.execute(LSPSLOT_RESIZE, &sSize);
+            sSlots.execute(LSPSLOT_RESIZE, this, &sSize);
         }
 
         void LSPWidget::size_request(size_request_t *r)
@@ -634,7 +569,7 @@ namespace lsp
                 case ev: \
                 { \
                     ws_event_t tmp = *e; \
-                    sSlots.execute(slot_id, &tmp); \
+                    sSlots.execute(slot_id, this, &tmp); \
                     break; \
                 }
 

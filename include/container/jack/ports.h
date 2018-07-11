@@ -108,6 +108,29 @@ namespace lsp
 
             virtual int init()
             {
+                return connect();
+            }
+
+            int disconnect()
+            {
+                if (pPort == NULL)
+                    return STATUS_OK;
+
+                jack_client_t *cl   = pWrapper->client();
+                if (cl != NULL)
+                    jack_port_unregister(cl, pPort);
+
+                if (pMidi != NULL)
+                {
+                    delete pMidi;
+                    pMidi       = NULL;
+                }
+                pPort = NULL;
+                return STATUS_OK;
+            }
+
+            int connect()
+            {
                 // Determine port type
                 const char *port_type = NULL;
                 if (pMetadata->role == R_AUDIO)
@@ -146,61 +169,52 @@ namespace lsp
 
             virtual void destroy()
             {
-                if (pPort != NULL)
-                {
-                    jack_client_t *cl   = pWrapper->client();
-                    if (cl != NULL)
-                        jack_port_unregister(cl, pPort);
-
-                    pPort       = NULL;
-                }
-
-                if (pMidi != NULL)
-                {
-                    delete pMidi;
-                    pMidi       = NULL;
-                }
+                disconnect();
             }
 
             virtual bool pre_process(size_t samples)
             {
-                if (pPort != NULL)
+                if (pPort == NULL)
                 {
-                    pBuffer     = jack_port_get_buffer(pPort, samples);
+                    pBuffer     = NULL;
+                    return false;
+                }
 
-                    if ((pMidi != NULL) && IS_IN_PORT(pMetadata))
+                pBuffer     = jack_port_get_buffer(pPort, samples);
+
+                if ((pMidi != NULL) && (pBuffer != NULL) && IS_IN_PORT(pMetadata))
+                {
+                    // Clear our buffer
+                    pMidi->clear();
+
+                    // Read MIDI events
+                    jack_midi_event_t   midi_event;
+                    midi_event_t        ev;
+
+                    jack_nframes_t event_count = jack_midi_get_event_count(pBuffer);
+                    for (jack_nframes_t i=0; i<event_count; i++)
                     {
-                        // Clear our buffer
-                        pMidi->clear();
-
-                        // Read MIDI events
-                        jack_midi_event_t   midi_event;
-                        midi_event_t        ev;
-
-                        jack_nframes_t event_count = jack_midi_get_event_count(pBuffer);
-                        for (jack_nframes_t i=0; i<event_count; i++)
+                        // Read MIDI event
+                        if (jack_midi_event_get(&midi_event, pBuffer, i) != 0)
                         {
-                            // Read MIDI event
-                            if (jack_midi_event_get(&midi_event, pBuffer, i) != 0)
-                            {
-                                lsp_warn("Could not fetch MIDI event #%d from JACK port", int(i));
-                                continue;
-                            }
-
-                            // Convert MIDI event
-                            if (!decode_midi_message(&ev, midi_event.buffer))
-                            {
-                                lsp_warn("Could not decode MIDI event #%d at timestamp %d from JACK port", int(i), int(midi_event.time));
-                                continue;
-                            }
-
-                            // Update timestamp and store event
-                            ev.timestamp    = midi_event.time;
-                            if (!pMidi->push(ev))
-                                lsp_warn("Could not append MIDI event #%d at timestamp %d due to buffer overflow", int(i), int(midi_event.time));
+                            lsp_warn("Could not fetch MIDI event #%d from JACK port", int(i));
+                            continue;
                         }
+
+                        // Convert MIDI event
+                        if (!decode_midi_message(&ev, midi_event.buffer))
+                        {
+                            lsp_warn("Could not decode MIDI event #%d at timestamp %d from JACK port", int(i), int(midi_event.time));
+                            continue;
+                        }
+
+                        // Update timestamp and store event
+                        ev.timestamp    = midi_event.time;
+                        if (!pMidi->push(ev))
+                            lsp_warn("Could not append MIDI event #%d at timestamp %d due to buffer overflow", int(i), int(midi_event.time));
                     }
                 }
+
                 return false;
             }
 

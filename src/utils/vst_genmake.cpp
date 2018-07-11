@@ -100,8 +100,8 @@ namespace lsp
         // Generate list of plugins as CPP-files
         int code = 0;
 
-        #define MOD_VST(x)  \
-            if (code == 0) \
+        #define MOD_PLUGIN(x)  \
+            if ((code == 0) && (x::metadata.vst_uid != NULL)) \
                 code = gen_cpp_file(path, &x::metadata, #x, LSP_ARTIFACT_ID "-vst-" #x ".cpp");
 
         #include <metadata/modules.h>

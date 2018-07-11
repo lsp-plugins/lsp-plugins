@@ -201,10 +201,10 @@ namespace lsp
             return (s == NULL) ? 0 : s->enable_all();
         }
 
-        status_t LSPSlotSet::execute(ui_slot_t id, void *data)
+        status_t LSPSlotSet::execute(ui_slot_t id, LSPWidget *sender, void *data)
         {
             LSPSlot *s       = slot(id);
-            return (s == NULL) ? STATUS_NOT_FOUND : s->execute(data);
+            return (s == NULL) ? STATUS_NOT_FOUND : s->execute(sender, data);
         }
     }
 

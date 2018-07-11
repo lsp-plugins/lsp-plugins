@@ -103,6 +103,7 @@ namespace lsp
                 inline T *get(size_t index) { return reinterpret_cast<T *>(basic_stack::get_item(index)); }
                 inline T *operator[](size_t index) { return reinterpret_cast<T *>(basic_stack::get_item(index)); }
 
+                inline T **get_array() { return (nItems > 0) ? reinterpret_cast<T **>(pvItems) : NULL; }
         };
 
 }

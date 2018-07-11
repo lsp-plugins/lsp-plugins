@@ -50,22 +50,22 @@ namespace lsp
             //---------------------------------------------------------------------------------
             // Slot handlers
             protected:
-                static status_t slot_mouse_move(void *ptr, void *data);
-                static status_t slot_mouse_down(void *ptr, void *data);
-                static status_t slot_mouse_up(void *ptr, void *data);
-                static status_t slot_mouse_dbl_click(void *ptr, void *data);
-                static status_t slot_mouse_tri_click(void *ptr, void *data);
-                static status_t slot_mouse_scroll(void *ptr, void *data);
-                static status_t slot_mouse_in(void *ptr, void *data);
-                static status_t slot_mouse_out(void *ptr, void *data);
-                static status_t slot_key_down(void *ptr, void *data);
-                static status_t slot_key_up(void *ptr, void *data);
-                static status_t slot_hide(void *ptr, void *data);
-                static status_t slot_show(void *ptr, void *data);
-                static status_t slot_destroy(void *ptr, void *data);
-                static status_t slot_resize(void *ptr, void *data);
-                static status_t slot_focus_in(void *ptr, void *data);
-                static status_t slot_focus_out(void *ptr, void *data);
+                static status_t slot_mouse_move(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_mouse_down(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_mouse_up(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_mouse_dbl_click(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_mouse_tri_click(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_mouse_scroll(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_mouse_in(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_mouse_out(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_key_down(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_key_up(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_hide(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_show(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_destroy(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_resize(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_focus_in(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_focus_out(LSPWidget *sender, void *ptr, void *data);
 
             //---------------------------------------------------------------------------------
             // Interface for nested classes
@@ -458,7 +458,7 @@ namespace lsp
                 /** Commit widet redraw
                  *
                  */
-                inline void     commit_redraw()         { nFlags &= ~(REDRAW_SURFACE | REDRAW_CHILD); }
+                virtual void    commit_redraw();
 
                 /** Get most top-level widget
                  *

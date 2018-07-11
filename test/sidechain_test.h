@@ -6,7 +6,7 @@
 
 #include <core/types.h>
 #include <core/dsp.h>
-#include <core/Sidechain.h>
+#include <core/util/Sidechain.h>
 
 #define SC_BUF_SIZE 1024
 

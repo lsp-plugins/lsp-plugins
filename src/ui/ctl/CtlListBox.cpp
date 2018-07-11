@@ -66,13 +66,13 @@ namespace lsp
             }
         }
 
-        status_t CtlListBox::slot_submit(void *ptr, void *data)
+        status_t CtlListBox::slot_submit(LSPWidget *sender, void *ptr, void *data)
         {
             CtlListBox *_this    = static_cast<CtlListBox *>(ptr);
             return (_this != NULL) ? _this->on_submit() : STATUS_OK;
         }
 
-        status_t CtlListBox::slot_on_ok(void *ptr, void *data)
+        status_t CtlListBox::slot_on_ok(LSPWidget *sender, void *ptr, void *data)
         {
             CtlListBox *_this    = static_cast<CtlListBox *>(ptr);
             return (_this != NULL) ? _this->on_ok() : STATUS_OK;

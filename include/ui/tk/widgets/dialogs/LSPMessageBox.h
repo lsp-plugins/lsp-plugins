@@ -36,7 +36,7 @@ namespace lsp
                 virtual void destroy();
 
             protected:
-                static status_t slot_on_button_submit(void *ptr, void *data);
+                static status_t slot_on_button_submit(LSPWidget *sender, void *ptr, void *data);
                 void do_destroy();
 
             public:

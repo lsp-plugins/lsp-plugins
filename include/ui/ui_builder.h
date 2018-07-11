@@ -9,7 +9,7 @@
 #define _UI_UI_BUILDER_H_
 
 #include <data/cvector.h>
-#include <ui/buffer.h>
+#include <core/buffer.h>
 
 namespace lsp
 {

@@ -263,43 +263,43 @@ namespace lsp
             LSPWidget::destroy();
         }
 
-        status_t LSPListBox::slot_on_sbar_vscroll(void *ptr, void *data)
+        status_t LSPListBox::slot_on_sbar_vscroll(LSPWidget *sender, void *ptr, void *data)
         {
             if (ptr == NULL)
                 return STATUS_BAD_ARGUMENTS;
 
             LSPWidget *w    = static_cast<LSPWidget *>(ptr);
-            return w->slots()->execute(LSPSLOT_VSCROLL, data);
+            return w->slots()->execute(LSPSLOT_VSCROLL, sender, data);
         }
 
-        status_t LSPListBox::slot_on_sbar_hscroll(void *ptr, void *data)
+        status_t LSPListBox::slot_on_sbar_hscroll(LSPWidget *sender, void *ptr, void *data)
         {
             if (ptr == NULL)
                 return STATUS_BAD_ARGUMENTS;
 
             LSPWidget *w    = static_cast<LSPWidget *>(ptr);
-            return w->slots()->execute(LSPSLOT_HSCROLL, data);
+            return w->slots()->execute(LSPSLOT_HSCROLL, sender, data);
         }
 
-        status_t LSPListBox::slot_on_change(void *ptr, void *data)
+        status_t LSPListBox::slot_on_change(LSPWidget *sender, void *ptr, void *data)
         {
             LSPListBox *_this = widget_ptrcast<LSPListBox>(ptr);
             return (_this != NULL) ? _this->on_change() : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPListBox::slot_on_submit(void *ptr, void *data)
+        status_t LSPListBox::slot_on_submit(LSPWidget *sender, void *ptr, void *data)
         {
             LSPListBox *_this = widget_ptrcast<LSPListBox>(ptr);
             return (_this != NULL) ? _this->on_submit() : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPListBox::slot_on_vscroll(void *ptr, void *data)
+        status_t LSPListBox::slot_on_vscroll(LSPWidget *sender, void *ptr, void *data)
         {
             LSPListBox *_this = widget_ptrcast<LSPListBox>(ptr);
             return (_this != NULL) ? _this->on_vscroll() : STATUS_BAD_ARGUMENTS;
         }
 
-        status_t LSPListBox::slot_on_hscroll(void *ptr, void *data)
+        status_t LSPListBox::slot_on_hscroll(LSPWidget *sender, void *ptr, void *data)
         {
             LSPListBox *_this = widget_ptrcast<LSPListBox>(ptr);
             return (_this != NULL) ? _this->on_hscroll() : STATUS_BAD_ARGUMENTS;
@@ -342,14 +342,14 @@ namespace lsp
             if (sSelection.multiple())
             {
                 sSelection.toggle_value(item);
-                sSlots.execute(LSPSLOT_CHANGE);
+                sSlots.execute(LSPSLOT_CHANGE, this);
             }
             else
             {
                 ssize_t old_value = sSelection.value();
                 sSelection.set_value(item);
                 if (old_value != item)
-                    sSlots.execute(LSPSLOT_CHANGE);
+                    sSlots.execute(LSPSLOT_CHANGE, this);
             }
 
             nFlags |= F_SUBMIT;
@@ -381,7 +381,7 @@ namespace lsp
             if (nFlags & F_SUBMIT)
             {
                 nFlags      &= ~F_SUBMIT;
-                sSlots.execute(LSPSLOT_SUBMIT);
+                sSlots.execute(LSPSLOT_SUBMIT, this);
             }
             return STATUS_OK;
         }

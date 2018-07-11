@@ -34,14 +34,14 @@ namespace lsp
                  * @param id slot identifier
                  * @return slot or NULL if not present
                  */
-                LSPSlot               *slot(ui_slot_t id);
+                LSPSlot            *slot(ui_slot_t id);
 
                 /** Add slot
                  *
                  * @param id slot identifier
                  * @return added slot or NULL if no memory
                  */
-                LSPSlot               *add(ui_slot_t id);
+                LSPSlot            *add(ui_slot_t id);
 
                 /** Add slot and bind
                  *
@@ -133,11 +133,12 @@ namespace lsp
 
                 /** Execute slot handlers
                  *
+                 * @param sender the widget that initiates an event
                  * @param id slot identifier
                  * @param data data to process
                  * @return status of operation
                  */
-                status_t            execute(ui_slot_t id, void *data = NULL);
+                status_t            execute(ui_slot_t id, LSPWidget *sender, void *data = NULL);
 
         };
 

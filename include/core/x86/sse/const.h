@@ -20,9 +20,10 @@ namespace lsp
     #define SFENCE                      __asm__ __volatile__ ( __ASM_EMIT("sfence") )
     #define EMMS                        __asm__ __volatile__ ( __ASM_EMIT("emms") )
     #define MOVNTPS                     "movaps"
-    #define SSE_SVEC4(name, value)      static const float name[] __lsp_aligned16      = { value, value, value, value }
-    #define SSE_UVEC4(name, value)      static const uint32_t name[] __lsp_aligned16   = { value, value, value, value }
-    #define SSE_UVEC(name, a, b, c, d)  static const uint32_t name[] __lsp_aligned16   = { uint32_t(a), uint32_t(b), uint32_t(c), uint32_t(d) }
+    #define SSE_SVEC4(name, value)      static const float name[] __lsp_aligned16       = { value, value, value, value }
+    #define SSE_UVEC4(name, value)      static const uint32_t name[] __lsp_aligned16    = { value, value, value, value }
+    #define SSE_UVEC(name, a, b, c, d)  static const uint32_t name[] __lsp_aligned16    = { uint32_t(a), uint32_t(b), uint32_t(c), uint32_t(d) }
+    #define SSE_SVEC(name, a, b, c, d)  static const float name[] __lsp_aligned16       = { a, b, c, d }
     #define SSE_X4VEC(x)                x, x, x, x
 
     #define MXCSR_IE                    (1 << 0)
@@ -87,6 +88,7 @@ namespace lsp
         /* Sign Mask */
         SSE_UVEC4(X_SIGN,  0x7fffffff);
         SSE_SVEC4(X_HALF,  0.5f);
+        SSE_SVEC4(X_MINUS_ONE,  -1.0f);
         SSE_UVEC4(X_MANT,  0x007fffff);
         SSE_UVEC4(X_MMASK, 0x0000007f);
         SSE_SVEC4(X_AMP_THRESH, AMPLIFICATION_THRESH);
@@ -109,6 +111,14 @@ namespace lsp
 
         /* Miscellaneous vectors */
         SSE_UVEC(X_MASK0001, -1, 0, 0, 0);
+        SSE_UVEC(X_MASK0111, -1, -1, -1, 0);
+        SSE_UVEC(X_SMASK0010, 0, 0x80000000, 0, 0);
+        SSE_UVEC(X_SMASK0001, 0x80000000, 0, 0, 0);
+
+        SSE_SVEC(X_3DPOINT, 0.0f, 0.0f, 0.0f, 1.0f);
+
+        /* 3D */
+        SSE_SVEC4(X_3D_TOLERANCE, DSP_3D_TOLERANCE);
 
         static const float XFFT_W_RE[] __lsp_aligned16 =
         {

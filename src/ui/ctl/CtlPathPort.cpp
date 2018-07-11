@@ -28,7 +28,7 @@ namespace lsp
         void CtlPathPort::write(const void* buffer, size_t size)
         {
             // Check that attribute didn't change
-            if ((size != strlen(sPath)) && (memcmp(sPath, buffer, size) == 0))
+            if ((size == strlen(sPath)) && (memcmp(sPath, buffer, size) == 0))
                 return;
 
             if ((buffer != NULL) && (size > 0))

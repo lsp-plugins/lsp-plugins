@@ -28,7 +28,7 @@ namespace lsp
                 bool            bSeparator;
 
             protected:
-                static status_t        slot_on_submit(void *ptr, void *data);
+                static status_t        slot_on_submit(LSPWidget *sender, void *ptr, void *data);
 
             public:
                 LSPMenuItem(LSPDisplay *dpy);

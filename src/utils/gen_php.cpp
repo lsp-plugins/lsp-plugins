@@ -91,18 +91,17 @@ namespace lsp
         fprintf(out, "\t\t\t'description' => '%s',\n", m->description);
         fprintf(out, "\t\t\t'acronym' => '%s',\n", m->acronym);
 
-        #define MOD_LADSPA(x) \
-            if (&x::metadata == m) \
-                fprintf(out, "\t\t\t'fmt_ladspa' => '%d',\n", m->ladspa_id);
-        #define MOD_LV2(x) \
-            if (&x::metadata == m) \
-                fprintf(out, "\t\t\t'fmt_lv2' => '%s',\n", LSP_PLUGIN_URI(lv2, x));
-        #define MOD_VST(x) \
-            if (&x::metadata == m) \
-                fprintf(out, "\t\t\t'fmt_vst' => '%s',\n", m->vst_uid);
         #define MOD_PLUGIN(x) \
             if (&x::metadata == m) \
-                fprintf(out, "\t\t\t'fmt_jack' => true,\n");
+            { \
+                if (m->ladspa_id > 0) \
+                    fprintf(out, "\t\t\t'fmt_ladspa' => '%d',\n", m->ladspa_id); \
+                if (m->lv2_uid != NULL) \
+                    fprintf(out, "\t\t\t'fmt_lv2' => '%s',\n", LSP_PLUGIN_URI(lv2, x)); \
+                if (m->vst_uid != NULL) \
+                    fprintf(out, "\t\t\t'fmt_vst' => '%s',\n", m->vst_uid); \
+                fprintf(out, "\t\t\t'fmt_jack' => true,\n"); \
+            }
         #include <metadata/modules.h>
 
         fprintf(out, "\t\t\t'author' => '%s',\n", m->developer->name);

@@ -44,13 +44,14 @@
 		<li><b>FFT</b> - Fast Fourier Transform approximation of the frequency chart, linear phase. Adds noticeable latency to output signal.</li>
 	</ul>
 	<?php if ($m == 'ms') { ?>
-	<li><b>Mid</b> - enables the frequency chart and FFT analysis for the middle channel.</li>
-	<li><b>Side</b> - enables the frequency chart and FFT analysis for the side channel.</li>
+	<li><b>Mid</b> - button enables the frequency chart and FFT analysis for the middle channel, knob allows to adjust the level of the middle channel.</li>
+	<li><b>Side</b> - button enables the frequency chart and FFT analysis for the side channel, knob allows to adjust the level of the side channel.</li>
 	<li><b>Listen</b> - allows to listen middle channel and side channel. Passes middle channel to the left output channel, side channel to the right output channel.</li>
 	<?php } elseif ($m != 'm') { ?>
 	<li><b>Left</b> - enables the <?php if ($m != 's') echo "frequency chart and "; ?>FFT analysis for the left channel.</li>
 	<li><b>Right</b> - enables the <?php if ($m != 's') echo "frequency chart and "; ?>FFT analysis for the right channel.</li>
 	<?php } ?>
+	<li><b>Zoom</b> - zoom fader, allows to adjust zoom on the frequency chart.</li>
 </ul>
 <p><b>'Signal' section:</b></p>
 <ul>

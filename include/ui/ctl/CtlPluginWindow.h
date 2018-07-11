@@ -30,21 +30,25 @@ namespace lsp
                 CtlPort            *pPMStud;
                 CtlPort            *pPVersion;
                 CtlPort            *pPBypass;
+                CtlPort            *pPath;
 
             protected:
-                static status_t slot_window_close(void *ptr, void *data);
-                static status_t slot_window_show(void *ptr, void *data);
-                static status_t slot_message_close(void *ptr, void *data);
+                static status_t slot_window_close(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_window_show(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_message_close(LSPWidget *sender, void *ptr, void *data);
 
-                static status_t slot_export_settings(void *ptr, void *data);
-                static status_t slot_import_settings(void *ptr, void *data);
-                static status_t slot_toggle_rack_mount(void *ptr, void *data);
-                static status_t slot_show_menu_top(void *ptr, void *data);
-                static status_t slot_show_menu_left(void *ptr, void *data);
-                static status_t slot_show_menu_right(void *ptr, void *data);
+                static status_t slot_export_settings(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_import_settings(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_toggle_rack_mount(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_show_menu_top(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_show_menu_left(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_show_menu_right(LSPWidget *sender, void *ptr, void *data);
 
-                static status_t slot_call_export_settings(void *ptr, void *data);
-                static status_t slot_call_import_settings(void *ptr, void *data);
+                static status_t slot_call_export_settings(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_call_import_settings(LSPWidget *sender, void *ptr, void *data);
+
+                static status_t slot_fetch_path(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_commit_path(LSPWidget *sender, void *ptr, void *data);
 
                 status_t show_notification();
                 status_t show_menu(size_t actor_id, void *data);

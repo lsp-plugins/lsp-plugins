@@ -10,8 +10,11 @@
 #include <core/bits.h>
 #include <core/units.h>
 
+#define __DSP_NATIVE_IMPL
+
 #include <core/native/dsp.h>
 #include <core/native/fft.h>
+#include <core/native/search.h>
 #include <core/native/fastconv.h>
 #include <core/native/filters.h>
 #include <core/native/float.h>
@@ -19,6 +22,9 @@
 #include <core/native/resampling.h>
 #include <core/native/msmatrix.h>
 #include <core/native/complex.h>
+#include <core/native/3dmath.h>
+
+#undef __DSP_NATIVE_IMPL
 
 namespace lsp
 {
@@ -58,8 +64,10 @@ namespace lsp
 
             dsp::min_index                  = native::min_index;
             dsp::max_index                  = native::max_index;
+            dsp::minmax_index               = native::minmax_index;
             dsp::abs_max_index              = native::abs_max_index;
             dsp::abs_min_index              = native::abs_min_index;
+            dsp::abs_minmax_index           = native::abs_minmax_index;
 
             dsp::add2                       = native::add2;
             dsp::sub2                       = native::sub2;
@@ -103,6 +111,7 @@ namespace lsp
             dsp::normalize_fft              = native::normalize_fft;
             dsp::center_fft                 = native::center_fft;
             dsp::combine_fft                = native::combine_fft;
+            dsp::packed_combine_fft         = native::packed_combine_fft;
 
             dsp::fastconv_parse             = native::fastconv_parse;
             dsp::fastconv_parse_apply       = native::fastconv_parse_apply;
@@ -117,6 +126,7 @@ namespace lsp
             dsp::complex_cvt2modarg         = native::complex_cvt2modarg;
             dsp::complex_cvt2reim           = native::complex_cvt2reim;
             dsp::complex_mod                = native::complex_mod;
+            dsp::packed_complex_mod         = native::packed_complex_mod;
 
             dsp::lr_to_ms                   = native::lr_to_ms;
             dsp::lr_to_mid                  = native::lr_to_mid;
@@ -150,6 +160,122 @@ namespace lsp
             dsp::downsample_4x              = native::downsample_4x;
             dsp::downsample_6x              = native::downsample_6x;
             dsp::downsample_8x              = native::downsample_8x;
+
+            // 3D math
+            dsp::init_point_xyz             = native::init_point_xyz;
+            dsp::init_point                 = native::init_point;
+            dsp::normalize_point            = native::normalize_point;
+            dsp::scale_point1               = native::scale_point1;
+            dsp::scale_point2               = native::scale_point2;
+
+            dsp::init_vector_dxyz           = native::init_vector_dxyz;
+            dsp::init_vector                = native::init_vector;
+            dsp::init_vector_p2             = native::init_vector_p2;
+            dsp::init_vector_pv             = native::init_vector_pv;
+            dsp::normalize_vector           = native::normalize_vector;
+            dsp::scale_vector1              = native::scale_vector1;
+            dsp::scale_vector2              = native::scale_vector2;
+
+            dsp::vector_mul_v2              = native::vector_mul_v2;
+            dsp::vector_mul_vv              = native::vector_mul_vv;
+
+            dsp::init_normal3d_xyz          = native::init_normal3d_xyz;
+            dsp::init_normal3d_dxyz         = native::init_normal3d_dxyz;
+            dsp::init_normal3d              = native::init_normal3d;
+
+            dsp::init_segment_xyz           = native::init_segment_xyz;
+            dsp::init_segment_p2            = native::init_segment_p2;
+            dsp::init_segment_pv            = native::init_segment_pv;
+
+            dsp::init_matrix3d              = native::init_matrix3d;
+            dsp::init_matrix3d_zero         = native::init_matrix3d_zero;
+            dsp::init_matrix3d_one          = native::init_matrix3d_one;
+            dsp::init_matrix3d_identity     = native::init_matrix3d_identity;
+            dsp::init_matrix3d_translate    = native::init_matrix3d_translate;
+            dsp::init_matrix3d_scale        = native::init_matrix3d_scale;
+            dsp::init_matrix3d_rotate_x     = native::init_matrix3d_rotate_x;
+            dsp::init_matrix3d_rotate_y     = native::init_matrix3d_rotate_y;
+            dsp::init_matrix3d_rotate_z     = native::init_matrix3d_rotate_z;
+            dsp::init_matrix3d_rotate_xyz   = native::init_matrix3d_rotate_xyz;
+            dsp::apply_matrix3d_mv2         = native::apply_matrix3d_mv2;
+            dsp::apply_matrix3d_mv1         = native::apply_matrix3d_mv1;
+            dsp::apply_matrix3d_mp2         = native::apply_matrix3d_mp2;
+            dsp::apply_matrix3d_mp1         = native::apply_matrix3d_mp1;
+            dsp::apply_matrix3d_mm2         = native::apply_matrix3d_mm2;
+            dsp::apply_matrix3d_mm1         = native::apply_matrix3d_mm1;
+            dsp::transpose_matrix3d1        = native::transpose_matrix3d1;
+            dsp::transpose_matrix3d2        = native::transpose_matrix3d2;
+
+            dsp::init_ray_xyz               = native::init_ray_xyz;
+            dsp::init_ray_dxyz              = native::init_ray_dxyz;
+            dsp::init_ray_pdv               = native::init_ray_pdv;
+            dsp::init_ray_p2                = native::init_ray_p2;
+            dsp::init_ray_pv                = native::init_ray_pv;
+            dsp::init_ray                   = native::init_ray;
+            dsp::calc_ray_xyz               = native::calc_ray_xyz;
+            dsp::calc_ray_dxyz              = native::calc_ray_dxyz;
+            dsp::calc_ray_pdv               = native::calc_ray_pdv;
+            dsp::calc_ray_p2                = native::calc_ray_p2;
+            dsp::calc_ray_pv                = native::calc_ray_pv;
+            dsp::calc_ray                   = native::calc_ray;
+
+            dsp::calc_triangle3d_params     = native::calc_triangle3d_params;
+            dsp::init_triangle3d_xyz        = native::init_triangle3d_xyz;
+            dsp::init_triangle3d_p3         = native::init_triangle3d_p3;
+            dsp::init_triangle3d_pv         = native::init_triangle3d_pv;
+            dsp::init_triangle3d            = native::init_triangle3d;
+            dsp::calc_triangle3d_xyz        = native::calc_triangle3d_xyz;
+            dsp::calc_triangle3d_p3         = native::calc_triangle3d_p3;
+            dsp::calc_triangle3d_pv         = native::calc_triangle3d_pv;
+            dsp::calc_triangle3d            = native::calc_triangle3d;
+
+            dsp::init_intersection3d        = native::init_intersection3d;
+            dsp::init_raytrace3d            = native::init_raytrace3d;
+            dsp::init_raytrace3d_r          = native::init_raytrace3d_r;
+            dsp::init_raytrace3d_ix         = native::init_raytrace3d_ix;
+
+            dsp::check_triplet3d_p3n        = native::check_triplet3d_p3n;
+            dsp::check_triplet3d_pvn        = native::check_triplet3d_pvn;
+            dsp::check_triplet3d_v2n        = native::check_triplet3d_v2n;
+            dsp::check_triplet3d_vvn        = native::check_triplet3d_vvn;
+            dsp::check_triplet3d_vv         = native::check_triplet3d_vv;
+            dsp::check_triplet3d_t          = native::check_triplet3d_t;
+            dsp::check_triplet3d_tn         = native::check_triplet3d_tn;
+
+//            dsp::check_point3d_location_tp  = native::check_point3d_location_tp;
+//            dsp::check_point3d_location_pvp = native::check_point3d_location_pvp;
+//            dsp::check_point3d_location_p3p = native::check_point3d_location_p3p;
+
+            dsp::check_point3d_on_triangle_p3p  = native::check_point3d_on_triangle_p3p;
+            dsp::check_point3d_on_triangle_pvp  = native::check_point3d_on_triangle_pvp;
+            dsp::check_point3d_on_triangle_tp   = native::check_point3d_on_triangle_tp;
+
+            dsp::check_point3d_on_edge_p2p  = native::check_point3d_on_edge_p2p;
+            dsp::check_point3d_on_edge_pvp  = native::check_point3d_on_edge_pvp;
+
+            dsp::longest_edge3d_p3          = native::longest_edge3d_p3;
+            dsp::longest_edge3d_pv          = native::longest_edge3d_pv;
+            dsp::find_intersection3d_rt     = native::find_intersection3d_rt;
+
+            dsp::reflect_ray                = native::reflect_ray;
+
+            dsp::calc_angle3d_v2            = native::calc_angle3d_v2;
+            dsp::calc_angle3d_vv            = native::calc_angle3d_vv;
+
+            dsp::calc_normal3d_p3           = native::calc_normal3d_p3;
+            dsp::calc_normal3d_pv           = native::calc_normal3d_pv;
+            dsp::calc_normal3d_v2           = native::calc_normal3d_v2;
+            dsp::calc_normal3d_vv           = native::calc_normal3d_vv;
+
+            dsp::move_point3d_p2            = native::move_point3d_p2;
+            dsp::move_point3d_pv            = native::move_point3d_pv;
+
+            dsp::init_octant3d_v            = native::init_octant3d_v;
+            dsp::check_octant3d_rv          = native::check_octant3d_rv;
+
+            dsp::calc_tetra3d_pv            = native::calc_tetra3d_pv;
+            dsp::calc_tetra3d_pv3           = native::calc_tetra3d_pv3;
+            dsp::calc_tetra3d_pvv           = native::calc_tetra3d_pvv;
         }
     } // namespace native
 } // namespace dsp

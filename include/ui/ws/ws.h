@@ -239,14 +239,6 @@ namespace lsp
          */
         typedef ssize_t         ui_handler_id_t;
 
-        /** Event handler type
-         *
-         * @param ptr additional pointer
-         * @param data data structure to process (handle)
-         * @return status of operation
-         */
-        typedef status_t (* ui_event_handler_t)(void *ptr, void *data);
-
         enum surface_type_t
         {
             ST_UNKNOWN,

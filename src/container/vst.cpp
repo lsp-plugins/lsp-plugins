@@ -53,17 +53,25 @@ namespace lsp
         float min = 0.0f, max = 1.0f, step = 0.001f;
         get_port_parameters(m, &min, &max, &step);
 
-        p->stepFloat                = (max != min) ? step / (max - min) : 0.0f;
-        p->smallStepFloat           = step;
-        p->largeStepFloat           = step;
         vst_strncpy(p->label, m->name, kVstMaxLabelLen);
-        p->flags                    = 0; // TODO
+        p->flags                    = 0;
         p->minInteger               = min;
         p->maxInteger               = max;
         p->stepInteger              = step;
         p->largeStepInteger         = step;
 
+        p->stepFloat                = (max != min) ? step / (max - min) : 0.0f;
+        p->smallStepFloat           = p->stepFloat;
+        p->largeStepFloat           = p->stepFloat;
+
         vst_strncpy(p->shortLabel, m->id, kVstMaxShortLabelLen);
+
+        if (m->unit == U_BOOL)
+            p->flags                    = kVstParameterIsSwitch;
+
+        p->stepFloat                = (max != min) ? step / (max - min) : 0.0f;
+        p->smallStepFloat           = p->stepFloat;
+        p->largeStepFloat           = p->stepFloat;
 
 //        // This code may crash the hosts that use VesTige, so for capability issues it is commented
 //        p->displayIndex             = 0;
@@ -72,19 +80,33 @@ namespace lsp
 //        p->reserved                 = 0;
 //        p->categoryLabel[0]         = '\0';
 
-        if (m->unit == U_BOOL)
-            p->flags                    = kVstParameterIsSwitch | kVstParameterUsesIntegerMinMax | kVstParameterUsesIntStep;
-        else if (m->unit == U_ENUM)
-            p->flags                    = kVstParameterUsesIntegerMinMax | kVstParameterUsesIntStep;
-        else if (m->unit == U_SAMPLES)
-            p->flags                    = kVstParameterUsesIntegerMinMax | kVstParameterUsesIntStep;
-        else
-        {
-            if (m->flags & F_INT)
-                p->flags                    = kVstParameterUsesIntegerMinMax | kVstParameterUsesIntStep;
-            else
-                p->flags                    = kVstParameterUsesFloatStep;
-        }
+// Not all hosts are ready to properly handle these features
+//        if (m->unit == U_BOOL)
+//            p->flags                    = kVstParameterIsSwitch | kVstParameterUsesIntegerMinMax | kVstParameterUsesIntStep;
+//        else if (m->unit == U_ENUM)
+//            p->flags                    = kVstParameterUsesIntegerMinMax | kVstParameterUsesIntStep;
+//        else if (m->unit == U_SAMPLES)
+//            p->flags                    = kVstParameterUsesIntegerMinMax | kVstParameterUsesIntStep;
+//        else
+//        {
+//            if (m->flags & F_INT)
+//                p->flags                    = kVstParameterUsesIntegerMinMax | kVstParameterUsesIntStep;
+//            else
+//                p->flags                    = kVstParameterUsesFloatStep;
+//        }
+//
+//        if (p->flags & kVstParameterUsesIntStep)
+//        {
+//            p->stepFloat                = step;
+//            p->smallStepFloat           = step;
+//            p->largeStepFloat           = step;
+//        }
+//        else
+//        {
+//            p->stepFloat                = (max != min) ? step / (max - min) : 0.0f;
+//            p->smallStepFloat           = p->stepFloat;
+//            p->largeStepFloat           = p->stepFloat;
+//        }
     }
 
 #ifdef LSP_DEBUG
@@ -289,7 +311,7 @@ namespace lsp
         VstIntPtr v = 0;
 
         #ifdef LSP_TRACE
-        if ((opcode != effEditIdle) && (opcode != effProcessEvents))
+        if ((opcode != effEditIdle) && (opcode != effProcessEvents) && (opcode != effGetTailSize))
             lsp_trace("vst_dispatcher effect=%p, opcode=%d (%s), index=%d, value=%llx, ptr=%p, opt = %.3f",
                     e, opcode, vst_decode_opcode(opcode), index, (long long)(value), ptr, opt);
         #endif /* LSP_TRACE */
@@ -661,8 +683,8 @@ namespace lsp
         const char *plugin_name     = NULL;
         plugin_t *p                 = NULL;
 
-        #define MOD_VST(plugin) \
-            if ((!p) && (uid == vst_cconst(plugin::metadata.vst_uid))) \
+        #define MOD_PLUGIN(plugin) \
+            if ((!p) && (plugin::metadata.vst_uid != NULL) && (uid == vst_cconst(plugin::metadata.vst_uid))) \
             { \
                 p   = new plugin(); \
                 if (p == NULL) \

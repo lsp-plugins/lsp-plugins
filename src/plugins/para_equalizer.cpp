@@ -8,7 +8,7 @@
 #include <core/types.h>
 #include <core/debug.h>
 #include <core/colors.h>
-#include <core/Color.h>
+#include <core/util/Color.h>
 
 #include <plugins/para_equalizer.h>
 
@@ -29,6 +29,7 @@ namespace lsp
         vFreqs      = NULL;
         vIndexes    = NULL;
         fGainIn     = 1.0f;
+        fZoom       = 1.0f;
         bListen     = false;
         nFftPosition= FFTP_NONE;
         pIDisplay   = NULL;
@@ -40,6 +41,7 @@ namespace lsp
         pReactivity = NULL;
         pListen     = NULL;
         pShiftGain  = NULL;
+        pZoom       = NULL;
         pEqMode     = NULL;
         pBalance    = NULL;
     }
@@ -206,94 +208,6 @@ namespace lsp
         #undef EQDFL
         #undef EQS
         #undef EQF
-
-//        #define EQF(x, y, ks)
-//            case para_equalizer_base_metadata::EQF_ ## x:
-//                *ftype = y;
-//                *slope = ks * *slope;
-//                return;
-//
-//        switch (*ftype)
-//        {
-//            EQF(NONE, FLT_NONE, 1)
-//
-//            EQF(BT_RLC_LOPASS, FLT_BT_RLC_LOPASS, 2)
-//            EQF(MT_RLC_LOPASS, FLT_MT_RLC_LOPASS, 2)
-//
-//            EQF(BT_BWC_LOPASS, FLT_BT_BWC_LOPASS, 2)
-//            EQF(MT_BWC_LOPASS, FLT_MT_BWC_LOPASS, 2)
-//
-//            EQF(BT_LRX_LOPASS, FLT_BT_LRX_LOPASS, 1)
-//            EQF(MT_LRX_LOPASS, FLT_MT_LRX_LOPASS, 1)
-//
-//            EQF(BT_RLC_HIPASS, FLT_BT_RLC_HIPASS, 2)
-//            EQF(MT_RLC_HIPASS, FLT_MT_RLC_HIPASS, 2)
-//
-//            EQF(BT_BWC_HIPASS, FLT_BT_BWC_HIPASS, 2)
-//            EQF(MT_BWC_HIPASS, FLT_MT_BWC_HIPASS, 2)
-//
-//            EQF(BT_LRX_HIPASS, FLT_BT_LRX_HIPASS, 1)
-//            EQF(MT_LRX_HIPASS, FLT_MT_LRX_HIPASS, 1)
-//
-//            EQF(BT_RLC_LOSHELF, FLT_BT_RLC_LOSHELF, 1)
-//            EQF(MT_RLC_LOSHELF, FLT_MT_RLC_LOSHELF, 1)
-//
-//            EQF(BT_BWC_LOSHELF, FLT_BT_BWC_LOSHELF, 1)
-//            EQF(MT_BWC_LOSHELF, FLT_MT_BWC_LOSHELF, 1)
-//
-//            EQF(BT_LRX_LOSHELF, FLT_BT_LRX_LOSHELF, 1)
-//            EQF(MT_LRX_LOSHELF, FLT_MT_LRX_LOSHELF, 1)
-//
-//            EQF(BT_RLC_HISHELF, FLT_BT_RLC_HISHELF, 1)
-//            EQF(MT_RLC_HISHELF, FLT_MT_RLC_HISHELF, 1)
-//
-//            EQF(BT_BWC_HISHELF, FLT_BT_BWC_HISHELF, 1)
-//            EQF(MT_BWC_HISHELF, FLT_MT_BWC_HISHELF, 1)
-//
-//            EQF(BT_LRX_HISHELF, FLT_BT_LRX_HISHELF, 1)
-//            EQF(MT_LRX_HISHELF, FLT_MT_LRX_HISHELF, 1)
-//
-//            EQF(BT_RLC_BELL, FLT_BT_RLC_BELL, 1)
-//            EQF(MT_RLC_BELL, FLT_MT_RLC_BELL, 1)
-//
-//            EQF(BT_BWC_BELL, FLT_BT_BWC_BELL, 1)
-//            EQF(MT_BWC_BELL, FLT_MT_BWC_BELL, 1)
-//
-//            EQF(BT_LRX_BELL, FLT_BT_LRX_BELL, 1)
-//            EQF(MT_LRX_BELL, FLT_MT_LRX_BELL, 1)
-//
-//            EQF(BT_RESONANCE, FLT_BT_RLC_RESONANCE, 1)
-//            EQF(MT_RESONANCE, FLT_MT_RLC_RESONANCE, 1)
-//
-//            EQF(BT_NOTCH, FLT_BT_RLC_NOTCH, 1)
-//            EQF(MT_NOTCH, FLT_MT_RLC_NOTCH, 1)
-//
-//#ifndef LSP_NO_EXPERIMENTAL
-//            EQF(BT_RLC_LADDERPASS, FLT_BT_RLC_LADDERPASS, 1)
-//            EQF(MT_RLC_LADDERPASS, FLT_MT_RLC_LADDERPASS, 1)
-//
-//            EQF(BT_BWC_LADDERPASS, FLT_BT_BWC_LADDERPASS, 1)
-//            EQF(MT_BWC_LADDERPASS, FLT_MT_BWC_LADDERPASS, 1)
-//
-//            EQF(BT_LRX_LADDERPASS, FLT_BT_LRX_LADDERPASS, 1)
-//            EQF(MT_LRX_LADDERPASS, FLT_MT_LRX_LADDERPASS, 1)
-//
-//            EQF(BT_RLC_LADDERREJ, FLT_BT_RLC_LADDERREJ, 1)
-//            EQF(MT_RLC_LADDERREJ, FLT_MT_RLC_LADDERREJ, 1)
-//
-//            EQF(BT_BWC_LADDERREJ, FLT_BT_BWC_LADDERREJ, 1)
-//            EQF(MT_BWC_LADDERREJ, FLT_MT_BWC_LADDERREJ, 1)
-//
-//            EQF(BT_LRX_LADDERREJ, FLT_BT_LRX_LADDERREJ, 1)
-//            EQF(MT_LRX_LADDERREJ, FLT_MT_LRX_LADDERREJ, 1)
-//#endif
-//
-//            default:
-//                *ftype = FLT_NONE;
-//                *slope = 1;
-//                return;
-//        }
-//        #undef EQF
     }
 
     inline bool para_equalizer_base::adjust_gain(size_t filter_type)
@@ -386,6 +300,7 @@ namespace lsp
             eq_channel_t *c     = &vChannels[i];
 
             c->nLatency         = 0;
+            c->fInGain          = 1.0f;
             c->fOutGain         = 1.0f;
             c->vFilters         = NULL;
             c->vBuffer          = abuf;
@@ -402,6 +317,7 @@ namespace lsp
             // Ports
             c->pIn              = NULL;
             c->pOut             = NULL;
+            c->pInGain          = NULL;
             c->pTrAmp           = NULL;
             c->pFft             = NULL;
             c->pVisible         = NULL;
@@ -476,6 +392,8 @@ namespace lsp
         TRACE_PORT(vPorts[port_id]);
         pShiftGain              = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
+        pZoom                   = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
         port_id++; // Skip filter selector
 
         // Balance
@@ -490,6 +408,10 @@ namespace lsp
         {
             TRACE_PORT(vPorts[port_id]);
             pListen                 = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[0].pInGain    = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[1].pInGain    = vPorts[port_id++];
         }
 
         for (size_t i=0; i<channels; ++i)
@@ -636,6 +558,15 @@ namespace lsp
         // Update common settings
         if (pGainIn != NULL)
             fGainIn     = pGainIn->getValue();
+        if (pZoom != NULL)
+        {
+            float zoom  = pZoom->getValue();
+            if (zoom != fZoom)
+            {
+                fZoom       = zoom;
+                pWrapper->query_display_draw();
+            }
+        }
 
         // Calculate balance
         float bal[2] = { 1.0f, 1.0f };
@@ -693,6 +624,8 @@ namespace lsp
             if (c->sBypass.set_bypass(bypass))
                 pWrapper->query_display_draw();
             c->fOutGain         = bal[i];
+            if (c->pInGain != NULL)
+                c->fInGain          = c->pInGain->getValue();
 
             // Update each filter configuration (step 1)
             for (size_t j=0; j<nFilters; ++j)
@@ -836,6 +769,8 @@ namespace lsp
 
                 // Process the signal by the equalizer
                 c->sEqualizer.process(c->vBuffer, c->vBuffer, to_process);
+                if (c->fInGain != 1.0f)
+                    dsp::scale2(c->vBuffer, c->fInGain, to_process);
 
                 // Do FFT in 'POST'-position
                 if (fft_pos == FFTP_POST)
@@ -1006,9 +941,9 @@ namespace lsp
         cv->set_line_width(1.0);
 
         float zx    = 1.0f/SPEC_FREQ_MIN;
-        float zy    = 1.0f/GAIN_AMP_M_48_DB;
+        float zy    = fZoom/GAIN_AMP_M_48_DB;
         float dx    = width/(logf(SPEC_FREQ_MAX)-logf(SPEC_FREQ_MIN));
-        float dy    = height/(logf(GAIN_AMP_M_48_DB)-logf(GAIN_AMP_P_48_DB));
+        float dy    = height/(logf(GAIN_AMP_M_48_DB/fZoom)-logf(GAIN_AMP_P_48_DB*fZoom));
 
         // Draw vertical lines
         cv->set_color_rgb(CV_YELLOW, 0.5f);
@@ -1020,14 +955,14 @@ namespace lsp
 
         // Draw horizontal lines
         cv->set_color_rgb(CV_WHITE, 0.5f);
-        for (float i=GAIN_AMP_M_48_DB; i<GAIN_AMP_P_48_DB; i *= GAIN_AMP_P_24_DB)
+        for (float i=GAIN_AMP_M_48_DB; i<GAIN_AMP_P_48_DB; i *= GAIN_AMP_P_12_DB)
         {
             float ay = height + dy*(logf(i*zy));
             cv->line(0, ay, width, ay);
         }
 
         // Allocate buffer: f, x, y, re, im
-        pIDisplay           = float_buffer_t::reuse(pIDisplay, 5, width);
+        pIDisplay           = float_buffer_t::reuse(pIDisplay, 5, width+2);
         float_buffer_t *b   = pIDisplay;
         if (b == NULL)
             return false;

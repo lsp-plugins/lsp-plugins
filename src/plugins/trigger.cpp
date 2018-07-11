@@ -11,7 +11,7 @@
 #include <core/debug.h>
 #include <core/midi.h>
 #include <core/colors.h>
-#include <core/Color.h>
+#include <core/util/Color.h>
 
 #include <plugins/trigger.h>
 

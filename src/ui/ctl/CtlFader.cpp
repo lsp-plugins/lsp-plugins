@@ -22,6 +22,18 @@ namespace lsp
         {
         }
 
+        void CtlFader::init()
+        {
+            CtlWidget::init();
+
+            LSPFader *fader = widget_cast<LSPFader>(pWidget);
+            if (fader == NULL)
+                return;
+
+            // Bind slots
+            fader->slots()->bind(LSPSLOT_CHANGE, slot_change, this);
+        }
+
         void CtlFader::set(widget_attribute_t att, const char *value)
         {
             LSPFader *fader    = widget_cast<LSPFader>(pWidget);
@@ -159,7 +171,7 @@ namespace lsp
                 commit_value(pPort->get_value());
         }
 
-        status_t CtlFader::slot_change(void *ptr, void *data)
+        status_t CtlFader::slot_change(LSPWidget *sender, void *ptr, void *data)
         {
             CtlFader *_this     = static_cast<CtlFader *>(ptr);
             if (_this != NULL)
@@ -177,10 +189,7 @@ namespace lsp
             // Ensure that port is set
             const port_t *p = (pPort != NULL) ? pPort->metadata() : NULL;
             if (p == NULL)
-            {
-                bLog            = p->flags & bLog;
                 return;
-            }
 
             if (is_decibel_unit(p->unit)) // Decibels
             {
@@ -190,8 +199,8 @@ namespace lsp
                 float max       = (p->flags & F_UPPER) ? p->max : GAIN_AMP_P_12_DB;
 
                 double step     = base * log((p->flags & F_STEP) ? p->step + 1.0f : 1.01f) * 0.1f;
-                double db_min   = (abs(min) < GAIN_AMP_M_80_DB) ? base * log(GAIN_AMP_M_80_DB) - step : base * log(min);
-                double db_max   = (abs(max) < GAIN_AMP_M_80_DB) ? base * log(GAIN_AMP_M_80_DB) - step : base * log(max);
+                double db_min   = (fabs(min) < GAIN_AMP_M_80_DB) ? base * log(GAIN_AMP_M_80_DB) - step : base * log(min);
+                double db_max   = (fabs(max) < GAIN_AMP_M_80_DB) ? base * log(GAIN_AMP_M_80_DB) - step : base * log(max);
 
                 fader->set_min_value(db_min);
                 fader->set_max_value(db_max);
@@ -223,8 +232,8 @@ namespace lsp
                 float max       = (p->flags & F_UPPER) ? p->max : GAIN_AMP_P_12_DB;
 
                 double step     = log((p->flags & F_STEP) ? p->step + 1.0f : 1.01f);
-                double l_min    = (abs(min) < GAIN_AMP_M_80_DB) ? log(GAIN_AMP_M_80_DB) - step : log(min);
-                double l_max    = (abs(max) < GAIN_AMP_M_80_DB) ? log(GAIN_AMP_M_80_DB) - step : log(max);
+                double l_min    = (fabs(min) < GAIN_AMP_M_80_DB) ? log(GAIN_AMP_M_80_DB) - step : log(min);
+                double l_max    = (fabs(max) < GAIN_AMP_M_80_DB) ? log(GAIN_AMP_M_80_DB) - step : log(max);
 
                 fader->set_min_value(l_min);
                 fader->set_max_value(l_max);

@@ -18,6 +18,7 @@
 	<?php if ($s) { ?>
 	<li><b>File</b> - file selector, allows to load additional file that can be taken as impulse response for one of audio channels.</li>
 	<?php } ?>
+	<li><b>IR equalizer</b> - enables wet (processed) signal equalization in additional <b>Wet Signal Equalization</b> section</li>
 	<li><b>Head cut</b> - cut amount of milliseconds from the beginning of the impulse files, can be used to remove early reflections of reverb.</li>
 	<li><b>Tail cut</b> - cut amount of milliseconds from the end of the impulse files, can be used to remove large reverberation tail.</li>
 	<li><b>Fade in</b> - adds additional fading at the beginning of the impulse file.</li>
@@ -39,4 +40,12 @@
 	<li><b>Dry</b> - amount of gain applied to the dry (unprocessed) signal.</li>
 	<li><b>Wet</b> - amount of gain additionally applied to the wet (processed) signal.</li>
 	<li><b>Output</b> - amount of gain additionally applied to the output signal.</li>
+</ul>
+<p><b>'Wet Signal Equalization' section</b> - visible only when <b>IR equalizer</b> parameter is turned on:</p>
+<ul>
+	<li><b>Low-cut</b> - sets the slope of the high-pass butterworth filter, possible slopes are 6, 12 and 18 dB/octave.</li>
+	<li><b>Low-cut freq</b> - the cutoff frequency of the high-pass butterworth filter.</li>
+	<li><b>Faders</b> - faders that allow to change the loudness of eight corresponding frequency bands in range of -12..+12 dB</li>
+	<li><b>High-cut</b> - sets the slope of the low-pass butterworth filter, possible slopes are 6, 12 and 18 dB/octave.</li>
+	<li><b>High-cut freq</b> - the cutoff frequency of the low-pass butterworth filter.</li>
 </ul>

@@ -20,7 +20,7 @@ namespace lsp
                 CtlPort            *pPort;
 
             protected:
-                static status_t    slot_change(void *ptr, void *data);
+                static status_t    slot_change(LSPWidget *sender, void *ptr, void *data);
                 void        submit_value();
                 void        commit_value(float value);
 
@@ -29,11 +29,8 @@ namespace lsp
                 virtual ~CtlFader();
 
             public:
-                /** Set attribute
-                 *
-                 * @param att widget attribute
-                 * @param value widget value
-                 */
+                virtual void init();
+
                 virtual void set(widget_attribute_t att, const char *value);
 
                 virtual void notify(CtlPort *port);

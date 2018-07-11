@@ -10,11 +10,12 @@
 
 #include <core/plugin.h>
 #include <core/IExecutor.h>
-#include <core/AudioFile.h>
-#include <core/Convolver.h>
-#include <core/Bypass.h>
-#include <core/Delay.h>
-#include <core/SamplePlayer.h>
+#include <core/util/Convolver.h>
+#include <core/util/Bypass.h>
+#include <core/util/Delay.h>
+#include <core/filters/Equalizer.h>
+#include <core/sampling/SamplePlayer.h>
+#include <core/files/AudioFile.h>
 
 #include <metadata/plugins.h>
 
@@ -49,7 +50,8 @@ namespace lsp
             typedef struct reconfig_t
             {
                 bool                    bRender[impulse_reverb_base_metadata::FILES];
-                size_t                  nSource[impulse_reverb_base_metadata::CONVOLVERS];
+                size_t                  nFile[impulse_reverb_base_metadata::CONVOLVERS];
+                size_t                  nTrack[impulse_reverb_base_metadata::CONVOLVERS];
                 size_t                  nRank[impulse_reverb_base_metadata::CONVOLVERS];
             } reconfig_t;
 
@@ -66,9 +68,10 @@ namespace lsp
                 public:
                     virtual int run();
 
-                    inline void set_render(size_t idx, bool render)     { sReconfig.bRender[idx]    = render; }
-                    inline void set_source(size_t idx, size_t source)   { sReconfig.nSource[idx]    = source; }
-                    inline void set_rank(size_t idx, size_t rank)       { sReconfig.nRank[idx]      = rank; }
+                    inline void set_render(size_t idx, bool render)     { sReconfig.bRender[idx]    = render;   }
+                    inline void set_file(size_t idx, size_t file)       { sReconfig.nFile[idx]      = file;     }
+                    inline void set_track(size_t idx, size_t track)     { sReconfig.nTrack[idx]     = track;    }
+                    inline void set_rank(size_t idx, size_t rank)       { sReconfig.nRank[idx]      = rank;     }
             };
 
             typedef struct af_descriptor_t
@@ -115,7 +118,8 @@ namespace lsp
                 size_t          nRank;          // Last applied rank
                 size_t          nRankReq;       // Rank request
                 size_t          nSource;        // Source
-                size_t          nSourceReq;     // Source request
+                size_t          nFileReq;       // File request
+                size_t          nTrackReq;      // Track request
 
                 float          *vBuffer;        // Buffer for convolution
                 float           fPanIn[2];      // Input panning of convolver
@@ -124,8 +128,10 @@ namespace lsp
                 IPort          *pMakeup;        // Makeup gain of convolver
                 IPort          *pPanIn;         // Input panning of convolver
                 IPort          *pPanOut;        // Output panning of convolver
-                IPort          *pSource;        // Convolver source
+                IPort          *pFile;          // Convolver source file
+                IPort          *pTrack;         // Convolver source file track
                 IPort          *pPredelay;      // Pre-delay
+                IPort          *pMute;          // Mute button
                 IPort          *pActivity;      // Activity indicator
             } convolver_t;
 
@@ -133,12 +139,20 @@ namespace lsp
             {
                 Bypass          sBypass;
                 SamplePlayer    sPlayer;
+                Equalizer       sEqualizer;     // Wet signal equalizer
 
                 float          *vOut;
                 float          *vBuffer;        // Rendering buffer
                 float           fDryPan[2];     // Dry panorama
 
                 IPort          *pOut;
+
+                IPort          *pWetEq;         // Wet equalization flag
+                IPort          *pLowCut;        // Low-cut flag
+                IPort          *pLowFreq;       // Low-cut frequency
+                IPort          *pHighCut;       // High-cut flag
+                IPort          *pHighFreq;      // Low-cut frequency
+                IPort          *pFreqGain[impulse_reverb_base_metadata::EQ_BANDS];   // Gain for each band of the Equalizer
             } channel_t;
 
             typedef struct input_t

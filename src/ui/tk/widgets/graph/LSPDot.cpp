@@ -15,23 +15,26 @@ namespace lsp
 
         LSPDot::LSPDot(LSPDisplay *dpy): LSPGraphItem(dpy)
         {
-            sLeft.fMin      = 0.0f;
-            sLeft.fMax      = 1.0f;
-            sLeft.fValue    = 0.0f;
-            sLeft.fLast     = 0.0f;
-            sLeft.fStep     = 0.01f;
+            sLeft.fMin          = 0.0f;
+            sLeft.fMax          = 1.0f;
+            sLeft.fValue        = 0.0f;
+            sLeft.fLast         = 0.0f;
+            sLeft.fStep         = 0.01f;
+            sLeft.fTinyStep     = 0.001f;
 
-            sTop.fMin       = 0.0f;
-            sTop.fMax       = 1.0f;
-            sTop.fValue     = 0.0f;
-            sTop.fLast      = 0.0f;
-            sTop.fStep      = 0.01f;
+            sTop.fMin           = 0.0f;
+            sTop.fMax           = 1.0f;
+            sTop.fValue         = 0.0f;
+            sTop.fLast          = 0.0f;
+            sTop.fStep          = 0.01f;
+            sTop.fTinyStep      = 0.001f;
 
-            sScroll.fMin    = 0.0f;
-            sScroll.fMax    = 1.0f;
-            sScroll.fValue  = 0.0f;
-            sScroll.fLast   = 0.0f;
-            sScroll.fStep   = 0.01f;
+            sScroll.fMin        = 0.0f;
+            sScroll.fMax        = 1.0f;
+            sScroll.fValue      = 0.0f;
+            sScroll.fLast       = 0.0f;
+            sScroll.fStep       = 0.01f;
+            sScroll.fTinyStep   = 0.001f;
 
             nCenter     = 0;
             nFlags      = 0;
@@ -228,7 +231,7 @@ namespace lsp
 
             // Query widget for redraw
             if (changed)
-                sSlots.execute(LSPSLOT_CHANGE);
+                sSlots.execute(LSPSLOT_CHANGE, this);
             query_draw();
         }
 
@@ -454,20 +457,21 @@ namespace lsp
                 return STATUS_OK;
 
             float delta = 0.0f;
-            if (e->nCode == MCD_UP)
-                delta   = sScroll.fStep;
-            else if (e->nCode == MCD_DOWN)
-                delta   = -sScroll.fStep;
+            if ((e->nCode == MCD_UP) || (e->nCode == MCD_DOWN))
+            {
+                delta   = (e->nState & MCF_SHIFT)   ? sScroll.fTinyStep :
+                          (e->nState & MCF_CONTROL) ? sScroll.fBigStep : sScroll.fStep;
+                if (e->nCode == MCD_DOWN)
+                    delta   = - delta;
+            }
             else
                 return STATUS_OK;
 
-            float tolerance = (e->nState & MCF_SHIFT) ? 0.1f : 1.0f;
-
             // Update value
-            sScroll.fValue  = limit_value(&sScroll, sScroll.fValue + delta * tolerance);
+            sScroll.fValue  = limit_value(&sScroll, sScroll.fValue + delta);
 
             // Notify about changes
-            sSlots.execute(LSPSLOT_CHANGE);
+            sSlots.execute(LSPSLOT_CHANGE, this);
             query_draw();
 
             return STATUS_OK;

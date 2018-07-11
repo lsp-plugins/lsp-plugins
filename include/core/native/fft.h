@@ -8,6 +8,10 @@
 #ifndef CORE_NATIVE_FFT_H_
 #define CORE_NATIVE_FFT_H_
 
+#ifndef __DSP_NATIVE_IMPL
+    #error "This header should not be included directly"
+#endif /* __DSP_NATIVE_IMPL */
+
 namespace lsp
 {
     namespace native
@@ -1370,6 +1374,23 @@ namespace lsp
 
             dsp::fill_zero(&dst_re[count+1], count-1);
             dsp::fill_zero(&dst_im[count+1], count-1);
+        }
+
+        static void packed_combine_fft(float *dst, const float *src, size_t rank)
+        {
+            if (rank < 2)
+                return;
+            ssize_t  count  = 1 << (rank+1);
+            const float *tail = &src[count];
+            count >>= 1;
+
+            for (ssize_t i=1; i<count; i += 2)
+            {
+                dst[i]          = src[i]    + tail[-i-1];
+                dst[i+1]        = src[i+1]  - tail[-i];
+            }
+
+            dsp::fill_zero(&dst[count+2], count-2);
         }
     }
 

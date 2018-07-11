@@ -15,10 +15,22 @@
 #include <string.h>
 
 #define TMP_BUF_SIZE            4096
+#define CONV_RANK               10
 #define TRACE_PORT(p)           lsp_trace("  port id=%s", (p)->metadata()->id);
 
 namespace lsp
 {
+    static float band_freqs[] =
+    {
+        73.0f,
+        156.0f,
+        332.0f,
+        707.0f,
+        1507.0f,
+        3213.0f,
+        6849.0f
+    };
+
     impulse_responses_base::IRLoader::IRLoader(impulse_responses_base *base, af_descriptor_t *descr)
     {
         pCore       = base;
@@ -142,6 +154,7 @@ namespace lsp
 
         c->sDelay.destroy();
         c->sPlayer.destroy(false);
+        c->sEqualizer.destroy();
     }
 
     size_t impulse_responses_base::get_fft_rank(size_t rank)
@@ -179,6 +192,9 @@ namespace lsp
 
             if (!c->sPlayer.init(nChannels, 32))
                 return;
+            if (!c->sEqualizer.init(impulse_responses_base_metadata::EQ_BANDS + 2, CONV_RANK))
+                return;
+            c->sEqualizer.set_mode(EQM_BYPASS);
 
             c->pCurr        = NULL;
             c->pSwap        = NULL;
@@ -202,6 +218,15 @@ namespace lsp
             c->pMakeup      = NULL;
             c->pActivity    = NULL;
             c->pPredelay    = NULL;
+
+            c->pWetEq       = NULL;
+            c->pLowCut      = NULL;
+            c->pLowFreq     = NULL;
+            c->pHighCut     = NULL;
+            c->pHighFreq    = NULL;
+
+            for (size_t j=0; j<impulse_responses_base_metadata::EQ_BANDS; ++j)
+                c->pFreqGain[j]     = NULL;
         }
 
         // Allocate files
@@ -321,6 +346,35 @@ namespace lsp
             TRACE_PORT(vPorts[port_id]);
             c->pPredelay    = vPorts[port_id++];
         }
+
+        // Bind wet processing ports
+        lsp_trace("Binding wet processing ports");
+        size_t port         = port_id;
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            channel_t *c        = &vChannels[i];
+
+            TRACE_PORT(vPorts[port_id]);
+            c->pWetEq           = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pLowCut          = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pLowFreq         = vPorts[port_id++];
+
+            for (size_t j=0; j<impulse_responses_base_metadata::EQ_BANDS; ++j)
+            {
+                TRACE_PORT(vPorts[port_id]);
+                c->pFreqGain[j]     = vPorts[port_id++];
+            }
+
+            TRACE_PORT(vPorts[port_id]);
+            c->pHighCut         = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            c->pHighFreq        = vPorts[port_id++];
+
+            port_id         = port;
+        }
+
     }
 
     void impulse_responses_base::destroy()
@@ -424,6 +478,67 @@ namespace lsp
                     path->accept();
                 }
             }
+
+            // Update equalization parameters
+            Equalizer *eq               = &c->sEqualizer;
+            equalizer_mode_t eq_mode    = (c->pWetEq->getValue() >= 0.5f) ? EQM_IIR : EQM_BYPASS;
+            eq->set_mode(eq_mode);
+
+            if (eq_mode != EQM_BYPASS)
+            {
+                filter_params_t fp;
+                size_t band     = 0;
+
+                // Set-up parametric equalizer
+                while (band < impulse_responses_base_metadata::EQ_BANDS)
+                {
+                    if (band == 0)
+                    {
+                        fp.fFreq        = band_freqs[band];
+                        fp.fFreq2       = fp.fFreq;
+                        fp.nType        = FLT_MT_LRX_LOSHELF;
+                    }
+                    else if (band == (impulse_responses_base_metadata::EQ_BANDS - 1))
+                    {
+                        fp.fFreq        = band_freqs[band-1];
+                        fp.fFreq2       = fp.fFreq;
+                        fp.nType        = FLT_MT_LRX_HISHELF;
+                    }
+                    else
+                    {
+                        fp.fFreq        = band_freqs[band-1];
+                        fp.fFreq2       = band_freqs[band];
+                        fp.nType        = FLT_MT_LRX_LADDERPASS;
+                    }
+
+                    fp.fGain        = c->pFreqGain[band]->getValue();
+                    fp.nSlope       = 2;
+                    fp.fQuality     = 0.0f;
+
+                    // Update filter parameters
+                    eq->set_params(band++, &fp);
+                }
+
+                // Setup hi-pass filter
+                size_t hp_slope = c->pLowCut->getValue() * 2;
+                fp.nType        = (hp_slope > 0) ? FLT_BT_BWC_HIPASS : FLT_NONE;
+                fp.fFreq        = c->pLowFreq->getValue();
+                fp.fFreq2       = fp.fFreq;
+                fp.fGain        = 1.0f;
+                fp.nSlope       = hp_slope;
+                fp.fQuality     = 0.0f;
+                eq->set_params(band++, &fp);
+
+                // Setup low-pass filter
+                size_t lp_slope = c->pHighCut->getValue() * 2;
+                fp.nType        = (lp_slope > 0) ? FLT_BT_BWC_LOPASS : FLT_NONE;
+                fp.fFreq        = c->pHighFreq->getValue();
+                fp.fFreq2       = fp.fFreq;
+                fp.fGain        = 1.0f;
+                fp.nSlope       = lp_slope;
+                fp.fQuality     = 0.0f;
+                eq->set_params(band++, &fp);
+            }
         }
     }
 
@@ -435,6 +550,7 @@ namespace lsp
 
             c->sBypass.init(sr);
             c->sDelay.init(millis_to_samples(sr, impulse_responses_base_metadata::PREDELAY_MAX));
+            c->sEqualizer.set_sample_rate(sr);
         }
     }
 
@@ -562,6 +678,7 @@ namespace lsp
                     c->pCurr->process(c->vBuffer, c->vIn, to_do);
                 else
                     dsp::fill_zero(c->vBuffer, to_do);
+                c->sEqualizer.process(c->vBuffer, c->vBuffer, to_do); // Process wet signal with equalizer
                 c->sDelay.process(c->vBuffer, c->vBuffer, to_do);
                 dsp::mix2(c->vBuffer, c->vIn, c->fWetGain, c->fDryGain, to_do);
                 c->sPlayer.process(c->vBuffer, c->vBuffer, to_do);
