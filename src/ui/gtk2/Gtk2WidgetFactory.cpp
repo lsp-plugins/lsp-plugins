@@ -45,6 +45,7 @@ namespace lsp
             case W_FILE:        return new Gtk2File(ui);
             case W_VSEP:        return new Gtk2VSeparator(ui);
             case W_HSEP:        return new Gtk2HSeparator(ui);
+            case W_METER:       return new Gtk2Meter(ui);
             default:            return IWidgetFactory::createWidget(ui, w_class);
         }
 

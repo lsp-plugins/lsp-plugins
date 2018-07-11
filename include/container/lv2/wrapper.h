@@ -31,8 +31,6 @@ namespace lsp
             plugin_t           *pPlugin;
             LV2Extensions      *pExt;
             IExecutor          *pExecutor;      // Executor service
-//            LV2MidiInputPort   *pMidiIn;        // Midi input port
-//            LV2MidiOutputPort  *pMidiOut;       // Midi output port
             void               *pAtomIn;        // Atom input port
             void               *pAtomOut;       // Atom output port
             float              *pLatency;       // Latency output port
@@ -40,6 +38,7 @@ namespace lsp
             size_t              nStateReqs;     // Number of state requests
             ssize_t             nSyncTime;      // Synchronization time
             ssize_t             nSyncSamples;   // Synchronization counter
+            ssize_t             nClients;       // Number of clients
 
         protected:
             LV2Port *create_port(const port_t *meta, const char *postfix);
@@ -56,8 +55,6 @@ namespace lsp
                 pPlugin     = plugin;
                 pExt        = ext;
                 pExecutor   = NULL;
-//                pMidiIn     = NULL;
-//                pMidiOut    = NULL;
                 pAtomIn     = NULL;
                 pAtomOut    = NULL;
                 pLatency    = NULL;
@@ -65,6 +62,7 @@ namespace lsp
                 nStateReqs  = 0;
                 nSyncTime   = 0;
                 nSyncSamples= 0;
+                nClients    = 0;
             }
 
             virtual ~LV2Wrapper()
@@ -72,8 +70,6 @@ namespace lsp
                 pPlugin     = NULL;
                 pExt        = NULL;
                 pExecutor   = NULL;
-//                pMidiIn     = NULL;
-//                pMidiOut    = NULL;
                 pAtomIn     = NULL;
                 pAtomOut    = NULL;
                 pLatency    = NULL;
@@ -81,6 +77,7 @@ namespace lsp
                 nStateReqs  = 0;
                 nSyncTime   = 0;
                 nSyncSamples= 0;
+                nClients    = 0;
             }
 
         public:
@@ -150,16 +147,6 @@ namespace lsp
                         result      = new LV2MidiOutputPort(p, pExt);
                     else
                         result      = new LV2MidiInputPort(p, pExt);
-//                    if (IS_OUT_PORT(p))
-//                    {
-//                        pMidiOut    = new LV2MidiOutputPort(p, pExt);
-//                        result      = pMidiOut;
-//                    }
-//                    else
-//                    {
-//                        pMidiIn     = new LV2MidiInputPort(p, pExt);
-//                        result      = pMidiIn;
-//                    }
                 }
                 else
                     result = new LV2Port(p, pExt);
@@ -302,6 +289,7 @@ namespace lsp
         pPlugin->init(this);
         pPlugin->set_sample_rate(srate);
         nSyncSamples        = srate / MESH_REFRESH_RATE;
+        nClients            = 0;
     }
 
     LV2Port *LV2Wrapper::find_by_urid(cvector<LV2Port> &v, LV2_URID urid)
@@ -381,6 +369,7 @@ namespace lsp
             }
             else if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateRequest)) // State request
             {
+                lsp_trace("triggered state request");
                 nStateReqs  ++;
             }
             else if ((obj->body.id == pExt->uridChunk) && (obj->body.otype == pExt->uridPatchGet)) // PatchGet request
@@ -433,6 +422,16 @@ namespace lsp
                     }
                 }
             }
+            else if ((obj->body.id == pExt->uridConnectUI) && (obj->body.otype == pExt->uridUINotification))
+            {
+                nClients    ++;
+                lsp_trace("UI has connected, current number of clients=%d", int(nClients));
+            }
+            else if ((obj->body.id == pExt->uridDisconnectUI) && (obj->body.otype == pExt->uridUINotification))
+            {
+                nClients    --;
+                lsp_trace("UI has disconnected, current number of clients=%d", int(nClients));
+            }
         }
     }
 
@@ -446,7 +445,7 @@ namespace lsp
         nSyncTime      -= samples;
         bool sync_req       = nSyncTime <= 0;
         if (sync_req)
-            nSyncTime       += nSyncSamples;
+            nSyncTime      += nSyncSamples;
 
         // Check that patch request is pending
         bool patch_req  = nPatchReqs > 0;
@@ -496,86 +495,90 @@ namespace lsp
             bytes_out   += lv2_atom_total_size(msg);
         }
 
-        // Serialize pending for transmission ports
-        bytes_out           = 0;
-        n_ports             = vPluginPorts.size();
-        LV2_Atom *msg       = NULL;
-
-        for (size_t i=0; i<n_ports; ++i)
+        // Allow transport only when there is at least one UI connected
+        if (nClients > 0)
         {
-            // Get port
-            LV2Port *p = vPluginPorts[i];
-            if (p == NULL)
-                continue;
+            // Serialize pending for transmission ports
+            bytes_out           = 0;
+            n_ports             = vPluginPorts.size();
+            LV2_Atom *msg       = NULL;
 
-            // Skip MESH ports and PATH ports visible in global space
-            switch (p->metadata()->role)
+            for (size_t i=0; i<n_ports; ++i)
             {
-                case R_AUDIO:
-                case R_MIDI:
-                case R_UI_SYNC:
-                case R_MESH:
+                // Get port
+                LV2Port *p = vPluginPorts[i];
+                if (p == NULL)
                     continue;
-                case R_PATH:
-                    if (p->get_id() >= 0) // Skip global PATH ports
+
+                // Skip MESH ports and PATH ports visible in global space
+                switch (p->metadata()->role)
+                {
+                    case R_AUDIO:
+                    case R_MIDI:
+                    case R_UI_SYNC:
+                    case R_MESH:
                         continue;
-                    break;
-                default:
-                    break;
+                    case R_PATH:
+                        if (p->get_id() >= 0) // Skip global PATH ports
+                            continue;
+                        break;
+                    default:
+                        break;
+                }
+
+                // Check that we need to transmit the value
+                if ((!state_req) && (!p->tx_pending()))
+                    continue;
+
+                // Serialize value of the port
+                lsp_trace("Serialize port id=%s, bytes_out=%d", p->metadata()->id, int(bytes_out));
+
+                // Emit object header (if needed)
+                if (msg == NULL)
+                {
+                    pExt->forge_frame_time(0);
+                    msg         = pExt->forge_object(&frame, pExt->uridState, pExt->uridStateChange);
+                }
+
+                pExt->forge_key(p->get_urid());
+                p->serialize();
+                bytes_out       = lv2_atom_total_size(msg);
+
+                // Emit object tail (if needed)
+                if (bytes_out >= 0x1000)
+                {
+                    pExt->forge_pop(&frame);
+                    msg         = NULL;
+                    bytes_out   = 0;
+                }
             }
-
-            // Check that we need to transmit the value
-            if ((!state_req) && (!p->tx_pending()))
-                continue;
-
-            // Serialize value of the port
-            lsp_trace("Serialize port id=%s, bytes_out=%d", p->metadata()->id, int(bytes_out));
-
-            // Emit object header (if needed)
-            if (msg == NULL)
-            {
-                pExt->forge_frame_time(0);
-                msg         = pExt->forge_object(&frame, pExt->uridState, pExt->uridStateChange);
-            }
-
-            pExt->forge_key(p->get_urid());
-            p->serialize();
-            bytes_out       = lv2_atom_total_size(msg);
 
             // Emit object tail (if needed)
-            if (bytes_out >= 0x1000)
-            {
+            if (msg != NULL)
                 pExt->forge_pop(&frame);
-                msg         = NULL;
-                bytes_out   = 0;
+
+            // Serialize meshes (it's own primitive MESH)
+            n_ports         = vMeshPorts.size();
+            for (size_t i=0; i<n_ports; ++i)
+            {
+                LV2Port *p = vMeshPorts[i];
+                if (p == NULL)
+                    continue;
+                if ((!sync_req) && (!p->tx_pending()))
+                    continue;
+                mesh_t *mesh = p->getBuffer<mesh_t>();
+                if ((mesh == NULL) || (!mesh->containsData()))
+                    continue;
+
+                pExt->forge_frame_time(0);  // Event header
+                msg         = pExt->forge_object(&frame, p->get_urid(), pExt->uridMeshType);
+                p->serialize();
+                pExt->forge_pop(&frame);
+                bytes_out   += lv2_atom_total_size(msg);
+
+                // Cleanup data of the mesh for refill
+                mesh->cleanup();
             }
-        }
-
-        // Emit object tail (if needed)
-        if (msg != NULL)
-            pExt->forge_pop(&frame);
-
-        // Serialize meshes (it's own primitive MESH)
-        n_ports         = vMeshPorts.size();
-        for (size_t i=0; i<n_ports; ++i)
-        {
-            LV2Port *p = vMeshPorts[i];
-            if (p == NULL)
-                continue;
-            if ((!sync_req) && (!p->tx_pending()))
-                continue;
-            mesh_t *mesh = p->getBuffer<mesh_t>();
-            if (mesh == NULL)
-                continue;
-
-            pExt->forge_frame_time(0);  // Event header
-            msg         = pExt->forge_object(&frame, p->get_urid(), pExt->uridMeshType);
-            p->serialize();
-            pExt->forge_pop(&frame);
-            bytes_out   += lv2_atom_total_size(msg);
-
-            // Cleanup data of the mesh for refill
-            mesh->cleanup();
         }
 
         // Complete sequence

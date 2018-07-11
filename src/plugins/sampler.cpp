@@ -1015,8 +1015,16 @@ namespace lsp
 
         // Step 3
         // Process the channels individually
-        for (size_t i=0; i<nChannels; ++i)
-            vChannels[i].process(outs[i], ins[i], samples);
+        if (ins != NULL)
+        {
+            for (size_t i=0; i<nChannels; ++i)
+                vChannels[i].process(outs[i], ins[i], samples);
+        }
+        else
+        {
+            for (size_t i=0; i<nChannels; ++i)
+                vChannels[i].process(outs[i], NULL, samples);
+        }
 
         // Step 4
         // Output parameters
@@ -1311,7 +1319,7 @@ namespace lsp
                     sampler_channel_t *c    = &s->vChannels[j];
                     c->vDry     = NULL;
                     c->pDry     = NULL;
-                    c->pPan    = NULL;
+                    c->pPan     = NULL;
                 }
             }
 

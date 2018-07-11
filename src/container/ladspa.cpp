@@ -120,7 +120,7 @@ namespace lsp
         d->Maker                = LSP_ACRONYM " [LADSPA]";
         d->ImplementationData   = const_cast<char *>(m.developer->name);
         d->Copyright            = LSP_COPYRIGHT;
-        d->PortCount            = 0;
+        d->PortCount            = 1; // 1 port used for latency output
 
         // Calculate number of ports
         for (const port_t *port = m.ports; (port->id != NULL) && (port->name != NULL); ++port)
@@ -256,6 +256,14 @@ namespace lsp
             p_hint++;
         }
 
+        // Describe latency port
+        *p_descr                = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
+        *p_name                 = strdup("latency");
+        p_hint->HintDescriptor  = LADSPA_HINT_INTEGER | LADSPA_HINT_BOUNDED_BELOW;
+        p_hint->LowerBound      = 0;
+        p_hint->UpperBound      = 0;
+
+        // Complete the LADSPA descriptor
         d->instantiate          = ladspa_instantiate;
         d->connect_port         = ladspa_connect_port;
         d->activate             = ladspa_activate;

@@ -1,0 +1,284 @@
+<plugin width="700" height="128" resizable="false">
+	<hbox size="6" border="0">
+		<align pad_left="4" pad_right="4">
+			<vbox>
+				<label text="Bypass" />
+				<switch id="bypass" angle="1" />
+				<led id="bypass" color="red" size="8" />
+				<label />
+			</vbox>
+		</align>
+		
+		<vbox>
+			<!-- Area selector -->
+			<hbox spacing="8">
+				<label text="Working area" />
+				<combo id="asel" halign="1" />
+			</hbox>
+			
+			<!-- Trigger -->
+			<grid visibility_id="asel" visibility_key="0" rows="2" cols="5">
+				<align expand="true" pad_top="12" pad_bottom="4">
+					<graph width="640" height="256" expand="true" fill="true">
+						<center hpos="1" vpos="-1" visible="false" />
+						
+						<!-- Gray grid -->
+						<ui:for id="t" first="0" last="4" step="1">
+							<marker value="${t}.25" color="dark_gray" basis="0" parallel="1" />
+							<marker value="${t}.5" color="gray" basis="0" parallel="1" />
+							<marker value="${t}.75" color="dark_gray" basis="0" parallel="1" />
+						</ui:for>
+					
+						<marker value="3.98107" color="gray" basis="1" parallel="0" /> <!-- +12 dB -->
+						<marker value="0.251189" color="gray" basis="1" parallel="0" /> <!-- -12 dB -->
+						<marker value="0.0158489" color="gray" basis="1" parallel="0" /> <!-- -36 dB -->
+						<marker value="0.001" color="gray" basis="1" parallel="0" /> <!-- -60 dB -->
+		
+						<!-- Yellow grid -->
+						<ui:for id="t" first="1" last="4" step="1">
+							<marker value="${t}" color="yellow" basis="0" parallel="1" />
+						</ui:for>
+		
+						<marker value="1" color="yellow" basis="1" parallel="0" /> <!-- 0 dB -->
+						<marker value="0.0630957" color="yellow" basis="1" parallel="0" /> <!-- -24 dB -->
+						<marker value="0.00398107" color="yellow" basis="1" parallel="0" /> <!-- -48 dB -->
+		
+						<!-- Meshes -->
+						<mesh id="isgl" width="2" color="left_channel" visibility_id="isvl" />
+						<mesh id="isgr" width="2" color="right_channel" visibility_id="isvr" />
+						<mesh id="tlg" width="2" color="medium_green" visibility_id="tlv" />
+						<mesh id="tfg" width="2" color="green" visibility_id="tfv" />
+						
+						<!-- Boundaries -->
+						<marker value="15.8489" color="white" basis="1" parallel="0" /> <!-- +24 dB -->
+						<marker value="5" color="white" basis="0" parallel="1" /> <!-- 5 sec -->
+						
+						<!-- Axis -->
+						<axis min="0" max="5" color="white" angle="1.0" logarithmic="false" />
+						<axis min="0.000251189" max="15.8489" color="white" angle="0.5" logarithmic="true" />
+						
+						<!-- Text -->
+						<text text="s" coord="5;2.51e-4" halign="1" valign="1" />
+						<ui:for id="t" first="0" last="4" step="1">
+							<text text="${t}" coord="${t};2.51e-4" halign="-1" valign="1" color="white" />
+							<text text="${t}.5" coord="${t}.5;2.51e-4" halign="-1" valign="1" color="white" />
+						</ui:for>
+						
+						<text text="+12" coord="5;3.98107" halign="1" valign="-1" />
+						<text text="0" coord="5;1" halign="1" valign="1" />
+						<text text="-12" coord="5;0.251189" halign="1" valign="1" />
+						<text text="-24" coord="5;0.0630957" halign="1" valign="1" />
+						<text text="-36" coord="5;0.0158489" halign="1" valign="1" />
+						<text text="-48" coord="5;0.00398107" halign="1" valign="1" />
+						<text text="-60" coord="5;0.001" halign="1" valign="1" />
+						<text text="dB" coord="5;15.8489" halign="1" valign="-1" />
+						
+						<!-- Markers -->
+						<marker id="dtr1" color="#0080ff" basis="1" parallel="0" />
+						<marker id="dtr2" color="#0080ff" basis="1" parallel="0" />
+						<marker id="dl" color="magenta" basis="1" parallel="0" />
+						<marker id="rl" color="magenta" basis="1" parallel="0" />
+					</graph>
+				</align>
+				<vbox>
+					<button id="isvl" size="16" color="left_channel" led="true" />
+					<meter id="isml" angle="1" type="vu" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="left_channel" pad_left="4" pad_right="4" activity_id="isvl" />
+				</vbox>
+				<vbox>
+					<button id="isvr" size="16" color="right_channel" led="true" />
+					<meter id="ismr" angle="1" type="vu" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="right_channel" pad_left="4" pad_right="4" activity_id="isvr" />
+				</vbox>
+				<vbox>
+					<button id="tfv" size="16" color="green" led="true" />
+					<meter id="tfm" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="green" pad_left="4" pad_right="4" activity_id="tfv" />
+				</vbox>
+				<vbox>
+					<button id="tlv" size="16" color="medium_green" led="true" />
+					<meter id="tlm" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="medium_green" pad_left="4" pad_right="4" activity_id="tlv" />
+				</vbox>
+				<hbox expand="true">
+					<button id="pause" size="16" color="green" led="true" />
+					<label text="Pause" />
+					<button id="clear" size="16" color="red" led="true" />
+					<label text="Clear" />
+					<align pad_right="4" fill="true" hpos="1"><label text="TRIGGER GRAPH" /></align>
+				</hbox>
+				<cell cols="4">
+					<vbox>
+						<label text="Meters" />
+						<label text="(dB)" />
+					</vbox>
+				</cell>
+			</grid>
+			
+			<!-- Instrument editor -->
+			<hbox visibility_id="asel" visibility_key="1">
+				<vbox>
+					<group text="Samples">
+						<vbox>
+							<hbox>
+								<label text="Sample # " />
+								<combo id="ssel" />
+							</hbox>
+							
+							<hsep />
+							
+							<!-- File editor -->
+							<file
+								id="sf[ssel]" head_id="hc[ssel]" tail_id="tc[ssel]"
+								fadein_id="fi[ssel]" fadeout_id="fo[ssel]" length_id="fl[ssel]"
+								status_id="fs[ssel]" mesh_id="fd[ssel]"
+								width="320" height="127" />
+								
+							<grid rows="3" cols="7" vspacing="2" expand="true">
+								<label text="Head cut" />
+								<label text="Tail cut" />
+								<label text="Fade in" />
+								<label text="Fade out" />
+								<label text="Makeup" />
+								<label text="Pre-delay" />
+								<label text="Listen" />
+								
+								<knob id="hc[ssel]" size="20" />
+								<knob id="tc[ssel]" size="20" />
+								<knob id="fi[ssel]" size="20" scale_color="yellow" />
+								<knob id="fo[ssel]" size="20" scale_color="yellow" />
+								<knob id="mk[ssel]" size="20" />
+								<knob id="pd[ssel]" size="20" />
+								<button id="ls[ssel]" size="32" toggle="false" />
+								
+								<value id="hc[ssel]" />
+								<value id="tc[ssel]" />
+								<value id="fi[ssel]" />
+								<value id="fo[ssel]" />
+								<value id="mk[ssel]" />
+								<value id="pd[ssel]" />
+								<led id="ls[ssel]" />
+							</grid>
+						</vbox>
+					</group>
+				</vbox>
+				<vbox>
+					<group text="Sample matrix" expand="true">
+						<!-- Sample matrix -->
+						<grid rows="11" cols="9" transpose="true">
+							<label text="Sample #" fill="true" halign="0" />
+							<label text="Enabled" fill="true" halign="0" />
+							<label text="Active" fill="true" halign="0" />
+							<label text="Velocity" fill="true" halign="0" />
+							<label text="(%)" fill="true" halign="0" />
+							<label text="Pan Left" fill="true" halign="0" />
+							<label text="(%)" fill="true" halign="0" />
+							<label text="Pan Right" fill="true" halign="0" />
+							<label text="(%)" fill="true" halign="0" />
+							<label text="Listen" fill="true" halign="0" />
+							<label text="Note on" fill="true" halign="0" />
+	
+							<ui:for id="i" first="0" last="7" >
+								<label text="${i}" />
+								<button id="on_${i}" size="16" />
+								<led id="ac_${i}" color="yellow" size="6" />
+								<knob id="vl_${i}" size="20" scale_color="magenta" />
+								<value id="vl_${i}" detailed="false" />
+								<knob id="pl_${i}" size="20" balance="0.5" scale_color="red" />
+								<value id="pl_${i}" detailed="false" />
+								<knob id="pr_${i}" size="20" balance="0.5" scale_color="cyan" />
+								<value id="pr_${i}" detailed="false" />
+								<button id="ls_${i}" size="32" toggle="false" />
+								<led id="no_${i}" />
+							</ui:for>
+						</grid>
+					</group>
+				</vbox>
+			</hbox>
+			
+			<!-- Common parameters -->
+			<hbox>
+				<!-- Controls -->
+				<group text="Trigger" expand="true">
+					<hbox expand="true">
+						<grid rows="3" cols="3" expand="true">
+							<label text="Preamp" />
+							<label text="Mode" />
+							<label text="Reactivity" />
+							
+							<knob id="preamp" />
+							<vbox>
+								<combo id="mode" />
+								<label text="Source" />
+								<combo id="ssrc" />
+							</vbox>
+							<knob id="react" />
+							
+							<value id="preamp" />
+							<hbox>
+								<led id="tla" />
+								<label text="Active" />
+							</hbox>
+							<value id="react" />
+						</grid>
+						
+						<vsep />
+						
+						<grid rows="4" cols="2" expand="true">
+							<cell cols="2"><label text="Attack" /></cell>
+							<label text="Level" />
+							<label text="Time" />
+							
+							<knob id="dl" scale_color="magenta" size="20" />
+							<knob id="dt" size="20" />
+							
+							<value id="dl" />
+							<value id="dt" />
+						</grid>
+						
+						<vsep />
+						
+						<grid rows="4" cols="2" expand="true">
+							<cell cols="2"><label text="Release" /></cell>
+							<label text="Level" />
+							<label text="Time" />
+							
+							<knob id="rrl" scale_color="magenta" size="20" />
+							<knob id="rt" size="20" />
+							
+							<value id="rrl" />
+							<value id="rt" />
+						</grid>
+						
+						<vsep />
+						<grid rows="4" cols="3" expand="true">
+							<cell cols="3"><label text="Dynamics" /></cell>
+							<label text="Spread" />
+							<label text="Range 1" />
+							<label text="Range 2" />
+							
+							<knob id="dyna" scale_color="#0080ff" size="20" />
+							<knob id="dtr1" scale_color="#0080ff" size="20" />
+							<knob id="dtr2" scale_color="#0080ff" size="20" />
+							
+							<value id="dyna" />
+							<value id="dtr1" />
+							<value id="dtr2" />
+						</grid>
+					</hbox>
+				</group>
+				<group text="Audio Channel" expand="true">
+					<grid rows="3" cols="3">
+						<label text="Dry" />
+						<label text="Wet" />
+						<label text="Output" />
+						
+						<knob id="dry" />
+						<knob id="wet" />
+						<knob id="g_out" />
+						
+						<value id="dry" />
+						<value id="wet" />
+						<value id="g_out" />
+					</grid>
+				</group>
+			</hbox>
+		</vbox>
+	</hbox>
+</plugin>

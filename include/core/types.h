@@ -20,7 +20,7 @@
 // For IDEs: define this symbol in IDE to properly compile and debug
 #ifdef LSP_IDE_DEBUG
     #define LSP_USE_EXPAT
-    #define LSP_HOST_SIMULATION
+    //#define LSP_HOST_SIMULATION
 #endif /* LSP_IDE_DEBUG */
 
 #define __ASM_EMIT(code)                    code "\n\t"

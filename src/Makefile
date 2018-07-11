@@ -1,5 +1,5 @@
 SUBDIRS                 = core metadata plugins ui utils container
-MODULES                 = $(SUBDIRS)
+MODULES                 = $(SUBDIRS) jack_stub
 
 ifdef VST_SDK
 MODULES                += vst_stub
@@ -45,3 +45,10 @@ vst_stub: $(UTL_FILES)
 	@mkdir -p $(OBJDIR)/vst
 	@$(UTL_VSTMAKE) $(OBJDIR)/vst
 	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/vst all OBJDIR=$(OBJDIR)/vst
+
+jack_stub: $(UTL_FILES)
+	@echo "Building JACK stub"
+	@mkdir -p $(OBJDIR)/jack
+	@$(UTL_JACKMAKE) $(OBJDIR)/jack
+	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/jack all OBJDIR=$(OBJDIR)/jack
+	

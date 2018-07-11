@@ -130,23 +130,44 @@ MOD_GTK2(multisampler_x12_do)
 
 MOD_PLUGIN(multisampler_x24)
 MOD_LV2(multisampler_x24)
-MOD_GTK2(multisampler_x24)
 MOD_VST(multisampler_x24)
+MOD_GTK2(multisampler_x24)
 
 MOD_PLUGIN(multisampler_x24_do)
 MOD_LV2(multisampler_x24_do)
-MOD_GTK2(multisampler_x24_do)
 MOD_VST(multisampler_x24_do)
+MOD_GTK2(multisampler_x24_do)
 
 MOD_PLUGIN(multisampler_x48)
 MOD_LV2(multisampler_x48)
-MOD_GTK2(multisampler_x48)
 MOD_VST(multisampler_x48)
+MOD_GTK2(multisampler_x48)
 
 MOD_PLUGIN(multisampler_x48_do)
 MOD_LV2(multisampler_x48_do)
-MOD_GTK2(multisampler_x48_do)
 MOD_VST(multisampler_x48_do)
+MOD_GTK2(multisampler_x48_do)
+
+// Trigger
+MOD_PLUGIN(trigger_mono)
+MOD_LV2(trigger_mono)
+MOD_VST(trigger_mono)
+MOD_GTK2(trigger_mono)
+
+MOD_PLUGIN(trigger_stereo)
+MOD_LV2(trigger_stereo)
+MOD_VST(trigger_stereo)
+MOD_GTK2(trigger_stereo)
+
+MOD_PLUGIN(trigger_midi_mono)
+MOD_LV2(trigger_midi_mono)
+MOD_VST(trigger_midi_mono)
+MOD_GTK2(trigger_midi_mono)
+
+MOD_PLUGIN(trigger_midi_stereo)
+MOD_LV2(trigger_midi_stereo)
+MOD_VST(trigger_midi_stereo)
+MOD_GTK2(trigger_midi_stereo)
 
 #ifndef LSP_NO_EXPERIMENTAL
     // Impulse responses

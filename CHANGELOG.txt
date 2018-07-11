@@ -2,6 +2,16 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.8 ===
+
+* Implemented Triggersensor Mono/Stereo plugin series.
+* Implemented Triggersensor MIDI Mono/Stereo plugin series.
+* Implemented JACK wrapper, all plugins now have their standalone implementations.
+* Updated LV2 transport: now plugins do not transport primitives when there is no UI connected.
+* Updated LADSPA wrapper: added latency reporting ports for the plugins.
+* Implemented peak transfer protocol for peak values.
+* Implemented metering widget for UI.
+
 === 1.0.7 ===
 
 * Fixed the broken UI for Spektrumanalysator x4, x8, x16.

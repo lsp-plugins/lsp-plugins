@@ -20,9 +20,11 @@
 #include "test/lv2_buf_size.h"
 #include "test/alloc_test.h"
 #include "test/view_ui.h"
+#include "test/jack_test.h"
 
 //#define TEST gtk_test
-#define TEST view_ui_test
+#define TEST jack_test
+//#define TEST view_ui_test
 //#define TEST ladspa_test
 //#define TEST vst_test
 //#define TEST res_gen

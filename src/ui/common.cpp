@@ -43,6 +43,7 @@ namespace lsp
         "hsep",
         "vsep",
         "port",
+        "meter",
         NULL
     };
 
@@ -113,6 +114,11 @@ namespace lsp
         "mesh_id",
         "detailed",
         "transpose",
+        "led",
+        "reversive",
+        "type",
+        "font_size",
+        "activity_id",
         NULL
     };
 
@@ -145,6 +151,9 @@ namespace lsp
         "graph_marker",
         "graph_text",
         "graph_line",
+        "left_channel",
+        "right_channel",
+        "middle_channel",
 
         NULL
     };

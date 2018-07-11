@@ -43,7 +43,7 @@ namespace lsp
         {
             if (mdata->unit == U_ENUM)
                 return fValue;
-            if (!(mdata->flags & F_TRG))
+            if (!IS_TRIGGER_PORT(mdata))
                 return fValue;
         }
 
@@ -87,18 +87,16 @@ namespace lsp
             case A_SIZE:
                 PARSE_INT(value, nSize = size_t(__));
                 break;
+            case A_LED:
+                PARSE_BOOL(value,
+                    if (__)
+                        nState  |= S_LED;
+                    else
+                        nState  &= ~S_LED;
+                );
+                break;
             case A_BG_COLOR:
                 sBgColor.set(pUI->theme(), value);
-                break;
-//            case A_TOGGLE:
-//                {
-//                    bool toggle;
-//                    PARSE_BOOL(value, toggle = __);
-//                    if (toggle)
-//                        nState     |= S_TOGGLE;
-//                    else
-//                        nState     &= ~S_TOGGLE;
-//                }
                 break;
             default:
                 Gtk2CustomWidget::set(att, value);
@@ -124,10 +122,12 @@ namespace lsp
         // Move to center of the led
         cairo_translate(cr, ssize_t(nWidth >> 1), ssize_t(nHeight >> 1));
 
+        float b_rad  = sqrtf(nWidth*nWidth + nHeight*nHeight);
         ssize_t b_r  = nSize >> 1;          // Button radius
         ssize_t b_rr = 2 + (nSize >> 4);    // Button rounding radius
         ssize_t h_r  = b_r + 1;             // Hole radius
         ssize_t h_rr = b_rr + 1;            // Hole rounding radius
+        ssize_t l_rr = (nSize >> 2);
 
         // Draw hole
         cairo_set_line_width(cr, 1.0);
@@ -160,39 +160,88 @@ namespace lsp
         else
             b_l ++;
 
-        for (ssize_t i=0; (i++)<b_l; )
+        bool is_trigger     = false;
+        const port_t *mdata = (pPort != NULL) ? pPort->metadata() : NULL;
+        if ((mdata != NULL) && IS_TRIGGER_PORT(mdata))
+            is_trigger          = true;
+
+        float lightness = 1.0f;
+        if (nState & S_LED)
         {
-            if (pressed & S_PRESSED)
-            {
-                float bright = sqrtf(i * i) / b_l;
-                float r = sColor.red() * bright, g = sColor.green() * bright, b = sColor.blue() * bright;
+            bool is_pressed =  (is_trigger) ? (pressed & S_PRESSED) : (pressed & S_TOGGLED);
 
-                cp = cairo_pattern_create_radial (-b_r, b_r, b_r >> 1, -b_r, b_r, b_r << 3);
-                cairo_pattern_add_color_stop_rgb(cp, 0.0, r * 0.75, g * 0.75, b * 0.75);
-                cairo_pattern_add_color_stop_rgb(cp, 1.0, r * 0.1, g * 0.1, b * 0.1);
-            }
-            else if (pressed & S_TOGGLED)
+            // Draw light
+            if (is_pressed)
             {
-                float bright = sqrtf(i * i)/ b_l;
-//                float bright = sqrtf(b_l * b_l - i * i) * 0.5 / b_l + 0.5;
-                float r = sColor.red() * bright, g = sColor.green() * bright, b = sColor.blue() * bright;
+                ssize_t x_rr = l_rr - 1;
 
-//                cp = cairo_pattern_create_radial (-b_r, b_r, b_r >> 1, -b_r, b_r, b_r << 2);
-//                cairo_pattern_add_color_stop_rgb(cp, 0.0, r, g, b);
-//                cairo_pattern_add_color_stop_rgb(cp, 1.0, r * 0.1, g * 0.1, b * 0.1);
-                cp = cairo_pattern_create_radial (-b_r, b_r, b_r >> 1, -b_r, b_r, (b_r << 3));
-                cairo_pattern_add_color_stop_rgb(cp, 0.0, r, g, b);
-                cairo_pattern_add_color_stop_rgb(cp, 1.0, r * 0.1, g * 0.1, b * 0.1);
+                cp = cairo_pattern_create_linear(0, -b_r, 0, -b_r - x_rr);
+                cairo_pattern_add_color_stop_rgba(cp, 0.0, sColor.red(), sColor.green(), sColor.blue(), 0.5f);
+                cairo_pattern_add_color_stop_rgba(cp, 1.0, sColor.red(), sColor.green(), sColor.blue(), 0.0);
+                cairo_set_source(cr, cp);
+                cairo_move_to(cr, -b_r - l_rr, -b_r - l_rr);
+                cairo_line_to(cr, b_r + l_rr, -b_r - l_rr);
+                cairo_line_to(cr, 0, 0);
+                cairo_close_path(cr);
+                cairo_fill(cr);
+                cairo_pattern_destroy(cp);
+
+                cp = cairo_pattern_create_linear(0, b_r, 0, b_r + x_rr);
+                cairo_pattern_add_color_stop_rgba(cp, 0.0, sColor.red(), sColor.green(), sColor.blue(), 0.5f);
+                cairo_pattern_add_color_stop_rgba(cp, 1.0, sColor.red(), sColor.green(), sColor.blue(), 0.0);
+                cairo_set_source(cr, cp);
+                cairo_move_to(cr, b_r + l_rr, b_r + l_rr);
+                cairo_line_to(cr, - b_r - l_rr, b_r + l_rr);
+                cairo_line_to(cr, 0, 0);
+                cairo_close_path(cr);
+                cairo_fill(cr);
+                cairo_pattern_destroy(cp);
+
+                cp = cairo_pattern_create_linear(-b_r, 0, - b_r - x_rr, 0);
+                cairo_pattern_add_color_stop_rgba(cp, 0.0, sColor.red(), sColor.green(), sColor.blue(), 0.5f);
+                cairo_pattern_add_color_stop_rgba(cp, 1.0, sColor.red(), sColor.green(), sColor.blue(), 0.0);
+                cairo_set_source(cr, cp);
+                cairo_move_to(cr, -b_r - l_rr, -b_r - l_rr);
+                cairo_line_to(cr, -b_r - l_rr, b_r + l_rr);
+                cairo_line_to(cr, 0, 0);
+                cairo_close_path(cr);
+                cairo_fill(cr);
+                cairo_pattern_destroy(cp);
+
+                cp = cairo_pattern_create_linear(b_r, 0, b_r + x_rr, 0);
+                cairo_pattern_add_color_stop_rgba(cp, 0.0, sColor.red(), sColor.green(), sColor.blue(), 0.5f);
+                cairo_pattern_add_color_stop_rgba(cp, 1.0, sColor.red(), sColor.green(), sColor.blue(), 0.0);
+                cairo_set_source(cr, cp);
+                cairo_move_to(cr, b_r + l_rr, b_r + l_rr);
+                cairo_line_to(cr, b_r + l_rr, - b_r - l_rr);
+                cairo_line_to(cr, 0, 0);
+                cairo_close_path(cr);
+                cairo_fill(cr);
+                cairo_pattern_destroy(cp);
+
+                lightness   = 0.5f;
             }
             else
-            {
-                float bright = sqrtf(i * i) / b_l;
-                float r = sColor.red() * bright, g = sColor.green() * bright, b = sColor.blue() * bright;
+                lightness   = 0.25f;
+        }
 
+        for (ssize_t i=0; (i++)<b_l; )
+        {
+            float bright = lightness * sqrtf(i * i) / b_l;
+            Color cl(sColor);
+            cl.lightness(bright);
+            float r = cl.red(), g = cl.green(), b = cl.blue();
+
+            if (pressed & S_PRESSED)
+                cp = cairo_pattern_create_radial (-b_r, b_r, b_r >> 1, -b_r, b_r, b_r << 3);
+            else if (pressed & S_TOGGLED)
+                cp = cairo_pattern_create_radial (-b_r, b_r, b_r >> 1, -b_r, b_r, (b_r << 3));
+            else
                 cp = cairo_pattern_create_radial (b_r, -b_r, b_r << 1, b_r, -b_r, (b_r << 3));
-                cairo_pattern_add_color_stop_rgb(cp, 0.0, r, g, b);
-                cairo_pattern_add_color_stop_rgb(cp, 1.0, r * 0.1, g * 0.1, b * 0.1);
-            }
+
+            cairo_pattern_add_color_stop_rgb(cp, 0.0, r, g, b);
+            cairo_pattern_add_color_stop_rgb(cp, 1.0, r * 0.1, g * 0.1, b * 0.1);
+
             cairo_set_source (cr, cp);
 
             cairo_move_to(cr, b_rr - b_r, -b_r);
@@ -212,6 +261,30 @@ namespace lsp
                 b_r = 0;
         }
 
+        if (nState & S_LED)
+        {
+            Color cl(sColor);
+            cl.lightness(lightness);
+
+            cp = cairo_pattern_create_radial (-b_r, b_r, b_rad * 0.25f, 0, 0, b_rad * 0.8f);
+            cairo_pattern_add_color_stop_rgb(cp, 0.0, cl.red(), cl.green(), cl.blue());
+            cairo_pattern_add_color_stop_rgb(cp, 1.0, 1.0f, 1.0f, 1.0f);
+            cairo_set_source (cr, cp);
+
+            cairo_move_to(cr, b_rr - b_r, -b_r);
+            cairo_line_to(cr, b_r-b_rr, -b_r);
+            cairo_curve_to(cr, b_r, -b_r, b_r, -b_r, b_r, b_rr - b_r);
+            cairo_line_to(cr, b_r, b_r-b_rr);
+            cairo_curve_to(cr, b_r, b_r, b_r, b_r, b_r-b_rr, b_r);
+            cairo_line_to(cr, b_rr - b_r, b_r);
+            cairo_curve_to(cr, -b_r, b_r, -b_r, b_r, -b_r, b_r-b_rr);
+            cairo_line_to(cr, -b_r, b_rr - b_r);
+            cairo_curve_to(cr, -b_r, -b_r, -b_r, -b_r, b_rr - b_r, -b_r);
+
+            cairo_fill(cr);
+            cairo_pattern_destroy(cp);
+        }
+
         // Release resource
         cairo_restore(cr);
         cairo_destroy(cr);
@@ -219,8 +292,10 @@ namespace lsp
 
     void Gtk2Button::resize(size_t &w, size_t &h)
     {
-        w = nSize + 2;
-        h = nSize + 2;
+        size_t delta = (nState & S_LED) ? 2 + (nSize >> 2) : 2;
+
+        w = nSize + delta;
+        h = nSize + delta;
     }
 
     bool Gtk2Button::check_mouse_over(ssize_t x, ssize_t y)

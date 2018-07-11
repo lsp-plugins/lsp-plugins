@@ -19,7 +19,9 @@
     { id, label, U_ENUM, R_CONTROL, F_IN | F_INT, 0, 0, 0, 0, file_channels, NULL }
 #define AMP_GAIN(id, label, dfl, max) \
     { id, label, U_GAIN_AMP, R_CONTROL, F_IN | F_LOG | F_UPPER | F_LOWER | F_STEP, 0, max, dfl, 0.1, NULL, NULL }
+#define AMP_GAIN1(id, label, dfl)  AMP_GAIN(id, label, dfl, 1.0f)
 #define AMP_GAIN10(id, label, dfl)  AMP_GAIN(id, label, dfl, 10.0f)
+#define AMP_GAIN100(id, label, dfl)  AMP_GAIN(id, label, dfl, 100.0f)
 #define STATUS(id, label) \
     { id, label, U_NONE, R_METER, F_OUT | F_INT | F_UPPER | F_LOWER, 0, STATUS_MAX, STATUS_UNSPECIFIED, 0, NULL, NULL }
 #define MESH(id, label, dim, points) \
@@ -37,10 +39,21 @@
 #define CONTROL(id, label, units, limits) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, \
         limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
+#define LOG_CONTROL(id, label, units, limits) \
+    { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_LOG, \
+        limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
 #define PORT_SET(id, label, keys, ports)  \
     { id, label, U_ENUM, R_PORT_SET, F_IN, 0, 0, 0, 0, keys, ports }
 #define PAN_CTL(id, label, dfl) \
     { id, label, U_PERCENT, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, -100.0f, 100.0f, dfl, 0.1, NULL, NULL }
+#define PERCENTS(id, label, dfl, step) \
+    { id, label, U_PERCENT, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, 0, 100, dfl, step, NULL, NULL }
+#define METER_GAIN(id, label, max) \
+    { id, label, U_GAIN_AMP, R_METER, F_OUT | F_LOG | F_UPPER | F_LOWER | F_PEAK, 0, max, 0.0f, 0, NULL, NULL }
+#define METER_OUT_GAIN(id, label, max) \
+    { id, label, U_GAIN_AMP, R_METER, F_OUT | F_LOG | F_UPPER | F_LOWER, 0, max, 0.0f, 0, NULL, NULL }
+#define METER_GAIN10(id, label)  METER_GAIN(id, label, 10.0f)
+#define METER_GAIN20(id, label)  METER_GAIN(id, label, 20.0f)
 
 #define PORTS_END   \
     { NULL, NULL }

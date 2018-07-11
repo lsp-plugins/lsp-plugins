@@ -53,7 +53,7 @@ namespace lsp
             {
                 // Form the string
                 char *key       = lsp_strbuild(buf, len);
-                if (key == NULL)
+                if ((key == NULL) || (strcmp(key, pID) != 0))
                     return NULL;
 
                 // Get value of the variable
@@ -107,7 +107,10 @@ namespace lsp
                                 lsp_free(value);
                             }
                             else
-                                append_buf(&sbuf, "NULL", 4);
+                            {
+                                append_buf(&sbuf, "${", 2);
+                                append_buf(&sbuf, token, token_end - token + 1); // With ending character
+                            }
                             str     = token_end + 1;
                         }
                         else

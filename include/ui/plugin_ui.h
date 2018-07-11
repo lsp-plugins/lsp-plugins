@@ -29,7 +29,6 @@ namespace lsp
             Theme                       sTheme;
 
         protected:
-            const char                 *sName;
             const plugin_metadata_t    *pMetadata;
             IWidgetFactory             *pFactory;
             IUIWrapper                 *pWrapper;
@@ -39,7 +38,7 @@ namespace lsp
             size_t rebuild_sorted_ports();
 
         public:
-            plugin_ui(const char *name, const plugin_metadata_t *mdata, IWidgetFactory *factory);
+            plugin_ui(const plugin_metadata_t *mdata, IWidgetFactory *factory);
 
             virtual ~plugin_ui();
 

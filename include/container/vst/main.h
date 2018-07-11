@@ -40,7 +40,7 @@ namespace lsp
     // The factory for creating plugin instances
     static vst_create_instance_t factory = NULL;
 
-    vst_create_instance_t lookup_factory(const char *path)
+    static vst_create_instance_t lookup_factory(const char *path)
     {
         lsp_trace("Trying shared library %s", path);
 
@@ -72,7 +72,7 @@ namespace lsp
         return f;
     }
 
-    vst_create_instance_t get_factory()
+    static vst_create_instance_t get_vst_main_function()
     {
         if (factory != NULL)
             return factory;
@@ -111,7 +111,7 @@ namespace lsp
 
             if (factory == NULL)
             {
-                snprintf(path, PATH_MAX, "%s/vst/", homedir);
+                snprintf(path, PATH_MAX, "%s/vst", homedir);
                 factory     = lookup_factory(path);
             }
         }
@@ -157,7 +157,7 @@ extern "C"
 
         // Check that we need to instantiate the factory
         lsp_trace("Getting factory");
-        vst_create_instance_t f = get_factory();
+        vst_create_instance_t f = get_vst_main_function();
 
         // Create effect
         AEffect *effect     = NULL;

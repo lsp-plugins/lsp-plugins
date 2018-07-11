@@ -8,6 +8,7 @@ namespace lsp
         pMetadata       = &mdata;
         fSampleRate     = -1;
         nLatency        = 0;
+        bActivated      = false;
     }
 
     plugin_t::~plugin_t()
@@ -33,15 +34,18 @@ namespace lsp
 
     void plugin_t::activate()
     {
+        bActivated      = true;
     }
 
     void plugin_t::deactivate()
     {
+        bActivated      = false;
     }
 
     void plugin_t::destroy()
     {
         vPorts.clear();
+        bActivated      = false;
     }
     
     void plugin_t::update_settings()

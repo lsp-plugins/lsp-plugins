@@ -1,6 +1,9 @@
-LADSPA_PATH             = /usr/local/lib/ladspa
-LV2_PATH                = /usr/local/lib/lv2
-VST_PATH                = /usr/local/lib/vst
+BIN_PATH				= /usr/local/bin
+LIB_PATH				= /usr/local/lib
+LADSPA_PATH             = $(LIB_PATH)/ladspa
+LV2_PATH                = $(LIB_PATH)/lv2
+VST_PATH                = $(LIB_PATH)/vst
+
 PRODUCT                 = lsp
 ARTIFACT_ID             = $(PRODUCT)-plugins
 OBJDIR                  = ${CURDIR}/.build
@@ -13,8 +16,8 @@ export VST_SDK          = /home/sadko/eclipse/lsp-plugins-vst3sdk
 
 # Includes
 INC_FLAGS               = -I"${CURDIR}/include"
-INSTALLATIONS           = install_php install_ladspa install_lv2
-RELEASES                = release_ladspa release_lv2
+INSTALLATIONS           = install_php install_ladspa install_lv2 install_jack
+RELEASES                = release_ladspa release_lv2 release_jack
 ifdef VST_SDK
 INC_FLAGS              += -I"$(VST_SDK)"
 INSTALLATIONS          += install_vst
@@ -34,7 +37,7 @@ export LD_PATH          = /usr/lib64:/lib64
 #export LD_PATH          = /usr/lib:/lib
 endif
 
-export VERSION          = 1.0.7
+export VERSION          = 1.0.8
 export BASEDIR          = ${CURDIR}
 export INCLUDE          = ${INC_FLAGS}
 export MAKE_OPTS        = -s
@@ -63,10 +66,12 @@ export LIB_LV2          = $(OBJDIR)/$(ARTIFACT_ID)-lv2.so
 export LIB_LV2_GTK2UI   = $(OBJDIR)/$(ARTIFACT_ID)-lv2-gtk2.so
 export LIB_LV2_GTK3UI   = $(OBJDIR)/$(ARTIFACT_ID)-lv2-gtk3.so
 export LIB_VST          = $(OBJDIR)/$(ARTIFACT_ID)-vst-core.so
+export LIB_JACK         = $(OBJDIR)/$(ARTIFACT_ID)-jack-core.so
 
 # Utils
 export UTL_GENTTL       = $(OBJDIR)/lv2_genttl.exe
 export UTL_VSTMAKE      = $(OBJDIR)/vst_genmake.exe
+export UTL_JACKMAKE     = $(OBJDIR)/jack_genmake.exe
 export UTL_GENPHP       = $(OBJDIR)/gen_php.exe
 export UTL_RESGEN       = $(OBJDIR)/gen_resources.exe
 export UTL_FILES        = $(UTL_GENTTL) $(UTL_VSTMAKE) $(UTL_GENPHP) $(UTL_RESGEN)
@@ -80,13 +85,15 @@ export EXPAT_HEADERS    = $(shell pkg-config --cflags expat)
 export EXPAT_LIBS       = $(shell pkg-config --libs expat)
 export SNDFILE_HEADERS  = $(shell pkg-config --cflags sndfile)
 export SNDFILE_LIBS     = $(shell pkg-config --libs sndfile)
+export JACK_HEADERS     = $(shell pkg-config --cflags jack)
+export JACK_LIBS        = $(shell pkg-config --libs jack)
 
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 FILES                   =
 
 .PHONY: all trace debug install uninstall release
-.PHONY: install_ladspa install_lv2 install_vst
-.PHONY: release_ladspa release_lv2 release_vst
+.PHONY: install_ladspa install_lv2 install_vst install_jack
+.PHONY: release_ladspa release_lv2 release_vst release_jack
 
 default: all
 
@@ -106,11 +113,12 @@ clean:
 	@-rm -rf $(OBJDIR)
 	@echo "Clean OK"
 
-unrelease:
+unrelease: clean
 	@-rm -rf $(RELEASE)
 	@echo "Unrelease OK"
 
 install: $(INSTALLATIONS)
+	@echo "Install OK"
 
 install_php: all
 	@echo "Generating PHP file"
@@ -133,13 +141,22 @@ install_vst: all
 	@mkdir -p $(DESTDIR)$(VST_PATH)
 	@$(INSTALL) $(LIB_VST) $(DESTDIR)$(VST_PATH)/
 	@$(INSTALL) $(OBJDIR)/src/vst/*.so $(DESTDIR)$(VST_PATH)/
-	@echo "Install OK"
+
+install_jack: all
+	@echo "Installing JACK core to $(DESTDIR)$(LIB_PATH)"
+	@mkdir -p $(DESTDIR)$(LIB_PATH)
+	@$(INSTALL) $(LIB_JACK) $(DESTDIR)$(LIB_PATH)/
+	@echo "Installing JACK standalone plugins to $(DESTDIR)$(BIN_PATH)"
+	@mkdir -p $(DESTDIR)$(BIN_PATH)
+	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(DESTDIR)$(BIN_PATH) INSTALL="$(INSTALL)"
 
 release: INSTALL        += -s
 release: LADSPA_ID      := $(ARTIFACT_ID)-ladspa-$(VERSION)-$(CPU_ARCH)
 release: LV2_ID         := $(ARTIFACT_ID)-lv2-$(VERSION)-$(CPU_ARCH)
 release: VST_ID         := $(ARTIFACT_ID)-lxvst-$(VERSION)-$(CPU_ARCH)
+release: JACK_ID        := $(ARTIFACT_ID)-jack-$(VERSION)-$(CPU_ARCH)
 release: $(RELEASES)
+	@echo "Release OK"
 
 release_prepare: all
 	@echo "Releasing plugins for architecture $(CPU_ARCH)"
@@ -172,10 +189,22 @@ release_vst: release_prepare
 	@cp $(RELEASE_TEXT) $(RELEASE)/$(VST_ID)/
 	@tar -C $(RELEASE) -czf $(RELEASE)/$(VST_ID).tar.gz $(VST_ID)
 	@rm -rf $(RELEASE)/$(VST_ID)
-	@echo "Release OK"
+	
+release_jack: release_prepare
+	@echo "Releasing JACK binaries"
+	@mkdir -p $(RELEASE)/$(JACK_ID)
+	@mkdir -p $(RELEASE)/$(JACK_ID)/lib
+	@mkdir -p $(RELEASE)/$(JACK_ID)/bin
+	@$(INSTALL) $(LIB_JACK) $(RELEASE)/$(JACK_ID)/lib
+	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(RELEASE)/$(JACK_ID)/bin INSTALL="$(INSTALL)"
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(JACK_ID)/
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(JACK_ID).tar.gz $(JACK_ID)
+	@rm -rf $(RELEASE)/$(JACK_ID)
 
 uninstall:
-	@-rm $(DESTDIR)$(LADSPA_PATH)/$(ARTIFACT_ID)-ladspa.so
+	@-rm -f $(DESTDIR)$(LADSPA_PATH)/$(ARTIFACT_ID)-ladspa.so
 	@-rm -rf $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
 	@-rm -f $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-vst-*.so
+	@-rm -f $(DESTDIR)$(BIN_PATH)/$(ARTIFACT_ID)-*
+	@-rm -f $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)-jack.so
 	@echo "Uninstall OK"

@@ -59,6 +59,7 @@ namespace lsp
         void    (* multiply)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
         float   (* h_sum)(const float *src, size_t count) = NULL;
         float   (* h_sqr_sum)(const float *src, size_t count) = NULL;
+        float   (* h_abs_sum)(const float *src, size_t count) = NULL;
         float   (* scalar_mul)(const float *a, const float *b, size_t count) = NULL;
         void    (* accumulate)(float *dst, const float *src, float k, float p, size_t count) = NULL;
         void    (* add_multiplied)(float *dst, const float *src, float k, size_t count) = NULL;

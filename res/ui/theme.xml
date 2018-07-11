@@ -18,6 +18,8 @@
 		<green value="#00ff00" />
 		<blue value="#0000ff" />
 		<yellow value="#ffff00" />
+		<brown value="#ff8800" />
+		<orange value="#ffcc00" />
 		<cyan value="#00ffff" />
 		<magenta value="#ff00ff" />
 		<white value="#ffffff" />
@@ -66,6 +68,11 @@
 		<graph_mesh value="#00c0ff" />
 		<graph_text value="#cccccc" />
 		<graph_line value="#ffffff" />
+		
+		<!-- Channel colors -->
+		<left_channel value="#ff0000" />
+		<right_channel value="#00ffff" />
+		<middle_channel value="#00c0ff" />
 		
 	</colors>
 </theme>

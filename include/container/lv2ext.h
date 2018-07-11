@@ -90,6 +90,9 @@ namespace lsp
             LV2_URID                uridState;
             LV2_URID                uridStateChange;
             LV2_URID                uridStateRequest;
+            LV2_URID                uridConnectUI;
+            LV2_URID                uridUINotification;
+            LV2_URID                uridDisconnectUI;
             LV2_URID                uridMeshType;
             LV2_URID                uridPathType;
             LV2_URID                uridMidiEventType;
@@ -147,9 +150,12 @@ namespace lsp
                 uridAtomTransfer    = map_uri(LV2_ATOM__atomTransfer);
                 uridEventTransfer   = map_uri(LV2_ATOM__eventTransfer);
                 uridObject          = map_uri(LV2_ATOM__Object);
-                uridStateRequest    = map_type("StateRequest");
-                uridStateChange = map_type("StateChange");
                 uridState           = map_primitive("state");
+                uridConnectUI       = map_primitive("ui_connect");
+                uridUINotification  = map_type("UINotification");
+                uridDisconnectUI    = map_primitive("ui_disconnect");
+                uridStateRequest    = map_type("StateRequest");
+                uridStateChange     = map_type("StateChange");
                 uridMeshType        = map_type("Mesh");
                 uridPathType        = map_uri(LV2_ATOM__Path);
                 uridMidiEventType   = map_uri(LV2_MIDI__MidiEvent);
@@ -308,7 +314,7 @@ namespace lsp
 
             inline LV2_URID map_type(const char *id)
             {
-                return map_uri("%s/ports#%s", LSP_TYPE_URI(lv2), id);
+                return map_uri("%s/types#%s", LSP_TYPE_URI(lv2), id);
             }
 
             inline LV2_URID map_primitive(const char *id)
@@ -380,28 +386,48 @@ namespace lsp
                 return true;
             }
 
-            inline bool ui_query_plugin_state()
+            inline bool ui_connect_to_plugin()
             {
                 if (map == NULL)
                     return false;
-                lsp_trace("querying plugin state buffer=%p, size=%d", pBuffer, int(nBufSize));
 
                 // Prepare ofrge for transfer
                 LV2_Atom_Forge_Frame    frame;
                 forge_set_buffer(pBuffer, nBufSize);
 
+                // Send CONNECT UI message
+                lsp_trace("Sending CONNECT UI message");
+                LV2_Atom *msg = forge_object(&frame, uridConnectUI, uridUINotification);
+                forge_pop(&frame);
+                write_data(nAtomOut, lv2_atom_total_size(msg), uridEventTransfer, msg);
+
                 // Send PATCH GET message
-                LV2_Atom *msg = forge_object(&frame, uridChunk, uridPatchGet);
+                lsp_trace("Sending PATCH GET message");
+                msg = forge_object(&frame, uridChunk, uridPatchGet);
                 forge_pop(&frame);
                 write_data(nAtomOut, lv2_atom_total_size(msg), uridEventTransfer, msg);
 
                 // Sent STATE REQUEST message
+                lsp_trace("Sending STATE REQUEST message");
                 msg = forge_object(&frame, uridState, uridStateRequest);
                 forge_pop(&frame);
                 write_data(nAtomOut, lv2_atom_total_size(msg), uridEventTransfer, msg);
 
                 lsp_trace("patch request has been written");
                 return true;
+            }
+
+            inline void ui_disconnect_from_plugin()
+            {
+                // Prepare ofrge for transfer
+                LV2_Atom_Forge_Frame    frame;
+                forge_set_buffer(pBuffer, nBufSize);
+
+                // Send DISCONNECT UI message
+                lsp_trace("Sending DISCONNECT UI message");
+                LV2_Atom *msg = forge_object(&frame, uridDisconnectUI, uridUINotification);
+                forge_pop(&frame);
+                write_data(nAtomOut, lv2_atom_total_size(msg), uridEventTransfer, msg);
             }
 
             inline bool ui_write_patch(LV2Serializable *p)

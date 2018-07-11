@@ -8,20 +8,36 @@
 #ifndef PLUGINS_TRIGGER_H_
 #define PLUGINS_TRIGGER_H_
 
-#ifndef LSP_NO_EXPERIMENTAL
-
 #include <metadata/plugins.h>
 
 #include <core/plugin.h>
 #include <core/midi.h>
-#include <core/ShiftBuffer.h>
+#include <core/MeterGraph.h>
 #include <core/Blink.h>
 
 #include <plugins/sampler.h>
 
 namespace lsp
 {
-    class audio_trigger_kernel: public audio_trigger_kernel_metadata
+    class audio_trigger_kernel
+    {
+        protected:
+
+        public:
+            audio_trigger_kernel();
+            virtual ~audio_trigger_kernel();
+
+        public:
+            bool    init(ITrigger *handler, size_t channels);
+            void    update_sample_rate(long sr);
+            size_t  bind(cvector<IPort> &ports, size_t port_id);
+            void    destroy();
+
+            void    update_settings();
+            void    process(const float **data, size_t samples);
+    };
+
+    class trigger_base: public plugin_t, public trigger_base_metadata
     {
         protected:
             enum state_t
@@ -34,169 +50,130 @@ namespace lsp
 
             enum source_t
             {
-                S_LEFT,
-                S_RIGHT,
                 S_MIDDLE,
-                S_SIDE
+                S_SIDE,
+                S_LEFT,
+                S_RIGHT
             };
 
             enum mode_t
             {
                 M_PEAK,
                 M_RMS,
-                M_ABS_RMS,
-                M_FILTERED,
-                M_SQR
+                M_LPF,
+                M_UNIFORM,
             };
-
-        protected:
-            ITrigger           *pHandler;       // Trigger event handler
-            ssize_t             nCounter;       // Counter for detect/release
-            ssize_t             nSampleRate;    // Sample rate;
-            size_t              nChannels;      // List of channels
-            size_t              nState;         // Trigger state
-            size_t              nReactivity;    // Reactivity (in samples)
-            float               fTau;           // Tau for RMS
-            float               fRmsValue;      // RMS value
-            ShiftBuffer         sBuffer;        // Buffer to store samples
-            Blink               sActive;        // Activity blink
-
-            size_t              nSource;        // Trigger source
-            size_t              nMode;          // Mode
-            float               fDetectLevel;   // Detection level
-            float               fDetectTime;    // Trigger detection time
-            float               fReleaseLevel;  // Release level
-            float               fReleaseTime;   // Release time
-            float               fDynamics;      // Dynamics
-            float               fReactivity;    // Reactivity
-
-            IPort              *pSource;        // Source port
-            IPort              *pMode;          // Mode port
-            IPort              *pDetectLevel;   // Detection level port
-            IPort              *pDetectTime;    // Detection time
-            IPort              *pReleaseLevel;  // Release level port
-            IPort              *pReleaseTime;   // Release time
-            IPort              *pDynamics;      // Dynamics
-            IPort              *pReactivity;    // Reactivity
-            IPort              *pMeter;         // Meter
-            IPort              *pActive;        // Active flag
-            #ifdef LSP_DEBUG
-            IPort              *pDebug;         // Debug output port
-            #endif /* LSP_DEBUG */
-
-        protected:
-            inline float        get_sample(const float **data, size_t idx);
-            inline float        process_sample(float sample);
-            inline void         update_reactivity(size_t old_mode);
-
-        public:
-            audio_trigger_kernel();
-            virtual ~audio_trigger_kernel();
-
-        public:
-            bool    init(ITrigger *handler, size_t channels);
-            void    update_sample_rate(long sr);
-            size_t  bind(cvector<IPort> &ports, size_t port_id);
-            #ifdef LSP_DEBUG
-            void    bind_debug(IPort *debug);
-            #endif /* LSP_DEBUG */
-            void    destroy();
-
-            void    update_settings();
-            void    process(const float **data, size_t samples);
-    };
-
-    class trigger_kernel: public sampler_kernel
-    {
-        protected:
-            size_t              nNote;          // Trigger note
-            size_t              nChannel;       // Channel
-
-            IPort              *pChannel;       // Note port
-            IPort              *pNote;          // Note port
-            IPort              *pOctave;        // Octave port
-            IPort              *pMidiNote;      // Output midi note #
-            IPort              *pMidiIn;        // MIDI input port
-            IPort              *pMidiOut;       // MIDI output port
-
-        public:
-            trigger_kernel();
-            virtual ~trigger_kernel();
-
-        public:
-            virtual void trigger_on(size_t timestamp, float level);
-
-            virtual void trigger_off(size_t timestamp, float level);
-
-        public:
-            size_t  bind(cvector<IPort> &ports, size_t port_id);
-            void    bind_midi(IPort *midi_in, IPort *midi_out);
-            void    update_settings();
-            void    process(float **outs, const float **ins, size_t samples);
-    };
-
-    class trigger_base: public plugin_t
-    {
-        protected:
-            typedef struct trigger_channel_t
-            {
-                float      *vDry;           // Dry output
-                float       fPan;           // Gain
-                float       fDry;           // Dry amount
-                float       fWet;           // Wet amount
-                Bypass      sDryBypass;     // Dry bypass
-                Bypass      sMixBypass;     // Mix bypass
-
-                IPort      *pPan;           // Pan output
-                IPort      *pDry;           // Dry output
-            } trigger_channel_t;
 
             typedef struct channel_t
             {
-                float      *vIn;            // Input
-                float      *vOut;           // Output
-                float      *vTmpIn;         // Temporary input buffer
-                float      *vTmpOut;        // Temporary output buffer
+                float      *vCtl;           // Control chain
                 Bypass      sBypass;        // Bypass
+                MeterGraph  sGraph;         // Metering graph
+                bool        bVisible;       // Visibility flag
 
                 IPort      *pIn;            // Input port
                 IPort      *pOut;           // Output port
+                IPort      *pGraph;         // Graph port
+                IPort      *pMeter;         // Metering port
+                IPort      *pVisible;       // Visibility port
             } channel_t;
 
-            typedef struct trigger_t
-            {
-                trigger_kernel          sKernel;            // Output kernel
-                audio_trigger_kernel    sTrigger;           // Audio trigger
-                float                   fOutGain;           // Output gain
-                trigger_channel_t       vChannels[trigger_base_metadata::TRACKS_MAX];       // Output channels
+        protected:
+            // Instantiation parameters
+            size_t                  nFiles;                 // Number of files
+            size_t                  nChannels;              // Number of channels
+            bool                    bMidiPorts;             // Has MIDI port
 
-                IPort                  *pOutGain;           // Gain port
-                IPort                  *pDry;               // Dry amount port
-                IPort                  *pWet;               // Wet amount port
-                IPort                  *pDryBypass;         // Dry bypass port
-                IPort                  *pMixBypass;         // Mix bypass port
-            } trigger_t;
+            // Processors and buffers
+            sampler_kernel          sKernel;                // Output kernel
+            MeterGraph              sFunction;              // Function
+            MeterGraph              sVelocity;              // Trigger velocity level
+            ShiftBuffer             sBuffer;                // Buffer to store samples
+            Blink                   sActive;                // Activity blink
+            channel_t               vChannels[TRACKS_MAX];  // Output channels
+            float                  *vTimePoints;            // Time points buffer
+
+            // Processing variables
+            ssize_t                 nCounter;               // Counter for detect/release
+            size_t                  nState;                 // Trigger state
+            size_t                  nReactivity;            // Reactivity (in samples)
+            float                   fTau;                   // Tau for RMS
+            float                   fVelocity;              // Current velocity value
+            bool                    bFunctionActive;        // Function activity
+            bool                    bVelocityActive;        // Velocity activity
+            float                   fRmsValue;              // RMS value
+
+            // Parameters
+            size_t                  nNote;                  // Trigger note
+            size_t                  nChannel;               // Channel
+            float                   fDry;                   // Dry amount
+            float                   fWet;                   // Wet amount
+            bool                    bPause;                 // Pause analysis refresh
+            bool                    bClear;                 // Clear analysis
+            float                   fPreamp;                // Control chain pre-amplification
+            size_t                  nRefresh;               // Refresh samples
+
+            size_t                  nSource;                // Trigger source
+            size_t                  nMode;                  // Mode
+            size_t                  nDetectCounter;         // Detect counter
+            size_t                  nReleaseCounter;        // Release counter
+            float                   fDetectLevel;           // Detection level
+            float                   fDetectTime;            // Trigger detection time
+            float                   fReleaseLevel;          // Release level
+            float                   fReleaseTime;           // Release time
+            float                   fDynamics;              // Dynamics
+            float                   fDynaTop;               // Dynamics top
+            float                   fDynaBottom;            // Dynamics bottom
+            float                   fReactivity;            // Reactivity
+
+            // Control ports
+            IPort                  *pFunction;              // Trigger function
+            IPort                  *pFunctionLevel;         // Function level
+            IPort                  *pFunctionActive;        // Function activity
+            IPort                  *pVelocity;              // Trigger velocity
+            IPort                  *pVelocityLevel;         // Trigger velocity level
+            IPort                  *pVelocityActive;        // Trigger velocity activity
+            IPort                  *pActive;                // Trigger activity flag
+
+            IPort                  *pMidiIn;                // MIDI input port
+            IPort                  *pMidiOut;               // MIDI output port
+            IPort                  *pChannel;               // Note port
+            IPort                  *pNote;                  // Note port
+            IPort                  *pOctave;                // Octave port
+            IPort                  *pMidiNote;              // Output midi note #
+
+            IPort                  *pBypass;                // Bypass port
+            IPort                  *pDry;                   // Dry output
+            IPort                  *pWet;                   // Wet output
+            IPort                  *pGain;                  // Gain output
+            IPort                  *pPause;                 // Pause analysis
+            IPort                  *pClear;                 // Clear analysis
+            IPort                  *pPreamp;                // Pre-amplification
+
+            IPort                  *pSource;                // Source port
+            IPort                  *pMode;                  // Mode port
+            IPort                  *pDetectLevel;           // Detection level port
+            IPort                  *pDetectTime;            // Detection time
+            IPort                  *pReleaseLevel;          // Release level port
+            IPort                  *pReleaseTime;           // Release time
+            IPort                  *pDynamics;              // Dynamics
+            IPort                  *pDynaRange1;            // Dynamics range 1
+            IPort                  *pDynaRange2;            // Dynamics range 1
+            IPort                  *pReactivity;            // Reactivity
+            IPort                  *pReleaseValue;          // Release value
 
         protected:
-            size_t              nTriggers;              // Number of triggers
-            size_t              nFiles;                 // Number of files
-            size_t              nChannels;              // Number of channels
-            bool                bMidiPorts;             // Has MIDI port
-            float               fDry;                   // Dry amount
-            float               fWet;                   // Wet amount
-            trigger_t          *vTriggers;              // List of triggers
-            float              *pBuffer;                // Temporary buffer
-            channel_t           vChannels[trigger_base_metadata::TRACKS_MAX];            // Monitoring channels
-
-            IPort              *pMidiIn;                // MIDI input port
-            IPort              *pMidiOut;               // MIDI output port
-            IPort              *pBypass;                // Bypass port
-            IPort              *pDry;                   // Dry output
-            IPort              *pWet;                   // Wet output
-            IPort              *pGain;                  // Gain output
+            void                trigger_on(size_t timestamp, float level);
+            void                trigger_off(size_t timestamp, float level);
+            inline float        get_sample(const float **data, size_t idx);
+            inline float        process_sample(float sample);
+            void                process_samples(const float **data, size_t samples);
+            inline void         update_reactivity();
+            inline void         update_counters();
+            inline void         refresh_processing();
 
         public:
-            trigger_base(const plugin_metadata_t &metadata, size_t triggers, size_t files, size_t channels, bool midi);
+            trigger_base(const plugin_metadata_t &metadata, size_t files, size_t channels, bool midi);
             virtual ~trigger_base();
 
         public:
@@ -207,6 +184,7 @@ namespace lsp
             virtual void update_sample_rate(long sr);
 
             virtual void process(size_t samples);
+
     };
 
     class trigger_mono: public trigger_base, public trigger_mono_metadata
@@ -223,22 +201,20 @@ namespace lsp
             virtual ~trigger_stereo();
     };
 
-    class trigger_mono_midi: public trigger_base, public trigger_mono_midi_metadata
+    class trigger_midi_mono: public trigger_base, public trigger_midi_mono_metadata
     {
         public:
-            trigger_mono_midi();
-            virtual ~trigger_mono_midi();
+            trigger_midi_mono();
+            virtual ~trigger_midi_mono();
     };
 
-    class trigger_stereo_midi: public trigger_base, public trigger_stereo_midi_metadata
+    class trigger_midi_stereo: public trigger_base, public trigger_midi_stereo_metadata
     {
         public:
-            trigger_stereo_midi();
-            virtual ~trigger_stereo_midi();
+            trigger_midi_stereo();
+            virtual ~trigger_midi_stereo();
     };
 
 }
-
-#endif
 
 #endif /* PLUGINS_TRIGGER_H_ */

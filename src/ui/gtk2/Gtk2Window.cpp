@@ -276,7 +276,7 @@ namespace lsp
             // Handle hide
             IUIWrapper *wrapper = _this->pUI->getWrapper();
             if (wrapper != NULL)
-                wrapper->ui_activated();
+                wrapper->ui_deactivated();
         }
         lsp_trace("unmap_window finished");
     }

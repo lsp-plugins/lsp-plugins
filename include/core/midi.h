@@ -209,6 +209,8 @@ namespace lsp
     bool decode_midi_message(midi_event_t *ev, const uint8_t *bytes);
 
     size_t encode_midi_message(const midi_event_t *ev, uint8_t *bytes);
+
+    size_t encoded_midi_message_size(const midi_event_t *ev);
 }
 
 #endif /* CORE_MIDI_H_ */

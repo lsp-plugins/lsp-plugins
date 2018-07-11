@@ -30,6 +30,7 @@ namespace lsp
 
             long                        fSampleRate;
             ssize_t                     nLatency;
+            bool                        bActivated;
 
         public:
             plugin_t(const plugin_metadata_t &mdata);
@@ -46,7 +47,8 @@ namespace lsp
 
             void set_sample_rate(long sr);
 
-            inline long  get_sample_rate() const        { return fSampleRate;   };
+            inline long  get_sample_rate() const        { return fSampleRate;       };
+            inline bool activated() const               { return bActivated;        };
 
         public:
             virtual void init(IWrapper *wrapper);
@@ -56,7 +58,6 @@ namespace lsp
             virtual void process(size_t samples);
             virtual void deactivate();
             virtual void destroy();
-
     };
 
 }

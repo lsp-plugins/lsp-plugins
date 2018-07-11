@@ -198,6 +198,20 @@ namespace lsp
             return result;
         }
 
+        static float h_abs_sum(const float *src, size_t count)
+        {
+            float result    = 0;
+            while (count--)
+            {
+                float tmp       = *(src++);
+                if (tmp >= 0)
+                    result         += tmp;
+                else
+                    result         -= tmp;
+            }
+            return result;
+        }
+
         static void accumulate(float *dst, const float *src, float k, float p, size_t count)
         {
             while (count--)

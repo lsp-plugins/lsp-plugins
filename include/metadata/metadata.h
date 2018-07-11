@@ -109,13 +109,15 @@ namespace lsp
         F_INT           = (1 << 5),     // Integer value
         F_TRG           = (1 << 6),     // Trigger
         F_GROWING       = (1 << 7),     // Proportionally growing default value (for port sets)
-        F_LOWERING      = (1 << 8)      // Proportionally lowering default value (for port sets)
+        F_LOWERING      = (1 << 8),     // Proportionally lowering default value (for port sets)
+        F_PEAK          = (1 << 9)      // Peak flag
     };
 
     #define IS_OUT_PORT(p)      (((p)->flags & F_OUT) == F_OUT)
     #define IS_IN_PORT(p)       (((p)->flags & F_OUT) == F_IN)
     #define IS_GROWING_PORT(p)  (((p)->flags & (F_GROWING | F_UPPER | F_LOWER)) == (F_GROWING | F_UPPER | F_LOWER))
     #define IS_LOWERING_PORT(p) (((p)->flags & (F_LOWERING | F_UPPER | F_LOWER)) == (F_LOWERING | F_UPPER | F_LOWER))
+    #define IS_TRIGGER_PORT(p)  ((p)->flags & F_TRG)
 
     enum plugin_class_t
     {

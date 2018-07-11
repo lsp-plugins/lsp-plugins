@@ -264,7 +264,10 @@ namespace lsp
             switch (p->role)
             {
                 case R_METER:
-                    fprintf(out, "\t\tui:protocol ui:peakProtocol ;\n");
+                    if (p->flags & F_PEAK)
+                        fprintf(out, "\t\tui:protocol ui:peakProtocol ;\n");
+                    else
+                        fprintf(out, "\t\tui:protocol ui:floatProtocol ;\n");
                     break;
                 default:
                     fprintf(out, "\t\tui:protocol ui:floatProtocol ;\n");

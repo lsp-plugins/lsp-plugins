@@ -124,6 +124,7 @@ namespace lsp
             case W_FILE:
             case W_HSEP:
             case W_VSEP:
+            case W_METER:
                 return static_cast<Gtk2Widget *>(widget);
 
             case W_AXIS:

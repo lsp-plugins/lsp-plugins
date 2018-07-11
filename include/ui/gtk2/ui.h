@@ -49,6 +49,7 @@
 #include <ui/gtk2/Gtk2Cell.h>
 #include <ui/gtk2/Gtk2Body.h>
 #include <ui/gtk2/Gtk2File.h>
+#include <ui/gtk2/Gtk2Meter.h>
 
 #include <ui/gtk2/Gtk2Group.h>
 #include <ui/gtk2/Gtk2Separator.h>

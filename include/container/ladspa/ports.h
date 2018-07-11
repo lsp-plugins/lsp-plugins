@@ -98,15 +98,31 @@ namespace lsp
 
             virtual void setValue(float value)
             {
-                fValue      = limit_value(pMetadata, value);
+                value       = limit_value(pMetadata, value);
+                if (pMetadata->flags & F_PEAK)
+                {
+                    if (fabs(fValue) < fabs(value))
+                        fValue = value;
+                }
+                else
+                    fValue = value;
             };
 
             virtual void bind(void *data) { pData = reinterpret_cast<float *>(data); };
+
+            virtual bool pre_process(size_t samples)
+            {
+                if (pMetadata->flags & F_PEAK)
+                    fValue      = 0.0f;
+                return false;
+            }
 
             virtual void post_process(size_t samples)
             {
                 if (pData != NULL)
                     *pData      = fValue;
+                if (pMetadata->flags & F_PEAK)
+                    fValue      = 0.0f;
             }
     };
 

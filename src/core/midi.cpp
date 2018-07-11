@@ -103,7 +103,7 @@ namespace lsp
     size_t encode_midi_message(const midi_event_t *ev, uint8_t *bytes)
     {
         if (!(ev->type & 0x80))
-            return false;
+            return 0;
 
         switch (ev->type)
         {
@@ -170,6 +170,71 @@ namespace lsp
             case MIDI_MSG_ACTIVE_SENSING:
             case MIDI_MSG_RESET:
                 bytes[0]    = ev->type;
+                return 1;
+
+            default:
+                return 0;
+        }
+
+        return 0;
+    }
+
+    size_t encoded_midi_message_size(const midi_event_t *ev)
+    {
+        if (!(ev->type & 0x80))
+            return 0;
+
+        switch (ev->type)
+        {
+            case MIDI_MSG_NOTE_OFF:
+            case MIDI_MSG_NOTE_ON:
+            case MIDI_MSG_NOTE_PRESSURE:
+            case MIDI_MSG_NOTE_CONTROLLER:
+            case MIDI_MSG_PROGRAM_CHANGE:
+            case MIDI_MSG_CHANNEL_PRESSURE:
+                if (ev->channel >= 0x10)
+                    return 0;
+                if (ev->bparams[0] >= 0x80)
+                    return 0;
+                if (ev->bparams[0] >= 0x80)
+                    return 0;
+                return 3;
+
+            case MIDI_MSG_PITCH_BEND:
+                if (ev->channel >= 0x10)
+                    return 0;
+                if (ev->bend >= 0x4000)
+                    return 0;
+                return 3;
+
+            case MIDI_MSG_SYSTEM_EXCLUSIVE: // TODO
+                return 0;
+
+            case MIDI_MSG_MTC_QUARTER:
+                if (ev->mtc.type >= 0x08)
+                    return 0;
+                if (ev->mtc.value >= 0x10)
+                    return 0;
+                return 2;
+
+            case MIDI_MSG_SONG_POS:
+                if (ev->wparam >= 0x4000)
+                    return 0;
+                return 3;
+
+            case MIDI_MSG_SONG_SELECT:
+                if (ev->song >= 0x80)
+                    return 0;
+                return 2;
+
+            case MIDI_MSG_TUNE_REQUEST:
+            case MIDI_MSG_END_EXCLUSIVE:
+            case MIDI_MSG_CLOCK:
+            case MIDI_MSG_START:
+            case MIDI_MSG_CONTINUE:
+            case MIDI_MSG_STOP:
+            case MIDI_MSG_ACTIVE_SENSING:
+            case MIDI_MSG_RESET:
                 return 1;
 
             default:

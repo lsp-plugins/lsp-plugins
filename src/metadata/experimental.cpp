@@ -46,7 +46,7 @@ namespace lsp
         "Impulse Responses Mono",
         "IR1M",
         &developers::v_sadovnikov,
-        "impulse_responses",
+        "impulse_responses_mono",
         "xxxx",
         LSP_LADSPA_BASE + 1000,
         LSP_VERSION(1, 0, 0),

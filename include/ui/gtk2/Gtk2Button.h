@@ -17,6 +17,7 @@ namespace lsp
             {
                 S_PRESSED   = (1 << 0),
                 S_TOGGLED   = (1 << 1),
+                S_LED       = (1 << 2)
             };
 
             Color           sColor;

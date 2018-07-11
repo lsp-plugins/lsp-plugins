@@ -92,6 +92,7 @@ namespace lsp
 // Colors and themes
 #include <ui/Color.h>
 #include <ui/Theme.h>
+#include <ui/Padding.h>
 
 // Control interface
 #include <ui/IUIPort.h>

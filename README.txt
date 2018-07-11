@@ -35,7 +35,8 @@ For more information, please read LICENSE.txt.
 
 LSP plugins are developed to support LADSPA, LV2 and LinuxVST formats and
 at least i586 and x86_64 architectures. Plugins that require MIDI channels
-are not implemented in LASDPA format due to format's restrictions.
+are not implemented in LASDPA format due to format's restrictions. Also
+there are available standalone versions for JACK server.
 
 The LADSPA distribution requirements:
   * glibc >= 2.19
@@ -55,6 +56,13 @@ The LinuxVST distribution requirements:
   * GTK+ >= 2.24
   * libcairo >= 1.14
   * Host compatible with LinuxVST v2.4
+
+The JACK distribution requirements:
+  * glibc >= 2.19
+  * libsndfile >= 1.0.25
+  * GTK+ >= 2.24
+  * libcairo >= 1.14
+  * jack >= 1.9.5
 
 ==== INSTALLATION ====
 
@@ -79,6 +87,22 @@ The usual directories for LinuxVST are:
   * /usr/lib64/vst
   * /usr/local/lib64/vst
 
+The usual directories for JACK are:
+  - for core library:
+    * /usr/lib
+    * /usr/local/lib
+    * /lib
+    * /usr/lib64
+    * /usr/local/lib64
+    * /lib64
+  - for binaries:
+    * /usr/bin
+    * /usr/local/bin
+    * /bin
+    * /usr/sbin
+    * /usr/local/sbin
+    * /sbin
+
 ==== BUILDING ====
 
 For source code distributions you may build plugins from scratch.
@@ -91,6 +115,14 @@ You need the following packages to be installed:
   * libsndfile-devel >= 1.0.25
   * GTK+-devel >= 2.24
   * libcairo-devel >= 1.14
+  * jack-devel >= 1.9.5
+  * Steinberg VST SDK >= 2.4 (optional)
+
+If you wan to build LinuxVST version of plugins, you have to install 
+Steinberg VST SDK >= 2.4 and ensure that the variable definition 'VST_SDK'
+in the makefile points to the right place. If you do not want to build
+LinuxVST version of plugins, just comment or delete the definition of the
+'VST_SDK' variable.
 
 Currently there is no automake supported, so to build plugins you
 have to type:

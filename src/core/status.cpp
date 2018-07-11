@@ -20,6 +20,8 @@ namespace lsp
         "Bad format",
         "Unsupported format",
         "Corrupted file",
+        "Invalid unique identifier",
+        "Disconnected",
         NULL
     };
 

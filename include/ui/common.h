@@ -45,7 +45,8 @@ namespace lsp
         W_FILE,
         W_HSEP,
         W_VSEP,
-        W_PORT
+        W_PORT,
+        W_METER
     };
 
     // List of all available widget attributes
@@ -116,7 +117,12 @@ namespace lsp
         A_STATUS_ID,
         A_MESH_ID,
         A_DETAILED,
-        A_TRANSPOSE
+        A_TRANSPOSE,
+        A_LED,
+        A_REVERSIVE,
+        A_TYPE,
+        A_FONT_SIZE,
+        A_ACTIVITY_ID
     };
 
     // List of colors
@@ -150,7 +156,10 @@ namespace lsp
         C_GRAPH_MESH,
         C_GRAPH_MARKER,
         C_GRAPH_TEXT,
-        C_GRAPH_LINE
+        C_GRAPH_LINE,
+        C_LEFT_CHANNEL,
+        C_RIGHT_CHANNEL,
+        C_MIDDLE_CHANNEL
     };
 
     // Helper functions

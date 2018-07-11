@@ -35,6 +35,7 @@ namespace lsp
             dsp::multiply                   = native::multiply;
             dsp::h_sum                      = native::h_sum;
             dsp::h_sqr_sum                  = native::h_sqr_sum;
+            dsp::h_abs_sum                  = native::h_abs_sum;
             dsp::scalar_mul                 = native::scalar_mul;
             dsp::accumulate                 = native::accumulate;
             dsp::add_multiplied             = native::add_multiplied;

@@ -341,17 +341,22 @@ namespace lsp
 
             virtual void setValue(float value)
             {
-                if (pMetadata->flags & F_UPPER)
+                value       = limit_value(pMetadata, value);
+
+                if (pMetadata->flags & F_PEAK)
                 {
-                    if (value > pMetadata->max)
-                        value = pMetadata->max;
+                    if (fabs(fValue) < fabs(value))
+                        fValue = value;
                 }
-                if (pMetadata->flags & F_LOWER)
-                {
-                    if (value < pMetadata->min)
-                        value = pMetadata->min;
-                }
-                fValue      = value;
+                else
+                    fValue = value;
+            }
+
+            float syncValue()
+            {
+                float value = fValue;
+                fValue      = 0.0f;
+                return value;
             }
     };
 

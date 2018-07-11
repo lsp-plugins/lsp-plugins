@@ -29,6 +29,7 @@ namespace lsp
         fVAlign     = 0.5f;
         fHAlign     = 0.5f;
         bDetailed   = true;
+        nFontSize   = -1;
         nUnits      = U_NONE - 1;
     }
 
@@ -82,6 +83,9 @@ namespace lsp
                 else
                     nUnits      = decode_unit(value);
                 break;
+            case A_FONT_SIZE:
+                PARSE_FLOAT(value, nFontSize = __ * 1000);
+                break;
             case A_VALIGN:
                 PARSE_FLOAT(value, fVAlign = __);
                 break;
@@ -111,8 +115,9 @@ namespace lsp
     void Gtk2Label::updateText()
     {
         // Initial text
+        char a_text[64];
         const char *text    = sText;
-        char *a_text        = NULL;
+//        char *a_text        = NULL;
 
         if ((enType != LT_TEXT) && (pPort != NULL))
         {
@@ -133,9 +138,9 @@ namespace lsp
                     format_value(buf, TMP_BUF_SIZE, mdata, fValue);
 
                     if (bDetailed)
-                        asprintf(&a_text, "%s\n%s", buf, (u_name != NULL) ? u_name : "" );
+                        snprintf(a_text, sizeof(a_text), "%s\n%s", buf, (u_name != NULL) ? u_name : "" );
                     else
-                        asprintf(&a_text, "%s", buf);
+                        snprintf(a_text, sizeof(a_text), "%s", buf);
                     text    = a_text;
                 }
                 else if (enType == LT_PARAM)
@@ -146,12 +151,12 @@ namespace lsp
                         if (bDetailed)
                         {
                             if (text != NULL)
-                                asprintf(&a_text, "%s (%s)", text, u_name);
+                                snprintf(a_text, sizeof(a_text), "%s (%s)", text, u_name);
                             else
-                                asprintf(&a_text, "(%s)", u_name);
+                                snprintf(a_text, sizeof(a_text), "(%s)", u_name);
                         }
                         else if (text != NULL)
-                            asprintf(&a_text, "%s", text);
+                            snprintf(a_text, sizeof(a_text), "%s", text);
                         text    = a_text;
                     }
                 }
@@ -159,12 +164,24 @@ namespace lsp
         }
 
         //g_markup_printf_escaped
-        gchar *out = g_markup_printf_escaped(
-            "<span foreground=\"#%06lx\" background=\"#%06lx\">%s</span>",
-             (unsigned long)(sColor.rgb24()),
-             (unsigned long)(sBgColor.rgb24()),
-             (text != NULL) ? text : ""
-             );
+        gchar *out  = NULL;
+        if (nFontSize > 0)
+        {
+            out = g_markup_printf_escaped(
+                "<span foreground=\"#%06lx\" background=\"#%06lx\" size=\"%d\">%s</span>",
+                 (unsigned long)(sColor.rgb24()),
+                 (unsigned long)(sBgColor.rgb24()),
+                 int(nFontSize),
+                 (text != NULL) ? text : ""
+                 );
+        }
+        else
+            out = g_markup_printf_escaped(
+                "<span foreground=\"#%06lx\" background=\"#%06lx\">%s</span>",
+                 (unsigned long)(sColor.rgb24()),
+                 (unsigned long)(sBgColor.rgb24()),
+                 (text != NULL) ? text : ""
+                 );
 
         gtk_label_set_markup(GTK_LABEL(pWidget), out);
 
@@ -180,9 +197,6 @@ namespace lsp
         gtk_misc_set_alignment(GTK_MISC(pWidget), fHAlign, fVAlign);
 
         g_free(out);
-
-        if (a_text != NULL)
-            free(a_text);
     }
 
     void Gtk2Label::notify(IUIPort *port)

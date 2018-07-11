@@ -524,6 +524,7 @@ namespace lsp
             {
                 ERect **er = reinterpret_cast<ERect **>(ptr);
                 *er = w->get_ui_rect();
+                lsp_trace("Edit rect = {%d, %d, %d, %d}", int((*er)->left), int((*er)->top), int((*er)->right), int((*er)->bottom));
                 v = 1;
                 break;
             }

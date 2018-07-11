@@ -5,7 +5,7 @@
  *      Author: sadko
  */
 
-#ifndef CONTANIER_VST_WRAPPER_H_
+#ifndef CONTAINER_VST_WRAPPER_H_
 #define CONTAINER_VST_WRAPPER_H_
 
 #include <container/vst/defs.h>
@@ -24,7 +24,6 @@ namespace lsp
             plugin_t                   *pPlugin;
             AEffect                    *pEffect;
             plugin_ui                  *pUI;
-            const char                 *pName;
             char                       *pBundlePath;
             GtkWidget                  *pUIWidget;
             GtkWidget                  *pWidget;
@@ -64,7 +63,6 @@ namespace lsp
                 pPlugin         = plugin;
                 pEffect         = effect;
                 pUI             = NULL;
-                pName           = name;
                 pBundlePath     = strdup(bundle_path);
                 pUIWidget       = NULL;
                 pWidget         = NULL;
@@ -79,12 +77,11 @@ namespace lsp
                 sRect.right     = 0;
             }
 
-            ~VSTWrapper()
+            virtual ~VSTWrapper()
             {
                 pPlugin         = NULL;
                 pEffect         = NULL;
                 pUI             = NULL;
-                pName           = NULL;
                 pBundlePath     = NULL;
                 pUIWidget       = NULL;
                 pWidget         = NULL;
@@ -373,7 +370,6 @@ namespace lsp
 
         pMaster     = NULL;
         pEffect     = NULL;
-        pName       = NULL;
 
         lsp_trace("destroy complete");
     }
@@ -478,7 +474,7 @@ namespace lsp
 
             // Create UI pointer
             lsp_trace("create ui");
-            pUI                         = new plugin_ui(pName, m, wf);
+            pUI                         = new plugin_ui(m, wf);
             if (pUI == NULL)
                 return false;
 

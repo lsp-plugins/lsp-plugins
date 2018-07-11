@@ -17,155 +17,27 @@
 
 namespace lsp
 {
-#ifndef LSP_NO_EXPERIMENTAL
     //-------------------------------------------------------------------------
-    audio_trigger_kernel::audio_trigger_kernel()
+    inline void trigger_base::update_counters()
     {
-        pHandler            = NULL;
-        nCounter            = 0;
-        nSampleRate         = 0;
-        nChannels           = 0;
-        nState              = T_OFF;
-        nReactivity         = 0;
-        fTau                = 0.0f;
-        fRmsValue           = 0.0f;
-
-        nSource             = S_MIDDLE;
-        nMode               = M_RMS;
-        fDetectLevel        = DETECT_LEVEL_DFL;
-        fDetectTime         = DETECT_TIME_DFL;
-        fReleaseLevel       = RELEASE_LEVEL_DFL;
-        fReleaseTime        = RELEASE_TIME_DFL;
-        fDynamics           = 0.0f;
-        fReactivity         = REACTIVITY_DFL;
-
-        pSource             = NULL;
-        pMode               = NULL;
-        pDetectLevel        = NULL;
-        pDetectTime         = NULL;
-        pReleaseLevel       = NULL;
-        pReleaseTime        = NULL;
-        pDynamics           = NULL;
-        pReactivity         = NULL;
-        pMeter              = NULL;
-        pActive             = NULL;
-        #ifdef LSP_DEBUG
-            pDebug              = NULL;
-        #endif /* LSP_DEBUG */
-    }
-
-    audio_trigger_kernel::~audio_trigger_kernel()
-    {
-        destroy();
-    }
-
-    bool audio_trigger_kernel::init(ITrigger *handler, size_t channels)
-    {
-        pHandler            = handler;
-        nChannels           = channels;
-        return true;
-    }
-
-    size_t audio_trigger_kernel::bind(cvector<IPort> &ports, size_t port_id)
-    {
-        if (nChannels > 1)
-        {
-            lsp_trace("Binding source port...");
-            TRACE_PORT(ports[port_id]);
-            pSource             = ports[port_id++];
-        }
-
-        lsp_trace("Binding mode port...");
-        TRACE_PORT(ports[port_id]);
-        pMode               = ports[port_id++];
-
-        lsp_trace("Binding ports...");
-        TRACE_PORT(ports[port_id]);
-        pDetectLevel        = ports[port_id++];
-        TRACE_PORT(ports[port_id]);
-        pDetectTime         = ports[port_id++];
-        TRACE_PORT(ports[port_id]);
-        pReleaseLevel       = ports[port_id++];
-        TRACE_PORT(ports[port_id]);
-        pReleaseTime        = ports[port_id++];
-        TRACE_PORT(ports[port_id]);
-        pDynamics           = ports[port_id++];
-        TRACE_PORT(ports[port_id]);
-        pReactivity         = ports[port_id++];
-
-        lsp_trace("Binding meters...");
-        TRACE_PORT(ports[port_id]);
-        pMeter              = ports[port_id++];
-        TRACE_PORT(ports[port_id]);
-        pActive             = ports[port_id++];
-
-        return port_id;
-    }
-
-#ifdef LSP_DEBUG
-    void audio_trigger_kernel::bind_debug(IPort *debug)
-    {
-        pDebug              = debug;
-    }
-#endif /* LSP_DEBUG */
-
-    void audio_trigger_kernel::destroy()
-    {
-    }
-
-    inline void audio_trigger_kernel::update_reactivity(size_t old_mode)
-    {
-        if (nSampleRate <= 0)
+        if (fSampleRate <= 0)
             return;
 
-        nReactivity     = millis_to_samples(nSampleRate, fReactivity);
-        fTau            = 1.0f - expf(logf(1.0f - M_SQRT1_2) / nReactivity);
-
-        switch (nMode)
-        {
-            case M_PEAK:
-                if (old_mode != M_PEAK)
-                    fRmsValue       = 0.0f;
-                break;
-
-            case M_RMS:
-            case M_ABS_RMS:
-                if ((old_mode != M_RMS) && (old_mode != M_ABS_RMS))
-                    fRmsValue       = 0.0f;
-                break;
-
-            case M_FILTERED:
-                fRmsValue           = dsp::h_sum(sBuffer.tail(nReactivity), nReactivity);
-                break;
-
-            case M_SQR:
-                fRmsValue           = dsp::h_sqr_sum(sBuffer.tail(nReactivity), nReactivity);
-                break;
-
-            default:
-                break;
-        }
+        nDetectCounter      = millis_to_samples(fSampleRate, fDetectTime);
+        nReleaseCounter     = millis_to_samples(fSampleRate, fReleaseTime);
     }
 
-    void audio_trigger_kernel::update_settings()
+    inline void trigger_base::update_reactivity()
     {
-        // Update settings
-        size_t old_mode = nMode;
+        if (fSampleRate <= 0)
+            return;
 
-        nSource         = (pSource != NULL) ? size_t(pSource->getValue()) : S_MIDDLE;
-        nMode           = (pMode != NULL) ? size_t(pMode->getValue()) : M_RMS;
-        fDetectLevel    = pDetectLevel->getValue();
-        fDetectTime     = pDetectTime->getValue();
-        fReleaseLevel   = pDetectLevel->getValue();
-        fReleaseTime    = pDetectTime->getValue();
-        fDynamics       = pDynamics->getValue();
-        fReactivity     = pReactivity->getValue();
-
-        // Update reactivity
-        update_reactivity(old_mode);
+        nReactivity     = millis_to_samples(fSampleRate, fReactivity);
+        fTau            = 1.0f - expf(logf(1.0f - M_SQRT1_2) / (nReactivity)); // Tau is based on seconds
+        nRefresh        = BUFFER_SIZE; // Force the function to be refreshed
     }
 
-    inline float audio_trigger_kernel::get_sample(const float **data, size_t idx)
+    inline float trigger_base::get_sample(const float **data, size_t idx)
     {
         if (nChannels == 1)
             return data[0][idx];
@@ -188,53 +60,56 @@ namespace lsp
         return 0.0f;
     }
 
-    inline float audio_trigger_kernel::process_sample(float sample)
+    inline float trigger_base::process_sample(float sample)
     {
-        // Add new sample
+        // This is periodically called to fix floating-point rounding errors
+        if ((nRefresh++) >= BUFFER_SIZE)
+        {
+            refresh_processing();
+            nRefresh    = 0;
+        }
+
+        // Add new sample to buffer
         sBuffer.append(sample);
 
+        // Calculate function
         switch (nMode)
         {
             case M_PEAK:
-                if (sample < 0.0f)
-                    sample = -sample;
                 break;
 
-            case M_RMS:
-                fRmsValue  += fTau * (sample - fRmsValue);
-                sample      = fRmsValue;
-                if (sample < 0.0f)
-                    sample      = -sample;
-                break;
-
-            case M_ABS_RMS:
+            case M_LPF:
                 if (sample < 0.0f)
                     sample = - sample;
                 fRmsValue  += fTau * (sample - fRmsValue);
                 sample      = fRmsValue;
-                if (sample < 0.0f)
-                    sample      = 0.0f;
                 break;
 
-            case M_FILTERED:
+            case M_UNIFORM:
+                if (sample < 0.0f)
+                    sample      = -sample;
                 if (nReactivity > 0)
                 {
-                    fRmsValue  += sample - sBuffer.first();
+                    float first = sBuffer.last(nReactivity + 1);
+                    if (first < 0.0f)
+                        first       = -first;
+
+                    fRmsValue  += sample - first;
                     sample      = fRmsValue / float(nReactivity + 1);
                 }
-                if (sample < 0.0f)
-                    sample      = -sample;
                 break;
 
-            case M_SQR:
+            case M_RMS:
+//                fRmsValue       = dsp::h_sqr_sum(sBuffer.tail(nReactivity + 1), nReactivity + 1);
                 if (nReactivity > 0)
                 {
-                    float first = sBuffer.first();
-                    fRmsValue  += sample*sample - first * first;
-                    sample      = sqrtf(fRmsValue) / float(nReactivity + 1);
+                    float last      = sBuffer.last(nReactivity + 1);
+                    fRmsValue      += sample * sample - last * last;
+                    if (fRmsValue < 0.0f)
+                        sample          = 0.0f;
+                    else
+                        sample          = sqrtf(fRmsValue / float(nReactivity));
                 }
-                else if (sample < 0.0f)
-                    sample      = -sample;
                 break;
 
             default:
@@ -244,49 +119,43 @@ namespace lsp
         // Remove old sample
         sBuffer.shift();
 
-        return sample;
+        return (sample >= 0.0f) ? sample : -sample;
     }
 
-    void audio_trigger_kernel::update_sample_rate(long sr)
+    void trigger_base::refresh_processing()
     {
-        nSampleRate     = sr;
+        switch (nMode)
+        {
+            case M_PEAK:
+                fRmsValue       = 0.0f;
+                break;
 
-        // Update trigger buffer
-        size_t gap      = millis_to_samples(sr, DETECT_TIME_MAX);
-        sBuffer.init(gap * 2, gap);
+            case M_UNIFORM:
+                fRmsValue           = dsp::h_abs_sum(sBuffer.tail(nReactivity), nReactivity);
+                break;
 
-        // Update activity blink
-        sActive.init(sr);
+            case M_RMS:
+                fRmsValue           = dsp::h_sqr_sum(sBuffer.tail(nReactivity), nReactivity);
+                break;
 
-        // Update reactivity
-        update_reactivity(nMode);
+            default:
+                break;
+        }
     }
 
-    void audio_trigger_kernel::process(const float **data, size_t samples)
+    void trigger_base::process_samples(const float **data, size_t samples)
     {
-        // Do nothing if handler not defined
-        if (pHandler == NULL)
-            return;
-
-        float meter         = 0.0f;
+        float max_level     = 0.0f, max_velocity  = 0.0f;
 
         // Process input data
         for (size_t i=0; i<samples; ++i)
         {
-            // Get sample
+            // Get sample and log to function
             float level         = get_sample(data, i);
             level               = process_sample(level);
-            if ((i == 0) || (level > meter))
-                meter           = level;
-
-            #ifdef LSP_DEBUG
-                if (pDebug != NULL)
-                {
-                    float *buf = pDebug->getBuffer<float>();
-                    if (buf != NULL)
-                        buf[i]      = level;
-                }
-            #endif /* LSP_DEBUG */
+            if (level > max_level)
+                max_level           = level;
+            sFunction.process(level);
 
             // Check trigger state
             switch (nState)
@@ -295,24 +164,28 @@ namespace lsp
                     if (level >= fDetectLevel) // Signal is growing, open trigger
                     {
                         // Mark trigger open
-                        nCounter    = millis_to_samples(nSampleRate, fDetectTime);
+                        nCounter    = nDetectCounter;
                         nState      = T_DETECT;
                     }
                     break;
                 case T_DETECT:
                     if (level < fDetectLevel)
-                        nState      = T_DETECT;
+                        nState      = T_OFF;
                     else if ((nCounter--) <= 0)
                     {
-                        if (pHandler != NULL)
-                        {
-                            // Calculate the velocity
-                            float velocity  = 0.5f + fDynamics * (level - fDetectLevel) / float(nReactivity + 1);
-                            if (velocity > 1.0f) // Saturate velocity
-                                velocity        = 1.0f;
+                        // Calculate the velocity
+                        fVelocity   = 0.5f * expf(fDynamics * logf(level/fDetectLevel));
+                        float vel   = fVelocity;
+                        if (vel >= fDynaTop) // Saturate to maximum
+                            vel         = 1.0f;
+                        else if (vel <= fDynaBottom) // Saturate to minimum
+                            vel         = 0.0f;
+                        else // Calculate the velocity based on logarithmic scale
+                            vel         = logf(vel/fDynaBottom) / logf(fDynaTop/fDynaBottom);
 
-                            pHandler->trigger_on(i, velocity);
-                        }
+                        // Trigger state ON
+                        trigger_on(i, vel);
+                        nState      = T_ON;
 
                         // Indicate that trigger is active
                         sActive.blink();
@@ -321,71 +194,418 @@ namespace lsp
                 case T_ON: // Trigger is active
                     if (level <= fReleaseLevel) // Signal is in peak
                     {
-                        nCounter    = millis_to_samples(nSampleRate, fReleaseTime);
+                        nCounter    = nReleaseCounter;
                         nState      = T_RELEASE;
                     }
                     break;
                 case T_RELEASE:
                     if (level > fReleaseLevel)
-                        nState      = T_DETECT;
+                        nState      = T_ON;
                     else if ((nCounter--) <= 0)
                     {
-                        if (pHandler != NULL)
-                            pHandler->trigger_off(i, 0.0f);
+                        trigger_off(i, 0.0f);
+                        nState      = T_OFF;
+                        fVelocity   = 0.0f;
                     }
                     break;
+
                 default:
                     break;
             }
+
+            // Log the velocity value
+            sVelocity.process(fVelocity);
+            if (fVelocity > max_velocity)
+                max_velocity        = fVelocity;
         }
 
         // Output meter value
-        if (pMeter != NULL)
-            pMeter->setValue(meter);
         if (pActive != NULL)
             pActive->setValue(sActive.process(samples));
+
+        pFunctionLevel->setValue(max_level);
+        pVelocityLevel->setValue(max_velocity);
     }
 
-    //-------------------------------------------------------------------------
-    trigger_kernel::trigger_kernel()
-    {
-        nNote               = 0;
-        nChannel            = 0;
 
+    trigger_base::trigger_base(const plugin_metadata_t &metadata, size_t files, size_t channels, bool midi):
+        plugin_t(metadata)
+    {
+        // Instantiation parameters
+        nFiles              = files;
+        nChannels           = channels;
+        bMidiPorts          = midi;
+
+        // Processors and buffers
+        vTimePoints         = NULL;
+
+        // Processing variables
+        nCounter            = 0;
+        nState              = T_OFF;
+        nReactivity         = 0;
+        fTau                = 0.0f;
+        fVelocity           = 0.0f;
+        bFunctionActive     = true;
+        bVelocityActive     = true;
+        fRmsValue           = 0.0f;
+
+        // Parameters
+        nNote               = trigger_midi_metadata::NOTE_DFL + trigger_midi_metadata::OCTAVE_DFL * 12;
+        nChannel            = trigger_midi_metadata::CHANNEL_DFL;
+        fDry                = 1.0f;
+        fWet                = 1.0f;
+        bPause              = false;
+        bClear              = false;
+        fPreamp             = 1.0f;
+        nRefresh            = BUFFER_SIZE;
+
+        nSource             = S_MIDDLE;
+        nMode               = M_RMS;
+        nDetectCounter      = 0;
+        nReleaseCounter     = 0;
+        fDetectLevel        = DETECT_LEVEL_DFL;
+        fDetectTime         = DETECT_TIME_DFL;
+        fReleaseLevel       = RELEASE_LEVEL_DFL;
+        fReleaseTime        = RELEASE_TIME_DFL;
+        fDynamics           = 0.0f;
+        fDynaTop            = 1.0f;
+        fDynaBottom         = 0.0f;
+        fReactivity         = REACTIVITY_DFL;
+
+        // Control ports
+        pFunction           = NULL;
+        pFunctionLevel      = NULL;
+        pFunctionActive     = NULL;
+        pVelocity           = NULL;
+        pVelocityLevel      = NULL;
+        pVelocityActive     = NULL;
+        pActive             = NULL;
+
+        pMidiIn             = NULL;
+        pMidiOut            = NULL;
         pChannel            = NULL;
         pNote               = NULL;
         pOctave             = NULL;
         pMidiNote           = NULL;
-        pMidiIn             = NULL;
-        pMidiOut            = NULL;
+
+        pBypass             = NULL;
+        pDry                = NULL;
+        pWet                = NULL;
+        pGain               = NULL;
+        pPreamp             = NULL;
+
+        pSource             = NULL;
+        pMode               = NULL;
+        pPause              = NULL;
+        pClear              = NULL;
+        pPreamp             = NULL;
+        pDetectLevel        = NULL;
+        pDetectTime         = NULL;
+        pReleaseLevel       = NULL;
+        pReleaseTime        = NULL;
+        pDynamics           = NULL;
+        pDynaRange1         = NULL;
+        pDynaRange2         = NULL;
+        pReactivity         = NULL;
+        pReleaseValue       = NULL;
     }
 
-    trigger_kernel::~trigger_kernel()
+    trigger_base::~trigger_base()
     {
-        pMidiOut            = NULL;
+        destroy();
     }
 
-    size_t trigger_kernel::bind(cvector<IPort> &ports, size_t port_id)
+    void trigger_base::destroy()
     {
-        lsp_trace("Binding ports...\n");
-        TRACE_PORT(ports[port_id]);
-        pChannel        = ports[port_id++];
-        TRACE_PORT(ports[port_id]);
-        pNote           = ports[port_id++];
-        TRACE_PORT(ports[port_id]);
-        pOctave         = ports[port_id++];
-        TRACE_PORT(ports[port_id]);
-        pMidiNote       = ports[port_id++];
+        // Destroy objects
+        sKernel.destroy();
 
-        return sampler_kernel::bind(ports, port_id, false);
+        // Remove time points buffer
+        if (vTimePoints != NULL)
+        {
+            delete [] vTimePoints;
+            vTimePoints     = NULL;
+        }
+
+        for (size_t i=0; i<trigger_base_metadata::TRACKS_MAX; ++i)
+        {
+            channel_t *tc   = &vChannels[i];
+            tc->vCtl        = NULL;
+            tc->pIn         = NULL;
+            tc->pOut        = NULL;
+        }
     }
 
-    void trigger_kernel::trigger_on(size_t timestamp, float level)
+    void trigger_base::init(IWrapper *wrapper)
     {
+        // Get executor
+        IExecutor *executor = wrapper->get_executor();
+
+        // Initialize audio channels
+        for (size_t i=0; i<trigger_base_metadata::TRACKS_MAX; ++i)
+        {
+            channel_t *c        = &vChannels[i];
+            c->vCtl             = NULL;
+            c->pIn              = NULL;
+            c->pOut             = NULL;
+            c->pGraph           = NULL;
+            c->pMeter           = NULL;
+            c->pVisible         = NULL;
+        }
+
+        // Allocate buffer for time coordinates
+        vTimePoints         = new float[HISTORY_MESH_SIZE + BUFFER_SIZE * nChannels];
+        if (vTimePoints == NULL)
+            return;
+        float *ctlbuf       = &vTimePoints[HISTORY_MESH_SIZE];
+
+        // Fill time dots with values
+        float step          = HISTORY_TIME / HISTORY_MESH_SIZE;
+        for (size_t i=0; i < HISTORY_MESH_SIZE; ++i)
+            vTimePoints[i]      = (HISTORY_MESH_SIZE - i - 1) * step;
+
+        // Initialize trigger
+        sKernel.init(executor, nFiles, nChannels);
+
+        // Now we are ready to bind ports
+        size_t port_id          = 0;
+
+        // Bind audio inputs
+        lsp_trace("Binding audio inputs...");
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[i].pIn        = vPorts[port_id++];
+            vChannels[i].vCtl       = ctlbuf;
+
+            dsp::fill_zero(ctlbuf, BUFFER_SIZE);
+            ctlbuf                 += BUFFER_SIZE;
+        }
+
+        // Bind audio outputs
+        lsp_trace("Binding audio outputs...");
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[i].pOut       = vPorts[port_id++];
+        }
+
+        // Bind meters
+        if (nChannels > 1)
+        {
+            lsp_trace("Binding source switch port...");
+            TRACE_PORT(vPorts[port_id]);
+            pSource             = vPorts[port_id++];
+        }
+
+        lsp_trace("Binding audio meters...");
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[i].pGraph     = vPorts[port_id++];
+        }
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[i].pMeter     = vPorts[port_id++];
+        }
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            TRACE_PORT(vPorts[port_id]);
+            vChannels[i].pVisible   = vPorts[port_id++];
+        }
+
+        // Bind MIDI ports
+        if (bMidiPorts)
+        {
+            lsp_trace("Binding MIDI ports...");
+            TRACE_PORT(vPorts[port_id]);
+            pMidiIn     = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pMidiOut    = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pChannel    = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pNote       = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pOctave     = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            pMidiNote   = vPorts[port_id++];
+        }
+
+        // Skip area selector
+        lsp_trace("Skipping Area selector...");
+        TRACE_PORT(vPorts[port_id]);
+        port_id     ++;
+
+        // Bind ports
+        lsp_trace("Binding Global ports...");
+        TRACE_PORT(vPorts[port_id]);
+        pBypass     = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pDry        = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pWet        = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pGain       = vPorts[port_id++];
+
+        lsp_trace("Binding mode port...");
+        TRACE_PORT(vPorts[port_id]);
+        pMode               = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pPause              = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pClear              = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pPreamp             = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pDetectLevel        = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pDetectTime         = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pReleaseLevel       = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pReleaseTime        = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pDynamics           = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pDynaRange1         = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pDynaRange2         = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pReactivity         = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pReleaseValue       = vPorts[port_id++];
+
+        lsp_trace("Binding meters...");
+        TRACE_PORT(vPorts[port_id]);
+        pFunction           = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pFunctionLevel      = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pFunctionActive     = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pActive             = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pVelocity           = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pVelocityLevel      = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pVelocityActive     = vPorts[port_id++];
+
+        // Bind kernel
+        lsp_trace("Binding kernel ports...");
+        port_id     = sKernel.bind(vPorts, port_id, false);
+
+        // Call for initial settings update
+        lsp_trace("Calling settings update");
+        update_settings();
+    }
+
+    void trigger_base::update_settings()
+    {
+        // Update settings for notes
+        if (bMidiPorts)
+        {
+            nNote       = (pOctave->getValue() * 12) + pNote->getValue();
+            lsp_trace("trigger note=%d", int(nNote));
+        }
+
+        // Update settings
+        nSource         = (pSource != NULL) ? size_t(pSource->getValue()) : S_MIDDLE;
+        size_t old_mode = nMode;
+        nMode           = (pMode != NULL) ? size_t(pMode->getValue()) : M_PEAK;
+        fDetectLevel    = pDetectLevel->getValue();
+        fDetectTime     = pDetectTime->getValue();
+        fReleaseLevel   = fDetectLevel * pReleaseLevel->getValue();
+        fReleaseTime    = pReleaseTime->getValue();
+        fDynamics       = pDynamics->getValue() * 0.01f; // Percents
+        fDynaTop        = pDynaRange1->getValue();
+        fDynaBottom     = pDynaRange2->getValue();
+        fReactivity     = pReactivity->getValue();
+        fPreamp         = pPreamp->getValue();
+
+        float out_gain  = pGain->getValue();
+        fDry            = pDry->getValue() * out_gain;
+        fWet            = pWet->getValue() * out_gain;
+        bFunctionActive = pFunctionActive->getValue() >= 0.5f;
+        bVelocityActive = pVelocityActive->getValue() >= 0.5f;
+
+        // Update dynamics
+        if (fDynaTop < 1e-6f)
+            fDynaTop    = 1e-6f;
+        if (fDynaBottom < 1e-6f)
+            fDynaBottom = 1e-6f;
+        if (fDynaTop < fDynaBottom)
+        {
+            float tmp   = fDynaTop;
+            fDynaTop    = fDynaBottom;
+            fDynaBottom = tmp;
+        }
+
+        // Update reactivity
+        update_reactivity();
+        if (old_mode != nMode)
+            fRmsValue       = 0.0f;
+
+        // Update sampler settings
+        sKernel.update_settings();
+
+        // Update bypass
+        bool bypass     = pBypass->getValue() >= 0.5f;
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            vChannels[i].sBypass.set_bypass(bypass);
+            vChannels[i].bVisible   = vChannels[i].pVisible->getValue() >= 0.5f;
+        }
+
+        // Update pause
+        bPause          = pPause->getValue() >= 0.5f;
+        bClear          = pClear->getValue() >= 0.5f;
+
+        // Update counters
+        update_counters();
+    }
+
+    void trigger_base::update_sample_rate(long sr)
+    {
+        // Calculate number of samples per dot for shift buffer and initialize buffers
+        size_t samples_per_dot  = seconds_to_samples(sr, HISTORY_TIME / HISTORY_MESH_SIZE);
+
+        // Update sample rate for bypass
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            vChannels[i].sBypass.init(sr);
+            vChannels[i].sGraph.init(HISTORY_MESH_SIZE, samples_per_dot);
+        }
+        sFunction.init(HISTORY_MESH_SIZE, samples_per_dot);
+        sVelocity.init(HISTORY_MESH_SIZE, samples_per_dot);
+
+        // Update settings on all samplers
+        sKernel.update_sample_rate(sr);
+
+        // Update trigger buffer
+        size_t gap              = millis_to_samples(sr, REACTIVITY_MAX);
+        sBuffer.init(gap * 4, gap);
+
+        // Update activity blink
+        sActive.init(sr);
+
+        // Update reactivity
+        update_reactivity();
+
+        // Update counters
+        update_counters();
+    }
+
+    void trigger_base::trigger_on(size_t timestamp, float level)
+    {
+        lsp_trace("midi_out = %p", pMidiOut);
         if (pMidiOut != NULL)
         {
             // We need to emit the NoteOn event
             midi_t *midi    = pMidiOut->getBuffer<midi_t>();
+            lsp_trace("midi buffer = %p", midi);
             if (midi != NULL)
             {
                 // Create event
@@ -394,7 +614,7 @@ namespace lsp
                 ev.type         = MIDI_MSG_NOTE_ON;
                 ev.channel      = nChannel;
                 ev.note.pitch   = nNote;
-                ev.note.velocity= uint32_t(level * 127);
+                ev.note.velocity= uint32_t(1 + (level * 126));
 
                 // Store event in MIDI buffer
                 midi->push(ev);
@@ -402,10 +622,10 @@ namespace lsp
         }
 
         // Handle Note On event
-        sampler_kernel::trigger_on(timestamp, level);
+        sKernel.trigger_on(timestamp, level);
     }
 
-    void trigger_kernel::trigger_off(size_t timestamp, float level)
+    void trigger_base::trigger_off(size_t timestamp, float level)
     {
         if (pMidiOut != NULL)
         {
@@ -427,29 +647,10 @@ namespace lsp
         }
 
         // Handle Note Off event
-        sampler_kernel::trigger_off(timestamp, level);
+        sKernel.trigger_off(timestamp, level);
     }
 
-    void trigger_kernel::bind_midi(IPort *midi_in, IPort *midi_out)
-    {
-        pMidiIn             = midi_in;
-        pMidiOut            = midi_out;
-    }
-
-    void trigger_kernel::update_settings()
-    {
-        // Update settings for notes
-        if (pMidiOut != NULL)
-        {
-            nNote       = (pOctave->getValue() * 12) + pNote->getValue();
-            lsp_trace("trigger note=%d", int(nNote));
-        }
-
-        // Call the sampler kernel for settings update
-        sampler_kernel::update_settings();
-    }
-
-    void trigger_kernel::process(float **outs, const float **ins, size_t samples)
+    void trigger_base::process(size_t samples)
     {
         // Bypass MIDI events (additionally to the triggered events)
         if ((pMidiIn != NULL) && (pMidiOut != NULL))
@@ -466,238 +667,157 @@ namespace lsp
                 pMidiNote->setValue(nNote);
         }
 
-        // Call sampler kernel
-        sampler_kernel::process(outs, ins, samples);
+        // Get pointers to channel buffers
+        const float *ins[TRACKS_MAX];
+        float *outs[TRACKS_MAX], *ctls[TRACKS_MAX];
+
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            channel_t *c        = &vChannels[i];
+            ins[i]              = (c->pIn != NULL)  ? c->pIn->getBuffer<float>() : NULL;
+            outs[i]             = (c->pOut != NULL) ? c->pOut->getBuffer<float>() : NULL;
+
+            // Update meter
+            if ((ins[i] != NULL) && (c->pMeter != NULL))
+            {
+                float level = (c->bVisible) ? dsp::abs_max(ins[i], samples) * fPreamp : 0.0f;
+                c->pMeter->setValue(level);
+            }
+        }
+        pReleaseValue->setValue(fReleaseLevel);
+
+        // Process samples
+        for (size_t offset = 0; offset < samples; )
+        {
+            // Calculate amount of samples to process
+            size_t to_process = samples - offset;
+            if (to_process > BUFFER_SIZE)
+                to_process  = BUFFER_SIZE;
+
+            // Prepare the control chain
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                channel_t *c        = &vChannels[i];
+                dsp::scale(c->vCtl, ins[i], fPreamp, to_process);
+                c->sGraph.process(c->vCtl, samples);
+                ctls[i]             = c->vCtl;
+            }
+
+            // Now we have to process data
+            process_samples(const_cast<const float **>(ctls), to_process);
+
+            // Call sampler kernel for processing
+            sKernel.process(ctls, NULL, to_process);
+
+            // Now mix dry/wet signals and pass thru bypass switch
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                dsp::mix(ctls[i], ins[i], ctls[i], fDry, fWet, to_process);
+                vChannels[i].sBypass.process(outs[i], ins[i], ctls[i], to_process);
+            }
+
+            // Update pointers
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                ins[i]         += to_process;
+                outs[i]        += to_process;
+            }
+            offset         += to_process;
+        }
+
+        if ((!bPause) || (bClear))
+        {
+            // Process mesh requests
+            for (size_t i=0; i<nChannels; ++i)
+            {
+                // Get channel
+                channel_t *c        = &vChannels[i];
+                if (c->pGraph == NULL)
+                    continue;
+
+                // Clear data if requested
+                if (bClear)
+                    dsp::fill_zero(c->sGraph.data(), HISTORY_MESH_SIZE);
+
+                // Get mesh
+                mesh_t *mesh    = c->pGraph->getBuffer<mesh_t>();
+                if ((mesh == NULL) || (!mesh->isEmpty()))
+                    continue;
+
+                // Fill mesh with new values
+                dsp::copy(mesh->pvData[0], vTimePoints, HISTORY_MESH_SIZE);
+                dsp::copy(mesh->pvData[1], c->sGraph.data(), HISTORY_MESH_SIZE);
+                mesh->data(2, HISTORY_MESH_SIZE);
+            }
+
+            // Trigger function
+            if (pFunction != NULL)
+            {
+                // Clear data if requested
+                if (bClear)
+                    dsp::fill_zero(sFunction.data(), HISTORY_MESH_SIZE);
+
+                // Fill mesh if needed
+                mesh_t *mesh = pFunction->getBuffer<mesh_t>();
+                if ((mesh != NULL) && (mesh->isEmpty()))
+                {
+                    dsp::copy(mesh->pvData[0], vTimePoints, HISTORY_MESH_SIZE);
+                    dsp::copy(mesh->pvData[1], sFunction.data(), HISTORY_MESH_SIZE);
+                    mesh->data(2, HISTORY_MESH_SIZE);
+                }
+            }
+
+            // Trigger velocity
+            if (pVelocity != NULL)
+            {
+                // Clear data if requested
+                if (bClear)
+                    dsp::fill_zero(sVelocity.data(), HISTORY_MESH_SIZE);
+
+                // Fill mesh if needed
+                mesh_t *mesh = pVelocity->getBuffer<mesh_t>();
+                if ((mesh != NULL) && (mesh->isEmpty()))
+                {
+                    dsp::copy(mesh->pvData[0], vTimePoints, HISTORY_MESH_SIZE);
+                    dsp::copy(mesh->pvData[1], sVelocity.data(), HISTORY_MESH_SIZE);
+                    mesh->data(2, HISTORY_MESH_SIZE);
+                }
+            }
+        }
     }
 
     //-------------------------------------------------------------------------
-    trigger_base::trigger_base(const plugin_metadata_t &metadata, size_t triggers, size_t files, size_t channels, bool midi):
-        plugin_t(metadata)
+    trigger_mono::trigger_mono(): trigger_base(metadata, SAMPLE_FILES, 1, false)
     {
-        nTriggers       = triggers;
-        nFiles          = files;
-        nChannels       = channels;
-        bMidiPorts      = midi;
-        fDry            = 1.0f;
-        fWet            = 1.0f;
-        vTriggers       = NULL;
-        pBuffer         = NULL;
-
-        pMidiIn         = NULL;
-        pMidiOut        = NULL;
-        pBypass         = NULL;
-        pDry            = NULL;
-        pWet            = NULL;
-        pGain           = NULL;
     }
 
-    trigger_base::~trigger_base()
+    trigger_mono::~trigger_mono()
     {
-        destroy();
     }
 
-    void trigger_base::destroy()
+    trigger_stereo::trigger_stereo(): trigger_base(metadata, SAMPLE_FILES, 2, false)
     {
-        if (vTriggers != NULL)
-        {
-            delete [] vTriggers;
-            vTriggers       = NULL;
-        }
-        if (pBuffer != NULL)
-        {
-            delete [] pBuffer;
-            pBuffer         = NULL;
-        }
     }
 
-    void trigger_base::init(IWrapper *wrapper)
+    trigger_stereo::~trigger_stereo()
     {
-        vTriggers           = new trigger_t[nTriggers];
-        if (vTriggers == NULL)
-            return;
-
-        // Get executor
-        IExecutor *executor = wrapper->get_executor();
-
-        // Initialize audio channels
-        for (size_t i=0; i<trigger_base_metadata::TRACKS_MAX; ++i)
-        {
-            channel_t *c        = &vChannels[i];
-            c->vIn              = NULL;
-            c->vOut             = NULL;
-            c->vTmpIn           = NULL;
-            c->vTmpOut          = NULL;
-            c->pIn              = NULL;
-            c->pOut             = NULL;
-        }
-
-        // Initialize triggers
-        for (size_t i=0; i<nTriggers; ++i)
-        {
-            trigger_t *trg      = &vTriggers[i];
-
-            // Initialize trigger
-            trg->sKernel.init(executor, nFiles, nChannels);
-            trg->sTrigger.init(&trg->sKernel, nChannels);
-
-            trg->fOutGain       = 1.0f;
-
-            trg->pOutGain       = NULL;
-            trg->pDry           = NULL;
-            trg->pWet           = NULL;
-            trg->pDryBypass     = NULL;
-            trg->pMixBypass     = NULL;
-
-            // Initialize channels
-            for (size_t j=0; j<trigger_base_metadata::TRACKS_MAX; ++j)
-            {
-                trigger_channel_t  *tc  = &trg->vChannels[j];
-
-                tc->vDry            = NULL;
-                tc->fPan            = 1.0f;
-                tc->fDry            = 0.0f;
-                tc->fWet            = 1.0f;
-                tc->pPan            = NULL;
-            }
-        }
-
-        // Initialize temporary buffers
-        size_t allocate         = trigger_base_metadata::BUFFER_SIZE * nChannels * 2; // vTmpIn + vTmpOut
-        lsp_trace("Allocating temporary buffer of %d samples", int(allocate));
-        pBuffer                 = new float[allocate];
-        if (pBuffer == NULL)
-            return;
-
-        lsp_trace("Initializing temporary buffers");
-        float *fptr             = pBuffer;
-        for (size_t i=0; i<nChannels; ++i)
-        {
-            vChannels[i].vTmpIn     = fptr;
-            fptr                   += trigger_base_metadata::BUFFER_SIZE;
-            vChannels[i].vTmpOut    = fptr;
-            fptr                   += trigger_base_metadata::BUFFER_SIZE;
-        }
-
-        // Now we are ready to bind ports
-        size_t port_id          = 0;
-
-        // Bind audio inputs
-        lsp_trace("Binding audio inputs...");
-        for (size_t i=0; i<nChannels; ++i)
-        {
-            TRACE_PORT(vPorts[port_id]);
-            vChannels[i].pIn        = vPorts[port_id++];
-            vChannels[i].vIn        = NULL;
-        }
-
-        // Bind audio outputs
-        lsp_trace("Binding audio outputs...");
-        for (size_t i=0; i<nChannels; ++i)
-        {
-            TRACE_PORT(vPorts[port_id]);
-            vChannels[i].pOut       = vPorts[port_id++];
-            vChannels[i].vOut       = NULL;
-        }
-
-        // Bind MIDI ports
-        if (bMidiPorts)
-        {
-            lsp_trace("Binding MIDI ports...");
-            TRACE_PORT(vPorts[port_id]);
-            pMidiIn     = vPorts[port_id++];
-            TRACE_PORT(vPorts[port_id]);
-            pMidiOut    = vPorts[port_id++];
-        }
-
-        // Bind ports
-        lsp_trace("Binding Global ports...");
-        TRACE_PORT(vPorts[port_id]);
-        pBypass     = vPorts[port_id++];
-        TRACE_PORT(vPorts[port_id]);
-        pDry        = vPorts[port_id++];
-        TRACE_PORT(vPorts[port_id]);
-        pWet        = vPorts[port_id++];
-        TRACE_PORT(vPorts[port_id]);
-        pGain       = vPorts[port_id++];
-
-        // Now process each trigger
-        for (size_t i=0; i<nTriggers; ++i)
-        {
-            trigger_t *trg  = &vTriggers[i];
-
-            // Bind trigger
-            lsp_trace("Binding trigger #%d ports...", int(i));
-            port_id     = trg->sTrigger.bind(vPorts, port_id);
-
-            // Bind kernel
-            lsp_trace("Binding kernel #%d ports...", int(i));
-            port_id     = trg->sKernel.bind(vPorts, port_id);
-
-            // Bind MIDI ports for kernel
-            if (bMidiPorts)
-                trg->sKernel.bind_midi(pMidiIn, pMidiOut);
-        }
-
-        // For more than one trigger bind mixing controls
-        if (nTriggers > 1)
-        {
-            for (size_t i=0; i<nTriggers; ++i)
-            {
-                trigger_t *trg  = &vTriggers[i];
-
-                // Bind Bypass port
-                lsp_trace("Binding bypass ports...");
-                TRACE_PORT(vPorts[port_id]);
-                trg->pDryBypass     = vPorts[port_id++];
-                trg->pMixBypass     = vPorts[port_id++];
-
-                // Bind mixing gain port
-                lsp_trace("Binding output gain port...");
-                TRACE_PORT(vPorts[port_id]);
-                trg->pOutGain       = vPorts[port_id++];
-
-                // Bind panorama port
-                if (nChannels > 1)
-                {
-                    lsp_trace("Binding panorama ports...");
-                    for (size_t j=0; j<nChannels; ++j)
-                    {
-                        TRACE_PORT(vPorts[port_id]);
-                        trg->vChannels[j].pPan    = vPorts[port_id++];
-                    }
-                }
-
-                // Bind dry port if present
-                lsp_trace("Binding dry ports...");
-                TRACE_PORT(vPorts[port_id]);
-
-                for (size_t j=0; j<nChannels; ++j)
-                {
-                    TRACE_PORT(vPorts[port_id]);
-                    trg->vChannels[j].pDry    = vPorts[port_id++];
-                }
-            }
-        }
-
-        // Call for initial settings update
-        lsp_trace("Calling settings update");
-        update_settings();
     }
 
-    void trigger_base::update_settings()
+    trigger_midi_mono::trigger_midi_mono(): trigger_base(metadata, SAMPLE_FILES, 1, true)
     {
-        // TODO
     }
 
-    void trigger_base::update_sample_rate(long sr)
+    trigger_midi_mono::~trigger_midi_mono()
     {
-        // TODO
     }
 
-    void trigger_base::process(size_t samples)
+    trigger_midi_stereo::trigger_midi_stereo(): trigger_base(metadata, SAMPLE_FILES, 2, true)
     {
-        // TODO
     }
-#endif
+
+    trigger_midi_stereo::~trigger_midi_stereo()
+    {
+    }
+
 }
 

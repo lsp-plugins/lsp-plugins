@@ -16,6 +16,8 @@ namespace lsp
             cvector<LADSPAPort>     vPorts;
             plugin_t               *pPlugin;
             IExecutor              *pExecutor;      // Executor service
+            size_t                  nLatencyID;     // ID of Latency port
+            LADSPA_Data            *pLatency;       // Latency pointer
 
         protected:
             inline void add_port(LADSPAPort *p)
@@ -30,6 +32,8 @@ namespace lsp
             {
                 pPlugin     = plugin;
                 pExecutor   = NULL;
+                nLatencyID  = 0;
+                pLatency    = NULL;
             }
 
             ~LADSPAWrapper()
@@ -45,10 +49,11 @@ namespace lsp
                 // Bind ports
                 lsp_trace("Binding ports");
 
-                for (const port_t *port = m->ports; (port->id != NULL) && (port->name != NULL); ++port)
+                size_t n_ports = 0;
+                for (const port_t *port = m->ports; (port->id != NULL) && (port->name != NULL); ++port, ++n_ports)
                 {
                     lsp_trace("processing port id=%s", port->id);
-                    bool out = port->flags & F_OUT;
+                    bool out = IS_OUT_PORT(port);
                     switch (port->role)
                     {
                         case R_AUDIO:
@@ -80,6 +85,9 @@ namespace lsp
                             break;
                     }
                 }
+
+                // Store the latency ID port
+                nLatencyID  = n_ports;
 
                 // Initialize plugin
                 lsp_trace("Initializing plugin");
@@ -126,6 +134,13 @@ namespace lsp
 
             inline void connect(size_t id, void *data)
             {
+                if (id == nLatencyID)
+                {
+                    pLatency        = reinterpret_cast<LADSPA_Data *>(data);
+                    return;
+                }
+
+                // Bind internal port
                 LADSPAPort *p      = vPorts[id];
                 if (p != NULL)
                     p->bind(data);
@@ -168,6 +183,10 @@ namespace lsp
                     if (port != NULL)
                         port->post_process(samples);
                 }
+
+                // Write latency
+                if (pLatency != NULL)
+                    *pLatency       = pPlugin->get_latency();
             }
 
             virtual IExecutor *get_executor()

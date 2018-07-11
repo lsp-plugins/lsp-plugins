@@ -39,7 +39,6 @@ namespace lsp
     {
         // Find plugin metadata
         const plugin_metadata_t *m = NULL;
-        const char *plugin_name = NULL;
         const char *uri = NULL;
 
         lsp_trace("descriptor->uri = %s", descriptor->URI);
@@ -47,7 +46,6 @@ namespace lsp
         #define MOD_LV2UI(plugin) \
             if ((!m) && (!strcmp(descriptor->URI, LSP_PLUGIN_UI_URI(lv2, plugin, LSP_PACKAGE)))) \
             { \
-                plugin_name = #plugin; \
                 m = & plugin ## _metadata::metadata; \
                 uri = LSP_PLUGIN_URI(lv2, plugin); \
             }
@@ -66,7 +64,7 @@ namespace lsp
         // Create widget factory and UI
         lsp_trace("Creating plugin UI");
         IWidgetFactory *factory         = new LSP_WIDGET_FACTORY(bundle_path);
-        plugin_ui *p                    = new plugin_ui(plugin_name, m, factory);
+        plugin_ui *p                    = new plugin_ui(m, factory);
 
         // Scan for extensions
         LV2Extensions *ext              = new LV2Extensions(features, uri, controller, write_function);

@@ -43,6 +43,7 @@ namespace lsp
             dsp::multiply                   = sse::multiply;
             dsp::h_sum                      = sse::h_sum;
             dsp::h_sqr_sum                  = sse::h_sqr_sum;
+            dsp::h_abs_sum                  = sse::h_abs_sum;
     //        dsp::scalar_mul                 = sse::scalar_mul;
     //        dsp::accumulate                 = sse::accumulate;
             dsp::add_multiplied             = sse::add_multiplied;

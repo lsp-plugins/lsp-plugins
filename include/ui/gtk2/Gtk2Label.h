@@ -29,6 +29,7 @@ namespace lsp
             float           fVAlign;
             float           fHAlign;
             bool            bDetailed;
+            ssize_t         nFontSize;
             ssize_t         nUnits;
 
         private:

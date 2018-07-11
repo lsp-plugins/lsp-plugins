@@ -292,6 +292,7 @@ namespace lsp
                 fPrev       = meta->start;
                 fValue      = meta->start;
             }
+
             virtual ~LV2OutputPort()
             {
                 pData = NULL;
@@ -305,13 +306,27 @@ namespace lsp
 
             virtual void setValue(float value)
             {
-                fValue      = value;
+                value       = limit_value(pMetadata, value);
+                if (pMetadata->flags & F_PEAK)
+                {
+                    if (fabs(fValue) < fabs(value))
+                        fValue = value;
+                }
+                else
+                    fValue = value;
             }
 
             virtual void bind(void *data)
             {
                 pData       = reinterpret_cast<float *>(data);
             };
+
+            virtual bool pre_process(size_t samples)
+            {
+                if (pMetadata->flags & F_PEAK)
+                    fValue      = 0.0f;
+                return false;
+            }
 
             virtual void post_process(size_t samples)
             {
@@ -321,6 +336,10 @@ namespace lsp
 
                 // Serialize data and reset tx_pending flag
                 fPrev       = fValue;
+
+                // Update data according to peak protocol, only for direct-mapped ports
+                if ((nID >= 0) && (pMetadata->flags & F_PEAK))
+                    fValue      = 0.0f;
             }
 
             virtual bool tx_pending()
@@ -334,6 +353,10 @@ namespace lsp
             {
                 // Serialize and reset pending flag
                 pExt->forge_float(fValue);
+
+                // Update data according to peak protocol, only for Atom transport ports
+                if ((nID < 0) && (pMetadata->flags & F_PEAK))
+                    fValue      = 0.0f;
             }
 
             virtual LV2_URID get_type_urid()
@@ -594,7 +617,7 @@ namespace lsp
                 return false;
             }
 
-            virtual void post_process()
+            virtual void post_process(size_t samples)
             {
                 lsp_trace("buffer=%p", pBuffer);
                 // Check that buffer is present

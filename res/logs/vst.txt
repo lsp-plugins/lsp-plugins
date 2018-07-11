@@ -446,3 +446,106 @@ Description:	Multi-sampler designed as Drum Machine with 48 instruments and addi
 	Registration:	
 		
 	*Plugin ID:	blyi
+
+VST Plugin ID registration:
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Triggersensor Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to detect notes for the instrument and playback samples instead (or with) the original sound.
+		
+	Registration:	
+		
+	*Plugin ID:	zghv
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Triggersensor Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to detect notes for the instrument and playback samples instead (or with) the original sound.
+		
+	Registration:	
+		
+	*Plugin ID:	zika
+
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Triggersensor MIDI Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to detect notes for the instrument and playback samples instead (or with) the original sound. Additional MIDI output channel is provided.
+		
+	Registration:	
+		
+	*Plugin ID:	t4yz
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Triggersensor MIDI Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to detect notes for the instrument and playback samples instead (or with) the original sound. Additional MIDI output channel is provided.
+		
+	Registration:	
+		
+	*Plugin ID:	9cqf

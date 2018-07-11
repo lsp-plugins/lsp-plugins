@@ -117,8 +117,8 @@ namespace lsp
         CONTROL("drft", "Time drifting", U_MSEC, sampler_base_metadata::DRIFT), \
         PORT_SET("ssel", "Sample selector", sampler_sample_selectors, sample)
 
-    #define S_MIXER_SELECTOR(list)     \
-        COMBO("msel", "Mixer lines", 0, list)
+    #define S_AREA_SELECTOR(list)     \
+        COMBO("msel", "Area selector", 0, list)
 
     #define S_INSTRUMENT_SELECTOR(list)     \
         PORT_SET("inst", "Instrument selector", list, sampler_instrument_ports)
@@ -339,7 +339,7 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
-        S_MIXER_SELECTOR(sampler_x12_mixer_lines),
+        S_AREA_SELECTOR(sampler_x12_mixer_lines),
         S_INSTRUMENT_SELECTOR(sampler_x12_instruments),
         S_MIXER(0),
         S_MIXER(1),
@@ -362,7 +362,7 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
-        S_MIXER_SELECTOR(sampler_x24_mixer_lines),
+        S_AREA_SELECTOR(sampler_x24_mixer_lines),
         S_INSTRUMENT_SELECTOR(sampler_x24_instruments),
         S_MIXER(0),
         S_MIXER(1),
@@ -397,7 +397,7 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
-        S_MIXER_SELECTOR(sampler_x48_mixer_lines),
+        S_AREA_SELECTOR(sampler_x48_mixer_lines),
         S_INSTRUMENT_SELECTOR(sampler_x48_instruments),
         S_MIXER(0),
         S_MIXER(1),
@@ -456,7 +456,7 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
-        S_MIXER_SELECTOR(sampler_x12_mixer_lines),
+        S_AREA_SELECTOR(sampler_x12_mixer_lines),
         S_INSTRUMENT_SELECTOR(sampler_x12_instruments),
         S_DIRECT_OUT(0),
         S_DIRECT_OUT(1),
@@ -479,7 +479,7 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
-        S_MIXER_SELECTOR(sampler_x24_mixer_lines),
+        S_AREA_SELECTOR(sampler_x24_mixer_lines),
         S_INSTRUMENT_SELECTOR(sampler_x24_instruments),
         S_DIRECT_OUT(0),
         S_DIRECT_OUT(1),
@@ -514,7 +514,7 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
-        S_MIXER_SELECTOR(sampler_x48_mixer_lines),
+        S_AREA_SELECTOR(sampler_x48_mixer_lines),
         S_INSTRUMENT_SELECTOR(sampler_x48_instruments),
         S_DIRECT_OUT(0),
         S_DIRECT_OUT(1),

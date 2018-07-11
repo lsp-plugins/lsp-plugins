@@ -19,9 +19,9 @@ namespace lsp
         sColor.set(pUI->theme(), C_GLASS);
         sBgColor.set(pUI->theme(), C_BACKGROUND);
         sLineColor.set(pUI->theme(), C_GRAPH_LINE);
-        sLeftColor.set(pUI->theme(), C_RED);
-        sRightColor.set(pUI->theme(), C_CYAN);
-        sMiddleColor.set(pUI->theme(), C_GRAPH_MESH);
+        sLeftColor.set(pUI->theme(), C_LEFT_CHANNEL);
+        sRightColor.set(pUI->theme(), C_RIGHT_CHANNEL);
+        sMiddleColor.set(pUI->theme(), C_MIDDLE_CHANNEL);
         sFadeColor.set(pUI->theme(), C_YELLOW);
         sTextColor.set(pUI->theme(), C_LABEL_TEXT);
 

@@ -251,9 +251,8 @@ namespace lsp
         return true;
     }
 
-    plugin_ui::plugin_ui(const char *name, const plugin_metadata_t *mdata, IWidgetFactory *factory)
+    plugin_ui::plugin_ui(const plugin_metadata_t *mdata, IWidgetFactory *factory)
     {
-        sName           = name;
         pMetadata       = mdata;
         pFactory        = factory;
         pWrapper        = NULL;
@@ -285,9 +284,9 @@ namespace lsp
         {
             // Generate path to UI schema
             #ifdef LSP_USE_EXPAT
-                snprintf(path, PATH_MAX, "%s/ui/%s.xml", pFactory->path(), sName);
+                snprintf(path, PATH_MAX, "%s/ui/%s.xml", pFactory->path(), pMetadata->lv2_uid);
             #else
-                snprintf(path, PATH_MAX, "%s.xml", sName);
+                snprintf(path, PATH_MAX, "%s.xml", pMetadata->lv2_uid);
             #endif /* LSP_USE_EXPAT */
             lsp_trace("Generating UI from file %s", path);
 

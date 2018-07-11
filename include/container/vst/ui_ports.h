@@ -145,12 +145,16 @@ namespace lsp
 
             virtual bool sync()
             {
-                float value = pPort->getValue();
-                if (value == fValue)
-                    return false;
+                float value = fValue;
+                if (pMetadata->flags & F_PEAK)
+                {
+                    VSTMeterPort *mp = static_cast<VSTMeterPort *>(pPort);
+                    fValue      = mp->syncValue();
+                }
+                else
+                    fValue      = pPort->getValue();
 
-                fValue      = value;
-                return true;
+                return value != fValue;
             }
 
             virtual void resync()

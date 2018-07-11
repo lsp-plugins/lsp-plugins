@@ -56,10 +56,6 @@ namespace lsp
             case A_COLOR:
                 sColor.set(pUI->theme(), value);
                 break;
-//            case A_SCALE_COLOR:
-//                sScaleColor.set(pUI->theme(), value);
-//                break;
-//            COLOR_PORTS_BIND(Scale, A_SCALE_HUE_ID, A_SCALE_SAT_ID, A_SCALE_LIGHT_ID);
             case A_SIZE:
                 PARSE_INT(value, nSize = size_t(__));
                 break;

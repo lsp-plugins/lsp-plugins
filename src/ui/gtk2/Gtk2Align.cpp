@@ -66,7 +66,7 @@ namespace lsp
 
     void Gtk2Align::end()
     {
-        gtk_alignment_set(GTK_ALIGNMENT(pWidget), nVertPos, nHorPos, nVertScale, nHorScale);
+        gtk_alignment_set(GTK_ALIGNMENT(pWidget), nHorPos, nVertPos, nHorScale, nVertScale);
         gtk_alignment_set_padding(GTK_ALIGNMENT(pWidget), nBorder + nPadTop, nBorder + nPadBottom, nBorder + nPadLeft, nBorder + nPadRight);
 
         Gtk2Container::end();

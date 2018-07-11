@@ -95,7 +95,14 @@ namespace lsp
             virtual void ui_activated()
             {
                 // Query plugin state
-                pExt->ui_query_plugin_state();
+                if (pExt != NULL)
+                    pExt->ui_connect_to_plugin();
+            }
+
+            virtual void ui_deactivated()
+            {
+                if (pExt != NULL)
+                    pExt->ui_disconnect_from_plugin();
             }
 
             void destroy()

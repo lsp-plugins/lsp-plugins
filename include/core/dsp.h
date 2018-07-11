@@ -149,6 +149,14 @@ namespace lsp
          */
         extern float (* h_sqr_sum)(const float *src, size_t count);
 
+        /** Calculate horizontal sum of absolute values: result = sum (i) from 0 to count-1 abs(src[i])
+         *
+         * @param src vector to summarize
+         * @param count number of elements
+         * @return status of operation
+         */
+        extern float (* h_abs_sum)(const float *src, size_t count);
+
         /** Calculate sum {from 0 to count-1} (a[i] * b[i])
          *
          * @param a first vector
