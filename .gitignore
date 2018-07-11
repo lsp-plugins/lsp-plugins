@@ -1,4 +1,5 @@
 /.svn/*
+/.settings/*
 /design/*
 /res/specs/*
 /.build/*
@@ -6,3 +7,6 @@
 /test/im_reverbs/*
 /design/articles/*
 /test_data/*
+/.project
+/.cproject
+/Debug/
