@@ -9,8 +9,8 @@
 				</vbox>
 				<vbox size="3">
 					<label text="Output" />
-					<knob id="out_gain" size="24" />
-					<value id="out_gain" />
+					<knob id="g_out" size="24" />
+					<value id="g_out" />
 				</vbox>
 			</vbox>
 		</align>
@@ -65,8 +65,8 @@
 				<group text="Samples L" expand="true">
 					<vbox border="0">
 						<label text="Samples" />
-						<knob id="samples_l" />
-						<value id="samples_l" />
+						<knob id="samp_l" />
+						<value id="samp_l" />
 						
 						<align hpos="0.5" vpos="0.5" border="0" expand="true">
 							<hbox border="0">
@@ -79,8 +79,8 @@
 				<group text="Samples R" expand="true">
 					<vbox border="0">
 						<label text="Samples" />
-						<knob id="samples_r" />
-						<value id="samples_r" />
+						<knob id="samp_r" />
+						<value id="samp_r" />
 						
 						<align hpos="0.5" vpos="0.5" border="0" expand="true">
 							<hbox border="0">
@@ -97,18 +97,18 @@
 						<hbox border="0">
 							<vbox border="0">
 								<label text="Meters" />
-								<knob id="meters_l" />
-								<value id="meters_l" />
+								<knob id="m_l" />
+								<value id="m_l" />
 							</vbox>
 							<vbox border="0">
 								<label text="Centimeters" />
-								<knob id="centimeters_l" />
-								<value id="centimeters_l" />
+								<knob id="cm_l" />
+								<value id="cm_l" />
 							</vbox>
 							<vbox border="0">
 								<label text="Temperature" />
-								<knob id="temperature_l" balance="0.5" />
-								<value id="temperature_l" />
+								<knob id="t_l" balance="0.5" />
+								<value id="t_l" />
 							</vbox>
 						</hbox>
 						<align hpos="0.5" vpos="0.5" border="0" expand="true">
@@ -124,18 +124,18 @@
 						<hbox border="0">
 							<vbox border="0">
 								<label text="Meters" />
-								<knob id="meters_r" />
-								<value id="meters_r" />
+								<knob id="m_r" />
+								<value id="m_r" />
 							</vbox>
 							<vbox border="0">
 								<label text="Centimeters" />
-								<knob id="centimeters_r" />
-								<value id="centimeters_r" />
+								<knob id="cm_r" />
+								<value id="cm_r" />
 							</vbox>
 							<vbox border="0">
 								<label text="Temperature" />
-								<knob id="temperature_r" balance="0.5" />
-								<value id="temperature_r" />
+								<knob id="t_r" balance="0.5" />
+								<value id="t_r" />
 							</vbox>
 						</hbox>
 						<align hpos="0.5" vpos="0.5" border="0" expand="true">
@@ -184,13 +184,13 @@
 						<label text="Value" />
 		
 						<label text="Time (ms)" fill="true" halign="0" />
-						<indicator id="del_time_l" format="f6.2!" text_color="green" />
+						<indicator id="d_t_l" format="f6.2!" text_color="green" />
 						
 						<label text="Samples (samp)" fill="true" halign="0" />
-						<indicator id="del_samples_l" format="i6" text_color="green" /> 
+						<indicator id="d_s_l" format="i6" text_color="green" /> 
 						
 						<label text="Distance (cm)" fill="true" halign="0" />
-						<indicator id="del_distance_l" format="f6.1!" text_color="green" />
+						<indicator id="d_d_l" format="f6.1!" text_color="green" />
 						
 						<cell cols="2">
 							<label text="LEFT CHANNEL" />
@@ -203,13 +203,13 @@
 						<label text="Value" />
 		
 						<label text="Time (ms)" fill="true" halign="0" />
-						<indicator id="del_time_r" format="f6.2!" text_color="green" />
+						<indicator id="d_t_r" format="f6.2!" text_color="green" />
 						
 						<label text="Samples (samp)" fill="true" halign="0" />
-						<indicator id="del_samples_r" format="i6" text_color="green" /> 
+						<indicator id="d_s_r" format="i6" text_color="green" /> 
 						
 						<label text="Distance (cm)" fill="true" halign="0" />
-						<indicator id="del_distance_r" format="f6.1!" text_color="green" />
+						<indicator id="d_d_r" format="f6.1!" text_color="green" />
 						
 						<cell cols="2">
 							<label text="RIGHT CHANNEL" />

@@ -166,11 +166,11 @@ namespace lsp
     class LV2LatencyPort: public LV2Port
     {
         private:
-            float  *pData;
-            plugin *pPlugin;
+            float      *pData;
+            plugin_t   *pPlugin;
 
         public:
-            LV2LatencyPort(const port_t *meta, LV2Extensions *ext, plugin *p) : LV2Port(meta, ext)
+            LV2LatencyPort(const port_t *meta, LV2Extensions *ext, plugin_t *p) : LV2Port(meta, ext)
             {
                 pData       = NULL;
                 pPlugin     = p;
@@ -184,7 +184,7 @@ namespace lsp
         public:
             virtual void bind(void *data)
             {
-                lsp_trace("bind %p", data);
+//                lsp_trace("bind %p", data);
                 pData = reinterpret_cast<float *>(data);
             };
 
@@ -202,7 +202,7 @@ namespace lsp
                         value = pMetadata->min;
                 }
 
-                lsp_trace("pPlugin = %p, value = %.3f, pData = %p", pPlugin, value, pData);
+//                lsp_trace("pPlugin = %p, value = %.3f, pData = %p", pPlugin, value, pData);
 
                 if (pData != NULL)
                     *pData      = value;

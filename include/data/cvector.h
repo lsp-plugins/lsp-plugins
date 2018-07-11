@@ -47,12 +47,23 @@ namespace lsp
         public:
             explicit inline basic_vector()
             {
-                pvItems      = NULL;
+                pvItems     = NULL;
                 nCapacity   = 0;
                 nItems      = 0;
             }
 
             inline ~basic_vector()
+            {
+                flush();
+            }
+
+            inline size_t size() const  { return nItems; }
+
+            inline size_t capacity() const { return nCapacity; }
+
+            inline void clear() { nItems = 0; }
+
+            void flush()
             {
                 if (pvItems != NULL)
                 {
@@ -62,12 +73,6 @@ namespace lsp
                 nCapacity   = 0;
                 nItems      = 0;
             }
-
-            inline size_t size() const  { return nItems; }
-
-            inline size_t capacity() const { return nCapacity; }
-
-            inline void clear() { nItems = 0; }
     };
 
     // Generalize pointers with templates

@@ -248,6 +248,8 @@ namespace lsp
 
     float Gtk2Knob::get_normalized_value()
     {
+        if (pPort == NULL)
+            return fValue;
         const port_t *p = pPort->metadata();
         if (p == NULL)
             return fValue;

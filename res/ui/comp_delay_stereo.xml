@@ -33,8 +33,8 @@
 		<group text="Samples">
 			<vbox border="0">
 				<label text="Samples" />
-				<knob id="samples" />
-				<value id="samples" />
+				<knob id="samp" />
+				<value id="samp" />
 				
 				<align hpos="0.5" vpos="0.5" border="0" expand="true">
 					<hbox border="0">
@@ -49,18 +49,18 @@
 				<hbox border="0">
 					<vbox border="0">
 						<label text="Meters" />
-						<knob id="meters" />
-						<value id="meters" />
+						<knob id="m" />
+						<value id="m" />
 					</vbox>
 					<vbox border="0">
 						<label text="Centimeters" />
-						<knob id="centimeters" />
-						<value id="centimeters" />
+						<knob id="cm" />
+						<value id="cm" />
 					</vbox>
 					<vbox border="0">
 						<label text="Temperature" />
-						<knob id="temperature" balance="0.5" />
-						<value id="temperature" />
+						<knob id="t" balance="0.5" />
+						<value id="t" />
 					</vbox>
 				</hbox>
 				<align hpos="0.5" vpos="0.5" border="0" expand="true">
@@ -91,13 +91,13 @@
 				<label text="Value" />
 
 				<label text="Time (ms)" fill="true" halign="0" />
-				<indicator id="del_time" format="f6.2!" text_color="green" />
+				<indicator id="d_t" format="f6.2!" text_color="green" />
 				
 				<label text="Samples (samp)" fill="true" halign="0" />
-				<indicator id="del_samples" format="i6" text_color="green" /> 
+				<indicator id="d_s" format="i6" text_color="green" /> 
 				
 				<label text="Distance (cm)" fill="true" halign="0" />
-				<indicator id="del_distance" format="f6.1!" text_color="green" />
+				<indicator id="d_d" format="f6.1!" text_color="green" />
 				
 				<cell cols="2">
 					<label text="DELAY LINE" />
@@ -107,8 +107,8 @@
 		<align pad_left="8" pad_right="8" hpos="0.5" vpos="0.5">
 			<vbox size="3">
 				<label text="Output" />
-				<knob id="out_gain" size="24" />
-				<value id="out_gain" />
+				<knob id="g_out" size="24" />
+				<value id="g_out" />
 			</vbox>
 		</align>
 	</hbox>

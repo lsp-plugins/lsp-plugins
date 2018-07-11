@@ -19,9 +19,27 @@
     typedef struct class ## Class { \
         gtk_class parent; \
         void (* size_request) (GtkWidget *widget, GtkRequisition *requisition); \
+        void (* destroy)  (GtkObject *object); \
     } class ## Class; \
     \
     static GType class ## Impl_get_type (void); \
+    \
+    static void class ## Impl_destroy(GtkObject *object) \
+    { \
+        g_return_if_fail(object != NULL); \
+        \
+        class ## Impl *_this = G_TYPE_CHECK_INSTANCE_CAST (object, class ## Impl_get_type(), class ## Impl); \
+        g_return_if_fail(_this); \
+        if (_this->impl != NULL) \
+        { \
+            _this->impl->destroy(); \
+            _this->impl            = NULL; \
+        } \
+        \
+        class ## Class *klass = G_TYPE_INSTANCE_GET_CLASS (object, class ## Impl_get_type(), class ## Class); \
+        if (klass->destroy != NULL) \
+            klass->destroy(object); \
+    } \
     \
     static void class ## Impl_size_request(GtkWidget *widget, GtkRequisition *requisition) \
     { \
@@ -65,9 +83,12 @@
     static void class ## Impl_class_init (class ## Class *cl) \
     { \
         GtkWidgetClass *wc = GTK_WIDGET_CLASS(cl); \
+        GtkObjectClass *oc = GTK_OBJECT_CLASS(cl); \
         cl->size_request = wc->size_request; \
+        cl->destroy      = oc->destroy; \
         wc->expose_event = class ## Impl_expose; \
         wc->size_request = class ## Impl_size_request; \
+        oc->destroy      = class ## Impl_destroy; \
     } \
      \
     static void class ## Impl_init(class ## Impl *self) \
@@ -122,8 +143,11 @@
     \
     static void class ## Impl_delete(GtkWidget *widget) \
     { \
-        class ## Impl *_this = G_TYPE_CHECK_INSTANCE_CAST (widget, class ## Impl_get_type(), class ## Impl); \
-        _this->impl = NULL; \
+        if (widget != NULL) \
+        { \
+            class ## Impl *_this = G_TYPE_CHECK_INSTANCE_CAST (widget, class ## Impl_get_type(), class ## Impl); \
+            _this->impl = NULL; \
+        } \
     }
 
 

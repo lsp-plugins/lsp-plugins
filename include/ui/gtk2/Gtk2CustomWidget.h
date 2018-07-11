@@ -21,6 +21,7 @@ namespace lsp
     struct _Gtk2CustomClass
     {
         GtkWidgetClass parent_class;
+        void           (*destroy)  (GtkObject *object);
     };
 
     typedef struct _Gtk2Custom Gtk2Custom;
@@ -40,10 +41,11 @@ namespace lsp
 
         private:
             static void class_init(Gtk2CustomClass *klass);
+            static void destroy(GtkObject *object);
+
             static void init(GtkWidget *widget);
             static void realize(GtkWidget *widget);
             static gboolean expose(GtkWidget *widget, GdkEventExpose *event);
-            static void destroy(GtkObject *object);
             static void size_request(GtkWidget *widget, GtkRequisition *requisition);
             static void size_allocate(GtkWidget *widget, GtkAllocation *allocation);
             static gboolean button_press(GtkWidget *widget, GdkEventButton *event);
@@ -73,6 +75,8 @@ namespace lsp
             virtual void motion(ssize_t x, ssize_t y, size_t state);
 
             virtual void scroll(ssize_t x, ssize_t y, size_t state, size_t direction);
+
+            virtual void destroy();
 
             virtual void markRedraw();
     };

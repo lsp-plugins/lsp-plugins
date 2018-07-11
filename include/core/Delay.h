@@ -26,11 +26,11 @@ namespace lsp
             Delay();
             ~Delay();
 
-            bool init(dsp *dsp, size_t max_size);
+            bool init(size_t max_size);
             void destroy();
 
-            void process(dsp *dsp, float *dst, const float *src, size_t count);
-            void process(dsp *dsp, float *dst, const float *src, float gain, size_t count);
+            void process(float *dst, const float *src, size_t count);
+            void process(float *dst, const float *src, float gain, size_t count);
 
             void set_delay(size_t delay);
             inline size_t get_delay() const { return nDelay; };

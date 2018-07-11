@@ -134,7 +134,9 @@ namespace lsp
     {
         fprintf(out, LSP_PREFIX "_%s:%s\n", package, name);
         fprintf(out, "\ta ui:%s ;\n", ui_class);
-        fprintf(out, "\tui:binary <" LSP_BINARY "-%s.so> ;\n", package);
+        fprintf(out, "\tlv2:minorVersion %d ;\n", int(LSP_VERSION_MINOR(m.version)));
+        fprintf(out, "\tlv2:microVersion %d ;\n", int(LSP_VERSION_MICRO(m.version)));
+        fprintf(out, "\tui:binary <" LSP_ARTIFACT_ID "-lv2-%s.so> ;\n", package);
         fprintf(out, "\n");
 
         size_t ports        = 0;
@@ -306,6 +308,8 @@ namespace lsp
         print_additional_groups(out, m.classes);
         fprintf(out, " ;\n");
         fprintf(out, "\tdoap:name \"" LSP_ACRONYM " %s - %s [LV2]\" ;\n", m.name, m.description);
+        fprintf(out, "\tlv2:minorVersion %d ;\n", int(LSP_VERSION_MINOR(m.version)));
+        fprintf(out, "\tlv2:microVersion %d ;\n", int(LSP_VERSION_MICRO(m.version)));
         fprintf(out, "\tdoap:developer [\n");
         fprintf(out, "\t\tfoaf:name \"%s\" ;\n", m.author);
         fprintf(out, "\t\tfoaf:homepage <" LSP_BASE_URI "> ;\n");
@@ -315,7 +319,7 @@ namespace lsp
         fprintf(out, "\t\tfoaf:homepage <" LSP_BASE_URI "> ;\n");
         fprintf(out, "\t] ;\n");
         fprintf(out, "\tdoap:license \"" LSP_COPYRIGHT "\" ;\n");
-        fprintf(out, "\tlv2:binary <" LSP_BINARY ".so> ;\n");
+        fprintf(out, "\tlv2:binary <" LSP_ARTIFACT_ID "-lv2.so> ;\n");
         print_plugin_ui(out, name, uri);
         fprintf(out, "\n");
         fprintf(out, "\tlv2:requiredFeature urid:map ;\n");
@@ -369,9 +373,9 @@ namespace lsp
                 fprintf(out, "\t\tlv2:portProperty lv2:toggled ;\n");
 //                if (p->flags & F_TRG)
 //                    fprintf(out, "\t\tlv2:portProperty pp:trigger ;\n");
-                fprintf(out, "\t\tlv2:minimum %.6f ;\n", 0.0f);
-                fprintf(out, "\t\tlv2:maximum %.6f ;\n", 1.0f);
-                fprintf(out, "\t\tlv2:default %.6f ;\n", p->start);
+                fprintf(out, "\t\tlv2:minimum %d ;\n", 0);
+                fprintf(out, "\t\tlv2:maximum %d ;\n", 1);
+                fprintf(out, "\t\tlv2:default %d ;\n", int(p->start));
             }
             else if (p->unit == U_ENUM)
             {
@@ -514,7 +518,7 @@ namespace lsp
         #define MOD_LV2(plugin) \
             fprintf(out, LSP_PREFIX ":" #plugin "\n"); \
             fprintf(out, "\ta lv2:Plugin ;\n"); \
-            fprintf(out, "\tlv2:binary <" LSP_BINARY ".so> ;\n"); \
+            fprintf(out, "\tlv2:binary <" LSP_ARTIFACT_ID "-lv2.so> ;\n"); \
             fprintf(out, "\trdfs:seeAlso <%s.ttl> .\n\n", #plugin);
         #include <core/modules.h>
         fclose(out);

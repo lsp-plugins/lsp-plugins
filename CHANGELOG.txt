@@ -1,9 +1,20 @@
 *******************************************************************************
-* CHANGE LOG                                                        *
+* RECENT CHANGES
 *******************************************************************************
+
+=== 1.0.1 ===
+
+* Fixed bugs in SSE assembly code discovered at 44100 Hz sample rate.
+* Optimized SSE DSP processor: now it doesn't need to be an instance
+  of the class.
+* Fixed assertion issues with GTK+ support on UI close and destroy
+  for LV2.
+* Implemented generic LinuxVST support for plugins. Currently UI is not
+  supported.
+* Updated plugin metadata to become more compatible with VST.
 
 === 1.0.0 ===
 
-Initial version. Implemented plugins:
-  * LSP Phasendetektor - Phase Detector
-  * LSP Verzögerungsausgleicher - Delay compensator
+* Initial version. Implemented plugins:
+  - LSP Phasendetektor - Phase Detector
+  - LSP Verzögerungsausgleicher - Delay compensator

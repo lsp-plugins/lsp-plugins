@@ -34,7 +34,7 @@ namespace lsp
             int         nSampleRate;
             IPort      *pIn;
             IPort      *pOut;
-            dsp        *pDSP;
+//            dsp        *pDSP;
 
         public:
             comp_delay_base();
@@ -65,24 +65,30 @@ namespace lsp
             inline static float sound_speed(float temp);
 
         public:
-            void init(dsp *p_dsp, int sample_rate, float *buffer, size_t buf_size);
+            void init(int sample_rate, float *buffer, size_t buf_size);
 
             void destroy();
 
             void process(size_t samples);
     };
 
-    class comp_delay_impl: public plugin
+    class comp_delay_impl: public plugin_t
     {
         protected:
             float       *vBuffer;
+
+        protected:
+            virtual void dropBuffers();
+            virtual void createBuffers();
 
         public:
             comp_delay_impl(const plugin_metadata_t &mdata);
             virtual ~comp_delay_impl();
 
         public:
-            virtual void init(int sample_rate);
+            virtual void init();
+            virtual void update_sample_rate(int sr);
+            virtual void destroy();
     };
 
     class comp_delay_mono: public comp_delay_impl, public comp_delay_mono_metadata
@@ -90,15 +96,16 @@ namespace lsp
         private:
             comp_delay_base     vDelay;
 
+        protected:
+            virtual void dropBuffers();
+            virtual void createBuffers();
+
         public:
             comp_delay_mono();
             virtual ~comp_delay_mono();
 
         public:
-            virtual void init(int sample_rate);
-
             virtual void update_settings();
-
             virtual void process(size_t samples);
     };
 
@@ -107,15 +114,16 @@ namespace lsp
         private:
             comp_delay_base     vDelay[2];
 
+        protected:
+            virtual void dropBuffers();
+            virtual void createBuffers();
+
         public:
             comp_delay_stereo();
             virtual ~comp_delay_stereo();
 
         public:
-            virtual void init(int sample_rate);
-
             virtual void update_settings();
-
             virtual void process(size_t samples);
     };
 
@@ -124,15 +132,16 @@ namespace lsp
         private:
             comp_delay_base     vDelay[2];
 
+        protected:
+            virtual void dropBuffers();
+            virtual void createBuffers();
+
         public:
             comp_delay_x2_stereo();
             virtual ~comp_delay_x2_stereo();
 
         public:
-            virtual void init(int sample_rate);
-
             virtual void update_settings();
-
             virtual void process(size_t samples);
     };
 

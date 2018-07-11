@@ -25,7 +25,7 @@ namespace lsp
         destroy();
     }
 
-    bool Delay::init(dsp *dsp, size_t max_size)
+    bool Delay::init(size_t max_size)
     {
         size_t size = 1;
         while (size < max_size)
@@ -37,7 +37,7 @@ namespace lsp
         if (pBuffer == NULL)
             return false;
 
-        dsp->fill_zero(pBuffer, size);
+        dsp::fill_zero(pBuffer, size);
         nHead       = 0;
         nTail       = 0;
         nDelay      = 0;
@@ -55,7 +55,7 @@ namespace lsp
         }
     }
 
-    void Delay::process(dsp *dsp, float *dst, const float *src, size_t count)
+    void Delay::process(float *dst, const float *src, size_t count)
     {
 //        lsp_trace("dsp = %p, dst = %p, src = %p, count = %d", dsp, dst, src, int(count));
 
@@ -74,7 +74,7 @@ namespace lsp
                 if (to_copy > in)
                     to_copy         = in;
 
-                dsp->copy(&pBuffer[nHead], src, to_copy);
+                dsp::copy(&pBuffer[nHead], src, to_copy);
                 nHead       = (nHead + to_copy) % nSize;
                 in         -= to_copy;
                 src        += to_copy;
@@ -90,7 +90,7 @@ namespace lsp
                 if (to_copy > out)
                     to_copy         = out;
 
-                dsp->copy(dst, &pBuffer[nTail], to_copy);
+                dsp::copy(dst, &pBuffer[nTail], to_copy);
                 nTail       = (nTail + to_copy) % nSize;
                 out        -= to_copy;
                 dst        += to_copy;
@@ -99,7 +99,7 @@ namespace lsp
         }
     }
 
-    void Delay::process(dsp *dsp, float *dst, const float *src, float gain, size_t count)
+    void Delay::process(float *dst, const float *src, float gain, size_t count)
     {
 //        lsp_trace("dsp = %p, dst = %p, src = %p, count = %d", dsp, dst, src, int(count));
 
@@ -118,7 +118,7 @@ namespace lsp
                 if (to_copy > in)
                     to_copy         = in;
 
-                dsp->copy(&pBuffer[nHead], src, to_copy);
+                dsp::copy(&pBuffer[nHead], src, to_copy);
                 nHead       = (nHead + to_copy) % nSize;
                 in         -= to_copy;
                 src        += to_copy;
@@ -134,7 +134,7 @@ namespace lsp
                 if (to_copy > out)
                     to_copy         = out;
 
-                dsp->copy_multiplied(dst, &pBuffer[nTail], gain, to_copy);
+                dsp::multiply(dst, &pBuffer[nTail], gain, to_copy);
                 nTail       = (nTail + to_copy) % nSize;
                 out        -= to_copy;
                 dst        += to_copy;

@@ -32,6 +32,8 @@ namespace lsp
             virtual void end();
 
             virtual void resize(ssize_t &w, ssize_t &h);
+
+            virtual void destroy();
     };
 
 } /* namespace lsp */

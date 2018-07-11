@@ -8,19 +8,22 @@
 #ifndef _CONTAINER_VST_MAIN_H_
 #define _CONTAINER_VST_MAIN_H_
 
-#include <container/vst/defs.h>
 #include <core/metadata.h>
 #include <core/debug.h>
+#include <container/vst/defs.h>
 
 // System libraries
 #include <sys/types.h>
 #include <unistd.h>
 #include <pwd.h>
 #include <dlfcn.h>
+#include <stdlib.h>
+
+#define LSP_VST_CORE        LSP_ARTIFACT_ID "-vst-core.so"
 
 namespace lsp
 {
-    const char *vst_core_paths[] =
+    static const char *vst_core_paths[] =
     {
         "/usr/local/lib64",
         "/usr/lib64",
@@ -32,19 +35,13 @@ namespace lsp
     };
 
     static void *hInstance;
-};
 
-extern "C"
-{
-    #if defined (__GNUC__) && ((__GNUC__ >= 4) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 1)))
-        #define VST_EXPORT  __attribute__ ((visibility ("default")))
-    #else
-        #define VST_EXPORT
-    #endif
+    // The factory for creating plugin instances
+    static vst_create_instance_t factory = NULL;
 
     vst_create_instance_t lookup_factory(const char *path)
     {
-        using namespace lsp;
+        lsp_trace("Trying shared library %s", path);
 
         // Try to load library
         hInstance = dlopen (path, RTLD_NOW);
@@ -59,7 +56,7 @@ extern "C"
         {
             lsp_trace("function %s not found: %s", VST_CREATE_INSTANCE_STRNAME, dlerror());
 
-            // Close libraryb
+            // Close library
             dlclose(hInstance);
             hInstance   = NULL;
         }
@@ -67,12 +64,12 @@ extern "C"
         return f;
     }
 
-    // The main function
-    VST_EXPORT AEffect* VSTPluginMain (audioMasterCallback callback)
+    vst_create_instance_t get_factory()
     {
-        // Get VST Version of the Host
-        if (!callback (NULL, audioMasterVersion, 0, NULL, 0, 0.0f))
-            return 0;  // old version
+        if (factory != NULL)
+            return factory;
+
+        lsp_debug("Trying to find CORE library " LSP_VST_CORE);
 
         const char *homedir = getenv("HOME");
         char *buf = NULL;
@@ -96,37 +93,66 @@ extern "C"
         }
 
         // Initialize factory with NULL
-        vst_create_instance_t factory = NULL;
         char path[PATH_MAX];
 
         if (homedir != NULL)
         {
-            snprintf(path, PATH_MAX, "%s/.vst/%s.so", homedir, LSP_VST_BINARY);
+            lsp_trace("home directory = %s", homedir);
+            snprintf(path, PATH_MAX, "%s/.vst/" LSP_VST_CORE, homedir);
             factory     = lookup_factory(path);
+
+            if (factory == NULL)
+            {
+                snprintf(path, PATH_MAX, "%s/vst/" LSP_VST_CORE, homedir);
+                factory     = lookup_factory(path);
+            }
         }
 
-        if (! factory)
+        if (factory == NULL)
         {
-            for (const char **p = vst_core_paths; *p != NULL; ++p)
+            for (const char **p = vst_core_paths; (p != NULL) && (*p != NULL); ++p)
             {
-                snprintf(path, PATH_MAX, "%s/%s.so", p, LSP_VST_BINARY);
+                snprintf(path, PATH_MAX, "%s/vst/" LSP_VST_CORE, *p);
                 factory     = lookup_factory(path);
                 if (factory != NULL)
                     break;
             }
         }
 
-        // Create effect
-        AEffect *effect     = NULL;
-
-        if (factory != NULL)
-            effect = factory(VST_PLUGIN_UID, callback);
-        else
-            lsp_error("Could not find VST core library %s", LSP_VST_BINARY);
-
         // Delete buffer if allocated
         if (buf != NULL)
             delete [] buf;
+
+        // Return factory instance (if present)
+        return factory;
+    }
+};
+
+extern "C"
+{
+    // The main function
+    VST_EXPORT AEffect* VSTPluginMain (audioMasterCallback callback)
+    {
+        using namespace lsp;
+
+        // Get VST Version of the Host
+        if (!callback (NULL, audioMasterVersion, 0, 0, NULL, 0.0f))
+        {
+            lsp_error("audioMastercallback failed request");
+            return 0;  // old version
+        }
+
+        // Check that we need to instantiate the factory
+        lsp_trace("Getting factory");
+        vst_create_instance_t f = get_factory();
+
+        // Create effect
+        AEffect *effect     = NULL;
+
+        if (f != NULL)
+            effect = f(VST_PLUGIN_UID, callback);
+        else
+            lsp_error("Could not find VST core library " LSP_VST_CORE);
 
         // Return VST AEffect structure
         return effect;

@@ -13,7 +13,7 @@
 
 #include <string.h>
 
-#define BUFFER_SIZE         1024
+#define BUFFER_SIZE         (0x10000 / sizeof(float))
 
 namespace lsp
 {
@@ -32,7 +32,7 @@ namespace lsp
         nBufSize        = 0;
         pIn             = NULL;
         pOut            = NULL;
-        pDSP            = NULL;
+//        pDSP            = NULL;
     }
 
     comp_delay_base::~comp_delay_base()
@@ -45,16 +45,16 @@ namespace lsp
         return sqrtf(AIR_ADIABATIC_INDEX * GAS_CONSTANT * (temp - TEMP_ABS_ZERO) * 1000 /* g/kg */ / AIR_MOLAR_MASS);
     }
 
-    void comp_delay_base::init(dsp *p_dsp, int sample_rate, float *buffer, size_t buf_size)
+    void comp_delay_base::init(int sample_rate, float *buffer, size_t buf_size)
     {
-        pDSP                    = p_dsp;
+//        pDSP                    = p_dsp;
         nSampleRate             = sample_rate;
         size_t samples          = comp_delay_base_metadata::SAMPLES_MAX;
         size_t time_samples     = comp_delay_base_metadata::TIME_MAX * 0.001 * nSampleRate;
         size_t dist_samples     = (comp_delay_base_metadata::METERS_MAX + comp_delay_base_metadata::CENTIMETERS_MAX * 0.01) /
                                     sound_speed(comp_delay_base_metadata::TEMPERATURE_MAX);
 
-        lsp_trace("dsp=%p, samples=%d, time_samples=%d, dist_samples=%d", pDSP, int(samples), int(time_samples), int(dist_samples));
+        lsp_trace("samples=%d, time_samples=%d, dist_samples=%d", int(samples), int(time_samples), int(dist_samples));
         if (samples < time_samples)
             samples     = time_samples;
         if (samples < dist_samples)
@@ -63,7 +63,7 @@ namespace lsp
         vBuffer                 = buffer;
         nBufSize                = buf_size;
 
-        vLine.init(pDSP, samples);
+        vLine.init(samples);
         vBypass.init(sample_rate);
     }
 
@@ -117,12 +117,12 @@ namespace lsp
             size_t count = (samples > nBufSize) ? nBufSize : samples;
 
             // Pre-process signal (fill buffer)
-            vLine.process(pDSP, vBuffer, in, fWet, count);
+            vLine.process(vBuffer, in, fWet, count);
             // Apply 'dry' control
             if (fDry > 0.0)
-                pDSP->add_multiplied(vBuffer, in, fDry, count);
+                dsp::add_multiplied(vBuffer, in, fDry, count);
 
-            vBypass.process(pDSP, out, in, vBuffer, count);
+            vBypass.process(out, in, vBuffer, count);
 
             // Increment pointers
             in          +=  count;
@@ -131,26 +131,46 @@ namespace lsp
         }
     }
 
-    comp_delay_impl::comp_delay_impl(const plugin_metadata_t &mdata): plugin(mdata)
+    comp_delay_impl::comp_delay_impl(const plugin_metadata_t &mdata): plugin_t(mdata)
     {
         vBuffer     = NULL;
     }
 
     comp_delay_impl::~comp_delay_impl()
     {
+    }
+
+    void comp_delay_impl::init()
+    {
+        plugin_t::init();
+        vBuffer     = new float[BUFFER_SIZE];
+    }
+
+    void comp_delay_impl::update_sample_rate(int sr)
+    {
+        dropBuffers();
+        createBuffers();
+    }
+
+    void comp_delay_impl::dropBuffers()
+    {
+    }
+
+    void comp_delay_impl::createBuffers()
+    {
+    }
+
+    void comp_delay_impl::destroy()
+    {
+        dropBuffers();
+
         if (vBuffer != NULL)
         {
             delete [] vBuffer;
             vBuffer = NULL;
         }
+        plugin_t::destroy();
     }
-
-    void comp_delay_impl::init(int sample_rate)
-    {
-        plugin::init(sample_rate);
-        vBuffer     = new float[BUFFER_SIZE];
-    }
-
 
     comp_delay_mono::comp_delay_mono(): comp_delay_impl(metadata)
     {
@@ -161,12 +181,15 @@ namespace lsp
     {
     }
 
-    void comp_delay_mono::init(int sample_rate)
+    void comp_delay_mono::createBuffers()
     {
-        comp_delay_impl::init(sample_rate);
-
-        vDelay.init(pDSP, sample_rate, vBuffer, BUFFER_SIZE);
+        vDelay.init(fSampleRate, vBuffer, BUFFER_SIZE);
         vDelay.set_ports(vIntPorts[IN], vIntPorts[OUT]);
+    }
+
+    void comp_delay_mono::dropBuffers()
+    {
+        vDelay.destroy();
     }
 
     void comp_delay_mono::update_settings()
@@ -208,15 +231,19 @@ namespace lsp
     {
     }
 
-    void comp_delay_stereo::init(int sample_rate)
+    void comp_delay_stereo::createBuffers()
     {
-        comp_delay_impl::init(sample_rate);
-
-        vDelay[0].init(pDSP, sample_rate, vBuffer, BUFFER_SIZE);
+        vDelay[0].init(fSampleRate, vBuffer, BUFFER_SIZE);
         vDelay[0].set_ports(vIntPorts[IN_L], vIntPorts[OUT_L]);
 
-        vDelay[1].init(pDSP, sample_rate, vBuffer, BUFFER_SIZE);
+        vDelay[1].init(fSampleRate, vBuffer, BUFFER_SIZE);
         vDelay[1].set_ports(vIntPorts[IN_R], vIntPorts[OUT_R]);
+    }
+
+    void comp_delay_stereo::dropBuffers()
+    {
+        vDelay[0].destroy();
+        vDelay[1].destroy();
     }
 
     void comp_delay_stereo::update_settings()
@@ -248,10 +275,9 @@ namespace lsp
 
     void comp_delay_stereo::process(size_t samples)
     {
-        for (size_t i=0; i<2; ++i)
-            vDelay[i].process(samples);
+        vDelay[0].process(samples);
+        vDelay[1].process(samples);
     }
-
 
     comp_delay_x2_stereo::comp_delay_x2_stereo(): comp_delay_impl(metadata)
     {
@@ -261,15 +287,19 @@ namespace lsp
     {
     }
 
-    void comp_delay_x2_stereo::init(int sample_rate)
+    void comp_delay_x2_stereo::createBuffers()
     {
-        comp_delay_impl::init(sample_rate);
-
-        vDelay[0].init(pDSP, sample_rate, vBuffer, BUFFER_SIZE);
+        vDelay[0].init(fSampleRate, vBuffer, BUFFER_SIZE);
         vDelay[0].set_ports(vIntPorts[IN_L], vIntPorts[OUT_L]);
 
-        vDelay[1].init(pDSP, sample_rate, vBuffer, BUFFER_SIZE);
+        vDelay[1].init(fSampleRate, vBuffer, BUFFER_SIZE);
         vDelay[1].set_ports(vIntPorts[IN_R], vIntPorts[OUT_R]);
+    }
+
+    void comp_delay_x2_stereo::dropBuffers()
+    {
+        vDelay[0].destroy();
+        vDelay[1].destroy();
     }
 
     void comp_delay_x2_stereo::update_settings()
@@ -310,8 +340,8 @@ namespace lsp
 
     void comp_delay_x2_stereo::process(size_t samples)
     {
-        for (size_t i=0; i<2; ++i)
-            vDelay[i].process(samples);
+        vDelay[0].process(samples);
+        vDelay[1].process(samples);
     }
 } /* namespace ddb */
 

@@ -8,13 +8,13 @@
 #ifndef CORE_METADATA_H_
 #define CORE_METADATA_H_
 
-#include <sys/types.h>
+#include <core/types.h>
 
 #define LSP_BASE_URI                                    "http://lsp-plug.in/"
 #define LSP_ACRONYM                                     "LSP"
 #define LSP_PREFIX                                      "lsp"
-#define LSP_BINARY                                      "lsp-plugins"
-#define LSP_VST_BINARY                                  "lsp-vst-core"
+#define LSP_ARTIFACT_ID                                 LSP_PREFIX "-plugins"
+#define LSP_BINARY                                      LSP_ARTIFACT_ID
 #define LSP_COPYRIGHT                                   LSP_ACRONYM " (Linux Studio Plugins)"
 #define LSP_PLUGIN_NAME(name, description)              LSP_ACRONYM " " name " - " description
 #define LSP_URI(format)                                 LSP_BASE_URI "plugins/" #format "/"
@@ -23,6 +23,11 @@
 #define LSP_PLUGIN_URI(format, plugin)                  LSP_BASE_URI "plugins/" #format "/" #plugin
 #define LSP_PLUGIN_UI_URI(format, plugin, package)      LSP_UI_URI(format, package) "/" #plugin
 #define LSP_LADSPA_BASE                                 0x4C5350
+
+#define LSP_VERSION(a, b, c)                            uint32_t(((uint32_t(a) & 0xff) << 16) | ((uint32_t(b) & 0xff) << 8) | (uint32_t(c) & 0xff))
+#define LSP_VERSION_MAJOR(v)                            (uint32_t(((v) >> 16) & 0xff))
+#define LSP_VERSION_MINOR(v)                            (uint32_t(((v) >> 8) & 0xff))
+#define LSP_VERSION_MICRO(v)                            (uint32_t((v) & 0xff))
 
 #define LSP_LV2_LATENCY_PORT                            "_latency_out_"
 #define LSP_LV2_ATOM_PORT_IN                            "_control_in_"
@@ -221,7 +226,8 @@ namespace lsp
         const char             *description;    // Plugin description
         const char             *acronym;        // Plugin acronym
         const char             *author;         // Author
-        const char             *vst_uid;         // Steinberg VST ID of the plugin
+        const char             *vst_uid;        // Steinberg VST ID of the plugin
+        const uint32_t          version;        // Version of the plugin
         const int              *classes;        // List of plugin classes terminated by negative value
         const port_t           *ports;          // List of all ports
         const port_group_t     *port_groups;    // List of all port groups
@@ -233,10 +239,20 @@ namespace lsp
 
     const char     *encode_unit(size_t unit);
     unit_t          decode_unit(const char *name);
-    bool            is_discrete_unit(unit_t unit);
-    bool            is_decibel_unit(unit_t unit);
+    bool            is_discrete_unit(size_t unit);
+    bool            is_decibel_unit(size_t unit);
 
     size_t          list_size(const char **list);
+
+    void            format_float(char *buf, size_t len, const port_t *meta, float value);
+    void            format_int(char *buf, size_t len, const port_t *meta, float value);
+    void            format_enum(char *buf, size_t len, const port_t *meta, float value);
+    void            format_decibels(char *buf, size_t len, const port_t *meta, float value);
+    void            format_bool(char *buf, size_t len, const port_t *meta, float value);
+
+    void            format_value(char *buf, size_t len, const port_t *meta, float value);
+
+    void            get_port_parameters(const port_t *p, float *min, float *max, float *step);
 }
 
 #endif /* CORE_METADATA_H_ */

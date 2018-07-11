@@ -25,21 +25,21 @@ namespace lsp
     const size_t FLAG_OPTIONAL          = (1 << 0);
     const size_t SOUND_SPEED_M_S        = 340.29f; // Sound speed [ Meters / second ]
 
-    class plugin
+    class plugin_t
     {
         protected:
             cvector<IPort>              vExtPorts;
             cvector<IPort>              vIntPorts;
             const plugin_metadata_t    *pMetadata;
 
-            dsp                        *pDSP;
+//            dsp                        *pDSP;
             int                         fSampleRate;
             ssize_t                     nLatency;
 
         public:
-            plugin(const plugin_metadata_t &mdata);
+            plugin_t(const plugin_metadata_t &mdata);
 
-            virtual ~plugin();
+            virtual ~plugin_t();
 
         protected:
             inline float samples_to_seconds(float samples) const
@@ -84,23 +84,28 @@ namespace lsp
             }
 
         public:
+            const plugin_metadata_t *get_metadata() const { return pMetadata;   };
             inline ssize_t get_latency() const          { return nLatency;      };
             inline void set_latency(ssize_t latency)    { nLatency = latency;   };
 
-            virtual void init(int sample_rate);
-            virtual void destroy();
-
-            virtual void activate();
-            virtual void deactivate();
-            virtual bool add_port(IPort *port, bool external = true);
-            virtual IPort *port(size_t id, bool external = true);
-            virtual void update_settings();
-
-            virtual void process(size_t samples);
+            bool add_port(IPort *port, bool external = true);
+            IPort *port(size_t id, bool external = true);
+            inline size_t port_count(bool external = true) { return (external) ? vExtPorts.size() : vIntPorts.size(); };
 
             void run(size_t samples);
+            void set_sample_rate(int sr);
 
-            const plugin_metadata_t *get_metadata() const { return pMetadata; }
+            inline int  get_sample_rate() const         { return fSampleRate;   };
+
+        public:
+            virtual void init();
+            virtual void update_sample_rate(int sr);
+            virtual void activate();
+            virtual void update_settings();
+            virtual void process(size_t samples);
+            virtual void deactivate();
+            virtual void destroy();
+
     };
 
 }

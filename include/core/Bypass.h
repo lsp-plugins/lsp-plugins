@@ -34,7 +34,7 @@ namespace lsp
         public:
             void init(int sample_rate, float time = 0.005 ); // By default 5msec bypass
 
-            void process(dsp *dsp, float *dst, const float *dry, const float *wet, size_t count);
+            void process(float *dst, const float *dry, const float *wet, size_t count);
 
             void set_bypass(bool bypass);
 

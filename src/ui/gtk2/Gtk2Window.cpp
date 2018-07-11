@@ -31,22 +31,38 @@ namespace lsp
 
     Gtk2Window::~Gtk2Window()
     {
+        // Remove timer event
+        if ((hFunction > 0) && (bMapped))
+        {
+            lsp_trace("Remove function %x", int(hFunction));
+            g_source_remove(hFunction);
+        }
+
+        hFunction   = 0;
         bMapped     = false;
 
+        // Unlink widget
+        if (pWidget != NULL)
+            pWidget     = NULL;
+
+        // Remove map/unmap handler
         if (pToplevel != NULL)
         {
             if (hMapHandler > 0)
             {
                 lsp_trace("Remove map handler %x", int(hMapHandler));
-                g_signal_handler_disconnect(pToplevel, hMapHandler);
+                if (g_signal_handler_is_connected (pToplevel, hMapHandler))
+                    g_signal_handler_disconnect(pToplevel, hMapHandler);
                 hMapHandler     = 0;
             }
             if (hUnmapHandler > 0)
             {
                 lsp_trace("Remove unmap handler %x", int(hUnmapHandler));
-                g_signal_handler_disconnect(pToplevel, hUnmapHandler);
+                if (g_signal_handler_is_connected (pToplevel, hUnmapHandler))
+                    g_signal_handler_disconnect(pToplevel, hUnmapHandler);
                 hUnmapHandler   = 0;
             }
+
             pToplevel   = NULL;
         }
     }
@@ -146,7 +162,9 @@ namespace lsp
     {
         // Change size
         GtkWidget *toplevel = gtk_widget_get_toplevel(pWidget);
-        if (gtk_widget_is_toplevel (toplevel) && (GTK_IS_WINDOW(toplevel)))
+        lsp_trace("toplevel = %p", toplevel);
+
+        if ((toplevel != NULL) && (gtk_widget_is_toplevel (toplevel)) && (GTK_IS_WINDOW(toplevel)))
         {
             pToplevel   = toplevel;
 
@@ -172,14 +190,22 @@ namespace lsp
             hMapHandler     = g_signal_connect(pToplevel, "map", G_CALLBACK(map_window), gpointer(this));
             lsp_trace("Added map handler %x", int(hMapHandler));
             hUnmapHandler   = g_signal_connect(pToplevel, "unmap", G_CALLBACK(unmap_window), gpointer(this));
-            lsp_trace("Added unmap handler %x", int(hMapHandler));
+            lsp_trace("Added unmap handler %x", int(hUnmapHandler));
+        }
+        else
+        {
+            hFunction           = 0;
+            hMapHandler         = 0;
+            hUnmapHandler       = 0;
+            pToplevel           = NULL;
         }
     }
 
     void Gtk2Window::gtk_window_set_parent(GtkWidget *widget, GtkObject *prev, gpointer p_this)
     {
         Gtk2Window *_this = reinterpret_cast<Gtk2Window *>(p_this);
-        lsp_trace("_this=%p, _this->pWidget=%p, _this->bMapped=%d, _this->Function=%x", _this, _this->pWidget, _this->bMapped ? 1 : 0, int(_this->hFunction));
+        lsp_trace("_this=%p, _this->pWidget=%p, _this->bMapped=%d, _this->Function=%x, p_this=%p",
+                _this, _this->pWidget, _this->bMapped ? 1 : 0, int(_this->hFunction), reinterpret_cast<const void *>(p_this));
         if (_this != NULL)
             _this->set_parent(widget);
     }
@@ -187,7 +213,8 @@ namespace lsp
     gboolean Gtk2Window::redraw_window(gpointer ptr)
     {
         Gtk2Window *_this = reinterpret_cast<Gtk2Window *>(ptr);
-        lsp_trace("_this=%p, _this->pWidget=%p, _this->bMapped=%d, _this->Function=%x", _this, _this->pWidget, _this->bMapped ? 1 : 0, int(_this->hFunction));
+        lsp_trace("_this=%p, _this->pWidget=%p, _this->bMapped=%d, _this->Function=%x",
+                _this, _this->pWidget, _this->bMapped ? 1 : 0, int(_this->hFunction));
         if ((_this != NULL) && (_this->pWidget != NULL) && (_this->bMapped))
             gtk_widget_queue_draw(_this->pWidget);
         return TRUE;
@@ -196,7 +223,8 @@ namespace lsp
     void Gtk2Window::map_window(GtkWidget *widget, gpointer ptr)
     {
         Gtk2Window *_this   = reinterpret_cast<Gtk2Window *>(ptr);
-        lsp_trace("_this=%p, _this->pWidget=%p, _this->bMapped=%d, _this->Function=%x", _this, _this->pWidget, _this->bMapped ? 1 : 0, int(_this->hFunction));
+        lsp_trace("_this=%p, _this->pWidget=%p, _this->bMapped=%d, _this->Function=%x",
+                _this, _this->pWidget, _this->bMapped ? 1 : 0, int(_this->hFunction));
         if ((_this != NULL) && (!_this->bMapped))
         {
             _this->hFunction    = g_timeout_add (500, redraw_window, _this); // Schedule at 2 hz rate
@@ -207,7 +235,8 @@ namespace lsp
     void Gtk2Window::unmap_window(GtkWidget *widget, gpointer ptr)
     {
         Gtk2Window *_this   = reinterpret_cast<Gtk2Window *>(ptr);
-        lsp_trace("_this=%p, _this->pWidget=%p, _this->bMapped=%d, _this->Function=%x", _this, _this->pWidget, _this->bMapped ? 1 : 0, int(_this->hFunction));
+        lsp_trace("_this=%p, _this->pWidget=%p, _this->bMapped=%d, _this->Function=%x",
+                _this, _this->pWidget, _this->bMapped ? 1 : 0, int(_this->hFunction));
         if ((_this != NULL) && (_this->bMapped))
         {
             if (_this->hFunction)

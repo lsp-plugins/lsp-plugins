@@ -188,4 +188,9 @@ namespace lsp
         cairo_surface_destroy(surface);
     }
 
+    void Gtk2Group::destroy()
+    {
+        pWidget     = NULL;
+    }
+
 } /* namespace lsp */

@@ -3,48 +3,54 @@
 
 namespace lsp
 {
-    plugin::plugin(const plugin_metadata_t &mdata)
+    plugin_t::plugin_t(const plugin_metadata_t &mdata)
     {
         pMetadata       = &mdata;
-        pDSP            = NULL;
-        fSampleRate     = 0;
+//        pDSP            = NULL;
+        fSampleRate     = -1;
         nLatency        = 0;
     }
 
-    plugin::~plugin()
+    plugin_t::~plugin_t()
     {
     }
 
-    void plugin::init(int sample_rate)
+    void plugin_t::init()
     {
-        fSampleRate     = sample_rate;
-        pDSP            = dsp::createInstance();
+//        pDSP            = dsp::createInstance();
     }
 
-    void plugin::activate()
+    void plugin_t::set_sample_rate(int sr)
+    {
+        if (fSampleRate != sr)
+        {
+            fSampleRate = sr;
+            update_sample_rate(sr);
+        }
+    };
+
+    void plugin_t::update_sample_rate(int sr)
     {
     }
 
-    void plugin::deactivate()
+    void plugin_t::activate()
     {
     }
 
-    void plugin::destroy()
+    void plugin_t::deactivate()
+    {
+    }
+
+    void plugin_t::destroy()
     {
         for (size_t i=0; i < vIntPorts.size(); ++i)
             delete vIntPorts[i];
 
         vIntPorts.clear();
         vExtPorts.clear();
-
-        if (pDSP != NULL)
-        {
-            delete pDSP;
-            pDSP        = NULL;
-        }
     }
 
-    void plugin::run(size_t samples)
+    void plugin_t::run(size_t samples)
     {
         // Process external ports for changes
         for (size_t i=0; i<vExtPorts.size(); ++i)
@@ -62,15 +68,17 @@ namespace lsp
             {
                 lsp_trace("Changed port id=%s", port->metadata()->id);
 
+                // Call for plugin configuration
                 update_settings();
 
-                // Apply changes
+                // Apply changes to all ports
                 for (size_t j=0; j<vIntPorts.size(); ++j)
                     vIntPorts[j]->update();
                 break;
             }
         }
 
+        // Call the main processing unit
         process(samples);
 
         // Process external ports for changes
@@ -81,15 +89,15 @@ namespace lsp
         }
     }
     
-    void plugin::update_settings()
+    void plugin_t::update_settings()
     {
     }
 
-    void plugin::process(size_t samples)
+    void plugin_t::process(size_t samples)
     {
     }
 
-    bool plugin::add_port(IPort *port, bool external)
+    bool plugin_t::add_port(IPort *port, bool external)
     {
         if (!vIntPorts.add(port))
             return false;
@@ -107,7 +115,7 @@ namespace lsp
         return true;
     }
 
-    IPort *plugin::port(size_t id, bool external)
+    IPort *plugin_t::port(size_t id, bool external)
     {
         return (external) ? vExtPorts[id] : vIntPorts[id];
     }

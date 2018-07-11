@@ -32,10 +32,6 @@ namespace lsp
 
         private:
             void updateText();
-            void     format_float(char *buf, const port_t *meta);
-            void     format_int(char *buf, const port_t *meta);
-            void     format_enum(char *buf, const port_t *meta);
-            void     format_decibels(char *buf, const port_t *meta);
 
         public:
             Gtk2Label(plugin_ui *ui, label_type_t type = LT_TEXT);

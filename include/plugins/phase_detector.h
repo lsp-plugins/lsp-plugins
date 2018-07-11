@@ -13,7 +13,7 @@
 
 namespace lsp
 {
-    class phase_detector: public plugin, public phase_detector_metadata
+    class phase_detector: public plugin_t, public phase_detector_metadata
     {
         protected:
             typedef struct buffer_t
@@ -52,16 +52,14 @@ namespace lsp
             size_t fillGap(const float *a, const float *b, size_t count);
             void clearBuffers();
             void printFunction(const char *s, const float *f);
-            bool setTimeInterval(float interval);
+            bool setTimeInterval(float interval, bool force);
             void setReactiveInterval(float interval);
+            void dropBuffers();
 
         public:
-            virtual void update_settings();
-
-            virtual void init(int sample_rate);
-
             virtual void destroy();
-
+            virtual void update_settings();
+            virtual void update_sample_rate(int sr);
             virtual void process(size_t samples);
     };
 

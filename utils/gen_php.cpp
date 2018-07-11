@@ -90,6 +90,11 @@ namespace lsp
         fprintf(out, "\t\t\t'description' => '%s',\n", metadata->description);
         fprintf(out, "\t\t\t'acronym' => '%s',\n", metadata->acronym);
         fprintf(out, "\t\t\t'author' => '%s',\n", metadata->author);
+        fprintf(out, "\t\t\t'version' => '%d.%d.%d',\n",
+                LSP_VERSION_MAJOR(metadata->version),
+                LSP_VERSION_MINOR(metadata->version),
+                LSP_VERSION_MICRO(metadata->version)
+            );
         fprintf(out, "\t\t\t'groups' => ");
         php_print_plugin_groups(out, metadata->classes);
         fprintf(out, "\n");
@@ -116,7 +121,7 @@ namespace lsp
             gen_plugin_php_descriptor(out, &plugin::metadata, #plugin);
         #include <core/modules.h>
 
-        fprintf(out, "\n);\n");
+        fprintf(out, "\n\t);\n");
         fprintf(out, "?>\n");
 
         fclose(out);

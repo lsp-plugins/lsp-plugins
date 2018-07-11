@@ -12,6 +12,8 @@
 #include <math.h>
 #include <float.h>
 
+#define TMP_BUF_SIZE        128
+
 namespace lsp
 {
     Gtk2Label::Gtk2Label(plugin_ui *ui, label_type_t type): Gtk2Widget(ui)
@@ -100,88 +102,6 @@ namespace lsp
         updateText();
     }
 
-    void Gtk2Label::format_float(char *buf, const port_t *meta)
-    {
-        float value         = (fValue < 0.0f) ? -fValue : fValue;
-        size_t tolerance    = 0;
-
-        // Determine tolerance
-        if (value < 0.1)
-            tolerance   = 4;
-        else if (value < 1.0)
-            tolerance   = 3;
-        else if (value < 10.0)
-            tolerance   = 2;
-        else if (value < 100.0)
-            tolerance   = 1;
-        else
-            tolerance   = 0;
-
-        // Now determine normal tolerance
-        if (meta->flags & F_STEP)
-        {
-            size_t max_tol = 0;
-            float step      = (meta->step < 0.0f) ? - meta->step : meta->step;
-            while ((max_tol < 4) && (truncf(step) <= 0))
-            {
-                step   *= 10;
-                max_tol++;
-            }
-
-            if (tolerance > max_tol)
-                tolerance = max_tol;
-        }
-
-        const char *fmt = "%.0f";
-        switch (tolerance)
-        {
-            case 4:     fmt = "%.4f"; break;
-            case 3:     fmt = "%.3f"; break;
-            case 2:     fmt = "%.2f"; break;
-            case 1:     fmt = "%.1f"; break;
-            default:    fmt = "%.0f"; break;
-        };
-
-        sprintf(buf, fmt, fValue);
-    }
-
-    void Gtk2Label::format_decibels(char *buf, const port_t *meta)
-    {
-        double mul       = (meta->unit == U_GAIN_AMP) ? 20.0 : 10.0;
-//        float thresh    = (meta->unit == U_GAIN_AMP) ? DECIBEL_INF_THRESH * DECIBEL_INF_THRESH : DECIBEL_INF_THRESH;
-        double value    = fabs(fValue);
-        value = mul * log(value) / M_LN10;
-        if (value <= -75.0)
-        {
-            strcpy(buf, "-inf");
-            return;
-        }
-        sprintf(buf, "%.2f", value);
-    }
-
-    void Gtk2Label::format_int(char *buf, const port_t *meta)
-    {
-        sprintf(buf, "%ld", long(fValue));
-    }
-
-    void Gtk2Label::format_enum(char *buf, const port_t *meta)
-    {
-        float min   = (meta->flags & F_LOWER) ? meta->min: 0;
-        float max   = meta->min + list_size(meta->items) - 1.0f;
-        float step  = (meta->flags & F_STEP) ? meta->step : 1.0;
-
-        for (const char **p = meta->items; (p != NULL) && (*p != NULL) && (min < max); ++p)
-        {
-            if (min >= fValue)
-            {
-                strncpy(buf, *p, 128);
-                return;
-            }
-            min    += step;
-        }
-        strcpy(buf, "");
-    }
-
     void Gtk2Label::updateText()
     {
         // Initial text
@@ -197,37 +117,14 @@ namespace lsp
                 if (nUnits != (U_NONE - 1))
                     u_name  = encode_unit(nUnits);
                 else
-                {
-                    switch (mdata->unit)
-                    {
-                        case U_GAIN_AMP:
-                        case U_GAIN_POW:
-                            u_name  = encode_unit(U_DB);
-                            break;
-                        default:
-                            u_name  = encode_unit(mdata->unit);
-                            break;
-                    }
-                }
+                    u_name  = encode_unit((is_decibel_unit(mdata->unit)) ? U_DB : mdata->unit);
 
                 encode_unit((nUnits == (U_NONE - 1)) ? mdata->unit : nUnits);
 
                 if (enType == LT_VALUE)
                 {
-                    char buf[128];
-
-                    if (mdata->unit == U_ENUM)
-                        format_enum(buf, mdata);
-                    else
-                    {
-                        if ((mdata->unit == U_GAIN_AMP) || (mdata->unit == U_GAIN_POW))
-                            format_decibels(buf, mdata);
-                        else if (mdata->flags & F_INT)
-                            format_int(buf, mdata);
-                        else
-                            format_float(buf, mdata);
-                    }
-
+                    char buf[TMP_BUF_SIZE];
+                    format_value(buf, TMP_BUF_SIZE, mdata, fValue);
                     asprintf(&a_text, "%s\n%s", buf, (u_name != NULL) ? u_name : "" );
                     text    = a_text;
                 }

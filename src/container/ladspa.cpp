@@ -39,8 +39,11 @@ namespace lsp
             return NULL;
         }
 
+        // Initialize DSP
+        dsp::init();
+
         // Instantiate plugin
-        plugin *p = NULL;
+        plugin_t *p = NULL;
         size_t id = LSP_LADSPA_BASE;
         const plugin_metadata_t *m = NULL;
 
@@ -92,7 +95,8 @@ namespace lsp
 
             // Initialize plugin
             lsp_trace("Initializing plugin");
-            p->init(SampleRate);
+            p->init();
+            p->set_sample_rate(SampleRate);
         }
 
         return reinterpret_cast<LADSPA_Handle>(p);
@@ -104,7 +108,7 @@ namespace lsp
         LADSPA_Data * DataLocation)
     {
 //        lsp_trace("%p, %d, %p", Instance, (int)Port, DataLocation);
-        plugin  *p      = reinterpret_cast<plugin *>(Instance);
+        plugin_t  *p      = reinterpret_cast<plugin_t *>(Instance);
         IPort   *dst    = p->port(Port);
         if (dst != NULL)
         {
@@ -115,28 +119,29 @@ namespace lsp
 
     void ladspa_activate(LADSPA_Handle Instance)
     {
-//        lsp_trace("%p", Instance);
-        plugin *p = reinterpret_cast<plugin *>(Instance);
+        lsp_trace("%p", Instance);
+        plugin_t *p = reinterpret_cast<plugin_t *>(Instance);
         p->activate();
     }
 
     void ladspa_run(LADSPA_Handle Instance, unsigned long SampleCount)
     {
-        plugin *p = reinterpret_cast<plugin *>(Instance);
+        lsp_trace("%p", Instance);
+        plugin_t *p = reinterpret_cast<plugin_t *>(Instance);
         p->run(SampleCount);
     }
 
     void ladspa_deactivate(LADSPA_Handle Instance)
     {
-//        lsp_trace("%p", Instance);
-        plugin *p = reinterpret_cast<plugin *>(Instance);
+        lsp_trace("%p", Instance);
+        plugin_t *p = reinterpret_cast<plugin_t *>(Instance);
         p->deactivate();
     }
 
     void ladspa_cleanup(LADSPA_Handle Instance)
     {
 //        lsp_trace("%p", Instance);
-        plugin *p = reinterpret_cast<plugin *>(Instance);
+        plugin_t *p = reinterpret_cast<plugin_t *>(Instance);
         p->destroy();
         delete p;
     }

@@ -14,10 +14,10 @@
 
 namespace lsp
 {
-    phase_detector::phase_detector() : plugin(metadata)
+    phase_detector::phase_detector() : plugin_t(metadata)
     {
-        fTimeInterval       = NAN;
-        fReactivity         = NAN;
+        fTimeInterval       = DETECT_TIME_DFL;
+        fReactivity         = REACT_TIME_DFL;
 
         vFunction           = NULL;
         vAccumulated        = NULL;
@@ -37,7 +37,7 @@ namespace lsp
         vB.pData            = NULL;
 
         fTau                = 0.0f;
-        fSelector           = NAN;
+        fSelector           = SELECTOR_DFL;
         bBypass             = false;
     }
 
@@ -47,6 +47,11 @@ namespace lsp
 
     size_t phase_detector::fillGap(const float *a, const float *b, size_t count)
     {
+        lsp_assert(a != NULL);
+        lsp_assert(b != NULL);
+        lsp_assert(vA.pData != NULL);
+        lsp_assert(vB.pData != NULL);
+
         size_t fill         = nMaxGapSize - nGapSize;
 
         if (fill <= 0)
@@ -54,8 +59,11 @@ namespace lsp
             if (nGapOffset < nGapSize)
                 return 0;
 
-            pDSP->copy(vA.pData, &vA.pData[nGapSize], vA.nSize);
-            pDSP->copy(vB.pData, &vB.pData[nGapSize], vB.nSize);
+            lsp_assert((nGapSize + vA.nSize) <= (nMaxVectorSize * 3));
+            lsp_assert((nGapSize + vB.nSize) <= (nMaxVectorSize * 4));
+
+            dsp::copy(vA.pData, &vA.pData[nGapSize], vA.nSize);
+            dsp::copy(vB.pData, &vB.pData[nGapSize], vB.nSize);
             nGapSize            = 0;
             nGapOffset          = 0;
             fill                = nMaxGapSize;
@@ -64,19 +72,60 @@ namespace lsp
         if (count < fill)
             fill                = count;
 
-        pDSP->copy(&vA.pData[vA.nSize + nGapSize], a, fill);
-        pDSP->copy(&vB.pData[vB.nSize + nGapSize], b, fill);
+        lsp_assert((nGapSize + vA.nSize + fill) <= (nMaxVectorSize * 3));
+        lsp_assert((nGapSize + vB.nSize + fill) <= (nMaxVectorSize * 4));
+
+        dsp::copy(&vA.pData[vA.nSize + nGapSize], a, fill);
+        dsp::copy(&vB.pData[vB.nSize + nGapSize], b, fill);
         nGapSize           += fill;
 
         return fill;
     }
     
+    void phase_detector::update_sample_rate(int sr)
+    {
+        lsp_debug("sample_rate = %d", sr);
+        /*
+                          +---------+---------+---------+
+         A:               | Gap     | A Data  | Lookup  |
+                          +---------+---------+---------+
+                               /                       |
+                +---------+---------+---------+---------+
+         B:     | Gap     | B Delay | B Data  | Lookup  |
+                +---------+---------+---------+---------+
+                           |                      /
+                          +---------+---------+
+         F:               | Correlation funcs |
+                          +---------+---------+
+        */
+
+        // Cleanup buffers
+        dropBuffers();
+
+        nMaxVectorSize  = millis_to_samples(DETECT_TIME_MAX);
+        vA.pData        = new float[nMaxVectorSize * 3];
+        lsp_debug("new vA.pData[%d] = %p", int(nMaxVectorSize * 3), vA.pData);
+        vB.pData        = new float[nMaxVectorSize * 4];
+        lsp_debug("new vB.pData[%d] = %p", int(nMaxVectorSize * 4), vB.pData);
+        vFunction       = new float[nMaxVectorSize * 2];
+        lsp_debug("new vFunction[%d] = %p", int(nMaxVectorSize * 2), vFunction);
+        vAccumulated    = new float[nMaxVectorSize * 2];
+        lsp_debug("new vAccumulatd[%d] = %p", int(nMaxVectorSize * 2), vAccumulated);
+        vNormalized     = new float[nMaxVectorSize * 2];
+        lsp_debug("new vNormalized[%d] = %p", int(nMaxVectorSize * 2), vNormalized);
+
+        setTimeInterval(fTimeInterval, true);
+        setReactiveInterval(fReactivity);
+
+        clearBuffers();
+    }
+
     void phase_detector::update_settings()
     {
+        lsp_debug("update settings sample_rate = %d", get_sample_rate());
+
         bool clear          = false;
         bool old_bypass     = bBypass;
-
-        lsp_trace("update settings");
 
         // Read parameters
         float bypass        = vIntPorts[BYPASS]     -> getValue();
@@ -89,7 +138,7 @@ namespace lsp
         if ((old_bypass != bBypass) && (bBypass))
             clear               = true;
 
-        if (setTimeInterval(vIntPorts[TIME]->getValue()))
+        if (setTimeInterval(vIntPorts[TIME]->getValue(), false))
             clear = true;
         setReactiveInterval(vIntPorts[REACTIVITY]->getValue());
 
@@ -105,9 +154,14 @@ namespace lsp
         float *out_a        = reinterpret_cast<float *>(vIntPorts[OUT_A]   -> getBuffer());
         float *out_b        = reinterpret_cast<float *>(vIntPorts[OUT_B]   -> getBuffer());
 
+        lsp_assert(in_a != NULL);
+        lsp_assert(in_b != NULL);
+        lsp_assert(out_a != NULL);
+        lsp_assert(out_b != NULL);
+
         // Bypass the original signal
-        pDSP->copy(out_a, in_a, samples);
-        pDSP->copy(out_b, in_b, samples);
+        dsp::copy(out_a, in_a, samples);
+        dsp::copy(out_b, in_b, samples);
 
         if (bBypass)
         {
@@ -138,14 +192,20 @@ namespace lsp
             // Subtract values
             while (nGapOffset < nGapSize)
             {
+                // Make assertions
+                lsp_assert((nGapOffset + nFuncSize) <= (nMaxVectorSize * 4));
+                lsp_assert(nGapOffset <= (nMaxVectorSize * 3));
+                lsp_assert((nGapOffset + nVectorSize + nFuncSize) < (nMaxVectorSize * 4));
+                lsp_assert((nGapOffset + nVectorSize) <= (nMaxVectorSize * 3));
+
                 // Subtract oldest sample from all functions
-                pDSP->sub_multiplied(vFunction, &vB.pData[nGapOffset], vA.pData[nGapOffset], nFuncSize);
+                dsp::sub_multiplied(vFunction, &vB.pData[nGapOffset], vA.pData[nGapOffset], nFuncSize);
 
                 // Add newest sample to all functions
-                pDSP->add_multiplied(vFunction, &vB.pData[nGapOffset + nVectorSize], vA.pData[nGapOffset + nVectorSize], nFuncSize);
+                dsp::add_multiplied(vFunction, &vB.pData[nGapOffset + nVectorSize], vA.pData[nGapOffset + nVectorSize], nFuncSize);
 
                 // Accumulate peak function value
-                pDSP->integrate(vAccumulated, vFunction, fTau, nFuncSize);
+                dsp::integrate(vAccumulated, vFunction, fTau, nFuncSize);
 
                 // Increment gap offset: move to next sample
                 nGapOffset++;
@@ -160,7 +220,7 @@ namespace lsp
         else if (sel < 0)
             sel             = 0;
 
-        pDSP->normalize(vNormalized, vAccumulated, nFuncSize);
+        dsp::normalize(vNormalized, vAccumulated, nFuncSize);
 
         for (size_t i=0; i<nFuncSize; ++i)
         {
@@ -201,7 +261,7 @@ namespace lsp
                 *(dst++)        = delta * ((ssize_t(nVectorSize)) - ssize_t(i));
 
             // Copy function values
-            pDSP->copy(mesh->pvData[1], vNormalized, nFuncSize);
+            dsp::copy(mesh->pvData[1], vNormalized, nFuncSize);
 
             // Store mesh size and dimensions
             mesh->nItems    = nFuncSize;
@@ -209,117 +269,93 @@ namespace lsp
         }
     }
 
-    bool phase_detector::setTimeInterval(float interval)
+    bool phase_detector::setTimeInterval(float interval, bool force)
     {
-        lsp_trace("interval = %.3f", interval);
-        interval            = limit(interval, DETECT_TIME_MIN, DETECT_TIME_MAX);
+        lsp_debug("interval = %.3f", interval);
 
         // Calculate parameters
-        if (fTimeInterval != interval)
-        {
-            fTimeInterval   = interval;
-            nVectorSize     = (size_t(millis_to_samples(interval)) >> 2) << 2; // Make number of samples multiple of SSE register size
-            nFuncSize       = nVectorSize << 1;
-            vA.nSize        = nFuncSize;
-            vB.nSize        = nFuncSize + nVectorSize;
-            nMaxGapSize     = (nMaxVectorSize * 3) - nFuncSize;
-            nGapSize        = 0;
-            nGapOffset      = 0;
+        if ((!force) && (fTimeInterval == interval))
+            return false;
 
-            // Yep, clear all buffers
-            return true;
-        }
+        // Re-calculate buffers
+        fTimeInterval   = interval;
+        nVectorSize     = (size_t(millis_to_samples(interval)) >> 2) << 2; // Make number of samples multiple of SSE register size
+        nFuncSize       = nVectorSize << 1;
+        vA.nSize        = nFuncSize;
+        vB.nSize        = nFuncSize + nVectorSize;
+        nMaxGapSize     = (nMaxVectorSize * 3) - nFuncSize; // Size of A buffer - size of function
+        nGapSize        = 0;
+        nGapOffset      = 0;
 
-        return false;
+        // Yep, clear all buffers
+        return true;
     }
 
     void phase_detector::setReactiveInterval(float interval)
     {
-        lsp_trace("interval = %.3f", interval);
-        interval            = limit(interval, REACT_TIME_MIN, REACT_TIME_MAX);
+        lsp_debug("reactivity = %.3f", interval);
 
-        if (fReactivity != interval)
-        {
-            // Calculate Reduction
-            fReactivity     = interval;
-            fTau            = 1.0f - expf(logf(1.0 - M_SQRT1_2) / seconds_to_samples(interval));
-        }
+        // Calculate Reduction
+        fReactivity     = interval;
+        fTau            = 1.0f - expf(logf(1.0 - M_SQRT1_2) / seconds_to_samples(interval));
     }
 
     void phase_detector::clearBuffers()
     {
-        pDSP->fill_zero(vA.pData, nGapSize + nMaxVectorSize * 2);
-        pDSP->fill_zero(vB.pData, nGapSize + nMaxVectorSize * 3);
-        pDSP->fill_zero(vFunction, nMaxVectorSize * 2);
-        pDSP->fill_zero(vAccumulated, nMaxVectorSize * 2);
+        lsp_debug("force buffer clear");
+        lsp_assert(vA.pData != NULL);
+        lsp_assert(vB.pData != NULL);
+        lsp_assert(vFunction != NULL);
+        lsp_assert(vAccumulated != NULL);
+        lsp_assert(vNormalized != NULL);
+
+        dsp::fill_zero(vA.pData, nMaxVectorSize * 3);
+        dsp::fill_zero(vB.pData, nMaxVectorSize * 4);
+        dsp::fill_zero(vFunction, nMaxVectorSize * 2);
+        dsp::fill_zero(vAccumulated, nMaxVectorSize * 2);
+        dsp::fill_zero(vNormalized, nMaxVectorSize * 2);
     }
 
-    void phase_detector::init(int sample_rate)
+    void phase_detector::dropBuffers()
     {
-        /*
-                          +---------+---------+---------+
-         A:               | Gap     | A Data  | Lookup  |
-                          +---------+---------+---------+
-                               /                       |
-                +---------+---------+---------+---------+
-         B:     | Gap     | B Delay | B Data  | Lookup  |
-                +---------+---------+---------+---------+
-                           |                      /
-                          +---------+---------+
-         F:               | Correlation funcs |
-                          +---------+---------+
-        */
-
-        plugin::init(sample_rate);
-
-        nMaxVectorSize  = millis_to_samples(DETECT_TIME_MAX);
-        vA.pData        = new float[nMaxVectorSize * 3];
-        vB.pData        = new float[nMaxVectorSize * 4];
-        vFunction       = new float[nMaxVectorSize * 2];
-        vAccumulated    = new float[nMaxVectorSize * 2];
-        vNormalized     = new float[nMaxVectorSize * 2];
-
-        setTimeInterval(DETECT_TIME_DFL);
-        setReactiveInterval(REACT_TIME_DFL);
-        fSelector       = SELECTOR_DFL;
-
-        clearBuffers();
-    }
-
-    void phase_detector::destroy()
-    {
+        // Drop previously used buffers
         if (vA.pData != NULL)
         {
-            lsp_trace("delete []   vA.pData");
+            lsp_debug("delete []   vA.pData (%p)", vA.pData);
             delete []   vA.pData;
             vA.pData    = NULL;
         }
         if (vB.pData != NULL)
         {
-            lsp_trace("delete []   vB.pData");
+            lsp_debug("delete []   vB.pData (%p)", vB.pData);
             delete []   vB.pData;
             vB.pData    = NULL;
         }
         if (vFunction != NULL)
         {
-            lsp_trace("delete []   vFunction");
+            lsp_debug("delete []   vFunction (%p)", vFunction);
             delete []   vFunction;
             vFunction   = NULL;
         }
         if (vAccumulated != NULL)
         {
-            lsp_trace("delete []   vAccumulated");
+            lsp_debug("delete []   vAccumulated (%p)", vAccumulated);
             delete []   vAccumulated;
             vAccumulated= NULL;
         }
         if (vNormalized != NULL)
         {
-            lsp_trace("delete []   vNormalized");
+            lsp_debug("delete []   vNormalized (%p)", vNormalized);
             delete []   vNormalized;
             vNormalized = NULL;
         }
+    }
 
-        plugin::destroy();
+    void phase_detector::destroy()
+    {
+        // Call parent plugin for destroy
+        dropBuffers();
+        plugin_t::destroy();
     }
 
 } /* namespace ddb */

@@ -10,9 +10,10 @@
 
 namespace lsp
 {
-    #define GTK2_CUSTOM(obj)            GTK_CHECK_CAST(obj, custom_type, Gtk2Custom)
-    #define GTK2_CUSTOM_CLASS(klass)    GTK_CHECK_CLASS_CAST(klass, custom_type, Gtk2CustomClass)
-    #define GTK2_IS_CUSTOM(obj)         GTK_CHECK_TYPE(obj, custom_type)
+    #define GTK2_CUSTOM(obj)            (GTK_CHECK_CAST((obj), custom_type, Gtk2Custom))
+    #define GTK2_CUSTOM_CLASS(klass)    (GTK_CHECK_CLASS_CAST((klass), custom_type, Gtk2CustomClass))
+    #define GTK2_IS_CUSTOM(obj)         (GTK_CHECK_TYPE((obj), custom_type))
+    #define GTK2_CUSTOM_GETCLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), custom_type, Gtk2CustomClass))
 
     #define CHECK_GTK2_CUSTOM(widget)                   \
         g_return_val_if_fail(widget != NULL, FALSE);    \
@@ -22,21 +23,21 @@ namespace lsp
 
     const GTypeInfo Gtk2CustomWidget::type_info =
     {
-        sizeof(Gtk2CustomClass),
+        sizeof(Gtk2CustomClass), // Size of class descriptor
         NULL, // Base init
         NULL, // Base finalize
-        reinterpret_cast<GClassInitFunc>(class_init),
+        reinterpret_cast<GClassInitFunc>(class_init), // Class initialize
         NULL, // Class finalize
         NULL, // Class data
-        sizeof(Gtk2Custom),
+        sizeof(Gtk2Custom), // Size of instance
         0,
         reinterpret_cast<GInstanceInitFunc>(init)
     };
 
     void Gtk2CustomWidget::class_init(Gtk2CustomClass *klass)
     {
-        GtkWidgetClass *wc = reinterpret_cast<GtkWidgetClass *>(klass);
-        GtkObjectClass *oc = reinterpret_cast<GtkObjectClass *>(klass);
+        GtkWidgetClass *wc          = GTK_WIDGET_CLASS(klass);
+        GtkObjectClass *oc          = GTK_OBJECT_CLASS(klass);
 
         wc->realize                 = realize;
         wc->size_request            = size_request;
@@ -48,17 +49,32 @@ namespace lsp
         wc->motion_notify_event     = motion_notify;
         wc->scroll_event            = scroll;
 
+        klass->destroy              = oc->destroy;
         oc->destroy                 = destroy;
-    }
-
-    void Gtk2CustomWidget::init(GtkWidget *widget)
-    {
     }
 
     void Gtk2CustomWidget::destroy(GtkObject *object)
     {
         g_return_if_fail(object != NULL);
         g_return_if_fail(GTK2_IS_CUSTOM(object));
+
+        // Call destroy if possible
+        Gtk2Custom *_this = GTK2_CUSTOM(object);
+        if (_this->pImpl != NULL)
+        {
+            _this->pImpl->destroy();
+            _this->pImpl->pWidget   = NULL;
+            _this->pImpl            = NULL;
+        }
+
+        // Get widget class
+        Gtk2CustomClass *klass = GTK2_CUSTOM_GETCLASS(object);
+        if (klass->destroy != NULL)
+            klass->destroy(object);
+    }
+
+    void Gtk2CustomWidget::init(GtkWidget *widget)
+    {
     }
 
     gboolean Gtk2CustomWidget::expose(GtkWidget *widget, GdkEventExpose *event)
@@ -123,7 +139,6 @@ namespace lsp
         Gtk2Custom *_this = GTK2_CUSTOM(widget);
         if (_this->pImpl != NULL)
             _this->pImpl->button_release(ssize_t(event->x), ssize_t(event->y), size_t(event->state), size_t(event->button));
-
 
         return TRUE;
     }
@@ -243,10 +258,15 @@ namespace lsp
             // Register type
             for (size_t i = 0; ; i++)
             {
-                gchar *name = g_strdup_printf("Gtk2CustomWidget-v%d", int(i));
+                char buf[128];
+                sprintf(buf, "Gtk2CustomWidget-v%d", int(i));
+                gchar *name = g_strdup(buf);
+
                 if (!g_type_from_name(name))
                 {
                     custom_type = g_type_register_static(basic_class, name, &type_info,(GTypeFlags)0);
+                    lsp_trace("registred type %s as %llx", buf, (long long)(custom_type));
+
                     g_free(name);
                     break;
                 }
@@ -254,7 +274,7 @@ namespace lsp
             }
         }
 
-        // Create widget
+        // Create widget and bind implementation
         GtkWidget *widget   = GTK_WIDGET(gtk_type_new(custom_type));
         g_return_if_fail(GTK2_IS_CUSTOM(widget));
 
@@ -271,8 +291,15 @@ namespace lsp
 
     Gtk2CustomWidget::~Gtk2CustomWidget()
     {
-        Gtk2Custom *_this   = GTK2_CUSTOM(pWidget);
-        _this->pImpl        = NULL;
+        // Get widget and disconnect
+        if (pWidget != NULL)
+        {
+            Gtk2Custom *_this   = GTK2_CUSTOM(pWidget);
+            if (_this != NULL)
+                _this->pImpl        = NULL;
+
+            pWidget             = NULL;
+        }
     }
 
     void Gtk2CustomWidget::render()
@@ -320,6 +347,10 @@ namespace lsp
     void Gtk2CustomWidget::markRedraw()
     {
         gtk_widget_queue_draw(pWidget);
+    }
+
+    void Gtk2CustomWidget::destroy()
+    {
     }
 
 } /* namespace lsp */

@@ -60,7 +60,7 @@ namespace lsp
     {
         protected:
             LV2Extensions          *pExt;
-            plugin                 *pPlugin;
+            plugin_t                 *pPlugin;
             LV2AtomPort            *pIn;
             LV2AtomPort            *pOut;
             ssize_t                 nRefs;
@@ -69,7 +69,7 @@ namespace lsp
             cvector<LV2AtomVirtualPort> vPorts;
 
         public:
-            LV2AtomTransport(const port_t *meta, LV2Extensions *ext, plugin *plugin)
+            LV2AtomTransport(const port_t *meta, LV2Extensions *ext, plugin_t *plugin)
             {
                 ext         ->bind();
                 pExt        = ext;
@@ -134,7 +134,7 @@ namespace lsp
                 return count;
             }
 
-            inline plugin *get_plugin() { return pPlugin; }
+            inline plugin_t *get_plugin() { return pPlugin; }
 
             void    deserialize(const LV2_Atom_Object *obj);
 
@@ -249,7 +249,7 @@ namespace lsp
             pExt->forge_frame_time(0); // Event header
             pExt->forge_object(&frame, pExt->uridState, pExt->uridStateType);
 
-            plugin *p = pTr->get_plugin();
+            plugin_t *p = pTr->get_plugin();
             for (size_t port_id = 0; ; ++port_id)
             {
                 // Get port instance

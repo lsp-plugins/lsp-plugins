@@ -5,11 +5,13 @@
  *      Author: sadko
  */
 
-#include <stddef.h>
-#include <core/metadata.h>
 #include <core/types.h>
+#include <core/metadata.h>
 
+#include <math.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 namespace lsp
 {
@@ -64,6 +66,11 @@ namespace lsp
         NULL
     };
 
+    static const char *default_bool[] =
+    {
+        "off", "on", NULL
+    };
+
     const char *encode_unit(size_t unit)
     {
         if ((unit >= 0) && (unit <= U_ENUM))
@@ -83,7 +90,7 @@ namespace lsp
         return U_NONE;
     }
 
-    bool is_discrete_unit(unit_t unit)
+    bool is_discrete_unit(size_t unit)
     {
         switch (unit)
         {
@@ -97,7 +104,7 @@ namespace lsp
         return false;
     }
 
-    bool is_decibel_unit(unit_t unit)
+    bool is_decibel_unit(size_t unit)
     {
         switch (unit)
         {
@@ -120,6 +127,167 @@ namespace lsp
             list    ++;
         }
         return size;
+    }
+
+    void format_float(char *buf, size_t len, const port_t *meta, float value)
+    {
+        if (value < 0.0f)
+            value           = - value;
+        size_t tolerance    = 0;
+
+        // Determine tolerance
+        if (value < 0.1)
+            tolerance   = 4;
+        else if (value < 1.0)
+            tolerance   = 3;
+        else if (value < 10.0)
+            tolerance   = 2;
+        else if (value < 100.0)
+            tolerance   = 1;
+        else
+            tolerance   = 0;
+
+        // Now determine normal tolerance
+        if (meta->flags & F_STEP)
+        {
+            size_t max_tol = 0;
+            float step      = (meta->step < 0.0f) ? - meta->step : meta->step;
+            while ((max_tol < 4) && (truncf(step) <= 0))
+            {
+                step   *= 10;
+                max_tol++;
+            }
+
+            if (tolerance > max_tol)
+                tolerance = max_tol;
+        }
+
+        const char *fmt = "%.0f";
+        switch (tolerance)
+        {
+            case 4:     fmt = "%.4f"; break;
+            case 3:     fmt = "%.3f"; break;
+            case 2:     fmt = "%.2f"; break;
+            case 1:     fmt = "%.1f"; break;
+            default:    fmt = "%.0f"; break;
+        };
+
+        snprintf(buf, len, fmt, value);
+        buf[len - 1] = '\0';
+    }
+
+    void format_int(char *buf, size_t len, const port_t *meta, float value)
+    {
+        snprintf(buf, len, "%ld", long(value));
+        buf[len - 1] = '\0';
+    }
+
+    void format_enum(char *buf, size_t len, const port_t *meta, float value)
+    {
+        float min   = (meta->flags & F_LOWER) ? meta->min: 0;
+//        float max   = meta->min + list_size(meta->items) - 1.0f;
+        float step  = (meta->flags & F_STEP) ? meta->step : 1.0;
+
+        for (const char **p = meta->items; (p != NULL) && (*p != NULL); ++p)
+        {
+            if (min >= value)
+            {
+                strncpy(buf, *p, len);
+                buf[len - 1] = '\0';
+                return;
+            }
+            min    += step;
+        }
+        buf[0] = '\0';
+    }
+
+    void format_decibels(char *buf, size_t len, const port_t *meta, float value)
+    {
+        double mul       = (meta->unit == U_GAIN_AMP) ? 20.0 : 10.0;
+        if (value < 0.0f)
+            value           = - value;
+
+        value = mul * log(value) / M_LN10;
+        if (value <= -75.0)
+        {
+            strcpy(buf, "-inf");
+            return;
+        }
+        snprintf(buf, len, "%.2f", value);
+        buf[len - 1] = '\0';
+    }
+
+    void format_bool(char *buf, size_t len, const port_t *meta, float value)
+    {
+        const char **list = (meta->items != NULL) ? meta->items : default_bool;
+        if (value >= 0.5f)
+            list++;
+
+        if (*list != NULL)
+        {
+            strncpy(buf, *list, len);
+            buf[len-1] = '\0';
+        }
+        else
+            buf[0] = '\0';
+    }
+
+    void format_value(char *buf, size_t len, const port_t *meta, float value)
+    {
+        if (meta->unit == U_BOOL)
+            format_bool(buf, len, meta, value);
+        else if (meta->unit == U_ENUM)
+            format_enum(buf, len, meta, value);
+        else
+        {
+            if ((meta->unit == U_GAIN_AMP) || (meta->unit == U_GAIN_POW))
+                format_decibels(buf, len, meta, value);
+            else if (meta->flags & F_INT)
+                format_int(buf, len, meta, value);
+            else
+                format_float(buf, len, meta, value);
+        }
+    }
+
+    void get_port_parameters(const port_t *p, float *min, float *max, float *step)
+    {
+        float f_min = 0.0f, f_max = 1.0f, f_step = 0.001f;
+
+        if (p->unit == U_BOOL)
+        {
+            f_min       = 0.0f;
+            f_max       = 1.0f;
+            f_step      = 1.0f;
+        }
+        else if (p->unit == U_ENUM)
+        {
+            f_min       = (p->flags & F_LOWER) ? p->min : 0.0f;
+            f_max       = f_min + list_size(p->items) - 1;
+            f_step      = 1.0f;
+        }
+        else if (p->unit == U_SAMPLES)
+        {
+            f_min       = p->min;
+            f_max       = p->max;
+            f_step      = 1.0f;
+        }
+        else
+        {
+            f_min       = (p->flags & F_LOWER) ? p->min : 0.0f;
+            f_max       = (p->flags & F_UPPER) ? p->max : 1.0f;
+
+            if (p->flags & F_INT)
+                f_step      = (p->flags & F_STEP) ? p->step : 1.0f;
+            else
+                f_step      = (p->flags & F_STEP) ? p->step : (f_max - f_min) * 0.001;
+        }
+
+        if (min != NULL)
+            *min        = f_min;
+        if (max != NULL)
+            *max        = f_max;
+        if (step != NULL)
+            *step       = f_step;
     }
 }
 

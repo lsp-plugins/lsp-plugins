@@ -42,7 +42,7 @@ namespace lsp
         fGain       = 1.0;                      // Off by default
     }
 
-    void Bypass::process(dsp *dsp, float *dst, const float *dry, const float *wet, size_t count)
+    void Bypass::process(float *dst, const float *dry, const float *wet, size_t count)
     {
         // Skip empty buffers
         if (count == 0)
@@ -69,7 +69,7 @@ namespace lsp
             fGain   = 1.0;
             nState  = S_OFF;
             if (count > 0)
-                dsp->copy(dst, wet, count);
+                dsp::copy(dst, wet, count);
         }
         else
         {
@@ -91,7 +91,7 @@ namespace lsp
             fGain   = 0.0;
             nState  = S_ON;
             if (count > 0)
-                dsp->copy(dst, dry, count);
+                dsp::copy(dst, dry, count);
         }
     }
 

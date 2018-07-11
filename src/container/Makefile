@@ -4,11 +4,11 @@ SUBDIRS                 =
 
 .PHONY: all $(SUBDIRS)
 
-all: $(LIB_LADSPA) $(LIB_LV2) $(LIB_LV2_GTK2UI)
+all: $(LIB_LADSPA) $(LIB_LV2) $(LIB_VST) $(LIB_LV2_GTK2UI)
 
 $(LIB_LADSPA): $(OBJ_PLUGINS) $(SUBDIRS)
 	@echo "  $(CC) ladspa.cpp"
-	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(LSP_UI) $(INCLUDE) $(HEADERS) $(PACKAGES) ladspa.cpp -o $(OBJDIR)/ladspa.o
+	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(HEADERS) $(PACKAGES) ladspa.cpp -o $(OBJDIR)/ladspa.o
 	@echo "  $(CC) $(notdir $(LIB_LADSPA))"
 	@$(CC) $(SO_FLAGS) -o $(LIB_LADSPA) $(OBJDIR)/ladspa.o $(OBJ_CORE) $(OBJ_PLUGINS)
 
@@ -17,6 +17,12 @@ $(LIB_LV2): $(OBJ_PLUGINS) $(SUBDIRS)
 	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(LSP_UI) $(INCLUDE) $(HEADERS) $(PACKAGES) lv2.cpp -o $(OBJDIR)/lv2.o
 	@echo "  $(CC) $(notdir $(LIB_LV2))"
 	@$(CC) $(SO_FLAGS) -o $(LIB_LV2) $(OBJDIR)/lv2.o $(OBJ_CORE) $(OBJ_PLUGINS)
+
+$(LIB_VST): $(OBJ_PLUGINS) $(SUBDIRS)
+	@echo "  $(CC) vst.cpp"
+	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(HEADERS) $(PACKAGES) vst.cpp -o $(OBJDIR)/vst.o
+	@echo "  $(CC) $(notdir $(LIB_VST))"
+	@$(CC) $(SO_FLAGS) -o $(LIB_VST) $(OBJDIR)/vst.o $(OBJ_CORE) $(OBJ_PLUGINS)
 
 $(LIB_LV2_GTK2UI): HEADERS  := $(GTK2_HEADERS)
 $(LIB_LV2_GTK2UI): PACKAGES := $(GTK2_LIBS) $(EXPAT_LIBS)

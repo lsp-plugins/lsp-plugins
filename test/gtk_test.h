@@ -38,7 +38,7 @@ namespace gtk_test
 
     int test(int argc, const char **argv)
     {
-        size_t plugin_id = 3;
+        size_t plugin_id = 0;
 
         const LV2_Descriptor *descr = lv2_descriptor(plugin_id);
         if (descr == NULL)
