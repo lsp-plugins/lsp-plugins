@@ -14,7 +14,7 @@
 	
 	// Generate list of files
 	$ITEMS      = array();
-	$HTML_FILES = array('index.html');
+	$HTML_FILES = array('$(HTMLDIR)/index.html');
 	$HTML_DIRS  = array();
 	raw_menu_list($ITEMS);
 	foreach ($ITEMS as &$item)
@@ -26,6 +26,7 @@
 		array_push($HTML_FILES, "$(HTMLDIR)/" . $item['html']);
 	}
 ?>
+# Auto generated makefile, do not edit
 
 HTMLDIR     = $(BUILDDIR)/html
 FILE        = $(@:$(HTMLDIR)/%.html=%.html)
@@ -46,5 +47,5 @@ $(DIRS):
 	@mkdir -p $(@)  
 
 $(FILES): $(DIRS)
-	@echo "  $(PHP) $(FILE)"
+	@echo "  $(PHP) $(HTMLDIR) $(FILE)"
 	@$(PHP) -f index.php $(PAGE) >$(HTMLDIR)/$(FILE)

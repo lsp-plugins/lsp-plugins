@@ -378,7 +378,7 @@ namespace lsp
                 break;
 
             case effGetVendorString: // Get vendor string
-                vst_strncpy(reinterpret_cast<char *>(ptr), LSP_ACRONYM " [VST]" , kVstMaxVendorStrLen);
+                vst_strncpy(reinterpret_cast<char *>(ptr), LSP_ACRONYM " VST" , kVstMaxVendorStrLen);
                 lsp_trace("vendor_string = %s", reinterpret_cast<char *>(ptr));
                 v = 1;
                 break;

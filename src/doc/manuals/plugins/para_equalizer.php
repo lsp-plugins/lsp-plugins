@@ -7,7 +7,7 @@
 				(strpos($PAGE, '_lr') > 0) ? 'lr' : (
 				(strpos($PAGE, '_ms') > 0) ? 'ms' : '?'
 				)));
-	$cc     =   ($m = 's') ? 'mono' : 'stereo';
+	$cc     =   ($m = 'm') ? 'mono' : 'stereo';
 ?>
 <p>
 	This plugin performs parameteric equalization of <?= $cc ?> channel<?php 
@@ -23,9 +23,9 @@
 	<li><b>Filters</b> - filter panel selection</li>
 	<li><b>Mode</b> - equalizer working mode, enables the following mode for all filters:</li>
 	<ul>
-		<li><b>IIR</b> - Infinite Impulse Response filters, nonlinear minimal phase.</li>
-		<li><b>FIR</b> - Finite Impulse Response filters with linear phase, finite approximation of equalizer's impulse response.</li>
-		<li><b>FFT</b> - Fast Fourier Transform approximation of the frequency chart, linear phase.</li>
+		<li><b>IIR</b> - Infinite Impulse Response filters, nonlinear minimal phase. In most cases does not add noticeable latency to output signal.</li>
+		<li><b>FIR</b> - Finite Impulse Response filters with linear phase, finite approximation of equalizer's impulse response. Adds noticeable latency to output signal.</li>
+		<li><b>FFT</b> - Fast Fourier Transform approximation of the frequency chart, linear phase. Adds noticeable latency to output signal.</li>
 	</ul>
 	<?php if ($m == 'ms') { ?>
 	<li><b>Mid</b> - enables the frequency chart and FFT analysis for the middle channel.</li>
@@ -63,11 +63,24 @@
 </ul>
 <p><b>'Filters' section:</b></p>
 <ul>
-	<li><b>Filter</b> - sets up the mode of the selected filter. Three filter classes available in <b>BT</b> (Bilinear transform) and <b>MT</b> (Matched Z-Transform) mappings:</li>
+	<li><b>Filter</b> - sets up the mode of the selected filter. Currently available filters:</li>
+	<ul>
+		<li><b>Off</b> - Filter is not working (turned off).</li>
+		<li><b>Bell</b> - Bell filter with smooth peak/recess.</li>
+		<li><b>Hi-pass</b> - High-pass filter with rejection of low frequencies.</li>
+		<li><b>Hi-shelf</b> - Shelving filter with adjustment of high frequency range.</li>
+		<li><b>Lo-pass</b> - Low-pass filter with rejection of high frequencies.</li>
+		<li><b>Lo-shelf</b> - Shelving filter with adjustment of low frequencies.</li>
+		<li><b>Notch</b> - Notch filter with full rejection of selected frequency.</li>
+		<li><b>Resonance</b> - Resonance filter wih sharp peak/recess.</li>
+	</ul>
+	<li><b>Mode</b> - sets up the class of the filter:</li>
 	<ul>
 		<li><b>RLC</b> - Very smooth filters based on similar cascades of RLC contours.</li>
-		<li><b>BWC</b> - Butterworth-Chebyshev-type-1 based filters.</li>
-		<li><b>LRX</b> - Linkwitz-Riley based filters.</li>
+		<li><b>BWC</b> - Butterworth-Chebyshev-type-1 based filters. Does not affect <b>Resonance</b> and <b>Notch</b> filters.</li>
+		<li><b>LRX</b> - Linkwitz-Riley based filters. Does not affect <b>Resonance</b> and <b>Notch</b> filters.</li>
+		<li><b>BT</b> - Bilinear Z-transform is used for pole/zero mapping.</li>
+		<li><b>MT</b> - Matched Z-transform is used for pole/zero mapping.</li>
 	</ul>
 	<li><b>Slope</b> - the slope of the filter characteristics.</li>
 	<li><b>S</b> - the soloing button, allows to inspect selected filters.</li>

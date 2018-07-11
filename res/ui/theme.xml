@@ -75,6 +75,11 @@
 		<middle_channel value="#00c0ff" />
 		<side_channel value="#00cc00" />
 		
+		<left_channel_in value="#aa0000" />
+		<right_channel_in value="#00aaaa" />
+		<middle_channel_in value="#0080aa" />
+		<side_channel_in value="#008000" />
+		
 		<!-- Eq base -->
 		<eq_base value="#ff4040" />
 		

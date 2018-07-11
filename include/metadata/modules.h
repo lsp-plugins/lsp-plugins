@@ -267,6 +267,55 @@ MOD_LV2(graph_equalizer_x32_ms)
 MOD_VST(graph_equalizer_x32_ms)
 MOD_GTK2(graph_equalizer_x32_ms)
 
+// Compressor
+MOD_PLUGIN(compressor_mono)
+MOD_LADSPA(compressor_mono)
+MOD_LV2(compressor_mono)
+MOD_VST(compressor_mono)
+MOD_GTK2(compressor_mono)
+
+MOD_PLUGIN(compressor_stereo)
+MOD_LADSPA(compressor_stereo)
+MOD_LV2(compressor_stereo)
+MOD_VST(compressor_stereo)
+MOD_GTK2(compressor_stereo)
+
+MOD_PLUGIN(compressor_lr)
+MOD_LADSPA(compressor_lr)
+MOD_LV2(compressor_lr)
+MOD_VST(compressor_lr)
+MOD_GTK2(compressor_lr)
+
+MOD_PLUGIN(compressor_ms)
+MOD_LADSPA(compressor_ms)
+MOD_LV2(compressor_ms)
+MOD_VST(compressor_ms)
+MOD_GTK2(compressor_ms)
+
+MOD_PLUGIN(sc_compressor_mono)
+MOD_LADSPA(sc_compressor_mono)
+MOD_LV2(sc_compressor_mono)
+MOD_VST(sc_compressor_mono)
+MOD_GTK2(sc_compressor_mono)
+
+MOD_PLUGIN(sc_compressor_stereo)
+MOD_LADSPA(sc_compressor_stereo)
+MOD_LV2(sc_compressor_stereo)
+MOD_VST(sc_compressor_stereo)
+MOD_GTK2(sc_compressor_stereo)
+
+MOD_PLUGIN(sc_compressor_lr)
+MOD_LADSPA(sc_compressor_lr)
+MOD_LV2(sc_compressor_lr)
+MOD_VST(sc_compressor_lr)
+MOD_GTK2(sc_compressor_lr)
+
+MOD_PLUGIN(sc_compressor_ms)
+MOD_LADSPA(sc_compressor_ms)
+MOD_LV2(sc_compressor_ms)
+MOD_VST(sc_compressor_ms)
+MOD_GTK2(sc_compressor_ms)
+
 #ifndef LSP_NO_EXPERIMENTAL
     // Impulse responses
     MOD_PLUGIN(impulse_responses_mono)

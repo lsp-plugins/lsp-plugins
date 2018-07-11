@@ -29,123 +29,7 @@ namespace lsp
         nReleaseCounter     = millis_to_samples(fSampleRate, fReleaseTime);
     }
 
-    inline void trigger_base::update_reactivity()
-    {
-        if (fSampleRate <= 0)
-            return;
-
-        nReactivity     = millis_to_samples(fSampleRate, fReactivity);
-        fTau            = 1.0f - expf(logf(1.0f - M_SQRT1_2) / (nReactivity)); // Tau is based on seconds
-        nRefresh        = BUFFER_SIZE; // Force the function to be refreshed
-    }
-
-    inline float trigger_base::get_sample(const float **data, size_t idx)
-    {
-        if (nChannels == 1)
-            return data[0][idx];
-        else if (nChannels < 2)
-            return 0.0f;
-
-        switch (nSource)
-        {
-            case S_LEFT:
-                return data[0][idx];
-            case S_RIGHT:
-                return data[1][idx];
-            case S_MIDDLE:
-                return (data[0][idx] + data[1][idx]) * 0.5f;
-            case S_SIDE:
-                return (data[0][idx] - data[1][idx]) * 0.5f;
-            default:
-                return data[0][idx];
-        }
-        return 0.0f;
-    }
-
-    inline float trigger_base::process_sample(float sample)
-    {
-        // This is periodically called to fix floating-point rounding errors
-        if ((nRefresh++) >= BUFFER_SIZE)
-        {
-            refresh_processing();
-            nRefresh    = 0;
-        }
-
-        // Add new sample to buffer
-        sBuffer.append(sample);
-
-        // Calculate function
-        switch (nMode)
-        {
-            case M_PEAK:
-                break;
-
-            case M_LPF:
-                if (sample < 0.0f)
-                    sample = - sample;
-                fRmsValue  += fTau * (sample - fRmsValue);
-                sample      = fRmsValue;
-                break;
-
-            case M_UNIFORM:
-                if (sample < 0.0f)
-                    sample      = -sample;
-                if (nReactivity > 0)
-                {
-                    float first = sBuffer.last(nReactivity + 1);
-                    if (first < 0.0f)
-                        first       = -first;
-
-                    fRmsValue  += sample - first;
-                    sample      = fRmsValue / float(nReactivity + 1);
-                }
-                break;
-
-            case M_RMS:
-//                fRmsValue       = dsp::h_sqr_sum(sBuffer.tail(nReactivity + 1), nReactivity + 1);
-                if (nReactivity > 0)
-                {
-                    float last      = sBuffer.last(nReactivity + 1);
-                    fRmsValue      += sample * sample - last * last;
-                    if (fRmsValue < 0.0f)
-                        sample          = 0.0f;
-                    else
-                        sample          = sqrtf(fRmsValue / float(nReactivity));
-                }
-                break;
-
-            default:
-                break;
-        }
-
-        // Remove old sample
-        sBuffer.shift();
-
-        return (sample >= 0.0f) ? sample : -sample;
-    }
-
-    void trigger_base::refresh_processing()
-    {
-        switch (nMode)
-        {
-            case M_PEAK:
-                fRmsValue       = 0.0f;
-                break;
-
-            case M_UNIFORM:
-                fRmsValue           = dsp::h_abs_sum(sBuffer.tail(nReactivity), nReactivity);
-                break;
-
-            case M_RMS:
-                fRmsValue           = dsp::h_sqr_sum(sBuffer.tail(nReactivity), nReactivity);
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    void trigger_base::process_samples(const float **data, size_t samples)
+    void trigger_base::process_samples(const float *sc, size_t samples)
     {
         float max_level     = 0.0f, max_velocity  = 0.0f;
 
@@ -153,8 +37,7 @@ namespace lsp
         for (size_t i=0; i<samples; ++i)
         {
             // Get sample and log to function
-            float level         = get_sample(data, i);
-            level               = process_sample(level);
+            float level         = sc[i];
             if (level > max_level)
                 max_level           = level;
             sFunction.process(level);
@@ -234,6 +117,7 @@ namespace lsp
         plugin_t(metadata)
     {
         // Instantiation parameters
+        vTmp                = NULL;
         nFiles              = files;
         nChannels           = channels;
         bMidiPorts          = midi;
@@ -244,12 +128,9 @@ namespace lsp
         // Processing variables
         nCounter            = 0;
         nState              = T_OFF;
-        nReactivity         = 0;
-        fTau                = 0.0f;
         fVelocity           = 0.0f;
         bFunctionActive     = true;
         bVelocityActive     = true;
-        fRmsValue           = 0.0f;
 
         // Parameters
         nNote               = trigger_midi_metadata::NOTE_DFL + trigger_midi_metadata::OCTAVE_DFL * 12;
@@ -258,11 +139,7 @@ namespace lsp
         fWet                = 1.0f;
         bPause              = false;
         bClear              = false;
-        fPreamp             = 1.0f;
-        nRefresh            = BUFFER_SIZE;
 
-        nSource             = S_MIDDLE;
-        nMode               = M_RMS;
         nDetectCounter      = 0;
         nReleaseCounter     = 0;
         fDetectLevel        = DETECT_LEVEL_DFL;
@@ -272,7 +149,6 @@ namespace lsp
         fDynamics           = 0.0f;
         fDynaTop            = 1.0f;
         fDynaBottom         = 0.0f;
-        fReactivity         = REACTIVITY_DFL;
         pIDisplay           = NULL;
 
         // Control ports
@@ -338,6 +214,8 @@ namespace lsp
             tc->pOut        = NULL;
         }
 
+        vTmp        = NULL;
+
         if (pIDisplay != NULL)
         {
             pIDisplay->detroy();
@@ -349,6 +227,9 @@ namespace lsp
     {
         // Pass wrapper
         plugin_t::init(wrapper);
+
+        if (!sSidechain.init(nChannels, REACTIVITY_MAX))
+            return;
 
         // Get executor
         IExecutor *executor = wrapper->get_executor();
@@ -366,10 +247,16 @@ namespace lsp
         }
 
         // Allocate buffer for time coordinates
-        vTimePoints         = new float[HISTORY_MESH_SIZE + BUFFER_SIZE * nChannels];
-        if (vTimePoints == NULL)
+        size_t allocate     = HISTORY_MESH_SIZE + BUFFER_SIZE*3;
+        float *ctlbuf       = new float[allocate];
+        if (ctlbuf == NULL)
             return;
-        float *ctlbuf       = &vTimePoints[HISTORY_MESH_SIZE];
+        dsp::fill_zero(ctlbuf, allocate);
+
+        vTimePoints         = ctlbuf;
+        ctlbuf             += HISTORY_MESH_SIZE;
+        vTmp                = ctlbuf;
+        ctlbuf             += BUFFER_SIZE;
 
         // Fill time dots with values
         float step          = HISTORY_TIME / HISTORY_MESH_SIZE;
@@ -389,8 +276,6 @@ namespace lsp
             TRACE_PORT(vPorts[port_id]);
             vChannels[i].pIn        = vPorts[port_id++];
             vChannels[i].vCtl       = ctlbuf;
-
-            dsp::fill_zero(ctlbuf, BUFFER_SIZE);
             ctlbuf                 += BUFFER_SIZE;
         }
 
@@ -514,6 +399,50 @@ namespace lsp
         update_settings();
     }
 
+    size_t trigger_base::decode_mode()
+    {
+        if (pMode == NULL)
+            return SCM_PEAK;
+
+        switch (size_t(pMode->getValue()))
+        {
+            case M_PEAK:
+                return SCM_PEAK;
+            case M_RMS:
+                return SCM_RMS;
+            case M_LPF:
+                return SCM_LPF;
+            case M_UNIFORM:
+                return SCM_UNIFORM;
+
+            default:
+                break;
+        }
+        return SCM_PEAK;
+    }
+
+    size_t trigger_base::decode_source()
+    {
+        if (pSource == NULL)
+            return SCS_MIDDLE;
+
+        switch (size_t(pSource->getValue()))
+        {
+            case S_MIDDLE:
+                return SCS_MIDDLE;
+            case S_SIDE:
+                return SCS_SIDE;
+            case S_LEFT:
+                return SCS_LEFT;
+            case S_RIGHT:
+                return SCS_RIGHT;
+
+            default:
+                break;
+        }
+        return SCS_MIDDLE;
+    }
+
     void trigger_base::update_settings()
     {
         // Update settings for notes
@@ -524,9 +453,11 @@ namespace lsp
         }
 
         // Update settings
-        nSource         = (pSource != NULL) ? size_t(pSource->getValue()) : S_MIDDLE;
-        size_t old_mode = nMode;
-        nMode           = (pMode != NULL) ? size_t(pMode->getValue()) : M_PEAK;
+        sSidechain.set_source(decode_source());
+        sSidechain.set_mode(decode_mode());
+        sSidechain.set_reactivity(pReactivity->getValue());
+        sSidechain.set_gain(pPreamp->getValue());
+
         fDetectLevel    = pDetectLevel->getValue();
         fDetectTime     = pDetectTime->getValue();
         fReleaseLevel   = fDetectLevel * pReleaseLevel->getValue();
@@ -534,8 +465,6 @@ namespace lsp
         fDynamics       = pDynamics->getValue() * 0.01f; // Percents
         fDynaTop        = pDynaRange1->getValue();
         fDynaBottom     = pDynaRange2->getValue();
-        fReactivity     = pReactivity->getValue();
-        fPreamp         = pPreamp->getValue();
 
         float out_gain  = pGain->getValue();
         fDry            = pDry->getValue() * out_gain;
@@ -554,11 +483,6 @@ namespace lsp
             fDynaTop    = fDynaBottom;
             fDynaBottom = tmp;
         }
-
-        // Update reactivity
-        update_reactivity();
-        if (old_mode != nMode)
-            fRmsValue       = 0.0f;
 
         // Update sampler settings
         sKernel.update_settings();
@@ -598,14 +522,10 @@ namespace lsp
         sKernel.update_sample_rate(sr);
 
         // Update trigger buffer
-        size_t gap              = millis_to_samples(sr, REACTIVITY_MAX);
-        sBuffer.init(gap * 4, gap);
+        sSidechain.set_sample_rate(sr);
 
         // Update activity blink
         sActive.init(sr);
-
-        // Update reactivity
-        update_reactivity();
 
         // Update counters
         update_counters();
@@ -683,6 +603,7 @@ namespace lsp
         // Get pointers to channel buffers
         const float *ins[TRACKS_MAX];
         float *outs[TRACKS_MAX], *ctls[TRACKS_MAX];
+        float preamp        = sSidechain.get_gain();
 
         for (size_t i=0; i<nChannels; ++i)
         {
@@ -693,7 +614,7 @@ namespace lsp
             // Update meter
             if ((ins[i] != NULL) && (c->pMeter != NULL))
             {
-                float level = (c->bVisible) ? dsp::abs_max(ins[i], samples) * fPreamp : 0.0f;
+                float level = (c->bVisible) ? dsp::abs_max(ins[i], samples) * preamp : 0.0f;
                 c->pMeter->setValue(level);
             }
         }
@@ -711,13 +632,14 @@ namespace lsp
             for (size_t i=0; i<nChannels; ++i)
             {
                 channel_t *c        = &vChannels[i];
-                dsp::scale(c->vCtl, ins[i], fPreamp, to_process);
-                c->sGraph.process(c->vCtl, samples);
                 ctls[i]             = c->vCtl;
+                dsp::scale(ctls[i], ins[i], preamp, to_process);
+                c->sGraph.process(ctls[i], samples);
             }
 
             // Now we have to process data
-            process_samples(const_cast<const float **>(ctls), to_process);
+            sSidechain.process(vTmp, ins, to_process);  // Pass input to sidechain
+            process_samples(vTmp, to_process);          // Pass sidechain output for sample processing
 
             // Call sampler kernel for processing
             sKernel.process(ctls, NULL, to_process);

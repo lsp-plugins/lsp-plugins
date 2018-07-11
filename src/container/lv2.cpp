@@ -136,14 +136,14 @@ namespace lsp
                                        LV2_Handle instance,
                                        uint32_t w, uint32_t h)
     {
-        lsp_trace("handle = %p", instance);
+//        lsp_trace("handle = %p", instance);
 
         dsp_context_t ctx;
         LV2_Inline_Display_Image_Surface *result;
         LV2Wrapper *wrapper = reinterpret_cast<LV2Wrapper *>(instance);
 
         dsp::start(&ctx);
-        lsp_trace("call wrapper for rendering w=%d, h=%d", int(w), int(h));
+//        lsp_trace("call wrapper for rendering w=%d, h=%d", int(w), int(h));
         result              = wrapper->render_inline_display(w, h);
         dsp::finish(&ctx);
 

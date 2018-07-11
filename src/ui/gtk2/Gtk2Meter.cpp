@@ -303,6 +303,7 @@ namespace lsp
 
         float value     = (nFlags & MF_INACTIVE) ? 0.0f : fValue;
         fValue         *= 0.8f;
+
         ssize_t cx      = nWidth >> 1, cy = nHeight >> 1;
         cairo_text_extents_t extents;
         ssize_t tsx = 0, tsy = 0;
@@ -537,7 +538,6 @@ namespace lsp
                 nFlags &= ~MF_INACTIVE;
             else
                 nFlags |= MF_INACTIVE;
-            markRedraw();
         }
         Gtk2CustomWidget::notify(port);
     }

@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <?php
+	// Main configuration
+	require_once('config/config.php');
+
 	// Include common modules
 	require_once('inc/menu.php');
 	require_once('inc/plugins.php');
@@ -18,6 +21,7 @@
 	$DOCROOT    = (isset($MENUITEM)) ? ('../' . ((strlen($MENUITEM['root']) > 0) ? ($MENUITEM['root'] . '/') : '')) : '';
 	$HEADER		= (isset($MENUITEM)) ? $MENUITEM['text'] : 'LSP Plugins Documentation';
 	$FILENAME   = (isset($MENUITEM)) ? (isset($MENUITEM['file']) ? $MENUITEM['file'] : $PAGE) : 'index';
+	$RES_ROOT   = $DOCROOT;
 ?>
 
 <html>

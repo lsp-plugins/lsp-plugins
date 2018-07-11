@@ -72,6 +72,24 @@ namespace lsp
         EVF_STOP            = 1 << 1,   // Stop further propagation of event to other elements
         EVF_GRAB            = 1 << 2    // Grab all further events first
     };
+
+    enum ui_event_type_t
+    {
+        UIE_KEY_DOWN,
+        UIE_KEY_UP,
+        UIE_MOUSE_DOWN,
+        UIE_MOUSE_UP,
+        UIE_MOUSE_MOVE
+    };
+
+    typedef struct ui_event_t
+    {
+        size_t              nType;      // Type of event, see ui_event_type_t
+        ssize_t             nLeft;      // Left position of something
+        ssize_t             nTop;       // Top position of something
+        size_t              nCode;      // Key code or button
+        size_t              nState;     // State
+    } ui_event_t;
 }
 
 #endif /* UI_IO_H_ */

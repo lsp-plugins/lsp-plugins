@@ -98,4 +98,13 @@ namespace lsp
     void ICanvas::draw_lines(float *x, float *y, size_t count)
     {
     }
+
+    void ICanvas::circle(ssize_t x, ssize_t y, ssize_t r)
+    {
+    }
+
+    void ICanvas::radial_gradient(ssize_t x, ssize_t y, const Color &c1, const Color &c2, ssize_t r)
+    {
+    }
+
 } /* namespace lsp */

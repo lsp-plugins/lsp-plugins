@@ -15,6 +15,7 @@ namespace lsp
         fCurrent    = 0.0f;
         nCount      = 0;
         nPeriod     = 1;
+        bMinimize   = false;
     }
 
     MeterGraph::~MeterGraph()
@@ -47,11 +48,22 @@ namespace lsp
         if (sample < 0)
             sample      = - sample;
 
-        // Update current sample
-        if (nCount == 0)
-            fCurrent    = sample;
-        else if (fCurrent < sample)
-            fCurrent    = sample;
+        if (bMinimize)
+        {
+            // Update current sample
+            if (nCount == 0)
+                fCurrent    = sample;
+            else if (fCurrent < sample)
+                fCurrent    = sample;
+        }
+        else
+        {
+            // Update current sample
+            if (nCount == 0)
+                fCurrent    = sample;
+            else if (fCurrent > sample)
+                fCurrent    = sample;
+        }
 
         // Increment number of samples processed
         if ((++nCount) >= nPeriod)
@@ -67,38 +79,78 @@ namespace lsp
 
     void MeterGraph::process(const float *s, size_t n)
     {
-        while (n > 0)
+        if (bMinimize)
         {
-            // Determine amount of samples to process
-            ssize_t can_do      = nPeriod - nCount;
-            if (can_do > ssize_t(n))
-                can_do          = n;
-
-            // Process the samples
-            if (can_do > 0)
+            while (n > 0)
             {
-                // Get maximum sample
-                float sample        = dsp::abs_max(s, can_do);
-                if (nCount == 0)
-                    fCurrent        = sample;
-                else if (fCurrent < sample)
-                    fCurrent        = sample;
+                // Determine amount of samples to process
+                ssize_t can_do      = nPeriod - nCount;
+                if (can_do > ssize_t(n))
+                    can_do          = n;
 
-                // Update counters and pointers
-                nCount             += can_do;
-                n                  -= can_do;
-                s                  += can_do;
+                // Process the samples
+                if (can_do > 0)
+                {
+                    // Get maximum sample
+                    float sample        = dsp::abs_min(s, can_do);
+                    if (nCount == 0)
+                        fCurrent        = sample;
+                    else if (fCurrent > sample)
+                        fCurrent        = sample;
+
+                    // Update counters and pointers
+                    nCount             += can_do;
+                    n                  -= can_do;
+                    s                  += can_do;
+                }
+
+                // Check that need to switch to next sample
+                if (nCount >= nPeriod)
+                {
+                    // Append current sample to buffer
+                    sBuffer.shift();
+                    sBuffer.append(fCurrent);
+
+                    // Update counter
+                    nCount      = 0;
+                }
             }
-
-            // Check that need to switch to next sample
-            if (nCount >= nPeriod)
+        }
+        else
+        {
+            while (n > 0)
             {
-                // Append current sample to buffer
-                sBuffer.shift();
-                sBuffer.append(fCurrent);
+                // Determine amount of samples to process
+                ssize_t can_do      = nPeriod - nCount;
+                if (can_do > ssize_t(n))
+                    can_do          = n;
 
-                // Update counter
-                nCount      = 0;
+                // Process the samples
+                if (can_do > 0)
+                {
+                    // Get maximum sample
+                    float sample        = dsp::abs_max(s, can_do);
+                    if (nCount == 0)
+                        fCurrent        = sample;
+                    else if (fCurrent < sample)
+                        fCurrent        = sample;
+
+                    // Update counters and pointers
+                    nCount             += can_do;
+                    n                  -= can_do;
+                    s                  += can_do;
+                }
+
+                // Check that need to switch to next sample
+                if (nCount >= nPeriod)
+                {
+                    // Append current sample to buffer
+                    sBuffer.shift();
+                    sBuffer.append(fCurrent);
+
+                    // Update counter
+                    nCount      = 0;
+                }
             }
         }
     }

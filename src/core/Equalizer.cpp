@@ -291,18 +291,15 @@ namespace lsp
 
                         dsp::fill_zero(&vFftRe[nConvSize], nConvSize);
 
-                        if (sBank.size() > 0)
-                        {
-                            // Perform the direct FFT of the input signal
-                            dsp::fill_zero(vFftIm, conv_len);
-                            dsp::direct_fft(vFftRe, vFftIm, vFftRe, vFftIm, nFftRank + 1);
+                        // Perform the direct FFT of the input signal
+                        dsp::fill_zero(vFftIm, conv_len);
+                        dsp::direct_fft(vFftRe, vFftIm, vFftRe, vFftIm, nFftRank + 1);
 
-                            // Perform convolution
-                            dsp::complex_mul(vFftRe, vFftIm, vFftRe, vFftIm, vConvRe, vConvIm, conv_len);
+                        // Perform convolution
+                        dsp::complex_mul(vFftRe, vFftIm, vFftRe, vFftIm, vConvRe, vConvIm, conv_len);
 
-                            // Perform the reverse FFT
-                            dsp::reverse_fft(vFftRe, vFftIm, vFftRe, vFftIm, nFftRank + 1);
-                        }
+                        // Perform the reverse FFT
+                        dsp::reverse_fft(vFftRe, vFftIm, vFftRe, vFftIm, nFftRank + 1);
 
                         // Apply previous convolution tail
                         dsp::add(vFftRe, &vBuffer[nConvSize], nConvSize);

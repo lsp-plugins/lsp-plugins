@@ -89,7 +89,7 @@ namespace lsp
                 __ASM_EMIT("jmp 100f")
 
                 // Negative part
-                // Test for +inf, +nan
+                // Test for -inf, -nan
                 __ASM_EMIT("50:")
                 __ASM_EMIT("cmp $0xFF800000, %[tmp]")
                 __ASM_EMIT("je 60f")
@@ -167,7 +167,7 @@ namespace lsp
                 __ASM_EMIT("jmp 100f")
 
                 // Negative part
-                // Test for +inf, +nan
+                // Test for -inf, -nan
                 __ASM_EMIT("50:")
                 __ASM_EMIT("cmp $0xFF800000, %[tmp]")
                 __ASM_EMIT("je 60f")

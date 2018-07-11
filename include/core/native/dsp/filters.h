@@ -264,6 +264,7 @@ namespace lsp
             } while (mask != 0);
         }
 
+/*
         static void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f)
         {
             // This code already works badly instead of biquad_process_x4
@@ -506,7 +507,156 @@ namespace lsp
                 // Update mask
                 mask        = (mask << 1) & 0xff;
             } while (mask != 0);
+        }*/
+
+        static void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f)
+        {
+            // This code already works badly instead of biquad_process_x4
+            if (count <= 0)
+                return;
+
+            float s[4], s2[4], p1[4], p2[4];
+            s[0]            = 0.0f;
+            s[1]            = 0.0f;
+            s[2]            = 0.0f;
+            s[3]            = 0.0f;
+            s2[0]           = 0.0f;
+            s2[1]           = 0.0f;
+            s2[2]           = 0.0f;
+            s2[3]           = 0.0f;
+
+            // Calculate as two passes of x4 filters
+            for (size_t n=0; n<2; ++n)
+            {
+                // two x4 filters are in parallel, shift by 4 floats stride
+                biquad_x8_t *bq = reinterpret_cast<biquad_x8_t *>(&f->d[n*4]);
+                size_t mask     = 0;
+                size_t i        = 0;
+                const float *sp = src;
+                float *dp       = dst;
+
+                // Start filters, mask enables the specific filter
+                do
+                {
+                    // Push sample
+                    s[0]        = *(sp++);
+                    mask       |= 1;
+
+                    // Calculate filters by mask and shift buffers
+                    s2[0]       = bq->a0[0]*s[0] + f->d[0];
+                    p1[0]       = bq->a1[0]*s[0] + bq->b1[0]*s2[0];
+                    p2[0]       = bq->a2[0]*s[0] + bq->b2[0]*s2[0];
+                    f->d[0]     = f->d[8]   + p1[0];
+                    f->d[8]     = p2[0];
+
+                    if (mask & 0x2)
+                    {
+                        s2[1]       = bq->a0[1]*s[1] + f->d[1];
+                        p1[1]       = bq->a1[1]*s[1] + bq->b1[1]*s2[1];
+                        p2[1]       = bq->a2[1]*s[1] + bq->b2[1]*s2[1];
+                        f->d[1]     = f->d[9]   + p1[1];
+                        f->d[9]     = p2[1];
+                    }
+                    if (mask & 0x4)
+                    {
+                        s2[2]       = bq->a0[2]*s[2] + f->d[2];
+                        p1[2]       = bq->a1[2]*s[2] + bq->b1[2]*s2[2];
+                        p2[2]       = bq->a2[2]*s[2] + bq->b2[2]*s2[2];
+                        f->d[2]     = f->d[10]  + p1[2];
+                        f->d[10]    = p2[2];
+                    }
+
+                    // Shift buffer
+                    s[3]        = s2[2];
+                    s[2]        = s2[1];
+                    s[1]        = s2[0];
+
+                    // Update mask
+                    mask      <<= 1;
+                    if ((++i) >= count)
+                        break;
+                } while (i < 3);
+
+                // Process all filters simultaneously
+                while (i < count)
+                {
+                    // Push sample
+                    s[0]        = *(sp++);
+
+                    // Calculate filters by mask and shift buffers
+                    s2[0]       = bq->a0[0]*s[0] + f->d[0];
+                    s2[1]       = bq->a0[1]*s[1] + f->d[1];
+                    s2[2]       = bq->a0[2]*s[2] + f->d[2];
+                    s2[3]       = bq->a0[3]*s[3] + f->d[3];
+
+                    p1[0]       = bq->a1[0]*s[0] + bq->b1[0]*s2[0];
+                    p1[1]       = bq->a1[1]*s[1] + bq->b1[1]*s2[1];
+                    p1[2]       = bq->a1[2]*s[2] + bq->b1[2]*s2[2];
+                    p1[3]       = bq->a1[3]*s[3] + bq->b1[3]*s2[3];
+
+                    p2[0]       = bq->a2[0]*s[0] + bq->b2[0]*s2[0];
+                    p2[1]       = bq->a2[1]*s[1] + bq->b2[1]*s2[1];
+                    p2[2]       = bq->a2[2]*s[2] + bq->b2[2]*s2[2];
+                    p2[3]       = bq->a2[3]*s[3] + bq->b2[3]*s2[3];
+
+                    f->d[0]     = f->d[8]   + p1[0];
+                    f->d[1]     = f->d[9]   + p1[1];
+                    f->d[2]     = f->d[10]  + p1[2];
+                    f->d[3]     = f->d[11]  + p1[3];
+
+                    f->d[8]     = p2[0];
+                    f->d[9]     = p2[1];
+                    f->d[10]    = p2[2];
+                    f->d[11]    = p2[3];
+
+                    // Shift buffer
+                    *(dp++)     = s2[3];
+                    s[3]        = s2[2];
+                    s[2]        = s2[1];
+                    s[1]        = s2[0];
+
+                    i          ++;
+                }
+
+                // Finish processing
+                do
+                {
+                    // Calculate filters by mask and shift buffers
+                    if (mask & 0x2)
+                    {
+                        s2[1]       = bq->a0[1]*s[1] + f->d[1];
+                        p1[1]       = bq->a1[1]*s[1] + bq->b1[1]*s2[1];
+                        p2[1]       = bq->a2[1]*s[1] + bq->b2[1]*s2[1];
+                        f->d[1]     = f->d[9]   + p1[1];
+                        f->d[9]     = p2[1];
+                    }
+                    if (mask & 0x4)
+                    {
+                        s2[2]       = bq->a0[2]*s[2] + f->d[2];
+                        p1[2]       = bq->a1[2]*s[2] + bq->b1[2]*s2[2];
+                        p2[2]       = bq->a2[2]*s[2] + bq->b2[2]*s2[2];
+                        f->d[2]     = f->d[10]  + p1[2];
+                        f->d[10]    = p2[2];
+                    }
+
+                    s2[3]       = bq->a0[3]*s[3] + f->d[3];
+                    p1[3]       = bq->a1[3]*s[3] + bq->b1[3]*s2[3];
+                    p2[3]       = bq->a2[3]*s[3] + bq->b2[3]*s2[3];
+                    f->d[3]     = f->d[11]  + p1[3];
+                    f->d[11]    = p2[3];
+
+                    // Shift buffer
+                    *(dp++)     = s2[3];
+                    s[3]        = s2[2];
+                    s[2]        = s2[1];
+                    s[1]        = s2[0];
+
+                    // Update mask
+                    mask        = (mask << 1) & 0x0f;
+                } while (mask != 0);
+            }
         }
+
     }
 }
 

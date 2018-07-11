@@ -13,6 +13,12 @@
 
 namespace lsp
 {
+    enum meter_method_t
+    {
+        MM_MAXIMUM,
+        MM_MINIMUM
+    };
+
     class MeterGraph
     {
         private:
@@ -20,6 +26,7 @@ namespace lsp
             float               fCurrent;
             size_t              nCount;
             size_t              nPeriod;
+            bool                bMinimize;
 
         public:
             MeterGraph();
@@ -28,6 +35,8 @@ namespace lsp
         public:
             bool init(size_t frames, size_t period);
             void destroy();
+
+            inline void set_method(meter_method_t m) { bMinimize = (m == MM_MINIMUM); };
 
             inline float *data()    { return sBuffer.head();   }
 
@@ -49,6 +58,12 @@ namespace lsp
              * @return current level
              */
             inline float level() const { return sBuffer.last(); }
+
+            /** Fill graph with specific level
+             *
+             * @param level level
+             */
+            inline void fill(float level) { sBuffer.fill(level); };
     };
 }
 

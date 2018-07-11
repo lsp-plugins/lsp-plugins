@@ -362,9 +362,6 @@ namespace lsp
             pChannels->vChannels[i].nSamples    = step * i;
         lsp_trace("nMaxSamples      = %d", int(pChannels->nMaxSamples));
         set_reactivity(pChannels->fReactivity);
-
-        // Call for settings update
-        update_settings();
     }
 
     void spectrum_analyzer_base::update_frequences()

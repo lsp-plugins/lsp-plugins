@@ -49,6 +49,7 @@ namespace lsp
                 bool                bSolo;          // Soloing filter
 
                 IPort              *pType;          // Filter type
+                IPort              *pMode;          // Filter mode
                 IPort              *pFreq;          // Filter frequency
                 IPort              *pSlope;         // Filter slope
                 IPort              *pSolo;          // Solo port
@@ -87,15 +88,13 @@ namespace lsp
             Analyzer            sAnalyzer;              // Analyzer
             size_t              nFilters;               // Number of filters
             size_t              nMode;                  // Operating mode
-            equalizer_mode_t    nEqMode;                // Equalizer mode
             eq_channel_t       *vChannels;              // List of channels
             float              *vFreqs;                 // Frequency list
             uint32_t           *vIndexes;               // FFT indexes
             float               fGainIn;                // Input gain
-//            float               fGainOut;               // Output gain
             bool                bListen;                // Listen mode (only for MS para_equalizer)
             fft_position_t      nFftPosition;           // FFT position
-            float_buffer_t     *pIDisplay;      // Inline display buffer
+            float_buffer_t     *pIDisplay;              // Inline display buffer
 
             IPort              *pBypass;                // Bypass port
             IPort              *pGainIn;                // Input gain port
@@ -109,7 +108,7 @@ namespace lsp
 
         protected:
             void            destroy_state();
-            inline void     decode_filter(size_t *ftype, size_t *slope);
+            inline void     decode_filter(size_t *ftype, size_t *slope, size_t mode);
             inline bool     adjust_gain(size_t filter_type);
             inline equalizer_mode_t get_eq_mode();
 

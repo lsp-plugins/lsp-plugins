@@ -42,6 +42,9 @@
 #define LOG_CONTROL(id, label, units, limits) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_LOG, \
         limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
+#define LOG_CONTROL_DFL(id, label, units, limits, dfl) \
+    { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_LOG, \
+        limits ## _MIN, limits ## _MAX, dfl, limits ## _STEP, NULL, NULL }
 #define PORT_SET(id, label, keys, ports)  \
     { id, label, U_ENUM, R_PORT_SET, F_IN, 0, 0, 0, 0, keys, ports }
 #define PAN_CTL(id, label, dfl) \
@@ -59,16 +62,16 @@
     { NULL, NULL }
 
 // Reduced ports
-#define AUDIO_INPUT_MONO    AUDIO_INPUT("in", "Input")
+#define AUDIO_INPUT_MONO    AUDIO_INPUT(PORT_NAME_INPUT, "Input")
 #define AUDIO_INPUT_LEFT    AUDIO_INPUT(PORT_NAME_INPUT_L, "Input L")
 #define AUDIO_INPUT_RIGHT   AUDIO_INPUT(PORT_NAME_INPUT_R, "Input R")
 #define AUDIO_INPUT_A       AUDIO_INPUT("in_a", "Input A")
 #define AUDIO_INPUT_B       AUDIO_INPUT("in_b", "Input B")
 #define AUDIO_INPUT_N(n)    AUDIO_INPUT("in" #n, "Input " #n)
 
-#define AUDIO_OUTPUT_MONO   AUDIO_OUTPUT("out", "Output")
-#define AUDIO_OUTPUT_LEFT   AUDIO_OUTPUT("out_l", "Output L")
-#define AUDIO_OUTPUT_RIGHT  AUDIO_OUTPUT("out_r", "Output R")
+#define AUDIO_OUTPUT_MONO   AUDIO_OUTPUT(PORT_NAME_OUTPUT, "Output")
+#define AUDIO_OUTPUT_LEFT   AUDIO_OUTPUT(PORT_NAME_OUTPUT_L, "Output L")
+#define AUDIO_OUTPUT_RIGHT  AUDIO_OUTPUT(PORT_NAME_OUTPUT_R, "Output R")
 #define AUDIO_OUTPUT_A      AUDIO_OUTPUT("out_a", "Output A")
 #define AUDIO_OUTPUT_B      AUDIO_OUTPUT("out_b", "Output B")
 #define AUDIO_OUTPUT_N(n)   AUDIO_OUTPUT("out" #n, "Output " #n)
@@ -76,6 +79,7 @@
 #define MIDI_INPUT          MIDI_CHANNEL(LSP_LV2_MIDI_PORT_IN, F_IN, "Midi input")
 #define MIDI_OUTPUT         MIDI_CHANNEL(LSP_LV2_MIDI_PORT_OUT, F_OUT, "Midi output")
 
+#define IN_GAIN             AMP_GAIN10("g_in", "Input gain", 1.0f)
 #define OUT_GAIN            AMP_GAIN10("g_out", "Output gain", 1.0f)
 
 #define DRY_GAIN(g)         AMP_GAIN10("dry", "Dry amount", g)
@@ -93,6 +97,9 @@
 #define PORTS_MONO_PLUGIN   \
     AUDIO_INPUT_MONO,       \
     AUDIO_OUTPUT_MONO       \
+
+#define PORTS_MONO_SIDECHAIN        AUDIO_INPUT(PORT_NAME_SIDECHAIN, "Sidechain input")
+#define PORTS_STEREO_SIDECHAIN      AUDIO_INPUT(PORT_NAME_SIDECHAIN_L, "Sidechain input Left"), AUDIO_INPUT(PORT_NAME_SIDECHAIN_R, "Sidechain input Right")
 
 #define PORTS_STEREO_PLUGIN \
     AUDIO_INPUT_LEFT,       \
@@ -116,16 +123,30 @@
 namespace lsp
 {
     // Common stereo port names
+    extern const char PORT_NAME_INPUT[];
+    extern const char PORT_NAME_OUTPUT[];
+    extern const char PORT_NAME_SIDECHAIN[];
     extern const char PORT_NAME_INPUT_L[];
     extern const char PORT_NAME_INPUT_R[];
     extern const char PORT_NAME_OUTPUT_L[];
     extern const char PORT_NAME_OUTPUT_R[];
+    extern const char PORT_NAME_SIDECHAIN_L[];
+    extern const char PORT_NAME_SIDECHAIN_R[];
 
     // Port groups
+    extern const port_group_item_t mono_in_group_ports[];
+    extern const port_group_item_t mono_sidechain_group_ports[];
+    extern const port_group_item_t mono_out_group_ports[];
+
     extern const port_group_item_t stereo_in_group_ports[];
+    extern const port_group_item_t stereo_sidechain_group_ports[];
     extern const port_group_item_t stereo_out_group_ports[];
 
+    extern const port_group_t mono_plugin_port_groups[];
+    extern const port_group_t mono_plugin_sidechain_port_groups[];
+
     extern const port_group_t stereo_plugin_port_groups[];
+    extern const port_group_t stereo_plugin_sidechain_port_groups[];
 
     // Miscellaneous lists
     extern const char *file_channels[];

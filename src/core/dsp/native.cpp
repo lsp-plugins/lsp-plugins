@@ -38,9 +38,12 @@ namespace lsp
             dsp::min                        = native::min;
             dsp::max                        = native::max;
             dsp::abs_max                    = native::abs_max;
+            dsp::abs_min                    = native::abs_min;
             dsp::minmax                     = native::minmax;
             dsp::min_index                  = native::min_index;
             dsp::max_index                  = native::max_index;
+            dsp::abs_max_index              = native::abs_max_index;
+            dsp::abs_min_index              = native::abs_min_index;
             dsp::scale                      = native::scale;
             dsp::multiply                   = native::multiply;
             dsp::h_sum                      = native::h_sum;
@@ -68,7 +71,11 @@ namespace lsp
             dsp::complex_cvt2reim           = native::complex_cvt2reim;
             dsp::complex_mod                = native::complex_mod;
             dsp::lr_to_ms                   = native::lr_to_ms;
+            dsp::lr_to_mid                  = native::lr_to_mid;
+            dsp::lr_to_side                 = native::lr_to_side;
             dsp::ms_to_lr                   = native::ms_to_lr;
+            dsp::ms_to_left                 = native::ms_to_left;
+            dsp::ms_to_right                = native::ms_to_right;
             dsp::avoid_denormals            = native::avoid_denormals;
 
             dsp::biquad_process             = native::biquad_process;

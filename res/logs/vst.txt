@@ -946,3 +946,203 @@ Description:	32-band graphic equalizer with individual control of middle and sid
 	Registration:	
 		
 	*Plugin ID:	ku8j
+	
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Kompressor Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Mono compressor with flexible sidechain configuration and different working modes.
+		
+	Registration:	
+		
+	*Plugin ID:	bgsy
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Kompressor Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Stereo compressor with flexible sidechain configuration and different working modes.
+		
+	Registration:	
+		
+	*Plugin ID:	unsc
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Kompressor LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Stereo compressor with flexible sidechain configuration and different working modes. Each channel is processed independently.
+		
+	Registration:	
+		
+	*Plugin ID:	3nam
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Kompressor MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Mid/Side compressor with flexible sidechain configuration and different working modes.
+		
+	Registration:	
+		
+	*Plugin ID:	jjef
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain-Kompressor Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Mono compressor with flexible sidechain configuration and different working modes. External sidechain input is additionally provided.
+		
+	Registration:	
+		
+	*Plugin ID:	lyjq
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Sidechain-Kompressor Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Stereo compressor with flexible sidechain configuration and different working modes. External sidechain input is additionally provided.
+		
+	Registration:	
+		
+	*Plugin ID:	5xzi
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain-Kompressor LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Stereo compressor with flexible sidechain configuration and different working modes. Each channel is processed independently. External sidechain input is additionally provided.
+		
+	Registration:	
+		
+	*Plugin ID:	fowg
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Sidechain-Kompressor MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Mid/Side compressor with flexible sidechain configuration and different working modes. External sidechain input is additionally provided.
+		
+	Registration:	
+		
+	*Plugin ID:	ioqg
+

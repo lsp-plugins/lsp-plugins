@@ -14,6 +14,7 @@
 #include <core/midi.h>
 #include <core/MeterGraph.h>
 #include <core/Blink.h>
+#include <core/Sidechain.h>
 
 #include <plugins/sampler.h>
 
@@ -79,6 +80,10 @@ namespace lsp
             } channel_t;
 
         protected:
+            // Sidechain
+            Sidechain               sSidechain;             // Sidechain
+            float                  *vTmp;                   // Temporary buffer
+
             // Instantiation parameters
             size_t                  nFiles;                 // Number of files
             size_t                  nChannels;              // Number of channels
@@ -88,7 +93,6 @@ namespace lsp
             sampler_kernel          sKernel;                // Output kernel
             MeterGraph              sFunction;              // Function
             MeterGraph              sVelocity;              // Trigger velocity level
-            ShiftBuffer             sBuffer;                // Buffer to store samples
             Blink                   sActive;                // Activity blink
             channel_t               vChannels[TRACKS_MAX];  // Output channels
             float                  *vTimePoints;            // Time points buffer
@@ -96,12 +100,9 @@ namespace lsp
             // Processing variables
             ssize_t                 nCounter;               // Counter for detect/release
             size_t                  nState;                 // Trigger state
-            size_t                  nReactivity;            // Reactivity (in samples)
-            float                   fTau;                   // Tau for RMS
             float                   fVelocity;              // Current velocity value
             bool                    bFunctionActive;        // Function activity
             bool                    bVelocityActive;        // Velocity activity
-            float                   fRmsValue;              // RMS value
 
             // Parameters
             size_t                  nNote;                  // Trigger note
@@ -110,11 +111,7 @@ namespace lsp
             float                   fWet;                   // Wet amount
             bool                    bPause;                 // Pause analysis refresh
             bool                    bClear;                 // Clear analysis
-            float                   fPreamp;                // Control chain pre-amplification
-            size_t                  nRefresh;               // Refresh samples
 
-            size_t                  nSource;                // Trigger source
-            size_t                  nMode;                  // Mode
             size_t                  nDetectCounter;         // Detect counter
             size_t                  nReleaseCounter;        // Release counter
             float                   fDetectLevel;           // Detection level
@@ -124,7 +121,6 @@ namespace lsp
             float                   fDynamics;              // Dynamics
             float                   fDynaTop;               // Dynamics top
             float                   fDynaBottom;            // Dynamics bottom
-            float                   fReactivity;            // Reactivity
             float_buffer_t         *pIDisplay;              // Inline display buffer
 
             // Control ports
@@ -166,12 +162,10 @@ namespace lsp
         protected:
             void                trigger_on(size_t timestamp, float level);
             void                trigger_off(size_t timestamp, float level);
-            inline float        get_sample(const float **data, size_t idx);
-            inline float        process_sample(float sample);
-            void                process_samples(const float **data, size_t samples);
-            inline void         update_reactivity();
+            void                process_samples(const float *sc, size_t samples);
             inline void         update_counters();
-            inline void         refresh_processing();
+            size_t              decode_mode();
+            size_t              decode_source();
 
         public:
             trigger_base(const plugin_metadata_t &metadata, size_t files, size_t channels, bool midi);

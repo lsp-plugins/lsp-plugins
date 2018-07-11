@@ -10,6 +10,13 @@
 
 #include <container/vst/defs.h>
 #include <core/NativeExecutor.h>
+#include <X11/Xlib.h>
+#include <gdk/gdkx.h>
+
+#ifdef ARCH_X86_64
+    #include <sys/mman.h>
+    #include <sys/user.h>
+#endif
 
 namespace lsp
 {
@@ -33,6 +40,8 @@ namespace lsp
             audioMasterCallback         pMaster;
             IExecutor                  *pExecutor;
             vst_state_buffer           *pState;
+            uint8_t                    *pEventRedirect;
+            bool                        bUpdateSettings;
 
             cvector<VSTAudioPort>       vInputs;        // List of input audio ports
             cvector<VSTAudioPort>       vOutputs;       // List of output audio ports
@@ -44,9 +53,11 @@ namespace lsp
 
         private:
             static gboolean transport_synchronize(gpointer arg);
+            static void event_proc_proxy(XEvent *ev);
             void transfer_dsp_to_ui();
             void create_transport_thread();
             void drop_transport_thread();
+            void set_event_handler(Display *dpy, Window wnd);
 
             VSTPort *create_port(const port_t *port, const char *postfix);
             void create_ports(const port_t *meta);
@@ -75,6 +86,8 @@ namespace lsp
                 sRect.left      = 0;
                 sRect.bottom    = 0;
                 sRect.right     = 0;
+                pEventRedirect  = NULL;
+                bUpdateSettings = true;
             }
 
             virtual ~VSTWrapper()
@@ -88,6 +101,7 @@ namespace lsp
                 pParent         = NULL;
                 pTimer          = 0;
                 pMaster         = NULL;
+                pEventRedirect  = NULL;
             }
 
         public:
@@ -105,6 +119,7 @@ namespace lsp
             inline void set_sample_rate(float sr)
             {
                 pPlugin->set_sample_rate(sr);
+                bUpdateSettings = true;
             }
 
             inline void mains_changed(VstIntPtr value)
@@ -368,6 +383,14 @@ namespace lsp
             pState          = NULL;
         }
 
+        #ifdef ARCH_X86_64
+            if (pEventRedirect != NULL)
+            {
+                munmap(pEventRedirect, PAGE_SIZE);
+                pEventRedirect = NULL;
+            }
+        #endif /* ARCH_X86_64 */
+
         pMaster     = NULL;
         pEffect     = NULL;
 
@@ -402,8 +425,6 @@ namespace lsp
         }
 
         // Process ALL ports for changes
-        bool update = false;
-
         size_t n_ports = vPorts.size();
         for (size_t i=0; i<n_ports; ++i)
         {
@@ -416,15 +437,16 @@ namespace lsp
             if (port->pre_process(samples))
             {
                 lsp_trace("port changed: %s", port->metadata()->id);
-                update = true;
+                bUpdateSettings = true;
             }
         }
 
         // Check that input parameters have changed
-        if (update)
+        if (bUpdateSettings)
         {
             lsp_trace("updating settings");
             pPlugin->update_settings();
+            bUpdateSettings     = false;
         }
 
         // Call the main processing unit
@@ -538,6 +560,11 @@ namespace lsp
             pParent                     = gdk_window_foreign_new(GdkNativeWindow(uintptr_t(wnd)));
             g_assert(pParent);
             gdk_window_reparent(gtk_widget_get_window(pWidget), pParent, 0, 0);
+
+            // JUCE hack: add event handler
+            Display *dpy = GDK_DISPLAY_XDISPLAY(gdk_display_get_default());
+            Window wnd = GDK_WINDOW_XWINDOW(gtk_widget_get_window(pWidget));
+            set_event_handler(dpy, wnd);
         }
 
         // Show window
@@ -590,6 +617,52 @@ namespace lsp
         create_transport_thread();
 
         return true;
+    }
+
+    void VSTWrapper::event_proc_proxy(XEvent *ev)
+    {
+        XPutBackEvent(GDK_DISPLAY_XDISPLAY(gdk_display_get_default()), ev);
+        gtk_main_iteration_do(FALSE);
+    }
+
+    void VSTWrapper::set_event_handler(Display *dpy, Window wnd)
+    {
+        // This code is originally taken from amsynth
+        #ifdef ARCH_X86_64
+            //
+            // JUCE calls XGetWindowProperty with long_length = 1 which means it only fetches the lower 32 bits of the address.
+            // Therefore we need to ensure we return an address in the lower 32-bits of address space.
+            //
+            if (pEventRedirect == NULL)
+            {
+                void *ptr = mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_PRIVATE | MAP_32BIT, -1, 0);
+
+                if (pEventRedirect == MAP_FAILED)
+                {
+                    lsp_error("Error allocating mapping for JUCE workaround");
+                    return;
+                }
+
+                uint8_t *jmp    = reinterpret_cast<uint8_t *>(ptr);
+                pEventRedirect  = jmp;
+
+                // Write the JMP FAR instruction
+                *(jmp++)        = 0xff;
+                *(jmp++)        = 0x25;
+                *(reinterpret_cast<uint32_t *>(jmp))    = 0;
+                jmp            += sizeof(uint32_t);
+                *(reinterpret_cast<uint64_t *>(jmp))    = uint64_t(&event_proc_proxy);
+                msync(pEventRedirect, 2 + sizeof(uint32_t) + sizeof(uint64_t), MS_INVALIDATE);
+            }
+
+            uint32_t tmp[2] = { uint32_t(uint64_t(pEventRedirect)), 0 };
+            Atom atom = XInternAtom(dpy, "_XEventProc", false);
+            XChangeProperty(dpy, wnd, atom, atom, 32, PropModeReplace, reinterpret_cast<uint8_t *>(tmp), 2);
+        #else
+            uint32_t tmp[1] = { uint32_t(&event_proc_proxy) };
+            Atom atom = XInternAtom(dpy, "_XEventProc", false);
+            XChangeProperty(dpy, wnd, atom, atom, 32, PropModeReplace, reinterpret_cast<uint8_t *>(tmp), 1);
+        #endif
     }
 
     void VSTWrapper::destroy_ui()
@@ -659,11 +732,12 @@ namespace lsp
         }
 
         // Iterate GTK cycle(s)
-        while (gtk_events_pending ())
+        do
         {
             // Call GTK iteration
-            gtk_main_iteration();
+            gtk_main_iteration_do(FALSE);
         }
+        while (gtk_events_pending ());
     }
 
     void VSTWrapper::hide_ui()

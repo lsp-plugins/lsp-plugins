@@ -49,6 +49,27 @@ namespace lsp
      */
 
     // These constants should be redefined if structure of biquad_t changes
+    #define BIQUAD_X8_A0_OFF    0x40
+    #define BIQUAD_X8_A0_SOFF   "0x40"
+    #define BIQUAD_X8_I0_OFF    0x50
+    #define BIQUAD_X8_I0_SOFF   "0x50"
+    #define BIQUAD_X8_A1_OFF    0x60
+    #define BIQUAD_X8_A1_SOFF   "0x60"
+    #define BIQUAD_X8_I1_OFF    0x70
+    #define BIQUAD_X8_I1_SOFF   "0x70"
+    #define BIQUAD_X8_A2_OFF    0x80
+    #define BIQUAD_X8_A2_SOFF   "0x80"
+    #define BIQUAD_X8_I2_OFF    0x90
+    #define BIQUAD_X8_I2_SOFF   "0x90"
+    #define BIQUAD_X8_B1_OFF    0xa0
+    #define BIQUAD_X8_B1_SOFF   "0xa0"
+    #define BIQUAD_X8_J1_OFF    0xb0
+    #define BIQUAD_X8_J1_SOFF   "0xb0"
+    #define BIQUAD_X8_B2_OFF    0xc0
+    #define BIQUAD_X8_B2_SOFF   "0xc0"
+    #define BIQUAD_X8_J2_OFF    0xd0
+    #define BIQUAD_X8_J2_SOFF   "0xd0"
+
     #define BIQUAD_X4_A0_OFF    0x40
     #define BIQUAD_X4_A0_SOFF   "0x40"
     #define BIQUAD_X4_A1_OFF    0x50
@@ -59,17 +80,6 @@ namespace lsp
     #define BIQUAD_X4_B1_SOFF   "0x70"
     #define BIQUAD_X4_B2_OFF    0x80
     #define BIQUAD_X4_B2_SOFF   "0x80"
-
-    #define BIQUAD_X8_A0_OFF    0x40
-    #define BIQUAD_X8_A0_SOFF   "0x40"
-    #define BIQUAD_X8_A1_OFF    0x60
-    #define BIQUAD_X8_A1_SOFF   "0x60"
-    #define BIQUAD_X8_A2_OFF    0x80
-    #define BIQUAD_X8_A2_SOFF   "0x80"
-    #define BIQUAD_X8_B1_OFF    0xa0
-    #define BIQUAD_X8_B1_SOFF   "0xa0"
-    #define BIQUAD_X8_B2_OFF    0xc0
-    #define BIQUAD_X8_B2_SOFF   "0xc0"
 
     #define BIQUAD_X2_A_OFF     BIQUAD_X4_A0_OFF
     #define BIQUAD_X2_A_SOFF    BIQUAD_X4_A0_SOFF
@@ -253,6 +263,14 @@ namespace lsp
          */
         extern float (* abs_max)(const float *src, size_t count);
 
+        /** Get absolute minimum: result = min { abs(src[i]) }
+         *
+         * @param src source array
+         * @param count number of elements
+         * @return result
+         */
+        extern float (* abs_min)(const float *src, size_t count);
+
         /** Calculate min { src }, max { src }
          *
          * @param src source vector
@@ -276,6 +294,22 @@ namespace lsp
          * @return maximum value
          */
         extern size_t (* max_index)(const float *src, size_t count);
+
+        /** Calculate @ max { abs(src) }
+         *
+         * @param src source
+         * @param count number of samples
+         * @return index of maximum element
+         */
+        extern size_t  (* abs_max_index)(const float *src, size_t count);
+
+        /** Calculate @ min { abs(src) }
+         *
+         * @param src source
+         * @param count number of samples
+         * @return index of maximum element
+         */
+        extern size_t  (* abs_min_index)(const float *src, size_t count);
 
         /** Multiply: dst[i] = src[i] * k
          *
@@ -543,6 +577,24 @@ namespace lsp
          */
         extern void (* lr_to_ms)(float *m, float *s, const float *l, const float *r, size_t count);
 
+        /** Convert stereo signal to middle signal
+         *
+         * @param m mid signal
+         * @param l left channel
+         * @param r right channel
+         * @param count number of samples to process
+         */
+        extern void (* lr_to_mid)(float *m, const float *l, const float *r, size_t count);
+
+        /** Convert stereo signal to side signal
+         *
+         * @param s side signal
+         * @param l left channel
+         * @param r right channel
+         * @param count number of samples to process
+         */
+        extern void (* lr_to_side)(float *s, const float *l, const float *r, size_t count);
+
         /** Convert mid-side signal to left-right signal
          *
          * @param l left signal
@@ -552,6 +604,24 @@ namespace lsp
          * @param count number of samples to process
          */
         extern void (* ms_to_lr)(float *l, float *r, const float *m, const float *s, size_t count);
+
+        /** Convert mid-side signal to left signal
+         *
+         * @param l left signal
+         * @param m mid signal
+         * @param s side signal
+         * @param count number of samples to process
+         */
+        extern void    (* ms_to_left)(float *l, const float *m, const float *s, size_t count);
+
+        /** Convert mid-side signal to right signal
+         *
+         * @param r right signal
+         * @param m mid signal
+         * @param s side signal
+         * @param count number of samples to process
+         */
+        extern void    (* ms_to_right)(float *r, const float *m, const float *s, size_t count);
 
         /** Process biquad filter
          *

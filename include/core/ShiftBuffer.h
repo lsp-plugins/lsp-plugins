@@ -8,6 +8,8 @@
 #ifndef CORE_SHIFTBUFFER_H_
 #define CORE_SHIFTBUFFER_H_
 
+#include <core/dsp.h>
+
 namespace lsp
 {
     class ShiftBuffer
@@ -61,11 +63,18 @@ namespace lsp
 
             /** Remove data from the beginning of the buffer
              *
-             * @param data pointer to store the samples removed from buffer
+             * @param data pointer to store the samples removed from buffer, may be NULL for skipping
              * @param count number of samples to remove
              * @return number of samples removed
              */
             size_t shift(float *data, size_t count);
+
+            /** Remove data from the beginning of the buffer
+             *
+             * @param count number of samples to remove
+             * @return number of samples removed
+             */
+            size_t shift(size_t count);
 
             /** Remove one sample from the beginning of the buffer
              *
@@ -132,6 +141,19 @@ namespace lsp
                 return (off < ssize_t(nHead)) ? NULL : &pData[off];
             }
 
+            /** Get sample from tail
+             *
+             * @param offset offset
+             * @return sample
+             */
+            inline float last(size_t offset)
+            {
+                if (pData == NULL)
+                    return 0.0f;
+                ssize_t off = nTail - offset;
+                return (off < ssize_t(nHead)) ? 0.0f : pData[off];
+            }
+
             /** Get the first sample in the buffer
              *
              * @return the first sample in the buffer or 0 if empty
@@ -175,6 +197,16 @@ namespace lsp
                     return 0.0f;
                 ssize_t off     = nTail - offset;
                 return (off >= ssize_t(nHead)) ? pData[off] : 0.0f;
+            }
+
+            /** Fill buffer with specific value
+             *
+             * @param value value used to fill
+             */
+            inline void fill(float value)
+            {
+                if (nHead < nTail)
+                    dsp::fill(&pData[nHead], value, nTail - nHead);
             }
 
             /** Copy data from the specified ShiftBuffer

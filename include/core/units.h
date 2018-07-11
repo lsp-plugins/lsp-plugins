@@ -30,19 +30,29 @@
 
 
 // Gain levels in decibels
-#define GAIN_AMP_P_72_DB                    3981.07300          /* +72 dB       */
+#define GAIN_AMP_P_72_DB                    3981.073            /* +72 dB       */
 #define GAIN_AMP_P_60_DB                    1000.0              /* +60 dB       */
 #define GAIN_AMP_P_48_DB                    251.18861           /* +48 dB       */
 #define GAIN_AMP_P_36_DB                    63.09575            /* +36 dB       */
 #define GAIN_AMP_P_24_DB                    15.84893            /* +24 dB       */
 #define GAIN_AMP_P_12_DB                    3.98107             /* +12 dB       */
+#define GAIN_AMP_P_6_DB                     1.99526             /* +6 dB        */
 #define GAIN_AMP_0_DB                       1.0                 /* 0 dB         */
+#define GAIN_AMP_M_6_DB                     0.50118             /* -6 dB        */
 #define GAIN_AMP_M_12_DB                    0.25119             /* -12 dB       */
 #define GAIN_AMP_M_24_DB                    0.06310             /* -24 dB       */
 #define GAIN_AMP_M_36_DB                    0.01585             /* -36 dB       */
 #define GAIN_AMP_M_48_DB                    0.00398             /* -48 dB       */
 #define GAIN_AMP_M_60_DB                    0.001               /* -60 dB       */
 #define GAIN_AMP_M_72_DB                    0.00025             /* -72 dB       */
+#define GAIN_AMP_M_INF_DB                   0.0                 /* -inf dB      */
+
+#define GAIN_AMP_M_20_DB                    0.1                 /* -20 dB       */
+#define GAIN_AMP_M_40_DB                    0.01                /* -40 dB       */
+#define GAIN_AMP_M_80_DB                    0.0001              /* -80 dB       */
+#define GAIN_AMP_P_20_DB                    10.0                /* +20 dB       */
+#define GAIN_AMP_P_40_DB                    100.0               /* +40 dB       */
+#define GAIN_AMP_P_80_DB                    10000.0             /* +80 dB       */
 
 #define GAIN_AMP_N_12_DB                    GAIN_AMP_M_12_DB
 #define GAIN_AMP_N_24_DB                    GAIN_AMP_M_24_DB
@@ -139,6 +149,46 @@ namespace lsp
     inline float millis_to_samples(float sr, float time)
     {
         return seconds_to_samples(sr, time * 0.001f);
+    }
+
+    /** Convert decibels to gain value
+     *
+     * @param db decibels
+     * @return gain
+     */
+    inline float db_to_gain(float db)
+    {
+        return expf(db * M_LN10 * 0.05f);
+    }
+
+    /** Convert decibels to power value
+     *
+     * @param db decibels
+     * @return power
+     */
+    inline float db_to_power(float db)
+    {
+        return expf(db * M_LN10 * 0.1f);
+    }
+
+    /** Convert gain value to decibels
+     *
+     * @param gain gain value
+     * @return decibels
+     */
+    inline float gain_to_db(float gain)
+    {
+        return (20.0f / M_LN10) * logf(gain);
+    }
+
+    /** Convert powerr value to decibels
+     *
+     * @param pwr power value
+     * @return decibels
+     */
+    inline float power_to_db(float pwr)
+    {
+        return (10.0f / M_LN10) * logf(pwr);
     }
 }
 

@@ -19,14 +19,25 @@ namespace jack_test
 //                "graph_equalizer_x32_stereo";
 //                "graph_equalizer_x32_lr";
 //                "graph_equalizer_x32_ms";
+//                "para_equalizer_x16_mono";
 //                "para_equalizer_x16_stereo";
-                "para_equalizer_x16_mono";
+//                "para_equalizer_x16_lr";
+//                "para_equalizer_x16_ms";
+//                "para_equalizer_x32_mono";
+//                "para_equalizer_x32_stereo";
+//                "para_equalizer_x32_lr";
+//                "para_equalizer_x32_ms";
 //                "trigger_mono";
 //                "trigger_stereo";
 //                "phase_detector";
 //                "spectrum_analyzer_x2";
 //                "sampler_mono";
 //                "comp_delay_x2_stereo";
+//                "compressor_mono";
+                "compressor_stereo";
+//                "compressor_lr";
+//                "compressor_ms";
+//                "sc_compressor_mono";
 
         return JACK_MAIN_FUNCTION(plugin, argc, argv);
     }

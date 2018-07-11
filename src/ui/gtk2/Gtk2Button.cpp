@@ -161,7 +161,7 @@ namespace lsp
         if ((mdata != NULL) && IS_TRIGGER_PORT(mdata))
             is_trigger          = true;
 
-        float lightness = 1.0f;
+        float lightness = sColor.lightness();
         if (nState & S_LED)
         {
             bool is_pressed =  (is_trigger) ? (pressed & S_PRESSED) : (pressed & S_TOGGLED);
@@ -215,10 +215,10 @@ namespace lsp
                 cairo_fill(cr);
                 cairo_pattern_destroy(cp);
 
-                lightness   = 0.5f;
+//                lightness  *= 0.5f;
             }
             else
-                lightness   = 0.25f;
+                lightness  *= 0.5f;
         }
 
         for (ssize_t i=0; (i++)<b_l; )

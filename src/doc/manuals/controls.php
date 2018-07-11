@@ -1,8 +1,8 @@
 <?php
-	$CTL = $DOCROOT . "/img/controls/";
+	$CTL = $RES_ROOT . "/img/controls/";
 ?>
 <p>The following picture demonstrates typical Graphical User Interface (GUI) of plugin:</p>
-<img src="<?= $DOCROOT ?>img/plugins/phase_detector.png">
+<img src="<?= $RES_ROOT ?>/img/plugins/phase_detector.png">
 
 <p>Each plugin consists of the following elements:</p>
 <ul>

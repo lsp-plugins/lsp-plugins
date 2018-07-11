@@ -27,9 +27,21 @@ There are up to eight samples available to play for different note velocities.</
 <p><b>'Trigger' section:</b></p>
 <ul>
 	<li><b>Preamp</b> - input signal amplification for the sidechain.</li>
-	<li><b>Mode</b> - combo box that allows to switch different modes for sidechain.</li>
+	<li><b>Mode</b> - combo box that allows to switch different modes for sidechain. Available modes are:</li>
+	<ul>
+		<li><b>Peak</b> - peak mode</li>
+		<li><b>RMS</b> - root mean square of the input signal</li>
+		<li><b>Low-pass</b> - input signal processed by low-pass filter</li>
+		<li><b>Uniform</b> - input signal processed by uniform filter</li>
+	</ul>
 	<?php if ($stereo) { ?>
-	<li><b>Source</b> - part of the input signal to use for sidechain processing.</li>
+	<li><b>Source</b> - part of the input signal to use for sidechain processing:</li>
+	<ul>
+		<li><b>Middle</b> - middle part of signal is used for sidechain processing</li>
+		<li><b>Side</b> - side part of signal is used for sidechain processing</li>
+		<li><b>Left</b> - only left channel is used for sidechain processing</li>
+		<li><b>Right</b> - only right channel is used for sidechain processing</li>
+	</ul>
 	<?php } ?>
 	<li><b>Active</b> - trigger activity indicator.</li>
 	<li><b>Reactivity</b> - the reactivity of the sidechain.</li>

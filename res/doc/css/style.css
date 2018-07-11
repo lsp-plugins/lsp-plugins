@@ -1,0 +1,182 @@
+body {
+	font-size: 12pt;
+	margin-left: auto;
+	margin-right: auto;
+	width: 784px;
+	background-color: #1b1c22;
+}
+
+body div {
+	padding: 8px;
+	background-color: rgba(255, 255, 255, 0.75);
+	text-align: justify;
+	text-justify: inter-word;
+}
+
+h1 {
+	margin-top: 0px;
+}
+
+p {
+	margin-left: 8px;
+}
+
+div.images {
+	padding: 0px;
+	display: inline;
+	margin-left: 8px;
+	padding-right: 8px;
+	max-width: 100%;
+	object-fit: contain;
+}
+
+div.member {
+	display: inline-block;
+	padding: 8px;
+}
+
+#body div {
+	background-color: #ffffff;
+}
+
+img {
+	width: auto;
+	height: auto;
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: contain;
+}
+
+img.portrait {
+	float: left;
+	width: 120px;
+	height: auto;
+	margin-right: 8px;
+}
+
+img.plugin {
+	width: auto;
+	height: auto;
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: contain;
+}
+
+pre {
+	font-size: 10pt;
+	border: 2px solid #1b1c22;
+	padding: 8px;
+	margin-left: 8px;
+}
+
+/* Menu */
+#menu ul {
+	display: block;
+	text-align: right;
+	padding: 0;
+	margin: 0px;
+}
+
+#menu li {
+	display: inline-table;
+	margin: 2px;
+	padding: 6px;
+	background-color: #00ee00;
+}
+
+#menu li:hover {
+	background-color: #ffff00;
+}
+
+#menu li.sel {
+	background-color: #00c0ff;
+	color: #ffffff;
+}
+
+#menu, #menu div {
+	padding: 0;
+}
+
+
+/* Plugin information */
+div.plugin_select, div.plugin_info {
+	padding: 0;
+}
+
+div.plugin_select h2, div.plugin_info h2 {
+	cursor: pointer;
+	font-size: 1.1em;
+	margin-bottom: 4px;
+	margin-top: 4px;
+}
+
+div.plugin_select h2:before {
+	content: "\2192\00a0";
+	font-family: monospace;
+}
+
+div.plugin_select h2:hover:before {
+	content: "\2193\00a0";
+	font-family: monospace;
+}
+
+div.plugin_info h2:before {
+	content: "\2193\00a0";
+	font-family: monospace;
+}
+
+div.plugin_info h2:hover:before {
+	content: "\2191\00a0";
+	font-family: monospace;
+}
+
+div.plugin_select h2:hover, div.plugin_info h2:hover {
+	color: #00c0ff;
+}
+
+div.plugin_select div {
+	display: none;
+}
+
+/* Input elements */
+input {
+	border: 1px solid #cccccc;
+	width: 256px;
+	float: right;
+}
+
+input[type="button"], input[type="submit"] {
+	width: 128px;
+	height: 32px;
+	float: left;
+}
+
+textarea {
+	border: 1px solid #cccccc;
+	width: 512px;
+	height: 320px;
+}
+
+div.g-recaptcha, div.g-recaptcha div {
+	padding: 0;
+}
+
+#main p {
+	text-align: justify;
+	text-justify: inter-word;
+}
+
+#header {
+	padding: 0;
+}
+
+#footer {
+	padding-top: 64px;
+	font-size: 8pt;
+	text-align: right;
+	color: #c0c0c0;
+}
+
+tr.stroke {
+	text-decoration: line-through
+}

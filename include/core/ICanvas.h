@@ -135,6 +135,24 @@ namespace lsp
              * @param count number of dots
              */
             virtual void draw_lines(float *x, float *y, size_t count);
+
+            /** Draw circle
+             *
+             * @param x circle center x
+             * @param y circle center y
+             * @param r radius
+             */
+            virtual void circle(ssize_t x, ssize_t y, ssize_t r);
+
+            /** Draw radial gradient
+             *
+             * @param x center of gradient x
+             * @param y center of gradient y
+             * @param c1 color 1
+             * @param c2 color 2
+             * @param r radius of gradient
+             */
+            virtual void radial_gradient(ssize_t x, ssize_t y, const Color &c1, const Color &c2, ssize_t r);
     };
 
 } /* namespace lsp */

@@ -7,7 +7,7 @@
 				(strpos($PAGE, '_lr') > 0) ? 'lr' : (
 				(strpos($PAGE, '_ms') > 0) ? 'ms' : '?'
 				)));
-	$cc     =   ($m = 's') ? 'mono' : 'stereo';
+	$cc     =   ($m = 'm') ? 'mono' : 'stereo';
 ?>
 <p>
 	This plugin performs graphic equalization of <?= $cc ?> channel<?php 
@@ -25,15 +25,15 @@
 	<?php } ?>
 	<li><b>Mode</b> - equalizer slope and working mode, enables the following settings:</li>
 	<ul>
-		<li><b>BT48</b> - Filters with 48dB/oct slope, bilinear transform.</li>
+		<li><b>BT48</b> - Filters with 48dB/oct slope, bilinear Z-transform.</li>
 		<li><b>MT48</b> - Filters with 48dB/oct slope, matched Z-transform.</li>
-		<li><b>BT72</b> - Filters with 72dB/oct slope, bilinear transform.</li>
+		<li><b>BT72</b> - Filters with 72dB/oct slope, bilinear Z-transform.</li>
 		<li><b>MT72</b> - Filters with 72dB/oct slope, matched Z-transform.</li>
-		<li><b>BT96</b> - Filters with 96dB/oct slope, bilinear transform.</li>
+		<li><b>BT96</b> - Filters with 96dB/oct slope, bilinear Z-transform.</li>
 		<li><b>MT96</b> - Filters with 96dB/oct slope, matched Z-transform.</li>
-		<li><b>IIR</b> - Infinite Impulse Response filters, nonlinear minimal phase.</li>
-		<li><b>FIR</b> - Finite Impulse Response filters with linear phase, finite approximation of equalizer's impulse response.</li>
-		<li><b>FFT</b> - Fast Fourier Transform approximation of the frequency chart, linear phase.</li>
+		<li><b>IIR</b> - Infinite Impulse Response filters, nonlinear minimal phase. In most cases does not add noticeable latency to output signal.</li>
+		<li><b>FIR</b> - Finite Impulse Response filters with linear phase, finite approximation of equalizer's impulse response. Adds noticeable latency to output signal.</li>
+		<li><b>FFT</b> - Fast Fourier Transform approximation of the frequency chart, linear phase. Adds noticeable latency to output signal.</li>
 	</ul>
 	<?php if ($m == 'ms') { ?>
 	<li><b>Mid</b> - enables the frequency chart and FFT analysis for the middle channel.</li>

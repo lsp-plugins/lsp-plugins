@@ -519,6 +519,133 @@ namespace lsp
                 : "memory"
             );
         }
+
+        #define SSE_MINMAX_ABS_CORE(op)    \
+            float result; \
+            \
+            __asm__ __volatile__ \
+            ( \
+                /* Prepare */ \
+                __ASM_EMIT("xorps       %%xmm0, %%xmm0") \
+                __ASM_EMIT("test        %[count], %[count]") \
+                __ASM_EMIT("jz          8f") \
+                \
+                __ASM_EMIT("movss       (%[src]), %%xmm0") \
+                __ASM_EMIT("movaps      %[X_SIGN], %%xmm1") \
+                __ASM_EMIT("andps       %%xmm1, %%xmm0") \
+                \
+                /* Loop 1: align source to 4x boundary */ \
+                __ASM_EMIT("1:") \
+                __ASM_EMIT("test        $0x0f, %[src]") \
+                __ASM_EMIT("jz          2f") \
+                __ASM_EMIT("movss       (%[src]), %%xmm2") \
+                __ASM_EMIT("andps       %%xmm1, %%xmm2") \
+                __ASM_EMIT(op "ss       %%xmm2, %%xmm0") \
+                __ASM_EMIT("add         $0x4, %[src]") \
+                __ASM_EMIT("dec         %[count]") \
+                __ASM_EMIT("jnz         1b") \
+                __ASM_EMIT("jmp         8f") \
+                \
+                /* Prepare vectorization */ \
+                __ASM_EMIT("2:") \
+                __ASM_EMIT("cmp         $4, %[count]") \
+                __ASM_EMIT("jb          7f") \
+                \
+                __ASM_EMIT("prefetchnta 0x00(%[src])") \
+                __ASM_EMIT("prefetchnta 0x20(%[src])") \
+                __ASM_EMIT("prefetchnta 0x40(%[src])") \
+                \
+                __ASM_EMIT("shufps      $0x00, %%xmm0, %%xmm0") \
+                __ASM_EMIT("cmp         $24, %[count]") \
+                __ASM_EMIT("jb          4f") \
+                \
+                /* Loop 2: 6 * 4x elements */ \
+                __ASM_EMIT("3:") \
+                __ASM_EMIT("prefetchnta 0x60(%[src])") \
+                __ASM_EMIT("prefetchnta 0x80(%[src])") \
+                __ASM_EMIT("prefetchnta 0xa0(%[src])") \
+                __ASM_EMIT("movaps      0x00(%[src]), %%xmm2") \
+                __ASM_EMIT("movaps      0x10(%[src]), %%xmm3") \
+                __ASM_EMIT("movaps      0x20(%[src]), %%xmm4") \
+                __ASM_EMIT("movaps      0x30(%[src]), %%xmm5") \
+                __ASM_EMIT("movaps      0x40(%[src]), %%xmm6") \
+                __ASM_EMIT("movaps      0x50(%[src]), %%xmm7") \
+                __ASM_EMIT("andps       %%xmm1, %%xmm2") \
+                __ASM_EMIT("andps       %%xmm1, %%xmm3") \
+                __ASM_EMIT("andps       %%xmm1, %%xmm4") \
+                __ASM_EMIT("andps       %%xmm1, %%xmm5") \
+                __ASM_EMIT("andps       %%xmm1, %%xmm6") \
+                __ASM_EMIT("andps       %%xmm1, %%xmm7") \
+                __ASM_EMIT(op "ps       %%xmm3, %%xmm2") \
+                __ASM_EMIT(op "ps       %%xmm5, %%xmm4") \
+                __ASM_EMIT(op "ps       %%xmm7, %%xmm6") \
+                __ASM_EMIT(op "ps       %%xmm2, %%xmm0") \
+                __ASM_EMIT(op "ps       %%xmm6, %%xmm4") \
+                __ASM_EMIT(op "ps       %%xmm4, %%xmm0") \
+                \
+                __ASM_EMIT("sub         $24, %[count]") \
+                __ASM_EMIT("add         $0x60, %[src]") \
+                __ASM_EMIT("cmp         $24, %[count]") \
+                __ASM_EMIT("jae         3b") \
+                \
+                /* Loop 3: 4x elements */ \
+                __ASM_EMIT("4:") \
+                __ASM_EMIT("cmp         $4, %[count]") \
+                __ASM_EMIT("jb          6f") \
+                \
+                __ASM_EMIT("5:") \
+                __ASM_EMIT("movaps      0x00(%[src]), %%xmm2") \
+                __ASM_EMIT("andps       %%xmm1, %%xmm2") \
+                __ASM_EMIT(op "ps       %%xmm2, %%xmm0") \
+                __ASM_EMIT("sub         $4, %[count]") \
+                __ASM_EMIT("add         $0x10, %[src]") \
+                __ASM_EMIT("cmp         $4, %[count]") \
+                __ASM_EMIT("jae         5b") \
+                \
+                /* De-vectorize */ \
+                __ASM_EMIT("6:") \
+                __ASM_EMIT("movhlps     %%xmm0, %%xmm2") \
+                __ASM_EMIT(op "ps       %%xmm2, %%xmm0") \
+                __ASM_EMIT("movaps      %%xmm0, %%xmm2") \
+                __ASM_EMIT("shufps      $0x55, %%xmm0, %%xmm0") \
+                __ASM_EMIT(op "ss       %%xmm2, %%xmm0") \
+                \
+                /* Loop 4: 1x tail */ \
+                __ASM_EMIT("test        %[count], %[count]") \
+                __ASM_EMIT("jz          8f") \
+                \
+                __ASM_EMIT("7:") \
+                __ASM_EMIT("movss       (%[src]), %%xmm2") \
+                __ASM_EMIT("andps       %%xmm1, %%xmm2") \
+                __ASM_EMIT(op "ss       %%xmm2, %%xmm0") \
+                __ASM_EMIT("add         $0x4, %[src]") \
+                __ASM_EMIT("dec         %[count]") \
+                __ASM_EMIT("jnz         7b") \
+                \
+                /* End */ \
+                __ASM_EMIT("8:") \
+                \
+                : [src] "+r" (src), [count] "+r" (count), "=Yz" (result) \
+                : [X_SIGN] "m" (X_SIGN) \
+                : "cc", \
+                    "%xmm1", "%xmm2", "%xmm3", \
+                    "%xmm4", "%xmm5", "%xmm6", "%xmm7" \
+            ); \
+            \
+            return result;
+
+
+        float abs_min(const float *src, size_t count)
+        {
+            SSE_MINMAX_ABS_CORE("min");
+        }
+
+        float abs_max(const float *src, size_t count)
+        {
+            SSE_MINMAX_ABS_CORE("max");
+        }
+
+        #undef SSE_MINMAX_ABS_CORE
     }
 }
 

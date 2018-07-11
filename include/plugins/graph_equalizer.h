@@ -89,7 +89,6 @@ namespace lsp
             eq_channel_t       *vChannels;      // Equalizer channels
             size_t              nBands;         // Number of bands
             size_t              nMode;          // Equalize mode
-            equalizer_mode_t    nEqMode;        // Equalizer mode
             size_t              nFftPosition;   // FFT analysis position
             size_t              nSlope;         // Slope
             bool                bListen;        // Listen

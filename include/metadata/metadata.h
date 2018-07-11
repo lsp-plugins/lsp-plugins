@@ -196,7 +196,8 @@ namespace lsp
     enum port_group_flags_t
     {
         PGF_IN          = (0 << 0),     // Input group
-        PGF_OUT         = (1 << 0)      // Output group
+        PGF_OUT         = (1 << 0),     // Output group
+        PGF_SIDECHAIN   = (1 << 1)      // Sidechain
     };
 
     typedef struct port_group_item_t
@@ -212,6 +213,7 @@ namespace lsp
         port_group_type_t           type;       // Group type
         int                         flags;
         const port_group_item_t    *items;
+        const char                 *parent_id;  // Reference to parent group
     } port_group_t;
 
     typedef struct port_t

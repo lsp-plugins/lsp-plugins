@@ -207,10 +207,27 @@ namespace lsp
         return count;
     }
 
+    size_t ShiftBuffer::shift(size_t count)
+    {
+        // Check state
+        if (pData == NULL)
+            return 0;
+
+        // Determine the amount of samples to copy
+        size_t can_shift    = nTail - nHead;
+        if (count > can_shift)
+            count   = can_shift;
+
+        // Flush the buffer
+        nHead      += count;
+
+        return count;
+    }
+
     float ShiftBuffer::shift()
     {
         // Check state
-        if ((pData == NULL) || (nHead >= nTail))
+        if ((pData == NULL) || (nTail <= nHead))
             return 0.0f;
         return pData[nHead++];
     }

@@ -150,11 +150,13 @@ namespace lsp
                 {
                     VSTMeterPort *mp = static_cast<VSTMeterPort *>(pPort);
                     fValue      = mp->syncValue();
+                    return true;
                 }
                 else
+                {
                     fValue      = pPort->getValue();
-
-                return value != fValue;
+                    return value != fValue;
+                }
             }
 
             virtual void resync()

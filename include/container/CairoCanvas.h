@@ -38,6 +38,8 @@ namespace lsp
             virtual void draw_poly(float *x, float *y, size_t count, const Color &stroke, const Color &fill);
             virtual bool set_anti_aliasing(bool enable);
             virtual void draw_lines(float *x, float *y, size_t count);
+            virtual void circle(ssize_t x, ssize_t y, ssize_t r);
+            virtual void radial_gradient(ssize_t x, ssize_t y, const Color &c1, const Color &c2, ssize_t r);
 
         public:
             canvas_data_t *get_data();

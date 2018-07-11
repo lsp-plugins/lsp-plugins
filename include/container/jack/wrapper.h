@@ -37,6 +37,7 @@ namespace lsp
             atomic_t            nQueryDraw;
             atomic_t            nQueryDrawLast;
             CairoCanvas        *pCanvas;
+            bool                bUpdateSettings;
 
             cvector<JACKPort>   vPorts;
             cvector<JACKUIPort> vUIPorts;
@@ -53,6 +54,7 @@ namespace lsp
                 nQueryDraw      = 0;
                 nQueryDrawLast  = 0;
                 pCanvas         = NULL;
+                bUpdateSettings = true;
             }
 
             virtual ~JACKWrapper()
@@ -125,7 +127,6 @@ namespace lsp
 
     int JACKWrapper::run(size_t samples)
     {
-        bool update     = false;
         size_t n_ports  = vPorts.size();
 
         for (size_t i=0; i<n_ports; ++i)
@@ -139,15 +140,16 @@ namespace lsp
             if (port->pre_process(samples))
             {
                 lsp_trace("port changed: %s", port->metadata()->id);
-                update = true;
+                bUpdateSettings = true;
             }
         }
 
         // Check that input parameters have changed
-        if (update)
+        if (bUpdateSettings)
         {
             lsp_trace("updating settings");
             pPlugin->update_settings();
+            bUpdateSettings = false;
         }
 
         // Call the main processing unit
@@ -260,6 +262,18 @@ namespace lsp
         if (jp != NULL)
         {
             jp->init();
+            #ifdef LSP_DEBUG
+                const char *src_id = jp->metadata()->id;
+
+                for (size_t i=0; i<vPorts.size(); ++i)
+                {
+                    if (!strcmp(src_id, vPorts.at(i)->metadata()->id))
+                    {
+                        lsp_error("ERROR: port %s already defined", src_id);
+                    }
+                }
+            #endif /* LSP_DEBUG */
+
             vPorts.add(jp);
             pPlugin->add_port(jp);
         }
@@ -321,8 +335,9 @@ namespace lsp
             return STATUS_DISCONNECTED;
         }
 
-        // Set plugin sample rate
+        // Set plugin sample rate and call for settings update
         pPlugin->set_sample_rate(sr);
+        bUpdateSettings = true;
 
         // Now we ready for processing
         pPlugin->activate();

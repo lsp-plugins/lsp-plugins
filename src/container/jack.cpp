@@ -74,7 +74,10 @@ namespace lsp
             return TRUE;
 
         // Call for rendering
+        dsp_context_t ctx;
+        dsp::start(&ctx);
         canvas_data_t *data = wrapper->pWrapper->render_inline_display(DISPLAY_SIZE, DISPLAY_SIZE);
+        dsp::finish(&ctx);
         if ((data == NULL) || (data->pData == NULL) || (data->nWidth <= 0) || (data->nHeight <= 0))
             return TRUE;
 
@@ -222,6 +225,7 @@ extern "C"
 
         // Call corresponding plugin for execute
         #define MOD_GTK2(plugin)    \
+            lsp_trace("test plugin uid=%s", plugin::metadata.lv2_uid); \
             if (!strcmp(plugin::metadata.lv2_uid, plugin_id)) \
             { \
                 plugin p; \

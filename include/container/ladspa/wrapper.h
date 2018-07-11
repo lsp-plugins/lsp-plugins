@@ -18,6 +18,7 @@ namespace lsp
             IExecutor              *pExecutor;      // Executor service
             size_t                  nLatencyID;     // ID of Latency port
             LADSPA_Data            *pLatency;       // Latency pointer
+            bool                    bUpdateSettings;// Settings update
 
         protected:
             inline void add_port(LADSPAPort *p)
@@ -30,15 +31,16 @@ namespace lsp
         public:
             LADSPAWrapper(plugin_t *plugin)
             {
-                pPlugin     = plugin;
-                pExecutor   = NULL;
-                nLatencyID  = 0;
-                pLatency    = NULL;
+                pPlugin         = plugin;
+                pExecutor       = NULL;
+                nLatencyID      = 0;
+                pLatency        = NULL;
+                bUpdateSettings = true;
             }
 
             ~LADSPAWrapper()
             {
-                pPlugin     = NULL;
+                pPlugin         = NULL;
             }
 
         public:
@@ -93,6 +95,7 @@ namespace lsp
                 lsp_trace("Initializing plugin");
                 pPlugin->init(this);
                 pPlugin->set_sample_rate(sr);
+                bUpdateSettings = true;
             }
 
             void destroy()
@@ -148,8 +151,6 @@ namespace lsp
 
             inline void run(size_t samples)
             {
-                bool update     = false;
-
                 // Process external ports for changes
                 size_t n_ports  = vPorts.size();
                 for (size_t i=0; i<n_ports; ++i)
@@ -163,15 +164,16 @@ namespace lsp
                     if (port->pre_process(samples))
                     {
                         lsp_trace("port changed: %s", port->metadata()->id);
-                        update = true;
+                        bUpdateSettings = true;
                     }
                 }
 
                 // Check that input parameters have changed
-                if (update)
+                if (bUpdateSettings)
                 {
                     lsp_trace("updating settings");
                     pPlugin->update_settings();
+                    bUpdateSettings     = false;
                 }
 
                 // Call the main processing unit

@@ -14,7 +14,7 @@ INSTALL                 = install
 
 # Package version
 ifndef VERSION
-VERSION                 = 1.0.12
+VERSION                 = 1.0.14
 endif
 
 # Directories
@@ -55,7 +55,7 @@ endif
 export BASEDIR          = ${CURDIR}
 export INCLUDE          = ${INC_FLAGS}
 export MAKE_OPTS        = -s
-export CFLAGS           = $(CC_ARCH) -fPIC -fno-exceptions -Wall -pthread -pipe -fno-rtti $(CC_FLAGS)
+export CFLAGS           = $(CC_ARCH) -std=c++98 -fPIC -fno-exceptions -Wall -pthread -pipe -fno-rtti $(CC_FLAGS)
 export CC               = g++
 export PHP              = php
 export LD               = ld

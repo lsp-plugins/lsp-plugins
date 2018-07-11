@@ -25,7 +25,6 @@ namespace lsp
     {
         nFilters    = filters;
         nMode       = mode;
-        nEqMode     = EQM_BYPASS;
         vChannels   = NULL;
         vFreqs      = NULL;
         vIndexes    = NULL;
@@ -50,95 +49,251 @@ namespace lsp
         destroy_state();
     }
 
-    inline void para_equalizer_base::decode_filter(size_t *ftype, size_t *slope)
+    inline void para_equalizer_base::decode_filter(size_t *ftype, size_t *slope, size_t mode)
     {
-        #define EQF(x, y, ks) \
-            case para_equalizer_base_metadata::EQF_ ## x: \
-                *ftype = y; \
+        #define EQF(x) para_equalizer_base_metadata::EQF_ ## x
+        #define EQS(k, t, ks) case para_equalizer_base_metadata::EFM_ ## k:    \
+                *ftype = t; \
                 *slope = ks * *slope; \
+                return;
+        #define EQDFL  default: \
+                *ftype = FLT_NONE; \
+                *slope = 1; \
                 return;
 
         switch (*ftype)
         {
-            EQF(NONE, FLT_NONE, 1)
+            case EQF(BELL):
+            {
+                switch (mode)
+                {
+                    EQS(RLC_BT, FLT_BT_RLC_BELL, 1)
+                    EQS(RLC_MT, FLT_MT_RLC_BELL, 1)
+                    EQS(BWC_BT, FLT_BT_BWC_BELL, 1)
+                    EQS(BWC_MT, FLT_MT_BWC_BELL, 1)
+                    EQS(LRX_BT, FLT_BT_LRX_BELL, 1)
+                    EQS(LRX_MT, FLT_MT_LRX_BELL, 1)
+                    EQDFL
+                }
+                break;
+            }
 
-            EQF(BT_RLC_LOPASS, FLT_BT_RLC_LOPASS, 2)
-            EQF(MT_RLC_LOPASS, FLT_MT_RLC_LOPASS, 2)
+            case EQF(HIPASS):
+            {
+                switch (mode)
+                {
+                    EQS(RLC_BT, FLT_BT_RLC_HIPASS, 2)
+                    EQS(RLC_MT, FLT_MT_RLC_HIPASS, 2)
+                    EQS(BWC_BT, FLT_BT_BWC_HIPASS, 2)
+                    EQS(BWC_MT, FLT_MT_BWC_HIPASS, 2)
+                    EQS(LRX_BT, FLT_BT_LRX_HIPASS, 1)
+                    EQS(LRX_MT, FLT_MT_LRX_HIPASS, 1)
+                    EQDFL
+                }
+                break;
+            }
 
-            EQF(BT_BWC_LOPASS, FLT_BT_BWC_LOPASS, 2)
-            EQF(MT_BWC_LOPASS, FLT_MT_BWC_LOPASS, 2)
+            case EQF(HISHELF):
+            {
+                switch (mode)
+                {
+                    EQS(RLC_BT, FLT_BT_RLC_HISHELF, 1)
+                    EQS(RLC_MT, FLT_MT_RLC_HISHELF, 1)
+                    EQS(BWC_BT, FLT_BT_BWC_HISHELF, 1)
+                    EQS(BWC_MT, FLT_MT_BWC_HISHELF, 1)
+                    EQS(LRX_BT, FLT_BT_LRX_HISHELF, 1)
+                    EQS(LRX_MT, FLT_MT_LRX_HISHELF, 1)
+                    EQDFL
+                }
+                break;
+            }
 
-            EQF(BT_LRX_LOPASS, FLT_BT_LRX_LOPASS, 1)
-            EQF(MT_LRX_LOPASS, FLT_MT_LRX_LOPASS, 1)
+            case EQF(LOPASS):
+            {
+                switch (mode)
+                {
+                    EQS(RLC_BT, FLT_BT_RLC_LOPASS, 2)
+                    EQS(RLC_MT, FLT_MT_RLC_LOPASS, 2)
+                    EQS(BWC_BT, FLT_BT_BWC_LOPASS, 2)
+                    EQS(BWC_MT, FLT_MT_BWC_LOPASS, 2)
+                    EQS(LRX_BT, FLT_BT_LRX_LOPASS, 1)
+                    EQS(LRX_MT, FLT_MT_LRX_LOPASS, 1)
+                    EQDFL
+                }
+                break;
+            }
 
-            EQF(BT_RLC_HIPASS, FLT_BT_RLC_HIPASS, 2)
-            EQF(MT_RLC_HIPASS, FLT_MT_RLC_HIPASS, 2)
+            case EQF(LOSHELF):
+            {
+                switch (mode)
+                {
+                    EQS(RLC_BT, FLT_BT_RLC_LOSHELF, 1)
+                    EQS(RLC_MT, FLT_MT_RLC_LOSHELF, 1)
+                    EQS(BWC_BT, FLT_BT_BWC_LOSHELF, 1)
+                    EQS(BWC_MT, FLT_MT_BWC_LOSHELF, 1)
+                    EQS(LRX_BT, FLT_BT_LRX_LOSHELF, 1)
+                    EQS(LRX_MT, FLT_MT_LRX_LOSHELF, 1)
+                    EQDFL
+                }
+                break;
+            }
 
-            EQF(BT_BWC_HIPASS, FLT_BT_BWC_HIPASS, 2)
-            EQF(MT_BWC_HIPASS, FLT_MT_BWC_HIPASS, 2)
+            case EQF(NOTCH):
+            {
+                switch (mode)
+                {
+                    EQS(RLC_BT, FLT_BT_RLC_NOTCH, 1)
+                    EQS(RLC_MT, FLT_MT_RLC_NOTCH, 1)
+                    EQS(BWC_BT, FLT_BT_RLC_NOTCH, 1)
+                    EQS(BWC_MT, FLT_MT_RLC_NOTCH, 1)
+                    EQS(LRX_BT, FLT_BT_RLC_NOTCH, 1)
+                    EQS(LRX_MT, FLT_MT_RLC_NOTCH, 1)
+                    EQDFL
+                }
+                break;
+            }
 
-            EQF(BT_LRX_HIPASS, FLT_BT_LRX_HIPASS, 1)
-            EQF(MT_LRX_HIPASS, FLT_MT_LRX_HIPASS, 1)
-
-            EQF(BT_RLC_LOSHELF, FLT_BT_RLC_LOSHELF, 1)
-            EQF(MT_RLC_LOSHELF, FLT_MT_RLC_LOSHELF, 1)
-
-            EQF(BT_BWC_LOSHELF, FLT_BT_BWC_LOSHELF, 1)
-            EQF(MT_BWC_LOSHELF, FLT_MT_BWC_LOSHELF, 1)
-
-            EQF(BT_LRX_LOSHELF, FLT_BT_LRX_LOSHELF, 1)
-            EQF(MT_LRX_LOSHELF, FLT_MT_LRX_LOSHELF, 1)
-
-            EQF(BT_RLC_HISHELF, FLT_BT_RLC_HISHELF, 1)
-            EQF(MT_RLC_HISHELF, FLT_MT_RLC_HISHELF, 1)
-
-            EQF(BT_BWC_HISHELF, FLT_BT_BWC_HISHELF, 1)
-            EQF(MT_BWC_HISHELF, FLT_MT_BWC_HISHELF, 1)
-
-            EQF(BT_LRX_HISHELF, FLT_BT_LRX_HISHELF, 1)
-            EQF(MT_LRX_HISHELF, FLT_MT_LRX_HISHELF, 1)
-
-            EQF(BT_RLC_BELL, FLT_BT_RLC_BELL, 1)
-            EQF(MT_RLC_BELL, FLT_MT_RLC_BELL, 1)
-
-            EQF(BT_BWC_BELL, FLT_BT_BWC_BELL, 1)
-            EQF(MT_BWC_BELL, FLT_MT_BWC_BELL, 1)
-
-            EQF(BT_LRX_BELL, FLT_BT_LRX_BELL, 1)
-            EQF(MT_LRX_BELL, FLT_MT_LRX_BELL, 1)
-
-            EQF(BT_RESONANCE, FLT_BT_RLC_RESONANCE, 1)
-            EQF(MT_RESONANCE, FLT_MT_RLC_RESONANCE, 1)
-
-            EQF(BT_NOTCH, FLT_BT_RLC_NOTCH, 1)
-            EQF(MT_NOTCH, FLT_MT_RLC_NOTCH, 1)
+            case EQF(RESONANCE):
+            {
+                switch (mode)
+                {
+                    EQS(RLC_BT, FLT_BT_RLC_RESONANCE, 1)
+                    EQS(RLC_MT, FLT_MT_RLC_RESONANCE, 1)
+                    EQS(BWC_BT, FLT_BT_RLC_RESONANCE, 1)
+                    EQS(BWC_MT, FLT_MT_RLC_RESONANCE, 1)
+                    EQS(LRX_BT, FLT_BT_RLC_RESONANCE, 1)
+                    EQS(LRX_MT, FLT_MT_RLC_RESONANCE, 1)
+                    EQDFL
+                }
+                break;
+            }
 
 #ifndef LSP_NO_EXPERIMENTAL
-            EQF(BT_RLC_LADDERPASS, FLT_BT_RLC_LADDERPASS, 1)
-            EQF(MT_RLC_LADDERPASS, FLT_MT_RLC_LADDERPASS, 1)
+            case EQF(LADDERPASS):
+            {
+                switch (mode)
+                {
+                    EQS(RLC_BT, FLT_BT_RLC_LADDERPASS, 1)
+                    EQS(RLC_MT, FLT_MT_RLC_LADDERPASS, 1)
+                    EQS(BWC_BT, FLT_BT_BWC_LADDERPASS, 1)
+                    EQS(BWC_MT, FLT_MT_BWC_LADDERPASS, 1)
+                    EQS(LRX_BT, FLT_BT_LRX_LADDERPASS, 1)
+                    EQS(LRX_MT, FLT_MT_LRX_LADDERPASS, 1)
+                    EQDFL
+                }
+                break;
+            }
 
-            EQF(BT_BWC_LADDERPASS, FLT_BT_BWC_LADDERPASS, 1)
-            EQF(MT_BWC_LADDERPASS, FLT_MT_BWC_LADDERPASS, 1)
+            case EQF(LADDERREJ):
+            {
+                switch (mode)
+                {
+                    EQS(RLC_BT, FLT_BT_RLC_LADDERREJ, 1)
+                    EQS(RLC_MT, FLT_MT_RLC_LADDERREJ, 1)
+                    EQS(BWC_BT, FLT_BT_BWC_LADDERREJ, 1)
+                    EQS(BWC_MT, FLT_MT_BWC_LADDERREJ, 1)
+                    EQS(LRX_BT, FLT_BT_LRX_LADDERREJ, 1)
+                    EQS(LRX_MT, FLT_MT_LRX_LADDERREJ, 1)
+                    EQDFL
+                }
+                break;
+            }
+#endif /* LSP_NO_EXPERIMENTAL */
 
-            EQF(BT_LRX_LADDERPASS, FLT_BT_LRX_LADDERPASS, 1)
-            EQF(MT_LRX_LADDERPASS, FLT_MT_LRX_LADDERPASS, 1)
-
-            EQF(BT_RLC_LADDERREJ, FLT_BT_RLC_LADDERREJ, 1)
-            EQF(MT_RLC_LADDERREJ, FLT_MT_RLC_LADDERREJ, 1)
-
-            EQF(BT_BWC_LADDERREJ, FLT_BT_BWC_LADDERREJ, 1)
-            EQF(MT_BWC_LADDERREJ, FLT_MT_BWC_LADDERREJ, 1)
-
-            EQF(BT_LRX_LADDERREJ, FLT_BT_LRX_LADDERREJ, 1)
-            EQF(MT_LRX_LADDERREJ, FLT_MT_LRX_LADDERREJ, 1)
-#endif
-
-            default:
-                *ftype = FLT_NONE;
-                *slope = 1;
-                return;
+            case EQF(OFF):
+                EQDFL;
         }
+        #undef EQDFL
+        #undef EQS
         #undef EQF
+
+//        #define EQF(x, y, ks)
+//            case para_equalizer_base_metadata::EQF_ ## x:
+//                *ftype = y;
+//                *slope = ks * *slope;
+//                return;
+//
+//        switch (*ftype)
+//        {
+//            EQF(NONE, FLT_NONE, 1)
+//
+//            EQF(BT_RLC_LOPASS, FLT_BT_RLC_LOPASS, 2)
+//            EQF(MT_RLC_LOPASS, FLT_MT_RLC_LOPASS, 2)
+//
+//            EQF(BT_BWC_LOPASS, FLT_BT_BWC_LOPASS, 2)
+//            EQF(MT_BWC_LOPASS, FLT_MT_BWC_LOPASS, 2)
+//
+//            EQF(BT_LRX_LOPASS, FLT_BT_LRX_LOPASS, 1)
+//            EQF(MT_LRX_LOPASS, FLT_MT_LRX_LOPASS, 1)
+//
+//            EQF(BT_RLC_HIPASS, FLT_BT_RLC_HIPASS, 2)
+//            EQF(MT_RLC_HIPASS, FLT_MT_RLC_HIPASS, 2)
+//
+//            EQF(BT_BWC_HIPASS, FLT_BT_BWC_HIPASS, 2)
+//            EQF(MT_BWC_HIPASS, FLT_MT_BWC_HIPASS, 2)
+//
+//            EQF(BT_LRX_HIPASS, FLT_BT_LRX_HIPASS, 1)
+//            EQF(MT_LRX_HIPASS, FLT_MT_LRX_HIPASS, 1)
+//
+//            EQF(BT_RLC_LOSHELF, FLT_BT_RLC_LOSHELF, 1)
+//            EQF(MT_RLC_LOSHELF, FLT_MT_RLC_LOSHELF, 1)
+//
+//            EQF(BT_BWC_LOSHELF, FLT_BT_BWC_LOSHELF, 1)
+//            EQF(MT_BWC_LOSHELF, FLT_MT_BWC_LOSHELF, 1)
+//
+//            EQF(BT_LRX_LOSHELF, FLT_BT_LRX_LOSHELF, 1)
+//            EQF(MT_LRX_LOSHELF, FLT_MT_LRX_LOSHELF, 1)
+//
+//            EQF(BT_RLC_HISHELF, FLT_BT_RLC_HISHELF, 1)
+//            EQF(MT_RLC_HISHELF, FLT_MT_RLC_HISHELF, 1)
+//
+//            EQF(BT_BWC_HISHELF, FLT_BT_BWC_HISHELF, 1)
+//            EQF(MT_BWC_HISHELF, FLT_MT_BWC_HISHELF, 1)
+//
+//            EQF(BT_LRX_HISHELF, FLT_BT_LRX_HISHELF, 1)
+//            EQF(MT_LRX_HISHELF, FLT_MT_LRX_HISHELF, 1)
+//
+//            EQF(BT_RLC_BELL, FLT_BT_RLC_BELL, 1)
+//            EQF(MT_RLC_BELL, FLT_MT_RLC_BELL, 1)
+//
+//            EQF(BT_BWC_BELL, FLT_BT_BWC_BELL, 1)
+//            EQF(MT_BWC_BELL, FLT_MT_BWC_BELL, 1)
+//
+//            EQF(BT_LRX_BELL, FLT_BT_LRX_BELL, 1)
+//            EQF(MT_LRX_BELL, FLT_MT_LRX_BELL, 1)
+//
+//            EQF(BT_RESONANCE, FLT_BT_RLC_RESONANCE, 1)
+//            EQF(MT_RESONANCE, FLT_MT_RLC_RESONANCE, 1)
+//
+//            EQF(BT_NOTCH, FLT_BT_RLC_NOTCH, 1)
+//            EQF(MT_NOTCH, FLT_MT_RLC_NOTCH, 1)
+//
+//#ifndef LSP_NO_EXPERIMENTAL
+//            EQF(BT_RLC_LADDERPASS, FLT_BT_RLC_LADDERPASS, 1)
+//            EQF(MT_RLC_LADDERPASS, FLT_MT_RLC_LADDERPASS, 1)
+//
+//            EQF(BT_BWC_LADDERPASS, FLT_BT_BWC_LADDERPASS, 1)
+//            EQF(MT_BWC_LADDERPASS, FLT_MT_BWC_LADDERPASS, 1)
+//
+//            EQF(BT_LRX_LADDERPASS, FLT_BT_LRX_LADDERPASS, 1)
+//            EQF(MT_LRX_LADDERPASS, FLT_MT_LRX_LADDERPASS, 1)
+//
+//            EQF(BT_RLC_LADDERREJ, FLT_BT_RLC_LADDERREJ, 1)
+//            EQF(MT_RLC_LADDERREJ, FLT_MT_RLC_LADDERREJ, 1)
+//
+//            EQF(BT_BWC_LADDERREJ, FLT_BT_BWC_LADDERREJ, 1)
+//            EQF(MT_BWC_LADDERREJ, FLT_MT_BWC_LADDERREJ, 1)
+//
+//            EQF(BT_LRX_LADDERREJ, FLT_BT_LRX_LADDERREJ, 1)
+//            EQF(MT_LRX_LADDERREJ, FLT_MT_LRX_LADDERREJ, 1)
+//#endif
+//
+//            default:
+//                *ftype = FLT_NONE;
+//                *slope = 1;
+//                return;
+//        }
+//        #undef EQF
     }
 
     inline bool para_equalizer_base::adjust_gain(size_t filter_type)
@@ -279,6 +434,7 @@ namespace lsp
 
                 // Additional parameters
                 f->pType            = NULL;
+                f->pMode            = NULL;
                 f->pFreq            = NULL;
                 f->pGain            = NULL;
                 f->pQuality         = NULL;
@@ -374,6 +530,7 @@ namespace lsp
                     // 1 port controls 2 filters
                     eq_filter_t *sf     = &vChannels[0].vFilters[i];
                     f->pType            = sf->pType;
+                    f->pMode            = sf->pMode;
                     f->pSlope           = sf->pSlope;
                     f->pSolo            = sf->pSolo;
                     f->pMute            = sf->pMute;
@@ -388,6 +545,8 @@ namespace lsp
                     // 1 port controls 1 filter
                     TRACE_PORT(vPorts[port_id]);
                     f->pType        = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    f->pMode        = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
                     f->pSlope       = vPorts[port_id++];
                     TRACE_PORT(vPorts[port_id]);
@@ -409,9 +568,6 @@ namespace lsp
                 }
             }
         }
-
-        // Force settings to be update
-        update_settings();
     }
 
     void para_equalizer_base::ui_activated()
@@ -501,7 +657,6 @@ namespace lsp
             bListen     = pListen->getValue() >= 0.5f;
 
         size_t channels     = (nMode == EQ_MONO) ? 1 : 2;
-        size_t latency      = 0;
 
         if (pFftMode != NULL)
         {
@@ -522,8 +677,8 @@ namespace lsp
             sAnalyzer.set_shift(pShiftGain->getValue() * 100.0f);
 
         // Update equalizer mode
-        nEqMode         = get_eq_mode();
-        bool bypass     = pBypass->getValue() >= 0.5f;
+        equalizer_mode_t eq_mode    = get_eq_mode();
+        bool bypass                 = pBypass->getValue() >= 0.5f;
 
         // For each channel
         for (size_t i=0; i<channels; ++i)
@@ -531,8 +686,8 @@ namespace lsp
             filter_params_t fp;
             eq_channel_t *c     = &vChannels[i];
             bool solo           = false;
-//            bool modified       = nEqMode != c->sEqualizer.get_mode();
             bool visible        = (c->pVisible == NULL) ?  true : (c->pVisible->getValue() >= 0.5f);
+            c->sEqualizer.set_mode(eq_mode);
 
             // Update settings
             if (c->sBypass.set_bypass(bypass))
@@ -560,7 +715,7 @@ namespace lsp
                 {
                     ft          = f->pType->getValue();
                     slope       = f->pSlope->getValue() + 1;
-                    decode_filter(&ft, &slope);
+                    decode_filter(&ft, &slope, f->pMode->getValue());
                 }
 
                 // Fetch filter params
@@ -595,19 +750,7 @@ namespace lsp
                 if (f->pActivity != NULL)
                     f->pActivity->setValue(((visible) && (ft != FLT_NONE)) ? 1.0f : 0.0f);
             }
-
-            // Update equalizer mode and get latency
-//            if (modified)
-//            {
-                c->sEqualizer.set_mode(nEqMode);
-//                c->sEqualizer.reconfigure();
-//            }
-            if (latency < c->sEqualizer.get_latency())
-                latency         = c->sEqualizer.get_latency();
         }
-
-        // Update para_equalizer latency
-        set_latency(latency);
 
         // Update analyzer
         if (sAnalyzer.needs_reconfiguration())
@@ -630,8 +773,6 @@ namespace lsp
             c->sBypass.init(sr);
             c->sEqualizer.set_sample_rate(sr);
         }
-
-        update_settings();
     }
 
     void para_equalizer_base::process(size_t samples)
@@ -729,10 +870,15 @@ namespace lsp
             samples            -= to_process;
         }
 
-        // Output FFT curves for each channel
+        // Output FFT curves for each channel and report latency
+        size_t latency          = 0;
+
         for (size_t i=0; i<channels; ++i)
         {
             eq_channel_t *c     = &vChannels[i];
+
+            if (latency < c->sEqualizer.get_latency())
+                latency         = c->sEqualizer.get_latency();
 
             // Output FFT curve
             mesh_t *mesh            = c->pFft->getBuffer<mesh_t>();
@@ -751,6 +897,8 @@ namespace lsp
                     mesh->data(2, 0);
             }
         }
+
+        set_latency(latency);
 
         // For Mono and Stereo channels only the first channel should be processed
         if (nMode == EQ_STEREO)
@@ -879,7 +1027,7 @@ namespace lsp
         }
 
         // Allocate buffer: f, x, y, re, im
-        pIDisplay           = float_buffer_t::reuse(pIDisplay, 5, width+2);
+        pIDisplay           = float_buffer_t::reuse(pIDisplay, 5, width);
         float_buffer_t *b   = pIDisplay;
         if (b == NULL)
             return false;

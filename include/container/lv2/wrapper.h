@@ -41,6 +41,7 @@ namespace lsp
             ssize_t             nSyncSamples;   // Synchronization counter
             ssize_t             nClients;       // Number of clients
             bool                bQueueDraw;     // Queue draw request
+            bool                bUpdateSettings;// Settings update
 
             CairoCanvas        *pCanvas;        // Canvas for drawing inline display
             LV2_Inline_Display_Image_Surface sSurface; // Canvas surface
@@ -57,35 +58,36 @@ namespace lsp
         public:
             inline explicit LV2Wrapper(plugin_t *plugin, LV2Extensions *ext)
             {
-                pPlugin     = plugin;
-                pExt        = ext;
-                pExecutor   = NULL;
-                pAtomIn     = NULL;
-                pAtomOut    = NULL;
-                pLatency    = NULL;
-                nPatchReqs  = 0;
-                nStateReqs  = 0;
-                nSyncTime   = 0;
-                nSyncSamples= 0;
-                nClients    = 0;
-                pCanvas     = NULL;
-                bQueueDraw  = false;
+                pPlugin         = plugin;
+                pExt            = ext;
+                pExecutor       = NULL;
+                pAtomIn         = NULL;
+                pAtomOut        = NULL;
+                pLatency        = NULL;
+                nPatchReqs      = 0;
+                nStateReqs      = 0;
+                nSyncTime       = 0;
+                nSyncSamples    = 0;
+                nClients        = 0;
+                pCanvas         = NULL;
+                bQueueDraw      = false;
+                bUpdateSettings = true;
             }
 
             virtual ~LV2Wrapper()
             {
-                pPlugin     = NULL;
-                pExt        = NULL;
-                pExecutor   = NULL;
-                pAtomIn     = NULL;
-                pAtomOut    = NULL;
-                pLatency    = NULL;
-                nPatchReqs  = 0;
-                nStateReqs  = 0;
-                nSyncTime   = 0;
-                nSyncSamples= 0;
-                nClients    = 0;
-                pCanvas     = NULL;
+                pPlugin         = NULL;
+                pExt            = NULL;
+                pExecutor       = NULL;
+                pAtomIn         = NULL;
+                pAtomOut        = NULL;
+                pLatency        = NULL;
+                nPatchReqs      = 0;
+                nStateReqs      = 0;
+                nSyncTime       = 0;
+                nSyncSamples    = 0;
+                nClients        = 0;
+                pCanvas         = NULL;
             }
 
         public:
@@ -302,6 +304,9 @@ namespace lsp
         lsp_trace("Initializing plugin");
         pPlugin->init(this);
         pPlugin->set_sample_rate(srate);
+        bUpdateSettings     = true;
+
+        // Update refresh rate
         nSyncSamples        = srate / MESH_REFRESH_RATE;
         nClients            = 0;
     }
@@ -706,9 +711,6 @@ namespace lsp
         else if (pPlugin->ui_active())
             pPlugin->deactivate_ui();
 
-        // Port update flag
-        bool update     = false;
-
         // First pre-process transport ports
         receive_atoms(samples);
 
@@ -725,15 +727,16 @@ namespace lsp
             if (port->pre_process(samples))
             {
                 lsp_trace("port changed: %s", port->metadata()->id);
-                update = true;
+                bUpdateSettings = true;
             }
         }
 
         // Check that input parameters have changed
-        if (update)
+        if (bUpdateSettings)
         {
             lsp_trace("updating settings");
             pPlugin->update_settings();
+            bUpdateSettings     = false;
         }
 
         // Call the main processing unit
@@ -827,13 +830,13 @@ namespace lsp
     inline LV2_Inline_Display_Image_Surface *LV2Wrapper::render_inline_display(size_t width, size_t height)
     {
         // Lazy initialization
-        lsp_trace("pCanvas = %p", pCanvas);
+//        lsp_trace("pCanvas = %p", pCanvas);
         if (pCanvas == NULL)
         {
             pCanvas     =   new CairoCanvas();
             if (pCanvas == NULL)
                 return NULL;
-            lsp_trace("pCanvas = %p", pCanvas);
+//            lsp_trace("pCanvas = %p", pCanvas);
         }
 
         // Call plugin for rendering
@@ -845,7 +848,7 @@ namespace lsp
 
         // Get data of canvas
         canvas_data_t *data     = pCanvas->get_data();
-        lsp_trace("canvas data = %p", data);
+//        lsp_trace("canvas data = %p", data);
         if ((data == NULL) || (data->pData == NULL))
             return NULL;
 
@@ -855,8 +858,8 @@ namespace lsp
         sSurface.height         = data->nHeight;
         sSurface.stride         = data->nStride;
 
-        lsp_trace("surface data=%p, width=%d, height=%d, stride=%d",
-            sSurface.data, int(sSurface.width), int(sSurface.height), int(sSurface.stride));
+//        lsp_trace("surface data=%p, width=%d, height=%d, stride=%d",
+//            sSurface.data, int(sSurface.width), int(sSurface.height), int(sSurface.stride));
 
         return &sSurface;
     }

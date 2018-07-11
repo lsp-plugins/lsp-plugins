@@ -131,10 +131,13 @@ namespace lsp
                 {
                     JACKMeterPort *mp = static_cast<JACKMeterPort *>(pPort);
                     fValue      = mp->syncValue();
+                    return true;
                 }
                 else
+                {
                     fValue      = pPort->getValue();
-                return fValue != value;
+                    return fValue != value;
+                }
             }
     };
 
@@ -158,7 +161,7 @@ namespace lsp
         public:
             virtual bool sync()
             {
-                mesh_t *mesh = reinterpret_cast<mesh_t *>(pPort->getBuffer());
+                mesh_t *mesh = pPort->getBuffer<mesh_t>();
                 if ((mesh == NULL) || (!mesh->containsData()))
                     return false;
 

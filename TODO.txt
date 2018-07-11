@@ -2,11 +2,15 @@
 * RECENT CHANGES
 *******************************************************************************
 
-=== 1.0.14 ===
+=== 1.0.16 ===
 
-- Improved support of LinuxVST for Tracktion DAW.
-- Refactored and optimized filter transfer function calculation.
-
+- Implemented Frequenzselektiver Kompressor (Multiband Compressor) Mono, Stereo, LeftRight, MidSide
+  plugin series
+- Implemented Multiband Kompressor (Multiband Compressor) Mono, Stereo x4, x8 plugin series
+- Ported all widgets from GTK+ 2.x to raw X11 + cairo
+- Fixed the behaviour of dynamic widgets for Tracktion DAW and other JUCE'd plugins.
+- Added possibility to enter parameter values by hand by double-clicking on them.  
+- Refactored and optimized filter transfer function calculation. 
 
 *******************************************************************************
 * PLUGIN LIST
@@ -20,20 +24,21 @@
 * Triggersensor (Trigger)
 * Parametrischer Entzerrer (Parametric Equalizer)
 * Grafischer Entzerrer (Graphic Equalizer)
-- Leitungsvermittlung (Circuit Switcher)
-- Korellationsmeter (Corellometer)
-- Impulsantworten (Impulse responses)
-- Ortswechsel (Dynamic panner)
-- Nachhall (Reverberation)
-- Kompressor (Compressor) - Mono, Stereo, Mid, Side
-- Begrenzer (Limiter)
+- Kompressor (Compressor)
 - Expander (Expander)
-- Verzerrung (Distortion)
-- Tonhöhenänderer (Pitch shift)
-- Sampler (real sampler)
+- (Gate)
+- Begrenzer (Limiter)
 - Saturator
 - Verstärker Profiler (Amplifier profiler)
 - (Noise suppressor)
 - (Impulse Taker)
+- Nachhall (Reverberation)
+- Tonhöhenänderer (Pitch shift)
+- Leitungsvermittlung (Circuit Switcher)
+- Korellationsmeter (Corellometer)
+- Impulsantworten (Impulse responses)
+- Ortswechsel (Dynamic panner)
+- Verzerrung (Distortion)
+- Sampler (real sampler)
 - (JACK <-> ALSA Adaptor)
 

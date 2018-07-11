@@ -10,7 +10,6 @@
 		</align>
 		
 		<vbox>
-			<!-- Trigger -->
 			<hbox>
 				<vbox>
 					<align expand="true" pad_bottom="4">

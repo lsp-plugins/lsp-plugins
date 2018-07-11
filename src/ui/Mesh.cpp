@@ -49,7 +49,7 @@ namespace lsp
 
     void Mesh::draw(IGraphCanvas *cv)
     {
-        if ((pPort == NULL) || (!bVisible))
+        if ((pPort == NULL) || (!isVisible()))
             return;
 
 #ifdef LSP_HOST_SIMULATION

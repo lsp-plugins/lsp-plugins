@@ -39,65 +39,91 @@ namespace lsp
 
         enum eq_filter_t
         {
-            EQF_NONE,
-
-            EQF_BT_RLC_BELL,
-            EQF_MT_RLC_BELL,
-            EQF_BT_BWC_BELL,
-            EQF_MT_BWC_BELL,
-            EQF_BT_LRX_BELL,
-            EQF_MT_LRX_BELL,
-
-            EQF_BT_RESONANCE,
-            EQF_MT_RESONANCE,
-
-            EQF_BT_NOTCH,
-            EQF_MT_NOTCH,
-
-            EQF_BT_RLC_LOPASS,
-            EQF_MT_RLC_LOPASS,
-            EQF_BT_BWC_LOPASS,
-            EQF_MT_BWC_LOPASS,
-            EQF_BT_LRX_LOPASS,
-            EQF_MT_LRX_LOPASS,
-
-            EQF_BT_RLC_LOSHELF,
-            EQF_MT_RLC_LOSHELF,
-            EQF_BT_BWC_LOSHELF,
-            EQF_MT_BWC_LOSHELF,
-            EQF_BT_LRX_LOSHELF,
-            EQF_MT_LRX_LOSHELF,
-
-            EQF_BT_RLC_HIPASS,
-            EQF_MT_RLC_HIPASS,
-            EQF_BT_BWC_HIPASS,
-            EQF_MT_BWC_HIPASS,
-            EQF_BT_LRX_HIPASS,
-            EQF_MT_LRX_HIPASS,
-
-            EQF_BT_RLC_HISHELF,
-            EQF_MT_RLC_HISHELF,
-            EQF_BT_BWC_HISHELF,
-            EQF_MT_BWC_HISHELF,
-            EQF_BT_LRX_HISHELF,
-            EQF_MT_LRX_HISHELF,
+            EQF_OFF,
+            EQF_BELL,
+            EQF_HIPASS,
+            EQF_HISHELF,
+            EQF_LOPASS,
+            EQF_LOSHELF,
+            EQF_NOTCH,
+            EQF_RESONANCE,
 
 #ifndef LSP_NO_EXPERIMENTAL
-            EQF_BT_RLC_LADDERPASS,
-            EQF_MT_RLC_LADDERPASS,
-            EQF_BT_BWC_LADDERPASS,
-            EQF_MT_BWC_LADDERPASS,
-            EQF_BT_LRX_LADDERPASS,
-            EQF_MT_LRX_LADDERPASS,
-
-            EQF_BT_RLC_LADDERREJ,
-            EQF_MT_RLC_LADDERREJ,
-            EQF_BT_BWC_LADDERREJ,
-            EQF_MT_BWC_LADDERREJ,
-            EQF_BT_LRX_LADDERREJ,
-            EQF_MT_LRX_LADDERREJ,
+            EQF_LADDERPASS,
+            EQF_LADDERREJ,
 #endif
         };
+
+        enum eq_filter_mode_t
+        {
+            EFM_RLC_BT,
+            EFM_RLC_MT,
+            EFM_BWC_BT,
+            EFM_BWC_MT,
+            EFM_LRX_BT,
+            EFM_LRX_MT
+        };
+//        enum eq_filter_t
+//        {
+//            EQF_NONE,
+//
+//            EQF_BT_RLC_BELL,
+//            EQF_MT_RLC_BELL,
+//            EQF_BT_BWC_BELL,
+//            EQF_MT_BWC_BELL,
+//            EQF_BT_LRX_BELL,
+//            EQF_MT_LRX_BELL,
+//
+//            EQF_BT_RESONANCE,
+//            EQF_MT_RESONANCE,
+//
+//            EQF_BT_NOTCH,
+//            EQF_MT_NOTCH,
+//
+//            EQF_BT_RLC_LOPASS,
+//            EQF_MT_RLC_LOPASS,
+//            EQF_BT_BWC_LOPASS,
+//            EQF_MT_BWC_LOPASS,
+//            EQF_BT_LRX_LOPASS,
+//            EQF_MT_LRX_LOPASS,
+//
+//            EQF_BT_RLC_LOSHELF,
+//            EQF_MT_RLC_LOSHELF,
+//            EQF_BT_BWC_LOSHELF,
+//            EQF_MT_BWC_LOSHELF,
+//            EQF_BT_LRX_LOSHELF,
+//            EQF_MT_LRX_LOSHELF,
+//
+//            EQF_BT_RLC_HIPASS,
+//            EQF_MT_RLC_HIPASS,
+//            EQF_BT_BWC_HIPASS,
+//            EQF_MT_BWC_HIPASS,
+//            EQF_BT_LRX_HIPASS,
+//            EQF_MT_LRX_HIPASS,
+//
+//            EQF_BT_RLC_HISHELF,
+//            EQF_MT_RLC_HISHELF,
+//            EQF_BT_BWC_HISHELF,
+//            EQF_MT_BWC_HISHELF,
+//            EQF_BT_LRX_HISHELF,
+//            EQF_MT_LRX_HISHELF,
+//
+//#ifndef LSP_NO_EXPERIMENTAL
+//            EQF_BT_RLC_LADDERPASS,
+//            EQF_MT_RLC_LADDERPASS,
+//            EQF_BT_BWC_LADDERPASS,
+//            EQF_MT_BWC_LADDERPASS,
+//            EQF_BT_LRX_LADDERPASS,
+//            EQF_MT_LRX_LADDERPASS,
+//
+//            EQF_BT_RLC_LADDERREJ,
+//            EQF_MT_RLC_LADDERREJ,
+//            EQF_BT_BWC_LADDERREJ,
+//            EQF_MT_BWC_LADDERREJ,
+//            EQF_BT_LRX_LADDERREJ,
+//            EQF_MT_LRX_LADDERREJ,
+//#endif
+//        };
 
         enum para_eq_mode_t
         {

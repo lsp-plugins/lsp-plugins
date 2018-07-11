@@ -10,7 +10,6 @@
 		</align>
 		
 		<vbox>
-			<!-- Trigger -->
 			<hbox>
 				<vbox>
 					<align expand="true" pad_bottom="4">
@@ -122,9 +121,10 @@
 			</hbox>
 			<hbox>
 				<group text="Filters 0-7" expand="true" visibility_id="fsel" visibility_key="0">
-					<grid transpose="true" rows="7" cols="17">
+					<grid transpose="true" rows="8" cols="17">
 						<label text="#" fill="true" halign="0" />
 						<label text="Filter" fill="true" halign="0" />
+						<label text="Mode" fill="true" halign="0" />
 						<label text="Slope" fill="true" halign="0" />
 						<vbox fill="true" valign="0.5">
 							<label text="Freq," halign="0" />
@@ -141,6 +141,7 @@
 						<ui:for id="i" first="0" last="7">
 							<cell cols="2"><label text="${i}" /></cell>
 							<cell cols="2"><combo id="ft_${i}" width="48" /></cell>
+							<cell cols="2"><combo id="fm_${i}" width="48" /></cell>
 							<combo id="s_${i}" width="8" />
 							<knob id="f_${i}" scale_hue_id="hue_${i}" size="20" />
 							<value id="f_${i}" detailed="false" precision="1" />
@@ -160,9 +161,10 @@
 					</grid>
 				</group>
 				<group text="Filters 8-15" expand="true" visibility_id="fsel" visibility_key="1">
-					<grid transpose="true" rows="7" cols="17">
+					<grid transpose="true" rows="8" cols="17">
 						<label text="#" fill="true" halign="0" />
 						<label text="Filter" fill="true" halign="0" />
+						<label text="Mode" fill="true" halign="0" />
 						<label text="Slope" fill="true" halign="0" />
 						<vbox fill="true" valign="0.5">
 							<label text="Freq," halign="0" />
@@ -179,6 +181,7 @@
 						<ui:for id="i" first="8" last="15">
 							<cell cols="2"><label text="${i}" /></cell>
 							<cell cols="2"><combo id="ft_${i}" width="48" /></cell>
+							<cell cols="2"><combo id="fm_${i}" width="48" /></cell>
 							<combo id="s_${i}" width="8" />
 							<knob id="f_${i}" scale_hue_id="hue_${i}" size="20" />
 							<value id="f_${i}" detailed="false" precision="1" />
@@ -198,9 +201,10 @@
 					</grid>
 				</group>
 				<group text="Filters 16-23" expand="true" visibility_id="fsel" visibility_key="2">
-					<grid transpose="true" rows="7" cols="17">
+					<grid transpose="true" rows="8" cols="17">
 						<label text="#" fill="true" halign="0" />
 						<label text="Filter" fill="true" halign="0" />
+						<label text="Mode" fill="true" halign="0" />
 						<label text="Slope" fill="true" halign="0" />
 						<vbox fill="true" valign="0.5">
 							<label text="Freq," halign="0" />
@@ -217,6 +221,7 @@
 						<ui:for id="i" first="16" last="23">
 							<cell cols="2"><label text="${i}" /></cell>
 							<cell cols="2"><combo id="ft_${i}" width="48" /></cell>
+							<cell cols="2"><combo id="fm_${i}" width="48" /></cell>
 							<combo id="s_${i}" width="8" />
 							<knob id="f_${i}" scale_hue_id="hue_${i}" size="20" />
 							<value id="f_${i}" detailed="false" precision="1" />
@@ -236,9 +241,10 @@
 					</grid>
 				</group>
 				<group text="Filters 24-31" expand="true" visibility_id="fsel" visibility_key="3">
-					<grid transpose="true" rows="7" cols="17">
+					<grid transpose="true" rows="8" cols="17">
 						<label text="#" fill="true" halign="0" />
 						<label text="Filter" fill="true" halign="0" />
+						<label text="Mode" fill="true" halign="0" />
 						<label text="Slope" fill="true" halign="0" />
 						<vbox fill="true" valign="0.5">
 							<label text="Freq," halign="0" />
@@ -255,6 +261,7 @@
 						<ui:for id="i" first="24" last="31">
 							<cell cols="2"><label text="${i}" /></cell>
 							<cell cols="2"><combo id="ft_${i}" width="48" /></cell>
+							<cell cols="2"><combo id="fm_${i}" width="48" /></cell>
 							<combo id="s_${i}" width="8" />
 							<knob id="f_${i}" scale_hue_id="hue_${i}" size="20" />
 							<value id="f_${i}" detailed="false" precision="1" />

@@ -192,4 +192,29 @@ namespace lsp
 
         return old;
     }
+
+    void CairoCanvas::circle(ssize_t x, ssize_t y, ssize_t r)
+    {
+        if (pCR == NULL)
+            return;
+        cairo_arc(pCR, x, y, r, 0, M_PI * 2);
+        cairo_fill(pCR);
+    }
+
+    void CairoCanvas::radial_gradient(ssize_t x, ssize_t y, const Color &c1, const Color &c2, ssize_t r)
+    {
+        if (pCR == NULL)
+            return;
+        // Draw light
+        cairo_pattern_t *cp = cairo_pattern_create_radial (x, y, 0, x, y, r);
+        if (cp == NULL)
+            return;
+
+        cairo_pattern_add_color_stop_rgba(cp, 0.0, c1.red(), c1.green(), c1.blue(), 1.0 - c1.alpha());
+        cairo_pattern_add_color_stop_rgba(cp, 1.0, c1.red(), c1.green(), c1.blue(), 1.0 - c2.alpha());
+        cairo_set_source (pCR, cp);
+        cairo_arc(pCR, x, y, r, 0, 2.0 * M_PI);
+        cairo_fill(pCR);
+        cairo_pattern_destroy(cp);
+    }
 }

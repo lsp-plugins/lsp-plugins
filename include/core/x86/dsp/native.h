@@ -88,22 +88,22 @@ namespace lsp
             return mix(dst, dst, src, 1.0f - k, k, count);
         }
 
-        static float abs_max(const float *src, size_t count)
-        {
-            if (count == 0)
-                return 0.0f;
-
-            float min, max;
-            minmax(src, count, &min, &max);
-            if (min < 0.0f)
-                min     = - min;
-            if (max < 0.0f)
-                max     = - max;
-            if (max < min)
-                max     = min;
-
-            return max;
-        }
+//        static float abs_max(const float *src, size_t count)
+//        {
+//            if (count == 0)
+//                return 0.0f;
+//
+//            float min, max;
+//            minmax(src, count, &min, &max);
+//            if (min < 0.0f)
+//                min     = - min;
+//            if (max < 0.0f)
+//                max     = - max;
+//            if (max < min)
+//                max     = min;
+//
+//            return max;
+//        }
 
         static void convolve(float *dst, const float *src, const float *conv, size_t length, size_t count)
         {

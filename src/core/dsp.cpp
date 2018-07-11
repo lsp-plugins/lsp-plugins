@@ -67,6 +67,9 @@ namespace lsp
         float   (* min)(const float *src, size_t count) = NULL;
         float   (* max)(const float *src, size_t count) = NULL;
         float   (* abs_max)(const float *src, size_t count) = NULL;
+        float   (* abs_min)(const float *src, size_t count) = NULL;
+        size_t  (* abs_max_index)(const float *src, size_t count) = NULL;
+        size_t  (* abs_min_index)(const float *src, size_t count) = NULL;
         void    (* minmax)(const float *src, size_t count, float *min, float *max) = NULL;
         size_t  (* min_index)(const float *src, size_t count) = NULL;
         size_t  (* max_index)(const float *src, size_t count) = NULL;
@@ -97,7 +100,11 @@ namespace lsp
         void    (* complex_cvt2reim)(float *dst_re, float *dst_im, const float *src_mod, const float *src_arg, size_t count) = NULL;
         void    (* complex_mod)(float *dst_mod, const float *src_re, const float *src_im, size_t count) = NULL;
         void    (* lr_to_ms)(float *m, float *s, const float *l, const float *r, size_t count) = NULL;
+        void    (* lr_to_mid)(float *m, const float *l, const float *r, size_t count) = NULL;
+        void    (* lr_to_side)(float *s, const float *l, const float *r, size_t count) = NULL;
         void    (* ms_to_lr)(float *l, float *r, const float *m, const float *s, size_t count) = NULL;
+        void    (* ms_to_left)(float *l, const float *m, const float *s, size_t count) = NULL;
+        void    (* ms_to_right)(float *r, const float *m, const float *s, size_t count) = NULL;
         void    (* avoid_denormals)(float *dst, const float *src, size_t count) = NULL;
         float   (* biquad_process)(float *buf, const float *ir, float sample) = NULL;
         void    (* biquad_process_multi)(float *dst, const float *src, size_t count, float *buf, const float *ir) = NULL;

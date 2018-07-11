@@ -71,6 +71,7 @@ namespace lsp
             dsp::min                        = sse::min;
             dsp::max                        = sse::max;
             dsp::abs_max                    = sse::abs_max;
+            dsp::abs_min                    = sse::abs_min;
             dsp::minmax                     = sse::minmax;
     //        dsp::min_index                  = sse::min_index;
     //        dsp::max_index                  = sse::max_index;
@@ -101,12 +102,17 @@ namespace lsp
 //            dsp::complex_cvt2reim           = sse::complex_cvt2reim;
             dsp::complex_mod                = sse::complex_mod;
             dsp::lr_to_ms                   = sse::lr_to_ms;
+            dsp::lr_to_mid                  = sse::lr_to_mid;
+            dsp::lr_to_side                 = sse::lr_to_side;
             dsp::ms_to_lr                   = sse::ms_to_lr;
+            dsp::ms_to_left                 = sse::ms_to_left;
+            dsp::ms_to_right                = sse::ms_to_right;
             dsp::biquad_process             = sse::biquad_process;
             dsp::biquad_process_multi       = sse::biquad_process_multi;
             dsp::biquad_process_x1          = sse::biquad_process_x1;
             dsp::biquad_process_x2          = sse::biquad_process_x2;
             dsp::biquad_process_x4          = sse::biquad_process_x4;
+            dsp::biquad_process_x8          = sse::biquad_process_x8;
 
             dsp::vec4_scalar_mul            = sse::vec4_scalar_mul;
             dsp::vec4_push                  = sse::vec4_push;

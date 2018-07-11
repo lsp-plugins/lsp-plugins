@@ -10,8 +10,6 @@
 #include <core/dsp.h>
 #include <core/bits.h>
 
-
-
 #if defined(__AVX__) && defined(LSP_NO_AVX)
     #undef __AVX__
 #endif
@@ -44,12 +42,13 @@ namespace lsp
 
 //            dsp::add_multiplied             = avx::add_multiplied;
 //            dsp::biquad_process_x1          = avx::biquad_process_x1;
-//            dsp::biquad_process_x8          = avx::biquad_process_x8;
+            dsp::biquad_process_x8          = avx::biquad_process_x8;
 
             if (options & DSP_OPTION_FMA3)
             {
                 lsp_trace("Optimizing DSP for FMA3 instruction set");
 //                dsp::biquad_process_x1          = avx::biquad_process_x1_fma3;
+                dsp::biquad_process_x8          = avx::biquad_process_x8_fma3;
             }
             #endif /* __AVX__ */
         }

@@ -144,6 +144,21 @@ namespace lsp
             return max;
         }
 
+        static float abs_min(const float *src, size_t count)
+        {
+            if (count == 0)
+                return 0.0f;
+
+            float min = fabs(src[0]);
+            for (size_t i=0; i<count; ++i)
+            {
+                float tmp = fabs(src[i]);
+                if (tmp < min)
+                    min = tmp;
+            }
+            return min;
+        }
+
         static void minmax(const float *src, size_t count, float *min, float *max)
         {
             float a_min = src[0], a_max = src[0];
@@ -173,6 +188,44 @@ namespace lsp
             for (size_t i=0; i<count; ++i)
                 if (src[i] > src[index])
                     index = i;
+            return index;
+        }
+
+        static size_t abs_max_index(const float *src, size_t count)
+        {
+            if (count == 0)
+                return 0;
+
+            size_t index = 0;
+            float s = fabs(src[0]);
+            for (size_t i=1; i<count; ++i)
+            {
+                float d = fabs(src[i]);
+                if (d > s)
+                {
+                    index   = i;
+                    s       = d;
+                }
+            }
+            return index;
+        }
+
+        static size_t abs_min_index(const float *src, size_t count)
+        {
+            if (count == 0)
+                return 0;
+
+            size_t index = 0;
+            float s = fabs(src[0]);
+            for (size_t i=1; i<count; ++i)
+            {
+                float d = fabs(src[i]);
+                if (d < s)
+                {
+                    index   = i;
+                    s       = d;
+                }
+            }
             return index;
         }
 
@@ -790,6 +843,26 @@ namespace lsp
             }
         }
 
+        static void lr_to_mid(float *m, const float *l, const float *r, size_t count)
+        {
+            while (count--)
+            {
+                float lv        = *(l++);
+                float rv        = *(r++);
+                *(m++)          = (lv + rv) * 0.5f;
+            }
+        }
+
+        static void lr_to_side(float *s, const float *l, const float *r, size_t count)
+        {
+            while (count--)
+            {
+                float lv        = *(l++);
+                float rv        = *(r++);
+                *(s++)          = (lv - rv) * 0.5f;
+            }
+        }
+
         static void ms_to_lr(float *l, float *r, const float *m, const float *s, size_t count)
         {
             while (count--)
@@ -799,6 +872,18 @@ namespace lsp
                 *(l++)          = mv + sv;
                 *(r++)          = mv - sv;
             }
+        }
+
+        static void ms_to_left(float *l, const float *m, const float *s, size_t count)
+        {
+            while (count--)
+                *(l++)          = *(m++) + *(s++);
+        }
+
+        static void ms_to_right(float *r, const float *m, const float *s, size_t count)
+        {
+            while (count--)
+                *(r++)          = *(m++) - *(s++);
         }
 
         static float vec4_scalar_mul(const float *a, const float *b)

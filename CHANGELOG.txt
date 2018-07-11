@@ -2,6 +2,28 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.14 ===
+
+* Implemented Kompressor Mono, Stereo, LeftRight, MidSide (Compressor) plugin series
+* Implemented Seitenkette Kompressor (Sidechain Compressor) Mono, Stereo, LeftRight, MidSide
+  plugin series
+* Moved sidechain processing functions into independent separate DSP module.
+* Fixed issue related to LV2 bug that disallows to save preset of plugin if it has
+  square brackets in the name.
+* Fixed build issue triggering on GCC 6: default C++ standard in GCC was changed to C++11,
+  added strict C++98 usage into makefiles.
+* Fixed time drifting between Middle and Side channels in FIR/FFT mode for Graphic
+  Equalizer and Parametric Equalizer.
+* Fixed and updated metadata of Graphic Equalizer plugin: now filters have individual
+  pre-defined frequencies, Graphic Equalizer's tranlation is corrected to 'Graphic Equalizer';.
+* Re-worked LSP Parametrischer Equalizer plugin series: added filter mode parameter.
+* A bit improved support of LinuxVST for Tracktion DAW and other JUCE'd plugins. Great thanks
+  to Nick Dowell, the developer of amsynth. Still, there are problems with UI redraw.
+* Implemented biquad x8 filter bank using SSE, SSE3, AVX and FMA instructions,
+  overall performance goal is about 1.8x on x86_64 architecture, i586 architecture
+  has no performance regressions when switching from two x4 banks to one x8 bank.
+* Fixed issues with peak value transfer from DSP to UI for VST and JACK versions of plugin.
+
 === 1.0.12 ===
 
 * Implemented LSP Grafischer Entzerrer (Graphic Equalizer) x16 Mono/Stereo/LeftRight/MidSide plugin series.

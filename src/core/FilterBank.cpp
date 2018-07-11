@@ -9,10 +9,6 @@
 #include <core/FilterBank.h>
 
 // Currently disable x8 banks on non-experimental stuff
-#ifndef LSP_NO_EXPERIMENTAL
-//    #define USE_X8_BANK
-#endif
-
 namespace lsp
 {
     FilterBank::FilterBank()
@@ -52,11 +48,7 @@ namespace lsp
         destroy();
 
         // Calculate data size
-#ifdef USE_X8_BANK
         size_t n_banks      = (filters/8) + 3;
-#else
-        size_t n_banks      = (filters/4) + 2;
-#endif
         size_t bank_alloc   = ALIGN_SIZE(sizeof(biquad_t), BIQUAD_ALIGN) * n_banks;
         size_t chain_alloc  = sizeof(biquad_x1_t) * filters;
         size_t backup_alloc = sizeof(float) * BIQUAD_D_ITEMS * n_banks;
@@ -101,12 +93,9 @@ namespace lsp
         // a0 a0 a1 a2
         // b1 b2 0  0
 
-#ifdef USE_X8_BANK
         // Add 8x filter bank
         while (items >= 8)
         {
-            lsp_trace("Using x8 cascade");
-
             biquad_x8_t *f = &b->x8;
 
             f->a0[0]    = c[0].a[0];
@@ -158,10 +147,9 @@ namespace lsp
             b          ++;
             items      -= 8;
         }
-#endif /* USE_X8_BANK */
 
         // Add 4x filter bank
-        while (items >= 4)
+        if (items & 4)
         {
             biquad_x4_t *f = &b->x4;
 
@@ -192,11 +180,10 @@ namespace lsp
 
             c          += 4;
             b          ++;
-            items      -= 4;
         }
 
         // Add 2x filter bank
-        while (items >= 2)
+        if (items & 2)
         {
             biquad_x2_t *f = &b->x2;
 
@@ -220,11 +207,10 @@ namespace lsp
 
             c          += 2;
             b          ++;
-            items      -= 2;
         }
 
         // Add 1x filter
-        while (items > 0)
+        if (items & 1)
         {
             biquad_x1_t *f = &b->x1;
 
@@ -239,19 +225,14 @@ namespace lsp
 
             c          ++;
             b          ++;
-            items      --;
         }
 
         // Clear delays if structure has changed
         if ((clear) || (nItems != nLastItems))
         {
-#ifdef USE_X8_BANK
             items           = nItems >> 3;
             if (nItems & 4)
                 items ++;
-#else
-            items           = nItems >> 2;
-#endif
             if (nItems & 2)
                 items ++;
             if (nItems & 1)
@@ -277,7 +258,6 @@ namespace lsp
             return;
         }
 
-#ifdef USE_X8_BANK
         while (items >= 8)
         {
             dsp::biquad_process_x8(out, in, samples, f);
@@ -285,14 +265,12 @@ namespace lsp
             f         ++;
             items     -= 8;
         }
-#endif /* USE_X8_BANK */
 
-        while (items >= 4)
+        if (items & 4)
         {
             dsp::biquad_process_x4(out, in, samples, f);
             in         = out;  // actual data for the next chain is in output buffer now
             f         ++;
-            items     -= 4;
         }
 
         if (items & 2)
@@ -312,13 +290,9 @@ namespace lsp
         biquad_t *f         = vFilters;
         float *dst          = vBackup;
 
-#ifdef USE_X8_BANK
         size_t items        = nItems >> 3;
         if (nItems & 4)
             items ++;
-#else
-        size_t items        = nItems >> 2;
-#endif
         if (nItems & 2)
             items ++;
         if (nItems & 1)

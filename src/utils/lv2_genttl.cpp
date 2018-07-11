@@ -469,16 +469,16 @@ namespace lsp
             if (dev->nick != NULL)
                 fprintf(out, " ;\n\tfoaf:nick \"%s\"", dev->nick);
             if (dev->mailbox != NULL)
-                fprintf(out, " ;\n\tfoaf:mbox <%s>", dev->mailbox);
+                fprintf(out, " ;\n\tfoaf:mbox <mailto:%s>", dev->mailbox);
             if (dev->homepage != NULL)
-                fprintf(out, " ;\n\tfoaf:homepage <%s>", dev->homepage);
+                fprintf(out, " ;\n\tfoaf:homepage <%s#%s>", dev->homepage, dev->uid);
             fprintf(out, "\n\t.\n\n");
         }
 
         fprintf(out, LSP_PREFIX "_dev:lsp\n");
         fprintf(out, "\ta foaf:Person");
-        fprintf(out, " ;\n\tfoaf:name \"" LSP_ACRONYM " [LV2]\"");
-        fprintf(out, " ;\n\tfoaf:homepage <" LSP_BASE_URI ">");
+        fprintf(out, " ;\n\tfoaf:name \"" LSP_ACRONYM " LV2\"");
+        fprintf(out, " ;\n\tfoaf:homepage <" LSP_BASE_URI "#lsp>");
         fprintf(out, "\n\t.\n\n");
 
         // Output port groups
@@ -508,6 +508,9 @@ namespace lsp
                     fprintf(out, "\ta pg:%s, pg:%s ;\n", grp_type, grp_dir);
                 else
                     fprintf(out, "\ta pg:%s ;\n", grp_dir);
+
+                if (pg->flags & PGF_SIDECHAIN)
+                    fprintf(out, "\tpg:sideChainOf lsp_pg:%s;\n", pg->parent_id);
 
                 fprintf(out, "\tlv2:symbol \"%s\";\n", pg->id);
                 fprintf(out, "\trdfs:label \"%s\"\n", pg->name);
@@ -542,7 +545,7 @@ namespace lsp
         fprintf(out, "\ta lv2:Plugin, doap:Project");
         print_additional_groups(out, m.classes);
         fprintf(out, " ;\n");
-        fprintf(out, "\tdoap:name \"" LSP_ACRONYM " %s - %s [LV2]\" ;\n", m.name, m.description);
+        fprintf(out, "\tdoap:name \"" LSP_ACRONYM " %s - %s LV2\" ;\n", m.name, m.description);
         fprintf(out, "\tlv2:minorVersion %d ;\n", int(LSP_VERSION_MINOR(m.version)));
         fprintf(out, "\tlv2:microVersion %d ;\n", int(LSP_VERSION_MICRO(m.version)));
         if ((dev != NULL) && (dev->uid != NULL))

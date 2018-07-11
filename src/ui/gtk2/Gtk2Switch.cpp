@@ -380,8 +380,11 @@ namespace lsp
         bool invert = nState & S_INVERT;
         float value = (down ^ invert) ? 1.0 : 0.0;
 
-        pPort->setValue(value);
-        pPort->notifyAll();
+        if (pPort != NULL)
+        {
+            pPort->setValue(value);
+            pPort->notifyAll();
+        }
     }
 
     void Gtk2Switch::notify(IUIPort *port)

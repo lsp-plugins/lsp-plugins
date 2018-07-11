@@ -86,7 +86,7 @@ namespace lsp
         return 0;
     }
 
-    int gen_make(const char *path)
+    int gen_vst_make(const char *path)
     {
         // Generate list of plugins as CPP-files
         int code = 0;
@@ -110,6 +110,6 @@ int main(int argc, const char **argv)
 {
     if (argc <= 0)
         fprintf(stderr, "required destination path");
-    return lsp::gen_make(argv[1]);
+    return lsp::gen_vst_make(argv[1]);
 }
 #endif /* LSP_IDE_DEBUG */

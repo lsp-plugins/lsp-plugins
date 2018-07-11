@@ -96,10 +96,30 @@ namespace lsp
 
             cv->set_color_rgb(0, 0, 0);
             cv->circle(x, y, nSize);
+
+            cv->set_color(sColor);
+            cv->circle(x, y, 3);
+        }
+        else
+        {
+            if (nFlags & F_HIGHLIGHT)
+            {
+                Color c1(sColor), c2(sColor);
+                bool aa = cv->set_anti_aliasing(true);
+                c2.alpha(0.9);
+
+                if (nBorder > 0)
+                    cv->radial_gradient(x, y, c1, c2, nBorder);
+
+                cv->set_color_rgb(0, 0, 0);
+                cv->circle(x, y, nSize);
+                cv->set_anti_aliasing(aa);
+            }
+
+            cv->set_color(sColor);
+            cv->circle(x, y, 3);
         }
 
-        cv->set_color(sColor);
-        cv->circle(x, y, 3);
     }
 
     void Dot::set(widget_attribute_t att, const char *value)
@@ -144,6 +164,9 @@ namespace lsp
 
             case A_EDITABLE:
                 PARSE_FLAG(value, nFlags, F_EDITABLE);
+                break;
+            case A_LED:
+                PARSE_FLAG(value, nFlags, F_HIGHLIGHT);
                 break;
 
             default:

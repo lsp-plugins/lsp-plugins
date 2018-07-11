@@ -20,6 +20,7 @@
 #define LSP_SPECTRUM_ANALYZER_BASE      LSP_LADSPA_BASE + 4
 #define LSP_PARA_EQUALIZER_BASE         LSP_LADSPA_BASE + 10
 #define LSP_GRAPH_EQUALIZER_BASE        LSP_LADSPA_BASE + 18
+#define LSP_COMPRESSOR_BASE             LSP_LADSPA_BASE + 26
 
 // Plugin metadata definitions
 #include <metadata/phase_detector.h>
@@ -29,6 +30,7 @@
 #include <metadata/trigger.h>
 #include <metadata/para_equalizer.h>
 #include <metadata/graph_equalizer.h>
+#include <metadata/compressor.h>
 #include <metadata/experimental.h>
 
 #endif /* METADATA_PLUGINS_H_ */

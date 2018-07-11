@@ -28,7 +28,6 @@ namespace lsp
         vChannels       = NULL;
         nBands          = bands;
         nMode           = mode;
-        nEqMode         = EQM_BYPASS;
         nFftPosition    = FFTP_NONE;
         nSlope          = -1;
         bListen         = false;
@@ -269,9 +268,6 @@ namespace lsp
                 }
             }
         }
-
-        // Synchronize settings
-        update_settings();
     }
 
     void graph_equalizer_base::destroy()
@@ -379,27 +375,26 @@ namespace lsp
         if (pListen != NULL)
             bListen         = pListen->getValue() >= 0.5f;
 
-        size_t slope        = pSlope->getValue();
-        bool bypass         = pBypass->getValue() >= 0.5f;
-        bool solo           = false;
-        bool matched_tr     = bMatched;
-        float latency       = 0.0f;
-        size_t step         = (nBands > 16) ? 1 : 2;
+        size_t slope                = pSlope->getValue();
+        bool bypass                 = pBypass->getValue() >= 0.5f;
+        bool solo                   = false;
+        bool matched_tr             = bMatched;
+        size_t step                 = (nBands > 16) ? 1 : 2;
 
-        bMatched            = (slope & 1) != 0;
-        fInGain             = pInGain->getValue();
-        nEqMode             = get_eq_mode();
-        slope               = graph_equalizer_base_metadata::SLOPE_MIN + (slope >> 1);
+        bMatched                    = (slope & 1) != 0;
+        fInGain                     = pInGain->getValue();
+        equalizer_mode_t eq_mode    = get_eq_mode();
+        slope                       = graph_equalizer_base_metadata::SLOPE_MIN + (slope >> 1);
 
         // Update channels
         for (size_t i=0; i<channels; ++i)
         {
             filter_params_t fp;
             eq_channel_t *c     = &vChannels[i];
-//            bool modified       = nEqMode != c->sEqualizer.get_mode();
             bool visible        = (c->pVisible == NULL) ? true : (c->pVisible->getValue() >= 0.5f);
 
             // Update settings
+            c->sEqualizer.set_mode(eq_mode);
             if (c->sBypass.set_bypass(bypass))
                 pWrapper->query_display_draw();
             c->fOutGain         = bal[i];
@@ -489,17 +484,7 @@ namespace lsp
                     b->nSync           |= CS_UPDATE;
                 }
             }
-
-            // Update equalizer mode and get latency
-            c->sEqualizer.set_mode(nEqMode);
-//            c->sEqualizer.reconfigure();
-
-            if (latency < c->sEqualizer.get_latency())
-                latency         = c->sEqualizer.get_latency();
         }
-
-        // Update para_equalizer latency
-        set_latency(latency);
 
         // Update analyzer
         if (sAnalyzer.needs_reconfiguration())
@@ -522,8 +507,6 @@ namespace lsp
             c->sBypass.init(sr);
             c->sEqualizer.set_sample_rate(sr);
         }
-
-        update_settings();
     }
 
     void graph_equalizer_base::ui_activated()
@@ -628,10 +611,16 @@ namespace lsp
             samples            -= to_process;
         }
 
-        // Output FFT curves for each channel
+        // Output FFT curves for each channel and report latency
+        size_t latency          = 0;
+
         for (size_t i=0; i<channels; ++i)
         {
             eq_channel_t *c     = &vChannels[i];
+
+            // Calculate latency
+            if (latency < c->sEqualizer.get_latency())
+                latency         = c->sEqualizer.get_latency();
 
             // Output FFT curve
             mesh_t *mesh            = c->pFft->getBuffer<mesh_t>();
@@ -650,6 +639,9 @@ namespace lsp
                     mesh->data(2, 0);
             }
         }
+
+        // Update latency report
+        set_latency(latency);
 
         // For Mono and Stereo channels only the first channel should be processed
         if (nMode == EQ_STEREO)

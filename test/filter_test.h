@@ -251,10 +251,10 @@ namespace filter_test
             out[i]              = 0.0f;
         }
 
-        test_biquad(out, in, FTEST_BUF_SIZE);
-        test_biquad_x1(out, in, FTEST_BUF_SIZE);
-        test_biquad_x2(out, in, FTEST_BUF_SIZE);
-        test_biquad_x4(out, in, FTEST_BUF_SIZE);
+//        test_biquad(out, in, FTEST_BUF_SIZE);
+//        test_biquad_x1(out, in, FTEST_BUF_SIZE);
+//        test_biquad_x2(out, in, FTEST_BUF_SIZE);
+//        test_biquad_x4(out, in, FTEST_BUF_SIZE);
         test_biquad_x8(out, in, FTEST_BUF_SIZE);
 
         delete [] out;

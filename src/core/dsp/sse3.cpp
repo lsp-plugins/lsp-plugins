@@ -27,7 +27,8 @@ namespace lsp
                 lsp_trace("Optimizing DSP for SSE3 instruction set");
 
                 dsp::biquad_process_x2          = sse3::x64_biquad_process_x2;
-//                dsp::biquad_process_x4          = sse3::x64_biquad_process_x4; // SSE has a bit better throughput for this case
+//                dsp::biquad_process_x4          = sse3::x64_biquad_process_x4; // Pure SSE has a bit better throughput for this case
+                dsp::biquad_process_x8          = sse3::x64_biquad_process_x8;
             #endif /* ARCH_X86_64 */
         }
     }

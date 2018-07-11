@@ -93,7 +93,7 @@ namespace lsp
         return 0;
     }
 
-    static int gen_make(const char *path)
+    int gen_make(const char *path)
     {
         // Generate list of plugins as CPP-files
         int code = 0;
