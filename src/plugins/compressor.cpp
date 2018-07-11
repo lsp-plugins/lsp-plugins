@@ -803,7 +803,7 @@ namespace lsp
         float zx    = 1.0f/GAIN_AMP_M_72_DB;
         float zy    = 1.0f/GAIN_AMP_M_72_DB;
         float dx    = width/(logf(GAIN_AMP_P_24_DB)-logf(GAIN_AMP_M_72_DB));
-        float dy    = -height/(logf(GAIN_AMP_P_24_DB)-logf(GAIN_AMP_M_72_DB));
+        float dy    = height/(logf(GAIN_AMP_M_72_DB)-logf(GAIN_AMP_P_24_DB));
 
         // Draw horizontal and vertical lines
         cv->set_line_width(1.0);

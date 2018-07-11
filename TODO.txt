@@ -2,10 +2,7 @@
 * TODO LIST
 *******************************************************************************
 
-=== 1.1.0 ===
-
-- Ported all widgets from GTK+ 2.x to raw X11 + cairo
-- Fixed the behaviour of dynamic widgets for Tracktion DAW and other JUCE'd plugins.
+=== Planned ===
 - Implemented Frequenzselektiver Kompressor (Multiband Compressor) Mono, Stereo, LeftRight, MidSide
   plugin series
 - Implemented Multiband Kompressor (Multiband Compressor) Mono, Stereo x4, x8 plugin series
@@ -13,13 +10,10 @@
 - Refactored and optimized filter transfer function calculation. 
 - Implemented sampler with stereo outputs.
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
-
-=== 1.0.28 ===
-
-- Fixed UI hangup when interacting with Bitwig Studio host.
 - Additional display mode for spectrum analyzer added.
 - Added graph amplitude scaling to equalizers.
 - Added graph amplitude scaling to spectrum analyzer.
+- Convolver plugins are extended to allow to load multitracks (up to 8 channels) files.
 
 *******************************************************************************
 * Release steps
@@ -57,6 +51,7 @@
 * Begrenzer (Limiter)
 * Impulsantworten (Impulse responses)
 * Slap-back delay
+- Feedback destroyer
 - Hysteresis-based saturator
 - Impulse Taker
 - One-band compressor
@@ -88,6 +83,31 @@
 *******************************************************************************
 
 ====
+  bhilmers:
+    A channel-strip style drum plugin would be really great for Linux. Maybe someone will get inspired one day and make it.
+    Wish I could! Not my area of expertise.
+    
+    http://www.kvraudio.com/product/bdm-broken-drum-machine-by-nusofting
+    BDM is a plugin instrument designed for the musicians who love chaos and usually find the unpredictable behaviour of an
+    uncontrollable sound machine stimulating and inspiring.
+    BDM basically offers 4 drum pads like an old, small, beat box with: Bass Drum, Snare, Hi-Hat and Stick, each of those has
+    controls like Decay, Pitch and Filter. But the creative power of the BDM is all in the four "Broken" sliders, one for each
+    pad. With those sliders you can set the amount of wild, weird, chaotic and unpredictable variations to the sound, just
+    like the circuits inside go crazy producing bleeps and glitches you never thought you'd hear from this machine.
+    Sound source is double: a "Osc.Mix.PCM" slider, per pad, allows to choose between the internal VA oscillator or an external
+    Wav sample, or a mix of the two.
+    The output is configured as 1 stereo + 4 mono outs.
+
+====
+  12strings2hands:
+    The Voxengo CurveEQ can generate an EQ curves based on the input, in this case they use pink noise through 2 microphones and you can use the curves to make one mic match the other.
+    Given that there are a lot of other differences between mics, I can see a lot of uses for something like this.
+    Is there a linux equivalent?
+    Here's a couple of links to the subject:
+    https://groupdiy.com/index.php?topic=67322.msg0
+    https://www.youtube.com/watch?v=0qoGEpOuY6U
+
+====
   cooltechno
     If it's possible, one feature request: to make a sound-preview in adding samples window in Klangerzeuger
 
@@ -105,6 +125,11 @@
 ====
   rghvdberg:
     The reduction meter on the compressors. I think they are a bit to fast to read out. It's also talked about in the lm forum.
+
+====
+  mattpepin:
+  	A useful plugin for live situations would be a feedback analyzer/destroyer like Waves X-FDBK.
+  	It would be a matter of combining the Analyzer and an EQ strip and make it into a standalone plugin.
 
 ====
   unfa:
@@ -240,6 +265,10 @@
   This configuration is necessary to take full advantage of true stereo impulse responses. True stereo impulse
   responses are required to be provided as two separate stereo files and loaded into IR1-A and IR1-B (or IR2-A and IR2-B).
   This configuration is typically found in high-end algorithmic reverbs. 
+  
+  ufug:
+    LSP offers the most tweakable one, but it does not seem to have a browser for easily auditioning your
+    collection of impulse responses (as far as I can see)
 
 ==== Multiband compressor ====
   I also thought that non-crossover multiband compressor is lacking linux audio. Crossovers do phase
@@ -327,3 +356,13 @@
   This is kinda random, but there are not ladspa, lv2 plugins anything like the spectral delay
   functionality found in freqtweak. And it is starting to suffer from some significant bit-rot.
   Would be nice to be able to use it as a plugin.
+  
+==== Chase ==== 
+  was just wondering if LSP-PLUGINS, specifically your trigger-midi-mono, will have a version
+  in the near future that will work on the raspberry pi arm7/arm8 ? as a jack standalone and lv2...
+  
+==== Spectrogram ====
+  Amadeus Folego:
+    You can check calf-analyzer as well (https://www.youtube.com/watch?v=TWfqcf-EyUE).
+
+    Something like baudline (http://baudline.com) with LV2 would be amazing.

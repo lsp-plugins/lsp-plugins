@@ -1,7 +1,8 @@
 FILES                   = $(addprefix $(OBJDIR)/, $(patsubst %.cpp, %.o, $(wildcard *.cpp)))
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
-rwildcard               = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
-SUBDIRS					= gtk2
+SUBDIRS					= ws tk ctl
+INCLUDE                += $(CAIRO_HEADERS) $(XLIB_HEADERS)
+PACKAGES                = $(OBJ_WS_CORE) $(OBJ_TK_CORE) $(OBJ_CTL_CORE)
 
 .PHONY: all $(SUBDIRS)
 
@@ -14,8 +15,8 @@ $(FILES):
 	@echo "  $(CC) $(FILE)"
 	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE) -o $(@)
 
-$(OBJ_UI_CORE): $(FILES)
+$(OBJ_UI_CORE): $(FILES) $(SUBDIRS)
 	@echo "  $(LD) $(notdir $(@))"
-	@$(LD) $(MERGE_FLAGS) $(PACKAGES) -o $(OBJ_UI_CORE) $(FILES)
+	@$(LD) -o $(OBJ_UI_CORE) $(MERGE_FLAGS) $(PACKAGES) $(FILES)
 
-all: $(OBJ_UI_CORE) $(SUBDIRS)
+all: $(OBJ_UI_CORE)

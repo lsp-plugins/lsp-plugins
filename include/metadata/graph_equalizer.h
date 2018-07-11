@@ -35,7 +35,7 @@ namespace lsp
         static const float          BAND_GAIN_MIN       = GAIN_AMP_M_36_DB;
         static const float          BAND_GAIN_MAX       = GAIN_AMP_P_36_DB;
         static const float          BAND_GAIN_DFL       = GAIN_AMP_0_DB;
-        static const float          BAND_GAIN_STEP      = 0.1;
+        static const float          BAND_GAIN_STEP      = 0.025f;
 
         static const float          IN_GAIN_DFL         = 1.0f;
         static const float          OUT_GAIN_DFL        = 1.0f;

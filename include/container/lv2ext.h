@@ -23,6 +23,7 @@
 #include <lv2/lv2plug.in/ns/ext/worker/worker.h>
 #include <lv2/lv2plug.in/ns/extensions/units/units.h>
 #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
+#include <lv2/lv2plug.in/ns/ext/instance-access/instance-access.h>
 
 // Non-official features
 #include <3rdparty/ardour/inline-display.h>
@@ -40,6 +41,7 @@ namespace lsp
     #define LSP_LV2_SIZE_PAD(size)      ALIGN_SIZE((size + 0x200), 0x200)
 
     struct LV2Extensions;
+    class LV2Wrapper;
 
     class LV2Serializable
     {
@@ -77,6 +79,8 @@ namespace lsp
             LV2_URID_Unmap         *unmap;
             LV2_Worker_Schedule    *sched;
             LV2_Inline_Display     *iDisplay;
+            LV2UI_Resize           *ui_resize;
+            LV2Wrapper             *pWrapper;
 
             // State interface
             LV2_State_Store_Function    hStore;
@@ -115,14 +119,18 @@ namespace lsp
             ssize_t                 nAtomOut;   // Atom output port identifier
             uint8_t                *pBuffer;    // Atom serialization buffer
             size_t                  nBufSize;   // Atom serialization buffer size
+            void                   *pParentWindow; // Parent window handle
 
         public:
             inline LV2Extensions(const LV2_Feature* const* feat, const char *uri, LV2UI_Controller lv2_ctl, LV2UI_Write_Function lv2_write)
             {
                 map                 = NULL;
                 unmap               = NULL;
+                ui_resize           = NULL;
                 sched               = NULL;
                 iDisplay            = NULL;
+                pParentWindow       = NULL;
+                pWrapper            = NULL;
 
                 // Scan features
                 if (feat != NULL)
@@ -131,15 +139,25 @@ namespace lsp
                     {
                         const LV2_Feature *f = feat[i];
 
+                        lsp_trace("Host reported extension uri=%s, data=%p", f->URI, f->data);
+
                         if (!strcmp(f->URI, LV2_URID__map))
                             map = reinterpret_cast<LV2_URID_Map *>(f->data);
                         else if (!strcmp(f->URI, LV2_URID__unmap))
                             unmap = reinterpret_cast<LV2_URID_Unmap *>(f->data);
                         else if (!strcmp(f->URI, LV2_WORKER__schedule))
                             sched = reinterpret_cast<LV2_Worker_Schedule *>(f->data);
+                        else if (!strcmp(f->URI, LV2_UI__parent))
+                            pParentWindow   = f->data;
+                        else if (!strcmp(f->URI, LV2_UI__resize))
+                            ui_resize = reinterpret_cast<LV2UI_Resize *>(f->data);
                         else if (!strcmp(f->URI, LV2_INLINEDISPLAY__queue_draw))
                             iDisplay = reinterpret_cast<LV2_Inline_Display *>(f->data);
+                        else if (!strcmp(f->URI, LV2_INSTANCE_ACCESS_URI))
+                            pWrapper = reinterpret_cast<LV2Wrapper *>(f->data);
                     }
+
+                    lsp_trace("Plugin instance wrapper pointer: %p", pWrapper);
                 }
 
                 ctl                 = lv2_ctl;
@@ -190,6 +208,11 @@ namespace lsp
             }
 
         public:
+            inline void *parent_window()
+            {
+                return pParentWindow;
+            }
+
             inline bool atom_supported() const
             {
                 return map != NULL;
@@ -198,6 +221,11 @@ namespace lsp
             inline const char *unmap_urid(LV2_URID urid)
             {
                 return (unmap != NULL) ? unmap->unmap(unmap->handle, urid) : NULL;
+            }
+
+            inline LV2Wrapper *wrapper()
+            {
+                return pWrapper;
             }
 
             inline void write_data(
@@ -296,6 +324,12 @@ namespace lsp
             inline LV2_Atom_Forge_Ref forge_frame_time(int64_t frames)
             {
                 return lv2_atom_forge_write(&forge, &frames, sizeof(frames));
+            }
+
+            inline void resize_ui(ssize_t width, ssize_t height)
+            {
+                if (ui_resize != NULL)
+                    ui_resize->ui_resize(ui_resize->handle, width, height);
             }
 
             inline LV2_URID map_uri(const char *fmt...)
@@ -398,6 +432,8 @@ namespace lsp
             {
                 if (map == NULL)
                     return false;
+                if (pWrapper != NULL)
+                    return true;
 
                 // Prepare ofrge for transfer
                 LV2_Atom_Forge_Frame    frame;
@@ -427,6 +463,11 @@ namespace lsp
 
             inline void ui_disconnect_from_plugin()
             {
+                if (map == NULL)
+                    return;
+                if (pWrapper != NULL)
+                    return;
+
                 // Prepare ofrge for transfer
                 LV2_Atom_Forge_Frame    frame;
                 forge_set_buffer(pBuffer, nBufSize);
@@ -544,7 +585,7 @@ namespace lsp
                 pUrids[i]           = ext->map_uri("%s/Mesh#dimension%d", LSP_TYPE_URI(lv2), int(i));
             }
 
-            lsp_assert(ptr > &pData[to_alloc + DEFAULT_ALIGN]);
+            lsp_assert(ptr <= &pData[to_alloc + DEFAULT_ALIGN]);
 
             pMesh->nState       = M_WAIT;
             pMesh->nBuffers     = 0;

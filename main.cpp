@@ -1,6 +1,5 @@
 #include "test/common.h"
 
-#include "test/gtk_test.h"
 #include "test/ladspa_test.h"
 #include "test/vst_test.h"
 #include "test/res_gen.h"
@@ -17,7 +16,6 @@
 #include "test/genttl.h"
 #include "test/lv2_buf_size.h"
 #include "test/alloc_test.h"
-#include "test/view_ui.h"
 #include "test/jack_test.h"
 #include "test/profiling_test.h"
 
@@ -44,7 +42,6 @@
 #include "test/avx_test.h"
 #include "test/sidechain_test.h"
 #include "test/limiter_test.h"
-#include "test/xwindow.h"
 
 #include "test/sse_test.h"
 
@@ -53,8 +50,9 @@
 #include "test/oversampler_test.h"
 
 #include "test/latencydetector_test.h"
+#include "test/lspstring.h"
+#include "test/clipbrd_test.h"
 
-//#define TEST gtk_test
 #define TEST jack_test
 //#define TEST xwindow_test
 //#define TEST limiter_test
@@ -68,7 +66,6 @@
 //#define TEST avx_test
 //#define TEST sidechain_test
 
-//#define TEST view_ui_test
 //#define TEST ladspa_test
 //#define TEST vst_test
 //#define TEST res_gen
@@ -100,6 +97,8 @@
 //#define TEST lv2bufsize_test
 //#define TEST alloc_test
 //#define TEST profiling_test
+//#define TEST lspstring_test
+//#define TEST clipbrd_test
 
 //#define TEST downsampling_test
 //#define TEST oversampling_test
@@ -112,5 +111,6 @@
 int main(int argc, const char**argv)
 {
     srand(clock());
+    lsp_trace("locale is: %s", setlocale(LC_CTYPE, NULL));
     return TEST::test(argc, argv);
 }

@@ -211,7 +211,7 @@ namespace lsp
 
         // Open input file
         char filename[PATH_MAX];
-        snprintf(filename, PATH_MAX, "%s/%s", path, resource->id);
+        snprintf(filename, PATH_MAX, "%s" FILE_SEPARATOR_S "%s", path, resource->id);
 
         FILE *in = fopen(filename, "r");
         if (in == NULL)
@@ -315,17 +315,24 @@ namespace lsp
         return 0;
     }
 
-    static resource_t *create_xml_resource(const char *name, size_t id)
+    static resource_t *create_xml_resource(const char *path, const char *name, size_t id)
     {
         resource_t *res = new resource_t;
         if (res == NULL)
             return NULL;
-        res->id     = strdup(name);
-        if (res->id == NULL)
+
+        char *ptr = NULL;
+        if (path != NULL)
+            asprintf(&ptr, "%s" FILE_SEPARATOR_S "%s", path, name);
+        else
+            ptr     = strdup(name);
+        if (ptr == NULL)
         {
             delete res;
             return NULL;
         }
+        res->id     = ptr;
+
         char *dst   = NULL;
         asprintf(&dst, "%08x", int(id));
         if (dst == NULL)
@@ -382,7 +389,7 @@ namespace lsp
                 if (((*p) >= 0x20) && ((*p) <= 0x7f))
                     fputc(*p, out);
                 else
-                    fprintf(out, "\\x%02x", uint8_t(*p));
+                    fprintf(out, "\" \"\\x%02x\" \"", uint8_t(*p));
             }
 
             fprintf(out, "\") // offset: 0x%08x, refs=%d\n", int(w->offset), int(w->refs));
@@ -392,6 +399,94 @@ namespace lsp
         fprintf(out, "\t\t;\n\n");
 
         return STATUS_SUCCESS;
+    }
+
+    int scan_directory(const char *basedir, const char *path, cvector<resource_t> &resources)
+    {
+        char *realpath = NULL;
+        if (path != NULL)
+            asprintf(&realpath, "%s" FILE_SEPARATOR_S "%s", basedir, path);
+        else
+            realpath = strdup(basedir);
+
+        // Try to scan directory
+        DIR *dirhdl     = opendir(realpath);
+        if (dirhdl == NULL)
+        {
+            fprintf(stderr, "Could not open directory %s\n", realpath);
+            free(realpath);
+            return -STATUS_IO_ERROR;
+        }
+
+        int result      = STATUS_OK;
+
+        while (true)
+        {
+            // Read next entry
+            struct dirent *ent  = readdir(dirhdl);
+            if (ent == NULL)
+                break;
+
+            // Check file extension
+            if (ent->d_type == DT_DIR)
+            {
+                // Skip dot and dot-dot
+                if (!strcmp(ent->d_name, "."))
+                    continue;
+                else if (!strcmp(ent->d_name, ".."))
+                    continue;
+            #ifndef LSP_NO_EXPERIMENTAL
+                if ((path == NULL) && (!strcmp(ent->d_name, "experimental")))
+                    continue;
+            #endif /* LSP_NO_EXPERIMENTAL */
+
+                // Generate subdirectory name
+                char *subdir = NULL;
+                if (path != NULL)
+                    asprintf(&subdir, "%s" FILE_SEPARATOR_S "%s", path, ent->d_name);
+                else
+                    subdir = strdup(ent->d_name);
+                if (subdir == NULL)
+                    return -STATUS_NO_MEM;
+
+                result = scan_directory(basedir, subdir, resources);
+
+                // Free the allocated resource
+                free(subdir);
+                if (result != STATUS_OK)
+                    break;
+            }
+            else if (ent->d_type == DT_REG)
+            {
+                char *dot = strrchr(ent->d_name, '.');
+                if (dot == NULL)
+                    continue;
+                else if (strcasecmp(dot, ".xml") != 0)
+                    continue;
+
+                // Generate resource descriptor
+                resource_t *res = create_xml_resource(path, ent->d_name, resources.size());
+                if (res == NULL)
+                {
+                    result = -STATUS_NO_MEM;
+                    break;
+                }
+
+                // Add resource to list
+                if (!resources.add(res))
+                {
+                    free_xml_resource(res);
+                    result = -STATUS_NO_MEM;
+                    break;
+                }
+            }
+        }
+
+        // Close directory
+        closedir(dirhdl);
+        free(realpath);
+
+        return result;
     }
 
     int gen_xml_resource_file(const char *path, const char *fname)
@@ -410,6 +505,8 @@ namespace lsp
         fprintf(out,    "//------------------------------------------------------------------------------\n");
         fprintf(out,    "// File:            %s\n", fname);
         fprintf(out,    "// Description:     resource file containing parsed XML\n");
+        fprintf(out,    "// \n");
+        fprintf(out,    "// This is auto-generated file, do not edit!\n");
         fprintf(out,    "//------------------------------------------------------------------------------\n\n");
 
         fprintf(out,    "#include <core/types.h>\n\n");
@@ -435,54 +532,31 @@ namespace lsp
         int result      = 0;
 
         // Try to scan directory
-        DIR *dirhdl     = opendir(path);
-        if (dirhdl == NULL)
-        {
-            fprintf(stderr, "Could not open directory %s\n", path);
-            return -5;
-        }
+        result          = scan_directory(path, NULL, resources);
+        if (result != STATUS_SUCCESS)
+            return result;
 
-        // Pass 1: build list of XML resources and pre-process dictionary
-        while (true)
+        // Preprocess resources
+        for (size_t i=0, n=resources.size(); i<n; ++i)
         {
-            // Read next entry
-            struct dirent *ent  = readdir(dirhdl);
-            if (ent == NULL)
-                break;
-            // Check file extension
-            char *dot = strrchr(ent->d_name, '.');
-            if ((dot != NULL) && (strcasecmp(dot, ".xml") == 0))
+            resource_t *res = resources[i];
+            if (res == NULL)
             {
-                // Generate resource descriptor
-                resource_t *res = create_xml_resource(ent->d_name, resources.size());
-                if (res == NULL)
-                {
-                    result = -STATUS_NO_MEM;
-                    break;
-                }
-
-                // Add resource to list
-                if (!resources.add(res))
-                {
-                    free_xml_resource(res);
-                    result = -STATUS_NO_MEM;
-                    break;
-                }
-
-                // Preprocess resource
-                result = preprocess_resource(path, res, &dictionary);
-                if (result != STATUS_SUCCESS)
-                    break;
+                result = -STATUS_NOT_FOUND;
+                break;
             }
-        }
 
-        // Close directory
-        closedir(dirhdl);
+            result = preprocess_resource(path, res, &dictionary);
+            if (result != STATUS_SUCCESS)
+                break;
+        }
+        if (result != STATUS_SUCCESS)
+            return result;
 
         // Emit dictionary
         result = emit_dictionary(out, &dictionary);
         if (result != STATUS_SUCCESS)
-            return -6;
+            return result;
 
         // Pass 2: Generate XML resources body
         for (size_t i=0; i<resources.size(); ++i)
@@ -500,7 +574,7 @@ namespace lsp
         }
 
         // Write footer
-        if (result == 0)
+        if (result == STATUS_OK)
         {
             fprintf(out,    "\textern const resource_t xml_resources[] =\n");
             fprintf(out,    "\t{\n");

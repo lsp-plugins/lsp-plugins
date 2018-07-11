@@ -5,6 +5,7 @@
  *      Author: sadko
  */
 #include <core/debug.h>
+#include <limits.h>
 
 #ifdef LSP_TRACEFILE
     namespace lsp

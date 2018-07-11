@@ -12,13 +12,13 @@
 namespace lsp
 {
     // Specify port classes
-    class LV2UIPort: public IUIPort, public LV2Serializable
+    class LV2UIPort: public CtlPort, public LV2Serializable
     {
         protected:
             ssize_t                 nID;
 
         public:
-            explicit LV2UIPort(const port_t *meta, LV2Extensions *ext) : IUIPort(meta), LV2Serializable(ext)
+            explicit LV2UIPort(const port_t *meta, LV2Extensions *ext) : CtlPort(meta), LV2Serializable(ext)
             {
                 nID         = -1;
                 urid        = (meta != NULL) ? pExt->map_port(meta->id) : -1;
@@ -37,21 +37,30 @@ namespace lsp
             virtual LV2_URID        get_type_urid() const   { return 0; };
             inline void             set_id(ssize_t id)      { nID = id; };
             inline ssize_t          get_id() const          { return nID; };
+            virtual bool            sync()                  { return false; };
     };
 
     class LV2UIPortGroup: public LV2UIPort
     {
         private:
-            size_t                  nRows;
-            size_t                  nCols;
-            size_t                  nCurrRow;
+            size_t      nRows;
+            size_t      nCols;
+            size_t      nCurrRow;
+            LV2Port    *pPort;
 
         public:
-            LV2UIPortGroup(const port_t *meta, LV2Extensions *ext) : LV2UIPort(meta, ext)
+            LV2UIPortGroup(const port_t *meta, LV2Extensions *ext, LV2Port *port) : LV2UIPort(meta, ext)
             {
                 nCurrRow            = meta->start;
                 nRows               = list_size(meta->items);
                 nCols               = port_list_size(meta->members);
+                pPort               = port;
+
+                if (port != NULL)
+                {
+                    lsp_trace("Connected direct group port id=%s", port->metadata()->id);
+                    nCurrRow            = port->getValue();
+                }
             }
 
             virtual ~LV2UIPortGroup()
@@ -59,18 +68,24 @@ namespace lsp
             }
 
         public:
-            virtual float getValue()
+            virtual float get_value()
             {
                 return nCurrRow;
             }
 
-            virtual void setValue(float value)
+            virtual void set_value(float value)
             {
                 size_t new_value = value;
                 if ((new_value >= 0) && (new_value < nRows) && (new_value != nCurrRow))
                 {
                     nCurrRow        = new_value;
-                    if (urid > 0)
+                    if (pPort != NULL)
+                    {
+                        lsp_trace("Directly writing group port id=%s, value=%d",
+                            pPort->metadata()->id, int(nCurrRow));
+                        pPort->setValue(nCurrRow);
+                    }
+                    else if (urid > 0)
                         pExt->ui_write_state(this);
                 }
             }
@@ -101,29 +116,48 @@ namespace lsp
     class LV2UIFloatPort: public LV2UIPort
     {
         protected:
-            float   fValue;
+            float       fValue;
+            bool        bForce;
+            LV2Port    *pPort;
 
         public:
-            explicit LV2UIFloatPort(const port_t *meta, LV2Extensions *ext) :
+            explicit LV2UIFloatPort(const port_t *meta, LV2Extensions *ext, LV2Port *port) :
                 LV2UIPort(meta, ext)
             {
-                fValue  =   meta->start;
+                fValue      = meta->start;
+                pPort       = port;
+                if (port != NULL)
+                {
+                    lsp_trace("Connected direct float port id=%s", port->metadata()->id);
+                    fValue      = port->getValue();
+                }
+                bForce      = port != NULL;
             }
             virtual ~LV2UIFloatPort() { fValue  =   pMetadata->start; };
 
         public:
-            virtual float getValue() { return fValue; }
+            virtual float get_value() { return fValue; }
 
-            virtual void setValue(float value)
+            virtual void set_value(float value)
             {
                 fValue      = limit_value(pMetadata, value);
                 if (nID >= 0)
                 {
+                    // Use standard mechanism to access port
                     lsp_trace("write(%d, %d, %d, %f)", int(nID), int(sizeof(float)), int(0), fValue);
                     pExt->write_data(nID, sizeof(float), 0, &fValue);
                 }
-                else if (urid > 0)
-                    pExt->ui_write_state(this);
+                else
+                {
+                    if (pPort != NULL)
+                    {
+                        lsp_trace("Directly writing float port id=%s, value=%f",
+                            pPort->metadata()->id, fValue);
+                        pPort->setValue(fValue);
+                    }
+                    else if (urid > 0)
+                        pExt->ui_write_state(this);
+                }
             }
 
             virtual LV2_URID        get_type_urid() const   { return pExt->forge.Float; };
@@ -144,13 +178,31 @@ namespace lsp
                 if (size == sizeof(float))
                     fValue = limit_value(pMetadata, *(reinterpret_cast<const float *>(buffer)));
             }
+
+            virtual bool sync()
+            {
+                if ((pPort == NULL) || (nID >= 0))
+                    return false;
+
+                float old   = fValue;
+                fValue      = limit_value(pMetadata, pPort->getValue());
+                bool synced = (fValue != old) || bForce;
+                bForce      = false;
+
+                #ifdef LSP_TRACE
+                    if (synced)
+                        lsp_trace("Directly received float port id=%s, value=%f",
+                            pPort->metadata()->id, fValue);
+                #endif
+                return synced;
+            }
     };
 
     class LV2UIPeakPort: public LV2UIFloatPort
     {
         public:
-            explicit LV2UIPeakPort(const port_t *meta, LV2Extensions *ext) :
-                LV2UIFloatPort(meta, ext) {}
+            explicit LV2UIPeakPort(const port_t *meta, LV2Extensions *ext, LV2Port *port) :
+                LV2UIFloatPort(meta, ext, port) {}
             virtual ~LV2UIPeakPort() {};
 
         public:
@@ -162,6 +214,7 @@ namespace lsp
                     return;
                 }
                 LV2UIFloatPort::notify(buffer, protocol, size);
+                lsp_trace("id=%s, value=%f", pMetadata->id, fValue);
             }
     };
 
@@ -170,12 +223,26 @@ namespace lsp
         protected:
             LV2Mesh                 sMesh;
             bool                    bParsed;
+            LV2MeshPort            *pPort;
 
         public:
-            explicit LV2UIMeshPort(const port_t *meta, LV2Extensions *ext) : LV2UIPort(meta, ext)
+            explicit LV2UIMeshPort(const port_t *meta, LV2Extensions *ext, LV2Port *xport) : LV2UIPort(meta, ext)
             {
                 sMesh.init(meta, ext);
-                bParsed = false;
+                bParsed     = false;
+                pPort       = NULL;
+
+                lsp_trace("id=%s, ext=%p, xport=%p", meta->id, ext, xport);
+
+                // Try to perform direct access to the port using LV2:Instance interface
+                const port_t *xmeta = (xport != NULL) ? xport->metadata() : NULL;
+                if ((xmeta != NULL) && (xmeta->role == R_MESH))
+                {
+                    pPort               = static_cast<LV2MeshPort *>(xport);
+                    mesh_t *mesh        = static_cast<mesh_t *>(pPort->getBuffer());
+                    mesh->cleanup();  // Mark mesh as empty to force the DSP to write data to mesh
+                    lsp_trace("Connected direct mesh port id=%s", xmeta->id);
+                }
             }
 
             virtual ~LV2UIMeshPort()
@@ -258,24 +325,62 @@ namespace lsp
                 bParsed                 = true;
             }
 
-            virtual void *getBuffer()
+            virtual void *get_buffer()
             {
                 if (!bParsed)
                     return NULL;
 
                 return sMesh.pMesh;
             }
+
+            virtual bool sync()
+            {
+                if (pPort == NULL)
+                    return false;
+
+                mesh_t *mesh = reinterpret_cast<mesh_t *>(pPort->getBuffer());
+                if ((mesh == NULL) || (!mesh->containsData()))
+                    return false;
+
+                // Copy mesh data
+                for (size_t i=0; i < mesh->nBuffers; ++i)
+                    dsp::copy_saturated(sMesh.pMesh->pvData[i], mesh->pvData[i], mesh->nItems);
+                sMesh.pMesh->data(mesh->nBuffers, mesh->nItems);
+//                lsp_trace("Directly received mesh port id=%s, buffers=%d, items=%d",
+//                        pPort->metadata()->id, int(sMesh.pMesh->nBuffers), int(sMesh.pMesh->nItems));
+
+                // Clean source mesh
+                mesh->cleanup();
+                bParsed = true;
+                return sMesh.pMesh->containsData();
+            }
     };
 
     class LV2UIPathPort: public LV2UIPort
     {
         protected:
+            LV2PathPort    *pPort;
+            bool            bForce;
             char            sPath[PATH_MAX];
 
         public:
-            explicit LV2UIPathPort(const port_t *meta, LV2Extensions *ext) :  LV2UIPort(meta, ext)
+            explicit LV2UIPathPort(const port_t *meta, LV2Extensions *ext, LV2Port *xport) :  LV2UIPort(meta, ext)
             {
                 sPath[0]    = '\0';
+                bForce      = false;
+                pPort       = NULL;
+
+                lsp_trace("id=%s, ext=%p, xport=%p", meta->id, ext, xport);
+
+                // Try to perform direct access to the port using LV2:Instance interface
+                const port_t *xmeta = (xport != NULL) ? xport->metadata() : NULL;
+                if ((xmeta != NULL) && (xmeta->role == R_PATH))
+                {
+                    pPort               = static_cast<LV2PathPort *>(xport);
+                    bForce              = true;
+
+                    lsp_trace("Connected direct path port id=%s", xmeta->id);
+                }
             }
 
             virtual ~LV2UIPathPort()
@@ -313,13 +418,41 @@ namespace lsp
             virtual void write(const void* buffer, size_t size)
             {
                 set_string(reinterpret_cast<const char *>(buffer), size);
+
+                // Try to perform direct access to the port using LV2:Instance interface
+                lv2_path_t *path    = (pPort != NULL) ? static_cast<lv2_path_t *>(pPort->getBuffer()) : NULL;
+                if (path != NULL)
+                {
+                    lsp_trace("Directly writing path port id=%s, path=%s (%d)",
+                            pPort->metadata()->id, static_cast<const char *>(buffer), int(size));
+                    path->submit(static_cast<const char *>(buffer), size);
+                    return;
+                }
+
+                // Write data using atom port
                 if (nID >= 0)
                     pExt->ui_write_patch(this);
                 else
                     pExt->ui_write_state(this);
             }
 
-            virtual void *getBuffer()
+            virtual bool sync()
+            {
+                if (!bForce)
+                    return false;
+                bForce      = false;
+
+                path_t *path        = static_cast<path_t *>(pPort->getBuffer());
+                strncpy(sPath, path->get_path(), PATH_MAX); // Copy current contents
+                sPath[PATH_MAX-1]   = '\0';
+
+//                lsp_trace("Directly received path port id=%s, path=%s",
+//                        pPort->metadata()->id, sPath);
+
+                return true;
+            }
+
+            virtual void *get_buffer()
             {
                 return sPath;
             }

@@ -8,17 +8,6 @@
 #ifndef _CONTAINER_VST_DEFS_H_
 #define _CONTAINER_VST_DEFS_H_
 
-// Define __cdecl modifier
-#ifdef __GNUC__
-    #ifndef __cdecl
-        #if defined(__i386__)
-            #define __cdecl __attribute__((__cdecl__))
-        #elif defined(__x86_64__)
-            #define __cdecl
-        #endif /* __cdecl */
-    #endif /* __cdecl */
-#endif /* __GNUC__ */
-
 #if defined (__GNUC__) && ((__GNUC__ >= 4) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 1)))
     #define VST_EXPORT  __attribute__ ((visibility ("default")))
 #else
@@ -30,12 +19,12 @@
 #include <metadata/metadata.h>
 
 // Include VST 2.x SDK
-#include <pluginterfaces/vst2.x/aeffect.h>
-#include <pluginterfaces/vst2.x/aeffectx.h>
-#include <pluginterfaces/vst2.x/vstfxstore.h>
+#include <3rdparty/steinberg/vst2.h>
 
 // This routine should be defined in the linked library
-typedef AEffect * (* vst_create_instance_t) (const char *bundle_path, VstInt32 uid, audioMasterCallback callback);
+typedef AEffect * (* vst_create_instance_t) (VstInt32 uid, audioMasterCallback callback);
+
+typedef const char * (* vst_get_version_t) ();
 
 #pragma pack(push, 1)
 typedef struct vst_state
@@ -55,15 +44,10 @@ typedef struct vst_state_buffer
 
 #define VST_CREATE_INSTANCE_NAME        vst_create_instance
 #define VST_CREATE_INSTANCE_STRNAME     "vst_create_instance"
+#define VST_GET_VERSION_NAME            vst_get_lsp_build_version
+#define VST_GET_VERSION_STRNAME         "vst_get_lsp_build_version"
 
 #define LSP_VST_USER_MAGIC              CCONST('L', 'S', 'P', 'U')
-#define VST_IDENTIFY_MAGIC              CCONST('N', 'v', 'E', 'f')
-#define VST_CHUNK_MAGIC                 CCONST('C', 'c', 'n', 'K')
-#define VST_REGULAR_CHUNK_MAGIC         CCONST('F', 'x', 'C', 'k')
-#define VST_REGULAR_BANK_MAGIC          CCONST('F', 'x', 'C', 'k')
-#define VST_OPAQUE_CHUNK_MAGIC          CCONST('F', 'P', 'C', 'h')
-#define VST_OPAQUE_BANK_MAGIC           CCONST('F', 'B', 'C', 'h')
-
 #define VST_PROGRAM_HDR_SIZE            (sizeof(fxProgram) - 2 * sizeof(VstInt32))
 #define VST_BANK_HDR_SIZE               (sizeof(fxBank) - 2 * sizeof(VstInt32))
 #define VST_STATE_BUFFER_SIZE           (VST_BANK_HDR_SIZE + sizeof(vst_state))

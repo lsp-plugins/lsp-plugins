@@ -19,7 +19,7 @@ namespace lsp
         static const float DETECT_TIME_MIN          =   1.0f;
         static const float DETECT_TIME_MAX          =   50.0f;
         static const float DETECT_TIME_DFL          =   10.0f;
-        static const float DETECT_TIME_STEP         =   0.025f;
+        static const float DETECT_TIME_STEP         =   0.0025f;
         static const float DETECT_TIME_RANGE_MAX    =   100.0f;
         static const float DETECT_TIME_RANGE_MIN    =   - 100.0f;
 
@@ -28,7 +28,7 @@ namespace lsp
         static const float REACT_TIME_MIN           =   0.000;
         static const float REACT_TIME_MAX           =  10.000;
         static const float REACT_TIME_DFL           =   1.000;
-        static const float REACT_TIME_STEP          =   0.025;
+        static const float REACT_TIME_STEP          =   0.0025;
 
         static const float SELECTOR_MIN             =   -100.0f;
         static const float SELECTOR_MAX             =   100.0f;

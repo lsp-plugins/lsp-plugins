@@ -18,7 +18,7 @@
 #define FILE_CHANNEL(id, label) \
     { id, label, U_ENUM, R_CONTROL, F_IN | F_INT, 0, 0, 0, 0, file_channels, NULL }
 #define AMP_GAIN(id, label, dfl, max) \
-    { id, label, U_GAIN_AMP, R_CONTROL, F_IN | F_LOG | F_UPPER | F_LOWER | F_STEP, 0, max, dfl, 0.1, NULL, NULL }
+    { id, label, U_GAIN_AMP, R_CONTROL, F_IN | F_LOG | F_UPPER | F_LOWER | F_STEP, 0, max, dfl, GAIN_AMP_S_0_5_DB, NULL, NULL }
 #define AMP_GAIN1(id, label, dfl)  AMP_GAIN(id, label, dfl, 1.0f)
 #define AMP_GAIN10(id, label, dfl)  AMP_GAIN(id, label, dfl, 10.0f)
 #define AMP_GAIN100(id, label, dfl)  AMP_GAIN(id, label, dfl, 100.0f)
@@ -36,6 +36,9 @@
     { id, label, U_ENUM, R_CONTROL, F_IN, 0, 0, dfl, 0, list, NULL }
 #define BLINK(id, label) \
     { id, label, U_BOOL, R_METER, F_OUT, 0, 0, 0, 0, NULL, NULL }
+#define KNOB(id, label, units, min, max, dfl, step) \
+    { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, \
+        min, max, dfl, step, NULL, NULL }
 #define CONTROL(id, label, units, limits) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, \
         limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
@@ -62,6 +65,7 @@
     { id, label, U_GAIN_AMP, R_METER, F_OUT | F_LOG | F_UPPER | F_LOWER, 0, max, 0.0f, 0, NULL, NULL }
 #define METER_GAIN10(id, label)  METER_GAIN(id, label, 10.0f)
 #define METER_GAIN20(id, label)  METER_GAIN(id, label, 20.0f)
+#define METER_PERCENT(id, label)  { id, label, U_PERCENT, R_METER, F_OUT | F_UPPER | F_LOWER, 0.0f, 100.0f, 0.0f, 0.1f, NULL, NULL }
 
 #define PORTS_END   \
     { NULL, NULL }

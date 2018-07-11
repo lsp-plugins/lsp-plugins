@@ -94,7 +94,7 @@ namespace lsp
         CONTROL("fi", "Sample fade in", U_MSEC, sampler_kernel_metadata::SAMPLE_LENGTH), \
         CONTROL("fo", "Sample fade out", U_MSEC, sampler_kernel_metadata::SAMPLE_LENGTH), \
         AMP_GAIN10("mk", "Sample makeup gain", 1.0f), \
-        { "vl", "Sample velocity max",  U_PERCENT, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_LOWERING, 0.0f, 100.0f, 0.0f, 0.25, NULL }, \
+        { "vl", "Sample velocity max",  U_PERCENT, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_LOWERING, 0.0f, 100.0f, 0.0f, 0.05, NULL }, \
         { "pd", "Sample pre-delay",  U_MSEC, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, \
                 sampler_kernel_metadata::PREDELAY_MIN, sampler_kernel_metadata::PREDELAY_MAX, 0, sampler_kernel_metadata::PREDELAY_STEP, NULL }, \
         { "on", "Sample enabled", U_BOOL, R_CONTROL, F_IN, 0, 0, 1.0f, 0, NULL }, \
@@ -582,7 +582,8 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         sampler_classes,
         sampler_mono_ports,
-        NULL
+        "sampling/single/mono.xml",
+        mono_plugin_port_groups
     };
 
     const plugin_metadata_t  sampler_stereo_metadata::metadata =
@@ -597,6 +598,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         sampler_classes,
         sampler_stereo_ports,
+        "sampling/single/stereo.xml",
         stereo_plugin_port_groups
     };
 
@@ -612,6 +614,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         sampler_classes,
         sampler_x12_ports,
+        "sampling/multiple/x12.xml",
         stereo_plugin_port_groups
     };
 
@@ -627,6 +630,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         sampler_classes,
         sampler_x24_ports,
+        "sampling/multiple/x24.xml",
         stereo_plugin_port_groups
     };
 
@@ -642,6 +646,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         sampler_classes,
         sampler_x48_ports,
+        "sampling/multiple/x48.xml",
         stereo_plugin_port_groups
     };
 
@@ -657,6 +662,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         sampler_classes,
         sampler_x12_do_ports,
+        "sampling/multiple/x12_do.xml",
         sampler_x12_port_groups
     };
 
@@ -672,6 +678,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         sampler_classes,
         sampler_x24_do_ports,
+        "sampling/multiple/x24_do.xml",
         sampler_x24_port_groups
     };
 
@@ -687,6 +694,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         sampler_classes,
         sampler_x48_do_ports,
+        "sampling/multiple/x48_do.xml",
         sampler_x48_port_groups
     };
 

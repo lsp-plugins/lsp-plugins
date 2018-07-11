@@ -21,12 +21,25 @@
 #define LSP_DEVELOPERS_URI                              LSP_BASE_URI "developers/"
 #define LSP_URI(format)                                 LSP_BASE_URI "plugins/" #format "/"
 #define LSP_TYPE_URI(format)                            LSP_BASE_URI "types/" #format
-#define LSP_UI_URI(format, package)                     LSP_BASE_URI "ui/" #format "/" #package
+#define LSP_UI_URI(format)                              LSP_BASE_URI "ui/" #format "/"
 #define LSP_PLUGIN_URI(format, plugin)                  LSP_BASE_URI "plugins/" #format "/" #plugin
-#define LSP_PLUGIN_UI_URI(format, plugin, package)      LSP_UI_URI(format, package) "/" #plugin
+#define LSP_PLUGIN_UI_URI(format, plugin)               LSP_UI_URI(format) #plugin
 #define LSP_LADSPA_BASE                                 0x4C5350
 #define LSP_DONATION_URI                                "https://salt.bountysource.com/teams/" LSP_ARTIFACT_ID
 #define LSP_DOWNLOAD_URI                                LSP_BASE_URI "?page=download"
+
+// Different LV2 UI classes for different platforms
+#if defined(PLATFORM_LINUX) || defined(PLATFORM_BSD)
+    #define LSP_LV2UI_CLASS                                 "X11UI"
+#elif defined(PLATFORM_WINDOWS)
+    #define LSP_LV2UI_CLASS                                 "WindowsUI"
+#elif defined(PLATFORM_MACOSX)
+    #define LSP_LV2UI_CLASS                                 "CocoaUI"
+#elif defined(PLATFORM_UNIX_COMPATIBLE)
+    #define LSP_LV2UI_CLASS                                 "X11UI"
+#else
+    #error "Could not determine LV2 UI class for target platform"
+#endif
 
 #define LSP_VERSION(a, b, c)                            uint32_t(((uint32_t(a) & 0xff) << 16) | ((uint32_t(b) & 0xff) << 8) | (uint32_t(c) & 0xff))
 #define LSP_VERSION_MAJOR(v)                            (uint32_t(((v) >> 16) & 0xff))
@@ -266,6 +279,7 @@ namespace lsp
         const uint32_t          version;        // Version of the plugin
         const int              *classes;        // List of plugin classes terminated by negative value
         const port_t           *ports;          // List of all ports
+        const char             *ui_resource;    // Location of the UI file resource
         const port_group_t     *port_groups;    // List of all port groups
     } plugin_metadata_t;
 
@@ -277,6 +291,7 @@ namespace lsp
     unit_t          decode_unit(const char *name);
     bool            is_discrete_unit(size_t unit);
     bool            is_decibel_unit(size_t unit);
+    bool            is_log_rule(const port_t *port);
 
     size_t          list_size(const char **list);
     float           limit_value(const port_t *port, float value);

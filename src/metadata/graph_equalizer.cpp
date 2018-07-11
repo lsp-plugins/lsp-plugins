@@ -295,7 +295,8 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         graph_equalizer_classes,
         graph_equalizer_x16_mono_ports,
-        NULL
+        "equalizer/graphic/x16/mono.xml",
+        mono_plugin_port_groups
     };
 
     const plugin_metadata_t  graph_equalizer_x32_mono_metadata::metadata =
@@ -310,7 +311,8 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         graph_equalizer_classes,
         graph_equalizer_x32_mono_ports,
-        NULL
+        "equalizer/graphic/x32/mono.xml",
+        mono_plugin_port_groups
     };
 
     const plugin_metadata_t  graph_equalizer_x16_stereo_metadata::metadata =
@@ -325,6 +327,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         graph_equalizer_classes,
         graph_equalizer_x16_stereo_ports,
+        "equalizer/graphic/x16/stereo.xml",
         stereo_plugin_port_groups
     };
 
@@ -340,6 +343,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         graph_equalizer_classes,
         graph_equalizer_x32_stereo_ports,
+        "equalizer/graphic/x32/stereo.xml",
         stereo_plugin_port_groups
     };
 
@@ -355,6 +359,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         graph_equalizer_classes,
         graph_equalizer_x16_lr_ports,
+        "equalizer/graphic/x16/lr.xml",
         stereo_plugin_port_groups
     };
 
@@ -370,6 +375,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         graph_equalizer_classes,
         graph_equalizer_x32_lr_ports,
+        "equalizer/graphic/x32/lr.xml",
         stereo_plugin_port_groups
     };
 
@@ -385,6 +391,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         graph_equalizer_classes,
         graph_equalizer_x16_ms_ports,
+        "equalizer/graphic/x16/ms.xml",
         stereo_plugin_port_groups
     };
 
@@ -400,6 +407,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         graph_equalizer_classes,
         graph_equalizer_x32_ms_ports,
+        "equalizer/graphic/x32/ms.xml",
         stereo_plugin_port_groups
     };
 }

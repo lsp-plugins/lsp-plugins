@@ -168,7 +168,19 @@ namespace lsp
         nMask   = c.nMask & (M_RGB | M_HSL);
     }
 
-    int Color::format_rgb(char *dst, size_t len, size_t tolerance)
+    void Color::copy(const Color *c)
+    {
+        R       = c->R;
+        G       = c->G;
+        B       = c->B;
+        H       = c->H;
+        S       = c->S;
+        L       = c->L;
+        A       = c->A;
+        nMask   = c->nMask & (M_RGB | M_HSL);
+    }
+
+    int Color::format_rgb(char *dst, size_t len, size_t tolerance) const
     {
         if ((tolerance <= 0) || (tolerance > 4))
             return 0;

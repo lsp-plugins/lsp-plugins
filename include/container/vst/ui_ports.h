@@ -10,14 +10,14 @@
 
 namespace lsp
 {
-    class VSTUIPort: public IUIPort
+    class VSTUIPort: public CtlPort
     {
         protected:
             VSTPort                *pPort;
 
         public:
             VSTUIPort(const port_t *meta, VSTPort *port):
-                IUIPort(meta)
+                CtlPort(meta)
             {
                 pPort       = port;
             }
@@ -49,12 +49,12 @@ namespace lsp
             }
 
         public:
-            virtual float getValue()
+            virtual float get_value()
             {
                 return pPort->getValue();
             }
 
-            virtual void setValue(float value)
+            virtual void set_value(float value)
             {
                 pPort->setValue(value);
             }
@@ -84,12 +84,12 @@ namespace lsp
             }
 
         public:
-            virtual float getValue()
+            virtual float get_value()
             {
                 return fValue;
             }
 
-            virtual void setValue(float value)
+            virtual void set_value(float value)
             {
                 fValue = value;
                 if (pPort != NULL)
@@ -114,7 +114,7 @@ namespace lsp
                 nSID    = static_cast<VSTParameterPort *>(pPort)->getSID() - 1;
             }
 
-            virtual void *getBuffer()
+            virtual void *get_buffer()
             {
                 return pPort->getBuffer();
             }
@@ -138,7 +138,7 @@ namespace lsp
             }
 
         public:
-            virtual float getValue()
+            virtual float get_value()
             {
                 return fValue;
             }
@@ -200,7 +200,7 @@ namespace lsp
                 return true;
             }
 
-            virtual void *getBuffer()
+            virtual void *get_buffer()
             {
                 return pMesh;
             }
@@ -232,7 +232,7 @@ namespace lsp
                 return pPath->ui_sync();
             }
 
-            virtual void *getBuffer()
+            virtual void *get_buffer()
             {
                 return (pPath != NULL) ? pPath->sUiPath : NULL;
             }

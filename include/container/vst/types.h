@@ -102,7 +102,7 @@ namespace lsp
             // Wait until the queue is empty
             if (ui)
             {
-                struct timespec spec = { 0, 100 * 1000 * 1000 }; // 100 msec
+                struct timespec spec = { 0, 1 * 1000 * 1000 }; // 1 msec
                 while (true)
                 {
                     // Try to acquire critical section

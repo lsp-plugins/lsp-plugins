@@ -233,7 +233,8 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         expander_classes,
         expander_mono_ports,
-        NULL
+        "dynamics/expander/single/mono.xml",
+        mono_plugin_port_groups
     };
 
     const plugin_metadata_t  expander_stereo_metadata::metadata =
@@ -248,6 +249,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         expander_classes,
         expander_stereo_ports,
+        "dynamics/expander/single/stereo.xml",
         stereo_plugin_port_groups
     };
 
@@ -263,6 +265,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         expander_classes,
         expander_lr_ports,
+        "dynamics/expander/single/lr.xml",
         stereo_plugin_port_groups
     };
 
@@ -278,6 +281,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         expander_classes,
         expander_ms_ports,
+        "dynamics/expander/single/ms.xml",
         stereo_plugin_port_groups
     };
 
@@ -294,6 +298,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         expander_classes,
         sc_expander_mono_ports,
+        "dynamics/expander/single/mono.xml",
         mono_plugin_sidechain_port_groups
     };
 
@@ -309,6 +314,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         expander_classes,
         sc_expander_stereo_ports,
+        "dynamics/expander/single/stereo.xml",
         stereo_plugin_sidechain_port_groups
     };
 
@@ -324,6 +330,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         expander_classes,
         sc_expander_lr_ports,
+        "dynamics/expander/single/lr.xml",
         stereo_plugin_sidechain_port_groups
     };
 
@@ -339,6 +346,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         expander_classes,
         sc_expander_ms_ports,
+        "dynamics/expander/single/ms.xml",
         stereo_plugin_sidechain_port_groups
     };
 }

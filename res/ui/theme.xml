@@ -53,6 +53,7 @@
 		
 		<!-- Button colors -->
 		<button_face value="#ffffff" />
+		<button_text value="#000000" />
 		
 		<!-- Knob colors -->
 		<knob_cap value="#474843" />
@@ -79,6 +80,15 @@
 		<right_channel_in value="#00aaaa" />
 		<middle_channel_in value="#0080aa" />
 		<side_channel_in value="#008000" />
+		
+		<!-- Hyperlink -->
+		<hlink_text value="#80ffff" />
+		<hlink_hover value="#ff8080" />
+		
+		<!-- Status colors -->
+		<status_ok value="#00ff00" />
+		<status_warn value="#ffff00" />
+		<status_error value="#ff0000" />
 		
 		<!-- Eq base -->
 		<eq_base value="#ff4040" />

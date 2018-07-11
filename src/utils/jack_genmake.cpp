@@ -98,9 +98,12 @@ namespace lsp
         // Generate list of plugins as CPP-files
         int code = 0;
 
-        #define MOD_GTK2(x)  \
+        #define MOD_PLUGIN(x)  \
             if (code == 0) \
-                code = gen_cpp_file(path, &x::metadata, #x, LSP_ARTIFACT_ID "-" #x ".cpp");
+            { \
+                if (x::metadata.ui_resource != NULL) \
+                  code = gen_cpp_file(path, &x::metadata, #x, LSP_ARTIFACT_ID "-" #x ".cpp"); \
+            }
 
         #include <metadata/modules.h>
 

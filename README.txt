@@ -45,30 +45,35 @@ The LADSPA distribution requirements:
 The LV2 distribution requirements:
   * glibc >= 2.19
   * libsndfile >= 1.0.25
-  * GTK+ >= 2.24
   * libcairo >= 1.14
   * Host compatible with LV2
   
 The LinuxVST distribution requirements:
   * glibc >= 2.19
   * libsndfile >= 1.0.25
-  * GTK+ >= 2.24
   * libcairo >= 1.14
   * Host compatible with LinuxVST v2.4
 
 The JACK distribution requirements:
   * glibc >= 2.19
   * libsndfile >= 1.0.25
-  * GTK+ >= 2.24
   * libcairo >= 1.14
   * jack >= 1.9.5
   
 The profiling distribution requirements:
   * glibc >= 2.19
   * libsndfile >= 1.0.25
-  * GTK+ >= 2.24
   * libcairo >= 1.14
   * jack >= 1.9.5
+
+Known list of supported plugin hosts:
+  * Ardour
+  * Bitwig Studio
+  * Carla
+  * Mixbus
+  * Reaper native linux version
+  * Renoise
+  * Tracktion
 
 ==== VERSIONING ====
 
@@ -167,16 +172,8 @@ You need the following packages to be installed:
   * libstdc++ >= 4.7
   * libexpat-devel >= 2.1
   * libsndfile-devel >= 1.0.25
-  * GTK+-devel >= 2.24
   * libcairo-devel >= 1.14
   * jack-devel >= 1.9.5
-  * Steinberg VST SDK >= 2.4 (optional)
-
-If you wan to build LinuxVST version of plugins, you have to install 
-Steinberg VST SDK >= 2.4 and ensure that the variable definition 'VST_SDK'
-in the makefile points to the right place. If you do not want to build
-LinuxVST version of plugins, just comment or delete the definition of the
-'VST_SDK' variable.
 
 Currently there is no automake supported, so to build plugins you
 have to type:

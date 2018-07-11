@@ -40,6 +40,7 @@ namespace lsp
             ssize_t             nSyncTime;      // Synchronization time
             ssize_t             nSyncSamples;   // Synchronization counter
             ssize_t             nClients;       // Number of clients
+            ssize_t             nDirectClients; // Number of direct clients
             bool                bQueueDraw;     // Queue draw request
             bool                bUpdateSettings;// Settings update
 
@@ -69,6 +70,7 @@ namespace lsp
                 nSyncTime       = 0;
                 nSyncSamples    = 0;
                 nClients        = 0;
+                nDirectClients  = 0;
                 pCanvas         = NULL;
                 bQueueDraw      = false;
                 bUpdateSettings = true;
@@ -87,6 +89,7 @@ namespace lsp
                 nSyncTime       = 0;
                 nSyncSamples    = 0;
                 nClients        = 0;
+                nDirectClients  = 0;
                 pCanvas         = NULL;
             }
 
@@ -138,6 +141,20 @@ namespace lsp
             inline void query_display_draw()
             {
                 bQueueDraw      = true;
+            }
+
+            LV2Port *get_port(const char *id);
+
+            void connect_direct_ui()
+            {
+                nDirectClients++;
+            }
+
+            void disconnect_direct_ui()
+            {
+                if (nDirectClients <= 0)
+                    return;
+                --nDirectClients;
             }
     };
 
@@ -329,6 +346,22 @@ namespace lsp
         return NULL;
     }
 
+    LV2Port *LV2Wrapper::get_port(const char *id)
+    {
+        for (size_t i=0, n = vPluginPorts.size(); i<n; ++i)
+        {
+            LV2Port *p = vPluginPorts.at(i);
+            if (p == NULL)
+                continue;
+            const port_t *meta = p->metadata();
+            if (meta == NULL)
+                continue;
+            if (!strcmp(meta->id, id))
+                return p;
+        }
+        return NULL;
+    }
+
     void LV2Wrapper::receive_atoms(size_t samples)
     {
         // Update synchronization
@@ -364,6 +397,10 @@ namespace lsp
             if (ev->body.type != pExt->uridObject)
                 continue;
 
+//            lsp_trace("connect_ui (%d) = %s", int(pExt->uridConnectUI), pExt->unmap_urid(pExt->uridConnectUI));
+//            lsp_trace("disconnect_ui (%d) = %s", int(pExt->uridDisconnectUI), pExt->unmap_urid(pExt->uridDisconnectUI));
+//            lsp_trace("urid_notification (%d) = %s", int(pExt->uridUINotification), pExt->unmap_urid(pExt->uridUINotification));
+
             // Analyze object type
             const LV2_Atom_Object *obj = reinterpret_cast<const LV2_Atom_Object*>(&ev->body);
             lsp_trace("obj->body.otype (%d) = %s", int(obj->body.otype), pExt->unmap_urid(obj->body.otype));
@@ -371,6 +408,8 @@ namespace lsp
 
             if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateChange)) // State change
             {
+                lsp_trace("triggered state change");
+
                 for (
                     LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
                     !lv2_atom_object_is_end(&obj->body, obj->atom.size, body) ;
@@ -598,7 +637,7 @@ namespace lsp
                 if ((mesh == NULL) || (!mesh->containsData()))
                     continue;
 
-                lsp_trace("transmit mesh id=%s", p->metadata()->id);
+//                lsp_trace("transmit mesh id=%s", p->metadata()->id);
                 pExt->forge_frame_time(0);  // Event header
                 msg         = pExt->forge_object(&frame, p->get_urid(), pExt->uridMeshType);
                 p->serialize();
@@ -704,7 +743,8 @@ namespace lsp
     inline void LV2Wrapper::run(size_t samples)
     {
         // Activate/deactivate the UI
-        if (nClients > 0)
+        ssize_t clients = nClients + nDirectClients;
+        if (clients > 0)
         {
             if (!pPlugin->ui_active())
                 pPlugin->activate_ui();

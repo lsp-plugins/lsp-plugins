@@ -1,5 +1,5 @@
 /*
- * plugin_ui.h
+ * old_plugin_ui.h
  *
  *  Created on: 20 окт. 2015 г.
  *      Author: sadko
@@ -12,124 +12,103 @@
 
 #include <data/cvector.h>
 
-#include <ui/IUIWrapper.h>
+#include <ui/ws/ws.h>
 
 namespace lsp
 {
-    class UISwitchedPort;
-
-    class plugin_ui
+    class plugin_ui: public CtlRegistry
     {
-        private:
-            cvector<IWidget>            vWidgets;
-            cvector<IUIPort>            vPorts;
-            cvector<IUIPort>            vSortedPorts;
-            cvector<IUIPort>            vConfigPorts;
-            cvector<UISwitchedPort>     vSwitched;
-            cvector<PortAlias>          vAliases;
-            cvector<IWidget>            vRedraw[2];
-            Theme                       sTheme;
-            size_t                      nRedrawFrame;
+        protected:
+            const plugin_metadata_t    *pMetadata;
+            IUIWrapper                 *pWrapper;
+            LSPWindow                  *pRoot;
+            void                       *pRootWidget;
+
+            LSPDisplay                  sDisplay;
+
+            cvector<CtlPort>            vPorts;
+            cvector<CtlPort>            vSortedPorts;
+            cvector<CtlPort>            vConfigPorts;
+            cvector<LSPWidget>          vWidgets;
+            cvector<CtlSwitchedPort>    vSwitched;
+            cvector<CtlPortAlias>       vAliases;
 
         protected:
             static const port_t         vConfigMetadata[];
 
         protected:
-            const plugin_metadata_t    *pMetadata;
-
-            IWidgetFactory             *pFactory;
-            IUIWrapper                 *pWrapper;
-
-        protected:
-            bool        apply_changes(const char *key, const char *value, cvector<IUIPort> &ports);
-            size_t      rebuild_sorted_ports();
-            void        serialize_ports(FILE *fd, cvector<IUIPort> &ports);
-            bool        deserialize_ports(FILE *fd, cvector<IUIPort> &ports);
-            bool        create_directory(const char *path);
-            FILE       *open_config_file(bool write);
+            size_t          rebuild_sorted_ports();
+            CtlWidget      *build_widget(widget_ctl_t w_class);
+            FILE           *open_config_file(bool write);
+            bool            create_directory(const char *path);
+            void            serialize_ports(FILE *fd, cvector<CtlPort> &ports);
+            bool            deserialize_ports(FILE *fd, cvector<CtlPort> &ports);
+            bool            apply_changes(const char *key, const char *value, cvector<CtlPort> &ports);
 
         public:
-            plugin_ui(const plugin_metadata_t *mdata, IWidgetFactory *factory);
-
+            plugin_ui(const plugin_metadata_t *mdata, void *root_widget);
             virtual ~plugin_ui();
 
-        private:
-            IWidget *addWidget(IWidget *widget);
+            virtual void destroy();
 
         public:
-            IWidget *createWidget(const char *w_class);
-            IWidget *createWidget(widget_t w_class);
             inline const plugin_metadata_t *metadata() const { return pMetadata; };
-            inline Theme &theme() { return sTheme; };
-            inline IUIWrapper *getWrapper() { return pWrapper; };
+            inline IUIWrapper *wrapper() { return pWrapper; };
+
+        public:
+            CtlWidget      *create_widget(const char *w_ctl);
+            CtlWidget      *create_widget(widget_ctl_t w_class);
 
         public:
             /** Initialize UI
              *
-             * @param wrapper UI wrapper
+             * @param root_widget root widget to use as a base
+             * @param wrapper plugin wrapper
+             * @param argc number of arguments
+             * @param argv list of arguments
+             * @return status of operation
              */
-            void init(IUIWrapper *wrapper);
-
-            /** Build UI from XML file
-             *
-             */
-            void build();
-
-            /** Destroy UI
-             *
-             */
-            void destroy();
+            status_t    init(IUIWrapper *wrapper, int argc, const char **argv);
 
             /** Add plugin port to UI
              *
              * @param port UI port to communicate with plugin
              * @return status of operation
              */
-            bool add_port(IUIPort *port);
+            status_t add_port(CtlPort *port);
 
             /** Export settings of the UI to the file
              *
              * @param filename file name
              * @return status of operation
              */
-            bool export_settings(const char *filename);
+            status_t export_settings(const char *filename);
 
             /** Import settings of the UI from the file
              *
              * @param filename file name
              * @return status of operation
              */
-            bool import_settings(const char *filename);
+            status_t import_settings(const char *filename);
 
             /** Save global configuration file
              *
              * @return status of operation
              */
-            bool save_global_config();
+            status_t save_global_config();
 
             /** Load global configuration file
              *
              * @return status of operation
              */
-            bool load_global_config();
+            status_t load_global_config();
 
             /** Get INTERNAL port by name
              *
              * @param name port name
              * @return internal port
              */
-            IUIPort *port(const char *name);
-
-            /** Redraw pending UI widgets
-             *
-             */
-            void redraw();
-
-            /** Queue widget for redraw
-             *
-             * @param widget widget to redraw
-             */
-            bool queue_redraw(IWidget *widget);
+            CtlPort *port(const char *name);
 
             /** Get port count
              *
@@ -139,6 +118,62 @@ namespace lsp
             {
                 return vPorts.size();
             }
+
+            /** Show UI
+             *
+             */
+            inline void show()
+            {
+                if (pRoot != NULL)
+                    pRoot->show();
+            }
+
+            /** Hide UI
+             *
+             */
+            inline void hide()
+            {
+                if (pRoot != NULL)
+                    pRoot->hide();
+            }
+
+            /** Get width of main plugin window
+             *
+             * @return width of main plugin window
+             */
+            inline size_t width()   { return (pRoot != NULL) ? pRoot->width() : 0; }
+
+            /** Get height of main plugin window
+             *
+             * @return height of main plugin window
+             */
+            inline size_t height()  { return (pRoot != NULL) ? pRoot->height() : 0; }
+
+            /** Get Display
+             *
+             * @return display
+             */
+            inline LSPDisplay *display()    { return &sDisplay; };
+
+            /** Main UI function
+             *
+             * @return main function
+             */
+            inline status_t main() { return sDisplay.main(); };
+
+            /** Main iteration
+             *
+             * @return main iteration
+             */
+            inline status_t main_iteration() { return sDisplay.main_iteration(); };
+
+            /** Return root window
+             *
+             * @return root window (if exists)
+             */
+            inline LSPWindow *root_window() { return pRoot; }
+
+            void set_title(const char *title);
     };
 
 } /* namespace lsp */

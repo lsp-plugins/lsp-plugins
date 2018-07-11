@@ -129,6 +129,7 @@ namespace lsp
                 break;
             shift          += 7;
         }
+//        lsp_trace("fetch_string: offset=%x, string=%s", int(offset), &xml_dictionary[offset]);
 
         return &xml_dictionary[offset];
     }

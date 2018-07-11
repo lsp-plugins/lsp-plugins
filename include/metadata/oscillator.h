@@ -17,7 +17,7 @@ namespace lsp
             static const float FREQUENCY_MIN        = 20.0f;
             static const float FREQUENCY_MAX        = 20000.0f;
             static const float FREQUENCY_DFL        = 440.0f;
-            static const float FREQUENCY_STEP       = 0.01f;
+            static const float FREQUENCY_STEP       = 0.001f;
 
             static const float DCOFFSET_MIN         = -1.0f;
             static const float DCOFFSET_MAX         = 1.0f;

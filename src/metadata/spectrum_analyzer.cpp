@@ -183,6 +183,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         spectrum_analyzer_classes,
         spectrum_analyzer_x1_ports,
+        "analyzer/spectrum/x1.xml",
         NULL
     };
 
@@ -198,6 +199,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         spectrum_analyzer_classes,
         spectrum_analyzer_x2_ports,
+        "analyzer/spectrum/x2.xml",
         NULL
     };
 
@@ -213,6 +215,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         spectrum_analyzer_classes,
         spectrum_analyzer_x4_ports,
+        "analyzer/spectrum/x4.xml",
         NULL
     };
 
@@ -228,6 +231,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         spectrum_analyzer_classes,
         spectrum_analyzer_x8_ports,
+        "analyzer/spectrum/x8.xml",
         NULL
     };
 
@@ -243,6 +247,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         spectrum_analyzer_classes,
         spectrum_analyzer_x12_ports,
+        "analyzer/spectrum/x12.xml",
         NULL
     };
 
@@ -258,6 +263,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         spectrum_analyzer_classes,
         spectrum_analyzer_x16_ports,
+        "analyzer/spectrum/x16.xml",
         NULL
     };
 }

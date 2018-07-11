@@ -23,15 +23,19 @@ namespace lsp
             LV2Extensions          *pExt;
             size_t                  nLatencyID; // ID of latency port
             LV2UIPort              *pLatency;
+            bool                    bConnected;
 
         protected:
             LV2UIPort *create_port(const port_t *p, const char *postfix);
             void create_ports(const port_t *port);
 
-            void query_plugin_state();
             void receive_atom(const LV2_Atom_Object * atom);
             static LV2UIPort *find_by_urid(cvector<LV2UIPort> &v, LV2_URID urid);
             void sort_by_urid(cvector<LV2UIPort> &v);
+
+            static status_t slot_ui_hide(void *ptr, void *data);
+            static status_t slot_ui_show(void *ptr, void *data);
+            static status_t slot_ui_resize(void *ptr, void *data);
 
         public:
             inline explicit LV2UIWrapper(plugin_ui *ui, LV2Extensions *ext)
@@ -40,6 +44,7 @@ namespace lsp
                 pExt        = ext;
                 nLatencyID  = 0;
                 pLatency    = NULL;
+                bConnected  = false;
             }
 
             ~LV2UIWrapper()
@@ -48,6 +53,7 @@ namespace lsp
                 pExt        = NULL;
                 nLatencyID  = 0;
                 pLatency    = NULL;
+                bConnected  = false;
             }
 
         public:
@@ -55,10 +61,6 @@ namespace lsp
             {
                 // Get plugin metadata
                 const plugin_metadata_t *m  = pUI->metadata();
-
-                // Initialize plugin
-                lsp_trace("Initializing UI");
-                pUI->init(this);
 
                 // Perform all port bindings
                 create_ports(m->ports);
@@ -76,7 +78,7 @@ namespace lsp
                     const port_t *port = &lv2_latency_port;
                     if ((port->id != NULL) && (port->name != NULL))
                     {
-                        pLatency = new LV2UIFloatPort(port, pExt);
+                        pLatency = new LV2UIFloatPort(port, pExt, NULL);
                         vAllPorts.add(pLatency);
                         pUI->add_port(pLatency);
                         nLatencyID  = vExtPorts.size();
@@ -85,28 +87,79 @@ namespace lsp
                     }
                 }
 
-                // Build plugin UI
-                pUI->build();
+                // Initialize plugin
+                lsp_trace("Initializing UI");
+                pUI->init(this, 0, NULL);
 
-                // Return UI
-                lsp_trace("Return handle");
+                // Initialize size of root window
+                size_request_t sr;
+                LSPWindow *root = pUI->root_window();
+                if (root == NULL)
+                    return;
+
+                root->slots()->bind(LSPSLOT_SHOW, slot_ui_show, this);
+                root->slots()->bind(LSPSLOT_HIDE, slot_ui_hide, this);
+                root->slots()->bind(LSPSLOT_RESIZE, slot_ui_resize, this);
+
+                pUI->show();
+                root->size_request(&sr);
+                root->resize(sr.nMinWidth, sr.nMinHeight);
             }
 
-            virtual void ui_activated()
+            void ui_activated()
             {
-                // Query plugin state
+                if (bConnected)
+                    return;
+
+                lsp_trace("UI has been activated");
                 if (pExt != NULL)
-                    pExt->ui_connect_to_plugin();
+                {
+                    LV2Wrapper *w = pExt->wrapper();
+                    if (w != NULL)
+                    {
+                        lsp_trace("Connecting directly to plugin");
+                        w->connect_direct_ui();
+                    }
+                    else
+                        pExt->ui_connect_to_plugin();
+                    bConnected = true;
+                }
             }
 
-            virtual void ui_deactivated()
+            void ui_deactivated()
             {
+                if (!bConnected)
+                    return;
+
+                lsp_trace("UI has been deactivated");
                 if (pExt != NULL)
-                    pExt->ui_disconnect_from_plugin();
+                {
+                    LV2Wrapper *w = pExt->wrapper();
+                    if (w != NULL)
+                    {
+                        lsp_trace("Disconnecting directly from plugin");
+                        w->disconnect_direct_ui();
+                    }
+                    else
+                        pExt->ui_disconnect_from_plugin();
+                    bConnected = false;
+                }
+            }
+
+            void ui_resize(const realize_t *r)
+            {
+                lsp_trace("UI has been resized");
+                if ((pUI == NULL) || (pExt == NULL))
+                    return;
+
+                pExt->resize_ui(r->nWidth, r->nHeight);
             }
 
             void destroy()
             {
+                // Disconnect UI
+                ui_deactivated();
+
                 // Drop plugin UI
                 if (pUI != NULL)
                 {
@@ -155,7 +208,7 @@ namespace lsp
                             int(id), int(size), int(format), buf, *(reinterpret_cast<const float *>(buf)));
 
                         p->notify(buf, format, size);
-                        p->notifyAll();
+                        p->notify_all();
                     }
                 }
                 else if ((pExt->nAtomIn >= 0) && (id == size_t(pExt->nAtomIn)))
@@ -178,11 +231,61 @@ namespace lsp
                         pLatency->notify(buf, format, size);
                 }
             }
+
+            int idle()
+            {
+                if (pUI == NULL)
+                    return -1;
+
+                dsp_context_t ctx;
+                dsp::start(&ctx);
+
+                // Synchronize port states avoiding LV2 Atom transport
+                if (pExt->wrapper() != NULL)
+                {
+                    for (size_t i=0, n=vAllPorts.size(); i<n; ++i)
+                    {
+                        LV2UIPort *p = vAllPorts.at(i);
+                        if (p == NULL)
+                            continue;
+                        if (p->sync())
+                            p->notify_all();
+                    }
+                }
+
+                // Call UI to process events
+                pUI->main_iteration();
+                dsp::finish(&ctx);
+
+                return 0;
+            }
     };
+
+    status_t LV2UIWrapper::slot_ui_show(void *ptr, void *data)
+    {
+        LV2UIWrapper *_this = static_cast<LV2UIWrapper *>(ptr);
+        _this->ui_activated();
+        return STATUS_OK;
+    }
+
+    status_t LV2UIWrapper::slot_ui_hide(void *ptr, void *data)
+    {
+        LV2UIWrapper *_this = static_cast<LV2UIWrapper *>(ptr);
+        _this->ui_deactivated();
+        return STATUS_OK;
+    }
+
+    status_t LV2UIWrapper::slot_ui_resize(void *ptr, void *data)
+    {
+        LV2UIWrapper *_this = static_cast<LV2UIWrapper *>(ptr);
+        _this->ui_resize(static_cast<realize_t *>(data));
+        return STATUS_OK;
+    }
 
     LV2UIPort *LV2UIWrapper::create_port(const port_t *p, const char *postfix)
     {
         LV2UIPort *result = NULL;
+        LV2Wrapper *w = pExt->wrapper();
 
         switch (p->role)
         {
@@ -191,21 +294,21 @@ namespace lsp
                 result = new LV2UIPort(p, pExt);
                 break;
             case R_CONTROL:
-                result = new LV2UIFloatPort(p, pExt);
+                result = new LV2UIFloatPort(p, pExt, (w != NULL) ? w->get_port(p->id) : NULL);
                 break;
             case R_METER:
-                result = new LV2UIPeakPort(p, pExt);
+                result = new LV2UIPeakPort(p, pExt, (w != NULL) ? w->get_port(p->id) : NULL);
                 break;
             case R_PATH:
                 if (pExt->atom_supported())
-                    result = new LV2UIPathPort(p, pExt);
+                    result = new LV2UIPathPort(p, pExt, (w != NULL) ? w->get_port(p->id) : NULL);
                 else
                     result = new LV2UIPort(p, pExt); // Stub port
                 break;
             case R_MESH:
                 if (pExt->atom_supported())
                 {
-                    result = new LV2UIMeshPort(p, pExt);
+                    result = new LV2UIMeshPort(p, pExt, (w != NULL) ? w->get_port(p->id) : NULL);
                     vMeshPorts.add(result);
                 }
                 else // Stub port
@@ -214,7 +317,7 @@ namespace lsp
             case R_PORT_SET:
             {
                 char postfix_buf[LSP_MAX_PARAM_ID_BYTES];
-                LV2UIPortGroup   *pg    = new LV2UIPortGroup(p, pExt);
+                LV2UIPortGroup   *pg    = new LV2UIPortGroup(p, pExt, (w != NULL) ? w->get_port(p->id) : NULL);
                 pUI->add_port(pg);
                 vUIPorts.add(pg);
 
@@ -355,7 +458,7 @@ namespace lsp
                 if ((p != NULL) && (p->get_type_urid() == body->value.type))
                 {
                     p->deserialize(&body->value);
-                    p->notifyAll();
+                    p->notify_all();
                 }
                 else
                     lsp_warn("Port id=%d (%s) not found or has bad type", int(body->key), pExt->unmap_urid(body->key));
@@ -389,7 +492,7 @@ namespace lsp
                     if ((p != NULL) && (value->type == p->get_type_urid()))
                     {
                         p->deserialize(value);
-                        p->notifyAll();
+                        p->notify_all();
                     }
 
                     key     = NULL;
@@ -406,7 +509,7 @@ namespace lsp
             if (p != NULL)
             {
                 p->deserialize(obj);
-                p->notifyAll();
+                p->notify_all();
             }
         }
     }

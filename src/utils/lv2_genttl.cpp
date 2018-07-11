@@ -36,18 +36,14 @@ namespace lsp
     {
         REQ_PATCH       = 1 << 0,
         REQ_STATE       = 1 << 1,
-        REQ_GTK2_UI     = 1 << 2,
-        REQ_GTK3_UI     = 1 << 3,
-        REQ_QT4_UI      = 1 << 4,
-        REQ_QT5_UI      = 1 << 5,
-        REQ_PORT_GROUPS = 1 << 6,
-        REQ_WORKER      = 1 << 7,
-        REQ_MIDI_IN     = 1 << 8,
-        REQ_MIDI_OUT    = 1 << 9,
-        REQ_PATCH_WR    = 1 << 10,
+        REQ_LV2UI       = 1 << 2,
+        REQ_PORT_GROUPS = 1 << 3,
+        REQ_WORKER      = 1 << 4,
+        REQ_MIDI_IN     = 1 << 5,
+        REQ_MIDI_OUT    = 1 << 6,
+        REQ_PATCH_WR    = 1 << 7,
+        REQ_INSTANCE    = 1 << 8,
 
-
-        REQ_UI_MASK     = REQ_GTK2_UI | REQ_GTK3_UI | REQ_QT4_UI | REQ_QT5_UI,
         REQ_PATH_MASK   = REQ_PATCH | REQ_STATE | REQ_WORKER | REQ_PATCH_WR,
         REQ_MIDI        = REQ_MIDI_IN | REQ_MIDI_OUT
     };
@@ -142,15 +138,6 @@ namespace lsp
         { -1, NULL }
     };
 
-    enum ui_type_t
-    {
-        gtk,
-        gtk3,
-        qt4,
-        qt5,
-        win
-    };
-
     static void print_additional_groups(FILE *out, const int *c)
     {
         while ((c != NULL) && ((*c) >= 0))
@@ -204,20 +191,6 @@ namespace lsp
         }
     }
 
-    static void print_plugin_ui(FILE *out, const char *name)
-    {
-        #define MOD_UI(plugin, package)             \
-            if (!strcmp(name, #plugin))             \
-                fprintf(out, "\tui:ui " LSP_PREFIX "_%s:%s ;\n", #package, name);
-
-        #define MOD_GTK2(plugin)            MOD_UI(plugin, gtk2)
-        #define MOD_GTK3(plugin)            MOD_UI(plugin, gtk3)
-        #define MOD_QT4(plugin)             MOD_UI(plugin, qt4)
-        #define MOD_QT5(plugin)             MOD_UI(plugin, qt5)
-
-        #include <metadata/modules.h>
-    }
-
     static void print_ladspa_replacement(FILE *out, const plugin_metadata_t &m, const char *name)
     {
         #define MOD_LADSPA(plugin) \
@@ -227,13 +200,20 @@ namespace lsp
         #include <metadata/modules.h>
     }
 
-    void gen_plugin_ui_ttl (FILE *out, size_t requirements, const plugin_metadata_t &m, const char *name, const char *ui_uri, const char *ui_class, const char *package, const char *uri)
+    void gen_plugin_ui_ttl (FILE *out, size_t requirements, const plugin_metadata_t &m, const char *name, const char *ui_uri, const char *uri)
     {
-        fprintf(out, LSP_PREFIX "_%s:%s\n", package, name);
-        fprintf(out, "\ta ui:%s ;\n", ui_class);
+        fprintf(out, LSP_PREFIX "_ui:%s\n", name);
+        fprintf(out, "\ta ui:" LSP_LV2UI_CLASS " ;\n");
         fprintf(out, "\tlv2:minorVersion %d ;\n", int(LSP_VERSION_MINOR(m.version)));
         fprintf(out, "\tlv2:microVersion %d ;\n", int(LSP_VERSION_MICRO(m.version)));
-        fprintf(out, "\tui:binary <" LSP_ARTIFACT_ID "-lv2-%s.so> ;\n", package);
+        fprintf(out, "\tlv2:requiredFeature urid:map, ui:idleInterface ;\n");
+        {
+            size_t count = 1;
+            fprintf(out, "\tlv2:optionalFeature ui:parent, ui:resize, ui:noUserResize");
+            LSP_LV2_EMIT_OPTION(count, requirements & REQ_INSTANCE, "lv2ext:instance-access");
+            fprintf(out, " ;\n");
+        }
+        fprintf(out, "\tui:binary <" LSP_ARTIFACT_ID "-lv2.so> ;\n");
         fprintf(out, "\n");
 
         size_t ports        = 0;
@@ -361,7 +341,10 @@ namespace lsp
             switch (p->role)
             {
                 case R_PATH:
-                    result    |= REQ_PATH_MASK;
+                    result    |= REQ_PATH_MASK | REQ_INSTANCE;
+                    break;
+                case R_MESH:
+                    result    |= REQ_INSTANCE;
                     break;
                 case R_MIDI:
                     if (IS_OUT_PORT(p))
@@ -372,6 +355,7 @@ namespace lsp
                 case R_PORT_SET:
                     if ((p->members != NULL) && (p->items != NULL))
                         result         |= scan_port_requirements(p->members);
+                    result    |= REQ_INSTANCE;
                     break;
                 default:
                     break;
@@ -384,15 +368,8 @@ namespace lsp
     {
         size_t result   = 0;
 
-        #define SET_REQUIREMENTS(plugin, flag)   \
-            if ((m.lv2_uid != NULL) && (!strcmp(m.lv2_uid, #plugin)))    result |= flag;
-
-        #define MOD_GTK2(plugin)        SET_REQUIREMENTS(plugin, REQ_GTK2_UI)
-        #define MOD_GTK3(plugin)        SET_REQUIREMENTS(plugin, REQ_GTK3_UI)
-        #define MOD_QT4(plugin)         SET_REQUIREMENTS(plugin, REQ_QT4_UI)
-        #define MOD_QT5(plugin)         SET_REQUIREMENTS(plugin, REQ_QT5_UI)
-        #include <metadata/modules.h>
-        #undef SET_REQUIREMENTS
+        if ((m.lv2_uid != NULL) && (m.ui_resource != NULL))
+            result |= REQ_LV2UI;
 
         result |= scan_port_requirements(m.ports);
 
@@ -416,11 +393,18 @@ namespace lsp
         printf("Writing file %s\n", fname);
 
         // Output header
+        fprintf(out, "@prefix doap:      <http://usefulinc.com/ns/doap#> .\n");
+        fprintf(out, "@prefix dc:        <http://purl.org/dc/terms/> .\n");
+        fprintf(out, "@prefix foaf:      <http://xmlns.com/foaf/0.1/> .\n");
+        fprintf(out, "@prefix rdf:       <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n");
+        fprintf(out, "@prefix rdfs:      <http://www.w3.org/2000/01/rdf-schema#> .\n");
         fprintf(out, "@prefix lv2:       <" LV2_CORE_PREFIX "> .\n");
+        if (requirements & REQ_INSTANCE)
+            fprintf(out, "@prefix lv2ext:    <http://lv2plug.in/ns/ext/> .\n");
         fprintf(out, "@prefix pp:        <" LV2_PORT_PROPS_PREFIX "> .\n");
         if (requirements & REQ_PORT_GROUPS)
             fprintf(out, "@prefix pg:        <" LV2_PORT_GROUPS_PREFIX "> .\n");
-        if (requirements & REQ_UI_MASK)
+        if (requirements & REQ_LV2UI)
             fprintf(out, "@prefix ui:        <" LV2_UI_PREFIX "> .\n");
         fprintf(out, "@prefix units:     <" LV2_UNITS_PREFIX "> .\n");
         fprintf(out, "@prefix atom:      <" LV2_ATOM_PREFIX "> .\n");
@@ -434,28 +418,17 @@ namespace lsp
             fprintf(out, "@prefix state:     <" LV2_STATE_PREFIX "> .\n");
         if (requirements & REQ_MIDI)
             fprintf(out, "@prefix midi:      <" LV2_MIDI_PREFIX "> .\n");
-        fprintf(out, "@prefix doap:      <http://usefulinc.com/ns/doap#> .\n");
-        fprintf(out, "@prefix foaf:      <http://xmlns.com/foaf/0.1/> .\n");
-        fprintf(out, "@prefix dc:        <http://purl.org/dc/terms/> .\n");
-        fprintf(out, "@prefix rdf:       <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n");
-        fprintf(out, "@prefix rdfs:      <http://www.w3.org/2000/01/rdf-schema#> .\n");
         fprintf(out, "@prefix hcid:      <" LV2_INLINEDISPLAY_PREFIX "> .\n");
 
         fprintf(out, "@prefix " LSP_PREFIX ":       <" LSP_URI(lv2) "> .\n");
-        fprintf(out, "@prefix " LSP_PREFIX "_dev:   <" LSP_DEVELOPERS_URI "> .\n");
-
-        if (requirements & REQ_PATCH)
-            fprintf(out, "@prefix lsp_p:     <%s%s/ports#> .\n", LSP_URI(lv2), m.lv2_uid);
         if (requirements & REQ_PORT_GROUPS)
             fprintf(out, "@prefix lsp_pg:    <%s%s/port_groups#> .\n", LSP_URI(lv2), m.lv2_uid);
-        if (requirements & REQ_GTK2_UI)
-            fprintf(out, "@prefix " LSP_PREFIX "_gtk2:  <" LSP_UI_URI(lv2, gtk2) "/> .\n");
-        if (requirements & REQ_GTK3_UI)
-            fprintf(out, "@prefix " LSP_PREFIX "_gtk3:  <" LSP_UI_URI(lv2, gtk3) "/> .\n");
-        if (requirements & REQ_QT4_UI)
-            fprintf(out, "@prefix " LSP_PREFIX "_qt4:   <" LSP_UI_URI(lv2, qt4)  "/> .\n");
-        if (requirements & REQ_QT5_UI)
-            fprintf(out, "@prefix " LSP_PREFIX "_qt5:   <" LSP_UI_URI(lv2, qt5)  "/> .\n");
+        if (requirements & REQ_LV2UI)
+            fprintf(out, "@prefix " LSP_PREFIX "_ui:    <" LSP_UI_URI(lv2) "> .\n");
+        fprintf(out, "@prefix " LSP_PREFIX "_dev:   <" LSP_DEVELOPERS_URI "> .\n");
+        if (requirements & REQ_PATCH)
+            fprintf(out, "@prefix lsp_p:     <%s%s/ports#> .\n", LSP_URI(lv2), m.lv2_uid);
+
         fprintf(out, "\n\n");
 
         // Output developer and maintainer objects
@@ -553,16 +526,12 @@ namespace lsp
         fprintf(out, "\tdoap:maintainer " LSP_PREFIX "_dev:lsp ;\n");
         fprintf(out, "\tdoap:license \"" LSP_COPYRIGHT "\" ;\n");
         fprintf(out, "\tlv2:binary <" LSP_ARTIFACT_ID "-lv2.so> ;\n");
-        if (requirements & REQ_UI_MASK)
-            print_plugin_ui(out, m.lv2_uid);
+        if (requirements & REQ_LV2UI)
+            fprintf(out, "\tui:ui " LSP_PREFIX "_ui:%s ;\n", m.lv2_uid);
+
         fprintf(out, "\n");
 
-        {
-            size_t count = 0;
-            fprintf(out, "\tlv2:requiredFeature ");
-            LSP_LV2_EMIT_OPTION(count, true, "urid:map");
-            fprintf(out, " ;\n");
-        }
+        fprintf(out, "\tlv2:requiredFeature urid:map ;\n");
 
         {
             size_t count = 1;
@@ -853,17 +822,19 @@ namespace lsp
         fprintf(out, "\n\t.\n\n");
 
         // Output plugin UIs
-        if (requirements & REQ_UI_MASK)
+        if (requirements & REQ_LV2UI)
         {
-            #define MOD_LV2UI(plugin, package, ext) \
-                if (!strcmp(m.lv2_uid, #plugin)) \
-                    gen_plugin_ui_ttl(out, requirements, plugin::metadata, m.lv2_uid, LSP_PLUGIN_UI_URI(lv2, plugin, package), ext, #package, LSP_PLUGIN_URI(lv2, plugin));
-            #define MOD_GTK2(plugin)    MOD_LV2UI(plugin, gtk2, "GtkUI"     )
-            #define MOD_GTK3(plugin)    MOD_LV2UI(plugin, gtk3, "Gtk3UI"    )
-            #define MOD_QT4(plugin)     MOD_LV2UI(plugin, qt4,  "Qt4UI"     )
-            #define MOD_QT5(plugin)     MOD_LV2UI(plugin, qt5,  "Qt5UI"     )
-            #include <metadata/modules.h>
-            #undef MOD_LV2UI
+            char *ui_uri = NULL, *plugin_uri = NULL;
+            asprintf(&ui_uri, LSP_PLUGIN_UI_URI(lv2, "%s"), m.lv2_uid);
+            asprintf(&plugin_uri, LSP_PLUGIN_URI(lv2, "%s"), m.lv2_uid);
+
+            if ((ui_uri != NULL) && (plugin_uri != NULL))
+                gen_plugin_ui_ttl(out, requirements, m, m.lv2_uid, ui_uri, plugin_uri);
+
+            if (ui_uri != NULL)
+                free(ui_uri);
+            if (plugin_uri != NULL)
+                free(plugin_uri);
         }
 
         fclose(out);
@@ -884,11 +855,14 @@ namespace lsp
         fprintf(out, "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n");
         fprintf(out, "@prefix " LSP_PREFIX ":   <" LSP_URI(lv2) "> .\n\n");
 
-        #define MOD_LV2(plugin) \
-            fprintf(out, LSP_PREFIX ":" #plugin "\n"); \
-            fprintf(out, "\ta lv2:Plugin ;\n"); \
-            fprintf(out, "\tlv2:binary <" LSP_ARTIFACT_ID "-lv2.so> ;\n"); \
-            fprintf(out, "\trdfs:seeAlso <%s.ttl> .\n\n", #plugin);
+        #define MOD_PLUGIN(plugin) \
+            if (plugin::metadata.lv2_uid != NULL) \
+            { \
+                fprintf(out, LSP_PREFIX ":" #plugin "\n"); \
+                fprintf(out, "\ta lv2:Plugin ;\n"); \
+                fprintf(out, "\tlv2:binary <" LSP_ARTIFACT_ID "-lv2.so> ;\n"); \
+                fprintf(out, "\trdfs:seeAlso <%s.ttl> .\n\n", #plugin); \
+            }
         #include <metadata/modules.h>
         fclose(out);
     }

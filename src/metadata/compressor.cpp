@@ -242,7 +242,8 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         compressor_classes,
         compressor_mono_ports,
-        NULL
+        "dynamics/compressor/single/mono.xml",
+        mono_plugin_port_groups
     };
 
     const plugin_metadata_t  compressor_stereo_metadata::metadata =
@@ -257,6 +258,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         compressor_classes,
         compressor_stereo_ports,
+        "dynamics/compressor/single/stereo.xml",
         stereo_plugin_port_groups
     };
 
@@ -272,6 +274,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         compressor_classes,
         compressor_lr_ports,
+        "dynamics/compressor/single/lr.xml",
         stereo_plugin_port_groups
     };
 
@@ -287,6 +290,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         compressor_classes,
         compressor_ms_ports,
+        "dynamics/compressor/single/ms.xml",
         stereo_plugin_port_groups
     };
 
@@ -303,6 +307,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         compressor_classes,
         sc_compressor_mono_ports,
+        "dynamics/compressor/single/mono.xml",
         mono_plugin_sidechain_port_groups
     };
 
@@ -318,6 +323,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         compressor_classes,
         sc_compressor_stereo_ports,
+        "dynamics/compressor/single/stereo.xml",
         stereo_plugin_sidechain_port_groups
     };
 
@@ -333,6 +339,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         compressor_classes,
         sc_compressor_lr_ports,
+        "dynamics/compressor/single/lr.xml",
         stereo_plugin_sidechain_port_groups
     };
 
@@ -348,6 +355,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         compressor_classes,
         sc_compressor_ms_ports,
+        "dynamics/compressor/single/ms.xml",
         stereo_plugin_sidechain_port_groups
     };
 }

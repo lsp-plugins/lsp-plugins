@@ -74,6 +74,7 @@
     #define lsp_tmalloc(type, items)        reinterpret_cast<type *>(::malloc(sizeof(type) * (items)))
     #define lsp_calloc(count, size)         ::calloc(count, size)
     #define lsp_realloc(ptr, size)          ::realloc(ptr, size)
+    #define lsp_trealloc(type, ptr, items)  reinterpret_cast<type *>(::realloc(ptr, sizeof(type) * (items)))
     #define lsp_free(ptr)                   lsp::safe_free(ptr)
     #define lsp_strdup(ptr)                 ::strdup(ptr)
     #define lsp_validate(ptr)               true

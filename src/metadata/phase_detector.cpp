@@ -75,6 +75,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         phase_detector_classes,
         phase_detector_ports,
+        "util/phase_detector.xml",
         NULL
     };
 

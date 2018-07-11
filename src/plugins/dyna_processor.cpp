@@ -473,7 +473,10 @@ namespace lsp
 
                 c->sProc.set_release_level(j, (c->pReleaseOn[j]->getValue() >= 0.5f) ? c->pReleaseLvl[j]->getValue() : -1.0f);
                 c->sProc.set_release_time(j, c->pReleaseTime[j]->getValue());
+            }
 
+            for (size_t j=0; j<dyna_processor_base_metadata::DOTS; ++j)
+            {
                 if ((c->pDotOn[j] != NULL) && (c->pDotOn[j]->getValue() >= 0.5f))
                     c->sProc.set_dot(j, c->pThreshold[j]->getValue(), c->pGain[j]->getValue(), c->pKnee[j]->getValue());
                 else
@@ -884,7 +887,7 @@ namespace lsp
         float zx    = 1.0f/GAIN_AMP_M_72_DB;
         float zy    = 1.0f/GAIN_AMP_M_72_DB;
         float dx    = width/(logf(GAIN_AMP_P_24_DB)-logf(GAIN_AMP_M_72_DB));
-        float dy    = -height/(logf(GAIN_AMP_P_24_DB)-logf(GAIN_AMP_M_72_DB));
+        float dy    = height/(logf(GAIN_AMP_M_72_DB)-logf(GAIN_AMP_P_24_DB));
 
         // Draw horizontal and vertical lines
         cv->set_line_width(1.0);

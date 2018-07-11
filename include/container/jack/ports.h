@@ -306,11 +306,13 @@ namespace lsp
     {
         private:
             float       fValue;
+            bool        bForce;
 
         public:
             JACKMeterPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
             {
                 fValue      = meta->start;
+                bForce      = true;
             }
 
             virtual ~JACKMeterPort()
@@ -330,8 +332,11 @@ namespace lsp
 
                 if (pMetadata->flags & F_PEAK)
                 {
-                    if (fabs(fValue) < fabs(value))
-                        fValue = value;
+                    if ((bForce) || (fabs(fValue) < fabs(value)))
+                    {
+                        fValue  = value;
+                        bForce  = false;
+                    }
                 }
                 else
                     fValue = value;
@@ -340,7 +345,7 @@ namespace lsp
             float syncValue()
             {
                 float value = fValue;
-                fValue  = 0.0f;
+                bForce  = true;
                 return value;
             }
     };

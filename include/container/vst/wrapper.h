@@ -10,13 +10,6 @@
 
 #include <container/vst/defs.h>
 #include <core/NativeExecutor.h>
-#include <X11/Xlib.h>
-#include <gdk/gdkx.h>
-
-#ifdef ARCH_X86_64
-    #include <sys/mman.h>
-    #include <sys/user.h>
-#endif
 
 namespace lsp
 {
@@ -31,16 +24,10 @@ namespace lsp
             plugin_t                   *pPlugin;
             AEffect                    *pEffect;
             plugin_ui                  *pUI;
-            char                       *pBundlePath;
-            GtkWidget                  *pUIWidget;
-            GtkWidget                  *pWidget;
-            GdkWindow                  *pParent;
-            guint                       pTimer;
             ERect                       sRect;
             audioMasterCallback         pMaster;
             IExecutor                  *pExecutor;
             vst_state_buffer           *pState;
-            uint8_t                    *pEventRedirect;
             bool                        bUpdateSettings;
 
             cvector<VSTAudioPort>       vInputs;        // List of input audio ports
@@ -52,21 +39,18 @@ namespace lsp
             cvector<port_t>             vGenMetadata;   // Generated metadata
 
         private:
-            static gboolean transport_synchronize(gpointer arg);
-            static void event_proc_proxy(XEvent *ev);
             void transfer_dsp_to_ui();
-            void create_transport_thread();
-            void drop_transport_thread();
-            void set_event_handler(Display *dpy, Window wnd);
 
             VSTPort *create_port(const port_t *port, const char *postfix);
             void create_ports(const port_t *meta);
+
+        protected:
+            static status_t slot_ui_resize(void *ptr, void *data);
 
         public:
             VSTWrapper(
                     AEffect *effect,
                     plugin_t *plugin,
-                    const char *bundle_path,
                     const char *name,
                     audioMasterCallback callback
             )
@@ -74,11 +58,6 @@ namespace lsp
                 pPlugin         = plugin;
                 pEffect         = effect;
                 pUI             = NULL;
-                pBundlePath     = strdup(bundle_path);
-                pUIWidget       = NULL;
-                pWidget         = NULL;
-                pParent         = NULL;
-                pTimer          = 0;
                 pMaster         = callback;
                 pExecutor       = NULL;
                 pState          = NULL;
@@ -86,7 +65,6 @@ namespace lsp
                 sRect.left      = 0;
                 sRect.bottom    = 0;
                 sRect.right     = 0;
-                pEventRedirect  = NULL;
                 bUpdateSettings = true;
             }
 
@@ -95,19 +73,12 @@ namespace lsp
                 pPlugin         = NULL;
                 pEffect         = NULL;
                 pUI             = NULL;
-                pBundlePath     = NULL;
-                pUIWidget       = NULL;
-                pWidget         = NULL;
-                pParent         = NULL;
-                pTimer          = 0;
                 pMaster         = NULL;
-                pEventRedirect  = NULL;
             }
 
         public:
             inline const plugin_metadata_t *get_metadata() const    {   return pPlugin->get_metadata();     };
             inline VSTParameterPort *get_parameter(size_t index)    {   return vParams[index];              };
-            inline const char *get_bundle_path() const              {   return pBundlePath;                 };
 
             void init();
             void destroy();
@@ -130,11 +101,12 @@ namespace lsp
                     pPlugin->deactivate();
             }
 
-            bool show_ui(void *wnd, IWidgetFactory *wf);
+            bool show_ui(void *root_widget);
             void hide_ui();
             void iterate_ui();
             void destroy_ui();
-            inline ERect *get_ui_rect()                 { return &sRect;                        };
+            void resize_ui(const realize_t *r);
+            ERect *get_ui_rect();
 
             virtual IExecutor *get_executor()
             {
@@ -371,26 +343,12 @@ namespace lsp
         vPorts.clear();
         vUIPorts.clear();
 
-        if (pBundlePath != NULL)
-        {
-            free(pBundlePath);
-            pBundlePath     = NULL;
-        }
-
         if (pState != NULL)
         {
+            lsp_trace("Destroy state %p", pState);
             delete [] reinterpret_cast<uint8_t *>(pState);
             pState          = NULL;
         }
-
-        #ifdef ARCH_X86_64
-            if (pEventRedirect != NULL)
-            {
-                lsp_trace("free _XEventProc redirection address=%p", pEventRedirect);
-                munmap(pEventRedirect, PAGE_SIZE);
-                pEventRedirect = NULL;
-            }
-        #endif /* ARCH_X86_64 */
 
         pMaster     = NULL;
         pEffect     = NULL;
@@ -463,7 +421,13 @@ namespace lsp
         pPlugin->process(samples);
 
         // Report latency
-        pEffect->initialDelay   = VstInt32(pPlugin->get_latency());
+        float latency           = pPlugin->get_latency();
+        if (pEffect->initialDelay != latency)
+        {
+            pEffect->initialDelay   = latency;
+            if (pMaster)
+                pMaster(pEffect, audioMasterIOChanged, 0, 0, 0, 0);
+        }
 
         // Post-process ALL ports
         for (size_t i=0; i<n_ports; ++i)
@@ -499,32 +463,19 @@ namespace lsp
         run(inputs, outputs, samples);
     }
 
-    bool VSTWrapper::show_ui(void *wnd, IWidgetFactory *wf)
+    bool VSTWrapper::show_ui(void *root_widget)
     {
         lsp_trace("show ui");
         const plugin_metadata_t *m  = pPlugin->get_metadata();
 
         if (pUI == NULL)
         {
-            // GTK Init
-            static bool gtk_initialized = false;
-            if (!gtk_initialized)
-            {
-                lsp_trace("init gtk");
-                int argc = 0;
-                gtk_init_check(&argc, NULL);
-                gtk_initialized     = true;
-            }
-
             // Create UI pointer
             lsp_trace("create ui");
-            pUI                         = new plugin_ui(m, wf);
+            pUI                         = new plugin_ui(m, root_widget);
             if (pUI == NULL)
                 return false;
 
-            // Initialize UI
-            lsp_trace("init ui");
-            pUI->init(this);
             // Add pre-generated ports
             for (size_t i=0; i<vUIPorts.size(); ++i)
             {
@@ -534,186 +485,44 @@ namespace lsp
                 pUI->add_port(vp);
             }
 
-            // Build UI
-            lsp_trace("build ui");
-            pUI->build();
+            // Initialize UI
+            lsp_trace("init ui");
+            pUI->init(this, 0, NULL);
 
-            // Create window
-            lsp_trace("create window");
-            pWidget                     = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-            if (pWidget == NULL)
-                return false;
-
-            // Realize GTK window
-            if (!gtk_widget_get_realized(pWidget))
-            {
-                gtk_widget_realize(pWidget);
-                g_assert(gtk_widget_get_realized(pWidget));
-            }
-
-            // Configure GTK window
-            lsp_trace("set attributes pWidget=%p", pWidget);
-            gchar *title                = g_strdup_printf(LSP_ACRONYM " %s - %s [VST]", m->name, m->description);
-            gtk_window_set_title(GTK_WINDOW(pWidget), title);
-            gtk_window_set_default_size (GTK_WINDOW (pWidget), 64, 64);
-            gtk_container_set_border_width (GTK_CONTAINER (pWidget), 0);
-            g_free(title);
-
-            // Get widget
-            lsp_trace("create widget hierarchy root=%p", wf->root_widget());
-            pUIWidget                   = reinterpret_cast<GtkWidget *>(wf->root_widget());
-            gtk_container_add(GTK_CONTAINER(pWidget), pUIWidget);
-//            g_object_ref(pWidget);
-
-            // Reparent window
-            gdk_display_sync(gdk_display_get_default());
-            pParent                     = gdk_window_foreign_new(GdkNativeWindow(uintptr_t(wnd)));
-            g_assert(pParent);
-            gdk_window_reparent(gtk_widget_get_window(pWidget), pParent, 0, 0);
-
-//            // JUCE hack: add event handler
-//            Display *dpy = GDK_DISPLAY_XDISPLAY(gdk_display_get_default());
-//            Window wnd = GDK_WINDOW_XWINDOW(gtk_widget_get_window(pWidget));
-//            set_event_handler(dpy, wnd);
+            LSPWindow *wnd  = pUI->root_window();
+            if (wnd != NULL)
+                wnd->slots()->bind(LSPSLOT_RESIZE, slot_ui_resize, this);
         }
 
-        // Show window
-        lsp_trace("create widget hierarchy pWidget=%p", pWidget);
-        gtk_widget_show_all(pWidget);
-        gdk_display_sync(gdk_display_get_default());
+        pUI->show();
 
-        {
-            // Get size of widget
-            GtkRequisition rq;
-            gtk_widget_size_request(pUIWidget, &rq);
-            lsp_trace("window width=%d, height=%d", int(rq.width), int(rq.height));
+        LSPWindow *wnd  = pUI->root_window();
+        size_request_t sr;
+        wnd->size_request(&sr);
 
-            // Change title
-            gchar *title                = g_strdup_printf(LSP_ACRONYM " %s - %s [VST]", m->name, m->description);
-            gdk_window_set_title(pParent, title);
-            g_free(title);
+        sRect.top       = 0;
+        sRect.left      = 0;
+        sRect.right     = sr.nMinWidth;
+        sRect.bottom    = sr.nMinHeight;
+//
+//        wnd->set_width(sr.nMinWidth);
+//        wnd->set_height(sr.nMinHeight);
 
-            // Update geometry
-            GdkGeometry g;
-            g.min_width         = rq.width;
-            g.min_height        = rq.height;
-            g.max_width         = rq.width;
-            g.max_height        = rq.height;
-            g.base_width        = rq.width;
-            g.base_height       = rq.height;
-            g.width_inc         = 0;
-            g.height_inc        = 0;
+//        // Show window
+//        lsp_trace("create widget hierarchy pWidget=%p", pWidget);
+//        gtk_widget_show_all(pWidget);
+//        gdk_display_sync(gdk_display_get_default());
 
-            gdk_window_resize(pParent, rq.width, rq.height);
-
-            gdk_window_set_keep_above(pParent, TRUE);
-            gdk_window_set_geometry_hints(
-                pParent, &g, GdkWindowHints(GDK_HINT_MIN_SIZE | GDK_HINT_MAX_SIZE | GDK_HINT_RESIZE_INC | GDK_HINT_BASE_SIZE)
-            );
-
-            gdk_display_sync(gdk_display_get_default());
-
-            // Update rect geometry
-            sRect.top           = 0;
-            sRect.left          = 0;
-            sRect.bottom        = rq.height - 1;
-            sRect.right         = rq.width - 1;
-        }
 
         // Transfer state
         transfer_dsp_to_ui();
 
-        // Create thread
-        create_transport_thread();
-
         return true;
-    }
-
-    void VSTWrapper::event_proc_proxy(XEvent *ev)
-    {
-        XPutBackEvent(GDK_DISPLAY_XDISPLAY(gdk_display_get_default()), ev);
-        gtk_main_iteration_do(FALSE);
-    }
-
-    void VSTWrapper::set_event_handler(Display *dpy, Window wnd)
-    {
-        // This code is originally taken from amsynth
-        #ifdef ARCH_X86_64
-            //
-            // JUCE calls XGetWindowProperty with long_length = 1 which means it only fetches the lower 32 bits of the address.
-            // Therefore we need to ensure we return an address in the lower 32-bits of address space.
-            //
-            if (pEventRedirect == NULL)
-            {
-                void *ptr = mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANONYMOUS | MAP_PRIVATE | MAP_32BIT, -1, 0);
-
-                if (pEventRedirect == MAP_FAILED)
-                {
-                    lsp_error("Error allocating mapping for JUCE workaround");
-                    return;
-                }
-
-                uint8_t *jmp    = reinterpret_cast<uint8_t *>(ptr);
-                pEventRedirect  = jmp;
-
-                // Write the JMP FAR instruction
-                *(jmp++)        = 0xff;
-                *(jmp++)        = 0x25;
-                *(reinterpret_cast<uint32_t *>(jmp))    = 0;
-                jmp            += sizeof(uint32_t);
-                *(reinterpret_cast<uint64_t *>(jmp))    = uint64_t(&event_proc_proxy);
-                jmp            += sizeof(uint64_t);
-                msync(pEventRedirect, jmp - pEventRedirect, MS_INVALIDATE | MS_SYNC);
-            }
-
-            lsp_trace("_XEventProc redirection address=%p", pEventRedirect);
-
-            uint32_t tmp[2] = { uint32_t(uint64_t(pEventRedirect)), 0 };
-            Atom atom = XInternAtom(dpy, "_XEventProc", false);
-            XChangeProperty(dpy, wnd, atom, atom, 32, PropModeReplace, reinterpret_cast<uint8_t *>(tmp), 2);
-        #else
-            lsp_trace("_XEventProc redirection address=%p", &event_proc_proxy);
-
-            uint32_t tmp[1] = { uint32_t(&event_proc_proxy) };
-            Atom atom = XInternAtom(dpy, "_XEventProc", false);
-            XChangeProperty(dpy, wnd, atom, atom, 32, PropModeReplace, reinterpret_cast<uint8_t *>(tmp), 1);
-        #endif
     }
 
     void VSTWrapper::destroy_ui()
     {
         lsp_trace("destroy ui");
-
-        // Drop transport thread
-        drop_transport_thread();
-
-        // Hide window
-        if (pWidget != NULL)
-        {
-            // Remove UI
-            lsp_trace("Hiding (unmapping) window");
-            GdkWindow *win = gtk_widget_get_window(pWidget);
-            if (win != NULL)
-                gdk_window_hide(win);
-
-            // Destroy window
-            gtk_widget_destroy(pWidget);
-            pWidget     = NULL;
-        }
-
-        // Sync display (if possible)
-        lsp_trace("Syncing display");
-        GdkDisplay * display = gdk_display_get_default();
-        if ((display != NULL) && (GDK_IS_DISPLAY(display)))
-            gdk_display_sync(display);
-
-        // Forget UI widget
-        if (pUIWidget != NULL)
-            pUIWidget = NULL;
-
-        // Destroy parent
-        if (pParent != NULL)
-            pParent     = NULL;
 
         // Destroy UI
         if (pUI != NULL)
@@ -725,33 +534,57 @@ namespace lsp
 
         // Unbind all UI ports
         for (size_t i=0; i<vUIPorts.size(); ++i)
-            vUIPorts[i]->unbindAll();
+            vUIPorts[i]->unbind_all();
     }
 
     void VSTWrapper::iterate_ui()
     {
-        // Iterate GTK cycle(s)
-        if (gtk_events_pending())
-            gtk_main_iteration_do(FALSE);
-
-        // Check that UI is active
-        if ((pUI == NULL) || (pWidget == NULL))
+        if (pUI != NULL)
         {
-            lsp_trace("pUI = %p, pWidget=%p", pUI, pWidget);
+            transfer_dsp_to_ui();
+            pUI->main_iteration();
+        }
+    }
+
+    status_t VSTWrapper::slot_ui_resize(void *ptr, void *data)
+    {
+        VSTWrapper *_this = static_cast<VSTWrapper *>(ptr);
+        _this->resize_ui(static_cast<realize_t *>(data));
+        return STATUS_OK;
+    }
+
+    ERect *VSTWrapper::get_ui_rect()
+    {
+        lsp_trace("left=%d, top=%d, right=%d, bottom=%d",
+                int(sRect.left), int(sRect.top), int(sRect.right), int(sRect.bottom)
+            );
+        return &sRect;
+    };
+
+    void VSTWrapper::resize_ui(const realize_t *r)
+    {
+        lsp_trace("UI has been resized");
+        if (pUI == NULL)
             return;
-        }
 
-        // Update size of widget
-        if (pUIWidget != NULL)
-        {
-            GtkAllocation       alloc;
-            gtk_widget_get_allocation(pUIWidget, &alloc);
+        LSPWindow *wnd      = pUI->root_window();
 
-            sRect.top           = alloc.x;
-            sRect.left          = alloc.y;
-            sRect.bottom        = alloc.y + alloc.height - 1;
-            sRect.right         = alloc.x + alloc.width - 1;
-        }
+        sRect.top           = 0;
+        sRect.left          = 0;
+        sRect.right         = r->nWidth;
+        sRect.bottom        = r->nHeight;
+
+        size_request_t sr;
+        wnd->size_request(&sr);
+        lsp_trace("Size request width=%d, height=%d", int(sr.nMinWidth), int(sr.nMinHeight));
+
+        ssize_t r_width     = sr.nMinWidth;
+        ssize_t r_height    = sr.nMinHeight;
+
+        lsp_trace("audioMasterSizeWindow width=%d, height=%d", int(r_width), int(r_height));
+        if (((sRect.right - sRect.left) != r_width) ||
+              ((sRect.bottom - sRect.top) != r_height))
+            pMaster(pEffect, audioMasterSizeWindow, r_width, r_height, 0, 0);
     }
 
     void VSTWrapper::hide_ui()
@@ -761,9 +594,39 @@ namespace lsp
 
     void VSTWrapper::transfer_dsp_to_ui()
     {
+//        lsp_trace("pUI = %p", pUI);
         // Get number of ports
         if (pUI == NULL)
             return;
+
+//        LSPWindow *wnd  = pUI->root_window();
+//        if ((wnd != NULL) && (wnd->size_request_pending()))
+//        {
+//            size_request_t sr;
+//            wnd->size_request(&sr);
+//            sRect.top       = 0;
+//            sRect.left      = 0;
+//            sRect.right     = sr.nMinWidth;
+//            sRect.bottom    = sr.nMinHeight;
+//            lsp_trace("Window request width=%d, height=%d", int(sr.nMinWidth), int(sr.nMinHeight));
+//            pMaster(pEffect, audioMasterSizeWindow, sr.nMinWidth, sr.nMinHeight, 0, 0);
+//
+//            wnd->query_draw();
+//            realize_t r;
+//            r.nLeft         = 0;
+//            r.nTop          = 0;
+//            r.nWidth        = sr.nMinWidth;
+//            r.nHeight       = sr.nMinHeight;
+//            wnd->set_geometry(&r);
+//
+////            sr.nMaxWidth    = sr.nMinWidth;
+////            sr.nMaxHeight   = sr.nMinHeight;
+////
+////            wnd->set_size_constraints(&sr);
+//            wnd->realize(&r);
+////            wnd->query_draw();
+////            wnd->set_geometry(&r);
+//        }
 
         size_t ports_count  = vUIPorts.size();
 
@@ -776,32 +639,11 @@ namespace lsp
                 continue;
 
             if (vup->sync())
-                vup->notifyAll();
+            {
+//                lsp_trace("synced port id=%s", vup->metadata()->id);
+                vup->notify_all();
+            }
         } // for port_id
-    }
-
-    void VSTWrapper::create_transport_thread()
-    {
-        drop_transport_thread();
-        pTimer = g_timeout_add (1000 / MESH_REFRESH_RATE, transport_synchronize, this);
-        lsp_trace("added transport=%ld", long(pTimer));
-    }
-
-    void VSTWrapper::drop_transport_thread()
-    {
-        if (pTimer > 0)
-        {
-            lsp_trace("cancelling transport=%ld", long(pTimer));
-            g_source_remove(pTimer);
-            pTimer      = 0;
-        }
-    }
-
-    gboolean VSTWrapper::transport_synchronize(gpointer arg)
-    {
-        VSTWrapper *_this = reinterpret_cast<VSTWrapper *>(arg);
-        _this->transfer_dsp_to_ui();
-        return TRUE;
     }
 
     void VSTWrapper::init_state_chunk()
@@ -835,9 +677,9 @@ namespace lsp
         pState->nDataSize               = chunk_size;
 
         memset(&pState->sHeader, 0x00, sizeof(fxBank));
-        pState->sHeader.chunkMagic      = BE_DATA(VstInt32(VST_CHUNK_MAGIC));
+        pState->sHeader.chunkMagic      = BE_DATA(VstInt32(cMagic));
         pState->sHeader.byteSize        = 0;
-        pState->sHeader.fxMagic         = BE_DATA(VstInt32(VST_OPAQUE_BANK_MAGIC));
+        pState->sHeader.fxMagic         = BE_DATA(VstInt32(chunkBankMagic));
         pState->sHeader.version         = BE_DATA(1);
         pState->sHeader.fxID            = BE_DATA(VstInt32(pEffect->uniqueID));
         pState->sHeader.fxVersion       = BE_DATA(VstInt32(pEffect->version));
@@ -959,9 +801,9 @@ namespace lsp
         dump_vst_bank(bank);
 
         // Validate chunkMagic
-        if (bank->chunkMagic != BE_DATA(VST_CHUNK_MAGIC))
+        if (bank->chunkMagic != BE_DATA(cMagic))
         {
-            lsp_trace("bank->chunkMagic (%08x) != BE_DATA(VST_CHUNK_MAGIC) (%08x)", int(bank->chunkMagic), int(BE_DATA(VST_CHUNK_MAGIC)));
+            lsp_trace("bank->chunkMagic (%08x) != BE_DATA(VST_CHUNK_MAGIC) (%08x)", int(bank->chunkMagic), int(BE_DATA(cMagic)));
             return;
         }
 
@@ -974,9 +816,9 @@ namespace lsp
         }
 
         // Validate fxMagic
-        if (bank->fxMagic != BE_DATA(VST_OPAQUE_BANK_MAGIC))
+        if (bank->fxMagic != BE_DATA(chunkBankMagic))
         {
-            lsp_trace("bank->fxMagic (%08x) != BE_DATA(VST_OPAQUE_BANK_MAGIC) (%08x)", int(bank->fxMagic), int(BE_DATA(VST_OPAQUE_BANK_MAGIC)));
+            lsp_trace("bank->fxMagic (%08x) != BE_DATA(VST_OPAQUE_BANK_MAGIC) (%08x)", int(bank->fxMagic), int(BE_DATA(chunkBankMagic)));
             return;
         }
 

@@ -124,6 +124,11 @@ namespace lsp
                 return nCurrRow;
             }
 
+            virtual void setValue(float value)
+            {
+                nCurrRow            = value;
+            }
+
             virtual void serialize()
             {
                 // Serialize and reset pending flag
@@ -223,6 +228,11 @@ namespace lsp
                 return fValue;
             }
 
+            virtual void setValue(float value)
+            {
+                fValue      = value;
+            }
+
             virtual void bind(void *data)
             {
                 pData = reinterpret_cast<const float *>(data);
@@ -232,13 +242,19 @@ namespace lsp
             {
                 if ((nID >= 0) && (pData != NULL))
                     fValue      = limit_value(pMetadata, *pData);
-                return fValue != fPrev;
+                float old       = fPrev;
+                fPrev           = fValue;
+                #ifdef LSP_TRACE
+                if (fPrev != old)
+                    lsp_trace("Port %s has been changed, value=%f", pMetadata->id, fValue);
+                #endif
+                return fPrev != old; // Value has changed?
             }
 
-            virtual void post_process(size_t samples)
-            {
-                fPrev       = fValue;
-            };
+//            virtual void post_process(size_t samples)
+//            {
+//                fPrev       = fValue;
+//            };
 
             virtual void save()
             {
@@ -337,9 +353,9 @@ namespace lsp
                 // Serialize data and reset tx_pending flag
                 fPrev       = fValue;
 
-                // Update data according to peak protocol, only for direct-mapped ports
-                if ((nID >= 0) && (pMetadata->flags & F_PEAK))
-                    fValue      = 0.0f;
+//                // Update data according to peak protocol, only for direct-mapped ports
+//                if ((nID >= 0) && (pMetadata->flags & F_PEAK))
+//                    fValue      = 0.0f;
             }
 
             virtual bool tx_pending()
@@ -503,6 +519,9 @@ namespace lsp
 
             virtual bool pre_process(size_t samples)
             {
+                // Clear queue
+                sQueue.clear();
+
                 // Check buffer
                 if (pBuffer == NULL)
                     return false;
@@ -619,7 +638,7 @@ namespace lsp
 
             virtual void post_process(size_t samples)
             {
-                lsp_trace("buffer=%p", pBuffer);
+//                lsp_trace("buffer=%p", pBuffer);
                 // Check that buffer is present
                 if (pBuffer == NULL)
                     return;

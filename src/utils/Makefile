@@ -1,11 +1,5 @@
-MODULES                 = $(UTL_GENTTL) $(UTL_GENPHP) $(UTL_RESGEN) $(UTL_JACKMAKE)
-FILELIST                = gen_php.o lv2_genttl.o resource_gen.o jack_genmake.o
-
-ifdef VST_SDK
-MODULES                += $(UTL_VSTMAKE)
-FILELIST               += vst_genmake.o
-endif
-
+MODULES                 = $(UTL_GENTTL) $(UTL_GENPHP) $(UTL_RESGEN) $(UTL_JACKMAKE) $(UTL_VSTMAKE)
+FILELIST                = gen_php.o lv2_genttl.o resource_gen.o jack_genmake.o vst_genmake.o
 FILES                   = $(addprefix $(OBJDIR)/, $(FILELIST))
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 SUBDIRS                 =

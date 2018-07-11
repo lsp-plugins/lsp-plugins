@@ -1,0 +1,89 @@
+<plugin resizable="false">
+	<hbox spacing="4">
+		<group text="Signal">
+			<vbox>
+				<grid rows="3" cols="2">
+					<label id="dry" />
+					<label id="wet" />
+					<knob id="dry" />
+					<knob id="wet" />
+					<value id="dry" />
+					<value id="wet" />
+				</grid>
+				<hbox fill="false">
+					<button id="mode" />
+					<label id="mode" />
+				</hbox>
+			</vbox>
+		</group>
+		<group text="Samples">
+			<vbox border="0">
+				<label text="Samples" />
+				<knob id="samp" />
+				<value id="samp" />
+				
+				<hbox fill="false">
+					<led id="mode" key="0" />
+					<label text="Active" />
+				</hbox>
+			</vbox>
+		</group>
+		<group text="Distance">
+			<vbox>
+				<grid rows="3" cols="3">
+					<label text="Meters" />
+					<label text="Centimeters" />
+					<label text="Temperature" />
+					
+					<knob id="m" />
+					<knob id="cm" />
+					<knob id="t" balance="0.5" />
+					
+					<value id="m" />
+					<value id="cm" />
+					<value id="t" />
+				</grid>
+				<hbox fill="false">
+					<led id="mode" key="1" />
+					<label text="Active" />
+				</hbox>
+			</vbox>
+		</group>
+		<group text="Time">
+			<vbox>
+				<label text="Delay" />
+				<knob id="time" />
+				<value id="time" />
+				
+				<hbox fill="false">
+					<led id="mode" key="2" />
+					<label text="Active" />
+				</hbox>
+			</vbox>
+		</group>
+		<group text="Monitoring">
+			<grid rows="5" cols="2" hspacing="1" vspacing="1">
+				<label text="" />
+				<label text="Value" />
+
+				<label text="Time (ms)" fill="true" halign="0" />
+				<indicator id="d_t" format="f6.2!" text_color="green" />
+				
+				<label text="Samples (samp)" fill="true" halign="0" />
+				<indicator id="d_s" format="i6" text_color="green" /> 
+				
+				<label text="Distance (cm)" fill="true" halign="0" />
+				<indicator id="d_d" format="f6.1!" text_color="green" />
+				
+				<cell cols="2">
+					<label text="DELAY LINE" />
+				</cell>
+			</grid>
+		</group>
+		<vbox fill="false">
+			<label text="Output" />
+			<knob id="g_out" size="24" />
+			<value id="g_out" />
+		</vbox>
+	</hbox>
+</plugin>

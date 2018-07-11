@@ -48,10 +48,15 @@
 #define GAIN_AMP_M_84_DB                    0.0000628           /* -84 dB       */
 #define GAIN_AMP_M_INF_DB                   0.0                 /* -inf dB      */
 
+#define GAIN_AMP_MIN                        1e-6
+#define GAIN_AMP_MAX                        1e+6
+
 #define GAIN_AMP_M_20_DB                    0.1                 /* -20 dB       */
 #define GAIN_AMP_M_40_DB                    0.01                /* -40 dB       */
 #define GAIN_AMP_M_60_DB                    0.001               /* -60 dB       */
 #define GAIN_AMP_M_80_DB                    0.0001              /* -80 dB       */
+#define GAIN_AMP_M_100_DB                   0.00001             /* -100 dB      */
+#define GAIN_AMP_M_120_DB                   0.000001            /* -120 dB      */
 #define GAIN_AMP_P_20_DB                    10.0                /* +20 dB       */
 #define GAIN_AMP_P_40_DB                    100.0               /* +40 dB       */
 #define GAIN_AMP_P_60_DB                    1000.0              /* +60 dB       */
@@ -63,6 +68,11 @@
 #define GAIN_AMP_N_48_DB                    GAIN_AMP_M_48_DB
 #define GAIN_AMP_N_60_DB                    GAIN_AMP_M_60_DB
 #define GAIN_AMP_N_72_DB                    GAIN_AMP_M_72_DB
+
+//#define GAIN_AMP_M_0_1_DB                   0.988553094657
+#define GAIN_AMP_S_0_1_DB                   0.01157945426
+#define GAIN_AMP_S_0_5_DB                   0.05925372518
+#define GAIN_AMP_S_1_DB                     0.1220184543
 
 // Float saturation limits
 #define FLOAT_SAT_P_NAN                     0.0f

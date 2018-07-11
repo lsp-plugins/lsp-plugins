@@ -751,8 +751,8 @@ namespace lsp
 
         // Calc axis params
         float zy    = 1.0f/GAIN_AMP_M_72_DB;
-        float dx    = -width/HISTORY_TIME;
-        float dy    = -height/(logf(GAIN_AMP_P_24_DB)-logf(GAIN_AMP_M_72_DB));
+        float dx    = -float(width/HISTORY_TIME);
+        float dy    = height/(logf(GAIN_AMP_M_72_DB)-logf(GAIN_AMP_P_24_DB));
 
         // Draw axis
         cv->set_line_width(1.0);

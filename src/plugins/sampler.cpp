@@ -108,6 +108,10 @@ namespace lsp
         if (in == NULL)
             return;
 
+        #ifdef LSP_TRACE
+            if (in->nEvents > 0)
+                lsp_trace("trigger this=%p, number of events = %d", this, int(in->nEvents));
+        #endif
         for (size_t i=0; i<in->nEvents; ++i)
         {
             // Analyze MIDI event
@@ -282,8 +286,6 @@ namespace lsp
             vActive[i]                  = NULL;
             ptr                        += afile_size;
         }
-
-        lsp_assert(ptr <= tail);
 
         // Create additional objects: tasks for file loading
         lsp_trace("Create loaders");

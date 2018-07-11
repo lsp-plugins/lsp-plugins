@@ -1,5 +1,4 @@
 #include <sys/types.h>
-#include <stddef.h>
 #include <string.h>
 #include <alloca.h>
 #include <dlfcn.h>
@@ -18,16 +17,6 @@
 // UI includes
 #include <ui/ui.h>
 
-#if defined(LSP_UI_GTK2)
-    #include <ui/gtk2/ui.h>
-    #define LSP_PACKAGE gtk2
-    #define LSP_WIDGET_FACTORY Gtk2WidgetFactory
-#elif defined(LSP_UI_GTK3)
-    #include <ui/gtk3/ui.h>
-    #define LSP_PACKAGE gtk3
-    #define LSP_WIDGET_FACTORY Gtk3WidgetFactory
-#endif /* LSP_UI_GTK3 */
-
 // VST SDK includes
 #include <container/vst/defs.h>
 #include <container/vst/helpers.h>
@@ -37,58 +26,9 @@
 
 namespace lsp
 {
-    IWidgetFactory *vst_create_widget_factory(const char *bundle_path, VstInt32 uid)
-    {
-        // Instantiate widget factory (if possible)
-        char path[PATH_MAX];
-        snprintf(path, PATH_MAX, "%s/" LSP_ARTIFACT_ID ".vst", bundle_path);
-        fprintf(stderr, "path=%s\n", path);
-
-        #define UI_MODULE(plugin)   \
-            if (uid == vst_cconst(plugin::metadata.vst_uid)) \
-            { \
-                IWidgetFactory *wf  = new LSP_WIDGET_FACTORY(path); \
-                if (wf != NULL) \
-                    return wf; \
-            }
-
-        // Define module macro and include modules
-        #if defined(LSP_UI_GTK2)
-            #define MOD_GTK2(plugin)    UI_MODULE(plugin)
-        #elif defined(LSP_UI_GTK3)
-            #define MOD_GTK3(plugin)    UI_MODULE(plugin)
-        #endif /* LSP_UI_GTK3 */
-
-        #include <metadata/modules.h>
-
-        #undef UI_MODULE
-
-        return NULL;
-    }
-
-    bool vst_has_widget_factory(VstInt32 uid)
-    {
-        #define UI_MODULE(plugin)   \
-            if (uid == vst_cconst(plugin::metadata.vst_uid)) \
-                return true;
-
-        // Define module macro and include modules
-        #if defined(LSP_UI_GTK2)
-            #define MOD_GTK2(plugin)    UI_MODULE(plugin)
-        #elif defined(LSP_UI_GTK3)
-            #define MOD_GTK3(plugin)    UI_MODULE(plugin)
-        #endif /* LSP_UI_GTK3 */
-
-        #include <metadata/modules.h>
-
-        #undef UI_MODULE
-
-        return false;
-    }
-
     void vst_finalize(AEffect *e)
     {
-        fprintf(stderr, "vst_finalize effect=%p\n", e);
+        lsp_trace("vst_finalize effect=%p", e);
         if (e == NULL)
             return;
 
@@ -153,7 +93,6 @@ namespace lsp
         const char *r = NULL;
 
     #define C(code) case code: r = #code; break;
-    #define D(code) case DECLARE_VST_DEPRECATED(code): r = #code "(deprecated)"; break;
 
         switch (opcode)
         {
@@ -198,7 +137,6 @@ namespace lsp
             C(effGetTailSize)
             C(effCanDo)
 
-    #if VST_2_1_EXTENSIONS
             C(effEditKeyDown)
             C(effEditKeyUp)
             C(effSetEditKnobMode)
@@ -209,9 +147,7 @@ namespace lsp
             C(effGetMidiKeyName)
             C(effBeginSetProgram)
             C(effEndSetProgram)
-    #endif // VST_2_1_EXTENSIONS
 
-    #if VST_2_3_EXTENSIONS
             C(effGetSpeakerArrangement)
             C(effShellGetNextPlugin)
             C(effStartProcess)
@@ -220,34 +156,31 @@ namespace lsp
             C(effSetPanLaw)
             C(effBeginLoadBank)
             C(effBeginLoadProgram)
-    #endif // VST_2_3_EXTENSIONS
 
-    #if VST_2_4_EXTENSIONS
             C(effSetProcessPrecision)
             C(effGetNumMidiInputChannels)
             C(effGetNumMidiOutputChannels)
-    #endif // VST_2_4_EXTENSIONS
 
             // DEPRECATED STUFF
-            D(effGetVu)
-            D(effEditDraw)
-            D(effEditMouse)
-            D(effEditKey)
-            D(effEditTop)
-            D(effEditSleep)
-            D(effIdentify)
-            D(effGetNumProgramCategories)
-            D(effCopyProgram)
-            D(effConnectInput)
-            D(effConnectOutput)
-            D(effGetCurrentPosition)
-            D(effGetDestinationBuffer)
-            D(effSetBlockSizeAndSampleRate)
-            D(effGetErrorText)
-            D(effIdle)
-            D(effGetIcon)
-            D(effSetViewPosition)
-            D(effKeysRequired)
+            C(effGetVu)
+            C(effEditDraw)
+            C(effEditMouse)
+            C(effEditKey)
+            C(effEditTop)
+            C(effEditSleep)
+            C(effIdentify)
+            C(effGetNumProgramCategories)
+            C(effCopyProgram)
+            C(effConnectInput)
+            C(effConnectOutput)
+            C(effGetCurrentPosition)
+            C(effGetDestinationBuffer)
+            C(effSetBlockSizeAndSampleRate)
+            C(effGetErrorText)
+            C(effIdle)
+            C(effGetIcon)
+            C(effSetViewPosition)
+            C(effKeysRequired)
 
             default:
                 r = "unknown";
@@ -356,7 +289,7 @@ namespace lsp
         VstIntPtr v = 0;
 
         #ifdef LSP_TRACE
-//        if ((opcode != effEditIdle) && (opcode != effProcessEvents))
+        if ((opcode != effEditIdle) && (opcode != effProcessEvents))
             lsp_trace("vst_dispatcher effect=%p, opcode=%d (%s), index=%d, value=%llx, ptr=%p, opt = %.3f",
                     e, opcode, vst_decode_opcode(opcode), index, (long long)(value), ptr, opt);
         #endif /* LSP_TRACE */
@@ -503,10 +436,7 @@ namespace lsp
 
             case effEditOpen: // Run editor
             {
-                IWidgetFactory *wf = vst_create_widget_factory(w->get_bundle_path(),  e->uniqueID);
-                if (wf == NULL)
-                    break;
-                if (w->show_ui(ptr, wf))
+                if (w->show_ui(ptr))
                     v = 1;
                 break;
             }
@@ -597,7 +527,6 @@ namespace lsp
                 break;
             }
 
-#if VST_2_1_EXTENSIONS
             case effEditKeyDown:
             case effEditKeyUp:
             case effSetEditKnobMode:
@@ -611,9 +540,7 @@ namespace lsp
             case effBeginSetProgram:
             case effEndSetProgram:
                 break;
-#endif // VST_2_1_EXTENSIONS
 
-#if VST_2_3_EXTENSIONS
             case effGetSpeakerArrangement:
             case effShellGetNextPlugin:
 
@@ -625,37 +552,34 @@ namespace lsp
             case effBeginLoadBank:
             case effBeginLoadProgram:
                 break;
-#endif // VST_2_3_EXTENSIONS
 
-#if VST_2_4_EXTENSIONS
             case effSetProcessPrecision:    // Currently no double-precision processing supported
                 v   = 0;
                 break;
             case effGetNumMidiInputChannels:
             case effGetNumMidiOutputChannels:
                 break;
-#endif // VST_2_4_EXTENSIONS
 
             // DEPRECATED STUFF
-            case DECLARE_VST_DEPRECATED (effIdentify):  v = VST_IDENTIFY_MAGIC;    break;
+            case effIdentify:  v = kEffectIdentify;    break;
 
-            case DECLARE_VST_DEPRECATED (effGetVu):
-            case DECLARE_VST_DEPRECATED (effEditDraw):
-            case DECLARE_VST_DEPRECATED (effEditMouse):
-            case DECLARE_VST_DEPRECATED (effEditKey):
-            case DECLARE_VST_DEPRECATED (effEditTop):
-            case DECLARE_VST_DEPRECATED (effEditSleep):
-            case DECLARE_VST_DEPRECATED (effGetNumProgramCategories):
-            case DECLARE_VST_DEPRECATED (effCopyProgram):
-            case DECLARE_VST_DEPRECATED (effConnectInput):
-            case DECLARE_VST_DEPRECATED (effConnectOutput):
-            case DECLARE_VST_DEPRECATED (effGetCurrentPosition):
-            case DECLARE_VST_DEPRECATED (effGetDestinationBuffer):
-            case DECLARE_VST_DEPRECATED (effGetErrorText):
-            case DECLARE_VST_DEPRECATED (effIdle):
-            case DECLARE_VST_DEPRECATED (effGetIcon):
-            case DECLARE_VST_DEPRECATED (effSetViewPosition):
-            case DECLARE_VST_DEPRECATED (effKeysRequired):
+            case effGetVu:
+            case effEditDraw:
+            case effEditMouse:
+            case effEditKey:
+            case effEditTop:
+            case effEditSleep:
+            case effGetNumProgramCategories:
+            case effCopyProgram:
+            case effConnectInput:
+            case effConnectOutput:
+            case effGetCurrentPosition:
+            case effGetDestinationBuffer:
+            case effGetErrorText:
+            case effIdle:
+            case effGetIcon:
+            case effSetViewPosition:
+            case effKeysRequired:
                 break;
 
             default:
@@ -724,7 +648,7 @@ namespace lsp
         return 0.0f;
     }
 
-    AEffect *vst_instantiate(const char *bundle_path, VstInt32 uid, audioMasterCallback callback)
+    AEffect *vst_instantiate(VstInt32 uid, audioMasterCallback callback)
     {
         // Initialize debug
         lsp_debug_init("lxvst");
@@ -753,7 +677,6 @@ namespace lsp
             return NULL;
 
         lsp_trace("Instantiated plugin %s - %s", m->name, m->description);
-        lsp_trace("bundle_path = %s", bundle_path);
 
         // Create effect descriptor
         AEffect *e                  = new AEffect;
@@ -764,7 +687,7 @@ namespace lsp
         }
 
         // Create wrapper
-        VSTWrapper *w               = new VSTWrapper(e, p, bundle_path, plugin_name, callback);
+        VSTWrapper *w               = new VSTWrapper(e, p, plugin_name, callback);
         if (w == NULL)
         {
             vst_finalize(e);
@@ -778,7 +701,7 @@ namespace lsp
         // Fill effect with values depending on metadata
         e->magic                            = kEffectMagic;
         e->dispatcher                       = vst_dispatcher;
-        e->DECLARE_VST_DEPRECATED(process)  = vst_process;
+        e->process                          = vst_process;
         e->setParameter                     = vst_set_parameter;
         e->getParameter                     = vst_get_parameter;
         e->numPrograms                      = 0;
@@ -792,14 +715,10 @@ namespace lsp
         e->uniqueID                         = vst_cconst(m->vst_uid);
         e->version                          = vst_version(m->version);
         e->processReplacing                 = vst_process_replacing;
-
-        // Currently no double-replacing
-        #ifdef VST_2_4_EXTENSIONS
-            e->processDoubleReplacing       = NULL;
-        #endif /* VST_2_4_EXTENSIONS */
+        e->processDoubleReplacing           = NULL; // Currently no double-replacing
 
         // Additional flags
-        if (vst_has_widget_factory(uid))
+        if (m->ui_resource != NULL)
             e->flags                        |= effFlagsHasEditor; // Has custom UI
 
         // Initialize plugin and wrapper
@@ -809,10 +728,20 @@ namespace lsp
     }
 }
 
+#ifdef __cplusplus
 extern "C"
 {
-    AEffect *VST_CREATE_INSTANCE_NAME(const char *bundle_path, VstInt32 uid, audioMasterCallback callback)
+#endif /* __cplusplus */
+    AEffect *VST_CREATE_INSTANCE_NAME(VstInt32 uid, audioMasterCallback callback)
     {
-        return lsp::vst_instantiate(bundle_path, uid, callback);
+        return lsp::vst_instantiate(uid, callback);
     }
+
+    const char *VST_GET_VERSION_NAME()
+    {
+        return LSP_MAIN_VERSION;
+    }
+
+#ifdef __cplusplus
 }
+#endif /* __cplusplus */

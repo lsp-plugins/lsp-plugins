@@ -10,70 +10,32 @@
 
 #define LSP_UI_SIDE
 
+#include <core/types.h>
+#include <core/status.h>
+
 #include <stddef.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
 
+// Windowing system
+#include <ui/ws/ws.h>
+
+// Toolkit system
+#include <ui/tk/tk.h>
+
+// Control system
+#include <ui/ctl/ctl.h>
+
 namespace lsp
 {
-    class IWidget;
-    class IWidgetFactory;
-
-    class IUIPort;
-
-    class plugin_ui;
     class ui_builder;
 
+    using namespace ::lsp::ws;
+    using namespace ::lsp::tk;
+    using namespace ::lsp::ctl;
 }
-
-// Data parsing
-#define PARSE_INT(var, code) \
-    { \
-        errno = 0; \
-        long __ = strtoll(var, NULL, 10); \
-        if (errno == 0) \
-            { code; } \
-    }
-
-#define PARSE_BOOL(var, code) \
-    { \
-        bool __ = !strcasecmp(var, "true"); \
-        if (! __ ) \
-            __ = !strcasecmp(var, "1"); \
-        { code; } \
-    }
-
-#define PARSE_FLAG(var, dst, flag) PARSE_BOOL(var, if (__) dst |= flag; else dst &= ~flag)
-
-#define PARSE_FLOAT(var, code) \
-    { \
-        char *saved_locale = setlocale(LC_NUMERIC, "C"); \
-        errno = 0; \
-        float __ = strtof(var, NULL); \
-        if (errno == 0) \
-            { code; } \
-        setlocale(LC_NUMERIC, saved_locale); \
-    }
-
-#define PARSE_DOUBLE(var, code) \
-    { \
-        char *saved_locale = setlocale(LC_NUMERIC, "C"); \
-        errno = 0; \
-        double __ = strtod(var, NULL); \
-        if (errno == 0) \
-            { code; } \
-        setlocale(LC_NUMERIC, saved_locale); \
-    }
-
-#define BIND_PORT(ui, field, id) \
-    field   = ui->port(id); \
-    if (field != NULL) \
-        field->bind(this);
-
-#define BIND_EXPR(field, expr) \
-    (field).parse(expr);
 
 // Misc data structures
 #include <data/cvector.h>
@@ -90,36 +52,8 @@ namespace lsp
 #include <ui/XMLParser.h>
 
 // Common definitions
-#include <ui/io.h>
 #include <ui/common.h>
-
-// Control interface
-#include <ui/IUIPort.h>
-
-// Colors and themes
-#include <ui/Color.h>
-#include <ui/Theme.h>
-#include <ui/Padding.h>
-#include <ui/Expression.h>
-
-// Drawing
-#include <ui/ISurface.h>
-
-// Widgets
-#include <ui/IWidget.h>
-#include <ui/IWidgetCore.h>
-#include <ui/IWidgetFactory.h>
-#include <ui/IGraph.h>
-#include <ui/IGraphCanvas.h>
-#include <ui/IGraphObject.h>
-#include <ui/Center.h>
-#include <ui/Dot.h>
-#include <ui/Axis.h>
-#include <ui/Marker.h>
-#include <ui/Mesh.h>
-#include <ui/Basis.h>
-#include <ui/Text.h>
-#include <ui/PortAlias.h>
+#include <ui/IUIWrapper.h>
 
 // Plugin UI
 #include <ui/plugin_ui.h>

@@ -32,17 +32,17 @@ namespace lsp
         static const float  ATTACK_TIME_MIN         = 0.0f;
         static const float  ATTACK_TIME_MAX         = 5000.0f;
         static const float  ATTACK_TIME_DFL         = 20.0f;
-        static const float  ATTACK_TIME_STEP        = 0.01f;
+        static const float  ATTACK_TIME_STEP        = 0.0025f;
 
         static const float  RELEASE_TIME_MIN        = 0.0f;
         static const float  RELEASE_TIME_MAX        = 5000.0f;
         static const float  RELEASE_TIME_DFL        = 100.0f;
-        static const float  RELEASE_TIME_STEP       = 0.01f;
+        static const float  RELEASE_TIME_STEP       = 0.0025f;
 
         static const float  KNEE_MIN                = GAIN_AMP_M_24_DB;
         static const float  KNEE_MAX                = GAIN_AMP_0_DB;
         static const float  KNEE_DFL                = GAIN_AMP_M_6_DB;
-        static const float  KNEE_STEP               = 0.05f;
+        static const float  KNEE_STEP               = 0.01f;
 
         static const float  MAKEUP_MIN              = GAIN_AMP_M_72_DB;
         static const float  MAKEUP_MAX              = GAIN_AMP_P_24_DB;
@@ -52,7 +52,7 @@ namespace lsp
         static const float  RATIO_MIN               = 0.01f;
         static const float  RATIO_MAX               = 100.0f;
         static const float  RATIO_DFL               = 1.0f;
-        static const float  RATIO_STEP              = 0.01f;
+        static const float  RATIO_STEP              = 0.0025f;
 
         static const float  LOOKAHEAD_MIN           = 0.0f;
         static const float  LOOKAHEAD_MAX           = 20.0f;

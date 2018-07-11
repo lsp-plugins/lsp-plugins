@@ -264,7 +264,8 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         dyna_processor_classes,
         dyna_processor_mono_ports,
-        NULL
+        "dynamics/processor/single/mono.xml",
+        mono_plugin_port_groups
     };
 
     const plugin_metadata_t  dyna_processor_stereo_metadata::metadata =
@@ -279,6 +280,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         dyna_processor_classes,
         dyna_processor_stereo_ports,
+        "dynamics/processor/single/stereo.xml",
         stereo_plugin_port_groups
     };
 
@@ -294,6 +296,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         dyna_processor_classes,
         dyna_processor_lr_ports,
+        "dynamics/processor/single/lr.xml",
         stereo_plugin_port_groups
     };
 
@@ -309,6 +312,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         dyna_processor_classes,
         dyna_processor_ms_ports,
+        "dynamics/processor/single/ms.xml",
         stereo_plugin_port_groups
     };
 
@@ -325,6 +329,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         dyna_processor_classes,
         sc_dyna_processor_mono_ports,
+        "dynamics/processor/single/mono.xml",
         mono_plugin_sidechain_port_groups
     };
 
@@ -340,6 +345,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         dyna_processor_classes,
         sc_dyna_processor_stereo_ports,
+        "dynamics/processor/single/stereo.xml",
         stereo_plugin_sidechain_port_groups
     };
 
@@ -355,6 +361,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         dyna_processor_classes,
         sc_dyna_processor_lr_ports,
+        "dynamics/processor/single/lr.xml",
         stereo_plugin_sidechain_port_groups
     };
 
@@ -370,6 +377,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         dyna_processor_classes,
         sc_dyna_processor_ms_ports,
+        "dynamics/processor/single/ms.xml",
         stereo_plugin_sidechain_port_groups
     };
 }

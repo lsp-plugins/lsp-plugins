@@ -1,0 +1,143 @@
+/*
+ * LSPAxis.h
+ *
+ *  Created on: 19 июл. 2017 г.
+ *      Author: sadko
+ */
+
+#ifndef UI_TK_LSPAXIS_H_
+#define UI_TK_LSPAXIS_H_
+
+namespace lsp
+{
+    namespace tk
+    {
+        class LSPAxis: public LSPGraphItem
+        {
+            public:
+                static const w_class_t    metadata;
+
+            private:
+                enum flags_t
+                {
+                    F_BASIS         = 1 << 0,
+                    F_LOGARITHMIC   = 1 << 1
+                };
+
+                size_t          nFlags;
+                float           fAngle;
+                float           fDX;
+                float           fDY;
+                float           fMin;
+                float           fMax;
+                size_t          nWidth;
+                size_t          nCenter;
+                Color           sColor;
+
+            protected:
+                void            set_flag(size_t flag, bool value);
+
+            public:
+                explicit LSPAxis(LSPDisplay *dpy);
+                virtual ~LSPAxis();
+
+                virtual status_t init();
+
+            public:
+                /** Check whether the axis is base axis
+                 *
+                 * @return true if axis is a base axis
+                 */
+                inline bool is_basis() const        { return nFlags & F_BASIS;  };
+
+                /** Get minimum value
+                 *
+                 * @return minimum
+                 */
+                inline float min_value() const      { return fMin;              };
+
+                /** Get maximum value
+                 *
+                 * @return maximum
+                 */
+                inline float max_value() const      { return fMax;              };
+
+                inline bool log_scale() const       { return nFlags & F_LOGARITHMIC; }
+
+                inline bool linear_scale() const    { return !(nFlags & F_LOGARITHMIC); }
+
+                inline Color *color()               { return &sColor;           };
+
+                inline size_t line_width() const    { return nWidth;            };
+
+                inline size_t center_id() const     { return nCenter;           };
+
+                inline float angle() const          { return fAngle;            };
+
+                /** Apply axis transformation according to x and y
+                 *
+                 * @param cv canvas
+                 * @param x x coordinate (in pixels) of 2D-point to transform
+                 * @param y y coordinate (in pixels) of 2D-point to transform
+                 * @param dv delta-vector to apply for transform
+                 * @param count size of x, y and dv vector elements
+                 * @return true if values were applied
+                 */
+                bool apply(float *x, float *y, const float *dv, size_t count);
+
+                /** Project the vector on the axis and determine it's value relative to the center
+                 *
+                 * @param cv canvas
+                 * @param x x coordinate (in pixels) of 2D-point on canvas
+                 * @param y y coordinate (in pixels) of 2D-point on canvas
+                 * @return the value after projectsion
+                 */
+                float project(float x, float y);
+
+                /** Get parallel line equation
+                 *
+                 * @param x dot that belongs to parallel line
+                 * @param y dot that belongs to parallel line
+                 * @param a line equation
+                 * @param b line equation
+                 * @param c line equation
+                 */
+                bool parallel(float x, float y, float &a, float &b, float &c);
+
+                /** Get rotated around the point angle
+                 *
+                 * @param x dot that belongs to line
+                 * @param y dot that belongs to line
+                 * @param angle rotation angle around dot
+                 * @param a line equation
+                 * @param b line equation
+                 * @param c line equation
+                 * @return
+                 */
+                bool angle(float x, float y, float angle, float &a, float &b, float &c);
+
+            public:
+                inline void         set_basis(bool value = true)        { set_flag(F_BASIS, value);         };
+
+                inline void         set_log_scale(bool value = true)    { set_flag(F_LOGARITHMIC, value);   };
+
+                inline void         set_linear_scale(bool value = true) { set_flag(F_LOGARITHMIC, !value);  };
+
+                void                set_min_value(float value);
+
+                void                set_max_value(float value);
+
+                void                set_line_width(size_t value);
+
+                void                set_center_id(size_t value);
+
+                void                set_angle(float value);
+
+            public:
+                virtual void render(ISurface *s, bool force);
+        };
+    
+    } /* namespace tk */
+} /* namespace lsp */
+
+#endif /* UI_TK_LSPAXIS_H_ */

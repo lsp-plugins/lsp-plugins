@@ -1,0 +1,878 @@
+/*
+ * LSPAudioFile.cpp
+ *
+ *  Created on: 23 окт. 2017 г.
+ *      Author: sadko
+ */
+
+#include <ui/tk/tk.h>
+#include <ui/tk/helpers/draw.h>
+#include <core/dsp.h>
+
+namespace lsp
+{
+    namespace tk
+    {
+        const w_class_t LSPAudioFile::metadata = { "LSPAudioFile", &LSPWidget::metadata };
+
+        LSPAudioFile::LSPAudioFile(LSPDisplay *dpy):
+            LSPWidget(dpy),
+            sFont(dpy, this),
+            sHintFont(dpy, this),
+            sConstraints(this),
+            sPadding(this)
+        {
+            pClass          = &metadata;
+//            nFileStatus     = STATUS_UNSPECIFIED;
+            pGlass          = NULL;
+            pGraph          = NULL;
+            nBtnWidth       = 0;
+            nBtnHeight      = 0;
+            nBMask          = 0;
+            nBorder         = 4;
+            nRadius         = 10;
+            nStatus         = 0;
+            pDialog         = NULL;
+
+            nDecimSize      = 0;
+            vDecimX         = NULL;
+            vDecimY         = NULL;
+        }
+        
+        LSPAudioFile::~LSPAudioFile()
+        {
+            destroy_data();
+        }
+
+        status_t LSPAudioFile::init()
+        {
+            status_t result = LSPWidget::init();
+            if (result != STATUS_OK)
+                return result;
+
+            sFont.set_size(10);
+            sFont.set_bold(true);
+            sHintFont.set_size(16);
+            sHintFont.set_bold(true);
+
+            init_color(C_BACKGROUND, &sBgColor);
+            init_color(C_GLASS, &sColor);
+            init_color(C_GRAPH_LINE, &sAxisColor);
+            init_color(C_GRAPH_TEXT, sFont.color());
+            init_color(C_STATUS_OK, sHintFont.color());
+
+            ui_handler_id_t id = 0;
+            id = sSlots.add(LSPSLOT_SUBMIT, slot_on_submit, self());
+            if (id < 0) return -id;
+
+            return result;
+        }
+
+        status_t LSPAudioFile::slot_on_submit(void *ptr, void *data)
+        {
+            LSPAudioFile *_this = widget_ptrcast<LSPAudioFile>(ptr);
+            return (_this != NULL) ? _this->on_submit() : STATUS_BAD_ARGUMENTS;
+        }
+
+        void LSPAudioFile::destroy()
+        {
+            destroy_data();
+            LSPWidget::destroy();
+        }
+
+        status_t LSPAudioFile::set_file_name(const char *text)
+        {
+            if (text == NULL)
+                sFileName.truncate();
+            else if (!sFileName.set_native(text))
+                return STATUS_NO_MEM;
+            query_draw();
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::set_file_name(const LSPString *text)
+        {
+            if (!sFileName.set(text))
+                return STATUS_NO_MEM;
+            query_draw();
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::set_hint(const char *text)
+        {
+            if (!sHint.set_native(text))
+                return STATUS_NO_MEM;
+            query_draw();
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::set_hint(const LSPString *text)
+        {
+            if (!sHint.set(text))
+                return STATUS_NO_MEM;
+            query_draw();
+            return STATUS_OK;
+        }
+
+        LSPAudioFile::channel_t *LSPAudioFile::create_channel(color_t color)
+        {
+            channel_t *ch = new channel_t;
+            if (ch == NULL)
+                return NULL;
+
+            ch->nSamples    = 0;
+            ch->nCapacity   = 0;
+            ch->vSamples    = NULL;
+
+            ch->nFadeIn     = 0;
+            ch->nFadeOut    = 0;
+            init_color(color, &ch->sColor);
+            init_color(C_YELLOW, &ch->sFadeColor);
+            init_color(C_YELLOW, &ch->sLineColor);
+            ch->sFadeColor.alpha(0.5f);
+
+            return ch;
+        }
+
+        void LSPAudioFile::destroy_channel(channel_t *channel)
+        {
+            if (channel == NULL)
+                return;
+            if (channel->vSamples != NULL)
+            {
+                lsp_free(channel->vSamples);
+                channel->vSamples   = 0;
+            }
+            delete channel;
+        }
+
+        void LSPAudioFile::destroy_data()
+        {
+            // Destroy surfaces
+            drop_glass();
+
+            if (pGraph != NULL)
+            {
+                pGraph->destroy();
+                delete pGraph;
+                pGraph = NULL;
+            }
+
+            if (vDecimX != NULL)
+                lsp_free(vDecimX);
+            vDecimX = NULL;
+            vDecimY = NULL;
+            nDecimSize = 0;
+
+            // Destroy dialog
+            if (pDialog != NULL)
+            {
+                pDialog->destroy();
+                delete pDialog;
+                pDialog = NULL;
+            }
+
+            // Destroy all channel data
+            size_t n = vChannels.size();
+            for (size_t i=0; i<n; ++i)
+            {
+                channel_t *c = vChannels.at(i);
+                if (c == NULL)
+                    continue;
+                destroy_channel(c);
+            }
+            vChannels.flush();
+        }
+
+        status_t LSPAudioFile::set_channels(size_t n)
+        {
+            size_t nc = vChannels.size();
+            if (n < nc) // There are more channels present than requested
+            {
+                // Remove channels
+                while ((nc--) > n)
+                {
+                    channel_t *c = vChannels.at(n);
+                    if (!vChannels.remove(n))
+                        return STATUS_NO_MEM;
+                    if (c == NULL)
+                        continue;
+                    destroy_channel(c);
+                }
+
+                query_resize();
+            }
+            else if (n > nc) // There are more channels requested than present
+            {
+                while ((nc++) < n)
+                {
+                    channel_t *c = create_channel((nc & 1) ? C_LEFT_CHANNEL : C_RIGHT_CHANNEL);
+                    if (c == NULL)
+                        return STATUS_NO_MEM;
+                    if (!vChannels.add(c))
+                    {
+                        destroy_channel(c);
+                        return STATUS_NO_MEM;
+                    }
+                }
+
+                query_resize();
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::add_channel()
+        {
+            size_t nc = vChannels.size();
+            channel_t *c = create_channel(((++nc) & 1) ? C_LEFT_CHANNEL : C_RIGHT_CHANNEL);
+            if (c == NULL)
+                return STATUS_NO_MEM;
+            if (!vChannels.add(c))
+            {
+                destroy_channel(c);
+                return STATUS_NO_MEM;
+            }
+
+            query_resize();
+
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::add_channels(size_t n)
+        {
+            size_t nc = vChannels.size();
+            n += nc;
+
+            query_resize();
+
+            while ((nc++) < n)
+            {
+                channel_t *c = create_channel((nc & 1) ? C_LEFT_CHANNEL : C_RIGHT_CHANNEL);
+                if (c == NULL)
+                    return STATUS_NO_MEM;
+                if (!vChannels.add(c))
+                {
+                    destroy_channel(c);
+                    return STATUS_NO_MEM;
+                }
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::remove_channel(size_t i)
+        {
+            channel_t *c = vChannels.get(i);
+            if (c == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            if (!vChannels.remove(i))
+                return STATUS_NO_MEM;
+
+            destroy_channel(c);
+            query_resize();
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::swap_channels(size_t a, size_t b)
+        {
+            if (!vChannels.swap(a, b))
+                return STATUS_BAD_ARGUMENTS;
+
+            query_draw();
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::set_channel_fade_in(size_t i, float value)
+        {
+            channel_t *c = vChannels.get(i);
+            if (c == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            if (c->nFadeIn == value)
+                return STATUS_OK;
+            c->nFadeIn      = value;
+            query_draw();
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::set_channel_fade_out(size_t i, float value)
+        {
+            channel_t *c = vChannels.get(i);
+            if (c == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            if (c->nFadeOut == value)
+                return STATUS_OK;
+            c->nFadeOut     = value;
+            query_draw();
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::set_channel_data(size_t i, size_t samples, const float *data)
+        {
+            channel_t *c = vChannels.get(i);
+            if (c == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            size_t allocate = ALIGN_SIZE(samples, 16);
+            if (c->nCapacity < allocate)
+            {
+                float *ptr = lsp_trealloc(float, c->vSamples, allocate);
+                if (ptr == NULL)
+                    return STATUS_NO_MEM;
+                c->vSamples     = ptr;
+                c->nCapacity    = allocate;
+            }
+
+            dsp::copy(c->vSamples, data, samples);
+            c->nSamples     = samples;
+            query_draw();
+
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::clear_channel_data(size_t i)
+        {
+            channel_t *c = vChannels.get(i);
+            if (c == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            if (c->nSamples <= 0)
+                return STATUS_OK;
+
+            c->nSamples     = 0;
+            c->nCapacity    = 0;
+            if (c->vSamples != NULL)
+            {
+                lsp_free(c->vSamples);
+                c->vSamples     = NULL;
+            }
+
+            query_draw();
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::clear_all_channel_data()
+        {
+            size_t n = vChannels.size();
+            if (n <= 0)
+                return STATUS_OK;
+
+            for (size_t i=0; i<n; ++i)
+            {
+                channel_t *c = vChannels.at(i);
+                if (c == NULL)
+                    continue;
+
+                c->nSamples     = 0;
+                c->nCapacity    = 0;
+                if (c->vSamples != NULL)
+                {
+                    lsp_free(c->vSamples);
+                    c->vSamples     = NULL;
+                }
+            }
+
+            query_draw();
+            return STATUS_OK;
+        }
+
+        void LSPAudioFile::render_channel(ISurface *s, channel_t *c, ssize_t y, ssize_t w, ssize_t h)//, const Color &fill, const Color &wire)
+        {
+            if ((c->vSamples == NULL) || (c->nSamples <= 0) || (w <= 0))
+                return;
+
+            // Start and end points
+            vDecimY[0]      = 0.0f;
+            vDecimY[w+1]    = 0.0f;
+            float *dst      = &vDecimY[1];
+            const float *src= c->vSamples;
+            size_t width    = w;
+            float k         = float(c->nSamples) / float(width);
+
+            // Perform decimation
+            if (c->nSamples == width) // 1:1 copy
+                dsp::copy(dst, src, width);
+            else if (c->nSamples < width) // Extension
+            {
+                for (size_t i=0; i<width; ++i)
+                    *(dst++) = src[size_t(i*k)];
+            }
+            else // Decimation
+            {
+                size_t x1 = 0;
+
+                for (size_t i=0; i<width;)
+                {
+                    // Calculate the second coordinate
+                    size_t x2 = (++i) * k;
+                    if (x2 >= c->nSamples)
+                        x2 = c->nSamples-1;
+
+                    // Find the maximum value between x1 and x2
+                    *dst = src[x1];
+                    while ((++x1) < x2)
+                        if ((*dst) < src[x2])
+                            *dst = src[x2];
+                    ++dst;
+                    x1 = x2; // remember the new value of x1
+                }
+            }
+
+            // Apply transformations
+            for (size_t i=0; i<size_t(w+2); ++i)
+                vDecimY[i] = y + vDecimY[i] * h;
+
+            // Draw
+            s->draw_poly(vDecimX, vDecimY, w+2, 1.0f, c->sColor, c->sLineColor);
+
+            // What's with fade-in
+            if (c->nFadeIn > 0)
+            {
+                Color fill(c->sFadeColor);
+                fill.alpha(1.0f - (1.0f - fill.alpha()) * 0.5f);
+                vDecimY[0] = 0.0f;
+                vDecimY[1] = c->nFadeIn * k;
+                vDecimY[2] = 0.0f;
+                vDecimY[3] = y;
+                vDecimY[4] = y + h;
+                vDecimY[5] = y + h;
+                s->draw_poly(&vDecimY[0], &vDecimY[3], 3, 1.0f, fill, c->sFadeColor);
+            }
+            if (c->nFadeOut > 0)
+            {
+                Color fill(c->sFadeColor);
+                fill.alpha(1.0f - (1.0f - fill.alpha()) * 0.5f);
+                vDecimY[0] = w;
+                vDecimY[1] = w - c->nFadeOut * k;
+                vDecimY[2] = w;
+                vDecimY[3] = y;
+                vDecimY[4] = y + h;
+                vDecimY[5] = y + h;
+                s->draw_poly(&vDecimY[0], &vDecimY[3], 3, 1.0f, fill, c->sFadeColor);
+            }
+        }
+
+        ISurface *LSPAudioFile::render_graph(ISurface *s, ssize_t w, ssize_t h)
+        {
+            size_t channels = vChannels.size();
+
+            if (channels <= 0)
+            {
+                if (pGraph != NULL)
+                {
+                    pGraph->destroy();
+                    delete pGraph;
+                    pGraph = NULL;
+                }
+            }
+            // Check surface
+            if (pGraph != NULL)
+            {
+                if ((w != ssize_t(pGraph->width())) || (h != ssize_t(pGraph->height())))
+                {
+                    pGraph->destroy();
+                    delete pGraph;
+                    pGraph    = NULL;
+                }
+            }
+
+            // Create new surface if needed
+            if (pGraph == NULL)
+            {
+                if (s == NULL)
+                    return NULL;
+                pGraph        = s->create(w, h);
+                if (pGraph == NULL)
+                    return NULL;
+            }
+
+            // Clear canvas
+            pGraph->clear(sColor);
+            float aa = pGraph->get_antialiasing();
+
+            // Init decimation buffer
+            if (nStatus & AF_SHOW_DATA)
+            {
+                size_t  sz_decim    = ALIGN_SIZE(w+2, 16); // 2 additional points at start and end
+                if (nDecimSize < sz_decim)
+                {
+                    // Try to allocate memory
+                    float *ptr  = lsp_trealloc(float, vDecimX, sz_decim * 2);
+                    if (ptr == NULL)
+                        return pGraph;
+
+                    // Store new pointers
+                    vDecimX     = ptr;
+                    vDecimY     = &ptr[sz_decim];
+                    nDecimSize  = sz_decim;
+                }
+
+                // Initialize decimation buffer
+                vDecimX[0]      = -1.0f;
+                for (ssize_t i=0; i<=w; ++i)
+                    vDecimX[i+1]    = float(i);
+
+                // Calculate number of pairs
+                size_t pairs    = (channels + 1) >> 1;;
+                float  delta    = float(h)/float(pairs);
+
+                for (size_t i=0, ci=0; i<pairs; ++i)
+                {
+                    ssize_t ys      = i * delta, ye = (i + 1) * delta;
+                    ssize_t yc      = (ye + ys) >> 1;
+
+                    pGraph->set_antialiasing(true);
+                    channel_t *c    = vChannels.at(ci);
+                    if (c != NULL)
+                        render_channel(pGraph, c, yc, w, ys - yc); //, fill, c->sColor);
+
+                    if ((++ci) >= channels)
+                        ci--;
+                    c    = vChannels.at(ci);
+                    if (c != NULL)
+                        render_channel(pGraph, c, yc, w, ye - yc); //, fill, c->sColor);
+
+                    pGraph->set_antialiasing(false);
+                    pGraph->line(0.0f, yc, w, yc, 1.0f, sAxisColor);
+                }
+            }
+
+            // Draw file name
+            if ((nStatus & AF_SHOW_FNAME) && (sFileName.length() > 0))
+            {
+                ssize_t index1 = sFileName.rindex_of('/') + 1;
+                ssize_t index2 = sFileName.rindex_of('\\') + 1;
+                if (index1 < index2)
+                    index1  = index2;
+                if ((index1 < 0) || (index1 >= ssize_t(sFileName.length())))
+                    index1  = 0;
+
+                font_parameters_t fp;
+                text_parameters_t tp;
+
+                sFont.get_parameters(pGraph, &fp);
+                sFont.get_text_parameters(pGraph, &tp, &sFileName, index1);
+
+                Color cl(sColor, 0.25f);
+                size_t bw = 4;
+                pGraph->set_antialiasing(true);
+                pGraph->fill_round_rect(0, h - bw - fp.Height, tp.Width + bw * 2, fp.Height + bw, bw, SURFMASK_ALL_CORNER, cl);
+                pGraph->set_antialiasing(false);
+                sFont.draw(pGraph, bw - tp.XBearing, h - bw*0.5f - fp.Descent, &sFileName, index1);
+            }
+
+            if (nStatus & AF_SHOW_HINT)
+            {
+                font_parameters_t fp;
+                text_parameters_t tp;
+
+                pGraph->set_antialiasing(false);
+                sHintFont.get_parameters(pGraph, &fp);
+                sHintFont.get_text_parameters(pGraph, &tp, &sHint);
+
+                sHintFont.draw(pGraph, (w - tp.Width) * 0.5f, (h - fp.Height) * 0.5f + fp.Ascent, &sHint);
+            }
+
+            pGraph->set_antialiasing(aa);
+
+            return pGraph;
+        }
+
+        void LSPAudioFile::draw(ISurface *s)
+        {
+            // Determine left and top coordinates
+            ssize_t bs  = nBorder + nRadius * M_SQRT2 * 0.5f;
+            ssize_t bl  = sPadding.left();
+            ssize_t bt  = sPadding.top();
+            ssize_t bw  = sSize.nWidth  - sPadding.horizontal();
+            ssize_t bh  = sSize.nHeight - sPadding.vertical();
+            ssize_t rl  = bl + bs;
+            ssize_t rt  = bt + bs;
+            ssize_t gw  = bw - bs*2;
+            ssize_t gh  = bh - bs*2;
+
+            ssize_t xbw = nBorder;
+
+            // Draw background
+            s->fill_frame(
+                    0, 0, sSize.nWidth, sSize.nHeight,
+                    bl + xbw, bt + xbw, bw - xbw*2, bh - xbw*2,
+                    sBgColor);
+
+            s->fill_round_rect(bl, bt, bw, bh, nRadius, SURFMASK_ALL_CORNER, sColor);
+
+            // Draw main contents
+            if ((gw > 0) && (gh > 0))
+            {
+                ISurface *cv    = render_graph(s, gw, gh);
+                if (cv != NULL)
+                {
+                    if (nStatus & AF_PRESSED)
+                        s->draw(cv, rl + 1, rt + 1, float(gw - 2.0f) / gw, float(gh - 2.0f) / gh);
+                    else
+                        s->draw(cv, rl, rt);
+                }
+            }
+
+            // Draw the glass and the border
+            ISurface *cv = create_border_glass(s, &pGlass, bw, bh, nBorder + ((nStatus & AF_PRESSED) ? 1 : 0), nRadius, SURFMASK_ALL_CORNER, sColor);
+            if (cv != NULL)
+                s->draw(cv, bl, bt);
+        }
+
+        void LSPAudioFile::drop_glass()
+        {
+            if (pGlass != NULL)
+            {
+                pGlass->destroy();
+                delete pGlass;
+                pGlass = NULL;
+            }
+        }
+
+        bool LSPAudioFile::hide()
+        {
+            bool result = LSPWidget::hide();
+            if (pGlass != NULL)
+            {
+                pGlass->destroy();
+                delete pGlass;
+                pGlass = NULL;
+            }
+
+            if (pGraph != NULL)
+            {
+                pGraph->destroy();
+                delete pGraph;
+                pGraph = NULL;
+            }
+
+            return result;
+        }
+
+        status_t LSPAudioFile::set_radius(size_t radius)
+        {
+            if (nRadius == radius)
+                return STATUS_OK;
+            nRadius = radius;
+            query_resize();
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::set_border(size_t border)
+        {
+            if (nBorder == border)
+                return STATUS_OK;
+            nBorder = border;
+            query_resize();
+            return STATUS_OK;
+        }
+
+        void LSPAudioFile::set_show_data(bool value)
+        {
+            size_t flags = nStatus;
+            nStatus = (value) ? nStatus | AF_SHOW_DATA : nStatus & (~AF_SHOW_DATA);
+            if (nStatus == flags)
+                return;
+            query_draw();
+        }
+
+        void LSPAudioFile::set_show_hint(bool value)
+        {
+            size_t flags = nStatus;
+            nStatus = (value) ? nStatus | AF_SHOW_HINT : nStatus & (~AF_SHOW_HINT);
+            if (nStatus == flags)
+                return;
+            query_draw();
+        }
+
+        void LSPAudioFile::set_show_file_name(bool value)
+        {
+            size_t flags = nStatus;
+            nStatus = (value) ? nStatus | AF_SHOW_FNAME : nStatus & (~AF_SHOW_FNAME);
+            if (nStatus == flags)
+                return;
+            query_draw();
+        }
+
+        void LSPAudioFile::size_request(size_request_t *r)
+        {
+            size_t nc = vChannels.size();
+            nc = (nc + 1) & (~1); // Round up to 2
+
+            ssize_t bs      = nBorder + nRadius * M_SQRT2 * 0.5f;
+            r->nMinWidth    = 16;
+            r->nMinHeight   = nc * 16;
+            if (r->nMinHeight < 16)
+                r->nMinHeight = 16;
+            r->nMaxWidth    = -1;
+            r->nMaxHeight   = -1;
+
+            // Add external size constraints
+            sConstraints.apply(r);
+
+            // Add padding and size
+            r->nMinWidth   += (bs << 1) + sPadding.horizontal();
+            r->nMinHeight  += (bs << 1) + sPadding.vertical();
+            if (r->nMaxWidth >= 0)
+                r->nMaxWidth   += (bs << 1) + sPadding.horizontal();
+            if (r->nMaxHeight >= 0)
+                r->nMaxHeight  += (bs << 1) + sPadding.vertical();
+        }
+
+        bool LSPAudioFile::check_mouse_over(ssize_t x, ssize_t y)
+        {
+            x -= sSize.nLeft;
+            y -= sSize.nTop;
+
+            if ((x < ssize_t(sPadding.left())) || (x > ssize_t(sSize.nWidth -sPadding.right())))
+                return false;
+            if ((y < ssize_t(sPadding.top())) || (y > ssize_t(sSize.nHeight - size_t(sPadding.bottom()))))
+                return false;
+
+            // Check special case: corners
+            if (x < ssize_t(nRadius))
+            {
+                if (y < ssize_t(nRadius))
+                {
+                    float dx = nRadius - x, dy = nRadius - y;
+                    return (dx*dx + dy*dy) <= nRadius * nRadius;
+                }
+                else if (y > ssize_t(sSize.nHeight - nRadius))
+                {
+                    float dx = nRadius - x, dy = y - sSize.nHeight + nRadius;
+                    return (dx*dx + dy*dy) <= nRadius * nRadius;
+                }
+            }
+            else if (x > ssize_t(sSize.nWidth + nRadius))
+            {
+                if (y < ssize_t(nRadius))
+                {
+                    float dx = x - sSize.nWidth + nRadius, dy = nRadius - y;
+                    return (dx*dx + dy*dy) <= nRadius * nRadius;
+                }
+                else if (y > ssize_t(sSize.nHeight - nRadius))
+                {
+                    float dx = x - sSize.nWidth + nRadius, dy = y - sSize.nHeight + nRadius;
+                    return (dx*dx + dy*dy) <= nRadius * nRadius;
+                }
+            }
+
+            return true;
+        }
+
+        status_t LSPAudioFile::on_mouse_down(const ws_event_t *e)
+        {
+            nBMask         |= (1 << e->nCode);
+            size_t flags    = nStatus;
+            nStatus         = (nBMask == (1 << MCB_LEFT)) && (check_mouse_over(e->nLeft, e->nTop)) ? nStatus | AF_PRESSED : nStatus & (~AF_PRESSED);
+            if (flags != nStatus)
+            {
+                drop_glass();
+                query_draw();
+            }
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::slot_on_dialog_submit(void *ptr, void *data)
+        {
+            // Cast widget
+            LSPAudioFile *_this = widget_ptrcast<LSPAudioFile>(ptr);
+            if (_this == NULL)
+                return STATUS_BAD_STATE;
+
+            // Get selected file
+            status_t result = _this->pDialog->get_selected_file(&_this->sFileName);
+            if (result != STATUS_OK)
+                return result;
+
+            // OK, file name was submitted
+            _this->query_draw();
+            return _this->sSlots.execute(LSPSLOT_SUBMIT, data);
+        }
+
+        status_t LSPAudioFile::show_dialog()
+        {
+            // Create dialog if needed
+            if (pDialog == NULL)
+            {
+                pDialog = new LSPFileDialog(pDisplay);
+                if (pDialog == NULL)
+                    return STATUS_NO_MEM;
+                status_t result = pDialog->init();
+                if (result != STATUS_OK)
+                    return result;
+
+                pDialog->set_title("Load Audio File");
+                pDialog->add_filter("*.wav", "Wave audio format (*.wav)");
+                pDialog->add_filter("*", "Any file");
+                pDialog->set_default_filter(0);
+
+                pDialog->set_action_title("Load");
+                pDialog->bind_action(slot_on_dialog_submit, self());
+            }
+
+            // Initialize dialog
+            pDialog->show(this);
+
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::on_mouse_up(const ws_event_t *e)
+        {
+            bool pressed    = (nBMask == (1 << MCB_LEFT)) && (check_mouse_over(e->nLeft, e->nTop));
+//            bool old_pressed= bPressed;
+            size_t flags    = nStatus;
+            nBMask         &= ~(1 << e->nCode);
+            if (nBMask == 0)
+                nStatus        &= ~AF_PRESSED;
+
+            if (flags != nStatus)
+            {
+                drop_glass();
+                query_draw();
+            }
+
+            if ((pressed) && (nBMask == 0) && (e->nCode == MCB_LEFT))
+                show_dialog();
+
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::on_mouse_move(const ws_event_t *e)
+        {
+//            bool pressed    = bPressed;
+//            bPressed        = (nBMask == (1 << MCB_LEFT)) && (check_mouse_over(e->nLeft, e->nTop));
+
+            size_t flags    = nStatus;
+            nStatus         = (nBMask == (1 << MCB_LEFT)) && (check_mouse_over(e->nLeft, e->nTop)) ? nStatus | AF_PRESSED : nStatus & (~AF_PRESSED);
+            if (flags != nStatus)
+            {
+                drop_glass();
+                query_draw();
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t LSPAudioFile::on_mouse_dbl_click(const ws_event_t *e)
+        {
+            if (e->nCode != MCB_RIGHT)
+                return STATUS_OK;
+
+            sFileName.truncate();
+//            nFileStatus = STATUS_UNSPECIFIED;
+            return sSlots.execute(LSPSLOT_SUBMIT, NULL);
+        }
+
+        status_t LSPAudioFile::on_submit()
+        {
+            return STATUS_OK;
+        }
+
+        void LSPAudioFile::realize(const realize_t *r)
+        {
+            LSPWidget::realize(r);
+        }
+    
+    } /* namespace tk */
+} /* namespace lsp */

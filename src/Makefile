@@ -1,9 +1,5 @@
 SUBDIRS                 = core metadata plugins ui utils container doc
-MODULES                 = $(SUBDIRS) jack_stub
-
-ifdef VST_SDK
-MODULES                += vst_stub
-endif
+MODULES                 = $(SUBDIRS) jack_stub vst_stub
 
 .PHONY: all $(MODULES)
 
@@ -40,7 +36,7 @@ $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 # Target dependencies
 plugins: $(OBJ_CORE) $(OBJ_METADATA)
 
-container: $(OBJ_PLUGINS) $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(UTL_FILES)
+container: $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(UTL_FILES) $(OBJ_PLUGINS)
 
 utils: $(OBJ_CORE) $(OBJ_METADATA)
 

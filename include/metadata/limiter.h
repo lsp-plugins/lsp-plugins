@@ -26,22 +26,22 @@ namespace lsp
         static const float  ATTACK_TIME_MIN         = 0.25f;
         static const float  ATTACK_TIME_MAX         = 20.0f;
         static const float  ATTACK_TIME_DFL         = 5.0f;
-        static const float  ATTACK_TIME_STEP        = 0.01f;
+        static const float  ATTACK_TIME_STEP        = 0.0025f;
 
         static const float  RELEASE_TIME_MIN        = 0.25f;
         static const float  RELEASE_TIME_MAX        = 20.0f;
         static const float  RELEASE_TIME_DFL        = 5.0f;
-        static const float  RELEASE_TIME_STEP       = 0.01f;
+        static const float  RELEASE_TIME_STEP       = 0.0025f;
 
         static const float  THRESHOLD_MIN           = GAIN_AMP_M_48_DB;
         static const float  THRESHOLD_MAX           = GAIN_AMP_0_DB;
         static const float  THRESHOLD_DFL           = GAIN_AMP_0_DB;
-        static const float  THRESHOLD_STEP          = 0.05f;
+        static const float  THRESHOLD_STEP          = 0.01f;
 
         static const float  KNEE_MIN                = GAIN_AMP_M_12_DB;
         static const float  KNEE_MAX                = GAIN_AMP_0_DB;
         static const float  KNEE_DFL                = GAIN_AMP_0_DB;
-        static const float  KNEE_STEP               = 0.025f;
+        static const float  KNEE_STEP               = 0.01f;
 
         static const float  LINKING_MIN             = 0;
         static const float  LINKING_MAX             = 100.0f;

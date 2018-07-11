@@ -1,0 +1,77 @@
+<plugin resizable="false">
+	<hbox spacing="4">
+		<group text="Controls">
+			<grid rows="3" cols="3">
+				<label text="Max time" />
+				<label text="Reactivity" />
+				<label text="Sel time" />
+				
+				<knob id="time" size="24" />
+				<knob id="react" size="24" />
+				<knob id="sel" size="24" scale_color="yellow" balance="0.5" />
+				
+				<value id="time" />
+				<value id="react" />
+				<value id="sel" />
+			</grid>
+		</group>
+		<group text="Monitoring">
+			<grid rows="4" cols="5" hspacing="1" vspacing="1">
+				<label text="Phase" fill="true" halign="0" />
+				<label text="Delay (ms)" />
+				<label text="Offset (samp)" />
+				<label text="Distance (cm)" />
+				<label text="Value" />
+				
+				<label text="Best" color="green" fill="true" halign="0" />
+				<indicator id="b_t" format="+-f5.3!" text_color="green" /> 
+				<indicator id="b_s" format="+-i4" text_color="green" />
+				<indicator id="b_d" format="+-f5.1!" text_color="green" />
+				<indicator id="b_v" format="+-f4.3!" text_color="green" />
+				
+				<label text="Selected" color="yellow" fill="true" halign="0" />
+				<indicator id="s_t" format="+-f5.3!" text_color="yellow" />
+				<indicator id="s_s" format="+-i4" text_color="yellow" />
+				<indicator id="s_d" format="+-f5.1!" text_color="yellow" />
+				<indicator id="s_v" format="+-f4.3!" text_color="yellow" />
+				
+				<label text="Worst" color="red" fill="true" halign="0" />
+				<indicator id="w_t" format="+-f5.3!" text_color="red" />
+				<indicator id="w_s" format="+-i4" text_color="red" />
+				<indicator id="w_d" format="+-f5.1!" text_color="red" />
+				<indicator id="w_v" format="+-f4.3!" text_color="red" />
+			</grid>
+		</group>
+		<vbox size="2" border="2">
+			<graph width="192" expand="true" fill="true">
+				<center hpos="0" vpos="0" visible="false" />
+				<axis id="time" min="-1.0" max="1.0" color="white" angle="0.0" logarithmic="false" />
+				<axis min="-1.05" max="1.05" color="white" angle="0.5" logarithmic="false" />
+				
+				<mesh id="f" width="3" />
+				
+				<marker id="w_t" color="red" basis="0" parallel="1" />
+				<marker id="w_v" color="red" basis="1" parallel="0" />
+				
+				<marker id="b_t" color="green" basis="0" parallel="1" />
+				<marker id="b_v" color="green" basis="1" parallel="0" />
+				
+				<marker id="s_t" color="yellow" basis="0" parallel="1" />
+				<marker id="s_v" color="yellow" basis="1" parallel="0" />
+				
+				<text text="+phase" coord="0;1.05" halign="1" valign="-1" color="green" />
+				<text text="-phase" coord="0;-1.05" halign="1" valign="1" color="red" />
+				
+				<text text="time" coord="0;0" halign="-1" valign="-1" color="white" />
+			</graph>
+			<label text="CORRELATION GRAPH" />
+		</vbox>
+		<align pad_left="8" pad_right="8">
+			<vbox>
+				<label text="Reset" />
+				<button id="reset" size="32" toggle="false" />
+				<led id="reset" color="red"  size="8" />
+			</vbox>
+		</align>
+	</hbox>
+</plugin>

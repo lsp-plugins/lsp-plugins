@@ -12,13 +12,13 @@ LINK_OBJECTS            = $(NATIVE_IMPL) $(X86_IMPL) $(SSE_IMPL) $(AVX_IMPL) $(S
 
 .PHONY: all target
 
-all: $(DSP_CORE)
-
 target: all
+
+all: $(DSP_CORE)
 
 $(DSP_CORE): $(LINK_OBJECTS)
 	@echo "  $(LD) $(notdir $(DSP_CORE))"
-	@$(LD) $(LDFLAGS) -r -o $(DSP_CORE) $(LINK_OBJECTS)
+	@$(LD) -r $(LDFLAGS) -o $(DSP_CORE) $(LINK_OBJECTS)
 
 $(NATIVE_IMPL) $(X86_IMPL):
 	@echo "  $(CC) $(FILE)"

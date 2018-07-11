@@ -230,7 +230,8 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         gate_classes,
         gate_mono_ports,
-        NULL
+        "dynamics/gate/single/mono.xml",
+        mono_plugin_port_groups
     };
 
     const plugin_metadata_t  gate_stereo_metadata::metadata =
@@ -245,6 +246,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         gate_classes,
         gate_stereo_ports,
+        "dynamics/gate/single/stereo.xml",
         stereo_plugin_port_groups
     };
 
@@ -260,6 +262,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         gate_classes,
         gate_lr_ports,
+        "dynamics/gate/single/lr.xml",
         stereo_plugin_port_groups
     };
 
@@ -275,6 +278,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         gate_classes,
         gate_ms_ports,
+        "dynamics/gate/single/ms.xml",
         stereo_plugin_port_groups
     };
 
@@ -291,6 +295,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         gate_classes,
         sc_gate_mono_ports,
+        "dynamics/gate/single/mono.xml",
         mono_plugin_sidechain_port_groups
     };
 
@@ -306,6 +311,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         gate_classes,
         sc_gate_stereo_ports,
+        "dynamics/gate/single/stereo.xml",
         stereo_plugin_sidechain_port_groups
     };
 
@@ -321,6 +327,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         gate_classes,
         sc_gate_lr_ports,
+        "dynamics/gate/single/lr.xml",
         stereo_plugin_sidechain_port_groups
     };
 
@@ -336,6 +343,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         gate_classes,
         sc_gate_ms_ports,
+        "dynamics/gate/single/ms.xml",
         stereo_plugin_sidechain_port_groups
     };
 }

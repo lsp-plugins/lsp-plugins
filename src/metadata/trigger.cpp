@@ -187,7 +187,8 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         trigger_classes,
         trigger_mono_ports,
-        NULL
+        "trigger/single/mono.xml",
+        mono_plugin_port_groups
     };
 
     const plugin_metadata_t  trigger_stereo_metadata::metadata =
@@ -202,7 +203,8 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         trigger_classes,
         trigger_stereo_ports,
-        NULL
+        "trigger/single/stereo.xml",
+        stereo_plugin_port_groups
     };
 
     const plugin_metadata_t  trigger_midi_mono_metadata::metadata =
@@ -217,7 +219,8 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         trigger_classes,
         trigger_mono_midi_ports,
-        NULL
+        "trigger/single/mono.xml",
+        mono_plugin_port_groups
     };
 
     const plugin_metadata_t  trigger_midi_stereo_metadata::metadata =
@@ -232,6 +235,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         trigger_classes,
         trigger_stereo_midi_ports,
-        NULL
+        "trigger/single/stereo.xml",
+        stereo_plugin_port_groups
     };
 }

@@ -1,0 +1,124 @@
+<plugin resizable="false">
+	<grid rows="2" cols="2" hspacing="4" vspacing="4" transpose="true">
+		<group text="MIDI Setup" expand="true">
+			<grid rows="3" cols="5" hspacing="4">
+				<label text="Channel" />
+				<label text="Note" />
+				<label text="Muting" />
+				<label text="MIDI #" />
+				<label text="Mute" />
+									
+				<combo id="chan" halign="1" fill="true" />
+				<hbox fill="true" spacing="2">
+					<combo id="note" fill="true" />
+					<combo id="oct" fill="true" />
+				</hbox>
+				<button id="muting" />
+				<indicator id="mn" format="i3" text_color="green" />
+				<button id="mute" size="32" />
+				
+				<label />
+				<label />
+				<led id="muting" size="6" />
+				<label />
+				<led id="mute" color="red" />
+			</grid>
+		</group>
+		<group text="Samples">
+			<vbox>
+				<align hpos="-1">
+					<hbox spacing="8">
+						<label text="Sample # " />
+						<combo id="ssel" width="20" />
+					</hbox>
+				</align>
+				
+				<hsep />
+				
+				<!-- File editor -->
+				<file
+					id="sf[ssel]" head_id="hc[ssel]" tail_id="tc[ssel]"
+					fadein_id="fi[ssel]" fadeout_id="fo[ssel]" length_id="fl[ssel]"
+					status_id="fs[ssel]" mesh_id="fd[ssel]"
+					width="320" height="127" />
+					
+				<grid rows="3" cols="7" vspacing="2" expand="true">
+					<label text="Head cut" />
+					<label text="Tail cut" />
+					<label text="Fade in" />
+					<label text="Fade out" />
+					<label text="Makeup" />
+					<label text="Pre-delay" />
+					<label text="Listen" />
+					
+					<knob id="hc[ssel]" size="20" />
+					<knob id="tc[ssel]" size="20" />
+					<knob id="fi[ssel]" size="20" scale_color="yellow" />
+					<knob id="fo[ssel]" size="20" scale_color="yellow" />
+					<knob id="mk[ssel]" size="20" />
+					<knob id="pd[ssel]" size="20" />
+					<button id="ls[ssel]" size="32" toggle="false" />
+					
+					<value id="hc[ssel]" />
+					<value id="tc[ssel]" />
+					<value id="fi[ssel]" />
+					<value id="fo[ssel]" />
+					<value id="mk[ssel]" />
+					<value id="pd[ssel]" />
+					<led id="ls[ssel]" />
+				</grid>
+			</vbox>
+		</group>
+		<group text="Audio Channels" expand="true">
+			<grid rows="3" cols="5">
+				<label id="dyna" />
+				<label id="drft" />
+				<label id="dry" />
+				<label id="wet" />
+				<label id="g_out" />
+				
+				<knob id="dyna" scale_color="green" />
+				<knob id="drft" scale_color="green" />
+				<knob id="dry" />
+				<knob id="wet" />
+				<knob id="g_out" />
+				
+				<value id="dyna" />
+				<value id="drft" />
+				<value id="dry" />
+				<value id="wet" />
+				<value id="g_out" />
+			</grid>
+		</group>
+		<group text="Sample matrix" expand="true">
+			<!-- Sample matrix -->
+			<grid rows="11" cols="9" transpose="true">
+				<label text="Sample #" fill="true" halign="0" />
+				<label text="Enabled" fill="true" halign="0" />
+				<label text="Active" fill="true" halign="0" />
+				<label text="Velocity" fill="true" halign="0" />
+				<label text="(%)" fill="true" halign="0" />
+				<label text="Pan Left" fill="true" halign="0" />
+				<label text="(%)" fill="true" halign="0" />
+				<label text="Pan Right" fill="true" halign="0" />
+				<label text="(%)" fill="true" halign="0" />
+				<label text="Listen" fill="true" halign="0" />
+				<label text="Note on" fill="true" halign="0" />
+
+				<ui:for id="i" first="0" last="7" >
+					<label text="${i}" />
+					<button id="on_${i}" size="16" />
+					<led id="ac_${i}" color="yellow" size="6" />
+					<knob id="vl_${i}" size="20" scale_color="magenta" />
+					<value id="vl_${i}" detailed="false" />
+					<knob id="pl_${i}" size="20" balance="0.5" scale_color="red" />
+					<value id="pl_${i}" detailed="false" />
+					<knob id="pr_${i}" size="20" balance="0.5" scale_color="cyan" />
+					<value id="pr_${i}" detailed="false" />
+					<button id="ls_${i}" size="32" toggle="false" />
+					<led id="no_${i}" />
+				</ui:for>
+			</grid>
+		</group>
+	</grid>
+</plugin>

@@ -1,0 +1,172 @@
+<plugin resizable="false">
+	<grid rows="2" cols="5" transpose="true" hspacing="4" vspacing="4">
+		<group text="Signal L" expand="true">
+			<vbox>
+				<grid rows="3" cols="2">
+					<label text="Dry amount" />
+					<label text="Wet amount" />
+					
+					<knob id="dry_l" />
+					<knob id="wet_l" />
+					
+					<value id="dry_l" />
+					<value id="wet_l" />
+				</grid>
+				<hbox fill="false">
+					<button id="mode_l" />
+					<label text="Mode" />
+				</hbox>
+			</vbox>
+		</group>
+		<group text="Signal R" expand="true">
+			<vbox>
+				<grid rows="3" cols="2">
+					<label text="Dry amount" />
+					<label text="Wet amount" />
+					
+					<knob id="dry_r" />
+					<knob id="wet_r" />
+					
+					<value id="dry_r" />
+					<value id="wet_r" />
+				</grid>
+				<hbox fill="false">
+					<button id="mode_r" />
+					<label text="Mode" />
+				</hbox>
+			</vbox>
+		</group>
+
+		<group text="Samples L" expand="true">
+			<vbox border="0">
+				<label text="Samples" />
+				<knob id="samp_l" />
+				<value id="samp_l" />
+				
+				<hbox fill="false">
+					<led id="mode_l" key="0" />
+					<label text="Active" />
+				</hbox>
+			</vbox>
+		</group>
+		<group text="Samples R" expand="true">
+			<vbox border="0">
+				<label text="Samples" />
+				<knob id="samp_r" />
+				<value id="samp_r" />
+				
+				<hbox fill="false">
+					<led id="mode_r" key="0" />
+					<label text="Active" />
+				</hbox>
+			</vbox>
+		</group>
+
+		<group text="Distance L" expand="true">
+			<vbox>
+				<grid rows="3" cols="3">
+					<label text="Meters" />
+					<label text="Centimeters" />
+					<label text="Temperature" />
+					
+					<knob id="m_l" />
+					<knob id="cm_l" />
+					<knob id="t_l" balance="0.5" />
+					
+					<value id="m_l" />
+					<value id="cm_l" />
+					<value id="t_l" />
+				</grid>
+				<hbox fill="false">
+					<led id="mode_l" key="1" />
+					<label text="Active" />
+				</hbox>
+			</vbox>
+		</group>
+		<group text="Distance R" expand="true">
+			<vbox>
+				<grid rows="3" cols="3">
+					<label text="Meters" />
+					<label text="Centimeters" />
+					<label text="Temperature" />
+					
+					<knob id="m_r" />
+					<knob id="cm_r" />
+					<knob id="t_r" balance="0.5" />
+					
+					<value id="m_r" />
+					<value id="cm_r" />
+					<value id="t_r" />
+				</grid>
+				<hbox fill="false">
+					<led id="mode_r" key="1" />
+					<label text="Active" />
+				</hbox>
+			</vbox>
+		</group>
+
+		<group text="Time L" expand="true">
+			<vbox>
+				<label text="Delay" />
+				<knob id="time_l" />
+				<value id="time_l" />
+				
+				<hbox fill="false">
+					<led id="mode_l" key="2" />
+					<label text="Active" />
+				</hbox>
+			</vbox>
+		</group>
+		<group text="Time R" expand="true">
+			<vbox>
+				<label text="Delay" />
+				<knob id="time_r" />
+				<value id="time_r" />
+				
+				<hbox fill="false">
+					<led id="mode_r" key="2" />
+					<label text="Active" />
+				</hbox>
+			</vbox>
+		</group>
+
+		<group text="Monitoring L" expand="true">
+			<grid rows="5" cols="2" hspacing="1" vspacing="1">
+				<label />
+				<label text="Value" />
+
+				<label text="Time (ms)" fill="true" halign="0" />
+				<indicator id="d_t_l" format="f6.2!" text_color="green" />
+				
+				<label text="Samples (samp)" fill="true" halign="0" />
+				<indicator id="d_s_l" format="i6" text_color="green" /> 
+				
+				<label text="Distance (cm)" fill="true" halign="0" />
+				<indicator id="d_d_l" format="f6.1!" text_color="green" />
+				
+				<cell cols="2">
+					<label text="LEFT CHANNEL" />
+				</cell>
+			</grid>
+		</group>
+		<group text="Monitoring R" expand="true">
+			<grid rows="5" cols="2" hspacing="1" vspacing="1">
+				<label />
+				<label text="Value" />
+
+				<label text="Time (ms)" fill="true" halign="0" />
+				<indicator id="d_t_r" format="f6.2!" text_color="green" />
+				
+				<label text="Samples (samp)" fill="true" halign="0" />
+				<indicator id="d_s_r" format="i6" text_color="green" /> 
+				
+				<label text="Distance (cm)" fill="true" halign="0" />
+				<indicator id="d_d_r" format="f6.1!" text_color="green" />
+				
+				<cell cols="2">
+					<label text="RIGHT CHANNEL" />
+				</cell>
+			</grid>
+		</group>
+	</grid>
+</plugin>

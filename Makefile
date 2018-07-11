@@ -14,7 +14,7 @@ INSTALL                 = install
 
 # Package version
 ifndef VERSION
-VERSION                 = 1.0.26
+VERSION                 = 1.1.0
 endif
 
 # Directories
@@ -26,18 +26,10 @@ export RESDIR           = ${CURDIR}/res
 export RELEASE          = ${CURDIR}/.release
 export BUILDDIR         = $(OBJDIR)
 
-# Dependencies
-export VST_SDK          = /home/sadko/eclipse/lsp-plugins-vst3sdk
-
 # Includes
 INC_FLAGS               = -I"${CURDIR}/include"
-INSTALLATIONS           = install_ladspa install_lv2 install_jack install_doc
-RELEASES                = release_ladspa release_lv2 release_jack release_src release_doc
-ifdef VST_SDK
-INC_FLAGS              += -I"$(VST_SDK)"
-INSTALLATIONS          += install_vst
-RELEASES               += release_vst
-endif
+INSTALLATIONS           = install_ladspa install_lv2 install_jack install_doc install_vst
+RELEASES                = release_ladspa release_lv2 release_jack release_src release_doc release_vst
 
 # Flags
 ifndef CPU_ARCH
@@ -59,27 +51,27 @@ export CFLAGS           = $(CC_ARCH) -std=c++98 -fPIC -fno-exceptions -fno-async
 export CC               = g++
 export PHP              = php
 export LD               = ld
-export LDFLAGS          = $(LD_ARCH) 
+export LDFLAGS          = $(LD_ARCH) -L$(LD_PATH)
 export SO_FLAGS         = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -shared -Llibrary -lc -lm -fPIC -lpthread
 export MERGE_FLAGS      = $(LD_ARCH) -r
 export EXE_FLAGS        = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -lm -fPIC -pthread
 
 # Objects
 export OBJ_CORE         = $(OBJDIR)/core.o
+export OBJ_CTL_CORE     = $(OBJDIR)/ctl_core.o
+export OBJ_TK_CORE      = $(OBJDIR)/tk_core.o
+export OBJ_WS_CORE      = $(OBJDIR)/ws_core.o
+export OBJ_WS_X11_CORE  = $(OBJDIR)/ws_x11_core.o
 export OBJ_UI_CORE      = $(OBJDIR)/ui_core.o
 export OBJ_RES_CORE     = $(OBJDIR)/res_core.o
 export OBJ_PLUGINS      = $(OBJDIR)/plugins.o
 export OBJ_METADATA     = $(OBJDIR)/metadata.o
-export OBJ_GTK2UI       = $(OBJDIR)/ui_gtk2.o
-export OBJ_GTK3UI       = $(OBJDIR)/ui_gtk3.o
-export OBJ_FILES        = $(OBJ_CORE) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(OBJ_PLUGINS) $(OBJ_METADATA) $(OBJ_GTK2UI)
+export OBJ_FILES        = $(OBJ_CORE) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(OBJ_PLUGINS) $(OBJ_METADATA)
 
 
 # Libraries
 export LIB_LADSPA       = $(OBJDIR)/$(ARTIFACT_ID)-ladspa.so
 export LIB_LV2          = $(OBJDIR)/$(ARTIFACT_ID)-lv2.so
-export LIB_LV2_GTK2UI   = $(OBJDIR)/$(ARTIFACT_ID)-lv2-gtk2.so
-export LIB_LV2_GTK3UI   = $(OBJDIR)/$(ARTIFACT_ID)-lv2-gtk3.so
 export LIB_VST          = $(OBJDIR)/$(ARTIFACT_ID)-vst-core-$(VERSION)-$(CPU_ARCH).so
 export LIB_JACK         = $(OBJDIR)/$(ARTIFACT_ID)-jack-core-$(VERSION)-$(CPU_ARCH).so
 
@@ -98,12 +90,10 @@ export UTL_FILES        = $(UTL_GENTTL) $(UTL_VSTMAKE) $(UTL_GENPHP) $(UTL_RESGE
 export PHP_PLUGINS      = $(OBJDIR)/plugins.php
 
 # Compile headers and linkage libraries
-export GTK2_HEADERS     = $(shell pkg-config --cflags gtk+-2.0)
-export GTK2_LIBS        = $(shell pkg-config --libs gtk+-2.0)
-export GTK3_HEADERS     = $(shell pkg-config --cflags gtk+-3.0)
-export GTK3_LIBS        = $(shell pkg-config --libs gtk+-3.0)
 export CAIRO_HEADERS    = $(shell pkg-config --cflags cairo)
 export CAIRO_LIBS       = $(shell pkg-config --libs cairo)
+export XLIB_HEADERS     = $(shell pkg-config --cflags x11)
+export XLIB_LIBS        = $(shell pkg-config --libs x11)
 export EXPAT_HEADERS    = $(shell pkg-config --cflags expat)
 export EXPAT_LIBS       = $(shell pkg-config --libs expat)
 export SNDFILE_HEADERS  = $(shell pkg-config --cflags sndfile)
@@ -176,7 +166,6 @@ install_lv2: all
 	@echo "Installing LV2 plugins to $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2"
 	@mkdir -p $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
 	@$(INSTALL) $(LIB_LV2) $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/
-	@$(INSTALL) $(LIB_LV2_GTK2UI) $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/
 	@$(UTL_GENTTL) $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
 	
 install_vst: all
@@ -223,7 +212,6 @@ release_lv2: release_prepare
 	@mkdir -p $(RELEASE)/$(LV2_ID)
 	@mkdir -p $(RELEASE)/$(LV2_ID)/$(ARTIFACT_ID).lv2
 	@$(INSTALL) $(LIB_LV2) $(RELEASE)/$(LV2_ID)/$(ARTIFACT_ID).lv2/
-	@$(INSTALL) $(LIB_LV2_GTK2UI) $(RELEASE)/$(LV2_ID)/$(ARTIFACT_ID).lv2/
 	@cp $(RELEASE_TEXT) $(RELEASE)/$(LV2_ID)/
 	@$(UTL_GENTTL) $(RELEASE)/$(LV2_ID)/$(ARTIFACT_ID).lv2
 	@tar -C $(RELEASE) -czf $(RELEASE)/$(LV2_ID).tar.gz $(LV2_ID)

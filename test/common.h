@@ -10,6 +10,7 @@
 
 #include <core/types.h>
 #include <stdio.h>
+#include <locale.h>
 #include <stdlib.h>
 
 namespace test

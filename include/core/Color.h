@@ -12,14 +12,14 @@
 
 namespace lsp
 {
-    class Theme;
-
     class Color
     {
         protected:
-            static const size_t M_RGB           = (1 << 0);
-            static const size_t M_HSL           = (1 << 1);
-            static const size_t M_MASK_BITS     = 2;
+            enum mask_t
+            {
+                M_RGB           = 1 << 0,
+                M_HSL           = 1 << 1
+            };
 
             mutable float   R, G, B;
             mutable float   H, S, L;
@@ -39,8 +39,9 @@ namespace lsp
             inline Color(): R(0), G(0), B(0), H(0), S(0), L(0), nMask(M_RGB), A(0) {};
             inline Color(float r, float g, float b): R(r), G(g), B(b), H(0), S(0), L(0), nMask(M_RGB), A(0) {};
             inline Color(const Color &src): R(src.R), G(src.G), B(src.B), H(src.H), S(src.S), L(src.L), nMask(src.nMask), A(src.A) {};
-            inline Color(uint32_t rgb): R(float((rgb >> 16) & 0xff)/255.0f), G(float((rgb >> 8) & 0xff)/255.0f), B(float(rgb & 0xff)/255.0f), H(0), S(0), L(0), nMask(M_RGB), A(0) {};
-            inline Color(uint32_t rgb, float a): R(float((rgb >> 16) & 0xff)/255.0f), G(float((rgb >> 8) & 0xff)/255.0f), B(float(rgb & 0xff)/255.0f), H(0), S(0), L(0), nMask(M_RGB), A(a) {};
+            inline Color(const Color &src, float a): R(src.R), G(src.G), B(src.B), H(src.H), S(src.S), L(src.L), nMask(src.nMask), A(a) {};
+            inline Color(uint32_t rgb): R(float((rgb >> 16) & 0xff)/255.0f), G(float((rgb >> 8) & 0xff)/255.0f), B(float(rgb & 0xff)/255.0f), H(0.0f), S(0.0f), L(0.0f), nMask(M_RGB), A(0) {};
+            inline Color(uint32_t rgb, float a): R(float((rgb >> 16) & 0xff)/255.0f), G(float((rgb >> 8) & 0xff)/255.0f), B(float(rgb & 0xff)/255.0f), H(0.0f), S(0.0f), L(0.0f), nMask(M_RGB), A(a) {};
 
             inline float red() const        { check_rgb(); return R; }
             inline float green() const      { check_rgb(); return G; }
@@ -61,6 +62,15 @@ namespace lsp
                 B = b;
             }
 
+            inline void set_rgba(float r, float g, float b, float a)
+            {
+                nMask = M_RGB;
+                R = r;
+                G = g;
+                B = b;
+                A = a;
+            }
+
             inline float hue() const        { check_hsl(); return H; }
             inline float saturation() const { check_hsl(); return S; }
             inline float lightness() const  { check_hsl(); return L; }
@@ -77,6 +87,14 @@ namespace lsp
                 S = s;
                 L = l;
             }
+            inline void set_hsla(float h, float s, float l, float a)
+            {
+                nMask   = M_HSL;
+                H = h;
+                S = s;
+                L = l;
+                A = a;
+            }
 
             void blend(const Color &c, float alpha);
             void blend(float r, float g, float b, float alpha);
@@ -86,7 +104,9 @@ namespace lsp
 
             void copy(const Color &c);
 
-            int format_rgb(char *dst, size_t len, size_t tolerance = 2);
+            void copy(const Color *c);
+
+            int format_rgb(char *dst, size_t len, size_t tolerance = 2) const;
 
             uint32_t    rgb24() const;
     };

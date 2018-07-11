@@ -10,7 +10,6 @@
 
 namespace lsp
 {
-    
     class IUIWrapper
     {
         public:

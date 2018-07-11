@@ -96,6 +96,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         oscillator_classes,
         oscillator_ports,
+        "util/oscillator_mono.xml",
         mono_plugin_port_groups
     };
 }

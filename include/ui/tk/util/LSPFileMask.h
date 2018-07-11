@@ -1,0 +1,90 @@
+/*
+ * LSPFileMask.h
+ *
+ *  Created on: 9 окт. 2017 г.
+ *      Author: sadko
+ */
+
+#ifndef UI_TK_UTIL_LSPFILEMASK_H_
+#define UI_TK_UTIL_LSPFILEMASK_H_
+
+namespace lsp
+{
+    namespace tk
+    {
+        class LSPFileMask
+        {
+            public:
+                enum flags
+                {
+                    MULTIPLE        = 1 << 0,
+                    INVERSIVE       = 1 << 1,
+                    CASE_SENSITIVE  = 1 << 2,
+                };
+
+            protected:
+                typedef struct simplemask_t
+                {
+                    const lsp_wchar_t      *pHead;
+                    const lsp_wchar_t      *pTail;
+                    bool                    bInvert;
+                } simplemask_t;
+
+                typedef struct biter_t
+                {
+                    lsp_wchar_t        *pHead;
+                    lsp_wchar_t        *pTail;
+                    bool                bInvert;
+                } biter_t;
+
+           protected:
+                LSPString               sMask;
+                cstorage<simplemask_t>  vMasks;
+                lsp_wchar_t            *pBuffer;
+                size_t                  nFlags;
+
+            protected:
+                static simplemask_t        *parse_simple(cstorage<simplemask_t> *dst, biter_t *bi);
+                static bool                 check_simple_case(const lsp_wchar_t *head, const lsp_wchar_t *tail, const lsp_wchar_t *shead, const lsp_wchar_t *stail);
+                static bool                 check_simple_nocase(const lsp_wchar_t *head, const lsp_wchar_t *tail, const lsp_wchar_t *shead, const lsp_wchar_t *stail);
+                bool                        check_mask(simplemask_t *mask, const lsp_wchar_t *s, size_t len);
+
+            public:
+                LSPFileMask();
+                virtual ~LSPFileMask();
+
+            public:
+                inline const char *mask() { return sMask.get_native(); }
+                inline status_t get_mask(LSPString *mask) { return (mask != NULL) ? mask->set(&sMask) : STATUS_BAD_ARGUMENTS; }
+                inline size_t flags() const { return nFlags; }
+
+            public:
+                status_t    parse(const LSPString *pattern, size_t flags = 0);
+                status_t    parse(const char *pattern, size_t flags = 0);
+
+                bool        matched(const LSPString *str);
+                bool        matched(const char *text);
+
+                void        clear();
+
+                static bool valid_file_name(const char *fname);
+                static bool valid_file_name(const LSPString *fname);
+
+                static bool valid_path_name(const char *fname);
+                static bool valid_path_name(const LSPString *fname);
+
+                static status_t append_path(LSPString *path, const char *fname);
+                static status_t append_path(LSPString *path, const LSPString *fname);
+
+                static status_t append_path(LSPString *dst, const LSPString *path, const char *fname);
+                static status_t append_path(LSPString *dst, const LSPString *path, const LSPString *fname);
+
+                static bool is_dot(const LSPString *fname);
+                static bool is_dotdot(const LSPString *fname);
+                static bool is_dots(const LSPString *fname);
+        };
+    
+    } /* namespace tk */
+} /* namespace lsp */
+
+#endif /* UI_TK_UTIL_LSPFILEMASK_H_ */

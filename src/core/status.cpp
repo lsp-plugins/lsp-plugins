@@ -20,8 +20,20 @@ namespace lsp
         "Bad format",
         "Unsupported format",
         "Corrupted file",
+        "No data",
         "Invalid unique identifier",
         "Disconnected",
+        "Bad arguments",
+        "Not bound",
+        "Not implemented",
+        "Already exists",
+        "Overflow",
+        "Bad hierarchy",
+        "Duplicated",
+        "Too big",
+        "I/O error",
+        "The resource is closed",
+        "The feature is not supported",
         NULL
     };
 

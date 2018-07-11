@@ -1,0 +1,49 @@
+<plugin resizable="false">
+	<hbox spacing="4">
+		<group text="Gain" expand="true" fill="true">
+			<grid rows="3" cols="3" expand="true">
+				<label text="Input" />
+				<label text="Feedback" />
+				<label text="Output" />
+
+				<knob id="gin" size="24" />
+				<button id="fback" size="32" />
+				<knob id="gout" size="24" />
+
+				<value id="gin" />
+				<led id="fback" led="true" color="green" />
+				<value id="gout" />
+			</grid>
+		</group>
+		
+		<group text="Parameters" expand="true" fill="true">
+			<grid rows="3" cols="3" expand="true">
+				<label text="Max latency"/>
+				<label text="Peak"/>
+				<label text="Absolute"/>
+				
+				<knob id="mlat"/>
+				<knob id="pthr"/>
+				<knob id="athr"/>
+				
+				<value id="mlat"/>
+				<value id="pthr"/>
+				<value id="athr"/>
+			</grid>
+		</group>
+		
+		<group text="Latency" expand="true" fill="true">
+			<grid rows="3" cols="2" expand="true">
+				<label text="Latency (ms)" />
+				<label text="Measure" />
+				<indicator id="l_v" format="f6.3!" text_color="green" />
+				<button id="ttrig" size="32" color="yellow" led="true" />
+				
+				<cell cols="2">
+					<meter id="ilvl" angle="0" logarithmic="true" min="0.000251189" max="15.8489" height="131" color="green" type="rms_peak" />
+				</cell>
+			</grid>
+		</group>
+		
+	</hbox>
+</plugin>

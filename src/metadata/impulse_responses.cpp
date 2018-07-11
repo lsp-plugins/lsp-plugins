@@ -119,6 +119,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         impulse_responses_classes,
         impulse_responses_mono_ports,
+        "convolution/impulse_responses/mono.xml",
         mono_plugin_port_groups
     };
 
@@ -134,6 +135,7 @@ namespace lsp
         LSP_VERSION(1, 0, 1),
         impulse_responses_classes,
         impulse_responses_stereo_ports,
+        "convolution/impulse_responses/stereo.xml",
         stereo_plugin_port_groups
     };
 }

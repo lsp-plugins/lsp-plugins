@@ -14,20 +14,24 @@ namespace lsp
     {
         enum flags_t
         {
-            P_PATH          = 1 << 0,
-            P_REQUEST       = 1 << 1,
-            P_ACCEPTED      = 1 << 2
+            S_EMPTY,
+            S_PENDING,
+            S_ACCEPTED
         };
 
+        atomic_t    nRequest;
         size_t      nState;
+        bool        bRequest;
         char        sPath[PATH_MAX];
         char        sRequest[PATH_MAX];
 
         virtual void init()
         {
+            atomic_init(nRequest);
+            nState      = S_EMPTY;
+            bRequest    = false;
             sPath[0]    = '\0';
             sRequest[0] = '\0';
-            nState      = 0;
         }
 
         virtual const char *get_path()
@@ -37,32 +41,46 @@ namespace lsp
 
         virtual void accept()
         {
-            if (!(nState & P_PATH))
+            if (nState != S_PENDING)
                 return;
-            nState  |= P_ACCEPTED;
+            nState  = S_ACCEPTED;
         }
 
         virtual void commit()
         {
-            if ((nState & (P_PATH | P_ACCEPTED)) != (P_PATH | P_ACCEPTED))
+            if (nState != S_ACCEPTED)
                 return;
-            if (nState & P_REQUEST)
-            {
-                strcpy(sPath, sRequest);
-                nState  = P_PATH;
-            }
-            else
-                nState  = 0;
+            nState  = S_EMPTY;
         }
 
         virtual bool pending()
         {
-            return (nState & (P_PATH | P_ACCEPTED)) == P_PATH;
+            // Check accepted state
+            if (nState == S_PENDING)
+                return true;
+            else if ((nState != S_EMPTY) || (!bRequest))
+                return false;
+
+            // Move pending request to path if present,
+            // do it in synchronized mode
+            if (atomic_lock(nRequest))
+            {
+                // Copy the data
+                strcpy(sPath, sRequest);
+                sPath[PATH_MAX-1]   = '\0';
+                sRequest[0]         = '\0';
+                bRequest            = false;
+                nState              = S_PENDING;
+
+                atomic_unlock(nRequest);
+            }
+
+            return nState == S_PENDING;
         }
 
         virtual bool accepted()
         {
-            return (nState & (P_PATH | P_ACCEPTED)) == (P_PATH | P_ACCEPTED);
+            return (nState == S_ACCEPTED);
         }
 
         void submit(const char *path, size_t len)
@@ -70,17 +88,27 @@ namespace lsp
             // Determine size of path
             size_t count = (len >= PATH_MAX) ? PATH_MAX - 1 : len;
 
-            if ((nState & (P_PATH | P_ACCEPTED)) == 0)
+            // Wait until the queue is empty
+            struct timespec spec = { 0, 1 * 1000 * 1000 }; // 1 msec
+            while (true)
             {
-                memcpy(sPath, path, count);
-                sPath[count]        = '\0';
-                nState             |= P_PATH;
-            }
-            else
-            {
-                memcpy(sRequest, path, count);
-                sRequest[count]     = '\0';
-                nState             |= P_REQUEST;
+                // Try to acquire critical section, this will always be true when using LV2 atom transport
+                if (atomic_lock(nRequest))
+                {
+                    // Copy data to request
+                    memcpy(sRequest, path, count);
+                    sRequest[count]     = '\0';
+                    bRequest            = true; // Mark request pending
+
+                    // Release critical section
+                    atomic_unlock(nRequest);
+
+                    // Leave the cycle
+                    break;
+                }
+
+                // Wait for a while, this won't happen when lv2
+                nanosleep(&spec, NULL);
             }
         }
 

@@ -125,6 +125,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         slap_delay_classes,
         slap_delay_mono_ports,
+        "delay/slap_delay/mono.xml",
         mono_to_stereo_plugin_port_groups
     };
 
@@ -140,6 +141,7 @@ namespace lsp
         LSP_VERSION(1, 0, 0),
         slap_delay_classes,
         slap_delay_stereo_ports,
+        "delay/slap_delay/stereo.xml",
         stereo_plugin_port_groups
     };
 

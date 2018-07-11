@@ -1,0 +1,127 @@
+<plugin resizable="false">
+	<hbox spacing="4">
+		<group text="Oscillator Function" expand="true" fill="true">
+			<vbox>
+				<align vpos="0">
+					<combo id="scf" />
+				</align>
+				
+				<grid rows="1" cols="2" visibility="(:scf ieq 2) or (:scf ieq 3)" expand="true">
+					<label text="Invert" />
+					<button id="invss" size="24" color="green" led="true" />
+				</grid>
+				
+				<grid rows="1" cols="3" visibility="(:scf ieq 4) or (:scf ieq 9)" expand="true">
+					<label text="Duty Ratio" />
+					<knob id="rdtrt" size="24" scale_color="green" />
+					<value id="rdtrt" same_line="true" />
+				</grid>
+				
+				<grid rows="1" cols="3" visibility="(:scf ieq 5) or (:scf ieq 10)" expand="true">
+					<label text="Width" />
+					<knob id="swdth" size="24" scale_color="green" />
+					<value id="swdth" same_line="true" />
+				</grid>
+				
+				<grid rows="2" cols="3" visibility="(:scf ieq 6) or (:scf ieq 11)" expand="true">
+					<label text="Raise" />
+					<knob id="trsrt" size="16" scale_color="green"/>
+					<value id="trsrt" same_line="true" />
+					<label text="Fall" />
+					<knob id="tflrt" size="16" scale_color="green"/>
+					<value id="tflrt" same_line="true" />
+				</grid>
+				
+				<grid rows="2" cols="3" visibility="(:scf ieq 7) or (:scf ieq 12)" expand="true">
+					<label text="Positive Width" />
+					<knob id="tpwrt" size="16" scale_color="green"/>
+					<value id="tpwrt" same_line="true" />
+					<label text="Negative Width" />
+					<knob id="tnwrt" size="16" scale_color="green"/>
+					<value id="tnwrt" same_line="true" />
+				</grid>
+				
+				<grid rows="2" cols="3" visibility="(:scf ieq 8) or (:scf ieq 13)" expand="true">
+					<label text="Width" />
+					<knob id="pwdth" size="24" scale_color="green" />
+					<value id="pwdth" same_line="true" />
+					
+					<label text="Invert" />
+					<button id="invps" size="24" color="green" led="true" />
+					<label />
+				</grid>
+			</vbox>
+		</group>
+		<group text="General" expand="true" fill="true">
+			<vbox expand="true" fill="true">
+				<align hpos="0">
+					<hbox spacing="4"> <!-- Spacing can help -->
+						<label text="Mode" />
+						<combo id="scm" same_line="true" />
+						
+						<label text="Oversampling" visibility=":scf ige 9" />
+						<combo id="scom" visibility=":scf ige 9" />
+					</hbox>
+				</align>
+				<hsep />
+				<grid rows="3" cols="5" hspacing="4">
+					<label text="Frequency " />
+					<label text="Amplitude " />
+					<label text="Phase " />
+					<label text="DC Offset " />
+					<label text="DC Reference" />
+					
+					<knob id="freq" />
+					<knob id="gain" />
+					<knob id="iniph" />
+					<knob id="dcoff" />
+					<combo id="scr" />
+					
+					<value id="freq" />
+					<value id="gain"/>
+					<value id="iniph" />
+					<value id="dcoff" />
+					<label />
+				</grid>	
+			</vbox>
+		</group>
+		
+		<vbox size="2" border="2">
+			<!-- Widgets are placed in order as they are drawn -->
+			<graph width="280" height="96" expand="true" fill="true">
+				<center hpos="-1.0" vpos="0.0" visible="false" />
+				
+				<!-- Vertical lines -->
+				<marker value="0.5" basis="0" parallel="1" color="gray" />
+				<marker value="1.0" basis="0" parallel="1" color="yellow" />
+				<marker value="1.5" basis="0" parallel="1" color="gray" />
+				<marker value="2.0" basis="0" parallel="1" color="white" />
+				
+				<!-- Horizontal lines -->
+				<marker value="-2.0" basis="1" parallel="0" color="white" />
+				<marker value="-1.0" basis="1" parallel="0" color="yellow" />
+				<marker value="1.0" basis="1" parallel="0" color="yellow" />
+				<marker value="2.0" basis="1" parallel="0" color="white" />
+				
+				<axis min="0" max="2.0" color="white" angle="0.0" logarithmic="false" />
+				<axis min="-2.0" max="2.0" color="white" angle="0.5" logarithmic="false" />
+			
+				<mesh id="ow" width="3" />
+				
+				<!-- Horizontal text -->
+				<text text="0.5T" coord="0.5;-2" halign="1" valign="1" />
+				<text text="1T" coord="1.0;-2" halign="1" valign="1" />
+				<text text="1.5T" coord="1.5;-2" halign="1" valign="1" />
+				<text text="2T" coord="2.0;-2" halign="-1" valign="1" />
+				
+				<!-- Vertical text -->
+				<text text="Period" coord="0;-2" halign="1" valign="1" />
+				<text text="-1" coord="0;-1" halign="1" valign="-1" />
+				<text text="0" coord="0;0" halign="1" valign="-1" />
+				<text text="1" coord="0;1" halign="1" valign="-1" />
+				<text text="Amplitude" coord="0;2" halign="1" valign="-1" />
+			</graph>
+			<label text="OSCILLATOR WAVEFORM" />
+		</vbox>
+	</hbox>
+</plugin>

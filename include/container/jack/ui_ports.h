@@ -10,13 +10,13 @@
 
 namespace lsp
 {
-    class JACKUIPort: public IUIPort
+    class JACKUIPort: public CtlPort
     {
         protected:
             JACKPort               *pPort;
 
         public:
-            JACKUIPort(JACKPort *port) : IUIPort(port->metadata())
+            JACKUIPort(JACKPort *port) : CtlPort(port->metadata())
             {
                 pPort       = port;
             }
@@ -48,12 +48,12 @@ namespace lsp
             }
 
         public:
-            virtual float getValue()
+            virtual float get_value()
             {
                 return pPort->getValue();
             }
 
-            virtual void setValue(float value)
+            virtual void set_value(float value)
             {
                 pPort->setValue(value);
             }
@@ -80,12 +80,12 @@ namespace lsp
             }
 
         public:
-            virtual float getValue()
+            virtual float get_value()
             {
                 return fValue;
             }
 
-            virtual void setValue(float value)
+            virtual void set_value(float value)
             {
                 fValue  = limit_value(pMetadata, value);
                 static_cast<JACKControlPort *>(pPort)->updateValue(fValue);
@@ -118,7 +118,7 @@ namespace lsp
             }
 
         public:
-            virtual float getValue()
+            virtual float get_value()
             {
                 return fValue;
             }
@@ -174,7 +174,7 @@ namespace lsp
                 return true;
             }
 
-            virtual void *getBuffer()
+            virtual void *get_buffer()
             {
                 return pMesh;
             }
@@ -203,7 +203,7 @@ namespace lsp
             }
 
         public:
-            virtual void *getBuffer()
+            virtual void *get_buffer()
             {
                 return sPath;
             }

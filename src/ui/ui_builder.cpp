@@ -385,12 +385,12 @@ namespace lsp
     {
         private:
             ui_builder         *pBuilder;
-            IWidget            *pWidget;
+            CtlWidget          *pWidget;
             ui_widget_handler  *pChild;
             XMLHandler         *pSpecial;
 
         public:
-            ui_widget_handler(ui_builder *bld, IWidget *widget)
+            ui_widget_handler(ui_builder *bld, CtlWidget *widget)
             {
                 pBuilder    = bld;
                 pWidget     = widget;
@@ -422,12 +422,13 @@ namespace lsp
                 }
 
                 // Get UI
-                plugin_ui *ui           = pBuilder->getUI();
+                plugin_ui *ui               = pBuilder->get_ui();
 
                 // Create widget
-                IWidget *widget         = ui->createWidget(name);
+                CtlWidget *widget           = ui->create_widget(name);
                 if (widget == NULL)
                     return NULL;
+                widget->init();
 
                 // Initialize pWidget parameters
                 while (*atts != NULL)
@@ -453,7 +454,11 @@ namespace lsp
                 if ((child == pChild) && (pChild != NULL))
                 {
                     if ((pWidget != NULL) && (pChild->pWidget != NULL))
-                        pWidget->add(pChild->pWidget);
+                    {
+                        LSPWidget *w = pChild->pWidget->widget();
+                        if (w != NULL)
+                            pWidget->add(w);
+                    }
 
                     // Remove child
                     delete pChild;
@@ -489,18 +494,19 @@ namespace lsp
         public:
             virtual XMLHandler *startElement(const char *name, const char **atts)
             {
-                IWidget *widget = NULL;
+                CtlWidget *widget = NULL;
 
-                const char *root_tag = widget_type(W_PLUGIN);
+                const char *root_tag = widget_ctl(WC_PLUGIN);
                 if (!strcmp(name, root_tag))
                 {
                     // Get UI
-                    plugin_ui *ui       = pBuilder->getUI();
+                    plugin_ui *ui           = pBuilder->get_ui();
 
                     // Create widget
-                    widget              = ui->createWidget(name);
+                    widget                  = ui->create_widget(name);
                     if (widget == NULL)
                         return NULL;
+                    widget->init();
 
                     // Initialize widget parameters
                     while (*atts != NULL)

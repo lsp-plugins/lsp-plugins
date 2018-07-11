@@ -6,6 +6,7 @@
 #include <core/IPort.h>
 #include <core/IWrapper.h>
 #include <core/ICanvas.h>
+#include <core/debug.h>
 
 #include <metadata/metadata.h>
 
@@ -49,6 +50,7 @@ namespace lsp
                 if (!bUIActive)
                 {
                     bUIActive       = true;
+                    lsp_trace("UI has been activated");
                     ui_activated();
                 }
             }
@@ -58,6 +60,7 @@ namespace lsp
                 if (bUIActive)
                 {
                     bUIActive       = false;
+                    lsp_trace("UI has been deactivated");
                     ui_deactivated();
                 }
             }

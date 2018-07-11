@@ -138,8 +138,8 @@ namespace lsp
             SWITCH("xs" id "_" #x, "Filter solo " label #x, 0.0f), \
             SWITCH("xm" id "_" #x, "Filter mute " label #x, 0.0f), \
             LOG_CONTROL_DFL("f" id "_" #x, "Frequency " label #x, U_HZ, para_equalizer_base_metadata::FREQ, f), \
-            { "g" id "_" #x, "Gain " label # x, U_GAIN_AMP, R_CONTROL, F_IN | F_LOG | F_UPPER | F_LOWER | F_STEP, GAIN_AMP_M_36_DB, GAIN_AMP_P_36_DB, GAIN_AMP_0_DB, 0.1, NULL, NULL }, \
-            { "q" id "_" #x, "Quality factor " label #x, U_NONE, R_CONTROL, F_IN | F_LOG | F_UPPER | F_LOWER | F_STEP, 0.0f, 100.0f, 0.0f, 0.01f, NULL    }, \
+            { "g" id "_" #x, "Gain " label # x, U_GAIN_AMP, R_CONTROL, F_IN | F_LOG | F_UPPER | F_LOWER | F_STEP, GAIN_AMP_M_36_DB, GAIN_AMP_P_36_DB, GAIN_AMP_0_DB, 0.01, NULL, NULL }, \
+            { "q" id "_" #x, "Quality factor " label #x, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP, 0.0f, 100.0f, 0.0f, 0.5f, NULL        }, \
             { "hue" id "_" #x, "Hue " label #x, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }, \
             BLINK("fv" id "_" #x, "Filter visibility " label #x), \
             MESH("agf" id "_" #x, "Amplitude graph " label #x, 2, para_equalizer_base_metadata::FILTER_MESH_POINTS)
@@ -473,7 +473,8 @@ namespace lsp
         LSP_VERSION(1, 0, 2),
         para_equalizer_classes,
         para_equalizer_x16_mono_ports,
-        NULL
+        "equalizer/parametric/x16/mono.xml",
+        mono_plugin_port_groups
     };
 
     const plugin_metadata_t  para_equalizer_x32_mono_metadata::metadata =
@@ -488,7 +489,8 @@ namespace lsp
         LSP_VERSION(1, 0, 2),
         para_equalizer_classes,
         para_equalizer_x32_mono_ports,
-        NULL
+        "equalizer/parametric/x32/mono.xml",
+        mono_plugin_port_groups
     };
 
     const plugin_metadata_t  para_equalizer_x16_stereo_metadata::metadata =
@@ -503,6 +505,7 @@ namespace lsp
         LSP_VERSION(1, 0, 2),
         para_equalizer_classes,
         para_equalizer_x16_stereo_ports,
+        "equalizer/parametric/x16/stereo.xml",
         stereo_plugin_port_groups
     };
 
@@ -518,6 +521,7 @@ namespace lsp
         LSP_VERSION(1, 0, 2),
         para_equalizer_classes,
         para_equalizer_x32_stereo_ports,
+        "equalizer/parametric/x32/stereo.xml",
         stereo_plugin_port_groups
     };
 
@@ -533,6 +537,7 @@ namespace lsp
         LSP_VERSION(1, 0, 2),
         para_equalizer_classes,
         para_equalizer_x16_lr_ports,
+        "equalizer/parametric/x16/lr.xml",
         stereo_plugin_port_groups
     };
 
@@ -548,6 +553,7 @@ namespace lsp
         LSP_VERSION(1, 0, 2),
         para_equalizer_classes,
         para_equalizer_x32_lr_ports,
+        "equalizer/parametric/x32/lr.xml",
         stereo_plugin_port_groups
     };
 
@@ -563,6 +569,7 @@ namespace lsp
         LSP_VERSION(1, 0, 2),
         para_equalizer_classes,
         para_equalizer_x16_ms_ports,
+        "equalizer/parametric/x16/ms.xml",
         stereo_plugin_port_groups
     };
 
@@ -578,6 +585,7 @@ namespace lsp
         LSP_VERSION(1, 0, 2),
         para_equalizer_classes,
         para_equalizer_x32_ms_ports,
+        "equalizer/parametric/x32/ms.xml",
         stereo_plugin_port_groups
     };
 }

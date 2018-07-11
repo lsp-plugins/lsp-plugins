@@ -1,9 +1,10 @@
 #include <sys/types.h>
-#include <stddef.h>
+#include <time.h>
 #include <string.h>
 
 #include <core/lib.h>
 #include <core/midi.h>
+#include <core/atomic.h>
 #include <plugins/plugins.h>
 
 #include <data/cvector.h>
@@ -14,8 +15,15 @@
 #include <container/lv2/executor.h>
 #include <container/lv2/wrapper.h>
 
+#include <ui/ui.h>
+#include <container/lv2ui/ports.h>
+#include <container/lv2ui/wrapper.h>
+
 namespace lsp
 {
+    //--------------------------------------------------------------------------------------
+    // LV2 routines
+
     void lv2_activate(LV2_Handle instance)
     {
         lsp_trace("instance = %p", instance);
@@ -234,23 +242,26 @@ namespace lsp
 
         // Calculate number of plugins
         lv2_descriptors_count       = 0;
-        #define MOD_LV2(plugin)     lv2_descriptors_count++;
+        #define MOD_PLUGIN(plugin)  if (plugin::metadata.lv2_uid != NULL) lv2_descriptors_count++;
         #include <metadata/modules.h>
 
         // Now allocate descriptors
         lv2_descriptors             = new LV2_Descriptor[lv2_descriptors_count];
         LV2_Descriptor *d           = lv2_descriptors;
 
-        #define MOD_LV2(plugin)  \
-            d->URI                  = LSP_PLUGIN_URI(lv2, plugin); \
-            d->instantiate          = lv2_instantiate;      \
-            d->connect_port         = lv2_connect_port;     \
-            d->activate             = lv2_activate;         \
-            d->run                  = lv2_run;              \
-            d->deactivate           = lv2_deactivate;       \
-            d->cleanup              = lv2_cleanup;          \
-            d->extension_data       = lv2_extension_data;   \
-            d++;
+        #define MOD_PLUGIN(plugin)  \
+            if (plugin::metadata.lv2_uid != NULL) \
+            { \
+                d->URI                  = LSP_PLUGIN_URI(lv2, plugin); \
+                d->instantiate          = lv2_instantiate;      \
+                d->connect_port         = lv2_connect_port;     \
+                d->activate             = lv2_activate;         \
+                d->run                  = lv2_run;              \
+                d->deactivate           = lv2_deactivate;       \
+                d->cleanup              = lv2_cleanup;          \
+                d->extension_data       = lv2_extension_data;   \
+                d++; \
+            }
 
         #include <metadata/modules.h>
     };
@@ -265,14 +276,168 @@ namespace lsp
     };
 
     static StaticFinalizer lv2_finalizer(lv2_drop_descriptors);
+
+    //--------------------------------------------------------------------------------------
+    // LV2UI routines
+
+    LV2UI_Handle lv2ui_instantiate(
+        const struct _LV2UI_Descriptor* descriptor,
+        const char*                     plugin_uri,
+        const char*                     bundle_path,
+        LV2UI_Write_Function            write_function,
+        LV2UI_Controller                controller,
+        LV2UI_Widget*                   widget,
+        const LV2_Feature* const*       features)
+    {
+        // Find plugin metadata
+        const plugin_metadata_t *m = NULL;
+        const char *uri = NULL;
+
+        lsp_debug_init("lv2");
+        lsp_trace("descriptor->uri = %s", descriptor->URI);
+
+        #define MOD_PLUGIN(plugin) \
+            lsp_trace("Check URI: %s", LSP_PLUGIN_UI_URI(lv2, plugin)); \
+            if ((!m) && (!strcmp(descriptor->URI, LSP_PLUGIN_UI_URI(lv2, plugin)))) \
+            { \
+                m   = &plugin::metadata; \
+                uri = LSP_PLUGIN_URI(lv2, plugin); \
+            }
+        #include <metadata/modules.h>
+
+        if ((m == NULL) || (uri == NULL) || (m->ui_resource == NULL))
+        {
+            lsp_trace("Plugin metadata not found");
+            return NULL;
+        }
+        lsp_trace("Plugin uri=%s", uri);
+
+        // Initialize dsp (if possible)
+        dsp::init();
+
+        // Scan for extensions
+        LV2Extensions *ext              = new LV2Extensions(features, uri, controller, write_function);
+
+        // Create widget factory and UI
+        lsp_trace("Creating plugin UI, parent window=%p", ext->parent_window());
+        plugin_ui *p                    = new plugin_ui(m, ext->parent_window());
+        LV2UIWrapper *w                 = new LV2UIWrapper(p, ext);
+        w->init();
+
+        LSPWindow *root                 = p->root_window();
+        *widget                         = reinterpret_cast<LV2UI_Widget>((root != NULL) ? root->handle() : NULL);
+        lsp_trace("returned widget handle = %p", *widget);
+
+        return reinterpret_cast<LV2UI_Handle>(w);
+    }
+
+    void lv2ui_cleanup(LV2UI_Handle ui)
+    {
+        lsp_trace("cleanup");
+        LV2UIWrapper *w = reinterpret_cast<LV2UIWrapper *>(ui);
+        w->destroy();
+    }
+
+    void lv2ui_port_event(
+        LV2UI_Handle ui,
+        uint32_t     port_index,
+        uint32_t     buffer_size,
+        uint32_t     format,
+        const void*  buffer)
+    {
+        if ((buffer_size == 0) || (buffer == NULL))
+            return;
+        LV2UIWrapper *w = reinterpret_cast<LV2UIWrapper *>(ui);
+        w->notify(port_index, buffer_size, format, buffer);
+    }
+
+    int lv2ui_idle(LV2UI_Handle ui)
+    {
+        LV2UIWrapper *w = reinterpret_cast<LV2UIWrapper *>(ui);
+        return w->idle();
+    }
+
+    static LV2UI_Idle_Interface idle_iface =
+    {
+        lv2ui_idle
+    };
+
+    const void* lv2ui_extension_data(const char* uri)
+    {
+        return &idle_iface;
+    }
+
+    LV2UI_Descriptor *lv2ui_descriptors     = NULL;
+    size_t lv2ui_descriptors_count          = 0;
+
+    void lv2ui_gen_descriptors()
+    {
+        if (lv2ui_descriptors != NULL)
+            return;
+
+        // Calculate number of plugins
+        lv2ui_descriptors_count     = 0;
+
+        #define MOD_PLUGIN(plugin)   if ((plugin::metadata.lv2_uid != NULL) && (plugin::metadata.ui_resource != NULL)) lv2ui_descriptors_count++;
+        #include <metadata/modules.h>
+
+        lsp_trace("descriptors count=%d", (int)lv2ui_descriptors_count);
+
+        // Now allocate descriptors
+        lv2ui_descriptors           = new LV2UI_Descriptor[lv2ui_descriptors_count];
+        LV2UI_Descriptor *d         = lv2ui_descriptors;
+
+        #define MOD_PLUGIN(plugin)  \
+            if ((plugin::metadata.lv2_uid != NULL) && (plugin::metadata.ui_resource != NULL)) \
+            { \
+                d->URI                  = LSP_PLUGIN_UI_URI(lv2, plugin); \
+                d->instantiate          = lv2ui_instantiate;    \
+                d->cleanup              = lv2ui_cleanup;        \
+                d->port_event           = lv2ui_port_event;     \
+                d->extension_data       = lv2ui_extension_data; \
+                lsp_trace("generated descriptor URI=%s", d->URI); \
+                d++; \
+            }
+        #include <metadata/modules.h>
+    };
+
+    void lv2ui_drop_descriptors()
+    {
+        if (lv2ui_descriptors == NULL)
+            return;
+
+        delete [] lv2ui_descriptors;
+        lv2ui_descriptors = NULL;
+    };
+
+    static StaticFinalizer lv2ui_finalizer(lv2ui_drop_descriptors);
 }
 
-
-LV2_SYMBOL_EXPORT
-const LV2_Descriptor *lv2_descriptor(uint32_t index)
+#ifdef __cplusplus
+extern "C"
 {
-    using namespace lsp;
+#endif /* __cplusplus */
 
-    lv2_gen_descriptors();
-    return (index < lv2_descriptors_count) ? &lv2_descriptors[index] : NULL;
+    LV2_SYMBOL_EXPORT
+    const LV2_Descriptor *lv2_descriptor(uint32_t index)
+    {
+        using namespace lsp;
+        lsp_debug_init("lv2");
+
+        lv2_gen_descriptors();
+        return (index < lv2_descriptors_count) ? &lv2_descriptors[index] : NULL;
+    }
+
+    LV2_SYMBOL_EXPORT
+    const LV2UI_Descriptor *lv2ui_descriptor(uint32_t index)
+    {
+        using namespace lsp;
+        lsp_debug_init("lv2");
+
+        lv2ui_gen_descriptors();
+        return (index < lv2ui_descriptors_count) ? &lv2ui_descriptors[index] : NULL;
+    }
+
+#ifdef __cplusplus
 }
+#endif /* __cplusplus */

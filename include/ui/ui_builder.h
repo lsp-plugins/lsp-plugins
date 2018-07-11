@@ -22,7 +22,7 @@ namespace lsp
     class ui_builder
     {
         private:
-            plugin_ui      *pUI;
+            plugin_ui                  *pUI;
             cvector<ui_variable_t>      vVars;
 
         public:
@@ -32,7 +32,7 @@ namespace lsp
         public:
             bool build(const char *path);
 
-            inline plugin_ui *getUI() { return pUI; }
+            inline plugin_ui *get_ui()   { return pUI; }
 
             ui_variable_t *get_variable(const char *id);
     };

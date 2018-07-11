@@ -121,6 +121,13 @@ namespace lsp
         return false;
     }
 
+    bool is_log_rule(const port_t *port)
+    {
+        if (port->flags & F_LOG)
+            return true;
+        return is_decibel_unit(port->unit);
+    }
+
     size_t list_size(const char **list)
     {
         size_t size = 0;
@@ -153,16 +160,16 @@ namespace lsp
         size_t tolerance    = 0;
 
         // Select the tolerance of output value
-        if (precision  < 0)
+        if (precision < 0)
         {
             // Determine regular tolerance
-            if (v < 0.1)
+            if (v < 0.1f)
                 tolerance   = 4;
-            else if (v < 1.0)
+            else if (v < 1.0f)
                 tolerance   = 3;
-            else if (v < 10.0)
+            else if (v < 10.0f)
                 tolerance   = 2;
-            else if (v < 100.0)
+            else if (v < 100.0f)
                 tolerance   = 1;
             else
                 tolerance   = 0;
@@ -231,7 +238,7 @@ namespace lsp
             value           = - value;
 
         value = mul * log(value) / M_LN10;
-        if (value <= -75.0)
+        if (value <= -80.0)
         {
             strcpy(buf, "-inf");
             return;

@@ -14,6 +14,7 @@
 #endif /* LSP_TRACEFILE */
 
 #include <core/debug.h>
+#include <core/types.h>
 #include <container/vst/defs.h>
 
 // System libraries
@@ -23,10 +24,10 @@
 #include <pwd.h>
 #include <dlfcn.h>
 #include <stdlib.h>
-
-
-#define LSP_VST_CORE        LSP_ARTIFACT_ID "-vst-core-" LSP_MAIN_VERSION "-" LSP_ARCHITECTURE ".so"
-#define LSP_VST_SUBPATH     LSP_ARTIFACT_ID "-lxvst-" LSP_MAIN_VERSION "-" LSP_ARCHITECTURE
+#include <string.h>
+#include <malloc.h>
+#include <sys/stat.h>
+#include <dirent.h>
 
 namespace lsp
 {
@@ -41,46 +42,127 @@ namespace lsp
         NULL
     };
 
-    static char bundle_path[PATH_MAX];
-
-    static void *hInstance;
-
-    // The factory for creating plugin instances
+    static void *hInstance = NULL;
     static vst_create_instance_t factory = NULL;
 
-    static vst_create_instance_t lookup_factory(bool subpath, const char *path)
+    // The factory for creating plugin instances
+    static vst_create_instance_t lookup_factory(const char *path)
     {
-        lsp_trace("Trying shared library %s", path);
+        lsp_trace("Searching core library at %s", path);
 
-        // Generate file name
-        char fname[PATH_MAX];
-        if (subpath)
-            snprintf(fname, PATH_MAX, "%s/%s/%s", path, LSP_VST_SUBPATH, LSP_VST_CORE);
-        else
-            snprintf(fname, PATH_MAX, "%s/%s", path, LSP_VST_CORE);
-
-        // Try to load library
-        hInstance = dlopen (fname, RTLD_NOW);
-        if (!hInstance)
-        {
-            lsp_trace("library %s not loaded: %s", fname, dlerror());
+        // Try to open directory
+        DIR *d = opendir(path);
+        if (d == NULL)
             return NULL;
-        }
 
-        // Fetch function
-        vst_create_instance_t f = reinterpret_cast<vst_create_instance_t>(dlsym(hInstance, VST_CREATE_INSTANCE_STRNAME));
-        if (!f)
+        struct dirent *de;
+        char *ptr = NULL;
+
+        while ((de = readdir(d)) != NULL)
         {
-            lsp_trace("function %s not found: %s", VST_CREATE_INSTANCE_STRNAME, dlerror());
+            // Free previously used string
+            if (ptr != NULL)
+                free(ptr);
 
-            // Close library
-            dlclose(hInstance);
-            hInstance   = NULL;
+            // Skip dot and dotdot
+            ptr = de->d_name;
+            if ((ptr[0] == '.') && ((ptr[1] == '\0') || ((ptr[1] == '.') || (ptr[2] == '\0'))))
+            {
+                ptr = NULL;
+                continue;
+            }
+
+            // Allocate path string
+            ptr = NULL;
+            asprintf(&ptr, "%s" FILE_SEPARATOR_S "%s", path, de->d_name);
+            if (ptr == NULL)
+                continue;
+
+            // Scan symbolic link if present
+            if (de->d_type == DT_LNK)
+            {
+                struct stat st;
+                if (stat(ptr, &st) != 0)
+                    continue;
+
+                if (S_ISDIR(st.st_mode))
+                    de->d_type = DT_DIR;
+                else if (S_ISREG(st.st_mode))
+                    de->d_type = DT_REG;
+            }
+
+            // Analyze file
+            if (de->d_type == DT_DIR)
+            {
+                // Skip directory if it doesn't contain 'lsp-plugins' in name
+                if (strstr(de->d_name, LSP_ARTIFACT_ID) == NULL)
+                    continue;
+
+                vst_create_instance_t f = lookup_factory(ptr);
+                if (f != NULL)
+                {
+                    free(ptr);
+                    closedir(d);
+                    return f;
+                }
+            }
+            else if (de->d_type == DT_REG)
+            {
+                // Skip library if it doesn't contain 'lsp-plugins' in name
+                if ((strstr(de->d_name, LSP_ARTIFACT_ID) == NULL) || (strstr(de->d_name, ".so") == NULL))
+                    continue;
+
+                lsp_trace("Trying library %s", ptr);
+
+                // Try to load library
+                void *inst = dlopen (ptr, RTLD_NOW);
+                if (!inst)
+                {
+                    lsp_trace("library %s not loaded: %s", ptr, dlerror());
+                    continue;
+                }
+
+                // Fetch version function
+                vst_get_version_t vf = reinterpret_cast<vst_get_version_t>(dlsym(inst, VST_GET_VERSION_STRNAME));
+                if (!vf)
+                {
+                    lsp_trace("version function %s not found: %s", VST_GET_VERSION_STRNAME, dlerror());
+                    // Close library
+                    dlclose(inst);
+                    continue;
+                }
+
+                // Check package version
+                if (strcmp(vf(), LSP_MAIN_VERSION) != 0)
+                {
+                    lsp_trace("wrong version %s returned, expected %s, ignoring binary", vf(), LSP_MAIN_VERSION);
+                    // Close library
+                    dlclose(inst);
+                    continue;
+                }
+
+                // Fetch function
+                vst_create_instance_t f = reinterpret_cast<vst_create_instance_t>(dlsym(inst, VST_CREATE_INSTANCE_STRNAME));
+                if (!f)
+                {
+                    lsp_trace("function %s not found: %s", VST_CREATE_INSTANCE_STRNAME, dlerror());
+                    // Close library
+                    dlclose(inst);
+                    continue;
+                }
+
+                hInstance = inst;
+                free(ptr);
+                closedir(d);
+                return f;
+            }
         }
 
-        // Store bundle path
-        strncpy(bundle_path, path, PATH_MAX);
-        return f;
+        // Free previously used string, close directory and exit
+        if (ptr != NULL)
+            free(ptr);
+        closedir(d);
+        return NULL;
     }
 
     static vst_create_instance_t get_vst_main_function()
@@ -88,7 +170,7 @@ namespace lsp
         if (factory != NULL)
             return factory;
 
-        lsp_debug("Trying to find CORE library %s", LSP_VST_CORE);
+        lsp_debug("Trying to find CORE library");
 
         const char *homedir = getenv("HOME");
         char *buf = NULL;
@@ -116,34 +198,26 @@ namespace lsp
 
         if (homedir != NULL)
         {
-            lsp_trace("home directory = %s", homedir);
-            snprintf(path, PATH_MAX, "%s/.vst", homedir);
-            factory     = lookup_factory(false, path);
-            if (factory == NULL)
-                factory     = lookup_factory(true, path);
-
             if (factory == NULL)
             {
-                snprintf(path, PATH_MAX, "%s/.lxvst", homedir);
-                factory     = lookup_factory(false, path);
-                if (factory == NULL)
-                    factory     = lookup_factory(true, path);
+                lsp_trace("home directory = %s", homedir);
+                snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S ".vst", homedir);
+                factory     = lookup_factory(path);
             }
-
             if (factory == NULL)
             {
-                snprintf(path, PATH_MAX, "%s/vst", homedir);
-                factory     = lookup_factory(false, path);
-                if (factory == NULL)
-                    factory     = lookup_factory(true, path);
+                snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S ".lxvst", homedir);
+                factory     = lookup_factory(path);
             }
-
             if (factory == NULL)
             {
-                snprintf(path, PATH_MAX, "%s/lxvst", homedir);
-                factory     = lookup_factory(false, path);
-                if (factory == NULL)
-                    factory     = lookup_factory(true, path);
+                snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S "vst", homedir);
+                factory     = lookup_factory(path);
+            }
+            if (factory == NULL)
+            {
+                snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S "lxvst", homedir);
+                factory     = lookup_factory(path);
             }
         }
 
@@ -151,19 +225,12 @@ namespace lsp
         {
             for (const char **p = vst_core_paths; (p != NULL) && (*p != NULL); ++p)
             {
-                snprintf(path, PATH_MAX, "%s/vst", *p);
-                factory     = lookup_factory(false, path);
+                snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S "vst", *p);
+                factory     = lookup_factory(path);
                 if (factory != NULL)
                     break;
-                factory     = lookup_factory(true, path);
-                if (factory != NULL)
-                    break;
-
-                snprintf(path, PATH_MAX, "%s/lxvst", *p);
-                factory     = lookup_factory(false, path);
-                if (factory != NULL)
-                    break;
-                factory     = lookup_factory(true, path);
+                snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S "lxvst", *p);
+                factory     = lookup_factory(path);
                 if (factory != NULL)
                     break;
             }
@@ -178,56 +245,36 @@ namespace lsp
     }
 };
 
-extern "C"
+// The main function
+VST_MAIN(callback)
 {
-    // The main function
-    VST_EXPORT AEffect* VSTPluginMain (audioMasterCallback callback)
+    using namespace lsp;
+
+    // Get VST Version of the Host
+    if (!callback (NULL, audioMasterVersion, 0, 0, NULL, 0.0f))
     {
-        using namespace lsp;
-
-        // Get VST Version of the Host
-        if (!callback (NULL, audioMasterVersion, 0, 0, NULL, 0.0f))
-        {
-            lsp_error("audioMastercallback failed request");
-            return 0;  // old version
-        }
-
-        // Check that we need to instantiate the factory
-        lsp_trace("Getting factory");
-        vst_create_instance_t f = get_vst_main_function();
-
-        // Create effect
-        AEffect *effect     = NULL;
-
-        if (f != NULL)
-            effect = f(bundle_path, VST_PLUGIN_UID, callback);
-        else
-            lsp_error("Could not find VST core library %s", LSP_VST_CORE);
-
-        // Return VST AEffect structure
-        return effect;
+        lsp_error("audioMastercallback failed request");
+        return 0;  // old version
     }
 
-    // support for old hosts not looking for VSTPluginMain
-    #if (TARGET_API_MAC_CARBON && __ppc__)
-    VST_EXPORT AEffect* main_macho (audioMasterCallback audioMaster) { return VSTPluginMain (audioMaster); }
-    #elif WIN32
-    VST_EXPORT AEffect* MAIN (audioMasterCallback audioMaster) { return VSTPluginMain (audioMaster); }
-    #elif BEOS
-    VST_EXPORT AEffect* main_plugin (audioMasterCallback audioMaster) { return VSTPluginMain (audioMaster); }
-    #endif
+    // Check that we need to instantiate the factory
+    lsp_trace("Getting factory");
 
-    //------------------------------------------------------------------------
-#if WIN32
-    #include <windows.h>
+    vst_create_instance_t f = get_vst_main_function();
 
-    BOOL WINAPI DllMain (HINSTANCE hInst, DWORD dwReason, LPVOID lpvReserved)
-    {
-        using namespace lsp;
-        hInstance = hInst;
-        return 1;
-    }
-#endif
-} // extern "C"
+    // Create effect
+    AEffect *effect     = NULL;
+
+    if (f != NULL)
+        effect = f(VST_PLUGIN_UID, callback);
+    else
+        lsp_error("Could not find VST core library");
+
+    // Return VST AEffect structure
+    return effect;
+}
+
+// This should be included to generate other VST stuff
+#include <3rdparty/steinberg/vst2main.h>
 
 #endif /* _CONTAINER_VST_MAIN_H_ */

@@ -14,7 +14,9 @@ namespace lsp
         cvector<const char> plugin_ids;
 
         // Generate the list of plugins
-        #define MOD_PLUGIN(x) plugin_ids.add(x::metadata.lv2_uid);
+        #define MOD_PLUGIN(x) \
+            if (x::metadata.ui_resource != NULL) \
+                plugin_ids.add(x::metadata.lv2_uid);
         #include <metadata/modules.h>
 
         // Sort the list of plugins
@@ -41,6 +43,7 @@ int main(int argc, const char**argv)
 
     printf("(C) " LSP_COPYRIGHT "\n");
     printf("  " LSP_BASE_URI "\n");
+    printf("  Version " LSP_MAIN_VERSION "\n");
 
     if (argc < 2)
         return profile_plugin_not_found(NULL);
@@ -51,6 +54,8 @@ int main(int argc, const char**argv)
     #include <metadata/modules.h>
     if (m == NULL)
         return profile_plugin_not_found(argv[1]);
+    if (m->ui_resource == NULL)
+        return -STATUS_INVALID_UID;
 
     // Output plugin info
     printf("Plugin name:         %s (%s)\n", m->name, m->description);
@@ -67,6 +72,7 @@ int main(int argc, const char**argv)
         printf("LADSPA identifier:   %d\n", m->ladspa_id);
 
     // Remove first parameter from command-line arguments
+    lsp_trace("Preparing to call JACK_MAIN_FUNCION");
     const char ** args = new const char *[argc-1];
     if (args == NULL)
         return -STATUS_NO_MEM;
@@ -76,6 +82,7 @@ int main(int argc, const char**argv)
     for (ssize_t i=2; i < argc; ++i)
         args[idx++] = argv[i];
 
+    lsp_trace("Calling JACK_MAIN_FUNCTION");
 
     // Call the main function
     int result = JACK_MAIN_FUNCTION(argv[1], argc - 1, args);

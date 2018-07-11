@@ -1,5 +1,0 @@
-<plugin width="700" height="128" resizable="false">
-	<hbox size="6" border="0">
-		<afile id="afn" />
-	</hbox>
-</plugin>

@@ -731,7 +731,7 @@ namespace lsp
         float zx    = 1.0f/SPEC_FREQ_MIN;
         float zy    = 1.0f/GAIN_AMP_M_48_DB;
         float dx    = width/(logf(SPEC_FREQ_MAX)-logf(SPEC_FREQ_MIN));
-        float dy    = -height/(logf(GAIN_AMP_P_48_DB)-logf(GAIN_AMP_M_48_DB));
+        float dy    = height/(logf(GAIN_AMP_M_48_DB)-logf(GAIN_AMP_P_48_DB));
 
         // Draw vertical lines
         cv->set_color_rgb(CV_YELLOW, 0.5f);

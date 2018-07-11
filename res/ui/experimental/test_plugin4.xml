@@ -1,0 +1,36 @@
+<plugin>
+	<vbox>
+		<hbox spacing="4">
+			<knob id="itc" size="20" pad_left="32" />
+			<knob id="ifi" size="20" pad_top="32" scale_color="yellow" />
+			<knob id="ifo" size="20" pad_bottom="32" scale_color="yellow" />
+			<knob id="imk" size="20" pad_right="32" />
+		</hbox>
+		
+		<grid rows="3" cols="7" vspacing="2" expand="true">
+			<label text="Head cut" />
+			<label text="Tail cut" />
+			<label text="Fade in" />
+			<label text="Fade out" />
+			<label text="Makeup" />
+			<label text="Pre-delay" />
+			<label text="Listen" />
+			
+			<knob id="ihc" size="20" />
+			<knob id="itc" size="20" pad_left="32" />
+			<knob id="ifi" size="20" pad_top="32" scale_color="yellow" />
+			<knob id="ifo" size="20" pad_bottom="32" scale_color="yellow" />
+			<knob id="imk" size="20" pad_right="32" />
+			<knob id="ipd" size="20" />
+			<button id="ils" size="32" toggle="false" />
+			
+			<value id="ihc" />
+			<value id="itc" />
+			<value id="ifi" />
+			<value id="ifo" />
+			<value id="imk" />
+			<value id="ipd" />
+			<led id="ils" />
+		</grid>
+	</vbox>
+</plugin>
