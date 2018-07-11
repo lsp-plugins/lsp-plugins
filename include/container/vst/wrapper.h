@@ -386,6 +386,7 @@ namespace lsp
         #ifdef ARCH_X86_64
             if (pEventRedirect != NULL)
             {
+                lsp_trace("free _XEventProc redirection address=%p", pEventRedirect);
                 munmap(pEventRedirect, PAGE_SIZE);
                 pEventRedirect = NULL;
             }
@@ -561,10 +562,10 @@ namespace lsp
             g_assert(pParent);
             gdk_window_reparent(gtk_widget_get_window(pWidget), pParent, 0, 0);
 
-            // JUCE hack: add event handler
-            Display *dpy = GDK_DISPLAY_XDISPLAY(gdk_display_get_default());
-            Window wnd = GDK_WINDOW_XWINDOW(gtk_widget_get_window(pWidget));
-            set_event_handler(dpy, wnd);
+//            // JUCE hack: add event handler
+//            Display *dpy = GDK_DISPLAY_XDISPLAY(gdk_display_get_default());
+//            Window wnd = GDK_WINDOW_XWINDOW(gtk_widget_get_window(pWidget));
+//            set_event_handler(dpy, wnd);
         }
 
         // Show window
@@ -652,13 +653,18 @@ namespace lsp
                 *(reinterpret_cast<uint32_t *>(jmp))    = 0;
                 jmp            += sizeof(uint32_t);
                 *(reinterpret_cast<uint64_t *>(jmp))    = uint64_t(&event_proc_proxy);
-                msync(pEventRedirect, 2 + sizeof(uint32_t) + sizeof(uint64_t), MS_INVALIDATE);
+                jmp            += sizeof(uint64_t);
+                msync(pEventRedirect, jmp - pEventRedirect, MS_INVALIDATE | MS_SYNC);
             }
+
+            lsp_trace("_XEventProc redirection address=%p", pEventRedirect);
 
             uint32_t tmp[2] = { uint32_t(uint64_t(pEventRedirect)), 0 };
             Atom atom = XInternAtom(dpy, "_XEventProc", false);
             XChangeProperty(dpy, wnd, atom, atom, 32, PropModeReplace, reinterpret_cast<uint8_t *>(tmp), 2);
         #else
+            lsp_trace("_XEventProc redirection address=%p", &event_proc_proxy);
+
             uint32_t tmp[1] = { uint32_t(&event_proc_proxy) };
             Atom atom = XInternAtom(dpy, "_XEventProc", false);
             XChangeProperty(dpy, wnd, atom, atom, 32, PropModeReplace, reinterpret_cast<uint8_t *>(tmp), 1);

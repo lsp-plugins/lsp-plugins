@@ -14,8 +14,12 @@ namespace lsp
     {
         class X11Widget
         {
-            protected:
-                lsp::Padding         sPadding;
+            public:
+                X11Widget(plugin_ui *ui, widget_t w_class);
+                virtual ~X11Widget();
+
+            public:
+                virtual void handleEvent(const ui_event_t *ev);
         };
     
     } /* namespace x11ui */

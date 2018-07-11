@@ -389,7 +389,8 @@ namespace lsp
                 if (m != NULL)
                 {
                     char *dst = reinterpret_cast<char *>(ptr);
-                    vst_strncpy(dst, m->name, kVstMaxEffectNameLen);
+//                    vst_strncpy(dst, m->name, kVstMaxEffectNameLen);
+                    vst_strncpy(dst, m->description, kVstMaxEffectNameLen);
                     lsp_trace("product_string = %s", dst);
                     v = 1;
                 }

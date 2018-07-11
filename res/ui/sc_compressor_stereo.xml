@@ -163,27 +163,27 @@
 				<align expand="true" fill="true" vpos="1">
 					<vbox>
 						<button id="ilv_l" size="16" color="left_channel" led="true" />
-						<meter id="ilm_l" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="left_channel" activity_id="ilv_l" />
+						<meter id="ilm_l" angle="1" type="rms_peak" min="0.000251189" max="15.8489" height="256" color="left_channel" activity_id="ilv_l" />
 					</vbox>
 				</align>
 				<cell cols="2"><label text="L in R" /></cell>
 				<align expand="true" fill="true" vpos="1">
 					<vbox>
 						<button id="ilv_r" size="16" color="right_channel" led="true" />
-						<meter id="ilm_r" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="right_channel" activity_id="ilv_r" />
+						<meter id="ilm_r" angle="1" type="rms_peak" min="0.000251189" max="15.8489" height="256" color="right_channel" activity_id="ilv_r" />
 					</vbox>
 				</align>
 				<align expand="true" fill="true" vpos="1">
 					<vbox>
 						<button id="olv_l" size="16" color="left_channel" led="true" />
-						<meter id="olm_l" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="left_channel" activity_id="olv_l" />
+						<meter id="olm_l" angle="1" type="rms_peak" min="0.000251189" max="15.8489" height="256" color="left_channel" activity_id="olv_l" />
 					</vbox>
 				</align>
 				<cell cols="2"><label text="L out R" /></cell>
 				<align expand="true" fill="true" vpos="1">
 					<vbox>
 						<button id="olv_r" size="16" color="right_channel" led="true" />
-						<meter id="olm_r" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="right_channel" activity_id="olv_r" />
+						<meter id="olm_r" angle="1" type="rms_peak" min="0.000251189" max="15.8489" height="256" color="right_channel" activity_id="olv_r" />
 					</vbox>
 				</align>
 			</grid>

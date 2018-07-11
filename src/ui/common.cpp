@@ -45,6 +45,7 @@ namespace lsp
         "port",
         "meter",
         "dot",
+        "window",
         NULL
     };
 
@@ -127,6 +128,7 @@ namespace lsp
         "precision",
         "editable",
         "same_line",
+        "offset",
         NULL
     };
 

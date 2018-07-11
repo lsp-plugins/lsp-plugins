@@ -50,7 +50,8 @@ namespace lsp
         W_VSEP,
         W_PORT,
         W_METER,
-        W_DOT
+        W_DOT,
+        W_WINDOW
     };
 
     // List of all available widget attributes
@@ -133,7 +134,8 @@ namespace lsp
         A_SMOOTH,
         A_PRECISION,
         A_EDITABLE,
-        A_SAME_LINE
+        A_SAME_LINE,
+        A_OFFSET
     };
 
     // List of colors

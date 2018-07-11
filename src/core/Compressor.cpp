@@ -90,7 +90,7 @@ namespace lsp
             dsp::copy(env, out, samples);
 
         // Now calculate compressor's curve
-        reduction(out, env, samples);
+        reduction(out, out, samples);
     }
 
     float Compressor::process(float *env, float s)

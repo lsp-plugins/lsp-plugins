@@ -132,8 +132,8 @@
 							
 							<cell rows="4">
 								<grid rows="3" cols="2">
-									<meter id="sml" angle="1" type="vu" height="80" logarithmic="true" min="0.01585" max="2" color="left_channel" pad_left="2" pad_right="2" />
-									<meter id="smr" angle="1" type="vu" height="80" logarithmic="true" min="0.01585" max="2" color="right_channel" pad_left="2" pad_right="2" />
+									<meter id="sml" angle="1" type="rms_peak" height="80" logarithmic="true" min="0.01585" max="2" color="left_channel" pad_left="2" pad_right="2" />
+									<meter id="smr" angle="1" type="rms_peak" height="80" logarithmic="true" min="0.01585" max="2" color="right_channel" pad_left="2" pad_right="2" />
 									<label text="L" color="left_channel" font_size="8" />
 									<label text="R" color="right_channel" font_size="8" />
 									<cell cols="2"><value id="bal" font_size="8" same_line="true" /></cell>

@@ -81,7 +81,7 @@
 				</align>
 				<vbox>
 					<button id="isv" size="16" color="middle_channel" led="true" />
-					<meter id="ism" angle="1" type="vu" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="middle_channel" pad_left="4" pad_right="4" activity_id="isv" />
+					<meter id="ism" angle="1" type="rms_peak" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="middle_channel" pad_left="4" pad_right="4" activity_id="isv" />
 				</vbox>
 				<vbox>
 					<button id="tfv" size="16" color="green" led="true" />

@@ -116,13 +116,13 @@ namespace lsp
     void ladspa_make_descriptor(LADSPA_Descriptor *d, unsigned long id, const char *label, const plugin_metadata_t &m)
     {
         char *plugin_name = NULL;
-        asprintf(&plugin_name, LSP_ACRONYM " %s - %s [LADSPA]", m.name, m.description);
+        asprintf(&plugin_name, "%s - %s", m.description, m.name);
 
         d->UniqueID             = id;
         d->Label                = label;
         d->Properties           = LADSPA_PROPERTY_HARD_RT_CAPABLE;
         d->Name                 = plugin_name;
-        d->Maker                = LSP_ACRONYM " [LADSPA]";
+        d->Maker                = LSP_ACRONYM " LADSPA";
         d->ImplementationData   = const_cast<char *>(m.developer->name);
         d->Copyright            = LSP_COPYRIGHT;
         d->PortCount            = 1; // 1 port used for latency output

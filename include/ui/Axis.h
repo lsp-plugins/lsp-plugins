@@ -80,6 +80,18 @@ namespace lsp
              * @param c line equation
              */
             virtual bool parallel(float x, float y, float &a, float &b, float &c);
+
+            /** Get rotated around the point angle
+             *
+             * @param x dot that belongs to line
+             * @param y dot that belongs to line
+             * @param angle rotation angle around dot
+             * @param a line equation
+             * @param b line equation
+             * @param c line equation
+             * @return
+             */
+            virtual bool angle(float x, float y, float angle, float &a, float &b, float &c);
     };
 
 } /* namespace lsp */

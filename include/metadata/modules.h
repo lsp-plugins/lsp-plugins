@@ -317,6 +317,12 @@ MOD_VST(sc_compressor_ms)
 MOD_GTK2(sc_compressor_ms)
 
 #ifndef LSP_NO_EXPERIMENTAL
+    MOD_PLUGIN(dyna_processor_mono)
+    MOD_LADSPA(dyna_processor_mono)
+    MOD_LV2(dyna_processor_mono)
+//    MOD_VST(dyna_processor_mono)
+    MOD_GTK2(dyna_processor_mono)
+
     // Impulse responses
     MOD_PLUGIN(impulse_responses_mono)
     MOD_LV2(impulse_responses_mono)

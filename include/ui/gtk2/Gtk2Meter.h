@@ -19,7 +19,8 @@ namespace lsp
             enum type_t
             {
                 MT_PEAK,
-                MT_VU
+                MT_VU,
+                MT_RMS_PEAK
             };
 
             enum conversion_t
@@ -38,7 +39,8 @@ namespace lsp
                 MF_LOG_SET  = 1 << 3,
                 MF_REV      = 1 << 4,
                 MF_VALUE    = 1 << 5,
-                MF_INACTIVE = 1 << 6
+                MF_INACTIVE = 1 << 6,
+                MF_RMS      = 1 << 7
             };
 
         protected:
@@ -47,6 +49,7 @@ namespace lsp
             float           fMin;       // Minimum displayed value
             float           fMax;       // Maximum displayed value
             float           fValue;     // Current value
+            float           fRms;       // RMS value
             size_t          nAngle;     // Angle 0..3
             size_t          nMWidth;    // Width
             size_t          nMHeight;   // Height

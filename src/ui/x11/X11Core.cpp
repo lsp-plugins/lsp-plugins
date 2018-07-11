@@ -88,11 +88,25 @@ namespace lsp
             return pending;
         }
 
+        void X11Core::x11sync()
+        {
+            // Flush & sync display
+            XFlush(pDisplay);
+            XSync(pDisplay, False);
+        }
+
         void X11Core::handleEvent(XEvent *ev)
         {
             lsp_trace("Received event: %d (%s)", int(ev->type), event_name(ev->type));
 
             ui_event_t ue;
+            ue.nType    = UIE_UNKNOWN;
+            ue.nLeft    = 0;
+            ue.nTop     = 0;
+            ue.nWidth   = 0;
+            ue.nHeight  = 0;
+            ue.nCode    = 0;
+            ue.nState   = 0;
 
             // Decode event
             switch (ev->type)
@@ -123,9 +137,42 @@ namespace lsp
                     ue.nCode    = 0;
                     break;
 
+                case Expose:
+                    ue.nType    = UIE_REDRAW;
+                    ue.nLeft    = ev->xexpose.x;
+                    ue.nTop     = ev->xexpose.y;
+                    ue.nWidth   = ev->xexpose.width;
+                    ue.nHeight  = ev->xexpose.height;
+                    break;
+
+                case ResizeRequest:
+                    ue.nType    = UIE_SIZE_REQUEST;
+                    ue.nWidth   = ev->xresizerequest.width;
+                    ue.nHeight  = ev->xresizerequest.height;
+                    break;
+
+                case ConfigureNotify:
+                    ue.nType    = UIE_RESIZE;
+                    ue.nLeft    = ev->xconfigure.x;
+                    ue.nTop     = ev->xconfigure.y;
+                    ue.nWidth   = ev->xconfigure.width;
+                    ue.nHeight  = ev->xconfigure.height;
+                    break;
+
+                case MapNotify:
+                    ue.nType    = UIE_SHOW;
+                    break;
+                case UnmapNotify:
+                    ue.nType    = UIE_HIDE;
+                    break;
+
                 default:
                     return;
             }
+
+            // Analyze event type
+            if (ue.nType == UIE_UNKNOWN)
+                return;
 
             // Find relative window and pass event to it
             size_t nwnd = vWindows.size();
@@ -180,7 +227,7 @@ namespace lsp
             );
 
             // Now create X11Window instance
-            X11Window *x11wnd = new X11Window(this, wnd);
+            X11Window *x11wnd = new X11Window(this, wnd, width, height);
             if (x11wnd != NULL)
             {
                 // Add window to list

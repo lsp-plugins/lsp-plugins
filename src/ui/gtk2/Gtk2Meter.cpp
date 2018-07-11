@@ -21,6 +21,7 @@ namespace lsp
         fMin        = 0.0f;
         fMax        = 10.0f;
         fValue      = 1.0f;
+        fRms        = 0.0f;
         nAngle      = 0;
         nMWidth     = 20;
         nMHeight    = 192;
@@ -106,6 +107,8 @@ namespace lsp
                     nType   = MT_VU;
                 else if (!strcasecmp(value, "peak"))
                     nType   = MT_PEAK;
+                else if (!strcasecmp(value, "rms_peak"))
+                    nType   = MT_RMS_PEAK;
                 break;
 
             case A_REVERSIVE:
@@ -136,12 +139,17 @@ namespace lsp
             switch (nType)
             {
                 case MT_VU:
+                case MT_RMS_PEAK:
                     nFlags |= (MF_LOG_SET | MF_LOG);
                     break;
                 default:
                     break;
             }
         }
+
+        // Check that RMS and Peak meters are present
+        if (nType == MT_RMS_PEAK)
+            nFlags  |= MF_RMS;
 
         // Additional analyse
         if (pPort == NULL)
@@ -239,27 +247,28 @@ namespace lsp
 
     void Gtk2Meter::get_color(float rs, float re, ColorHolder &cl)
     {
-        if (nType == MT_VU)
+        if (nType == MT_PEAK)
         {
-            if (re <= VU_RANGE0)
-            {
-                cl.copy(sColor);
-                cl.darken(0.5f);
-            }
-            else if (re <= VU_RANGE1)
-            {
-                cl.copy(sColor);
-                cl.darken(0.25f);
-            }
-            else if (re <= VU_RANGE2)
-                cl.copy(sColor);
-            else if (re <= VU_RANGE3)
-                cl.set(pUI->theme(), C_YELLOW);
-            else
-                cl.set(pUI->theme(), C_RED);
-        }
-        else
             cl.copy(sColor);
+            return;
+        }
+
+        if (re <= VU_RANGE0)
+        {
+            cl.copy(sColor);
+            cl.darken(0.5f);
+        }
+        else if (re <= VU_RANGE1)
+        {
+            cl.copy(sColor);
+            cl.darken(0.25f);
+        }
+        else if (re <= VU_RANGE2)
+            cl.copy(sColor);
+        else if (re <= VU_RANGE3)
+            cl.set(pUI->theme(), C_YELLOW);
+        else
+            cl.set(pUI->theme(), C_RED);
     }
 
     void Gtk2Meter::format_meter(float value, char *buf, size_t n) const
@@ -301,8 +310,10 @@ namespace lsp
         cairo_rectangle(cr, 0, 0, nWidth, nHeight);
         cairo_fill(cr);
 
-        float value     = (nFlags & MF_INACTIVE) ? 0.0f : fValue;
+        float value     = (nFlags & MF_INACTIVE) ? 0.0f : (nFlags & MF_RMS) ? fRms : fValue;
+        float peak      = (nFlags & MF_INACTIVE) ? 0.0f : fValue;
         fValue         *= 0.8f;
+        fRms           *= 0.8f;
 
         ssize_t cx      = nWidth >> 1, cy = nHeight >> 1;
         cairo_text_extents_t extents;
@@ -368,8 +379,15 @@ namespace lsp
 
                 if (nFlags & MF_INACTIVE)
                     l_c.blend(sIndColor, 0.05);
-                else if (!((lv < value) ^ bool(nFlags & MF_REV)))
-                    l_c.blend(sIndColor, 0.05);
+                else
+                {
+                    bool matched = (lv < value);
+                    if ((!matched) && (nFlags & MF_RMS))
+                        matched = (peak >= lv) && (peak <= rv);
+
+                    if (!((matched) ^ bool(nFlags & MF_REV)))
+                        l_c.blend(sIndColor, 0.05);
+                }
                 if (lv < value)
                     t_col.copy(l_c);
 
@@ -416,8 +434,15 @@ namespace lsp
 
                 if (nFlags & MF_INACTIVE)
                     l_c.blend(sIndColor, 0.05);
-                else if (!((lv < value) ^ bool(nFlags & MF_REV)))
-                    l_c.blend(sIndColor, 0.05);
+                else
+                {
+                    bool matched = (lv < value);
+                    if ((!matched) && (nFlags & MF_RMS))
+                        matched = (peak >= lv) && (peak <= rv);
+
+                    if (!((matched) ^ bool(nFlags & MF_REV)))
+                        l_c.blend(sIndColor, 0.05);
+                }
                 if (lv < value)
                     t_col.copy(l_c);
 
@@ -531,6 +556,9 @@ namespace lsp
             float value = pPort->getValue();
             if (fValue < value)
                 fValue      = value;
+            fRms       = 0.95f*fRms + 0.05f*fabs(value);
+            if (fRms < 0.0f)
+                fRms        = 0.0f;
         }
         else if (port == pActivity)
         {

@@ -16,6 +16,7 @@
 
 // Include specific libraries
 #include <ui/x11/X11Core.h>
+#include <ui/x11/X11CairoSurface.h>
 #include <ui/x11/X11Widget.h>
 #include <ui/x11/X11Window.h>
 

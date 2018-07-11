@@ -226,6 +226,16 @@ namespace lsp
         return locate_line2d(fDX, fDY, x, y, a, b, c);
     }
 
+    bool Axis::angle(float x, float y, float angle, float &a, float &b, float &c)
+    {
+        float c_sin     = sinf(angle);
+        float c_cos     = cosf(angle);
+        float dx        = fDX*c_cos - fDY*c_sin;
+        float dy        = fDX*c_sin + fDY*c_cos;
+
+        return locate_line2d(dx, dy, x, y, a, b, c);
+    }
+
     float Axis::actualMin()
     {
         if (pPort == NULL)

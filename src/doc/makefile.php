@@ -28,16 +28,16 @@
 ?>
 # Auto generated makefile, do not edit
 
-HTMLDIR     = $(BUILDDIR)/html
 FILE        = $(@:$(HTMLDIR)/%.html=%.html)
 PAGE        = $(patsubst %.html,%,$(notdir $(@)))
 DIR         = $(@:$(HTMLDIR)/%=%)
-DIRS        = <?php print(implode(" \\\n\t\t", $HTML_DIRS) . "\n") ?>
-FILES       = <?php print(implode(" \\\n\t\t", $HTML_FILES) . "\n") ?>
+HTMLDIR    := $(BUILDDIR)/html
+DIRS       := <?php print(implode(" \\\n\t\t", $HTML_DIRS) . "\n") ?>
+FILES      := <?php print(implode(" \\\n\t\t", $HTML_FILES) . "\n") ?>
 
 .PHONY: all target
 
-all: $(DIRS) $(FILES)
+all: $(FILES)
 
 target: all
 
@@ -47,5 +47,5 @@ $(DIRS):
 	@mkdir -p $(@)  
 
 $(FILES): $(DIRS)
-	@echo "  $(PHP) $(HTMLDIR) $(FILE)"
-	@$(PHP) -f index.php $(PAGE) >$(HTMLDIR)/$(FILE)
+	@echo "  $(PHP) $(FILE)"
+	@$(PHP) -f index.php $(PAGE) >$(@)

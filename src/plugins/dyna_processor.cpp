@@ -1,24 +1,26 @@
 /*
- * compressor.cpp
+ * dyna_processor.cpp
  *
- *  Created on: 16 сент. 2016 г.
+ *  Created on: 21 окт. 2016 г.
  *      Author: sadko
  */
+
+#ifndef LSP_NO_EXPERIMENTAL
 
 #include <core/debug.h>
 #include <core/colors.h>
 #include <core/Color.h>
-#include <plugins/compressor.h>
+#include <plugins/dyna_processor.h>
 
-#define COMP_BUF_SIZE           0x1000
-#define TRACE_PORT(p)           lsp_trace("  port id=%s", (p)->metadata()->id);
+#define DYNA_PROC_BUF_SIZE           0x1000
+#define TRACE_PORT(p)               lsp_trace("  port id=%s", (p)->metadata()->id);
 
 namespace lsp
 {
     //-------------------------------------------------------------------------
     // Compressor base class
 
-    compressor_base::compressor_base(const plugin_metadata_t &metadata, bool sc, size_t mode): plugin_t(metadata)
+    dyna_processor_base::dyna_processor_base(const plugin_metadata_t &metadata, bool sc, size_t mode): plugin_t(metadata)
     {
         nMode           = mode;
         bSidechain      = sc;
@@ -41,14 +43,14 @@ namespace lsp
         pIDisplay       = NULL;
     }
 
-    compressor_base::~compressor_base()
+    dyna_processor_base::~dyna_processor_base()
     {
     }
 
-    void compressor_base::init(IWrapper *wrapper)
+    void dyna_processor_base::init(IWrapper *wrapper)
     {
         plugin_t::init(wrapper);
-        size_t channels = (nMode == CM_MONO) ? 1 : 2;
+        size_t channels = (nMode == DYNA_MONO) ? 1 : 2;
 
         // Allocate channels
         vChannels       = new channel_t[channels];
@@ -56,9 +58,9 @@ namespace lsp
             return;
 
         // Allocate temporary buffers
-        size_t buf_size         = COMP_BUF_SIZE * sizeof(float);
-        size_t curve_size       = (compressor_base_metadata::CURVE_MESH_SIZE) * sizeof(float);
-        size_t history_size     = (compressor_base_metadata::TIME_MESH_SIZE) * sizeof(float);
+        size_t buf_size         = DYNA_PROC_BUF_SIZE * sizeof(float);
+        size_t curve_size       = (dyna_processor_base_metadata::CURVE_MESH_SIZE) * sizeof(float);
+        size_t history_size     = (dyna_processor_base_metadata::TIME_MESH_SIZE) * sizeof(float);
         size_t allocate         = buf_size * channels * 5 + curve_size + history_size + DEFAULT_ALIGN;
         uint8_t *ptr            = new uint8_t[allocate];
         if (ptr == NULL)
@@ -75,7 +77,7 @@ namespace lsp
         {
             channel_t *c = &vChannels[i];
 
-            if (!c->sSC.init(channels, compressor_base_metadata::REACTIVITY_MAX))
+            if (!c->sSC.init(channels, dyna_processor_base_metadata::REACTIVITY_MAX))
                 return;
 
             c->vIn              = reinterpret_cast<float *>(ptr);
@@ -88,6 +90,7 @@ namespace lsp
             ptr                += buf_size;
             c->vGain            = reinterpret_cast<float *>(ptr);
             ptr                += buf_size;
+
             c->bScActive        = false;
             c->bScListen        = false;
             c->nSync            = S_ALL;
@@ -116,18 +119,31 @@ namespace lsp
             c->pScReactivity    = NULL;
             c->pScPreamp        = NULL;
 
-            c->pMode            = NULL;
-            c->pAttackLvl       = NULL;
-            c->pReleaseLvl      = NULL;
-            c->pAttackTime      = NULL;
-            c->pReleaseTime     = NULL;
-            c->pRatio           = NULL;
-            c->pKnee            = NULL;
+            for (size_t j=0; j<dyna_processor_base_metadata::DOTS; ++j)
+            {
+                c->pDotOn[j]        = NULL;
+                c->pThreshold[j]    = NULL;
+                c->pGain[j]         = NULL;
+                c->pKnee[j]         = NULL;
+                c->pAttackOn[j]     = NULL;
+                c->pAttackLvl[j]    = NULL;
+                c->pReleaseOn[j]    = NULL;
+                c->pReleaseLvl[j]   = NULL;
+            }
+            for (size_t j=0; j<dyna_processor_base_metadata::RANGES; ++j)
+            {
+                c->pAttackTime[j]   = NULL;
+                c->pReleaseTime[j]  = NULL;
+            }
+
+            c->pLowRatio        = NULL;
+            c->pHighRatio       = NULL;
             c->pMakeup          = NULL;
+
             c->pDryGain         = NULL;
             c->pWetGain         = NULL;
             c->pCurve           = NULL;
-            c->pReleaseOut      = NULL;
+            c->pModel           = NULL;
         }
 
         lsp_assert(ptr < &pData[allocate]);
@@ -174,7 +190,7 @@ namespace lsp
         pPause                  =   vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pClear                  =   vPorts[port_id++];
-        if (nMode == CM_MS)
+        if (nMode == DYNA_MS)
         {
             TRACE_PORT(vPorts[port_id]);
             pMSListen               =   vPorts[port_id++];
@@ -186,7 +202,7 @@ namespace lsp
         {
             channel_t *c = &vChannels[i];
 
-            if ((i > 0) && (nMode == CM_STEREO))
+            if ((i > 0) && (nMode == DYNA_STEREO))
             {
                 channel_t *sc       = &vChannels[0];
                 c->pSC              = sc->pSC;
@@ -205,7 +221,7 @@ namespace lsp
                 c->pScMode          =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
                 c->pScListen        =   vPorts[port_id++];
-                if (nMode != CM_MONO)
+                if (nMode != DYNA_MONO)
                 {
                     TRACE_PORT(vPorts[port_id]);
                     c->pScSource        =   vPorts[port_id++];
@@ -218,22 +234,34 @@ namespace lsp
         }
 
         // Compressor ports
-        lsp_trace("Binding compressor ports");
+        lsp_trace("Binding processor ports");
         for (size_t i=0; i<channels; ++i)
         {
             channel_t *c = &vChannels[i];
 
-            if ((i > 0) && (nMode == CM_STEREO))
+            if ((i > 0) && (nMode == DYNA_STEREO))
             {
                 channel_t *sc       = &vChannels[0];
 
-                c->pMode            = sc->pMode;
-                c->pAttackLvl       = sc->pAttackLvl;
-                c->pAttackTime      = sc->pAttackTime;
-                c->pReleaseLvl      = sc->pReleaseLvl;
-                c->pReleaseTime     = sc->pReleaseTime;
-                c->pRatio           = sc->pRatio;
-                c->pKnee            = sc->pKnee;
+                for (size_t j=0; j<dyna_processor_base_metadata::DOTS; ++j)
+                {
+                    c->pDotOn[j]        = sc->pDotOn[j];
+                    c->pThreshold[j]    = sc->pThreshold[j];
+                    c->pGain[j]         = sc->pGain[j];
+                    c->pKnee[j]         = sc->pKnee[j];
+                    c->pAttackOn[j]     = sc->pAttackOn[j];
+                    c->pAttackLvl[j]    = sc->pAttackLvl[j];
+                    c->pReleaseOn[j]    = sc->pReleaseOn[j];
+                    c->pReleaseLvl[j]   = sc->pReleaseLvl[j];
+                }
+                for (size_t j=0; j<dyna_processor_base_metadata::RANGES; ++j)
+                {
+                    c->pAttackTime[j]   = sc->pAttackTime[j];
+                    c->pReleaseTime[j]  = sc->pReleaseTime[j];
+                }
+
+                c->pLowRatio        = sc->pLowRatio;
+                c->pHighRatio       = sc->pHighRatio;
                 c->pMakeup          = sc->pMakeup;
                 c->pDryGain         = sc->pDryGain;
                 c->pWetGain         = sc->pWetGain;
@@ -241,27 +269,44 @@ namespace lsp
             else
             {
                 TRACE_PORT(vPorts[port_id]);
-                c->pMode            =   vPorts[port_id++];
+                c->pAttackTime[0]   =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
-                c->pAttackLvl       =   vPorts[port_id++];
+                c->pReleaseTime[0]  =   vPorts[port_id++];
+
+                for (size_t j=0; j<dyna_processor_base_metadata::DOTS; ++j)
+                {
+                    TRACE_PORT(vPorts[port_id]);
+                    c->pDotOn[j]        = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    c->pThreshold[j]    = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    c->pGain[j]         = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    c->pKnee[j]         = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    c->pAttackOn[j]     = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    c->pAttackLvl[j]    = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    c->pAttackTime[j+1] = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    c->pReleaseOn[j]    = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    c->pReleaseLvl[j]   = vPorts[port_id++];
+                    TRACE_PORT(vPorts[port_id]);
+                    c->pReleaseTime[j+1]= vPorts[port_id++];
+                }
+
                 TRACE_PORT(vPorts[port_id]);
-                c->pAttackTime      =   vPorts[port_id++];
+                c->pLowRatio        =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
-                c->pReleaseLvl      =   vPorts[port_id++];
-                TRACE_PORT(vPorts[port_id]);
-                c->pReleaseTime     =   vPorts[port_id++];
-                TRACE_PORT(vPorts[port_id]);
-                c->pRatio           =   vPorts[port_id++];
-                TRACE_PORT(vPorts[port_id]);
-                c->pKnee            =   vPorts[port_id++];
+                c->pHighRatio       =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
                 c->pMakeup          =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
                 c->pDryGain         =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
                 c->pWetGain         =   vPorts[port_id++];
-                TRACE_PORT(vPorts[port_id]);
-                c->pReleaseOut      =   vPorts[port_id++];
 
                 // Skip meters visibility controls
                 TRACE_PORT(vPorts[port_id]);
@@ -271,6 +316,8 @@ namespace lsp
                 TRACE_PORT(vPorts[port_id]);
                 port_id++;
 
+                TRACE_PORT(vPorts[port_id]);
+                c->pModel           =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
                 c->pCurve           =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
@@ -314,21 +361,21 @@ namespace lsp
         }
 
         // Initialize curve (logarithmic) in range of -72 .. +24 db
-        float delta = (compressor_base_metadata::CURVE_DB_MAX - compressor_base_metadata::CURVE_DB_MIN) / (compressor_base_metadata::CURVE_MESH_SIZE-1);
-        for (size_t i=0; i<compressor_base_metadata::CURVE_MESH_SIZE; ++i)
-            vCurve[i]   = db_to_gain(compressor_base_metadata::CURVE_DB_MIN + delta * i);
+        float delta = (dyna_processor_base_metadata::CURVE_DB_MAX - dyna_processor_base_metadata::CURVE_DB_MIN) / (dyna_processor_base_metadata::CURVE_MESH_SIZE-1);
+        for (size_t i=0; i<dyna_processor_base_metadata::CURVE_MESH_SIZE; ++i)
+            vCurve[i]   = db_to_gain(dyna_processor_base_metadata::CURVE_DB_MIN + delta * i);
 
         // Initialize time points
-        delta       = compressor_base_metadata::TIME_HISTORY_MAX / (compressor_base_metadata::TIME_MESH_SIZE - 1);
-        for (size_t i=0; i<compressor_base_metadata::TIME_MESH_SIZE; ++i)
-            vTime[i]    = compressor_base_metadata::TIME_HISTORY_MAX - i*delta;
+        delta       = dyna_processor_base_metadata::TIME_HISTORY_MAX / (dyna_processor_base_metadata::TIME_MESH_SIZE - 1);
+        for (size_t i=0; i<dyna_processor_base_metadata::TIME_MESH_SIZE; ++i)
+            vTime[i]    = dyna_processor_base_metadata::TIME_HISTORY_MAX - i*delta;
     }
 
-    void compressor_base::destroy()
+    void dyna_processor_base::destroy()
     {
         if (vChannels != NULL)
         {
-            size_t channels = (nMode == CM_MONO) ? 1 : 2;
+            size_t channels = (nMode == DYNA_MONO) ? 1 : 2;
             for (size_t i=0; i<channels; ++i)
                 vChannels[i].sSC.destroy();
 
@@ -349,27 +396,28 @@ namespace lsp
         }
     }
 
-    void compressor_base::update_sample_rate(long sr)
+    void dyna_processor_base::update_sample_rate(long sr)
     {
-        size_t samples_per_dot  = seconds_to_samples(sr, compressor_base_metadata::TIME_HISTORY_MAX / compressor_base_metadata::TIME_MESH_SIZE);
-        size_t channels = (nMode == CM_MONO) ? 1 : 2;
+        size_t samples_per_dot  = seconds_to_samples(sr, dyna_processor_base_metadata::TIME_HISTORY_MAX / dyna_processor_base_metadata::TIME_MESH_SIZE);
+        size_t channels = (nMode == DYNA_MONO) ? 1 : 2;
 
         for (size_t i=0; i<channels; ++i)
         {
             channel_t *c = &vChannels[i];
             c->sBypass.init(sr);
-            c->sComp.set_sample_rate(sr);
+            c->sProc.set_sample_rate(sr);
             c->sSC.set_sample_rate(sr);
 
             for (size_t j=0; j<G_TOTAL; ++j)
-                c->sGraph[j].init(compressor_base_metadata::TIME_MESH_SIZE, samples_per_dot);
+                c->sGraph[j].init(dyna_processor_base_metadata::TIME_MESH_SIZE, samples_per_dot);
             c->sGraph[G_GAIN].fill(1.0f);
+            c->sGraph[G_GAIN].set_method(MM_MINIMUM);
         }
     }
 
-    void compressor_base::update_settings()
+    void dyna_processor_base::update_settings()
     {
-        size_t channels = (nMode == CM_MONO) ? 1 : 2;
+        size_t channels = (nMode == DYNA_MONO) ? 1 : 2;
         bool bypass     = pBypass->getValue() >= 0.5f;
 
         // Global parameters
@@ -394,49 +442,57 @@ namespace lsp
             c->sSC.set_mode((c->pScMode != NULL) ? c->pScMode->getValue() : SCM_RMS);
             c->sSC.set_source((c->pScSource != NULL) ? c->pScSource->getValue() : SCS_MIDDLE);
             c->sSC.set_reactivity(c->pScReactivity->getValue());
-            c->sSC.set_stereo_mode(((nMode == CM_MS) && (c->nScType != SCT_EXTERNAL)) ? SCSM_MIDSIDE : SCSM_STEREO);
+            c->sSC.set_stereo_mode(((nMode == DYNA_MS) && (c->nScType != SCT_EXTERNAL)) ? SCSM_MIDSIDE : SCSM_STEREO);
 
-            // Update compressor settings
-            float attack    = c->pAttackLvl->getValue();
-            float release   = c->pReleaseLvl->getValue() * attack;
-            float makeup    = c->pMakeup->getValue();
-            bool upward     = c->pMode->getValue() >= 0.5f;
+            // Update processor settings
+            c->sProc.set_attack_time(0, c->pAttackTime[0]->getValue());
+            c->sProc.set_release_time(0, c->pReleaseTime[0]->getValue());
 
-            c->sComp.set_threshold(attack, release);
-            c->sComp.set_timings(c->pAttackTime->getValue(), c->pReleaseTime->getValue());
-            c->sComp.set_ratio(c->pRatio->getValue());
-            c->sComp.set_knee(c->pKnee->getValue());
-            c->sComp.set_mode((upward) ? CM_UPWARD : CM_DOWNWARD);
-            if (c->pReleaseOut != NULL)
-                c->pReleaseOut->setValue(release);
-            c->sGraph[G_GAIN].set_method((upward) ? MM_MAXIMUM : MM_MINIMUM);
-
-            // Check modification flag
-            if (c->sComp.modified())
+            for (size_t j=0; j<dyna_processor_base_metadata::RANGES; ++j)
             {
-                c->sComp.update_settings();
+                c->sProc.set_attack_level(j, (c->pAttackOn[j]->getValue() >= 0.5f) ? c->pAttackLvl[j]->getValue() : -1.0f);
+                c->sProc.set_attack_time(j, c->pAttackTime[j]->getValue());
+
+                c->sProc.set_release_level(j, (c->pReleaseOn[j]->getValue() >= 0.5f) ? c->pReleaseLvl[j]->getValue() : -1.0f);
+                c->sProc.set_release_time(j, c->pReleaseTime[j]->getValue());
+
+                if ((c->pDotOn[j] != NULL) && (c->pDotOn[j]->getValue() >= 0.5f))
+                    c->sProc.set_dot(j, c->pThreshold[j]->getValue(), c->pGain[j]->getValue(), c->pKnee[j]->getValue());
+                else
+                    c->sProc.set_dot(j, -1.0f, -1.0f, -1.0f);
+            }
+
+            float makeup = c->pMakeup->getValue();
+            c->sProc.set_in_ratio(c->pLowRatio->getValue());
+            c->sProc.set_out_ratio(c->pHighRatio->getValue());
+
+            if (c->fMakeup != makeup)
+            {
+                c->fMakeup          = makeup;
                 c->nSync           |= S_CURVE;
             }
 
             // Update gains
             c->fDryGain         = c->pDryGain->getValue() * out_gain;
             c->fWetGain         = c->pWetGain->getValue() * out_gain;
-            if (c->fMakeup != makeup)
+
+            // Check modification flag
+            if (c->sProc.modified())
             {
-                c->fMakeup          = makeup;
-                c->nSync           |= S_CURVE;
+                c->sProc.update_settings();
+                c->nSync           |= S_CURVE | S_MODEL;
             }
         }
     }
 
-    void compressor_base::ui_activated()
+    void dyna_processor_base::ui_activated()
     {
-        size_t channels     = (nMode == CM_MONO) ? 1 : 2;
+        size_t channels     = (nMode == DYNA_MONO) ? 1 : 2;
         for (size_t i=0; i<channels; ++i)
-            vChannels[i].nSync     = S_CURVE;
+            vChannels[i].nSync     = S_CURVE | S_MODEL;
     }
 
-    float compressor_base::process_feedback(channel_t *c, size_t i, size_t channels)
+    float dyna_processor_base::process_feedback(channel_t *c, size_t i, size_t channels)
     {
         // Read input samples
         float in[2];
@@ -455,22 +511,22 @@ namespace lsp
         float scin      = c->sSC.process(in);
 
         // Perform compression routine
-        c->vGain[i]     = c->sComp.process(&c->vEnv[i], scin);
+        c->vGain[i]     = c->sProc.process(&c->vEnv[i], scin);
         c->vOut[i]      = c->vGain[i] * c->vIn[i];
 
         return scin;
     }
 
-    void compressor_base::process_non_feedback(channel_t *c, float **in, size_t samples)
+    void dyna_processor_base::process_non_feedback(channel_t *c, float **in, size_t samples)
     {
         c->sSC.process(c->vSc, const_cast<const float **>(in), samples);
-        c->sComp.process(c->vGain, c->vEnv, c->vSc, samples);
+        c->sProc.process(c->vGain, c->vEnv, c->vSc, samples);
         dsp::multiply(c->vOut, c->vGain, c->vIn, samples); // Adjust gain for input
     }
 
-    void compressor_base::process(size_t samples)
+    void dyna_processor_base::process(size_t samples)
     {
-        size_t channels = (nMode == CM_MONO) ? 1 : 2;
+        size_t channels = (nMode == DYNA_MONO) ? 1 : 2;
         size_t feedback = 0;
 
         float *in_buf[2];   // Input buffer
@@ -500,12 +556,12 @@ namespace lsp
         while (left > 0)
         {
             // Detemine number of samples to process
-            size_t to_process = (left > COMP_BUF_SIZE) ? COMP_BUF_SIZE : left;
+            size_t to_process = (left > DYNA_PROC_BUF_SIZE) ? DYNA_PROC_BUF_SIZE : left;
 
             // Prepare audio channels
-            if (nMode == CM_MONO)
+            if (nMode == DYNA_MONO)
                 dsp::scale(vChannels[0].vIn, in_buf[0], fInGain, to_process);
-            else if (nMode == CM_MS)
+            else if (nMode == DYNA_MS)
             {
                 dsp::lr_to_ms(vChannels[0].vIn, vChannels[1].vIn, in_buf[0], in_buf[1], to_process);
                 dsp::scale(vChannels[0].vIn, vChannels[0].vIn, fInGain, to_process);
@@ -631,7 +687,7 @@ namespace lsp
                 channel_t *c        = &vChannels[i];
 
                 // Process graph outputs
-                if ((i == 0) || (nMode != CM_STEREO))
+                if ((i == 0) || (nMode != DYNA_STEREO))
                 {
                     c->sGraph[G_SC].process(c->vSc, to_process);                        // Sidechain signal
                     c->pMeter[M_SC]->setValue(dsp::abs_max(c->vSc, to_process));
@@ -645,7 +701,7 @@ namespace lsp
             }
 
             // Form output signal
-            if (nMode == CM_MS)
+            if (nMode == DYNA_MS)
             {
                 channel_t *cm       = &vChannels[0];
                 channel_t *cs       = &vChannels[1];
@@ -713,40 +769,56 @@ namespace lsp
 
                     // Clear data if requested
                     if (bClear)
-                        dsp::fill_zero(c->sGraph[j].data(), compressor_base_metadata::TIME_MESH_SIZE);
+                        dsp::fill_zero(c->sGraph[j].data(), dyna_processor_base_metadata::TIME_MESH_SIZE);
 
                     // Get mesh
                     mesh_t *mesh    = c->pGraph[j]->getBuffer<mesh_t>();
                     if ((mesh != NULL) && (mesh->isEmpty()))
                     {
                         // Fill mesh with new values
-                        dsp::copy(mesh->pvData[0], vTime, compressor_base_metadata::TIME_MESH_SIZE);
-                        dsp::copy(mesh->pvData[1], c->sGraph[j].data(), compressor_base_metadata::TIME_MESH_SIZE);
-                        mesh->data(2, compressor_base_metadata::TIME_MESH_SIZE);
+                        dsp::copy(mesh->pvData[0], vTime, dyna_processor_base_metadata::TIME_MESH_SIZE);
+                        dsp::copy(mesh->pvData[1], c->sGraph[j].data(), dyna_processor_base_metadata::TIME_MESH_SIZE);
+                        mesh->data(2, dyna_processor_base_metadata::TIME_MESH_SIZE);
                     }
                 } // for j
             }
         }
 
-        // Output compressor curves for each channel
+        // Output curves for each channel
         for (size_t i=0; i<channels; ++i)
         {
             channel_t *c       = &vChannels[i];
 
-            // Output compression curve
+            // Output curve model
+            if (c->pModel != NULL)
+            {
+                mesh_t *mesh            = c->pModel->getBuffer<mesh_t>();
+                if ((c->nSync & S_CURVE) && (mesh != NULL) && (mesh->isEmpty()))
+                {
+                    // Copy frequency points
+                    dsp::copy(mesh->pvData[0], vCurve, dyna_processor_base_metadata::CURVE_MESH_SIZE);
+                    c->sProc.model(mesh->pvData[1], vCurve, dyna_processor_base_metadata::CURVE_MESH_SIZE);
+
+                    // Mark mesh containing data
+                    mesh->data(2, dyna_processor_base_metadata::CURVE_MESH_SIZE);
+                    c->nSync &= ~S_MODEL;
+                }
+            }
+
+            // Output curve
             if (c->pCurve != NULL)
             {
                 mesh_t *mesh            = c->pCurve->getBuffer<mesh_t>();
                 if ((c->nSync & S_CURVE) && (mesh != NULL) && (mesh->isEmpty()))
                 {
                     // Copy frequency points
-                    dsp::copy(mesh->pvData[0], vCurve, compressor_base_metadata::CURVE_MESH_SIZE);
-                    c->sComp.curve(mesh->pvData[1], vCurve, compressor_base_metadata::CURVE_MESH_SIZE);
+                    dsp::copy(mesh->pvData[0], vCurve, dyna_processor_base_metadata::CURVE_MESH_SIZE);
+                    c->sProc.curve(mesh->pvData[1], vCurve, dyna_processor_base_metadata::CURVE_MESH_SIZE);
                     if (c->fMakeup != 1.0f)
-                        dsp::scale(mesh->pvData[1], mesh->pvData[1], c->fMakeup, compressor_base_metadata::CURVE_MESH_SIZE);
+                        dsp::scale(mesh->pvData[1], mesh->pvData[1], c->fMakeup, dyna_processor_base_metadata::CURVE_MESH_SIZE);
 
                     // Mark mesh containing data
-                    mesh->data(2, compressor_base_metadata::CURVE_MESH_SIZE);
+                    mesh->data(2, dyna_processor_base_metadata::CURVE_MESH_SIZE);
                     c->nSync &= ~S_CURVE;
                 }
             }
@@ -755,7 +827,7 @@ namespace lsp
             if ((c->pMeter[M_ENV] != NULL) && (c->pMeter[M_CURVE] != NULL))
             {
                 c->fDotIn   = c->pMeter[M_ENV]->getValue();
-                c->fDotOut  = c->sComp.curve(c->fDotIn) * c->fMakeup;
+                c->fDotOut  = c->sProc.curve(c->fDotIn) * c->fMakeup;
                 c->pMeter[M_CURVE]->setValue(c->fDotOut);
             }
         }
@@ -765,7 +837,7 @@ namespace lsp
             pWrapper->query_display_draw();
     }
 
-    bool compressor_base::inline_display(ICanvas *cv, size_t width, size_t height)
+    bool dyna_processor_base::inline_display(ICanvas *cv, size_t width, size_t height)
     {
         // Check proportions
         if (height > width)
@@ -814,7 +886,7 @@ namespace lsp
         if (b == NULL)
             return false;
 
-        size_t channels = ((nMode == CM_MONO) || (nMode == CM_STEREO)) ? 1 : 2;
+        size_t channels = ((nMode == DYNA_MONO) || (nMode == DYNA_STEREO)) ? 1 : 2;
         static uint32_t c_colors[] = {
                 CV_MIDDLE_CHANNEL, CV_MIDDLE_CHANNEL,
                 CV_MIDDLE_CHANNEL, CV_MIDDLE_CHANNEL,
@@ -831,10 +903,10 @@ namespace lsp
 
             for (size_t j=0; j<width; ++j)
             {
-                size_t k        = (j*compressor_base_metadata::CURVE_MESH_SIZE)/width;
+                size_t k        = (j*dyna_processor_base_metadata::CURVE_MESH_SIZE)/width;
                 b->v[0][j]      = vCurve[k];
             }
-            c->sComp.curve(b->v[1], b->v[0], width);
+            c->sProc.curve(b->v[1], b->v[0], width);
             if (c->fMakeup != 1.0f)
                 dsp::scale(b->v[1], b->v[1], c->fMakeup, width);
 
@@ -878,37 +950,37 @@ namespace lsp
 
     //-------------------------------------------------------------------------
     // Compressor derivatives
-    compressor_mono::compressor_mono() : compressor_base(metadata, false, CM_MONO)
+    dyna_processor_mono::dyna_processor_mono() : dyna_processor_base(metadata, false, DYNA_MONO)
     {
     }
 
-    compressor_stereo::compressor_stereo() : compressor_base(metadata, false, CM_STEREO)
+    dyna_processor_stereo::dyna_processor_stereo() : dyna_processor_base(metadata, false, DYNA_STEREO)
     {
     }
 
-    compressor_lr::compressor_lr() : compressor_base(metadata, false, CM_LR)
+    dyna_processor_lr::dyna_processor_lr() : dyna_processor_base(metadata, false, DYNA_LR)
     {
     }
 
-    compressor_ms::compressor_ms() : compressor_base(metadata, false, CM_MS)
+    dyna_processor_ms::dyna_processor_ms() : dyna_processor_base(metadata, false, DYNA_MS)
     {
     }
 
-    sc_compressor_mono::sc_compressor_mono() : compressor_base(metadata, true, CM_MONO)
+    sc_dyna_processor_mono::sc_dyna_processor_mono() : dyna_processor_base(metadata, true, DYNA_MONO)
     {
     }
 
-    sc_compressor_stereo::sc_compressor_stereo() : compressor_base(metadata, true, CM_STEREO)
+    sc_dyna_processor_stereo::sc_dyna_processor_stereo() : dyna_processor_base(metadata, true, DYNA_STEREO)
     {
     }
 
-    sc_compressor_lr::sc_compressor_lr() : compressor_base(metadata, true, CM_LR)
+    sc_dyna_processor_lr::sc_dyna_processor_lr() : dyna_processor_base(metadata, true, DYNA_LR)
     {
     }
 
-    sc_compressor_ms::sc_compressor_ms() : compressor_base(metadata, true, CM_MS)
+    sc_dyna_processor_ms::sc_dyna_processor_ms() : dyna_processor_base(metadata, true, DYNA_MS)
     {
     }
 }
 
-
+#endif

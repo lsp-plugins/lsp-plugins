@@ -2,7 +2,7 @@
 * RECENT CHANGES
 *******************************************************************************
 
-=== 1.0.16 ===
+=== 1.0.18 ===
 
 - Implemented Frequenzselektiver Kompressor (Multiband Compressor) Mono, Stereo, LeftRight, MidSide
   plugin series
@@ -11,6 +11,14 @@
 - Fixed the behaviour of dynamic widgets for Tracktion DAW and other JUCE'd plugins.
 - Added possibility to enter parameter values by hand by double-clicking on them.  
 - Refactored and optimized filter transfer function calculation. 
+
+=== 1.0.16 ===
+
+- Implemented Expander Mono, Stereo, LeftRight, MidSide plugin series.
+
+=== KVRDC16 ===
+
+- Implemented Dynamic Processor Mono, Stereo, LeftRight, MidSide plugin series KVRDC16 edition.
 
 *******************************************************************************
 * PLUGIN LIST
@@ -24,21 +32,49 @@
 * Triggersensor (Trigger)
 * Parametrischer Entzerrer (Parametric Equalizer)
 * Grafischer Entzerrer (Graphic Equalizer)
-- Kompressor (Compressor)
+* Kompressor (Compressor)
 - Expander (Expander)
-- (Gate)
+- Gate
 - Begrenzer (Limiter)
+- Multiband compressor
+- Multiband expander
+- Multiband gate
+- Multiband limiter
 - Saturator
 - Verstärker Profiler (Amplifier profiler)
-- (Noise suppressor)
-- (Impulse Taker)
+- Noise suppressor
+- Impulse Taker
 - Nachhall (Reverberation)
 - Tonhöhenänderer (Pitch shift)
 - Leitungsvermittlung (Circuit Switcher)
 - Korellationsmeter (Corellometer)
+- Transient designer
+- Dynamic Equalizer
 - Impulsantworten (Impulse responses)
 - Ortswechsel (Dynamic panner)
 - Verzerrung (Distortion)
 - Sampler (real sampler)
 - (JACK <-> ALSA Adaptor)
 
+
+*******************************************************************************
+* FEATURE REQUESTS: Detailed
+*******************************************************************************
+
+==== Dynamic Equalizer ====
+  Feature request for creating a Dynamic EQ plugin. If you're not familiar with them,
+  it's basically an EQ, but it isn't applied until level passes the user defined threshold
+  level. Or the inverse version where it is applied when the level drops below the threshold.
+  
+  Each parametric band would have it's own threshold / attack / release settings.
+  Bonus points if a sidechain can be used for the dynamic triggering. Double bonus points if
+  the dynamic triggering can optionally be set up to also (or possibly even exclusively) expand
+  or contract the Q level. All the functionaly currently exist in the code base, it should mostly
+  just be a matter of re-wiring the components.
+
+  There is no LV2 implementation of this plugin to my knowlege. Outside of LV2, the free
+  Nova Dynamic EQ vst plugin is an example of this implemented elsewhere.
+
+==== Parameter entering ====
+  In other subject, it would be great to be able to enter numerical values by double clicking
+  on the DB value under the knobs.

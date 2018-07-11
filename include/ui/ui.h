@@ -100,6 +100,9 @@ namespace lsp
 // Control interface
 #include <ui/IUIPort.h>
 
+// Drawing
+#include <ui/ISurface.h>
+
 // Widgets
 #include <ui/IWidget.h>
 #include <ui/IWidgetFactory.h>

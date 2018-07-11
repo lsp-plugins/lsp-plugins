@@ -117,7 +117,7 @@ namespace lsp
     static int execute_ui(const plugin_metadata_t *meta, JACKWrapper *w, void *root)
     {
         char plugin_name[1024];
-        snprintf(plugin_name, sizeof(plugin_name), LSP_ACRONYM " %s - %s [JACK] (Client ID: %s)", meta->name, meta->description, w->client_id());
+        snprintf(plugin_name, sizeof(plugin_name), LSP_ACRONYM " %s - %s (Client ID: %s)", meta->description, meta->name, w->client_id());
 
         // Create GTK window
         GtkWidget *widget   = reinterpret_cast<GtkWidget *>(root);

@@ -75,11 +75,17 @@ namespace lsp
 
     enum ui_event_type_t
     {
+        UIE_UNKNOWN,
         UIE_KEY_DOWN,
         UIE_KEY_UP,
         UIE_MOUSE_DOWN,
         UIE_MOUSE_UP,
-        UIE_MOUSE_MOVE
+        UIE_MOUSE_MOVE,
+        UIE_REDRAW,
+        UIE_SIZE_REQUEST,
+        UIE_RESIZE,
+        UIE_SHOW,
+        UIE_HIDE
     };
 
     typedef struct ui_event_t
@@ -87,6 +93,8 @@ namespace lsp
         size_t              nType;      // Type of event, see ui_event_type_t
         ssize_t             nLeft;      // Left position of something
         ssize_t             nTop;       // Top position of something
+        ssize_t             nWidth;     // Width of something
+        ssize_t             nHeight;    // Height of something
         size_t              nCode;      // Key code or button
         size_t              nState;     // State
     } ui_event_t;

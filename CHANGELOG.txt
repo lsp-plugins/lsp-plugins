@@ -2,6 +2,13 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.15 ===
+
+* Updated metadata to place english names first for all plugins, and german names afterwards.
+* Updated Triggersensor, Parametrischer Entzerrer, Grafischer Entzerrer, Kompressor plugin series UI:
+  changed input and output level meters that now display both peak and RMS values.
+* Removed JUCE workaround to prevent crashes of Renoise DAW.
+
 === 1.0.14 ===
 
 * Implemented Kompressor Mono, Stereo, LeftRight, MidSide (Compressor) plugin series

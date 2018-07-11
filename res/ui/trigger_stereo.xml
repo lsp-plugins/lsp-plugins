@@ -82,11 +82,11 @@
 				</align>
 				<vbox>
 					<button id="isvl" size="16" color="left_channel" led="true" />
-					<meter id="isml" angle="1" type="vu" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="left_channel" pad_left="4" pad_right="4" activity_id="isvl" />
+					<meter id="isml" angle="1" type="rms_peak" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="left_channel" pad_left="4" pad_right="4" activity_id="isvl" />
 				</vbox>
 				<vbox>
 					<button id="isvr" size="16" color="right_channel" led="true" />
-					<meter id="ismr" angle="1" type="vu" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="right_channel" pad_left="4" pad_right="4" activity_id="isvr" />
+					<meter id="ismr" angle="1" type="rms_peak" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="right_channel" pad_left="4" pad_right="4" activity_id="isvr" />
 				</vbox>
 				<vbox>
 					<button id="tfv" size="16" color="green" led="true" />

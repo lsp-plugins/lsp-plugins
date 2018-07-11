@@ -53,7 +53,7 @@ namespace lsp
 
         public:
             /** Check that some of compressor's parameters have been modified
-             * Will be reset after curve() or process()
+             * and we need to call update_settings();
              *
              * @return true if some of compressor's parameters have been modified
              */
@@ -196,7 +196,7 @@ namespace lsp
              *
              * @param in input level
              */
-            float curve(const float in);
+            float curve(float in);
 
             /** Get compressor gain reduction
              *
@@ -210,7 +210,7 @@ namespace lsp
              *
              * @param in input level
              */
-            float reduction(const float in);
+            float reduction(float in);
     };
 
 } /* namespace lsp */

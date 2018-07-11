@@ -161,14 +161,14 @@
 				<align expand="true" fill="true" vpos="1">
 					<vbox>
 						<button id="ilv" size="16" color="middle_channel" led="true" />
-						<meter id="ilm" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="middle_channel" activity_id="ilv" />
+						<meter id="ilm" angle="1" type="rms_peak" min="0.000251189" max="15.8489" height="256" color="middle_channel" activity_id="ilv" />
 					</vbox>
 				</align>
 				<label text="In" />
 				<align expand="true" fill="true" vpos="1">
 					<vbox>
 						<button id="olv" size="16" color="middle_channel" led="true" />
-						<meter id="olm" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="middle_channel" activity_id="olv" />
+						<meter id="olm" angle="1" type="rms_peak" min="0.000251189" max="15.8489" height="256" color="middle_channel" activity_id="olv" />
 					</vbox>
 				</align>
 				<label text="Out" />

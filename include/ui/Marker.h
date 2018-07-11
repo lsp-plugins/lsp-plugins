@@ -17,7 +17,9 @@ namespace lsp
             size_t          nBasisID;
             size_t          nParallelID;
             float           fValue;
-//            Color           sColor;
+            float           fOffset;
+            float           fAngle;
+            bool            bSmooth;
             IUIPort        *pPort;
             size_t          nWidth;
             size_t          nCenter;

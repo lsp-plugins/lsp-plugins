@@ -46,6 +46,7 @@ namespace lsp
                 Display        *x11display() const  { return pDisplay; }
                 Window          x11root() const     { return hRootWnd; }
                 int             x11screen() const   { return hDflScreen; }
+                void            x11sync();
 
             public:
                 static const char *event_name(int xev_code);

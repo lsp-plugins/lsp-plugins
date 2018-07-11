@@ -10,7 +10,7 @@
 	$cc     =   ($m = 'm') ? 'mono' : 'stereo';
 ?>
 <p>
-	This plugin performs parameteric equalization of <?= $cc ?> channel<?php 
+	This plugin performs parametric equalization of <?= $cc ?> channel<?php 
 	if ($m == 'ms') echo " in Mid-Side mode";
 	elseif ($m == 'lr') echo " by applying individual equalization to left and right channels separately";
 	?>. Up to <?= $nf ?> filters are available for signal processing simultaneously.

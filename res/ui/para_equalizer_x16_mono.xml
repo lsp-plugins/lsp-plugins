@@ -96,7 +96,7 @@
 							<value id="g_out" />
 							
 							<cell rows="5">
-								<meter id="sm" angle="1" type="vu" height="128" logarithmic="true" min="0.01585" max="2" color="middle_channel" pad_left="2" pad_right="2" />
+								<meter id="sm" angle="1" type="rms_peak" height="128" logarithmic="true" min="0.01585" max="2" color="middle_channel" pad_left="2" pad_right="2" />
 							</cell>
 							<label text="Out" color="middle_channel" font_size="8" />
 						</grid>

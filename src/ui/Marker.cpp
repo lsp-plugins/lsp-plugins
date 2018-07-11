@@ -17,7 +17,9 @@ namespace lsp
     {
         nBasisID    = 0;
         nParallelID = 1;
-        fValue      = 0;
+        fValue      = 0.0f;
+        fOffset     = 0.0f;
+        fAngle      = 0.0f;
 //        sColor.set(ui->theme(), C_GRAPH_MARKER);
         pPort       = NULL;
         nWidth      = 1;
@@ -51,13 +53,26 @@ namespace lsp
 
         // Translate point and get the owner line
         basis->apply(cv, &x, &y, &value, 1);
-        if (!parallel->parallel(x, y, a, b, c))
-            return;
+        if (fOffset != 0.0f)
+            parallel->apply(cv, &x, &y, &fOffset, 1);
+
+        if (fAngle == 0.0f)
+        {
+            if (!parallel->parallel(x, y, a, b, c))
+                return;
+        }
+        else
+        {
+            if (!parallel->angle(x, y, fAngle * M_PI, a, b, c))
+                return;
+        }
 
         // Draw line
         cv->set_color(sColor);
         cv->set_line_width(nWidth);
+        bool aa = cv->set_anti_aliasing(bSmooth);
         cv->line(a, b, c);
+        cv->set_anti_aliasing(aa);
     }
 
     void Marker::set(widget_attribute_t att, const char *value)
@@ -69,6 +84,15 @@ namespace lsp
                 break;
             case A_VALUE:
                 PARSE_FLOAT(value, fValue = __);
+                break;
+            case A_OFFSET:
+                PARSE_FLOAT(value, fOffset = __);
+                break;
+            case A_ANGLE:
+                PARSE_FLOAT(value, fAngle = __);
+                break;
+            case A_SMOOTH:
+                PARSE_BOOL(value, bSmooth = __);
                 break;
             case A_BASIS:
                 PARSE_INT(value, nBasisID = __);

@@ -1,7 +1,7 @@
 PHPDIR      = $(BUILDDIR)/src/doc
 HTMLDIR     = $(BUILDDIR)/html
 
-.PHONY: all target prepare
+.PHONY: all target
 
 target: all
 
@@ -18,4 +18,4 @@ $(PHPDIR)/Makefile:
 
 all: $(PHPDIR)/Makefile
 	@echo "Generating HTML documentation"
-	@$(MAKE) $(MAKE_OPTS) -C $(PHPDIR) all
+	@$(MAKE) $(MAKE_OPTS) -C $(PHPDIR)

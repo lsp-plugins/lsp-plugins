@@ -34,10 +34,11 @@ namespace jack_test
 //                "sampler_mono";
 //                "comp_delay_x2_stereo";
 //                "compressor_mono";
-                "compressor_stereo";
+//                "compressor_stereo";
 //                "compressor_lr";
 //                "compressor_ms";
 //                "sc_compressor_mono";
+                "dyna_processor_mono";
 
         return JACK_MAIN_FUNCTION(plugin, argc, argv);
     }
