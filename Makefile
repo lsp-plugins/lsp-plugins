@@ -17,10 +17,11 @@ export CC_ARCH          = -m64
 export LD_ARCH          = -m elf_x86_64
 endif
 
-export VERSION          = 1.0.1
+export VERSION          = 1.0.2
+export BASEDIR          = ${CURDIR}
 export INCLUDE          = -I"${CURDIR}/include" -I"$(VST_SDK)"
 export MAKE_OPTS        = -s
-export CFLAGS           = $(CC_ARCH) -fPIC -O2 -fno-exceptions -Wall -pthread -pipe
+export CFLAGS           = $(CC_ARCH) -fPIC -O2 -fno-exceptions -Wall -pthread -pipe -fno-rtti
 export CC               = g++
 export LD               = ld
 export LDFLAGS          = $(LD_ARCH)
@@ -30,8 +31,9 @@ export EXE_FLAGS        = $(CC_ARCH) -lc -lm -fPIC -pthread
 
 # Objects
 export OBJ_CORE         = $(OBJDIR)/core.o
-export OBJ_PLUGINS      = $(OBJDIR)/plugins.o
 export OBJ_UI_CORE      = $(OBJDIR)/ui_core.o
+export OBJ_RES_CORE     = $(OBJDIR)/res_core.o
+export OBJ_PLUGINS      = $(OBJDIR)/plugins.o
 export OBJ_GTK2UI       = $(OBJDIR)/ui_gtk2.o
 export OBJ_GTK3UI       = $(OBJDIR)/ui_gtk3.o
 
@@ -46,6 +48,7 @@ export LIB_VST          = $(OBJDIR)/$(ARTIFACT_ID)-vst-core.so
 export UTL_GENTTL       = $(OBJDIR)/lv2_genttl.exe
 export UTL_VSTMAKE      = $(OBJDIR)/vst_genmake.exe
 export UTL_GENPHP       = $(OBJDIR)/gen_php.exe
+export UTL_RESGEN       = $(OBJDIR)/gen_resources.exe
 
 # Compile headers and linkage libraries
 export GTK2_HEADERS     = $(shell pkg-config --cflags gtk+-2.0)
@@ -58,7 +61,9 @@ export EXPAT_LIBS       = $(shell pkg-config --libs expat)
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 FILES                   =
 
-.PHONY: all trace debug binaries install uninstall sources utils
+.PHONY: all trace debug install uninstall release
+.PHONY: install_ladspa install_lv2 install_vst
+.PHONY: release_ladspa release_lv2 release_vst
 
 default: all
 
@@ -66,31 +71,17 @@ $(OBJ_CORE) $(LIB_LADSPA) $(LIB_LV2) $(LIB_VST) $(LIB_LV2_GTK2UI) $(LIB_LV2_GTK3
 
 $(UTL_GENTTL) $(UTL_GENPHP): utils
 
-all: binaries utils vst_stub
-	@echo "Build OK"
-
 trace: export CFLAGS        += -DLSP_TRACE
 trace: all
 
 debug: export CFLAGS        += -DLSP_DEBUG
 debug: all
 
-binaries:
-	@echo "Building src"
+all:
+	@echo "Building binaries"
 	@mkdir -p $(OBJDIR)/src
 	@$(MAKE) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
-
-utils: binaries
-	@echo "Building utils"
-	@mkdir -p $(OBJDIR)/utils
-	@$(MAKE) $(MAKE_OPTS) -C utils all OBJDIR=$(OBJDIR)/utils
-	@$(UTL_GENPHP) $(OBJDIR)/plugins.php
-
-vst_stub: utils
-	@echo "Building VST stub"
-	@mkdir -p $(OBJDIR)/vst
-	@$(UTL_VSTMAKE) $(OBJDIR)/vst
-	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/vst all OBJDIR=$(OBJDIR)/vst
+	@echo "Build OK"
 
 clean:
 	@-rm -rf $(OBJDIR)
@@ -100,52 +91,60 @@ unrelease:
 	@-rm -rf $(RELEASE)
 	@echo "Unrelease OK"
 
-install: all
+install: install_ladspa install_lv2 install_vst
+
+install_ladspa: all
 	@echo "Installing LADSPA plugins to $(DESTDIR)$(LADSPA_PATH)/"
 	@mkdir -p $(DESTDIR)$(LADSPA_PATH)
 	@install -s $(LIB_LADSPA) $(DESTDIR)$(LADSPA_PATH)/
+	
+install_lv2: all
 	@echo "Installing LV2 plugins to $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2"
 	@mkdir -p $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
 	@install -s $(LIB_LV2) $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/
 	@install -s $(LIB_LV2_GTK2UI) $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/
-	@echo "Copying resources to $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2"
-	@cp -r res/ui $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
 	@$(UTL_GENTTL) $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
+	
+install_vst: all
 	@echo "Installing VST plugins to $(DESTDIR)$(VST_PATH)/"
 	@mkdir -p $(DESTDIR)$(VST_PATH)
-	@mkdir -p $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID).vst
 	@install -s $(LIB_VST) $(DESTDIR)$(VST_PATH)/
-	@install -s $(OBJDIR)/vst/*.so $(DESTDIR)$(VST_PATH)/
-	@echo "Copying resources to $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID).vst"
-	@cp -r res/ui $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID).vst
+	@install -s $(OBJDIR)/src/vst/*.so $(DESTDIR)$(VST_PATH)/
 	@echo "Install OK"
 
 release: LADSPA_ID      := $(ARTIFACT_ID)-ladspa-$(VERSION)-$(CPU_ARCH)
 release: LV2_ID         := $(ARTIFACT_ID)-lv2-$(VERSION)-$(CPU_ARCH)
-release: VST_ID         := $(ARTIFACT_ID)-vst-$(VERSION)-$(CPU_ARCH)
-release: all
+release: VST_ID         := $(ARTIFACT_ID)-lxvst-$(VERSION)-$(CPU_ARCH)
+release: release_ladspa release_lv2 release_vst
+
+release_prepare: all
 	@echo "Releasing plugins for architecture $(CPU_ARCH)"
 	@mkdir -p $(RELEASE)
+	
+release_ladspa: release_prepare
 	@echo "Releasing LADSPA binaries"
 	@mkdir -p $(RELEASE)/$(LADSPA_ID)
 	@install -s $(LIB_LADSPA) $(RELEASE)/$(LADSPA_ID)/
 	@cp $(RELEASE_TEXT) $(RELEASE)/$(LADSPA_ID)/
 	@tar -C $(RELEASE) -czf $(RELEASE)/$(LADSPA_ID).tar.gz $(LADSPA_ID)
 	@rm -rf $(RELEASE)/$(LADSPA_ID)
+	
+release_lv2: release_prepare
 	@echo "Releasing LV2 binaries"
 	@mkdir -p $(RELEASE)/$(LV2_ID)
 	@mkdir -p $(RELEASE)/$(LV2_ID)/$(ARTIFACT_ID).lv2
 	@install -s $(LIB_LV2) $(RELEASE)/$(LV2_ID)/$(ARTIFACT_ID).lv2/
 	@install -s $(LIB_LV2_GTK2UI) $(RELEASE)/$(LV2_ID)/$(ARTIFACT_ID).lv2/
-	@cp -r res/ui $(RELEASE)/$(LV2_ID)/$(ARTIFACT_ID).lv2
 	@cp $(RELEASE_TEXT) $(RELEASE)/$(LV2_ID)/
 	@$(UTL_GENTTL) $(RELEASE)/$(LV2_ID)/$(ARTIFACT_ID).lv2
 	@tar -C $(RELEASE) -czf $(RELEASE)/$(LV2_ID).tar.gz $(LV2_ID)
 	@rm -rf $(RELEASE)/$(LV2_ID)
+	
+release_vst: release_prepare
 	@echo "Releasing VST binaries"
 	@mkdir -p $(RELEASE)/$(VST_ID)
 	@install -s $(LIB_VST) $(RELEASE)/$(VST_ID)/
-	@install -s $(OBJDIR)/vst/*.so $(RELEASE)/$(VST_ID)/
+	@install -s $(OBJDIR)/src/vst/*.so $(RELEASE)/$(VST_ID)/
 	@cp $(RELEASE_TEXT) $(RELEASE)/$(VST_ID)/
 	@tar -C $(RELEASE) -czf $(RELEASE)/$(VST_ID).tar.gz $(VST_ID)
 	@rm -rf $(RELEASE)/$(VST_ID)

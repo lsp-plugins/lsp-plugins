@@ -47,6 +47,7 @@ namespace lsp
             static void map_window(GtkWidget *widget, gpointer ptr);
             static void unmap_window(GtkWidget *widget, gpointer ptr);
             void set_parent(GtkWidget *parent);
+            void show();
 
         public:
             virtual void set(widget_attribute_t att, const char *value);

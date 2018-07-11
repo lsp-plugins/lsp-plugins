@@ -37,9 +37,9 @@ namespace lsp
             theme_color_handler(Theme *theme) : theme_handler(theme) {}
 
         public:
-            virtual XMLHandler *startElement(const XML_Char *name, const XML_Char **atts)
+            virtual XMLHandler *startElement(const char *name, const char **atts)
             {
-                const XML_Char *value = findAttribute(atts, "value");
+                const char *value = findAttribute(atts, "value");
                 if (value != NULL)
                     pTheme->addColor(name, value);
                 else
@@ -55,7 +55,7 @@ namespace lsp
             theme_body_handler(Theme *theme) : theme_handler(theme) {}
 
         public:
-            virtual XMLHandler *startElement(const XML_Char *name, const XML_Char **atts)
+            virtual XMLHandler *startElement(const char *name, const char **atts)
             {
                 if (!strcmp(name, "colors"))
                     return new theme_color_handler(pTheme);
@@ -71,7 +71,7 @@ namespace lsp
             theme_root_handler(Theme *theme) : theme_handler(theme) {}
 
         public:
-            virtual XMLHandler *startElement(const XML_Char *name, const XML_Char **atts)
+            virtual XMLHandler *startElement(const char *name, const char **atts)
             {
                 if (!strcmp(name, "theme"))
                     return new theme_body_handler(pTheme);
@@ -249,6 +249,7 @@ namespace lsp
      */
     bool Theme::addColor(const char *name, const char *value)
     {
+        lsp_trace("add_color name=%s value=%s", name, value);
         // Skip spaces
         while ((*value == ' ') && (*value != '\0'))
             value++;

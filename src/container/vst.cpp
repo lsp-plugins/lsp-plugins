@@ -33,6 +33,55 @@
 
 namespace lsp
 {
+    IWidgetFactory *vst_create_widget_factory(const char *bundle_path, VstInt32 uid)
+    {
+        // Instantiate widget factory (if possible)
+        char path[PATH_MAX];
+        snprintf(path, PATH_MAX, "%s/" LSP_ARTIFACT_ID ".vst", bundle_path);
+        lsp_trace("path=%s", path);
+
+        #define UI_MODULE(plugin)   \
+            if (uid == vst_cconst(plugin::metadata.vst_uid)) \
+            { \
+                IWidgetFactory *wf  = new LSP_WIDGET_FACTORY(path); \
+                if (wf != NULL) \
+                    return wf; \
+            }
+
+        // Define module macro and include modules
+        #if defined(LSP_UI_GTK2)
+            #define MOD_GTK2(plugin)    UI_MODULE(plugin)
+        #elif defined(LSP_UI_GTK3)
+            #define MOD_GTK3(plugin)    UI_MODULE(plugin)
+        #endif /* LSP_UI_GTK3 */
+
+        #include <core/modules.h>
+
+        #undef UI_MODULE
+
+        return NULL;
+    }
+
+    bool vst_has_widget_factory(VstInt32 uid)
+    {
+        #define UI_MODULE(plugin)   \
+            if (uid == vst_cconst(plugin::metadata.vst_uid)) \
+                return true;
+
+        // Define module macro and include modules
+        #if defined(LSP_UI_GTK2)
+            #define MOD_GTK2(plugin)    UI_MODULE(plugin)
+        #elif defined(LSP_UI_GTK3)
+            #define MOD_GTK3(plugin)    UI_MODULE(plugin)
+        #endif /* LSP_UI_GTK3 */
+
+        #include <core/modules.h>
+
+        #undef UI_MODULE
+
+        return false;
+    }
+
     void vst_finalize(AEffect *e)
     {
         lsp_trace("vst_finalize effect=%p", e);
@@ -94,6 +143,7 @@ namespace lsp
         }
     }
 
+#ifdef LSP_DEBUG
     const char *vst_decode_opcode(VstInt32 opcode)
     {
         const char *r = NULL;
@@ -203,6 +253,7 @@ namespace lsp
     #undef D
         return r;
     }
+#endif /* LSP_DEBUG */
 
     VstIntPtr vst_get_category(const int *classes)
     {
@@ -300,11 +351,12 @@ namespace lsp
     {
         VstIntPtr v = 0;
 
+        if (opcode != effEditIdle)
         lsp_trace("vst_dispatcher effect=%p, opcode=%d (%s), index=%d, value=%llx, ptr=%p, opt = %.3f",
                 e, opcode, vst_decode_opcode(opcode), index, (long long)(value), ptr, opt);
 
         // Get VST object
-        VSTWrapper *o   = reinterpret_cast<VSTWrapper *>(e->object);
+        VSTWrapper *w   = reinterpret_cast<VSTWrapper *>(e->object);
 
         switch (opcode)
         {
@@ -325,15 +377,28 @@ namespace lsp
                 v = 1;
                 break;
 
-            case effGetProductString: // Get product string
+            case effGetEffectName: // Get effect name
             {
-                const plugin_metadata_t *m = o->get_metadata();
+                const plugin_metadata_t *m = w->get_metadata();
                 if (m != NULL)
                 {
-                    char buf[kVstMaxProductStrLen];
-                    snprintf(buf, kVstMaxProductStrLen, LSP_ACRONYM " %s [VST]", m->name);
-                    vst_strncpy(reinterpret_cast<char *>(ptr), buf , kVstMaxProductStrLen);
-                    lsp_trace("product_string = %s", reinterpret_cast<char *>(ptr));
+                    char *dst = reinterpret_cast<char *>(ptr);
+                    vst_strncpy(dst, m->name, kVstMaxEffectNameLen);
+                    lsp_trace("product_string = %s", dst);
+                    v = 1;
+                }
+                break;
+            }
+
+            case effGetProductString: // Get product string
+            {
+                const plugin_metadata_t *m = w->get_metadata();
+                if (m != NULL)
+                {
+                    char *dst = reinterpret_cast<char *>(ptr);
+                    snprintf(dst, kVstMaxProductStrLen, LSP_ACRONYM " %s [VST]", m->name);
+                    dst[kVstMaxProductStrLen - 1] = '\0';
+                    lsp_trace("product_string = %s", dst);
                     v = 1;
                 }
                 break;
@@ -343,7 +408,7 @@ namespace lsp
             case effGetParamLabel: // Get units of the parameter
             case effGetParamDisplay: // Get value of the parameter
             {
-                VSTParameterPort *p = o->get_parameter(index);
+                VSTParameterPort *p = w->get_parameter(index);
                 if (p == NULL)
                     break;
 
@@ -381,7 +446,7 @@ namespace lsp
             case effCanBeAutomated:
             case effGetParameterProperties: // Parameter properties
             {
-                VSTParameterPort *p = o->get_parameter(index);
+                VSTParameterPort *p = w->get_parameter(index);
                 if (p == NULL)
                     break;
 
@@ -407,20 +472,20 @@ namespace lsp
                     lsp_error("Unsupported sample rate: %f, maximum supported sample rate is %ld", float(opt), long(MAX_SAMPLE_RATE));
                     opt = MAX_SAMPLE_RATE;
                 }
-                o->set_sample_rate(opt);
+                w->set_sample_rate(opt);
                 break;
 
             case effOpen: // Plugin initialization
-                o->open();
+                w->open();
                 break;
 
             case effMainsChanged: // Plugin activation/deactivation
-                o->mains_changed(value);
+                w->mains_changed(value);
                 break;
 
             case effGetPlugCategory:
             {
-                const plugin_metadata_t *m = o->get_metadata();
+                const plugin_metadata_t *m = w->get_metadata();
                 if (m == NULL)
                     break;
 
@@ -430,26 +495,38 @@ namespace lsp
             }
 
             case effEditOpen: // Run editor
-                if (o->show_ui(ptr))
+            {
+                IWidgetFactory *wf = vst_create_widget_factory(w->get_bundle_path(),  e->uniqueID);
+                if (wf == NULL)
+                    break;
+                if (w->show_ui(ptr, wf))
                     v = 1;
                 break;
+            }
 
             case effEditClose: // Close editor
-                o->hide_ui();
+                w->hide_ui();
                 v = 1;
                 break;
 
             case effEditIdle: // Run editor's iteration
-                o->iterate_ui();
+                w->iterate_ui();
                 v = 1;
                 break;
+
+            case effEditGetRect: // Return UI dimensions
+            {
+                ERect **er = reinterpret_cast<ERect **>(ptr);
+                *er = w->get_ui_rect();
+                v = 1;
+                break;
+            }
 
             case effSetProgram:
             case effGetProgram:
             case effSetProgramName:
             case effGetProgramName:
             case effSetBlockSize:
-            case effEditGetRect:
             case effGetChunk:
             case effSetChunk:
                 break;
@@ -463,11 +540,16 @@ namespace lsp
             case effOfflinePrepare:
             case effOfflineRun:
             case effGetVendorVersion:
+            {
+                const plugin_metadata_t *m = w->get_metadata();
+                if (m != NULL)
+                    v = vst_version(m->version);
+                break;
+            }
             case effVendorSpecific:
             case effProcessVarIo:
             case effSetSpeakerArrangement:
             case effSetBypass:
-            case effGetEffectName:
             case effGetTailSize:
                 break;
             case effCanDo:
@@ -545,6 +627,13 @@ namespace lsp
     {
 //        lsp_trace("vst_process effect=%p, inputs=%p, outputs=%p, frames=%d", effect, inputs, outputs, int(sampleFrames));
         VSTWrapper *w     = reinterpret_cast<VSTWrapper *>(effect->object);
+        w->run_legacy(inputs, outputs, sampleFrames);
+    }
+
+    void VSTCALLBACK vst_process_replacing(AEffect* effect, float** inputs, float** outputs, VstInt32 sampleFrames)
+    {
+//        lsp_trace("vst_process effect=%p, inputs=%p, outputs=%p, frames=%d", effect, inputs, outputs, int(sampleFrames));
+        VSTWrapper *w     = reinterpret_cast<VSTWrapper *>(effect->object);
         w->run(inputs, outputs, sampleFrames);
     }
 
@@ -586,9 +675,6 @@ namespace lsp
 
     AEffect *vst_instantiate(const char *bundle_path, VstInt32 uid, audioMasterCallback callback)
     {
-        // Path
-        char path[PATH_MAX];
-
         // Initialize DSP
         dsp::init();
 
@@ -613,6 +699,7 @@ namespace lsp
             return NULL;
 
         lsp_trace("Instantiated plugin %s - %s", m->name, m->description);
+        lsp_trace("bundle_path = %s", bundle_path);
 
         // Create effect descriptor
         AEffect *e                  = new AEffect;
@@ -623,7 +710,7 @@ namespace lsp
         }
 
         // Create wrapper
-        VSTWrapper *w               = new VSTWrapper(e, p, plugin_name, callback);
+        VSTWrapper *w               = new VSTWrapper(e, p, bundle_path, plugin_name, callback);
         if (w == NULL)
         {
             vst_finalize(e);
@@ -635,67 +722,34 @@ namespace lsp
         ::memset(e, 0, sizeof(AEffect));
 
         // Fill effect with values depending on metadata
-        e->magic                        = kEffectMagic;
-        e->dispatcher                   = vst_dispatcher;
-        #ifndef VST_2_4_EXTENSIONS
-            e->process                      = vst_process;
-        #endif /* VST_2_4_EXTENSIONS */
-        e->setParameter                 = vst_set_parameter;
-        e->getParameter                 = vst_get_parameter;
-        e->numPrograms                  = 0;
-        e->numParams                    = 0;
-        e->numInputs                    = 0;
-        e->numOutputs                   = 0;
-        e->flags                        = effFlagsCanReplacing;
-        e->initialDelay                 = 0;
-        e->object                       = w;
-        e->user                         = NULL;
-        e->uniqueID                     = vst_cconst(m->vst_uid);
-        e->version                      = vst_version(m->version);
-        e->processReplacing             = vst_process;
+        e->magic                            = kEffectMagic;
+        e->dispatcher                       = vst_dispatcher;
+        e->DECLARE_VST_DEPRECATED(process)  = vst_process;
+        e->setParameter                     = vst_set_parameter;
+        e->getParameter                     = vst_get_parameter;
+        e->numPrograms                      = 0;
+        e->numParams                        = 0;
+        e->numInputs                        = 0;
+        e->numOutputs                       = 0;
+        e->flags                            = effFlagsCanReplacing;
+        e->initialDelay                     = 0;
+        e->object                           = w;
+        e->user                             = NULL;
+        e->uniqueID                         = vst_cconst(m->vst_uid);
+        e->version                          = vst_version(m->version);
+        e->processReplacing                 = vst_process_replacing;
 
         // Currently no double-replacing
         #ifdef VST_2_4_EXTENSIONS
             e->processDoubleReplacing       = NULL;
         #endif /* VST_2_4_EXTENSIONS */
 
-        // Instantiate widget factory (if possible)
-        snprintf(path, PATH_MAX, "%s/" LSP_ARTIFACT_ID ".vst", bundle_path);
-        IWidgetFactory *wf      = NULL;
-        #define UI_MODULE(plugin)   \
-            if ((!wf) && (uid == vst_cconst(plugin::metadata.vst_uid))) \
-            { \
-                wf   = new LSP_WIDGET_FACTORY(path); \
-                if (wf == NULL) \
-                { \
-                    delete p; \
-                    return NULL; \
-                } \
-            }
-
-        // Define module macro and include modules
-        #if defined(LSP_UI_GTK2)
-            #define MOD_GTK2(plugin)    UI_MODULE(plugin)
-        #elif defined(LSP_UI_GTK3)
-            #define MOD_GTK3(plugin)    UI_MODULE(plugin)
-        #endif /* LSP_UI_GTK3 */
-
-        #include <core/modules.h>
-
-        #undef UI_MODULE
-
         // Additional flags
-        if (wf != NULL)
-        {
+        if (vst_has_widget_factory(uid))
             e->flags                        |= effFlagsHasEditor; // Has custom UI
-            w->set_widget_factory(wf);
-            lsp_trace("bundle_path = %s", bundle_path);
-        }
 
-        // Initialize plugin
+        // Initialize plugin and wrapper
         p->init();
-
-        // Initialize wrapper
         w->init();
 
         return e;

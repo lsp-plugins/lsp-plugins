@@ -13,7 +13,7 @@
 
 namespace lsp
 {
-    Basis::Basis(plugin_ui *ui): IWidget(ui)
+    Basis::Basis(plugin_ui *ui): IWidget(ui, W_BASIS)
     {
         nID         = -1;
     }

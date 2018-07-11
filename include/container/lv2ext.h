@@ -293,6 +293,7 @@ namespace lsp
                 bufs               += buf_items;
             }
 
+            pMesh->nState       = M_WAIT;
             pMesh->nBuffers     = 0;
             pMesh->nItems       = 0;
             uridItems           = ext->map_uri("%s/Mesh#items", LSP_TYPE_URI(lv2));

@@ -24,7 +24,7 @@ namespace lsp
             GtkWidget  *pWidget;
 
         public:
-            Gtk2Widget(plugin_ui *ui);
+            Gtk2Widget(plugin_ui *ui, widget_t w_class);
             virtual ~Gtk2Widget();
 
             virtual GtkWidget *widget();

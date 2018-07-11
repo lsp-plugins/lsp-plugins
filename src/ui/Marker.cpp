@@ -14,7 +14,7 @@
 namespace lsp
 {
     Marker::Marker(plugin_ui *ui):
-        IGraphObject(ui)
+        IGraphObject(ui, W_MARKER)
     {
         nBasisID    = 0;
         nParallelID = 1;

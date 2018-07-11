@@ -62,7 +62,7 @@ namespace lsp
         public:
             virtual float getValue() { return fValue; }
 
-            virtual bool pre_process()
+            virtual bool pre_process(size_t samples)
             {
                 if (pData == NULL)
                     return false;
@@ -71,7 +71,7 @@ namespace lsp
                 return fPrev != fValue;
             }
 
-            virtual void post_process() { fPrev = fValue; };
+            virtual void post_process(size_t samples) { fPrev = fValue; };
     };
 
     class LADSPAOutputPort: public LADSPAPort
@@ -103,7 +103,7 @@ namespace lsp
 
             virtual void bind(void *data) { pData = reinterpret_cast<float *>(data); };
 
-            virtual void post_process()
+            virtual void post_process(size_t samples)
             {
                 if (pData != NULL)
                     *pData      = fValue;

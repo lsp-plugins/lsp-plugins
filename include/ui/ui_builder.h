@@ -8,8 +8,6 @@
 #ifndef _UI_UI_BUILDER_H_
 #define _UI_UI_BUILDER_H_
 
-#include <expat.h>
-
 namespace lsp
 {
     class ui_builder

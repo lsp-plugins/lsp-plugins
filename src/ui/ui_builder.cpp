@@ -38,7 +38,7 @@ namespace lsp
                 pWidget->begin();
             }
 
-            virtual XMLHandler *startElement(const XML_Char *name, const XML_Char **atts)
+            virtual XMLHandler *startElement(const char *name, const char **atts)
             {
                 IWidget *widget              = pUI->createWidget(name);
                 if (widget == NULL)
@@ -47,8 +47,8 @@ namespace lsp
                 // Initialize pWidget parameters
                 while (*atts != NULL)
                 {
-                    const XML_Char *a_name      = *atts++;
-                    const XML_Char *a_value     = *atts++;
+                    const char *a_name      = *atts++;
+                    const char *a_value     = *atts++;
                     if ((a_name != NULL) && (a_value != NULL))
                         widget->set(a_name, a_value);
                 }
@@ -97,7 +97,7 @@ namespace lsp
             }
 
         public:
-            virtual XMLHandler *startElement(const XML_Char *name, const XML_Char **atts)
+            virtual XMLHandler *startElement(const char *name, const char **atts)
             {
                 IWidget *widget = NULL;
 
@@ -112,8 +112,8 @@ namespace lsp
                     // Initialize widget parameters
                     while (*atts != NULL)
                     {
-                        const XML_Char *a_name      = *atts++;
-                        const XML_Char *a_value     = *atts++;
+                        const char *a_name      = *atts++;
+                        const char *a_value     = *atts++;
                         if ((a_name != NULL) && (a_value != NULL))
                             widget->set(a_name, a_value);
                     }

@@ -89,7 +89,7 @@ namespace lsp
                 pData = reinterpret_cast<float *>(data);
             };
 
-            virtual bool pre_process()
+            virtual bool pre_process(size_t samples)
             {
                 if (pData == NULL)
                     return false;
@@ -98,7 +98,7 @@ namespace lsp
                 return fValue != fPrev;
             }
 
-            virtual void post_process()
+            virtual void post_process(size_t samples)
             {
                 fPrev       = fValue;
             };
@@ -134,7 +134,7 @@ namespace lsp
                 pData = reinterpret_cast<float *>(data);
             };
 
-            virtual void post_process()
+            virtual void post_process(size_t samples)
             {
                 if (pData != NULL)
                     *pData      = fValue;
@@ -166,7 +166,7 @@ namespace lsp
                 pData = reinterpret_cast<float *>(data);
             };
 
-            virtual void post_process()
+            virtual void post_process(size_t samples)
             {
                 if (pData == NULL)
                     return;

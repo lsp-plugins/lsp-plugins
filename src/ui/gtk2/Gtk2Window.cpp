@@ -9,7 +9,7 @@
 
 namespace lsp
 {
-    Gtk2Window::Gtk2Window(plugin_ui *ui) : Gtk2Container(ui)
+    Gtk2Window::Gtk2Window(plugin_ui *ui) : Gtk2Container(ui, W_PLUGIN)
     {
         pWidget     = NULL; //gtk_fixed_new();//NULL; //gtk_alignment_new(0.5, 0.5, 1.0, 1.0);//NULL; //widget;
 //        sBgColor.set(pUI->theme(), C_BLACK);
@@ -126,7 +126,7 @@ namespace lsp
             pWidgets[C_MIDDLE]     ->  add(widget);
         else
         {
-            Gtk2Widget *g_widget = dynamic_cast<Gtk2Widget *>(widget);
+            Gtk2Widget *g_widget = static_cast<Gtk2Widget *>(widget);
             pWidget = g_widget->widget();
         }
     }
@@ -168,24 +168,6 @@ namespace lsp
         {
             pToplevel   = toplevel;
 
-            // Change width and height
-            if ((nWidth >= 0) || (nHeight >= 0))
-            {
-                gint s_width = 0, s_height = 0;
-                gtk_window_get_size(GTK_WINDOW(pToplevel), &s_width, &s_height);
-                if (nWidth >= 0)
-                    s_width     = nWidth;
-                if (nHeight >= 0)
-                    s_height    = nHeight;
-                gtk_window_resize(GTK_WINDOW(pToplevel), s_width, s_height);
-            }
-
-            // Make window resizable if needed
-            gtk_window_set_resizable(GTK_WINDOW(pToplevel), (bResizable) ? TRUE : FALSE);
-
-            // Since Ardour doesn't make plugin's window always above it's window, force it to be above
-            gtk_window_set_keep_above(GTK_WINDOW(pToplevel), TRUE);
-
             // Due to having artifacts with some cairo elements on expose() we have to periodically redraw the entire window
             hMapHandler     = g_signal_connect(pToplevel, "map", G_CALLBACK(map_window), gpointer(this));
             lsp_trace("Added map handler %x", int(hMapHandler));
@@ -220,16 +202,45 @@ namespace lsp
         return TRUE;
     }
 
+    void Gtk2Window::show()
+    {
+        // Check
+        if (pToplevel == NULL)
+            return;
+
+        // Request size of widget
+        GtkRequisition rq;
+        gtk_window_get_size(GTK_WINDOW(pToplevel), &rq.width, &rq.height);
+
+        if (pWidget != NULL)
+            gtk_widget_size_request(pWidget, &rq);
+        lsp_trace("window width=%d, height=%d", int(rq.width), int(rq.height));
+        if (nWidth >= 0)
+            rq.width    = nWidth;
+        if (nHeight >= 0)
+            rq.height   = nHeight;
+
+        // Change width and height of the window
+        gtk_window_resize(GTK_WINDOW(pToplevel), rq.width, rq.height);
+
+        // Make window resizable if needed
+        gtk_window_set_resizable(GTK_WINDOW(pToplevel), (bResizable) ? TRUE : FALSE);
+
+        // Since Ardour doesn't make plugin's window always above it's window, force it to be above
+        gtk_window_set_keep_above(GTK_WINDOW(pToplevel), TRUE);
+
+        // Add periodically redraw
+        hFunction    = g_timeout_add (500, redraw_window, this); // Schedule at 2 hz rate
+        bMapped      = true;
+    }
+
     void Gtk2Window::map_window(GtkWidget *widget, gpointer ptr)
     {
         Gtk2Window *_this   = reinterpret_cast<Gtk2Window *>(ptr);
         lsp_trace("_this=%p, _this->pWidget=%p, _this->bMapped=%d, _this->Function=%x",
                 _this, _this->pWidget, _this->bMapped ? 1 : 0, int(_this->hFunction));
         if ((_this != NULL) && (!_this->bMapped))
-        {
-            _this->hFunction    = g_timeout_add (500, redraw_window, _this); // Schedule at 2 hz rate
-            _this->bMapped      = true;
-        }
+            _this->show();
     }
 
     void Gtk2Window::unmap_window(GtkWidget *widget, gpointer ptr)

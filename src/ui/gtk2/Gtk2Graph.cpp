@@ -13,7 +13,7 @@
 
 namespace lsp
 {
-    Gtk2Graph::Gtk2Graph(plugin_ui *ui): Gtk2CustomWidget(ui), IGraph()
+    Gtk2Graph::Gtk2Graph(plugin_ui *ui): Gtk2CustomWidget(ui, W_GRAPH), IGraph()
     {
         sColor.set(pUI->theme(), C_GLASS);
         sBgColor.set(pUI->theme(), C_BACKGROUND);
@@ -155,14 +155,27 @@ namespace lsp
         cairo_destroy(cr);
     }
 
+    IGraphObject *Gtk2Graph::getGraphObject(IWidget *widget)
+    {
+        switch (widget->getClass())
+        {
+            case W_AXIS:
+            case W_MARKER:
+            case W_MESH:
+                return static_cast<IGraphObject *>(widget);
+            default:
+                return NULL;
+        }
+    }
+
     void Gtk2Graph::add(IWidget *widget)
     {
         // Try to cast to graphics object
-        IGraphObject *obj = dynamic_cast<IGraphObject *>(widget);
+        IGraphObject *obj = getGraphObject(widget);
         if (obj != NULL)
             IGraph::addItem(obj);
-
-        return Gtk2CustomWidget::add(widget);
+        else
+            return Gtk2CustomWidget::add(widget);
     }
 
     void Gtk2Graph::markRedraw()

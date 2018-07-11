@@ -15,7 +15,7 @@
 
 namespace lsp
 {
-    Gtk2Led::Gtk2Led(plugin_ui *ui): Gtk2CustomWidget(ui)
+    Gtk2Led::Gtk2Led(plugin_ui *ui): Gtk2CustomWidget(ui, W_LED)
     {
         sColor.set(pUI->theme(), C_GREEN);
         sBgColor.set(pUI->theme(), C_BACKGROUND);

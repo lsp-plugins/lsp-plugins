@@ -45,7 +45,7 @@ namespace lsp
     };
 
 
-    Gtk2Indicator::Gtk2Indicator(plugin_ui *ui): Gtk2CustomWidget(ui)
+    Gtk2Indicator::Gtk2Indicator(plugin_ui *ui): Gtk2CustomWidget(ui, W_INDICATOR)
     {
         sBgColor.set(pUI->theme(), C_BACKGROUND);
         sColor.set(pUI->theme(), C_GLASS);

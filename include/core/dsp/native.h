@@ -200,6 +200,17 @@ namespace lsp
             }
         }
 
+        void mix_add(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count)
+        {
+            while (count--)
+            {
+                *dst += (*src1) * k1 + (*src2) * k2;
+                dst     ++;
+                src1    ++;
+                src2    ++;
+            }
+        }
+
         void dsp_init()
         {
             lsp_trace("Initializing DSP");
@@ -226,6 +237,7 @@ namespace lsp
             dsp::sub_multiplied             = native::sub_multiplied;
             dsp::integrate                  = native::integrate;
             dsp::mix                        = native::mix;
+            dsp::mix_add                    = native::mix_add;
         }
     }
 

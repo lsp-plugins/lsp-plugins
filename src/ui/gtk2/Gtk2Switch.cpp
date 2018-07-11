@@ -15,7 +15,7 @@ namespace lsp
 {
     static const float ANGLE = 15 * M_PI / 180.0;
 
-    Gtk2Switch::Gtk2Switch(plugin_ui *ui): Gtk2CustomWidget(ui)
+    Gtk2Switch::Gtk2Switch(plugin_ui *ui): Gtk2CustomWidget(ui, W_SWITCH)
     {
         sColor.set(pUI->theme(), C_KNOB_CAP);
         sBgColor.set(pUI->theme(), C_BACKGROUND);

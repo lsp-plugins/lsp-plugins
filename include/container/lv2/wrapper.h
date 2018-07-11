@@ -16,14 +16,24 @@ namespace lsp
             plugin_t           *pPlugin;
             LV2Extensions      *pExt;
             LV2AtomTransport   *pTransport;
-            LV2Port            *pLatency;
-            cvector<LV2Port>    vPorts;
+            cvector<LV2Port>    vExtPorts;
+            cvector<LV2Port>    vIntPorts;
 
         protected:
-            inline void add_port(LV2Port *p)
+            void add_port(LV2Port *p, bool external, bool plugin)
             {
-                lsp_trace("wrapping port id=%s, index=%d", p->metadata()->id, int(vPorts.size()));
-                vPorts.add(p);
+                lsp_trace("adding port id=%s, index=%d", p->metadata()->id, int (vIntPorts.size()));
+
+                if (plugin)
+                    pPlugin->add_port(p);
+
+                vIntPorts.add(p);
+
+                if (external)
+                {
+                    lsp_trace("  external index=%d", int(vExtPorts.size()));
+                    vExtPorts.add(p);
+                }
             }
 
         public:
@@ -32,7 +42,6 @@ namespace lsp
                 pPlugin     = plugin;
                 pExt        = ext;
                 pTransport  = NULL;
-                pLatency    = NULL;
             }
 
             ~LV2Wrapper()
@@ -40,7 +49,6 @@ namespace lsp
                 pPlugin     = NULL;
                 pExt        = NULL;
                 pTransport  = NULL;
-                pLatency    = NULL;
             }
 
         public:
@@ -65,37 +73,27 @@ namespace lsp
                     switch (port->role)
                     {
                         case R_UI_SYNC:
-                            pPlugin->add_port(new LV2Port(port, pExt));
+                            add_port(new LV2Port(port, pExt), false, true);
                             break;
                         case R_MESH:
                             if (pTransport != NULL)
-                                pPlugin->add_port(new LV2MeshPort(port, pTransport));
+                                add_port(new LV2MeshPort(port, pTransport), false, true);
                             else
-                                pPlugin->add_port(new LV2Port(port, pExt));
+                                add_port(new LV2Port(port, pExt), false, true);
                             break;
 
                         case R_AUDIO:
-                        {
-                            LV2Port *lvp = new LV2AudioPort(port, pExt);
-                            pPlugin->add_port(lvp);
-                            add_port(lvp);
+                            add_port(new LV2AudioPort(port, pExt), true, true);
                             break;
-                        }
 
                         case R_CONTROL:
                         case R_METER:
                         default:
-                        {
-                            LV2Port *lvp = NULL;
                             if (out)
-                                lvp = new LV2OutputPort(port, pExt);
+                                add_port(new LV2OutputPort(port, pExt), true, true);
                             else
-                                lvp = new LV2InputPort(port, pExt);
-
-                            pPlugin->add_port(lvp);
-                            add_port(lvp);
+                                add_port(new LV2InputPort(port, pExt), true, true);
                             break;
-                        }
                     }
                 }
 
@@ -103,8 +101,8 @@ namespace lsp
                 if (pTransport != NULL)
                 {
                     lsp_trace("binding LV2Transport");
-                    add_port(pTransport->in());
-                    add_port(pTransport->out());
+                    add_port(pTransport->in(), true, false);
+                    add_port(pTransport->out(), true, false);
                 }
 
                 // Add latency port
@@ -113,8 +111,7 @@ namespace lsp
                     if ((port->id != NULL) && (port->name != NULL))
                     {
                         lsp_trace("binding Latency Port");
-                        pLatency    = new LV2LatencyPort(port, pExt, pPlugin);
-                        add_port(pLatency);
+                        add_port(new LV2LatencyPort(port, pExt, pPlugin), true, false);
                     }
                 }
 
@@ -122,6 +119,8 @@ namespace lsp
                 lsp_trace("Initializing plugin");
                 pPlugin->init();
                 pPlugin->set_sample_rate(srate);
+                if (pTransport != NULL)
+                    pTransport->init();
             }
 
             void destroy()
@@ -136,20 +135,19 @@ namespace lsp
                 }
 
                 // Cleanup ports
-                vPorts.clear();
+                for (size_t i=0; i < vIntPorts.size(); ++i)
+                {
+                    lsp_trace("destroy port id=%s", vIntPorts[i]->metadata()->id);
+                    delete vIntPorts[i];
+                }
+                vIntPorts.clear();
+                vExtPorts.clear();
 
                 // Destroy transport
                 if (pTransport != NULL)
                 {
                     delete pTransport;
                     pTransport  = NULL;
-                }
-
-                // Destroy latency port
-                if (pLatency != NULL)
-                {
-                    delete pLatency;
-                    pLatency    = NULL;
                 }
 
                 // Drop extensions
@@ -173,25 +171,48 @@ namespace lsp
             inline void connect(size_t id, void *data)
             {
 //                lsp_trace("id=%d, data=%p", int(id), data);
-                LV2Port *p      = vPorts[id];
+                LV2Port *p      = vExtPorts[id];
                 if (p != NULL)
                     p->bind(data);
             }
 
             inline void run(size_t samples)
             {
-                // Pre-process special ports
-                pTransport->in()->pre_process();
-                pTransport->out()->pre_process();
-                pLatency->pre_process();
+                bool update     = false;
 
-                // Run plugin
-                pPlugin->run(samples);
+                // Process external ports for changes
+                for (size_t i=0; i<vIntPorts.size(); ++i)
+                {
+                    // Get port
+                    LV2Port *port = vIntPorts[i];
+                    if (port == NULL)
+                        continue;
 
-                // Post-process special ports
-                pTransport->in()->post_process();
-                pTransport->out()->post_process();
-                pLatency->post_process();
+                    // Pre-process data in port
+                    if (port->pre_process(samples))
+                    {
+                        lsp_trace("port changed: %s", port->metadata()->id);
+                        update = true;
+                    }
+                }
+
+                // Check that input parameters have changed
+                if (update)
+                {
+                    lsp_trace("updating settings");
+                    pPlugin->update_settings();
+                }
+
+                // Call the main processing unit
+                pPlugin->process(samples);
+
+                // Process external ports for changes
+                for (size_t i=0; i<vIntPorts.size(); ++i)
+                {
+                    LV2Port *port = vIntPorts[i];
+                    if (port != NULL)
+                        port->post_process(samples);
+                }
             }
     };
 }

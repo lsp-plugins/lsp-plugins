@@ -41,48 +41,7 @@ namespace lsp
 
     void plugin_t::destroy()
     {
-        for (size_t i=0; i < vPorts.size(); ++i)
-            delete vPorts[i];
-
         vPorts.clear();
-    }
-
-    void plugin_t::run(size_t samples)
-    {
-        bool update     = false;
-
-        // Process external ports for changes
-        for (size_t i=0; i<vPorts.size(); ++i)
-        {
-            // Get port
-            IPort *port = vPorts[i];
-            if (port == NULL)
-                continue;
-
-            // Pre-process data in port
-            if (port->pre_process())
-            {
-                lsp_trace("port changed: %s", port->metadata()->id);
-                update = true;
-            }
-        }
-
-        // Check that input parameters have changed
-        if (update)
-        {
-            lsp_trace("updating settings");
-            update_settings();
-        }
-
-        // Call the main processing unit
-        process(samples);
-
-        // Process external ports for changes
-        for (size_t i=0; i<vPorts.size(); ++i)
-        {
-            if (vPorts[i] != NULL)
-                vPorts[i]->post_process();
-        }
     }
     
     void plugin_t::update_settings()

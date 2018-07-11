@@ -104,15 +104,10 @@ namespace lsp
 
         nMaxVectorSize  = millis_to_samples(fSampleRate, DETECT_TIME_MAX);
         vA.pData        = new float[nMaxVectorSize * 3];
-        lsp_debug("new vA.pData[%d] = %p", int(nMaxVectorSize * 3), vA.pData);
         vB.pData        = new float[nMaxVectorSize * 4];
-        lsp_debug("new vB.pData[%d] = %p", int(nMaxVectorSize * 4), vB.pData);
         vFunction       = new float[nMaxVectorSize * 2];
-        lsp_debug("new vFunction[%d] = %p", int(nMaxVectorSize * 2), vFunction);
         vAccumulated    = new float[nMaxVectorSize * 2];
-        lsp_debug("new vAccumulatd[%d] = %p", int(nMaxVectorSize * 2), vAccumulated);
         vNormalized     = new float[nMaxVectorSize * 2];
-        lsp_debug("new vNormalized[%d] = %p", int(nMaxVectorSize * 2), vNormalized);
 
         setTimeInterval(fTimeInterval, true);
         setReactiveInterval(fReactivity);
@@ -181,11 +176,8 @@ namespace lsp
             vPorts[SEL_DISTANCE]    -> setValue(0.0f);
             vPorts[SEL_VALUE]       -> setValue(0.0f);
 
-            if (mesh != NULL)
-            {
-                mesh->nItems    = 0;
-                mesh->nBuffers  = 2;
-            }
+            if ((mesh != NULL) && (mesh->isEmpty()))
+                mesh->data(2, 0);       // Set mesh to empty data
             return;
         }
 
@@ -204,14 +196,25 @@ namespace lsp
                 lsp_assert((nGapOffset + nVectorSize + nFuncSize) < (nMaxVectorSize * 4));
                 lsp_assert((nGapOffset + nVectorSize) <= (nMaxVectorSize * 3));
 
-                // Subtract oldest sample from all functions
-                dsp::sub_multiplied(vFunction, &vB.pData[nGapOffset], vA.pData[nGapOffset], nFuncSize);
+//                // Subtract oldest sample from all functions
+//                dsp::sub_multiplied(vFunction, &vB.pData[nGapOffset], vA.pData[nGapOffset], nFuncSize);
+//
+//                // Add newest sample to all functions
+//                dsp::add_multiplied(vFunction, &vB.pData[nGapOffset + nVectorSize], vA.pData[nGapOffset + nVectorSize], nFuncSize);
 
-                // Add newest sample to all functions
-                dsp::add_multiplied(vFunction, &vB.pData[nGapOffset + nVectorSize], vA.pData[nGapOffset + nVectorSize], nFuncSize);
+                // Update function peak values
+                // vFunction[i] = vFunction[i] - vB.pData[i + nGapOffset] * vA.pData[nGapOffset] +
+                //                + vB.pData[i + nGapOffset + nVectorSize] * vA.pData[nGapOffset + nVectorSize]
+                dsp::mix_add(vFunction,
+                        &vB.pData[nGapOffset], &vB.pData[nGapOffset + nVectorSize],
+                        -vA.pData[nGapOffset], vA.pData[nGapOffset + nVectorSize],
+                        nFuncSize);
+
 
                 // Accumulate peak function value
+                // vAccumulated[i] = vAccumulated[i] * (1.0f - fTau) + vFunction * fTau
                 dsp::integrate(vAccumulated, vFunction, fTau, nFuncSize);
+//                dsp::mix(vAccumulated, vAccumulated, vFunction, 1.0f - fTau, fTau, nFuncSize);
 
                 // Increment gap offset: move to next sample
                 nGapOffset++;
@@ -257,7 +260,7 @@ namespace lsp
         vPorts[SEL_VALUE]       -> setValue(vNormalized[sel]);
 
         // Output mesh if specified
-        if (mesh != NULL)
+        if ((mesh != NULL) && (mesh->isEmpty()))
         {
             // Generate function times
             float *dst  = mesh->pvData[0];
@@ -269,8 +272,7 @@ namespace lsp
             dsp::copy(mesh->pvData[1], vNormalized, nFuncSize);
 
             // Store mesh size and dimensions
-            mesh->nItems    = nFuncSize;
-            mesh->nBuffers  = 2;
+            mesh->data(2, nFuncSize);
         }
     }
 

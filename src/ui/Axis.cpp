@@ -14,7 +14,7 @@
 namespace lsp
 {
     Axis::Axis(plugin_ui *ui):
-        IGraphObject(ui)
+        IGraphObject(ui, W_AXIS)
     {
         nFlags          = F_BASIS | F_VISIBLE;
         fDX             = 1.0;

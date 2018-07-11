@@ -28,6 +28,7 @@ namespace lsp
 
         // Initialize references
         mesh_t *mesh        = reinterpret_cast<mesh_t *>(ptr);
+        mesh->nState        = M_EMPTY;
         mesh->nBuffers      = 0;
         mesh->nItems        = 0;
         ptr                += mesh_size;
@@ -38,6 +39,12 @@ namespace lsp
         }
 
         return mesh;
+    }
+
+    inline void vst_destroy_mesh(mesh_t *mesh)
+    {
+        if (mesh != NULL)
+            delete [] reinterpret_cast<uint8_t *>(mesh);
     }
 
 //    inline vst_object_t *vst_object(AEffect *e)

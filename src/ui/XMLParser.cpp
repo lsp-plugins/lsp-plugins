@@ -8,8 +8,21 @@
 #include <ui/ui.h>
 #include <string.h>
 
+#ifndef LSP_USE_EXPAT
+    #define XML_OPEN_TAG        '\x55'
+    #define XML_CLOSE_TAG       '\xaa'
+    #define XML_END_DOCUMENT    '\0'
+#endif /* LSP_USE_EXPAT */
+
 namespace lsp
 {
+#ifndef LSP_USE_EXPAT
+    extern const resource_t xml_resources[];
+
+//    const resource_t xml_resources[] = { NULL, NULL };
+#endif /* LSP_USE_EXPAT */
+
+
     XMLParser::XMLParser()
     {
         nCapacity   = 0;
@@ -21,20 +34,46 @@ namespace lsp
     {
         if (vStack != NULL)
         {
-            node_t *node    = vStack;
-            for (size_t i=0; i<nSize; ++i, ++node)
-                if (node->tag != NULL)
-                {
-                    free(node->tag);
-                    node->tag   = NULL;
-                }
+            for (size_t i=0; i<nSize; ++i)
+                free_node(&vStack[i]);
 
             delete [] vStack;
             vStack = NULL;
         }
     }
 
-    void XMLParser::startElementHandler(void *userData, const XML_Char *name, const XML_Char **atts)
+    void XMLParser::free_node(node_t *node)
+    {
+        if (node == NULL)
+            return;
+#ifdef LSP_USE_EXPAT
+        if (node->tag != NULL)
+            free(node->tag);
+#endif /* LSP_USE_EXPAT */
+
+        node->tag       = NULL;
+    }
+
+    bool XMLParser::init_node(node_t *node, const char *tag, XMLHandler *handler)
+    {
+#ifdef LSP_USE_EXPAT
+        if (tag != NULL)
+        {
+            node->tag           = strdup(tag);
+            if (node->tag == NULL)
+                return false;
+        }
+        else
+            node->tag           = NULL;
+#else
+        node->tag           = tag;
+#endif /* LSP_USE_EXPAT */
+
+        node->handler       = handler;
+        return true;
+    }
+
+    void XMLParser::startElementHandler(void *userData, const xml_char_t *name, const xml_char_t **atts)
     {
         XMLParser *_this    = reinterpret_cast<XMLParser *>(userData);
         node_t *top         = _this->top();
@@ -46,7 +85,7 @@ namespace lsp
         _this->push(name, handler);
     }
 
-    void XMLParser::endElementHandler(void *userData, const XML_Char *name)
+    void XMLParser::endElementHandler(void *userData, const xml_char_t *)
     {
         XMLParser *_this    = reinterpret_cast<XMLParser *>(userData);
         node_t *node        = _this->pop();
@@ -62,11 +101,19 @@ namespace lsp
         }
 
         // Free memory
-        free(node->tag);
-        node->tag       = NULL;
+        free_node(node);
     }
 
-    bool XMLParser::push(const XML_Char *tag, XMLHandler *handler)
+#ifndef LSP_USE_EXPAT
+    const char *XMLParser::fetch_string(const char * &text)
+    {
+        const char *result = text;
+        text += strlen(text) + 1;
+        return result;
+    }
+#endif /* LSP_USE_EXPAT */
+
+    bool XMLParser::push(const xml_char_t *tag, XMLHandler *handler)
     {
         if (nSize >= nCapacity)
         {
@@ -83,17 +130,8 @@ namespace lsp
             nCapacity          += 32;
         }
 
-        node_t *node        = &vStack[nSize];
-        if (tag != NULL)
-        {
-            node->tag           = strdup(tag);
-            if (node->tag == NULL)
-                return false;
-        }
-        else
-            node->tag           = NULL;
-
-        node->handler       = handler;
+        if (!init_node(&vStack[nSize], tag, handler))
+            return false;
         nSize               ++;
         return true;
     }
@@ -113,6 +151,7 @@ namespace lsp
         if (!push(NULL, root))
             return false;
 
+#ifdef LSP_USE_EXPAT
         XML_Parser parser = XML_ParserCreate(NULL);
         XML_SetUserData(parser, this);
         XML_SetElementHandler(parser, startElementHandler, endElementHandler);
@@ -147,8 +186,83 @@ namespace lsp
 
         root->quit();
 
+        // Free parser and close file
         XML_ParserFree(parser);
+        fclose(fd);
         return true;
+#else
+        for (const resource_t *res = xml_resources; (res->id != NULL) && (res->text != NULL); ++res)
+        {
+            // Check that resource matched
+            if (strcmp(res->id, path) != 0)
+                continue;
+
+            // Process data
+            const char *text = res->text;
+
+            root->enter();
+
+            bool last = false;
+            while (!last)
+            {
+                char code = *(text++);
+                switch (code)
+                {
+                    case XML_OPEN_TAG:
+                    {
+                        // Determine number of elements
+                        size_t elements = *(text++);
+
+                        // Get tag name
+                        const char *tag = fetch_string(text);
+
+                        // Allocate list of attributes
+                        const char **attributes = new const char *[(elements + 1) * 2];
+                        if (attributes == NULL)
+                        {
+                            lsp_error("Not enough memory");
+                            return false;
+                        }
+
+                        // Fill list with attributes
+                        const char **dst = attributes;
+                        for (size_t i=0; i<elements; ++i)
+                        {
+                            *(dst++)    = fetch_string(text);
+                            *(dst++)    = fetch_string(text);
+                        }
+                        *(dst++)     = NULL;
+                        *(dst++)     = NULL;
+
+                        // Now we are ready to parse tag
+                        startElementHandler(this, tag, attributes);
+
+                        // Finally, delete all attributes
+                        delete [] attributes;
+
+                        break;
+                    }
+                    case XML_CLOSE_TAG:
+                    {
+                        endElementHandler(this, NULL); // Tag name is not used
+                        break;
+                    }
+                    case XML_END_DOCUMENT:
+                        last = true;
+                        break;
+                    default:
+                        lsp_error("Document structure corrupted: unknown code: 0x%x", int(code));
+                        return false;
+                }
+            }
+
+            root->quit();
+
+            return true;
+        }
+
+        return false;
+#endif /* LSP_USE_EXPAT */
     }
 
 } /* namespace lsp */

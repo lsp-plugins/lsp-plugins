@@ -33,14 +33,22 @@ namespace lsp
     {
         // Generate path to theme
         char path[PATH_MAX];
-        snprintf(path, PATH_MAX, "%s/ui/theme.xml", pFactory->path());
+        #ifdef LSP_USE_EXPAT
+            snprintf(path, PATH_MAX, "%s/ui/theme.xml", pFactory->path());
+        #else
+            strncpy(path, "theme.xml", PATH_MAX);
+        #endif /* LSP_USE_EXPAT */
         lsp_trace("Loading theme from file %s", path);
 
         // Load theme
         if (sTheme.load(path))
         {
             // Generate path to UI schema
-            snprintf(path, PATH_MAX, "%s/ui/%s.xml", pFactory->path(), sName);
+            #ifdef LSP_USE_EXPAT
+                snprintf(path, PATH_MAX, "%s/ui/%s.xml", pFactory->path(), sName);
+            #else
+                snprintf(path, PATH_MAX, "%s.xml", sName);
+            #endif /* LSP_USE_EXPAT */
             lsp_trace("Generating UI from file %s", path);
 
             // Build UI
@@ -52,51 +60,37 @@ namespace lsp
 
     void plugin_ui::destroy()
     {
+        // Delete widgets
         for (size_t i=0; i<vWidgets.size(); ++i)
             delete vWidgets[i];
         vWidgets.clear();
 
+        // Delete factory
         if (pFactory != NULL)
         {
             delete pFactory;
             pFactory = NULL;
         }
 
-        for (size_t i=0; i<vIntPorts.size(); ++i)
-        {
-            if (vIntPorts[i] != NULL)
-                delete vIntPorts[i];
-        }
-        vIntPorts.clear();
-        vExtPorts.clear();
+        // Clear ports
+        vPorts.clear();
     }
 
-    bool plugin_ui::add_port(IUIPort *port, bool external)
+    bool plugin_ui::add_port(IUIPort *port)
     {
-        if (!vIntPorts.add(port))
+        if (!vPorts.add(port))
             return false;
 
-        if (external)
-        {
-            if (!vExtPorts.add(port))
-                return false;
-        }
-        lsp_trace("added port external=%d", int(external));
+        lsp_trace("added port id=%s", port->metadata()->id);
         return true;
     }
 
-    IUIPort *plugin_ui::port(size_t id, bool external)
+    IUIPort *plugin_ui::port(const char *name)
     {
-        return (external) ? vExtPorts[id] : vIntPorts[id];
-    }
-
-    IUIPort *plugin_ui::port(const char *name, bool external)
-    {
-        cvector<IUIPort> &v = (external) ? vExtPorts : vIntPorts;
-
-        for (size_t i=0; i<v.size(); ++i)
+        size_t count = vPorts.size();
+        for (size_t i=0; i<count; ++i)
         {
-            IUIPort *p  = v[i];
+            IUIPort *p  = vPorts[i];
             const port_t *ctl = p->metadata();
             if (ctl == NULL)
                 continue;

@@ -10,7 +10,7 @@
 
 namespace lsp
 {
-    Gtk2Box::Gtk2Box(plugin_ui *ui, bool horizontal): Gtk2Container(ui)
+    Gtk2Box::Gtk2Box(plugin_ui *ui, bool horizontal): Gtk2Container(ui, (horizontal) ? W_HBOX : W_VBOX)
     {
         nSize           = -1;
         pWidget         = (horizontal) ? gtk_hbox_new(FALSE, 0) : gtk_vbox_new(FALSE, 0);
@@ -65,9 +65,7 @@ namespace lsp
 
     void Gtk2Box::add(IWidget *widget)
     {
-        Gtk2Widget *g_widget = dynamic_cast<Gtk2Widget *>(widget);
-        if (g_widget == NULL)
-            return Gtk2Widget::add(widget);
+        Gtk2Widget *g_widget = static_cast<Gtk2Widget *>(widget);
 
         gtk_box_pack_start(GTK_BOX(pWidget), g_widget->widget(),
                 g_widget->expand() ? TRUE : FALSE,

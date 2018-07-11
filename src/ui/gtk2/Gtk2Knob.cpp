@@ -15,7 +15,7 @@
 
 namespace lsp
 {
-    Gtk2Knob::Gtk2Knob(plugin_ui *ui): Gtk2CustomWidget(ui)
+    Gtk2Knob::Gtk2Knob(plugin_ui *ui): Gtk2CustomWidget(ui, W_KNOB)
     {
         sColor.set(pUI->theme(), C_KNOB_CAP);
         sScaleColor.set(pUI->theme(), C_KNOB_SCALE);

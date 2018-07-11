@@ -9,7 +9,7 @@
 
 namespace lsp
 {
-    Gtk2Widget::Gtk2Widget(plugin_ui *ui): IWidget(ui)
+    Gtk2Widget::Gtk2Widget(plugin_ui *ui, widget_t w_class): IWidget(ui, w_class)
     {
         pWidget     = NULL;
         nWFlags     = 0;
@@ -55,16 +55,14 @@ namespace lsp
 
     void Gtk2Widget::add(IWidget *widget)
     {
-        Gtk2Widget *g_widget = dynamic_cast<Gtk2Widget *>(widget);
-        if (g_widget != NULL)
+        if (GTK_IS_CONTAINER(pWidget))
         {
-            if (GTK_IS_CONTAINER(pWidget))
-            {
-                gtk_container_add (GTK_CONTAINER (pWidget), g_widget->widget());
-                nAdded++;
-            }
-            else
-                lsp_error("Could not cast widget to container");
+            Gtk2Widget *g_widget = static_cast<Gtk2Widget *>(widget);
+
+            gtk_container_add (GTK_CONTAINER (pWidget), g_widget->widget());
+            nAdded++;
         }
+        else
+            lsp_error("Could not cast widget to container");
     }
 } /* namespace lsp */

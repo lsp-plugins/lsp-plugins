@@ -9,7 +9,7 @@
 
 namespace lsp
 {
-    Gtk2Grid::Gtk2Grid(plugin_ui *ui): Gtk2Container(ui)
+    Gtk2Grid::Gtk2Grid(plugin_ui *ui): Gtk2Container(ui, W_GRID)
     {
         nRows       = 1;
         nCols       = 1;
@@ -105,38 +105,35 @@ namespace lsp
 
     void Gtk2Grid::add(IWidget *widget)
     {
-        Gtk2Widget *g_widget = dynamic_cast<Gtk2Widget *>(widget);
-        if (g_widget != NULL)
+        Gtk2Widget *g_widget = static_cast<Gtk2Widget *>(widget);
+
+        size_t rowspan = 1, colspan = 1;
+        if (widget->getClass() == W_CELL)
         {
-            size_t rowspan = 1, colspan = 1;
+            Gtk2Cell *g_cell = static_cast<Gtk2Cell *>(widget);
+            rowspan     = g_cell->getRowspan();
+            colspan     = g_cell->getColspan();
+        }
 
-            Gtk2Cell *g_cell = dynamic_cast<Gtk2Cell *>(widget);
-            if (g_cell != NULL)
+        GtkAttachOptions opts = (g_widget->fill()) ? GTK_FILL : GTK_EXPAND;
+
+        gtk_table_attach(
+            GTK_TABLE(pWidget), g_widget->widget(),
+            nCurrCol, nCurrCol + colspan, nCurrRow, nCurrRow + rowspan,
+            opts, opts, nHSpacing, nVSpacing);
+
+        // Fill bitmap
+        for (size_t y=0; y < rowspan; ++y)
+            for (size_t x=0; x < colspan; ++x)
+                bitmap_set(nCurrCol + x, nCurrRow + y);
+
+        // Horizontally place elements
+        while (bitmap_get(nCurrCol, nCurrRow))
+        {
+            if ((++nCurrCol) >= nCols)
             {
-                rowspan     = g_cell->getRowspan();
-                colspan     = g_cell->getColspan();
-            }
-
-            GtkAttachOptions opts = (g_widget->fill()) ? GTK_FILL : GTK_EXPAND;
-
-            gtk_table_attach(
-                GTK_TABLE(pWidget), g_widget->widget(),
-                nCurrCol, nCurrCol + colspan, nCurrRow, nCurrRow + rowspan,
-                opts, opts, nHSpacing, nVSpacing);
-
-            // Fill bitmap
-            for (size_t y=0; y < rowspan; ++y)
-                for (size_t x=0; x < colspan; ++x)
-                    bitmap_set(nCurrCol + x, nCurrRow + y);
-
-            // Horizontally place elements
-            while (bitmap_get(nCurrCol, nCurrRow))
-            {
-                if ((++nCurrCol) >= nCols)
-                {
-                    nCurrCol    = 0;
-                    nCurrRow    ++;
-                }
+                nCurrCol    = 0;
+                nCurrRow    ++;
             }
         }
     }

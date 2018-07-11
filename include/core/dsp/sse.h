@@ -721,26 +721,6 @@ namespace lsp
                 : "cc", "memory"
             );
 
-//            // Align destination
-//            while (true)
-//            {
-//                if (sse_aligned(dst))
-//                    break;
-//                if (count-- <= 0)
-//                    return;
-//                __asm__ __volatile__
-//                (
-//                    // Store value
-//                    __ASM_EMIT("movss %%xmm0, (%0)")
-//
-//                    // Move pointers
-//                    __ASM_EMIT("add $0x4, %0")
-//
-//                    : "+D"(dst) :
-//                    : "cc", "memory"
-//                );
-//            }
-
             // Calculate amount of registers
             size_t regs = count / SSE_MULTIPLE;
             size_t tail = count % SSE_MULTIPLE;
@@ -867,6 +847,9 @@ namespace lsp
 
         void add_multiplied(float *dst, const float *src, float k, size_t count)
         {
+            if (count == 0)
+                return;
+
             __asm__ __volatile__
             (
                 __ASM_EMIT("movss %0, %%xmm4")
@@ -875,28 +858,33 @@ namespace lsp
             );
 
             // Align destination
-            while (true)
-            {
-                if (sse_aligned(dst))
-                    break;
-                if (count-- <= 0)
-                    return;
-                __asm__ __volatile__
-                (
-                    __ASM_EMIT("movss (%0), %%xmm0")
-                    __ASM_EMIT("mulss %%xmm4, %%xmm0")
-                    __ASM_EMIT("addss (%1), %%xmm0")
-                    __ASM_EMIT("movss %%xmm0, (%1)")
+            __asm__ __volatile__
+            (
+                __ASM_EMIT("1:")
 
-                    // Move pointers
-                    __ASM_EMIT("add $0x4, %0")
-                    __ASM_EMIT("add $0x4, %1")
+                // Check conditions
+                __ASM_EMIT("test $0xf, %1")
+                __ASM_EMIT("jz 2f")
 
-                    : "+S" (src), "+D"(dst) :
-                    : "cc", "memory",
-                      "%xmm0"
-                );
-            }
+                // Make iteration
+                __ASM_EMIT("movss (%0), %%xmm0")
+                __ASM_EMIT("mulss %%xmm4, %%xmm0")
+                __ASM_EMIT("addss (%1), %%xmm0")
+                __ASM_EMIT("movss %%xmm0, (%1)")
+
+                // Move pointers
+                __ASM_EMIT("add $0x4, %0")
+                __ASM_EMIT("add $0x4, %1")
+
+                // Repeat loop
+                __ASM_EMIT("dec %2")
+                __ASM_EMIT("jz 1b")
+                __ASM_EMIT("2:")
+
+                : "+S" (src), "+D"(dst), "+r"(count) :
+                : "cc", "memory",
+                  "%xmm0"
+            );
 
             // Calculate amount of registers
             size_t regs = count / SSE_MULTIPLE;
@@ -1114,267 +1102,284 @@ namespace lsp
             add_multiplied(dst, src, -k, count);
         }
 
-        void integrate(float *dst, const float *src, float k, size_t count)
-        {
-            __asm__ __volatile__
-            (
-                __ASM_EMIT("movss %0, %%xmm4")
-                : : "x" (k)
-                : "%xmm4"
-            );
+//        void integrate(float *dst, const float *src, float k, size_t count)
+//        {
+//            // dst[i] = dst[i] + (src[i] - dst[i]) * k =
+//            // = dst[i] - dst[i] * k + src[i] * k =
+//            // = dst[i] * (1-k) + src[i] * k
+//
+//            return dsp::mix(dst, dst, src, 1.0f - k, k, count);
 
-            // Align destination
-            while (true)
-            {
-                if (sse_aligned(dst))
-                    break;
-                if (count-- <= 0)
-                    return;
-                __asm__ __volatile__
-                (
-                    __ASM_EMIT("movss (%0), %%xmm0")
-                    __ASM_EMIT("subss (%1), %%xmm0")
-                    __ASM_EMIT("mulss %%xmm4, %%xmm0")
-                    __ASM_EMIT("addss (%1), %%xmm0")
-                    __ASM_EMIT("movss %%xmm0, (%1)")
-
-                    // Move pointers
-                    __ASM_EMIT("add $0x4, %0")
-                    __ASM_EMIT("add $0x4, %1")
-
-                    : "+S" (src), "+D"(dst) :
-                    : "cc", "memory",
-                      "%xmm0"
-                );
-            }
-
-            // Calculate amount of registers
-            size_t regs = count / SSE_MULTIPLE;
-            size_t tail = count % SSE_MULTIPLE;
-
-            if (regs > 0)
-            {
-                // Calculate amount of 4-register blocks (0x40 bytes)
-                size_t blocks   = regs / 4;
-                regs           %= 4;
-
-                // Prefetch data for iteration
-                __asm__ __volatile__
-                (
-                    __ASM_EMIT("shufps $0, %%xmm4, %%xmm4")
-
-                    __ASM_EMIT("prefetchnta 0x00(%0)")
-                    __ASM_EMIT("prefetchnta 0x20(%0)")
-                    __ASM_EMIT("prefetchnta 0x00(%1)")
-                    __ASM_EMIT("prefetchnta 0x20(%1)")
-                    : : "S" (src), "D" (dst)
-                    : "%xmm4"
-                );
-
-                if (sse_aligned(src))
-                {
-                    if (blocks > 0)
-                    {
-                        __asm__ __volatile__
-                        (
-                            // Prepare registers
-                            __ASM_EMIT("movaps %%xmm4, %%xmm5")
-                            __ASM_EMIT("movaps %%xmm4, %%xmm6")
-                            __ASM_EMIT("movaps %%xmm5, %%xmm7")
-
-                            __ASM_EMIT("1:")
-
-                            // Prefetch next data
-                            __ASM_EMIT("prefetchnta 0x40(%0)")
-                            __ASM_EMIT("prefetchnta 0x60(%0)")
-                            __ASM_EMIT("prefetchnta 0x40(%1)")
-                            __ASM_EMIT("prefetchnta 0x60(%1)")
-
-                            // Calculate
-                            __ASM_EMIT("movaps 0x00(%0), %%xmm0")
-                            __ASM_EMIT("movaps 0x10(%0), %%xmm1")
-                            __ASM_EMIT("movaps 0x20(%0), %%xmm2")
-                            __ASM_EMIT("movaps 0x30(%0), %%xmm3")
-
-                            __ASM_EMIT("subps 0x00(%1), %%xmm0")
-                            __ASM_EMIT("subps 0x10(%1), %%xmm1")
-                            __ASM_EMIT("subps 0x20(%1), %%xmm2")
-                            __ASM_EMIT("subps 0x30(%1), %%xmm3")
-
-                            __ASM_EMIT("mulps %%xmm4, %%xmm0")
-                            __ASM_EMIT("mulps %%xmm5, %%xmm1")
-                            __ASM_EMIT("mulps %%xmm6, %%xmm2")
-                            __ASM_EMIT("mulps %%xmm7, %%xmm3")
-
-                            __ASM_EMIT("addps 0x00(%1), %%xmm0")
-                            __ASM_EMIT("addps 0x10(%1), %%xmm1")
-                            __ASM_EMIT("addps 0x20(%1), %%xmm2")
-                            __ASM_EMIT("addps 0x30(%1), %%xmm3")
-
-                            __ASM_EMIT("movntps %%xmm0,  0x00(%1)")
-                            __ASM_EMIT("movntps %%xmm1,  0x10(%1)")
-                            __ASM_EMIT("movntps %%xmm2,  0x20(%1)")
-                            __ASM_EMIT("movntps %%xmm3,  0x30(%1)")
-
-                            // Move pointers
-                            __ASM_EMIT("add $0x40, %0")
-                            __ASM_EMIT("add $0x40, %1")
-                            __ASM_EMIT("dec %2")
-                            __ASM_EMIT("jnz 1b")
-
-                            : "+S" (src), "+D"(dst), "+r"(blocks) :
-                            : "cc", "memory",
-                              "%xmm0", "%xmm1", "%xmm2", "%xmm3"
-                        );
-                    }
-
-                    if (regs > 0)
-                    {
-                        __asm__ __volatile__
-                        (
-                            __ASM_EMIT("1:")
-                            // Copy data
-                            __ASM_EMIT("movaps (%0), %%xmm0")
-                            __ASM_EMIT("subps (%1), %%xmm0")
-                            __ASM_EMIT("mulps %%xmm4, %%xmm0")
-                            __ASM_EMIT("addps (%1), %%xmm0")
-                            __ASM_EMIT("movntps %%xmm0, (%1)")
-
-                            // Move pointers
-                            __ASM_EMIT("add $0x10, %0")
-                            __ASM_EMIT("add $0x10, %1")
-                            __ASM_EMIT("dec %2")
-                            __ASM_EMIT("jnz 1b")
-
-                            : "+S" (src), "+D"(dst), "+r"(regs) :
-                            : "cc", "memory",
-                              "%xmm0"
-                        );
-                    }
-                }
-                else
-                {
-                    if (blocks > 0)
-                    {
-                        __asm__ __volatile__
-                        (
-                            // Prepare registers
-                            __ASM_EMIT("movaps %%xmm4, %%xmm5")
-                            __ASM_EMIT("movaps %%xmm4, %%xmm6")
-                            __ASM_EMIT("movaps %%xmm5, %%xmm7")
-
-                            __ASM_EMIT("1:")
-                            // Prefetch next data
-                            __ASM_EMIT("prefetchnta 0x40(%0)")
-                            __ASM_EMIT("prefetchnta 0x60(%0)")
-                            __ASM_EMIT("prefetchnta 0x40(%1)")
-                            __ASM_EMIT("prefetchnta 0x60(%1)")
-
-                            // Calculate
-                            __ASM_EMIT("movups 0x00(%0), %%xmm0")
-                            __ASM_EMIT("movups 0x10(%0), %%xmm1")
-                            __ASM_EMIT("movups 0x20(%0), %%xmm2")
-                            __ASM_EMIT("movups 0x30(%0), %%xmm3")
-
-                            __ASM_EMIT("subps 0x00(%1), %%xmm0")
-                            __ASM_EMIT("subps 0x10(%1), %%xmm1")
-                            __ASM_EMIT("subps 0x20(%1), %%xmm2")
-                            __ASM_EMIT("subps 0x30(%1), %%xmm3")
-
-                            __ASM_EMIT("mulps %%xmm4, %%xmm0")
-                            __ASM_EMIT("mulps %%xmm5, %%xmm1")
-                            __ASM_EMIT("mulps %%xmm6, %%xmm2")
-                            __ASM_EMIT("mulps %%xmm7, %%xmm3")
-
-                            __ASM_EMIT("addps 0x00(%1), %%xmm0")
-                            __ASM_EMIT("addps 0x10(%1), %%xmm1")
-                            __ASM_EMIT("addps 0x20(%1), %%xmm2")
-                            __ASM_EMIT("addps 0x30(%1), %%xmm3")
-
-                            __ASM_EMIT("movntps %%xmm0,  0x00(%1)")
-                            __ASM_EMIT("movntps %%xmm1,  0x10(%1)")
-                            __ASM_EMIT("movntps %%xmm2,  0x20(%1)")
-                            __ASM_EMIT("movntps %%xmm3,  0x30(%1)")
-
-                            // Move pointers
-                            __ASM_EMIT("add $0x40, %0")
-                            __ASM_EMIT("add $0x40, %1")
-
-                            // Repeat loop
-                            __ASM_EMIT("dec %2")
-                            __ASM_EMIT("jnz 1b")
-
-                            : "+S" (src), "+D"(dst), "+r"(blocks) :
-                            : "cc", "memory",
-                              "%xmm0", "%xmm1", "%xmm2", "%xmm3"
-                        );
-                    }
-
-                    if (regs > 0)
-                    {
-                        __asm__ __volatile__
-                        (
-                            __ASM_EMIT("1:")
-
-                            // Process data
-                            __ASM_EMIT("movups (%0), %%xmm0")
-                            __ASM_EMIT("subps (%1), %%xmm0")
-                            __ASM_EMIT("mulps %%xmm4, %%xmm0")
-                            __ASM_EMIT("addps (%1), %%xmm0")
-                            __ASM_EMIT("movntps %%xmm0, (%1)")
-
-                            // Move pointers
-                            __ASM_EMIT("add $0x10, %0")
-                            __ASM_EMIT("add $0x10, %1")
-
-                            // Repeat loop
-                            __ASM_EMIT("dec %2")
-                            __ASM_EMIT("jnz 1b")
-
-                            : "+S" (src), "+D"(dst), "+r"(regs) :
-                            : "cc", "memory",
-                              "%xmm0"
-                        );
-                    }
-                }
-            }
-
-            // Process tail
-            if (tail > 0)
-            {
-                __asm__ __volatile__
-                (
-                    __ASM_EMIT("1:")
-
-                    // Process data
-                    __ASM_EMIT("movss (%0), %%xmm0")
-                    __ASM_EMIT("subss (%1), %%xmm0")
-                    __ASM_EMIT("mulss %%xmm4, %%xmm0")
-                    __ASM_EMIT("addss (%1), %%xmm0")
-                    __ASM_EMIT("movss %%xmm0, (%1)")
-
-                    // Move pointers
-                    __ASM_EMIT("add $0x4, %0")
-                    __ASM_EMIT("add $0x4, %1")
-
-                    // Repeat loop
-                    __ASM_EMIT("dec %2")
-                    __ASM_EMIT("jnz 1b")
-
-                    : "+S" (src), "+D"(dst), "+r"(tail) :
-                    : "cc", "memory",
-                      "%xmm0"
-                );
-            }
-
-            __asm__ __volatile__
-            (
-                __ASM_EMIT("sfence")
-            );
-        }
+//            if (count == 0)
+//                return;
+//
+//            __asm__ __volatile__
+//            (
+//                __ASM_EMIT("movss %0, %%xmm4")
+//                : : "x" (k)
+//                : "%xmm4"
+//            );
+//
+//            // Align destination
+//            __asm__ __volatile__
+//            (
+//                __ASM_EMIT("1:")
+//
+//                // Check conditions
+//                __ASM_EMIT("test $0xf, %1")
+//                __ASM_EMIT("jz 2f")
+//
+//                // Make iteration
+//                __ASM_EMIT("movss (%0), %%xmm0")
+//                __ASM_EMIT("subss (%1), %%xmm0")
+//                __ASM_EMIT("mulss %%xmm4, %%xmm0")
+//                __ASM_EMIT("addss (%1), %%xmm0")
+//                __ASM_EMIT("movss %%xmm0, (%1)")
+//
+//                // Move pointers
+//                __ASM_EMIT("add $0x4, %0")
+//                __ASM_EMIT("add $0x4, %1")
+//
+//                // Repeat loop
+//                __ASM_EMIT("dec %2")
+//                __ASM_EMIT("jz 1b")
+//                __ASM_EMIT("2:")
+//
+//                : "+S" (src), "+D"(dst), "+r"(count) :
+//                : "cc", "memory",
+//                  "%xmm0"
+//            );
+//
+//            // Calculate amount of registers
+//            size_t regs = count / SSE_MULTIPLE;
+//            size_t tail = count % SSE_MULTIPLE;
+//
+//            if (regs > 0)
+//            {
+//                // Calculate amount of 4-register blocks (0x40 bytes)
+//                size_t blocks   = regs / 4;
+//                regs           %= 4;
+//
+//                // Prefetch data for iteration
+//                __asm__ __volatile__
+//                (
+//                    __ASM_EMIT("shufps $0, %%xmm4, %%xmm4")
+//
+//                    __ASM_EMIT("prefetchnta 0x00(%0)")
+//                    __ASM_EMIT("prefetchnta 0x20(%0)")
+//                    __ASM_EMIT("prefetchnta 0x00(%1)")
+//                    __ASM_EMIT("prefetchnta 0x20(%1)")
+//                    : : "S" (src), "D" (dst)
+//                    : "%xmm4"
+//                );
+//
+//                if (sse_aligned(src))
+//                {
+//                    if (blocks > 0)
+//                    {
+//                        __asm__ __volatile__
+//                        (
+//                            // Prepare registers
+//                            __ASM_EMIT("movaps %%xmm4, %%xmm5")
+//                            __ASM_EMIT("movaps %%xmm4, %%xmm6")
+//                            __ASM_EMIT("movaps %%xmm5, %%xmm7")
+//
+//                            __ASM_EMIT("1:")
+//
+//                            // Prefetch next data
+//                            __ASM_EMIT("prefetchnta 0x40(%0)")
+//                            __ASM_EMIT("prefetchnta 0x60(%0)")
+//                            __ASM_EMIT("prefetchnta 0x40(%1)")
+//                            __ASM_EMIT("prefetchnta 0x60(%1)")
+//
+//                            // Calculate
+//                            __ASM_EMIT("movaps 0x00(%0), %%xmm0")
+//                            __ASM_EMIT("movaps 0x10(%0), %%xmm1")
+//                            __ASM_EMIT("movaps 0x20(%0), %%xmm2")
+//                            __ASM_EMIT("movaps 0x30(%0), %%xmm3")
+//
+//                            __ASM_EMIT("subps 0x00(%1), %%xmm0")
+//                            __ASM_EMIT("subps 0x10(%1), %%xmm1")
+//                            __ASM_EMIT("subps 0x20(%1), %%xmm2")
+//                            __ASM_EMIT("subps 0x30(%1), %%xmm3")
+//
+//                            __ASM_EMIT("mulps %%xmm4, %%xmm0")
+//                            __ASM_EMIT("mulps %%xmm5, %%xmm1")
+//                            __ASM_EMIT("mulps %%xmm6, %%xmm2")
+//                            __ASM_EMIT("mulps %%xmm7, %%xmm3")
+//
+//                            __ASM_EMIT("addps 0x00(%1), %%xmm0")
+//                            __ASM_EMIT("addps 0x10(%1), %%xmm1")
+//                            __ASM_EMIT("addps 0x20(%1), %%xmm2")
+//                            __ASM_EMIT("addps 0x30(%1), %%xmm3")
+//
+//                            __ASM_EMIT("movntps %%xmm0,  0x00(%1)")
+//                            __ASM_EMIT("movntps %%xmm1,  0x10(%1)")
+//                            __ASM_EMIT("movntps %%xmm2,  0x20(%1)")
+//                            __ASM_EMIT("movntps %%xmm3,  0x30(%1)")
+//
+//                            // Move pointers
+//                            __ASM_EMIT("add $0x40, %0")
+//                            __ASM_EMIT("add $0x40, %1")
+//                            __ASM_EMIT("dec %2")
+//                            __ASM_EMIT("jnz 1b")
+//
+//                            : "+S" (src), "+D"(dst), "+r"(blocks) :
+//                            : "cc", "memory",
+//                              "%xmm0", "%xmm1", "%xmm2", "%xmm3"
+//                        );
+//                    }
+//
+//                    if (regs > 0)
+//                    {
+//                        __asm__ __volatile__
+//                        (
+//                            __ASM_EMIT("1:")
+//                            // Copy data
+//                            __ASM_EMIT("movaps (%0), %%xmm0")
+//                            __ASM_EMIT("subps (%1), %%xmm0")
+//                            __ASM_EMIT("mulps %%xmm4, %%xmm0")
+//                            __ASM_EMIT("addps (%1), %%xmm0")
+//                            __ASM_EMIT("movntps %%xmm0, (%1)")
+//
+//                            // Move pointers
+//                            __ASM_EMIT("add $0x10, %0")
+//                            __ASM_EMIT("add $0x10, %1")
+//                            __ASM_EMIT("dec %2")
+//                            __ASM_EMIT("jnz 1b")
+//
+//                            : "+S" (src), "+D"(dst), "+r"(regs) :
+//                            : "cc", "memory",
+//                              "%xmm0"
+//                        );
+//                    }
+//                }
+//                else
+//                {
+//                    if (blocks > 0)
+//                    {
+//                        __asm__ __volatile__
+//                        (
+//                            // Prepare registers
+//                            __ASM_EMIT("movaps %%xmm4, %%xmm5")
+//                            __ASM_EMIT("movaps %%xmm4, %%xmm6")
+//                            __ASM_EMIT("movaps %%xmm5, %%xmm7")
+//
+//                            __ASM_EMIT("1:")
+//                            // Prefetch next data
+//                            __ASM_EMIT("prefetchnta 0x40(%0)")
+//                            __ASM_EMIT("prefetchnta 0x60(%0)")
+//                            __ASM_EMIT("prefetchnta 0x40(%1)")
+//                            __ASM_EMIT("prefetchnta 0x60(%1)")
+//
+//                            // Calculate
+//                            __ASM_EMIT("movups 0x00(%0), %%xmm0")
+//                            __ASM_EMIT("movups 0x10(%0), %%xmm1")
+//                            __ASM_EMIT("movups 0x20(%0), %%xmm2")
+//                            __ASM_EMIT("movups 0x30(%0), %%xmm3")
+//
+//                            __ASM_EMIT("subps 0x00(%1), %%xmm0")
+//                            __ASM_EMIT("subps 0x10(%1), %%xmm1")
+//                            __ASM_EMIT("subps 0x20(%1), %%xmm2")
+//                            __ASM_EMIT("subps 0x30(%1), %%xmm3")
+//
+//                            __ASM_EMIT("mulps %%xmm4, %%xmm0")
+//                            __ASM_EMIT("mulps %%xmm5, %%xmm1")
+//                            __ASM_EMIT("mulps %%xmm6, %%xmm2")
+//                            __ASM_EMIT("mulps %%xmm7, %%xmm3")
+//
+//                            __ASM_EMIT("addps 0x00(%1), %%xmm0")
+//                            __ASM_EMIT("addps 0x10(%1), %%xmm1")
+//                            __ASM_EMIT("addps 0x20(%1), %%xmm2")
+//                            __ASM_EMIT("addps 0x30(%1), %%xmm3")
+//
+//                            __ASM_EMIT("movntps %%xmm0,  0x00(%1)")
+//                            __ASM_EMIT("movntps %%xmm1,  0x10(%1)")
+//                            __ASM_EMIT("movntps %%xmm2,  0x20(%1)")
+//                            __ASM_EMIT("movntps %%xmm3,  0x30(%1)")
+//
+//                            // Move pointers
+//                            __ASM_EMIT("add $0x40, %0")
+//                            __ASM_EMIT("add $0x40, %1")
+//
+//                            // Repeat loop
+//                            __ASM_EMIT("dec %2")
+//                            __ASM_EMIT("jnz 1b")
+//
+//                            : "+S" (src), "+D"(dst), "+r"(blocks) :
+//                            : "cc", "memory",
+//                              "%xmm0", "%xmm1", "%xmm2", "%xmm3"
+//                        );
+//                    }
+//
+//                    if (regs > 0)
+//                    {
+//                        __asm__ __volatile__
+//                        (
+//                            __ASM_EMIT("1:")
+//
+//                            // Process data
+//                            __ASM_EMIT("movups (%0), %%xmm0")
+//                            __ASM_EMIT("subps (%1), %%xmm0")
+//                            __ASM_EMIT("mulps %%xmm4, %%xmm0")
+//                            __ASM_EMIT("addps (%1), %%xmm0")
+//                            __ASM_EMIT("movntps %%xmm0, (%1)")
+//
+//                            // Move pointers
+//                            __ASM_EMIT("add $0x10, %0")
+//                            __ASM_EMIT("add $0x10, %1")
+//
+//                            // Repeat loop
+//                            __ASM_EMIT("dec %2")
+//                            __ASM_EMIT("jnz 1b")
+//
+//                            : "+S" (src), "+D"(dst), "+r"(regs) :
+//                            : "cc", "memory",
+//                              "%xmm0"
+//                        );
+//                    }
+//                }
+//            }
+//
+//            // Process tail
+//            if (tail > 0)
+//            {
+//                __asm__ __volatile__
+//                (
+//                    __ASM_EMIT("1:")
+//
+//                    // Process data
+//                    __ASM_EMIT("movss (%0), %%xmm0")
+//                    __ASM_EMIT("subss (%1), %%xmm0")
+//                    __ASM_EMIT("mulss %%xmm4, %%xmm0")
+//                    __ASM_EMIT("addss (%1), %%xmm0")
+//                    __ASM_EMIT("movss %%xmm0, (%1)")
+//
+//                    // Move pointers
+//                    __ASM_EMIT("add $0x4, %0")
+//                    __ASM_EMIT("add $0x4, %1")
+//
+//                    // Repeat loop
+//                    __ASM_EMIT("dec %2")
+//                    __ASM_EMIT("jnz 1b")
+//
+//                    : "+S" (src), "+D"(dst), "+r"(tail) :
+//                    : "cc", "memory",
+//                      "%xmm0"
+//                );
+//            }
+//
+//            __asm__ __volatile__
+//            (
+//                __ASM_EMIT("sfence")
+//            );
+//        }
 
         void mix(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count)
         {
+            if (count == 0)
+                return;
+
             __asm__ __volatile__
             (
                 __ASM_EMIT("movss %0, %%xmm3")
@@ -1384,31 +1389,34 @@ namespace lsp
             );
 
             // Align destination
-            while (true)
-            {
-                if (sse_aligned(dst))
-                    break;
-                if (count-- <= 0)
-                    return;
-                __asm__ __volatile__
-                (
-                    __ASM_EMIT("movss (%0), %%xmm0")
-                    __ASM_EMIT("movss (%1), %%xmm4")
-                    __ASM_EMIT("mulss %%xmm3, %%xmm0")
-                    __ASM_EMIT("mulss %%xmm7, %%xmm4")
-                    __ASM_EMIT("addss %%xmm4, %%xmm0")
-                    __ASM_EMIT("movss %%xmm0, (%2)")
+            __asm__ __volatile__
+            (
+                __ASM_EMIT("1:")
+                __ASM_EMIT("test $0xf, %2")
+                __ASM_EMIT("jz 2f")
 
-                    // Move pointers
-                    __ASM_EMIT("add $0x4, %0")
-                    __ASM_EMIT("add $0x4, %1")
-                    __ASM_EMIT("add $0x4, %2")
+                // Make processing
+                __ASM_EMIT("movss (%0), %%xmm0")
+                __ASM_EMIT("movss (%1), %%xmm4")
+                __ASM_EMIT("mulss %%xmm3, %%xmm0")
+                __ASM_EMIT("mulss %%xmm7, %%xmm4")
+                __ASM_EMIT("addss %%xmm4, %%xmm0")
+                __ASM_EMIT("movss %%xmm0, (%2)")
 
-                    : "+S" (src1), "+D"(src2), "+r"(dst) :
-                    : "cc", "memory",
-                      "%xmm0", "%xmm4"
-                );
-            }
+                // Move pointers
+                __ASM_EMIT("add $0x4, %0")
+                __ASM_EMIT("add $0x4, %1")
+                __ASM_EMIT("add $0x4, %2")
+
+                // Repeat loop
+                __ASM_EMIT("dec %3")
+                __ASM_EMIT("jz 1b")
+                __ASM_EMIT("2:")
+
+                : "+S" (src1), "+D"(src2), "+r"(dst), "+r"(count) :
+                : "cc", "memory",
+                  "%xmm0", "%xmm4"
+            );
 
             // Calculate amount of registers
             size_t regs = count / SSE_MULTIPLE;
@@ -1608,6 +1616,281 @@ namespace lsp
             );
         }
 
+        void mix_add(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count)
+        {
+            // xmm0 = src1[i]
+            // xmm1 = src1[i+4]
+            // xmm2 = src2[i]
+            // xmm3 = src2[i+4]
+            // xmm4 = dst[i]
+            // xmm5 = dst[i+4]
+            // xmm6 = k1
+            // xmm7 = k2
+
+            // xmm4 + xmm0 * xmm6 + xmm2 * xmm7
+            // xmm5 + xmm1 * xmm6 + xmm3 * xmm7
+
+            if (count == 0)
+                return;
+
+            __asm__ __volatile__
+            (
+                __ASM_EMIT("movss %0, %%xmm6")
+                __ASM_EMIT("movss %1, %%xmm7")
+                : : "x" (k1) , "x"(k2)
+                : "%xmm6", "%xmm7"
+            );
+
+            // Align destination
+            __asm__ __volatile__
+            (
+                __ASM_EMIT("1:")
+
+                // Check conditions
+                __ASM_EMIT("test $0xf, %2")
+                __ASM_EMIT("jz 2f")
+
+                // Calculate data
+                __ASM_EMIT("movss (%0), %%xmm0")
+                __ASM_EMIT("movss (%1), %%xmm2")
+                __ASM_EMIT("movss (%2), %%xmm4")
+                __ASM_EMIT("mulss %%xmm6, %%xmm0")
+                __ASM_EMIT("mulss %%xmm7, %%xmm2")
+                __ASM_EMIT("addss %%xmm4, %%xmm0")
+                __ASM_EMIT("addss %%xmm2, %%xmm0")
+                __ASM_EMIT("movss %%xmm0, (%2)")
+
+                // Move pointers
+                __ASM_EMIT("add $0x4, %0")
+                __ASM_EMIT("add $0x4, %1")
+                __ASM_EMIT("add $0x4, %2")
+
+                // Repeat loop
+                __ASM_EMIT("dec %3")
+                __ASM_EMIT("jnz 1b")
+                __ASM_EMIT("2:")
+
+                : "+S" (src1), "+D"(src2), "+r"(dst), "+r"(count) :
+                : "cc", "memory",
+                  "%xmm0", "%xmm2", "%xmm4"
+            );
+
+            // Calculate amount of registers
+            size_t regs = count / SSE_MULTIPLE;
+            size_t tail = count % SSE_MULTIPLE;
+
+            if (regs > 0)
+            {
+                // Calculate amount of 4-register blocks (0x40 bytes)
+                size_t blocks   = regs / 2;
+                regs           %= 2;
+
+                // Prefetch data for iteration
+                __asm__ __volatile__
+                (
+                    __ASM_EMIT("shufps $0, %%xmm6, %%xmm6")
+                    __ASM_EMIT("shufps $0, %%xmm7, %%xmm7")
+
+                    __ASM_EMIT("prefetchnta 0x00(%0)")
+                    __ASM_EMIT("prefetchnta 0x00(%1)")
+                    __ASM_EMIT("prefetchnta 0x00(%2)")
+                    : : "S" (src1), "D" (src2), "r"(dst)
+                    : "%xmm6", "%xmm7"
+                );
+
+                if (sse_aligned(src1) && (sse_aligned(src2)))
+                {
+                    if (blocks > 0)
+                    {
+                        __asm__ __volatile__
+                        (
+                            __ASM_EMIT("1:")
+
+                            // Prefetch next data
+                            __ASM_EMIT("prefetchnta 0x20(%0)")
+                            __ASM_EMIT("prefetchnta 0x20(%1)")
+                            __ASM_EMIT("prefetchnta 0x20(%2)")
+
+                            // Calculate
+                            __ASM_EMIT("movaps 0x00(%0), %%xmm0")
+                            __ASM_EMIT("movaps 0x10(%0), %%xmm1")
+                            __ASM_EMIT("movaps 0x00(%1), %%xmm2")
+                            __ASM_EMIT("movaps 0x10(%1), %%xmm3")
+                            __ASM_EMIT("movaps 0x00(%2), %%xmm4")
+                            __ASM_EMIT("movaps 0x10(%2), %%xmm5")
+
+                            __ASM_EMIT("mulps %%xmm6, %%xmm0")
+                            __ASM_EMIT("mulps %%xmm7, %%xmm2")
+                            __ASM_EMIT("mulps %%xmm6, %%xmm1")
+                            __ASM_EMIT("mulps %%xmm7, %%xmm3")
+
+                            __ASM_EMIT("addps %%xmm4, %%xmm0")
+                            __ASM_EMIT("addps %%xmm5, %%xmm1")
+                            __ASM_EMIT("addps %%xmm2, %%xmm0")
+                            __ASM_EMIT("addps %%xmm3, %%xmm1")
+
+                            __ASM_EMIT("movntps %%xmm0, 0x00(%2)")
+                            __ASM_EMIT("movntps %%xmm1, 0x10(%2)")
+
+                            // Move pointers
+                            __ASM_EMIT("add $0x20, %0")
+                            __ASM_EMIT("add $0x20, %1")
+                            __ASM_EMIT("add $0x20, %2")
+                            __ASM_EMIT("dec %3")
+                            __ASM_EMIT("jnz 1b")
+
+                            : "+S" (src1), "+D"(src2), "+r"(dst), "+r"(blocks) :
+                            : "cc", "memory",
+                              "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5"
+                        );
+                    }
+
+                    if (regs > 0)
+                    {
+                        __asm__ __volatile__
+                        (
+                            // Copy data
+                            __ASM_EMIT("movaps (%0), %%xmm0")
+                            __ASM_EMIT("movaps (%1), %%xmm2")
+                            __ASM_EMIT("movaps (%2), %%xmm4")
+                            __ASM_EMIT("mulps %%xmm6, %%xmm0")
+                            __ASM_EMIT("mulps %%xmm7, %%xmm2")
+                            __ASM_EMIT("addps %%xmm4, %%xmm0")
+                            __ASM_EMIT("addps %%xmm2, %%xmm0")
+                            __ASM_EMIT("movntps %%xmm0, (%2)")
+
+                            // Move pointers
+                            __ASM_EMIT("add $0x10, %0")
+                            __ASM_EMIT("add $0x10, %1")
+                            __ASM_EMIT("add $0x10, %2")
+
+                            : "+S" (src1), "+D"(src2), "+r"(dst) :
+                            : "cc", "memory",
+                              "%xmm0", "%xmm2", "%xmm4"
+                        );
+                    }
+                }
+                else
+                {
+                    if (blocks > 0)
+                    {
+                        __asm__ __volatile__
+                        (
+                            __ASM_EMIT("1:")
+
+                            // Prefetch next data
+                            __ASM_EMIT("prefetchnta 0x20(%0)")
+                            __ASM_EMIT("prefetchnta 0x20(%1)")
+                            __ASM_EMIT("prefetchnta 0x20(%2)")
+
+                            // Calculate
+                            __ASM_EMIT("movups 0x00(%0), %%xmm0")
+                            __ASM_EMIT("movups 0x10(%0), %%xmm1")
+                            __ASM_EMIT("movups 0x00(%1), %%xmm2")
+                            __ASM_EMIT("movups 0x10(%1), %%xmm3")
+                            __ASM_EMIT("movaps 0x00(%2), %%xmm4")
+                            __ASM_EMIT("movaps 0x10(%2), %%xmm5")
+
+                            __ASM_EMIT("mulps %%xmm6, %%xmm0")
+                            __ASM_EMIT("mulps %%xmm7, %%xmm2")
+                            __ASM_EMIT("mulps %%xmm6, %%xmm1")
+                            __ASM_EMIT("mulps %%xmm7, %%xmm3")
+
+                            __ASM_EMIT("addps %%xmm4, %%xmm0")
+                            __ASM_EMIT("addps %%xmm5, %%xmm1")
+                            __ASM_EMIT("addps %%xmm2, %%xmm0")
+                            __ASM_EMIT("addps %%xmm3, %%xmm1")
+
+                            __ASM_EMIT("movntps %%xmm0, 0x00(%2)")
+                            __ASM_EMIT("movntps %%xmm1, 0x10(%2)")
+
+                            // Move pointers
+                            __ASM_EMIT("add $0x20, %0")
+                            __ASM_EMIT("add $0x20, %1")
+                            __ASM_EMIT("add $0x20, %2")
+                            __ASM_EMIT("dec %3")
+                            __ASM_EMIT("jnz 1b")
+
+                            : "+S" (src1), "+D"(src2), "+r"(dst), "+r"(blocks) :
+                            : "cc", "memory",
+                              "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5"
+                        );
+                    }
+
+                    if (regs > 0)
+                    {
+                        __asm__ __volatile__
+                        (
+                            // Copy data
+                            __ASM_EMIT("movups (%0), %%xmm0")
+                            __ASM_EMIT("movups (%1), %%xmm2")
+                            __ASM_EMIT("movaps (%2), %%xmm4")
+                            __ASM_EMIT("mulps %%xmm6, %%xmm0")
+                            __ASM_EMIT("mulps %%xmm7, %%xmm2")
+                            __ASM_EMIT("addps %%xmm4, %%xmm0")
+                            __ASM_EMIT("addps %%xmm2, %%xmm0")
+                            __ASM_EMIT("movntps %%xmm0, (%2)")
+
+                            // Move pointers
+                            __ASM_EMIT("add $0x10, %0")
+                            __ASM_EMIT("add $0x10, %1")
+                            __ASM_EMIT("add $0x10, %2")
+
+                            : "+S" (src1), "+D"(src2), "+r"(dst) :
+                            : "cc", "memory",
+                              "%xmm0", "%xmm2", "%xmm4"
+                        );
+                    }
+                }
+            }
+
+            // Process tail
+            if (tail > 0)
+            {
+                __asm__ __volatile__
+                (
+                    __ASM_EMIT("1:")
+
+                    // Process data
+                    __ASM_EMIT("movss (%0), %%xmm0")
+                    __ASM_EMIT("movss (%1), %%xmm2")
+                    __ASM_EMIT("movss (%2), %%xmm4")
+                    __ASM_EMIT("mulss %%xmm6, %%xmm0")
+                    __ASM_EMIT("mulss %%xmm7, %%xmm2")
+                    __ASM_EMIT("addss %%xmm4, %%xmm0")
+                    __ASM_EMIT("addss %%xmm2, %%xmm0")
+                    __ASM_EMIT("movss %%xmm0, (%2)")
+
+                    // Move pointers
+                    __ASM_EMIT("add $0x4, %0")
+                    __ASM_EMIT("add $0x4, %1")
+                    __ASM_EMIT("add $0x4, %2")
+
+                    // Repeat loop
+                    __ASM_EMIT("dec %3")
+                    __ASM_EMIT("jnz 1b")
+
+                    : "+S" (src1), "+D"(src1), "+r"(dst), "+r"(tail) :
+                    : "cc", "memory",
+                      "%xmm0", "%xmm2", "%xmm4"
+                );
+            }
+
+            __asm__ __volatile__
+            (
+                __ASM_EMIT("sfence")
+            );
+        }
+
+        void integrate(float *dst, const float *src, float k, size_t count)
+        {
+            // dst[i] = dst[i] + (src[i] - dst[i]) * k =
+            // = dst[i] - dst[i] * k + src[i] * k =
+            // = dst[i] * (1-k) + src[i] * k
+
+            return dsp::mix(dst, dst, src, 1.0f - k, k, count);
+        }
+
         void dsp_init()
         {
             lsp_trace("Optimizing DSP for SSE instruction set");
@@ -1633,6 +1916,7 @@ namespace lsp
             dsp::sub_multiplied             = sse::sub_multiplied;
             dsp::integrate                  = sse::integrate;
             dsp::mix                        = sse::mix;
+            dsp::mix_add                    = sse::mix_add;
         }
     }
 

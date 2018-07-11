@@ -52,7 +52,7 @@ namespace lsp
     {
         size_t count = 0;
         for (size_t i=0; i<nObjects; ++i)
-            if (dynamic_cast<Axis *>(vObjects[i]) != NULL)
+            if (vObjects[i]->isAxis())
                 count ++;
         return count;
     }
@@ -62,9 +62,13 @@ namespace lsp
         size_t count = 0;
         for (size_t i=0; i<nObjects; ++i)
         {
-            Axis *axis = dynamic_cast<Axis *>(vObjects[i]);
-            if ((axis != NULL) && (axis->isBasis()))
-                count ++;
+            IGraphObject *obj = vObjects[i];
+            if (obj->isAxis())
+            {
+                Axis *axis = static_cast<Axis *>(obj);
+                if (axis->isBasis())
+                    count ++;
+            }
         }
         return count;
     }
@@ -79,12 +83,12 @@ namespace lsp
         size_t count = 0;
         for (size_t i=0; i<nObjects; ++i)
         {
-            Axis *axis = dynamic_cast<Axis *>(vObjects[i]);
-            if (axis != NULL)
-            {
-                if ((count++) == index)
-                    return axis;
-            }
+            IGraphObject *obj = vObjects[i];
+            if (!obj->isAxis())
+                continue;
+
+            if ((count++) == index)
+                return static_cast<Axis *>(obj);
         }
         return NULL;
     }
@@ -94,12 +98,16 @@ namespace lsp
         size_t count = 0;
         for (size_t i=0; i<nObjects; ++i)
         {
-            Axis *axis = dynamic_cast<Axis *>(vObjects[i]);
-            if ((axis != NULL) && (axis->isBasis()))
-            {
-                if ((count++) == index)
-                    return axis;
-            }
+            IGraphObject *obj = vObjects[i];
+            if (!obj->isAxis())
+                continue;
+
+            Axis *axis = static_cast<Axis *>(obj);
+            if (!axis->isBasis())
+                continue;
+
+            if ((count++) == index)
+                return axis;
         }
         return NULL;
     }
@@ -111,24 +119,24 @@ namespace lsp
         // Find first axis
         for ( ; (i < nObjects); ++i)
         {
-            Axis *axis = dynamic_cast<Axis *>(vObjects[i]);
-            if (axis != NULL)
-            {
-                if ((id++) == start)
-                    break;
-            }
+            if (!vObjects[i]->isAxis())
+                continue;
+
+            if ((id++) == start)
+                break;
         }
 
         // Now find other axises
         for (; (i < nObjects) && (count > 0); ++i)
         {
-            Axis *axis = dynamic_cast<Axis *>(vObjects[i]);
-            if (axis != NULL)
-            {
-                *(dst++)    = axis;
-                n           ++;
-                count       --;
-            }
+            IGraphObject *obj = vObjects[i];
+            if (!obj->isAxis())
+                continue;
+
+            Axis *axis = static_cast<Axis *>(obj);
+            *(dst++)    = axis;
+            n           ++;
+            count       --;
         }
 
         return n;
@@ -141,24 +149,26 @@ namespace lsp
         // Find first axis
         for ( ; (i < nObjects); ++i)
         {
-            Axis *axis = dynamic_cast<Axis *>(vObjects[i]);
-            if (axis != NULL)
-            {
-                if ((id++) == start)
-                    break;
-            }
+            if (!vObjects[i]->isAxis())
+                continue;
+            if ((id++) == start)
+                break;
         }
 
         // Now find other axises
         for (; (i < nObjects) && (count > 0); ++i)
         {
-            Axis *axis = dynamic_cast<Axis *>(vObjects[i]);
-            if ((axis != NULL) && (axis->isBasis()))
-            {
-                *(dst++)    = axis;
-                n           ++;
-                count       --;
-            }
+            IGraphObject *obj = vObjects[i];
+            if (!obj->isAxis())
+                continue;
+
+            Axis *axis = static_cast<Axis *>(obj);
+            if (!axis->isBasis())
+                continue;
+
+            *(dst++)    = axis;
+            n           ++;
+            count       --;
         }
 
         return n;

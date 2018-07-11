@@ -28,6 +28,8 @@ namespace lsp
             Gtk2Graph(plugin_ui *ui);
             virtual ~Gtk2Graph();
 
+            static IGraphObject *getGraphObject(IWidget *widget);
+
         public:
             virtual void set(widget_attribute_t att, const char *value);
 

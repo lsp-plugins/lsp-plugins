@@ -14,57 +14,69 @@ namespace lsp
 {
     class VSTAudioPort;
     class VSTParameterPort;
+    class VSTPort;
+    class VSTUIPort;
 
     class VSTWrapper
     {
         private:
             plugin_t                   *pPlugin;
             AEffect                    *pEffect;
-            IWidgetFactory             *pFactory;
             plugin_ui                  *pUI;
             const char                 *pName;
+            char                       *pBundlePath;
             GtkWidget                  *pUIWidget;
             GtkWidget                  *pWidget;
             GdkWindow                  *pParent;
             guint                       pTimer;
+            ERect                       sRect;
             audioMasterCallback         pMaster;
-            cvector<VSTAudioPort>       vInputs;
-            cvector<VSTAudioPort>       vOutputs;
-            cvector<VSTParameterPort>   vParams;
+
+            cvector<VSTAudioPort>       vInputs;    // List of input audio ports
+            cvector<VSTAudioPort>       vOutputs;   // List of output audio ports
+            cvector<VSTParameterPort>   vParams;    // List of controllable parameters
+            cvector<VSTPort>            vPorts;     // List of all created VST ports
+            cvector<VSTUIPort>          vUIPorts;   // List of all created UI ports
 
         private:
             static gboolean transport_synchronize(gpointer arg);
             void transfer_dsp_to_ui();
             void create_transport_thread();
             void drop_transport_thread();
+            void add_ui_port(VSTUIPort *p);
 
         public:
             VSTWrapper(
                     AEffect *effect,
                     plugin_t *plugin,
+                    const char *bundle_path,
                     const char *name,
                     audioMasterCallback callback
             )
             {
                 pPlugin         = plugin;
                 pEffect         = effect;
-                pFactory        = NULL;
                 pUI             = NULL;
                 pName           = name;
+                pBundlePath     = strdup(bundle_path);
                 pUIWidget       = NULL;
                 pWidget         = NULL;
                 pParent         = NULL;
                 pTimer          = 0;
                 pMaster         = callback;
+                sRect.top       = 0;
+                sRect.left      = 0;
+                sRect.bottom    = 0;
+                sRect.right     = 0;
             }
 
             ~VSTWrapper()
             {
                 pPlugin         = NULL;
                 pEffect         = NULL;
-                pFactory        = NULL;
                 pUI             = NULL;
                 pName           = NULL;
+                pBundlePath     = NULL;
                 pUIWidget       = NULL;
                 pWidget         = NULL;
                 pParent         = NULL;
@@ -73,13 +85,15 @@ namespace lsp
             }
 
         public:
-            inline const plugin_metadata_t *get_metadata() const    {  return pPlugin->get_metadata();  }
-            inline VSTParameterPort *get_parameter(size_t index)    {  return vParams[index];           }
+            inline const plugin_metadata_t *get_metadata() const    {   return pPlugin->get_metadata();     };
+            inline VSTParameterPort *get_parameter(size_t index)    {   return vParams[index];              };
+            inline const char *get_bundle_path() const              {   return pBundlePath;                 };
 
             void init();
             void destroy();
             inline void open() { };
             void run(float** inputs, float** outputs, size_t samples);
+            void run_legacy(float** inputs, float** outputs, size_t samples);
 
             inline void set_sample_rate(float sr)
             {
@@ -96,16 +110,12 @@ namespace lsp
                     pPlugin->deactivate();
             }
 
-            inline void set_widget_factory(IWidgetFactory *wf)
-            {
-                pFactory    = wf;
-            }
-
-            bool show_ui(void *wnd);
+            bool show_ui(void *wnd, IWidgetFactory *wf);
             void init_ui();
             void hide_ui();
             void iterate_ui();
             void destroy_ui();
+            inline ERect *get_ui_rect()                 { return &sRect;                        };
     };
 }
 
@@ -136,6 +146,7 @@ namespace lsp
                 {
                     VSTMeshPort *vp = new VSTMeshPort(port, e, pMaster);
                     pPlugin->add_port(vp);
+                    vPorts.add(vp);
                     break;
                 }
 
@@ -147,6 +158,7 @@ namespace lsp
                         vOutputs.add(vp);
                     else
                         vInputs.add(vp);
+                    vPorts.add(vp);
                     break;
                 }
 
@@ -157,11 +169,13 @@ namespace lsp
                     {
                         VSTMeterPort *vp = new VSTMeterPort(port, e, pMaster);
                         pPlugin->add_port(vp);
+                        vPorts.add(vp);
                     }
                     else
                     {
                         VSTParameterPort *vp = new VSTParameterPort(port, e, pMaster);
                         pPlugin->add_port(vp);
+                        vPorts.add(vp);
                         if (!out)
                             vParams.add(vp);
                     }
@@ -187,11 +201,6 @@ namespace lsp
         // First destroy the UI
         destroy_ui();
 
-        // Clear ports
-        vInputs.clear();
-        vOutputs.clear();
-        vParams.clear();
-
         // Destrop plugin
         lsp_trace("destroying plugin");
         if (pPlugin != NULL)
@@ -202,9 +211,30 @@ namespace lsp
             pPlugin = NULL;
         }
 
+        // Destroy ports
+        for (size_t i=0; i<vPorts.size(); ++i)
+        {
+            lsp_trace("destroy port id=%s", vPorts[i]->metadata()->id);
+            delete vPorts[i];
+        }
+
+        // Clear all port lists
+        vInputs.clear();
+        vOutputs.clear();
+        vParams.clear();
+        vPorts.clear();
+
+        if (pBundlePath != NULL)
+        {
+            free(pBundlePath);
+            pBundlePath     = NULL;
+        }
+
         pMaster     = NULL;
         pEffect     = NULL;
         pName       = NULL;
+
+        lsp_trace("destroy complete");
     }
 
     void VSTWrapper::run(float** inputs, float** outputs, size_t samples)
@@ -223,30 +253,52 @@ namespace lsp
                 p->bind(outputs[i]);
         }
 
-        // Call processing function
-        if (pPlugin != NULL)
-        {
-            // Execute plugin code
-            pPlugin->run(samples);
+        // Process external ports for changes
+        bool update = false;
 
-            // Report latency
-            pEffect->initialDelay   = VstInt32(pPlugin->get_latency());
+        for (size_t i=0; i<vPorts.size(); ++i)
+        {
+            // Get port
+            VSTPort *port = vPorts[i];
+            if (port == NULL)
+                continue;
+
+            // Pre-process data in port
+            if (port->pre_process(samples))
+            {
+                lsp_trace("port changed: %s", port->metadata()->id);
+                update = true;
+            }
         }
 
-        // Update Serial IDs for all plugin ports
-        size_t port_count   = pPlugin->ports_count();
-        for (size_t i=0; i < port_count; ++i)
+        // Check that input parameters have changed
+        if (update)
         {
-            IPort *p    = pPlugin->port(i);
-            if (p != NULL)
-            {
-                VSTPort *vp = static_cast<VSTPort *>(p);
-                vp->nextSID();
-            }
+            lsp_trace("updating settings");
+            pPlugin->update_settings();
+        }
+
+        // Call the main processing unit
+        pPlugin->process(samples);
+
+        // Report latency
+        pEffect->initialDelay   = VstInt32(pPlugin->get_latency());
+
+        // Process external ports for changes
+        for (size_t i=0; i<vPorts.size(); ++i)
+        {
+            VSTPort *port = vPorts[i];
+            if (port != NULL)
+                port->post_process(samples);
         }
     }
 
-    bool VSTWrapper::show_ui(void *wnd)
+    void VSTWrapper::run_legacy(float** inputs, float** outputs, size_t samples)
+    {
+        run(inputs, outputs, samples);
+    }
+
+    bool VSTWrapper::show_ui(void *wnd, IWidgetFactory *wf)
     {
         lsp_trace("show ui");
         const plugin_metadata_t *m  = pPlugin->get_metadata();
@@ -255,7 +307,7 @@ namespace lsp
         {
             // Create UI pointer
             lsp_trace("create ui");
-            pUI                         = new plugin_ui(pName, m, pFactory);
+            pUI                         = new plugin_ui(pName, m, wf);
             if (pUI == NULL)
                 return false;
 
@@ -273,7 +325,7 @@ namespace lsp
             {
                 lsp_trace("init gtk");
                 int argc = 0;
-                gtk_init(&argc, NULL);
+                gtk_init_check(&argc, NULL);
                 gtk_initialized     = true;
             }
 
@@ -299,19 +351,16 @@ namespace lsp
             g_free(title);
 
             // Get widget
-            lsp_trace("create widget hierarchy root=%p", pFactory->root_widget());
-            pUIWidget                   = reinterpret_cast<GtkWidget *>(pFactory->root_widget());
+            lsp_trace("create widget hierarchy root=%p", wf->root_widget());
+            pUIWidget                   = reinterpret_cast<GtkWidget *>(wf->root_widget());
             gtk_container_add(GTK_CONTAINER(pWidget), pUIWidget);
-            g_object_ref(pWidget);
+//            g_object_ref(pWidget);
 
             // Reparent window
             gdk_display_sync(gdk_display_get_default());
             pParent                     = gdk_window_foreign_new(GdkNativeWindow(uintptr_t(wnd)));
             g_assert(pParent);
             gdk_window_reparent(gtk_widget_get_window(pWidget), pParent, 0, 0);
-
-            // Create thread
-            create_transport_thread();
         }
 
         // Show window
@@ -349,11 +398,30 @@ namespace lsp
             );
 
             gdk_display_sync(gdk_display_get_default());
+
+            // Update rect geometry
+            sRect.top           = 0;
+            sRect.left          = 0;
+            sRect.bottom        = rq.height - 1;
+            sRect.right         = rq.width - 1;
         }
 
+        // Transfer state
         transfer_dsp_to_ui();
 
+        // Create thread
+        create_transport_thread();
+
         return true;
+    }
+
+    void VSTWrapper::add_ui_port(VSTUIPort *p)
+    {
+        lsp_trace("wrapping ui port id=%s", p->metadata()->id);
+        lsp_trace("  external id=%d", int(vUIPorts.size()));
+        vUIPorts.add(p);
+        lsp_trace("  internal id=%d", int(pUI->ports_count()));
+        pUI->add_port(p);
     }
 
     void VSTWrapper::init_ui()
@@ -381,19 +449,16 @@ namespace lsp
                     break;
 
                 case R_MESH:
-                case R_CONTROL:
-                {
-                    VSTUIParameterPort *vp = new VSTUIParameterPort(port, vip);
-                    pUI->add_port(vp);
+                    add_ui_port(new VSTUIMeshPort(port, vip));
                     break;
-                }
+
+                case R_CONTROL:
+                    add_ui_port(new VSTUIParameterPort(port, static_cast<VSTParameterPort *>(vip)));
+                    break;
 
                 case R_METER:
-                {
-                    VSTUIMeterPort *vp = new VSTUIMeterPort(port, vip);
-                    pUI->add_port(vp);
+                    add_ui_port(new VSTUIMeterPort(port, vip));
                     break;
-                }
 
                 default:
                     break;
@@ -408,16 +473,29 @@ namespace lsp
         // Drop transport thread
         drop_transport_thread();
 
+        // Hide window
+        if (pWidget != NULL)
+        {
+            // Remove UI
+            lsp_trace("Hiding (unmapping) window");
+            GdkWindow *win = gtk_widget_get_window(pWidget);
+            if (win != NULL)
+                gdk_window_hide(win);
+
+            // Destroy window
+            gtk_widget_destroy(pWidget);
+            pWidget     = NULL;
+        }
+
+        gdk_display_sync(gdk_display_get_default());
+
         // Forget UI widget
         if (pUIWidget != NULL)
             pUIWidget = NULL;
 
-        // Destroy widget
-        if (pWidget != NULL)
-        {
-            g_object_unref(pWidget);
-            pWidget     = NULL;
-        }
+        // Destroy parent
+        if (pParent != NULL)
+            pParent     = NULL;
 
         // Destroy UI
         if (pUI != NULL)
@@ -426,6 +504,14 @@ namespace lsp
             delete pUI;
             pUI         = NULL;
         }
+
+        // Destroy ports
+        for (size_t i=0; i<vUIPorts.size(); ++i)
+        {
+            lsp_trace("destroy ui port id=%s", vUIPorts[i]->metadata()->id);
+            delete vUIPorts[i];
+        }
+        vUIPorts.clear();
     }
 
     void VSTWrapper::iterate_ui()
@@ -434,19 +520,29 @@ namespace lsp
         if ((pUI == NULL) || (pWidget == NULL))
             return;
 
+        // Update size of widget
+        if (pUIWidget != NULL)
+        {
+            GtkAllocation       alloc;
+            gtk_widget_get_allocation(pUIWidget, &alloc);
+
+            sRect.top           = alloc.x;
+            sRect.left          = alloc.y;
+            sRect.bottom        = alloc.y + alloc.height - 1;
+            sRect.right         = alloc.x + alloc.width - 1;
+        }
+
         // Iterate GTK cycle(s)
-        do
+        while (gtk_events_pending ())
         {
             // Call GTK iteration
             gtk_main_iteration();
-        } while (gtk_events_pending ());
+        }
     }
 
     void VSTWrapper::hide_ui()
     {
-        lsp_trace("hide ui");
-        if ((pUI != NULL) && (pWidget != NULL))
-            gtk_widget_hide(pWidget);
+        destroy_ui();
     }
 
     void VSTWrapper::transfer_dsp_to_ui()
@@ -455,19 +551,17 @@ namespace lsp
         if (pUI == NULL)
             return;
 
-        size_t ports_count  = pUI->ports_count();
+        size_t ports_count  = vUIPorts.size();
 
         // DSP -> UI communication
-        for (size_t port_id=0; port_id < ports_count; ++port_id)
+        for (size_t i=0; i < ports_count; ++i)
         {
             // Get UI port
-            IUIPort *up         = pUI->port(port_id);
-            if (up != NULL)
-            {
-                // Get plugin port
-                VSTUIPort *vup      = static_cast<VSTUIPort *>(up);
-                vup->sync();
-            }
+            VSTUIPort *vup          = vUIPorts[i];
+            if (vup == NULL)
+                continue;
+
+            vup->sync();
         } // for port_id
     }
 

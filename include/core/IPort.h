@@ -41,15 +41,15 @@ namespace lsp
             virtual void *getBuffer();
 
             /** Pre-process port state before processor execution
-             *
+             * @param samples number of estimated samples to process
              * @return true if port value has been externally modified
              */
-            virtual bool pre_process();
+            virtual bool pre_process(size_t samples);
 
             /** Post-process port state after processor execution
-             *
+             * @param samples number of samples processed by plugin
              */
-            virtual void post_process();
+            virtual void post_process(size_t samples);
 
             virtual const char *getPath();
 

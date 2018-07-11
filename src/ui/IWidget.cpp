@@ -9,9 +9,10 @@
 
 namespace lsp
 {
-    IWidget::IWidget(plugin_ui *ui)
+    IWidget::IWidget(plugin_ui *ui, widget_t w_class)
     {
         pUI     = ui;
+        enClass = w_class;
     }
 
     IWidget::~IWidget()

@@ -128,7 +128,7 @@ namespace lsp
     }
 }
 
-#ifdef PLUGIN_GENPHP
+#ifndef LSP_IDE_DEBUG
 int main(int argc, const char **argv)
 {
     if (argc <= 0)
@@ -137,4 +137,4 @@ int main(int argc, const char **argv)
 
     return 0;
 }
-#endif /* PLUGIN_GENPHP */
+#endif /* LSP_IDE_DEBUG */

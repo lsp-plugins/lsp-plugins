@@ -8,9 +8,11 @@
 #ifndef CORE_DEBUG_H_
 #define CORE_DEBUG_H_
 
+#include <core/types.h>
+
 // Check trace level
 #ifdef LSP_TRACE
-    #define lsp_trace(msg, ...)   fprintf(stderr, "T[%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
+    #define lsp_trace(msg, ...)   fprintf(stderr, "[TRC][%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
 
     // Debug is always turned on when trace is turned on
     #ifndef LSP_DEBUG
@@ -22,16 +24,16 @@
 
 // Check debug level
 #ifdef LSP_DEBUG
-    #define lsp_debug(msg, ...)   fprintf(stderr, "D[%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
+    #define lsp_debug(msg, ...)   fprintf(stderr, "[DBG][%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
 #else
     #define lsp_debug(msg, ...)
 #endif /* LSP_DEBUG */
 
 // Include <stdio.h> to perform debugging output
 #include <stdio.h>
-#define lsp_error(msg, ...)     fprintf(stderr, "E[%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
-#define lsp_warn(msg, ...)      fprintf(stderr, "W[%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
-#define lsp_info(msg, ...)      fprintf(stderr, "I[%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
+#define lsp_error(msg, ...)     fprintf(stderr, "[ERR][%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
+#define lsp_warn(msg, ...)      fprintf(stderr, "[WRN][%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
+#define lsp_info(msg, ...)      fprintf(stderr, "[INF][%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
 
 // Define assertions
 #ifdef LSP_DEBUG

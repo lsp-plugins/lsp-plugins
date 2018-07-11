@@ -9,7 +9,7 @@
 
 namespace lsp
 {
-    Gtk2WidgetProxy::Gtk2WidgetProxy(plugin_ui *ui): Gtk2Widget(ui)
+    Gtk2WidgetProxy::Gtk2WidgetProxy(plugin_ui *ui, widget_t w_class): Gtk2Widget(ui, w_class)
     {
         pGtk2Widget = NULL;
     }
@@ -20,9 +20,7 @@ namespace lsp
 
     void Gtk2WidgetProxy::add(IWidget *widget)
     {
-        Gtk2Widget *g_widget = dynamic_cast<Gtk2Widget *>(widget);
-        if (g_widget != NULL)
-            pGtk2Widget = g_widget;
+        pGtk2Widget = static_cast<Gtk2Widget *>(widget);
     }
 
     GtkWidget *Gtk2WidgetProxy::widget()

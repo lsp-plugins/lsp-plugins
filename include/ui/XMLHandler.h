@@ -8,8 +8,6 @@
 #ifndef UI_XMLHANDLER_H_
 #define UI_XMLHANDLER_H_
 
-#include <expat.h>
-
 namespace lsp
 {
     class XMLHandler
@@ -18,7 +16,7 @@ namespace lsp
             virtual ~XMLHandler();
 
         protected:
-            static const XML_Char *findAttribute(const XML_Char **atts, const XML_Char *name);
+            static const char *findAttribute(const char **atts, const char *name);
 
         public:
             /** Called when XML handler is set
@@ -32,13 +30,13 @@ namespace lsp
              * @param atts tag attributes
              * @return handler of tag sub-structure or NULL
              */
-            virtual XMLHandler     *startElement(const XML_Char *name, const XML_Char **atts);
+            virtual XMLHandler     *startElement(const char *name, const char **atts);
 
             /** Call on tag close
              *
              * @param name tag name
              */
-            virtual void            endElement(const XML_Char *name);
+            virtual void            endElement(const char *name);
 
             /** Called when there will be no more data
              *

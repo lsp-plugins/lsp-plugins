@@ -13,7 +13,7 @@
 
 namespace lsp
 {
-    Mesh::Mesh(plugin_ui *ui): IGraphObject(ui)
+    Mesh::Mesh(plugin_ui *ui): IGraphObject(ui, W_MESH)
     {
         nBasis      = 0;
         nCapacity   = 0;
@@ -153,9 +153,10 @@ namespace lsp
 
     void Mesh::add(IWidget *widget)
     {
-        Basis *basis = dynamic_cast<Basis *>(widget);
-        if (basis == NULL)
+        if (widget->getClass() != W_BASIS)
             return IWidget::add(widget);
+
+        Basis *basis = static_cast<Basis *>(widget);
 
         // Add basis to list
         if (nBasis >= nCapacity)

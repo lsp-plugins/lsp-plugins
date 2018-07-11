@@ -10,6 +10,8 @@
 
 #define LSP_UI_SIDE
 
+#include <core/types.h>
+
 #include <stddef.h>
 #include <errno.h>
 #include <stdlib.h>

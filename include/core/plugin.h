@@ -41,7 +41,6 @@ namespace lsp
             inline IPort *port(size_t id)               { return vPorts[id];        };
             inline size_t ports_count() const           { return vPorts.size();     };
 
-            void run(size_t samples);
             void set_sample_rate(long sr);
 
             inline long  get_sample_rate() const        { return fSampleRate;   };

@@ -30,7 +30,7 @@ namespace lsp
         public:
             inline VSTPort *getPort() { return pPort; };
 
-            virtual void sync() { };
+            virtual void sync()         { };
     };
 
     class VSTUIParameterPort: public VSTUIPort
@@ -40,7 +40,7 @@ namespace lsp
             vst_serial_t    nSID;
 
         public:
-            VSTUIParameterPort(const port_t *meta, VSTPort *port):
+            VSTUIParameterPort(const port_t *meta, VSTParameterPort *port):
                 VSTUIPort(meta, port)
             {
                 fValue      = meta->start;
@@ -67,7 +67,7 @@ namespace lsp
 
             virtual void sync()
             {
-                vst_serial_t sid = pPort->getSID();
+                vst_serial_t sid = static_cast<VSTParameterPort *>(pPort)->getSID();
                 if (sid != nSID)
                 {
                     fValue      = pPort->getValue();
@@ -114,13 +114,53 @@ namespace lsp
                     notifyAll();
                 }
             }
+    };
+
+    class VSTUIMeshPort: public VSTUIPort
+    {
+        private:
+            mesh_t      *pMesh;
+
+        public:
+            VSTUIMeshPort(const port_t *meta, VSTPort *port):
+                VSTUIPort(meta, port)
+            {
+                pMesh       = vst_create_mesh(meta);
+            }
+
+            virtual ~VSTUIMeshPort()
+            {
+                vst_destroy_mesh(pMesh);
+                pMesh = NULL;
+            }
+
+        public:
+            virtual void sync()
+            {
+                mesh_t *mesh = reinterpret_cast<mesh_t *>(pPort->getBuffer());
+                if (mesh == NULL)
+                    return;
+
+                if (mesh->containsData())
+                {
+                    // Copy mesh data
+                    for (size_t i=0; i < mesh->nBuffers; ++i)
+                        dsp::copy(pMesh->pvData[i], mesh->pvData[i], mesh->nItems);
+                    pMesh->data(mesh->nBuffers, mesh->nItems);
+
+                    // Clean source mesh
+                    mesh->cleanup();
+
+                    // Notify all for changes
+                    notifyAll();
+                }
+            }
 
             virtual void *getBuffer()
             {
-                return pPort->getBuffer();
+                return pMesh;
             }
     };
-
 }
 
 #endif /* CONTAINER_VST_UI_PORTS_H_ */

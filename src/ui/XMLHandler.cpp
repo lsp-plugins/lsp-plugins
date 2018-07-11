@@ -18,12 +18,12 @@ namespace lsp
     {
     }
 
-    const XML_Char *XMLHandler::findAttribute(const XML_Char **atts, const XML_Char *name)
+    const char *XMLHandler::findAttribute(const char **atts, const char *name)
     {
         while (*atts != NULL)
         {
-            const XML_Char *a_name      = *atts++;
-            const XML_Char *a_value     = *atts++;
+            const char *a_name      = *atts++;
+            const char *a_value     = *atts++;
             if ((a_name != NULL) && (a_value != NULL))
             {
                 if (!strcmp(a_name, name))
@@ -34,12 +34,12 @@ namespace lsp
         return NULL;
     }
 
-    XMLHandler *XMLHandler::startElement(const XML_Char *name, const XML_Char **atts)
+    XMLHandler *XMLHandler::startElement(const char *name, const char **atts)
     {
         return NULL;
     }
 
-    void XMLHandler::endElement(const XML_Char *name)
+    void XMLHandler::endElement(const char *name)
     {
     }
 

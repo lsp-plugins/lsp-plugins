@@ -16,7 +16,7 @@ namespace lsp
 {
     OVERRIDE_GTK2_CONTROL(GTK_TYPE_FRAME, GtkFrameClass, GtkFrame, Gtk2Group)
 
-    Gtk2Group::Gtk2Group(plugin_ui *ui): Gtk2Widget(ui)
+    Gtk2Group::Gtk2Group(plugin_ui *ui): Gtk2Widget(ui, W_GROUP)
     {
         pWidget     = Gtk2GroupImpl_new(this);
 

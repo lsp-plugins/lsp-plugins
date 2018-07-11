@@ -13,7 +13,7 @@
 
 namespace lsp
 {
-    Gtk2Body::Gtk2Body(plugin_ui *ui): Gtk2Container(ui)
+    Gtk2Body::Gtk2Body(plugin_ui *ui): Gtk2Container(ui, W_BODY)
     {
         pWidget     = gtk_event_box_new();
     }

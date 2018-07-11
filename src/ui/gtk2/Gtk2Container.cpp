@@ -9,8 +9,8 @@
 
 namespace lsp
 {
-    Gtk2Container::Gtk2Container(plugin_ui *ui):
-        Gtk2Widget(ui)
+    Gtk2Container::Gtk2Container(plugin_ui *ui, widget_t w_class):
+        Gtk2Widget(ui, w_class)
     {
         nAdded      = 0;
         sBgColor.set(pUI->theme(), C_BACKGROUND);

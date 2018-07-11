@@ -20,7 +20,7 @@ namespace lsp
             size_t      nItems;
 
         protected:
-            inline bool add_item(void *ptr)
+            inline bool add_item(const void *ptr)
             {
                 if (nItems >= nCapacity)
                 {
@@ -35,7 +35,7 @@ namespace lsp
                     nCapacity      += 16;
                 }
 
-                pvItems[nItems++]   = ptr;
+                pvItems[nItems++]   = const_cast<void *>(ptr);
                 return true;
             }
 

@@ -36,12 +36,12 @@ namespace lsp
         return NULL;
     }
 
-    bool IPort::pre_process()
+    bool IPort::pre_process(size_t samples)
     {
         return false;
     }
 
-    void IPort::post_process()
+    void IPort::post_process(size_t samples)
     {
     }
 

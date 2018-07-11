@@ -9,8 +9,8 @@
 
 namespace lsp
 {
-    IGraphObject::IGraphObject(plugin_ui *ui):
-        IWidget(ui)
+    IGraphObject::IGraphObject(plugin_ui *ui, widget_t w_class):
+        IWidget(ui, w_class)
     {
         pGraph      = NULL;
     }
@@ -20,8 +20,7 @@ namespace lsp
     }
 
     void IGraphObject::draw(IGraphCanvas *cv)
-    {
-    }
+    {    }
 
     void IGraphObject::bind(IGraph *graph)
     {
@@ -38,4 +37,5 @@ namespace lsp
         if (pGraph != NULL)
             pGraph->markRedraw();
     }
+
 } /* namespace lsp */

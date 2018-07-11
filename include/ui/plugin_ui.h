@@ -17,8 +17,7 @@ namespace lsp
     {
         private:
             cvector<IWidget>        vWidgets;
-            cvector<IUIPort>        vExtPorts;
-            cvector<IUIPort>        vIntPorts;
+            cvector<IUIPort>        vPorts;
             Theme                   sTheme;
 
         protected:
@@ -47,31 +46,22 @@ namespace lsp
 
             virtual void destroy();
 
-            virtual bool add_port(IUIPort *port, bool external = true);
-
-            /** Get EXTERNAL port by ID
-             *
-             * @param id ID of EXTERNAL port
-             * @param external external port flag
-             * @return port instance or NULL
-             */
-            virtual IUIPort *port(size_t id, bool external = true);
+            virtual bool add_port(IUIPort *port);
 
             /** Get INTERNAL port by name
              *
-             * @param name INTERNAL port name
+             * @param name port name
              * @return internal port
              */
-            virtual IUIPort *port(const char *name, bool external = false);
+            virtual IUIPort *port(const char *name);
 
             /** Get port count
              *
-             * @param external external port flag
              * @return number of ports
              */
-            inline size_t ports_count(bool external = true)
+            inline size_t ports_count()
             {
-                return (external) ? vExtPorts.size() : vIntPorts.size();
+                return vPorts.size();
             }
     };
 

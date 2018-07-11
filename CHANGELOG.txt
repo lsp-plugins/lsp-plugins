@@ -2,6 +2,18 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.3 ===
+
+* Reduced mesh primitive synchronization rate to 25 Hz for LV2 Atoms.
+* Simplified core plugin class.
+* Simplified plugin UI class.
+* Optimized DSP for SSE instruction set.
+* Optimized Phasendetektor for DSP usage.
+* Changed name of LinuxVST distribution from 'vst' to 'lxvst'.
+* Removed dynamic_cast from C++ code and RTTI from linkage.
+* XML documents now are built-in resources, expat library is required
+  only for building binaries.
+
 === 1.0.2 ===
 
 * Implemented plugin wrapping layer for more flexible plugin control.

@@ -536,7 +536,7 @@ namespace lsp
     }
 }
 
-#ifdef LV2_GENTTL
+#ifndef LSP_IDE_DEBUG
 int main(int argc, const char **argv)
 {
     if (argc <= 0)
@@ -545,4 +545,4 @@ int main(int argc, const char **argv)
 
     return 0;
 }
-#endif /* LV2_GENTTL */
+#endif /* LSP_IDE_DEBUG */

@@ -16,7 +16,7 @@ namespace lsp
             Gtk2Color   sBgColor;
 
         public:
-            Gtk2Container(plugin_ui *ui);
+            Gtk2Container(plugin_ui *ui, widget_t w_class);
             virtual ~Gtk2Container();
 
         public:

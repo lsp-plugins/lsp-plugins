@@ -15,7 +15,7 @@
 
 namespace lsp
 {
-    Gtk2MountStud::Gtk2MountStud(plugin_ui *ui): Gtk2CustomWidget(ui)
+    Gtk2MountStud::Gtk2MountStud(plugin_ui *ui): Gtk2CustomWidget(ui, W_MSTUD)
     {
         sBgColor.set(pUI->theme(), C_BACKGROUND);
         sColor.set(pUI->theme(), C_LOGO_FACE);

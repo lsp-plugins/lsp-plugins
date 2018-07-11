@@ -14,11 +14,15 @@ namespace lsp
     {
         protected:
             plugin_ui  *pUI;
+            widget_t    enClass;
 
         public:
-            IWidget(plugin_ui *ui);
+            IWidget(plugin_ui *ui, widget_t w_class);
 
             virtual ~IWidget();
+
+        public:
+            inline widget_t getClass()  { return enClass; };
 
         public:
             /** Set attribute to widget

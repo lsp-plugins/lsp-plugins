@@ -16,7 +16,7 @@
 
 namespace lsp
 {
-    Gtk2Label::Gtk2Label(plugin_ui *ui, label_type_t type): Gtk2Widget(ui)
+    Gtk2Label::Gtk2Label(plugin_ui *ui, label_type_t type): Gtk2Widget(ui, W_LABEL)
     {
         sText       = NULL;
         pWidget     = gtk_label_new(NULL);

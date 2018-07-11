@@ -250,7 +250,7 @@ namespace lsp
         }
     }
 
-    Gtk2CustomWidget::Gtk2CustomWidget(plugin_ui *ui, GType basic_class): Gtk2Widget(ui)
+    Gtk2CustomWidget::Gtk2CustomWidget(plugin_ui *ui, widget_t w_class, GType basic_class): Gtk2Widget(ui, w_class)
     {
         // Register custom type
         if (!custom_type)

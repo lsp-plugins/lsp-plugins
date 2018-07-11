@@ -79,6 +79,7 @@ namespace lsp
             uint8_t                    *pBuffer;
 
             cvector<LV2UIAtomVirtualPort> vPorts;
+            cvector<LV2UIPort>          vControl;
 
         public:
             LV2UIAtomTransport(const port_t *meta, LV2Extensions *ext, plugin_ui *ui)
@@ -96,34 +97,36 @@ namespace lsp
             {
                 lsp_trace("destroy");
 
+                // Clear port lists
                 vPorts.clear();
+                vControl.clear();
 
                 if (pExt != NULL)
                     pExt        = NULL;
 
+                // Delete buffer
                 if (pBuffer != NULL)
                 {
                     delete [] pBuffer;
                     pBuffer = NULL;
                 }
 
+                // The transport ports should be deleted by wrapper
                 if (pOut != NULL)
-                {
-                    delete pOut;
                     pOut    = NULL;
-                }
-
                 if (pIn != NULL)
-                {
-                    delete pIn;
                     pIn     = NULL;
-                }
             };
 
         public:
-            inline void add_port(LV2UIAtomVirtualPort *port)
+            inline void add_virtual_port(LV2UIAtomVirtualPort *port)
             {
                 vPorts.add(port);
+            }
+
+            inline void add_control_port(LV2UIPort *port)
+            {
+                vControl.add(port);
             }
 
             inline LV2Extensions *extensions() { return pExt; }
@@ -163,7 +166,7 @@ namespace lsp
         pTr         = tr;
         uridType    = type;
 
-        pTr->add_port(this);
+        pTr->add_virtual_port(this);
     }
 
     LV2UIAtomVirtualPort::~LV2UIAtomVirtualPort()
@@ -193,8 +196,8 @@ namespace lsp
     void LV2UIAtomTransport::notify(const LV2_Atom_Object *obj)
     {
         // Check that event type is a plugin state object
-        lsp_trace("body.id (%d) = %s", int(obj->body.id), pExt->unmap_urid(obj->body.id));
-        lsp_trace("body.otype (%d) = %s", int(obj->body.otype), pExt->unmap_urid(obj->body.otype));
+//        lsp_trace("body.id (%d) = %s", int(obj->body.id), pExt->unmap_urid(obj->body.id));
+//        lsp_trace("body.otype (%d) = %s", int(obj->body.otype), pExt->unmap_urid(obj->body.otype));
 
         if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateType))
         {
@@ -203,54 +206,35 @@ namespace lsp
             // Parse atom body
             LV2_Atom_Property_Body *body    = lv2_atom_object_begin(&obj->body);
 
+            size_t ports_count = vControl.size();
+
             while (!lv2_atom_object_is_end(&obj->body, obj->atom.size, body))
             {
-                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
-                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+//                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
 
                 // Scan all ports
-                for (size_t port_id=0; ; ++port_id)
+                for (size_t port_id=0; port_id < ports_count; ++port_id)
                 {
-                    IUIPort *p    = pUI->port(port_id);
-                    if (p == NULL)
-                    {
-                        lsp_trace("Unknown port for urid %d (%s)", body->key, pExt->unmap_urid(body->key));
-                        break;
-                    }
+                    LV2UIPort *l2p    = vControl[port_id];
 
                     // Check that port's URID matches URID of the atom
-                    LV2UIPort *l2p  = static_cast<LV2UIPort *>(p);
-                    if (l2p->get_urid() == body->key)
-                    {
-                        // Port matched, analyze
-                        const port_t *port = l2p->metadata();
-                        if (!(port->flags & F_OUT))
-                            continue;
+                    if ((l2p == NULL) || (l2p->get_urid() != body->key))
+                        continue;
 
-                        // Analyze port role
-                        switch (port->role)
-                        {
-                            case R_CONTROL:
-                            case R_METER:
-                                if (body->value.type == pExt->forge.Float)
-                                {
-                                    const LV2_Atom_Float *f_atom = reinterpret_cast<LV2_Atom_Float *>(&body->value);
-                                    lsp_trace("%s = %f", port->id, f_atom->body);
-                                    l2p->notify(&f_atom->body, 0, f_atom->atom.size);
-                                }
-                                break;
-                            default:
-                                break;
-                        }
-                        break;
+                    if (body->value.type == pExt->forge.Float)
+                    {
+                        const LV2_Atom_Float *f_atom = reinterpret_cast<LV2_Atom_Float *>(&body->value);
+//                        lsp_trace("%s = %f", port->id, f_atom->body);
+                        l2p->notify(&f_atom->body, 0, f_atom->atom.size);
                     }
                 }
 
-                lsp_trace("call lv2_atom_object_next");
+//                lsp_trace("call lv2_atom_object_next");
                 body = lv2_atom_object_next(body);
             }
 
-            lsp_trace("complete read state");
+//            lsp_trace("complete read state");
         }
         else
         {

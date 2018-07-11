@@ -32,7 +32,6 @@ namespace lsp
 
             ~LADSPAWrapper()
             {
-                lsp_trace("destroy");
                 pPlugin     = NULL;
             }
 
@@ -87,6 +86,11 @@ namespace lsp
             void destroy()
             {
                 // Clear all ports
+                for (size_t i=0; i < vPorts.size(); ++i)
+                {
+                    lsp_trace("destroy port id=%s", vPorts[i]->metadata()->id);
+                    delete vPorts[i];
+                }
                 vPorts.clear();
 
                 // Delete plugin
@@ -117,8 +121,41 @@ namespace lsp
 
             inline void run(size_t samples)
             {
-                // Run plugin
-                pPlugin->run(samples);
+                bool update     = false;
+
+                // Process external ports for changes
+                for (size_t i=0; i<vPorts.size(); ++i)
+                {
+                    // Get port
+                    LADSPAPort *port = vPorts[i];
+                    if (port == NULL)
+                        continue;
+
+                    // Pre-process data in port
+                    if (port->pre_process(samples))
+                    {
+                        lsp_trace("port changed: %s", port->metadata()->id);
+                        update = true;
+                    }
+                }
+
+                // Check that input parameters have changed
+                if (update)
+                {
+                    lsp_trace("updating settings");
+                    pPlugin->update_settings();
+                }
+
+                // Call the main processing unit
+                pPlugin->process(samples);
+
+                // Process external ports for changes
+                for (size_t i=0; i<vPorts.size(); ++i)
+                {
+                    LADSPAPort *port = vPorts[i];
+                    if (port != NULL)
+                        port->post_process(samples);
+                }
             }
 
     };

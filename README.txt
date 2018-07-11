@@ -43,14 +43,12 @@ The LADSPA distribution requirements:
 
 The LV2 distribution requirements:
   * glibc >= 2.19
-  * libexpat >= 2.1
   * GTK+ >= 2.24
   * libcairo >= 1.14
   * Host compatible with LV2
   
 The LinuxVST distribution requirements:
   * glibc >= 2.19
-  * libexpat >= 2.1
   * GTK+ >= 2.24
   * libcairo >= 1.14
   * Host compatible with LinuxVST v2.4

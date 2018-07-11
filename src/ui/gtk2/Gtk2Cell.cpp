@@ -9,7 +9,7 @@
 
 namespace lsp
 {
-    Gtk2Cell::Gtk2Cell(plugin_ui *ui): Gtk2WidgetProxy(ui)
+    Gtk2Cell::Gtk2Cell(plugin_ui *ui): Gtk2WidgetProxy(ui, W_CELL)
     {
         nRowSpan    = 1;
         nColSpan    = 1;

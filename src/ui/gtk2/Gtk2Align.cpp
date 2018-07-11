@@ -9,7 +9,7 @@
 
 namespace lsp
 {
-    Gtk2Align::Gtk2Align(plugin_ui *ui): Gtk2Container(ui)
+    Gtk2Align::Gtk2Align(plugin_ui *ui): Gtk2Container(ui, W_ALIGN)
     {
         pWidget         = gtk_alignment_new(0.0, 0.0, 0.0, 0.0);
         nBorder         = 2;

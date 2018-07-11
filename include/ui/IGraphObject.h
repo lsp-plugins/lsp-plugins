@@ -16,7 +16,7 @@ namespace lsp
             IGraph     *pGraph;
 
         public:
-            IGraphObject(plugin_ui *ui);
+            IGraphObject(plugin_ui *ui, widget_t w_class);
 
             virtual ~IGraphObject();
 
@@ -28,6 +28,11 @@ namespace lsp
             virtual IGraph *getGraph();
 
             virtual void notify(IUIPort *port);
+
+        public:
+            inline bool isAxis()        { return getClass() == W_AXIS;      };
+            inline bool isMarker()      { return getClass() == W_MARKER;    };
+            inline bool isMesh()        { return getClass() == W_MESH;      };
     };
 
 } /* namespace lsp */

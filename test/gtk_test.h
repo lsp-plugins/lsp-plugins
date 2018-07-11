@@ -2,6 +2,7 @@
 
 #include <lv2.h>
 #include <core/plugin_metadata.h>
+#include <core/plugins.h>
 #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
 #include <ui/ui.h>
 
@@ -39,6 +40,7 @@ namespace gtk_test
     int test(int argc, const char **argv)
     {
         size_t plugin_id = 0;
+        const plugin_metadata_t *mdata = &phase_detector_metadata::metadata;
 
         const LV2_Descriptor *descr = lv2_descriptor(plugin_id);
         if (descr == NULL)
@@ -75,9 +77,6 @@ namespace gtk_test
         pd.period_size = 0;
         pd.period_start = 0;
         size_t port_id = 0;
-
-        plugin_ui *ui = reinterpret_cast<plugin_ui *>(handle);
-        const plugin_metadata_t *mdata = ui->metadata();
 
         for (const port_t *port = mdata->ports; (port->id != NULL) && (port->name != NULL); ++port)
         {

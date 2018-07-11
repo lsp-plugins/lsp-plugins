@@ -153,7 +153,7 @@ namespace lsp
          */
         extern void (* sub_multiplied)(float *dst, const float *src, float k, size_t count);
 
-        /** Calculate dst[i] = dst[i] + (src[i] - dst[i]) * k
+        /** Calculate dst[i] = dst[i] * (1 - k) + src[i] * k = dst[i] + (src[i] - dst[i]) * k
          *
          * @param dst destination
          * @param src function value to integrate
@@ -171,6 +171,16 @@ namespace lsp
          * @param k2 multiplier 2
          */
         extern void (* mix)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
+
+        /** Calculate dst[i] = dst[i] + src1[i] * k1 + src2[i] * k2
+         *
+         * @param dst destination buffer
+         * @param src1 source buffer 1
+         * @param src2 source buffer 2
+         * @param k1 multiplier 1
+         * @param k2 multiplier 2
+         */
+        extern void (* mix_add)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
 
     }
 

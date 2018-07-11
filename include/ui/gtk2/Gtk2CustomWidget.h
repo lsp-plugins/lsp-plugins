@@ -54,7 +54,7 @@ namespace lsp
             static gboolean scroll(GtkWidget *widget, GdkEventScroll *event);
 
         public:
-            Gtk2CustomWidget(plugin_ui *ui, GType basic_class = GTK_TYPE_WIDGET);
+            Gtk2CustomWidget(plugin_ui *ui, widget_t w_class, GType basic_class = GTK_TYPE_WIDGET);
             virtual ~Gtk2CustomWidget();
 
         public:

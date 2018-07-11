@@ -17,7 +17,6 @@ namespace lsp
             AEffect                *pEffect;
             audioMasterCallback     hCallback;
             ssize_t                 nID;
-            volatile vst_serial_t   nSID;
 
         protected:
             float from_vst(float value)
@@ -74,14 +73,12 @@ namespace lsp
                 pEffect         = effect;
                 hCallback       = callback;
                 nID             = -1;
-                nSID            = 0;
             }
             virtual ~VSTPort()
             {
                 pEffect         = NULL;
                 hCallback       = NULL;
                 nID             = -1;
-                nSID            = 0;
             }
 
         public:
@@ -89,8 +86,6 @@ namespace lsp
             inline audioMasterCallback      getCallback()       { return hCallback;             };
             inline ssize_t                  getID() const       { return nID;                   };
             inline void                     setID(ssize_t id)   { nID = id;                     };
-            inline vst_serial_t             getSID() const      { return nSID;                  };
-            virtual vst_serial_t            nextSID()           { return nSID;                  };
 
             virtual void writeValue(float value)    {};
     };
@@ -123,9 +118,10 @@ namespace lsp
     class VSTParameterPort: public VSTPort
     {
         private:
-            float   fValue;         // The internal value
-            float   fVstPrev;       // Previous value in VST standard notation
-            float   fVstValue;      // Current value in VST standard notation
+            float       fValue;         // The internal value
+            float       fVstPrev;       // Previous value in VST standard notation
+            float       fVstValue;      // Current value in VST standard notation
+            volatile vst_serial_t nSID; // Serial ID of the parameter
 
         public:
             VSTParameterPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
@@ -133,6 +129,7 @@ namespace lsp
                 fValue      = meta->start;
                 fVstPrev    = to_vst(meta->start);
                 fVstValue   = fVstPrev;
+                nSID        = 0;
             }
 
             virtual ~VSTParameterPort()
@@ -140,6 +137,7 @@ namespace lsp
                 fValue      = pMetadata->start;
                 fVstPrev    = 0.0f;
                 fVstValue   = 0.0f;
+                nSID        = 0;
             }
 
         public:
@@ -154,12 +152,12 @@ namespace lsp
                 fVstValue   = to_vst(fValue);
             }
 
-            virtual bool pre_process()
+            virtual bool pre_process(size_t samples)
             {
                 return fVstValue != fVstPrev;
             }
 
-            virtual void post_process()
+            virtual void post_process(size_t samples)
             {
                 fVstPrev        = fVstValue;
             }
@@ -177,15 +175,21 @@ namespace lsp
 
             void setVstValue(float value)
             {
+                if (fVstValue == value)
+                    return;
                 fValue          = limit_value(pMetadata, from_vst(value));
                 fVstValue       = value;
                 nSID            ++;
-                lsp_trace("new SID: %ld", long(nSID));
             }
 
             inline float getVstValue()
             {
                 return fVstValue;
+            }
+
+            inline vst_serial_t getSID()
+            {
+                return nSID;
             }
     };
 
@@ -241,11 +245,8 @@ namespace lsp
 
             virtual ~VSTMeshPort()
             {
-                if (pMesh != NULL)
-                {
-                    delete [] reinterpret_cast<uint8_t *>(pMesh);
-                    pMesh = NULL;
-                }
+                vst_destroy_mesh(pMesh);
+                pMesh = NULL;
             }
 
         public:
@@ -253,11 +254,6 @@ namespace lsp
             {
                 return pMesh;
             }
-
-            virtual vst_serial_t nextSID()
-            {
-                return ++nSID;
-            };
     };
 
 

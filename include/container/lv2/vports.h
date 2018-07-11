@@ -14,15 +14,21 @@ namespace lsp
     {
         private:
             LV2Mesh                 sMesh;
+            size_t                  nSamples;
+            size_t                  nFrameSize;
 
         public:
             LV2MeshPort(const port_t *meta, LV2AtomTransport *tr): LV2AtomVirtualPort(meta, tr, tr->extensions()->uridMeshType)
             {
                 sMesh.init(meta, tr->extensions());
+                nSamples            = 0;
+                nFrameSize          = 0;
             }
 
             virtual ~LV2MeshPort()
             {
+                nSamples            = 0;
+                nFrameSize          = 0;
             };
 
         public:
@@ -31,15 +37,47 @@ namespace lsp
                 return sMesh.pMesh;
             }
 
+            virtual void set_sample_rate(long sr)
+            {
+                nFrameSize      = sr / 25; // 25 frames per second
+            }
+
+            virtual bool pre_process(size_t samples)
+            {
+                // Get mesh
+                mesh_t *mesh = sMesh.pMesh;
+                if ((mesh == NULL) || (nFrameSize <= 0))
+                    return false;
+
+                // Increment number of pending samples
+                nSamples       += samples;
+
+                // Mesh is waiting for data request, process pending samples
+                if (mesh->isWaiting())
+                {
+                    if (nSamples >= nFrameSize)
+                    {
+                        mesh->cleanup();
+                        nSamples           -= nFrameSize; // Decrement number of pending samples
+                    }
+                }
+
+                return false;
+            }
+
             virtual bool pending()
             {
-                return sMesh.nBuffers > 0;
+                mesh_t *mesh = sMesh.pMesh;
+                if (mesh == NULL)
+                    return false;
+
+                // Return true only if mesh contains data
+                return mesh->containsData();
             };
 
             virtual void serialize()
             {
                 mesh_t *mesh = sMesh.pMesh;
-//                lsp_trace("serializing mesh items=%d buffers=%d", int(mesh->nItems), int(mesh->nBuffers));
 
                 // Forge number of vectors (dimensions)
                 pExt->forge_key(sMesh.uridDimensions);
@@ -56,11 +94,8 @@ namespace lsp
                     pExt->forge_vector(sizeof(float), pExt->forge.Float, mesh->nItems, mesh->pvData[i]);
                 }
 
-                // Clear mesh state
-                mesh->nBuffers  = 0;
-                mesh->nItems    = 0;
-
-//                lsp_trace("successfully serialized mesh");
+                // Set mesh waiting until next frame is allowed
+                mesh->setWaiting();
             }
     };
 

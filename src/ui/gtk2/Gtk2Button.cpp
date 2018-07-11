@@ -13,7 +13,7 @@
 
 namespace lsp
 {
-    Gtk2Button::Gtk2Button(plugin_ui *ui): Gtk2CustomWidget(ui)
+    Gtk2Button::Gtk2Button(plugin_ui *ui): Gtk2CustomWidget(ui, W_BUTTON)
     {
         sColor.set(pUI->theme(), C_BUTTON_FACE);
         sBgColor.set(pUI->theme(), C_BACKGROUND);

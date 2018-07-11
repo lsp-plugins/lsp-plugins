@@ -105,11 +105,11 @@ namespace lsp
     }
 }
 
-#ifdef VST_GENMAKE
+#ifndef LSP_IDE_DEBUG
 int main(int argc, const char **argv)
 {
     if (argc <= 0)
         fprintf(stderr, "required destination path");
     return lsp::gen_make(argv[1]);
 }
-#endif /* VST_GENMAKE */
+#endif /* LSP_IDE_DEBUG */

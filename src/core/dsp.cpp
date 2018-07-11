@@ -44,6 +44,7 @@ namespace lsp
         void    (* sub_multiplied)(float *dst, const float *src, float k, size_t count) = NULL;
         void    (* integrate)(float *dst, const float *src, float k, size_t count) = NULL;
         void    (* mix)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count) = NULL;
+        void    (* mix_add)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count) = NULL;
     }
 
     namespace dsp

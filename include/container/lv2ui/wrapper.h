@@ -16,15 +16,44 @@ namespace lsp
             plugin_ui              *pUI;
             LV2Extensions          *pExt;
             LV2UIAtomTransport     *pTransport;
-            LV2UIPort              *pLatency;
-            cvector<LV2UIPort>      vPorts;
+            cvector<LV2UIPort>      vExtPorts;
+            cvector<LV2UIPort>      vAllPorts;
 
         protected:
-            inline void add_port(LV2UIPort *p)
+            inline void add_port(LV2UIPort *p, bool external, bool ui)
             {
-                lsp_trace("wrapping port id=%s, index=%d", p->metadata()->id, int(vPorts.size()));
-                p->set_id(vPorts.size());
-                vPorts.add(p);
+                lsp_trace("wrapping ui port id=%s", p->metadata()->id);
+                vAllPorts.add(p);
+
+                if (external)
+                {
+                    lsp_trace("  external_id=%d", int(vExtPorts.size()));
+                    p->set_id(vExtPorts.size());
+                    vExtPorts.add(p);
+                }
+                if (ui)
+                {
+                    lsp_trace("  internal_id=%d", int(pUI->ports_count()));
+                    pUI->add_port(p);
+                }
+
+                if (pTransport != NULL)
+                {
+                    const port_t *meta = p->metadata();
+                    if ((meta != NULL) && (meta->flags & F_OUT))
+                    {
+                        switch (meta->role)
+                        {
+                            case R_METER:
+                            case R_CONTROL:
+                                pTransport->add_control_port(p);
+                                lsp_trace("  added as control port");
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
 
         public:
@@ -33,7 +62,6 @@ namespace lsp
                 pUI         = ui;
                 pExt        = ext;
                 pTransport  = NULL;
-                pLatency    = NULL;
             }
 
             ~LV2UIWrapper()
@@ -41,7 +69,6 @@ namespace lsp
                 pUI         = NULL;
                 pExt        = NULL;
                 pTransport  = NULL;
-                pLatency    = NULL;
             }
 
         public:
@@ -69,41 +96,25 @@ namespace lsp
                     switch (port->role)
                     {
                         case R_AUDIO: // Stub port for audio
-                        {
-                            LV2UIPort *lvp = new LV2UIPort(port, pExt);
-                            pUI->add_port(lvp, true);
-                            add_port(lvp);
+                            add_port(new LV2UIPort(port, pExt), true, false);
                             break;
-                        }
                         case R_METER:
-                        {
-                            LV2UIPort *lvp = new LV2UIPeakPort(port, pExt);
-                            pUI->add_port(lvp, true);
-                            add_port(lvp);
+                            add_port(new LV2UIPeakPort(port, pExt), true, true);
                             break;
-                        }
                         case R_CONTROL:
-                        {
-                            LV2UIPort *lvp = new LV2UIFloatPort(port, pExt);
-                            pUI->add_port(lvp, true);
-                            add_port(lvp);
+                            add_port(new LV2UIFloatPort(port, pExt), true, true);
                             break;
-                        }
                         case R_UI_SYNC:
                             continue;
                         case R_MESH:
                             if (pTransport != NULL)
-                                pUI->add_port(new LV2UIMeshPort(port, pTransport), false);
+                                add_port(new LV2UIMeshPort(port, pTransport), false, true);
                             else // Stub port
-                                pUI->add_port(new LV2UIPort(port, pExt), false);
+                                add_port(new LV2UIPort(port, pExt), false, true);
                             continue;
                         default:
-                        {
-                            LV2UIPort *lvp = new LV2UIFloatPort(port, pExt);
-                            pUI->add_port(lvp, true);
-                            add_port(lvp);
+                            add_port(new LV2UIFloatPort(port, pExt), true, true);
                             break;
-                        }
                     }
                 }
 
@@ -114,18 +125,15 @@ namespace lsp
                 if (pTransport != NULL)
                 {
                     lsp_trace("binding LV2UITransport");
-                    add_port(pTransport->out());
-                    add_port(pTransport->in());
+                    add_port(pTransport->out(), true, false);
+                    add_port(pTransport->in(), true, false);
                 }
 
                 // Add stub for latency reporting
                 {
                     const port_t *port = &lv2_latency_port;
                     if ((port->id != NULL) && (port->name != NULL))
-                    {
-                        pLatency    = new LV2UIFloatPort(port, pExt);
-                        add_port(pLatency);
-                    }
+                        add_port(new LV2UIFloatPort(port, pExt), true, false);
                 }
 
                 // And last: query state
@@ -148,20 +156,19 @@ namespace lsp
                 }
 
                 // Cleanup ports
-                vPorts.clear();
+                for (size_t i=0; i<vAllPorts.size(); ++i)
+                {
+                    lsp_trace("destroy ui port %s", vAllPorts[i]->metadata()->id);
+                    delete vAllPorts[i];
+                }
+                vAllPorts.clear();
+                vExtPorts.clear();
 
                 // Destroy transport
                 if (pTransport != NULL)
                 {
                     delete pTransport;
                     pTransport  = NULL;
-                }
-
-                // Destroy latency port
-                if (pLatency != NULL)
-                {
-                    delete pLatency;
-                    pLatency    = NULL;
                 }
 
                 // Drop extensions
@@ -174,7 +181,7 @@ namespace lsp
 
             void notify(size_t id, size_t size, size_t format, const void *buf)
             {
-                LV2UIPort *p = vPorts[id];
+                LV2UIPort *p = vExtPorts[id];
                 if (p != NULL)
                     p->notify(buf, format, size);
             }
