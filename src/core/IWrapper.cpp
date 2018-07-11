@@ -22,4 +22,8 @@ namespace lsp
     {
         return NULL;
     }
+
+    void IWrapper::query_display_draw()
+    {
+    }
 } /* namespace lsp */

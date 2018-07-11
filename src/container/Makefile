@@ -1,6 +1,7 @@
 FILES                   = $(addprefix $(OBJDIR)/, $(patsubst %.cpp, %.o, $(wildcard *.cpp)))
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 SUBDIRS                 =
+OBJ_HELPERS             = $(OBJDIR)/CairoCanvas.o
 
 # Detemine what modules to build
 MODULES                 = $(LIB_LADSPA) $(LIB_LV2) $(LIB_LV2_GTK2UI) $(LIB_JACK) $(BIN_PROFILE)
@@ -12,17 +13,21 @@ endif
 
 all: $(MODULES)
 
+$(OBJ_HELPERS):
+	@echo "  $(CC) $(FILE)"
+	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(CAIRO_HEADERS) $(HEADERS) $(PACKAGES) $(FILE) -o $(@)
+
 $(LIB_LADSPA): $(SUBDIRS)
 	@echo "  $(CC) ladspa.cpp"
 	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(HEADERS) $(PACKAGES) ladspa.cpp -o $(OBJDIR)/ladspa.o
 	@echo "  $(CC) $(notdir $(LIB_LADSPA))"
 	@$(CC) $(SO_FLAGS) $(SNDFILE_LIBS) $(PACKAGES) -o $(LIB_LADSPA) $(OBJDIR)/ladspa.o $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_PLUGINS)
 
-$(LIB_LV2): $(SUBDIRS)
+$(LIB_LV2): $(SUBDIRS) $(OBJ_HELPERS)
 	@echo "  $(CC) lv2.cpp"
 	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(LSP_UI) $(INCLUDE) $(HEADERS) $(PACKAGES) lv2.cpp -o $(OBJDIR)/lv2.o
 	@echo "  $(CC) $(notdir $(LIB_LV2))"
-	@$(CC) $(SO_FLAGS) $(SNDFILE_LIBS) $(PACKAGES) -o $(LIB_LV2) $(OBJDIR)/lv2.o $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_PLUGINS)
+	@$(CC) $(SO_FLAGS) $(SNDFILE_LIBS) $(CAIRO_LIBS) $(OBJ_HELPERS) $(PACKAGES) -o $(LIB_LV2) $(OBJDIR)/lv2.o $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_PLUGINS)
 
 $(LIB_VST): HEADERS  := $(GTK2_HEADERS)
 $(LIB_VST): PACKAGES := $(GTK2_LIBS) $(SNDFILE_LIBS)
@@ -60,11 +65,11 @@ $(LIB_JACK): PACKAGES := $(GTK2_LIBS) $(SNDFILE_LIBS) $(JACK_LIBS)
 $(LIB_JACK): GUI      := gtk2
 $(LIB_JACK): OBJ_UI   := $(OBJ_GTK2UI) $(OBJ_UI_CORE) $(OBJ_RES_CORE)
 $(LIB_JACK): LSP_UI   := -DLSP_UI_GTK2
-$(LIB_JACK): $(SUBDIRS)
+$(LIB_JACK): $(SUBDIRS) $(OBJ_HELPERS)
 	@echo "  $(CC) jack.cpp"
 	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(LSP_UI) $(INCLUDE) $(HEADERS) $(PACKAGES) jack.cpp -o $(OBJDIR)/jack.o
 	@echo "  $(CC) $(notdir $(LIB_JACK))"
-	@$(CC) $(SO_FLAGS) -o $(LIB_JACK) $(OBJDIR)/jack.o $(PACKAGES) $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_PLUGINS) $(OBJ_UI) $(call rwildcard,$(OBJDIR)/$(GUI),*.o)
+	@$(CC) $(SO_FLAGS) -o $(LIB_JACK) $(OBJDIR)/jack.o $(PACKAGES) $(OBJ_HELPERS) $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_PLUGINS) $(OBJ_UI) $(call rwildcard,$(OBJDIR)/$(GUI),*.o)
 
 $(BIN_PROFILE): HEADERS  := $(GTK2_HEADERS) $(JACK_HEADERS)
 $(BIN_PROFILE): PACKAGES := $(GTK2_LIBS) $(SNDFILE_LIBS) $(JACK_LIBS)
@@ -75,7 +80,7 @@ $(BIN_PROFILE): $(SUBDIRS) $(LIB_JACK)
 	@echo "  $(CC) profile.cpp"
 	@$(CC) -c $(CPPFLAGS) -DLSP_PROFILING_MAIN $(CFLAGS) $(LSP_UI) $(INCLUDE) $(HEADERS) $(PACKAGES) profile.cpp -o $(OBJDIR)/profile.o
 	@echo "  $(CC) $(notdir $(BIN_PROFILE))"
-	@$(CC) $(EXE_FLAGS) -o $(BIN_PROFILE) $(OBJDIR)/jack.o $(OBJDIR)/profile.o $(PACKAGES) $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_PLUGINS) $(OBJ_UI) $(call rwildcard,$(OBJDIR)/$(GUI),*.o)
+	@$(CC) $(EXE_FLAGS) -o $(BIN_PROFILE) $(OBJ_HELPERS) $(OBJDIR)/jack.o $(OBJDIR)/profile.o $(PACKAGES) $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_PLUGINS) $(OBJ_UI) $(call rwildcard,$(OBJDIR)/$(GUI),*.o)
 
 $(SUBDIRS):
 	@echo "Building $@"

@@ -9,6 +9,8 @@
 
 #include <plugins/phase_detector.h>
 #include <core/debug.h>
+#include <core/colors.h>
+#include <core/Color.h>
 
 #include <string.h>
 
@@ -26,6 +28,9 @@ namespace lsp
         nMaxVectorSize      = 0;
         nVectorSize         = 0;
         nFuncSize           = 0;
+        nBest               = 0;
+        nWorst              = 0;
+        nSelected           = 0;
 
         nGapSize            = 0;
         nMaxGapSize         = 0;
@@ -39,10 +44,13 @@ namespace lsp
         fTau                = 0.0f;
         fSelector           = SELECTOR_DFL;
         bBypass             = false;
+
+        pIDisplay           = NULL;
     }
 
     phase_detector::~phase_detector()
     {
+        dropBuffers();
     }
 
     size_t phase_detector::fillGap(const float *a, const float *b, size_t count)
@@ -144,11 +152,11 @@ namespace lsp
     void phase_detector::process(size_t samples)
     {
         // Store pointers to buffers
-        float *in_a         = reinterpret_cast<float *>(vPorts[IN_A]    -> getBuffer());
-        float *in_b         = reinterpret_cast<float *>(vPorts[IN_B]    -> getBuffer());
-        float *out_a        = reinterpret_cast<float *>(vPorts[OUT_A]   -> getBuffer());
-        float *out_b        = reinterpret_cast<float *>(vPorts[OUT_B]   -> getBuffer());
-        mesh_t *mesh        = reinterpret_cast<mesh_t *>(vPorts[FUNCTION]->getBuffer());
+        float *in_a         = vPorts[IN_A]->getBuffer<float>(); //reinterpret_cast<float *>(vPorts[IN_A]    -> getBuffer());
+        float *in_b         = vPorts[IN_B]->getBuffer<float>(); // reinterpret_cast<float *>(vPorts[IN_B]    -> getBuffer());
+        float *out_a        = vPorts[OUT_A]->getBuffer<float>(); // reinterpret_cast<float *>(vPorts[OUT_A]   -> getBuffer());
+        float *out_b        = vPorts[OUT_B]->getBuffer<float>(); // reinterpret_cast<float *>(vPorts[OUT_B]   -> getBuffer());
+        mesh_t *mesh        = vPorts[FUNCTION]->getBuffer<mesh_t>(); //reinterpret_cast<mesh_t *>(vPorts[FUNCTION]->getBuffer());
 
         lsp_assert(in_a != NULL);
         lsp_assert(in_b != NULL);
@@ -178,6 +186,9 @@ namespace lsp
 
             if ((mesh != NULL) && (mesh->isEmpty()))
                 mesh->data(2, 0);       // Set mesh to empty data
+
+            // Always query drawing
+            pWrapper->query_display_draw();
             return;
         }
 
@@ -233,23 +244,23 @@ namespace lsp
         }
 
         // Output values
-        ssize_t sel_samples     = ssize_t(nVectorSize) - sel;
-        ssize_t best_samples    = ssize_t(nVectorSize) - best;
-        ssize_t worst_samples   = ssize_t(nVectorSize) - worst;
+        nSelected               = ssize_t(nVectorSize) - sel;
+        nBest                   = ssize_t(nVectorSize) - best;
+        nWorst                  = ssize_t(nVectorSize) - worst;
 
-        vPorts[BEST_TIME]       -> setValue(samples_to_millis(fSampleRate, best_samples));
-        vPorts[BEST_SAMPLES]    -> setValue(best_samples);
-        vPorts[BEST_DISTANCE]   -> setValue(samples_to_centimeters(fSampleRate, SOUND_SPEED_M_S, best_samples));
+        vPorts[BEST_TIME]       -> setValue(samples_to_millis(fSampleRate, nBest));
+        vPorts[BEST_SAMPLES]    -> setValue(nBest);
+        vPorts[BEST_DISTANCE]   -> setValue(samples_to_centimeters(fSampleRate, SOUND_SPEED_M_S, nBest));
         vPorts[BEST_VALUE]      -> setValue(vNormalized[best]);
 
-        vPorts[WORST_TIME]      -> setValue(samples_to_millis(fSampleRate, worst_samples));
-        vPorts[WORST_SAMPLES]   -> setValue(worst_samples);
-        vPorts[WORST_DISTANCE]  -> setValue(samples_to_centimeters(fSampleRate, SOUND_SPEED_M_S, worst_samples));
+        vPorts[WORST_TIME]      -> setValue(samples_to_millis(fSampleRate, nWorst));
+        vPorts[WORST_SAMPLES]   -> setValue(nWorst);
+        vPorts[WORST_DISTANCE]  -> setValue(samples_to_centimeters(fSampleRate, SOUND_SPEED_M_S, nWorst));
         vPorts[WORST_VALUE]     -> setValue(vNormalized[worst]);
 
-        vPorts[SEL_TIME]        -> setValue(samples_to_millis(fSampleRate, sel_samples));
-        vPorts[SEL_SAMPLES]     -> setValue(sel_samples);
-        vPorts[SEL_DISTANCE]    -> setValue(samples_to_centimeters(fSampleRate, SOUND_SPEED_M_S, sel_samples));
+        vPorts[SEL_TIME]        -> setValue(samples_to_millis(fSampleRate, nSelected));
+        vPorts[SEL_SAMPLES]     -> setValue(nSelected);
+        vPorts[SEL_DISTANCE]    -> setValue(samples_to_centimeters(fSampleRate, SOUND_SPEED_M_S, nSelected));
         vPorts[SEL_VALUE]       -> setValue(vNormalized[sel]);
 
         // Output mesh if specified
@@ -269,6 +280,9 @@ namespace lsp
 
             mesh->data(2, MESH_POINTS);
         }
+
+        // Always query drawing
+        pWrapper->query_display_draw();
     }
 
     bool phase_detector::setTimeInterval(float interval, bool force)
@@ -351,6 +365,11 @@ namespace lsp
             delete []   vNormalized;
             vNormalized = NULL;
         }
+        if (pIDisplay != NULL)
+        {
+            pIDisplay->detroy();
+            pIDisplay   = NULL;
+        }
     }
 
     void phase_detector::destroy()
@@ -358,6 +377,85 @@ namespace lsp
         // Call parent plugin for destroy
         dropBuffers();
         plugin_t::destroy();
+    }
+
+    bool phase_detector::inline_display(ICanvas *cv, size_t width, size_t height)
+    {
+        // Check proportions
+        if (height > (R_GOLDEN_RATIO * width))
+            height  = R_GOLDEN_RATIO * width;
+
+        // Init canvas
+        if (!cv->init(width, height))
+            return false;
+        width   = cv->width();
+        height  = cv->height();
+        float cx    = width >> 1;
+        float cy    = height >> 1;
+
+        // Clear background
+        cv->set_color_rgb((bBypass) ? CV_DISABLED : CV_BACKGROUND);
+        cv->paint();
+
+        // Draw axis
+        cv->set_line_width(1.0);
+        cv->set_color_rgb(CV_WHITE, 0.5f);
+        cv->line(cx, 0, cx, height);
+        cv->line(0, cy, width, cy);
+
+        // Allocate buffer: t, f(t)
+        pIDisplay           = float_buffer_t::reuse(pIDisplay, 2, width);
+        float_buffer_t *b   = pIDisplay;
+        if (b == NULL)
+            return false;
+
+        if (!bBypass)
+        {
+            float di    = (nFuncSize - 1.0) / width;
+            float dy    = cy-2;
+
+            for (size_t i=0; i<width; ++i)
+            {
+                b->v[0][i]  = width - i;
+                b->v[1][i]  = cy - dy * vNormalized[size_t(i * di)];
+            }
+
+            // Set color and draw
+            cv->set_color_rgb(CV_MESH);
+            cv->set_line_width(2);
+            cv->draw_lines(b->v[0], b->v[1], width);
+
+            // Draw worst meter
+            cv->set_line_width(1);
+            cv->set_color_rgb(CV_RED);
+            ssize_t point   = ssize_t(nVectorSize) - nWorst;
+            float x         = width - point/di;
+            float y         = cy - dy * vNormalized[point];
+            cv->line(x, 0, x, height);
+            cv->line(0, y, width, y);
+
+            // Draw best meter
+            cv->set_line_width(1);
+            cv->set_color_rgb(CV_GREEN);
+            point           = ssize_t(nVectorSize) - nBest;
+            x               = width - point/di;
+            y               = cy - dy * vNormalized[point];
+            cv->line(x, 0, x, height);
+            cv->line(0, y, width, y);
+        }
+        else
+        {
+            for (size_t i=0; i<width; ++i)
+                b->v[0][i]      = i;
+            dsp::fill(b->v[1], cy, width);
+
+            // Set color and draw
+            cv->set_color_rgb(CV_SILVER);
+            cv->set_line_width(2);
+            cv->draw_lines(b->v[0], b->v[1], width);
+        }
+
+        return true;
     }
 
 } /* namespace ddb */

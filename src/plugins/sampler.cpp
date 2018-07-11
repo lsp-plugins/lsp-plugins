@@ -1118,6 +1118,9 @@ namespace lsp
 
     void sampler_base::init(IWrapper *wrapper)
     {
+        // Pass wrapper
+        plugin_t::init(wrapper);
+
         // Allocate samplers
         vSamplers       = new sampler_t[nSamplers];
         lsp_trace("samplers = %d, channels=%d, vSamplers=%p", int(nSamplers), int(nChannels), vSamplers);

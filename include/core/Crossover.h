@@ -114,6 +114,13 @@ namespace lsp
              */
             void set_slope(size_t slope);
 
+            /** Set gain of band
+             *
+             * @param band band number
+             * @param gain gain
+             */
+            bool set_gain(size_t band, float gain);
+
             /** Set split frequency for the split point, needs reconfiguration
              *
              * @param sp split point number
@@ -127,11 +134,6 @@ namespace lsp
              */
             inline void set_sample_rate(size_t sr) { nSampleRate = sr; }
 
-            /** Reconfigure crossover after parameter update
-             *
-             */
-            void reconfigure();
-
             /** Get frequency chart of the crossover
              *
              * @param re real part of the frequency chart
@@ -140,6 +142,11 @@ namespace lsp
              * @param count number of dots for the chart
              */
             bool freq_chart(float *re, float *im, const float *f, size_t count);
+
+            /** Reconfigure crossover after parameter update
+             *
+             */
+            void reconfigure();
 
             /** Process data
              *

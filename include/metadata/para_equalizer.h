@@ -81,6 +81,22 @@ namespace lsp
             EQF_MT_BWC_HISHELF,
             EQF_BT_LRX_HISHELF,
             EQF_MT_LRX_HISHELF,
+
+#ifndef LSP_NO_EXPERIMENTAL
+            EQF_BT_RLC_LADDERPASS,
+            EQF_MT_RLC_LADDERPASS,
+            EQF_BT_BWC_LADDERPASS,
+            EQF_MT_BWC_LADDERPASS,
+            EQF_BT_LRX_LADDERPASS,
+            EQF_MT_LRX_LADDERPASS,
+
+            EQF_BT_RLC_LADDERREJ,
+            EQF_MT_RLC_LADDERREJ,
+            EQF_BT_BWC_LADDERREJ,
+            EQF_MT_BWC_LADDERREJ,
+            EQF_BT_LRX_LADDERREJ,
+            EQF_MT_LRX_LADDERREJ,
+#endif
         };
 
         enum para_eq_mode_t

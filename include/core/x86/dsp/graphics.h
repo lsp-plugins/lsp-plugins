@@ -55,7 +55,7 @@ namespace lsp
             #define LOG_STEP1       \
                 __asm__ __volatile__ \
                 ( \
-                    __ASM_EMIT("movapd      %%xmm3, %%xmm4")        /* xmm4 = v */ \
+                    __ASM_EMIT("movdqa      %%xmm3, %%xmm4")        /* xmm4 = v */ \
                     __ASM_EMIT("psrld       $23, %%xmm4")           /* xmm4 = frac(v) */ \
                     __ASM_EMIT("andps       %[X_MANT], %%xmm3")     /* xmm3 = mant(v) */ \
                     __ASM_EMIT("psubd       %[X_MMASK], %%xmm4")    /* xmm4 = frac(v) - 127 */ \
@@ -271,6 +271,188 @@ namespace lsp
             #undef LOG_STEP2
             #undef LOG_STEP3
             #undef LOG_STORE
+        }
+
+
+        static void rgba32_to_bgra32(void *dst, const void *src, size_t count)
+        {
+            if (count == 0)
+                return;
+
+            __asm__ __volatile__
+            (
+                __ASM_EMIT("movdqa  %[MASK], %%xmm6")   // xmm6 = 00 ff 00 ff
+                __ASM_EMIT("movdqa  %%xmm6, %%xmm7")    // xmm7 = 00 ff 00 ff
+                __ASM_EMIT("pslld   $8, %%xmm6")        // xmm6 = ff 00 ff 00
+
+                // Align destination
+                __ASM_EMIT("1:")
+                __ASM_EMIT("test    $0x0f, %[dst]")
+                __ASM_EMIT("jz      2f")
+                __ASM_EMIT("movsd   (%[src]), %%xmm0")  // xmm0 = AA RR GG BB
+                __ASM_EMIT("movsd   %%xmm0, %%xmm1")    // xmm1 = AA RR GG BB
+                __ASM_EMIT("pand    %%xmm7, %%xmm0")    // xmm0 = 00 RR 00 BB
+                __ASM_EMIT("pand    %%xmm6, %%xmm1")    // xmm1 = AA 00 GG 00
+                __ASM_EMIT("movsd   %%xmm0, %%xmm2")    // xmm2 = 00 RR 00 BB
+                __ASM_EMIT("pslld   $16, %%xmm0")       // xmm0 = 00 BB 00 00
+                __ASM_EMIT("psrld   $16, %%xmm2")       // xmm2 = 00 00 00 RR
+                __ASM_EMIT("orpd    %%xmm1, %%xmm0")    // xmm0 = AA 00 GG RR
+                __ASM_EMIT("orpd    %%xmm2, %%xmm0")    // xmm0 = AA BB GG RR
+                __ASM_EMIT("movsd   %%xmm0, (%[dst])")
+                __ASM_EMIT("add     $4, %[src]")
+                __ASM_EMIT("add     $4, %[dst]")
+                __ASM_EMIT("dec     %[count]")
+                __ASM_EMIT("jnz     1b")
+                __ASM_EMIT("jz      200f")
+
+                // dst is aligned
+                __ASM_EMIT("2:")
+                __ASM_EMIT("cmp     $4, %[count]")
+                __ASM_EMIT("jb      100f")
+
+                __ASM_EMIT("test    $0xf, %[src]")
+                __ASM_EMIT("jnz     50f")
+
+                    // Aligned part
+                    __ASM_EMIT("cmp     $8, %[count]")
+                    __ASM_EMIT("jb      15f")
+
+                        // 8-element blocks
+                        __ASM_EMIT("12:")
+                        __ASM_EMIT("movdqa  0x00(%[src]), %%xmm0")      // xmm0 = A1 R1 G1 B1
+                        __ASM_EMIT("movdqa  0x10(%[src]), %%xmm1")      // xmm1 = A2 R2 G2 B2
+                        __ASM_EMIT("movdqa  %%xmm0, %%xmm2")            // xmm2 = A1 R1 G1 B1
+                        __ASM_EMIT("movdqa  %%xmm1, %%xmm3")            // xmm3 = A2 R2 G2 B2
+                        __ASM_EMIT("pand    %%xmm7, %%xmm0")            // xmm0 = 00 R1 00 B1
+                        __ASM_EMIT("pand    %%xmm6, %%xmm2")            // xmm2 = A1 00 G1 00
+                        __ASM_EMIT("pand    %%xmm7, %%xmm1")            // xmm1 = 00 R2 00 B2
+                        __ASM_EMIT("pand    %%xmm6, %%xmm3")            // xmm3 = A2 00 G2 00
+                        __ASM_EMIT("movdqa  %%xmm0, %%xmm4")            // xmm4 = A1 00 G1 00
+                        __ASM_EMIT("movdqa  %%xmm1, %%xmm5")            // xmm5 = A2 00 G2 00
+                        __ASM_EMIT("pslld   $16, %%xmm0")               // xmm0 = 00 B1 00 00
+                        __ASM_EMIT("pslld   $16, %%xmm1")               // xmm1 = 00 B2 00 00
+                        __ASM_EMIT("psrld   $16, %%xmm4")               // xmm4 = 00 00 00 R1
+                        __ASM_EMIT("psrld   $16, %%xmm5")               // xmm5 = 00 00 00 R2
+                        __ASM_EMIT("orpd    %%xmm2, %%xmm0")            // xmm0 = A1 B1 G1 00
+                        __ASM_EMIT("orpd    %%xmm3, %%xmm1")            // xmm1 = A2 B2 G2 00
+                        __ASM_EMIT("orpd    %%xmm4, %%xmm0")            // xmm0 = A1 B1 G1 R1
+                        __ASM_EMIT("orpd    %%xmm5, %%xmm1")            // xmm1 = A2 B2 G2 R2
+                        __ASM_EMIT("movdqa  %%xmm0, 0x00(%[dst])")      // xmm0 = A1 R1 G1 B1
+                        __ASM_EMIT("movdqa  %%xmm1, 0x10(%[dst])")      // xmm1 = A2 R2 G2 B2
+                        __ASM_EMIT("sub     $8, %[count]")
+                        __ASM_EMIT("add     $0x20, %[src]")
+                        __ASM_EMIT("add     $0x20, %[dst]")
+                        __ASM_EMIT("cmp     $8, %[count]")
+                        __ASM_EMIT("jae     12b")
+
+                    __ASM_EMIT("15:")
+                    __ASM_EMIT("cmp     $4, %[count]")
+                    __ASM_EMIT("jb      100f")
+
+                        // 4-element block
+                        __ASM_EMIT("movdqa  0x00(%[src]), %%xmm0")      // xmm0 = A1 R1 G1 B1
+                        __ASM_EMIT("movdqa  %%xmm0, %%xmm2")            // xmm2 = A1 R1 G1 B1
+                        __ASM_EMIT("pand    %%xmm7, %%xmm0")            // xmm0 = 00 R1 00 B1
+                        __ASM_EMIT("pand    %%xmm6, %%xmm2")            // xmm2 = A1 00 G1 00
+                        __ASM_EMIT("movdqa  %%xmm0, %%xmm4")            // xmm4 = A1 00 G1 00
+                        __ASM_EMIT("pslld   $16, %%xmm0")               // xmm0 = 00 B1 00 00
+                        __ASM_EMIT("psrld   $16, %%xmm4")               // xmm4 = 00 00 00 R1
+                        __ASM_EMIT("orpd    %%xmm2, %%xmm0")            // xmm0 = A1 B1 G1 00
+                        __ASM_EMIT("orpd    %%xmm4, %%xmm0")            // xmm0 = A1 B1 G1 R1
+                        __ASM_EMIT("movdqa  %%xmm0, 0x00(%[dst])")
+                        __ASM_EMIT("add     $0x20, %[src]")
+                        __ASM_EMIT("add     $0x20, %[dst]")
+                        __ASM_EMIT("sub     $4, %[count]")
+                        __ASM_EMIT("jnz     100f")
+                        __ASM_EMIT("jmp     200f")
+
+                __ASM_EMIT("50:")
+
+                    // Unaligned part
+                    __ASM_EMIT("cmp     $8, %[count]")
+                    __ASM_EMIT("jb      65f")
+
+                        // 8-element blocks
+                        __ASM_EMIT("62:")
+                        __ASM_EMIT("movdqu  0x00(%[src]), %%xmm0")      // xmm0 = A1 R1 G1 B1
+                        __ASM_EMIT("movdqu  0x10(%[src]), %%xmm1")      // xmm1 = A2 R2 G2 B2
+                        __ASM_EMIT("movdqa  %%xmm0, %%xmm2")            // xmm2 = A1 R1 G1 B1
+                        __ASM_EMIT("movdqa  %%xmm1, %%xmm3")            // xmm3 = A2 R2 G2 B2
+                        __ASM_EMIT("pand    %%xmm7, %%xmm0")            // xmm0 = 00 R1 00 B1
+                        __ASM_EMIT("pand    %%xmm6, %%xmm2")            // xmm2 = A1 00 G1 00
+                        __ASM_EMIT("pand    %%xmm7, %%xmm1")            // xmm1 = 00 R2 00 B2
+                        __ASM_EMIT("pand    %%xmm6, %%xmm3")            // xmm3 = A2 00 G2 00
+                        __ASM_EMIT("movdqa  %%xmm0, %%xmm4")            // xmm4 = A1 00 G1 00
+                        __ASM_EMIT("movdqa  %%xmm1, %%xmm5")            // xmm5 = A2 00 G2 00
+                        __ASM_EMIT("pslld   $16, %%xmm0")               // xmm0 = 00 B1 00 00
+                        __ASM_EMIT("pslld   $16, %%xmm1")               // xmm1 = 00 B2 00 00
+                        __ASM_EMIT("psrld   $16, %%xmm4")               // xmm4 = 00 00 00 R1
+                        __ASM_EMIT("psrld   $16, %%xmm5")               // xmm5 = 00 00 00 R2
+                        __ASM_EMIT("orpd    %%xmm2, %%xmm0")            // xmm0 = A1 B1 G1 00
+                        __ASM_EMIT("orpd    %%xmm3, %%xmm1")            // xmm1 = A2 B2 G2 00
+                        __ASM_EMIT("orpd    %%xmm4, %%xmm0")            // xmm0 = A1 B1 G1 R1
+                        __ASM_EMIT("orpd    %%xmm5, %%xmm1")            // xmm1 = A2 B2 G2 R2
+                        __ASM_EMIT("movdqa  %%xmm0, 0x00(%[dst])")      // xmm0 = A1 R1 G1 B1
+                        __ASM_EMIT("movdqa  %%xmm1, 0x10(%[dst])")      // xmm1 = A2 R2 G2 B2
+                        __ASM_EMIT("sub     $8, %[count]")
+                        __ASM_EMIT("add     $0x20, %[src]")
+                        __ASM_EMIT("add     $0x20, %[dst]")
+                        __ASM_EMIT("cmp     $8, %[count]")
+                        __ASM_EMIT("jae     62b")
+
+                    __ASM_EMIT("65:")
+                    __ASM_EMIT("cmp     $4, %[count]")
+                    __ASM_EMIT("jb      100f")
+
+                        // 4-element block
+                        __ASM_EMIT("movdqu  0x00(%[src]), %%xmm0")      // xmm0 = A1 R1 G1 B1
+                        __ASM_EMIT("movdqa  %%xmm0, %%xmm2")            // xmm2 = A1 R1 G1 B1
+                        __ASM_EMIT("pand    %%xmm7, %%xmm0")            // xmm0 = 00 R1 00 B1
+                        __ASM_EMIT("pand    %%xmm6, %%xmm2")            // xmm2 = A1 00 G1 00
+                        __ASM_EMIT("movdqa  %%xmm0, %%xmm4")            // xmm4 = A1 00 G1 00
+                        __ASM_EMIT("pslld   $16, %%xmm0")               // xmm0 = 00 B1 00 00
+                        __ASM_EMIT("psrld   $16, %%xmm4")               // xmm4 = 00 00 00 R1
+                        __ASM_EMIT("orpd    %%xmm2, %%xmm0")            // xmm0 = A1 B1 G1 00
+                        __ASM_EMIT("orpd    %%xmm4, %%xmm0")            // xmm0 = A1 B1 G1 R1
+                        __ASM_EMIT("movdqa  %%xmm0, 0x00(%[dst])")
+                        __ASM_EMIT("add     $0x20, %[src]")
+                        __ASM_EMIT("add     $0x20, %[dst]")
+                        __ASM_EMIT("sub     $4, %[count]")
+                        __ASM_EMIT("jnz     100f")
+                        __ASM_EMIT("jmp     200f")
+
+                // Tail
+                __ASM_EMIT("100:")
+                __ASM_EMIT("test    %[count], %[count]")
+                __ASM_EMIT("jz      200f")
+
+                __ASM_EMIT("150:")
+                __ASM_EMIT("movsd   (%[src]), %%xmm0")  // xmm0 = AA RR GG BB
+                __ASM_EMIT("movsd   %%xmm0, %%xmm1")    // xmm1 = AA RR GG BB
+                __ASM_EMIT("pand    %%xmm7, %%xmm0")    // xmm0 = 00 RR 00 BB
+                __ASM_EMIT("pand    %%xmm6, %%xmm1")    // xmm1 = AA 00 GG 00
+                __ASM_EMIT("movsd   %%xmm0, %%xmm2")    // xmm2 = 00 RR 00 BB
+                __ASM_EMIT("pslld   $16, %%xmm0")       // xmm0 = 00 BB 00 00
+                __ASM_EMIT("psrld   $16, %%xmm2")       // xmm2 = 00 00 00 RR
+                __ASM_EMIT("orpd    %%xmm1, %%xmm0")    // xmm0 = AA 00 GG RR
+                __ASM_EMIT("orpd    %%xmm2, %%xmm0")    // xmm0 = AA BB GG RR
+                __ASM_EMIT("movsd   %%xmm0, (%[dst])")
+                __ASM_EMIT("add     $4, %[src]")
+                __ASM_EMIT("add     $4, %[dst]")
+                __ASM_EMIT("dec     %[count]")
+                __ASM_EMIT("jnz     150b")
+
+                // End
+                __ASM_EMIT("200:")
+
+                : [count] "+r" (count),
+                  [dst] "+r"(dst),
+                  [src] "+r"(src)
+                : [MASK] "m" (X_CMASK)
+                : "cc", "memory",
+                  "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+                  "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+            );
         }
     }
 }

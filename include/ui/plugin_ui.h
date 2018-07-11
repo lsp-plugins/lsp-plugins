@@ -24,6 +24,7 @@ namespace lsp
             cvector<IWidget>            vWidgets;
             cvector<IUIPort>            vPorts;
             cvector<IUIPort>            vSortedPorts;
+            cvector<IUIPort>            vConfigPorts;
             cvector<UISwitchedPort>     vSwitched;
             cvector<PortAlias>          vAliases;
             cvector<IWidget>            vRedraw[2];
@@ -31,13 +32,21 @@ namespace lsp
             size_t                      nRedrawFrame;
 
         protected:
+            static const port_t         vConfigMetadata[];
+
+        protected:
             const plugin_metadata_t    *pMetadata;
+
             IWidgetFactory             *pFactory;
             IUIWrapper                 *pWrapper;
 
         protected:
-            bool apply_changes(const char *key, const char *value);
-            size_t rebuild_sorted_ports();
+            bool        apply_changes(const char *key, const char *value, cvector<IUIPort> &ports);
+            size_t      rebuild_sorted_ports();
+            void        serialize_ports(FILE *fd, cvector<IUIPort> &ports);
+            bool        deserialize_ports(FILE *fd, cvector<IUIPort> &ports);
+            bool        create_directory(const char *path);
+            FILE       *open_config_file(bool write);
 
         public:
             plugin_ui(const plugin_metadata_t *mdata, IWidgetFactory *factory);
@@ -91,6 +100,18 @@ namespace lsp
              * @return status of operation
              */
             bool import_settings(const char *filename);
+
+            /** Save global configuration file
+             *
+             * @return status of operation
+             */
+            bool save_global_config();
+
+            /** Load global configuration file
+             *
+             * @return status of operation
+             */
+            bool load_global_config();
 
             /** Get INTERNAL port by name
              *

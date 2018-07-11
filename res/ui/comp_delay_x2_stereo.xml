@@ -15,7 +15,7 @@
 			</vbox>
 		</align>
 		<grid rows="2" cols="5" transpose="true">
-			<group text="Signal L" >
+			<group text="Signal L" expand="true">
 				<vbox border="0">
 					<hbox border="0">	
 						<vbox border="0">

@@ -77,8 +77,13 @@ namespace lsp
 
     void ladspa_run(LADSPA_Handle Instance, unsigned long SampleCount)
     {
+        dsp_context_t ctx;
         LADSPAWrapper *w = reinterpret_cast<LADSPAWrapper *>(Instance);
+
+        // Call the plugin for processing
+        dsp::start(&ctx);
         w->run(SampleCount);
+        dsp::finish(&ctx);
     }
 
     void ladspa_deactivate(LADSPA_Handle Instance)

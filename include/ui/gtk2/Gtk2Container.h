@@ -13,7 +13,7 @@ namespace lsp
     class Gtk2Container : public Gtk2Widget
     {
         protected:
-            Color       sBgColor;
+            ColorHolder     sBgColor;
 
         public:
             Gtk2Container(plugin_ui *ui, widget_t w_class);

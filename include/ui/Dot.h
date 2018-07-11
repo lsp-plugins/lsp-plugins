@@ -42,6 +42,9 @@ namespace lsp
             ssize_t         nMouseX;
             ssize_t         nMouseY;
             size_t          nMouseBtn;
+            size_t          nBorder;
+            size_t          nPadding;
+            size_t          nSize;
 
         protected:
             void update();

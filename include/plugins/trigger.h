@@ -125,6 +125,7 @@ namespace lsp
             float                   fDynaTop;               // Dynamics top
             float                   fDynaBottom;            // Dynamics bottom
             float                   fReactivity;            // Reactivity
+            float_buffer_t         *pIDisplay;              // Inline display buffer
 
             // Control ports
             IPort                  *pFunction;              // Trigger function
@@ -184,6 +185,7 @@ namespace lsp
             virtual void update_sample_rate(long sr);
 
             virtual void process(size_t samples);
+            virtual bool inline_display(ICanvas *cv, size_t width, size_t height);
 
     };
 

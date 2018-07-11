@@ -36,6 +36,9 @@ namespace lsp
         nMouseX     = -1;
         nMouseY     = -1;
         nMouseBtn   = 0;
+        nBorder     = 12;
+        nPadding    = 4;
+        nSize       = 4;
 
         sColor.init(this, C_GRAPH_MESH, A_COLOR, -1, -1, -1, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
     }
@@ -75,21 +78,27 @@ namespace lsp
         // Draw the dot
         if (nFlags & F_EDITABLE)
         {
-            Color c1(sColor.color()), c2(sColor.color());
+            Color c1(sColor), c2(sColor);
 
             bool aa = cv->set_anti_aliasing(true);
             c2.alpha(0.9);
             if (nFlags & F_HIGHLIGHT)
-                cv->radial_gradient(x, y, c1, c2, 16);
+            {
+                if ((nBorder + nPadding) > 0)
+                    cv->radial_gradient(x, y, c1, c2, nBorder + nPadding);
+            }
             else
-                cv->radial_gradient(x, y, c1, c2, 12);
+            {
+                if (nBorder > 0)
+                    cv->radial_gradient(x, y, c1, c2, nBorder);
+            }
             cv->set_anti_aliasing(aa);
 
             cv->set_color_rgb(0, 0, 0);
-            cv->circle(x, y, 4);
+            cv->circle(x, y, nSize);
         }
 
-        cv->set_color(sColor.color());
+        cv->set_color(sColor);
         cv->circle(x, y, 3);
     }
 
@@ -102,6 +111,15 @@ namespace lsp
                 break;
             case A_HPOS:
                 PARSE_FLOAT(value, fLeft = __);
+                break;
+            case A_SIZE:
+                PARSE_INT(value, nSize = __);
+                break;
+            case A_BORDER:
+                PARSE_INT(value, nBorder = __);
+                break;
+            case A_PADDING:
+                PARSE_INT(value, nPadding = __);
                 break;
 
             case A_BASIS:
@@ -303,29 +321,35 @@ namespace lsp
         }
 
         // Modify the value according to X coordinate
-        if ((nMouseX == x) && (pLeft != NULL))
+        if (pLeft != NULL)
         {
-            pLeft->setValue(fLastLeft);
-            pLeft->notifyAll();
-        }
-        else if (basis != NULL)
-        {
-            float value = basis->project(cv, rx, ry);
-            pLeft->setValue(value);
-            pLeft->notifyAll();
+            if (nMouseX == x)
+            {
+                pLeft->setValue(fLastLeft);
+                pLeft->notifyAll();
+            }
+            else if (basis != NULL)
+            {
+                float value = basis->project(cv, rx, ry);
+                pLeft->setValue(value);
+                pLeft->notifyAll();
+            }
         }
 
         // Modify the value according to Y  coordinate
-        if ((nMouseY == y) && (pTop != NULL))
+        if (pTop != NULL)
         {
-            pTop->setValue(fLastTop);
-            pTop->notifyAll();
-        }
-        else if (parallel != NULL)
-        {
-            float value = parallel->project(cv, rx, ry);
-            pTop->setValue(value);
-            pTop->notifyAll();
+            if (nMouseY == y)
+            {
+                pTop->setValue(fLastTop);
+                pTop->notifyAll();
+            }
+            else if (parallel != NULL)
+            {
+                float value = parallel->project(cv, rx, ry);
+                pTop->setValue(value);
+                pTop->notifyAll();
+            }
         }
     }
 

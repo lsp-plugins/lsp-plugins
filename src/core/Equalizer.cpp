@@ -21,7 +21,6 @@ namespace lsp
         nFftRank        = 0;
         nLatency        = 0;
         nBufSize        = 0;
-        nActiveFilters  = 0;
         nMode           = EQM_BYPASS;
         vFftRe          = NULL;
         vFftIm          = NULL;
@@ -30,6 +29,7 @@ namespace lsp
         vBuffer         = NULL;
         vTmp            = NULL;
         pData           = NULL;
+        nFlags          = EF_REBUILD | EF_CLEAR;
     }
 
     Equalizer::~Equalizer()
@@ -40,6 +40,11 @@ namespace lsp
     bool Equalizer::init(size_t filters, size_t conv_rank)
     {
         destroy();
+
+        // Initialize filter bank
+        sBank.init(filters * FILTER_CHAINS_MAX);
+
+        // Initialize filters
         nSampleRate     = 0;
         vFilters        = new Filter[filters];
         if (vFilters == NULL)
@@ -81,12 +86,15 @@ namespace lsp
         // Initialize filters
         for (size_t i=0; i<filters; ++i)
         {
-            if (!vFilters[i].init())
+            if (!vFilters[i].init(&sBank))
             {
                 destroy();
                 return false;
             }
         }
+
+        // Mark equalizer for rebuild
+        nFlags              = EF_REBUILD | EF_CLEAR;
 
         return true;
     }
@@ -113,6 +121,8 @@ namespace lsp
             vTmp            = NULL;
             pData           = NULL;
         }
+
+        sBank.destroy();
     }
 
     void Equalizer::set_sample_rate(size_t sr)
@@ -136,11 +146,8 @@ namespace lsp
             return false;
 
         Filter *f = &vFilters[id];
-        if (f->active())
-            nActiveFilters--;
         f->update(nSampleRate, params);
-        if (f->active())
-            nActiveFilters++;
+        nFlags     |= EF_REBUILD;
         return true;
     }
 
@@ -154,7 +161,15 @@ namespace lsp
 
     void Equalizer::reconfigure()
     {
-        if ((nMode == EQM_IIR) || (nActiveFilters <= 0))
+        // Initialize bank
+        sBank.begin();
+        for (size_t i=0; i<nFilters; ++i)
+            vFilters[i].rebuild();
+        sBank.end(nFlags & EF_CLEAR);
+        nFlags              = 0;
+
+        // Quit if working in IIR mode
+        if (nMode == EQM_IIR)
             return;
 
         size_t conv_len     = nConvSize << 1;
@@ -173,22 +188,15 @@ namespace lsp
             // Clear buffers
             windows::window(conv_im, nConvSize*2, windows::BLACKMAN_NUTTALL);
 
-            // Get the FIR responses of all filters and convolve them
-            for (size_t i=0; i<nFilters; ++i)
-            {
-                if (vFilters[i].inactive())
-                    continue;
+            // Get impulse response
+            sBank.impulse_response(vFftRe, nConvSize);
+            dsp::fill_zero(vFftIm, nConvSize);
+            dsp::multiply(vFftRe, vFftRe, &conv_im[nConvSize], nConvSize);  // Apply window function to the impulse response
 
-                // Get the impulse response of the filter
-                vFilters[i].impulse_response(vFftRe, nConvSize);
-                dsp::fill_zero(vFftIm, nConvSize);
-                dsp::multiply(vFftRe, vFftRe, &conv_im[nConvSize], nConvSize);  // Apply window function to the impulse response
-
-                // Do the FFT of the impulse response
-                dsp::direct_fft(vFftRe, vFftIm, vFftRe, vFftIm, nFftRank);
-                dsp::complex_mod(vFftRe, vFftRe, vFftIm, nConvSize);
-                dsp::multiply(conv_re, conv_re, vFftRe, nConvSize);             // Apply the frequency chart relative to the IR
-            }
+            // Do the FFT of the impulse response
+            dsp::direct_fft(vFftRe, vFftIm, vFftRe, vFftIm, nFftRank);
+            dsp::complex_mod(vFftRe, vFftRe, vFftIm, nConvSize);
+            dsp::multiply(conv_re, conv_re, vFftRe, nConvSize);             // Apply the frequency chart relative to the IR
         }
         else if (nMode == EQM_FFT)
         {
@@ -240,8 +248,8 @@ namespace lsp
     {
         if (mode == nMode)
             return;
-        nMode   = mode;
-        reconfigure();
+        nMode       = mode;
+        nFlags     |= EF_REBUILD | EF_CLEAR;
     }
 
     bool Equalizer::freq_chart(size_t id, float *re, float *im, const float *f, size_t count)
@@ -254,6 +262,9 @@ namespace lsp
 
     void Equalizer::process(float *out, const float *in, size_t samples)
     {
+        if (nFlags != 0)
+            reconfigure();
+
         switch (nMode)
         {
             case EQM_BYPASS:
@@ -264,15 +275,7 @@ namespace lsp
 
             case EQM_IIR:
             {
-                const float *src = in;
-                for (size_t i=0; i<nFilters; ++i)
-                {
-                    if (!vFilters[i].inactive())
-                    {
-                        vFilters[i].process(out, src, samples);
-                        src     = out; // Actual data is in output buffer
-                    }
-                }
+                sBank.process(out, in, samples);
                 break;
             }
 
@@ -288,7 +291,7 @@ namespace lsp
 
                         dsp::fill_zero(&vFftRe[nConvSize], nConvSize);
 
-                        if (nActiveFilters > 0)
+                        if (sBank.size() > 0)
                         {
                             // Perform the direct FFT of the input signal
                             dsp::fill_zero(vFftIm, conv_len);

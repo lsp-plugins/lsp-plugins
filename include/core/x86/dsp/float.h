@@ -12,6 +12,70 @@ namespace lsp
 {
     namespace sse
     {
+        static uint32_t mxcsr_mask;
+
+        inline uint32_t read_mxcsr()
+        {
+            uint32_t result = 0;
+
+            __asm__ __volatile__
+            (
+                __ASM_EMIT("stmxcsr %[result]")
+
+                : [result] "+m" (result)
+                :
+                : "memory"
+            );
+
+            return result;
+        }
+
+        inline void init_mxcsr_mask()
+        {
+            uint8_t fxsave[512] __lsp_aligned16;
+            uint8_t *ptr        = fxsave;
+
+            __asm__ __volatile__
+            (
+                // Clear FXSAVE structure
+                __ASM_EMIT("xor     %%eax, %%eax")
+                __ASM_EMIT("mov     $0x80, %%ecx")
+                __ASM_EMIT("rep     stosl")
+
+                // Issue fxsave
+                __ASM_EMIT("fxsave  (%[fxsave])")
+
+                // Get mask
+                __ASM_EMIT("mov     0x1c(%[fxsave]), %%eax")
+                __ASM_EMIT("test    %%eax, %%eax")
+                __ASM_EMIT("jnz     1f")
+                __ASM_EMIT("mov     $0xffbf, %%eax") // Old processors issue zero MXCSR mask
+                __ASM_EMIT("1:")
+
+                // Store MXCSR mask
+                __ASM_EMIT("mov     %%eax, %[mask]")
+
+                : "+D" (ptr), [fxsave] "+S" (ptr), [mask] "+m" (mxcsr_mask)
+                :
+                : "cc", "memory",
+                  "%eax", "%ecx"
+            );
+        }
+
+        inline void write_mxcsr(uint32_t value)
+        {
+            __asm__ __volatile__
+            (
+                // Clear FXSAVE structure
+                __ASM_EMIT("and         %[mask], %[value]")
+                __ASM_EMIT("ldmxcsr     %[value]")
+
+                : [value] "+m" (value)
+                : [mask] "r" (mxcsr_mask)
+                : "cc", "memory"
+            );
+        }
+
         static void copy_saturated(float *dst, const float *src, size_t count)
         {
             #define MULTIPLE_SATURATION_BODY(ld, st) \

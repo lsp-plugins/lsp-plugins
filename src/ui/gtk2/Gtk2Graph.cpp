@@ -150,10 +150,10 @@ namespace lsp
             else
                 cairo_set_source_rgb(cr, sColor.red(), sColor.green(), sColor.blue());
 
-            cairo_arc(cr, bw, bw, bw - i, M_PI, 1.5 * M_PI);
-            cairo_arc(cr, nWidth - bw, bw, bw - i, 1.5 * M_PI, 2.0 * M_PI);
-            cairo_arc(cr, nWidth - bw, nHeight - bw, bw - i, 0.0, 0.5 * M_PI);
-            cairo_arc(cr, bw, nHeight - bw, bw - i, 0.5 * M_PI, M_PI);
+            cairo_arc(cr, bw + 0.5, bw + 0.5, bw - i, M_PI, 1.5 * M_PI);
+            cairo_arc(cr, nWidth - bw - 0.5, bw + 0.5, bw - i, 1.5 * M_PI, 2.0 * M_PI);
+            cairo_arc(cr, nWidth - bw - 0.5, nHeight - bw - 0.5, bw - i, 0.0, 0.5 * M_PI);
+            cairo_arc(cr, bw + 0.5, nHeight - bw - 0.5, bw - i, 0.5 * M_PI, M_PI);
             cairo_close_path(cr);
 
             if (i < nRadius)

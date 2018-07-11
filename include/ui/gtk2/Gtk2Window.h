@@ -19,24 +19,25 @@ namespace lsp
                 C_BOX,
                 C_LEFT,
                 C_MIDDLE,
+                C_MENU,
                 C_RIGHT,
                 C_TOTAL,
 
                 C_FIRST = C_ROOT
             };
 
-            Color       sBgColor;
-            IWidget    *pWidgets[C_TOTAL];
-            bool        bBody;
-            ssize_t     nWidth;
-            ssize_t     nHeight;
-            bool        bResizable;
-            bool        bMapped;
-            bool        bRedrawing;
-            guint       hFunction;
-            guint       hMapHandler;
-            guint       hUnmapHandler;
-            GtkWidget  *pToplevel;
+            ColorHolder     sBgColor;
+            IWidget        *pWidgets[C_TOTAL];
+            bool            bBody;
+            ssize_t         nWidth;
+            ssize_t         nHeight;
+            bool            bResizable;
+            bool            bMapped;
+            bool            bRedrawing;
+            guint           hFunction;
+            guint           hMapHandler;
+            guint           hUnmapHandler;
+            GtkWidget      *pToplevel;
 
         public:
             Gtk2Window(plugin_ui *ui);

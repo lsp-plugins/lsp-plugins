@@ -25,6 +25,11 @@ namespace lsp
              * @return executor service
              */
             virtual IExecutor *get_executor();
+
+            /** Query for inline display drawing
+             *
+             */
+            virtual void query_display_draw();
     };
 
 } /* namespace lsp */

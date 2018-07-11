@@ -25,7 +25,9 @@ namespace lsp
                 bool        bOn;                // On flag
                 bool        bSolo;              // Soloing flag
                 bool        bFreeze;            // Freeze flag
+                bool        bSend;              // Send to UI flag
                 float       fGain;              // Makeup gain
+                float       fHue;               // Hue
                 ssize_t     nSamples;           // Number of skipped samples
 
                 // Port references
@@ -89,6 +91,7 @@ namespace lsp
 
         protected:
             sa_core_t          *pChannels;
+            float_buffer_t     *pIDisplay;      // Inline display buffer
 
         public:
             spectrum_analyzer_base(const plugin_metadata_t &metadata);
@@ -102,6 +105,7 @@ namespace lsp
             virtual void update_sample_rate(long sr);
 
             virtual void process(size_t samples);
+            virtual bool inline_display(ICanvas *cv, size_t width, size_t height);
     };
 
     class spectrum_analyzer_x1: public spectrum_analyzer_base, public spectrum_analyzer_x1_metadata

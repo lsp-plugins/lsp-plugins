@@ -8,6 +8,8 @@
 #include <ui/gtk2/ui.h>
 #include <container/const.h>
 
+#define MSTUD_PORT      UI_CONFIG_PORT_PREFIX UI_MOUNT_STUD_PORT_ID
+
 namespace lsp
 {
     Gtk2Window::Gtk2Window(plugin_ui *ui) : Gtk2Container(ui, W_PLUGIN)
@@ -66,6 +68,10 @@ namespace lsp
 
             pToplevel   = NULL;
         }
+
+        // Forget widgets
+        for (size_t i=C_FIRST; i < C_TOTAL; ++i)
+            pWidgets[i]     = NULL;
     }
 
     void Gtk2Window::set(widget_attribute_t att, const char *value)
@@ -110,17 +116,31 @@ namespace lsp
         // Left part with logo
         pWidgets[C_LEFT]    =   pUI->createWidget(W_MSTUD);
         pWidgets[C_LEFT]    ->  set(A_TEXT, LSP_ACRONYM);
-        pWidgets[C_LEFT]    ->  set(A_ANGLE, "1");
+        pWidgets[C_LEFT]    ->  set(A_ANGLE, "0");
+        pWidgets[C_LEFT]    ->  set(A_VISIBILITY_ID, MSTUD_PORT);
+        pWidgets[C_LEFT]    ->  set(A_VISIBILITY_KEY, "1");
         pWidgets[C_LEFT]    ->  begin();
         pWidgets[C_LEFT]    ->  end();
         pWidgets[C_BOX]     ->  add(pWidgets[C_LEFT]);
 
         // Middle part with plugin contents
-        pWidgets[C_MIDDLE]  =   pUI->createWidget(W_ALIGN);
+        pWidgets[C_MIDDLE]  =   pUI->createWidget(W_VBOX);
         pWidgets[C_MIDDLE]  ->  set(A_BORDER, "2");
         pWidgets[C_MIDDLE]  ->  begin();
 
         bBody               =   true;
+
+        snprintf(buf, sizeof(buf), "%s  %s", LSP_ACRONYM, pUI->metadata()->acronym);
+
+        // Add menu
+        pWidgets[C_MENU]    =   pUI->createWidget(W_MSTUD);
+        pWidgets[C_MENU]    ->  set(A_TEXT, buf);
+        pWidgets[C_MENU]    ->  set(A_ANGLE, "2");
+        pWidgets[C_MENU]    ->  set(A_VISIBILITY_ID, MSTUD_PORT);
+        pWidgets[C_MENU]    ->  set(A_VISIBILITY_KEY, "0");
+        pWidgets[C_MENU]    ->  begin();
+        pWidgets[C_MENU]    ->  end();
+        pWidgets[C_MIDDLE]  ->  add(pWidgets[C_MENU]);
     }
 
     void Gtk2Window::add(IWidget *widget)
@@ -146,7 +166,9 @@ namespace lsp
         // Right part with plugin name
         pWidgets[C_RIGHT]   =   pUI->createWidget(W_MSTUD);
         pWidgets[C_RIGHT]   ->  set(A_TEXT, mdata->acronym);
-        pWidgets[C_RIGHT]   ->  set(A_ANGLE, "0");
+        pWidgets[C_RIGHT]   ->  set(A_ANGLE, "1");
+        pWidgets[C_RIGHT]   ->  set(A_VISIBILITY_ID, MSTUD_PORT);
+        pWidgets[C_RIGHT]   ->  set(A_VISIBILITY_KEY, "1");
         pWidgets[C_RIGHT]   ->  begin();
         pWidgets[C_RIGHT]   ->  end();
         pWidgets[C_BOX]     ->  add(pWidgets[C_RIGHT]);

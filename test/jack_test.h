@@ -10,9 +10,25 @@ namespace jack_test
 
     int test(int argc, const char **argv)
     {
-        return JACK_MAIN_FUNCTION("trigger_mono", argc, argv);
-//        return JACK_MAIN_FUNCTION("para_equalizer_x32_ms", argc, argv);
-//        return JACK_MAIN_FUNCTION("phase_detector", argc, argv);
+        const char *plugin =
+//                "graph_equalizer_x16_mono";
+//                "graph_equalizer_x16_stereo";
+//                "graph_equalizer_x16_lr";
+//                "graph_equalizer_x16_ms";
+//                "graph_equalizer_x32_mono";
+//                "graph_equalizer_x32_stereo";
+//                "graph_equalizer_x32_lr";
+//                "graph_equalizer_x32_ms";
+//                "para_equalizer_x16_stereo";
+                "para_equalizer_x16_mono";
+//                "trigger_mono";
+//                "trigger_stereo";
+//                "phase_detector";
+//                "spectrum_analyzer_x2";
+//                "sampler_mono";
+//                "comp_delay_x2_stereo";
+
+        return JACK_MAIN_FUNCTION(plugin, argc, argv);
     }
     
 }

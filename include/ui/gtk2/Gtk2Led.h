@@ -13,7 +13,7 @@ namespace lsp
     class Gtk2Led: public Gtk2CustomWidget
     {
         private:
-            Color               sBgColor;
+            ColorHolder         sBgColor;
             size_t              nSize;
             IUIPort            *pPort;
             float               fValue;

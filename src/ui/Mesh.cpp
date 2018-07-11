@@ -139,17 +139,17 @@ namespace lsp
         // Now we have dots in x_vec[] and y_vec[]
         bool aa = cv->set_anti_aliasing(bSmooth);
         cv->set_line_width(nWidth);
-        if (sColor.color().alpha() <= 0.0)
+        if (sColor.alpha() <= 0.0)
         {
-            cv->set_color(sColor.color());
+            cv->set_color(sColor);
             cv->draw_lines(x_vec, y_vec, mesh->nItems);
             cv->stroke();
         }
         else
         {
-            Color line(sColor.color());
+            Color line(sColor);
             line.alpha(0);
-            cv->draw_poly(x_vec, y_vec, mesh->nItems, line, sColor.color());
+            cv->draw_poly(x_vec, y_vec, mesh->nItems, line, sColor);
         }
         cv->set_anti_aliasing(aa);
     }
@@ -168,7 +168,7 @@ namespace lsp
                 PARSE_INT(value, nCenter = __);
                 break;
             case A_FILL:
-                PARSE_FLOAT(value, sColor.color().alpha(__));
+                PARSE_FLOAT(value, sColor.alpha(__));
                 break;
             case A_SMOOTH:
                 PARSE_BOOL(value, bSmooth = __);

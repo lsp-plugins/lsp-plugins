@@ -24,6 +24,9 @@
 #include <lv2/lv2plug.in/ns/extensions/units/units.h>
 #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
 
+// Non-official features
+#include <3rdparty/ardour/inline-display.h>
+
 // Include common definitions
 #include <container/const.h>
 
@@ -73,6 +76,7 @@ namespace lsp
             LV2_URID_Map           *map;
             LV2_URID_Unmap         *unmap;
             LV2_Worker_Schedule    *sched;
+            LV2_Inline_Display     *iDisplay;
 
             // State interface
             LV2_State_Store_Function    hStore;
@@ -118,7 +122,9 @@ namespace lsp
                 map                 = NULL;
                 unmap               = NULL;
                 sched               = NULL;
+                iDisplay            = NULL;
 
+                // Scan features
                 if (feat != NULL)
                 {
                     for (size_t i=0; feat[i]; ++i)
@@ -127,10 +133,12 @@ namespace lsp
 
                         if (!strcmp(f->URI, LV2_URID__map))
                             map = reinterpret_cast<LV2_URID_Map *>(f->data);
-                        if (!strcmp(f->URI, LV2_URID__unmap))
+                        else if (!strcmp(f->URI, LV2_URID__unmap))
                             unmap = reinterpret_cast<LV2_URID_Unmap *>(f->data);
-                        if (!strcmp(f->URI, LV2_WORKER__schedule))
+                        else if (!strcmp(f->URI, LV2_WORKER__schedule))
                             sched = reinterpret_cast<LV2_Worker_Schedule *>(f->data);
+                        else if (!strcmp(f->URI, LV2_INLINEDISPLAY__queue_draw))
+                            iDisplay = reinterpret_cast<LV2_Inline_Display *>(f->data);
                     }
                 }
 

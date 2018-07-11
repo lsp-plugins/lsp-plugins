@@ -9,6 +9,8 @@
 #define CORE_FILTER_H_
 
 #include <core/types.h>
+#include <core/dsp.h>
+#include <core/FilterBank.h>
 
 namespace lsp
 {
@@ -16,7 +18,6 @@ namespace lsp
     const size_t FILTER_RANK_MIN            = 8;
     const size_t FILTER_RANK_MAX            = 12;
     const size_t FILTER_CONVOLUTION_MAX     = (1 << FILTER_RANK_MAX);
-    const size_t FILTER_POLY_MAX            = 0x20;
     const size_t FILTER_CHAINS_MAX          = 0x20;
 
     enum filter_type_t
@@ -39,6 +40,10 @@ namespace lsp
         FLT_MT_RLC_RESONANCE,
         FLT_BT_RLC_NOTCH,
         FLT_MT_RLC_NOTCH,
+        FLT_BT_RLC_LADDERPASS,
+        FLT_MT_RLC_LADDERPASS,
+        FLT_BT_RLC_LADDERREJ,
+        FLT_MT_RLC_LADDERREJ,
         FLT_BT_RLC_BANDPASS,
         FLT_MT_RLC_BANDPASS,
 
@@ -53,6 +58,10 @@ namespace lsp
         FLT_MT_BWC_HISHELF,
         FLT_BT_BWC_BELL,
         FLT_MT_BWC_BELL,
+        FLT_BT_BWC_LADDERPASS,
+        FLT_MT_BWC_LADDERPASS,
+        FLT_BT_BWC_LADDERREJ,
+        FLT_MT_BWC_LADDERREJ,
         FLT_BT_BWC_BANDPASS,
         FLT_MT_BWC_BANDPASS,
 
@@ -67,6 +76,10 @@ namespace lsp
         FLT_MT_LRX_HISHELF,
         FLT_BT_LRX_BELL,
         FLT_MT_LRX_BELL,
+        FLT_BT_LRX_LADDERPASS,
+        FLT_MT_LRX_LADDERPASS,
+        FLT_BT_LRX_LADDERREJ,
+        FLT_MT_LRX_LADDERREJ,
         FLT_BT_LRX_BANDPASS,
         FLT_MT_LRX_BANDPASS
     };
@@ -95,26 +108,9 @@ namespace lsp
             {
                 double      t[4];       // Top part of polynom (zeros)
                 double      b[4];       // Bottom part of polynom (poles)
-                float       ir[8];      // Impulse response
-                float       delay[4];   // Delay line for processing
+//                float       ir[8];      // Impulse response
             } cascade_t;
             #pragma pack(pop)
-
-            typedef struct filter_poly_t
-            {
-                double      vItems[(FILTER_CHAINS_MAX + 1) * 2];        // Polynom coefficients
-                size_t      nItems;                                     // Number of coefficients
-            } filter_poly_t;
-
-            typedef struct filter_chain_t
-            {
-                cascade_t          *vItems;                             // Filter cascades
-                filter_poly_t       sTop;                               // Transfer function, top part
-                filter_poly_t       sBottom;                            // Transfer function, bottom part
-                size_t              nItems;                             // Number of cascades
-                filter_params_t     sParams;                            // Filter parameters
-                uint8_t            *vData;                              // Allocated data
-            } filter_chain_t;
 
             enum filter_mode_t
             {
@@ -123,30 +119,37 @@ namespace lsp
                 FM_MATCHED          // Matched Z-transform
             };
 
+            enum filter_flags_t
+            {
+                FF_REBUILD,
+                FF_CLEAR
+            };
+
         protected:
-            filter_chain_t      sDirect;        // Filter direct chain
+            filter_params_t     sParams;        // Filter parameters
+            FilterBank          sBank;          // Internal bank of filters
             size_t              nSampleRate;    // Sample rate
             filter_mode_t       nMode;          // Filter mode
             size_t              nLatency;       // Filter latency
+            size_t              nItems;         // Number of cascades
+            cascade_t          *vItems;         // Filter cascades
+//            biquad_t           *vFilters;       // Chain of filters
+            FilterBank         *pBank;          // External bank of filters
+            uint8_t            *vData;          // Allocated data
+            size_t              nFlags;         // Filter flags
 
         protected:
-            static inline void poly_create(filter_poly_t *dst, size_t count);
-            static inline void poly_copy(filter_poly_t *dst, const filter_poly_t *src);
-            static void poly_mul(filter_poly_t *dst, const double *src);
-            static double complex_transfer_calc(double *p_re, double *p_im, double x, const filter_poly_t *fp);
-            static cascade_t *add_cascade(filter_chain_t *chain);
 
-        protected:
-            void freq_chart(filter_chain_t *chain, float *re, float *im, const float *f, size_t count);
+            void complex_transfer_calc(float *re, float *im, double f);
+//            void optimize_structure();
+            cascade_t *add_cascade();
 
-            void build_filter(filter_chain_t *chain);
-            void build_transfer_function(filter_chain_t *chain);
-
-            void calc_rlc_filter(size_t type, const filter_params_t *fp, filter_chain_t *chain);
-            void calc_bwc_filter(size_t type, const filter_params_t *fp, filter_chain_t *chain);
-            void calc_lrx_filter(size_t type, filter_chain_t *chain);
-            void bilinear_transform(filter_chain_t *chain);
-            void matched_transform(filter_chain_t *chain);
+            void calc_rlc_filter(size_t type, const filter_params_t *fp);
+            void calc_bwc_filter(size_t type, const filter_params_t *fp);
+            void calc_lrx_filter(size_t type, const filter_params_t *fp);
+            float bilinear_relative(float f1, float f2);
+            void bilinear_transform();
+            void matched_transform();
 
         public:
             Filter();
@@ -155,10 +158,10 @@ namespace lsp
         public:
             /**  Initialize filter
              *
-             * @param sr sample rate
+             * @param fb filter bank to use
              * @return true on success
              */
-            bool init();
+            bool init(FilterBank *fb);
 
             /** Destroy filter data
              *
@@ -189,8 +192,9 @@ namespace lsp
              *
              * @param out output buffer to store the impulse response
              * @param length length of the impulse response
+             * @return true if impulse response can be taken, false if need to take it from bank
              */
-            void impulse_response(float *out, size_t length);
+            bool impulse_response(float *out, size_t length);
 
             /** Get frequency chart
              *
@@ -199,10 +203,12 @@ namespace lsp
              * @param f frequencies to calculate value
              * @param count number of dots for the chart
              */
-            inline void freq_chart(float *re, float *im, const float *f, size_t count)
-            {
-                freq_chart(&sDirect, re, im, f, count);
-            }
+            void freq_chart(float *re, float *im, const float *f, size_t count);
+
+            /** Rebuild filter
+             * Forces the filter to rebuild into bank of filters
+             */
+            void rebuild();
 
             /** Get filter latency
              *

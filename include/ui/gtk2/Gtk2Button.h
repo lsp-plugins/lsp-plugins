@@ -17,11 +17,12 @@ namespace lsp
             {
                 S_PRESSED   = (1 << 0),
                 S_TOGGLED   = (1 << 1),
-                S_LED       = (1 << 2)
+                S_OUT       = (1 << 2),
+                S_LED       = (1 << 3)
             };
 
-            Color               sColor;
-            Color               sBgColor;
+            ColorHolder         sColor;
+            ColorHolder         sBgColor;
 
             IUIPort            *pPort;
             size_t              nSize;

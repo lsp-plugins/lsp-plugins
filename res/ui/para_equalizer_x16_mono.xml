@@ -14,7 +14,7 @@
 			<hbox>
 				<vbox>
 					<align expand="true" pad_bottom="4">
-						<graph width="640" height="320" expand="true" fill="true">
+						<graph width="640" height="340" expand="true" fill="true">
 							<center hpos="-1" vpos="-1" visible="false" />
 							
 							<!-- Gray grid -->
@@ -45,8 +45,8 @@
 							<ui:for id="i" first="0" last="15">
 								<mesh id="agf_${i}" color="eq_base" width="2" hue_id="hue_${i}" visibility_id="fv_${i}" fill="0.8" smooth="true" />
 							</ui:for>
-							<mesh id="ag" width="3" color="middle_channel" smooth="true" />
 							<mesh id="fftg" width="2" color="middle_channel" />
+							<mesh id="ag" width="3" color="middle_channel" smooth="true" />
 							<ui:for id="i" first="0" last="15">
 								<dot hpos_id="f_${i}" vpos_id="g_${i}" scroll_id="q_${i}"
 									editable="true" color="eq_base"
@@ -88,15 +88,19 @@
 				</vbox>
 				<vbox>
 					<group text="Signal" expand="true">
-						<vbox>
+						<grid rows="6" cols="2" transpose="true">
 							<label text="Input" />
 							<knob id="g_in" expand="true" />
 							<value id="g_in" />
-							
 							<label text="Output" expand="true" />
 							<knob id="g_out" />
 							<value id="g_out" />
-						</vbox>
+							
+							<cell rows="5">
+								<meter id="sm" angle="1" type="vu" height="128" logarithmic="true" min="0.01585" max="2" color="middle_channel" pad_left="2" pad_right="2" />
+							</cell>
+							<label text="Out" color="middle_channel" font_size="8" />
+						</grid>
 					</group>
 					<group text="Analysis" expand="true">
 						<vbox>

@@ -29,6 +29,7 @@ namespace lsp
         fVAlign     = 0.5f;
         fHAlign     = 0.5f;
         bDetailed   = true;
+        bSameLine   = false;
         nFontSize   = -1;
         nUnits      = U_NONE - 1;
         nPrecision  = -1;
@@ -102,6 +103,9 @@ namespace lsp
             case A_DETAILED:
                 PARSE_BOOL(value, bDetailed = __);
                 break;
+            case A_SAME_LINE:
+                PARSE_BOOL(value, bSameLine = __);
+                break;
             case A_PRECISION:
                 PARSE_INT(value, nPrecision = __);
                 break;
@@ -139,7 +143,7 @@ namespace lsp
                     format_value(buf, TMP_BUF_SIZE, mdata, fValue, nPrecision);
 
                     if (bDetailed)
-                        snprintf(a_text, sizeof(a_text), "%s\n%s", buf, (u_name != NULL) ? u_name : "" );
+                        snprintf(a_text, sizeof(a_text), "%s%c%s", buf, (bSameLine) ? ' ' : '\n', (u_name != NULL) ? u_name : "" );
                     else
                         snprintf(a_text, sizeof(a_text), "%s", buf);
                     text    = a_text;

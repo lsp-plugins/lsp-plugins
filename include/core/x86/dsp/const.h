@@ -16,8 +16,29 @@ namespace lsp
     #define SFENCE                      __asm__ __volatile__ ( __ASM_EMIT("sfence") )
     #define EMMS                        __asm__ __volatile__ ( __ASM_EMIT("emms") )
     #define MOVNTPS                     "movaps"
-    #define SSE_SVEC4(name, value)      const float name[] __lsp_aligned16      = { value, value, value, value }
-    #define SSE_UVEC4(name, value)      const uint32_t name[] __lsp_aligned16   = { value, value, value, value }
+    #define SSE_SVEC4(name, value)      static const float name[] __lsp_aligned16      = { value, value, value, value }
+    #define SSE_UVEC4(name, value)      static const uint32_t name[] __lsp_aligned16   = { value, value, value, value }
+    #define SSE_UVEC(name, a, b, c, d)  static const uint32_t name[] __lsp_aligned16   = { uint32_t(a), uint32_t(b), uint32_t(c), uint32_t(d) }
+
+    #define MXCSR_IE                    (1 << 0)
+    #define MXCSR_DE                    (1 << 1)
+    #define MXCSR_ZE                    (1 << 2)
+    #define MXCSR_OE                    (1 << 3)
+    #define MXCSR_UE                    (1 << 4)
+    #define MXCSR_PE                    (1 << 5)
+    #define MXCSR_DAZ                   (1 << 6) /* Denormals are zeros flag */
+    #define MXCSR_IM                    (1 << 7)
+    #define MXCSR_DM                    (1 << 8)
+    #define MXCSR_ZM                    (1 << 9)
+    #define MXCSR_OM                    (1 << 10)
+    #define MXCSR_UM                    (1 << 11)
+    #define MXCSR_PM                    (1 << 12)
+    #define MXCSR_RC_MASK               (3 << 13)
+    #define MXCSR_RC_NEAREST            (0 << 13)
+    #define MXCSR_RC_N_INF              (1 << 13)
+    #define MXCSR_RC_P_INF              (2 << 13)
+    #define MXCSR_RC_ZERO               (3 << 13)
+    #define MXCSR_FZ                    (1 << 15) /* Flush to zero flag */
 
     namespace sse
     {
@@ -51,6 +72,7 @@ namespace lsp
         SSE_SVEC4(LXE, -2.12194440e-4);
 
         /* Math constants */
+        SSE_SVEC4(ZERO, 0.0f);
         SSE_SVEC4(ONE, 1.0f);
         SSE_SVEC4(PI,  M_PI);
         SSE_SVEC4(PI_2, M_PI_2);
@@ -72,12 +94,16 @@ namespace lsp
         SSE_UVEC4(X_P_INFM1,0x7f7fffff);
         SSE_UVEC4(X_N_INFM1,0xff7fffff);
         SSE_UVEC4(X_ZERO_M1,0xffffffff);
+        SSE_UVEC4(X_CMASK,  0x00ff00ff);
 
         /* Saturation replacement */
         SSE_SVEC4(SX_P_INF, FLOAT_SAT_P_INF);
         SSE_SVEC4(SX_N_INF, FLOAT_SAT_N_INF);
         SSE_SVEC4(SX_P_NAN, FLOAT_SAT_P_NAN);
         SSE_SVEC4(SX_N_NAN, FLOAT_SAT_N_NAN);
+
+        /* Miscellaneous vectors */
+        SSE_UVEC(X_MASK0001, -1, 0, 0, 0);
     }
 
     namespace sse

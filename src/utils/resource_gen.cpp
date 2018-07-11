@@ -24,19 +24,13 @@ namespace lsp
 
         inline int compare(const xml_word_t *w) const
         {
-            int len = length - w->length;
-            if (len != 0)
-                return len;
+            int h = length * refs - w->length * w->refs;
+            if (h != 0)
+                return h;
+
             return strcmp(text, w->text);
         }
 
-        inline int compare(const char *s, size_t l) const
-        {
-            int len = length - l;
-            if (len != 0)
-                return len;
-            return strcmp(text, s);
-        }
     } xml_word_t;
 
     typedef struct xml_parser_t
@@ -47,30 +41,33 @@ namespace lsp
         cvector<xml_word_t>        *dict;
     } xml_parser_t;
 
+    static xml_word_t *res_dict_get(cvector<xml_word_t> *dict, const char *key)
+    {
+        size_t items    = dict->size();
+        size_t len      = strlen(key);
+        for (size_t i=0; i<items; ++i)
+        {
+            xml_word_t *w   = dict->at(i);
+            if (w->length != len)
+                continue;
+            if (!strcmp(w->text, key))
+                return w;
+        }
+
+        return NULL;
+    }
+
     static bool res_dict_add(cvector<xml_word_t> *dict, const char *item)
     {
-        xml_word_t *w = NULL;
-        ssize_t left = 0, right = dict->size()-1;
-        size_t length = strlen(item);
-
-        while (left <= right)
+        xml_word_t *w = res_dict_get(dict, item);
+        if (w != NULL)
         {
-            ssize_t center  = (left + right) >> 1;
-            w               = dict->at(center);
-            int cmp         = w->compare(item, length);
-
-            if (cmp < 0)
-                left    = center + 1;
-            else if (cmp > 0)
-                right   = center - 1;
-            else
-            {
-                w->refs     ++;
-                return true; // Word is already in dictionary
-            }
+            w->refs        ++;
+            return true;
         }
 
         // Create new word for the dictionary and initialize it
+        size_t length       = strlen(item);
         w                   = reinterpret_cast<xml_word_t *>(malloc(sizeof(xml_word_t) + length + 1));
         if (item == 0)
             return false;
@@ -80,35 +77,13 @@ namespace lsp
         memcpy(w->text, item, length + 1);
 
         // Add new word
-        if (!dict->insert(w, left))
+        if (!dict->add(w))
         {
             free(w);
             return false;
         }
 
         return true;
-    }
-
-    static xml_word_t *res_dict_get(cvector<xml_word_t> *dict, const char *key)
-    {
-        ssize_t left = 0, right = dict->size()-1;
-        size_t length = strlen(key);
-
-        while (left <= right)
-        {
-            ssize_t center  = (left + right) >> 1;
-            xml_word_t *w   = dict->at(center);
-            int cmp         = w->compare(key, length);
-
-            if (cmp < 0)
-                left    = center + 1;
-            else if (cmp > 0)
-                right   = center - 1;
-            else
-                return w;
-        }
-
-        return NULL;
     }
 
     static void xml_pre_start_element_handler(void *userData, const XML_Char *name, const XML_Char **atts)
@@ -376,7 +351,17 @@ namespace lsp
 
     int emit_dictionary(FILE *out, cvector<xml_word_t> *dict)
     {
-        size_t items = dict->size();
+        size_t items    = dict->size();
+
+        // Sort dictionary
+        for (size_t i=0; i<(items-1); ++i)
+            for (size_t j=i+1; j<items; ++j)
+            {
+                xml_word_t *w1  = dict->at(i);
+                xml_word_t *w2  = dict->at(j);
+                if (w1->compare(w2) < 0)
+                    dict->swap_unsafe(i, j);
+            }
 
         // Output resource descriptor
         fprintf(out,    "\t// XML Dictionary\n");

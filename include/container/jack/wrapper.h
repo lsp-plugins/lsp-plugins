@@ -14,6 +14,8 @@
 #include <core/IWrapper.h>
 #include <core/IPort.h>
 #include <core/NativeExecutor.h>
+#include <core/ICanvas.h>
+#include <container/CairoCanvas.h>
 
 #include <ui/ui.h>
 #include <ui/IUIWrapper.h>
@@ -32,6 +34,9 @@ namespace lsp
             plugin_ui          *pUI;
             IExecutor          *pExecutor;
             jack_client_t      *pClient;
+            atomic_t            nQueryDraw;
+            atomic_t            nQueryDrawLast;
+            CairoCanvas        *pCanvas;
 
             cvector<JACKPort>   vPorts;
             cvector<JACKUIPort> vUIPorts;
@@ -45,6 +50,9 @@ namespace lsp
                 pUI             = ui;
                 pExecutor       = NULL;
                 pClient         = NULL;
+                nQueryDraw      = 0;
+                nQueryDrawLast  = 0;
+                pCanvas         = NULL;
             }
 
             virtual ~JACKWrapper()
@@ -53,6 +61,9 @@ namespace lsp
                 pUI             = NULL;
                 pExecutor       = NULL;
                 pClient         = NULL;
+                nQueryDraw      = 0;
+                nQueryDrawLast  = 0;
+                pCanvas         = NULL;
             }
 
         protected:
@@ -73,6 +84,21 @@ namespace lsp
             int init();
             void destroy();
             bool transfer_dsp_to_ui();
+
+            // Inline display interface
+            canvas_data_t *render_inline_display(size_t width, size_t height);
+            virtual void query_display_draw()
+            {
+                nQueryDraw++;
+            }
+
+            inline bool test_display_draw()
+            {
+                atomic_t last       = nQueryDraw;
+                bool result         = last != nQueryDrawLast;
+                nQueryDrawLast      = last;
+                return result;
+            }
     };
 }
 
@@ -85,9 +111,16 @@ namespace lsp
 {
     int JACKWrapper::process(jack_nframes_t nframes, void *arg)
     {
+        dsp_context_t ctx;
+        int result;
+
         // Call the plugin for processing
-        JACKWrapper *_this = reinterpret_cast<JACKWrapper *>(arg);
-        return _this->run(nframes);
+        dsp::start(&ctx);
+        JACKWrapper *_this  = reinterpret_cast<JACKWrapper *>(arg);
+        result              = _this->run(nframes);
+        dsp::finish(&ctx);
+
+        return result;
     }
 
     int JACKWrapper::run(size_t samples)
@@ -376,6 +409,34 @@ namespace lsp
         lsp_trace("Creating native executor service");
         pExecutor       = new NativeExecutor();
         return pExecutor;
+    }
+
+    canvas_data_t *JACKWrapper::render_inline_display(size_t width, size_t height)
+    {
+        // Lazy initialization
+//        lsp_trace("pCanvas = %p", pCanvas);
+        if (pCanvas == NULL)
+        {
+            pCanvas     =   new CairoCanvas();
+            if (pCanvas == NULL)
+                return NULL;
+//            lsp_trace("pCanvas = %p", pCanvas);
+        }
+
+        // Resize canvas, lock for update
+        if (!pCanvas->init(width, height))
+            return NULL;
+
+        // Call plugin for rendering
+        if (!pPlugin->inline_display(pCanvas, width, height))
+        {
+            // Unlock canvas if possible
+            pCanvas->get_data();
+//            lsp_trace("failed pPlugin->inline_display");
+            return NULL;
+        }
+
+        return pCanvas->get_data();
     }
 }
 

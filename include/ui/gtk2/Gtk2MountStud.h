@@ -17,14 +17,24 @@ namespace lsp
             static const size_t STUD_H          = 16;
             static const size_t SCREW_SIZE      = 40;
 
+        protected:
+            enum mode_t
+            {
+                M_LEFT      = 0,
+                M_RIGHT     = 1,
+                M_TOP       = 2,
+
+                M_TOTAL
+            };
+
         private:
-            Color           sBgColor;
-            Color           sColor;
-            Color           sTextColor;
+            ColorHolder     sBgColor;
+            ColorHolder     sColor;
+            ColorHolder     sTextColor;
             GtkWidget      *pMenu;
 
             char           *sText;
-            bool            bLeft;
+            size_t          nMode;
             size_t          nSize;
             size_t          nButtons;
             bool            bPressed;
@@ -39,6 +49,7 @@ namespace lsp
 
             static void export_settings(GtkWidget *menu, gpointer data);
             static void import_settings(GtkWidget *menu, gpointer data);
+            static void toggle_hide(GtkWidget *menu, gpointer data);
 
         protected:
             virtual void    draw(cairo_t *cr);

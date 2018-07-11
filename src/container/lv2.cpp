@@ -95,10 +95,13 @@ namespace lsp
 
     void lv2_run(LV2_Handle instance, uint32_t sample_count)
     {
+        dsp_context_t ctx;
         LV2Wrapper *w = reinterpret_cast<LV2Wrapper *>(instance);
+
+        // Call the plugin for processing
+        dsp::start(&ctx);
         w->run(sample_count);
-//        plugin_t *p = reinterpret_cast<plugin_t *>(instance);
-//        p->run(sample_count);
+        dsp::finish(&ctx);
     }
 
     LV2_State_Status lv2_save_state(
@@ -129,10 +132,33 @@ namespace lsp
         return LV2_STATE_SUCCESS;
     }
 
+    LV2_Inline_Display_Image_Surface *lv2_render_inline_display(
+                                       LV2_Handle instance,
+                                       uint32_t w, uint32_t h)
+    {
+        lsp_trace("handle = %p", instance);
+
+        dsp_context_t ctx;
+        LV2_Inline_Display_Image_Surface *result;
+        LV2Wrapper *wrapper = reinterpret_cast<LV2Wrapper *>(instance);
+
+        dsp::start(&ctx);
+        lsp_trace("call wrapper for rendering w=%d, h=%d", int(w), int(h));
+        result              = wrapper->render_inline_display(w, h);
+        dsp::finish(&ctx);
+
+        return result;
+    }
+
     static const LV2_State_Interface lv2_state_interface =
     {
         lv2_save_state,
         lv2_restore_state
+    };
+
+    static const LV2_Inline_Display_Interface lv2_inline_display_interface =
+    {
+        lv2_render_inline_display
     };
 
     LV2_Worker_Status lv2_work_work(
@@ -186,6 +212,11 @@ namespace lsp
         {
             lsp_trace("  worker_interface = %p", &lv2_worker_interface);
             return &lv2_worker_interface;
+        }
+        else if (!strcmp(uri, LV2_INLINEDISPLAY__interface))
+        {
+            lsp_trace("  inline_display_interface = %p", &lv2_inline_display_interface);
+            return &lv2_inline_display_interface;
         }
 
         return NULL;

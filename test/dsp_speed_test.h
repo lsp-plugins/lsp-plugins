@@ -75,3 +75,5 @@ namespace dsp_speed_test
     }
     
 }
+
+#undef ITERATIONS

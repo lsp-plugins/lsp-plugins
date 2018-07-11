@@ -23,26 +23,31 @@ namespace lsp
             } buffer_t;
 
         protected:
-            float   fTimeInterval;
-            float   fReactivity;
+            float               fTimeInterval;
+            float               fReactivity;
 
-            float  *vFunction;
-            float  *vAccumulated;
-            float  *vNormalized;
+            float              *vFunction;
+            float              *vAccumulated;
+            float              *vNormalized;
 
-            size_t  nMaxVectorSize;
-            size_t  nVectorSize;
-            size_t  nFuncSize;
+            size_t              nMaxVectorSize;
+            size_t              nVectorSize;
+            size_t              nFuncSize;
+            ssize_t             nBest;
+            ssize_t             nWorst;
+            ssize_t             nSelected;
 
-            size_t  nGapSize;
-            size_t  nMaxGapSize;
-            size_t  nGapOffset;
+            size_t              nGapSize;
+            size_t              nMaxGapSize;
+            size_t              nGapOffset;
 
-            buffer_t  vA, vB;
+            buffer_t            vA, vB;
 
-            float   fTau;
-            float   fSelector;
-            bool    bBypass;
+            float               fTau;
+            float               fSelector;
+            bool                bBypass;
+
+            float_buffer_t      *pIDisplay;      // Inline display buffer
 
         public:
             phase_detector();
@@ -61,6 +66,7 @@ namespace lsp
             virtual void update_settings();
             virtual void update_sample_rate(long sr);
             virtual void process(size_t samples);
+            virtual bool inline_display(ICanvas *cv, size_t width, size_t height);
     };
 
 } /* namespace ddb */

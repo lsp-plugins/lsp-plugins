@@ -19,6 +19,8 @@ namespace lsp
 
     #define AVX_SVEC8(name, value)      const float name[] __lsp_aligned64      = { value, value, value, value, value, value, value, value }
     #define AVX_UVEC8(name, value)      const uint32_t name[] __lsp_aligned64   = { value, value, value, value, value, value, value, value }
+    #define AVX_UVEC(name, a, b, c, d, e ,f, g, h) \
+                                        const uint32_t name[] __lsp_aligned64   = { uint32_t(a), uint32_t(b), uint32_t(c), uint32_t(d), uint32_t(e), uint32_t(f), uint32_t(f), uint32_t(h) }
 
     namespace avx
     {
@@ -52,6 +54,7 @@ namespace lsp
         AVX_SVEC8(LXE, -2.12194440e-4);
 
         /* Math constants */
+        AVX_SVEC8(ZERO, 0.0f);
         AVX_SVEC8(ONE, 1.0f);
         AVX_SVEC8(PI,  M_PI);
         AVX_SVEC8(PI_2, M_PI_2);
@@ -80,6 +83,8 @@ namespace lsp
         AVX_SVEC8(SX_P_NAN, FLOAT_SAT_P_NAN);
         AVX_SVEC8(SX_N_NAN, FLOAT_SAT_N_NAN);
 
+        /* Miscellaneous vectors */
+        AVX_UVEC(X_MASK0001, -1, 0, 0, 0, 0, 0, 0, 0);
     }
 
     namespace avx

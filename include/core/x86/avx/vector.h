@@ -219,6 +219,7 @@ namespace lsp
     }
 #endif
 
+#if 0
         void add_multiplied(float *dst, const float *src, float k, size_t count)
         {
             if (count == 0)
@@ -376,7 +377,149 @@ namespace lsp
 
             #undef ADD_MULT_CORE
         }
+#endif
 
+        void add_multiplied(float *dst, const float *src, float k, size_t count)
+        {
+            if (count == 0)
+                return;
+
+            __asm__ __volatile__
+            (
+                __ASM_EMIT("vshufps $0x00, %[k], %[k], %%xmm7")
+                : : [k] "x" (k)
+                : "%xmm7"
+            );
+
+            // Align destination
+            __asm__ __volatile__
+            (
+                __ASM_EMIT("1:")
+
+                // Check conditions
+                __ASM_EMIT("test            $0x0f, %[dst]")
+                __ASM_EMIT("jz              2f")
+
+                __ASM_EMIT("vmovss          (%[src]), %%xmm0")
+                __ASM_EMIT("vfmadd213ss     (%[dst]), %%xmm7, %%xmm0")
+                __ASM_EMIT("vmovss          %%xmm0, (%[dst])")
+                __ASM_EMIT("add             $0x4, %[src]")
+                __ASM_EMIT("add             $0x4, %[dst]")
+                __ASM_EMIT("dec             %[count]")
+                __ASM_EMIT("jnz             1b")
+
+                __ASM_EMIT("2:")
+
+                : [src] "+r" (src), [dst] "+r" (dst), [count] "+r" (count) :
+                : "cc", "memory",
+                  "%xmm0", "%xmm1"
+            );
+            /*
+            -- non-fma:
+            __ASM_EMIT("vmulps          %%ymm0, %%ymm6, %%ymm0") \
+            __ASM_EMIT("vmulps          %%ymm1, %%ymm7, %%ymm1") \
+            __ASM_EMIT("vmulps          %%ymm2, %%ymm6, %%ymm2") \
+            __ASM_EMIT("vmulps          %%ymm3, %%ymm7, %%ymm3") \
+            __ASM_EMIT("vaddps          0x00(%[dst]), %%ymm0, %%ymm0") \
+            __ASM_EMIT("vaddps          0x20(%[dst]), %%ymm1, %%ymm1") \
+            __ASM_EMIT("vaddps          0x40(%[dst]), %%ymm2, %%ymm2") \
+            __ASM_EMIT("vaddps          0x60(%[dst]), %%ymm3, %%ymm3") \
+            */
+
+            #define ADD_MULT_CORE(ld_m)   \
+                __asm__ __volatile__ \
+                ( \
+                    __ASM_EMIT("100:") \
+                    \
+                    __ASM_EMIT("cmp             $32, %[count]") \
+                    __ASM_EMIT("jb 200f") \
+                    \
+                    __ASM_EMIT("vinsertf128     $1, %%xmm7, %%ymm7, %%ymm7") \
+                    __ASM_EMIT("vmovaps         %%ymm7, %%ymm6") \
+                    \
+                    /* Block 4x8 loop */ \
+                    __ASM_EMIT("10:") \
+                    \
+                    __ASM_EMIT(ld_m "           0x00(%[src]), %%xmm0") \
+                    __ASM_EMIT(ld_m "           0x10(%[src]), %%xmm1") \
+                    __ASM_EMIT(ld_m "           0x20(%[src]), %%xmm2") \
+                    __ASM_EMIT(ld_m "           0x30(%[src]), %%xmm3") \
+                    __ASM_EMIT("vinsertf128     $1, %%xmm2, %%ymm0, %%ymm0") \
+                    __ASM_EMIT("vinsertf128     $1, %%xmm3, %%ymm1, %%ymm1") \
+                    __ASM_EMIT(ld_m "           0x40(%[src]), %%xmm2") \
+                    __ASM_EMIT(ld_m "           0x50(%[src]), %%xmm3") \
+                    __ASM_EMIT(ld_m "           0x60(%[src]), %%xmm4") \
+                    __ASM_EMIT(ld_m "           0x70(%[src]), %%xmm5") \
+                    __ASM_EMIT("vinsertf128     $1, %%xmm4, %%ymm2, %%ymm2") \
+                    __ASM_EMIT("vinsertf128     $1, %%xmm5, %%ymm3, %%ymm3") \
+                    \
+                    __ASM_EMIT("vfmadd213ps     0x00(%[dst]), %%ymm6, %%ymm0") \
+                    __ASM_EMIT("vfmadd213ps     0x20(%[dst]), %%ymm7, %%ymm1") \
+                    __ASM_EMIT("vfmadd213ps     0x40(%[dst]), %%ymm6, %%ymm2") \
+                    __ASM_EMIT("vfmadd213ps     0x60(%[dst]), %%ymm7, %%ymm3") \
+                    \
+                    __ASM_EMIT("vmovaps         %%xmm0, 0x00(%[dst])") \
+                    __ASM_EMIT("vmovaps         %%xmm1, 0x10(%[dst])") \
+                    __ASM_EMIT("vextractf128    $1, %%ymm0, 0x20(%[dst])") \
+                    __ASM_EMIT("vextractf128    $1, %%ymm1, 0x30(%[dst])") \
+                    __ASM_EMIT("vmovaps         %%xmm2, 0x40(%[dst])") \
+                    __ASM_EMIT("vmovaps         %%xmm3, 0x50(%[dst])") \
+                    __ASM_EMIT("vextractf128    $1, %%ymm2, 0x60(%[dst])") \
+                    __ASM_EMIT("vextractf128    $1, %%ymm3, 0x70(%[dst])") \
+                    \
+                    __ASM_EMIT("sub             $32, %[count]") \
+                    __ASM_EMIT("add             $0x80, %[src]") \
+                    __ASM_EMIT("add             $0x80, %[dst]") \
+                    __ASM_EMIT("cmp             $32, %[count]") \
+                    __ASM_EMIT("jae             10b") \
+                    \
+                    /* Block 1x4 */ \
+                    __ASM_EMIT("200:") \
+                    __ASM_EMIT("cmp             $4, %[count]") \
+                    __ASM_EMIT("jb              300f") \
+                    __ASM_EMIT(ld_m "           (%[src]), %%xmm0") \
+                    __ASM_EMIT("vfmadd213ps     (%[dst]), %%xmm4, %%xmm0") \
+                    __ASM_EMIT("vmovaps         %%xmm0, (%[dst])") \
+                    __ASM_EMIT("sub             $4, %[count]") \
+                    __ASM_EMIT("add             $0x10, %[src]") \
+                    __ASM_EMIT("add             $0x10, %[dst]") \
+                    \
+                    /* Blocks 1x1 */ \
+                    __ASM_EMIT("300:") \
+                    __ASM_EMIT("test            %[count], %[count]") \
+                    __ASM_EMIT("jz              400f") \
+                    \
+                    __ASM_EMIT("30:") \
+                    __ASM_EMIT("vmovss          (%[src]), %%xmm0") \
+                    __ASM_EMIT("vfmadd213ss     (%[dst]), %%xmm4, %%xmm0") \
+                    __ASM_EMIT("vmovss          %%xmm0, (%[dst])") \
+                    __ASM_EMIT("add             $0x4, %[src]") \
+                    __ASM_EMIT("add             $0x4, %[dst]") \
+                    __ASM_EMIT("dec             %[count]") \
+                    __ASM_EMIT("jnz             30b") \
+                    \
+                    /* End */ \
+                    __ASM_EMIT("400:") \
+                    \
+                    : [src] "+r" (src), [dst] "+r" (dst), [count] "+r" (count) : \
+                    : "cc", "memory", \
+                      "%xmm0", "%xmm1", "%xmm2", "%xmm3", \
+                      "%xmm4", "%xmm5", "%xmm6", "%xmm7" \
+                );
+
+            if (ptrdiff_t(src)&0x0f)
+            {
+                ADD_MULT_CORE("vmovups");
+            }
+            else
+            {
+                ADD_MULT_CORE("vmovaps");
+            }
+
+            VZEROUPPER;
+
+            #undef ADD_MULT_CORE
+        }
 
     }
 }

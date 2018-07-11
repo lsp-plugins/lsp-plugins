@@ -126,6 +126,7 @@ namespace lsp
         "smooth",
         "precision",
         "editable",
+        "same_line",
         NULL
     };
 

@@ -12,6 +12,15 @@ namespace lsp
 {
     namespace native
     {
+        void start(dsp_context_t *ctx)
+        {
+            ctx->top        = 0;
+        }
+
+        void finish(dsp_context_t *ctx)
+        {
+        }
+
         static void copy(float *dst, const float *src, size_t count)
         {
             if (dst == src)
@@ -792,48 +801,6 @@ namespace lsp
             }
         }
 
-        static float biquad_process(float *buf, const float *ir, float sample)
-        {
-            // Calculate sample
-            float result    =
-                buf[0] * ir[0] +
-                buf[1] * ir[1] +
-                buf[2] * ir[2] +
-                buf[3] * ir[3] +
-                sample * ir[4];
-
-            // Shift buffer
-            buf[3]  = buf[1];
-            buf[2]  = buf[0];
-            buf[1]  = sample;
-            buf[0]  = result;
-
-            return result;
-        }
-
-        static void biquad_process_multi(float *dst, const float *src, size_t count, float *buf, const float *ir)
-        {
-            for (size_t i=0; i<count; ++i)
-            {
-                // Calculate sample
-                float result    =
-                    buf[0] * ir[0] +
-                    buf[1] * ir[1] +
-                    buf[2] * ir[2] +
-                    buf[3] * ir[3] +
-                    src[i] * ir[4];
-
-                // Shift buffer
-                buf[3]  = buf[1];
-                buf[2]  = buf[0];
-                buf[1]  = src[i];
-                buf[0]  = result;
-
-                // Store sample
-                dst[i]  = result;
-            }
-        }
-
         static float vec4_scalar_mul(const float *a, const float *b)
         {
             return
@@ -871,47 +838,11 @@ namespace lsp
             v[3]    = 0.0f;
         }
 
-//        static float poly_calc(float x, const float *poly, size_t count)
-//        {
-//            if (count == 0)
-//                return 0;
-//            float t = 1.0f, r = *(poly++);
-//            while (--count)
-//            {
-//                r   +=  t * (*(poly++));
-//                t   *=  x;
-//            }
-//
-//            return r;
-//        }
-//
-//        static void complex_poly_calc(float *p_re, float *p_im, float x_re, float x_im, const float *poly, size_t count)
-//        {
-//            float r_re  = 0.0f, r_im = 0.0f;
-//            if (count > 0)
-//            {
-//                float t_re  = 1.0f, t_im  = 0.0f;
-//                while (count--)
-//                {
-//                    // Update result
-//                    float k     = *(poly++);
-//                    r_re       += t_re * k;
-//                    r_im       += t_im * k;
-//
-//                    // Update coefficients
-//                    k           = t_re * x_re - t_im * x_im;
-//                    t_im        = t_re * x_im + t_im * x_re;
-//                    t_re        = k;
-//                    poly       ++;
-//                }
-//            }
-//
-//            *p_re       = r_re;
-//            *p_im       = r_im;
-//        }
     }
 
 }
+
+#include <core/native/dsp/filters.h>
 
 
 #endif /* CORE_NATIVE_DSP_H_ */

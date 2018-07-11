@@ -21,14 +21,15 @@ namespace lsp
     {
         private:
             char           *sText;
-            Color           sColor;
-            Color           sBgColor;
+            ColorHolder     sColor;
+            ColorHolder     sBgColor;
             IUIPort        *pPort;
             label_type_t    enType;
             float           fValue;
             float           fVAlign;
             float           fHAlign;
             bool            bDetailed;
+            bool            bSameLine;
             ssize_t         nFontSize;
             ssize_t         nUnits;
             ssize_t         nPrecision;

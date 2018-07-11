@@ -13,6 +13,7 @@
 #include <core/Bypass.h>
 #include <core/Filter.h>
 #include <core/Equalizer.h>
+#include <core/Analyzer.h>
 
 namespace lsp
 {
@@ -22,8 +23,7 @@ namespace lsp
             enum chart_state_t
             {
                 CS_UPDATE       = 1 << 0,
-                CS_SYNC_AMP     = 1 << 1,
-                CS_SYNC_PHASE   = 1 << 2
+                CS_SYNC_AMP     = 1 << 1
             };
 
             enum fft_position_t
@@ -45,7 +45,6 @@ namespace lsp
             {
                 float              *vTrRe;          // Transfer function (real part)
                 float              *vTrIm;          // Transfer function (imaginary part)
-                float              *vTrAmp;         // Transfer function (amplitude)
                 size_t              nSync;          // Chart state
                 bool                bSolo;          // Soloing filter
 
@@ -63,51 +62,40 @@ namespace lsp
             typedef struct eq_channel_t
             {
                 Equalizer           sEqualizer;     // Equalizer
+                Bypass              sBypass;        // Bypass
+
                 size_t              nLatency;       // Latency of the channel
+                float               fOutGain;       // Output gain
                 eq_filter_t        *vFilters;       // List of filters
                 float              *vBuffer;        // Buffer for temporary data
                 float              *vIn;            // Input buffer
                 float              *vOut;           // Output buffer
                 size_t              nSync;          // Chart state
-                size_t              nFftCounter;    // FFT counter
-
-                Bypass              sBypass;        // Bypass
 
                 float              *vTrRe;          // Transfer function (real part)
                 float              *vTrIm;          // Transfer function (imaginary part)
-                float              *vTrAmp;         // Transfer function (amplitude)
-
-                float              *vFftBuffer;     // FFT buffer
-                float              *vFftAmp;        // FFT amplitude
 
                 IPort              *pIn;            // Input port
                 IPort              *pOut;           // Output port
                 IPort              *pTrAmp;         // Amplitude chart
                 IPort              *pFft;           // FFT chart
                 IPort              *pVisible;       // Visibility flag
+                IPort              *pMeter;         // Output level meter
             } eq_channel_t;
 
         protected:
+            Analyzer            sAnalyzer;              // Analyzer
             size_t              nFilters;               // Number of filters
             size_t              nMode;                  // Operating mode
             equalizer_mode_t    nEqMode;                // Equalizer mode
             eq_channel_t       *vChannels;              // List of channels
             float              *vFreqs;                 // Frequency list
-            float               fGainIn;                // Input gain
-            float               fGainOut;               // Output gain
-            bool                bListen;                // Listen mode (only for MS para_equalizer)
-            size_t              nFftPeriod;             // FFT period
-            fft_position_t      nFftPosition;           // FFT position
-            float               fTau;                   // Reactivity
-            float               fShiftGain;             // Shift gain
-
-            float              *vSigRe;                 // Real part of signal
-            float              *vSigIm;                 // Imaginary part of signal (always zero)
-            float              *vFftRe;                 // Buffer for FFT transform (real part)
-            float              *vFftIm;                 // Buffer for FFT transfor (imaginary part)
-            float              *vFftWindow;             // FFT window
-            float              *vFftEnvelope;           // FFT envelope
             uint32_t           *vIndexes;               // FFT indexes
+            float               fGainIn;                // Input gain
+//            float               fGainOut;               // Output gain
+            bool                bListen;                // Listen mode (only for MS para_equalizer)
+            fft_position_t      nFftPosition;           // FFT position
+            float_buffer_t     *pIDisplay;      // Inline display buffer
 
             IPort              *pBypass;                // Bypass port
             IPort              *pGainIn;                // Input gain port
@@ -117,14 +105,11 @@ namespace lsp
             IPort              *pListen;                // Listen mode (only for MS equalizer)
             IPort              *pShiftGain;             // Shift gain
             IPort              *pEqMode;                // Equalizer mode
+            IPort              *pBalance;               // Output balance
 
         protected:
             void            destroy_state();
-            void            update_frequencies();
             inline void     decode_filter(size_t *ftype, size_t *slope);
-            void            do_fft(eq_channel_t *channel, size_t samples);
-            void            init_window();
-            void            init_envelope();
             inline bool     adjust_gain(size_t filter_type);
             inline equalizer_mode_t get_eq_mode();
 
@@ -141,6 +126,7 @@ namespace lsp
             virtual void update_sample_rate(long sr);
 
             virtual void process(size_t samples);
+            virtual bool inline_display(ICanvas *cv, size_t width, size_t height);
     };
 
     class para_equalizer_x16_mono: public para_equalizer_base, public para_equalizer_x16_mono_metadata

@@ -13,9 +13,9 @@ namespace lsp
     class Gtk2ComboBox: public Gtk2Widget
     {
         protected:
-            Color               sColor;
-            Color               sTextColor;
-            Color               sBgColor;
+            ColorHolder         sColor;
+            ColorHolder         sTextColor;
+            ColorHolder         sBgColor;
             GtkCellRenderer    *pRenderer;
             GtkListStore       *pStore;
             IUIPort            *pPort;

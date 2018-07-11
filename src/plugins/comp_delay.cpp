@@ -80,7 +80,7 @@ namespace lsp
         if (nMode == comp_delay_base_metadata::M_DISTANCE)
             samples     = (nSampleRate * fDistance) / snd_speed;
         else if (nMode == comp_delay_base_metadata::M_TIME)
-            samples     = fTime * 0.001 * nSampleRate;
+            samples     = fTime * 0.001f * nSampleRate;
         else
             samples     = fSamples;
 
@@ -90,8 +90,8 @@ namespace lsp
 
         // Re-calculate parameters
         fSamples        = samples;
-        fDistance       = (samples * snd_speed * 100.0) / nSampleRate;
-        fTime           = (samples * 1000.0) / nSampleRate;
+        fDistance       = (samples * snd_speed * 100.0) / float(nSampleRate);
+        fTime           = (samples * 1000.0f) / float(nSampleRate);
     }
 
     void comp_delay_base::process(size_t samples)
@@ -135,7 +135,9 @@ namespace lsp
 
     void comp_delay_impl::init(IWrapper *wrapper)
     {
+        // Pass wrapper
         plugin_t::init(wrapper);
+
         if (vBuffer == NULL)
             vBuffer     = new float[BUFFER_SIZE];
     }

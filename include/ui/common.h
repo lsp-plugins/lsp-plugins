@@ -10,6 +10,9 @@
 
 #include <core/types.h>
 
+#define UI_CONFIG_PORT_PREFIX           "ui:"
+#define UI_MOUNT_STUD_PORT_ID           "mount_stud"
+
 namespace lsp
 {
     // List of all available widget types
@@ -129,7 +132,8 @@ namespace lsp
         A_HPOS_ID,
         A_SMOOTH,
         A_PRECISION,
-        A_EDITABLE
+        A_EDITABLE,
+        A_SAME_LINE
     };
 
     // List of colors

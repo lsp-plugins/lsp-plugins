@@ -186,6 +186,9 @@ namespace lsp
 
     void impulse_responses_base::init(IWrapper *wrapper)
     {
+        // Pass wrapper
+        plugin_t::init(wrapper);
+
         pExecutor       = wrapper->get_executor();
         lsp_trace("Executor = %p", pExecutor);
 

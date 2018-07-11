@@ -7,6 +7,7 @@
 
 #include <ui/gtk2/ui.h>
 #include <core/debug.h>
+#include <core/dsp.h>
 
 namespace lsp
 {
@@ -90,8 +91,12 @@ namespace lsp
         Gtk2Custom *_this = GTK2_CUSTOM(widget);
         if (_this->pImpl != NULL)
         {
+            dsp_context_t ctx;
+
+            dsp::start(&ctx);
             _this->pImpl->allowRedraw();
             _this->pImpl->render();
+            dsp::finish(&ctx);
         }
 
         return FALSE;

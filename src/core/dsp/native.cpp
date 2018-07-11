@@ -21,6 +21,9 @@ namespace lsp
         void dsp_init()
         {
             // Generic init
+            dsp::start                      = native::start;
+            dsp::finish                     = native::finish;
+
             dsp::copy                       = native::copy;
             dsp::copy_saturated             = native::copy_saturated;
             dsp::saturate                   = native::saturate;
@@ -66,14 +69,21 @@ namespace lsp
             dsp::complex_mod                = native::complex_mod;
             dsp::lr_to_ms                   = native::lr_to_ms;
             dsp::ms_to_lr                   = native::ms_to_lr;
+            dsp::avoid_denormals            = native::avoid_denormals;
+
             dsp::biquad_process             = native::biquad_process;
             dsp::biquad_process_multi       = native::biquad_process_multi;
+            dsp::biquad_process_x1          = native::biquad_process_x1;
+            dsp::biquad_process_x2          = native::biquad_process_x2;
+            dsp::biquad_process_x4          = native::biquad_process_x4;
+            dsp::biquad_process_x8          = native::biquad_process_x8;
 
             dsp::vec4_scalar_mul            = native::vec4_scalar_mul;
             dsp::vec4_push                  = native::vec4_push;
             dsp::vec4_unshift               = native::vec4_unshift;
             dsp::vec4_zero                  = native::vec4_zero;
             dsp::axis_apply_log             = native::axis_apply_log;
+            dsp::rgba32_to_bgra32           = native::rgba32_to_bgra32;
         }
     } // namespace native
 } // namespace dsp

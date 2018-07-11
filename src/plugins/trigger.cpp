@@ -10,6 +10,8 @@
 #include <core/dsp.h>
 #include <core/debug.h>
 #include <core/midi.h>
+#include <core/colors.h>
+#include <core/Color.h>
 
 #include <plugins/trigger.h>
 
@@ -271,6 +273,7 @@ namespace lsp
         fDynaTop            = 1.0f;
         fDynaBottom         = 0.0f;
         fReactivity         = REACTIVITY_DFL;
+        pIDisplay           = NULL;
 
         // Control ports
         pFunction           = NULL;
@@ -334,10 +337,19 @@ namespace lsp
             tc->pIn         = NULL;
             tc->pOut        = NULL;
         }
+
+        if (pIDisplay != NULL)
+        {
+            pIDisplay->detroy();
+            pIDisplay   = NULL;
+        }
     }
 
     void trigger_base::init(IWrapper *wrapper)
     {
+        // Pass wrapper
+        plugin_t::init(wrapper);
+
         // Get executor
         IExecutor *executor = wrapper->get_executor();
 
@@ -555,7 +567,8 @@ namespace lsp
         bool bypass     = pBypass->getValue() >= 0.5f;
         for (size_t i=0; i<nChannels; ++i)
         {
-            vChannels[i].sBypass.set_bypass(bypass);
+            if (vChannels[i].sBypass.set_bypass(bypass))
+                pWrapper->query_display_draw();
             vChannels[i].bVisible   = vChannels[i].pVisible->getValue() >= 0.5f;
         }
 
@@ -741,13 +754,13 @@ namespace lsp
 
                 // Get mesh
                 mesh_t *mesh    = c->pGraph->getBuffer<mesh_t>();
-                if ((mesh == NULL) || (!mesh->isEmpty()))
-                    continue;
-
-                // Fill mesh with new values
-                dsp::copy(mesh->pvData[0], vTimePoints, HISTORY_MESH_SIZE);
-                dsp::copy(mesh->pvData[1], c->sGraph.data(), HISTORY_MESH_SIZE);
-                mesh->data(2, HISTORY_MESH_SIZE);
+                if ((mesh != NULL) && (mesh->isEmpty()))
+                {
+                    // Fill mesh with new values
+                    dsp::copy(mesh->pvData[0], vTimePoints, HISTORY_MESH_SIZE);
+                    dsp::copy(mesh->pvData[1], c->sGraph.data(), HISTORY_MESH_SIZE);
+                    mesh->data(2, HISTORY_MESH_SIZE);
+                }
             }
 
             // Trigger function
@@ -784,6 +797,141 @@ namespace lsp
                 }
             }
         }
+
+        // Always query for draawing
+        pWrapper->query_display_draw();
+    }
+
+    bool trigger_base::inline_display(ICanvas *cv, size_t width, size_t height)
+    {
+        // Check proportions
+        if (height > (R_GOLDEN_RATIO * width))
+            height  = R_GOLDEN_RATIO * width;
+
+        // Init canvas
+        if (!cv->init(width, height))
+            return false;
+        width   = cv->width();
+        height  = cv->height();
+
+        // Clear background
+        cv->set_color_rgb(CV_BACKGROUND);
+        cv->paint();
+
+        // Calc axis params
+        float zy    = 1.0f/GAIN_AMP_M_72_DB;
+        float dx    = -width/HISTORY_TIME;
+        float dy    = -height/(logf(GAIN_AMP_P_24_DB)-logf(GAIN_AMP_M_72_DB));
+
+        // Draw axis
+        cv->set_line_width(1.0);
+
+        // Draw vertical lines
+        cv->set_color_rgb(CV_YELLOW, 0.5f);
+        for (float i=1.0; i < (HISTORY_TIME-0.1); i += 1.0f)
+        {
+            float ax = width + dx*i;
+            cv->line(ax, 0, ax, height);
+        }
+
+        // Draw horizontal lines
+        cv->set_color_rgb(CV_WHITE, 0.5f);
+        for (float i=GAIN_AMP_M_48_DB; i<GAIN_AMP_P_24_DB; i *= GAIN_AMP_P_24_DB)
+        {
+            float ay = height + dy*(logf(i*zy));
+            cv->line(0, ay, width, ay);
+        }
+
+        // Allocate buffer: t, f1(t), x, y
+        pIDisplay           = float_buffer_t::reuse(pIDisplay, 4, width);
+        float_buffer_t *b   = pIDisplay;
+        if (b == NULL)
+            return false;
+
+        // Draw input signal
+        static uint32_t c_colors[] = {
+                CV_MIDDLE_CHANNEL, CV_MIDDLE_CHANNEL,
+                CV_LEFT_CHANNEL, CV_RIGHT_CHANNEL
+               };
+        bool bypass         = vChannels[0].sBypass.bypassing();
+        float r             = HISTORY_MESH_SIZE/float(width);
+
+        for (size_t j=0; j<width; ++j)
+        {
+            size_t k        = r*j;
+            b->v[0][j]      = vTimePoints[k];
+        }
+
+        cv->set_line_width(2.0f);
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            channel_t *c    = &vChannels[i];
+            if (!c->bVisible)
+                continue;
+
+            // Initialize values
+            float *ft       = c->sGraph.data();
+            for (size_t j=0; j<width; ++j)
+                b->v[1][j]      = ft[size_t(r*j)];
+
+            // Initialize coords
+            dsp::fill(b->v[2], width, width);
+            dsp::fill(b->v[3], height, width);
+            dsp::add_multiplied(b->v[2], b->v[0], dx, width);
+            dsp::axis_apply_log(b->v[2], b->v[3], b->v[1], zy, 0.0f, dy, width);
+
+            // Draw channel
+            cv->set_color_rgb((bypass) ? CV_SILVER : c_colors[(nChannels-1)*2 + i]);
+            cv->draw_lines(b->v[2], b->v[3], width);
+        }
+
+        // Draw function (if present)
+        if (bFunctionActive)
+        {
+            float *ft       = sFunction.data();
+            for (size_t j=0; j<width; ++j)
+                b->v[1][j]      = ft[size_t(r*j)];
+
+            // Initialize coords
+            dsp::fill(b->v[2], width, width);
+            dsp::fill(b->v[3], height, width);
+            dsp::add_multiplied(b->v[2], b->v[0], dx, width);
+            dsp::axis_apply_log(b->v[2], b->v[3], b->v[1], zy, 0.0f, dy, width);
+
+            // Draw channel
+            cv->set_color_rgb((bypass) ? CV_SILVER : CV_GREEN);
+            cv->draw_lines(b->v[2], b->v[3], width);
+        }
+
+        // Draw events (if present)
+        if (bVelocityActive)
+        {
+            float *ft       = sVelocity.data();
+            for (size_t j=0; j<width; ++j)
+                b->v[1][j]      = ft[size_t(r*j)];
+
+            // Initialize coords
+            dsp::fill(b->v[2], width, width);
+            dsp::fill(b->v[3], height, width);
+            dsp::add_multiplied(b->v[2], b->v[0], dx, width);
+            dsp::axis_apply_log(b->v[2], b->v[3], b->v[1], zy, 0.0f, dy, width);
+
+            // Draw channel
+            cv->set_color_rgb((bypass) ? CV_SILVER : CV_MEDIUM_GREEN);
+            cv->draw_lines(b->v[2], b->v[3], width);
+        }
+
+        // Draw boundaries
+        cv->set_color_rgb(CV_MAGENTA, 0.5f);
+        cv->set_line_width(1.0);
+        {
+            float ay = height + dy*(logf(fDetectLevel*zy));
+            cv->line(0, ay, width, ay);
+            ay = height + dy*(logf(fReleaseLevel*zy));
+            cv->line(0, ay, width, ay);
+        }
+
+        return true;
     }
 
     //-------------------------------------------------------------------------

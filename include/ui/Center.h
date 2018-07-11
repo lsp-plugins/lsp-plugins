@@ -16,7 +16,7 @@ namespace lsp
         private:
             float           fLeft;
             float           fTop;
-            Color           sColor;
+            ColorHolder     sColor;
 
         protected:
             void update();

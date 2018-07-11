@@ -666,15 +666,25 @@ namespace lsp
     void VSTCALLBACK vst_process(AEffect* effect, float** inputs, float** outputs, VstInt32 sampleFrames)
     {
 //        lsp_trace("vst_process effect=%p, inputs=%p, outputs=%p, frames=%d", effect, inputs, outputs, int(sampleFrames));
+        dsp_context_t ctx;
         VSTWrapper *w     = reinterpret_cast<VSTWrapper *>(effect->object);
+
+        // Call the plugin for processing
+        dsp::start(&ctx);
         w->run_legacy(inputs, outputs, sampleFrames);
+        dsp::finish(&ctx);
     }
 
     void VSTCALLBACK vst_process_replacing(AEffect* effect, float** inputs, float** outputs, VstInt32 sampleFrames)
     {
 //        lsp_trace("vst_process effect=%p, inputs=%p, outputs=%p, frames=%d", effect, inputs, outputs, int(sampleFrames));
+        dsp_context_t ctx;
         VSTWrapper *w     = reinterpret_cast<VSTWrapper *>(effect->object);
+
+        // Call the plugin for processing
+        dsp::start(&ctx);
         w->run(inputs, outputs, sampleFrames);
+        dsp::finish(&ctx);
     }
 
     void VSTCALLBACK vst_set_parameter(AEffect* effect, VstInt32 index, float value)

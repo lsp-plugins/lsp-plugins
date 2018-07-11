@@ -13,6 +13,7 @@
 
 #include <core/IWrapper.h>
 #include <core/NativeExecutor.h>
+#include <container/CairoCanvas.h>
 
 namespace lsp
 {
@@ -39,6 +40,10 @@ namespace lsp
             ssize_t             nSyncTime;      // Synchronization time
             ssize_t             nSyncSamples;   // Synchronization counter
             ssize_t             nClients;       // Number of clients
+            bool                bQueueDraw;     // Queue draw request
+
+            CairoCanvas        *pCanvas;        // Canvas for drawing inline display
+            LV2_Inline_Display_Image_Surface sSurface; // Canvas surface
 
         protected:
             LV2Port *create_port(const port_t *meta, const char *postfix);
@@ -63,6 +68,8 @@ namespace lsp
                 nSyncTime   = 0;
                 nSyncSamples= 0;
                 nClients    = 0;
+                pCanvas     = NULL;
+                bQueueDraw  = false;
             }
 
             virtual ~LV2Wrapper()
@@ -78,6 +85,7 @@ namespace lsp
                 nSyncTime   = 0;
                 nSyncSamples= 0;
                 nClients    = 0;
+                pCanvas     = NULL;
             }
 
         public:
@@ -123,6 +131,12 @@ namespace lsp
             inline void job_response(size_t size, const void *body) {}
             inline void job_end() {}
 
+            // Inline display part
+            LV2_Inline_Display_Image_Surface *render_inline_display(size_t width, size_t height);
+            inline void query_display_draw()
+            {
+                bQueueDraw      = true;
+            }
     };
 
     LV2Port *LV2Wrapper::create_port(const port_t *p, const char *postfix)
@@ -445,7 +459,16 @@ namespace lsp
         nSyncTime      -= samples;
         bool sync_req       = nSyncTime <= 0;
         if (sync_req)
+        {
             nSyncTime      += nSyncSamples;
+
+            // Check that queue_draw() request for inline display is pending
+            if ((bQueueDraw) && (pExt->iDisplay != NULL))
+            {
+                pExt->iDisplay->queue_draw(pExt->iDisplay->handle);
+                bQueueDraw      = false;
+            }
+        }
 
         // Check that patch request is pending
         bool patch_req  = nPatchReqs > 0;
@@ -589,6 +612,21 @@ namespace lsp
 
     void LV2Wrapper::destroy()
     {
+        // Drop surface
+        sSurface.data           = NULL;
+        sSurface.width          = 0;
+        sSurface.height         = 0;
+        sSurface.stride         = 0;
+
+        // Drop canvas
+        lsp_trace("canvas = %p", pCanvas);
+        if (pCanvas != NULL)
+        {
+            pCanvas->destroy();
+            delete pCanvas;
+            pCanvas     = NULL;
+        }
+
         // Shutdown and delete executor if exists
         if (pExecutor != NULL)
         {
@@ -784,6 +822,43 @@ namespace lsp
         }
 
         pExt->reset_state_context();
+    }
+
+    inline LV2_Inline_Display_Image_Surface *LV2Wrapper::render_inline_display(size_t width, size_t height)
+    {
+        // Lazy initialization
+        lsp_trace("pCanvas = %p", pCanvas);
+        if (pCanvas == NULL)
+        {
+            pCanvas     =   new CairoCanvas();
+            if (pCanvas == NULL)
+                return NULL;
+            lsp_trace("pCanvas = %p", pCanvas);
+        }
+
+        // Call plugin for rendering
+        if (!pPlugin->inline_display(pCanvas, width, height))
+        {
+            lsp_trace("failed pPlugin->inline_display");
+            return NULL;
+        }
+
+        // Get data of canvas
+        canvas_data_t *data     = pCanvas->get_data();
+        lsp_trace("canvas data = %p", data);
+        if ((data == NULL) || (data->pData == NULL))
+            return NULL;
+
+        // Fill-in surface and return
+        sSurface.data           = reinterpret_cast<unsigned char *>(data->pData);
+        sSurface.width          = data->nWidth;
+        sSurface.height         = data->nHeight;
+        sSurface.stride         = data->nStride;
+
+        lsp_trace("surface data=%p, width=%d, height=%d, stride=%d",
+            sSurface.data, int(sSurface.width), int(sSurface.height), int(sSurface.stride));
+
+        return &sSurface;
     }
 }
 

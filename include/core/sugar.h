@@ -10,6 +10,7 @@
 
 // Alignment
 #define DEFAULT_ALIGN                   0x10
+#define ALIGN64                         0x40
 #define ALIGN_SIZE(x, size)             (((x) + size - 1) & (~size_t(size - 1)))
 
 // Array management
@@ -27,6 +28,5 @@ template <class T>
         ptrdiff_t mask  = align-1;
         return (x & mask) ? reinterpret_cast<T *>((x + align)&(~mask)) : src;
     }
-
 
 #endif /* CORE_SUGAR_H_ */

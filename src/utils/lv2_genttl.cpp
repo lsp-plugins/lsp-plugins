@@ -439,8 +439,11 @@ namespace lsp
         fprintf(out, "@prefix dc:        <http://purl.org/dc/terms/> .\n");
         fprintf(out, "@prefix rdf:       <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n");
         fprintf(out, "@prefix rdfs:      <http://www.w3.org/2000/01/rdf-schema#> .\n");
+        fprintf(out, "@prefix hcid:      <" LV2_INLINEDISPLAY_PREFIX "> .\n");
+
         fprintf(out, "@prefix " LSP_PREFIX ":       <" LSP_URI(lv2) "> .\n");
         fprintf(out, "@prefix " LSP_PREFIX "_dev:   <" LSP_DEVELOPERS_URI "> .\n");
+
         if (requirements & REQ_PATCH)
             fprintf(out, "@prefix lsp_p:     <%s%s/ports#> .\n", LSP_URI(lv2), m.lv2_uid);
         if (requirements & REQ_PORT_GROUPS)
@@ -560,7 +563,7 @@ namespace lsp
 
         {
             size_t count = 1;
-            fprintf(out, "\tlv2:optionalFeature lv2:hardRTCapable");
+            fprintf(out, "\tlv2:optionalFeature lv2:hardRTCapable, hcid:queue_draw");
             LSP_LV2_EMIT_OPTION(count, requirements & REQ_WORKER, "work:schedule");
             fprintf(out, " ;\n");
         }

@@ -1,4 +1,4 @@
-SUBDIRS                 = core metadata plugins ui utils container
+SUBDIRS                 = core metadata plugins ui utils container doc
 MODULES                 = $(SUBDIRS) jack_stub
 
 ifdef VST_SDK
@@ -26,6 +26,8 @@ $(OBJ_UI_CORE): ui
 
 $(UTL_FILES): utils
 
+$(UTL_JACKMAKE) : utils
+
 $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@echo "Generating XML resources"
 	@mkdir -p $(OBJDIR)/res
@@ -40,18 +42,23 @@ container: $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(UTL_FILE
 
 utils: $(OBJ_CORE) $(OBJ_METADATA)
 
-# Additional post-processing
-vst_stub: $(UTL_FILES)
+doc: utils $(PHP_PLUGINS)
+
+# Additional processing
+$(PHP_PLUGINS): $(UTL_GENPHP)
+	@echo "Generating PHP file $(notdir $(PHP_PLUGINS))"
+	@$(UTL_GENPHP) $(VERSION) $(PHP_PLUGINS)
+
+vst_stub: $(UTL_VSTMAKE)
 	@echo "Building VST stub"
 	@mkdir -p $(OBJDIR)/vst
 	@$(UTL_VSTMAKE) $(OBJDIR)/vst
 	@-rm gmon.out &>/dev/null
 	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/vst all OBJDIR=$(OBJDIR)/vst
 
-jack_stub: $(UTL_FILES)
+jack_stub: $(UTL_JACKMAKE)
 	@echo "Building JACK stub"
 	@mkdir -p $(OBJDIR)/jack
 	@$(UTL_JACKMAKE) $(OBJDIR)/jack
 	@-rm gmon.out &>/dev/null
 	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/jack all OBJDIR=$(OBJDIR)/jack
-	

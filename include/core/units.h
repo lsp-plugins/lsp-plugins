@@ -25,6 +25,9 @@
 #define SPEC_FREQ_MIN                       10.0f               /* Minimum frequency [ Hz ]                         */
 #define SPEC_FREQ_MAX                       24000.0f            /* Maximum frequency [ Hz ]                         */
 #define MIDI_EVENTS_MAX                     1024                /* Maximum number of MIDI events per buffer         */
+#define GOLDEN_RATIO                        1.618               /* Golden ratio                                     */
+#define R_GOLDEN_RATIO                      0.618               /* Reverse golden ratio                             */
+
 
 // Gain levels in decibels
 #define GAIN_AMP_P_72_DB                    3981.07300          /* +72 dB       */
@@ -33,13 +36,20 @@
 #define GAIN_AMP_P_36_DB                    63.09575            /* +36 dB       */
 #define GAIN_AMP_P_24_DB                    15.84893            /* +24 dB       */
 #define GAIN_AMP_P_12_DB                    3.98107             /* +12 dB       */
-#define GAIN_AMP_P_0_DB                     1.0                 /* +0 dB        */
-#define GAIN_AMP_N_12DB                     0.25119             /* -12 dB       */
-#define GAIN_AMP_N_24DB                     0.06310             /* -24 dB       */
-#define GAIN_AMP_N_36DB                     0.01585             /* -36 dB       */
-#define GAIN_AMP_N_48DB                     0.00398             /* -48 dB       */
-#define GAIN_AMP_N_60DB                     0.001               /* -60 dB       */
-#define GAIN_AMP_N_72DB                     0.00025             /* -72 dB       */
+#define GAIN_AMP_0_DB                       1.0                 /* 0 dB         */
+#define GAIN_AMP_M_12_DB                    0.25119             /* -12 dB       */
+#define GAIN_AMP_M_24_DB                    0.06310             /* -24 dB       */
+#define GAIN_AMP_M_36_DB                    0.01585             /* -36 dB       */
+#define GAIN_AMP_M_48_DB                    0.00398             /* -48 dB       */
+#define GAIN_AMP_M_60_DB                    0.001               /* -60 dB       */
+#define GAIN_AMP_M_72_DB                    0.00025             /* -72 dB       */
+
+#define GAIN_AMP_N_12_DB                    GAIN_AMP_M_12_DB
+#define GAIN_AMP_N_24_DB                    GAIN_AMP_M_24_DB
+#define GAIN_AMP_N_36_DB                    GAIN_AMP_M_36_DB
+#define GAIN_AMP_N_48_DB                    GAIN_AMP_M_48_DB
+#define GAIN_AMP_N_60_DB                    GAIN_AMP_M_60_DB
+#define GAIN_AMP_N_72_DB                    GAIN_AMP_M_72_DB
 
 // Float saturation limits
 #define FLOAT_SAT_P_NAN                     0.0f

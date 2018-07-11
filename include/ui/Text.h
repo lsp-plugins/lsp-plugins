@@ -17,7 +17,7 @@ namespace lsp
             size_t          nCoords;
             float          *vCoords;
             char           *sText;
-            Color           sColor;
+            ColorHolder     sColor;
             float           fHAlign;
             float           fVAlign;
             float           fSize;

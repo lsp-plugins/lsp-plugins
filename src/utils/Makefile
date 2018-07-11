@@ -46,4 +46,3 @@ $(UTL_GENPHP): $(FILES) $(SUBDIRS)
 $(UTL_RESGEN): $(FILES) $(SUBDIRS)
 	@echo "  $(CC) $(notdir $(UTL_RESGEN))"
 	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) $(EXPAT_HEADERS) $(EXPAT_LIBS) -o $(UTL_RESGEN) $(OBJDIR)/resource_gen.o $(OBJ_CORE) $(OBJ_METADATA)
-

@@ -20,10 +20,10 @@ namespace lsp
                 S_INVERT    = (1 << 2)
             };
 
-            Color           sColor;
-            Color           sTextColor;
-            Color           sBorderColor;
-            Color           sBgColor;
+            ColorHolder     sColor;
+            ColorHolder     sTextColor;
+            ColorHolder     sBorderColor;
+            ColorHolder     sBgColor;
 
             IUIPort        *pPort;
             size_t          nSize;

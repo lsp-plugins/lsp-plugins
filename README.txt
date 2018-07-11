@@ -20,9 +20,8 @@ developed software.
 Still there is no absolute warranty about stability of the software on
 different platforms so you're using this software on your own risk.
 
-The source code takes a lot of time to develop (instead of drinking beer
-or doing something else) so it's fairly true that the spent time has
-to be paid.
+The source code takes a lot of time to develop, so the project uses
+donation model to compensate time spent for development.
 
 That's why the project uses donation model: the binary distributions
 of the software are completely free but the source code for each plugin
@@ -115,7 +114,7 @@ be obtained here:
 
 ==== INSTALLATION ====
 
-The binary distributions are ready to launch, just copy them to
+Binary distributions are ready to launch, just copy them to
 the appropriate directory.
 
 Releases containing odd number in minor version provide only
@@ -139,21 +138,21 @@ The usual directories for LinuxVST are:
   * /usr/lib64/vst
   * /usr/local/lib64/vst
 
-The usual directories for JACK are:
-  - for core library:
-    * /usr/lib
-    * /usr/local/lib
-    * /lib
-    * /usr/lib64
-    * /usr/local/lib64
-    * /lib64
-  - for binaries:
-    * /usr/bin
-    * /usr/local/bin
-    * /bin
-    * /usr/sbin
-    * /usr/local/sbin
-    * /sbin
+The usual directories for JACK core library are:
+  * /usr/lib
+  * /usr/local/lib
+  * /lib
+  * /usr/lib64
+  * /usr/local/lib64
+  * /lib64
+
+The usual directories for JACK binaries are:
+  * /usr/bin
+  * /usr/local/bin
+  * /bin
+  * /usr/sbin
+  * /usr/local/sbin
+  * /sbin
 
 The profiling release does not require special installations and can be executed
 from any location. After execution, the gprof profiling file 'gmon.out' is created.

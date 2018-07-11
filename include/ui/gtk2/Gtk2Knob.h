@@ -20,8 +20,8 @@ namespace lsp
                 S_CLICK
             };
 
-            Color               sColor;
-            Color               sBgColor;
+            ColorHolder         sColor;
+            ColorHolder         sBgColor;
             ColorHolder         sScaleColor;
 
             size_t              nSize;

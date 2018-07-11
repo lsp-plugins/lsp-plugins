@@ -336,8 +336,8 @@ namespace lsp
         cairo_translate(cr, ssize_t(nWidth >> 1), ssize_t(nHeight >> 1));
 
         // Draw scale background
-        Color col(sScaleColor.color());
-        Color dark(sScaleColor.color());
+        Color col(sScaleColor);
+        Color dark(sScaleColor);
         dark.blend(0.0, 0.0, 0.0, 0.75);
 
         float base = 2.0 * M_PI / 3.0;

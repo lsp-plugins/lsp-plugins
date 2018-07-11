@@ -29,7 +29,7 @@ namespace lsp
             float           fMax;
             size_t          nWidth;
             size_t          nCenter;
-            Color           sColor;
+            ColorHolder     sColor;
             IUIPort        *pPort;
 
         protected:

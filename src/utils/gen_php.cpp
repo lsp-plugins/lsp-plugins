@@ -83,21 +83,36 @@ namespace lsp
         fprintf(out, ")");
     }
 
-    void gen_plugin_php_descriptor(FILE *out, const plugin_metadata_t *metadata, const char *plugin_id)
+    void gen_plugin_php_descriptor(FILE *out, const plugin_metadata_t *m, const char *plugin_id)
     {
         fprintf(out, "\t\tarray(\n");
         fprintf(out, "\t\t\t'id' => '%s',\n", plugin_id);
-        fprintf(out, "\t\t\t'name' => '%s',\n", metadata->name);
-        fprintf(out, "\t\t\t'description' => '%s',\n", metadata->description);
-        fprintf(out, "\t\t\t'acronym' => '%s',\n", metadata->acronym);
-        fprintf(out, "\t\t\t'author' => '%s',\n", metadata->developer->name);
+        fprintf(out, "\t\t\t'name' => '%s',\n", m->name);
+        fprintf(out, "\t\t\t'description' => '%s',\n", m->description);
+        fprintf(out, "\t\t\t'acronym' => '%s',\n", m->acronym);
+
+        #define MOD_LADSPA(x) \
+            if (&x::metadata == m) \
+                fprintf(out, "\t\t\t'fmt_ladspa' => '%d',\n", m->ladspa_id);
+        #define MOD_LV2(x) \
+            if (&x::metadata == m) \
+                fprintf(out, "\t\t\t'fmt_lv2' => '%s',\n", LSP_PLUGIN_URI(lv2, x));
+        #define MOD_VST(x) \
+            if (&x::metadata == m) \
+                fprintf(out, "\t\t\t'fmt_vst' => '%s',\n", m->vst_uid);
+        #define MOD_PLUGIN(x) \
+            if (&x::metadata == m) \
+                fprintf(out, "\t\t\t'fmt_jack' => true,\n");
+        #include <metadata/modules.h>
+
+        fprintf(out, "\t\t\t'author' => '%s',\n", m->developer->name);
         fprintf(out, "\t\t\t'version' => '%d.%d.%d',\n",
-                LSP_VERSION_MAJOR(metadata->version),
-                LSP_VERSION_MINOR(metadata->version),
-                LSP_VERSION_MICRO(metadata->version)
+                LSP_VERSION_MAJOR(m->version),
+                LSP_VERSION_MINOR(m->version),
+                LSP_VERSION_MICRO(m->version)
             );
         fprintf(out, "\t\t\t'groups' => ");
-        php_print_plugin_groups(out, metadata->classes);
+        php_print_plugin_groups(out, m->classes);
         fprintf(out, "\n");
         fprintf(out, "\t\t)");
     }

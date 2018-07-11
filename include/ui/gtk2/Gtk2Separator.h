@@ -13,8 +13,8 @@ namespace lsp
     class Gtk2Separator: public Gtk2Widget
     {
         protected:
-            Color           sColor;
-            Color           sBgColor;
+            ColorHolder     sColor;
+            ColorHolder     sBgColor;
             size_t          nBorder;
             size_t          nWidth;
 

@@ -53,7 +53,7 @@ namespace lsp
         cairo_arc(cr, 0, 0, (nSize >> 1) + 1, 0, 2.0 * M_PI);
         cairo_fill(cr);
 
-        Color col(sColor.color());
+        Color col(sColor);
 
         if (key_matched())
         {
@@ -89,7 +89,7 @@ namespace lsp
         }
         else
         {
-            Color c;
+            ColorHolder c;
             c.set(pUI->theme(), C_GLASS);
 
             float r=c.red() + (col.red() - c.red()) * 0.4;

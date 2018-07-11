@@ -305,15 +305,26 @@ namespace lsp
     void Gtk2Button::button_press(ssize_t x, ssize_t y, size_t state, size_t button)
     {
 //        lsp_trace("x=%d, y=%d, state=%x, button=%x", int(x), int(y), int(state), int(button));
-        nBMask         |= (1 << button);
+        size_t mask         = nBMask;
+        nBMask             |= (1 << button);
+        if (nState & S_OUT) // Mouse button was initially pressed out of the button area
+            return;
 
-        bool pressed    = (nBMask == (1 << 1)) && (check_mouse_over(x, y));
-        bool is_pressed = nState & S_PRESSED;
+        bool m_over         = check_mouse_over(x, y);
+        if ((mask == 0) && (!m_over))
+        {
+            nState             |= S_OUT; // Mark that out of the button area
+            return;
+        }
+
+        bool pressed        = (nBMask == (1 << 1)) && (m_over);
+        bool is_pressed     = nState & S_PRESSED;
 
         if (pressed != is_pressed)
         {
-            nState      ^= S_PRESSED;
-            on_click(true);
+            nState         ^= S_PRESSED;
+            if (is_trigger())
+                on_click(pressed);
             markRedraw();
         }
     }
@@ -321,23 +332,28 @@ namespace lsp
     void Gtk2Button::button_release(ssize_t x, ssize_t y, size_t state, size_t button)
     {
 //        lsp_trace("x=%d, y=%d, state=%x, button=%x", int(x), int(y), int(state), int(button));
-
+//        bool pressed        = nBMask == (1 << 1);
         nBMask         &= ~(1 << button);
-        bool pressed    = ((button == 1) && (nBMask == 0)) || ((button != 1) && (nBMask == (1 << 1)));
-        if (pressed)
-            pressed     = (check_mouse_over(x, y));
-        if (nBMask == 0)
-            pressed     = false;
+        if ((nBMask == 0) && (nState & S_OUT))
+        {
+            nState &= ~S_OUT;
+            return;
+        }
 
-        bool is_pressed = nState & S_PRESSED;
+        bool pressed        = nBMask == (1 << 1);
+        bool is_pressed     = nState & S_PRESSED;
+
         if (pressed != is_pressed)
         {
-            nState     ^= S_PRESSED;
-            if ((is_pressed) && (!is_trigger()))
-                nState     ^= S_TOGGLED;
+            nState      ^= S_PRESSED;
 
-            if (nBMask == 0)
+            if (is_trigger())
+                on_click(pressed);
+            else if (nBMask == 0)
+            {
+                nState          ^= S_TOGGLED;
                 on_click(false);
+            }
 
             markRedraw();
         }
@@ -346,15 +362,15 @@ namespace lsp
     void Gtk2Button::motion(ssize_t x, ssize_t y, size_t state)
     {
 //        lsp_trace("x=%d, y=%d, state=%x", int(x), int(y), int(state));
+        if (nState & S_OUT) // Mouse button was initially pressed out of the button area
+            return;
+
         bool pressed    = (nBMask == (1 << 1)) && (check_mouse_over(x, y));
         bool is_pressed = nState & S_PRESSED;
 
         if (pressed != is_pressed)
         {
-            if (pressed)
-                nState     |= S_PRESSED;
-            else
-                nState     &= ~S_PRESSED;
+            nState     ^= S_PRESSED;
 
             if (is_trigger())
                 on_click(pressed);
@@ -367,13 +383,13 @@ namespace lsp
     {
 //        lsp_trace("button clicked down=%d", int(down));
         float value     = next_value(down);//(down) ? 1.0 : 0.0;
-        if (value != fValue)
+        if (value == fValue)
+            return;
+
+        if (pPort != NULL)
         {
-            if (pPort != NULL)
-            {
-                pPort->setValue(value);
-                pPort->notifyAll();
-            }
+            pPort->setValue(value);
+            pPort->notifyAll();
         }
     }
 
@@ -428,7 +444,7 @@ namespace lsp
             return false;
         if (mdata->unit == U_ENUM)
             return false;
-        if (mdata->flags & F_TRG)
+        if (IS_TRIGGER_PORT(mdata))
             return true;
         return false;
     }

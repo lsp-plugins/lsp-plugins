@@ -8,6 +8,8 @@
 #ifndef UI_GTK2_OVERRIDE_H_
 #define UI_GTK2_OVERRIDE_H_
 
+#include <core/dsp.h>
+
 #define OVERRIDE_GTK2_CONTROL(gtk_type, gtk_class, gtk_widget, class)   \
     typedef struct class ## Impl { \
         gtk_widget widget; \
@@ -64,7 +66,13 @@
         if (gtk_widget_is_drawable (widget)) \
         { \
             if (_this->impl != NULL) \
+            { \
+                using namespace lsp; \
+                dsp_context_t ctx; \
+                dsp::start(&ctx); \
                 _this->impl->render(); \
+                dsp::finish(&ctx); \
+            } \
         } \
     \
         if ((_this->propagate) && GTK_IS_CONTAINER(widget)) \

@@ -11,13 +11,24 @@
 #include <ui/ui.h>
 #include <ui/buffer.h>
 #include <ui/UISwitchedPort.h>
+#include <ui/ui_ports.h>
+
+#include <metadata/metadata.h>
+#include <metadata/ports.h>
 
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <sys/stat.h>
 
 namespace lsp
 {
+    const port_t plugin_ui::vConfigMetadata[] =
+    {
+        SWITCH(UI_MOUNT_STUD_PORT_ID, "Visibility of mount studs in the UI", 1.0f),
+        PORTS_END
+    };
+
     static char *escape_characters(const char *s)
     {
         if (s == NULL)
@@ -267,6 +278,28 @@ namespace lsp
     void plugin_ui::init(IUIWrapper *wrapper)
     {
         pWrapper        = wrapper;
+
+        // Create additional ports
+        for (const port_t *p = vConfigMetadata; p->id != NULL; ++p)
+        {
+            switch (p->role)
+            {
+                case R_CONTROL:
+                {
+                    IUIPort *up = new UIControlPort(p, this);
+                    if (up != NULL)
+                        vConfigPorts.add(up);
+                    break;
+                }
+
+                default:
+                    lsp_error("Could not instantiate configuration port id=%s", p->id);
+                    break;
+            }
+        }
+
+        // Read global configuration
+        load_global_config();
     }
 
     void plugin_ui::build()
@@ -319,13 +352,28 @@ namespace lsp
         // Destroy switched ports
         for (size_t i=0; i<vSwitched.size(); ++i)
         {
-            lsp_trace("Destroy switched port id=%s", vSwitched[i]->id());
-            if (vSwitched[i] != NULL)
-                delete vSwitched[i];
+            UISwitchedPort *p = vSwitched.at(i);
+            if (p != NULL)
+            {
+                lsp_trace("Destroy switched port id=%s", p->id());
+                delete p;
+            }
+        }
+
+        // Destroy config ports
+        for (size_t i=0; i<vConfigPorts.size(); ++i)
+        {
+            IUIPort *p = vConfigPorts.at(i);
+            if (p != NULL)
+            {
+                lsp_trace("Destroy configuration port id=%s", p->metadata()->id);
+                delete p;
+            }
         }
 
         // Clear ports
         vSortedPorts.clear();
+        vConfigPorts.clear();
         vPorts.clear();
         vSwitched.clear();
         vAliases.clear();
@@ -340,44 +388,14 @@ namespace lsp
         return true;
     }
 
-    bool plugin_ui::export_settings(const char *filename)
+    void plugin_ui::serialize_ports(FILE *fd, cvector<IUIPort> &ports)
     {
-        // Open file for writing
-        FILE *fd = fopen(filename, "w+");
-        if (fd == NULL)
-            return false;
-
-        // Change locale
-        char *saved_locale  = setlocale(1, "C");
-
-        // Print the comment
-        fputs("#-------------------------------------------------------------------------------\n", fd);
-        fputs("#\n", fd);
-        fputs("# This file contains configuration of the audio plugin.\n", fd);
-        fprintf(fd, "#   Plugin name:         %s (%s)\n", pMetadata->name, pMetadata->description);
-        fprintf(fd, "#   Plugin version:      %d.%d.%d\n",
-                int(LSP_VERSION_MAJOR(pMetadata->version)),
-                int(LSP_VERSION_MINOR(pMetadata->version)),
-                int(LSP_VERSION_MICRO(pMetadata->version))
-            );
-        if (pMetadata->lv2_uid != NULL)
-            fprintf(fd, "#   LV2 URI:             %s%s\n", LSP_URI(lv2), pMetadata->lv2_uid);
-        if (pMetadata->vst_uid != NULL)
-            fprintf(fd, "#   VST identifier:      %s\n", pMetadata->vst_uid);
-        if (pMetadata->ladspa_id > 0)
-            fprintf(fd, "#   LADSPA identifier:   %d\n", pMetadata->ladspa_id);
-        fputs("#\n", fd);
-        fputs("# (C) " LSP_FULL_NAME " \n", fd);
-        fputs("#   " LSP_BASE_URI " \n#\n", fd);
-        fputs("#-------------------------------------------------------------------------------\n", fd);
-        fputs("\n", fd);
-
-        size_t n_ports = vPorts.size();
+        size_t n_ports = ports.size();
 
         for (size_t i=0; i<n_ports; ++i)
         {
             // Get port
-            IUIPort *up         = vPorts.at(i);
+            IUIPort *up         = ports.at(i);
             if (up == NULL)
                 continue;
 
@@ -467,6 +485,41 @@ namespace lsp
                     break;
             }
         }
+    }
+
+    bool plugin_ui::export_settings(const char *filename)
+    {
+        // Open file for writing
+        FILE *fd = fopen(filename, "w+");
+        if (fd == NULL)
+            return false;
+
+        // Change locale
+        char *saved_locale  = setlocale(1, "C");
+
+        // Print the comment
+        fputs("#-------------------------------------------------------------------------------\n", fd);
+        fputs("#\n", fd);
+        fputs("# This file contains configuration of the audio plugin.\n", fd);
+        fprintf(fd, "#   Plugin name:         %s (%s)\n", pMetadata->name, pMetadata->description);
+        fprintf(fd, "#   Plugin version:      %d.%d.%d\n",
+                int(LSP_VERSION_MAJOR(pMetadata->version)),
+                int(LSP_VERSION_MINOR(pMetadata->version)),
+                int(LSP_VERSION_MICRO(pMetadata->version))
+            );
+        if (pMetadata->lv2_uid != NULL)
+            fprintf(fd, "#   LV2 URI:             %s%s\n", LSP_URI(lv2), pMetadata->lv2_uid);
+        if (pMetadata->vst_uid != NULL)
+            fprintf(fd, "#   VST identifier:      %s\n", pMetadata->vst_uid);
+        if (pMetadata->ladspa_id > 0)
+            fprintf(fd, "#   LADSPA identifier:   %d\n", pMetadata->ladspa_id);
+        fputs("#\n", fd);
+        fputs("# (C) " LSP_FULL_NAME " \n", fd);
+        fputs("#   " LSP_BASE_URI " \n#\n", fd);
+        fputs("#-------------------------------------------------------------------------------\n", fd);
+        fputs("\n", fd);
+
+        serialize_ports(fd, vPorts);
 
         fputs("#-------------------------------------------------------------------------------\n", fd);
 
@@ -479,13 +532,90 @@ namespace lsp
         return true;
     }
 
-    bool plugin_ui::import_settings(const char *filename)
+    bool plugin_ui::save_global_config()
     {
-        // Open file for writing
-        FILE *fd = fopen(filename, "r");
+        FILE *fd    = open_config_file(true);
         if (fd == NULL)
             return false;
 
+        // Change locale
+        char *saved_locale  = setlocale(1, "C");
+
+        // Print the comment
+        fputs("#-------------------------------------------------------------------------------\n", fd);
+        fputs("#\n", fd);
+        fputs("# This file contains global configuration of plugins.\n", fd);
+        fputs("#\n", fd);
+        fputs("# (C) " LSP_FULL_NAME " \n", fd);
+        fputs("#   " LSP_BASE_URI " \n#\n", fd);
+        fputs("#-------------------------------------------------------------------------------\n", fd);
+        fputs("\n", fd);
+
+        serialize_ports(fd, vConfigPorts);
+
+        fputs("#-------------------------------------------------------------------------------\n", fd);
+
+        // Return locale
+        setlocale(1, saved_locale);
+
+        // Close file
+        fclose(fd);
+
+        return true;
+    }
+
+    bool plugin_ui::load_global_config()
+    {
+        FILE *fd    = open_config_file(false);
+        if (fd == NULL)
+            return false;
+
+        bool result     = deserialize_ports(fd, vConfigPorts);
+
+        // Close file
+        fclose(fd);
+
+        return result;
+    }
+
+    bool plugin_ui::create_directory(const char *path)
+    {
+        struct stat fattr;
+        if (stat(path, &fattr) != 0)
+        {
+            int code = errno;
+            if (code != ENOENT)
+                return false;
+            if (mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO) == 0)
+                return true;
+
+            lsp_error("Error while trying to create configuration directory %s", path);
+            return false;
+        }
+        return S_ISDIR(fattr.st_mode);
+    }
+
+    FILE *plugin_ui::open_config_file(bool write)
+    {
+        char fname[PATH_MAX];
+        const char *homedir     = getenv("HOME");
+        if (homedir == NULL)
+            return NULL;
+
+        snprintf(fname, PATH_MAX-1, "%s/.config", homedir);
+        if (!create_directory(fname))
+            return NULL;
+
+        snprintf(fname, PATH_MAX-1, "%s/.config/%s", homedir, LSP_ARTIFACT_ID);
+        if (!create_directory(fname))
+            return NULL;
+
+        snprintf(fname, PATH_MAX-1, "%s/.config/%s/%s.cfg", homedir, LSP_ARTIFACT_ID, LSP_ARTIFACT_ID);
+        return fopen(fname, (write) ? "w+" : "r");
+    }
+
+    bool plugin_ui::deserialize_ports(FILE *fd, cvector<IUIPort> &ports)
+    {
         bool result = true;
         buffer_t line;
         init_buf(&line, 4096);
@@ -505,7 +635,7 @@ namespace lsp
             if (parse_line(&line, &key, &value))
             {
                 lsp_trace("Configuration: %s = %s", key, value);
-                apply_changes(key, value);
+                apply_changes(key, value, ports);
             }
 
             // Finally, clear the buffer
@@ -514,15 +644,44 @@ namespace lsp
 
         // Free resources
         destroy_buf(&line);
+
+        return result;
+    }
+
+    bool plugin_ui::import_settings(const char *filename)
+    {
+        // Open file for writing
+        FILE *fd = fopen(filename, "r");
+        if (fd == NULL)
+            return false;
+
+        bool result     = deserialize_ports(fd, vPorts);
+
+        // Close file
         fclose(fd);
 
         return result;
     }
 
-    bool plugin_ui::apply_changes(const char *key, const char *value)
+    bool plugin_ui::apply_changes(const char *key, const char *value, cvector<IUIPort> &ports)
     {
         // Get UI port
-        IUIPort *up     = port(key);
+        size_t n_ports  = ports.size();
+        IUIPort *up     = NULL;
+        for (size_t i=0; i<n_ports; ++i)
+        {
+            IUIPort *p      = ports.at(i);
+            if (p == NULL)
+                continue;
+            const port_t *meta  = p->metadata();
+            if ((meta == NULL) || (meta->id == NULL))
+                continue;
+            if (!strcmp(meta->id, key))
+            {
+                up          = p;
+                break;
+            }
+        }
         if (up == NULL)
             return false;
 
@@ -628,6 +787,26 @@ namespace lsp
 
             delete s;
             return NULL;
+        }
+
+        // Check that port name contains "ui:" prefix
+        if (strstr(name, UI_CONFIG_PORT_PREFIX) == name)
+        {
+            const char *ui_id = &name[strlen(UI_CONFIG_PORT_PREFIX)];
+
+            // Try to find configuration port
+            size_t count = vConfigPorts.size();
+            for (size_t i=0; i<count; ++i)
+            {
+                IUIPort *p          = vConfigPorts.at(i);
+                if (p == NULL)
+                    continue;
+                const char *p_id    = p->metadata()->id;
+                if (p_id == NULL)
+                    continue;
+                if (!strcmp(p_id, ui_id))
+                    return p;
+            }
         }
 
         // Do usual stuff

@@ -155,14 +155,6 @@ namespace lsp
             case W_METER:
                 return static_cast<Gtk2Widget *>(widget);
 
-            case W_AXIS:
-            case W_MARKER:
-            case W_MESH:
-            case W_BASIS:
-            case W_CENTER:
-            case W_PORT:
-                return NULL;
-
             default:
                 return NULL;
         }

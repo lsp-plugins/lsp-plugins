@@ -11,6 +11,8 @@
 #include <core/debug.h>
 #include <core/windows.h>
 #include <core/envelope.h>
+#include <core/colors.h>
+#include <core/Color.h>
 
 #include <string.h>
 
@@ -22,11 +24,13 @@ namespace lsp
     spectrum_analyzer_base::spectrum_analyzer_base(const plugin_metadata_t &metadata): plugin_t(metadata)
     {
         pChannels       = NULL;
+        pIDisplay       = NULL;
     }
 
     spectrum_analyzer_base::~spectrum_analyzer_base()
     {
         pChannels       = NULL;
+        pIDisplay       = NULL;
     }
 
     spectrum_analyzer_base::sa_core_t *spectrum_analyzer_base::create_channels(const plugin_metadata_t *m)
@@ -130,7 +134,9 @@ namespace lsp
             ptr                += max_fft_buf_size;
             c->bOn              = false;
             c->bFreeze          = false;
-            c->fGain            = 1.0;
+            c->bSend            = false;
+            c->fGain            = 1.0f;
+            c->fHue             = 0.0f;
             c->nSamples         = 0;
 
             // Port references
@@ -159,6 +165,9 @@ namespace lsp
 
     void spectrum_analyzer_base::init(IWrapper *wrapper)
     {
+        // Pass wrapper
+        plugin_t::init(wrapper);
+
         // Allocate channels
         pChannels       = create_channels(pMetadata);
         if (pChannels == NULL)
@@ -248,6 +257,11 @@ namespace lsp
             destroy_channels(pChannels);
             pChannels       = NULL;
         }
+        if (pIDisplay != NULL)
+        {
+            pIDisplay->detroy();
+            pIDisplay       = NULL;
+        }
     }
 
     void spectrum_analyzer_base::update_settings()
@@ -321,7 +335,9 @@ namespace lsp
             c->bOn              = c->pOn->getValue() >= 0.5f;
             c->bSolo            = c->pSolo->getValue() >= 0.5f;
             c->bFreeze          = c->pFreeze->getValue() >= 0.5f;
+            c->bSend            = c->bOn && ((has_solo == 0) || ((has_solo > 0) && (c->bSolo)));
             c->fGain            = c->pShift->getValue();
+            c->fHue             = c->pHue->getValue();
             if (update_buf)
             {
                 dsp::fill_zero(c->vSigRe, 1 << pChannels->nRank);
@@ -346,6 +362,9 @@ namespace lsp
             pChannels->vChannels[i].nSamples    = step * i;
         lsp_trace("nMaxSamples      = %d", int(pChannels->nMaxSamples));
         set_reactivity(pChannels->fReactivity);
+
+        // Call for settings update
+        update_settings();
     }
 
     void spectrum_analyzer_base::update_frequences()
@@ -377,17 +396,19 @@ namespace lsp
 
     void spectrum_analyzer_base::process(size_t samples)
     {
-//        lsp_trace("samples = %d", int(samples));
         if (pChannels == NULL)
             return;
 
-        // Check that there are soloing channels
-        size_t has_solo         = 0;
-        for (size_t i=0; i<pChannels->nChannels; ++i)
-        {
-            if (pChannels->vChannels[i].bSolo)
-                has_solo++;
-        }
+        // Always query for drawing
+        pWrapper->query_display_draw();
+
+//        // Check that there are soloing channels
+//        size_t has_solo         = 0;
+//        for (size_t i=0; i<pChannels->nChannels; ++i)
+//        {
+//            if (pChannels->vChannels[i].bSolo)
+//                has_solo++;
+//        }
 
         // Now process the channels
         size_t fft_size     = 1 << pChannels->nRank;
@@ -498,11 +519,11 @@ namespace lsp
             if (mesh_request)
             {
                 // Determine that mesh has to be sent to the UI
-                bool send       = c->bOn;
-                if (has_solo > 0)
-                    send            = send && c->bSolo;
+//                bool send       = c->bOn;
+//                if (has_solo > 0)
+//                    send            = send && c->bSolo;
 
-                if (send)
+                if (c->bSend)
                 {
                     // Copy frequency points
                     dsp::copy(mesh->pvData[0], pChannels->vFrequences, spectrum_analyzer_base_metadata::MESH_POINTS);
@@ -553,6 +574,107 @@ namespace lsp
 
         // Normalize window
         dsp::scale(core->vWindow, core->vWindow, norm, fft_size);
+    }
+
+    bool spectrum_analyzer_base::inline_display(ICanvas *cv, size_t width, size_t height)
+    {
+        if (pChannels == NULL)
+            return false;
+
+        // Check proportions
+        if (height > (R_GOLDEN_RATIO * width))
+            height  = R_GOLDEN_RATIO * width;
+
+        // Init canvas
+        if (!cv->init(width, height))
+            return false;
+        width   = cv->width();
+        height  = cv->height();
+
+        // Clear background
+        bool bypass = pChannels->bBypass;
+        cv->set_color_rgb((bypass) ? CV_DISABLED : CV_BACKGROUND);
+        cv->paint();
+
+        // Draw axis
+        cv->set_line_width(1.0);
+
+        float zx    = 1.0f/SPEC_FREQ_MIN;
+        float zy    = 1.0f/GAIN_AMP_M_72_DB;
+        float dx    = width/(logf(SPEC_FREQ_MAX)-logf(SPEC_FREQ_MIN));
+        float dy    = -height/(logf(GAIN_AMP_P_24_DB)-logf(GAIN_AMP_M_72_DB));
+
+        // Draw vertical lines
+        cv->set_color_rgb(CV_YELLOW, 0.5f);
+        for (float i=100.0f; i<SPEC_FREQ_MAX; i *= 10.0f)
+        {
+            float ax = dx*(logf(i*zx));
+            cv->line(ax, 0, ax, height);
+        }
+
+        // Draw horizontal lines
+        cv->set_color_rgb(CV_WHITE, 0.5f);
+        for (float i=GAIN_AMP_M_48_DB; i<GAIN_AMP_P_24_DB; i *= GAIN_AMP_P_24_DB)
+        {
+            float ay = height + dy*(logf(i*zy));
+            cv->line(0, ay, width, ay);
+        }
+
+        // Allocate buffer: f, a(f), x, y
+        pIDisplay           = float_buffer_t::reuse(pIDisplay, 4, width);
+        float_buffer_t *b   = pIDisplay;
+        if (b == NULL)
+            return false;
+
+        if (!bypass)
+        {
+            Color col(CV_MESH);
+            cv->set_line_width(2);
+
+            float ni        = float(spectrum_analyzer_base_metadata::MESH_POINTS) / width; // Normalizing index
+            uint32_t *idx   = pChannels->vIndexes;
+            for (size_t i=0; i<pChannels->nChannels; ++i)
+            {
+                // Output only active channel
+                sa_channel_t *c = &pChannels->vChannels[i];
+                if (!c->bSend)
+                    continue;
+
+                if (pChannels->nEnvelope == envelope::WHITE_NOISE)
+                {
+                    for (size_t j=0; j<width; ++j)
+                    {
+                        size_t k        = j*ni;
+                        b->v[0][j]      = pChannels->vFrequences[k];
+                        b->v[1][j]      = c->vFftAmp[idx[k]];
+                    }
+                }
+                else
+                {
+                    for (size_t j=0; j<width; ++j)
+                    {
+                        size_t k        = j*ni;
+                        size_t l        = idx[k];
+                        b->v[0][j]      = pChannels->vFrequences[k];
+                        b->v[1][j]      =  c->vFftAmp[l] * pChannels->vEnvelope[l];
+                    }
+                }
+
+                dsp::scale(b->v[1], b->v[1], c->fGain * pChannels->fPreamp, width);
+
+                dsp::fill(b->v[2], 0.0f, width);
+                dsp::fill(b->v[3], height, width);
+                dsp::axis_apply_log(b->v[2], b->v[3], b->v[0], zx, dx, 0.0f, width);
+                dsp::axis_apply_log(b->v[2], b->v[3], b->v[1], zy, 0.0f, dy, width);
+
+                // Draw mesh
+                col.hue(c->fHue);
+                cv->set_color(col);
+                cv->draw_lines(b->v[2], b->v[3], width);
+            }
+        }
+
+        return true;
     }
 
     //-------------------------------------------------------------------------

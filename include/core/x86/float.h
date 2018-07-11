@@ -19,6 +19,36 @@ namespace lsp
         static const uint32_t fpu_p_inf_i[] __lsp_aligned16 = { FLOAT_SAT_P_INF_I };
         static const uint32_t fpu_n_inf_i[] __lsp_aligned16 = { FLOAT_SAT_N_INF_I };
 
+        static uint32_t fpu_read_cr()
+        {
+            uint16_t cr = 0;
+
+            __asm__ __volatile__
+            (
+                __ASM_EMIT("fstcw   %[cr]")
+
+                : [cr] "+m" (cr)
+                :
+                : "memory"
+            );
+
+            return cr;
+        }
+
+        static void fpu_write_cr(uint32_t value)
+        {
+            uint16_t cr     = value;
+
+            __asm__ __volatile__
+            (
+                __ASM_EMIT("fldcw   %[cr]")
+
+                :
+                : [cr] "m" (cr)
+                :
+            );
+        }
+
         static void copy_saturated(float *dst, const float *src, size_t count)
         {
             register uint32_t tmp;
@@ -32,6 +62,7 @@ namespace lsp
             __asm__ __volatile__
             (
                 // Check count
+                __ASM_EMIT("cld")
                 __ASM_EMIT("test %[count], %[count]")
                 __ASM_EMIT("jz 100f")
 
@@ -110,6 +141,7 @@ namespace lsp
             __asm__ __volatile__
             (
                 // Check count
+                __ASM_EMIT("cld")
                 __ASM_EMIT("test %[count], %[count]")
                 __ASM_EMIT("jz 100f")
 
@@ -181,6 +213,7 @@ namespace lsp
             __asm__ __volatile__
             (
                 // Check count
+                __ASM_EMIT("cld")
                 __ASM_EMIT("test %[count], %[count]")
                 __ASM_EMIT("jz 100f")
 
@@ -238,6 +271,7 @@ namespace lsp
             __asm__ __volatile__
             (
                 // Check count
+                __ASM_EMIT("cld")
                 __ASM_EMIT("test %[count], %[count]")
                 __ASM_EMIT("jz 100f")
 

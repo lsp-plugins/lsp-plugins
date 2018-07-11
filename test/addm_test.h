@@ -15,7 +15,7 @@ namespace addm_test
 
     void test_addm(float *a, const float *b, size_t count)
     {
-        printf("Testing LOGARITHM of size %d ...\n", int(count));
+        printf("Testing ADD_MULTIPLIED of size %d ...\n", int(count));
         clock_t start = clock();
         float time = 0.0f;
         size_t iterations = 0;

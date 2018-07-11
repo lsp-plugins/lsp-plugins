@@ -24,9 +24,6 @@ namespace lsp
             cvector<Axis>           vAxises;
             cvector<Axis>           vBasises;
             cvector<Center>         vCenters;
-//            size_t          nObjects;
-//            size_t          nCapacity;
-//            IGraphObject  **vObjects;
 
         public:
             IGraph();

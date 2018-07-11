@@ -30,11 +30,14 @@
 namespace lsp
 {
 #if defined(LSP_UI_GTK2)
+#define DISPLAY_SIZE    128
+
     typedef struct gtk_wrapper_t
     {
         JACKWrapper    *pWrapper;
         GtkWidget      *pWindow;
         bool            bNotified;
+        size_t          nCounter;
     } gtk_wrapper_t;
 
     gboolean jack_ui_synchronize(gpointer arg)
@@ -61,6 +64,45 @@ namespace lsp
             }
         }
 
+        // Limit refresh rate
+        if (wrapper->nCounter++ < 10)
+            return true;
+        wrapper->nCounter   = 0;
+
+        // Check if inline display is present
+        if (!wrapper->pWrapper->test_display_draw())
+            return TRUE;
+
+        // Call for rendering
+        canvas_data_t *data = wrapper->pWrapper->render_inline_display(DISPLAY_SIZE, DISPLAY_SIZE);
+        if ((data == NULL) || (data->pData == NULL) || (data->nWidth <= 0) || (data->nHeight <= 0))
+            return TRUE;
+
+        // BGRA -> RGBA
+        if (data->nStride != data->nWidth * 4)
+        {
+            for (size_t row = 0; row < data->nHeight; ++row)
+            {
+                uint8_t *p  = &data->pData[row * data->nStride];
+                dsp::rgba32_to_bgra32(p, p, data->nWidth);
+            }
+        }
+        else
+            dsp::rgba32_to_bgra32(data->pData, data->pData, data->nWidth * data->nHeight);
+
+        // Set-up window icon
+        GdkPixbuf *pixbuf = gdk_pixbuf_new_from_data(
+            reinterpret_cast<const guchar *>(data->pData),
+            GDK_COLORSPACE_RGB, TRUE, 8,
+            data->nWidth, data->nHeight, data->nStride,
+            NULL, NULL);
+
+        if (pixbuf != NULL)
+        {
+            gtk_window_set_icon(GTK_WINDOW(wrapper->pWindow), pixbuf);
+            g_object_unref (G_OBJECT(pixbuf));
+        }
+
         return TRUE;
     }
 
@@ -85,6 +127,7 @@ namespace lsp
         wrapper.pWrapper    = w;
         wrapper.pWindow     = window;
         wrapper.bNotified   = false;
+        wrapper.nCounter    = 0;
 
         // Create synchronization timer
         guint timer         = g_timeout_add (1000 / MESH_REFRESH_RATE, jack_ui_synchronize, &wrapper);

@@ -18,6 +18,7 @@
 #include <plugins/sampler.h>
 #include <plugins/trigger.h>
 #include <plugins/para_equalizer.h>
+#include <plugins/graph_equalizer.h>
 #include <plugins/impulse_responses.h>
 
 #endif /* PLUGINS_PLUGINS_H_ */

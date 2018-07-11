@@ -55,7 +55,7 @@ namespace lsp
             return;
 
         // Draw line
-        cv->set_color(sColor.color());
+        cv->set_color(sColor);
         cv->set_line_width(nWidth);
         cv->line(a, b, c);
     }

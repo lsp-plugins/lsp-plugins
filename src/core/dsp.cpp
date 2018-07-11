@@ -7,11 +7,11 @@
 
 #include <math.h>
 
+#include <core/types.h>
 #include <core/dsp.h>
 #include <core/debug.h>
 
-#if defined(__i386__) || defined(__x86_64__)
-    #define ARCH_X86
+#ifdef ARCH_X86
     #include <core/x86/cpuid.h>
 #endif /* defined(__i386__) || defined(__x86_64__) */
 
@@ -33,6 +33,11 @@ namespace lsp
             extern void dsp_init(dsp_options_t options);
         }
 
+        namespace sse3
+        {
+            extern void dsp_init(dsp_options_t options);
+        }
+
         namespace avx
         {
             extern void dsp_init(dsp_options_t options);
@@ -45,6 +50,9 @@ namespace lsp
     // Declare static variables
     namespace dsp
     {
+        void    (* start)(dsp_context_t *ctx) = NULL;
+        void    (* finish)(dsp_context_t *ctx) = NULL;
+
         void    (* copy)(float *dst, const float *src, size_t count) = NULL;
         void    (* copy_saturated)(float *dst, const float *src, size_t count) = NULL;
         void    (* saturate)(float *dst, size_t count) = NULL;
@@ -90,15 +98,21 @@ namespace lsp
         void    (* complex_mod)(float *dst_mod, const float *src_re, const float *src_im, size_t count) = NULL;
         void    (* lr_to_ms)(float *m, float *s, const float *l, const float *r, size_t count) = NULL;
         void    (* ms_to_lr)(float *l, float *r, const float *m, const float *s, size_t count) = NULL;
+        void    (* avoid_denormals)(float *dst, const float *src, size_t count) = NULL;
         float   (* biquad_process)(float *buf, const float *ir, float sample) = NULL;
         void    (* biquad_process_multi)(float *dst, const float *src, size_t count, float *buf, const float *ir) = NULL;
+        void    (* biquad_process_x1)(float *dst, const float *src, size_t count, biquad_t *f) = NULL;
+        void    (* biquad_process_x2)(float *dst, const float *src, size_t count, biquad_t *f) = NULL;
+        void    (* biquad_process_x4)(float *dst, const float *src, size_t count, biquad_t *f) = NULL;
+        void    (* biquad_process_x8)(float *dst, const float *src, size_t count, biquad_t *f) = NULL;
 
         float   (* vec4_scalar_mul)(const float *a, const float *b) = NULL;
         float   (* vec4_push)(float *v, float value) = NULL;
         float   (* vec4_unshift)(float *v, float value) = NULL;
         void    (* vec4_zero)(float *v) = NULL;
 
-        void    (* axis_apply_log)(float *x, float *y, const float *v, float min, float norm_x, float norm_y, size_t count) = NULL;
+        void    (* axis_apply_log)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count) = NULL;
+        void    (* rgba32_to_bgra32)(void *dst, const void *src, size_t count);
     }
 
     namespace dsp
@@ -262,6 +276,11 @@ namespace lsp
             return options;
         }
 
+        void init_context(dsp_context_t *ctx)
+        {
+            ctx->top        = 0;
+        }
+
         void init()
         {
             // Consider already initialized
@@ -279,6 +298,7 @@ namespace lsp
             #ifdef ARCH_X86
                 x86::dsp_init(options);
                 sse::dsp_init(options);
+                sse3::dsp_init(options);
                 avx::dsp_init(options);
             #endif /* ARCH_X86 */
         }

@@ -21,7 +21,7 @@ namespace lsp
         sColor.set(pUI->theme(), C_LOGO_FACE);
         sTextColor.set(pUI->theme(), C_LOGO_TEXT);
 
-        bLeft       = false;
+        nMode       = M_RIGHT;
         sText       = NULL;
         nSize       = 32;
         nButtons    = 0;
@@ -50,6 +50,14 @@ namespace lsp
             if (item != NULL)
             {
                 gtk_signal_connect(GTK_OBJECT (item), "activate", GTK_SIGNAL_FUNC (import_settings), gpointer(this));
+                gtk_menu_append(GTK_MENU(pMenu), item);
+                gtk_widget_show(item);
+            }
+
+            item            = gtk_menu_item_new_with_label("Toggle rack mount");
+            if (item != NULL)
+            {
+                gtk_signal_connect(GTK_OBJECT (item), "activate", GTK_SIGNAL_FUNC (toggle_hide), gpointer(this));
                 gtk_menu_append(GTK_MENU(pMenu), item);
                 gtk_widget_show(item);
             }
@@ -164,149 +172,225 @@ namespace lsp
         cairo_rectangle(cr, 0, 0, nWidth, nHeight);
         cairo_fill(cr);
 
-//        // Draw left and right
-//        cairo_set_source_rgb(cr, 1, 1, 1);
-//        cairo_rectangle(cr, 0, 0, nWidth -1 , nHeight -1);
-//        cairo_stroke(cr);
-
-        // Draw screws
-        float angle = (bLeft) ? 0 : 1;
-//        size_t pos = (bLeft) ? SCREW_SIZE + 2 : nWidth - SCREW_SIZE - 2;
-//        size_t base = (bLeft) ? 2 : nWidth - 2;
-        size_t screw = (bLeft) ? SCREW_SIZE >> 1 : nWidth - (SCREW_SIZE >> 1);
+        size_t l_r      = 5; // logo radius
         bool pressed    = bPressed;
-//        ssize_t c_dir = (bLeft) ? 1 : -1;
 
-        draw_screw(cr, screw, STUD_H * 0.75, M_PI * (angle + 1) / 8 + M_PI / 16);
-        draw_screw(cr, screw, nHeight - STUD_H * 0.75, M_PI * (angle + 3) / 8 + M_PI / 16);
-
-//        // Draw envelope
-//        size_t e_rr  = 3;
-//        for (size_t i=0; i<=e_rr; ++i)
-//        {
-//            float bright = float(i*i) / float(e_rr * e_rr);
-//            Color c(0.75, 0.75, 0.75);
-//            c.blend(sBgColor, bright);
-//
-//            cairo_set_source_rgb(cr, c.red(), c.green(), c.blue());
-//            cairo_move_to(cr, pos, 0);
-//            cairo_line_to(cr, pos, STUD_H);
-//            cairo_curve_to(cr, pos, STUD_H + CURVE * 2, base, STUD_H, base, STUD_H + CURVE * 2);
-//            cairo_line_to(cr, base, nHeight - STUD_H - CURVE * 2);
-//            cairo_curve_to(cr, base, nHeight - STUD_H, pos, nHeight - STUD_H - CURVE * 2, pos, nHeight - STUD_H);
-//            cairo_line_to(cr, pos, nHeight);
-//            cairo_stroke(cr);
-//
-//            pos  += c_dir;
-//            base += c_dir;
-//        }
-
-        // Draw logo with text
-        size_t l_r  = 5; // logo radius
-
-        if (sText != NULL)
+        if (nMode != M_TOP)
         {
+            bool left   = (nMode == M_LEFT);
+
+            // Draw screws
+            float angle = (left) ? 0 : 1;
+            size_t screw = (left) ? SCREW_SIZE >> 1 : nWidth - (SCREW_SIZE >> 1);
+
+            draw_screw(cr, screw, STUD_H * 0.75, M_PI * (angle + 1) / 8 + M_PI / 16);
+            draw_screw(cr, screw, nHeight - STUD_H * 0.75, M_PI * (angle + 3) / 8 + M_PI / 16);
+
+            // Draw logo with text
+            if (sText != NULL)
+            {
+                cairo_select_font_face(cr, "Arial",
+                      CAIRO_FONT_SLANT_NORMAL,
+                      CAIRO_FONT_WEIGHT_BOLD);
+                cairo_set_font_size(cr, 16);
+
+                cairo_text_extents(cr, "WWW0", &te);
+                ssize_t min_w   = te.width;
+
+                cairo_text_extents(cr, sText, &te);
+                ssize_t lw      = te.width;
+                ssize_t lh      = te.height;
+
+                if (lw < min_w)
+                    lw = min_w;
+                if (lh < ssize_t(nSize))
+                    lh = nSize;
+
+                lw         += l_r << 1;
+                lh         += l_r << 1;
+
+                Color logo(sColor);
+                float logo_l    = logo.lightness();
+                float l_rr      = 3;
+                ssize_t l_x     = (left) ? 8 : l_rr;
+                ssize_t l_y     = ssize_t(nHeight - lh) >> 1;
+
+                nLogoLeft       = l_x;
+                nLogoTop        = l_y;
+                nLogoRight      = l_x + lw - 1;
+                nLogoBottom     = l_y + lh - 1;
+
+                for (size_t i=0; i<=l_rr; ++i)
+                {
+                    float bright = logo_l * (i + 1) / (l_rr + 1);
+
+                    cairo_pattern_t *cp =  (pressed) ?
+                            cairo_pattern_create_radial(l_x - lw, l_y + lh, lw >> 2, l_x - lw, l_y + lh , lw) :
+                            cairo_pattern_create_radial(l_x + lw, l_y , lw >> 2, l_x + lw, l_y , lw)
+                            ;
+
+                    logo.lightness(bright * 1.5);
+                    cairo_pattern_add_color_stop_rgb(cp, 0.0, logo.red(), logo.green(), logo.blue());
+                    logo.lightness(bright);
+                    cairo_pattern_add_color_stop_rgb(cp, 1.0, logo.red(), logo.green(), logo.blue());
+                    cairo_set_source(cr, cp);
+
+                    cairo_arc(cr, l_x + l_r, l_y + l_r, l_r - i, M_PI, 1.5 * M_PI);
+                    cairo_arc(cr, l_x + lw - l_r, l_y + l_r, l_r - i, 1.5 * M_PI, 2.0 * M_PI);
+                    cairo_arc(cr, l_x + lw - l_r, l_y + lh - l_r, l_r - i, 0.0, 0.5 * M_PI);
+                    cairo_arc(cr, l_x + l_r, l_y + lh - l_r, l_r - i, 0.5 * M_PI, M_PI);
+                    cairo_close_path(cr);
+
+                    cairo_fill(cr);
+                    cairo_pattern_destroy(cp);
+                }
+
+                // Now l_x, ly become center of logo
+                l_x        += (lw >> 1);
+                l_y        += (lh >> 1);
+
+                // Output text
+                logo.copy(sTextColor);
+                if (bPressed)
+                    logo.darken(0.5f);
+                cairo_set_source_rgb(cr, logo.red(), logo.green(), logo.blue());
+                cairo_select_font_face(cr, "Arial",
+                  CAIRO_FONT_SLANT_NORMAL,
+                  CAIRO_FONT_WEIGHT_BOLD);
+                cairo_set_font_size(cr, 16);
+
+                cairo_move_to(cr, l_x - (te.width + te.x_bearing) * 0.5, l_y - te.height * 0.5 - te.y_bearing);
+                cairo_show_text (cr, sText);
+            }
+        }
+        else
+        {
+            size_t screw    = (SCREW_SIZE - 4) >> 1;
+            size_t stud     = STUD_H + 4;
+            draw_screw(cr, screw, stud * 0.5, M_PI * 1.0 / 8.0 + M_PI / 16.0);
+            draw_screw(cr, nWidth - screw, stud * 0.5, M_PI * 3.0 / 8.0 + M_PI / 16.0);
+
+            // Draw logo with text
+            if (sText != NULL)
+            {
+                cairo_select_font_face(cr, "Arial",
+                      CAIRO_FONT_SLANT_NORMAL,
+                      CAIRO_FONT_WEIGHT_BOLD);
+                cairo_set_font_size(cr, 12);
+
+                cairo_text_extents(cr, "WWW0", &te);
+                ssize_t min_w   = te.width;
+
+                cairo_text_extents(cr, sText, &te);
+                ssize_t lw      = te.width + 4 + 32;
+                ssize_t lh      = te.height + 4;
+
+                if (lw < min_w)
+                    lw = min_w;
+
+                lw         += l_r << 1;
+                lh         += l_r << 1;
+
+                Color logo(sColor);
+                float logo_l    = logo.lightness();
+                float l_rr      = 3;
+                ssize_t l_x     = ssize_t(nWidth - lw) >> 1;
+                ssize_t l_y     = ssize_t(nHeight - lh) >> 1;
+
+                nLogoLeft       = l_x;
+                nLogoTop        = l_y;
+                nLogoRight      = l_x + lw - 1;
+                nLogoBottom     = l_y + lh - 1;
+
+                for (size_t i=0; i<=l_rr; ++i)
+                {
+                    float bright = logo_l * (i + 1) / (l_rr + 1);
+
+                    cairo_pattern_t *cp =  (pressed) ?
+                            cairo_pattern_create_radial(l_x - lw, l_y + lh, lw >> 2, l_x - lw, l_y + lh , lw) :
+                            cairo_pattern_create_radial(l_x + lw, l_y , lw >> 2, l_x + lw, l_y , lw)
+                            ;
+
+                    logo.lightness(bright * 1.5);
+                    cairo_pattern_add_color_stop_rgb(cp, 0.0, logo.red(), logo.green(), logo.blue());
+                    logo.lightness(bright);
+                    cairo_pattern_add_color_stop_rgb(cp, 1.0, logo.red(), logo.green(), logo.blue());
+                    cairo_set_source(cr, cp);
+
+                    cairo_arc(cr, l_x + l_r, l_y + l_r, l_r - i, M_PI, 1.5 * M_PI);
+                    cairo_arc(cr, l_x + lw - l_r, l_y + l_r, l_r - i, 1.5 * M_PI, 2.0 * M_PI);
+                    cairo_arc(cr, l_x + lw - l_r, l_y + lh - l_r, l_r - i, 0.0, 0.5 * M_PI);
+                    cairo_arc(cr, l_x + l_r, l_y + lh - l_r, l_r - i, 0.5 * M_PI, M_PI);
+                    cairo_close_path(cr);
+
+                    cairo_fill(cr);
+                    cairo_pattern_destroy(cp);
+                }
+
+                // Now l_x, ly become center of logo
+                l_x        += (lw >> 1);
+                l_y        += (lh >> 1);
+
+                // Output text
+                logo.copy(sTextColor);
+                if (bPressed)
+                    logo.darken(0.5f);
+                cairo_set_source_rgb(cr, logo.red(), logo.green(), logo.blue());
+                cairo_select_font_face(cr, "Arial",
+                  CAIRO_FONT_SLANT_NORMAL,
+                  CAIRO_FONT_WEIGHT_BOLD);
+                cairo_set_font_size(cr, 12);
+
+                cairo_move_to(cr, l_x - (te.width + te.x_bearing) * 0.5, l_y - te.height * 0.5 - te.y_bearing);
+                cairo_show_text (cr, sText);
+            }
+        }
+    }
+
+    void Gtk2MountStud::resize(size_t &w, size_t &h)
+    {
+        cairo_text_extents_t te;
+        cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
+        cairo_t *cr = cairo_create(surface);
+
+        if (nMode != M_TOP)
+        {
+            size_t min_h = (STUD_H + CURVE * 2);
+            size_t min_w = (8 + 3) * 2;
+
             cairo_select_font_face(cr, "Arial",
                   CAIRO_FONT_SLANT_NORMAL,
                   CAIRO_FONT_WEIGHT_BOLD);
             cairo_set_font_size(cr, 16);
 
             cairo_text_extents(cr, "WWW0", &te);
-            ssize_t min_w   = te.width;
+            min_w          += te.width;
+            min_h          += (te.height > nSize) ? te.height : nSize;
 
-            cairo_text_extents(cr, sText, &te);
-            ssize_t lw      = te.width;
-            ssize_t lh      = te.height;
-
-            if (lw < min_w)
-                lw = min_w;
-            if (lh < ssize_t(nSize))
-                lh = nSize;
-
-            lw         += l_r << 1;
-            lh         += l_r << 1;
-
-            Color logo(sColor);
-            float logo_l    = logo.lightness();
-            float l_rr      = 3;
-            ssize_t l_x     = (bLeft) ? 8 : l_rr;
-            ssize_t l_y     = (nHeight - lh) >> 1;
-
-            nLogoLeft       = l_x;
-            nLogoTop        = l_y;
-            nLogoRight      = l_x + lw - 1;
-            nLogoBottom     = l_y + lh - 1;
-
-            for (size_t i=0; i<=l_rr; ++i)
-            {
-                float bright = logo_l * (i + 1) / (l_rr + 1);
-
-                cairo_pattern_t *cp =  (pressed) ?
-                        cairo_pattern_create_radial(l_x - lw, l_y + lh, lw >> 2, l_x - lw, l_y + lh , lw) :
-                        cairo_pattern_create_radial(l_x + lw, l_y , lw >> 2, l_x + lw, l_y , lw)
-                        ;
-//                cairo_pattern_t *cp = (bPressed) ?
-//                    cairo_pattern_create_radial(l_x + lw, l_y , lw >> 2, l_x + lw, l_y , lw) :
-//                    cairo_pattern_create_radial(l_x - lw, l_y + lh, lw >> 2, l_x - lw, l_y + lh , lw);
-
-                logo.lightness(bright * 1.5);
-                cairo_pattern_add_color_stop_rgb(cp, 0.0, logo.red(), logo.green(), logo.blue());
-                logo.lightness(bright);
-                cairo_pattern_add_color_stop_rgb(cp, 1.0, logo.red(), logo.green(), logo.blue());
-                cairo_set_source(cr, cp);
-
-//                cairo_set_source_rgb(cr, logo.red(), logo.green(), logo.blue());
-                cairo_arc(cr, l_x + l_r, l_y + l_r, l_r - i, M_PI, 1.5 * M_PI);
-                cairo_arc(cr, l_x + lw - l_r, l_y + l_r, l_r - i, 1.5 * M_PI, 2.0 * M_PI);
-                cairo_arc(cr, l_x + lw - l_r, l_y + lh - l_r, l_r - i, 0.0, 0.5 * M_PI);
-                cairo_arc(cr, l_x + l_r, l_y + lh - l_r, l_r - i, 0.5 * M_PI, M_PI);
-                cairo_close_path(cr);
-
-                cairo_fill(cr);
-                cairo_pattern_destroy(cp);
-            }
-
-            // Now l_x, ly become center of logo
-            l_x        += (lw >> 1);
-            l_y        += (lh >> 1);
-
-            // Output text
-            logo.copy(sTextColor);
-            if (bPressed)
-                logo.darken(0.5f);
-            cairo_set_source_rgb(cr, logo.red(), logo.green(), logo.blue());
-            cairo_select_font_face(cr, "Arial",
-              CAIRO_FONT_SLANT_NORMAL,
-              CAIRO_FONT_WEIGHT_BOLD);
-            cairo_set_font_size(cr, 16);
-
-            cairo_move_to(cr, l_x - (te.width + te.x_bearing) * 0.5, l_y - te.height * 0.5 - te.y_bearing);
-            cairo_show_text (cr, sText);
+            if (w < min_w)
+                w   = min_w;
+            if (h < min_h)
+                h = min_h;
         }
-    }
+        else
+        {
+            cairo_select_font_face(cr, "Arial",
+                  CAIRO_FONT_SLANT_NORMAL,
+                  CAIRO_FONT_WEIGHT_BOLD);
+            cairo_set_font_size(cr, 12);
 
-    void Gtk2MountStud::resize(size_t &w, size_t &h)
-    {
-        cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
-        cairo_t *cr = cairo_create(surface);
+            cairo_text_extents(cr, (sText != NULL) ? "WWW0" : sText, &te);
 
-        size_t min_h = (STUD_H + CURVE * 2);
-        size_t min_w = (8 + 3) * 2;
+            size_t min_w    = te.width + 12 + 32;
+            size_t min_h    = te.height + 12;
+            if (min_h < (STUD_H + 4))
+                min_h           = STUD_H + 4;
 
-        cairo_text_extents_t te;
-        cairo_select_font_face(cr, "Arial",
-              CAIRO_FONT_SLANT_NORMAL,
-              CAIRO_FONT_WEIGHT_BOLD);
-        cairo_set_font_size(cr, 16);
-
-        cairo_text_extents(cr, "WWW0", &te);
-        min_w          += te.width;
-        min_h          += (te.height > nSize) ? te.height : nSize;
-
-        if (w < min_w)
-            w   = min_w;
-        if (h < min_h)
-            h = min_h;
+            if (w < min_w)
+                w   = min_w;
+            if (h < min_h)
+                h = min_h;
+        }
 
         cairo_destroy(cr);
         cairo_surface_destroy(surface);
@@ -326,7 +410,7 @@ namespace lsp
                     sText = lsp_strdup(value);
                 break;
             case A_ANGLE:
-                PARSE_INT(value, bLeft = (__ % 2));
+                PARSE_INT(value, nMode = (__ % M_TOTAL));
                 break;
             case A_COLOR:
                 sColor.set(pUI->theme(), value);
@@ -393,6 +477,20 @@ namespace lsp
         {
             bPressed        = pressed;
             markRedraw();
+        }
+    }
+
+    void Gtk2MountStud::toggle_hide(GtkWidget *menu, gpointer data)
+    {
+        Gtk2MountStud *_this = reinterpret_cast<Gtk2MountStud *>(data);
+        lsp_trace("_this=%p", _this);
+
+        IUIPort *pvis   = _this->pVisibility;
+        if (pvis != NULL)
+        {
+            // Invert visibility
+            pvis->setValue((pvis->getValue() >= 0.5f) ? 0.0f : 1.0f);
+            pvis->notifyAll();
         }
     }
 

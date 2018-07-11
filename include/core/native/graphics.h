@@ -26,6 +26,18 @@ namespace lsp
                 y[i]       += norm_y * k;
             }
         }
+
+        static void rgba32_to_bgra32(void *dst, const void *src, size_t count)
+        {
+            const uint32_t *s   = reinterpret_cast<const uint32_t *>(src);
+            uint32_t *d         = reinterpret_cast<uint32_t *>(dst);
+
+            for (size_t i=0; i<count; ++i)
+            {
+                uint32_t c      = s[i];
+                d[i]            = ((c&0xff0000) >> 16) | ((c&0xff)<<16) | (c&0xff00ff00);
+            }
+        }
     }
 }
 

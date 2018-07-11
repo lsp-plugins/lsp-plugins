@@ -169,7 +169,7 @@ MOD_LV2(trigger_midi_stereo)
 MOD_VST(trigger_midi_stereo)
 MOD_GTK2(trigger_midi_stereo)
 
-// Equalizer
+// Parametric Equalizer
 MOD_PLUGIN(para_equalizer_x16_mono)
 MOD_LADSPA(para_equalizer_x16_mono)
 MOD_LV2(para_equalizer_x16_mono)
@@ -217,6 +217,55 @@ MOD_LADSPA(para_equalizer_x32_ms)
 MOD_LV2(para_equalizer_x32_ms)
 MOD_VST(para_equalizer_x32_ms)
 MOD_GTK2(para_equalizer_x32_ms)
+
+// Graphic Equalizer
+MOD_PLUGIN(graph_equalizer_x16_mono)
+MOD_LADSPA(graph_equalizer_x16_mono)
+MOD_LV2(graph_equalizer_x16_mono)
+MOD_VST(graph_equalizer_x16_mono)
+MOD_GTK2(graph_equalizer_x16_mono)
+
+MOD_PLUGIN(graph_equalizer_x16_stereo)
+MOD_LADSPA(graph_equalizer_x16_stereo)
+MOD_LV2(graph_equalizer_x16_stereo)
+MOD_VST(graph_equalizer_x16_stereo)
+MOD_GTK2(graph_equalizer_x16_stereo)
+
+MOD_PLUGIN(graph_equalizer_x16_lr)
+MOD_LADSPA(graph_equalizer_x16_lr)
+MOD_LV2(graph_equalizer_x16_lr)
+MOD_VST(graph_equalizer_x16_lr)
+MOD_GTK2(graph_equalizer_x16_lr)
+
+MOD_PLUGIN(graph_equalizer_x16_ms)
+MOD_LADSPA(graph_equalizer_x16_ms)
+MOD_LV2(graph_equalizer_x16_ms)
+MOD_VST(graph_equalizer_x16_ms)
+MOD_GTK2(graph_equalizer_x16_ms)
+
+MOD_PLUGIN(graph_equalizer_x32_mono)
+MOD_LADSPA(graph_equalizer_x32_mono)
+MOD_LV2(graph_equalizer_x32_mono)
+MOD_VST(graph_equalizer_x32_mono)
+MOD_GTK2(graph_equalizer_x32_mono)
+
+MOD_PLUGIN(graph_equalizer_x32_stereo)
+MOD_LADSPA(graph_equalizer_x32_stereo)
+MOD_LV2(graph_equalizer_x32_stereo)
+MOD_VST(graph_equalizer_x32_stereo)
+MOD_GTK2(graph_equalizer_x32_stereo)
+
+MOD_PLUGIN(graph_equalizer_x32_lr)
+MOD_LADSPA(graph_equalizer_x32_lr)
+MOD_LV2(graph_equalizer_x32_lr)
+MOD_VST(graph_equalizer_x32_lr)
+MOD_GTK2(graph_equalizer_x32_lr)
+
+MOD_PLUGIN(graph_equalizer_x32_ms)
+MOD_LADSPA(graph_equalizer_x32_ms)
+MOD_LV2(graph_equalizer_x32_ms)
+MOD_VST(graph_equalizer_x32_ms)
+MOD_GTK2(graph_equalizer_x32_ms)
 
 #ifndef LSP_NO_EXPERIMENTAL
     // Impulse responses

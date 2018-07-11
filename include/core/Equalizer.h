@@ -8,6 +8,7 @@
 #ifndef CORE_EQUALIZER_H_
 #define CORE_EQUALIZER_H_
 
+#include <core/FilterBank.h>
 #include <core/Filter.h>
 
 namespace lsp
@@ -23,6 +24,14 @@ namespace lsp
     class Equalizer
     {
         protected:
+            enum eq_flags_t
+            {
+                EF_REBUILD = 1 << 0,
+                EF_CLEAR   = 1 << 1
+            };
+
+        protected:
+            FilterBank          sBank;              // Filter bank
             Filter             *vFilters;           // List of filters
             size_t              nFilters;           // Number of filters
             size_t              nSampleRate;        // Sample rate
@@ -30,7 +39,7 @@ namespace lsp
             size_t              nFftRank;           // FFT rank
             size_t              nLatency;           // Equalizer latency
             size_t              nBufSize;           // Buffer size
-            size_t              nActiveFilters;     // Number of active filters
+//            size_t              nActiveFilters;     // Number of active filters
             equalizer_mode_t    nMode;              // Equalizer mode
             float              *vFftRe;             // FFT buffer (real part)
             float              *vFftIm;             // FFT buffer (imaginary part)
@@ -39,6 +48,10 @@ namespace lsp
             float              *vBuffer;            // Processing buffer
             float              *vTmp;               // Temporary buffer for various calculations
             float              *pData;              // Allocation data
+            size_t              nFlags;             // Flag that identifies that equalizer has to be rebuilt
+
+        protected:
+            void                reconfigure();
 
         public:
             Equalizer();
@@ -58,7 +71,7 @@ namespace lsp
              */
             void destroy();
 
-            /** Update filter parameters, need to call reconfigure() after changes
+            /** Update filter parameters
              * @param id ID of the filter
              * @param params  filter parameters
              * @return true on success
@@ -86,7 +99,7 @@ namespace lsp
              */
             inline bool filter_inactive(size_t id) const { return (id < nFilters) ? vFilters[id].inactive() : false; }
 
-            /** Set equalizer mode, need to call reconfigure() after changes
+            /** Set equalizer mode
              *
              * @param mode equalizer mode
              */
@@ -109,11 +122,6 @@ namespace lsp
              * @return equalizer latency
              */
             inline size_t get_latency() const { return nLatency; }
-
-            /** Reconfigure equalizer after some changes
-             *
-             */
-            void reconfigure();
 
             /** Get frequency chart of the filter
              *

@@ -5,6 +5,7 @@
  *      Author: sadko
  */
 
+#include <core/types.h>
 #include <metadata/plugins.h>
 #include <metadata/ports.h>
 #include <metadata/developers.h>
@@ -12,8 +13,8 @@
 namespace lsp
 {
     //-------------------------------------------------------------------------
-    // Equalizer
-    static const int equalizer_classes[] = { C_FILTER, C_EQ, C_PARA_EQ, C_ANALYSER, -1 };
+    // Parametric Equalizer
+    static const int para_equalizer_classes[] = { C_FILTER, C_EQ, C_PARA_EQ, C_ANALYSER, -1 };
 
     static const char *filter_slopes[] =
     {
@@ -84,6 +85,22 @@ namespace lsp
         "Hi-shelf LRX (BT)",
         "Hi-shelf LRX (MT)",
 
+        // Additional stuff
+#ifndef LSP_NO_EXPERIMENTAL
+        "Ladder-pass RLC (BT)",
+        "Ladder-pass RLC (MT)",
+        "Ladder-pass BWC (BT)",
+        "Ladder-pass BWC (MT)",
+        "Ladder-pass LRX (BT)",
+        "Ladder-pass LRX (MT)",
+
+        "Ladder-rej RLC (BT)",
+        "Ladder-rej RLC (MT)",
+        "Ladder-rej BWC (BT)",
+        "Ladder-rej BWC (MT)",
+        "Ladder-rej LRX (BT)",
+        "Ladder-rej LRX (MT)",
+#endif /* LSP_NO_EXPERIMENTAL */
         NULL
     };
 
@@ -161,7 +178,7 @@ namespace lsp
             SWITCH("xs" id "_" #x, "Filter solo " label #x, 0.0f), \
             SWITCH("xm" id "_" #x, "Filter mute " label #x, 0.0f), \
             LOG_CONTROL("f" id "_" #x, "Frequency " label #x, U_HZ, para_equalizer_base_metadata::FREQ), \
-            { "g" id "_" #x, "Gain " label # x, U_GAIN_AMP, R_CONTROL, F_IN | F_LOG | F_UPPER | F_LOWER | F_STEP, 0.01585f, 63.09575f, 1.0f, 0.1, NULL, NULL }, \
+            { "g" id "_" #x, "Gain " label # x, U_GAIN_AMP, R_CONTROL, F_IN | F_LOG | F_UPPER | F_LOWER | F_STEP, GAIN_AMP_M_36_DB, GAIN_AMP_P_36_DB, GAIN_AMP_0_DB, 0.1, NULL, NULL }, \
             { "q" id "_" #x, "Quality factor " label #x, U_NONE, R_CONTROL, F_IN | F_LOG | F_UPPER | F_LOWER | F_STEP, 0.0f, 100.0f, 0.0f, 0.01f, NULL    }, \
             { "hue" id "_" #x, "Hue " label #x, U_NONE, R_CONTROL, F_IN | F_UPPER | F_LOWER | F_STEP, 0.0f, 1.0f, (float(x) / float(total)), 0.25f/360.0f, NULL     }, \
             BLINK("fv" id "_" #x, "Filter visibility " label #x), \
@@ -184,29 +201,39 @@ namespace lsp
 
     #define EQ_MONO_PORTS \
             MESH("ag", "Amplitude graph", 2, para_equalizer_base_metadata::MESH_POINTS), \
+            METER_GAIN("sm", "Output signal meter", GAIN_AMP_P_12_DB), \
             MESH("fftg", "FFT graph", 2, para_equalizer_base_metadata::MESH_POINTS)
 
     #define EQ_STEREO_PORTS \
+            PAN_CTL("bal", "Output balance", 0.0f), \
             MESH("ag", "Amplitude graph", 2, para_equalizer_base_metadata::MESH_POINTS), \
+            METER_GAIN("sml", "Output signal meter Left", GAIN_AMP_P_12_DB), \
             MESH("fftg_l", "FFT channel Left", 2, para_equalizer_base_metadata::MESH_POINTS), \
             SWITCH("fftv_l", "FFT visibility Left", 1.0f), \
+            METER_GAIN("smr", "Output signal meter Right", GAIN_AMP_P_12_DB), \
             MESH("fftg_r", "FFT channel Right", 2, para_equalizer_base_metadata::MESH_POINTS), \
             SWITCH("fftv_r", "FFT visibility Right", 1.0f)
 
     #define EQ_LR_PORTS \
+        PAN_CTL("bal", "Output balance", 0.0f), \
             MESH("ag_l", "Amplitude graph Left", 2, para_equalizer_base_metadata::MESH_POINTS), \
+            METER_GAIN("sml", "Output signal meter Left", GAIN_AMP_P_12_DB), \
             MESH("fftg_l", "FFT channel Left", 2, para_equalizer_base_metadata::MESH_POINTS), \
             SWITCH("fftv_l", "FFT visibility Left", 1.0f), \
             MESH("ag_r", "Amplitude graph Right", 2, para_equalizer_base_metadata::MESH_POINTS), \
+            METER_GAIN("smr", "Output signal meter Right", GAIN_AMP_P_12_DB), \
             MESH("fftg_r", "FFT channel Right", 2, para_equalizer_base_metadata::MESH_POINTS), \
             SWITCH("fftv_r", "FFT visibility Right", 1.0f)
 
     #define EQ_MS_PORTS \
+            PAN_CTL("bal", "Output balance", 0.0f), \
             SWITCH("lstn", "Mid/Side listen", 0.0f), \
             MESH("ag_m", "Amplitude graph Mid", 2, para_equalizer_base_metadata::MESH_POINTS), \
+            METER_GAIN("sml", "Output signal meter Left", GAIN_AMP_P_12_DB), \
             MESH("fftg_m", "FFT channel Mid", 2, para_equalizer_base_metadata::MESH_POINTS), \
             SWITCH("fftv_m", "FFT visibility Left", 1.0f), \
             MESH("ag_s", "Amplitude graph Side", 2, para_equalizer_base_metadata::MESH_POINTS), \
+            METER_GAIN("smr", "Output signal meter Right", GAIN_AMP_P_12_DB), \
             MESH("fftg_s", "FFT channel Side", 2, para_equalizer_base_metadata::MESH_POINTS), \
             SWITCH("fftv_s", "FFT visibility Right", 1.0f)
 
@@ -483,8 +510,8 @@ namespace lsp
         "para_equalizer_x16_mono",
         "dh3y",
         LSP_PARA_EQUALIZER_BASE + 0,
-        LSP_VERSION(1, 0, 0),
-        equalizer_classes,
+        LSP_VERSION(1, 0, 1),
+        para_equalizer_classes,
         para_equalizer_x16_mono_ports,
         NULL
     };
@@ -498,8 +525,8 @@ namespace lsp
         "para_equalizer_x32_mono",
         "i0px",
         LSP_PARA_EQUALIZER_BASE + 1,
-        LSP_VERSION(1, 0, 0),
-        equalizer_classes,
+        LSP_VERSION(1, 0, 1),
+        para_equalizer_classes,
         para_equalizer_x32_mono_ports,
         NULL
     };
@@ -513,10 +540,10 @@ namespace lsp
         "para_equalizer_x16_stereo",
         "a5er",
         LSP_PARA_EQUALIZER_BASE + 2,
-        LSP_VERSION(1, 0, 0),
-        equalizer_classes,
+        LSP_VERSION(1, 0, 1),
+        para_equalizer_classes,
         para_equalizer_x16_stereo_ports,
-        NULL
+        stereo_plugin_port_groups
     };
 
     const plugin_metadata_t  para_equalizer_x32_stereo_metadata::metadata =
@@ -528,10 +555,10 @@ namespace lsp
         "para_equalizer_x32_stereo",
         "s2nz",
         LSP_PARA_EQUALIZER_BASE + 3,
-        LSP_VERSION(1, 0, 0),
-        equalizer_classes,
+        LSP_VERSION(1, 0, 1),
+        para_equalizer_classes,
         para_equalizer_x32_stereo_ports,
-        NULL
+        stereo_plugin_port_groups
     };
 
     const plugin_metadata_t  para_equalizer_x16_lr_metadata::metadata =
@@ -543,10 +570,10 @@ namespace lsp
         "para_equalizer_x16_lr",
         "4kef",
         LSP_PARA_EQUALIZER_BASE + 4,
-        LSP_VERSION(1, 0, 0),
-        equalizer_classes,
+        LSP_VERSION(1, 0, 1),
+        para_equalizer_classes,
         para_equalizer_x16_lr_ports,
-        NULL
+        stereo_plugin_port_groups
     };
 
     const plugin_metadata_t  para_equalizer_x32_lr_metadata::metadata =
@@ -558,10 +585,10 @@ namespace lsp
         "para_equalizer_x32_lr",
         "ilqj",
         LSP_PARA_EQUALIZER_BASE + 5,
-        LSP_VERSION(1, 0, 0),
-        equalizer_classes,
+        LSP_VERSION(1, 0, 1),
+        para_equalizer_classes,
         para_equalizer_x32_lr_ports,
-        NULL
+        stereo_plugin_port_groups
     };
 
     const plugin_metadata_t  para_equalizer_x16_ms_metadata::metadata =
@@ -573,10 +600,10 @@ namespace lsp
         "para_equalizer_x16_ms",
         "opjs",
         LSP_PARA_EQUALIZER_BASE + 6,
-        LSP_VERSION(1, 0, 0),
-        equalizer_classes,
+        LSP_VERSION(1, 0, 1),
+        para_equalizer_classes,
         para_equalizer_x16_ms_ports,
-        NULL
+        stereo_plugin_port_groups
     };
 
     const plugin_metadata_t  para_equalizer_x32_ms_metadata::metadata =
@@ -588,10 +615,10 @@ namespace lsp
         "para_equalizer_x32_ms",
         "lgz9",
         LSP_PARA_EQUALIZER_BASE + 7,
-        LSP_VERSION(1, 0, 0),
-        equalizer_classes,
+        LSP_VERSION(1, 0, 1),
+        para_equalizer_classes,
         para_equalizer_x32_ms_ports,
-        NULL
+        stereo_plugin_port_groups
     };
 }
 

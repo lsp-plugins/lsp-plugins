@@ -13,14 +13,14 @@ namespace lsp
     class Gtk2File: public Gtk2CustomWidget
     {
         protected:
-            Color               sColor;
-            Color               sBgColor;
-            Color               sLineColor;
-            Color               sLeftColor;
-            Color               sRightColor;
-            Color               sMiddleColor;
-            Color               sFadeColor;
-            Color               sTextColor;
+            ColorHolder         sColor;
+            ColorHolder         sBgColor;
+            ColorHolder         sLineColor;
+            ColorHolder         sLeftColor;
+            ColorHolder         sRightColor;
+            ColorHolder         sMiddleColor;
+            ColorHolder         sFadeColor;
+            ColorHolder         sTextColor;
 
             IUIPort            *pFile;
             IUIPort            *pHeadCut;

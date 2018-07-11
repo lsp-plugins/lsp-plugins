@@ -42,28 +42,28 @@ namespace lsp
             };
 
         protected:
-            IUIPort    *pPort;
-            IUIPort    *pActivity;  // Activity flag
-            float       fMin;       // Minimum displayed value
-            float       fMax;       // Maximum displayed value
-            float       fValue;     // Current value
-            size_t      nAngle;     // Angle 0..3
-            size_t      nMWidth;    // Width
-            size_t      nMHeight;   // Height
-            size_t      nFlags;     // Flags
-            type_t      nType;      // Type of meter
-            size_t      nConversion;// Data conversion
-            size_t      nBorder;    // Border;
-            Padding     sPadding;   // Padding
-            Color       sBgColor;   // Background color
-            Color       sIndColor;  // Indication color
-            ColorHolder sColor;     // Color holder
-            guint       hFunction;
+            IUIPort        *pPort;
+            IUIPort        *pActivity;  // Activity flag
+            float           fMin;       // Minimum displayed value
+            float           fMax;       // Maximum displayed value
+            float           fValue;     // Current value
+            size_t          nAngle;     // Angle 0..3
+            size_t          nMWidth;    // Width
+            size_t          nMHeight;   // Height
+            size_t          nFlags;     // Flags
+            type_t          nType;      // Type of meter
+            size_t          nConversion;// Data conversion
+            size_t          nBorder;    // Border;
+            Padding         sPadding;   // Padding
+            ColorHolder     sBgColor;   // Background color
+            ColorHolder     sIndColor;  // Indication color
+            ColorHolder     sColor;     // Color holder
+            guint           hFunction;
 
         protected:
             float           normalized_value();
             float           get_value(size_t seg, size_t nseg) const;
-            void            get_color(float rs, float re, Color &cl);
+            void            get_color(float rs, float re, ColorHolder &cl);
 //            void            set_value(float value, bool force);
             static gboolean redraw_meter(gpointer ptr);
             void            format_meter(float value, char *buf, size_t n) const;

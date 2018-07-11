@@ -14,7 +14,7 @@
 			<hbox>
 				<vbox>
 					<align expand="true" pad_bottom="4">
-						<graph width="640" height="320" expand="true" fill="true">
+						<graph width="640" height="340" expand="true" fill="true">
 							<center hpos="-1" vpos="-1" visible="false" />
 							
 							<!-- Gray grid -->
@@ -48,10 +48,10 @@
 								<mesh id="agfl_${i}" color="eq_base" width="2" hue_id="huel_${i}" visibility_id="fvl_${i}" fill="0.8" smooth="true" />
 								<mesh id="agfr_${i}" color="eq_base" width="2" hue_id="huer_${i}" visibility_id="fvr_${i}" fill="0.8" smooth="true" />
 							</ui:for>
-							<mesh id="ag_l" width="3" color="left_channel" smooth="true" visibility_id="fftv_l" />
 							<mesh id="fftg_l" width="2" color="left_channel" visibility_id="fftv_l" />
-							<mesh id="ag_r" width="3" color="right_channel" smooth="true" visibility_id="fftv_r" />
 							<mesh id="fftg_r" width="2" color="right_channel" visibility_id="fftv_r" />
+							<mesh id="ag_l" width="3" color="left_channel" smooth="true" visibility_id="fftv_l" />
+							<mesh id="ag_r" width="3" color="right_channel" smooth="true" visibility_id="fftv_r" />
 							<ui:for id="i" first="0" last="31">
 								<dot hpos_id="fl_${i}" vpos_id="gl_${i}" scroll_id="ql_${i}"
 									editable="true" color="eq_base"
@@ -105,15 +105,27 @@
 				</vbox>
 				<vbox>
 					<group text="Signal" expand="true">
-						<vbox>
+						<grid rows="6" cols="2" transpose="true">
 							<label text="Input" />
 							<knob id="g_in" expand="true" />
 							<value id="g_in" />
-							
-							<label text="Output" />
-							<knob id="g_out" expand="true" />
+							<label text="Output" expand="true" />
+							<knob id="g_out" />
 							<value id="g_out" />
-						</vbox>
+							
+							<label text="Balance" expand="true" />
+							<knob id="bal" balance="0.5" scale_color="green" />
+							
+							<cell rows="4">
+								<grid rows="3" cols="2">
+									<meter id="sml" angle="1" type="vu" height="80" logarithmic="true" min="0.01585" max="2" color="left_channel" pad_left="2" pad_right="2" />
+									<meter id="smr" angle="1" type="vu" height="80" logarithmic="true" min="0.01585" max="2" color="right_channel" pad_left="2" pad_right="2" />
+									<label text="L" color="left_channel" font_size="8" />
+									<label text="R" color="right_channel" font_size="8" />
+									<cell cols="2"><value id="bal" font_size="8" same_line="true" /></cell>
+								</grid>
+							</cell>
+						</grid>
 					</group>
 					<group text="Analysis" expand="true">
 						<vbox>
@@ -152,7 +164,7 @@
 						
 						<!-- Filters -->
 						<ui:for id="i" first="0" last="7">
-							<cell cols="2"><label text="${i}L" /></cell>
+							<cell cols="2"><label text="${i} L" /></cell>
 							<cell cols="2"><combo id="ftl_${i}" width="48" /></cell>
 							<combo id="sl_${i}" width="8" />
 							<knob id="fl_${i}" scale_hue_id="huel_${i}" size="20" />
@@ -190,7 +202,7 @@
 						
 						<!-- Filters -->
 						<ui:for id="i" first="0" last="7">
-							<cell cols="2"><label text="${i}R" /></cell>
+							<cell cols="2"><label text="${i} R" /></cell>
 							<cell cols="2"><combo id="ftr_${i}" width="48" /></cell>
 							<combo id="sr_${i}" width="8" />
 							<knob id="fr_${i}" scale_hue_id="huer_${i}" size="20" />
@@ -229,7 +241,7 @@
 						
 						<!-- Filters -->
 						<ui:for id="i" first="8" last="15">
-							<cell cols="2"><label text="${i}L" /></cell>
+							<cell cols="2"><label text="${i} L" /></cell>
 							<cell cols="2"><combo id="ftl_${i}" width="48" /></cell>
 							<combo id="sl_${i}" width="8" />
 							<knob id="fl_${i}" scale_hue_id="huel_${i}" size="20" />
@@ -267,7 +279,7 @@
 						
 						<!-- Filters -->
 						<ui:for id="i" first="8" last="15">
-							<cell cols="2"><label text="${i}R" /></cell>
+							<cell cols="2"><label text="${i} R" /></cell>
 							<cell cols="2"><combo id="ftr_${i}" width="48" /></cell>
 							<combo id="sr_${i}" width="8" />
 							<knob id="fr_${i}" scale_hue_id="huer_${i}" size="20" />
@@ -306,7 +318,7 @@
 						
 						<!-- Filters -->
 						<ui:for id="i" first="16" last="23">
-							<cell cols="2"><label text="${i}L" /></cell>
+							<cell cols="2"><label text="${i} L" /></cell>
 							<cell cols="2"><combo id="ftl_${i}" width="48" /></cell>
 							<combo id="sl_${i}" width="8" />
 							<knob id="fl_${i}" scale_hue_id="huel_${i}" size="20" />
@@ -344,7 +356,7 @@
 						
 						<!-- Filters -->
 						<ui:for id="i" first="16" last="23">
-							<cell cols="2"><label text="${i}R" /></cell>
+							<cell cols="2"><label text="${i} R" /></cell>
 							<cell cols="2"><combo id="ftr_${i}" width="48" /></cell>
 							<combo id="sr_${i}" width="8" />
 							<knob id="fr_${i}" scale_hue_id="huer_${i}" size="20" />
@@ -383,7 +395,7 @@
 						
 						<!-- Filters -->
 						<ui:for id="i" first="24" last="31">
-							<cell cols="2"><label text="${i}L" /></cell>
+							<cell cols="2"><label text="${i} L" /></cell>
 							<cell cols="2"><combo id="ftl_${i}" width="48" /></cell>
 							<combo id="sl_${i}" width="8" />
 							<knob id="fl_${i}" scale_hue_id="huel_${i}" size="20" />
@@ -421,7 +433,7 @@
 						
 						<!-- Filters -->
 						<ui:for id="i" first="24" last="31">
-							<cell cols="2"><label text="${i}R" /></cell>
+							<cell cols="2"><label text="${i} R" /></cell>
 							<cell cols="2"><combo id="ftr_${i}" width="48" /></cell>
 							<combo id="sr_${i}" width="8" />
 							<knob id="fr_${i}" scale_hue_id="huer_${i}" size="20" />

@@ -146,7 +146,7 @@ namespace lsp
         else
         {
             // Draw hole
-            Color hole(pUI->theme(), C_HOLE);
+            ColorHolder hole(pUI->theme(), C_HOLE);
             cairo_set_source_rgb(cr, hole.red(), hole.green(), hole.blue());
             cairo_rectangle(cr, nBorder, nBorder, w - (nBorder << 1), h - (nBorder << 1));
             cairo_fill(cr);

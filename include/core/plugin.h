@@ -5,6 +5,7 @@
 #include <core/types.h>
 #include <core/IPort.h>
 #include <core/IWrapper.h>
+#include <core/ICanvas.h>
 
 #include <metadata/metadata.h>
 
@@ -27,6 +28,7 @@ namespace lsp
         protected:
             cvector<IPort>              vPorts;
             const plugin_metadata_t    *pMetadata;
+            IWrapper                   *pWrapper;
 
             long                        fSampleRate;
             ssize_t                     nLatency;
@@ -76,6 +78,7 @@ namespace lsp
                 {
                     bActivated      = true;
                     activated();
+                    pWrapper->query_display_draw();
                 }
             }
 
@@ -85,19 +88,67 @@ namespace lsp
                 {
                     bActivated      = false;
                     deactivated();
+                    pWrapper->query_display_draw();
                 }
             }
 
         public:
+            /** Initialize plugin
+             *
+             * @param wrapper plugin wrapper interface
+             */
             virtual void init(IWrapper *wrapper);
+
+            /** Update sample rate of data processing
+             *
+             * @param sr new sample rate
+             */
             virtual void update_sample_rate(long sr);
-            virtual void activated();
-            virtual void ui_activated();
-            virtual void update_settings();
-            virtual void process(size_t samples);
-            virtual void ui_deactivated();
-            virtual void deactivated();
+
+            /** Destroy plugin state
+             *
+             */
             virtual void destroy();
+
+            /** Triggered plugin activation
+             *
+             */
+            virtual void activated();
+
+            /** Triggered UI activation
+             *
+             */
+            virtual void ui_activated();
+
+            /** Triggered input port change, need to update configuration
+             *
+             */
+            virtual void update_settings();
+
+            /** Process data
+             *
+             * @param samples number of samples to process
+             */
+            virtual void process(size_t samples);
+
+            /** Draw inline display on canvas
+             *
+             * @param cv canvas
+             * @param width maximum canvas width
+             * @param height maximum canvas height
+             * @return status of operation
+             */
+            virtual bool inline_display(ICanvas *cv, size_t width, size_t height);
+
+            /** Triggered UI deactivation
+             *
+             */
+            virtual void ui_deactivated();
+
+            /** Triggered plugin deactivation
+             *
+             */
+            virtual void deactivated();
     };
 
 }

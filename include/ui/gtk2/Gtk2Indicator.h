@@ -50,10 +50,10 @@ namespace lsp
 
             } buffer_t;
 
-            Color           sColor;
-            Color           sTextColor;
-            Color           sBgColor;
-            IUIPort   *pPort;
+            ColorHolder     sColor;
+            ColorHolder     sTextColor;
+            ColorHolder     sBgColor;
+            IUIPort        *pPort;
             float           fValue;
 
             // Format

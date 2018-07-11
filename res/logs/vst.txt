@@ -753,3 +753,196 @@ Description:	Parametric equalizer with 32 filters. Mid-Side mode.
 	Registration:	
 		
 	*Plugin ID:	lgz9
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Grafischer Entzerrer x16 Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	16-band graphic equalizer
+mono version
+		
+	Registration:	
+		
+	*Plugin ID:	rvwk
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Grafischer Entzerrer x16 Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	16-band graphic equalizer stereo version
+		
+	Registration:	
+		
+	*Plugin ID:	argl
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Grafischer Entzerrer x16 LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	16-band graphic equalizer with individual control of left and right channels
+		
+	Registration:	
+		
+	*Plugin ID:	zefi
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Grafischer Entzerrer x16 MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	16-band graphic equalizer with individual control of middle and side channels
+		
+	Registration:	
+		
+	*Plugin ID:	woys
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Grafischer Entzerrer x32 Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	32-band graphic equalizer mono version
+		
+	Registration:	
+		
+	*Plugin ID:	vnca
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Grafischer Entzerrer x32 Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	32-band graphic equalizer stereo version
+		
+	Registration:	
+		
+	*Plugin ID:	nvsd
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Grafischer Entzerrer x32 LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	32-band graphic equalizer with individual control of left and right channels
+		
+	Registration:	
+		
+	*Plugin ID:	0heu
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Grafischer Entzerrer x32 MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	32-band graphic equalizer with individual control of middle and side channels
+		
+	Registration:	
+		
+	*Plugin ID:	ku8j

@@ -516,7 +516,7 @@ namespace lsp
             // Normalize and format
             for (ssize_t i=0; i < frac_p; ++i)
                 value  *= 10.0;
-            sprintf(tmp, "%ld", (unsigned long)(value));
+            ssize_t frac_len = sprintf(tmp, "%ld", (unsigned long)(value));
             char *p = tmp;
 
             // Output value
@@ -565,11 +565,13 @@ namespace lsp
                     return false;
             }
 
-            while ((frac_p--) > 0)
+            while (frac_p > 0)
             {
-                char c  = (*p == '\0') ? '0' : *(p++);
+                char c  = (frac_p > frac_len) ? '0' :
+                        (*p == '\0') ? '0' : *(p++);
                 if (!append_buf(buf, c))
                     return false;
+                frac_p--;
             }
         }
         else // Overflow

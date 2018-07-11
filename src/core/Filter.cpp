@@ -7,18 +7,29 @@
 
 #include <math.h>
 #include <core/dsp.h>
+#include <core/debug.h>
 #include <core/Filter.h>
 
 namespace lsp
 {
     Filter::Filter()
     {
+        sParams.nType       = FLT_NONE;
+        sParams.fFreq       = 0;
+        sParams.fFreq2      = 0;
+        sParams.fGain       = 0.0f;
+        sParams.nSlope      = 0;
+        sParams.fQuality    = 0.0f;
+
         nSampleRate         = 0;
         nMode               = FM_BYPASS;
         nLatency            = 0;
+        nItems              = 0;
 
-        sDirect.vItems      = NULL;
-        sDirect.vData       = NULL;
+        vItems              = NULL;
+        pBank               = &sBank;
+        vData               = NULL;
+        nFlags              = FF_REBUILD | FF_CLEAR;
     }
 
     Filter::~Filter()
@@ -26,38 +37,7 @@ namespace lsp
         destroy();
     }
 
-    inline void Filter::poly_copy(filter_poly_t *dst, const filter_poly_t *src)
-    {
-        dst->nItems     = src->nItems;
-        for (size_t i=0; i<src->nItems; ++i)
-            dst->vItems[i]  = src->vItems[i];
-    }
-
-    inline void Filter::poly_create(filter_poly_t *dst, size_t count)
-    {
-        dst->nItems     = count;
-        for (size_t i=0; i<count; ++i)
-            dst->vItems[i]  = 0.0;
-    }
-
-    inline void Filter::poly_mul(filter_poly_t *dst, const double *src)
-    {
-        size_t items    = (src[2] != 0.0) ? 3 :
-                          (src[1] != 0.0) ? 2 : 1;
-
-        filter_poly_t   tmp;
-        poly_copy(&tmp, dst);
-        poly_create(dst, tmp.nItems + items - 1);
-
-        for (size_t i=0; i < items; ++i)
-        {
-            float k = src[i];
-            for (size_t j=0; j < tmp.nItems; ++j)
-                dst->vItems[i+j] += k * tmp.vItems[j];
-        }
-    }
-
-    bool Filter::init()
+    bool Filter::init(FilterBank *fb)
     {
         filter_params_t fp;
 
@@ -68,41 +48,51 @@ namespace lsp
         fp.fQuality         = 0;
         fp.nSlope           = 1;
 
-        if (sDirect.vData == NULL)
+        if (fb != NULL)
+            pBank           = fb;
+        else
+        {
+            if (!sBank.init(FILTER_CHAINS_MAX))
+                return false;
+            pBank           = &sBank;
+        }
+
+        if (vData == NULL)
         {
             size_t cascade_size = ALIGN_SIZE(sizeof(cascade_t) * FILTER_CHAINS_MAX, DEFAULT_ALIGN);
 
-            size_t allocate     = DEFAULT_ALIGN + cascade_size;
-            sDirect.vData       = new uint8_t[allocate];
-            if (sDirect.vData == NULL)
+            size_t allocate     = cascade_size + DEFAULT_ALIGN; // + filters_size;
+            vData               = new uint8_t[allocate];
+            if (vData == NULL)
                 return false;
 
-            uint8_t *ptr        = ALIGN_PTR(sDirect.vData, DEFAULT_ALIGN);
-            sDirect.vItems      = reinterpret_cast<cascade_t *>(ptr);
+            uint8_t *ptr        = ALIGN_PTR(vData, DEFAULT_ALIGN);
+            vItems              = reinterpret_cast<cascade_t *>(ptr);
             ptr                += cascade_size;
-
-            for (size_t i=0; i<FILTER_CHAINS_MAX; ++i)
-                dsp::vec4_zero(sDirect.vItems[i].delay);
         }
 
         update(48000, &fp);
+        nFlags              = FF_REBUILD | FF_CLEAR;
+
         return true;
     }
 
     void Filter::destroy()
     {
-        if (sDirect.vData != NULL)
+        if (vData != NULL)
         {
-            delete  [] sDirect.vData;
-            sDirect.vItems  = NULL;
-            sDirect.vData   = NULL;
+            delete  [] vData;
+            vItems  = NULL;
+            vData   = NULL;
         }
+
+        pBank       = NULL;
     }
 
     void Filter::update(size_t sr, const filter_params_t *params)
     {
         // Init direct filter chain
-        filter_params_t *fp     = &sDirect.sParams;
+        filter_params_t *fp     = &sParams;
         size_t type             = fp->nType;
         size_t slope            = fp->nSlope;
 
@@ -116,41 +106,41 @@ namespace lsp
         if (fp->nSlope < 1)
             fp->nSlope              = 1;
         else if (fp->nSlope > FILTER_CHAINS_MAX)
-            fp->nSlope              = 16;
+            fp->nSlope              = FILTER_CHAINS_MAX;
         if (fp->fFreq < SPEC_FREQ_MIN)
             fp->fFreq               = SPEC_FREQ_MIN;
         else if (fp->fFreq > SPEC_FREQ_MAX)
             fp->fFreq               = SPEC_FREQ_MAX;
         if (fp->fFreq >= (0.49f * nSampleRate))
             fp->fFreq               = 0.49f * nSampleRate;
+        if (fp->fFreq2 < SPEC_FREQ_MIN)
+            fp->fFreq2              = SPEC_FREQ_MIN;
+        else if (fp->fFreq2 > SPEC_FREQ_MAX)
+            fp->fFreq2              = SPEC_FREQ_MAX;
+        if (fp->fFreq2 >= (0.49f * nSampleRate))
+            fp->fFreq2              = 0.49f * nSampleRate;
 
-        // Build direct filter
-        build_filter(&sDirect);
-
-        // Clear chain buffers if type of filter changed
+        nFlags                  = FF_REBUILD;
         if ((type != fp->nType) || (slope != fp->nSlope))
-        {
-            for (size_t i=0; i<FILTER_CHAINS_MAX; ++i)
-                dsp::vec4_zero(sDirect.vItems[i].delay);
-        }
+            nFlags                 |= FF_CLEAR;
     }
 
     void Filter::get_params(filter_params_t *params)
     {
         if (params != NULL)
-            *params =    sDirect.sParams;
+            *params =    sParams;
     }
 
-    Filter::cascade_t *Filter::add_cascade(filter_chain_t *chain)
+    Filter::cascade_t *Filter::add_cascade()
     {
         // Get cascade
-        cascade_t *c = (chain->nItems >= FILTER_CHAINS_MAX) ?
-            &chain->vItems[FILTER_CHAINS_MAX-1] :
-            &chain->vItems[chain->nItems];
+        cascade_t *c = (nItems >= FILTER_CHAINS_MAX) ?
+            &vItems[FILTER_CHAINS_MAX-1] :
+            &vItems[nItems];
 
         // Increment number of chains
-        if (chain->nItems < FILTER_CHAINS_MAX)
-            chain->nItems++;
+        if (nItems < FILTER_CHAINS_MAX)
+            nItems++;
 
         // Initialize cascade
         for (size_t i=0; i<4; ++i)
@@ -163,30 +153,25 @@ namespace lsp
         return c;
     }
 
-    void Filter::build_transfer_function(filter_chain_t *chain)
+    float Filter::bilinear_relative(float f1, float f2)
     {
-        // Estimate the size of top and bottom polynoms
-        poly_create(&chain->sTop, 1);
-        poly_create(&chain->sBottom, 1);
-        chain->sTop.vItems[0]       = 1.0;
-        chain->sBottom.vItems[0]    = 1.0;
-
-        for (size_t i=0; i<chain->nItems; ++i)
-        {
-            poly_mul(&chain->sTop, chain->vItems[i].t);
-            poly_mul(&chain->sBottom, chain->vItems[i].b);
-        }
+        double nf   = M_PI / double(nSampleRate);
+        return tan(f1 * nf) / tan(f2 * nf);
     }
 
-    void Filter::build_filter(filter_chain_t *chain)
+    void Filter::rebuild()
     {
+        // Clear bank if it is internal bank
+        if (pBank == &sBank)
+            pBank->begin();
+
         // Reset number of cascades
-        chain->nItems           = 0;
-        chain->sTop.nItems      = 0;
-        chain->sBottom.nItems   = 0;
+        nItems                  = 0;
+
+        filter_params_t fp      = sParams;
 
         // Calculate filter
-        switch (chain->sParams.nType)
+        switch (sParams.nType)
         {
             case FLT_BT_RLC_LOPASS:
             case FLT_BT_RLC_HIPASS:
@@ -195,12 +180,14 @@ namespace lsp
             case FLT_BT_RLC_BELL:
             case FLT_BT_RLC_RESONANCE:
             case FLT_BT_RLC_NOTCH:
+            case FLT_BT_RLC_LADDERPASS:
+            case FLT_BT_RLC_LADDERREJ:
             case FLT_BT_RLC_BANDPASS:
             {
                 // Calculate filter parameters
-                calc_rlc_filter(chain->sParams.nType, &chain->sParams, chain);
-                build_transfer_function(chain);
-                bilinear_transform(chain);
+                fp.fFreq2           = bilinear_relative(fp.fFreq, fp.fFreq2);    // Normalize frequency
+                calc_rlc_filter(sParams.nType, &fp);
+                nMode               = FM_BILINEAR;
                 break;
             }
 
@@ -211,12 +198,14 @@ namespace lsp
             case FLT_MT_RLC_BELL:
             case FLT_MT_RLC_RESONANCE:
             case FLT_MT_RLC_NOTCH:
+            case FLT_MT_RLC_LADDERPASS:
+            case FLT_MT_RLC_LADDERREJ:
             case FLT_MT_RLC_BANDPASS:
             {
                 // Calculate filter parameters
-                calc_rlc_filter(chain->sParams.nType - 1, &chain->sParams, chain);
-                build_transfer_function(chain);
-                matched_transform(chain);
+                fp.fFreq2           = fp.fFreq / fp.fFreq2;    // Normalize frequency
+                calc_rlc_filter(sParams.nType - 1, &fp);
+                nMode               = FM_MATCHED;
                 break;
             }
 
@@ -225,12 +214,14 @@ namespace lsp
             case FLT_BT_BWC_LOSHELF:
             case FLT_BT_BWC_HISHELF:
             case FLT_BT_BWC_BELL:
+            case FLT_BT_BWC_LADDERPASS:
+            case FLT_BT_BWC_LADDERREJ:
             case FLT_BT_BWC_BANDPASS:
             {
                 // Calculate filter parameters
-                calc_bwc_filter(chain->sParams.nType, &chain->sParams, chain);
-                build_transfer_function(chain);
-                bilinear_transform(chain);
+                fp.fFreq2           = bilinear_relative(fp.fFreq, fp.fFreq2);    // Normalize frequency
+                calc_bwc_filter(sParams.nType, &fp);
+                nMode               = FM_BILINEAR;
                 break;
             }
 
@@ -239,12 +230,14 @@ namespace lsp
             case FLT_MT_BWC_LOSHELF:
             case FLT_MT_BWC_HISHELF:
             case FLT_MT_BWC_BELL:
+            case FLT_MT_BWC_LADDERPASS:
+            case FLT_MT_BWC_LADDERREJ:
             case FLT_MT_BWC_BANDPASS:
             {
                 // Calculate filter parameters
-                calc_bwc_filter(chain->sParams.nType - 1, &chain->sParams, chain);
-                build_transfer_function(chain);
-                matched_transform(chain);
+                fp.fFreq2           = fp.fFreq / fp.fFreq2;    // Normalize frequency
+                calc_bwc_filter(sParams.nType - 1, &fp);
+                nMode               = FM_MATCHED;
                 break;
             }
 
@@ -253,12 +246,14 @@ namespace lsp
             case FLT_BT_LRX_LOSHELF:
             case FLT_BT_LRX_HISHELF:
             case FLT_BT_LRX_BELL:
+            case FLT_BT_LRX_LADDERPASS:
+            case FLT_BT_LRX_LADDERREJ:
             case FLT_BT_LRX_BANDPASS:
             {
                 // Calculate filter parameters
-                calc_lrx_filter(chain->sParams.nType, chain);
-                build_transfer_function(chain);
-                bilinear_transform(chain);
+                fp.fFreq2           = bilinear_relative(fp.fFreq, fp.fFreq2);    // Normalize frequency
+                calc_lrx_filter(sParams.nType, &fp);
+                nMode               = FM_BILINEAR;
                 break;
             }
 
@@ -267,12 +262,14 @@ namespace lsp
             case FLT_MT_LRX_LOSHELF:
             case FLT_MT_LRX_HISHELF:
             case FLT_MT_LRX_BELL:
+            case FLT_MT_LRX_LADDERPASS:
+            case FLT_MT_LRX_LADDERREJ:
             case FLT_MT_LRX_BANDPASS:
             {
                 // Calculate filter parameters
-                calc_lrx_filter(chain->sParams.nType - 1, chain);
-                build_transfer_function(chain);
-                matched_transform(chain);
+                fp.fFreq2           = fp.fFreq / fp.fFreq2;    // Normalize frequency
+                calc_lrx_filter(sParams.nType - 1, &fp);
+                nMode               = FM_MATCHED;
                 break;
             }
 
@@ -281,72 +278,63 @@ namespace lsp
                 nMode           = FM_BYPASS;
                 break;
         }
+
+        if (nMode == FM_BILINEAR)
+            bilinear_transform();
+        else if (nMode == FM_MATCHED)
+            matched_transform();
+
+        // Complete bank if it is internal bank
+        if (pBank == &sBank)
+            pBank->end(nFlags & FF_CLEAR);
+
+        nFlags      = 0;
     }
 
-    double Filter::complex_transfer_calc(double *p_re, double *p_im, double x, const filter_poly_t *fp)
+    void Filter::complex_transfer_calc(float *re, float *im, double f)
     {
-        // Initialize loop variables
-        size_t count        = fp->nItems;
-        const double *poly  = fp->vItems;
+        double f2       = f * f; // f ^ 2
+        double r_re     = 1.0;
+        double r_im     = 0.0;
 
-        double k            = (x != 0.0) ? exp(log(x) * (count >> 1)) : 1.0;
-        double r_re         = 0.0, r_im = 0.0;
-        double t_re         = 1.0 / k, t_im  = 1.0/k;
-        double dx           = x * x; // dx == x^2
-
-        // Calculate 4 elements of the polynom per each iteration
-        while (count >= 4)
+        for (size_t i=0; i<nItems; ++i)
         {
-            r_re   += t_re * *(poly++);
-            t_re   *= dx;
-            r_im   += t_im * *(poly++);
-            t_im   *= dx;
-            r_re   -= t_re * *(poly++);
-            t_re   *= dx;
-            r_im   -= t_im * *(poly++);
-            t_im   *= dx;
+            cascade_t *c    = &vItems[i];
 
-            count  -= 4;
+            // Calculate top and bottom transfer parts
+            double t_re     = c->t[0] - f2 * c->t[2];
+            double t_im     = c->t[1]*f;
+            double b_re     = c->b[0] - f2 * c->b[2];
+            double b_im     = c->b[1]*f;
+
+            // Calculate top / bottom
+            double w        = 1.0 / (b_re * b_re + b_im * b_im);
+            double w_re     = (t_re * b_re + t_im * b_im) * w;
+            double w_im     = (t_im * b_re - t_re * b_im) * w;
+
+            // Update transfer function
+            b_re            = r_re*w_re - r_im*w_im;
+            b_im            = r_re*w_im + r_im*w_re;
+
+            // Commit result
+            r_re            = b_re;
+            r_im            = b_im;
         }
 
-        // complete the iteration
-        while (count > 0)
-        {
-            r_re   += t_re * *(poly++);
-            t_re   *= dx;
-            if (!(--count))
-                break;
-            r_im   += t_im * *(poly++);
-            t_im   *= dx;
-            if (!(--count))
-                break;
-            r_re   -= t_re * *(poly++);
-            t_re   *= dx;
-            if (!(--count))
-                break;
-            r_im   -= t_im * *(poly++);
-            t_im   *= dx;
-            if (!(--count))
-                break;
-        }
-
-        // Store the result
-        *p_re       = r_re;
-        *p_im       = r_im * x;
-        return k;
+        *re             = r_re;
+        *im             = r_im;
     }
 
-    void Filter::freq_chart(filter_chain_t *chain, float *re, float *im, const float *f, size_t count)
+    void Filter::freq_chart(float *re, float *im, const float *f, size_t count)
     {
         // Calculate frequency chart
-        double t_re, t_im, b_re, b_im;
 
         switch (nMode)
         {
             case FM_BILINEAR:
             {
                 double nf   = M_PI / double(nSampleRate);
-                double kf   = 1.0/tan(chain->sParams.fFreq * nf);
+                double kf   = 1.0/tan(sParams.fFreq * nf);
                 double lf   = nSampleRate * 0.499;
 
                 while (count--)
@@ -355,39 +343,21 @@ namespace lsp
                     double w    = *(f++);
                     w           = tan((w > lf ? lf : w) * nf) * kf;
 
-                    // Calculate top part of the transfer function Z[j*w]
-                    double k    = complex_transfer_calc(&t_re, &t_im, w, &chain->sTop);
-
-                    // Calculate bottom part of the transfer function P[j*w]
-                    k          /= complex_transfer_calc(&b_re, &b_im, w, &chain->sBottom);
-
-                    // Calculate the transfer function H[j*w] = Z[j*w]/P[j*w] in complex domain
-                    w           =   k / (b_re * b_re + b_im * b_im);
-                    *(re++)     =   (t_re * b_re + t_im * b_im) * w;
-                    *(im++)     =   (t_im * b_re - t_re * b_im) * w;
+                    complex_transfer_calc(re++, im++, w);
                 }
                 break;
             }
 
             case FM_MATCHED:
             {
-                double kf   = 1.0 / chain->sParams.fFreq;
+                double kf   = 1.0 / sParams.fFreq;
 
                 while (count--)
                 {
                     // Cyclic frequency
                     double w    = *(f++) * kf;
 
-                    // Calculate top part of the transfer function Z[j*w]
-                    double k    = complex_transfer_calc(&t_re, &t_im, w, &chain->sTop);
-
-                    // Calculate bottom part of the transfer function P[j*w]
-                    k          /= complex_transfer_calc(&b_re, &b_im, w, &chain->sBottom);
-
-                    // Calculate the transfer function H[j*w] = Z[j*w]/P[j*w] in complex domain
-                    w           =   k / (b_re * b_re + b_im * b_im);
-                    *(re++)     =   (t_re * b_re + t_im * b_im) * w;
-                    *(im++)     =   (t_im * b_re - t_re * b_im) * w;
+                    complex_transfer_calc(re++, im++, w);
                 }
                 break;
             }
@@ -404,17 +374,15 @@ namespace lsp
 
     void Filter::process(float *out, const float *in, size_t samples)
     {
+        if (nFlags != 0)
+            rebuild();
+
         switch (nMode)
         {
             case FM_BILINEAR:
             case FM_MATCHED:
             {
-                const float *src = in;
-                for (size_t i=0; i<sDirect.nItems; ++i)
-                {
-                    dsp::biquad_process_multi(out, src, samples, sDirect.vItems[i].delay, sDirect.vItems[i].ir);
-                    src = out;   // actual data for the next chain is in output buffer now
-                }
+                pBank->process(out, in, samples);
                 break;
             }
 
@@ -426,7 +394,7 @@ namespace lsp
         }
     }
 
-    void Filter::calc_rlc_filter(size_t type, const filter_params_t *fp, filter_chain_t *chain)
+    void Filter::calc_rlc_filter(size_t type, const filter_params_t *fp)
     {
         cascade_t *c                = NULL;
         nMode                       = FM_BILINEAR;
@@ -440,7 +408,7 @@ namespace lsp
                 size_t i        = fp->nSlope & 1;
                 if (i)
                 {
-                    c           = add_cascade(chain);
+                    c           = add_cascade();
                     c->b[0]     = 1.0;
                     c->b[1]     = 1.0;
 
@@ -453,7 +421,7 @@ namespace lsp
                 // Add additional cascades
                 for (size_t j=i; j < fp->nSlope; j+=2)
                 {
-                    c           = add_cascade(chain);
+                    c           = add_cascade();
                     c->b[0]     = 1.0;
                     c->b[1]     = 2.0 / (1.0 + fp->fQuality);
                     c->b[2]     = 1.0;
@@ -476,7 +444,7 @@ namespace lsp
 
                 for (size_t j=0; j < fp->nSlope; j++)
                 {
-                    c                       = add_cascade(chain);
+                    c                       = add_cascade();
                     double *t               = (type == FLT_BT_RLC_LOSHELF) ? c->t : c->b;
                     double *b               = (type == FLT_BT_RLC_LOSHELF) ? c->b : c->t;
 
@@ -500,14 +468,75 @@ namespace lsp
                 break;
             }
 
+            case FLT_BT_RLC_LADDERPASS:
+            case FLT_BT_RLC_LADDERREJ:
+            {
+                size_t slope            = fp->nSlope * 2;
+                double gain1            = (type == FLT_BT_RLC_LADDERREJ) ? sqrt(1.0/fp->fGain) : sqrt(fp->fGain);
+                double gain2            = (type == FLT_BT_RLC_LADDERREJ) ? sqrt(fp->fGain) : sqrt(1.0/fp->fGain);
+
+                double fg1              = exp(log(gain1)/slope);
+                double fg2              = exp(log(gain2)/slope);
+                double kf               = fp->fFreq2;
+
+                for (size_t j=0; j < fp->nSlope; j++)
+                {
+                    // First shelf cascade, lo-shelf for LADDERREJ, hi-shelf for LADDERPASS
+                    c                       = add_cascade();
+                    double *t               = (type == FLT_BT_RLC_LADDERREJ) ? c->t : c->b;
+                    double *b               = (type == FLT_BT_RLC_LADDERREJ) ? c->b : c->t;
+                    double fg               = (type == FLT_BT_RLC_LADDERREJ) ? fg2 : fg1;
+                    double gain             = (type == FLT_BT_RLC_LADDERREJ) ? gain2 : gain1;
+
+                    // Create transfer function
+                    t[0]                    = fg;
+                    t[1]                    = 2.0 / (1.0 + fp->fQuality);
+                    t[2]                    = 1.0 / fg;
+
+                    b[0]                    = 1.0 / fg;
+                    b[1]                    = 2.0 / (1.0 + fp->fQuality);
+                    b[2]                    = fg;
+
+                    if (j == 0)
+                    {
+                        c->t[0]                *= gain;
+                        c->t[1]                *= gain;
+                        c->t[2]                *= gain;
+                    }
+
+                    // Second shelf cascade, hi-shelf always
+                    c                       = add_cascade();
+                    t                       = c->b;
+                    b                       = c->t;
+
+                    // Create transfer function
+                    t[0]                    = fg2;
+                    t[1]                    = 2.0 * kf / (1.0 + fp->fQuality);
+                    t[2]                    = kf*kf / fg2;
+
+                    b[0]                    = 1.0 / fg2;
+                    b[1]                    = 2.0 * kf / (1.0 + fp->fQuality);
+                    b[2]                    = fg2 * kf * kf;
+
+                    if (j == 0)
+                    {
+                        c->t[0]                *= gain2;
+                        c->t[1]                *= gain2;
+                        c->t[2]                *= gain2;
+                    }
+                }
+
+                break;
+            }
+
             case FLT_BT_RLC_BANDPASS:
             {
-                double f2               = fp->fFreq2 / fp->fFreq;
+                double f2               = 1.0 / fp->fFreq2;
                 double k                = (1.0 + f2)/(1.0 + fp->fQuality);
 
                 for (size_t j=0; j < fp->nSlope; j++)
                 {
-                    c                       = add_cascade(chain);
+                    c                       = add_cascade();
                     c->t[1]                 = (j == 0) ? exp(fp->nSlope * log(k)) * fp->fGain : 1.0;
                     c->b[0]                 = f2;
                     c->b[1]                 = k;
@@ -527,7 +556,7 @@ namespace lsp
 
                 for (size_t j=0; j < fp->nSlope; j++)
                 {
-                    c                       = add_cascade(chain);
+                    c                       = add_cascade();
 
                     // Create transfer function
                     c->t[0]                 = 1.0;
@@ -552,7 +581,7 @@ namespace lsp
 
                 for (size_t j=0; j < fp->nSlope; j++)
                 {
-                    c                       = add_cascade(chain);
+                    c                       = add_cascade();
 
                     // Create transfer function
                     c->t[0]                 = 1.0;
@@ -569,7 +598,7 @@ namespace lsp
 
             case FLT_BT_RLC_NOTCH:
             {
-                c                       = add_cascade(chain);
+                c                       = add_cascade();
 
                 // Create transfer function
                 c->t[0]                 = fp->fGain;
@@ -590,7 +619,7 @@ namespace lsp
         }
     }
 
-    void Filter::calc_bwc_filter(size_t type, const filter_params_t *fp, filter_chain_t *chain)
+    void Filter::calc_bwc_filter(size_t type, const filter_params_t *fp)
     {
         cascade_t *c                = NULL;
 
@@ -603,7 +632,7 @@ namespace lsp
                 size_t i    = fp->nSlope & 1;
                 if (i)
                 {
-                    c           = add_cascade(chain);
+                    c           = add_cascade();
                     c->b[0]     = 1.0;
                     c->b[1]     = 1.0;
 
@@ -620,7 +649,7 @@ namespace lsp
                     double tcos     = sqrtf(1.0 - tsin*tsin);
                     float kf        = tsin*tsin + k*k * tcos*tcos;
 
-                    c               = add_cascade(chain);
+                    c               = add_cascade();
 
                     // Tranfer function
                     if (type == FLT_BT_BWC_HIPASS)
@@ -658,7 +687,7 @@ namespace lsp
                     double tcos         = sqrtf(1.0 - tsin*tsin);
                     double kf           = tsin*tsin + k*k * tcos*tcos;
 
-                    c                   = add_cascade(chain);
+                    c                   = add_cascade();
                     double *t           = (type == FLT_BT_BWC_HISHELF) ? c->t : c->b;
                     double *b           = (type == FLT_BT_BWC_HISHELF) ? c->b : c->t;
 
@@ -682,6 +711,76 @@ namespace lsp
                 break;
             }
 
+            case FLT_BT_BWC_LADDERPASS:
+            case FLT_BT_BWC_LADDERREJ:
+            {
+                size_t slope            = fp->nSlope * 2;
+                double gain1            = (type == FLT_BT_BWC_LADDERPASS) ? sqrt(fp->fGain) : sqrt(1.0/fp->fGain);
+                double gain2            = (type == FLT_BT_BWC_LADDERPASS) ? sqrt(1.0/fp->fGain) : sqrt(fp->fGain);
+
+                double fg1              = exp(log(gain1)/(2.0*fp->nSlope));
+                double fg2              = exp(log(gain2)/(2.0*fp->nSlope));
+                double k1               = 1.0f / (1.0 + fp->fQuality * (1.0 - exp(2.0 - gain1 - 1.0/gain1)));
+                double k2               = 1.0f / (1.0 + fp->fQuality * (1.0 - exp(2.0 - gain2 - 1.0/gain2)));
+                double xf               = fp->fFreq2;
+
+                for (size_t j=0; j < fp->nSlope; ++j)
+                {
+                    double theta        = ((2*j + 1)*M_PI_2)/double(slope);
+                    double tsin         = sin(theta);
+                    double tcos         = sqrtf(1.0 - tsin*tsin);
+
+                    // First shelf cascade, lo-shelf for LADDERREJ, hi-shelf for LADDERPASS
+                    double k            = (type == FLT_BT_BWC_LADDERPASS) ? k1 : k2;
+                    double fg           = (type == FLT_BT_BWC_LADDERPASS) ? fg1 : fg2;
+                    double gain         = (type == FLT_BT_BWC_LADDERPASS) ? gain1 : gain2;
+                    double kf           = tsin*tsin + k*k * tcos*tcos;
+                    c                   = add_cascade();
+                    double *t           = (type == FLT_BT_BWC_LADDERPASS) ? c->t : c->b;
+                    double *b           = (type == FLT_BT_BWC_LADDERPASS) ? c->b : c->t;
+
+                    // Transfer function
+                    t[0]                = kf / fg;
+                    t[1]                = 2.0 * k * tcos;
+                    t[2]                = fg;
+
+                    b[0]                = fg;
+                    b[1]                = 2.0 * k * tcos;
+                    b[2]                = kf / fg;
+
+                    if (j == 0)
+                    {
+                        c->t[0]            *= gain;
+                        c->t[1]            *= gain;
+                        c->t[2]            *= gain;
+                    }
+
+                    // Second shelf cascade, always hi-shelf
+                    kf                  = tsin*tsin + k1*k1 * tcos*tcos;
+                    c                   = add_cascade();
+                    t                   = c->b;
+                    b                   = c->t;
+
+                    // Transfer function
+                    t[0]                = kf / fg1;
+                    t[1]                = 2.0 * k1 * xf * tcos;
+                    t[2]                = fg1 * xf * xf;
+
+                    b[0]                = fg1;
+                    b[1]                = 2.0 * k1 * xf * tcos;
+                    b[2]                = kf * xf * xf / fg1;
+
+                    if (j == 0)
+                    {
+                        c->t[0]            *= gain2;
+                        c->t[1]            *= gain2;
+                        c->t[2]            *= gain2;
+                    }
+                }
+
+                break;
+            }
+
             case FLT_BT_BWC_BELL:
             {
                 double fg               = exp(log(fp->fGain)/double(2*fp->nSlope));
@@ -697,7 +796,7 @@ namespace lsp
                     if (fp->fGain >= 1.0)
                     {
                         // First cascade
-                        c                   = add_cascade(chain);
+                        c                   = add_cascade();
 
                         c->t[0]             = 1.0;
                         c->t[1]             = 2.0 * k * tcos * fg / kf;
@@ -708,7 +807,7 @@ namespace lsp
                         c->b[2]             = 1.0 / kf;
 
                         // Second cascade
-                        c                   = add_cascade(chain);
+                        c                   = add_cascade();
 
                         c->t[0]             = 1.0;
                         c->t[1]             = 2.0 * k * tcos / fg;
@@ -721,7 +820,7 @@ namespace lsp
                     else
                     {
                         // First cascade
-                        c                   = add_cascade(chain);
+                        c                   = add_cascade();
 
                         c->t[0]             = 1.0;
                         c->t[1]             = 2.0 * k * tcos / kf;
@@ -732,7 +831,7 @@ namespace lsp
                         c->b[2]             = 1.0 / (fg * fg * kf);
 
                         // Second cascade
-                        c                   = add_cascade(chain);
+                        c                   = add_cascade();
 
                         c->t[0]             = 1.0;
                         c->t[1]             = 2.0 * k * tcos;
@@ -760,7 +859,7 @@ namespace lsp
                     float kf            = tsin*tsin + k*k * tcos*tcos;
 
                     // Hi-pass cascade
-                    c                   = add_cascade(chain);
+                    c                   = add_cascade();
 
                     c->t[2]             = (j == 0) ? fp->fGain : 1.0;
 
@@ -769,7 +868,7 @@ namespace lsp
                     c->b[2]             = 1.0;
 
                     // Lo-pass cascade
-                    c                   = add_cascade(chain);
+                    c                   = add_cascade();
 
                     c->t[0]             = 1.0;
 
@@ -787,7 +886,7 @@ namespace lsp
         }
     }
 
-    void Filter::calc_lrx_filter(size_t type, filter_chain_t *chain)
+    void Filter::calc_lrx_filter(size_t type, const filter_params_t *fp)
     {
         // LRX filter is just twice repeated BWC filter
         // Calculate the same chain twice
@@ -811,20 +910,25 @@ namespace lsp
             case FLT_BT_LRX_BANDPASS:
                 type = FLT_BT_BWC_BANDPASS;
                 break;
+            case FLT_BT_LRX_LADDERPASS:
+                type = FLT_BT_BWC_LADDERPASS;
+                break;
+            case FLT_BT_LRX_LADDERREJ:
+                type = FLT_BT_BWC_LADDERREJ;
+                break;
             default:
                 nMode           = FM_BYPASS;
                 return;
         }
 
         // Have to do some hacks with chain parameters: reduce slope and gain
-        filter_params_t fp  = chain->sParams;
-        fp.nSlope           = chain->sParams.nSlope*2;
-//        fp.fQuality         = expf(logf(chain->sParams.fQuality) / float(fp.nSlope));
-        fp.fGain            = sqrtf(fp.fGain);
+        filter_params_t bfp = *fp;
+        bfp.nSlope          = sParams.nSlope*2;
+        bfp.fGain           = sqrtf(bfp.fGain);
 
         // Calculate two similar chains
-        calc_bwc_filter(type, &fp, chain);
-        calc_bwc_filter(type, &fp, chain);
+        calc_bwc_filter(type, &bfp);
+        calc_bwc_filter(type, &bfp);
     }
 
     /*
@@ -860,15 +964,16 @@ namespace lsp
                    (B[0] + B[1] + B[2]) + 2*(B[0] - B[2])*z^-1 + (B[0] - B[1] + B[2])*z^-2
      */
 
-    void Filter::bilinear_transform(filter_chain_t *chain)
+    void Filter::bilinear_transform()
     {
-        double kf   = 1.0/tan(chain->sParams.fFreq * M_PI / double(nSampleRate));
-        double kf2  = kf * kf;
+        double kf       = 1.0/tan(sParams.fFreq * M_PI / double(nSampleRate));
+        double kf2      = kf * kf;
         double T[4], B[4], N;
+        size_t chains   = 0;
 
-        for (size_t i=0; i<chain->nItems; ++i)
+        for (size_t i=0; i<nItems; ++i)
         {
-            cascade_t *c    = &chain->vItems[i];
+            cascade_t *c    = &vItems[i];
             double *t       = c->t;
             double *b       = c->b;
 
@@ -884,17 +989,24 @@ namespace lsp
 
             // Calculate the convolution
             N               = 1.0 / (B[0] + B[1] + B[2]);
-            c->ir[0]        = 2.0 * (B[2] - B[0]) * N; // Sign negated
-            c->ir[1]        = 2.0 * (T[0] - T[2]) * N;
-            c->ir[2]        = (B[1] - B[2] - B[0]) * N; // Sign negated
-            c->ir[3]        = (T[0] - T[1] + T[2]) * N;
-            c->ir[4]        = (T[0] + T[1] + T[2]) * N;
-            c->ir[5]        = 0.0;
-            c->ir[6]        = 0.0;
-            c->ir[7]        = 0.0;
-        }
 
-        nMode                       = FM_BILINEAR;
+            // Initialize filter parameters
+            if ((++chains) > FILTER_CHAINS_MAX)
+                break;
+            biquad_x1_t *f  = pBank->add_chain();
+            if (f == NULL)
+                break;
+
+            f->a[0]         = (T[0] + T[1] + T[2]) * N;
+            f->a[1]         = f->a[0];
+            f->a[2]         = 2.0 * (T[0] - T[2]) * N;
+            f->a[3]         = (T[0] - T[1] + T[2]) * N;
+
+            f->b[0]         = 2.0 * (B[2] - B[0]) * N; // Sign negated
+            f->b[1]         = (B[1] - B[2] - B[0]) * N; // Sign negated
+            f->b[2]         = 0.0f;
+            f->b[3]         = 0.0f;
+        }
     }
 
     /*
@@ -919,16 +1031,17 @@ namespace lsp
         After the Matched Z-transform the Frequency Chart of the filter has to be normalized!
 
     */
-    void Filter::matched_transform(filter_chain_t *chain)
+    void Filter::matched_transform()
     {
         double T[4], B[4], A[2], I[2];
-        double f    = chain->sParams.fFreq;
-        double TD   = 2.0*M_PI / nSampleRate;
+        double f        = sParams.fFreq;
+        double TD       = 2.0*M_PI / nSampleRate;
+        size_t chains   = 0;
 
         // Iterate each cascade
-        for (size_t i=0; i<chain->nItems; ++i)
+        for (size_t i=0; i<nItems; ++i)
         {
-            cascade_t *c        = &chain->vItems[i];
+            cascade_t *c        = &vItems[i];
 
             // Process each polynom (top, bottom) individually
             for (size_t i=0; i<2; ++i)
@@ -1005,7 +1118,7 @@ namespace lsp
                 // For the normalized continuous transfer function it will be always 0.1
 
                 // Calculate the discrete transfer function part at specified frequency
-                double w    = M_PI * 0.2 * chain->sParams.fFreq / nSampleRate;
+                double w    = M_PI * 0.2 * sParams.fFreq / nSampleRate;
                 double re   = P[0]*cos(2*w) + P[1]*cos(w) + P[2];
                 double im   = P[0]*sin(2*w) + P[1]*sin(w);
                 A[i]        = sqrt(re*re + im*im);
@@ -1026,44 +1139,36 @@ namespace lsp
              */
             double AN       = (A[1]*I[0]) / (A[0]*I[1]); // Normalizing factor for the amplitude to match the analog filter
             double N        = 1.0 / B[0];
-            c->ir[0]        = -B[1] * N; // Sign negated
-            c->ir[1]        = T[1] * N * AN;
-            c->ir[2]        = -B[2] * N; // Sign negated
-            c->ir[3]        = T[2] * N * AN;
-            c->ir[4]        = T[0] * N * AN;
-            c->ir[5]        = 0.0;
-            c->ir[6]        = 0.0;
-            c->ir[7]        = 0.0;
-        }
 
-        nMode                       = FM_MATCHED;
+            // Initialize filter parameters
+            if ((++chains) > FILTER_CHAINS_MAX)
+                break;
+            biquad_x1_t *f  = pBank->add_chain();
+            if (f == NULL)
+                break;
+
+            f->a[0]         = T[0] * N * AN;
+            f->a[1]         = f->a[0];
+            f->a[2]         = T[1] * N * AN;
+            f->a[3]         = T[2] * N * AN;
+
+            f->b[0]         = -B[1] * N; // Sign negated
+            f->b[1]         = -B[2] * N; // Sign negated
+            f->b[2]         = 0.0f;
+            f->b[3]         = 0.0f;
+        }
     }
 
-    void Filter::impulse_response(float *out, size_t length)
+    bool Filter::impulse_response(float *out, size_t length)
     {
-        float delays[FILTER_CHAINS_MAX * 4];
-        float *p = delays;
+        if (pBank != &sBank)
+            return false;
 
-        // Backup and clean the delay chains for FIR filters
-        for (size_t i=0; i<FILTER_CHAINS_MAX; ++i)
-            for (size_t j=0; j<4; ++j)
-            {
-                *(p++)                      = sDirect.vItems[i].delay[j];
-                sDirect.vItems[i].delay[j]  = 0.0f;
-            }
+        if (nFlags != 0)
+            rebuild();
 
-        // Prepare the single impulse response
-        dsp::fill_zero(out, length);
-        out[0]  = 1.0f;
-
-        // Call for processing
-        process(out, out, length);
-
-        // Restore delay chains for FIR filters
-        p = delays;
-        for (size_t i=0; i<FILTER_CHAINS_MAX; ++i)
-            for (size_t j=0; j<4; ++j)
-                sDirect.vItems[i].delay[j]  = *(p++);
+        pBank->impulse_response(out, length);
+        return true;
     }
 
 }

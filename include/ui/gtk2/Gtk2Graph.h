@@ -20,8 +20,8 @@ namespace lsp
     class Gtk2Graph: public Gtk2CustomWidget, public IGraph
     {
         protected:
-            Color               sColor;
-            Color               sBgColor;
+            ColorHolder         sColor;
+            ColorHolder         sBgColor;
 
             size_t              nSetWidth;
             size_t              nSetHeight;

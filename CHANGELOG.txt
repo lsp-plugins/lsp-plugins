@@ -2,6 +2,32 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.12 ===
+
+* Implemented LSP Grafischer Entzerrer (Graphic Equalizer) x16 Mono/Stereo/LeftRight/MidSide plugin series.
+* Implemented LSP Grafischer Entzerrer (Graphic Equalizer) x32 Mono/Stereo/LeftRight/MidSide plugin series.
+* Additional package with HTML documentation is now provided.
+* Fixed behaviour of trigger-type button when right mouse click occurs.
+* Added output balance knob to LSP Parametrischer Entzerrer Stereo/LeftRight/MidSide plugin series.
+* Implemented multiband crossover processor in DSP core for future use.
+* Added Inline Display LV2 extension support provided by Ardour to all LV2 plugin series that
+  use interactive graphic output.
+* Standalone versions of plugins now draw their state on window icons similarly to Inline Display extension.
+* Optmized processing speed of IIR filters, overall acceleration is about 1.5x for filters with low
+  number of poles and zeros, about 5x for filters with high amount of poles and zeros.
+* Optimized equalizer structure by using filter banks. Low-pole filters in equalizer are combined into 4x
+  biquad filter banks. Overall performance improvement is about 4x.
+* Floating-point calculations are more accurate now for FIR filters.
+* Added output signal metering to LSP Parametrischer Entzerrer plugin series.
+* Moved spectrum analysis into separate core module for making re-usable.
+* Fixed bugs of floating-point number formatting by the 'indicator' widget.
+* Added possibility to minimize visual space used by plugin by reducing size of rack mount studs in the UI.
+* Plugin UIs now store global configuration in ~/.config/lsp-plugins/lsp-plugins.cfg file.
+* Fixed MIDI output for JACK wrapper.
+* Added avoiding of denormal floating point values that may cause extra CPU performance penalty by
+  modifying MXCSR register value before audio processing stage and restoring it's value after
+  audio processing stage.
+
 === 1.0.11 ===
 
 * Optimized graph widget relative to axis objects, logarithmic scaling

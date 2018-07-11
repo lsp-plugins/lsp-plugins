@@ -237,29 +237,29 @@ namespace lsp
         return 0.0f;
     }
 
-    void Gtk2Meter::get_color(float rs, float re, Color &cl)
+    void Gtk2Meter::get_color(float rs, float re, ColorHolder &cl)
     {
         if (nType == MT_VU)
         {
             if (re <= VU_RANGE0)
             {
-                cl.copy(sColor.color());
+                cl.copy(sColor);
                 cl.darken(0.5f);
             }
             else if (re <= VU_RANGE1)
             {
-                cl.copy(sColor.color());
+                cl.copy(sColor);
                 cl.darken(0.25f);
             }
             else if (re <= VU_RANGE2)
-                cl.copy(sColor.color());
+                cl.copy(sColor);
             else if (re <= VU_RANGE3)
                 cl.set(pUI->theme(), C_YELLOW);
             else
                 cl.set(pUI->theme(), C_RED);
         }
         else
-            cl.copy(sColor.color());
+            cl.copy(sColor);
     }
 
     void Gtk2Meter::format_meter(float value, char *buf, size_t n) const
@@ -306,7 +306,7 @@ namespace lsp
         ssize_t cx      = nWidth >> 1, cy = nHeight >> 1;
         cairo_text_extents_t extents;
         ssize_t tsx = 0, tsy = 0;
-        Color           t_col(sColor.color());
+        Color           t_col(sColor);
 
         char v_text[32];
         v_text[0]       = '\0';
@@ -326,7 +326,7 @@ namespace lsp
             format_meter(value, v_text, sizeof(v_text));
         }
 
-        Color l_c;
+        ColorHolder l_c;
         cairo_set_line_width(cr, 1);
 
         // Draw meter

@@ -22,17 +22,29 @@ namespace lsp
     {
     }
 
-    void Bypass::set_bypass(bool bypass)
+    bool Bypass::set_bypass(bool bypass)
     {
         // Trigger state change
         if ((bypass) && (nState == S_ON))
-            return;
+            return false;
         else if ((!bypass) && (nState == S_OFF))
-            return;
+            return false;
 
         // Change sign of the applying delta
         fDelta  = -fDelta;
         nState  = S_ACTIVE;
+        return true;
+    }
+
+    bool Bypass::bypassing() const
+    {
+        switch (nState)
+        {
+            case S_ON: return true;
+            case S_OFF: return false;
+            case S_ACTIVE: return fDelta < 0.0f;
+            default: return false;
+        }
     }
 
     void Bypass::init(int sample_rate, float time)
