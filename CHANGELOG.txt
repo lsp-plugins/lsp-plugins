@@ -2,6 +2,11 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.26 ===
+
+* Implemented Latenzmessgerät - Latency Meter plugin.
+* Fixed horizontal meter widget rendering.
+
 === 1.0.24 ===
 
 * Implemented Oszillator - Oscillator utility plugin.

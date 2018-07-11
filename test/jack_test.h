@@ -78,7 +78,8 @@ namespace jack_test
 //                "slap_delay_stereo";
 //                "impulse_reverb_mono";
 //                "impulse_reverb_stereo";
-                "oscillator_mono";
+//                "oscillator_mono";
+                 "latency_meter";
 
         return JACK_MAIN_FUNCTION(plugin, argc, argv);
     }

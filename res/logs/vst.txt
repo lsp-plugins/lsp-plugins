@@ -2032,3 +2032,28 @@ additive and multiplicative (modulation).
 	Registration:	
 		
 	*Plugin ID:	sntq
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Stefano
+	*Last Name:	Tronci
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Latenzmessgerät
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	A simple plugin that allows to measure the latency of a transmission line by using chirp - inverse filter convolution. Latency is determined as the lag of the convolution peak.
+		
+	Registration:	
+		
+	*Plugin ID:	abee

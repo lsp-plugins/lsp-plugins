@@ -530,6 +530,13 @@ MOD_LV2(oscillator_mono)
 MOD_VST(oscillator_mono)
 MOD_GTK2(oscillator_mono)
 
+// Latency Meter
+MOD_PLUGIN(latency_meter)
+MOD_LADSPA(latency_meter)
+MOD_LV2(latency_meter)
+MOD_VST(latency_meter)
+MOD_GTK2(latency_meter)
+
 #ifndef LSP_NO_EXPERIMENTAL
 
 #endif

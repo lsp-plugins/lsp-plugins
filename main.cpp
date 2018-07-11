@@ -52,6 +52,8 @@
 #include "test/downsampling_test.h"
 #include "test/oversampler_test.h"
 
+#include "test/latencydetector_test.h"
+
 //#define TEST gtk_test
 #define TEST jack_test
 //#define TEST xwindow_test
@@ -104,6 +106,8 @@
 //#define TEST oversampler_test
 
 //#define TEST sse_test
+
+//#define TEST latencydetector_test
 
 int main(int argc, const char**argv)
 {

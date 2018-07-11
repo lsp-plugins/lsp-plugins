@@ -443,20 +443,19 @@ namespace lsp
             // Update top coordinate
             txt_cx          = cx;
             if (nAngle & 2)
-            {
                 txt_cy          = top;
-                top            += (tsy >> 1);
-            }
             else
-            {
                 txt_cy          = top + sy;
-                top            -= (tsy >> 1);
-            }
+
+            top            -= (tsy >> 1);
 
             // Draw glass
             cairo_set_source_rgb(cr, sIndColor.red(), sIndColor.green(), sIndColor.blue());
             cairo_rectangle(cr, ssize_t(left - nBorder), ssize_t(top - nBorder), sx + (nBorder << 1), sy + (nBorder << 1) + tsy);
             cairo_fill(cr);
+
+            if (nAngle & 2)
+                top        += tsy;
 
             // Tune parameters
             tsx                 = cx;
@@ -520,34 +519,28 @@ namespace lsp
         else
         {
             // Horizontal meter
-            size_t segments = nMHeight >> 2;
-            ssize_t sx = (segments << 2) + 2, sy = nMWidth;
-            ssize_t left = cx - (sx >> 1), top = cy - (sy >> 1);
+            size_t segments     = nMHeight >> 2;
+            ssize_t sy          = nMWidth;
+            ssize_t sx          = (segments << 2) + 2;
+            ssize_t left        = cx - (sx >> 1);
+            ssize_t top         = cy - (sy >> 1);
 
-            // Update text sizes
-            if (channels > 0)
-                tsy            += txt_h + 2;
-
-            // Update left coordinate
+            // Update top coordinate
+            txt_cy          = cy;
             if (nAngle & 2)
-            {
-                ssize_t tmp     = left;
-                left           += (tsx >> 1);
-                tsx             = tmp;
-            }
+                txt_cx          = left + sx;
             else
-            {
-                ssize_t tmp     = left;
-                left           -= (tsx >> 1);
-                tsx             = tmp + sx;
-            }
-            tsy = cy;
+                txt_cx          = left;
 
             // Draw glass
+            left           -= (tsx >> 1);
             cairo_set_source_rgb(cr, sIndColor.red(), sIndColor.green(), sIndColor.blue());
             cairo_rectangle(cr, left - nBorder, top - nBorder, sx + (nBorder << 1) + tsx, sy + (nBorder << 1));
             cairo_fill(cr);
+            if (!(nAngle & 2))
+                left           += tsx;
 
+            tsy                 = cy;
             if (channels > 1)
                 sy = (sy >> 1) - 3;
             else

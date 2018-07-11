@@ -14,7 +14,7 @@ INSTALL                 = install
 
 # Package version
 ifndef VERSION
-VERSION                 = 1.0.24
+VERSION                 = 1.0.26
 endif
 
 # Directories

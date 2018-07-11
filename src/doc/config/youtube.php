@@ -12,7 +12,8 @@ $YOUTUBE = array(
 	'laExcuCMDY4' => 'Begrenzer',
 	'BBcLpAx02UM' => 'Impulsantworten',
 	'hEUauzc_j3U' => 'Slap-back Delay & Impulsnachhall',
-	'D8evQrkY8nQ' => 'Oszillator'
+	'D8evQrkY8nQ' => 'Oszillator',
+	'JFXTcJb4DLs' => 'Latenzmessgerät'
 );
 
 ?>

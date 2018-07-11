@@ -28,5 +28,6 @@
 #include <plugins/impulse_reverb.h>
 #include <plugins/slap_delay.h>
 #include <plugins/oscillator.h>
+#include <plugins/latency_meter.h>
 
 #endif /* PLUGINS_PLUGINS_H_ */
