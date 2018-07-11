@@ -35,11 +35,13 @@
 
 // Check debug level
 #ifdef LSP_DEBUG
-    #define lsp_printf(...)         fprintf(LSP_LOG_FD, ## __VA_ARGS__)
+    #define lsp_printf(msg, ...)    fprintf(LSP_LOG_FD, msg "\n", ## __VA_ARGS__)
     #define lsp_debug(msg, ...)     fprintf(LSP_LOG_FD, "[DBG][%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
+    #define lsp_dumpf(s, fmt, p, n) __lsp_dumpf(s, fmt, p, n)
 #else
-    #define lsp_printf(msg, ...)    fprintf(LSP_LOG_FD, ## __VA_ARGS__)
+    #define lsp_printf(msg, ...)    fprintf(LSP_LOG_FD, msg "\n", ## __VA_ARGS__)
     #define lsp_debug(msg, ...)
+    #define lsp_dumpf(s, fmt, p, n)
 #endif /* LSP_DEBUG */
 
 #ifdef LSP_DEBUG
@@ -56,27 +58,33 @@
 #ifdef LSP_DEBUG
     #define lsp_paranoia(...)   { __VA_ARGS__; }
 
+    #define lsp_guard_assert(...) __VA_ARGS__;
     #define lsp_assert(x)       if (!(x)) lsp_error("assertion failed: %s", #x);
 #else
     #define lsp_paranoia(...)
 
+    #define lsp_guard_assert(...)
     #define lsp_assert(x)
 #endif /* ASSERTIONS */
 
+namespace lsp
+{
 // Define initialization function
 #ifdef LSP_TRACEFILE
     #define lsp_debug_init(subsystem)        lsp::init_debug(subsystem)
 
-    namespace lsp
-    {
-        #ifdef LSP_TRACEFILE
-            extern FILE *log_fd;
-        #endif /* LSP_TRACEFILE */
+    #ifdef LSP_TRACEFILE
+        extern FILE *log_fd;
+    #endif /* LSP_TRACEFILE */
 
-        void init_debug(const char *subsystem);
-    }
+    void init_debug(const char *subsystem);
 #else
     #define lsp_debug_init(subsystem)
 #endif /* LSP_DEBUG */
+
+#ifdef LSP_DEBUG
+    void __lsp_dumpf(const char *s, const char *fmt, const float *f, size_t n);
+#endif /* LSP_DEBUG */
+}
 
 #endif /* CORE_DEBUG_H_ */

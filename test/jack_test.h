@@ -71,7 +71,7 @@ namespace jack_test
 //                "graph_equalizer_x32_ms";
 //                "graph_equalizer_x32_stereo";
 //                "para_equalizer_x16_lr";
-                "para_equalizer_x16_mono";
+//                "para_equalizer_x16_mono";
 //                "para_equalizer_x16_ms";
 //                "para_equalizer_x16_stereo";
 //                "para_equalizer_x32_lr";
@@ -93,6 +93,14 @@ namespace jack_test
 //                "phase_detector";
 //                "oscillator_mono";
 //                "latency_meter";
+//                "mb_compressor_mono";
+//                "mb_compressor_stereo";
+//                "mb_compressor_lr";
+//                "mb_compressor_ms";
+//                "sc_mb_compressor_mono";
+//                "sc_mb_compressor_stereo";
+//                "sc_mb_compressor_lr";
+                "sc_mb_compressor_ms";
 
 //                "test_plugin";
 

@@ -159,8 +159,6 @@ namespace lsp
 
 namespace lsp
 {
-    typedef unsigned long   dsp_options_t;
-
     enum mesh_state_t
     {
         M_WAIT,         // Mesh is waiting for data request

@@ -9,6 +9,7 @@
 	<li><b>AudioFile</b> - audio file chooser and editor.</li>
 	<li><b>Button</b> - button control.</li>
 	<li><b>Combo</b> - combo box control.</li>
+	<li><b>Combo Group</b> - combo group control.</li>
 	<li><b>Fader</b> - fader control.</li>
 	<li><b>FileSaver</b> - file saving control.</li>
 	<li><b>Graph</b> - graphical output area.</li>
@@ -112,6 +113,21 @@ control groups.</p>
 <p>Here is example of combo box widgets:</p>
 <div class="images">
 	<img src="<?= $CTL ?>combo.png">
+</div>
+
+<h2>Combo Group</h2>
+
+<p>Combo group is a <b>Group</b> control that allows to select the displayed content by calling a drop-down list.
+The drop-down list is accessible by clicking with left mouse button the header header of the group.</p>
+
+<p>Here is example of combo group widget:</p>
+<div class="images">
+	<img src="<?= $CTL ?>combo_group.png">
+</div>
+
+<p>When clicking the group header, we get all possible variants for choosing widget groups for displaying:</p>
+<div class="images">
+	<img src="<?= $CTL ?>combo_group_select.png">
 </div>
 
 <h2>Fader</h2>

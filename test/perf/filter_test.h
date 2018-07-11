@@ -12,6 +12,8 @@
 
 namespace filter_test
 {
+    using namespace lsp;
+
     void biquad_process_multi(float *dst, const float *src, size_t count, float *buf, const float *ir)
     {
         for (size_t i=0; i<count; ++i)
@@ -37,7 +39,24 @@ namespace filter_test
         }
     }
 
-    using namespace lsp;
+    void biquad_process_x1(float *dst, const float *src, size_t count, biquad_t *f)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float s     = src[i];
+            //   a: a0 a0 a1 a2
+            //   b: b1 b2 0  0
+            float s2    = f->x1.a[0]*s + f->d[0];
+            float p1    = f->x1.a[2]*s + f->x1.b[0]*s2;
+            float p2    = f->x1.a[3]*s + f->x1.b[1]*s2;
+
+            dst[i]      = s2;
+
+            // Shift buffer
+            f->d[0]     = f->d[1] + p1;
+            f->d[1]     = p2;
+        }
+    }
 
     void test_biquad(float *out, const float *in, size_t count)
     {
@@ -62,6 +81,51 @@ namespace filter_test
                 biquad_process_multi(out, out, count, buf, ir);
                 biquad_process_multi(out, out, count, buf, ir);
                 biquad_process_multi(out, out, count, buf, ir);
+            }
+
+            // Calculate statistics
+            iterations     += ITERATIONS;
+            time            = float(clock() - start) / float(CLOCKS_PER_SEC);
+        } while (time < 30.0f);
+
+        printf("Time = %.1f s, iterations = %d, performance = %.1f [i/s], average time = %.6f [ms/i]\n",
+            time, int(iterations), iterations / time, (1000.0f * time) / iterations);
+    }
+
+    void test_native_biquad_x1(float *out, const float *in, size_t count)
+    {
+        printf("Testing BIQUAD NATIVE X1 x8 FILTER on buffer size %d ...\n", int(count));
+        biquad_t f __lsp_aligned64;
+
+        f.x1.a[0]      = 1.0f;
+        f.x1.a[1]      = 1.0f;
+        f.x1.a[2]      = 0.0f;
+        f.x1.a[3]      = 0.0f;
+        f.x1.b[0]      = 0.0f;
+        f.x1.b[1]      = 0.0f;
+        f.x1.b[2]      = 0.0f;
+        f.x1.b[3]      = 0.0f;
+
+        for (size_t i=0; i<8; ++i)
+            f.d[i]          = 0.0f;
+
+        clock_t start = clock();
+        float time = 0.0f;
+        size_t iterations = 0;
+
+        do
+        {
+            // Do 100 iterations
+            for (size_t i=0; i<ITERATIONS; ++i)
+            {
+                biquad_process_x1(out, in, count, &f);
+                biquad_process_x1(out, out, count, &f);
+                biquad_process_x1(out, out, count, &f);
+                biquad_process_x1(out, out, count, &f);
+                biquad_process_x1(out, out, count, &f);
+                biquad_process_x1(out, out, count, &f);
+                biquad_process_x1(out, out, count, &f);
+                biquad_process_x1(out, out, count, &f);
             }
 
             // Calculate statistics
@@ -265,7 +329,10 @@ namespace filter_test
 
     int test(int argc, const char **argv)
     {
+        dsp_context_t ctx;
+
         dsp::init();
+        dsp::start(&ctx);
 
         float *out          = new float[FTEST_BUF_SIZE];
         float *in           = new float[FTEST_BUF_SIZE];
@@ -276,14 +343,17 @@ namespace filter_test
             out[i]              = 0.0f;
         }
 
-//        test_biquad(out, in, FTEST_BUF_SIZE);
-//        test_biquad_x1(out, in, FTEST_BUF_SIZE);
-//        test_biquad_x2(out, in, FTEST_BUF_SIZE);
-//        test_biquad_x4(out, in, FTEST_BUF_SIZE);
+        test_biquad(out, in, FTEST_BUF_SIZE);
+        test_native_biquad_x1(out, in, FTEST_BUF_SIZE);
+        test_biquad_x1(out, in, FTEST_BUF_SIZE);
+        test_biquad_x2(out, in, FTEST_BUF_SIZE);
+        test_biquad_x4(out, in, FTEST_BUF_SIZE);
         test_biquad_x8(out, in, FTEST_BUF_SIZE);
 
         delete [] out;
         delete [] in;
+
+        dsp::finish(&ctx);
 
         return 0;
     }

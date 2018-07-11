@@ -83,6 +83,8 @@ namespace lsp
         BYPASS,                 \
         TRIGGER("mute", "Forced mute"), \
         SWITCH("muting", "Mute on stop", 1.0f), \
+        SWITCH("noff", "Note-off handling", 0.0f), \
+        CONTROL("fout", "Note-off fadeout", U_MSEC, sampler_kernel_metadata::FADEOUT), \
         DRY_GAIN(1.0f),         \
         WET_GAIN(1.0f),         \
         OUT_GAIN
@@ -579,7 +581,7 @@ namespace lsp
         "sampler_mono",
         "ca4r",
         0,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         sampler_classes,
         sampler_mono_ports,
         "sampling/single/mono.xml",
@@ -595,7 +597,7 @@ namespace lsp
         "sampler_stereo",
         "kjw3",
         0,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         sampler_classes,
         sampler_stereo_ports,
         "sampling/single/stereo.xml",
@@ -611,7 +613,7 @@ namespace lsp
         "multisampler_x12",
         "clrs",
         0,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         sampler_classes,
         sampler_x12_ports,
         "sampling/multiple/x12.xml",
@@ -627,7 +629,7 @@ namespace lsp
         "multisampler_x24",
         "visl",
         0,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         sampler_classes,
         sampler_x24_ports,
         "sampling/multiple/x24.xml",
@@ -643,7 +645,7 @@ namespace lsp
         "multisampler_x48",
         "hnj4",
         0,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         sampler_classes,
         sampler_x48_ports,
         "sampling/multiple/x48.xml",
@@ -659,7 +661,7 @@ namespace lsp
         "multisampler_x12_do",
         "7zkj",
         0,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         sampler_classes,
         sampler_x12_do_ports,
         "sampling/multiple/x12_do.xml",
@@ -675,7 +677,7 @@ namespace lsp
         "multisampler_x24_do",
         "vimj",
         0,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         sampler_classes,
         sampler_x24_do_ports,
         "sampling/multiple/x24_do.xml",
@@ -691,7 +693,7 @@ namespace lsp
         "multisampler_x48_do",
         "blyi",
         0,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         sampler_classes,
         sampler_x48_do_ports,
         "sampling/multiple/x48_do.xml",

@@ -99,7 +99,7 @@ namespace lsp
             sListBox(dpy, this),
             sFont(dpy, this)
         {
-            nFlags      = 0;
+            nCBFlags      = 0;
             nMinWidth   = -1;
             nMinHeight  = -1;
             nMFlags     = 0;
@@ -180,7 +180,7 @@ namespace lsp
 
         status_t LSPComboBox::on_list_submit()
         {
-            if (!(nFlags & F_OPENED))
+            if (!(nCBFlags & F_OPENED))
                 return STATUS_OK;
             close();
             return sSlots.execute(LSPSLOT_SUBMIT, this);
@@ -253,30 +253,17 @@ namespace lsp
             query_resize();
         }
 
-        void LSPComboBox::set_fill(bool fill)
-        {
-            bool flag = nFlags & F_FILL;
-            if (flag == fill)
-                return;
-            if (fill)
-                nFlags     |= F_FILL;
-            else
-                nFlags     &= ~F_FILL;
-
-            query_resize();
-        }
-
         void LSPComboBox::set_circular(bool circular)
         {
             if (circular)
-                nFlags     |= F_CIRCULAR;
+                nCBFlags     |= F_CIRCULAR;
             else
-                nFlags     &= ~F_CIRCULAR;
+                nCBFlags     &= ~F_CIRCULAR;
         }
 
         status_t LSPComboBox::set_opened(bool open)
         {
-            if (open == bool(nFlags & F_OPENED))
+            if (open == bool(nCBFlags & F_OPENED))
                 return STATUS_OK;
 
             // Check if we need to close combo box
@@ -286,7 +273,7 @@ namespace lsp
                     pPopup->hide();
                 sListBox.hide();
 
-                nFlags &= ~F_OPENED;
+                nCBFlags &= ~F_OPENED;
                 return STATUS_OK;
             }
 
@@ -386,7 +373,7 @@ namespace lsp
             sListBox.show();
             sListBox.set_focus();
             pPopup->show(this);
-            nFlags |= F_OPENED;
+            nCBFlags |= F_OPENED;
 
             return STATUS_OK;
         }
@@ -423,7 +410,7 @@ namespace lsp
                     selection --;
                 else if (selection == 0)
                 {
-                    if (!(nFlags & F_CIRCULAR))
+                    if (!(nCBFlags & F_CIRCULAR))
                         return STATUS_OK;
                     selection = last;
                 }
@@ -436,7 +423,7 @@ namespace lsp
                 {
                     if (selection < last)
                         selection ++;
-                    else if (!(nFlags & F_CIRCULAR))
+                    else if (!(nCBFlags & F_CIRCULAR))
                         return STATUS_OK;
                     else
                         selection = 0;
@@ -514,9 +501,6 @@ namespace lsp
 
             r->nMinWidth   += bwidth + padding * 2;
             r->nMaxHeight   = r->nMinHeight;
-
-            if (!(nFlags & F_FILL))
-                r->nMaxWidth        = r->nMinWidth;
 
             // Destroy surface
             s->destroy();

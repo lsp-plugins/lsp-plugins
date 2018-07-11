@@ -20,7 +20,7 @@ namespace lsp
         static const float  ATTACK_LVL_STEP         = 0.05f;
 
         static const float  RELEASE_LVL_MIN         = GAIN_AMP_M_INF_DB;
-        static const float  RELEASE_LVL_MAX         = GAIN_AMP_P_36_DB;
+        static const float  RELEASE_LVL_MAX         = GAIN_AMP_0_DB;
         static const float  RELEASE_LVL_DFL         = GAIN_AMP_M_INF_DB;
         static const float  RELEASE_LVL_STEP        = 0.05f;
 

@@ -200,6 +200,36 @@ namespace lsp
                 }
                 break;
             }
+
+            case EQF(ENVELOPE):
+            {
+                switch (mode)
+                {
+                    EQS(RLC_BT, FLT_BT_RLC_ENVELOPE, 1)
+                    EQS(RLC_MT, FLT_MT_RLC_ENVELOPE, 1)
+                    EQS(BWC_BT, FLT_BT_RLC_ENVELOPE, 1)
+                    EQS(BWC_MT, FLT_MT_RLC_ENVELOPE, 1)
+                    EQS(LRX_BT, FLT_BT_RLC_ENVELOPE, 1)
+                    EQS(LRX_MT, FLT_MT_RLC_ENVELOPE, 1)
+                    EQDFL
+                }
+                break;
+            }
+
+            case EQF(BANDPASS):
+            {
+                switch (mode)
+                {
+                    EQS(RLC_BT, FLT_BT_RLC_BANDPASS, 1)
+                    EQS(RLC_MT, FLT_MT_RLC_BANDPASS, 1)
+                    EQS(BWC_BT, FLT_BT_BWC_BANDPASS, 1)
+                    EQS(BWC_MT, FLT_MT_BWC_BANDPASS, 1)
+                    EQS(LRX_BT, FLT_BT_LRX_BANDPASS, 1)
+                    EQS(LRX_MT, FLT_MT_LRX_BANDPASS, 1)
+                    EQDFL
+                }
+                break;
+            }
 #endif /* LSP_NO_EXPERIMENTAL */
 
             case EQF(OFF):

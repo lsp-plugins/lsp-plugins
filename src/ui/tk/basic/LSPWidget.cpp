@@ -24,7 +24,7 @@ namespace lsp
             sSize.nTop      = 0;
             sSize.nWidth    = 0;
             sSize.nHeight   = 0;
-            nFlags          = REDRAW_SURFACE | F_VISIBLE | F_FILL;
+            nFlags          = REDRAW_SURFACE | F_VISIBLE | F_HFILL | F_VFILL;
             pClass          = &metadata;
         }
 
@@ -412,9 +412,33 @@ namespace lsp
         {
             size_t flags = nFlags;
             if (value)
-                nFlags  |= F_FILL;
+                nFlags  |= F_HFILL | F_VFILL;
             else
-                nFlags  &= ~F_FILL;
+                nFlags  &= ~(F_HFILL | F_VFILL);
+
+            if (flags != nFlags)
+                query_resize();
+        }
+
+        void LSPWidget::set_hfill(bool value)
+        {
+            size_t flags = nFlags;
+            if (value)
+                nFlags  |= F_HFILL;
+            else
+                nFlags  &= ~F_HFILL;
+
+            if (flags != nFlags)
+                query_resize();
+        }
+
+        void LSPWidget::set_vfill(bool value)
+        {
+            size_t flags = nFlags;
+            if (value)
+                nFlags  |= F_VFILL;
+            else
+                nFlags  &= ~F_VFILL;
 
             if (flags != nFlags)
                 query_resize();

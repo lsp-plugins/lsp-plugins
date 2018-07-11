@@ -50,6 +50,11 @@ namespace lsp
             return NAN;
         }
 
+        float CtlPort::get_default_value()
+        {
+            return (pMetadata != NULL) ? pMetadata->start : NAN;
+        }
+
         void CtlPort::set_value(float value)
         {
         }

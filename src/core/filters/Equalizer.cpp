@@ -262,7 +262,21 @@ namespace lsp
     {
         if (id >= nFilters)
             return false;
+        if (nFlags != 0)
+            reconfigure();
+
         vFilters[id].freq_chart(re, im, f, count);
+        return true;
+    }
+
+    bool Equalizer::freq_chart(size_t id, float *c, const float *f, size_t count)
+    {
+        if (id >= nFilters)
+            return false;
+        if (nFlags != 0)
+            reconfigure();
+
+        vFilters[id].freq_chart(c, f, count);
         return true;
     }
 

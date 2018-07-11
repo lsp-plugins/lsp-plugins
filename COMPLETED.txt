@@ -2,6 +2,30 @@
 * FEATURE REQUESTS AND BUG REPORTS: Completed
 *******************************************************************************
 
+==== Multiband compressor ====
+  Marcel:
+    I have one question though. I don't see a multi-band compressor.
+    It that something still in the pipeline? Would be great to have one.
+    Keep on the good work, and of course when I like the plugins I will make a donation. 
+    
+  sadko4u:
+    I also thought that non-crossover multiband compressor is lacking linux audio. Crossovers do phase
+    distortion at split points. Instead of this multiband compressor could be implemented as N-band
+    equalizer with dynamically changing gain for each band where the gain is controlled as compression gain.
+  
+  sysrqer:
+    That sounds excellent sadko4u, that's actually what I had in mind, I don't think there is anything like that for us.
+
+==== Sampler ====
+  robb:
+    with your LSP Sampler, is it possible to have it obey note-off? Ie. If i release the key, the
+    sample stops playing? Currently, it seems that a sample plays through to the end each time, no
+    matter how long the keypress is for... 
+    
+  Julian:
+    Is it possible to configure samples so that it stops playing when receiving a midi note off? So
+    far I haven't been able to.
+
 ==== Equalizer ====
   Norlick:
     Any way to make the EQ frequency display focus on a smaller range? Most of my EQing is

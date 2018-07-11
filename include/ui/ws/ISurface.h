@@ -479,6 +479,23 @@ namespace lsp
                  */
                 virtual void parametric_line(float a, float b, float c, float left, float right, float top, float bottom, float width, const Color &color);
 
+                /** Draw parametric bar defined by two line equations
+                 *
+                 * @param a1 the x multiplier 1
+                 * @param b1 the y multiplier 1
+                 * @param c1 the shift 1
+                 * @param a2 the x multiplier 2
+                 * @param b2 the y multiplier 2
+                 * @param c2 the shift 2
+                 * @param left
+                 * @param right
+                 * @param top
+                 * @param bottom
+                 * @param gr gradient to fill bar
+                 */
+                virtual void parametric_bar(float a1, float b1, float c1, float a2, float b2, float c2,
+                        float left, float right, float top, float bottom, IGradient *gr);
+
                 /** Draw arc
                  *
                  * @param x center x

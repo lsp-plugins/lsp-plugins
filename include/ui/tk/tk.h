@@ -241,6 +241,7 @@ namespace lsp
 #include <ui/tk/widgets/LSPAudioFile.h>
 #include <ui/tk/widgets/LSPMountStud.h>
 #include <ui/tk/widgets/LSPSaveFile.h>
+#include <ui/tk/widgets/LSPComboGroup.h>
 
 // Dialogs
 #include <ui/tk/widgets/dialogs/LSPMessageBox.h>

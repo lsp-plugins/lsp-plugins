@@ -311,377 +311,372 @@
 #define FFT_MODE                            u
 #include <core/x86/sse/fft/p_switch.h>
 
-namespace lsp
+
+static void normalize_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+
+void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
 {
-    namespace sse
+    // Check bounds
+    if (rank <= 2)
     {
-        static void normalize_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
-
-        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
+        if (rank == 2)
         {
-            // Check bounds
-            if (rank <= 2)
-            {
-                if (rank == 2)
-                {
-                    float s0_re     = src_re[0] + src_re[1];
-                    float s1_re     = src_re[0] - src_re[1];
-                    float s2_re     = src_re[2] + src_re[3];
-                    float s3_re     = src_re[2] - src_re[3];
+            float s0_re     = src_re[0] + src_re[1];
+            float s1_re     = src_re[0] - src_re[1];
+            float s2_re     = src_re[2] + src_re[3];
+            float s3_re     = src_re[2] - src_re[3];
 
-                    float s0_im     = src_im[0] + src_im[1];
-                    float s1_im     = src_im[0] - src_im[1];
-                    float s2_im     = src_im[2] + src_im[3];
-                    float s3_im     = src_im[2] - src_im[3];
+            float s0_im     = src_im[0] + src_im[1];
+            float s1_im     = src_im[0] - src_im[1];
+            float s2_im     = src_im[2] + src_im[3];
+            float s3_im     = src_im[2] - src_im[3];
 
-                    dst_re[0]       = s0_re + s2_re;
-                    dst_re[1]       = s1_re + s3_im;
-                    dst_re[2]       = s0_re - s2_re;
-                    dst_re[3]       = s1_re - s3_im;
+            dst_re[0]       = s0_re + s2_re;
+            dst_re[1]       = s1_re + s3_im;
+            dst_re[2]       = s0_re - s2_re;
+            dst_re[3]       = s1_re - s3_im;
 
-                    dst_im[0]       = s0_im + s2_im;
-                    dst_im[1]       = s1_im - s3_re;
-                    dst_im[2]       = s0_im - s2_im;
-                    dst_im[3]       = s1_im + s3_re;
-                }
-                else if (rank == 1)
-                {
-                    // s0' = s0 + s1
-                    // s1' = s0 - s1
-                    float s1_re     = src_re[1];
-                    float s1_im     = src_im[1];
-                    dst_re[1]       = src_re[0] - s1_re;
-                    dst_im[1]       = src_im[0] - s1_im;
-                    dst_re[0]       = src_re[0] + s1_re;
-                    dst_im[0]       = src_im[0] + s1_im;
-                }
-                else
-                {
-                    dst_re[0]       = src_re[0];
-                    dst_im[0]       = src_im[0];
-                }
-                return;
-            }
-
-            // Iterate butterflies
-            if (sse_aligned(dst_re))
-            {
-                if (sse_aligned(dst_im))
-                {
-                    scramble_direct_aa(dst_re, dst_im, src_re, src_im, rank);
-
-                    for (size_t i=2; i < rank; ++i)
-                        butterfly_direct_aa(dst_re, dst_im, i /*1 << i*/, 1 << (rank - i - 1));
-                }
-                else
-                {
-                    scramble_direct_au(dst_re, dst_im, src_re, src_im, rank);
-
-                    for (size_t i=2; i < rank; ++i)
-                        butterfly_direct_au(dst_re, dst_im, i /*1 << i*/, 1 << (rank - i - 1));
-                }
-            }
-            else
-            {
-                if (sse_aligned(dst_im))
-                {
-                    scramble_direct_ua(dst_re, dst_im, src_re, src_im, rank);
-
-                    for (size_t i=2; i < rank; ++i)
-                        butterfly_direct_ua(dst_re, dst_im, i /*1 << i*/, 1 << (rank - i - 1));
-                }
-                else
-                {
-                    scramble_direct_uu(dst_re, dst_im, src_re, src_im, rank);
-
-                    for (size_t i=2; i < rank; ++i)
-                        butterfly_direct_uu(dst_re, dst_im, i /*1 << i*/, 1 << (rank - i - 1));
-                }
-            }
+            dst_im[0]       = s0_im + s2_im;
+            dst_im[1]       = s1_im - s3_re;
+            dst_im[2]       = s0_im - s2_im;
+            dst_im[3]       = s1_im + s3_re;
         }
-
-        void packed_direct_fft(float *dst, const float *src, size_t rank)
+        else if (rank == 1)
         {
-            // Check bounds
-            if (rank <= 2)
-            {
-                if (rank == 2)
-                {
-                    float s0_re     = dst[0] + dst[2];
-                    float s1_re     = dst[0] - dst[2];
-                    float s0_im     = dst[1] + dst[3];
-                    float s1_im     = dst[1] - dst[3];
-
-                    float s2_re     = dst[4] + dst[6];
-                    float s3_re     = dst[4] - dst[6];
-                    float s2_im     = dst[5] + dst[7];
-                    float s3_im     = dst[5] - dst[7];
-
-                    dst[0]          = s0_re + s2_re;
-                    dst[1]          = s0_im + s2_im;
-                    dst[2]          = s1_re + s3_im;
-                    dst[3]          = s1_im - s3_re;
-
-                    dst[4]          = s0_re - s2_re;
-                    dst[5]          = s0_im - s2_im;
-                    dst[6]          = s1_re - s3_im;
-                    dst[7]          = s1_im + s3_re;
-                }
-                else if (rank == 1)
-                {
-                    // s0' = s0 + s1
-                    // s1' = s0 - s1
-                    float s1_re     = src[2];
-                    float s1_im     = src[3];
-                    dst[2]          = src[0] - s1_re;
-                    dst[3]          = src[1] - s1_im;
-                    dst[0]          = src[0] + s1_re;
-                    dst[1]          = src[1] + s1_im;
-                }
-                else
-                {
-                    dst[0]          = src[0];
-                    dst[1]          = src[1];
-                }
-                return;
-            }
-
-            // Iterate butterflies
-            if (sse_aligned(dst))
-            {
-                packed_scramble_direct_a(dst, src, rank);
-
-                for (size_t i=2; i < rank; ++i)
-                    packed_butterfly_direct_a(dst, i /*1 << i*/, 1 << (rank - i - 1));
-
-                packed_fft_repack_a(dst, rank);
-            }
-            else
-            {
-                packed_scramble_direct_u(dst, src, rank);
-
-                for (size_t i=2; i < rank; ++i)
-                    packed_butterfly_direct_u(dst, i /*1 << i*/, 1 << (rank - i - 1));
-
-                packed_fft_repack_u(dst, rank);
-            }
+            // s0' = s0 + s1
+            // s1' = s0 - s1
+            float s1_re     = src_re[1];
+            float s1_im     = src_im[1];
+            dst_re[1]       = src_re[0] - s1_re;
+            dst_im[1]       = src_im[0] - s1_im;
+            dst_re[0]       = src_re[0] + s1_re;
+            dst_im[0]       = src_im[0] + s1_im;
         }
-
-        void conv_direct_fft(float *dst, const float *src, size_t rank)
+        else
         {
-            // Check bounds
-            if (rank <= 2)
-            {
-                if (rank == 2)
-                {
-                    float r0        = src[0];
-                    float r1        = src[2];
-
-                    // Re-shuffle output to store [re0, re1, re2, re3, im0, im1, im2, im3]
-                    dst[0]          = r0 + r1;
-                    dst[1]          = 0.0f;
-                    dst[2]          = r0;
-                    dst[3]          = - r1;
-                    dst[4]          = r0 - r1;
-                    dst[5]          = 0.0f;
-                    dst[6]          = r0;
-                    dst[7]          = + r1;
-                }
-                else if (rank == 1)
-                {
-                    // s0' = s0 + s1
-                    // s1' = s0 - s1
-                    dst[0]          = src[0] + src[1];
-                    dst[1]          = 0.0f;
-                    dst[2]          = src[0] - src[1];
-                    dst[3]          = 0.0f;
-                }
-                else
-                {
-                    dst[0]          = src[0];
-                    dst[1]          = 0.0f;
-                }
-                return;
-            }
-
-            // Iterate butterflies
-            if (sse_aligned(dst))
-            {
-                if (rank <= 8)
-                    conv_scramble_copy_direct8_a(dst, src, rank-3);
-                else //if (rank <= 16)
-                    conv_scramble_copy_direct16_a(dst, src, rank-3);
-
-                for (size_t i=2; i < rank; ++i)
-                    packed_butterfly_direct_a(dst, i /*1 << i*/, 1 << (rank - i - 1));
-
-                packed_fft_repack_a(dst, rank);
-            }
-            else
-            {
-                if (rank <= 8)
-                    conv_scramble_copy_direct8_u(dst, src, rank-3);
-                else //if (rank <= 16)
-                    conv_scramble_copy_direct16_u(dst, src, rank-3);
-
-                for (size_t i=2; i < rank; ++i)
-                    packed_butterfly_direct_u(dst, i /*1 << i*/, 1 << (rank - i - 1));
-
-                packed_fft_repack_u(dst, rank);
-            }
+            dst_re[0]       = src_re[0];
+            dst_im[0]       = src_im[0];
         }
+        return;
+    }
 
-        void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
+    // Iterate butterflies
+    if (sse_aligned(dst_re))
+    {
+        if (sse_aligned(dst_im))
         {
-            // Check bounds
-            if (rank <= 2)
-            {
-                if (rank == 2)
-                {
-                    float s0_re     = src_re[0] + src_re[1];
-                    float s1_re     = src_re[0] - src_re[1];
-                    float s2_re     = src_re[2] + src_re[3];
-                    float s3_re     = src_re[2] - src_re[3];
+            scramble_direct_aa(dst_re, dst_im, src_re, src_im, rank);
 
-                    float s0_im     = src_im[0] + src_im[1];
-                    float s1_im     = src_im[0] - src_im[1];
-                    float s2_im     = src_im[2] + src_im[3];
-                    float s3_im     = src_im[2] - src_im[3];
-
-                    dst_re[0]       = (s0_re + s2_re)*0.25f;
-                    dst_re[1]       = (s1_re - s3_im)*0.25f;
-                    dst_re[2]       = (s0_re - s2_re)*0.25f;
-                    dst_re[3]       = (s1_re + s3_im)*0.25f;
-
-                    dst_im[0]       = (s0_im + s2_im)*0.25f;
-                    dst_im[1]       = (s1_im + s3_re)*0.25f;
-                    dst_im[2]       = (s0_im - s2_im)*0.25f;
-                    dst_im[3]       = (s1_im - s3_re)*0.25f;
-                }
-                else if (rank == 1)
-                {
-                    // s0' = s0 + s1
-                    // s1' = s0 - s1
-                    float s1_re     = src_re[1];
-                    float s1_im     = src_im[1];
-                    dst_re[1]       = (src_re[0] - s1_re) * 0.5f;
-                    dst_im[1]       = (src_im[0] - s1_im) * 0.5f;
-                    dst_re[0]       = (src_re[0] + s1_re) * 0.5f;
-                    dst_im[0]       = (src_im[0] + s1_im) * 0.5f;
-                }
-                else
-                {
-                    dst_re[0]       = src_re[0];
-                    dst_im[0]       = src_im[0];
-                }
-                return;
-            }
-
-            // Iterate butterflies
-            if (sse_aligned(dst_re))
-            {
-                if (sse_aligned(dst_im))
-                {
-                    scramble_reverse_aa(dst_re, dst_im, src_re, src_im, rank);
-
-                    for (size_t i=2; i < rank; ++i)
-                        butterfly_reverse_aa(dst_re, dst_im, i, 1 << (rank - i - 1));
-                }
-                else
-                {
-                    scramble_reverse_au(dst_re, dst_im, src_re, src_im, rank);
-
-                    for (size_t i=2; i < rank; ++i)
-                        butterfly_reverse_au(dst_re, dst_im, i, 1 << (rank - i - 1));
-                }
-            }
-            else
-            {
-                if (sse_aligned(dst_im))
-                {
-                    scramble_reverse_ua(dst_re, dst_im, src_re, src_im, rank);
-
-                    for (size_t i=2; i < rank; ++i)
-                        butterfly_reverse_ua(dst_re, dst_im, i, 1 << (rank - i - 1));
-                }
-                else
-                {
-                    scramble_reverse_uu(dst_re, dst_im, src_re, src_im, rank);
-
-                    for (size_t i=2; i < rank; ++i)
-                        butterfly_reverse_uu(dst_re, dst_im, i, 1 << (rank - i - 1));
-                }
-            }
-
-            normalize_fft(dst_re, dst_im, dst_re, dst_im, rank);
+            for (size_t i=2; i < rank; ++i)
+                butterfly_direct_aa(dst_re, dst_im, i /*1 << i*/, 1 << (rank - i - 1));
         }
-
-        void packed_reverse_fft(float *dst, const float *src, size_t rank)
+        else
         {
-            // Check bounds
-            if (rank <= 2)
-            {
-                if (rank == 2)
-                {
-                    float s0_re     = src[0] + src[2];
-                    float s1_re     = src[0] - src[2];
-                    float s2_re     = src[4] + src[6];
-                    float s3_re     = src[4] - src[6];
+            scramble_direct_au(dst_re, dst_im, src_re, src_im, rank);
 
-                    float s0_im     = src[1] + src[3];
-                    float s1_im     = src[1] - src[3];
-                    float s2_im     = src[5] + src[7];
-                    float s3_im     = src[5] - src[7];
-
-                    dst[0]          = (s0_re + s2_re)*0.25f;
-                    dst[1]          = (s0_im + s2_im)*0.25f;
-                    dst[2]          = (s1_re - s3_im)*0.25f;
-                    dst[3]          = (s1_im + s3_re)*0.25f;
-
-                    dst[4]          = (s0_re - s2_re)*0.25f;
-                    dst[5]          = (s0_im - s2_im)*0.25f;
-                    dst[6]          = (s1_re + s3_im)*0.25f;
-                    dst[7]          = (s1_im - s3_re)*0.25f;
-                }
-                else if (rank == 1)
-                {
-                    // s0' = s0 + s1
-                    // s1' = s0 - s1
-                    float s1_re     = src[2];
-                    float s1_im     = src[3];
-                    dst[2]          = src[0] - s1_re;
-                    dst[3]          = src[1] - s1_im;
-                    dst[0]          = src[0] + s1_re;
-                    dst[1]          = src[1] + s1_im;
-                }
-                else
-                {
-                    dst[0]          = src[0];
-                    dst[1]          = src[1];
-                }
-                return;
-            }
-
-            // Iterate butterflies
-            if (sse_aligned(dst))
-            {
-                packed_scramble_reverse_a(dst, src, rank);
-
-                for (size_t i=2; i < rank; ++i)
-                    packed_butterfly_reverse_a(dst, i /*1 << i*/, 1 << (rank - i - 1));
-
-                packed_fft_repack_normalize_a(dst, rank);
-            }
-            else
-            {
-                packed_scramble_reverse_u(dst, src, rank);
-
-                for (size_t i=2; i < rank; ++i)
-                    packed_butterfly_reverse_u(dst, i /*1 << i*/, 1 << (rank - i - 1));
-
-                packed_fft_repack_normalize_u(dst, rank);
-            }
+            for (size_t i=2; i < rank; ++i)
+                butterfly_direct_au(dst_re, dst_im, i /*1 << i*/, 1 << (rank - i - 1));
         }
+    }
+    else
+    {
+        if (sse_aligned(dst_im))
+        {
+            scramble_direct_ua(dst_re, dst_im, src_re, src_im, rank);
+
+            for (size_t i=2; i < rank; ++i)
+                butterfly_direct_ua(dst_re, dst_im, i /*1 << i*/, 1 << (rank - i - 1));
+        }
+        else
+        {
+            scramble_direct_uu(dst_re, dst_im, src_re, src_im, rank);
+
+            for (size_t i=2; i < rank; ++i)
+                butterfly_direct_uu(dst_re, dst_im, i /*1 << i*/, 1 << (rank - i - 1));
+        }
+    }
+}
+
+void packed_direct_fft(float *dst, const float *src, size_t rank)
+{
+    // Check bounds
+    if (rank <= 2)
+    {
+        if (rank == 2)
+        {
+            float s0_re     = dst[0] + dst[2];
+            float s1_re     = dst[0] - dst[2];
+            float s0_im     = dst[1] + dst[3];
+            float s1_im     = dst[1] - dst[3];
+
+            float s2_re     = dst[4] + dst[6];
+            float s3_re     = dst[4] - dst[6];
+            float s2_im     = dst[5] + dst[7];
+            float s3_im     = dst[5] - dst[7];
+
+            dst[0]          = s0_re + s2_re;
+            dst[1]          = s0_im + s2_im;
+            dst[2]          = s1_re + s3_im;
+            dst[3]          = s1_im - s3_re;
+
+            dst[4]          = s0_re - s2_re;
+            dst[5]          = s0_im - s2_im;
+            dst[6]          = s1_re - s3_im;
+            dst[7]          = s1_im + s3_re;
+        }
+        else if (rank == 1)
+        {
+            // s0' = s0 + s1
+            // s1' = s0 - s1
+            float s1_re     = src[2];
+            float s1_im     = src[3];
+            dst[2]          = src[0] - s1_re;
+            dst[3]          = src[1] - s1_im;
+            dst[0]          = src[0] + s1_re;
+            dst[1]          = src[1] + s1_im;
+        }
+        else
+        {
+            dst[0]          = src[0];
+            dst[1]          = src[1];
+        }
+        return;
+    }
+
+    // Iterate butterflies
+    if (sse_aligned(dst))
+    {
+        packed_scramble_direct_a(dst, src, rank);
+
+        for (size_t i=2; i < rank; ++i)
+            packed_butterfly_direct_a(dst, i /*1 << i*/, 1 << (rank - i - 1));
+
+        packed_fft_repack_a(dst, rank);
+    }
+    else
+    {
+        packed_scramble_direct_u(dst, src, rank);
+
+        for (size_t i=2; i < rank; ++i)
+            packed_butterfly_direct_u(dst, i /*1 << i*/, 1 << (rank - i - 1));
+
+        packed_fft_repack_u(dst, rank);
+    }
+}
+
+void conv_direct_fft(float *dst, const float *src, size_t rank)
+{
+    // Check bounds
+    if (rank <= 2)
+    {
+        if (rank == 2)
+        {
+            float r0        = src[0];
+            float r1        = src[2];
+
+            // Re-shuffle output to store [re0, re1, re2, re3, im0, im1, im2, im3]
+            dst[0]          = r0 + r1;
+            dst[1]          = 0.0f;
+            dst[2]          = r0;
+            dst[3]          = - r1;
+            dst[4]          = r0 - r1;
+            dst[5]          = 0.0f;
+            dst[6]          = r0;
+            dst[7]          = + r1;
+        }
+        else if (rank == 1)
+        {
+            // s0' = s0 + s1
+            // s1' = s0 - s1
+            dst[0]          = src[0] + src[1];
+            dst[1]          = 0.0f;
+            dst[2]          = src[0] - src[1];
+            dst[3]          = 0.0f;
+        }
+        else
+        {
+            dst[0]          = src[0];
+            dst[1]          = 0.0f;
+        }
+        return;
+    }
+
+    // Iterate butterflies
+    if (sse_aligned(dst))
+    {
+        if (rank <= 8)
+            conv_scramble_copy_direct8_a(dst, src, rank-3);
+        else //if (rank <= 16)
+            conv_scramble_copy_direct16_a(dst, src, rank-3);
+
+        for (size_t i=2; i < rank; ++i)
+            packed_butterfly_direct_a(dst, i /*1 << i*/, 1 << (rank - i - 1));
+
+        packed_fft_repack_a(dst, rank);
+    }
+    else
+    {
+        if (rank <= 8)
+            conv_scramble_copy_direct8_u(dst, src, rank-3);
+        else //if (rank <= 16)
+            conv_scramble_copy_direct16_u(dst, src, rank-3);
+
+        for (size_t i=2; i < rank; ++i)
+            packed_butterfly_direct_u(dst, i /*1 << i*/, 1 << (rank - i - 1));
+
+        packed_fft_repack_u(dst, rank);
+    }
+}
+
+void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
+{
+    // Check bounds
+    if (rank <= 2)
+    {
+        if (rank == 2)
+        {
+            float s0_re     = src_re[0] + src_re[1];
+            float s1_re     = src_re[0] - src_re[1];
+            float s2_re     = src_re[2] + src_re[3];
+            float s3_re     = src_re[2] - src_re[3];
+
+            float s0_im     = src_im[0] + src_im[1];
+            float s1_im     = src_im[0] - src_im[1];
+            float s2_im     = src_im[2] + src_im[3];
+            float s3_im     = src_im[2] - src_im[3];
+
+            dst_re[0]       = (s0_re + s2_re)*0.25f;
+            dst_re[1]       = (s1_re - s3_im)*0.25f;
+            dst_re[2]       = (s0_re - s2_re)*0.25f;
+            dst_re[3]       = (s1_re + s3_im)*0.25f;
+
+            dst_im[0]       = (s0_im + s2_im)*0.25f;
+            dst_im[1]       = (s1_im + s3_re)*0.25f;
+            dst_im[2]       = (s0_im - s2_im)*0.25f;
+            dst_im[3]       = (s1_im - s3_re)*0.25f;
+        }
+        else if (rank == 1)
+        {
+            // s0' = s0 + s1
+            // s1' = s0 - s1
+            float s1_re     = src_re[1];
+            float s1_im     = src_im[1];
+            dst_re[1]       = (src_re[0] - s1_re) * 0.5f;
+            dst_im[1]       = (src_im[0] - s1_im) * 0.5f;
+            dst_re[0]       = (src_re[0] + s1_re) * 0.5f;
+            dst_im[0]       = (src_im[0] + s1_im) * 0.5f;
+        }
+        else
+        {
+            dst_re[0]       = src_re[0];
+            dst_im[0]       = src_im[0];
+        }
+        return;
+    }
+
+    // Iterate butterflies
+    if (sse_aligned(dst_re))
+    {
+        if (sse_aligned(dst_im))
+        {
+            scramble_reverse_aa(dst_re, dst_im, src_re, src_im, rank);
+
+            for (size_t i=2; i < rank; ++i)
+                butterfly_reverse_aa(dst_re, dst_im, i, 1 << (rank - i - 1));
+        }
+        else
+        {
+            scramble_reverse_au(dst_re, dst_im, src_re, src_im, rank);
+
+            for (size_t i=2; i < rank; ++i)
+                butterfly_reverse_au(dst_re, dst_im, i, 1 << (rank - i - 1));
+        }
+    }
+    else
+    {
+        if (sse_aligned(dst_im))
+        {
+            scramble_reverse_ua(dst_re, dst_im, src_re, src_im, rank);
+
+            for (size_t i=2; i < rank; ++i)
+                butterfly_reverse_ua(dst_re, dst_im, i, 1 << (rank - i - 1));
+        }
+        else
+        {
+            scramble_reverse_uu(dst_re, dst_im, src_re, src_im, rank);
+
+            for (size_t i=2; i < rank; ++i)
+                butterfly_reverse_uu(dst_re, dst_im, i, 1 << (rank - i - 1));
+        }
+    }
+
+    normalize_fft(dst_re, dst_im, dst_re, dst_im, rank);
+}
+
+void packed_reverse_fft(float *dst, const float *src, size_t rank)
+{
+    // Check bounds
+    if (rank <= 2)
+    {
+        if (rank == 2)
+        {
+            float s0_re     = src[0] + src[2];
+            float s1_re     = src[0] - src[2];
+            float s2_re     = src[4] + src[6];
+            float s3_re     = src[4] - src[6];
+
+            float s0_im     = src[1] + src[3];
+            float s1_im     = src[1] - src[3];
+            float s2_im     = src[5] + src[7];
+            float s3_im     = src[5] - src[7];
+
+            dst[0]          = (s0_re + s2_re)*0.25f;
+            dst[1]          = (s0_im + s2_im)*0.25f;
+            dst[2]          = (s1_re - s3_im)*0.25f;
+            dst[3]          = (s1_im + s3_re)*0.25f;
+
+            dst[4]          = (s0_re - s2_re)*0.25f;
+            dst[5]          = (s0_im - s2_im)*0.25f;
+            dst[6]          = (s1_re + s3_im)*0.25f;
+            dst[7]          = (s1_im - s3_re)*0.25f;
+        }
+        else if (rank == 1)
+        {
+            // s0' = s0 + s1
+            // s1' = s0 - s1
+            float s1_re     = src[2];
+            float s1_im     = src[3];
+            dst[2]          = src[0] - s1_re;
+            dst[3]          = src[1] - s1_im;
+            dst[0]          = src[0] + s1_re;
+            dst[1]          = src[1] + s1_im;
+        }
+        else
+        {
+            dst[0]          = src[0];
+            dst[1]          = src[1];
+        }
+        return;
+    }
+
+    // Iterate butterflies
+    if (sse_aligned(dst))
+    {
+        packed_scramble_reverse_a(dst, src, rank);
+
+        for (size_t i=2; i < rank; ++i)
+            packed_butterfly_reverse_a(dst, i /*1 << i*/, 1 << (rank - i - 1));
+
+        packed_fft_repack_normalize_a(dst, rank);
+    }
+    else
+    {
+        packed_scramble_reverse_u(dst, src, rank);
+
+        for (size_t i=2; i < rank; ++i)
+            packed_butterfly_reverse_u(dst, i /*1 << i*/, 1 << (rank - i - 1));
+
+        packed_fft_repack_normalize_u(dst, rank);
     }
 }
 

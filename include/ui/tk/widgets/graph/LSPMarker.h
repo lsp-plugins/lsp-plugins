@@ -25,6 +25,7 @@ namespace lsp
                 float           fAngle;
                 size_t          nWidth;
                 size_t          nCenter;
+                ssize_t         nBorder;
                 Color           sColor;
 
             public:
@@ -42,6 +43,7 @@ namespace lsp
                 inline size_t   line_width() const      { return nWidth;        }
                 inline size_t   center() const          { return nCenter;       }
                 inline Color   *color()                 { return &sColor;       }
+                inline size_t   border() const          { return nBorder;       }
 
             public:
                 void set_basis_id(size_t value);
@@ -51,6 +53,7 @@ namespace lsp
                 void set_angle(float value);
                 void set_width(size_t value);
                 void set_center(size_t value);
+                void set_border(ssize_t value);
 
             public:
                 virtual void render(ISurface *s, bool force);

@@ -35,6 +35,7 @@ namespace lsp
                     OP_IADD,
                     OP_ISUB,
                     OP_IMUL,
+                    OP_POWER,
                     OP_IDIV,
                     OP_MOD,
 
@@ -93,6 +94,7 @@ namespace lsp
                     TT_ADD,
                     TT_SUB,
                     TT_MUL,
+                    TT_POW,
                     TT_DIV,
 
                     // Integer operations
@@ -127,6 +129,13 @@ namespace lsp
                     TT_SEMICOLON,
 
                     TT_EOF
+                };
+
+                enum flags_t
+                {
+                    F_NONE      = 0,
+                    F_GET       = 1 << 0,
+                    F_XSIGN     = 1 << 1
                 };
 
                 typedef struct binding_t
@@ -172,24 +181,25 @@ namespace lsp
             protected:
                 void        destroy_data(binding_t *ptr);
                 void        destroy_all_data();
-                static token_t get_token(tokenizer_t *t, bool get);
+                static token_t get_token(tokenizer_t *t, size_t flags);
                 static float execute(binding_t *expr);
 
-                binding_t  *parse_ternary(tokenizer_t *t, bool get);
-                binding_t  *parse_bit_xor(tokenizer_t *t, bool get);
-                binding_t  *parse_bit_or(tokenizer_t *t, bool get);
-                binding_t  *parse_bit_and(tokenizer_t *t, bool get);
-                binding_t  *parse_xor(tokenizer_t *t, bool get);
-                binding_t  *parse_or(tokenizer_t *t, bool get);
-                binding_t  *parse_and(tokenizer_t *t, bool get);
-                binding_t  *parse_cmp(tokenizer_t *t, bool get);
-                binding_t  *parse_addsub(tokenizer_t *t, bool get);
-                binding_t  *parse_muldiv(tokenizer_t *t, bool get);
-                binding_t  *parse_not(tokenizer_t *t, bool get);
-                binding_t  *parse_sign(tokenizer_t *t, bool get);
-                binding_t  *parse_exists(tokenizer_t *t, bool get);
-                binding_t  *parse_primary(tokenizer_t *t, bool get);
-                inline binding_t  *parse_expression(tokenizer_t *t, bool get) { return parse_ternary(t, get); }
+                binding_t  *parse_ternary(tokenizer_t *t, size_t flags);
+                binding_t  *parse_bit_xor(tokenizer_t *t, size_t flags);
+                binding_t  *parse_bit_or(tokenizer_t *t, size_t flags);
+                binding_t  *parse_bit_and(tokenizer_t *t, size_t flags);
+                binding_t  *parse_xor(tokenizer_t *t, size_t flags);
+                binding_t  *parse_or(tokenizer_t *t, size_t flags);
+                binding_t  *parse_and(tokenizer_t *t, size_t flags);
+                binding_t  *parse_cmp(tokenizer_t *t, size_t flags);
+                binding_t  *parse_addsub(tokenizer_t *t, size_t flags);
+                binding_t  *parse_muldiv(tokenizer_t *t, size_t flags);
+                binding_t  *parse_power(tokenizer_t *t, size_t flags);
+                binding_t  *parse_not(tokenizer_t *t, size_t flags);
+                binding_t  *parse_sign(tokenizer_t *t, size_t flags);
+                binding_t  *parse_exists(tokenizer_t *t, size_t flags);
+                binding_t  *parse_primary(tokenizer_t *t, size_t flags);
+                inline binding_t  *parse_expression(tokenizer_t *t, size_t flags) { return parse_ternary(t, flags); }
 
             public:
                 CtlExpression();

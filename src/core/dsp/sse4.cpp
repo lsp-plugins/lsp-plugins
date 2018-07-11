@@ -10,10 +10,19 @@
 #include <core/dsp.h>
 #include <core/bits.h>
 
+#include <core/x86/features.h>
+
 #define CORE_X86_SSE4_IMPL
 #define CORE_X86_SSE_IMPL
 
-#include <core/x86/sse/const.h>
+namespace lsp
+{
+    namespace sse
+    {
+        #include <core/x86/sse/const.h>
+    }
+}
+
 #include <core/x86/sse4/3dmath.h>
 
 #undef CORE_X86_SSE_IMPL
@@ -23,9 +32,11 @@ namespace lsp
 {
     namespace sse4
     {
-        void dsp_init(dsp_options_t options)
+        using namespace x86;
+
+        void dsp_init(const cpu_features_t *f)
         {
-            if (!(options & DSP_OPTION_SSE4_1))
+            if (!(f->features & CPU_OPTION_SSE4_1))
                 return;
 
             // Additional xmm registers are available only in 64-bit mode

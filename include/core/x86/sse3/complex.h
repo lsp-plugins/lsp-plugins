@@ -13,7 +13,7 @@ namespace lsp
     namespace sse3
     {
 #ifdef ARCH_X86_64
-        void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count)
+        void x64_packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count)
         {
             #define complex_core(MV_DST, MV_SRC1, MV_SRC2) \
                 __ASM_EMIT("cmp         $8, %[count]") \

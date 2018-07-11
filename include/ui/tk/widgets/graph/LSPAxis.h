@@ -76,7 +76,6 @@ namespace lsp
 
                 /** Apply axis transformation according to x and y
                  *
-                 * @param cv canvas
                  * @param x x coordinate (in pixels) of 2D-point to transform
                  * @param y y coordinate (in pixels) of 2D-point to transform
                  * @param dv delta-vector to apply for transform
@@ -84,6 +83,16 @@ namespace lsp
                  * @return true if values were applied
                  */
                 bool apply(float *x, float *y, const float *dv, size_t count);
+
+                /** Shift point coordinates in canvas coordinates respective to x and y
+                 *
+                 * @param x x coordinate (in pixels) of 2D-point to transform
+                 * @param y y coordinate (in pixels) of 2D-point to transform
+                 * @param dv delta-vector to apply for transform
+                 * @param count count size of x, y and dv vector elements
+                 * @return
+                 */
+                bool apply_canvas(float *x, float *y, const float *dv, size_t count);
 
                 /** Project the vector on the axis and determine it's value relative to the center
                  *
@@ -101,10 +110,22 @@ namespace lsp
                  * @param a line equation
                  * @param b line equation
                  * @param c line equation
+                 * @return true on success
                  */
                 bool parallel(float x, float y, float &a, float &b, float &c);
 
-                /** Get rotated around the point angle
+                /** Get parallel line equation respective to the shift
+                 *
+                 * @param x dot that belongs to parallel line
+                 * @param y dot that belongs to parallel line
+                 * @param shift shift in pixels relative to the direction of axis
+                 * @param nx new dot coordinate
+                 * @param ny new dot coordinate
+                 * @return true on success
+                 */
+                void ortogonal_shift(float x, float y, float shift, float &sx, float &sy);
+
+                /** Get equation of line rotated around the point angle
                  *
                  * @param x dot that belongs to line
                  * @param y dot that belongs to line
@@ -112,9 +133,21 @@ namespace lsp
                  * @param a line equation
                  * @param b line equation
                  * @param c line equation
-                 * @return
+                 * @return true on success
                  */
                 bool angle(float x, float y, float angle, float &a, float &b, float &c);
+
+                /** Get equation of line rotated around the point angle and shifted
+                 *
+                 * @param x dot that belongs to line
+                 * @param y dot that belongs to line
+                 * @param angle rotation angle around dot
+                 * @param shift shift in pixels relative to the direction of axis
+                 * @param nx new dot coordinate
+                 * @param ny new dot coordinate
+                 * @return true on success
+                 */
+                void rotate_shift(float x, float y, float angle, float shift, float &nx, float &ny);
 
             public:
                 inline void         set_basis(bool value = true)        { set_flag(F_BASIS, value);         };

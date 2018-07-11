@@ -29,6 +29,8 @@
 #include <plugins/slap_delay.h>
 #include <plugins/oscillator.h>
 #include <plugins/latency_meter.h>
+#include <plugins/mb_compressor.h>
+
 #include <plugins/experimental.h>
 
 #endif /* PLUGINS_PLUGINS_H_ */

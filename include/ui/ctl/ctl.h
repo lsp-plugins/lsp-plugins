@@ -37,6 +37,7 @@ namespace lsp
             WC_BUTTON,
             WC_CELL,
             WC_CENTER,
+            WC_CGROUP,
             WC_COMBO,
             WC_DOT,
             WC_EDIT,
@@ -176,7 +177,9 @@ namespace lsp
             A_URL,
             A_COMMAND_ID,
             A_PROGRESS_ID,
-            A_PATH_ID
+            A_PATH_ID,
+            A_HFILL,
+            A_VFILL
         };
 
         // Helper functions
@@ -238,6 +241,7 @@ namespace lsp
 #include <ui/ctl/CtlEdit.h>
 #include <ui/ctl/CtlAudioFile.h>
 #include <ui/ctl/CtlSaveFile.h>
+#include <ui/ctl/CtlComboGroup.h>
 
 #include <ui/ctl/CtlGraph.h>
 #include <ui/ctl/CtlAxis.h>

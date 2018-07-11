@@ -101,6 +101,17 @@ namespace lsp
         prev->pNext         = pb;
     }
 
+    inline void SamplePlayer::cleanup(playback_t *pb)
+    {
+        pb->pSample         = NULL;
+        pb->nID             = -1;
+        pb->nChannel        = 0;
+        pb->nFadeout        = -1;
+        pb->nFadeOffset     = 0;
+        pb->nVolume         = 0.0f;
+        pb->nOffset         = 0;
+    }
+
     bool SamplePlayer::init(size_t max_samples, size_t max_playbacks)
     {
         // Check arguments
@@ -137,14 +148,17 @@ namespace lsp
         for (size_t i=0; i<max_playbacks; ++i)
         {
             playback_t *curr = &vPlayback[i];
+
+            // Initialize fields
+            cleanup(curr);
+
+            // Link
+            curr->pPrev     = last;
             if (last == NULL)
                 sInactive.pHead = curr;
             else
                 last->pNext     = curr;
-            curr->pPrev     = last;
-            curr->pSample   = NULL;
-            curr->nVolume   = 0.0f;
-            curr->nOffset   = 0;
+
             last            = curr;
         }
         last->pNext         = NULL;
@@ -298,18 +312,35 @@ namespace lsp
                 if (count > 0)
                 {
 //                    lsp_trace("add_multiplied dst_off=%d, src_head=%d, volume=%f, count=%d", int(dst_off), int(src_head), pb->nVolume, int(count));
-                    dsp::scale_add3(&dst[dst_off], s->getBuffer(pb->nChannel, src_head), pb->nVolume * fGain, count);
+                    if (pb->nFadeout < 0)
+                        dsp::scale_add3(&dst[dst_off], s->getBuffer(pb->nChannel, src_head), pb->nVolume * fGain, count);
+                    else
+                    {
+                        ssize_t fade_head   = pb->nFadeOffset;
+                        float gain          = pb->nVolume * fGain;
+                        float *sp           = s->getBuffer(pb->nChannel, src_head);
+                        float *dp           = &dst[dst_off];
+
+                        float fgain         = gain / (pb->nFadeout + 1);
+                        for (ssize_t i=0; (i<count) && (fade_head < pb->nFadeout); ++i, ++fade_head)
+                        {
+                            if (fade_head < 0)
+                                *(dp++)        += *(sp++) * gain;
+                            else
+                                *(dp++)        += *(sp++) * fgain * (pb->nFadeout - fade_head);
+                        }
+
+                        pb->nFadeOffset     = fade_head;
+                    }
                 }
             }
 
             // Check that there are no samples to process in the future
-            if (pb->nOffset >= s_len)
+            if ((pb->nOffset >= s_len) ||
+                ((pb->nFadeout >= 0) && (pb->nFadeOffset >= pb->nFadeout)))
             {
-                // Cleanup bindings
-                pb->pSample             = NULL;
-                pb->nChannel            = 0;
-                pb->nOffset             = 0;
-                pb->nVolume             = 0.0f;
+                // Cleanup playback
+                cleanup(pb);
 
                 // Move to inactive
                 list_remove(&sActive, pb);
@@ -349,14 +380,55 @@ namespace lsp
 
         // Now we are ready to activate sample
         pb->pSample     = s;
+        pb->nID         = id;
         pb->nChannel    = channel;
         pb->nVolume     = volume;
         pb->nOffset     = -delay;
+        pb->nFadeout    = -1;  // No fadeout
+        pb->nFadeOffset = -1; // No cancellation
 
         // Add the playback to the active list
         list_insert_from_tail(&sActive, pb);
 
         return true;
+    }
+
+    ssize_t SamplePlayer::cancel_all(size_t id, size_t channel, size_t fadeout, ssize_t delay)
+    {
+        // Check that ID of the sample is correct
+        if (id >= nSamples)
+            return -1;
+
+        ssize_t result = 0;
+
+        // Get first playback
+        playback_t *pb      = sActive.pHead;
+        if (pb == NULL)
+            return result;
+
+        // Stop all playbacks
+        do
+        {
+            // Remember next playback
+            playback_t *next        = pb->pNext;
+
+            // Cancel playback if not already cancelled
+            if ((pb->nID == ssize_t(id)) &&
+                (pb->pSample != NULL) &&
+                (pb->nFadeout < 0))
+            {
+                pb->nFadeout    = fadeout;
+                pb->nFadeOffset = -delay;
+                result          ++;
+
+                lsp_trace("marked playback %p for cancelling", pb);
+            }
+
+            // Iterate to next playback
+            pb                      = next;
+        } while (pb != NULL);
+
+        return result;
     }
 
     void SamplePlayer::stop()
@@ -369,11 +441,8 @@ namespace lsp
         // Stop all playbacks
         do
         {
-            // Get next playback
-            pb->pSample             = NULL;
-            pb->nChannel            = 0;
-            pb->nOffset             = 0;
-            pb->nVolume             = 0.0f;
+            // Cancel playback
+            cleanup(pb);
 
             // Iterate next playback
             pb                      = pb->pNext;

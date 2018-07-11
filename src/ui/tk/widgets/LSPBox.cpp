@@ -297,6 +297,10 @@ namespace lsp
             {
                 if (expand > 0)
                 {
+                    // Update expand value
+                    if (n_expand == 0)
+                        n_expand = 1;
+
                     // Split unused space between all expanded widgets
                     ssize_t total = 0;
                     for (size_t i=0; i<n_items; ++i)

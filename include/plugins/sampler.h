@@ -114,6 +114,8 @@ namespace lsp
             float              *vBuffer;                    // Buffer
             bool                bBypass;                    // Bypass flag
             bool                bReorder;                   // Reorder flag
+            bool                bFadeout;                   // Fadeout flag
+            float               fFadeout;                   // Fadeout in milliseconds
             float               fDynamics;                  // Dynamics
             float               fDrift;                     // Time drifting
             size_t              nSampleRate;                // Sample rate
@@ -138,6 +140,7 @@ namespace lsp
             void        output_parameters(size_t samples);
             void        process_file_load_requests();
             void        play_sample(const afile_t *af, float gain, size_t delay);
+            void        cancel_sample(const afile_t *af, size_t fadeout, size_t delay);
 
         public:
             sampler_kernel();
@@ -145,7 +148,11 @@ namespace lsp
 
         public:
             virtual void trigger_on(size_t timestamp, float level);
+            virtual void trigger_off(size_t timestamp, float level);
             virtual void trigger_stop(size_t timestamp);
+
+        public:
+            void    set_fadeout(bool enabled, float length);
 
         public:
             bool    init(IExecutor *executor, size_t files, size_t channels);
@@ -250,6 +257,8 @@ namespace lsp
             IPort              *pBypass;            // Bypass port
             IPort              *pMute;              // Mute request port
             IPort              *pMuting;            // MIDI muting
+            IPort              *pNoteOff;           // Note-off event handling
+            IPort              *pFadeout;           // Note-off fadeout
             IPort              *pDry;               // Dry amount port
             IPort              *pWet;               // Wet amount port
             IPort              *pGain;              // Output gain port

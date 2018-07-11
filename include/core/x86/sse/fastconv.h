@@ -154,143 +154,137 @@
 
 #undef CORE_X86_SSE_FASTCONV_H_IMPL
 
-namespace lsp
+void fastconv_parse(float *dst, const float *src, size_t rank)
 {
-    namespace sse
+    if (sse_aligned(dst))
     {
-        void fastconv_parse(float *dst, const float *src, size_t rank)
+        if (sse_aligned(src))
+            fastconv_parse_aa(dst, src, rank);
+        else
+            fastconv_parse_au(dst, src, rank);
+    }
+    else
+    {
+        if (sse_aligned(src))
+            fastconv_parse_ua(dst, src, rank);
+        else
+            fastconv_parse_uu(dst, src, rank);
+    }
+}
+
+void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank)
+{
+    // Parse convolution data
+    if (sse_aligned(tmp))
+    {
+        // Do direct FFT
+        if (sse_aligned(src))
+            fastconv_parse_internal_aa(tmp, src, rank);
+        else
+            fastconv_parse_internal_au(tmp, src, rank);
+
+        // Apply complex convolution
+        if (sse_aligned(c))
+            fastconv_parse_apply_internal_aa(tmp, c, rank);
+        else
+            fastconv_parse_apply_internal_au(tmp, c, rank);
+
+        // Do reverse FFT
+        if (sse_aligned(dst))
+            fastconv_restore_internal_aa(dst, tmp, rank);
+        else
+            fastconv_restore_internal_ua(dst, tmp, rank);
+    }
+    else
+    {
+        // Do direct FFT
+        if (sse_aligned(src))
+            fastconv_parse_internal_ua(dst, src, rank);
+        else
+            fastconv_parse_internal_uu(dst, src, rank);
+
+        // Apply complex convolution
+        if (sse_aligned(c))
+            fastconv_parse_apply_internal_ua(tmp, c, rank);
+        else
+            fastconv_parse_apply_internal_uu(tmp, c, rank);
+
+        // Do reverse FFT
+        if (sse_aligned(dst))
+            fastconv_restore_internal_au(dst, tmp, rank);
+        else
+            fastconv_restore_internal_uu(dst, tmp, rank);
+    }
+}
+
+void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank)
+{
+    // Parse convolution data
+    if (sse_aligned(tmp))
+    {
+        // Apply complex convolution
+        if (sse_aligned(c1))
         {
-            if (sse_aligned(dst))
-            {
-                if (sse_aligned(src))
-                    fastconv_parse_aa(dst, src, rank);
-                else
-                    fastconv_parse_au(dst, src, rank);
-            }
+            if (sse_aligned(c2))
+                fastconv_apply_internal_aaa(tmp, c1, c2, rank);
             else
-            {
-                if (sse_aligned(src))
-                    fastconv_parse_ua(dst, src, rank);
-                else
-                    fastconv_parse_uu(dst, src, rank);
-            }
+                fastconv_apply_internal_aau(tmp, c1, c2, rank);
+        }
+        else
+        {
+            if (sse_aligned(c2))
+                fastconv_apply_internal_aua(tmp, c1, c2, rank);
+            else
+                fastconv_apply_internal_auu(tmp, c1, c2, rank);
         }
 
-        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank)
+        // Do reverse FFT
+        if (sse_aligned(dst))
+            fastconv_restore_internal_aa(dst, tmp, rank);
+        else
+            fastconv_restore_internal_ua(dst, tmp, rank);
+    }
+    else
+    {
+        // Apply complex convolution
+        if (sse_aligned(c1))
         {
-            // Parse convolution data
-            if (sse_aligned(tmp))
-            {
-                // Do direct FFT
-                if (sse_aligned(src))
-                    fastconv_parse_internal_aa(tmp, src, rank);
-                else
-                    fastconv_parse_internal_au(tmp, src, rank);
-
-                // Apply complex convolution
-                if (sse_aligned(c))
-                    fastconv_parse_apply_internal_aa(tmp, c, rank);
-                else
-                    fastconv_parse_apply_internal_au(tmp, c, rank);
-
-                // Do reverse FFT
-                if (sse_aligned(dst))
-                    fastconv_restore_internal_aa(dst, tmp, rank);
-                else
-                    fastconv_restore_internal_ua(dst, tmp, rank);
-            }
+            if (sse_aligned(c2))
+                fastconv_apply_internal_uaa(tmp, c1, c2, rank);
             else
-            {
-                // Do direct FFT
-                if (sse_aligned(src))
-                    fastconv_parse_internal_ua(dst, src, rank);
-                else
-                    fastconv_parse_internal_uu(dst, src, rank);
-
-                // Apply complex convolution
-                if (sse_aligned(c))
-                    fastconv_parse_apply_internal_ua(tmp, c, rank);
-                else
-                    fastconv_parse_apply_internal_uu(tmp, c, rank);
-
-                // Do reverse FFT
-                if (sse_aligned(dst))
-                    fastconv_restore_internal_au(dst, tmp, rank);
-                else
-                    fastconv_restore_internal_uu(dst, tmp, rank);
-            }
+                fastconv_apply_internal_uau(tmp, c1, c2, rank);
+        }
+        else
+        {
+            if (sse_aligned(c2))
+                fastconv_apply_internal_uua(tmp, c1, c2, rank);
+            else
+                fastconv_apply_internal_uuu(tmp, c1, c2, rank);
         }
 
-        void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank)
-        {
-            // Parse convolution data
-            if (sse_aligned(tmp))
-            {
-                // Apply complex convolution
-                if (sse_aligned(c1))
-                {
-                    if (sse_aligned(c2))
-                        fastconv_apply_internal_aaa(tmp, c1, c2, rank);
-                    else
-                        fastconv_apply_internal_aau(tmp, c1, c2, rank);
-                }
-                else
-                {
-                    if (sse_aligned(c2))
-                        fastconv_apply_internal_aua(tmp, c1, c2, rank);
-                    else
-                        fastconv_apply_internal_auu(tmp, c1, c2, rank);
-                }
+        // Do reverse FFT
+        if (sse_aligned(dst))
+            fastconv_restore_internal_au(dst, tmp, rank);
+        else
+            fastconv_restore_internal_uu(dst, tmp, rank);
+    }
+}
 
-                // Do reverse FFT
-                if (sse_aligned(dst))
-                    fastconv_restore_internal_aa(dst, tmp, rank);
-                else
-                    fastconv_restore_internal_ua(dst, tmp, rank);
-            }
-            else
-            {
-                // Apply complex convolution
-                if (sse_aligned(c1))
-                {
-                    if (sse_aligned(c2))
-                        fastconv_apply_internal_uaa(tmp, c1, c2, rank);
-                    else
-                        fastconv_apply_internal_uau(tmp, c1, c2, rank);
-                }
-                else
-                {
-                    if (sse_aligned(c2))
-                        fastconv_apply_internal_uua(tmp, c1, c2, rank);
-                    else
-                        fastconv_apply_internal_uuu(tmp, c1, c2, rank);
-                }
-
-                // Do reverse FFT
-                if (sse_aligned(dst))
-                    fastconv_restore_internal_au(dst, tmp, rank);
-                else
-                    fastconv_restore_internal_uu(dst, tmp, rank);
-            }
-        }
-
-        void fastconv_restore(float *dst, float *src, size_t rank)
-        {
-            if (sse_aligned(dst))
-            {
-                if (sse_aligned(src))
-                    fastconv_restore_aa(dst, src, rank);
-                else
-                    fastconv_restore_au(dst, src, rank);
-            }
-            else
-            {
-                if (sse_aligned(src))
-                    fastconv_restore_ua(dst, src, rank);
-                else
-                    fastconv_restore_uu(dst, src, rank);
-            }
-        }
+void fastconv_restore(float *dst, float *src, size_t rank)
+{
+    if (sse_aligned(dst))
+    {
+        if (sse_aligned(src))
+            fastconv_restore_aa(dst, src, rank);
+        else
+            fastconv_restore_au(dst, src, rank);
+    }
+    else
+    {
+        if (sse_aligned(src))
+            fastconv_restore_ua(dst, src, rank);
+        else
+            fastconv_restore_uu(dst, src, rank);
     }
 }
 

@@ -128,6 +128,16 @@ MOD_PLUGIN(oscillator_mono)
 // Latency Meter
 MOD_PLUGIN(latency_meter)
 
+// Multiband compressors
+MOD_PLUGIN(mb_compressor_mono)
+MOD_PLUGIN(mb_compressor_stereo)
+MOD_PLUGIN(mb_compressor_lr)
+MOD_PLUGIN(mb_compressor_ms)
+MOD_PLUGIN(sc_mb_compressor_mono)
+MOD_PLUGIN(sc_mb_compressor_stereo)
+MOD_PLUGIN(sc_mb_compressor_lr)
+MOD_PLUGIN(sc_mb_compressor_ms)
+
 #ifndef LSP_NO_EXPERIMENTAL
     // Test plugin
     MOD_PLUGIN(test_plugin)

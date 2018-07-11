@@ -165,16 +165,6 @@ namespace lsp
             query_resize();
         }
 
-        void LSPFader::set_fill(bool value)
-        {
-            size_t flags = (value) ? nFlags | F_FILL : nFlags & (~F_FILL);
-            if (flags == nFlags)
-                return;
-
-            nFlags  = flags;
-            query_draw();
-        }
-
         void LSPFader::set_button_width(size_t value)
         {
             if (value < 8)
@@ -206,13 +196,13 @@ namespace lsp
                 r->nMinWidth        = (nBtnWidth > 8) ? nBtnWidth : 8;
                 r->nMinHeight       = cap + nMinSize;
                 r->nMaxWidth        = r->nMinWidth;
-                r->nMaxHeight       = (nFlags & F_FILL) ? -1 : r->nMaxHeight;
+                r->nMaxHeight       = (nFlags & F_VFILL) ? -1 : r->nMaxHeight;
             }
             else // Horizontal
             {
                 r->nMinWidth        = cap + nMinSize;
                 r->nMinHeight       = (nBtnWidth > 8) ? nBtnWidth : 8;
-                r->nMaxWidth        = (nFlags & F_FILL) ? -1 : r->nMaxWidth;
+                r->nMaxWidth        = (nFlags & F_HFILL) ? -1 : r->nMaxWidth;
                 r->nMaxHeight       = r->nMinHeight;
             }
         }

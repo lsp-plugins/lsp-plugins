@@ -220,6 +220,30 @@ namespace lsp
                 *(dst++) /= *(src++) * k;
         }
 
+        void scale_add4(float *dst, const float *src1, const float *src2, float k, size_t count)
+        {
+            while (count--)
+                *(dst++) = *(src1++) + *(src2++) * k;
+        }
+
+        void scale_sub4(float *dst, const float *src1, const float *src2, float k, size_t count)
+        {
+            while (count--)
+                *(dst++) = *(src1++) - *(src2++) * k;
+        }
+
+        void scale_mul4(float *dst, const float *src1, const float *src2, float k, size_t count)
+        {
+            while (count--)
+                *(dst++) = *(src1++) * *(src2++) * k;
+        }
+
+        void scale_div4(float *dst, const float *src1, const float *src2, float k, size_t count)
+        {
+            while (count--)
+                *(dst++) = *(src1++) / (*(src2++) * k);
+        }
+
         void add2(float *dst, const float *src, size_t count)
         {
             while (count--)

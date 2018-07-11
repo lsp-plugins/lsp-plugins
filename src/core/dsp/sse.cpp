@@ -10,26 +10,39 @@
 #include <core/dsp.h>
 #include <core/bits.h>
 
+#include <core/x86/features.h>
+
 #define CORE_X86_SSE_IMPL
 
-#include <core/x86/sse/const.h>
-#include <core/x86/sse/copy.h>
-#include <core/x86/sse/lmath.h>
-#include <core/x86/sse/hsum.h>
-#include <core/x86/sse/mix.h>
-#include <core/x86/sse/abs.h>
+namespace lsp
+{
+    namespace sse
+    {
+        #include <core/x86/sse/mxcsr.h>
+        #include <core/x86/sse/const.h>
+        #include <core/x86/sse/copy.h>
+        #include <core/x86/sse/lmath.h>
+        #include <core/x86/sse/hsum.h>
+        #include <core/x86/sse/mix.h>
+        #include <core/x86/sse/abs.h>
 
-#include <core/x86/sse/complex.h>
-#include <core/x86/sse/fft.h>
-#include <core/x86/sse/fastconv.h>
-#include <core/x86/sse/filters.h>
-#include <core/x86/sse/float.h>
-#include <core/x86/sse/graphics.h>
-#include <core/x86/sse/msmatrix.h>
-#include <core/x86/sse/search.h>
-#include <core/x86/sse/resampling.h>
-#include <core/x86/sse/3dmath.h>
-#include <core/x86/sse/native.h>
+        #include <core/x86/sse/smath.h>
+
+        #include <core/x86/sse/complex.h>
+        #include <core/x86/sse/fft.h>
+        #include <core/x86/sse/fastconv.h>
+        #include <core/x86/sse/filters/static.h>
+        #include <core/x86/sse/filters/dynamic.h>
+        #include <core/x86/sse/filters/transform.h>
+        #include <core/x86/sse/float.h>
+        #include <core/x86/sse/graphics.h>
+        #include <core/x86/sse/msmatrix.h>
+        #include <core/x86/sse/search.h>
+        #include <core/x86/sse/resampling.h>
+        #include <core/x86/sse/3dmath.h>
+        #include <core/x86/sse/native.h>
+    }
+}
 
 #undef CORE_X86_SSE_IMPL
 
@@ -37,6 +50,8 @@ namespace lsp
 {
     namespace sse
     {
+        using namespace x86;
+
         static dsp::start_t     dsp_start       = NULL;
         static dsp::finish_t    dsp_finish      = NULL;
 
@@ -45,7 +60,7 @@ namespace lsp
             dsp_start(ctx);
             uint32_t    mxcsr       = read_mxcsr();
             ctx->data[ctx->top++]   = mxcsr;
-            write_mxcsr(mxcsr | MXCSR_FZ | MXCSR_DAZ);
+            write_mxcsr(mxcsr | MXCSR_ALL_MASK | MXCSR_FZ | MXCSR_DAZ);
         }
 
         static void finish(dsp_context_t *ctx)
@@ -54,15 +69,18 @@ namespace lsp
             dsp_finish(ctx);
         }
 
-        void dsp_init(dsp_options_t options)
+        void dsp_init(const cpu_features_t *f)
         {
-            if ((options & (DSP_OPTION_SSE | DSP_OPTION_SSE2)) != (DSP_OPTION_SSE | DSP_OPTION_SSE2))
+            if (((f->features) & (CPU_OPTION_SSE | CPU_OPTION_SSE2)) != (CPU_OPTION_SSE | CPU_OPTION_SSE2))
                 return;
 
             lsp_trace("Optimizing DSP for SSE instruction set");
 
             // Initialize MXCSR mask
-            init_mxcsr_mask();
+            if (f->features & CPU_OPTION_FXSAVE)
+                init_mxcsr_mask();
+            else
+                mxcsr_mask  = MXCSR_DEFAULT;
 
             // Save previous entry points
             dsp_start                       = dsp::start;
@@ -78,6 +96,9 @@ namespace lsp
             dsp::fill_one                   = sse::fill_one;
             dsp::fill_zero                  = sse::fill_zero;
             dsp::fill_minus_one             = sse::fill_minus_one;
+
+            dsp::ipowf                      = sse::ipowf;
+            dsp::irootf                     = sse::irootf;
 
             dsp::abs1                       = sse::abs1;
             dsp::abs2                       = sse::abs2;
@@ -123,6 +144,11 @@ namespace lsp
             dsp::scale_sub3                 = sse::scale_sub3;
             dsp::scale_mul3                 = sse::scale_mul3;
             dsp::scale_div3                 = sse::scale_div3;
+
+            dsp::scale_add4                 = sse::scale_add4;
+            dsp::scale_sub4                 = sse::scale_sub4;
+            dsp::scale_mul4                 = sse::scale_mul4;
+            dsp::scale_div4                 = sse::scale_div4;
 
             dsp::mix2                       = sse::mix2;
             dsp::mix_copy2                  = sse::mix_copy2;
@@ -171,6 +197,16 @@ namespace lsp
             dsp::biquad_process_x2          = sse::biquad_process_x2;
             dsp::biquad_process_x4          = sse::biquad_process_x4;
             dsp::biquad_process_x8          = sse::biquad_process_x8;
+
+            dsp::dyn_biquad_process_x1      = sse::dyn_biquad_process_x1;
+            dsp::dyn_biquad_process_x2      = sse::dyn_biquad_process_x2;
+            dsp::dyn_biquad_process_x4      = sse::dyn_biquad_process_x4;
+            dsp::dyn_biquad_process_x8      = sse::dyn_biquad_process_x8;
+
+            dsp::bilinear_transform_x1      = sse::bilinear_transform_x1;
+            dsp::bilinear_transform_x2      = sse::bilinear_transform_x2;
+            dsp::bilinear_transform_x4      = sse::bilinear_transform_x4;
+            dsp::bilinear_transform_x8      = sse::bilinear_transform_x8;
 
             dsp::axis_apply_log             = sse::axis_apply_log;
             dsp::rgba32_to_bgra32           = sse::rgba32_to_bgra32;

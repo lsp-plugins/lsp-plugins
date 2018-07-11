@@ -16,13 +16,26 @@
 #include <core/native/fft.h>
 #include <core/native/search.h>
 #include <core/native/fastconv.h>
-#include <core/native/filters.h>
 #include <core/native/float.h>
 #include <core/native/graphics.h>
 #include <core/native/resampling.h>
 #include <core/native/msmatrix.h>
 #include <core/native/complex.h>
 #include <core/native/3dmath.h>
+
+namespace lsp
+{
+
+    namespace native
+    {
+        using namespace lsp;
+
+        #include <core/native/smath.h>
+        #include <core/native/filters/static.h>
+        #include <core/native/filters/dynamic.h>
+        #include <core/native/filters/transform.h>
+    }
+}
 
 #undef __DSP_NATIVE_IMPL
 
@@ -44,6 +57,9 @@ namespace lsp
             dsp::fill_one                   = native::fill_one;
             dsp::fill_zero                  = native::fill_zero;
             dsp::fill_minus_one             = native::fill_minus_one;
+
+            dsp::ipowf                      = native::ipowf;
+            dsp::irootf                     = native::irootf;
 
             dsp::abs1                       = native::abs1;
             dsp::abs2                       = native::abs2;
@@ -90,6 +106,11 @@ namespace lsp
             dsp::scale_mul3                 = native::scale_mul3;
             dsp::scale_div3                 = native::scale_div3;
 
+            dsp::scale_add4                 = native::scale_add4;
+            dsp::scale_sub4                 = native::scale_sub4;
+            dsp::scale_mul4                 = native::scale_mul4;
+            dsp::scale_div4                 = native::scale_div4;
+
             dsp::mix2                       = native::mix2;
             dsp::mix_copy2                  = native::mix_copy2;
             dsp::mix_add2                   = native::mix_add2;
@@ -120,6 +141,7 @@ namespace lsp
 
             dsp::complex_mul                = native::complex_mul;
             dsp::packed_complex_mul         = native::packed_complex_mul;
+            dsp::packed_complex_fill        = native::packed_complex_fill;
             dsp::packed_real_to_complex     = native::packed_real_to_complex;
             dsp::packed_complex_to_real     = native::packed_complex_to_real;
             dsp::packed_complex_add_to_real = native::packed_complex_add_to_real;
@@ -140,6 +162,21 @@ namespace lsp
             dsp::biquad_process_x2          = native::biquad_process_x2;
             dsp::biquad_process_x4          = native::biquad_process_x4;
             dsp::biquad_process_x8          = native::biquad_process_x8;
+
+            dsp::dyn_biquad_process_x1      = native::dyn_biquad_process_x1;
+            dsp::dyn_biquad_process_x2      = native::dyn_biquad_process_x2;
+            dsp::dyn_biquad_process_x4      = native::dyn_biquad_process_x4;
+            dsp::dyn_biquad_process_x8      = native::dyn_biquad_process_x8;
+
+            dsp::bilinear_transform_x1      = native::bilinear_transform_x1;
+            dsp::bilinear_transform_x2      = native::bilinear_transform_x2;
+            dsp::bilinear_transform_x4      = native::bilinear_transform_x4;
+            dsp::bilinear_transform_x8      = native::bilinear_transform_x8;
+
+            dsp::matched_transform_x1       = native::matched_transform_x1;
+            dsp::matched_transform_x2       = native::matched_transform_x2;
+            dsp::matched_transform_x4       = native::matched_transform_x4;
+            dsp::matched_transform_x8       = native::matched_transform_x8;
 
             dsp::axis_apply_log             = native::axis_apply_log;
             dsp::rgba32_to_bgra32           = native::rgba32_to_bgra32;

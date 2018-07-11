@@ -18,8 +18,11 @@ namespace lsp
             typedef struct playback_t
             {
                 Sample     *pSample;    // Pointer to the sample
+                ssize_t     nID;        // ID of playback
                 size_t      nChannel;   // Channel to play
                 ssize_t     nOffset;    // Current offset
+                ssize_t     nFadeout;   // Fadeout (cancelling)
+                ssize_t     nFadeOffset;// Fadeout offset
                 float       nVolume;    // The volume of the sample
                 playback_t *pNext;      // Pointer to the next playback in the list
                 playback_t *pPrev;      // Pointer to the previous playback in the list
@@ -41,6 +44,7 @@ namespace lsp
             float           fGain;
 
         protected:
+            static inline void cleanup(playback_t *pb);
             static inline void list_remove(list_t *list, playback_t *pb);
             static inline playback_t *list_remove_first(list_t *list);
             static inline void list_add_first(list_t *list, playback_t *pb);
@@ -129,7 +133,17 @@ namespace lsp
              */
             bool play(size_t id, size_t channel, float volume, ssize_t delay = 0);
 
-            /** Reset the playback state of the player
+            /** Softly cancel playback of the sample
+             *
+             * @param id ID of the sample
+             * @param channel ID of the sample's channel
+             * @param fadeout the fadeout length in samples for sample gain fadeout
+             * @param delay the delay (in samples) of the sample relatively to the next process() call
+             * @return number of playbacks cancelled, negative value on error
+             */
+            ssize_t cancel_all(size_t id, size_t channel, size_t fadeout = 0, ssize_t delay = 0);
+
+            /** Reset the playback state of the player, force all playbacks to be stopped
              *
              */
             void stop();

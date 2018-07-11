@@ -17,6 +17,7 @@ namespace lsp
             protected:
                 CtlPort        *pPort;
                 CtlColor        sColor;
+                float           fTransparency;
 
             public:
                 CtlMarker(CtlRegistry *src, LSPMarker *mark);

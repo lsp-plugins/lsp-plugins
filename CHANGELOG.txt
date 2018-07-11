@@ -2,6 +2,23 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.1.2 ===
+
+* Implemented Muliband Compressor plugin series.
+* Added possibility to mute playback by triggering the 'note off' MIDI event in sampler plugin series.
+* Implemented ComboGroup wiget for dynamically switching internal contents of the group.
+* Fixed error in filter processing algorithms that could yield to invalid
+  results when source and destination buffers differ.
+* Additionally tuned SSE code of static filters.
+* Refactored CPU identification routines and optimized assembly routines selection.
+* Small fixes in UI grid cell allocation and rendering.
+* Improved design of markers: added gradient highliting.
+* Fixed some UI issues related to switched port values.
+* Removed support of some plugins by LADSPA that can not be supported by LADSPA.
+* Optimized calculations related to logarithmic axis.
+* Fixed bug in UI expression language that incorrectly interpreted 'not' operation.
+* Added power mathematical operator to UI expression language.
+
 === 1.1.1 ===
 
 * Plugins have been tested under QTractor 0.9.5 and it seems that they are working well.

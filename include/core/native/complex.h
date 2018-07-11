@@ -83,6 +83,16 @@ namespace lsp
             }
         }
 
+        void packed_complex_fill(float *dst, float re, float im, size_t count)
+        {
+            while (count --)
+            {
+                dst[0]      = re;
+                dst[1]      = im;
+                dst        += 2;
+            }
+        }
+
         void packed_complex_to_real(float *dst, const float *src, size_t count)
         {
             while (count --)

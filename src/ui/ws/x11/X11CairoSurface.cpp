@@ -609,6 +609,41 @@ namespace lsp
                 cairo_set_line_width(pCR, ow);
             }
 
+            void X11CairoSurface::parametric_bar(float a1, float b1, float c1, float a2, float b2, float c2,
+                    float left, float right, float top, float bottom, IGradient *gr)
+            {
+                if (pCR == NULL)
+                    return;
+
+                X11CairoGradient *cg = static_cast<X11CairoGradient *>(gr);
+                cg->apply(pCR);
+
+                if (fabs(a1) > fabs(b1))
+                {
+                    cairo_move_to(pCR, ssize_t(-(c1 + b1*top)/a1), ssize_t(top));
+                    cairo_line_to(pCR, ssize_t(-(c1 + b1*bottom)/a1), ssize_t(bottom));
+                }
+                else
+                {
+                    cairo_move_to(pCR, ssize_t(left), ssize_t(-(c1 + a1*left)/b1));
+                    cairo_line_to(pCR, ssize_t(right), ssize_t(-(c1 + a1*right)/b1));
+                }
+
+                if (fabs(a2) > fabs(b2))
+                {
+                    cairo_line_to(pCR, ssize_t(-(c2 + b2*bottom)/a2), ssize_t(bottom));
+                    cairo_line_to(pCR, ssize_t(-(c2 + b2*top)/a2), ssize_t(top));
+                }
+                else
+                {
+                    cairo_line_to(pCR, ssize_t(right), ssize_t(-(c2 + a2*right)/b2));
+                    cairo_line_to(pCR, ssize_t(left), ssize_t(-(c2 + a2*left)/b2));
+                }
+
+                cairo_close_path(pCR);
+                cairo_fill(pCR);
+            }
+
             void X11CairoSurface::wire_arc(float x, float y, float r, float a1, float a2, float width, const Color &color)
             {
                 if (pCR == NULL)

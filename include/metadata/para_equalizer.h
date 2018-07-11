@@ -31,6 +31,11 @@ namespace lsp
         static const float          REACT_TIME_DFL      = 0.200;
         static const float          REACT_TIME_STEP     = 0.001;
 
+        static const float          ZOOM_MIN            = GAIN_AMP_M_36_DB;
+        static const float          ZOOM_MAX            = GAIN_AMP_0_DB;
+        static const float          ZOOM_DFL            = GAIN_AMP_0_DB;
+        static const float          ZOOM_STEP           = 0.025f;
+
         static const float          IN_GAIN_DFL         = 1.0f;
         static const float          OUT_GAIN_DFL        = 1.0f;
         static const size_t         MODE_DFL            = 0;
@@ -51,6 +56,8 @@ namespace lsp
 #ifndef LSP_NO_EXPERIMENTAL
             EQF_LADDERPASS,
             EQF_LADDERREJ,
+            EQF_ENVELOPE,
+            EQF_BANDPASS
 #endif
         };
 
@@ -63,67 +70,6 @@ namespace lsp
             EFM_LRX_BT,
             EFM_LRX_MT
         };
-//        enum eq_filter_t
-//        {
-//            EQF_NONE,
-//
-//            EQF_BT_RLC_BELL,
-//            EQF_MT_RLC_BELL,
-//            EQF_BT_BWC_BELL,
-//            EQF_MT_BWC_BELL,
-//            EQF_BT_LRX_BELL,
-//            EQF_MT_LRX_BELL,
-//
-//            EQF_BT_RESONANCE,
-//            EQF_MT_RESONANCE,
-//
-//            EQF_BT_NOTCH,
-//            EQF_MT_NOTCH,
-//
-//            EQF_BT_RLC_LOPASS,
-//            EQF_MT_RLC_LOPASS,
-//            EQF_BT_BWC_LOPASS,
-//            EQF_MT_BWC_LOPASS,
-//            EQF_BT_LRX_LOPASS,
-//            EQF_MT_LRX_LOPASS,
-//
-//            EQF_BT_RLC_LOSHELF,
-//            EQF_MT_RLC_LOSHELF,
-//            EQF_BT_BWC_LOSHELF,
-//            EQF_MT_BWC_LOSHELF,
-//            EQF_BT_LRX_LOSHELF,
-//            EQF_MT_LRX_LOSHELF,
-//
-//            EQF_BT_RLC_HIPASS,
-//            EQF_MT_RLC_HIPASS,
-//            EQF_BT_BWC_HIPASS,
-//            EQF_MT_BWC_HIPASS,
-//            EQF_BT_LRX_HIPASS,
-//            EQF_MT_LRX_HIPASS,
-//
-//            EQF_BT_RLC_HISHELF,
-//            EQF_MT_RLC_HISHELF,
-//            EQF_BT_BWC_HISHELF,
-//            EQF_MT_BWC_HISHELF,
-//            EQF_BT_LRX_HISHELF,
-//            EQF_MT_LRX_HISHELF,
-//
-//#ifndef LSP_NO_EXPERIMENTAL
-//            EQF_BT_RLC_LADDERPASS,
-//            EQF_MT_RLC_LADDERPASS,
-//            EQF_BT_BWC_LADDERPASS,
-//            EQF_MT_BWC_LADDERPASS,
-//            EQF_BT_LRX_LADDERPASS,
-//            EQF_MT_LRX_LADDERPASS,
-//
-//            EQF_BT_RLC_LADDERREJ,
-//            EQF_MT_RLC_LADDERREJ,
-//            EQF_BT_BWC_LADDERREJ,
-//            EQF_MT_BWC_LADDERREJ,
-//            EQF_BT_LRX_LADDERREJ,
-//            EQF_MT_LRX_LADDERREJ,
-//#endif
-//        };
 
         enum para_eq_mode_t
         {

@@ -5,10 +5,11 @@
 === Planned ===
 - Implemented Frequenzselektiver Kompressor (Multiband Compressor) Mono, Stereo, LeftRight, MidSide
   plugin series
-- Implemented Multiband Kompressor (Multiband Compressor) Mono, Stereo x4, x8 plugin series
 - Refactored and optimized filter transfer function calculation. 
 - Implemented sampler with stereo outputs.
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
+
+=== 1.1.3 ===
 - Additional display mode for spectrum analyzer added.
 - Added possibility to double-click the parameter's value number and enter it manually from keyboard.
 
@@ -117,22 +118,22 @@
 	I thought about an option to "just" read in such a file and set the Freq, Gain and Q values from this file. As far as I understood,
 	these are just peak filters. 
 
-==== Multiband compressor ====
+==== Noise reduction ====
+  <unknown>:
+    I think noise reduction is the other big hole in LA currently.
+  
   Marcel:
-    I have one question though. I don't see a multi-band compressor.
-    It that something still in the pipeline? Would be great to have one.
-    Keep on the good work, and of course when I like the plugins I will make a donation. 
     P.S. I hear there is also a great need for a good noise reduction similar
     to the Audacity one.
-    
-  sadko4u:
-    I also thought that non-crossover multiband compressor is lacking linux audio. Crossovers do phase
-    distortion at split points. Instead of this multiband compressor could be implemented as N-band
-    equalizer with dynamically changing gain for each band where the gain is controlled as compression gain.
+
+==== Bookmarking folders ====
+  funkmuscle:
+    Also the older versions, you could of bookmarked the dir where IR files are. I can't seem to figure out
+    how to do it with the version.
   
-  sysrqer:
-    That sounds excellent sadko4u, that's actually what I had in mind, I don't think there is anything like that for us.
-    
+  sadko4u:
+    Currently because all dialogs were written from scratch, there are no bookmarks currently.
+
 ==== Spectrum analyzer ====
   sysrqer:
     I've been using the spectrum analyser recently and I have one question which is puzzling me - how can I
@@ -178,6 +179,12 @@
     but it's harder to work out quickly where a feature of interest occurs in the spectrum unless it's centred around one of the
     marks. I think as well, having the area under the line makes things easier to read; most analysers do that, but not all.
 
+==== Spectrogram ====
+  Amadeus Folego:
+    You can check calf-analyzer as well (https://www.youtube.com/watch?v=TWfqcf-EyUE).
+
+    Something like baudline (http://baudline.com) with LV2 would be amazing.
+
 ====
   bhilmers:
     A channel-strip style drum plugin would be really great for Linux. Maybe someone will get inspired one day and make it.
@@ -194,7 +201,7 @@
     Wav sample, or a mix of the two.
     The output is configured as 1 stereo + 4 mono outs.
 
-====
+==== Curve equalizer ====
   12strings2hands:
     The Voxengo CurveEQ can generate an EQ curves based on the input, in this case they use pink noise through 2 microphones and you can use the curves to make one mic match the other.
     Given that there are a lot of other differences between mics, I can see a lot of uses for something like this.
@@ -202,6 +209,15 @@
     Here's a couple of links to the subject:
     https://groupdiy.com/index.php?topic=67322.msg0
     https://www.youtube.com/watch?v=0qoGEpOuY6U
+
+==== Filters ====
+  A filter collection where you could use bezier or pixel-pencil to draw filter sweeps.
+  
+==== Extension of filter set ====
+  unfa:
+    I've stumbled upon these while trying to understand how Optimod works.
+    The seem to have the steepest possible transition from the pass and to the stopband. Could sound pretty cutting edge I guess ;)
+    Do we have any implentations of these on the Linux audio world? I'm pretty sure SoX has something, but I never managed to use it.
 
 ====
   Conor Mc Cormack:
@@ -235,7 +251,11 @@
   cooltechno
     If it's possible, one feature request: to make a sound-preview in adding samples window in Klangerzeuger
 
-====
+==== Saturator ====
+  <unknown>:
+    I'd say I think we're missing subtle saturation / distortion plugins. Stuff like
+    VarietyOfSound used to put out -- FerricTDS, Tessla, the saturation stage in NastyVCS.
+  
   Braxton Salyer:
     Hey guys, LOVE YOUR WORK. Makes doing pro-audio in linux so much more viable.
     One thing we're definitely missing though is a good saturation plugin (a-la Decapitator,
@@ -336,16 +356,6 @@
   Tal Dub is amazing but it does not make the crazy sounds when you change the delay time which
   is a shame.
 
-==== Saturator ====
-  I'd say I think we're missing subtle saturation / distortion plugins. Stuff like
-  VarietyOfSound used to put out -- FerricTDS, Tessla, the saturation stage in NastyVCS.
-
-==== Filters ====
-  A filter collection where you could use bezier or pixel-pencil to draw filter sweeps.
-  
-==== Noise Reduction ====
-  I think noise reduction is the other big hole in LA currently.
-
 ==== Spring reverb ====
   Looking at scientific publications like this one, an accurate physical model of a spring reverb
   in real time seems out of reach for a longtime. 
@@ -360,8 +370,9 @@
   a maximizer, possibly combined into one big mastering plugin.
   
 ==== Stereo image ====
-  Oh, and one more. The thing we starve for really long is a good stereo image expander. Like the
-  one you wrote for Calf project, but better.
+  alexthebassist
+    Oh, and one more. The thing we starve for really long is a good stereo image expander. Like the
+    one you wrote for Calf project, but better.
 
 ==== Dynamic Equalizer ====
   Feature request for creating a Dynamic EQ plugin. If you're not familiar with them,
@@ -401,9 +412,3 @@
   Chase: 
     was just wondering if LSP-PLUGINS, specifically your trigger-midi-mono, will have a version
     in the near future that will work on the raspberry pi arm7/arm8 ? as a jack standalone and lv2...
-  
-==== Spectrogram ====
-  Amadeus Folego:
-    You can check calf-analyzer as well (https://www.youtube.com/watch?v=TWfqcf-EyUE).
-
-    Something like baudline (http://baudline.com) with LV2 would be amazing.

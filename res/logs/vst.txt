@@ -2057,3 +2057,196 @@ Description:	A simple plugin that allows to measure the latency of a transmissio
 	Registration:	
 		
 	*Plugin ID:	abee
+	
+-----------------------------------------------------	
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Multi-band Kompressor Mono x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband compressor with up to 8 independent compression bands.
+		
+	Registration:	
+		
+	*Plugin ID:	fdiu
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Multi-band Kompressor Stereo x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband compressor with up to 8 independent compression bands.
+		
+	Registration:	
+		
+	*Plugin ID:	gjsn
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Multi-band Kompressor LeftRight x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband compressor with up to 8 independent compression bands.
+		
+	Registration:	
+		
+	*Plugin ID:	0egf
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Multi-band Kompressor MidSide x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband compressor with up to 8 independent compression bands.
+		
+	Registration:	
+		
+	*Plugin ID:	vhci
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Multi-band Kompressor Mono x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband compressor with up to 8 independent compression bands and additional external sidechain input.
+		
+	Registration:	
+		
+	*Plugin ID:	vv0m
+
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Multi-band Kompressor Stereo x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband compressor with up to 8 independent compression bands and additional external sidechain input.
+		
+	Registration:	
+		
+	*Plugin ID:	zqrn
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Multi-band Kompressor LeftRight x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband compressor with up to 8 independent compression bands and additional external sidechain input.
+		
+	Registration:	
+		
+	*Plugin ID:	kvxe
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Multi-band Kompressor MidSide x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multiband compressor with up to 8 independent compression bands and additional external sidechain input.
+		
+	Registration:	
+		
+	*Plugin ID:	hjdp

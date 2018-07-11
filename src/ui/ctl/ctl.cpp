@@ -15,6 +15,7 @@ namespace lsp
             "button",
             "cell",
             "center",
+            "cgroup",
             "combo",
             "dot",
             "edit",
@@ -154,6 +155,8 @@ namespace lsp
             "command_id",
             "progress_id",
             "path_id",
+            "hfill",
+            "vfill",
             NULL
         };
 

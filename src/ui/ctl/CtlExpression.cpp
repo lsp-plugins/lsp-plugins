@@ -89,10 +89,10 @@ namespace lsp
                 pListener->notify(port);
         }
 
-        CtlExpression::token_t CtlExpression::get_token(tokenizer_t *t, bool get)
+        CtlExpression::token_t CtlExpression::get_token(tokenizer_t *t, size_t flags)
         {
             // Pre-checks
-            if (!get)
+            if (!(flags & F_GET))
                 return t->enType;
 
             // Skip whitespace
@@ -124,8 +124,16 @@ namespace lsp
                     return t->enType   = TT_LBRACE;
                 case ')': // TT_RBRACE
                     return t->enType   = TT_RBRACE;
-                case '*': // TT_MUL
-                    return t->enType   = TT_MUL;
+                case '*': // TT_MUL, TT_POW
+                {
+                    t->enType   = TT_MUL;
+                    if (*(t->pStr) == '*') // Accept both variants: ^ and ^^
+                    {
+                        t->pStr ++;
+                        t->enType   = TT_POW;
+                    }
+                    return t->enType;
+                }
                 case '/': // TT_DIV
                     return t->enType   = TT_DIV;
                 case '%': // TT_MOD
@@ -620,6 +628,20 @@ namespace lsp
                     return t->enType    = TT_UNKNOWN;
                 }
 
+                case 'p': case 'P': // TT_POW
+                {
+                    const char *p = t->pStr;
+                    if (((p[0] == 'o') || (p[0] == 'O')) &&
+                        ((p[1] == 'w') || (p[1] == 'W')) &&
+                        (!isalpha(p[1])))
+                    {
+                        t->pStr            += 2;
+                        return t->enType    = TT_POW;
+                    }
+
+                    return t->enType    = TT_UNKNOWN;
+                }
+
                 case 's': case 'S': // TT_SUB
                 {
                     const char *p = t->pStr;
@@ -667,6 +689,13 @@ namespace lsp
                 default: // TT_VALUE
                 {
                     const char *p   = &t->pStr[-1];
+                    if (flags & F_XSIGN)
+                    {
+                        if (c == '+')
+                            return t->enType   = TT_ADD;
+                        else if (c == '-')
+                            return t->enType   = TT_SUB;
+                    }
 
                     // Try to parse float value
                     char *ep        = NULL;
@@ -727,6 +756,15 @@ namespace lsp
                 UNARY(OP_SIGN, -)
                 BINARY(OP_MUL, *)
                 BINARY(OP_DIV, /)
+
+                case OP_POWER:
+                {
+                    float pow = execute(expr->sCalc.pRight);
+                    float value = execute(expr->sCalc.pLeft);
+                    return (pow > 0) ?
+                            expf(logf(value) * pow) :
+                            1.0f / expf(logf(-value) * pow);
+                }
 
                 case OP_AND:
                     if (execute(expr->sCalc.pLeft) < 0.5f)
@@ -820,20 +858,20 @@ namespace lsp
             return r->result = execute(r->binding);
         }
 
-        CtlExpression::binding_t *CtlExpression::parse_ternary(tokenizer_t *t, bool get)
+        CtlExpression::binding_t *CtlExpression::parse_ternary(tokenizer_t *t, size_t flags)
         {
             // Parse condition part
-            binding_t *cond = parse_xor(t, get);
+            binding_t *cond = parse_xor(t, flags);
             if (cond == NULL)
                 return NULL;
 
             // Check token
-            token_t tok = get_token(t, false);
+            token_t tok = get_token(t, F_NONE);
             if (tok != TT_QUESTION)
                 return cond;
 
             // Parse left part
-            binding_t *left = parse_ternary(t, true);
+            binding_t *left = parse_ternary(t, F_GET);
             if (left == NULL)
             {
                 destroy_data(cond);
@@ -841,12 +879,12 @@ namespace lsp
             }
 
             // Check token
-            tok = get_token(t, false);
+            tok = get_token(t, F_NONE);
             if (tok != TT_DOTS)
                 return cond;
 
             // Parse right part
-            binding_t *right = parse_ternary(t, true);
+            binding_t *right = parse_ternary(t, F_GET);
             if (right == NULL)
             {
                 destroy_data(cond);
@@ -870,20 +908,20 @@ namespace lsp
             return bind;
         }
 
-        CtlExpression::binding_t *CtlExpression::parse_xor(tokenizer_t *t, bool get)
+        CtlExpression::binding_t *CtlExpression::parse_xor(tokenizer_t *t, size_t flags)
         {
             // Parse left part
-            binding_t *left = parse_or(t, get);
+            binding_t *left = parse_or(t, flags);
             if (left == NULL)
                 return NULL;
 
             // Check token
-            token_t tok = get_token(t, false);
+            token_t tok = get_token(t, F_NONE);
             if ((tok != TT_XOR) || (tok != TT_BXOR))
                 return left;
 
             // Parse right part
-            binding_t *right = parse_xor(t, true);
+            binding_t *right = parse_xor(t, F_GET);
             if (right == NULL)
             {
                 destroy_data(left);
@@ -905,20 +943,20 @@ namespace lsp
             return bind;
         }
 
-        CtlExpression::binding_t  *CtlExpression::parse_or(tokenizer_t *t, bool get)
+        CtlExpression::binding_t  *CtlExpression::parse_or(tokenizer_t *t, size_t flags)
         {
             // Parse left part
-            binding_t *left = parse_and(t, get);
+            binding_t *left = parse_and(t, flags);
             if (left == NULL)
                 return NULL;
 
             // Check token
-            token_t tok = get_token(t, false);
+            token_t tok = get_token(t, F_NONE);
             if (tok != TT_OR)
                 return left;
 
             // Parse right part
-            binding_t *right = parse_or(t, true);
+            binding_t *right = parse_or(t, F_GET);
             if (right == NULL)
             {
                 destroy_data(left);
@@ -940,20 +978,20 @@ namespace lsp
             return bind;
         }
 
-        CtlExpression::binding_t  *CtlExpression::parse_and(tokenizer_t *t, bool get)
+        CtlExpression::binding_t  *CtlExpression::parse_and(tokenizer_t *t, size_t flags)
         {
             // Parse left part
-            binding_t *left = parse_bit_or(t, get);
+            binding_t *left = parse_bit_or(t, flags);
             if (left == NULL)
                 return NULL;
 
             // Check token
-            token_t tok = get_token(t, false);
+            token_t tok = get_token(t, F_NONE);
             if (tok != TT_AND)
                 return left;
 
             // Parse right part
-            binding_t *right = parse_and(t, true);
+            binding_t *right = parse_and(t, F_GET);
             if (right == NULL)
             {
                 destroy_data(left);
@@ -975,20 +1013,20 @@ namespace lsp
             return bind;
         }
 
-        CtlExpression::binding_t  *CtlExpression::parse_bit_or(tokenizer_t *t, bool get)
+        CtlExpression::binding_t  *CtlExpression::parse_bit_or(tokenizer_t *t, size_t flags)
         {
             // Parse left part
-            binding_t *left = parse_bit_xor(t, get);
+            binding_t *left = parse_bit_xor(t, flags);
             if (left == NULL)
                 return NULL;
 
             // Check token
-            token_t tok = get_token(t, false);
+            token_t tok = get_token(t, F_NONE);
             if (tok != TT_BOR)
                 return left;
 
             // Parse right part
-            binding_t *right = parse_and(t, true);
+            binding_t *right = parse_and(t, F_GET);
             if (right == NULL)
             {
                 destroy_data(left);
@@ -1010,20 +1048,20 @@ namespace lsp
             return bind;
         }
 
-        CtlExpression::binding_t  *CtlExpression::parse_bit_xor(tokenizer_t *t, bool get)
+        CtlExpression::binding_t  *CtlExpression::parse_bit_xor(tokenizer_t *t, size_t flags)
         {
             // Parse left part
-            binding_t *left = parse_bit_and(t, get);
+            binding_t *left = parse_bit_and(t, flags);
             if (left == NULL)
                 return NULL;
 
             // Check token
-            token_t tok = get_token(t, false);
+            token_t tok = get_token(t, F_NONE);
             if (tok != TT_BXOR)
                 return left;
 
             // Parse right part
-            binding_t *right = parse_and(t, true);
+            binding_t *right = parse_and(t, F_GET);
             if (right == NULL)
             {
                 destroy_data(left);
@@ -1045,20 +1083,20 @@ namespace lsp
             return bind;
         }
 
-        CtlExpression::binding_t  *CtlExpression::parse_bit_and(tokenizer_t *t, bool get)
+        CtlExpression::binding_t  *CtlExpression::parse_bit_and(tokenizer_t *t, size_t flags)
         {
             // Parse left part
-            binding_t *left = parse_cmp(t, get);
+            binding_t *left = parse_cmp(t, flags);
             if (left == NULL)
                 return NULL;
 
             // Check token
-            token_t tok = get_token(t, false);
+            token_t tok = get_token(t, F_NONE);
             if (tok != TT_BAND)
                 return left;
 
             // Parse right part
-            binding_t *right = parse_and(t, true);
+            binding_t *right = parse_and(t, F_GET);
             if (right == NULL)
             {
                 destroy_data(left);
@@ -1080,15 +1118,15 @@ namespace lsp
             return bind;
         }
 
-        CtlExpression::binding_t  *CtlExpression::parse_cmp(tokenizer_t *t, bool get)
+        CtlExpression::binding_t  *CtlExpression::parse_cmp(tokenizer_t *t, size_t flags)
         {
             // Parse left part
-            binding_t *left = parse_addsub(t, get);
+            binding_t *left = parse_addsub(t, flags);
             if (left == NULL)
                 return NULL;
 
             // Check token
-            token_t tok = get_token(t, false);
+            token_t tok = get_token(t, F_NONE);
             switch (tok)
             {
                 case TT_LESS:
@@ -1109,7 +1147,7 @@ namespace lsp
             }
 
             // Parse right part
-            binding_t *right = parse_cmp(t, true);
+            binding_t *right = parse_cmp(t, F_GET);
             if (right == NULL)
             {
                 destroy_data(left);
@@ -1153,15 +1191,15 @@ namespace lsp
             return bind;
         }
 
-        CtlExpression::binding_t  *CtlExpression::parse_addsub(tokenizer_t *t, bool get)
+        CtlExpression::binding_t  *CtlExpression::parse_addsub(tokenizer_t *t, size_t flags)
         {
             // Parse left part
-            binding_t *left = parse_muldiv(t, get);
+            binding_t *left = parse_muldiv(t, flags);
             if (left == NULL)
                 return NULL;
 
             // Check token
-            token_t tok = get_token(t, false);
+            token_t tok = get_token(t, F_NONE);
             switch (tok)
             {
                 case TT_ADD:
@@ -1174,7 +1212,7 @@ namespace lsp
             }
 
             // Parse right part
-            binding_t *right = parse_addsub(t, true);
+            binding_t *right = parse_addsub(t, F_GET);
             if (right == NULL)
             {
                 destroy_data(left);
@@ -1206,15 +1244,51 @@ namespace lsp
             return bind;
         }
 
-        CtlExpression::binding_t  *CtlExpression::parse_muldiv(tokenizer_t *t, bool get)
+        CtlExpression::binding_t  *CtlExpression::parse_power(tokenizer_t *t, size_t flags)
         {
             // Parse left part
-            binding_t *left = parse_not(t, get);
+            binding_t *left = parse_not(t, flags);
             if (left == NULL)
                 return NULL;
 
             // Check token
-            token_t tok = get_token(t, false);
+            token_t tok = get_token(t, F_NONE);
+            if (tok != TT_POW)
+                return left;
+
+            // Parse right part
+            binding_t *right = parse_power(t, F_GET);
+            if (right == NULL)
+            {
+                destroy_data(left);
+                return NULL;
+            }
+
+            // Create binding between left and right
+            binding_t *bind     = new binding_t;
+            if (bind == NULL)
+            {
+                destroy_data(left);
+                destroy_data(right);
+                return NULL;
+            }
+
+            bind->enOp          = OP_POWER;
+            bind->sCalc.pLeft   = left;
+            bind->sCalc.pRight  = right;
+            bind->sCalc.pCond   = NULL;
+            return bind;
+        }
+
+        CtlExpression::binding_t  *CtlExpression::parse_muldiv(tokenizer_t *t, size_t flags)
+        {
+            // Parse left part
+            binding_t *left = parse_power(t, flags);
+            if (left == NULL)
+                return NULL;
+
+            // Check token
+            token_t tok = get_token(t, F_NONE);
             switch (tok)
             {
                 case TT_MUL:
@@ -1228,7 +1302,7 @@ namespace lsp
             }
 
             // Parse right part
-            binding_t *right = parse_muldiv(t, true);
+            binding_t *right = parse_muldiv(t, F_GET);
             if (right == NULL)
             {
                 destroy_data(left);
@@ -1261,16 +1335,16 @@ namespace lsp
             return bind;
         }
 
-        CtlExpression::binding_t  *CtlExpression::parse_not(tokenizer_t *t, bool get)
+        CtlExpression::binding_t  *CtlExpression::parse_not(tokenizer_t *t, size_t flags)
         {
             // Check token
-            token_t tok = get_token(t, get);
+            token_t tok = get_token(t, flags);
 
             // Parse right part
-            binding_t *right =
-                ((tok == TT_NOT) || (tok == TT_BNOT)) ? parse_not(t, true) :
-                parse_sign(t, false);
-            if ((right == NULL) || (tok != TT_NOT) || (tok != TT_BNOT))
+            binding_t *right = ((tok == TT_NOT) || (tok == TT_BNOT)) ?
+                parse_not(t, F_GET) :
+                parse_sign(t, F_NONE);
+            if ((right == NULL) || ((tok != TT_NOT) && (tok != TT_BNOT)))
                 return right;
 
             // Create binding between left and right
@@ -1287,10 +1361,10 @@ namespace lsp
             return bind;
         }
 
-        CtlExpression::binding_t  *CtlExpression::parse_sign(tokenizer_t *t, bool get)
+        CtlExpression::binding_t  *CtlExpression::parse_sign(tokenizer_t *t, size_t flags)
         {
             // Check token
-            token_t tok = get_token(t, get);
+            token_t tok = get_token(t, flags);
 
             // Parse right part
             binding_t *right = NULL;
@@ -1300,10 +1374,10 @@ namespace lsp
                 case TT_SUB:
                 case TT_IADD:
                 case TT_ISUB:
-                    right = parse_sign(t, true);
+                    right = parse_sign(t, F_GET);
                     break;
                 default:
-                    right = parse_exists(t, false);
+                    right = parse_exists(t, F_NONE);
                     break;
             }
             if ((right == NULL) || (tok != TT_SUB))
@@ -1323,17 +1397,17 @@ namespace lsp
             return bind;
         }
 
-        CtlExpression::binding_t  *CtlExpression::parse_exists(tokenizer_t *t, bool get)
+        CtlExpression::binding_t  *CtlExpression::parse_exists(tokenizer_t *t, size_t flags)
         {
             // Check token
-            token_t tok = get_token(t, get);
+            token_t tok = get_token(t, flags);
 
             // Parse special case
             if (tok != TT_EX)
-                return parse_primary(t, false);
+                return parse_primary(t, F_NONE);
 
             // Get next token
-            tok         = get_token(t, true);
+            tok         = get_token(t, F_GET);
             if (tok != TT_IDENTIFIER)
                 return NULL;
 
@@ -1345,13 +1419,13 @@ namespace lsp
             bind->enOp          = OP_LOAD;
             bind->sLoad.pPort   = NULL;
             bind->sLoad.fValue  = (pCtl->port(t->sText) != NULL) ? 1.0f : 0.0f;
-            get_token(t, true);
+            get_token(t, F_GET | F_XSIGN);
             return bind;
         }
 
-        CtlExpression::binding_t  *CtlExpression::parse_primary(tokenizer_t *t, bool get)
+        CtlExpression::binding_t  *CtlExpression::parse_primary(tokenizer_t *t, size_t flags)
         {
-            token_t tok = get_token(t, get);
+            token_t tok = get_token(t, flags);
             switch (tok)
             {
                 case TT_IDENTIFIER:
@@ -1366,7 +1440,7 @@ namespace lsp
                     }
                     else
                         bind->sLoad.fValue  = 0.0f;
-                    get_token(t, true);
+                    get_token(t, F_GET | F_XSIGN);
                     return bind;
                 }
 
@@ -1376,19 +1450,19 @@ namespace lsp
                     bind->enOp          = OP_LOAD;
                     bind->sLoad.pPort   = NULL;
                     bind->sLoad.fValue  = t->fValue;
-                    get_token(t, true);
+                    get_token(t, F_GET | F_XSIGN);
                     return bind;
                 }
 
                 case TT_LBRACE:
                 {
-                    binding_t *bind     = parse_expression(t, true);
+                    binding_t *bind     = parse_expression(t, F_GET);
                     if (bind == NULL)
                         return bind;
-                    tok = get_token(t, false);
+                    tok = get_token(t, F_NONE);
                     if (tok == TT_RBRACE)
                     {
-                        get_token(t, true); // TODO: check that really needed
+                        get_token(t, F_GET | F_XSIGN); // TODO: check that really needed
                         return bind;
                     }
 
@@ -1429,10 +1503,10 @@ namespace lsp
             while (true)
             {
                 // Parse expression
-                binding_t *root = parse_expression(&t, true);
+                binding_t *root = parse_expression(&t, F_GET);
 
                 // Analyze next token after expression
-                token_t tok = get_token(&t, false);
+                token_t tok = get_token(&t, F_NONE);
                 if (tok == TT_SEMICOLON)
                 {
                     // Create new record

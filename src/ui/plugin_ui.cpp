@@ -531,6 +531,13 @@ namespace lsp
                 vWidgets.add(grp);
                 return new CtlGroup(this, grp);
             }
+            case WC_CGROUP:
+            {
+                LSPComboGroup *grp = new LSPComboGroup(&sDisplay);
+                grp->init();
+                vWidgets.add(grp);
+                return new CtlComboGroup(this, grp);
+            }
 
             // Button, switches, knobs and other controllers
             case WC_BUTTON:

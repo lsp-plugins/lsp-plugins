@@ -126,6 +126,10 @@ the appropriate directory.
 Releases containing odd number in minor version provide only
 critical fixes for the previous release.
 
+IMPORTANT FOR VST INSTALLATIONS: If you deploy plugins as a subdirectory
+of your VST directory, the subdirectory should contain substring
+'lsp-plugins'. Otherwise plugins won't find the VST core library.
+
 The usual directories for LADSPA are:
   * /usr/lib/ladspa
   * /usr/local/lib/ladspa

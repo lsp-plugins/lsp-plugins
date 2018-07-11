@@ -156,6 +156,10 @@ namespace lsp
                     if (btn != NULL)
                         PARSE_BOOL(value, btn->set_led(__));
                     break;
+                case A_EDITABLE:
+                    if (btn != NULL)
+                        PARSE_BOOL(value, btn->set_editable(__));
+                    break;
                 default:
                 {
                     bool set = sBgColor.set(att, value);

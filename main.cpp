@@ -37,9 +37,12 @@
 #include "test/saturation_test.h"
 #include "test/log_test.h"
 #include "test/addm_test.h"
-#include "test/filter_test.h"
+#include "test/perf/filter_test.h"
+#include "test/perf/dyn_filter_test.h"
+#include "test/perf/bt_perf_test.h"
+#include "test/perf/mt_perf_test.h"
 #include "test/equalizer_test.h"
-#include "test/avx_test.h"
+#include "test/algo/avx_test.h"
 #include "test/sidechain_test.h"
 #include "test/limiter_test.h"
 
@@ -59,7 +62,14 @@
 #include "test/clipbrd_test.h"
 #include "test/solutions3d_test.h"
 
-//#define TEST jack_test
+#include "test/algo/bt_test.h"
+#include "test/algo/mt_test.h"
+
+#include "test/math/root_test.h"
+
+
+#define TEST jack_test
+
 //#define TEST xwindow_test
 //#define TEST limiter_test
 //#define TEST fft_conv_test
@@ -68,6 +78,7 @@
 //#define TEST log_test
 //#define TEST addm_test
 //#define TEST filter_test
+//#define TEST dyn_filter_test
 //#define TEST equalizer_test
 //#define TEST avx_test
 //#define TEST sidechain_test
@@ -113,10 +124,16 @@
 //#define TEST sse_test
 //#define TEST latencydetector_test
 //#define TEST geometry3d_test
-#define TEST solutions3d_test
+//#define TEST solutions3d_test
 //#define TEST objfile3d_test
 //#define TEST anyfile3d_test
 //#define TEST lspc_test
+
+//#define TEST bt_test
+//#define TEST mt_test
+//#define TEST bt_perf_test
+//#define TEST mt_perf_test
+//#define TEST root_test
 
 int main(int argc, const char**argv)
 {

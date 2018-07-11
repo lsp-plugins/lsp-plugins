@@ -128,7 +128,7 @@ namespace lsp
             }
             else if (me->type == MIDI_MSG_NOTE_OFF)
             {
-                lsp_trace("NOTE_ON: channel=%d, pitch=%d, velocity=%d", int(me->channel), int(me->note.pitch), int(me->note.velocity));
+                lsp_trace("NOTE_OFF: channel=%d, pitch=%d, velocity=%d", int(me->channel), int(me->note.pitch), int(me->note.velocity));
                 if (me->note.pitch != nNote)
                     continue;
 
@@ -163,6 +163,8 @@ namespace lsp
         vBuffer         = NULL;
         bBypass         = false;
         bReorder        = false;
+        bFadeout        = false;
+        fFadeout        = 10.0f;
         fDynamics       = sampler_base_metadata::DYNA_DFL;
         fDrift          = sampler_base_metadata::DRIFT_DFL;
         nSampleRate     = 0;
@@ -177,6 +179,12 @@ namespace lsp
     {
         lsp_trace("this = %p", this);
         destroy_state();
+    }
+
+    void sampler_kernel::set_fadeout(bool enabled, float length)
+    {
+        bFadeout        = enabled;
+        fFadeout        = length;
     }
 
     bool sampler_kernel::init(IExecutor *executor, size_t files, size_t channnels)
@@ -510,9 +518,9 @@ namespace lsp
             af->fPreDelay       = af->pPreDelay->getValue();
 
             // Listen trigger
-            lsp_trace("submit listen%d = %f", int(i), af->pListen->getValue());
+//            lsp_trace("submit listen%d = %f", int(i), af->pListen->getValue());
             af->sListen.submit(af->pListen->getValue());
-            lsp_trace("listen[%d].pending = %s", int(i), (af->sListen.pending()) ? "true" : "false");
+//            lsp_trace("listen[%d].pending = %s", int(i), (af->sListen.pending()) ? "true" : "false");
 
             // Makeup gain + mix gain
             af->fMakeup         = (af->pMakeup != NULL) ? af->pMakeup->getValue() : 1.0f;
@@ -528,10 +536,10 @@ namespace lsp
                 for (size_t j=0; j<nChannels; ++j)
                     af->fGains[j]       = af->pGains[j]->getValue();
             }
-            #ifdef LSP_TRACE
-                for (size_t j=0; j<nChannels; ++j)
-                    lsp_trace("gains[%d,%d] = %f", int(i), int(j), af->fGains[j]);
-            #endif
+//            #ifdef LSP_TRACE
+//                for (size_t j=0; j<nChannels; ++j)
+//                    lsp_trace("gains[%d,%d] = %f", int(i), int(j), af->fGains[j]);
+//            #endif
 
             // Update velocity
             float value     = af->pVelocity->getValue();
@@ -875,6 +883,18 @@ namespace lsp
         }
     }
 
+    void sampler_kernel::cancel_sample(const afile_t *af, size_t fadeout, size_t delay)
+    {
+        lsp_trace("id=%d, delay=%d", int(af->nID), int(delay));
+
+        // Cancel all playbacks
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            lsp_trace("channels[%d].cancel(%d, %d, %d)", int(af->nID), int(i), int(fadeout), int(delay));
+            vChannels[i].cancel_all(af->nID, i, fadeout, delay);
+        }
+    }
+
     void sampler_kernel::trigger_on(size_t timestamp, float level)
     {
         if (nActive <= 0)
@@ -917,6 +937,18 @@ namespace lsp
             af->sNoteOn.blink();
             sActivity.blink();
         }
+    }
+
+    void sampler_kernel::trigger_off(size_t timestamp, float level)
+    {
+        if ((nActive <= 0) || (!bFadeout))
+            return;
+
+        size_t delay    = timestamp;
+        size_t fadeout  = millis_to_samples(nSampleRate, fFadeout);
+
+        for (size_t i=0; i<nActive; ++i)
+            cancel_sample(vActive[i], fadeout, delay);
     }
 
     void sampler_kernel::trigger_stop(size_t timestamp)
@@ -1108,6 +1140,8 @@ namespace lsp
         pBypass         = NULL;
         pMute           = NULL;
         pMuting         = NULL;
+        pNoteOff        = NULL;
+        pFadeout        = NULL;
         pDry            = NULL;
         pWet            = NULL;
         pGain           = NULL;
@@ -1220,6 +1254,10 @@ namespace lsp
         pMute       = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pMuting     = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pNoteOff    = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pFadeout    = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pDry        = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
@@ -1416,6 +1454,8 @@ namespace lsp
 //            lsp_trace("gain = %f, bypass=%s, dry_bypass=%s", s->fGain, (bypass) ? "true" : "false", (dry_bypass) ? "true" : "false");
 
             // Additional parameters
+            lsp_trace("Call for set sampler fadeout...");
+            s->sSampler.set_fadeout(pNoteOff->getValue() >= 0.5f, pFadeout->getValue());
             lsp_trace("Call for set trigger muting...");
             s->sTrigger.set_muting(muting);
             lsp_trace("Call trigger %d for update", int(i));

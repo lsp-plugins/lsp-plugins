@@ -62,6 +62,7 @@ namespace lsp
                 virtual void write(const void *buffer, size_t size);
                 virtual void *get_buffer();
                 virtual float get_value();
+                virtual float get_default_value();
                 virtual void set_value(float value);
                 virtual void notify_all();
                 virtual void notify(CtlPort *port);

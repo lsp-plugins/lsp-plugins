@@ -70,7 +70,6 @@ namespace lsp
                 inline float            tiny_step() const { return fTinyStep; }
                 inline float            min_value() const { return fMin; }
                 inline float            max_value() const { return fMax; }
-                inline bool             fill() const { return nFlags & F_FILL; }
                 inline LSPColor        *color() { return &sColor; }
                 inline LSPColor        *bg_color() { return &sBgColor; }
                 inline size_t           angle() const { return nAngle; }
@@ -87,7 +86,6 @@ namespace lsp
                 void                    set_max_value(float value);
                 void                    set_min_size(ssize_t value);
                 void                    set_angle(size_t value);
-                void                    set_fill(bool value = true);
                 void                    set_button_width(size_t value);
                 void                    set_button_length(size_t value);
 

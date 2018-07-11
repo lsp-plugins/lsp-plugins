@@ -13,7 +13,8 @@ namespace lsp
     {
         CtlMarker::CtlMarker(CtlRegistry *src, LSPMarker *mark): CtlWidget(src, mark)
         {
-            pPort       = NULL;
+            pPort           = NULL;
+            fTransparency   = 0.0f;
         }
 
         CtlMarker::~CtlMarker()
@@ -58,6 +59,9 @@ namespace lsp
                     if (mark != NULL)
                         PARSE_BOOL(value, mark->set_smooth(__));
                     break;
+                case A_FILL:
+                    PARSE_FLOAT(value, fTransparency = __);
+                    break;
                 case A_BASIS:
                     if (mark != NULL)
                         PARSE_INT(value, mark->set_basis_id(__));
@@ -74,6 +78,10 @@ namespace lsp
                     if (mark != NULL)
                         PARSE_INT(value, mark->set_center(__));
                     break;
+                case A_BORDER:
+                    if (mark != NULL)
+                        PARSE_INT(value, mark->set_border(__));
+                    break;
                 default:
                 {
                     bool set = sColor.set(att, value);
@@ -88,6 +96,7 @@ namespace lsp
         {
             if (pPort != NULL)
                 notify(pPort);
+            sColor.set_alpha(fTransparency);
             CtlWidget::end();
         }
 

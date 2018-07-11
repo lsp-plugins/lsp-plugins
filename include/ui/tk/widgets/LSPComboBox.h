@@ -59,13 +59,12 @@ namespace lsp
 
                 enum flags_t
                 {
-                    F_FILL          = 1 << 0,
-                    F_OPENED        = 1 << 1,
-                    F_CIRCULAR      = 1 << 2
+                    F_OPENED        = 1 << 0,
+                    F_CIRCULAR      = 1 << 1
                 };
 
             protected:
-                size_t              nFlags;
+                size_t              nCBFlags;
                 ssize_t             nMinWidth;
                 ssize_t             nMinHeight;
                 size_t              nMFlags;
@@ -118,9 +117,8 @@ namespace lsp
                 inline LSPItemList *items()             { return sListBox.items();  }
                 inline ssize_t      min_width() const   { return nMinWidth;  }
                 inline ssize_t      min_height() const  { return nMinHeight; }
-                inline bool         opened() const      { return nFlags & F_OPENED;     }
-                inline bool         fill() const        { return nFlags & F_FILL;       }
-                inline bool         circular() const    { return nFlags & F_CIRCULAR;   }
+                inline bool         opened() const      { return nCBFlags & F_OPENED;     }
+                inline bool         circular() const    { return nCBFlags & F_CIRCULAR;   }
 
                 inline Color       *color()             { return sListBox.color(); }
                 inline Color       *bg_color()          { return sListBox.bg_color(); }
@@ -133,12 +131,11 @@ namespace lsp
 
                 status_t set_opened(bool open = true);
                 inline status_t set_closed(bool closed = true) { return set_opened(!closed); };
-                void set_fill(bool fill = true);
 
                 void set_circular(bool circular = true);
 
                 inline status_t open()  { return set_opened(true); }
-                inline status_t toggle(){ return set_opened(!(nFlags & F_OPENED)); }
+                inline status_t toggle(){ return set_opened(!(nCBFlags & F_OPENED)); }
                 inline status_t close() { return set_opened(false); }
 
             public:

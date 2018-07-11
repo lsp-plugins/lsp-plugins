@@ -30,7 +30,8 @@ namespace lsp
                     F_VISIBLE       = 1 << 2,       // Widget is visible
                     F_REALIZED      = 1 << 3,       // Widget is realized
                     F_EXPAND        = 1 << 4,       // Area for the widget should be expanded
-                    F_FILL          = 1 << 5        // Widget should desirable fill all the provided area
+                    F_HFILL         = 1 << 5,       // Widget should desirable fill all the provided area horizontally
+                    F_VFILL         = 1 << 6,       // Widget should desirable fill all the provided area vertically
                 };
 
             protected:
@@ -217,9 +218,21 @@ namespace lsp
 
                 /** Get fill flag: true if container should desirable fill all provided area with widget
                  *
-                 * @return expanding flag
+                 * @return fill flag
                  */
-                inline bool fill() const            { return nFlags & F_FILL; }
+                inline bool fill() const            { return (nFlags & (F_HFILL | F_VFILL)) == (F_HFILL | F_VFILL); }
+
+                /** Get horizontal fill flag: true if container should horizontally fill all provided area with widget
+                 *
+                 * @return horizontal fill flag
+                 */
+                inline bool hfill() const           { return nFlags & F_HFILL; }
+
+                /** Get vertical fill flag: true if container should vertically fill all provided area with widget
+                 *
+                 * @return vertical fill flag
+                 */
+                inline bool vfill() const           { return nFlags & F_VFILL; }
 
                 /** Check that widget has focus
                  *
@@ -340,6 +353,18 @@ namespace lsp
                  * @param value filling flag value
                  */
                 virtual void    set_fill(bool value = true);
+
+                /** Set horizontal fill flag
+                 *
+                 * @param value horizontal filling flag value
+                 */
+                virtual void    set_hfill(bool value = true);
+
+                /** Set vertical fill flag
+                 *
+                 * @param value vertical filling flag value
+                 */
+                virtual void    set_vfill(bool value = true);
 
                 /** Set mouse pointer
                  *

@@ -120,8 +120,8 @@ namespace lsp
         SWITCH("olv" id, "Output level visibility" label, 1.0f), \
         MESH("icg" id, "Compressor input" label, 2, compressor_base_metadata::TIME_MESH_SIZE), \
         MESH("ocg" id, "Compressor output" label, 2, compressor_base_metadata::TIME_MESH_SIZE), \
-        METER_GAIN("ilm" id, "Input level meter" label, GAIN_AMP_P_24_DB), \
-        METER_GAIN("olm" id, "Output level meter" label, GAIN_AMP_P_24_DB)
+        METER_GAIN("ilm" id, "Input level meter" label, GAIN_AMP_P_12_DB), \
+        METER_GAIN("olm" id, "Output level meter" label, GAIN_AMP_P_12_DB)
 
     static const port_t compressor_mono_ports[] =
     {

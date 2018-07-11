@@ -17,6 +17,7 @@ Also each instrument has it's own stereo output that makes possible to record in
 <p><b>Controls:</b></p>
 <ul>
 	<li><b>Bypass</b> - hot bypass switch, when turned on (led indicator is shining), the plugin does not affect the input signal.</li>
+	<li><b>Working area</b> - combo box that allows to switch between instrument setup and instrument mixer.</li>
 </ul>
 
 <p><b>'Instrument mixer' section:</b></p>
@@ -66,6 +67,7 @@ Also each instrument has it's own stereo output that makes possible to record in
 <p><b>'Audio channel' section:</b></p>
 <ul>
 	<li><b>Muting</b> - when enabled, turns off any playback when the Channel Control MIDI message is received.</li>
+	<li><b>Note off</b> - when enabled, turns off any playback for this channel when the Note Off MIDI message is received. The sample fade-out time can be controlled by the corresponding knob.</li>
 	<li><b>Dry amount</b> - the gain of the input signal passed to the audio inputs of the plugin.</li>
 	<li><b>Wet amount</b> - the gain of the processed signal.</li>
 	<li><b>Output gain</b> - the overall output gain of the plugin.</li>

@@ -10,10 +10,30 @@
 #include <core/dsp.h>
 #include <core/bits.h>
 
+#include <core/x86/features.h>
+
 #define CORE_X86_SSE_IMPL
 
-#include <core/x86/sse/const.h>
-#include <core/x86/sse3/filters.h>
+namespace lsp
+{
+    namespace sse
+    {
+        #include <core/x86/sse/const.h>
+    }
+
+    namespace sse3
+    {
+        using namespace sse;
+
+        #include <core/x86/sse3/graphics.h>
+
+        #include <core/x86/sse3/filters/static.h>
+        #include <core/x86/sse3/filters/dynamic.h>
+        #include <core/x86/sse3/filters/transform.h>
+    }
+}
+
+
 #include <core/x86/sse3/complex.h>
 
 #undef CORE_X86_SSE_IMPL
@@ -22,9 +42,11 @@ namespace lsp
 {
     namespace sse3
     {
-        void dsp_init(dsp_options_t options)
+        using namespace x86;
+
+        void dsp_init(const cpu_features_t *f)
         {
-            if (!(options & DSP_OPTION_SSE3))
+            if (!(f->features & CPU_OPTION_SSE3))
                 return;
 
             // Additional xmm registers are available only in 64-bit mode
@@ -35,7 +57,12 @@ namespace lsp
 //                dsp::biquad_process_x4          = sse3::x64_biquad_process_x4; // Pure SSE has a bit better throughput for this case
                 dsp::biquad_process_x8          = sse3::x64_biquad_process_x8;
 
-                dsp::packed_complex_mul         = sse3::packed_complex_mul;
+                dsp::dyn_biquad_process_x8      = sse3::x64_dyn_biquad_process_x8;
+                dsp::bilinear_transform_x8      = sse3::x64_bilinear_transform_x8;
+
+                dsp::axis_apply_log             = sse3::x64_axis_apply_log;
+
+                dsp::packed_complex_mul         = sse3::x64_packed_complex_mul;
             #endif /* ARCH_X86_64 */
         }
     }

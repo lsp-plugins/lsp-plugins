@@ -1,10 +1,14 @@
 <plugin resizable="false">
 	<grid rows="2" cols="2" hspacing="4" vspacing="4" transpose="true">
 		<group text="MIDI Setup" expand="true">
-			<grid rows="3" cols="5" hspacing="4">
+			<grid rows="3" cols="6" hspacing="4">
 				<label text="Channel" />
 				<label text="Note" />
 				<label text="Muting" />
+				<hbox spacing="4" fill="false">
+					<button id="noff" led="true" color="green" size="12" />
+					<label text="Note off" />
+				</hbox>
 				<label text="MIDI #" />
 				<label text="Mute" />
 									
@@ -13,13 +17,15 @@
 					<combo id="note" fill="true" />
 					<combo id="oct" fill="true" />
 				</hbox>
-				<button id="muting" />
+				<button id="muting" size="24" color="yellow" led="true" />
+				<knob id="fout" size="20" />
 				<indicator id="mn" format="i3" text_color="green" />
 				<button id="mute" size="32" />
 				
 				<label />
 				<label />
-				<led id="muting" size="6" />
+				<label />
+				<value id="fout" same_line="true"/>
 				<label />
 				<led id="mute" color="red" />
 			</grid>
@@ -107,7 +113,7 @@
 
 				<ui:for id="i" first="0" last="7" >
 					<label text="${i}" />
-					<button id="on_${i}" size="16" />
+					<button id="on_${i}" size="16" color="yellow" led="true" />
 					<led id="ac_${i}" color="yellow" size="6"/>
 					<knob id="vl_${i}" size="20" scale_color="magenta" />
 					<value id="vl_${i}" detailed="false" />

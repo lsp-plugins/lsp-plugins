@@ -55,10 +55,15 @@ namespace lsp
 
                 /** Get single float value
                  *
-                 * @param dfl default value if there is no data
                  * @return single float value
                  */
                 virtual float get_value();
+
+                /** Get signle default float value
+                 *
+                 * @return default float value
+                 */
+                virtual float get_default_value();
 
                 /** Set single float value
                  *

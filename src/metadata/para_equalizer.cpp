@@ -48,6 +48,8 @@ namespace lsp
 #ifndef LSP_NO_EXPERIMENTAL
         "Ladder-pass",
         "Ladder-rej",
+        "Envelope",
+        "Bandpass",
 #endif /* LSP_NO_EXPERIMENTAL */
         NULL
     };
@@ -157,7 +159,7 @@ namespace lsp
             COMBO("fft", "FFT analysis", 0, equalizer_fft_mode), \
             LOG_CONTROL("react", "FFT reactivity", U_MSEC, para_equalizer_base_metadata::REACT_TIME), \
             AMP_GAIN("shift", "Shift gain", 1.0f, 100.0f), \
-            LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, graph_equalizer_base_metadata::ZOOM), \
+            LOG_CONTROL("zoom", "Graph zoom", U_GAIN_AMP, para_equalizer_base_metadata::ZOOM), \
             COMBO("fsel", "Filter select", 0, fselect)
 
     #define EQ_MONO_PORTS \

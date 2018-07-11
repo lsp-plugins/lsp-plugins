@@ -26,7 +26,8 @@ namespace lsp
                     S_LED       = (1 << 3),
                     S_TRIGGER   = (1 << 4),
                     S_TOGGLE    = (1 << 5),
-                    S_DOWN      = (1 << 6)
+                    S_DOWN      = (1 << 6),
+                    S_EDITABLE  = (1 << 7),
                 };
 
             protected:
@@ -61,6 +62,7 @@ namespace lsp
                 inline bool     is_normal() const       { return !(nState & (S_TOGGLE | S_TRIGGER)); }
                 inline bool     is_down() const         { return nState & S_DOWN; }
                 inline bool     is_led() const          { return nState & S_LED; }
+                inline bool     is_editable() const     { return nState & S_EDITABLE; }
                 inline Color   *color()                 { return &sColor; }
                 inline Color   *bg_color()              { return &sBgColor; }
                 inline LSPFont *font()                  { return &sFont; }
@@ -74,6 +76,7 @@ namespace lsp
                 void            set_trigger();
                 void            set_toggle();
                 void            set_normal();
+                void            set_editable(bool value = true);
                 void            set_color(const Color *c);
                 void            set_bg_color(const Color *c);
                 void            set_down(bool value = true);

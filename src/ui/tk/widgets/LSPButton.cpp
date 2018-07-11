@@ -21,7 +21,7 @@ namespace lsp
             nHeight     = 18;
             nMinWidth   = 18;
             nMinHeight  = 18;
-            nState      = 0;
+            nState      = S_EDITABLE;
             nBMask      = 0;
             nChanges    = 0;
 
@@ -135,11 +135,26 @@ namespace lsp
 
         void LSPButton::set_led(bool value)
         {
+            size_t state = nState;
             if (value)
                 nState     |= S_LED;
             else
                 nState     &= ~S_LED;
-            query_draw();
+
+            if (nState != state)
+                query_draw();
+        }
+
+        void LSPButton::set_editable(bool value)
+        {
+            size_t state = nState;
+            if (value)
+                nState     |= S_EDITABLE;
+            else
+                nState     &= ~S_EDITABLE;
+
+            if (nState != state)
+                query_draw();
         }
 
         void LSPButton::set_color(const Color *c)
@@ -391,6 +406,9 @@ namespace lsp
 
         status_t LSPButton::on_mouse_down(const ws_event_t *e)
         {
+            if (!(nState & S_EDITABLE))
+                return STATUS_OK;
+
             take_focus();
 
             bool m_over         = check_mouse_over(e->nLeft, e->nTop);
@@ -444,6 +462,9 @@ namespace lsp
 
         status_t LSPButton::on_mouse_up(const ws_event_t *e)
         {
+            if (!(nState & S_EDITABLE))
+                return STATUS_OK;
+
             size_t mask     = nBMask;
             nBMask         &= ~(1 << e->nCode);
 
@@ -537,6 +558,9 @@ namespace lsp
 
         status_t LSPButton::on_mouse_move(const ws_event_t *e)
         {
+            if (!(nState & S_EDITABLE))
+                return STATUS_OK;
+
             // Mouse button was initially pressed out of the button area, ignore this case
             if (nState & S_OUT)
                 return STATUS_OK;

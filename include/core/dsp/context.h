@@ -12,25 +12,6 @@
     #error "This header should not be included directly"
 #endif /* __CORE_DSP_DEFS */
 
-#define DSP_OPTION_CPU_UNKNOWN          0UL
-#define DSP_OPTION_CPU_INTEL            1UL
-#define DSP_OPTION_CPU_AMD              2UL
-#define DSP_OPTION_CPU_MASK             0x3UL
-#define DSP_OPTION_FPU                  (1UL << 2)
-#define DSP_OPTION_CMOV                 (1UL << 3)
-#define DSP_OPTION_MMX                  (1UL << 4)
-#define DSP_OPTION_SSE                  (1UL << 5)
-#define DSP_OPTION_SSE2                 (1UL << 6)
-#define DSP_OPTION_SSE3                 (1UL << 7)
-#define DSP_OPTION_SSSE3                (1UL << 8)
-#define DSP_OPTION_SSE4_1               (1UL << 9)
-#define DSP_OPTION_SSE4_2               (1UL << 10)
-#define DSP_OPTION_SSE4A                (1UL << 11)
-#define DSP_OPTION_FMA3                 (1UL << 12)
-#define DSP_OPTION_FMA4                 (1UL << 13)
-#define DSP_OPTION_AVX                  (1UL << 14)
-#define DSP_OPTION_AVX2                 (1UL << 15)
-
 namespace lsp
 {
     //-----------------------------------------------------------------------

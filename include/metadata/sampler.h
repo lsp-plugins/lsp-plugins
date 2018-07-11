@@ -24,6 +24,11 @@ namespace lsp
         static const float PREDELAY_DFL             = 0.0f;     // Pre-delay default (ms)
         static const float PREDELAY_STEP            = 0.1f;     // Pre-delay step (ms)
 
+        static const float FADEOUT_MIN              = 0.0f;     // Fade-out min (ms)
+        static const float FADEOUT_MAX              = 50.0f;    // Fade-out max (ms)
+        static const float FADEOUT_DFL              = 10.0f;    // Fade-out default (ms)
+        static const float FADEOUT_STEP             = 0.025f;   // Fade-out step (ms)
+
         static const size_t MESH_SIZE               = 320;      // Maximum mesh size
         static const size_t TRACKS_MAX              = 2;        // Maximum tracks per mesh/sample
         static const float ACTIVITY_LIGHTING        = 0.1f;     // Activity lighting (seconds)

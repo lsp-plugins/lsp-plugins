@@ -13,7 +13,7 @@
 // Alignment
 #define DEFAULT_ALIGN                   0x10
 #define ALIGN64                         0x40
-#define ALIGN_SIZE(x, size)             (((x) + size - 1) & (~size_t(size - 1)))
+#define ALIGN_SIZE(x, size)             (((x) + (size) - 1) & (~size_t((size) - 1)))
 
 // Array management
 #define DROP_ARRAY(ptr)     \

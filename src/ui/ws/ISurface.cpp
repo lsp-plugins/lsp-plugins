@@ -268,6 +268,11 @@ namespace lsp
         {
         }
 
+        void ISurface::parametric_bar(float a1, float b1, float c1, float a2, float b2, float c2,
+                float left, float right, float top, float bottom, IGradient *gr)
+        {
+        }
+
         void ISurface::wire_arc(float x, float y, float r, float a1, float a2, float width, const Color &color)
         {
         }

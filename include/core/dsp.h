@@ -9,6 +9,7 @@
 #define CORE_DSP_H_
 
 #include <core/types.h>
+#include <core/debug.h>
 #include <stddef.h>
 #include <math.h>
 #include <string.h>
@@ -63,6 +64,22 @@ namespace lsp
         extern void (* fill_zero)(float *dst, size_t count);
         extern void (* fill_one)(float *dst, size_t count);
         extern void (* fill_minus_one)(float *dst, size_t count);
+
+        /** Power of floating-point value by integer constant
+         *
+         * @param x value to power
+         * @param deg the power degree
+         * @return result of x^deg calculation
+         */
+        extern float (* ipowf)(float x, int deg);
+
+        /** Calculate the integer root of value
+         *
+         * @param x the value to calculate
+         * @param deg the root degree, should be positive
+         * @return the deg'th root of x
+         */
+        extern float (* irootf)(float x, int deg);
 
         /** Calculate absolute values: dst[i] = abs(dst[i])
          *
@@ -293,6 +310,46 @@ namespace lsp
          * @param count number of elements
          */
         extern void (* scale_div3)(float *dst, const float *src, float k, size_t count);
+
+        /** Calculate dst[i] = src1[i] + src2[i] * k
+         *
+         * @param dst destination array
+         * @param src1 source array 1
+         * @param src2 source array 2
+         * @param k multiplier for elements of array 2
+         * @param count number of elements
+         */
+        extern void (* scale_add4)(float *dst, const float *src1, const float *src2, float k, size_t count);
+
+        /** Calculate dst[i] = src1[i] - src2[i] * k
+         *
+         * @param dst destination array
+         * @param src1 source array 1
+         * @param src2 source array 2
+         * @param k multiplier for elements of array 2
+         * @param count number of elements
+         */
+        extern void (* scale_sub4)(float *dst, const float *src1, const float *src2, float k, size_t count);
+
+        /** Calculate dst[i] = src1[i] * src2[i] * k
+         *
+         * @param dst destination array
+         * @param src1 source array 1
+         * @param src2 source array 2
+         * @param k multiplier for elements of array 2
+         * @param count number of elements
+         */
+        extern void (* scale_mul4)(float *dst, const float *src1, const float *src2, float k, size_t count);
+
+        /** Calculate dst[i] = src1[i] / (src2[i] * k)
+         *
+         * @param dst destination array
+         * @param src1 source array 1
+         * @param src2 source array 2
+         * @param k multiplier for elements of array 2
+         * @param count number of elements
+         */
+        extern void (* scale_div4)(float *dst, const float *src1, const float *src2, float k, size_t count);
 
         /** Calculate dst[i] = dst[i] + src[i]
          *
@@ -540,6 +597,15 @@ namespace lsp
          * @param count number of multiplications
          */
         extern void (* packed_complex_mul)(float *dst, const float *src1, const float *src2, size_t count);
+
+        /** Fill output array with same complex numbers
+         *
+         * @param dst target array to fill
+         * @param re real part of complex number
+         * @param im imaginary part of complex number
+         * @param count number of elements to fill
+         */
+        extern void (* packed_complex_fill)(float *dst, float re, float im, size_t count);
 
         /** Convert real to packed complex
          *

@@ -398,8 +398,14 @@ namespace lsp
             for (size_t i=0; i<items; ++i)
             {
                 cell_t *w = vCells.at(i);
-                if ((hidden_widget(w)) || (w->nRows <= 0))
+                if (w->nRows <= 0)
                     continue;
+                if (hidden_widget(w))
+                {
+                    s->fill_rect(w->a.nLeft, w->a.nTop, w->a.nWidth, w->a.nHeight, sBgColor);
+                    continue;
+                }
+
                 visible ++;
                 if ((force) || (w->pWidget->redraw_pending()))
                 {
@@ -626,8 +632,6 @@ namespace lsp
                 {
                     v               = vCols.at(j);
 
-                    if (hidden_widget(w))
-                        continue;
                     if ((w->nRows <= 0) || (w->nCols <= 0))
                         continue;
 
@@ -635,6 +639,9 @@ namespace lsp
                     w->a.nTop       = h->nOffset;
                     w->a.nWidth     = estimate_size(v, w->nCols, nHSpacing);
                     w->a.nHeight    = estimate_size(h, w->nRows, nVSpacing);
+
+                    if (hidden_widget(w))
+                        continue;
 
                     w->s            = w->a; // Copy cell parameters to cell size attributes
                     w->s.nWidth    -= w->p.nLeft + w->p.nRight;
@@ -644,24 +651,31 @@ namespace lsp
                     if ((j + w->nCols) < n_cols)
                         w->a.nWidth    += nHSpacing;
 
-                    // Do not fill
-                    if (!w->pWidget->fill())
+                    // Do not fill horizontally
+                    if (!w->pWidget->hfill())
                     {
                         ssize_t nw      = (w->r.nMinWidth >= 0) ? w->r.nMinWidth : 0;
-                        ssize_t nh      = (w->r.nMinHeight >= 0) ? w->r.nMinHeight : 0;
                         w->s.nLeft     += (w->s.nWidth - nw) >> 1;
-                        w->s.nTop      += (w->s.nHeight - nh) >> 1;
                         w->s.nWidth     = nw;
-                        w->s.nHeight    = nh;
                     }
                     else
                     {
-                        // Correct dimensions of widget
                         if ((w->r.nMaxWidth >= 0) && (w->s.nWidth > w->r.nMaxWidth))
                         {
                             w->s.nLeft     +=   (w->s.nWidth - w->r.nMaxWidth) >> 1;
                             w->s.nWidth     =   w->r.nMaxWidth;
                         }
+                    }
+
+                    // Do not fill vertically
+                    if (!w->pWidget->vfill())
+                    {
+                        ssize_t nh      = (w->r.nMinHeight >= 0) ? w->r.nMinHeight : 0;
+                        w->s.nTop      += (w->s.nHeight - nh) >> 1;
+                        w->s.nHeight    = nh;
+                    }
+                    else
+                    {
                         if ((w->r.nMaxHeight >= 0) && (w->s.nHeight > w->r.nMaxHeight))
                         {
                             w->s.nTop      +=   (w->s.nHeight - w->r.nMaxHeight) >> 1;

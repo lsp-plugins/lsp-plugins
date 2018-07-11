@@ -136,6 +136,9 @@ namespace lsp
 
                     virtual void parametric_line(float a, float b, float c, float left, float right, float top, float bottom, float width, const Color &color);
 
+                    virtual void parametric_bar(float a1, float b1, float c1, float a2, float b2, float c2,
+                            float left, float right, float top, float bottom, IGradient *gr);
+
                     virtual void wire_arc(float x, float y, float r, float a1, float a2, float width, const Color &color);
 
                     virtual void fill_poly(const float *x, const float *y, size_t n, const Color & color);

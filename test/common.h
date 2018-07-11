@@ -108,6 +108,12 @@ namespace test
                 randomize_positive();
             }
 
+            template <typename T>
+                inline T *data()
+                {
+                    return reinterpret_cast<T *>(pBuffer);
+                }
+
             inline float *data()
             {
                 return pBuffer;
@@ -156,6 +162,13 @@ namespace test
                 printf("\n");
             }
 
+            void dump(const char *text, size_t from, size_t count)
+            {
+                printf("%s: ", text);
+                for (size_t i=from; (i<nLength) && (count > 0); ++i, --count)
+                    printf("%.3f ", pBuffer[i]);
+                printf("\n");
+            }
     };
 
     void dump_data(const float *data, size_t count)

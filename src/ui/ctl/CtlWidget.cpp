@@ -96,6 +96,12 @@ namespace lsp
                 case A_FILL:
                     PARSE_BOOL(value, pWidget->set_fill(__));
                     break;
+                case A_HFILL:
+                    PARSE_BOOL(value, pWidget->set_hfill(__));
+                    break;
+                case A_VFILL:
+                    PARSE_BOOL(value, pWidget->set_vfill(__));
+                    break;
 
                 default:
                     break;

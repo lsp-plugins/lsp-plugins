@@ -233,6 +233,12 @@ namespace lsp
             return (p != NULL) ? p->get_value() : 0.0f;
         }
 
+        float CtlSwitchedPort::get_default_value()
+        {
+            CtlPort *p  = current();
+            return (p != NULL) ? p->get_default_value() : 0.0f;
+        }
+
         void CtlSwitchedPort::set_value(float value)
         {
             CtlPort *p  = current();

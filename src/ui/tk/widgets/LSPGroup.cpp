@@ -68,7 +68,7 @@ namespace lsp
             size_t dd       = bw + nBorder + 1;
             d->nGapLeft     = dd;
             d->nGapRight    = dd;
-            d->nGapTop      = dd * 2;
+            d->nGapTop      = dd;
             d->nGapBottom   = dd;
             d->nMinWidth    = nBorder*2;
             d->nMinHeight   = nBorder*2;
@@ -187,6 +187,8 @@ namespace lsp
                         r.nLeft, r.nTop, r.nWidth, r.nHeight,
                         sBgColor
                     );
+//                    Color yell(1.0f, 1.0f, 0.0f);
+//                    s->wire_rect(r.nLeft, r.nTop, r.nWidth - 1, r.nHeight - 1, 1.0f, yell);
                 }
 
                 // Draw frame

@@ -77,7 +77,10 @@ namespace lsp
             if (pWidget == NULL)
                 return;
 
-            LSPKnob *knob = static_cast<LSPKnob *>(pWidget);
+            LSPKnob *knob = widget_cast<LSPKnob>(pWidget);
+            if (knob == NULL)
+                return;
+
             const port_t *p = pPort->metadata();
             if (p == NULL)
                 return;
@@ -90,20 +93,24 @@ namespace lsp
                     value           = GAIN_AMP_M_120_DB;
 
                 knob->set_value(base * log(value));
+                knob->set_default_value(base * log(pPort->get_default_value()));
             }
             else if (is_discrete_unit(p->unit)) // Integer type
             {
                 knob->set_value(truncf(value));
+                knob->set_default_value(pPort->get_default_value());
             }
             else if (bLog)
             {
                 if (value < GAIN_AMP_M_120_DB)
                     value           = GAIN_AMP_M_120_DB;
                 knob->set_value(log(value));
+                knob->set_default_value(log(pPort->get_default_value()));
             }
             else
             {
                 knob->set_value(value);
+                knob->set_default_value(pPort->get_default_value());
             }
         }
 

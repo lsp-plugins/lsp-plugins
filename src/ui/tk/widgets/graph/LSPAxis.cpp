@@ -173,6 +173,13 @@ namespace lsp
             return locate_line2d(fDX, fDY, x, y, a, b, c);
         }
 
+        void LSPAxis::ortogonal_shift(float x, float y, float shift, float &nx, float &ny)
+        {
+            // When rotating 90 degrees left, we get: dy' = dx, dx' = -dy
+            nx               = x + shift * fDY;
+            ny               = y - shift * fDX;
+        }
+
         bool LSPAxis::angle(float x, float y, float angle, float &a, float &b, float &c)
         {
             float c_sin     = sinf(angle);
@@ -181,6 +188,17 @@ namespace lsp
             float dy        = fDX*c_sin + fDY*c_cos;
 
             return locate_line2d(dx, -dy, x, y, a, b, c);
+        }
+
+        void LSPAxis::rotate_shift(float x, float y, float angle, float shift, float &nx, float &ny)
+        {
+            float c_sin     = sinf(angle);
+            float c_cos     = cosf(angle);
+            float dx        = fDX*c_cos - fDY*c_sin;
+            float dy        = fDX*c_sin + fDY*c_cos;
+
+            nx              = x + shift * dy;
+            ny              = y - shift * dx;
         }
 
         void LSPAxis::set_flag(size_t flag, bool value)
@@ -237,7 +255,7 @@ namespace lsp
                 return;
             fAngle      = value;
 
-            float dx    = 0.001 * truncf(cos(value) * 1000);
+            float dx    = 0.001f * truncf(cos(value) * 1000.0f);
             float dy    = -0.001f * truncf(sin(value) * 1000.0f);
             if ((fDX == dx) && (fDY == dy))
                 return;

@@ -228,6 +228,13 @@ namespace lsp
                 return true;
             }
 
+            /** Check if channel is active
+             *
+             * @param channel channel to check
+             * @return true if channel is active
+             */
+            inline bool channel_active(size_t channel) const { return (channel < nChannels) ? vChannels[channel].bActive : false; }
+
             inline void reset()
             {
                 nReconfigure       |= R_ANALYSIS;

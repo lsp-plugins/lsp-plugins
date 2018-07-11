@@ -48,20 +48,26 @@
 					</hbox>
 				</group>
 				<group text="Audio Output">
-					<grid rows="3" cols="5">
+					<grid rows="3" cols="6">
 						<label text="Muting" />
+						<hbox spacing="4" fill="false">
+							<button id="noff" led="true" color="green" size="12" />
+							<label text="Note off" />
+						</hbox>
 						<label id="dry" />
 						<label id="wet" />
 						<label id="g_out" />
 						<label text="Mute" />
 						
-						<button id="muting" />
+						<button id="muting" size="24" color="yellow" led="true" />
+						<knob id="fout" size="20" />
 						<knob id="dry" />
 						<knob id="wet" />
 						<knob id="g_out" />
 						<button id="mute" size="32" />
 						
-						<led id="muting" size="6" />
+						<label />
+						<value id="fout" />
 						<value id="dry" />
 						<value id="wet" />
 						<value id="g_out" />
@@ -134,7 +140,7 @@
 
 						<ui:for id="i" first="0" last="7" >
 							<label text="${i}" />
-							<button id="on[inst]_${i}" size="16" />
+							<button id="on[inst]_${i}" size="16" color="yellow" led="true" />
 							<led id="ac[inst]_${i}" color="yellow" size="6" />
 							<knob id="vl[inst]_${i}" size="20" scale_color="magenta" />
 							<value id="vl[inst]_${i}" detailed="false" />
@@ -152,14 +158,12 @@
 			
 		<!-- Mixer 0-11 -->
 		<group text="Instrument mixer" visibility_id="msel" visibility_key="1" expand="true">
-			<grid rows="15" cols="13" transpose="true" hspacing="2" vspacing="2">
+			<grid rows="13" cols="13" transpose="true" hspacing="2" vspacing="2">
 				<label text="Instrument #" fill="true" halign="0" />
 				<label text="Enabled" fill="true" halign="0" />
-				<label />
 				<label text="Mix gain" fill="true" halign="0" />
 				<label text="(dB)" fill="true" halign="0" />
 				<label text="Direct Out" fill="true" halign="0" />
-				<label />
 				<label text="Pan Left" fill="true" halign="0" />
 				<label text="(%)" fill="true" halign="0" />
 				<label text="Pan Right" fill="true" halign="0" />
@@ -171,12 +175,10 @@
 				
 				<ui:for id="i" first="0" last="11" >
 					<label text="${i}" />
-					<button id="ion_${i}" size="16" />
-					<led id="ion_${i}" color="yellow" size="6" />
+					<button id="ion_${i}" size="16" color="yellow" led="true" />
 					<knob id="imix_${i}" size="20"/>
 					<value id="imix_${i}" detailed="false" />
-					<button id="don_${i}" size="16" />
-					<led id="don_${i}" color="cyan" size="6" />
+					<button id="don_${i}" size="16" color="cyan" led="true" />
 					<knob id="panl_${i}" size="20" balance="0.5" scale_color="red" />
 					<value id="panl_${i}" detailed="false" />
 					<knob id="panr_${i}" size="20" balance="0.5" scale_color="cyan" />
@@ -191,14 +193,12 @@
 		
 		<!-- Mixer 12-23 -->
 		<group text="Instrument mixer" visibility_id="msel" visibility_key="2" expand="true">
-			<grid rows="15" cols="13" transpose="true" hspacing="2" vspacing="2">
+			<grid rows="13" cols="13" transpose="true" hspacing="2" vspacing="2">
 				<label text="Instrument #" fill="true" halign="0" />
 				<label text="Enabled" fill="true" halign="0" />
-				<label />
 				<label text="Mix gain" fill="true" halign="0" />
 				<label text="(dB)" fill="true" halign="0" />
 				<label text="Direct Out" fill="true" halign="0" />
-				<label />
 				<label text="Pan Left" fill="true" halign="0" />
 				<label text="(%)" fill="true" halign="0" />
 				<label text="Pan Right" fill="true" halign="0" />
@@ -210,12 +210,10 @@
 				
 				<ui:for id="i" first="12" last="23" >
 					<label text="${i}" />
-					<button id="ion_${i}" size="16" />
-					<led id="ion_${i}" color="yellow" size="6" />
+					<button id="ion_${i}" size="16" color="yellow" led="true" />
 					<knob id="imix_${i}" size="20"/>
 					<value id="imix_${i}" detailed="false" />
-					<button id="don_${i}" size="16" />
-					<led id="don_${i}" color="cyan" size="6" />
+					<button id="don_${i}" size="16" color="cyan" led="true" />
 					<knob id="panl_${i}" size="20" balance="0.5" scale_color="red" />
 					<value id="panl_${i}" detailed="false" />
 					<knob id="panr_${i}" size="20" balance="0.5" scale_color="cyan" />

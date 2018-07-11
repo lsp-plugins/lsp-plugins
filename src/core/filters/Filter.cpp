@@ -14,6 +14,7 @@ namespace lsp
 {
     Filter::Filter()
     {
+        pBank               = NULL;
         sParams.nType       = FLT_NONE;
         sParams.fFreq       = 0;
         sParams.fFreq2      = 0;
@@ -27,7 +28,6 @@ namespace lsp
         nItems              = 0;
 
         vItems              = NULL;
-        pBank               = &sBank;
         vData               = NULL;
         nFlags              = FF_REBUILD | FF_CLEAR;
     }
@@ -52,9 +52,17 @@ namespace lsp
             pBank           = fb;
         else
         {
-            if (!sBank.init(FILTER_CHAINS_MAX))
+            // Try to allocate filter bank
+            pBank           = new FilterBank();
+            if (pBank == NULL)
                 return false;
-            pBank           = &sBank;
+
+            // Update flags that we hawe own filter bank
+            nFlags         |= FF_OWN_BANK;
+
+            // Try to initialize own filter bank
+            if (!pBank->init(FILTER_CHAINS_MAX))
+                return false;
         }
 
         if (vData == NULL)
@@ -72,7 +80,7 @@ namespace lsp
         }
 
         update(48000, &fp);
-        nFlags              = FF_REBUILD | FF_CLEAR;
+        nFlags             |= FF_REBUILD | FF_CLEAR;
 
         return true;
     }
@@ -86,7 +94,19 @@ namespace lsp
             vData   = NULL;
         }
 
-        pBank       = NULL;
+        if (pBank != NULL)
+        {
+            // Destroy filter bank if it's our own filter bank
+            if (nFlags & FF_OWN_BANK)
+            {
+                pBank->destroy();
+                delete pBank;
+            }
+
+            pBank       = NULL;
+        }
+
+        nFlags      = 0;
     }
 
     void Filter::update(size_t sr, const filter_params_t *params)
@@ -162,7 +182,7 @@ namespace lsp
     void Filter::rebuild()
     {
         // Clear bank if it is internal bank
-        if (pBank == &sBank)
+        if (nFlags & FF_OWN_BANK)
             pBank->begin();
 
         // Reset number of cascades
@@ -173,6 +193,7 @@ namespace lsp
         // Calculate filter
         switch (sParams.nType)
         {
+            case FLT_BT_AMPLIFIER:
             case FLT_BT_RLC_LOPASS:
             case FLT_BT_RLC_HIPASS:
             case FLT_BT_RLC_LOSHELF:
@@ -183,6 +204,7 @@ namespace lsp
             case FLT_BT_RLC_LADDERPASS:
             case FLT_BT_RLC_LADDERREJ:
             case FLT_BT_RLC_BANDPASS:
+            case FLT_BT_RLC_ENVELOPE:
             {
                 // Calculate filter parameters
                 fp.fFreq2           = bilinear_relative(fp.fFreq, fp.fFreq2);    // Normalize frequency
@@ -191,6 +213,7 @@ namespace lsp
                 break;
             }
 
+            case FLT_MT_AMPLIFIER:
             case FLT_MT_RLC_LOPASS:
             case FLT_MT_RLC_HIPASS:
             case FLT_MT_RLC_LOSHELF:
@@ -201,6 +224,7 @@ namespace lsp
             case FLT_MT_RLC_LADDERPASS:
             case FLT_MT_RLC_LADDERREJ:
             case FLT_MT_RLC_BANDPASS:
+            case FLT_MT_RLC_ENVELOPE:
             {
                 // Calculate filter parameters
                 fp.fFreq2           = fp.fFreq / fp.fFreq2;    // Normalize frequency
@@ -285,10 +309,10 @@ namespace lsp
             matched_transform();
 
         // Complete bank if it is internal bank
-        if (pBank == &sBank)
+        if (nFlags & FF_OWN_BANK)
             pBank->end(nFlags & FF_CLEAR);
 
-        nFlags      = 0;
+        nFlags     &= FF_OWN_BANK; // Clear all flags except FF_OWN_BANK
     }
 
     void Filter::complex_transfer_calc(float *re, float *im, double f)
@@ -362,19 +386,63 @@ namespace lsp
                 break;
             }
 
-            default:
             case FM_BYPASS:
-            {
+            default:
                 dsp::fill_one(re, count);
                 dsp::fill_zero(im, count);
                 return;
+        }
+    }
+
+    void Filter::freq_chart(float *c, const float *f, size_t count)
+    {
+        // Calculate frequency chart
+
+        switch (nMode)
+        {
+            case FM_BILINEAR:
+            {
+                double nf   = M_PI / double(nSampleRate);
+                double kf   = 1.0/tan(sParams.fFreq * nf);
+                double lf   = nSampleRate * 0.499;
+
+                while (count--)
+                {
+                    // Cyclic frequency
+                    double w    = *(f++);
+                    w           = tan((w > lf ? lf : w) * nf) * kf;
+
+                    complex_transfer_calc(c, &c[1], w);
+                    c += 2;
+                }
+                break;
             }
+
+            case FM_MATCHED:
+            {
+                double kf   = 1.0 / sParams.fFreq;
+
+                while (count--)
+                {
+                    // Cyclic frequency
+                    double w    = *(f++) * kf;
+                    complex_transfer_calc(c, &c[1], w);
+                    c += 2;
+                }
+                break;
+            }
+
+            case FM_BYPASS:
+            default:
+                dsp::packed_complex_fill(c, 1.0f, 0.0f, count);
+                return;
         }
     }
 
     void Filter::process(float *out, const float *in, size_t samples)
     {
-        if (nFlags != 0)
+        // Check whether we need to rebuild filter
+        if (nFlags & (~FF_OWN_BANK))
             rebuild();
 
         switch (nMode)
@@ -401,6 +469,20 @@ namespace lsp
 
         switch (type)
         {
+            case FLT_BT_AMPLIFIER:
+            {
+                c           = add_cascade();
+                c->t[0]     = fp->fGain;
+                c->t[1]     = 0.0f;
+                c->t[2]     = 0.0f;
+
+                c->b[0]     = 1.0f;
+                c->b[1]     = 0.0f;
+                c->b[2]     = 0.0f;
+
+                break;
+            }
+
             case FLT_BT_RLC_LOPASS:
             case FLT_BT_RLC_HIPASS:
             {
@@ -610,6 +692,48 @@ namespace lsp
                 c->b[1]                 = 2.0 / (1.0 + fp->fQuality);
                 c->b[2]                 = 1.0;
 
+                break;
+            }
+
+            case FLT_BT_RLC_ENVELOPE:
+            {
+                size_t slope    = fp->nSlope;
+                size_t cj       = 0;
+                if (slope & 1)
+                {
+                    float k                 = 1.0f;
+
+                    for (size_t i=0; i<3; ++i)
+                    {
+                        c               = add_cascade();
+                        c->t[0]         = 1.0f;
+                        c->t[1]         = (1.0f + 0.25f)*k;
+                        c->t[2]         = 0.25f * k*k;
+
+                        c->b[0]         = 1.0f;
+                        c->b[1]         = (0.5f + 0.125f)*k;
+                        c->b[2]         = 0.5f * 0.125f * k*k;
+
+                        k              *= 0.0625f;
+                        if (!(cj++))
+                        {
+                            c->t[0]        *= fp->fGain;
+                            c->t[1]        *= fp->fGain;
+                            c->t[2]        *= fp->fGain;
+                        }
+                    }
+                }
+                slope >>= 1;
+
+                for (size_t j=0; j < slope; j++)
+                {
+                    c                       = add_cascade();
+                    c->t[0]                 = (cj == 0) ? fp->fGain : 1.0f;
+                    c->t[1]                 = (cj == 0) ? fp->fGain : 1.0f;
+                    c->b[0]                 = 1.0f;
+                    c->b[1]                 = 0.0005f;
+                    cj ++;
+                }
                 break;
             }
 
@@ -848,7 +972,7 @@ namespace lsp
 
             case FLT_BT_BWC_BANDPASS:
             {
-                double f2               = fp->fFreq / fp->fFreq2;
+                double f2               = fp->fFreq2;
                 double k                = 1.0f / (1.0f + fp->fQuality);
 
                 for (size_t j=0; j < fp->nSlope; ++j)
@@ -1161,10 +1285,10 @@ namespace lsp
 
     bool Filter::impulse_response(float *out, size_t length)
     {
-        if (pBank != &sBank)
+        if (!(nFlags & FF_OWN_BANK))
             return false;
 
-        if (nFlags != 0)
+        if (nFlags & (~FF_OWN_BANK))
             rebuild();
 
         pBank->impulse_response(out, length);
