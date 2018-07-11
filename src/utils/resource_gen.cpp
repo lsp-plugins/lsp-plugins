@@ -435,7 +435,7 @@ namespace lsp
                     continue;
                 else if (!strcmp(ent->d_name, ".."))
                     continue;
-            #ifndef LSP_NO_EXPERIMENTAL
+            #ifdef LSP_NO_EXPERIMENTAL
                 if ((path == NULL) && (!strcmp(ent->d_name, "experimental")))
                     continue;
             #endif /* LSP_NO_EXPERIMENTAL */

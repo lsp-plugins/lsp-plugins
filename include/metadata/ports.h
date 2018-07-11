@@ -42,9 +42,18 @@
 #define CONTROL(id, label, units, limits) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, \
         limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
+#define INT_CONTROL(id, label, units, limits) \
+    { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_INT, \
+        limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
+
+#define UNLIMITED_METER(id, label, units, dfl) \
+    { id, label, units, R_METER, F_OUT, 0.0f, 0.0f, dfl, 0.0f, NULL, NULL }
 #define METER(id, label, units, limits) \
     { id, label, units, R_METER, F_OUT | F_LOWER | F_UPPER | F_STEP, \
         limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
+#define METER_MINMAX(id, label, units, min, max) \
+    { id, label, units, R_METER, F_OUT | F_LOWER | F_UPPER | F_STEP, \
+        min, max, min, 0.0f, NULL, NULL }
 #define LOG_CONTROL(id, label, units, limits) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_LOG, \
         limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
@@ -99,7 +108,7 @@
 #define WET_GAIN_L(g)       AMP_GAIN10("wet_l", "Wet amount L", g)
 #define WET_GAIN_R(g)       AMP_GAIN10("wet_r", "Wet amount R", g)
 
-#define BYPASS              SWITCH("bypass", "Bypass", 0.0f)
+#define BYPASS              SWITCH(PORT_NAME_BYPASS, "Bypass", 0.0f)
 
 
 // Port configurations
@@ -132,6 +141,7 @@
 namespace lsp
 {
     // Common stereo port names
+    extern const char PORT_NAME_BYPASS[];
     extern const char PORT_NAME_INPUT[];
     extern const char PORT_NAME_OUTPUT[];
     extern const char PORT_NAME_SIDECHAIN[];

@@ -18,6 +18,7 @@
 #include <lv2/lv2plug.in/ns/ext/patch/patch.h>
 #include <lv2/lv2plug.in/ns/ext/midi/midi.h>
 #include <lv2/lv2plug.in/ns/ext/worker/worker.h>
+#include <lv2/lv2plug.in/ns/ext/time/time.h>
 #include <lv2/lv2plug.in/ns/ext/options/options.h>
 #include <lv2/lv2plug.in/ns/ext/port-props/port-props.h>
 #include <lv2/lv2plug.in/ns/ext/port-groups/port-groups.h>
@@ -96,6 +97,7 @@ namespace lsp
             LV2_URID                uridAtomTransfer;
             LV2_URID                uridEventTransfer;
             LV2_URID                uridObject;
+            LV2_URID                uridBlank;
             LV2_URID                uridState;
             LV2_URID                uridStateChange;
             LV2_URID                uridStateRequest;
@@ -105,15 +107,27 @@ namespace lsp
             LV2_URID                uridMeshType;
             LV2_URID                uridPathType;
             LV2_URID                uridMidiEventType;
+
             LV2_URID                uridPatchGet;
             LV2_URID                uridPatchSet;
             LV2_URID                uridPatchMessage;
             LV2_URID                uridPatchResponse;
             LV2_URID                uridPatchProperty;
             LV2_URID                uridPatchValue;
+
             LV2_URID                uridAtomUrid;
             LV2_URID                uridChunk;
             LV2_URID                uridUpdateRate;
+
+            LV2_URID                uridTimePosition;
+            LV2_URID                uridTimeFrame;
+            LV2_URID                uridTimeFrameRate;
+            LV2_URID                uridTimeSpeed;
+            LV2_URID                uridTimeBarBeat;
+            LV2_URID                uridTimeBar;
+            LV2_URID                uridTimeBeatUnit;
+            LV2_URID                uridTimeBeatsPerBar;
+            LV2_URID                uridTimeBeatsPerMinute;
 
             LV2UI_Controller        ctl;
             LV2UI_Write_Function    wf;
@@ -187,7 +201,8 @@ namespace lsp
 
                 uridAtomTransfer    = map_uri(LV2_ATOM__atomTransfer);
                 uridEventTransfer   = map_uri(LV2_ATOM__eventTransfer);
-                uridObject          = map_uri(LV2_ATOM__Object);
+                uridObject          = forge.Object;
+                uridBlank           = map_uri(LV2_ATOM__Blank);
                 uridState           = map_primitive("state");
                 uridConnectUI       = map_primitive("ui_connect");
                 uridUINotification  = map_type("UINotification");
@@ -206,6 +221,16 @@ namespace lsp
                 uridAtomUrid        = forge.URID;
                 uridChunk           = forge.Chunk;
                 uridUpdateRate      = map_uri(LV2_UI__updateRate);
+
+                uridTimePosition    = map_uri(LV2_TIME__Position);
+                uridTimeFrame       = map_uri(LV2_TIME__frame);
+                uridTimeFrameRate   = map_uri(LV2_TIME__framesPerSecond);
+                uridTimeSpeed       = map_uri(LV2_TIME__speed);
+                uridTimeBarBeat     = map_uri(LV2_TIME__barBeat);
+                uridTimeBar         = map_uri(LV2_TIME__bar);
+                uridTimeBeatUnit    = map_uri(LV2_TIME__beatUnit);
+                uridTimeBeatsPerBar = map_uri(LV2_TIME__beatsPerBar);
+                uridTimeBeatsPerMinute = map_uri(LV2_TIME__beatsPerMinute);
 
                 // Decode passed options if they are present
                 if (opts != NULL)
@@ -357,6 +382,12 @@ namespace lsp
             inline LV2_Atom_Forge_Ref forge_int(int32_t val)
             {
                 const LV2_Atom_Int a    = { { sizeof(int32_t), forge.Int }, val };
+                return lv2_atom_forge_primitive(&forge, &a.atom);
+            }
+
+            inline LV2_Atom_Forge_Ref forge_long(int64_t val)
+            {
+                const LV2_Atom_Long a = { { sizeof(val), forge.Long }, val };
                 return lv2_atom_forge_primitive(&forge, &a.atom);
             }
 

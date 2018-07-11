@@ -3613,7 +3613,7 @@ typedef struct VstTimeInfo
     VstInt32 samplesToNextClock;
 
     /** Time information flags
-     * @see ags
+     * @see VstTimeInfoFlags
      */
     VstInt32 flags;
 } VstTimeInfo;

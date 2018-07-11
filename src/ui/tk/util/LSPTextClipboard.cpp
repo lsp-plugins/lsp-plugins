@@ -95,7 +95,7 @@ namespace lsp
         {
         }
         
-        IInputStream *LSPTextClipboard::read(const char *ctype)
+        io::IInputStream *LSPTextClipboard::read(const char *ctype)
         {
             if (ctype == NULL)
             {
@@ -106,6 +106,8 @@ namespace lsp
             const char *data = NULL;
             if (!strcasecmp(ctype, "utf8_string"))
                 data = sString.get_utf8();
+            if (!strcasecmp(ctype, "string"))
+                data = sString.get_native();
             else if (!strcmp(ctype, "text/plain"))
                 data = sString.get_utf8();
             else if (strstr(ctype, "text/plain;") == ctype)

@@ -211,7 +211,7 @@ namespace lsp
                         t->sText[i++] = c;
 
                         c = *(++t->pStr);
-                    } while ((isalnum(c)) || (c == '_') || (c == '[') || (c == ']'));
+                    } while ((isalnum(c)) || (c == '_') || (c == '[') || (c == ']') || (c == ':'));
 
                     t->sText[i] = '\0';
                     return t->enType    = TT_IDENTIFIER;

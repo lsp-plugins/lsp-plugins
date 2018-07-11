@@ -23,247 +23,25 @@
 
 namespace lsp
 {
-    static char *escape_characters(const char *s)
+    status_t plugin_ui::ConfigHandler::handle_parameter(const char *name, const char *value)
     {
-        if (s == NULL)
-            return NULL;
-
-        buffer_t sbuf;
-        init_buf(&sbuf, strlen(s) + 32);
-
-        while (*s != '\0')
-        {
-            switch (*s)
-            {
-                case '\"':
-                    append_buf(&sbuf, "\\\"", 2);
-                    break;
-                case '\\':
-                    append_buf(&sbuf, "\\\\", 2);
-                    break;
-                case '\n':
-                    append_buf(&sbuf, "\\n", 2);
-                    break;
-                default:
-                    append_buf(&sbuf, *s);
-                    break;
-            }
-            s++;
-        }
-
-        return release_buf(&sbuf);
+        pUI->apply_changes(name, value, hPorts);
+        return STATUS_OK;
     }
 
-    static ssize_t read_line(FILE *fd, buffer_t *buf)
+    status_t plugin_ui::ConfigSource::get_head_comment(LSPString *comment)
     {
-        while(true)
-        {
-            size_t avail    = buf->nCapacity - buf->nLength;
-            if (avail < 1)
-            {
-                if (!extend_buf(buf, 4096))
-                    return -1;
-                avail    = buf->nCapacity - buf->nLength;
-            }
-            if (fgets(&buf->pString[buf->nLength], avail, fd) == NULL)
-                return -2;
-
-            size_t slen     = strlen(&buf->pString[buf->nLength]);
-            if (memchr(&buf->pString[buf->nLength], '\n', slen) != NULL)
-            {
-                buf->nLength   += slen;
-                return 0;
-            }
-
-            buf->nLength   += slen;
-        }
-        return -3;
-    }
-    
-    static bool parse_line(buffer_t *buf, char **key, char **value)
-    {
-        const char *src = buf->pString;
-        char *dst       = buf->pString;
-
-        // Read the key
-        *key            = dst;
-        *value          = NULL;
-        size_t k_chars  = 0;
-        while (*src != '\0')
-        {
-            char ch = *(src++);
-            if ((ch == ' ') || (ch == '\t'))
-            {
-                if (k_chars > 0)
-                {
-                    while (*src != '\0')
-                    {
-                        switch (*(src++))
-                        {
-                            case '=':
-                                goto end_key;
-                            case ' ':
-                            case '\t':
-                                break;
-                            case '\n':
-                            case '#':
-                                *dst    = '\0';
-                                *value  = dst;
-                                return true;
-                            default:
-                                return false;
-                        }
-                    }
-                    break;
-                }
-            }
-            else if (ch == '=')
-            {
-                if (k_chars <= 0)
-                    return false;
-                break;
-            }
-            else if ((ch == '#') || (ch == '\n'))
-            {
-                if (k_chars <= 0)
-                    return false;
-                *dst    = '\0';
-                *value  = dst;
-                return true;
-            }
-            else if ((isalnum(ch)) || (ch == '_'))
-            {
-                *(dst++)    = ch;
-                k_chars     ++;
-            }
-            else
-                return false;
-        }
-        end_key:
-        *(dst++) = '\0';
-
-        // Read the value
-        *value          = dst;
-        size_t v_chars  = 0;
-        bool quoted     = false;
-        bool protector  = false;
-
-        while (*src != '\0')
-        {
-            char ch = *(src++);
-            switch (ch)
-            {
-                case '\"':
-                    if (protector)
-                    {
-                        *(dst++)    = ch;
-                        v_chars     ++;
-                        protector   = false;
-                    }
-                    else if (!quoted)
-                    {
-                        if (v_chars > 0)
-                            return false;
-                        quoted      = true;
-                    }
-                    else
-                        goto parse_end;
-                    break;
-
-                case '\\':
-                    if (protector)
-                    {
-                        *(dst++)    = ch;
-                        v_chars     ++;
-                        protector   = false;
-                    }
-                    else
-                        protector   = true;
-                    break;
-
-                case ' ':
-                case '\t':
-                case '#':
-                    if (quoted)
-                    {
-                        if (protector)
-                        {
-                            *(dst++)    = '\\';
-                            protector   = false;
-                        }
-                        *(dst++)    = ch;
-                        v_chars     ++;
-                    }
-                    else if (protector)
-                    {
-                        *(dst++)    = ch;
-                        v_chars     ++;
-                        protector   = false;
-                    }
-                    else if (ch == '#')
-                    {
-                        *(dst++)    = '\0';
-                        return true;
-                    }
-                    else if (v_chars > 0)
-                        goto parse_end;
-                    break;
-
-                case '\n':
-                    if (quoted)
-                        return false;
-                    *(dst++)    = '\0';
-                    return true;
-
-                case 'n':
-                    if (protector)
-                        ch          = '\n';
-                    *(dst++)    = ch;
-                    protector   = false;
-                    v_chars     ++;
-                    break;
-
-                default:
-                    if (protector)
-                    {
-                        *(dst++)    = '\\';
-                        protector   = false;
-                    }
-                    *(dst++)    = ch;
-                    v_chars     ++;
-                    break;
-            }
-        }
-        parse_end:
-        *(dst++) = '\0';
-
-        // Ensure that line ends correctly
-        while (*src != '\0')
-        {
-            switch (*(src++))
-            {
-                case '\n':
-                case '#':
-                    return true;
-                case ' ':
-                case '\t':
-                    break;
-                default:
-                    return false;
-            }
-        }
-
-        return true;
+        return (comment->set(pComment)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
-    void plugin_ui::serialize_ports(FILE *fd, cvector<CtlPort> &ports)
+    status_t plugin_ui::ConfigSource::get_parameter(LSPString *name, LSPString *value, LSPString *comment, int *flags)
     {
-        size_t n_ports = ports.size();
+        size_t n_ports = hPorts.size();
 
-        for (size_t i=0; i<n_ports; ++i)
+        while (nPortID < n_ports)
         {
             // Get port
-            CtlPort *up         = ports.at(i);
+            CtlPort *up         = hPorts.at(nPortID++);
             if (up == NULL)
                 continue;
 
@@ -276,84 +54,13 @@ namespace lsp
             if (!IS_IN_PORT(p))
                 continue;
 
-            switch (p->role)
-            {
-                case R_PORT_SET:
-                case R_CONTROL:
-                {
-                    // Serialize meta information
-                    const char *unit = encode_unit(p->unit);
-                    if (unit != NULL)
-                        fprintf(fd, "# %s [%s]", p->name, unit);
-                    else if (p->unit == U_BOOL)
-                        fprintf(fd, "# %s", p->name);
-                    else
-                        fprintf(fd, "# %s", p->name);
-
-                    if ((p->flags & (F_LOWER | F_UPPER)) || (p->unit == U_ENUM) || (p->unit == U_BOOL))
-                    {
-                        if (is_discrete_unit(p->unit) || (p->flags & F_INT))
-                        {
-                            if (p->unit != U_BOOL)
-                            {
-                                if (p->unit == U_ENUM)
-                                {
-                                    int value       = p->min + list_size(p->items) - 1;
-                                    fprintf(fd, ": %d..%d", int(p->min), int(value));
-                                }
-                                else
-                                    fprintf(fd, ": %d..%d", int(p->min), int(p->max));
-                            }
-                            else
-                                fprintf(fd, ": true/false");
-                        }
-                        else
-                            fprintf(fd, ": %.6f..%.6f", p->min, p->max);
-                    }
-                    fputs("\n", fd);
-
-                    // Describe enum
-                    if ((p->unit == U_ENUM) && (p->items != NULL))
-                    {
-                        int value   = p->min;
-                        for (const char **item = p->items; *item != NULL; ++item)
-                            fprintf(fd, "#   %d: %s\n", value++, *item);
-                    }
-
-                    // Serialize value
-                    float value = up->get_value();
-                    if (is_discrete_unit(p->unit) || (p->flags & F_INT))
-                    {
-                        if (p->unit == U_BOOL)
-                            fprintf(fd, "%s = %s\n", p->id, (value >= 0.5f) ? "true" : "false");
-                        else
-                            fprintf(fd, "%s = %d\n", p->id, int(value));
-                    }
-                    else
-                        fprintf(fd, "%s = %.6f\n", p->id, value);
-                    fputs("\n", fd);
-                    break;
-                }
-                case R_PATH:
-                {
-                    fprintf(fd, "# %s [pathname]\n", p->name);
-                    const char *path    = up->get_buffer<const char>();
-                    char *value         = escape_characters(path);
-                    if (value != NULL)
-                    {
-                        fprintf(fd, "%s = \"%s\"\n", p->id, value);
-                        lsp_free(value);
-                    }
-                    else
-                        fprintf(fd, "%s = \"\"\n", p->id);
-                    fputs("\n", fd);
-                    break;
-                }
-                default:
-                    break;
-            }
+            // Format port value
+            return format_port_value(up, name, value, comment, flags);
         }
+
+        return STATUS_NO_DATA;
     }
+
 
     //--------------------------------------------------------------------------------------------------------
 
@@ -365,6 +72,20 @@ namespace lsp
         PATH(UI_DLG_IR_PATH_ID, "Dialog path for selecting impulse response files"),
         PATH(UI_DLG_CONFIG_PATH_ID, "Dialog path for saving/loading configuration files"),
         PATH(UI_DLG_DEFAULT_PATH_ID, "Dialog default path for other files"),
+        PORTS_END
+    };
+
+    const port_t plugin_ui::vTimeMetadata[] =
+    {
+        UNLIMITED_METER(TIME_SAMPLE_RATE_PORT, "Sample rate", U_HZ, DEFAULT_SAMPLE_RATE),
+        UNLIMITED_METER(TIME_SPEED_PORT, "Playback speed", U_NONE, 0.0f),
+        UNLIMITED_METER(TIME_FRAME_PORT, "Current frame", U_NONE, 0.0f),
+        UNLIMITED_METER(TIME_NUMERATOR_PORT, "Numerator", U_NONE, 4.0f),
+        UNLIMITED_METER(TIME_DENOMINATOR_PORT, "Denominator", U_NONE, 4.0f),
+        UNLIMITED_METER(TIME_BEATS_PER_MINUTE_PORT, "Beats per Minute", U_BPM, BPM_DEFAULT),
+        UNLIMITED_METER(TIME_TICK_PORT, "Current tick", U_NONE, 0.0f),
+        UNLIMITED_METER(TIME_TICKS_PER_BEAT_PORT, "Ticks per Bar", U_NONE, 960.0f),
+
         PORTS_END
     };
 
@@ -422,9 +143,21 @@ namespace lsp
             }
         }
 
+        // Destroy time ports
+        for (size_t i=0; i<vTimePorts.size(); ++i)
+        {
+            CtlPort *p = vTimePorts.at(i);
+            if (p != NULL)
+            {
+                lsp_trace("Destroy timing port id=%s", p->metadata()->id);
+                delete p;
+            }
+        }
+
         // Clear ports
         vSortedPorts.clear();
         vConfigPorts.clear();
+        vTimePorts.clear();
         vPorts.clear();
         vSwitched.clear();
         vAliases.clear(); // Aliases will be destroyed as controllers
@@ -546,6 +279,13 @@ namespace lsp
                 btn->init();
                 vWidgets.add(btn);
                 return new CtlButton(this, btn);
+            }
+            case WC_TTAP:
+            {
+                LSPButton *btn = new LSPButton(&sDisplay);
+                btn->init();
+                vWidgets.add(btn);
+                return new CtlTempoTap(this, btn);
             }
             case WC_SWITCH:
             {
@@ -760,6 +500,13 @@ namespace lsp
                 vWidgets.add(dot);
                 return new CtlDot(this, dot);
             }
+            case WC_FRAC:
+            {
+                LSPFraction *frac = new LSPFraction(&sDisplay);
+                frac->init();
+                vWidgets.add(frac);
+                return new CtlFraction(this, frac);
+            }
 
             case WC_PORT:
             {
@@ -808,7 +555,7 @@ namespace lsp
         font_parameters_t fp;
         theme->font()->get_parameters(&fp); // Cache font parameters for further user
 
-        // Create additional ports
+        // Create additional ports (ui)
         for (const port_t *p = vConfigMetadata; p->id != NULL; ++p)
         {
             switch (p->role)
@@ -835,10 +582,28 @@ namespace lsp
             }
         }
 
+        // Create additional ports (time)
+        for (const port_t *p = vTimeMetadata; p->id != NULL; ++p)
+        {
+            switch (p->role)
+            {
+                case R_METER:
+                {
+                    CtlValuePort *vp = new CtlValuePort(p);
+                    if (vp != NULL)
+                        vTimePorts.add(vp);
+                    break;
+                }
+                default:
+                    lsp_error("Could not instantiate time port id=%s", p->id);
+                    break;
+            }
+        }
+
         // Read global configuration
         result = load_global_config();
         if (result != STATUS_OK)
-            return result;
+            lsp_error("Error while loading global configuration file");
 
         // Generate path to UI schema
         #ifdef LSP_USE_EXPAT
@@ -858,6 +623,29 @@ namespace lsp
         // Return successful status
         return STATUS_OK;
     }
+
+    void plugin_ui::position_updated(const position_t *pos)
+    {
+        size_t i = 0;
+        vTimePorts[i++]->commitValue(pos->sampleRate);
+        vTimePorts[i++]->commitValue(pos->speed);
+        vTimePorts[i++]->commitValue(pos->frame);
+        vTimePorts[i++]->commitValue(pos->numerator);
+        vTimePorts[i++]->commitValue(pos->denominator);
+        vTimePorts[i++]->commitValue(pos->beatsPerMinute);
+        vTimePorts[i++]->commitValue(pos->tick);
+        vTimePorts[i++]->commitValue(pos->ticksPerBeat);
+    }
+
+    void plugin_ui::sync_meta_ports()
+    {
+        for (size_t i=0, count=vTimePorts.size(); i < count; ++i)
+        {
+            CtlValuePort *vp = vTimePorts.at(i);
+            if (vp != NULL)
+                vp->sync();
+        }
+    };
 
     status_t plugin_ui::add_port(CtlPort *port)
     {
@@ -901,67 +689,39 @@ namespace lsp
             return NULL;
 
         snprintf(fname, PATH_MAX-1, "%s/.config/%s/%s.cfg", homedir, LSP_ARTIFACT_ID, LSP_ARTIFACT_ID);
-        return fopen(fname, (write) ? "w+" : "r");
+        return fopen(fname, (write) ? "w" : "r");
     }
 
     status_t plugin_ui::export_settings(const char *filename)
     {
-        // Open file for writing
-        FILE *fd = fopen(filename, "w+");
-        if (fd == NULL)
-            return false;
+        LSPString c;
 
-        // Change locale
-        char *saved_locale  = setlocale(1, "C");
-
-        // Print the comment
-        fputs("#-------------------------------------------------------------------------------\n", fd);
-        fputs("#\n", fd);
-        fputs("# This file contains configuration of the audio plugin.\n", fd);
-        fprintf(fd, "#   Plugin name:         %s (%s)\n", pMetadata->name, pMetadata->description);
-        fprintf(fd, "#   Plugin version:      %d.%d.%d\n",
+        c.append_utf8       ("This file contains configuration of the audio plugin.\n");
+        c.fmt_append_utf8   ("  Plugin name:         %s (%s)\n", pMetadata->name, pMetadata->description);
+        c.fmt_append_utf8   ("  Plugin version:      %d.%d.%d\n",
                 int(LSP_VERSION_MAJOR(pMetadata->version)),
                 int(LSP_VERSION_MINOR(pMetadata->version)),
                 int(LSP_VERSION_MICRO(pMetadata->version))
             );
         if (pMetadata->lv2_uid != NULL)
-            fprintf(fd, "#   LV2 URI:             %s%s\n", LSP_URI(lv2), pMetadata->lv2_uid);
+            c.fmt_append_utf8   ("  LV2 URI:             %s%s\n", LSP_URI(lv2), pMetadata->lv2_uid);
         if (pMetadata->vst_uid != NULL)
-            fprintf(fd, "#   VST identifier:      %s\n", pMetadata->vst_uid);
+            c.fmt_append_utf8   ("  VST identifier:      %s\n", pMetadata->vst_uid);
         if (pMetadata->ladspa_id > 0)
-            fprintf(fd, "#   LADSPA identifier:   %d\n", pMetadata->ladspa_id);
-        fputs("#\n", fd);
-        fputs("# (C) " LSP_FULL_NAME " \n", fd);
-        fputs("#   " LSP_BASE_URI " \n#\n", fd);
-        fputs("#-------------------------------------------------------------------------------\n", fd);
-        fputs("\n", fd);
+            c.fmt_append_utf8   ("  LADSPA identifier:   %d\n", pMetadata->ladspa_id);
+        c.append            ('\n');
+        c.append_utf8       ("(C) " LSP_FULL_NAME " \n");
+        c.append_utf8       ("  " LSP_BASE_URI " \n");
 
-        serialize_ports(fd, vPorts);
+        ConfigSource cfg(this, vPorts, &c);
 
-        fputs("#-------------------------------------------------------------------------------\n", fd);
-
-        // Return locale
-        setlocale(1, saved_locale);
-
-        // Close file
-        fclose(fd);
-
-        return true;
+        return config::save(filename, &cfg, true);
     }
 
     status_t plugin_ui::import_settings(const char *filename)
     {
-        // Open file for writing
-        FILE *fd = fopen(filename, "r");
-        if (fd == NULL)
-            return false;
-
-        bool result     = deserialize_ports(fd, vPorts);
-
-        // Close file
-        fclose(fd);
-
-        return result;
+        ConfigHandler handler(this, vPorts);
+        return config::load(filename, &handler);
     }
 
     status_t plugin_ui::save_global_config()
@@ -970,30 +730,21 @@ namespace lsp
         if (fd == NULL)
             return false;
 
-        // Change locale
-        char *saved_locale  = setlocale(1, "C");
+        LSPString c;
 
-        // Print the comment
-        fputs("#-------------------------------------------------------------------------------\n", fd);
-        fputs("#\n", fd);
-        fputs("# This file contains global configuration of plugins.\n", fd);
-        fputs("#\n", fd);
-        fputs("# (C) " LSP_FULL_NAME " \n", fd);
-        fputs("#   " LSP_BASE_URI " \n#\n", fd);
-        fputs("#-------------------------------------------------------------------------------\n", fd);
-        fputs("\n", fd);
+        c.append_utf8       ("This file contains global configuration of plugins.\n");
+        c.append            ('\n');
+        c.append_utf8       ("(C) " LSP_FULL_NAME " \n");
+        c.append_utf8       ("  " LSP_BASE_URI " \n");
 
-        serialize_ports(fd, vConfigPorts);
+        ConfigSource cfg(this, vConfigPorts, &c);
 
-        fputs("#-------------------------------------------------------------------------------\n", fd);
-
-        // Return locale
-        setlocale(1, saved_locale);
+        status_t status = config::save(fd, &cfg, true);
 
         // Close file
         fclose(fd);
 
-        return true;
+        return status;
     }
 
     status_t plugin_ui::load_global_config()
@@ -1002,53 +753,19 @@ namespace lsp
         if (fd == NULL)
             return false;
 
-        bool result     = deserialize_ports(fd, vConfigPorts);
+        ConfigHandler handler(this, vConfigPorts);
+        status_t status = config::load(fd, &handler);
 
         // Close file
         fclose(fd);
 
-        return result;
-    }
-
-    bool plugin_ui::deserialize_ports(FILE *fd, cvector<CtlPort> &ports)
-    {
-        bool result = true;
-        buffer_t line;
-        init_buf(&line, 4096);
-
-        while (true)
-        {
-            // Read line from file
-            ssize_t read    = read_line(fd, &line);
-            if (read < 0)
-            {
-                result      = false;
-                break;
-            }
-
-            // Parse the line
-            char *key = NULL, *value = NULL;
-            if (parse_line(&line, &key, &value))
-            {
-                lsp_trace("Configuration: %s = %s", key, value);
-                apply_changes(key, value, ports);
-            }
-
-            // Finally, clear the buffer
-            clear_buf(&line);
-        }
-
-        // Free resources
-        destroy_buf(&line);
-
-        return result;
+        return status;
     }
 
     bool plugin_ui::apply_changes(const char *key, const char *value, cvector<CtlPort> &ports)
     {
         // Get UI port
         size_t n_ports  = ports.size();
-        CtlPort *up     = NULL;
         for (size_t i=0; i<n_ports; ++i)
         {
             CtlPort *p      = ports.at(i);
@@ -1058,66 +775,9 @@ namespace lsp
             if ((meta == NULL) || (meta->id == NULL))
                 continue;
             if (!strcmp(meta->id, key))
-            {
-                up          = p;
-                break;
-            }
+                return set_port_value(p, value);
         }
-        if (up == NULL)
-            return false;
-
-        // Get metadata
-        const port_t *p = up->metadata();
-        if (p == NULL)
-            return false;
-
-        // Check that it's a control port
-        if (!IS_IN_PORT(p))
-            return false;
-
-        // Apply changes
-        switch (p->role)
-        {
-            case R_PORT_SET:
-            case R_CONTROL:
-            {
-                if (is_discrete_unit(p->unit))
-                {
-                    if (p->unit == U_BOOL)
-                    {
-                        PARSE_BOOL(value,
-                            up->set_value(__);
-                            up->notify_all();
-                        );
-                    }
-                    else
-                    {
-                        PARSE_INT(value,
-                            up->set_value(__);
-                            up->notify_all();
-                        );
-                    }
-                }
-                else
-                {
-                    PARSE_FLOAT(value,
-                        up->set_value(__);
-                        up->notify_all();
-                    );
-                }
-                break;
-            }
-            case R_PATH:
-            {
-                size_t len      = strlen(value);
-                up->write(value, len);
-                up->notify_all();
-                break;
-            }
-            default:
-                return false;
-        }
-        return true;
+        return false;
     }
 
     size_t plugin_ui::rebuild_sorted_ports()
@@ -1217,6 +877,26 @@ namespace lsp
             for (size_t i=0; i<count; ++i)
             {
                 CtlPort *p          = vConfigPorts.at(i);
+                if (p == NULL)
+                    continue;
+                const char *p_id    = p->metadata()->id;
+                if (p_id == NULL)
+                    continue;
+                if (!strcmp(p_id, ui_id))
+                    return p;
+            }
+        }
+
+        // Check that port name contains "ui:" prefix
+        if (strstr(name, TIME_PORT_PREFIX) == name)
+        {
+            const char *ui_id = &name[strlen(TIME_PORT_PREFIX)];
+
+            // Try to find configuration port
+            size_t count = vTimePorts.size();
+            for (size_t i=0; i<count; ++i)
+            {
+                CtlPort *p          = vTimePorts.at(i);
                 if (p == NULL)
                     continue;
                 const char *p_id    = p->metadata()->id;

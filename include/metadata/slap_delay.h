@@ -24,6 +24,21 @@ namespace lsp
         static const float  TIME_STEP           = 0.01f;
         static const float  TIME_DFL            = 0.0f;
 
+        static const float  DENOMINATOR_MIN     = 1.0f;
+        static const float  DENOMINATOR_MAX     = 64.0f;
+        static const float  DENOMINATOR_STEP    = 1.0f;
+        static const float  DENOMINATOR_DFL     = 4.0f;
+
+        static const float  FRACTION_MIN        = 0.0f;
+        static const float  FRACTION_MAX        = 2.0f;
+        static const float  FRACTION_STEP       = 1.0f / 64.0f;
+        static const float  FRACTION_DFL        = 0.0f;
+
+        static const float  TEMPO_MIN           = 20.0f;
+        static const float  TEMPO_MAX           = 360.0f;
+        static const float  TEMPO_STEP          = 0.1f;
+        static const float  TEMPO_DFL           = 120.0f;
+
         static const float  PRED_TIME_MIN       = 0.0f;
         static const float  PRED_TIME_MAX       = 200.0f;
         static const float  PRED_TIME_STEP      = 0.01f;
@@ -62,7 +77,8 @@ namespace lsp
         {
             OP_MODE_NONE,
             OP_MODE_TIME,
-            OP_MODE_DISTANCE
+            OP_MODE_DISTANCE,
+            OP_MODE_NOTE
         };
     };
 

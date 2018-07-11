@@ -7,13 +7,16 @@
 
 #include <ui/ctl/ctl.h>
 #include <ui/common.h>
+#include <core/files/config.h>
 
 namespace lsp
 {
     namespace ctl
     {
         
-        CtlAudioFile::CtlAudioFile(CtlRegistry *src, LSPAudioFile *af): CtlWidget(src, af)
+        CtlAudioFile::CtlAudioFile(CtlRegistry *src, LSPAudioFile *af):
+            CtlWidget(src, af),
+            sMenu(af->display())
         {
             pFile           = NULL;
             pMesh           = NULL;
@@ -26,6 +29,9 @@ namespace lsp
             pFadeIn         = NULL;
             pFadeOut        = NULL;
             pPath           = NULL;
+
+            for (size_t i=0; i<N_MENU_ITEMS; ++i)
+                vMenuItems[i]   = NULL;
         }
         
         CtlAudioFile::~CtlAudioFile()
@@ -35,6 +41,15 @@ namespace lsp
                 free(pPathID);
                 pPathID = NULL;
             }
+            sMenu.destroy();
+
+            for (size_t i=0; i<N_MENU_ITEMS; ++i)
+                if (vMenuItems[i] != NULL)
+                {
+                    vMenuItems[i]->destroy();
+                    delete vMenuItems[i];
+                    vMenuItems[i] = NULL;
+                }
         }
 
         void CtlAudioFile::init()
@@ -55,6 +70,60 @@ namespace lsp
             af->slots()->bind(LSPSLOT_ACTIVATE, slot_on_activate, this);
             af->slots()->bind(LSPSLOT_SUBMIT, slot_on_submit, this);
             af->slots()->bind(LSPSLOT_CLOSE, slot_on_close, this);
+
+            // Initialize menu
+            LSP_VSTATUS_ASSERT(sMenu.init());
+
+            // Fill items
+            size_t off = 0;
+            ui_handler_id_t id = 0;
+            LSP_VSTATUS_ASSERT(sMenu.init());
+            LSPMenuItem *mi = new LSPMenuItem(af->display());
+            if (mi == NULL)
+                return;
+            vMenuItems[off++] = mi;
+            LSP_VSTATUS_ASSERT(mi->init());
+            LSP_VSTATUS_ASSERT(sMenu.add(mi));
+            LSP_VSTATUS_ASSERT(mi->set_text("Cut"));
+            id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_popup_cut_action, this);
+            if (id < 0)
+                return;
+
+            mi = new LSPMenuItem(af->display());
+            if (mi == NULL)
+                return;
+            vMenuItems[off++] = mi;
+            LSP_VSTATUS_ASSERT(mi->init());
+            LSP_VSTATUS_ASSERT(sMenu.add(mi));
+            LSP_VSTATUS_ASSERT(mi->set_text("Copy"));
+            id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_popup_copy_action, this);
+            if (id < 0)
+                return;
+
+            mi = new LSPMenuItem(af->display());
+            if (mi == NULL)
+                return;
+            vMenuItems[off++] = mi;
+            LSP_VSTATUS_ASSERT(mi->init());
+            LSP_VSTATUS_ASSERT(sMenu.add(mi));
+            LSP_VSTATUS_ASSERT(mi->set_text("Paste"));
+            id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_popup_paste_action, this);
+            if (id < 0)
+                return;
+
+            mi = new LSPMenuItem(af->display());
+            if (mi == NULL)
+                return;
+            vMenuItems[off++] = mi;
+            LSP_VSTATUS_ASSERT(mi->init());
+            LSP_VSTATUS_ASSERT(sMenu.add(mi));
+            LSP_VSTATUS_ASSERT(mi->set_text("Clear"));
+            id = mi->slots()->bind(LSPSLOT_SUBMIT, slot_popup_clear_action, this);
+            if (id < 0)
+                return;
+
+            // Bind menu
+            af->set_popup(&sMenu);
         }
 
         void CtlAudioFile::sync_status()
@@ -224,6 +293,16 @@ namespace lsp
                     if (af != NULL)
                         PARSE_INT(value, af->constraints()->set_height(__, __));
                     break;
+                case A_FORMAT:
+                    if (af != NULL)
+                        parse_file_formats(value, af->filter());
+                    break;
+                case A_FORMAT_ID:
+                    BIND_EXPR(sFormat, value);
+                    break;
+                case A_BIND:
+                    sBind.set_native(value);
+                    break;
                 default:
                 {
                     bool set = sColor.set(att, value);
@@ -280,6 +359,145 @@ namespace lsp
             return STATUS_OK;
         }
 
+        status_t CtlAudioFile::slot_popup_cut_action(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSP_STATUS_ASSERT(slot_popup_copy_action(sender, ptr, data));
+            return slot_popup_clear_action(sender, ptr, data);
+        }
+
+        status_t CtlAudioFile::slot_popup_copy_action(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlAudioFile *ctl = static_cast<CtlAudioFile *>(ptr);
+            if (ctl == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            LSPAudioFile *af    = widget_cast<LSPAudioFile>(ctl->pWidget);
+            if (af == NULL)
+                return STATUS_BAD_STATE;
+
+            LSPString str;
+            CtlConfigSource src;
+
+            LSP_STATUS_ASSERT(ctl->bind_ports(&src));
+            LSP_STATUS_ASSERT(config::serialize(&str, &src, false));
+
+            lsp_trace("Serialized config: \n%s", str.get_native());
+
+            // Copy data to clipboard
+            LSPTextClipboard *cb = new LSPTextClipboard();
+            if (cb == NULL)
+                return STATUS_NO_MEM;
+
+            status_t result = cb->update_text(&str);
+            if (result == STATUS_OK)
+                af->display()->write_clipboard(CBUF_CLIPBOARD, cb);
+            cb->close();
+
+            return STATUS_OK;
+        }
+
+        status_t CtlAudioFile::slot_popup_paste_action(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlAudioFile *ctl = static_cast<CtlAudioFile *>(ptr);
+            if (ctl == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            LSPAudioFile *af    = widget_cast<LSPAudioFile>(ctl->pWidget);
+            if (af == NULL)
+                return STATUS_BAD_STATE;
+
+            return af->display()->fetch_clipboard(CBUF_CLIPBOARD, "UTF8_STRING", clipboard_handler, ctl);
+        }
+
+        status_t CtlAudioFile::clipboard_handler(void *arg, status_t s, io::IInputStream *is)
+        {
+            if (s != STATUS_OK)
+                return s;
+            else if (is == NULL)
+                return STATUS_BAD_STATE;
+
+            CtlAudioFile *ctl = static_cast<CtlAudioFile *>(arg);
+            if (ctl == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            LSPAudioFile *af    = widget_cast<LSPAudioFile>(ctl->pWidget);
+            if (af == NULL)
+                return STATUS_BAD_STATE;
+
+            LSPString str;
+            CtlConfigHandler dst;
+
+            LSP_STATUS_ASSERT(ctl->bind_ports(&dst));
+            LSP_STATUS_ASSERT(config::load(is, &dst));
+
+            return STATUS_OK;
+        }
+
+        status_t CtlAudioFile::bind_ports(CtlPortHandler *h)
+        {
+            LSP_STATUS_ASSERT(h->add_port("file", pFile));
+            LSP_STATUS_ASSERT(h->add_port("head_cut", pHeadCut));
+            LSP_STATUS_ASSERT(h->add_port("tail_cut", pTailCut));
+            LSP_STATUS_ASSERT(h->add_port("fade_in", pFadeIn));
+            LSP_STATUS_ASSERT(h->add_port("fade_out", pFadeOut));
+
+            if (sBind.length() <= 0)
+                return STATUS_OK;
+
+            LSPString tmp, value;
+            ssize_t first = 0;
+
+            while (first >= 0)
+            {
+                // Fetch next pair
+                ssize_t next = sBind.index_of(first, ',');
+                if (next > 0)
+                {
+                    if (!tmp.set(&sBind, first, next))
+                        return STATUS_NO_MEM;
+                }
+                else if (!tmp.set(&sBind, first))
+                    return STATUS_NO_MEM;
+                lsp_trace("pair = %s", tmp.get_native());
+
+                first = (next >= 0) ? next + 1 : -1;
+
+                // Split pair
+                tmp.trim();
+                next = tmp.index_of('=');
+                if (next < 0)
+                    LSP_BOOL_ASSERT(value.set(&tmp), STATUS_NO_MEM)
+                else
+                {
+                    LSP_BOOL_ASSERT(value.set(&tmp, next + 1), STATUS_NO_MEM);
+                    tmp.truncate(next);
+                }
+                lsp_trace("alias = %s, port = %s", tmp.get_native(), value.get_native());
+                tmp.trim();
+                value.trim();
+                lsp_trace("trimmed alias = %s, port = %s", tmp.get_native(), value.get_native());
+
+                // Now add port
+                CtlPort *p = pRegistry->port(value.get_native());
+                if (p == NULL)
+                    continue;
+                LSP_STATUS_ASSERT(h->add_port(&tmp, p));
+            }
+
+            return STATUS_OK;
+        }
+
+        status_t CtlAudioFile::slot_popup_clear_action(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlAudioFile *ctl = static_cast<CtlAudioFile *>(ptr);
+            if (ctl == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            LSPAudioFile *af    = widget_cast<LSPAudioFile>(ctl->pWidget);
+            if (af == NULL)
+                return STATUS_BAD_STATE;
+
+            af->set_file_name("");
+            ctl->commit_file();
+            return STATUS_OK;
+        }
+
         void CtlAudioFile::commit_file()
         {
             if (pFile == NULL)
@@ -323,6 +541,13 @@ namespace lsp
                 (port == pFadeIn) ||
                 (port == pFadeOut))
                 sync_fades();
+
+            LSPAudioFile *af    = widget_cast<LSPAudioFile>(pWidget);
+            if (af == NULL)
+                return;
+
+            if (sFormat.valid())
+                af->filter()->set_default(sFormat.evaluate());
         }
     
     } /* namespace ctl */

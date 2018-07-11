@@ -10,6 +10,7 @@
 
 #include <core/types.h>
 
+// UI configuration ports
 #define UI_CONFIG_PORT_PREFIX               "ui:"
 #define UI_MOUNT_STUD_PORT_ID               "mount_stud"
 #define UI_LAST_VERSION_PORT_ID             "last_version"
@@ -18,12 +19,32 @@
 #define UI_DLG_IR_PATH_ID                   "dlg_ir_path"
 #define UI_DLG_CONFIG_PATH_ID               "dlg_config_path"
 
-#define MSTUD_PORT                  UI_CONFIG_PORT_PREFIX UI_MOUNT_STUD_PORT_ID
-#define VERSION_PORT                UI_CONFIG_PORT_PREFIX UI_LAST_VERSION_PORT_ID
-#define DEFAULT_PATH_PORT           UI_CONFIG_PORT_PREFIX UI_DLG_DEFAULT_PATH_ID
-#define SAMPLE_PATH_PORT            UI_CONFIG_PORT_PREFIX UI_DLG_SAMPLE_PATH_ID
-#define IR_PATH_PORT                UI_CONFIG_PORT_PREFIX UI_DLG_IR_PATH_ID
-#define CONFIG_PATH_PORT            UI_CONFIG_PORT_PREFIX UI_DLG_CONFIG_PATH_ID
+#define MSTUD_PORT                          UI_CONFIG_PORT_PREFIX UI_MOUNT_STUD_PORT_ID
+#define VERSION_PORT                        UI_CONFIG_PORT_PREFIX UI_LAST_VERSION_PORT_ID
+#define DEFAULT_PATH_PORT                   UI_CONFIG_PORT_PREFIX UI_DLG_DEFAULT_PATH_ID
+#define SAMPLE_PATH_PORT                    UI_CONFIG_PORT_PREFIX UI_DLG_SAMPLE_PATH_ID
+#define IR_PATH_PORT                        UI_CONFIG_PORT_PREFIX UI_DLG_IR_PATH_ID
+#define CONFIG_PATH_PORT                    UI_CONFIG_PORT_PREFIX UI_DLG_CONFIG_PATH_ID
+
+// Special ports for handling current time
+#define TIME_PORT_PREFIX                    "time:"
+#define TIME_SAMPLE_RATE_PORT               "sr"
+#define TIME_SPEED_PORT                     "speed"
+#define TIME_FRAME_PORT                     "frame"
+#define TIME_NUMERATOR_PORT                 "num"
+#define TIME_DENOMINATOR_PORT               "denom"
+#define TIME_BEATS_PER_MINUTE_PORT          "bpm"
+#define TIME_TICK_PORT                      "tick"
+#define TIME_TICKS_PER_BEAT_PORT            "tpb"
+
+#define SAMPLE_RATE_PORT                    TIME_PORT_PREFIX TIME_SAMPLE_RATE_PORT
+#define SPEED_PORT                          TIME_PORT_PREFIX TIME_SPEED_PORT
+#define FRAME_PORT                          TIME_PORT_PREFIX TIME_FRAME_PORT
+#define NUMERATOR_PORT                      TIME_PORT_PREFIX TIME_NUMERATOR_PORT
+#define DENOMINATOR_PORT                    TIME_PORT_PREFIX TIME_DENOMINATOR_PORT
+#define BEATS_PER_MINUTE_PORT               TIME_PORT_PREFIX TIME_BEATS_PER_MINUTE_PORT
+#define TICK_PORT                           TIME_PORT_PREFIX TIME_TICK_PORT
+#define TICKS_PER_BEAT_PORT                 TIME_PORT_PREFIX TIME_TICKS_PER_BEAT_PORT
 
 namespace lsp
 {

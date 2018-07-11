@@ -5,51 +5,51 @@
 				<center hpos="-1" vpos="-1" visible="false" />
 				
 				<!-- Gray grid -->
-				<ui:for id="f" first="20" last="90" step="10"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
-				<ui:for id="f" first="200" last="900" step="100"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
-				<ui:for id="f" first="2000" last="9000" step="1000"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
-				<marker value="20000" color="gray" basis="0" parallel="1" />
+				<ui:for id="f" first="20" last="90" step="10"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+				<ui:for id="f" first="200" last="900" step="100"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+				<ui:for id="f" first="2000" last="9000" step="1000"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+				<marker value="20000" color="g_gray" basis="0" parallel="1" />
 				
-				<marker value="+12 db" color="gray" basis="1" parallel="0" /> <!-- +12 dB -->
-				<marker value="-12 db" color="gray" basis="1" parallel="0" /> <!-- -12 dB -->
-				<marker value="-36 db" color="gray" basis="1" parallel="0" /> <!-- -36 dB -->
-				<marker value="-60 db" color="gray" basis="1" parallel="0" /> <!-- -60 dB -->
+				<marker value="+12 db" color="g_gray" basis="1" parallel="0" /> <!-- +12 dB -->
+				<marker value="-12 db" color="g_gray" basis="1" parallel="0" /> <!-- -12 dB -->
+				<marker value="-36 db" color="g_gray" basis="1" parallel="0" /> <!-- -36 dB -->
+				<marker value="-60 db" color="g_gray" basis="1" parallel="0" /> <!-- -60 dB -->
 				
 				<!-- Additional markers for zoom -->
-				<marker value="-6 db" color="gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
-				<marker value="-18 db" color="gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
-				<marker value="-30 db" color="gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
-				<marker value="-42 db" color="gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
+				<marker value="-6 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
+				<marker value="-18 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
+				<marker value="-30 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
+				<marker value="-42 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
 				
-				<marker value="-15 db" color="gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
-				<marker value="-21 db" color="gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
-				<marker value="-27 db" color="gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
-				<marker value="-33 db" color="gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
+				<marker value="-15 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
+				<marker value="-21 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
+				<marker value="-27 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
+				<marker value="-33 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
 				
 				<!-- Yellow grid -->
-				<marker value="100" color="yellow" basis="0" parallel="1" /> <!-- 100 Hz -->
-				<marker value="1000" color="yellow" basis="0" parallel="1" /> <!-- 1 kHz -->
-				<marker value="10000" color="yellow" basis="0" parallel="1" /> <!-- 10 kHz -->
+				<marker value="100" color="g_yellow" basis="0" parallel="1" /> <!-- 100 Hz -->
+				<marker value="1000" color="g_yellow" basis="0" parallel="1" /> <!-- 1 kHz -->
+				<marker value="10000" color="g_yellow" basis="0" parallel="1" /> <!-- 10 kHz -->
 
-				<marker value="0 db" color="yellow" basis="1" parallel="0" /> <!-- 0 dB -->
-				<marker value="-24 db" color="yellow" basis="1" parallel="0" /> <!-- -24 dB -->
-				<marker value="-48 db" color="yellow" basis="1" parallel="0" /> <!-- -48 dB -->
+				<marker value="0 db" color="g_yellow" basis="1" parallel="0" /> <!-- 0 dB -->
+				<marker value="-24 db" color="g_yellow" basis="1" parallel="0" /> <!-- -24 dB -->
+				<marker value="-48 db" color="g_yellow" basis="1" parallel="0" /> <!-- -48 dB -->
 	
 				<!-- Meshes -->
 				<mesh id="spc_0" width="3" visibility_id="on_0" hue_id="hue_0" />
 				
 				<!-- Boundaries -->
-				<marker value="1" color="white" basis="2" parallel="0" /> <!-- +48 dB -->
-				<marker value="24000" color="white" basis="0" parallel="1" />
+				<marker value="1" color="g_white" basis="2" parallel="0" /> <!-- +48 dB -->
+				<marker value="24000" color="g_white" basis="0" parallel="1" />
 				
 				<!-- Axis -->
-				<axis min="10" max="24000" angle="0.0" color="white" logarithmic="true" />
-				<axis min="-72 db / :zoom" max="24 db * :zoom" color="white" angle="0.5" logarithmic="true" /> <!-- -72..+24 dB -->
+				<axis min="10" max="24000" angle="0.0" color="g_white" logarithmic="true" />
+				<axis min="-72 db / :zoom" max="24 db * :zoom" color="g_white" angle="0.5" logarithmic="true" /> <!-- -72..+24 dB -->
 				<axis min="-1" max="1" visible="false" angle="0.5" />
 				
 				<!-- Marker -->
-				<marker id="freq" color="red" basis="0" parallel="1" />
-				<marker id="lvl" color="red" basis="1" parallel="0" />
+				<marker id="freq" color="g_red" basis="0" parallel="1" />
+				<marker id="lvl" color="g_red" basis="1" parallel="0" />
 				
 				<!-- Text -->
 				<text text="Hz" basis="0;2" coord="10;0" halign="1" valign="1" />

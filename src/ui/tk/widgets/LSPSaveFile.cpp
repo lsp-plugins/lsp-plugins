@@ -19,17 +19,16 @@ namespace lsp
             size_t color_id;
         } state_descr_t;
 
-
         LSPSaveFile::LSPSaveFile(LSPDisplay *dpy):
             LSPWidget(dpy),
             sFont(dpy, this),
-            sBgColor(this)
+            sBgColor(this),
+            sDialog(dpy)
         {
             nState      = SFS_SELECT;
             fProgress   = 0;
             nButtons    = 0;
             nBtnState   = 0;
-            pDialog     = NULL;
             pDisk       = NULL;
 
             for (size_t i=0; i<SFS_TOTAL; ++i)
@@ -81,6 +80,16 @@ namespace lsp
 
             sFont.set_size(10);
 
+            // Create dialog
+            LSP_STATUS_ASSERT(sDialog.init());
+            sDialog.set_mode(FDM_SAVE_FILE);
+            sDialog.set_title("Save to file");
+            sDialog.set_action_title("Save");
+            sDialog.set_confirmation("The selected file already exists. Overwrite?");
+            sDialog.filter()->add("*", "All files (*.*)", "");
+            sDialog.bind_action(slot_on_file_submit, self());
+
+            // Add slots
             ui_handler_id_t id = 0;
             id = sSlots.add(LSPSLOT_SUBMIT, slot_on_submit, self());
             if (id < 0)
@@ -91,12 +100,7 @@ namespace lsp
 
         void LSPSaveFile::destroy()
         {
-            if (pDialog != NULL)
-            {
-                pDialog->destroy();
-                delete pDialog;
-                pDialog = NULL;
-            }
+            sDialog.destroy();
 
             for (size_t i=0; i<SFS_TOTAL; ++i)
                 if (vStates[i].pColor != NULL)
@@ -131,12 +135,12 @@ namespace lsp
 
         const char *LSPSaveFile::file_name() const
         {
-            return (pDialog != NULL) ? pDialog->selected_file() : NULL;
+            return sDialog.selected_file();
         }
 
         status_t LSPSaveFile::get_file_name(LSPString *dst)
         {
-            return (pDialog != NULL) ? pDialog->get_selected_file(dst) : STATUS_BAD_STATE;
+            return sDialog.get_selected_file(dst);
         }
 
         status_t LSPSaveFile::set_state(save_file_state_t state)
@@ -405,25 +409,7 @@ namespace lsp
             else
                 nBtnState  &= ~S_PRESSED;
             if ((bstate == (1 << MCB_LEFT)) && (e->nCode == MCB_LEFT) && (mover) && (nState != SFS_SAVING))
-            {
-                if (pDialog == NULL)
-                {
-                    pDialog = new LSPFileDialog(pDisplay);
-                    if (pDialog == NULL)
-                        return STATUS_NO_MEM;
-                    LSP_STATUS_ASSERT(pDialog->init());
-
-                    pDialog->set_mode(FDM_SAVE_FILE);
-                    pDialog->set_title("Save to file");
-                    pDialog->set_action_title("Save");
-                    pDialog->set_confirmation("The selected file already exists. Overwrite?");
-                    pDialog->add_filter("*", "All files (*.*)");
-                    pDialog->bind_action(slot_on_file_submit, self());
-                }
-
-                if (pDialog != NULL)
-                    pDialog->show(this);
-            }
+                sDialog.show(this);
 
             // Query draw if state changed
             if (state != nBtnState)

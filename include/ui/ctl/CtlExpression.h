@@ -173,7 +173,6 @@ namespace lsp
                 } tokenizer_t;
 
             protected:
-//                binding_t          *pRoot;
                 cstorage<root_t>    vRoots;
                 CtlRegistry        *pCtl;
                 CtlPortListener    *pListener;

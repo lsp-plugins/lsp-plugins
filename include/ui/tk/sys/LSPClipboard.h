@@ -8,6 +8,9 @@
 #ifndef UI_TK_SYS_LSPCLIPBOARD_H_
 #define UI_TK_SYS_LSPCLIPBOARD_H_
 
+#include <core/io/IInputStream.h>
+#include <core/io/IOutputStream.h>
+
 namespace lsp
 {
     namespace tk
@@ -35,7 +38,7 @@ namespace lsp
                 bool            bClosed;            // Closed flag
 
             protected:
-                class LSPInputStream: public IInputStream
+                class LSPInputStream: public io::IInputStream
                 {
                     protected:
                         LSPClipboard       *pCB;
@@ -55,7 +58,7 @@ namespace lsp
                         virtual status_t    close();
                 };
 
-                class LSPOutputStream: public IOutputStream
+                class LSPOutputStream: public io::IOutputStream
                 {
                     protected:
                         LSPClipboard       *pCB;
@@ -98,26 +101,26 @@ namespace lsp
                  *
                  * @return content type
                  */
-                inline const char      *content_type() const { return sCType; };
+                inline const char          *content_type() const { return sCType; };
 
                 /** Get the size of clipboard in memory
                  *
                  * @return size of clipboard in memory
                  */
-                size_t                  size() const;
+                size_t                      size() const;
 
                 /** Get the capacity of clipboard in memory
                  *
                  * @return size of clipboard in memory
                  */
-                size_t                  capacity() const;
+                size_t                      capacity() const;
 
                 /** Get clipboard content for reading
                  *
                  * @param ctype content type
                  * @return pointer to the opened clipboard stream or NULL if content type or character set is not supported
                  */
-                virtual IInputStream   *read(const char *ctype);
+                virtual io::IInputStream   *read(const char *ctype);
 
                 /** Write data to the clipboard
                  *
@@ -125,7 +128,7 @@ namespace lsp
                  * @param charset
                  * @return
                  */
-                virtual IOutputStream  *write(const char *ctype);
+                virtual io::IOutputStream  *write(const char *ctype);
         };
     
     } /* namespace tk */

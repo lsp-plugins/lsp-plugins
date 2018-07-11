@@ -5,11 +5,12 @@
  *      Author: sadko
  */
 
-#include <ui/ws/ws.h>
+#include <core/status.h>
+#include <core/io/IOutputStream.h>
 
 namespace lsp
 {
-    namespace ws
+    namespace io
     {
         
         IOutputStream::IOutputStream()

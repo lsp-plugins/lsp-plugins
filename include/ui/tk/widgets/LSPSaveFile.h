@@ -20,8 +20,6 @@ namespace lsp
             SFS_ERROR
         };
 
-        class LSPFileDialog;
-
         class LSPSaveFile: public LSPWidget
         {
             public:
@@ -47,9 +45,9 @@ namespace lsp
                 float               fProgress;
                 size_t              nButtons;
                 size_t              nBtnState;
-                LSPFileDialog      *pDialog;
                 LSPWidgetFont       sFont;
                 LSPWidgetColor      sBgColor;
+                LSPFileDialog       sDialog;
                 ISurface           *pDisk;
 
             protected:
@@ -74,6 +72,7 @@ namespace lsp
                 status_t                    get_file_name(LSPString *dst);
                 inline LSPFont             *font() { return &sFont; }
                 inline LSPColor            *bg_color() { return &sBgColor; }
+                inline LSPFileFilter       *filter() { return sDialog.filter(); }
 
             public:
                 status_t    set_state(save_file_state_t state);

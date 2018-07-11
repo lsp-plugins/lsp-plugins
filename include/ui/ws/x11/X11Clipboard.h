@@ -38,7 +38,7 @@ namespace lsp
                     char           *sType;
 
                 protected:
-                    class InputStream: public IInputStream
+                    class InputStream: public io::IInputStream
                     {
                         protected:
                             X11Clipboard       *pCB;
@@ -64,11 +64,11 @@ namespace lsp
                     virtual ~X11Clipboard();
 
                 public:
-                    virtual status_t        close();
+                    virtual status_t            close();
 
-                    virtual IInputStream   *read(const char *ctype);
+                    virtual io::IInputStream   *read(const char *ctype);
 
-                    ssize_t                 append(const void *buf, size_t count);
+                    ssize_t                     append(const void *buf, size_t count);
             };
         
         } /* namespace x11 */

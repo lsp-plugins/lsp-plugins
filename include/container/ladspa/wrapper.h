@@ -20,6 +20,9 @@ namespace lsp
             LADSPA_Data            *pLatency;       // Latency pointer
             bool                    bUpdateSettings;// Settings update
 
+            position_t              sPosition;
+            position_t              sNewPosition;
+
         protected:
             inline void add_port(LADSPAPort *p)
             {
@@ -36,6 +39,9 @@ namespace lsp
                 nLatencyID      = 0;
                 pLatency        = NULL;
                 bUpdateSettings = true;
+
+                position_t::init(&sPosition);
+                position_t::init(&sNewPosition);
             }
 
             ~LADSPAWrapper()
@@ -65,14 +71,8 @@ namespace lsp
                             lsp_trace("added as audio port");
                             break;
                         }
-                        case R_MESH: // Not supported by LADSPA, make it stub
-                        case R_UI_SYNC:
-                            pPlugin->add_port(new LADSPAPort(port));
-                            lsp_trace("added as stub port");
-                            break;
                         case R_CONTROL:
                         case R_METER:
-                        default:
                         {
                             LADSPAPort *lp = NULL;
                             if (out)
@@ -83,13 +83,24 @@ namespace lsp
                             add_port(lp);
                             break;
                         }
-                        case R_PORT_SET: // TODO: implement recursive port creation
+                        case R_PORT_SET: // TODO: implement recursive port creation?
+                        case R_MESH: // Not supported by LADSPA, make it stub
+                        case R_UI_SYNC:
+                        case R_MIDI:
+                        case R_PATH:
+                        default:
+                            pPlugin->add_port(new LADSPAPort(port));
+                            lsp_trace("added as stub port");
                             break;
                     }
                 }
 
                 // Store the latency ID port
                 nLatencyID  = n_ports;
+
+                // Store sample rate
+                sPosition.sampleRate    = sr;
+                sNewPosition.sampleRate = sr;
 
                 // Initialize plugin
                 lsp_trace("Initializing plugin");
@@ -127,6 +138,8 @@ namespace lsp
 
             inline void activate()
             {
+                sPosition.frame     = 0;
+                sNewPosition.frame  = 0;
                 pPlugin->activate();
             }
 
@@ -151,6 +164,12 @@ namespace lsp
 
             inline void run(size_t samples)
             {
+                // Emulate the behaviour of position
+                if (pPlugin->set_position(&sNewPosition))
+                    bUpdateSettings = true;
+                sPosition = sNewPosition;
+//                lsp_trace("frame = %ld, tick = %f", long(sPosition.frame), float(sPosition.tick));
+
                 // Process external ports for changes
                 size_t n_ports  = vPorts.size();
                 for (size_t i=0; i<n_ports; ++i)
@@ -190,6 +209,11 @@ namespace lsp
                 // Write latency
                 if (pLatency != NULL)
                     *pLatency       = pPlugin->get_latency();
+
+                // Move the position
+                size_t spb          = sNewPosition.sampleRate / sNewPosition.beatsPerMinute; // samples per beat
+                sNewPosition.frame += samples;
+                sNewPosition.tick   = ((sNewPosition.frame % spb) * sNewPosition.ticksPerBeat) / spb;
             }
 
             virtual IExecutor *get_executor()
@@ -200,6 +224,11 @@ namespace lsp
                     pExecutor       = new NativeExecutor();
                 }
                 return pExecutor;
+            }
+
+            virtual const position_t *position()
+            {
+                return &sPosition;
             }
 
     };

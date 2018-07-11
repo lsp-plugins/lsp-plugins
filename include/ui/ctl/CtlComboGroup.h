@@ -20,6 +20,7 @@ namespace lsp
                 float           fMin;
                 float           fMax;
                 float           fStep;
+                char           *pText;
 
                 ui_handler_id_t idChange;
 

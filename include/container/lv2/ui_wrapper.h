@@ -19,6 +19,8 @@ namespace lsp
             cvector<LV2UIPort>      vAllPorts;  // List of all created ports, for garbage collection
             cvector<port_t>         vGenMetadata;   // Generated metadata
 
+            position_t              sPosition;
+
             plugin_ui              *pUI;
             LV2Extensions          *pExt;
             size_t                  nLatencyID; // ID of latency port
@@ -45,6 +47,8 @@ namespace lsp
                 nLatencyID  = 0;
                 pLatency    = NULL;
                 bConnected  = false;
+
+                position_t::init(&sPosition);
             }
 
             ~LV2UIWrapper()
@@ -226,7 +230,7 @@ namespace lsp
                     const LV2_Atom* atom = reinterpret_cast<const LV2_Atom*>(buf);
 //                    lsp_trace("atom.type = %d (%s)", int(atom->type), pExt->unmap_urid(atom->type));
 
-                    if (atom->type != pExt->uridObject)
+                    if ((atom->type != pExt->uridObject) && (atom->type != pExt->uridBlank))
                         return;
 
                     receive_atom(reinterpret_cast<const LV2_Atom_Object *>(atom));
@@ -247,7 +251,8 @@ namespace lsp
                 dsp::start(&ctx);
 
                 // Synchronize port states avoiding LV2 Atom transport
-                if (pExt->wrapper() != NULL)
+                LV2Wrapper *w = pExt->wrapper();
+                if (w != NULL)
                 {
                     for (size_t i=0, n=vAllPorts.size(); i<n; ++i)
                     {
@@ -257,9 +262,15 @@ namespace lsp
                         if (p->sync())
                             p->notify_all();
                     }
+
+                    // Check that sample rate has changed
+                    position_t pos      = *(w->position());
+                    pUI->position_updated(&pos);
+                    sPosition           = pos;
                 }
 
                 // Call UI to process events
+                pUI->sync_meta_ports();
                 pUI->main_iteration();
                 dsp::finish(&ctx);
 
@@ -311,6 +322,7 @@ namespace lsp
                 else
                     result = new LV2UIPort(p, pExt); // Stub port
                 break;
+            // case R_BPM: // TODO
             case R_MESH:
                 if (pExt->atom_supported())
                 {
@@ -388,6 +400,7 @@ namespace lsp
 
                 case R_PATH:
                 case R_MESH:
+//                case R_BPM:
                     pUI->add_port(p);
                     vUIPorts.add(p);
                     break;
@@ -444,9 +457,6 @@ namespace lsp
 
     void LV2UIWrapper::receive_atom(const LV2_Atom_Object * obj)
     {
-//        lsp_trace("obj->body.otype = %d (%s)", int(obj->body.otype), pExt->unmap_urid(obj->body.otype));
-//        lsp_trace("obj->body.id = %d (%s)", int(obj->body.id), pExt->unmap_urid(obj->body.id));
-
         if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateChange)) // State change
         {
             lsp_trace("Received STATE_CHANGE primitive");
@@ -508,6 +518,44 @@ namespace lsp
                 body = lv2_atom_object_next(body);
             }
         }
+        else if (obj->body.otype == pExt->uridTimePosition)
+        {
+//            lsp_trace("Received timePosition");
+            position_t pos      = sPosition;
+
+            pos.ticksPerBeat    = DEFAULT_TICKS_PER_BEAT;
+
+//            lsp_trace("triggered timePosition event");
+            for (
+                LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
+                !lv2_atom_object_is_end(&obj->body, obj->atom.size, body) ;
+                body = lv2_atom_object_next(body)
+            )
+            {
+//                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+
+                if ((body->key == pExt->uridTimeFrame) && (body->value.type == pExt->forge.Long))
+                    pos.frame           = (reinterpret_cast<LV2_Atom_Long *>(&body->value))->body;
+                else if ((body->key == pExt->uridTimeSpeed) && (body->value.type == pExt->forge.Float))
+                    pos.speed           = (reinterpret_cast<LV2_Atom_Float *>(&body->value))->body;
+                else if ((body->key == pExt->uridTimeBeatsPerMinute) && (body->value.type == pExt->forge.Float))
+                    pos.beatsPerMinute  = (reinterpret_cast<LV2_Atom_Float *>(&body->value))->body;
+                else if ((body->key == pExt->uridTimeBeatUnit) && (body->value.type == pExt->forge.Int))
+                    pos.denominator     = (reinterpret_cast<LV2_Atom_Int *>(&body->value))->body;
+                else if ((body->key == pExt->uridTimeBeatsPerBar) && (body->value.type == pExt->forge.Float))
+                    pos.numerator       = (reinterpret_cast<LV2_Atom_Float *>(&body->value))->body;
+                else if ((body->key == pExt->uridTimeBarBeat) && (body->value.type == pExt->forge.Float))
+                    pos.tick            = (reinterpret_cast<LV2_Atom_Float *>(&body->value))->body * pos.ticksPerBeat;
+                else if ((body->key == pExt->uridTimeFrameRate) && (body->value.type == pExt->forge.Float))
+                    pos.sampleRate      = (reinterpret_cast<LV2_Atom_Float *>(&body->value))->body;
+            }
+
+            // Call plugin callback and update position
+            if (pUI != NULL)
+                pUI->position_updated(&pos);
+            sPosition = pos;
+        }
         else if (obj->body.otype == pExt->uridMeshType)
         {
             // Try to find the corresponding mesh port
@@ -517,6 +565,11 @@ namespace lsp
                 p->deserialize(obj);
                 p->notify_all();
             }
+        }
+        else
+        {
+            lsp_trace("obj->body.otype = %d (%s)", int(obj->body.otype), pExt->unmap_urid(obj->body.otype));
+            lsp_trace("obj->body.id = %d (%s)", int(obj->body.id), pExt->unmap_urid(obj->body.id));
         }
     }
 }

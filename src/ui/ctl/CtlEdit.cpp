@@ -73,10 +73,13 @@ namespace lsp
                 pDialog->bind_action(slot_on_action, this);
                 pDialog->bind_cancel(slot_on_cancel, this);
                 pDialog->set_confirmation("Do you really want to load file?");
-                pDialog->add_filter("*.txt", "Text files");
-                pDialog->add_filter("*.wav|*.mp3", "Audio files");
-                pDialog->add_filter("*", "All files");
-                pDialog->set_default_filter(2);
+
+                LSPFileFilter *f = pDialog->filter();
+
+                f->add("*.txt", "Text files", ".txt");
+                f->add("*.wav|*.mp3", "Audio files", ".wav");
+                f->add("*", "All files", "");
+                f->set_default(2);
             }
 
             pDialog->show(pWidget);

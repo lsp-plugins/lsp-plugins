@@ -15,6 +15,9 @@
   
   sysrqer:
     That sounds excellent sadko4u, that's actually what I had in mind, I don't think there is anything like that for us.
+    
+  sysrqer:
+	Being able to move the bars on the graph with the mouse would be fantastic.
 
 ==== Sampler ====
   robb:

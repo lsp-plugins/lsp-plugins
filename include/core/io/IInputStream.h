@@ -5,12 +5,15 @@
  *      Author: sadko
  */
 
-#ifndef UI_IINPUTSTREAM_H_
-#define UI_IINPUTSTREAM_H_
+#ifndef CORE_IO_IINPUTSTREAM_H_
+#define CORE_IO_IINPUTSTREAM_H_
+
+#include <core/types.h>
+#include <core/status.h>
 
 namespace lsp
 {
-    namespace ws
+    namespace io
     {
         
         /** This is data stream available to be read from clipboard
@@ -69,4 +72,4 @@ namespace lsp
     } /* namespace ws */
 } /* namespace lsp */
 
-#endif /* UI_IINPUTSTREAM_H_ */
+#endif /* CORE_IO_IINPUTSTREAM_H_ */

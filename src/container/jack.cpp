@@ -23,8 +23,9 @@ namespace lsp
 {
     typedef struct jack_wrapper_t
     {
+        size_t          nSync;
         JACKWrapper    *pWrapper;
-//        LSPWindow      *pWindow;
+        LSPWindow      *pWindow;
 //        LSPMessageBox  *pDialog;
         timespec        nLastReconnect;
     } jack_wrapper_t;
@@ -41,6 +42,7 @@ namespace lsp
         if (jw->connection_lost())
         {
             lsp_trace("Connection to JACK was lost");
+
             // Perform disconnect action
             jw->disconnect();
 
@@ -81,6 +83,7 @@ namespace lsp
                 if (jw->connect() == STATUS_OK)
                 {
                     lsp_trace("Successful connected to JACK");
+                    wrapper->nSync = 0;
                 }
                 wrapper->nLastReconnect     = ctime;
             }
@@ -88,7 +91,11 @@ namespace lsp
 
         // If we are connected - do usual stuff
         if (jw->connected())
+        {
             wrapper->pWrapper->transfer_dsp_to_ui();
+            if (!(wrapper->nSync++))
+                wrapper->pWindow->query_resize();
+        }
 
         return STATUS_OK;
     }
@@ -130,8 +137,9 @@ namespace lsp
 
                 // Create timer for transferring DSP -> UI data
                 lsp_trace("Creating timer");
-//                wrapper.pWindow     = ui.root_window();
+                wrapper.nSync       = 0;
                 wrapper.pWrapper    = &w;
+                wrapper.pWindow     = ui.root_window();
 //                wrapper.pDialog     = NULL;
 
                 LSPTimer tmr;

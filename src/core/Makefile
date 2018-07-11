@@ -2,7 +2,7 @@ FILES                   = $(addprefix $(OBJDIR)/, $(patsubst %.cpp, %.o, $(wildc
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 rwildcard               = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 export DSP_CORE         = $(OBJDIR)/dsp/dsp.o
-SUBDIRS                 = dynamics filters util 3d files sampling
+SUBDIRS                 = dynamics filters util 3d files sampling io
 SUBFILES				= $(addprefix $(OBJDIR)/, $(foreach subdir, $(SUBDIRS), $(subdir)/$(subdir).o)) 
 
 .PHONY: all target dsp $(SUBDIRS)

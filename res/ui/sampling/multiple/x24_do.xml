@@ -94,6 +94,7 @@
 							status_id="fs[inst][ssel]" mesh_id="fd[inst][ssel]"
 							width="320" height="127"
 							path_id="ui:dlg_sample_path"
+							bind="makeup=mk[inst][ssel],predelay=pd[inst][ssel]"
 						/>
 							
 						<grid rows="3" cols="7" vspacing="2" expand="true">

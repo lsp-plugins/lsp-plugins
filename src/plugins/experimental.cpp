@@ -158,7 +158,7 @@ namespace lsp
         {
             // We've got pending file primitive?
             path_t *path = pOutFile->getBuffer<path_t>();
-            if (path->pending())
+            if ((path != NULL) && (path->pending()))
             {
                 bFileSet = true;
                 path->accept();
@@ -180,7 +180,7 @@ namespace lsp
         nPhase      = ((nPhase + samples) & 0x7ffff);
 
         mesh_t *mesh = pMesh->getBuffer<mesh_t>();
-        if (mesh->isEmpty())
+        if ((mesh != NULL) && (mesh->isEmpty()))
         {
             float phase = (nPhase * M_PI * 2.0f) / float(0x80000);
             for (size_t i=0; i<320; ++i)

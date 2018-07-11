@@ -30,6 +30,9 @@ namespace lsp
         fWet            = 1.0;
         vBuffer         = NULL;
         nBufSize        = 0;
+        nDelay          = 0;
+        nNewDelay       = 0;
+        bRamping        = false;
         pIn             = NULL;
         pOut            = NULL;
     }
@@ -72,26 +75,29 @@ namespace lsp
     void comp_delay_base::configure()
     {
         // Calculate delay in samples
-        size_t samples      = 0;
         float snd_speed     = sound_speed(fTemperature);
 
         lsp_trace("mode=%d, distance=%.3f, time=%.3f, samples=%.3f, snd_speed=%.3f", int(nMode), fDistance, fTime, fSamples, snd_speed);
 
         if (nMode == comp_delay_base_metadata::M_DISTANCE)
-            samples     = (nSampleRate * fDistance) / snd_speed;
+            nNewDelay   = (nSampleRate * fDistance) / snd_speed;
         else if (nMode == comp_delay_base_metadata::M_TIME)
-            samples     = fTime * 0.001f * nSampleRate;
+            nNewDelay   = fTime * 0.001f * nSampleRate;
         else
-            samples     = fSamples;
+            nNewDelay   = fSamples;
 
         // Update delay parameter for delay line
-        lsp_trace("final samples=%d", int(samples));
-        vLine.set_delay(samples);
+        if (nNewDelay < 0)
+            nNewDelay       = 0;
+        if (!bRamping)
+            nDelay          = nNewDelay;
+        lsp_trace("final delay=%d, new_delay=%d", int(nDelay), int(nNewDelay));
+        vLine.set_delay(nDelay);
 
         // Re-calculate parameters
-        fSamples        = samples;
-        fDistance       = (samples * snd_speed * 100.0) / float(nSampleRate);
-        fTime           = (samples * 1000.0f) / float(nSampleRate);
+        fSamples        = nNewDelay;
+        fDistance       = (nNewDelay * snd_speed * 100.0) / float(nSampleRate);
+        fTime           = (nNewDelay * 1000.0f) / float(nSampleRate);
     }
 
     void comp_delay_base::process(size_t samples)
@@ -110,7 +116,9 @@ namespace lsp
             size_t count = (samples > nBufSize) ? nBufSize : samples;
 
             // Pre-process signal (fill buffer)
-            vLine.process(vBuffer, in, fWet, count);
+            vLine.process_ramping(vBuffer, in, fWet, nNewDelay, samples);
+            nDelay      = nNewDelay;
+
             // Apply 'dry' control
             if (fDry > 0.0)
                 dsp::scale_add3(vBuffer, in, fDry, count);
@@ -196,6 +204,7 @@ namespace lsp
         vDelay.set_bypass(bypass);
 
         vDelay.set_mode(vPorts[MODE]->getValue());
+        vDelay.set_ramping(vPorts[RAMPING]->getValue() >= 0.5f);
         vDelay.set_samples(vPorts[SAMPLES]->getValue());
         vDelay.set_time(vPorts[TIME]->getValue());
         vDelay.set_distance(vPorts[METERS]->getValue() + (vPorts[CENTIMETERS]->getValue() * 0.01));
@@ -254,6 +263,7 @@ namespace lsp
             d   -> set_bypass(bypass);
 
             d   -> set_mode(vPorts[MODE]->getValue());
+            d   -> set_ramping(vPorts[RAMPING]->getValue() >= 0.5f);
             d   -> set_samples(vPorts[SAMPLES]->getValue());
             d   -> set_time(vPorts[TIME]->getValue());
             d   -> set_distance(vPorts[METERS]->getValue() + (vPorts[CENTIMETERS]->getValue() * 0.01));
@@ -307,6 +317,7 @@ namespace lsp
         vDelay[1].set_bypass( bypass );
 
         vDelay[0].set_mode(vPorts[MODE_L]->getValue());
+        vDelay[0].set_ramping(vPorts[RAMPING_L]->getValue());
         vDelay[0].set_samples(vPorts[SAMPLES_L]->getValue());
         vDelay[0].set_time(vPorts[TIME_L]->getValue());
         vDelay[0].set_distance(vPorts[METERS_L]->getValue() + (vPorts[CENTIMETERS_L]->getValue() * 0.01));
@@ -315,6 +326,7 @@ namespace lsp
         vDelay[0].set_wet(vPorts[WET_L]->getValue() * out_gain);
 
         vDelay[1].set_mode(vPorts[MODE_R]->getValue());
+        vDelay[1].set_ramping(vPorts[RAMPING_R]->getValue());
         vDelay[1].set_samples(vPorts[SAMPLES_R]->getValue());
         vDelay[1].set_time(vPorts[TIME_R]->getValue());
         vDelay[1].set_distance(vPorts[METERS_R]->getValue() + (vPorts[CENTIMETERS_R]->getValue() * 0.01));

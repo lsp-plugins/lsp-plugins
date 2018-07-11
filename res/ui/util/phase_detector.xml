@@ -45,19 +45,19 @@
 		<vbox size="2" border="2">
 			<graph width="192" expand="true" fill="true">
 				<center hpos="0" vpos="0" visible="false" />
-				<axis id="time" min="-1.0" max="1.0" color="white" angle="0.0" logarithmic="false" />
-				<axis min="-1.05" max="1.05" color="white" angle="0.5" logarithmic="false" />
+				<axis id="time" min="-1.0" max="1.0" color="g_white" angle="0.0" logarithmic="false" />
+				<axis min="-1.05" max="1.05" color="g_white" angle="0.5" logarithmic="false" />
 				
 				<mesh id="f" width="3" />
 				
-				<marker id="w_t" color="red" basis="0" parallel="1" />
-				<marker id="w_v" color="red" basis="1" parallel="0" />
+				<marker id="w_t" color="g_red" basis="0" parallel="1" />
+				<marker id="w_v" color="g_red" basis="1" parallel="0" />
 				
-				<marker id="b_t" color="green" basis="0" parallel="1" />
-				<marker id="b_v" color="green" basis="1" parallel="0" />
+				<marker id="b_t" color="g_green" basis="0" parallel="1" />
+				<marker id="b_v" color="g_green" basis="1" parallel="0" />
 				
-				<marker id="s_t" color="yellow" basis="0" parallel="1" />
-				<marker id="s_v" color="yellow" basis="1" parallel="0" />
+				<marker id="s_t" color="g_yellow" basis="0" parallel="1" />
+				<marker id="s_v" color="g_yellow" basis="1" parallel="0" />
 				
 				<text text="+phase" coord="0;1.05" halign="1" valign="-1" color="green" />
 				<text text="-phase" coord="0;-1.05" halign="1" valign="1" color="red" />

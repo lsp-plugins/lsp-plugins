@@ -29,6 +29,7 @@ namespace lsp
     class JACKPort;
     class JACKUIPort;
     class JACKDataPort;
+    class JACKPositionPort;
 
     class JACKWrapper: public IWrapper, public IUIWrapper
     {
@@ -53,6 +54,9 @@ namespace lsp
             bool                    bUpdateSettings;
             state_t                 nState;
             size_t                  nCounter;
+            ssize_t                 nLatency;
+
+            position_t              sPosition;
 
             cvector<JACKPort>       vPorts;
             cvector<JACKDataPort>   vDataPorts;
@@ -71,8 +75,11 @@ namespace lsp
                 nQueryDrawLast  = 0;
                 pCanvas         = NULL;
                 bUpdateSettings = true;
-                nCounter        = 0;
                 nState          = S_CREATED;
+                nCounter        = 0;
+                nLatency        = 0;
+
+                position_t::init(&sPosition);
             }
 
             virtual ~JACKWrapper()
@@ -88,8 +95,13 @@ namespace lsp
 
         protected:
             static int process(jack_nframes_t nframes, void *arg);
+            static int jack_sync(jack_transport_state_t state, jack_position_t *pos, void *arg);
+            static int latency_callback(jack_latency_callback_mode_t mode, void *arg);
             static void shutdown(void *arg);
+
             int run(size_t samples);
+            int sync_position(jack_transport_state_t state, const jack_position_t *pos);
+            int latency_callback(jack_latency_callback_mode_t mode);
 
             void create_port(const port_t *port, const char *postfix);
 
@@ -116,6 +128,11 @@ namespace lsp
             virtual void query_display_draw()
             {
                 nQueryDraw++;
+            }
+
+            virtual const position_t *position()
+            {
+                return &sPosition;
             }
 
             inline bool test_display_draw()
@@ -149,8 +166,80 @@ namespace lsp
         return result;
     }
 
+    int JACKWrapper::jack_sync(jack_transport_state_t state, jack_position_t *pos, void *arg)
+    {
+        dsp_context_t ctx;
+        int result;
+
+        // Call the plugin for processing
+        dsp::start(&ctx);
+        JACKWrapper *_this  = reinterpret_cast<JACKWrapper *>(arg);
+        result              = _this->sync_position(state, pos);
+        dsp::finish(&ctx);
+
+        return result;
+    }
+
+    int JACKWrapper::latency_callback(jack_latency_callback_mode_t mode, void *arg)
+    {
+        JACKWrapper *_this  = reinterpret_cast<JACKWrapper *>(arg);
+        return _this->latency_callback(mode);
+    }
+
+    int JACKWrapper::latency_callback(jack_latency_callback_mode_t mode)
+    {
+        if (mode == JackCaptureLatency)
+        {
+            ssize_t latency = pPlugin->get_latency();
+
+            for (size_t i=0, n=vDataPorts.size(); i < n; ++i)
+            {
+                JACKDataPort *dp = vDataPorts.at(i);
+                if (dp == NULL)
+                    continue;
+                dp->report_latency(latency);
+            }
+        }
+
+        return 0;
+    }
+
+    int JACKWrapper::sync_position(jack_transport_state_t state, const jack_position_t *pos)
+    {
+        position_t npos = sPosition;
+
+        // Update settings
+        npos.speed          = (state == JackTransportRolling) ? 1.0f : 0.0f;
+        npos.frame          = pos->frame;
+
+        if (pos->valid & JackPositionBBT)
+        {
+            npos.numerator      = pos->beats_per_bar;
+            npos.denominator    = pos->beat_type;
+            npos.beatsPerMinute = pos->beats_per_minute;
+            npos.tick           = pos->tick;
+            npos.ticksPerBeat   = pos->ticks_per_beat;
+        }
+
+//        lsp_trace("numerator = %.3f, denominator = %.3f, bpm = %.3f, tick = %.3f, tpb = %.3f",
+//                float(npos.numerator), float(npos.denominator), float(npos.beatsPerMinute),
+//                float(npos.tick), float(npos.ticksPerBeat));
+
+        // Call plugin for position update
+        if (pPlugin->set_position(&npos))
+            bUpdateSettings = true;
+        if (pUI != NULL)
+            pUI->position_updated(&npos);
+
+        // Update current position
+        sPosition = npos;
+
+        return 0;
+    }
+
     int JACKWrapper::run(size_t samples)
     {
+        // Prepare ports
         size_t n_ports  = vPorts.size();
 
         for (size_t i=0; i<n_ports; ++i)
@@ -179,8 +268,13 @@ namespace lsp
         // Call the main processing unit
         pPlugin->process(samples);
 
-        // Report latency
-        // TODO (maybe)
+        // Report latency if changed
+        ssize_t latency = pPlugin->get_latency();
+        if (latency != nLatency)
+        {
+            jack_recompute_total_latencies(pClient);
+            nLatency = latency;
+        }
 
         // Post-process ALL ports
         for (size_t i=0; i<n_ports; ++i)
@@ -372,9 +466,10 @@ namespace lsp
         }
 
         // Set plugin sample rate and call for settings update
-        jack_nframes_t sr   = jack_get_sample_rate(pClient);
+        jack_nframes_t sr           = jack_get_sample_rate(pClient);
         pPlugin->set_sample_rate(sr);
-        bUpdateSettings = true;
+        sPosition.sampleRate        = sr;
+        bUpdateSettings             = true;
 
         // Now we ready for processing
         if (pPlugin != NULL)
@@ -386,6 +481,22 @@ namespace lsp
         if (jack_set_process_callback(pClient, process, this))
         {
             lsp_error("Could not initialize JACK client");
+            nState = S_CONN_LOST;
+            return STATUS_DISCONNECTED;
+        }
+
+        // Setup position synchronization callback
+        if (jack_set_sync_callback(pClient, jack_sync, this))
+        {
+            lsp_error("Could not bind position sync callback");
+            nState = S_CONN_LOST;
+            return STATUS_DISCONNECTED;
+        }
+
+        // Set sync timeout for handler
+        if (jack_set_sync_timeout(pClient, 100000)) // 100 msec timeout
+        {
+            lsp_error("Could not setup sync timeout");
             nState = S_CONN_LOST;
             return STATUS_DISCONNECTED;
         }
@@ -523,6 +634,8 @@ namespace lsp
             if (jup->sync())
                 jup->notify_all();
         }
+        if (pUI != NULL)
+            pUI->sync_meta_ports();
 
         // Limit refresh rate of window icon and refresh icon
         if (nCounter++ >= 5)

@@ -30,6 +30,12 @@ namespace lsp
              *
              */
             virtual void query_display_draw();
+
+            /** Get current time position
+             *
+             * @return current time position
+             */
+            virtual const position_t *position();
     };
 
 } /* namespace lsp */

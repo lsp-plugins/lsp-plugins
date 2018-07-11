@@ -5,12 +5,15 @@
  *      Author: sadko
  */
 
-#ifndef UI_WS_IOUTPUTSTREAM_H_
-#define UI_WS_IOUTPUTSTREAM_H_
+#ifndef CORE_IO_IOUTPUTSTREAM_H_
+#define CORE_IO_IOUTPUTSTREAM_H_
+
+#include <core/types.h>
+#include <core/status.h>
 
 namespace lsp
 {
-    namespace ws
+    namespace io
     {
         class IOutputStream
         {
@@ -59,4 +62,4 @@ namespace lsp
     } /* namespace ws */
 } /* namespace lsp */
 
-#endif /* UI_WS_IOUTPUTSTREAM_H_ */
+#endif /* CORE_IO_IOUTPUTSTREAM_H_ */

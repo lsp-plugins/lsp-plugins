@@ -85,8 +85,8 @@ namespace lsp
                 void            update_scroll();
                 void            update_clipboard(size_t bufid);
                 void            request_clipboard(size_t bufid);
-                static status_t clipboard_handler(void *arg, status_t s, IInputStream *is);
-                status_t        paste_data(IInputStream *is);
+                static status_t clipboard_handler(void *arg, status_t s, io::IInputStream *is);
+                status_t        paste_data(io::IInputStream *is);
                 status_t        cut_data(size_t bufid);
                 status_t        copy_data(size_t bufid);
                 status_t        paste_data(size_t bufid);
@@ -104,16 +104,16 @@ namespace lsp
                 virtual void destroy();
 
             public:
-                LSPTextSelection   *selection()         { return &sSelection;   }
-                LSPTextCursor      *cursor()            { return &sCursor;      }
-                LSPFont            *font()              { return &sFont;        }
-                const char         *text() const        { return sText.get_native(); }
-                inline status_t     get_text(LSPString *dst) const { return dst->set(&sText) ? STATUS_OK : STATUS_NO_MEM; };
-                const ssize_t       min_width() const   { return nMinWidth;     }
-                Color              *bg_color()          { return &sBgColor;     }
-                Color              *sel_color()         { return &sBgColor;     }
-                Color              *color()             { return &sColor;       }
-                LSPMenu            *get_popup()         { return pPopup;        }
+                inline LSPTextSelection   *selection()         { return &sSelection;   }
+                inline LSPTextCursor      *cursor()            { return &sCursor;      }
+                inline LSPFont            *font()              { return &sFont;        }
+                inline const char         *text() const        { return sText.get_native(); }
+                inline status_t            get_text(LSPString *dst) const { return dst->set(&sText) ? STATUS_OK : STATUS_NO_MEM; };
+                inline const ssize_t       min_width() const   { return nMinWidth;     }
+                inline Color              *bg_color()          { return &sBgColor;     }
+                inline Color              *sel_color()         { return &sBgColor;     }
+                inline Color              *color()             { return &sColor;       }
+                inline LSPMenu            *get_popup()         { return pPopup;        }
 
             public:
                 status_t            set_text(const char *text);

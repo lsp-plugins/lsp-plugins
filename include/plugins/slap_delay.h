@@ -39,12 +39,15 @@ namespace lsp
                 mono_processor_t        vDelay[2];
 
                 size_t                  nDelay;     // Delay
+                size_t                  nNewDelay;  // New delay
                 size_t                  nMode;      // Operating mode
 
                 IPort                  *pMode;      // Operating mode port
                 IPort                  *pEq;        // Equalizer
                 IPort                  *pTime;      // Delay in time units
                 IPort                  *pDistance;  // Delay in distance units
+                IPort                  *pFrac;      // Fraction
+                IPort                  *pDenom;     // Denominator
                 IPort                  *pPan[2];    // Pan of left and right input channels
                 IPort                  *pGain;      // Gain of the delay line
                 IPort                  *pLowCut;    // Low-cut flag
@@ -94,6 +97,9 @@ namespace lsp
             IPort          *pMono;          // Mono output
             IPort          *pPred;          // Pre-delay
             IPort          *pStretch;       // Time stretch
+            IPort          *pTempo;         // Tempo
+            IPort          *pSync;          // Sync tempo
+            IPort          *pRamping;       // Ramping mode
 
             uint8_t        *vData;          // Allocated data
 
@@ -105,6 +111,7 @@ namespace lsp
             virtual void init(IWrapper *wrapper);
             virtual void destroy();
 
+            virtual bool set_position(const position_t *pos);
             virtual void update_settings();
             virtual void update_sample_rate(long sr);
 

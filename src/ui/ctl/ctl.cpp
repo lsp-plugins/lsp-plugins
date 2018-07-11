@@ -21,6 +21,7 @@ namespace lsp
             "edit",
             "fader",
             "file",
+            "frac",
             "graph",
             "grid",
             "group",
@@ -46,6 +47,7 @@ namespace lsp
             "sep",
             "switch",
             "text",
+            "ttap",
             "value",
             "vbox",
             "vgrid",
@@ -157,6 +159,8 @@ namespace lsp
             "path_id",
             "hfill",
             "vfill",
+            "format_id",
+            "bind",
             NULL
         };
 

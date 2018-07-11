@@ -93,19 +93,19 @@
 				<center hpos="-1.0" vpos="0.0" visible="false" />
 				
 				<!-- Vertical lines -->
-				<marker value="0.5" basis="0" parallel="1" color="gray" />
-				<marker value="1.0" basis="0" parallel="1" color="yellow" />
-				<marker value="1.5" basis="0" parallel="1" color="gray" />
-				<marker value="2.0" basis="0" parallel="1" color="white" />
+				<marker value="0.5" basis="0" parallel="1" color="g_gray" />
+				<marker value="1.0" basis="0" parallel="1" color="g_yellow" />
+				<marker value="1.5" basis="0" parallel="1" color="g_gray" />
+				<marker value="2.0" basis="0" parallel="1" color="g_white" />
 				
 				<!-- Horizontal lines -->
-				<marker value="-2.0" basis="1" parallel="0" color="white" />
-				<marker value="-1.0" basis="1" parallel="0" color="yellow" />
-				<marker value="1.0" basis="1" parallel="0" color="yellow" />
-				<marker value="2.0" basis="1" parallel="0" color="white" />
+				<marker value="-2.0" basis="1" parallel="0" color="g_white" />
+				<marker value="-1.0" basis="1" parallel="0" color="g_yellow" />
+				<marker value="1.0" basis="1" parallel="0" color="g_yellow" />
+				<marker value="2.0" basis="1" parallel="0" color="g_white" />
 				
-				<axis min="0" max="2.0" color="white" angle="0.0" logarithmic="false" />
-				<axis min="-2.0" max="2.0" color="white" angle="0.5" logarithmic="false" />
+				<axis min="0" max="2.0" color="g_white" angle="0.0" logarithmic="false" />
+				<axis min="-2.0" max="2.0" color="g_white" angle="0.5" logarithmic="false" />
 			
 				<mesh id="ow" width="3" />
 				

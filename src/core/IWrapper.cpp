@@ -26,4 +26,9 @@ namespace lsp
     void IWrapper::query_display_draw()
     {
     }
+
+    const position_t *IWrapper::position()
+    {
+        return NULL;
+    }
 } /* namespace lsp */

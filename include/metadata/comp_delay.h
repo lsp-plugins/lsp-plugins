@@ -14,17 +14,30 @@ namespace lsp
     // Compensation delay metadata
     struct comp_delay_base_metadata
     {
-        static const float  METERS_MAX          = 200;
-        static const float  CENTIMETERS_MAX     = 100;
-        static const float  CENTIMETERS_STEP    = 0.1;
-        static const float  SAMPLES_MAX         = 10000;
-        static const float  TIME_MAX            = 1000;
-        static const float  TIME_STEP           = 0.01;
+        static const float  METERS_MIN          = 0.0f;
+        static const float  METERS_MAX          = 200.0f;
+        static const float  METERS_DFL          = 0.0f;
+        static const float  METERS_STEP         = 1.0f;
 
-        static const float  TEMPERATURE_MIN     = -60;
-        static const float  TEMPERATURE_MAX     = +60;
-        static const float  TEMPERATURE_DFL     = 20.0;
-        static const float  TEMPERATURE_STEP    = 0.1;
+        static const float  CENTIMETERS_MIN     = 0.0f;
+        static const float  CENTIMETERS_MAX     = 100.0f;
+        static const float  CENTIMETERS_DFL     = 0.0f;
+        static const float  CENTIMETERS_STEP    = 0.1f;
+
+        static const float  SAMPLES_MIN         = 0.0f;
+        static const float  SAMPLES_MAX         = 10000.0f;
+        static const float  SAMPLES_DFL         = 0.0f;
+        static const float  SAMPLES_STEP        = 1.0f;
+
+        static const float  TIME_MIN            = 0.0f;
+        static const float  TIME_MAX            = 1000.0f;
+        static const float  TIME_DFL            = 0.0f;
+        static const float  TIME_STEP           = 0.01f;
+
+        static const float  TEMPERATURE_MIN     = -60.0f;
+        static const float  TEMPERATURE_MAX     = +60.0f;
+        static const float  TEMPERATURE_DFL     = 20.0f;
+        static const float  TEMPERATURE_STEP    = 0.1f;
 
         static const float  DELAY_OUT_MAX_TIME      = 1000 /* TIME_MAX [ms] */;
         static const float  DELAY_OUT_MAX_SAMPLES   = 1000 /* TIME_MAX [ms] */ * 0.001 /* [ s/ms ] */ * MAX_SAMPLE_RATE /* [samples / s] */;
@@ -52,7 +65,7 @@ namespace lsp
 
             // Input controls
             BYPASS,
-            MODE, SAMPLES, METERS, CENTIMETERS, TEMPERATURE, TIME,
+            MODE, RAMPING, SAMPLES, METERS, CENTIMETERS, TEMPERATURE, TIME,
             DRY, WET,
             OUT_GAIN,
 
@@ -75,7 +88,7 @@ namespace lsp
 
             // Input controls
             BYPASS,
-            MODE, SAMPLES, METERS, CENTIMETERS, TEMPERATURE, TIME,
+            MODE, RAMPING, SAMPLES, METERS, CENTIMETERS, TEMPERATURE, TIME,
             DRY, WET,
             OUT_GAIN,
 
@@ -98,9 +111,9 @@ namespace lsp
 
             // Input controls
             BYPASS,
-            MODE_L, SAMPLES_L, METERS_L, CENTIMETERS_L, TEMPERATURE_L, TIME_L,
+            MODE_L, RAMPING_L, SAMPLES_L, METERS_L, CENTIMETERS_L, TEMPERATURE_L, TIME_L,
             DRY_L, WET_L,
-            MODE_R, SAMPLES_R, METERS_R, CENTIMETERS_R, TEMPERATURE_R, TIME_R,
+            MODE_R, RAMPING_R, SAMPLES_R, METERS_R, CENTIMETERS_R, TEMPERATURE_R, TIME_R,
             DRY_R, WET_R,
             OUT_GAIN,
 

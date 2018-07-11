@@ -167,6 +167,20 @@ namespace lsp
                 return (pPort != NULL) ? STATUS_OK : STATUS_UNKNOWN_ERR;
             }
 
+            void report_latency(ssize_t latency)
+            {
+                // Only output ports should report latency
+                if ((pMetadata == NULL) || (!IS_OUT_PORT(pMetadata)))
+                    return;
+
+                // Report latency
+                jack_latency_range_t range;
+                jack_port_get_latency_range(pPort, JackCaptureLatency, &range);
+                range.min += latency;
+                range.max += latency;
+                jack_port_set_latency_range (pPort, JackCaptureLatency, &range);
+            }
+
             virtual void destroy()
             {
                 disconnect();
@@ -428,6 +442,7 @@ namespace lsp
                 return sPath.pending();
             }
     };
+
 }
 
 

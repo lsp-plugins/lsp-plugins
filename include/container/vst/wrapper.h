@@ -39,6 +39,8 @@ namespace lsp
             cvector<VSTUIPort>          vUIPorts;       // List of all created UI ports
             cvector<port_t>             vGenMetadata;   // Generated metadata
 
+            position_t                  sPosition;
+
         private:
             void transfer_dsp_to_ui();
 
@@ -47,6 +49,8 @@ namespace lsp
 
         protected:
             static status_t slot_ui_resize(LSPWidget *sender, void *ptr, void *data);
+
+            void sync_position();
 
         public:
             VSTWrapper(
@@ -68,6 +72,8 @@ namespace lsp
                 sRect.right     = 0;
                 fLatency        = 0.0f;
                 bUpdateSettings = true;
+
+                position_t::init(&sPosition);
             }
 
             virtual ~VSTWrapper()
@@ -119,6 +125,11 @@ namespace lsp
                 lsp_trace("Creating native executor service");
                 pExecutor       = new NativeExecutor();
                 return pExecutor;
+            }
+
+            virtual const position_t *position()
+            {
+                return &sPosition;
             }
 
             void init_state_chunk();
@@ -358,6 +369,44 @@ namespace lsp
         lsp_trace("destroy complete");
     }
 
+    void VSTWrapper::sync_position()
+    {
+        VstTimeInfo *info   = FromVstPtr<VstTimeInfo>(pMaster(pEffect, audioMasterGetTime, 0, kVstPpqPosValid | kVstTempoValid | kVstBarsValid | kVstCyclePosValid | kVstTimeSigValid, NULL, 0.0f));
+        if (info == NULL)
+            return;
+
+        position_t npos     = sPosition;
+
+        npos.sampleRate     = info->sampleRate;
+        npos.speed          = 1.0f;
+        npos.ticksPerBeat   = DEFAULT_TICKS_PER_BEAT;
+        npos.frame          = info->samplePos;
+
+        if (info->flags & kVstTimeSigValid)
+        {
+            npos.numerator      = info->timeSigNumerator;
+            npos.denominator    = info->timeSigDenominator;
+
+//            lsp_trace("ppq_pos = %f, bar_start_pos = %f", float(info->ppqPos), float(info->barStartPos));
+            if ((info->flags & (kVstPpqPosValid | kVstBarsValid)) == (kVstPpqPosValid | kVstBarsValid))
+            {
+                double uppqPos      = (info->ppqPos - info->barStartPos) * info->timeSigDenominator * 0.25;
+                npos.tick           = npos.ticksPerBeat * (uppqPos - int64_t(uppqPos));
+            }
+        }
+
+        if (info->flags & kVstTempoValid)
+            npos.beatsPerMinute = info->tempo;
+
+//        lsp_trace("position: sr=%f, frame=%ld, key=%f/%f tick=%f bpm=%f",
+//                float(npos.sampleRate), long(npos.frame), float(npos.numerator), float(npos.denominator), float(npos.tick), float(npos.beatsPerMinute));
+
+        // Report new position to plugin and update position
+        if (pPlugin->set_position(&npos))
+            bUpdateSettings = true;
+        sPosition       = npos;
+    }
+
     void VSTWrapper::run(float** inputs, float** outputs, size_t samples)
     {
         // DO NOTHING if sample_rate is not set (fill output buffers with zeros)
@@ -377,6 +426,9 @@ namespace lsp
         }
         else if (pPlugin->ui_active())
             pPlugin->deactivate_ui();
+
+        // Synchronize position
+        sync_position();
 
         // Bind audio ports
         size_t n_inputs = vInputs.size();
@@ -641,21 +693,16 @@ namespace lsp
 ////            wnd->set_geometry(&r);
 //        }
 
-        size_t ports_count  = vUIPorts.size();
+        // Try to sync position
+        pUI->position_updated(&sPosition);
 
         // DSP -> UI communication
-        for (size_t i=0; i < ports_count; ++i)
+        for (size_t i=0, nports=vUIPorts.size(); i < nports; ++i)
         {
             // Get UI port
             VSTUIPort *vup          = vUIPorts[i];
-            if (vup == NULL)
-                continue;
-
-            if (vup->sync())
-            {
-//                lsp_trace("synced port id=%s", vup->metadata()->id);
+            if ((vup != NULL) && (vup->sync()))
                 vup->notify_all();
-            }
         } // for port_id
     }
 

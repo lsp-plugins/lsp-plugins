@@ -139,6 +139,11 @@ namespace lsp
 
     typedef uint64_t        wsize_t;
     typedef int64_t         wssize_t;
+
+    /** Unicode character definition
+     *
+     */
+    typedef uint16_t                lsp_wchar_t;
 }
 
 
@@ -259,6 +264,53 @@ namespace lsp
         virtual bool accepted();
 
     } path_t;
+
+    // Position port structure
+    typedef struct position_t
+    {
+        /** Current sample rate in Hz
+         *
+         */
+        float           sampleRate;
+
+        /** The rate of the progress of time as a fraction of normal speed.
+         * For example, a rate of 0.0 is stopped, 1.0 is rolling at normal
+         * speed, 0.5 is rolling at half speed, -1.0 is reverse, and so on.
+         */
+        double          speed;
+
+        /** Frame number
+         *
+         */
+        uint64_t        frame;
+
+        /** Time signature numerator (e.g. 3 for 3/4)
+         *
+         */
+        double          numerator;
+
+        /** Time signature denominator (e.g. 4 for 3/4)
+         *
+         */
+        double          denominator;
+
+        /** Current tempo in beats per minute
+         *
+         */
+        double          beatsPerMinute;
+
+        /** Current tick within beat
+         *
+         */
+        double          tick;
+
+        /** Number of ticks per beat
+         *
+         */
+        double          ticksPerBeat;
+
+        static void init(position_t *pos);
+    } position_t;
 
     typedef struct resource_t
     {

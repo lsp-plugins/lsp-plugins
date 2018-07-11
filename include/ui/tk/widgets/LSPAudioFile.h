@@ -49,11 +49,12 @@ namespace lsp
                 LSPWidgetFont       sHintFont;
                 LSPSizeConstraints  sConstraints;
                 LSPPadding          sPadding;
-                LSPFileDialog      *pDialog;
+                LSPFileDialog       sDialog;
                 Color               sBgColor;
                 Color               sColor;
                 Color               sAxisColor;
 
+                LSPMenu            *pPopup;         // Popup menu
                 size_t              nDecimSize;     // Decimation buffer size
                 float              *vDecimX;        // Decimation buffer data for x
                 float              *vDecimY;        // Decimation buffer data for y
@@ -74,10 +75,9 @@ namespace lsp
                 void                destroy_channel(channel_t *channel);
                 void                destroy_data();
                 bool                check_mouse_over(ssize_t x, ssize_t y);
-                status_t            show_dialog();
                 ISurface           *render_graph(ISurface *s, ssize_t w, ssize_t h);
                 void                drop_glass();
-                void                render_channel(ISurface *s, channel_t *c, ssize_t y, ssize_t w, ssize_t h); //, const Color &fill, const Color &wire);
+                void                render_channel(ISurface *s, channel_t *c, ssize_t y, ssize_t w, ssize_t h);
 
                 static status_t     slot_on_dialog_submit(LSPWidget *sender, void *ptr, void *data);
                 static status_t     slot_on_dialog_close(LSPWidget *sender, void *ptr, void *data);
@@ -129,6 +129,10 @@ namespace lsp
                 inline size_t           radius() const { return nRadius; }
                 inline size_t           border() const { return nBorder; }
 
+                inline LSPFileFilter   *filter() { return sDialog.filter(); }
+
+                inline LSPMenu         *get_popup() { return pPopup;        }
+
             public:
                 status_t        set_file_name(const char *text);
                 status_t        set_file_name(const LSPString *text);
@@ -155,6 +159,7 @@ namespace lsp
                 void            set_show_data(bool value = true);
                 void            set_show_hint(bool value = true);
                 void            set_show_file_name(bool value = true);
+                inline void     set_popup(LSPMenu *popup)   { pPopup = popup; }
 
             public:
                 virtual bool hide();

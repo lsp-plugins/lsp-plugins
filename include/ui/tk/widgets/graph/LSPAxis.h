@@ -99,7 +99,7 @@ namespace lsp
                  * @param cv canvas
                  * @param x x coordinate (in pixels) of 2D-point on canvas
                  * @param y y coordinate (in pixels) of 2D-point on canvas
-                 * @return the value after projectsion
+                 * @return the value after projection
                  */
                 float project(float x, float y);
 

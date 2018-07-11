@@ -5,11 +5,12 @@
  *      Author: sadko
  */
 
-#include <ui/ws/ws.h>
+#include <core/status.h>
+#include <core/io/IInputStream.h>
 
 namespace lsp
 {
-    namespace ws
+    namespace io
     {
         
         IInputStream::IInputStream()

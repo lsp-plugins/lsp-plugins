@@ -19,6 +19,10 @@ namespace lsp
                 CtlColor        sColor;
                 float           fTransparency;
 
+            protected:
+                static status_t     slot_change(LSPWidget *sender, void *ptr, void *data);
+                void                submit_values();
+
             public:
                 CtlMarker(CtlRegistry *src, LSPMarker *mark);
                 virtual ~CtlMarker();

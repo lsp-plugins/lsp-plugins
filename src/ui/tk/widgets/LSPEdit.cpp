@@ -137,6 +137,7 @@ namespace lsp
                 }
             }
 
+            // Initialize standard menu
             ui_handler_id_t id = 0;
             LSP_STATUS_ASSERT(sStdPopup.init());
             LSPMenuItem *mi = new LSPMenuItem(pDisplay);
@@ -611,13 +612,13 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPEdit::clipboard_handler(void *arg, status_t s, IInputStream *is)
+        status_t LSPEdit::clipboard_handler(void *arg, status_t s, io::IInputStream *is)
         {
             LSPEdit *_this = widget_ptrcast<LSPEdit>(arg);
             return ((s == STATUS_OK) && (_this != NULL) && (is != NULL)) ? _this->paste_data(is) : STATUS_BAD_STATE;
         }
 
-        status_t LSPEdit::paste_data(IInputStream *is)
+        status_t LSPEdit::paste_data(io::IInputStream *is)
         {
             LSPString s;
             size_t avail = is->avail();

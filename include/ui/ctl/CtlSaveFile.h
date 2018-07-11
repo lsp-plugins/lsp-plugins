@@ -19,6 +19,7 @@ namespace lsp
                 CtlPort        *pStatus;
                 CtlPort        *pCommand;
                 CtlPort        *pProgress;
+                CtlExpression   sFormat;
 
             protected:
                 void        update_state();

@@ -12,6 +12,7 @@
 #include <core/status.h>
 #include <data/cvector.h>
 #include <data/cstorage.h>
+#include <core/LSPString.h>
 
 #include <ui/ws/ws.h>
 
@@ -19,11 +20,6 @@ namespace lsp
 {
     namespace tk
     {
-        /** Unicode character definition
-         *
-         */
-        typedef uint16_t                lsp_wchar_t;
-
         /** Widget orientation
          *
          */
@@ -187,7 +183,6 @@ namespace lsp
 #include <ui/tk/sys/LSPDisplay.h>
 
 // Utilitary objects
-#include <ui/tk/util/LSPString.h>
 #include <ui/tk/util/LSPSurface.h>
 #include <ui/tk/util/LSPFont.h>
 #include <ui/tk/util/LSPPadding.h>
@@ -203,6 +198,7 @@ namespace lsp
 #include <ui/tk/util/LSPWindowActions.h>
 #include <ui/tk/util/LSPColor.h>
 #include <ui/tk/util/LSPTextClipboard.h>
+#include <ui/tk/util/LSPFileFilter.h>
 
 // Utilitary objects bound to widgets
 #include <ui/tk/util/LSPWidgetColor.h>
@@ -214,7 +210,7 @@ namespace lsp
 #include <ui/tk/basic/LSPWidgetContainer.h>
 #include <ui/tk/basic/LSPWidgetProxy.h>
 
-// Widgets
+// Basic widgets
 #include <ui/tk/widgets/LSPWindow.h>
 #include <ui/tk/widgets/LSPBox.h>
 #include <ui/tk/widgets/LSPCell.h>
@@ -238,14 +234,17 @@ namespace lsp
 #include <ui/tk/widgets/LSPComboBox.h>
 #include <ui/tk/widgets/LSPEdit.h>
 #include <ui/tk/widgets/LSPGraph.h>
-#include <ui/tk/widgets/LSPAudioFile.h>
-#include <ui/tk/widgets/LSPMountStud.h>
-#include <ui/tk/widgets/LSPSaveFile.h>
 #include <ui/tk/widgets/LSPComboGroup.h>
 
 // Dialogs
 #include <ui/tk/widgets/dialogs/LSPMessageBox.h>
 #include <ui/tk/widgets/dialogs/LSPFileDialog.h>
+
+// Advanced widgets
+#include <ui/tk/widgets/LSPAudioFile.h>
+#include <ui/tk/widgets/LSPMountStud.h>
+#include <ui/tk/widgets/LSPSaveFile.h>
+#include <ui/tk/widgets/LSPFraction.h>
 
 // Grapic widgets
 #include <ui/tk/widgets/graph/LSPGraphItem.h>

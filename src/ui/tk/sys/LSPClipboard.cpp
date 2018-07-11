@@ -356,7 +356,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        IInputStream *LSPClipboard::read(const char *ctype)
+        io::IInputStream *LSPClipboard::read(const char *ctype)
         {
             // Check arguments and state
             if (ctype == NULL)
@@ -378,7 +378,7 @@ namespace lsp
             }
 
             // Create stream
-            IInputStream *strm = new LSPInputStream(this);
+            io::IInputStream *strm = new LSPInputStream(this);
             if (strm == NULL)
             {
                 nError      = STATUS_NO_MEM;
@@ -392,7 +392,7 @@ namespace lsp
             return strm;
         }
 
-        IOutputStream *LSPClipboard::write(const char *ctype)
+        io::IOutputStream *LSPClipboard::write(const char *ctype)
         {
             // Data can be written only once
             if (sCType != NULL)
@@ -415,7 +415,7 @@ namespace lsp
             }
 
             // Create stream
-            IOutputStream *strm = new LSPOutputStream(this);
+            io::IOutputStream *strm = new LSPOutputStream(this);
             if (strm == NULL)
             {
                 lsp_free(sCType);

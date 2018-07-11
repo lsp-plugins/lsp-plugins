@@ -9,6 +9,7 @@
 
 #include <ui/ui.h>
 #include <ui/plugin_ui.h>
+#include <metadata/ports.h>
 
 namespace lsp
 {
@@ -81,7 +82,7 @@ namespace lsp
             BIND_PORT(pRegistry, pPMStud, MSTUD_PORT);
             BIND_PORT(pRegistry, pPVersion, VERSION_PORT);
             BIND_PORT(pRegistry, pPath, CONFIG_PATH_PORT);
-            BIND_PORT(pRegistry, pPBypass, "bypass");
+            BIND_PORT(pRegistry, pPBypass, PORT_NAME_BYPASS);
 
             const plugin_metadata_t *meta   = pUI->metadata();
 
@@ -291,8 +292,10 @@ namespace lsp
                 dlg->set_title("Export settings");
                 dlg->set_action_title("Save");
                 dlg->set_confirmation("The selected file already exists. Overwrite?");
-                dlg->add_filter("*.cfg", "LSP plugin configuration file (*.cfg)");
-                dlg->add_filter("*", "All files (*.*)");
+
+                LSPFileFilter *f = dlg->filter();
+                f->add("*.cfg", "LSP plugin configuration file (*.cfg)", ".cfg");
+                f->add("*", "All files (*.*)", "");
                 dlg->bind_action(slot_call_export_settings, ptr);
                 dlg->slots()->bind(LSPSLOT_SHOW, slot_fetch_path, __this);
                 dlg->slots()->bind(LSPSLOT_HIDE, slot_commit_path, __this);
@@ -315,8 +318,10 @@ namespace lsp
                 dlg->set_mode(FDM_OPEN_FILE);
                 dlg->set_title("Import settings");
                 dlg->set_action_title("Open");
-                dlg->add_filter("*.cfg", "Configuration file (*.cfg)");
-                dlg->add_filter("*", "All files (*.*)");
+
+                LSPFileFilter *f = dlg->filter();
+                f->add("*.cfg", "Configuration file (*.cfg)", ".cfg");
+                f->add("*", "All files (*.*)", "");
                 dlg->bind_action(slot_call_import_settings, ptr);
                 dlg->slots()->bind(LSPSLOT_SHOW, slot_fetch_path, __this);
                 dlg->slots()->bind(LSPSLOT_HIDE, slot_commit_path, __this);

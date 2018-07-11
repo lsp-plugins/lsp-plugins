@@ -46,6 +46,9 @@
 #include "test/sidechain_test.h"
 #include "test/limiter_test.h"
 
+#include "test/files/config_test.h"
+#include "test/files/text_read_test.h"
+
 #include "test/sse_test.h"
 
 #include "test/oversampling_test.h"
@@ -67,8 +70,11 @@
 
 #include "test/math/root_test.h"
 
+#include "test/x11/selection_test.h"
 
-#define TEST jack_test
+
+//#define TEST config_test
+//#define TEST text_read_test
 
 //#define TEST xwindow_test
 //#define TEST limiter_test
@@ -134,6 +140,10 @@
 //#define TEST bt_perf_test
 //#define TEST mt_perf_test
 //#define TEST root_test
+
+#define TEST jack_test
+//#define TEST selection_test
+
 
 int main(int argc, const char**argv)
 {

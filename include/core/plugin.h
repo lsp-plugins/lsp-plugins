@@ -118,6 +118,13 @@ namespace lsp
              */
             virtual void update_settings();
 
+            /** Report current time position for plugin
+             *
+             * @param pos current time position
+             * @return true if need to call for plugin setting update
+             */
+            virtual bool set_position(const position_t *pos);
+
             /** Process data
              *
              * @param samples number of samples to process

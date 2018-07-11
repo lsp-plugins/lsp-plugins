@@ -9,24 +9,30 @@
 			<led id="sw0alias" />
 		</vbox>
 		<group text="Knobs">
-			<align hpos="0" vpos="1" hscale="0.5" vscale="0.5">
+			<vbox>
 				<hbox>
-					<vbox>
-						<knob id="kn0" size="24" />
-						<value id="kn0" />
-						
-						<knob id="kn1" />
-						<value id="kn1" />
-					</vbox>
-					<vbox>
-						<knob id="kn2" size="24" />
-						<value id="kn2" />
-						
-						<knob id="kn3" size="16" />
-						<value id="kn3" />
-					</vbox>
+					<label text="BPM:" />
+					<indicator id="time:bpm" format="f6.2!" text_color="green" />
 				</hbox>
-			</align>
+				<align hpos="0" vpos="1" hscale="0.5" vscale="0.5">
+					<hbox>
+						<vbox>
+							<knob id="kn0" size="24" />
+							<value id="kn0" />
+							
+							<knob id="kn1" />
+							<value id="kn1" />
+						</vbox>
+						<vbox>
+							<knob id="kn2" size="24" />
+							<value id="kn2" />
+							
+							<knob id="kn3" size="16" />
+							<value id="kn3" />
+						</vbox>
+					</hbox>
+				</align>
+			</vbox>
 		</group>
 		<vsep />
 		<vsbar />
@@ -83,7 +89,7 @@
 		<group text="File selector">
 			<grid rows="5" cols="5" expand="true">
 				<cell cols="5">
-					<file
+					<file format="audio,all"
 						id="ifn" head_id="ihc" tail_id="itc"
 						fadein_id="ifi" fadeout_id="ifo" length_id="ifl"
 						status_id="ifs" mesh_id="ifd"
@@ -103,7 +109,7 @@
 				<knob id="itc" size="20" />
 				<knob id="ifi" size="20" scale_color="yellow" />
 				<knob id="ifo" size="20" scale_color="yellow" />
-				<save id="ofn" command_id="ofc" status_id="ofs" progress_id="ofp" />
+				<save id="ofn" format=" wav , lspc, , cfg, all " command_id="ofc" status_id="ofs" progress_id="ofp" />
 				
 				<value id="ihc" />
 				<value id="itc" />
@@ -115,23 +121,23 @@
 		<graph width="320" height="200" fill="true">
 			<center hpos="-1" vpos="-1" color="white" visible="true" />
 			
-			<ui:for id="f" first="20" last="90" step="10"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
-			<ui:for id="f" first="200" last="900" step="100"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
-			<ui:for id="f" first="2000" last="9000" step="1000"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
-			<marker value="20000" color="gray" basis="0" parallel="1" />
+			<ui:for id="f" first="20" last="90" step="10"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+			<ui:for id="f" first="200" last="900" step="100"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+			<ui:for id="f" first="2000" last="9000" step="1000"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+			<marker value="20000" color="g_gray" basis="0" parallel="1" />
 			
-			<marker value="63.09575" color="gray" basis="1" parallel="0" />
-			<marker value="3.98107" color="gray" basis="1" parallel="0" />
-			<marker value="0.25119" color="gray" basis="1" parallel="0" />
-			<marker value="0.01585" color="gray" basis="1" parallel="0" />
+			<marker value="63.09575" color="g_gray" basis="1" parallel="0" />
+			<marker value="3.98107" color="g_gray" basis="1" parallel="0" />
+			<marker value="0.25119" color="g_gray" basis="1" parallel="0" />
+			<marker value="0.01585" color="g_gray" basis="1" parallel="0" />
 			
-			<marker value="100" color="yellow" basis="0" parallel="1" />
-			<marker value="1000" color="yellow" basis="0" parallel="1" />
-			<marker value="10000" color="yellow" basis="0" parallel="1" />
+			<marker value="100" color="g_yellow" basis="0" parallel="1" />
+			<marker value="1000" color="g_yellow" basis="0" parallel="1" />
+			<marker value="10000" color="g_yellow" basis="0" parallel="1" />
 
-			<marker value="15.84893" color="yellow" basis="1" parallel="0" />
-			<marker value="1" color="white" basis="1" parallel="0" />
-			<marker value="0.06310" color="yellow" basis="1" parallel="0" />
+			<marker value="15.84893" color="g_yellow" basis="1" parallel="0" />
+			<marker value="1" color="g_white" basis="1" parallel="0" />
+			<marker value="0.06310" color="g_yellow" basis="1" parallel="0" />
 
 			<mesh id="fftg" width="3" color="middle_channel" smooth="true" fill="0.8" />
 			
@@ -152,11 +158,11 @@
 			<dot hpos="10000" vpos_id="g_14" editable="true" color="middle_channel" />
 			<dot hpos="16000" vpos_id="g_15" editable="true" color="middle_channel" />
 
-			<marker value="251.18861" color="white" basis="1" parallel="0" />
-			<marker value="24000" color="white" basis="0" parallel="1" />
+			<marker value="251.18861" color="g_white" basis="1" parallel="0" />
+			<marker value="24000" color="g_white" basis="0" parallel="1" />
 			
-			<axis min="10" max="24000" color="white" angle="0.0" logarithmic="true" />
-			<axis min="0.00398" max="251.18861" color="white" angle="0.5" logarithmic="true" />
+			<axis min="10" max="24000" color="g_white" angle="0.0" logarithmic="true" />
+			<axis min="0.00398" max="251.18861" color="g_white" angle="0.5" logarithmic="true" />
 			
 			<text text="Hz" coord="10;0.00398" halign="1" valign="1" />
 			<text text="100" coord="100;0.00398" halign="1" valign="1" />

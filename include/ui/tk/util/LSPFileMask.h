@@ -17,9 +17,10 @@ namespace lsp
             public:
                 enum flags
                 {
-                    MULTIPLE        = 1 << 0,
-                    INVERSIVE       = 1 << 1,
-                    CASE_SENSITIVE  = 1 << 2,
+                    INVERSIVE       = 1 << 0,
+                    CASE_SENSITIVE  = 1 << 1,
+
+                    NONE            = 0
                 };
 
             protected:
@@ -59,8 +60,12 @@ namespace lsp
                 inline size_t flags() const { return nFlags; }
 
             public:
-                status_t    parse(const LSPString *pattern, size_t flags = 0);
-                status_t    parse(const char *pattern, size_t flags = 0);
+                void        swap(LSPFileMask *mask);
+
+                status_t    parse(const LSPString *pattern, size_t flags = NONE);
+                status_t    parse(const char *pattern, size_t flags = NONE);
+
+                void        set_flags(size_t flags);
 
                 bool        matched(const LSPString *str);
                 bool        matched(const char *text);

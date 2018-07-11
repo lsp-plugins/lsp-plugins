@@ -12,6 +12,7 @@
 	<li><b>Combo Group</b> - combo group control.</li>
 	<li><b>Fader</b> - fader control.</li>
 	<li><b>FileSaver</b> - file saving control.</li>
+	<li><b>Fraction</b> - control for setting musical time signature.</li>
 	<li><b>Graph</b> - graphical output area.</li>
 	<li><b>Group</b> - group control.</li>
 	<li><b>Indicator</b> - digital LED indicator.</li>
@@ -63,8 +64,9 @@ with red color.</p>
 	<img src="<?= $CTL ?>file_error.png">
 </div>
 
+<p>By clicking right mouse button, popup dialog appears that allows to cut, copy, paste and clear contents of widget</p>
 <p>There is also the way to force plugin to unload file. For this purpose simply double-click by right
-mouse button on widget's area.</p>
+mouse button on widget's area if popup menu does not appear.</p>
 
 <p>Example of file widget:</p>
 <div class="images">
@@ -146,6 +148,14 @@ and status of operation.</p>
 	<img src="<?= $CTL ?>save_v1.png">
 	<img src="<?= $CTL ?>save_v2.png">
 	<img src="<?= $CTL ?>save_v3.png">
+</div>
+
+<h2>Fraction</h2>
+<p>This widget allows to set-up time signature of the audio that is present as a fraction where top and bottom parts are
+integer values. Both numerator and denominator of fraction is adjustable by mouse wheel. Also, when clicking numerator
+or denominator with left mouse button, popup list box appears that allows to quickly set the required value.</p>
+<div class="images">
+	<img src="<?= $CTL ?>fraction.png">
 </div>
 
 <h2>Graph</h2>

@@ -22,7 +22,7 @@ namespace lsp
                         LSPItemList    *pList;
 
                     public:
-                        LSPListItem(LSPItemList *list, const char *text, float value);
+                        LSPListItem(LSPItemList *list, const LSPString *text, float value);
                         virtual ~LSPListItem();
 
                     protected:
@@ -33,7 +33,7 @@ namespace lsp
                 cvector<LSPListItem>    vItems;
 
             protected:
-                virtual LSPListItem    *create_item(const char *text, float value = 0.0f);
+                virtual LSPListItem    *create_item(const LSPString *text, float value = 0.0f);
 
                 virtual void            on_item_change(LSPListItem *item); // Triggered when the content of item has been changed
 
@@ -61,9 +61,12 @@ namespace lsp
                 status_t        add(const LSPItem *item);
 
                 status_t        insert(ssize_t idx, const char *text = NULL, float value = 0.0f);
+                status_t        insert(ssize_t idx, const LSPString *item, float value = 0.0f);
                 status_t        insert(ssize_t idx, const LSPItem *item);
 
                 status_t        remove(ssize_t idx);
+
+                status_t        truncate(size_t size);
 
                 status_t        swap(ssize_t idx1, ssize_t idx2);
 
@@ -73,8 +76,12 @@ namespace lsp
                 float           value(ssize_t idx) const;
                 LSPItem        *get(ssize_t idx);
                 status_t        get(ssize_t idx, const char **text, float *value) const;
+                status_t        get(ssize_t idx, LSPString *text, float *value) const;
+                status_t        get_text(ssize_t idx, const char **text) const;
+                status_t        get_text(ssize_t idx, LSPString *text) const;
 
                 status_t        set_text(ssize_t idx, const char *text);
+                status_t        set_text(ssize_t idx, const LSPString *text);
                 status_t        set_value(ssize_t idx, float value);
                 status_t        set_item(ssize_t idx, const LSPItem *item);
                 status_t        set(ssize_t idx, const LSPItem *item);

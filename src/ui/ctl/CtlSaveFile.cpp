@@ -93,7 +93,7 @@ namespace lsp
 
         void CtlSaveFile::set(widget_attribute_t att, const char *value)
         {
-//            LSPSaveFile *save   = widget_cast<LSPSaveFile>(pWidget);
+            LSPSaveFile *save   = widget_cast<LSPSaveFile>(pWidget);
 
             switch (att)
             {
@@ -108,6 +108,13 @@ namespace lsp
                     break;
                 case A_PROGRESS_ID:
                     BIND_PORT(pRegistry, pProgress, value);
+                    break;
+                case A_FORMAT:
+                    if (save != NULL)
+                        parse_file_formats(value, save->filter());
+                    break;
+                case A_FORMAT_ID:
+                    BIND_EXPR(sFormat, value);
                     break;
                 default:
                 {
@@ -131,6 +138,13 @@ namespace lsp
             if ((port == pStatus) ||
                 (port == pProgress))
                 update_state();
+
+            LSPSaveFile *save   = widget_cast<LSPSaveFile>(pWidget);
+            if (save == NULL)
+                return;
+
+            if (sFormat.valid())
+                save->filter()->set_default(sFormat.evaluate());
         }
     } /* namespace ctl */
 } /* namespace lsp */

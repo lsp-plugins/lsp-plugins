@@ -37,6 +37,12 @@ namespace lsp
             sBgColor.init_basic(pRegistry, ind, ind->text_color(), A_TEXT_COLOR);
         }
 
+        void CtlIndicator::end()
+        {
+            if (pPort != NULL)
+                notify(pPort);
+        }
+
         void CtlIndicator::commit_value(float value)
         {
 //            lsp_trace("commit value=%f", value);

@@ -118,10 +118,9 @@ namespace lsp
         {
             CtlWidget::init();
 
-            if (pWidget == NULL)
+            LSPKnob *knob = widget_cast<LSPKnob>(pWidget);
+            if (knob == NULL)
                 return;
-
-            LSPKnob *knob = static_cast<LSPKnob *>(pWidget);
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, knob, knob->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);

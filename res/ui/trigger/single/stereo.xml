@@ -16,24 +16,24 @@
 					
 					<!-- Gray grid -->
 					<ui:for id="t" first="0" last="4" step="1">
-						<marker value="${t}.25" color="dark_gray" basis="0" parallel="1" />
-						<marker value="${t}.5" color="gray" basis="0" parallel="1" />
-						<marker value="${t}.75" color="dark_gray" basis="0" parallel="1" />
+						<marker value="${t}.25" color="g_dark_gray" basis="0" parallel="1" />
+						<marker value="${t}.5" color="g_gray" basis="0" parallel="1" />
+						<marker value="${t}.75" color="g_dark_gray" basis="0" parallel="1" />
 					</ui:for>
 				
-					<marker value="3.98107" color="gray" basis="1" parallel="0" /> <!-- +12 dB -->
-					<marker value="0.251189" color="gray" basis="1" parallel="0" /> <!-- -12 dB -->
-					<marker value="0.0158489" color="gray" basis="1" parallel="0" /> <!-- -36 dB -->
-					<marker value="0.001" color="gray" basis="1" parallel="0" /> <!-- -60 dB -->
+					<marker value="3.98107" color="g_gray" basis="1" parallel="0" /> <!-- +12 dB -->
+					<marker value="0.251189" color="g_gray" basis="1" parallel="0" /> <!-- -12 dB -->
+					<marker value="0.0158489" color="g_gray" basis="1" parallel="0" /> <!-- -36 dB -->
+					<marker value="0.001" color="g_gray" basis="1" parallel="0" /> <!-- -60 dB -->
 	
 					<!-- Yellow grid -->
 					<ui:for id="t" first="1" last="4" step="1">
-						<marker value="${t}" color="yellow" basis="0" parallel="1" />
+						<marker value="${t}" color="g_yellow" basis="0" parallel="1" />
 					</ui:for>
 	
-					<marker value="1" color="yellow" basis="1" parallel="0" /> <!-- 0 dB -->
-					<marker value="0.0630957" color="yellow" basis="1" parallel="0" /> <!-- -24 dB -->
-					<marker value="0.00398107" color="yellow" basis="1" parallel="0" /> <!-- -48 dB -->
+					<marker value="1" color="g_yellow" basis="1" parallel="0" /> <!-- 0 dB -->
+					<marker value="0.0630957" color="g_yellow" basis="1" parallel="0" /> <!-- -24 dB -->
+					<marker value="0.00398107" color="g_yellow" basis="1" parallel="0" /> <!-- -48 dB -->
 	
 					<!-- Meshes -->
 					<mesh id="isgl" width="2" color="left_channel" visibility_id="isvl" />
@@ -42,12 +42,12 @@
 					<mesh id="tfg" width="2" color="green" visibility_id="tfv" />
 					
 					<!-- Boundaries -->
-					<marker value="15.8489" color="white" basis="1" parallel="0" /> <!-- +24 dB -->
-					<marker value="5" color="white" basis="0" parallel="1" /> <!-- 5 sec -->
+					<marker value="15.8489" color="g_white" basis="1" parallel="0" /> <!-- +24 dB -->
+					<marker value="5" color="g_white" basis="0" parallel="1" /> <!-- 5 sec -->
 					
 					<!-- Axis -->
-					<axis min="0" max="5" color="white" angle="1.0" logarithmic="false" />
-					<axis min="0.000251189" max="15.8489" color="white" angle="0.5" logarithmic="true" />
+					<axis min="0" max="5" color="g_white" angle="1.0" logarithmic="false" />
+					<axis min="0.000251189" max="15.8489" color="g_white" angle="0.5" logarithmic="true" />
 					
 					<!-- Text -->
 					<text text="s" coord="5;2.51e-4" halign="1" valign="1" />
@@ -68,8 +68,8 @@
 					<!-- Markers -->
 					<marker id="dtr1" color="#0080ff" basis="1" parallel="0" />
 					<marker id="dtr2" color="#0080ff" basis="1" parallel="0" />
-					<marker id="dl" color="magenta" basis="1" parallel="0" />
-					<marker id="rl" color="magenta" basis="1" parallel="0" />
+					<marker id="dl" color="g_magenta" basis="1" parallel="0" />
+					<marker id="rl" color="g_magenta" basis="1" parallel="0" />
 				</graph>
 			</align>
 			<hbox expand="true" fill="true">
@@ -150,6 +150,7 @@
 						status_id="fs[ssel]" mesh_id="fd[ssel]"
 						width="320" height="127"
 						path_id="ui:dlg_sample_path"
+						bind="makeup=mk[ssel],predelay=pd[ssel]"
 					/>
 						
 					<grid rows="3" cols="7" vspacing="2" expand="true">
@@ -196,7 +197,7 @@
 
 					<ui:for id="i" first="0" last="7" >
 						<label text="${i}" />
-						<button id="on_${i}" size="16" />
+						<button id="on_${i}" color="yellow" led="true" size="16" />
 						<led id="ac_${i}" color="yellow" size="6" />
 						<knob id="vl_${i}" size="20" scale_color="magenta" />
 						<value id="vl_${i}" detailed="false" />

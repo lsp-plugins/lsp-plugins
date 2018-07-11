@@ -59,6 +59,17 @@
 #define BIND_EXPR(field, expr) \
     (field).parse(expr);
 
+#define PARSE_STRING(var, store) \
+    { \
+        char *__ = strdup(var);\
+        if (__ != NULL) \
+        { \
+            if ((store) != NULL) \
+                free(store); \
+            store = __; \
+        } \
+    }
+
 namespace lsp
 {
     namespace ctl
@@ -66,6 +77,12 @@ namespace lsp
         bool parse_float(const char *variable, float *res);
 
         bool parse_double(const char *variable, double *res);
+
+        bool parse_file_formats(const char *variable, LSPFileFilter *flt);
+
+        bool set_port_value(CtlPort *port, const char *value);
+
+        status_t format_port_value(CtlPort *port, LSPString *name, LSPString *value, LSPString *comment, int *flags);
     }
 }
 

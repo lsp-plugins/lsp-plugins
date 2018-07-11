@@ -133,10 +133,76 @@ namespace lsp
         }
     }
 
+    void Delay::process_ramping(float *dst, const float *src, size_t delay, size_t count)
+    {
+        // If delay does not change - use faster algorithm
+        if (delay == nDelay)
+        {
+            process(dst, src, count);
+            return;
+        }
+        else if (count <= 0)
+            return;
+
+        // More slower algorithm
+        float delta     = float(ssize_t(delay) - ssize_t(nDelay)) / float(count);
+        size_t step     = 0;
+        do
+        {
+            pBuffer[nHead]  = *(src++);
+            *(dst++)        = pBuffer[nTail];
+
+            nHead           = (nHead + 1) % nSize;
+            nTail           = (nHead + nSize - ssize_t(nDelay + delta * step)) % nSize;
+
+            step            ++;
+        } while ((--count) > 0);
+
+        nDelay  = delay;
+    }
+
+    void Delay::process_ramping(float *dst, const float *src, float gain, size_t delay, size_t count)
+    {
+        // If delay does not change - use faster algorithm
+        if (delay == nDelay)
+        {
+            process(dst, src, gain, count);
+            return;
+        }
+        else if (count <= 0)
+            return;
+
+        // More slower algorithm
+        float delta     = float(ssize_t(delay) - ssize_t(nDelay)) / float(count);
+        size_t step     = 0;
+        do
+        {
+            pBuffer[nHead]  = *(src++);
+            *(dst++)        = pBuffer[nTail] * gain;
+
+            nHead           = (nHead + 1) % nSize;
+            nTail           = (nHead + nSize - ssize_t(nDelay + delta * step)) % nSize;
+
+            step            ++;
+        } while ((--count) > 0);
+
+        nDelay  = delay;
+    }
+
     float Delay::process(float src)
     {
         pBuffer[nHead]  = src;
         float ret       = pBuffer[nTail];
+        nHead           = (nHead + 1) % nSize;
+        nTail           = (nTail + 1) % nSize;
+
+        return ret;
+    }
+
+    float Delay::process(float src, float gain)
+    {
+        pBuffer[nHead]  = src;
+        float ret       = pBuffer[nTail] * gain;
         nHead           = (nHead + 1) % nSize;
         nTail           = (nTail + 1) % nSize;
 

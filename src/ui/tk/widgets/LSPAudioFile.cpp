@@ -20,7 +20,8 @@ namespace lsp
             sFont(dpy, this),
             sHintFont(dpy, this),
             sConstraints(this),
-            sPadding(this)
+            sPadding(this),
+            sDialog(dpy)
         {
             pClass          = &metadata;
 //            nFileStatus     = STATUS_UNSPECIFIED;
@@ -32,7 +33,7 @@ namespace lsp
             nBorder         = 4;
             nRadius         = 10;
             nStatus         = 0;
-            pDialog         = NULL;
+            pPopup          = NULL;
 
             nDecimSize      = 0;
             vDecimX         = NULL;
@@ -61,6 +62,20 @@ namespace lsp
             init_color(C_GRAPH_TEXT, sFont.color());
             init_color(C_STATUS_OK, sHintFont.color());
 
+            // Initialize dialog
+            LSP_STATUS_ASSERT(sDialog.init());
+
+            sDialog.set_title("Load Audio File");
+            LSPFileFilter *f = sDialog.filter();
+            f->add("*.wav", "Wave audio format (*.wav)", ".wav");
+            f->add("*", "Any file", "");
+            f->set_default(0);
+
+            sDialog.set_action_title("Load");
+            sDialog.bind_action(slot_on_dialog_submit, self());
+            sDialog.slots()->bind(LSPSLOT_HIDE, slot_on_dialog_close, self());
+
+            // Initialize slots
             ui_handler_id_t id = 0;
             id = sSlots.add(LSPSLOT_SUBMIT, slot_on_submit, self());
             if (id >= 0) id = sSlots.add(LSPSLOT_CLOSE, slot_on_close, self());
@@ -179,12 +194,7 @@ namespace lsp
             nDecimSize = 0;
 
             // Destroy dialog
-            if (pDialog != NULL)
-            {
-                pDialog->destroy();
-                delete pDialog;
-                pDialog = NULL;
-            }
+            sDialog.destroy();
 
             // Destroy all channel data
             size_t n = vChannels.size();
@@ -686,16 +696,14 @@ namespace lsp
         {
             if (!sPath.set(path))
                 return STATUS_NO_MEM;
-            return ((pDialog != NULL) && (pDialog->visible())) ?
-                    pDialog->set_path(&sPath) : STATUS_OK;
+            return (sDialog.visible()) ? sDialog.set_path(&sPath) : STATUS_OK;
         }
 
         status_t LSPAudioFile::set_path(const char *path)
         {
             if (!sPath.set_native(path))
                 return STATUS_NO_MEM;
-            return ((pDialog != NULL) && (pDialog->visible())) ?
-                    pDialog->set_path(&sPath) : STATUS_OK;
+            return (sDialog.visible()) ? sDialog.set_path(&sPath) : STATUS_OK;
         }
 
         void LSPAudioFile::set_show_data(bool value)
@@ -812,7 +820,7 @@ namespace lsp
                 return STATUS_BAD_STATE;
 
             // Get selected file
-            status_t result = _this->pDialog->get_selected_file(&_this->sFileName);
+            status_t result = _this->sDialog.get_selected_file(&_this->sFileName);
             if (result != STATUS_OK)
                 return result;
 
@@ -829,43 +837,14 @@ namespace lsp
                 return STATUS_BAD_STATE;
 
             // Remember the last path used
-            _this->pDialog->get_path(&_this->sPath);
+            _this->sDialog.get_path(&_this->sPath);
             return _this->sSlots.execute(LSPSLOT_CLOSE, _this, data);
-        }
-
-        status_t LSPAudioFile::show_dialog()
-        {
-            // Create dialog if needed
-            if (pDialog == NULL)
-            {
-                pDialog = new LSPFileDialog(pDisplay);
-                if (pDialog == NULL)
-                    return STATUS_NO_MEM;
-                status_t result = pDialog->init();
-                if (result != STATUS_OK)
-                    return result;
-
-                pDialog->set_title("Load Audio File");
-                pDialog->add_filter("*.wav", "Wave audio format (*.wav)");
-                pDialog->add_filter("*", "Any file");
-                pDialog->set_default_filter(0);
-
-                pDialog->set_action_title("Load");
-                pDialog->bind_action(slot_on_dialog_submit, self());
-                pDialog->slots()->bind(LSPSLOT_HIDE, slot_on_dialog_close, self());
-            }
-
-            // Initialize dialog
-            pDialog->set_path(&sPath);
-            pDialog->show(this);
-
-            return STATUS_OK;
         }
 
         status_t LSPAudioFile::on_mouse_up(const ws_event_t *e)
         {
             bool pressed    = (nBMask == (1 << MCB_LEFT)) && (check_mouse_over(e->nLeft, e->nTop));
-//            bool old_pressed= bPressed;
+
             size_t flags    = nStatus;
             nBMask         &= ~(1 << e->nCode);
             if (nBMask == 0)
@@ -877,11 +856,22 @@ namespace lsp
                 query_draw();
             }
 
-            if ((pressed) && (nBMask == 0) && (e->nCode == MCB_LEFT))
+            if (nBMask == 0)
             {
-                status_t result = sSlots.execute(LSPSLOT_ACTIVATE, NULL);
-                if (result == STATUS_OK)
-                    show_dialog();
+                if ((pressed) && (e->nCode == MCB_LEFT))
+                {
+                    status_t result = sSlots.execute(LSPSLOT_ACTIVATE, NULL);
+                    if (result == STATUS_OK)
+                    {
+                        sDialog.set_path(&sPath);
+                        sDialog.show(this);
+                    }
+                }
+                else if (e->nCode == MCB_RIGHT)
+                {
+                    if (pPopup != NULL)
+                        pPopup->show(this, e);
+                }
             }
 
             return STATUS_OK;
@@ -909,6 +899,7 @@ namespace lsp
                 return STATUS_OK;
 
             sFileName.truncate();
+            lsp_trace("mouse double click");
 //            nFileStatus = STATUS_UNSPECIFIED;
             return sSlots.execute(LSPSLOT_SUBMIT, NULL);
         }

@@ -63,9 +63,9 @@ namespace lsp
 
         void CtlButton::submit_value()
         {
-            if (pWidget == NULL)
+            LSPButton *btn = widget_cast<LSPButton>(pWidget);
+            if (btn == NULL)
                 return;
-            LSPButton *btn = static_cast<LSPButton *>(pWidget);
             lsp_trace("button is down=%s", (btn->is_down()) ? "true" : "false");
 
             float value     = next_value(btn->is_down());
@@ -82,9 +82,9 @@ namespace lsp
         void CtlButton::commit_value(float value)
         {
             lsp_trace("commit value=%f", value);
-            if (pWidget == NULL)
+            LSPButton *btn = widget_cast<LSPButton>(pWidget);
+            if (btn == NULL)
                 return;
-            LSPButton *btn = static_cast<LSPButton *>(pWidget);
 
             const port_t *mdata = (pPort != NULL) ? pPort->metadata() : NULL;
 
@@ -115,14 +115,14 @@ namespace lsp
         {
             CtlWidget::init();
 
-            if (pWidget == NULL)
+            LSPButton *btn = widget_cast<LSPButton>(pWidget);
+            if (btn == NULL)
                 return;
-
-            LSPButton *btn = static_cast<LSPButton *>(pWidget);
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, btn, btn->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
             sBgColor.init_basic(pRegistry, btn, btn->bg_color(), A_BG_COLOR);
+            sTextColor.init_basic(pRegistry, btn, btn->font()->color(), A_TEXT_COLOR);
 
             // Bind slots
             btn->slots()->bind(LSPSLOT_CHANGE, slot_change, this);
@@ -130,7 +130,7 @@ namespace lsp
 
         void CtlButton::set(widget_attribute_t att, const char *value)
         {
-            LSPButton *btn = (pWidget != NULL) ? static_cast<LSPButton *>(pWidget) : NULL;
+            LSPButton *btn = widget_cast<LSPButton>(pWidget);
 
             switch (att)
             {
@@ -156,6 +156,10 @@ namespace lsp
                     if (btn != NULL)
                         PARSE_BOOL(value, btn->set_led(__));
                     break;
+                case A_TEXT:
+                    if (btn != NULL)
+                        btn->set_title(value);
+                    break;
                 case A_EDITABLE:
                     if (btn != NULL)
                         PARSE_BOOL(value, btn->set_editable(__));
@@ -164,6 +168,7 @@ namespace lsp
                 {
                     bool set = sBgColor.set(att, value);
                     set |= sColor.set(att, value);
+                    set |= sTextColor.set(att, value);
                     if (!set)
                         CtlWidget::set(att, value);
                     break;
@@ -183,7 +188,9 @@ namespace lsp
         {
             if (pWidget != NULL)
             {
-                LSPButton *btn = static_cast<LSPButton *>(pWidget);
+                LSPButton *btn = widget_cast<LSPButton>(pWidget);
+                if (btn == NULL)
+                    return;
 
                 if (pPort != NULL)
                 {

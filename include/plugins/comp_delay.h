@@ -31,7 +31,10 @@ namespace lsp
             float       fWet;
             float      *vBuffer;
             size_t      nBufSize;
+            ssize_t     nDelay;
+            ssize_t     nNewDelay;
             long        nSampleRate;
+            bool        bRamping;
             IPort      *pIn;
             IPort      *pOut;
 
@@ -55,6 +58,7 @@ namespace lsp
             inline void set_temperature(float temp)     { fTemperature  = temp;         };
             inline void set_dry(float dry)              { fDry          = dry;          };
             inline void set_wet(float wet)              { fWet          = wet;          };
+            inline void set_ramping(bool ramp)          { bRamping      = ramp;         };
 
             void configure();
 

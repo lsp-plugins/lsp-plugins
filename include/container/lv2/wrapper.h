@@ -43,6 +43,9 @@ namespace lsp
             ssize_t             nDirectClients; // Number of direct clients
             bool                bQueueDraw;     // Queue draw request
             bool                bUpdateSettings;// Settings update
+            float               fSampleRate;
+
+            position_t          sPosition;
 
             CairoCanvas        *pCanvas;        // Canvas for drawing inline display
             LV2_Inline_Display_Image_Surface sSurface; // Canvas surface
@@ -74,6 +77,9 @@ namespace lsp
                 pCanvas         = NULL;
                 bQueueDraw      = false;
                 bUpdateSettings = true;
+                fSampleRate     = DEFAULT_SAMPLE_RATE;
+
+                position_t::init(&sPosition);
             }
 
             virtual ~LV2Wrapper()
@@ -143,6 +149,11 @@ namespace lsp
                 bQueueDraw      = true;
             }
 
+            virtual const position_t *position()
+            {
+                return &sPosition;
+            }
+
             LV2Port *get_port(const char *id);
 
             void connect_direct_ui()
@@ -156,6 +167,8 @@ namespace lsp
                     return;
                 --nDirectClients;
             }
+
+            inline float get_sample_rate() const { return fSampleRate; }
     };
 
     LV2Port *LV2Wrapper::create_port(const port_t *p, const char *postfix)
@@ -306,6 +319,9 @@ namespace lsp
 
     void LV2Wrapper::init(float srate)
     {
+        // Update sample rate
+        fSampleRate = srate;
+
         // Get plugin metadata
         const plugin_metadata_t *m  = pPlugin->get_metadata();
 
@@ -391,10 +407,10 @@ namespace lsp
             ev = lv2_atom_sequence_next(ev)
         )
         {
-            lsp_trace("ev->body.type (%d) = %s", int(ev->body.type), pExt->unmap_urid(ev->body.type));
+//            lsp_trace("ev->body.type (%d) = %s", int(ev->body.type), pExt->unmap_urid(ev->body.type));
 
             // If the event is an object
-            if (ev->body.type != pExt->uridObject)
+            if ((ev->body.type != pExt->uridObject) && (ev->body.type != pExt->uridBlank))
                 continue;
 
 //            lsp_trace("connect_ui (%d) = %s", int(pExt->uridConnectUI), pExt->unmap_urid(pExt->uridConnectUI));
@@ -403,8 +419,8 @@ namespace lsp
 
             // Analyze object type
             const LV2_Atom_Object *obj = reinterpret_cast<const LV2_Atom_Object*>(&ev->body);
-            lsp_trace("obj->body.otype (%d) = %s", int(obj->body.otype), pExt->unmap_urid(obj->body.otype));
-            lsp_trace("obj->body.id (%d) = %s", int(obj->body.id), pExt->unmap_urid(obj->body.id));
+//            lsp_trace("obj->body.otype (%d) = %s", int(obj->body.otype), pExt->unmap_urid(obj->body.otype));
+//            lsp_trace("obj->body.id (%d) = %s", int(obj->body.id), pExt->unmap_urid(obj->body.id));
 
             if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateChange)) // State change
             {
@@ -430,18 +446,77 @@ namespace lsp
                 lsp_trace("triggered state request");
                 nStateReqs  ++;
             }
+            else if (obj->body.otype == pExt->uridTimePosition) // Time position notification
+            {
+                position_t pos      = sPosition;
+
+                pos.sampleRate      = fSampleRate;
+                pos.ticksPerBeat    = DEFAULT_TICKS_PER_BEAT;
+
+//                lsp_trace("triggered timePosition event");
+                for (
+                    LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
+                    !lv2_atom_object_is_end(&obj->body, obj->atom.size, body) ;
+                    body = lv2_atom_object_next(body)
+                )
+                {
+//                    lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                    lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+
+                    if ((body->key == pExt->uridTimeFrame) && (body->value.type == pExt->forge.Long))
+                        pos.frame           = (reinterpret_cast<LV2_Atom_Long *>(&body->value))->body;
+                    else if ((body->key == pExt->uridTimeSpeed) && (body->value.type == pExt->forge.Float))
+                        pos.speed           = (reinterpret_cast<LV2_Atom_Float *>(&body->value))->body;
+                    else if ((body->key == pExt->uridTimeBeatsPerMinute) && (body->value.type == pExt->forge.Float))
+                        pos.beatsPerMinute  = (reinterpret_cast<LV2_Atom_Float *>(&body->value))->body;
+                    else if ((body->key == pExt->uridTimeBeatUnit) && (body->value.type == pExt->forge.Int))
+                        pos.denominator     = (reinterpret_cast<LV2_Atom_Int *>(&body->value))->body;
+                    else if ((body->key == pExt->uridTimeBeatsPerBar) && (body->value.type == pExt->forge.Float))
+                        pos.numerator       = (reinterpret_cast<LV2_Atom_Float *>(&body->value))->body;
+                    else if ((body->key == pExt->uridTimeBarBeat) && (body->value.type == pExt->forge.Float))
+                        pos.tick            = (reinterpret_cast<LV2_Atom_Float *>(&body->value))->body * pos.ticksPerBeat;
+                }
+
+                // Call plugin callback and update position
+                bUpdateSettings = pPlugin->set_position(&pos);
+                sPosition = pos;
+
+                // Object dump:
+                // receive_atoms: body->key (20) = http://lv2plug.in/ns/ext/time#frame +
+                // receive_atoms: body->value.type (37) = http://lv2plug.in/ns/ext/atom#Long
+
+                // receive_atoms: body->key (21) = http://lv2plug.in/ns/ext/time#speed +
+                // receive_atoms: body->value.type (8) = http://lv2plug.in/ns/ext/atom#Float
+
+                // receive_atoms: body->key (16) = http://lv2plug.in/ns/ext/time#barBeat +
+                // receive_atoms: body->value.type (8) = http://lv2plug.in/ns/ext/atom#Float
+
+                // receive_atoms: body->key (15) = http://lv2plug.in/ns/ext/time#bar
+                // receive_atoms: body->value.type (37) = http://lv2plug.in/ns/ext/atom#Long
+
+                // receive_atoms: body->key (17) = http://lv2plug.in/ns/ext/time#beatUnit +
+                // receive_atoms: body->value.type (36) = http://lv2plug.in/ns/ext/atom#Int
+
+                // receive_atoms: body->key (18) = http://lv2plug.in/ns/ext/time#beatsPerBar +
+                // receive_atoms: body->value.type (8) = http://lv2plug.in/ns/ext/atom#Float
+
+                // receive_atoms: body->key (19) = http://lv2plug.in/ns/ext/time#beatsPerMinute +
+                // receive_atoms: body->value.type (8) = http://lv2plug.in/ns/ext/atom#Float
+            }
             else if ((obj->body.id == pExt->uridChunk) && (obj->body.otype == pExt->uridPatchGet)) // PatchGet request
             {
                 lsp_trace("triggered patch request");
-                LV2_Atom_Property_Body *body    = lv2_atom_object_begin(&obj->body);
-
-                while (!lv2_atom_object_is_end(&obj->body, obj->atom.size, body))
+                #ifdef LSP_TRACE
+                for (
+                    LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
+                    !lv2_atom_object_is_end(&obj->body, obj->atom.size, body) ;
+                    body = lv2_atom_object_next(body)
+                )
                 {
                     lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
                     lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
-
-                    body = lv2_atom_object_next(body);
                 }
+                #endif /* LSP_TRACE */
 
                 // Increment the number of patch requests
                 nPatchReqs  ++;
@@ -489,6 +564,12 @@ namespace lsp
             {
                 nClients    --;
                 lsp_trace("UI has disconnected, current number of clients=%d", int(nClients));
+            }
+            else
+            {
+                lsp_trace("ev->body.type (%d) = %s", int(ev->body.type), pExt->unmap_urid(ev->body.type));
+                lsp_trace("obj->body.otype (%d) = %s", int(obj->body.otype), pExt->unmap_urid(obj->body.otype));
+                lsp_trace("obj->body.id (%d) = %s", int(obj->body.id), pExt->unmap_urid(obj->body.id));
             }
         }
     }
@@ -565,11 +646,42 @@ namespace lsp
         // Allow transport only when there is at least one UI connected
         if (nClients > 0)
         {
-            // Serialize pending for transmission ports
-            bytes_out           = 0;
-            n_ports             = vPluginPorts.size();
-            LV2_Atom *msg       = NULL;
+            // Serialize time/position of plugin
+            pExt->forge_frame_time(0); // Event header
+            LV2_Atom *msg       = pExt->forge_object(&frame, 0, pExt->uridTimePosition);
 
+            pExt->forge_key(pExt->uridTimeFrame);
+            pExt->forge_long(int64_t(sPosition.frame));
+
+            pExt->forge_key(pExt->uridTimeFrameRate);
+            pExt->forge_float(fSampleRate);
+
+            pExt->forge_key(pExt->uridTimeSpeed);
+            pExt->forge_float(sPosition.speed);
+
+            pExt->forge_key(pExt->uridTimeBarBeat);
+            pExt->forge_float(sPosition.tick / sPosition.ticksPerBeat);
+
+            pExt->forge_key(pExt->uridTimeBar);
+            pExt->forge_long(0);
+
+            pExt->forge_key(pExt->uridTimeBeatUnit);
+            pExt->forge_int(int(sPosition.denominator));
+
+            pExt->forge_key(pExt->uridTimeBeatUnit);
+            pExt->forge_float(sPosition.numerator);
+
+            pExt->forge_key(pExt->uridTimeBeatsPerMinute);
+            pExt->forge_float(sPosition.beatsPerMinute);
+
+            pExt->forge_pop(&frame);
+
+            // Initialize byte counter
+            n_ports             = vPluginPorts.size();
+            bytes_out           = 0;
+            msg                 = NULL;
+
+            // Serialize pending for transmission ports
             for (size_t i=0; i<n_ports; ++i)
             {
                 // Get port

@@ -1,20 +1,24 @@
 <plugin resizable="false">
 	<hbox spacing="4">
 		<group text="Signal">
-			<vbox>
-				<grid rows="3" cols="2">
-					<label id="dry" />
-					<label id="wet" />
-					<knob id="dry" />
-					<knob id="wet" />
-					<value id="dry" />
-					<value id="wet" />
-				</grid>
+			<grid rows="4" cols="2">
+				<label id="dry" />
+				<label id="wet" />
+				<knob id="dry" />
+				<knob id="wet" />
+				<value id="dry" />
+				<value id="wet" />
+				
 				<hbox fill="false">
 					<button id="mode" />
 					<label id="mode" />
 				</hbox>
-			</vbox>
+				
+				<hbox fill="false">
+					<button id="ramp" color="yellow" led="true" />
+					<label text="Ramp" />
+				</hbox>
+			</grid>
 		</group>
 		<group text="Samples">
 			<vbox border="0">

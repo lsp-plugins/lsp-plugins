@@ -25,13 +25,13 @@ namespace lsp
                 static const w_class_t    metadata;
 
             protected:
-                typedef struct filter_t
-                {
-                    LSPFileMask     sPattern;
-                    LSPString       sTitle;
-                    float           fUID;
-                    size_t          nIndex;
-                } filter_t;
+//                typedef struct filter_t
+//                {
+//                    LSPFileMask     sPattern;
+//                    LSPString       sTitle;
+//                    float           fUID;
+//                    size_t          nIndex;
+//                } filter_t;
 
                 enum
                 {
@@ -49,6 +49,25 @@ namespace lsp
                     size_t          nFlags;
                 } file_entry_t;
 
+                class LSPFileDialogFilter: public LSPFileFilter
+                {
+                    protected:
+                        LSPFileDialog      *pDialog;
+
+                    public:
+                        LSPFileDialogFilter(LSPFileDialog *dlg);
+                        virtual ~LSPFileDialogFilter();
+
+                    protected:
+                        virtual status_t item_updated(size_t idx, filter_t *flt);
+
+                        virtual status_t item_removed(size_t idx, filter_t *flt);
+
+                        virtual status_t item_added(size_t idx, filter_t *flt);
+
+                        virtual void default_updated(ssize_t idx);
+                };
+
             protected:
                 LSPEdit             sWPath;
                 LSPEdit             sWSearch;
@@ -58,6 +77,8 @@ namespace lsp
                 LSPButton           sWCancel;
                 LSPBox              sVBox;
                 LSPBox              sHBox;
+                LSPAlign            sAppendExt;
+                LSPButton           wAutoExt;
                 LSPButton           wGo;
                 LSPButton           wUp;
                 LSPBox              wPathBox;
@@ -73,7 +94,8 @@ namespace lsp
 
                 LSPString           sConfirm;       // Confirmation message
                 LSPString           sSelected;
-                cvector<filter_t>   vFilters;
+                LSPFileDialogFilter sFilter;
+//                cvector<filter_t>   vFilters;
                 size_t              nDefaultFilter;
                 size_t              nUIDGen;
 
@@ -100,6 +122,7 @@ namespace lsp
                 status_t            refresh_current_path();
                 ssize_t             default_index(ssize_t val);
                 status_t            add_label(LSPWidgetContainer *c, const char *text, LSPLabel **label = NULL);
+                status_t            add_ext_button(LSPWidgetContainer *c, const char *text);
                 status_t            add_file_entry(cvector<file_entry_t> *dst, const char *name, size_t flags);
                 void                destroy_file_entries(cvector<file_entry_t> *dst);
                 status_t            apply_filters();
@@ -135,7 +158,9 @@ namespace lsp
                 inline status_t get_confirmation(LSPString *dst) const { return (dst->set(&sConfirm)) ? STATUS_OK : STATUS_NO_MEM; };
                 inline const char *confirmation() const { return sConfirm.get_native(); };
 
-                inline size_t filters() const { return vFilters.size(); }
+                inline LSPFileFilter *filter() { return &sFilter; }
+
+//                inline size_t filters() const { return vFilters.size(); }
                 status_t get_filter(size_t idx, LSPString *pattern, LSPString *title);
                 inline size_t default_filter() const { return nDefaultFilter; }
 
@@ -143,6 +168,8 @@ namespace lsp
                 inline status_t get_selected_file(LSPString *dst) { return (dst->set(&sSelected)) ? STATUS_OK : STATUS_NO_MEM; };
 
                 inline file_dialog_mode_t mode() const { return enMode; }
+
+                inline bool auto_extension() const { return wAutoExt.is_down(); }
 
             public:
                 status_t set_mode(file_dialog_mode_t mode);
@@ -165,11 +192,7 @@ namespace lsp
                 inline status_t    bind_action(ui_event_handler_t handler, void *arg = NULL) { return sAction.bind(handler, arg); };
                 inline status_t    bind_cancel(ui_event_handler_t handler, void *arg = NULL) { return sCancel.bind(handler, arg); };
 
-                void clear_filters();
-                status_t add_filter(const LSPString *pattern, const LSPString *title);
-                status_t add_filter(const char *pattern, const char *title);
-                status_t remove_filter(size_t index);
-                status_t set_default_filter(size_t value);
+                inline void set_auto_extension(bool set = true) { wAutoExt.set_down(set); }
 
             public:
                 virtual status_t on_show();

@@ -44,6 +44,9 @@ namespace lsp
         pMono           = NULL;
         pPred           = NULL;
         pStretch        = NULL;
+        pTempo          = NULL;
+        pSync           = NULL;
+        pRamping        = NULL;
 
         vData           = NULL;
     }
@@ -96,6 +99,8 @@ namespace lsp
         {
             processor_t    *p   = &vProcessors[i];
 
+            p->nDelay           = 0;
+            p->nNewDelay        = 0;
             p->nMode            = M_OFF;
 
             p->pMode            = NULL;
@@ -151,11 +156,19 @@ namespace lsp
         pPred           = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pStretch        = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pTempo          = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pSync           = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
+        pRamping        = vPorts[port_id++];
+
         for (size_t i=0; i<nInputs; ++i)
         {
             TRACE_PORT(vPorts[port_id]);
             vInputs[i].pPan     = vPorts[port_id++];
         }
+
         TRACE_PORT(vPorts[port_id]);
         pDry            = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
@@ -191,6 +204,10 @@ namespace lsp
             p->pTime            = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             p->pDistance        = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            p->pFrac            = vPorts[port_id++];
+            TRACE_PORT(vPorts[port_id]);
+            p->pDenom           = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
             p->pEq              = vPorts[port_id++];
             TRACE_PORT(vPorts[port_id]);
@@ -241,6 +258,11 @@ namespace lsp
         vTemp       = NULL;
     }
 
+    bool slap_delay_base::set_position(const position_t *pos)
+    {
+        return pos->beatsPerMinute != pWrapper->position()->beatsPerMinute;
+    }
+
     void slap_delay_base::update_settings()
     {
         float out_gain      = pOutGain->getValue();
@@ -252,6 +274,7 @@ namespace lsp
         bool bypass         = pBypass->getValue() >= 0.5f;
         bool has_solo       = false;
         bMono               = pMono->getValue() >= 0.5f;
+        bool ramping        = pRamping->getValue() >= 0.5f;
 
         for (size_t i=0; i<2; ++i)
             vChannels[i].sBypass.set_bypass(bypass);
@@ -322,20 +345,28 @@ namespace lsp
             p->nMode            = p->pMode->getValue();
 
             if (p->nMode == slap_delay_base_metadata::OP_MODE_TIME)
-            {
-                p->nDelay           = millis_to_samples(fSampleRate, p->pTime->getValue() * stretch + p_delay);
-                lsp_trace("p[%d].nDelay = %d", int(i), int(p->nDelay));
-            }
+                p->nNewDelay        = millis_to_samples(fSampleRate, p->pTime->getValue() * stretch + p_delay);
             else if (p->nMode == slap_delay_base_metadata::OP_MODE_DISTANCE)
+                p->nNewDelay        = seconds_to_samples(fSampleRate, p->pDistance->getValue() * d_delay * stretch + p_delay * 0.001f);
+            else if (p->nMode == slap_delay_base_metadata::OP_MODE_NOTE)
             {
-                p->nDelay           = seconds_to_samples(fSampleRate, p->pDistance->getValue() * d_delay * stretch + p_delay * 0.001f);
-                lsp_trace("p[%d].nDelay = %d", int(i), int(p->nDelay));
+                float tempo         = (pSync->getValue() >= 0.5f) ? pWrapper->position()->beatsPerMinute : pTempo->getValue();
+                if (tempo < slap_delay_base_metadata::TEMPO_MIN)
+                    tempo               = slap_delay_base_metadata::TEMPO_MIN;
+                else if (tempo > slap_delay_base_metadata::TEMPO_MAX)
+                    tempo               = slap_delay_base_metadata::TEMPO_MAX;
+
+                float delay         = (240.0f * p->pFrac->getValue()) / tempo;
+                p->nNewDelay        = seconds_to_samples(fSampleRate, delay * stretch + p_delay * 0.001f);
             }
             else
-            {
-                p->nDelay           = 0;
-                lsp_trace("p[%d].nDelay = %d", int(i), int(p->nDelay));
-            }
+                p->nNewDelay        = 0;
+
+            if (!ramping)
+                p->nDelay           = p->nNewDelay;
+
+            lsp_trace("p[%d].nDelay     = %d", int(i), int(p->nDelay));
+            lsp_trace("p[%d].nNewDelay  = %d", int(i), int(p->nNewDelay));
 
             // Update equalizer settings
             for (size_t j=0; j<2; ++j)
@@ -407,12 +438,16 @@ namespace lsp
         float stretch_max   = slap_delay_base_metadata::STRETCH_MAX * 0.01f;
         float time_max      = slap_delay_base_metadata::TIME_MAX;
         float dist_max      = slap_delay_base_metadata::DISTANCE_MAX / sound_speed(slap_delay_base_metadata::TEMPERATURE_MIN);
+        float tempo_max     = (240.0f * slap_delay_base_metadata::FRACTION_MAX) / slap_delay_base_metadata::TEMPO_MIN; // time per FRACTION_MAX whole notes
 
         size_t max_delay    = millis_to_samples(sr, time_max * stretch_max + slap_delay_base_metadata::PRED_TIME_MAX);
         size_t dist_delay   = seconds_to_samples(sr, dist_max * stretch_max + slap_delay_base_metadata::PRED_TIME_MAX * 0.001f);
-        lsp_trace("max_delay = %d, dist_delay=%d", int(max_delay), int(dist_delay));
+        size_t tempo_delay  = seconds_to_samples(sr, tempo_max * stretch_max + slap_delay_base_metadata::PRED_TIME_MAX * 0.001f);
+        lsp_trace("max_delay = %d, dist_delay=%d, tempo_delay=%d", int(max_delay), int(dist_delay), int(tempo_delay));
         if (max_delay < dist_delay)
             max_delay           = dist_delay;
+        if (max_delay < tempo_delay)
+            max_delay           = tempo_delay;
         lsp_trace("max_delay (final) = %d", int(max_delay));
 
         // Initialize buffers and fill them with zeros
@@ -443,10 +478,12 @@ namespace lsp
             vChannels[i].vOut   = vChannels[i].pOut->getBuffer<float>();
 
         // Do processing
-        while (samples > 0)
+        for (size_t k=0; k < samples; )
         {
             // Process input data
-            size_t to_do        = (samples > BUFFER_SIZE) ? BUFFER_SIZE : samples;
+            size_t to_do        = samples - k;
+            if (to_do > BUFFER_SIZE)
+                to_do               = BUFFER_SIZE;
             to_do               = vInputs[0].sBuffer.append(vInputs[0].vIn, to_do);
 
             if (nInputs > 1)
@@ -471,12 +508,46 @@ namespace lsp
                     if (p->nMode == slap_delay_base_metadata::OP_MODE_NONE)
                         continue;
 
-                    // Copy delayed signal to buffer and apply panoraming
-                    size_t delay        = p->nDelay + to_do;
-                    if (nInputs == 1)
-                        dsp::scale3(vTemp, vInputs[0].sBuffer.tail(delay), p->vDelay[i].fGain[0], to_do);
+                    if (p->nNewDelay == p->nDelay)
+                    {
+                        // Copy delayed signal to buffer and apply panoraming
+                        size_t delay        = p->nDelay + to_do;
+                        if (nInputs == 1)
+                            dsp::scale3(vTemp, vInputs[0].sBuffer.tail(delay), p->vDelay[i].fGain[0], to_do);
+                        else
+                            dsp::mix_copy2(vTemp, vInputs[0].sBuffer.tail(delay), vInputs[1].sBuffer.tail(delay), p->vDelay[i].fGain[0], p->vDelay[i].fGain[1], to_do);
+                    }
                     else
-                        dsp::mix_copy2(vTemp, vInputs[0].sBuffer.tail(delay), vInputs[1].sBuffer.tail(delay), p->vDelay[i].fGain[0], p->vDelay[i].fGain[1], to_do);
+                    {
+                        // More complicated algorithm with ramping
+                        float delta = (float(p->nNewDelay) - float(p->nDelay))/float(samples);
+
+                        if (nInputs == 1)
+                        {
+                            float g0 = p->vDelay[i].fGain[0];
+                            const float *s0 = vInputs[0].sBuffer.tail(to_do);
+
+                            for (size_t n=0; n < to_do; ++n, ++s0)
+                            {
+                                ssize_t d = p->nDelay + delta * (k + n);
+                                vTemp[n] = s0[-d] * g0;
+                            }
+                        }
+                        else
+                        {
+                            float g0 = p->vDelay[i].fGain[0];
+                            float g1 = p->vDelay[i].fGain[1];
+
+                            const float *s0 = vInputs[0].sBuffer.tail(to_do);
+                            const float *s1 = vInputs[1].sBuffer.tail(to_do);
+
+                            for (size_t n=0; n < to_do; ++n, ++s0, ++s1)
+                            {
+                                ssize_t d = p->nDelay + delta * (k + n);
+                                vTemp[n] = s0[-d] * g0 + s1[-d] * g1;
+                            }
+                        }
+                    }
 
                     // Process data with equalizer
                     p->vDelay[i].sEqualizer.process(vTemp, vTemp, to_do);
@@ -501,6 +572,10 @@ namespace lsp
                 c->sBypass.process(c->vOut, vInputs[i%nInputs].vIn, c->vRender, to_do);
             }
 
+            // Adjust delay
+            for (size_t j=0; j<slap_delay_base_metadata::MAX_PROCESSORS; ++j)
+                vProcessors[j].nDelay   = vProcessors[j].nNewDelay;
+
             // Remove rare data from shift buffers
             vInputs[0].sBuffer.shift(to_do);
             if (nInputs > 1)
@@ -511,7 +586,7 @@ namespace lsp
                 vInputs[i].vIn     += to_do;
             for (size_t i=0; i<2; ++i)
                 vChannels[i].vOut  += to_do;
-            samples            -= to_do;
+            k   += to_do;
         }
     }
 

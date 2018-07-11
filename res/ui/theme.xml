@@ -64,11 +64,22 @@
 		<logo_text value="#dae0ff" />
 		
 		<!-- Graph colors -->
-		<graph_axis value="#ffcc00" />
-		<graph_marker value="#ccff00" />
+		<graph_axis value="#cc8800" />
+		<graph_marker value="#88cc00" />
 		<graph_mesh value="#00c0ff" />
 		<graph_text value="#cccccc" />
-		<graph_line value="#ffffff" />
+		<graph_line value="#cccccc" />
+		
+		<g_gray value="#444444" />
+		<g_grey value="#444444" />
+		<g_dark_gray value="#222222" />
+		<g_dark_grey value="#222222" />
+		<g_yellow value="#888800" />
+		<g_green value="#00ff00" />
+		<g_white value="#cccccc" />
+		<g_magenta value="#ff00ff" />
+		<g_red value="#ff0000" />
+		<g_blue value="#0000ff" />
 		
 		<!-- Channel colors -->
 		<left_channel value="#ff0000" />

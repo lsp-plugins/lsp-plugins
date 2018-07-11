@@ -81,4 +81,16 @@ namespace lsp
     {
         lsp_free(this);
     }
+
+    void position_t::init(position_t *pos)
+    {
+        pos->sampleRate     = DEFAULT_SAMPLE_RATE;
+        pos->speed          = 1.0;
+        pos->frame          = 0;
+        pos->numerator      = 4.0;
+        pos->denominator    = 4.0;
+        pos->beatsPerMinute = BPM_DEFAULT;
+        pos->tick           = 0;
+        pos->ticksPerBeat   = DEFAULT_TICKS_PER_BEAT;
+    }
 }

@@ -20,12 +20,13 @@
     #error "Unsupported platform"
 #endif
 
+#include <core/io/IInputStream.h>
+#include <core/io/IOutputStream.h>
+
 namespace lsp
 {
     namespace ws
     {
-        class IInputStream;
-
         typedef uint32_t            ws_code_t;
 
         /** Mouse controller buttons
@@ -320,7 +321,7 @@ namespace lsp
          * @param is clipboard input stream object
          * @return status of operation
          */
-        typedef status_t    (* clipboard_handler_t)(void *arg, status_t s, IInputStream *is);
+        typedef status_t    (* clipboard_handler_t)(void *arg, status_t s, io::IInputStream *is);
 
         /** Display task identifier
          *
@@ -335,8 +336,6 @@ namespace lsp
 // Common definitions
 #include <ui/ws/IEventHandler.h>
 #include <ui/ws/ISurface.h>
-#include <ui/ws/IInputStream.h>
-#include <ui/ws/IOutputStream.h>
 #include <ui/ws/IClipboard.h>
 #include <ui/ws/IDisplay.h>
 #include <ui/ws/INativeWindow.h>

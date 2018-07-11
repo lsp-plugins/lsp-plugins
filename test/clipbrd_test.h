@@ -1,8 +1,11 @@
 #include <ui/tk/tk.h>
+#include <core/io/IInputStream.h>
+#include <core/io/IOutputStream.h>
 
 namespace clipbrd_test
 {
     using namespace lsp::tk;
+    using namespace lsp::io;
 
     int test(int argc, const char **argv)
     {

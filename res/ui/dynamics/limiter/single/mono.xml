@@ -5,27 +5,27 @@
 			<align expand="true" fill="true" pad_top="4">
 				<graph width="560" height="280">
 					<!-- Gray grid -->
-					<marker value="0.25119" color="gray" basis="1" parallel="0" />  <!-- -12 dB -->
-					<marker value="0.01585" color="gray" basis="1" parallel="0" />  <!-- -36 dB -->
-					<marker value="0.001" color="gray" basis="1" parallel="0" />    <!-- -60 dB -->
+					<marker value="0.25119" color="g_gray" basis="1" parallel="0" />  <!-- -12 dB -->
+					<marker value="0.01585" color="g_gray" basis="1" parallel="0" />  <!-- -36 dB -->
+					<marker value="0.001" color="g_gray" basis="1" parallel="0" />    <!-- -60 dB -->
 					<ui:for id="t" first="0" last="3">
-						<marker value="${t}.5" color="gray" basis="0" parallel="1" />
+						<marker value="${t}.5" color="g_gray" basis="0" parallel="1" />
 					</ui:for>
 					
 					<!-- Yellow grid -->
-					<marker value="0.06310" color="yellow" basis="1" parallel="0" /><!-- -24 dB -->
+					<marker value="0.06310" color="g_yellow" basis="1" parallel="0" /><!-- -24 dB -->
 					<ui:for id="t" first="1" last="3">
-						<marker value="${t}" color="yellow" basis="0" parallel="1" />
+						<marker value="${t}" color="g_yellow" basis="0" parallel="1" />
 					</ui:for>
 	
 					<!-- Axises and boundaries -->
 					<center hpos="1" vpos="-1" visible="false" />
-					<axis min="0" max="4" color="gray" angle="1.0" logarithmic="false" />
-					<axis min="0.00398" max="1.0" color="gray" angle="0.5" logarithmic="true" />
-					<marker value="4" color="gray" basis="0" parallel="1" />
+					<axis min="0" max="4" color="g_white" angle="1.0" logarithmic="false" />
+					<axis min="-48 db" max="0 db" color="g_white" angle="0.5" logarithmic="true" />
+					<marker value="4" color="g_white" basis="0" parallel="1" />
 					
 					<!-- Baseline -->
-					<marker value="1.0" color="white" basis="1" parallel="0" width="2" /> <!-- 0 dB -->
+					<marker value="0 db" color="g_white" basis="1" parallel="0" width="2" /> <!-- 0 dB -->
 					
 					<!-- Meshes -->
 					<mesh id="ig" width="2" color="middle_channel_in" visibility=":igv" />
@@ -34,7 +34,7 @@
 					<mesh id="grg" width="2" color="bright_blue" visibility=":grgv" />
 					
 					<!-- Markers -->
-					<marker id="th" color="magenta" basis="1" parallel="0" />
+					<marker id="th" color="g_magenta" basis="1" parallel="0" />
 					
 					<!-- Text -->
 					<text text="0 dB" coord="4;1" halign="1" valign="-1" />

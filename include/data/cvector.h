@@ -73,9 +73,9 @@ namespace lsp
                 return true;
             }
 
-            inline void *get_item(size_t index)
+            inline void *get_item(size_t index) const
             {
-                return (index < nItems) ? pvItems[index] : NULL;
+                return (index < nItems) ? const_cast<void *>(pvItems[index]) : NULL;
             }
 
             inline bool set_item(size_t index, void *ptr)
@@ -215,7 +215,7 @@ namespace lsp
 
                 inline bool insert(T *item, size_t index) { return basic_vector::insert_item(item, index); }
 
-                inline T *get(size_t index) { return reinterpret_cast<T *>(basic_vector::get_item(index)); }
+                inline T *get(size_t index) const { return reinterpret_cast<T *>(basic_vector::get_item(index)); }
 
                 inline bool set(size_t index, T *item) { return basic_vector::set_item(index, item); }
 

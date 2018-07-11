@@ -16,16 +16,18 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Common port name definitions
-    const char PORT_NAME_INPUT[]          = "in";
-    const char PORT_NAME_OUTPUT[]         = "out";
-    const char PORT_NAME_SIDECHAIN[]      = "sc";
+    const char PORT_NAME_BYPASS[]           = "bypass";
 
-    const char PORT_NAME_INPUT_L[]        = "in_l";
-    const char PORT_NAME_INPUT_R[]        = "in_r";
-    const char PORT_NAME_OUTPUT_L[]       = "out_l";
-    const char PORT_NAME_OUTPUT_R[]       = "out_r";
-    const char PORT_NAME_SIDECHAIN_L[]    = "sc_l";
-    const char PORT_NAME_SIDECHAIN_R[]    = "sc_r";
+    const char PORT_NAME_INPUT[]            = "in";
+    const char PORT_NAME_OUTPUT[]           = "out";
+    const char PORT_NAME_SIDECHAIN[]        = "sc";
+
+    const char PORT_NAME_INPUT_L[]          = "in_l";
+    const char PORT_NAME_INPUT_R[]          = "in_r";
+    const char PORT_NAME_OUTPUT_L[]         = "out_l";
+    const char PORT_NAME_OUTPUT_R[]         = "out_r";
+    const char PORT_NAME_SIDECHAIN_L[]      = "sc_l";
+    const char PORT_NAME_SIDECHAIN_R[]      = "sc_r";
 
     // Port groups
     const port_group_item_t mono_in_group_ports[] =

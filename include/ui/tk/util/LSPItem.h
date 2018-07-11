@@ -15,16 +15,14 @@ namespace lsp
         class LSPItem
         {
             protected:
-                char       *sText;
+                LSPString   sText;
                 float       fValue;
-
-            protected:
-                void    construct(const char *text, float value);
 
             public:
                 explicit LSPItem(const LSPItem *src);
                 explicit LSPItem(float value = 0.0f);
                 explicit LSPItem(const char *text, float value = 0.0f);
+                explicit LSPItem(const LSPString *text, float value = 0.0f);
                 virtual ~LSPItem();
 
             protected:
@@ -33,13 +31,15 @@ namespace lsp
                 virtual void        on_change();
 
             public:
-                inline const char  *text() const    { return sText;     }
+                inline const char  *text() const    { return sText.get_native();    }
+                status_t            get_text(LSPString *text) const;
                 inline float        value() const   { return fValue;    }
 
             public:
                 status_t            set(const char *text, float value);
                 status_t            set(const LSPItem *src);
                 status_t            set_text(const char *text);
+                status_t            set_text(const LSPString *text);
                 void                set_value(float value);
         };
     

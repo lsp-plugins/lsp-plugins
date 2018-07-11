@@ -11,6 +11,7 @@
 
 #include <sys/poll.h>
 #include <errno.h>
+#include <alloca.h>
 
 #define X11IOBUF_SIZE       0x10000
 
@@ -525,13 +526,19 @@ namespace lsp
                     case SelectionRequest:
                     {
                         XSelectionRequestEvent *sr   = &ev->xselectionrequest;
-                        lsp_trace("SelectionRequest requestor = %x, selection=%d, target=%d, property=%d, time=%ld",
-                                     int(sr->requestor), int(sr->selection), int(sr->target), int(sr->property), long(sr->time));
+                        lsp_trace("SelectionRequest requestor = %x, selection=%d (%s), target=%d (%s), property=%d (%s), time=%ld",
+                                     int(sr->requestor),
+                                     int(sr->selection), XGetAtomName(pDisplay, sr->selection),
+                                     int(sr->target), XGetAtomName(pDisplay, sr->target),
+                                     int(sr->property), XGetAtomName(pDisplay, sr->property),
+                                     long(sr->time));
 
                         XEvent response;
                         XSelectionEvent *se = &response.xselection;
 
                         se->type        = SelectionNotify;
+                        se->send_event  = True;
+                        se->display     = pDisplay;
                         se->requestor   = sr->requestor;
                         se->selection   = sr->selection;
                         se->target      = sr->target;
@@ -558,7 +565,7 @@ namespace lsp
                         if (sr->target == sAtoms.X11_TARGETS)
                         {
                             size_t n_targets    = cb->targets();
-                            Atom *atoms         = new Atom[n_targets];
+                            Atom *atoms         = reinterpret_cast<Atom *>(alloca(sizeof(Atom) * (n_targets + 1)));
                             if (atoms == NULL)
                             {
                                 se->property        = None;
@@ -567,10 +574,13 @@ namespace lsp
                                 XFlush(pDisplay);
                                 return true;
                             }
+
+                            atoms[0]    = sAtoms.X11_TARGETS;
                             for (size_t i=0; i<n_targets; ++i)
                             {
                                 const char *target  = cb->target(i);
-                                atoms[i]            = XInternAtom(pDisplay, target, False);
+                                atoms[i+1]  = XInternAtom(pDisplay, target, False);
+                                lsp_trace("Supported format: %s", XGetAtomName(pDisplay, atoms[i+1]));
                             }
 
                             // Update property and return
@@ -582,22 +592,53 @@ namespace lsp
                                 32, // format
                                 PropModeReplace, // mode
                                 reinterpret_cast<unsigned char *>(atoms), // data
-                                n_targets // nelements
+                                n_targets+1 // nelements
                             );
+
+                            XFlush(pDisplay);
+
+                            // DEBUG start
+//                            {
+//                                Atom type, *targets;
+//                                int di;
+//                                unsigned long i, nitems, dul;
+//                                unsigned char *prop_ret = NULL;
+//                                char *an = NULL;
+//
+//                                XGetWindowProperty(pDisplay, sr->requestor, sr->property, 0, 1024 * sizeof (Atom), False, XA_ATOM,
+//                                                   &type, &di, &nitems, &dul, &prop_ret);
+//
+//                                lsp_trace("Targets (actual type = %d %s):", int(type), XGetAtomName(pDisplay, type));
+//                                targets = (Atom *)prop_ret;
+//                                for (i = 0; i < nitems; i++)
+//                                {
+//                                    lsp_trace("    id = %d", int(targets[i]));
+//                                    an = XGetAtomName(pDisplay, targets[i]);
+//                                    lsp_trace("    name '%s'", an);
+//                                    if (an)
+//                                        XFree(an);
+//                                }
+//                                XFree(prop_ret);
+//                            }
+                            // DEBUG end
 
                             XSendEvent(pDisplay, sr->requestor, True, NoEventMask, &response);
                             XFlush(pDisplay);
 
-                            delete [] atoms;
                             cb->close();
                             return true;
                         }
 
                         // Now get content type
-                        const char *ctype   = XGetAtomName(pDisplay, sr->target);
-                        IInputStream *is    = (ctype != NULL) ? cb->read(ctype) : NULL;
+                        char *ctype             = XGetAtomName(pDisplay, sr->target);
+                        io::IInputStream *is    = (ctype != NULL) ? cb->read(ctype) : NULL;
+                        lsp_trace("requested content type: %s", ctype);
+                        if (ctype != NULL)
+                            XFree(ctype);
+
                         if (is == NULL)
                         {
+                            lsp_trace("returned NULL input stream");
                             cb->close();
                             se->property        = None;
                             XSendEvent(pDisplay, sr->requestor, True, NoEventMask, &response);
@@ -626,6 +667,7 @@ namespace lsp
 
                         if (se->property == None)
                             se->property        = XInternAtom(pDisplay, "LSP_SELECTION_DATA", False);
+                        lsp_trace("target property: %s, bytes=%d", XGetAtomName(pDisplay, se->property), int(count));
 
                         XChangeProperty(
                             pDisplay, // display
@@ -638,6 +680,7 @@ namespace lsp
                             count // nelements
                         );
 
+                        XFlush(pDisplay);
                         XSendEvent(pDisplay, sr->requestor, True, NoEventMask, &response);
                         XFlush(pDisplay);
                         cb->close();
@@ -673,14 +716,14 @@ namespace lsp
                         unsigned long p_nitems = 0, p_size = 0, p_offset = 0;
                         unsigned char *p_data = NULL;
                         status_t status = STATUS_OK;
-                        size_t multiplier = p_fmt / 8;
 
                         // Read with 64k chunks
                         XGetWindowProperty(
                             pDisplay, hClipWnd, req->hProperty,
-                            p_offset, X11IOBUF_SIZE/multiplier, False, AnyPropertyType,
+                            p_offset, X11IOBUF_SIZE/4, False, AnyPropertyType,
                             &p_type, &p_fmt, &p_nitems, &p_size, &p_data
                         );
+                        size_t multiplier = p_fmt / 8;
 
                         do
                         {
@@ -721,7 +764,7 @@ namespace lsp
                         // Check status
                         if (status == STATUS_OK)
                         {
-                            IInputStream *is = req->pCB->read(NULL);
+                            io::IInputStream *is = req->pCB->read(NULL);
                             if (is == NULL)
                                 req->pHandler(req->pArgument, req->pCB->error_code(), NULL);
                             else
@@ -1318,8 +1361,8 @@ namespace lsp
                 Window wnd  = XGetSelectionOwner(pDisplay, aid);
                 if (wnd == hClipWnd)
                 {
-                    IClipboard *cb      = pClipboard[id];
-                    IInputStream *is    = (cb != NULL) ? cb->read(ctype) : NULL;
+                    IClipboard *cb          = pClipboard[id];
+                    io::IInputStream *is    = (cb != NULL) ? cb->read(ctype) : NULL;
                     if (is != NULL)
                         return handler(arg, STATUS_OK, is);
                     else

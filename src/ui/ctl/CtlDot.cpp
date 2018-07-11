@@ -51,10 +51,10 @@ namespace lsp
 
         void CtlDot::submit_values()
         {
-            if (pWidget == NULL)
+            LSPDot *dot   = widget_cast<LSPDot>(pWidget);
+            if (dot == NULL)
                 return;
 
-            LSPDot *dot   = static_cast<LSPDot *>(pWidget);
             if (dot->x_editable())
                 submit_value(pLeft, dot->x_value());
             if (dot->y_editable())

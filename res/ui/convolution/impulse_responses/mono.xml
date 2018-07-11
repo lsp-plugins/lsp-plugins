@@ -20,6 +20,7 @@
 						status_id="ifs" mesh_id="ifd"
 						width="600" height="128"
 						path_id="ui:dlg_ir_path"
+						bind="makeup=mk,predelay=pd"
 					/>
 				</hbox>
 	

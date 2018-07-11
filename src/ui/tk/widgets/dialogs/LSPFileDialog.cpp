@@ -17,6 +17,37 @@ namespace lsp
     {
         const w_class_t LSPFileDialog::metadata = { "LSPFileDialog", &LSPWindow::metadata };
 
+        //---------------------------------------------------------------------
+        LSPFileDialog::LSPFileDialogFilter::LSPFileDialogFilter(LSPFileDialog *dlg)
+        {
+            pDialog     = dlg;
+        }
+
+        LSPFileDialog::LSPFileDialogFilter::~LSPFileDialogFilter()
+        {
+        }
+
+        status_t LSPFileDialog::LSPFileDialogFilter::item_updated(size_t idx, filter_t *flt)
+        {
+            return pDialog->sWFilter.items()->set_text(idx, &flt->sTitle);
+        }
+
+        status_t LSPFileDialog::LSPFileDialogFilter::item_removed(size_t idx, filter_t *flt)
+        {
+            return pDialog->sWFilter.items()->remove(idx);
+        }
+
+        status_t LSPFileDialog::LSPFileDialogFilter::item_added(size_t idx, filter_t *flt)
+        {
+            return pDialog->sWFilter.items()->insert(idx, &flt->sTitle);
+        }
+
+        void LSPFileDialog::LSPFileDialogFilter::default_updated(ssize_t idx)
+        {
+            pDialog->sWFilter.set_selected(idx);
+        }
+
+        //---------------------------------------------------------------------
         LSPFileDialog::LSPFileDialog(LSPDisplay *dpy):
             LSPWindow(dpy),
             sWPath(dpy),
@@ -27,10 +58,13 @@ namespace lsp
             sWCancel(dpy),
             sVBox(dpy),
             sHBox(dpy),
+            sAppendExt(dpy),
+            wAutoExt(dpy),
             wGo(dpy),
             wUp(dpy),
             wPathBox(dpy),
-            sWWarning(dpy)
+            sWWarning(dpy),
+            sFilter(this)
         {
             pWConfirm       = NULL;
             nDefaultFilter  = 0;
@@ -92,6 +126,58 @@ namespace lsp
             return result;
         }
 
+        status_t LSPFileDialog::add_ext_button(LSPWidgetContainer *c, const char *text)
+        {
+            LSP_STATUS_ASSERT(sAppendExt.init());
+            LSP_STATUS_ASSERT(wAutoExt.init());
+
+            LSPLabel *lbl = new LSPLabel(pDisplay);
+            if (lbl == NULL)
+                return STATUS_NO_MEM;
+
+            LSPBox *box = new LSPBox(pDisplay, true);
+            if (box == NULL)
+            {
+                delete lbl;
+                return STATUS_NO_MEM;
+            }
+
+            status_t result = (vWidgets.add(lbl)) ? STATUS_OK : STATUS_NO_MEM;
+            if (result == STATUS_OK)
+                result = (vWidgets.add(box)) ? STATUS_OK : STATUS_NO_MEM;
+
+            if (result == STATUS_OK)
+                result = lbl->init();
+            if (result == STATUS_OK)
+                result = box->init();
+
+            box->set_spacing(4);
+            sAppendExt.set_hpos(0.0f);
+
+            if (result == STATUS_OK)
+                result = lbl->set_text(text);
+            if (result == STATUS_OK)
+                result = sAppendExt.add(box);
+            if (result == STATUS_OK)
+                result = box->add(&wAutoExt);
+            if (result == STATUS_OK)
+                result = box->add(lbl);
+            if (result == STATUS_OK)
+                result = c->add(&sAppendExt);
+
+            if (result != STATUS_OK)
+            {
+                vWidgets.remove(lbl);
+                vWidgets.remove(box);
+                lbl->destroy();
+                delete lbl;
+                box->destroy();
+                delete box;
+            }
+
+            return result;
+        }
+
         status_t LSPFileDialog::init()
         {
             // Initialize labels
@@ -147,11 +233,17 @@ namespace lsp
             LSP_STATUS_ASSERT(sVBox.add(&sWFiles));
             LSP_STATUS_ASSERT(add_label(&sVBox, "File name", &pWSearch));
             LSP_STATUS_ASSERT(sVBox.add(&sWSearch));
+            LSP_STATUS_ASSERT(add_ext_button(&sVBox, "Automatic extension"));
             LSP_STATUS_ASSERT(add_label(&sVBox, "Filter"));
             LSP_STATUS_ASSERT(sVBox.add(&sWFilter));
             LSP_STATUS_ASSERT(sVBox.add(&sHBox));
             LSP_STATUS_ASSERT(sHBox.add(&sWAction));
             LSP_STATUS_ASSERT(sHBox.add(&sWCancel));
+
+            init_color(C_YELLOW, wAutoExt.color());
+            wAutoExt.set_led(true);
+            wAutoExt.set_toggle();
+            wAutoExt.set_down(true);
 
             // Add child
             LSP_STATUS_ASSERT(this->add(&sVBox));
@@ -199,7 +291,6 @@ namespace lsp
 
         void LSPFileDialog::do_destroy()
         {
-            clear_filters();
             destroy_file_entries(&vFiles);
 
             // Clear labels
@@ -223,6 +314,8 @@ namespace lsp
             sVBox.destroy();
             sHBox.destroy();
             sWWarning.destroy();
+            sAppendExt.destroy();
+            wAutoExt.destroy();
             wGo.destroy();
             wUp.destroy();
             wPathBox.destroy();
@@ -250,11 +343,13 @@ namespace lsp
             {
                 if (pWSearch != NULL)
                     pWSearch->set_text("Search");
+                sAppendExt.set_visible(false);
             }
             else if (enMode == FDM_SAVE_FILE)
             {
                 if (pWSearch != NULL)
                     pWSearch->set_text("File name");
+                sAppendExt.set_visible(true);
             }
         }
 
@@ -328,155 +423,6 @@ namespace lsp
             }
             return STATUS_OK;
         };
-
-        void LSPFileDialog::clear_filters()
-        {
-            sWFilter.items()->clear();
-            size_t n= vFilters.size();
-            for (size_t i=0; i<n; ++i)
-            {
-                filter_t *f = vFilters.at(i);
-                if (f == NULL)
-                    continue;
-                delete f;
-            }
-            vFilters.clear();
-            sWFilter.set_visible(false);
-            nUIDGen = 0;
-        }
-
-        status_t LSPFileDialog::add_filter(const LSPString *pattern, const LSPString *title)
-        {
-            filter_t *f = new filter_t();
-            if (f == NULL)
-                return STATUS_NO_MEM;
-            f->fUID     = nUIDGen++;
-            f->nIndex   = sWFilter.items()->size();
-
-            status_t xres = f->sPattern.parse(pattern, LSPFileMask::MULTIPLE);
-            if (xres != STATUS_OK)
-            {
-                delete f;
-                return xres;
-            }
-            if (!f->sTitle.set(pattern))
-            {
-                delete f;
-                return STATUS_NO_MEM;
-            }
-
-            if (!vFilters.add(f))
-            {
-                delete f;
-                return STATUS_NO_MEM;
-            }
-            if (sWFilter.items()->add(&f->sTitle, f->fUID) != STATUS_OK)
-            {
-                vFilters.remove(f);
-                delete f;
-                return STATUS_NO_MEM;
-            }
-
-            sWFilter.set_visible(true);
-            sWFilter.set_selected(default_index(nDefaultFilter));
-            return STATUS_OK;
-        }
-
-        status_t LSPFileDialog::add_filter(const char *pattern, const char *title)
-        {
-            filter_t *f = new filter_t();
-            if (f == NULL)
-                return STATUS_NO_MEM;
-            f->fUID     = nUIDGen++;
-            f->nIndex   = sWFilter.items()->size();
-
-            status_t xres = f->sPattern.parse(pattern, LSPFileMask::MULTIPLE);
-            if (xres != STATUS_OK)
-            {
-                delete f;
-                return xres;
-            }
-            if (!f->sTitle.set_native(title))
-            {
-                delete f;
-                return STATUS_NO_MEM;
-            }
-
-            if (!vFilters.add(f))
-            {
-                delete f;
-                return STATUS_NO_MEM;
-            }
-            if (sWFilter.items()->add(&f->sTitle, f->fUID) != STATUS_OK)
-            {
-                vFilters.remove(f);
-                delete f;
-                return STATUS_NO_MEM;
-            }
-
-            sWFilter.set_visible(true);
-            sWFilter.set_selected(default_index(nDefaultFilter));
-            return STATUS_OK;
-        }
-
-        status_t LSPFileDialog::get_filter(size_t idx, LSPString *pattern, LSPString *title)
-        {
-            filter_t *f = new filter_t();
-            if (f == NULL)
-                return STATUS_BAD_ARGUMENTS;
-
-            LSPString tmp1, tmp2;
-            if (pattern != NULL)
-            {
-                status_t xres = f->sPattern.get_mask(&tmp1);
-                if (xres != STATUS_OK)
-                    return xres;
-            }
-            if (title != NULL)
-            {
-                if (!tmp2.set(&f->sTitle))
-                    return STATUS_NO_MEM;
-            }
-
-            if (pattern != NULL)
-                pattern->swap(&tmp1);
-            if (title != NULL)
-                title->swap(&tmp2);
-            return STATUS_OK;
-        }
-
-        ssize_t LSPFileDialog::default_index(ssize_t val)
-        {
-            filter_t *f = vFilters.get(val);
-            if (f == NULL)
-                return 0;
-
-            return f->nIndex;
-        }
-
-        status_t LSPFileDialog::remove_filter(size_t index)
-        {
-            filter_t *f = vFilters.get(index);
-            if (f == NULL)
-                return STATUS_BAD_ARGUMENTS;
-
-            status_t result = sWFilter.items()->remove(f->nIndex);
-            if (result != STATUS_OK)
-                return result;
-
-            vFilters.remove(index);
-            sWFilter.set_visible(vFilters.size() > 0);
-            return STATUS_OK;
-        }
-
-        status_t LSPFileDialog::set_default_filter(size_t value)
-        {
-            filter_t *f = vFilters.get(value);
-            if (f == NULL)
-                return STATUS_BAD_ARGUMENTS;
-
-            return sWFilter.set_selected(f->nIndex);
-        }
 
         status_t LSPFileDialog::add_file_entry(cvector<file_entry_t> *dst, const char *name, size_t flags)
         {
@@ -705,18 +651,7 @@ namespace lsp
             if (sWFilter.items()->size() > 0)
             {
                 ssize_t sel = sWFilter.selected();
-                if (sel < 0)
-                    sel = 0;
-                size_t n = vFilters.size();
-                for (size_t i=0; i<n; ++i)
-                {
-                    filter_t *f = vFilters.at(i);
-                    if (ssize_t(f->nIndex) == sel)
-                    {
-                        fmask = &f->sPattern;
-                        break;
-                    }
-                }
+                fmask = sFilter.get_mask((sel < 0) ? 0 : sel);
             }
 
             // Now we need to fill data
@@ -971,6 +906,19 @@ namespace lsp
                 LSPString fname;
                 LSP_STATUS_ASSERT(sWSearch.get_text(&fname));
 
+                if (wAutoExt.is_down())
+                {
+                    LSPString ext;
+                    ssize_t sel = sWFilter.selected();
+                    if (sFilter.get_extension((sel < 0) ? 0 : sel, &ext) == STATUS_OK)
+                    {
+                        lsp_trace("fname = %s, ext = %s", fname.get_native(), ext.get_native());
+                        if (!fname.ends_with_nocase(&ext))
+                            fname.append(&ext);
+                        lsp_trace("fname = %s", fname.get_native());
+                    }
+                }
+
                 if (LSPFileMask::is_dots(&fname) || (!LSPFileMask::valid_file_name(&fname)))
                     return show_message("Attention", "Attention", "The entered file name is not valid");
 
@@ -1081,6 +1029,10 @@ namespace lsp
 
         status_t LSPFileDialog::on_show()
         {
+            ssize_t idx = sFilter.get_default();
+            if ((idx < 0) && (sFilter.size() > 0))
+                idx = 0;
+            sWFilter.set_selected(idx);
             refresh_current_path();
             return STATUS_OK;
         }

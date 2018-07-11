@@ -61,6 +61,11 @@ namespace lsp
     {
     }
 
+    bool plugin_t::set_position(const position_t *pos)
+    {
+        return false;
+    }
+
     void plugin_t::process(size_t samples)
     {
     }

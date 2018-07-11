@@ -13,11 +13,44 @@
 #include <data/cvector.h>
 
 #include <ui/ws/ws.h>
+#include <core/files/config.h>
 
 namespace lsp
 {
     class plugin_ui: public CtlRegistry
     {
+        protected:
+            class ConfigHandler: public config::IConfigHandler
+            {
+                private:
+                    plugin_ui   *pUI;
+                    cvector<CtlPort> &hPorts;
+
+                public:
+                    ConfigHandler(plugin_ui *ui, cvector<CtlPort> &ports): pUI(ui), hPorts(ports) {}
+
+                public:
+                    virtual status_t handle_parameter(const char *name, const char *value);
+            };
+
+            class ConfigSource: public config::IConfigSource
+            {
+                private:
+                    plugin_ui   *pUI;
+                    cvector<CtlPort> &hPorts;
+                    LSPString   *pComment;
+                    size_t       nPortID;
+
+                public:
+                    ConfigSource(plugin_ui *ui, cvector<CtlPort> &ports, LSPString *comment):
+                        pUI(ui), hPorts(ports), pComment(comment), nPortID(0) {}
+
+                public:
+                    virtual status_t get_head_comment(LSPString *comment);
+
+                    virtual status_t get_parameter(LSPString *name, LSPString *value, LSPString *comment, int *flags);
+            };
+
         protected:
             const plugin_metadata_t    *pMetadata;
             IUIWrapper                 *pWrapper;
@@ -29,20 +62,20 @@ namespace lsp
             cvector<CtlPort>            vPorts;
             cvector<CtlPort>            vSortedPorts;
             cvector<CtlPort>            vConfigPorts;
+            cvector<CtlValuePort>       vTimePorts;
             cvector<LSPWidget>          vWidgets;
             cvector<CtlSwitchedPort>    vSwitched;
             cvector<CtlPortAlias>       vAliases;
 
         protected:
             static const port_t         vConfigMetadata[];
+            static const port_t         vTimeMetadata[];
 
         protected:
             size_t          rebuild_sorted_ports();
             CtlWidget      *build_widget(widget_ctl_t w_class);
             FILE           *open_config_file(bool write);
             bool            create_directory(const char *path);
-            void            serialize_ports(FILE *fd, cvector<CtlPort> &ports);
-            bool            deserialize_ports(FILE *fd, cvector<CtlPort> &ports);
             bool            apply_changes(const char *key, const char *value, cvector<CtlPort> &ports);
 
         public:
@@ -69,6 +102,11 @@ namespace lsp
              * @return status of operation
              */
             status_t    init(IUIWrapper *wrapper, int argc, const char **argv);
+
+            /** Method executed when the time position of plugin was updated
+             *
+             */
+            void position_updated(const position_t *pos);
 
             /** Add plugin port to UI
              *
@@ -165,7 +203,9 @@ namespace lsp
              *
              * @return main iteration
              */
-            inline status_t main_iteration() { return sDisplay.main_iteration(); };
+            inline status_t main_iteration() { return sDisplay.main_iteration(); }
+
+            void sync_meta_ports();
 
             /** Return root window
              *

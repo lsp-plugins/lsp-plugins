@@ -37,10 +37,12 @@ namespace lsp
         STATUS_TOO_BIG,
         STATUS_PERMISSION_DENIED,
         STATUS_IO_ERROR,
+        STATUS_NO_FILE,
         STATUS_EOF,
         STATUS_CLOSED,
         STATUS_NOT_SUPPORTED,
         STATUS_INVALID_VALUE,
+        STATUS_BAD_LOCALE,
 
         STATUS_TOTAL,
         STATUS_MAX = STATUS_TOTAL - 1,

@@ -43,6 +43,7 @@ namespace lsp
         REQ_MIDI_OUT    = 1 << 6,
         REQ_PATCH_WR    = 1 << 7,
         REQ_INSTANCE    = 1 << 8,
+        REQ_TIME        = 1 << 9,
 
         REQ_PATH_MASK   = REQ_PATCH | REQ_STATE | REQ_WORKER | REQ_PATCH_WR,
         REQ_MIDI        = REQ_MIDI_IN | REQ_MIDI_OUT
@@ -103,8 +104,6 @@ namespace lsp
         const char     *label;
         const char     *render;
     } lv2_plugin_unit_t;
-
-    // TODO
 
     const lv2_plugin_unit_t lv2_plugin_units[] =
     {
@@ -326,16 +325,16 @@ namespace lsp
 
     static size_t scan_port_requirements(const port_t *meta)
     {
-        size_t result = 0;
+        size_t result = REQ_TIME;
         for (const port_t *p = meta; p->id != NULL; ++p)
         {
             switch (p->role)
             {
                 case R_PATH:
-                    result    |= REQ_PATH_MASK | REQ_INSTANCE;
+                    result     |= REQ_PATH_MASK | REQ_INSTANCE;
                     break;
                 case R_MESH:
-                    result    |= REQ_INSTANCE;
+                    result     |= REQ_INSTANCE;
                     break;
                 case R_MIDI:
                     if (IS_OUT_PORT(p))
@@ -346,7 +345,7 @@ namespace lsp
                 case R_PORT_SET:
                     if ((p->members != NULL) && (p->items != NULL))
                         result         |= scan_port_requirements(p->members);
-                    result    |= REQ_INSTANCE;
+                    result     |= REQ_INSTANCE;
                     break;
                 default:
                     break;
@@ -410,6 +409,8 @@ namespace lsp
             fprintf(out, "@prefix state:     <" LV2_STATE_PREFIX "> .\n");
         if (requirements & REQ_MIDI)
             fprintf(out, "@prefix midi:      <" LV2_MIDI_PREFIX "> .\n");
+        if (requirements & REQ_TIME)
+            fprintf(out, "@prefix time:      <" LV2_TIME_URI "#> .\n");
         fprintf(out, "@prefix hcid:      <" LV2_INLINEDISPLAY_PREFIX "> .\n");
 
         fprintf(out, "@prefix " LSP_PREFIX ":       <" LSP_URI(lv2) "> .\n");
@@ -717,43 +718,39 @@ namespace lsp
                     fprintf(out, "\t\tlv2:maximum %d ;\n", int(p->max));
                 fprintf(out, "\t\tlv2:default %d ;\n", int(p->start));
             }
+            else if (p->flags & F_INT)
+            {
+                LSP_LV2_EMIT_HEADER(p_prop, "\t\tlv2:portProperty");
+                LSP_LV2_EMIT_OPTION(p_prop, true, "lv2:integer");
+                if ((p->flags & (F_LOWER | F_UPPER)) == (F_LOWER | F_UPPER))
+                    LSP_LV2_EMIT_OPTION(p_prop, true, "pp:hasStrictBounds");
+                LSP_LV2_EMIT_END(p_prop);
+
+                if (p->flags & F_LOWER)
+                    fprintf(out, "\t\tlv2:minimum %d ;\n", int(p->min));
+                if (p->flags & F_UPPER)
+                    fprintf(out, "\t\tlv2:maximum %d ;\n", int(p->max));
+                if ((p->role == R_CONTROL) || (p->role == R_METER))
+                    fprintf(out, "\t\tlv2:default %d ;\n", int(p->start));
+            }
             else
             {
-                if (p->flags & F_INT)
+                if ((p->flags & (F_LOWER | F_UPPER)) == (F_LOWER | F_UPPER))
                 {
                     LSP_LV2_EMIT_HEADER(p_prop, "\t\tlv2:portProperty");
-                    LSP_LV2_EMIT_OPTION(p_prop, true, "lv2:integer");
-                    if ((p->flags & (F_LOWER | F_UPPER)) == (F_LOWER | F_UPPER))
-                        LSP_LV2_EMIT_OPTION(p_prop, true, "pp:hasStrictBounds");
+                    LSP_LV2_EMIT_OPTION(p_prop, true, "pp:hasStrictBounds");
                     LSP_LV2_EMIT_END(p_prop);
-
-                    if (p->flags & F_LOWER)
-                        fprintf(out, "\t\tlv2:minimum %d ;\n", int(p->min));
-                    if (p->flags & F_UPPER)
-                        fprintf(out, "\t\tlv2:maximum %d ;\n", int(p->max));
-                    if ((p->role == R_CONTROL) || (p->role == R_METER))
-                        fprintf(out, "\t\tlv2:default %d ;\n", int(p->start));
                 }
-                else
-                {
-                    if ((p->flags & (F_LOWER | F_UPPER)) == (F_LOWER | F_UPPER))
-                    {
-                        LSP_LV2_EMIT_HEADER(p_prop, "\t\tlv2:portProperty");
-                        LSP_LV2_EMIT_OPTION(p_prop, true, "pp:hasStrictBounds");
-                        LSP_LV2_EMIT_END(p_prop);
-                    }
 
-                    if (p->flags & F_LOWER)
-                        fprintf(out, "\t\tlv2:minimum %.6f ;\n", p->min);
-                    if (p->flags & F_UPPER)
-                        fprintf(out, "\t\tlv2:maximum %.6f ;\n", p->max);
-                    if ((p->role == R_CONTROL) || (p->role == R_METER))
-                        fprintf(out, "\t\tlv2:default %.6f ;\n", p->start);
-                }
+                if (p->flags & F_LOWER)
+                    fprintf(out, "\t\tlv2:minimum %.6f ;\n", p->min);
+                if (p->flags & F_UPPER)
+                    fprintf(out, "\t\tlv2:maximum %.6f ;\n", p->max);
+                if ((p->role == R_CONTROL) || (p->role == R_METER))
+                    fprintf(out, "\t\tlv2:default %.6f ;\n", p->start);
             }
 
             LSP_LV2_EMIT_END(p_prop);
-
 
             // Output all port groups of the port
             if (requirements & REQ_PORT_GROUPS)
@@ -773,6 +770,8 @@ namespace lsp
             fprintf(out, "\t\tatom:supports atom:Sequence");
             if (requirements & REQ_PATCH)
                 fprintf(out, ", patch:Message");
+            if (requirements & REQ_TIME)
+                fprintf(out, ", time:Position");
             fprintf(out, " ;\n");
 
             const port_t *p = &lv2_atom_ports[i];

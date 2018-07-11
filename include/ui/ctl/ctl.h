@@ -43,6 +43,7 @@ namespace lsp
             WC_EDIT,
             WC_FADER,
             WC_FILE,
+            WC_FRAC,
             WC_GRAPH,
             WC_GRID,
             WC_GROUP,
@@ -68,6 +69,7 @@ namespace lsp
             WC_SEP,
             WC_SWITCH,
             WC_TEXT,
+            WC_TTAP,
             WC_VALUE,
             WC_VBOX,
             WC_VGRID,
@@ -179,7 +181,9 @@ namespace lsp
             A_PROGRESS_ID,
             A_PATH_ID,
             A_HFILL,
-            A_VFILL
+            A_VFILL,
+            A_FORMAT_ID,
+            A_BIND
         };
 
         // Helper functions
@@ -206,9 +210,6 @@ namespace lsp
     }
 }
 
-// Parsing header
-#include <ui/ctl/parse.h>
-
 // Core headers
 #include <ui/ctl/CtlRegistry.h>
 #include <ui/ctl/CtlPortListener.h>
@@ -216,6 +217,9 @@ namespace lsp
 #include <ui/ctl/CtlExpression.h>
 #include <ui/ctl/CtlColor.h>
 #include <ui/ctl/CtlPadding.h>
+
+// Parsing header
+#include <ui/ctl/parse.h>
 
 // Widget controllers
 #include <ui/ctl/CtlWidget.h>
@@ -251,11 +255,17 @@ namespace lsp
 #include <ui/ctl/CtlMesh.h>
 #include <ui/ctl/CtlDot.h>
 #include <ui/ctl/CtlText.h>
+#include <ui/ctl/CtlFraction.h>
+#include <ui/ctl/CtlTempoTap.h>
 
 // Specials
 #include <ui/ctl/CtlPortAlias.h>
 #include <ui/ctl/CtlSwitchedPort.h>
 #include <ui/ctl/CtlControlPort.h>
 #include <ui/ctl/CtlPathPort.h>
+#include <ui/ctl/CtlValuePort.h>
+#include <ui/ctl/CtlPortHandler.h>
+#include <ui/ctl/CtlConfigSource.h>
+#include <ui/ctl/CtlConfigHandler.h>
 
 #endif /* UI_CTL_CTL_H_ */

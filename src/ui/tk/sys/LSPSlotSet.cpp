@@ -87,14 +87,14 @@ namespace lsp
             ptr->nType          = id;
             ptr->pSlot          = result;
 
-            #ifdef LSP_TRACE
-            size_t n = vSlots.size();
-            for (size_t i=0; i<n; ++i)
-            {
-                ptr     = vSlots.at(i);
-                lsp_trace("slot idx=%d, id=%d", int(i), int (ptr->nType));
-            }
-            #endif /* LSP_TRACE */
+//            #ifdef LSP_TRACE
+//            size_t n = vSlots.size();
+//            for (size_t i=0; i<n; ++i)
+//            {
+//                ptr     = vSlots.at(i);
+//                lsp_trace("slot idx=%d, id=%d", int(i), int (ptr->nType));
+//            }
+//            #endif /* LSP_TRACE */
 
             return result;
         }

@@ -174,6 +174,20 @@ namespace lsp
                 return check_simple_nocase(mask->pHead, mask->pTail, s, &s[len]) ^ mask->bInvert;
         }
 
+        void LSPFileMask::swap(LSPFileMask *mask)
+        {
+            sMask.swap(&mask->sMask);
+            vMasks.swap(&mask->vMasks);
+
+            size_t flags        = mask->nFlags;
+            mask->nFlags        = nFlags;
+            nFlags              = flags;
+
+            lsp_wchar_t *buf    = mask->pBuffer;
+            mask->pBuffer       = pBuffer;
+            pBuffer             = buf;
+        }
+
         status_t LSPFileMask::parse(const LSPString *pattern, size_t flags)
         {
             size_t n = pattern->length();
@@ -237,7 +251,7 @@ namespace lsp
             masks.flush();
 
             // Store flags
-            nFlags      = flags & (MULTIPLE | INVERSIVE | CASE_SENSITIVE);
+            nFlags      = flags & (INVERSIVE | CASE_SENSITIVE);
 
             return STATUS_OK;
         }
@@ -248,6 +262,11 @@ namespace lsp
             if (!tmp.set_native(pattern))
                 return STATUS_NO_MEM;
             return parse(&tmp, flags);
+        }
+
+        void LSPFileMask::set_flags(size_t flags)
+        {
+            nFlags      = flags & (INVERSIVE | CASE_SENSITIVE);
         }
 
         bool LSPFileMask::matched(const LSPString *str)

@@ -9,13 +9,14 @@
 	Each delay can be used to simulate the early reflections of the signal from walls.
 	This allows to make the stereo image of the original signal wider, and the position
 	of the source more definitive in the mix. Equalizers provided for each delay line allow to
-	simulate the fading of the original signal. Every delay can be set in both time and distance
-	units. Also common pre-delay and time-stretching mechanisms are provided to allow the stereo
-	image to change dynamically.
+	simulate the fading of the original signal. Every delay can be set in time, distance and
+	musical time units. Also common pre-delay and time-stretching mechanisms are provided to allow
+	the stereo image to change dynamically. Additionally, ramping mode is provided to smoothen
+	change of delay on automation.
 </p>
 <p>
-	Remember that for more realistic picture the more delay is the more low and high frequencies
-	are cut from the delayed signal.
+	Remember that for more realistic acoustic picture the more delay is the more low and high
+	frequencies	are cut from the delayed signal.
 </p>
 
 <p><b>'Master Channel' section:</b></p>
@@ -26,18 +27,25 @@
 	</li>
 	<li><b>Temperature</b> - temperature of the air used for <b>Distance</b> delay calculation.</li>
 	<li><b>Pre-delay</b> - pre-delay added to all delay lines relatively to the original signal.</li>
+	<li><b>Tempo</b> - adjust tempo of the track.</li>
+	<li><b>Tempo Sync</b> - synchronize tempo with host.</li>
 	<li><b>Stretch</b> - time stretching, multiplicatively increases delay time for all delay lines.</li>
+	<li><b>Settings</b> - different useful settings:</li>
+	<ul>
+		<li><b>Mono</b> - Output mono signal instead of stereo, useful for testing mono compatibility.</li>
+		<li><b>Ramp</b> - Smoothen delay change for each processor (ramping), useful for smoothing automation effect.</li>
+		<li><b>Tap</b> - Button that allows to adjust tempo by clicking it, useful when the tempo is not well known and needs to be detected.</li>
+	</ul>
 	<?php if ($m) {?>
-	<li><b>Pan</b> - the panning applied to the original mono signal.</li>
+	<li><b>Pan</b> - the panning applied to the original (dry) mono signal.</li>
 	<?php } else {?>
-	<li><b>Pan Left</b> - the panning applied to the left channel of the original signal.</li>
-	<li><b>Pan Right</b> - the panning applied to the right channel of the original signal.</li>
+	<li><b>Pan Left</b> - the panning applied to the left channel of the original (dry) signal.</li>
+	<li><b>Pan Right</b> - the panning applied to the right channel of the original (dry) signal.</li>
 	<?php }?>
 	<li><b>Dry</b> - The amount of dry (unprocessed) signal.</li>
 	<li><b>Dry Mute</b> - Mute the dry (unprocessed) signal.</li>
 	<li><b>Wet</b> - The amount of wet (processed) signal.</li>
 	<li><b>Wet Mute</b> - Mute the wet (processed) signal.</li>
-	<li><b>Mono</b> - Output mono signal instead of stereo, useful for testing mono compatibility.</li>
 	<li><b>Output</b> - The overall output amplification of the signal.</li>
 </ul>
 

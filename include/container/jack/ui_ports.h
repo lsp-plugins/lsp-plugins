@@ -139,6 +139,36 @@ namespace lsp
             }
     };
 
+    class JACKUIInPort: public JACKUIPort
+    {
+        private:
+            float   fValue;
+
+        public:
+            JACKUIInPort(JACKPort *port): JACKUIPort(port)
+            {
+                fValue      = port->getValue();
+            }
+
+            virtual ~JACKUIInPort()
+            {
+                fValue      = pMetadata->start;
+            }
+
+        public:
+            virtual float get_value()
+            {
+                return fValue;
+            }
+
+            virtual bool sync()
+            {
+                float value = fValue;
+                fValue      = pPort->getValue();
+                return fValue != value;
+            }
+    };
+
     class JACKUIMeshPort: public JACKUIPort
     {
         private:

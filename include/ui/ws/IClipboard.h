@@ -8,6 +8,8 @@
 #ifndef UI_WS_ICLIPBOARD_H_
 #define UI_WS_ICLIPBOARD_H_
 
+#include <core/io/IInputStream.h>
+
 namespace lsp
 {
     namespace ws
@@ -30,39 +32,39 @@ namespace lsp
                  *
                  * @return last error code
                  */
-                inline status_t         error_code() const { return nError; };
+                inline status_t             error_code() const { return nError; };
 
                 /** Increments number of references to the clipboard object
                  *
                  * @return status of operation
                  */
-                virtual status_t        acquire();
+                virtual status_t            acquire();
 
                 /** Closes the clipboard data and forces the clipboard to destroy object if possible
                  *
                  * @return status of operation
                  */
-                virtual status_t        close();
+                virtual status_t            close();
 
                 /** Get clipboard content for reading
                  *
                  * @param ctype content type
                  * @return pointer to the opened clipboard stream or NULL if content type or character set is not supported
                  */
-                virtual IInputStream   *read(const char *ctype);
+                virtual io::IInputStream   *read(const char *ctype);
 
                 /** Get number of supported converison targets
                  *
                  * @return number of supported conversion types
                  */
-                virtual size_t          targets();
+                virtual size_t              targets();
 
                 /** Get name of the supported target
                  *
                  * @param i the index of target
                  * @return status of operation
                  */
-                virtual const char     *target(size_t i);
+                virtual const char         *target(size_t i);
 
         };
     

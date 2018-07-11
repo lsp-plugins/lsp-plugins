@@ -18,6 +18,7 @@ namespace lsp
         "Off",
         "Time",
         "Distance",
+        "Notes",
         NULL
     };
 
@@ -43,6 +44,9 @@ namespace lsp
         CONTROL("temp", "Tem", U_DEG_CEL, slap_delay_base_metadata::TEMPERATURE), \
         CONTROL("pred", "Pre-delay", U_MSEC, slap_delay_base_metadata::PRED_TIME), \
         CONTROL("strch", "Stretch time", U_PERCENT, slap_delay_base_metadata::STRETCH), \
+        CONTROL("tempo", "Tempo", U_BPM, slap_delay_base_metadata::TEMPO), \
+        SWITCH("sync", "Tempo sync", 0.0f), \
+        SWITCH("ramp", "Ramping delay", 0.0f), \
         pan("_in", "Input"), \
         DRY_GAIN(GAIN_AMP_0_DB), \
         SWITCH("dm", "Dry mute", 0.0f), \
@@ -59,6 +63,8 @@ namespace lsp
         SWITCH("ph" #id, "Delay " #id " phase", 0.0f), \
         CONTROL("dt" #id, "Delay " #id " time", U_MSEC, slap_delay_base_metadata::TIME), \
         CONTROL("dd" #id, "Delay " #id " distance", U_M, slap_delay_base_metadata::DISTANCE), \
+        CONTROL("df" #id, "Delay " #id " fraction", U_BAR, slap_delay_base_metadata::FRACTION), \
+        INT_CONTROL("ds" #id, "Delay " #id " denominator", U_BEAT, slap_delay_base_metadata::DENOMINATOR), \
         SWITCH("eq" #id, "Equalizer " #id " on", 0.0f), \
         SWITCH("lfc" #id, "Delay " #id " low-cut", 0.0f), \
         LOG_CONTROL("flc" #id, "Delay " #id " low-cut frequency", U_HZ, slap_delay_base_metadata::LOW_CUT), \
@@ -122,7 +128,7 @@ namespace lsp
         "slap_delay_mono",
         "gt0d",
         LSP_SLAP_DELAY_BASE + 0,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         slap_delay_classes,
         slap_delay_mono_ports,
         "delay/slap_delay/mono.xml",
@@ -138,7 +144,7 @@ namespace lsp
         "slap_delay_stereo",
         "0xxj",
         LSP_SLAP_DELAY_BASE + 1,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         slap_delay_classes,
         slap_delay_stereo_ports,
         "delay/slap_delay/stereo.xml",

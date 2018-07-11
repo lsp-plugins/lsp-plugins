@@ -101,7 +101,6 @@ namespace jack_test
 //                "sc_mb_compressor_stereo";
 //                "sc_mb_compressor_lr";
                 "sc_mb_compressor_ms";
-
 //                "test_plugin";
 
         return JACK_MAIN_FUNCTION(plugin, argc, argv);

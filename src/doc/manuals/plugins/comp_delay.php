@@ -40,6 +40,10 @@
 		<b>Mode</b> - the switch button that selects active mode of the delay<?= $cc ?>: <b>Samples</b>, <b>Distance</b> or <b>Time</b>. When the mode is active,
 		then the <b>Active</b> led of the appropriate control group is shining.
 	</li>
+	<li>
+		<b>Ramp</b> - the button that enables ramping mode of the delay<?= $cc ?>. This feature allows to smooth delay jumps when applying automation by
+		linearizing the delay change when processing audio.
+	</li>
 	<li><b>Samples</b> - sets the delay in samples for the <b>Samples</b> mode<?= $oc ?>.</li>
 	<li><b>Meters</b> - inaccurate distance control, sets the distance in meters for the <b>Distance</b> mode<?= $oc ?>.</li>
 	<li><b>Centimeters</b> - accurate distance control, sets the additional distance in centimeters for the <b>Distance</b> mode<?= $oc ?>.</li>

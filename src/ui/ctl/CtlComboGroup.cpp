@@ -18,6 +18,7 @@ namespace lsp
             fMax        = 0.0f;
             fStep       = 0.0f;
             idChange    = -1;
+            pText       = NULL;
         }
 
         CtlComboGroup::~CtlComboGroup()
@@ -29,6 +30,12 @@ namespace lsp
             LSPComboGroup *grp = widget_cast<LSPComboGroup>(pWidget);
             if (grp == NULL)
                 return;
+
+            if (pText != NULL)
+            {
+                free(pText);
+                pText = NULL;
+            }
 
             if (idChange >= 0)
             {
@@ -104,6 +111,9 @@ namespace lsp
                     if (grp != NULL)
                         PARSE_INT(value, grp->set_radius(__));
                     break;
+                case A_TEXT:
+                    PARSE_STRING(value, pText);
+                    break;
                 default:
                 {
                     bool set = sColor.set(att, value);
@@ -154,10 +164,17 @@ namespace lsp
                         size_t i        = 0;
                         LSPItemList *lst= cbox->items();
 
+                        LSPString prefix, text;
+                        if (pText != NULL)
+                            prefix.set_native(pText);
+
                         for (const char **item = p->items; (item != NULL) && (*item != NULL); ++item, ++i)
                         {
+                            text.set_native(*item);
+                            text.prepend(&prefix);
+
                             size_t key      = fMin + fStep * i;
-                            lst->add(*item, key);
+                            lst->add(&text, key);
                             if (key == value)
                                 cbox->set_selected(i);
                         }

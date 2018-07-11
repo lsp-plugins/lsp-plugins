@@ -3,11 +3,11 @@
 #include <dlfcn.h>
 #include <stddef.h>
 
-#include <ui/tk/tk.h>
+#include <core/LSPString.h>
 
 namespace lspstring_test
 {
-    using namespace lsp::tk;
+    using namespace lsp;
 
     int test(int argc, const char **argv)
     {

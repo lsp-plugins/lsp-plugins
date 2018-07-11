@@ -21,7 +21,7 @@ namespace lsp
                 static const char *x_targets[];
 
             protected:
-                class InputStream: public IInputStream
+                class InputStream: public io::IInputStream
                 {
                     protected:
                         char           *pData;
@@ -49,9 +49,9 @@ namespace lsp
                 virtual ~LSPTextClipboard();
 
             public:
-                virtual IInputStream   *read(const char *ctype);
-                virtual size_t          targets();
-                virtual const char     *target(size_t i);
+                virtual io::IInputStream   *read(const char *ctype);
+                virtual size_t              targets();
+                virtual const char         *target(size_t i);
 
                 status_t        update_text(const LSPString *text);
                 status_t        update_text(const LSPString *text, ssize_t first);

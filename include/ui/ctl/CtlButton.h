@@ -19,6 +19,7 @@ namespace lsp
                 CtlPort        *pPort;
                 CtlColor        sBgColor;
                 CtlColor        sColor;
+                CtlColor        sTextColor;
 
             protected:
                 static status_t    slot_change(LSPWidget *sender, void *ptr, void *data);

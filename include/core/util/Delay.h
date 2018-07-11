@@ -55,12 +55,39 @@ namespace lsp
              */
             void process(float *dst, const float *src, float gain, size_t count);
 
+            /** Process data
+             *
+             * @param dst destination buffer
+             * @param src source buffer
+             * @param delay the final delay that will be set at the end of processing
+             * @param count number of samples to process
+             */
+            void process_ramping(float *dst, const float *src, size_t delay, size_t count);
+
+            /** Process data
+             *
+             * @param dst destination buffer
+             * @param src source buffer
+             * @param gain the amount of gain to adjust to output
+             * @param delay the final delay that will be set at the end of processing
+             * @param count number of samples to process
+             */
+            void process_ramping(float *dst, const float *src, float gain, size_t delay, size_t count);
+
             /** Process one sample
              *
              * @param src sample to process
              * @return output sample
              */
             float process(float src);
+
+            /** Process one sample
+             *
+             * @param src sample to process
+             * @param gain gain to adjust
+             * @return output sample
+             */
+            float process(float src, float gain);
 
             /** Clear internal delay buffer
              *
