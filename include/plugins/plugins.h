@@ -25,5 +25,7 @@
 #include <plugins/gate.h>
 #include <plugins/limiter.h>
 #include <plugins/impulse_responses.h>
+#include <plugins/impulse_reverb.h>
+#include <plugins/slap_delay.h>
 
 #endif /* PLUGINS_PLUGINS_H_ */

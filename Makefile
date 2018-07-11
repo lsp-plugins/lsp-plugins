@@ -14,7 +14,7 @@ INSTALL                 = install
 
 # Package version
 ifndef VERSION
-VERSION                 = 1.0.20
+VERSION                 = 1.0.22
 endif
 
 # Directories
@@ -270,6 +270,7 @@ uninstall:
 	@-rm -f $(DESTDIR)$(LADSPA_PATH)/$(ARTIFACT_ID)-ladspa.so
 	@-rm -rf $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
 	@-rm -f $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-vst-*.so
+	@-rm -f $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-lxvst-*-$(CPU_ARCH)
 	@-rm -rf $(DESTDIR)$(VST_PATH)/$(VST_ID)
 	@-rm -f $(DESTDIR)$(BIN_PATH)/$(ARTIFACT_ID)-*
 	@-rm -f $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)-jack-core.so

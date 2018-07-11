@@ -161,6 +161,9 @@ namespace lsp
 
     void Equalizer::reconfigure()
     {
+        if (nMode == EQM_BYPASS)
+            return;
+
         // Initialize bank
         sBank.begin();
         for (size_t i=0; i<nFilters; ++i)
@@ -302,7 +305,7 @@ namespace lsp
                         dsp::reverse_fft(vFftRe, vFftIm, vFftRe, vFftIm, nFftRank + 1);
 
                         // Apply previous convolution tail
-                        dsp::add(vFftRe, &vBuffer[nConvSize], nConvSize);
+                        dsp::add2(vFftRe, &vBuffer[nConvSize], nConvSize);
 
                         // Update the buffer
                         dsp::copy(vBuffer, vFftRe, conv_len);

@@ -116,10 +116,10 @@ namespace lsp
         "impulse_responses_mono",
         "wvwt",
         LSP_IMPULSE_RESPONSES_BASE + 0,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         impulse_responses_classes,
         impulse_responses_mono_ports,
-        NULL
+        mono_plugin_port_groups
     };
 
     const plugin_metadata_t  impulse_responses_stereo_metadata::metadata =
@@ -131,10 +131,10 @@ namespace lsp
         "impulse_responses_stereo",
         "1khz",
         LSP_IMPULSE_RESPONSES_BASE + 1,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         impulse_responses_classes,
         impulse_responses_stereo_ports,
-        NULL
+        stereo_plugin_port_groups
     };
 }
 

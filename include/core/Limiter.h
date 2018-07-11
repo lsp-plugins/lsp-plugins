@@ -140,6 +140,7 @@ namespace lsp
             // Pre-calculated parameters
             float      *vGainBuf;
             float      *vTmpBuf;
+            uint8_t    *vData;
 
             Delay       sDelay;
             union

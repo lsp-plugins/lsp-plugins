@@ -7,6 +7,7 @@
 
 #include <core/types.h>
 #include <core/dsp.h>
+#include <core/debug.h>
 #include <core/ShiftBuffer.h>
 
 namespace lsp
@@ -47,6 +48,8 @@ namespace lsp
         nCapacity   = new_capacity;
         nHead       = 0;
         nTail       = gap;
+
+//        lsp_trace("capacity = %d, head = %d, tail = %d", int(nCapacity), int(nHead), int(nTail));
 
         // Zero the gap
         dsp::fill_zero(pData, gap);
@@ -204,6 +207,8 @@ namespace lsp
             dsp::copy(data, &pData[nHead], count);
         nHead      += count;
 
+//        lsp_trace("count=%d, capacity=%d, head=%d, tail=%d", int(count), int(nCapacity), int(nHead), int(nTail));
+
         return count;
     }
 
@@ -220,6 +225,7 @@ namespace lsp
 
         // Flush the buffer
         nHead      += count;
+//        lsp_trace("count=%d, capacity=%d, head=%d, tail=%d", int(count), int(nCapacity), int(nHead), int(nTail));
 
         return count;
     }

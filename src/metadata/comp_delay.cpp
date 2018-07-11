@@ -171,10 +171,10 @@ namespace lsp
         "comp_delay_mono",
         "jav8",
         LSP_COMP_DELAY_BASE + 0,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         comp_delay_classes,
         comp_delay_mono_ports,
-        NULL
+        mono_plugin_port_groups
     };
 
     const plugin_metadata_t  comp_delay_stereo_metadata::metadata =
@@ -186,7 +186,7 @@ namespace lsp
         "comp_delay_stereo",
         "qpwr",
         LSP_COMP_DELAY_BASE + 1,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         comp_delay_classes,
         comp_delay_stereo_ports,
         stereo_plugin_port_groups
@@ -201,7 +201,7 @@ namespace lsp
         "comp_delay_x2_stereo",
         "fwd3",
         LSP_COMP_DELAY_BASE + 2,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         comp_delay_classes,
         comp_delay_x2_stereo_ports,
         stereo_plugin_port_groups

@@ -38,5 +38,5 @@
 	</li>
 	<li><b>Dry</b> - amount of gain applied to the dry (unprocessed) signal.</li>
 	<li><b>Wet</b> - amount of gain additionally applied to the wet (processed) signal.</li>
-	<li><b>Output</b> - amount of gain additionally applied to the wet (processed) signal.</li>
+	<li><b>Output</b> - amount of gain additionally applied to the output signal.</li>
 </ul>

@@ -51,16 +51,28 @@ namespace lsp
         enum oversampling_mode_t
         {
             OVS_NONE,
-            OVS_2X2,
-            OVS_2X3,
-            OVS_3X2,
-            OVS_3X3,
-            OVS_4X2,
-            OVS_4X3,
-            OVS_6X2,
-            OVS_6X3,
-            OVS_8X2,
-            OVS_8X3,
+
+            OVS_HALF_2X2,
+            OVS_HALF_2X3,
+            OVS_HALF_3X2,
+            OVS_HALF_3X3,
+            OVS_HALF_4X2,
+            OVS_HALF_4X3,
+            OVS_HALF_6X2,
+            OVS_HALF_6X3,
+            OVS_HALF_8X2,
+            OVS_HALF_8X3,
+
+            OVS_FULL_2X2,
+            OVS_FULL_2X3,
+            OVS_FULL_3X2,
+            OVS_FULL_3X3,
+            OVS_FULL_4X2,
+            OVS_FULL_4X3,
+            OVS_FULL_6X2,
+            OVS_FULL_6X3,
+            OVS_FULL_8X2,
+            OVS_FULL_8X3,
 
             OVS_DEFAULT     = OVS_NONE
         };

@@ -499,6 +499,30 @@ MOD_LV2(impulse_responses_stereo)
 MOD_VST(impulse_responses_stereo)
 MOD_GTK2(impulse_responses_stereo)
 
+// Impulse reverb
+MOD_PLUGIN(impulse_reverb_mono)
+MOD_LV2(impulse_reverb_mono)
+MOD_VST(impulse_reverb_mono)
+MOD_GTK2(impulse_reverb_mono)
+
+MOD_PLUGIN(impulse_reverb_stereo)
+MOD_LV2(impulse_reverb_stereo)
+MOD_VST(impulse_reverb_stereo)
+MOD_GTK2(impulse_reverb_stereo)
+
+// Slap delay
+MOD_PLUGIN(slap_delay_mono)
+MOD_LADSPA(slap_delay_mono)
+MOD_LV2(slap_delay_mono)
+MOD_VST(slap_delay_mono)
+MOD_GTK2(slap_delay_mono)
+
+MOD_PLUGIN(slap_delay_stereo)
+MOD_LADSPA(slap_delay_stereo)
+MOD_LV2(slap_delay_stereo)
+MOD_VST(slap_delay_stereo)
+MOD_GTK2(slap_delay_stereo)
+
 #ifndef LSP_NO_EXPERIMENTAL
 
 #endif

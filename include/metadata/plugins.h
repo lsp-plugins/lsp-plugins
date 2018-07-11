@@ -26,6 +26,8 @@
 #define LSP_GATE_BASE                   LSP_LADSPA_BASE + 50
 #define LSP_LIMITER_BASE                LSP_LADSPA_BASE + 58
 #define LSP_IMPULSE_RESPONSES_BASE      LSP_LADSPA_BASE + 62
+#define LSP_IMPULSE_REVERB_BASE         LSP_LADSPA_BASE + 64
+#define LSP_SLAP_DELAY_BASE             LSP_LADSPA_BASE + 66
 
 
 // Plugin metadata definitions
@@ -42,6 +44,8 @@
 #include <metadata/gate.h>
 #include <metadata/limiter.h>
 #include <metadata/impulse_responses.h>
+#include <metadata/impulse_reverb.h>
+#include <metadata/slap_delay.h>
 #include <metadata/experimental.h>
 
 #endif /* METADATA_PLUGINS_H_ */

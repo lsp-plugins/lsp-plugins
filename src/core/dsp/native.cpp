@@ -12,11 +12,13 @@
 
 #include <core/native/dsp.h>
 #include <core/native/fft.h>
+#include <core/native/fastconv.h>
 #include <core/native/filters.h>
 #include <core/native/float.h>
 #include <core/native/graphics.h>
 #include <core/native/resampling.h>
 #include <core/native/msmatrix.h>
+#include <core/native/complex.h>
 
 namespace lsp
 {
@@ -55,8 +57,10 @@ namespace lsp
             dsp::h_abs_sum                  = native::h_abs_sum;
             dsp::scalar_mul                 = native::scalar_mul;
             dsp::accumulate                 = native::accumulate;
-            dsp::add                        = native::add;
-            dsp::sub                        = native::sub;
+            dsp::add2                       = native::add2;
+            dsp::sub2                       = native::sub2;
+            dsp::add3                       = native::add3;
+            dsp::sub3                       = native::sub3;
             dsp::add_multiplied             = native::add_multiplied;
             dsp::sub_multiplied             = native::sub_multiplied;
             dsp::integrate                  = native::integrate;
@@ -67,13 +71,24 @@ namespace lsp
             dsp::reverse                    = native::reverse;
 
             dsp::direct_fft                 = native::direct_fft;
+            dsp::packed_direct_fft          = native::packed_direct_fft;
+            dsp::conv_direct_fft            = native::conv_direct_fft;
             dsp::reverse_fft                = native::reverse_fft;
+            dsp::packed_reverse_fft         = native::packed_reverse_fft;
             dsp::normalize_fft              = native::normalize_fft;
-//            dsp::join_fft                   = native::join_fft;
             dsp::center_fft                 = native::center_fft;
             dsp::combine_fft                = native::combine_fft;
 
+            dsp::fastconv_parse             = native::fastconv_parse;
+            dsp::fastconv_parse_apply       = native::fastconv_parse_apply;
+            dsp::fastconv_restore           = native::fastconv_restore;
+            dsp::fastconv_apply             = native::fastconv_apply;
+
             dsp::complex_mul                = native::complex_mul;
+            dsp::packed_complex_mul         = native::packed_complex_mul;
+            dsp::packed_real_to_complex     = native::packed_real_to_complex;
+            dsp::packed_complex_to_real     = native::packed_complex_to_real;
+            dsp::packed_complex_add_to_real = native::packed_complex_add_to_real;
             dsp::complex_cvt2modarg         = native::complex_cvt2modarg;
             dsp::complex_cvt2reim           = native::complex_cvt2reim;
             dsp::complex_mod                = native::complex_mod;

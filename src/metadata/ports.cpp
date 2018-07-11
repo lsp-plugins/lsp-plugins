@@ -82,6 +82,13 @@ namespace lsp
         { NULL, NULL }
     };
 
+    const port_group_t mono_to_stereo_plugin_port_groups[] =
+    {
+        { "mono_in",        "Mono Input",       GRP_MONO,       PGF_IN,     mono_in_group_ports         },
+        { "stereo_out",     "Stereo Output",    GRP_STEREO,     PGF_OUT,    stereo_out_group_ports      },
+        { NULL, NULL }
+    };
+
     const port_group_t stereo_plugin_port_groups[] =
     {
         { "stereo_in",      "Stereo Input",     GRP_STEREO,     PGF_IN,     stereo_in_group_ports       },

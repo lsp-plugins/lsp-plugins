@@ -150,6 +150,7 @@ namespace lsp
     extern const port_group_t mono_plugin_port_groups[];
     extern const port_group_t mono_plugin_sidechain_port_groups[];
 
+    extern const port_group_t mono_to_stereo_plugin_port_groups[];
     extern const port_group_t stereo_plugin_port_groups[];
     extern const port_group_t stereo_plugin_sidechain_port_groups[];
 

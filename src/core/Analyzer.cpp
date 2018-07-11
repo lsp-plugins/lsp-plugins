@@ -229,6 +229,38 @@ namespace lsp
         }
     }
 
+    bool Analyzer::read_frequencies(float *frq, float start, float stop, size_t count, size_t flags)
+    {
+        if ((vChannels == NULL) || (count == 0))
+            return false;
+        else if (count == 1)
+        {
+            *frq            = start;
+            return true;
+        }
+
+        // Analyze flags
+        if (flags == FRQA_SCALE_LOGARITHMIC)
+        {
+            // Initialize list of frequencies
+            float norm          = logf(stop/start) / (--count);
+
+            for (size_t i=0; i<count; ++i)
+                frq[i]              = start * expf(i * norm);
+        }
+        else if (flags == FRQA_SCALE_LINEAR)
+        {
+            float norm          = (stop - start) / (--count);
+            for (size_t i=0; i<count; ++i)
+                frq[i]              = start + i * norm;
+        }
+        else
+            return false;
+
+        frq[count]          = stop;
+        return true;
+    }
+
     bool Analyzer::get_spectrum(size_t channel, float *out, const uint32_t *idx, size_t count)
     {
         if ((vChannels == NULL) || (channel >= nChannels))

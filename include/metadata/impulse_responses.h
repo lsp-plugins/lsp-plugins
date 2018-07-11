@@ -1,5 +1,5 @@
 /*
- * experimental.h
+ * impulse_responses.h
  *
  *  Created on: 08 апр. 2016 г.
  *      Author: sadko
@@ -40,7 +40,7 @@ namespace lsp
             FFT_RANK_32767,
             FFT_RANK_65536,
 
-            FFT_RANK_DEFAULT = FFT_RANK_8192
+            FFT_RANK_DEFAULT = FFT_RANK_32767
         };
     };
 

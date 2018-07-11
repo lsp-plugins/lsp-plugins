@@ -125,7 +125,7 @@ namespace lsp
         gtk_table_attach(
             GTK_TABLE(pWidget), g_widget->widget(),
             nCurrCol, nCurrCol + colspan, nCurrRow, nCurrRow + rowspan,
-            opts, opts, nHSpacing, nVSpacing);
+            opts, opts, 0, 0);
 
         // Fill bitmap
         for (size_t y=0; y < rowspan; ++y)

@@ -7,6 +7,11 @@
 #include <core/dsp.h>
 #include <core/Convolver.h>
 
+#ifndef CONVOLVER_RANK_SMALLEST
+    #define UNDEF_CONVOLVER_RANK_SMALLEST
+    #define CONVOLVER_RANK_SMALLEST CONVOLVER_RANK_FFT_SMALL
+#endif
+
 #define TEST_BUF_SIZE   1024
 
 namespace convolver_test
@@ -18,15 +23,15 @@ namespace convolver_test
         // Initialize convolution
         float *convolution  = new float[conv_len];
         dsp::fill_zero(convolution, conv_len);
-        for (size_t i=0; i<(conv_len>>(CONVOLVER_RANK_FFT_SMALL-1)); i++)
-            convolution[i<<(CONVOLVER_RANK_FFT_SMALL-1)]    = i + 1;
+        for (size_t i=0; i<(conv_len>>(CONVOLVER_RANK_SMALLEST-1)); i++)
+            convolution[i<<(CONVOLVER_RANK_SMALLEST-1)]    = i + 1;
 
         printf("Convolution:\n  ");
         test::dump_data(convolution, conv_len);
 
         // Initialize convolver
         Convolver c;
-        c.init(convolution, conv_len, rank);
+        c.init(convolution, conv_len, rank, 0.0f);
 
         // Prepare input data
         float *in       = new float[TEST_BUF_SIZE];
@@ -59,11 +64,16 @@ namespace convolver_test
     {
         dsp::init();
 
-        perform_test(128, 6);
+        perform_test(240, 7);
 
         return 0;
     }
     
 }
+
+#ifdef UNDEF_CONVOLVER_RANK_SMALLEST
+    #undef CONVOLVER_RANK_SMALLEST
+    #undef UNDEF_CONVOLVER_RANK_SMALLEST
+#endif
 
 #undef TEST_BUF_SIZE

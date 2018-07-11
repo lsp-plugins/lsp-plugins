@@ -15,10 +15,10 @@ namespace lsp
         register size_t tmp;
 
         __asm__ __volatile__ (
-            __ASM_EMIT("movzx %0, %1")
-            __ASM_EMIT("mov (%2, %1), %0")
-            : "+r"(v), "=&r"(tmp)
-            : "r"(__rb)
+            __ASM_EMIT("movzx %[v], %[tmp]")
+            __ASM_EMIT("mov (%[rb], %[tmp]), %[v]")
+            : [v] "+r"(v), [tmp] "=&r"(tmp)
+            : [rb] "r"(__rb)
             : "cc"
         );
 
@@ -30,11 +30,11 @@ namespace lsp
         register size_t tmp;
 
         __asm__ __volatile__ (
-            __ASM_EMIT("movzx %0, %1")
-            __ASM_EMIT("mov (%2, %1), %0")
-            __ASM_EMIT("shr %%cl, %0")
-            : "+r"(v), "=&r"(tmp)
-            : "r"(__rb), "c"(8-count)
+            __ASM_EMIT("movzx %[v], %[tmp]")
+            __ASM_EMIT("mov (%[rb], %[tmp]), %[v]")
+            __ASM_EMIT("shr %%cl, %[v]")
+            : [v] "+r"(v), [tmp] "=&r"(tmp)
+            : [rb] "r"(__rb), "c"(8-count)
             : "cc"
         );
 
@@ -47,26 +47,26 @@ namespace lsp
         register size_t tmp;
 
         __asm__ __volatile__ (
-            __ASM_EMIT("movzx %%al, %1")
-            __ASM_EMIT("mov (%2, %1), %%al")
+            __ASM_EMIT("movzx %%al, %[tmp]")
+            __ASM_EMIT("mov (%[rb], %[tmp]), %%al")
             __ASM_EMIT("ror $8, %%ax")
-            __ASM_EMIT("movzx %%al, %1")
-            __ASM_EMIT("mov (%2, %1), %%al")
+            __ASM_EMIT("movzx %%al, %[tmp]")
+            __ASM_EMIT("mov (%[rb], %[tmp]), %%al")
 
-            : "+a"(v), "=&r"(tmp)
-            : "r"(__rb)
+            : [v] "+a"(v), [tmp] "=&r"(tmp)
+            : [rb] "r"(__rb)
             : "cc"
         );
         #else
         register size_t tmp1, tmp2;
 
         __asm__ __volatile__ (
-            __ASM_EMIT("movzx %%al, %1")
-            __ASM_EMIT("movzx %%ah, %2")
-            __ASM_EMIT("mov (%3, %1), %%ah")
-            __ASM_EMIT("mov (%3, %2), %%al")
-            : "+a"(v), "=&r"(tmp1), "=&r"(tmp2)
-            : "r"(__rb)
+            __ASM_EMIT("movzx %%al, %[tmp1]")
+            __ASM_EMIT("movzx %%ah, %[tmp2]")
+            __ASM_EMIT("mov (%[rb], %[tmp1]), %%ah")
+            __ASM_EMIT("mov (%[rb], %[tmp2]), %%al")
+            : [v] "+a"(v), [tmp1] "=&r"(tmp1), [tmp2] "=&r"(tmp2)
+            : [rb] "r"(__rb)
             : "cc"
         );
         #endif /* __x86_64__ */
@@ -80,28 +80,28 @@ namespace lsp
         register size_t tmp;
 
         __asm__ __volatile__ (
-            __ASM_EMIT("movzx %%al, %1")
-            __ASM_EMIT("mov (%2, %1), %%al")
+            __ASM_EMIT("movzx %%al, %[tmp]")
+            __ASM_EMIT("mov (%[rb], %[tmp]), %%al")
             __ASM_EMIT("ror $8, %%ax")
-            __ASM_EMIT("movzx %%al, %1")
-            __ASM_EMIT("mov (%2, %1), %%al")
-            __ASM_EMIT("shr %%cl, %0")
+            __ASM_EMIT("movzx %%al, %[tmp]")
+            __ASM_EMIT("mov (%[rb], %[tmp]), %%al")
+            __ASM_EMIT("shr %%cl, %[v]")
 
-            : "+a"(v), "=&r"(tmp)
-            : "r"(__rb), "c"(16 - count)
+            : [v] "+a"(v), [tmp] "=&r"(tmp)
+            : [rb] "r"(__rb), "c"(16 - count)
             : "cc"
         );
         #else
         register size_t tmp1, tmp2;
 
         __asm__ __volatile__ (
-            __ASM_EMIT("movzx %%al, %1")
-            __ASM_EMIT("movzx %%ah, %2")
-            __ASM_EMIT("mov (%3, %1), %%ah")
-            __ASM_EMIT("mov (%3, %2), %%al")
-            __ASM_EMIT("shr %%cl, %0")
-            : "+a"(v), "=&r"(tmp1), "=&r"(tmp2)
-            : "r"(__rb), "c"(16 - count)
+            __ASM_EMIT("movzx %%al, %[tmp1]")
+            __ASM_EMIT("movzx %%ah, %[tmp2]")
+            __ASM_EMIT("mov (%[rb], %[tmp1]), %%ah")
+            __ASM_EMIT("mov (%[rb], %[tmp2]), %%al")
+            __ASM_EMIT("shr %%cl, %[v]")
+            : [v] "+a"(v), [tmp1] "=&r"(tmp1), [tmp2] "=&r"(tmp2)
+            : [rb] "r"(__rb), "c"(16 - count)
             : "cc"
         );
         #endif /* __x86_64__ */

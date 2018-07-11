@@ -32,7 +32,6 @@
 						<center hpos="1" vpos="-1" visible="false" />
 						<axis min="0" max="4" color="gray" angle="1.0" logarithmic="false" />
 						<axis min="0.00398" max="1.0" color="gray" angle="0.5" logarithmic="true" />
-						<marker value="0" color="gray" basis="1" parallel="0" /> <!-- 0 dB -->
 						<marker value="4" color="gray" basis="0" parallel="1" />
 						
 						<!-- Baseline -->

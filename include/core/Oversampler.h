@@ -72,6 +72,7 @@ namespace lsp
             size_t                  nUpdate;
             Filter                  sFilter;
             uint8_t                *bData;
+            bool                    bFilter;
 
 //        protected:
 //            static void do_filter(float *out, const float *in, size_t count);
@@ -114,11 +115,23 @@ namespace lsp
             {
                 if (mode < OM_NONE)
                     mode = OM_NONE;
-                else if (mode > OM_LANCZOS_4X3)
-                    mode = OM_LANCZOS_4X3;
+                else if (mode > OM_LANCZOS_8X3)
+                    mode = OM_LANCZOS_8X3;
                 if (nMode == mode)
                     return;
                 nMode      = mode;
+                nUpdate   |= UP_MODE;
+            }
+
+            /** Enable/disable low-pass filter when performing downsampling
+             *
+             * @param filter enables/diables low-pass filter
+             */
+            inline void set_filtering(bool filter)
+            {
+                if (bFilter == filter)
+                    return;
+                bFilter     = filter;
                 nUpdate   |= UP_MODE;
             }
 

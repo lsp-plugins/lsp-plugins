@@ -126,6 +126,8 @@ namespace lsp
                 return;
         }
 
+        lsp_assert(ptr <= &pData[allocate + DEFAULT_ALIGN]);
+
         size_t port_id = 0;
 
         // Bind audio ports
@@ -289,34 +291,35 @@ namespace lsp
 
     over_mode_t limiter_base::get_oversampling_mode(size_t mode)
     {
+        #define L_KEY(x) \
+            case limiter_base_metadata::OVS_HALF_ ## x: \
+            case limiter_base_metadata::OVS_FULL_ ## x: \
+                return OM_LANCZOS_ ## x;
+
         switch (mode)
         {
-            case limiter_base_metadata::OVS_2X2:
-                return OM_LANCZOS_2X2;
-            case limiter_base_metadata::OVS_2X3:
-                return OM_LANCZOS_2X3;
-            case limiter_base_metadata::OVS_3X2:
-                return OM_LANCZOS_3X2;
-            case limiter_base_metadata::OVS_3X3:
-                return OM_LANCZOS_3X3;
-            case limiter_base_metadata::OVS_4X2:
-                return OM_LANCZOS_4X2;
-            case limiter_base_metadata::OVS_4X3:
-                return OM_LANCZOS_4X3;
-            case limiter_base_metadata::OVS_6X2:
-                return OM_LANCZOS_6X2;
-            case limiter_base_metadata::OVS_6X3:
-                return OM_LANCZOS_6X3;
-            case limiter_base_metadata::OVS_8X2:
-                return OM_LANCZOS_8X2;
-            case limiter_base_metadata::OVS_8X3:
-                return OM_LANCZOS_8X3;
+            L_KEY(2X2)
+            L_KEY(2X3)
+            L_KEY(3X2)
+            L_KEY(3X3)
+            L_KEY(4X2)
+            L_KEY(4X3)
+            L_KEY(6X2)
+            L_KEY(6X3)
+            L_KEY(8X2)
+            L_KEY(8X3)
 
             case limiter_base_metadata::OVS_NONE:
             default:
                 return OM_NONE;
         }
+        #undef L_KEY
         return OM_NONE;
+    }
+
+    bool limiter_base::get_filtering(size_t mode)
+    {
+        return (mode >= limiter_base_metadata::OVS_FULL_2X2) && (mode <= limiter_base_metadata::OVS_FULL_8X3);
     }
 
     limiter_mode_t limiter_base::get_limiter_mode(size_t mode)
@@ -397,7 +400,9 @@ namespace lsp
         bPause                      = pPause->getValue() >= 0.5f;
         bClear                      = pClear->getValue() >= 0.5f;
 
-        over_mode_t mode            = get_oversampling_mode(pOversampling->getValue());
+        size_t ovs_mode             = pOversampling->getValue();
+        over_mode_t mode            = get_oversampling_mode(ovs_mode);
+        bool filtering              = get_filtering(ovs_mode);
         size_t dither               = get_dithering(pDithering->getValue());
         float scaling_factor        = limiter_base_metadata::HISTORY_TIME / limiter_base_metadata::HISTORY_MESH_SIZE;
 
@@ -426,6 +431,7 @@ namespace lsp
             // Update settings for each channel
             c->sBypass.set_bypass(bypass);
             c->sOver.set_mode(mode);
+            c->sOver.set_filtering(filtering);
             if (c->sOver.modified())
                 c->sOver.update_settings();
             size_t real_sample_rate     = c->sOver.get_oversampling() * fSampleRate;

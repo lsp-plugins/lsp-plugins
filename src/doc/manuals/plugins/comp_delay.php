@@ -16,14 +16,16 @@
 
 ?>
 
-<p>This plugin allows to add short delay to<?= $c ?> to compensate the phase offset relatively to other channels.
-The main idea is to add some delay of the signal recorded by set of microphones placed at different positions and distances
-from the sound source. Because the speed of the sound is low (about 340 m/s), the signal from the sources placed on different
-position comes with different delays. When the receivers are placed on the different distances, the signal comes with different
-delays to them. So the final mix of the recorded tracks can sound muddy or, on the contrary, very thick.
-Note that even 1 centimeter of the difference can take the negative effect. To avoid this, you can add more delay to the receivers
-placed near the source and less delay to the receivers placed far from the source. This plugin helps to do this in three ways.
-In conjunction with <?php plugin_ref('phase_detector'); ?> you can very fast phase your sources.
+<p>
+	This plugin allows to add short delay to<?= $c ?> to compensate the phase offset relatively to other channels.
+	The main idea is to add some delay of the signal recorded by set of microphones placed at different positions and distances
+	from the sound source. Because the speed of the sound is low (about 340 m/s), the signal from the sources placed on different
+	position comes with different delays. When the receivers are placed on the different distances, the signal comes with different
+	delays to them. So the final mix of the recorded tracks can sound muddy or, on the contrary, very thick.
+	Note that even 1 centimeter of the difference can take the negative effect. To avoid this, you can add more delay to the receivers
+	placed near the source and less delay to the receivers placed far from the source. This plugin helps to do this in three ways.
+	In conjunction with <?php plugin_ref('phase_detector'); ?> you can very fast phase your sources.
+</p>
 
 <p><b>Controls:</b></p>
 <ul>

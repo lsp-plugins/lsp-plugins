@@ -12,7 +12,9 @@
 
 #include <core/x86/dsp.h>
 #include <core/x86/sse/complex.h>
+#include <core/x86/sse/addsub.h>
 #include <core/x86/sse/fft.h>
+#include <core/x86/sse/fastconv.h>
 #include <core/x86/sse/filters.h>
 #include <core/x86/sse/float.h>
 #include <core/x86/sse/graphics.h>
@@ -83,8 +85,10 @@ namespace lsp
             dsp::h_abs_sum                  = sse::h_abs_sum;
     //        dsp::scalar_mul                 = sse::scalar_mul;
     //        dsp::accumulate                 = sse::accumulate;
-//            dsp::add                        = sse::add;
-//            dsp::sub                        = sse::sub;
+            dsp::add2                       = sse::add2;
+            dsp::sub2                       = sse::sub2;
+            dsp::add3                       = sse::add3;
+            dsp::sub3                       = sse::sub3;
             dsp::add_multiplied             = sse::add_multiplied;
             dsp::sub_multiplied             = sse::sub_multiplied;
             dsp::integrate                  = sse::integrate;
@@ -93,12 +97,26 @@ namespace lsp
             dsp::convolve_single            = sse::convolve_single;
             dsp::convolve                   = sse::convolve;
             dsp::reverse                    = sse::reverse;
+
             dsp::direct_fft                 = sse::direct_fft;
+            dsp::packed_direct_fft          = sse::packed_direct_fft;
+            dsp::conv_direct_fft            = sse::conv_direct_fft;
             dsp::reverse_fft                = sse::reverse_fft;
+            dsp::packed_reverse_fft         = sse::packed_reverse_fft;
 //            dsp::center_fft                 = sse::center_fft;
 //            dsp::combine_fft                = sse::combine_fft;
+
+            dsp::fastconv_parse             = sse::fastconv_parse;
+            dsp::fastconv_parse_apply       = sse::fastconv_parse_apply;
+            dsp::fastconv_restore           = sse::fastconv_restore;
+            dsp::fastconv_apply             = sse::fastconv_apply;
+
             dsp::normalize_fft              = sse::normalize_fft;
             dsp::complex_mul                = sse::complex_mul;
+            dsp::packed_complex_mul         = sse::packed_complex_mul;
+            dsp::packed_real_to_complex     = sse::packed_real_to_complex;
+            dsp::packed_complex_to_real     = sse::packed_complex_to_real;
+            dsp::packed_complex_add_to_real = sse::packed_complex_add_to_real;
 //            dsp::complex_cvt2modarg         = sse::complex_cvt2modarg;
 //            dsp::complex_cvt2reim           = sse::complex_cvt2reim;
             dsp::complex_mod                = sse::complex_mod;

@@ -12,6 +12,12 @@
 
 namespace lsp
 {
+    /** Shift buffer processor
+     *    This class implements shift buffer.
+     *    New data is added to buffer at the tail position with append() methods
+     *    Old data is removed from buffer from the head position with shift() methods
+     *
+     */
     class ShiftBuffer
     {
         private:

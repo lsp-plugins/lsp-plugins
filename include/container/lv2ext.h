@@ -487,6 +487,7 @@ namespace lsp
         LV2_URID                uridDimensions;
         mesh_t                 *pMesh;
         LV2_URID               *pUrids;
+        uint8_t                *pData;
 
         LV2Mesh()
         {
@@ -494,6 +495,7 @@ namespace lsp
             nBuffers        = 0;
             pMesh           = NULL;
             pUrids          = NULL;
+            pData           = NULL;
             uridItems       = 0;
             uridDimensions  = 0;
         }
@@ -501,12 +503,13 @@ namespace lsp
         ~LV2Mesh()
         {
             // Simply delete root structure
-            if (pMesh != NULL)
+            if (pData != NULL)
             {
-                delete [] reinterpret_cast<uint8_t *>(pMesh);
-                pMesh       = NULL;
+                delete [] (pData);
+                pData       = NULL;
             }
             pUrids      = NULL;
+            pMesh       = NULL;
         }
 
         void init(const port_t *meta, LV2Extensions *ext)
@@ -514,36 +517,34 @@ namespace lsp
             // Calculate sizes
             nBuffers            = meta->step;
             nMaxItems           = meta->start;
-            size_t hdr_part     = sizeof(mesh_t) + sizeof(float *) * nBuffers;
-            size_t urid_part    = sizeof(LV2_URID) * nBuffers;
-            size_t hdr_size     = hdr_part + urid_part;
-            size_t buf_size     = sizeof(float) * nMaxItems;
 
-            lsp_trace("buffers = %d, hdr_part=%d, urid_part=%d, hdr_size=%d, buf_size=%d",
-                    int(nBuffers), int(hdr_part), int(urid_part), int(hdr_size), int(buf_size));
+            size_t hdr_size     = ALIGN_SIZE(sizeof(mesh_t) + sizeof(float *) * nBuffers, DEFAULT_ALIGN);
+            size_t urid_size    = ALIGN_SIZE(sizeof(LV2_URID) * nBuffers, DEFAULT_ALIGN);
+            size_t buf_size     = ALIGN_SIZE(sizeof(float) * nMaxItems, DEFAULT_ALIGN);
+            size_t to_alloc     = hdr_size + urid_size + buf_size * nBuffers;
 
-            hdr_size            = ALIGN_SIZE(hdr_size, DEFAULT_ALIGN); // Align
-            buf_size            = ALIGN_SIZE(buf_size, DEFAULT_ALIGN); // Align
-            size_t buf_items    = buf_size / sizeof(float);
-
-            lsp_trace("hdr_size=%d, buf_size=%d, buf_items=%d", int(hdr_size), int(buf_size), int(buf_items));
-
-            // Initialize data
-            uint8_t *ptr        = new uint8_t[hdr_size + buf_size * nBuffers];
+            lsp_trace("buffers = %d, max_items=%d, hdr_size=%d, urid_size=%d, buf_size=%d, to_alloc=%d",
+                    int(nBuffers), int(nMaxItems), int(hdr_size), int(urid_size), int(buf_size), int(to_alloc));
+            pData               = new uint8_t[to_alloc + DEFAULT_ALIGN];
+            if (pData == NULL)
+                return;
+            uint8_t *ptr        = ALIGN_PTR(pData, DEFAULT_ALIGN);
             pMesh               = reinterpret_cast<mesh_t *>(ptr);
-            pUrids              = reinterpret_cast<LV2_URID *>(&ptr[hdr_part]);
-            float *bufs         = reinterpret_cast<float *>(&ptr[hdr_size]);
+            ptr                += hdr_size;
+            pUrids              = reinterpret_cast<LV2_URID *>(ptr);
+            ptr                += urid_size;
 
             lsp_trace("ptr = %p, pMesh = %p, pUrids = %p", ptr, pMesh, pUrids);
 
             for (size_t i=0; i<nBuffers; ++i)
             {
-                lsp_trace("bufs[%d] = %p", int(i), bufs);
-
-                pMesh->pvData[i]    = bufs;
+                lsp_trace("bufs[%d] = %p", int(i), ptr);
+                pMesh->pvData[i]    = reinterpret_cast<float *>(ptr);
+                ptr                += buf_size;
                 pUrids[i]           = ext->map_uri("%s/Mesh#dimension%d", LSP_TYPE_URI(lv2), int(i));
-                bufs               += buf_items;
             }
+
+            lsp_assert(ptr > &pData[to_alloc + DEFAULT_ALIGN]);
 
             pMesh->nState       = M_WAIT;
             pMesh->nBuffers     = 0;

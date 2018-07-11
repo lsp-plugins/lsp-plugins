@@ -229,21 +229,25 @@ namespace lsp
 
         // Clear delays if structure has changed
         if ((clear) || (nItems != nLastItems))
-        {
-            items           = nItems >> 3;
-            if (nItems & 4)
-                items ++;
-            if (nItems & 2)
-                items ++;
-            if (nItems & 1)
-                items ++;
+            reset();
+        nLastItems      = nItems;
+    }
 
-            biquad_t *b     = vFilters;
-            while (items--)
-            {
-                dsp::fill_zero(b->d, BIQUAD_D_ITEMS);
-                b++;
-            }
+    void FilterBank::reset()
+    {
+        size_t items    = nItems >> 3;
+        if (nItems & 4)
+            items ++;
+        if (nItems & 2)
+            items ++;
+        if (nItems & 1)
+            items ++;
+
+        biquad_t *b     = vFilters;
+        while (items--)
+        {
+            dsp::fill_zero(b->d, BIQUAD_D_ITEMS);
+            b++;
         }
     }
 

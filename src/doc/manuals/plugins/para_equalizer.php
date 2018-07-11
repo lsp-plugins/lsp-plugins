@@ -9,7 +9,7 @@
 				)));
 	$cc     =   ($m = 'm') ? 'mono' : 'stereo';
 ?>
-<?php require_once('manuals/common/filters.php'); ?>
+<?php require_once("${DOC_BASE}/manuals/common/filters.php"); ?>
 <p>
 	There are some recommendations that could be given when applying equalization:
 </p>

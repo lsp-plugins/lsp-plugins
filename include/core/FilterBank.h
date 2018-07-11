@@ -84,6 +84,11 @@ namespace lsp
              * @return number of biquad filters
              */
             inline size_t       size() const { return nItems; }
+
+            /** Reset internal state of filters (clear filter memory)
+             *
+             */
+            void                reset();
     };
 } /* namespace lsp */
 

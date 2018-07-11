@@ -12,6 +12,7 @@
 #include <core/x86/sse/const.h>
 
 #include <core/x86/sse3/filters.h>
+#include <core/x86/sse3/complex.h>
 
 namespace lsp
 {
@@ -29,6 +30,8 @@ namespace lsp
                 dsp::biquad_process_x2          = sse3::x64_biquad_process_x2;
 //                dsp::biquad_process_x4          = sse3::x64_biquad_process_x4; // Pure SSE has a bit better throughput for this case
                 dsp::biquad_process_x8          = sse3::x64_biquad_process_x8;
+
+                dsp::packed_complex_mul         = sse3::packed_complex_mul;
             #endif /* ARCH_X86_64 */
         }
     }

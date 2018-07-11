@@ -112,6 +112,8 @@ namespace lsp
                 return t->enType   = TT_MUL;
             case '/': // TT_DIV
                 return t->enType   = TT_DIV;
+            case '%': // TT_MOD
+                return t->enType   = TT_MOD;
             case '?': // TT_QUESTION
                 return t->enType   = TT_QUESTION;
             case '&': // TT_AND
@@ -243,6 +245,9 @@ namespace lsp
             BINARY(OP_MUL, *)
             BINARY(OP_DIV, /)
 
+            case OP_MOD:
+                return long(execute(expr->sCalc.pLeft)) % long(execute(expr->sCalc.pRight));
+
             case OP_AND:
                 if (execute(expr->sCalc.pLeft) < 0.5f)
                     return 0.0f;
@@ -250,7 +255,7 @@ namespace lsp
 
             case OP_OR:
                 if (execute(expr->sCalc.pLeft) >= 0.5f)
-                    return 0.0f;
+                    return 1.0f;
                 return (execute(expr->sCalc.pRight) >= 0.5f) ? 1.0f : 0.0f;
 
             case OP_NOT:
@@ -544,7 +549,7 @@ namespace lsp
 
         // Check token
         token_t tok = get_token(t, false);
-        if ((tok != TT_MUL) && (tok != TT_DIV))
+        if ((tok != TT_MUL) && (tok != TT_DIV) && (tok != TT_MOD))
             return left;
 
         // Parse right part
@@ -563,7 +568,7 @@ namespace lsp
             destroy_data(right);
             return NULL;
         }
-        bind->enOp          = (tok == TT_MUL) ? OP_MUL : OP_DIV;
+        bind->enOp          = (tok == TT_MUL) ? OP_MUL : (tok == TT_DIV) ? OP_DIV : OP_MOD;
         bind->sCalc.pLeft   = left;
         bind->sCalc.pRight  = right;
         return bind;

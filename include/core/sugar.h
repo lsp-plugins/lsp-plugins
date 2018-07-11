@@ -29,4 +29,21 @@ template <class T>
         return (x & mask) ? reinterpret_cast<T *>((x + align)&(~mask)) : src;
     }
 
+#if defined(ARCH_I386)
+    inline uint32_t seed_addr(const void *ptr)
+    {
+        return uint32_t(ptr);
+    }
+#elif defined(ARCH_X86_64)
+    inline uint32_t seed_addr(const void *ptr)
+    {
+        return uint32_t(ptrdiff_t(ptr)) ^ uint32_t(ptrdiff_t(ptr) >> 32);
+    }
+#else
+    inline uint32_t seed_addr(const void *ptr)
+    {
+        return uint32_t(ptrdiff_t(ptr));
+    }
+#endif
+
 #endif /* CORE_SUGAR_H_ */

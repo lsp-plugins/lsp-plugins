@@ -747,12 +747,8 @@ namespace lsp
         }
 
         // Iterate GTK cycle(s)
-        do
-        {
-            // Call GTK iteration
+        if (gtk_events_pending())
             gtk_main_iteration_do(FALSE);
-        }
-        while (gtk_events_pending ());
     }
 
     void VSTWrapper::hide_ui()

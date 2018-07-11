@@ -109,6 +109,7 @@ namespace lsp
 
         protected:
             static over_mode_t get_oversampling_mode(size_t mode);
+            static bool get_filtering(size_t mode);
             static limiter_mode_t get_limiter_mode(size_t mode);
             static size_t get_dithering(size_t mode);
 

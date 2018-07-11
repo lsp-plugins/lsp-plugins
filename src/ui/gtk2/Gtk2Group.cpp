@@ -78,6 +78,8 @@ namespace lsp
     {
         size_t bw = round(sRadius * M_SQRT2 * 0.5) + nBorder + 1;
         gtk_container_set_border_width(GTK_CONTAINER(pWidget), bw);
+
+        Gtk2Widget::end();
     }
 
     void Gtk2Group::render()

@@ -14,6 +14,27 @@
 
 namespace lsp
 {
+    enum freq_analyzer_flags_t
+    {
+        // Frequency list flags
+        FRQA_SCALE_LOGARITHMIC  = 0x0000,
+        FRQA_SCALE_LINEAR       = 0x0001,
+        FRQA_SCALE_MASK         = 0x000f,
+
+        // Function
+        FRQA_FUNC_NEAREST       = 0x0000,
+        FRQA_FUNC_MAX           = 0x0010,
+        FRQA_FUNC_MIN           = 0x0020,
+        FRQA_FUNC_AVG           = 0x0030,
+        FRQA_FUNC_MASK          = 0x00f0,
+
+        // Interpolation
+        FRQA_INT_NONE           = 0x0000,
+        FRQA_INT_LINEAR         = 0x0100,
+        FRQA_INT_CUBIC          = 0x0200,
+        FRQA_INT_MASK           = 0x0300
+    };
+
     class Analyzer
     {
         protected:
@@ -239,6 +260,18 @@ namespace lsp
              * @param count number of elements
              */
             void get_frequencies(float *frq, uint32_t *idx, float start, float stop, size_t count);
+
+            /** Read the frequencies of the analyzer
+             *
+             * @param frq target array to store frequency value
+             * @param channel channel ID of input channel
+             * @param start start frequency
+             * @param stop end frequency
+             * @param count number of items to store in frq and amp arrays
+             * @param flags additional flags
+             * @return true on success
+             */
+            bool read_frequencies(float *frq, float start, float stop, size_t count, size_t flags = FRQA_SCALE_LOGARITHMIC);
 
             /** Reconfigure analyzer
              *

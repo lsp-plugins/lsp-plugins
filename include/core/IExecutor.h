@@ -10,6 +10,7 @@
 
 #include <core/types.h>
 #include <core/ITask.h>
+#include <core/dsp.h>
 
 namespace lsp
 {
@@ -36,10 +37,16 @@ namespace lsp
 
             static inline void run_task(ITask *task)
             {
+                // Enable DSP context for executor service
+                dsp_context_t ctx;
+                dsp::start(&ctx);
+
                 task->nState    = ITask::TS_RUNNING;
                 task->nCode     = 0;
                 task->nCode     = task->run();
                 task->nState    = ITask::TS_COMPLETED;
+
+                dsp::finish(&ctx);
             }
 
         public:

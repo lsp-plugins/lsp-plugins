@@ -2,6 +2,23 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.22 ===
+
+* Implemented slap-back delay plugin series.
+* Implemented Impulsnachhall (Impulse Reverb) plugin series as advanced version of Impulsantworten.
+* Implemented FFT routines that work with packed complex numbers. Overall SSE performance is 1.4 times
+  higher on AMD processors and about 1.1 higher on Intel processors.
+* Implemented FFT-based fast convolution routines (Native and SSE) that work with real data input and
+  real data output and allow to avoid bit-reversal shuffle of the signal data. Also there are serious
+  fixes relative to AMD cache penalties. Overall performance bonus is about 1.5 times to the previous
+  convolution implementation.
+* Added Full-oversampling modes to Limiter plugin.
+* Updated LV2 atom transport primitives.
+* Fixed problem in resampler that didn't allow to set oversampling more than 4x.
+* Fixed filter core that didn't properly update settings of filter in the specific case and broke
+  behaviour of oversampler.
+* Minor UI updates.
+
 === 1.0.20 ===
 
 * Implemented Impulsantworten (Impulse responses) zero-latency high-performance

@@ -67,7 +67,7 @@ namespace fft_conv_test
                 dsp::reverse_fft(vFftRe, vFftIm, vFftRe, vFftIm, nFftRank + 1);
 
                 // Apply previous convolution tail and update buffer
-                dsp::add(vFftRe, &vBuffer[nConvSize], nConvSize);
+                dsp::add2(vFftRe, &vBuffer[nConvSize], nConvSize);
                 dsp::copy(vBuffer, vFftRe, nConvSize * 2);
 
                 // Reset the buffer size

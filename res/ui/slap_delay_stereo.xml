@@ -1,0 +1,373 @@
+<plugin width="700" height="128" resizable="false">
+	<hbox size="6" border="0">
+		<align pad_left="4" pad_right="4">
+			<vbox>
+				<label text="Bypass" />
+				<switch id="bypass" angle="1" />
+				<led id="bypass" color="red" size="8" />
+				<label />
+			</vbox>
+		</align>
+		<vbox>
+			<group text="Master Channel" expand="true">
+				<grid rows="3" cols="9">
+					<label text="Temperature" />
+					<label text="Pre-delay" />
+					<label text="Stretch" />
+					<label text="Pan Left" />
+					<label text="Pan Right" />
+					<label text="Dry" />
+					<label text="Wet" />
+					<label text="Mono" />
+					<label text="Output" />
+					
+					<knob id="temp" />
+					<knob id="pred" />
+					<knob id="strch" />
+					<knob id="pl_in" scale_color="left_channel" />
+					<knob id="pr_in" scale_color="right_channel" />
+					<knob id="dry" scale_color="yellow" />
+					<knob id="wet" scale_color="yellow" />
+					<button id="mono" size="32" />
+					<knob id="g_out" />
+					
+					<value id="temp" />
+					<value id="pred" />
+					<value id="strch" />
+					<value id="pl_in" />
+					<value id="pr_in" />
+					<hbox>
+						<vbox>
+							<button id="dm" size="12" color="red" led="true" />
+							<label text="Mute" font_size="8" />
+						</vbox>
+						<value id="dry" />
+					</hbox>
+					<hbox>
+						<vbox>
+							<button id="wm" size="12" color="red" led="true" />
+							<label text="Mute" font_size="8" />
+						</vbox>
+						<value id="wet" />
+					</hbox>
+					<led id="mono" color="green" />
+					<value id="g_out" />
+				</grid>
+			</group>
+			<group text="Delay Lines">
+				<vbox>
+					<hbox>
+						<label text="Delay lines:" />
+						<combo id="lsel" />
+					</hbox>
+					<hsep />
+					
+					<grid rows="18" cols="13" hspacing="1" visibility=":lsel == 0" >
+						<cell rows="2"><label text="Mode" /></cell>
+						<cell rows="2"><label text="Delay" /></cell>
+						<cell cols="2"><label text="Panorama (%)" /></cell>
+						<label text="Gain" />
+						<cell rows="2"><label text="Filters" /></cell>
+						<label text="Low cut" />
+						<cell cols="5"><label text="Equalizer (dB)" /></cell>
+						<label text="High cut" />
+						
+						<label text="Left" />
+						<label text="Right" />
+						<label text="(dB)" />
+						<label text="(Hz)" />
+						<label text="Subs" />
+						<label text="Bass" />
+						<label text="Middle" />
+						<label text="Presence" />
+						<label text="Treble" />
+						<label text="(Hz)" />
+					
+						<ui:for id="i" first="0" last="3">
+							<!-- Row 1 -->
+							<combo id="dm${i}" width="64" />
+							<hbox>
+								<knob id="dt${i}" visibility=":dm${i} == 1" />
+								<knob id="dd${i}" visibility=":dm${i} != 1" />
+							</hbox>
+							<knob id="pl${i}" scale_color="left_channel" />
+							<knob id="pr${i}" scale_color="right_channel" />
+							<knob id="dg${i}" />
+							<cell rows="2">
+								<grid rows="3" cols="2">
+									<button id="lfc${i}" size="12" color="magenta" led="true" />
+									<label text="LC" font_size="8" />
+									<button id="eq${i}" size="12" color="green" led="true" />
+									<label text="EQ" font_size="8" />
+									<button id="hfc${i}" size="12" color="cyan" led="true" />
+									<label text="HC" font_size="8" />
+								</grid>
+							</cell>
+							<knob id="flc${i}" size="20" scale_color="magenta" />
+							<knob id="fbs${i}" size="20" scale_color="green" />
+							<knob id="fbb${i}" size="20" scale_color="green" />
+							<knob id="fbm${i}" size="20" scale_color="green" />
+							<knob id="fbp${i}" size="20" scale_color="green" />
+							<knob id="fbt${i}" size="20" scale_color="green" />
+							<knob id="fhc${i}" size="20" scale_color="cyan" />
+							
+							<!-- Row 2 -->
+							<hbox>
+								<label text="${i}:" />
+								<button id="s${i}" size="12" color="green" led="true" />
+								<label text="S" font_size="8" />
+								<button id="m${i}" size="12" color="red" led="true" />
+								<label text="M" font_size="8" />
+								<button id="ph${i}" size="12" color="yellow" led="true" />
+								<label text="P" font_size="8" />
+							</hbox>
+							<hbox>
+								<value id="dt${i}" visibility=":dm${i} == 1" same_line="true" />
+								<value id="dd${i}" visibility=":dm${i} != 1" same_line="true" />
+							</hbox>
+							<value id="pl${i}" detailed="false" />
+							<value id="pr${i}" detailed="false" />
+							<value id="dg${i}" detailed="false" />
+							<value id="flc${i}" detailed="false"  />
+							<value id="fbs${i}" detailed="false" />
+							<value id="fbb${i}" detailed="false" />
+							<value id="fbm${i}" detailed="false" />
+							<value id="fbp${i}" detailed="false" />
+							<value id="fbt${i}" detailed="false" />
+							<value id="fhc${i}" detailed="false"  />
+						</ui:for>
+					</grid>
+	
+					<grid rows="18" cols="13" hspacing="1" visibility=":lsel == 1" >
+						<cell rows="2"><label text="Mode" /></cell>
+						<cell rows="2"><label text="Delay" /></cell>
+						<cell cols="2"><label text="Panorama (%)" /></cell>
+						<label text="Gain" />
+						<cell rows="2"><label text="Filters" /></cell>
+						<label text="Low cut" />
+						<cell cols="5"><label text="Equalizer (dB)" /></cell>
+						<label text="High cut" />
+						
+						<label text="Left" />
+						<label text="Right" />
+						<label text="(dB)" />
+						<label text="(Hz)" />
+						<label text="Subs" />
+						<label text="Bass" />
+						<label text="Middle" />
+						<label text="Presence" />
+						<label text="Treble" />
+						<label text="(Hz)" />
+					
+						<ui:for id="i" first="4" last="7">
+							<!-- Row 1 -->
+							<combo id="dm${i}" width="64" />
+							<hbox>
+								<knob id="dt${i}" visibility=":dm${i} == 1" />
+								<knob id="dd${i}" visibility=":dm${i} != 1" />
+							</hbox>
+							<knob id="pl${i}" scale_color="left_channel" />
+							<knob id="pr${i}" scale_color="right_channel" />
+							<knob id="dg${i}" />
+							<cell rows="2">
+								<grid rows="3" cols="2">
+									<button id="lfc${i}" size="12" color="magenta" led="true" />
+									<label text="LC" font_size="8" />
+									<button id="eq${i}" size="12" color="green" led="true" />
+									<label text="EQ" font_size="8" />
+									<button id="hfc${i}" size="12" color="cyan" led="true" />
+									<label text="HC" font_size="8" />
+								</grid>
+							</cell>
+							<knob id="flc${i}" size="20" scale_color="magenta" />
+							<knob id="fbs${i}" size="20" scale_color="green" />
+							<knob id="fbb${i}" size="20" scale_color="green" />
+							<knob id="fbm${i}" size="20" scale_color="green" />
+							<knob id="fbp${i}" size="20" scale_color="green" />
+							<knob id="fbt${i}" size="20" scale_color="green" />
+							<knob id="fhc${i}" size="20" scale_color="cyan" />
+							
+							<!-- Row 2 -->
+							<hbox>
+								<label text="${i}:" />
+								<button id="s${i}" size="12" color="green" led="true" />
+								<label text="S" font_size="8" />
+								<button id="m${i}" size="12" color="red" led="true" />
+								<label text="M" font_size="8" />
+								<button id="ph${i}" size="12" color="yellow" led="true" />
+								<label text="P" font_size="8" />
+							</hbox>
+							<hbox>
+								<value id="dt${i}" visibility=":dm${i} == 1" same_line="true" />
+								<value id="dd${i}" visibility=":dm${i} != 1" same_line="true" />
+							</hbox>
+							<value id="pl${i}" detailed="false" />
+							<value id="pr${i}" detailed="false" />
+							<value id="dg${i}" detailed="false" />
+							<value id="flc${i}" detailed="false"  />
+							<value id="fbs${i}" detailed="false" />
+							<value id="fbb${i}" detailed="false" />
+							<value id="fbm${i}" detailed="false" />
+							<value id="fbp${i}" detailed="false" />
+							<value id="fbt${i}" detailed="false" />
+							<value id="fhc${i}" detailed="false"  />
+						</ui:for>
+					</grid>
+					
+					<grid rows="18" cols="13" hspacing="1" visibility=":lsel == 2" >
+						<cell rows="2"><label text="Mode" /></cell>
+						<cell rows="2"><label text="Delay" /></cell>
+						<cell cols="2"><label text="Panorama (%)" /></cell>
+						<label text="Gain" />
+						<cell rows="2"><label text="Filters" /></cell>
+						<label text="Low cut" />
+						<cell cols="5"><label text="Equalizer (dB)" /></cell>
+						<label text="High cut" />
+						
+						<label text="Left" />
+						<label text="Right" />
+						<label text="(dB)" />
+						<label text="(Hz)" />
+						<label text="Subs" />
+						<label text="Bass" />
+						<label text="Middle" />
+						<label text="Presence" />
+						<label text="Treble" />
+						<label text="(Hz)" />
+					
+						<ui:for id="i" first="8" last="11">
+							<!-- Row 1 -->
+							<combo id="dm${i}" width="64" />
+							<hbox>
+								<knob id="dt${i}" visibility=":dm${i} == 1" />
+								<knob id="dd${i}" visibility=":dm${i} != 1" />
+							</hbox>
+							<knob id="pl${i}" scale_color="left_channel" />
+							<knob id="pr${i}" scale_color="right_channel" />
+							<knob id="dg${i}" />
+							<cell rows="2">
+								<grid rows="3" cols="2">
+									<button id="lfc${i}" size="12" color="magenta" led="true" />
+									<label text="LC" font_size="8" />
+									<button id="eq${i}" size="12" color="green" led="true" />
+									<label text="EQ" font_size="8" />
+									<button id="hfc${i}" size="12" color="cyan" led="true" />
+									<label text="HC" font_size="8" />
+								</grid>
+							</cell>
+							<knob id="flc${i}" size="20" scale_color="magenta" />
+							<knob id="fbs${i}" size="20" scale_color="green" />
+							<knob id="fbb${i}" size="20" scale_color="green" />
+							<knob id="fbm${i}" size="20" scale_color="green" />
+							<knob id="fbp${i}" size="20" scale_color="green" />
+							<knob id="fbt${i}" size="20" scale_color="green" />
+							<knob id="fhc${i}" size="20" scale_color="cyan" />
+							
+							<!-- Row 2 -->
+							<hbox>
+								<label text="${i}:" />
+								<button id="s${i}" size="12" color="green" led="true" />
+								<label text="S" font_size="8" />
+								<button id="m${i}" size="12" color="red" led="true" />
+								<label text="M" font_size="8" />
+								<button id="ph${i}" size="12" color="yellow" led="true" />
+								<label text="P" font_size="8" />
+							</hbox>
+							<hbox>
+								<value id="dt${i}" visibility=":dm${i} == 1" same_line="true" />
+								<value id="dd${i}" visibility=":dm${i} != 1" same_line="true" />
+							</hbox>
+							<value id="pl${i}" detailed="false" />
+							<value id="pr${i}" detailed="false" />
+							<value id="dg${i}" detailed="false" />
+							<value id="flc${i}" detailed="false"  />
+							<value id="fbs${i}" detailed="false" />
+							<value id="fbb${i}" detailed="false" />
+							<value id="fbm${i}" detailed="false" />
+							<value id="fbp${i}" detailed="false" />
+							<value id="fbt${i}" detailed="false" />
+							<value id="fhc${i}" detailed="false"  />
+						</ui:for>
+					</grid>
+					
+					<grid rows="18" cols="13" hspacing="1" visibility=":lsel == 3" >
+						<cell rows="2"><label text="Mode" /></cell>
+						<cell rows="2"><label text="Delay" /></cell>
+						<cell cols="2"><label text="Panorama (%)" /></cell>
+						<label text="Gain" />
+						<cell rows="2"><label text="Filters" /></cell>
+						<label text="Low cut" />
+						<cell cols="5"><label text="Equalizer (dB)" /></cell>
+						<label text="High cut" />
+						
+						<label text="Left" />
+						<label text="Right" />
+						<label text="(dB)" />
+						<label text="(Hz)" />
+						<label text="Subs" />
+						<label text="Bass" />
+						<label text="Middle" />
+						<label text="Presence" />
+						<label text="Treble" />
+						<label text="(Hz)" />
+					
+						<ui:for id="i" first="12" last="15">
+							<!-- Row 1 -->
+							<combo id="dm${i}" width="64" />
+							<hbox>
+								<knob id="dt${i}" visibility=":dm${i} == 1" />
+								<knob id="dd${i}" visibility=":dm${i} != 1" />
+							</hbox>
+							<knob id="pl${i}" scale_color="left_channel" />
+							<knob id="pr${i}" scale_color="right_channel" />
+							<knob id="dg${i}" />
+							<cell rows="2">
+								<grid rows="3" cols="2">
+									<button id="lfc${i}" size="12" color="magenta" led="true" />
+									<label text="LC" font_size="8" />
+									<button id="eq${i}" size="12" color="green" led="true" />
+									<label text="EQ" font_size="8" />
+									<button id="hfc${i}" size="12" color="cyan" led="true" />
+									<label text="HC" font_size="8" />
+								</grid>
+							</cell>
+							<knob id="flc${i}" size="20" scale_color="magenta" />
+							<knob id="fbs${i}" size="20" scale_color="green" />
+							<knob id="fbb${i}" size="20" scale_color="green" />
+							<knob id="fbm${i}" size="20" scale_color="green" />
+							<knob id="fbp${i}" size="20" scale_color="green" />
+							<knob id="fbt${i}" size="20" scale_color="green" />
+							<knob id="fhc${i}" size="20" scale_color="cyan" />
+							
+							<!-- Row 2 -->
+							<hbox>
+								<label text="${i}:" />
+								<button id="s${i}" size="12" color="green" led="true" />
+								<label text="S" font_size="8" />
+								<button id="m${i}" size="12" color="red" led="true" />
+								<label text="M" font_size="8" />
+								<button id="ph${i}" size="12" color="yellow" led="true" />
+								<label text="P" font_size="8" />
+							</hbox>
+							<hbox>
+								<value id="dt${i}" visibility=":dm${i} == 1" same_line="true" />
+								<value id="dd${i}" visibility=":dm${i} != 1" same_line="true" />
+							</hbox>
+							<value id="pl${i}" detailed="false" />
+							<value id="pr${i}" detailed="false" />
+							<value id="dg${i}" detailed="false" />
+							<value id="flc${i}" detailed="false"  />
+							<value id="fbs${i}" detailed="false" />
+							<value id="fbb${i}" detailed="false" />
+							<value id="fbm${i}" detailed="false" />
+							<value id="fbp${i}" detailed="false" />
+							<value id="fbt${i}" detailed="false" />
+							<value id="fhc${i}" detailed="false"  />
+						</ui:for>
+					</grid>
+					
+				</vbox>
+			</group>
+		</vbox>
+	</hbox>
+</plugin>

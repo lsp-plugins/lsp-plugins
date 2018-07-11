@@ -295,16 +295,28 @@ namespace lsp
                 *(dst++) -= (*(src++)) * k;
         }
 
-        static void add(float *dst, const float *src, size_t count)
+        void add2(float *dst, const float *src, size_t count)
         {
             while (count--)
                 *(dst++) += *(src++);
         }
 
-        static void sub(float *dst, const float *src, size_t count)
+        void sub2(float *dst, const float *src, size_t count)
         {
             while (count--)
                 *(dst++) -= *(src++);
+        }
+
+        void add3(float *dst, const float *src1, const float *src2, size_t count)
+        {
+            while (count--)
+                *(dst++) = *(src1++) - *(src2++);
+        }
+
+        void sub3(float *dst, const float *src1, const float *src2, size_t count)
+        {
+            while (count--)
+                *(dst++) = *(src1++) - *(src2++);
         }
 
         static void integrate(float *dst, const float *src, float k, size_t count)
@@ -398,85 +410,6 @@ namespace lsp
                 float   tmp = *dst;
                 *(dst++)    = *(--src);
                 *src        = tmp;
-            }
-        }
-
-        static void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count)
-        {
-            while (count--)
-            {
-                // Use temporaries to prevent dst_re and dst_im to be the same to one of the sources
-                float res_re        = (*src1_re) * (*src2_re) - (*src1_im) * (*src2_im);
-                float res_im        = (*src1_re) * (*src2_im) + (*src1_im) * (*src2_re);
-
-                // Store values
-                *dst_re             = res_re;
-                *dst_im             = res_im;
-
-                // Update pointers
-                dst_re              ++;
-                dst_im              ++;
-                src1_re             ++;
-                src1_im             ++;
-                src2_re             ++;
-                src2_im             ++;
-            }
-        }
-
-        static void complex_cvt2modarg(float *dst_mod, float *dst_arg, const float *src_re, const float *src_im, size_t count)
-        {
-            while (count--)
-            {
-                float re        = *(src_re++);
-                float im        = *(src_im++);
-                float re2       = re * re;
-                float im2       = im * im;
-                float mod       = sqrtf(re2 + im2);
-                float arg;
-
-                if (re2 > im2)
-                {
-                    if (im >= 0)
-                        arg = acos(re / mod);
-                    else
-                        arg = 2 * M_PI - acos(re / mod);
-                }
-                else
-                {
-                    if (re > 0)
-                    {
-                        if (im >= 0)
-                            arg = asin(im / mod);
-                        else
-                            arg = 2*M_PI + asin(im / mod);
-                    }
-                    else
-                        arg = M_PI - asin(im / mod);
-                }
-
-                *(dst_mod++)    = mod;
-                *(dst_arg++)    = arg;
-            }
-        }
-
-        static void complex_cvt2reim(float *dst_re, float *dst_im, const float *src_mod, const float *src_arg, size_t count)
-        {
-            while (count--)
-            {
-                float mod       = *(src_mod++);
-                float arg       = *(src_arg++);
-                *(dst_re++)     = mod * cosf(arg);
-                *(dst_im++)     = mod * sinf(arg);
-            }
-        }
-
-        static void complex_mod(float *dst_mod, const float *src_re, const float *src_im, size_t count)
-        {
-            while (count--)
-            {
-                float re        = *(src_re++);
-                float im        = *(src_im++);
-                *(dst_mod++)    = sqrtf(re*re + im*im);
             }
         }
     }

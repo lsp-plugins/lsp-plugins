@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef CORE_PLUGINS_IMPULSE_RESPONSES_H_
-#define CORE_PLUGINS_IMPULSE_RESPONSES_H_
+#ifndef PLUGINS_IMPULSE_RESPONSES_H_
+#define PLUGINS_IMPULSE_RESPONSES_H_
 
 #include <core/plugin.h>
 #include <core/IExecutor.h>
@@ -184,4 +184,4 @@ namespace lsp
 
 } /* namespace ddb */
 
-#endif /* CORE_PLUGINS_IMPULSE_RESPONSES_H_ */
+#endif /* PLUGINS_IMPULSE_RESPONSES_H_ */

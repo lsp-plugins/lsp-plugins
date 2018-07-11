@@ -17,7 +17,7 @@ namespace lsp
         #define SSE_FFT_NAME(id, mode) _SSE_FFT_NAME(id, mode)
         #define SSE_CALL_NAME(id, bits, mode) _SSE_CALL_NAME(id, bits, mode)(dst_re, dst_im, src_re, src_im, rank)
 
-        static void SSE_FFT_NAME(FFT_SCRAMBLE_DIRECT_NAME, FFT_MODE)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
+        static inline void SSE_FFT_NAME(FFT_SCRAMBLE_DIRECT_NAME, FFT_MODE)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
         {
             // Scramble the order of samples
             if ((dst_re == src_re) || (dst_im == src_im))
@@ -60,7 +60,7 @@ namespace lsp
             }
         }
 
-        static void SSE_FFT_NAME(FFT_SCRAMBLE_REVERSE_NAME, FFT_MODE)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
+        static inline void SSE_FFT_NAME(FFT_SCRAMBLE_REVERSE_NAME, FFT_MODE)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
         {
             // Scramble the order of samples
             if ((dst_re == src_re) || (dst_im == src_im))

@@ -32,6 +32,7 @@ namespace lsp
         nThresh         = 0;
         vGainBuf        = NULL;
         vTmpBuf         = NULL;
+        vData           = NULL;
     }
 
     Limiter::~Limiter()
@@ -41,13 +42,18 @@ namespace lsp
     bool Limiter::init(size_t max_sr, float max_lookahead)
     {
         nMaxLookahead       = millis_to_samples(max_sr, max_lookahead);
-        vGainBuf            = new float[nMaxLookahead*4 + BUF_GRANULARITY];
-        if (vGainBuf == NULL)
+        size_t alloc        = nMaxLookahead*4 + BUF_GRANULARITY*2;
+        vData               = new uint8_t[alloc*sizeof(float) + DEFAULT_ALIGN];
+        if (vData == NULL)
             return false;
+        float *ptr          = reinterpret_cast<float *>(ALIGN_PTR(vData, DEFAULT_ALIGN));
 
-        vTmpBuf             = new float[BUF_GRANULARITY];
-        if (vTmpBuf == NULL)
-            return false;
+        vGainBuf            = ptr;
+        ptr                += nMaxLookahead*4 + BUF_GRANULARITY;
+        vTmpBuf             = ptr;
+        ptr                += BUF_GRANULARITY;
+
+        lsp_assert(reinterpret_cast<uint8_t *>(ptr) <= &vData[alloc*sizeof(float) + DEFAULT_ALIGN]);
 
         if (!sDelay.init(nMaxLookahead + BUF_GRANULARITY))
             return false;
@@ -61,17 +67,14 @@ namespace lsp
     {
         sDelay.destroy();
 
-        if (vGainBuf != NULL)
+        if (vData != NULL)
         {
-            delete [] vGainBuf;
-            vGainBuf = NULL;
+            delete [] vData;
+            vData = NULL;
         }
 
-        if (vTmpBuf != NULL)
-        {
-            delete [] vTmpBuf;
-            vTmpBuf = NULL;
-        }
+        vGainBuf    = NULL;
+        vTmpBuf     = NULL;
     }
 
     void Limiter::reset_sat(sat_t *sat)

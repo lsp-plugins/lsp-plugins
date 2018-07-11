@@ -11,6 +11,16 @@
 - Implemented Multiband Kompressor (Multiband Compressor) Mono, Stereo x4, x8 plugin series
 - Added possibility to enter parameter values by hand by double-clicking on them.  
 - Refactored and optimized filter transfer function calculation. 
+- Implemented sampler with stereo outputs.
+- Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
+
+=== 1.0.24 ===
+
+- Updated expression language for the UI: added literal expressions that are more friendly with XML.
+- Additional display mode for spectrum analyzer added.
+- Added graph amplitude scaling to equalizers.
+- Added graph amplitude scaling to spectrum analyzer.
+
 
 *******************************************************************************
 * Release steps
@@ -47,6 +57,7 @@
 * Gate (Gate)
 * Begrenzer (Limiter)
 * Impulsantworten (Impulse responses)
+- Hysteresis-based saturator
 - Impulse Taker
 - Slap-back delay
 - One-band compressor
@@ -73,6 +84,78 @@
 *******************************************************************************
 * FEATURE REQUESTS: Detailed
 *******************************************************************************
+
+====
+  unfa:
+    Are you looking for an idea to code a cool LV2 plugin?
+    
+    I guess we are all familiar with wavetable synthesis - a concept where an oscillator has a list (or a table)
+    of looping waveforms and allows the user to alter the sound by picking different table indexes at any given moment.
+    Mainstream exampls are NI Massive and Serum, an opensource one - Calf Wavetable.
+
+	What can this concept have to do with convolution (impulse response) reverbs?
+
+	What if we had a plugin that could load 128 short IR samples instead of one (like IR.lv2 or Klangfalter)
+	and allowed the user to automate the table index for which sample is used at any given time? This could
+	probably sound like morphing the physical environment of the room you're playing in. Maybe it'd be a boring
+	thing, like there's nothing too amazing about automating a standrd C* Plate 2x2 reverb's tail length, or maybe...
+
+	If we treated the IR table just like a wavetable synthesizer (think more Serum than Massive now), using
+	very short (a few miliseconds) loops extracted from recorded or syntesized sounds like explosions, human
+	speech, mechanical noises, randomly generated sequeces (creating short looped noise bursts - if you ever
+	looped radom 30 samples of a sound in Audacity and loved the tone you know what I mean. Now imagine shifting
+	the looped "selection" along a soundfile and using this as your virtual "stompbox emulation" for playing
+	an instrument or a synth?
+
+	Maybe instead of loading 128 soundfiles, load 1 and split it automatically at zero-crossings? That should be
+	much easier to work with, who can manually cut up a soundfile to 128 chunks and remain sane after that?
+
+	Adding an LFO and an envelope follower to the table index control, spiced up with manual automation - this
+	could create some interesting moving sounds, from crazy growling bass synths to haunting ambient pads.
+
+	Or maybe we could make a convolution processor that has a sidechain input - it uses that and slices it at zero
+	crossings to create a short IR sample, and uses that to convolute the main input? A bit like a granular vocoder,
+	w wicked stuff?
+
+	Feeling inspired? Or am I crazy?
+
+==== Limiter issue ====
+  Tom Moody:
+    On the limiter issue:
+    1. I am using Ubuntu Studio 16.04, Ardour 5.6. No Calf plugins (one reason I tried out LSP is I kept having
+       Ardour crashes and am trying to have a "life without Calf")
+    2. The limiter doesn't crash Ardour. I have had the limiter GUI freeze but I can't duplicate this at the moment.
+       Possibly this was an issue with Ardour 5.5 -- I'll let you know if it happens again.
+    3. If the limiter GUI is open, when I open the export dialog, the limiter GUI stays on top of the export window.
+       To view the export window, I have to move the limiter GUI to one side. When I export, the export window shows
+       no moving progress bar, it just sits there until the file is exported, then the "analysis window" pops up on
+       conclusion of the export. There is no movement in the limiter GUI window during the export, either, until the
+       very conclusion of the export, then a little squiggle of audio appears in the graph, just at the fade.
+    It's a minor issue. One thing I wanted to mention, on a positive note. I've been using the PSP Vintage Warmer plugin
+    on Windows as a maximizer for a final, admittedly non-expert master. I am gradually moving everything to Linux, and your
+    limiter in "boost" mode is an excellent replacement for the PSP. Much appreciated. 
+
+==== Sample replacing ====
+  Nekosounds:
+    Is there any search/replace function implemented in case of lost impulse samples when moving your session to another computer?﻿
+  LSP Project:
+    Currently there is no search/replace method. Information about location of the file is stored as a pathname. If you have any suggestions
+    about search/replace algorithm, we can discuss it.
+  Nekosounds:﻿
+    For me the best solution of this problem is in Ableton Live:
+    - the program stores file path but also fingerprints
+    - when loading a project and the samples are missing a warning is displayed
+    - user can choose the location where to search for samples
+    - program finds all candidate files with needed name and automatically replaces missing sample with the first file whose fingerprints matches pattern
+    - if the program cannot find a file witch correct fingerprint, but filenames matches a dialog is displayed and user can choose the right file from the list
+    - if no files found then a warning is displayed, user can manually replace the file with all settings preserved
+  LSP Project:
+    Displaying plugins error messages when loading project is possible at least for VSTs - eg. Sforzando behaves this way
+
+==== Equalizer ====
+  Norlick:
+    Any way to make the EQ frequency display focus on a smaller range? Most of my EQing is
+    within 5dB of change so on the current spectrum it looks like very miniscule changes.
 
 ==== Delays ====
   jonetsu:
@@ -129,6 +212,13 @@
   you can get with something like the Valhalla reverbs, epicVerb, or the new fabfilter reverb.
   
   An impulse purchase price of $30-$40 would be fine!
+  
+  The left input channel is convolved with the left and right impulse response file channels from IR1-A
+  and the right input channel is convolved with the left and right impulse response file channel from IR1-B.
+  The two output convolutions’ respective left and right components are then summed into a single stereo output.
+  This configuration is necessary to take full advantage of true stereo impulse responses. True stereo impulse
+  responses are required to be provided as two separate stereo files and loaded into IR1-A and IR1-B (or IR2-A and IR2-B).
+  This configuration is typically found in high-end algorithmic reverbs. 
 
 ==== Multiband compressor ====
   I also thought that non-crossover multiband compressor is lacking linux audio. Crossovers do phase

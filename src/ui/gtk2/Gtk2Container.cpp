@@ -44,6 +44,8 @@ namespace lsp
             col.pixel       = 0;
             gtk_widget_modify_bg(pWidget, GTK_STATE_NORMAL, &col);
         }
+
+        Gtk2Widget::end();
     }
 
 } /* namespace lsp */

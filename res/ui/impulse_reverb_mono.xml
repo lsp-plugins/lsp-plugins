@@ -1,0 +1,146 @@
+<plugin width="320" height="128" resizable="false">
+	<hbox size="6" border="0">
+		<align pad_left="4" pad_right="4">
+			<vbox>
+				<label text="Bypass" />
+				<switch id="bypass" angle="1" />
+				<led id="bypass" color="red" size="8" />
+				<label />
+			</vbox>
+		</align>
+		
+		<grid rows="2" cols="2">
+			<!-- IR editor -->
+			<group text="Impulse Response" expand="true">
+				<vbox>
+					<!-- File editor -->
+					<hbox spacing="4">
+						<label text="File:" />
+						<combo id="fsel" />
+						<label text="FFT frame:" />
+						<combo id="fft" />
+					</hbox>
+					
+					<ui:for id="i" first="0" last="3">
+						<hbox border="2" visibility=":fsel == ${i}">
+							<file
+								id="ifn${i}" head_id="ihc${i}" tail_id="itc${i}"
+								fadein_id="ifi${i}" fadeout_id="ifo${i}" length_id="ifl${i}"
+								status_id="ifs${i}" mesh_id="ifd${i}"
+								width="600" height="128" />
+						</hbox>
+						
+						<grid rows="3" cols="6" visibility=":fsel == ${i}">
+							<label text="Reverse" />
+							<label text="Head cut" />
+							<label text="Tail cut" />
+							<label text="Fade in" />
+							<label text="Fade out" />
+							<label text="Listen" />
+							
+							<button id="irv${i}" size="32" toggle="false" />
+							<knob id="ihc${i}" size="20" />
+							<knob id="itc${i}" size="20" />
+							<knob id="ifi${i}" size="20" scale_color="yellow" />
+							<knob id="ifo${i}" size="20" scale_color="yellow" />
+							<button id="ils${i}" size="32" toggle="false" />
+							
+							<led id="irv${i}" />
+							<value id="ihc${i}" />
+							<value id="itc${i}" />
+							<value id="ifi${i}" />
+							<value id="ifo${i}" />
+							<led id="ils${i}" />
+						</grid>
+					</ui:for>
+				</vbox>
+			</group>
+			
+			<cell rows="2">
+				<group text="Output" expand="true">
+					<vbox>
+						<grid rows="15" cols="1" expand="true" fill="true">
+							<label text="Dry Pan" />
+							<knob id="p" />
+							<value id="p" same_line="true" />
+							
+							<label text="Pre-delay" />
+							<knob id="pd" />
+							<value id="pd" same_line="true" />
+						</grid>
+						<hsep />
+						
+						<grid rows="15" cols="1" expand="true" fill="true">	
+							<label text="Dry" />
+							<knob id="dry" scale_color="yellow" />
+							<value id="dry" same_line="true" />
+							
+							<label text="Wet" />
+							<knob id="wet" scale_color="yellow" />
+							<value id="wet" same_line="true" />
+							
+							<label text="Output" />
+							<knob id="g_out" />
+							<value id="g_out" same_line="true" />
+						</grid>
+					</vbox>
+				</group>
+			</cell>
+			
+		
+			<group text="Processors" expand="true">
+				<hbox>
+					<grid rows="5" cols="5" expand="true">
+						<label text="#" />
+						<label text="Pre-delay" />
+						<label text="Source" />
+						<label text="Makeup" />
+						<label text="Out L/R" />
+						
+						<ui:for id="i" first="0" last="1">
+							<label text="${i}" />
+							<knob id="pd${i}" size="20" />
+							<combo id="cs${i}" />
+							<knob id="mk${i}" size="20" />
+							<knob id="com${i}" size="20" />
+							
+							<label />
+							<value id="pd${i}" same_line="true" />
+							<hbox>
+								<led id="ca${i}" />
+								<label text="Active" />
+							</hbox>
+							<value id="mk${i}" same_line="true" />
+							<value id="com${i}" same_line="true" />
+						</ui:for>
+					</grid>
+					<vsep />
+					<grid rows="5" cols="5" expand="true">
+						<label text="#" />
+						<label text="Pre-delay" />
+						<label text="Source" />
+						<label text="Makeup" />
+						<label text="Out L/R" />
+						
+						<ui:for id="i" first="2" last="3">
+							<label text="${i}" />
+							<knob id="pd${i}" size="20" />
+							<combo id="cs${i}" />
+							<knob id="mk${i}" size="20" />
+							<knob id="com${i}" size="20" />
+							
+							<label />
+							<value id="pd${i}" same_line="true" />
+							<hbox>
+								<led id="ca${i}" />
+								<label text="Active" />
+							</hbox>
+							<value id="mk${i}" same_line="true" />
+							<value id="com${i}" same_line="true" />
+						</ui:for>
+					</grid>
+				</hbox>
+			</group>
+		</grid>
+	</hbox>
+</plugin>

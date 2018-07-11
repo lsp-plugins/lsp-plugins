@@ -763,6 +763,11 @@ namespace lsp
             }
         }
 
+        // Randomize phase of the convolver
+        uint32_t phase  = seed_addr(this);
+        phase           = ((phase << 16) | (phase >> 16)) & 0x7fffffff;
+        uint32_t step   = 0x80000000 / (impulse_reverb_base_metadata::CONVOLVERS + 1);
+
         // OK, files have been rendered, now need to commutate
         for (size_t i=0; i<nChannels; ++i)
         {
@@ -798,7 +803,7 @@ namespace lsp
 
             // Now we can create convolver
             Convolver *cv   = new Convolver();
-            if (!cv->init(s->getBuffer(track), s->length(), cfg[i].nRank))
+            if (!cv->init(s->getBuffer(track), s->length(), cfg[i].nRank, float((phase + i*step)& 0x7fffffff)/float(0x80000000)))
                 return STATUS_NO_MEM;
             c->pSwap        = cv;
         }

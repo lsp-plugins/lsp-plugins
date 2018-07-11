@@ -1901,3 +1901,108 @@ Description:	Realtime highly optimized zero-latency convolover. Stereo version.
 	Registration:	
 		
 	*Plugin ID:	1khz
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Spacializer ( e.g. panners )
+	*PlugIn Name:	Slapback-Delay Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to add set of short delays of the original signal to the output mix. Each delay can be used to simulate the early reflections of the signal from walls.
+		
+	Registration:	
+		
+	*Plugin ID:	gt0d
+	
+-----------------------------------------------------
+
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Spacializer ( e.g. panners )
+	*PlugIn Name:	Slapback-Delay Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to add set of short delays of the original signal to the output mix. Each delay can be used to simulate the early reflections of the signal from walls.
+		
+	Registration:	
+		
+	*Plugin ID:	0xxj
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Impulsnachhall Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin performs highly optimized real time zero-latency convolution to the input signal. It can be used as a cabinet emulator
+some sort of equalizer or as a reverb simulation plugin. All what is needed is audio file(s) with impulse response taken from the linear system (cabinet
+equalizer or hall/room).
+		
+	Registration:	
+		
+	*Plugin ID:	fggq
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Impulsnachhall Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin performs highly optimized real time zero-latency convolution to the input signal. It can be used as a cabinet emulator
+some sort of equalizer or as a reverb simulation plugin. All what is needed is audio file(s) with impulse response taken from the linear system (cabinet
+equalizer or hall/room).
+		
+	Registration:	
+		
+	*Plugin ID:	o9zj

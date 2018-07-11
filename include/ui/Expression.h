@@ -25,6 +25,7 @@ namespace lsp
                 OP_SIGN,
                 OP_MUL,
                 OP_DIV,
+                OP_MOD,
 
                 OP_AND,
                 OP_OR,
@@ -52,6 +53,7 @@ namespace lsp
                 TT_SUB,
                 TT_MUL,
                 TT_DIV,
+                TT_MOD,
                 TT_AND,
                 TT_OR,
                 TT_NOT,

@@ -587,7 +587,7 @@ namespace lsp
 
 #else
 
-        static void FFT_BUTTERFLY_DIRECT_NAME(float *dst_re, float *dst_im, size_t rank, size_t blocks)
+        static inline void FFT_BUTTERFLY_DIRECT_NAME(float *dst_re, float *dst_im, size_t rank, size_t blocks)
         {
             size_t pairs = 1 << rank;
             rank = (rank - 2) << 4;
@@ -598,7 +598,7 @@ namespace lsp
             }
         }
 
-        static void FFT_BUTTERFLY_REVERSE_NAME(float *dst_re, float *dst_im, size_t rank, size_t blocks)
+        static inline void FFT_BUTTERFLY_REVERSE_NAME(float *dst_re, float *dst_im, size_t rank, size_t blocks)
         {
             size_t pairs = 1 << rank;
             rank = (rank - 2) << 4;

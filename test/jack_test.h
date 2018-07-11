@@ -69,11 +69,15 @@ namespace jack_test
 //                "sc_gate_lr";
 //                "sc_gate_ms";
 //                "limiter_mono";
-                "limiter_stereo";
+//                "limiter_stereo";
 //                "sc_limiter_mono";
 //                "sc_limiter_stereo";
 //                "impulse_responses_mono";
 //                "impulse_responses_stereo";
+                "slap_delay_mono";
+//                "slap_delay_stereo";
+//                "impulse_reverb_mono";
+//                "impulse_reverb_stereo";
 
         return JACK_MAIN_FUNCTION(plugin, argc, argv);
     }

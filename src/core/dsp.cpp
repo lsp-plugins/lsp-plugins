@@ -82,8 +82,11 @@ namespace lsp
         void    (* accumulate)(float *dst, const float *src, float k, float p, size_t count) = NULL;
         void    (* add_multiplied)(float *dst, const float *src, float k, size_t count) = NULL;
         void    (* sub_multiplied)(float *dst, const float *src, float k, size_t count) = NULL;
-        void    (* add)(float *dst, const float *src, size_t count) = NULL;
-        void    (* sub)(float *dst, const float *src, size_t count) = NULL;
+        void    (* add2)(float *dst, const float *src, size_t count) = NULL;
+        void    (* sub2)(float *dst, const float *src, size_t count) = NULL;
+        void    (* add3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
+        void    (* sub3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
+
         void    (* integrate)(float *dst, const float *src, float k, size_t count) = NULL;
         void    (* mix)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count) = NULL;
         void    (* mix_add)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count) = NULL;
@@ -91,15 +94,28 @@ namespace lsp
         void    (* convolve)(float *dst, const float *src, const float *conv, size_t length, size_t count) = NULL;
         void    (* reverse)(float *dst, size_t count) = NULL;
         void    (* direct_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
+        void    (* packed_direct_fft)(float *dst, const float *src, size_t rank) = NULL;
+        void    (* conv_direct_fft)(float *dst, const float *src, size_t rank) = NULL;
         void    (* reverse_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
+        void    (* packed_reverse_fft)(float *dst, const float *src, size_t rank) = NULL;
 //        void    (* join_fft)(float *dst_re, float *dst_im, float *src_re, float *src_im, size_t rank) = NULL;
         void    (* normalize_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
         void    (* center_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
         void    (* combine_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
         void    (* complex_mul)(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count) = NULL;
+        void    (* packed_complex_mul)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
+        void    (* packed_real_to_complex)(float *dst, const float *src, size_t count) = NULL;
+        void    (* packed_complex_to_real)(float *dst, const float *src, size_t count) = NULL;
+        void    (* packed_complex_add_to_real)(float *dst, const float *src, size_t count) = NULL;
         void    (* complex_cvt2modarg)(float *dst_mod, float *dst_arg, const float *src_re, const float *src_im, size_t count) = NULL;
         void    (* complex_cvt2reim)(float *dst_re, float *dst_im, const float *src_mod, const float *src_arg, size_t count) = NULL;
         void    (* complex_mod)(float *dst_mod, const float *src_re, const float *src_im, size_t count) = NULL;
+
+        void    (* fastconv_parse)(float *dst, const float *src, size_t rank) = NULL;
+        void    (* fastconv_parse_apply)(float *dst, float *tmp, const float *c, const float *src, size_t rank) = NULL;
+        void    (* fastconv_restore)(float *dst, float *tmp, size_t rank) = NULL;
+        void    (* fastconv_apply)(float *dst, float *tmp, const float *c1, const float *c2, size_t rank) = NULL;
+
         void    (* lr_to_ms)(float *m, float *s, const float *l, const float *r, size_t count) = NULL;
         void    (* lr_to_mid)(float *m, const float *l, const float *r, size_t count) = NULL;
         void    (* lr_to_side)(float *s, const float *l, const float *r, size_t count) = NULL;

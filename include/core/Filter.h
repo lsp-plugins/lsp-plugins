@@ -121,8 +121,8 @@ namespace lsp
 
             enum filter_flags_t
             {
-                FF_REBUILD,
-                FF_CLEAR
+                FF_REBUILD      = 1 << 0,
+                FF_CLEAR        = 1 << 1
             };
 
         protected:
@@ -133,7 +133,6 @@ namespace lsp
             size_t              nLatency;       // Filter latency
             size_t              nItems;         // Number of cascades
             cascade_t          *vItems;         // Filter cascades
-//            biquad_t           *vFilters;       // Chain of filters
             FilterBank         *pBank;          // External bank of filters
             uint8_t            *vData;          // Allocated data
             size_t              nFlags;         // Filter flags
@@ -141,7 +140,6 @@ namespace lsp
         protected:
 
             void complex_transfer_calc(float *re, float *im, double f);
-//            void optimize_structure();
             cascade_t *add_cascade();
 
             void calc_rlc_filter(size_t type, const filter_params_t *fp);
@@ -204,6 +202,11 @@ namespace lsp
              * @param count number of dots for the chart
              */
             void freq_chart(float *re, float *im, const float *f, size_t count);
+
+            /** Mark filter to be cleared
+             *
+             */
+            inline void clear()             { nFlags     |= FF_CLEAR;       }
 
             /** Rebuild filter
              * Forces the filter to rebuild into bank of filters

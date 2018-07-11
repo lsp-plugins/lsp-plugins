@@ -120,7 +120,7 @@ namespace lsp
         if (fp->fFreq2 >= (0.49f * nSampleRate))
             fp->fFreq2              = 0.49f * nSampleRate;
 
-        nFlags                  = FF_REBUILD;
+        nFlags                 |= FF_REBUILD;
         if ((type != fp->nType) || (slope != fp->nSlope))
             nFlags                 |= FF_CLEAR;
     }

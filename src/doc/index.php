@@ -22,6 +22,7 @@
 	$HEADER		= (isset($MENUITEM)) ? $MENUITEM['text'] : 'LSP Plugins Documentation';
 	$FILENAME   = (isset($MENUITEM)) ? (isset($MENUITEM['file']) ? $MENUITEM['file'] : $PAGE) : 'index';
 	$RES_ROOT   = $DOCROOT;
+	$DOC_BASE   = '.';
 ?>
 
 <html>

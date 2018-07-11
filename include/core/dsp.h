@@ -413,7 +413,7 @@ namespace lsp
          * @param src source array
          * @param count number of elements
          */
-        extern void (* add)(float *dst, const float *src, size_t count);
+        extern void (* add2)(float *dst, const float *src, size_t count);
 
         /** Calculate dst[i] = dst[i] - src[i]
          *
@@ -421,7 +421,23 @@ namespace lsp
          * @param src source array
          * @param count number of elements
          */
-        extern void (* sub)(float *dst, const float *src, size_t count);
+        extern void (* sub2)(float *dst, const float *src, size_t count);
+
+        /** Calculate dst[i] = src1[i] + src2[i]
+         *
+         * @param dst destination array
+         * @param src source array
+         * @param count number of elements
+         */
+        extern void (* add3)(float *dst, const float *src1, const float *src2, size_t count);
+
+        /** Calculate dst[i] = src1[i] - src2[i]
+         *
+         * @param dst destination array
+         * @param src source array
+         * @param count number of elements
+         */
+        extern void (* sub3)(float *dst, const float *src1, const float *src2, size_t count);
 
         /** Calculate dst[i] = dst[i] * (1 - k) + src[i] * k = dst[i] + (src[i] - dst[i]) * k
          *
@@ -487,6 +503,20 @@ namespace lsp
          */
         extern void (* direct_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
 
+        /** Direct Fast Fourier Transform with packed complex data
+         * @param dst complex spectrum [re, im, re, im ...]
+         * @param src complex signal [re, im, re, im ...]
+         * @param rank the rank of FFT
+         */
+        extern void (* packed_direct_fft)(float *dst, const float *src, size_t rank);
+
+        /** Direct Fast Fourier Transform for convolution
+         * @param dst complex spectrum [re, im, re, im ...]
+         * @param src real signal, buffer is twice lower size than output (in elements)
+         * @param rank the rank of FFT
+         */
+        extern void (* conv_direct_fft)(float *dst, const float *src, size_t rank);
+
         /** Reverse Fast Fourier transform
          * @param dst_re real part of signal
          * @param dst_im imaginary part of signal
@@ -495,6 +525,13 @@ namespace lsp
          * @param rank the rank of FFT
          */
         extern void (* reverse_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+
+        /** Reverse Fast Fourier transform with packed complex data
+         * @param dst complex signal [re, im, re, im ...]
+         * @param src complex spectrum [re, im, re, im ...]
+         * @param rank the rank of FFT
+         */
+        extern void (* packed_reverse_fft)(float *dst, const float *src, size_t rank);
 
 //        /** Build 2x larger FFT from 2 FFTs located one after other
 //         *
@@ -553,6 +590,39 @@ namespace lsp
                 size_t count
             );
 
+        /** Calculate packed complex multiplication
+         *
+         * @param dst destination to store complex numbers
+         * @param src1 source 1
+         * @param src2 source 2
+         * @param count number of multiplications
+         */
+        extern void (* packed_complex_mul)(float *dst, const float *src1, const float *src2, size_t count);
+
+        /** Convert real to packed complex
+         *
+         * @param dst destination packed complex data
+         * @param src source real data
+         * @param count number of items to convert
+         */
+        extern void (* packed_real_to_complex)(float *dst, const float *src, size_t count);
+
+        /** Convert packed complex to real
+         *
+         * @param dst destination real data
+         * @param src source packed complex data
+         * @param count number of items to convert
+         */
+        extern void (* packed_complex_to_real)(float *dst, const float *src, size_t count);
+
+        /** Convert packed complex to real and add to destination buffer
+         *
+         * @param dst destination real data
+         * @param src source packed complex data
+         * @param count number of items to convert
+         */
+        extern void (* packed_complex_add_to_real)(float *dst, const float *src, size_t count);
+
         /** Convert real+imaginary complex number to polar form
          *
          * @param dst_mod module of the complex number
@@ -593,6 +663,46 @@ namespace lsp
                 const float *src_mod, const float *src_arg,
                 size_t count
             );
+
+        /** Parse input real data to fast convolution data
+         *
+         * @param dst destination buffer of 2^(rank+1) floats
+         * @param src source real data of 2^(rank-1) floats
+         * @param rank the convolution rank
+         */
+        extern void (* fastconv_parse)(float *dst, const float *src, size_t rank);
+
+        /** Parse input real data to fast convolution data,
+         *  convolve with another convolution data,
+         *  restore data to real data and add to output buffer
+         *
+         * @param dst target real data of 2^rank floats to store convolved data
+         * @param tmp temporary buffer of 2^(rank+1) floats to store intermediate data
+         * @param c fast convolution data of 2^(rank+1) floats to apply to the buffer
+         * @param src source real data of 2^(rank-1) floats
+         * @param rank the convolution rank
+         */
+        extern void (* fastconv_parse_apply)(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+
+        /** Restore convolution to real data,
+         * modifies the source fast convolution data
+         *
+         * @param dst destination real data of 2^rank floats
+         * @param src source fast convolution data of 2^(rank+1) floats
+         * @param rank the convolution rank
+         */
+        extern void (* fastconv_restore)(float *dst, float *src, size_t rank);
+
+        /** Convolve two convolutiona and restore data to real data
+         * and add to output buffer
+         *
+         * @param dst target real data of 2%rank floats to store convolved data
+         * @param tmp temporary buffer of 2^(rank+1) floats to store intermediate data
+         * @param c1 fast convolution data of 2^(rank+1) floats
+         * @param c2 fast convolution data of 2^(rank+1) floats
+         * @param rank the convolution rank
+         */
+        extern void (* fastconv_apply)(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
 
         /** Convert stereo signal to mid-side signal
          *

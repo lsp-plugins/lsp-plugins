@@ -24,10 +24,18 @@
 #include "test/profiling_test.h"
 
 #include "test/fft_test.h"
+#include "test/fft_test2.h"
+#include "test/fft_test3.h"
 #include "test/fft_speed_test.h"
 #include "test/fft_conv_test.h"
+#include "test/fft_fastconv_test.h"
+#include "test/fft_fastconv_speed_test.h"
+#include "test/fft_tdomain_test.h"
 #include "test/fft_filter.h"
 #include "test/fft_join.h"
+
+#include "test/complex_mul_speed.h"
+#include "test/real_to_complex.h"
 
 #include "test/crossover_test.h"
 #include "test/saturation_test.h"
@@ -37,10 +45,12 @@
 #include "test/equalizer_test.h"
 #include "test/avx_test.h"
 #include "test/sidechain_test.h"
-#include "test/oversampling_test.h"
-#include "test/downsampling_test.h"
 #include "test/limiter_test.h"
 #include "test/xwindow.h"
+
+#include "test/oversampling_test.h"
+#include "test/downsampling_test.h"
+#include "test/oversampler_test.h"
 
 //#define TEST gtk_test
 #define TEST jack_test
@@ -55,7 +65,6 @@
 //#define TEST equalizer_test
 //#define TEST avx_test
 //#define TEST sidechain_test
-//#define TEST downsampling_test
 
 //#define TEST vec4_test
 //#define TEST view_ui_test
@@ -65,11 +74,21 @@
 //#define TEST audiofile_test
 //#define TEST convolution_test
 //#define TEST convolver_test
+
 //#define TEST fft_test
+//#define TEST fft_test2
+//#define TEST fft_test3
+//#define TEST fft_tdomain_test
+//#define TEST fft_fastconv_test
+//#define TEST fft_fastconv_speed_test
 //#define TEST fft_filter_test
-//#define TEST dsp_speed_test
 //#define TEST fft_speed_test
 //#define TEST fft_join_test
+
+//#define TEST complex_mul_speed_test
+//#define TEST real_to_complex_test
+
+//#define TEST dsp_speed_test
 //#define TEST window_test
 //#define TEST env_test
 //#define TEST sample_player_test
@@ -81,6 +100,10 @@
 //#define TEST lv2bufsize_test
 //#define TEST alloc_test
 //#define TEST profiling_test
+
+//#define TEST downsampling_test
+//#define TEST oversampling_test
+//#define TEST oversampler_test
 
 int main(int argc, const char**argv)
 {

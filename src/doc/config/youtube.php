@@ -10,7 +10,8 @@ $YOUTUBE = array(
 	'p6otNrilF0U' => 'Gate & Expander',
 	'rvEhP_PRtzk' => 'Dynamikprozessor',
 	'laExcuCMDY4' => 'Begrenzer',
-	'BBcLpAx02UM' => 'Impulsantworten'
+	'BBcLpAx02UM' => 'Impulsantworten',
+	'hEUauzc_j3U' => 'Slap-back Delay & Impulsnachhall'
 );
 
 ?>
