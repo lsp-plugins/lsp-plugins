@@ -8,13 +8,16 @@
 - Refactored and optimized filter transfer function calculation. 
 - Implemented sampler with stereo outputs.
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
-- Move to GitHub.
 
 === 1.1.5 ===
 
 - Migrated to CMake build system.
 - Additional display mode for spectrum analyzer added.
 - Added possibility to double-click the parameter's value number and enter it manually from keyboard.
+
+=== 1.1.4 ===
+- Implemented linear profiler plugin.
+
 
 *******************************************************************************
 * Release steps
@@ -27,8 +30,8 @@
 * Upload release video to the site
 * Add link to the video to src/doc/config/youtube.php
 * Run ./release.sh to build binaries
-* Commit all changes to SVN
-* Tag version in SVN
+* Commit all changes to GIT
+* Tag version in GIT
 * Upload binaries to sourceforge
 * Copy contents of src/doc and res/doc/img/plugins to the site
 * Publish video on youtube
