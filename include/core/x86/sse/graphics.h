@@ -26,8 +26,8 @@
   (this is the zlib license)
 */
 
-#ifndef CORE_X86_DSP_GRAPHICS_H_
-#define CORE_X86_DSP_GRAPHICS_H_
+#ifndef CORE_X86_SSE_GRAPHICS_H_
+#define CORE_X86_SSE_GRAPHICS_H_
 
 namespace lsp
 {
@@ -457,4 +457,4 @@ namespace lsp
     }
 }
 
-#endif /* CORE_X86_DSP_GRAPHICS_H_ */
+#endif /* CORE_X86_SSE_GRAPHICS_H_ */

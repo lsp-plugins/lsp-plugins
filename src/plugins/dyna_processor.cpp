@@ -5,8 +5,6 @@
  *      Author: sadko
  */
 
-#ifdef LSP_NO_KVRDC16
-
 #include <core/debug.h>
 #include <core/colors.h>
 #include <core/Color.h>
@@ -91,7 +89,6 @@ namespace lsp
             c->vGain            = reinterpret_cast<float *>(ptr);
             ptr                += buf_size;
 
-            c->bScActive        = false;
             c->bScListen        = false;
             c->nSync            = S_ALL;
             c->nScType          = SCT_FEED_FORWARD;
@@ -1004,5 +1001,3 @@ namespace lsp
     {
     }
 }
-
-#endif

@@ -2,19 +2,20 @@
 * RECENT CHANGES
 *******************************************************************************
 
-=== 1.0.18 ===
+=== 1.1.0 ===
 
+- Ported all widgets from GTK+ 2.x to raw X11 + cairo
+- Fixed the behaviour of dynamic widgets for Tracktion DAW and other JUCE'd plugins.
 - Implemented Frequenzselektiver Kompressor (Multiband Compressor) Mono, Stereo, LeftRight, MidSide
   plugin series
 - Implemented Multiband Kompressor (Multiband Compressor) Mono, Stereo x4, x8 plugin series
-- Ported all widgets from GTK+ 2.x to raw X11 + cairo
-- Fixed the behaviour of dynamic widgets for Tracktion DAW and other JUCE'd plugins.
 - Added possibility to enter parameter values by hand by double-clicking on them.  
 - Refactored and optimized filter transfer function calculation. 
 
-=== KVRDC16 ===
+=== 1.0.20 ===
 
-- Implemented Dynamic Processor Mono, Stereo, LeftRight, MidSide plugin series KVRDC16 edition.
+- Implemented Impulsantworten (Impulse responses) zero-latency high-performance convolution plugin series
+
 
 *******************************************************************************
 * Release steps
@@ -45,9 +46,11 @@
 * Parametrischer Entzerrer (Parametric Equalizer)
 * Grafischer Entzerrer (Graphic Equalizer)
 * Kompressor (Compressor)
-- Expander (Expander)
-- Gate
-- Begrenzer (Limiter)
+* Expander (Expander)
+* Gate (Gate)
+* Begrenzer (Limiter)
+- Impulsantworten (Impulse responses)
+- Impulse Taker
 - One-band compressor
 - Multiband compressor
 - Multiband expander
@@ -56,14 +59,12 @@
 - Saturator
 - Verstärker Profiler (Amplifier profiler)
 - Noise suppressor
-- Impulse Taker
 - Nachhall (Reverberation)
 - Tonhöhenänderer (Pitch shift)
 - Leitungsvermittlung (Circuit Switcher)
 - Korellationsmeter (Corellometer)
 - Transient designer
 - Dynamic Equalizer
-- Impulsantworten (Impulse responses)
 - Ortswechsel (Dynamic panner)
 - Verzerrung (Distortion)
 - Sampler (real sampler)
@@ -91,3 +92,26 @@
 ==== Parameter entering ====
   In other subject, it would be great to be able to enter numerical values by double clicking
   on the DB value under the knobs.
+
+==== Lookahead option ====
+  Some dynamics plugins feature lookahead, some don't. As it is a very useful feature
+  (eg. on a sidechain gate, having the gate start closing 1ms or so before the trigger makes it even more
+  effective) and the code is there already, I feel it would be a welcome addition.
+
+  Seconding this request, lookahead would be incredible and make the dynamics plugins very hard to beat.
+  
+==== Music stuff ====
+  i plan on switching completely to linux for my mixing and mastering needs, i like the calf plugins,
+  i appreciate the plugins it already contains, i just feel some cool things I'm looking for aren't there
+  these are my feature request,
+    - analog style emulated compresses, eqs, etc.
+    - auto tune plugin
+    - vocal rider type of plugin, that rides the track volume like the one pro tools has
+
+==== Delay ====
+  Re-implement Jesse Chappell's per-frequency delay from FreqTweak as a plugin. Bonus points:
+  include frequency modulator functionality.
+
+  This is kinda random, but there are not ladspa, lv2 plugins anything like the spectral delay
+  functionality found in freqtweak. And it is starting to suffer from some significant bit-rot.
+  Would be nice to be able to use it as a plugin.

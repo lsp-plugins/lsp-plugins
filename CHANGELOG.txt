@@ -2,6 +2,13 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.18 ===
+
+* Implemented Begrenzer Mono, Stereo, Sidechain Mono, Sidechain Stereo (Limiter) plugin series.
+* Added KVRDC16 entry - Dynamikprozessor Mono, Stereo, LeftRight, MidSide plugin series. 
+* Added 2x/3x/4x oversampling support by DSP modules.
+* Small code refactoring.
+
 === 1.0.16 ===
 
 * Implemented Expander Mono, Stereo, LeftRight, MidSide plugin series.

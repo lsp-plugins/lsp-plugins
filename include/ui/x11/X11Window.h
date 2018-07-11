@@ -12,21 +12,19 @@ namespace lsp
 {
     namespace x11ui
     {
-        class X11Window//: public X11Widget
+        class X11Window: public X11Widget
         {
             protected:
                 X11Core            *pCore;
                 Window              hWindow;
-                bool                bVisible;
                 X11CairoSurface    *pSurface;
-                size_t              nWidth;
-                size_t              nHeight;
 
             protected:
                 void drop_surface();
+                void do_mapping(bool mapped);
 
             public:
-                X11Window(X11Core *core, Window hwnd, size_t width, size_t height);
+                X11Window(plugin_ui *ui, X11Core *core);
                 virtual ~X11Window();
 
             public:
@@ -39,7 +37,14 @@ namespace lsp
                 void show();
                 void hide();
 
-                void draw(ISurface *surface);
+                void render(ISurface *surface);
+
+            public:
+                inline size_t width() const { return nWidth; }
+                void setWidth(size_t width);
+
+                inline size_t height() const { return nHeight; }
+                void setHeight(size_t height);
 
             public:
                 virtual void handleEvent(const ui_event_t *ev);

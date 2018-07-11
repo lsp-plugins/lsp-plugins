@@ -148,8 +148,8 @@ namespace lsp
         if (nDelay == 0)
             return src;
 
-        pBuffer[nTail]  = src;
-        float ret       = pBuffer[nHead];
+        pBuffer[nHead]  = src;
+        float ret       = pBuffer[nTail];
         nTail           = (nTail + 1) % nSize;
         nHead           = (nHead + 1) % nSize;
 
@@ -165,6 +165,13 @@ namespace lsp
         nTail       = (nHead + nSize - delay) % nSize;
 
         lsp_trace("final delay = %d, head=%d, tail=%d", int(nDelay), int(nHead), int(nTail));
+    }
+
+    void Delay::clear()
+    {
+        if (pBuffer == NULL)
+            return;
+        dsp::fill_zero(pBuffer, nSize);
     }
 
 } /* namespace lsp */

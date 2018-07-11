@@ -9,7 +9,7 @@
 #define CORE_X86_DSP_H_
 
 #include <core/dsp.h>
-#include <core/x86/dsp/const.h>
+#include <core/x86/sse/const.h>
 
 namespace lsp
 {

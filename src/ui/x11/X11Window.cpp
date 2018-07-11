@@ -5,20 +5,21 @@
  *      Author: sadko
  */
 
+#include <core/status.h>
 #include <ui/x11/ui.h>
 
 namespace lsp
 {
     namespace x11ui
     {
-        X11Window::X11Window(X11Core *core, Window hwnd, size_t width, size_t height)
+        X11Window::X11Window(plugin_ui *ui, X11Core *core):
+            X11Widget(ui, W_WINDOW)
         {
             pCore       = core;
-            hWindow     = hwnd;
-            bVisible    = false;
+            hWindow     = 0;
             pSurface    = NULL;
-            nWidth      = width;
-            nHeight     = height;
+
+            bVisible    = false;
         }
 
         X11Window::~X11Window()
@@ -28,7 +29,89 @@ namespace lsp
 
         int X11Window::init()
         {
-            return 0;
+            Display *dpy = pCore->x11display();
+
+            // Try to create window
+            Window wnd = XCreateSimpleWindow(dpy, pCore->x11root(), 0, 0, nWidth, nHeight, 0, 0, 0);
+            if (wnd <= 0)
+                return STATUS_UNKNOWN_ERR;
+            XFlush(dpy);
+
+            // Get protocols
+            Atom atom_close = pCore->atoms().X11_WM_DELETE_WINDOW;
+            XSetWMProtocols(dpy, wnd, &atom_close, 1);
+
+            // Now create X11Window instance
+            if (!pCore->addWindow(this))
+            {
+                XDestroyWindow(dpy, wnd);
+                XFlush(dpy);
+                return STATUS_NO_MEM;
+            }
+
+            // Now select input for new handle
+            XSelectInput(dpy, wnd,
+                KeyPressMask |
+                KeyReleaseMask |
+                ButtonPressMask |
+                ButtonReleaseMask |
+                EnterWindowMask |
+                LeaveWindowMask |
+                PointerMotionMask |
+                /*PointerMotionHintMask | */
+                Button1MotionMask |
+                Button2MotionMask |
+                Button3MotionMask |
+                Button4MotionMask |
+                Button5MotionMask |
+                ButtonMotionMask |
+                KeymapStateMask |
+                ExposureMask |
+                /*VisibilityChangeMask | */
+                StructureNotifyMask |
+                /*ResizeRedirectMask | */
+                SubstructureNotifyMask |
+                SubstructureRedirectMask |
+                FocusChangeMask |
+                PropertyChangeMask |
+                ColormapChangeMask |
+                OwnerGrabButtonMask
+            );
+            XFlush(dpy);
+            hWindow = wnd;
+
+            if (bVisible)
+                do_mapping(true);
+
+            return STATUS_OK;
+        }
+
+        void X11Window::do_mapping(bool mapped)
+        {
+            bVisible = mapped;
+            if (hWindow == 0)
+                return;
+
+            if (mapped)
+                XMapWindow(pCore->x11display(), hWindow);
+            else
+                XUnmapWindow(pCore->x11display(), hWindow);
+
+            XFlush(pCore->x11display());
+        }
+
+        void X11Window::setWidth(size_t width)
+        {
+            nWidth = width;
+            if (hWindow == 0)
+                return;
+        }
+
+        void X11Window::setHeight(size_t height)
+        {
+            nHeight = height;
+            if (hWindow == 0)
+                return;
         }
 
         void X11Window::drop_surface()
@@ -44,6 +127,14 @@ namespace lsp
         void X11Window::destroy()
         {
             drop_surface();
+
+            // Destroy window
+            if (hWindow > 0)
+            {
+                do_mapping(false);
+                XDestroyWindow(pCore->x11display(), hWindow);
+                hWindow = 0;
+            }
         }
 
         void X11Window::setVisibility(bool visible)
@@ -58,22 +149,23 @@ namespace lsp
         {
             if (bVisible)
                 return;
-            XMapWindow(pCore->x11display(), hWindow);
-            XFlush(pCore->x11display());
+            do_mapping(true);
         }
 
         void X11Window::hide()
         {
             if (!bVisible)
                 return;
-            XUnmapWindow(pCore->x11display(), hWindow);
-            XFlush(pCore->x11display());
+            do_mapping(false);
         }
 
-        void X11Window::draw(ISurface *surface)
+        void X11Window::render(ISurface *s)
         {
-            size_t b=((nWidth*nHeight) >> 4) & 0xff;
-            surface->clear_rgb(b);
+            if (s == NULL)
+                s = pSurface;
+
+            size_t b = ((nWidth*nHeight) >> 4) & 0xff;
+            s->clear_rgb(b);
         }
 
         void X11Window::handleEvent(const ui_event_t *ev)
@@ -108,7 +200,7 @@ namespace lsp
                             int(ev->nLeft), int(ev->nTop),
                             int(ev->nWidth), int(ev->nHeight));
                     if (pSurface != NULL)
-                        draw(pSurface);
+                        render(pSurface);
                     break;
                 }
 
@@ -130,14 +222,22 @@ namespace lsp
                     if (pSurface != NULL)
                     {
                         pSurface->resize(nWidth, nHeight);
-                        draw(pSurface);
+                        render(pSurface);
                     }
                     break;
                 }
 
                 case UIE_MOUSE_MOVE:
                 {
-                    lsp_trace("mose move = %d x %d", int(ev->nLeft), int(ev->nTop));
+                    lsp_trace("mouse move = %d x %d", int(ev->nLeft), int(ev->nTop));
+                    break;
+                }
+
+                case UIE_CLOSE:
+                {
+                    lsp_trace("close request on window");
+                    pCore->removeWindow(this);
+                    break;
                 }
 
                 default:

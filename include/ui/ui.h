@@ -109,6 +109,7 @@ namespace lsp
 
 // Widgets
 #include <ui/IWidget.h>
+#include <ui/IWidgetCore.h>
 #include <ui/IWidgetFactory.h>
 #include <ui/IGraph.h>
 #include <ui/IGraphCanvas.h>

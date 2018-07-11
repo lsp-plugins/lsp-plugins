@@ -24,7 +24,10 @@ namespace xwindow_test
         }
 
         // Create window
-        X11Window *wnd = ui.createWindow(200, 200);
+        X11Window *wnd = new X11Window(NULL, &ui);
+        wnd->setWidth(200);
+        wnd->setHeight(200);
+
         if (wnd->init() < 0)
         {
             lsp_error("Error while initializing UI window");

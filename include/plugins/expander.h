@@ -77,7 +77,6 @@ namespace lsp
                 float          *vSc;                // Sidechain data
                 float          *vEnv;               // Envelope data
                 float          *vGain;              // Gain reduction data
-                bool            bScActive;          // External sidechain is active
                 bool            bScListen;          // Listen sidechain
                 size_t          nSync;              // Synchronization flags
                 size_t          nScType;            // Sidechain mode

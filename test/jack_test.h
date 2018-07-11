@@ -52,7 +52,7 @@ namespace jack_test
 //                "sc_expander_stereo";
 //                "sc_expander_lr";
 //                "sc_expander_ms";
-                "gate_mono";
+//                "gate_mono";
 //                "gate_stereo";
 //                "gate_lr";
 //                "gate_ms";
@@ -60,6 +60,10 @@ namespace jack_test
 //                "sc_gate_stereo";
 //                "sc_gate_lr";
 //                "sc_gate_ms";
+//                "limiter_mono";
+//                "limiter_stereo";
+//                "sc_limiter_mono";
+                "sc_limiter_stereo";
 
         return JACK_MAIN_FUNCTION(plugin, argc, argv);
     }

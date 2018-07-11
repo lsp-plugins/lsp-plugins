@@ -737,7 +737,8 @@ namespace lsp
         height  = cv->height();
 
         // Clear background
-        cv->set_color_rgb(CV_BACKGROUND);
+        bool bypassing = vChannels[0].sBypass.bypassing();
+        cv->set_color_rgb((bypassing) ? CV_DISABLED : CV_BACKGROUND);
         cv->paint();
 
         // Calc axis params

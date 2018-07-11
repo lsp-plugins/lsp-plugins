@@ -19,31 +19,47 @@ namespace lsp
     {
         private:
             ssize_t     nCounter;
-            ssize_t     nValue;
+            ssize_t     nTime;
+            float       fOnValue;
+            float       fOffValue;
+            float       fTime;
 
         public:
             inline Blink()
             {
                 nCounter        = 0.0f;
-                nValue          = 0.0f;
+                nTime           = 0.0f;
+                fOnValue        = 1.0f;
+                fOffValue       = 0.0f;
+                fTime           = 0.1f;
             }
 
             inline ~Blink()
             {
                 nCounter        = 0.0f;
-                nValue          = 0.0f;
+                nTime           = 0.0f;
             }
 
         public:
-            /** Initialize bling
+            /** Initialize blink
              *
              * @param sample_rate sample rate
              * @param time activity time
              */
-            inline void init(size_t sample_rate, float time = 0.1)
+            inline void init(size_t sample_rate, float time = 0.1f)
             {
                 nCounter        = 0;
-                nValue          = seconds_to_samples(sample_rate, time);
+                fTime           = time;
+                nTime           = seconds_to_samples(sample_rate, time);
+            }
+
+            /** Update current sample rate
+             *
+             * @param sample_rate current sample rate
+             */
+            inline void set_sample_rate(size_t sample_rate)
+            {
+                nTime           = seconds_to_samples(sample_rate, fTime);
             }
 
             /** Make blinking
@@ -51,7 +67,63 @@ namespace lsp
              */
             inline void blink()
             {
-                nCounter        = nValue;
+                nCounter        = nTime;
+                fOnValue        = 1.0f;
+            }
+
+            /** Make blinking
+             * @param value value to display
+             */
+            inline void blink(float value)
+            {
+                nCounter        = nTime;
+                fOnValue        = value;
+            }
+
+            /** Make blinking
+             *
+             * @param value value that will be displayed if less than max value
+             */
+            inline void blink_max(float value)
+            {
+                if ((nCounter <= 0) || (fOnValue < value))
+                {
+                    fOnValue        = value;
+                    nCounter        = nTime;
+                }
+            }
+
+            /** Make blinking
+             *
+             * @param value value that will be displayed if less than max value
+             */
+            inline void blink_min(float value)
+            {
+                if ((nCounter <= 0) || (fOnValue > value))
+                {
+                    fOnValue        = value;
+                    nCounter        = nTime;
+                }
+            }
+
+            /** Set default values
+             *
+             * @param on default value for on state
+             * @param off default value for off state
+             */
+            inline void set_default(float on, float off)
+            {
+                fOffValue       = off;
+                fOnValue        = on;
+            }
+
+            /** Set default value for off state
+             *
+             * @param off default value for off state
+             */
+            inline void set_default_off(float off)
+            {
+                fOffValue       = off;
             }
 
             /** Process blinking
@@ -60,7 +132,7 @@ namespace lsp
              */
             inline float process(size_t samples)
             {
-                float result    = (nCounter > 0) ? 1.0f : 0.0f;
+                float result    = (nCounter > 0) ? fOnValue : fOffValue;
                 nCounter       -= samples;
                 return result;
             }
@@ -71,7 +143,7 @@ namespace lsp
              */
             inline float value() const
             {
-                return (nCounter > 0) ? 1.0f : 0.0f;
+                return (nCounter > 0) ? fOnValue : fOffValue;
             }
     };
 

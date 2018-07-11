@@ -13,16 +13,6 @@
 
 namespace lsp
 {
-    template <class T> T align(T x)
-    {
-        T v = 1;
-        while (v < x)
-            v <<= 1;
-        return v;
-    };
-
-//    const size_t FLAG_OPTIONAL          = (1 << 0);
-
     class plugin_t
     {
         protected:

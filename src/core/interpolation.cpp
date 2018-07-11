@@ -6,6 +6,7 @@
  */
 
 #include <core/interpolation.h>
+#include <math.h>
 
 namespace lsp
 {
@@ -37,6 +38,20 @@ namespace lsp
             p[1]    = b;
             p[2]    = c;
             p[3]    = d;
+        }
+
+        void exponent(float *p, float x0, float y0, float x1, float y1, float k)
+        {
+            double e        = exp(k*(x0 - x1));
+            p[0]            = (y0 - e*y1) / (1.0 - e);
+            p[1]            = (y0 - p[0]) / exp(k*x0);
+            p[2]            = k;
+        }
+
+        void linear(float *p, float x0, float y0, float x1, float y1)
+        {
+            p[0]            = (y1 - y0) / (x1 - x0);
+            p[1]            = y0 - p[0]*x0;
         }
     }
 }

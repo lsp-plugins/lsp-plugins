@@ -23,6 +23,7 @@
 #include <plugins/dyna_processor.h>
 #include <plugins/expander.h>
 #include <plugins/gate.h>
+#include <plugins/limiter.h>
 #include <plugins/impulse_responses.h>
 
 #endif /* PLUGINS_PLUGINS_H_ */

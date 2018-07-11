@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef CORE_X86_DSP_FLOAT_H_
-#define CORE_X86_DSP_FLOAT_H_
+#ifndef CORE_X86_SSE_FLOAT_H_
+#define CORE_X86_SSE_FLOAT_H_
 
 namespace lsp
 {
@@ -362,4 +362,4 @@ namespace lsp
     }
 }
 
-#endif /* CORE_X86_DSP_FLOAT_H_ */
+#endif /* CORE_X86_SSE_FLOAT_H_ */

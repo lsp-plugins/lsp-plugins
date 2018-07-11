@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef CORE_X86_DSP_SEARCH_H_
-#define CORE_X86_DSP_SEARCH_H_
+#ifndef CORE_X86_SSE_SEARCH_H_
+#define CORE_X86_SSE_SEARCH_H_
 
 namespace lsp
 {
@@ -649,4 +649,4 @@ namespace lsp
     }
 }
 
-#endif /* CORE_X86_DSP_SEARCH_H_ */
+#endif /* CORE_X86_SSE_SEARCH_H_ */

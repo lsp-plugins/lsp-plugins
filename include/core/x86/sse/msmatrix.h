@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef CORE_X86_DSP_MSMATRIX_H_
-#define CORE_X86_DSP_MSMATRIX_H_
+#ifndef CORE_X86_SSE_MSMATRIX_H_
+#define CORE_X86_SSE_MSMATRIX_H_
 
 namespace lsp
 {
@@ -672,4 +672,4 @@ namespace lsp
     } // namespace sse
 } // namespace lsp
 
-#endif /* CORE_X86_DSP_MSMATRIX_H_ */
+#endif /* CORE_X86_SSE_MSMATRIX_H_ */

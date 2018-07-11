@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef CORE_X86_DSP_COMPLEX_H_
-#define CORE_X86_DSP_COMPLEX_H_
+#ifndef CORE_X86_SSE_COMPLEX_H_
+#define CORE_X86_SSE_COMPLEX_H_
 
 namespace lsp
 {
@@ -622,4 +622,4 @@ namespace lsp
     }
 }
 
-#endif /* CORE_X86_DSP_COMPLEX_H_ */
+#endif /* CORE_X86_SSE_COMPLEX_H_ */

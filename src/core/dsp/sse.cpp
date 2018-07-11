@@ -11,15 +11,16 @@
 #include <core/bits.h>
 
 #include <core/x86/dsp.h>
-#include <core/x86/dsp/search.h>
-#include <core/x86/dsp/fft.h>
-#include <core/x86/dsp/complex.h>
-#include <core/x86/dsp/msmatrix.h>
-#include <core/x86/dsp/native.h>
-#include <core/x86/dsp/vec4.h>
-#include <core/x86/dsp/float.h>
-#include <core/x86/dsp/filters.h>
-#include <core/x86/dsp/graphics.h>
+#include <core/x86/sse/complex.h>
+#include <core/x86/sse/fft.h>
+#include <core/x86/sse/filters.h>
+#include <core/x86/sse/float.h>
+#include <core/x86/sse/graphics.h>
+#include <core/x86/sse/msmatrix.h>
+#include <core/x86/sse/search.h>
+#include <core/x86/sse/vec4.h>
+#include <core/x86/sse/resampling.h>
+#include <core/x86/sse/native.h>
 
 namespace lsp
 {
@@ -121,6 +122,17 @@ namespace lsp
             dsp::vec4_zero                  = sse::vec4_zero;
             dsp::axis_apply_log             = sse::axis_apply_log;
             dsp::rgba32_to_bgra32           = sse::rgba32_to_bgra32;
+
+            dsp::lanczos_resample_2x2       = sse::lanczos_resample_2x2;
+            dsp::lanczos_resample_2x3       = sse::lanczos_resample_2x3;
+            dsp::lanczos_resample_3x2       = sse::lanczos_resample_3x2;
+            dsp::lanczos_resample_3x3       = sse::lanczos_resample_3x3;
+            dsp::lanczos_resample_4x2       = sse::lanczos_resample_4x2;
+            dsp::lanczos_resample_4x3       = sse::lanczos_resample_4x3;
+
+            dsp::downsample_2x              = sse::downsample_2x;
+            dsp::downsample_3x              = sse::downsample_3x;
+            dsp::downsample_4x              = sse::downsample_4x;
         }
     }
 

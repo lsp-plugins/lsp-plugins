@@ -85,7 +85,8 @@ namespace lsp
         UIE_SIZE_REQUEST,
         UIE_RESIZE,
         UIE_SHOW,
-        UIE_HIDE
+        UIE_HIDE,
+        UIE_CLOSE
     };
 
     typedef struct ui_event_t
@@ -98,6 +99,22 @@ namespace lsp
         size_t              nCode;      // Key code or button
         size_t              nState;     // State
     } ui_event_t;
+
+    typedef struct ui_size_request_t
+    {
+        ssize_t             nMinWidth;
+        ssize_t             nMinHeight;
+        ssize_t             nMaxWidth;
+        ssize_t             nMaxHeight;
+    } ui_size_request_t;
+
+    typedef struct ui_realize_t
+    {
+        ssize_t             nLeft;
+        ssize_t             nTop;
+        size_t              nWidth;
+        size_t              nHeight;
+    } ui_realize_t;
 }
 
 #endif /* UI_IO_H_ */

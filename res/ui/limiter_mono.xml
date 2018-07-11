@@ -1,0 +1,169 @@
+<plugin width="400" height="400" resizable="false">
+	<hbox border="0">
+		<align pad_left="4" pad_right="4">
+			<vbox>
+				<label text="Bypass" />
+				<switch id="bypass" angle="1" />
+				<led id="bypass" color="red" size="8" />
+				<label />
+			</vbox>
+		</align>
+		
+		<vbox>
+			<grid rows="2" cols="5" transpose="true">
+				<!-- Time graph -->
+				<align expand="true" fill="true" pad_top="4">
+					<graph width="420" height="280">
+						<!-- Gray grid -->
+						<marker value="0.25119" color="gray" basis="1" parallel="0" />  <!-- -12 dB -->
+						<marker value="0.01585" color="gray" basis="1" parallel="0" />  <!-- -36 dB -->
+						<marker value="0.001" color="gray" basis="1" parallel="0" />    <!-- -60 dB -->
+						<ui:for id="t" first="0" last="2">
+							<marker value="${t}.5" color="gray" basis="0" parallel="1" />
+						</ui:for>
+						
+						<!-- Yellow grid -->
+						<marker value="0.06310" color="yellow" basis="1" parallel="0" /><!-- -24 dB -->
+						<ui:for id="t" first="1" last="2">
+							<marker value="${t}" color="yellow" basis="0" parallel="1" />
+						</ui:for>
+		
+						<!-- Axises and boundaries -->
+						<center hpos="1" vpos="-1" visible="false" />
+						<axis min="0" max="3" color="gray" angle="1.0" logarithmic="false" />
+						<axis min="0.00398" max="1.0" color="gray" angle="0.5" logarithmic="true" />
+						<marker value="0" color="gray" basis="1" parallel="0" /> <!-- 0 dB -->
+						<marker value="3" color="gray" basis="0" parallel="1" />
+						
+						<!-- Baseline -->
+						<marker value="1.0" color="white" basis="1" parallel="0" width="2" /> <!-- 0 dB -->
+						
+						<!-- Meshes -->
+						<mesh id="ig" width="2" color="middle_channel_in" visibility=":igv" />
+						<mesh id="og" width="2" color="middle_channel" visibility=":ogv" />
+						<mesh id="scg" width="2" color="bright_green" visibility=":scgv" />
+						<mesh id="grg" width="2" color="bright_blue" visibility=":grgv" />
+						
+						<!-- Markers -->
+						<marker id="th" color="magenta" basis="1" parallel="0" />
+						
+						<!-- Text -->
+						<text text="0 dB" coord="3;1" halign="1" valign="-1" />
+						<text text="-12" coord="3;0.25119" halign="1" valign="-1" />
+						<text text="-24" coord="3;0.06310" halign="1" valign="-1" />
+						<text text="-36" coord="3;0.01585" halign="1" valign="-1" />
+					
+						<text text="s" coord="3;0.00398" halign="1" valign="1" />
+						<ui:for id="t" first="0" last="3">
+							<text text="${t}" coord="${t};0.00398" halign="-1" valign="1" color="white" />
+							<text text="${t}.5" coord="${t}.5;0.00398" halign="-1" valign="1" color="white" />
+						</ui:for>
+					</graph>
+				</align>
+				
+				<!-- Graph buttons -->
+				<hbox expand="true">
+					<button id="pause" size="16" color="green" led="true" />
+					<label text="Pause" />
+					<button id="clear" size="16" color="red" led="true" />
+					<label text="Clear" />
+					<align hpos="0.5" fill="true">
+						<hbox spacing="4">
+							<label text="Mode:" />
+							<combo id="mode" />
+							<label text="O/S:" />
+							<combo id="ovs" />
+						</hbox>
+					</align>
+					<label text="TIME GRAPH" />
+				</hbox>
+				
+				<!-- Sidechain meters -->				
+				<align expand="true" fill="true" vpos="1" pad_bottom="8">
+					<vbox>
+						<button id="scgv" size="16" color="bright_green" led="true" />
+						<meter id="sclm" angle="1" logarithmic="true" min="0.00398" max="1.0" height="280" color="bright_green" activity_id="scgv" />
+					</vbox>
+				</align>
+				<label text="SC" />
+				
+				<!-- Gain meters -->				
+				<align expand="true" fill="true" vpos="1" pad_bottom="8">
+					<vbox>
+						<button id="grgv" size="16" color="bright_blue" led="true" />
+						<meter id="grlm" activity_id="grgv" color="bright_blue"  
+							angle="1" logarithmic="true" type="peak"
+							min="0.00398" max="1.0" balance="1.0" height="280" />
+					</vbox>
+				</align>
+				<label text="Gain" />
+				
+				<!-- Input signal meters -->
+				<align expand="true" fill="true" vpos="1" pad_bottom="8">
+					<vbox>
+						<button id="igv" size="16" color="middle_channel" led="true" />
+						<meter id="ilm" angle="1" type="rms_peak" min="0.00398" max="1.0" height="280" color="middle_channel" activity_id="igv" />
+					</vbox>
+				</align>
+				<label text="In" />
+				
+				<!-- Output signal meters -->
+				<align expand="true" fill="true" vpos="1" pad_bottom="8">
+					<vbox>
+						<button id="ogv" size="16" color="middle_channel" led="true" />
+						<meter id="olm" angle="1" type="rms_peak" min="0.00398" max="1.0" height="280" color="middle_channel" activity_id="ogv" />
+					</vbox>
+				</align>
+				<label text="Out" />
+			</grid>
+			<hbox>
+				<!-- Limiter setup -->
+				<group text="Limiter" expand="true">
+					<grid rows="3" cols="6">
+						<label text="SC Preamp" />
+						<label text="Lookahead" />
+						<label text="Threshold" />
+						<label text="Attack" />
+						<label text="Release" />
+						<label text="Knee" />
+						
+						<knob id="scp" />
+						<knob id="lk" />
+						<knob id="th" scale_color="magenta" />
+						<knob id="at" />
+						<knob id="rt" />
+						<knob id="knee" />
+						
+						<value id="scp" />
+						<value id="lk" />
+						<hbox>
+							<vbox>
+								<button id="boost" size="12" color="green" led="true" />
+								<label text="Boost" font_size="8" />
+							</vbox>
+							<value id="th" />
+							<label text="  " />
+						</hbox>
+						<value id="at" />
+						<value id="rt" />
+						<value id="knee" />
+					</grid>
+				</group>
+				
+				<!-- Signal control -->
+				<group text="Signal">
+					<grid rows="3" cols="2">
+						<label text="Input" />
+						<label text="Output" />
+						
+						<knob id="g_in" />
+						<knob id="g_out" />
+						
+						<value id="g_in" />
+						<value id="g_out" />
+					</grid>
+				</group>
+			</hbox>
+		</vbox>
+	</hbox>
+</plugin>

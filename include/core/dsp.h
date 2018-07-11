@@ -34,12 +34,16 @@
 
 namespace lsp
 {
+    //-----------------------------------------------------------------------
+    // DSP context parameters
     typedef struct dsp_context_t
     {
         uint32_t        top;
         uint32_t        data[15];
     } dsp_context_t;
 
+    //-----------------------------------------------------------------------
+    // Digital filtering
     #pragma pack(push, 1)
     /*
          Normalized biquad filter:
@@ -155,6 +159,19 @@ namespace lsp
 
     #pragma pack(pop)
 
+    //-----------------------------------------------------------------------
+    // Resampling
+    /** Resampling/oversampling funtion type.
+     * Remember that destination buffer must be times greater and have additional gap (>=32 samples) at
+     * the tail to contain complete convolution after resampling
+     *
+     * @param dst destination buffer
+     * @param src source buffer
+     * @param count number of samples to process
+     */
+    typedef void (* resampling_function_t)(float *dst, const float *src, size_t count);
+
+    // Namespace containing function
     namespace dsp
     {
         // Start and finish types
@@ -745,6 +762,84 @@ namespace lsp
          * @param count number of samples to process
          */
         extern void (* rgba32_to_bgra32)(void *dst, const void *src, size_t count);
+
+        /** Perform lanczos resampling, destination buffer must be cleared and contain only
+         * convolution tail from previous resampling
+         *
+         * @param dst destination buffer of count*2 samples + 32 samples for convolution tail
+         * @param src source buffer of count samples
+         * @param count number of samples
+         */
+        extern void (* lanczos_resample_2x2)(float *dst, const float *src, size_t count);
+
+        /** Perform lanczos resampling, destination buffer must be cleared and contain only
+         * convolution tail from previous resampling
+         *
+         * @param dst destination buffer of count*2 samples + 32 samples for convolution tail
+         * @param src source buffer of count samples
+         * @param count number of samples
+         */
+        extern void (* lanczos_resample_2x3)(float *dst, const float *src, size_t count);
+
+        /** Perform lanczos resampling, destination buffer must be cleared and contain only
+         * convolution tail from previous resampling
+         *
+         * @param dst destination buffer of count*3 samples + 32 samples for convolution tail
+         * @param src source buffer of count samples
+         * @param count number of samples
+         */
+        extern void (* lanczos_resample_3x2)(float *dst, const float *src, size_t count);
+
+        /** Perform lanczos resampling, destination buffer must be cleared and contain only
+         * convolution tail from previous resampling
+         *
+         * @param dst destination buffer of count*3 samples + 32 samples for convolution tail
+         * @param src source buffer of count samples
+         * @param count number of samples
+         */
+        extern void (* lanczos_resample_3x3)(float *dst, const float *src, size_t count);
+
+        /** Perform lanczos resampling, destination buffer must be cleared and contain only
+         * convolution tail from previous resampling
+         *
+         * @param dst destination buffer of count*4 samples + 32 samples for convolution tail
+         * @param src source buffer of count samples
+         * @param count number of samples
+         */
+        extern void (* lanczos_resample_4x2)(float *dst, const float *src, size_t count);
+
+        /** Perform lanczos resampling, destination buffer must be cleared and contain only
+         * convolution tail from previous resampling
+         *
+         * @param dst destination buffer of count*4 samples + 32 samples for convolution tail
+         * @param src source buffer of count samples
+         * @param count number of samples
+         */
+        extern void (* lanczos_resample_4x3)(float *dst, const float *src, size_t count);
+
+        /** Copy each even sample to output buffer
+         *
+         * @param dst destination buffer
+         * @param src source buffer
+         * @param count number of samples to process
+         */
+        extern void (* downsample_2x)(float *dst, const float *src, size_t count);
+
+        /** Copy each 3rd sample to output buffer
+         *
+         * @param dst destination buffer
+         * @param src source buffer
+         * @param count number of samples to process
+         */
+        extern void (* downsample_3x)(float *dst, const float *src, size_t count);
+
+        /** Copy each 4th sample to output buffer
+         *
+         * @param dst destination buffer
+         * @param src source buffer
+         * @param count number of samples to process
+         */
+        extern void (* downsample_4x)(float *dst, const float *src, size_t count);
     }
 
 } /* namespace forzee */

@@ -8,8 +8,6 @@
 #ifndef PLUGINS_DYNA_PROCESSOR_H_
 #define PLUGINS_DYNA_PROCESSOR_H_
 
-#ifdef LSP_NO_KVRDC16
-
 #include <metadata/plugins.h>
 
 #include <core/plugin.h>
@@ -81,7 +79,6 @@ namespace lsp
                 float              *vSc;                // Sidechain data
                 float              *vEnv;               // Envelope data
                 float              *vGain;              // Gain reduction data
-                bool                bScActive;          // External sidechain is active
                 bool                bScListen;          // Listen sidechain
                 size_t              nSync;              // Synchronization flags
                 size_t              nScType;            // Sidechain mode
@@ -216,7 +213,5 @@ namespace lsp
     };
 
 }
-
-#endif
 
 #endif /* PLUGINS_DYNA_PROCESSOR_H_ */

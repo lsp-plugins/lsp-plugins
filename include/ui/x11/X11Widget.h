@@ -14,9 +14,25 @@ namespace lsp
     {
         class X11Widget
         {
+            protected:
+                ssize_t     nLeft;
+                ssize_t     nTop;
+                size_t      nWidth;
+                size_t      nHeight;
+                bool        bVisible;
+
             public:
                 X11Widget(plugin_ui *ui, widget_t w_class);
                 virtual ~X11Widget();
+
+            public:
+                virtual void add(IWidget *widget);
+
+                virtual void render(ISurface *s);
+
+                virtual void size_request(ui_size_request_t *r);
+
+                virtual void realize(const ui_realize_t *r);
 
             public:
                 virtual void handleEvent(const ui_event_t *ev);

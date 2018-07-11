@@ -9,8 +9,8 @@
 #include <core/debug.h>
 #include <core/dsp.h>
 #include <core/bits.h>
+#include <core/x86/sse/const.h>
 
-#include <core/x86/dsp/const.h>
 #include <core/x86/sse3/filters.h>
 
 namespace lsp

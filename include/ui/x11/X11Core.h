@@ -27,6 +27,7 @@ namespace lsp
                 int             nWhiteColor;
                 cvector<X11Window> vWindows;
                 timespec        sLastRender;
+                x11_atoms_t     sAtoms;
 
             protected:
                 void            handleEvent(XEvent *ev);
@@ -45,12 +46,14 @@ namespace lsp
                 void quit_main();
 
             public:
-                X11Window      *createWindow(size_t width, size_t height);
+                bool                addWindow(X11Window *wnd);
+                bool                removeWindow(X11Window *wnd);
 
-                Display        *x11display() const  { return pDisplay; }
-                Window          x11root() const     { return hRootWnd; }
-                int             x11screen() const   { return hDflScreen; }
-                void            x11sync();
+                inline Display             *x11display() const  { return pDisplay; }
+                inline Window               x11root() const     { return hRootWnd; }
+                inline int                  x11screen() const   { return hDflScreen; }
+                inline const x11_atoms_t   &atoms() const       { return sAtoms; }
+                void                        x11sync();
 
             public:
                 static const char *event_name(int xev_code);

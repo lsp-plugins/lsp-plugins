@@ -88,7 +88,6 @@ namespace lsp
             ptr                += buf_size;
             c->vGain            = reinterpret_cast<float *>(ptr);
             ptr                += buf_size;
-            c->bScActive        = false;
             c->bScListen        = false;
             c->nSync            = S_ALL;
             c->nScType          = SCT_INTERNAL;

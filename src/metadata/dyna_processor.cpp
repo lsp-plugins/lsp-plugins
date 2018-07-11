@@ -5,8 +5,6 @@
  *      Author: sadko
  */
 
-#ifdef LSP_NO_KVRDC16
-
 #include <core/types.h>
 #include <metadata/plugins.h>
 #include <metadata/ports.h>
@@ -373,5 +371,3 @@ namespace lsp
         stereo_plugin_sidechain_port_groups
     };
 }
-
-#endif

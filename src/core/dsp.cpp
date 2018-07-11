@@ -119,7 +119,18 @@ namespace lsp
         void    (* vec4_zero)(float *v) = NULL;
 
         void    (* axis_apply_log)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count) = NULL;
-        void    (* rgba32_to_bgra32)(void *dst, const void *src, size_t count);
+        void    (* rgba32_to_bgra32)(void *dst, const void *src, size_t count) = NULL;
+
+        void    (* lanczos_resample_2x2)(float *dst, const float *src, size_t count) = NULL;
+        void    (* lanczos_resample_2x3)(float *dst, const float *src, size_t count) = NULL;
+        void    (* lanczos_resample_3x2)(float *dst, const float *src, size_t count) = NULL;
+        void    (* lanczos_resample_3x3)(float *dst, const float *src, size_t count) = NULL;
+        void    (* lanczos_resample_4x2)(float *dst, const float *src, size_t count) = NULL;
+        void    (* lanczos_resample_4x3)(float *dst, const float *src, size_t count) = NULL;
+
+        void    (* downsample_2x)(float *dst, const float *src, size_t count) = NULL;
+        void    (* downsample_3x)(float *dst, const float *src, size_t count) = NULL;
+        void    (* downsample_4x)(float *dst, const float *src, size_t count) = NULL;
     }
 
     namespace dsp

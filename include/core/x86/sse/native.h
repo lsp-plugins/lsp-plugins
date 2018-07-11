@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef CORE_X86_DSP_NATIVE_H_
-#define CORE_X86_DSP_NATIVE_H_
+#ifndef CORE_X86_SSE_NATIVE_H_
+#define CORE_X86_SSE_NATIVE_H_
 
 namespace lsp
 {
@@ -88,23 +88,6 @@ namespace lsp
             return mix(dst, dst, src, 1.0f - k, k, count);
         }
 
-//        static float abs_max(const float *src, size_t count)
-//        {
-//            if (count == 0)
-//                return 0.0f;
-//
-//            float min, max;
-//            minmax(src, count, &min, &max);
-//            if (min < 0.0f)
-//                min     = - min;
-//            if (max < 0.0f)
-//                max     = - max;
-//            if (max < min)
-//                max     = min;
-//
-//            return max;
-//        }
-
         static void convolve(float *dst, const float *src, const float *conv, size_t length, size_t count)
         {
             if (length == 0)
@@ -131,4 +114,4 @@ namespace lsp
     }
 }
 
-#endif /* CORE_X86_DSP_NATIVE_H_ */
+#endif /* CORE_X86_SSE_NATIVE_H_ */

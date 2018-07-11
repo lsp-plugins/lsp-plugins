@@ -7,6 +7,7 @@
 
 #include <ui/x11/ui.h>
 #include <sys/poll.h>
+#include <core/status.h>
 
 namespace lsp
 {
@@ -44,8 +45,12 @@ namespace lsp
             nBlackColor     = BlackPixel(pDisplay, hDflScreen);
             nWhiteColor     = WhitePixel(pDisplay, hDflScreen);
 
-            // Return success
-            return 0;
+            // Initialize atoms
+            int result = init_atoms(pDisplay, &sAtoms);
+            if (result != STATUS_SUCCESS)
+                return result;
+
+            return STATUS_SUCCESS;
         }
 
         void X11Core::destroy()
@@ -75,14 +80,16 @@ namespace lsp
                 x11_poll.events     = POLLIN | POLLPRI | POLLHUP;
                 x11_poll.revents    = 0;
 
+                errno               = 0;
                 int poll_res = poll(&x11_poll, 1, 40);
                 if (poll_res < 0)
                 {
-                    lsp_trace("Poll returned error: %d", poll_res);
-                    return -1;
+                    int err_code = errno;
+                    lsp_trace("Poll returned error: %d, code=%d", poll_res, err_code);
+                    if (err_code != EINTR)
+                        return -1;
                 }
-
-                if ((force) || ((poll_res > 0) && (x11_poll.revents > 0)))
+                else if ((force) || ((poll_res > 0) && (x11_poll.revents > 0)))
                 {
                     // Do iteration
                     int result = do_main_iteration(force);
@@ -204,6 +211,14 @@ namespace lsp
                     ue.nType    = UIE_HIDE;
                     break;
 
+                case ClientMessage:
+                    if (ev->xclient.message_type == sAtoms.X11_WM_PROTOCOLS)
+                    {
+                        if (ev->xclient.data.l[0] == long(sAtoms.X11_WM_DELETE_WINDOW))
+                            ue.nType        = UIE_CLOSE;
+                    }
+                    break;
+
                 default:
                     return;
             }
@@ -228,57 +243,24 @@ namespace lsp
             bExit = true;
         }
 
-        X11Window *X11Core::createWindow(size_t width, size_t height)
+        bool X11Core::addWindow(X11Window *wnd)
         {
-            // Try to create window
-            Window wnd = XCreateSimpleWindow(pDisplay, hRootWnd, 0, 0, width, height, 0, 0, 0);
-            if (wnd <= 0)
-                return NULL;
+            return vWindows.add(wnd);
+        }
 
-            // Now select input for new handle
-            XSelectInput(pDisplay, wnd,
-                KeyPressMask |
-                KeyReleaseMask |
-                ButtonPressMask |
-                ButtonReleaseMask |
-                EnterWindowMask |
-                LeaveWindowMask |
-                PointerMotionMask |
-                /*PointerMotionHintMask | */
-                Button1MotionMask |
-                Button2MotionMask |
-                Button3MotionMask |
-                Button4MotionMask |
-                Button5MotionMask |
-                ButtonMotionMask |
-                KeymapStateMask |
-                ExposureMask |
-                /*VisibilityChangeMask |*/
-                StructureNotifyMask |
-                /*ResizeRedirectMask | */
-                SubstructureNotifyMask |
-                SubstructureRedirectMask |
-                FocusChangeMask |
-                PropertyChangeMask |
-                ColormapChangeMask |
-                OwnerGrabButtonMask
-            );
+        bool X11Core::removeWindow(X11Window *wnd)
+        {
+            if (!vWindows.remove(wnd))
+                return false;
 
-            // Now create X11Window instance
-            X11Window *x11wnd = new X11Window(this, wnd, width, height);
-            if (x11wnd != NULL)
-            {
-                // Add window to list
-                if (vWindows.add(x11wnd))
-                {
-                    XFlush(pDisplay);
-                    return x11wnd;
-                }
-                delete x11wnd;
-            }
+            // Call window destroy
+            wnd->destroy();
+            delete wnd;
 
-            XDestroyWindow(pDisplay, wnd);
-            return NULL;
+            // Check if need to leave main cycle
+            if (vWindows.size() <= 0)
+                bExit = true;
+            return true;
         }
 
         const char *X11Core::event_name(int xev_code)

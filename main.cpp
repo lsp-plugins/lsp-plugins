@@ -24,6 +24,7 @@
 #include "test/vec4_test.h"
 #include "test/profiling_test.h"
 #include "test/fft_conv_test.h"
+#include "test/fft_filter.h"
 #include "test/crossover_test.h"
 #include "test/saturation_test.h"
 #include "test/log_test.h"
@@ -32,10 +33,15 @@
 #include "test/equalizer_test.h"
 #include "test/avx_test.h"
 #include "test/sidechain_test.h"
+#include "test/oversampling_test.h"
+#include "test/downsampling_test.h"
+#include "test/limiter_test.h"
 #include "test/xwindow.h"
 
 //#define TEST gtk_test
-#define TEST jack_test
+//#define TEST jack_test
+#define TEST xwindow_test
+//#define TEST limiter_test
 //#define TEST fft_conv_test
 //#define TEST crossover_test
 //#define TEST saturation_test
@@ -45,7 +51,7 @@
 //#define TEST equalizer_test
 //#define TEST avx_test
 //#define TEST sidechain_test
-//#define TEST xwindow_test
+//#define TEST downsampling_test
 
 //#define TEST vec4_test
 //#define TEST view_ui_test
@@ -55,6 +61,7 @@
 //#define TEST audiofile_test
 //#define TEST convolution_test
 //#define TEST fft_test
+//#define TEST fft_filter_test
 //#define TEST dsp_speed_test
 //#define TEST fft_speed_test
 //#define TEST window_test

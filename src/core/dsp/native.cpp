@@ -13,6 +13,7 @@
 #include <core/native/dsp.h>
 #include <core/native/float.h>
 #include <core/native/graphics.h>
+#include <core/native/resampling.h>
 
 namespace lsp
 {
@@ -91,6 +92,17 @@ namespace lsp
             dsp::vec4_zero                  = native::vec4_zero;
             dsp::axis_apply_log             = native::axis_apply_log;
             dsp::rgba32_to_bgra32           = native::rgba32_to_bgra32;
+
+            dsp::lanczos_resample_2x2       = native::lanczos_resample_2x2;
+            dsp::lanczos_resample_2x3       = native::lanczos_resample_2x3;
+            dsp::lanczos_resample_3x2       = native::lanczos_resample_3x2;
+            dsp::lanczos_resample_3x3       = native::lanczos_resample_3x3;
+            dsp::lanczos_resample_4x2       = native::lanczos_resample_4x2;
+            dsp::lanczos_resample_4x3       = native::lanczos_resample_4x3;
+
+            dsp::downsample_2x              = native::downsample_2x;
+            dsp::downsample_3x              = native::downsample_3x;
+            dsp::downsample_4x              = native::downsample_4x;
         }
     } // namespace native
 } // namespace dsp

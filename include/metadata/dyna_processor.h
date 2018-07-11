@@ -8,8 +8,6 @@
 #ifndef METADATA_DYNA_PROCESSOR_H_
 #define METADATA_DYNA_PROCESSOR_H_
 
-#ifdef LSP_NO_KVRDC16
-
 namespace lsp
 {
     //-------------------------------------------------------------------------
@@ -117,7 +115,5 @@ namespace lsp
     };
 
 }
-
-#endif
 
 #endif /* METADATA_DYNA_PROCESSOR_H_ */

@@ -1752,6 +1752,101 @@ Description:	Expander processor with sidechain
 
 -----------------------------------------------------
 
------------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Begrenzer Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Limiter with oversampling support and different algorithms. Mono version.
+		
+	Registration:	
+		
+	*Plugin ID:	jz5z
 
 -----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Begrenzer Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Limiter with oversampling support and different algorithms. Stereo version.
+		
+	Registration:	
+		
+	*Plugin ID:	rfuc
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain-Begrenzer Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Limiter with oversampling support and different algorithms. Mono version with additional external sidechain input.
+		
+	Registration:	
+		
+	*Plugin ID:	kyzu
+
+-----------------------------------------------------
+
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain-Begrenzer Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Limiter with oversampling support and different algorithms. Stereo version with additional external sidechain inputs.
+		
+	Registration:	
+		
+	*Plugin ID:	zwf7

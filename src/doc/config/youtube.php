@@ -7,7 +7,9 @@ $YOUTUBE = array(
 	'TfpJPsiouuU' => 'Parametrischer Entzerrer',
 	'OQq5r1gr5tw' => 'Grafisher Entzerrer',
 	'HXOjx3jfw2I' => 'Kompressor & Sidechain-Kompressor',
-	'p6otNrilF0U' => 'Gate & Expander'
+	'p6otNrilF0U' => 'Gate & Expander',
+	'rvEhP_PRtzk' => 'Dynamikprozessor',
+	'laExcuCMDY4' => 'Begrenzer'
 );
 
 ?>

@@ -33,12 +33,39 @@ namespace lsp
             ~MeterGraph();
 
         public:
+            /** Initialize meter graph
+             *
+             * @param frames number of frames used for graph and needed to be stored in internal buffer
+             * @param period strobe period
+             * @return true on success
+             */
             bool init(size_t frames, size_t period);
+
+            /** Destroy meter graph
+             *
+             */
             void destroy();
 
+            /** Set metering method
+             *
+             * @param m metering method
+             */
             inline void set_method(meter_method_t m) { bMinimize = (m == MM_MINIMUM); };
 
+            /** Get data stored in buffer
+             *
+             * @return pointer to the first element of the buffer
+             */
             inline float *data()    { return sBuffer.head();   }
+
+            /** Set strobe period
+             *
+             * @param period strobe period
+             */
+            inline void set_period(size_t period)
+            {
+                nPeriod         = period;
+            }
 
             /** Process single sample
              *
