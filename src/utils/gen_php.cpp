@@ -102,7 +102,7 @@ namespace lsp
         fprintf(out, "\t\t)");
     }
 
-    void gen_php(const char *fname)
+    void gen_php(const char *version, const char *fname)
     {
         // Generate PHP file
         FILE *out;
@@ -112,6 +112,9 @@ namespace lsp
 
         // Write PHP header
         fprintf(out, "<?php\n");
+        fprintf(out, "\n");
+        fprintf(out, "\t$LATEST_RELEASE = '%s';\n", version);
+        fprintf(out, "\n");
         fprintf(out, "\t$PLUGINS = array(\n");
 
         // Output plugins
@@ -132,9 +135,9 @@ namespace lsp
 #ifndef LSP_IDE_DEBUG
 int main(int argc, const char **argv)
 {
-    if (argc <= 0)
-        fprintf(stderr, "required destination file name");
-    lsp::gen_php(argv[1]);
+    if (argc <= 1)
+        fprintf(stderr, "required release version and destination file name");
+    lsp::gen_php(argv[1], argv[2]);
 
     return 0;
 }

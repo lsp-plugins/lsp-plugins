@@ -4,6 +4,7 @@
 #include <plugins/plugins.h>
 #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
 #include <ui/ui.h>
+#include <string.h>
 
 // LV2UI extension routines
 LV2_SYMBOL_EXPORT
@@ -12,7 +13,7 @@ const LV2_Descriptor *lv2_descriptor(uint32_t index);
 LV2_SYMBOL_EXPORT
 const LV2UI_Descriptor *lv2ui_descriptor(uint32_t index);
 
-namespace gtk_test
+namespace view_ui_test
 {
     using namespace lsp;
 
@@ -76,30 +77,21 @@ namespace gtk_test
         return NULL;
     }
 
-    int test(int argc, const char **argv)
+    int test_ui(const char *plugin_id, const plugin_metadata_t *mdata)
     {
-        dsp::init();
-
-        #define SET_PLUGIN(id) \
-            const char *plugin_id   = #id;   \
-            const plugin_metadata_t *mdata = &id::metadata;
-
-//        SET_PLUGIN(spectrum_analyzer_x16);
-//        SET_PLUGIN(sampler_stereo);
-        SET_PLUGIN(multisampler_x12_do);
-
         const LV2_Descriptor *descr = get_lv2_descriptor(plugin_id); \
         if (descr == NULL)
-        return -1;
+            return -1;
 
         const LV2UI_Descriptor *ui_descr = get_lv2ui_descriptor(plugin_id);
         if (ui_descr == NULL)
             return -1;
 
-        gtk_init (&argc, const_cast<char ***>(&argv));
+        char plugin_name[256];
+        snprintf(plugin_name, sizeof(plugin_name), "%s - %s", mdata->name, mdata->description);
 
         GtkWidget *window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-        gtk_window_set_title(GTK_WINDOW(window), "Test plugin");
+        gtk_window_set_title(GTK_WINDOW(window), plugin_name);
         gtk_window_set_default_size (GTK_WINDOW (window), 500, 300);
         gtk_container_set_border_width (GTK_CONTAINER (window), 0);
 
@@ -117,7 +109,7 @@ namespace gtk_test
 
         gtk_widget_show_all(window);
 
-//        float value = 0;
+        //        float value = 0;
         LV2UI_Peak_Data pd;
         pd.peak = 0;
         pd.period_size = 0;
@@ -155,6 +147,24 @@ namespace gtk_test
         gtk_main ();
 
         ui_descr->cleanup(handle);
+
+        return 0;
+    }
+
+    int test(int argc, const char **argv)
+    {
+        dsp::init();
+        gtk_init (&argc, const_cast<char ***>(&argv));
+
+        // Process all UI to be shown
+        #define MOD_GTK2(plugin) \
+        { \
+            int res     = test_ui(#plugin, &plugin::metadata); \
+            if (res < 0) \
+                return res; \
+        }
+
+        #include <metadata/modules.h>
 
         return 0;
     }

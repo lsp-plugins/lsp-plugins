@@ -19,8 +19,10 @@
 #include "test/genttl.h"
 #include "test/lv2_buf_size.h"
 #include "test/alloc_test.h"
+#include "test/view_ui.h"
 
-#define TEST gtk_test
+//#define TEST gtk_test
+#define TEST view_ui_test
 //#define TEST ladspa_test
 //#define TEST vst_test
 //#define TEST res_gen

@@ -48,9 +48,16 @@ namespace lsp
              *
              * @param data amount of data to push, if NULL then buffer is filled with zeros
              * @param count number of samples
-             * @return
+             * @return number of samples appended
              */
             size_t append(const float *data, size_t count);
+
+            /** Append the single sample
+             *
+             * @param data sample to append
+             * @return number of samples appended
+             */
+            size_t append(float data);
 
             /** Remove data from the beginning of the buffer
              *
@@ -59,6 +66,12 @@ namespace lsp
              * @return number of samples removed
              */
             size_t shift(float *data, size_t count);
+
+            /** Remove one sample from the beginning of the buffer
+             *
+             * @return removed sampler or 0 if the buffer is empty
+             */
+            float shift();
 
             /** Return the number of items in the buffer
              *
@@ -93,6 +106,48 @@ namespace lsp
             inline const float *tail() const
             {
                 return (pData != NULL) ? &pData[nTail] : NULL;
+            }
+
+            /** Get the data pointer at the head of buffer
+             * @param offset offset from the head
+             * @return data pointer at the head of buffer
+             */
+            inline const float *head(size_t offset) const
+            {
+                if (pData == NULL)
+                    return NULL;
+                offset += nHead;
+                return (offset >= nTail) ? NULL : &pData[offset];
+            }
+
+            /** Get the data pointer at the tail of buffer
+             * @param offset offset from the tail
+             * @return data pointer at the tail of buffer
+             */
+            inline const float *tail(size_t offset) const
+            {
+                if (pData == NULL)
+                    return NULL;
+                ssize_t off = nTail - offset;
+                return (off < ssize_t(nHead)) ? NULL : &pData[off];
+            }
+
+            /** Get the first sample in the buffer
+             *
+             * @return the first sample in the buffer or 0 if empty
+             */
+            inline float first() const
+            {
+                return ((pData != NULL) && (nTail > nHead)) ? pData[nHead] : 0.0f;
+            }
+
+            /** Get the last sample in the buffer
+             *
+             * @return the last sample in the buffer or 0 if empty
+             */
+            inline float last() const
+            {
+                return ((pData != NULL) && (nTail > nHead)) ? pData[nTail-1] : 0.0f;
             }
 
             /** Copy data from the specified ShiftBuffer

@@ -1,16 +1,35 @@
+*******************************************************************************
+* RECENT CHANGES
+*******************************************************************************
+
+=== 1.0.8 ===
+
+- Implemented JACK wrapper, all plugins now have their standalone implementations.
+- Improved support of LinuxVST for Tracktion DAW.
+- Added metering control to UI.
+- Implemented Triggersensor MIDI Mono/Stereo plugin series.
+- Implemented Triggersensor Mono/Stereo x12/x24/x48 plugin series.
+
+
+*******************************************************************************
+* PLUGIN LIST
+*******************************************************************************
+
 1+   Phasendetektor (Phase detector)
 2+   Verzögerungsausgleicher (Phase Compensator)
 3+   Spektrumanalysator (Spectrum Analyzer)
-4-   Klangerzeuger (Sampler)
-5-   Triggersensor (Trigger)
-6-   Leitungsvermittler (Circuit Switcher)
-7-   Korellationsmeter (Corellometer)
-8-   Impulsantworten (Impulse responses)
-9-   Ortswechsel (Dynamic panner)
-10-  Nachhall (Reverberation)
-11-  Kompressor (Compressor)
-12-  Begrenzer (Limiter)
-13-  Expander (Expander)
-14-  Ausgleich (Equalizer)
-15-  Verzerrung (Distortion)
-16-  Tonhöhenänderer (Pitch shift)
+4+   Klangerzeuger (Sampler)
+5+   Schlagzeug (Sampler)
+6-   Triggersensor (Trigger)
+7-   Leitungsvermittlung (Circuit Switcher)
+8-   Korellationsmeter (Corellometer)
+9-   Impulsantworten (Impulse responses)
+10-  Ortswechsel (Dynamic panner)
+11-  Nachhall (Reverberation)
+12-  Kompressor (Compressor)
+13-  Begrenzer (Limiter)
+14-  Expander (Expander)
+15-  Ausgleich (Equalizer)
+16-  Verzerrung (Distortion)
+17-  Tonhöhenänderer (Pitch shift)
+18-  Sampler (real sampler)

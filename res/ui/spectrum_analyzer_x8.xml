@@ -67,7 +67,7 @@
 	
 		<vbox>
 			<group text="Channels">
-				<grid rows="11" cols="9">
+				<grid rows="11" cols="9" transpose="true">
 					<label />
 					<label text="On" />
 					<label />

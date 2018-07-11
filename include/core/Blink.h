@@ -64,6 +64,15 @@ namespace lsp
                 nCounter       -= samples;
                 return result;
             }
+
+            /** Get current activity value of the blink
+             *
+             * @return current activity value of the blink
+             */
+            inline float value() const
+            {
+                return (nCounter > 0) ? 1.0f : 0.0f;
+            }
     };
 
 } /* namespace lsp */

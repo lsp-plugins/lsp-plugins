@@ -71,11 +71,29 @@ namespace lsp
             return push(&me);
         }
 
-        inline void copy_from(const midi_t *dst)
+        inline bool push_all(const midi_t *src)
         {
-            nEvents     = dst->nEvents;
+            size_t avail    = MIDI_EVENTS_MAX - nEvents;
+            size_t count    = (src->nEvents > avail) ? avail : src->nEvents;
+            if (count > 0)
+            {
+                ::memcpy(&vEvents[nEvents], src->vEvents, count * sizeof(midi_event_t));
+                nEvents        += count;
+            }
+
+            return count >= src->nEvents;
+        }
+
+        inline bool push_all(const midi_t &src)
+        {
+            return push_all(&src);
+        }
+
+        inline void copy_from(const midi_t *src)
+        {
+            nEvents     = src->nEvents;
             if (nEvents > 0)
-                memcpy(vEvents, dst->vEvents, nEvents * sizeof(midi_event_t));
+                ::memcpy(vEvents, src->vEvents, nEvents * sizeof(midi_event_t));
         }
 
         inline void copy_to(midi_t *dst) const

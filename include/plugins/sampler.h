@@ -144,8 +144,12 @@ namespace lsp
             virtual ~sampler_kernel();
 
         public:
+            virtual void trigger_on(size_t timestamp, float level);
+            virtual void trigger_stop(size_t timestamp);
+
+        public:
             bool    init(IExecutor *executor, size_t files, size_t channels);
-            size_t  bind(cvector<IPort> &ports, size_t port_id);
+            size_t  bind(cvector<IPort> &ports, size_t port_id, bool dynamics);
             void    bind_activity(IPort *activity);
             void    destroy();
 
@@ -159,9 +163,6 @@ namespace lsp
              * @param samples number of samples to process
              */
             void    process(float **outs, const float **ins, size_t samples);
-
-            virtual void trigger_on(size_t timestamp, float level);
-            virtual void trigger_stop(size_t timestamp);
     };
 
     class midi_trigger_kernel: public midi_trigger_kernel_metadata

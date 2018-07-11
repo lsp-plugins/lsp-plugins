@@ -42,19 +42,28 @@ namespace lsp
         NULL
     };
 
+    static const char *sampler_x12_mixer_lines[] =
+    {
+        "Instruments",
+        "Mixer",
+        NULL
+    };
+
     static const char *sampler_x24_mixer_lines[] =
     {
-        "0-11",
-        "12-23",
+        "Instruments",
+        "Mixer 0-11",
+        "Mixer 12-23",
         NULL
     };
 
     static const char *sampler_x48_mixer_lines[] =
     {
-        "0-11",
-        "12-23",
-        "24-35",
-        "36-47",
+        "Instruments",
+        "Mixer 0-11",
+        "Mixer 12-23",
+        "Mixer 24-35",
+        "Mixer 36-47",
         NULL
     };
 
@@ -330,6 +339,7 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
+        S_MIXER_SELECTOR(sampler_x12_mixer_lines),
         S_INSTRUMENT_SELECTOR(sampler_x12_instruments),
         S_MIXER(0),
         S_MIXER(1),
@@ -446,6 +456,7 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         PORTS_MIDI_CHANNEL,
         S_PORTS_GLOBAL,
+        S_MIXER_SELECTOR(sampler_x12_mixer_lines),
         S_INSTRUMENT_SELECTOR(sampler_x12_instruments),
         S_DIRECT_OUT(0),
         S_DIRECT_OUT(1),
@@ -557,6 +568,7 @@ namespace lsp
         PORTS_END
     };
 
+    //-------------------------------------------------------------------------
     // Define plugin metadata
     const plugin_metadata_t  sampler_mono_metadata::metadata =
     {

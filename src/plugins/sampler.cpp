@@ -166,6 +166,7 @@ namespace lsp
         pDynamics       = NULL;
         pDrift          = NULL;
         pActivity       = NULL;
+        pListen         = NULL;
     }
 
     sampler_kernel::~sampler_kernel()
@@ -330,17 +331,20 @@ namespace lsp
         return true;
     }
 
-    size_t sampler_kernel::bind(cvector<IPort> &ports, size_t port_id)
+    size_t sampler_kernel::bind(cvector<IPort> &ports, size_t port_id, bool dynamics)
     {
         lsp_trace("Binding listen toggle...");
         TRACE_PORT(ports[port_id]);
         pListen             = ports[port_id++];
 
-        lsp_trace("Binding dynamics and drifting...");
-        TRACE_PORT(ports[port_id]);
-        pDynamics           = ports[port_id++];
-        TRACE_PORT(ports[port_id]);
-        pDrift              = ports[port_id++];
+        if (dynamics)
+        {
+            lsp_trace("Binding dynamics and drifting...");
+            TRACE_PORT(ports[port_id]);
+            pDynamics           = ports[port_id++];
+            TRACE_PORT(ports[port_id]);
+            pDrift              = ports[port_id++];
+        }
 
         lsp_trace("Skipping sample selector port...");
         TRACE_PORT(ports[port_id]);
@@ -566,8 +570,8 @@ namespace lsp
         }
 
         // Get humanisation parameters
-        fDynamics       = pDynamics->getValue() * 0.01; // fDynamics = 0..1.0
-        fDrift          = pDrift->getValue();
+        fDynamics       = (pDynamics != NULL) ? pDynamics->getValue() * 0.01 : 0.0f; // fDynamics = 0..1.0
+        fDrift          = (pDrift != NULL) ? pDrift->getValue() : 0.0f;
     }
 
     void sampler_kernel::update_sample_rate(long sr)
@@ -1210,14 +1214,15 @@ namespace lsp
         TRACE_PORT(vPorts[port_id]);
         pGain       = vPorts[port_id++];
 
-        // If number of samplers > 0 - skip instrument selector
-        if (nSamplers > 12)
+        // If number of samplers <= 2 - skip area selector
+        if (nSamplers > 2)
         {
             lsp_trace("Skipping mixer selector port...");
             TRACE_PORT(vPorts[port_id]);
             port_id++;
         }
 
+        // If number of samplers > 0 - skip instrument selector
         if (nSamplers > 1)
         {
             lsp_trace("Skipping instrument selector...");
@@ -1236,7 +1241,7 @@ namespace lsp
 
             // Bind sampler
             lsp_trace("Binding sampler #%d ports...", int(i));
-            port_id     = s->sSampler.bind(vPorts, port_id);
+            port_id     = s->sSampler.bind(vPorts, port_id, true);
         }
 
         if (nSamplers > 1)
@@ -1520,7 +1525,6 @@ namespace lsp
                     }
 
                     // Process output
-//                    if (c->sBypass.active())
                     c->sBypass.process(tmp_outs[j], NULL, tmp_outs[j], count);
 
                     // Mix output to common sampler's bus

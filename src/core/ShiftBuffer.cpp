@@ -31,7 +31,7 @@ namespace lsp
             return false;
 
         // Make size multiple of 0x10
-        size_t new_capacity = (size + 0x0f) & (~size_t(0x0f));
+        size_t new_capacity     = ALIGN_SIZE(size, 0x10);
         if ((pData == NULL) || (new_capacity != nCapacity))
         {
             // Allocate new buffer
@@ -64,7 +64,7 @@ namespace lsp
             return false;
 
         // Make size multiple of 0x10
-        size_t new_capacity = (size + 0x0f) & (~size_t(0x0f));
+        size_t new_capacity = ALIGN_SIZE(size, 0x10);
         size_t avail        = nTail - nHead;            // Current gap size
         ssize_t fill        = gap - avail;              // Number of additional gap elements
 
@@ -135,17 +135,25 @@ namespace lsp
             return 0;
 
         // Check free space in buffer
-        if (nTail >= nCapacity)
+        size_t can_append       = nCapacity - nTail;
+        if (can_append <= 0)
         {
             if (nHead <= 0)
                 return 0;
             dsp::move(pData, &pData[nHead], nTail - nHead);
-            nTail  -= nHead;
-            nHead   = 0;
+            can_append  = nHead;
+            nTail      -= nHead;
+            nHead       = 0;
+        }
+        else if ((can_append < count) && (nHead > 0))
+        {
+            dsp::move(pData, &pData[nHead], nTail - nHead);
+            can_append += nHead;
+            nTail      -= nHead;
+            nHead       = 0;
         }
 
         // Determine the amount of samples to copy
-        size_t can_append   = nCapacity - nTail;
         if (count > can_append)
             count               = can_append;
 
@@ -157,6 +165,27 @@ namespace lsp
         nTail      += count;
 
         return count;
+    }
+
+    size_t ShiftBuffer::append(float data)
+    {
+        // Check state
+        if (pData == NULL)
+            return 0;
+
+        // Check free space in buffer
+        if (nTail >= nCapacity)
+        {
+            if (nHead <= 0)
+                return 0;
+            dsp::move(pData, &pData[nHead], nTail - nHead);
+            nTail  -= nHead;
+            nHead   = 0;
+        }
+
+        // Append sample
+        pData[nTail++]  = data;
+        return 1;
     }
 
     size_t ShiftBuffer::shift(float *data, size_t count)
@@ -176,6 +205,14 @@ namespace lsp
         nHead      += count;
 
         return count;
+    }
+
+    float ShiftBuffer::shift()
+    {
+        // Check state
+        if ((pData == NULL) || (nHead >= nTail))
+            return 0.0f;
+        return pData[nHead++];
     }
 
     void ShiftBuffer::copy(const ShiftBuffer *src)

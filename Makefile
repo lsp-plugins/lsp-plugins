@@ -34,7 +34,7 @@ export LD_PATH          = /usr/lib64:/lib64
 #export LD_PATH          = /usr/lib:/lib
 endif
 
-export VERSION          = 1.0.6
+export VERSION          = 1.0.7
 export BASEDIR          = ${CURDIR}
 export INCLUDE          = ${INC_FLAGS}
 export MAKE_OPTS        = -s
@@ -114,7 +114,7 @@ install: $(INSTALLATIONS)
 
 install_php: all
 	@echo "Generating PHP file"
-	@$(UTL_GENPHP) $(OBJDIR)/plugins.php
+	@$(UTL_GENPHP) $(VERSION) $(OBJDIR)/plugins.php
 
 install_ladspa: all
 	@echo "Installing LADSPA plugins to $(DESTDIR)$(LADSPA_PATH)/"
