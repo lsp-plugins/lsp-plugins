@@ -92,6 +92,7 @@ namespace lsp
         void    (* reverse)(float *dst, size_t count) = NULL;
         void    (* direct_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
         void    (* reverse_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
+//        void    (* join_fft)(float *dst_re, float *dst_im, float *src_re, float *src_im, size_t rank) = NULL;
         void    (* normalize_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
         void    (* center_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
         void    (* combine_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
@@ -113,11 +114,6 @@ namespace lsp
         void    (* biquad_process_x4)(float *dst, const float *src, size_t count, biquad_t *f) = NULL;
         void    (* biquad_process_x8)(float *dst, const float *src, size_t count, biquad_t *f) = NULL;
 
-        float   (* vec4_scalar_mul)(const float *a, const float *b) = NULL;
-        float   (* vec4_push)(float *v, float value) = NULL;
-        float   (* vec4_unshift)(float *v, float value) = NULL;
-        void    (* vec4_zero)(float *v) = NULL;
-
         void    (* axis_apply_log)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count) = NULL;
         void    (* rgba32_to_bgra32)(void *dst, const void *src, size_t count) = NULL;
 
@@ -127,10 +123,16 @@ namespace lsp
         void    (* lanczos_resample_3x3)(float *dst, const float *src, size_t count) = NULL;
         void    (* lanczos_resample_4x2)(float *dst, const float *src, size_t count) = NULL;
         void    (* lanczos_resample_4x3)(float *dst, const float *src, size_t count) = NULL;
+        void    (* lanczos_resample_6x2)(float *dst, const float *src, size_t count) = NULL;
+        void    (* lanczos_resample_6x3)(float *dst, const float *src, size_t count) = NULL;
+        void    (* lanczos_resample_8x2)(float *dst, const float *src, size_t count) = NULL;
+        void    (* lanczos_resample_8x3)(float *dst, const float *src, size_t count) = NULL;
 
         void    (* downsample_2x)(float *dst, const float *src, size_t count) = NULL;
         void    (* downsample_3x)(float *dst, const float *src, size_t count) = NULL;
         void    (* downsample_4x)(float *dst, const float *src, size_t count) = NULL;
+        void    (* downsample_6x)(float *dst, const float *src, size_t count) = NULL;
+        void    (* downsample_8x)(float *dst, const float *src, size_t count) = NULL;
     }
 
     namespace dsp

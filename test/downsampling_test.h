@@ -17,6 +17,8 @@ namespace lsp
         void downsample_2x(float *dst, const float *src, size_t count);
         void downsample_3x(float *dst, const float *src, size_t count);
         void downsample_4x(float *dst, const float *src, size_t count);
+        void downsample_6x(float *dst, const float *src, size_t count);
+        void downsample_8x(float *dst, const float *src, size_t count);
     }
 
     namespace sse
@@ -24,6 +26,8 @@ namespace lsp
         void downsample_2x(float *dst, const float *src, size_t count);
         void downsample_3x(float *dst, const float *src, size_t count);
         void downsample_4x(float *dst, const float *src, size_t count);
+        void downsample_6x(float *dst, const float *src, size_t count);
+        void downsample_8x(float *dst, const float *src, size_t count);
     }
 }
 
@@ -81,7 +85,7 @@ namespace downsampling_test
         dsp::init();
 
         float *out          = new float[RTEST_BUF_SIZE];
-        float *in           = new float[RTEST_BUF_SIZE*4];
+        float *in           = new float[RTEST_BUF_SIZE*8];
 
         call_downsampling(out, in, 2, "2x native", native::downsample_2x);
         call_downsampling(out, in, 2, "2x sse", sse::downsample_2x);
@@ -89,6 +93,10 @@ namespace downsampling_test
         call_downsampling(out, in, 3, "3x sse", sse::downsample_3x);
         call_downsampling(out, in, 4, "4x native", native::downsample_4x);
         call_downsampling(out, in, 4, "4x sse", sse::downsample_4x);
+        call_downsampling(out, in, 6, "6x native", native::downsample_6x);
+        call_downsampling(out, in, 6, "6x sse", sse::downsample_6x);
+        call_downsampling(out, in, 8, "8x native", native::downsample_8x);
+        call_downsampling(out, in, 8, "8x sse", sse::downsample_8x);
 
         for (size_t i=0; i<RTEST_BUF_SIZE*4; ++i)
             in[i]               = (i % 1) ? 1.0f : -1.0f;
@@ -101,6 +109,10 @@ namespace downsampling_test
         test_downsampling(out, in, RTEST_BUF_SIZE, 3, "3x sse", sse::downsample_3x);
         test_downsampling(out, in, RTEST_BUF_SIZE, 4, "4x native", native::downsample_4x);
         test_downsampling(out, in, RTEST_BUF_SIZE, 4, "4x sse", sse::downsample_4x);
+        test_downsampling(out, in, RTEST_BUF_SIZE, 6, "6x native", native::downsample_6x);
+        test_downsampling(out, in, RTEST_BUF_SIZE, 6, "6x sse", sse::downsample_6x);
+        test_downsampling(out, in, RTEST_BUF_SIZE, 8, "8x native", native::downsample_8x);
+        test_downsampling(out, in, RTEST_BUF_SIZE, 8, "8x sse", sse::downsample_8x);
 
         delete [] out;
         delete [] in;

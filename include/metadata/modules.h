@@ -488,10 +488,19 @@ MOD_LV2(sc_limiter_stereo)
 MOD_VST(sc_limiter_stereo)
 MOD_GTK2(sc_limiter_stereo)
 
+// Impulse responses
+MOD_PLUGIN(impulse_responses_mono)
+MOD_LV2(impulse_responses_mono)
+MOD_VST(impulse_responses_mono)
+MOD_GTK2(impulse_responses_mono)
+
+MOD_PLUGIN(impulse_responses_stereo)
+MOD_LV2(impulse_responses_stereo)
+MOD_VST(impulse_responses_stereo)
+MOD_GTK2(impulse_responses_stereo)
+
 #ifndef LSP_NO_EXPERIMENTAL
-    // Impulse responses
-    MOD_PLUGIN(impulse_responses_mono)
-    MOD_LV2(impulse_responses_mono)
+
 #endif
 
 // Undefine capabilities

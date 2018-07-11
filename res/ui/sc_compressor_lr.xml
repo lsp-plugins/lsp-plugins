@@ -239,15 +239,17 @@
 			</grid>
 			<hbox>
 				<group text="Sidechain" expand="true">
-					<grid rows="5" cols="4" expand="true">
+					<grid rows="5" cols="5" expand="true">
 						<label text="Listen" />
 						<label text="Preamp" />
 						<label text="Reactivity" />
+						<label text="Lookahead" />
 						<label text="Setup" />
 						
 						<button id="scl_l" size="16" color="left_channel" led="true" />
 						<knob id="scp_l" />
 						<knob id="scr_l" />
+						<knob id="sla_l" />
 						<cell rows="2">
 							<vbox>
 								<combo id="sct_l" />
@@ -259,10 +261,12 @@
 						<label text="Left" />
 						<value id="scp_l" same_line="true" />
 						<value id="scr_l" same_line="true" />
+						<value id="sla_l" same_line="true" />
 						
 						<button id="scl_r" size="16" color="right_channel" led="true" />
 						<knob id="scp_r" />
 						<knob id="scr_r" />
+						<knob id="sla_r" />
 						<cell rows="2">
 							<vbox>
 								<combo id="sct_r" />
@@ -274,6 +278,7 @@
 						<label text="Right" />
 						<value id="scp_r" same_line="true" />
 						<value id="scr_r" same_line="true" />
+						<value id="sla_r" same_line="true" />
 					</grid>
 				</group>
 			

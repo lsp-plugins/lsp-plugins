@@ -598,6 +598,7 @@ namespace lsp
                 if ((mesh == NULL) || (!mesh->containsData()))
                     continue;
 
+                lsp_trace("transmit mesh id=%s", p->metadata()->id);
                 pExt->forge_frame_time(0);  // Event header
                 msg         = pExt->forge_object(&frame, p->get_urid(), pExt->uridMeshType);
                 p->serialize();
@@ -605,7 +606,7 @@ namespace lsp
                 bytes_out   += lv2_atom_total_size(msg);
 
                 // Cleanup data of the mesh for refill
-                mesh->cleanup();
+                mesh->markEmpty();
             }
         }
 

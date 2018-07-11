@@ -36,6 +36,7 @@ namespace lsp
         nOversampling   = limiter_base_metadata::OVS_DEFAULT;
         fStereoLink     = 1.0f;
         pIDisplay       = NULL;
+        bUISync         = true;
 
         pBypass         = NULL;
         pInGain         = NULL;
@@ -53,6 +54,7 @@ namespace lsp
         pKnee           = NULL;
         pBoost          = NULL;
         pOversampling   = NULL;
+        pDithering      = NULL;
         pStereoLink     = NULL;
 
         pData           = NULL;
@@ -102,16 +104,22 @@ namespace lsp
             c->vOutBuf      = reinterpret_cast<float *>(ptr);
             ptr            += c_data;
 
-            c->pIn          = NULL;
-            c->pOut         = NULL;
-            c->pSc          = NULL;
+            c->bOutVisible  = true;
+            c->bGainVisible = true;
+            c->bScVisible   = true;
 
             for (size_t j=0; j<G_TOTAL; ++j)
                 c->bVisible[j]  = true;
             for (size_t j=0; j<G_TOTAL; ++j)
+                c->pVisible[j]  = NULL;
+            for (size_t j=0; j<G_TOTAL; ++j)
                 c->pGraph[j]    = NULL;
             for (size_t j=0; j<G_TOTAL; ++j)
                 c->pMeter[j]    = NULL;
+
+            c->pIn          = NULL;
+            c->pOut         = NULL;
+            c->pSc          = NULL;
 
             // Initialize oversampler
             if (!c->sOver.init())
@@ -168,6 +176,8 @@ namespace lsp
         TRACE_PORT(vPorts[port_id]);
         pOversampling   = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
+        pDithering      = vPorts[port_id++];
+        TRACE_PORT(vPorts[port_id]);
         pPause          = vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pClear          = vPorts[port_id++];
@@ -214,6 +224,9 @@ namespace lsp
         float delta     = limiter_base_metadata::HISTORY_TIME / (limiter_base_metadata::HISTORY_MESH_SIZE - 1);
         for (size_t i=0; i<limiter_base_metadata::HISTORY_MESH_SIZE; ++i)
             vTime[i]    = limiter_base_metadata::HISTORY_TIME - i*delta;
+
+        // Initialize dither
+        sDither.init();
     }
 
     void limiter_base::destroy()
@@ -290,6 +303,14 @@ namespace lsp
                 return OM_LANCZOS_4X2;
             case limiter_base_metadata::OVS_4X3:
                 return OM_LANCZOS_4X3;
+            case limiter_base_metadata::OVS_6X2:
+                return OM_LANCZOS_6X2;
+            case limiter_base_metadata::OVS_6X3:
+                return OM_LANCZOS_6X3;
+            case limiter_base_metadata::OVS_8X2:
+                return OM_LANCZOS_8X2;
+            case limiter_base_metadata::OVS_8X3:
+                return OM_LANCZOS_8X3;
 
             case limiter_base_metadata::OVS_NONE:
             default:
@@ -310,6 +331,7 @@ namespace lsp
                 return LM_HERM_TAIL;
             case limiter_base_metadata::LOM_HERM_DUCK:
                 return LM_HERM_DUCK;
+
             case limiter_base_metadata::LOM_EXP_THIN:
                 return LM_EXP_THIN;
             case limiter_base_metadata::LOM_EXP_WIDE:
@@ -318,6 +340,7 @@ namespace lsp
                 return LM_EXP_TAIL;
             case limiter_base_metadata::LOM_EXP_DUCK:
                 return LM_EXP_DUCK;
+
             case limiter_base_metadata::LOM_LINE_THIN:
                 return LM_LINE_THIN;
             case limiter_base_metadata::LOM_LINE_WIDE:
@@ -327,6 +350,13 @@ namespace lsp
             case limiter_base_metadata::LOM_LINE_DUCK:
                 return LM_LINE_DUCK;
 
+            case limiter_base_metadata::LOM_MIXED_HERM:
+                return LM_MIXED_HERM;
+            case limiter_base_metadata::LOM_MIXED_EXP:
+                return LM_MIXED_EXP;
+            case limiter_base_metadata::LOM_MIXED_LINE:
+                return LM_MIXED_LINE;
+
             case limiter_base_metadata::LOM_CLASSIC:
             default:
                 return LM_COMPRESSOR;
@@ -334,12 +364,41 @@ namespace lsp
         return LM_COMPRESSOR;
     }
 
+    size_t limiter_base::get_dithering(size_t mode)
+    {
+        switch (mode)
+        {
+            case limiter_base_metadata::DITHER_7BIT:
+                return 7;
+            case limiter_base_metadata::DITHER_8BIT:
+                return 8;
+            case limiter_base_metadata::DITHER_11BIT:
+                return 11;
+            case limiter_base_metadata::DITHER_12BIT:
+                return 12;
+            case limiter_base_metadata::DITHER_15BIT:
+                return 15;
+            case limiter_base_metadata::DITHER_16BIT:
+                return 16;
+            case limiter_base_metadata::DITHER_23BIT:
+                return 23;
+            case limiter_base_metadata::DITHER_24BIT:
+                return 24;
+
+            case limiter_base_metadata::DITHER_NONE:
+            default:
+                return 0;
+        }
+        return 0;
+    }
+
     void limiter_base::update_settings()
     {
-        bPause          = pPause->getValue() >= 0.5f;
-        bClear          = pClear->getValue() >= 0.5f;
+        bPause                      = pPause->getValue() >= 0.5f;
+        bClear                      = pClear->getValue() >= 0.5f;
 
         over_mode_t mode            = get_oversampling_mode(pOversampling->getValue());
+        size_t dither               = get_dithering(pDithering->getValue());
         float scaling_factor        = limiter_base_metadata::HISTORY_TIME / limiter_base_metadata::HISTORY_MESH_SIZE;
 
         bool bypass                 = pBypass->getValue() >= 0.5f;
@@ -357,6 +416,8 @@ namespace lsp
         fPreamp                     = pPreamp->getValue();
         limiter_mode_t op_mode      = get_limiter_mode(pMode->getValue());
         bBoost                      = pBoost->getValue();
+
+        sDither.set_bits(dither);
 
         for (size_t i=0; i<nChannels; ++i)
         {
@@ -497,6 +558,7 @@ namespace lsp
 
                 // Do Downsampling and bypassing
                 c->sOver.downsample(c->vOutBuf, c->vDataBuf, to_do); // Downsample
+                sDither.process(c->vOutBuf, c->vOutBuf, to_do);     // Apply dithering
                 c->sBypass.process(c->vOut, c->vIn, c->vOutBuf, to_do); // Pass thru bypass
 
                 // Update pointers
@@ -518,7 +580,7 @@ namespace lsp
         }
 
         // Output history
-        if ((!bPause) || (bClear))
+        if ((!bPause) || (bClear) || (bUISync))
         {
             // Process mesh requests
             for (size_t i=0; i<nChannels; ++i)
@@ -547,6 +609,9 @@ namespace lsp
                     }
                 } // for j
             }
+
+            // Clear sync flag
+            bUISync = false;
         }
 
         // Request for redraw
@@ -554,6 +619,11 @@ namespace lsp
             pWrapper->query_display_draw();
     }
     
+    void limiter_base::ui_activated()
+    {
+        bUISync = true;
+    }
+
     bool limiter_base::inline_display(ICanvas *cv, size_t width, size_t height)
     {
         // Check proportions

@@ -1,0 +1,129 @@
+<plugin width="320" height="128" resizable="false">
+	<hbox size="6" border="0">
+		<align pad_left="4" pad_right="4">
+			<vbox>
+				<label text="Bypass" />
+				<switch id="bypass" angle="1" />
+				<led id="bypass" color="red" size="8" />
+				<label />
+			</vbox>
+		</align>
+		
+		<vbox>
+			<!-- IR editor -->
+			<group text="Impulse Response">
+				<vbox>
+					<!-- File editor -->
+					<hbox spacing="4">
+						<label text="FFT frame:" />
+						<combo id="fft" />
+						<label text="File:" />
+						<combo id="fsel" />
+					</hbox>
+					
+					<hbox border="2">
+						<file
+							id="ifn0" head_id="ihc0" tail_id="itc0"
+							fadein_id="ifi0" fadeout_id="ifo0" length_id="ifl0"
+							status_id="ifs0" mesh_id="ifd0"
+							width="600" height="128"
+							visibility=":fsel == 0"
+							/>
+						<file
+							id="ifn1" head_id="ihc1" tail_id="itc1"
+							fadein_id="ifi1" fadeout_id="ifo1" length_id="ifl1"
+							status_id="ifs1" mesh_id="ifd1"
+							width="600" height="128"
+							visibility=":fsel == 1"
+							/>
+					</hbox>
+
+					<hbox>
+						<grid rows="5" cols="5" expand="true">
+							<label text="Head cut" />
+							<label text="Tail cut" />
+							<label text="Fade in" />
+							<label text="Fade out" />
+							<label text="Listen" />
+							
+							<knob id="ihc0" size="20" />
+							<knob id="itc0" size="20" />
+							<knob id="ifi0" size="20" scale_color="yellow" />
+							<knob id="ifo0" size="20" scale_color="yellow" />
+							<button id="ils0" size="32" toggle="false" />
+							
+							<value id="ihc0" />
+							<value id="itc0" />
+							<value id="ifi0" />
+							<value id="ifo0" />
+							<led id="ils0" color="left_channel" />
+							
+							<knob id="ihc1" size="20" />
+							<knob id="itc1" size="20" />
+							<knob id="ifi1" size="20" scale_color="yellow" />
+							<knob id="ifo1" size="20" scale_color="yellow" />
+							<button id="ils1" size="32" toggle="false" />
+							
+							<value id="ihc1" />
+							<value id="itc1" />
+							<value id="ifi1" />
+							<value id="ifo1" />
+							<led id="ils1" color="right_channel" />
+						</grid>
+						
+						<vsep />
+						
+						<grid rows="5" cols="1" expand="true">
+							<label text="Source" />
+							<combo id="cs_l" />
+							<hbox>
+								<led id="ca_l" color="left_channel" />
+								<label text="Active" />
+							</hbox>
+							<combo id="cs_r" />
+							<hbox>
+								<led id="ca_r" color="right_channel" />
+								<label text="Active" />
+							</hbox>
+						</grid>
+						<vsep />
+						
+						<grid rows="5" cols="2" expand="true">
+							<label text="Pre-delay" />
+							<label text="Makeup" />
+							
+							<knob id="pd_l" />
+							<knob id="mk_l" />
+							
+							<value id="pd_l" />
+							<value id="mk_l" />
+							
+							<knob id="pd_r" />
+							<knob id="mk_r" />
+							
+							<value id="pd_r" />
+							<value id="mk_r" />
+						</grid>
+						<vsep />
+						<grid rows="3" cols="2" expand="true">
+							<label text="Dry" scale_color="yellow" />
+							<label text="Wet" scale_color="yellow" />
+							
+							<knob id="dry" size="32" />
+							<knob id="wet" size="32" />
+							
+							<value id="dry" />
+							<value id="wet" />
+						</grid>
+						<vsep />
+						<grid rows="3" cols="1" expand="true">
+							<label text="Output" />
+							<knob id="g_out" size="32" />
+							<value id="g_out" />
+						</grid>
+					</hbox>
+				</vbox>
+			</group>
+		</vbox>
+	</hbox>
+</plugin>

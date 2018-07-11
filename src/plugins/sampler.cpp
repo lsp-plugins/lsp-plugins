@@ -471,7 +471,7 @@ namespace lsp
                 continue;
 
             // Get path
-            path_t *path = reinterpret_cast<path_t *>(af->pFile->getBuffer());
+            path_t *path = af->pFile->getBuffer<path_t>();
             if ((path == NULL) || (!path->pending()))
                 continue;
 
@@ -633,7 +633,7 @@ namespace lsp
             return STATUS_UNKNOWN_ERR;
 
         // Get path
-        path_t *path        = reinterpret_cast<path_t *>(file->pFile->getBuffer());
+        path_t *path        = file->pFile->getBuffer<path_t>();
         if (path == NULL)
             return STATUS_UNKNOWN_ERR;
 
@@ -962,7 +962,7 @@ namespace lsp
                 continue;
 
             // Get path and check task state
-            path_t *path = reinterpret_cast<path_t *>(af->pFile->getBuffer());
+            path_t *path = af->pFile->getBuffer<path_t>();
             if ((path != NULL) && (path->accepted()) && (af->pLoader->completed()))
             {
                 // Task has been completed

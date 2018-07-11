@@ -70,6 +70,7 @@
 	</ul>
 	<li><b>Preamp</b> - pre-amplification of the sidechain signal.</li>
 	<li><b>Reactivity</b> - reactivity of the sidechain signal.</li>
+	<li><b>Lookahead</b> - look-ahead time of the sidechain relative to the input signal.</li>
 	<li><b>Mode</b> - compression mode: <b>Upward (Up)</b> or <b>Downward (Down)</b>.</li>
 	<li><b>Ratio low</b> - compression/expansion ratio below the lowest-threshold knee.</li>
 	<li><b>Ratio high</b> - compression/expansion ratio after the highest-threshold knee.</li>

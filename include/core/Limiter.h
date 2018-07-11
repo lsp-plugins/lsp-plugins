@@ -34,12 +34,18 @@ namespace lsp
         LM_LINE_THIN,
         LM_LINE_WIDE,
         LM_LINE_TAIL,
-        LM_LINE_DUCK
+        LM_LINE_DUCK,
+
+        LM_MIXED_HERM,
+        LM_MIXED_EXP,
+        LM_MIXED_LINE
     };
     
     class Limiter
     {
         protected:
+            typedef void (*apply_patch_t)(void *patch, float *dst, float amp);
+
             enum update_t
             {
                 UP_SR       = 1 << 0,
@@ -105,6 +111,17 @@ namespace lsp
                 float       vRelease[2];    // Line interpolation of release
             } line_t;
 
+            typedef struct mixed_t
+            {
+                comp_t      sComp;
+                union
+                {
+                    sat_t       sSat;               // Hermite mode
+                    exp_t       sExp;               // Exponent mode
+                    line_t      sLine;              // Line mode
+                };
+            } mixed_t;
+
         protected:
             float       fThreshold;
             float       fLookahead;
@@ -131,21 +148,35 @@ namespace lsp
                 sat_t       sSat;               // Hermite mode
                 exp_t       sExp;               // Exponent mode
                 line_t      sLine;              // Line mode
+                mixed_t     sMixed;             // Mixed mode
             };
 
         protected:
-            inline float    reduction(float env);
+            inline float    reduction(comp_t *comp);
             inline float    sat(ssize_t n);
             inline float    exp(ssize_t n);
             inline float    line(ssize_t n);
-            void            apply_sat_patch(float *dst, float amp);
-            void            apply_exp_patch(float *dst, float amp);
-            void            apply_line_patch(float *dst, float amp);
+            static void     apply_sat_patch(sat_t *sat, float *dst, float amp);
+            static void     apply_exp_patch(exp_t *exp, float *dst, float amp);
+            static void     apply_line_patch(line_t *line, float *dst, float amp);
+
+            static void     reset_sat(sat_t *sat);
+            static void     reset_exp(exp_t *exp);
+            static void     reset_line(line_t *line);
+            static void     reset_comp(comp_t *comp);
+
+            void            init_sat(sat_t *sat);
+            void            init_exp(exp_t *exp);
+            void            init_line(line_t *line);
+            void            init_comp(comp_t *comp, float time);
 
             void            process_compressor(float *dst, float *gain, const float *src, const float *sc, size_t samples);
-            void            process_hermite(float *dst, float *gain, const float *src, const float *sc, size_t samples);
-            void            process_exp(float *dst, float *gain, const float *src, const float *sc, size_t samples);
-            void            process_line(float *dst, float *gain, const float *src, const float *sc, size_t samples);
+//            void            process_hermite(float *dst, float *gain, const float *src, const float *sc, size_t samples);
+//            void            process_exp(float *dst, float *gain, const float *src, const float *sc, size_t samples);
+//            void            process_line(float *dst, float *gain, const float *src, const float *sc, size_t samples);
+
+            void            process_patch(float *dst, float *gain, const float *src, const float *sc, size_t samples);
+            void            process_mixed(float *dst, float *gain, const float *src, const float *sc, size_t samples);
 
         public:
             Limiter();

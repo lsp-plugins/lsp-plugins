@@ -41,7 +41,7 @@ namespace lsp
             if ((p->role == R_AUDIO) && (IS_IN_PORT(p)))
                 channels++;
 
-        lsp_trace("channels = %d", int(channels));
+        lsp_trace("this=%p, channels = %d", this, int(channels));
 
         // Calculate header size
         size_t hdr_size         = (sizeof(sa_core_t) + sizeof(sa_channel_t) * channels + 0x1f) & (~size_t(0x1f));
@@ -247,7 +247,7 @@ namespace lsp
         pChannels->fMinFreq     = pChannels->pFrequency->metadata()->min;
         pChannels->fMaxFreq     = pChannels->pFrequency->metadata()->max;
 
-        lsp_trace("basic ports successful bound");
+        lsp_trace("this=%p, basic ports successful bound", this);
     }
 
     void spectrum_analyzer_base::destroy()
@@ -268,6 +268,7 @@ namespace lsp
     {
         if (pChannels == NULL)
             return;
+        lsp_trace("this=%p", this);
 
         bool update_window      = false;
         bool update_env         = false;
@@ -354,6 +355,7 @@ namespace lsp
 
     void spectrum_analyzer_base::update_sample_rate(long sr)
     {
+        lsp_trace("this=%p, sample_rate = %d", this, int(sr));
         update_frequences();
 
         pChannels->nMaxSamples      = float(fSampleRate) / float(spectrum_analyzer_base_metadata::REFRESH_RATE);
@@ -554,6 +556,8 @@ namespace lsp
 
     void spectrum_analyzer_base::set_reactivity(float reactivity)
     {
+        lsp_trace("this=%p, reactivity = %f, sample_rate=%d, max_samples=%d",
+                this, reactivity, int(fSampleRate), int(pChannels->nMaxSamples));
         pChannels->fReactivity      = reactivity;
         pChannels->fTau             = 1.0f - expf(logf(1.0f - M_SQRT1_2) / seconds_to_samples(fSampleRate / pChannels->nMaxSamples, reactivity));
     }

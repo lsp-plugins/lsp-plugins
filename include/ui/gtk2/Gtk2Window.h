@@ -38,6 +38,7 @@ namespace lsp
             guint           hMapHandler;
             guint           hUnmapHandler;
             GtkWidget      *pToplevel;
+            IUIPort        *pVersion;
 
         public:
             Gtk2Window(plugin_ui *ui);
@@ -50,6 +51,7 @@ namespace lsp
             static void unmap_window(GtkWidget *widget, gpointer ptr);
             void set_parent(GtkWidget *parent);
             void show();
+            void show_notification();
 
         public:
             virtual void set(widget_attribute_t att, const char *value);

@@ -19,6 +19,7 @@
 #include <stdlib.h>
 
 #define LSP_VST_CORE        LSP_ARTIFACT_ID "-vst-core.so"
+#define LSP_VST_SUBPATH     LSP_ARTIFACT_ID "-lxvst-" LSP_MAIN_VERSION "-" LSP_ARCHITECTURE
 
 namespace lsp
 {
@@ -28,7 +29,7 @@ namespace lsp
         "/usr/lib64",
         "/lib64",
         "/usr/local/lib",
-        "/usr/lib",
+        "/usr/lib" ,
         "/lib",
         NULL
     };
@@ -40,13 +41,16 @@ namespace lsp
     // The factory for creating plugin instances
     static vst_create_instance_t factory = NULL;
 
-    static vst_create_instance_t lookup_factory(const char *path)
+    static vst_create_instance_t lookup_factory(bool subpath, const char *path)
     {
         lsp_trace("Trying shared library %s", path);
 
         // Generate file name
         char fname[PATH_MAX];
-        snprintf(fname, PATH_MAX, "%s/%s", path, LSP_VST_CORE);
+        if (subpath)
+            snprintf(fname, PATH_MAX, "%s/%s/%s", path, LSP_VST_SUBPATH, LSP_VST_CORE);
+        else
+            snprintf(fname, PATH_MAX, "%s/%s", path, LSP_VST_CORE);
 
         // Try to load library
         hInstance = dlopen (fname, RTLD_NOW);
@@ -107,12 +111,32 @@ namespace lsp
         {
             lsp_trace("home directory = %s", homedir);
             snprintf(path, PATH_MAX, "%s/.vst", homedir);
-            factory     = lookup_factory(path);
+            factory     = lookup_factory(false, path);
+            if (factory == NULL)
+                factory     = lookup_factory(true, path);
+
+            if (factory == NULL)
+            {
+                snprintf(path, PATH_MAX, "%s/.lxvst", homedir);
+                factory     = lookup_factory(false, path);
+                if (factory == NULL)
+                    factory     = lookup_factory(true, path);
+            }
 
             if (factory == NULL)
             {
                 snprintf(path, PATH_MAX, "%s/vst", homedir);
-                factory     = lookup_factory(path);
+                factory     = lookup_factory(false, path);
+                if (factory == NULL)
+                    factory     = lookup_factory(true, path);
+            }
+
+            if (factory == NULL)
+            {
+                snprintf(path, PATH_MAX, "%s/lxvst", homedir);
+                factory     = lookup_factory(false, path);
+                if (factory == NULL)
+                    factory     = lookup_factory(true, path);
             }
         }
 
@@ -121,12 +145,18 @@ namespace lsp
             for (const char **p = vst_core_paths; (p != NULL) && (*p != NULL); ++p)
             {
                 snprintf(path, PATH_MAX, "%s/vst", *p);
-                factory     = lookup_factory(path);
+                factory     = lookup_factory(false, path);
+                if (factory != NULL)
+                    break;
+                factory     = lookup_factory(true, path);
                 if (factory != NULL)
                     break;
 
                 snprintf(path, PATH_MAX, "%s/lxvst", *p);
-                factory     = lookup_factory(path);
+                factory     = lookup_factory(false, path);
+                if (factory != NULL)
+                    break;
+                factory     = lookup_factory(true, path);
                 if (factory != NULL)
                     break;
             }

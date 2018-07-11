@@ -8,13 +8,13 @@
 #ifndef CORE_PLUGINS_IMPULSE_RESPONSES_H_
 #define CORE_PLUGINS_IMPULSE_RESPONSES_H_
 
-#ifndef LSP_NO_EXPERIMENTAL
-
 #include <core/plugin.h>
 #include <core/IExecutor.h>
 #include <core/AudioFile.h>
 #include <core/Convolver.h>
 #include <core/Bypass.h>
+#include <core/Delay.h>
+#include <core/SamplePlayer.h>
 
 #include <metadata/plugins.h>
 
@@ -24,7 +24,74 @@ namespace lsp
     class impulse_responses_base: public plugin_t
     {
         protected:
-            struct af_descriptor_t;
+            class IRLoader;
+
+            typedef struct reconfig_t
+            {
+                bool        bRender;
+                size_t      nSource;
+                size_t      nRank;
+            } reconfig_t;
+
+            typedef struct af_descriptor_t
+            {
+                AudioFile      *pCurr;
+                AudioFile      *pSwap;
+
+                Sample         *pSwapSample;
+                Sample         *pCurrSample;                                                    // Rendered file sample
+                float          *vThumbs[impulse_responses_base_metadata::TRACKS_MAX];           // Thumbnails
+                float           fNorm;          // Norming factor
+                bool            bRender;        // Flag that indicates that file needs rendering
+                status_t        nStatus;
+                bool            bSync;          // Synchronize file
+                bool            bSwap;          // Swap samples
+
+                float           fHeadCut;
+                float           fTailCut;
+                float           fFadeIn;
+                float           fFadeOut;
+
+                IRLoader       *pLoader;        // Audio file loader task
+
+                IPort          *pFile;          // Port that contains file name
+                IPort          *pHeadCut;
+                IPort          *pTailCut;
+                IPort          *pFadeIn;
+                IPort          *pFadeOut;
+                IPort          *pListen;
+                IPort          *pStatus;        // Status of file loading
+                IPort          *pLength;        // Length of file
+                IPort          *pThumbs;        // Thumbnails of file
+            } af_descriptor_t;
+
+            typedef struct channel_t
+            {
+                Bypass          sBypass;
+                Delay           sDelay;
+                SamplePlayer    sPlayer;
+
+                Convolver      *pCurr;
+                Convolver      *pSwap;
+
+                float          *vIn;
+                float          *vOut;
+                float          *vBuffer;
+                float           fDryGain;
+                float           fWetGain;
+                size_t          nSource;
+                size_t          nSourceReq;
+                size_t          nRank;
+                size_t          nRankReq;
+
+                IPort          *pIn;
+                IPort          *pOut;
+
+                IPort          *pSource;
+                IPort          *pMakeup;
+                IPort          *pActivity;
+                IPort          *pPredelay;
+            } channel_t;
 
             class IRLoader: public ITask
             {
@@ -40,82 +107,81 @@ namespace lsp
                     virtual int run();
             };
 
-            struct af_descriptor_t
+            class IRConfigurator: public ITask
             {
-                AudioFile          *pCurr;          // Currently used audio file
-                AudioFile          *pNew;           // Audio file pending for change
-                AudioFile          *pOld;           // Old audio file for deletion
-                IRLoader           *pLoader;        // Audio file loader task
-                IPort              *pPort;          // Audio file port
+                private:
+                    reconfig_t                  sReconfig[impulse_responses_base_metadata::TRACKS_MAX];
+                    impulse_responses_base     *pCore;
+
+                public:
+                    IRConfigurator(impulse_responses_base *base);
+                    virtual ~IRConfigurator();
+
+                public:
+                    virtual int run();
+
+                    inline void set_render(size_t idx, bool render)     { sReconfig[idx].bRender    = render; }
+                    inline void set_source(size_t idx, size_t source)   { sReconfig[idx].nSource    = source; }
+                    inline void set_rank(size_t idx, size_t rank)       { sReconfig[idx].nRank      = rank; }
             };
 
-            struct ac_descriptor_t
-            {
-                ShiftBuffer         vBuffer;        // Shift buffer for convolution history
-                Bypass              vBypass;        // Bypass control
-                IPort              *pInput;         // Input audio port
-                IPort              *pOutput;        // Output audio port
-                const float        *pConv;          // Pointer to start of convolution
-                size_t              nConvLen;       // Length of convolution in samples
-                size_t              nFile;          // Input file
-                size_t              nChannel;       // Input channel
-                float               fLength;        // Length of convolution in percent
-                float               fDry;           // Amount of dry signal
-                float               fWet;           // Amount of wet signal
-            };
-
-            size_t              nMaxSamples;        // Them maximum number of samples per file
-            float              *vBuffer;            // Temporary buffer for post-processing
+        protected:
+            status_t                load(af_descriptor_t *descr);
+            status_t                reconfigure(const reconfig_t *cfg);
+            static void             destroy_file(af_descriptor_t *af);
+            static void             destroy_channel(channel_t *c);
+            static size_t           get_fft_rank(size_t rank);
 
         protected:
-            int                     load(af_descriptor_t *descr);
-            af_descriptor_t        *create_files(size_t count);
-            void                    destroy_files(af_descriptor_t *files, size_t count);
+            IRConfigurator          sConfigurator;
 
-            ac_descriptor_t        *create_channels(size_t count);
-            void                    destroy_channels(ac_descriptor_t *channels, size_t count);
-
-        protected:
-            IExecutor              *pExecutor;
             size_t                  nChannels;
-            size_t                  nFiles;
+            channel_t              *vChannels;
             af_descriptor_t        *vFiles;
-            ac_descriptor_t        *vChannels;
+            IExecutor              *pExecutor;
+            size_t                  nReconfigReq;
+            size_t                  nReconfigResp;
+            float                   fGain;
+
+            IPort                  *pBypass;
+            IPort                  *pRank;
+            IPort                  *pDry;
+            IPort                  *pWet;
+            IPort                  *pOutGain;
+
+            uint8_t                *pData;
 
         public:
-            impulse_responses_base(const plugin_metadata_t &metadata);
+            impulse_responses_base(const plugin_metadata_t &metadata, size_t channels);
             virtual ~impulse_responses_base();
 
         public:
             virtual void init(IWrapper *wrapper);
             virtual void destroy();
 
+            virtual void ui_activated();
             virtual void update_settings();
             virtual void update_sample_rate(long sr);
 
             virtual void process(size_t samples);
 
-            virtual void reconfigure();
     };
 
-    class impulse_responses_mono: public impulse_responses_base, public impulse_responses_metadata
+    class impulse_responses_mono: public impulse_responses_base, public impulse_responses_mono_metadata
     {
-        private:
-            AudioFile       sFile;
-            Convolver       sConvolver;
-
         public:
             impulse_responses_mono();
             virtual ~impulse_responses_mono();
+    };
 
+    class impulse_responses_stereo: public impulse_responses_base, public impulse_responses_stereo_metadata
+    {
         public:
-            virtual void init(IWrapper *wrapper);
+            impulse_responses_stereo();
+            virtual ~impulse_responses_stereo();
 
-            virtual void reconfigure();
     };
 
 } /* namespace ddb */
-
-#endif /* LSP_NO_EXPERIMENTAL */
 
 #endif /* CORE_PLUGINS_IMPULSE_RESPONSES_H_ */

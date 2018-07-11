@@ -18,7 +18,6 @@
 #include <core/x86/sse/graphics.h>
 #include <core/x86/sse/msmatrix.h>
 #include <core/x86/sse/search.h>
-#include <core/x86/sse/vec4.h>
 #include <core/x86/sse/resampling.h>
 #include <core/x86/sse/native.h>
 
@@ -116,10 +115,6 @@ namespace lsp
             dsp::biquad_process_x4          = sse::biquad_process_x4;
             dsp::biquad_process_x8          = sse::biquad_process_x8;
 
-            dsp::vec4_scalar_mul            = sse::vec4_scalar_mul;
-            dsp::vec4_push                  = sse::vec4_push;
-            dsp::vec4_unshift               = sse::vec4_unshift;
-            dsp::vec4_zero                  = sse::vec4_zero;
             dsp::axis_apply_log             = sse::axis_apply_log;
             dsp::rgba32_to_bgra32           = sse::rgba32_to_bgra32;
 
@@ -129,10 +124,16 @@ namespace lsp
             dsp::lanczos_resample_3x3       = sse::lanczos_resample_3x3;
             dsp::lanczos_resample_4x2       = sse::lanczos_resample_4x2;
             dsp::lanczos_resample_4x3       = sse::lanczos_resample_4x3;
+            dsp::lanczos_resample_6x2       = sse::lanczos_resample_6x2;
+            dsp::lanczos_resample_6x3       = sse::lanczos_resample_6x3;
+            dsp::lanczos_resample_8x2       = sse::lanczos_resample_8x2;
+            dsp::lanczos_resample_8x3       = sse::lanczos_resample_8x3;
 
             dsp::downsample_2x              = sse::downsample_2x;
             dsp::downsample_3x              = sse::downsample_3x;
             dsp::downsample_4x              = sse::downsample_4x;
+            dsp::downsample_6x              = sse::downsample_6x;
+            dsp::downsample_8x              = sse::downsample_8x;
         }
     }
 

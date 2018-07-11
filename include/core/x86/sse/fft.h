@@ -108,81 +108,81 @@
 #define LS_IM                           "movups"
 #include <core/x86/sse/fft/scramble.h>
 
-// Use 32-bit reversive algorithm
-#define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct32_aa
-#define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse32_aa
-#define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct32_aa
-#define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse32_aa
-#define FFT_TYPE                        uint32_t
-#define LS_RE                           "movaps"
-#define LS_IM                           "movaps"
-#include <core/x86/sse/fft/scramble.h>
-
-#define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct32_au
-#define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse32_au
-#define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct32_au
-#define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse32_au
-#define FFT_TYPE                        uint32_t
-#define LS_RE                           "movaps"
-#define LS_IM                           "movups"
-#include <core/x86/sse/fft/scramble.h>
-
-#define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct32_ua
-#define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse32_ua
-#define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct32_ua
-#define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse32_ua
-#define FFT_TYPE                        uint32_t
-#define LS_RE                           "movups"
-#define LS_IM                           "movaps"
-#include <core/x86/sse/fft/scramble.h>
-
-#define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct32_uu
-#define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse32_uu
-#define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct32_uu
-#define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse32_uu
-#define FFT_TYPE                        uint32_t
-#define LS_RE                           "movups"
-#define LS_IM                           "movups"
-#include <core/x86/sse/fft/scramble.h>
-
-// Use 64-bit reversive algorithm
-#ifdef __x86_64__
-    #define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct64_aa
-    #define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse64_aa
-    #define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct64_aa
-    #define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse64_aa
-    #define FFT_TYPE                        uint64_t
-    #define LS_RE                           "movaps"
-    #define LS_IM                           "movaps"
-    #include <core/x86/sse/fft/scramble.h>
-
-    #define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct64_au
-    #define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse64_au
-    #define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct64_au
-    #define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse64_au
-    #define FFT_TYPE                        uint64_t
-    #define LS_RE                           "movaps"
-    #define LS_IM                           "movups"
-    #include <core/x86/sse/fft/scramble.h>
-
-    #define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct64_ua
-    #define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse64_ua
-    #define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct64_ua
-    #define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse64_ua
-    #define FFT_TYPE                        uint64_t
-    #define LS_RE                           "movups"
-    #define LS_IM                           "movaps"
-    #include <core/x86/sse/fft/scramble.h>
-
-    #define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct64_uu
-    #define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse64_uu
-    #define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct64_uu
-    #define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse64_uu
-    #define FFT_TYPE                        uint64_t
-    #define LS_RE                           "movups"
-    #define LS_IM                           "movups"
-    #include <core/x86/sse/fft/scramble.h>
-#endif /* __x86_64__ */
+//// Use 32-bit reversive algorithm
+//#define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct32_aa
+//#define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse32_aa
+//#define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct32_aa
+//#define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse32_aa
+//#define FFT_TYPE                        uint32_t
+//#define LS_RE                           "movaps"
+//#define LS_IM                           "movaps"
+//#include <core/x86/sse/fft/scramble.h>
+//
+//#define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct32_au
+//#define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse32_au
+//#define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct32_au
+//#define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse32_au
+//#define FFT_TYPE                        uint32_t
+//#define LS_RE                           "movaps"
+//#define LS_IM                           "movups"
+//#include <core/x86/sse/fft/scramble.h>
+//
+//#define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct32_ua
+//#define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse32_ua
+//#define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct32_ua
+//#define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse32_ua
+//#define FFT_TYPE                        uint32_t
+//#define LS_RE                           "movups"
+//#define LS_IM                           "movaps"
+//#include <core/x86/sse/fft/scramble.h>
+//
+//#define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct32_uu
+//#define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse32_uu
+//#define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct32_uu
+//#define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse32_uu
+//#define FFT_TYPE                        uint32_t
+//#define LS_RE                           "movups"
+//#define LS_IM                           "movups"
+//#include <core/x86/sse/fft/scramble.h>
+//
+//// Use 64-bit reversive algorithm
+//#ifdef __x86_64__
+//    #define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct64_aa
+//    #define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse64_aa
+//    #define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct64_aa
+//    #define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse64_aa
+//    #define FFT_TYPE                        uint64_t
+//    #define LS_RE                           "movaps"
+//    #define LS_IM                           "movaps"
+//    #include <core/x86/sse/fft/scramble.h>
+//
+//    #define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct64_au
+//    #define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse64_au
+//    #define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct64_au
+//    #define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse64_au
+//    #define FFT_TYPE                        uint64_t
+//    #define LS_RE                           "movaps"
+//    #define LS_IM                           "movups"
+//    #include <core/x86/sse/fft/scramble.h>
+//
+//    #define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct64_ua
+//    #define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse64_ua
+//    #define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct64_ua
+//    #define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse64_ua
+//    #define FFT_TYPE                        uint64_t
+//    #define LS_RE                           "movups"
+//    #define LS_IM                           "movaps"
+//    #include <core/x86/sse/fft/scramble.h>
+//
+//    #define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct64_uu
+//    #define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse64_uu
+//    #define FFT_SCRAMBLE_COPY_DIRECT_NAME   scramble_copy_direct64_uu
+//    #define FFT_SCRAMBLE_COPY_REVERSE_NAME  scramble_copy_reverse64_uu
+//    #define FFT_TYPE                        uint64_t
+//    #define LS_RE                           "movups"
+//    #define LS_IM                           "movups"
+//    #include <core/x86/sse/fft/scramble.h>
+//#endif /* __x86_64__ */
 
 // Make set of scramble-switch implementations
 #define FFT_SCRAMBLE_SELF_DIRECT_NAME       scramble_self_direct
@@ -230,9 +230,31 @@ namespace lsp
         static void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
         {
             // Check bounds
-            if (rank <= 1)
+            if (rank <= 2)
             {
-                if (rank == 1)
+                if (rank == 2)
+                {
+                    float s0_re     = dst_re[0] + dst_re[1];
+                    float s1_re     = dst_re[0] - dst_re[1];
+                    float s2_re     = dst_re[2] + dst_re[3];
+                    float s3_re     = dst_re[2] - dst_re[3];
+
+                    float s0_im     = dst_im[0] + dst_im[1];
+                    float s1_im     = dst_im[0] - dst_im[1];
+                    float s2_im     = dst_im[2] + dst_im[3];
+                    float s3_im     = dst_im[2] - dst_im[3];
+
+                    dst_re[0]       = s0_re + s2_re;
+                    dst_re[1]       = s1_re + s3_im;
+                    dst_re[2]       = s0_re - s2_re;
+                    dst_re[3]       = s1_re - s3_im;
+
+                    dst_im[0]       = s0_im + s2_im;
+                    dst_im[1]       = s1_im - s3_re;
+                    dst_im[2]       = s0_im - s2_im;
+                    dst_im[3]       = s1_im + s3_re;
+                }
+                else if (rank == 1)
                 {
                     // s0' = s0 + s1
                     // s1' = s0 - s1
@@ -259,14 +281,14 @@ namespace lsp
                     scramble_direct_aa(dst_re, dst_im, src_re, src_im, rank);
 
                     for (size_t i=2; i < rank; ++i)
-                        butterfly_direct_aa(dst_re, dst_im, 1 << i, 1 << (rank - i - 1));
+                        butterfly_direct_aa(dst_re, dst_im, i /*1 << i*/, 1 << (rank - i - 1));
                 }
                 else
                 {
                     scramble_direct_au(dst_re, dst_im, src_re, src_im, rank);
 
                     for (size_t i=2; i < rank; ++i)
-                        butterfly_direct_au(dst_re, dst_im, 1 << i, 1 << (rank - i - 1));
+                        butterfly_direct_au(dst_re, dst_im, i /*1 << i*/, 1 << (rank - i - 1));
                 }
             }
             else
@@ -276,14 +298,14 @@ namespace lsp
                     scramble_direct_ua(dst_re, dst_im, src_re, src_im, rank);
 
                     for (size_t i=2; i < rank; ++i)
-                        butterfly_direct_ua(dst_re, dst_im, 1 << i, 1 << (rank - i - 1));
+                        butterfly_direct_ua(dst_re, dst_im, i /*1 << i*/, 1 << (rank - i - 1));
                 }
                 else
                 {
                     scramble_direct_uu(dst_re, dst_im, src_re, src_im, rank);
 
                     for (size_t i=2; i < rank; ++i)
-                        butterfly_direct_uu(dst_re, dst_im, 1 << i, 1 << (rank - i - 1));
+                        butterfly_direct_uu(dst_re, dst_im, i /*1 << i*/, 1 << (rank - i - 1));
                 }
             }
         }
@@ -291,9 +313,31 @@ namespace lsp
         static void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
         {
             // Check bounds
-            if (rank <= 1)
+            if (rank <= 2)
             {
-                if (rank == 1)
+                if (rank == 2)
+                {
+                    float s0_re     = dst_re[0] + dst_re[1];
+                    float s1_re     = dst_re[0] - dst_re[1];
+                    float s2_re     = dst_re[2] + dst_re[3];
+                    float s3_re     = dst_re[2] - dst_re[3];
+
+                    float s0_im     = dst_im[0] + dst_im[1];
+                    float s1_im     = dst_im[0] - dst_im[1];
+                    float s2_im     = dst_im[2] + dst_im[3];
+                    float s3_im     = dst_im[2] - dst_im[3];
+
+                    dst_re[0]       = s0_re + s2_re;
+                    dst_re[1]       = s1_re - s3_im;
+                    dst_re[2]       = s0_re - s2_re;
+                    dst_re[3]       = s1_re + s3_im;
+
+                    dst_im[0]       = s0_im + s2_im;
+                    dst_im[1]       = s1_im + s3_re;
+                    dst_im[2]       = s0_im - s2_im;
+                    dst_im[3]       = s1_im - s3_re;
+                }
+                else if (rank == 1)
                 {
                     // s0' = s0 + s1
                     // s1' = s0 - s1
@@ -320,14 +364,14 @@ namespace lsp
                     scramble_reverse_aa(dst_re, dst_im, src_re, src_im, rank);
 
                     for (size_t i=2; i < rank; ++i)
-                        butterfly_reverse_aa(dst_re, dst_im, 1 << i, 1 << (rank - i - 1));
+                        butterfly_reverse_aa(dst_re, dst_im, i, 1 << (rank - i - 1));
                 }
                 else
                 {
                     scramble_reverse_au(dst_re, dst_im, src_re, src_im, rank);
 
                     for (size_t i=2; i < rank; ++i)
-                        butterfly_reverse_au(dst_re, dst_im, 1 << i, 1 << (rank - i - 1));
+                        butterfly_reverse_au(dst_re, dst_im, i, 1 << (rank - i - 1));
                 }
             }
             else
@@ -337,14 +381,14 @@ namespace lsp
                     scramble_reverse_ua(dst_re, dst_im, src_re, src_im, rank);
 
                     for (size_t i=2; i < rank; ++i)
-                        butterfly_reverse_ua(dst_re, dst_im, 1 << i, 1 << (rank - i - 1));
+                        butterfly_reverse_ua(dst_re, dst_im, i, 1 << (rank - i - 1));
                 }
                 else
                 {
                     scramble_reverse_uu(dst_re, dst_im, src_re, src_im, rank);
 
                     for (size_t i=2; i < rank; ++i)
-                        butterfly_reverse_uu(dst_re, dst_im, 1 << i, 1 << (rank - i - 1));
+                        butterfly_reverse_uu(dst_re, dst_im, i, 1 << (rank - i - 1));
                 }
             }
 

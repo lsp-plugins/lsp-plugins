@@ -3,3 +3,5 @@
 /res/specs/*
 /.build/*
 /.release/*
+/test/im_reverbs/*
+/design/articles/*

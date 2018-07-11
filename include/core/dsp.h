@@ -162,7 +162,7 @@ namespace lsp
     //-----------------------------------------------------------------------
     // Resampling
     /** Resampling/oversampling funtion type.
-     * Remember that destination buffer must be times greater and have additional gap (>=32 samples) at
+     * Remember that destination buffer must be times greater and have additional gap (>=64 samples) at
      * the tail to contain complete convolution after resampling
      *
      * @param dst destination buffer
@@ -496,6 +496,16 @@ namespace lsp
          */
         extern void (* reverse_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
 
+//        /** Build 2x larger FFT from 2 FFTs located one after other
+//         *
+//         * @param dst_re real part of signal
+//         * @param dst_im imaginary part of signal
+//         * @param src_re real part of spectrum of 2x FFTs
+//         * @param src_im imaginary part of spectrum of 2x FFTs
+//         * @param rank current rank of FFT
+//         */
+//        extern void (* join_fft)(float *dst_re, float *dst_im, float *src_re, float *src_im, size_t rank);
+
         /** Normalize FFT coefficients
          *
          * @param dst_re target array for real part of signal
@@ -703,45 +713,6 @@ namespace lsp
          */
         extern void (* biquad_process_x8)(float *dst, const float *src, size_t count, biquad_t *f);
 
-        /** Do scalar mul for 4-element vector:
-         * Restriction: vector has to be 16-byte aligned
-         * result = sum {i=0..3} a[i] * b[i]
-         *
-         * @param a vector a
-         * @param b vector b
-         * @return scalar multiplication result
-         *
-         */
-        extern float (* vec4_scalar_mul)(const float *a, const float *b);
-
-        /** Push data to scalar vector at end
-         * Restriction: vector has to be 16-byte aligned
-         * result = v[0]
-         * v      = { v[1], v[2], v[3], value }
-         *
-         * @param v vector to modify
-         * @return the value that was removed from vector
-         *
-         */
-        extern float (* vec4_push)(float *v, float value);
-
-        /** Push data to scalar vector at start
-         * Restriction: vector has to be 16-byte aligned
-         * result = v[3]
-         * v      = { value, v[0], v[1], v[2] }
-         *
-         * @param v vector to modify
-         * @return the value that was removed from vector
-         *
-         */
-        extern float (* vec4_unshift)(float *v, float value);
-
-        /** Initialize vector with zero values
-         *
-         * @param v vector to initialize
-         */
-        extern void (* vec4_zero)(float *v);
-
         /** Do logarithmic vector apply:
          *  x[i] = x[i] + norm_x * logf(absf(v[i]*zero))
          *  y[i] = y[i] + norm_y * logf(absf(v[i]*zero))
@@ -766,7 +737,7 @@ namespace lsp
         /** Perform lanczos resampling, destination buffer must be cleared and contain only
          * convolution tail from previous resampling
          *
-         * @param dst destination buffer of count*2 samples + 32 samples for convolution tail
+         * @param dst destination buffer of count*2 samples + 64 samples for convolution tail
          * @param src source buffer of count samples
          * @param count number of samples
          */
@@ -775,7 +746,7 @@ namespace lsp
         /** Perform lanczos resampling, destination buffer must be cleared and contain only
          * convolution tail from previous resampling
          *
-         * @param dst destination buffer of count*2 samples + 32 samples for convolution tail
+         * @param dst destination buffer of count*2 samples + 64 samples for convolution tail
          * @param src source buffer of count samples
          * @param count number of samples
          */
@@ -784,7 +755,7 @@ namespace lsp
         /** Perform lanczos resampling, destination buffer must be cleared and contain only
          * convolution tail from previous resampling
          *
-         * @param dst destination buffer of count*3 samples + 32 samples for convolution tail
+         * @param dst destination buffer of count*3 samples + 64 samples for convolution tail
          * @param src source buffer of count samples
          * @param count number of samples
          */
@@ -793,7 +764,7 @@ namespace lsp
         /** Perform lanczos resampling, destination buffer must be cleared and contain only
          * convolution tail from previous resampling
          *
-         * @param dst destination buffer of count*3 samples + 32 samples for convolution tail
+         * @param dst destination buffer of count*3 samples + 64 samples for convolution tail
          * @param src source buffer of count samples
          * @param count number of samples
          */
@@ -802,7 +773,7 @@ namespace lsp
         /** Perform lanczos resampling, destination buffer must be cleared and contain only
          * convolution tail from previous resampling
          *
-         * @param dst destination buffer of count*4 samples + 32 samples for convolution tail
+         * @param dst destination buffer of count*4 samples + 64 samples for convolution tail
          * @param src source buffer of count samples
          * @param count number of samples
          */
@@ -811,11 +782,47 @@ namespace lsp
         /** Perform lanczos resampling, destination buffer must be cleared and contain only
          * convolution tail from previous resampling
          *
-         * @param dst destination buffer of count*4 samples + 32 samples for convolution tail
+         * @param dst destination buffer of count*4 samples + 64 samples for convolution tail
          * @param src source buffer of count samples
          * @param count number of samples
          */
         extern void (* lanczos_resample_4x3)(float *dst, const float *src, size_t count);
+
+        /** Perform lanczos resampling, destination buffer must be cleared and contain only
+         * convolution tail from previous resampling
+         *
+         * @param dst destination buffer of count*6 samples + 64 samples for convolution tail
+         * @param src source buffer of count samples
+         * @param count number of samples
+         */
+        extern void (* lanczos_resample_6x2)(float *dst, const float *src, size_t count);
+
+        /** Perform lanczos resampling, destination buffer must be cleared and contain only
+         * convolution tail from previous resampling
+         *
+         * @param dst destination buffer of count*6 samples + 64 samples for convolution tail
+         * @param src source buffer of count samples
+         * @param count number of samples
+         */
+        extern void (* lanczos_resample_6x3)(float *dst, const float *src, size_t count);
+
+        /** Perform lanczos resampling, destination buffer must be cleared and contain only
+         * convolution tail from previous resampling
+         *
+         * @param dst destination buffer of count*8 samples + 64 samples for convolution tail
+         * @param src source buffer of count samples
+         * @param count number of samples
+         */
+        extern void (* lanczos_resample_8x2)(float *dst, const float *src, size_t count);
+
+        /** Perform lanczos resampling, destination buffer must be cleared and contain only
+         * convolution tail from previous resampling
+         *
+         * @param dst destination buffer of count*8 samples + 64 samples for convolution tail
+         * @param src source buffer of count samples
+         * @param count number of samples
+         */
+        extern void (* lanczos_resample_8x3)(float *dst, const float *src, size_t count);
 
         /** Copy each even sample to output buffer
          *
@@ -840,6 +847,22 @@ namespace lsp
          * @param count number of samples to process
          */
         extern void (* downsample_4x)(float *dst, const float *src, size_t count);
+
+        /** Copy each 6th sample to output buffer
+         *
+         * @param dst destination buffer
+         * @param src source buffer
+         * @param count number of samples to process
+         */
+        extern void (* downsample_6x)(float *dst, const float *src, size_t count);
+
+        /** Copy each 8th sample to output buffer
+         *
+         * @param dst destination buffer
+         * @param src source buffer
+         * @param count number of samples to process
+         */
+        extern void (* downsample_8x)(float *dst, const float *src, size_t count);
     }
 
 } /* namespace forzee */

@@ -29,6 +29,7 @@ namespace lsp
         bClear          = false;
         bMSListen       = false;
         fInGain         = 1.0f;
+        bUISync         = true;
 
         pBypass         = NULL;
         pInGain         = NULL;
@@ -110,6 +111,7 @@ namespace lsp
 
             c->pScType          = NULL;
             c->pScMode          = NULL;
+            c->pScLookahead     = NULL;
             c->pScListen        = NULL;
             c->pScSource        = NULL;
             c->pScReactivity    = NULL;
@@ -191,6 +193,7 @@ namespace lsp
                 c->pSC              = sc->pSC;
                 c->pScType          = sc->pScType;
                 c->pScSource        = sc->pScSource;
+                c->pScLookahead     = sc->pScLookahead;
                 c->pScMode          = sc->pScMode;
                 c->pScListen        = sc->pScListen;
                 c->pScReactivity    = sc->pScReactivity;
@@ -202,6 +205,8 @@ namespace lsp
                 c->pScType          =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
                 c->pScMode          =   vPorts[port_id++];
+                TRACE_PORT(vPorts[port_id]);
+                c->pScLookahead     =   vPorts[port_id++];
                 TRACE_PORT(vPorts[port_id]);
                 c->pScListen        =   vPorts[port_id++];
                 if (nMode != CM_MONO)
@@ -329,7 +334,10 @@ namespace lsp
         {
             size_t channels = (nMode == CM_MONO) ? 1 : 2;
             for (size_t i=0; i<channels; ++i)
+            {
                 vChannels[i].sSC.destroy();
+                vChannels[i].sDelay.destroy();
+            }
 
             delete [] vChannels;
             vChannels = NULL;
@@ -351,7 +359,8 @@ namespace lsp
     void compressor_base::update_sample_rate(long sr)
     {
         size_t samples_per_dot  = seconds_to_samples(sr, compressor_base_metadata::TIME_HISTORY_MAX / compressor_base_metadata::TIME_MESH_SIZE);
-        size_t channels = (nMode == CM_MONO) ? 1 : 2;
+        size_t channels         = (nMode == CM_MONO) ? 1 : 2;
+        size_t max_delay        = millis_to_samples(fSampleRate, compressor_base_metadata::LOOKAHEAD_MAX);
 
         for (size_t i=0; i<channels; ++i)
         {
@@ -359,6 +368,7 @@ namespace lsp
             c->sBypass.init(sr);
             c->sComp.set_sample_rate(sr);
             c->sSC.set_sample_rate(sr);
+            c->sDelay.init(max_delay);
 
             for (size_t j=0; j<G_TOTAL; ++j)
                 c->sGraph[j].init(compressor_base_metadata::TIME_MESH_SIZE, samples_per_dot);
@@ -394,6 +404,9 @@ namespace lsp
             c->sSC.set_source((c->pScSource != NULL) ? c->pScSource->getValue() : SCS_MIDDLE);
             c->sSC.set_reactivity(c->pScReactivity->getValue());
             c->sSC.set_stereo_mode(((nMode == CM_MS) && (c->nScType != SCT_EXTERNAL)) ? SCSM_MIDSIDE : SCSM_STEREO);
+
+            // Update delay
+            c->sDelay.set_delay(millis_to_samples(fSampleRate, (c->pScLookahead != NULL) ? c->pScLookahead->getValue() : 0));
 
             // Update compressor settings
             float attack    = c->pAttackLvl->getValue();
@@ -433,6 +446,7 @@ namespace lsp
         size_t channels     = (nMode == CM_MONO) ? 1 : 2;
         for (size_t i=0; i<channels; ++i)
             vChannels[i].nSync     = S_CURVE;
+        bUISync             = true;
     }
 
     float compressor_base::process_feedback(channel_t *c, size_t i, size_t channels)
@@ -624,10 +638,13 @@ namespace lsp
                     break;
             }
 
-            // Update counters and pointers
+            // Apply gain to each channel and process meters
             for (size_t i=0; i<channels; ++i)
             {
                 channel_t *c        = &vChannels[i];
+
+                c->sDelay.process(c->vIn, c->vIn, to_process); // Add delay to original signal
+                dsp::multiply(c->vOut, c->vGain, c->vIn, to_process);
 
                 // Process graph outputs
                 if ((i == 0) || (nMode != CM_STEREO))
@@ -696,7 +713,7 @@ namespace lsp
             left       -= to_process;
         }
 
-        if ((!bPause) || (bClear))
+        if ((!bPause) || (bClear) || (bUISync))
         {
             // Process mesh requests
             for (size_t i=0; i<channels; ++i)
@@ -725,6 +742,8 @@ namespace lsp
                     }
                 } // for j
             }
+
+            bUISync     = false;
         }
 
         // Output compressor curves for each channel

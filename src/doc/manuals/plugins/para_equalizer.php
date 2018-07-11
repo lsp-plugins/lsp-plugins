@@ -9,6 +9,22 @@
 				)));
 	$cc     =   ($m = 'm') ? 'mono' : 'stereo';
 ?>
+<?php require_once('manuals/common/filters.php'); ?>
+<p>
+	There are some recommendations that could be given when applying equalization:
+</p>
+<ul>
+	<li><b>Resonance filter</b> with high Quality Factor can be good choice to cut annoying masking resonances from the original sound.</li>
+	<li><b>Bell filter</b> with medium Quality Factor can be used when there is necessity to remove short range of frequencies.</li>
+	<li><b>Bell filter</b> with low Quality Factor can be used to raise or lower wide range of frequencies.</li>
+	<li><b>Shelving filters</b> with low Quality Factor also can be used to lower or raise the large diapasone of frequencies.</li>
+	<li><b>Low-pass</b> and <b>High-pass filters</b> can be used with a bit raised Quality Factor to flatten frequency fall. Usage of
+	Butterworth-Chebyshev low-pass and high-pass filters with 2x and 3x slope can give good results when cutting unwanterd low and high
+	frequencies from voice or guitar sound.
+	</li>
+	<li><b>Matched Z Transform (MT) filters</b> are probably the best choice when cutting out individual short range of frequencies.</li>
+	<li><b>Bilinear Transform (BT) filters</b> are good when cutting-out high frequencies because they have -INF dB amplification at the Nyquist frequency.</li>
+</ul>
 <p>
 	This plugin performs parametric equalization of <?= $cc ?> channel<?php 
 	if ($m == 'ms') echo " in Mid-Side mode";

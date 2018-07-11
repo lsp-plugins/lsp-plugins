@@ -2,6 +2,33 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.20 ===
+
+* Implemented Impulsantworten (Impulse responses) zero-latency high-performance
+  convolution plugin series.
+* Added Mixed Herm, Mixed Exp and Mixed Thin modes to Limiter.
+* Updated Classic mode of Limiter that caused a lot of unpleasant distortion.
+* Added dithering support to Limiter plugin.
+* Added 6x and 8x oversampling support to Limiter plugin.
+* Added lookahead delay line to all dynamic processing plugins (Dynamikprozessor,
+  Kompressor, Gate, Expander).
+* Updated UI of all Spektrumanalysator plugin series. Now it takes less place while
+  keeping the same functionality.
+* Added notification dialog that asks for donations on each version update.
+* Implemented zero-latency convolver core module.
+* Implemented dither core module.
+* Updated delay core module to become more safe while processing passed data to the input.
+* Optimized native implementation of FFT: sine and cosine calculation replaced by complex
+  vector rotating, fixed performance penalties relative to CPU caching issues. 
+* Optimized SSE implementation of FFT: sine and cosine calculation replaced by complex vector
+  rotating, fixed performance penalties relative to CPU caching issues. Overall
+  performance was raised about 4x times.
+* All atom ports for LV2 plugins now have twice greater rsz:minimumSize property.
+* Added workaround for VST plugins that crashed because Ardour didn't properly report
+  sample rate to multiple instances.
+* VST plugins can now be installed as directory with .so files into VST_PATH.
+* Some minor code refactoring.
+
 === 1.0.18 ===
 
 * Implemented Begrenzer Mono, Stereo, Sidechain Mono, Sidechain Stereo (Limiter) plugin series.

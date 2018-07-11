@@ -43,6 +43,7 @@
 <ul>
 	<li><b>Preamp</b> - pre-amplification of the sidechain signal.</li>
 	<li><b>Reactivity</b> - reactivity of the sidechain signal.</li>
+	<li><b>Lookahead</b> - look-ahead time of the sidechain relative to the input signal.</li>
 	<li><b>Setup</b> - Sidechain configuration, available values:</li>
 	<ul>
 		<?php if ($sc) { ?>

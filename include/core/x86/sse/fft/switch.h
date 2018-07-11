@@ -24,39 +24,39 @@ namespace lsp
             {
                 if (rank <= 8)
                     SSE_CALL_NAME(FFT_SCRAMBLE_SELF_DIRECT_NAME, 8, FFT_MODE);
-                else if (rank <= 16)
+                else //if (rank <= 16)
                     SSE_CALL_NAME(FFT_SCRAMBLE_SELF_DIRECT_NAME, 16, FFT_MODE);
-                else
-                {
-                    #ifdef __x86_64__
-                    if (rank <= 32)
-                        SSE_CALL_NAME(FFT_SCRAMBLE_SELF_DIRECT_NAME, 32, FFT_MODE);
-                    else
-                        SSE_CALL_NAME(FFT_SCRAMBLE_SELF_DIRECT_NAME, 64, FFT_MODE);
-                    #else
-                        SSE_CALL_NAME(FFT_SCRAMBLE_SELF_DIRECT_NAME, 32, FFT_MODE);
-                    #endif /* __x86_64 */
-                }
+//                else
+//                {
+//                    #ifdef __x86_64__
+//                    if (rank <= 32)
+//                        SSE_CALL_NAME(FFT_SCRAMBLE_SELF_DIRECT_NAME, 32, FFT_MODE);
+//                    else
+//                        SSE_CALL_NAME(FFT_SCRAMBLE_SELF_DIRECT_NAME, 64, FFT_MODE);
+//                    #else
+//                        SSE_CALL_NAME(FFT_SCRAMBLE_SELF_DIRECT_NAME, 32, FFT_MODE);
+//                    #endif /* __x86_64 */
+//                }
             }
             else
             {
-                rank -= 2;
+                rank -= 3;
 
                 if (rank <= 8)
                     SSE_CALL_NAME(FFT_SCRAMBLE_COPY_DIRECT_NAME, 8, FFT_MODE);
-                else if (rank <= 16)
+                else //if (rank <= 16)
                     SSE_CALL_NAME(FFT_SCRAMBLE_COPY_DIRECT_NAME, 16, FFT_MODE);
-                else
-                {
-                    #ifdef __x86_64__
-                    if (rank <= 32)
-                        SSE_CALL_NAME(FFT_SCRAMBLE_COPY_DIRECT_NAME, 32, FFT_MODE);
-                    else
-                        SSE_CALL_NAME(FFT_SCRAMBLE_COPY_DIRECT_NAME, 64, FFT_MODE);
-                    #else
-                        SSE_CALL_NAME(FFT_SCRAMBLE_COPY_DIRECT_NAME, 32, FFT_MODE);
-                    #endif /* __x86_64 */
-                }
+//                else
+//                {
+//                    #ifdef __x86_64__
+//                    if (rank <= 32)
+//                        SSE_CALL_NAME(FFT_SCRAMBLE_COPY_DIRECT_NAME, 32, FFT_MODE);
+//                    else
+//                        SSE_CALL_NAME(FFT_SCRAMBLE_COPY_DIRECT_NAME, 64, FFT_MODE);
+//                    #else
+//                        SSE_CALL_NAME(FFT_SCRAMBLE_COPY_DIRECT_NAME, 32, FFT_MODE);
+//                    #endif /* __x86_64 */
+//                }
             }
         }
 
@@ -67,39 +67,39 @@ namespace lsp
             {
                 if (rank <= 8)
                     SSE_CALL_NAME(FFT_SCRAMBLE_SELF_REVERSE_NAME, 8, FFT_MODE);
-                else if (rank <= 16)
+                else //if (rank <= 16)
                     SSE_CALL_NAME(FFT_SCRAMBLE_SELF_REVERSE_NAME, 16, FFT_MODE);
-                else
-                {
-                    #ifdef __x86_64__
-                    if (rank <= 32)
-                        SSE_CALL_NAME(FFT_SCRAMBLE_SELF_REVERSE_NAME, 32, FFT_MODE);
-                    else
-                        SSE_CALL_NAME(FFT_SCRAMBLE_SELF_REVERSE_NAME, 64, FFT_MODE);
-                    #else
-                        SSE_CALL_NAME(FFT_SCRAMBLE_SELF_REVERSE_NAME, 32, FFT_MODE);
-                    #endif /* __x86_64 */
-                }
+//                else
+//                {
+//                    #ifdef __x86_64__
+//                    if (rank <= 32)
+//                        SSE_CALL_NAME(FFT_SCRAMBLE_SELF_REVERSE_NAME, 32, FFT_MODE);
+//                    else
+//                        SSE_CALL_NAME(FFT_SCRAMBLE_SELF_REVERSE_NAME, 64, FFT_MODE);
+//                    #else
+//                        SSE_CALL_NAME(FFT_SCRAMBLE_SELF_REVERSE_NAME, 32, FFT_MODE);
+//                    #endif /* __x86_64 */
+//                }
             }
             else
             {
-                rank -= 2;
+                rank -= 3;
 
                 if (rank <= 8)
                     SSE_CALL_NAME(FFT_SCRAMBLE_COPY_REVERSE_NAME, 8, FFT_MODE);
-                else if (rank <= 16)
+                else //if (rank <= 16)
                     SSE_CALL_NAME(FFT_SCRAMBLE_COPY_REVERSE_NAME, 16, FFT_MODE);
-                else
-                {
-                    #ifdef __x86_64__
-                    if (rank <= 32)
-                        SSE_CALL_NAME(FFT_SCRAMBLE_COPY_REVERSE_NAME, 32, FFT_MODE);
-                    else
-                        SSE_CALL_NAME(FFT_SCRAMBLE_COPY_REVERSE_NAME, 64, FFT_MODE);
-                    #else
-                        SSE_CALL_NAME(FFT_SCRAMBLE_COPY_REVERSE_NAME, 32, FFT_MODE);
-                    #endif /* __x86_64 */
-                }
+//                else
+//                {
+//                    #ifdef __x86_64__
+//                    if (rank <= 32)
+//                        SSE_CALL_NAME(FFT_SCRAMBLE_COPY_REVERSE_NAME, 32, FFT_MODE);
+//                    else
+//                        SSE_CALL_NAME(FFT_SCRAMBLE_COPY_REVERSE_NAME, 64, FFT_MODE);
+//                    #else
+//                        SSE_CALL_NAME(FFT_SCRAMBLE_COPY_REVERSE_NAME, 32, FFT_MODE);
+//                    #endif /* __x86_64 */
+//                }
             }
         }
 

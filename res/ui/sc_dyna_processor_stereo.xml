@@ -230,13 +230,14 @@
 				<!-- Stereo processing -->
 				<group text="Processor" expand="true">
 					<hbox expand="true" fill="true">
-						<grid rows="8" cols="2" expand="true" fill="true">
+						<grid rows="8" cols="3" expand="true" fill="true">
 							<label text="Type" fill="true" halign="0" />
 							<hbox>
 								<button id="scl" size="16" color="yellow" led="true" />
 								<label text="Listen" />
 							</hbox>
-							<cell cols="2">
+							<label />
+							<cell cols="3">
 								<align hpos="0" expand="true" fill="true">
 									<vbox>
 										<combo id="sct" />
@@ -248,10 +249,15 @@
 							
 							<label text="Preamp" />
 							<label text="Reactivity" />
+							<label text="Lookahead" />
+							
 							<knob id="scp" />
 							<knob id="scr" />
+							<knob id="sla" />
+							
 							<value id="scp" />
 							<value id="scr" />
+							<value id="sla" />
 						</grid>
 						<vsep />
 						<grid rows="9" cols="1" expand="true" fill="true">

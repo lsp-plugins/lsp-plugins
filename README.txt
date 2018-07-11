@@ -231,6 +231,7 @@ To submit a good bug or crash report, you should answer these questions:
     'uname -a' and 'cat /etc/issue' commands.
   * What version of required (see 'INSTALLATION') packages are present in your
     system?
+  * Provide the full list (besides LSP Plugins) of plugins that you used in your host.
   * If possible, provide the stack trace of the crash, given by GDB.
     See 'PROFILING / DEBUGGING' section for details.
   * If plugins have serious performance regression, please provide profiling file.

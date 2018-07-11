@@ -73,6 +73,7 @@ namespace lsp
             size_t          nPlayback;
             list_t          sActive;
             list_t          sInactive;
+            float           fGain;
 
         protected:
             static inline void list_remove(list_t *list, playback_t *pb);
@@ -86,6 +87,12 @@ namespace lsp
             ~SamplePlayer();
 
         public:
+            /** Set output gain
+             *
+             * @param gain output gain
+             */
+            inline void set_gain(float gain) { fGain = gain; }
+
             /** Initialize player
              *
              * @param max_samples maximum available samples

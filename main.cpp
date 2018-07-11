@@ -6,8 +6,7 @@
 #include "test/res_gen.h"
 #include "test/audiofile_test.h"
 #include "test/convolution_test.h"
-#include "test/fft_test.h"
-#include "test/fft_speed_test.h"
+#include "test/convolver_test.h"
 #include "test/dsp_speed_test.h"
 #include "test/window_test.h"
 #include "test/env_test.h"
@@ -23,8 +22,13 @@
 #include "test/jack_test.h"
 #include "test/vec4_test.h"
 #include "test/profiling_test.h"
+
+#include "test/fft_test.h"
+#include "test/fft_speed_test.h"
 #include "test/fft_conv_test.h"
 #include "test/fft_filter.h"
+#include "test/fft_join.h"
+
 #include "test/crossover_test.h"
 #include "test/saturation_test.h"
 #include "test/log_test.h"
@@ -39,8 +43,8 @@
 #include "test/xwindow.h"
 
 //#define TEST gtk_test
-//#define TEST jack_test
-#define TEST xwindow_test
+#define TEST jack_test
+//#define TEST xwindow_test
 //#define TEST limiter_test
 //#define TEST fft_conv_test
 //#define TEST crossover_test
@@ -60,10 +64,12 @@
 //#define TEST res_gen
 //#define TEST audiofile_test
 //#define TEST convolution_test
+//#define TEST convolver_test
 //#define TEST fft_test
 //#define TEST fft_filter_test
 //#define TEST dsp_speed_test
 //#define TEST fft_speed_test
+//#define TEST fft_join_test
 //#define TEST window_test
 //#define TEST env_test
 //#define TEST sample_player_test

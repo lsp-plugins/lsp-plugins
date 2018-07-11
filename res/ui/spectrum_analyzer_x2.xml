@@ -8,8 +8,8 @@
 			</vbox>
 		</align>
 		
-		<vbox size="2" border="2">
-			<graph width="512" expand="true" fill="true">
+		<vbox>
+			<graph width="640" height="360" expand="true" fill="true">
 				<center hpos="-1" vpos="-1" visible="false" />
 				
 				<!-- Gray grid -->
@@ -63,39 +63,47 @@
 				<text text="-60" coord="10;0.001" halign="1" valign="1" />
 				<text text="dB" coord="10;15.8489" halign="1" valign="-1" />
 			</graph>
-			<label text="FREQUENCY GRAPH" />
-		</vbox>
-	
-		<vbox>
+			
+			<hbox spacing="8" border="4">
+				<align pad_right="4" fill="true" hpos="0"><label text="FREQUENCY GRAPH" /></align>
+				<label text="Window" />
+				<combo id="wnd" />
+				<label text="Tolerance" />
+				<combo id="tol" />
+				<label text="Envelope" />
+				<combo id="env" />
+			</hbox>
+			
 			<hbox>
-				<ui:for id="i" first="0" last="1">
-					<group text="Channel ${i}" expand="true">
-						<grid rows="3" cols="5">
-							<label text=" On " />
-							<label text="Solo" />
-							<label text="Hold" />
-							<label text="Hue" />
-							<label text="Shift" />
-							
-							<button id="on_${i}" size="16" />
-							<button id="solo_${i}" size="16" />
-							<button id="frz_${i}" size="16" />
+				<group text="Channels" expand="true">
+					<grid rows="5" cols="6" expand="true">
+						<label text="#" />
+						<label text="On" />
+						<label text="Solo" />
+						<label text="Hold" />
+						<label text="Hue" />
+						<label text="Shift (dB)" />
+						
+						<ui:for id="i" first="0" last="1">
+							<label text="${i}" />
+							<button id="on_${i}" size="16" color="red" led="true" hue_id="hue_${i}" />
+							<button id="solo_${i}" size="16" color="red" led="true" hue_id="hue_${i}" />
+							<button id="frz_${i}" size="16" color="red" led="true" hue_id="hue_${i}" />
 							<knob id="hue_${i}" scale_hue_id="hue_${i}" size="20" />
 							<knob id="sh_${i}" scale_hue_id="hue_${i}" size="20" />
 							
-							<vbox><led id="on_${i}" size="6" hue_id="hue_${i}" /><label /></vbox>
-							<vbox><led id="solo_${i}" size="6" hue_id="hue_${i}" /><label /></vbox>
-							<vbox><led id="frz_${i}" size="6" hue_id="hue_${i}" /><label /></vbox>
-							<value id="hue_${i}" />
-							<value id="sh_${i}" />
-						</grid>
-					</group>
-				</ui:for>
-			</hbox>
+							<label />
+							<label />
+							<label />
+							<label />
+							<value id="hue_${i}" detailed="false" />
+							<value id="sh_${i}" detailed="false" />
+						</ui:for>
+					</grid>
+				</group>
 				
-			<group text="Metering">
-				<vbox>
-					<grid rows="5" cols="3">
+				<group text="Metering" expand="true">
+					<grid rows="5" cols="3" expand="true">
 						<label text="Channel" />
 						<label text="Frequency (Hz)" />
 						<label text="Level (dB)" />
@@ -116,21 +124,8 @@
 						<value id="sel" />
 						<value id="react" />
 					</grid>
-				</vbox>
-			</group>
-
-			<group text="Spectrum">
-				<grid rows="2" cols="3" hspacing="1" vspacing="1">
-					<label text="Window" />
-					<label text="Tolerance" />
-					<label text="Envelope" />
-					
-					<combo id="wnd" />
-					<combo id="tol" />
-					<combo id="env" />
-				</grid>
-			</group>
+				</group>
+			</hbox>
 		</vbox>
-
 	</hbox>
 </plugin>

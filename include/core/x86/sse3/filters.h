@@ -312,6 +312,7 @@ namespace lsp
 
                 //-------------------------------------------------------------
                 // Process first steps
+                __ASM_EMIT(".align 16")
                 __ASM_EMIT("1:")
                 __ASM_EMIT("movss       (%[src]), %%xmm0")                      // xmm0     = *src
                 __ASM_EMIT("add         $4, %[src]")                            // src      ++
@@ -390,6 +391,7 @@ namespace lsp
 
                 //-------------------------------------------------------------
                 // 8x filter processing without mask
+                __ASM_EMIT(".align 16")
                 __ASM_EMIT("2:")
                 __ASM_EMIT("movss       (%[src]), %%xmm0")                      // xmm0     = *src
                 __ASM_EMIT("add         $4, %[src]")                            // src      ++
@@ -451,6 +453,7 @@ namespace lsp
 
                 //-------------------------------------------------------------
                 // Process last steps
+                __ASM_EMIT(".align 16")
                 __ASM_EMIT("3:")
                 __ASM_EMIT("movaps      %%xmm1, %%xmm2")                        // xmm2     = s
                 __ASM_EMIT("movaps      %%xmm9, %%xmm10")                       // xmm10    = r

@@ -54,6 +54,11 @@ namespace lsp
         static const float  RATIO_DFL               = 1.0f;
         static const float  RATIO_STEP              = 0.01f;
 
+        static const float  LOOKAHEAD_MIN           = 0.0f;
+        static const float  LOOKAHEAD_MAX           = 20.0f;
+        static const float  LOOKAHEAD_DFL           = 0.0f;
+        static const float  LOOKAHEAD_STEP          = 0.01f;
+
         static const float  REACTIVITY_MIN          = 0.000;    // Minimum reactivity [ms]
         static const float  REACTIVITY_MAX          = 250;      // Maximum reactivity [ms]
         static const float  REACTIVITY_DFL          = 10;       // Default reactivity [ms]

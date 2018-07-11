@@ -61,6 +61,7 @@ namespace lsp
 
     #define EXP_MONO_CHANNEL \
         COMBO("scm", "Sidechain mode", expander_base_metadata::SC_MODE_DFL, exp_sc_modes), \
+        CONTROL("sla", "Sidechain lookahead", U_MSEC, expander_base_metadata::LOOKAHEAD), \
         SWITCH("scl", "Sidechain listen", 0.0f), \
         LOG_CONTROL("scr", "Sidechain reactivity", U_MSEC, expander_base_metadata::REACTIVITY), \
         AMP_GAIN100("scp", "Sidechain preamp", GAIN_AMP_0_DB)
@@ -71,6 +72,7 @@ namespace lsp
 
     #define EXP_STEREO_CHANNEL(id, label) \
         COMBO("scm" id, "Sidechain mode" label, expander_base_metadata::SC_MODE_DFL, exp_sc_modes), \
+        CONTROL("sla" id, "Sidechain lookahead" label, U_MSEC, expander_base_metadata::LOOKAHEAD), \
         SWITCH("scl" id, "Sidechain listen" label, 0.0f), \
         COMBO("scs" id, "Sidechain source" label, expander_base_metadata::SC_SOURCE_DFL, exp_sc_sources), \
         LOG_CONTROL("scr" id, "Sidechain reactivity" label, U_MSEC, expander_base_metadata::REACTIVITY), \
@@ -228,7 +230,7 @@ namespace lsp
         "expander_mono",
         "tddq",
         LSP_EXPANDER_BASE + 0,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         expander_classes,
         expander_mono_ports,
         NULL
@@ -243,7 +245,7 @@ namespace lsp
         "expander_stereo",
         "au0f",
         LSP_EXPANDER_BASE + 1,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         expander_classes,
         expander_stereo_ports,
         stereo_plugin_port_groups
@@ -258,7 +260,7 @@ namespace lsp
         "expander_lr",
         "zvsf",
         LSP_EXPANDER_BASE + 2,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         expander_classes,
         expander_lr_ports,
         stereo_plugin_port_groups
@@ -273,7 +275,7 @@ namespace lsp
         "expander_ms",
         "ebhk",
         LSP_EXPANDER_BASE + 3,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         expander_classes,
         expander_ms_ports,
         stereo_plugin_port_groups
@@ -289,7 +291,7 @@ namespace lsp
         "sc_expander_mono",
         "utul",
         LSP_EXPANDER_BASE + 4,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         expander_classes,
         sc_expander_mono_ports,
         mono_plugin_sidechain_port_groups
@@ -304,7 +306,7 @@ namespace lsp
         "sc_expander_stereo",
         "lwqv",
         LSP_EXPANDER_BASE + 5,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         expander_classes,
         sc_expander_stereo_ports,
         stereo_plugin_sidechain_port_groups
@@ -319,7 +321,7 @@ namespace lsp
         "sc_expander_lr",
         "pnvw",
         LSP_EXPANDER_BASE + 6,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         expander_classes,
         sc_expander_lr_ports,
         stereo_plugin_sidechain_port_groups
@@ -334,7 +336,7 @@ namespace lsp
         "sc_expander_ms",
         "zc0d",
         LSP_EXPANDER_BASE + 7,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         expander_classes,
         sc_expander_ms_ports,
         stereo_plugin_sidechain_port_groups

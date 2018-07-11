@@ -1,5 +1,5 @@
 *******************************************************************************
-* RECENT CHANGES
+* TODO LIST
 *******************************************************************************
 
 === 1.1.0 ===
@@ -12,22 +12,19 @@
 - Added possibility to enter parameter values by hand by double-clicking on them.  
 - Refactored and optimized filter transfer function calculation. 
 
-=== 1.0.20 ===
-
-- Implemented Impulsantworten (Impulse responses) zero-latency high-performance convolution plugin series
-
-
 *******************************************************************************
 * Release steps
 *******************************************************************************
+* Update version in Makefile
+* Update CHANGELOG.txt and TODO.txt
+* Run make clean && make -j8 install to build and install binaries
+* Make video
 * Add video cover to res/video-covers
 * Upload release video to the site
-* Update version in Makefile
 * Add link to the video to src/doc/config/youtube.php
-* Update CHANGELOG.txt and TODO.txt
+* Run ./release.sh to build binaries
 * Commit all changes to SVN
 * Tag version in SVN
-* Run ./release.sh to build binaries
 * Upload binaries to sourceforge
 * Copy contents of src/doc and res/doc/img/plugins to the site
 * Publish video on youtube
@@ -49,14 +46,16 @@
 * Expander (Expander)
 * Gate (Gate)
 * Begrenzer (Limiter)
-- Impulsantworten (Impulse responses)
+* Impulsantworten (Impulse responses)
 - Impulse Taker
+- Slap-back delay
 - One-band compressor
 - Multiband compressor
 - Multiband expander
 - Multiband gate
 - Multiband limiter
 - Saturator
+- Doubler (Stereo enhancer)
 - Verstärker Profiler (Amplifier profiler)
 - Noise suppressor
 - Nachhall (Reverberation)
@@ -74,6 +73,108 @@
 *******************************************************************************
 * FEATURE REQUESTS: Detailed
 *******************************************************************************
+
+==== Delays ====
+  jonetsu:
+    The benefit with using delays is that there are no tails to manage. Also, those delays can be colorized by
+    EQ (dull is farther, bright is closer) and adjusted accordingly with compression. The compression has to work
+    in the same way as the EQ, not against.
+
+  sadko4u:
+	Your explanations helped me to understand what another plugin we are currently missing in linux audio. I think that
+	plugin that allows to simulate set of slap back delays combined with equalization will be very helpful while doing
+	spacial processing. What do you think about it?
+
+==== Analyzer ====
+  Quirq:
+    Back to the main topic, I'd dearly love to see a usable spectrum analyser that looked and behaved like Voxengo's SPAN:
+    I use it for mix/mastering analysis; I was giving feedback to a friend for a CD release in December and looked again
+    for comparable native analysers but went back to SPAN, even though it was a bit of a pain launching it separately and
+    connecting everything up. (Now I've got Carla-rack that would be much, much less of an issue. But still it would be great
+    to have something native.)
+    I've looked at all the native analysers and none of them seem to come close. It's nice/clear to look at (important when
+    you're using it for hours on end), the slope can be varied (useful for that gradual gentle slope down from low to high
+    frequencies when things are balanced), but above all else, it's the fact that the display is smoothed and not at all spiky
+    and is equally detailed across the spectrum (many analysers seem to be less detailed at the low end than they are for the
+    highs). The image above looks like it's probably not on the more smoothed-out Mastering setting and is a bit spikier than
+    the settings I use.
+
+  ssj71:
+    I think you are exactly right sadko, but Quirq is also right. Even though it's less accurate data,
+    a mode like this can help the user to mentally process the data on screen better, even if it's less accurate.
+    If you are using it for balance of frequencies, rather than trying to surgically remove or boost this or that
+    freq, then I think a "frequency smoothed" mode is a good idea. Really it makes sense to have some independent
+    control over smoothing WRT time AND/OR frequency. Especially with a few good presets ("Mastering," "high-accuracy," etc.)
+    then it would be an even more useable and capable analyzer.
+
+  Quirq:
+    Thanks, you've very eloquently summarised what I was trying to say. The reason I got into using SPAN was because
+    that's what the mastering engineer Ian Shepherd used in his Home Mastering EQ course (which I found incredibly useful).
+    When I looked at all the native analysers to put things into practice, they all seem to be built more/just for precision,
+    which is fine for most purposes but not as helpful for the broader-brush approach of mastering. 
+  
+    There are some analysers that are also scaled in a way that I don't find helpful – being marked 100, 200, 200, 400, 600, 800,
+    1kHz, 2k etc with appropriate ticks in between is far more useful than 110, 220, 440, 880 etc. I understand why that's done,
+    but it's harder to work out quickly where a feature of interest occurs in the spectrum unless it's centred around one of the
+    marks. I think as well, having the area under the line makes things easier to read; most analysers do that, but not all.
+
+==== Convolution Reverb ====
+
+  As for the next one? I would like to see your take on a reverb. I've never really found one
+  that I am satisfied with in linux. For convolution ardour cannot lot klangfalter lv2, the vst
+  version loads but I'm not sure is completely stable. X42 plugins convolver is aimed at short
+  impulses and has no controls, IR is unmaintained (I think) and, from experience, can have issues
+  saving/loading parameters. For artificial reverb there are some good ones such as mverb but again
+  I've never really felt very happy with them, none seem to offer the same kind of control that
+  you can get with something like the Valhalla reverbs, epicVerb, or the new fabfilter reverb.
+  
+  An impulse purchase price of $30-$40 would be fine!
+
+==== Multiband compressor ====
+  I also thought that non-crossover multiband compressor is lacking linux audio. Crossovers do phase
+  distortion at split points. Instead of this multiband compressor could be implemented as N-band
+  equalizer with dynamically changing gain for each band where the gain is controlled as compression gain.
+  
+  That sounds excellent sadko4u, that's actually what I had in mind, I don't think there is anything like that for us.
+
+==== Modulation Reverb ====
+  A nice reverb plugin based on freeverb 3. It's old but does sound good IMHO.
+
+==== Transient Designer ====
+  Transient Designer I like to see. Calf has one but Calf works only sometimes in Ardour.
+
+==== Tape simulator ====
+  That's what I miss right now, as to what I really would like? A really good tape/dub delay with
+  parameter changes which causes extreme zipper type effects, like Analogic Delay can produce.
+  Tal Dub is amazing but it does not make the crazy sounds when you change the delay time which
+  is a shame.
+
+==== Saturator ====
+  I'd say I think we're missing subtle saturation / distortion plugins. Stuff like
+  VarietyOfSound used to put out -- FerricTDS, Tessla, the saturation stage in NastyVCS.
+
+==== Filters ====
+  A filter collection where you could use bezier or pixel-pencil to draw filter sweeps.
+  
+==== Noise Reduction ====
+  I think noise reduction is the other big hole in LA currently.
+
+==== Spring reverb ====
+  Looking at scientific publications like this one, an accurate physical model of a spring reverb
+  in real time seems out of reach for a longtime. 
+  http://www.ness-music.eu/wp-content/uploads/2013/06/dafx13.pdf
+  
+  Do we have any resonator plugins? I used to use the on in ableton live years ago to create some
+  quite nice spring reverb sounding fx when combined with the autofilter before the input. I can't
+  think of any linux plugins that do anything similar.
+
+==== Mastering ====
+  On topic: I'd like to see, for example, a decent saturator, a multiband compressor, and
+  a maximizer, possibly combined into one big mastering plugin.
+  
+==== Stereo image ====
+  Oh, and one more. The thing we starve for really long is a good stereo image expander. Like the
+  one you wrote for Calf project, but better.
 
 ==== Dynamic Equalizer ====
   Feature request for creating a Dynamic EQ plugin. If you're not familiar with them,

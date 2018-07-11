@@ -8,8 +8,8 @@
 			</vbox>
 		</align>
 		
-		<vbox size="2" border="2">
-			<graph width="512" expand="true" fill="true">
+		<vbox>
+			<graph width="640" height="360" expand="true" fill="true">
 				<center hpos="-1" vpos="-1" visible="false" />
 				
 				<!-- Gray grid -->
@@ -62,78 +62,69 @@
 				<text text="-60" coord="10;0.001" halign="1" valign="1" />
 				<text text="dB" coord="10;15.8489" halign="1" valign="-1" />
 			</graph>
-			<label text="FREQUENCY GRAPH" />
-		</vbox>
-	
-		<vbox>
-			<group text="Channels">
-				<grid rows="11" cols="9" transpose="true">
-					<label />
-					<label text="On" />
-					<label />
-					<label text="Solo" />
-					<label />
-					<label text="Hold" />
-					<label />
-					<label text="Hue" />
-					<label />
-					<label text="Shift" />
-					<label />
-					
-					<ui:for id="i" first="0" last="7" >
-						<label text="${i}" />
-						<button id="on_${i}" size="16" />
-						<led id="on_${i}" size="6" hue_id="hue_${i}" />
-						<button id="solo_${i}" size="16" />
-						<led id="solo_${i}" size="6" hue_id="hue_${i}" />
-						<button id="frz_${i}" size="16" />
-						<led id="frz_${i}" size="6" hue_id="hue_${i}" />
-						<knob id="hue_${i}" scale_hue_id="hue_${i}" size="20" />
-						<value id="hue_${i}" />
-						<knob id="sh_${i}" scale_hue_id="hue_${i}" size="20" />
-						<value id="sh_${i}" />
-					</ui:for>>
-				</grid>
-			</group>
+			
+			<hbox spacing="8" border="4">
+				<align pad_right="4" fill="true" hpos="0"><label text="FREQUENCY GRAPH" /></align>
+				<label text="Window" />
+				<combo id="wnd" />
+				<label text="Tolerance" />
+				<combo id="tol" />
+				<label text="Envelope" />
+				<combo id="env" />
+			</hbox>
 			
 			<hbox>
-				<group text="Metering" expand="true">
-					<vbox>
-						<grid rows="5" cols="3">
-							<label text="Channel" />
-							<label text="Frequency (Hz)" />
-							<label text="Level (dB)" />
-							
-							<combo id="chn" width="48" />
-							<indicator id="freq" format="f6.1!" text_color="green" />
-							<indicator id="lvl" format="+-f4.1!" text_color="green" />
+				<group text="Channels" expand="true">
+					<grid rows="7" cols="9" transpose="true">
+						<label text="#" />
+						<label text="On" />
+						<label text="Solo/Hold" />
+						<label text="Hue" />
+						<label />
+						<label text="Shift" />
+						<label test="(dB)" />
 						
-							<label text="Preamp" />
-							<label text="Selector" />
-							<label text="Reactivity" />
+						<ui:for id="i" first="0" last="7">
+							<label text="${i}" />
+							<button id="on_${i}" size="16" color="red" led="true" hue_id="hue_${i}" />
 							
-							<knob id="pamp" />
-							<knob id="sel" />
-							<knob id="react" />
+							<grid rows="2" cols="2">
+								<button id="solo_${i}" size="12" color="red" led="true" hue_id="hue_${i}" />
+								<button id="frz_${i}" size="12" color="red" led="true" hue_id="hue_${i}" />
+								<label text="S" font_size="8" />
+								<label text="H" font_size="8" />
+							</grid> 
 							
-							<value id="pamp" />
-							<value id="sel" />
-							<value id="react" />
-						</grid>
-					</vbox>
+							<knob id="hue_${i}" scale_hue_id="hue_${i}" size="20" />
+							<value id="hue_${i}" detailed="false" />
+							<knob id="sh_${i}" scale_hue_id="hue_${i}" size="20" />
+							<value id="sh_${i}" detailed="false" />
+						</ui:for>
+					</grid>
 				</group>
-	
-				<group text="Spectrum" expand="true">
-					<vbox>
-						<label text="Window" />
-						<combo id="wnd" />
+				
+				<group text="Metering" expand="true">
+					<grid rows="5" cols="3" expand="true">
+						<label text="Channel" />
+						<label text="Frequency (Hz)" />
+						<label text="Level (dB)" />
 						
-						<label text="Tolerance" />
-						<combo id="tol" />
+						<combo id="chn" width="48" />
+						<indicator id="freq" format="f6.1!" text_color="green" />
+						<indicator id="lvl" format="+-f4.1!" text_color="green" />
+					
+						<label text="Preamp" />
+						<label text="Selector" />
+						<label text="Reactivity" />
 						
-						<label text="Envelope" />
-						<combo id="env" />
-					</vbox>
+						<knob id="pamp" />
+						<knob id="sel" />
+						<knob id="react" />
+						
+						<value id="pamp" />
+						<value id="sel" />
+						<value id="react" />
+					</grid>
 				</group>
 			</hbox>
 		</vbox>

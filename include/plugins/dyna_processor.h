@@ -15,6 +15,7 @@
 #include <core/Sidechain.h>
 #include <core/DynamicProcessor.h>
 #include <core/MeterGraph.h>
+#include <core/Delay.h>
 
 namespace lsp
 {
@@ -72,6 +73,7 @@ namespace lsp
                 Bypass              sBypass;            // Bypass
                 Sidechain           sSC;                // Sidechain module
                 DynamicProcessor    sProc;              // Processor module
+                Delay               sDelay;             // Lookahead delay
                 MeterGraph          sGraph[G_TOTAL];    // Meter graph
 
                 float              *vIn;                // Input data
@@ -98,6 +100,7 @@ namespace lsp
 
                 IPort              *pScType;            // Sidechain location
                 IPort              *pScMode;            // Sidechain mode
+                IPort              *pScLookahead;       // Sidechain lookahead
                 IPort              *pScListen;          // Sidechain listen
                 IPort              *pScSource;          // Sidechain source
                 IPort              *pScReactivity;      // Sidechain reactivity
@@ -133,6 +136,7 @@ namespace lsp
             bool            bClear;         // Clear button
             bool            bMSListen;      // Mid/Side listen
             float           fInGain;        // Input gain
+            bool            bUISync;
             float_buffer_t *pIDisplay;      // Inline display buffer
 
             IPort          *pBypass;        // Bypass port

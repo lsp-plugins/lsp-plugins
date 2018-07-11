@@ -13,27 +13,27 @@
 			<grid rows="2" cols="5" transpose="true">
 				<!-- Time graph -->
 				<align expand="true" fill="true" pad_top="4">
-					<graph width="420" height="280">
+					<graph width="560" height="280">
 						<!-- Gray grid -->
 						<marker value="0.25119" color="gray" basis="1" parallel="0" />  <!-- -12 dB -->
 						<marker value="0.01585" color="gray" basis="1" parallel="0" />  <!-- -36 dB -->
 						<marker value="0.001" color="gray" basis="1" parallel="0" />    <!-- -60 dB -->
-						<ui:for id="t" first="0" last="2">
+						<ui:for id="t" first="0" last="3">
 							<marker value="${t}.5" color="gray" basis="0" parallel="1" />
 						</ui:for>
 						
 						<!-- Yellow grid -->
 						<marker value="0.06310" color="yellow" basis="1" parallel="0" /><!-- -24 dB -->
-						<ui:for id="t" first="1" last="2">
+						<ui:for id="t" first="1" last="3">
 							<marker value="${t}" color="yellow" basis="0" parallel="1" />
 						</ui:for>
 		
 						<!-- Axises and boundaries -->
 						<center hpos="1" vpos="-1" visible="false" />
-						<axis min="0" max="3" color="gray" angle="1.0" logarithmic="false" />
+						<axis min="0" max="4" color="gray" angle="1.0" logarithmic="false" />
 						<axis min="0.00398" max="1.0" color="gray" angle="0.5" logarithmic="true" />
 						<marker value="0" color="gray" basis="1" parallel="0" /> <!-- 0 dB -->
-						<marker value="3" color="gray" basis="0" parallel="1" />
+						<marker value="4" color="gray" basis="0" parallel="1" />
 						
 						<!-- Baseline -->
 						<marker value="1.0" color="white" basis="1" parallel="0" width="2" /> <!-- 0 dB -->
@@ -48,12 +48,12 @@
 						<marker id="th" color="magenta" basis="1" parallel="0" />
 						
 						<!-- Text -->
-						<text text="0 dB" coord="3;1" halign="1" valign="-1" />
-						<text text="-12" coord="3;0.25119" halign="1" valign="-1" />
-						<text text="-24" coord="3;0.06310" halign="1" valign="-1" />
-						<text text="-36" coord="3;0.01585" halign="1" valign="-1" />
+						<text text="0 dB" coord="4;1" halign="1" valign="-1" />
+						<text text="-12" coord="4;0.25119" halign="1" valign="-1" />
+						<text text="-24" coord="4;0.06310" halign="1" valign="-1" />
+						<text text="-36" coord="4;0.01585" halign="1" valign="-1" />
 					
-						<text text="s" coord="3;0.00398" halign="1" valign="1" />
+						<text text="s" coord="4;0.00398" halign="1" valign="1" />
 						<ui:for id="t" first="0" last="3">
 							<text text="${t}" coord="${t};0.00398" halign="-1" valign="1" color="white" />
 							<text text="${t}.5" coord="${t}.5;0.00398" halign="-1" valign="1" color="white" />
@@ -73,6 +73,8 @@
 							<combo id="mode" />
 							<label text="O/S:" />
 							<combo id="ovs" />
+							<label text="Dither:" />
+							<combo id="dith" />
 						</hbox>
 					</align>
 					<label text="TIME GRAPH" />

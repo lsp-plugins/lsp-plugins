@@ -83,7 +83,7 @@ namespace lsp
             } sa_core_t;
 
         protected:
-            static sa_core_t       *create_channels(const plugin_metadata_t *m);
+            sa_core_t              *create_channels(const plugin_metadata_t *m);
             static void             destroy_channels(sa_core_t *channels);
             void                    update_frequences();
             void                    set_reactivity(float reactivity);

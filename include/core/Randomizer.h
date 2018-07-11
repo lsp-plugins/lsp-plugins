@@ -15,7 +15,8 @@ namespace lsp
     enum random_function_t
     {
         RND_LINEAR,
-        RND_EXP
+        RND_EXP,
+        RND_TRIANGLE
     };
 
     class Randomizer

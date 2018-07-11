@@ -15,7 +15,7 @@ namespace lsp
 {
     class UIControlPort: public IUIPort
     {
-        private:
+        protected:
             float       fValue;
             plugin_ui  *pUI;
 
@@ -46,6 +46,51 @@ namespace lsp
                     if (pUI != NULL)
                         pUI->save_global_config();
                 }
+            }
+    };
+
+    class UIPathPort: public IUIPort
+    {
+        protected:
+            char            sPath[PATH_MAX];
+            plugin_ui      *pUI;
+
+        public:
+            UIPathPort(const port_t *meta, plugin_ui *ui): IUIPort(meta)
+            {
+                sPath[0]    = '\0';
+                pUI         = ui;
+            }
+
+            virtual ~UIPathPort()
+            {
+                sPath[0]    = '\0';
+                pUI         = NULL;
+            }
+
+            virtual void write(const void* buffer, size_t size)
+            {
+                // Check that attribute didn't change
+                if ((size != strlen(sPath)) && (memcmp(sPath, buffer, size) == 0))
+                    return;
+
+                if ((buffer != NULL) && (size > 0))
+                {
+                    size_t copy     = (size >= PATH_MAX) ? PATH_MAX-1 : size;
+                    memcpy(sPath, buffer, size);
+                    sPath[copy]     = '\0';
+                }
+                else
+                    sPath[0]        = '\0';
+
+                // Save config (if possible)
+                if (pUI != NULL)
+                    pUI->save_global_config();
+            }
+
+            virtual void *getBuffer()
+            {
+                return sPath;
             }
     };
 }

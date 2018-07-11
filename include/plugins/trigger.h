@@ -111,6 +111,7 @@ namespace lsp
             float                   fWet;                   // Wet amount
             bool                    bPause;                 // Pause analysis refresh
             bool                    bClear;                 // Clear analysis
+            bool                    bUISync;                // Synchronize with UI
 
             size_t                  nDetectCounter;         // Detect counter
             size_t                  nReleaseCounter;        // Release counter
@@ -177,6 +178,7 @@ namespace lsp
 
             virtual void update_settings();
             virtual void update_sample_rate(long sr);
+            virtual void ui_activated();
 
             virtual void process(size_t samples);
             virtual bool inline_display(ICanvas *cv, size_t width, size_t height);

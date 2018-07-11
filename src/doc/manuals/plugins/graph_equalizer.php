@@ -9,6 +9,7 @@
 				)));
 	$cc     =   ($m = 'm') ? 'mono' : 'stereo';
 ?>
+<?php require_once('manuals/common/filters.php'); ?>
 <p>
 	This plugin performs graphic equalization of <?= $cc ?> channel<?php 
 	if ($m == 'ms') echo " in Mid-Side mode";

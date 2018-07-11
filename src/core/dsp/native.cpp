@@ -11,9 +11,12 @@
 #include <core/units.h>
 
 #include <core/native/dsp.h>
+#include <core/native/fft.h>
+#include <core/native/filters.h>
 #include <core/native/float.h>
 #include <core/native/graphics.h>
 #include <core/native/resampling.h>
+#include <core/native/msmatrix.h>
 
 namespace lsp
 {
@@ -62,15 +65,19 @@ namespace lsp
             dsp::convolve_single            = native::convolve_single;
             dsp::convolve                   = native::convolve;
             dsp::reverse                    = native::reverse;
+
             dsp::direct_fft                 = native::direct_fft;
             dsp::reverse_fft                = native::reverse_fft;
             dsp::normalize_fft              = native::normalize_fft;
+//            dsp::join_fft                   = native::join_fft;
             dsp::center_fft                 = native::center_fft;
             dsp::combine_fft                = native::combine_fft;
+
             dsp::complex_mul                = native::complex_mul;
             dsp::complex_cvt2modarg         = native::complex_cvt2modarg;
             dsp::complex_cvt2reim           = native::complex_cvt2reim;
             dsp::complex_mod                = native::complex_mod;
+
             dsp::lr_to_ms                   = native::lr_to_ms;
             dsp::lr_to_mid                  = native::lr_to_mid;
             dsp::lr_to_side                 = native::lr_to_side;
@@ -86,10 +93,6 @@ namespace lsp
             dsp::biquad_process_x4          = native::biquad_process_x4;
             dsp::biquad_process_x8          = native::biquad_process_x8;
 
-            dsp::vec4_scalar_mul            = native::vec4_scalar_mul;
-            dsp::vec4_push                  = native::vec4_push;
-            dsp::vec4_unshift               = native::vec4_unshift;
-            dsp::vec4_zero                  = native::vec4_zero;
             dsp::axis_apply_log             = native::axis_apply_log;
             dsp::rgba32_to_bgra32           = native::rgba32_to_bgra32;
 
@@ -99,10 +102,16 @@ namespace lsp
             dsp::lanczos_resample_3x3       = native::lanczos_resample_3x3;
             dsp::lanczos_resample_4x2       = native::lanczos_resample_4x2;
             dsp::lanczos_resample_4x3       = native::lanczos_resample_4x3;
+            dsp::lanczos_resample_6x2       = native::lanczos_resample_6x2;
+            dsp::lanczos_resample_6x3       = native::lanczos_resample_6x3;
+            dsp::lanczos_resample_8x2       = native::lanczos_resample_8x2;
+            dsp::lanczos_resample_8x3       = native::lanczos_resample_8x3;
 
             dsp::downsample_2x              = native::downsample_2x;
             dsp::downsample_3x              = native::downsample_3x;
             dsp::downsample_4x              = native::downsample_4x;
+            dsp::downsample_6x              = native::downsample_6x;
+            dsp::downsample_8x              = native::downsample_8x;
         }
     } // namespace native
 } // namespace dsp

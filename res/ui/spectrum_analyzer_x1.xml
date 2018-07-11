@@ -8,8 +8,8 @@
 			</vbox>
 		</align>
 		
-		<vbox size="2" border="2">
-			<graph width="512" expand="true" fill="true">
+		<vbox>
+			<graph width="640" height="360" expand="true" fill="true">
 				<center hpos="-1" vpos="-1" visible="false" />
 				
 				<!-- Gray grid -->
@@ -62,67 +62,59 @@
 				<text text="-60" coord="10;0.001" halign="1" valign="1" />
 				<text text="dB" coord="10;15.8489" halign="1" valign="-1" />
 			</graph>
-			<label text="FREQUENCY GRAPH" />
-		</vbox>
-	
-		<vbox>
-			<group text="Channel">
-				<grid rows="3" cols="4">
-					<label text="On" />
-					<label text="Hold" />
-					<label text="Hue" />
-					<label text="Shift" />
-					
-					<button id="on_0" size="16" />
-					<button id="frz_0" size="16" />
-					<knob id="hue_0" scale_hue_id="hue_0" size="20" />
-					<knob id="sh_0" scale_hue_id="hue_0" size="20" />
-					
-					<led id="on_0" size="6" hue_id="hue_0" />
-					<led id="frz_0" size="6" hue_id="hue_0" />
-					<value id="hue_0" />
-					<value id="sh_0" />
-				</grid>
-			</group>
+			
+			<hbox spacing="8" border="4">
+				<align pad_right="4" fill="true" hpos="0"><label text="FREQUENCY GRAPH" /></align>
+				<label text="Window" />
+				<combo id="wnd" />
+				<label text="Tolerance" />
+				<combo id="tol" />
+				<label text="Envelope" />
+				<combo id="env" />
+			</hbox>
+			
+			<hbox>
+				<group text="Channel" expand="true">
+					<grid rows="3" cols="4" expand="true">
+						<label text="On" />
+						<label text="Hold" />
+						<label text="Hue" />
+						<label text="Shift" />
+						
+						<button id="on_0" size="16" color="red" led="true" hue_id="hue_${i}" />
+						<button id="frz_0" size="16" color="red" led="true" hue_id="hue_${i}"  />
+						<knob id="hue_0" scale_hue_id="hue_0" />
+						<knob id="sh_0" scale_hue_id="hue_0" />
+						
+						<led id="on_0" size="6" hue_id="hue_0" />
+						<led id="frz_0" size="6" hue_id="hue_0" />
+						<value id="hue_0" />
+						<value id="sh_0" />
+					</grid>
+				</group>
 				
-			<group text="Metering">
-				<vbox>
-					<grid rows="5" cols="3">
+				<group text="Metering" expand="true">
+					<grid rows="43" cols="4" expand="true">
 						<label text="Preamp" />
-						<label text="Frequency (Hz)" />
-						<label text="Level (dB)" />
-
-						<cell rows="3">
-							<knob id="pamp" size="32" />
-						</cell>						
-						<indicator id="freq" format="f6.1!" text_color="green" />
-						<indicator id="lvl" format="+-f4.1!" text_color="green" />
-					
 						<label text="Selector" />
 						<label text="Reactivity" />
+						<label text="Frequency (Hz)" />
 						
+						<knob id="pamp" />
 						<knob id="sel" />
 						<knob id="react" />
-						
+						<vbox>
+							<indicator id="freq" format="f6.1!" text_color="green" />
+							<indicator id="lvl" format="+-f5.2!" text_color="green" />
+						</vbox>
+
 						<value id="pamp" />
 						<value id="sel" />
-						<value id="react" />
+						<value id="react" />						
+						<label text="Level (dB)" />
 					</grid>
-				</vbox>
-			</group>
-
-			<group text="Spectrum">
-				<grid rows="2" cols="3" hspacing="1" vspacing="1">
-					<label text="Window" />
-					<label text="Tolerance" />
-					<label text="Envelope" />
-					
-					<combo id="wnd" />
-					<combo id="tol" />
-					<combo id="env" />
-				</grid>
-			</group>
+				</group>
+			</hbox>
 		</vbox>
-
 	</hbox>
 </plugin>

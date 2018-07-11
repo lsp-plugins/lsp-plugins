@@ -13,7 +13,7 @@
 
 <p>Currently supported platform is <b>GNU/Linux</b> only.</p>
 
-<p>Supported architectures are <b>Intel i586</b> and <b>Intel x86_64</b>.</p>
+<p>Supported architectures are <b>i586</b> and <b>x86_64</b>.</p>
 
 <p>Currently project is founded, developed and maintained by only one person - Vladimir Sadovnikov.</p>
 

@@ -41,10 +41,17 @@ namespace fft_speed_test
 
         size_t fft_size = 1 << MAX_RANK;
 
-        float *sig_re   = new float[fft_size];
-        float *sig_im   = new float[fft_size];
-        float *fft_re   = new float[fft_size];
-        float *fft_im   = new float[fft_size];
+        uint8_t *data   = new uint8_t[fft_size*4*sizeof(float) + DEFAULT_ALIGN];
+        float *ptr      = reinterpret_cast<float *>(ALIGN_PTR(data, DEFAULT_ALIGN));
+
+        float *sig_re   = ptr;
+        ptr            += fft_size;
+        float *sig_im   = ptr;
+        ptr            += fft_size;
+        float *fft_re   = ptr;
+        ptr            += fft_size;
+        float *fft_im   = ptr;
+        ptr            += fft_size;
 
         for (size_t i=0; i < 1 << MAX_RANK; ++i)
         {
@@ -55,8 +62,9 @@ namespace fft_speed_test
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
             test_fft(fft_re, fft_im, sig_re, sig_im, i);
 
-        delete [] sig_im;
-        delete [] sig_re;
+//        delete [] sig_im;
+//        delete [] sig_re;
+        delete [] data;
 
         return 0;
     }

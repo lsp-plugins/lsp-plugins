@@ -254,15 +254,17 @@
 			<hbox>
 				<!-- Sidechain processing -->
 				<group text="Sidechain" expand="true">
-					<grid rows="5" cols="4" expand="true">
+					<grid rows="5" cols="5" expand="true">
 						<label text="Listen" />
 						<label text="Preamp" />
 						<label text="Reactivity" />
+						<label text="Lookahead" />
 						<label text="Setup" />
 						
 						<button id="scl_m" size="16" color="middle_channel" led="true" />
 						<knob id="scp_m" />
 						<knob id="scr_m" />
+						<knob id="sla_m" />
 						<cell rows="2">
 							<vbox>
 								<combo id="sci_m" />
@@ -274,10 +276,12 @@
 						<label text="Middle" />
 						<value id="scp_m" same_line="true" />
 						<value id="scr_m" same_line="true" />
+						<value id="sla_m" same_line="true" />
 						
 						<button id="scl_s" size="16" color="side_channel" led="true" />
 						<knob id="scp_s" />
 						<knob id="scr_s" />
+						<knob id="sla_s" />
 						<cell rows="2">
 							<vbox>
 								<combo id="sci_s" />
@@ -289,6 +293,7 @@
 						<label text="Side" />
 						<value id="scp_s" same_line="true" />
 						<value id="scr_s" same_line="true" />
+						<value id="sla_s" same_line="true" />
 					</grid>
 				</group>
 				

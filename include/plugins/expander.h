@@ -15,6 +15,7 @@
 #include <core/Sidechain.h>
 #include <core/Expander.h>
 #include <core/MeterGraph.h>
+#include <core/Delay.h>
 
 namespace lsp
 {
@@ -70,6 +71,7 @@ namespace lsp
                 Bypass          sBypass;            // Bypass
                 Sidechain       sSC;                // Sidechain module
                 Expander        sExp;               // Expansion module
+                Delay           sDelay;             // Lookahead delay
                 MeterGraph      sGraph[G_TOTAL];    // Input meter graph
 
                 float          *vIn;                // Input data
@@ -95,6 +97,7 @@ namespace lsp
 
                 IPort          *pScType;            // Sidechain location
                 IPort          *pScMode;            // Sidechain mode
+                IPort          *pScLookahead;       // Sidechain lookahead
                 IPort          *pScListen;          // Sidechain listen
                 IPort          *pScSource;          // Sidechain source
                 IPort          *pScReactivity;      // Sidechain reactivity
@@ -125,6 +128,7 @@ namespace lsp
             bool            bClear;         // Clear button
             bool            bMSListen;      // Mid/Side listen
             float           fInGain;        // Input gain
+            bool            bUISync;        // UI Sync
             float_buffer_t *pIDisplay;      // Inline display buffer
 
             IPort          *pBypass;        // Bypass port

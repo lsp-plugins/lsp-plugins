@@ -14,9 +14,9 @@ namespace lsp
     // Limiter
     struct limiter_base_metadata
     {
-        static const float  HISTORY_TIME            = 3.0f;     // Amount of time to display history [s]
-        static const size_t HISTORY_MESH_SIZE       = 420;      // 420 dots for history
-        static const size_t OVERSAMPLING_MAX        = 4;        // Maximum 4x oversampling
+        static const float  HISTORY_TIME            = 4.0f;     // Amount of time to display history [s]
+        static const size_t HISTORY_MESH_SIZE       = 560;      // 420 dots for history
+        static const size_t OVERSAMPLING_MAX        = 8;        // Maximum 8x oversampling
 
         static const float  LOOKAHEAD_MIN           = 0.1f;     // No lookahead [ms]
         static const float  LOOKAHEAD_MAX           = 20.0f;    // Maximum Lookahead [ms]
@@ -57,6 +57,10 @@ namespace lsp
             OVS_3X3,
             OVS_4X2,
             OVS_4X3,
+            OVS_6X2,
+            OVS_6X3,
+            OVS_8X2,
+            OVS_8X3,
 
             OVS_DEFAULT     = OVS_NONE
         };
@@ -64,22 +68,43 @@ namespace lsp
         enum limiter_mode_t
         {
             LOM_CLASSIC,
+
             LOM_HERM_THIN,
             LOM_HERM_WIDE,
             LOM_HERM_TAIL,
             LOM_HERM_DUCK,
+
             LOM_EXP_THIN,
             LOM_EXP_WIDE,
             LOM_EXP_TAIL,
             LOM_EXP_DUCK,
+
             LOM_LINE_THIN,
             LOM_LINE_WIDE,
             LOM_LINE_TAIL,
             LOM_LINE_DUCK,
 
+            LOM_MIXED_HERM,
+            LOM_MIXED_EXP,
+            LOM_MIXED_LINE,
+
             LOM_DEFAULT     = LOM_HERM_THIN
         };
 
+        enum dithering_t
+        {
+            DITHER_NONE,
+            DITHER_7BIT,
+            DITHER_8BIT,
+            DITHER_11BIT,
+            DITHER_12BIT,
+            DITHER_15BIT,
+            DITHER_16BIT,
+            DITHER_23BIT,
+            DITHER_24BIT,
+
+            DITHER_DEFAULT  = DITHER_NONE
+        };
     };
 
     struct limiter_mono_metadata: public limiter_base_metadata

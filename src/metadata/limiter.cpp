@@ -19,18 +19,26 @@ namespace lsp
     static const char *limiter_oper_modes[] =
     {
         "Classic",
+
         "Herm Thin",
         "Herm Wide",
         "Herm Tail",
         "Herm Duck",
+
         "Exp Thin",
         "Exp Wide",
         "Exp Tail",
         "Exp Duck",
+
         "Line Thin",
         "Line Wide",
         "Line Tail",
         "Line Duck",
+
+        "Mixed Herm",
+        "Mixed Exp",
+        "Mixed Line",
+
         NULL
     };
 
@@ -43,6 +51,24 @@ namespace lsp
         "x3(3L)",
         "x4(2L)",
         "x4(3L)",
+        "x6(2L)",
+        "x6(3L)",
+        "x8(2L)",
+        "x8(3L)",
+        NULL
+    };
+
+    static const char *limiter_dither_modes[] =
+    {
+        "None",
+        "7bit",
+        "8bit",
+        "11bit",
+        "12bit",
+        "15bit",
+        "16bit",
+        "23bit",
+        "24bit",
         NULL
     };
 
@@ -59,6 +85,7 @@ namespace lsp
         LOG_CONTROL("at", "Attack time", U_MSEC, limiter_base_metadata::ATTACK_TIME), \
         LOG_CONTROL("rt", "Release time", U_MSEC, limiter_base_metadata::RELEASE_TIME), \
         COMBO("ovs", "Oversampling", limiter_base_metadata::OVS_DEFAULT, limiter_ovs_modes),           \
+        COMBO("dith", "Dithering", limiter_base_metadata::DITHER_DEFAULT, limiter_dither_modes),           \
         SWITCH("pause", "Pause graph analysis", 0.0f), \
         TRIGGER("clear", "Clear graph analysis")
 
@@ -144,7 +171,7 @@ namespace lsp
         "limiter_mono",
         "jz5z",
         LSP_LIMITER_BASE + 0,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         limiter_classes,
         limiter_mono_ports,
         NULL
@@ -159,7 +186,7 @@ namespace lsp
         "limiter_stereo",
         "rfuc",
         LSP_LIMITER_BASE + 1,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         limiter_classes,
         limiter_stereo_ports,
         stereo_plugin_port_groups
@@ -174,7 +201,7 @@ namespace lsp
         "sc_limiter_mono",
         "kyzu",
         LSP_LIMITER_BASE + 2,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         limiter_classes,
         sc_limiter_mono_ports,
         mono_plugin_sidechain_port_groups
@@ -189,7 +216,7 @@ namespace lsp
         "sc_limiter_stereo",
         "zwf7",
         LSP_LIMITER_BASE + 3,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         limiter_classes,
         sc_limiter_stereo_ports,
         stereo_plugin_sidechain_port_groups

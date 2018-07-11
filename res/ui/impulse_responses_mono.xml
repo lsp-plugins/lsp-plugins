@@ -1,0 +1,95 @@
+<plugin width="320" height="128" resizable="false">
+	<hbox size="6" border="0">
+		<align pad_left="4" pad_right="4">
+			<vbox>
+				<label text="Bypass" />
+				<switch id="bypass" angle="1" />
+				<led id="bypass" color="red" size="8" />
+				<label />
+			</vbox>
+		</align>
+		
+		<vbox>
+			<!-- IR editor -->
+			<group text="Impulse Response">
+				<vbox>
+					<!-- File editor -->
+					<hbox spacing="4">
+						<label text="FFT frame:" />
+						<combo id="fft" />
+					</hbox>
+					
+					<hbox border="2">
+						<file
+							id="ifn" head_id="ihc" tail_id="itc"
+							fadein_id="ifi" fadeout_id="ifo" length_id="ifl"
+							status_id="ifs" mesh_id="ifd"
+							width="600" height="128" />
+					</hbox>
+
+					<hbox>
+						<grid rows="3" cols="5" expand="true">
+							<label text="Head cut" />
+							<label text="Tail cut" />
+							<label text="Fade in" />
+							<label text="Fade out" />
+							<label text="Listen" />
+							
+							<knob id="ihc" size="20" />
+							<knob id="itc" size="20" />
+							<knob id="ifi" size="20" scale_color="yellow" />
+							<knob id="ifo" size="20" scale_color="yellow" />
+							<button id="ils" size="32" toggle="false" />
+							
+							<value id="ihc" />
+							<value id="itc" />
+							<value id="ifi" />
+							<value id="ifo" />
+							<led id="ils" />
+						</grid>
+						
+						<vsep />
+						
+						<grid rows="3" cols="1" expand="true">
+							<label text="Source" />
+							<combo id="cs" />
+							<hbox>
+								<led id="ca" />
+								<label text="Active" />
+							</hbox>
+						</grid>
+						<vsep />
+						
+						<grid rows="3" cols="2" expand="true">
+							<label text="Pre-delay" />
+							<label text="Makeup" />
+							
+							<knob id="pd" />
+							<knob id="mk" />
+							
+							<value id="pd" />
+							<value id="mk" />
+						</grid>
+						<vsep />
+						<grid rows="3" cols="2" expand="true">
+							<label text="Dry" scale_color="yellow" />
+							<label text="Wet" scale_color="yellow" />
+							
+							<knob id="dry" />
+							<knob id="wet" />
+							
+							<value id="dry" />
+							<value id="wet" />
+						</grid>
+						<vsep />
+						<grid rows="3" cols="1" expand="true">
+							<label text="Output" />
+							<knob id="g_out" />
+							<value id="g_out" />
+						</grid>
+					</hbox>
+				</vbox>
+			</group>
+		</vbox>
+	</hbox>
+</plugin>

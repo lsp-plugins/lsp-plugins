@@ -9,7 +9,8 @@ $YOUTUBE = array(
 	'HXOjx3jfw2I' => 'Kompressor & Sidechain-Kompressor',
 	'p6otNrilF0U' => 'Gate & Expander',
 	'rvEhP_PRtzk' => 'Dynamikprozessor',
-	'laExcuCMDY4' => 'Begrenzer'
+	'laExcuCMDY4' => 'Begrenzer',
+	'BBcLpAx02UM' => 'Impulsantworten'
 );
 
 ?>

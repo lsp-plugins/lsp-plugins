@@ -139,6 +139,7 @@ namespace lsp
         fWet                = 1.0f;
         bPause              = false;
         bClear              = false;
+        bUISync             = true;
 
         nDetectCounter      = 0;
         nReleaseCounter     = 0;
@@ -504,6 +505,11 @@ namespace lsp
         update_counters();
     }
 
+    void trigger_base::ui_activated()
+    {
+        bUISync = true;
+    }
+
     void trigger_base::update_sample_rate(long sr)
     {
         // Calculate number of samples per dot for shift buffer and initialize buffers
@@ -660,7 +666,7 @@ namespace lsp
             offset         += to_process;
         }
 
-        if ((!bPause) || (bClear))
+        if ((!bPause) || (bClear) || (bUISync))
         {
             // Process mesh requests
             for (size_t i=0; i<nChannels; ++i)
@@ -718,6 +724,8 @@ namespace lsp
                     mesh->data(2, HISTORY_MESH_SIZE);
                 }
             }
+
+            bUISync = false;
         }
 
         // Always query for draawing

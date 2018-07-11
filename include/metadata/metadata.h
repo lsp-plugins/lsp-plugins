@@ -25,12 +25,26 @@
 #define LSP_PLUGIN_URI(format, plugin)                  LSP_BASE_URI "plugins/" #format "/" #plugin
 #define LSP_PLUGIN_UI_URI(format, plugin, package)      LSP_UI_URI(format, package) "/" #plugin
 #define LSP_LADSPA_BASE                                 0x4C5350
+#define LSP_DONATION_URI                                "https://salt.bountysource.com/teams/" LSP_ARTIFACT_ID
+#define LSP_DOWNLOAD_URI                                LSP_BASE_URI "?page=download"
 
 #define LSP_VERSION(a, b, c)                            uint32_t(((uint32_t(a) & 0xff) << 16) | ((uint32_t(b) & 0xff) << 8) | (uint32_t(c) & 0xff))
 #define LSP_VERSION_MAJOR(v)                            (uint32_t(((v) >> 16) & 0xff))
 #define LSP_VERSION_MINOR(v)                            (uint32_t(((v) >> 8) & 0xff))
 #define LSP_VERSION_MICRO(v)                            (uint32_t((v) & 0xff))
 #define LSP_MAX_PARAM_ID_BYTES                          64
+
+#if defined(ARCH_I386)
+    #define LSP_ARCHITECTURE                                "i586"
+#elif defined(ARCH_X86_64)
+    #define LSP_ARCHITECTURE                                "x86_64"
+#else
+    #define LSP_ARCHITECTURE                                "unknown"
+#endif /* ARCH */
+
+#ifndef LSP_MAIN_VERSION
+    #define LSP_MAIN_VERSION                                "0.0.0"
+#endif /* LSP_MAIN_VERSION */
 
 #define LSP_LV2_LATENCY_PORT                            "out_latency"
 #define LSP_LV2_ATOM_PORT_IN                            "in_ui"

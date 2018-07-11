@@ -1850,3 +1850,54 @@ Description:	Limiter with oversampling support and different algorithms. Stereo 
 	Registration:	
 		
 	*Plugin ID:	zwf7
+
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	RoomFx ( e.g. delays and reverbs )
+	*PlugIn Name:	Impulsantworten Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Realtime highly optimized zero-latency convolover. Mono version.
+		
+	Registration:	
+		
+	*Plugin ID:	wvwt
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	RoomFx ( e.g. delays and reverbs )
+	*PlugIn Name:	Impulsantworten Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Realtime highly optimized zero-latency convolover. Stereo version.
+		
+	Registration:	
+		
+	*Plugin ID:	1khz

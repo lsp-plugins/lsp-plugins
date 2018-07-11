@@ -193,17 +193,20 @@
 			<hbox>
 				<!-- Sidechain processing -->
 				<group text="Sidechain" expand="true">
-					<grid rows="3" cols="3" expand="true">
+					<grid rows="3" cols="4" expand="true">
 						<label text="Preamp" />
 						<label text="Reactivity" />
+						<label text="Lookahead" />
 						<label text="Type" />
 						
 						<knob id="scp" />
 						<knob id="scr" />
+						<knob id="sla" />
 						<combo id="scm" />
 						
 						<value id="scp" />
 						<value id="scr" />
+						<value id="sla" />
 						<hbox spacing="4">
 							<button id="scl" size="16" color="yellow" led="true" />
 							<label text="Listen" />

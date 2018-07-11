@@ -20,6 +20,8 @@ $(SUBDIRS):
 # Object dependencies
 $(OBJ_CORE): core
 
+$(OBJ_PLUGINS): plugins
+
 $(OBJ_METADATA): metadata
 
 $(OBJ_UI_CORE): ui
@@ -38,7 +40,7 @@ $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 # Target dependencies
 plugins: $(OBJ_CORE) $(OBJ_METADATA)
 
-container: $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(UTL_FILES)
+container: $(OBJ_PLUGINS) $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(UTL_FILES)
 
 utils: $(OBJ_CORE) $(OBJ_METADATA)
 
@@ -47,7 +49,7 @@ doc: utils $(PHP_PLUGINS)
 # Additional processing
 $(PHP_PLUGINS): $(UTL_GENPHP)
 	@echo "Generating PHP file $(notdir $(PHP_PLUGINS))"
-	@$(UTL_GENPHP) $(VERSION) $(PHP_PLUGINS)
+	@$(UTL_GENPHP) $(PHP_PLUGINS)
 
 vst_stub: $(UTL_VSTMAKE)
 	@echo "Building VST stub"

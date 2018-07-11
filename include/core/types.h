@@ -131,6 +131,11 @@ namespace lsp
             nState      = M_EMPTY; // This should be the last operation
         }
 
+        inline void markEmpty()
+        {
+            nState      = M_EMPTY; // This should be the last operation
+        }
+
         inline void setWaiting()
         {
             nState      = M_WAIT; // This should be the last operation

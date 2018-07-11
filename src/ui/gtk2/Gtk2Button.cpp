@@ -15,7 +15,8 @@ namespace lsp
 {
     Gtk2Button::Gtk2Button(plugin_ui *ui): Gtk2CustomWidget(ui, W_BUTTON)
     {
-        sColor.set(pUI->theme(), C_BUTTON_FACE);
+//        sColor.set(pUI->theme(), C_BUTTON_FACE);
+        sColor.init(this, C_BUTTON_FACE, A_COLOR, -1, -1, -1, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
         sBgColor.set(pUI->theme(), C_BACKGROUND);
 
         nSize       = 18;
@@ -80,9 +81,6 @@ namespace lsp
             case A_ID:
                 BIND_PORT(pUI, pPort, value);
                 break;
-            case A_COLOR:
-                sColor.set(pUI->theme(), value);
-                break;
             case A_SIZE:
                 PARSE_INT(value, nSize = size_t(__));
                 break;
@@ -98,6 +96,8 @@ namespace lsp
                 sBgColor.set(pUI->theme(), value);
                 break;
             default:
+                if (sColor.set(att, value))
+                    break;
                 Gtk2CustomWidget::set(att, value);
                 break;
         }
@@ -397,6 +397,8 @@ namespace lsp
     {
         Gtk2CustomWidget::notify(port);
 
+        if (sColor.notify(port))
+            markRedraw();
         if (port == pPort)
         {
             set_value(pPort->getValue());

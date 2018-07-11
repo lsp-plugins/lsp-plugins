@@ -77,6 +77,7 @@ namespace lsp
     #define COMP_SC_MONO_CHANNEL(sct) \
         COMBO("sct", "Sidechain type", compressor_base_metadata::SC_TYPE_DFL, sct), \
         COMBO("scm", "Sidechain mode", compressor_base_metadata::SC_MODE_DFL, comp_sc_modes), \
+        CONTROL("sla", "Sidechain lookahead", U_MSEC, compressor_base_metadata::LOOKAHEAD), \
         SWITCH("scl", "Sidechain listen", 0.0f), \
         LOG_CONTROL("scr", "Sidechain reactivity", U_MSEC, compressor_base_metadata::REACTIVITY), \
         AMP_GAIN100("scp", "Sidechain preamp", GAIN_AMP_0_DB)
@@ -84,6 +85,7 @@ namespace lsp
     #define COMP_SC_STEREO_CHANNEL(id, label, sct) \
         COMBO("sct" id, "Sidechain type" label, compressor_base_metadata::SC_TYPE_DFL, sct), \
         COMBO("scm" id, "Sidechain mode" label, compressor_base_metadata::SC_MODE_DFL, comp_sc_modes), \
+        CONTROL("sla" id, "Sidechain lookahead" label, U_MSEC, compressor_base_metadata::LOOKAHEAD), \
         SWITCH("scl" id, "Sidechain listen" label, 0.0f), \
         COMBO("scs" id, "Sidechain source" label, compressor_base_metadata::SC_SOURCE_DFL, comp_sc_sources), \
         LOG_CONTROL("scr" id, "Sidechain reactivity" label, U_MSEC, compressor_base_metadata::REACTIVITY), \
@@ -237,7 +239,7 @@ namespace lsp
         "compressor_mono",
         "bgsy",
         LSP_COMPRESSOR_BASE + 0,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         compressor_classes,
         compressor_mono_ports,
         NULL
@@ -252,7 +254,7 @@ namespace lsp
         "compressor_stereo",
         "unsc",
         LSP_COMPRESSOR_BASE + 1,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         compressor_classes,
         compressor_stereo_ports,
         stereo_plugin_port_groups
@@ -267,7 +269,7 @@ namespace lsp
         "compressor_lr",
         "3nam",
         LSP_COMPRESSOR_BASE + 2,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         compressor_classes,
         compressor_lr_ports,
         stereo_plugin_port_groups
@@ -282,7 +284,7 @@ namespace lsp
         "compressor_ms",
         "jjef",
         LSP_COMPRESSOR_BASE + 3,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         compressor_classes,
         compressor_ms_ports,
         stereo_plugin_port_groups
@@ -298,7 +300,7 @@ namespace lsp
         "sc_compressor_mono",
         "lyjq",
         LSP_COMPRESSOR_BASE + 4,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         compressor_classes,
         sc_compressor_mono_ports,
         mono_plugin_sidechain_port_groups
@@ -313,7 +315,7 @@ namespace lsp
         "sc_compressor_stereo",
         "5xzi",
         LSP_COMPRESSOR_BASE + 5,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         compressor_classes,
         sc_compressor_stereo_ports,
         stereo_plugin_sidechain_port_groups
@@ -328,7 +330,7 @@ namespace lsp
         "sc_compressor_lr",
         "fowg",
         LSP_COMPRESSOR_BASE + 6,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         compressor_classes,
         sc_compressor_lr_ports,
         stereo_plugin_sidechain_port_groups
@@ -343,7 +345,7 @@ namespace lsp
         "sc_compressor_ms",
         "ioqg",
         LSP_COMPRESSOR_BASE + 7,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         compressor_classes,
         sc_compressor_ms_ports,
         stereo_plugin_sidechain_port_groups

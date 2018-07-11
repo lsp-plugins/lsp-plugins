@@ -150,9 +150,9 @@ namespace lsp
 #ifndef LSP_IDE_DEBUG
 int main(int argc, const char **argv)
 {
-    if (argc <= 1)
-        fprintf(stderr, "required release version and destination file name");
-    lsp::gen_php(argv[1], argv[2]);
+    if (argc < 2)
+        fprintf(stderr, "required destination file name");
+    lsp::gen_php(LSP_MAIN_VERSION, argv[1]);
 
     return 0;
 }

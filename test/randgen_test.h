@@ -26,7 +26,7 @@ namespace randgen_test
 
         for (size_t i=0; i<(BUF_ROWS*BUF_ROWS*1024); ++i)
         {
-            size_t idx  = BUF_ROWS * BUF_ROWS * rnd.random(RND_EXP);
+            size_t idx  = BUF_ROWS * BUF_ROWS * rnd.random(RND_TRIANGLE);
             counters[idx]++;
         }
 
@@ -43,11 +43,16 @@ namespace randgen_test
             printf("\n");
         }
 
-        printf("id;value;\n");
+        printf("Probabilities:\n");
+        printf("id;value\n");
         for (size_t i=0; i<BUF_ROWS * BUF_ROWS; ++i)
-            printf("%d;%.3f;\n", int(i), counters[i] * max);
+            printf("%d;%.3f\n", int(i), counters[i] * max);
 
         delete [] counters;
+
+        printf("Random noise:\n");
+        for (size_t i=0; i<1024; ++i)
+            printf("%d;%.5f\n", int(i), rnd.random(RND_TRIANGLE) - 0.5f);
 
         return 0;
     }

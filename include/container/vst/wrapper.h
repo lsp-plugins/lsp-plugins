@@ -400,6 +400,15 @@ namespace lsp
 
     void VSTWrapper::run(float** inputs, float** outputs, size_t samples)
     {
+        // DO NOTHING if sample_rate is not set (fill output buffers with zeros)
+        if (pPlugin->get_sample_rate() <= 0)
+        {
+            size_t n_outputs = vOutputs.size();
+            for (size_t i=0; i < n_outputs; ++i)
+                dsp::fill_zero(outputs[i], samples);
+            return;
+        }
+
         // Sync UI state
         if (pUI != NULL)
         {

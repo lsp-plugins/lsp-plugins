@@ -40,7 +40,11 @@ namespace lsp
         OM_LANCZOS_3X2,
         OM_LANCZOS_3X3,
         OM_LANCZOS_4X2,
-        OM_LANCZOS_4X3
+        OM_LANCZOS_4X3,
+        OM_LANCZOS_6X2,
+        OM_LANCZOS_6X3,
+        OM_LANCZOS_8X2,
+        OM_LANCZOS_8X3
     };
 
     /** Oversampler class

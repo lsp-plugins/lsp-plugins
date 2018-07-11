@@ -9,6 +9,7 @@
 #include <container/const.h>
 
 #define MSTUD_PORT      UI_CONFIG_PORT_PREFIX UI_MOUNT_STUD_PORT_ID
+#define VERSION_PORT    UI_CONFIG_PORT_PREFIX UI_LAST_VERSION_PORT_ID
 
 namespace lsp
 {
@@ -30,6 +31,7 @@ namespace lsp
         hMapHandler     = 0;
         hUnmapHandler   = 0;
         pToplevel       = NULL;
+        pVersion        = NULL;
     }
 
     Gtk2Window::~Gtk2Window()
@@ -141,6 +143,9 @@ namespace lsp
         pWidgets[C_MENU]    ->  begin();
         pWidgets[C_MENU]    ->  end();
         pWidgets[C_MIDDLE]  ->  add(pWidgets[C_MENU]);
+
+        // Bind version port
+        BIND_PORT(pUI, pVersion, VERSION_PORT);
     }
 
     void Gtk2Window::add(IWidget *widget)
@@ -284,7 +289,110 @@ namespace lsp
         if (wrapper != NULL)
             wrapper->ui_activated();
 
+        // Show notification
+        show_notification();
+
         lsp_trace("show finished");
+    }
+
+    void Gtk2Window::show_notification()
+    {
+        lsp_trace("Checking version");
+        if (pVersion == NULL)
+            return;
+        const char *v = pVersion->getBuffer<char>();
+        if (strcmp(LSP_MAIN_VERSION, v) == 0)
+            return;
+
+        // Main version and version differ, need to show dialog
+        GtkWidget *dialog = gtk_dialog_new_with_buttons(
+                "Update notification",
+                NULL,
+                GTK_DIALOG_MODAL,
+                "OK",
+                GTK_RESPONSE_NONE,
+                NULL
+            );
+
+        GtkWidget *body = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+
+        GtkWidget *vbox = gtk_vbox_new(FALSE, 8);
+        gtk_container_set_border_width(GTK_CONTAINER(vbox), 16);
+
+            GtkWidget *align = gtk_alignment_new(0, 0.5, 0.0, 0.0);
+            GtkWidget *text = gtk_label_new("Greetings!");
+            gtk_label_set_markup(GTK_LABEL(text), "<span size=\"16000\">Greetings!</span>");
+            gtk_container_add(GTK_CONTAINER(align), text);
+            gtk_box_pack_start(GTK_BOX(vbox), align, TRUE, TRUE, 0);
+
+            gtk_container_add(GTK_CONTAINER(vbox), gtk_label_new(""));
+
+            align = gtk_alignment_new(0, 0.5, 0.0, 0.0);
+            text = gtk_label_new(NULL);
+            gtk_label_set_markup(GTK_LABEL(text), "<b>You've just updated plugins to version " LSP_MAIN_VERSION "!</b>");
+            gtk_container_add(GTK_CONTAINER(align), text);
+            gtk_box_pack_start(GTK_BOX(vbox), align, TRUE, TRUE, 0);
+
+            align = gtk_alignment_new(0, 0.5, 0.0, 0.0);
+            text = gtk_label_new("The " LSP_FULL_NAME " is non-commercial project and needs financial support for the further development.");
+            gtk_container_add(GTK_CONTAINER(align), text);
+            gtk_box_pack_start(GTK_BOX(vbox), align, TRUE, TRUE, 0);
+
+            align = gtk_alignment_new(0, 0.5, 0.0, 0.0);
+            text = gtk_label_new("You may help all plugins become open source by visiting the following link and submitting donations to the project:");
+            gtk_container_add(GTK_CONTAINER(align), text);
+            gtk_box_pack_start(GTK_BOX(vbox), align, TRUE, TRUE, 0);
+
+            align = gtk_alignment_new(0, 0.5, 0.0, 0.0);
+            text = gtk_link_button_new(LSP_DONATION_URI);
+            gtk_container_add(GTK_CONTAINER(align), text);
+            gtk_box_pack_start(GTK_BOX(vbox), align, TRUE, TRUE, 0);
+
+            align = gtk_alignment_new(0, 0.5, 0.0, 0.0);
+            text = gtk_label_new("You can find more information about policy of publishing source code by visiting the following link:");
+            gtk_container_add(GTK_CONTAINER(align), text);
+            gtk_box_pack_start(GTK_BOX(vbox), align, TRUE, TRUE, 0);
+
+            align = gtk_alignment_new(0, 0.5, 0.0, 0.0);
+            text = gtk_link_button_new(LSP_DOWNLOAD_URI);
+            gtk_container_add(GTK_CONTAINER(align), text);
+            gtk_box_pack_start(GTK_BOX(vbox), align, TRUE, TRUE, 0);
+
+            align = gtk_alignment_new(0, 0.5, 0.0, 0.0);
+            text = gtk_label_new("Remember that subscription and regular small donations will give more benefits to the project than one-time donations.");
+            gtk_container_add(GTK_CONTAINER(align), text);
+            gtk_box_pack_start(GTK_BOX(vbox), align, TRUE, TRUE, 0);
+
+            align = gtk_alignment_new(0, 0.5, 0.0, 0.0);
+            text = gtk_label_new("To not to be very annoying, this dialog will be shown only after each version update of plugins.");
+            gtk_container_add(GTK_CONTAINER(align), text);
+            gtk_box_pack_start(GTK_BOX(vbox), align, TRUE, TRUE, 0);
+
+            align = gtk_alignment_new(1.0, 0.5, 0.0, 0.0);
+            text = gtk_label_new("Thanks in advance");
+            gtk_container_add(GTK_CONTAINER(align), text);
+            gtk_box_pack_start(GTK_BOX(vbox), align, TRUE, TRUE, 0);
+
+            align = gtk_alignment_new(1.0, 0.5, 0.0, 0.0);
+            text = gtk_label_new(LSP_FULL_NAME);
+            gtk_container_add(GTK_CONTAINER(align), text);
+            gtk_box_pack_start(GTK_BOX(vbox), align, TRUE, TRUE, 0);
+
+            align = gtk_alignment_new(1.0, 0.5, 0.0, 0.0);
+            text = gtk_link_button_new(LSP_BASE_URI);
+            gtk_container_add(GTK_CONTAINER(align), text);
+            gtk_box_pack_start(GTK_BOX(vbox), align, TRUE, TRUE, 0);
+
+        gtk_container_add(GTK_CONTAINER(body), vbox);
+        gtk_widget_show_all(vbox);
+
+        gtk_window_set_keep_above(GTK_WINDOW(dialog), TRUE);
+
+        gtk_dialog_run(GTK_DIALOG(dialog));
+        gtk_widget_destroy(dialog);
+
+        // Store new version
+        pVersion->write(LSP_MAIN_VERSION, strlen(LSP_MAIN_VERSION));
     }
 
     void Gtk2Window::map_window(GtkWidget *widget, gpointer ptr)

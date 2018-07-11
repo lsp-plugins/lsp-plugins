@@ -12,6 +12,7 @@
 
 #define UI_CONFIG_PORT_PREFIX           "ui:"
 #define UI_MOUNT_STUD_PORT_ID           "mount_stud"
+#define UI_LAST_VERSION_PORT_ID         "last_version"
 
 namespace lsp
 {

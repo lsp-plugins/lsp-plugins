@@ -16,6 +16,7 @@
 #include <core/Oversampler.h>
 #include <core/Limiter.h>
 #include <core/MeterGraph.h>
+#include <core/Dither.h>
 
 namespace lsp
 {
@@ -81,6 +82,9 @@ namespace lsp
             size_t          nOversampling;  // Oversampling
             float           fStereoLink;    // Stereo linking
             float_buffer_t *pIDisplay;      // Inline display buffer
+            bool            bUISync;        // Synchronize with UI
+
+            Dither          sDither;        // Dither
 
             IPort          *pBypass;        // Bypass port
             IPort          *pInGain;        // Input gain
@@ -98,6 +102,7 @@ namespace lsp
             IPort          *pKnee;          // Limiter knee
             IPort          *pBoost;         // Gain boost
             IPort          *pOversampling;  // Oversampling
+            IPort          *pDithering;     // Dithering
             IPort          *pStereoLink;    // Stereo linking
 
             uint8_t        *pData;          // Allocated data
@@ -105,6 +110,7 @@ namespace lsp
         protected:
             static over_mode_t get_oversampling_mode(size_t mode);
             static limiter_mode_t get_limiter_mode(size_t mode);
+            static size_t get_dithering(size_t mode);
 
         public:
             limiter_base(const plugin_metadata_t &metadata, bool sc, bool stereo);
@@ -116,6 +122,7 @@ namespace lsp
 
             virtual void update_settings();
             virtual void update_sample_rate(long sr);
+            virtual void ui_activated();
 
             virtual void process(size_t samples);
             virtual bool inline_display(ICanvas *cv, size_t width, size_t height);

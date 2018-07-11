@@ -39,6 +39,9 @@
 #define CONTROL(id, label, units, limits) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP, \
         limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
+#define METER(id, label, units, limits) \
+    { id, label, units, R_METER, F_OUT | F_LOWER | F_UPPER | F_STEP, \
+        limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }
 #define LOG_CONTROL(id, label, units, limits) \
     { id, label, units, R_CONTROL, F_IN | F_LOWER | F_UPPER | F_STEP | F_LOG, \
         limits ## _MIN, limits ## _MAX, limits ## _DFL, limits ## _STEP, NULL, NULL }

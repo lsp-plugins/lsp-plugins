@@ -26,6 +26,7 @@ namespace lsp
     const port_t plugin_ui::vConfigMetadata[] =
     {
         SWITCH(UI_MOUNT_STUD_PORT_ID, "Visibility of mount studs in the UI", 1.0f),
+        PATH(UI_LAST_VERSION_PORT_ID, "Last version of the product installed"),
         PORTS_END
     };
 
@@ -287,6 +288,14 @@ namespace lsp
                 case R_CONTROL:
                 {
                     IUIPort *up = new UIControlPort(p, this);
+                    if (up != NULL)
+                        vConfigPorts.add(up);
+                    break;
+                }
+
+                case R_PATH:
+                {
+                    IUIPort *up = new UIPathPort(p, this);
                     if (up != NULL)
                         vConfigPorts.add(up);
                     break;

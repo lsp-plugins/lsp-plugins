@@ -64,7 +64,7 @@ namespace fft_test
     {
         dsp::init();
 
-        size_t sig_len      = 16384;//sizeof(signal) / sizeof(float);
+        size_t sig_len      = 32; //65536;//sizeof(signal) / sizeof(float);
         float *sig_re       = new float[sig_len];
         float *sig_im       = new float[sig_len];
         float *spc_re       = new float[sig_len];
@@ -73,41 +73,28 @@ namespace fft_test
 
         // Test complex conversions
         printf("\nTesting CVT\n");
-        for (size_t i=0; i<sig_len; ++i)
-        {
-            float w     = (2 * M_PI * i * 1000) / sig_len;
-            spc_re[i]   = 1.0f;
-            spc_im[i]   = w;
-            sig_re[i]   = cosf(w);
-            sig_im[i]   = 0;//sinf(w);
-        }
+        dsp::fill_zero(sig_re, sig_len);
+        dsp::fill_zero(sig_im, sig_len);
+        sig_re[0] = 1.0f;
+        sig_re[1] = 1.1f;
+        sig_re[2] = 1.3f;
+        sig_re[3] = 1.6f;
+        sig_re[4] = 2.0f;
+        sig_re[5] = 2.5f;
+        sig_re[6] = 3.1f;
+        sig_re[7] = 3.8f;
 
-//        printf("Signal   [RE]: ");
-//        dump_data(sig_re, sig_len);
-//        printf("Signal   [IM]: ");
-//        dump_data(sig_im, sig_len);
-//        printf("Signal  [MOD]: ");
-//        dump_data(spc_re, sig_len);
-//        printf("Signal  [ARG]: ");
-//        dump_data(spc_im, sig_len);
-//
-//        dsp::complex_cvt2modarg(sig_re, sig_im, sig_re, sig_im, sig_len);
-//        dsp::complex_cvt2reim(spc_re, spc_im, spc_re, spc_im, sig_len);
-//
-//        printf("Cvt     [MOD]: ");
-//        dump_data(sig_re, sig_len);
-//        printf("Cvt     [ARG]: ");
-//        dump_data(sig_im, sig_len);
-//        printf("Cvt      [RE]: ");
-//        dump_data(spc_re, sig_len);
-//        printf("Cvt      [IM]: ");
-//        dump_data(spc_im, sig_len);
+        sig_im[0] = -0.0f;
+        sig_im[1] = -0.1f;
+        sig_im[2] = -0.3f;
+        sig_im[3] = -0.6f;
+        sig_im[4] = -0.0f;
+        sig_im[5] = -0.5f;
+        sig_im[6] = -0.1f;
+        sig_im[7] = -0.8f;
 
         // Test FFT
         printf("\nTesting FFT\n");
-//        dsp::copy(sig_re, signal, sig_len);
-//        dsp::fill_zero(sig_im, sig_len);
-//        dsp::copy(sig_im, signal_im, sig_len);
 
         printf("Signal   [RE]: ");
         test::dump_data(sig_re, sig_len);
@@ -115,9 +102,6 @@ namespace fft_test
         test::dump_data(sig_im, sig_len);
 
         dsp::direct_fft(spc_re, spc_im, sig_re, sig_im, sig_rank);
-//        dsp::copy(spc_re, sig_re, sig_len);
-//        dsp::copy(spc_im, sig_im, sig_len);
-//        dsp::direct_fft(spc_re, spc_im, spc_re, spc_im, sig_rank);
 
         printf("Spectrum [RE]: ");
         test::dump_data(spc_re, sig_len);

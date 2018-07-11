@@ -56,6 +56,7 @@
 	<li><b>Listen</b> - allows to listen the <b>processed</b> sidechain signal.</li>
 	<li><b>Preamp</b> - pre-amplification of the sidechain signal.</li>
 	<li><b>Reactivity</b> - reactivity of the sidechain signal.</li>
+	<li><b>Lookahead</b> - look-ahead time of the sidechain relative to the input signal.</li>
 	<?php if (!$tt) { ?>
 	<li><b>Type</b> - combo box that allows to switch different types for sidechain processing. Available types are:</li>
 	<?php } else {?>

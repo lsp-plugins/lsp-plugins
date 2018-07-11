@@ -274,13 +274,14 @@
 				<!-- Middle processing -->
 				<group text="Processor Middle" expand="true" visibility_id="psel" visibility_key="0">
 					<hbox expand="true" fill="true">
-						<grid rows="8" cols="2" expand="true" fill="true">
+						<grid rows="8" cols="3" expand="true" fill="true">
 							<label text="Type" fill="true" halign="0" />
 							<hbox>
 								<button id="scl_m" size="16" color="middle_channel" led="true" />
 								<label text="Listen" />
 							</hbox>
-							<cell cols="2">
+							<label />
+							<cell cols="3">
 								<align hpos="0" expand="true" fill="true">
 									<vbox>
 										<combo id="sct_m" />
@@ -292,10 +293,15 @@
 							
 							<label text="Preamp" />
 							<label text="Reactivity" />
+							<label text="Lookahead" />
+							
 							<knob id="scp_m" />
 							<knob id="scr_m" />
+							<knob id="sla_m" />
+							
 							<value id="scp_m" />
 							<value id="scr_m" />
+							<value id="sla_m" />
 						</grid>
 						<vsep />
 						<grid rows="9" cols="1" expand="true" fill="true">
@@ -378,13 +384,14 @@
 				<!-- Side processing -->
 				<group text="Processor Side" expand="true" visibility_id="psel" visibility_key="1">
 					<hbox expand="true" fill="true" >
-						<grid rows="8" cols="2" expand="true" fill="true">
+						<grid rows="8" cols="3" expand="true" fill="true">
 							<label text="Type" fill="true" halign="0" />
 							<hbox>
 								<button id="scl_s" size="16" color="side_channel" led="true" />
 								<label text="Listen" />
 							</hbox>
-							<cell cols="2">
+							<label />
+							<cell cols="3">
 								<align hpos="0" expand="true" fill="true">
 									<vbox>
 										<combo id="sct_s" />
@@ -396,10 +403,15 @@
 							
 							<label text="Preamp" />
 							<label text="Reactivity" />
+							<label text="Lookahead" />
+							
 							<knob id="scp_s" />
 							<knob id="scr_s" />
+							<knob id="sla_s" />
+							
 							<value id="scp_s" />
 							<value id="scr_s" />
+							<value id="sla_s" />
 						</grid>
 						<vsep />
 						<grid rows="9" cols="1" expand="true" fill="true">

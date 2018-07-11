@@ -12,6 +12,8 @@
 #define RAND_RANGE          2.32830643654e-10 /* 1 / (1 << 32) */
 #define RAND_LAMBDA         M_E * M_SQRT2
 
+#define RAND_T              0.5f
+
 namespace lsp
 {
 
@@ -65,13 +67,9 @@ namespace lsp
 
     float Randomizer::random(random_function_t func)
     {
-        // Check that randomizer is initialized
-        if (nBufID == size_t(-1))
-            init();
-
         // Generate linear random number
-        randgen_t *rg   = &vRandom[nBufID++];
-        nBufID         &= 0x03;
+        randgen_t *rg   = &vRandom[nBufID];
+        nBufID          = (nBufID + 1) & 0x03;
         rg->vLast       = (rg->vMul1 * rg->vLast) + ((rg->vMul2 * rg->vLast) >> 16) + rg->vAdd;
         float rv        = rg->vLast * RAND_RANGE;
 
@@ -80,6 +78,13 @@ namespace lsp
         {
             case RND_EXP:
                 return (expf(RAND_LAMBDA * rv) - 1.0f) / (expf(RAND_LAMBDA) - 1.0f);
+
+            case RND_TRIANGLE:
+                return (rv <= 0.5f) ?
+                    M_SQRT2 * RAND_T * sqrtf(rv) :
+                    2.0f*RAND_T - sqrtf(4.0f - 2.0f*(1.0f + rv)) * RAND_T;
+//                    rv*rv/(2.0f * RAND_T * RAND_T) :
+//                    rv*(2.0f/RAND_T) - rv*rv/(2.0f * RAND_T * RAND_T) - 1.0f;
 
             default:
                 return rv;

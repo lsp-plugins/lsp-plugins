@@ -54,6 +54,7 @@ namespace lsp
 
     #define GATE_MONO_CHANNEL \
         COMBO("scm", "Sidechain mode", gate_base_metadata::SC_MODE_DFL, gate_sc_modes), \
+        CONTROL("sla", "Sidechain lookahead", U_MSEC, gate_base_metadata::LOOKAHEAD), \
         SWITCH("scl", "Sidechain listen", 0.0f), \
         LOG_CONTROL("scr", "Sidechain reactivity", U_MSEC, gate_base_metadata::REACTIVITY), \
         AMP_GAIN100("scp", "Sidechain preamp", GAIN_AMP_0_DB)
@@ -64,6 +65,7 @@ namespace lsp
 
     #define GATE_STEREO_CHANNEL(id, label) \
         COMBO("scm" id, "Sidechain mode" label, gate_base_metadata::SC_MODE_DFL, gate_sc_modes), \
+        CONTROL("sla" id, "Sidechain lookahead" label, U_MSEC, gate_base_metadata::LOOKAHEAD), \
         SWITCH("scl" id, "Sidechain listen" label, 0.0f), \
         COMBO("scs" id, "Sidechain source" label, gate_base_metadata::SC_SOURCE_DFL, gate_sc_sources), \
         LOG_CONTROL("scr" id, "Sidechain reactivity" label, U_MSEC, gate_base_metadata::REACTIVITY), \
@@ -225,7 +227,7 @@ namespace lsp
         "gate_mono",
         "ur0e",
         LSP_GATE_BASE + 0,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         gate_classes,
         gate_mono_ports,
         NULL
@@ -240,7 +242,7 @@ namespace lsp
         "gate_stereo",
         "wg4o",
         LSP_GATE_BASE + 1,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         gate_classes,
         gate_stereo_ports,
         stereo_plugin_port_groups
@@ -255,7 +257,7 @@ namespace lsp
         "gate_lr",
         "icmw",
         LSP_GATE_BASE + 2,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         gate_classes,
         gate_lr_ports,
         stereo_plugin_port_groups
@@ -270,7 +272,7 @@ namespace lsp
         "gate_ms",
         "zci1",
         LSP_GATE_BASE + 3,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         gate_classes,
         gate_ms_ports,
         stereo_plugin_port_groups
@@ -286,7 +288,7 @@ namespace lsp
         "sc_gate_mono",
         "nnz2",
         LSP_GATE_BASE + 4,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         gate_classes,
         sc_gate_mono_ports,
         mono_plugin_sidechain_port_groups
@@ -301,7 +303,7 @@ namespace lsp
         "sc_gate_stereo",
         "fosg",
         LSP_GATE_BASE + 5,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         gate_classes,
         sc_gate_stereo_ports,
         stereo_plugin_sidechain_port_groups
@@ -316,7 +318,7 @@ namespace lsp
         "sc_gate_lr",
         "fmxo",
         LSP_GATE_BASE + 6,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         gate_classes,
         sc_gate_lr_ports,
         stereo_plugin_sidechain_port_groups
@@ -331,7 +333,7 @@ namespace lsp
         "sc_gate_ms",
         "l6lc",
         LSP_GATE_BASE + 7,
-        LSP_VERSION(1, 0, 0),
+        LSP_VERSION(1, 0, 1),
         gate_classes,
         sc_gate_ms_ports,
         stereo_plugin_sidechain_port_groups
