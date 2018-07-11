@@ -659,6 +659,16 @@ namespace lsp
 
     inline void LV2Wrapper::run(size_t samples)
     {
+        // Activate/deactivate the UI
+        if (nClients > 0)
+        {
+            if (!pPlugin->ui_active())
+                pPlugin->activate_ui();
+        }
+        else if (pPlugin->ui_active())
+            pPlugin->deactivate_ui();
+
+        // Port update flag
         bool update     = false;
 
         // First pre-process transport ports

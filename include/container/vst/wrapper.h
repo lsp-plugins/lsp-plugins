@@ -376,6 +376,15 @@ namespace lsp
 
     void VSTWrapper::run(float** inputs, float** outputs, size_t samples)
     {
+        // Sync UI state
+        if (pUI != NULL)
+        {
+            if (!pPlugin->ui_active())
+                pPlugin->activate_ui();
+        }
+        else if (pPlugin->ui_active())
+            pPlugin->deactivate_ui();
+
         // Bind audio ports
         for (size_t i=0; i < vInputs.size(); ++i)
         {

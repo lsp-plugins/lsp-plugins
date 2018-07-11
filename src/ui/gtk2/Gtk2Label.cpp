@@ -31,6 +31,7 @@ namespace lsp
         bDetailed   = true;
         nFontSize   = -1;
         nUnits      = U_NONE - 1;
+        nPrecision  = -1;
     }
 
     Gtk2Label::~Gtk2Label()
@@ -101,6 +102,9 @@ namespace lsp
             case A_DETAILED:
                 PARSE_BOOL(value, bDetailed = __);
                 break;
+            case A_PRECISION:
+                PARSE_INT(value, nPrecision = __);
+                break;
             default:
                 Gtk2Widget::set(att, value);
                 break;
@@ -135,7 +139,7 @@ namespace lsp
                 if (enType == LT_VALUE)
                 {
                     char buf[TMP_BUF_SIZE];
-                    format_value(buf, TMP_BUF_SIZE, mdata, fValue);
+                    format_value(buf, TMP_BUF_SIZE, mdata, fValue, nPrecision);
 
                     if (bDetailed)
                         snprintf(a_text, sizeof(a_text), "%s\n%s", buf, (u_name != NULL) ? u_name : "" );

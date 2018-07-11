@@ -287,6 +287,7 @@ namespace lsp
 
         // Now we ready for processing
         pPlugin->activate();
+        pPlugin->activate_ui();
         if (jack_activate (pClient))
         {
             lsp_error("Could not activate JACK client");
@@ -324,8 +325,11 @@ namespace lsp
         // Forget plugin (will be destroyed by caller)
         if (pPlugin != NULL)
         {
-            if (pPlugin->activated())
+            if (pPlugin->ui_active())
+                pPlugin->deactivate_ui();
+            if (pPlugin->active())
                 pPlugin->deactivate();
+
             pPlugin = NULL;
         }
 

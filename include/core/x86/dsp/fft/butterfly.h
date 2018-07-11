@@ -316,27 +316,27 @@ namespace lsp
             __asm__ __volatile__ \
             ( \
                 /* Prefetch data */ \
-                __ASM_EMIT("prefetchnta (%0)") \
-                __ASM_EMIT("prefetchnta (%1)") \
-                __ASM_EMIT("prefetchnta (%2)") \
-                __ASM_EMIT("prefetchnta (%3)") \
+                __ASM_EMIT("prefetchnta (%[a_re])") \
+                __ASM_EMIT("prefetchnta (%[a_im])") \
+                __ASM_EMIT("prefetchnta (%[b_re])") \
+                __ASM_EMIT("prefetchnta (%[b_im])") \
                 \
                 /* Start loop */ \
                 __ASM_EMIT("1:") \
                 \
                 /* Prefetch next data */ \
-                __ASM_EMIT("prefetchnta (%0, %5, 8)") \
-                __ASM_EMIT("prefetchnta (%1, %5, 8)") \
-                __ASM_EMIT("prefetchnta (%2, %5, 8)") \
-                __ASM_EMIT("prefetchnta (%3, %5, 8)") \
+                __ASM_EMIT("prefetchnta (%[a_re], %[pairs], 8)") \
+                __ASM_EMIT("prefetchnta (%[a_im], %[pairs], 8)") \
+                __ASM_EMIT("prefetchnta (%[b_re], %[pairs], 8)") \
+                __ASM_EMIT("prefetchnta (%[b_im], %[pairs], 8)") \
                 \
                 /* Load complex values */ \
                 /* predicate: xmm6 = w_re[0..3] */ \
                 /* predicate: xmm7 = w_im[0..3] */ \
-                __ASM_EMIT(LS_RE "     (%0), %%xmm0")   /* xmm0 = a_re[0..3] */ \
-                __ASM_EMIT(LS_IM "     (%1), %%xmm1")   /* xmm1 = a_im[0..3] */ \
-                __ASM_EMIT(LS_RE "     (%2), %%xmm2")   /* xmm2 = b_re[0..3] */ \
-                __ASM_EMIT(LS_IM "     (%3), %%xmm3")   /* xmm3 = b_im[0..3] */ \
+                __ASM_EMIT(LS_RE "     (%[a_re]), %%xmm0")   /* xmm0 = a_re[0..3] */ \
+                __ASM_EMIT(LS_IM "     (%[a_im]), %%xmm1")   /* xmm1 = a_im[0..3] */ \
+                __ASM_EMIT(LS_RE "     (%[b_re]), %%xmm2")   /* xmm2 = b_re[0..3] */ \
+                __ASM_EMIT(LS_IM "     (%[b_im]), %%xmm3")   /* xmm3 = b_im[0..3] */ \
                 \
                 /* Calculate complex multiplication */ \
                 __ASM_EMIT("movaps     %%xmm2, %%xmm4") /* xmm4 = b_re[0..3] */ \
@@ -357,23 +357,25 @@ namespace lsp
                 __ASM_EMIT("addps      %%xmm5, %%xmm3") /* xmm3 = a_im[0..3] + c_im[0..3] */ \
                 \
                 /* Store values */ \
-                __ASM_EMIT(LS_RE "     %%xmm2, (%0)") \
-                __ASM_EMIT(LS_IM "     %%xmm3, (%1)") \
-                __ASM_EMIT(LS_RE "     %%xmm0, (%2)") \
-                __ASM_EMIT(LS_IM "     %%xmm1, (%3)") \
+                __ASM_EMIT(LS_RE "     %%xmm2, (%[a_re])") \
+                __ASM_EMIT(LS_IM "     %%xmm3, (%[a_im])") \
+                __ASM_EMIT(LS_RE "     %%xmm0, (%[b_re])") \
+                __ASM_EMIT(LS_IM "     %%xmm1, (%[b_im])") \
                 \
                 /* Update pointers */ \
-                __ASM_EMIT("lea        (%0, %5, 8), %0") \
-                __ASM_EMIT("lea        (%1, %5, 8), %1") \
-                __ASM_EMIT("lea        (%2, %5, 8), %2") \
-                __ASM_EMIT("lea        (%3, %5, 8), %3") \
+                __ASM_EMIT("lea        (%[a_re], %[pairs], 8), %[a_re]") \
+                __ASM_EMIT("lea        (%[a_im], %[pairs], 8), %[a_im]") \
+                __ASM_EMIT("lea        (%[b_re], %[pairs], 8), %[b_re]") \
+                __ASM_EMIT("lea        (%[b_im], %[pairs], 8), %[b_im]") \
                 \
                 /* Repeat loop */ \
-                __ASM_EMIT("dec         %4") \
+                __ASM_EMIT32("decl      %[b]") \
+                __ASM_EMIT64("decq      %[b]") \
                 __ASM_EMIT("jnz         1b") \
                 \
-                : "+r"(a_re), "+r"(a_im), "+r"(b_re), "+r"(b_im), "+r"(b) \
-                : "r"(pairs) \
+                : [a_re] "+r"(a_re), [a_im] "+r"(a_im), [b_re] "+r"(b_re), [b_im] "+r"(b_im), [b] __ASM_ARG_RW(b) \
+                : [pairs] "r"(pairs) \
+                : "cc", "memory" \
             );
 
         static void FFT_BUTTERFLY_DIRECT_NAME(float *dst_re, float *dst_im, size_t pairs, size_t blocks)

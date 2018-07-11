@@ -31,6 +31,7 @@ namespace lsp
 
             void process(float *dst, const float *src, size_t count);
             void process(float *dst, const float *src, float gain, size_t count);
+            float process(float src);
 
             void set_delay(size_t delay);
             inline size_t get_delay() const { return nDelay; };

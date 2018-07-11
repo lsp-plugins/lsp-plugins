@@ -31,6 +31,7 @@ namespace lsp
             bool            bDetailed;
             ssize_t         nFontSize;
             ssize_t         nUnits;
+            ssize_t         nPrecision;
 
         private:
             void updateText();

@@ -9,6 +9,7 @@ namespace lsp
         fSampleRate     = -1;
         nLatency        = 0;
         bActivated      = false;
+        bUIActive       = true;
     }
 
     plugin_t::~plugin_t()
@@ -32,14 +33,20 @@ namespace lsp
     {
     }
 
-    void plugin_t::activate()
+    void plugin_t::activated()
     {
-        bActivated      = true;
     }
 
-    void plugin_t::deactivate()
+    void plugin_t::deactivated()
     {
-        bActivated      = false;
+    }
+
+    void plugin_t::ui_activated()
+    {
+    }
+
+    void plugin_t::ui_deactivated()
+    {
     }
 
     void plugin_t::destroy()

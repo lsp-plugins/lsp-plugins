@@ -35,11 +35,17 @@
         } \
     }
 
+// Include GTK2 common IO
+#include <ui/gtk2/io.h>
+
 // Include GTK2 widgets
 #include <ui/gtk2/Gtk2WidgetFactory.h>
 #include <ui/gtk2/Gtk2Widget.h>
 #include <ui/gtk2/Gtk2CustomWidget.h>
 #include <ui/gtk2/Gtk2WidgetProxy.h>
+
+#include <ui/gtk2/Gtk2Graph.h>
+#include <ui/gtk2/Gtk2Canvas.h>
 
 #include <ui/gtk2/Gtk2Container.h>
 #include <ui/gtk2/Gtk2Window.h>
@@ -61,8 +67,6 @@
 #include <ui/gtk2/Gtk2Indicator.h>
 #include <ui/gtk2/Gtk2Led.h>
 #include <ui/gtk2/Gtk2Knob.h>
-#include <ui/gtk2/Gtk2Graph.h>
-#include <ui/gtk2/Gtk2Canvas.h>
 
 
 #endif /* _UI_GTK2_UI_H_ */

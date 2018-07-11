@@ -549,3 +549,207 @@ Description:	This plugin allows to detect notes for the instrument and playback 
 	Registration:	
 		
 	*Plugin ID:	9cqf
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Parametrischer Entzerrer x16 Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Parametric equalizer with 16 filters.
+		
+	Registration:	
+		
+	*Plugin ID:	dh3y
+	
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Parametrischer Entzerrer x16 Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Parametric equalizer with 16 filters. Stereo mode.
+		
+	Registration:	
+		
+	*Plugin ID:	a5er
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Parametrischer Entzerrer x16 LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Parametric equalizer with 16 filters. Stereo mode, 
+each stereo channel adjusted individually.
+		
+	Registration:	
+		
+	*Plugin ID:	4kef
+
+-----------------------------------------------------
+
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Parametrischer Entzerrer x16 MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Parametric equalizer with 16 filters. Mid-Side mode.
+		
+	Registration:	
+		
+	*Plugin ID:	opjs
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Parametrischer Entzerrer x32 Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Parametric equalizer with 32 filters.
+		
+	Registration:	
+		
+	*Plugin ID:	i0px
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Parametrischer Entzerrer x32 Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Parametric equalizer with 32 filters. Stereo mode.
+		
+	Registration:	
+		
+	*Plugin ID:	s2nz
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Parametrischer Entzerrer x32 LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Parametric equalizer with 32 filters. Stereo mode, 
+each stereo channel adjusted individually.
+		
+	Registration:	
+		
+	*Plugin ID:	ilqj
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Parametrischer Entzerrer x32 MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Parametric equalizer with 32 filters. Mid-Side mode.
+		
+	Registration:	
+		
+	*Plugin ID:	lgz9

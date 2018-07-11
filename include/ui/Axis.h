@@ -53,13 +53,23 @@ namespace lsp
 
             /** Apply axis transformation according to x and y
              *
+             * @param cv canvas
              * @param x x coordinate (in pixels) of 2D-point to transform
              * @param y y coordinate (in pixels) of 2D-point to transform
-             * @param dv delta-vector to transform
-             * @param count size of x, y and dv vectors
+             * @param dv delta-vector to apply for transform
+             * @param count size of x, y and dv vector elements
              * @return true if values were applied
              */
             virtual bool apply(IGraphCanvas *cv, float *x, float *y, const float *dv, size_t count);
+
+            /** Project the vector on the axis and determine it's value relative to the center
+             *
+             * @param cv canvas
+             * @param x x coordinate (in pixels) of 2D-point on canvas
+             * @param y y coordinate (in pixels) of 2D-point on canvas
+             * @return the value after projectsion
+             */
+            virtual float project(IGraphCanvas *cv, float x, float y);
 
             /** Get parallel line equation
              *

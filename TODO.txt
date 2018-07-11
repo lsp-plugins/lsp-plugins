@@ -2,8 +2,9 @@
 * RECENT CHANGES
 *******************************************************************************
 
-=== 1.0.8 ===
+=== 1.0.12 ===
 
+- Optimized graph widget.
 - Improved support of LinuxVST for Tracktion DAW.
 
 
@@ -16,16 +17,19 @@
 * Spektrumanalysator (Spectrum Analyzer)
 * Klangerzeuger (Sampler)
 * Schlagzeug (Multi-Sampler)
-- Triggersensor (Trigger)
+* Triggersensor (Trigger)
+* Parametrischer Entzerrer (Parametric Equalizer)
+- Grafischer Entzerrer (Graphic Equalizer)
 - Leitungsvermittlung (Circuit Switcher)
 - Korellationsmeter (Corellometer)
 - Impulsantworten (Impulse responses)
 - Ortswechsel (Dynamic panner)
 - Nachhall (Reverberation)
-- Kompressor (Compressor)
+- Kompressor (Compressor) - Mono, Stereo, Mid, Side
 - Begrenzer (Limiter)
 - Expander (Expander)
-- Ausgleich (Equalizer)
 - Verzerrung (Distortion)
 - Tonhöhenänderer (Pitch shift)
 - Sampler (real sampler)
+- Verstärker Profiler (Amplifier profiler)
+- (Impulse Taker)

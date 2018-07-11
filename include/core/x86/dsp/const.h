@@ -38,6 +38,7 @@ namespace lsp
         const float PI_2[] __lsp_aligned16 = { M_PI_2, M_PI_2, M_PI_2, M_PI_2  };
 
         const uint32_t X_SIGN[] __lsp_aligned16     = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };
+        const float X_HALF[] __lsp_aligned16        = { 0.5f, 0.5f, 0.5f, 0.5f };
     }
 
     namespace sse

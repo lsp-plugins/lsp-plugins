@@ -44,11 +44,13 @@ vst_stub: $(UTL_FILES)
 	@echo "Building VST stub"
 	@mkdir -p $(OBJDIR)/vst
 	@$(UTL_VSTMAKE) $(OBJDIR)/vst
+	@-rm gmon.out &>/dev/null
 	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/vst all OBJDIR=$(OBJDIR)/vst
 
 jack_stub: $(UTL_FILES)
 	@echo "Building JACK stub"
 	@mkdir -p $(OBJDIR)/jack
 	@$(UTL_JACKMAKE) $(OBJDIR)/jack
+	@-rm gmon.out &>/dev/null
 	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/jack all OBJDIR=$(OBJDIR)/jack
 	

@@ -124,7 +124,7 @@ namespace lsp
         float d     = (d1 > d2) ? d1 : d2;
 
         // Normalize value according to minimum and maximum visible values of the axis
-        float a_min = fabs(actualMin()), a_max = fabs(actualMax());
+        float a_min = fabsf(actualMin()), a_max = fabsf(actualMax());
 
         // Now we can surely apply deltas
         if (nFlags & F_LOGARITHMIC)
@@ -133,18 +133,19 @@ namespace lsp
                 a_min   = AMPLIFICATION_THRESH;
             if (a_max <= 0)
                 a_max   = AMPLIFICATION_THRESH;
-            float norm = (a_min > a_max) ? log(a_min / a_max) : log(a_max / a_min);
+            float norm = (a_min > a_max) ? logf(a_min / a_max) : logf(a_max / a_min);
             if (norm == 0.0f)
                 return false;
 
             norm    = d / norm;
             while (count--)
             {
-                float vec    = fabs(*(dv++));
+                float vec    = fabsf(*(dv++));
                 if (vec <= 0)
                     vec     = AMPLIFICATION_THRESH;
-                *(x++)      += fDX * log(vec / a_min) * norm;
-                *(y++)      += fDY * log(vec / a_min) * norm;
+                float k     = logf(vec / a_min) * norm;
+                *(x++)      += fDX * k;
+                *(y++)      += fDY * k;
             }
         }
         else
@@ -157,12 +158,62 @@ namespace lsp
 
             while (count--)
             {
-                *(x++)      += fDX * (*dv) * norm;
-                *(y++)      += fDY * (*dv) * norm;
-                dv++;
+                float k     = *(dv++) * norm;
+                *(x++)      += fDX * k;
+                *(y++)      += fDY * k;
             }
         }
         return true;
+    }
+
+    float Axis::project(IGraphCanvas *cv, float x, float y)
+    {
+        // Get the center of coordinates
+        float cx = 0.0f, cy = 0.0f;
+        cv->center(nCenter, &cx, &cy);
+
+        // Calculate the difference relative to the center and the projection vector length
+        float dx = x - cx, dy = y - cy;
+        float pv = dx*fDX + dy*fDY;
+
+        // Now prepare the image of the line
+        float la, lb, lc;
+        if (!locate_line2d(fDX, fDY, cx, cy, la, lb, lc))
+            return false;
+
+        float x1, y1, x2, y2;
+        if (!clip_line2d(la, lb, lc, cv->left(), cv->right(), cv->top(), cv->bottom(), x1, y1, x2, y2))
+            return false;
+
+        float d1    = distance2d(cx, cy, x1, y1), d2 = distance2d(cx, cy, x2, y2);
+        float d     = (d1 > d2) ? d1 : d2;
+
+        // Normalize value according to minimum and maximum visible values of the axis
+        float a_min = fabsf(actualMin()), a_max = fabsf(actualMax());
+
+        // Now we can surely apply deltas
+        if (nFlags & F_LOGARITHMIC)
+        {
+            if (a_min <= 0)
+                a_min   = AMPLIFICATION_THRESH;
+            if (a_max <= 0)
+                a_max   = AMPLIFICATION_THRESH;
+            float norm = (a_min > a_max) ? logf(a_min / a_max) : logf(a_max / a_min);
+            if (norm == 0.0f)
+                return actualMin();
+
+            return expf(pv * norm / d) * ((a_min > a_max) ? a_max : a_min);
+        }
+        else
+        {
+            float norm = (a_min > a_max) ? a_min : a_max;
+            if (norm == 0.0f)
+                return actualMin();
+
+            return (pv*norm/d) + ((a_min > a_max) ? a_max : a_min);
+        }
+
+        return actualMin();
     }
 
     void Axis::update()

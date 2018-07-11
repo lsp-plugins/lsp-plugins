@@ -27,6 +27,12 @@
 #ifdef __i386__
     #define __ASM_EMIT32(code)                  code "\n\t"
     #define __IF_32(...)                        __VA_ARGS__
+
+    #ifdef LSP_PROFILING
+        #define __IF_32P(...)                       __VA_ARGS__
+    #else
+        #define __IF_32NP(...)                      __VA_ARGS__
+    #endif /* LSP_PROFILING */
 #endif /* __i386__ */
 
 #ifdef __x86_64__
@@ -46,10 +52,21 @@
     #define __IF_32(...)
 #endif /* __IF_32 */
 
+#ifndef __IF_32P
+    #define __IF_32P(...)
+#endif /* __IF_32 */
+
+#ifndef __IF_32NP
+    #define __IF_32NP(...)
+#endif /* __IF_32 */
+
 #ifndef __IF_64
     #define __IF_64(...)
 #endif /* __IF_64 */
 
+
+#define __ASM_ARG_RW(var)                       __IF_32P("+g"(var)) __IF_32NP("+r"(var)) __IF_64("+r"(var))
+#define __ASM_ARG_RO(var)                       __IF_32P("g"(var)) __IF_32NP("r"(var)) __IF_64("r"(var))
 
 #define __lsp_forced_inline                 __attribute__((always_inline))
 #define __lsp_aligned16                     __attribute__ ((aligned (16)))

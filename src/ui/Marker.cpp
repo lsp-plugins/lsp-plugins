@@ -18,10 +18,12 @@ namespace lsp
         nBasisID    = 0;
         nParallelID = 1;
         fValue      = 0;
-        sColor.set(ui->theme(), C_GRAPH_MARKER);
+//        sColor.set(ui->theme(), C_GRAPH_MARKER);
         pPort       = NULL;
         nWidth      = 1;
         nCenter     = 0;
+
+        sColor.init(this, C_GRAPH_MARKER, A_COLOR, -1, -1, -1, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
     }
 
     Marker::~Marker()
@@ -53,7 +55,7 @@ namespace lsp
             return;
 
         // Draw line
-        cv->set_color(sColor);
+        cv->set_color(sColor.color());
         cv->set_line_width(nWidth);
         cv->line(a, b, c);
     }
@@ -70,9 +72,6 @@ namespace lsp
             case A_VALUE:
                 PARSE_FLOAT(value, fValue = __);
                 break;
-            case A_COLOR:
-                sColor.set(pUI->theme(), value);
-                break;
             case A_BASIS:
                 PARSE_INT(value, nBasisID = __);
                 break;
@@ -86,9 +85,17 @@ namespace lsp
                 PARSE_INT(value, nCenter = __);
                 break;
             default:
+                if (sColor.set(att, value))
+                    break;
                 IWidget::set(att, value);
                 break;
         }
+    }
+
+    void Marker::notify(IUIPort *port)
+    {
+        sColor.notify(port);
+        IGraphObject::notify(port);
     }
 
 } /* namespace lsp */

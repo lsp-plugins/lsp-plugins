@@ -20,9 +20,13 @@ namespace lsp
             ssize_t         nTop;
             Color           sColor;
             IGraph         *pGraph;
+            bool            bAntiAliasing;
+
+        protected:
+            void set_size(ssize_t width, ssize_t height);
 
         public:
-            IGraphCanvas(IGraph *g, ssize_t width, ssize_t height);
+            IGraphCanvas(IGraph *g);
             virtual ~IGraphCanvas();
 
         public:
@@ -43,11 +47,19 @@ namespace lsp
 
             virtual void line_to(ssize_t x, ssize_t y);
 
+            virtual void draw_lines(float *x, float *y, size_t count);
+
+            virtual void draw_poly(float *x, float *y, size_t count, const Color &stroke, const Color &fill);
+
             virtual void circle(ssize_t x, ssize_t y, ssize_t r);
+
+            virtual void radial_gradient(ssize_t x, ssize_t y, const Color &c1, const Color &c2, ssize_t r);
 
             virtual void stroke();
 
             virtual void set_color(const Color &c);
+
+            virtual void set_color_rgb(float r, float g, float b);
 
             virtual void clear();
 
@@ -56,6 +68,8 @@ namespace lsp
             virtual void center(Center *c, float *x, float *y);
 
             virtual void out_text(ssize_t x, ssize_t y, float h_pos, float v_pos, float size, const char *text);
+
+            virtual bool set_anti_aliasing(bool enable);
     };
 
 } /* namespace lsp */

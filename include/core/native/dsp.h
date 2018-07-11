@@ -175,8 +175,7 @@ namespace lsp
 
         static void multiply(float *dst, const float *src1, const float *src2, size_t count)
         {
-            while (count--)
-                *(dst++) = *(src1++) * *(src2++);
+            while (count--)                *(dst++) = *(src1++) * *(src2++);
         }
 
         static float h_sum(const float *src, size_t count)
@@ -234,6 +233,18 @@ namespace lsp
                 *(dst++) -= (*(src++)) * k;
         }
 
+        static void add(float *dst, const float *src, size_t count)
+        {
+            while (count--)
+                *(dst++) += *(src++);
+        }
+
+        static void sub(float *dst, const float *src, size_t count)
+        {
+            while (count--)
+                *(dst++) -= *(src++);
+        }
+
         static void integrate(float *dst, const float *src, float k, size_t count)
         {
             while (count--)
@@ -264,6 +275,14 @@ namespace lsp
                 src1    ++;
                 src2    ++;
             }
+        }
+
+        static float convolve_single(const float *src, const float *conv, size_t length)
+        {
+            float result = 0.0f;
+            while (length--)
+                result     += *(src++) * *(conv++);
+            return result;
         }
 
         static void convolve(float *dst, const float *src, const float *conv, size_t length, size_t count)
@@ -726,12 +745,12 @@ namespace lsp
         {
             if (rank < 2)
                 return;
-            size_t  count  = 1 << rank;
+            ssize_t  count  = 1 << rank;
             const float *tail_re = &src_re[count];
             const float *tail_im = &src_im[count];
             count >>= 1;
 
-            for (size_t i=1; i<count; ++i)
+            for (ssize_t i=1; i<count; ++i)
             {
                 dst_re[i]       = src_re[i] + tail_re[-i];
                 dst_im[i]       = src_im[i] - tail_im[-i];
@@ -750,6 +769,146 @@ namespace lsp
                 *(dst_mod++)    = sqrtf(re*re + im*im);
             }
         }
+
+        static void lr_to_ms(float *m, float *s, const float *l, const float *r, size_t count)
+        {
+            while (count--)
+            {
+                float lv        = *(l++);
+                float rv        = *(r++);
+                *(m++)          = (lv + rv) * 0.5f;
+                *(s++)          = (lv - rv) * 0.5f;
+            }
+        }
+
+        static void ms_to_lr(float *l, float *r, const float *m, const float *s, size_t count)
+        {
+            while (count--)
+            {
+                float mv        = *(m++);
+                float sv        = *(s++);
+                *(l++)          = mv + sv;
+                *(r++)          = mv - sv;
+            }
+        }
+
+        static float biquad_process(float *buf, const float *ir, float sample)
+        {
+            // Calculate sample
+            float result    =
+                buf[0] * ir[0] +
+                buf[1] * ir[1] +
+                buf[2] * ir[2] +
+                buf[3] * ir[3] +
+                sample * ir[4];
+
+            // Shift buffer
+            buf[3]  = buf[1];
+            buf[2]  = buf[0];
+            buf[1]  = sample;
+            buf[0]  = result;
+
+            return result;
+        }
+
+        static void biquad_process_multi(float *dst, const float *src, size_t count, float *buf, const float *ir)
+        {
+            for (size_t i=0; i<count; ++i)
+            {
+                // Calculate sample
+                float result    =
+                    buf[0] * ir[0] +
+                    buf[1] * ir[1] +
+                    buf[2] * ir[2] +
+                    buf[3] * ir[3] +
+                    src[i] * ir[4];
+
+                // Shift buffer
+                buf[3]  = buf[1];
+                buf[2]  = buf[0];
+                buf[1]  = src[i];
+                buf[0]  = result;
+
+                // Store sample
+                dst[i]  = result;
+            }
+        }
+
+        static float vec4_scalar_mul(const float *a, const float *b)
+        {
+            return
+                a[0] * b[0] +
+                a[1] * b[1] +
+                a[2] * b[2] +
+                a[3] * b[3];
+        }
+
+        static float vec4_push(float *v, float value)
+        {
+            float result = v[0];
+            v[0]    = v[1];
+            v[1]    = v[2];
+            v[2]    = v[3];
+            v[3]    = value;
+            return result;
+        }
+
+        static float vec4_unshift(float *v, float value)
+        {
+            float result = v[3];
+            v[3]    = v[2];
+            v[2]    = v[1];
+            v[1]    = v[0];
+            v[0]    = value;
+            return result;
+        }
+
+        static void vec4_zero(float *v)
+        {
+            v[0]    = 0.0f;
+            v[1]    = 0.0f;
+            v[2]    = 0.0f;
+            v[3]    = 0.0f;
+        }
+
+//        static float poly_calc(float x, const float *poly, size_t count)
+//        {
+//            if (count == 0)
+//                return 0;
+//            float t = 1.0f, r = *(poly++);
+//            while (--count)
+//            {
+//                r   +=  t * (*(poly++));
+//                t   *=  x;
+//            }
+//
+//            return r;
+//        }
+//
+//        static void complex_poly_calc(float *p_re, float *p_im, float x_re, float x_im, const float *poly, size_t count)
+//        {
+//            float r_re  = 0.0f, r_im = 0.0f;
+//            if (count > 0)
+//            {
+//                float t_re  = 1.0f, t_im  = 0.0f;
+//                while (count--)
+//                {
+//                    // Update result
+//                    float k     = *(poly++);
+//                    r_re       += t_re * k;
+//                    r_im       += t_im * k;
+//
+//                    // Update coefficients
+//                    k           = t_re * x_re - t_im * x_im;
+//                    t_im        = t_re * x_im + t_im * x_re;
+//                    t_re        = k;
+//                    poly       ++;
+//                }
+//            }
+//
+//            *p_re       = r_re;
+//            *p_im       = r_im;
+//        }
     }
 
 }

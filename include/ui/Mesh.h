@@ -20,6 +20,7 @@ namespace lsp
             IUIPort        *pPort;
             size_t          nWidth;
             size_t          nCenter;
+            bool            bSmooth;
 
             ColorHolder     sColor;
 

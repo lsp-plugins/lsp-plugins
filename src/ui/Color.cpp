@@ -163,6 +163,7 @@ namespace lsp
         H       = c.H;
         S       = c.S;
         L       = c.L;
+        A       = c.A;
         nMask   = c.nMask & (M_RGB | M_HSL);
     }
 

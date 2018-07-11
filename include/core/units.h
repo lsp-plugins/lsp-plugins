@@ -25,6 +25,21 @@
 #define SPEC_FREQ_MAX                       24000.0f            /* Maximum frequency [ Hz ]                         */
 #define MIDI_EVENTS_MAX                     1024                /* Maximum number of MIDI events per buffer         */
 
+// Gain levels in decibels
+#define GAIN_AMP_72_DB                      3981.07300
+#define GAIN_AMP_60_DB                      1000.0
+#define GAIN_AMP_48_DB                      251.18861
+#define GAIN_AMP_36_DB                      63.09575
+#define GAIN_AMP_24_DB                      15.84893
+#define GAIN_AMP_12_DB                      3.98107
+#define GAIN_AMP_0_DB                       1.0
+#define GAIN_AMP__12DB                      0.25119
+#define GAIN_AMP__24DB                      0.06310
+#define GAIN_AMP__36DB                      0.01585
+#define GAIN_AMP__48DB                      0.00398
+#define GAIN_AMP__60DB                      0.001
+#define GAIN_AMP__72DB                      0.00025
+
 namespace lsp
 {
     /** Convert temperature from Celsium degrees to sound speed [m/s]

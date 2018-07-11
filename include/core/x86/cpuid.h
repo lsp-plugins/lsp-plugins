@@ -73,16 +73,16 @@ namespace lsp
             #ifdef __i386__
                 __ASM_EMIT("push %%ebx")
             #endif /* __i386__ */
-            __ASM_EMIT("mov %%eax, 0x0(%2)")
-            __ASM_EMIT("mov %%ebx, 0x4(%2)")
-            __ASM_EMIT("mov %%ecx, 0x8(%2)")
-            __ASM_EMIT("mov %%edx, 0xc(%2)")
+            __ASM_EMIT("mov %%eax, 0x0(%[info])")
+            __ASM_EMIT("mov %%ebx, 0x4(%[info])")
+            __ASM_EMIT("mov %%ecx, 0x8(%[info])")
+            __ASM_EMIT("mov %%edx, 0xc(%[info])")
             #ifdef __i386__
                 __ASM_EMIT("pop %%ebx")
             #endif /* __i386__ */
 
             : "+a"(leaf), "+c"(subleaf)
-            : "D" (info)
+            : [info] "D" (info)
             : "cc", "memory",
             #ifndef __i386__
                 "%ebx",

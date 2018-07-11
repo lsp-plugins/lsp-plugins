@@ -28,16 +28,16 @@ namespace lsp
                 /* Copy the values from the reversed position */
                 __asm__ __volatile
                 (
-                    __ASM_EMIT("movss (%0, %2, 4), %%xmm0")
-                    __ASM_EMIT("movss (%1, %2, 4), %%xmm1")
-                    __ASM_EMIT("movss (%0, %3, 4), %%xmm2")
-                    __ASM_EMIT("movss (%1, %3, 4), %%xmm3")
-                    __ASM_EMIT("movss %%xmm2, (%0, %2, 4)")
-                    __ASM_EMIT("movss %%xmm3, (%1, %2, 4)")
-                    __ASM_EMIT("movss %%xmm0, (%0, %3, 4)")
-                    __ASM_EMIT("movss %%xmm1, (%1, %3, 4)")
+                    __ASM_EMIT("movss (%[dst_re], %[i], 4), %%xmm0")
+                    __ASM_EMIT("movss (%[dst_im], %[i], 4), %%xmm1")
+                    __ASM_EMIT("movss (%[dst_re], %[j], 4), %%xmm2")
+                    __ASM_EMIT("movss (%[dst_im], %[j], 4), %%xmm3")
+                    __ASM_EMIT("movss %%xmm2, (%[dst_re], %[i], 4)")
+                    __ASM_EMIT("movss %%xmm3, (%[dst_im], %[i], 4)")
+                    __ASM_EMIT("movss %%xmm0, (%[dst_re], %[j], 4)")
+                    __ASM_EMIT("movss %%xmm1, (%[dst_im], %[j], 4)")
                     :
-                    : "r"(dst_re), "r"(dst_im), "r"(i), "r"(j)
+                    : [dst_re] "r"(dst_re), [dst_im] "r"(dst_im), [i] "r"(i), [j] "r"(j)
                     : "memory",
                       "%xmm0", "%xmm1", "%xmm2", "%xmm3"
                 );
@@ -50,17 +50,17 @@ namespace lsp
             __asm__ __volatile__
             (
                 /* Prefetch data */
-                __ASM_EMIT("prefetchnta (%0)")
-                __ASM_EMIT("prefetchnta (%1)")
+                __ASM_EMIT("prefetchnta (%[dst_re])")
+                __ASM_EMIT("prefetchnta (%[dst_im])")
                 /* Loop */
                 __ASM_EMIT("1:")
                 /* Prefetch data */
-                __ASM_EMIT("prefetchnta 0x10(%0)")
-                __ASM_EMIT("prefetchnta 0x10(%1)")
+                __ASM_EMIT("prefetchnta 0x10(%[dst_re])")
+                __ASM_EMIT("prefetchnta 0x10(%[dst_im])")
 
                 /* Load data to registers */
-                __ASM_EMIT(LS_RE " (%0), %%xmm0")          /* xmm0 = r0 r1 r2 r3 */
-                __ASM_EMIT(LS_RE " (%1), %%xmm1")          /* xmm1 = i0 i1 i2 i3 */
+                __ASM_EMIT(LS_RE " (%[dst_re]), %%xmm0")    /* xmm0 = r0 r1 r2 r3 */
+                __ASM_EMIT(LS_RE " (%[dst_im]), %%xmm1")    /* xmm1 = i0 i1 i2 i3 */
 
                 /* Shuffle 1 */
                 __ASM_EMIT("movaps  %%xmm0, %%xmm2")        /* xmm2 = r0 r1 r2 r3 */
@@ -89,18 +89,18 @@ namespace lsp
                 __ASM_EMIT("shufps $0x6c, %%xmm1, %%xmm1")  /* xmm1 = di0 di1 di2 di3 */
 
                 /* Store values */
-                __ASM_EMIT(LS_RE " %%xmm0, (%0)")
-                __ASM_EMIT(LS_RE " %%xmm1, (%1)")
+                __ASM_EMIT(LS_RE " %%xmm0, (%[dst_re])")
+                __ASM_EMIT(LS_RE " %%xmm1, (%[dst_im])")
 
                 /* Move pointers */
-                __ASM_EMIT("add     $0x10, %0")
-                __ASM_EMIT("add     $0x10, %1")
+                __ASM_EMIT("add     $0x10, %[dst_re]")
+                __ASM_EMIT("add     $0x10, %[dst_im]")
 
                 /* Repeat cycle */
-                __ASM_EMIT("dec     %2")
+                __ASM_EMIT("dec     %[items]")
                 __ASM_EMIT("jnz     1b")
                 __ASM_EMIT("2:")
-                : "+r"(dst_re), "+r"(dst_im), "+r"(items)
+                : [dst_re] "+r"(dst_re), [dst_im] "+r"(dst_im), [items] "+r"(items)
                 :
                 : "cc", "memory",
                   "%xmm0", "%xmm1", "%xmm2"
@@ -118,20 +118,20 @@ namespace lsp
                 __asm__ __volatile__
                 (
                     /* Load scalar values */
-                    __ASM_EMIT("movss   (%3, %2, 4), %%xmm1") /* xmm1 = r0 x x x */
-                    __ASM_EMIT("movss   (%4, %2, 4), %%xmm2") /* xmm2 = i0 x x x */
-                    __ASM_EMIT("add     %5, %2")
+                    __ASM_EMIT("movss   (%[src_re], %[index], 4), %%xmm1") /* xmm1 = r0 x x x */
+                    __ASM_EMIT("movss   (%[src_im], %[index], 4), %%xmm2") /* xmm2 = i0 x x x */
+                    __ASM_EMIT("add     %[regs], %[index]")
 
-                    __ASM_EMIT("movss   (%3, %2, 4), %%xmm5") /* xmm5 = r2 x x x */
-                    __ASM_EMIT("movss   (%4, %2, 4), %%xmm6") /* xmm4 = i2 x x x */
-                    __ASM_EMIT("add     %5, %2")
+                    __ASM_EMIT("movss   (%[src_re], %[index], 4), %%xmm5") /* xmm5 = r2 x x x */
+                    __ASM_EMIT("movss   (%[src_im], %[index], 4), %%xmm6") /* xmm4 = i2 x x x */
+                    __ASM_EMIT("add     %[regs], %[index]")
 
-                    __ASM_EMIT("movss   (%3, %2, 4), %%xmm0") /* xmm3 = r1 x x x */
-                    __ASM_EMIT("movss   (%4, %2, 4), %%xmm3") /* xmm2 = i1 x x x */
-                    __ASM_EMIT("add     %5, %2")
+                    __ASM_EMIT("movss   (%[src_re], %[index], 4), %%xmm0") /* xmm3 = r1 x x x */
+                    __ASM_EMIT("movss   (%[src_im], %[index], 4), %%xmm3") /* xmm2 = i1 x x x */
+                    __ASM_EMIT("add     %[regs], %[index]")
 
-                    __ASM_EMIT("movss   (%3, %2, 4), %%xmm4") /* xmm7 = r3 x x x */
-                    __ASM_EMIT("movss   (%4, %2, 4), %%xmm7") /* xmm6 = i3 x x x */
+                    __ASM_EMIT("movss   (%[src_re], %[index], 4), %%xmm4") /* xmm7 = r3 x x x */
+                    __ASM_EMIT("movss   (%[src_im], %[index], 4), %%xmm7") /* xmm6 = i3 x x x */
 
                     /* Perform 4-element butterfly */
                     /* Shuffle 1 */
@@ -166,15 +166,15 @@ namespace lsp
                     __ASM_EMIT("shufps $0x6c, %%xmm1, %%xmm1")  /* xmm1 = di0 di1 di2 di3 */
 
                     /* Store values */
-                    __ASM_EMIT(LS_RE " %%xmm0, (%0)")
-                    __ASM_EMIT(LS_IM " %%xmm1, (%1)")
+                    __ASM_EMIT(LS_RE " %%xmm0, (%[dst_re])")
+                    __ASM_EMIT(LS_IM " %%xmm1, (%[dst_im])")
 
                     /* Update pointers */
-                    __ASM_EMIT("add     $0x10, %0")
-                    __ASM_EMIT("add     $0x10, %1")
+                    __ASM_EMIT("add     $0x10, %[dst_re]")
+                    __ASM_EMIT("add     $0x10, %[dst_im]")
 
-                    : "+r" (dst_re), "+r"(dst_im), "+r"(index)
-                    : "r"(src_re), "r"(src_im), "r"(regs)
+                    : [dst_re] "+r" (dst_re), [dst_im] "+r"(dst_im), [index] "+r"(index)
+                    : [src_re] "r"(src_re), [src_im] "r"(src_im), [regs] __ASM_ARG_RO(regs)
                     : "cc", "memory",
                         "%xmm0", "%xmm1", "%xmm2", "%xmm3",
                         "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -199,16 +199,16 @@ namespace lsp
                 /* Copy the values from the reversed position */
                 __asm__ __volatile
                 (
-                    __ASM_EMIT("movss (%0, %2, 4), %%xmm0")
-                    __ASM_EMIT("movss (%1, %2, 4), %%xmm1")
-                    __ASM_EMIT("movss (%0, %3, 4), %%xmm2")
-                    __ASM_EMIT("movss (%1, %3, 4), %%xmm3")
-                    __ASM_EMIT("movss %%xmm2, (%0, %2, 4)")
-                    __ASM_EMIT("movss %%xmm3, (%1, %2, 4)")
-                    __ASM_EMIT("movss %%xmm0, (%0, %3, 4)")
-                    __ASM_EMIT("movss %%xmm1, (%1, %3, 4)")
+                    __ASM_EMIT("movss (%[dst_re], %[i], 4), %%xmm0")
+                    __ASM_EMIT("movss (%[dst_im], %[i], 4), %%xmm1")
+                    __ASM_EMIT("movss (%[dst_re], %[j], 4), %%xmm2")
+                    __ASM_EMIT("movss (%[dst_im], %[j], 4), %%xmm3")
+                    __ASM_EMIT("movss %%xmm2, (%[dst_re], %[i], 4)")
+                    __ASM_EMIT("movss %%xmm3, (%[dst_im], %[i], 4)")
+                    __ASM_EMIT("movss %%xmm0, (%[dst_re], %[j], 4)")
+                    __ASM_EMIT("movss %%xmm1, (%[dst_im], %[j], 4)")
                     :
-                    : "r"(dst_re), "r"(dst_im), "r"(i), "r"(j)
+                    : [dst_re] "r"(dst_re), [dst_im] "r"(dst_im), [i] "r"(i), [j] "r"(j)
                     : "memory",
                       "%xmm0", "%xmm1", "%xmm2", "%xmm3"
                 );
@@ -221,17 +221,17 @@ namespace lsp
             __asm__ __volatile__
             (
                 /* Prefetch data */
-                __ASM_EMIT("prefetchnta (%0)")
-                __ASM_EMIT("prefetchnta (%1)")
+                __ASM_EMIT("prefetchnta (%[dst_re])")
+                __ASM_EMIT("prefetchnta (%[dst_im])")
                 /* Loop */
                 __ASM_EMIT("1:")
                 /* Prefetch data */
-                __ASM_EMIT("prefetchnta 0x10(%0)")
-                __ASM_EMIT("prefetchnta 0x10(%1)")
+                __ASM_EMIT("prefetchnta 0x10(%[dst_re])")
+                __ASM_EMIT("prefetchnta 0x10(%[dst_im])")
 
                 /* Load data to registers */
-                __ASM_EMIT(LS_RE " (%0), %%xmm0")          /* xmm0 = r0 r1 r2 r3 */
-                __ASM_EMIT(LS_RE " (%1), %%xmm1")          /* xmm1 = i0 i1 i2 i3 */
+                __ASM_EMIT(LS_RE " (%[dst_re]), %%xmm0")          /* xmm0 = r0 r1 r2 r3 */
+                __ASM_EMIT(LS_RE " (%[dst_im]), %%xmm1")          /* xmm1 = i0 i1 i2 i3 */
 
                 /* Shuffle 1 */
                 __ASM_EMIT("movaps  %%xmm0, %%xmm2")        /* xmm2 = r0 r1 r2 r3 */
@@ -260,18 +260,18 @@ namespace lsp
                 __ASM_EMIT("shufps $0x6c, %%xmm0, %%xmm0")  /* xmm0 = dr0 dr1 dr2 dr3 */
 
                 /* Store values */
-                __ASM_EMIT(LS_RE " %%xmm0, (%0)")
-                __ASM_EMIT(LS_RE " %%xmm1, (%1)")
+                __ASM_EMIT(LS_RE " %%xmm0, (%[dst_re])")
+                __ASM_EMIT(LS_RE " %%xmm1, (%[dst_im])")
 
                 /* Move pointers */
-                __ASM_EMIT("add     $0x10, %0")
-                __ASM_EMIT("add     $0x10, %1")
+                __ASM_EMIT("add     $0x10, %[dst_re]")
+                __ASM_EMIT("add     $0x10, %[dst_im]")
 
                 /* Repeat cycle */
-                __ASM_EMIT("dec     %2")
+                __ASM_EMIT("dec     %[items]")
                 __ASM_EMIT("jnz     1b")
                 __ASM_EMIT("2:")
-                : "+r"(dst_re), "+r"(dst_im), "+r"(items)
+                : [dst_re] "+r"(dst_re), [dst_im] "+r"(dst_im), [items] "+r"(items)
                 :
                 : "cc", "memory",
                   "%xmm0", "%xmm1", "%xmm2"
@@ -289,20 +289,20 @@ namespace lsp
                 __asm__ __volatile__
                 (
                     /* Load scalar values */
-                    __ASM_EMIT("movss   (%3, %2, 4), %%xmm1") /* xmm1 = r0 x x x */
-                    __ASM_EMIT("movss   (%4, %2, 4), %%xmm2") /* xmm2 = i0 x x x */
-                    __ASM_EMIT("add     %5, %2")
+                    __ASM_EMIT("movss   (%[src_re], %[index], 4), %%xmm1") /* xmm1 = r0 x x x */
+                    __ASM_EMIT("movss   (%[src_im], %[index], 4), %%xmm2") /* xmm2 = i0 x x x */
+                    __ASM_EMIT("add     %[regs], %[index]")
 
-                    __ASM_EMIT("movss   (%3, %2, 4), %%xmm5") /* xmm5 = r2 x x x */
-                    __ASM_EMIT("movss   (%4, %2, 4), %%xmm6") /* xmm4 = i2 x x x */
-                    __ASM_EMIT("add     %5, %2")
+                    __ASM_EMIT("movss   (%[src_re], %[index], 4), %%xmm5") /* xmm5 = r2 x x x */
+                    __ASM_EMIT("movss   (%[src_im], %[index], 4), %%xmm6") /* xmm4 = i2 x x x */
+                    __ASM_EMIT("add     %[regs], %[index]")
 
-                    __ASM_EMIT("movss   (%3, %2, 4), %%xmm0") /* xmm3 = r1 x x x */
-                    __ASM_EMIT("movss   (%4, %2, 4), %%xmm3") /* xmm2 = i1 x x x */
-                    __ASM_EMIT("add     %5, %2")
+                    __ASM_EMIT("movss   (%[src_re], %[index], 4), %%xmm0") /* xmm3 = r1 x x x */
+                    __ASM_EMIT("movss   (%[src_im], %[index], 4), %%xmm3") /* xmm2 = i1 x x x */
+                    __ASM_EMIT("add     %[regs], %[index]")
 
-                    __ASM_EMIT("movss   (%3, %2, 4), %%xmm4") /* xmm7 = r3 x x x */
-                    __ASM_EMIT("movss   (%4, %2, 4), %%xmm7") /* xmm6 = i3 x x x */
+                    __ASM_EMIT("movss   (%[src_re], %[index], 4), %%xmm4") /* xmm7 = r3 x x x */
+                    __ASM_EMIT("movss   (%[src_im], %[index], 4), %%xmm7") /* xmm6 = i3 x x x */
 
                     /* Perform 4-element butterfly */
                     /* Shuffle 1 */
@@ -337,15 +337,15 @@ namespace lsp
                     __ASM_EMIT("shufps $0x6c, %%xmm0, %%xmm0")  /* xmm0 = dr0 dr1 dr2 dr3 */
 
                     /* Store values */
-                    __ASM_EMIT(LS_RE " %%xmm0, (%0)")
-                    __ASM_EMIT(LS_IM " %%xmm1, (%1)")
+                    __ASM_EMIT(LS_RE " %%xmm0, (%[dst_re])")
+                    __ASM_EMIT(LS_IM " %%xmm1, (%[dst_im])")
 
                     /* Update pointers */
-                    __ASM_EMIT("add     $0x10, %0")
-                    __ASM_EMIT("add     $0x10, %1")
+                    __ASM_EMIT("add     $0x10, %[dst_re]")
+                    __ASM_EMIT("add     $0x10, %[dst_im]")
 
-                    : "+r" (dst_re), "+r"(dst_im), "+r"(index)
-                    : "r"(src_re), "r"(src_im), "r"(regs)
+                    : [dst_re] "+r" (dst_re), [dst_im] "+r"(dst_im), [index] "+r"(index)
+                    : [src_re] "r"(src_re), [src_im] "r"(src_im), [regs] __ASM_ARG_RO(regs)
                     : "cc", "memory",
                         "%xmm0", "%xmm1", "%xmm2", "%xmm3",
                         "%xmm4", "%xmm5", "%xmm6", "%xmm7"

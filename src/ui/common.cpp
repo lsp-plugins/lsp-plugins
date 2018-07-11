@@ -44,6 +44,7 @@ namespace lsp
         "vsep",
         "port",
         "meter",
+        "dot",
         NULL
     };
 
@@ -119,6 +120,12 @@ namespace lsp
         "type",
         "font_size",
         "activity_id",
+        "scroll_id",
+        "vpos_id",
+        "hpos_id",
+        "smooth",
+        "precision",
+        "editable",
         NULL
     };
 
@@ -154,6 +161,7 @@ namespace lsp
         "left_channel",
         "right_channel",
         "middle_channel",
+        "side_channel",
 
         NULL
     };

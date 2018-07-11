@@ -64,9 +64,12 @@ namespace lsp
         void    (* accumulate)(float *dst, const float *src, float k, float p, size_t count) = NULL;
         void    (* add_multiplied)(float *dst, const float *src, float k, size_t count) = NULL;
         void    (* sub_multiplied)(float *dst, const float *src, float k, size_t count) = NULL;
+        void    (* add)(float *dst, const float *src, size_t count) = NULL;
+        void    (* sub)(float *dst, const float *src, size_t count) = NULL;
         void    (* integrate)(float *dst, const float *src, float k, size_t count) = NULL;
         void    (* mix)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count) = NULL;
         void    (* mix_add)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count) = NULL;
+        float   (* convolve_single)(const float *src, const float *conv, size_t length) = NULL;
         void    (* convolve)(float *dst, const float *src, const float *conv, size_t length, size_t count) = NULL;
         void    (* reverse)(float *dst, size_t count) = NULL;
         void    (* direct_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
@@ -78,6 +81,15 @@ namespace lsp
         void    (* complex_cvt2modarg)(float *dst_mod, float *dst_arg, const float *src_re, const float *src_im, size_t count) = NULL;
         void    (* complex_cvt2reim)(float *dst_re, float *dst_im, const float *src_mod, const float *src_arg, size_t count) = NULL;
         void    (* complex_mod)(float *dst_mod, const float *src_re, const float *src_im, size_t count) = NULL;
+        void    (* lr_to_ms)(float *m, float *s, const float *l, const float *r, size_t count) = NULL;
+        void    (* ms_to_lr)(float *l, float *r, const float *m, const float *s, size_t count) = NULL;
+        float   (* biquad_process)(float *buf, const float *ir, float sample) = NULL;
+        void    (* biquad_process_multi)(float *dst, const float *src, size_t count, float *buf, const float *ir) = NULL;
+
+        float   (* vec4_scalar_mul)(const float *a, const float *b) = NULL;
+        float   (* vec4_push)(float *v, float value) = NULL;
+        float   (* vec4_unshift)(float *v, float value) = NULL;
+        void    (*vec4_zero)(float *v) = NULL;
     }
 
     namespace dsp

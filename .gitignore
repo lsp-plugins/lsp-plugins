@@ -1,3 +1,5 @@
 /.svn/*
 /design/*
 /res/doc/*
+/.build/*
+/.release/*

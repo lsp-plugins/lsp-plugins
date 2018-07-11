@@ -21,9 +21,15 @@
 #include "test/alloc_test.h"
 #include "test/view_ui.h"
 #include "test/jack_test.h"
+#include "test/vec4_test.h"
+#include "test/profiling_test.h"
+#include "test/fft_conv_test.h"
 
 //#define TEST gtk_test
 #define TEST jack_test
+//#define TEST fft_conv_test
+
+//#define TEST vec4_test
 //#define TEST view_ui_test
 //#define TEST ladspa_test
 //#define TEST vst_test
@@ -43,6 +49,7 @@
 //#define TEST genttl_test
 //#define TEST lv2bufsize_test
 //#define TEST alloc_test
+//#define TEST profiling_test
 
 int main(int argc, const char**argv)
 {

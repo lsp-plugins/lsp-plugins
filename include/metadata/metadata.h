@@ -265,13 +265,13 @@ namespace lsp
     size_t          list_size(const char **list);
     float           limit_value(const port_t *port, float value);
 
-    void            format_float(char *buf, size_t len, const port_t *meta, float value);
+    void            format_float(char *buf, size_t len, const port_t *meta, float value, ssize_t precision = -1);
     void            format_int(char *buf, size_t len, const port_t *meta, float value);
     void            format_enum(char *buf, size_t len, const port_t *meta, float value);
-    void            format_decibels(char *buf, size_t len, const port_t *meta, float value);
+    void            format_decibels(char *buf, size_t len, const port_t *meta, float value, ssize_t precision = -1);
     void            format_bool(char *buf, size_t len, const port_t *meta, float value);
 
-    void            format_value(char *buf, size_t len, const port_t *meta, float value);
+    void            format_value(char *buf, size_t len, const port_t *meta, float value, ssize_t precision = -1);
 
     void            get_port_parameters(const port_t *p, float *min, float *max, float *step);
 

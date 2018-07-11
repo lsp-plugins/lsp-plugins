@@ -194,6 +194,22 @@ namespace lsp
          */
         extern void (* sub_multiplied)(float *dst, const float *src, float k, size_t count);
 
+        /** Calculate dst[i] = dst[i] + src[i]
+         *
+         * @param dst destination array
+         * @param src source array
+         * @param count number of elements
+         */
+        extern void (* add)(float *dst, const float *src, size_t count);
+
+        /** Calculate dst[i] = dst[i] - src[i]
+         *
+         * @param dst destination array
+         * @param src source array
+         * @param count number of elements
+         */
+        extern void (* sub)(float *dst, const float *src, size_t count);
+
         /** Calculate dst[i] = dst[i] * (1 - k) + src[i] * k = dst[i] + (src[i] - dst[i]) * k
          *
          * @param dst destination
@@ -223,11 +239,20 @@ namespace lsp
          */
         extern void (* mix_add)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
 
+        /** Calculate convolution for the current sample
+         *
+         * @param src source data
+         * @param conv REVERSED convolution data
+         * @param count length of convolution
+         * @return sample value
+         */
+        extern float   (* convolve_single)(const float *src, const float *conv, size_t length);
+
         /** Apply direct convolution: dst[i] = sum from j=0 to j=length { src[i + j] * conv[i] }
          *
          * @param dst destination buffer
          * @param src source buffer
-         * @param conv REVERSE convolution data
+         * @param conv REVERSED convolution data
          * @param length convolution length
          * @param count number of samples to process
          */
@@ -345,6 +370,85 @@ namespace lsp
                 const float *src_mod, const float *src_arg,
                 size_t count
             );
+
+        /** Convert stereo signal to mid-side signal
+         *
+         * @param m mid signal
+         * @param s side signal
+         * @param l left signal
+         * @param r right signal
+         * @param count number of samples to process
+         */
+        extern void (* lr_to_ms)(float *m, float *s, const float *l, const float *r, size_t count);
+
+        /** Convert mid-side signal to left-right signal
+         *
+         * @param l left signal
+         * @param r right signal
+         * @param m mid signal
+         * @param s side signal
+         * @param count number of samples to process
+         */
+        extern void (* ms_to_lr)(float *l, float *r, const float *m, const float *s, size_t count);
+
+        /** Process biquad filter
+         *
+         * @param buf filter delay buffer
+         * @param ir impulse response part of filter
+         * @param sample sample to process
+         * @return processed sample
+         */
+        extern float (* biquad_process)(float *buf, const float *ir, float sample);
+
+        /** Process biquad filter for multiple samples
+         *
+         * @param dst destination samples
+         * @param src source samples
+         * @param count number of samples to process
+         * @param buf filter delay buffer
+         * @param ir impulse response part of filter
+         * @return processed sample
+         */
+        extern void (* biquad_process_multi)(float *dst, const float *src, size_t count, float *buf, const float *ir);
+
+        /** Do scalar mul for 4-element vector:
+         * Restriction: vector has to be 16-byte aligned
+         * result = sum {i=0..3} a[i] * b[i]
+         *
+         * @param a vector a
+         * @param b vector b
+         * @return scalar multiplication result
+         *
+         */
+        extern float (* vec4_scalar_mul)(const float *a, const float *b);
+
+        /** Push data to scalar vector at end
+         * Restriction: vector has to be 16-byte aligned
+         * result = v[0]
+         * v      = { v[1], v[2], v[3], value }
+         *
+         * @param v vector to modify
+         * @return the value that was removed from vector
+         *
+         */
+        extern float (* vec4_push)(float *v, float value);
+
+        /** Push data to scalar vector at start
+         * Restriction: vector has to be 16-byte aligned
+         * result = v[3]
+         * v      = { value, v[0], v[1], v[2] }
+         *
+         * @param v vector to modify
+         * @return the value that was removed from vector
+         *
+         */
+        extern float (* vec4_unshift)(float *v, float value);
+
+        /** Initialize vector with zero values
+         *
+         * @param v vector to initialize
+         */
+        extern void (* vec4_zero)(float *v);
     }
 
 } /* namespace forzee */

@@ -47,6 +47,7 @@ namespace lsp
             case W_CENTER:      return new Center(ui);
             case W_TEXT:        return new Text(ui);
             case W_PORT:        return new PortAlias(ui);
+            case W_DOT:         return new Dot(ui);
             default:            return NULL;
         }
     }

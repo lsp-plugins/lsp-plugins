@@ -71,7 +71,7 @@ namespace lsp
         &developers::v_sadovnikov,
         "phase_detector",
         "jffz",
-        LSP_LADSPA_BASE + 0,
+        LSP_PHASE_DETECTOR_BASE,
         LSP_VERSION(1, 0, 0),
         phase_detector_classes,
         phase_detector_ports,

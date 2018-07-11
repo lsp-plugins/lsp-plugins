@@ -21,6 +21,7 @@ namespace lsp
         pPort       = NULL;
         nWidth      = 1;
         nCenter     = 0;
+        bSmooth     = false;
 
         sColor.init(this, C_GRAPH_MESH, A_COLOR, -1, -1, -1, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
     }
@@ -129,21 +130,21 @@ namespace lsp
         }
 
         // Now we have dots in x_vec[] and y_vec[]
-        cv->set_color(sColor.color());
+        bool aa = cv->set_anti_aliasing(bSmooth);
         cv->set_line_width(nWidth);
-
-        for (size_t i=0; i < mesh->nItems; ++i)
+        if (sColor.color().alpha() <= 0.0)
         {
-            if (i == 0)
-            {
-                cv->move_to(x_vec[i], y_vec[i]);
-                if (mesh->nItems < 2)
-                    cv->line_to(x_vec[i], y_vec[i]);
-            }
-            else
-                cv->line_to(x_vec[i], y_vec[i]);
+            cv->set_color(sColor.color());
+            cv->draw_lines(x_vec, y_vec, mesh->nItems);
+            cv->stroke();
         }
-        cv->stroke();
+        else
+        {
+            Color line(sColor.color());
+            line.alpha(0);
+            cv->draw_poly(x_vec, y_vec, mesh->nItems, line, sColor.color());
+        }
+        cv->set_anti_aliasing(aa);
 
         delete [] x_vec;
         delete [] y_vec;
@@ -161,6 +162,12 @@ namespace lsp
                 break;
             case A_CENTER:
                 PARSE_INT(value, nCenter = __);
+                break;
+            case A_FILL:
+                PARSE_FLOAT(value, sColor.color().alpha(__));
+                break;
+            case A_SMOOTH:
+                PARSE_BOOL(value, bSmooth = __);
                 break;
             default:
                 if (sColor.set(att, value))

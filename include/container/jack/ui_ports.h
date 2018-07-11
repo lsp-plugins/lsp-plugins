@@ -87,7 +87,7 @@ namespace lsp
 
             virtual void setValue(float value)
             {
-                fValue  = value;
+                fValue  = limit_value(pMetadata, value);
                 static_cast<JACKControlPort *>(pPort)->updateValue(fValue);
             }
 

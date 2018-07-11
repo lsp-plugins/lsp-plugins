@@ -37,11 +37,11 @@ export LD_PATH          = /usr/lib64:/lib64
 #export LD_PATH          = /usr/lib:/lib
 endif
 
-export VERSION          = 1.0.8
+export VERSION          = 1.0.10
 export BASEDIR          = ${CURDIR}
 export INCLUDE          = ${INC_FLAGS}
 export MAKE_OPTS        = -s
-export CFLAGS           = $(CC_ARCH) -fPIC -O2 -fno-exceptions -Wall -pthread -pipe -fno-rtti $(CC_FLAGS)
+export CFLAGS           = $(CC_ARCH) -fPIC -fno-exceptions -Wall -pthread -pipe -fno-rtti $(CC_FLAGS)
 export CC               = g++
 export LD               = ld
 export LDFLAGS          = $(LD_ARCH) 
@@ -68,6 +68,9 @@ export LIB_LV2_GTK3UI   = $(OBJDIR)/$(ARTIFACT_ID)-lv2-gtk3.so
 export LIB_VST          = $(OBJDIR)/$(ARTIFACT_ID)-vst-core.so
 export LIB_JACK         = $(OBJDIR)/$(ARTIFACT_ID)-jack-core.so
 
+# Binaries
+export BIN_PROFILE      = $(OBJDIR)/$(ARTIFACT_ID)-profile
+
 # Utils
 export UTL_GENTTL       = $(OBJDIR)/lv2_genttl.exe
 export UTL_VSTMAKE      = $(OBJDIR)/vst_genmake.exe
@@ -91,19 +94,35 @@ export JACK_LIBS        = $(shell pkg-config --libs jack)
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 FILES                   =
 
-.PHONY: all trace debug install uninstall release
+LADSPA_ID              := $(ARTIFACT_ID)-ladspa-$(VERSION)-$(CPU_ARCH)
+LV2_ID                 := $(ARTIFACT_ID)-lv2-$(VERSION)-$(CPU_ARCH)
+VST_ID                 := $(ARTIFACT_ID)-lxvst-$(VERSION)-$(CPU_ARCH)
+JACK_ID                := $(ARTIFACT_ID)-jack-$(VERSION)-$(CPU_ARCH)
+PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)-$(CPU_ARCH)
+
+.PHONY: all trace debug profile gdb compile install uninstall release
 .PHONY: install_ladspa install_lv2 install_vst install_jack
 .PHONY: release_ladspa release_lv2 release_vst release_jack
 
 default: all
 
-trace: export CFLAGS        += -DLSP_TRACE
-trace: all
+all: export CFLAGS          += -O2
+all: compile
 
-debug: export CFLAGS        += -DLSP_DEBUG
-debug: all
+trace: export CFLAGS        += -DLSP_TRACE -O2
+trace: compile
 
-all:
+debug: export CFLAGS        += -DLSP_DEBUG -O2
+debug: compile
+
+gdb: export CFLAGS          += -O0
+gdb: compile
+
+profile: export CFLAGS      += -O0 -pg -DLSP_PROFILING
+profile: export EXE_FLAGS   += -O0 -pg
+profile: compile
+
+compile:
 	@echo "Building binaries"
 	@mkdir -p $(OBJDIR)/src
 	@$(MAKE) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
@@ -151,10 +170,6 @@ install_jack: all
 	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(DESTDIR)$(BIN_PATH) INSTALL="$(INSTALL)"
 
 release: INSTALL        += -s
-release: LADSPA_ID      := $(ARTIFACT_ID)-ladspa-$(VERSION)-$(CPU_ARCH)
-release: LV2_ID         := $(ARTIFACT_ID)-lv2-$(VERSION)-$(CPU_ARCH)
-release: VST_ID         := $(ARTIFACT_ID)-lxvst-$(VERSION)-$(CPU_ARCH)
-release: JACK_ID        := $(ARTIFACT_ID)-jack-$(VERSION)-$(CPU_ARCH)
 release: $(RELEASES)
 	@echo "Release OK"
 
@@ -201,6 +216,14 @@ release_jack: release_prepare
 	@tar -C $(RELEASE) -czf $(RELEASE)/$(JACK_ID).tar.gz $(JACK_ID)
 	@rm -rf $(RELEASE)/$(JACK_ID)
 
+release_profile: release_prepare
+	@echo "Releasing PROFILE binaries"
+	@mkdir -p $(RELEASE)/$(PROFILE_ID)
+	@$(INSTALL) $(BIN_PROFILE) $(RELEASE)/$(PROFILE_ID)
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(PROFILE_ID)/
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(PROFILE_ID).tar.gz $(PROFILE_ID)
+	@rm -rf $(RELEASE)/$(PROFILE_ID)
+	
 uninstall:
 	@-rm -f $(DESTDIR)$(LADSPA_PATH)/$(ARTIFACT_ID)-ladspa.so
 	@-rm -rf $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2

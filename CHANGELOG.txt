@@ -2,6 +2,20 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.10 ===
+
+* Implemented Parametrischer Entzerrer (Parametric Equalizer) x16 Mono/Stereo/LeftRight/MidSide plugin series.
+* Implemented Parametrischer Entzerrer (Parametric Equalizer) x32 Mono/Stereo/LeftRight/MidSide plugin series.
+* Profiling release now available for standalone version of plugins. Requires JACK server.
+* Updated formulas for noise envelopes of Spektrumanalysator plugin series.
+* Fixed convolution function in DSP that returned zero on small convolutions.
+* Fixed bugs in some functions.
+* Implemented SSE routines for operations on small vectors of 4 elements.
+* Implemented SSE routines for bulk biquad filter processing.
+* Updated license text relative to project developers and project maintainers.
+* Implemented filter core.
+* Implemented equalizer core that supports IIR, FIR and FFT filtering.
+
 === 1.0.8 ===
 
 * Implemented Triggersensor Mono/Stereo plugin series.

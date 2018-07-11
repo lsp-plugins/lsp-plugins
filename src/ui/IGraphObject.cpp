@@ -41,4 +41,24 @@ namespace lsp
             pGraph->markRedraw();
     }
 
+    size_t IGraphObject::button_press(ssize_t x, ssize_t y, size_t state, size_t button)
+    {
+        return EVF_NONE;
+    }
+
+    size_t IGraphObject::button_release(ssize_t x, ssize_t y, size_t state, size_t button)
+    {
+        return EVF_NONE;
+    }
+
+    size_t IGraphObject::motion(ssize_t x, ssize_t y, size_t state)
+    {
+        return EVF_NONE;
+    }
+
+    size_t IGraphObject::scroll(ssize_t x, ssize_t y, size_t state, size_t direction)
+    {
+        return EVF_NONE;
+    }
+
 } /* namespace lsp */

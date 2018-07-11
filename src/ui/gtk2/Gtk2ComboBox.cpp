@@ -200,9 +200,9 @@ namespace lsp
         width += extents.width;
         height += extents.height;
 
-        if (w < width)
+        if ((w < width) || (nWidth > 0))
             w = width;
-        if (h < height)
+        if ((h < height) || (nHeight > 0))
             h = height;
 //        w = 64;
 //        h = 24;

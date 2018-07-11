@@ -11,6 +11,7 @@
 namespace lsp
 {
     class IGraphObject;
+    class IGraphCanvas;
     class Axis;
     class Center;
 
@@ -43,7 +44,8 @@ namespace lsp
             /** Queue graph for redraw
              *
              */
-            virtual void    markRedraw();
+            virtual void            markRedraw();
+            virtual IGraphCanvas   *canvas();
     };
 
 } /* namespace lsp */

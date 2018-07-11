@@ -562,6 +562,7 @@ namespace lsp
     void Gtk2Knob::scroll(ssize_t x, ssize_t y, size_t state, size_t direction)
     {
         float step = calc_step(state & GDK_SHIFT_MASK);
+        lsp_trace("gtk knob scroll");
 
         // Update value
         float delta = 0.0;

@@ -60,7 +60,8 @@ namespace lsp
             Gtk2Widget *g_widget = Gtk2Widget::cast(widget);
             if (g_widget != NULL)
             {
-                gtk_container_add (GTK_CONTAINER (pWidget), g_widget->widget());
+                GtkWidget *w = g_widget->widget();
+                gtk_container_add (GTK_CONTAINER (pWidget), w);
                 nAdded++;
             }
         }

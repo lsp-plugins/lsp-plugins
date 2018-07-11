@@ -198,6 +198,11 @@ namespace lsp
         return NULL;
     }
 
+    IGraphCanvas *IGraph::canvas()
+    {
+        return NULL;
+    }
+
     void IGraph::markRedraw()
     {
     }

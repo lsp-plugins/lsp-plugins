@@ -38,11 +38,14 @@ namespace lsp
             dsp::h_abs_sum                  = native::h_abs_sum;
             dsp::scalar_mul                 = native::scalar_mul;
             dsp::accumulate                 = native::accumulate;
+            dsp::add                        = native::add;
+            dsp::sub                        = native::sub;
             dsp::add_multiplied             = native::add_multiplied;
             dsp::sub_multiplied             = native::sub_multiplied;
             dsp::integrate                  = native::integrate;
             dsp::mix                        = native::mix;
             dsp::mix_add                    = native::mix_add;
+            dsp::convolve_single            = native::convolve_single;
             dsp::convolve                   = native::convolve;
             dsp::reverse                    = native::reverse;
             dsp::direct_fft                 = native::direct_fft;
@@ -54,6 +57,15 @@ namespace lsp
             dsp::complex_cvt2modarg         = native::complex_cvt2modarg;
             dsp::complex_cvt2reim           = native::complex_cvt2reim;
             dsp::complex_mod                = native::complex_mod;
+            dsp::lr_to_ms                   = native::lr_to_ms;
+            dsp::ms_to_lr                   = native::ms_to_lr;
+            dsp::biquad_process             = native::biquad_process;
+            dsp::biquad_process_multi       = native::biquad_process_multi;
+
+            dsp::vec4_scalar_mul            = native::vec4_scalar_mul;
+            dsp::vec4_push                  = native::vec4_push;
+            dsp::vec4_unshift               = native::vec4_unshift;
+            dsp::vec4_zero                  = native::vec4_zero;
         }
     } // namespace native
 } // namespace dsp

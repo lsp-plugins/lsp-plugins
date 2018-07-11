@@ -63,11 +63,21 @@ The JACK distribution requirements:
   * GTK+ >= 2.24
   * libcairo >= 1.14
   * jack >= 1.9.5
+  
+The profiling distribution requirements:
+  * glibc >= 2.19
+  * libsndfile >= 1.0.25
+  * GTK+ >= 2.24
+  * libcairo >= 1.14
+  * jack >= 1.9.5
 
 ==== INSTALLATION ====
 
 The binary distributions are ready to launch, just copy them to
 the appropriate directory.
+
+Releases containing odd number in minor version provide only
+critical fixes for the previous release.
 
 The usual directories for LADSPA are:
   * /usr/lib/ladspa
@@ -103,6 +113,9 @@ The usual directories for JACK are:
     * /usr/local/sbin
     * /sbin
 
+The profiling release does not require special installations and can be executed
+from any location. After execution, the gprof profiling file 'gmon.out' is created.
+
 ==== BUILDING ====
 
 For source code distributions you may build plugins from scratch.
@@ -129,8 +142,26 @@ have to type:
   make
   make install
 
+To build binaries for debuggin/profiling, use the following commands:
+  make profile
+
 You may also specify the installation root by specifying DESTDIR attribute:
   make install DESTDIR=<installation-root>
+  
+==== PROFILING / DEBUGGING ====
+
+To profile code, untar special profiling release into directory on the file
+system and simply launch it:
+  tar xzf lsp-plugins-profile-<version>-<arch>.tar.gz
+  cd lsp-plugins-profile-<version>-<arch>
+  ./lsp-plugins-profile <plugin-id>
+
+After the execution, the profiling file 'gmon.out' will be generated.
+To generate profiling information, issue the gprof command:
+  gprof ./lsp-plugins-profile gmon.out >lsp-plugins.profile
+
+For debugging purposes the GNU Debugger (gdb) may be used:
+  gdb --args ./lsp-plugins-profile <plugin-id>
 
 ==== CONTACTS ====
 

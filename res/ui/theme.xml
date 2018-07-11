@@ -73,6 +73,10 @@
 		<left_channel value="#ff0000" />
 		<right_channel value="#00ffff" />
 		<middle_channel value="#00c0ff" />
+		<side_channel value="#00cc00" />
+		
+		<!-- Eq base -->
+		<eq_base value="#ff4040" />
 		
 	</colors>
 </theme>

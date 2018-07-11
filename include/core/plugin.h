@@ -31,6 +31,7 @@ namespace lsp
             long                        fSampleRate;
             ssize_t                     nLatency;
             bool                        bActivated;
+            bool                        bUIActive;
 
         public:
             plugin_t(const plugin_metadata_t &mdata);
@@ -47,16 +48,55 @@ namespace lsp
 
             void set_sample_rate(long sr);
 
-            inline long  get_sample_rate() const        { return fSampleRate;       };
-            inline bool activated() const               { return bActivated;        };
+            inline long get_sample_rate() const         { return fSampleRate;       };
+            inline bool active() const                  { return bActivated;        };
+            inline bool ui_active() const               { return bUIActive;         };
+
+            inline void activate_ui()
+            {
+                if (!bUIActive)
+                {
+                    bUIActive       = true;
+                    ui_activated();
+                }
+            }
+
+            inline void deactivate_ui()
+            {
+                if (bUIActive)
+                {
+                    bUIActive       = false;
+                    ui_deactivated();
+                }
+            }
+
+            inline void activate()
+            {
+                if (!bActivated)
+                {
+                    bActivated      = true;
+                    activated();
+                }
+            }
+
+            inline void deactivate()
+            {
+                if (bActivated)
+                {
+                    bActivated      = false;
+                    deactivated();
+                }
+            }
 
         public:
             virtual void init(IWrapper *wrapper);
             virtual void update_sample_rate(long sr);
-            virtual void activate();
+            virtual void activated();
+            virtual void ui_activated();
             virtual void update_settings();
             virtual void process(size_t samples);
-            virtual void deactivate();
+            virtual void ui_deactivated();
+            virtual void deactivated();
             virtual void destroy();
     };
 

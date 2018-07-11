@@ -47,6 +47,8 @@ namespace lsp
         { code; } \
     }
 
+#define PARSE_FLAG(var, dst, flag) PARSE_BOOL(var, if (__) dst |= flag; else dst &= ~flag)
+
 #define PARSE_FLOAT(var, code) \
     { \
         char *saved_locale = setlocale(LC_NUMERIC, "C"); \
@@ -87,6 +89,7 @@ namespace lsp
 #include <ui/XMLParser.h>
 
 // Common definitions
+#include <ui/io.h>
 #include <ui/common.h>
 
 // Colors and themes
@@ -104,6 +107,7 @@ namespace lsp
 #include <ui/IGraphCanvas.h>
 #include <ui/IGraphObject.h>
 #include <ui/Center.h>
+#include <ui/Dot.h>
 #include <ui/Axis.h>
 #include <ui/Marker.h>
 #include <ui/Mesh.h>

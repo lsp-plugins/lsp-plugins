@@ -48,6 +48,7 @@ namespace lsp
         wc->button_release_event    = button_release;
         wc->motion_notify_event     = motion_notify;
         wc->scroll_event            = scroll;
+//        wc->enter_notify_event      = enter_notify;
 
         klass->destroy              = oc->destroy;
         oc->destroy                 = destroy;
@@ -119,6 +120,18 @@ namespace lsp
         return TRUE;
     }
 
+    gboolean Gtk2CustomWidget::enter_notify(GtkWidget *widget, GdkEventCrossing *event)
+    {
+//        g_return_val_if_fail(widget != NULL, FALSE);
+//        g_return_val_if_fail(GTK2_IS_CUSTOM(widget), FALSE);
+//
+//        Gtk2Custom *_this = GTK2_CUSTOM(widget);
+//        if (_this->pImpl != NULL)
+//            _this->pImpl->motion(ssize_t(event->x), ssize_t(event->y), size_t(event->state));
+
+        return TRUE;
+    }
+
     gboolean Gtk2CustomWidget::motion_notify(GtkWidget *widget, GdkEventMotion *event)
     {
         g_return_val_if_fail(widget != NULL, FALSE);
@@ -186,6 +199,7 @@ namespace lsp
                                     GDK_BUTTON_PRESS_MASK |
                                     GDK_BUTTON_RELEASE_MASK |
                                     GDK_BUTTON_MOTION_MASK |
+                                    GDK_POINTER_MOTION_MASK |
                                     GDK_SCROLL_MASK;
         guint mask              = GDK_WA_X | GDK_WA_Y | GDK_WA_VISUAL | GDK_WA_COLORMAP;
 

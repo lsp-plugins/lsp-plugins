@@ -17,10 +17,11 @@ namespace lsp
             size_t          nBasisID;
             size_t          nParallelID;
             float           fValue;
-            Color           sColor;
+//            Color           sColor;
             IUIPort        *pPort;
             size_t          nWidth;
             size_t          nCenter;
+            ColorHolder     sColor;
 
         public:
             Marker(plugin_ui *ui);
@@ -31,6 +32,8 @@ namespace lsp
             virtual void draw(IGraphCanvas *cv);
 
             virtual void set(widget_attribute_t att, const char *value);
+
+            virtual void notify(IUIPort *port);
     };
 
 } /* namespace lsp */

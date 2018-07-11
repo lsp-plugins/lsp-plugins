@@ -1,4 +1,4 @@
-Copyright 2015,
+Copyright 2016,
 The Linux Studio Plugins Project.
 All rights reserved.
 
@@ -15,7 +15,8 @@ modification, are permitted provided that the following conditions
 are met:
 
 - Redistributions of source code are permitted ONLY after the
-  source code is officially published by the author.
+  source code is officially published by the author, project developer
+  or project maintainer.
 
 - Redistributions of source code must retain the above copyright
   notice, this list of conditions and the following disclaimer.
@@ -26,23 +27,30 @@ are permitted provided that the following conditions are met:
 - Redistributions of source code are permitted ONLY after:
 
   * the original unmodified source code is officially published by
-    the author in terms of license attached to published source code;
+    the author, project developer or project maintainer in terms of
+    license attached to published source code;
 
   * all modifications of the source code have been directly contributed
-    to the author and accepted by the author.
+    to the author, project developer or project maintainer and accepted
+    by this person.
 
 - Redistributions in binary form must:
 
   * be built from the source code allowed for redistribution, without
-    any direct modifications and disassembly of the binary code.
+    any direct modifications or disassembly of the binary code.
 
   * reproduce the above copyright notice, this list of conditions and
     the following disclaimer in the documentation and/or other materials
     provided with the distribution.
 
-The author is free to determine the rules of publishing the source code
-for the binary distributions. The rules of the source code publishing
-must be provided in the public area.
+Authors, project developers and project maintainers are free to determine
+the rules of publishing the source code of the binary distributions. The
+rules of the source code publishing MUST be provided in the public area.
+
+The text of this license may be changed in the future releases of the
+software. The new text of the license does not affect previous releases,
+so the previous releases are distributed under conditions of the license
+text attached to them.
 
 THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS''
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,

@@ -3,7 +3,7 @@ FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 SUBDIRS                 =
 
 # Detemine what modules to build
-MODULES                 = $(LIB_LADSPA) $(LIB_LV2) $(LIB_LV2_GTK2UI) $(LIB_JACK)
+MODULES                 = $(LIB_LADSPA) $(LIB_LV2) $(LIB_LV2_GTK2UI) $(LIB_JACK) $(BIN_PROFILE)
 ifdef VST_SDK
 MODULES                += $(LIB_VST)
 endif
@@ -65,6 +65,17 @@ $(LIB_JACK): $(SUBDIRS)
 	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(LSP_UI) $(INCLUDE) $(HEADERS) $(PACKAGES) jack.cpp -o $(OBJDIR)/jack.o
 	@echo "  $(CC) $(notdir $(LIB_JACK))"
 	@$(CC) $(SO_FLAGS) -o $(LIB_JACK) $(OBJDIR)/jack.o $(PACKAGES) $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_PLUGINS) $(OBJ_UI) $(call rwildcard,$(OBJDIR)/$(GUI),*.o)
+
+$(BIN_PROFILE): HEADERS  := $(GTK2_HEADERS) $(JACK_HEADERS)
+$(BIN_PROFILE): PACKAGES := $(GTK2_LIBS) $(SNDFILE_LIBS) $(JACK_LIBS)
+$(BIN_PROFILE): GUI      := gtk2
+$(BIN_PROFILE): OBJ_UI   := $(OBJ_GTK2UI) $(OBJ_UI_CORE) $(OBJ_RES_CORE)
+$(BIN_PROFILE): LSP_UI   := -DLSP_UI_GTK2
+$(BIN_PROFILE): $(SUBDIRS) $(LIB_JACK)
+	@echo "  $(CC) profile.cpp"
+	@$(CC) -c $(CPPFLAGS) -DLSP_PROFILING_MAIN $(CFLAGS) $(LSP_UI) $(INCLUDE) $(HEADERS) $(PACKAGES) profile.cpp -o $(OBJDIR)/profile.o
+	@echo "  $(CC) $(notdir $(BIN_PROFILE))"
+	@$(CC) $(EXE_FLAGS) -o $(BIN_PROFILE) $(OBJDIR)/jack.o $(OBJDIR)/profile.o $(PACKAGES) $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_PLUGINS) $(OBJ_UI) $(call rwildcard,$(OBJDIR)/$(GUI),*.o)
 
 $(SUBDIRS):
 	@echo "Building $@"

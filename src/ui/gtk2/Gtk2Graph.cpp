@@ -24,10 +24,30 @@ namespace lsp
         fVPos           = 0.5;
         fHPos           = 0.5;
         nPadding        = 2;
+        nGrabbingID     = -1;
+        pCanvas         = new Gtk2Canvas(this);
+
+        // Update event mask
+        lsp_trace("gtk events=0x%x", int(gtk_widget_get_events(pWidget)));
+        gtk_widget_add_events(pWidget,
+                    GDK_POINTER_MOTION_MASK |
+                    GDK_BUTTON_MOTION_MASK |
+                    GDK_SCROLL_MASK |
+                    GDK_BUTTON_PRESS_MASK |
+                    GDK_BUTTON_RELEASE_MASK |
+                    GDK_ENTER_NOTIFY_MASK |
+                    GDK_LEAVE_NOTIFY_MASK
+                  );
+        lsp_trace("gtk events=0x%x", int(gtk_widget_get_events(pWidget)));
     }
 
     Gtk2Graph::~Gtk2Graph()
     {
+        if (pCanvas != NULL)
+        {
+            delete pCanvas;
+            pCanvas     = NULL;
+        }
     }
 
     void Gtk2Graph::resize(size_t &w, size_t &h)
@@ -126,14 +146,18 @@ namespace lsp
         size_t gh = nHeight - (bs << 1);
 
         // Calculate center
-        Gtk2Canvas cv(this, gw, gh, nPadding);
-        cv.set_color(sColor);
-        cv.clear();
+        Gtk2Canvas *cv = pCanvas;
+        cv->resize(gw, gh, nPadding);
+        if (cv->valid())
+        {
+            cv->set_color(sColor);
+            cv->clear();
 
-        for (size_t i=0; i<nObjects; ++i)
-            vObjects[i]->draw(&cv);
+            for (size_t i=0; i<nObjects; ++i)
+                vObjects[i]->draw(cv);
 
-        cv.draw(cr, bs, bs);
+            cv->draw(cr, bs, bs);
+        }
 
         // Draw glass effect
         cp = cairo_pattern_create_radial (nWidth, 0, bw << 1, nWidth, 0, pr);
@@ -165,10 +189,18 @@ namespace lsp
             case W_MESH:
             case W_CENTER:
             case W_TEXT:
+            case W_DOT:
                 return static_cast<IGraphObject *>(widget);
             default:
                 return NULL;
         }
+    }
+
+    IGraphCanvas *Gtk2Graph::canvas()
+    {
+        if (pCanvas != NULL)
+            return (pCanvas->valid()) ? pCanvas : NULL;
+        return NULL;
     }
 
     void Gtk2Graph::add(IWidget *widget)
@@ -185,4 +217,190 @@ namespace lsp
     {
         Gtk2CustomWidget::markRedraw();
     }
+
+    void Gtk2Graph::button_press(ssize_t x, ssize_t y, size_t state, size_t button)
+    {
+        lsp_trace("x=%d, y=%d, state=0x%x, button=%d", int(x), int(y), int(state), int(button));
+        if (!translate_coords(x, y))
+            return;
+
+        bool redraw = false;
+        size_t deliver = 0;
+        size_t grabbing_id = nGrabbingID;
+
+        // Deliver to grabbing widget first
+        if (nGrabbingID > 0)
+        {
+            size_t flags    = vObjects[nGrabbingID]->button_press(x, y, gtk2_decode_mcf(state), gtk2_decode_mcb(button));
+            if (flags & EVF_HANDLED)
+                redraw          = true;
+            if (flags & EVF_GRAB)
+                deliver         = nObjects; // Skip delivery to others
+            else
+                nGrabbingID     = -1;
+            if (flags & EVF_STOP)
+                deliver         = nObjects;
+        }
+
+        // Deliver to others (if possible)
+        for (size_t i=deliver; i<nObjects; ++i)
+        {
+            if (i == grabbing_id)
+                continue;
+            size_t flags    = vObjects[i]->button_press(x, y, gtk2_decode_mcf(state), gtk2_decode_mcb(button));
+            if (flags & EVF_HANDLED)
+                redraw      = true;
+            if (flags & EVF_GRAB)
+                nGrabbingID = i;
+            if (flags & EVF_STOP)
+                break;
+        }
+
+        if (redraw)
+            markRedraw();
+    }
+
+    void Gtk2Graph::button_release(ssize_t x, ssize_t y, size_t state, size_t button)
+    {
+        lsp_trace("x=%d, y=%d, state=0x%x, button=%d", int(x), int(y), int(state), int(button));
+        if (!translate_coords(x, y))
+            return;
+
+        bool redraw = false;
+        size_t deliver = 0;
+        size_t grabbing_id = nGrabbingID;
+
+        // Deliver to grabbing widget first
+        if (nGrabbingID > 0)
+        {
+            size_t flags    = vObjects[nGrabbingID]->button_release(x, y, gtk2_decode_mcf(state), gtk2_decode_mcb(button));
+            if (flags & EVF_HANDLED)
+                redraw          = true;
+            if (flags & EVF_GRAB)
+                deliver         = nObjects; // Skip delivery to others
+            else
+                nGrabbingID     = -1;
+            if (flags & EVF_STOP)
+                deliver         = nObjects;
+        }
+
+        // Deliver to others (if possible)
+        for (size_t i=deliver; i<nObjects; ++i)
+        {
+            if (i == grabbing_id)
+                continue;
+            size_t flags    = vObjects[i]->button_release(x, y, gtk2_decode_mcf(state), gtk2_decode_mcb(button));
+            if (flags & EVF_HANDLED)
+                redraw      = true;
+            if (flags & EVF_GRAB)
+                nGrabbingID = i;
+            if (flags & EVF_STOP)
+                break;
+        }
+
+        if (redraw)
+            markRedraw();
+    }
+
+    void Gtk2Graph::motion(ssize_t x, ssize_t y, size_t state)
+    {
+        lsp_trace("x=%d, y=%d, state=0x%x", int(x), int(y), int(state));
+        if (!translate_coords(x, y))
+            return;
+
+        bool redraw = false;
+        size_t deliver = 0;
+        size_t grabbing_id = nGrabbingID;
+
+        // Deliver to grabbing widget first
+        if (nGrabbingID > 0)
+        {
+            size_t flags    = vObjects[nGrabbingID]->motion(x, y, gtk2_decode_mcf(state));
+            if (flags & EVF_HANDLED)
+                redraw          = true;
+            if (flags & EVF_GRAB)
+                deliver         = nObjects; // Skip delivery to others
+            else
+                nGrabbingID     = -1;
+            if (flags & EVF_STOP)
+                deliver         = nObjects;
+        }
+
+        // Deliver to others (if possible)
+        for (size_t i=deliver; i<nObjects; ++i)
+        {
+            if (i == grabbing_id)
+                continue;
+            size_t flags    = vObjects[i]->motion(x, y, gtk2_decode_mcf(state));
+            if (flags & EVF_HANDLED)
+                redraw      = true;
+            if (flags & EVF_GRAB)
+                nGrabbingID = i;
+            if (flags & EVF_STOP)
+                break;
+        }
+
+        if (redraw)
+            markRedraw();
+    }
+
+    void Gtk2Graph::scroll(ssize_t x, ssize_t y, size_t state, size_t direction)
+    {
+        if (!translate_coords(x, y))
+            return;
+
+        bool redraw = false;
+        size_t deliver = 0;
+        size_t grabbing_id = nGrabbingID;
+
+        // Deliver to grabbing widget first
+        if (nGrabbingID > 0)
+        {
+            size_t flags    = vObjects[nGrabbingID]->scroll(x, y, gtk2_decode_mcf(state), gtk2_decode_mcd(direction));
+            if (flags & EVF_HANDLED)
+                redraw          = true;
+            if (flags & EVF_GRAB)
+                deliver         = nObjects; // Skip delivery to others
+            else
+                nGrabbingID     = -1;
+            if (flags & EVF_STOP)
+                deliver         = nObjects;
+        }
+
+        // Deliver to others (if possible)
+        for (size_t i=deliver; i<nObjects; ++i)
+        {
+            if (i == grabbing_id)
+                continue;
+            size_t flags    = vObjects[i]->scroll(x, y, gtk2_decode_mcf(state), gtk2_decode_mcd(direction));
+            if (flags & EVF_HANDLED)
+                redraw      = true;
+            if (flags & EVF_GRAB)
+                nGrabbingID = i;
+            if (flags & EVF_STOP)
+                break;
+        }
+
+        if (redraw)
+            markRedraw();
+    }
+
+    bool Gtk2Graph::translate_coords(ssize_t &x, ssize_t &y)
+    {
+        ssize_t bs = nBorder * M_SQRT2 * 0.5;
+        ssize_t gw = nWidth  - (bs << 1);
+        ssize_t gh = nHeight - (bs << 1);
+
+//        if ((x < bs) || (y < bs))
+//            return false;
+//        else if ((x > (bs+gw)) || (y > (bs+gh)))
+//            return false;
+
+        x       = x - bs - (gw>>1);
+        y       = bs + (gh>>1) - y;
+
+        return true;
+    }
+
+
 } /* namespace lsp */

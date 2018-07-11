@@ -69,22 +69,22 @@ namespace lsp
 
         void pink_noise(float *dst, size_t n)
         {
-            basic_noise(dst, n, -0.6f);
+            basic_noise(dst, n, logf(0.5) / logf(4));
         }
 
         void brown_noise(float *dst, size_t n)
         {
-            basic_noise(dst, n, -1.2f);
+            basic_noise(dst, n, -1);
         }
 
         void blue_noise(float *dst, size_t n)
         {
-            basic_noise(dst, n, 0.6f);
+            basic_noise(dst, n, logf(2) / logf(4));
         }
 
         void purple_noise(float *dst, size_t n)
         {
-            basic_noise(dst, n, 1.2f);
+            basic_noise(dst, n, 1);
         }
 
     }

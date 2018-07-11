@@ -15,6 +15,7 @@
 #include <core/x86/dsp/fft.h>
 #include <core/x86/dsp/complex.h>
 #include <core/x86/dsp/native.h>
+#include <core/x86/dsp/vec4.h>
 
 namespace lsp
 {
@@ -46,11 +47,14 @@ namespace lsp
             dsp::h_abs_sum                  = sse::h_abs_sum;
     //        dsp::scalar_mul                 = sse::scalar_mul;
     //        dsp::accumulate                 = sse::accumulate;
+//            dsp::add                        = sse::add;
+//            dsp::sub                        = sse::sub;
             dsp::add_multiplied             = sse::add_multiplied;
             dsp::sub_multiplied             = sse::sub_multiplied;
             dsp::integrate                  = sse::integrate;
             dsp::mix                        = sse::mix;
             dsp::mix_add                    = sse::mix_add;
+            dsp::convolve_single            = sse::convolve_single;
             dsp::convolve                   = sse::convolve;
             dsp::reverse                    = sse::reverse;
             dsp::direct_fft                 = sse::direct_fft;
@@ -62,6 +66,15 @@ namespace lsp
 //            dsp::complex_cvt2modarg         = sse::complex_cvt2modarg;
 //            dsp::complex_cvt2reim           = sse::complex_cvt2reim;
             dsp::complex_mod                = sse::complex_mod;
+            dsp::lr_to_ms                   = sse::lr_to_ms;
+            dsp::ms_to_lr                   = sse::ms_to_lr;
+            dsp::biquad_process             = sse::biquad_process;
+            dsp::biquad_process_multi       = sse::biquad_process_multi;
+
+            dsp::vec4_scalar_mul            = sse::vec4_scalar_mul;
+            dsp::vec4_push                  = sse::vec4_push;
+            dsp::vec4_unshift               = sse::vec4_unshift;
+            dsp::vec4_zero                  = sse::vec4_zero;
         }
     }
 

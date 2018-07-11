@@ -147,37 +147,43 @@ namespace lsp
         return value;
     }
 
-    void format_float(char *buf, size_t len, const port_t *meta, float value)
+    void format_float(char *buf, size_t len, const port_t *meta, float value, ssize_t precision)
     {
         float v = (value < 0.0f) ? - value : value;
         size_t tolerance    = 0;
 
-        // Determine tolerance
-        if (v < 0.1)
-            tolerance   = 4;
-        else if (v < 1.0)
-            tolerance   = 3;
-        else if (v < 10.0)
-            tolerance   = 2;
-        else if (v < 100.0)
-            tolerance   = 1;
-        else
-            tolerance   = 0;
-
-        // Now determine normal tolerance
-        if (meta->flags & F_STEP)
+        // Select the tolerance of output value
+        if (precision  < 0)
         {
-            size_t max_tol = 0;
-            float step      = (meta->step < 0.0f) ? - meta->step : meta->step;
-            while ((max_tol < 4) && (truncf(step) <= 0))
-            {
-                step   *= 10;
-                max_tol++;
-            }
+            // Determine regular tolerance
+            if (v < 0.1)
+                tolerance   = 4;
+            else if (v < 1.0)
+                tolerance   = 3;
+            else if (v < 10.0)
+                tolerance   = 2;
+            else if (v < 100.0)
+                tolerance   = 1;
+            else
+                tolerance   = 0;
 
-            if (tolerance > max_tol)
-                tolerance = max_tol;
+            // Now determine normal tolerance
+            if (meta->flags & F_STEP)
+            {
+                size_t max_tol = 0;
+                float step      = (meta->step < 0.0f) ? - meta->step : meta->step;
+                while ((max_tol < 4) && (truncf(step) <= 0))
+                {
+                    step   *= 10;
+                    max_tol++;
+                }
+
+                if (tolerance > max_tol)
+                    tolerance = max_tol;
+            }
         }
+        else
+            tolerance   = (precision > 4) ? 4 : precision;
 
         const char *fmt = "%.0f";
         switch (tolerance)
@@ -218,7 +224,7 @@ namespace lsp
         buf[0] = '\0';
     }
 
-    void format_decibels(char *buf, size_t len, const port_t *meta, float value)
+    void format_decibels(char *buf, size_t len, const port_t *meta, float value, ssize_t precision)
     {
         double mul       = (meta->unit == U_GAIN_AMP) ? 20.0 : 10.0;
         if (value < 0.0f)
@@ -230,7 +236,20 @@ namespace lsp
             strcpy(buf, "-inf");
             return;
         }
-        snprintf(buf, len, "%.2f", value);
+
+        const char *fmt;
+        if (precision < 0)
+            fmt = "%.2f";
+        else if (precision == 1)
+            fmt = "%.1f";
+        else if (precision == 2)
+            fmt = "%.2f";
+        else if (precision == 3)
+            fmt = "%.3f";
+        else
+            fmt = "%.4f";
+
+        snprintf(buf, len, fmt, value);
         buf[len - 1] = '\0';
     }
 
@@ -249,7 +268,7 @@ namespace lsp
             buf[0] = '\0';
     }
 
-    void format_value(char *buf, size_t len, const port_t *meta, float value)
+    void format_value(char *buf, size_t len, const port_t *meta, float value, ssize_t precision)
     {
         if (meta->unit == U_BOOL)
             format_bool(buf, len, meta, value);
@@ -258,11 +277,11 @@ namespace lsp
         else
         {
             if ((meta->unit == U_GAIN_AMP) || (meta->unit == U_GAIN_POW))
-                format_decibels(buf, len, meta, value);
+                format_decibels(buf, len, meta, value, precision);
             else if (meta->flags & F_INT)
                 format_int(buf, len, meta, value);
             else
-                format_float(buf, len, meta, value);
+                format_float(buf, len, meta, value, precision);
         }
     }
 

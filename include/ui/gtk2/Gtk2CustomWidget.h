@@ -50,6 +50,7 @@ namespace lsp
             static void size_allocate(GtkWidget *widget, GtkAllocation *allocation);
             static gboolean button_press(GtkWidget *widget, GdkEventButton *event);
             static gboolean motion_notify(GtkWidget *widget, GdkEventMotion *event);
+            static gboolean enter_notify(GtkWidget *widget, GdkEventCrossing *event);
             static gboolean button_release(GtkWidget *widget, GdkEventButton *event);
             static gboolean scroll(GtkWidget *widget, GdkEventScroll *event);
 

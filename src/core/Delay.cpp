@@ -28,7 +28,7 @@ namespace lsp
     bool Delay::init(size_t max_size)
     {
         size_t size = 1;
-        while (size < max_size)
+        while (size < (max_size + 1))
             size    <<= 1;
 
         lsp_trace("max_size = %d, size = %d", int(max_size), int(size));
@@ -143,6 +143,18 @@ namespace lsp
         }
     }
 
+    float Delay::process(float src)
+    {
+        if (nDelay == 0)
+            return src;
+
+        pBuffer[nTail]  = src;
+        float ret       = pBuffer[nHead];
+        nTail           = (nTail + 1) % nSize;
+        nHead           = (nHead + 1) % nSize;
+
+        return ret;
+    }
 
     void Delay::set_delay(size_t delay)
     {

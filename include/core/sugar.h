@@ -20,6 +20,13 @@
         ptr = NULL; \
     }
 
+template <class T>
+    T *ALIGN_PTR(T *src, size_t align = DEFAULT_ALIGN)
+    {
+        ptrdiff_t x     = ptrdiff_t(src);
+        ptrdiff_t mask  = align-1;
+        return (x & mask) ? reinterpret_cast<T *>((x + align)&(~mask)) : src;
+    }
 
 
 #endif /* CORE_SUGAR_H_ */

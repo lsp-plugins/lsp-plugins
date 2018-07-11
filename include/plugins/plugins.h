@@ -17,6 +17,7 @@
 #include <plugins/spectrum_analyzer.h>
 #include <plugins/sampler.h>
 #include <plugins/trigger.h>
+#include <plugins/para_equalizer.h>
 #include <plugins/impulse_responses.h>
 
 #endif /* PLUGINS_PLUGINS_H_ */
