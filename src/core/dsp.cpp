@@ -183,7 +183,7 @@ namespace lsp
             // FUNCTION 1
             if (max_cpuid >= 1)
             {
-                cpuid(1, 0, &info);
+                cpuid(&info, 1, 0);
 
                 if (info.edx & X86_CPUID1_INTEL_EDX_FPU)
                     options     |= DSP_OPTION_FPU;
@@ -212,7 +212,7 @@ namespace lsp
             // FUNCTION 7
             if (max_cpuid >= 7)
             {
-                cpuid(7, 0, &info);
+                cpuid(&info, 7, 0);
 
                 if (info.ebx & X86_CPUID7_INTEL_EBX_AVX2)
                     options     |= DSP_OPTION_AVX2;
@@ -232,7 +232,7 @@ namespace lsp
             // FUNCTION 1
             if (max_cpuid >= 1)
             {
-                cpuid(1, 0, &info);
+                cpuid(&info, 1, 0);
 
                 if (info.edx & X86_CPUID1_AMD_EDX_FPU)
                     options     |= DSP_OPTION_FPU;
@@ -262,7 +262,7 @@ namespace lsp
             // FUNCTION 7
             if (max_cpuid >= 7)
             {
-                cpuid(7, 0, &info);
+                cpuid(&info, 7, 0);
 
                 if (info.ebx & X86_CPUID7_AMD_EBX_AVX2)
                     options     |= DSP_OPTION_AVX2;
@@ -270,7 +270,7 @@ namespace lsp
 
             if (max_ext_cpuid >= 0x80000001)
             {
-                cpuid(0x80000001, 0, &info);
+                cpuid(&info, 0x80000001, 0);
 
                 if (info.ecx & X86_XCPUID1_AMD_ECX_FMA4)
                     options     |= DSP_OPTION_FMA4;
@@ -300,7 +300,7 @@ namespace lsp
 
                 // Check max CPUID
                 cpuid_info_t info;
-                if (!cpuid(0, 0, &info))
+                if (!cpuid(&info, 0, 0))
                     return options;
 
                 // Detect vendor
@@ -314,7 +314,7 @@ namespace lsp
                     return options;
 
                 // Get model and family
-                cpuid(1, 0, &info);
+                cpuid(&info, 1, 0);
                 size_t family_id    = (info.eax >> 8) & 0x0f;
                 size_t model_id     = (info.eax >> 4) & 0x0f;
 
@@ -324,7 +324,7 @@ namespace lsp
                     model_id    += (info.eax >> 12) & 0xf0;
 
                 // Get maximum available extended CPUID
-                cpuid(0x80000000, 0, &info);
+                cpuid(&info, 0x80000000, 0);
                 size_t max_ext_cpuid = info.eax;
 
                 if ((options & DSP_OPTION_CPU_MASK) == DSP_OPTION_CPU_INTEL)

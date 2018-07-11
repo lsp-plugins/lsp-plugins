@@ -523,6 +523,13 @@ MOD_LV2(slap_delay_stereo)
 MOD_VST(slap_delay_stereo)
 MOD_GTK2(slap_delay_stereo)
 
+// Oscillator
+MOD_PLUGIN(oscillator_mono)
+MOD_LADSPA(oscillator_mono)
+MOD_LV2(oscillator_mono)
+MOD_VST(oscillator_mono)
+MOD_GTK2(oscillator_mono)
+
 #ifndef LSP_NO_EXPERIMENTAL
 
 #endif

@@ -28,6 +28,7 @@
 #define LSP_IMPULSE_RESPONSES_BASE      LSP_LADSPA_BASE + 62
 #define LSP_IMPULSE_REVERB_BASE         LSP_LADSPA_BASE + 64
 #define LSP_SLAP_DELAY_BASE             LSP_LADSPA_BASE + 66
+#define LSP_OSCILLATOR_BASE             LSP_LADSPA_BASE + 1000
 
 
 // Plugin metadata definitions
@@ -47,5 +48,6 @@
 #include <metadata/impulse_reverb.h>
 #include <metadata/slap_delay.h>
 #include <metadata/experimental.h>
+#include <metadata/oscillator.h>
 
 #endif /* METADATA_PLUGINS_H_ */

@@ -8,9 +8,14 @@
 #ifndef _CONTAINER_JACK_MAIN_H_
 #define _CONTAINER_JACK_MAIN_H_
 
-#include <core/debug.h>
+// Do not use tracefile because this file does not use jack-core
+#ifdef LSP_TRACEFILE
+    #undef LSP_TRACEFILE
+#endif /* LSP_TRACEFILE */
+
 #include <core/types.h>
 #include <core/status.h>
+#include <core/debug.h>
 #include <container/jack/defs.h>
 #include <metadata/metadata.h>
 
@@ -21,7 +26,7 @@
 #include <dlfcn.h>
 #include <stdlib.h>
 
-#define LSP_VST_CORE       LSP_ARTIFACT_ID "-jack-core.so"
+#define LSP_VST_CORE       LSP_ARTIFACT_ID "-jack-core-" LSP_MAIN_VERSION "-" LSP_ARCHITECTURE ".so"
 
 namespace lsp
 {

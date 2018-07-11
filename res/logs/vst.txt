@@ -2006,3 +2006,29 @@ equalizer or hall/room).
 	Registration:	
 		
 	*Plugin ID:	o9zj
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Stefano
+	*Last Name:	Tronci
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Other
+	*PlugIn Name:	Oszillator Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin implements a simple yet flexible utility signal generator. It can be used to provide reference waves in replacement
+additive and multiplicative (modulation).
+		
+	Registration:	
+		
+	*Plugin ID:	sntq

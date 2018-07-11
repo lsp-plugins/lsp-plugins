@@ -108,7 +108,7 @@ namespace lsp
         }
     #endif /* __i386__ */
 
-    inline bool cpuid(uint32_t leaf, uint32_t subleaf, cpuid_info_t *info)
+    inline bool cpuid(cpuid_info_t *info, uint32_t leaf, uint32_t subleaf)
     {
         __asm__ __volatile__
         (

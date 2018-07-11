@@ -27,5 +27,6 @@
 #include <plugins/impulse_responses.h>
 #include <plugins/impulse_reverb.h>
 #include <plugins/slap_delay.h>
+#include <plugins/oscillator.h>
 
 #endif /* PLUGINS_PLUGINS_H_ */

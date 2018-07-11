@@ -19,6 +19,16 @@ namespace lsp
             "lsp.plugin@gmail.com",
             "http://lsp-plug.in/"
         };
+
+        const person_t s_tronci =
+        {
+            "s_tronci",
+            "CrocoDuck",
+            "Stefano Tronci",
+            "crocoduck.oducks@gmail.com",
+            "https://thecrocoduckspond.wordpress.com/"
+        };
+
     }
 }
 

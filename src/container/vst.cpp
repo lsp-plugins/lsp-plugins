@@ -42,7 +42,7 @@ namespace lsp
         // Instantiate widget factory (if possible)
         char path[PATH_MAX];
         snprintf(path, PATH_MAX, "%s/" LSP_ARTIFACT_ID ".vst", bundle_path);
-        lsp_trace("path=%s", path);
+        fprintf(stderr, "path=%s\n", path);
 
         #define UI_MODULE(plugin)   \
             if (uid == vst_cconst(plugin::metadata.vst_uid)) \
@@ -88,7 +88,7 @@ namespace lsp
 
     void vst_finalize(AEffect *e)
     {
-        lsp_trace("vst_finalize effect=%p", e);
+        fprintf(stderr, "vst_finalize effect=%p\n", e);
         if (e == NULL)
             return;
 
@@ -356,7 +356,7 @@ namespace lsp
         VstIntPtr v = 0;
 
         #ifdef LSP_TRACE
-        if ((opcode != effEditIdle) && (opcode != effProcessEvents))
+//        if ((opcode != effEditIdle) && (opcode != effProcessEvents))
             lsp_trace("vst_dispatcher effect=%p, opcode=%d (%s), index=%d, value=%llx, ptr=%p, opt = %.3f",
                     e, opcode, vst_decode_opcode(opcode), index, (long long)(value), ptr, opt);
         #endif /* LSP_TRACE */
@@ -726,6 +726,9 @@ namespace lsp
 
     AEffect *vst_instantiate(const char *bundle_path, VstInt32 uid, audioMasterCallback callback)
     {
+        // Initialize debug
+        lsp_debug_init("lxvst");
+
         // Initialize DSP
         dsp::init();
 

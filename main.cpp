@@ -53,7 +53,7 @@
 #include "test/oversampler_test.h"
 
 //#define TEST gtk_test
-//#define TEST jack_test
+#define TEST jack_test
 //#define TEST xwindow_test
 //#define TEST limiter_test
 //#define TEST fft_conv_test
@@ -103,7 +103,7 @@
 //#define TEST oversampling_test
 //#define TEST oversampler_test
 
-#define TEST sse_test
+//#define TEST sse_test
 
 int main(int argc, const char**argv)
 {

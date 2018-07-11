@@ -22,6 +22,7 @@ namespace lsp
             pWidgets[i]     = NULL;
 
         bBody           = false;
+        bCheckVersion   = true;
         nWidth          = -1;
         nHeight         = -1;
         bResizable      = true;
@@ -243,6 +244,7 @@ namespace lsp
 
         // Call for redraw
         _this->bRedrawing = true;
+        _this->show_notification();
         _this->pUI->redraw();
         _this->bRedrawing = false;
 
@@ -290,19 +292,22 @@ namespace lsp
             wrapper->ui_activated();
 
         // Show notification
-        show_notification();
+//        show_notification();
 
         lsp_trace("show finished");
     }
 
     void Gtk2Window::show_notification()
     {
-        lsp_trace("Checking version");
+        if (!bCheckVersion)
+            return;
         if (pVersion == NULL)
             return;
         const char *v = pVersion->getBuffer<char>();
         if (strcmp(LSP_MAIN_VERSION, v) == 0)
             return;
+
+        lsp_trace("Showing notification dialog");
 
         // Main version and version differ, need to show dialog
         GtkWidget *dialog = gtk_dialog_new_with_buttons(
@@ -388,11 +393,14 @@ namespace lsp
 
         gtk_window_set_keep_above(GTK_WINDOW(dialog), TRUE);
 
-        gtk_dialog_run(GTK_DIALOG(dialog));
-        gtk_widget_destroy(dialog);
+//        gtk_dialog_run(GTK_DIALOG(dialog));
+//        gtk_widget_destroy(dialog);
+        g_signal_connect_swapped (dialog, "response", G_CALLBACK (gtk_widget_destroy), dialog);
+        gtk_widget_show(GTK_WIDGET(dialog));
 
         // Store new version
         pVersion->write(LSP_MAIN_VERSION, strlen(LSP_MAIN_VERSION));
+        bCheckVersion = false;
     }
 
     void Gtk2Window::map_window(GtkWidget *widget, gpointer ptr)

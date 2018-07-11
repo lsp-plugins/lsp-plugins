@@ -2,6 +2,17 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.24 ===
+
+* Implemented Oszillator - Oscillator utility plugin.
+* Fixed CPUID bug that caused Segfault on 32-bit systems.
+* Added version to the name of the VST core library to prevent possible conflicts
+  with previous installations.
+* Added version to the name of the JACK core library to prevent possible conflicts
+  with previous installations.
+* Updated debugging engine that allows to write trace file into /tmp.
+* Fixed UI hangup when showing plugin's UI related to gtk_dialog_run() issue.
+
 === 1.0.23 ===
 
 * Fixed buffer overflow in Slap-back Delay plugin series happening with frame size larger than 512 samples.

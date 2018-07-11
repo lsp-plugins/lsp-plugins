@@ -15,6 +15,7 @@ namespace lsp
     namespace developers
     {
         extern const person_t       v_sadovnikov;
+        extern const person_t       s_tronci;
     }
 }
 

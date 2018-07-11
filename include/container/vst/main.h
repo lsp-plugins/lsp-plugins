@@ -8,17 +8,24 @@
 #ifndef _CONTAINER_VST_MAIN_H_
 #define _CONTAINER_VST_MAIN_H_
 
+// Do not use tracefile because this file does not use jack-core
+#ifdef LSP_TRACEFILE
+    #undef LSP_TRACEFILE
+#endif /* LSP_TRACEFILE */
+
 #include <core/debug.h>
 #include <container/vst/defs.h>
 
 // System libraries
+#include <core/debug.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <pwd.h>
 #include <dlfcn.h>
 #include <stdlib.h>
 
-#define LSP_VST_CORE        LSP_ARTIFACT_ID "-vst-core.so"
+
+#define LSP_VST_CORE        LSP_ARTIFACT_ID "-vst-core-" LSP_MAIN_VERSION "-" LSP_ARCHITECTURE ".so"
 #define LSP_VST_SUBPATH     LSP_ARTIFACT_ID "-lxvst-" LSP_MAIN_VERSION "-" LSP_ARCHITECTURE
 
 namespace lsp

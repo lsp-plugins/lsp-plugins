@@ -221,6 +221,8 @@ extern "C"
 {
     extern int JACK_MAIN_FUNCTION(const char *plugin_id, int argc, const char **argv)
     {
+        lsp_debug_init("jack");
+
         using namespace lsp;
 
         // Call corresponding plugin for execute

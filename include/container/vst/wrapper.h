@@ -730,9 +730,16 @@ namespace lsp
 
     void VSTWrapper::iterate_ui()
     {
+        // Iterate GTK cycle(s)
+        if (gtk_events_pending())
+            gtk_main_iteration_do(FALSE);
+
         // Check that UI is active
         if ((pUI == NULL) || (pWidget == NULL))
+        {
+            lsp_trace("pUI = %p, pWidget=%p", pUI, pWidget);
             return;
+        }
 
         // Update size of widget
         if (pUIWidget != NULL)
@@ -745,10 +752,6 @@ namespace lsp
             sRect.bottom        = alloc.y + alloc.height - 1;
             sRect.right         = alloc.x + alloc.width - 1;
         }
-
-        // Iterate GTK cycle(s)
-        if (gtk_events_pending())
-            gtk_main_iteration_do(FALSE);
     }
 
     void VSTWrapper::hide_ui()

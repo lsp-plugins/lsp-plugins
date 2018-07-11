@@ -33,6 +33,8 @@ namespace lsp
         const struct _LADSPA_Descriptor * Descriptor,
         unsigned long                     SampleRate)
     {
+        lsp_debug_init("ladspa");
+
         // Check sample rate
         if (SampleRate > MAX_SAMPLE_RATE)
         {

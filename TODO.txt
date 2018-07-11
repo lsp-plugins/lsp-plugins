@@ -14,9 +14,9 @@
 - Implemented sampler with stereo outputs.
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
 
-=== 1.0.24 ===
+=== 1.0.26 ===
 
-* Fixed CPUID bug that caused Segfault on 32-bit systems.
+- Fixed UI hangup when interacting with Bitwig Studio host.
 - Additional display mode for spectrum analyzer added.
 - Added graph amplitude scaling to equalizers.
 - Added graph amplitude scaling to spectrum analyzer.
@@ -26,7 +26,7 @@
 *******************************************************************************
 * Update version in Makefile
 * Update CHANGELOG.txt and TODO.txt
-* Run make clean && make -j8 install to build and install binaries
+* Run make clean && make uninstall && make -j8 install to build and install binaries
 * Make video
 * Add video cover to res/video-covers
 * Upload release video to the site
@@ -68,11 +68,14 @@
 - Doubler (Stereo enhancer)
 - Verstärker Profiler (Amplifier profiler)
 - Noise suppressor
+- Transient Designer
 - Nachhall (Reverberation)
 - Tonhöhenänderer (Pitch shift)
 - Leitungsvermittlung (Circuit Switcher)
 - Korellationsmeter (Corellometer)
 - Transient designer
+- Decapitator
+- HeadCrusher
 - Dynamic Equalizer
 - Ortswechsel (Dynamic panner)
 - Verzerrung (Distortion)
@@ -83,6 +86,25 @@
 *******************************************************************************
 * FEATURE REQUESTS: Detailed
 *******************************************************************************
+
+====
+  cooltechno
+    If it's possible, one feature request: to make a sound-preview in adding samples window in Klangerzeuger
+
+====
+  Anton Stankevich
+    I often use a Calf Eq 5 after reberb effect. It will be nice to have some parametric equalization for reverb wet signal.
+    This feature can help to give more presence for vocal with reverb for example.
+
+====
+  Braxton Salyer:
+    Hey guys, LOVE YOUR WORK. Makes doing pro-audio in linux so much more viable.
+    One thing we're definitely missing though is a good saturation plugin (a-la Decapitator,
+    HeadCrusher, and similar). Is something like this in the works, our would it be in consideration?
+
+====
+  rghvdberg:
+    The reduction meter on the compressors. I think they are a bit to fast to read out. It's also talked about in the lm forum.
 
 ====
   unfa:

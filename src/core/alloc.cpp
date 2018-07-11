@@ -5,8 +5,10 @@
  *      Author: sadko
  */
 
+#include <core/types.h>
 #include <core/alloc.h>
-#include <core/sugar.h>
+#include <core/debug.h>
+
 #include <string.h>
 
 #if defined(LSP_DEBUG) && defined(LSP_MEMORY_PROFILING)

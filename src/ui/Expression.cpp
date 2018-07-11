@@ -215,13 +215,19 @@ namespace lsp
                 {
                     if (((p[1] == 'd') || (p[1] == 'D')) &&
                         (!isalpha(p[2]))) // AND
+                    {
+                        t->pStr            += 2;
                         return t->enType    = TT_AND;
+                    }
                 }
                 else if ((p[0] == 'd') || (p[0] == 'D'))
                 {
                     if (((p[1] == 'd') || (p[1] == 'D')) &&
                         (!isalpha(p[2]))) // ADD
+                    {
+                        t->pStr            += 2;
                         return t->enType    = TT_ADD;
+                    }
                 }
                 return t->enType    = TT_UNKNOWN;
             }
@@ -234,27 +240,39 @@ namespace lsp
                     if (((p[1] == 'n') || (p[1] == 'N')) &&
                         ((p[2] == 'd') || (p[2] == 'D')) &&
                         (!isalpha(p[3])))
+                    {
+                        t->pStr            += 3;
                         return t->enType    = TT_BAND;
+                    }
                 }
                 else if ((p[0] == 'n') || (p[0] == 'N'))
                 {
                     if (((p[1] == 'o') || (p[1] == 'O')) &&
                         ((p[2] == 't') || (p[2] == 'T')) &&
                         (!isalpha(p[3])))
+                    {
+                        t->pStr            += 3;
                         return t->enType    = TT_BNOT;
+                    }
                 }
                 else if ((p[0] == 'o') || (p[0] == 'O'))
                 {
                     if (((p[1] == 'r') || (p[1] == 'R')) &&
-                        (!isalpha(p[3])))
+                        (!isalpha(p[2])))
+                    {
+                        t->pStr            += 2;
                         return t->enType    = TT_BOR;
+                    }
                 }
                 else if ((p[0] == 'x') || (p[0] == 'X'))
                 {
                     if (((p[1] == 'o') || (p[1] == 'O')) &&
                         ((p[2] == 'r') || (p[2] == 'R')) &&
                         (!isalpha(p[3])))
+                    {
+                        t->pStr            += 3;
                         return t->enType    = TT_BXOR;
+                    }
                 }
                 return t->enType    = TT_UNKNOWN;
             }
@@ -266,7 +284,10 @@ namespace lsp
                 {
                     if (((p[1] == 'v') || (p[1] == 'V')) &&
                         (!isalpha(p[2])))
+                    {
+                        t->pStr            += 2;
                         return t->enType    = TT_DIV;
+                    }
                 }
                 return t->enType    = TT_UNKNOWN;
             }
@@ -277,7 +298,10 @@ namespace lsp
                 if ((p[0] == 'q') || (p[0] == 'Q'))
                 {
                     if (!isalpha(p[1])) // EQ
+                    {
+                        t->pStr            += 1;
                         return t->enType    = TT_EQ;
+                    }
                 }
 
                 return t->enType    = TT_UNKNOWN;
@@ -292,6 +316,7 @@ namespace lsp
                     ((p[3] == 'E') || (p[3] == 'e')) &&
                     (!isalpha(p[4])))
                 {
+                    t->pStr            += 4;
                     t->fValue   = 0.0f;
                     return t->enType    = TT_VALUE;
                 }
@@ -304,12 +329,18 @@ namespace lsp
                 if ((p[0] == 't') || (p[0] == 'T'))
                 {
                     if (!isalpha(p[1])) // GT
+                    {
+                        t->pStr            += 1;
                         return t->enType    = TT_GREATER;
+                    }
                 }
                 else if ((p[0] == 'e') || (p[0] == 'E'))
                 {
                     if (!isalpha(p[1])) // GE
+                    {
+                        t->pStr            += 1;
                         return t->enType    = TT_GREATER_EQ;
+                    }
                 }
 
                 return t->enType    = TT_UNKNOWN;
@@ -323,34 +354,52 @@ namespace lsp
                     if (((p[1] == 'd') || (p[1] == 'D')) &&
                         ((p[2] == 'd') || (p[2] == 'D')) &&
                         (!isalpha(p[3]))) // IADD
+                    {
+                        t->pStr            += 3;
                         return t->enType    = TT_IADD;
+                    }
                 }
                 else if ((p[0] == 'd') || (p[0] == 'D'))
                 {
                     if (((p[1] == 'i') || (p[1] == 'I')) &&
                         ((p[2] == 'v') || (p[2] == 'V')) &&
-                        (!isalpha(p[3]))) // ISUB
+                        (!isalpha(p[3]))) // IDIV
+                    {
+                        t->pStr            += 3;
                         return t->enType    = TT_IDIV;
+                    }
                 }
                 else if ((p[0] == 'e') || (p[0] == 'E'))
                 {
                     if (((p[1] == 'q') || (p[1] == 'Q')) &&
                         (!isalpha(p[2]))) // IEQ
+                    {
+                        t->pStr            += 2;
                         return t->enType    = TT_IEQ;
+                    }
                     else if (!isalpha(p[1])) // IE
+                    {
+                        t->pStr            += 1;
                         return t->enType    = TT_IEQ;
+                    }
                 }
                 else if ((p[0] == 'g') || (p[0] == 'G'))
                 {
                     if ((p[1] == 't') || (p[1] == 'T'))
                     {
                         if (!isalpha(p[2])) // IGT
+                        {
+                            t->pStr            += 2;
                             return t->enType    = TT_IGREATER;
+                        }
                     }
                     else if ((p[1] == 'e') || (p[1] == 'E'))
                     {
                         if (!isalpha(p[2])) // IGE
+                        {
+                            t->pStr            += 2;
                             return t->enType    = TT_IGREATER_EQ;
+                        }
                     }
                 }
                 else if ((p[0] == 'l') || (p[0] == 'L'))
@@ -358,12 +407,18 @@ namespace lsp
                     if ((p[1] == 't') || (p[1] == 'T'))
                     {
                         if (!isalpha(p[2])) // ILT
+                        {
+                            t->pStr            += 2;
                             return t->enType    = TT_ILESS;
+                        }
                     }
                     else if ((p[1] == 'e') || (p[1] == 'E'))
                     {
                         if (!isalpha(p[2])) // ILE
+                        {
+                            t->pStr            += 2;
                             return t->enType    = TT_ILESS_EQ;
+                        }
                     }
                 }
                 else if ((p[0] == 'm') || (p[0] == 'M'))
@@ -372,13 +427,19 @@ namespace lsp
                     {
                         if (((p[2] == 'd') || (p[2] == 'D')) &&
                             (!isalpha(p[3]))) // IMOD
+                        {
+                            t->pStr            += 3;
                             return t->enType    = TT_MOD;
+                        }
                     }
                     else if ((p[1] == 'u') || (p[1] == 'U'))
                     {
                         if (((p[2] == 'l') || (p[2] == 'L')) &&
                             (!isalpha(p[3]))) // IMUL
+                        {
+                            t->pStr            += 3;
                             return t->enType    = TT_IMUL;
+                        }
                     }
                 }
                 else if ((p[0] == 'n') || (p[0] == 'N'))
@@ -386,25 +447,40 @@ namespace lsp
                     if ((p[1] == 'e') || (p[1] == 'E'))
                     {
                         if (!isalpha(p[2])) // INE
+                        {
+                            t->pStr            += 2;
                             return t->enType    = TT_INOT_EQ;
+                        }
                     }
                     else if ((p[1] == 'g') || (p[1] == 'G'))
                     {
                         if (((p[2] == 't') || (p[2] == 'T')) &&
                             (!isalpha(p[3]))) // INGT
+                        {
+                            t->pStr            += 3;
                             return t->enType    = TT_ILESS_EQ;
+                        }
                         else if (((p[2] == 'e') || (p[2] == 'E')) &&
                             (!isalpha(p[3]))) // INGE
+                        {
+                            t->pStr            += 3;
                             return t->enType    = TT_ILESS;
+                        }
                     }
                     else if ((p[1] == 'l') || (p[1] == 'L'))
                     {
                         if (((p[2] == 't') || (p[2] == 'T')) &&
                             (!isalpha(p[3]))) // INLT
+                        {
+                            t->pStr            += 3;
                             return t->enType    = TT_IGREATER_EQ;
+                        }
                         else if (((p[2] == 'e') || (p[1] == 'E')) &&
                             (!isalpha(p[3]))) // INLE
+                        {
+                            t->pStr            += 3;
                             return t->enType    = TT_IGREATER;
+                        }
                     }
                 }
                 else if ((p[0] == 's') || (p[0] == 'S'))
@@ -412,7 +488,10 @@ namespace lsp
                     if (((p[1] == 'u') || (p[1] == 'U')) &&
                         ((p[2] == 'b') || (p[2] == 'B')) &&
                         (!isalpha(p[3]))) // ISUB
+                    {
+                        t->pStr            += 3;
                         return t->enType    = TT_ISUB;
+                    }
                 }
 
                 return t->enType    = TT_UNKNOWN;
@@ -424,12 +503,18 @@ namespace lsp
                 if ((p[0] == 't') || (p[0] == 'T'))
                 {
                     if (!isalpha(p[1])) // LT
+                    {
+                        t->pStr            += 1;
                         return t->enType    = TT_LESS;
+                    }
                 }
                 else if ((p[0] == 'e') || (p[0] == 'E'))
                 {
                     if (!isalpha(p[1])) // LE
+                    {
+                        t->pStr            += 1;
                         return t->enType    = TT_LESS_EQ;
+                    }
                 }
 
                 return t->enType    = TT_UNKNOWN;
@@ -442,13 +527,19 @@ namespace lsp
                 {
                     if (((p[1] == 'd') || (p[1] == 'D')) &&
                         (!isalpha(p[2]))) // MOD
+                    {
+                        t->pStr            += 2;
                         return t->enType    = TT_MOD;
+                    }
                 }
                 else if ((p[0] == 'u') || (p[0] == 'U'))
                 {
                     if (((p[1] == 'l') || (p[1] == 'L')) &&
                         (!isalpha(p[2]))) // MUL
+                    {
+                        t->pStr            += 2;
                         return t->enType    = TT_MUL;
+                    }
                 }
                 return t->enType    = TT_UNKNOWN;
             }
@@ -460,30 +551,48 @@ namespace lsp
                 {
                     if (((p[1] == 't') || (p[1] == 'T')) &&
                         (!isalpha(p[2]))) // NOT
+                    {
+                        t->pStr            += 2;
                         return t->enType    = TT_NOT;
+                    }
                 }
                 else if ((p[0] == 'g') || (p[0] == 'G'))
                 {
                     if (((p[1] == 't') || (p[1] == 'T')) &&
                         (!isalpha(p[2]))) // NGT
+                    {
+                        t->pStr            += 2;
                         return t->enType    = TT_LESS_EQ;
+                    }
                     else if (((p[1] == 'e') || (p[1] == 'E')) &&
                         (!isalpha(p[2]))) // NGE
+                    {
+                        t->pStr            += 2;
                         return t->enType    = TT_LESS;
+                    }
                 }
                 else if ((p[0] == 'l') || (p[0] == 'L'))
                 {
                     if (((p[1] == 't') || (p[1] == 'T')) &&
                         (!isalpha(p[2]))) // NLT
+                    {
+                        t->pStr            += 2;
                         return t->enType    = TT_GREATER_EQ;
+                    }
                     else if (((p[1] == 'e') || (p[1] == 'E')) &&
                         (!isalpha(p[2]))) // NLE
+                    {
+                        t->pStr            += 2;
                         return t->enType    = TT_GREATER;
+                    }
                 }
                 else if ((p[0] == 'e') || (p[0] == 'E'))
                 {
                     if (!isalpha(p[1])) // NE
+                    {
+                        t->pStr            += 1;
                         return t->enType    = TT_NOT_EQ;
+                    }
                 }
                 return t->enType    = TT_UNKNOWN;
             }
@@ -493,7 +602,10 @@ namespace lsp
                 const char *p = t->pStr;
                 if (((p[0] == 'r') || (p[0] == 'R')) &&
                     (!isalpha(p[1])))
+                {
+                    t->pStr            += 1;
                     return t->enType    = TT_OR;
+                }
 
                 return t->enType    = TT_UNKNOWN;
             }
@@ -505,6 +617,7 @@ namespace lsp
                     ((p[1] == 'b') || (p[1] == 'B')) &&
                     (!isalpha(p[2])))
                 {
+                    t->pStr            += 2;
                     return t->enType    = TT_SUB;
                 }
                 return t->enType    = TT_UNKNOWN;
@@ -518,6 +631,7 @@ namespace lsp
                     ((p[2] == 'E') || (p[2] == 'e')) &&
                     (!isalpha(p[3])))
                 {
+                    t->pStr            += 3;
                     t->fValue   = 1.0f;
                     return t->enType    = TT_VALUE;
                 }
@@ -531,7 +645,10 @@ namespace lsp
                 {
                     if (((p[1] == 'r') || (p[1] == 'R')) &&
                         (!isalpha(p[2])))
+                    {
+                        t->pStr            += 2;
                         return t->enType    = TT_XOR;
+                    }
                 }
                 return t->enType    = TT_UNKNOWN;
             }

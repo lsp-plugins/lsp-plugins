@@ -29,6 +29,7 @@ namespace lsp
             ColorHolder     sBgColor;
             IWidget        *pWidgets[C_TOTAL];
             bool            bBody;
+            bool            bCheckVersion;
             ssize_t         nWidth;
             ssize_t         nHeight;
             bool            bResizable;

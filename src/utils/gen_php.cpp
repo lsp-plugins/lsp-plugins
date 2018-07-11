@@ -86,7 +86,7 @@ namespace lsp
     void gen_plugin_php_descriptor(FILE *out, const plugin_metadata_t *m, const char *plugin_id)
     {
         fprintf(out, "\t\tarray(\n");
-        fprintf(out, "\t\t\t'id' => '%s',\n", plugin_id);
+        fprintf(out, "\t\t\t'id' => '%s',\n", m->lv2_uid);
         fprintf(out, "\t\t\t'name' => '%s',\n", m->name);
         fprintf(out, "\t\t\t'description' => '%s',\n", m->description);
         fprintf(out, "\t\t\t'acronym' => '%s',\n", m->acronym);

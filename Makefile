@@ -14,7 +14,7 @@ INSTALL                 = install
 
 # Package version
 ifndef VERSION
-VERSION                 = 1.0.23
+VERSION                 = 1.0.24
 endif
 
 # Directories
@@ -80,8 +80,8 @@ export LIB_LADSPA       = $(OBJDIR)/$(ARTIFACT_ID)-ladspa.so
 export LIB_LV2          = $(OBJDIR)/$(ARTIFACT_ID)-lv2.so
 export LIB_LV2_GTK2UI   = $(OBJDIR)/$(ARTIFACT_ID)-lv2-gtk2.so
 export LIB_LV2_GTK3UI   = $(OBJDIR)/$(ARTIFACT_ID)-lv2-gtk3.so
-export LIB_VST          = $(OBJDIR)/$(ARTIFACT_ID)-vst-core.so
-export LIB_JACK         = $(OBJDIR)/$(ARTIFACT_ID)-jack-core.so
+export LIB_VST          = $(OBJDIR)/$(ARTIFACT_ID)-vst-core-$(VERSION)-$(CPU_ARCH).so
+export LIB_JACK         = $(OBJDIR)/$(ARTIFACT_ID)-jack-core-$(VERSION)-$(CPU_ARCH).so
 
 # Binaries
 export BIN_PROFILE      = $(OBJDIR)/$(ARTIFACT_ID)-profile
@@ -122,7 +122,7 @@ PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)-$(CPU_ARCH)
 SRC_ID                 := $(ARTIFACT_ID)-src-$(VERSION)
 DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 
-.PHONY: all trace debug profile gdb compile install uninstall release
+.PHONY: all trace debug tracefile debugfile profile gdb compile install uninstall release
 .PHONY: install_ladspa install_lv2 install_vst install_jack
 .PHONY: release_ladspa release_lv2 release_vst release_jack
 
@@ -131,11 +131,17 @@ default: all
 all: export CFLAGS          += -O2
 all: compile
 
-trace: export CFLAGS        += -DLSP_TRACE -O2
-trace: compile
+trace: export CFLAGS        += -DLSP_TRACE
+trace: all
 
-debug: export CFLAGS        += -DLSP_DEBUG -O2
-debug: compile
+tracefile: export CFLAGS    += -DLSP_TRACEFILE
+tracefile: trace
+
+debug: export CFLAGS        += -DLSP_DEBUG
+debug: all
+
+debugfile: export CFLAGS    += -DLSP_TRACEFILE
+debugfile: debug
 
 gdb: export CFLAGS          += -O0
 gdb: compile
@@ -273,6 +279,6 @@ uninstall:
 	@-rm -rf $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-lxvst-*-$(CPU_ARCH)
 	@-rm -rf $(DESTDIR)$(VST_PATH)/$(VST_ID)
 	@-rm -f $(DESTDIR)$(BIN_PATH)/$(ARTIFACT_ID)-*
-	@-rm -f $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)-jack-core.so
+	@-rm -f $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)-jack-core-*.so
 	@-rm -rf $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
 	@echo "Uninstall OK"

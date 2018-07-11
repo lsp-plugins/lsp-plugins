@@ -9,7 +9,6 @@
 #define CORE_ALLOC_H_
 
 #include <malloc.h>
-#include <core/debug.h>
 
 //#define LSP_MEMORY_PROFILING
 
