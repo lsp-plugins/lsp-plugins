@@ -243,6 +243,7 @@ namespace lsp
     bool            is_decibel_unit(size_t unit);
 
     size_t          list_size(const char **list);
+    float           limit_value(const port_t *port, float value);
 
     void            format_float(char *buf, size_t len, const port_t *meta, float value);
     void            format_int(char *buf, size_t len, const port_t *meta, float value);

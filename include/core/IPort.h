@@ -40,15 +40,18 @@ namespace lsp
              */
             virtual void *getBuffer();
 
-            virtual void pre_process();
+            /** Pre-process port state before processor execution
+             *
+             * @return true if port value has been externally modified
+             */
+            virtual bool pre_process();
 
+            /** Post-process port state after processor execution
+             *
+             */
             virtual void post_process();
 
-            virtual bool changed();
-
             virtual const char *getPath();
-
-            virtual void update();
 
             const port_t *metadata() const;
     };

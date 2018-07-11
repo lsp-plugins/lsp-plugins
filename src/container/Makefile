@@ -18,11 +18,17 @@ $(LIB_LV2): $(OBJ_PLUGINS) $(SUBDIRS)
 	@echo "  $(CC) $(notdir $(LIB_LV2))"
 	@$(CC) $(SO_FLAGS) -o $(LIB_LV2) $(OBJDIR)/lv2.o $(OBJ_CORE) $(OBJ_PLUGINS)
 
+$(LIB_VST): HEADERS  := $(GTK2_HEADERS)
+$(LIB_VST): PACKAGES := $(GTK2_LIBS) $(EXPAT_LIBS)
+$(LIB_VST): GUI      := gtk2
+$(LIB_VST): OBJ_UI   := $(OBJ_GTK2UI) $(OBJ_UI_CORE)
+$(LIB_VST): LSP_UI   := -DLSP_UI_GTK2
+
 $(LIB_VST): $(OBJ_PLUGINS) $(SUBDIRS)
 	@echo "  $(CC) vst.cpp"
-	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(HEADERS) $(PACKAGES) vst.cpp -o $(OBJDIR)/vst.o
+	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(LSP_UI) $(INCLUDE) $(HEADERS) $(PACKAGES) vst.cpp -o $(OBJDIR)/vst.o
 	@echo "  $(CC) $(notdir $(LIB_VST))"
-	@$(CC) $(SO_FLAGS) -o $(LIB_VST) $(OBJDIR)/vst.o $(OBJ_CORE) $(OBJ_PLUGINS)
+	@$(CC) $(SO_FLAGS) -o $(LIB_VST) $(OBJDIR)/vst.o $(PACKAGES) $(OBJ_CORE) $(OBJ_PLUGINS) $(OBJ_UI) $(call rwildcard,$(OBJDIR)/$(GUI),*.o)
 
 $(LIB_LV2_GTK2UI): HEADERS  := $(GTK2_HEADERS)
 $(LIB_LV2_GTK2UI): PACKAGES := $(GTK2_LIBS) $(EXPAT_LIBS)

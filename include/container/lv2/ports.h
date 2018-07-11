@@ -20,13 +20,11 @@ namespace lsp
         public:
             LV2Port(const port_t *meta, LV2Extensions *ext): IPort(meta)
             {
-                ext             ->  bind();
                 pExt            =   ext;
                 urid            =   (meta != NULL) ? pExt->map_port(meta->id) : -1;
             }
             virtual ~LV2Port()
             {
-                pExt            ->  unbind();
                 pExt            =   NULL;
                 urid            =   -1;
             }
@@ -86,36 +84,23 @@ namespace lsp
                 return fValue;
             }
 
-            virtual bool changed()
-            {
-                return fValue != fPrev;
-            };
-
             virtual void bind(void *data)
             {
                 pData = reinterpret_cast<float *>(data);
             };
 
-            virtual void pre_process()
+            virtual bool pre_process()
             {
                 if (pData == NULL)
-                    return;
-                fValue      = *pData;
-                if (pMetadata->flags & F_UPPER)
-                {
-                    if (fValue > pMetadata->max)
-                        fValue = pMetadata->max;
-                }
-                if (pMetadata->flags & F_LOWER)
-                {
-                    if (fValue < pMetadata->min)
-                        fValue = pMetadata->min;
-                }
+                    return false;
+
+                fValue      = limit_value(pMetadata, *pData);
+                return fValue != fPrev;
             }
 
-            virtual void update()
+            virtual void post_process()
             {
-                fPrev = fValue;
+                fPrev       = fValue;
             };
     };
 
@@ -141,26 +126,19 @@ namespace lsp
 
             virtual void setValue(float value)
             {
-                if (pMetadata->flags & F_UPPER)
-                {
-                    if (value > pMetadata->max)
-                        value = pMetadata->max;
-                }
-                if (pMetadata->flags & F_LOWER)
-                {
-                    if (value < pMetadata->min)
-                        value = pMetadata->min;
-                }
-                fValue      = value;
-
-                if (pData != NULL)
-                    *pData      = value;
+                fValue      = limit_value(pMetadata, value);
             }
 
             virtual void bind(void *data)
             {
                 pData = reinterpret_cast<float *>(data);
             };
+
+            virtual void post_process()
+            {
+                if (pData != NULL)
+                    *pData      = fValue;
+            }
     };
 
     class LV2LatencyPort: public LV2Port
@@ -190,22 +168,10 @@ namespace lsp
 
             virtual void post_process()
             {
-                float value = (pPlugin != NULL) ? pPlugin->get_latency() : 0.0f;
-                if (pMetadata->flags & F_UPPER)
-                {
-                    if (value > pMetadata->max)
-                        value = pMetadata->max;
-                }
-                if (pMetadata->flags & F_LOWER)
-                {
-                    if (value < pMetadata->min)
-                        value = pMetadata->min;
-                }
+                if (pData == NULL)
+                    return;
 
-//                lsp_trace("pPlugin = %p, value = %.3f, pData = %p", pPlugin, value, pData);
-
-                if (pData != NULL)
-                    *pData      = value;
+                *pData = limit_value(pMetadata, (pPlugin != NULL) ? pPlugin->get_latency() : 0.0f);
             }
     };
 

@@ -16,6 +16,8 @@ namespace lsp
         protected:
             AEffect                *pEffect;
             audioMasterCallback     hCallback;
+            ssize_t                 nID;
+            volatile vst_serial_t   nSID;
 
         protected:
             float from_vst(float value)
@@ -66,32 +68,31 @@ namespace lsp
                 return value;
             }
 
-            float limit(float value)
-            {
-                if (pMetadata->flags & F_UPPER)
-                {
-                    if (value > pMetadata->max)
-                        return pMetadata->max;
-                }
-                if (pMetadata->flags & F_LOWER)
-                {
-                    if (value < pMetadata->min)
-                        return pMetadata->min;
-                }
-                return value;
-            }
-
         public:
             VSTPort(const port_t *meta, AEffect *effect, audioMasterCallback callback): IPort(meta)
             {
                 pEffect         = effect;
                 hCallback       = callback;
+                nID             = -1;
+                nSID            = 0;
             }
             virtual ~VSTPort()
             {
                 pEffect         = NULL;
                 hCallback       = NULL;
+                nID             = -1;
+                nSID            = 0;
             }
+
+        public:
+            inline AEffect                 *getEffect()         { return pEffect;               };
+            inline audioMasterCallback      getCallback()       { return hCallback;             };
+            inline ssize_t                  getID() const       { return nID;                   };
+            inline void                     setID(ssize_t id)   { nID = id;                     };
+            inline vst_serial_t             getSID() const      { return nSID;                  };
+            virtual vst_serial_t            nextSID()           { return nSID;                  };
+
+            virtual void writeValue(float value)    {};
     };
 
     class VSTAudioPort: public VSTPort
@@ -142,7 +143,6 @@ namespace lsp
             }
 
         public:
-            // Native Interface
             virtual float getValue()
             {
                 return fValue;
@@ -150,24 +150,37 @@ namespace lsp
 
             virtual void setValue(float value)
             {
-                fValue      = limit(value);
+                fValue      = limit_value(pMetadata, value);
                 fVstValue   = to_vst(fValue);
             }
 
-            virtual bool changed()
+            virtual bool pre_process()
             {
                 return fVstValue != fVstPrev;
             }
 
-            virtual void update()
+            virtual void post_process()
             {
                 fVstPrev        = fVstValue;
             }
 
+            virtual void writeValue(float value)
+            {
+                setValue(value);
+                if ((nID >= 0) && (pEffect != NULL) && (hCallback != NULL))
+                {
+                    lsp_trace("hCallback=%p, pEffect=%p, operation=%d, id=%d, value=%.5f",
+                            hCallback, pEffect, int(audioMasterAutomate), int(nID), value);
+                    hCallback(pEffect, audioMasterAutomate, nID, 0, NULL, fVstValue);
+                }
+            }
+
             void setVstValue(float value)
             {
-                fValue          = limit(from_vst(value));
+                fValue          = limit_value(pMetadata, from_vst(value));
                 fVstValue       = value;
+                nSID            ++;
+                lsp_trace("new SID: %ld", long(nSID));
             }
 
             inline float getVstValue()
@@ -214,6 +227,40 @@ namespace lsp
                 fValue      = value;
             }
     };
+
+    class VSTMeshPort: public VSTPort
+    {
+        private:
+            mesh_t     *pMesh;
+
+        public:
+            VSTMeshPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
+            {
+                pMesh   = vst_create_mesh(meta);
+            }
+
+            virtual ~VSTMeshPort()
+            {
+                if (pMesh != NULL)
+                {
+                    delete [] reinterpret_cast<uint8_t *>(pMesh);
+                    pMesh = NULL;
+                }
+            }
+
+        public:
+            virtual void *getBuffer()
+            {
+                return pMesh;
+            }
+
+            virtual vst_serial_t nextSID()
+            {
+                return ++nSID;
+            };
+    };
+
+
 }
 
 

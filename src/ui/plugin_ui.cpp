@@ -12,10 +12,10 @@
 
 namespace lsp
 {
-    plugin_ui::plugin_ui(const char *name, const plugin_metadata_t &mdata, IWidgetFactory *factory)
+    plugin_ui::plugin_ui(const char *name, const plugin_metadata_t *mdata, IWidgetFactory *factory)
     {
         sName           = name;
-        pMetadata       = &mdata;
+        pMetadata       = mdata;
         pFactory        = factory;
     }
 

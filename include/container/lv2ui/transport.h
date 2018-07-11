@@ -36,8 +36,15 @@ namespace lsp
             LV2UIAtomTransport *pTr;
 
         public:
-            LV2UIAtomTransportInput(const port_t *meta, LV2UIAtomTransport *tr);
-            virtual ~LV2UIAtomTransportInput();
+            LV2UIAtomTransportInput(const port_t *meta, LV2Extensions *ext, LV2UIAtomTransport *tr): LV2UIPort(meta, ext)
+            {
+                pTr = tr;
+            }
+
+            virtual ~LV2UIAtomTransportInput()
+            {
+                pTr     = NULL;
+            }
 
             virtual void notify(const void *buffer, size_t protocol, size_t size);
     };
@@ -48,8 +55,15 @@ namespace lsp
             LV2UIAtomTransport *pTr;
 
         public:
-            LV2UIAtomTransportOutput(const port_t *meta, LV2UIAtomTransport *tr);
-            virtual ~LV2UIAtomTransportOutput();
+            LV2UIAtomTransportOutput(const port_t *meta, LV2Extensions *ext, LV2UIAtomTransport *tr): LV2UIPort(meta, ext)
+            {
+                pTr = tr;
+            }
+
+            virtual ~LV2UIAtomTransportOutput()
+            {
+                pTr     = NULL;
+            }
 
             virtual void send(LV2UIAtomVirtualPort *port);
     };
@@ -61,7 +75,6 @@ namespace lsp
             plugin_ui                  *pUI;
             LV2UIAtomTransportInput    *pIn;
             LV2UIAtomTransportOutput   *pOut;
-            ssize_t                     nRefs;
             size_t                      nBufSize;
             uint8_t                    *pBuffer;
 
@@ -70,27 +83,23 @@ namespace lsp
         public:
             LV2UIAtomTransport(const port_t *meta, LV2Extensions *ext, plugin_ui *ui)
             {
-                ext             ->bind();
                 pExt            = ext;
                 pUI             = ui;
-                nRefs           = 3;
                 nBufSize        = lv2_all_port_sizes(pUI->metadata(), F_OUT);
                 pBuffer         = new uint8_t[nBufSize];
 
-                pIn             = new LV2UIAtomTransportInput(&meta[0], this);
-                pOut            = new LV2UIAtomTransportOutput(&meta[1], this);
+                pIn             = new LV2UIAtomTransportInput(&meta[1], pExt, this);
+                pOut            = new LV2UIAtomTransportOutput(&meta[0], pExt, this);
             }
 
             ~LV2UIAtomTransport()
             {
                 lsp_trace("destroy");
-                nRefs       = 0;
+
+                vPorts.clear();
 
                 if (pExt != NULL)
-                {
-                    pExt        ->unbind();
                     pExt        = NULL;
-                }
 
                 if (pBuffer != NULL)
                 {
@@ -98,22 +107,23 @@ namespace lsp
                     pBuffer = NULL;
                 }
 
-                vPorts.clear();
+                if (pOut != NULL)
+                {
+                    delete pOut;
+                    pOut    = NULL;
+                }
+
+                if (pIn != NULL)
+                {
+                    delete pIn;
+                    pIn     = NULL;
+                }
             };
 
         public:
-            bool bind(LV2UIAtomVirtualPort *port)
+            inline void add_port(LV2UIAtomVirtualPort *port)
             {
-                if (!vPorts.add(port))
-                    return false;
-                nRefs++;
-                return true;
-            }
-
-            void unbind()
-            {
-                if ((--nRefs) <= 0)
-                    delete this;
+                vPorts.add(port);
             }
 
             inline LV2Extensions *extensions() { return pExt; }
@@ -129,22 +139,6 @@ namespace lsp
 
             void    query_state();
     };
-
-    LV2UIAtomTransportInput::LV2UIAtomTransportInput(const port_t *meta, LV2UIAtomTransport *tr):
-        LV2UIPort(meta, -1, tr->extensions())
-    {
-        pTr = tr;
-    }
-
-    LV2UIAtomTransportInput::~LV2UIAtomTransportInput()
-    {
-        lsp_trace("destroy");
-        if (pTr != NULL)
-        {
-            pTr->unbind();
-            pTr     = NULL;
-        }
-    }
 
     void LV2UIAtomTransportInput::notify(const void *buffer, size_t protocol, size_t size)
     {
@@ -164,37 +158,17 @@ namespace lsp
         pTr->notify(reinterpret_cast<const LV2_Atom_Object *>(atom));
     }
 
-    LV2UIAtomTransportOutput::LV2UIAtomTransportOutput(const port_t *meta, LV2UIAtomTransport *tr):
-        LV2UIPort(meta, -1, tr->extensions())
-    {
-        pTr                 = tr;
-    }
-
-    LV2UIAtomTransportOutput::~LV2UIAtomTransportOutput()
-    {
-        lsp_trace("destroy");
-        if (pTr != NULL)
-        {
-            pTr->unbind();
-            pTr     = NULL;
-        }
-    }
-
-    LV2UIAtomVirtualPort::LV2UIAtomVirtualPort(const port_t *meta, LV2UIAtomTransport *tr, LV2_URID type):
-            LV2UIPort(meta, -1, tr->extensions())
+    LV2UIAtomVirtualPort::LV2UIAtomVirtualPort(const port_t *meta, LV2UIAtomTransport *tr, LV2_URID type): LV2UIPort(meta, tr->extensions())
     {
         pTr         = tr;
         uridType    = type;
-        tr->bind(this);
+
+        pTr->add_port(this);
     }
 
     LV2UIAtomVirtualPort::~LV2UIAtomVirtualPort()
     {
-        if (pTr != NULL)
-        {
-            pTr->unbind();
-            pTr     = NULL;
-        }
+        pTr     = NULL;
     }
 
     void LV2UIAtomTransportOutput::send(LV2UIAtomVirtualPort *port)

@@ -14,6 +14,7 @@
 #include <container/lv2ui/ports.h>
 #include <container/lv2ui/transport.h>
 #include <container/lv2ui/vports.h>
+#include <container/lv2ui/wrapper.h>
 
 #if defined(LSP_UI_GTK2)
     #include <ui/gtk2/ui.h>
@@ -67,99 +68,24 @@ namespace lsp
 
         // Create widget factory and UI
         lsp_trace("Creating plugin UI");
-        IWidgetFactory *factory     = new LSP_WIDGET_FACTORY(bundle_path);
-        plugin_ui *p                = new plugin_ui(plugin_name, *m, factory);
+        IWidgetFactory *factory         = new LSP_WIDGET_FACTORY(bundle_path);
+        plugin_ui *p                    = new plugin_ui(plugin_name, m, factory);
 
         // Scan for extensions
         LV2Extensions *ext              = new LV2Extensions(features, uri, controller, write_function);
-        LV2UIAtomTransport *transport   = NULL;
-        if (ext->atom_supported())
-        {
-            lsp_trace("Creating atom transport");
-            transport           = new LV2UIAtomTransport(lv2_atom_ports, ext, p);
-        }
+        LV2UIWrapper *w                 = new LV2UIWrapper(p, ext);
+        w->init();
 
-        // Initialize plugin
-        lsp_trace("Initializing plugin");
-        p->init();
+        *widget                         = reinterpret_cast<LV2UI_Widget>(factory->root_widget());
 
-        // Perform all port bindings
-        size_t port_id  = 0;
-
-        for (const port_t *port = m->ports; (port->id != NULL) && (port->name != NULL); ++port)
-        {
-            bool out    = (port->flags & F_OUT);
-
-            lsp_trace("bind port id=%s, idx=%d, role = %d, out=%s", port->id, int(port_id), int(port->role), (out) ? "true" : "false");
-
-            switch (port->role)
-            {
-                case R_AUDIO:
-                    p->add_port(new LV2UIPort(port, port_id, ext), true);
-                    break;
-                case R_METER:
-                    p->add_port(new LV2UIPeakPort(port, port_id, ext), true);
-                    break;
-                case R_CONTROL:
-                    p->add_port(new LV2UIFloatPort(port, port_id, ext), true);
-                    break;
-                case R_UI_SYNC:
-                    continue;
-                case R_MESH:
-                    if (transport != NULL)
-                        p->add_port(new LV2UIMeshPort(port, transport), false);
-                    else
-                        p->add_port(new LV2UIFloatPort(port, port_id, ext), false);
-                    continue;
-                default:
-                    p->add_port(new LV2UIFloatPort(port, port_id, ext), true);
-                    break;
-            }
-            out = !out;
-
-            port_id++;
-        }
-
-        // Build plugin
-        p->build();
-
-        // Add Atom communication ports
-        if (transport != NULL)
-        {
-            lsp_trace("binding LV2UITransport");
-            transport->out()    -> set_id(port_id++);
-            transport->in()     -> set_id(port_id++);
-
-            p->add_port(transport->out(), true);
-            p->add_port(transport->in(), true);
-
-            transport   -> query_state();
-            transport   -> unbind();
-        }
-
-        // Add stub for latency reporting
-        {
-            const port_t *port = &lv2_latency_port;
-            if ((port->id != NULL) && (port->name != NULL))
-                p->add_port(new LV2UIFloatPort(port, port_id, ext), true);
-        }
-
-        // Return UI
-        lsp_trace("Return handle");
-        ext         -> unbind();
-
-        // Return widget
-        *widget     =   reinterpret_cast<LV2UI_Widget>(factory->root_widget());
-
-        return reinterpret_cast<LV2UI_Handle>(p);
+        return reinterpret_cast<LV2UI_Handle>(w);
     }
 
     void lv2ui_cleanup(LV2UI_Handle ui)
     {
         lsp_trace("cleanup");
-        plugin_ui *p = reinterpret_cast<plugin_ui *>(ui);
-        p->destroy();
-        delete p;
+        LV2UIWrapper *w = reinterpret_cast<LV2UIWrapper *>(ui);
+        w->destroy();
     }
 
     void lv2ui_port_event(
@@ -169,15 +95,8 @@ namespace lsp
         uint32_t     format,
         const void*  buffer)
     {
-        plugin_ui *p = reinterpret_cast<plugin_ui *>(ui);
-        IUIPort *port = p->port(port_index);
-        if (port != NULL)
-        {
-            LV2UIPort *lv2port = static_cast<LV2UIPort *>(port);
-
-//            lsp_trace("notify: idx=%d, id=%s", int(port_index), lv2port->metadata()->id);
-            lv2port->notify(buffer, format, buffer_size);
-        }
+        LV2UIWrapper *w = reinterpret_cast<LV2UIWrapper *>(ui);
+        w->notify(port_index, buffer_size, format, buffer);
     }
 
     const void* lv2ui_extension_data(const char* uri)

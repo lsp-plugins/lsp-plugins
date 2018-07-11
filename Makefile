@@ -8,7 +8,7 @@ RELEASE                 = ${CURDIR}/.release
 RELEASE_TEXT            = LICENSE.txt README.txt CHANGELOG.txt
 
 # Dependencies
-export VST_SDK			= /home/sadko/eclipse/lsp-plugins-vst3sdk
+export VST_SDK          = /home/sadko/eclipse/lsp-plugins-vst3sdk
 
 # Flags
 ifndef CPU_ARCH
@@ -17,7 +17,7 @@ export CC_ARCH          = -m64
 export LD_ARCH          = -m elf_x86_64
 endif
 
-export VERSION          = 1.0.0
+export VERSION          = 1.0.1
 export INCLUDE          = -I"${CURDIR}/include" -I"$(VST_SDK)"
 export MAKE_OPTS        = -s
 export CFLAGS           = $(CC_ARCH) -fPIC -O2 -fno-exceptions -Wall -pthread -pipe
@@ -113,8 +113,11 @@ install: all
 	@$(UTL_GENTTL) $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
 	@echo "Installing VST plugins to $(DESTDIR)$(VST_PATH)/"
 	@mkdir -p $(DESTDIR)$(VST_PATH)
+	@mkdir -p $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID).vst
 	@install -s $(LIB_VST) $(DESTDIR)$(VST_PATH)/
 	@install -s $(OBJDIR)/vst/*.so $(DESTDIR)$(VST_PATH)/
+	@echo "Copying resources to $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID).vst"
+	@cp -r res/ui $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID).vst
 	@echo "Install OK"
 
 release: LADSPA_ID      := $(ARTIFACT_ID)-ladspa-$(VERSION)-$(CPU_ARCH)

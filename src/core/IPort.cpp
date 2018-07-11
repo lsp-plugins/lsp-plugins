@@ -36,26 +36,18 @@ namespace lsp
         return NULL;
     }
 
-    void IPort::pre_process()
+    bool IPort::pre_process()
     {
+        return false;
     }
 
     void IPort::post_process()
     {
     }
 
-    bool IPort::changed()
-    {
-        return false;
-    }
-
     const char *IPort::getPath()
     {
         return NULL;
-    }
-
-    void IPort::update()
-    {
     }
 
     const port_t *IPort::metadata() const

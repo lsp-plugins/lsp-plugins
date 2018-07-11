@@ -34,6 +34,8 @@ namespace lsp
         NULL
     };
 
+    static char bundle_path[PATH_MAX];
+
     static void *hInstance;
 
     // The factory for creating plugin instances
@@ -43,14 +45,19 @@ namespace lsp
     {
         lsp_trace("Trying shared library %s", path);
 
+        // Generate file name
+        char fname[PATH_MAX];
+        snprintf(fname, PATH_MAX, "%s/%s", path, LSP_VST_CORE);
+
         // Try to load library
-        hInstance = dlopen (path, RTLD_NOW);
+        hInstance = dlopen (fname, RTLD_NOW);
         if (!hInstance)
         {
-            lsp_trace("library %s not loaded: %s", path, dlerror());
+            lsp_trace("library %s not loaded: %s", fname, dlerror());
             return NULL;
         }
 
+        // Fetch function
         vst_create_instance_t f = reinterpret_cast<vst_create_instance_t>(dlsym(hInstance, VST_CREATE_INSTANCE_STRNAME));
         if (!f)
         {
@@ -61,6 +68,8 @@ namespace lsp
             hInstance   = NULL;
         }
 
+        // Store bundle path
+        strncpy(bundle_path, path, PATH_MAX);
         return f;
     }
 
@@ -98,12 +107,12 @@ namespace lsp
         if (homedir != NULL)
         {
             lsp_trace("home directory = %s", homedir);
-            snprintf(path, PATH_MAX, "%s/.vst/" LSP_VST_CORE, homedir);
+            snprintf(path, PATH_MAX, "%s/.vst", homedir);
             factory     = lookup_factory(path);
 
             if (factory == NULL)
             {
-                snprintf(path, PATH_MAX, "%s/vst/" LSP_VST_CORE, homedir);
+                snprintf(path, PATH_MAX, "%s/vst/", homedir);
                 factory     = lookup_factory(path);
             }
         }
@@ -112,7 +121,12 @@ namespace lsp
         {
             for (const char **p = vst_core_paths; (p != NULL) && (*p != NULL); ++p)
             {
-                snprintf(path, PATH_MAX, "%s/vst/" LSP_VST_CORE, *p);
+                snprintf(path, PATH_MAX, "%s/vst", *p);
+                factory     = lookup_factory(path);
+                if (factory != NULL)
+                    break;
+
+                snprintf(path, PATH_MAX, "%s/lxvst", *p);
                 factory     = lookup_factory(path);
                 if (factory != NULL)
                     break;
@@ -150,7 +164,7 @@ extern "C"
         AEffect *effect     = NULL;
 
         if (f != NULL)
-            effect = f(VST_PLUGIN_UID, callback);
+            effect = f(bundle_path, VST_PLUGIN_UID, callback);
         else
             lsp_error("Could not find VST core library " LSP_VST_CORE);
 

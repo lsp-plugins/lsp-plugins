@@ -2,6 +2,11 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.2 ===
+
+* Implemented plugin wrapping layer for more flexible plugin control.
+* Added GUI wrapper for LinuxVST plugins.
+
 === 1.0.1 ===
 
 * Fixed bugs in SSE assembly code discovered at 44100 Hz sample rate.

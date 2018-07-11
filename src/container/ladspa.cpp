@@ -11,7 +11,8 @@
 #include <core/lib.h>
 #include <core/debug.h>
 
-#include <container/ladspa.h>
+#include <container/ladspa/ports.h>
+#include <container/ladspa/wrapper.h>
 
 namespace lsp
 {
@@ -43,63 +44,22 @@ namespace lsp
         dsp::init();
 
         // Instantiate plugin
-        plugin_t *p = NULL;
-        size_t id = LSP_LADSPA_BASE;
-        const plugin_metadata_t *m = NULL;
+        plugin_t *p         = NULL;
+        size_t id           = LSP_LADSPA_BASE;
 
         #define MOD_LADSPA(plugin) \
             if ((!p) && (Descriptor->UniqueID == id) && (!strcmp(Descriptor->Label, LSP_PLUGIN_URI(ladspa, plugin)))) \
-            { \
                 p = new plugin(); \
-                m = &plugin::metadata; \
-            } \
             id++;
         #include <core/modules.h>
 
-        if (p)
-        {
-            // Bind ports
-            lsp_trace("Binding ports");
+        if (!p)
+            return NULL;
 
-            for (const port_t *port = m->ports; (port->id != NULL) && (port->name != NULL); ++port)
-            {
-                lsp_trace("processing port id=%s", port->id);
-                bool out = port->flags & F_OUT;
-                switch (port->role)
-                {
-                    case R_AUDIO:
-                        p->add_port(new LADSPAAudioPort(port), true);
-                        lsp_trace("added as audio port");
-                        break;
-                    case R_MESH: // Not supported by LADSPA, make it stub
-                    case R_UI_SYNC:
-                        p->add_port(new LADSPAPort(port), false);
-                        lsp_trace("added as stub port");
-                        break;
-                    case R_CONTROL:
-                    case R_METER:
-                    default:
-                        if (out)
-                        {
-                            p->add_port(new LADSPAOutputPort(port), true);
-                            lsp_trace("added as output port");
-                        }
-                        else
-                        {
-                            p->add_port(new LADSPAInputPort(port), true);
-                            lsp_trace("added as input port");
-                        }
-                        break;
-                }
-            }
+        LADSPAWrapper *w    = new LADSPAWrapper(p);
+        w->init(SampleRate);
 
-            // Initialize plugin
-            lsp_trace("Initializing plugin");
-            p->init();
-            p->set_sample_rate(SampleRate);
-        }
-
-        return reinterpret_cast<LADSPA_Handle>(p);
+        return reinterpret_cast<LADSPA_Handle>(w);
     }
 
     void ladspa_connect_port(
@@ -107,43 +67,33 @@ namespace lsp
         unsigned long Port,
         LADSPA_Data * DataLocation)
     {
-//        lsp_trace("%p, %d, %p", Instance, (int)Port, DataLocation);
-        plugin_t  *p      = reinterpret_cast<plugin_t *>(Instance);
-        IPort   *dst    = p->port(Port);
-        if (dst != NULL)
-        {
-            LADSPAPort *p_dst = static_cast<LADSPAPort *>(dst);
-            p_dst->bind(DataLocation);
-        }
+        LADSPAWrapper *w = reinterpret_cast<LADSPAWrapper *>(Instance);
+        w->connect(Port, DataLocation);
     }
 
     void ladspa_activate(LADSPA_Handle Instance)
     {
-        lsp_trace("%p", Instance);
-        plugin_t *p = reinterpret_cast<plugin_t *>(Instance);
-        p->activate();
+        LADSPAWrapper *w = reinterpret_cast<LADSPAWrapper *>(Instance);
+        w->activate();
     }
 
     void ladspa_run(LADSPA_Handle Instance, unsigned long SampleCount)
     {
-        lsp_trace("%p", Instance);
-        plugin_t *p = reinterpret_cast<plugin_t *>(Instance);
-        p->run(SampleCount);
+        LADSPAWrapper *w = reinterpret_cast<LADSPAWrapper *>(Instance);
+        w->run(SampleCount);
     }
 
     void ladspa_deactivate(LADSPA_Handle Instance)
     {
-        lsp_trace("%p", Instance);
-        plugin_t *p = reinterpret_cast<plugin_t *>(Instance);
-        p->deactivate();
+        LADSPAWrapper *w = reinterpret_cast<LADSPAWrapper *>(Instance);
+        w->deactivate();
     }
 
     void ladspa_cleanup(LADSPA_Handle Instance)
     {
-//        lsp_trace("%p", Instance);
-        plugin_t *p = reinterpret_cast<plugin_t *>(Instance);
-        p->destroy();
-        delete p;
+        LADSPAWrapper *w = reinterpret_cast<LADSPAWrapper *>(Instance);
+        w->destroy();
+        delete w;
     }
 
     LADSPA_Descriptor *ladspa_descriptors = NULL;

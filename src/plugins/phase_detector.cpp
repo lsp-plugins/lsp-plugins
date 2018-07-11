@@ -82,9 +82,9 @@ namespace lsp
         return fill;
     }
     
-    void phase_detector::update_sample_rate(int sr)
+    void phase_detector::update_sample_rate(long sr)
     {
-        lsp_debug("sample_rate = %d", sr);
+        lsp_debug("sample_rate = %ld", sr);
         /*
                           +---------+---------+---------+
          A:               | Gap     | A Data  | Lookup  |
@@ -102,7 +102,7 @@ namespace lsp
         // Cleanup buffers
         dropBuffers();
 
-        nMaxVectorSize  = millis_to_samples(DETECT_TIME_MAX);
+        nMaxVectorSize  = millis_to_samples(fSampleRate, DETECT_TIME_MAX);
         vA.pData        = new float[nMaxVectorSize * 3];
         lsp_debug("new vA.pData[%d] = %p", int(nMaxVectorSize * 3), vA.pData);
         vB.pData        = new float[nMaxVectorSize * 4];
@@ -122,15 +122,15 @@ namespace lsp
 
     void phase_detector::update_settings()
     {
-        lsp_debug("update settings sample_rate = %d", get_sample_rate());
+        lsp_debug("update settings sample_rate = %ld", get_sample_rate());
 
         bool clear          = false;
         bool old_bypass     = bBypass;
 
         // Read parameters
-        float bypass        = vIntPorts[BYPASS]     -> getValue();
-        float reset         = vIntPorts[RESET]      -> getValue();
-        fSelector           = vIntPorts[SELECTOR]   -> getValue();
+        float bypass        = vPorts[BYPASS]        -> getValue();
+        float reset         = vPorts[RESET]         -> getValue();
+        fSelector           = vPorts[SELECTOR]      -> getValue();
 
         lsp_trace("bypass = %.3f, reset = %.3f, selector=%.3f", bypass, reset, fSelector);
         bBypass             = (bypass >= 0.5f) || (reset > 0.5f);
@@ -138,9 +138,9 @@ namespace lsp
         if ((old_bypass != bBypass) && (bBypass))
             clear               = true;
 
-        if (setTimeInterval(vIntPorts[TIME]->getValue(), false))
+        if (setTimeInterval(vPorts[TIME]->getValue(), false))
             clear = true;
-        setReactiveInterval(vIntPorts[REACTIVITY]->getValue());
+        setReactiveInterval(vPorts[REACTIVITY]->getValue());
 
         if (clear)
             clearBuffers();
@@ -149,10 +149,11 @@ namespace lsp
     void phase_detector::process(size_t samples)
     {
         // Store pointers to buffers
-        float *in_a         = reinterpret_cast<float *>(vIntPorts[IN_A]    -> getBuffer());
-        float *in_b         = reinterpret_cast<float *>(vIntPorts[IN_B]    -> getBuffer());
-        float *out_a        = reinterpret_cast<float *>(vIntPorts[OUT_A]   -> getBuffer());
-        float *out_b        = reinterpret_cast<float *>(vIntPorts[OUT_B]   -> getBuffer());
+        float *in_a         = reinterpret_cast<float *>(vPorts[IN_A]    -> getBuffer());
+        float *in_b         = reinterpret_cast<float *>(vPorts[IN_B]    -> getBuffer());
+        float *out_a        = reinterpret_cast<float *>(vPorts[OUT_A]   -> getBuffer());
+        float *out_b        = reinterpret_cast<float *>(vPorts[OUT_B]   -> getBuffer());
+        mesh_t *mesh        = reinterpret_cast<mesh_t *>(vPorts[FUNCTION]->getBuffer());
 
         lsp_assert(in_a != NULL);
         lsp_assert(in_b != NULL);
@@ -165,21 +166,26 @@ namespace lsp
 
         if (bBypass)
         {
-            vIntPorts[BEST_TIME]       -> setValue(0.0f);
-            vIntPorts[BEST_SAMPLES]    -> setValue(0.0f);
-            vIntPorts[BEST_DISTANCE]   -> setValue(0.0f);
-            vIntPorts[BEST_VALUE]      -> setValue(0.0f);
+            vPorts[BEST_TIME]       -> setValue(0.0f);
+            vPorts[BEST_SAMPLES]    -> setValue(0.0f);
+            vPorts[BEST_DISTANCE]   -> setValue(0.0f);
+            vPorts[BEST_VALUE]      -> setValue(0.0f);
 
-            vIntPorts[WORST_TIME]      -> setValue(0.0f);
-            vIntPorts[WORST_SAMPLES]   -> setValue(0.0f);
-            vIntPorts[WORST_DISTANCE]  -> setValue(0.0f);
-            vIntPorts[WORST_VALUE]     -> setValue(0.0f);
+            vPorts[WORST_TIME]      -> setValue(0.0f);
+            vPorts[WORST_SAMPLES]   -> setValue(0.0f);
+            vPorts[WORST_DISTANCE]  -> setValue(0.0f);
+            vPorts[WORST_VALUE]     -> setValue(0.0f);
 
-            vIntPorts[SEL_TIME]        -> setValue(0.0f);
-            vIntPorts[SEL_SAMPLES]     -> setValue(0.0f);
-            vIntPorts[SEL_DISTANCE]    -> setValue(0.0f);
-            vIntPorts[SEL_VALUE]       -> setValue(0.0f);
+            vPorts[SEL_TIME]        -> setValue(0.0f);
+            vPorts[SEL_SAMPLES]     -> setValue(0.0f);
+            vPorts[SEL_DISTANCE]    -> setValue(0.0f);
+            vPorts[SEL_VALUE]       -> setValue(0.0f);
 
+            if (mesh != NULL)
+            {
+                mesh->nItems    = 0;
+                mesh->nBuffers  = 2;
+            }
             return;
         }
 
@@ -235,28 +241,27 @@ namespace lsp
         ssize_t best_samples    = ssize_t(nVectorSize) - best;
         ssize_t worst_samples   = ssize_t(nVectorSize) - worst;
 
-        vIntPorts[BEST_TIME]       -> setValue(samples_to_millis(best_samples));
-        vIntPorts[BEST_SAMPLES]    -> setValue(best_samples);
-        vIntPorts[BEST_DISTANCE]   -> setValue(samples_to_centimeters(best_samples));
-        vIntPorts[BEST_VALUE]      -> setValue(vNormalized[best]);
+        vPorts[BEST_TIME]       -> setValue(samples_to_millis(fSampleRate, best_samples));
+        vPorts[BEST_SAMPLES]    -> setValue(best_samples);
+        vPorts[BEST_DISTANCE]   -> setValue(samples_to_centimeters(fSampleRate, SOUND_SPEED_M_S, best_samples));
+        vPorts[BEST_VALUE]      -> setValue(vNormalized[best]);
 
-        vIntPorts[WORST_TIME]      -> setValue(samples_to_millis(worst_samples));
-        vIntPorts[WORST_SAMPLES]   -> setValue(worst_samples);
-        vIntPorts[WORST_DISTANCE]  -> setValue(samples_to_centimeters(worst_samples));
-        vIntPorts[WORST_VALUE]     -> setValue(vNormalized[worst]);
+        vPorts[WORST_TIME]      -> setValue(samples_to_millis(fSampleRate, worst_samples));
+        vPorts[WORST_SAMPLES]   -> setValue(worst_samples);
+        vPorts[WORST_DISTANCE]  -> setValue(samples_to_centimeters(fSampleRate, SOUND_SPEED_M_S, worst_samples));
+        vPorts[WORST_VALUE]     -> setValue(vNormalized[worst]);
 
-        vIntPorts[SEL_TIME]        -> setValue(samples_to_millis(sel_samples));
-        vIntPorts[SEL_SAMPLES]     -> setValue(sel_samples);
-        vIntPorts[SEL_DISTANCE]    -> setValue(samples_to_centimeters(sel_samples));
-        vIntPorts[SEL_VALUE]       -> setValue(vNormalized[sel]);
+        vPorts[SEL_TIME]        -> setValue(samples_to_millis(fSampleRate, sel_samples));
+        vPorts[SEL_SAMPLES]     -> setValue(sel_samples);
+        vPorts[SEL_DISTANCE]    -> setValue(samples_to_centimeters(fSampleRate, SOUND_SPEED_M_S, sel_samples));
+        vPorts[SEL_VALUE]       -> setValue(vNormalized[sel]);
 
         // Output mesh if specified
-        mesh_t *mesh            = reinterpret_cast<mesh_t *>(vIntPorts[FUNCTION]->getBuffer());
         if (mesh != NULL)
         {
             // Generate function times
             float *dst  = mesh->pvData[0];
-            float delta = samples_to_millis(1);
+            float delta = samples_to_millis(fSampleRate, 1);
             for (size_t i=0; i<nFuncSize; ++i)
                 *(dst++)        = delta * ((ssize_t(nVectorSize)) - ssize_t(i));
 
@@ -279,7 +284,7 @@ namespace lsp
 
         // Re-calculate buffers
         fTimeInterval   = interval;
-        nVectorSize     = (size_t(millis_to_samples(interval)) >> 2) << 2; // Make number of samples multiple of SSE register size
+        nVectorSize     = (size_t(millis_to_samples(fSampleRate, interval)) >> 2) << 2; // Make number of samples multiple of SSE register size
         nFuncSize       = nVectorSize << 1;
         vA.nSize        = nFuncSize;
         vB.nSize        = nFuncSize + nVectorSize;
@@ -297,7 +302,7 @@ namespace lsp
 
         // Calculate Reduction
         fReactivity     = interval;
-        fTau            = 1.0f - expf(logf(1.0 - M_SQRT1_2) / seconds_to_samples(interval));
+        fTau            = 1.0f - expf(logf(1.0 - M_SQRT1_2) / seconds_to_samples(fSampleRate, interval));
     }
 
     void phase_detector::clearBuffers()

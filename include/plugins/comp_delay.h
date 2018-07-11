@@ -31,10 +31,9 @@ namespace lsp
             float       fWet;
             float      *vBuffer;
             size_t      nBufSize;
-            int         nSampleRate;
+            long        nSampleRate;
             IPort      *pIn;
             IPort      *pOut;
-//            dsp        *pDSP;
 
         public:
             comp_delay_base();
@@ -62,10 +61,9 @@ namespace lsp
             inline float get_samples() const            { return fSamples;      };
             inline float get_distance() const           { return fDistance;     };
             inline float get_time() const               { return fTime;         };
-            inline static float sound_speed(float temp);
 
         public:
-            void init(int sample_rate, float *buffer, size_t buf_size);
+            void init(long sample_rate, float *buffer, size_t buf_size);
 
             void destroy();
 
@@ -87,7 +85,7 @@ namespace lsp
 
         public:
             virtual void init();
-            virtual void update_sample_rate(int sr);
+            virtual void update_sample_rate(long sr);
             virtual void destroy();
     };
 

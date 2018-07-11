@@ -2,46 +2,37 @@
 #include <stddef.h>
 #include <string.h>
 #include <alloca.h>
+#include <dlfcn.h>
+#include <time.h>
 
+// Core include
 #include <core/metadata.h>
 #include <core/plugins.h>
 #include <core/lib.h>
 
 #include <data/cvector.h>
 
+// UI includes
+#include <ui/ui.h>
+
+#if defined(LSP_UI_GTK2)
+    #include <ui/gtk2/ui.h>
+    #define LSP_PACKAGE gtk2
+    #define LSP_WIDGET_FACTORY Gtk2WidgetFactory
+#elif defined(LSP_UI_GTK3)
+    #include <ui/gtk3/ui.h>
+    #define LSP_PACKAGE gtk3
+    #define LSP_WIDGET_FACTORY Gtk3WidgetFactory
+#endif /* LSP_UI_GTK3 */
+
 // VST SDK includes
 #include <container/vst/defs.h>
-#include <container/vst/object.h>
 #include <container/vst/helpers.h>
+#include <container/vst/wrapper.h>
 #include <container/vst/ports.h>
 
 namespace lsp
 {
-    void vst_finalize_object(vst_object_t *o)
-    {
-        // Check that object is correct
-        if (o == NULL)
-            return;
-
-        // Output plugin name if possible
-        if (o->metadata != NULL)
-            lsp_trace("plugin = %s", o->metadata->name);
-
-        // Destroy inputs and outputs lists
-        o->inputs.clear();
-        o->outputs.clear();
-
-        // Destroy plugins
-        if (o->plugin != NULL)
-        {
-            o->plugin->destroy();
-            delete o->plugin;
-            o->plugin   = NULL;
-        }
-
-        o->metadata     = NULL;
-    }
-
     void vst_finalize(AEffect *e)
     {
         lsp_trace("vst_finalize effect=%p", e);
@@ -49,10 +40,12 @@ namespace lsp
             return;
 
         // Get VST object
-        vst_object_t *o     = vst_object(e);
-        if (o != NULL)
+        VSTWrapper *w     = reinterpret_cast<VSTWrapper *>(e->object);
+        if (w != NULL)
         {
-            vst_finalize_object(o);
+            w->destroy();
+            delete w;
+
             e->object           = NULL;
         }
 
@@ -62,7 +55,7 @@ namespace lsp
 
     void vst_get_parameter_properties(const port_t *m, VstParameterProperties *p)
     {
-        memset(p, 0, sizeof(VstParameterProperties));
+        lsp_trace("parameter id=%s, name=%s", m->id, m->name);
 
         float min = 0.0f, max = 1.0f, step = 0.001f;
         get_port_parameters(m, &min, &max, &step);
@@ -78,11 +71,13 @@ namespace lsp
         p->largeStepInteger         = step;
 
         vst_strncpy(p->shortLabel, m->id, kVstMaxShortLabelLen);
-        p->displayIndex             = 0;
-        p->category                 = 0;
-        p->numParametersInCategory  = 0;
-        p->reserved                 = 0;
-        p->categoryLabel[0]         = '\0';
+
+//        // This code may crash the hosts that use VesTige, so for capability issues it is commented
+//        p->displayIndex             = 0;
+//        p->category                 = 0;
+//        p->numParametersInCategory  = 0;
+//        p->reserved                 = 0;
+//        p->categoryLabel[0]         = '\0';
 
         if (m->unit == U_BOOL)
             p->flags                    = kVstParameterIsSwitch | kVstParameterUsesIntegerMinMax | kVstParameterUsesIntStep;
@@ -309,12 +304,7 @@ namespace lsp
                 e, opcode, vst_decode_opcode(opcode), index, (long long)(value), ptr, opt);
 
         // Get VST object
-        vst_object_t *o = vst_object(e);
-        if (o == NULL)
-        {
-            lsp_trace("vst_object is NULL");
-            return v;
-        }
+        VSTWrapper *o   = reinterpret_cast<VSTWrapper *>(e->object);
 
         switch (opcode)
         {
@@ -337,7 +327,7 @@ namespace lsp
 
             case effGetProductString: // Get product string
             {
-                const plugin_metadata_t *m = o->metadata;
+                const plugin_metadata_t *m = o->get_metadata();
                 if (m != NULL)
                 {
                     char buf[kVstMaxProductStrLen];
@@ -353,7 +343,7 @@ namespace lsp
             case effGetParamLabel: // Get units of the parameter
             case effGetParamDisplay: // Get value of the parameter
             {
-                VSTParameterPort *p = o->params[index];
+                VSTParameterPort *p = o->get_parameter(index);
                 if (p == NULL)
                     break;
 
@@ -391,7 +381,7 @@ namespace lsp
             case effCanBeAutomated:
             case effGetParameterProperties: // Parameter properties
             {
-                VSTParameterPort *p = o->params[index];
+                VSTParameterPort *p = o->get_parameter(index);
                 if (p == NULL)
                     break;
 
@@ -417,26 +407,20 @@ namespace lsp
                     lsp_error("Unsupported sample rate: %f, maximum supported sample rate is %ld", float(opt), long(MAX_SAMPLE_RATE));
                     opt = MAX_SAMPLE_RATE;
                 }
-                o->plugin->set_sample_rate(opt);
+                o->set_sample_rate(opt);
                 break;
 
             case effOpen: // Plugin initialization
-                o->plugin->init();
+                o->open();
                 break;
 
             case effMainsChanged: // Plugin activation/deactivation
-                if (o->plugin == NULL)
-                    break;
-
-                if (!value)
-                    o->plugin->deactivate();
-                else
-                    o->plugin->activate();
+                o->mains_changed(value);
                 break;
 
             case effGetPlugCategory:
             {
-                const plugin_metadata_t *m = o->metadata;
+                const plugin_metadata_t *m = o->get_metadata();
                 if (m == NULL)
                     break;
 
@@ -445,15 +429,27 @@ namespace lsp
                 break;
             }
 
+            case effEditOpen: // Run editor
+                if (o->show_ui(ptr))
+                    v = 1;
+                break;
+
+            case effEditClose: // Close editor
+                o->hide_ui();
+                v = 1;
+                break;
+
+            case effEditIdle: // Run editor's iteration
+                o->iterate_ui();
+                v = 1;
+                break;
+
             case effSetProgram:
             case effGetProgram:
             case effSetProgramName:
             case effGetProgramName:
             case effSetBlockSize:
             case effEditGetRect:
-            case effEditOpen:
-            case effEditClose:
-            case effEditIdle:
             case effGetChunk:
             case effSetChunk:
                 break;
@@ -542,42 +538,14 @@ namespace lsp
             default:
                 break;
         }
-
         return v;
     }
 
     void VSTCALLBACK vst_process(AEffect* effect, float** inputs, float** outputs, VstInt32 sampleFrames)
     {
 //        lsp_trace("vst_process effect=%p, inputs=%p, outputs=%p, frames=%d", effect, inputs, outputs, int(sampleFrames));
-
-        // Get VST object
-        vst_object_t *o = vst_object(effect);
-        if (o == NULL)
-            return;
-
-        // Bind audio ports
-        for (size_t i=0; i < o->inputs.size(); ++i)
-        {
-            VSTAudioPort *p = o->inputs[i];
-            if (p != NULL)
-                p->bind(inputs[i]);
-        }
-        for (size_t i=0; i < o->outputs.size(); ++i)
-        {
-            VSTAudioPort *p = o->outputs[i];
-            if (p != NULL)
-                p->bind(outputs[i]);
-        }
-
-        // Call processing function
-        if (o->plugin != NULL)
-        {
-            // Execute plugin code
-            o->plugin->run(sampleFrames);
-
-            // Report latency
-            effect->initialDelay    = VstInt32(o->plugin->get_latency());
-        }
+        VSTWrapper *w     = reinterpret_cast<VSTWrapper *>(effect->object);
+        w->run(inputs, outputs, sampleFrames);
     }
 
     void VSTCALLBACK vst_set_parameter(AEffect* effect, VstInt32 index, float value)
@@ -585,14 +553,17 @@ namespace lsp
         lsp_trace("vst_set_parameter effect=%p, index=%d, value=%.3f", effect, int(index), value);
 
         // Get VST object
-        vst_object_t *o = vst_object(effect);
-        if (o == NULL)
+        VSTWrapper *w     = reinterpret_cast<VSTWrapper *>(effect->object);
+        if (w == NULL)
             return;
 
-        // Get port and apply parameter
-        VSTParameterPort *vp = o->params[index];
-        if (vp != NULL)
-            vp->setVstValue(value);
+        // Get VST parameter port
+        VSTParameterPort *vp = w->get_parameter(index);
+        if (vp == NULL)
+            return;
+
+        // Set value of plugin port
+        vp->setVstValue(value);
     }
 
     float VSTCALLBACK vst_get_parameter(AEffect* effect, VstInt32 index)
@@ -600,12 +571,12 @@ namespace lsp
 //        lsp_trace("vst_get_parameter effect=%p, index=%d", effect, int(index));
 
         // Get VST object
-        vst_object_t *o = vst_object(effect);
-        if (o == NULL)
+        VSTWrapper *w     = reinterpret_cast<VSTWrapper *>(effect->object);
+        if (w == NULL)
             return 0.0f;
 
         // Get port and apply parameter
-        VSTParameterPort *vp = o->params[index];
+        VSTParameterPort *vp = w->get_parameter(index);
 
         if (vp != NULL)
             return vp->getVstValue();
@@ -613,14 +584,18 @@ namespace lsp
         return 0.0f;
     }
 
-    AEffect *vst_instantiate(VstInt32 uid, audioMasterCallback callback)
+    AEffect *vst_instantiate(const char *bundle_path, VstInt32 uid, audioMasterCallback callback)
     {
+        // Path
+        char path[PATH_MAX];
+
         // Initialize DSP
         dsp::init();
 
         // Instantiate plugin
-        const plugin_metadata_t *m = NULL;
-        plugin_t *p = NULL;
+        const plugin_metadata_t *m  = NULL;
+        const char *plugin_name     = NULL;
+        plugin_t *p                 = NULL;
 
         #define MOD_VST(plugin) \
             if ((!p) && (uid == vst_cconst(plugin::metadata.vst_uid))) \
@@ -629,6 +604,7 @@ namespace lsp
                 if (p == NULL) \
                     return NULL; \
                 m   = &plugin::metadata; \
+                plugin_name = #plugin; \
             }
         #include <core/modules.h>
 
@@ -638,28 +614,24 @@ namespace lsp
 
         lsp_trace("Instantiated plugin %s - %s", m->name, m->description);
 
-        // Create object wrapper structure
-        vst_object_t *o            = new vst_object_t;
-        if (o == NULL)
-        {
-            delete p;
-            return NULL;
-        }
-
-        // Initialize user structure
-        o->magic                   = LSP_VST_USER_MAGIC;
-        o->plugin                  = p;
-        o->master                  = callback;
-        o->metadata                = m;
-
-        // Create effect and clean it up
-        AEffect *e = new AEffect;
+        // Create effect descriptor
+        AEffect *e                  = new AEffect;
         if (e == NULL)
         {
-            vst_finalize_object(o);
             delete p;
             return NULL;
         }
+
+        // Create wrapper
+        VSTWrapper *w               = new VSTWrapper(e, p, plugin_name, callback);
+        if (w == NULL)
+        {
+            vst_finalize(e);
+            delete p;
+            return NULL;
+        }
+
+        // Initialize effect structure
         ::memset(e, 0, sizeof(AEffect));
 
         // Fill effect with values depending on metadata
@@ -676,7 +648,7 @@ namespace lsp
         e->numOutputs                   = 0;
         e->flags                        = effFlagsCanReplacing;
         e->initialDelay                 = 0;
-        e->object                       = o;
+        e->object                       = w;
         e->user                         = NULL;
         e->uniqueID                     = vst_cconst(m->vst_uid);
         e->version                      = vst_version(m->version);
@@ -687,61 +659,44 @@ namespace lsp
             e->processDoubleReplacing       = NULL;
         #endif /* VST_2_4_EXTENSIONS */
 
-        // Bind ports
-        lsp_trace("Binding ports");
-        for (const port_t *port = m->ports; (port->id != NULL) && (port->name != NULL); ++port)
-        {
-            bool out = (port->flags & F_OUT);
-
-            switch (port->role)
-            {
-                case R_UI_SYNC:
-                    lsp_error("R_UI_SYNC found in port list");
-                    break;
-                case R_MESH:
-                {
-                    VSTPort *vp = new VSTPort(port, e, callback);
-                    p->add_port(vp, false);
-                    break;
-                }
-
-                case R_AUDIO:
-                {
-                    VSTAudioPort *vp = new VSTAudioPort(port, e, callback);
-                    p->add_port(vp, true);
-                    if (out)
-                        o->outputs.add(vp);
-                    else
-                        o->inputs.add(vp);
-                    break;
-                }
-
-                case R_CONTROL:
-                case R_METER:
-                    // VST specifies only INPUT parameters, output should be read in different way
-                    if (out)
-                    {
-                        VSTMeterPort *vp = new VSTMeterPort(port, e, callback);
-                        p->add_port(vp, false);
-                    }
-                    else
-                    {
-                        VSTParameterPort *vp = new VSTParameterPort(port, e, callback);
-                        p->add_port(vp, true);
-                        if (!out)
-                            o->params.add(vp);
-                    }
-                    break;
-
-                default:
-                    break;
+        // Instantiate widget factory (if possible)
+        snprintf(path, PATH_MAX, "%s/" LSP_ARTIFACT_ID ".vst", bundle_path);
+        IWidgetFactory *wf      = NULL;
+        #define UI_MODULE(plugin)   \
+            if ((!wf) && (uid == vst_cconst(plugin::metadata.vst_uid))) \
+            { \
+                wf   = new LSP_WIDGET_FACTORY(path); \
+                if (wf == NULL) \
+                { \
+                    delete p; \
+                    return NULL; \
+                } \
             }
+
+        // Define module macro and include modules
+        #if defined(LSP_UI_GTK2)
+            #define MOD_GTK2(plugin)    UI_MODULE(plugin)
+        #elif defined(LSP_UI_GTK3)
+            #define MOD_GTK3(plugin)    UI_MODULE(plugin)
+        #endif /* LSP_UI_GTK3 */
+
+        #include <core/modules.h>
+
+        #undef UI_MODULE
+
+        // Additional flags
+        if (wf != NULL)
+        {
+            e->flags                        |= effFlagsHasEditor; // Has custom UI
+            w->set_widget_factory(wf);
+            lsp_trace("bundle_path = %s", bundle_path);
         }
 
-        // Update instance parameters
-        e->numInputs                    = o->inputs.size();
-        e->numOutputs                   = o->outputs.size();
-        e->numParams                    = o->params.size();
+        // Initialize plugin
+        p->init();
+
+        // Initialize wrapper
+        w->init();
 
         return e;
     }
@@ -749,8 +704,8 @@ namespace lsp
 
 extern "C"
 {
-    AEffect *VST_CREATE_INSTANCE_NAME(VstInt32 uid, audioMasterCallback callback)
+    AEffect *VST_CREATE_INSTANCE_NAME(const char *bundle_path, VstInt32 uid, audioMasterCallback callback)
     {
-        return lsp::vst_instantiate(uid, callback);
+        return lsp::vst_instantiate(bundle_path, uid, callback);
     }
 }

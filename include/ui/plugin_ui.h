@@ -27,7 +27,7 @@ namespace lsp
             IWidgetFactory             *pFactory;
 
         public:
-            plugin_ui(const char *name, const plugin_metadata_t &mdata, IWidgetFactory *factory);
+            plugin_ui(const char *name, const plugin_metadata_t *mdata, IWidgetFactory *factory);
 
             virtual ~plugin_ui();
 
@@ -63,6 +63,16 @@ namespace lsp
              * @return internal port
              */
             virtual IUIPort *port(const char *name, bool external = false);
+
+            /** Get port count
+             *
+             * @param external external port flag
+             * @return number of ports
+             */
+            inline size_t ports_count(bool external = true)
+            {
+                return (external) ? vExtPorts.size() : vIntPorts.size();
+            }
     };
 
 } /* namespace lsp */

@@ -32,7 +32,6 @@ namespace lsp
         nBufSize        = 0;
         pIn             = NULL;
         pOut            = NULL;
-//        pDSP            = NULL;
     }
 
     comp_delay_base::~comp_delay_base()
@@ -40,14 +39,8 @@ namespace lsp
         destroy();
     }
 
-    inline float comp_delay_base::sound_speed(float temp)
+    void comp_delay_base::init(long sample_rate, float *buffer, size_t buf_size)
     {
-        return sqrtf(AIR_ADIABATIC_INDEX * GAS_CONSTANT * (temp - TEMP_ABS_ZERO) * 1000 /* g/kg */ / AIR_MOLAR_MASS);
-    }
-
-    void comp_delay_base::init(int sample_rate, float *buffer, size_t buf_size)
-    {
-//        pDSP                    = p_dsp;
         nSampleRate             = sample_rate;
         size_t samples          = comp_delay_base_metadata::SAMPLES_MAX;
         size_t time_samples     = comp_delay_base_metadata::TIME_MAX * 0.001 * nSampleRate;
@@ -143,10 +136,11 @@ namespace lsp
     void comp_delay_impl::init()
     {
         plugin_t::init();
-        vBuffer     = new float[BUFFER_SIZE];
+        if (vBuffer == NULL)
+            vBuffer     = new float[BUFFER_SIZE];
     }
 
-    void comp_delay_impl::update_sample_rate(int sr)
+    void comp_delay_impl::update_sample_rate(long sr)
     {
         dropBuffers();
         createBuffers();
@@ -184,7 +178,7 @@ namespace lsp
     void comp_delay_mono::createBuffers()
     {
         vDelay.init(fSampleRate, vBuffer, BUFFER_SIZE);
-        vDelay.set_ports(vIntPorts[IN], vIntPorts[OUT]);
+        vDelay.set_ports(vPorts[IN], vPorts[OUT]);
     }
 
     void comp_delay_mono::dropBuffers()
@@ -194,24 +188,24 @@ namespace lsp
 
     void comp_delay_mono::update_settings()
     {
-        float out_gain      = vIntPorts[OUT_GAIN]->getValue();
-        bool bypass         = vIntPorts[BYPASS]->getValue() >= 0.5;
+        float out_gain      = vPorts[OUT_GAIN]->getValue();
+        bool bypass         = vPorts[BYPASS]->getValue() >= 0.5;
 
         vDelay.set_bypass(bypass);
 
-        vDelay.set_mode(vIntPorts[MODE]->getValue());
-        vDelay.set_samples(vIntPorts[SAMPLES]->getValue());
-        vDelay.set_time(vIntPorts[TIME]->getValue());
-        vDelay.set_distance(vIntPorts[METERS]->getValue() +( vIntPorts[CENTIMETERS]->getValue() * 0.01));
-        vDelay.set_temperature(vIntPorts[TEMPERATURE]->getValue());
-        vDelay.set_dry(vIntPorts[DRY]->getValue() * out_gain);
-        vDelay.set_wet(vIntPorts[WET]->getValue() * out_gain);
+        vDelay.set_mode(vPorts[MODE]->getValue());
+        vDelay.set_samples(vPorts[SAMPLES]->getValue());
+        vDelay.set_time(vPorts[TIME]->getValue());
+        vDelay.set_distance(vPorts[METERS]->getValue() + (vPorts[CENTIMETERS]->getValue() * 0.01));
+        vDelay.set_temperature(vPorts[TEMPERATURE]->getValue());
+        vDelay.set_dry(vPorts[DRY]->getValue() * out_gain);
+        vDelay.set_wet(vPorts[WET]->getValue() * out_gain);
 
         vDelay.configure();
 
-        vIntPorts[DEL_TIME]     -> setValue(vDelay.get_time());
-        vIntPorts[DEL_SAMPLES]  -> setValue(vDelay.get_samples());
-        vIntPorts[DEL_DISTANCE] -> setValue(vDelay.get_distance());
+        vPorts[DEL_TIME]        -> setValue(vDelay.get_time());
+        vPorts[DEL_SAMPLES]     -> setValue(vDelay.get_samples());
+        vPorts[DEL_DISTANCE]    -> setValue(vDelay.get_distance());
 
         // TEST for latency compensation
 //        set_latency(vDelay.get_samples());
@@ -234,10 +228,10 @@ namespace lsp
     void comp_delay_stereo::createBuffers()
     {
         vDelay[0].init(fSampleRate, vBuffer, BUFFER_SIZE);
-        vDelay[0].set_ports(vIntPorts[IN_L], vIntPorts[OUT_L]);
+        vDelay[0].set_ports(vPorts[IN_L], vPorts[OUT_L]);
 
         vDelay[1].init(fSampleRate, vBuffer, BUFFER_SIZE);
-        vDelay[1].set_ports(vIntPorts[IN_R], vIntPorts[OUT_R]);
+        vDelay[1].set_ports(vPorts[IN_R], vPorts[OUT_R]);
     }
 
     void comp_delay_stereo::dropBuffers()
@@ -248,8 +242,8 @@ namespace lsp
 
     void comp_delay_stereo::update_settings()
     {
-        float out_gain      = vIntPorts[OUT_GAIN]->getValue();
-        bool bypass         = vIntPorts[BYPASS]->getValue() >= 0.5;
+        float out_gain      = vPorts[OUT_GAIN]->getValue();
+        bool bypass         = vPorts[BYPASS]->getValue() >= 0.5;
 
         for (size_t i=0; i<2; ++i)
         {
@@ -257,20 +251,20 @@ namespace lsp
 
             d   -> set_bypass(bypass);
 
-            d   -> set_mode(vIntPorts[MODE]->getValue());
-            d   -> set_samples(vIntPorts[SAMPLES]->getValue());
-            d   -> set_time(vIntPorts[TIME]->getValue());
-            d   -> set_distance(vIntPorts[METERS]->getValue() + (vIntPorts[CENTIMETERS]->getValue() * 0.01));
-            d   -> set_temperature(vIntPorts[TEMPERATURE]->getValue());
-            d   -> set_dry(vIntPorts[DRY]->getValue() * out_gain);
-            d   -> set_wet(vIntPorts[WET]->getValue() * out_gain);
+            d   -> set_mode(vPorts[MODE]->getValue());
+            d   -> set_samples(vPorts[SAMPLES]->getValue());
+            d   -> set_time(vPorts[TIME]->getValue());
+            d   -> set_distance(vPorts[METERS]->getValue() + (vPorts[CENTIMETERS]->getValue() * 0.01));
+            d   -> set_temperature(vPorts[TEMPERATURE]->getValue());
+            d   -> set_dry(vPorts[DRY]->getValue() * out_gain);
+            d   -> set_wet(vPorts[WET]->getValue() * out_gain);
 
             d   -> configure();
         }
 
-        vIntPorts[DEL_TIME]     -> setValue(vDelay[0].get_time());
-        vIntPorts[DEL_SAMPLES]  -> setValue(vDelay[0].get_samples());
-        vIntPorts[DEL_DISTANCE] -> setValue(vDelay[0].get_distance());
+        vPorts[DEL_TIME]        -> setValue(vDelay[0].get_time());
+        vPorts[DEL_SAMPLES]     -> setValue(vDelay[0].get_samples());
+        vPorts[DEL_DISTANCE]    -> setValue(vDelay[0].get_distance());
     }
 
     void comp_delay_stereo::process(size_t samples)
@@ -290,10 +284,10 @@ namespace lsp
     void comp_delay_x2_stereo::createBuffers()
     {
         vDelay[0].init(fSampleRate, vBuffer, BUFFER_SIZE);
-        vDelay[0].set_ports(vIntPorts[IN_L], vIntPorts[OUT_L]);
+        vDelay[0].set_ports(vPorts[IN_L], vPorts[OUT_L]);
 
         vDelay[1].init(fSampleRate, vBuffer, BUFFER_SIZE);
-        vDelay[1].set_ports(vIntPorts[IN_R], vIntPorts[OUT_R]);
+        vDelay[1].set_ports(vPorts[IN_R], vPorts[OUT_R]);
     }
 
     void comp_delay_x2_stereo::dropBuffers()
@@ -304,38 +298,38 @@ namespace lsp
 
     void comp_delay_x2_stereo::update_settings()
     {
-        float out_gain      = vIntPorts[OUT_GAIN]->getValue();
-        bool bypass         = vIntPorts[BYPASS]->getValue() >= 0.5;
+        float out_gain      = vPorts[OUT_GAIN]->getValue();
+        bool bypass         = vPorts[BYPASS]->getValue() >= 0.5;
 
         vDelay[0].set_bypass( bypass );
         vDelay[1].set_bypass( bypass );
 
-        vDelay[0].set_mode(vIntPorts[MODE_L]->getValue());
-        vDelay[0].set_samples(vIntPorts[SAMPLES_L]->getValue());
-        vDelay[0].set_time(vIntPorts[TIME_L]->getValue());
-        vDelay[0].set_distance(vIntPorts[METERS_L]->getValue() + (vIntPorts[CENTIMETERS_L]->getValue() * 0.01));
-        vDelay[0].set_temperature(vIntPorts[TEMPERATURE_L]->getValue());
-        vDelay[0].set_dry(vIntPorts[DRY_L]->getValue() * out_gain);
-        vDelay[0].set_wet(vIntPorts[WET_L]->getValue() * out_gain);
+        vDelay[0].set_mode(vPorts[MODE_L]->getValue());
+        vDelay[0].set_samples(vPorts[SAMPLES_L]->getValue());
+        vDelay[0].set_time(vPorts[TIME_L]->getValue());
+        vDelay[0].set_distance(vPorts[METERS_L]->getValue() + (vPorts[CENTIMETERS_L]->getValue() * 0.01));
+        vDelay[0].set_temperature(vPorts[TEMPERATURE_L]->getValue());
+        vDelay[0].set_dry(vPorts[DRY_L]->getValue() * out_gain);
+        vDelay[0].set_wet(vPorts[WET_L]->getValue() * out_gain);
 
-        vDelay[1].set_mode(vIntPorts[MODE_R]->getValue());
-        vDelay[1].set_samples(vIntPorts[SAMPLES_R]->getValue());
-        vDelay[1].set_time(vIntPorts[TIME_R]->getValue());
-        vDelay[1].set_distance(vIntPorts[METERS_R]->getValue() + (vIntPorts[CENTIMETERS_R]->getValue() * 0.01));
-        vDelay[1].set_temperature(vIntPorts[TEMPERATURE_R]->getValue());
-        vDelay[1].set_dry(vIntPorts[DRY_R]->getValue() * out_gain);
-        vDelay[1].set_wet(vIntPorts[WET_R]->getValue() * out_gain);
+        vDelay[1].set_mode(vPorts[MODE_R]->getValue());
+        vDelay[1].set_samples(vPorts[SAMPLES_R]->getValue());
+        vDelay[1].set_time(vPorts[TIME_R]->getValue());
+        vDelay[1].set_distance(vPorts[METERS_R]->getValue() + (vPorts[CENTIMETERS_R]->getValue() * 0.01));
+        vDelay[1].set_temperature(vPorts[TEMPERATURE_R]->getValue());
+        vDelay[1].set_dry(vPorts[DRY_R]->getValue() * out_gain);
+        vDelay[1].set_wet(vPorts[WET_R]->getValue() * out_gain);
 
         vDelay[0].configure();
         vDelay[1].configure();
 
-        vIntPorts[DEL_TIME_L]       -> setValue(vDelay[0].get_time());
-        vIntPorts[DEL_SAMPLES_L]    -> setValue(vDelay[0].get_samples());
-        vIntPorts[DEL_DISTANCE_L]   -> setValue(vDelay[0].get_distance());
+        vPorts[DEL_TIME_L]      -> setValue(vDelay[0].get_time());
+        vPorts[DEL_SAMPLES_L]   -> setValue(vDelay[0].get_samples());
+        vPorts[DEL_DISTANCE_L]  -> setValue(vDelay[0].get_distance());
 
-        vIntPorts[DEL_TIME_R]       -> setValue(vDelay[1].get_time());
-        vIntPorts[DEL_SAMPLES_R]    -> setValue(vDelay[1].get_samples());
-        vIntPorts[DEL_DISTANCE_R]   -> setValue(vDelay[1].get_distance());
+        vPorts[DEL_TIME_R]      -> setValue(vDelay[1].get_time());
+        vPorts[DEL_SAMPLES_R]   -> setValue(vDelay[1].get_samples());
+        vPorts[DEL_DISTANCE_R]  -> setValue(vDelay[1].get_distance());
     }
 
     void comp_delay_x2_stereo::process(size_t samples)

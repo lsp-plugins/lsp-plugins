@@ -30,8 +30,8 @@ namespace lsp
 
     typedef struct LV2Extensions
     {
-        private:
-            ssize_t                 nRefs;
+//        private:
+//            ssize_t                 nRefs;
 
         public:
             LV2_Atom_Forge          forge;
@@ -60,7 +60,7 @@ namespace lsp
             inline LV2Extensions(const LV2_Feature* const* feat, const char *uri)
 #endif /* LSP_UI_SIDE */
             {
-                nRefs               = 1;
+//                nRefs               = 1;
                 map                 = NULL;
                 unmap               = NULL;
 
@@ -100,12 +100,12 @@ namespace lsp
                 lsp_trace("destroy");
             }
 
-            inline void bind()      { nRefs ++; };
-            inline void unbind()
-            {
-                if ((--nRefs) <= 0)
-                    delete this;
-            }
+//            inline void bind()      { nRefs ++; };
+//            inline void unbind()
+//            {
+//                if ((--nRefs) <= 0)
+//                    delete this;
+//            }
 
         public:
             inline bool atom_supported() const
@@ -293,8 +293,10 @@ namespace lsp
                 bufs               += buf_items;
             }
 
-            uridItems       = ext->map_uri("%s/Mesh#items", LSP_TYPE_URI(lv2));
-            uridDimensions  = ext->map_uri("%s/Mesh#dimensions", LSP_TYPE_URI(lv2));
+            pMesh->nBuffers     = 0;
+            pMesh->nItems       = 0;
+            uridItems           = ext->map_uri("%s/Mesh#items", LSP_TYPE_URI(lv2));
+            uridDimensions      = ext->map_uri("%s/Mesh#dimensions", LSP_TYPE_URI(lv2));
 
             lsp_trace("Initialized");
         }

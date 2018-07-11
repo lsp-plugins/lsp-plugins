@@ -1,12 +1,12 @@
 /*
- * LADSPA.h
+ * ports.h
  *
  *  Created on: 23 окт. 2015 г.
  *      Author: sadko
  */
 
-#ifndef CONTAINER_LADSPA_H_
-#define CONTAINER_LADSPA_H_
+#ifndef CONTAINER_LADSPA_PORTS_H_
+#define CONTAINER_LADSPA_PORTS_H_
 
 namespace lsp
 {
@@ -62,26 +62,16 @@ namespace lsp
         public:
             virtual float getValue() { return fValue; }
 
-            virtual void pre_process()
+            virtual bool pre_process()
             {
                 if (pData == NULL)
-                    return;
-                fValue      = *pData;
-                if (pMetadata->flags & F_UPPER)
-                {
-                    if (fValue > pMetadata->max)
-                        fValue = pMetadata->max;
-                }
-                if (pMetadata->flags & F_LOWER)
-                {
-                    if (fValue < pMetadata->min)
-                        fValue = pMetadata->min;
-                }
+                    return false;
+
+                fValue      = limit_value(pMetadata, *pData);
+                return fPrev != fValue;
             }
 
-            virtual bool changed() { return fValue != fPrev; };
-
-            virtual void update() { fPrev = fValue; };
+            virtual void post_process() { fPrev = fValue; };
     };
 
     class LADSPAOutputPort: public LADSPAPort
@@ -108,26 +98,19 @@ namespace lsp
 
             virtual void setValue(float value)
             {
-                if (pMetadata->flags & F_UPPER)
-                {
-                    if (value > pMetadata->max)
-                        value = pMetadata->max;
-                }
-                if (pMetadata->flags & F_LOWER)
-                {
-                    if (value < pMetadata->min)
-                        value = pMetadata->min;
-                }
-                fValue      = value;
-
-                if (pData != NULL)
-                    *pData      = value;
+                fValue      = limit_value(pMetadata, value);
             };
 
             virtual void bind(void *data) { pData = reinterpret_cast<float *>(data); };
+
+            virtual void post_process()
+            {
+                if (pData != NULL)
+                    *pData      = fValue;
+            }
     };
 
 }
 
 
-#endif /* CONTAINER_LADSPA_H_ */
+#endif /* CONTAINER_LADSPA_PORTS_H_ */

@@ -34,7 +34,8 @@ For more information, please read LICENSE.txt.
 ==== SYSTEM REQUIREMENTS ====
 
 LSP plugins are developed to support both LADSPA and LV2 formats and
-at least i586 and x86_64 architectures.
+at least i586 and x86_64 architectures. The LinuxVST format has only
+partial support at this moment (no user interface).
 
 The LADSPA distribution requirements:
   * glibc >= 2.19.

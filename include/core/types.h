@@ -17,16 +17,6 @@
 
 #define __ASM_EMIT(code)                    code "\n\t"
 
-// Some physical constants
-#define MAX_SAMPLE_RATE                     192000              /* Maximum supported sample rate [samples / s]      */
-#define DECIBEL_INF_THRESH                  1.19209289551e-40   /* Float value that is equal -INF dB                */
-#define AIR_ADIABATIC_INDEX                 1.4                 /* Adiabatic index for the Air                      */
-#define AIR_MOLAR_MASS                      28.98               /* Molar mass of the air [g/mol]                    */
-#define GAS_CONSTANT                        8.3144598           /* Gas constant [ j/(mol * K) }                     */
-#define TEMP_ABS_ZERO                       -273.15             /* Temperature of the absolute zero [ C ]           */
-#define MAX_SOUND_SPEED                     500                 /* Maximum speed of the sound [ m/s ]               */
-#define CMP_TOLERANCE                       1e-5                /* Float comparison tolerance                       */
-
 // Special symbols
 #define STR_A_UMLAUT_SMALL                  "\x84"
 #define STR_A_UMLAUT_LARGE                  "\x8e"
@@ -48,5 +38,7 @@ namespace lsp
         float          *pvData[];
     } mesh_t;
 }
+
+#include <core/units.h>
 
 #endif /* TYPES_H_ */

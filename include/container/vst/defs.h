@@ -31,7 +31,7 @@
 #include <pluginterfaces/vst2.x/vstfxstore.h>
 
 // This routine should be defined in the linked library
-typedef AEffect * (* vst_create_instance_t) (VstInt32 uid, audioMasterCallback callback);
+typedef AEffect * (* vst_create_instance_t) (const char *bundle_path, VstInt32 uid, audioMasterCallback callback);
 
 #define VST_CREATE_INSTANCE_NAME        vst_create_instance
 #define VST_CREATE_INSTANCE_STRNAME     "vst_create_instance"
@@ -40,6 +40,8 @@ typedef AEffect * (* vst_create_instance_t) (VstInt32 uid, audioMasterCallback c
 
 namespace lsp
 {
+    typedef unsigned long               vst_serial_t;
+
     inline VstInt32 vst_cconst(const char *vst_id)
     {
         if (vst_id == NULL)

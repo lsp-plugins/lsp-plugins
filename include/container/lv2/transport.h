@@ -41,7 +41,7 @@ namespace lsp
             LV2AtomTransportInput(const port_t *meta, LV2AtomTransport *ext);
             virtual ~LV2AtomTransportInput();
 
-            virtual void pre_process();
+            virtual bool pre_process();
     };
 
     class LV2AtomTransportOutput: public LV2AtomPort
@@ -60,10 +60,9 @@ namespace lsp
     {
         protected:
             LV2Extensions          *pExt;
-            plugin_t                 *pPlugin;
+            plugin_t               *pPlugin;
             LV2AtomPort            *pIn;
             LV2AtomPort            *pOut;
-            ssize_t                 nRefs;
             ssize_t                 nTriggered;
 
             cvector<LV2AtomVirtualPort> vPorts;
@@ -71,10 +70,8 @@ namespace lsp
         public:
             LV2AtomTransport(const port_t *meta, LV2Extensions *ext, plugin_t *plugin)
             {
-                ext         ->bind();
                 pExt        = ext;
                 pPlugin     = plugin;
-                nRefs       = 3;
                 nTriggered  = 0;
 
                 pIn         = new LV2AtomTransportInput(&meta[0], this);
@@ -84,31 +81,28 @@ namespace lsp
             ~LV2AtomTransport()
             {
                 lsp_trace("destroy");
-                nRefs       = 0;
                 nTriggered  = 0;
-
-                if (pExt != NULL)
-                {
-                    pExt        ->unbind();
-                    pExt        = NULL;
-                }
+                pExt        = NULL;
 
                 vPorts.clear();
+
+                if (pOut != NULL)
+                {
+                    delete pOut;
+                    pOut    = NULL;
+                }
+
+                if (pIn != NULL)
+                {
+                    delete pIn;
+                    pIn     = NULL;
+                }
             };
 
         public:
-            bool bind(LV2AtomVirtualPort *port)
+            inline void add_port(LV2AtomVirtualPort *port)
             {
-                if (!vPorts.add(port))
-                    return false;
-                nRefs++;
-                return true;
-            }
-
-            void unbind()
-            {
-                if ((--nRefs) <= 0)
-                    delete this;
+                vPorts.add(port);
             }
 
             inline void trigger_on() { nTriggered++; };
@@ -147,21 +141,18 @@ namespace lsp
     LV2AtomTransportInput::~LV2AtomTransportInput()
     {
         lsp_trace("destroy");
-        if (pTr != NULL)
-        {
-            pTr->unbind();
             pTr = NULL;
-        }
+//        }
     }
 
     LV2AtomTransportOutput::~LV2AtomTransportOutput()
     {
         lsp_trace("destroy");
-        if (pTr != NULL)
-        {
-            pTr->unbind();
+//        if (pTr != NULL)
+//        {
+//            pTr->unbind();
             pTr = NULL;
-        }
+//        }
     }
 
     LV2AtomVirtualPort::LV2AtomVirtualPort(const port_t *meta, LV2AtomTransport *tr, LV2_URID type):
@@ -169,16 +160,16 @@ namespace lsp
     {
         pTr         = tr;
         uridType    = type;
-        tr->bind(this);
+        tr->add_port(this);
     }
 
     LV2AtomVirtualPort::~LV2AtomVirtualPort()
     {
-        if (pTr != NULL)
-        {
-            pTr->unbind();
+//        if (pTr != NULL)
+//        {
+//            pTr->unbind();
             pTr     = NULL;
-        }
+//        }
     }
 
     LV2AtomTransportInput::LV2AtomTransportInput(const port_t *meta, LV2AtomTransport *tr):
@@ -193,10 +184,10 @@ namespace lsp
         pTr         = tr;
     }
 
-    void LV2AtomTransportInput::pre_process()
+    bool LV2AtomTransportInput::pre_process()
     {
         if (pSequence == NULL)
-            return;
+            return false;
 
         const LV2_Atom_Event* ev = lv2_atom_sequence_begin(&pSequence->body);
 
@@ -224,6 +215,8 @@ namespace lsp
             }
             ev = lv2_atom_sequence_next(ev);
         }
+
+        return false;
     }
 
     void LV2AtomTransportOutput::post_process()

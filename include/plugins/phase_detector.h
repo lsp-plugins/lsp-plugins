@@ -59,7 +59,7 @@ namespace lsp
         public:
             virtual void destroy();
             virtual void update_settings();
-            virtual void update_sample_rate(int sr);
+            virtual void update_sample_rate(long sr);
             virtual void process(size_t samples);
     };
 

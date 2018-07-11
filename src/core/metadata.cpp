@@ -129,6 +129,21 @@ namespace lsp
         return size;
     }
 
+    float limit_value(const port_t *port, float value)
+    {
+        if (port->flags & F_UPPER)
+        {
+            if (value > port->max)
+                return port->max;
+        }
+        if (port->flags & F_LOWER)
+        {
+            if (value < port->min)
+                value = port->min;
+        }
+        return value;
+    }
+
     void format_float(char *buf, size_t len, const port_t *meta, float value)
     {
         if (value < 0.0f)
