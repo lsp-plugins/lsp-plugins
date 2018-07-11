@@ -78,6 +78,9 @@ namespace lsp
             static bool append_buf(buffer_t &buf, char *s);
             static bool append_buf(buffer_t &buf, char *s, size_t count);
 
+        protected:
+            virtual void    draw(cairo_t *cr);
+
         public:
             Gtk2Indicator(plugin_ui *ui);
             virtual ~Gtk2Indicator();
@@ -87,7 +90,6 @@ namespace lsp
 
             virtual void end();
 
-            virtual void render();
 
             virtual void resize(size_t &w, size_t &h);
 

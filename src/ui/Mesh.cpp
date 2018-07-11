@@ -7,6 +7,7 @@
 
 #include <ui/ui.h>
 #include <ui/graphics.h>
+#include <core/dsp.h>
 
 #include <math.h>
 
@@ -22,6 +23,8 @@ namespace lsp
         nWidth      = 1;
         nCenter     = 0;
         bSmooth     = false;
+        vBuffer     = NULL;
+        nBufSize    = 0;
 
         sColor.init(this, C_GRAPH_MESH, A_COLOR, -1, -1, -1, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
     }
@@ -33,8 +36,15 @@ namespace lsp
             delete [] vBasis;
             vBasis      = NULL;
         }
+        if (vBuffer != NULL)
+        {
+            delete [] vBuffer;
+            vBuffer     = NULL;
+        }
+
         nBasis      = 0;
         nCapacity   = 0;
+        nBufSize    = 0;
     }
 
     void Mesh::draw(IGraphCanvas *cv)
@@ -71,21 +81,30 @@ namespace lsp
         float cx = 0.0f, cy = 0.0f;
         cv->center(nCenter, &cx, &cy);
 
+        // Ensure that we have enough buffer size
+        size_t vec_size     = ALIGN_SIZE(mesh->nItems, DEFAULT_ALIGN);
+        size_t buf_size     = vec_size * 2;
+
+        if (vec_size > nBufSize)
+        {
+            if (vBuffer != NULL)
+            {
+                delete [] vBuffer;
+                vBuffer     = NULL;
+                nBufSize    = 0;
+            }
+
+            vBuffer     = new float[buf_size];
+            if (vBuffer == NULL)
+                return;
+            nBufSize    = buf_size;
+        }
+
         // Initialize dimensions as zeros
-        float *x_vec        = new float[mesh->nItems];
-        if (x_vec == NULL)
-            return;
-        float *y_vec        = new float[mesh->nItems];
-        if (y_vec == NULL)
-        {
-            delete [] x_vec;
-            return;
-        }
-        for (size_t i=0; i<mesh->nItems; ++i)
-        {
-            x_vec[i]    = cx;
-            y_vec[i]    = cy;
-        }
+        float *x_vec        = vBuffer;
+        float *y_vec        = &vBuffer[vec_size];
+        dsp::fill(x_vec, cx, mesh->nItems);
+        dsp::fill(y_vec, cy, mesh->nItems);
 
         // Calculate dot coordinates
         if (nBasis > 0)
@@ -95,19 +114,11 @@ namespace lsp
                 // Try to get new axis
                 Axis *axis  = pGraph->basisAxis(vBasis[i]);
                 if (axis == NULL)
-                {
-                    delete [] x_vec;
-                    delete [] y_vec;
                     return;
-                }
 
                 // Try to apply axis
                 if (!axis->apply(cv, x_vec, y_vec, mesh->pvData[i], mesh->nItems))
-                {
-                    delete [] x_vec;
-                    delete [] y_vec;
                     return;
-                }
             }
         }
         else
@@ -121,11 +132,7 @@ namespace lsp
 
                 // Try to apply axis
                 if (!axis->apply(cv, x_vec, y_vec, mesh->pvData[i], mesh->nItems))
-                {
-                    delete [] x_vec;
-                    delete [] y_vec;
                     return;
-                }
             }
         }
 
@@ -145,9 +152,6 @@ namespace lsp
             cv->draw_poly(x_vec, y_vec, mesh->nItems, line, sColor.color());
         }
         cv->set_anti_aliasing(aa);
-
-        delete [] x_vec;
-        delete [] y_vec;
     }
 
     void Mesh::set(widget_attribute_t att, const char *value)

@@ -64,6 +64,11 @@
 				
 				<marker id="s_t" color="yellow" basis="0" parallel="1" />
 				<marker id="s_v" color="yellow" basis="1" parallel="0" />
+				
+				<text text="+phase" coord="0;1.05" halign="1" valign="-1" color="green" />
+				<text text="-phase" coord="0;-1.05" halign="1" valign="1" color="red" />
+				
+				<text text="time" coord="0;0" halign="-1" valign="-1" color="white" />
 			</graph>
 			<label text="CORRELATION GRAPH" />
 		</vbox>

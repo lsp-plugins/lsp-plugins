@@ -98,4 +98,8 @@ namespace lsp
     {
     }
 
+    void IWidget::draw()
+    {
+    }
+
 } /* namespace lsp */

@@ -386,15 +386,17 @@ namespace lsp
             pPlugin->deactivate_ui();
 
         // Bind audio ports
-        for (size_t i=0; i < vInputs.size(); ++i)
+        size_t n_inputs = vInputs.size();
+        for (size_t i=0; i < n_inputs; ++i)
         {
-            VSTAudioPort *p = vInputs[i];
+            VSTAudioPort *p = vInputs.at(i);
             if (p != NULL)
                 p->bind(inputs[i]);
         }
-        for (size_t i=0; i < vOutputs.size(); ++i)
+        size_t n_outputs = vOutputs.size();
+        for (size_t i=0; i < n_outputs; ++i)
         {
-            VSTAudioPort *p = vOutputs[i];
+            VSTAudioPort *p = vOutputs.at(i);
             if (p != NULL)
                 p->bind(outputs[i]);
         }
@@ -402,10 +404,11 @@ namespace lsp
         // Process ALL ports for changes
         bool update = false;
 
-        for (size_t i=0; i<vPorts.size(); ++i)
+        size_t n_ports = vPorts.size();
+        for (size_t i=0; i<n_ports; ++i)
         {
             // Get port
-            VSTPort *port = vPorts[i];
+            VSTPort *port = vPorts.at(i);
             if (port == NULL)
                 continue;
 
@@ -431,9 +434,9 @@ namespace lsp
         pEffect->initialDelay   = VstInt32(pPlugin->get_latency());
 
         // Post-process ALL ports
-        for (size_t i=0; i<vPorts.size(); ++i)
+        for (size_t i=0; i<n_ports; ++i)
         {
-            VSTPort *port = vPorts[i];
+            VSTPort *port = vPorts.at(i);
             if (port != NULL)
                 port->post_process(samples);
         }

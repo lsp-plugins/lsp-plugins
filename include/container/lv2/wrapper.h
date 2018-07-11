@@ -675,10 +675,11 @@ namespace lsp
         receive_atoms(samples);
 
         // Pre-rocess regular ports
-        for (size_t i=0; i<vAllPorts.size(); ++i)
+        size_t n_all_ports = vAllPorts.size();
+        for (size_t i=0; i<n_all_ports; ++i)
         {
             // Get port
-            LV2Port *port = vAllPorts[i];
+            LV2Port *port = vAllPorts.at(i);
             if (port == NULL)
                 continue;
 
@@ -704,9 +705,9 @@ namespace lsp
         transmit_atoms(samples);
 
         // Post-process regular ports for changes
-        for (size_t i=0; i<vAllPorts.size(); ++i)
+        for (size_t i=0; i<n_all_ports; ++i)
         {
-            LV2Port *port = vAllPorts[i];
+            LV2Port *port = vAllPorts.at(i);
             if (port != NULL)
                 port->post_process(samples);
         }

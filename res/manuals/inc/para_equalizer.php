@@ -17,11 +17,11 @@ function equalizer_doc($filters, $mode)
 	</li>
 	<li><b>Filters</b> - filter panel selection</li>
 	<li><b>Mode</b> - equalizer working mode, enables the following mode for all filters:</li>
-	<ol>
+	<ul>
 		<li><b>IIR</b> - Infinite Impulse Response filters, nonlinear minimal phase.</li>
 		<li><b>FIR</b> - Finite Impulse Response filters with linear phase, finite approximation of equalizer's impulse response.</li>
 		<li><b>FFT</b> - Fast Fourier Transform approximation of the frequency chart, linear phase.</li>
-	</ol>
+	</ul>
 <?php
 		if ($mode == 'ms')
 		{
@@ -54,11 +54,11 @@ function equalizer_doc($filters, $mode)
 <p><b>'Filters' section:</b></p>
 <ul>
 	<li><b>Filter</b> - sets up the mode of the selected filter. Three filter classes available in <b>BT</b> (Bilinear transform) and <b>MT</b> (Matched Z-Transform) mappings:</li>
-	<ol>
+	<ul>
 		<li><b>RLC</b> - Very smooth filters based on similar cascades of RLC contours.</li>
 		<li><b>BWC</b> - Butterworth-Chebyshev-type-1 based filters.</li>
 		<li><b>LRX</b> - Linkwitz-Riley based filters.</li>
-	</ol>
+	</ul>
 	<li><b>Slope</b> - the slope of the filter characteristics.</li>
 	<li><b>S</b> - the soloing button, allows to inspect selected filters.</li>
 	<li><b>M</b> - the mute button, allows to mute selected filters.</li>

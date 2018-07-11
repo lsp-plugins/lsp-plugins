@@ -52,12 +52,7 @@ namespace lsp
         switch (att)
         {
             case A_ID:
-                pPort       = pUI->port(value);
-                if (pPort != NULL)
-                {
-                    pPort->bind(this);
-                    apply_metadata_params(pPort->metadata());
-                }
+                BIND_PORT(pUI, pPort, value);
                 break;
             case A_COLOR:
                 sColor.set(pUI->theme(), value);
@@ -106,6 +101,10 @@ namespace lsp
     {
         if (pWidget == NULL)
             return;
+
+        if (pPort != NULL)
+            apply_metadata_params(pPort->metadata());
+
         hChangeHandler     = g_signal_connect(pWidget, "changed", G_CALLBACK(value_changed), gpointer(this));
         lsp_trace("Added change handler %x", int(hChangeHandler));
     }
@@ -184,7 +183,7 @@ namespace lsp
 
     void Gtk2ComboBox::resize(ssize_t &w, ssize_t &h)
     {
-        cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24, 1, 1);
+        cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
         cairo_t *cr = cairo_create(surface);
 
         ssize_t width = 16 + nWidth;

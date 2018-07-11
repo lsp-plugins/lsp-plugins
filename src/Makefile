@@ -30,6 +30,7 @@ $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@echo "Generating XML resources"
 	@mkdir -p $(OBJDIR)/res
 	@$(UTL_RESGEN) $(BASEDIR)/res/ui $(OBJDIR)/res/xml_resource.cpp
+	@-rm gmon.out &>/dev/null
 	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(OBJDIR)/res/xml_resource.cpp -o $(OBJ_RES_CORE)
 
 # Target dependencies

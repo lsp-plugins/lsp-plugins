@@ -1484,8 +1484,8 @@ namespace lsp
 
             __asm__ __volatile__
             (
-                __ASM_EMIT("movss %0, %%xmm4")
-                : : "x" (k)
+                __ASM_EMIT("movss %[k], %%xmm4")
+                : : [k] "x" (k)
                 : "%xmm4"
             );
 

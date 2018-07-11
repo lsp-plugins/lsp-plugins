@@ -5,13 +5,14 @@
  *      Author: sadko
  */
 
-#ifndef CORE_X86_AVX256_VECTOR_H_
-#define CORE_X86_AVX256_VECTOR_H_
+#ifndef CORE_X86_AVX_VECTOR_H_
+#define CORE_X86_AVX_VECTOR_H_
 
 namespace lsp
 {
-    namespace avx256
+    namespace avx
     {
+#if 0
         static void multiply(float *dst, const float *src1, const float *src2, size_t count)
         {
             if (count == 0)
@@ -45,8 +46,8 @@ namespace lsp
                   "%xmm0", "%xmm1"
             );
 
-            size_t regs     = count / AVX256_MULTIPLE;
-            count          %= AVX256_MULTIPLE;
+            size_t regs     = count / AVX_MULTIPLE;
+            count          %= AVX_MULTIPLE;
 
             if (regs > 0)
             {
@@ -72,7 +73,7 @@ namespace lsp
                     : : [src1] "r" (src1), [src2] "r" (src2)
                 );
 
-                #define avx256_multiply(l_s1, l_s2)   \
+                #define avx_multiply(l_s1, l_s2)   \
                 { \
                     if (blocks > 0) \
                     { \
@@ -168,22 +169,22 @@ namespace lsp
                     } \
                 }
 
-                if (avx256_aligned(src1))
+                if (avx_aligned(src1))
                 {
-                    if (avx256_aligned(src2))
-                        avx256_multiply("vmovaps", "vmovaps")
+                    if (avx_aligned(src2))
+                        avx_multiply("vmovaps", "vmovaps")
                     else
-                        avx256_multiply("vmovaps", "vmovups")
+                        avx_multiply("vmovaps", "vmovups")
                 }
                 else
                 {
-                    if (avx256_aligned(src2))
-                        avx256_multiply("vmovups", "vmovaps")
+                    if (avx_aligned(src2))
+                        avx_multiply("vmovups", "vmovaps")
                     else
-                        avx256_multiply("vmovups", "vmovups")
+                        avx_multiply("vmovups", "vmovups")
                 }
 
-                #undef avx256_multiply
+                #undef avx_multiply
             }
 
             if (count > 0)
@@ -216,7 +217,168 @@ namespace lsp
             VZEROUPPER;
         }
     }
+#endif
 
+        void add_multiplied(float *dst, const float *src, float k, size_t count)
+        {
+            if (count == 0)
+                return;
+
+            __asm__ __volatile__
+            (
+                __ASM_EMIT("vshufps $0x00, %[k], %[k], %%xmm4")
+                : : [k] "x" (k)
+                : "%xmm4"
+            );
+
+            // Align destination
+            __asm__ __volatile__
+            (
+                __ASM_EMIT("1:")
+
+                // Check conditions
+                __ASM_EMIT("test            $0x0f, %[dst]")
+                __ASM_EMIT("jz              2f")
+
+                __ASM_EMIT("vmulss          (%[src]), %%xmm4, %%xmm0")
+                __ASM_EMIT("vaddss          (%[dst]), %%xmm0, %%xmm0")
+                __ASM_EMIT("vmovss          %%xmm0, (%[dst])")
+                __ASM_EMIT("add             $0x4, %[src]")
+                __ASM_EMIT("add             $0x4, %[dst]")
+                __ASM_EMIT("dec             %[count]")
+                __ASM_EMIT("jnz             1b")
+
+                // 4 operations per time
+                __ASM_EMIT("2:")
+                __ASM_EMIT("test            $0x1f, %[dst]")
+                __ASM_EMIT("jz              3f")
+                __ASM_EMIT("cmp             $4, %[count]")
+                __ASM_EMIT("jb              3f")
+
+                __ASM_EMIT("vmovups         (%[src]), %%xmm0")
+                __ASM_EMIT("vmulps          %%xmm0, %%xmm4, %%xmm0")
+                __ASM_EMIT("vaddps          (%[dst]), %%xmm0, %%xmm0")
+                __ASM_EMIT("vmovaps         %%xmm0, (%[dst])")
+                __ASM_EMIT("add             $0x10, %[src]")
+                __ASM_EMIT("add             $0x10, %[dst]")
+                __ASM_EMIT("sub             $4, %[count]")
+
+                __ASM_EMIT("3:")
+
+                : [src] "+r" (src), [dst] "+r" (dst), [count] "+r" (count) :
+                : "cc", "memory",
+                  "%xmm0"
+            );
+
+            #define ADD_MULT_CORE(ld_m)   \
+                __asm__ __volatile__ \
+                ( \
+                    __ASM_EMIT("100:") \
+                    __ASM_EMIT("vinsertf128     $1, %%xmm4, %%ymm4, %%ymm4") \
+                    \
+                    __ASM_EMIT("cmp             $32, %[count]") \
+                    __ASM_EMIT("jb 200f") \
+                    \
+                    __ASM_EMIT("vmovaps         %%ymm4, %%ymm5") \
+                    __ASM_EMIT("vmovaps         %%ymm4, %%ymm6") \
+                    __ASM_EMIT("vmovaps         %%ymm5, %%ymm7") \
+                    \
+                    /* Block 4x8 loop */ \
+                    __ASM_EMIT("10:") \
+                    \
+                    __ASM_EMIT(ld_m "           0x00(%[src]), %%ymm0") \
+                    __ASM_EMIT(ld_m "           0x20(%[src]), %%ymm1") \
+                    __ASM_EMIT(ld_m "           0x40(%[src]), %%ymm2") \
+                    __ASM_EMIT(ld_m "           0x60(%[src]), %%ymm3") \
+                    \
+                    __ASM_EMIT("vmulps          %%ymm0, %%ymm4, %%ymm0") \
+                    __ASM_EMIT("vmulps          %%ymm1, %%ymm5, %%ymm1") \
+                    __ASM_EMIT("vmulps          %%ymm2, %%ymm6, %%ymm2") \
+                    __ASM_EMIT("vmulps          %%ymm3, %%ymm7, %%ymm3") \
+                    \
+                    __ASM_EMIT("vaddps          0x00(%[dst]), %%ymm0, %%ymm0") \
+                    __ASM_EMIT("vaddps          0x20(%[dst]), %%ymm1, %%ymm1") \
+                    __ASM_EMIT("vaddps          0x40(%[dst]), %%ymm2, %%ymm2") \
+                    __ASM_EMIT("vaddps          0x60(%[dst]), %%ymm3, %%ymm3") \
+                    \
+                    __ASM_EMIT("vmovaps         %%ymm0, 0x00(%[dst])") \
+                    __ASM_EMIT("vmovaps         %%ymm1, 0x20(%[dst])") \
+                    __ASM_EMIT("vmovaps         %%ymm2, 0x40(%[dst])") \
+                    __ASM_EMIT("vmovaps         %%ymm3, 0x60(%[dst])") \
+                    \
+                    __ASM_EMIT("sub $32,        %[count]") \
+                    __ASM_EMIT("add $0x80,      %[src]") \
+                    __ASM_EMIT("add $0x80,      %[dst]") \
+                    __ASM_EMIT("cmp $32,        %[count]") \
+                    __ASM_EMIT("jae             10b") \
+                    \
+                    /* Block 1x8 loop */  \
+                    __ASM_EMIT("200:") \
+                    __ASM_EMIT("cmp             $8, %[count]") \
+                    __ASM_EMIT("jb              300f") \
+                    \
+                    __ASM_EMIT("20:") \
+                    __ASM_EMIT(ld_m "           (%[src]), %%ymm0") \
+                    __ASM_EMIT("vmulps          %%ymm0, %%ymm4, %%ymm0") \
+                    __ASM_EMIT("vaddps          (%[dst]), %%ymm0, %%ymm0") \
+                    __ASM_EMIT("vmovaps         %%ymm0, (%[dst])") \
+                    __ASM_EMIT("sub             $8, %[count]") \
+                    __ASM_EMIT("add             $0x20, %[src]") \
+                    __ASM_EMIT("add             $0x20, %[dst]") \
+                    __ASM_EMIT("cmp             $8, %[count]") \
+                    __ASM_EMIT("jae             20b") \
+                    \
+                    /* Block 1x4 */ \
+                    __ASM_EMIT("300:") \
+                    __ASM_EMIT("cmp             $4, %[count]") \
+                    __ASM_EMIT("jb              400f") \
+                    __ASM_EMIT(ld_m "           (%[src]), %%xmm0") \
+                    __ASM_EMIT("vmulps          %%xmm0, %%xmm4, %%xmm0") \
+                    __ASM_EMIT("vaddps          (%[dst]), %%xmm0, %%xmm0") \
+                    __ASM_EMIT("vmovaps         %%xmm0, (%[dst])") \
+                    __ASM_EMIT("sub             $4, %[count]") \
+                    __ASM_EMIT("add             $0x10, %[src]") \
+                    __ASM_EMIT("add             $0x10, %[dst]") \
+                    \
+                    /* Blocks 1x1 */ \
+                    __ASM_EMIT("400:") \
+                    __ASM_EMIT("test            %[count], %[count]") \
+                    __ASM_EMIT("jz              500f") \
+                    \
+                    __ASM_EMIT("30:") \
+                    __ASM_EMIT("vmulss          (%[src]), %%xmm4, %%xmm0") \
+                    __ASM_EMIT("vaddss          (%[dst]), %%xmm0, %%xmm0") \
+                    __ASM_EMIT("vmovss          %%xmm0, (%[dst])") \
+                    __ASM_EMIT("add             $0x4, %[src]") \
+                    __ASM_EMIT("add             $0x4, %[dst]") \
+                    __ASM_EMIT("dec             %[count]") \
+                    __ASM_EMIT("jnz             30b") \
+                    \
+                    /* End */ \
+                    __ASM_EMIT("500:") \
+                    \
+                    : [src] "+r" (src), [dst] "+r" (dst), [count] "+r" (count) : \
+                    : "cc", "memory", \
+                      "%xmm0", "%xmm1", "%xmm2", "%xmm3", \
+                      "%xmm4", "%xmm5", "%xmm6", "%xmm7" \
+                );
+
+            if (avx_aligned(src))
+            {
+                ADD_MULT_CORE("vmovaps");
+            }
+            else
+            {
+                ADD_MULT_CORE("vmovups");
+            }
+
+            VZEROUPPER;
+
+            #undef ADD_MULT_CORE
+        }
+
+
+    }
 }
 
-#endif /* CORE_X86_AVX256_VECTOR_H_ */
+#endif /* CORE_X86_AVX_VECTOR_H_ */

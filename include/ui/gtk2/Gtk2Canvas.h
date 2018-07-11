@@ -28,7 +28,7 @@ namespace lsp
             void resize(ssize_t width, ssize_t height, ssize_t padding);
 
             inline bool valid() const { return pCR != NULL; };
-            static inline float preserve(float v);
+//            static inline float preserve(float v);
 
         public:
             void draw(cairo_t *cr, ssize_t x, ssize_t y);

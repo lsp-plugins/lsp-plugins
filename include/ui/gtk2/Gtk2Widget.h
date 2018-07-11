@@ -8,6 +8,8 @@
 #ifndef UI_GTK2_GTK2WIDGET_H_
 #define UI_GTK2_GTK2WIDGET_H_
 
+#include <core/atomic.h>
+
 namespace lsp
 {
     class Gtk2Widget : public IWidget
@@ -16,15 +18,18 @@ namespace lsp
             enum wflags_t
             {
                 F_EXPAND    = 1 << 0,
-                F_FILL      = 1 << 0
+                F_FILL      = 1 << 0,
+//                F_REDRAW    = 1 << 2
             };
 
-            size_t      nAdded;
-            size_t      nWFlags;
-            GtkWidget  *pWidget;
+            size_t              nAdded;
+            size_t              nWFlags;
+            atomic_t            lkWRedraw;
+            GtkWidget          *pWidget;
 
         protected:
-            void update_gtk2_visibility();
+            void                update_gtk2_visibility();
+            void                allowRedraw();
 
         public:
             Gtk2Widget(plugin_ui *ui, widget_t w_class);
@@ -43,6 +48,10 @@ namespace lsp
             virtual void hide();
 
             virtual void show();
+
+            virtual void draw();
+
+            virtual void markRedraw();
 
         public:
             static Gtk2Widget *cast(IWidget *widget);

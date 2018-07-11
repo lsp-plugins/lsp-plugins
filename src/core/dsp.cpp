@@ -23,15 +23,20 @@ namespace lsp
     }
 
     #ifdef ARCH_X86
-        namespace sse
+        namespace x86
         {
-            extern void dsp_init();
+            extern void dsp_init(dsp_options_t options);
         }
 
-//        namespace avx256
-//        {
-//            void dsp_init();
-//        }
+        namespace sse
+        {
+            extern void dsp_init(dsp_options_t options);
+        }
+
+        namespace avx
+        {
+            extern void dsp_init(dsp_options_t options);
+        }
     #endif /* ARCH_X86 */
 }
 
@@ -41,6 +46,8 @@ namespace lsp
     namespace dsp
     {
         void    (* copy)(float *dst, const float *src, size_t count) = NULL;
+        void    (* copy_saturated)(float *dst, const float *src, size_t count) = NULL;
+        void    (* saturate)(float *dst, size_t count) = NULL;
         void    (* move)(float *dst, const float *src, size_t count) = NULL;
         void    (* fill)(float *dst, float value, size_t count) = NULL;
         void    (* fill_zero)(float *dst, size_t count) = NULL;
@@ -89,11 +96,172 @@ namespace lsp
         float   (* vec4_scalar_mul)(const float *a, const float *b) = NULL;
         float   (* vec4_push)(float *v, float value) = NULL;
         float   (* vec4_unshift)(float *v, float value) = NULL;
-        void    (*vec4_zero)(float *v) = NULL;
+        void    (* vec4_zero)(float *v) = NULL;
+
+        void    (* axis_apply_log)(float *x, float *y, const float *v, float min, float norm_x, float norm_y, size_t count) = NULL;
     }
 
     namespace dsp
     {
+        #ifdef ARCH_X86
+        dsp_options_t do_intel_cpuid(size_t family_id, size_t max_cpuid, size_t max_ext_cpuid)
+        {
+            cpuid_info_t info;
+            dsp_options_t options = 0;
+
+            // FUNCTION 1
+            if (max_cpuid >= 1)
+            {
+                cpuid(1, 0, &info);
+
+                if (info.edx & X86_CPUID1_INTEL_EDX_FPU)
+                    options     |= DSP_OPTION_FPU;
+                if (info.edx & X86_CPUID1_INTEL_EDX_CMOV)
+                    options     |= DSP_OPTION_CMOV;
+                if (info.edx & X86_CPUID1_INTEL_EDX_MMX)
+                    options     |= DSP_OPTION_MMX;
+                if (info.edx & X86_CPUID1_INTEL_EDX_SSE)
+                    options     |= DSP_OPTION_SSE;
+                if (info.edx & X86_CPUID1_INTEL_EDX_SSE2)
+                    options     |= DSP_OPTION_SSE2;
+                if (info.ecx & X86_CPUID1_INTEL_ECX_SSE3)
+                    options     |= DSP_OPTION_SSE3;
+                if (info.ecx & X86_CPUID1_INTEL_ECX_SSSE3)
+                    options     |= DSP_OPTION_SSSE3;
+                if (info.ecx & X86_CPUID1_INTEL_ECX_SSE4_1)
+                    options     |= DSP_OPTION_SSE4_1;
+                if (info.ecx & X86_CPUID1_INTEL_ECX_SSE4_2)
+                    options     |= DSP_OPTION_SSE4_2;
+                if (info.ecx & X86_CPUID1_INTEL_ECX_FMA3)
+                    options     |= DSP_OPTION_FMA3;
+                if (info.ecx & X86_CPUID1_INTEL_ECX_AVX)
+                    options     |= DSP_OPTION_AVX;
+            }
+
+            // FUNCTION 7
+            if (max_cpuid >= 7)
+            {
+                cpuid(7, 0, &info);
+
+                if (info.ebx & X86_CPUID7_INTEL_EBX_AVX2)
+                    options     |= DSP_OPTION_AVX2;
+            }
+
+            return options;
+        }
+
+        dsp_options_t do_amd_cpuid(size_t family_id, size_t max_cpuid, size_t max_ext_cpuid)
+        {
+            cpuid_info_t info;
+
+            dsp_options_t options = 0;
+            if (max_cpuid < 1)
+                return options;
+
+            // FUNCTION 1
+            if (max_cpuid >= 1)
+            {
+                cpuid(1, 0, &info);
+
+                if (info.edx & X86_CPUID1_AMD_EDX_FPU)
+                    options     |= DSP_OPTION_FPU;
+                if (info.edx & X86_CPUID1_AMD_EDX_CMOV)
+                    options     |= DSP_OPTION_CMOV;
+                if (info.edx & X86_CPUID1_AMD_EDX_MMX)
+                    options     |= DSP_OPTION_MMX;
+                if (info.edx & X86_CPUID1_AMD_EDX_SSE)
+                    options     |= DSP_OPTION_SSE;
+                if (info.edx & X86_CPUID1_AMD_EDX_SSE2)
+                    options     |= DSP_OPTION_SSE2;
+
+                if (info.ecx & X86_CPUID1_AMD_ECX_SSE3)
+                    options     |= DSP_OPTION_SSE3;
+                if (info.ecx & X86_CPUID1_AMD_ECX_SSSE3)
+                    options     |= DSP_OPTION_SSSE3;
+                if (info.ecx & X86_CPUID1_AMD_ECX_SSE4_1)
+                    options     |= DSP_OPTION_SSE4_1;
+                if (info.ecx & X86_CPUID1_AMD_ECX_SSE4_2)
+                    options     |= DSP_OPTION_SSE4_2;
+                if (info.ecx & X86_CPUID1_AMD_ECX_FMA3)
+                    options     |= DSP_OPTION_FMA3;
+                if (info.ecx & X86_CPUID1_AMD_ECX_AVX)
+                    options     |= DSP_OPTION_AVX;
+            }
+
+            // FUNCTION 7
+            if (max_cpuid >= 7)
+            {
+                cpuid(7, 0, &info);
+
+                if (info.ebx & X86_CPUID7_AMD_EBX_AVX2)
+                    options     |= DSP_OPTION_AVX2;
+            }
+
+            if (max_ext_cpuid >= 0x80000001)
+            {
+                cpuid(0x80000001, 0, &info);
+
+                if (info.ecx & X86_XCPUID1_AMD_ECX_FMA4)
+                    options     |= DSP_OPTION_FMA4;
+                if (info.ecx & X86_XCPUID1_AMD_ECX_SSE4A)
+                    options     |= DSP_OPTION_SSE4A;
+
+                if (info.edx & X86_XCPUID1_AMD_EDX_FPU)
+                    options     |= DSP_OPTION_FPU;
+                if (info.edx & X86_XCPUID1_AMD_EDX_CMOV)
+                    options     |= DSP_OPTION_CMOV;
+                if (info.edx & X86_XCPUID1_AMD_EDX_MMX)
+                    options     |= DSP_OPTION_MMX;
+            }
+
+            return options;
+        }
+        #endif
+
+        dsp_options_t detect_options()
+        {
+            dsp_options_t options = 0;
+
+            // X86-family code
+            #ifdef ARCH_X86
+                // Check max CPUID
+                cpuid_info_t info;
+                if (!cpuid(0, 0, &info))
+                    return options;
+
+                // Detect vendor
+                if ((info.ebx == X86_CPUID0_INTEL_EBX) && (info.ecx == X86_CPUID0_INTEL_ECX) && (info.edx == X86_CPUID0_INTEL_EDX))
+                    options     |= DSP_OPTION_CPU_INTEL;
+                else if ((info.ebx == X86_CPUID0_AMD_EBX) && (info.ecx == X86_CPUID0_AMD_ECX) && (info.edx == X86_CPUID0_AMD_EDX))
+                    options     |= DSP_OPTION_CPU_AMD;
+
+                size_t max_cpuid    = info.eax;
+                if (max_cpuid <= 0)
+                    return options;
+
+                // Get model and family
+                cpuid(1, 0, &info);
+                size_t family_id    = (info.eax >> 8) & 0x0f;
+                size_t model_id     = (info.eax >> 4) & 0x0f;
+
+                if (family_id == 0x0f)
+                    family_id   += (info.eax >> 20) & 0xff;
+                if ((family_id == 0x0f) || (family_id == 0x06))
+                    model_id    += (info.eax >> 12) & 0xf0;
+
+                // Get maximum available extended CPUID
+                cpuid(0x80000000, 0, &info);
+                size_t max_ext_cpuid = info.eax;
+
+                if ((options & DSP_OPTION_CPU_MASK) == DSP_OPTION_CPU_INTEL)
+                    options        |= do_intel_cpuid(family_id, max_cpuid, max_ext_cpuid);
+                else if ((options & DSP_OPTION_CPU_MASK) == DSP_OPTION_CPU_AMD)
+                    options        |= do_amd_cpuid(family_id, max_cpuid, max_ext_cpuid);
+            #endif /* ARCH_X86 */
+
+            return options;
+        }
+
         void init()
         {
             // Consider already initialized
@@ -103,43 +271,15 @@ namespace lsp
             // Information message
             lsp_trace("Initializing DSP");
 
+            dsp_options_t options   = detect_options();
+
             // Initialize with native functions
             native::dsp_init();
 
-            // X86-family code
             #ifdef ARCH_X86
-                // Check max CPUID
-                cpuid_info_t info;
-                if (cpuid(0, 0, &info))
-                {
-                    if (info.eax <= 0)
-                        return;
-
-                    // Get model and family
-                    cpuid(1, 0, &info);
-                    size_t family_id    = (info.eax >> 8) & 0x0f;
-                    size_t model_id     = (info.eax >> 4) & 0x0f;
-
-                    if (family_id == 0x0f)
-                        family_id   += (info.eax >> 20) & 0xff;
-                    if ((family_id == 0x0f) || (family_id == 0x06))
-                        model_id    += (info.eax >> 12) & 0xf0;
-
-                    // Get model, family and extensions
-                    cpuid(1, 0, &info);
-
-                    if ((info.edx & (X86_CPUID_FEAT_EDX_SSE | X86_CPUID_FEAT_EDX_SSE2)) == (X86_CPUID_FEAT_EDX_SSE | X86_CPUID_FEAT_EDX_SSE2))
-                    {
-                        // Set SSE ONLY if OS supports it
-                        if ((family_id == 6) || (family_id > 15))
-                            sse::dsp_init();
-                    }
-
-//                    if (info.ecx & X86_CPUID_FEAT_ECX_AVX)
-//                    {
-//                        avx256::dsp_init();
-//                    }
-                }
+                x86::dsp_init(options);
+                sse::dsp_init(options);
+                avx::dsp_init(options);
             #endif /* ARCH_X86 */
         }
     }

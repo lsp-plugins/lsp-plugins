@@ -1,5 +1,5 @@
 /*
- * equalizer.cpp
+ * para_equalizer.cpp
  *
  *  Created on: 30 июня 2016 г.
  *      Author: sadko
@@ -615,15 +615,14 @@ namespace lsp
         float scale         = float(para_equalizer_base_metadata::FFT_ITEMS) / float(fSampleRate);
 
         // Initialize list of frequencies
-        float step = 1.0f / (para_equalizer_base_metadata::MESH_POINTS - 1);
-        float norm = logf(para_equalizer_base_metadata::FREQ_MAX/para_equalizer_base_metadata::FREQ_MIN);
+        float norm = logf(SPEC_FREQ_MAX/SPEC_FREQ_MIN) / (para_equalizer_base_metadata::MESH_POINTS - 1);
 
         for (size_t i=0; i<para_equalizer_base_metadata::MESH_POINTS; ++i)
         {
-            float f         = para_equalizer_base_metadata::FREQ_MIN * expf(i * step * norm);
+            float f         = SPEC_FREQ_MIN * expf(i * norm);
             size_t idx      = scale * f;
             if (idx > fft_csize)
-                idx                 = fft_csize + 1;
+                idx                 = fft_csize;
 
             vFreqs[i]       = f;
             vIndexes[i]     = idx;
@@ -832,14 +831,15 @@ namespace lsp
                         if (c->sEqualizer.filter_active(j))
                         {
                             // Add extra points
-                            mesh->pvData[0][0] = para_equalizer_base_metadata::FREQ_MIN*0.5f;
-                            mesh->pvData[0][para_equalizer_base_metadata::MESH_POINTS+1] = para_equalizer_base_metadata::FREQ_MAX*1.5f;
+                            mesh->pvData[0][0] = SPEC_FREQ_MIN*0.5f;
+                            mesh->pvData[0][para_equalizer_base_metadata::MESH_POINTS+1] = SPEC_FREQ_MAX*2.0;
                             mesh->pvData[1][0] = 1.0f;
                             mesh->pvData[1][para_equalizer_base_metadata::MESH_POINTS+1] = 1.0f;
 
                             // Fill mesh
                             dsp::copy(&mesh->pvData[0][1], vFreqs, para_equalizer_base_metadata::MESH_POINTS);
                             dsp::complex_mod(&mesh->pvData[1][1], f->vTrRe, f->vTrIm, para_equalizer_base_metadata::MESH_POINTS);
+
                             mesh->data(2, para_equalizer_base_metadata::FILTER_MESH_POINTS);
                         }
                         else

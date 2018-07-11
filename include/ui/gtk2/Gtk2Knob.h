@@ -20,31 +20,32 @@ namespace lsp
                 S_CLICK
             };
 
-            Color           sColor;
-            Color           sBgColor;
-            ColorHolder     sScaleColor;
+            Color               sColor;
+            Color               sBgColor;
+            ColorHolder         sScaleColor;
 
-            size_t          nSize;
-            float           nBalance;
-            size_t          nButtons;
+            size_t              nSize;
+            float               nBalance;
+            size_t              nButtons;
 
-            float           fValue;
-            float           fStep;
-            float           fMin;
-            float           fMax;
+            float               fValue;
+            float               fStep;
+            float               fMin;
+            float               fMax;
 
-            ssize_t         nLastY;
-            size_t          nState;
-            IUIPort        *pPort;
+            ssize_t             nLastY;
+            size_t              nState;
+            IUIPort            *pPort;
 
         protected:
-            size_t      check_mouse_over(ssize_t x, ssize_t y);
-            float       calc_step(bool tolerance);
-            float       get_normalized_value();
-            void        apply_metadata_params(const port_t *p);
-            void        update_value(float delta);
-            void        set_normalized_value(float value);
-            void        on_click(ssize_t x, ssize_t y);
+            size_t          check_mouse_over(ssize_t x, ssize_t y);
+            float           calc_step(bool tolerance);
+            float           get_normalized_value();
+            void            apply_metadata_params(const port_t *p);
+            void            update_value(float delta);
+            void            set_normalized_value(float value);
+            void            on_click(ssize_t x, ssize_t y);
+            virtual void    draw(cairo_t *cr);
 
         public:
             Gtk2Knob(plugin_ui *ui);
@@ -52,8 +53,6 @@ namespace lsp
 
         public:
             virtual void set(widget_attribute_t att, const char *value);
-
-            virtual void render();
 
             virtual void resize(size_t &w, size_t &h);
 

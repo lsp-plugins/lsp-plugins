@@ -21,6 +21,8 @@ namespace lsp
             size_t          nWidth;
             size_t          nCenter;
             bool            bSmooth;
+            float          *vBuffer;
+            size_t          nBufSize;
 
             ColorHolder     sColor;
 

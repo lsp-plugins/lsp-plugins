@@ -6,13 +6,13 @@
  */
 
 #include <ui/gtk2/ui.h>
+#include <container/const.h>
 
 namespace lsp
 {
     Gtk2Window::Gtk2Window(plugin_ui *ui) : Gtk2Container(ui, W_PLUGIN)
     {
-        pWidget     = NULL; //gtk_fixed_new();//NULL; //gtk_alignment_new(0.5, 0.5, 1.0, 1.0);//NULL; //widget;
-//        sBgColor.set(pUI->theme(), C_BLACK);
+        pWidget     = NULL;
         sBgColor.set(pUI->theme(), C_BACKGROUND);
 
         for (size_t i=C_FIRST; i < C_TOTAL; ++i)
@@ -23,6 +23,7 @@ namespace lsp
         nHeight         = -1;
         bResizable      = true;
         bMapped         = false;
+        bRedrawing      = false;
         hFunction       = 0;
         hMapHandler     = 0;
         hUnmapHandler   = 0;
@@ -200,10 +201,24 @@ namespace lsp
     gboolean Gtk2Window::redraw_window(gpointer ptr)
     {
         Gtk2Window *_this = reinterpret_cast<Gtk2Window *>(ptr);
-        lsp_trace("_this=%p, _this->pWidget=%p, _this->bMapped=%d, _this->Function=%x",
-                _this, _this->pWidget, _this->bMapped ? 1 : 0, int(_this->hFunction));
-        if ((_this != NULL) && (_this->pWidget != NULL) && (_this->bMapped))
-            gtk_widget_queue_draw(_this->pWidget);
+//        lsp_trace("_this=%p, _this->pWidget=%p, _this->bMapped=%d, _this->Function=%x",
+//                _this, _this->pWidget, _this->bMapped ? 1 : 0, int(_this->hFunction));
+        if (_this == NULL)
+            return TRUE;
+        if (!_this->bMapped)
+            return TRUE;
+        if (_this->pWidget == NULL)
+            return TRUE;
+        if (_this->pUI == NULL)
+            return TRUE;
+        if (_this->bRedrawing)
+            return TRUE;
+
+        // Call for redraw
+        _this->bRedrawing = true;
+        _this->pUI->redraw();
+        _this->bRedrawing = false;
+
         return TRUE;
     }
 
@@ -239,7 +254,7 @@ namespace lsp
 
         // Add periodically redraw
         lsp_trace("add timeout");
-        hFunction    = g_timeout_add (500, redraw_window, this); // Schedule at 2 hz rate
+        hFunction    = g_timeout_add (1000 / MESH_REFRESH_RATE, redraw_window, this);
         bMapped      = true;
 
         // Handle show

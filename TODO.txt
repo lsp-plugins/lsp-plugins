@@ -4,7 +4,9 @@
 
 === 1.0.12 ===
 
-- Optimized graph widget.
+- Implemented LSP Grafischer Entzerrer (Graphic Equalizer) x16 Mono/Stereo/LeftRight/MidSide plugin series
+- Implemented LSP Grafischer Entzerrer (Graphic Equalizer) x32 Mono/Stereo/LeftRight/MidSide plugin series
+- Implemented multiband crossover processor.
 - Improved support of LinuxVST for Tracktion DAW.
 
 

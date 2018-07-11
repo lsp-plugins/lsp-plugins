@@ -12,17 +12,60 @@
 
 namespace lsp
 {
-    #define X86_CPUID_FEAT_EDX_MMXEXT               (uint32_t(1) << 22)
-    #define X86_CPUID_FEAT_EDX_MMX                  (uint32_t(1) << 23)
-    #define X86_CPUID_FEAT_EDX_SSE                  (uint32_t(1) << 25)
-    #define X86_CPUID_FEAT_EDX_SSE2                 (uint32_t(1) << 26)
+    // Function 0
+    #define X86_CPUID0_INTEL_EBX                    0x756e6547
+    #define X86_CPUID0_INTEL_ECX                    0x6c65746e
+    #define X86_CPUID0_INTEL_EDX                    0x49656e69
 
-    #define X86_CPUID_FEAT_ECX_SSE3                 (uint32_t(1) << 0)
-    #define X86_CPUID_FEAT_ECX_SSSE3                (uint32_t(1) << 9)
-    #define X86_CPUID_FEAT_ECX_SSSE4_1              (uint32_t(1) << 19)
-    #define X86_CPUID_FEAT_ECX_SSSE4_2              (uint32_t(1) << 20)
-    #define X86_CPUID_FEAT_ECX_XSAVE                (uint32_t(1) << 26)
-    #define X86_CPUID_FEAT_ECX_AVX                  (uint32_t(1) << 28)
+    #define X86_CPUID0_AMD_EBX                      0x68747541
+    #define X86_CPUID0_AMD_ECX                      0x444d4163
+    #define X86_CPUID0_AMD_EDX                      0x69746e65
+
+    // Function 1
+    #define X86_CPUID1_INTEL_ECX_SSE3               (uint32_t(1) << 0)
+    #define X86_CPUID1_INTEL_ECX_SSSE3              (uint32_t(1) << 9)
+    #define X86_CPUID1_INTEL_ECX_FMA3               (uint32_t(1) << 12)
+    #define X86_CPUID1_INTEL_ECX_SSE4_1             (uint32_t(1) << 19)
+    #define X86_CPUID1_INTEL_ECX_SSE4_2             (uint32_t(1) << 20)
+    #define X86_CPUID1_INTEL_ECX_XSAVE              (uint32_t(1) << 26)
+    #define X86_CPUID1_INTEL_ECX_AVX                (uint32_t(1) << 28)
+
+    #define X86_CPUID1_INTEL_EDX_FPU                (uint32_t(1) << 0)
+    #define X86_CPUID1_INTEL_EDX_CMOV               (uint32_t(1) << 15)
+    #define X86_CPUID1_INTEL_EDX_MMX                (uint32_t(1) << 23)
+    #define X86_CPUID1_INTEL_EDX_SSE                (uint32_t(1) << 25)
+    #define X86_CPUID1_INTEL_EDX_SSE2               (uint32_t(1) << 26)
+
+    #define X86_CPUID1_AMD_ECX_SSE3                 (uint32_t(1) << 0)
+    #define X86_CPUID1_AMD_ECX_SSSE3                (uint32_t(1) << 9)
+    #define X86_CPUID1_AMD_ECX_FMA3                 (uint32_t(1) << 12)
+    #define X86_CPUID1_AMD_ECX_SSE4_1               (uint32_t(1) << 19)
+    #define X86_CPUID1_AMD_ECX_SSE4_2               (uint32_t(1) << 20)
+    #define X86_CPUID1_AMD_ECX_AVX                  (uint32_t(1) << 28)
+
+    #define X86_CPUID1_AMD_EDX_FPU                  (uint32_t(1) << 0)
+    #define X86_CPUID1_AMD_EDX_CMOV                 (uint32_t(1) << 15)
+    #define X86_CPUID1_AMD_EDX_MMX                  (uint32_t(1) << 23)
+    #define X86_CPUID1_AMD_EDX_SSE                  (uint32_t(1) << 25)
+    #define X86_CPUID1_AMD_EDX_SSE2                 (uint32_t(1) << 26)
+
+    // Function 7
+    #define X86_CPUID7_INTEL_EBX_AVX2               (uint32_t(1) << 5)
+
+    #define X86_CPUID7_AMD_EBX_AVX2                 (uint32_t(1) << 5)
+
+    // Function 80000001
+    #define X86_XCPUID1_AMD_ECX_FMA4                (uint32_t(1) << 16)
+    #define X86_XCPUID1_AMD_ECX_SSE4A               (uint32_t(1) << 6)
+
+    #define X86_XCPUID1_AMD_EDX_FPU                 (uint32_t(1) << 0)
+    #define X86_XCPUID1_AMD_EDX_CMOV                (uint32_t(1) << 15)
+    #define X86_XCPUID1_AMD_EDX_MMX                 (uint32_t(1) << 23)
+
+
+    #define X86_FAMILY_PENTIUM                      5
+    #define X86_FAMILY_PENTIUM_PRO                  6
+    #define X86_FAMILY_PENTIUM_PRO_PLUS             15
 
     #pragma pack(push, 1)
     typedef struct cpuid_info_t

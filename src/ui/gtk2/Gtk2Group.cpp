@@ -27,7 +27,6 @@ namespace lsp
         sBgColor.set(pUI->theme(), C_BACKGROUND);
         sRadius     = 10;
         nBorder     = 2;
-//        sBgColor.set(pUI->theme(), C_GREEN);
     }
 
     Gtk2Group::~Gtk2Group()
@@ -142,13 +141,10 @@ namespace lsp
             cairo_arc(cr, r - sRadius, b - sRadius, sRadius, 0.0, 0.5 * M_PI);
             cairo_line_to(cr, l, b);
             cairo_close_path(cr);
-//            cairo_stroke(cr);
             cairo_fill(cr);
 
             // Show text
-//            cairo_move_to (cr, (bw >> 1) + 1 + extents.x_bearing, extents.height + 3);
             cairo_move_to (cr, l + (bw >> 1), b - (bw >> 1));
-//            cairo_set_source_rgb(cr, sColor.red(), sColor.green(), sColor.blue());
             cairo_set_source_rgb(cr, sTextColor.red(), sTextColor.green(), sTextColor.blue());
             cairo_show_text (cr, text);
         }
@@ -160,7 +156,7 @@ namespace lsp
 
     void Gtk2Group::resize(ssize_t &w, ssize_t &h)
     {
-        cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24, 1, 1);
+        cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
         cairo_t *cr = cairo_create(surface);
         size_t bw = round(sRadius * M_SQRT2 * 0.5) + 1;
 

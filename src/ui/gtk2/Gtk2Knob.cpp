@@ -17,7 +17,6 @@ namespace lsp
     Gtk2Knob::Gtk2Knob(plugin_ui *ui): Gtk2CustomWidget(ui, W_KNOB)
     {
         sColor.set(pUI->theme(), C_KNOB_CAP);
-//        sScaleColor.set(pUI->theme(), C_KNOB_SCALE);
         sBgColor.set(pUI->theme(), C_BACKGROUND);
 
         nSize       = 24;
@@ -32,7 +31,7 @@ namespace lsp
         nState      = 0;
         nLastY      = 0;
         pPort       = NULL;
-//        COLOR_PORTS_INIT(Scale);
+
         sScaleColor.init(this, C_KNOB_SCALE, A_SCALE_COLOR, -1, -1, -1, A_SCALE_HUE_ID, A_SCALE_SAT_ID, A_SCALE_LIGHT_ID);
     }
 
@@ -45,10 +44,9 @@ namespace lsp
         switch (att)
         {
             case A_ID:
-                pPort       = pUI->port(value);
+                BIND_PORT(pUI, pPort, value);
                 if (pPort != NULL)
                 {
-                    pPort->bind(this);
                     apply_metadata_params(pPort->metadata());
                     notify(pPort);
                 }
@@ -111,7 +109,6 @@ namespace lsp
         // Request for redraw
         if (redraw)
             markRedraw();
-//        COLOR_PORTS_HANDLE(Scale, port, sScaleColor);
     }
 
     void Gtk2Knob::apply_metadata_params(const port_t *p)
@@ -189,6 +186,7 @@ namespace lsp
             }
             else
                 markRedraw();
+
             return;
         }
 
@@ -322,14 +320,12 @@ namespace lsp
             return (fValue - fMin) / (fMax - fMin);
     }
 
-    void Gtk2Knob::render()
+    void Gtk2Knob::draw(cairo_t *cr)
     {
         float value     = get_normalized_value();
 
-        // Get resource
+        // cairo pattern
         cairo_pattern_t *cp;
-        cairo_t *cr = gdk_cairo_create(pWidget->window);
-        cairo_save(cr);
 
         // Draw background
         cairo_set_source_rgb(cr, sBgColor.red(), sBgColor.green(), sBgColor.blue());
@@ -343,8 +339,6 @@ namespace lsp
         Color col(sScaleColor.color());
         Color dark(sScaleColor.color());
         dark.blend(0.0, 0.0, 0.0, 0.75);
-//        light.lightness(light.lightness() * 1.5);
-//        light.blend(0.0f, 0.0f, 0.0f, 0.5f);
 
         float base = 2.0 * M_PI / 3.0;
         float delta = 5.0 * M_PI / 3.0;
@@ -383,7 +377,7 @@ namespace lsp
         cairo_set_line_width(cr, 1);
         delta /= 20.0;
         cairo_antialias_t anti_alias = cairo_get_antialias(cr);
-//        cairo_set_antialias(cr, CAIRO_ANTIALIAS_NONE);
+
         for (size_t i=0; i<=20; ++i)
         {
             float angle = base + delta * i;
@@ -430,10 +424,6 @@ namespace lsp
             if ((--k_r) < 0.0)
                 k_r = 0.0;
         }
-
-        // Release resource
-        cairo_restore(cr);
-        cairo_destroy(cr);
     }
 
     void Gtk2Knob::resize(size_t &w, size_t &h)

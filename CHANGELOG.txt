@@ -2,6 +2,16 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.11 ===
+
+* Optimized graph widget relative to axis objects, logarithmic scaling
+  is now implemented in SSE2 and is about 6 times faster than native implementation.
+* Refactored widget rendering subsystem: FPS is lowered and stabilized around 20 FPS.
+* Implemented additional compression of built-in XML resources for the UI, now
+  XML resources obtain about 3 times lower space in binaries.
+* Highly optimized rendering of Gtk2Graph and Gtk2File widgets that caused excessive CPU load:
+  the CPU utilization is now about 7 times lower.
+
 === 1.0.10 ===
 
 * Implemented Parametrischer Entzerrer (Parametric Equalizer) x16 Mono/Stereo/LeftRight/MidSide plugin series.

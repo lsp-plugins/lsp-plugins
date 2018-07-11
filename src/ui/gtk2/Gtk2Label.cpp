@@ -121,7 +121,6 @@ namespace lsp
         // Initial text
         char a_text[64];
         const char *text    = sText;
-//        char *a_text        = NULL;
 
         if ((enType != LT_TEXT) && (pPort != NULL))
         {
@@ -133,8 +132,6 @@ namespace lsp
                     u_name  = encode_unit(nUnits);
                 else
                     u_name  = encode_unit((is_decibel_unit(mdata->unit)) ? U_DB : mdata->unit);
-
-//                encode_unit((nUnits == (U_NONE - 1)) ? mdata->unit : nUnits);
 
                 if (enType == LT_VALUE)
                 {

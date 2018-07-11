@@ -26,6 +26,13 @@ namespace lsp
         nPadding        = 2;
         nGrabbingID     = -1;
         pCanvas         = new Gtk2Canvas(this);
+        pGlass          = NULL;
+
+        #ifdef LSP_TRACE
+        sClock.tv_sec   = 0;
+        sClock.tv_nsec  = 0;
+        nFrames         = 0;
+        #endif /* LSP_TRACE */
 
         // Update event mask
         lsp_trace("gtk events=0x%x", int(gtk_widget_get_events(pWidget)));
@@ -47,6 +54,11 @@ namespace lsp
         {
             delete pCanvas;
             pCanvas     = NULL;
+        }
+        if (pGlass != NULL)
+        {
+            cairo_surface_destroy(pGlass);
+            pGlass      = NULL;
         }
     }
 
@@ -102,12 +114,15 @@ namespace lsp
         Gtk2CustomWidget::notify(port);
     }
 
-    void Gtk2Graph::render()
+    void Gtk2Graph::draw(cairo_t *cr)
     {
+        #ifdef LSP_TRACE
+        if (sClock.tv_sec == 0)
+            clock_gettime(CLOCK_REALTIME, &sClock);
+        #endif /* LSP_TRACE */
+
         // Get resource
-        cairo_pattern_t *cp;
-        cairo_t *cr = gdk_cairo_create(pWidget->window);
-        cairo_save(cr);
+        cairo_pattern_t *cp = NULL;
 
         // Draw background
         cairo_set_source_rgb(cr, sBgColor.red(), sBgColor.green(), sBgColor.blue());
@@ -124,11 +139,16 @@ namespace lsp
             Color c(1.0, 1.0, 1.0);
             c.blend(sColor, bright);
 
-            cp = cairo_pattern_create_radial (bw + 1, nHeight - bw - 1, bw, 1, nHeight - bw - 1, pr * 1.5);
-            cairo_pattern_add_color_stop_rgb(cp, 0.0, c.red(), c.green(), c.blue());
-            cairo_pattern_add_color_stop_rgb(cp, 1.0, sColor.red(), sColor.green(), sColor.blue());
+            if (i < nRadius)
+            {
+                cp = cairo_pattern_create_radial (bw + 1, nHeight - bw - 1, bw, 1, nHeight - bw - 1, pr * 1.5);
+                cairo_pattern_add_color_stop_rgb(cp, 0.0, c.red(), c.green(), c.blue());
+                cairo_pattern_add_color_stop_rgb(cp, 1.0, sColor.red(), sColor.green(), sColor.blue());
 
-            cairo_set_source(cr, cp);
+                cairo_set_source(cr, cp);
+            }
+            else
+                cairo_set_source_rgb(cr, sColor.red(), sColor.green(), sColor.blue());
 
             cairo_arc(cr, bw, bw, bw - i, M_PI, 1.5 * M_PI);
             cairo_arc(cr, nWidth - bw, bw, bw - i, 1.5 * M_PI, 2.0 * M_PI);
@@ -136,8 +156,13 @@ namespace lsp
             cairo_arc(cr, bw, nHeight - bw, bw - i, 0.5 * M_PI, M_PI);
             cairo_close_path(cr);
 
-            cairo_fill(cr);
-            cairo_pattern_destroy(cp);
+            if (i < nRadius)
+            {
+                cairo_stroke(cr);
+                cairo_pattern_destroy(cp);
+            }
+            else
+                cairo_fill(cr);
         }
 
         // Draw glass // TEMPORARY
@@ -153,31 +178,70 @@ namespace lsp
             cv->set_color(sColor);
             cv->clear();
 
-            for (size_t i=0; i<nObjects; ++i)
-                vObjects[i]->draw(cv);
+            size_t n_objects = vObjects.size();
+            for (size_t i=0; i<n_objects; ++i)
+                vObjects.at(i)->draw(cv);
 
             cv->draw(cr, bs, bs);
         }
 
         // Draw glass effect
-        cp = cairo_pattern_create_radial (nWidth, 0, bw << 1, nWidth, 0, pr);
-        cairo_pattern_add_color_stop_rgba(cp, 0.0, 1.0, 1.0, 1.0, 0.15);
-        cairo_pattern_add_color_stop_rgba(cp, 1.0, 1.0, 1.0, 1.0, 0.0);
+        if (pGlass != NULL)
+        {
+            size_t width    = cairo_image_surface_get_width(pGlass);
+            size_t height   = cairo_image_surface_get_height(pGlass);
 
-        cairo_set_source(cr, cp);
+            if ((nWidth != width) || (nHeight != height))
+            {
+                cairo_surface_destroy(pGlass);
+                pGlass          = NULL;
+            }
+        }
 
-        cairo_arc(cr, bw, bw, bw - nRadius, M_PI, 1.5 * M_PI);
-        cairo_arc(cr, nWidth - bw, bw, bw - nRadius, 1.5 * M_PI, 2.0 * M_PI);
-        cairo_arc(cr, nWidth - bw, nHeight - bw, bw - nRadius, 0.0, 0.5 * M_PI);
-        cairo_arc(cr, bw, nHeight - bw, bw - nRadius, 0.5 * M_PI, M_PI);
-        cairo_close_path(cr);
+        if (pGlass == NULL)
+        {
+            // Gradient effect is too expensive, draw it as little as possible
+            pGlass      = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, nWidth, nHeight);
+            if (pGlass != NULL)
+            {
+                cp = cairo_pattern_create_radial (nWidth, 0, bw << 1, nWidth, 0, pr);
+                cairo_pattern_add_color_stop_rgba(cp, 0.0, 1.0, 1.0, 1.0, 0.15);
+                cairo_pattern_add_color_stop_rgba(cp, 1.0, 1.0, 1.0, 1.0, 0.0);
 
-        cairo_fill(cr);
-        cairo_pattern_destroy(cp);
+                cairo_t *gcr    = cairo_create(pGlass);
+                cairo_set_source(gcr, cp);
+                cairo_arc(gcr, bw, bw, bw - nRadius, M_PI, 1.5 * M_PI);
+                cairo_arc(gcr, nWidth - bw, bw, bw - nRadius, 1.5 * M_PI, 2.0 * M_PI);
+                cairo_arc(gcr, nWidth - bw, nHeight - bw, bw - nRadius, 0.0, 0.5 * M_PI);
+                cairo_arc(gcr, bw, nHeight - bw, bw - nRadius, 0.5 * M_PI, M_PI);
+                cairo_close_path(gcr);
+                cairo_fill(gcr);
+                cairo_destroy(gcr);
 
-        // Release resource
-        cairo_restore(cr);
-        cairo_destroy(cr);
+                cairo_pattern_destroy(cp);
+            }
+        }
+
+        if (pGlass != NULL)
+        {
+            cairo_set_source_surface (cr, pGlass, 0, 0);
+            cairo_paint(cr);
+        }
+        // End of Glass effect
+
+        #ifdef LSP_TRACE
+        nFrames ++;
+        struct timespec stime;
+        clock_gettime(CLOCK_REALTIME, &stime);
+        if ((stime.tv_sec - sClock.tv_sec) >= 5)
+        {
+            double dt = double(stime.tv_sec - sClock.tv_sec) + double(stime.tv_nsec - sClock.tv_nsec)*1e-9;
+            lsp_trace("seconds = %.2f, FPS = %.2f", dt, nFrames / dt);
+
+            nFrames = 0;
+            sClock = stime;
+        }
+        #endif /* LSP_TRACE */
     }
 
     IGraphObject *Gtk2Graph::getGraphObject(IWidget *widget)
@@ -220,34 +284,35 @@ namespace lsp
 
     void Gtk2Graph::button_press(ssize_t x, ssize_t y, size_t state, size_t button)
     {
-        lsp_trace("x=%d, y=%d, state=0x%x, button=%d", int(x), int(y), int(state), int(button));
+//        lsp_trace("x=%d, y=%d, state=0x%x, button=%d", int(x), int(y), int(state), int(button));
         if (!translate_coords(x, y))
             return;
 
         bool redraw = false;
         size_t deliver = 0;
         size_t grabbing_id = nGrabbingID;
+        size_t n_objects = vObjects.size();
 
         // Deliver to grabbing widget first
         if (nGrabbingID > 0)
         {
-            size_t flags    = vObjects[nGrabbingID]->button_press(x, y, gtk2_decode_mcf(state), gtk2_decode_mcb(button));
+            size_t flags    = vObjects.at(nGrabbingID)->button_press(x, y, gtk2_decode_mcf(state), gtk2_decode_mcb(button));
             if (flags & EVF_HANDLED)
                 redraw          = true;
             if (flags & EVF_GRAB)
-                deliver         = nObjects; // Skip delivery to others
+                deliver         = n_objects; // Skip delivery to others
             else
                 nGrabbingID     = -1;
             if (flags & EVF_STOP)
-                deliver         = nObjects;
+                deliver         = n_objects;
         }
 
         // Deliver to others (if possible)
-        for (size_t i=deliver; i<nObjects; ++i)
+        for (size_t i=deliver; i<n_objects; ++i)
         {
             if (i == grabbing_id)
                 continue;
-            size_t flags    = vObjects[i]->button_press(x, y, gtk2_decode_mcf(state), gtk2_decode_mcb(button));
+            size_t flags    = vObjects.at(i)->button_press(x, y, gtk2_decode_mcf(state), gtk2_decode_mcb(button));
             if (flags & EVF_HANDLED)
                 redraw      = true;
             if (flags & EVF_GRAB)
@@ -262,34 +327,35 @@ namespace lsp
 
     void Gtk2Graph::button_release(ssize_t x, ssize_t y, size_t state, size_t button)
     {
-        lsp_trace("x=%d, y=%d, state=0x%x, button=%d", int(x), int(y), int(state), int(button));
+//        lsp_trace("x=%d, y=%d, state=0x%x, button=%d", int(x), int(y), int(state), int(button));
         if (!translate_coords(x, y))
             return;
 
         bool redraw = false;
         size_t deliver = 0;
         size_t grabbing_id = nGrabbingID;
+        size_t n_objects = vObjects.size();
 
         // Deliver to grabbing widget first
         if (nGrabbingID > 0)
         {
-            size_t flags    = vObjects[nGrabbingID]->button_release(x, y, gtk2_decode_mcf(state), gtk2_decode_mcb(button));
+            size_t flags    = vObjects.at(nGrabbingID)->button_release(x, y, gtk2_decode_mcf(state), gtk2_decode_mcb(button));
             if (flags & EVF_HANDLED)
                 redraw          = true;
             if (flags & EVF_GRAB)
-                deliver         = nObjects; // Skip delivery to others
+                deliver         = n_objects; // Skip delivery to others
             else
                 nGrabbingID     = -1;
             if (flags & EVF_STOP)
-                deliver         = nObjects;
+                deliver         = n_objects;
         }
 
         // Deliver to others (if possible)
-        for (size_t i=deliver; i<nObjects; ++i)
+        for (size_t i=deliver; i<n_objects; ++i)
         {
             if (i == grabbing_id)
                 continue;
-            size_t flags    = vObjects[i]->button_release(x, y, gtk2_decode_mcf(state), gtk2_decode_mcb(button));
+            size_t flags    = vObjects.at(i)->button_release(x, y, gtk2_decode_mcf(state), gtk2_decode_mcb(button));
             if (flags & EVF_HANDLED)
                 redraw      = true;
             if (flags & EVF_GRAB)
@@ -304,34 +370,35 @@ namespace lsp
 
     void Gtk2Graph::motion(ssize_t x, ssize_t y, size_t state)
     {
-        lsp_trace("x=%d, y=%d, state=0x%x", int(x), int(y), int(state));
+//        lsp_trace("x=%d, y=%d, state=0x%x", int(x), int(y), int(state));
         if (!translate_coords(x, y))
             return;
 
         bool redraw = false;
         size_t deliver = 0;
         size_t grabbing_id = nGrabbingID;
+        size_t n_objects = vObjects.size();
 
         // Deliver to grabbing widget first
         if (nGrabbingID > 0)
         {
-            size_t flags    = vObjects[nGrabbingID]->motion(x, y, gtk2_decode_mcf(state));
+            size_t flags    = vObjects.at(nGrabbingID)->motion(x, y, gtk2_decode_mcf(state));
             if (flags & EVF_HANDLED)
                 redraw          = true;
             if (flags & EVF_GRAB)
-                deliver         = nObjects; // Skip delivery to others
+                deliver         = n_objects; // Skip delivery to others
             else
                 nGrabbingID     = -1;
             if (flags & EVF_STOP)
-                deliver         = nObjects;
+                deliver         = n_objects;
         }
 
         // Deliver to others (if possible)
-        for (size_t i=deliver; i<nObjects; ++i)
+        for (size_t i=deliver; i<n_objects; ++i)
         {
             if (i == grabbing_id)
                 continue;
-            size_t flags    = vObjects[i]->motion(x, y, gtk2_decode_mcf(state));
+            size_t flags    = vObjects.at(i)->motion(x, y, gtk2_decode_mcf(state));
             if (flags & EVF_HANDLED)
                 redraw      = true;
             if (flags & EVF_GRAB)
@@ -352,27 +419,28 @@ namespace lsp
         bool redraw = false;
         size_t deliver = 0;
         size_t grabbing_id = nGrabbingID;
+        size_t n_objects = vObjects.size();
 
         // Deliver to grabbing widget first
         if (nGrabbingID > 0)
         {
-            size_t flags    = vObjects[nGrabbingID]->scroll(x, y, gtk2_decode_mcf(state), gtk2_decode_mcd(direction));
+            size_t flags    = vObjects.at(nGrabbingID)->scroll(x, y, gtk2_decode_mcf(state), gtk2_decode_mcd(direction));
             if (flags & EVF_HANDLED)
                 redraw          = true;
             if (flags & EVF_GRAB)
-                deliver         = nObjects; // Skip delivery to others
+                deliver         = n_objects; // Skip delivery to others
             else
                 nGrabbingID     = -1;
             if (flags & EVF_STOP)
-                deliver         = nObjects;
+                deliver         = n_objects;
         }
 
         // Deliver to others (if possible)
-        for (size_t i=deliver; i<nObjects; ++i)
+        for (size_t i=deliver; i<n_objects; ++i)
         {
             if (i == grabbing_id)
                 continue;
-            size_t flags    = vObjects[i]->scroll(x, y, gtk2_decode_mcf(state), gtk2_decode_mcd(direction));
+            size_t flags    = vObjects.at(i)->scroll(x, y, gtk2_decode_mcf(state), gtk2_decode_mcd(direction));
             if (flags & EVF_HANDLED)
                 redraw      = true;
             if (flags & EVF_GRAB)
@@ -390,11 +458,6 @@ namespace lsp
         ssize_t bs = nBorder * M_SQRT2 * 0.5;
         ssize_t gw = nWidth  - (bs << 1);
         ssize_t gh = nHeight - (bs << 1);
-
-//        if ((x < bs) || (y < bs))
-//            return false;
-//        else if ((x > (bs+gw)) || (y > (bs+gh)))
-//            return false;
 
         x       = x - bs - (gw>>1);
         y       = bs + (gh>>1) - y;

@@ -12,6 +12,7 @@
 
 // Some physical constants
 #define MAX_SAMPLE_RATE                     192000              /* Maximum supported sample rate [samples / s]      */
+#define DEFAULT_SAMPLE_RATE                 48000               /* Default sample rate [samples / s]                */
 #define DECIBEL_INF_THRESH                  1.19209289551e-40   /* Float value that is equal -INF dB                */
 #define AIR_ADIABATIC_INDEX                 1.4                 /* Adiabatic index for the Air                      */
 #define AIR_MOLAR_MASS                      28.98               /* Molar mass of the air [g/mol]                    */
@@ -26,19 +27,29 @@
 #define MIDI_EVENTS_MAX                     1024                /* Maximum number of MIDI events per buffer         */
 
 // Gain levels in decibels
-#define GAIN_AMP_72_DB                      3981.07300
-#define GAIN_AMP_60_DB                      1000.0
-#define GAIN_AMP_48_DB                      251.18861
-#define GAIN_AMP_36_DB                      63.09575
-#define GAIN_AMP_24_DB                      15.84893
-#define GAIN_AMP_12_DB                      3.98107
-#define GAIN_AMP_0_DB                       1.0
-#define GAIN_AMP__12DB                      0.25119
-#define GAIN_AMP__24DB                      0.06310
-#define GAIN_AMP__36DB                      0.01585
-#define GAIN_AMP__48DB                      0.00398
-#define GAIN_AMP__60DB                      0.001
-#define GAIN_AMP__72DB                      0.00025
+#define GAIN_AMP_P_72_DB                    3981.07300          /* +72 dB       */
+#define GAIN_AMP_P_60_DB                    1000.0              /* +60 dB       */
+#define GAIN_AMP_P_48_DB                    251.18861           /* +48 dB       */
+#define GAIN_AMP_P_36_DB                    63.09575            /* +36 dB       */
+#define GAIN_AMP_P_24_DB                    15.84893            /* +24 dB       */
+#define GAIN_AMP_P_12_DB                    3.98107             /* +12 dB       */
+#define GAIN_AMP_P_0_DB                     1.0                 /* +0 dB        */
+#define GAIN_AMP_N_12DB                     0.25119             /* -12 dB       */
+#define GAIN_AMP_N_24DB                     0.06310             /* -24 dB       */
+#define GAIN_AMP_N_36DB                     0.01585             /* -36 dB       */
+#define GAIN_AMP_N_48DB                     0.00398             /* -48 dB       */
+#define GAIN_AMP_N_60DB                     0.001               /* -60 dB       */
+#define GAIN_AMP_N_72DB                     0.00025             /* -72 dB       */
+
+// Float saturation limits
+#define FLOAT_SAT_P_NAN                     0.0f
+#define FLOAT_SAT_N_NAN                     0.0f
+#define FLOAT_SAT_P_INF                     1e+10f
+#define FLOAT_SAT_N_INF                     1e-10f
+#define FLOAT_SAT_P_NAN_I                   0
+#define FLOAT_SAT_N_NAN_I                   0
+#define FLOAT_SAT_P_INF_I                   0x501502f9
+#define FLOAT_SAT_N_INF_I                   0x2edbe6ff
 
 namespace lsp
 {

@@ -13,30 +13,31 @@ namespace lsp
     class Gtk2File: public Gtk2CustomWidget
     {
         protected:
-            Color           sColor;
-            Color           sBgColor;
-            Color           sLineColor;
-            Color           sLeftColor;
-            Color           sRightColor;
-            Color           sMiddleColor;
-            Color           sFadeColor;
-            Color           sTextColor;
+            Color               sColor;
+            Color               sBgColor;
+            Color               sLineColor;
+            Color               sLeftColor;
+            Color               sRightColor;
+            Color               sMiddleColor;
+            Color               sFadeColor;
+            Color               sTextColor;
 
-            IUIPort        *pFile;
-            IUIPort        *pHeadCut;
-            IUIPort        *pTailCut;
-            IUIPort        *pFadeIn;
-            IUIPort        *pFadeOut;
-            IUIPort        *pLength;
-            IUIPort        *pStatus;
-            IUIPort        *pMesh;
+            IUIPort            *pFile;
+            IUIPort            *pHeadCut;
+            IUIPort            *pTailCut;
+            IUIPort            *pFadeIn;
+            IUIPort            *pFadeOut;
+            IUIPort            *pLength;
+            IUIPort            *pStatus;
+            IUIPort            *pMesh;
+            cairo_surface_t    *pGlass;
 
-            size_t          nBtnWidth;
-            size_t          nBtnHeight;
-            size_t          nBMask;
-            size_t          nBorder;
-            size_t          nRadius;
-            bool            bPressed;
+            size_t              nBtnWidth;
+            size_t              nBtnHeight;
+            size_t              nBMask;
+            size_t              nBorder;
+            size_t              nRadius;
+            bool                bPressed;
 
         private:
             bool        check_mouse_over(ssize_t x, ssize_t y);
@@ -45,14 +46,15 @@ namespace lsp
             void        on_click();
             void        set_file(const char *fname);
 
+        protected:
+            virtual void draw(cairo_t *cr);
+
         public:
             Gtk2File(plugin_ui *ui);
             virtual ~Gtk2File();
 
         public:
             virtual void set(widget_attribute_t att, const char *value);
-
-            virtual void render();
 
             virtual void resize(size_t &w, size_t &h);
 

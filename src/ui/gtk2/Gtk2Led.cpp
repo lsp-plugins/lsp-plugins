@@ -17,7 +17,6 @@ namespace lsp
 {
     Gtk2Led::Gtk2Led(plugin_ui *ui): Gtk2CustomWidget(ui, W_LED)
     {
-//        sColor.set(pUI->theme(), C_GREEN);
         sBgColor.set(pUI->theme(), C_BACKGROUND);
 
         nSize       = 8;
@@ -37,13 +36,9 @@ namespace lsp
         return abs(fValue - fKey) <= CMP_TOLERANCE;
     }
 
-    void Gtk2Led::render()
+    void Gtk2Led::draw(cairo_t *cr)
     {
         cairo_pattern_t *cp;
-
-        // Get resource
-        cairo_t *cr = gdk_cairo_create(pWidget->window);
-        cairo_save(cr);
 
         // Draw background
         cairo_set_source_rgba(cr, sBgColor.red(), sBgColor.green(), sBgColor.blue(), 1.0);
@@ -119,10 +114,6 @@ namespace lsp
             cairo_fill(cr);
             cairo_pattern_destroy(cp);
         }
-
-        // Release resource
-        cairo_restore(cr);
-        cairo_destroy(cr);
     }
 
     void Gtk2Led::resize(size_t &w, size_t &h)
@@ -136,13 +127,8 @@ namespace lsp
         switch (att)
         {
             case A_ID:
-                pPort       = pUI->port(value);
-                if (pPort != NULL)
-                    pPort->bind(this);
+                BIND_PORT(pUI, pPort, value);
                 break;
-//            case A_COLOR:
-//                sColor.set(pUI->theme(), value);
-//                break;
             case A_KEY:
                 PARSE_FLOAT(value, fKey = __);
                 break;
@@ -179,7 +165,7 @@ namespace lsp
 
         // Request for redraw
         if (redraw)
-            gtk_widget_queue_draw(pWidget);
+            markRedraw();
     }
 
 } /* namespace lsp */

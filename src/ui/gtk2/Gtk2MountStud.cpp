@@ -87,7 +87,6 @@ namespace lsp
         for (size_t i=0; i<=h_rr; ++i)
         {
             float bright = (hlb - hld) * (h_rr - i) / h_rr + hld;
-//            hole.lighten(0.1);
             hole.lightness(bright);
 
             cp = cairo_pattern_create_radial(x - h_s, y + h_s, h_s >> 2, x - h_s, y + h_s, h_s << 1);
@@ -95,11 +94,9 @@ namespace lsp
             cairo_pattern_add_color_stop_rgb(cp, 1.0, 0.5 * hole.red(), 0.5 *  hole.green(), 0.5 * hole.blue());
             cairo_set_source(cr, cp);
 
-//            cairo_set_source_rgb(cr, hole.red(), hole.green(), hole.blue());
             cairo_arc(cr, x + (h_s * 0.75), y, h_s - i, 1.5 * M_PI, 2.5 * M_PI);
             cairo_arc(cr, x - (h_s * 0.75), y, h_s - i, 0.5 * M_PI, 1.5 * M_PI);
             cairo_close_path(cr);
-//            cairo_stroke(cr);
             cairo_fill(cr);
 
             cairo_pattern_destroy(cp);
@@ -158,14 +155,9 @@ namespace lsp
         }
     }
 
-    void Gtk2MountStud::render()
+    void Gtk2MountStud::draw(cairo_t *cr)
     {
         cairo_text_extents_t te;
-        cairo_pattern_t *cp;
-
-        // Get resource
-        cairo_t *cr = gdk_cairo_create(pWidget->window);
-        cairo_save(cr);
 
         // Draw background
         cairo_set_source_rgb(cr, sBgColor.red(), sBgColor.green(), sBgColor.blue());
@@ -182,6 +174,7 @@ namespace lsp
 //        size_t pos = (bLeft) ? SCREW_SIZE + 2 : nWidth - SCREW_SIZE - 2;
 //        size_t base = (bLeft) ? 2 : nWidth - 2;
         size_t screw = (bLeft) ? SCREW_SIZE >> 1 : nWidth - (SCREW_SIZE >> 1);
+        bool pressed    = bPressed;
 //        ssize_t c_dir = (bLeft) ? 1 : -1;
 
         draw_screw(cr, screw, STUD_H * 0.75, M_PI * (angle + 1) / 8 + M_PI / 16);
@@ -219,15 +212,15 @@ namespace lsp
             cairo_set_font_size(cr, 16);
 
             cairo_text_extents(cr, "WWW0", &te);
-            size_t min_w    = te.width;
+            ssize_t min_w   = te.width;
 
             cairo_text_extents(cr, sText, &te);
-            size_t lw       = te.width;
-            size_t lh       = te.height;
+            ssize_t lw      = te.width;
+            ssize_t lh      = te.height;
 
             if (lw < min_w)
                 lw = min_w;
-            if (lh < nSize)
+            if (lh < ssize_t(nSize))
                 lh = nSize;
 
             lw         += l_r << 1;
@@ -236,8 +229,8 @@ namespace lsp
             Color logo(sColor);
             float logo_l    = logo.lightness();
             float l_rr      = 3;
-            size_t l_x      = (bLeft) ? 8 : l_rr;
-            size_t l_y      = (nHeight - lh) >> 1;
+            ssize_t l_x     = (bLeft) ? 8 : l_rr;
+            ssize_t l_y     = (nHeight - lh) >> 1;
 
             nLogoLeft       = l_x;
             nLogoTop        = l_y;
@@ -248,9 +241,13 @@ namespace lsp
             {
                 float bright = logo_l * (i + 1) / (l_rr + 1);
 
-                cp = (bPressed) ?
-                    cairo_pattern_create_radial(l_x + lw, l_y , lw >> 2, l_x + lw, l_y , lw) :
-                    cairo_pattern_create_radial(l_x - lw, l_y + lh, lw >> 2, l_x - lw, l_y + lh , lw);
+                cairo_pattern_t *cp =  (pressed) ?
+                        cairo_pattern_create_radial(l_x - lw, l_y + lh, lw >> 2, l_x - lw, l_y + lh , lw) :
+                        cairo_pattern_create_radial(l_x + lw, l_y , lw >> 2, l_x + lw, l_y , lw)
+                        ;
+//                cairo_pattern_t *cp = (bPressed) ?
+//                    cairo_pattern_create_radial(l_x + lw, l_y , lw >> 2, l_x + lw, l_y , lw) :
+//                    cairo_pattern_create_radial(l_x - lw, l_y + lh, lw >> 2, l_x - lw, l_y + lh , lw);
 
                 logo.lightness(bright * 1.5);
                 cairo_pattern_add_color_stop_rgb(cp, 0.0, logo.red(), logo.green(), logo.blue());
@@ -266,6 +263,7 @@ namespace lsp
                 cairo_close_path(cr);
 
                 cairo_fill(cr);
+                cairo_pattern_destroy(cp);
             }
 
             // Now l_x, ly become center of logo
@@ -285,15 +283,11 @@ namespace lsp
             cairo_move_to(cr, l_x - (te.width + te.x_bearing) * 0.5, l_y - te.height * 0.5 - te.y_bearing);
             cairo_show_text (cr, sText);
         }
-
-        // Release resource
-        cairo_restore(cr);
-        cairo_destroy(cr);
     }
 
     void Gtk2MountStud::resize(size_t &w, size_t &h)
     {
-        cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24, 1, 1);
+        cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
         cairo_t *cr = cairo_create(surface);
 
         size_t min_h = (STUD_H + CURVE * 2);

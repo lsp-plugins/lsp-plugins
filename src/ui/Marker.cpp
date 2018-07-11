@@ -65,9 +65,7 @@ namespace lsp
         switch (att)
         {
             case A_ID:
-                pPort       = pUI->port(value);
-                if (pPort != NULL)
-                    pPort->bind(this);
+                BIND_PORT(pUI, pPort, value);
                 break;
             case A_VALUE:
                 PARSE_FLOAT(value, fValue = __);

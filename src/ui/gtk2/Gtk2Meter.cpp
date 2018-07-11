@@ -31,7 +31,6 @@ namespace lsp
 
         sIndColor.set(pUI->theme(), C_GLASS);
         sBgColor.set(pUI->theme(), C_BACKGROUND);
-//        sBgColor.set(pUI->theme(), C_WHITE);
         sColor.init(this, C_GREEN, A_COLOR, -1, -1, -1, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
 
         hFunction    = g_timeout_add (50, redraw_meter, this); // Schedule at 20 hz rate
@@ -53,15 +52,11 @@ namespace lsp
         switch (att)
         {
             case A_ID:
-                pPort       = pUI->port(value);
-                if (pPort != NULL)
-                    pPort->bind(this);
+                BIND_PORT(pUI, pPort, value);
                 break;
 
             case A_ACTIVITY_ID:
-                pActivity   = pUI->port(value);
-                if (pActivity != NULL)
-                    pActivity->bind(this);
+                BIND_PORT(pUI, pActivity, value);
                 break;
 
             case A_MIN:
@@ -299,12 +294,8 @@ namespace lsp
             snprintf(buf, n, "%ld", long(value));
     }
 
-    void Gtk2Meter::render()
+    void Gtk2Meter::draw(cairo_t *cr)
     {
-        // Get resource
-        cairo_t *cr = gdk_cairo_create(pWidget->window);
-        cairo_save(cr);
-
         // Draw background
         cairo_set_source_rgb(cr, sBgColor.red(), sBgColor.green(), sBgColor.blue());
         cairo_rectangle(cr, 0, 0, nWidth, nHeight);
@@ -480,16 +471,12 @@ namespace lsp
 //            cairo_line_to(cr, fx + 10, fy + extents.y_advance);
 //            cairo_stroke(cr);
         }
-
-        // Release resource
-        cairo_restore(cr);
-        cairo_destroy(cr);
     }
 
     void Gtk2Meter::resize(size_t &w, size_t &h)
     {
         size_t width  = 0, height = 0;
-        cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_RGB24, 1, 1);
+        cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
         cairo_t *cr = cairo_create(surface);
 
 //        cairo_t *cr = gdk_cairo_create(pWidget->window);

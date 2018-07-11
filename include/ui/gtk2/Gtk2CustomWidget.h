@@ -34,10 +34,12 @@ namespace lsp
 
             friend struct _Gtk2Custom;
 
-            ssize_t     nLeft;
-            ssize_t     nTop;
-            size_t      nWidth;
-            size_t      nHeight;
+            ssize_t             nLeft;
+            ssize_t             nTop;
+            size_t              nWidth;
+            size_t              nHeight;
+            bool                bDirty;
+            cairo_surface_t    *pSurface;
 
         private:
             static void class_init(Gtk2CustomClass *klass);
@@ -53,6 +55,11 @@ namespace lsp
             static gboolean enter_notify(GtkWidget *widget, GdkEventCrossing *event);
             static gboolean button_release(GtkWidget *widget, GdkEventButton *event);
             static gboolean scroll(GtkWidget *widget, GdkEventScroll *event);
+
+        protected:
+            cairo_surface_t    *get_surface();
+            virtual void        draw(cairo_t *cr);
+            virtual void        markRedraw();
 
         public:
             Gtk2CustomWidget(plugin_ui *ui, widget_t w_class, GType basic_class = GTK_TYPE_WIDGET);
@@ -78,8 +85,6 @@ namespace lsp
             virtual void scroll(ssize_t x, ssize_t y, size_t state, size_t direction);
 
             virtual void destroy();
-
-            virtual void markRedraw();
     };
 
 } /* namespace lsp */

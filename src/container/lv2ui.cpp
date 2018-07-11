@@ -61,6 +61,9 @@ namespace lsp
         if (!m)
             return NULL;
 
+        // Initialize dsp (if possible)
+        dsp::init();
+
         // Create widget factory and UI
         lsp_trace("Creating plugin UI");
         IWidgetFactory *factory         = new LSP_WIDGET_FACTORY(bundle_path);

@@ -28,8 +28,8 @@ namespace lsp
             virtual ~IWidget();
 
         public:
-            inline widget_t getClass()  { return enClass;   };
-            inline plugin_ui *getUI()   { return pUI;       };
+            inline widget_t getClass() const    { return enClass;   };
+            inline plugin_ui *getUI()           { return pUI;       };
 
         public:
             /** Set attribute to widget
@@ -79,6 +79,11 @@ namespace lsp
              *
              */
             virtual void show();
+
+            /** Draw widget, do not confuse with render()!
+             *
+             */
+            virtual void draw();
 
         public:
             /** Get visibility key

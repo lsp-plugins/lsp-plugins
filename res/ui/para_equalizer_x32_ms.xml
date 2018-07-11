@@ -64,7 +64,7 @@
 							</ui:for>
 							
 							<!-- Boundaries -->
-							<marker value="251.18861" basis="1" parallel="0" /> <!-- +48 dB -->
+							<marker value="251.18861" color="white" basis="1" parallel="0" /> <!-- +48 dB -->
 							<marker value="24000" color="white" basis="0" parallel="1" />
 							
 							<!-- Axis -->

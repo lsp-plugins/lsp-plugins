@@ -11,17 +11,17 @@
 #include <string.h>
 
 #ifndef LSP_USE_EXPAT
-    #define XML_OPEN_TAG        '\x55'
-    #define XML_CLOSE_TAG       '\xaa'
-    #define XML_END_DOCUMENT    '\0'
+//    #define XML_OPEN_TAG        '\x55'
+    #define XML_CLOSE_TAG       '\xff'
+//    #define XML_END_DOCUMENT    '\0'
 #endif /* LSP_USE_EXPAT */
 
 namespace lsp
 {
 #ifndef LSP_USE_EXPAT
-    extern const resource_t xml_resources[];
+    extern const char *xml_dictionary;
 
-//    const resource_t xml_resources[] = { NULL, NULL };
+    extern const resource_t xml_resources[];
 #endif /* LSP_USE_EXPAT */
 
 
@@ -119,9 +119,18 @@ namespace lsp
 #ifndef LSP_USE_EXPAT
     const char *XMLParser::fetch_string(const char * &text)
     {
-        const char *result = text;
-        text += strlen(text) + 1;
-        return result;
+        size_t offset       = 0;
+        size_t shift        = 0;
+        while (true)
+        {
+            size_t idx          = *(text++);
+            offset             |= ((idx & 0x7f) << shift);
+            if (!(idx & 0x80))
+                break;
+            shift          += 7;
+        }
+
+        return &xml_dictionary[offset];
     }
 #endif /* LSP_USE_EXPAT */
 
@@ -214,59 +223,51 @@ namespace lsp
 
             root->enter();
 
-            bool last = false;
-            while (!last)
+            ssize_t level = 0;
+            do
             {
-                char code = *(text++);
-                switch (code)
+                char token = *(text++);
+
+                if (token != XML_CLOSE_TAG)
                 {
-                    case XML_OPEN_TAG:
+                    // Increment level
+                    level   ++;
+                    size_t elements = ((unsigned char)token);
+
+                    // Get tag name
+                    const char *tag = fetch_string(text);
+
+                    // Allocate list of attributes
+                    const char **attributes = new const char *[(elements + 1) * 2];
+                    if (attributes == NULL)
                     {
-                        // Determine number of elements
-                        size_t elements = *(text++);
-
-                        // Get tag name
-                        const char *tag = fetch_string(text);
-
-                        // Allocate list of attributes
-                        const char **attributes = new const char *[(elements + 1) * 2];
-                        if (attributes == NULL)
-                        {
-                            lsp_error("Not enough memory");
-                            return false;
-                        }
-
-                        // Fill list with attributes
-                        const char **dst = attributes;
-                        for (size_t i=0; i<elements; ++i)
-                        {
-                            *(dst++)    = fetch_string(text);
-                            *(dst++)    = fetch_string(text);
-                        }
-                        *(dst++)     = NULL;
-                        *(dst++)     = NULL;
-
-                        // Now we are ready to parse tag
-                        startElementHandler(this, tag, attributes);
-
-                        // Finally, delete all attributes
-                        delete [] attributes;
-
-                        break;
-                    }
-                    case XML_CLOSE_TAG:
-                    {
-                        endElementHandler(this, NULL); // Tag name is not used
-                        break;
-                    }
-                    case XML_END_DOCUMENT:
-                        last = true;
-                        break;
-                    default:
-                        lsp_error("Document structure corrupted: unknown code: 0x%x", int(code));
+                        lsp_error("Not enough memory");
                         return false;
+                    }
+
+                    // Fill list with attributes
+                    const char **dst = attributes;
+                    for (size_t i=0; i<elements; ++i)
+                    {
+                        *(dst++)    = fetch_string(text);
+                        *(dst++)    = fetch_string(text);
+                    }
+                    *(dst++)     = NULL;
+                    *(dst++)     = NULL;
+
+                    // Now we are ready to parse tag
+                    startElementHandler(this, tag, attributes);
+
+                    // Finally, delete all attributes
+                    delete [] attributes;
+                }
+                else
+                {
+                    endElementHandler(this, NULL); // Tag name is not used
+                    level--;
                 }
             }
+            while (level > 0);
 
             root->quit();
 

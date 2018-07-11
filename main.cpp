@@ -24,10 +24,18 @@
 #include "test/vec4_test.h"
 #include "test/profiling_test.h"
 #include "test/fft_conv_test.h"
+#include "test/crossover_test.h"
+#include "test/saturation_test.h"
+#include "test/log_test.h"
+#include "test/addm_test.h"
 
 //#define TEST gtk_test
 #define TEST jack_test
 //#define TEST fft_conv_test
+//#define TEST crossover_test
+//#define TEST saturation_test
+//#define TEST log_test
+//#define TEST addm_test
 
 //#define TEST vec4_test
 //#define TEST view_ui_test

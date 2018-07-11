@@ -20,20 +20,21 @@ namespace lsp
                 S_LED       = (1 << 2)
             };
 
-            Color           sColor;
-            Color           sBgColor;
+            Color               sColor;
+            Color               sBgColor;
 
-            IUIPort        *pPort;
-            size_t          nSize;
-            size_t          nState;
-            size_t          nBMask;
-            float           fValue;
+            IUIPort            *pPort;
+            size_t              nSize;
+            size_t              nState;
+            size_t              nBMask;
+            float               fValue;
 
         private:
             bool        check_mouse_over(ssize_t x, ssize_t y);
             float       next_value(bool down);
             void        set_value(float value);
             bool        is_trigger();
+            void        draw(cairo_t *cr);
 
         public:
             Gtk2Button(plugin_ui *ui);
@@ -42,7 +43,7 @@ namespace lsp
         public:
             virtual void set(widget_attribute_t att, const char *value);
 
-            virtual void render();
+            virtual void end();
 
             virtual void resize(size_t &w, size_t &h);
 

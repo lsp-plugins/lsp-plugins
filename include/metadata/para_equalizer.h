@@ -1,12 +1,12 @@
 /*
- * equalizer.h
+ * para_equalizer.h
  *
  *  Created on: 30 мая 2016 г.
  *      Author: sadko
  */
 
-#ifndef METADATA_EQUALIZER_H_
-#define METADATA_EQUALIZER_H_
+#ifndef METADATA_PARA_EQUALIZER_H_
+#define METADATA_PARA_EQUALIZER_H_
 
 namespace lsp
 {
@@ -132,4 +132,4 @@ namespace lsp
     };
 }
 
-#endif /* METADATA_EQUALIZER_H_ */
+#endif /* METADATA_PARA_EQUALIZER_H_ */

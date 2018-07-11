@@ -7,6 +7,7 @@
 
 #include <ui/ui.h>
 #include <ui/graphics.h>
+#include <core/dsp.h>
 
 #include <math.h>
 
@@ -53,9 +54,7 @@ namespace lsp
         switch (att)
         {
             case A_ID:
-                pPort       = pUI->port(value);
-                if (pPort != NULL)
-                    pPort->bind(this);
+                BIND_PORT(pUI, pPort, value);
                 break;
             case A_COLOR:
                 sColor.set(pUI->theme(), value);
@@ -129,40 +128,42 @@ namespace lsp
         // Now we can surely apply deltas
         if (nFlags & F_LOGARITHMIC)
         {
-            if (a_min <= 0)
+            if (a_min <= 0.0f)
                 a_min   = AMPLIFICATION_THRESH;
-            if (a_max <= 0)
+            if (a_max <= 0.0f)
                 a_max   = AMPLIFICATION_THRESH;
             float norm = (a_min > a_max) ? logf(a_min / a_max) : logf(a_max / a_min);
             if (norm == 0.0f)
                 return false;
 
-            norm    = d / norm;
-            while (count--)
-            {
-                float vec    = fabsf(*(dv++));
-                if (vec <= 0)
-                    vec     = AMPLIFICATION_THRESH;
-                float k     = logf(vec / a_min) * norm;
-                *(x++)      += fDX * k;
-                *(y++)      += fDY * k;
-            }
+            norm            = d / norm;
+            a_min           = 1.0f / a_min;
+
+            dsp::axis_apply_log(x, y, dv, a_min, norm * fDX, norm * fDY, count);
         }
         else
         {
             float norm = (a_min > a_max) ? a_min : a_max;
             if (norm == 0.0f)
                 return false;
-
             norm    = d / norm;
 
-            while (count--)
-            {
-                float k     = *(dv++) * norm;
-                *(x++)      += fDX * k;
-                *(y++)      += fDY * k;
-            }
+//            for (size_t i=0; i<count; ++i)
+//            {
+//                float k     = dv[i] * norm;
+//                x[i]       += fDX * k;
+//                y[i]       += fDY * k;
+//            }
+
+            // Apply delta-vector
+            dsp::add_multiplied(x, dv, norm * fDX, count);
+            dsp::add_multiplied(y, dv, norm * fDY, count);
         }
+
+        // Saturate values
+        dsp::saturate(x, count);
+        dsp::saturate(y, count);
+
         return true;
     }
 

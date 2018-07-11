@@ -93,11 +93,12 @@ namespace lsp
     int JACKWrapper::run(size_t samples)
     {
         bool update     = false;
+        size_t n_ports  = vPorts.size();
 
-        for (size_t i=0; i<vPorts.size(); ++i)
+        for (size_t i=0; i<n_ports; ++i)
         {
             // Get port
-            JACKPort *port = vPorts[i];
+            JACKPort *port = vPorts.at(i);
             if (port == NULL)
                 continue;
 
@@ -123,9 +124,9 @@ namespace lsp
         // TODO (maybe)
 
         // Post-process ALL ports
-        for (size_t i=0; i<vPorts.size(); ++i)
+        for (size_t i=0; i<n_ports; ++i)
         {
-            JACKPort *port = vPorts[i];
+            JACKPort *port = vPorts.at(i);
             if (port != NULL)
                 port->post_process(samples);
         }
@@ -271,8 +272,13 @@ namespace lsp
         pUI->build();
 
         // Sync all ports
-        for (size_t i=0; i<vUIPorts.size(); ++i)
-            vUIPorts[i]->notifyAll();
+        size_t n_ui_ports   = vUIPorts.size();
+        for (size_t i=0; i<n_ui_ports; ++i)
+        {
+            IUIPort *p = vUIPorts.at(i);
+            if (p != NULL)
+                p->notifyAll();
+        }
 
         // Add processing callback
         if (jack_set_process_callback(pClient, process, this) != 0)
@@ -353,7 +359,7 @@ namespace lsp
         size_t sync = vSyncPorts.size();
         for (size_t i=0; i<sync; ++i)
         {
-            JACKUIPort *jup     = vSyncPorts[i];
+            JACKUIPort *jup     = vSyncPorts.at(i);
             if (jup->sync())
                 jup->notifyAll();
         }

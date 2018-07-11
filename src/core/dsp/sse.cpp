@@ -16,16 +16,23 @@
 #include <core/x86/dsp/complex.h>
 #include <core/x86/dsp/native.h>
 #include <core/x86/dsp/vec4.h>
+#include <core/x86/dsp/float.h>
+#include <core/x86/dsp/graphics.h>
 
 namespace lsp
 {
     namespace sse
     {
-        void dsp_init()
+        void dsp_init(dsp_options_t options)
         {
+            if ((options & (DSP_OPTION_SSE | DSP_OPTION_SSE2)) != (DSP_OPTION_SSE | DSP_OPTION_SSE2))
+                return;
+
             lsp_trace("Optimizing DSP for SSE instruction set");
 
             dsp::copy                       = sse::copy;
+            dsp::copy_saturated             = sse::copy_saturated;
+            dsp::saturate                   = sse::saturate;
             dsp::move                       = sse::move;
             dsp::fill                       = sse::fill;
             dsp::fill_one                   = sse::fill_one;
@@ -75,6 +82,7 @@ namespace lsp
             dsp::vec4_push                  = sse::vec4_push;
             dsp::vec4_unshift               = sse::vec4_unshift;
             dsp::vec4_zero                  = sse::vec4_zero;
+            dsp::axis_apply_log             = sse::axis_apply_log;
         }
     }
 

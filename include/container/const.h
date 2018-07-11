@@ -5,12 +5,12 @@
  *      Author: sadko
  */
 
-#ifndef CONST_H_
-#define CONST_H_
+#ifndef CONTAINER_CONST_H_
+#define CONTAINER_CONST_H_
 
 namespace lsp
 {
     static const size_t MESH_REFRESH_RATE       = 20; // 20 frames per second
 }
 
-#endif /* CONST_H_ */
+#endif /* CONTAINER_CONST_H_ */

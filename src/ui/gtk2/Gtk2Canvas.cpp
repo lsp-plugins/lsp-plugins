@@ -16,14 +16,14 @@ namespace lsp
         pCR         = NULL;
     }
 
-    inline float Gtk2Canvas::preserve(float v)
-    {
-        if (isnan(v))
-            return 0.0f;
-        else if (isinf(v))
-            return 1e+10;
-        return v;
-    }
+//    inline float Gtk2Canvas::preserve(float v)
+//    {
+//        if (isnan(v))
+//            return 0.0f;
+//        else if (isinf(v))
+//            return 1e+10;
+//        return v;
+//    }
 
     void Gtk2Canvas::drop_canvas()
     {
@@ -51,13 +51,18 @@ namespace lsp
         drop_canvas();
 
         // Create new canvas
-        pSurface    = cairo_image_surface_create(CAIRO_FORMAT_RGB24, width, height);
+        pSurface    = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
         if (pSurface == NULL)
             return;
         pCR         = cairo_create(pSurface);
         if (pCR == NULL)
             return;
 
+        // Add clipping
+        cairo_rectangle(pCR, 0, 0, width, height);
+        cairo_clip(pCR);
+
+        // Initialize context
         cairo_set_antialias(pCR, CAIRO_ANTIALIAS_NONE);
         cairo_translate(pCR, width >> 1, height >> 1);
         cairo_scale(pCR, 1.0, 1.0);
@@ -91,14 +96,14 @@ namespace lsp
     {
         if (pCR == NULL)
             return;
-        cairo_move_to(pCR, preserve(x), - preserve(y));
+        cairo_move_to(pCR, x, - y);
     }
 
     void Gtk2Canvas::line_to(ssize_t x, ssize_t y)
     {
         if (pCR == NULL)
             return;
-        cairo_line_to(pCR, preserve(x), - preserve(y));
+        cairo_line_to(pCR, x, - y);
     }
 
     void Gtk2Canvas::draw_lines(float *x, float *y, size_t count)
@@ -106,12 +111,9 @@ namespace lsp
         if ((count < 2) || (pCR == NULL))
             return;
 
-        cairo_move_to(pCR, preserve(*(x++)), - preserve(*(y++)));
+        cairo_move_to(pCR, *(x++), - *(y++));
         for (size_t i=1; i < count; ++i)
-            cairo_line_to(pCR, preserve(*(x++)), - preserve(*(y++)));
-//        cairo_move_to(pCR, *(x++), - *(y++));
-//        for (size_t i=1; i < count; ++i)
-//            cairo_line_to(pCR, *(x++), - *(y++));
+            cairo_line_to(pCR, *(x++), - *(y++));
     }
 
     void Gtk2Canvas::draw_poly(float *x, float *y, size_t count, const Color &stroke, const Color &fill)
@@ -119,12 +121,9 @@ namespace lsp
         if ((count < 2) || (pCR == NULL))
             return;
 
-        cairo_move_to(pCR, preserve(*(x++)), - preserve(*(y++)));
+        cairo_move_to(pCR, *(x++), - *(y++));
         for (size_t i=1; i < count; ++i)
-            cairo_line_to(pCR, preserve(*(x++)), - preserve(*(y++)));
-//        cairo_move_to(pCR, *(x++), - *(y++));
-//        for (size_t i=1; i < count; ++i)
-//            cairo_line_to(pCR, *(x++), - *(y++));
+            cairo_line_to(pCR, *(x++), - *(y++));
 
         cairo_set_source_rgba(pCR, fill.red(), fill.green(), fill.blue(), 1.0 - fill.alpha());
         cairo_fill_preserve(pCR);
@@ -185,13 +184,10 @@ namespace lsp
         cairo_set_font_size(pCR, size);
         cairo_text_extents(pCR, text, &extents);
 
-//        cairo_arc(pCR, x, - y, 2, 0, M_PI * 2);
-//        cairo_fill(pCR);
-
         float r_w = extents.x_advance - extents.x_bearing;
         float r_h = extents.y_advance - extents.y_bearing;
-        float fx = x - extents.x_bearing + (r_w + 4) * 0.5 * h_pos - r_w * 0.5;// + (h_pos) * r_w;
-        float fy = y - extents.y_advance + (r_h + 4) * 0.5 * v_pos - r_h * 0.5;// + (v_pos) * r_h;
+        float fx = x - extents.x_bearing + (r_w + 4) * 0.5 * h_pos - r_w * 0.5;
+        float fy = y - extents.y_advance + (r_h + 4) * 0.5 * v_pos - r_h * 0.5;
 
         cairo_move_to(pCR, fx, -fy);
         cairo_show_text (pCR, text);

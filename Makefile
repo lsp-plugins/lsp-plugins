@@ -1,5 +1,5 @@
-BIN_PATH				= /usr/local/bin
-LIB_PATH				= /usr/local/lib
+BIN_PATH                = /usr/local/bin
+LIB_PATH                = /usr/local/lib
 LADSPA_PATH             = $(LIB_PATH)/ladspa
 LV2_PATH                = $(LIB_PATH)/lv2
 VST_PATH                = $(LIB_PATH)/vst
@@ -9,7 +9,13 @@ ARTIFACT_ID             = $(PRODUCT)-plugins
 OBJDIR                  = ${CURDIR}/.build
 RELEASE                 = ${CURDIR}/.release
 RELEASE_TEXT            = LICENSE.txt README.txt CHANGELOG.txt
+RELEASE_SRC             = $(RELEASE_TEXT) src include res Makefile release.sh
 INSTALL                 = install
+
+# Package version
+ifndef VERSION
+VERSION                 = 1.0.11
+endif
 
 # Dependencies
 export VST_SDK          = /home/sadko/eclipse/lsp-plugins-vst3sdk
@@ -17,7 +23,7 @@ export VST_SDK          = /home/sadko/eclipse/lsp-plugins-vst3sdk
 # Includes
 INC_FLAGS               = -I"${CURDIR}/include"
 INSTALLATIONS           = install_php install_ladspa install_lv2 install_jack
-RELEASES                = release_ladspa release_lv2 release_jack
+RELEASES                = release_ladspa release_lv2 release_jack release_src
 ifdef VST_SDK
 INC_FLAGS              += -I"$(VST_SDK)"
 INSTALLATIONS          += install_vst
@@ -37,7 +43,6 @@ export LD_PATH          = /usr/lib64:/lib64
 #export LD_PATH          = /usr/lib:/lib
 endif
 
-export VERSION          = 1.0.10
 export BASEDIR          = ${CURDIR}
 export INCLUDE          = ${INC_FLAGS}
 export MAKE_OPTS        = -s
@@ -57,7 +62,7 @@ export OBJ_PLUGINS      = $(OBJDIR)/plugins.o
 export OBJ_METADATA     = $(OBJDIR)/metadata.o
 export OBJ_GTK2UI       = $(OBJDIR)/ui_gtk2.o
 export OBJ_GTK3UI       = $(OBJDIR)/ui_gtk3.o
-export OBJ_FILES		= $(OBJ_CORE) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(OBJ_PLUGINS) $(OBJ_METADATA) $(OBJ_GTK2UI)
+export OBJ_FILES        = $(OBJ_CORE) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(OBJ_PLUGINS) $(OBJ_METADATA) $(OBJ_GTK2UI)
 
 
 # Libraries
@@ -99,6 +104,7 @@ LV2_ID                 := $(ARTIFACT_ID)-lv2-$(VERSION)-$(CPU_ARCH)
 VST_ID                 := $(ARTIFACT_ID)-lxvst-$(VERSION)-$(CPU_ARCH)
 JACK_ID                := $(ARTIFACT_ID)-jack-$(VERSION)-$(CPU_ARCH)
 PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)-$(CPU_ARCH)
+SRC_ID                 := $(ARTIFACT_ID)-$(VERSION)-src
 
 .PHONY: all trace debug profile gdb compile install uninstall release
 .PHONY: install_ladspa install_lv2 install_vst install_jack
@@ -223,11 +229,18 @@ release_profile: release_prepare
 	@cp $(RELEASE_TEXT) $(RELEASE)/$(PROFILE_ID)/
 	@tar -C $(RELEASE) -czf $(RELEASE)/$(PROFILE_ID).tar.gz $(PROFILE_ID)
 	@rm -rf $(RELEASE)/$(PROFILE_ID)
-	
+
+release_src: release_prepare
+	@echo "Releasing source code binaries"
+	@mkdir -p $(RELEASE)/$(SRC_ID)
+	@cp -R $(RELEASE_SRC) $(RELEASE)/$(SRC_ID)/
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(SRC_ID).tar.gz $(SRC_ID)
+	@rm -rf $(RELEASE)/$(SRC_ID)
+
 uninstall:
 	@-rm -f $(DESTDIR)$(LADSPA_PATH)/$(ARTIFACT_ID)-ladspa.so
 	@-rm -rf $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
 	@-rm -f $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-vst-*.so
 	@-rm -f $(DESTDIR)$(BIN_PATH)/$(ARTIFACT_ID)-*
-	@-rm -f $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)-jack.so
+	@-rm -f $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)-jack-core.so
 	@echo "Uninstall OK"

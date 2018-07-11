@@ -89,7 +89,10 @@ namespace lsp
 
         Gtk2Custom *_this = GTK2_CUSTOM(widget);
         if (_this->pImpl != NULL)
+        {
+            _this->pImpl->allowRedraw();
             _this->pImpl->render();
+        }
 
         return FALSE;
     }
@@ -260,7 +263,8 @@ namespace lsp
                    allocation->width, allocation->height
             );
 
-            gtk_widget_queue_draw(widget);
+            if (_this->pImpl != NULL)
+                _this->pImpl->markRedraw();
         }
     }
 
@@ -301,6 +305,8 @@ namespace lsp
         nTop                = 0;
         nWidth              = 0;
         nHeight             = 0;
+        bDirty              = true;
+        pSurface            = NULL;
     }
 
     Gtk2CustomWidget::~Gtk2CustomWidget()
@@ -314,10 +320,82 @@ namespace lsp
 
             pWidget             = NULL;
         }
+
+        if (pSurface != NULL)
+        {
+            cairo_surface_destroy(pSurface);
+            pSurface        = NULL;
+        }
+    }
+
+    void Gtk2CustomWidget::draw(cairo_t *cr)
+    {
+    }
+
+    cairo_surface_t *Gtk2CustomWidget::get_surface()
+    {
+        // Check surface
+        if (pSurface != NULL)
+        {
+            size_t width    = cairo_image_surface_get_width(pSurface);
+            size_t height   = cairo_image_surface_get_height(pSurface);
+
+            if ((nWidth != width) || (nHeight != height))
+            {
+                cairo_surface_destroy(pSurface);
+                pSurface    = NULL;
+            }
+        }
+
+        // Create new surface if needed
+        if (pSurface == NULL)
+        {
+            pSurface    = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, nWidth, nHeight);
+            if (pSurface == NULL)
+                return NULL;
+            bDirty      = true;
+        }
+
+        if (bDirty)
+        {
+            // Create cairo context
+            cairo_t *cr = cairo_create(pSurface);
+            if (cr == NULL)
+                return NULL;
+
+            // Call underlying function for rendering
+            draw(cr);
+
+            // Destroy cairo context
+            cairo_destroy(cr);
+
+            // Mark as drawn
+            bDirty = false;
+        }
+
+        return pSurface;
     }
 
     void Gtk2CustomWidget::render()
     {
+        // Get surface
+        cairo_surface_t *s  = get_surface();
+        if (s == NULL)
+            return;
+
+        // Get cairo resource of the window
+        cairo_t *cr = gdk_cairo_create(pWidget->window);
+        cairo_set_source_surface (cr, s, 0, 0);
+        cairo_paint(cr);
+
+        // Release resource
+        cairo_destroy(cr);
+    }
+
+    void Gtk2CustomWidget::markRedraw()
+    {
+        bDirty      = true;
+        Gtk2Widget::markRedraw();
     }
 
     void Gtk2CustomWidget::resize(size_t &w, size_t &h)
@@ -356,12 +434,6 @@ namespace lsp
 
     void Gtk2CustomWidget::scroll(ssize_t x, ssize_t y, size_t state, size_t direction)
     {
-    }
-
-    void Gtk2CustomWidget::markRedraw()
-    {
-        if (pWidget != NULL)
-            gtk_widget_queue_draw(pWidget);
     }
 
     void Gtk2CustomWidget::destroy()

@@ -37,14 +37,15 @@ namespace lsp
             bool        check_mouse_over(ssize_t x, ssize_t y);
             void        dimensions(ssize_t &w, ssize_t &h);
 
+        protected:
+            void        draw(cairo_t *cr);
+
         public:
             Gtk2Switch(plugin_ui *ui);
             virtual ~Gtk2Switch();
 
         public:
             virtual void set(widget_attribute_t att, const char *value);
-
-            virtual void render();
 
             virtual void resize(size_t &w, size_t &h);
 

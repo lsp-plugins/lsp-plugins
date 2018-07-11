@@ -13,6 +13,25 @@
 #include <math.h>
 #include <string.h>
 
+#define DSP_OPTION_CPU_UNKNOWN          0UL
+#define DSP_OPTION_CPU_INTEL            1UL
+#define DSP_OPTION_CPU_AMD              2UL
+#define DSP_OPTION_CPU_MASK             0x3UL
+#define DSP_OPTION_FPU                  (1UL << 2)
+#define DSP_OPTION_CMOV                 (1UL << 3)
+#define DSP_OPTION_MMX                  (1UL << 4)
+#define DSP_OPTION_SSE                  (1UL << 5)
+#define DSP_OPTION_SSE2                 (1UL << 6)
+#define DSP_OPTION_SSE3                 (1UL << 7)
+#define DSP_OPTION_SSSE3                (1UL << 8)
+#define DSP_OPTION_SSE4_1               (1UL << 9)
+#define DSP_OPTION_SSE4_2               (1UL << 10)
+#define DSP_OPTION_SSE4A                (1UL << 11)
+#define DSP_OPTION_FMA3                 (1UL << 12)
+#define DSP_OPTION_FMA4                 (1UL << 13)
+#define DSP_OPTION_AVX                  (1UL << 14)
+#define DSP_OPTION_AVX2                 (1UL << 15)
+
 namespace lsp
 {
     namespace dsp
@@ -29,6 +48,22 @@ namespace lsp
          * @param count number of elements
          */
         extern void (*copy)(float *dst, const float *src, size_t count);
+
+        /** Copy data: dst[i] = saturate(src[i])
+         *
+         * @param dst destination pointer
+         * @param src source pointer
+         * @param count number of elements
+         */
+        extern void (*copy_saturated)(float *dst, const float *src, size_t count);
+
+        /** Saturate data: dst[i] = saturate(src[i])
+         *
+         * @param dst destination pointer
+         * @param src source pointer
+         * @param count number of elements
+         */
+        extern void (* saturate)(float *dst, size_t count);
 
         /** Move data: dst[i] = src[i]
          *
@@ -449,6 +484,31 @@ namespace lsp
          * @param v vector to initialize
          */
         extern void (* vec4_zero)(float *v);
+
+        /** Do logarithmic vector apply:
+         *  x[i] = x[i] + norm_x * logf(absf(v[i]*zero))
+         *  y[i] = y[i] + norm_y * logf(absf(v[i]*zero))
+         *
+         * @param x destination vector for X coordinate
+         * @param y destination vector for Y coordinate
+         * @param v delta vector to apply
+         * @param zero graphics zero point
+         * @param norm_x X norming factor
+         * @param norm_y Y norming factor
+         */
+        extern void (* axis_apply_log)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count);
+
+        /** Do linear vector apply
+         *  x[i] = x[i] + norm_x * v[i]
+         *
+         * @param x
+         * @param y
+         * @param v
+         * @param norm_x
+         * @param norm_y
+         * @param count
+         */
+        extern void (* axis_apply_lin)(float *x, float *y, float norm_x, float norm_y, size_t count);
     }
 
 } /* namespace forzee */

@@ -5,10 +5,14 @@
  *      Author: sadko
  */
 
+#include <core/types.h>
 #include <core/dsp.h>
 #include <core/bits.h>
+#include <core/units.h>
 
 #include <core/native/dsp.h>
+#include <core/native/float.h>
+#include <core/native/graphics.h>
 
 namespace lsp
 {
@@ -16,7 +20,10 @@ namespace lsp
     {
         void dsp_init()
         {
+            // Generic init
             dsp::copy                       = native::copy;
+            dsp::copy_saturated             = native::copy_saturated;
+            dsp::saturate                   = native::saturate;
             dsp::move                       = native::move;
             dsp::fill                       = native::fill;
             dsp::fill_one                   = native::fill_one;
@@ -66,6 +73,7 @@ namespace lsp
             dsp::vec4_push                  = native::vec4_push;
             dsp::vec4_unshift               = native::vec4_unshift;
             dsp::vec4_zero                  = native::vec4_zero;
+            dsp::axis_apply_log             = native::axis_apply_log;
         }
     } // namespace native
 } // namespace dsp

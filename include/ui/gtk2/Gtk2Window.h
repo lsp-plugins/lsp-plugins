@@ -32,6 +32,7 @@ namespace lsp
             ssize_t     nHeight;
             bool        bResizable;
             bool        bMapped;
+            bool        bRedrawing;
             guint       hFunction;
             guint       hMapHandler;
             guint       hUnmapHandler;

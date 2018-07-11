@@ -26,7 +26,9 @@ namespace lsp
             cvector<IUIPort>            vSortedPorts;
             cvector<UISwitchedPort>     vSwitched;
             cvector<PortAlias>          vAliases;
+            cvector<IWidget>            vRedraw[2];
             Theme                       sTheme;
+            size_t                      nRedrawFrame;
 
         protected:
             const plugin_metadata_t    *pMetadata;
@@ -53,34 +55,60 @@ namespace lsp
             inline IUIWrapper *getWrapper() { return pWrapper; };
 
         public:
-            virtual void init(IUIWrapper *wrapper);
+            /** Initialize UI
+             *
+             * @param wrapper UI wrapper
+             */
+            void init(IUIWrapper *wrapper);
 
-            virtual void build();
+            /** Build UI from XML file
+             *
+             */
+            void build();
 
-            virtual void destroy();
+            /** Destroy UI
+             *
+             */
+            void destroy();
 
-            virtual bool add_port(IUIPort *port);
+            /** Add plugin port to UI
+             *
+             * @param port UI port to communicate with plugin
+             * @return status of operation
+             */
+            bool add_port(IUIPort *port);
 
             /** Export settings of the UI to the file
              *
              * @param filename file name
              * @return status of operation
              */
-            virtual bool export_settings(const char *filename);
+            bool export_settings(const char *filename);
 
             /** Import settings of the UI from the file
              *
              * @param filename file name
              * @return status of operation
              */
-            virtual bool import_settings(const char *filename);
+            bool import_settings(const char *filename);
 
             /** Get INTERNAL port by name
              *
              * @param name port name
              * @return internal port
              */
-            virtual IUIPort *port(const char *name);
+            IUIPort *port(const char *name);
+
+            /** Redraw pending UI widgets
+             *
+             */
+            void redraw();
+
+            /** Queue widget for redraw
+             *
+             * @param widget widget to redraw
+             */
+            bool queue_redraw(IWidget *widget);
 
             /** Get port count
              *

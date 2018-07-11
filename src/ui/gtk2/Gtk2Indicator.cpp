@@ -20,7 +20,7 @@ namespace lsp
         int x, y, w, h;
     } rect_t;
 
-    const rect_t segments[] =
+    static const rect_t segments[] =
     {
         {   4,  6,  1,  5   },  // 0
         {   0, 10,  1,  5   },  // 1
@@ -32,16 +32,7 @@ namespace lsp
         {   2,  8,  5,  1   },  // 7
         {  12, 16,  1,  1   },  // 8
         {  12,  5,  1,  1   },  // 9
-        {  12, 11,  1,  1   },  // 10
-//        {   4,  6,  2,  6   },  // 0
-//        {   0, 10,  2,  6   },  // 1
-//        {   0,  2,  2,  6   },  // 2
-//        {   2,  0,  6,  2   },  // 3
-//        {   8,  2,  2,  6   },  // 4
-//        {   8, 10,  2,  6   },  // 5
-//        {   2, 16,  6,  2   },  // 6
-//        {   2,  8,  6,  2   },  // 7
-//        {  11, 16,  2,  2   }   // 8
+        {  12, 11,  1,  1   }   // 10
     };
 
 
@@ -231,9 +222,7 @@ namespace lsp
         switch (att)
         {
             case A_ID:
-                pPort       = pUI->port(value);
-                if (pPort != NULL)
-                    pPort->bind(this);
+                BIND_PORT(pUI, pPort, value);
                 break;
             case A_FORMAT:
                 if (!parseFormat(value))
@@ -830,15 +819,12 @@ namespace lsp
         return true;
     }
 
-    void Gtk2Indicator::render()
+    void Gtk2Indicator::draw(cairo_t *cr)
     {
         char buf[128];
 
 //        lsp_trace("render(%d, %d, %d, %d)", int(nLeft), int(nTop), int(nWidth), int(nHeight));
         size_t width = ((15 + 1) * sDigits) + 2, height = 18 + 4;
-
-        cairo_t *cr = gdk_cairo_create(pWidget->window);
-        cairo_save(cr);
 
         // Draw background
         cairo_set_source_rgb(cr, sBgColor.red(), sBgColor.green(), sBgColor.blue());
@@ -883,9 +869,6 @@ namespace lsp
             // Draw digit with character and modifier
             drawDigit(cr, x, 3, c, m);
         }
-
-        cairo_restore(cr);
-        cairo_destroy(cr);
     }
 
     void Gtk2Indicator::resize(size_t &w, size_t &h)
@@ -906,7 +889,7 @@ namespace lsp
                 fValue      = pPort->getValue();
 
             // Request for redraw
-            gtk_widget_queue_draw(pWidget);
+            markRedraw();
         }
     }
 } /* namespace lsp */

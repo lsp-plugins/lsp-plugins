@@ -191,7 +191,8 @@ namespace lsp
 
                 // Copy mesh data
                 for (size_t i=0; i < mesh->nBuffers; ++i)
-                    dsp::copy(pMesh->pvData[i], mesh->pvData[i], mesh->nItems);
+                    dsp::copy_saturated(pMesh->pvData[i], mesh->pvData[i], mesh->nItems);
+//                    dsp::copy(pMesh->pvData[i], mesh->pvData[i], mesh->nItems);
                 pMesh->data(mesh->nBuffers, mesh->nItems);
 
                 // Clean source mesh

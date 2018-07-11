@@ -14,6 +14,7 @@ namespace lsp
         pWidget         = NULL;
         nWFlags         = 0;
         nAdded          = 0;
+        atomic_init(lkWRedraw);
     }
 
     Gtk2Widget::~Gtk2Widget()
@@ -95,6 +96,32 @@ namespace lsp
     {
         IWidget::show();
         update_gtk2_visibility();
+    }
+
+    void Gtk2Widget::draw()
+    {
+        // Call GTK subsystem for widget redraw
+        if (pWidget != NULL)
+            gtk_widget_queue_draw(pWidget);
+    }
+
+    void Gtk2Widget::allowRedraw()
+    {
+        atomic_unlock(lkWRedraw);
+    }
+
+    void Gtk2Widget::markRedraw()
+    {
+        if (pUI == NULL)
+            return;
+
+//        lsp_trace("wflags = %x", int(nWFlags));
+        if (!atomic_lock(lkWRedraw))
+            return;
+
+        // Queue redraw event on the UI
+        if (!pUI->queue_redraw(this))
+            atomic_unlock(lkWRedraw);
     }
 
     Gtk2Widget *Gtk2Widget::cast(IWidget *widget)

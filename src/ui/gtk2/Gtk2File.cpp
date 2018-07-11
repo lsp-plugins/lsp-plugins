@@ -33,6 +33,7 @@ namespace lsp
         pLength         = NULL;
         pStatus         = NULL;
         pMesh           = NULL;
+        pGlass          = NULL;
 
         nBtnWidth       = 128;
         nBtnHeight      = 49;
@@ -44,6 +45,11 @@ namespace lsp
 
     Gtk2File::~Gtk2File()
     {
+        if (pGlass != NULL)
+        {
+            cairo_surface_destroy(pGlass);
+            pGlass  = NULL;
+        }
     }
 
     void Gtk2File::set(widget_attribute_t att, const char *value)
@@ -86,7 +92,6 @@ namespace lsp
             case A_BG_COLOR:
                 sBgColor.set(pUI->theme(), value);
                 break;
-                break;
             default:
                 Gtk2CustomWidget::set(att, value);
                 break;
@@ -96,15 +101,6 @@ namespace lsp
     void Gtk2File::render_mesh(cairo_t *cr, mesh_t *mesh, size_t index, const Color &color, ssize_t x, ssize_t y, ssize_t w, ssize_t h)
     {
         const float *src = mesh->pvData[index];
-
-//        cairo_set_source_rgb(cr, color.red(), color.green(), color.blue());
-//        for (ssize_t i=0; i<w; ++i)
-//        {
-//            size_t idx  = (i * mesh->nItems) / w;
-//            cairo_move_to(cr, x + i, y);
-//            cairo_line_to(cr, x + i, y + h * src[idx]);
-//            cairo_stroke(cr);
-//        }
 
         cairo_set_source_rgba(cr, color.red(), color.green(), color.blue(), 0.5f);
         cairo_move_to(cr, x, y);
@@ -352,15 +348,10 @@ namespace lsp
         cairo_destroy(cr);
     }
 
-    void Gtk2File::render()
+    void Gtk2File::draw(cairo_t *cr)
     {
-//        lsp_trace("pressed = %d", int(pressed));
-
         // Get resource
-//        cairo_pattern_t *cp;
-        cairo_t *cr = gdk_cairo_create(pWidget->window);
         cairo_pattern_t *cp = NULL;
-        cairo_save(cr);
 
         // Draw background
         cairo_set_source_rgb(cr, sBgColor.red(), sBgColor.green(), sBgColor.blue());
@@ -384,11 +375,15 @@ namespace lsp
             Color c(1.0, 1.0, 1.0);
             c.blend(sColor, bright);
 
-            cp = cairo_pattern_create_radial (bw + 1, rh - bw - 1, bw, 1, rh - bw - 1, pr * 1.5);
-            cairo_pattern_add_color_stop_rgb(cp, 0.0, c.red(), c.green(), c.blue());
-            cairo_pattern_add_color_stop_rgb(cp, 1.0, sColor.red(), sColor.green(), sColor.blue());
-
-            cairo_set_source(cr, cp);
+            if (i < r)
+            {
+                cp = cairo_pattern_create_radial (bw + 1, rh - bw - 1, bw, 1, rh - bw - 1, pr * 1.5);
+                cairo_pattern_add_color_stop_rgb(cp, 0.0, c.red(), c.green(), c.blue());
+                cairo_pattern_add_color_stop_rgb(cp, 1.0, sColor.red(), sColor.green(), sColor.blue());
+                cairo_set_source(cr, cp);
+            }
+            else
+                cairo_set_source_rgb(cr, sColor.red(), sColor.green(), sColor.blue());
 
             cairo_arc(cr, bw, bw, bw - i, M_PI, 1.5 * M_PI);
             cairo_arc(cr, rw - bw, bw, bw - i, 1.5 * M_PI, 2.0 * M_PI);
@@ -396,12 +391,17 @@ namespace lsp
             cairo_arc(cr, bw, rh - bw, bw - i, 0.5 * M_PI, M_PI);
             cairo_close_path(cr);
 
-            cairo_fill(cr);
-            cairo_pattern_destroy(cp);
+            if (i < r)
+            {
+                cairo_stroke(cr);
+                cairo_pattern_destroy(cp);
+            }
+            else
+                cairo_fill(cr);
         }
 
         // Draw main contents
-        cairo_surface_t *cs     = cairo_image_surface_create(CAIRO_FORMAT_RGB24, nBtnWidth, nBtnHeight);
+        cairo_surface_t *cs     = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, nBtnWidth, nBtnHeight);
         render_graph(cs, nBtnWidth, nBtnHeight);
 
         if (!bPressed)
@@ -432,24 +432,48 @@ namespace lsp
         cairo_surface_destroy(cs);
 
         // Draw glass effect
-        cp = cairo_pattern_create_radial (rw, 0, bw << 1, rw, 0, pr);
-        cairo_pattern_add_color_stop_rgba(cp, 0.0, 1.0, 1.0, 1.0, 0.15);
-        cairo_pattern_add_color_stop_rgba(cp, 1.0, 1.0, 1.0, 1.0, 0.0);
+        if (pGlass != NULL)
+        {
+            size_t width    = cairo_image_surface_get_width(pGlass);
+            size_t height   = cairo_image_surface_get_height(pGlass);
 
-        cairo_set_source(cr, cp);
+            if ((nWidth != width) || (nHeight != height))
+            {
+                cairo_surface_destroy(pGlass);
+                pGlass          = NULL;
+            }
+        }
 
-        cairo_arc(cr, bw, bw, bw - r, M_PI, 1.5 * M_PI);
-        cairo_arc(cr, rw - bw, bw, bw - r, 1.5 * M_PI, 2.0 * M_PI);
-        cairo_arc(cr, rw - bw, rh - bw, bw - r, 0.0, 0.5 * M_PI);
-        cairo_arc(cr, bw, rh - bw, bw - r, 0.5 * M_PI, M_PI);
-        cairo_close_path(cr);
+        if (pGlass == NULL)
+        {
+            // Gradient effect is too expensive, draw it as little as possible
+            pGlass      = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, nWidth, nHeight);
+            if (pGlass != NULL)
+            {
+                cp = cairo_pattern_create_radial (rw, 0, bw << 1, rw, 0, pr);
+                cairo_pattern_add_color_stop_rgba(cp, 0.0, 1.0, 1.0, 1.0, 0.15);
+                cairo_pattern_add_color_stop_rgba(cp, 1.0, 1.0, 1.0, 1.0, 0.0);
 
-        cairo_fill(cr);
-        cairo_pattern_destroy(cp);
+                cairo_t *gcr    = cairo_create(pGlass);
+                cairo_set_source(gcr, cp);
+                cairo_arc(gcr, bw, bw, bw - r, M_PI, 1.5 * M_PI);
+                cairo_arc(gcr, rw - bw, bw, bw - r, 1.5 * M_PI, 2.0 * M_PI);
+                cairo_arc(gcr, rw - bw, rh - bw, bw - r, 0.0, 0.5 * M_PI);
+                cairo_arc(gcr, bw, rh - bw, bw - r, 0.5 * M_PI, M_PI);
+                cairo_close_path(gcr);
+                cairo_fill(gcr);
+                cairo_destroy(gcr);
 
-        // Release resource
-        cairo_restore(cr);
-        cairo_destroy(cr);
+                cairo_pattern_destroy(cp);
+            }
+        }
+
+        if (pGlass != NULL)
+        {
+            cairo_set_source_surface (cr, pGlass, 0, 0);
+            cairo_paint(cr);
+        }
+        // End of Glass effect
     }
 
     void Gtk2File::resize(size_t &w, size_t &h)

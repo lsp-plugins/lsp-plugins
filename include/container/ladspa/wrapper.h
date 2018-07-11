@@ -151,10 +151,11 @@ namespace lsp
                 bool update     = false;
 
                 // Process external ports for changes
-                for (size_t i=0; i<vPorts.size(); ++i)
+                size_t n_ports  = vPorts.size();
+                for (size_t i=0; i<n_ports; ++i)
                 {
                     // Get port
-                    LADSPAPort *port = vPorts[i];
+                    LADSPAPort *port = vPorts.at(i);
                     if (port == NULL)
                         continue;
 
@@ -177,9 +178,9 @@ namespace lsp
                 pPlugin->process(samples);
 
                 // Process external ports for changes
-                for (size_t i=0; i<vPorts.size(); ++i)
+                for (size_t i=0; i<n_ports; ++i)
                 {
-                    LADSPAPort *port = vPorts[i];
+                    LADSPAPort *port = vPorts.at(i);
                     if (port != NULL)
                         port->post_process(samples);
                 }

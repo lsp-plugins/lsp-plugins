@@ -68,13 +68,13 @@ namespace lsp
             static gboolean redraw_meter(gpointer ptr);
             void            format_meter(float value, char *buf, size_t n) const;
 
+            virtual void    draw(cairo_t *cr);
+
         public:
             Gtk2Meter(plugin_ui *ui);
             virtual ~Gtk2Meter();
 
         public:
-            virtual void render();
-
             virtual void set(widget_attribute_t att, const char *value);
 
             virtual void end();

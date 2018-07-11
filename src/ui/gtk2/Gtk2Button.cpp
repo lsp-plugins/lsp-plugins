@@ -67,19 +67,18 @@ namespace lsp
         return value;
     }
 
+    void Gtk2Button::end()
+    {
+        if (pPort != NULL)
+            set_value(pPort->getValue());
+    }
+
     void Gtk2Button::set(widget_attribute_t att, const char *value)
     {
         switch (att)
         {
             case A_ID:
-                {
-                    pPort       = pUI->port(value);
-                    if (pPort != NULL)
-                    {
-                        pPort->bind(this);
-                        set_value(pPort->getValue());
-                    }
-                }
+                BIND_PORT(pUI, pPort, value);
                 break;
             case A_COLOR:
                 sColor.set(pUI->theme(), value);
@@ -104,18 +103,15 @@ namespace lsp
         }
     }
 
-    void Gtk2Button::render()
+    void Gtk2Button::draw(cairo_t *cr)
     {
         size_t pressed = nState;
-//        lsp_trace("pressed = %d", int(pressed));
 
         // Get resource
         cairo_pattern_t *cp;
-        cairo_t *cr = gdk_cairo_create(pWidget->window);
-        cairo_save(cr);
 
         // Draw background
-        cairo_set_source_rgba(cr, sBgColor.red(), sBgColor.green(), sBgColor.blue(), 1.0);
+        cairo_set_source_rgb(cr, sBgColor.red(), sBgColor.green(), sBgColor.blue());
         cairo_rectangle(cr, 0, 0, nWidth, nHeight);
         cairo_fill(cr);
 
@@ -284,10 +280,6 @@ namespace lsp
             cairo_fill(cr);
             cairo_pattern_destroy(cp);
         }
-
-        // Release resource
-        cairo_restore(cr);
-        cairo_destroy(cr);
     }
 
     void Gtk2Button::resize(size_t &w, size_t &h)
@@ -321,10 +313,7 @@ namespace lsp
         if (pressed != is_pressed)
         {
             nState      ^= S_PRESSED;
-
-//            if (is_trigger())
             on_click(true);
-
             markRedraw();
         }
     }

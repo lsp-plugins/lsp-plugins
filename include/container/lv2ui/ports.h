@@ -249,8 +249,8 @@ namespace lsp
                         return;
 
                     // Now we can surely copy data
-//                    lsp_trace("memcpy(%p, %p, %d)", sMesh.pMesh->pvData[i], v + 1, int(v_items * sizeof(float)));
-                    memcpy(sMesh.pMesh->pvData[i], reinterpret_cast<const float *>(v + 1), v_items * sizeof(float));
+                    dsp::copy_saturated(sMesh.pMesh->pvData[i], reinterpret_cast<const float *>(v + 1), v_items);
+//                    memcpy(sMesh.pMesh->pvData[i], reinterpret_cast<const float *>(v + 1), v_items * sizeof(float));
                 }
 
                 // Update mesh parameters

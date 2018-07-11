@@ -43,6 +43,37 @@ namespace lsp
                 return true;
             }
 
+            inline bool insert_item(const void *ptr, size_t idx)
+            {
+                if (idx >= nItems)
+                    return add_item(ptr);
+
+                if (nItems >= nCapacity)
+                {
+                    void **ptrs = new void *[nCapacity + CVECTOR_GROW];
+                    if (ptrs == NULL)
+                        return false;
+                    if (pvItems != NULL)
+                    {
+                        for (size_t i=0; i<idx; ++i)
+                            ptrs[i]         = pvItems[i];
+                        ptrs[idx]       = const_cast<void *>(ptr);
+                        for (size_t i=idx; i<nItems; ++i)
+                            ptrs[i+1]       = pvItems[i];
+                        delete [] pvItems;
+                    }
+                    pvItems         = ptrs;
+                    nCapacity      += CVECTOR_GROW;
+                }
+                else
+                {
+                    for (size_t i=nItems++; i>idx; --i)
+                        pvItems[i]      = pvItems[i-1];
+                    pvItems[idx]    = const_cast<void *>(ptr);
+                }
+                return true;
+            }
+
             inline void *get_item(size_t index)
             {
                 return (index < nItems) ? pvItems[index] : NULL;
@@ -128,6 +159,9 @@ namespace lsp
         {
             public:
                 inline bool add(T *item) { return basic_vector::add_item(item); }
+
+                inline bool insert(T *item, size_t index) { return basic_vector::insert_item(item, index); }
+
                 inline T *get(size_t index) { return reinterpret_cast<T *>(basic_vector::get_item(index)); }
 
                 inline bool remove(const T *item, bool fast = false) { return basic_vector::remove_item(item, fast); }

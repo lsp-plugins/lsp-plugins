@@ -40,9 +40,7 @@ namespace lsp
         switch (att)
         {
             case A_ID:
-                pPort       = pUI->port(value);
-                if (pPort != NULL)
-                    pPort->bind(this);
+                BIND_PORT(pUI, pPort, value);
                 break;
             case A_COLOR:
                 sColor.set(pUI->theme(), value);
@@ -81,12 +79,10 @@ namespace lsp
         }
     }
 
-    void Gtk2Switch::render()
+    void Gtk2Switch::draw(cairo_t *cr)
     {
         // Get resource
         cairo_pattern_t *cp;
-        cairo_t *cr = gdk_cairo_create(pWidget->window);
-        cairo_save(cr);
 
         // Draw background
         cairo_set_source_rgb(cr, sBgColor.red(), sBgColor.green(), sBgColor.blue());
@@ -259,10 +255,6 @@ namespace lsp
             cairo_line_to(cr, l + cx - (nAngle - 1) * (wid >> 2) - s2, h >> 1);
         }
         cairo_stroke(cr);
-
-        // Release resource
-        cairo_restore(cr);
-        cairo_destroy(cr);
     }
 
     void Gtk2Switch::dimensions(ssize_t &w, ssize_t &h)
@@ -333,7 +325,7 @@ namespace lsp
             else
                 nState     &= ~S_PRESSED;
 
-            gtk_widget_queue_draw(pWidget);
+            markRedraw();
         }
     }
 
@@ -361,7 +353,7 @@ namespace lsp
             if (nBMask == 0)
                 on_click(nState & S_TOGGLED);
 
-            gtk_widget_queue_draw(pWidget);
+            markRedraw();
         }
     }
 
@@ -378,7 +370,7 @@ namespace lsp
             else
                 nState     &= ~S_PRESSED;
 
-            gtk_widget_queue_draw(pWidget);
+            markRedraw();
         }
     }
 
@@ -409,7 +401,7 @@ namespace lsp
                 nState &= ~S_TOGGLED;
 
             // Request for redraw
-            gtk_widget_queue_draw(pWidget);
+            markRedraw();
         }
     }
 

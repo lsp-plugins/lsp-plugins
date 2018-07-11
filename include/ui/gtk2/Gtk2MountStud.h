@@ -40,14 +40,15 @@ namespace lsp
             static void export_settings(GtkWidget *menu, gpointer data);
             static void import_settings(GtkWidget *menu, gpointer data);
 
+        protected:
+            virtual void    draw(cairo_t *cr);
+
         public:
             Gtk2MountStud(plugin_ui *ui);
             virtual ~Gtk2MountStud();
 
         public:
             virtual void set(widget_attribute_t att, const char *value);
-
-            virtual void render();
 
             virtual void resize(size_t &w, size_t &h);
 

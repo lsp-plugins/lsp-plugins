@@ -69,7 +69,7 @@ namespace lsp
     {
         float dx = x1 - x2;
         float dy = y1 - y2;
-        return sqrt(dx*dx + dy*dy);
+        return sqrtf(dx*dx + dy*dy);
     }
 
     float scalar_product2d(float x1, float y1, float x2, float y2)
@@ -90,7 +90,7 @@ namespace lsp
     {
         float dx = x - x0;
         float dy = y - y0;
-        float l = sqrt(dx*dx + dy*dy);
+        float l = sqrtf(dx*dx + dy*dy);
         if (l == 0.0)
             return 0;
 

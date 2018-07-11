@@ -80,6 +80,7 @@
 namespace lsp
 {
     typedef __uint32_t      uint32_t;
+    typedef unsigned long   dsp_options_t;
 
     enum mesh_state_t
     {

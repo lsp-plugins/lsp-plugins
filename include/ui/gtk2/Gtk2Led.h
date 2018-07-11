@@ -13,16 +13,17 @@ namespace lsp
     class Gtk2Led: public Gtk2CustomWidget
     {
         private:
-            Color           sBgColor;
-            size_t          nSize;
-            IUIPort        *pPort;
-            float           fValue;
-            float           fKey;
+            Color               sBgColor;
+            size_t              nSize;
+            IUIPort            *pPort;
+            float               fValue;
+            float               fKey;
 
-            ColorHolder     sColor;
+            ColorHolder         sColor;
 
         protected:
             bool            key_matched();
+            virtual void    draw(cairo_t *cr);
 
         public:
             Gtk2Led(plugin_ui *ui);
@@ -30,8 +31,6 @@ namespace lsp
 
         public:
             virtual void set(widget_attribute_t att, const char *value);
-
-            virtual void render();
 
             virtual void resize(size_t &w, size_t &h);
 

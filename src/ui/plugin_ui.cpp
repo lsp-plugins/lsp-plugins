@@ -256,6 +256,7 @@ namespace lsp
         pMetadata       = mdata;
         pFactory        = factory;
         pWrapper        = NULL;
+        nRedrawFrame    = 0;
     }
 
     plugin_ui::~plugin_ui()
@@ -299,6 +300,10 @@ namespace lsp
 
     void plugin_ui::destroy()
     {
+        // Drop redraw queues
+        vRedraw[0].clear();
+        vRedraw[1].clear();
+
         // Delete widgets
         for (size_t i=0; i<vWidgets.size(); ++i)
             delete vWidgets[i];
@@ -367,10 +372,12 @@ namespace lsp
         fputs("#-------------------------------------------------------------------------------\n", fd);
         fputs("\n", fd);
 
-        for (size_t i=0; i<vPorts.size(); ++i)
+        size_t n_ports = vPorts.size();
+
+        for (size_t i=0; i<n_ports; ++i)
         {
             // Get port
-            IUIPort *up         = vPorts[i];
+            IUIPort *up         = vPorts.at(i);
             if (up == NULL)
                 continue;
 
@@ -576,9 +583,11 @@ namespace lsp
     IUIPort *plugin_ui::port(const char *name)
     {
         // Check aliases
-        for (size_t i=0; i<vAliases.size(); ++i)
+        size_t n_aliases = vAliases.size();
+
+        for (size_t i=0; i<n_aliases; ++i)
         {
-            PortAlias *pa = vAliases[i];
+            PortAlias *pa = vAliases.at(i);
             if ((pa->id() == NULL) || (pa->alias() == NULL))
                 continue;
 
@@ -596,7 +605,7 @@ namespace lsp
             size_t count = vSwitched.size();
             for (size_t i=0; i<count; ++i)
             {
-                UISwitchedPort *p   = vSwitched[i];
+                UISwitchedPort *p   = vSwitched.at(i);
                 if (p == NULL)
                     continue;
                 const char *p_id    = p->id();
@@ -631,10 +640,12 @@ namespace lsp
         while (first <= last)
         {
             size_t center       = (first + last) >> 1;
-            IUIPort *p          = vSortedPorts[center];
+            IUIPort *p          = vSortedPorts.at(center);
+            if (p == NULL)
+                break;
             const port_t *ctl   = p->metadata();
             if (ctl == NULL)
-                return NULL;
+                break;
 
             int cmp     = strcmp(name, ctl->id);
             if (cmp == 0)
@@ -645,19 +656,31 @@ namespace lsp
                 first   = center + 1;
         }
         return NULL;
+    }
 
-//        for (size_t i=0; i<count; ++i)
-//        {
-//            IUIPort *p  = vPorts[i];
-//            const port_t *ctl = p->metadata();
-//            if (ctl == NULL)
-//                continue;
-//
-//            if (!strcmp(ctl->id, name))
-//                return p;
-//        }
-//
-//        return NULL;
+    void plugin_ui::redraw()
+    {
+        // Get current list of widget to redraw for current frame
+        cvector<IWidget> &redraw    = vRedraw[nRedrawFrame];
+        nRedrawFrame               ^= 1;
+
+        // Call all widgets for redraw
+        size_t count                = redraw.size();
+//        lsp_trace("Redraw count = %d", int(count));
+        for (size_t i=0; i<count; ++i)
+        {
+            IWidget *w      = redraw.at(i);
+            if (w != NULL)
+                w->draw();
+        }
+
+        // Clear redraw frame
+        redraw.clear();
+    }
+
+    bool plugin_ui::queue_redraw(IWidget *widget)
+    {
+        return (widget != NULL) ? vRedraw[nRedrawFrame].add(widget) : false;
     }
 
     size_t plugin_ui::rebuild_sorted_ports()
@@ -666,7 +689,7 @@ namespace lsp
         vSortedPorts.clear();
 
         for (size_t i=0; i<count; ++i)
-            vSortedPorts.add(vPorts[i]);
+            vSortedPorts.add(vPorts.at(i));
 
         count   = vSortedPorts.size();
 
@@ -676,8 +699,8 @@ namespace lsp
             for (size_t i=0; i<(count-1); ++i)
                 for (size_t j=i+1; j<count; ++j)
                 {
-                    IUIPort *a  = vSortedPorts[i];
-                    IUIPort *b  = vSortedPorts[j];
+                    IUIPort *a  = vSortedPorts.at(i);
+                    IUIPort *b  = vSortedPorts.at(j);
                     if ((a == NULL) || (b == NULL))
                         continue;
                     const port_t *am    = a->metadata();
@@ -685,7 +708,7 @@ namespace lsp
                     if ((am == NULL) || (bm == NULL))
                         continue;
                     if (strcmp(am->id, bm->id) > 0)
-                        vSortedPorts.swap(i, j);
+                        vSortedPorts.swap_unsafe(i, j);
                 }
         }
 

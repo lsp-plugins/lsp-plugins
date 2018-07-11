@@ -40,11 +40,11 @@ namespace lsp
             virtual size_t scroll(ssize_t x, ssize_t y, size_t state, size_t direction);
 
         public:
-            inline bool isAxis()        { return getClass() == W_AXIS;      };
-            inline bool isMarker()      { return getClass() == W_MARKER;    };
-            inline bool isMesh()        { return getClass() == W_MESH;      };
-            inline bool isCenter()      { return getClass() == W_CENTER;    };
-            inline bool isDot()         { return getClass() == W_CENTER;    };
+            inline bool isAxis() const      { return getClass() == W_AXIS;      };
+            inline bool isMarker() const    { return getClass() == W_MARKER;    };
+            inline bool isMesh() const      { return getClass() == W_MESH;      };
+            inline bool isCenter() const    { return getClass() == W_CENTER;    };
+            inline bool isDot() const       { return getClass() == W_CENTER;    };
     };
 
 } /* namespace lsp */

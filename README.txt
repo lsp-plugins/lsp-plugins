@@ -71,6 +71,48 @@ The profiling distribution requirements:
   * libcairo >= 1.14
   * jack >= 1.9.5
 
+==== VERSIONING ====
+
+The distribution of plugins consists of two branches:
+  * Binary releases with closed source.
+  * Published source code (Source Code Release, SCR).
+
+Binary releases are the mostly actual releases and contain all
+possible plugins. These are packaged into archive named according to
+the following format:
+
+  lsp-plugins-<format>-<major>.<minor>.<micro>-<arch>.tar.gz
+
+The property <format> is the format of plugins, currently available:
+  * jack - standalone version of plugins that require JACK for execution
+  * ladspa - plugins in LADSPA format (not all plugins due to format's restriction)
+  * lv2 - plugins in LV2 format
+  * lxvst - plugins in LinuxVST (VST v2.4) format
+
+Supporetd architectures (<arch>) are currently only i586 and x86_64.
+Properties <major>, <minor> and <micro> form the version of release.
+If the <micro> version is odd, it contains mostly bug-fixes and patches for
+the plugin modules. The even <micro> version of plugins contains new features
+and, in most cases, new plugin series. The history of changes may be seen in
+attached CHANGELOG.txt.
+
+Published source code contains source code available to build
+and launch plugins that have been donated by the community.
+It is commited into the code repository and currently not packaged into
+the official release to avoid confusion between binary and source code
+package versioning. It's highly recommended to follow the versioning
+of the SCR (source code release) according to the attached CHANGELOG.txt
+file and use the 'scr' abbreviation for the packages that are built from
+the source code. For example, Linux distribution packages could be named:
+
+  lsp-plugins-<format>-scr-<major>.<minor>.<micro>-<arch>.tar.gz
+  lsp-plugins-<format>-scr-<major>.<minor>.<micro>-<arch>.rpm
+  lsp-plugins-<format>-scr-<major>.<minor>.<micro>-<arch>.deb
+
+More information about donation and policy of source code publishing may
+be obtained here:
+  http://lsp-plug.in/?page=download
+
 ==== INSTALLATION ====
 
 The binary distributions are ready to launch, just copy them to
