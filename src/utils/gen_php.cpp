@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <core/metadata.h>
-#include <core/plugin_metadata.h>
+#include <metadata/metadata.h>
+#include <metadata/plugins.h>
+
 #include <plugins/plugins.h>
 
 namespace lsp
@@ -89,7 +90,7 @@ namespace lsp
         fprintf(out, "\t\t\t'name' => '%s',\n", metadata->name);
         fprintf(out, "\t\t\t'description' => '%s',\n", metadata->description);
         fprintf(out, "\t\t\t'acronym' => '%s',\n", metadata->acronym);
-        fprintf(out, "\t\t\t'author' => '%s',\n", metadata->author);
+        fprintf(out, "\t\t\t'author' => '%s',\n", metadata->developer->name);
         fprintf(out, "\t\t\t'version' => '%d.%d.%d',\n",
                 LSP_VERSION_MAJOR(metadata->version),
                 LSP_VERSION_MINOR(metadata->version),
@@ -119,7 +120,7 @@ namespace lsp
             if ((id++) > 0) \
                 fprintf(out, ",\n"); \
             gen_plugin_php_descriptor(out, &plugin::metadata, #plugin);
-        #include <core/modules.h>
+        #include <metadata/modules.h>
 
         fprintf(out, "\n\t);\n");
         fprintf(out, "?>\n");

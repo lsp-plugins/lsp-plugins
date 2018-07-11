@@ -11,45 +11,41 @@
 
 namespace lsp
 {
+    IUIPortListener::IUIPortListener()
+    {
+    }
+
+    IUIPortListener::~IUIPortListener()
+    {
+    }
+
+    void IUIPortListener::notify(IUIPort *port)
+    {
+    }
+
     IUIPort::IUIPort(const port_t *meta)
     {
-        pvWidgets       = NULL;
-        nWidgets        = 0;
-        nCapacity       = 0;
         pMetadata       = meta;
     }
 
     IUIPort::~IUIPort()
     {
         unbindAll();
-        if (pvWidgets != NULL)
-            delete [] pvWidgets;
     }
 
-    void IUIPort::bind(IWidget *widget)
+    void IUIPort::bind(IUIPortListener *listener)
     {
-        if (nWidgets >= nCapacity)
-        {
-            IWidget **new_list = new IWidget *[nCapacity + 16];
-            if (new_list == NULL)
-                return;
+        vListeners.add(listener);
+    }
 
-            nCapacity      += 16;
-            if (pvWidgets != NULL)
-            {
-                for (size_t i=0; i<nWidgets; ++i)
-                    new_list[i]     = pvWidgets[i];
-                delete  [] pvWidgets;
-            }
-            pvWidgets      = new_list;
-        }
-
-        pvWidgets[nWidgets++] = widget;
+    void IUIPort::unbind(IUIPortListener *listener)
+    {
+        vListeners.remove(listener, true);
     }
 
     void IUIPort::unbindAll()
     {
-        nWidgets = 0;
+        vListeners.clear();
     }
 
     void IUIPort::write(const void* buffer, size_t size)
@@ -73,8 +69,10 @@ namespace lsp
 
     void IUIPort::notifyAll()
     {
-        for (size_t i=0; i<nWidgets; ++i)
-            pvWidgets[i]->notify(this);
+//        lsp_trace("id=%s", (pMetadata != NULL) ? pMetadata->id : NULL);
+        size_t count = vListeners.size();
+        for (size_t i=0; i<count; ++i)
+            vListeners[i]->notify(this);
     }
 
 } /* namespace lsp */

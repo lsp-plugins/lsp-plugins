@@ -1,10 +1,18 @@
-FILES                   = $(addprefix $(OBJDIR)/, $(patsubst %.cpp, %.o, $(wildcard *.cpp)))
+MODULES                 = $(UTL_GENTTL) $(UTL_GENPHP) $(UTL_RESGEN)
+FILELIST                = gen_php.o lv2_genttl.o resource_gen.o
+
+ifdef VST_SDK
+MODULES                += $(UTL_VSTMAKE)
+FILELIST               += vst_genmake.o
+endif
+
+FILES                   = $(addprefix $(OBJDIR)/, $(FILELIST))
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 SUBDIRS                 =
 
 .PHONY: all target files subdirs $(SUBDIRS)
 
-all: $(UTL_GENTTL) $(UTL_VSTMAKE) $(UTL_GENPHP) $(UTL_RESGEN)
+all: $(MODULES)
 
 target: all
 
@@ -21,19 +29,19 @@ $(FILES):
 # Rules for each utility
 $(UTL_GENTTL): $(FILES) $(SUBDIRS)
 	@echo "  $(CC) $(notdir $(UTL_GENTTL))"
-	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) -o $(UTL_GENTTL) $(OBJDIR)/lv2_genttl.o $(OBJ_CORE)
+	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) -o $(UTL_GENTTL) $(OBJDIR)/lv2_genttl.o $(OBJ_CORE) $(OBJ_METADATA)
 	
 $(UTL_VSTMAKE): $(FILES) $(SUBDIRS)
 	@echo "  $(CC) $(notdir $(UTL_VSTMAKE))"
-	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) -o $(UTL_VSTMAKE) $(OBJDIR)/vst_genmake.o $(OBJ_CORE)
+	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) -o $(UTL_VSTMAKE) $(OBJDIR)/vst_genmake.o $(OBJ_CORE) $(OBJ_METADATA)
 	
 $(UTL_GENPHP): $(FILES) $(SUBDIRS)
 	@echo "  $(CC) $(notdir $(UTL_GENPHP))"
-	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) -o $(UTL_GENPHP) $(OBJDIR)/gen_php.o $(OBJ_CORE)
+	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) -o $(UTL_GENPHP) $(OBJDIR)/gen_php.o $(OBJ_CORE) $(OBJ_METADATA)
 	
 $(UTL_RESGEN): $(FILES) $(SUBDIRS)
 	@echo "  $(CC) $(notdir $(UTL_RESGEN))"
-	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) $(EXPAT_HEADERS) $(EXPAT_LIBS) -o $(UTL_RESGEN) $(OBJDIR)/resource_gen.o $(OBJ_CORE)
+	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) $(EXPAT_HEADERS) $(EXPAT_LIBS) -o $(UTL_RESGEN) $(OBJDIR)/resource_gen.o $(OBJ_CORE) $(OBJ_METADATA)
 
 
 

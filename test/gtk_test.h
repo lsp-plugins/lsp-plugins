@@ -1,7 +1,6 @@
 #include <gtk/gtk.h>
 
 #include <lv2.h>
-#include <core/plugin_metadata.h>
 #include <plugins/plugins.h>
 #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
 #include <ui/ui.h>
@@ -79,11 +78,15 @@ namespace gtk_test
 
     int test(int argc, const char **argv)
     {
+        dsp::init();
+
         #define SET_PLUGIN(id) \
             const char *plugin_id   = #id;   \
             const plugin_metadata_t *mdata = &id::metadata;
 
-        SET_PLUGIN(spectrum_analyzer_x8);
+//        SET_PLUGIN(sampler_mono);
+//        SET_PLUGIN(sampler_stereo);
+        SET_PLUGIN(multisampler_x48);
 
         const LV2_Descriptor *descr = get_lv2_descriptor(plugin_id); \
         if (descr == NULL)
@@ -127,7 +130,10 @@ namespace gtk_test
             switch (port->role)
             {
                 case R_UI_SYNC:
+                case R_PATH:
+                case R_MESH:
                     break;
+                case R_MIDI:
                 case R_AUDIO:
                     port_id ++;
                     break;

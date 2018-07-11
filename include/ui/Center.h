@@ -16,7 +16,6 @@ namespace lsp
         private:
             float           fLeft;
             float           fTop;
-            bool            bVisible;
             Color           sColor;
 
         protected:

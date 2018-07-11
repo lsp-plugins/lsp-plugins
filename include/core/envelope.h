@@ -26,7 +26,7 @@ namespace lsp
 
             // Special variables
             TOTAL,
-            FIRAT = PURPLE_NOISE,
+            FIRST = PURPLE_NOISE,
             LAST = TOTAL - 1
         };
 

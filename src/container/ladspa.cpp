@@ -6,9 +6,9 @@
 
 #include <ladspa.h>
 
-#include <core/metadata.h>
 #include <core/lib.h>
 #include <core/debug.h>
+#include <core/NativeExecutor.h>
 #include <plugins/plugins.h>
 
 #include <container/ladspa/ports.h>
@@ -45,13 +45,11 @@ namespace lsp
 
         // Instantiate plugin
         plugin_t *p         = NULL;
-        size_t id           = LSP_LADSPA_BASE;
 
         #define MOD_LADSPA(plugin) \
-            if ((!p) && (Descriptor->UniqueID == id) && (!strcmp(Descriptor->Label, LSP_PLUGIN_URI(ladspa, plugin)))) \
-                p = new plugin(); \
-            id++;
-        #include <core/modules.h>
+            if ((!p) && (plugin::metadata.ladspa_id > 0) && (Descriptor->UniqueID == plugin::metadata.ladspa_id) && (!strcmp(Descriptor->Label, LSP_PLUGIN_URI(ladspa, plugin)))) \
+                p = new plugin();
+        #include <metadata/modules.h>
 
         if (!p)
             return NULL;
@@ -120,7 +118,7 @@ namespace lsp
         d->Properties           = LADSPA_PROPERTY_HARD_RT_CAPABLE;
         d->Name                 = plugin_name;
         d->Maker                = LSP_ACRONYM " [LADSPA]";
-        d->ImplementationData   = const_cast<char *>(m.author);
+        d->ImplementationData   = const_cast<char *>(m.developer->name);
         d->Copyright            = LSP_COPYRIGHT;
         d->PortCount            = 0;
 
@@ -138,7 +136,6 @@ namespace lsp
         d->PortDescriptors                  = p_descr;
         d->PortNames                        = p_name;
         d->PortRangeHints                   = p_hint;
-        d->ImplementationData               = NULL;
 
         for (const port_t *p = m.ports ; (p->id != NULL) && (p->name != NULL); ++p)
         {
@@ -153,12 +150,12 @@ namespace lsp
                 case R_UI_SYNC:
                     continue;
                 case R_AUDIO:
-                    *p_descr = (p->flags & F_OUT) ? LADSPA_PORT_OUTPUT | LADSPA_PORT_AUDIO : LADSPA_PORT_INPUT | LADSPA_PORT_AUDIO;
+                    *p_descr = (IS_OUT_PORT(p)) ? LADSPA_PORT_OUTPUT | LADSPA_PORT_AUDIO : LADSPA_PORT_INPUT | LADSPA_PORT_AUDIO;
                     break;
                 case R_CONTROL:
                 case R_METER:
                 default:
-                    *p_descr = (p->flags & F_OUT) ? LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL : LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
+                    *p_descr = (IS_OUT_PORT(p)) ? LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL : LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
                     break;
             }
 
@@ -186,7 +183,6 @@ namespace lsp
                     p_hint->HintDescriptor |= LADSPA_HINT_DEFAULT_1;
                 else if (p->start == 0.0f)
                     p_hint->HintDescriptor |= LADSPA_HINT_DEFAULT_0;
-
             }
             else if (p->unit == U_SAMPLES)
             {
@@ -277,16 +273,23 @@ namespace lsp
 
         // Calculate number of plugins
         ladspa_descriptors_count    = 0;
-        #define MOD_LADSPA(plugin) ladspa_descriptors_count++;
-        #include <core/modules.h>
+        #define MOD_LADSPA(plugin) \
+            if (plugin::metadata.ladspa_id > 0) \
+                ladspa_descriptors_count++;
+        #include <metadata/modules.h>
 
         // Now allocate descriptors
         ladspa_descriptors          = new LADSPA_Descriptor[ladspa_descriptors_count];
         LADSPA_Descriptor *d        = ladspa_descriptors;
         size_t id                   = 0;
 
-        #define MOD_LADSPA(plugin) ladspa_make_descriptor(&d[id], LSP_LADSPA_BASE + id, LSP_PLUGIN_URI(ladspa, plugin), plugin::metadata); id++;
-        #include <core/modules.h>
+        #define MOD_LADSPA(plugin) \
+            if (plugin::metadata.ladspa_id > 0) \
+            { \
+                ladspa_make_descriptor(&d[id], plugin::metadata.ladspa_id, LSP_PLUGIN_URI(ladspa, plugin), plugin::metadata); \
+                id++; \
+            }
+        #include <metadata/modules.h>
     };
 
     void ladspa_drop_descriptors()

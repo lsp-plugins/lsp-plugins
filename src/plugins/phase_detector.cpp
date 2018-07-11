@@ -128,7 +128,7 @@ namespace lsp
         fSelector           = vPorts[SELECTOR]      -> getValue();
 
         lsp_trace("bypass = %.3f, reset = %.3f, selector=%.3f", bypass, reset, fSelector);
-        bBypass             = (bypass >= 0.5f) || (reset > 0.5f);
+        bBypass             = (bypass >= 0.5f) || (reset >= 0.5f);
 
         if ((old_bypass != bBypass) && (bBypass))
             clear               = true;
@@ -196,12 +196,6 @@ namespace lsp
                 lsp_assert((nGapOffset + nVectorSize + nFuncSize) < (nMaxVectorSize * 4));
                 lsp_assert((nGapOffset + nVectorSize) <= (nMaxVectorSize * 3));
 
-//                // Subtract oldest sample from all functions
-//                dsp::sub_multiplied(vFunction, &vB.pData[nGapOffset], vA.pData[nGapOffset], nFuncSize);
-//
-//                // Add newest sample to all functions
-//                dsp::add_multiplied(vFunction, &vB.pData[nGapOffset + nVectorSize], vA.pData[nGapOffset + nVectorSize], nFuncSize);
-
                 // Update function peak values
                 // vFunction[i] = vFunction[i] - vB.pData[i + nGapOffset] * vA.pData[nGapOffset] +
                 //                + vB.pData[i + nGapOffset + nVectorSize] * vA.pData[nGapOffset + nVectorSize]
@@ -214,7 +208,6 @@ namespace lsp
                 // Accumulate peak function value
                 // vAccumulated[i] = vAccumulated[i] * (1.0f - fTau) + vFunction * fTau
                 dsp::integrate(vAccumulated, vFunction, fTau, nFuncSize);
-//                dsp::mix(vAccumulated, vAccumulated, vFunction, 1.0f - fTau, fTau, nFuncSize);
 
                 // Increment gap offset: move to next sample
                 nGapOffset++;

@@ -23,6 +23,7 @@
 #define SOUND_SPEED_M_S                     340.29f             /* Sound speed [ m / s ]                            */
 #define SPEC_FREQ_MIN                       10.0f               /* Minimum frequency [ Hz ]                         */
 #define SPEC_FREQ_MAX                       24000.0f            /* Maximum frequency [ Hz ]                         */
+#define MIDI_EVENTS_MAX                     128                 /* Maximum number of MIDI events per buffer         */
 
 namespace lsp
 {

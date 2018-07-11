@@ -7,7 +7,7 @@ do_release() {
     export LD_ARCH=$2
     export CC_ARCH=$3
     export LD_PATH=$4
-    export CC_FLAGS=-DLSP_NO_EXPERMIENTAL
+    export CC_FLAGS=-DLSP_NO_EXPERIMENTAL
     
     echo "******************************************************"
     echo "Releasing arch=$CPU_ARCH ld=$LD_ARCH cc=$CC_ARCH";

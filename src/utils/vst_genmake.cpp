@@ -4,7 +4,7 @@
 #include <string.h>
 #include <alloca.h>
 
-#include <core/metadata.h>
+#include <metadata/metadata.h>
 #include <plugins/plugins.h>
 
 #include <container/vst/defs.h>
@@ -95,7 +95,7 @@ namespace lsp
             if (code == 0) \
                 code = gen_cpp_file(path, &x::metadata, #x, LSP_ARTIFACT_ID "-vst-" #x ".cpp");
 
-        #include <core/modules.h>
+        #include <metadata/modules.h>
 
         // Generate makefile
         if (code == 0)

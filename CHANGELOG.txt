@@ -2,6 +2,27 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.6 ===
+* Reorganized source tree. Splitted plugin metadata into separate files and moved from core to the new directory.
+* Fixed errors in formulas of noise envelopes for Spektrumanalysator.
+* Fixed some bugs in DSP SSE module functions caused to possible crash plugins on some conditions.
+* Implemented audio resampling algorithm for audio files using N-period Lanczos kernel convolution.
+* Implemented some core primitives like Toggle, Blink etc.
+* Added support of MIDI events for LV2.
+* Added support of MIDI events for VST.
+* Added support of plugin state serialization for VST.
+* Implemented port sets for reducing plugin's port overhead.
+* Implemented indexed proxy ports for the UI.
+* Re-engineered LV2 Atom transport subsystem.
+* Re-engineered LinuxVST transport subsystem.
+* Additional feature ('quick tune') implemented for knob control (available when clicking on the knob's scale).
+* Implemented serialization/deserialization of plugin state to plain text files (available in UI when clicking on logo or model acronym).
+* Optimized the size of XML data (implemented 'ui:for' tag for cycles in XML documents).
+* Optimized LV2 TTL generator for more compact RDF output, fixed some problems in RDF format.
+* Changed the color of 'Bypass' swtich to red.
+* Implemented Klangerzeuger (Sampler) plugin Mono/Stereo series
+* Implemented Schlagzeug (Multi-Sampler) plugin x12, x24, x48 Stereo/Direktausgabe (DirectOut) series
+
 === 1.0.4 ===
 
 * Reduced size of mesh to 192 points for Phasendetektor.

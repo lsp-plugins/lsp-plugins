@@ -50,21 +50,21 @@ namespace lsp
             }
         }
 
-        void white_noise(float *dst, size_t n)
-        {
-            while (n--)
-                *(dst++)        = 1.0f;
-        }
-
         static void basic_noise(float *dst, size_t n, float k)
         {
             if (n == 0)
                 return;
 
-            float step  = logf(SPEC_FREQ_MAX / n);
             dst[0]      = 1.0f;
+            float kd    = (SPEC_FREQ_MAX / SPEC_FREQ_MIN) / n;
             for (size_t i=1; i < n; ++i)
-                dst[i]      = expf(k * (logf(i) + step));
+                dst[i]      = expf(k * logf(i * kd));
+        }
+
+        void white_noise(float *dst, size_t n)
+        {
+            while (n--)
+                *(dst++)        = 1.0f;
         }
 
         void pink_noise(float *dst, size_t n)

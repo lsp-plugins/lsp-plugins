@@ -27,6 +27,7 @@ namespace lsp
             dsp::normalize                  = native::normalize;
             dsp::min                        = native::min;
             dsp::max                        = native::max;
+            dsp::abs_max                    = native::abs_max;
             dsp::minmax                     = native::minmax;
             dsp::min_index                  = native::min_index;
             dsp::max_index                  = native::max_index;

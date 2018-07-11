@@ -20,22 +20,45 @@
 // For IDEs: define this symbol in IDE to properly compile and debug
 #ifdef LSP_IDE_DEBUG
     #define LSP_USE_EXPAT
-    #define LSP_HOST_SIMPULATION
+    #define LSP_HOST_SIMULATION
 #endif /* LSP_IDE_DEBUG */
 
 #define __ASM_EMIT(code)                    code "\n\t"
+#ifdef __i386__
+    #define __ASM_EMIT32(code)                  code "\n\t"
+    #define __IF_32(...)                        __VA_ARGS__
+#endif /* __i386__ */
 
-// Special symbols
-#define STR_A_UMLAUT_SMALL                  "\x84"
-#define STR_A_UMLAUT_LARGE                  "\x8e"
-#define STR_U_UMLAUT_SMALL                  "\x81"
-#define STR_U_UMLAUT_LARGE                  "\x9a"
-#define STR_O_UMLAUT_SMALL                  "\x94"
-#define STR_O_UMLAUT_LARGE                  "\x99"
-#define STR_ESZETT                          "\xe1"
+#ifdef __x86_64__
+    #define __ASM_EMIT64(code)                  code "\n\t"
+    #define __IF_64(...)                        __VA_ARGS__
+#endif
+
+#ifndef __ASM_EMIT32
+    #define __ASM_EMIT32(code)
+#endif /* __ASM_EMIT64 */
+
+#ifndef __ASM_EMIT64
+    #define __ASM_EMIT64(code)
+#endif /* __ASM_EMIT64 */
+
+#ifndef __IF_32
+    #define __IF_32(...)
+#endif /* __IF_32 */
+
+#ifndef __IF_64
+    #define __IF_64(...)
+#endif /* __IF_64 */
+
 
 #define __lsp_forced_inline                 __attribute__((always_inline))
 #define __lsp_aligned16                     __attribute__ ((aligned (16)))
+#define __lsp_aligned64                     __attribute__ ((aligned (64)))
+
+// Include units
+#include <core/sugar.h>
+#include <core/units.h>
+#include <core/characters.h>
 
 namespace lsp
 {
@@ -80,6 +103,7 @@ namespace lsp
         }
     } mesh_t;
 
+    // Path port structure
     typedef struct path_t
     {
         /** Virtual destructor
@@ -121,6 +145,7 @@ namespace lsp
          * @return true if there is accepted request
          */
         virtual bool accepted();
+
     } path_t;
 
     typedef struct resource_t
@@ -129,7 +154,5 @@ namespace lsp
         const char *text;
     } resource_t;
 }
-
-#include <core/units.h>
 
 #endif /* CORE_TYPES_H_ */

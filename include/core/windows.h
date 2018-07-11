@@ -70,9 +70,9 @@ namespace lsp
 
         void nutall_general(float *dst, size_t n, float a0, float a1, float a2, float a3);
 
-        void nutall(float *dst, size_t n);
+        void nuttall(float *dst, size_t n);
 
-        void blackman_nutall(float *dst, size_t n);
+        void blackman_nuttall(float *dst, size_t n);
 
         void blackman_harris(float *dst, size_t n);
 

@@ -2,7 +2,6 @@
 #include <stddef.h>
 #include <string.h>
 
-#include <core/metadata.h>
 #include <core/lib.h>
 #include <plugins/plugins.h>
 
@@ -12,8 +11,6 @@
 #include <ui/ui.h>
 #include <container/lv2ext.h>
 #include <container/lv2ui/ports.h>
-#include <container/lv2ui/transport.h>
-#include <container/lv2ui/vports.h>
 #include <container/lv2ui/wrapper.h>
 
 #if defined(LSP_UI_GTK2)
@@ -60,7 +57,7 @@ namespace lsp
             #define MOD_GTK3(plugin)    MOD_LV2UI(plugin)
         #endif /* LSP_UI_GTK3 */
 
-        #include <core/modules.h>
+        #include <metadata/modules.h>
         #undef MOD_LV2UI
 
         if (!m)
@@ -95,6 +92,8 @@ namespace lsp
         uint32_t     format,
         const void*  buffer)
     {
+        if ((buffer_size == 0) || (buffer == NULL))
+            return;
         LV2UIWrapper *w = reinterpret_cast<LV2UIWrapper *>(ui);
         w->notify(port_index, buffer_size, format, buffer);
     }
@@ -122,7 +121,7 @@ namespace lsp
             #define MOD_GTK3(plugin)    MOD_LV2UI(plugin)
         #endif /* LSP_UI_GTK3 */
 
-        #include <core/modules.h>
+        #include <metadata/modules.h>
         #undef MOD_LV2UI
 
         lsp_trace("descriptors count=%d", (int)lv2ui_descriptors_count);
@@ -146,7 +145,7 @@ namespace lsp
             #define MOD_GTK3(plugin)    MOD_LV2UI(plugin)
         #endif /* LSP_UI_GTK3 */
 
-        #include <core/modules.h>
+        #include <metadata/modules.h>
         #undef MOD_LV2UI
     };
 

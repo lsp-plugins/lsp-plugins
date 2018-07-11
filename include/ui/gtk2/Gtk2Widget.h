@@ -23,6 +23,9 @@ namespace lsp
             size_t      nWFlags;
             GtkWidget  *pWidget;
 
+        protected:
+            void update_gtk2_visibility();
+
         public:
             Gtk2Widget(plugin_ui *ui, widget_t w_class);
             virtual ~Gtk2Widget();
@@ -37,6 +40,12 @@ namespace lsp
 
             inline bool fill() const { return nWFlags & F_FILL; };
 
+            virtual void hide();
+
+            virtual void show();
+
+        public:
+            static Gtk2Widget *cast(IWidget *widget);
     };
 
 } /* namespace lsp */

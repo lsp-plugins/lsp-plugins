@@ -67,13 +67,20 @@ namespace lsp
         setlocale(LC_NUMERIC, saved_locale); \
     }
 
+#define BIND_PORT(ui, field, id) \
+    field   = ui->port(id); \
+    if (field != NULL) \
+        field->bind(this);
+
 // Misc data structures
 #include <data/cvector.h>
 
-// Metadata
+// Core
 #include <core/types.h>
-#include <core/metadata.h>
 #include <core/debug.h>
+
+// Metadata
+#include <metadata/metadata.h>
 
 // Configuration parsing
 #include <ui/XMLHandler.h>
@@ -85,6 +92,9 @@ namespace lsp
 // Colors and themes
 #include <ui/Color.h>
 #include <ui/Theme.h>
+
+// Control interface
+#include <ui/IUIPort.h>
 
 // Widgets
 #include <ui/IWidget.h>
@@ -98,9 +108,7 @@ namespace lsp
 #include <ui/Mesh.h>
 #include <ui/Basis.h>
 #include <ui/Text.h>
-
-// Control interface
-#include <ui/IUIPort.h>
+#include <ui/PortAlias.h>
 
 // Plugin UI
 #include <ui/plugin_ui.h>

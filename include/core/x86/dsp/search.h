@@ -32,11 +32,12 @@ namespace lsp
                 __ASM_EMIT("add $0x4, %0")
                 __ASM_EMIT("dec %1")
                 __ASM_EMIT("jz 1f")
-                __ASM_EMIT("test $0xf, %0")
-                __ASM_EMIT("jz 1f")
 
                 /* Perform loop */
                 __ASM_EMIT("2:")
+
+                __ASM_EMIT("test $0xf, %0")
+                __ASM_EMIT("jz 1f")
 
                 /* Loop body */
                 __ASM_EMIT("movss (%0), %%xmm4")
@@ -45,7 +46,7 @@ namespace lsp
                 /* Repeat loop */
                 __ASM_EMIT("add $0x4, %0")
                 __ASM_EMIT("dec %1")
-                __ASM_EMIT("jz 1f")
+                __ASM_EMIT("jnz 2b")
 
                 __ASM_EMIT("1:")
 
@@ -195,11 +196,12 @@ namespace lsp
                 __ASM_EMIT("add $0x4, %0")
                 __ASM_EMIT("dec %1")
                 __ASM_EMIT("jz 1f")
-                __ASM_EMIT("test $0xf, %0")
-                __ASM_EMIT("jz 1f")
 
                 /* Perform loop */
                 __ASM_EMIT("2:")
+
+                __ASM_EMIT("test $0xf, %0")
+                __ASM_EMIT("jz 1f")
 
                 /* Loop body */
                 __ASM_EMIT("movss (%0), %%xmm4")
@@ -208,7 +210,7 @@ namespace lsp
                 /* Repeat loop */
                 __ASM_EMIT("add $0x4, %0")
                 __ASM_EMIT("dec %1")
-                __ASM_EMIT("jz 1f")
+                __ASM_EMIT("jnz 2b")
 
                 __ASM_EMIT("1:")
 
@@ -357,11 +359,11 @@ namespace lsp
                 __ASM_EMIT("add $0x4, %0")
                 __ASM_EMIT("dec %1")
                 __ASM_EMIT("jz 1f")
-                __ASM_EMIT("test $0xf, %0")
-                __ASM_EMIT("jz 1f")
 
                 /* Perform loop */
                 __ASM_EMIT("2:")
+                __ASM_EMIT("test $0xf, %0")
+                __ASM_EMIT("jz 1f")
 
                 /* Loop body */
                 __ASM_EMIT("movss (%0), %%xmm4")
@@ -371,7 +373,7 @@ namespace lsp
                 /* Repeat loop */
                 __ASM_EMIT("add $0x4, %0")
                 __ASM_EMIT("dec %1")
-                __ASM_EMIT("jz 1f")
+                __ASM_EMIT("jnz 2b")
 
                 __ASM_EMIT("1:")
 
@@ -420,14 +422,14 @@ namespace lsp
                         __ASM_EMIT("movaps 0x20(%0), %%xmm6")
                         __ASM_EMIT("movaps 0x30(%0), %%xmm7")
 
-                        __ASM_EMIT("maxps %%xmm4, %%xmm0")
-                        __ASM_EMIT("maxps %%xmm5, %%xmm1")
-                        __ASM_EMIT("minps %%xmm6, %%xmm2")
-                        __ASM_EMIT("minps %%xmm7, %%xmm3")
-                        __ASM_EMIT("minps %%xmm4, %%xmm2")
-                        __ASM_EMIT("minps %%xmm5, %%xmm3")
-                        __ASM_EMIT("maxps %%xmm6, %%xmm0")
-                        __ASM_EMIT("maxps %%xmm7, %%xmm1")
+                        __ASM_EMIT("minps %%xmm4, %%xmm0")
+                        __ASM_EMIT("minps %%xmm5, %%xmm1")
+                        __ASM_EMIT("maxps %%xmm6, %%xmm2")
+                        __ASM_EMIT("maxps %%xmm7, %%xmm3")
+                        __ASM_EMIT("maxps %%xmm4, %%xmm2")
+                        __ASM_EMIT("maxps %%xmm5, %%xmm3")
+                        __ASM_EMIT("minps %%xmm6, %%xmm0")
+                        __ASM_EMIT("minps %%xmm7, %%xmm1")
 
                         /* Move pointer and repeat loop */
                         __ASM_EMIT("add $0x40, %0")
@@ -474,13 +476,13 @@ namespace lsp
                     __ASM_EMIT("movhlps %%xmm0, %%xmm1")
                     __ASM_EMIT("movhlps %%xmm2, %%xmm3")
                     __ASM_EMIT("minps %%xmm1, %%xmm0")
-                    __ASM_EMIT("minps %%xmm3, %%xmm2")
+                    __ASM_EMIT("maxps %%xmm3, %%xmm2")
                     __ASM_EMIT("movaps %%xmm0, %%xmm1")
                     __ASM_EMIT("movaps %%xmm2, %%xmm3")
                     __ASM_EMIT("shufps $0x55, %%xmm0, %%xmm0")
                     __ASM_EMIT("shufps $0x55, %%xmm2, %%xmm2")
                     __ASM_EMIT("minps %%xmm1, %%xmm0")
-                    __ASM_EMIT("minps %%xmm3, %%xmm2")
+                    __ASM_EMIT("maxps %%xmm3, %%xmm2")
                     : : : "%xmm0", "%xmm1", "%xmm2", "%xmm3"
                 );
             }

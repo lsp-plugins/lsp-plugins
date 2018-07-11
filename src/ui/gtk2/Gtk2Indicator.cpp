@@ -896,6 +896,8 @@ namespace lsp
 
     void Gtk2Indicator::notify(IUIPort *port)
     {
+        Gtk2CustomWidget::notify(port);
+
         if (port == pPort)
         {
             const port_t *mdata = pPort->metadata();

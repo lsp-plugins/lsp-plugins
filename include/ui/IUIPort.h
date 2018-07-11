@@ -8,14 +8,26 @@
 #ifndef _UI_IUIPORT_H_
 #define _UI_IUIPORT_H_
 
+#include <data/cvector.h>
+
 namespace lsp
 {
+    class IUIPort;
+
+    class IUIPortListener
+    {
+        public:
+            IUIPortListener();
+            virtual ~IUIPortListener();
+
+        public:
+            virtual void notify(IUIPort *port);
+    };
+
     class IUIPort
     {
-        private:
-            IWidget           **pvWidgets;
-            size_t              nWidgets;
-            size_t              nCapacity;
+        protected:
+            cvector<IUIPortListener> vListeners;
 
         protected:
             const port_t       *pMetadata;
@@ -25,13 +37,17 @@ namespace lsp
             virtual ~IUIPort();
 
         public:
-            inline const port_t *metadata() const { return pMetadata; }
-
-            /** Add control to the port
+            /** Add listener to the port
              *
-             * @param ctl control to add
+             * @param listener that listens port changes
              */
-            void    bind(IWidget *widget);
+            void    bind(IUIPortListener *listener);
+
+            /** Unbind listener
+             *
+             * @param listener listener to unbind
+             */
+            void    unbind(IUIPortListener *listener);
 
             /** Unbind all controls
              *
@@ -68,6 +84,23 @@ namespace lsp
              *
              */
             virtual void notifyAll();
+
+         public:
+            /** Get port metadata
+             *
+             * @return port metadata
+             */
+            inline const port_t *metadata() const { return pMetadata; };
+
+            /** Get buffer casted to specified type
+             *
+             * @return buffer casted to specified type
+             */
+            template <class T>
+                inline T *getBuffer()
+                {
+                    return reinterpret_cast<T *>(getBuffer());
+                }
     };
 
 } /* namespace lsp */

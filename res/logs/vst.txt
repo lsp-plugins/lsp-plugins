@@ -249,3 +249,200 @@ Description:	This plugin allows to view the spectral characteristics of sixteen 
 	Registration:	
 		
 	*Plugin ID:	nuzi
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Sampler
+	*PlugIn Name:	Klangerzeuger Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to play different samples for one MIDI note depending on the note's velocity.
+		
+	Registration:	
+		
+	*Plugin ID:	ca4r
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Sampler
+	*PlugIn Name:	Klangerzeuger Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to play different samples for one MIDI note depending on the note's velocity.
+		
+	Registration:	
+		
+	*Plugin ID:	kjw3
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Sampler
+	*PlugIn Name:	Schlagzeug x12
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multi-sampler designed as Drum Machine with 12 instruments.
+		
+	Registration:	
+		
+	*Plugin ID:	clrs
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Sampler
+	*PlugIn Name:	Schlagzeug x12 Direktausgabe
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multi-sampler designed as Drum Machine with 12 instruments and additional individual instrument outputs.
+		
+	Registration:	
+		
+	*Plugin ID:	7zkj
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Sampler
+	*PlugIn Name:	Schlagzeug x24
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multi-sampler designed as Drum Machine with 24 instruments.
+		
+	Registration:	
+		
+	*Plugin ID:	visl
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Sampler
+	*PlugIn Name:	Schlagzeug x48
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multi-sampler designed as Drum Machine with 48 instruments.
+		
+	Registration:
+		
+	*Plugin ID:	hnj4
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Sampler
+	*PlugIn Name:	Schlagzeug x24 Direktausgabe
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multi-sampler designed as Drum Machine with 12 instruments and additional individual instrument outputs.
+		
+	Registration:	
+		
+	*Plugin ID:	vimj
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Sampler
+	*PlugIn Name:	Schlagzeug x48 Direktausgabe
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Multi-sampler designed as Drum Machine with 48 instruments and additional individual instrument outputs.
+		
+	Registration:	
+		
+	*Plugin ID:	blyi

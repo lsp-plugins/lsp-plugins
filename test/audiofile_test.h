@@ -40,10 +40,10 @@ namespace audiofile_test
         dsp::init();
 
         AudioFile af;
-        bool success = af.load(FILE_NAME);
+        status_t success = af.load(FILE_NAME);
 
-        if (!success)
-            lsp_error("could not load audio file %s\n", FILE_NAME);
+        if (success != STATUS_OK)
+            lsp_error("could not load audio file %s, status=%d (%s)\n", FILE_NAME, int(success), get_status(success));
         else
         {
             printf("Channels:      %ld\n", long(af.channels()));
@@ -52,10 +52,10 @@ namespace audiofile_test
         }
 
         // Reverse file
-        printf("Dump befor reverse()\n");
+        printf("Dump before reverse()\n");
         print_file(af);
         af.reverse();
-        printf("Dump after reverse()\n");
+        printf("Dump after  reverse()\n");
         print_file(af);
 
         af.destroy();

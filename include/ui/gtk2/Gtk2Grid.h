@@ -19,7 +19,8 @@ namespace lsp
             size_t      nCurrCol;
             size_t      nVSpacing;
             size_t      nHSpacing;
-            char       *vBitmap;
+            bool        bTranspose;
+            uint8_t    *vBitmap;
 
         private:
             void bitmap_set(size_t x, size_t y);

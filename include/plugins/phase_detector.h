@@ -9,7 +9,7 @@
 #define CORE_PLUGINS_PHASE_DETECTOR_H_
 
 #include <core/plugin.h>
-#include <core/plugin_metadata.h>
+#include <metadata/plugins.h>
 
 namespace lsp
 {

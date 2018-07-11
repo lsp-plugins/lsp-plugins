@@ -8,7 +8,7 @@
 #ifndef _CORE_IPORT_H_
 #define _CORE_IPORT_H_
 
-#include <core/metadata.h>
+#include <metadata/metadata.h>
 
 namespace lsp
 {
@@ -51,9 +51,21 @@ namespace lsp
              */
             virtual void post_process(size_t samples);
 
-            virtual const char *getPath();
+        public:
+            /** Get port metadata
+             *
+             * @return port metadata
+             */
+            inline const port_t *metadata() const { return pMetadata; };
 
-            const port_t *metadata() const;
+            /** Get buffer casted to specified type
+             *
+             * @return buffer casted to specified type
+             */
+            template <class T> inline T *getBuffer()
+            {
+                return reinterpret_cast<T *>(getBuffer());
+            }
     };
 
 } /* namespace lsp */

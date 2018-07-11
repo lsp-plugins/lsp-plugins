@@ -1,11 +1,19 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <core/metadata.h>
-#include <plugins/plugins.h>
 #include <core/lib.h>
 
+#include <metadata/metadata.h>
+#include <plugins/plugins.h>
+
 #include <container/lv2ext.h>
+
+#define LSP_LV2_EMIT_HEADER(count, text)    \
+    if (count == 0) \
+    { \
+        fputs(text, out); \
+        fputc(' ', out); \
+    }
 
 #define LSP_LV2_EMIT_OPTION(count, condition, text)    \
     if (condition) \
@@ -13,6 +21,13 @@
         if (count++)    \
             fputs(", ", out); \
         fputs(text, out); \
+    }
+
+#define LSP_LV2_EMIT_END(count) \
+    if (count > 0) \
+    { \
+        fprintf(out, " ;\n"); \
+        count = 0; \
     }
 
 namespace lsp
@@ -27,10 +42,14 @@ namespace lsp
         REQ_QT5_UI      = 1 << 5,
         REQ_PORT_GROUPS = 1 << 6,
         REQ_WORKER      = 1 << 7,
+        REQ_MIDI_IN     = 1 << 8,
+        REQ_MIDI_OUT    = 1 << 9,
+        REQ_PATCH_WR    = 1 << 10,
 
 
         REQ_UI_MASK     = REQ_GTK2_UI | REQ_GTK3_UI | REQ_QT4_UI | REQ_QT5_UI,
-        REQ_PATH_MASK   = REQ_PATCH | REQ_STATE | REQ_WORKER
+        REQ_PATH_MASK   = REQ_PATCH | REQ_STATE | REQ_WORKER | REQ_PATCH_WR,
+        REQ_MIDI        = REQ_MIDI_IN | REQ_MIDI_OUT
     };
 
     typedef struct lv2_plugin_group_t
@@ -185,33 +204,30 @@ namespace lsp
         }
     }
 
-    static void print_plugin_ui(FILE *out, const char *name, const char *uri)
+    static void print_plugin_ui(FILE *out, const char *name)
     {
         #define MOD_UI(plugin, package)             \
             if (!strcmp(name, #plugin))             \
-                fprintf(out, "\tui:ui " LSP_PREFIX "_%s:%s ;\n", #package, #plugin);
+                fprintf(out, "\tui:ui " LSP_PREFIX "_%s:%s ;\n", #package, name);
 
         #define MOD_GTK2(plugin)            MOD_UI(plugin, gtk2)
         #define MOD_GTK3(plugin)            MOD_UI(plugin, gtk3)
         #define MOD_QT4(plugin)             MOD_UI(plugin, qt4)
         #define MOD_QT5(plugin)             MOD_UI(plugin, qt5)
 
-        #include <core/modules.h>
+        #include <metadata/modules.h>
     }
 
-    static void print_ladspa_replacement(FILE *out, const char *name)
+    static void print_ladspa_replacement(FILE *out, const plugin_metadata_t &m, const char *name)
     {
-        long ladspa_id = LSP_LADSPA_BASE;
-
         #define MOD_LADSPA(plugin) \
-            if (!strcmp(name, #plugin)) \
-                fprintf(out, "\tdc:replaces <urn:ladspa:%d> ;\n", (int)ladspa_id); \
-            ladspa_id++;
+            if ((m.ladspa_id > 0) && (!strcmp(name, #plugin))) \
+                fprintf(out, "\tdc:replaces <urn:ladspa:%ld> ;\n", long(m.ladspa_id));
 
-        #include <core/modules.h>
+        #include <metadata/modules.h>
     }
 
-    void gen_plugin_ui_ttl (FILE *out, const plugin_metadata_t &m, const char *name, const char *ui_uri, const char *ui_class, const char *package, const char *uri)
+    void gen_plugin_ui_ttl (FILE *out, size_t requirements, const plugin_metadata_t &m, const char *name, const char *ui_uri, const char *ui_class, const char *package, const char *uri)
     {
         fprintf(out, LSP_PREFIX "_%s:%s\n", package, name);
         fprintf(out, "\ta ui:%s ;\n", ui_class);
@@ -230,7 +246,10 @@ namespace lsp
             {
                 case R_UI_SYNC:
                 case R_MESH:
+                case R_PATH:
+                case R_PORT_SET:
                     continue;
+                case R_MIDI:
                 case R_AUDIO:
                     port_id++;
                     continue;
@@ -240,7 +259,7 @@ namespace lsp
 
             fprintf(out, "%s [\n", (ports == 0) ? "\tui:portNotification" : ",");
             fprintf(out, "\t\tui:plugin " LSP_PREFIX ":%s ;\n", name);
-            fprintf(out, "\t\tui:portIndex %d ;\n", (int)port_id);
+            fprintf(out, "\t\tui:portIndex %d ;\n", int(port_id));
 
             switch (p->role)
             {
@@ -258,8 +277,8 @@ namespace lsp
             port_id++;
         }
 
-        // Add atom communication
-        for (const port_t *p = lv2_atom_ports; (p->id != NULL) && (p->name != NULL); ++p)
+        // Add atom ports for state serialization
+        for (size_t i=0; i<2; ++i)
         {
             fprintf(out, "%s [\n", (ports == 0) ? "\tui:portNotification" : " ,");
             fprintf(out, "\t\tui:plugin " LSP_PREFIX ":%s ;\n", name);
@@ -331,31 +350,48 @@ namespace lsp
         }
     }
 
-    static size_t scan_requirements(const plugin_metadata_t &m, const char *name, const char *uri)
+    static size_t scan_port_requirements(const port_t *meta)
     {
-        size_t result   = 0;
-
-        #define SET_REQUIREMENTS(plugin, flag)   \
-            if (!strcmp(name, #plugin))    result |= flag;
-
-        #define MOD_GTK2(plugin)        SET_REQUIREMENTS(plugin, REQ_GTK2_UI)
-        #define MOD_GTK3(plugin)        SET_REQUIREMENTS(plugin, REQ_GTK3_UI)
-        #define MOD_QT4(plugin)         SET_REQUIREMENTS(plugin, REQ_QT4_UI)
-        #define MOD_QT5(plugin)         SET_REQUIREMENTS(plugin, REQ_QT5_UI)
-        #include <core/modules.h>
-        #undef SET_REQUIREMENTS
-
-        for (const port_t *p = m.ports; (p->id != NULL) && (p->name != NULL); ++p)
+        size_t result = 0;
+        for (const port_t *p = meta; p->id != NULL; ++p)
         {
             switch (p->role)
             {
                 case R_PATH:
                     result    |= REQ_PATH_MASK;
                     break;
+                case R_MIDI:
+                    if (IS_OUT_PORT(p))
+                        result     |= REQ_MIDI_OUT;
+                    else
+                        result     |= REQ_MIDI_IN;
+                    break;
+                case R_PORT_SET:
+                    if ((p->members != NULL) && (p->items != NULL))
+                        result         |= scan_port_requirements(p->members);
+                    break;
                 default:
                     break;
             }
         }
+        return result;
+    }
+
+    static size_t scan_requirements(const plugin_metadata_t &m)
+    {
+        size_t result   = 0;
+
+        #define SET_REQUIREMENTS(plugin, flag)   \
+            if ((m.lv2_uid != NULL) && (!strcmp(m.lv2_uid, #plugin)))    result |= flag;
+
+        #define MOD_GTK2(plugin)        SET_REQUIREMENTS(plugin, REQ_GTK2_UI)
+        #define MOD_GTK3(plugin)        SET_REQUIREMENTS(plugin, REQ_GTK3_UI)
+        #define MOD_QT4(plugin)         SET_REQUIREMENTS(plugin, REQ_QT4_UI)
+        #define MOD_QT5(plugin)         SET_REQUIREMENTS(plugin, REQ_QT5_UI)
+        #include <metadata/modules.h>
+        #undef SET_REQUIREMENTS
+
+        result |= scan_port_requirements(m.ports);
 
         if ((m.port_groups != NULL) && (m.port_groups->id != NULL))
             result |= REQ_PORT_GROUPS;
@@ -363,12 +399,12 @@ namespace lsp
         return result;
     }
 
-    void gen_plugin_ttl(const char *path, const plugin_metadata_t &m, const char *name, const char *uri)
+    void gen_plugin_ttl(const char *path, const plugin_metadata_t &m, const char *uri)
     {
-        char fname[2048];
+        char fname[PATH_MAX];
         FILE *out = NULL;
-        snprintf(fname, sizeof(fname)-1, "%s/%s.ttl", path, name);
-        size_t requirements     = scan_requirements(m, name, uri);
+        snprintf(fname, sizeof(fname)-1, "%s/%s.ttl", path, m.lv2_uid);
+        size_t requirements     = scan_requirements(m);
 //        bool patch_support = false;
 
         // Generate manifest.ttl
@@ -393,16 +429,19 @@ namespace lsp
             fprintf(out, "@prefix patch:     <" LV2_PATCH_PREFIX "> .\n");
         if (requirements & REQ_STATE)
             fprintf(out, "@prefix state:     <" LV2_STATE_PREFIX "> .\n");
+        if (requirements & REQ_MIDI)
+            fprintf(out, "@prefix midi:      <" LV2_MIDI_PREFIX "> .\n");
         fprintf(out, "@prefix doap:      <http://usefulinc.com/ns/doap#> .\n");
         fprintf(out, "@prefix foaf:      <http://xmlns.com/foaf/0.1/> .\n");
         fprintf(out, "@prefix dc:        <http://purl.org/dc/terms/> .\n");
         fprintf(out, "@prefix rdf:       <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n");
         fprintf(out, "@prefix rdfs:      <http://www.w3.org/2000/01/rdf-schema#> .\n");
         fprintf(out, "@prefix " LSP_PREFIX ":       <" LSP_URI(lv2) "> .\n");
+        fprintf(out, "@prefix " LSP_PREFIX "_dev:   <" LSP_DEVELOPERS_URI "> .\n");
         if (requirements & REQ_PATCH)
-            fprintf(out, "@prefix lsp_p:     <%s/ports#> .\n", uri);
+            fprintf(out, "@prefix lsp_p:     <%s%s/ports#> .\n", LSP_URI(lv2), m.lv2_uid);
         if (requirements & REQ_PORT_GROUPS)
-            fprintf(out, "@prefix lsp_pg:    <%s/port_groups#> .\n", uri);
+            fprintf(out, "@prefix lsp_pg:    <%s%s/port_groups#> .\n", LSP_URI(lv2), m.lv2_uid);
         if (requirements & REQ_GTK2_UI)
             fprintf(out, "@prefix " LSP_PREFIX "_gtk2:  <" LSP_UI_URI(lv2, gtk2) "/> .\n");
         if (requirements & REQ_GTK3_UI)
@@ -412,6 +451,29 @@ namespace lsp
         if (requirements & REQ_QT5_UI)
             fprintf(out, "@prefix " LSP_PREFIX "_qt5:   <" LSP_UI_URI(lv2, qt5)  "/> .\n");
         fprintf(out, "\n\n");
+
+        // Output developer and maintainer objects
+        const person_t *dev = m.developer;
+        if ((dev != NULL) && (dev->uid != NULL))
+        {
+            fprintf(out, LSP_PREFIX "_dev:%s\n", dev->uid);
+            fprintf(out, "\ta foaf:Person");
+            if (dev->name != NULL)
+                fprintf(out, " ;\n\tfoaf:name \"%s\"", dev->name);
+            if (dev->nick != NULL)
+                fprintf(out, " ;\n\tfoaf:nick \"%s\"", dev->nick);
+            if (dev->mailbox != NULL)
+                fprintf(out, " ;\n\tfoaf:mbox <%s>", dev->mailbox);
+            if (dev->homepage != NULL)
+                fprintf(out, " ;\n\tfoaf:homepage <%s>", dev->homepage);
+            fprintf(out, "\n\t.\n\n");
+        }
+
+        fprintf(out, LSP_PREFIX "_dev:lsp\n");
+        fprintf(out, "\ta foaf:Person");
+        fprintf(out, " ;\n\tfoaf:name \"" LSP_ACRONYM " [LV2]\"");
+        fprintf(out, " ;\n\tfoaf:homepage <" LSP_BASE_URI ">");
+        fprintf(out, "\n\t.\n\n");
 
         // Output port groups
         if (requirements & REQ_PORT_GROUPS)
@@ -448,7 +510,7 @@ namespace lsp
         }
 
         // Output special parameters
-        for (const port_t *p = m.ports; (p->id != NULL) && (p->name != NULL); ++p)
+        for (const port_t *p = m.ports; p->id != NULL; ++p)
         {
             switch (p->role)
             {
@@ -470,25 +532,20 @@ namespace lsp
         }
 
         // Output plugin
-        fprintf(out, LSP_PREFIX ":%s\n", name);
-        fprintf(out, "\ta lv2:Plugin");
+        fprintf(out, LSP_PREFIX ":%s\n", m.lv2_uid);
+        fprintf(out, "\ta lv2:Plugin, doap:Project");
         print_additional_groups(out, m.classes);
         fprintf(out, " ;\n");
         fprintf(out, "\tdoap:name \"" LSP_ACRONYM " %s - %s [LV2]\" ;\n", m.name, m.description);
         fprintf(out, "\tlv2:minorVersion %d ;\n", int(LSP_VERSION_MINOR(m.version)));
         fprintf(out, "\tlv2:microVersion %d ;\n", int(LSP_VERSION_MICRO(m.version)));
-        fprintf(out, "\tdoap:developer [\n");
-        fprintf(out, "\t\tfoaf:name \"%s\" ;\n", m.author);
-        fprintf(out, "\t\tfoaf:homepage <" LSP_BASE_URI "> ;\n");
-        fprintf(out, "\t] ;\n");
-        fprintf(out, "\tdoap:maintainer [\n");
-        fprintf(out, "\t\tfoaf:name \"" LSP_ACRONYM " [LV2]\" ;\n");
-        fprintf(out, "\t\tfoaf:homepage <" LSP_BASE_URI "> ;\n");
-        fprintf(out, "\t] ;\n");
+        if ((dev != NULL) && (dev->uid != NULL))
+            fprintf(out, "\tdoap:developer " LSP_PREFIX "_dev:%s ;\n", m.developer->uid);
+        fprintf(out, "\tdoap:maintainer " LSP_PREFIX "_dev:lsp ;\n");
         fprintf(out, "\tdoap:license \"" LSP_COPYRIGHT "\" ;\n");
         fprintf(out, "\tlv2:binary <" LSP_ARTIFACT_ID "-lv2.so> ;\n");
         if (requirements & REQ_UI_MASK)
-            print_plugin_ui(out, name, uri);
+            print_plugin_ui(out, m.lv2_uid);
         fprintf(out, "\n");
 
         {
@@ -499,14 +556,13 @@ namespace lsp
         }
 
         {
-            size_t count = 0;
-            fprintf(out, "\tlv2:optionalFeature ");
-            LSP_LV2_EMIT_OPTION(count, true, "lv2:hardRTCapable");
+            size_t count = 1;
+            fprintf(out, "\tlv2:optionalFeature lv2:hardRTCapable");
             LSP_LV2_EMIT_OPTION(count, requirements & REQ_WORKER, "work:schedule");
             fprintf(out, " ;\n");
         }
 
-        if (requirements & (REQ_STATE))
+        if (requirements & REQ_STATE)
         {
             size_t count = 0;
             fprintf(out, "\tlv2:extensionData ");
@@ -515,24 +571,55 @@ namespace lsp
             fprintf(out, " ;\n");
         }
 
-        print_ladspa_replacement(out, name);
+        print_ladspa_replacement(out, m, m.lv2_uid);
         fprintf(out, "\n");
 
         size_t port_id = 0;
 
         // Output special parameters
-        for (const port_t *p = m.ports; (p->id != NULL) && (p->name != NULL); ++p)
+        if (requirements & REQ_PATCH_WR)
         {
-            switch (p->role)
+            size_t count = 0;
+            const port_t *first = NULL;
+            for (const port_t *p = m.ports; p->id != NULL; ++p)
             {
-                case R_PATH:
+                switch (p->role)
                 {
-                    if (requirements & REQ_PATCH)
-                        fprintf(out, "\tpatch:writable lsp_p:%s;\n", p->id);
-                    break;
+                    case R_PATH:
+                        count++;
+                        if (first == NULL)
+                            first = p;
+                        break;
+                    default:
+                        break;
                 }
-                default:
-                    break;
+            }
+
+            if (first != NULL)
+            {
+                fprintf(out, "\tpatch:writable");
+                if (count > 1)
+                {
+                    fprintf(out, "\n");
+                    for (const port_t *p = m.ports; (p->id != NULL) && (p->name != NULL); ++p)
+                    {
+                        switch (p->role)
+                        {
+                            case R_PATH:
+                            {
+                                fprintf(out, "\t\tlsp_p:%s", p->id);
+                                if (--count)
+                                    fprintf(out, " ,\n");
+                                break;
+                            }
+                            default:
+                                break;
+                        }
+                    }
+                    fprintf(out, " ;\n\n");
+                }
+                else
+                    fprintf(out, " lsp_p:%s ;\n\n", first->id);
             }
         }
 
@@ -544,6 +631,7 @@ namespace lsp
                 case R_UI_SYNC:
                 case R_MESH:
                 case R_PATH:
+                case R_PORT_SET:
                     continue;
                 default:
                     break;
@@ -557,6 +645,11 @@ namespace lsp
                 case R_AUDIO:
                     fprintf(out, "lv2:AudioPort ;\n");
                     break;
+                case R_MIDI:
+                    fprintf(out, "atom:AtomPort ;\n");
+                    fprintf(out, "\t\tatom:bufferType atom:Sequence ;\n");
+                    fprintf(out, "\t\tatom:supports atom:Sequence, midi:MidiEvent ;\n");
+                    break;
                 case R_CONTROL:
                 case R_METER:
                     fprintf(out, "lv2:ControlPort ;\n");
@@ -567,19 +660,23 @@ namespace lsp
 
             fprintf(out, "\t\tlv2:index %d ;\n", (int)port_id);
             fprintf(out, "\t\tlv2:symbol \"%s\" ;\n", p->id);
-//            const char *units = encode_unit(p->unit);
-//            if (units != NULL)
-//                fprintf(out, "\t\tlv2:name \"%s (%s)\" ;\n", p->name, units);
-//            else
             fprintf(out, "\t\tlv2:name \"%s\" ;\n", p->name);
+
             print_units(out, p->unit);
 
+            size_t p_prop = 0;
+
             if (p->flags & F_LOG)
-                fprintf(out, "\t\tlv2:portProperty pp:logarithmic ;\n");
+            {
+                LSP_LV2_EMIT_HEADER(p_prop, "\t\tlv2:portProperty");
+                LSP_LV2_EMIT_OPTION(p_prop, true, "pp:logarithmic");
+            }
 
             if (p->unit == U_BOOL)
             {
-                fprintf(out, "\t\tlv2:portProperty lv2:toggled ;\n");
+                LSP_LV2_EMIT_HEADER(p_prop, "\t\tlv2:portProperty");
+                LSP_LV2_EMIT_OPTION(p_prop, true, "lv2:toggled");
+                LSP_LV2_EMIT_END(p_prop);
 //                if (p->flags & F_TRG)
 //                    fprintf(out, "\t\tlv2:portProperty pp:trigger ;\n");
                 fprintf(out, "\t\tlv2:minimum %d ;\n", 0);
@@ -588,16 +685,43 @@ namespace lsp
             }
             else if (p->unit == U_ENUM)
             {
-                fprintf(out, "\t\tlv2:portProperty pp:hasStrictBounds ;\n");
-                fprintf(out, "\t\tlv2:portProperty lv2:integer ;\n");
-                fprintf(out, "\t\tlv2:portProperty lv2:enumeration ;\n");
+                LSP_LV2_EMIT_HEADER(p_prop, "\t\tlv2:portProperty");
+                LSP_LV2_EMIT_OPTION(p_prop, true, "lv2:integer");
+                LSP_LV2_EMIT_OPTION(p_prop, true, "lv2:enumeration");
+                LSP_LV2_EMIT_OPTION(p_prop, true, "pp:hasStrictBounds");
+                LSP_LV2_EMIT_END(p_prop);
 
                 int min  = (p->flags & F_LOWER) ? p->min : 0;
                 int curr = min;
                 int max  = min + list_size(p->items) - 1;
 
-                for (const char **list = p->items; *list != NULL; ++list, ++curr)
-                    fprintf(out, "\t\tlv2:scalePoint [ rdfs:label \"%s\"; rdf:value %d ] ;\n", *list, curr);
+                const char **list = p->items;
+                if ((list != NULL) && (*list != NULL))
+                {
+                    size_t count = 0;
+                    for (const char **t = list; *t != NULL; ++t)
+                        count ++;
+
+                    if (count > 0)
+                    {
+                        fprintf(out, "\t\tlv2:scalePoint\n");
+                        while (*list != NULL)
+                        {
+                            fprintf(out, "\t\t\t[ rdfs:label \"%s\"; rdf:value %d ]", *list, curr);
+                            if (--count)
+                                fprintf(out, " ,\n");
+                            else
+                                fprintf(out, " ;\n");
+                            list ++;
+                            curr ++;
+                        }
+                    }
+                    else
+                        fprintf(out, "\t\tlv2:scalePoint [ rdfs:label \"%s\"; rdf:value %d ]\n", *list, curr);
+                }
+
+//                for (const char **list = p->items; *list != NULL; ++list, ++curr)
+//                    fprintf(out, "\t\tlv2:scalePoint [ rdfs:label \"%s\"; rdf:value %d ] ;\n", *list, curr);
 
                 fprintf(out, "\t\tlv2:minimum %d ;\n", min);
                 fprintf(out, "\t\tlv2:maximum %d ;\n", max);
@@ -605,9 +729,12 @@ namespace lsp
             }
             else if (p->unit == U_SAMPLES)
             {
+                LSP_LV2_EMIT_HEADER(p_prop, "\t\tlv2:portProperty");
+                LSP_LV2_EMIT_OPTION(p_prop, true, "lv2:integer");
                 if ((p->flags & (F_LOWER | F_UPPER)) == (F_LOWER | F_UPPER))
-                    fprintf(out, "\t\tlv2:portProperty pp:hasStrictBounds ;\n");
-                fprintf(out, "\t\tlv2:portProperty lv2:integer ;\n");
+                    LSP_LV2_EMIT_OPTION(p_prop, true, "pp:hasStrictBounds");
+                LSP_LV2_EMIT_END(p_prop);
+
                 if (p->flags & F_LOWER)
                     fprintf(out, "\t\tlv2:minimum %d ;\n", int(p->min));
                 if (p->flags & F_UPPER)
@@ -616,12 +743,14 @@ namespace lsp
             }
             else
             {
-                if ((p->flags & (F_LOWER | F_UPPER)) == (F_LOWER | F_UPPER))
-                    fprintf(out, "\t\tlv2:portProperty pp:hasStrictBounds ;\n");
-
                 if (p->flags & F_INT)
                 {
-                    fprintf(out, "\t\tlv2:portProperty lv2:integer ;\n");
+                    LSP_LV2_EMIT_HEADER(p_prop, "\t\tlv2:portProperty");
+                    LSP_LV2_EMIT_OPTION(p_prop, true, "lv2:integer");
+                    if ((p->flags & (F_LOWER | F_UPPER)) == (F_LOWER | F_UPPER))
+                        LSP_LV2_EMIT_OPTION(p_prop, true, "pp:hasStrictBounds");
+                    LSP_LV2_EMIT_END(p_prop);
+
                     if (p->flags & F_LOWER)
                         fprintf(out, "\t\tlv2:minimum %d ;\n", int(p->min));
                     if (p->flags & F_UPPER)
@@ -631,6 +760,13 @@ namespace lsp
                 }
                 else
                 {
+                    if ((p->flags & (F_LOWER | F_UPPER)) == (F_LOWER | F_UPPER))
+                    {
+                        LSP_LV2_EMIT_HEADER(p_prop, "\t\tlv2:portProperty");
+                        LSP_LV2_EMIT_OPTION(p_prop, true, "pp:hasStrictBounds");
+                        LSP_LV2_EMIT_END(p_prop);
+                    }
+
                     if (p->flags & F_LOWER)
                         fprintf(out, "\t\tlv2:minimum %.6f ;\n", p->min);
                     if (p->flags & F_UPPER)
@@ -639,6 +775,9 @@ namespace lsp
                         fprintf(out, "\t\tlv2:default %.6f ;\n", p->start);
                 }
             }
+
+            LSP_LV2_EMIT_END(p_prop);
+
 
             // Output all port groups of the port
             if (requirements & REQ_PORT_GROUPS)
@@ -649,19 +788,24 @@ namespace lsp
         }
 
         // Add atom ports for state serialization
-        for (const port_t *p = lv2_atom_ports; (p->id != NULL) && (p->name != NULL); ++p)
+        for (size_t i=0; i<2; ++i)
         {
             fprintf(out, "%s [\n", (port_id == 0) ? "\tlv2:port" : " ,");
-            fprintf(out, "\t\ta lv2:%s, atom:AtomPort ;\n", (p->flags & F_OUT) ? "OutputPort" : "InputPort");
+            fprintf(out, "\t\ta lv2:%s, atom:AtomPort ;\n", (i > 0) ? "OutputPort" : "InputPort");
             fprintf(out, "\t\tatom:bufferType atom:Sequence ;\n");
+
+            fprintf(out, "\t\tatom:supports atom:Sequence");
             if (requirements & REQ_PATCH)
-                fprintf(out, "\t\tatom:supports patch:Message ;\n");
+                fprintf(out, ", patch:Message");
+            fprintf(out, " ;\n");
+
+            const port_t *p = &lv2_atom_ports[i];
             fprintf(out, "\t\tlv2:designation lv2:control ;\n");
             fprintf(out, "\t\tlv2:index %d ;\n", int(port_id));
             fprintf(out, "\t\tlv2:symbol \"%s\" ;\n", p->id);
             fprintf(out, "\t\tlv2:name \"%s\" ;\n", p->name);
-            fprintf(out, "\t\trdfs:comment \"UI <-> DSP communication\" ;\n");
-            fprintf(out, "\t\trsz:minimumSize %ld ;\n", lv2_all_port_sizes(&m, p->flags & F_OUT));
+            fprintf(out, "\t\trdfs:comment \"%s communication\" ;\n", (IS_IN_PORT(p)) ? "UI -> DSP" : "DSP -> UI");
+            fprintf(out, "\t\trsz:minimumSize %ld ;\n", lv2_all_port_sizes(m.ports, IS_IN_PORT(p), IS_OUT_PORT(p)));
             fprintf(out, "\t]");
 
             port_id++;
@@ -703,13 +847,13 @@ namespace lsp
         if (requirements & REQ_UI_MASK)
         {
             #define MOD_LV2UI(plugin, package, ext) \
-                if (!strcmp(name, #plugin)) \
-                    gen_plugin_ui_ttl(out, plugin::metadata, #plugin, LSP_PLUGIN_UI_URI(lv2, plugin, package), ext, #package, LSP_PLUGIN_URI(lv2, plugin));
+                if (!strcmp(m.lv2_uid, #plugin)) \
+                    gen_plugin_ui_ttl(out, requirements, plugin::metadata, m.lv2_uid, LSP_PLUGIN_UI_URI(lv2, plugin, package), ext, #package, LSP_PLUGIN_URI(lv2, plugin));
             #define MOD_GTK2(plugin)    MOD_LV2UI(plugin, gtk2, "GtkUI"     )
             #define MOD_GTK3(plugin)    MOD_LV2UI(plugin, gtk3, "Gtk3UI"    )
             #define MOD_QT4(plugin)     MOD_LV2UI(plugin, qt4,  "Qt4UI"     )
             #define MOD_QT5(plugin)     MOD_LV2UI(plugin, qt5,  "Qt5UI"     )
-            #include <core/modules.h>
+            #include <metadata/modules.h>
             #undef MOD_LV2UI
         }
 
@@ -736,7 +880,7 @@ namespace lsp
             fprintf(out, "\ta lv2:Plugin ;\n"); \
             fprintf(out, "\tlv2:binary <" LSP_ARTIFACT_ID "-lv2.so> ;\n"); \
             fprintf(out, "\trdfs:seeAlso <%s.ttl> .\n\n", #plugin);
-        #include <core/modules.h>
+        #include <metadata/modules.h>
         fclose(out);
     }
 
@@ -747,8 +891,8 @@ namespace lsp
         // Output plugins
         size_t id = 0;
         #define MOD_LV2(plugin) \
-            gen_plugin_ttl(path, plugin::metadata, #plugin, LSP_PLUGIN_URI(lv2, plugin)); id++;
-        #include <core/modules.h>
+            gen_plugin_ttl(path, plugin::metadata, LSP_PLUGIN_URI(lv2, plugin)); id++;
+        #include <metadata/modules.h>
     }
 }
 

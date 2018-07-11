@@ -47,6 +47,36 @@ namespace lsp
             delete [] reinterpret_cast<uint8_t *>(mesh);
     }
 
+    inline ssize_t vst_serialize_string(const char *str, uint8_t *buf, size_t len)
+    {
+        lsp_trace("str=%s, buf=%p, len=%d", str, buf, int(len));
+        size_t slen     = strlen(str);
+        if (slen > 0xff)
+            slen            = 0xff;
+        if ((slen + 1) > len)
+            return -1;
+        *(buf++)        = slen;
+        memcpy(buf, str, slen);
+        return slen + 1;
+    }
+
+    inline ssize_t vst_deserialize_string(char *str, size_t maxlen, const uint8_t *buf, size_t len)
+    {
+        lsp_trace("str=%p, maxlen=%d, buf=%p, len=%d", str, int(maxlen), buf, int(len));
+        if ((len--) <= 0)
+            return -1;
+        size_t slen     = *(buf++);
+        if (slen > len)
+            return -1;
+        if ((slen + 1) > maxlen)
+            return -2;
+        memcpy(str, buf, slen);
+        str[slen]       = '\0';
+
+        lsp_trace("str=%s", str);
+        return slen + 1;
+    }
+
 //    inline vst_object_t *vst_object(AEffect *e)
 //    {
 //        vst_object_t *o = reinterpret_cast<vst_object_t *>(e->object);

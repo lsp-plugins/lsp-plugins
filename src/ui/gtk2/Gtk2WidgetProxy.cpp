@@ -20,7 +20,7 @@ namespace lsp
 
     void Gtk2WidgetProxy::add(IWidget *widget)
     {
-        pGtk2Widget = static_cast<Gtk2Widget *>(widget);
+        pGtk2Widget = Gtk2Widget::cast(widget);
     }
 
     GtkWidget *Gtk2WidgetProxy::widget()

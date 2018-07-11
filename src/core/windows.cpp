@@ -49,8 +49,8 @@ namespace lsp
                 case PARZEN: parzen(dst, n); break;
                 case TUKEY: tukey(dst, n); break;
                 case WELCH: welch(dst, n); break;
-                case NUTTALL: nutall(dst, n); break;
-                case BLACKMAN_NUTTALL: blackman_nutall(dst, n); break;
+                case NUTTALL: nuttall(dst, n); break;
+                case BLACKMAN_NUTTALL: blackman_nuttall(dst, n); break;
                 case BLACKMAN_HARRIS: blackman_harris(dst, n); break;
                 case HANN_POISSON: hann_poisson(dst, n); break;
                 case BARTLETT_HANN: bartlett_hann(dst, n); break;
@@ -175,7 +175,7 @@ namespace lsp
             return blackman_general(dst, n, 0.16f);
         }
 
-        void nutall_general(float *dst, size_t n, float a0, float a1, float a2, float a3)
+        void nuttall_general(float *dst, size_t n, float a0, float a1, float a2, float a3)
         {
             if (n == 0)
                 return;
@@ -188,19 +188,19 @@ namespace lsp
                 dst[i]  = a0 - a1 * cosf(i * f1) + a2 * cosf(i * f2) - a3 * cosf(i * f3);
         }
 
-        void nutall(float *dst, size_t n)
+        void nuttall(float *dst, size_t n)
         {
-            return nutall_general(dst, n, 0.355768f, 0.487396f, 0.144232f, 0.012604f);
+            return nuttall_general(dst, n, 0.355768f, 0.487396f, 0.144232f, 0.012604f);
         }
 
-        void blackman_nutall(float *dst, size_t n)
+        void blackman_nuttall(float *dst, size_t n)
         {
-            return nutall_general(dst, n, 0.3635819f, 0.4891775f, 0.1365995f, 0.0106411f);
+            return nuttall_general(dst, n, 0.3635819f, 0.4891775f, 0.1365995f, 0.0106411f);
         }
 
         void blackman_harris(float *dst, size_t n)
         {
-            return nutall_general(dst, n, 0.35875f, 0.48829f, 0.14128f, 0.01168f);
+            return nuttall_general(dst, n, 0.35875f, 0.48829f, 0.14128f, 0.01168f);
         }
 
         void flat_top_general(float *dst, size_t n, float a0, float a1, float a2, float a3, float a4)

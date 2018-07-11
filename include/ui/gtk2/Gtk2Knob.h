@@ -13,6 +13,13 @@ namespace lsp
     class Gtk2Knob: public Gtk2CustomWidget
     {
         protected:
+            enum state_t
+            {
+                S_NONE,
+                S_MOVING,
+                S_CLICK
+            };
+
             Color           sColor;
             Color           sBgColor;
             ColorHolder     sScaleColor;
@@ -27,21 +34,21 @@ namespace lsp
             float           fMax;
 
             ssize_t         nLastY;
-            bool            bMoving;
+            size_t          nState;
             IUIPort        *pPort;
 
-        private:
-            bool        check_mouse_over(ssize_t x, ssize_t y);
+        protected:
+            size_t      check_mouse_over(ssize_t x, ssize_t y);
             float       calc_step(bool tolerance);
+            float       get_normalized_value();
+            void        apply_metadata_params(const port_t *p);
+            void        update_value(float delta);
+            void        set_normalized_value(float value);
+            void        on_click(ssize_t x, ssize_t y);
 
         public:
             Gtk2Knob(plugin_ui *ui);
             virtual ~Gtk2Knob();
-
-        private:
-            float       get_normalized_value();
-            void        apply_metadata_params(const port_t *p);
-            void        update_value(float delta);
 
         public:
             virtual void set(widget_attribute_t att, const char *value);

@@ -4,7 +4,7 @@
 			<vbox size="3">
 				<label text="Bypass" />
 				<switch id="bypass" size="24" angle="1" />
-				<led id="bypass" color="green" size="8" />
+				<led id="bypass" color="red" size="8" />
 			</vbox>
 		</align>
 		
@@ -13,33 +13,9 @@
 				<center hpos="-1" vpos="-1" visible="false" />
 				
 				<!-- Gray grid -->
-				<marker value="20" color="gray" basis="0" parallel="1" />
-				<marker value="30" color="gray" basis="0" parallel="1" />
-				<marker value="40" color="gray" basis="0" parallel="1" />
-				<marker value="50" color="gray" basis="0" parallel="1" />
-				<marker value="60" color="gray" basis="0" parallel="1" />
-				<marker value="70" color="gray" basis="0" parallel="1" />
-				<marker value="80" color="gray" basis="0" parallel="1" />
-				<marker value="90" color="gray" basis="0" parallel="1" />
-				
-				<marker value="200" color="gray" basis="0" parallel="1" />
-				<marker value="300" color="gray" basis="0" parallel="1" />
-				<marker value="400" color="gray" basis="0" parallel="1" />
-				<marker value="500" color="gray" basis="0" parallel="1" />
-				<marker value="600" color="gray" basis="0" parallel="1" />
-				<marker value="700" color="gray" basis="0" parallel="1" />
-				<marker value="800" color="gray" basis="0" parallel="1" />
-				<marker value="900" color="gray" basis="0" parallel="1" />
-				
-				<marker value="2000" color="gray" basis="0" parallel="1" />
-				<marker value="3000" color="gray" basis="0" parallel="1" />
-				<marker value="4000" color="gray" basis="0" parallel="1" />
-				<marker value="5000" color="gray" basis="0" parallel="1" />
-				<marker value="6000" color="gray" basis="0" parallel="1" />
-				<marker value="7000" color="gray" basis="0" parallel="1" />
-				<marker value="8000" color="gray" basis="0" parallel="1" />
-				<marker value="9000" color="gray" basis="0" parallel="1" />
-				
+				<ui:for id="f" first="20" last="90" step="10"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
+				<ui:for id="f" first="200" last="900" step="100"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
+				<ui:for id="f" first="2000" last="9000" step="1000"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
 				<marker value="20000" color="gray" basis="0" parallel="1" />
 				
 				<marker value="3.98107" color="gray" basis="1" parallel="0" /> <!-- +12 dB -->
@@ -57,7 +33,7 @@
 				<marker value="0.00398107" color="yellow" basis="1" parallel="0" /> <!-- -48 dB -->
 
 				<!-- Meshes -->
-				<mesh id="spc_0" width="3" visibility="on_0" hue_id="hue_0" />
+				<mesh id="spc_0" width="3" visibility_id="on_0" hue_id="hue_0" />
 				
 				<!-- Boundaries -->
 				<marker value="15.8489" color="white" basis="1" parallel="0" /> <!-- +24 dB -->

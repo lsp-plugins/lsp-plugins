@@ -35,6 +35,7 @@ namespace lsp
             dsp::normalize                  = sse::normalize;
             dsp::min                        = sse::min;
             dsp::max                        = sse::max;
+            dsp::abs_max                    = sse::abs_max;
             dsp::minmax                     = sse::minmax;
     //        dsp::min_index                  = sse::min_index;
     //        dsp::max_index                  = sse::max_index;

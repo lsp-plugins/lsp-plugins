@@ -7,6 +7,7 @@
 
 #include <ui/ui.h>
 #include <ui/graphics.h>
+#include <core/alloc.h>
 
 #include <math.h>
 #include <malloc.h>
@@ -38,14 +39,14 @@ namespace lsp
         }
         if (sText != NULL)
         {
-            free(sText);
+            lsp_free(sText);
             sText = NULL;
         }
     }
 
     void Text::draw(IGraphCanvas *cv)
     {
-        if ((pGraph == NULL) || (sText == NULL) || (vCoords == NULL))
+        if ((pGraph == NULL) || (sText == NULL) || (vCoords == NULL) || (!bVisible))
             return;
 
         // Get center
@@ -94,10 +95,10 @@ namespace lsp
             case A_TEXT:
                 if (sText != NULL)
                 {
-                    free(sText);
+                    lsp_free(sText);
                     sText = NULL;
                 }
-                sText = strdup(value);
+                sText = lsp_strdup(value);
                 break;
 
             default:

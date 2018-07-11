@@ -13,6 +13,7 @@ namespace lsp
         IWidget(ui, w_class)
     {
         pGraph      = NULL;
+        bVisible    = true;
     }
 
     IGraphObject::~IGraphObject()
@@ -20,7 +21,8 @@ namespace lsp
     }
 
     void IGraphObject::draw(IGraphCanvas *cv)
-    {    }
+    {
+    }
 
     void IGraphObject::bind(IGraph *graph)
     {
@@ -34,6 +36,7 @@ namespace lsp
 
     void IGraphObject::notify(IUIPort *port)
     {
+        IWidget::notify(port);
         if (pGraph != NULL)
             pGraph->markRedraw();
     }

@@ -5,12 +5,13 @@
  *      Author: sadko
  */
 
-#ifndef LSP_NO_EXPERMIENTAL
+#ifndef LSP_NO_EXPERIMENTAL
 
 #include <core/dsp.h>
 
 #include <plugins/impulse_responses.h>
 #include <core/debug.h>
+#include <core/status.h>
 
 #include <string.h>
 
@@ -415,6 +416,7 @@ namespace lsp
         if (descr->pOld != NULL)
         {
             descr->pOld     ->destroy();
+            delete descr->pOld;
             descr->pOld     = NULL;
         }
 
@@ -434,12 +436,25 @@ namespace lsp
 
         // Load audio file
         AudioFile *af = new AudioFile();
-        if (!af->load(path->get_path()))
+        if (af == NULL)
+            return -6;
+
+        status_t status = af->load(fname);
+        if (status != STATUS_OK)
         {
             lsp_trace("load failed");
             af->destroy();
             delete af;
-            return -6;
+            return status;
+        }
+
+        status = af->resample(fSampleRate);
+        if (status != STATUS_OK)
+        {
+            lsp_trace("resample failed");
+            af->destroy();
+            delete af;
+            return status;
         }
 
         // Pre-process file
@@ -448,7 +463,7 @@ namespace lsp
             lsp_trace("reverse failed");
             af->destroy();
             delete af;
-            return -7;
+            return -9;
         }
 
         // Store pointer to file
@@ -535,4 +550,4 @@ namespace lsp
 
 } /* namespace lsp */
 
-#endif /* LSP_NO_EXPERMIENTAL */
+#endif /* LSP_NO_EXPERIMENTAL */

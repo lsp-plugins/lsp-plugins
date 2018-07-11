@@ -1,5 +1,3 @@
-#include <core/types.h>
-
 #include <stdio.h>
 #include <string.h>
 #include <malloc.h>
@@ -7,9 +5,13 @@
 
 #include <expat.h>
 
-#include <core/metadata.h>
-#include <plugins/plugins.h>
+#include <core/types.h>
+
 #include <data/cvector.h>
+
+#include <metadata/metadata.h>
+#include <plugins/plugins.h>
+
 
 namespace lsp
 {

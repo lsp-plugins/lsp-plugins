@@ -5,7 +5,7 @@
 				<vbox>
 					<label text="Bypass" />
 					<switch id="bypass" angle="1" />
-					<led id="bypass" color="green" size="8" />
+					<led id="bypass" color="red" size="8" />
 				</vbox>
 				<vbox size="3">
 					<label text="Output" />

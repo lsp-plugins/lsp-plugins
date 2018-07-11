@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef CORE_PLUGINS_H_
-#define CORE_PLUGINS_H_
+#ifndef PLUGINS_PLUGINS_H_
+#define PLUGINS_PLUGINS_H_
 
 #include <core/debug.h>
 #include <core/plugin.h>
@@ -15,6 +15,7 @@
 #include <plugins/phase_detector.h>
 #include <plugins/comp_delay.h>
 #include <plugins/spectrum_analyzer.h>
+#include <plugins/sampler.h>
 #include <plugins/impulse_responses.h>
 
-#endif /* CORE_PLUGINS_H_ */
+#endif /* PLUGINS_PLUGINS_H_ */

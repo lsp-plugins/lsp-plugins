@@ -6,6 +6,7 @@
  */
 
 #include <ui/gtk2/ui.h>
+#include <core/alloc.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -27,6 +28,7 @@ namespace lsp
         fValue      = 0.0f;
         fVAlign     = 0.5f;
         fHAlign     = 0.5f;
+        bDetailed   = true;
         nUnits      = U_NONE - 1;
     }
 
@@ -34,7 +36,7 @@ namespace lsp
     {
         if (sText != NULL)
         {
-            free(sText);
+            lsp_free(sText);
             sText = NULL;
         }
     }
@@ -58,6 +60,7 @@ namespace lsp
                     {
                         pPort       = port;
                         pPort->bind(this);
+                        notify(pPort);
                     }
                 }
                 break;
@@ -66,10 +69,10 @@ namespace lsp
                     return;
                 if (sText != NULL)
                 {
-                    free(sText);
+                    lsp_free(sText);
                     sText = NULL;
                 }
-                sText = strdup(value);
+                sText = lsp_strdup(value);
                 break;
             case A_UNITS:
                 if (enType == LT_TEXT)
@@ -90,6 +93,9 @@ namespace lsp
                 break;
             case A_BG_COLOR:
                 sBgColor.set(pUI->theme(), value);
+                break;
+            case A_DETAILED:
+                PARSE_BOOL(value, bDetailed = __);
                 break;
             default:
                 Gtk2Widget::set(att, value);
@@ -119,13 +125,17 @@ namespace lsp
                 else
                     u_name  = encode_unit((is_decibel_unit(mdata->unit)) ? U_DB : mdata->unit);
 
-                encode_unit((nUnits == (U_NONE - 1)) ? mdata->unit : nUnits);
+//                encode_unit((nUnits == (U_NONE - 1)) ? mdata->unit : nUnits);
 
                 if (enType == LT_VALUE)
                 {
                     char buf[TMP_BUF_SIZE];
                     format_value(buf, TMP_BUF_SIZE, mdata, fValue);
-                    asprintf(&a_text, "%s\n%s", buf, (u_name != NULL) ? u_name : "" );
+
+                    if (bDetailed)
+                        asprintf(&a_text, "%s\n%s", buf, (u_name != NULL) ? u_name : "" );
+                    else
+                        asprintf(&a_text, "%s", buf);
                     text    = a_text;
                 }
                 else if (enType == LT_PARAM)
@@ -133,10 +143,15 @@ namespace lsp
                     text        = mdata->name;
                     if (u_name != NULL)
                     {
-                        if (text != NULL)
-                            asprintf(&a_text, "%s (%s)", text, u_name);
-                        else
-                            asprintf(&a_text, "(%s)", u_name);
+                        if (bDetailed)
+                        {
+                            if (text != NULL)
+                                asprintf(&a_text, "%s (%s)", text, u_name);
+                            else
+                                asprintf(&a_text, "(%s)", u_name);
+                        }
+                        else if (text != NULL)
+                            asprintf(&a_text, "%s", text);
                         text    = a_text;
                     }
                 }
@@ -172,6 +187,8 @@ namespace lsp
 
     void Gtk2Label::notify(IUIPort *port)
     {
+        Gtk2Widget::notify(port);
+
         if (enType != LT_VALUE)
             return;
 

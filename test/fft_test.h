@@ -49,17 +49,6 @@ namespace fft_test
 //        3, 3, -1, 1
     };
 
-    void dump_data(const float *data, size_t count)
-    {
-        for (size_t i=0; i<count; ++i)
-        {
-            if (i > 0)
-                printf(", ");
-            printf("%.3f", data[i]);
-        }
-        printf("\n");
-    }
-
     inline size_t int_log2(size_t n)
     {
         size_t x = 1, r=0;
@@ -121,9 +110,9 @@ namespace fft_test
 //        dsp::copy(sig_im, signal_im, sig_len);
 
         printf("Signal   [RE]: ");
-        dump_data(sig_re, sig_len);
+        test::dump_data(sig_re, sig_len);
         printf("Signal   [IM]: ");
-        dump_data(sig_im, sig_len);
+        test::dump_data(sig_im, sig_len);
 
         dsp::direct_fft(spc_re, spc_im, sig_re, sig_im, sig_rank);
 //        dsp::copy(spc_re, sig_re, sig_len);
@@ -131,16 +120,16 @@ namespace fft_test
 //        dsp::direct_fft(spc_re, spc_im, spc_re, spc_im, sig_rank);
 
         printf("Spectrum [RE]: ");
-        dump_data(spc_re, sig_len);
+        test::dump_data(spc_re, sig_len);
         printf("Spectrum [IM]: ");
-        dump_data(spc_im, sig_len);
+        test::dump_data(spc_im, sig_len);
 
         dsp::reverse_fft(sig_re, sig_im, spc_re, spc_im, sig_rank);
 
         printf("Signal   [RE]: ");
-        dump_data(sig_re, sig_len);
+        test::dump_data(sig_re, sig_len);
         printf("Signal   [IM]: ");
-        dump_data(sig_im, sig_len);
+        test::dump_data(sig_im, sig_len);
 
         delete [] spc_im;
         delete [] spc_re;

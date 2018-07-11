@@ -2,8 +2,8 @@
 #include <stddef.h>
 #include <string.h>
 
-#include <core/metadata.h>
 #include <core/lib.h>
+#include <core/midi.h>
 #include <plugins/plugins.h>
 
 #include <data/cvector.h>
@@ -11,8 +11,6 @@
 #include <container/lv2ext.h>
 #include <container/lv2/types.h>
 #include <container/lv2/ports.h>
-#include <container/lv2/transport.h>
-#include <container/lv2/vports.h>
 #include <container/lv2/executor.h>
 #include <container/lv2/wrapper.h>
 
@@ -78,7 +76,7 @@ namespace lsp
                     return NULL; \
                 uri = LSP_PLUGIN_URI(lv2, plugin); \
             }
-        #include <core/modules.h>
+        #include <metadata/modules.h>
 
         // Check that plugin instance is available
         if (p == NULL)
@@ -87,7 +85,7 @@ namespace lsp
         lsp_trace("lv2_instantiate uri=%s, sample_rate=%f", uri, sample_rate);
 
         // Scan for extensions
-        LV2Extensions *ext          = new LV2Extensions(features, uri);
+        LV2Extensions *ext          = new LV2Extensions(features, uri, NULL, NULL);
         LV2Wrapper *w               = new LV2Wrapper(p, ext);
 
         w->init(sample_rate);
@@ -144,7 +142,7 @@ namespace lsp
         uint32_t                    size,
         const void*                 data)
     {
-        lsp_trace("handle = %p", instance);
+//        lsp_trace("handle = %p", instance);
         LV2Wrapper *w = reinterpret_cast<LV2Wrapper *>(instance);
         w->job_run(handle, respond, size, data);
         return LV2_WORKER_SUCCESS;
@@ -155,26 +153,25 @@ namespace lsp
         uint32_t    size,
         const void* body)
     {
-        lsp_trace("handle = %p", instance);
+//        lsp_trace("handle = %p", instance);
         LV2Wrapper *w = reinterpret_cast<LV2Wrapper *>(instance);
         w->job_response(size, body);
         return LV2_WORKER_SUCCESS;
     }
 
-//    LV2_Worker_Status lv2_work_end(LV2_Handle instance)
-//    {
+    LV2_Worker_Status lv2_work_end(LV2_Handle instance)
+    {
 //        lsp_trace("handle = %p", instance);
-//        LV2Wrapper *w = reinterpret_cast<LV2Wrapper *>(instance);
-//        w->job_end();
-//        return LV2_WORKER_SUCCESS;
-//    }
+        LV2Wrapper *w = reinterpret_cast<LV2Wrapper *>(instance);
+        w->job_end();
+        return LV2_WORKER_SUCCESS;
+    }
 
     static const LV2_Worker_Interface lv2_worker_interface =
     {
         lv2_work_work,
         lv2_work_response,
-        NULL
-//        lv2_work_end
+        lv2_work_end
     };
 
     const void *lv2_extension_data(const char * uri)
@@ -205,7 +202,7 @@ namespace lsp
         // Calculate number of plugins
         lv2_descriptors_count       = 0;
         #define MOD_LV2(plugin)     lv2_descriptors_count++;
-        #include <core/modules.h>
+        #include <metadata/modules.h>
 
         // Now allocate descriptors
         lv2_descriptors             = new LV2_Descriptor[lv2_descriptors_count];
@@ -222,7 +219,7 @@ namespace lsp
             d->extension_data       = lv2_extension_data;   \
             d++;
 
-        #include <core/modules.h>
+        #include <metadata/modules.h>
     };
 
     void lv2_drop_descriptors()

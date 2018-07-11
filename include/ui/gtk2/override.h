@@ -125,6 +125,7 @@
                 if (!g_type_from_name(name)) \
                 { \
                     type = g_type_register_static(gtk_type, name, &type_info, (GTypeFlags)0); \
+                    /*lsp_trace("registered GTK class %s", name);*/ \
                     g_free(name); \
                     break; \
                 } \

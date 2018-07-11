@@ -8,7 +8,6 @@
 #ifndef _CONTAINER_VST_MAIN_H_
 #define _CONTAINER_VST_MAIN_H_
 
-#include <core/metadata.h>
 #include <core/debug.h>
 #include <container/vst/defs.h>
 

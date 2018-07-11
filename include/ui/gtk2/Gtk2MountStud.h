@@ -21,13 +21,24 @@ namespace lsp
             Color           sBgColor;
             Color           sColor;
             Color           sTextColor;
+            GtkWidget      *pMenu;
 
             char           *sText;
             bool            bLeft;
             size_t          nSize;
+            size_t          nButtons;
+            bool            bPressed;
+            ssize_t         nLogoLeft;
+            ssize_t         nLogoTop;
+            ssize_t         nLogoRight;
+            ssize_t         nLogoBottom;
 
         private:
             void draw_screw(cairo_t *cr, size_t x, size_t y, float angle);
+            bool mouse_over_logo(ssize_t x, ssize_t y);
+
+            static void export_settings(GtkWidget *menu, gpointer data);
+            static void import_settings(GtkWidget *menu, gpointer data);
 
         public:
             Gtk2MountStud(plugin_ui *ui);
@@ -39,6 +50,12 @@ namespace lsp
             virtual void render();
 
             virtual void resize(size_t &w, size_t &h);
+
+            virtual void button_press(ssize_t x, ssize_t y, size_t state, size_t button);
+
+            virtual void button_release(ssize_t x, ssize_t y, size_t state, size_t button);
+
+            virtual void motion(ssize_t x, ssize_t y, size_t state);
     };
 
 } /* namespace lsp */

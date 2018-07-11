@@ -16,7 +16,7 @@ namespace lsp
     Axis::Axis(plugin_ui *ui):
         IGraphObject(ui, W_AXIS)
     {
-        nFlags          = F_BASIS | F_VISIBLE;
+        nFlags          = F_BASIS;
         fDX             = 1.0;
         fDY             = 0.0;
         fMin            = -1.0;
@@ -33,7 +33,7 @@ namespace lsp
 
     void Axis::draw(IGraphCanvas *cv)
     {
-        if (!(nFlags & F_VISIBLE))
+        if (!bVisible)
             return;
 
         float cx = 0.0f, cy = 0.0f;
@@ -83,14 +83,6 @@ namespace lsp
                         nFlags |= F_BASIS;
                     else
                         nFlags &= ~F_BASIS;
-                );
-                break;
-            case A_VISIBLE:
-                PARSE_BOOL(value,
-                    if (__)
-                        nFlags |= F_VISIBLE;
-                    else
-                        nFlags &= ~F_VISIBLE;
                 );
                 break;
             case A_LOGARITHMIC:

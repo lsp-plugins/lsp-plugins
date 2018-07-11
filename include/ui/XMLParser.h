@@ -60,7 +60,26 @@ namespace lsp
             ~XMLParser();
 
         public:
-            bool parse(const char *path, XMLHandler *root);
+            /** Parse XML document
+             *
+             * @param path path to XML document
+             * @param root root handler
+             * @return status of operation
+             */
+            bool    parse(const char *path, XMLHandler *root);
+
+            /** Send start element event
+             *
+             * @param name start element name
+             * @param atts start element attributes
+             */
+            void startElement(const xml_char_t *name, const xml_char_t **atts);
+
+            /** Send end element event
+             *
+             * @param name end element name
+             */
+            void endElement(const xml_char_t *name);
     };
 } /* namespace lsp */
 

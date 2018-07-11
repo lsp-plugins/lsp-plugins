@@ -79,6 +79,7 @@ namespace lsp
 
     void Gtk2Graph::notify(IUIPort *port)
     {
+        Gtk2CustomWidget::notify(port);
     }
 
     void Gtk2Graph::render()

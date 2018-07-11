@@ -28,6 +28,7 @@ namespace lsp
             float           fValue;
             float           fVAlign;
             float           fHAlign;
+            bool            bDetailed;
             ssize_t         nUnits;
 
         private:

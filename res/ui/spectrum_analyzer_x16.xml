@@ -4,7 +4,7 @@
 			<vbox size="3">
 				<label text="Bypass" />
 				<switch id="bypass" size="24" angle="1" />
-				<led id="bypass" color="green" size="8" />
+				<led id="bypass" color="red" size="8" />
 			</vbox>
 		</align>
 		
@@ -13,33 +13,9 @@
 				<center hpos="-1" vpos="-1" visible="false" />
 				
 				<!-- Gray grid -->
-				<marker value="20" color="gray" basis="0" parallel="1" />
-				<marker value="30" color="gray" basis="0" parallel="1" />
-				<marker value="40" color="gray" basis="0" parallel="1" />
-				<marker value="50" color="gray" basis="0" parallel="1" />
-				<marker value="60" color="gray" basis="0" parallel="1" />
-				<marker value="70" color="gray" basis="0" parallel="1" />
-				<marker value="80" color="gray" basis="0" parallel="1" />
-				<marker value="90" color="gray" basis="0" parallel="1" />
-				
-				<marker value="200" color="gray" basis="0" parallel="1" />
-				<marker value="300" color="gray" basis="0" parallel="1" />
-				<marker value="400" color="gray" basis="0" parallel="1" />
-				<marker value="500" color="gray" basis="0" parallel="1" />
-				<marker value="600" color="gray" basis="0" parallel="1" />
-				<marker value="700" color="gray" basis="0" parallel="1" />
-				<marker value="800" color="gray" basis="0" parallel="1" />
-				<marker value="900" color="gray" basis="0" parallel="1" />
-				
-				<marker value="2000" color="gray" basis="0" parallel="1" />
-				<marker value="3000" color="gray" basis="0" parallel="1" />
-				<marker value="4000" color="gray" basis="0" parallel="1" />
-				<marker value="5000" color="gray" basis="0" parallel="1" />
-				<marker value="6000" color="gray" basis="0" parallel="1" />
-				<marker value="7000" color="gray" basis="0" parallel="1" />
-				<marker value="8000" color="gray" basis="0" parallel="1" />
-				<marker value="9000" color="gray" basis="0" parallel="1" />
-				
+				<ui:for id="f" first="20" last="90" step="10"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
+				<ui:for id="f" first="200" last="900" step="100"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
+				<ui:for id="f" first="2000" last="9000" step="1000"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
 				<marker value="20000" color="gray" basis="0" parallel="1" />
 				
 				<marker value="3.98107" color="gray" basis="1" parallel="0" /> <!-- +12 dB -->
@@ -57,22 +33,7 @@
 				<marker value="0.00398107" color="yellow" basis="1" parallel="0" /> <!-- -48 dB -->
 
 				<!-- Meshes -->
-				<mesh id="spc_0" width="3" visibility="on_0" hue_id="hue_0" />
-				<mesh id="spc_1" width="3" visibility="on_1" hue_id="hue_1" />
-				<mesh id="spc_2" width="3" visibility="on_2" hue_id="hue_2" />
-				<mesh id="spc_3" width="3" visibility="on_3" hue_id="hue_3" />
-				<mesh id="spc_4" width="3" visibility="on_4" hue_id="hue_4" />
-				<mesh id="spc_5" width="3" visibility="on_5" hue_id="hue_5" />
-				<mesh id="spc_6" width="3" visibility="on_6" hue_id="hue_6" />
-				<mesh id="spc_7" width="3" visibility="on_7" hue_id="hue_7" />
-				<mesh id="spc_8" width="3" visibility="on_8" hue_id="hue_8" />
-				<mesh id="spc_9" width="3" visibility="on_9" hue_id="hue_9" />
-				<mesh id="spc_10" width="3" visibility="on_10" hue_id="hue_10" />
-				<mesh id="spc_11" width="3" visibility="on_11" hue_id="hue_11" />
-				<mesh id="spc_12" width="3" visibility="on_12" hue_id="hue_12" />
-				<mesh id="spc_13" width="3" visibility="on_13" hue_id="hue_13" />
-				<mesh id="spc_14" width="3" visibility="on_14" hue_id="hue_14" />
-				<mesh id="spc_15" width="3" visibility="on_15" hue_id="hue_15" />
+				<ui:for id="i" first="0" last="15"><mesh id="spc_${i}" width="3" visibility_id="on_${i}" hue_id="hue_${i}" /></ui:for>
 				
 				<!-- Boundaries -->
 				<marker value="15.8489" color="white" basis="1" parallel="0" /> <!-- +24 dB -->
@@ -148,228 +109,60 @@
 			<group text="Channels 0-7">
 				<grid rows="11" cols="9">
 					<label />
-					<label text="0" />
-					<label text="1" />
-					<label text="2" />
-					<label text="3" />
-					<label text="4" />
-					<label text="5" />
-					<label text="6" />
-					<label text="7" />
-				
 					<label text="On" />
-					<button id="on_0" size="16" />
-					<button id="on_1" size="16" />
-					<button id="on_2" size="16" />
-					<button id="on_3" size="16" />
-					<button id="on_4" size="16" />
-					<button id="on_5" size="16" />
-					<button id="on_6" size="16" />
-					<button id="on_7" size="16" />
-					
 					<label />
-					<led id="on_0" size="6" hue_id="hue_0" />
-					<led id="on_1" size="6" hue_id="hue_1" />
-					<led id="on_2" size="6" hue_id="hue_2" />
-					<led id="on_3" size="6" hue_id="hue_3" />
-					<led id="on_4" size="6" hue_id="hue_4" />
-					<led id="on_5" size="6" hue_id="hue_5" />
-					<led id="on_6" size="6" hue_id="hue_6" />
-					<led id="on_7" size="6" hue_id="hue_7" />
-					
 					<label text="Solo" />
-					<button id="solo_0" size="16" />
-					<button id="solo_1" size="16" />
-					<button id="solo_2" size="16" />
-					<button id="solo_3" size="16" />
-					<button id="solo_4" size="16" />
-					<button id="solo_5" size="16" />
-					<button id="solo_6" size="16" />
-					<button id="solo_7" size="16" />
-					
 					<label />
-					<led id="solo_0" size="6" hue_id="hue_0" />
-					<led id="solo_1" size="6" hue_id="hue_1" />
-					<led id="solo_2" size="6" hue_id="hue_2" />
-					<led id="solo_3" size="6" hue_id="hue_3" />
-					<led id="solo_4" size="6" hue_id="hue_4" />
-					<led id="solo_5" size="6" hue_id="hue_5" />
-					<led id="solo_6" size="6" hue_id="hue_6" />
-					<led id="solo_7" size="6" hue_id="hue_7" />
-					
 					<label text="Hold" />
-					<button id="frz_0" size="16" />
-					<button id="frz_1" size="16" />
-					<button id="frz_2" size="16" />
-					<button id="frz_3" size="16" />
-					<button id="frz_4" size="16" />
-					<button id="frz_5" size="16" />
-					<button id="frz_6" size="16" />
-					<button id="frz_7" size="16" />
-					
 					<label />
-					<led id="frz_0" size="6" hue_id="hue_0" />
-					<led id="frz_1" size="6" hue_id="hue_1" />
-					<led id="frz_2" size="6" hue_id="hue_2" />
-					<led id="frz_3" size="6" hue_id="hue_3" />
-					<led id="frz_4" size="6" hue_id="hue_4" />
-					<led id="frz_5" size="6" hue_id="hue_5" />
-					<led id="frz_6" size="6" hue_id="hue_6" />
-					<led id="frz_7" size="6" hue_id="hue_7" />
-					
 					<label text="Hue" />
-					<knob id="hue_0" scale_hue_id="hue_0" size="20" />
-					<knob id="hue_1" scale_hue_id="hue_1" size="20" />
-					<knob id="hue_2" scale_hue_id="hue_2" size="20" />
-					<knob id="hue_3" scale_hue_id="hue_3" size="20" />
-					<knob id="hue_4" scale_hue_id="hue_4" size="20" />
-					<knob id="hue_5" scale_hue_id="hue_5" size="20" />
-					<knob id="hue_6" scale_hue_id="hue_6" size="20" />
-					<knob id="hue_7" scale_hue_id="hue_7" size="20" />
-					
 					<label />
-					<value id="hue_0" />
-					<value id="hue_1" />
-					<value id="hue_2" />
-					<value id="hue_3" />
-					<value id="hue_4" />
-					<value id="hue_5" />
-					<value id="hue_6" />
-					<value id="hue_7" />
-					
 					<label text="Shift" />
-					<knob id="sh_0" scale_hue_id="hue_0" size="20" />
-					<knob id="sh_1" scale_hue_id="hue_1" size="20" />
-					<knob id="sh_2" scale_hue_id="hue_2" size="20" />
-					<knob id="sh_3" scale_hue_id="hue_3" size="20" />
-					<knob id="sh_4" scale_hue_id="hue_4" size="20" />
-					<knob id="sh_5" scale_hue_id="hue_5" size="20" />
-					<knob id="sh_6" scale_hue_id="hue_6" size="20" />
-					<knob id="sh_7" scale_hue_id="hue_7" size="20" />
-					
 					<label />
-					<value id="sh_0" />
-					<value id="sh_1" />
-					<value id="sh_2" />
-					<value id="sh_3" />
-					<value id="sh_4" />
-					<value id="sh_5" />
-					<value id="sh_6" />
-					<value id="sh_7" />
+					
+					<ui:for id="i" first="0" last="7" >
+						<label text="${i}" />
+						<button id="on_${i}" size="16" />
+						<led id="on_${i}" size="6" hue_id="hue_${i}" />
+						<button id="solo_${i}" size="16" />
+						<led id="solo_${i}" size="6" hue_id="hue_${i}" />
+						<button id="frz_${i}" size="16" />
+						<led id="frz_${i}" size="6" hue_id="hue_${i}" />
+						<knob id="hue_${i}" scale_hue_id="hue_${i}" size="20" />
+						<value id="hue_${i}" />
+						<knob id="sh_${i}" scale_hue_id="hue_${i}" size="20" />
+						<value id="sh_${i}" />
+					</ui:for>
 				</grid>
 			</group>
 			
 			<group text="Channels 8-15">
 				<grid rows="11" cols="9">
 					<label />
-					<label text="8" />
-					<label text="9" />
-					<label text="10" />
-					<label text="11" />
-					<label text="12" />
-					<label text="13" />
-					<label text="14" />
-					<label text="15" />
-				
 					<label text="On" />
-					<button id="on_8" size="16" />
-					<button id="on_9" size="16" />
-					<button id="on_10" size="16" />
-					<button id="on_11" size="16" />
-					<button id="on_12" size="16" />
-					<button id="on_13" size="16" />
-					<button id="on_14" size="16" />
-					<button id="on_15" size="16" />
-					
 					<label />
-					<led id="on_8" size="6" hue_id="hue_8" />
-					<led id="on_9" size="6" hue_id="hue_9" />
-					<led id="on_10" size="6" hue_id="hue_10" />
-					<led id="on_11" size="6" hue_id="hue_11" />
-					<led id="on_12" size="6" hue_id="hue_12" />
-					<led id="on_13" size="6" hue_id="hue_13" />
-					<led id="on_14" size="6" hue_id="hue_14" />
-					<led id="on_15" size="6" hue_id="hue_15" />
-
 					<label text="Solo" />
-					<button id="solo_8" size="16" />
-					<button id="solo_9" size="16" />
-					<button id="solo_10" size="16" />
-					<button id="solo_11" size="16" />
-					<button id="solo_12" size="16" />
-					<button id="solo_13" size="16" />
-					<button id="solo_14" size="16" />
-					<button id="solo_15" size="16" />
-					
 					<label />
-					<led id="solo_8" size="6" hue_id="hue_8" />
-					<led id="solo_9" size="6" hue_id="hue_9" />
-					<led id="solo_10" size="6" hue_id="hue_10" />
-					<led id="solo_11" size="6" hue_id="hue_11" />
-					<led id="solo_12" size="6" hue_id="hue_12" />
-					<led id="solo_13" size="6" hue_id="hue_13" />
-					<led id="solo_14" size="6" hue_id="hue_14" />
-					<led id="solo_15" size="6" hue_id="hue_15" />
-					
 					<label text="Hold" />
-					<button id="frz_8" size="16" />
-					<button id="frz_9" size="16" />
-					<button id="frz_10" size="16" />
-					<button id="frz_11" size="16" />
-					<button id="frz_12" size="16" />
-					<button id="frz_13" size="16" />
-					<button id="frz_14" size="16" />
-					<button id="frz_15" size="16" />
-					
 					<label />
-					<led id="frz_8" size="6" hue_id="hue_8" />
-					<led id="frz_9" size="6" hue_id="hue_9" />
-					<led id="frz_10" size="6" hue_id="hue_10" />
-					<led id="frz_11" size="6" hue_id="hue_11" />
-					<led id="frz_12" size="6" hue_id="hue_12" />
-					<led id="frz_13" size="6" hue_id="hue_13" />
-					<led id="frz_14" size="6" hue_id="hue_14" />
-					<led id="frz_15" size="6" hue_id="hue_15" />
-					
 					<label text="Hue" />
-					<knob id="hue_8" scale_hue_id="hue_8" size="20" />
-					<knob id="hue_9" scale_hue_id="hue_9" size="20" />
-					<knob id="hue_10" scale_hue_id="hue_10" size="20" />
-					<knob id="hue_11" scale_hue_id="hue_11" size="20" />
-					<knob id="hue_12" scale_hue_id="hue_12" size="20" />
-					<knob id="hue_13" scale_hue_id="hue_13" size="20" />
-					<knob id="hue_14" scale_hue_id="hue_14" size="20" />
-					<knob id="hue_15" scale_hue_id="hue_15" size="20" />
-					
 					<label />
-					<value id="hue_8" />
-					<value id="hue_9" />
-					<value id="hue_10" />
-					<value id="hue_11" />
-					<value id="hue_12" />
-					<value id="hue_13" />
-					<value id="hue_14" />
-					<value id="hue_15" />
-					
 					<label text="Shift" />
-					<knob id="sh_8" scale_hue_id="hue_8" size="20" />
-					<knob id="sh_9" scale_hue_id="hue_9" size="20" />
-					<knob id="sh_10" scale_hue_id="hue_10" size="20" />
-					<knob id="sh_11" scale_hue_id="hue_11" size="20" />
-					<knob id="sh_12" scale_hue_id="hue_12" size="20" />
-					<knob id="sh_13" scale_hue_id="hue_13" size="20" />
-					<knob id="sh_14" scale_hue_id="hue_14" size="20" />
-					<knob id="sh_15" scale_hue_id="hue_15" size="20" />
-					
 					<label />
-					<value id="sh_8" />
-					<value id="sh_9" />
-					<value id="sh_10" />
-					<value id="sh_11" />
-					<value id="sh_12" />
-					<value id="sh_13" />
-					<value id="sh_14" />
-					<value id="sh_15" />
+					
+					<ui:for id="i" first="8" last="15" >
+						<label text="${i}" />
+						<button id="on_${i}" size="16" />
+						<led id="on_${i}" size="6" hue_id="hue_${i}" />
+						<button id="solo_${i}" size="16" />
+						<led id="solo_${i}" size="6" hue_id="hue_${i}" />
+						<button id="frz_${i}" size="16" />
+						<led id="frz_${i}" size="6" hue_id="hue_${i}" />
+						<knob id="hue_${i}" scale_hue_id="hue_${i}" size="20" />
+						<value id="hue_${i}" />
+						<knob id="sh_${i}" scale_hue_id="hue_${i}" size="20" />
+						<value id="sh_${i}" />
+					</ui:for>
 				</grid>
 			</group>
 		</vbox>

@@ -6,6 +6,8 @@
  */
 
 #include <ui/ui.h>
+#include <core/alloc.h>
+
 #include <string.h>
 #include <stdlib.h>
 
@@ -13,12 +15,16 @@ namespace lsp
 {
     IWidgetFactory::IWidgetFactory(const char *path)
     {
-        pPath           = strdup(path);
+        pPath           = lsp_strdup(path);
     }
 
     IWidgetFactory::~IWidgetFactory()
     {
-        free(pPath);
+        if (pPath != NULL)
+        {
+            lsp_free(pPath);
+            pPath   = NULL;
+        }
     }
 
     IWidget *IWidgetFactory::createWidget(plugin_ui *ui, const char *w_class)
@@ -40,6 +46,7 @@ namespace lsp
             case W_BASIS:       return new Basis(ui);
             case W_CENTER:      return new Center(ui);
             case W_TEXT:        return new Text(ui);
+            case W_PORT:        return new PortAlias(ui);
             default:            return NULL;
         }
     }

@@ -19,6 +19,7 @@ namespace lsp
         vBitmap     = NULL;
         nVSpacing   = 0;
         nHSpacing   = 0;
+        bTranspose = false;
     }
 
     Gtk2Grid::~Gtk2Grid()
@@ -44,7 +45,9 @@ namespace lsp
             case A_HSPACING:
                 PARSE_INT(value, nHSpacing = size_t(__));
                 break;
-
+            case A_TRANSPOSE:
+                PARSE_BOOL(value, bTranspose = __);
+                break;
             default:
                 Gtk2Container::set(att, value);
                 break;
@@ -61,8 +64,8 @@ namespace lsp
 
     void Gtk2Grid::bitmap_new()
     {
-        size_t bytes    = (nRows * nCols + (sizeof(char) * 8) - 1) / (sizeof(char) * 8);
-        vBitmap         = new char[bytes];
+        size_t bytes    = (nRows * nCols + (sizeof(uint8_t) * 8) - 1) / (sizeof(uint8_t) * 8);
+        vBitmap         = new uint8_t[bytes];
         for (size_t i=0; i<bytes; ++i)
             vBitmap[i] = 0;
     }
@@ -81,7 +84,7 @@ namespace lsp
         if ((x >= nCols) || (y >= nRows))
             return;
         size_t index = y * nCols + x;
-        vBitmap[index / (sizeof(char) * 8)] |= (1 << (index % (sizeof(char) * 8)));
+        vBitmap[index / (sizeof(uint8_t) * 8)] |= (1 << (index % (sizeof(uint8_t) * 8)));
     }
 
     bool Gtk2Grid::bitmap_get(size_t x, size_t y)
@@ -90,7 +93,7 @@ namespace lsp
             return false;
         size_t index = y * nCols + x;
 
-        return vBitmap[index / (sizeof(char) * 8)] & (1 << (index % (sizeof(char) * 8)));
+        return vBitmap[index / (sizeof(uint8_t) * 8)] & (1 << (index % (sizeof(uint8_t) * 8)));
     }
 
     void Gtk2Grid::end()
@@ -105,7 +108,9 @@ namespace lsp
 
     void Gtk2Grid::add(IWidget *widget)
     {
-        Gtk2Widget *g_widget = static_cast<Gtk2Widget *>(widget);
+        Gtk2Widget *g_widget    = Gtk2Widget::cast(widget);
+        if (g_widget == NULL)
+            return;
 
         size_t rowspan = 1, colspan = 1;
         if (widget->getClass() == W_CELL)
@@ -128,12 +133,26 @@ namespace lsp
                 bitmap_set(nCurrCol + x, nCurrRow + y);
 
         // Horizontally place elements
-        while (bitmap_get(nCurrCol, nCurrRow))
+        if (bTranspose)
         {
-            if ((++nCurrCol) >= nCols)
+            while (bitmap_get(nCurrCol, nCurrRow))
             {
-                nCurrCol    = 0;
-                nCurrRow    ++;
+                if ((++nCurrRow) >= nRows)
+                {
+                    nCurrRow    = 0;
+                    nCurrCol    ++;
+                }
+            }
+        }
+        else
+        {
+            while (bitmap_get(nCurrCol, nCurrRow))
+            {
+                if ((++nCurrCol) >= nCols)
+                {
+                    nCurrCol    = 0;
+                    nCurrRow    ++;
+                }
             }
         }
     }

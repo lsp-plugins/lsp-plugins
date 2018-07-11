@@ -4,7 +4,7 @@
 			<vbox size="3">
 				<label text="Bypass" />
 				<switch id="bypass" size="24" angle="1" />
-				<led id="bypass" color="green" size="8" />
+				<led id="bypass" color="red" size="8" />
 			</vbox>
 		</align>
 		
@@ -13,33 +13,9 @@
 				<center hpos="-1" vpos="-1" visible="false" />
 				
 				<!-- Gray grid -->
-				<marker value="20" color="gray" basis="0" parallel="1" />
-				<marker value="30" color="gray" basis="0" parallel="1" />
-				<marker value="40" color="gray" basis="0" parallel="1" />
-				<marker value="50" color="gray" basis="0" parallel="1" />
-				<marker value="60" color="gray" basis="0" parallel="1" />
-				<marker value="70" color="gray" basis="0" parallel="1" />
-				<marker value="80" color="gray" basis="0" parallel="1" />
-				<marker value="90" color="gray" basis="0" parallel="1" />
-				
-				<marker value="200" color="gray" basis="0" parallel="1" />
-				<marker value="300" color="gray" basis="0" parallel="1" />
-				<marker value="400" color="gray" basis="0" parallel="1" />
-				<marker value="500" color="gray" basis="0" parallel="1" />
-				<marker value="600" color="gray" basis="0" parallel="1" />
-				<marker value="700" color="gray" basis="0" parallel="1" />
-				<marker value="800" color="gray" basis="0" parallel="1" />
-				<marker value="900" color="gray" basis="0" parallel="1" />
-				
-				<marker value="2000" color="gray" basis="0" parallel="1" />
-				<marker value="3000" color="gray" basis="0" parallel="1" />
-				<marker value="4000" color="gray" basis="0" parallel="1" />
-				<marker value="5000" color="gray" basis="0" parallel="1" />
-				<marker value="6000" color="gray" basis="0" parallel="1" />
-				<marker value="7000" color="gray" basis="0" parallel="1" />
-				<marker value="8000" color="gray" basis="0" parallel="1" />
-				<marker value="9000" color="gray" basis="0" parallel="1" />
-				
+				<ui:for id="f" first="20" last="90" step="10"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
+				<ui:for id="f" first="200" last="900" step="100"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
+				<ui:for id="f" first="2000" last="9000" step="1000"><marker value="${f}" color="gray" basis="0" parallel="1" /></ui:for>
 				<marker value="20000" color="gray" basis="0" parallel="1" />
 				
 				<marker value="3.98107" color="gray" basis="1" parallel="0" /> <!-- +12 dB -->
@@ -57,8 +33,8 @@
 				<marker value="0.00398107" color="yellow" basis="1" parallel="0" /> <!-- -48 dB -->
 
 				<!-- Meshes -->
-				<mesh id="spc_0" width="3" visibility="on_0" hue_id="hue_0" />
-				<mesh id="spc_1" width="3" visibility="on_1" hue_id="hue_1" />
+				<mesh id="spc_0" width="3" visibility_id="on_0" hue_id="hue_0" />
+				<mesh id="spc_1" width="3" visibility_id="on_1" hue_id="hue_1" />
 				
 				<!-- Boundaries -->
 				<marker value="15.8489" color="white" basis="1" parallel="0" /> <!-- +24 dB -->
@@ -92,48 +68,29 @@
 	
 		<vbox>
 			<hbox>
-				<group text="Channel 0" expand="true">
-					<grid rows="3" cols="5">
-						<label text="On" />
-						<label text="Solo" />
-						<label text="Hold" />
-						<label text="Hue" />
-						<label text="Shift" />
-						
-						<button id="on_0" size="16" />
-						<button id="solo_0" size="16" />
-						<button id="frz_0" size="16" />
-						<knob id="hue_0" scale_hue_id="hue_0" size="20" />
-						<knob id="sh_0" scale_hue_id="hue_0" size="20" />
-						
-						<vbox><led id="on_0" size="6" hue_id="hue_0" /><label /></vbox>
-						<vbox><led id="solo_0" size="6" hue_id="hue_0" /><label /></vbox>
-						<vbox><led id="frz_0" size="6" hue_id="hue_0" /><label /></vbox>
-						<value id="hue_0" />
-						<value id="sh_0" />
-					</grid>
-				</group>
-				<group text="Channel 1" expand="true">
-					<grid rows="3" cols="5">
-						<label text="On" />
-						<label text="Solo" />
-						<label text="Hold" />
-						<label text="Hue" />
-						<label text="Shift" />
-						
-						<button id="on_1" size="16" />
-						<button id="solo_1" size="16" />
-						<button id="frz_1" size="16" />
-						<knob id="hue_1" scale_hue_id="hue_1" size="20" />
-						<knob id="sh_1" scale_hue_id="hue_1" size="20" />
-						
-						<vbox><led id="on_1" size="6" hue_id="hue_1" /><label /></vbox>
-						<vbox><led id="solo_1" size="6" hue_id="hue_1" /><label /></vbox>
-						<vbox><led id="frz_1" size="6" hue_id="hue_1" /><label /></vbox>
-						<value id="hue_1" />
-						<value id="sh_1" />
-					</grid>
-				</group>
+				<ui:for id="i" first="0" last="1">
+					<group text="Channel ${i}" expand="true">
+						<grid rows="3" cols="5">
+							<label text=" On " />
+							<label text="Solo" />
+							<label text="Hold" />
+							<label text="Hue" />
+							<label text="Shift" />
+							
+							<button id="on_${i}" size="16" />
+							<button id="solo_${i}" size="16" />
+							<button id="frz_${i}" size="16" />
+							<knob id="hue_${i}" scale_hue_id="hue_${i}" size="20" />
+							<knob id="sh_${i}" scale_hue_id="hue_${i}" size="20" />
+							
+							<vbox><led id="on_${i}" size="6" hue_id="hue_${i}" /><label /></vbox>
+							<vbox><led id="solo_${i}" size="6" hue_id="hue_${i}" /><label /></vbox>
+							<vbox><led id="frz_${i}" size="6" hue_id="hue_${i}" /><label /></vbox>
+							<value id="hue_${i}" />
+							<value id="sh_${i}" />
+						</grid>
+					</group>
+				</ui:for>
 			</hbox>
 				
 			<group text="Metering">

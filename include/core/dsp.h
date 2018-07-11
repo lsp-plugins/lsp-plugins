@@ -83,6 +83,14 @@ namespace lsp
          */
         extern float (* max)(const float *src, size_t count);
 
+        /** Get absolute maximum: result = max { abs(src[i]) }
+         *
+         * @param src source array
+         * @param count number of elements
+         * @return result
+         */
+        extern float (* abs_max)(const float *src, size_t count);
+
         /** Calculate min { src }, max { src }
          *
          * @param src source vector

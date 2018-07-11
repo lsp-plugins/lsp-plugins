@@ -65,6 +65,7 @@
 		<graph_marker value="#ccff00" />
 		<graph_mesh value="#00c0ff" />
 		<graph_text value="#cccccc" />
+		<graph_line value="#ffffff" />
 		
 	</colors>
 </theme>

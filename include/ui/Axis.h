@@ -19,8 +19,7 @@ namespace lsp
                 F_MIN           = 1 << 0,
                 F_MAX           = 1 << 1,
                 F_BASIS         = 1 << 2,
-                F_VISIBLE       = 1 << 3,
-                F_LOGARITHMIC   = 1 << 4
+                F_LOGARITHMIC   = 1 << 3
             };
 
             size_t          nFlags;

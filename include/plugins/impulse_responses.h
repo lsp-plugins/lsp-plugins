@@ -8,15 +8,15 @@
 #ifndef CORE_PLUGINS_IMPULSE_RESPONSES_H_
 #define CORE_PLUGINS_IMPULSE_RESPONSES_H_
 
-#ifndef LSP_NO_EXPERMIENTAL
+#ifndef LSP_NO_EXPERIMENTAL
 
 #include <core/plugin.h>
-#include <core/plugin_metadata.h>
-
 #include <core/IExecutor.h>
 #include <core/AudioFile.h>
 #include <core/Convolver.h>
 #include <core/Bypass.h>
+
+#include <metadata/plugins.h>
 
 namespace lsp
 {
@@ -37,7 +37,7 @@ namespace lsp
                     virtual ~IRLoader();
 
                 public:
-                    int run();
+                    virtual int run();
             };
 
             struct af_descriptor_t
@@ -116,6 +116,6 @@ namespace lsp
 
 } /* namespace ddb */
 
-#endif /* LSP_NO_EXPERMIENTAL */
+#endif /* LSP_NO_EXPERIMENTAL */
 
 #endif /* CORE_PLUGINS_IMPULSE_RESPONSES_H_ */

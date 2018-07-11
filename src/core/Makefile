@@ -3,15 +3,15 @@ FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 rwildcard               = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 export DSP_CORE         = $(OBJDIR)/dsp/dsp.o
 
-.PHONY: all target
+.PHONY: all target dsp
 
 all: $(OBJ_CORE)
 
 target: all
 
-$(OBJ_CORE): $(FILES) $(DSP_CORE)
+$(OBJ_CORE): $(DSP_CORE) $(FILES)
 	@echo "  $(LD) $(notdir $(OBJ_CORE))"
-	@$(LD) $(LDFLAGS) -r -o $(OBJ_CORE) $(call rwildcard,$(OBJDIR),*.o)
+	@$(LD) $(LDFLAGS) -r -o $(OBJ_CORE) $(DSP_CORE) $(FILES)
 
 $(DSP_CORE):
 	@echo "Building dsp"

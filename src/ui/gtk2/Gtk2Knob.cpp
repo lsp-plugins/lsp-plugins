@@ -1,5 +1,4 @@
 /*
- * Gtk2Knob.cpp
  *
  *  Created on: 21 окт. 2015 г.
  *      Author: sadko
@@ -30,7 +29,7 @@ namespace lsp
         fMin        = 0.0;
         fMax        = 1.0;
 
-        bMoving     = false;
+        nState      = 0;
         nLastY      = 0;
         pPort       = NULL;
 //        COLOR_PORTS_INIT(Scale);
@@ -51,6 +50,7 @@ namespace lsp
                 {
                     pPort->bind(this);
                     apply_metadata_params(pPort->metadata());
+                    notify(pPort);
                 }
                 break;
             case A_COLOR:
@@ -83,13 +83,15 @@ namespace lsp
 
     void Gtk2Knob::notify(IUIPort *port)
     {
+        Gtk2CustomWidget::notify(port);
+
         bool redraw = false;
         if (sScaleColor.notify(port))
             redraw = true;
         if (port == pPort)
         {
-            const port_t *mdata = pPort->metadata();
             fValue  = fMin;
+            const port_t *mdata = pPort->metadata();
             if (mdata != NULL)
             {
                 fValue      = pPort->getValue();
@@ -107,28 +109,14 @@ namespace lsp
                 else if (fValue < *min)
                     fValue      = *min;
             }
-
             redraw = true;
         }
 
         // Request for redraw
         if (redraw)
-            gtk_widget_queue_draw(pWidget);
+            markRedraw();
 //        COLOR_PORTS_HANDLE(Scale, port, sScaleColor);
     }
-
-//    float Gtk2Knob::get_normalized_value()
-//    {
-//        if (pPort == NULL)
-//            return 0.0;
-//        const port_t *mdata = pPort->metadata();
-//        if (mdata == NULL)
-//            return 0.0;
-//
-//        return (mdata->flags & F_LOG) ?
-//            (logf(fValue + LOG_BASE) - logf(mdata->min + LOG_BASE)) / (logf(mdata->max + LOG_BASE) - logf(mdata->min + LOG_BASE)) :
-//            (fValue - mdata->min) / (mdata->max - mdata->min);
-//    }
 
     void Gtk2Knob::apply_metadata_params(const port_t *p)
     {
@@ -197,6 +185,14 @@ namespace lsp
                 fValue      = fMax;
             else
                 fValue      = value;
+
+            if (pPort != NULL)
+            {
+                pPort->setValue(fValue);
+                pPort->notifyAll();
+            }
+            else
+                markRedraw();
             return;
         }
 
@@ -257,6 +253,55 @@ namespace lsp
         pPort->notifyAll();
     }
 
+    void Gtk2Knob::set_normalized_value(float value)
+    {
+        // Limit value
+        if (value < 0.0f)
+            value = 0.0f;
+        else if (value > 1.0f)
+            value = 1.0f;
+
+        // Get metadata
+        const port_t *p = (pPort != NULL) ? pPort->metadata() : NULL;
+        if (p == NULL)
+        {
+            fValue      = fMin + (fMax - fMin) * value;
+            markRedraw();
+            return;
+        }
+
+        // Analyze metadata
+        if (is_decibel_unit(p->unit) || (p->flags & F_LOG)) // Decibels
+        {
+            double min   = (fMax > 0.0)     ? log(fMin + DB_BASE)      : - log(-fMin + DB_BASE);
+            double max   = (fMax > 0.0)     ? log(fMax + DB_BASE)      : - log(-fMax + DB_BASE);
+            value        = min + (max - min) * value;
+
+            if (fMax > 0.0f)
+                value       = exp(value) - DB_BASE;
+            else
+                value       = - exp(value) - DB_BASE;
+        }
+        else if (is_discrete_unit(p->unit)) // Integer type
+            value       = truncf(fMin + (fMax - fMin) * value);
+        else // Float and other values
+            value       = fMin + (fMax - fMin) * value;
+
+        // Check that value is in range
+        float *min = (fMin < fMax) ? &fMin : &fMax;
+        float *max = (fMin < fMax) ? &fMax : &fMin;
+
+        if (value > *max)
+            value       = *max;
+        else if (value < *min)
+            value       = *min;
+
+        // Update port's value
+        fValue      = value;
+        pPort->setValue(float(value));
+        pPort->notifyAll();
+    }
+
     float Gtk2Knob::get_normalized_value()
     {
         if (pPort == NULL)
@@ -266,7 +311,7 @@ namespace lsp
             return fValue;
 
         // Analyze metadata
-        if (is_decibel_unit(p->unit)) // Decibels
+        if ((is_decibel_unit(p->unit)) || (p->flags & F_LOG)) // Decibels
         {
             // Translate value to decibels, update and translate back
             double min   = (fMax > 0.0)     ? log(fMin + DB_BASE)      : - log(-fMin + DB_BASE);
@@ -278,18 +323,7 @@ namespace lsp
         else if (is_discrete_unit(p->unit)) // Integer type
             return (fValue - fMin) / (fMax - fMin);
         else // Float and other values
-        {
-            if (p->flags & F_LOG)
-            {
-                double min   = (fMax > 0.0)     ? log(fMin + LOG_BASE)      : - log(-fMin + LOG_BASE);
-                double max   = (fMax > 0.0)     ? log(fMax + LOG_BASE)      : - log(-fMax + LOG_BASE);
-                double value = (fMax > 0.0)     ? log(fValue + LOG_BASE)    : - log(-fValue + LOG_BASE);
-
-                return (value - min) / (max - min);
-            }
-            else
-                return (fValue - fMin) / (fMax - fMin);
-        }
+            return (fValue - fMin) / (fMax - fMin);
     }
 
     void Gtk2Knob::render()
@@ -412,17 +446,30 @@ namespace lsp
         h = nSize + (10 << 1);
     }
 
-    bool Gtk2Knob::check_mouse_over(ssize_t x, ssize_t y)
+    size_t Gtk2Knob::check_mouse_over(ssize_t x, ssize_t y)
     {
         ssize_t cx      = ssize_t(nWidth) >> 1;
         ssize_t cy      = ssize_t(nHeight) >> 1;
         ssize_t dx      = x - cx;
         ssize_t dy      = y - cy;
-        ssize_t r       = (nSize >> 1) + 1;
+        ssize_t hole_r  = (nSize >> 1) + 1;
 
 //        lsp_trace("cx=%d, cy=%d, x=%d, y=%d, dx=%d, dy=%d, r=%d", int(cx), int(cy), int(x), int(y), int(dx), int(dy), int(r));
+        ssize_t delta   = (dx * dx + dy * dy);
 
-        return (dx * dx + dy * dy) <= ssize_t(r * r);
+        if (delta <= ssize_t(hole_r * hole_r))
+            return S_MOVING;
+
+        ssize_t scale_in_r      = hole_r + 2;
+        ssize_t scale_out_r     = scale_in_r + 5;
+
+        if (delta >= ssize_t(scale_in_r * scale_in_r))
+        {
+            if (delta <= ssize_t(scale_out_r * scale_out_r))
+                return S_CLICK;
+        }
+
+        return S_NONE;
     }
 
     void Gtk2Knob::button_press(ssize_t x, ssize_t y, size_t state, size_t button)
@@ -430,8 +477,9 @@ namespace lsp
 //        lsp_trace("x=%d, y=%d, state=%x, button=%x", int(x), int(y), int(state), int(button));
         if ((nButtons == 0) && ((button == 1) || (button == 3)))
         {
-            if (check_mouse_over(x, y))
-                bMoving     = true;
+            size_t flags = check_mouse_over(x, y);
+            if (flags != 0)
+                nState      = flags;
         }
 
         nButtons |= (1 << button);
@@ -444,28 +492,63 @@ namespace lsp
         nButtons &= ~(1 << button);
         nLastY = y;
         if (nButtons == 0)
-            bMoving = false;
+        {
+            if ((nState == S_CLICK) && (button == 1))
+                on_click(x, y);
+            nState      = 0;
+        }
+    }
+
+    void Gtk2Knob::on_click(ssize_t x, ssize_t y)
+    {
+        ssize_t cx      = ssize_t(nWidth) >> 1;
+        ssize_t cy      = ssize_t(nHeight) >> 1;
+        float dx        = x - cx;
+        float dy        = cy - y;
+        float d         = sqrtf(dx * dx + dy * dy);
+        if (d <= 0.0f)
+            return;
+
+        float angle     = asinf(dy / d);
+        if (angle < (-M_PI / 3.0))
+        {
+            set_normalized_value((dx > 0) ? 1.0f : 0.0f);
+            return;
+        }
+        if (dx < 0.0f)
+            angle           = M_PI - angle;
+
+        angle          += M_PI / 3.0;
+
+        // Update value
+        set_normalized_value(1.0f - (angle / (5 * M_PI  / 3.0)));
     }
 
     void Gtk2Knob::motion(ssize_t x, ssize_t y, size_t state)
     {
 //        lsp_trace("x=%d, y=%d, state=%x", int(x), int(y), int(state));
-        if (!bMoving)
-            return;
+        if (nState == S_MOVING)
+        {
+            if (!(nButtons & ((1 << 1) | (1 << 3))))
+                return;
 
-        if (!(nButtons & ((1 << 1) | (1 << 3))))
-            return;
+            // Update value
+            float step = calc_step(nButtons & (1 << 3));
+            update_value(step * (nLastY - y));
+            nLastY = y;
+        }
+        else if (nState == S_CLICK)
+        {
+            if (!(nButtons & (1 << 1)))
+                return;
 
-        // Update value
-        float step = calc_step(nButtons & (1 << 3));
-        update_value(step * (nLastY - y));
-        nLastY = y;
-        markRedraw();
+            on_click(x, y);
+        }
     }
 
     void Gtk2Knob::button_double_press(ssize_t x, ssize_t y, size_t state, size_t button)
     {
-        if (!check_mouse_over(x, y))
+        if (check_mouse_over(x, y) == S_NONE)
             return;
 
         const port_t *mdata = (pPort != NULL) ? pPort->metadata() : NULL;
@@ -476,6 +559,8 @@ namespace lsp
             pPort->setValue(value);
             pPort->notifyAll();
         }
+        else
+            markRedraw();
     }
 
     void Gtk2Knob::scroll(ssize_t x, ssize_t y, size_t state, size_t direction)
@@ -492,7 +577,6 @@ namespace lsp
             return;
 
         update_value(delta);
-        markRedraw();
     }
 
     float Gtk2Knob::calc_step(bool tolerance)

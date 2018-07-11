@@ -30,7 +30,7 @@ namespace lsp
 
     void Marker::draw(IGraphCanvas *cv)
     {
-        if (pGraph == NULL)
+        if ((pGraph == NULL) || (!bVisible))
             return;
 
         float value     = (pPort != NULL) ? pPort->getValue() : fValue;

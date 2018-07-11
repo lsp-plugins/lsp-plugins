@@ -19,6 +19,7 @@ namespace lsp
         "vbox",
         "hbox",
         "grid",
+        "row",
         "cell",
         "label",
         "param",
@@ -38,6 +39,10 @@ namespace lsp
         "center",
         "combo",
         "text",
+        "file",
+        "hsep",
+        "vsep",
+        "port",
         NULL
     };
 
@@ -87,7 +92,8 @@ namespace lsp
         "parallel",
         "value",
         "visible",
-        "visibility",
+        "visibility_id",
+        "visibility_key",
         "proportional",
         "expand",
         "fill",
@@ -98,6 +104,15 @@ namespace lsp
         "sat_id",
         "light_id",
         "coord",
+        "head_id",
+        "tail_id",
+        "fadein_id",
+        "fadeout_id",
+        "length_id",
+        "status_id",
+        "mesh_id",
+        "detailed",
+        "transpose",
         NULL
     };
 
@@ -114,6 +129,7 @@ namespace lsp
         "cyan",
         "magenta",
         "black",
+        "white",
 
         "label_text",
         "button_face",
@@ -128,6 +144,7 @@ namespace lsp
         "graph_mesh",
         "graph_marker",
         "graph_text",
+        "graph_line",
 
         NULL
     };

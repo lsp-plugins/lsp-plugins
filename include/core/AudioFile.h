@@ -27,9 +27,9 @@ namespace lsp
 
             typedef struct temporary_buffer_t
             {
-                size_t      nSize;
-                size_t      nChannels;
-                size_t      nCapacity;
+                size_t      nSize;          // Size in frames
+                size_t      nChannels;      // Total number of channels
+                size_t      nCapacity;      // Capacity in frames
                 float      *vData;
                 float      *vChannels[];
             } temporary_buffer_t;
@@ -42,21 +42,43 @@ namespace lsp
 
             static temporary_buffer_t *create_temporary_buffer(file_content_t *content);
             static void flush_temporary_buffer(temporary_buffer_t *buffer);
+            static size_t fill_temporary_buffer(temporary_buffer_t *buffer, size_t max_samples);
             static void destroy_temporary_buffer(temporary_buffer_t *buffer);
+
+            status_t fast_downsample(size_t new_sample_rate);
+            status_t fast_upsample(size_t new_sample_rate);
+            status_t complex_upsample(size_t new_sample_rate);
+            status_t complex_downsample(size_t new_sample_rate);
 
         public:
             AudioFile();
             ~AudioFile();
 
         public:
+            /** Create file
+             *
+             * @param channels number of channels
+             * @param sample_rate sample rate of the file
+             * @param duration the duration of the file in seconds
+             * @return status of operation
+             */
+            status_t create(size_t channels, size_t sample_rate, float duration);
+
             /** Load file
              *
-             * @param executor task executor
              * @param path path to the file
-             * @param max_samples maximum samples to load, unlimited if less than zero
-             * @return true if loading was successful
+             * @param max_duration maximum duration of the file to load (in seconds)
+             * @return status of operation
              */
-            bool load(const char *path, ssize_t max_samples = -1);
+            status_t load(const char *path, float max_duration = -1);
+
+            /** Save file
+             *
+             * @param path path to the file
+             * @param max_duration maximum duration of the file to store (in seconds)
+             * @return status of operation
+             */
+            status_t store(const char *path, float max_duration = -1);
 
             /** Return number of channels
              *
@@ -81,7 +103,7 @@ namespace lsp
              * @param track number of track
              * @return pointer to the track data or NULL
              */
-            const float *channel(size_t track) const;
+            float *channel(size_t track);
 
             /** Reverse track(s)
              *
@@ -90,6 +112,13 @@ namespace lsp
              * @return true on success
              */
             bool reverse(ssize_t track_id = -1);
+
+            /** Resample file
+             *
+             * @param new_sample_rate new sample rate
+             * @return status of operation
+             */
+            status_t resample(size_t new_sample_rate);
 
             /** Destroy all previously allocated file data
              *

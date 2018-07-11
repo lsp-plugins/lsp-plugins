@@ -315,6 +315,8 @@ namespace lsp
 
     void Gtk2Button::notify(IUIPort *port)
     {
+        Gtk2CustomWidget::notify(port);
+
         if (port == pPort)
         {
             set_value(pPort->getValue());

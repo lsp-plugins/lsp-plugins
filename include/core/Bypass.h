@@ -37,6 +37,7 @@ namespace lsp
             void process(float *dst, const float *dry, const float *wet, size_t count);
 
             void set_bypass(bool bypass);
+            inline void set_bypass(float bypass) { set_bypass(bypass >= 0.5f); };
 
             inline bool on() const      { return nState == S_ON; };
             inline bool off() const     { return nState == S_OFF; };

@@ -19,12 +19,9 @@ namespace lsp
         nCapacity   = 0;
         vBasis      = NULL;
         pPort       = NULL;
-        pVisible    = NULL;
-//        sColor.set(ui->theme(), C_GRAPH_MESH);
         nWidth      = 1;
         nCenter     = 0;
 
-//        COLOR_PORTS_INIT(Color);
         sColor.init(this, C_GRAPH_MESH, A_COLOR, -1, -1, -1, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
     }
 
@@ -41,14 +38,8 @@ namespace lsp
 
     void Mesh::draw(IGraphCanvas *cv)
     {
-        if (pPort == NULL)
+        if ((pPort == NULL) || (!bVisible))
             return;
-
-        if (pVisible != NULL)
-        {
-            if (pVisible->getValue() < 0.5f)
-                return;
-        }
 
 #ifdef LSP_HOST_SIMULATION
         // THIS IS TEST CODE
@@ -62,17 +53,7 @@ namespace lsp
         {
             mesh->pvData[0][i] = float(i) * 24000 / (mesh->nItems - 1);
             mesh->pvData[1][i] = cosf(4.0 * M_PI * mesh->pvData[0][i] / 6000);
-//            mesh->pvData[1][i] = (i == 0) ? 10.0 : 10.0 / mesh->pvData[0][i];
-//            if (i % 2)
-//                mesh->pvData[1][i] /= (1 << 24);
         }
-//        float *_x = mesh->pvData[0];
-//        float *_y = mesh->pvData[1];
-
-//        *(_x++) = 10;       *(_y++) = 1.0;
-//        *(_x++) = 100;      *(_y++) = 0.5;
-//        *(_x++) = 1000;     *(_y++) = 1.0;
-//        *(_x++) = 10000;    *(_y++) = 0.5;
 #else
         mesh_t *mesh    = reinterpret_cast<mesh_t *>(pPort->getBuffer());
 #endif /* HOST_SIMULATION */
@@ -147,7 +128,7 @@ namespace lsp
             }
         }
 
-        // Now we have set of normals in vecs[]
+        // Now we have dots in x_vec[] and y_vec[]
         cv->set_color(sColor.color());
         cv->set_line_width(nWidth);
 
@@ -173,14 +154,7 @@ namespace lsp
         switch (att)
         {
             case A_ID:
-                pPort       = pUI->port(value);
-                if (pPort != NULL)
-                    pPort->bind(this);
-                break;
-            case A_VISIBILITY:
-                pVisible    = pUI->port(value);
-                if (pVisible != NULL)
-                    pVisible->bind(this);
+                BIND_PORT(pUI, pPort, value);
                 break;
             case A_WIDTH:
                 PARSE_INT(value, nWidth = __);
@@ -191,7 +165,7 @@ namespace lsp
             default:
                 if (sColor.set(att, value))
                     break;
-                IWidget::set(att, value);
+                IGraphObject::set(att, value);
                 break;
         }
     }

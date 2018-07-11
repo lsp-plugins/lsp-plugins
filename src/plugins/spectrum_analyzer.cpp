@@ -286,7 +286,7 @@ namespace lsp
         if (update_window)
             init_window(pChannels);
         if (update_env)
-            envelope::reverse_noise(pChannels->vEnvelope, fft_size, envelope::envelope_t(pChannels->nEnvelope));
+            envelope::reverse_noise(pChannels->vEnvelope, fft_size >> 1, envelope::envelope_t(pChannels->nEnvelope));
 
         pChannels->bBypass      = pChannels->pBypass->getValue();
         pChannels->nChannel     = pChannels->pChannel->getValue();

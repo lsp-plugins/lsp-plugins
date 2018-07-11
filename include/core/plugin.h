@@ -3,9 +3,11 @@
 
 #include <core/dsp.h>
 #include <core/types.h>
-#include <core/metadata.h>
 #include <core/IPort.h>
 #include <core/IWrapper.h>
+
+#include <metadata/metadata.h>
+
 #include <data/cvector.h>
 
 namespace lsp

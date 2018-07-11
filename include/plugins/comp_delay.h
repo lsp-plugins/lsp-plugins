@@ -1,7 +1,7 @@
 /*
- * phase_detector.hpp
+ * comp_delay.h
  *
- *  Created on: 28 сент. 2015 г.
+ *  Created on: 8 апр. 2016 г.
  *      Author: sadko
  */
 
@@ -9,10 +9,10 @@
 #define CORE_PLUGINS_COMP_DELAY_H_
 
 #include <core/plugin.h>
-#include <core/plugin_metadata.h>
-
 #include <core/Delay.h>
 #include <core/Bypass.h>
+
+#include <metadata/plugins.h>
 
 namespace lsp
 {

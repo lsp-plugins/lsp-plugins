@@ -47,11 +47,8 @@ namespace lsp
             case A_HPOS:
                 PARSE_FLOAT(value, fLeft = __);
                 break;
-            case A_VISIBLE:
-                PARSE_BOOL(value, bVisible = __);
-                break;
             default:
-                IWidget::set(att, value);
+                IGraphObject::set(att, value);
                 break;
         }
     }

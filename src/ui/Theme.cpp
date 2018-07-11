@@ -6,10 +6,10 @@
  */
 
 #include <ui/ui.h>
+#include <core/alloc.h>
 
 #include <string.h>
 #include <stdlib.h>
-#include <libconfig.h>
 
 namespace lsp
 {
@@ -94,7 +94,7 @@ namespace lsp
             color_data_t *next   = pColors->next;
             if (pColors->name != NULL)
             {
-                free(pColors->name);
+                lsp_free(pColors->name);
                 pColors->name   = NULL;
             }
 
@@ -285,7 +285,7 @@ namespace lsp
             return false;
 
         // Copy color name
-        c->name     = strdup(name);
+        c->name     = lsp_strdup(name);
         if (c->name == NULL)
         {
             delete c;

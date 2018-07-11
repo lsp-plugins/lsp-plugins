@@ -91,6 +91,8 @@ namespace lsp
 
     void Gtk2Window::begin()
     {
+        Gtk2Container::begin();
+
         char buf[32];
         sBgColor.format_rgb(buf, sizeof(buf), 2);
 
@@ -126,8 +128,9 @@ namespace lsp
             pWidgets[C_MIDDLE]     ->  add(widget);
         else
         {
-            Gtk2Widget *g_widget = static_cast<Gtk2Widget *>(widget);
-            pWidget = g_widget->widget();
+            Gtk2Widget *g_widget = Gtk2Widget::cast(widget);
+            if (g_widget != NULL)
+                pWidget = g_widget->widget();
         }
     }
 
@@ -156,6 +159,8 @@ namespace lsp
         this                ->  add(pWidgets[C_FIRST]);
 
         g_signal_connect (G_OBJECT (pWidget), "parent-set", G_CALLBACK (gtk_window_set_parent), this);
+
+        Gtk2Container::end();
     }
 
     void Gtk2Window::set_parent(GtkWidget *parent)
@@ -221,17 +226,28 @@ namespace lsp
             rq.height   = nHeight;
 
         // Change width and height of the window
+        lsp_trace("resize width=%d, height=%d", int(rq.width), int(rq.height));
         gtk_window_resize(GTK_WINDOW(pToplevel), rq.width, rq.height);
 
         // Make window resizable if needed
+        lsp_trace("set_resizable");
         gtk_window_set_resizable(GTK_WINDOW(pToplevel), (bResizable) ? TRUE : FALSE);
 
         // Since Ardour doesn't make plugin's window always above it's window, force it to be above
+        lsp_trace("set_keep_above");
         gtk_window_set_keep_above(GTK_WINDOW(pToplevel), TRUE);
 
         // Add periodically redraw
+        lsp_trace("add timeout");
         hFunction    = g_timeout_add (500, redraw_window, this); // Schedule at 2 hz rate
         bMapped      = true;
+
+        // Handle show
+        IUIWrapper *wrapper = pUI->getWrapper();
+        if (wrapper != NULL)
+            wrapper->ui_activated();
+
+        lsp_trace("show finished");
     }
 
     void Gtk2Window::map_window(GtkWidget *widget, gpointer ptr)
@@ -241,6 +257,7 @@ namespace lsp
                 _this, _this->pWidget, _this->bMapped ? 1 : 0, int(_this->hFunction));
         if ((_this != NULL) && (!_this->bMapped))
             _this->show();
+        lsp_trace("map_window finished");
     }
 
     void Gtk2Window::unmap_window(GtkWidget *widget, gpointer ptr)
@@ -250,11 +267,18 @@ namespace lsp
                 _this, _this->pWidget, _this->bMapped ? 1 : 0, int(_this->hFunction));
         if ((_this != NULL) && (_this->bMapped))
         {
+            // Mark unmapped
             if (_this->hFunction)
                 g_source_remove(_this->hFunction);
             _this->bMapped      = false;
             _this->hFunction    = 0;
+
+            // Handle hide
+            IUIWrapper *wrapper = _this->pUI->getWrapper();
+            if (wrapper != NULL)
+                wrapper->ui_activated();
         }
+        lsp_trace("unmap_window finished");
     }
 
 } /* namespace lsp */

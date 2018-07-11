@@ -33,6 +33,7 @@ namespace lsp
             default:
                 if (pGtk2Widget != NULL)
                     pGtk2Widget->set(att, value);
+                Gtk2Widget::set(att, value);
                 break;
         }
     }

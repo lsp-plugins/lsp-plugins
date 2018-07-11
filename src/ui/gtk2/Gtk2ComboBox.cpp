@@ -40,7 +40,11 @@ namespace lsp
 
     Gtk2ComboBox::~Gtk2ComboBox()
     {
-        Gtk2ComboBoxImpl_delete(pWidget);
+        if (pWidget != NULL)
+        {
+            Gtk2ComboBoxImpl_delete(pWidget);
+            pWidget = NULL;
+        }
     }
 
     void Gtk2ComboBox::set(widget_attribute_t att, const char *value)
@@ -223,6 +227,7 @@ namespace lsp
 
     void Gtk2ComboBox::value_changed(GtkComboBox *widget, gpointer user_data)
     {
+        lsp_trace("user_data = %p", user_data);
         Gtk2ComboBox *_this = reinterpret_cast<Gtk2ComboBox *>(user_data);
         if (_this == NULL)
             return;
@@ -232,19 +237,28 @@ namespace lsp
     void Gtk2ComboBox::changed()
     {
         if (pWidget == NULL)
+        {
+            lsp_trace("pWidget == NULL");
             return;
+        }
         size_t index = gtk_combo_box_get_active(GTK_COMBO_BOX(pWidget));
         float value = fMin + fStep * index;
+        lsp_trace("index = %d, value=%f", int(index), value);
+
         pPort->setValue(value);
         pPort->notifyAll();
     }
 
     void Gtk2ComboBox::notify(IUIPort *port)
     {
-        if (pPort == port)
-            gtk_combo_box_set_active(GTK_COMBO_BOX(pWidget), (pPort->getValue() - fMin) / fStep);
-
         Gtk2Widget::notify(port);
+
+        if ((pPort == port) && (pWidget != NULL))
+        {
+            size_t index = (pPort->getValue() - fMin) / fStep;
+//            lsp_trace("index = %d, value=%f", int(index), pPort->getValue());
+            gtk_combo_box_set_active(GTK_COMBO_BOX(pWidget), index);
+        }
     }
 
 } /* namespace lsp */

@@ -10,11 +10,17 @@
 
 namespace lsp
 {
-    class IWidget
+    class IWidget: public IUIPortListener
     {
         protected:
             plugin_ui  *pUI;
             widget_t    enClass;
+            IUIPort    *pVisibility;
+            ssize_t     nVisibilityKey;
+            bool        bVisible;
+
+        protected:
+            void update_visibility();
 
         public:
             IWidget(plugin_ui *ui, widget_t w_class);
@@ -63,6 +69,35 @@ namespace lsp
              * @param count number of elements
              */
             virtual void notify(IUIPort *port);
+
+            /** Hide widget
+             *
+             */
+            virtual void hide();
+
+            /** Show widget
+             *
+             */
+            virtual void show();
+
+        public:
+            /** Get visibility key
+             *
+             * @return visibility key
+             */
+            inline ssize_t getVisibilityKey() const     { return nVisibilityKey;        }
+
+            /** Set visibility key
+             *
+             * @param key visibility key
+             */
+            inline void setVisibilityKey(ssize_t key)   { nVisibilityKey    = key;      }
+
+            /** Get visibility flag
+             *
+             * @return visibility flag
+             */
+            inline bool isVisible() const               { return bVisible; }
     };
 
 } /* namespace lsp */

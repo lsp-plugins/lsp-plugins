@@ -10,11 +10,13 @@
 
 #include <stddef.h>
 
+#define CVECTOR_GROW        16
+
 namespace lsp
 {
     class basic_vector
     {
-        private:
+        protected:
             void      **pvItems;
             size_t      nCapacity;
             size_t      nItems;
@@ -24,7 +26,7 @@ namespace lsp
             {
                 if (nItems >= nCapacity)
                 {
-                    void **ptrs = new void *[nCapacity + 16];
+                    void **ptrs = new void *[nCapacity + CVECTOR_GROW];
                     if (ptrs == NULL)
                         return false;
                     if (pvItems != NULL)
@@ -34,7 +36,7 @@ namespace lsp
                         delete [] pvItems;
                     }
                     pvItems         = ptrs;
-                    nCapacity      += 16;
+                    nCapacity      += CVECTOR_GROW;
                 }
 
                 pvItems[nItems++]   = const_cast<void *>(ptr);
@@ -44,6 +46,31 @@ namespace lsp
             inline void *get_item(size_t index)
             {
                 return (index < nItems) ? pvItems[index] : NULL;
+            }
+
+            inline bool remove_item(const void *item, bool fast)
+            {
+                for (size_t i=0; i<nItems; ++i)
+                {
+                    if (pvItems[i] == item)
+                    {
+                        --nItems;
+                        if (fast)
+                        {
+                            if (i < nItems)
+                                pvItems[i]  = pvItems[nItems];
+                        }
+                        else
+                        {
+                            for (size_t j=i; j<nItems; ++j)
+                                pvItems[j]  = pvItems[j+1];
+                        }
+                        pvItems[nItems] = NULL;
+
+                        return true;
+                    }
+                }
+                return false;
             }
 
         public:
@@ -65,6 +92,24 @@ namespace lsp
 
             inline void clear() { nItems = 0; }
 
+            inline bool swap(size_t a, size_t b)
+            {
+                if ((a >= nItems) || (b >= nItems))
+                    return false;
+
+                void *ptr   = pvItems[a];
+                pvItems[a]  = pvItems[b];
+                pvItems[b]  = ptr;
+                return true;
+            }
+
+            inline void swap_unsafe(size_t a, size_t b)
+            {
+                void *ptr   = pvItems[a];
+                pvItems[a]  = pvItems[b];
+                pvItems[b]  = ptr;
+            }
+
             void flush()
             {
                 if (pvItems != NULL)
@@ -85,7 +130,11 @@ namespace lsp
                 inline bool add(T *item) { return basic_vector::add_item(item); }
                 inline T *get(size_t index) { return reinterpret_cast<T *>(basic_vector::get_item(index)); }
 
+                inline bool remove(const T *item, bool fast = false) { return basic_vector::remove_item(item, fast); }
+
                 inline T *operator[](size_t index) { return reinterpret_cast<T *>(basic_vector::get_item(index)); }
+
+                inline T *at(size_t index) { return reinterpret_cast<T *>(pvItems[index]); }
         };
 
 }

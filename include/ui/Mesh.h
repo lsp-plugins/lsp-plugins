@@ -18,7 +18,6 @@ namespace lsp
             size_t          nCapacity;
             ssize_t        *vBasis;
             IUIPort        *pPort;
-            IUIPort        *pVisible;
             size_t          nWidth;
             size_t          nCenter;
 

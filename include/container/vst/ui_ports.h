@@ -28,9 +28,40 @@ namespace lsp
             }
 
         public:
-            inline VSTPort *getPort() { return pPort; };
+            virtual bool sync()         { return false; };
 
-            virtual void sync()         { };
+            virtual void resync()       { };
+    };
+
+    class VSTUIPortGroup: public VSTUIPort
+    {
+        private:
+            VSTPortGroup           *pPG;
+
+        public:
+            VSTUIPortGroup(VSTPortGroup *port) : VSTUIPort(port->metadata(), port)
+            {
+                pPG                 = port;
+            }
+
+            virtual ~VSTUIPortGroup()
+            {
+            }
+
+        public:
+            virtual float getValue()
+            {
+                return pPort->getValue();
+            }
+
+            virtual void setValue(float value)
+            {
+                pPort->setValue(value);
+            }
+
+        public:
+            inline size_t rows() const  { return pPG->rows(); }
+            inline size_t cols() const  { return pPG->cols(); }
     };
 
     class VSTUIParameterPort: public VSTUIPort
@@ -65,15 +96,22 @@ namespace lsp
                     pPort->writeValue(value);
             }
 
-            virtual void sync()
+            virtual bool sync()
             {
                 vst_serial_t sid = static_cast<VSTParameterPort *>(pPort)->getSID();
-                if (sid != nSID)
-                {
-                    fValue      = pPort->getValue();
-                    nSID        = sid;
-                    notifyAll();
-                }
+                if (sid == nSID)
+                    return false;
+
+                fValue      = pPort->getValue();
+                nSID        = sid;
+                return true;
+            }
+
+            virtual void resync()
+            {
+                if (pPort == NULL)
+                    return;
+                nSID    = static_cast<VSTParameterPort *>(pPort)->getSID() - 1;
             }
 
             virtual void *getBuffer()
@@ -105,14 +143,20 @@ namespace lsp
                 return fValue;
             }
 
-            virtual void sync()
+            virtual bool sync()
             {
                 float value = pPort->getValue();
-                if (value != fValue)
-                {
-                    fValue      = value;
-                    notifyAll();
-                }
+                if (value == fValue)
+                    return false;
+
+                fValue      = value;
+                return true;
+            }
+
+            virtual void resync()
+            {
+                if (pMetadata != NULL)
+                    fValue      = pMetadata->start;
             }
     };
 
@@ -135,25 +179,21 @@ namespace lsp
             }
 
         public:
-            virtual void sync()
+            virtual bool sync()
             {
                 mesh_t *mesh = reinterpret_cast<mesh_t *>(pPort->getBuffer());
-                if (mesh == NULL)
-                    return;
+                if ((mesh == NULL) || (!mesh->containsData()))
+                    return false;
 
-                if (mesh->containsData())
-                {
-                    // Copy mesh data
-                    for (size_t i=0; i < mesh->nBuffers; ++i)
-                        dsp::copy(pMesh->pvData[i], mesh->pvData[i], mesh->nItems);
-                    pMesh->data(mesh->nBuffers, mesh->nItems);
+                // Copy mesh data
+                for (size_t i=0; i < mesh->nBuffers; ++i)
+                    dsp::copy(pMesh->pvData[i], mesh->pvData[i], mesh->nItems);
+                pMesh->data(mesh->nBuffers, mesh->nItems);
 
-                    // Clean source mesh
-                    mesh->cleanup();
+                // Clean source mesh
+                mesh->cleanup();
 
-                    // Notify all for changes
-                    notifyAll();
-                }
+                return true;
             }
 
             virtual void *getBuffer()
@@ -161,6 +201,45 @@ namespace lsp
                 return pMesh;
             }
     };
+
+    class VSTUIPathPort: public VSTUIPort
+    {
+        private:
+            vst_path_t     *pPath;
+
+        public:
+            VSTUIPathPort(const port_t *meta, VSTPort *port): VSTUIPort(meta, port)
+            {
+                path_t *path    = reinterpret_cast<path_t *>(pPort->getBuffer());
+                if (path != NULL)
+                    pPath               = static_cast<vst_path_t *>(path);
+                else
+                    pPath               = NULL;
+            }
+
+            virtual ~VSTUIPathPort()
+            {
+                pPath       = NULL;
+            }
+
+        public:
+            virtual bool sync()
+            {
+                return pPath->ui_sync();
+            }
+
+            virtual void *getBuffer()
+            {
+                return (pPath != NULL) ? pPath->sUiPath : NULL;
+            }
+
+            virtual void write(const void *buffer, size_t size)
+            {
+                if (pPath != NULL)
+                    pPath->submit(reinterpret_cast<const char *>(buffer), size, true);
+            }
+    };
+
 }
 
 #endif /* CONTAINER_VST_UI_PORTS_H_ */

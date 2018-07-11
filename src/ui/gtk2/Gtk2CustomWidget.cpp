@@ -346,7 +346,8 @@ namespace lsp
 
     void Gtk2CustomWidget::markRedraw()
     {
-        gtk_widget_queue_draw(pWidget);
+        if (pWidget != NULL)
+            gtk_widget_queue_draw(pWidget);
     }
 
     void Gtk2CustomWidget::destroy()

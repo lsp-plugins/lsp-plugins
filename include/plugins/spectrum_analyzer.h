@@ -9,9 +9,8 @@
 #define CORE_PLUGINS_SPECTRUM_ANALYZER_H_
 
 #include <core/plugin.h>
-#include <core/plugin_metadata.h>
 
-#include <core/Bypass.h>
+#include <metadata/plugins.h>
 
 namespace lsp
 {

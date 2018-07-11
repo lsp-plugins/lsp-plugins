@@ -70,10 +70,7 @@ namespace lsp
             dsp::abs(dst, src, count);
 
             // Find the maximum value
-            float max = 0.0f;
-            for (size_t i=0; i<count; ++i)
-                if (dst[i] > max)
-                    max = dst[i];
+            float max = dsp::max(dst, count);
 
             // Divide if it is possible
             if (max != 0.0f)
@@ -87,8 +84,8 @@ namespace lsp
             dsp::minmax(src, count, &min, &max);
 
             // Determine maximum possible value
-            max = (max > 0) ? max : -max;
-            min = (min > 0) ? min : -min;
+            max = (max > 0.0f) ? max : -max;
+            min = (min > 0.0f) ? min : -min;
             if (max < min)
                 max = min;
 
@@ -101,6 +98,9 @@ namespace lsp
 
         static float min(const float *src, size_t count)
         {
+            if (count == 0)
+                return 0.0f;
+
             float min = src[0];
             for (size_t i=0; i<count; ++i)
                 if (src[i] < min)
@@ -110,10 +110,28 @@ namespace lsp
 
         static float max(const float *src, size_t count)
         {
+            if (count == 0)
+                return 0.0f;
+
             float max = src[0];
             for (size_t i=0; i<count; ++i)
                 if (src[i] > max)
                     max = src[i];
+            return max;
+        }
+
+        static float abs_max(const float *src, size_t count)
+        {
+            if (count == 0)
+                return 0.0f;
+
+            float max = fabs(src[0]);
+            for (size_t i=0; i<count; ++i)
+            {
+                float tmp = fabs(src[i]);
+                if (tmp > max)
+                    max = tmp;
+            }
             return max;
         }
 

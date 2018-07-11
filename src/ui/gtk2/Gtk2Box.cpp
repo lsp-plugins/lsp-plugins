@@ -65,7 +65,9 @@ namespace lsp
 
     void Gtk2Box::add(IWidget *widget)
     {
-        Gtk2Widget *g_widget = static_cast<Gtk2Widget *>(widget);
+        Gtk2Widget *g_widget = Gtk2Widget::cast(widget);
+        if (g_widget == NULL)
+            return;
 
         gtk_box_pack_start(GTK_BOX(pWidget), g_widget->widget(),
                 g_widget->expand() ? TRUE : FALSE,

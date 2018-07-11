@@ -45,14 +45,4 @@ namespace lsp
     {
     }
 
-    const char *IPort::getPath()
-    {
-        return NULL;
-    }
-
-    const port_t *IPort::metadata() const
-    {
-        return pMetadata;
-    }
-
 } /* namespace lsp */

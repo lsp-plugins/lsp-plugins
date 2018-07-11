@@ -7,6 +7,7 @@
 
 #include <ui/gtk2/ui.h>
 #include <ui/gtk2/override.h>
+#include <core/alloc.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -31,10 +32,14 @@ namespace lsp
 
     Gtk2Group::~Gtk2Group()
     {
-        Gtk2GroupImpl_delete(pWidget);
+        if (pWidget != NULL)
+        {
+            Gtk2GroupImpl_delete(pWidget);
+            pWidget = NULL;
+        }
         if (sText != NULL)
         {
-            free(sText);
+            lsp_free(sText);
             sText = NULL;
         }
     }
@@ -46,10 +51,10 @@ namespace lsp
             case A_TEXT:
                 if (sText != NULL)
                 {
-                    free(sText);
+                    lsp_free(sText);
                     sText = NULL;
                 }
-                sText = strdup(value);
+                sText = lsp_strdup(value);
                 GTK_PARSE_STRING(value, gtk_frame_set_label(GTK_FRAME(pWidget), " "));
                 break;
             case A_COLOR:

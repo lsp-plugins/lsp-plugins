@@ -8,6 +8,8 @@
 #ifndef CORE_ITASK_H_
 #define CORE_ITASK_H_
 
+#include <core/status.h>
+
 namespace lsp
 {
     class ITask
@@ -32,7 +34,7 @@ namespace lsp
             // Executor service
             friend class IExecutor;
 
-            static inline bool successful(int code)     { return code == 0; };
+            static inline bool successful(int code)     { return code == STATUS_OK; };
 
         public:
             ITask();

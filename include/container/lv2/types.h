@@ -65,7 +65,7 @@ namespace lsp
             return (nState & (P_PATH | P_ACCEPTED)) == (P_PATH | P_ACCEPTED);
         }
 
-        inline void submit(const char *path, size_t len)
+        void submit(const char *path, size_t len)
         {
             // Determine size of path
             size_t count = (len >= PATH_MAX) ? PATH_MAX - 1 : len;

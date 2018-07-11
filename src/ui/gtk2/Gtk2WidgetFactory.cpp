@@ -42,6 +42,9 @@ namespace lsp
             case W_SWITCH:      return new Gtk2Switch(ui);
             case W_GRAPH:       return new Gtk2Graph(ui);
             case W_COMBO:       return new Gtk2ComboBox(ui);
+            case W_FILE:        return new Gtk2File(ui);
+            case W_VSEP:        return new Gtk2VSeparator(ui);
+            case W_HSEP:        return new Gtk2HSeparator(ui);
             default:            return IWidgetFactory::createWidget(ui, w_class);
         }
 

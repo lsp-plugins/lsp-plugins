@@ -48,8 +48,10 @@
 #include <ui/gtk2/Gtk2Grid.h>
 #include <ui/gtk2/Gtk2Cell.h>
 #include <ui/gtk2/Gtk2Body.h>
+#include <ui/gtk2/Gtk2File.h>
 
 #include <ui/gtk2/Gtk2Group.h>
+#include <ui/gtk2/Gtk2Separator.h>
 #include <ui/gtk2/Gtk2ComboBox.h>
 #include <ui/gtk2/Gtk2MountStud.h>
 #include <ui/gtk2/Gtk2Button.h>

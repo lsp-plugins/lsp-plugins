@@ -7,11 +7,11 @@
 #include <core/dsp.h>
 #include <core/windows.h>
 
+#define BUF_ITEMS 1024
+
 namespace window_test
 {
     using namespace lsp;
-
-    #define BUF_ITEMS 1024
 
     int test(int argc, const char **argv)
     {
@@ -55,3 +55,5 @@ namespace window_test
     }
     
 }
+
+#undef BUF_ITEMS

@@ -1,10 +1,13 @@
-SUBDIRS                 = core plugins ui utils container
-POST_PROCESSING         = vst_stub
-ALL_UTILS               = $(UTL_GENTTL) $(UTL_VSTMAKE) $(UTL_GENPHP) $(UTL_RESGEN)
+SUBDIRS                 = core metadata plugins ui utils container
+MODULES                 = $(SUBDIRS)
 
-.PHONY: all $(SUBDIRS)
+ifdef VST_SDK
+MODULES                += vst_stub
+endif
 
-all: $(SUBDIRS) $(POST_PROCESSING)
+.PHONY: all $(MODULES)
+
+all: $(MODULES)
 
 target: all
 
@@ -17,7 +20,11 @@ $(SUBDIRS):
 # Object dependencies
 $(OBJ_CORE): core
 
+$(OBJ_METADATA): metadata
+
 $(OBJ_UI_CORE): ui
+
+$(UTL_FILES): utils
 
 $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@echo "Generating XML resources"
@@ -25,17 +32,15 @@ $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@$(UTL_RESGEN) $(BASEDIR)/res/ui $(OBJDIR)/res/xml_resource.cpp
 	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(OBJDIR)/res/xml_resource.cpp -o $(OBJ_RES_CORE)
 
-$(ALL_UTILS): utils
-
 # Target dependencies
-plugins: $(OBJ_CORE)
+plugins: $(OBJ_CORE) $(OBJ_METADATA)
 
-container: $(OBJ_CORE) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(ALL_UTILS)
+container: $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(UTL_FILES)
 
-utils: $(OBJ_CORE)
+utils: $(OBJ_CORE) $(OBJ_METADATA)
 
 # Additional post-processing
-vst_stub: $(UTL_VSTMAKE)
+vst_stub: $(UTL_FILES)
 	@echo "Building VST stub"
 	@mkdir -p $(OBJDIR)/vst
 	@$(UTL_VSTMAKE) $(OBJDIR)/vst

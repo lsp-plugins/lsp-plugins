@@ -1337,7 +1337,7 @@ namespace lsp
 
                 // Repeat loop
                 __ASM_EMIT("dec %2")
-                __ASM_EMIT("jz 1b")
+                __ASM_EMIT("jnz 1b")
                 __ASM_EMIT("2:")
 
                 : "+r" (src), "+r"(dst), "+r"(count) :
@@ -1364,7 +1364,7 @@ namespace lsp
                     __ASM_EMIT("prefetchnta 0x20(%0)")
                     __ASM_EMIT("prefetchnta 0x00(%1)")
                     __ASM_EMIT("prefetchnta 0x20(%1)")
-                    : : "S" (src), "D" (dst)
+                    : : "r" (src), "r" (dst)
                     : "%xmm4"
                 );
 

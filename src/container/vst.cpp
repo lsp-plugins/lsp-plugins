@@ -6,8 +6,11 @@
 #include <time.h>
 
 // Core include
-#include <core/metadata.h>
+#include <core/types.h>
+#include <core/atomic.h>
+#include <core/midi.h>
 #include <core/lib.h>
+#include <core/endian.h>
 #include <plugins/plugins.h>
 
 #include <data/cvector.h>
@@ -28,6 +31,7 @@
 // VST SDK includes
 #include <container/vst/defs.h>
 #include <container/vst/helpers.h>
+#include <container/vst/types.h>
 #include <container/vst/wrapper.h>
 #include <container/vst/ports.h>
 
@@ -55,7 +59,7 @@ namespace lsp
             #define MOD_GTK3(plugin)    UI_MODULE(plugin)
         #endif /* LSP_UI_GTK3 */
 
-        #include <core/modules.h>
+        #include <metadata/modules.h>
 
         #undef UI_MODULE
 
@@ -75,7 +79,7 @@ namespace lsp
             #define MOD_GTK3(plugin)    UI_MODULE(plugin)
         #endif /* LSP_UI_GTK3 */
 
-        #include <core/modules.h>
+        #include <metadata/modules.h>
 
         #undef UI_MODULE
 
@@ -351,9 +355,11 @@ namespace lsp
     {
         VstIntPtr v = 0;
 
-        if (opcode != effEditIdle)
-        lsp_trace("vst_dispatcher effect=%p, opcode=%d (%s), index=%d, value=%llx, ptr=%p, opt = %.3f",
-                e, opcode, vst_decode_opcode(opcode), index, (long long)(value), ptr, opt);
+        #ifdef LSP_TRACE
+        if ((opcode != effEditIdle) && (opcode != effProcessEvents))
+            lsp_trace("vst_dispatcher effect=%p, opcode=%d (%s), index=%d, value=%llx, ptr=%p, opt = %.3f",
+                    e, opcode, vst_decode_opcode(opcode), index, (long long)(value), ptr, opt);
+        #endif /* LSP_TRACE */
 
         // Get VST object
         VSTWrapper *w   = reinterpret_cast<VSTWrapper *>(e->object);
@@ -527,11 +533,30 @@ namespace lsp
             case effSetProgramName:
             case effGetProgramName:
             case effSetBlockSize:
-            case effGetChunk:
-            case effSetChunk:
                 break;
 
+            case effGetChunk:
+            {
+                if (index == 0)
+                    v       = w->serialize_state(reinterpret_cast<const void **>(ptr));
+                break;
+            }
+
+            case effSetChunk:
+            {
+                if (e->flags & effFlagsProgramChunks)
+                {
+                    w->deserialize_state(ptr);
+                    v = 1;
+                }
+                break;
+            }
+
             case effProcessEvents:
+                w->process_events(reinterpret_cast<const VstEvents *>(ptr));
+                v = 1;
+                break;
+
             case effString2Parameter:
             case effGetProgramNameIndexed:
             case effGetInputProperties:
@@ -553,8 +578,22 @@ namespace lsp
             case effGetTailSize:
                 break;
             case effCanDo:
-                lsp_trace("can_do request: %s\n", reinterpret_cast<const char *>(ptr));
+            {
+                const char *text    = reinterpret_cast<const char *>(ptr);
+                lsp_trace("can_do request: %s\n", text);
+                if (e->flags & effFlagsIsSynth)
+                {
+                    if (!strcmp(text, "receiveVstEvents"))
+                        v = 1;
+                    else if (!strcmp(text, "receiveVstMidiEvent"))
+                        v = 1;
+                    else if (!strcmp(text, "sendVstEvents"))
+                        v = 1;
+                    else if (!strcmp(text, "sendVstMidiEvent"))
+                        v = 1;
+                }
                 break;
+            }
 
 #if VST_2_1_EXTENSIONS
             case effEditKeyDown:
@@ -692,7 +731,7 @@ namespace lsp
                 m   = &plugin::metadata; \
                 plugin_name = #plugin; \
             }
-        #include <core/modules.h>
+        #include <metadata/modules.h>
 
         // Check that plugin instance is available
         if (p == NULL)

@@ -8,10 +8,6 @@
 #include <core/debug.h>
 #include <core/NativeExecutor.h>
 
-#define atomic_lock(lk)     atomic_exchange(&lk, 0)
-#define atomic_init(lk)     lk = 1
-#define atomic_unlock(lk)   lk = 1
-
 namespace lsp
 {
     NativeExecutor::NativeExecutor()

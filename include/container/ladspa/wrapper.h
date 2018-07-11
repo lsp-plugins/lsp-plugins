@@ -10,11 +10,12 @@
 
 namespace lsp
 {
-    class LADSPAWrapper
+    class LADSPAWrapper: public IWrapper
     {
         private:
-            plugin_t               *pPlugin;
             cvector<LADSPAPort>     vPorts;
+            plugin_t               *pPlugin;
+            IExecutor              *pExecutor;      // Executor service
 
         protected:
             inline void add_port(LADSPAPort *p)
@@ -28,6 +29,7 @@ namespace lsp
             LADSPAWrapper(plugin_t *plugin)
             {
                 pPlugin     = plugin;
+                pExecutor   = NULL;
             }
 
             ~LADSPAWrapper()
@@ -74,12 +76,14 @@ namespace lsp
                             add_port(lp);
                             break;
                         }
+                        case R_PORT_SET: // TODO: implement recursive port creation
+                            break;
                     }
                 }
 
                 // Initialize plugin
                 lsp_trace("Initializing plugin");
-                pPlugin->init(NULL);    // TODO: implement native worker interface
+                pPlugin->init(this);
                 pPlugin->set_sample_rate(sr);
             }
 
@@ -99,6 +103,14 @@ namespace lsp
                     pPlugin->destroy();
                     delete pPlugin;
                     pPlugin     = NULL;
+                }
+
+                // Destroy executor
+                if (pExecutor != NULL)
+                {
+                    pExecutor->shutdown();
+                    delete pExecutor;
+                    pExecutor   = NULL;
                 }
             }
 
@@ -156,6 +168,16 @@ namespace lsp
                     if (port != NULL)
                         port->post_process(samples);
                 }
+            }
+
+            virtual IExecutor *get_executor()
+            {
+                if (pExecutor == NULL)
+                {
+                    lsp_trace("Creating native executor service");
+                    pExecutor       = new NativeExecutor();
+                }
+                return pExecutor;
             }
 
     };

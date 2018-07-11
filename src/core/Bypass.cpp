@@ -50,50 +50,99 @@ namespace lsp
         if (count == 0)
             return;
 
-        // Analyze direction
-        if (fDelta > 0.0f)
+        if (dry != NULL)
         {
-            // Process transition
-            while (fGain < 1.0)
+            // Analyze direction
+            if (fDelta > 0.0f)
             {
-                *dst    =   *dry + (*wet - *dry) * fGain;
+                // Process transition
+                while (fGain < 1.0)
+                {
+                    *dst    =   *dry + (*wet - *dry) * fGain;
 
-                fGain   +=  fDelta;
-                dry     ++;
-                wet     ++;
-                dst     ++;
+                    fGain   +=  fDelta;
+                    dry     ++;
+                    wet     ++;
+                    dst     ++;
 
-                if ((--count) <= 0) // Last sample?
-                    return;
+                    if ((--count) <= 0) // Last sample?
+                        return;
+                }
+
+                // Copy wet data
+                fGain   = 1.0;
+                nState  = S_OFF;
+                if (count > 0)
+                    dsp::copy(dst, wet, count);
             }
+            else
+            {
+                // Process transition
+                while (fGain > 0.0)
+                {
+                    *dst    =   *dry + (*wet - *dry) * fGain;
 
-            // Copy wet data
-            fGain   = 1.0;
-            nState  = S_OFF;
-            if (count > 0)
-                dsp::copy(dst, wet, count);
+                    fGain   +=  fDelta;
+                    dry     ++;
+                    wet     ++;
+                    dst     ++;
+
+                    if ((--count) <= 0) // Last sample?
+                        return;
+                }
+
+                // Copy dry data
+                fGain   = 0.0;
+                nState  = S_ON;
+                if (count > 0)
+                    dsp::copy(dst, dry, count);
+            }
         }
         else
         {
-            // Process transition
-            while (fGain > 0.0)
+            // Analyze direction
+            if (fDelta > 0.0f)
             {
-                *dst    =   *dry + (*wet - *dry) * fGain;
+                // Process transition
+                while (fGain < 1.0)
+                {
+                    *dst    =   (*wet) * fGain;
 
-                fGain   +=  fDelta;
-                dry     ++;
-                wet     ++;
-                dst     ++;
+                    fGain   +=  fDelta;
+                    wet     ++;
+                    dst     ++;
 
-                if ((--count) <= 0) // Last sample?
-                    return;
+                    if ((--count) <= 0) // Last sample?
+                        return;
+                }
+
+                // Copy wet data
+                fGain   = 1.0;
+                nState  = S_OFF;
+                if (count > 0)
+                    dsp::copy(dst, wet, count);
             }
+            else
+            {
+                // Process transition
+                while (fGain > 0.0)
+                {
+                    *dst    =   (*wet) * fGain;
 
-            // Copy dry data
-            fGain   = 0.0;
-            nState  = S_ON;
-            if (count > 0)
-                dsp::copy(dst, dry, count);
+                    fGain   +=  fDelta;
+                    wet     ++;
+                    dst     ++;
+
+                    if ((--count) <= 0) // Last sample?
+                        return;
+                }
+
+                // Copy dry data
+                fGain   = 0.0;
+                nState  = S_ON;
+                if (count > 0)
+                    dsp::fill_zero(dst, count);
+            }
         }
     }
 

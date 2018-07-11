@@ -19,14 +19,19 @@ namespace lsp
 {
     namespace native
     {
-        void dsp_init();
+        extern void dsp_init();
     }
 
     #ifdef ARCH_X86
         namespace sse
         {
-            void dsp_init();
+            extern void dsp_init();
         }
+
+//        namespace avx256
+//        {
+//            void dsp_init();
+//        }
     #endif /* ARCH_X86 */
 }
 
@@ -46,6 +51,7 @@ namespace lsp
         void    (* normalize)(float *dst, const float *src, size_t count) = NULL;
         float   (* min)(const float *src, size_t count) = NULL;
         float   (* max)(const float *src, size_t count) = NULL;
+        float   (* abs_max)(const float *src, size_t count) = NULL;
         void    (* minmax)(const float *src, size_t count, float *min, float *max) = NULL;
         size_t  (* min_index)(const float *src, size_t count) = NULL;
         size_t  (* max_index)(const float *src, size_t count) = NULL;
@@ -115,6 +121,11 @@ namespace lsp
                         if ((family_id == 6) || (family_id > 15))
                             sse::dsp_init();
                     }
+
+//                    if (info.ecx & X86_CPUID_FEAT_ECX_AVX)
+//                    {
+//                        avx256::dsp_init();
+//                    }
                 }
             #endif /* ARCH_X86 */
         }

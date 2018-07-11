@@ -22,6 +22,7 @@ namespace lsp
         W_VBOX,
         W_HBOX,
         W_GRID,
+        W_ROW,
         W_CELL,
         W_LABEL,
         W_PARAM,
@@ -40,7 +41,11 @@ namespace lsp
         W_BASIS,
         W_CENTER,
         W_COMBO,
-        W_TEXT
+        W_TEXT,
+        W_FILE,
+        W_HSEP,
+        W_VSEP,
+        W_PORT
     };
 
     // List of all available widget attributes
@@ -91,7 +96,8 @@ namespace lsp
         A_PARALLEL,
         A_VALUE,
         A_VISIBLE,
-        A_VISIBILITY,
+        A_VISIBILITY_ID,
+        A_VISIBILITY_KEY,
         A_PROPORTIONAL,
         A_EXPAND,
         A_FILL,
@@ -101,7 +107,16 @@ namespace lsp
         A_HUE_ID,
         A_SAT_ID,
         A_LIGHT_ID,
-        A_COORD
+        A_COORD,
+        A_HEAD_ID,
+        A_TAIL_ID,
+        A_FADEIN_ID,
+        A_FADEOUT_ID,
+        A_LENGTH_ID,
+        A_STATUS_ID,
+        A_MESH_ID,
+        A_DETAILED,
+        A_TRANSPOSE
     };
 
     // List of colors
@@ -120,6 +135,7 @@ namespace lsp
         C_CYAN,
         C_MAGENTA,
         C_BLACK,
+        C_WHITE,
 
         C_LABEL_TEXT,
         C_BUTTON_FACE,
@@ -133,7 +149,8 @@ namespace lsp
         C_GRAPH_AXIS,
         C_GRAPH_MESH,
         C_GRAPH_MARKER,
-        C_GRAPH_TEXT
+        C_GRAPH_TEXT,
+        C_GRAPH_LINE
     };
 
     // Helper functions

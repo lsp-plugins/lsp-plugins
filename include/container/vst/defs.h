@@ -27,6 +27,7 @@
 
 // Include common definitions
 #include <container/const.h>
+#include <metadata/metadata.h>
 
 // Include VST 2.x SDK
 #include <pluginterfaces/vst2.x/aeffect.h>
@@ -36,10 +37,36 @@
 // This routine should be defined in the linked library
 typedef AEffect * (* vst_create_instance_t) (const char *bundle_path, VstInt32 uid, audioMasterCallback callback);
 
+#pragma pack(push, 1)
+typedef struct vst_state
+{
+    uint32_t        nItems;             // Number of elements
+    uint8_t         vData[];            // Binary data
+} vst_state;
+
+typedef struct vst_state_buffer
+{
+    size_t          nDataSize;          // Size of variable part in bytes
+    fxBank          sHeader;            // Program header
+    vst_state       sState;             // VST state
+} vst_state_buffer;
+
+#pragma pack(pop)
+
 #define VST_CREATE_INSTANCE_NAME        vst_create_instance
 #define VST_CREATE_INSTANCE_STRNAME     "vst_create_instance"
+
 #define LSP_VST_USER_MAGIC              CCONST('L', 'S', 'P', 'U')
 #define VST_IDENTIFY_MAGIC              CCONST('N', 'v', 'E', 'f')
+#define VST_CHUNK_MAGIC                 CCONST('C', 'c', 'n', 'K')
+#define VST_REGULAR_CHUNK_MAGIC         CCONST('F', 'x', 'C', 'k')
+#define VST_REGULAR_BANK_MAGIC          CCONST('F', 'x', 'C', 'k')
+#define VST_OPAQUE_CHUNK_MAGIC          CCONST('F', 'P', 'C', 'h')
+#define VST_OPAQUE_BANK_MAGIC           CCONST('F', 'B', 'C', 'h')
+
+#define VST_PROGRAM_HDR_SIZE            (sizeof(fxProgram) - 2 * sizeof(VstInt32))
+#define VST_BANK_HDR_SIZE               (sizeof(fxBank) - 2 * sizeof(VstInt32))
+#define VST_STATE_BUFFER_SIZE           (VST_BANK_HDR_SIZE + sizeof(vst_state))
 
 namespace lsp
 {

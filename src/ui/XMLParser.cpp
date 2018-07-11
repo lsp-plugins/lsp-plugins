@@ -6,6 +6,8 @@
  */
 
 #include <ui/ui.h>
+#include <core/alloc.h>
+
 #include <string.h>
 
 #ifndef LSP_USE_EXPAT
@@ -48,7 +50,7 @@ namespace lsp
             return;
 #ifdef LSP_USE_EXPAT
         if (node->tag != NULL)
-            free(node->tag);
+            lsp_free(node->tag);
 #endif /* LSP_USE_EXPAT */
 
         node->tag       = NULL;
@@ -59,7 +61,7 @@ namespace lsp
 #ifdef LSP_USE_EXPAT
         if (tag != NULL)
         {
-            node->tag           = strdup(tag);
+            node->tag           = lsp_strdup(tag);
             if (node->tag == NULL)
                 return false;
         }
@@ -76,20 +78,30 @@ namespace lsp
     void XMLParser::startElementHandler(void *userData, const xml_char_t *name, const xml_char_t **atts)
     {
         XMLParser *_this    = reinterpret_cast<XMLParser *>(userData);
-        node_t *top         = _this->top();
+        _this->startElement(name, atts);
+    }
+
+    void XMLParser::endElementHandler(void *userData, const xml_char_t *tag)
+    {
+        XMLParser *_this    = reinterpret_cast<XMLParser *>(userData);
+        _this->endElement(tag);
+    }
+
+    void XMLParser::startElement(const xml_char_t *name, const xml_char_t **atts)
+    {
+        node_t *top         = this->top();
 
         XMLHandler *handler = (top->handler != NULL) ? top->handler->startElement(name, atts) : NULL;
         if (handler != NULL)
             handler->enter();
 
-        _this->push(name, handler);
+        push(name, handler);
     }
 
-    void XMLParser::endElementHandler(void *userData, const xml_char_t *)
+    void XMLParser::endElement(const xml_char_t *)
     {
-        XMLParser *_this    = reinterpret_cast<XMLParser *>(userData);
-        node_t *node        = _this->pop();
-        node_t *top         = _this->top();
+        node_t *node        = this->pop();
+        node_t *top         = this->top();
 
         // Call callbacks
         if (node->handler != NULL)

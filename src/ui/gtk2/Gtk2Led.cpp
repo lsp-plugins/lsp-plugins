@@ -162,8 +162,9 @@ namespace lsp
 
     void Gtk2Led::notify(IUIPort *port)
     {
-        bool redraw = false;
+        Gtk2CustomWidget::notify(port);
 
+        bool redraw = false;
         if (sColor.notify(port))
             redraw = true;
         else if (port == pPort)

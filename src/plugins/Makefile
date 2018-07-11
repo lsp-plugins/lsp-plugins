@@ -5,7 +5,7 @@ rwildcard               = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $
 
 .PHONY: all files subdirs $(SUBDIRS)
 
-all:  $(OBJ_CORE) $(OBJ_PLUGINS)
+all:  $(OBJ_PLUGINS)
 
 $(OBJ_PLUGINS): $(FILES) $(SUBDIRS)
 	@echo "  $(LD) $(notdir $(OBJ_PLUGINS))"

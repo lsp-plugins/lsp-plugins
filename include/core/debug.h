@@ -10,6 +10,8 @@
 
 #include <core/types.h>
 
+#define lsp_printf(...)         fprintf(stderr, ## __VA_ARGS__)
+
 // Check trace level
 #ifdef LSP_TRACE
     #define lsp_trace(msg, ...)   fprintf(stderr, "[TRC][%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
@@ -44,7 +46,7 @@
 
 // Define assertions
 #ifdef LSP_DEBUG
-    #define lsp_paranoia(...)   { __VA_ARGS__ }
+    #define lsp_paranoia(...)   { __VA_ARGS__; }
 
     #define lsp_assert(x)       if (!(x)) lsp_error("assertion failed: %s", #x);
 #else

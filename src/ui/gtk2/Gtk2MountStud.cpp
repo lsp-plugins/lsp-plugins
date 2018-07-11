@@ -6,7 +6,7 @@
  */
 
 #include <ui/gtk2/ui.h>
-#include <core/debug.h>
+#include <core/alloc.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -24,10 +24,51 @@ namespace lsp
         bLeft       = false;
         sText       = NULL;
         nSize       = 32;
+        nButtons    = 0;
+        bPressed    = false;
+        nLogoLeft   = -1;
+        nLogoTop    = -1;
+        nLogoRight  = -1;
+        nLogoBottom = -1;
+
+        // Create menu
+        pMenu       = gtk_menu_new();
+
+        if (pMenu != NULL)
+        {
+            GtkWidget *item = NULL;
+
+            item            = gtk_menu_item_new_with_label("Export settings...");
+            if (item != NULL)
+            {
+                gtk_signal_connect(GTK_OBJECT (item), "activate", GTK_SIGNAL_FUNC (export_settings), gpointer(this));
+                gtk_menu_append(GTK_MENU(pMenu), item);
+                gtk_widget_show(item);
+            }
+
+            item            = gtk_menu_item_new_with_label("Import settings...");
+            if (item != NULL)
+            {
+                gtk_signal_connect(GTK_OBJECT (item), "activate", GTK_SIGNAL_FUNC (import_settings), gpointer(this));
+                gtk_menu_append(GTK_MENU(pMenu), item);
+                gtk_widget_show(item);
+            }
+        }
     }
 
     Gtk2MountStud::~Gtk2MountStud()
     {
+        if (pMenu != NULL)
+        {
+            gtk_widget_destroy(pMenu);
+            pMenu       = NULL;
+        }
+
+        if (sText != NULL)
+        {
+            lsp_free(sText);
+            sText   = NULL;
+        }
     }
 
     void Gtk2MountStud::draw_screw(cairo_t *cr, size_t x, size_t y, float angle)
@@ -198,11 +239,19 @@ namespace lsp
             size_t l_x      = (bLeft) ? 8 : l_rr;
             size_t l_y      = (nHeight - lh) >> 1;
 
+            nLogoLeft       = l_x;
+            nLogoTop        = l_y;
+            nLogoRight      = l_x + lw - 1;
+            nLogoBottom     = l_y + lh - 1;
+
             for (size_t i=0; i<=l_rr; ++i)
             {
                 float bright = logo_l * (i + 1) / (l_rr + 1);
 
-                cp = cairo_pattern_create_radial(l_x + lw, l_y , lw >> 2, l_x + lw, l_y , lw);
+                cp = (bPressed) ?
+                    cairo_pattern_create_radial(l_x + lw, l_y , lw >> 2, l_x + lw, l_y , lw) :
+                    cairo_pattern_create_radial(l_x - lw, l_y + lh, lw >> 2, l_x - lw, l_y + lh , lw);
+
                 logo.lightness(bright * 1.5);
                 cairo_pattern_add_color_stop_rgb(cp, 0.0, logo.red(), logo.green(), logo.blue());
                 logo.lightness(bright);
@@ -224,7 +273,10 @@ namespace lsp
             l_y        += (lh >> 1);
 
             // Output text
-            cairo_set_source_rgb(cr, sTextColor.red(), sTextColor.green(), sTextColor.blue());
+            logo.copy(sTextColor);
+            if (bPressed)
+                logo.darken(0.5f);
+            cairo_set_source_rgb(cr, logo.red(), logo.green(), logo.blue());
             cairo_select_font_face(cr, "Arial",
               CAIRO_FONT_SLANT_NORMAL,
               CAIRO_FONT_WEIGHT_BOLD);
@@ -273,11 +325,11 @@ namespace lsp
             case A_TEXT:
                 if (sText != NULL)
                 {
-                    free(sText);
+                    lsp_free(sText);
                     sText = NULL;
                 }
                 if (strlen(value) > 0)
-                    sText = strdup(value);
+                    sText = lsp_strdup(value);
                 break;
             case A_ANGLE:
                 PARSE_INT(value, bLeft = (__ % 2));
@@ -295,6 +347,127 @@ namespace lsp
                 Gtk2CustomWidget::set(att, value);
                 break;
         }
+    }
+
+    void Gtk2MountStud::button_press(ssize_t x, ssize_t y, size_t state, size_t button)
+    {
+        lsp_trace("button=%d", int(button));
+        nButtons |= 1 << button;
+
+        bool pressed = ((nButtons == (1 << 1)) && (mouse_over_logo(x, y)));
+        if (pressed != bPressed)
+        {
+            bPressed        = pressed;
+            markRedraw();
+        }
+    }
+
+    bool Gtk2MountStud::mouse_over_logo(ssize_t x, ssize_t y)
+    {
+        return (x >= nLogoLeft) &&
+                (x <= nLogoRight) &&
+                (y >= nLogoTop) &&
+                (y <= nLogoBottom);
+    }
+
+    void Gtk2MountStud::button_release(ssize_t x, ssize_t y, size_t state, size_t button)
+    {
+        lsp_trace("button=%d", int(button));
+        nButtons &= ~(1 << button);
+
+        bool pressed = ((nButtons == (1 << 1)) && (mouse_over_logo(x, y)));
+        if (pressed != bPressed)
+        {
+            bPressed        = pressed;
+            markRedraw();
+        }
+
+        if ((nButtons == 0) && (button == 1))
+        {
+            if ((pMenu != NULL) && (mouse_over_logo(x, y)))
+            {
+                lsp_trace("Displaying the menu...");
+                gtk_menu_popup(GTK_MENU(pMenu), NULL, NULL, NULL, NULL, button, 0);
+            }
+        }
+    }
+
+    void Gtk2MountStud::motion(ssize_t x, ssize_t y, size_t state)
+    {
+        bool pressed = ((nButtons == (1 << 1)) && (mouse_over_logo(x, y)));
+        if (pressed != bPressed)
+        {
+            bPressed        = pressed;
+            markRedraw();
+        }
+    }
+
+    void Gtk2MountStud::export_settings(GtkWidget *menu, gpointer data)
+    {
+        Gtk2MountStud *_this = reinterpret_cast<Gtk2MountStud *>(data);
+        lsp_trace("_this=%p", _this);
+
+        // Create a dialog to select a sample file
+        GtkWidget* dialog = gtk_file_chooser_dialog_new
+        (
+            "Export Settings",
+            NULL,
+            GTK_FILE_CHOOSER_ACTION_SAVE,
+            GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+            GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+            NULL
+        );
+
+        gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog), TRUE);
+
+        gtk_window_set_keep_above(GTK_WINDOW(dialog), TRUE);
+
+        // Run the dialog, and return if it is cancelled
+        if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_ACCEPT)
+        {
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        /* Get the file path from the dialog. */
+        char* filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+        _this->pUI->export_settings(filename);
+
+        /* Got what we need, destroy the dialog. */
+        gtk_widget_destroy(dialog);
+    }
+
+    void Gtk2MountStud::import_settings(GtkWidget *menu, gpointer data)
+    {
+        Gtk2MountStud *_this = reinterpret_cast<Gtk2MountStud *>(data);
+        lsp_trace("_this=%p", _this);
+
+        // Create a dialog to select a sample file
+        GtkWidget* dialog = gtk_file_chooser_dialog_new
+        (
+            "Import Settings",
+            NULL,
+            GTK_FILE_CHOOSER_ACTION_OPEN,
+            GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+            GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+            NULL
+        );
+
+        gtk_window_set_keep_above(GTK_WINDOW(dialog), TRUE);
+
+        // Run the dialog, and return if it is cancelled
+        if (gtk_dialog_run(GTK_DIALOG(dialog)) != GTK_RESPONSE_ACCEPT)
+        {
+            gtk_widget_destroy(dialog);
+            return;
+        }
+
+        /* Get the file path from the dialog. */
+        char* filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+        _this->pUI->import_settings(filename);
+
+        /* Got what we need, destroy the dialog. */
+        gtk_widget_destroy(dialog);
     }
 
 } /* namespace lsp */
