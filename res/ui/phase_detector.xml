@@ -1,0 +1,78 @@
+<plugin width="800" height="128" resizable="false">
+	<hbox size="6" border="0">
+		<align pad_left="8" pad_right="8">
+			<vbox size="3">
+				<label text="Bypass" />
+				<switch id="bypass" size="24" angle="1" />
+				<led id="bypass" color="green" size="8" />
+			</vbox>
+		</align>
+		<group text="Controls">
+			<grid rows="3" cols="3">
+				<label text="Max time" />
+				<label text="Reactivity" />
+				<label text="Sel time" />
+				
+				<knob id="time" size="24" />
+				<knob id="reactivity" size="24" />
+				<knob id="selector" size="24" scale_color="yellow" balance="0.5" />
+				
+				<value id="time" />
+				<value id="reactivity" />
+				<value id="selector" />
+			</grid>
+		</group>
+		<group text="Monitoring">
+			<grid rows="4" cols="5" hspacing="1" vspacing="1">
+				<label text="Phase" fill="true" halign="0" />
+				<label text="Delay (ms)" />
+				<label text="Offset (samp)" />
+				<label text="Distance (cm)" />
+				<label text="Value" />
+				
+				<label text="Best" color="green" fill="true" halign="0" />
+				<indicator id="best_time" format="+-f5.3!" text_color="green" /> 
+				<indicator id="best_samples" format="+-i4" text_color="green" />
+				<indicator id="best_distance" format="+-f5.1!" text_color="green" />
+				<indicator id="best_value" format="+-f4.3!" text_color="green" />
+				
+				<label text="Selected" color="yellow" fill="true" halign="0" />
+				<indicator id="sel_time" format="+-f5.3!" text_color="yellow" />
+				<indicator id="sel_samples" format="+-i4" text_color="yellow" />
+				<indicator id="sel_distance" format="+-f5.1!" text_color="yellow" />
+				<indicator id="sel_value" format="+-f4.3!" text_color="yellow" />
+				
+				<label text="Worst" color="red" fill="true" halign="0" />
+				<indicator id="worst_time" format="+-f5.3!" text_color="red" />
+				<indicator id="worst_samples" format="+-i4" text_color="red" />
+				<indicator id="worst_distance" format="+-f5.1!" text_color="red" />
+				<indicator id="worst_value" format="+-f4.3!" text_color="red" />
+			</grid>
+		</group>
+		<vbox size="2" border="2">
+			<graph width="192" expand="true" fill="true">
+				<axis id="time" min="-1.0" max="1.0" color="white" angle="0.0" />
+				<axis min="-1.05" max="1.05" color="white" angle="0.5" />
+				
+				<mesh id="function" width="3" />
+				
+				<marker id="worst_time" color="red" basis="0" parallel="1" />
+				<marker id="worst_value" color="red" basis="1" parallel="0" />
+				
+				<marker id="best_time" color="green" basis="0" parallel="1" />
+				<marker id="best_value" color="green" basis="1" parallel="0" />
+				
+				<marker id="sel_time" color="yellow" basis="0" parallel="1" />
+				<marker id="sel_value" color="yellow" basis="1" parallel="0" />
+			</graph>
+			<label text="CORRELATION GRAPH" />
+		</vbox>
+		<align pad_left="8" pad_right="8">
+			<vbox>
+				<label text="Reset" />
+				<button id="reset" size="32" toggle="false" />
+				<led id="reset" color="red"  size="8" />
+			</vbox>
+		</align>
+	</hbox>
+</plugin>

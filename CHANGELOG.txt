@@ -1,0 +1,9 @@
+*******************************************************************************
+* CHANGE LOG                                                        *
+*******************************************************************************
+
+=== 1.0.0 ===
+
+Initial version. Implemented plugins:
+  * LSP Phasendetektor - Phase Detector
+  * LSP Verzögerungsausgleicher - Delay compensator

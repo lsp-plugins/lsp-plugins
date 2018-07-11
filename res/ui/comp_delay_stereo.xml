@@ -1,0 +1,115 @@
+<plugin width="700" height="128" resizable="false">
+	<hbox size="6" border="0">
+		<align pad_left="4" pad_right="4">
+			<vbox>
+				<label text="Bypass" />
+				<switch id="bypass" angle="1" />
+				<led id="bypass" color="green" size="8" />
+				<label />
+			</vbox>
+		</align>
+		<group text="Signal">
+			<vbox border="0">
+				<hbox border="0">	
+					<vbox border="0">
+						<label id="dry" />
+						<knob id="dry" />
+						<value id="dry" />
+					</vbox>
+					<vbox border="0">
+						<label id="wet" />
+						<knob id="wet" />
+						<value id="wet" />
+					</vbox>
+				</hbox>
+				<align hpos="0.5" vpos="0.5" border="0" expand="true">
+					<hbox border="0">
+						<button id="mode" />
+						<label id="mode" />
+					</hbox>
+				</align>
+			</vbox>
+		</group>
+		<group text="Samples">
+			<vbox border="0">
+				<label text="Samples" />
+				<knob id="samples" />
+				<value id="samples" />
+				
+				<align hpos="0.5" vpos="0.5" border="0" expand="true">
+					<hbox border="0">
+						<led id="mode" key="0" />
+						<label text="Active" />
+					</hbox>
+				</align>
+			</vbox>
+		</group>
+		<group text="Distance">
+			<vbox>
+				<hbox border="0">
+					<vbox border="0">
+						<label text="Meters" />
+						<knob id="meters" />
+						<value id="meters" />
+					</vbox>
+					<vbox border="0">
+						<label text="Centimeters" />
+						<knob id="centimeters" />
+						<value id="centimeters" />
+					</vbox>
+					<vbox border="0">
+						<label text="Temperature" />
+						<knob id="temperature" balance="0.5" />
+						<value id="temperature" />
+					</vbox>
+				</hbox>
+				<align hpos="0.5" vpos="0.5" border="0" expand="true">
+					<hbox border="0">
+						<led id="mode" key="1" />
+						<label text="Active" />
+					</hbox>
+				</align>
+			</vbox>
+		</group>
+		<group text="Time">
+			<vbox>
+				<label text="Delay" />
+				<knob id="time" />
+				<value id="time" />
+				
+				<align hpos="0.5" vpos="0.5" border="0" expand="true">
+					<hbox border="0">
+						<led id="mode" key="2" />
+						<label text="Active" />
+					</hbox>
+				</align>
+			</vbox>
+		</group>
+		<group text="Monitoring">
+			<grid rows="5" cols="2" hspacing="1" vspacing="1">
+				<label text="" />
+				<label text="Value" />
+
+				<label text="Time (ms)" fill="true" halign="0" />
+				<indicator id="del_time" format="f6.2!" text_color="green" />
+				
+				<label text="Samples (samp)" fill="true" halign="0" />
+				<indicator id="del_samples" format="i6" text_color="green" /> 
+				
+				<label text="Distance (cm)" fill="true" halign="0" />
+				<indicator id="del_distance" format="f6.1!" text_color="green" />
+				
+				<cell cols="2">
+					<label text="DELAY LINE" />
+				</cell>
+			</grid>
+		</group>
+		<align pad_left="8" pad_right="8" hpos="0.5" vpos="0.5">
+			<vbox size="3">
+				<label text="Output" />
+				<knob id="out_gain" size="24" />
+				<value id="out_gain" />
+			</vbox>
+		</align>
+	</hbox>
+</plugin>

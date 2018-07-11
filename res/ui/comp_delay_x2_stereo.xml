@@ -1,0 +1,223 @@
+<plugin width="700" height="128" resizable="false">
+	<hbox size="2" border="0">
+		<align hpos="0.5" vpos="0.5" pad_left="8" pad_right="8">
+			<vbox>
+				<vbox>
+					<label text="Bypass" />
+					<switch id="bypass" angle="1" />
+					<led id="bypass" color="green" size="8" />
+				</vbox>
+				<vbox size="3">
+					<label text="Output" />
+					<knob id="out_gain" size="24" />
+					<value id="out_gain" />
+				</vbox>
+			</vbox>
+		</align>
+		<hbox>
+			<vbox proportional="true">
+				<group text="Signal L" expand="true">
+					<vbox border="0">
+						<hbox border="0">	
+							<vbox border="0">
+								<label text="Dry amount" />
+								<knob id="dry_l" />
+								<value id="dry_l" />
+							</vbox>
+							<vbox border="0">
+								<label text="Wet amount" />
+								<knob id="wet_l" />
+								<value id="wet_l" />
+							</vbox>
+						</hbox>
+						<align hpos="0.5" vpos="0.5" border="0" expand="true">
+							<hbox border="0">
+								<button id="mode_l" />
+								<label text="Mode" />
+							</hbox>
+						</align>
+					</vbox>
+				</group>
+				<group text="Signal R" expand="true">
+					<vbox border="0">
+						<hbox border="0">	
+							<vbox border="0">
+								<label text="Dry amount" />
+								<knob id="dry_r" />
+								<value id="dry_r" />
+							</vbox>
+							<vbox border="0">
+								<label text="Wet amount" />
+								<knob id="wet_r" />
+								<value id="wet_r" />
+							</vbox>
+						</hbox>
+						<align hpos="0.5" vpos="0.5" border="0" expand="true">
+							<hbox border="0">
+								<button id="mode_r" />
+								<label text="Mode" />
+							</hbox>
+						</align>
+					</vbox>
+				</group>
+			</vbox>
+			<vbox proportional="true">
+				<group text="Samples L" expand="true">
+					<vbox border="0">
+						<label text="Samples" />
+						<knob id="samples_l" />
+						<value id="samples_l" />
+						
+						<align hpos="0.5" vpos="0.5" border="0" expand="true">
+							<hbox border="0">
+								<led id="mode_l" key="0" />
+								<label text="Active" />
+							</hbox>
+						</align>
+					</vbox>
+				</group>
+				<group text="Samples R" expand="true">
+					<vbox border="0">
+						<label text="Samples" />
+						<knob id="samples_r" />
+						<value id="samples_r" />
+						
+						<align hpos="0.5" vpos="0.5" border="0" expand="true">
+							<hbox border="0">
+								<led id="mode_r" key="0" />
+								<label text="Active" />
+							</hbox>
+						</align>
+					</vbox>
+				</group>
+			</vbox>
+			<vbox proportional="true">
+				<group text="Distance L" expand="true">
+					<vbox>
+						<hbox border="0">
+							<vbox border="0">
+								<label text="Meters" />
+								<knob id="meters_l" />
+								<value id="meters_l" />
+							</vbox>
+							<vbox border="0">
+								<label text="Centimeters" />
+								<knob id="centimeters_l" />
+								<value id="centimeters_l" />
+							</vbox>
+							<vbox border="0">
+								<label text="Temperature" />
+								<knob id="temperature_l" balance="0.5" />
+								<value id="temperature_l" />
+							</vbox>
+						</hbox>
+						<align hpos="0.5" vpos="0.5" border="0" expand="true">
+							<hbox border="0">
+								<led id="mode_l" key="1" />
+								<label text="Active" />
+							</hbox>
+						</align>
+					</vbox>
+				</group>
+				<group text="Distance R" expand="true">
+					<vbox>
+						<hbox border="0">
+							<vbox border="0">
+								<label text="Meters" />
+								<knob id="meters_r" />
+								<value id="meters_r" />
+							</vbox>
+							<vbox border="0">
+								<label text="Centimeters" />
+								<knob id="centimeters_r" />
+								<value id="centimeters_r" />
+							</vbox>
+							<vbox border="0">
+								<label text="Temperature" />
+								<knob id="temperature_r" balance="0.5" />
+								<value id="temperature_r" />
+							</vbox>
+						</hbox>
+						<align hpos="0.5" vpos="0.5" border="0" expand="true">
+							<hbox border="0">
+								<led id="mode_r" key="1" />
+								<label text="Active" />
+							</hbox>
+						</align>
+					</vbox>
+				</group>
+			</vbox>
+			<vbox proportional="true">
+				<group text="Time L" expand="true">
+					<vbox>
+						<label text="Delay" />
+						<knob id="time_l" />
+						<value id="time_l" />
+						
+						<align hpos="0.5" vpos="0.5" border="0" expand="true">
+							<hbox border="0">
+								<led id="mode_l" key="2" />
+								<label text="Active" />
+							</hbox>
+						</align>
+					</vbox>
+				</group>
+				<group text="Time R" expand="true">
+					<vbox>
+						<label text="Delay" />
+						<knob id="time_r" />
+						<value id="time_r" />
+						
+						<align hpos="0.5" vpos="0.5" border="0" expand="true">
+							<hbox border="0">
+								<led id="mode_r" key="2" />
+								<label text="Active" />
+							</hbox>
+						</align>
+					</vbox>
+				</group>
+			</vbox>
+			<vbox proportional="true">
+				<group text="Monitoring L" expand="true">
+					<grid rows="5" cols="2" hspacing="1" vspacing="1">
+						<label />
+						<label text="Value" />
+		
+						<label text="Time (ms)" fill="true" halign="0" />
+						<indicator id="del_time_l" format="f6.2!" text_color="green" />
+						
+						<label text="Samples (samp)" fill="true" halign="0" />
+						<indicator id="del_samples_l" format="i6" text_color="green" /> 
+						
+						<label text="Distance (cm)" fill="true" halign="0" />
+						<indicator id="del_distance_l" format="f6.1!" text_color="green" />
+						
+						<cell cols="2">
+							<label text="LEFT CHANNEL" />
+						</cell>
+					</grid>
+				</group>
+				<group text="Monitoring R" expand="true">
+					<grid rows="5" cols="2" hspacing="1" vspacing="1">
+						<label />
+						<label text="Value" />
+		
+						<label text="Time (ms)" fill="true" halign="0" />
+						<indicator id="del_time_r" format="f6.2!" text_color="green" />
+						
+						<label text="Samples (samp)" fill="true" halign="0" />
+						<indicator id="del_samples_r" format="i6" text_color="green" /> 
+						
+						<label text="Distance (cm)" fill="true" halign="0" />
+						<indicator id="del_distance_r" format="f6.1!" text_color="green" />
+						
+						<cell cols="2">
+							<label text="RIGHT CHANNEL" />
+						</cell>
+					</grid>
+				</group>
+			</vbox>
+		</hbox>
+
+	</hbox>
+</plugin>

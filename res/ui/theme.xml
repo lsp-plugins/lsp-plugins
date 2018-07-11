@@ -1,0 +1,63 @@
+<theme>
+	<colors>
+		<!-- Plugin basic colors -->
+		<background value="#1b1c22" />
+		<glass value="#101010" />
+		<hole value="#000000" />
+		
+		<!-- Generic colors -->
+		<bright_red value="#ff8080" />
+		<bright_green value="#80ff80" />
+		<bright_blue value="#8080ff" />
+		<bright_yellow value="#ffff80" />
+		<bright_cyan value="#80ffff" />
+		<bright_magenta value="#ff80ff" />
+		
+		<black value="#000000" />
+		<red value="#ff0000" />
+		<green value="#00ff00" />
+		<blue value="#0000ff" />
+		<yellow value="#ffff00" />
+		<cyan value="#00ffff" />
+		<magenta value="#ff00ff" />
+		<white value="#ffffff" />
+		
+		<light_gray value="#cccccc" />
+		
+		<medium_red value="#880000" />
+		<medium_green value="#008800" />
+		<medium_blue value="#000088" />
+		<medium_yellow value="#888800" />
+		<medium_cyan value="#008888" />
+		<medium_magenta value="#880088" />
+		<medium_gray value="#888888" />
+		
+		<dark_red value="#ff0000" />
+		<dark_green value="#00ff00" />
+		<dark_blue value="#0000ff" />
+		<dark_yellow value="#ffff00" />
+		<dark_cyan value="#00ffff" />
+		<dark_magenta value="#ff00ff" />
+		<dark_gray value="#444444" />
+		
+		<!-- Label colors -->
+		<label_text value="#dae0ff" />
+		
+		<!-- Button colors -->
+		<button_face value="#ffffff" />
+		
+		<!-- Knob colors -->
+		<knob_cap value="#474843" />
+		<knob_scale value="#00c0ff" />
+		
+		<!-- Logo -->
+		<logo_face value="#00c0ff" />
+		<logo_text value="#dae0ff" />
+		
+		<!-- Graph colors -->
+		<graph_axis value="#ffcc00" />
+		<graph_marker value="#ccff00" />
+		<graph_mesh value="#00c0ff" />
+		
+	</colors>
+</theme>
