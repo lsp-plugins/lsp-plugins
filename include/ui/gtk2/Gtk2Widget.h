@@ -41,9 +41,9 @@ namespace lsp
 
             virtual void set(widget_attribute_t att, const char *value);
 
-            inline bool expand() const { return nWFlags & F_EXPAND; };
+            virtual bool expand() const;
 
-            inline bool fill() const { return nWFlags & F_FILL; };
+            virtual bool fill() const;
 
             virtual void hide();
 

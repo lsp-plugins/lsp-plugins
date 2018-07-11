@@ -18,6 +18,7 @@ namespace lsp
             IUIPort    *pVisibility;
             ssize_t     nVisibilityKey;
             bool        bVisible;
+            Expression  sVisibility;
 
         protected:
             void update_visibility();

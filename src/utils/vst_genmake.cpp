@@ -13,8 +13,17 @@ namespace lsp
 {
     static int gen_cpp_file(const char *path, const plugin_metadata_t *meta, const char *plugin_name, const char *cpp_name)
     {
-        char fname[PATH_MAX];
-        snprintf(fname, PATH_MAX, "%s/%s", path, cpp_name);
+        char fname[PATH_MAX], cppfile[PATH_MAX];
+
+        // Replace all underscores
+        strncpy(cppfile, cpp_name, PATH_MAX);
+        cppfile[PATH_MAX-1] = '\0';
+        for (char *p=cppfile; *p != '\0'; ++p)
+            if (*p == '_')
+                *p = '-';
+
+        // Generate file name
+        snprintf(fname, PATH_MAX, "%s/%s", path, cppfile);
         printf("Generating source file %s\n", fname);
 
         // Generate file
@@ -28,8 +37,8 @@ namespace lsp
         // Write to file
         VstInt32 uid        = vst_cconst(meta->vst_uid);
         fprintf(out,   "//------------------------------------------------------------------------------\n");
-        fprintf(out,   "// File:            %s\n", cpp_name);
-        fprintf(out,   "// VST Plugin:      %s %s - %s [VST]\n", LSP_ACRONYM, meta->name, meta->description);
+        fprintf(out,   "// File:            %s\n", cppfile);
+        fprintf(out,   "// VST Plugin:      %s %s - %s\n", LSP_ACRONYM, meta->description, meta->name);
         fprintf(out,   "// VST UID:         '%s' (%ld)\n", meta->vst_uid, long(uid));
         fprintf(out,   "// Version:         %d.%d.%d\n",
                 LSP_VERSION_MAJOR(meta->version),

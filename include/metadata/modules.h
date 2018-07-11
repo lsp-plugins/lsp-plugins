@@ -316,13 +316,156 @@ MOD_LV2(sc_compressor_ms)
 MOD_VST(sc_compressor_ms)
 MOD_GTK2(sc_compressor_ms)
 
-#ifndef LSP_NO_EXPERIMENTAL
+// Expander
+MOD_PLUGIN(expander_mono)
+MOD_LADSPA(expander_mono)
+MOD_LV2(expander_mono)
+MOD_VST(expander_mono)
+MOD_GTK2(expander_mono)
+
+MOD_PLUGIN(expander_stereo)
+MOD_LADSPA(expander_stereo)
+MOD_LV2(expander_stereo)
+MOD_VST(expander_stereo)
+MOD_GTK2(expander_stereo)
+
+MOD_PLUGIN(expander_lr)
+MOD_LADSPA(expander_lr)
+MOD_LV2(expander_lr)
+MOD_VST(expander_lr)
+MOD_GTK2(expander_lr)
+
+MOD_PLUGIN(expander_ms)
+MOD_LADSPA(expander_ms)
+MOD_LV2(expander_ms)
+MOD_VST(expander_ms)
+MOD_GTK2(expander_ms)
+
+MOD_PLUGIN(sc_expander_mono)
+MOD_LADSPA(sc_expander_mono)
+MOD_LV2(sc_expander_mono)
+MOD_VST(sc_expander_mono)
+MOD_GTK2(sc_expander_mono)
+
+MOD_PLUGIN(sc_expander_stereo)
+MOD_LADSPA(sc_expander_stereo)
+MOD_LV2(sc_expander_stereo)
+MOD_VST(sc_expander_stereo)
+MOD_GTK2(sc_expander_stereo)
+
+MOD_PLUGIN(sc_expander_lr)
+MOD_LADSPA(sc_expander_lr)
+MOD_LV2(sc_expander_lr)
+MOD_VST(sc_expander_lr)
+MOD_GTK2(sc_expander_lr)
+
+MOD_PLUGIN(sc_expander_ms)
+MOD_LADSPA(sc_expander_ms)
+MOD_LV2(sc_expander_ms)
+MOD_VST(sc_expander_ms)
+MOD_GTK2(sc_expander_ms)
+
+// Gate
+MOD_PLUGIN(gate_mono)
+MOD_LADSPA(gate_mono)
+MOD_LV2(gate_mono)
+MOD_VST(gate_mono)
+MOD_GTK2(gate_mono)
+
+MOD_PLUGIN(gate_stereo)
+MOD_LADSPA(gate_stereo)
+MOD_LV2(gate_stereo)
+MOD_VST(gate_stereo)
+MOD_GTK2(gate_stereo)
+
+MOD_PLUGIN(gate_lr)
+MOD_LADSPA(gate_lr)
+MOD_LV2(gate_lr)
+MOD_VST(gate_lr)
+MOD_GTK2(gate_lr)
+
+MOD_PLUGIN(gate_ms)
+MOD_LADSPA(gate_ms)
+MOD_LV2(gate_ms)
+MOD_VST(gate_ms)
+MOD_GTK2(gate_ms)
+
+MOD_PLUGIN(sc_gate_mono)
+MOD_LADSPA(sc_gate_mono)
+MOD_LV2(sc_gate_mono)
+MOD_VST(sc_gate_mono)
+MOD_GTK2(sc_gate_mono)
+
+MOD_PLUGIN(sc_gate_stereo)
+MOD_LADSPA(sc_gate_stereo)
+MOD_LV2(sc_gate_stereo)
+MOD_VST(sc_gate_stereo)
+MOD_GTK2(sc_gate_stereo)
+
+MOD_PLUGIN(sc_gate_lr)
+MOD_LADSPA(sc_gate_lr)
+MOD_LV2(sc_gate_lr)
+MOD_VST(sc_gate_lr)
+MOD_GTK2(sc_gate_lr)
+
+MOD_PLUGIN(sc_gate_ms)
+MOD_LADSPA(sc_gate_ms)
+MOD_LV2(sc_gate_ms)
+MOD_VST(sc_gate_ms)
+MOD_GTK2(sc_gate_ms)
+
+#ifdef LSP_NO_KVRDC16
+    // Dynamic processor
     MOD_PLUGIN(dyna_processor_mono)
     MOD_LADSPA(dyna_processor_mono)
     MOD_LV2(dyna_processor_mono)
-//    MOD_VST(dyna_processor_mono)
+    MOD_VST(dyna_processor_mono)
     MOD_GTK2(dyna_processor_mono)
 
+    MOD_PLUGIN(dyna_processor_stereo)
+    MOD_LADSPA(dyna_processor_stereo)
+    MOD_LV2(dyna_processor_stereo)
+    MOD_VST(dyna_processor_stereo)
+    MOD_GTK2(dyna_processor_stereo)
+
+    MOD_PLUGIN(dyna_processor_lr)
+    MOD_LADSPA(dyna_processor_lr)
+    MOD_LV2(dyna_processor_lr)
+    MOD_VST(dyna_processor_lr)
+    MOD_GTK2(dyna_processor_lr)
+
+    MOD_PLUGIN(dyna_processor_ms)
+    MOD_LADSPA(dyna_processor_ms)
+    MOD_LV2(dyna_processor_ms)
+    MOD_VST(dyna_processor_ms)
+    MOD_GTK2(dyna_processor_ms)
+
+    MOD_PLUGIN(sc_dyna_processor_mono)
+    MOD_LADSPA(sc_dyna_processor_mono)
+    MOD_LV2(sc_dyna_processor_mono)
+    MOD_VST(sc_dyna_processor_mono)
+    MOD_GTK2(sc_dyna_processor_mono)
+
+    MOD_PLUGIN(sc_dyna_processor_stereo)
+    MOD_LADSPA(sc_dyna_processor_stereo)
+    MOD_LV2(sc_dyna_processor_stereo)
+    MOD_VST(sc_dyna_processor_stereo)
+    MOD_GTK2(sc_dyna_processor_stereo)
+
+    MOD_PLUGIN(sc_dyna_processor_lr)
+    MOD_LADSPA(sc_dyna_processor_lr)
+    MOD_LV2(sc_dyna_processor_lr)
+    MOD_VST(sc_dyna_processor_lr)
+    MOD_GTK2(sc_dyna_processor_lr)
+
+    MOD_PLUGIN(sc_dyna_processor_ms)
+    MOD_LADSPA(sc_dyna_processor_ms)
+    MOD_LV2(sc_dyna_processor_ms)
+    MOD_VST(sc_dyna_processor_ms)
+    MOD_GTK2(sc_dyna_processor_ms)
+#endif
+
+#ifndef LSP_NO_EXPERIMENTAL
     // Impulse responses
     MOD_PLUGIN(impulse_responses_mono)
     MOD_LV2(impulse_responses_mono)

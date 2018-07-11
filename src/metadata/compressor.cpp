@@ -13,7 +13,7 @@
 namespace lsp
 {
     //-------------------------------------------------------------------------
-    // Graphic Equalizer
+    // Compressor
     static const int compressor_classes[] = { C_DYNAMICS, C_COMPRESSOR, -1 };
 
     static const char *comp_sc_modes[] =
@@ -111,7 +111,7 @@ namespace lsp
         METER_OUT_GAIN("slm" id, "Sidechain level meter" label, GAIN_AMP_P_24_DB), \
         METER_OUT_GAIN("clm" id, "Curve level meter" label, GAIN_AMP_P_24_DB), \
         METER_OUT_GAIN("elm" id, "Envelope level meter" label, GAIN_AMP_P_24_DB), \
-        METER_GAIN("rlm" id, "Reduction level meter" label, GAIN_AMP_P_24_DB)
+        METER_GAIN_DFL("rlm" id, "Reduction level meter" label, GAIN_AMP_P_48_DB, GAIN_AMP_0_DB)
 
     #define COMP_AUDIO_METER(id, label) \
         SWITCH("ilv" id, "Input level visibility" label, 1.0f), \

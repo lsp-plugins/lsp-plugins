@@ -8,7 +8,7 @@
 #ifndef METADATA_DYNA_PROCESSOR_H_
 #define METADATA_DYNA_PROCESSOR_H_
 
-#ifndef LSP_NO_EXPERIMENTAL
+#ifdef LSP_NO_KVRDC16
 
 namespace lsp
 {
@@ -16,17 +16,17 @@ namespace lsp
     // Compressor
     struct dyna_processor_base_metadata
     {
-        static const float  THRESHOLD_MIN           = GAIN_AMP_M_60_DB;
+        static const float  THRESHOLD_MIN           = GAIN_AMP_M_72_DB;
         static const float  THRESHOLD_MAX           = GAIN_AMP_P_24_DB;
         static const float  THRESHOLD_DFL           = GAIN_AMP_M_12_DB;
         static const float  THRESHOLD_STEP          = 0.05f;
 
-        static const float  ATTACK_LVL_MIN          = GAIN_AMP_M_60_DB;
+        static const float  ATTACK_LVL_MIN          = GAIN_AMP_M_72_DB;
         static const float  ATTACK_LVL_MAX          = GAIN_AMP_P_24_DB;
         static const float  ATTACK_LVL_DFL          = GAIN_AMP_M_12_DB;
         static const float  ATTACK_LVL_STEP         = 0.05f;
 
-        static const float  RELEASE_LVL_MIN         = GAIN_AMP_M_60_DB;
+        static const float  RELEASE_LVL_MIN         = GAIN_AMP_M_72_DB;
         static const float  RELEASE_LVL_MAX         = GAIN_AMP_P_24_DB;
         static const float  RELEASE_LVL_DFL         = GAIN_AMP_M_12_DB;
         static const float  RELEASE_LVL_STEP        = 0.05f;
@@ -46,8 +46,8 @@ namespace lsp
         static const float  KNEE_DFL                = GAIN_AMP_M_6_DB;
         static const float  KNEE_STEP               = 0.05f;
 
-        static const float  MAKEUP_MIN              = GAIN_AMP_M_60_DB;
-        static const float  MAKEUP_MAX              = GAIN_AMP_P_60_DB;
+        static const float  MAKEUP_MIN              = GAIN_AMP_M_72_DB;
+        static const float  MAKEUP_MAX              = GAIN_AMP_P_24_DB;
         static const float  MAKEUP_DFL              = GAIN_AMP_0_DB;
         static const float  MAKEUP_STEP             = 0.05f;
 

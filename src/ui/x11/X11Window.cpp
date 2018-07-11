@@ -72,7 +72,8 @@ namespace lsp
 
         void X11Window::draw(ISurface *surface)
         {
-            surface->clear_rgb(0x404040);
+            size_t b=((nWidth*nHeight) >> 4) & 0xff;
+            surface->clear_rgb(b);
         }
 
         void X11Window::handleEvent(const ui_event_t *ev)
@@ -103,6 +104,9 @@ namespace lsp
 
                 case UIE_REDRAW:
                 {
+                    lsp_trace("redraw location = %d x %d, size = %d x %d",
+                            int(ev->nLeft), int(ev->nTop),
+                            int(ev->nWidth), int(ev->nHeight));
                     if (pSurface != NULL)
                         draw(pSurface);
                     break;
@@ -111,14 +115,16 @@ namespace lsp
                 case UIE_SIZE_REQUEST:
                 {
                     lsp_trace("size request = %d x %d", int(ev->nWidth), int(ev->nHeight));
-                    XResizeWindow(pCore->x11display(), hWindow, ev->nWidth, ev->nHeight);
-                    pCore->x11sync();
+//                    XResizeWindow(pCore->x11display(), hWindow, ev->nWidth, ev->nHeight);
+//                    pCore->x11sync();
                     break;
                 }
 
                 case UIE_RESIZE:
                 {
-                    lsp_trace("new window size = %d x %d", int(ev->nWidth), int(ev->nHeight));
+                    lsp_trace("new window location = %d x %d, size = %d x %d",
+                            int(ev->nLeft), int(ev->nTop),
+                            int(ev->nWidth), int(ev->nHeight));
                     nWidth      = ev->nWidth;
                     nHeight     = ev->nHeight;
                     if (pSurface != NULL)
@@ -127,6 +133,11 @@ namespace lsp
                         draw(pSurface);
                     }
                     break;
+                }
+
+                case UIE_MOUSE_MOVE:
+                {
+                    lsp_trace("mose move = %d x %d", int(ev->nLeft), int(ev->nTop));
                 }
 
                 default:

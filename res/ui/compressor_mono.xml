@@ -10,9 +10,9 @@
 		</align>
 		
 		<vbox>
-			<grid visibility_id="asel" rows="2" cols="6" transpose="true">
+			<grid rows="2" cols="7" transpose="true">
+				<!-- Time graph -->
 				<align expand="true" fill="true" pad_top="4">
-					<!-- Time graph -->
 					<graph width="400" height="256">
 						<!-- Gray grid -->
 						<marker value="3.98107" color="gray" basis="1" parallel="0" />  <!-- +12 dB -->
@@ -68,17 +68,18 @@
 						</ui:for>
 					</graph>
 				</align>
+				
+				<!-- Graph buttons -->
 				<hbox expand="true">
 					<button id="pause" size="16" color="green" led="true" />
 					<label text="Pause" />
 					<button id="clear" size="16" color="red" led="true" />
 					<label text="Clear" />
-					<button id="grv" size="16" color="bright_blue" led="true" />
-					<label text="Gain" />
 					<align pad_right="4" fill="true" hpos="1"><label text="TIME GRAPH" /></align>
 				</hbox>
 				
-				<align expand="true" fill="true" vpos="1">
+				<!-- Sidechain meters -->				
+				<align expand="true" fill="true" vpos="1" pad_bottom="8">
 					<vbox>
 						<button id="slv" size="16" color="bright_green" led="true" />
 						<meter id="slm" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="bright_green" activity_id="slv" />
@@ -86,13 +87,25 @@
 				</align>
 				<label text="SC" />
 				
-				<align expand="true" fill="true" vpos="1">
+				<!-- Envelope meters -->
+				<align expand="true" fill="true" vpos="1" pad_bottom="8">
 					<vbox>
 						<button id="elv" size="16" color="bright_magenta" led="true" />
 						<meter id="elm" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="bright_magenta" activity_id="elv" />
 					</vbox>
 				</align>
 				<label text="Env" />
+				
+				<!-- Gain meters -->
+				<align expand="true" fill="true" vpos="1" pad_bottom="8">
+					<vbox>
+						<button id="grv" size="16" color="bright_blue" led="true" />
+						<meter id="rlm" activity_id="grv" color="bright_blue"  
+							angle="1" logarithmic="true" type="peak"
+							min="0.00398" max="251.18861" balance="1.0" height="256" />
+					</vbox>
+				</align>
+				<label text="Gain" />
 				
 				<!-- Curve graph -->
 				<align expand="true" fill="true" pad_top="4">
@@ -117,6 +130,7 @@
 						<center hpos="-1" vpos="-1" visible="false" />
 						<axis min="0.00025" max="15.84893" color="gray" angle="0.0" logarithmic="true" /> <!-- horizontal axis -->
 						<axis min="0.00025" max="15.84893" color="gray" angle="0.5" logarithmic="true" /> <!-- vertical axis -->
+						<marker value="1" offset="1" color="gray" basis="1" parallel="0" angle="0.25" width="2" smooth="true" /> <!-- 1:1 -->
 						<marker value="15.84893" color="gray" basis="1" parallel="0" /> <!-- +24 dB -->
 						<marker value="15.84893" color="gray" basis="0" parallel="1" /> <!-- +24 dB -->
 	
@@ -158,14 +172,17 @@
 					<align pad_right="4" fill="true" hpos="0"><label text="COMPRESSION" /></align>
 				</hbox>
 				
-				<align expand="true" fill="true" vpos="1">
+				<!-- Input signal meters -->
+				<align expand="true" fill="true" vpos="1" pad_bottom="8">
 					<vbox>
 						<button id="ilv" size="16" color="middle_channel" led="true" />
 						<meter id="ilm" angle="1" type="rms_peak" min="0.000251189" max="15.8489" height="256" color="middle_channel" activity_id="ilv" />
 					</vbox>
 				</align>
 				<label text="In" />
-				<align expand="true" fill="true" vpos="1">
+				
+				<!-- Output signal meters -->
+				<align expand="true" fill="true" vpos="1" pad_bottom="8">
 					<vbox>
 						<button id="olv" size="16" color="middle_channel" led="true" />
 						<meter id="olm" angle="1" type="rms_peak" min="0.000251189" max="15.8489" height="256" color="middle_channel" activity_id="olv" />
@@ -174,6 +191,7 @@
 				<label text="Out" />
 			</grid>
 			<hbox>
+				<!-- Sidechain processing -->
 				<group text="Sidechain" expand="true">
 					<vbox>
 						<hbox spacing="4">
@@ -197,6 +215,8 @@
 						</grid>
 					</vbox>
 				</group>
+				
+				<!-- Compressor setup -->
 				<group text="Compressor" expand="true">
 					<vbox expand="true" fill="true">
 						<hbox spacing="4">
@@ -247,8 +267,8 @@
 								<label text="Dry" />
 								<label text="Wet" />
 								
-								<knob id="cdr" scale_color="blue" size="20" />
-								<knob id="cwt" scale_color="blue" size="20" />
+								<knob id="cdr" scale_color="yellow" size="20" />
+								<knob id="cwt" scale_color="yellow" size="20" />
 								
 								<value id="cdr" />
 								<value id="cwt" />
@@ -257,6 +277,7 @@
 					</vbox>
 				</group>
 				
+				<!-- Signal control -->
 				<group text="Signal" expand="true">
 					<grid rows="3" cols="2" expand="true">
 						<label text="Input" />

@@ -798,8 +798,18 @@ namespace lsp
             cv->line(0, ay, width, ay);
         }
 
-        // Draw axis
+        // Draw 1:1 line
         cv->set_line_width(2.0);
+        cv->set_color_rgb(CV_GRAY);
+        {
+            float ax1 = dx*(logf(GAIN_AMP_M_72_DB*zx));
+            float ax2 = dx*(logf(GAIN_AMP_P_24_DB*zx));
+            float ay1 = height + dy*(logf(GAIN_AMP_M_72_DB*zy));
+            float ay2 = height + dy*(logf(GAIN_AMP_P_24_DB*zy));
+            cv->line(ax1, ay1, ax2, ay2);
+        }
+
+        // Draw axis
         cv->set_color_rgb((bypassing) ? CV_SILVER : CV_WHITE);
         {
             float ax = dx*(logf(GAIN_AMP_0_DB*zx));

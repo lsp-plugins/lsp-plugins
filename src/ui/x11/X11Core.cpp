@@ -6,6 +6,7 @@
  */
 
 #include <ui/x11/ui.h>
+#include <sys/poll.h>
 
 namespace lsp
 {
@@ -19,6 +20,8 @@ namespace lsp
             hDflScreen      = -1;
             nBlackColor     = 0;
             nWhiteColor     = 0;
+            sLastRender.tv_nsec = 0;
+            sLastRender.tv_sec  = 0;
         }
 
         X11Core::~X11Core()
@@ -51,20 +54,50 @@ namespace lsp
 
         int X11Core::main()
         {
+            // Make a pause
+            struct pollfd x11_poll;
+            struct timespec ts;
+
+            int x11_fd          = ConnectionNumber(pDisplay);
+            XSync(pDisplay, false);
+
             while (!bExit)
             {
-                // Do iteration
-                int result = main_iteration();
-                if (result < 0)
-                    return result;
+                // Get current time
+                clock_gettime(CLOCK_REALTIME, &ts);
+                ssize_t dmsec   = (ts.tv_nsec - sLastRender.tv_nsec) / 1000000;
+                ssize_t dsec    = (ts.tv_sec - sLastRender.tv_sec);
+                dmsec          += dsec * 1000;
+                bool force      = dmsec > 40; // each 40 msec render request
 
-                // Make a pause
+                // Try to poll input data for a 100 msec period
+                x11_poll.fd         = x11_fd;
+                x11_poll.events     = POLLIN | POLLPRI | POLLHUP;
+                x11_poll.revents    = 0;
+
+                int poll_res = poll(&x11_poll, 1, 40);
+                if (poll_res < 0)
+                {
+                    lsp_trace("Poll returned error: %d", poll_res);
+                    return -1;
+                }
+
+                if ((force) || ((poll_res > 0) && (x11_poll.revents > 0)))
+                {
+                    // Do iteration
+                    int result = do_main_iteration(force);
+                    if (result < 0)
+                        return result;
+                    // Store last render time
+                    if (force)
+                        sLastRender = ts;
+                }
             }
 
             return 0;
         }
 
-        int X11Core::main_iteration()
+        int X11Core::do_main_iteration(bool redraw)
         {
             XEvent event;
             int pending = XPending(pDisplay);
@@ -86,6 +119,11 @@ namespace lsp
 
             // Return number of processed events
             return pending;
+        }
+
+        int X11Core::main_iteration()
+        {
+            return do_main_iteration(true);
         }
 
         void X11Core::x11sync()
@@ -215,9 +253,9 @@ namespace lsp
                 ButtonMotionMask |
                 KeymapStateMask |
                 ExposureMask |
-                VisibilityChangeMask |
+                /*VisibilityChangeMask |*/
                 StructureNotifyMask |
-                ResizeRedirectMask |
+                /*ResizeRedirectMask | */
                 SubstructureNotifyMask |
                 SubstructureRedirectMask |
                 FocusChangeMask |

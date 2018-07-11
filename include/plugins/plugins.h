@@ -21,6 +21,8 @@
 #include <plugins/graph_equalizer.h>
 #include <plugins/compressor.h>
 #include <plugins/dyna_processor.h>
+#include <plugins/expander.h>
+#include <plugins/gate.h>
 #include <plugins/impulse_responses.h>
 
 #endif /* PLUGINS_PLUGINS_H_ */

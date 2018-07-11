@@ -14,6 +14,7 @@
 #include <core/x86/dsp/search.h>
 #include <core/x86/dsp/fft.h>
 #include <core/x86/dsp/complex.h>
+#include <core/x86/dsp/msmatrix.h>
 #include <core/x86/dsp/native.h>
 #include <core/x86/dsp/vec4.h>
 #include <core/x86/dsp/float.h>

@@ -22,6 +22,8 @@
 #define LSP_GRAPH_EQUALIZER_BASE        LSP_LADSPA_BASE + 18
 #define LSP_COMPRESSOR_BASE             LSP_LADSPA_BASE + 26
 #define LSP_DYNAMIC_PROCESSOR_BASE      LSP_LADSPA_BASE + 34
+#define LSP_EXPANDER_BASE               LSP_LADSPA_BASE + 42
+#define LSP_GATE_BASE                   LSP_LADSPA_BASE + 50
 
 
 // Plugin metadata definitions
@@ -34,6 +36,8 @@
 #include <metadata/graph_equalizer.h>
 #include <metadata/compressor.h>
 #include <metadata/dyna_processor.h>
+#include <metadata/expander.h>
+#include <metadata/gate.h>
 #include <metadata/experimental.h>
 
 #endif /* METADATA_PLUGINS_H_ */

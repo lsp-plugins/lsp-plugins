@@ -1,7 +1,7 @@
 <?php
 	plugin_header();
 	
-	$sc     =   (strpos($PAGE, 'sc_') == 0);
+	$sc     =   (strpos($PAGE, 'sc_') === 0);
 	$m      =   (strpos($PAGE, '_mono') > 0) ? 'm' : (
 			    (strpos($PAGE, '_stereo') > 0) ? 's' : (
 				(strpos($PAGE, '_lr') > 0) ? 'lr' : (
@@ -22,50 +22,37 @@
 		else
 			echo " is";
 	?>provided. There are possible different variants of dynamic processor to build:
-	<b>compressor</b>, <b>limiter</b>, <b>gate</b>, <b>expander</b>, and many others due to possibility
-	of flexible	dynamic curve configuration. Also dynamic range can be split into sub-ranges that may have
-	their individual <b>attack</b> and <b>release</b> timings.
+	<b>compressor</b>, <b>limiter</b>, <b>gate</b>, <b>expander</b>, some kind of <b>transient designer</b>
+	and many others due to possibility of flexible dynamic curve configuration. Also dynamic range can
+	be split into sub-ranges that may have their individual <b>attack</b> and <b>release</b> timings.
 </p>
 <p><b>Controls:</b></p>
 <ul>
 	<li>
 		<b>Bypass</b> - bypass switch, when turned on (led indicator is shining), the plugin bypasses signal.
 	</li>
-	<li><b>Pause</b> - pauses any updates of the compressor graph.</li>
+	<li><b>Pause</b> - pauses any updates of the time graph.</li>
 	<li><b>Clear</b> - clears all graphs.</li>
 	<?php if ($m == 'ms') { ?>
-		<li><b>MS Listen</b> - passes mid-side signal to the output of compressor instead of stereo signal.</li>
+		<li><b>MS Listen</b> - passes mid-side signal to the output of the processor instead of stereo signal.</li>
 	<?php } ?>
-	<li><b>Gain<?= $sm ?></b> - enables drawing of gain amplification line.</li>
+	<li><b>Gain<?= $sm ?></b> - enables drawing of gain amplification line and corresponding amplification meter.</li>
 	<li><b>SC<?= $sm ?></b> - enables drawing of sidechain input graph and corresponding level meter.</li>
-	<li><b>Env<?= $sm ?></b> - enables drawing of compressor's envelope graph and corresponding level meter.</li>
-	<li><b>In<?= $sm ?></b> - enables drawing of compressor's input signal graph and corresponding level meter.</li>
-	<li><b>Out<?= $sm ?></b> - enables drawing of compressor's output signal graph and corresponding level meter.</li>
+	<li><b>Env<?= $sm ?></b> - enables drawing of envelope graph and corresponding level meter.</li>
+	<li><b>In<?= $sm ?></b> - enables drawing of input signal graph and corresponding level meter.</li>
+	<li><b>Out<?= $sm ?></b> - enables drawing of output signal graph and corresponding level meter.</li>
+	<?php if (($m == 'ms') || ($m == 'lr')) { ?>
+	<li><b>Processor</b> - selects the corresponding channel for configuration.</li>
+	<?php } ?>
 </ul>
-<p><b>'Sidechain' section:</b></p>
+<p><b>'Processor' section:</b></p>
 <ul>
-	<?php if (!$tt) { ?>
-	<li><b>Position</b> - the position of the sidechain input. Available variants:</li>
-	<ul>
-		<li><b>Feed-forward</b> - sidechain input is connected to compressor's input. More aggressive compression.</li>
-		<li><b>Feed-back</b> - sidechain input is connected to compressor's output. Vintage-style more accurate compression.</li>
-		<?php if ($sc) { ?>
-		<li><b>External</b> - sidechain signal is taken from additional (external) sidechain inputs of plugin.</li>
-		<?php }?>
-	</ul>
-	<?php } ?>
-	<li><b>Listen</b> - allows to listen the <b>processed</b> sidechain signal.</li>
-	<li><b>Preamp</b> - pre-amplification of the sidechain signal.</li>
-	<li><b>Reactivity</b> - reactivity of the sidechain signal.</li>
-	<?php if (!$tt) { ?>
-	<li><b>Type</b> - combo box that allows to switch different types for sidechain processing. Available types are:</li>
-	<?php } else {?>
-	<li><b>Source</b> - set of combo boxes that allow to control type, position and source of sidechain. Available types are:</li>
-	<?php } ?>
+	<li><b>Listen</b> - allows to listen the signal processed by sidechain<?php if (($m == 'ms') || ($m == 'lr')) { ?> for the selected processor<?php } ?>.</li>
+	<li><b>Type</b> - set of combo boxes that allow to control type, position and source of sidechain. Available types are:</li>
 	<ul>
 		<?php if ($tt) { ?>
-			<li><b>Feed-forward</b> - sidechain input is connected to compressor's input. More aggressive compression.</li>
-			<li><b>Feed-back</b> - sidechain input is connected to compressor's output. Vintage-style more accurate compression.</li>
+			<li><b>Feed-forward</b> - sidechain input is connected to processor's input. More aggressive compression.</li>
+			<li><b>Feed-back</b> - sidechain input is connected to processor's output. Vintage-style more accurate compression.</li>
 			<?php if ($sc) { ?>
 				<li><b>External</b> - sidechain signal is taken from additional (external) sidechain inputs of plugin.</li>
 			<?php }?>
@@ -81,23 +68,36 @@
 			<li><b>Right</b> - only right channel is used for sidechain processing.</li>
 		<?php } ?>
 	</ul>
+	<li><b>Preamp</b> - pre-amplification of the sidechain signal.</li>
+	<li><b>Reactivity</b> - reactivity of the sidechain signal.</li>
+	<li><b>Mode</b> - compression mode: <b>Upward (Up)</b> or <b>Downward (Down)</b>.</li>
+	<li><b>Ratio low</b> - compression/expansion ratio below the lowest-threshold knee.</li>
+	<li><b>Ratio high</b> - compression/expansion ratio after the highest-threshold knee.</li>
+	<li><b>Attack</b> - default attack time used on the whole dynamics range.</li>
+	<li><b>Release</b> - default release time used on the whole dynamics range.</li>
+	<li><b>Makeup</b> - additional amplification gain after dynamic processing stage.</li>
+	<li><b>Dry</b> - the amount of dry (unprocessed) signal.</li>
+	<li><b>Wet</b> - the amount of wet (processed) signal.</li>
+	<li><b>Ranges</b> - allows to configure up to four additional knees, attack and release ranges:</li>
+	<ul>
+		<li><b>Thr</b> - Knob that enables additional knee.</li>
+		<li><b>Att</b> - Knob that enables additional attack range.</li>
+		<li><b>Rel</b> - Knob that enables additional release range.</li>
+		<li><b>Thresh</b> - Threshold of the additional knee, works only if corresponding <b>Thr</b> button is turned on.</li>
+		<li><b>Gain</b> - Gain of the additional knee, works only if corresponding <b>Thr</b> button is turned on.</li>
+		<li><b>Knee</b> - Softness of the knee, works only if corresponding <b>Thr</b> button is turned on.</li>
+		<li><b>Attack</b> - Pair of knobs that allows to adjust the attack threshold and attack time of the additional
+			attack range. The new attack time is applied if the envelope is <b>over</b> the specified threshold. Otherwise
+			the attack time of previous range or default attack time (if there is no previous range) will be applied.
+		</li>
+		<li><b>Release</b> - Pair of knobs that allows to adjust the release threshold and release time of the additional
+			release range. The new release time is applied if the envelope is <b>over</b> the specified threshold. Otherwise
+			the release time of previous range or default release time (if there is no previous range) will be applied.
+		</li>
+	</ul>
 </ul>
 <p><b>'Signal' section:</b></p>
 <ul>
 	<li><b>Input</b> - overall input gain.</li>
 	<li><b>Output</b> - overall output gain.</li>
 </ul>
-<p><b>'Processor' section:</b></p>
-<ul>
-	<li><b>Mode</b> - compression mode: <b>Upward (Up)</b> or <b>Downward (Down)</b>.</li>
-	<li><b>Ratio</b> - compression ratio.</li>
-	<li><b>Knee</b> - size of compression knee.</li>
-	<li><b>Makeup</b> - additional amplification gain after compression stage.</li>
-	<li><b>Attack Level</b> - threshold of the compressor, placed in the middle of the knee.</li>
-	<li><b>Attack Time</b> - attack time of the compressor.</li>
-	<li><b>Release Level</b> - relative to the <b>Attack Level</b> threshold that sets up the threshold of <b>Release Time</b>.</li>
-	<li><b>Release Time</b> - release time of the compressor.</li>
-	<li><b>Mix Dry</b> - the amount of dry (unprocessed) signal, useful for parallel compression.</li>
-	<li><b>Mix Wet</b> - the amount of wet (processed) signal, useful for parallel compression.</li>
-</ul>
-

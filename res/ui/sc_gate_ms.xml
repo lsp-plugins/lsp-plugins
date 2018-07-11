@@ -1,0 +1,399 @@
+<plugin width="700" height="128" resizable="false">
+	<hbox border="0">
+		<align pad_left="4" pad_right="4">
+			<vbox>
+				<label text="Bypass" />
+				<switch id="bypass" angle="1" />
+				<led id="bypass" color="red" size="8" />
+				<label />
+			</vbox>
+		</align>
+		
+		<vbox>
+			<grid rows="2" cols="7" transpose="true">
+				<!-- Time graph -->
+				<align expand="true" fill="true" pad_top="4">
+					<graph width="400" height="256">
+						<!-- Gray grid -->
+						<marker value="3.98107" color="gray" basis="1" parallel="0" />  <!-- +12 dB -->
+						<marker value="0.25119" color="gray" basis="1" parallel="0" />  <!-- -12 dB -->
+						<marker value="0.01585" color="gray" basis="1" parallel="0" />  <!-- -36 dB -->
+						<marker value="0.001" color="gray" basis="1" parallel="0" />    <!-- -60 dB -->
+						<ui:for id="t" first="0" last="4">
+							<marker value="${t}.5" color="gray" basis="0" parallel="1" />
+						</ui:for>
+						
+						<!-- Yellow grid -->
+						<marker value="0.06310" color="yellow" basis="1" parallel="0" /><!-- -24 dB -->
+						<marker value="0.00398" color="yellow" basis="1" parallel="0" /><!-- -48 dB -->
+						<ui:for id="t" first="1" last="4">
+							<marker value="${t}" color="yellow" basis="0" parallel="1" />
+						</ui:for>
+		
+						<!-- Axises and boundaries -->
+						<center hpos="1" vpos="-1" visible="false" />
+						<axis min="0" max="5" color="gray" angle="1.0" logarithmic="false" />
+						<axis min="0.00025" max="15.84893" color="gray" angle="0.5" logarithmic="true" />
+						<marker value="15.84893" color="gray" basis="1" parallel="0" /> <!-- +24 dB -->
+						<marker value="5" color="gray" basis="0" parallel="1" />
+						
+						<!-- Baseline -->
+						<marker value="1.0" color="white" basis="1" parallel="0" width="2" /> <!-- 0 dB -->
+						
+						<!-- Meshes -->
+						<mesh id="icg_m" width="2" color="middle_channel_in" visibility=":ilv_m" />
+						<mesh id="icg_s" width="2" color="side_channel_in" visibility=":ilv_s" />
+						<mesh id="ocg_m" width="2" color="middle_channel" visibility=":olv_m" />
+						<mesh id="ocg_s" width="2" color="side_channel" visibility=":olv_s" />
+						<mesh id="scg_m" width="2" color="bright_green" visibility=":slv_m" />
+						<mesh id="scg_s" width="2" color="bright_green" visibility=":slv_s" />
+						<mesh id="evg_m" width="2" color="bright_magenta" hue="0.044" visibility=":elv_m" />
+						<mesh id="evg_s" width="2" color="bright_magenta" hue="0.044" visibility=":elv_s" />
+						<mesh id="grg_m" width="2" color="bright_blue" visibility=":grv_m" />
+						<mesh id="grg_s" width="2" color="bright_blue" visibility=":grv_s" />
+						
+						<!-- Markers -->
+						<marker id="gzs_m" color="blue" basis="1" parallel="0" />
+						<marker id="gzs_s" color="blue" basis="1" parallel="0" />
+						<marker id="hzs_m" color="blue" basis="1" parallel="0" visibility=":gh_m" />
+						<marker id="hzs_s" color="blue" basis="1" parallel="0" visibility=":gh_s" />
+						<marker id="gt_m" color="magenta" basis="1" parallel="0" />
+						<marker id="gt_s" color="magenta" basis="1" parallel="0" />
+						<marker id="hts_m" color="magenta" basis="1" parallel="0" visibility=":gh_m" />
+						<marker id="hts_s" color="magenta" basis="1" parallel="0" visibility=":gh_s" />
+						
+						<!-- Text -->
+						<text text="dB" coord="5;15.8489" halign="1" valign="-1" />
+						<text text="+12" coord="5;3.98107" halign="1" valign="-1" />
+						<text text="0" coord="5;1" halign="1" valign="-1" />
+						<text text="-12" coord="5;0.25119" halign="1" valign="-1" />
+						<text text="-24" coord="5;0.06310" halign="1" valign="-1" />
+						<text text="-36" coord="5;0.01585" halign="1" valign="-1" />
+						<text text="-48" coord="5;0.00398" halign="1" valign="-1" />
+						<text text="-60" coord="5;0.001" halign="1" valign="-1" />
+						
+						<text text="s" coord="5;0.00025" halign="1" valign="1" />
+						<ui:for id="t" first="0" last="4" step="1">
+							<text text="${t}" coord="${t};0.00025" halign="-1" valign="1" color="white" />
+							<text text="${t}.5" coord="${t}.5;0.00025" halign="-1" valign="1" color="white" />
+						</ui:for>
+					</graph>
+				</align>
+				
+				<!-- Graph buttons -->
+				<hbox expand="true">
+					<button id="pause" size="16" color="green" led="true" />
+					<label text="Pause" />
+					<button id="clear" size="16" color="red" led="true" />
+					<label text="Clear" />
+					<button id="msl" size="16" color="yellow" led="true" />
+					<label text="MS Listen" />
+					<align pad_right="4" fill="true" hpos="1"><label text="TIME GRAPH" /></align>
+				</hbox>
+				
+				<!-- Sidechain meters -->
+				<align expand="true" fill="true" vpos="1">
+					<vbox>
+						<grid rows="2" cols="2">
+							<label text="M" font_size="8" />
+							<label text="S" font_size="8" />
+							<button id="slv_m" size="10" color="bright_green" led="true" />
+							<button id="slv_s" size="10" color="bright_green" led="true" />
+						</grid>
+						<meter id="slm_m" id2="slm_s" activity_id="slv_m" activity2_id="slv_s"
+							stereo="true" angle="1" type="peak"
+							min="0.000251189" max="15.8489" height="256"
+							color="bright_green" color2="bright_green" />
+					</vbox>
+				</align>
+				<label text="SC" />
+			
+				<!-- Envelope meters -->
+				<align expand="true" fill="true" vpos="1">
+					<vbox>
+						<grid rows="2" cols="2">
+							<label text="M" font_size="8" />
+							<label text="S" font_size="8" />
+							<button id="elv_m" size="10" color="bright_magenta" led="true" />
+							<button id="elv_s" size="10" color="bright_magenta" led="true" />
+						</grid>
+						<meter id="elm_m" id2="elm_s" activity_id="elv_m" activity2_id="elv_s"
+							stereo="true" angle="1" type="peak"
+							min="0.000251189" max="15.8489" height="256"
+							color="bright_magenta" color2="bright_magenta" />
+					</vbox>
+				</align>
+				<label text="Env" />
+				
+				<!-- Gain reduction meters -->
+				<align expand="true" fill="true" vpos="1">
+					<vbox>
+						<grid rows="2" cols="2">
+							<label text="M" font_size="8" />
+							<label text="S" font_size="8" />
+							<button id="grv_m" size="10" color="bright_blue" led="true" />
+							<button id="grv_s" size="10" color="bright_blue" led="true" />
+						</grid>
+						<meter id="rlm_m" id2="rlm_s" activity_id="grv_m" activity2_id="grv_s"
+							stereo="true" angle="1" type="peak"
+							min="0.00398" max="251.18861" balance="1.0" height="256"
+							color="bright_blue" color2="bright_blue" />
+					</vbox>
+				</align>
+				<label text="Gain" />
+				
+				<!-- Curve graph -->
+				<align expand="true" fill="true" pad_top="4">
+					<graph width="256" height="256" expand="true" fill="true">
+						<!-- Gray grid -->
+						<marker value="3.98107" color="gray" basis="1" parallel="0" />  <!-- +12 dB -->
+						<marker value="3.98107" color="gray" basis="0" parallel="1" />  <!-- +12 dB -->
+						<marker value="0.25119" color="gray" basis="1" parallel="0" />  <!-- -12 dB -->
+						<marker value="0.25119" color="gray" basis="0" parallel="1" />  <!-- -12 dB -->
+						<marker value="0.01585" color="gray" basis="1" parallel="0" />  <!-- -36 dB -->
+						<marker value="0.01585" color="gray" basis="0" parallel="1" />  <!-- -36 dB -->
+						<marker value="0.001" color="gray" basis="1" parallel="0" />    <!-- -60 dB -->
+						<marker value="0.001" color="gray" basis="0" parallel="1" />    <!-- -60 dB -->
+						
+						<!-- Yellow grid -->
+						<marker value="0.06310" color="yellow" basis="1" parallel="0" /><!-- -24 dB -->
+						<marker value="0.06310" color="yellow" basis="0" parallel="1" /><!-- -24 dB -->
+						<marker value="0.00398" color="yellow" basis="1" parallel="0" /><!-- -48 dB -->
+						<marker value="0.00398" color="yellow" basis="0" parallel="1" /><!-- -48 dB -->
+					
+						<!-- Axises and boundaries -->
+						<center hpos="-1" vpos="-1" visible="false" />
+						<axis min="0.00025" max="15.84893" color="gray" angle="0.0" logarithmic="true" /> <!-- horizontal axis -->
+						<axis min="0.00025" max="15.84893" color="gray" angle="0.5" logarithmic="true" /> <!-- vertical axis -->
+						<marker value="1" offset="1" color="gray" basis="1" parallel="0" angle="0.25" width="2" smooth="true" /> <!-- 1:1 -->
+						<marker value="15.84893" color="gray" basis="1" parallel="0" /> <!-- +24 dB -->
+						<marker value="15.84893" color="gray" basis="0" parallel="1" /> <!-- +24 dB -->
+	
+						<!-- 0 dB markers -->
+						<marker value="1.0" color="white" basis="1" parallel="0" width="2" /> <!-- 0 dB -->
+						<marker value="1.0" color="white" basis="0" parallel="1" width="2" /> <!-- 0 dB -->
+						
+						<!-- Meshes -->
+						<mesh id="hg_m" width="3" color="middle_channel" smooth="true" visibility=":gh_m" />
+						<mesh id="cg_m" width="3" color="middle_channel" smooth="true" />
+						<mesh id="hg_s" width="3" color="side_channel" smooth="true" visibility=":gh_s" />
+						<mesh id="cg_s" width="3" color="side_channel" smooth="true" />
+						<dot hpos_id="elm_m" vpos_id="clm_m" color="middle_channel" led="true" />
+						<dot hpos_id="elm_s" vpos_id="clm_s" color="side_channel" led="true" />
+						
+						<!-- Markers -->
+						<marker id="gzs_m" color="blue" basis="0" parallel="1" />
+						<marker id="gzs_s" color="blue" basis="0" parallel="1" />
+						<marker id="hzs_m" color="blue" basis="0" parallel="1" visibility=":gh_m" />
+						<marker id="hzs_s" color="blue" basis="0" parallel="1" visibility=":gh_s" />
+						<marker id="gt_m" color="magenta" basis="0" parallel="1" />
+						<marker id="gt_s" color="magenta" basis="0" parallel="1" />
+						<marker id="hts_m" color="magenta" basis="0" parallel="1" visibility=":gh_m" />
+						<marker id="hts_s" color="magenta" basis="0" parallel="1" visibility=":gh_s" />
+					
+						<!-- Text -->
+						<text text="0" coord="1;1" halign="1" valign="1" />
+						
+						<text text="dB" coord="1;15.8489" halign="1" valign="-1" />
+						<text text="+12" coord="1;3.98107" halign="1" valign="-1" />
+						<text text="-12" coord="1;0.25119" halign="1" valign="-1" />
+						<text text="-24" coord="1;0.06310" halign="1" valign="-1" />
+						<text text="-36" coord="1;0.01585" halign="1" valign="-1" />
+						<text text="-48" coord="1;0.00398" halign="1" valign="-1" />
+						<text text="-60" coord="1;0.001" halign="1" valign="-1" />
+						<text text="out" coord="1;0.00025" halign="1" valign="1" />
+						
+						<text text="dB" coord="15.8489;1" halign="-1" valign="1" />
+						<text text="+12" coord="3.98107;1" halign="-1" valign="1" />
+						<text text="-12" coord="0.25119;1" halign="-1" valign="1" />
+						<text text="-24" coord="0.06310;1" halign="-1" valign="1" />
+						<text text="-36" coord="0.01585;1" halign="-1" valign="1" />
+						<text text="-48" coord="0.00398;1" halign="-1" valign="1" />
+						<text text="-60" coord="0.001;1" halign="-1" valign="1" />
+						<text text="in" coord="0.00025;1" halign="1" valign="1" />
+					</graph>
+				</align>
+				<hbox expand="true">
+					<align pad_right="4" fill="true" hpos="0"><label text="GATING" /></align>
+				</hbox>
+				
+				<!-- Input signal meters -->
+				<align expand="true" fill="true" vpos="1">
+					<vbox>
+						<grid rows="2" cols="2">
+							<label text="M" font_size="8" />
+							<label text="S" font_size="8" />
+							<button id="ilv_m" size="10" color="middle_channel" led="true" />
+							<button id="ilv_s" size="10" color="side_channel" led="true" />
+						</grid>
+						<meter id="ilm_m" id2="ilm_s" activity_id="ilv_m" activity2_id="ilv_s"
+							stereo="true" angle="1" type="rms_peak"
+							min="0.000251189" max="15.8489" height="256"
+							color="middle_channel" color2="side_channel" />
+					</vbox>
+				</align>
+				<label text="In" />
+				
+				<!-- Output signal meters -->
+				<align expand="true" fill="true" vpos="1">
+					<vbox>
+						<grid rows="2" cols="2">
+							<label text="M" font_size="8" />
+							<label text="S" font_size="8" />
+							<button id="olv_m" size="10" color="middle_channel" led="true" />
+							<button id="olv_s" size="10" color="side_channel" led="true" />
+						</grid>
+						<meter id="olm_m" id2="olm_s" activity_id="olv_m" activity2_id="olv_s"
+							stereo="true" angle="1" type="rms_peak"
+							min="0.000251189" max="15.8489" height="256"
+							color="middle_channel" color2="side_channel" />
+					</vbox>
+				</align>
+				<label text="Out" />
+			</grid>
+			<hbox>
+				<!-- Sidechain processing -->
+				<group text="Sidechain" expand="true">
+					<grid rows="5" cols="4" expand="true">
+						<label text="Listen" />
+						<label text="Preamp" />
+						<label text="Reactivity" />
+						<label text="Setup" />
+						
+						<button id="scl_m" size="16" color="middle_channel" led="true" />
+						<knob id="scp_m" />
+						<knob id="scr_m" />
+						<cell rows="2">
+							<vbox>
+								<combo id="sci_m" />
+								<combo id="scm_m" />
+								<combo id="scs_m" />
+							</vbox>
+						</cell>
+						
+						<label text="Middle" />
+						<value id="scp_m" same_line="true" />
+						<value id="scr_m" same_line="true" />
+						
+						<button id="scl_s" size="16" color="side_channel" led="true" />
+						<knob id="scp_s" />
+						<knob id="scr_s" />
+						<cell rows="2">
+							<vbox>
+								<combo id="sci_s" />
+								<combo id="scm_s" />
+								<combo id="scs_s" />
+							</vbox>
+						</cell>
+						
+						<label text="Side" />
+						<value id="scp_s" same_line="true" />
+						<value id="scr_s" same_line="true" />
+					</grid>
+				</group>
+				
+				<!-- Gate setup -->
+				<group text="Gate" expand="true">
+					<hbox expand="true">
+						<grid rows="5" cols="4" expand="true">
+							<label text="Reduction" />
+							<label text="Makeup" />
+							<label text="Attack" />
+							<label text="Release" />
+							
+							<knob id="gr_m" scale_color="middle_channel" />
+							<knob id="mk_m" scale_color="middle_channel" />
+							<knob id="at_m" scale_color="middle_channel" />
+							<knob id="rt_m" scale_color="middle_channel" />
+							
+							<value id="gr_m" />
+							<value id="mk_m" />
+							<value id="at_m" />
+							<value id="rt_m" />
+							
+							<knob id="gr_s" scale_color="side_channel" />
+							<knob id="mk_s" scale_color="side_channel" />
+							<knob id="at_s" scale_color="side_channel" />
+							<knob id="rt_s" scale_color="side_channel" />
+							
+							<value id="gr_s" />
+							<value id="mk_s" />
+							<value id="at_s" />
+							<value id="rt_s" />
+						</grid>
+						<vsep />
+						<grid rows="6" cols="4" expand="true">
+							<cell cols="2"><label text="Curve" /></cell>
+							<cell cols="2">
+								<hbox>
+									<grid rows="2" cols="3">
+										<button id="gh_m" size="10" color="middle_channel" led="true" />
+										<cell rows="2"><label text="Hysteresis" /></cell>
+										<button id="gh_s" size="10" color="side_channel" led="true" />
+										<label text="M" font_size="8" />
+										<label text="S" font_size="8" />
+									</grid>
+								</hbox>
+							</cell>
+							<label text="Thresh" />
+							<label text="Zone" />
+							<label text="Thresh" />
+							<label text="Zone" />
+							
+							<knob id="gt_m" scale_color="magenta" size="20" />
+							<knob id="gz_m" scale_color="blue" size="20" />
+							<knob id="ht_m" scale_color="magenta" size="20" />
+							<knob id="hz_m" scale_color="blue" size="20" />
+							
+							<value id="gt_m" />
+							<value id="gz_m" />
+							<value id="ht_m" />
+							<value id="hz_m" />
+							
+							<knob id="gt_s" scale_color="magenta" size="20" />
+							<knob id="gz_s" scale_color="blue" size="20" />
+							<knob id="ht_s" scale_color="magenta" size="20" />
+							<knob id="hz_s" scale_color="blue" size="20" />
+							
+							<value id="gt_s" />
+							<value id="gz_s" />
+							<value id="ht_s" />
+							<value id="hz_s" />
+						</grid>
+						<vsep />
+						<grid rows="6" cols="2" expand="true">
+							<cell cols="2"><label text="Mix" /></cell>
+							<label text="Dry" />
+							<label text="Wet" />
+							
+							<knob id="cdr_m" scale_color="yellow" size="20" />
+							<knob id="cwt_m" scale_color="yellow" size="20" />
+							
+							<value id="cdr_m" />
+							<value id="cwt_m" />
+							
+							<knob id="cdr_s" scale_color="yellow" size="20" />
+							<knob id="cwt_s" scale_color="yellow" size="20" />
+							
+							<value id="cdr_s" />
+							<value id="cwt_s" />
+						</grid>
+					</hbox>
+				</group>
+				
+				<!-- Signal control -->
+				<group text="Signal" expand="true">
+					<vbox expand="true">
+						<label text="Input" />
+						<knob id="g_in" />
+						<value id="g_in" />
+												
+						<label text="Output" />
+						<knob id="g_out" />
+						<value id="g_out" />
+					</vbox>
+				</group>
+			</hbox>
+		</vbox>
+	</hbox>
+</plugin>

@@ -131,13 +131,11 @@ namespace lsp
                 {
                     JACKMeterPort *mp = static_cast<JACKMeterPort *>(pPort);
                     fValue      = mp->syncValue();
-                    return true;
                 }
                 else
-                {
                     fValue      = pPort->getValue();
-                    return fValue != value;
-                }
+
+                return fValue != value;
             }
     };
 

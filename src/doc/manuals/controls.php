@@ -27,7 +27,8 @@
 	<li>Widgets that control parameters of one object often have similar colors.</li>
 	<li>Widgets associated with audio channels often use the following color scheme:</li>
 	<ul>
-		<li><b style="color:#00c0ff">Blue</b> - for mono channel, stereo channel (when both left and right channels are controlled at same time), middle channel.</li>
+		<li><b style="color:#0000ff">Blue</b> and <b style="color:#ff00ff">Magenta</b> - for thresholds.</li>
+		<li><b style="color:#00c0ff">Sapphirine</b> - for mono channel, stereo channel (when both left and right channels are controlled at same time), middle channel.</li>
 		<li><b style="color:#ff0000">Red</b> - for left channel in stero pair.</li>
 		<li><b style="color:#00ffff">Cyan</b> - for right channel in stereo pair, direct output channel.</li>
 		<li><b style="color:#00cc00">Green</b> - for side channel or sidechain.</li>

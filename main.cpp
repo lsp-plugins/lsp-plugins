@@ -35,7 +35,7 @@
 #include "test/xwindow.h"
 
 //#define TEST gtk_test
-//#define TEST jack_test
+#define TEST jack_test
 //#define TEST fft_conv_test
 //#define TEST crossover_test
 //#define TEST saturation_test
@@ -45,7 +45,7 @@
 //#define TEST equalizer_test
 //#define TEST avx_test
 //#define TEST sidechain_test
-#define TEST xwindow_test
+//#define TEST xwindow_test
 
 //#define TEST vec4_test
 //#define TEST view_ui_test

@@ -46,8 +46,11 @@
 		
 			<!-- Main content -->
 			<div id="main">
-				<h1><?php echo htmlspecialchars($HEADER); ?></h1>
-				<?php require("./manuals/${MENUITEM['path']}/${FILENAME}.php"); ?>
+				<?php 
+					if ($MENUITEM['parent'] != 'plugins')
+						echo '<h1>' . htmlspecialchars($HEADER) . '</h1>';
+					require("./manuals/${MENUITEM['path']}/${FILENAME}.php");
+				?>
 			</div>
 			
 			<!-- Navigation bottom -->

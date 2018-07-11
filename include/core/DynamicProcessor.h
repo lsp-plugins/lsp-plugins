@@ -87,17 +87,17 @@ namespace lsp
             ~DynamicProcessor();
 
         public:
-            /** Check that some of compressor's parameters have been modified
+            /** Check that some of processor's parameters have been modified
              * and we need to call update_settings();
              *
-             * @return true if some of compressor's parameters have been modified
+             * @return true if some of processor's parameters have been modified
              */
             inline bool modified() const
             {
                 return bUpdate;
             }
 
-            /** Update compressor's settings
+            /** Update processor's settings
              *
              */
             void update_settings();
@@ -283,7 +283,7 @@ namespace lsp
             /** Process sidechain signal
              *
              * @param out output signal gain to VCA
-             * @param env envelope signal of compressor
+             * @param env envelope signal of processor
              * @param in sidechain signal
              * @param samples number of samples to process
              */
@@ -292,7 +292,7 @@ namespace lsp
             /** Process one sample of sidechain signal
              *
              * @param in sidechain signal
-             * @param out envelope signal of compressor, may be NULL
+             * @param out envelope signal of processor, may be NULL
              * @return output signal gain to VCA
              */
             float process(float *env, float in);

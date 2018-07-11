@@ -383,7 +383,7 @@ namespace lsp
         return STATUS_SUCCESS;
     }
 
-    int gen_resource_file(const char *path, const char *fname)
+    int gen_xml_resource_file(const char *path, const char *fname)
     {
         FILE *out = fopen(fname, "w");
         if (out == NULL)
@@ -524,7 +524,10 @@ namespace lsp
 int main(int argc, const char **argv)
 {
     if (argc < 3)
+    {
         fprintf(stderr, "required resource path and destination file name");
-    return lsp::gen_resource_file(argv[1], argv[2]);
+        return -1;
+    }
+    return lsp::gen_xml_resource_file(argv[1], argv[2]);
 }
 #endif /* LSP_IDE_DEBUG */

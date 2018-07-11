@@ -1,7 +1,7 @@
 <?php
 	plugin_header();
 	
-	$sc     =   (strpos($PAGE, 'sc_') == 0);
+	$sc     =   (strpos($PAGE, 'sc_') === 0);
 	$m      =   (strpos($PAGE, '_mono') > 0) ? 'm' : (
 			    (strpos($PAGE, '_stereo') > 0) ? 's' : (
 				(strpos($PAGE, '_lr') > 0) ? 'lr' : (
@@ -35,7 +35,7 @@
 	<?php if ($m == 'ms') { ?>
 		<li><b>MS Listen</b> - passes mid-side signal to the output of compressor instead of stereo signal.</li>
 	<?php } ?>
-	<li><b>Gain<?= $sm ?></b> - enables drawing of gain amplification line.</li>
+	<li><b>Gain<?= $sm ?></b> - enables drawing of gain amplification line and corresponding amplification meter.</li>
 	<li><b>SC<?= $sm ?></b> - enables drawing of sidechain input graph and corresponding level meter.</li>
 	<li><b>Env<?= $sm ?></b> - enables drawing of compressor's envelope graph and corresponding level meter.</li>
 	<li><b>In<?= $sm ?></b> - enables drawing of compressor's input signal graph and corresponding level meter.</li>

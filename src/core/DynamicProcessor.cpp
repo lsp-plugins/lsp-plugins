@@ -304,6 +304,8 @@ namespace lsp
                 x       = -x;
             if (x < FLOAT_SAT_N_INF)
                 x       = FLOAT_SAT_N_INF;
+            else if (x > FLOAT_SAT_P_INF)
+                x       = FLOAT_SAT_P_INF;
 
             float lx    = logf(x);
             float gain  = 0.0f;
@@ -323,6 +325,9 @@ namespace lsp
             in      = -in;
         if (in < FLOAT_SAT_N_INF)
             in      = FLOAT_SAT_N_INF;
+        else if (in > FLOAT_SAT_P_INF)
+            in      = FLOAT_SAT_P_INF;
+
         float lx    = logf(in);
         float gain  = 0.0f;
 
@@ -343,6 +348,8 @@ namespace lsp
                 x       = -x;
             if (x < FLOAT_SAT_N_INF)
                 x       = FLOAT_SAT_N_INF;
+            else if (x > FLOAT_SAT_P_INF)
+                x       = FLOAT_SAT_P_INF;
 
             float lx    = logf(x);
             float gain  = 0.0f;
@@ -362,6 +369,9 @@ namespace lsp
             in      = -in;
         if (in < FLOAT_SAT_N_INF)
             in      = FLOAT_SAT_N_INF;
+        else if (in > FLOAT_SAT_P_INF)
+            in      = FLOAT_SAT_P_INF;
+
         float lx    = logf(in);
         float gain  = 0.0f;
 
@@ -382,6 +392,8 @@ namespace lsp
                 x       = -x;
             if (x < FLOAT_SAT_N_INF)
                 x       = FLOAT_SAT_N_INF;
+            else if (x > FLOAT_SAT_P_INF)
+                x       = FLOAT_SAT_P_INF;
 
             float lx    = logf(x);
             float gain  = 0.0f;
@@ -401,6 +413,9 @@ namespace lsp
             in      = -in;
         if (in < FLOAT_SAT_N_INF)
             in      = FLOAT_SAT_N_INF;
+        else if (in > FLOAT_SAT_P_INF)
+            in      = FLOAT_SAT_P_INF;
+
         float lx    = logf(in);
         float gain  = 0.0f;
 

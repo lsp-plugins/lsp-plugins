@@ -14,7 +14,7 @@ INSTALL                 = install
 
 # Package version
 ifndef VERSION
-VERSION                 = 1.0.15
+VERSION                 = 1.0.16
 endif
 
 # Directories
@@ -191,6 +191,10 @@ install_doc: all
 	@echo "Installing documentation to $(DESTDIR)$(DOC_PATH)"
 	@mkdir -p $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
 	@cp -r $(OBJDIR)/html/* $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
+
+dbg_release: export CFLAGS        += -DLSP_TRACE -O2
+dbg_release: $(RELEASES)
+	@echo "Debug Release OK"
 
 release: INSTALL        += -s
 release: $(RELEASES)

@@ -33,23 +33,28 @@ namespace lsp
 
             enum flags_t
             {
-                MF_MIN      = 1 << 0,
-                MF_MAX      = 1 << 1,
-                MF_LOG      = 1 << 2,
-                MF_LOG_SET  = 1 << 3,
-                MF_REV      = 1 << 4,
-                MF_VALUE    = 1 << 5,
-                MF_INACTIVE = 1 << 6,
-                MF_RMS      = 1 << 7
+                MF_MIN          = 1 << 0,
+                MF_MAX          = 1 << 1,
+                MF_LOG          = 1 << 2,
+                MF_LOG_SET      = 1 << 3,
+                MF_REV          = 1 << 4,
+                MF_VALUE        = 1 << 5,
+                MF_INACTIVE0    = 1 << 6,
+                MF_INACTIVE1    = 1 << 7,
+                MF_RMS          = 1 << 8,
+                MF_STEREO       = 1 << 9,
+                MF_BALANCE      = 1 << 10
             };
 
         protected:
-            IUIPort        *pPort;
-            IUIPort        *pActivity;  // Activity flag
+            IUIPort        *pPort[2];
+            IUIPort        *pActivity[2];// Activity flag
             float           fMin;       // Minimum displayed value
             float           fMax;       // Maximum displayed value
-            float           fValue;     // Current value
-            float           fRms;       // RMS value
+            float           fValue[2];  // Current value
+            float           fRms[2];    // RMS value
+            float           fReport[2]; // last reort
+            float           fBalance;   // Balance
             size_t          nAngle;     // Angle 0..3
             size_t          nMWidth;    // Width
             size_t          nMHeight;   // Height
@@ -60,16 +65,15 @@ namespace lsp
             Padding         sPadding;   // Padding
             ColorHolder     sBgColor;   // Background color
             ColorHolder     sIndColor;  // Indication color
-            ColorHolder     sColor;     // Color holder
+            ColorHolder     sColor[2];  // Color holders
             guint           hFunction;
 
         protected:
-            float           normalized_value();
             float           get_value(size_t seg, size_t nseg) const;
-            void            get_color(float rs, float re, ColorHolder &cl);
-//            void            set_value(float value, bool force);
+            void            get_color(size_t channel, float rs, float re, ColorHolder &cl);
             static gboolean redraw_meter(gpointer ptr);
             void            format_meter(float value, char *buf, size_t n) const;
+            void            update_peaks();
 
             virtual void    draw(cairo_t *cr);
 

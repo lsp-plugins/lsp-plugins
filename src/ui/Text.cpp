@@ -17,26 +17,25 @@ namespace lsp
 {
     Text::Text(plugin_ui *ui): IGraphObject(ui, W_TEXT)
     {
-        nCoords     = 2;
-        vCoords     = new float[2];
-        vCoords[0]  = 0.0;
-        vCoords[1]  = 0.0;
-        sText       = NULL;
-        fHAlign     = 0.0;
-        fVAlign     = 0.0;
-        fSize       = 10.0;
-        nCenter     = 0;
+        nCoords             = 2;
+        vCoords             = new coord_t[2];
+        vCoords[0].pPort    = NULL;
+        vCoords[0].fValue   = 0.0;
+        vCoords[1].pPort    = NULL;
+        vCoords[1].fValue   = 0.0;
+        sText               = NULL;
+        fHAlign             = 0.0;
+        fVAlign             = 0.0;
+        fSize               = 10.0;
+        nCenter             = 0;
 
         sColor.set(ui->theme(), C_GRAPH_TEXT);
     }
 
     Text::~Text()
     {
-        if (vCoords != NULL)
-        {
-            delete [] vCoords;
-            vCoords     = NULL;
-        }
+        drop_coordinates();
+
         if (sText != NULL)
         {
             lsp_free(sText);
@@ -61,7 +60,7 @@ namespace lsp
             if (axis == NULL)
                 return;
             // Apply changes
-            if (!axis->apply(cv, &x, &y, &vCoords[i], 1))
+            if (!axis->apply(cv, &x, &y, &vCoords[i].fValue, 1))
                 return;
         }
 
@@ -107,55 +106,109 @@ namespace lsp
         }
     }
 
+    void Text::drop_coordinates()
+    {
+        if (vCoords != NULL)
+        {
+            for (size_t i=0; i<nCoords; ++i)
+            {
+                if (vCoords[i].pPort != NULL)
+                    vCoords[i].pPort->unbind(this);
+            }
+
+            delete [] vCoords;
+            vCoords = NULL;
+            nCoords = 0;
+        }
+    }
+
     bool Text::read_coordinates(const char *value)
     {
-        size_t coords = 0, capacity = 10;
-        float *buf = new float[10];
-        if (buf == NULL)
+        drop_coordinates();
+
+        // Calculate number of items
+        size_t items = 1;
+        char port_name[16];
+        for (const char *p = value; *p != '\0'; ++p)
+        {
+            if (*p == ';')
+                items++;
+        }
+
+        vCoords = new coord_t[items];
+        if (vCoords == NULL)
             return false;
+        nCoords = 0;
+
         char *end = const_cast<char *>(value);
 
         // Read the string representing coordinates
         while (true)
         {
-            errno           = 0;
-            float v         = strtof(end, &end);
-            if (errno != 0)
+            if (*end == ':')
             {
-                delete [] buf;
-                return false;
-            }
+                char *next      = strchr(++end, ';');
+                if (next == NULL)
+                    for (next = end; *next != '\0'; ++next) /* nothing */ ;
 
-            if (coords >= capacity)
-            {
-                float *n_buf = new float[capacity + 10];
-                if (n_buf == NULL)
+                // Read port name
+                size_t nchars   = next - end;
+                if (nchars >= (sizeof(port_name)/sizeof(char)))
+                {
+                    drop_coordinates();
                     return false;
-                for(size_t i=0; i<capacity; ++i)
-                    n_buf[i] = buf[i];
-                delete [] buf;
-                buf         = n_buf;
-                capacity   += 10;
+                }
+                memcpy(port_name, end, nchars*sizeof(char));
+                port_name[nchars] = '\0';
+
+                // Bind port
+                IUIPort *p      = pUI->port(port_name);
+                if (p != NULL)
+                    p->bind(this);
+
+                vCoords[nCoords].fValue = 0;
+                vCoords[nCoords].pPort  = p;
+                nCoords ++;
+
+                // Update pointer
+                end             = next;
             }
-            buf[coords++] = v;
+            else
+            {
+                errno           = 0;
+                float v         = strtof(end, &end);
+                if (errno != 0)
+                {
+                    drop_coordinates();
+                    return false;
+                }
+
+                vCoords[nCoords].fValue = v;
+                vCoords[nCoords].pPort  = NULL;
+                nCoords ++;
+            }
 
             if ((*end) == '\0')
                 break;
             if ((*(end++)) != ';')
             {
-                delete [] buf;
+                drop_coordinates();
                 return false;
             }
         }
 
-        // Drop previously used buffers
-        if (vCoords != NULL)
-            delete [] vCoords;
-
-        // Store new buffers
-        vCoords     = buf;
-        nCoords     = coords;
         return true;
+    }
+
+    void Text::notify(IUIPort *port)
+    {
+        IGraphObject::notify(port);
+
+        for (size_t i=0; i<nCoords; ++i)
+        {
+            if (vCoords[i].pPort == port)
+                vCoords[i].fValue   = port->getValue();
+        }
     }
 
 } /* namespace lsp */

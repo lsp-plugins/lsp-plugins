@@ -13,9 +13,17 @@ namespace lsp
     
     class Text: public IGraphObject
     {
+        protected:
+            typedef struct coord_t
+            {
+                float       fValue;
+                IUIPort    *pPort;
+            } coord_t;
+
         private:
             size_t          nCoords;
-            float          *vCoords;
+            coord_t        *vCoords;
+//            float          *vCoords;
             char           *sText;
             ColorHolder     sColor;
             float           fHAlign;
@@ -24,7 +32,8 @@ namespace lsp
             size_t          nCenter;
 
         protected:
-            bool read_coordinates(const char *value);
+            void        drop_coordinates();
+            bool        read_coordinates(const char *value);
 
         public:
             Text(plugin_ui *ui);
@@ -35,6 +44,8 @@ namespace lsp
             virtual void draw(IGraphCanvas *cv);
 
             virtual void set(widget_attribute_t att, const char *value);
+
+            virtual void notify(IUIPort *port);
     };
 
 } /* namespace lsp */

@@ -3,8 +3,8 @@
 	// Sort plugins by name
 	function plugin_cmp($a, $b)
 	{
-		$a = $a['name'];
-		$b = $b['name'];
+		$a = $a['description'];
+		$b = $b['description'];
 		return ($a == $b) ? 0 : ($a > $b) ? 1 : -1;
 	}
 	
@@ -24,6 +24,8 @@
 			if ($plugin['id'] != $PAGE)
 				continue;
 			
+			echo "<h1>" . $plugin['name'] . "</h1>\n";
+			
 			$fmt = array();
 			if (isset($plugin['fmt_ladspa']) && ($plugin['fmt_ladspa'] > 0))
 				array_push($fmt, 'LADSPA');
@@ -35,7 +37,7 @@
 				array_push($fmt, 'JACK');
 		
 			echo "<img class=\"plugin\" src=\"${DOCROOT}img/plugins/{$plugin['id']}.png\" alt=\"{$plugin['name']}\">\n";
-			echo "<p><b>Detailed:&nbsp;</b>LSP {$plugin['name']} - {$plugin['description']} ({$plugin['acronym']})</p>\n";
+			echo "<p><b>Detailed:&nbsp;</b>LSP {$plugin['description']} - {$plugin['name']} ({$plugin['acronym']})</p>\n";
 			echo "<p><b>Formats:&nbsp;</b>" . implode(',&nbsp;', $fmt) . "</p>\n";
 			echo "<p><b>Categories:&nbsp;</b>" . implode(',&nbsp;', $plugin['groups']) . "</p>\n";
 			echo "<p><b>Developer:&nbsp;</b>{$plugin['author']}</p>\n";

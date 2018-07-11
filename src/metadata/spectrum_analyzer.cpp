@@ -174,7 +174,7 @@ namespace lsp
     const plugin_metadata_t  spectrum_analyzer_x1_metadata::metadata =
     {
         "Spektrumanalysator x1",
-        "Spectrum Analyzer",
+        "Spectrum Analyzer x1",
         "SA1",
         &developers::v_sadovnikov,
         "spectrum_analyzer_x1",
@@ -189,7 +189,7 @@ namespace lsp
     const plugin_metadata_t  spectrum_analyzer_x2_metadata::metadata =
     {
         "Spektrumanalysator x2",
-        "Spectrum Analyzer",
+        "Spectrum Analyzer x2",
         "SA2",
         &developers::v_sadovnikov,
         "spectrum_analyzer_x2",
@@ -204,7 +204,7 @@ namespace lsp
     const plugin_metadata_t  spectrum_analyzer_x4_metadata::metadata =
     {
         "Spektrumanalysator x4",
-        "Spectrum Analyzer",
+        "Spectrum Analyzer x4",
         "SA4",
         &developers::v_sadovnikov,
         "spectrum_analyzer_x4",
@@ -219,7 +219,7 @@ namespace lsp
     const plugin_metadata_t  spectrum_analyzer_x8_metadata::metadata =
     {
         "Spektrumanalysator x8",
-        "Spectrum Analyzer",
+        "Spectrum Analyzer x8",
         "SA8",
         &developers::v_sadovnikov,
         "spectrum_analyzer_x8",
@@ -234,7 +234,7 @@ namespace lsp
     const plugin_metadata_t  spectrum_analyzer_x12_metadata::metadata =
     {
         "Spektrumanalysator x12",
-        "Spectrum Analyzer",
+        "Spectrum Analyzer x12",
         "SA12",
         &developers::v_sadovnikov,
         "spectrum_analyzer_x12",
@@ -249,7 +249,7 @@ namespace lsp
     const plugin_metadata_t  spectrum_analyzer_x16_metadata::metadata =
     {
         "Spektrumanalysator x16",
-        "Spectrum Analyzer",
+        "Spectrum Analyzer x16",
         "SA16",
         &developers::v_sadovnikov,
         "spectrum_analyzer_x16",

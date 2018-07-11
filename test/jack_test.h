@@ -29,6 +29,8 @@ namespace jack_test
 //                "para_equalizer_x32_ms";
 //                "trigger_mono";
 //                "trigger_stereo";
+//                "trigger_midi_mono";
+//                "trigger_midi_stereo";
 //                "phase_detector";
 //                "spectrum_analyzer_x2";
 //                "sampler_mono";
@@ -38,7 +40,26 @@ namespace jack_test
 //                "compressor_lr";
 //                "compressor_ms";
 //                "sc_compressor_mono";
-                "dyna_processor_mono";
+//                "dyna_processor_mono";
+//                "dyna_processor_stereo";
+//                "dyna_processor_lr";
+//                "dyna_processor_ms";
+//                "expander_mono";
+//                "expander_stereo";
+//                "expander_lr";
+//                "expander_ms";
+//                "sc_expander_mono";
+//                "sc_expander_stereo";
+//                "sc_expander_lr";
+//                "sc_expander_ms";
+                "gate_mono";
+//                "gate_stereo";
+//                "gate_lr";
+//                "gate_ms";
+//                "sc_gate_mono";
+//                "sc_gate_stereo";
+//                "sc_gate_lr";
+//                "sc_gate_ms";
 
         return JACK_MAIN_FUNCTION(plugin, argc, argv);
     }

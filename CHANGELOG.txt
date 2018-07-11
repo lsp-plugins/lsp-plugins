@@ -2,6 +2,20 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.16 ===
+
+* Implemented Expander Mono, Stereo, LeftRight, MidSide plugin series.
+* Implemented Gate Mono, Stereo, LeftRight, MidSide plugin series.
+* Added expression language to XML documents that allows to evaluate floating-point values.
+* Added feature to meter widget: now middle point-relative output is supported.
+* Added possibility to display two values for one metering widget simultaneously.
+* Some metadata corrections.
+* Updated naming of LinuxVST *.so files: all underscore characters are replaced by minuses.
+* Added 'TROUBLESHOOTING' section to README.txt and documentation that describes how to
+  pefrorm detailed bug/crash report.
+* Fixed bug of sidechain triggered when it's working in mid-side mode.
+* Updated UI design of the trigger relative to metering.
+
 === 1.0.15 ===
 
 * Updated metadata to place english names first for all plugins, and german names afterwards.

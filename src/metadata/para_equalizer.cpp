@@ -52,77 +52,6 @@ namespace lsp
         NULL
     };
 
-//    static const char *filter_types[] =
-//    {
-//        "Off",
-//
-//        // Bell
-//        "Bell RLC (BT)",
-//        "Bell RLC (MT)",
-//        "Bell BWC (BT)",
-//        "Bell BWC (MT)",
-//        "Bell LRX (BT)",
-//        "Bell LRX (MT)",
-//
-//        // RLC Resonance filter
-//        "Resonance RLC (BT)",
-//        "Resonance RLC (MT)",
-//
-//        // RLC Notch
-//        "Notch RLC (BT)",
-//        "Notch RLC (MT)",
-//
-//        // Lo-pass
-//        "Lo-pass RLC (BT)",
-//        "Lo-pass RLC (MT)",
-//        "Lo-pass BWC (BT)",
-//        "Lo-pass BWC (MT)",
-//        "Lo-pass LRX (BT)",
-//        "Lo-pass LRX (MT)",
-//
-//        // Lo-Shelf
-//        "Lo-shelf RLC (BT)",
-//        "Lo-shelf RLC (MT)",
-//        "Lo-shelf BWC (BT)",
-//        "Lo-shelf BWC (MT)",
-//        "Lo-shelf LRX (BT)",
-//        "Lo-shelf LRX (MT)",
-//
-//        // Hi-pass
-//        "Hi-pass RLC (BT)",
-//        "Hi-pass RLC (MT)",
-//        "Hi-pass BWC (BT)",
-//        "Hi-pass BWC (MT)",
-//        "Hi-pass LRX (BT)",
-//        "Hi-pass LRX (MT)",
-//
-//        // RLC Hi-shelf
-//        "Hi-shelf RLC (BT)",
-//        "Hi-shelf RLC (MT)",
-//        "Hi-shelf BWC (BT)",
-//        "Hi-shelf BWC (MT)",
-//        "Hi-shelf LRX (BT)",
-//        "Hi-shelf LRX (MT)",
-//
-//        // Additional stuff
-//#ifndef LSP_NO_EXPERIMENTAL
-//        "Ladder-pass RLC (BT)",
-//        "Ladder-pass RLC (MT)",
-//        "Ladder-pass BWC (BT)",
-//        "Ladder-pass BWC (MT)",
-//        "Ladder-pass LRX (BT)",
-//        "Ladder-pass LRX (MT)",
-//
-//        "Ladder-rej RLC (BT)",
-//        "Ladder-rej RLC (MT)",
-//        "Ladder-rej BWC (BT)",
-//        "Ladder-rej BWC (MT)",
-//        "Ladder-rej LRX (BT)",
-//        "Ladder-rej LRX (MT)",
-//#endif /* LSP_NO_EXPERIMENTAL */
-//        NULL
-//    };
-
     static const char *filter_modes[] =
     {
         "RLC (BT)",
@@ -535,7 +464,7 @@ namespace lsp
     const plugin_metadata_t  para_equalizer_x16_mono_metadata::metadata =
     {
         "Parametrischer Entzerrer x16 Mono",
-        "Parametric Equalizer",
+        "Parametric Equalizer x16 Mono",
         "PE16M",
         &developers::v_sadovnikov,
         "para_equalizer_x16_mono",
@@ -550,7 +479,7 @@ namespace lsp
     const plugin_metadata_t  para_equalizer_x32_mono_metadata::metadata =
     {
         "Parametrischer Entzerrer x32 Mono",
-        "Parametric Equalizer",
+        "Parametric Equalizer x32 Mono",
         "PE32M",
         &developers::v_sadovnikov,
         "para_equalizer_x32_mono",
@@ -565,7 +494,7 @@ namespace lsp
     const plugin_metadata_t  para_equalizer_x16_stereo_metadata::metadata =
     {
         "Parametrischer Entzerrer x16 Stereo",
-        "Parametric Equalizer",
+        "Parametric Equalizer x16 Stereo",
         "PE16S",
         &developers::v_sadovnikov,
         "para_equalizer_x16_stereo",
@@ -580,7 +509,7 @@ namespace lsp
     const plugin_metadata_t  para_equalizer_x32_stereo_metadata::metadata =
     {
         "Parametrischer Entzerrer x32 Stereo",
-        "Parametric Equalizer",
+        "Parametric Equalizer x32 Stereo",
         "PE32S",
         &developers::v_sadovnikov,
         "para_equalizer_x32_stereo",
@@ -595,7 +524,7 @@ namespace lsp
     const plugin_metadata_t  para_equalizer_x16_lr_metadata::metadata =
     {
         "Parametrischer Entzerrer x16 LeftRight",
-        "Parametric Equalizer",
+        "Parametric Equalizer x16 LeftRight",
         "PE16LR",
         &developers::v_sadovnikov,
         "para_equalizer_x16_lr",
@@ -610,7 +539,7 @@ namespace lsp
     const plugin_metadata_t  para_equalizer_x32_lr_metadata::metadata =
     {
         "Parametrischer Entzerrer x32 LeftRight",
-        "Parametric Equalizer",
+        "Parametric Equalizer x32 LeftRight",
         "PE32LR",
         &developers::v_sadovnikov,
         "para_equalizer_x32_lr",
@@ -625,7 +554,7 @@ namespace lsp
     const plugin_metadata_t  para_equalizer_x16_ms_metadata::metadata =
     {
         "Parametrischer Entzerrer x16 MidSide",
-        "Parametric Equalizer",
+        "Parametric Equalizer x16 MidSide",
         "PE16MS",
         &developers::v_sadovnikov,
         "para_equalizer_x16_ms",
@@ -640,7 +569,7 @@ namespace lsp
     const plugin_metadata_t  para_equalizer_x32_ms_metadata::metadata =
     {
         "Parametrischer Entzerrer x32 MidSide",
-        "Parametric Equalizer",
+        "Parametric Equalizer x32 MidSide",
         "PE32MS",
         &developers::v_sadovnikov,
         "para_equalizer_x32_ms",

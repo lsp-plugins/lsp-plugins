@@ -5,7 +5,7 @@
  *      Author: sadko
  */
 
-#ifndef LSP_NO_EXPERIMENTAL
+#ifdef LSP_NO_KVRDC16
 
 #include <core/debug.h>
 #include <core/colors.h>
@@ -190,10 +190,17 @@ namespace lsp
         pPause                  =   vPorts[port_id++];
         TRACE_PORT(vPorts[port_id]);
         pClear                  =   vPorts[port_id++];
-        if (nMode == DYNA_MS)
+        if ((nMode == DYNA_LR) || (nMode == DYNA_MS))
         {
+            // Skip processor selector
             TRACE_PORT(vPorts[port_id]);
-            pMSListen               =   vPorts[port_id++];
+            port_id++;
+
+            if (nMode == DYNA_MS)
+            {
+                TRACE_PORT(vPorts[port_id]);
+                pMSListen               =   vPorts[port_id++];
+            }
         }
 
         // Sidechain ports
@@ -309,6 +316,8 @@ namespace lsp
                 c->pWetGain         =   vPorts[port_id++];
 
                 // Skip meters visibility controls
+                TRACE_PORT(vPorts[port_id]);
+                port_id++;
                 TRACE_PORT(vPorts[port_id]);
                 port_id++;
                 TRACE_PORT(vPorts[port_id]);
@@ -463,8 +472,11 @@ namespace lsp
             }
 
             float makeup = c->pMakeup->getValue();
+            float out_ratio = c->pHighRatio->getValue();
+            if ((c->nScType == SCT_FEED_BACK) && (out_ratio >= 1.0f)) // Prevent from infinite feedback
+                out_ratio = 1.0f;
             c->sProc.set_in_ratio(c->pLowRatio->getValue());
-            c->sProc.set_out_ratio(c->pHighRatio->getValue());
+            c->sProc.set_out_ratio(out_ratio);
 
             if (c->fMakeup != makeup)
             {
@@ -870,8 +882,18 @@ namespace lsp
             cv->line(0, ay, width, ay);
         }
 
-        // Draw axis
+        // Draw 1:1 line
         cv->set_line_width(2.0);
+        cv->set_color_rgb(CV_GRAY);
+        {
+            float ax1 = dx*(logf(GAIN_AMP_M_72_DB*zx));
+            float ax2 = dx*(logf(GAIN_AMP_P_24_DB*zx));
+            float ay1 = height + dy*(logf(GAIN_AMP_M_72_DB*zy));
+            float ay2 = height + dy*(logf(GAIN_AMP_P_24_DB*zy));
+            cv->line(ax1, ay1, ax2, ay2);
+        }
+
+        // Draw axis
         cv->set_color_rgb((bypassing) ? CV_SILVER : CV_WHITE);
         {
             float ax = dx*(logf(GAIN_AMP_0_DB*zx));

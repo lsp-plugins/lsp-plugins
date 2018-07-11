@@ -13,7 +13,7 @@ do_release() {
     echo "  Releasing arch=$CPU_ARCH ld=$LD_ARCH cc=$CC_ARCH";
     echo "******************************************************"
 
-    make clean && make -j$THREADS all VERSION=dbg && make VERSION=dbg release;
+    make clean && make -j$THREADS all VERSION=dbg && make VERSION=dbg dbg_release;
     make clean && make -j$THREADS profile VERSION=dbg && make VERSION=dbg release_profile;
 }
 

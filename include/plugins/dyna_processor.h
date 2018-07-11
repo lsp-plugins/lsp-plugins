@@ -8,7 +8,7 @@
 #ifndef PLUGINS_DYNA_PROCESSOR_H_
 #define PLUGINS_DYNA_PROCESSOR_H_
 
-#ifndef LSP_NO_EXPERIMENTAL
+#ifdef LSP_NO_KVRDC16
 
 #include <metadata/plugins.h>
 

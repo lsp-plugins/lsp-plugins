@@ -74,6 +74,8 @@ namespace lsp
              */
             inline void set_threshold(float attack, float release)
             {
+                if ((fAttackThresh == attack) && (fReleaseThresh == release))
+                    return;
                 fAttackThresh       = attack;
                 fReleaseThresh      = release;
                 bUpdate             = true;

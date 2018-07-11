@@ -286,7 +286,7 @@ namespace lsp
     const plugin_metadata_t  graph_equalizer_x16_mono_metadata::metadata =
     {
         "Grafischer Entzerrer x16 Mono",
-        "Graphic Equalizer",
+        "Graphic Equalizer x16 Mono",
         "GE16M",
         &developers::v_sadovnikov,
         "graph_equalizer_x16_mono",
@@ -301,7 +301,7 @@ namespace lsp
     const plugin_metadata_t  graph_equalizer_x32_mono_metadata::metadata =
     {
         "Grafischer Entzerrer x32 Mono",
-        "Graphic Equalizer",
+        "Graphic Equalizer x32 Mono",
         "GE32M",
         &developers::v_sadovnikov,
         "graph_equalizer_x32_mono",
@@ -316,7 +316,7 @@ namespace lsp
     const plugin_metadata_t  graph_equalizer_x16_stereo_metadata::metadata =
     {
         "Grafischer Entzerrer x16 Stereo",
-        "Graphic Equalizer",
+        "Graphic Equalizer x16 Stereo",
         "GE16S",
         &developers::v_sadovnikov,
         "graph_equalizer_x16_stereo",
@@ -331,7 +331,7 @@ namespace lsp
     const plugin_metadata_t  graph_equalizer_x32_stereo_metadata::metadata =
     {
         "Grafischer Entzerrer x32 Stereo",
-        "Graphic Equalizer",
+        "Graphic Equalizer x32 Stereo",
         "GE32S",
         &developers::v_sadovnikov,
         "graph_equalizer_x32_stereo",
@@ -346,7 +346,7 @@ namespace lsp
     const plugin_metadata_t  graph_equalizer_x16_lr_metadata::metadata =
     {
         "Grafischer Entzerrer x16 LeftRight",
-        "Graphic Equalizer",
+        "Graphic Equalizer x16 LeftRight",
         "GE16LR",
         &developers::v_sadovnikov,
         "graph_equalizer_x16_lr",
@@ -361,7 +361,7 @@ namespace lsp
     const plugin_metadata_t  graph_equalizer_x32_lr_metadata::metadata =
     {
         "Grafischer Entzerrer x32 LeftRight",
-        "Graphic Equalizer",
+        "Graphic Equalizer x32 LeftRight",
         "GE32LR",
         &developers::v_sadovnikov,
         "graph_equalizer_x32_lr",
@@ -376,7 +376,7 @@ namespace lsp
     const plugin_metadata_t  graph_equalizer_x16_ms_metadata::metadata =
     {
         "Grafischer Entzerrer x16 MidSide",
-        "Graphic Equalizer",
+        "Graphic Equalizer x16 MidSide",
         "GE16MS",
         &developers::v_sadovnikov,
         "graph_equalizer_x16_ms",
@@ -391,7 +391,7 @@ namespace lsp
     const plugin_metadata_t  graph_equalizer_x32_ms_metadata::metadata =
     {
         "Grafischer Entzerrer x32 MidSide",
-        "Graphic Equalizer",
+        "Graphic Equalizer x32 MidSide",
         "GE32MS",
         &developers::v_sadovnikov,
         "graph_equalizer_x32_ms",

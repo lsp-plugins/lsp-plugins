@@ -17,7 +17,7 @@
 			</hbox>
 			
 			<!-- Trigger -->
-			<grid visibility_id="asel" visibility_key="0" rows="2" cols="4">
+			<grid visibility_id="asel" visibility_key="0" rows="2" cols="4" transpose="true">
 				<align expand="true" pad_top="12" pad_bottom="4">
 					<graph width="640" height="256" expand="true" fill="true">
 						<center hpos="1" vpos="-1" visible="false" />
@@ -79,18 +79,6 @@
 						<marker id="rl" color="magenta" basis="1" parallel="0" />
 					</graph>
 				</align>
-				<vbox>
-					<button id="isv" size="16" color="middle_channel" led="true" />
-					<meter id="ism" angle="1" type="rms_peak" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="middle_channel" pad_left="4" pad_right="4" activity_id="isv" />
-				</vbox>
-				<vbox>
-					<button id="tfv" size="16" color="green" led="true" />
-					<meter id="tfm" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="green" pad_left="4" pad_right="4" activity_id="tfv" />
-				</vbox>
-				<vbox>
-					<button id="tlv" size="16" color="medium_green" led="true" />
-					<meter id="tlm" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="medium_green" pad_left="4" pad_right="4" activity_id="tlv" />
-				</vbox>
 				<hbox expand="true">
 					<button id="pause" size="16" color="green" led="true" />
 					<label text="Pause" />
@@ -114,12 +102,33 @@
 					
 					<align pad_right="4" hpos="1"><label text="TRIGGER GRAPH" /></align>
 				</hbox>
-				<cell cols="3">
+				
+				<!-- Input signal meters -->
+				<align expand="true" fill="true" vpos="1">
 					<vbox>
-						<label text="Meters" />
-						<label text="(dB)" />
+						<button id="isv" size="16" color="middle_channel" led="true" />
+						<meter id="ism" angle="1" type="rms_peak" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="middle_channel" pad_left="4" pad_right="4" activity_id="isv" />
 					</vbox>
-				</cell>
+				</align>
+				<label text="In" />
+				
+				<!-- Sidechain signal meter -->
+				<align expand="true" fill="true" vpos="1">
+					<vbox>
+						<button id="tfv" size="16" color="green" led="true" />
+						<meter id="tfm" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="green" pad_left="4" pad_right="4" activity_id="tfv" />
+					</vbox>
+				</align>
+				<label text="SC" />
+				
+				<!-- Trigger signal meter -->
+				<align expand="true" fill="true" vpos="1">
+					<vbox>
+						<button id="tlv" size="16" color="medium_green" led="true" />
+						<meter id="tlm" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="medium_green" pad_left="4" pad_right="4" activity_id="tlv" />
+					</vbox>
+				</align>
+				<label text="Trg" />
 			</grid>
 			
 			<!-- Instrument editor -->

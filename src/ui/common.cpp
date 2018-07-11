@@ -129,6 +129,14 @@ namespace lsp
         "editable",
         "same_line",
         "offset",
+        "visibility",
+        "stereo",
+        "id2",
+        "color2",
+        "hue2_id",
+        "sat2_id",
+        "light2_id",
+        "activity2_id",
         NULL
     };
 

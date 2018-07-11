@@ -10,9 +10,9 @@
 		</align>
 		
 		<vbox>
-			<grid visibility_id="asel" rows="2" cols="10" transpose="true">
+			<grid rows="2" cols="7" transpose="true">
+				<!-- Time graph -->
 				<align expand="true" fill="true" pad_top="8">
-					<!-- Time graph -->
 					<graph width="400" height="256">
 						<!-- Gray grid -->
 						<marker value="3.98107" color="gray" basis="1" parallel="0" />  <!-- +12 dB -->
@@ -80,41 +80,59 @@
 					<label text="Pause" />
 					<button id="clear" size="16" color="red" led="true" />
 					<label text="Clear" />
-					<align pad_left="4"><label text="Gain:" /></align>
-					<button id="grv_l" size="16" color="bright_blue" led="true" />
-					<label text="L" />
-					<button id="grv_r" size="16" color="bright_blue" led="true" />
-					<label text="R" />
 					<align pad_right="4" fill="true" hpos="1"><label text="TIME GRAPH" /></align>
 				</hbox>
 				
+				<!-- Sidechain meters -->
 				<align expand="true" fill="true" vpos="1">
 					<vbox>
-						<button id="slv_l" size="16" color="bright_green" led="true" />
-						<meter id="slm_l" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="bright_green" activity_id="slv_l" />
+						<grid rows="2" cols="2">
+							<label text="L" font_size="8" />
+							<label text="R" font_size="8" />
+							<button id="slv_l" size="10" color="bright_green" led="true" />
+							<button id="slv_r" size="10" color="bright_green" led="true" />
+						</grid>
+						<meter id="slm_l" id2="slm_r" activity_id="slv_l" activity2_id="slv_r"
+							stereo="true" angle="1" type="peak"
+							min="0.000251189" max="15.8489" height="256"
+							color="bright_green" color2="bright_green" />
 					</vbox>
 				</align>
-				<cell cols="2"><label text="L SC R" /></cell>
-				<align expand="true" fill="true" vpos="1">
-					<vbox>
-						<button id="slv_r" size="16" color="bright_green" led="true" />
-						<meter id="slm_r" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="bright_green" activity_id="slv_r" />
-					</vbox>
-				</align>
+				<label text="SC" />
 				
+				<!-- Envelope meters -->
 				<align expand="true" fill="true" vpos="1">
 					<vbox>
-						<button id="elv_l" size="16" color="bright_magenta" led="true" />
-						<meter id="elm_l" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="bright_magenta" activity_id="elv_l" />
+						<grid rows="2" cols="2">
+							<label text="L" font_size="8" />
+							<label text="R" font_size="8" />
+							<button id="elv_l" size="10" color="bright_magenta" led="true" />
+							<button id="elv_r" size="10" color="bright_magenta" led="true" />
+						</grid>
+						<meter id="elm_l" id2="elm_r" activity_id="elv_l" activity2_id="elv_r"
+							stereo="true" angle="1" type="peak"
+							min="0.000251189" max="15.8489" height="256"
+							color="bright_magenta" color2="bright_magenta" />
 					</vbox>
 				</align>
-				<cell cols="2"><label text="L Env R" /></cell>
+				<label text="Env" />
+				
+				<!-- Gain reduction meters -->
 				<align expand="true" fill="true" vpos="1">
 					<vbox>
-						<button id="elv_r" size="16" color="bright_magenta" led="true" />
-						<meter id="elm_r" angle="1" logarithmic="true" min="0.000251189" max="15.8489" height="256" color="bright_magenta" activity_id="elv_r" />
+						<grid rows="2" cols="2">
+							<label text="L" font_size="8" />
+							<label text="R" font_size="8" />
+							<button id="grv_l" size="10" color="bright_blue" led="true" />
+							<button id="grv_r" size="10" color="bright_blue" led="true" />
+						</grid>
+						<meter id="rlm_l" id2="rlm_r" activity_id="grv_l" activity2_id="grv_r"
+							stereo="true" angle="1" type="peak"
+							min="0.00398" max="251.18861" balance="1.0" height="256"
+							color="bright_blue" color2="bright_blue" />
 					</vbox>
 				</align>
+				<label text="Gain" />
 				
 				<!-- Curve graph -->
 				<align expand="true" fill="true" pad_top="8">
@@ -139,6 +157,7 @@
 						<center hpos="-1" vpos="-1" visible="false" />
 						<axis min="0.00025" max="15.84893" color="gray" angle="0.0" logarithmic="true" /> <!-- horizontal axis -->
 						<axis min="0.00025" max="15.84893" color="gray" angle="0.5" logarithmic="true" /> <!-- vertical axis -->
+						<marker value="1" offset="1" color="gray" basis="1" parallel="0" angle="0.25" width="2" smooth="true" /> <!-- 1:1 -->
 						<marker value="15.84893" color="gray" basis="1" parallel="0" /> <!-- +24 dB -->
 						<marker value="15.84893" color="gray" basis="0" parallel="1" /> <!-- +24 dB -->
 	
@@ -184,32 +203,39 @@
 					<align pad_right="4" fill="true" hpos="0"><label text="COMPRESSION" /></align>
 				</hbox>
 				
+				<!-- Input signal meters -->
 				<align expand="true" fill="true" vpos="1">
 					<vbox>
-						<button id="ilv_l" size="16" color="left_channel" led="true" />
-						<meter id="ilm_l" angle="1" type="rms_peak" min="0.000251189" max="15.8489" height="256" color="left_channel" activity_id="ilv_l" />
+						<grid rows="2" cols="2">
+							<label text="L" font_size="8" />
+							<label text="R" font_size="8" />
+							<button id="ilv_l" size="10" color="left_channel" led="true" />
+							<button id="ilv_r" size="10" color="right_channel" led="true" />
+						</grid>
+						<meter id="ilm_l" id2="ilm_r" activity_id="ilv_l" activity2_id="ilv_r"
+							stereo="true" angle="1" type="rms_peak"
+							min="0.000251189" max="15.8489" height="256"
+							color="left_channel" color2="right_channel" />
 					</vbox>
 				</align>
-				<cell cols="2"><label text="L in R" /></cell>
+				<label text="In" />
+				
+				<!-- Output signal meters -->
 				<align expand="true" fill="true" vpos="1">
 					<vbox>
-						<button id="ilv_r" size="16" color="right_channel" led="true" />
-						<meter id="ilm_r" angle="1" type="rms_peak" min="0.000251189" max="15.8489" height="256" color="right_channel" activity_id="ilv_r" />
+						<grid rows="2" cols="2">
+							<label text="L" font_size="8" />
+							<label text="R" font_size="8" />
+							<button id="olv_l" size="10" color="left_channel" led="true" />
+							<button id="olv_r" size="10" color="right_channel" led="true" />
+						</grid>
+						<meter id="olm_l" id2="olm_r" activity_id="olv_l" activity2_id="olv_r"
+							stereo="true" angle="1" type="rms_peak"
+							min="0.000251189" max="15.8489" height="256"
+							color="left_channel" color2="right_channel" />
 					</vbox>
 				</align>
-				<align expand="true" fill="true" vpos="1">
-					<vbox>
-						<button id="olv_l" size="16" color="left_channel" led="true" />
-						<meter id="olm_l" angle="1" type="rms_peak" min="0.000251189" max="15.8489" height="256" color="left_channel" activity_id="olv_l" />
-					</vbox>
-				</align>
-				<cell cols="2"><label text="L out R" /></cell>
-				<align expand="true" fill="true" vpos="1">
-					<vbox>
-						<button id="olv_r" size="16" color="right_channel" led="true" />
-						<meter id="olm_r" angle="1" type="rms_peak" min="0.000251189" max="15.8489" height="256" color="right_channel" activity_id="olv_r" />
-					</vbox>
-				</align>
+				<label text="Out" />
 			</grid>
 			<hbox>
 				<group text="Sidechain" expand="true">
@@ -322,14 +348,14 @@
 								<vbox><label text="Dry" /><label text="(dB)" /></vbox>
 								<vbox><label text="Wet" /><label text="(dB)" /></vbox>
 								
-								<knob id="cdr_l" scale_color="blue" size="20" />
-								<knob id="cwt_l" scale_color="blue" size="20" />
+								<knob id="cdr_l" scale_color="yellow" size="20" />
+								<knob id="cwt_l" scale_color="yellow" size="20" />
 								
 								<value id="cdr_l" detailed="false" />
 								<value id="cwt_l" detailed="false" />
 								
-								<knob id="cdr_r" scale_color="blue" size="20" />
-								<knob id="cwt_r" scale_color="blue" size="20" />
+								<knob id="cdr_r" scale_color="yellow" size="20" />
+								<knob id="cwt_r" scale_color="yellow" size="20" />
 								
 								<value id="cdr_r" detailed="false" />
 								<value id="cwt_r" detailed="false" />
@@ -338,6 +364,7 @@
 					</vbox>
 				</group>
 				
+				<!-- Signal control -->
 				<group text="Signal" expand="true">
 					<vbox expand="true">
 						<label text="Input" />

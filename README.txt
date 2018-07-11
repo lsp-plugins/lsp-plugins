@@ -204,7 +204,43 @@ To generate profiling information, issue the gprof command:
 For debugging purposes the GNU Debugger (gdb) may be used:
   gdb --args ./lsp-plugins-profile <plugin-id>
 
+For debugging and getting crash stack trace with Ardour, please follow these steps:
+  * Open console
+  * Run ardour from console with --gdb option
+  * After gdb starts, issue 'run' command
+  * Do usual stuff to reproduce the problem
+  * After Ardour crashes, type 'thread apply all bt' in console and attach the output
+    to the bug report.
+
+==== TROUBLESHOOTING ====
+
+Because there are many GNU/Linux distributions and software configurations,
+and, possible, internal bugs, plugins may have bad performance or even crash.
+The good way to find the solutiong is to submit a bug or crash report. This
+section describes the way to give detailed information to developers.
+
+To submit a good bug or crash report, you should answer these questions:
+  * Did you use the previous version of plugins? If yes, did they properly work and
+    have you properly uninstalled the previous version?
+  * What version of plugins caused a crash? Was it LV2, LinuxVST, LADSPA or
+    standalone package?
+  * Did you try standalone version of plugins? Did they crash, too?
+  * What CPU and memory configuration do you use? This can be done by
+    issuing 'cat /proc/cpuinfo' and 'free' commands.
+  * What Linux distribution do you use? This may be done by issuing
+    'uname -a' and 'cat /etc/issue' commands.
+  * What version of required (see 'INSTALLATION') packages are present in your
+    system?
+  * If possible, provide the stack trace of the crash, given by GDB.
+    See 'PROFILING / DEBUGGING' section for details.
+  * If plugins have serious performance regression, please provide profiling file.
+    See 'PROFILING / DEBUGGING' section for details.
+
 ==== CONTACTS ====
+
+There is possible to submit feature requests and bugs on the
+Sourceforge.net page of the project:
+  https://sourceforge.net/p/lsp-plugins/tickets/
 
 You may contact us on the special feedback page:
   http://lsp-plug.in/?page=feedback

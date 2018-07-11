@@ -27,4 +27,15 @@ namespace lsp
     {
         return (pGtk2Widget != NULL) ? pGtk2Widget->widget() : NULL;
     }
+
+    bool Gtk2WidgetProxy::expand() const
+    {
+        return (pGtk2Widget != NULL) ? pGtk2Widget->expand() : false;
+    }
+
+    bool Gtk2WidgetProxy::fill() const
+    {
+        return (pGtk2Widget != NULL) ? pGtk2Widget->fill() : false;
+    }
+
 } /* namespace lsp */

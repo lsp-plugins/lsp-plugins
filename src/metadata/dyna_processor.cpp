@@ -5,7 +5,7 @@
  *      Author: sadko
  */
 
-#ifndef LSP_NO_EXPERIMENTAL
+#ifdef LSP_NO_KVRDC16
 
 #include <core/types.h>
 #include <metadata/plugins.h>
@@ -15,7 +15,7 @@
 namespace lsp
 {
     //-------------------------------------------------------------------------
-    // Graphic Equalizer
+    // Dynamic Processor
     static const int dyna_processor_classes[] =
     {
         C_DYNAMICS, C_COMPRESSOR, C_ENVELOPE, C_EXPANDER, C_GATE, C_LIMITER, -1
@@ -54,6 +54,20 @@ namespace lsp
         NULL
     };
 
+    static const char *dyna_proc_sel_lr[] =
+    {
+        "Left",
+        "Right",
+        NULL
+    };
+
+    static const char *dyna_proc_sel_ms[] =
+    {
+        "Middle",
+        "Side",
+        NULL
+    };
+
     #define DYNA_PROC_COMMON     \
         BYPASS,             \
         IN_GAIN,            \
@@ -61,8 +75,13 @@ namespace lsp
         SWITCH("pause", "Pause graph analysis", 0.0f), \
         TRIGGER("clear", "Clear graph analysis")
 
+    #define DYNA_PROC_LR_COMMON  \
+        DYNA_PROC_COMMON,        \
+        COMBO("psel", "Processor selector", 0, dyna_proc_sel_lr)
+
     #define DYNA_PROC_MS_COMMON  \
         DYNA_PROC_COMMON,        \
+        COMBO("psel", "Processor selector", 0, dyna_proc_sel_ms), \
         SWITCH("msl", "Mid/Side listen", 0.0f)
 
     #define DYNA_PROC_SC_MONO_CHANNEL(sct) \
@@ -80,8 +99,8 @@ namespace lsp
         LOG_CONTROL("scr" id, "Sidechain reactivity" label, U_MSEC, dyna_processor_base_metadata::REACTIVITY), \
         AMP_GAIN100("scp" id, "Sidechain preamp" label, GAIN_AMP_0_DB)
 
-    #define DYNA_POINT(idx, id, label, level) \
-        SWITCH("pe" #idx id, "Point enable " #idx label, 0.0f), \
+    #define DYNA_POINT(idx, on, id, label, level) \
+        SWITCH("pe" #idx id, "Point enable " #idx label, on), \
         LOG_CONTROL_DFL("tl" #idx id, "Threshold " #idx label, U_GAIN_AMP, dyna_processor_base_metadata::THRESHOLD, level), \
         LOG_CONTROL_DFL("gl" #idx id, "Gain " #idx label, U_GAIN_AMP, dyna_processor_base_metadata::THRESHOLD, level), \
         LOG_CONTROL("kn" #idx id, "Knee " #idx label, U_GAIN_AMP, dyna_processor_base_metadata::KNEE), \
@@ -95,15 +114,16 @@ namespace lsp
     #define DYNA_PROC_CHANNEL(id, label) \
         LOG_CONTROL("atd" id, "Attack time default" label, U_MSEC, dyna_processor_base_metadata::ATTACK_TIME), \
         LOG_CONTROL("rtd" id, "Release time default" label, U_MSEC, dyna_processor_base_metadata::RELEASE_TIME), \
-        DYNA_POINT(0, id, label, GAIN_AMP_M_48_DB), \
-        DYNA_POINT(1, id, label, GAIN_AMP_M_36_DB), \
-        DYNA_POINT(2, id, label, GAIN_AMP_M_24_DB), \
-        DYNA_POINT(3, id, label, GAIN_AMP_M_12_DB), \
+        DYNA_POINT(0, 1.0f, id, label, GAIN_AMP_M_12_DB), \
+        DYNA_POINT(1, 0.0f, id, label, GAIN_AMP_M_24_DB), \
+        DYNA_POINT(2, 0.0f, id, label, GAIN_AMP_M_36_DB), \
+        DYNA_POINT(3, 0.0f, id, label, GAIN_AMP_M_48_DB), \
         LOG_CONTROL("llr" id, "Low-level ratio" label, U_NONE, dyna_processor_base_metadata::RATIO), \
         LOG_CONTROL("hlr" id, "High-level ratio" label, U_NONE, dyna_processor_base_metadata::RATIO), \
         LOG_CONTROL("omk" id, "Overall makeup gain" label, U_GAIN_AMP, dyna_processor_base_metadata::MAKEUP), \
         AMP_GAIN10("cdr" id, "Dry gain" label, GAIN_AMP_M_INF_DB),     \
         AMP_GAIN10("cwt" id, "Wet gain" label, GAIN_AMP_0_DB), \
+        SWITCH("cmv" id, "Curve modelling visibility" label, 1.0f), \
         SWITCH("slv" id, "Sidechain level visibility" label, 1.0f), \
         SWITCH("elv" id, "Envelope level visibility" label, 1.0f), \
         SWITCH("grv" id, "Gain reduction visibility" label, 1.0f), \
@@ -115,7 +135,7 @@ namespace lsp
         METER_OUT_GAIN("slm" id, "Sidechain level meter" label, GAIN_AMP_P_24_DB), \
         METER_OUT_GAIN("clm" id, "Curve level meter" label, GAIN_AMP_P_24_DB), \
         METER_OUT_GAIN("elm" id, "Envelope level meter" label, GAIN_AMP_P_24_DB), \
-        METER_GAIN("rlm" id, "Reduction level meter" label, GAIN_AMP_P_24_DB)
+        METER_GAIN_DFL("rlm" id, "Reduction level meter" label, GAIN_AMP_P_48_DB, GAIN_AMP_0_DB)
 
     #define DYNA_PROC_AUDIO_METER(id, label) \
         SWITCH("ilv" id, "Input level visibility" label, 1.0f), \
@@ -151,7 +171,7 @@ namespace lsp
     static const port_t dyna_processor_lr_ports[] =
     {
         PORTS_STEREO_PLUGIN,
-        DYNA_PROC_COMMON,
+        DYNA_PROC_LR_COMMON,
         DYNA_PROC_SC_STEREO_CHANNEL("_l", " Left", dyna_proc_sc_type),
         DYNA_PROC_SC_STEREO_CHANNEL("_r", " Right", dyna_proc_sc_type),
         DYNA_PROC_CHANNEL("_l", " Left"),
@@ -205,7 +225,7 @@ namespace lsp
     {
         PORTS_STEREO_PLUGIN,
         PORTS_STEREO_SIDECHAIN,
-        DYNA_PROC_COMMON,
+        DYNA_PROC_LR_COMMON,
         DYNA_PROC_SC_STEREO_CHANNEL("_l", " Left", dyna_proc_extsc_type),
         DYNA_PROC_SC_STEREO_CHANNEL("_r", " Right", dyna_proc_extsc_type),
         DYNA_PROC_CHANNEL("_l", " Left"),
@@ -234,12 +254,12 @@ namespace lsp
     // Dynamic Processor
     const plugin_metadata_t  dyna_processor_mono_metadata::metadata =
     {
-        "Dynamischer Prozessor Mono",
+        "Dynamikprozessor Mono",
         "Dynamic Processor Mono",
         "DP1M",
         &developers::v_sadovnikov,
         "dyna_processor_mono",
-        "----",
+        "lqpm",
         LSP_DYNAMIC_PROCESSOR_BASE + 0,
         LSP_VERSION(1, 0, 0),
         dyna_processor_classes,
@@ -249,12 +269,12 @@ namespace lsp
 
     const plugin_metadata_t  dyna_processor_stereo_metadata::metadata =
     {
-        "Dynamischer Prozessor Stereo",
+        "Dynamikprozessor Stereo",
         "Dynamic Processor Stereo",
         "DP1S",
         &developers::v_sadovnikov,
         "dyna_processor_stereo",
-        "----",
+        "aat9",
         LSP_DYNAMIC_PROCESSOR_BASE + 1,
         LSP_VERSION(1, 0, 0),
         dyna_processor_classes,
@@ -264,12 +284,12 @@ namespace lsp
 
     const plugin_metadata_t  dyna_processor_lr_metadata::metadata =
     {
-        "Dynamischer Prozessor LeftRight",
+        "Dynamikprozessor LeftRight",
         "Dynamic Processor LeftRight",
         "DP1LR",
         &developers::v_sadovnikov,
         "dyna_processor_lr",
-        "----",
+        "hl9g",
         LSP_DYNAMIC_PROCESSOR_BASE + 2,
         LSP_VERSION(1, 0, 0),
         dyna_processor_classes,
@@ -279,12 +299,12 @@ namespace lsp
 
     const plugin_metadata_t  dyna_processor_ms_metadata::metadata =
     {
-        "Dynamischer Prozessor MidSide",
+        "Dynamikprozessor MidSide",
         "Dynamic Processor MidSide",
         "DP1MS",
         &developers::v_sadovnikov,
         "dyna_processor_ms",
-        "----",
+        "uvrg",
         LSP_DYNAMIC_PROCESSOR_BASE + 3,
         LSP_VERSION(1, 0, 0),
         dyna_processor_classes,
@@ -295,12 +315,12 @@ namespace lsp
     // Sidechain compressor
     const plugin_metadata_t  sc_dyna_processor_mono_metadata::metadata =
     {
-        "Dynamischer Sidechain-Prozessor Mono",
+        "Sidechain-Dynamikprozessor Mono",
         "Sidechain Dynamic Processor Mono",
-        "DSCP1M",
+        "SCDP1M",
         &developers::v_sadovnikov,
         "sc_dyna_processor_mono",
-        "----",
+        "apkx",
         LSP_DYNAMIC_PROCESSOR_BASE + 4,
         LSP_VERSION(1, 0, 0),
         dyna_processor_classes,
@@ -310,12 +330,12 @@ namespace lsp
 
     const plugin_metadata_t  sc_dyna_processor_stereo_metadata::metadata =
     {
-        "Dynamischer Sidechain-Prozessor Stereo",
+        "Sidechain-Dynamikprozessor Stereo",
         "Sidechain Dynamic Processor Stereo",
-        "DSCP1S",
+        "SCDP1S",
         &developers::v_sadovnikov,
         "sc_dyna_processor_stereo",
-        "----",
+        "fqne",
         LSP_DYNAMIC_PROCESSOR_BASE + 5,
         LSP_VERSION(1, 0, 0),
         dyna_processor_classes,
@@ -325,12 +345,12 @@ namespace lsp
 
     const plugin_metadata_t  sc_dyna_processor_lr_metadata::metadata =
     {
-        "Dynamischer Sidechain-Prozessor LeftRight",
+        "Sidechain-Dynamikprozessor LeftRight",
         "Sidechain Dynamic Processor LeftRight",
-        "DSCP1LR",
+        "SCDP1LR",
         &developers::v_sadovnikov,
         "sc_dyna_processor_lr",
-        "----",
+        "sxmi",
         LSP_DYNAMIC_PROCESSOR_BASE + 6,
         LSP_VERSION(1, 0, 0),
         dyna_processor_classes,
@@ -340,12 +360,12 @@ namespace lsp
 
     const plugin_metadata_t  sc_dyna_processor_ms_metadata::metadata =
     {
-        "Dynamischer Sidechain-Prozessor MidSide",
+        "Sidechain-Dynamikprozessor MidSide",
         "Sidechain Dynamic Processor MidSide",
-        "DSCP1MS",
+        "SCDP1MS",
         &developers::v_sadovnikov,
         "sc_dyna_processor_ms",
-        "----",
+        "fcj9",
         LSP_DYNAMIC_PROCESSOR_BASE + 7,
         LSP_VERSION(1, 0, 0),
         dyna_processor_classes,

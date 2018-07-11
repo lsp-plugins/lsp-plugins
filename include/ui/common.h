@@ -135,7 +135,15 @@ namespace lsp
         A_PRECISION,
         A_EDITABLE,
         A_SAME_LINE,
-        A_OFFSET
+        A_OFFSET,
+        A_VISIBILITY,
+        A_STEREO,
+        A_ID2,
+        A_COLOR2,
+        A_HUE2_ID,
+        A_SAT2_ID,
+        A_LIGHT2_ID,
+        A_ACTIVITY2_ID,
     };
 
     // List of colors

@@ -8,6 +8,8 @@
 #ifndef UI_X11_UICORE_H_
 #define UI_X11_UICORE_H_
 
+#include <time.h>
+
 namespace lsp
 {
     namespace x11ui
@@ -24,9 +26,11 @@ namespace lsp
                 int             nBlackColor;
                 int             nWhiteColor;
                 cvector<X11Window> vWindows;
+                timespec        sLastRender;
 
             protected:
                 void            handleEvent(XEvent *ev);
+                int             do_main_iteration(bool redraw);
 
             public:
                 X11Core();

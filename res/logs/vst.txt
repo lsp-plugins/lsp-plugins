@@ -1146,3 +1146,612 @@ Description:	Mid/Side compressor with flexible sidechain configuration and diffe
 		
 	*Plugin ID:	ioqg
 
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Dynamischer Prozessor Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Flexible dynamic processor that allows different modes of signal processing
+		
+	Registration:	
+		
+	*Plugin ID:	lqpm
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Dynamischer Prozessor Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Flexible dynamic processor that allows different modes of signal processing
+		
+	Registration:	
+		
+	*Plugin ID:	aat9
+
+-----------------------------------------------------
+
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Dynamischer Prozessor LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Flexible dynamic processor that allows different modes of signal processing
+		
+	Registration:	
+		
+	*Plugin ID:	hl9g
+
+-----------------------------------------------------
+
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Dynamischer Prozessor MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Flexible dynamic processor that allows different modes of signal processing
+		
+	Registration:	
+		
+	*Plugin ID:	uvrg
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Dynamischer Sidechain-Prozessor Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Flexible dynamic processor that allows different modes of signal processing. Additional sidechain input is provided.
+		
+	Registration:	
+		
+	*Plugin ID:	apkx
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Dynamischer Sidechain-Prozessor Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Flexible dynamic processor that allows different modes of signal processing. Additional sidechain input is provided.
+		
+	Registration:	
+		
+	*Plugin ID:	fqne
+
+-----------------------------------------------------
+
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Dynamischer Sidechain-Prozessor LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Flexible dynamic processor that allows different modes of signal processing. Additional sidechain input is provided.
+		
+	Registration:	
+		
+	*Plugin ID:	sxmi
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Dynamischer Sidechain-Prozessor MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Flexible dynamic processor that allows different modes of signal processing. Additional sidechain input is provided.
+		
+	Registration:	
+		
+	*Plugin ID:	fcj9
+
+-----------------------------------------------------
+	
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Gate Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Gate processor
+		
+	Registration:	
+		
+	*Plugin ID:	ur0e
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Gate Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	
+		
+	Registration:	
+		
+	*Plugin ID:	wg4o
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Gate LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Gate processor
+		
+	Registration:	
+		
+	*Plugin ID:	icmw
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Gate MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Gate processor
+		
+	Registration:	
+		
+	*Plugin ID:	zci1
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Gate Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Gate processor with sidechain
+		
+	Registration:	
+		
+	*Plugin ID:	nnz2
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Gate Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Gate processor with sidechain
+		
+	Registration:	
+		
+	*Plugin ID:	fosg
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Gate LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Gate processor with sidechain
+		
+	Registration:	
+		
+	*Plugin ID:	fmxo
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Gate MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Gate processor with sidechain
+		
+	Registration:	
+		
+	*Plugin ID:	l6lc
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Expander Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Expander processor
+		
+	Registration:	
+		
+	*Plugin ID:	tddq
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Expander Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Expander processor
+		
+	Registration:	
+		
+	*Plugin ID:	au0f
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Expander LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Expander processor
+		
+	Registration:	
+		
+	*Plugin ID:	zvsf
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Expander MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Expander processor
+		
+	Registration:	
+		
+	*Plugin ID:	ebhk
+
+-----------------------------------------------------
+
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Expander Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Expander processor with sidechain
+		
+	Registration:	
+		
+	*Plugin ID:	utul
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Expander Stereo
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Expander processor with sidechain
+		
+	Registration:	
+		
+	*Plugin ID:	lwqv
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Expander LeftRight
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Expander processor with sidechain
+		
+	Registration:	
+		
+	*Plugin ID:	pnvw
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Dynamics ( e.g. compressor llimiter)
+	*PlugIn Name:	Sidechain Expander MidSide
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	Expander processor with sidechain
+		
+	Registration:	
+		
+	*Plugin ID:	zc0d
+
+-----------------------------------------------------
+
+-----------------------------------------------------
+
+-----------------------------------------------------

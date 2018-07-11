@@ -16,10 +16,12 @@ namespace lsp
         pVisibility     = 0;
         nVisibilityKey  = 1;
         bVisible        = true;
+        sVisibility.init(ui, this);
     }
 
     IWidget::~IWidget()
     {
+        sVisibility.destroy();
     }
 
     void IWidget::set(const char *name, const char *value)
@@ -31,7 +33,9 @@ namespace lsp
 
     void IWidget::update_visibility()
     {
-        if (pVisibility != NULL)
+        if (sVisibility.valid())
+            bVisible = sVisibility.evaluate() >= 0.5f;
+        else if (pVisibility != NULL)
         {
             const port_t *meta  = pVisibility->metadata();
             ssize_t key     = 0;
@@ -65,6 +69,9 @@ namespace lsp
                 PARSE_BOOL(value, bVisible = __);
                 update_visibility();
                 break;
+            case A_VISIBILITY:
+                BIND_EXPR(sVisibility, value);
+                break;
             default:
                 break;
         }
@@ -76,7 +83,7 @@ namespace lsp
 
     void IWidget::notify(IUIPort *port)
     {
-        if (port == pVisibility)
+        if ((sVisibility.valid()) || (port == pVisibility))
             update_visibility();
     }
 
@@ -86,7 +93,9 @@ namespace lsp
 
     void IWidget::end()
     {
-        if (pVisibility != NULL)
+        if (sVisibility.valid())
+            update_visibility();
+        else if (pVisibility != NULL)
             notify(pVisibility);
     }
 

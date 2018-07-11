@@ -14,6 +14,7 @@
 #define CV_WHITE            0xffffff
 #define CV_MAGENTA          0xff00ff
 #define CV_SILVER           0xcccccc
+#define CV_GRAY             0x888888
 #define CV_MEDIUM_GREEN     0x008800
 #define CV_GREEN            0x00ff00
 #define CV_RED              0xff0000

@@ -349,9 +349,14 @@ namespace lsp
 
     void Gtk2MountStud::resize(size_t &w, size_t &h)
     {
+//        char text[32];
         cairo_text_extents_t te;
         cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
         cairo_t *cr = cairo_create(surface);
+
+        const char *text = sText;
+        if ((text == NULL) || (strlen(text) <= 4))
+            text = "WWW0";
 
         if (nMode != M_TOP)
         {
@@ -363,7 +368,7 @@ namespace lsp
                   CAIRO_FONT_WEIGHT_BOLD);
             cairo_set_font_size(cr, 16);
 
-            cairo_text_extents(cr, "WWW0", &te);
+            cairo_text_extents(cr, text, &te);
             min_w          += te.width;
             min_h          += (te.height > nSize) ? te.height : nSize;
 
@@ -379,7 +384,7 @@ namespace lsp
                   CAIRO_FONT_WEIGHT_BOLD);
             cairo_set_font_size(cr, 12);
 
-            cairo_text_extents(cr, (sText != NULL) ? "WWW0" : sText, &te);
+            cairo_text_extents(cr, text, &te);
 
             size_t min_w    = te.width + 12 + 32;
             size_t min_h    = te.height + 12;

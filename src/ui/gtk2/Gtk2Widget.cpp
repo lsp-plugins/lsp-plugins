@@ -124,6 +124,16 @@ namespace lsp
             atomic_unlock(lkWRedraw);
     }
 
+    bool Gtk2Widget::expand() const
+    {
+        return nWFlags & F_EXPAND;
+    }
+
+    bool Gtk2Widget::fill() const
+    {
+        return nWFlags & F_FILL;
+    }
+
     Gtk2Widget *Gtk2Widget::cast(IWidget *widget)
     {
         switch (widget->getClass())

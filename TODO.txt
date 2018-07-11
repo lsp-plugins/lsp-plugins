@@ -12,13 +12,25 @@
 - Added possibility to enter parameter values by hand by double-clicking on them.  
 - Refactored and optimized filter transfer function calculation. 
 
-=== 1.0.16 ===
-
-- Implemented Expander Mono, Stereo, LeftRight, MidSide plugin series.
-
 === KVRDC16 ===
 
 - Implemented Dynamic Processor Mono, Stereo, LeftRight, MidSide plugin series KVRDC16 edition.
+
+*******************************************************************************
+* Release steps
+*******************************************************************************
+* Add video cover to res/video-covers
+* Upload release video to the site
+* Update version in Makefile
+* Add link to the video to src/doc/config/youtube.php
+* Update CHANGELOG.txt and TODO.txt
+* Commit all changes to SVN
+* Tag version in SVN
+* Run ./release.sh to build binaries
+* Upload binaries to sourceforge
+* Copy contents of src/doc and res/doc/img/plugins to the site
+* Publish video on youtube
+* Publish news
 
 *******************************************************************************
 * PLUGIN LIST
@@ -36,6 +48,7 @@
 - Expander (Expander)
 - Gate
 - Begrenzer (Limiter)
+- One-band compressor
 - Multiband compressor
 - Multiband expander
 - Multiband gate

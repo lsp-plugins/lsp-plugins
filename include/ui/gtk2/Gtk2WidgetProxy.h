@@ -22,6 +22,10 @@ namespace lsp
             virtual GtkWidget *widget();
 
             virtual void add(IWidget *widget);
+
+            virtual bool expand() const;
+
+            virtual bool fill() const;
     };
 
 } /* namespace lsp */

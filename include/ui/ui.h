@@ -74,6 +74,9 @@ namespace lsp
     if (field != NULL) \
         field->bind(this);
 
+#define BIND_EXPR(field, expr) \
+    (field).parse(expr);
+
 // Misc data structures
 #include <data/cvector.h>
 
@@ -92,13 +95,14 @@ namespace lsp
 #include <ui/io.h>
 #include <ui/common.h>
 
+// Control interface
+#include <ui/IUIPort.h>
+
 // Colors and themes
 #include <ui/Color.h>
 #include <ui/Theme.h>
 #include <ui/Padding.h>
-
-// Control interface
-#include <ui/IUIPort.h>
+#include <ui/Expression.h>
 
 // Drawing
 #include <ui/ISurface.h>
