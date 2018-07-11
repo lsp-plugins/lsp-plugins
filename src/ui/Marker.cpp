@@ -13,15 +13,15 @@
 
 namespace lsp
 {
-    Marker::Marker(plugin_ui *ui):
-        IGraphObject(ui, W_MARKER)
+    Marker::Marker(plugin_ui *ui): IGraphObject(ui, W_MARKER)
     {
         nBasisID    = 0;
         nParallelID = 1;
         fValue      = 0;
-        sColor.set_rgb(1.0, 1.0, 1.0);
+        sColor.set(ui->theme(), C_GRAPH_MARKER);
         pPort       = NULL;
         nWidth      = 1;
+        nCenter     = 0;
     }
 
     Marker::~Marker()
@@ -43,22 +43,19 @@ namespace lsp
             return;
 
         float x = 0.0f, y = 0.0f;
+        cv->center(nCenter, &x, &y);
+
         float a, b, c;
 
         // Translate point and get the owner line
-        basis->apply(cv, x, y, value);
+        basis->apply(cv, &x, &y, &value, 1);
         if (!parallel->parallel(x, y, a, b, c))
-            return;
-
-        // Clip line
-        float x1, y1, x2, y2;
-        if (!clip_line2d(a, b, c, cv->left(), cv->right(), cv->top(), cv->bottom(), x1, y1, x2, y2))
             return;
 
         // Draw line
         cv->set_color(sColor);
         cv->set_line_width(nWidth);
-        cv->line(x1, y1, x2, y2);
+        cv->line(a, b, c);
     }
 
     void Marker::set(widget_attribute_t att, const char *value)
@@ -84,6 +81,9 @@ namespace lsp
                 break;
             case A_WIDTH:
                 PARSE_INT(value, nWidth = __);
+                break;
+            case A_CENTER:
+                PARSE_INT(value, nCenter = __);
                 break;
             default:
                 IWidget::set(att, value);

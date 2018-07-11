@@ -33,6 +33,7 @@ namespace lsp
             inline bool isAxis()        { return getClass() == W_AXIS;      };
             inline bool isMarker()      { return getClass() == W_MARKER;    };
             inline bool isMesh()        { return getClass() == W_MESH;      };
+            inline bool isCenter()      { return getClass() == W_CENTER;    };
     };
 
 } /* namespace lsp */

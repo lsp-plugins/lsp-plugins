@@ -5,7 +5,7 @@
 #include <alloca.h>
 
 #include <core/metadata.h>
-#include <core/plugins.h>
+#include <plugins/plugins.h>
 
 #include <container/vst/defs.h>
 

@@ -19,8 +19,13 @@ namespace lsp
         nCapacity   = 0;
         vBasis      = NULL;
         pPort       = NULL;
-        sColor.set(ui->theme(), C_GRAPH_MESH);
+        pVisible    = NULL;
+//        sColor.set(ui->theme(), C_GRAPH_MESH);
         nWidth      = 1;
+        nCenter     = 0;
+
+//        COLOR_PORTS_INIT(Color);
+        sColor.init(this, C_GRAPH_MESH, A_COLOR, -1, -1, -1, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
     }
 
     Mesh::~Mesh()
@@ -39,19 +44,35 @@ namespace lsp
         if (pPort == NULL)
             return;
 
+        if (pVisible != NULL)
+        {
+            if (pVisible->getValue() < 0.5f)
+                return;
+        }
+
 #ifdef LSP_HOST_SIMULATION
         // THIS IS TEST CODE
         mesh_t *mesh    = reinterpret_cast<mesh_t *>(alloca(sizeof(mesh_t) + sizeof(float *) * 2));
         mesh->nBuffers  = 2;
-        mesh->nItems    = 200;
+        mesh->nItems    = 1000;
         mesh->pvData[0] = reinterpret_cast<float *>(alloca(mesh->nItems * sizeof(float)));
         mesh->pvData[1] = reinterpret_cast<float *>(alloca(mesh->nItems * sizeof(float)));
 
         for (size_t i=0; i<mesh->nItems; ++i)
         {
-            mesh->pvData[0][i] = float(i) / (mesh->nItems - 1);
-            mesh->pvData[1][i] = cosf(4.0 * M_PI * mesh->pvData[0][i]);
+            mesh->pvData[0][i] = float(i) * 24000 / (mesh->nItems - 1);
+            mesh->pvData[1][i] = cosf(4.0 * M_PI * mesh->pvData[0][i] / 6000);
+//            mesh->pvData[1][i] = (i == 0) ? 10.0 : 10.0 / mesh->pvData[0][i];
+//            if (i % 2)
+//                mesh->pvData[1][i] /= (1 << 24);
         }
+//        float *_x = mesh->pvData[0];
+//        float *_y = mesh->pvData[1];
+
+//        *(_x++) = 10;       *(_y++) = 1.0;
+//        *(_x++) = 100;      *(_y++) = 0.5;
+//        *(_x++) = 1000;     *(_y++) = 1.0;
+//        *(_x++) = 10000;    *(_y++) = 0.5;
 #else
         mesh_t *mesh    = reinterpret_cast<mesh_t *>(pPort->getBuffer());
 #endif /* HOST_SIMULATION */
@@ -65,15 +86,26 @@ namespace lsp
         if (n_vecs <= 0)
             return;
 
+        float cx = 0.0f, cy = 0.0f;
+        cv->center(nCenter, &cx, &cy);
+
         // Initialize dimensions as zeros
-        point_t *vecs   = reinterpret_cast<point_t *>(alloca(n_vecs * sizeof(point_t)));
-        for (size_t i=0; i<n_vecs; ++i)
+        float *x_vec        = new float[mesh->nItems];
+        if (x_vec == NULL)
+            return;
+        float *y_vec        = new float[mesh->nItems];
+        if (y_vec == NULL)
         {
-            vecs[i].x   = 0;
-            vecs[i].y   = 0;
+            delete [] x_vec;
+            return;
+        }
+        for (size_t i=0; i<mesh->nItems; ++i)
+        {
+            x_vec[i]    = cx;
+            y_vec[i]    = cy;
         }
 
-        // Fill dimensions with values
+        // Calculate dot coordinates
         if (nBasis > 0)
         {
             for (size_t i=0; i<nBasis; ++i)
@@ -81,11 +113,19 @@ namespace lsp
                 // Try to get new axis
                 Axis *axis  = pGraph->basisAxis(vBasis[i]);
                 if (axis == NULL)
+                {
+                    delete [] x_vec;
+                    delete [] y_vec;
                     return;
+                }
 
                 // Try to apply axis
-                if (!axis->apply(cv, vecs[i].x, vecs[i].y, 1.0))
+                if (!axis->apply(cv, x_vec, y_vec, mesh->pvData[i], mesh->nItems))
+                {
+                    delete [] x_vec;
+                    delete [] y_vec;
                     return;
+                }
             }
         }
         else
@@ -98,36 +138,34 @@ namespace lsp
                     break;
 
                 // Try to apply axis
-                if (!axis->apply(cv, vecs[i].x, vecs[i].y, 1.0))
+                if (!axis->apply(cv, x_vec, y_vec, mesh->pvData[i], mesh->nItems))
+                {
+                    delete [] x_vec;
+                    delete [] y_vec;
                     return;
+                }
             }
         }
 
         // Now we have set of normals in vecs[]
-        cv->set_color(sColor);
+        cv->set_color(sColor.color());
         cv->set_line_width(nWidth);
 
         for (size_t i=0; i < mesh->nItems; ++i)
         {
-            // Calculate dot coordinates
-            float x = 0.0f, y = 0.0f;
-            for (size_t j=0; j<n_vecs; ++j)
-            {
-                x   += mesh->pvData[j][i] * vecs[j].x;
-                y   += mesh->pvData[j][i] * vecs[j].y;
-            }
-
-            //
             if (i == 0)
             {
-                cv->move_to(x, y);
+                cv->move_to(x_vec[i], y_vec[i]);
                 if (mesh->nItems < 2)
-                    cv->line_to(x, y);
+                    cv->line_to(x_vec[i], y_vec[i]);
             }
             else
-                cv->line_to(x, y);
+                cv->line_to(x_vec[i], y_vec[i]);
         }
         cv->stroke();
+
+        delete [] x_vec;
+        delete [] y_vec;
     }
 
     void Mesh::set(widget_attribute_t att, const char *value)
@@ -139,13 +177,20 @@ namespace lsp
                 if (pPort != NULL)
                     pPort->bind(this);
                 break;
-            case A_COLOR:
-                sColor.set(pUI->theme(), value);
+            case A_VISIBILITY:
+                pVisible    = pUI->port(value);
+                if (pVisible != NULL)
+                    pVisible->bind(this);
                 break;
             case A_WIDTH:
                 PARSE_INT(value, nWidth = __);
                 break;
+            case A_CENTER:
+                PARSE_INT(value, nCenter = __);
+                break;
             default:
+                if (sColor.set(att, value))
+                    break;
                 IWidget::set(att, value);
                 break;
         }
@@ -176,6 +221,12 @@ namespace lsp
 
         // Add to list
         vBasis[nBasis++]        = basis->getID();
+    }
+
+    void Mesh::notify(IUIPort *port)
+    {
+        sColor.notify(port);
+        IGraphObject::notify(port);
     }
 
 } /* namespace lsp */

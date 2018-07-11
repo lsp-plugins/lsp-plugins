@@ -18,8 +18,11 @@
 #define GAS_CONSTANT                        8.3144598           /* Gas constant [ j/(mol * K) }                     */
 #define TEMP_ABS_ZERO                       -273.15             /* Temperature of the absolute zero [ C ]           */
 #define MAX_SOUND_SPEED                     500                 /* Maximum speed of the sound [ m/s ]               */
-#define CMP_TOLERANCE                       1e-5                /* Float comparison tolerance                       */
+#define CMP_TOLERANCE                       1e-6                /* Float compare tolerance                          */
+#define AMPLIFICATION_THRESH                1e-8                /* Amplification threshold                          */
 #define SOUND_SPEED_M_S                     340.29f             /* Sound speed [ m / s ]                            */
+#define SPEC_FREQ_MIN                       10.0f               /* Minimum frequency [ Hz ]                         */
+#define SPEC_FREQ_MAX                       24000.0f            /* Maximum frequency [ Hz ]                         */
 
 namespace lsp
 {

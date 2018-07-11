@@ -84,7 +84,7 @@ namespace lsp
             virtual ~comp_delay_impl();
 
         public:
-            virtual void init();
+            virtual void init(IWrapper *wrapper);
             virtual void update_sample_rate(long sr);
             virtual void destroy();
     };

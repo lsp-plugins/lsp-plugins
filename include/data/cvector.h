@@ -27,10 +27,12 @@ namespace lsp
                     void **ptrs = new void *[nCapacity + 16];
                     if (ptrs == NULL)
                         return false;
-                    for (size_t i=0; i<nItems; ++i)
-                        ptrs[i]         = pvItems[i];
-
-                    delete [] pvItems;
+                    if (pvItems != NULL)
+                    {
+                        for (size_t i=0; i<nItems; ++i)
+                            ptrs[i]         = pvItems[i];
+                        delete [] pvItems;
+                    }
                     pvItems         = ptrs;
                     nCapacity      += 16;
                 }

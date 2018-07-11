@@ -8,7 +8,7 @@
 #include <expat.h>
 
 #include <core/metadata.h>
-#include <core/plugins.h>
+#include <plugins/plugins.h>
 #include <data/cvector.h>
 
 namespace lsp

@@ -21,19 +21,19 @@ $(FILES):
 # Rules for each utility
 $(UTL_GENTTL): $(FILES) $(SUBDIRS)
 	@echo "  $(CC) $(notdir $(UTL_GENTTL))"
-	@$(CC) $(EXE_FLAGS) -o $(UTL_GENTTL) $(OBJDIR)/lv2_genttl.o $(OBJ_CORE)
+	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) -o $(UTL_GENTTL) $(OBJDIR)/lv2_genttl.o $(OBJ_CORE)
 	
 $(UTL_VSTMAKE): $(FILES) $(SUBDIRS)
 	@echo "  $(CC) $(notdir $(UTL_VSTMAKE))"
-	@$(CC) $(EXE_FLAGS) -o $(UTL_VSTMAKE) $(OBJDIR)/vst_genmake.o $(OBJ_CORE)
+	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) -o $(UTL_VSTMAKE) $(OBJDIR)/vst_genmake.o $(OBJ_CORE)
 	
 $(UTL_GENPHP): $(FILES) $(SUBDIRS)
 	@echo "  $(CC) $(notdir $(UTL_GENPHP))"
-	@$(CC) $(EXE_FLAGS) -o $(UTL_GENPHP) $(OBJDIR)/gen_php.o $(OBJ_CORE)
+	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) -o $(UTL_GENPHP) $(OBJDIR)/gen_php.o $(OBJ_CORE)
 	
 $(UTL_RESGEN): $(FILES) $(SUBDIRS)
 	@echo "  $(CC) $(notdir $(UTL_RESGEN))"
-	@$(CC) $(EXE_FLAGS) $(EXPAT_HEADERS) $(EXPAT_LIBS) -o $(UTL_RESGEN) $(OBJDIR)/resource_gen.o $(OBJ_CORE)
+	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) $(EXPAT_HEADERS) $(EXPAT_LIBS) -o $(UTL_RESGEN) $(OBJDIR)/resource_gen.o $(OBJ_CORE)
 
 
 

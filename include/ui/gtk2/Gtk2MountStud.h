@@ -18,9 +18,9 @@ namespace lsp
             static const size_t SCREW_SIZE      = 40;
 
         private:
-            Gtk2Color       sBgColor;
-            Gtk2Color       sColor;
-            Gtk2Color       sTextColor;
+            Color           sBgColor;
+            Color           sColor;
+            Color           sTextColor;
 
             char           *sText;
             bool            bLeft;

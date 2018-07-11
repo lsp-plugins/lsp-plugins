@@ -18,7 +18,7 @@ namespace lsp
             cairo_t                *pCR;
 
         public:
-            Gtk2Canvas(ssize_t width, ssize_t height, ssize_t padding);
+            Gtk2Canvas(IGraph *graph, ssize_t width, ssize_t height, ssize_t padding);
             virtual ~Gtk2Canvas();
 
         public:
@@ -35,6 +35,10 @@ namespace lsp
             virtual void stroke();
 
             virtual void set_color(const Color &c);
+
+            virtual void circle(ssize_t x, ssize_t y, ssize_t r);
+
+            virtual void out_text(ssize_t x, ssize_t y, float h_pos, float v_pos, float size, const char *text);
     };
 
 } /* namespace lsp */

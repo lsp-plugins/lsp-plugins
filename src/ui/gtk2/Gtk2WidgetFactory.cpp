@@ -41,6 +41,7 @@ namespace lsp
             case W_ALIGN:       return new Gtk2Align(ui);
             case W_SWITCH:      return new Gtk2Switch(ui);
             case W_GRAPH:       return new Gtk2Graph(ui);
+            case W_COMBO:       return new Gtk2ComboBox(ui);
             default:            return IWidgetFactory::createWidget(ui, w_class);
         }
 

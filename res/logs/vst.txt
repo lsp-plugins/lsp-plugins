@@ -1,0 +1,251 @@
+http://service.steinberg.de/databases/plugin.nsf/plugIn?openForm
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Phasendetektor
+	Supported OS :	
+		PC, Other
+		
+	Short PlugIn
+Description:	This plugin allows to detect phase between two sources. For example
+for two or more microphones set at the different positions and distances from the sound source.
+		
+	Registration:	
+		
+	*Plugin ID:	jffz
+
+-----------------------------------------------------	
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Verzögerungsausgleicher
+	Supported OS :	
+		PC, Other
+		
+	Short PlugIn
+Description:	This plugin allows to add short delay to the mono channel to compensate the phase offset relatively to other channels.
+		
+	Registration:	
+		
+	*Plugin ID:	jav8
+	
+
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Verzögerungsausgleicher
+	Supported OS :	
+		PC, Other
+		
+	Short PlugIn
+Description:	This plugin allows to add short delay to the mono channel to compensate the phase offset relatively to other channels.
+		
+	Registration:	
+		
+	*Plugin ID:	qpwr
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Effect ( general)
+	*PlugIn Name:	Verzögerungsausgleicher
+	Supported OS :	
+		PC, Other
+		
+	Short PlugIn
+Description:	This plugin allows to add short delay to the mono channel to compensate the phase offset relatively to other channels.
+		
+	Registration:	
+		
+	*Plugin ID:	fwd3
+	
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Spektrumanalysator x1
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to view the spectral characteristics of the single audio channel on the frequency graph.
+		
+	Registration:	
+		
+	*Plugin ID:	qtez
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Spektrumanalysator x2
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to view the spectral characteristics of two single audio channels or one stereo channel on the frequency graph.
+		
+	Registration:	
+		
+	*Plugin ID:	aw7r
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Spektrumanalysator x4
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to view the spectral characteristics of four audio channels on the frequency graph.
+		
+	Registration:	
+		
+	*Plugin ID:	xzgo
+
+-----------------------------------------------------
+
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Spektrumanalysator x8
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to view the spectral characteristics of eight audio channels on the frequency graph.
+		
+	Registration:	
+		
+	*Plugin ID:	e5hb
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Spektrumanalysator x12
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to view the spectral characteristics of twelve audio channels on the frequency graph.
+		
+	Registration:	
+		
+	*Plugin ID:	tj3l
+
+-----------------------------------------------------
+
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Vladimir
+	*Last Name:	Sadovnikov
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Spektrumanalysator x16
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	This plugin allows to view the spectral characteristics of sixteen audio channels on the frequency graph.
+		
+	Registration:	
+		
+	*Plugin ID:	nuzi

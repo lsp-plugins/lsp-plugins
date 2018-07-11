@@ -16,10 +16,11 @@ namespace lsp
         private:
             enum flags_t
             {
-                F_MIN       = 1 << 0,
-                F_MAX       = 1 << 1,
-                F_BASIS     = 1 << 2,
-                F_VISIBLE   = 1 << 3
+                F_MIN           = 1 << 0,
+                F_MAX           = 1 << 1,
+                F_BASIS         = 1 << 2,
+                F_VISIBLE       = 1 << 3,
+                F_LOGARITHMIC   = 1 << 4
             };
 
             size_t          nFlags;
@@ -28,6 +29,7 @@ namespace lsp
             float           fMin;
             float           fMax;
             size_t          nWidth;
+            size_t          nCenter;
             Color           sColor;
             IUIPort        *pPort;
 
@@ -52,12 +54,13 @@ namespace lsp
 
             /** Apply axis transformation according to x and y
              *
-             * @param x x coordinate (in pixels) to transform
-             * @param y y coordinate (in pixels) to transform
-             * @param value value (in axis units) on the axis
-             * @return true if value was applied
+             * @param x x coordinate (in pixels) of 2D-point to transform
+             * @param y y coordinate (in pixels) of 2D-point to transform
+             * @param dv delta-vector to transform
+             * @param count size of x, y and dv vectors
+             * @return true if values were applied
              */
-            virtual bool apply(IGraphCanvas *cv, float &x, float &y, float value);
+            virtual bool apply(IGraphCanvas *cv, float *x, float *y, const float *dv, size_t count);
 
             /** Get parallel line equation
              *

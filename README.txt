@@ -38,17 +38,20 @@ at least i586 and x86_64 architectures. The LinuxVST format has only
 partial support at this moment (no user interface).
 
 The LADSPA distribution requirements:
-  * glibc >= 2.19.
+  * glibc >= 2.19
+  * libsndfile >= 1.0.25
   * Host compatible with LADSPA
 
 The LV2 distribution requirements:
   * glibc >= 2.19
+  * libsndfile >= 1.0.25
   * GTK+ >= 2.24
   * libcairo >= 1.14
   * Host compatible with LV2
   
 The LinuxVST distribution requirements:
   * glibc >= 2.19
+  * libsndfile >= 1.0.25
   * GTK+ >= 2.24
   * libcairo >= 1.14
   * Host compatible with LinuxVST v2.4
@@ -85,6 +88,7 @@ You need the following packages to be installed:
   * libgcc_s1 >= 5.2
   * libstdc++ >= 4.7
   * libexpat-devel >= 2.1
+  * libsndfile-devel >= 1.0.25
   * GTK+-devel >= 2.24
   * libcairo-devel >= 1.14
 

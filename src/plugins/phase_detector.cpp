@@ -262,17 +262,19 @@ namespace lsp
         // Output mesh if specified
         if ((mesh != NULL) && (mesh->isEmpty()))
         {
-            // Generate function times
-            float *dst  = mesh->pvData[0];
-            float delta = samples_to_millis(fSampleRate, 1);
-            for (size_t i=0; i<nFuncSize; ++i)
-                *(dst++)        = delta * ((ssize_t(nVectorSize)) - ssize_t(i));
+            float *x    = mesh->pvData[0];
+            float *y    = mesh->pvData[1];
+            float di    = (nFuncSize - 1.0) / MESH_POINTS;
+            float dx    = samples_to_millis(fSampleRate, di);
+            ssize_t ci  = ssize_t(MESH_POINTS >> 1);
 
-            // Copy function values
-            dsp::copy(mesh->pvData[1], vNormalized, nFuncSize);
+            for (size_t i=0; i<MESH_POINTS; ++i)
+            {
+                *(x++)      = dx * (ci - ssize_t(i));
+                *(y++)      = vNormalized[size_t(i * di)];
+            }
 
-            // Store mesh size and dimensions
-            mesh->data(2, nFuncSize);
+            mesh->data(2, MESH_POINTS);
         }
     }
 

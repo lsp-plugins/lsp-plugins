@@ -12,6 +12,7 @@ namespace lsp
 {
     class IGraphObject;
     class Axis;
+    class Center;
 
     class IGraph
     {
@@ -32,6 +33,8 @@ namespace lsp
             IGraphObject   *item(size_t index) const;
             Axis           *axis(size_t index) const;
             Axis           *basisAxis(size_t index) const;
+
+            Center         *center(size_t index) const;
 
             size_t          getAxises(Axis **dst, size_t start, size_t count) const;
             size_t          getBasisAxises(Axis **dst, size_t start, size_t count) const;

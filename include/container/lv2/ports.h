@@ -30,9 +30,9 @@ namespace lsp
             }
 
         public:
-            virtual void bind(void *data)
-            {
-            }
+            virtual void bind(void *data)           { };
+            virtual void save()                     { };
+            virtual void restore()                  { };
 
             inline LV2_URID         get_urid() const { return urid; }
             inline const char      *get_uri() const { return (pExt->unmap_urid(urid)); }

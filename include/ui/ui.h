@@ -89,13 +89,15 @@ namespace lsp
 // Widgets
 #include <ui/IWidget.h>
 #include <ui/IWidgetFactory.h>
-#include <ui/IGraphCanvas.h>
 #include <ui/IGraph.h>
+#include <ui/IGraphCanvas.h>
 #include <ui/IGraphObject.h>
+#include <ui/Center.h>
 #include <ui/Axis.h>
 #include <ui/Marker.h>
 #include <ui/Mesh.h>
 #include <ui/Basis.h>
+#include <ui/Text.h>
 
 // Control interface
 #include <ui/IUIPort.h>

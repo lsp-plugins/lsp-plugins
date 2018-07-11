@@ -63,32 +63,42 @@ namespace lsp
         protected:
             LV2Extensions          *pExt;
             plugin_t               *pPlugin;
+            ssize_t                 nStateRequests;
+            ssize_t                 nPatchRequests;
             LV2AtomPort            *pIn;
             LV2AtomPort            *pOut;
-            ssize_t                 nTriggered;
 
             cvector<LV2AtomVirtualPort> vPorts;
 
         public:
             LV2AtomTransport(const port_t *meta, LV2Extensions *ext, plugin_t *plugin)
             {
-                pExt        = ext;
-                pPlugin     = plugin;
-                nTriggered  = 0;
-
-                pIn         = new LV2AtomTransportInput(&meta[0], this);
-                pOut        = new LV2AtomTransportOutput(&meta[1], this);
+                pExt                = ext;
+                pPlugin             = plugin;
+                nStateRequests      = 0;
+                nPatchRequests      = 0;
+                pIn                 = new LV2AtomTransportInput(&meta[0], this);
+                pOut                = new LV2AtomTransportOutput(&meta[1], this);
             }
 
             ~LV2AtomTransport()
             {
-                // Virtual ports and transport ports should be deleted by wrapper
                 vPorts.clear();
 
-                nTriggered  = 0;
+                nStateRequests  = 0;
                 pExt        = NULL;
-                pOut        = NULL;
-                pIn         = NULL;
+
+                // Input and output transport ports are not stored in internal ports, have to be deleted here
+                if (pOut != NULL)
+                {
+                    delete pOut;
+                    pOut        = NULL;
+                }
+                if (pIn != NULL)
+                {
+                    delete pIn;
+                    pIn         = NULL;
+                }
             };
 
         public:
@@ -104,22 +114,15 @@ namespace lsp
                 vPorts.add(port);
             }
 
-            inline void trigger_on() { nTriggered++; };
-
-            inline bool trigger_off()
-            {
-                if (nTriggered <= 0)
-                    return false;
-                nTriggered--;
-                return true;
-            };
+            inline void trigger_state_request() { nStateRequests++; };
+            inline void trigger_patch_request() { nPatchRequests++; };
 
             inline LV2Extensions *extensions() { return pExt; }
 
             size_t pending()
             {
                 size_t count = 0;
-                if (nTriggered > 0)
+                if ((nStateRequests + nPatchRequests) > 0)
                     count++;
                 for (size_t i=0; i<vPorts.size(); ++i)
                     if (vPorts[i]->pending())
@@ -129,14 +132,21 @@ namespace lsp
 
             inline plugin_t *get_plugin() { return pPlugin; }
 
-            void    deserialize(const LV2_Atom_Object *obj);
+            void    deserialize(LV2_URID urid, LV2_URID type, const LV2_Atom *atom);
 
-            void    serialize();
+            void    serialize_virtual_ports();
+            void    serialize_state();
+            void    serialize_patches();
 
             inline LV2AtomPort *in()    { return pIn;   }
             inline LV2AtomPort *out()   { return pOut;  }
     };
+}
 
+#include <container/lv2/vports.h>
+
+namespace lsp
+{
     LV2AtomTransportInput::~LV2AtomTransportInput()
     {
         pTr = NULL;
@@ -196,10 +206,56 @@ namespace lsp
                 if ((obj->body.otype == pExt->uridStateType) && (obj->body.id == pExt->uridState))
                 {
                     lsp_trace("triggered state request");
-                    pTr->trigger_on();
+                    pTr->trigger_state_request();
+                }
+                else if ((obj->body.otype == pExt->uridPatchGet) && (obj->body.id == pExt->uridChunk))
+                {
+                    lsp_trace("triggered patch request");
+                    LV2_Atom_Property_Body *body    = lv2_atom_object_begin(&obj->body);
+
+                    while (!lv2_atom_object_is_end(&obj->body, obj->atom.size, body))
+                    {
+                        lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+                        lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+
+                        body = lv2_atom_object_next(body);
+                    }
+
+                    pTr->trigger_patch_request();
+                }
+                else if ((obj->body.otype == pExt->uridPatchSet) && (obj->body.id == pExt->uridChunk))
+                {
+                    // Parse atom body
+                    LV2_Atom_Property_Body *body    = lv2_atom_object_begin(&obj->body);
+                    const LV2_Atom_URID    *key     = NULL;
+                    const LV2_Atom         *value   = NULL;
+
+                    while (!lv2_atom_object_is_end(&obj->body, obj->atom.size, body))
+                    {
+                        lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+                        lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+
+                        if ((body->key  == pExt->uridPatchProperty) && (body->value.type == pExt->uridAtomUrid))
+                        {
+                            key     = reinterpret_cast<const LV2_Atom_URID *>(&body->value);
+                            lsp_trace("body->value.body (%d) = %s", int(key->body), pExt->unmap_urid(key->body));
+                        }
+                        else if (body->key   == pExt->uridPatchValue)
+                            value   = &body->value;
+
+                        if ((key != NULL) && (value != NULL))
+                        {
+                            pTr->deserialize(key->body, value->type, value);
+
+                            key     = NULL;
+                            value   = NULL;
+                        }
+
+                        body = lv2_atom_object_next(body);
+                    }
                 }
                 else
-                    pTr->deserialize(obj);
+                    pTr->deserialize(obj->body.id, obj->body.otype, reinterpret_cast<const LV2_Atom *>(obj + 1));
             }
             ev = lv2_atom_sequence_next(ev);
         }
@@ -221,66 +277,128 @@ namespace lsp
         LV2_Atom_Forge_Frame    seq;
         pExt->forge_sequence_head(&seq, 0);
 
-        // Serialize state of control/meter ports if state request is pending
-        if (pTr->trigger_off())
-        {
-            lsp_trace("Serializing state");
-
-            LV2_Atom_Forge_Frame    frame;
-            pExt->forge_frame_time(0); // Event header
-            pExt->forge_object(&frame, pExt->uridState, pExt->uridStateType);
-
-            plugin_t *p = pTr->get_plugin();
-            for (size_t port_id = 0; ; ++port_id)
-            {
-                // Get port instance
-                IPort   *src    = p->port(port_id);
-                if (src == NULL)
-                    break;
-
-                // Get port metadata
-                const port_t *port  = src->metadata();
-
-                // Serialize only output ports
-                if (!(port->flags & F_OUT))
-                    continue;
-
-                LV2Port *p      = static_cast<LV2Port *>(src);
-
-                // Analyze port role
-                switch (port->role)
-                {
-                    case R_CONTROL:
-                    case R_METER:
-                    {
-                        LV2_URID urid   = p->get_urid();
-                        float value     = p->getValue();
-                        lsp_trace("Serializing port urid=%d, uri=%s", int(urid), p->get_uri());
-                        lsp_trace("  id=%s, value=%f", port->id, value);
-                        pExt->forge_key(urid);
-                        pExt->forge_float(value);
-                        break;
-                    }
-
-                    default:
-                        break;
-                }
-            }
-
-            // Complete event
-            pExt->forge_pop(&frame);
-
-            lsp_trace("State has been serialized");
-        }
-
-        // Serialize state of virtual ports
-        pTr->serialize();
+        // Call serialization routines
+        pTr->serialize_state();
+        pTr->serialize_patches();
+        pTr->serialize_virtual_ports();
 
         // Complete sequence
         pExt->forge_pop(&seq);
     }
 
-    void LV2AtomTransport::serialize()
+    void LV2AtomTransport::serialize_patches()
+    {
+        // Check that there is pending request
+        if (nPatchRequests <= 0)
+            return;
+        nPatchRequests--;
+
+        // Serialize patches
+        lsp_trace("Serializing patches");
+
+        plugin_t *p = pPlugin;
+        for (size_t port_id = 0; ; ++port_id)
+        {
+            // Get port instance
+            IPort   *src    = p->port(port_id);
+            if (src == NULL)
+                break;
+
+            // Get port metadata
+            const port_t *m  = src->metadata();
+
+            // Analyze port role
+            switch (m->role)
+            {
+                case R_PATH:
+                {
+                    // Get port
+                    LV2PathPort *lvp    = static_cast<LV2PathPort *>(src);
+                    LV2_URID urid       = lvp->get_urid();
+                    path_t *path        = reinterpret_cast<path_t *>(lvp->getBuffer());
+                    lsp_trace("Serializing port urid=%d, uri=%s", int(urid), lvp->get_uri());
+                    lsp_trace("  id=%s, value=%s", m->id, path->get_path());
+
+                    // Serialize atom
+                    LV2_Atom_Forge_Frame    frame;
+                    pExt->forge_frame_time(0); // Event header
+                    pExt->forge_object(&frame, pExt->uridPatchMessage, pExt->uridPatchSet);
+                    pExt->forge_key(pExt->uridPatchProperty);
+                    pExt->forge_urid(urid);
+                    pExt->forge_key(pExt->uridPatchValue);
+                    pExt->forge_path(path->get_path());
+
+                    // Complete event
+                    pExt->forge_pop(&frame);
+                    break;
+                }
+
+                default:
+                    break;
+            }
+        }
+
+        lsp_trace("All patches have been serialized");
+    }
+
+    void LV2AtomTransport::serialize_state()
+    {
+        // Check that there is pending request
+        if (nStateRequests <= 0)
+            return;
+        nStateRequests--;
+
+        // Serialize state of control/meter ports if state request is pending
+        lsp_trace("Serializing state");
+
+        LV2_Atom_Forge_Frame    frame;
+        pExt->forge_frame_time(0); // Event header
+        pExt->forge_object(&frame, pExt->uridState, pExt->uridStateType);
+
+        plugin_t *p = pPlugin;
+        for (size_t port_id = 0; ; ++port_id)
+        {
+            // Get port instance
+            IPort   *src    = p->port(port_id);
+            if (src == NULL)
+                break;
+
+            // Get port metadata
+            const port_t *port  = src->metadata();
+
+            // Serialize only output ports
+            if (!(port->flags & F_OUT))
+                continue;
+
+            LV2Port *p      = static_cast<LV2Port *>(src);
+
+            // Analyze port role
+            switch (port->role)
+            {
+                case R_CONTROL:
+                case R_METER:
+                {
+                    LV2_URID urid   = p->get_urid();
+                    float value     = p->getValue();
+                    lsp_trace("Serializing port urid=%d, uri=%s", int(urid), p->get_uri());
+                    lsp_trace("  id=%s, value=%f", port->id, value);
+                    pExt->forge_key(urid);
+                    pExt->forge_float(value);
+                    break;
+                }
+
+                default:
+                    break;
+            }
+        }
+
+        // Complete event
+        pExt->forge_pop(&frame);
+
+        lsp_trace("State has been serialized");
+    }
+
+    void LV2AtomTransport::serialize_virtual_ports()
     {
         for (size_t i=0; i<vPorts.size(); ++i)
         {
@@ -299,17 +417,26 @@ namespace lsp
         }
     }
 
-    void LV2AtomTransport::deserialize(const LV2_Atom_Object *obj)
+    void LV2AtomTransport::deserialize(LV2_URID urid, LV2_URID type, const LV2_Atom *atom)
     {
         for (size_t i=0; i<vPorts.size(); ++i)
         {
-            if (obj->body.otype != vPorts[i]->get_type_urid())
+            lsp_trace("Check virtual port %s", vPorts[i]->metadata()->id);
+            if (vPorts[i]->get_urid() != urid)
+            {
+                lsp_trace("vPorts[i]->get_urid() (%d) != urid (%d)",
+                    int(vPorts[i]->get_type_urid()), int(urid));
                 continue;
-            if (obj->body.id != vPorts[i]->get_urid())
+            }
+            if (vPorts[i]->get_type_urid() != type)
+            {
+                lsp_trace("vPorts[i]->get_type_urid() (%d) != type (%d)",
+                    int(vPorts[i]->get_type_urid()), int(type));
                 continue;
+            }
 
             // Deserialize object
-            vPorts[i]->deserialize(reinterpret_cast<const LV2_Atom *>(obj + 1));
+            vPorts[i]->deserialize(atom);
         }
     }
 

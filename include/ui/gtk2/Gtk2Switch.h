@@ -20,12 +20,12 @@ namespace lsp
                 S_INVERT    = (1 << 2)
             };
 
-            Gtk2Color       sColor;
-            Gtk2Color       sTextColor;
-            Gtk2Color       sBorderColor;
-            Gtk2Color       sBgColor;
+            Color           sColor;
+            Color           sTextColor;
+            Color           sBorderColor;
+            Color           sBgColor;
 
-            IUIPort   *pPort;
+            IUIPort        *pPort;
             size_t          nSize;
             size_t          nBorder;
             float           nAspect;

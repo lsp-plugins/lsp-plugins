@@ -19,8 +19,8 @@ namespace lsp
                 S_TOGGLED   = (1 << 1),
             };
 
-            Gtk2Color       sColor;
-            Gtk2Color       sBgColor;
+            Color           sColor;
+            Color           sBgColor;
 
             IUIPort        *pPort;
             size_t          nSize;

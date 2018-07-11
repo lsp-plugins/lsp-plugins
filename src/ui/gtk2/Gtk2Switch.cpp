@@ -110,7 +110,7 @@ namespace lsp
 
             for (ssize_t i=0; (i<b_r) && (i < ssize_t(nBorder)); ++i)
             {
-                Gtk2Color bc(sBorderColor);
+                Color bc(sBorderColor);
                 float bright = (i + 1.0) / b_r;
                 bc.lightness(bc.lightness() + bright);
 
@@ -136,7 +136,7 @@ namespace lsp
             }
 
             // Draw hole
-            Gtk2Color hole(sBorderColor);
+            Color hole(sBorderColor);
             hole.darken(0.75);
 
             cp = cairo_pattern_create_radial (w - (b_r << 1), (b_r << 1), 0, w - (b_r << 1), (b_r << 1), delta * 2.0);
@@ -150,7 +150,7 @@ namespace lsp
         else
         {
             // Draw hole
-            Gtk2Color hole(pUI->theme(), C_HOLE);
+            Color hole(pUI->theme(), C_HOLE);
             cairo_set_source_rgb(cr, hole.red(), hole.green(), hole.blue());
             cairo_rectangle(cr, nBorder, nBorder, w - (nBorder << 1), h - (nBorder << 1));
             cairo_fill(cr);
@@ -161,7 +161,7 @@ namespace lsp
             pos     = 2 - pos;
 
         // Draw button
-        Gtk2Color bcl(sColor);
+        Color bcl(sColor);
         size_t l    = nBorder + 1;
         size_t bw   = w - ((nBorder + 1) << 1);
         size_t t    = nBorder + 1;

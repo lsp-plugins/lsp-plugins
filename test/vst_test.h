@@ -1,4 +1,4 @@
-#include <core/plugins.h>
+#include <plugins/plugins.h>
 #include <stdio.h>
 #include <container/vst/defs.h>
 

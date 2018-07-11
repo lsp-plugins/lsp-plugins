@@ -37,7 +37,10 @@ namespace lsp
         W_MARKER,
         W_BODY,
         W_MESH,
-        W_BASIS
+        W_BASIS,
+        W_CENTER,
+        W_COMBO,
+        W_TEXT
     };
 
     // List of all available widget attributes
@@ -53,6 +56,9 @@ namespace lsp
         A_COLOR,
         A_BG_COLOR,
         A_SCALE_COLOR,
+        A_SCALE_HUE_ID,
+        A_SCALE_SAT_ID,
+        A_SCALE_LIGHT_ID,
         A_BORDER_COLOR,
         A_TEXT_COLOR,
         A_FORMAT,
@@ -89,7 +95,13 @@ namespace lsp
         A_PROPORTIONAL,
         A_EXPAND,
         A_FILL,
-        A_KEY
+        A_KEY,
+        A_CENTER,
+        A_LOGARITHMIC,
+        A_HUE_ID,
+        A_SAT_ID,
+        A_LIGHT_ID,
+        A_COORD
     };
 
     // List of colors
@@ -119,7 +131,9 @@ namespace lsp
         C_LOGO_TEXT,
 
         C_GRAPH_AXIS,
-        C_GRAPH_MESH
+        C_GRAPH_MESH,
+        C_GRAPH_MARKER,
+        C_GRAPH_TEXT
     };
 
     // Helper functions

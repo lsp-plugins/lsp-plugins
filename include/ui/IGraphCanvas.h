@@ -19,9 +19,10 @@ namespace lsp
             ssize_t         nLeft;
             ssize_t         nTop;
             Color           sColor;
+            IGraph         *pGraph;
 
         public:
-            IGraphCanvas(ssize_t width, ssize_t height);
+            IGraphCanvas(IGraph *g, ssize_t width, ssize_t height);
             virtual ~IGraphCanvas();
 
         public:
@@ -34,17 +35,27 @@ namespace lsp
 
             virtual void line(ssize_t x1, ssize_t y1, ssize_t x2, ssize_t y2);
 
+            virtual void line(float a, float b, float c);
+
             virtual void set_line_width(size_t width);
 
             virtual void move_to(ssize_t x, ssize_t y);
 
             virtual void line_to(ssize_t x, ssize_t y);
 
+            virtual void circle(ssize_t x, ssize_t y, ssize_t r);
+
             virtual void stroke();
 
             virtual void set_color(const Color &c);
 
             virtual void clear();
+
+            virtual void center(size_t id, float *x, float *y);
+
+            virtual void center(Center *c, float *x, float *y);
+
+            virtual void out_text(ssize_t x, ssize_t y, float h_pos, float v_pos, float size, const char *text);
     };
 
 } /* namespace lsp */

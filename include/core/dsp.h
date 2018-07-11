@@ -114,7 +114,32 @@ namespace lsp
          * @param k multiplier
          * @param count number of elements
          */
-        extern void (* multiply)(float *dst, const float *src, float k, size_t count);
+        extern void (* scale)(float *dst, const float *src, float k, size_t count);
+
+        /** Multiply: dst[i] = src1[i] * src2[i]
+         *
+         * @param dst destination
+         * @param src1 first source
+         * @param src2 second source
+         * @param count number of elements
+         */
+        extern void (* multiply)(float *dst, const float *src1, const float *src2, size_t count);
+
+        /** Calculate horizontal sum: result = sum (i) from 0 to count-1 src[i]
+         *
+         * @param src vector to summarize
+         * @param count number of elements
+         * @return status of operation
+         */
+        extern float (* h_sum)(const float *src, size_t count);
+
+        /** Calculate horizontal sum: result = sum (i) from 0 to count-1 sqr(src[i])
+         *
+         * @param src vector to summarize
+         * @param count number of elements
+         * @return status of operation
+         */
+        extern float (* h_sqr_sum)(const float *src, size_t count);
 
         /** Calculate sum {from 0 to count-1} (a[i] * b[i])
          *
@@ -182,6 +207,128 @@ namespace lsp
          */
         extern void (* mix_add)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
 
+        /** Apply direct convolution: dst[i] = sum from j=0 to j=length { src[i + j] * conv[i] }
+         *
+         * @param dst destination buffer
+         * @param src source buffer
+         * @param conv REVERSE convolution data
+         * @param length convolution length
+         * @param count number of samples to process
+         */
+        extern void (* convolve)(float *dst, const float *src, const float *conv, size_t length, size_t count);
+
+        /** Reverse the order of samples: dst[i] <=> dst[count - i - 1]
+         *
+         * @param dst the buffer to reverse
+         * @param count number of samples in buffer
+         */
+        extern void (* reverse)(float *dst, size_t count);
+
+        /** Direct Fast Fourier Transform
+         * @param dst_re real part of spectrum
+         * @param dst_im imaginary part of spectrum
+         * @param src_re real part of signal
+         * @param src_im imaginary part of signal
+         * @param rank the rank of FFT
+         */
+        extern void (* direct_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+
+        /** Reverse Fast Fourier transform
+         * @param dst_re real part of signal
+         * @param dst_im imaginary part of signal
+         * @param src_re real part of spectrum
+         * @param src_im imaginary part of spectrum
+         * @param rank the rank of FFT
+         */
+        extern void (* reverse_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+
+        /** Normalize FFT coefficients
+         *
+         * @param dst_re target array for real part of signal
+         * @param dst_im target array for imaginary part of signal
+         * @param src_re real part of spectrum
+         * @param src_im imaginary part of spectrum;
+         * @param rank the rank of FFT
+         */
+        extern void (* normalize_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+
+        /** Center FFT coefficients
+         *
+         * @param dst_re target array for real part of signal
+         * @param dst_im target array for imaginary part of signal
+         * @param src_re source array for real part of signal
+         * @param src_im source array for imaginary part of signal
+         * @param rank rank of FFT
+         */
+        extern void (* center_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+
+        /** Leave only harmonics with positive frequencies
+         *
+         * @param dst_re target array for real part of signal
+         * @param dst_im target array for imaginary part of signal
+         * @param src_re source array for real part of signal
+         * @param src_im source array for imaginary part of signal
+         * @param rank rank of FFT
+         */
+        extern void (* combine_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+
+        /** Calculate complex multiplication
+         *
+         * @param dst_re destination real part
+         * @param dst_im destination imaginary part
+         * @param src1_re source 1 real part
+         * @param src1_im source 1 imaginary part
+         * @param src2_re source 2 real part
+         * @param src2_im source 2 imaginary part
+         * @param count number of multiplications
+         */
+        extern void (* complex_mul)(
+                float *dst_re, float *dst_im,
+                const float *src1_re, const float *src1_im,
+                const float *src2_re, const float *src2_im,
+                size_t count
+            );
+
+        /** Convert real+imaginary complex number to polar form
+         *
+         * @param dst_mod module of the complex number
+         * @param dst_arg argument of the complex number
+         * @param src_re real part of complex number
+         * @param src_im imaginary part of complex number
+         * @param count number of elements to process
+         */
+        extern void (* complex_cvt2modarg)(
+                float *dst_mod, float *dst_arg,
+                const float *src_re, const float *src_im,
+                size_t count
+            );
+
+        /** Get module for complex numbers
+         *
+         * @param dst_mod array to sore module
+         * @param src_re real part of complex number
+         * @param src_im imaginary part of complex number
+         * @param count number of elements to process
+         */
+        extern void (* complex_mod)(
+                float *dst_mod,
+                const float *src_re, const float *src_im,
+                size_t count
+            );
+
+        /** Convert polar-form of complex number to real+imaginary
+         *
+         * @param dst_re real part of complex number
+         * @param dst_im imaginary part of complex number
+         * @param src_mod module of the complex number
+         * @param src_arg argument of the complex number
+         * @param count number of elements to process
+         */
+        extern void (* complex_cvt2reim)(
+                float *dst_re, float *dst_im,
+                const float *src_mod, const float *src_arg,
+                size_t count
+            );
     }
 
 } /* namespace forzee */

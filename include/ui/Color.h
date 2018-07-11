@@ -31,6 +31,9 @@ namespace lsp
         protected:
             inline Color(float r, float g, float b, size_t mask): R(r), G(g), B(b), H(0), S(0), L(0), nMask(mask) {};
 
+            inline void check_rgb() const { if (!(nMask & M_RGB)) { calc_rgb(); nMask |= M_RGB; } };
+            inline void check_hsl() const { if (!(nMask & M_HSL)) { calc_hsl(); nMask |= M_HSL; } };
+
         public:
             inline Color(): R(0), G(0), B(0), H(0), S(0), L(0), nMask(M_RGB) {};
             inline Color(float r, float g, float b): R(r), G(g), B(b), H(0), S(0), L(0), nMask(M_RGB) {};
@@ -38,15 +41,15 @@ namespace lsp
             inline Color(Theme &theme, const char *name) { set(theme, name); }
             inline Color(Theme &theme, color_t color) { set(theme, color); }
 
-            inline float red() const        { calc_rgb(); return R; }
-            inline float green() const      { calc_rgb(); return G; }
-            inline float blue() const       { calc_rgb(); return B; }
+            inline float red() const        { check_rgb(); return R; }
+            inline float green() const      { check_rgb(); return G; }
+            inline float blue() const       { check_rgb(); return B; }
 
-            inline void red(float r)    { nMask  = M_RGB; R = r; };
-            inline void green(float g)  { nMask  = M_RGB; G = g; };
-            inline void blue(float b)   { nMask  = M_RGB; B = b; };
+            inline void red(float r)    { check_rgb(); R = r; nMask = M_RGB; };
+            inline void green(float g)  { check_rgb(); G = g; nMask = M_RGB; };
+            inline void blue(float b)   { check_rgb(); B = b; nMask = M_RGB; };
 
-            inline void get_rgb(float &r, float &g, float &b) const { calc_rgb(); r = R; g = G; b = B; }
+            inline void get_rgb(float &r, float &g, float &b) const { check_rgb(); r = R; g = G; b = B; }
             inline void set_rgb(float r, float g, float b)
             {
                 nMask = M_RGB;
@@ -55,15 +58,15 @@ namespace lsp
                 B = b;
             }
 
-            inline float hue() const        { calc_hsl(); return H; }
-            inline float saturation() const { calc_hsl(); return S; }
-            inline float lightness() const  { calc_hsl(); return L; }
+            inline float hue() const        { check_hsl(); return H; }
+            inline float saturation() const { check_hsl(); return S; }
+            inline float lightness() const  { check_hsl(); return L; }
 
-            inline void hue(float h)        { nMask  = M_HSL; H = h; };
-            inline void saturation(float s) { nMask  = M_HSL; S = s; };
-            inline void lightness(float l)  { nMask  = M_HSL; L = l; };
+            inline void hue(float h)        { check_hsl(); H = h; nMask = M_HSL;  };
+            inline void saturation(float s) { check_hsl(); S = s; nMask = M_HSL;  };
+            inline void lightness(float l)  { check_hsl(); L = l; nMask = M_HSL;  };
 
-            inline void get_hsl(float &h, float &s, float &l) const { calc_hsl(); h = H; s = S; l = L; }
+            inline void get_hsl(float &h, float &s, float &l) const { check_hsl(); h = H; s = S; l = L; }
             inline void set_hsl(float h, float s, float l)
             {
                 nMask   = M_HSL;
@@ -83,6 +86,37 @@ namespace lsp
             bool set(Theme &theme, color_t color);
 
             int format_rgb(char *dst, size_t len, size_t tolerance = 2);
+
+            uint32_t    rgb24() const;
+    };
+
+    class ColorHolder
+    {
+        private:
+            enum component_t
+            {
+                C_BASIC, C_R, C_G, C_B, C_H, C_S, C_L,
+                C_TOTAL
+            };
+
+        private:
+            IWidget    *pWidget;
+            Color       sColor;
+            IUIPort    *vComponents[C_TOTAL];
+            size_t      vAttributes[C_TOTAL];
+
+        public:
+            ColorHolder();
+
+            void init(IWidget *widget, color_t dfl, size_t basic, size_t r, size_t g, size_t b, size_t h, size_t s, size_t l);
+
+            bool notify(IUIPort *port);
+
+            bool set(widget_attribute_t att, const char *value);
+
+            inline Color &color()               { return sColor; }
+
+            inline const Color &color() const   { return sColor; }
     };
 
 } /* namespace lsp */

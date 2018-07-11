@@ -43,6 +43,8 @@
 #endif /* MOD_QT5 */
 
 // Specify modules
+// !!! Do not edit the order of several plugins !!!
+// This may break LADSPA_ID numbering.
 
 // Phase detector
 MOD_PLUGIN(phase_detector)
@@ -69,6 +71,49 @@ MOD_LADSPA(comp_delay_x2_stereo)
 MOD_LV2(comp_delay_x2_stereo)
 MOD_VST(comp_delay_x2_stereo)
 MOD_GTK2(comp_delay_x2_stereo)
+
+// Spectrum Analyzer
+MOD_PLUGIN(spectrum_analyzer_x1)
+MOD_LADSPA(spectrum_analyzer_x1)
+MOD_LV2(spectrum_analyzer_x1)
+MOD_VST(spectrum_analyzer_x1)
+MOD_GTK2(spectrum_analyzer_x1)
+
+MOD_PLUGIN(spectrum_analyzer_x2)
+MOD_LADSPA(spectrum_analyzer_x2)
+MOD_LV2(spectrum_analyzer_x2)
+MOD_VST(spectrum_analyzer_x2)
+MOD_GTK2(spectrum_analyzer_x2)
+
+MOD_PLUGIN(spectrum_analyzer_x4)
+MOD_LADSPA(spectrum_analyzer_x4)
+MOD_LV2(spectrum_analyzer_x4)
+MOD_VST(spectrum_analyzer_x4)
+MOD_GTK2(spectrum_analyzer_x4)
+
+MOD_PLUGIN(spectrum_analyzer_x8)
+MOD_LADSPA(spectrum_analyzer_x8)
+MOD_LV2(spectrum_analyzer_x8)
+MOD_VST(spectrum_analyzer_x8)
+MOD_GTK2(spectrum_analyzer_x8)
+
+MOD_PLUGIN(spectrum_analyzer_x12)
+MOD_LADSPA(spectrum_analyzer_x12)
+MOD_LV2(spectrum_analyzer_x12)
+MOD_VST(spectrum_analyzer_x12)
+MOD_GTK2(spectrum_analyzer_x12)
+
+MOD_PLUGIN(spectrum_analyzer_x16)
+MOD_LADSPA(spectrum_analyzer_x16)
+MOD_LV2(spectrum_analyzer_x16)
+MOD_VST(spectrum_analyzer_x16)
+MOD_GTK2(spectrum_analyzer_x16)
+
+#ifndef LSP_NO_EXPERMIENTAL
+    // Impulse responses
+    MOD_PLUGIN(impulse_responses_mono)
+    MOD_LV2(impulse_responses_mono)
+#endif
 
 // Undefine capabilities
 #undef MOD_PLUGIN

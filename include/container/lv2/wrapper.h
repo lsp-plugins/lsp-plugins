@@ -8,28 +8,48 @@
 #ifndef CONTAINER_LV2_WRAPPER_H_
 #define CONTAINER_LV2_WRAPPER_H_
 
+#include <core/IWrapper.h>
+#include <core/NativeExecutor.h>
+
 namespace lsp
 {
-    class LV2Wrapper
+    class LV2Wrapper: public IWrapper
     {
         private:
             plugin_t           *pPlugin;
             LV2Extensions      *pExt;
-            LV2AtomTransport   *pTransport;
+            LV2AtomTransport   *pTransport; // Transport
+            LV2Port            *pIn;        // Transport ports
+            LV2Port            *pOut;       // Transport ports
+            IExecutor          *pExecutor;  // Executor service
             cvector<LV2Port>    vExtPorts;
             cvector<LV2Port>    vIntPorts;
 
-        protected:
-            void add_port(LV2Port *p, bool external, bool plugin)
+            enum add_flags
             {
-                lsp_trace("adding port id=%s, index=%d", p->metadata()->id, int (vIntPorts.size()));
+                P_EXTERNAL      = 1 << 0,
+                P_PLUGIN        = 1 << 1,
+                P_INTERNAL      = 1 << 2
+            };
 
-                if (plugin)
+        protected:
+            void add_port(LV2Port *p, int flags)
+            {
+                lsp_trace("adding port id=%s", p->metadata()->id);
+
+                if (flags & P_PLUGIN)
+                {
+                    lsp_trace("  plugin index=%d", int(pPlugin->ports_count()));
                     pPlugin->add_port(p);
+                }
 
-                vIntPorts.add(p);
+                if (flags & P_INTERNAL)
+                {
+                    lsp_trace("  internal index=%d", int(vIntPorts.size()));
+                    vIntPorts.add(p);
+                }
 
-                if (external)
+                if (flags & P_EXTERNAL)
                 {
                     lsp_trace("  external index=%d", int(vExtPorts.size()));
                     vExtPorts.add(p);
@@ -42,6 +62,9 @@ namespace lsp
                 pPlugin     = plugin;
                 pExt        = ext;
                 pTransport  = NULL;
+                pIn         = NULL;
+                pOut        = NULL;
+                pExecutor   = NULL;
             }
 
             ~LV2Wrapper()
@@ -49,6 +72,9 @@ namespace lsp
                 pPlugin     = NULL;
                 pExt        = NULL;
                 pTransport  = NULL;
+                pIn         = NULL;
+                pOut        = NULL;
+                pExecutor   = NULL;
             }
 
         public:
@@ -73,26 +99,33 @@ namespace lsp
                     switch (port->role)
                     {
                         case R_UI_SYNC:
-                            add_port(new LV2Port(port, pExt), false, true);
+                            lsp_error("Error in metadata: R_UI_SYNC port is present in port list");
+                            add_port(new LV2Port(port, pExt), P_EXTERNAL | P_INTERNAL);
                             break;
                         case R_MESH:
                             if (pTransport != NULL)
-                                add_port(new LV2MeshPort(port, pTransport), false, true);
+                                add_port(new LV2MeshPort(port, pTransport), P_INTERNAL | P_PLUGIN);
                             else
-                                add_port(new LV2Port(port, pExt), false, true);
+                                add_port(new LV2Port(port, pExt), P_INTERNAL | P_PLUGIN);
+                            break;
+                        case R_PATH:
+                            if (pTransport != NULL)
+                                add_port(new LV2PathPort(port, pTransport), P_INTERNAL | P_PLUGIN);
+                            else
+                                add_port(new LV2Port(port, pExt), P_INTERNAL | P_PLUGIN);
                             break;
 
                         case R_AUDIO:
-                            add_port(new LV2AudioPort(port, pExt), true, true);
+                            add_port(new LV2AudioPort(port, pExt), P_EXTERNAL | P_INTERNAL | P_PLUGIN);
                             break;
 
                         case R_CONTROL:
                         case R_METER:
                         default:
                             if (out)
-                                add_port(new LV2OutputPort(port, pExt), true, true);
+                                add_port(new LV2OutputPort(port, pExt), P_EXTERNAL | P_INTERNAL | P_PLUGIN);
                             else
-                                add_port(new LV2InputPort(port, pExt), true, true);
+                                add_port(new LV2InputPort(port, pExt), P_EXTERNAL | P_INTERNAL | P_PLUGIN);
                             break;
                     }
                 }
@@ -101,8 +134,12 @@ namespace lsp
                 if (pTransport != NULL)
                 {
                     lsp_trace("binding LV2Transport");
-                    add_port(pTransport->in(), true, false);
-                    add_port(pTransport->out(), true, false);
+
+                    pIn     = pTransport->in();
+                    pOut    = pTransport->out();
+
+                    add_port(pIn, P_EXTERNAL);
+                    add_port(pOut, P_EXTERNAL);
                 }
 
                 // Add latency port
@@ -111,13 +148,13 @@ namespace lsp
                     if ((port->id != NULL) && (port->name != NULL))
                     {
                         lsp_trace("binding Latency Port");
-                        add_port(new LV2LatencyPort(port, pExt, pPlugin), true, false);
+                        add_port(new LV2LatencyPort(port, pExt, pPlugin), P_EXTERNAL | P_INTERNAL);
                     }
                 }
 
                 // Initialize plugin
                 lsp_trace("Initializing plugin");
-                pPlugin->init();
+                pPlugin->init(this);
                 pPlugin->set_sample_rate(srate);
                 if (pTransport != NULL)
                     pTransport->init();
@@ -125,6 +162,14 @@ namespace lsp
 
             void destroy()
             {
+                // Shutdown and delete executor if exists
+                if (pExecutor != NULL)
+                {
+                    pExecutor->shutdown();
+                    delete pExecutor;
+                    pExecutor   = NULL;
+                }
+
                 // Drop plugin
                 if (pPlugin != NULL)
                 {
@@ -149,6 +194,10 @@ namespace lsp
                     delete pTransport;
                     pTransport  = NULL;
                 }
+
+                // Forget transport ports
+                pIn     = NULL;
+                pOut    = NULL;
 
                 // Drop extensions
                 if (pExt != NULL)
@@ -180,7 +229,13 @@ namespace lsp
             {
                 bool update     = false;
 
-                // Process external ports for changes
+                // First pre-process transport ports
+                if (pIn != NULL)
+                    pIn->pre_process(samples);
+                if (pOut != NULL)
+                    pOut->pre_process(samples);
+
+                // Pre-rocess regular ports
                 for (size_t i=0; i<vIntPorts.size(); ++i)
                 {
                     // Get port
@@ -206,13 +261,109 @@ namespace lsp
                 // Call the main processing unit
                 pPlugin->process(samples);
 
-                // Process external ports for changes
+                // Post-process regular ports for changes
                 for (size_t i=0; i<vIntPorts.size(); ++i)
                 {
                     LV2Port *port = vIntPorts[i];
                     if (port != NULL)
                         port->post_process(samples);
                 }
+
+                // Post-process transport ports (if present)
+                if (pIn != NULL)
+                    pIn->post_process(samples);
+                if (pOut != NULL)
+                    pOut->post_process(samples);
+            }
+
+            inline void save_state(
+                LV2_State_Store_Function   store,
+                LV2_State_Handle           handle,
+                uint32_t                   flags,
+                const LV2_Feature *const * features)
+            {
+                pExt->init_state_context(store, NULL, handle, flags, features);
+
+                size_t ports_count = vIntPorts.size();
+
+                for (size_t i=0; i<ports_count; ++i)
+                {
+                    // Get port
+                    LV2Port *lvp    = vIntPorts[i];
+                    if (lvp == NULL)
+                        continue;
+
+                    // Save state of port
+                    lvp->save();
+                }
+
+                pExt->reset_state_context();
+            }
+
+            inline void restore_state(
+                LV2_State_Retrieve_Function retrieve,
+                LV2_State_Handle            handle,
+                uint32_t                    flags,
+                const LV2_Feature *const *  features
+            )
+            {
+                pExt->init_state_context(NULL, retrieve, handle, flags, features);
+
+                size_t ports_count = vIntPorts.size();
+
+                for (size_t i=0; i<ports_count; ++i)
+                {
+                    // Get port
+                    LV2Port *lvp    = vIntPorts[i];
+                    if (lvp == NULL)
+                        continue;
+
+                    // Restore state of port
+                    lvp->restore();
+                }
+
+                pExt->reset_state_context();
+            }
+
+            inline void job_run(
+                LV2_Worker_Respond_Handle   handle,
+                LV2_Worker_Respond_Function respond,
+                uint32_t                    size,
+                const void*                 data
+            )
+            {
+                LV2Executor *executor = static_cast<LV2Executor *>(pExecutor);
+                executor->run_job(handle, respond, size, data);
+            }
+
+            inline void job_response(size_t size, const void *body)
+            {
+//                LV2Executor *executor = static_cast<LV2Executor *>(pExecutor);
+            }
+
+            inline void job_end()
+            {
+//                LV2Executor *executor = static_cast<LV2Executor *>(pExecutor);
+            }
+
+            virtual IExecutor *get_executor()
+            {
+                lsp_trace("executor = %p", reinterpret_cast<void *>(pExecutor));
+                if (pExecutor != NULL)
+                    return pExecutor;
+
+                // Create executor service
+                if (pExt->sched != NULL)
+                {
+                    lsp_trace("Creating LV2 executor service");
+                    pExecutor       = new LV2Executor(pExt->sched);
+                }
+                else
+                {
+                    lsp_trace("Creating native executor service");
+                    pExecutor       = new NativeExecutor();
+                }
+                return pExecutor;
             }
     };
 }

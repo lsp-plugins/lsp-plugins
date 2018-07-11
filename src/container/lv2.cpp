@@ -3,15 +3,17 @@
 #include <string.h>
 
 #include <core/metadata.h>
-#include <core/plugins.h>
 #include <core/lib.h>
+#include <plugins/plugins.h>
 
 #include <data/cvector.h>
 
 #include <container/lv2ext.h>
+#include <container/lv2/types.h>
 #include <container/lv2/ports.h>
 #include <container/lv2/transport.h>
 #include <container/lv2/vports.h>
+#include <container/lv2/executor.h>
 #include <container/lv2/wrapper.h>
 
 namespace lsp
@@ -21,8 +23,6 @@ namespace lsp
         lsp_trace("instance = %p", instance);
         LV2Wrapper *w = reinterpret_cast<LV2Wrapper *>(instance);
         w->activate();
-//        plugin_t *p = reinterpret_cast<plugin_t *>(instance);
-//        p->activate();
     }
 
     void lv2_cleanup(LV2_Handle instance)
@@ -31,11 +31,6 @@ namespace lsp
         LV2Wrapper *w = reinterpret_cast<LV2Wrapper *>(instance);
         w->destroy();
         delete w;
-//        plugin_t *p = reinterpret_cast<plugin_t *>(instance);
-//        lsp_trace("cleanup plugin = %p (%s)", p, p->get_metadata()->name);
-//
-//        p->destroy();
-//        delete p;
     }
 
     void lv2_connect_port(
@@ -46,14 +41,6 @@ namespace lsp
 //        lsp_trace("port = %d, data_location=%p", int(port), data_location);
         LV2Wrapper *w = reinterpret_cast<LV2Wrapper *>(instance);
         w->connect(port, data_location);
-
-//        plugin_t  *p      = reinterpret_cast<plugin_t *>(instance);
-//        IPort   *dst    = p->port(port);
-//        if (dst != NULL)
-//        {
-//            LV2Port *p_dst  = static_cast<LV2Port *>(dst);
-//            p_dst->bind(data_location);
-//        }
     }
 
     void lv2_deactivate(LV2_Handle instance)
@@ -61,9 +48,6 @@ namespace lsp
         lsp_trace("instance = %p", instance);
         LV2Wrapper *w = reinterpret_cast<LV2Wrapper *>(instance);
         w->deactivate();
-
-//        plugin_t *p = reinterpret_cast<plugin_t *>(instance);
-//        p->deactivate();
     }
 
     LV2_Handle lv2_instantiate(
@@ -84,7 +68,6 @@ namespace lsp
 
         // Instantiate plugin
         plugin_t *p = NULL;
-//        const plugin_metadata_t *m = NULL;
         const char *uri = NULL;
 
         #define MOD_LV2(plugin) \
@@ -93,7 +76,6 @@ namespace lsp
                 p   = new plugin(); \
                 if (p == NULL) \
                     return NULL; \
-                /* m   = &plugin::metadata; \ */ \
                 uri = LSP_PLUGIN_URI(lv2, plugin); \
             }
         #include <core/modules.h>
@@ -104,82 +86,13 @@ namespace lsp
 
         lsp_trace("lv2_instantiate uri=%s, sample_rate=%f", uri, sample_rate);
 
-//        // Scan for extensions
+        // Scan for extensions
         LV2Extensions *ext          = new LV2Extensions(features, uri);
         LV2Wrapper *w               = new LV2Wrapper(p, ext);
 
         w->init(sample_rate);
 
         return reinterpret_cast<LV2_Handle>(w);
-
-//        LV2AtomTransport *transport = NULL;
-//        if (ext->atom_supported())
-//        {
-//            lsp_trace("Creating atom transport");
-//            transport       = new LV2AtomTransport(lv2_atom_ports, ext, p);
-//        }
-//
-//        // Bind ports
-//        lsp_trace("Binding ports");
-//        for (const port_t *port = m->ports; (port->id != NULL) && (port->name != NULL); ++port)
-//        {
-//            bool out = (port->flags & F_OUT);
-//
-//            switch (port->role)
-//            {
-//                case R_UI_SYNC:
-//                    p->add_port(new LV2Port(port, ext), false);
-//                    continue;
-//                case R_MESH:
-//                    if (transport != NULL)
-//                        p->add_port(new LV2MeshPort(port, transport), false);
-//                    else
-//                        p->add_port(new LV2Port(port, ext), false);
-//                    continue;
-//
-//                case R_AUDIO:
-//                    p->add_port(new LV2AudioPort(port, ext), true);
-//                    break;
-//                case R_CONTROL:
-//                case R_METER:
-//                default:
-//                    if (out)
-//                        p->add_port(new LV2OutputPort(port, ext), true);
-//                    else
-//                        p->add_port(new LV2InputPort(port, ext), true);
-//                    break;
-//            }
-//        }
-//
-//        // Add state ports (if supported)
-//        if (transport != NULL)
-//        {
-//            lsp_trace("binding LV2Transport");
-//            p->add_port(transport->in(), true);
-//            p->add_port(transport->out(), true);
-//
-//            transport   -> unbind();
-//        }
-//
-//        // Add latency port
-//        {
-//            const port_t *port = &lv2_latency_port;
-//            if ((port->id != NULL) && (port->name != NULL))
-//            {
-//                lsp_trace("binding Latency Port");
-//                p->add_port(new LV2LatencyPort(port, ext, p), true);
-//            }
-//        }
-//
-//        // Dereference extensions
-//        ext         ->  unbind();
-//
-//        // Initialize plugin
-//        lsp_trace("Initializing plugin");
-//        p->init();
-//        p->set_sample_rate(sample_rate);
-
-//        return reinterpret_cast<LV2_Handle>(p);
     }
 
     void lv2_run(LV2_Handle instance, uint32_t sample_count)
@@ -190,8 +103,94 @@ namespace lsp
 //        p->run(sample_count);
     }
 
+    LV2_State_Status lv2_save_state(
+        LV2_Handle                 instance,
+        LV2_State_Store_Function   store,
+        LV2_State_Handle           handle,
+        uint32_t                   flags,
+        const LV2_Feature *const * features)
+    {
+        lsp_trace("handle = %p", instance);
+        LV2Wrapper *w = reinterpret_cast<LV2Wrapper *>(instance);
+        w->save_state(store, handle, flags, features);
+
+        return LV2_STATE_SUCCESS;
+    }
+
+    LV2_State_Status lv2_restore_state(
+        LV2_Handle                  instance,
+        LV2_State_Retrieve_Function retrieve,
+        LV2_State_Handle            handle,
+        uint32_t                    flags,
+        const LV2_Feature *const *  features)
+    {
+        lsp_trace("handle = %p", instance);
+        LV2Wrapper *w = reinterpret_cast<LV2Wrapper *>(instance);
+        w->restore_state(retrieve, handle, flags, features);
+
+        return LV2_STATE_SUCCESS;
+    }
+
+    static const LV2_State_Interface lv2_state_interface =
+    {
+        lv2_save_state,
+        lv2_restore_state
+    };
+
+    LV2_Worker_Status lv2_work_work(
+        LV2_Handle                  instance,
+        LV2_Worker_Respond_Function respond,
+        LV2_Worker_Respond_Handle   handle,
+        uint32_t                    size,
+        const void*                 data)
+    {
+        lsp_trace("handle = %p", instance);
+        LV2Wrapper *w = reinterpret_cast<LV2Wrapper *>(instance);
+        w->job_run(handle, respond, size, data);
+        return LV2_WORKER_SUCCESS;
+    }
+
+    LV2_Worker_Status lv2_work_response(
+        LV2_Handle  instance,
+        uint32_t    size,
+        const void* body)
+    {
+        lsp_trace("handle = %p", instance);
+        LV2Wrapper *w = reinterpret_cast<LV2Wrapper *>(instance);
+        w->job_response(size, body);
+        return LV2_WORKER_SUCCESS;
+    }
+
+//    LV2_Worker_Status lv2_work_end(LV2_Handle instance)
+//    {
+//        lsp_trace("handle = %p", instance);
+//        LV2Wrapper *w = reinterpret_cast<LV2Wrapper *>(instance);
+//        w->job_end();
+//        return LV2_WORKER_SUCCESS;
+//    }
+
+    static const LV2_Worker_Interface lv2_worker_interface =
+    {
+        lv2_work_work,
+        lv2_work_response,
+        NULL
+//        lv2_work_end
+    };
+
     const void *lv2_extension_data(const char * uri)
     {
+        lsp_trace("requested extension data = %s", uri);
+        if (!strcmp(uri, LV2_STATE__interface))
+        {
+            lsp_trace("  state_interface = %p", &lv2_state_interface);
+            return &lv2_state_interface;
+        }
+        else if (!strcmp(uri, LV2_WORKER__interface))
+        {
+            lsp_trace("  worker_interface = %p", &lv2_worker_interface);
+            return &lv2_worker_interface;
+        }
+
         return NULL;
     }
 

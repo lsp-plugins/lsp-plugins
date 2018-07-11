@@ -35,6 +35,9 @@ namespace lsp
         "body",
         "mesh",
         "basis",
+        "center",
+        "combo",
+        "text",
         NULL
     };
 
@@ -49,6 +52,9 @@ namespace lsp
         "color",
         "bg_color",
         "scale_color",
+        "scale_hue_id",
+        "scale_sat_id",
+        "scale_light_id",
         "border_color",
         "text_color",
         "format",
@@ -86,6 +92,12 @@ namespace lsp
         "expand",
         "fill",
         "key",
+        "center",
+        "logarithmic",
+        "hue_id",
+        "sat_id",
+        "light_id",
+        "coord",
         NULL
     };
 
@@ -114,6 +126,8 @@ namespace lsp
 
         "graph_axis",
         "graph_mesh",
+        "graph_marker",
+        "graph_text",
 
         NULL
     };

@@ -61,6 +61,9 @@ namespace lsp
             case A_BG_COLOR:
                 sBgColor.set(pUI->theme(), value);
                 break;
+            case A_TEXT_COLOR:
+                sTextColor.set(pUI->theme(), value);
+                break;
             default:
                 Gtk2Widget::set(att, value);
                 break;

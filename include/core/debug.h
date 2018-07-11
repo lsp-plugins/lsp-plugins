@@ -31,9 +31,16 @@
 
 // Include <stdio.h> to perform debugging output
 #include <stdio.h>
-#define lsp_error(msg, ...)     fprintf(stderr, "[ERR][%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
-#define lsp_warn(msg, ...)      fprintf(stderr, "[WRN][%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
-#define lsp_info(msg, ...)      fprintf(stderr, "[INF][%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
+
+#ifdef LSP_DEBUG
+    #define lsp_error(msg, ...)     fprintf(stderr, "[ERR][%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
+    #define lsp_warn(msg, ...)      fprintf(stderr, "[WRN][%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
+    #define lsp_info(msg, ...)      fprintf(stderr, "[INF][%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
+#else
+    #define lsp_error(msg, ...)     fprintf(stderr, "[ERR] " msg "\n", ## __VA_ARGS__)
+    #define lsp_warn(msg, ...)      fprintf(stderr, "[WRN] " msg "\n", ## __VA_ARGS__)
+    #define lsp_info(msg, ...)      fprintf(stderr, "[INF] " msg "\n", ## __VA_ARGS__)
+#endif /* LSP_DEBUG */
 
 // Define assertions
 #ifdef LSP_DEBUG

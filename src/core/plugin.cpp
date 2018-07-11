@@ -14,7 +14,7 @@ namespace lsp
     {
     }
 
-    void plugin_t::init()
+    void plugin_t::init(IWrapper *wrapper)
     {
     }
 

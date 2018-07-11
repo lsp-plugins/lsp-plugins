@@ -33,6 +33,7 @@ namespace lsp
     {
         NULL,
         NULL,
+        NULL,
         "%",
 
         "mm",
@@ -59,9 +60,11 @@ namespace lsp
         "G",
         "G",
 
+        "°",
         "°C",
         "°F",
         "°K",
+        "°R",
 
         NULL
     };

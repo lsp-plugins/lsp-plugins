@@ -36,7 +36,14 @@ namespace lsp
     void Gtk2Container::end()
     {
         if (pWidget != NULL)
-            gtk_widget_modify_bg(pWidget, GTK_STATE_NORMAL, sBgColor.color());
+        {
+            GdkColor col;
+            col.red         = sBgColor.red() * 0xffff;
+            col.green       = sBgColor.green() * 0xffff;
+            col.blue        = sBgColor.blue() * 0xffff;
+            col.pixel       = 0;
+            gtk_widget_modify_bg(pWidget, GTK_STATE_NORMAL, &col);
+        }
     }
 
 } /* namespace lsp */

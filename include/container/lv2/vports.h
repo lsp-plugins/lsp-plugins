@@ -39,7 +39,7 @@ namespace lsp
 
             virtual void set_sample_rate(long sr)
             {
-                nFrameSize      = sr / 25; // 25 frames per second
+                nFrameSize      = sr / MESH_REFRESH_RATE;
             }
 
             virtual bool pre_process(size_t samples)
@@ -96,6 +96,59 @@ namespace lsp
 
                 // Set mesh waiting until next frame is allowed
                 mesh->setWaiting();
+            }
+    };
+
+    class LV2PathPort: public LV2AtomVirtualPort
+    {
+        private:
+            lv2_path_t      sPath;
+
+            inline void set_string(const char *string, size_t len)
+            {
+                lsp_trace("submitting path to %s (lenght = %d)", string, int(len));
+                sPath.submit(string, len);
+            }
+
+        public:
+            LV2PathPort(const port_t *meta, LV2AtomTransport *tr): LV2AtomVirtualPort(meta, tr, tr->extensions()->uridPathType)
+            {
+                sPath.init();
+            }
+
+        public:
+            virtual void *getBuffer()
+            {
+                return static_cast<path_t *>(&sPath);
+            }
+
+            virtual void deserialize(const LV2_Atom *atom)
+            {
+                if (atom->type != pExt->uridPathType)
+                    return;
+                set_string(reinterpret_cast<const char *>(atom + 1), atom->size);
+            }
+
+            virtual void save()
+            {
+                lsp_trace("save port id=%s, urid=%d (%s), value=%s", pMetadata->id, urid, get_uri(), sPath.sPath);
+                pExt->store_value(urid, pExt->uridPathType, sPath.sPath, strlen(sPath.sPath) + sizeof(char));
+            }
+
+            virtual void restore()
+            {
+                lsp_trace("restore port id=%s, urid=%d (%s)", pMetadata->id, urid, get_uri());
+                size_t count            = 0;
+                const char *path        = reinterpret_cast<const char *>(pExt->restore_value(urid, pExt->uridPathType, &count));
+                if (path != NULL)
+                    set_string(path, count);
+                else
+                    set_string("", 0);
+            }
+
+            virtual bool pre_process(size_t samples)
+            {
+                return sPath.pending();
             }
     };
 

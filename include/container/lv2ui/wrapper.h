@@ -182,6 +182,7 @@ namespace lsp
             void notify(size_t id, size_t size, size_t format, const void *buf)
             {
                 LV2UIPort *p = vExtPorts[id];
+//                lsp_trace("id=%d, size=%d, format=%d, buf=%p, port_id=%s", int(id), int(size), int(format), buf, p->metadata()->id);
                 if (p != NULL)
                     p->notify(buf, format, size);
             }

@@ -194,6 +194,9 @@ namespace lsp
         // Generate IDs for parameter ports
         for (ssize_t id=0; id < e->numParams; ++id)
             vParams[id]->setID(id);
+
+        // Initialize plugin
+        pPlugin->init(NULL);  // TODO: implement worker interface
     }
 
     void VSTWrapper::destroy()
@@ -573,7 +576,7 @@ namespace lsp
     void VSTWrapper::create_transport_thread()
     {
         drop_transport_thread();
-        pTimer = g_timeout_add (1000 / 25, transport_synchronize, this);
+        pTimer = g_timeout_add (1000 / MESH_REFRESH_RATE, transport_synchronize, this);
         lsp_trace("added transport=%ld", long(pTimer));
     }
 

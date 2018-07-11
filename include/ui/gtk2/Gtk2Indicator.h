@@ -50,9 +50,9 @@ namespace lsp
 
             } buffer_t;
 
-            Gtk2Color       sColor;
-            Gtk2Color       sTextColor;
-            Gtk2Color       sBgColor;
+            Color           sColor;
+            Color           sTextColor;
+            Color           sBgColor;
             IUIPort   *pPort;
             float           fValue;
 

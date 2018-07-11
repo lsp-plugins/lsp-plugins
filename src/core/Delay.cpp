@@ -134,7 +134,7 @@ namespace lsp
                 if (to_copy > out)
                     to_copy         = out;
 
-                dsp::multiply(dst, &pBuffer[nTail], gain, to_copy);
+                dsp::scale(dst, &pBuffer[nTail], gain, to_copy);
                 nTail       = (nTail + to_copy) % nSize;
                 out        -= to_copy;
                 dst        += to_copy;

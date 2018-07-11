@@ -41,6 +41,7 @@ namespace lsp
         U_NONE,                 // Simple value
 
         U_BOOL,                 // Boolean: true if > 0.5, false otherwise
+        U_STRING,               // String
         U_PERCENT,              // Something in percents
 
         // Distance
@@ -71,32 +72,23 @@ namespace lsp
         U_GAIN_POW,             // Gain (power amplification)
 
         // Degrees
+        U_DEG,                  // Degrees
         U_DEG_CEL,              // Degrees (Celsium)
-        U_DEG_FAR,              // Degrees (Farengheit)
+        U_DEG_FAR,              // Degrees (Fahrenheit)
         U_DEG_K,                // Degrees (Kelvin)
+        U_DEG_R,                // Degrees (Rankine)
 
-        U_ENUM                 // List index
-
-        /*
-        coef
-        db
-        degree
-        frame
-        midiNote
-        mile
-        min
-        oct
-        semitone12TET
-         */
+        U_ENUM                  // List index
     };
 
     enum role_t
     {
-        R_UI_SYNC,
-        R_AUDIO,
-        R_CONTROL,
-        R_METER,
-        R_MESH
+        R_UI_SYNC,              // Synchronization with UI
+        R_AUDIO,                // Audio port
+        R_CONTROL,              // Control port
+        R_METER,                // Metering port
+        R_MESH,                 // Mesh port
+        R_PATH                  // Path to the local file
     };
 
     enum flags_t
@@ -110,6 +102,9 @@ namespace lsp
         F_INT           = (1 << 5),     // Integer value
         F_TRG           = (1 << 6),     // Trigger
     };
+
+    #define IS_OUT_PORT(p)      (((p)->flags & F_OUT) == F_OUT)
+    #define IS_IN_PORT(p)       (((p)->flags & F_OUT) == F_IN)
 
     enum plugin_class_t
     {

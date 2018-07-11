@@ -7,8 +7,8 @@
 
 // Core include
 #include <core/metadata.h>
-#include <core/plugins.h>
 #include <core/lib.h>
+#include <plugins/plugins.h>
 
 #include <data/cvector.h>
 
@@ -749,7 +749,6 @@ namespace lsp
             e->flags                        |= effFlagsHasEditor; // Has custom UI
 
         // Initialize plugin and wrapper
-        p->init();
         w->init();
 
         return e;

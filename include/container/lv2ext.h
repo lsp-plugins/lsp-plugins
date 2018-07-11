@@ -14,10 +14,17 @@
 #include <lv2/lv2plug.in/ns/ext/atom/forge.h>
 #include <lv2/lv2plug.in/ns/ext/atom/util.h>
 #include <lv2/lv2plug.in/ns/ext/urid/urid.h>
+#include <lv2/lv2plug.in/ns/ext/port-groups/port-groups.h>
+#include <lv2/lv2plug.in/ns/ext/resize-port/resize-port.h>
+#include <lv2/lv2plug.in/ns/ext/state/state.h>
+#include <lv2/lv2plug.in/ns/ext/patch/patch.h>
+#include <lv2/lv2plug.in/ns/ext/port-props/port-props.h>
+#include <lv2/lv2plug.in/ns/ext/worker/worker.h>
+#include <lv2/lv2plug.in/ns/extensions/units/units.h>
+#include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
 
-#ifdef LSP_UI_SIDE
-    #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
-#endif /* LSP_UI_SIDE */
+// Include common definitions
+#include <container/const.h>
 
 #ifndef LV2_ATOM__Object
     #define LV2_ATOM__Object        LV2_ATOM_PREFIX "Object"
@@ -28,25 +35,41 @@ namespace lsp
     #define LSP_LV2_ATOM_KEY_SIZE       (sizeof(uint32_t) * 2)
     #define LSP_LV2_SIZE_PAD(size)      ((size_t(size) + 0x1ff) & (~size_t(0xff)))
 
-    typedef struct LV2Extensions
+    struct LV2Extensions
     {
-//        private:
-//            ssize_t                 nRefs;
-
         public:
             LV2_Atom_Forge          forge;
+
+            // Extension interfaces
             LV2_URID_Map           *map;
             LV2_URID_Unmap         *unmap;
+            LV2_Worker_Schedule    *sched;
 
+            // State interface
+            LV2_State_Store_Function    hStore;
+            LV2_State_Retrieve_Function hRetrieve;
+            LV2_State_Handle            hHandle;
+
+            // Plugin URI and URID
             const char             *uriPlugin;
             LV2_URID                uridPlugin;
 
+            // Miscellaneous URIDs
             LV2_URID                uridAtomTransfer;
             LV2_URID                uridEventTransfer;
             LV2_URID                uridObject;
             LV2_URID                uridState;
             LV2_URID                uridStateType;
             LV2_URID                uridMeshType;
+            LV2_URID                uridPathType;
+            LV2_URID                uridPatchGet;
+            LV2_URID                uridPatchSet;
+            LV2_URID                uridPatchMessage;
+            LV2_URID                uridPatchResponse;
+            LV2_URID                uridPatchProperty;
+            LV2_URID                uridPatchValue;
+            LV2_URID                uridAtomUrid;
+            LV2_URID                uridChunk;
 
 #ifdef LSP_UI_SIDE
             LV2UI_Controller        ctl;
@@ -60,9 +83,9 @@ namespace lsp
             inline LV2Extensions(const LV2_Feature* const* feat, const char *uri)
 #endif /* LSP_UI_SIDE */
             {
-//                nRefs               = 1;
                 map                 = NULL;
                 unmap               = NULL;
+                sched               = NULL;
 
                 if (feat != NULL)
                 {
@@ -74,38 +97,43 @@ namespace lsp
                             map = reinterpret_cast<LV2_URID_Map *>(f->data);
                         if (!strcmp(f->URI, LV2_URID__unmap))
                             unmap = reinterpret_cast<LV2_URID_Unmap *>(f->data);
+                        if (!strcmp(f->URI, LV2_WORKER__schedule))
+                            sched = reinterpret_cast<LV2_Worker_Schedule *>(f->data);
                     }
                 }
-
-                uriPlugin           = uri;
-                uridPlugin          = (map != NULL) ? map->map(map->handle, uriPlugin) : -1;
 
 #ifdef LSP_UI_SIDE
                 ctl                 = lv2_ctl;
                 wf                  = lv2_write;
 #endif /* LSP_UI_SIDE */
+
+                uriPlugin           = uri;
+                uridPlugin          = (map != NULL) ? map->map(map->handle, uriPlugin) : -1;
+
                 if (map != NULL)
                     lv2_atom_forge_init(&forge, map);
 
                 uridAtomTransfer    = map_uri(LV2_ATOM__atomTransfer);
                 uridEventTransfer   = map_uri(LV2_ATOM__eventTransfer);
                 uridObject          = map_uri(LV2_ATOM__Object);
-                uridState           = map_primitive("state");
-                uridMeshType            = map_type("Mesh");
                 uridStateType       = map_type("State");
+                uridState           = map_primitive("state");
+                uridMeshType        = map_type("Mesh");
+                uridPathType        = map_uri(LV2_ATOM__Path);
+                uridPatchGet        = map_uri(LV2_PATCH__Get);
+                uridPatchSet        = map_uri(LV2_PATCH__Set);
+                uridPatchMessage    = map_uri(LV2_PATCH__Message);
+                uridPatchResponse   = map_uri(LV2_PATCH__Response);
+                uridPatchProperty   = map_uri(LV2_PATCH__property);
+                uridPatchValue      = map_uri(LV2_PATCH__value);
+                uridAtomUrid        = map_uri(LV2_ATOM__URID);
+                uridChunk           = map_uri(LV2_ATOM__Chunk);
             }
 
             ~LV2Extensions()
             {
                 lsp_trace("destroy");
             }
-
-//            inline void bind()      { nRefs ++; };
-//            inline void unbind()
-//            {
-//                if ((--nRefs) <= 0)
-//                    delete this;
-//            }
 
         public:
             inline bool atom_supported() const
@@ -151,12 +179,6 @@ namespace lsp
                 );
             }
 
-
-            inline LV2_Atom_Forge_Ref forge_property_head(LV2_URID key, LV2_URID context)
-            {
-                return lv2_atom_forge_property_head(&forge, key, context);
-            }
-
             inline LV2_Atom_Forge_Ref forge_sequence_head(LV2_Atom_Forge_Frame* frame, uint32_t unit)
             {
                 return lv2_atom_forge_sequence_head(&forge, frame, unit);
@@ -164,8 +186,20 @@ namespace lsp
 
             inline LV2_Atom_Forge_Ref forge_key(LV2_URID key)
             {
-                const LV2_Atom_Property_Body a = { key, 0, { 0, 0 } };
-                return lv2_atom_forge_write(&forge, &a, 2 * (uint32_t)sizeof(uint32_t));
+                const uint32_t body[] = { key, 0 };
+                return lv2_atom_forge_write(&forge, body, sizeof(body));
+            }
+
+            inline LV2_Atom_Forge_Ref forge_urid(LV2_URID urid)
+            {
+                const LV2_Atom_URID a = { { sizeof(LV2_URID), forge.URID }, urid };
+                return lv2_atom_forge_write(&forge, &a, sizeof(LV2_Atom_URID));
+            }
+
+            inline LV2_Atom_Forge_Ref forge_path(const char *str)
+            {
+                size_t len = strlen(str);
+                return lv2_atom_forge_typed_string(&forge, forge.Path, str, len);
             }
 
             inline void forge_pop(LV2_Atom_Forge_Frame* frame)
@@ -175,12 +209,14 @@ namespace lsp
 
             inline LV2_Atom_Forge_Ref forge_float(float val)
             {
-                return lv2_atom_forge_float(&forge, val);
+                const LV2_Atom_Float a = { { sizeof(float), forge.Float }, val };
+                return lv2_atom_forge_primitive(&forge, &a.atom);
             }
 
-            inline LV2_Atom_Forge_Ref forge_int(size_t val)
+            inline LV2_Atom_Forge_Ref forge_int(int32_t val)
             {
-                return lv2_atom_forge_int(&forge, int32_t(val));
+                const LV2_Atom_Int a    = { { sizeof(int32_t), forge.Int }, val };
+                return lv2_atom_forge_primitive(&forge, &a.atom);
             }
 
             inline void forge_set_buffer(void* buf, size_t size)
@@ -224,7 +260,55 @@ namespace lsp
             {
                 return map_uri("%s/%s", uriPlugin, id);
             }
-    } LV2AtomForge;
+
+            // Sa
+            inline void init_state_context(
+                LV2_State_Store_Function    store,
+                LV2_State_Retrieve_Function retrieve,
+                LV2_State_Handle            handle,
+                uint32_t                    flags,
+                const LV2_Feature *const *  features
+            )
+            {
+                hStore          = store;
+                hRetrieve       = retrieve;
+                hHandle         = handle;
+            }
+
+            inline void store_value(LV2_URID urid, LV2_URID type, const void *data, size_t size)
+            {
+                if ((hStore == NULL) || (hHandle == NULL))
+                    return;
+                hStore(hHandle, urid, data, size, type, LV2_STATE_IS_POD | LV2_STATE_IS_PORTABLE);
+            }
+
+            inline const void *restore_value(LV2_URID urid, LV2_URID type, size_t *size)
+            {
+                if ((hRetrieve == NULL) || (hHandle == NULL))
+                    return NULL;
+
+                size_t t_size;
+                uint32_t t_type, t_flags;
+                const void *ptr   = hRetrieve(hHandle, urid, &t_size, &t_type, &t_flags);
+                lsp_trace("retrieved ptr = %p", ptr);
+                if (ptr == NULL)
+                    return NULL;
+
+                lsp_trace("retrieved type = %d (%s)", int(t_type), unmap_urid(t_type));
+                if (t_type != type)
+                    return NULL;
+
+                *size    = t_size;
+                return ptr;
+            }
+
+            inline void reset_state_context()
+            {
+                hStore          = NULL;
+                hRetrieve       = NULL;
+                hHandle         = NULL;
+            }
+    };
 
     typedef struct LV2Mesh
     {
@@ -319,18 +403,22 @@ namespace lsp
 
         for (const port_t *p = m->ports; (p->id != NULL) && (p->name != NULL); ++p)
         {
-            if ((p->flags & F_OUT) != type)
-                continue;
-
             switch (p->role)
             {
                 case R_CONTROL:
                 case R_METER:
-                    state_size      += sizeof(LV2_Atom_Float);
-                    state_size      += LSP_LV2_ATOM_KEY_SIZE;
+                    if ((p->flags & F_OUT) == type)
+                    {
+                        state_size      += sizeof(LV2_Atom_Float);
+                        state_size      += LSP_LV2_ATOM_KEY_SIZE;
+                    }
                     break;
                 case R_MESH:
-                    size            += LV2Mesh::size_of_port(p);
+                    if ((p->flags & F_OUT) == type)
+                        size            += LV2Mesh::size_of_port(p);
+                    break;
+                case R_PATH: // Both sizes: IN and OUT
+                    size            += sizeof(LV2_Atom_Property) + sizeof(LV2_Atom_URID) + sizeof(LV2_Atom) + PATH_MAX;
                     break;
                 default:
                     break;
@@ -338,7 +426,7 @@ namespace lsp
         }
 
         // Update state size
-        return size + LSP_LV2_SIZE_PAD(state_size); // Add some extra bytes
+        return LSP_LV2_SIZE_PAD(size + state_size); // Add some extra bytes
     }
 }
 

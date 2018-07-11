@@ -100,7 +100,7 @@ namespace lsp
         for (size_t i=0; i <= nRadius; ++i)
         {
             float bright = float(nRadius - i) / nRadius; // TODO
-            Gtk2Color c(1.0, 1.0, 1.0);
+            Color c(1.0, 1.0, 1.0);
             c.blend(sColor, bright);
 
             cp = cairo_pattern_create_radial (bw + 1, nHeight - bw - 1, bw, 1, nHeight - bw - 1, pr * 1.5);
@@ -125,7 +125,7 @@ namespace lsp
         size_t gh = nHeight - (bs << 1);
 
         // Calculate center
-        Gtk2Canvas cv(gw, gh, nPadding);
+        Gtk2Canvas cv(this, gw, gh, nPadding);
         cv.set_color(sColor);
         cv.clear();
 
@@ -162,6 +162,8 @@ namespace lsp
             case W_AXIS:
             case W_MARKER:
             case W_MESH:
+            case W_CENTER:
+            case W_TEXT:
                 return static_cast<IGraphObject *>(widget);
             default:
                 return NULL;

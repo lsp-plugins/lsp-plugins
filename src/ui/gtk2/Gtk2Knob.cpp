@@ -18,7 +18,7 @@ namespace lsp
     Gtk2Knob::Gtk2Knob(plugin_ui *ui): Gtk2CustomWidget(ui, W_KNOB)
     {
         sColor.set(pUI->theme(), C_KNOB_CAP);
-        sScaleColor.set(pUI->theme(), C_KNOB_SCALE);
+//        sScaleColor.set(pUI->theme(), C_KNOB_SCALE);
         sBgColor.set(pUI->theme(), C_BACKGROUND);
 
         nSize       = 24;
@@ -33,7 +33,8 @@ namespace lsp
         bMoving     = false;
         nLastY      = 0;
         pPort       = NULL;
-
+//        COLOR_PORTS_INIT(Scale);
+        sScaleColor.init(this, C_KNOB_SCALE, A_SCALE_COLOR, -1, -1, -1, A_SCALE_HUE_ID, A_SCALE_SAT_ID, A_SCALE_LIGHT_ID);
     }
 
     Gtk2Knob::~Gtk2Knob()
@@ -55,9 +56,10 @@ namespace lsp
             case A_COLOR:
                 sColor.set(pUI->theme(), value);
                 break;
-            case A_SCALE_COLOR:
-                sScaleColor.set(pUI->theme(), value);
-                break;
+//            case A_SCALE_COLOR:
+//                sScaleColor.set(pUI->theme(), value);
+//                break;
+//            COLOR_PORTS_BIND(Scale, A_SCALE_HUE_ID, A_SCALE_SAT_ID, A_SCALE_LIGHT_ID);
             case A_SIZE:
                 PARSE_INT(value, nSize = size_t(__));
                 break;
@@ -72,6 +74,8 @@ namespace lsp
                 sBgColor.set(pUI->theme(), value);
                 break;
             default:
+                if (sScaleColor.set(att, value))
+                    break;
                 Gtk2CustomWidget::set(att, value);
                 break;
         }
@@ -79,6 +83,9 @@ namespace lsp
 
     void Gtk2Knob::notify(IUIPort *port)
     {
+        bool redraw = false;
+        if (sScaleColor.notify(port))
+            redraw = true;
         if (port == pPort)
         {
             const port_t *mdata = pPort->metadata();
@@ -101,9 +108,13 @@ namespace lsp
                     fValue      = *min;
             }
 
-            // Request for redraw
-            gtk_widget_queue_draw(pWidget);
+            redraw = true;
         }
+
+        // Request for redraw
+        if (redraw)
+            gtk_widget_queue_draw(pWidget);
+//        COLOR_PORTS_HANDLE(Scale, port, sScaleColor);
     }
 
 //    float Gtk2Knob::get_normalized_value()
@@ -176,7 +187,7 @@ namespace lsp
         double value    = fValue;
 
         // Get metadata
-        const port_t *p = pPort->metadata();
+        const port_t *p = (pPort != NULL) ? pPort->metadata() : NULL;
         if (p == NULL)
         {
             value      += delta;
@@ -299,7 +310,8 @@ namespace lsp
         cairo_translate(cr, ssize_t(nWidth >> 1), ssize_t(nHeight >> 1));
 
         // Draw scale background
-        Color dark(sScaleColor);
+        Color col(sScaleColor.color());
+        Color dark(sScaleColor.color());
         dark.blend(0.0, 0.0, 0.0, 0.75);
 //        light.lightness(light.lightness() * 1.5);
 //        light.blend(0.0f, 0.0f, 0.0f, 0.5f);
@@ -319,7 +331,7 @@ namespace lsp
         cairo_close_path(cr);
         cairo_fill(cr);
 
-        cairo_set_source_rgb(cr, sScaleColor.red(), sScaleColor.green(), sScaleColor.blue());
+        cairo_set_source_rgb(cr, col.red(), col.green(), col.blue());
         cairo_move_to(cr, 0, 0);
         if (value < nBalance)
             cairo_arc(cr, 0, 0, scale_out_r, v_angle1, v_angle2);
@@ -456,11 +468,14 @@ namespace lsp
         if (!check_mouse_over(x, y))
             return;
 
-        const port_t *mdata = pPort->metadata();
+        const port_t *mdata = (pPort != NULL) ? pPort->metadata() : NULL;
         float value = (mdata != NULL) ? mdata->start : 0.0f;
 
-        pPort->setValue(value);
-        pPort->notifyAll();
+        if (pPort != NULL)
+        {
+            pPort->setValue(value);
+            pPort->notifyAll();
+        }
     }
 
     void Gtk2Knob::scroll(ssize_t x, ssize_t y, size_t state, size_t direction)

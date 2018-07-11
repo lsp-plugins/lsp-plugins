@@ -183,6 +183,21 @@ namespace lsp
         return n;
     }
 
+    Center *IGraph::center(size_t index) const
+    {
+        size_t count = 0;
+        for (size_t i=0; i<nObjects; ++i)
+        {
+            IGraphObject *obj = vObjects[i];
+            if (!obj->isCenter())
+                continue;
+
+            if ((count++) == index)
+                return static_cast<Center *>(obj);
+        }
+        return NULL;
+    }
+
     void IGraph::markRedraw()
     {
     }

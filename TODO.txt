@@ -1,113 +1,14 @@
 1+   Phasendetektor (Phase detector)
 2+   Verzögerungsausgleicher (Phase Compensator)
-2.   Korellationsmeter (Corellometer)
-3.   Impulsantworten (Impulse responses)
-4.   Triggersensor (Trigger)
-5.   Ortswechsel (Dynamic panner)
-6.   Nachhall (Reverberation)
-7.   Kompressor (Compressor)
-8.   Begrenzer (Limiter)
-9.   Expander (Expander)
-10.  Ausgleich (Equalizer)
-11.  Verzerrung (Distortion)
-12.  Tonhöhenänderer (Pitch shift)
-
------------------------------------------------------
-Your Registration form was successfully submitted.
-
-	Developer Info:	
-		
-	*Company Name:	LSP Project
-	*First Name:	Vladimir
-	*Last Name:	Sadovnikov
-	*eMail Address:	lsp.plugin@gmail.com
-		
-	PlugIn Info:	
-		
-	Category:	Analysis ( e.g. phasescope )
-	*PlugIn Name:	Phasendetektor
-	Supported OS :	
-		PC, Other
-		
-	Short PlugIn
-Description:	This plugin allows to detect phase between two sources. For example
-for two or more microphones set at the different positions and distances from the sound source.
-		
-	Registration:	
-		
-	*Plugin ID:	jffz
-
------------------------------------------------------	
-Your Registration form was successfully submitted.
-
-	Developer Info:	
-		
-	*Company Name:	LSP Project
-	*First Name:	Vladimir
-	*Last Name:	Sadovnikov
-	*eMail Address:	lsp.plugin@gmail.com
-		
-	PlugIn Info:	
-		
-	Category:	Effect ( general)
-	*PlugIn Name:	Verzögerungsausgleicher
-	Supported OS :	
-		PC, Other
-		
-	Short PlugIn
-Description:	This plugin allows to add short delay to the mono channel to compensate the phase offset relatively to other channels.
-		
-	Registration:	
-		
-	*Plugin ID:	jav8
-	
-
------------------------------------------------------
-Your Registration form was successfully submitted.
-
-	Developer Info:	
-		
-	*Company Name:	LSP Project
-	*First Name:	Vladimir
-	*Last Name:	Sadovnikov
-	*eMail Address:	lsp.plugin@gmail.com
-		
-	PlugIn Info:	
-		
-	Category:	Effect ( general)
-	*PlugIn Name:	Verzögerungsausgleicher
-	Supported OS :	
-		PC, Other
-		
-	Short PlugIn
-Description:	This plugin allows to add short delay to the mono channel to compensate the phase offset relatively to other channels.
-		
-	Registration:	
-		
-	*Plugin ID:	qpwr
-
------------------------------------------------------
-
-Your Registration form was successfully submitted.
-
-	Developer Info:	
-		
-	*Company Name:	LSP Project
-	*First Name:	Vladimir
-	*Last Name:	Sadovnikov
-	*eMail Address:	lsp.plugin@gmail.com
-		
-	PlugIn Info:	
-		
-	Category:	Effect ( general)
-	*PlugIn Name:	Verzögerungsausgleicher
-	Supported OS :	
-		PC, Other
-		
-	Short PlugIn
-Description:	This plugin allows to add short delay to the mono channel to compensate the phase offset relatively to other channels.
-		
-	Registration:	
-		
-	*Plugin ID:	fwd3
-	
+3+   Spektrumanalysator (Spectrum Analyzer)
+4.   Korellationsmeter (Corellometer)
+5.   Impulsantworten (Impulse responses)
+6.   Triggersensor (Trigger)
+7.   Ortswechsel (Dynamic panner)
+8.   Nachhall (Reverberation)
+9.   Kompressor (Compressor)
+10.  Begrenzer (Limiter)
+11.  Expander (Expander)
+12.  Ausgleich (Equalizer)
+13.  Verzerrung (Distortion)
+14.  Tonhöhenänderer (Pitch shift)

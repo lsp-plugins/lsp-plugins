@@ -3,7 +3,7 @@
 
 #include <core/metadata.h>
 #include <core/plugin_metadata.h>
-#include <core/plugins.h>
+#include <plugins/plugins.h>
 
 namespace lsp
 {

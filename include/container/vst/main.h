@@ -78,7 +78,7 @@ namespace lsp
         if (factory != NULL)
             return factory;
 
-        lsp_debug("Trying to find CORE library " LSP_VST_CORE);
+        lsp_debug("Trying to find CORE library %s", LSP_VST_CORE);
 
         const char *homedir = getenv("HOME");
         char *buf = NULL;
@@ -166,7 +166,7 @@ extern "C"
         if (f != NULL)
             effect = f(bundle_path, VST_PLUGIN_UID, callback);
         else
-            lsp_error("Could not find VST core library " LSP_VST_CORE);
+            lsp_error("Could not find VST core library %s", LSP_VST_CORE);
 
         // Return VST AEffect structure
         return effect;

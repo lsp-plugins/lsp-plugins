@@ -37,9 +37,11 @@ namespace lsp
 
     void Bypass::init(int sample_rate, float time)
     {
+        // Off by default
         float length= sample_rate * time;
+        nState      = S_OFF;
         fDelta      = 1.0 / (length + 1);
-        fGain       = 1.0;                      // Off by default
+        fGain       = 1.0;
     }
 
     void Bypass::process(float *dst, const float *dry, const float *wet, size_t count)

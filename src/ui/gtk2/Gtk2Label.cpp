@@ -146,8 +146,8 @@ namespace lsp
         //g_markup_printf_escaped
         gchar *out = g_markup_printf_escaped(
             "<span foreground=\"#%06lx\" background=\"#%06lx\">%s</span>",
-             (unsigned long)(sColor.getColor()),
-             (unsigned long)(sBgColor.getColor()),
+             (unsigned long)(sColor.rgb24()),
+             (unsigned long)(sBgColor.rgb24()),
              (text != NULL) ? text : ""
              );
 

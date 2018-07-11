@@ -2,7 +2,7 @@
 
 #include <lv2.h>
 #include <core/plugin_metadata.h>
-#include <core/plugins.h>
+#include <plugins/plugins.h>
 #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
 #include <ui/ui.h>
 
@@ -37,16 +37,59 @@ namespace gtk_test
         gtk_main_quit ();
     }
 
+    const LV2_Descriptor *get_lv2_descriptor(const char *plugin)
+    {
+        char uri[1024];
+
+        size_t id=0;
+        while (true)
+        {
+            const LV2_Descriptor *descr = lv2_descriptor(id++);
+            if (descr == NULL)
+                return NULL;
+
+            snprintf(uri, sizeof(uri), LSP_BASE_URI "plugins/lv2/%s", plugin);
+
+            if (!strcmp(descr->URI, uri))
+                return descr;
+        }
+
+        return NULL;
+    }
+
+    const LV2UI_Descriptor *get_lv2ui_descriptor(const char *plugin)
+    {
+        char uri[1024];
+
+        size_t id=0;
+        while (true)
+        {
+            const LV2UI_Descriptor *descr = lv2ui_descriptor(id++);
+            if (descr == NULL)
+                return NULL;
+
+            snprintf(uri, sizeof(uri), LSP_BASE_URI "ui/lv2/gtk2/%s", plugin);
+
+            if (!strcmp(descr->URI, uri))
+                return descr;
+        }
+
+        return NULL;
+    }
+
     int test(int argc, const char **argv)
     {
-        size_t plugin_id = 0;
-        const plugin_metadata_t *mdata = &phase_detector_metadata::metadata;
+        #define SET_PLUGIN(id) \
+            const char *plugin_id   = #id;   \
+            const plugin_metadata_t *mdata = &id::metadata;
 
-        const LV2_Descriptor *descr = lv2_descriptor(plugin_id);
+        SET_PLUGIN(spectrum_analyzer_x8);
+
+        const LV2_Descriptor *descr = get_lv2_descriptor(plugin_id); \
         if (descr == NULL)
-            return -1;
+        return -1;
 
-        const LV2UI_Descriptor *ui_descr = lv2ui_descriptor(plugin_id);
+        const LV2UI_Descriptor *ui_descr = get_lv2ui_descriptor(plugin_id);
         if (ui_descr == NULL)
             return -1;
 
@@ -86,18 +129,21 @@ namespace gtk_test
                 case R_UI_SYNC:
                     break;
                 case R_AUDIO:
+                    port_id ++;
                     break;
                 case R_METER:
+                    pd.peak     = port->start;
                     ui_descr->port_event(handle, port_id, sizeof(LV2UI_Peak_Data), 0, &pd);
+                    port_id ++;
                     break;
                 case R_CONTROL:
+                    pd.peak     = port->start;
                     ui_descr->port_event(handle, port_id, sizeof(float), 0, &pd.peak);
+                    port_id ++;
                     break;
                 default:
                     break;
             }
-
-            port_id ++;
         }
 
         gtk_main ();

@@ -38,6 +38,8 @@ namespace lsp
             case W_MARKER:      return new Marker(ui);
             case W_MESH:        return new Mesh(ui);
             case W_BASIS:       return new Basis(ui);
+            case W_CENTER:      return new Center(ui);
+            case W_TEXT:        return new Text(ui);
             default:            return NULL;
         }
     }

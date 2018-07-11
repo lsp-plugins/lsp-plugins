@@ -25,6 +25,9 @@
     #define VST_EXPORT
 #endif
 
+// Include common definitions
+#include <container/const.h>
+
 // Include VST 2.x SDK
 #include <pluginterfaces/vst2.x/aeffect.h>
 #include <pluginterfaces/vst2.x/aeffectx.h>

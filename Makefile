@@ -15,19 +15,25 @@ ifndef CPU_ARCH
 export CPU_ARCH         = x86_64
 export CC_ARCH          = -m64
 export LD_ARCH          = -m elf_x86_64
+export LD_PATH          = /usr/lib64:/lib64
+
+#export CPU_ARCH         = i586
+#export CC_ARCH          = -m32 -msse -msse2
+#export LD_ARCH          = -m elf_i386
+#export LD_PATH          = /usr/lib:/lib
 endif
 
-export VERSION          = 1.0.2
+export VERSION          = 1.0.4
 export BASEDIR          = ${CURDIR}
 export INCLUDE          = -I"${CURDIR}/include" -I"$(VST_SDK)"
 export MAKE_OPTS        = -s
-export CFLAGS           = $(CC_ARCH) -fPIC -O2 -fno-exceptions -Wall -pthread -pipe -fno-rtti
+export CFLAGS           = $(CC_ARCH) -fPIC -O2 -fno-exceptions -Wall -pthread -pipe -fno-rtti $(CC_FLAGS)
 export CC               = g++
 export LD               = ld
-export LDFLAGS          = $(LD_ARCH)
-export SO_FLAGS         = $(CC_ARCH) -shared -Llibrary -lc -lm -fPIC -lpthread
+export LDFLAGS          = $(LD_ARCH) 
+export SO_FLAGS         = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -shared -Llibrary -lc -lm -fPIC -lpthread
 export MERGE_FLAGS      = $(LD_ARCH) -r
-export EXE_FLAGS        = $(CC_ARCH) -lc -lm -fPIC -pthread
+export EXE_FLAGS        = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -lm -fPIC -pthread
 
 # Objects
 export OBJ_CORE         = $(OBJDIR)/core.o
@@ -57,6 +63,8 @@ export GTK3_HEADERS     = $(shell pkg-config --cflags gtk+-3.0)
 export GTK3_LIBS        = $(shell pkg-config --libs gtk+-3.0)
 export EXPAT_HEADERS    = $(shell pkg-config --cflags expat)
 export EXPAT_LIBS       = $(shell pkg-config --libs expat)
+export SNDFILE_HEADERS  = $(shell pkg-config --cflags sndfile)
+export SNDFILE_LIBS     = $(shell pkg-config --libs sndfile)
 
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 FILES                   =
@@ -91,7 +99,11 @@ unrelease:
 	@-rm -rf $(RELEASE)
 	@echo "Unrelease OK"
 
-install: install_ladspa install_lv2 install_vst
+install: install_php install_ladspa install_lv2 install_vst
+
+install_php: all
+	@echo "Generating PHP file"
+	@$(UTL_GENPHP) $(OBJDIR)/plugins.php
 
 install_ladspa: all
 	@echo "Installing LADSPA plugins to $(DESTDIR)$(LADSPA_PATH)/"

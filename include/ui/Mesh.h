@@ -18,15 +18,11 @@ namespace lsp
             size_t          nCapacity;
             ssize_t        *vBasis;
             IUIPort        *pPort;
-            Color           sColor;
+            IUIPort        *pVisible;
             size_t          nWidth;
+            size_t          nCenter;
 
-        protected:
-            typedef struct point_t
-            {
-                float x;
-                float y;
-            } point_t;
+            ColorHolder     sColor;
 
         public:
             Mesh(plugin_ui *ui);
@@ -39,6 +35,8 @@ namespace lsp
             virtual void set(widget_attribute_t att, const char *value);
 
             virtual void add(IWidget *widget);
+
+            virtual void notify(IUIPort *port);
     };
 
 } /* namespace lsp */

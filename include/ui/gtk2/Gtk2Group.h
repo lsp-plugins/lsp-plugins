@@ -13,12 +13,12 @@ namespace lsp
     class Gtk2Group: public Gtk2Widget
     {
         private:
-            char *sText;
-            Gtk2Color sColor;
-            Gtk2Color sTextColor;
-            Gtk2Color sBgColor;
-            size_t sRadius;
-            size_t nBorder;
+            char       *sText;
+            Color       sColor;
+            Color       sTextColor;
+            Color       sBgColor;
+            size_t      sRadius;
+            size_t      nBorder;
 
         public:
             Gtk2Group(plugin_ui *ui);

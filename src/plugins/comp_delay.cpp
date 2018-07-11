@@ -133,9 +133,9 @@ namespace lsp
     {
     }
 
-    void comp_delay_impl::init()
+    void comp_delay_impl::init(IWrapper *wrapper)
     {
-        plugin_t::init();
+        plugin_t::init(wrapper);
         if (vBuffer == NULL)
             vBuffer     = new float[BUFFER_SIZE];
     }

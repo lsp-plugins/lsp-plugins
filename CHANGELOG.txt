@@ -2,6 +2,21 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.4 ===
+
+* Reduced size of mesh to 192 points for Phasendetektor.
+* Reduced mesh refresh rate to 20 Hz.
+* Fixed metadata for Phasendetektor (ID of 'best value' meter was mistyped).
+* Added LV2 Units support for the plugins.
+* Optimized some of bulk data operations with SSE.
+* SSE-based DSP module now is built-in for all releases and dynamically turns on when possible.
+* Implemented FFT algorithm with SSE-specific optimizations.
+* Implemented support of ports containing file names for LV2 (LV2 Paths).
+* Implemented support of plugin state serialization for LV2 (LV2 State).
+* Implemented support of LV2 worker interface (LV2 Worker).
+* Implemented support of native worker interface (based on pthreads).
+* Implemented Spektrumanalysator (Spectrum Analyser) plugin series (x1, x2, x4, x8, x12 and x16).
+
 === 1.0.3 ===
 
 * Reduced mesh primitive synchronization rate to 25 Hz for LV2 Atoms.

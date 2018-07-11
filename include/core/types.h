@@ -5,11 +5,13 @@
  *      Author: sadko
  */
 
-#ifndef _CORE_TYPES_H_
-#define _CORE_TYPES_H_
+#ifndef CORE_TYPES_H_
+#define CORE_TYPES_H_
 
 #include <sys/types.h>
 #include <stddef.h>
+#include <stdint.h>
+#include <string.h>
 
 #ifdef __linux__
     #include <linux/limits.h>
@@ -31,6 +33,9 @@
 #define STR_O_UMLAUT_SMALL                  "\x94"
 #define STR_O_UMLAUT_LARGE                  "\x99"
 #define STR_ESZETT                          "\xe1"
+
+#define __lsp_forced_inline                 __attribute__((always_inline))
+#define __lsp_aligned16                     __attribute__ ((aligned (16)))
 
 namespace lsp
 {
@@ -75,6 +80,49 @@ namespace lsp
         }
     } mesh_t;
 
+    typedef struct path_t
+    {
+        /** Virtual destructor
+         *
+         */
+        virtual ~path_t();
+
+        /** Initialize path
+         *
+         */
+        virtual void init();
+
+        /** Get actual path
+         *
+         * @return actual path
+         */
+        virtual const char *get_path();
+
+        /** Accept the pending request for path change,
+         * the port of the path will not trigger as changed
+         * until commit() is called
+         */
+        virtual void accept();
+
+        /** The state change request was processed,
+         * the port is ready to receive new events
+         *
+         */
+        virtual void commit();
+
+        /** Check if there is pending request
+         *
+         * @return true if there is a pending state-change request
+         */
+        virtual bool pending();
+
+        /** Check if there is accepted request
+         *
+         * @return true if there is accepted request
+         */
+        virtual bool accepted();
+    } path_t;
+
     typedef struct resource_t
     {
         const char *id;
@@ -84,4 +132,4 @@ namespace lsp
 
 #include <core/units.h>
 
-#endif /* TYPES_H_ */
+#endif /* CORE_TYPES_H_ */

@@ -79,7 +79,7 @@ namespace lsp
 
                 // Initialize plugin
                 lsp_trace("Initializing plugin");
-                pPlugin->init();
+                pPlugin->init(NULL);    // TODO: implement native worker interface
                 pPlugin->set_sample_rate(sr);
             }
 

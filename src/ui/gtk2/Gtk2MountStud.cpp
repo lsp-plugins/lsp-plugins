@@ -39,7 +39,7 @@ namespace lsp
 
         // Draw hole
         cairo_set_line_width(cr, 1.0);
-        Gtk2Color hole(sBgColor); //pUI->theme(), C_HOLE);
+        Color hole(sBgColor); //pUI->theme(), C_HOLE);
         float hlb = hole.lightness() + 0.5;
         float hld = 0;
 
@@ -65,14 +65,14 @@ namespace lsp
         }
 
         // Draw mounting stud body
-        Gtk2Color stud(0, 0, 0);
+        Color stud(0, 0, 0);
         size_t f_rr     = h_s - 3;
         float slb       = stud.lightness();
         float sle       = slb + 0.2;
 
         for (size_t i=0; i<=f_rr; ++i)
         {
-            Gtk2Color c(0, 0, 0);
+            Color c(0, 0, 0);
             c.blend(stud, float(f_rr - i) / f_rr);
             float bright = (sle - slb) * sinf(M_PI * i / f_rr) + slb;
 
@@ -96,7 +96,7 @@ namespace lsp
         {
             float a_cos = (h_s - i) * cosf(angle), a_sin = (h_s - i) * sinf(angle);
             float bright = float(i) / c_rr;
-            Gtk2Color c(1, 1, 1);
+            Color c(1, 1, 1);
             c.blend(0.5, 0.5, 0.5, bright);
 
             cairo_set_line_width(cr, c_rr - i);
@@ -192,7 +192,7 @@ namespace lsp
             lw         += l_r << 1;
             lh         += l_r << 1;
 
-            Gtk2Color logo(sColor);
+            Color logo(sColor);
             float logo_l    = logo.lightness();
             float l_rr      = 3;
             size_t l_x      = (bLeft) ? 8 : l_rr;

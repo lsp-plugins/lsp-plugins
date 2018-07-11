@@ -21,8 +21,8 @@ namespace lsp
     {
         private:
             char           *sText;
-            Gtk2Color       sColor;
-            Gtk2Color       sBgColor;
+            Color           sColor;
+            Color           sBgColor;
             IUIPort        *pPort;
             label_type_t    enType;
             float           fValue;

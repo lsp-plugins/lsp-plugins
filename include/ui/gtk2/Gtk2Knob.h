@@ -13,9 +13,9 @@ namespace lsp
     class Gtk2Knob: public Gtk2CustomWidget
     {
         protected:
-            Gtk2Color       sColor;
-            Gtk2Color       sBgColor;
-            Gtk2Color       sScaleColor;
+            Color           sColor;
+            Color           sBgColor;
+            ColorHolder     sScaleColor;
 
             size_t          nSize;
             float           nBalance;
@@ -28,7 +28,7 @@ namespace lsp
 
             ssize_t         nLastY;
             bool            bMoving;
-            IUIPort   *pPort;
+            IUIPort        *pPort;
 
         private:
             bool        check_mouse_over(ssize_t x, ssize_t y);
@@ -42,7 +42,6 @@ namespace lsp
             float       get_normalized_value();
             void        apply_metadata_params(const port_t *p);
             void        update_value(float delta);
-//            void        set_normalized_value(float value);
 
         public:
             virtual void set(widget_attribute_t att, const char *value);

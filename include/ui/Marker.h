@@ -20,6 +20,7 @@ namespace lsp
             Color           sColor;
             IUIPort        *pPort;
             size_t          nWidth;
+            size_t          nCenter;
 
         public:
             Marker(plugin_ui *ui);

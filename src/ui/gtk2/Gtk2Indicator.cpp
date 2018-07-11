@@ -431,8 +431,20 @@ namespace lsp
         char tmp[64];
 
         // Do not format NAN
-        if (value == NAN)
+        if (isnan(value))
             return false;
+        if (isinf(value))
+        {
+            char sign = (signbit(value)) ? '-' : '+';
+            for (size_t i=0; i<sDigits; ++i)
+            {
+                if (!append_buf(buf, sign))
+                    return false;
+            }
+            if (!append_buf(buf, '\0'))
+                return false;
+            return true;
+        }
 
         ssize_t digits   = sDigits;
 
@@ -774,6 +786,19 @@ namespace lsp
         memset(buf, 0, len);
 
         bool result = false;
+
+        // Convert to decibels (if needed)
+        if (pPort != NULL)
+        {
+            const port_t *meta = pPort->metadata();
+            if (meta != NULL)
+            {
+                if (meta->unit == U_GAIN_AMP)
+                    value = 20.0 * logf(value) / M_LN10;
+                else if (meta->unit == U_GAIN_POW)
+                    value = 10.0 * logf(value) / M_LN10;
+            }
+        }
 
         switch (nFormat)
         {

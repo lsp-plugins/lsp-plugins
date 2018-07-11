@@ -22,7 +22,8 @@ namespace lsp
             virtual ~IWidget();
 
         public:
-            inline widget_t getClass()  { return enClass; };
+            inline widget_t getClass()  { return enClass;   };
+            inline plugin_ui *getUI()   { return pUI;       };
 
         public:
             /** Set attribute to widget

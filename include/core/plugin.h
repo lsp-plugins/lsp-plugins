@@ -5,6 +5,7 @@
 #include <core/types.h>
 #include <core/metadata.h>
 #include <core/IPort.h>
+#include <core/IWrapper.h>
 #include <data/cvector.h>
 
 namespace lsp
@@ -46,7 +47,7 @@ namespace lsp
             inline long  get_sample_rate() const        { return fSampleRate;   };
 
         public:
-            virtual void init();
+            virtual void init(IWrapper *wrapper);
             virtual void update_sample_rate(long sr);
             virtual void activate();
             virtual void update_settings();

@@ -7,9 +7,9 @@
 #include <ladspa.h>
 
 #include <core/metadata.h>
-#include <core/plugins.h>
 #include <core/lib.h>
 #include <core/debug.h>
+#include <plugins/plugins.h>
 
 #include <container/ladspa/ports.h>
 #include <container/ladspa/wrapper.h>
@@ -177,6 +177,16 @@ namespace lsp
                 p_hint->HintDescriptor  |= LADSPA_HINT_INTEGER | LADSPA_HINT_BOUNDED_ABOVE | LADSPA_HINT_BOUNDED_BELOW;
                 p_hint->LowerBound      = (p->flags & F_LOWER) ? p->min : 0;
                 p_hint->UpperBound      = p_hint->LowerBound + list_size(p->items) - 1;
+
+                if (p->start == p_hint->LowerBound)
+                    p_hint->HintDescriptor |= LADSPA_HINT_DEFAULT_MINIMUM;
+                else if (p->start == p_hint->UpperBound)
+                    p_hint->HintDescriptor |= LADSPA_HINT_DEFAULT_MAXIMUM;
+                else if (p->start == 1.0f)
+                    p_hint->HintDescriptor |= LADSPA_HINT_DEFAULT_1;
+                else if (p->start == 0.0f)
+                    p_hint->HintDescriptor |= LADSPA_HINT_DEFAULT_0;
+
             }
             else if (p->unit == U_SAMPLES)
             {
@@ -206,8 +216,6 @@ namespace lsp
                 }
                 if (p->flags & F_LOG)
                     p_hint->HintDescriptor |= LADSPA_HINT_LOGARITHMIC;
-                if (p->unit == U_ENUM)
-                    p_hint->HintDescriptor  |= LADSPA_HINT_INTEGER;
             }
 
             // Solve default value

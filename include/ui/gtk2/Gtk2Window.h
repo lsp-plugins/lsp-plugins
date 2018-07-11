@@ -25,7 +25,7 @@ namespace lsp
                 C_FIRST = C_ROOT
             };
 
-            Gtk2Color   sBgColor;
+            Color       sBgColor;
             IWidget    *pWidgets[C_TOTAL];
             bool        bBody;
             ssize_t     nWidth;

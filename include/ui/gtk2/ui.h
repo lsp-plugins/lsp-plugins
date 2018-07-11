@@ -36,8 +36,6 @@
     }
 
 // Include GTK2 widgets
-#include <ui/gtk2/Gtk2Color.h>
-
 #include <ui/gtk2/Gtk2WidgetFactory.h>
 #include <ui/gtk2/Gtk2Widget.h>
 #include <ui/gtk2/Gtk2CustomWidget.h>
@@ -52,6 +50,7 @@
 #include <ui/gtk2/Gtk2Body.h>
 
 #include <ui/gtk2/Gtk2Group.h>
+#include <ui/gtk2/Gtk2ComboBox.h>
 #include <ui/gtk2/Gtk2MountStud.h>
 #include <ui/gtk2/Gtk2Button.h>
 #include <ui/gtk2/Gtk2Switch.h>

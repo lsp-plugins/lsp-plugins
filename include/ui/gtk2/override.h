@@ -8,12 +8,11 @@
 #ifndef UI_GTK2_OVERRIDE_H_
 #define UI_GTK2_OVERRIDE_H_
 
-#include <ui/gtk2/ui.h>
-
 #define OVERRIDE_GTK2_CONTROL(gtk_type, gtk_class, gtk_widget, class)   \
     typedef struct class ## Impl { \
         gtk_widget widget; \
         class *impl; \
+        bool propagate; \
     } class ## Impl; \
     \
     typedef struct class ## Class { \
@@ -58,14 +57,17 @@
     static gboolean class ## Impl_expose (GtkWidget *widget, GdkEventExpose *event) \
     { \
         g_assert(G_TYPE_CHECK_INSTANCE_TYPE (widget, class ## Impl_get_type())); \
+        class ## Impl *_this = G_TYPE_CHECK_INSTANCE_CAST (widget, class ## Impl_get_type(), class ## Impl); \
+        if (_this == NULL) \
+            return FALSE; \
+        \
         if (gtk_widget_is_drawable (widget)) \
         { \
-            class ## Impl *_this = G_TYPE_CHECK_INSTANCE_CAST (widget, class ## Impl_get_type(), class ## Impl); \
             if (_this->impl != NULL) \
                 _this->impl->render(); \
         } \
     \
-        if (GTK_IS_CONTAINER(widget)) \
+        if ((_this->propagate) && GTK_IS_CONTAINER(widget)) \
         { \
             GList *child = gtk_container_get_children(GTK_CONTAINER(widget)); \
             while (child != NULL) \
@@ -132,11 +134,12 @@
         return type; \
     } \
     \
-    static GtkWidget *class ## Impl_new(class *self) \
+    static GtkWidget *class ## Impl_new(class *self, bool propagate = true) \
     { \
         GtkWidget *widget = GTK_WIDGET( g_object_new (class ## Impl_get_type(), NULL )); \
         class ## Impl *_this = G_TYPE_CHECK_INSTANCE_CAST (widget, class ## Impl_get_type(), class ## Impl); \
         _this->impl = self; \
+        _this->propagate = propagate; \
         \
         return widget; \
     } \

@@ -17,13 +17,15 @@ namespace lsp
 {
     Gtk2Led::Gtk2Led(plugin_ui *ui): Gtk2CustomWidget(ui, W_LED)
     {
-        sColor.set(pUI->theme(), C_GREEN);
+//        sColor.set(pUI->theme(), C_GREEN);
         sBgColor.set(pUI->theme(), C_BACKGROUND);
 
         nSize       = 8;
         fValue      = 0;
         pPort       = NULL;
         fKey        = 1;
+
+        sColor.init(this, C_GREEN, A_COLOR, -1, -1, -1, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
     }
 
     Gtk2Led::~Gtk2Led()
@@ -56,24 +58,26 @@ namespace lsp
         cairo_arc(cr, 0, 0, (nSize >> 1) + 1, 0, 2.0 * M_PI);
         cairo_fill(cr);
 
+        Color col(sColor.color());
+
         if (key_matched())
         {
             // Draw light
             cp = cairo_pattern_create_radial (0, 0, 0, 0, 0, nSize);
-            cairo_pattern_add_color_stop_rgba(cp, 0.0, sColor.red(), sColor.green(), sColor.blue(), 0.5);
-            cairo_pattern_add_color_stop_rgba(cp, 1.0, sColor.red(), sColor.green(), sColor.blue(), 0.0);
+            cairo_pattern_add_color_stop_rgba(cp, 0.0, col.red(), col.green(), col.blue(), 0.5);
+            cairo_pattern_add_color_stop_rgba(cp, 1.0, col.red(), col.green(), col.blue(), 0.0);
             cairo_set_source (cr, cp);
             cairo_arc(cr, 0, 0, nSize, 0, 2.0 * M_PI);
             cairo_fill(cr);
             cairo_pattern_destroy(cp);
 
             // Draw led spot
-            Gtk2Color c_light(sColor);
+            Color c_light(col);
             c_light.lightness(c_light.lightness() * 1.5);
 
             cp = cairo_pattern_create_radial (0, 0, nSize >> 3, 0, 0, nSize >> 1);
             cairo_pattern_add_color_stop_rgb (cp, 0, c_light.red(), c_light.green(), c_light.blue());
-            cairo_pattern_add_color_stop_rgb (cp, 1.0, sColor.red(), sColor.green(), sColor.blue());
+            cairo_pattern_add_color_stop_rgb (cp, 1.0, col.red(), col.green(), col.blue());
             cairo_set_source (cr, cp);
             cairo_arc(cr, 0, 0, nSize >> 1, 0, 2.0 * M_PI);
             cairo_fill(cr);
@@ -90,12 +94,12 @@ namespace lsp
         }
         else
         {
-            Gtk2Color c;
+            Color c;
             c.set(pUI->theme(), C_GLASS);
 
-            float r=c.red() + (sColor.red() - c.red()) * 0.4;
-            float g=c.green() + (sColor.green() - c.green()) * 0.4;
-            float b=c.blue() + (sColor.blue() - c.blue()) * 0.4;
+            float r=c.red() + (col.red() - c.red()) * 0.4;
+            float g=c.green() + (col.green() - c.green()) * 0.4;
+            float b=c.blue() + (col.blue() - c.blue()) * 0.4;
 
             // Draw led glass
             cp = cairo_pattern_create_radial (0, 0, nSize >> 3, 0, 0, nSize >> 1);
@@ -136,9 +140,9 @@ namespace lsp
                 if (pPort != NULL)
                     pPort->bind(this);
                 break;
-            case A_COLOR:
-                sColor.set(pUI->theme(), value);
-                break;
+//            case A_COLOR:
+//                sColor.set(pUI->theme(), value);
+//                break;
             case A_KEY:
                 PARSE_FLOAT(value, fKey = __);
                 break;
@@ -149,6 +153,8 @@ namespace lsp
                 sBgColor.set(pUI->theme(), value);
                 break;
             default:
+                if (sColor.set(att, value))
+                    break;
                 Gtk2CustomWidget::set(att, value);
                 break;
         }
@@ -156,16 +162,23 @@ namespace lsp
 
     void Gtk2Led::notify(IUIPort *port)
     {
-        if (port == pPort)
+        bool redraw = false;
+
+        if (sColor.notify(port))
+            redraw = true;
+        else if (port == pPort)
         {
             const port_t *mdata = pPort->metadata();
             fValue = 0;
             if (mdata != NULL)
                 fValue      = pPort->getValue();
 
-            // Request for redraw
-            gtk_widget_queue_draw(pWidget);
+            redraw = true;
         }
+
+        // Request for redraw
+        if (redraw)
+            gtk_widget_queue_draw(pWidget);
     }
 
 } /* namespace lsp */

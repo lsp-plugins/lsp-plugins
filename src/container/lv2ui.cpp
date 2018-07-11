@@ -3,8 +3,8 @@
 #include <string.h>
 
 #include <core/metadata.h>
-#include <core/plugins.h>
 #include <core/lib.h>
+#include <plugins/plugins.h>
 
 #include <data/cvector.h>
 
