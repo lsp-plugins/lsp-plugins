@@ -374,7 +374,18 @@ namespace lsp
         {
             xml_word_t *w   = dict->at(i);
             w->offset       = offset;
-            fprintf(out, "\t\tK(\"%s\") // offset: 0x%08x, refs=%d\n", w->text, int(w->offset), int(w->refs));
+            fprintf(out, "\t\tK(\"");
+
+            // Output string
+            for (const char *p=w->text; *p != '\0'; ++p)
+            {
+                if (((*p) >= 0x20) && ((*p) <= 0x7f))
+                    fputc(*p, out);
+                else
+                    fprintf(out, "\\x%02x", uint8_t(*p));
+            }
+
+            fprintf(out, "\") // offset: 0x%08x, refs=%d\n", int(w->offset), int(w->refs));
             offset         += w->length + 1; // 1 char separator
         }
 

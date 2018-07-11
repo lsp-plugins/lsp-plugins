@@ -38,37 +38,62 @@ namespace lsp
             dsp::fill_one                   = native::fill_one;
             dsp::fill_zero                  = native::fill_zero;
             dsp::fill_minus_one             = native::fill_minus_one;
-            dsp::abs                        = native::abs;
+
+            dsp::abs1                       = native::abs1;
+            dsp::abs2                       = native::abs2;
+            dsp::abs_add2                   = native::abs_add2;
+            dsp::abs_sub2                   = native::abs_sub2;
+            dsp::abs_mul2                   = native::abs_mul2;
+            dsp::abs_div2                   = native::abs_div2;
+
             dsp::abs_normalized             = native::abs_normalized;
             dsp::normalize                  = native::normalize;
+
             dsp::min                        = native::min;
             dsp::max                        = native::max;
             dsp::abs_max                    = native::abs_max;
             dsp::abs_min                    = native::abs_min;
             dsp::minmax                     = native::minmax;
+            dsp::abs_minmax                 = native::abs_minmax;
+
             dsp::min_index                  = native::min_index;
             dsp::max_index                  = native::max_index;
             dsp::abs_max_index              = native::abs_max_index;
             dsp::abs_min_index              = native::abs_min_index;
-            dsp::scale                      = native::scale;
-            dsp::multiply                   = native::multiply;
+
+            dsp::add2                       = native::add2;
+            dsp::sub2                       = native::sub2;
+            dsp::mul2                       = native::mul2;
+            dsp::div2                       = native::div2;
+            dsp::scale2                     = native::scale2;
+            dsp::add3                       = native::add3;
+            dsp::sub3                       = native::sub3;
+            dsp::mul3                       = native::mul3;
+            dsp::div3                       = native::div3;
+            dsp::scale3                     = native::scale3;
+
             dsp::h_sum                      = native::h_sum;
             dsp::h_sqr_sum                  = native::h_sqr_sum;
             dsp::h_abs_sum                  = native::h_abs_sum;
             dsp::scalar_mul                 = native::scalar_mul;
-            dsp::accumulate                 = native::accumulate;
-            dsp::add2                       = native::add2;
-            dsp::sub2                       = native::sub2;
-            dsp::add3                       = native::add3;
-            dsp::sub3                       = native::sub3;
-            dsp::add_multiplied             = native::add_multiplied;
-            dsp::sub_multiplied             = native::sub_multiplied;
-            dsp::integrate                  = native::integrate;
-            dsp::mix                        = native::mix;
-            dsp::mix_add                    = native::mix_add;
-            dsp::convolve_single            = native::convolve_single;
-            dsp::convolve                   = native::convolve;
-            dsp::reverse                    = native::reverse;
+
+            dsp::scale_add3                 = native::scale_add3;
+            dsp::scale_sub3                 = native::scale_sub3;
+            dsp::scale_mul3                 = native::scale_mul3;
+            dsp::scale_div3                 = native::scale_div3;
+
+            dsp::mix2                       = native::mix2;
+            dsp::mix_copy2                  = native::mix_copy2;
+            dsp::mix_add2                   = native::mix_add2;
+            dsp::mix3                       = native::mix3;
+            dsp::mix_copy3                  = native::mix_copy3;
+            dsp::mix_add3                   = native::mix_add3;
+            dsp::mix4                       = native::mix4;
+            dsp::mix_copy4                  = native::mix_copy4;
+            dsp::mix_add4                   = native::mix_add4;
+
+            dsp::reverse1                   = native::reverse1;
+            dsp::reverse2                   = native::reverse2;
 
             dsp::direct_fft                 = native::direct_fft;
             dsp::packed_direct_fft          = native::packed_direct_fft;
@@ -101,8 +126,6 @@ namespace lsp
             dsp::ms_to_right                = native::ms_to_right;
             dsp::avoid_denormals            = native::avoid_denormals;
 
-            dsp::biquad_process             = native::biquad_process;
-            dsp::biquad_process_multi       = native::biquad_process_multi;
             dsp::biquad_process_x1          = native::biquad_process_x1;
             dsp::biquad_process_x2          = native::biquad_process_x2;
             dsp::biquad_process_x4          = native::biquad_process_x4;

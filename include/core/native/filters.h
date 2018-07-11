@@ -12,51 +12,7 @@ namespace lsp
 {
     namespace native
     {
-        static float biquad_process(float *buf, const float *ir, float sample)
-        {
-            // Calculate sample
-            float result    =
-                buf[0] * ir[0] +
-                buf[1] * ir[1] +
-                buf[2] * ir[2] +
-                buf[3] * ir[3] +
-                sample * ir[4];
-
-            // Shift buffer
-            buf[3]  = buf[1];
-            buf[2]  = buf[0];
-            buf[1]  = sample;
-            buf[0]  = result;
-
-            return result;
-        }
-
-        static void biquad_process_multi(float *dst, const float *src, size_t count, float *buf, const float *ir)
-        {
-            for (size_t i=0; i<count; ++i)
-            {
-                float s         = src[i];
-
-                // Calculate sample
-                float result    =
-                    buf[0] * ir[0] +
-                    buf[1] * ir[1] +
-                    buf[2] * ir[2] +
-                    buf[3] * ir[3] +
-                    s      * ir[4];
-
-                // Shift buffer
-                buf[3]  = buf[1];
-                buf[2]  = buf[0];
-                buf[1]  = s;
-                buf[0]  = result;
-
-                // Store sample
-                dst[i]  = result;
-            }
-        }
-
-        static void biquad_process_x1(float *dst, const float *src, size_t count, biquad_t *f)
+        void biquad_process_x1(float *dst, const float *src, size_t count, biquad_t *f)
         {
             for (size_t i=0; i<count; ++i)
             {
@@ -75,7 +31,7 @@ namespace lsp
             }
         }
 
-        static void biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f)
+        void biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f)
         {
             if (count <= 0)
                 return;
@@ -125,7 +81,7 @@ namespace lsp
             f->d[5]     = q2;
         }
 
-        static void biquad_process_x4(float *dst, const float *src, size_t count, biquad_t *f)
+        void biquad_process_x4(float *dst, const float *src, size_t count, biquad_t *f)
         {
             if (count <= 0)
                 return;
@@ -264,7 +220,7 @@ namespace lsp
             } while (mask != 0);
         }
 
-        static void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f)
+        void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f)
         {
             // This code already works badly instead of biquad_process_x4
             if (count <= 0)

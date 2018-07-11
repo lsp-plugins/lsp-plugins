@@ -639,7 +639,7 @@ namespace lsp
             {
                 channel_t *c        = &vChannels[i];
                 ctls[i]             = c->vCtl;
-                dsp::scale(ctls[i], ins[i], preamp, to_process);
+                dsp::scale3(ctls[i], ins[i], preamp, to_process);
                 c->sGraph.process(ctls[i], samples);
             }
 
@@ -653,7 +653,7 @@ namespace lsp
             // Now mix dry/wet signals and pass thru bypass switch
             for (size_t i=0; i<nChannels; ++i)
             {
-                dsp::mix(ctls[i], ins[i], ctls[i], fDry, fWet, to_process);
+                dsp::mix2(ctls[i], ins[i], fWet, fDry, to_process);
                 vChannels[i].sBypass.process(outs[i], ins[i], ctls[i], to_process);
             }
 
@@ -808,7 +808,7 @@ namespace lsp
             // Initialize coords
             dsp::fill(b->v[2], width, width);
             dsp::fill(b->v[3], height, width);
-            dsp::add_multiplied(b->v[2], b->v[0], dx, width);
+            dsp::scale_add3(b->v[2], b->v[0], dx, width);
             dsp::axis_apply_log(b->v[2], b->v[3], b->v[1], zy, 0.0f, dy, width);
 
             // Draw channel
@@ -826,7 +826,7 @@ namespace lsp
             // Initialize coords
             dsp::fill(b->v[2], width, width);
             dsp::fill(b->v[3], height, width);
-            dsp::add_multiplied(b->v[2], b->v[0], dx, width);
+            dsp::scale_add3(b->v[2], b->v[0], dx, width);
             dsp::axis_apply_log(b->v[2], b->v[3], b->v[1], zy, 0.0f, dy, width);
 
             // Draw channel
@@ -844,7 +844,7 @@ namespace lsp
             // Initialize coords
             dsp::fill(b->v[2], width, width);
             dsp::fill(b->v[3], height, width);
-            dsp::add_multiplied(b->v[2], b->v[0], dx, width);
+            dsp::scale_add3(b->v[2], b->v[0], dx, width);
             dsp::axis_apply_log(b->v[2], b->v[3], b->v[1], zy, 0.0f, dy, width);
 
             // Draw channel

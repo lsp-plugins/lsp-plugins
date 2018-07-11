@@ -211,7 +211,7 @@ namespace lsp
             {
                 // Do direct convolution
                 for (size_t i=0; i<to_do; ++i)
-                    dsp::add_multiplied(vBufferPtr, vConvFirst, src[i], CONVOLVER_SMALL_FRM_SIZE);
+                    dsp::scale_add3(vBufferPtr, vConvFirst, src[i], CONVOLVER_SMALL_FRM_SIZE);
             }
 
             // Update frame size and source pointer
@@ -690,7 +690,7 @@ namespace lsp
             {
                 lsp_trace("doing raw convolution");
                 for (size_t i=0; i<to_do; ++i)
-                    dsp::add_multiplied(pBufferPtr, vSmallConv, src[i], CONVOLVER_FRM_SMALLEST);
+                    dsp::scale_add3(pBufferPtr, vSmallConv, src[i], CONVOLVER_FRM_SMALLEST);
             }
 
             // Copy rendering buffer to output and update pointers

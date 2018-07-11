@@ -16,11 +16,10 @@
 
 === 1.0.24 ===
 
-- Updated expression language for the UI: added literal expressions that are more friendly with XML.
+* Fixed CPUID bug that caused Segfault on 32-bit systems.
 - Additional display mode for spectrum analyzer added.
 - Added graph amplitude scaling to equalizers.
 - Added graph amplitude scaling to spectrum analyzer.
-
 
 *******************************************************************************
 * Release steps
@@ -57,9 +56,9 @@
 * Gate (Gate)
 * Begrenzer (Limiter)
 * Impulsantworten (Impulse responses)
+* Slap-back delay
 - Hysteresis-based saturator
 - Impulse Taker
-- Slap-back delay
 - One-band compressor
 - Multiband compressor
 - Multiband expander

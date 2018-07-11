@@ -8,7 +8,7 @@
 #include <plugins/slap_delay.h>
 #include <core/debug.h>
 
-#define BUFFER_SIZE     512
+#define BUFFER_SIZE     4096
 #define CONV_RANK       10
 
 #define TRACE_PORT(p)           lsp_trace("  port id=%s", (p)->metadata()->id);
@@ -228,11 +228,8 @@ namespace lsp
         for (size_t i=0; i<slap_delay_base_metadata::MAX_PROCESSORS; ++i)
         {
             processor_t *c      = &vProcessors[i];
-            for (size_t j=0; j < slap_delay_base_metadata::MAX_PROCESSORS; ++j)
-            {
-                c->vDelay[0].sEqualizer.destroy();
-                c->vDelay[1].sEqualizer.destroy();
-            }
+            c->vDelay[0].sEqualizer.destroy();
+            c->vDelay[1].sEqualizer.destroy();
         }
 
         if (vData != NULL)
@@ -449,10 +446,11 @@ namespace lsp
         while (samples > 0)
         {
             // Process input data
-            size_t to_do        = vInputs[0].sBuffer.append(vInputs[0].vIn, samples);
-//            lsp_trace("to_do = %d", int(to_do));
+            size_t to_do        = (samples > BUFFER_SIZE) ? BUFFER_SIZE : samples;
+            to_do               = vInputs[0].sBuffer.append(vInputs[0].vIn, to_do);
+
             if (nInputs > 1)
-                vInputs[1].sBuffer.append(vInputs[1].vIn, to_do); // Buffer has the same gap, nothing to worry about
+                vInputs[1].sBuffer.append(vInputs[1].vIn, to_do); // Buffer has the same gap, nothing to worry about to_do
 
             // Process each channel individually
             for (size_t i=0; i<2; ++i)
@@ -461,9 +459,9 @@ namespace lsp
 
                 // Copy dry data to rendering buffer
                 if (nInputs == 1)
-                    dsp::scale(c->vRender, vInputs[0].vIn, c->fGain[0], to_do);
+                    dsp::scale3(c->vRender, vInputs[0].vIn, c->fGain[0], to_do);
                 else
-                    dsp::mix(c->vRender, vInputs[0].vIn, vInputs[1].vIn, c->fGain[0], c->fGain[1], to_do);
+                    dsp::mix_copy2(c->vRender, vInputs[0].vIn, vInputs[1].vIn, c->fGain[0], c->fGain[1], to_do);
 
                 // Do job with processors
                 for (size_t j=0; j<slap_delay_base_metadata::MAX_PROCESSORS; ++j)
@@ -476,9 +474,9 @@ namespace lsp
                     // Copy delayed signal to buffer and apply panoraming
                     size_t delay        = p->nDelay + to_do;
                     if (nInputs == 1)
-                        dsp::scale(vTemp, vInputs[0].sBuffer.tail(delay), p->vDelay[i].fGain[0], to_do);
+                        dsp::scale3(vTemp, vInputs[0].sBuffer.tail(delay), p->vDelay[i].fGain[0], to_do);
                     else
-                        dsp::mix(vTemp, vInputs[0].sBuffer.tail(delay), vInputs[1].sBuffer.tail(delay), p->vDelay[i].fGain[0], p->vDelay[i].fGain[1], to_do);
+                        dsp::mix_copy2(vTemp, vInputs[0].sBuffer.tail(delay), vInputs[1].sBuffer.tail(delay), p->vDelay[i].fGain[0], p->vDelay[i].fGain[1], to_do);
 
                     // Process data with equalizer
                     p->vDelay[i].sEqualizer.process(vTemp, vTemp, to_do);

@@ -20,24 +20,47 @@ namespace lsp
                 OP_LOAD,
                 OP_TERNARY,
 
+                // Floating-point operations
                 OP_ADD,
                 OP_SUB,
                 OP_SIGN,
                 OP_MUL,
                 OP_DIV,
+
+                // Integer operations
+                OP_IADD,
+                OP_ISUB,
+                OP_IMUL,
+                OP_IDIV,
                 OP_MOD,
 
+                // Logical operations
                 OP_AND,
                 OP_OR,
                 OP_NOT,
                 OP_XOR,
 
+                // Bitwise operations
+                OP_BAND,
+                OP_BOR,
+                OP_BNOT,
+                OP_BXOR,
+
+                // Floating-point comparisons
                 OP_LESS,
                 OP_GREATER,
                 OP_LESS_EQ,
                 OP_GREATER_EQ,
                 OP_NOT_EQ,
-                OP_EQ
+                OP_EQ,
+
+                // Integer comparisons
+                OP_ILESS,
+                OP_IGREATER,
+                OP_ILESS_EQ,
+                OP_IGREATER_EQ,
+                OP_INOT_EQ,
+                OP_IEQ
             };
 
             enum token_t
@@ -49,21 +72,49 @@ namespace lsp
 
                 TT_LBRACE,
                 TT_RBRACE,
-                TT_ADD,
-                TT_SUB,
-                TT_MUL,
-                TT_DIV,
-                TT_MOD,
+
+                // Logical operations
                 TT_AND,
                 TT_OR,
                 TT_NOT,
                 TT_XOR,
+
+                // Binary operations
+                TT_BAND,
+                TT_BOR,
+                TT_BNOT,
+                TT_BXOR,
+
+                // Floating-point operations
+                TT_ADD,
+                TT_SUB,
+                TT_MUL,
+                TT_DIV,
+
+                // Integer operations
+                TT_IADD,
+                TT_ISUB,
+                TT_IMUL,
+                TT_IDIV,
+                TT_MOD,
+
+                // Floating-point comparison
                 TT_LESS,
                 TT_GREATER,
                 TT_LESS_EQ,
                 TT_GREATER_EQ,
                 TT_NOT_EQ,
                 TT_EQ,
+
+                // Integer comparison
+                TT_ILESS,
+                TT_IGREATER,
+                TT_ILESS_EQ,
+                TT_IGREATER_EQ,
+                TT_INOT_EQ,
+                TT_IEQ,
+
+                // Different operators
                 TT_QUESTION,
                 TT_DOTS,
 
@@ -108,7 +159,14 @@ namespace lsp
             static token_t get_token(tokenizer_t *t, bool get);
             static float execute(binding_t *expr);
 
+            static inline bool isalpha(char ch);
+            static inline bool isnum(char ch);
+            static inline bool isalnum(char ch);
+
             binding_t  *parse_ternary(tokenizer_t *t, bool get);
+            binding_t  *parse_bit_xor(tokenizer_t *t, bool get);
+            binding_t  *parse_bit_or(tokenizer_t *t, bool get);
+            binding_t  *parse_bit_and(tokenizer_t *t, bool get);
             binding_t  *parse_xor(tokenizer_t *t, bool get);
             binding_t  *parse_or(tokenizer_t *t, bool get);
             binding_t  *parse_and(tokenizer_t *t, bool get);

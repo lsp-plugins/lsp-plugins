@@ -122,7 +122,7 @@ namespace lsp
                 size_t to_copy  = nSize - nTail;
                 if (to_copy > out)
                     to_copy         = out;
-                dsp::scale(dst, &pBuffer[nTail], gain, to_copy);
+                dsp::scale3(dst, &pBuffer[nTail], gain, to_copy);
                 nTail           = (nTail + to_copy) % nSize;
                 dst            += to_copy;
                 out            -= to_copy;

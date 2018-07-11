@@ -44,7 +44,7 @@ namespace lsp
                 __ASM_EMIT("vmovhlps        %%xmm7, %%xmm0, %%xmm7")        // xmm7 = s*a1+d1 s*a2 0 0
                 __ASM_EMIT("vmovss          %%xmm0, (%[dst], %[i], 4)")     // store value
                 __ASM_EMIT("vmulps          %%xmm5, %%xmm4, %%xmm4")        // xmm4 = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
-                __ASM_EMIT("add             $1, %[i]")
+                __ASM_EMIT("inc             %[i]")
                 __ASM_EMIT("cmp             %[count], %[i]")
                 __ASM_EMIT("vaddps          %%xmm7, %%xmm4, %%xmm4")        // xmm4 = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2 + s*a2 0 0
 
@@ -97,9 +97,9 @@ namespace lsp
                 __ASM_EMIT("vmovhlps        %%xmm7, %%xmm0, %%xmm7")        // xmm7 = s*a1+d1 s*a2 0 0
                 __ASM_EMIT("vmovss          %%xmm0, (%[dst], %[i], 4)")     // store value
 
-                __ASM_EMIT("add             $1, %[i]")
-                __ASM_EMIT("cmp             %[count], %[i]")
+                __ASM_EMIT("inc             %[i]")
                 __ASM_EMIT("vfmadd213ps     %%xmm7, %%xmm5, %%xmm4")        // xmm4 = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2 + s*a2 0 0
+                __ASM_EMIT("cmp             %[count], %[i]")
 //                __ASM_EMIT("vmulps          %%xmm5, %%xmm4, %%xmm4")        // xmm4 = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
 //                __ASM_EMIT("vaddps          %%xmm7, %%xmm4, %%xmm4")        // xmm4 = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2 + s*a2 0 0
 
@@ -178,9 +178,10 @@ namespace lsp
                 __ASM_EMIT("vorps           %[X_MASK], %%ymm8, %%ymm8")                     // ymm8     =  m[0]  m[0]  m[1]  m[2]  m[3]  m[4]  m[5]  m[6]
 
                 // Repeat loop
-                __ASM_EMIT("shl             $1, %[mask]")                                   // mask     = mask << 1
-                __ASM_EMIT("add             $1, %[i]")                                      // i++
-                __ASM_EMIT("or              $1, %[mask]")                                   // mask     = (mask << 1) | 1
+//                __ASM_EMIT("shl             $1, %[mask]")                                   // mask     = mask << 1
+                __ASM_EMIT("inc             %[i]")                                          // i++
+                __ASM_EMIT("lea             0x01(,%[mask], 2), %[mask]")                     // mask     = (mask << 1) | 1
+//                __ASM_EMIT("or              $1, %[mask]")                                   // mask     = (mask << 1) | 1
                 __ASM_EMIT("cmp             %[count], %[i]")
                 __ASM_EMIT("jae             3f")                                            // jump to completion
                 __ASM_EMIT("cmp             $7, %[i]")
@@ -209,7 +210,7 @@ namespace lsp
                 __ASM_EMIT("vmovss          %%xmm1, (%[dst])")                              // *dst     = s2[7]
 
                 // Repeat loop
-                __ASM_EMIT("add             $1, %[i]")                                      // i++
+                __ASM_EMIT("inc             %[i]")                                          // i++
                 __ASM_EMIT("add             $4, %[dst]")                                    // dst      ++
                 __ASM_EMIT("cmp             %[count], %[i]")
                 __ASM_EMIT("jb              2b")
@@ -306,14 +307,8 @@ namespace lsp
                 __ASM_EMIT("vmulps          " BIQUAD_X8_A1_SOFF "(%[f]), %%ymm1, %%ymm2")   // ymm2     = s*a1
                 __ASM_EMIT("vmulps          " BIQUAD_X8_A2_SOFF "(%[f]), %%ymm1, %%ymm3")   // ymm3     = s*a2
                 __ASM_EMIT("vfmadd132ps     " BIQUAD_X8_A0_SOFF "(%[f]), %%ymm6, %%ymm1")   // ymm1     = s*a0+d0 = s2
-//                __ASM_EMIT("vmulps          " BIQUAD_X8_A0_SOFF "(%[f]), %%ymm1, %%ymm1")   // ymm1     = s*a0
-//                __ASM_EMIT("vaddps          %%ymm6, %%ymm1, %%ymm1")                        // ymm1     = s*a0+d0 = s2
                 __ASM_EMIT("vfmadd231ps     " BIQUAD_X8_B1_SOFF "(%[f]), %%ymm1, %%ymm2")   // ymm2     = s*a1 + s2*b1 = p1
-//                __ASM_EMIT("vmulps          " BIQUAD_X8_B1_SOFF "(%[f]), %%ymm1, %%ymm4")   // ymm4     = s2*b1
-//                __ASM_EMIT("vaddps          %%ymm4, %%ymm2, %%ymm2")                        // ymm2     = s*a1 + s2*b1 = p1
                 __ASM_EMIT("vfmadd231ps     " BIQUAD_X8_B2_SOFF "(%[f]), %%ymm1, %%ymm3")   // ymm3     = s*a2 + s2*b2 = p2
-//                __ASM_EMIT("vmulps          " BIQUAD_X8_B2_SOFF "(%[f]), %%ymm1, %%ymm5")   // ymm5     = s2*b2
-//                __ASM_EMIT("vaddps          %%ymm5, %%ymm3, %%ymm3")                        // ymm3     = s*a2 + s2*b2 = p2
                 __ASM_EMIT("vaddps          %%ymm7, %%ymm2, %%ymm2")                        // ymm2     = p1 + d1
 
                 // Update delay only by mask
@@ -336,9 +331,10 @@ namespace lsp
                 __ASM_EMIT("vorps           %[X_MASK], %%ymm8, %%ymm8")                     // ymm8     =  m[0]  m[0]  m[1]  m[2]  m[3]  m[4]  m[5]  m[6]
 
                 // Repeat loop
-                __ASM_EMIT("shl             $1, %[mask]")                                   // mask     = mask << 1
-                __ASM_EMIT("add             $1, %[i]")                                      // i++
-                __ASM_EMIT("or              $1, %[mask]")                                   // mask     = (mask << 1) | 1
+//                __ASM_EMIT("shl             $1, %[mask]")                                   // mask     = mask << 1
+                __ASM_EMIT("inc             %[i]")                                          // i++
+                __ASM_EMIT("lea             0x01(,%[mask], 2), %[mask]")                    // mask     = (mask << 1) | 1
+//                __ASM_EMIT("or              $1, %[mask]")                                   // mask     = (mask << 1) | 1
                 __ASM_EMIT("cmp             %[count], %[i]")
                 __ASM_EMIT("jae             3f")                                            // jump to completion
                 __ASM_EMIT("cmp             $7, %[i]")
@@ -352,15 +348,10 @@ namespace lsp
                 __ASM_EMIT("vmulps          " BIQUAD_X8_A1_SOFF "(%[f]), %%ymm1, %%ymm2")   // ymm2     = s*a1
                 __ASM_EMIT("vmulps          " BIQUAD_X8_A2_SOFF "(%[f]), %%ymm1, %%ymm3")   // ymm3     = s*a2
                 __ASM_EMIT("vfmadd132ps     " BIQUAD_X8_A0_SOFF "(%[f]), %%ymm6, %%ymm1")   // ymm1     = s*a0+d0 = s2
-//                __ASM_EMIT("vmulps          " BIQUAD_X8_A0_SOFF "(%[f]), %%ymm1, %%ymm1")   // ymm1     = s*a0
-//                __ASM_EMIT("vaddps          %%ymm6, %%ymm1, %%ymm1")                        // ymm1     = s*a0+d0 = s2
                 __ASM_EMIT("vfmadd231ps     " BIQUAD_X8_B1_SOFF "(%[f]), %%ymm1, %%ymm2")   // ymm2     = s*a1 + s2*b1 = p1
-//                __ASM_EMIT("vmulps          " BIQUAD_X8_B1_SOFF "(%[f]), %%ymm1, %%ymm4")   // ymm4     = s2*b1
-//                __ASM_EMIT("vaddps          %%ymm4, %%ymm2, %%ymm2")                        // ymm2     = s*a1 + s2*b1 = p1
                 __ASM_EMIT("vfmadd231ps     " BIQUAD_X8_B2_SOFF "(%[f]), %%ymm1, %%ymm3")   // ymm3     = s*a2 + s2*b2 = p2
                 __ASM_EMIT("vaddps          %%ymm7, %%ymm2, %%ymm6")                        // ymm6     = p1 + d1
                 __ASM_EMIT("vmovaps         %%ymm3, %%ymm7")                                // ymm7     = s*a2 + s2*b2 = p2
-//                __ASM_EMIT("vaddps          %%ymm5, %%ymm3, %%ymm7")                        // ymm7     = s*a2 + s2*b2 = p2
 
                 // Rotate buffer, AVX2 has better option for it
                 __ASM_EMIT("vpermilps       $0x93, %%ymm1, %%ymm1")                         // ymm1     = s2[3] s2[0] s2[1] s2[2] s2[7] s2[4] s2[5] s2[6]
@@ -370,7 +361,7 @@ namespace lsp
                 __ASM_EMIT("vmovss          %%xmm1, (%[dst])")                              // *dst     = s2[7]
 
                 // Repeat loop
-                __ASM_EMIT("add             $1, %[i]")                                      // i++
+                __ASM_EMIT("inc             %[i]")                                          // i++
                 __ASM_EMIT("add             $4, %[dst]")                                    // dst      ++
                 __ASM_EMIT("cmp             %[count], %[i]")
                 __ASM_EMIT("jb              2b")
@@ -388,14 +379,8 @@ namespace lsp
                 __ASM_EMIT("vmulps          " BIQUAD_X8_A1_SOFF "(%[f]), %%ymm1, %%ymm2")   // ymm2     = s*a1
                 __ASM_EMIT("vmulps          " BIQUAD_X8_A2_SOFF "(%[f]), %%ymm1, %%ymm3")   // ymm3     = s*a2
                 __ASM_EMIT("vfmadd132ps     " BIQUAD_X8_A0_SOFF "(%[f]), %%ymm6, %%ymm1")   // ymm1     = s*a0+d0 = s2
-//                __ASM_EMIT("vmulps          " BIQUAD_X8_A0_SOFF "(%[f]), %%ymm1, %%ymm1")   // ymm1     = s*a0
-//                __ASM_EMIT("vaddps          %%ymm6, %%ymm1, %%ymm1")                        // ymm1     = s*a0+d0 = s2
                 __ASM_EMIT("vfmadd231ps     " BIQUAD_X8_B1_SOFF "(%[f]), %%ymm1, %%ymm2")   // ymm2     = s*a1 + s2*b1 = p1
-//                __ASM_EMIT("vmulps          " BIQUAD_X8_B1_SOFF "(%[f]), %%ymm1, %%ymm4")   // ymm4     = s2*b1
-//                __ASM_EMIT("vaddps          %%ymm4, %%ymm2, %%ymm2")                        // ymm2     = s*a1 + s2*b1 = p1
                 __ASM_EMIT("vfmadd231ps     " BIQUAD_X8_B2_SOFF "(%[f]), %%ymm1, %%ymm3")   // ymm3     = s*a2 + s2*b2 = p2
-//                __ASM_EMIT("vmulps          " BIQUAD_X8_B2_SOFF "(%[f]), %%ymm1, %%ymm5")   // ymm5     = s2*b2
-//                __ASM_EMIT("vaddps          %%ymm5, %%ymm3, %%ymm3")                        // ymm3     = s*a2 + s2*b2 = p2
                 __ASM_EMIT("vaddps          %%ymm7, %%ymm2, %%ymm2")                        // ymm2     = p1 + d1
 
                 // Update delay only by mask

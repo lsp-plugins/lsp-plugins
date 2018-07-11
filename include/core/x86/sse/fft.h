@@ -8,6 +8,10 @@
 #ifndef CORE_X86_SSE_FFT_H_
 #define CORE_X86_SSE_FFT_H_
 
+#ifndef CORE_X86_SSE_IMPL
+    #error "This header should not be included directly"
+#endif /* CORE_X86_SSE_IMPL */
+
 // Make set of butterfly implementations
 #define FFT_BUTTERFLY_DIRECT_NAME       butterfly_direct_aa
 #define FFT_BUTTERFLY_REVERSE_NAME      butterfly_reverse_aa

@@ -24,7 +24,7 @@ namespace addm_test
         {
             // Do 100 iterations
             for (size_t i=0; i<1000; ++i)
-                dsp::add_multiplied(a, b, 0.5f, count);
+                dsp::scale_add3(a, b, 0.5f, count);
 
             // Calculate statistics
             iterations     += 1000;

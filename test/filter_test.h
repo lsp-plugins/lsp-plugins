@@ -12,6 +12,31 @@
 
 namespace filter_test
 {
+    void biquad_process_multi(float *dst, const float *src, size_t count, float *buf, const float *ir)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float s         = src[i];
+
+            // Calculate sample
+            float result    =
+                buf[0] * ir[0] +
+                buf[1] * ir[1] +
+                buf[2] * ir[2] +
+                buf[3] * ir[3] +
+                s      * ir[4];
+
+            // Shift buffer
+            buf[3]  = buf[1];
+            buf[2]  = buf[0];
+            buf[1]  = s;
+            buf[0]  = result;
+
+            // Store sample
+            dst[i]  = result;
+        }
+    }
+
     using namespace lsp;
 
     void test_biquad(float *out, const float *in, size_t count)
@@ -29,14 +54,14 @@ namespace filter_test
             // Do 100 iterations
             for (size_t i=0; i<ITERATIONS; ++i)
             {
-                dsp::biquad_process_multi(out, in, count, buf, ir);
-                dsp::biquad_process_multi(out, out, count, buf, ir);
-                dsp::biquad_process_multi(out, out, count, buf, ir);
-                dsp::biquad_process_multi(out, out, count, buf, ir);
-                dsp::biquad_process_multi(out, out, count, buf, ir);
-                dsp::biquad_process_multi(out, out, count, buf, ir);
-                dsp::biquad_process_multi(out, out, count, buf, ir);
-                dsp::biquad_process_multi(out, out, count, buf, ir);
+                biquad_process_multi(out, in, count, buf, ir);
+                biquad_process_multi(out, out, count, buf, ir);
+                biquad_process_multi(out, out, count, buf, ir);
+                biquad_process_multi(out, out, count, buf, ir);
+                biquad_process_multi(out, out, count, buf, ir);
+                biquad_process_multi(out, out, count, buf, ir);
+                biquad_process_multi(out, out, count, buf, ir);
+                biquad_process_multi(out, out, count, buf, ir);
             }
 
             // Calculate statistics

@@ -116,17 +116,17 @@ namespace lsp
                 {
                     case SCS_LEFT:
                         dsp::ms_to_left(out, in[0], in[1], samples);
-                        dsp::abs(out, out, samples);
+                        dsp::abs1(out, samples);
                         break;
                     case SCS_RIGHT:
                         dsp::ms_to_right(out, in[0], in[1], samples);
-                        dsp::abs(out, out, samples);
+                        dsp::abs1(out, samples);
                         break;
                     case SCS_MIDDLE:
-                        dsp::abs(out, in[0], samples);
+                        dsp::abs2(out, in[0], samples);
                         break;
                     case SCS_SIDE:
-                        dsp::abs(out, in[1], samples);
+                        dsp::abs2(out, in[1], samples);
                         break;
                     default:
                         break;
@@ -137,18 +137,18 @@ namespace lsp
                 switch (nSource)
                 {
                     case SCS_LEFT:
-                        dsp::abs(out, in[0], samples);
+                        dsp::abs2(out, in[0], samples);
                         break;
                     case SCS_RIGHT:
-                        dsp::abs(out, in[1], samples);
+                        dsp::abs2(out, in[1], samples);
                         break;
                     case SCS_MIDDLE:
                         dsp::lr_to_mid(out, in[0], in[1], samples);
-                        dsp::abs(out, out, samples);
+                        dsp::abs1(out, samples);
                         break;
                     case SCS_SIDE:
                         dsp::lr_to_side(out, in[0], in[1], samples);
-                        dsp::abs(out, out, samples);
+                        dsp::abs1(out, samples);
                         break;
                     default:
                         break;
@@ -156,7 +156,7 @@ namespace lsp
             }
         }
         else if (nChannels == 1)
-            dsp::abs(out, in[0], samples);
+            dsp::abs2(out, in[0], samples);
         else
         {
             dsp::fill_zero(out, samples);
@@ -165,7 +165,7 @@ namespace lsp
 
         // Adjust pre-amplification
         if (fGain != 1.0f)
-            dsp::scale(out, out, fGain, samples);
+            dsp::scale2(out, fGain, samples);
 
         // Update refresh counter
         nRefresh       += samples;

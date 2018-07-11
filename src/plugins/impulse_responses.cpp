@@ -563,7 +563,7 @@ namespace lsp
                 else
                     dsp::fill_zero(c->vBuffer, to_do);
                 c->sDelay.process(c->vBuffer, c->vBuffer, to_do);
-                dsp::mix(c->vBuffer, c->vBuffer, c->vIn, c->fWetGain, c->fDryGain, to_do);
+                dsp::mix2(c->vBuffer, c->vIn, c->fWetGain, c->fDryGain, to_do);
                 c->sPlayer.process(c->vBuffer, c->vBuffer, to_do);
                 c->sBypass.process(c->vOut, c->vIn, c->vBuffer, to_do);
 
@@ -759,7 +759,7 @@ namespace lsp
 
                 // Normalize graph if possible
                 if (f->fNorm != 1.0f)
-                    dsp::scale(dst, dst, f->fNorm, impulse_responses_base_metadata::MESH_SIZE);
+                    dsp::scale2(dst, f->fNorm, impulse_responses_base_metadata::MESH_SIZE);
             }
         }
 

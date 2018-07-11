@@ -344,7 +344,7 @@ namespace lsp
                 if (count > 0)
                 {
 //                    lsp_trace("add_multiplied dst_off=%d, src_head=%d, volume=%f, count=%d", int(dst_off), int(src_head), pb->nVolume, int(count));
-                    dsp::add_multiplied(&dst[dst_off], s->getBuffer(pb->nChannel, src_head), pb->nVolume * fGain, count);
+                    dsp::scale_add3(&dst[dst_off], s->getBuffer(pb->nChannel, src_head), pb->nVolume * fGain, count);
                 }
             }
 

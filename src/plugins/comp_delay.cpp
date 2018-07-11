@@ -113,7 +113,7 @@ namespace lsp
             vLine.process(vBuffer, in, fWet, count);
             // Apply 'dry' control
             if (fDry > 0.0)
-                dsp::add_multiplied(vBuffer, in, fDry, count);
+                dsp::scale_add3(vBuffer, in, fDry, count);
 
             vBypass.process(out, in, vBuffer, count);
 

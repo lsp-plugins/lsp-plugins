@@ -8,6 +8,49 @@
 #ifndef CORE_NATIVE_RESAMPLING_H_
 #define CORE_NATIVE_RESAMPLING_H_
 
+/*
+
+    The Lanczos kernel can be evaluated by using this code:
+
+    #include <stdio.h>
+    #include <math.h>
+
+    // Number of lobes
+    #define KERNEL_SIZE     3
+    // Oversampling times
+    #define KERNEL_TIMES    8
+    // Number of samples to generate
+    #define KERNEL_MAX      64
+
+    double kernel[KERNEL_MAX];
+
+    int main(void)
+    {
+            ssize_t leaf = KERNEL_SIZE * KERNEL_TIMES;
+            ssize_t dots = leaf * 2 + 1;
+
+            printf("leaf=%d, dots=%d, kernel_size=%d, kernel_times=%d\n", int(leaf), int(dots), KERNEL_SIZE, KERNEL_TIMES);
+
+            for (ssize_t i=0; i<KERNEL_MAX; ++i)
+            {
+                    if (i >= dots)
+                            kernel[i] = 0.0;
+                    else if (i == leaf)
+                            kernel[i] = 1.0;
+                    else
+                    {
+                            double px = M_PI * (i - leaf) / KERNEL_TIMES;
+                            kernel[i] = leaf * sin(px) * sin(px / double(leaf)) / (px * px);
+                    }
+
+                    printf("%.16f\n", kernel[i]);
+            }
+
+            return 0;
+    }
+
+ */
+
 namespace lsp
 {
     namespace native

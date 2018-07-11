@@ -2,6 +2,13 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.0.23 ===
+
+* Fixed buffer overflow in Slap-back Delay plugin series happening with frame size larger than 512 samples.
+* Updated expression language for the UI: added literal expressions that are more friendly with XML syntax.
+* DSP core functions re-engineering and DSP core interface refactoring.
+* Covered many of SSE DSP functions with unit tests.
+
 === 1.0.22 ===
 
 * Implemented slap-back delay plugin series.

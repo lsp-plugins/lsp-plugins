@@ -29,6 +29,14 @@ template <class T>
         return (x & mask) ? reinterpret_cast<T *>((x + align)&(~mask)) : src;
     }
 
+template <class T>
+    bool IS_PTR_ALIGNED(T *src, size_t align = DEFAULT_ALIGN)
+    {
+        ptrdiff_t x     = ptrdiff_t(src);
+        ptrdiff_t mask  = align-1;
+        return !(x & mask);
+    }
+
 #if defined(ARCH_I386)
     inline uint32_t seed_addr(const void *ptr)
     {

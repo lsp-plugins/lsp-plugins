@@ -50,7 +50,7 @@
 	<li><b>P</b> - Inverts the phase of the delayed signal.</li>
 	<li><b>Delay</b> - the delay assigned to the delay line.</li>
 	<?php if ($m) {?>
-	<li><b>Panorama Left</b> - the panning applied to the input signal for this delay line.</li>
+	<li><b>Panorama</b> - the panning applied to the input signal for this delay line.</li>
 	<?php } else {?>
 	<li><b>Panorama Left</b> - the panning applied to the left channel of the input for this delay line.</li>
 	<li><b>Panorama Right</b> - the panning applied to the right channel of the input for this delay line.</li>

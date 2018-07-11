@@ -36,7 +36,7 @@ namespace dsp_speed_test
         {
             // Do 100 iterations
             for (size_t i=0; i<ITERATIONS; ++i)
-                dsp::multiply(dst, src1, src2, BUF_SIZE);
+                dsp::mul3(dst, src1, src2, BUF_SIZE);
 
             // Calculate statistics
             iterations     += ITERATIONS;

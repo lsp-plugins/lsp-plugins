@@ -6,7 +6,6 @@
  */
 
 #include <ui/ui.h>
-#include <ctype.h>
 
 namespace lsp
 {
@@ -70,6 +69,23 @@ namespace lsp
             pListener->notify(port);
     }
 
+    inline bool Expression::isalpha(char ch)
+    {
+        return ((ch >= 'a') && (ch <= 'z')) ||
+               ((ch >= 'A') && (ch <= 'Z')) ||
+               (ch == '_');
+    }
+
+    inline bool Expression::isnum(char ch)
+    {
+        return ((ch >= '0') && (ch <= '9'));
+    }
+
+    inline bool Expression::isalnum(char ch)
+    {
+        return isalpha(ch) || isnum(ch);
+    }
+
     Expression::token_t Expression::get_token(tokenizer_t *t, bool get)
     {
         // Pre-checks
@@ -100,6 +116,7 @@ namespace lsp
         // Now analyze first character
         switch (c)
         {
+            // Non-alpha
             case '(': // TT_LBRACE
                 return t->enType   = TT_LBRACE;
             case ')': // TT_RBRACE
@@ -190,28 +207,341 @@ namespace lsp
                 return t->enType    = TT_IDENTIFIER;
             }
 
-            default: // TT_VALUE
+            // Alpha
+            case 'a': case 'A': // TT_AND, TT_ADD
             {
-                const char *p = &t->pStr[-1];
-                if (((p[0] == 'T') || (p[0] == 't')) &&
-                    ((p[1] == 'R') || (p[1] == 'r')) &&
-                    ((p[2] == 'U') || (p[2] == 'u')) &&
-                    ((p[3] == 'E') || (p[3] == 'e')))
+                const char *p = t->pStr;
+                if ((p[0] == 'n') || (p[0] == 'N'))
                 {
-                    t->fValue   = 1.0f;
-                    return t->enType    = TT_VALUE;
+                    if (((p[1] == 'd') || (p[1] == 'D')) &&
+                        (!isalpha(p[2]))) // AND
+                        return t->enType    = TT_AND;
                 }
-                else if (((p[0] == 'F') || (p[0] == 'f')) &&
-                    ((p[1] == 'A') || (p[1] == 'a')) &&
-                    ((p[2] == 'L') || (p[2] == 'l')) &&
-                    ((p[3] == 'S') || (p[3] == 's')) &&
-                    ((p[4] == 'E') || (p[4] == 'e')))
+                else if ((p[0] == 'd') || (p[0] == 'D'))
+                {
+                    if (((p[1] == 'd') || (p[1] == 'D')) &&
+                        (!isalpha(p[2]))) // ADD
+                        return t->enType    = TT_ADD;
+                }
+                return t->enType    = TT_UNKNOWN;
+            }
+
+            case 'b': case 'B': // TT_BAND, TT_BNOT, TT_BOR, TT_BXOR
+            {
+                const char *p = t->pStr;
+                if ((p[0] == 'a') || (p[0] == 'A'))
+                {
+                    if (((p[1] == 'n') || (p[1] == 'N')) &&
+                        ((p[2] == 'd') || (p[2] == 'D')) &&
+                        (!isalpha(p[3])))
+                        return t->enType    = TT_BAND;
+                }
+                else if ((p[0] == 'n') || (p[0] == 'N'))
+                {
+                    if (((p[1] == 'o') || (p[1] == 'O')) &&
+                        ((p[2] == 't') || (p[2] == 'T')) &&
+                        (!isalpha(p[3])))
+                        return t->enType    = TT_BNOT;
+                }
+                else if ((p[0] == 'o') || (p[0] == 'O'))
+                {
+                    if (((p[1] == 'r') || (p[1] == 'R')) &&
+                        (!isalpha(p[3])))
+                        return t->enType    = TT_BOR;
+                }
+                else if ((p[0] == 'x') || (p[0] == 'X'))
+                {
+                    if (((p[1] == 'o') || (p[1] == 'O')) &&
+                        ((p[2] == 'r') || (p[2] == 'R')) &&
+                        (!isalpha(p[3])))
+                        return t->enType    = TT_BXOR;
+                }
+                return t->enType    = TT_UNKNOWN;
+            }
+
+            case 'd': case 'D': // TT_DIV
+            {
+                const char *p = t->pStr;
+                if ((p[0] == 'i') || (p[0] == 'I'))
+                {
+                    if (((p[1] == 'v') || (p[1] == 'V')) &&
+                        (!isalpha(p[2])))
+                        return t->enType    = TT_DIV;
+                }
+                return t->enType    = TT_UNKNOWN;
+            }
+
+            case 'e': case 'E': // TT_EQ
+            {
+                const char *p = t->pStr;
+                if ((p[0] == 'q') || (p[0] == 'Q'))
+                {
+                    if (!isalpha(p[1])) // EQ
+                        return t->enType    = TT_EQ;
+                }
+
+                return t->enType    = TT_UNKNOWN;
+            }
+
+            case 'f': case 'F': // FALSE
+            {
+                const char *p = t->pStr;
+                if (((p[0] == 'A') || (p[0] == 'a')) &&
+                    ((p[1] == 'L') || (p[1] == 'l')) &&
+                    ((p[2] == 'S') || (p[2] == 's')) &&
+                    ((p[3] == 'E') || (p[3] == 'e')) &&
+                    (!isalpha(p[4])))
                 {
                     t->fValue   = 0.0f;
                     return t->enType    = TT_VALUE;
                 }
+                return t->enType    = TT_UNKNOWN;
+            }
 
-                // Parse float value
+            case 'g': case 'G': // TT_GREATER, TT_GREATER_EQ
+            {
+                const char *p = t->pStr;
+                if ((p[0] == 't') || (p[0] == 'T'))
+                {
+                    if (!isalpha(p[1])) // GT
+                        return t->enType    = TT_GREATER;
+                }
+                else if ((p[0] == 'e') || (p[0] == 'E'))
+                {
+                    if (!isalpha(p[1])) // GE
+                        return t->enType    = TT_GREATER_EQ;
+                }
+
+                return t->enType    = TT_UNKNOWN;
+            }
+
+            case 'i': case 'I': // TT_IADD, TT_ISUB, TT_IMUL, TT_IDIV, TT_IMOD
+            {
+                const char *p = t->pStr;
+                if ((p[0] == 'a') || (p[0] == 'A'))
+                {
+                    if (((p[1] == 'd') || (p[1] == 'D')) &&
+                        ((p[2] == 'd') || (p[2] == 'D')) &&
+                        (!isalpha(p[3]))) // IADD
+                        return t->enType    = TT_IADD;
+                }
+                else if ((p[0] == 'd') || (p[0] == 'D'))
+                {
+                    if (((p[1] == 'i') || (p[1] == 'I')) &&
+                        ((p[2] == 'v') || (p[2] == 'V')) &&
+                        (!isalpha(p[3]))) // ISUB
+                        return t->enType    = TT_IDIV;
+                }
+                else if ((p[0] == 'e') || (p[0] == 'E'))
+                {
+                    if (((p[1] == 'q') || (p[1] == 'Q')) &&
+                        (!isalpha(p[2]))) // IEQ
+                        return t->enType    = TT_IEQ;
+                    else if (!isalpha(p[1])) // IE
+                        return t->enType    = TT_IEQ;
+                }
+                else if ((p[0] == 'g') || (p[0] == 'G'))
+                {
+                    if ((p[1] == 't') || (p[1] == 'T'))
+                    {
+                        if (!isalpha(p[2])) // IGT
+                            return t->enType    = TT_IGREATER;
+                    }
+                    else if ((p[1] == 'e') || (p[1] == 'E'))
+                    {
+                        if (!isalpha(p[2])) // IGE
+                            return t->enType    = TT_IGREATER_EQ;
+                    }
+                }
+                else if ((p[0] == 'l') || (p[0] == 'L'))
+                {
+                    if ((p[1] == 't') || (p[1] == 'T'))
+                    {
+                        if (!isalpha(p[2])) // ILT
+                            return t->enType    = TT_ILESS;
+                    }
+                    else if ((p[1] == 'e') || (p[1] == 'E'))
+                    {
+                        if (!isalpha(p[2])) // ILE
+                            return t->enType    = TT_ILESS_EQ;
+                    }
+                }
+                else if ((p[0] == 'm') || (p[0] == 'M'))
+                {
+                    if ((p[1] == 'o') || (p[1] == 'O'))
+                    {
+                        if (((p[2] == 'd') || (p[2] == 'D')) &&
+                            (!isalpha(p[3]))) // IMOD
+                            return t->enType    = TT_MOD;
+                    }
+                    else if ((p[1] == 'u') || (p[1] == 'U'))
+                    {
+                        if (((p[2] == 'l') || (p[2] == 'L')) &&
+                            (!isalpha(p[3]))) // IMUL
+                            return t->enType    = TT_IMUL;
+                    }
+                }
+                else if ((p[0] == 'n') || (p[0] == 'N'))
+                {
+                    if ((p[1] == 'e') || (p[1] == 'E'))
+                    {
+                        if (!isalpha(p[2])) // INE
+                            return t->enType    = TT_INOT_EQ;
+                    }
+                    else if ((p[1] == 'g') || (p[1] == 'G'))
+                    {
+                        if (((p[2] == 't') || (p[2] == 'T')) &&
+                            (!isalpha(p[3]))) // INGT
+                            return t->enType    = TT_ILESS_EQ;
+                        else if (((p[2] == 'e') || (p[2] == 'E')) &&
+                            (!isalpha(p[3]))) // INGE
+                            return t->enType    = TT_ILESS;
+                    }
+                    else if ((p[1] == 'l') || (p[1] == 'L'))
+                    {
+                        if (((p[2] == 't') || (p[2] == 'T')) &&
+                            (!isalpha(p[3]))) // INLT
+                            return t->enType    = TT_IGREATER_EQ;
+                        else if (((p[2] == 'e') || (p[1] == 'E')) &&
+                            (!isalpha(p[3]))) // INLE
+                            return t->enType    = TT_IGREATER;
+                    }
+                }
+                else if ((p[0] == 's') || (p[0] == 'S'))
+                {
+                    if (((p[1] == 'u') || (p[1] == 'U')) &&
+                        ((p[2] == 'b') || (p[2] == 'B')) &&
+                        (!isalpha(p[3]))) // ISUB
+                        return t->enType    = TT_ISUB;
+                }
+
+                return t->enType    = TT_UNKNOWN;
+            }
+
+            case 'l': case 'L': // TT_LESS, TT_LESS_EQ
+            {
+                const char *p = t->pStr;
+                if ((p[0] == 't') || (p[0] == 'T'))
+                {
+                    if (!isalpha(p[1])) // LT
+                        return t->enType    = TT_LESS;
+                }
+                else if ((p[0] == 'e') || (p[0] == 'E'))
+                {
+                    if (!isalpha(p[1])) // LE
+                        return t->enType    = TT_LESS_EQ;
+                }
+
+                return t->enType    = TT_UNKNOWN;
+            }
+
+            case 'm': case 'M': // TT_MUL, TT_MOD
+            {
+                const char *p = t->pStr;
+                if ((p[0] == 'o') || (p[0] == 'O'))
+                {
+                    if (((p[1] == 'd') || (p[1] == 'D')) &&
+                        (!isalpha(p[2]))) // MOD
+                        return t->enType    = TT_MOD;
+                }
+                else if ((p[0] == 'u') || (p[0] == 'U'))
+                {
+                    if (((p[1] == 'l') || (p[1] == 'L')) &&
+                        (!isalpha(p[2]))) // MUL
+                        return t->enType    = TT_MUL;
+                }
+                return t->enType    = TT_UNKNOWN;
+            }
+
+            case 'n': case 'N': // TT_NOT, TT_LESS, TT_GREATER, TT_LESS_EQ, TT_GREATER_EQ, TT_NOT_EQ
+            {
+                const char *p = t->pStr;
+                if ((p[0] == 'o') || (p[0] == 'O'))
+                {
+                    if (((p[1] == 't') || (p[1] == 'T')) &&
+                        (!isalpha(p[2]))) // NOT
+                        return t->enType    = TT_NOT;
+                }
+                else if ((p[0] == 'g') || (p[0] == 'G'))
+                {
+                    if (((p[1] == 't') || (p[1] == 'T')) &&
+                        (!isalpha(p[2]))) // NGT
+                        return t->enType    = TT_LESS_EQ;
+                    else if (((p[1] == 'e') || (p[1] == 'E')) &&
+                        (!isalpha(p[2]))) // NGE
+                        return t->enType    = TT_LESS;
+                }
+                else if ((p[0] == 'l') || (p[0] == 'L'))
+                {
+                    if (((p[1] == 't') || (p[1] == 'T')) &&
+                        (!isalpha(p[2]))) // NLT
+                        return t->enType    = TT_GREATER_EQ;
+                    else if (((p[1] == 'e') || (p[1] == 'E')) &&
+                        (!isalpha(p[2]))) // NLE
+                        return t->enType    = TT_GREATER;
+                }
+                else if ((p[0] == 'e') || (p[0] == 'E'))
+                {
+                    if (!isalpha(p[1])) // NE
+                        return t->enType    = TT_NOT_EQ;
+                }
+                return t->enType    = TT_UNKNOWN;
+            }
+
+            case 'o': case 'O': // TT_OR
+            {
+                const char *p = t->pStr;
+                if (((p[0] == 'r') || (p[0] == 'R')) &&
+                    (!isalpha(p[1])))
+                    return t->enType    = TT_OR;
+
+                return t->enType    = TT_UNKNOWN;
+            }
+
+            case 's': case 'S': // TT_SUB
+            {
+                const char *p = t->pStr;
+                if (((p[0] == 'u') || (p[0] == 'U')) &&
+                    ((p[1] == 'b') || (p[1] == 'B')) &&
+                    (!isalpha(p[2])))
+                {
+                    return t->enType    = TT_SUB;
+                }
+                return t->enType    = TT_UNKNOWN;
+            }
+
+            case 't': case 'T': // TRUE
+            {
+                const char *p = t->pStr;
+                if (((p[0] == 'R') || (p[0] == 'r')) &&
+                    ((p[1] == 'U') || (p[1] == 'u')) &&
+                    ((p[2] == 'E') || (p[2] == 'e')) &&
+                    (!isalpha(p[3])))
+                {
+                    t->fValue   = 1.0f;
+                    return t->enType    = TT_VALUE;
+                }
+                return t->enType    = TT_UNKNOWN;
+            }
+
+            case 'x': case 'X': // TT_XOR
+            {
+                const char *p = t->pStr;
+                if ((p[0] == 'o') || (p[0] == 'O'))
+                {
+                    if (((p[1] == 'r') || (p[1] == 'R')) &&
+                        (!isalpha(p[2])))
+                        return t->enType    = TT_XOR;
+                }
+                return t->enType    = TT_UNKNOWN;
+            }
+
+            // Defaults
+            default: // TT_VALUE
+            {
+                const char *p = &t->pStr[-1];
+
+                // Try to parse float value
                 char *endptr    = NULL;
                 errno           = 0;
                 t->fValue       = strtof(p, &endptr);
@@ -229,7 +559,9 @@ namespace lsp
     float Expression::execute(binding_t *expr)
     {
         #define BINARY(key, op) case key: return execute(expr->sCalc.pLeft) op execute(expr->sCalc.pRight);
+        #define INT_BINARY(key, op) case key: return long(execute(expr->sCalc.pLeft)) op long(execute(expr->sCalc.pRight));
         #define UNARY(key, op) case key: return op execute(expr->sCalc.pLeft);
+        #define INT_UNARY(key, op) case key: return op long(execute(expr->sCalc.pLeft));
 
         if (expr == NULL)
             return 0.0f;
@@ -244,9 +576,6 @@ namespace lsp
             UNARY(OP_SIGN, -)
             BINARY(OP_MUL, *)
             BINARY(OP_DIV, /)
-
-            case OP_MOD:
-                return long(execute(expr->sCalc.pLeft)) % long(execute(expr->sCalc.pRight));
 
             case OP_AND:
                 if (execute(expr->sCalc.pLeft) < 0.5f)
@@ -273,6 +602,20 @@ namespace lsp
                 return (a ^ b) ? 1.0f : 0.0f;
             }
 
+            // Bitwise operators
+            INT_BINARY(OP_BAND, &);
+            INT_BINARY(OP_BOR, |);
+            INT_BINARY(OP_BXOR, ^);
+            INT_UNARY(OP_BNOT, ~);
+
+            // Integer arithmetics
+            INT_BINARY(OP_IADD, +);
+            INT_BINARY(OP_ISUB, -);
+            INT_BINARY(OP_IMUL, *);
+            INT_BINARY(OP_IDIV, /);
+            INT_BINARY(OP_MOD, %);
+
+            // Float comparisons
             BINARY(OP_LESS, <)
             BINARY(OP_GREATER, >)
             BINARY(OP_LESS_EQ, <=)
@@ -280,10 +623,19 @@ namespace lsp
             BINARY(OP_NOT_EQ, !=)
             BINARY(OP_EQ, ==)
 
+            // Integer comparisons
+            INT_BINARY(OP_ILESS, <)
+            INT_BINARY(OP_IGREATER, >)
+            INT_BINARY(OP_ILESS_EQ, <=)
+            INT_BINARY(OP_IGREATER_EQ, >=)
+            INT_BINARY(OP_INOT_EQ, !=)
+            INT_BINARY(OP_IEQ, ==)
+
             default:
                 return 0.0f;
         }
         #undef BINARY
+        #undef INT_BINARY
         #undef UNARY
 
         return 0.0f;
@@ -353,7 +705,7 @@ namespace lsp
 
         // Check token
         token_t tok = get_token(t, false);
-        if (tok != TT_XOR)
+        if ((tok != TT_XOR) || (tok != TT_BXOR))
             return left;
 
         // Parse right part
@@ -372,7 +724,7 @@ namespace lsp
             destroy_data(right);
             return NULL;
         }
-        bind->enOp          = OP_XOR;
+        bind->enOp          = (tok == TT_XOR) ? OP_XOR : OP_BXOR;
         bind->sCalc.pLeft   = left;
         bind->sCalc.pRight  = right;
         return bind;
@@ -415,7 +767,7 @@ namespace lsp
     Expression::binding_t  *Expression::parse_and(tokenizer_t *t, bool get)
     {
         // Parse left part
-        binding_t *left = parse_cmp(t, get);
+        binding_t *left = parse_bit_or(t, get);
         if (left == NULL)
             return NULL;
 
@@ -446,6 +798,108 @@ namespace lsp
         return bind;
     }
 
+    Expression::binding_t  *Expression::parse_bit_or(tokenizer_t *t, bool get)
+    {
+        // Parse left part
+        binding_t *left = parse_bit_xor(t, get);
+        if (left == NULL)
+            return NULL;
+
+        // Check token
+        token_t tok = get_token(t, false);
+        if (tok != TT_BOR)
+            return left;
+
+        // Parse right part
+        binding_t *right = parse_and(t, true);
+        if (right == NULL)
+        {
+            destroy_data(left);
+            return NULL;
+        }
+
+        // Create binding between left and right
+        binding_t *bind     = new binding_t;
+        if (bind == NULL)
+        {
+            destroy_data(left);
+            destroy_data(right);
+            return NULL;
+        }
+        bind->enOp          = OP_BOR;
+        bind->sCalc.pLeft   = left;
+        bind->sCalc.pRight  = right;
+        return bind;
+    }
+
+    Expression::binding_t  *Expression::parse_bit_xor(tokenizer_t *t, bool get)
+    {
+        // Parse left part
+        binding_t *left = parse_bit_and(t, get);
+        if (left == NULL)
+            return NULL;
+
+        // Check token
+        token_t tok = get_token(t, false);
+        if (tok != TT_BXOR)
+            return left;
+
+        // Parse right part
+        binding_t *right = parse_and(t, true);
+        if (right == NULL)
+        {
+            destroy_data(left);
+            return NULL;
+        }
+
+        // Create binding between left and right
+        binding_t *bind     = new binding_t;
+        if (bind == NULL)
+        {
+            destroy_data(left);
+            destroy_data(right);
+            return NULL;
+        }
+        bind->enOp          = OP_BXOR;
+        bind->sCalc.pLeft   = left;
+        bind->sCalc.pRight  = right;
+        return bind;
+    }
+
+    Expression::binding_t  *Expression::parse_bit_and(tokenizer_t *t, bool get)
+    {
+        // Parse left part
+        binding_t *left = parse_cmp(t, get);
+        if (left == NULL)
+            return NULL;
+
+        // Check token
+        token_t tok = get_token(t, false);
+        if (tok != TT_BAND)
+            return left;
+
+        // Parse right part
+        binding_t *right = parse_and(t, true);
+        if (right == NULL)
+        {
+            destroy_data(left);
+            return NULL;
+        }
+
+        // Create binding between left and right
+        binding_t *bind     = new binding_t;
+        if (bind == NULL)
+        {
+            destroy_data(left);
+            destroy_data(right);
+            return NULL;
+        }
+        bind->enOp          = OP_BAND;
+        bind->sCalc.pLeft   = left;
+        bind->sCalc.pRight  = right;
+        return bind;
+    }
+
     Expression::binding_t  *Expression::parse_cmp(tokenizer_t *t, bool get)
     {
         // Parse left part
@@ -463,6 +917,12 @@ namespace lsp
             case TT_GREATER_EQ:
             case TT_NOT_EQ:
             case TT_EQ:
+            case TT_ILESS:
+            case TT_IGREATER:
+            case TT_ILESS_EQ:
+            case TT_IGREATER_EQ:
+            case TT_INOT_EQ:
+            case TT_IEQ:
                 break;
             default:
                 return left;
@@ -487,12 +947,18 @@ namespace lsp
 
         switch (tok)
         {
-            case TT_LESS: bind->enOp = OP_LESS; break;
-            case TT_GREATER: bind->enOp = OP_GREATER; break;
-            case TT_LESS_EQ: bind->enOp = OP_LESS_EQ; break;
-            case TT_GREATER_EQ: bind->enOp = OP_GREATER_EQ; break;
-            case TT_NOT_EQ: bind->enOp = OP_NOT_EQ; break;
-            case TT_EQ: bind->enOp = OP_EQ; break;
+            case TT_LESS:           bind->enOp = OP_LESS; break;
+            case TT_GREATER:        bind->enOp = OP_GREATER; break;
+            case TT_LESS_EQ:        bind->enOp = OP_LESS_EQ; break;
+            case TT_GREATER_EQ:     bind->enOp = OP_GREATER_EQ; break;
+            case TT_NOT_EQ:         bind->enOp = OP_NOT_EQ; break;
+            case TT_EQ:             bind->enOp = OP_EQ; break;
+            case TT_ILESS:          bind->enOp = OP_ILESS; break;
+            case TT_IGREATER:       bind->enOp = OP_IGREATER; break;
+            case TT_ILESS_EQ:       bind->enOp = OP_ILESS_EQ; break;
+            case TT_IGREATER_EQ:    bind->enOp = OP_IGREATER_EQ; break;
+            case TT_INOT_EQ:        bind->enOp = OP_INOT_EQ; break;
+            case TT_IEQ:            bind->enOp = OP_IEQ; break;
             default:
             {
                 destroy_data(left);
@@ -515,8 +981,16 @@ namespace lsp
 
         // Check token
         token_t tok = get_token(t, false);
-        if ((tok != TT_ADD) && (tok != TT_SUB))
-            return left;
+        switch (tok)
+        {
+            case TT_ADD:
+            case TT_SUB:
+            case TT_IADD:
+            case TT_ISUB:
+                break;
+            default:
+                return left;
+        }
 
         // Parse right part
         binding_t *right = parse_addsub(t, true);
@@ -534,7 +1008,17 @@ namespace lsp
             destroy_data(right);
             return NULL;
         }
-        bind->enOp          = (tok == TT_ADD) ? OP_ADD : OP_SUB;
+
+        switch (tok)
+        {
+            case TT_ADD:    bind->enOp  = OP_ADD;   break;
+            case TT_SUB:    bind->enOp  = OP_SUB;   break;
+            case TT_IADD:   bind->enOp  = OP_IADD;  break;
+            case TT_ISUB:   bind->enOp  = OP_ISUB;  break;
+            default:
+                break;
+        }
+
         bind->sCalc.pLeft   = left;
         bind->sCalc.pRight  = right;
         return bind;
@@ -549,8 +1033,17 @@ namespace lsp
 
         // Check token
         token_t tok = get_token(t, false);
-        if ((tok != TT_MUL) && (tok != TT_DIV) && (tok != TT_MOD))
-            return left;
+        switch (tok)
+        {
+            case TT_MUL:
+            case TT_DIV:
+            case TT_IMUL:
+            case TT_IDIV:
+            case TT_MOD:
+                break;
+            default:
+                return left;
+        }
 
         // Parse right part
         binding_t *right = parse_muldiv(t, true);
@@ -568,7 +1061,18 @@ namespace lsp
             destroy_data(right);
             return NULL;
         }
-        bind->enOp          = (tok == TT_MUL) ? OP_MUL : (tok == TT_DIV) ? OP_DIV : OP_MOD;
+
+        switch (tok)
+        {
+            case TT_MUL:    bind->enOp = OP_MUL;    break;
+            case TT_DIV:    bind->enOp = OP_DIV;    break;
+            case TT_IMUL:   bind->enOp = OP_IMUL;   break;
+            case TT_IDIV:   bind->enOp = OP_IDIV;   break;
+            case TT_MOD:    bind->enOp = OP_MOD;    break;
+            default:
+                break;
+        }
+
         bind->sCalc.pLeft   = left;
         bind->sCalc.pRight  = right;
         return bind;
@@ -580,10 +1084,10 @@ namespace lsp
         token_t tok = get_token(t, get);
 
         // Parse right part
-        binding_t *right = (tok == TT_NOT) ?
-            parse_not(t, true) :
+        binding_t *right =
+            ((tok == TT_NOT) || (tok == TT_BNOT)) ? parse_not(t, true) :
             parse_sign(t, false);
-        if ((right == NULL) || (tok != TT_NOT))
+        if ((right == NULL) || (tok != TT_NOT) || (tok != TT_BNOT))
             return right;
 
         // Create binding between left and right
@@ -593,7 +1097,7 @@ namespace lsp
             destroy_data(right);
             return NULL;
         }
-        bind->enOp          = OP_NOT;
+        bind->enOp          = (tok == TT_NOT) ? OP_NOT : OP_BNOT;
         bind->sCalc.pLeft   = right;
         bind->sCalc.pRight  = NULL;
         return bind;
@@ -605,9 +1109,19 @@ namespace lsp
         token_t tok = get_token(t, get);
 
         // Parse right part
-        binding_t *right = (tok == TT_ADD) || (tok == TT_SUB) ?
-            parse_sign(t, true) :
-            parse_primary(t, false);
+        binding_t *right = NULL;
+        switch (tok)
+        {
+            case TT_ADD:
+            case TT_SUB:
+            case TT_IADD:
+            case TT_ISUB:
+                right = parse_sign(t, true);
+                break;
+            default:
+                right = parse_primary(t, false);
+                break;
+        }
         if ((right == NULL) || (tok != TT_SUB))
             return right;
 

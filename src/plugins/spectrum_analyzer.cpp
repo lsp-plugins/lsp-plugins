@@ -485,7 +485,7 @@ namespace lsp
                         else
                         {
                             // Apply window to the temporary buffer
-                            dsp::multiply(pChannels->vSigRe, c->vSigRe, pChannels->vWindow, fft_size);
+                            dsp::mul3(pChannels->vSigRe, c->vSigRe, pChannels->vWindow, fft_size);
                             // Do FFT
                             dsp::direct_fft(pChannels->vFftRe, pChannels->vFftIm, pChannels->vSigRe, pChannels->vSigIm, pChannels->nRank);
                             // Leave only positive frequencies
@@ -493,7 +493,7 @@ namespace lsp
                             // Get complex argument
                             dsp::complex_mod(pChannels->vFftRe, pChannels->vFftRe, pChannels->vFftIm, fft_csize);
                             // Mix with the previous value
-                            dsp::mix(c->vFftAmp, c->vFftAmp, pChannels->vFftRe, 1.0 - pChannels->fTau, pChannels->fTau, fft_csize);
+                            dsp::mix2(c->vFftAmp, pChannels->vFftRe, 1.0 - pChannels->fTau, pChannels->fTau, fft_csize);
                         }
                     }
 
@@ -543,7 +543,7 @@ namespace lsp
                             *(v++)          = c->vFftAmp[j] * pChannels->vEnvelope[j];
                         }
                     }
-                    dsp::scale(mesh->pvData[1], mesh->pvData[1], c->fGain * pChannels->fPreamp, spectrum_analyzer_base_metadata::MESH_POINTS);
+                    dsp::scale2(mesh->pvData[1], c->fGain * pChannels->fPreamp, spectrum_analyzer_base_metadata::MESH_POINTS);
 
                     // Mark mesh containing data
                     mesh->data(2, spectrum_analyzer_base_metadata::MESH_POINTS);
@@ -574,7 +574,7 @@ namespace lsp
         float norm          = (1.0f / float(fft_minsize));
 
         // Normalize window
-        dsp::scale(core->vWindow, core->vWindow, norm, fft_size);
+        dsp::scale2(core->vWindow, norm, fft_size);
     }
 
     bool spectrum_analyzer_base::inline_display(ICanvas *cv, size_t width, size_t height)
@@ -661,7 +661,7 @@ namespace lsp
                     }
                 }
 
-                dsp::scale(b->v[1], b->v[1], c->fGain * pChannels->fPreamp, width);
+                dsp::scale2(b->v[1], c->fGain * pChannels->fPreamp, width);
 
                 dsp::fill(b->v[2], 0.0f, width);
                 dsp::fill(b->v[3], height, width);

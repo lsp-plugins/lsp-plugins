@@ -60,7 +60,7 @@ namespace lsp
             __asm__ __volatile__
             (
                 // Check count
-                __ASM_EMIT("cmp     $4, %[count]")
+                __ASM_EMIT("sub     $4, %[count]")
                 __ASM_EMIT("jb      2f")
 
                 // Loop multiple of 4
@@ -100,12 +100,13 @@ namespace lsp
                 __ASM_EMIT("mov     %[t3], 0x0c(%[dst])")   // dst[3] = BGRA
 
                 __ASM_EMIT("add     $0x10, %[dst]")         // dst += 16
-                __ASM_EMIT("cmp     $4, %[count]")          // count <?> 4
+                __ASM_EMIT("sub     $4, %[count]")          // count <?> 4
                 __ASM_EMIT("jae     1b")
 
                 // Loop not multiple of 4
                 __ASM_EMIT("2:")
-                __ASM_EMIT("test    %[count], %[count]")
+                __ASM_EMIT("add     $4, %[count]")
+                __ASM_EMIT("and     $3, %[count]")
                 __ASM_EMIT("jz      4f")
 
                 // Complete tail

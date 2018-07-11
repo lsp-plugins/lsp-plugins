@@ -8,6 +8,10 @@
 #ifndef CORE_X86_DSP_CONST_H_
 #define CORE_X86_DSP_CONST_H_
 
+#ifndef CORE_X86_SSE_IMPL
+    #error "This header should not be included directly"
+#endif /* CORE_X86_SSE_IMPL */
+
 namespace lsp
 {
     // Parameters for SSE

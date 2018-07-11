@@ -10,9 +10,16 @@
 #include <core/dsp.h>
 #include <core/bits.h>
 
-#include <core/x86/dsp.h>
+#define CORE_X86_SSE_IMPL
+
+#include <core/x86/sse/const.h>
+#include <core/x86/sse/copy.h>
+#include <core/x86/sse/lmath.h>
+#include <core/x86/sse/hsum.h>
+#include <core/x86/sse/mix.h>
+#include <core/x86/sse/abs.h>
+
 #include <core/x86/sse/complex.h>
-#include <core/x86/sse/addsub.h>
 #include <core/x86/sse/fft.h>
 #include <core/x86/sse/fastconv.h>
 #include <core/x86/sse/filters.h>
@@ -22,6 +29,8 @@
 #include <core/x86/sse/search.h>
 #include <core/x86/sse/resampling.h>
 #include <core/x86/sse/native.h>
+
+#undef CORE_X86_SSE_IMPL
 
 namespace lsp
 {
@@ -68,7 +77,14 @@ namespace lsp
             dsp::fill_one                   = sse::fill_one;
             dsp::fill_zero                  = sse::fill_zero;
             dsp::fill_minus_one             = sse::fill_minus_one;
-    //        dsp::abs                        = sse::abs;
+
+            dsp::abs1                       = sse::abs1;
+            dsp::abs2                       = sse::abs2;
+            dsp::abs_add2                   = sse::abs_add2;
+            dsp::abs_sub2                   = sse::abs_sub2;
+            dsp::abs_mul2                   = sse::abs_mul2;
+            dsp::abs_div2                   = sse::abs_div2;
+
     //        dsp::abs_normalized             = sse::abs_normalized;
             dsp::normalize                  = sse::normalize;
             dsp::min                        = sse::min;
@@ -76,27 +92,45 @@ namespace lsp
             dsp::abs_max                    = sse::abs_max;
             dsp::abs_min                    = sse::abs_min;
             dsp::minmax                     = sse::minmax;
+            dsp::abs_minmax                 = sse::abs_minmax;
+
     //        dsp::min_index                  = sse::min_index;
     //        dsp::max_index                  = sse::max_index;
-            dsp::scale                      = sse::scale;
-            dsp::multiply                   = sse::multiply;
+
+            dsp::add2                       = sse::add2;
+            dsp::sub2                       = sse::sub2;
+            dsp::mul2                       = sse::mul2;
+            dsp::div2                       = sse::div2;
+            dsp::scale2                     = sse::scale2;
+
+            dsp::add3                       = sse::add3;
+            dsp::sub3                       = sse::sub3;
+            dsp::mul3                       = sse::mul3;
+            dsp::div3                       = sse::div3;
+            dsp::scale3                     = sse::scale3;
+
             dsp::h_sum                      = sse::h_sum;
             dsp::h_sqr_sum                  = sse::h_sqr_sum;
             dsp::h_abs_sum                  = sse::h_abs_sum;
     //        dsp::scalar_mul                 = sse::scalar_mul;
-    //        dsp::accumulate                 = sse::accumulate;
-            dsp::add2                       = sse::add2;
-            dsp::sub2                       = sse::sub2;
-            dsp::add3                       = sse::add3;
-            dsp::sub3                       = sse::sub3;
-            dsp::add_multiplied             = sse::add_multiplied;
-            dsp::sub_multiplied             = sse::sub_multiplied;
-            dsp::integrate                  = sse::integrate;
-            dsp::mix                        = sse::mix;
-            dsp::mix_add                    = sse::mix_add;
-            dsp::convolve_single            = sse::convolve_single;
-            dsp::convolve                   = sse::convolve;
-            dsp::reverse                    = sse::reverse;
+
+            dsp::scale_add3                 = sse::scale_add3;
+            dsp::scale_sub3                 = sse::scale_sub3;
+            dsp::scale_mul3                 = sse::scale_mul3;
+            dsp::scale_div3                 = sse::scale_div3;
+
+            dsp::mix2                       = sse::mix2;
+            dsp::mix_copy2                  = sse::mix_copy2;
+            dsp::mix_add2                   = sse::mix_add2;
+            dsp::mix3                       = sse::mix3;
+            dsp::mix_copy3                  = sse::mix_copy3;
+            dsp::mix_add3                   = sse::mix_add3;
+            dsp::mix4                       = sse::mix4;
+            dsp::mix_copy4                  = sse::mix_copy4;
+            dsp::mix_add4                   = sse::mix_add4;
+
+            dsp::reverse1                   = sse::reverse1;
+            dsp::reverse2                   = sse::reverse2;
 
             dsp::direct_fft                 = sse::direct_fft;
             dsp::packed_direct_fft          = sse::packed_direct_fft;
@@ -126,8 +160,7 @@ namespace lsp
             dsp::ms_to_lr                   = sse::ms_to_lr;
             dsp::ms_to_left                 = sse::ms_to_left;
             dsp::ms_to_right                = sse::ms_to_right;
-            dsp::biquad_process             = sse::biquad_process;
-            dsp::biquad_process_multi       = sse::biquad_process_multi;
+
             dsp::biquad_process_x1          = sse::biquad_process_x1;
             dsp::biquad_process_x2          = sse::biquad_process_x2;
             dsp::biquad_process_x4          = sse::biquad_process_x4;

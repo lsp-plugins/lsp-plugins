@@ -639,9 +639,9 @@ namespace lsp
             {
                 channel_t *c        = &vChannels[i];
                 if (nInputs == 1)
-                    dsp::scale(c->vBuffer, vInputs[0].vIn, c->fDryPan[0], to_do);
+                    dsp::scale3(c->vBuffer, vInputs[0].vIn, c->fDryPan[0], to_do);
                 else
-                    dsp::mix(c->vBuffer, vInputs[0].vIn, vInputs[1].vIn, c->fDryPan[0], c->fDryPan[1], to_do);
+                    dsp::mix_copy2(c->vBuffer, vInputs[0].vIn, vInputs[1].vIn, c->fDryPan[0], c->fDryPan[1], to_do);
             }
 
             // Call convolvers
@@ -653,7 +653,7 @@ namespace lsp
                 if (nInputs == 1)
                     dsp::copy(c->vBuffer, vInputs[0].vIn, to_do);
                 else
-                    dsp::mix(c->vBuffer, vInputs[0].vIn, vInputs[1].vIn, c->fPanIn[0], c->fPanIn[1], to_do);
+                    dsp::mix_copy2(c->vBuffer, vInputs[0].vIn, vInputs[1].vIn, c->fPanIn[0], c->fPanIn[1], to_do);
 
                 // Do processing
                 if (c->pCurr != NULL)
@@ -663,8 +663,8 @@ namespace lsp
                 c->sDelay.process(c->vBuffer, c->vBuffer, to_do);
 
                 // Apply processed signal to output channels
-                dsp::add_multiplied(vChannels[0].vBuffer, c->vBuffer, c->fPanOut[0], to_do);
-                dsp::add_multiplied(vChannels[1].vBuffer, c->vBuffer, c->fPanOut[1], to_do);
+                dsp::scale_add3(vChannels[0].vBuffer, c->vBuffer, c->fPanOut[0], to_do);
+                dsp::scale_add3(vChannels[1].vBuffer, c->vBuffer, c->fPanOut[1], to_do);
             }
 
             // Now apply bypass control and players
@@ -850,10 +850,7 @@ namespace lsp
 
                 // Copy sample data and apply fading
                 if (f->bReverse)
-                {
-                    dsp::copy(dst, &src[tail_cut], fsamples);
-                    dsp::reverse(dst, fsamples);
-                }
+                    dsp::reverse2(dst, &src[tail_cut], fsamples);
                 else
                     dsp::copy(dst, &src[head_cut], fsamples);
                 fade_in(dst, dst, millis_to_samples(fSampleRate, f->fFadeIn), fsamples);
@@ -874,7 +871,7 @@ namespace lsp
 
                 // Normalize graph if possible
                 if (f->fNorm != 1.0f)
-                    dsp::scale(dst, dst, f->fNorm, impulse_reverb_base_metadata::MESH_SIZE);
+                    dsp::scale2(dst, f->fNorm, impulse_reverb_base_metadata::MESH_SIZE);
             }
         }
 

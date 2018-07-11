@@ -15,7 +15,7 @@ namespace lsp
         using namespace sse;
 
 #ifdef ARCH_X86_64
-        static void x64_biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f)
+        void x64_biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f)
         {
             size_t i;
 
@@ -282,7 +282,7 @@ namespace lsp
         }
 #endif /* 0 */
 
-        static void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f)
+        void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f)
         {
             float   MASK_LO[4] __lsp_aligned16;
             float   MASK_HI[4] __lsp_aligned16;
@@ -375,12 +375,13 @@ namespace lsp
 
                 // Shift mask and repeat loop
                 __ASM_EMIT("movaps      %%xmm0, %%xmm2")                        // xmm2     = m[0] m[1] m[2] m[3]
-                __ASM_EMIT("shl         $1, %[mask]")                           // mask     = mask << 1
+//                __ASM_EMIT("shl         $1, %[mask]")                           // mask     = mask << 1
                 __ASM_EMIT("shufps      $0x93, %%xmm0, %%xmm0")                 // xmm0     = m[3] m[0] m[1] m[2]
                 __ASM_EMIT("shufps      $0x93, %%xmm8, %%xmm8")                 // xmm8     = m[7] m[4] m[5] m[6]
-                __ASM_EMIT("or          $1, %[mask]")                           // mask     = (mask << 1) | 1
+                __ASM_EMIT("lea         0x01(,%[mask],2), %[mask]")             // mask     = (mask << 1) | 1
+//                __ASM_EMIT("or          $1, %[mask]")                           // mask     = (mask << 1) | 1
                 __ASM_EMIT("movss       %%xmm0, %%xmm8")                        // xmm8     = m[3] m[4] m[5] m[6]
-                __ASM_EMIT("add         $1, %[i]")                              // i++
+                __ASM_EMIT("inc         %[i]")                                  // i++
                 __ASM_EMIT("movss       %%xmm2, %%xmm0")                        // xmm0     = m[0] m[0] m[1] m[2]
                 __ASM_EMIT("cmp         %[count], %[i]")
                 __ASM_EMIT("movaps      %%xmm0, %[MASK_LO]")                    // *MASK_LO = xmm0
@@ -434,7 +435,7 @@ namespace lsp
                 __ASM_EMIT("movaps      %%xmm11, %%xmm15")                      // xmm15    = d3'
 
                 // Repeat loop
-                __ASM_EMIT("add         $1, %[i]")                              // i++
+                __ASM_EMIT("inc         %[i]")                                  // i++
                 __ASM_EMIT("add         $4, %[dst]")                            // dst      ++
                 __ASM_EMIT("cmp         %[count], %[i]")
                 __ASM_EMIT("jb          2b")

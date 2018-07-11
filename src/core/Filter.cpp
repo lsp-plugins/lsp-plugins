@@ -646,7 +646,7 @@ namespace lsp
                 {
                     double theta    = ((j - i + 1)*M_PI_2)/fp->nSlope;
                     double tsin     = sin(theta);
-                    double tcos     = sqrtf(1.0 - tsin*tsin);
+                    double tcos     = sqrt(1.0 - tsin*tsin);
                     float kf        = tsin*tsin + k*k * tcos*tcos;
 
                     c               = add_cascade();
@@ -684,7 +684,7 @@ namespace lsp
                 {
                     double theta        = ((2*j + 1)*M_PI_2)/(2*fp->nSlope);
                     double tsin         = sin(theta);
-                    double tcos         = sqrtf(1.0 - tsin*tsin);
+                    double tcos         = sqrt(1.0 - tsin*tsin);
                     double kf           = tsin*tsin + k*k * tcos*tcos;
 
                     c                   = add_cascade();
@@ -728,7 +728,7 @@ namespace lsp
                 {
                     double theta        = ((2*j + 1)*M_PI_2)/double(slope);
                     double tsin         = sin(theta);
-                    double tcos         = sqrtf(1.0 - tsin*tsin);
+                    double tcos         = sqrt(1.0 - tsin*tsin);
 
                     // First shelf cascade, lo-shelf for LADDERREJ, hi-shelf for LADDERPASS
                     double k            = (type == FLT_BT_BWC_LADDERPASS) ? k1 : k2;
@@ -790,7 +790,7 @@ namespace lsp
                 {
                     double theta        = ((2*j + 1)*M_PI_2)/(2*fp->nSlope);
                     double tsin         = sin(theta);
-                    double tcos         = sqrtf(1.0 - tsin*tsin);
+                    double tcos         = sqrt(1.0 - tsin*tsin);
                     double kf           = tsin*tsin + k*k * tcos*tcos;
 
                     if (fp->fGain >= 1.0)
@@ -855,7 +855,7 @@ namespace lsp
                 {
                     double theta        = ((2*j + 1)*M_PI_2)/(2*fp->nSlope);
                     double tsin         = sin(theta);
-                    double tcos         = sqrtf(1.0 - tsin*tsin);
+                    double tcos         = sqrt(1.0 - tsin*tsin);
                     float kf            = tsin*tsin + k*k * tcos*tcos;
 
                     // Hi-pass cascade

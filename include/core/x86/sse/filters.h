@@ -8,109 +8,15 @@
 #ifndef CORE_X86_SSE_FILTERS_H_
 #define CORE_X86_SSE_FILTERS_H_
 
+#ifndef CORE_X86_SSE_IMPL
+    #error "This header should not be included directly"
+#endif /* CORE_X86_SSE_IMPL */
+
 namespace lsp
 {
     namespace sse
     {
-        static float biquad_process(float *buf, const float *ir, float sample)
-        {
-            __asm__ __volatile__
-            (
-                // Load data
-                __ASM_EMIT("shufps $0x00, %%xmm0, %%xmm0")  // xmm0 = s s s s
-                __ASM_EMIT("movaps (%[buf]), %%xmm1")       // xmm1 = b0 b1 b2 b3
-                __ASM_EMIT("movaps (%[ir]), %%xmm2")        // xmm2 = i0 i1 i2 i3
-                __ASM_EMIT("movss  0x10(%[ir]), %%xmm3")    // xmm3 = i4
-
-                // Calculate infinite impulse response
-                __ASM_EMIT("mulps  %%xmm1, %%xmm2")         // xmm2 = b0*i0 b1*i1 b2*i2 b3*i3
-                __ASM_EMIT("mulss  %%xmm3, %%xmm0")         // xmm0 = i4*s s s s
-
-                // Calculate horizontal sum of xmm2
-                __ASM_EMIT("movhlps %%xmm2, %%xmm3")
-                __ASM_EMIT("addps %%xmm3, %%xmm2")
-                __ASM_EMIT("movaps %%xmm2, %%xmm3")
-                __ASM_EMIT("shufps $0x55, %%xmm2, %%xmm3")
-                __ASM_EMIT("addss %%xmm3, %%xmm2")          // xmm2 = b0*i0 + b1*i1 + b2*i2 + b3*i3
-                __ASM_EMIT("addss %%xmm2, %%xmm0")          // xmm0 = R s s s
-
-                // Shift buffer into xmm0
-                __ASM_EMIT("movlhps %%xmm1, %%xmm0")        // xmm0 = R s b0 b1
-
-                // Store new buffer
-                __ASM_EMIT("movaps %%xmm0, (%[buf])")
-
-                : "+Yz" (sample)
-                : [buf] "r" (buf), [ir] "r" (ir)
-                : "memory",
-                  "%xmm1", "%xmm2", "%xmm3"
-            );
-
-            return sample;
-        }
-
-        static void biquad_process_multi(float *dst, const float *src, size_t count, float *buf, const float *ir)
-        {
-            #define BIQUAD_STEP \
-                __ASM_EMIT("movaps %%xmm1, %%xmm2")         /* xmm2 = b0 b1 b2 b3 */ \
-                __ASM_EMIT("shufps $0x00, %%xmm0, %%xmm0")  /* xmm0 = s s s s */ \
-                \
-                /* Calculate infinite impulse response */ \
-                __ASM_EMIT("mulps  %%xmm6, %%xmm2")         /* xmm2 = b0*i0 b1*i1 b2*i2 b3*i3 */ \
-                __ASM_EMIT("mulss  %%xmm7, %%xmm0")         /* xmm0 = i4*s s s s */ \
-                \
-                /* Calculate horizontal sum of xmm2, temporary register is xmm3 */ \
-                __ASM_EMIT("movhlps %%xmm2, %%xmm3") \
-                __ASM_EMIT("movlhps %%xmm1, %%xmm0")        /* xmm0 = i4*s s b0 b1 */ \
-                __ASM_EMIT("addps %%xmm3, %%xmm2") \
-                __ASM_EMIT("movaps %%xmm2, %%xmm3") \
-                __ASM_EMIT("shufps $0x55, %%xmm2, %%xmm3") \
-                __ASM_EMIT("addss %%xmm3, %%xmm2")          /* xmm2 = b0*i0 + b1*i1 + b2*i2 + b3*i3 */ \
-                __ASM_EMIT("addss %%xmm2, %%xmm0")          /* xmm0 = R s b0 b1 */ \
-                \
-                /* Shift buffer into xmm0 and update buffer */ \
-                __ASM_EMIT("movaps %%xmm0, %%xmm1")         /* xmm1 = R s b0 b1 = b0' b1' b2' b3' */
-
-            __asm__ __volatile__
-            (
-                // Check count
-                __ASM_EMIT("test %[count], %[count]")
-                __ASM_EMIT("jz 1f")
-
-                // Load permanent data
-                __ASM_EMIT("movups (%[ir]), %%xmm6")        // xmm6 = i0 i1 i2 i3
-                __ASM_EMIT("movss  0x10(%[ir]), %%xmm7")    // xmm7 = i4
-                __ASM_EMIT("movups (%[buf]), %%xmm1")       // xmm1 = b0 b1 b2 b3
-
-                // Start loop
-                __ASM_EMIT("2:")
-
-                // Load data
-                __ASM_EMIT("movss (%[src]), %%xmm0")        // xmm0 = s ? ? ?
-                BIQUAD_STEP
-                __ASM_EMIT("movss %%xmm0, (%[dst])")
-
-                // Update pointers and repeat loop
-                __ASM_EMIT("add $4, %[src]")
-                __ASM_EMIT("add $4, %[dst]")
-                __ASM_EMIT("dec %[count]")
-                __ASM_EMIT("jnz 2b")
-
-                // Store the updated buffer state
-                __ASM_EMIT("movups %%xmm0, (%[buf])")
-
-                // Exit label
-                __ASM_EMIT("1:")
-
-                : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-                : [buf] "r" (buf), [ir] "r" (ir)
-                : "cc", "memory",
-                  "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm6", "%xmm7"
-            );
-            #undef BIQUAD_STEP
-        }
-
-        static void biquad_process_x1(float *dst, const float *src, size_t count, biquad_t *f)
+        void biquad_process_x1(float *dst, const float *src, size_t count, biquad_t *f)
         {
             size_t i;
 
@@ -141,7 +47,7 @@ namespace lsp
                 __ASM_EMIT("movhlps     %%xmm0, %%xmm7")                        // xmm7 = s*a1+d1 s*a2 0 0
                 __ASM_EMIT("movss       %%xmm0, (%[dst], %[i], 4)")             // store value
                 __ASM_EMIT("mulps       %%xmm5, %%xmm4")                        // xmm4 = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
-                __ASM_EMIT("add         $1, %[i]")
+                __ASM_EMIT("inc         %[i]")
                 __ASM_EMIT("cmp         %[count], %[i]")
                 __ASM_EMIT("addps       %%xmm7, %%xmm4")                        // xmm4 = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
 
@@ -161,7 +67,7 @@ namespace lsp
             );
         }
 
-        static void biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f)
+        void biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f)
         {
             size_t i;
 
@@ -187,8 +93,8 @@ namespace lsp
                 __ASM_EMIT("movaps      %%xmm0, %%xmm4")                        // xmm4 = s*a0+d0 s*a0+d0 s*a1+d1 s*a2
                 __ASM_EMIT("movhlps     %%xmm0, %%xmm6")                        // xmm6 = s*a1+d1 s*a2 0 0
                 __ASM_EMIT("movss       %%xmm0, %%xmm1")                        // xmm1 = r ? ? ?
+                __ASM_EMIT("inc         %[i]")
                 __ASM_EMIT("mulps       " BIQUAD_X2_B_SOFF "(%[f]), %%xmm4")    // xmm4 = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
-                __ASM_EMIT("add         $1, %[i]")
                 __ASM_EMIT("cmp         %[count], %[i]")
                 __ASM_EMIT("addps       %%xmm6, %%xmm4")                        // xmm4 = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
                 __ASM_EMIT("jae         3f")
@@ -211,9 +117,9 @@ namespace lsp
                 __ASM_EMIT("movhlps     %%xmm0, %%xmm6")                        // xmm6 = s*a1+d1 s*a2 0 0
                 __ASM_EMIT("movss       %%xmm1, -4(%[dst], %[i], 4)")           // store value
                 __ASM_EMIT("movss       %%xmm0, %%xmm1")                        // xmm1 = r ? ? ?
+                __ASM_EMIT("inc         %[i]")
                 __ASM_EMIT("mulps       " BIQUAD_X2_J_SOFF "(%[f]), %%xmm5")    // xmm5 = (r*i0+e0)*j1 (r*i0+e0)*j2 0 0
                 __ASM_EMIT("mulps       " BIQUAD_X2_B_SOFF "(%[f]), %%xmm4")    // xmm4 = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
-                __ASM_EMIT("add         $1, %[i]")
                 __ASM_EMIT("cmp         %[count], %[i]")
                 __ASM_EMIT("addps       %%xmm7, %%xmm5")                        // xmm5 = (r*i0+e0)*j1+r*i1+e1 (r*i0+e0)*j2+r*i2 0 0
                 __ASM_EMIT("addps       %%xmm6, %%xmm4")                        // xmm4 = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
@@ -247,7 +153,7 @@ namespace lsp
             );
         }
         
-        static void biquad_process_x4(float *dst, const float *src, size_t count, biquad_t *f)
+        void biquad_process_x4(float *dst, const float *src, size_t count, biquad_t *f)
         {
             float   MASK[4] __lsp_aligned16;
             size_t i, mask;
@@ -312,8 +218,9 @@ namespace lsp
                 __ASM_EMITP("shl        $1, %[i]")                              // mask     = mask << 1
                 __ASM_EMITP("or         $1, %[i]")                              // mask     = (mask << 1) | 1
                 __ASM_EMITP("xchg       %[mask], %[i]")                         //
-                __ASM_EMITNP("shl       $1, %[mask]")                           // mask     = mask << 1
-                __ASM_EMITNP("or        $1, %[mask]")                           // mask     = (mask << 1) | 1
+//                __ASM_EMITNP("shl       $1, %[mask]")                           // mask     = mask << 1
+//                __ASM_EMITNP("or        $1, %[mask]")                           // mask     = (mask << 1) | 1
+                __ASM_EMITNP("lea       0x01(,%[mask], 2), %[mask]")             // mask     = (mask << 1) | 1
 
                 __ASM_EMIT("shufps      $0x90, %%xmm0, %%xmm0")                 // xmm0     = m[0] m[0] m[1] m[2]
                 __ASM_EMIT("add         $1, %[i]")                              // i++
@@ -345,13 +252,11 @@ namespace lsp
                 __ASM_EMIT("movaps      %%xmm3, %%xmm7")                		// xmm7     = p2
                 __ASM_EMIT("movaps      %%xmm2, %%xmm6")                		// xmm6     = p1 + d1
 
-                // Shift buffer
+                // Shift buffer and repeat loop
                 __ASM_EMIT("shufps      $0x93, %%xmm1, %%xmm1")                 // xmm1     = s2[3] s2[0] s2[1] s2[2]
                 __ASM_EMIT("movss       %%xmm1, (%[dst])")                      // *dst     = s2[3]
+                __ASM_EMIT("inc         %[i]")                                  // i++
                 __ASM_EMIT("add         $4, %[dst]")                            // dst      ++
-
-                // Repeat loop
-                __ASM_EMIT("add         $1, %[i]")                              // i++
                 __ASM_EMIT("cmp         %[count], %[i]")
                 __ASM_EMIT("jb          2b")
 
@@ -423,7 +328,7 @@ namespace lsp
             );
         }
 
-        static void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f)
+        void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f)
         {
             float   MASK[4] __lsp_aligned16;
             size_t i, mask;
@@ -495,11 +400,12 @@ namespace lsp
                 __ASM_EMITP("shl        $1, %[i]")                              // mask     = mask << 1
                 __ASM_EMITP("or         $1, %[i]")                              // mask     = (mask << 1) | 1
                 __ASM_EMITP("xchg       %[mask], %[i]")                         //
-                __ASM_EMITNP("shl       $1, %[mask]")                           // mask     = mask << 1
-                __ASM_EMITNP("or        $1, %[mask]")                           // mask     = (mask << 1) | 1
+//                __ASM_EMITNP("shl       $1, %[mask]")                           // mask     = mask << 1
+//                __ASM_EMITNP("or        $1, %[mask]")                           // mask     = (mask << 1) | 1
+                __ASM_EMITNP("lea       0x01(,%[mask], 2), %[mask]")            // mask     = (mask << 1) | 1
 
                 __ASM_EMIT("shufps      $0x90, %%xmm0, %%xmm0")                 // xmm0     = m[0] m[0] m[1] m[2]
-                __ASM_EMIT("add         $1, %[i]")                              // i++
+                __ASM_EMIT("inc         %[i]")                                  // i++
                 __ASM_EMIT("movaps      %%xmm0, %[MASK]")                       // store mask
                 __ASM_EMIT("cmp         %[count], %[i]")
                 __ASM_EMIT("jae         3f")                                    // jump to completion
@@ -528,13 +434,11 @@ namespace lsp
                 __ASM_EMIT("movaps      %%xmm3, %%xmm7")                		// xmm7     = p2
                 __ASM_EMIT("movaps      %%xmm2, %%xmm6")                		// xmm6     = p1 + d1
 
-                // Shift buffer
+                // Shift buffer and repeat loop
                 __ASM_EMIT("shufps      $0x93, %%xmm1, %%xmm1")                 // xmm1     = s2[3] s2[0] s2[1] s2[2]
                 __ASM_EMIT("movss       %%xmm1, (%[dst])")                      // *dst     = s2[3]
+                __ASM_EMIT("inc         %[i]")                                  // i++
                 __ASM_EMIT("add         $4, %[dst]")                            // dst      ++
-
-                // Repeat loop
-                __ASM_EMIT("add         $1, %[i]")                              // i++
                 __ASM_EMIT("cmp         %[count], %[i]")
                 __ASM_EMIT("jb          2b")
 
@@ -652,11 +556,12 @@ namespace lsp
                 __ASM_EMITP("shl        $1, %[i]")                              // mask     = mask << 1
                 __ASM_EMITP("or         $1, %[i]")                              // mask     = (mask << 1) | 1
                 __ASM_EMITP("xchg       %[mask], %[i]")                         //
-                __ASM_EMITNP("shl       $1, %[mask]")                           // mask     = mask << 1
-                __ASM_EMITNP("or        $1, %[mask]")                           // mask     = (mask << 1) | 1
+//                __ASM_EMITNP("shl       $1, %[mask]")                           // mask     = mask << 1
+//                __ASM_EMITNP("or        $1, %[mask]")                           // mask     = (mask << 1) | 1
+                __ASM_EMITNP("lea       0x01(,%[mask], 2), %[mask]")            // mask     = (mask << 1) | 1
 
                 __ASM_EMIT("shufps      $0x90, %%xmm0, %%xmm0")                 // xmm0     = m[0] m[0] m[1] m[2]
-                __ASM_EMIT("add         $1, %[i]")                              // i++
+                __ASM_EMIT("inc         %[i]")                                  // i++
                 __ASM_EMIT("movaps      %%xmm0, %[MASK]")                       // store mask
                 __ASM_EMIT("cmp         %[count], %[i]")
                 __ASM_EMIT("jae         3f")                                    // jump to completion
@@ -685,13 +590,11 @@ namespace lsp
                 __ASM_EMIT("movaps      %%xmm3, %%xmm7")                        // xmm7     = p2
                 __ASM_EMIT("movaps      %%xmm2, %%xmm6")                        // xmm6     = p1 + d1
 
-                // Shift buffer
+                // Shift buffer and repeat loop
                 __ASM_EMIT("shufps      $0x93, %%xmm1, %%xmm1")                 // xmm1     = s2[3] s2[0] s2[1] s2[2]
                 __ASM_EMIT("movss       %%xmm1, (%[dst])")                      // *dst     = s2[3]
+                __ASM_EMIT("inc         %[i]")                                  // i++
                 __ASM_EMIT("add         $4, %[dst]")                            // dst      ++
-
-                // Repeat loop
-                __ASM_EMIT("add         $1, %[i]")                              // i++
                 __ASM_EMIT("cmp         %[count], %[i]")
                 __ASM_EMIT("jb          2b")
 

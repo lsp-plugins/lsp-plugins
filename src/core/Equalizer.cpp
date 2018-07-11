@@ -194,12 +194,12 @@ namespace lsp
             // Get impulse response
             sBank.impulse_response(vFftRe, nConvSize);
             dsp::fill_zero(vFftIm, nConvSize);
-            dsp::multiply(vFftRe, vFftRe, &conv_im[nConvSize], nConvSize);  // Apply window function to the impulse response
+            dsp::mul2(vFftRe, &conv_im[nConvSize], nConvSize);  // Apply window function to the impulse response
 
             // Do the FFT of the impulse response
             dsp::direct_fft(vFftRe, vFftIm, vFftRe, vFftIm, nFftRank);
             dsp::complex_mod(vFftRe, vFftRe, vFftIm, nConvSize);
-            dsp::multiply(conv_re, conv_re, vFftRe, nConvSize);             // Apply the frequency chart relative to the IR
+            dsp::mul2(conv_re, vFftRe, nConvSize);             // Apply the frequency chart relative to the IR
         }
         else if (nMode == EQM_FFT)
         {
@@ -218,7 +218,7 @@ namespace lsp
                 // Get the frequency chart of the filter
                 vFilters[i].freq_chart(vFftRe, vFftIm, conv_im, n_freqs+1);
                 dsp::complex_mod(vFftRe, vFftRe, vFftIm, n_freqs+1);
-                dsp::multiply(conv_re, conv_re, vFftRe, n_freqs+1);
+                dsp::mul2(conv_re, vFftRe, n_freqs+1);
             }
 
             // Finally, build the correct frequency chart for reverse FFT
@@ -235,7 +235,7 @@ namespace lsp
         dsp::copy(&vFftIm[half_size], vFftRe, half_size);
 
         windows::window(conv_im, nConvSize, windows::BLACKMAN_NUTTALL);
-        dsp::multiply(vFftRe, vFftIm, conv_im, nConvSize);              // Apply window to the impulse response
+        dsp::mul3(vFftRe, vFftIm, conv_im, nConvSize);              // Apply window to the impulse response
 
         // Get the final convolution spectrum
         dsp::fill_zero(&vFftRe[nConvSize], nConvSize);

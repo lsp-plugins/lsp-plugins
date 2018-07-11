@@ -8,6 +8,10 @@
 #ifndef CORE_X86_SSE_FASTCONV_H_
 #define CORE_X86_SSE_FASTCONV_H_
 
+#ifndef CORE_X86_SSE_IMPL
+    #error "This header should not be included directly"
+#endif /* CORE_X86_SSE_IMPL */
+
 #define CORE_X86_SSE_FASTCONV_H_IMPL
 
 // Parse implementation

@@ -614,7 +614,7 @@ namespace lsp
 
             // Fill gain buffer
             dsp::fill_one(&gbuf[nMaxLookahead*3], to_do);
-            dsp::abs(vTmpBuf, sc, to_do);
+            dsp::abs2(vTmpBuf, sc, to_do);
 
             float thresh    = 1.0f;
 
@@ -726,7 +726,7 @@ namespace lsp
 
             // Fill gain buffer
             dsp::fill_one(&gbuf[nMaxLookahead*3], to_do);
-            dsp::abs(vTmpBuf, sc, to_do);
+            dsp::abs2(vTmpBuf, sc, to_do);
 
             // Issue compressor reaction
             for (size_t i=0; i<to_do; ++i)
@@ -905,7 +905,7 @@ namespace lsp
             }
 
             if (max > fThreshold)
-                dsp::scale(gain, gain, (fThreshold - 0.000001f)/max, to_do);
+                dsp::scale2(gain, (fThreshold - 0.000001f)/max, to_do);
 
             // Move pointers
             nThresh    -= to_do;

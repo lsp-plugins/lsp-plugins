@@ -156,8 +156,8 @@ namespace lsp
 //            }
 
             // Apply delta-vector
-            dsp::add_multiplied(x, dv, norm * fDX, count);
-            dsp::add_multiplied(y, dv, norm * fDY, count);
+            dsp::scale_add3(x, dv, norm * fDX, count);
+            dsp::scale_add3(y, dv, norm * fDY, count);
         }
 
         // Saturate values

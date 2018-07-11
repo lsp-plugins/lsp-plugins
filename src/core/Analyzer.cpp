@@ -138,7 +138,7 @@ namespace lsp
         if (nReconfigure & R_ENVELOPE)
         {
             envelope::reverse_noise(vEnvelope, fft_size, envelope::envelope_t(nEnvelope));
-            dsp::scale(vEnvelope, vEnvelope, fShift / fft_size, fft_size);
+            dsp::scale2(vEnvelope, fShift / fft_size, fft_size);
         }
         // Clear analysis
         if (nReconfigure & R_ANALYSIS)
@@ -194,7 +194,7 @@ namespace lsp
                     if ((bActive) && (c->bActive))
                     {
                         // Apply window to the temporary buffer
-                        dsp::multiply(vSigRe, c->vBuffer, vWindow, fft_size);
+                        dsp::mul3(vSigRe, c->vBuffer, vWindow, fft_size);
                         // Do FFT
                         dsp::direct_fft(vFftRe, vFftIm, vSigRe, vSigIm, nRank);
                         // Leave only positive frequencies
@@ -202,7 +202,7 @@ namespace lsp
                         // Get complex argument
                         dsp::complex_mod(vFftRe, vFftRe, vFftIm, fft_csize);
                         // Mix with the previous value
-                        dsp::mix(c->vAmp, c->vAmp, vFftRe, 1.0f - fTau, fTau, fft_csize);
+                        dsp::mix2(c->vAmp, vFftRe, 1.0f - fTau, fTau, fft_csize);
                     }
                     else
                         dsp::fill_zero(c->vAmp, fft_size);

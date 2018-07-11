@@ -800,14 +800,14 @@ namespace lsp
                 dsp::lr_to_ms(vChannels[0].vBuffer, vChannels[1].vBuffer, vChannels[0].vIn, vChannels[1].vIn, to_process);
                 if (fGainIn != 1.0f)
                 {
-                    dsp::scale(vChannels[0].vBuffer, vChannels[0].vBuffer, fGainIn, to_process);
-                    dsp::scale(vChannels[1].vBuffer, vChannels[1].vBuffer, fGainIn, to_process);
+                    dsp::scale2(vChannels[0].vBuffer, fGainIn, to_process);
+                    dsp::scale2(vChannels[1].vBuffer, fGainIn, to_process);
                 }
             }
             else if (nMode == EQ_MONO)
             {
                 if (fGainIn != 1.0f)
-                    dsp::scale(vChannels[0].vBuffer, vChannels[0].vIn, fGainIn, to_process);
+                    dsp::scale3(vChannels[0].vBuffer, vChannels[0].vIn, fGainIn, to_process);
                 else
                     dsp::copy(vChannels[0].vBuffer, vChannels[0].vIn, to_process);
             }
@@ -815,8 +815,8 @@ namespace lsp
             {
                 if (fGainIn != 1.0f)
                 {
-                    dsp::scale(vChannels[0].vBuffer, vChannels[0].vIn, fGainIn, to_process);
-                    dsp::scale(vChannels[1].vBuffer, vChannels[1].vIn, fGainIn, to_process);
+                    dsp::scale3(vChannels[0].vBuffer, vChannels[0].vIn, fGainIn, to_process);
+                    dsp::scale3(vChannels[1].vBuffer, vChannels[1].vIn, fGainIn, to_process);
                 }
                 else
                 {
@@ -853,7 +853,7 @@ namespace lsp
 
                 // Apply output gain
                 if (c->fOutGain != 1.0f)
-                    dsp::scale(c->vBuffer, c->vBuffer, c->fOutGain, to_process);
+                    dsp::scale2(c->vBuffer, c->fOutGain, to_process);
 
                 // Do metering
                 if (c->pMeter != NULL)

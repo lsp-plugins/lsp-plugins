@@ -57,7 +57,7 @@ namespace limiter_test
         l.process(out, gain, in, in, count);
         dump_buffer("gain", gain, count);
         dump_buffer("outd", out, count);
-        dsp::multiply(out, out, gain, count);
+        dsp::mul3(out, out, gain, count);
         dump_buffer("out", out, count);
 
         // Process data (step 2)
@@ -66,7 +66,7 @@ namespace limiter_test
         l.process(out, gain, in, in, count);
         dump_buffer("gain", gain, count);
         dump_buffer("outd", out, count);
-        dsp::multiply(out, out, gain, count);
+        dsp::mul3(out, out, gain, count);
         dump_buffer("out", out, count);
     }
 

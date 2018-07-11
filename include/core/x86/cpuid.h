@@ -77,7 +77,7 @@ namespace lsp
     } cpuid_info_t;
     #pragma pack(pop)
 
-    #ifdef __i386__
+    #if defined(ARCH_I386)
         bool cpuid_supported()
         {
             bool result;
@@ -101,36 +101,29 @@ namespace lsp
 
             return result;
         }
+    #elif defined(ARCH_X86_64)
+        bool cpuid_supported()
+        {
+            return true;
+        }
     #endif /* __i386__ */
 
     inline bool cpuid(uint32_t leaf, uint32_t subleaf, cpuid_info_t *info)
     {
-        #ifdef __i386__
-            if (!cpuid_supported())
-                return false;
-        #endif /* __i386__ */
-
         __asm__ __volatile__
         (
+            __ASM_EMIT32("push %%ebx")
             __ASM_EMIT("cpuid")
-            #ifdef __i386__
-                __ASM_EMIT("push %%ebx")
-            #endif /* __i386__ */
             __ASM_EMIT("mov %%eax, 0x0(%[info])")
             __ASM_EMIT("mov %%ebx, 0x4(%[info])")
             __ASM_EMIT("mov %%ecx, 0x8(%[info])")
             __ASM_EMIT("mov %%edx, 0xc(%[info])")
-            #ifdef __i386__
-                __ASM_EMIT("pop %%ebx")
-            #endif /* __i386__ */
+            __ASM_EMIT32("pop %%ebx")
 
             : "+a"(leaf), "+c"(subleaf)
             : [info] "D" (info)
             : "cc", "memory",
-            #ifndef __i386__
-                "%ebx",
-            #endif /* __i386__ */
-                "%edx"
+              __IF_64("%ebx", ) "%edx"
         );
 
         return true;

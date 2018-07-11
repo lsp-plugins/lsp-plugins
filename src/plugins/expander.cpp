@@ -479,17 +479,17 @@ namespace lsp
 
             // Prepare audio channels
             if (nMode == EM_MONO)
-                dsp::scale(vChannels[0].vIn, in_buf[0], fInGain, to_process);
+                dsp::scale3(vChannels[0].vIn, in_buf[0], fInGain, to_process);
             else if (nMode == EM_MS)
             {
                 dsp::lr_to_ms(vChannels[0].vIn, vChannels[1].vIn, in_buf[0], in_buf[1], to_process);
-                dsp::scale(vChannels[0].vIn, vChannels[0].vIn, fInGain, to_process);
-                dsp::scale(vChannels[1].vIn, vChannels[1].vIn, fInGain, to_process);
+                dsp::scale2(vChannels[0].vIn, fInGain, to_process);
+                dsp::scale2(vChannels[1].vIn, fInGain, to_process);
             }
             else
             {
-                dsp::scale(vChannels[0].vIn, in_buf[0], fInGain, to_process);
-                dsp::scale(vChannels[1].vIn, in_buf[1], fInGain, to_process);
+                dsp::scale3(vChannels[0].vIn, in_buf[0], fInGain, to_process);
+                dsp::scale3(vChannels[1].vIn, in_buf[1], fInGain, to_process);
             }
 
             // Perform sidechain processing
@@ -515,7 +515,7 @@ namespace lsp
                 channel_t *c        = &vChannels[i];
 
                 c->sDelay.process(c->vIn, c->vIn, to_process); // Add delay to original signal
-                dsp::multiply(c->vOut, c->vGain, c->vIn, to_process);
+                dsp::mul3(c->vOut, c->vGain, c->vIn, to_process);
 
                 // Process graph outputs
                 if ((i == 0) || (nMode != EM_STEREO))
@@ -537,8 +537,8 @@ namespace lsp
                 channel_t *cm       = &vChannels[0];
                 channel_t *cs       = &vChannels[1];
 
-                dsp::mix(cm->vOut, cm->vOut, cm->vIn, cm->fMakeup * cm->fWetGain, cm->fDryGain, to_process);
-                dsp::mix(cs->vOut, cs->vOut, cs->vIn, cs->fMakeup * cs->fWetGain, cs->fDryGain, to_process);
+                dsp::mix2(cm->vOut, cm->vIn, cm->fMakeup * cm->fWetGain, cm->fDryGain, to_process);
+                dsp::mix2(cs->vOut, cs->vIn, cs->fMakeup * cs->fWetGain, cs->fDryGain, to_process);
 
                 cm->sGraph[G_OUT].process(cm->vOut, to_process);
                 cm->pMeter[M_OUT]->setValue(dsp::abs_max(cm->vOut, to_process));
@@ -561,7 +561,7 @@ namespace lsp
                     if (c->bScListen)
                         dsp::copy(c->vOut, c->vSc, to_process);
                     else
-                        dsp::mix(c->vOut, c->vOut, c->vIn, c->fMakeup * c->fWetGain, c->fDryGain, to_process);
+                        dsp::mix2(c->vOut, c->vIn, c->fMakeup * c->fWetGain, c->fDryGain, to_process);
 
                     c->sGraph[G_OUT].process(c->vOut, to_process);                      // Output signal
                     c->pMeter[M_OUT]->setValue(dsp::abs_max(c->vOut, to_process));
@@ -630,7 +630,7 @@ namespace lsp
                     dsp::copy(mesh->pvData[0], vCurve, expander_base_metadata::CURVE_MESH_SIZE);
                     c->sExp.curve(mesh->pvData[1], vCurve, expander_base_metadata::CURVE_MESH_SIZE);
                     if (c->fMakeup != 1.0f)
-                        dsp::scale(mesh->pvData[1], mesh->pvData[1], c->fMakeup, expander_base_metadata::CURVE_MESH_SIZE);
+                        dsp::scale2(mesh->pvData[1], c->fMakeup, expander_base_metadata::CURVE_MESH_SIZE);
 
                     // Mark mesh containing data
                     mesh->data(2, expander_base_metadata::CURVE_MESH_SIZE);
@@ -733,7 +733,7 @@ namespace lsp
             }
             c->sExp.curve(b->v[1], b->v[0], width);
             if (c->fMakeup != 1.0f)
-                dsp::scale(b->v[1], b->v[1], c->fMakeup, width);
+                dsp::scale2(b->v[1], c->fMakeup, width);
 
             dsp::fill(b->v[2], 0.0f, width);
             dsp::fill(b->v[3], height, width);

@@ -61,7 +61,14 @@ namespace lsp
         void    (* fill_zero)(float *dst, size_t count) = NULL;
         void    (* fill_one)(float *dst, size_t count) = NULL;
         void    (* fill_minus_one)(float *dst, size_t count) = NULL;
-        void    (* abs)(float *dst, const float *src, size_t count) = NULL;
+
+        void    (* abs1)(float *dst, size_t count) = NULL;
+        void    (* abs2)(float *dst, const float *src, size_t count) = NULL;
+        void    (* abs_add2)(float *dst, const float *src, size_t count) = NULL;
+        void    (* abs_sub2)(float *dst, const float *src, size_t count) = NULL;
+        void    (* abs_mul2)(float *dst, const float *src, size_t count) = NULL;
+        void    (* abs_div2)(float *dst, const float *src, size_t count) = NULL;
+
         void    (* abs_normalized)(float *dst, const float *src, size_t count) = NULL;
         void    (* normalize)(float *dst, const float *src, size_t count) = NULL;
         float   (* min)(const float *src, size_t count) = NULL;
@@ -71,28 +78,44 @@ namespace lsp
         size_t  (* abs_max_index)(const float *src, size_t count) = NULL;
         size_t  (* abs_min_index)(const float *src, size_t count) = NULL;
         void    (* minmax)(const float *src, size_t count, float *min, float *max) = NULL;
+        void    (* abs_minmax)(const float *src, size_t count, float *min, float *max) = NULL;
         size_t  (* min_index)(const float *src, size_t count) = NULL;
         size_t  (* max_index)(const float *src, size_t count) = NULL;
-        void    (* scale)(float *dst, const float *src, float k, size_t count) = NULL;
-        void    (* multiply)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
+
+        void    (* add2)(float *dst, const float *src, size_t count) = NULL;
+        void    (* sub2)(float *dst, const float *src, size_t count) = NULL;
+        void    (* mul2)(float *dst, const float *src, size_t count) = NULL;
+        void    (* div2)(float *dst, const float *src, size_t count) = NULL;
+        void    (* add3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
+        void    (* sub3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
+        void    (* mul3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
+        void    (* div3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
+        void    (* scale2)(float *dst, float k, size_t count) = NULL;
+        void    (* scale3)(float *dst, const float *src, float k, size_t count) = NULL;
+
         float   (* h_sum)(const float *src, size_t count) = NULL;
         float   (* h_sqr_sum)(const float *src, size_t count) = NULL;
         float   (* h_abs_sum)(const float *src, size_t count) = NULL;
         float   (* scalar_mul)(const float *a, const float *b, size_t count) = NULL;
-        void    (* accumulate)(float *dst, const float *src, float k, float p, size_t count) = NULL;
-        void    (* add_multiplied)(float *dst, const float *src, float k, size_t count) = NULL;
-        void    (* sub_multiplied)(float *dst, const float *src, float k, size_t count) = NULL;
-        void    (* add2)(float *dst, const float *src, size_t count) = NULL;
-        void    (* sub2)(float *dst, const float *src, size_t count) = NULL;
-        void    (* add3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
-        void    (* sub3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
 
-        void    (* integrate)(float *dst, const float *src, float k, size_t count) = NULL;
-        void    (* mix)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count) = NULL;
-        void    (* mix_add)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count) = NULL;
-        float   (* convolve_single)(const float *src, const float *conv, size_t length) = NULL;
-        void    (* convolve)(float *dst, const float *src, const float *conv, size_t length, size_t count) = NULL;
-        void    (* reverse)(float *dst, size_t count) = NULL;
+        void    (* scale_add3)(float *dst, const float *src, float k, size_t count) = NULL;
+        void    (* scale_sub3)(float *dst, const float *src, float k, size_t count) = NULL;
+        void    (* scale_mul3)(float *dst, const float *src, float k, size_t count) = NULL;
+        void    (* scale_div3)(float *dst, const float *src, float k, size_t count) = NULL;
+
+        void    (* mix2)(float *dst, const float *src, float k1, float k2, size_t count) = NULL;
+        void    (* mix_copy2)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count) = NULL;
+        void    (* mix_add2)(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count) = NULL;
+        void    (* mix3)(float *dst, const float *src1, const float *src2, float k1, float k2, float k3, size_t count) = NULL;
+        void    (* mix_copy3)(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count) = NULL;
+        void    (* mix_add3)(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count) = NULL;
+        void    (* mix4)(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, float k4, size_t count) = NULL;
+        void    (* mix_copy4)(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count) = NULL;
+        void    (* mix_add4)(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count) = NULL;
+
+        void    (* reverse1)(float *dst, size_t count) = NULL;
+        void    (* reverse2)(float *dst, const float *src, size_t count) = NULL;
+
         void    (* direct_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
         void    (* packed_direct_fft)(float *dst, const float *src, size_t rank) = NULL;
         void    (* conv_direct_fft)(float *dst, const float *src, size_t rank) = NULL;
@@ -123,8 +146,6 @@ namespace lsp
         void    (* ms_to_left)(float *l, const float *m, const float *s, size_t count) = NULL;
         void    (* ms_to_right)(float *r, const float *m, const float *s, size_t count) = NULL;
         void    (* avoid_denormals)(float *dst, const float *src, size_t count) = NULL;
-        float   (* biquad_process)(float *buf, const float *ir, float sample) = NULL;
-        void    (* biquad_process_multi)(float *dst, const float *src, size_t count, float *buf, const float *ir) = NULL;
         void    (* biquad_process_x1)(float *dst, const float *src, size_t count, biquad_t *f) = NULL;
         void    (* biquad_process_x2)(float *dst, const float *src, size_t count, biquad_t *f) = NULL;
         void    (* biquad_process_x4)(float *dst, const float *src, size_t count, biquad_t *f) = NULL;
@@ -274,6 +295,9 @@ namespace lsp
 
             // X86-family code
             #ifdef ARCH_X86
+                if (!cpuid_supported())
+                    return options;
+
                 // Check max CPUID
                 cpuid_info_t info;
                 if (!cpuid(0, 0, &info))

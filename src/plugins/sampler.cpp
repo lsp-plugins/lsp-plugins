@@ -772,7 +772,7 @@ namespace lsp
 
                     // Normalize graph if possible
                     if (afs->fNorm != 1.0f)
-                        dsp::scale(dst, dst, afs->fNorm, MESH_SIZE);
+                        dsp::scale2(dst, afs->fNorm, MESH_SIZE);
                 }
 
                 // Update length of the sample
@@ -1531,7 +1531,7 @@ namespace lsp
                     if (c->vDry != NULL)
                     {
                         c->sDryBypass.process(c->vDry, NULL, tmp_outs[j], count);
-                        dsp::scale(c->vDry, c->vDry, s->fGain, count);
+                        dsp::scale2(c->vDry, s->fGain, count);
                         c->vDry     += count;
                     }
 
@@ -1539,11 +1539,11 @@ namespace lsp
                     c->sBypass.process(tmp_outs[j], NULL, tmp_outs[j], count);
 
                     // Mix output to common sampler's bus
-                    dsp::add_multiplied(vChannels[j].vOut, tmp_outs[j], c->fPan * s->fGain, count);
+                    dsp::scale_add3(vChannels[j].vOut, tmp_outs[j], c->fPan * s->fGain, count);
 
                     // Apply pan to the other stereo channel for mult-sampler
                     if (nSamplers > 1)
-                        dsp::add_multiplied(vChannels[j^1].vOut, tmp_outs[j], (1.0f - c->fPan) * s->fGain, count);
+                        dsp::scale_add3(vChannels[j^1].vOut, tmp_outs[j], (1.0f - c->fPan) * s->fGain, count);
                 }
             }
 
@@ -1552,7 +1552,7 @@ namespace lsp
             {
                 channel_t *c            = &vChannels[i];
 
-                dsp::mix(c->vOut, c->vTmpIn, c->vOut, fDry, fWet, count); // Adjust volume between dry and wet channels
+                dsp::mix2(c->vOut, c->vTmpIn, fWet, fDry, count); // Adjust volume between dry and wet channels
                 if (pBypass != NULL)
                     c->sBypass.process(c->vOut, c->vTmpIn, c->vOut, count);
 

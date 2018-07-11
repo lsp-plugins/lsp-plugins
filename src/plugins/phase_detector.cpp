@@ -210,7 +210,7 @@ namespace lsp
                 // Update function peak values
                 // vFunction[i] = vFunction[i] - vB.pData[i + nGapOffset] * vA.pData[nGapOffset] +
                 //                + vB.pData[i + nGapOffset + nVectorSize] * vA.pData[nGapOffset + nVectorSize]
-                dsp::mix_add(vFunction,
+                dsp::mix_add2(vFunction,
                         &vB.pData[nGapOffset], &vB.pData[nGapOffset + nVectorSize],
                         -vA.pData[nGapOffset], vA.pData[nGapOffset + nVectorSize],
                         nFuncSize);
@@ -218,7 +218,7 @@ namespace lsp
 
                 // Accumulate peak function value
                 // vAccumulated[i] = vAccumulated[i] * (1.0f - fTau) + vFunction * fTau
-                dsp::integrate(vAccumulated, vFunction, fTau, nFuncSize);
+                dsp::mix2(vAccumulated, vFunction, 1.0f - fTau, fTau, nFuncSize);
 
                 // Increment gap offset: move to next sample
                 nGapOffset++;
@@ -282,7 +282,8 @@ namespace lsp
         }
 
         // Always query drawing
-        pWrapper->query_display_draw();
+        if (pWrapper != NULL)
+            pWrapper->query_display_draw();
     }
 
     bool phase_detector::setTimeInterval(float interval, bool force)

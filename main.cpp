@@ -5,7 +5,6 @@
 #include "test/vst_test.h"
 #include "test/res_gen.h"
 #include "test/audiofile_test.h"
-#include "test/convolution_test.h"
 #include "test/convolver_test.h"
 #include "test/dsp_speed_test.h"
 #include "test/window_test.h"
@@ -20,7 +19,6 @@
 #include "test/alloc_test.h"
 #include "test/view_ui.h"
 #include "test/jack_test.h"
-#include "test/vec4_test.h"
 #include "test/profiling_test.h"
 
 #include "test/fft_test.h"
@@ -48,12 +46,14 @@
 #include "test/limiter_test.h"
 #include "test/xwindow.h"
 
+#include "test/sse_test.h"
+
 #include "test/oversampling_test.h"
 #include "test/downsampling_test.h"
 #include "test/oversampler_test.h"
 
 //#define TEST gtk_test
-#define TEST jack_test
+//#define TEST jack_test
 //#define TEST xwindow_test
 //#define TEST limiter_test
 //#define TEST fft_conv_test
@@ -66,13 +66,11 @@
 //#define TEST avx_test
 //#define TEST sidechain_test
 
-//#define TEST vec4_test
 //#define TEST view_ui_test
 //#define TEST ladspa_test
 //#define TEST vst_test
 //#define TEST res_gen
 //#define TEST audiofile_test
-//#define TEST convolution_test
 //#define TEST convolver_test
 
 //#define TEST fft_test
@@ -105,7 +103,10 @@
 //#define TEST oversampling_test
 //#define TEST oversampler_test
 
+#define TEST sse_test
+
 int main(int argc, const char**argv)
 {
+    srand(clock());
     return TEST::test(argc, argv);
 }

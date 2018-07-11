@@ -9,10 +9,14 @@
 #include <core/debug.h>
 #include <core/dsp.h>
 #include <core/bits.h>
-#include <core/x86/sse/const.h>
 
+#define CORE_X86_SSE_IMPL
+
+#include <core/x86/sse/const.h>
 #include <core/x86/sse3/filters.h>
 #include <core/x86/sse3/complex.h>
+
+#undef CORE_X86_SSE_IMPL
 
 namespace lsp
 {

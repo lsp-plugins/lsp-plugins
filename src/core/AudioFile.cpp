@@ -372,7 +372,7 @@ namespace lsp
             if (size_t(track_id) >= pData->nChannels)
                 return false;
             lsp_trace("reverse %p, %d", pData->vChannels[track_id], int(pData->nSamples));
-            dsp::reverse(pData->vChannels[track_id], pData->nSamples);
+            dsp::reverse1(pData->vChannels[track_id], pData->nSamples);
         }
         else
         {
@@ -382,7 +382,7 @@ namespace lsp
             for (size_t i=0; i<count; ++i)
             {
                 lsp_trace("reverse %p, %d", pData->vChannels[i], int(pData->nSamples));
-                dsp::reverse(pData->vChannels[i], pData->nSamples);
+                dsp::reverse1(pData->vChannels[i], pData->nSamples);
             }
         }
 
@@ -532,7 +532,7 @@ namespace lsp
 
             // Perform convolutions
             for (size_t i=0, p=0; i<pData->nSamples; i++, p += kf)
-                dsp::add_multiplied(&b[p], k, src[i], k_size);
+                dsp::scale_add3(&b[p], k, src[i], k_size);
 
             // Copy the data to the file content
             dsp::copy(fc->vChannels[c], &b[k_center], fc->nSamples);
@@ -633,7 +633,7 @@ namespace lsp
                 // Perform convolutions
                 for (size_t j=i; j<pData->nSamples; j += src_step)
                 {
-                    dsp::add_multiplied(&b[p], k, src[j], k_size);
+                    dsp::scale_add3(&b[p], k, src[j], k_size);
                     p   += dst_step;
                 }
             }
@@ -737,7 +737,7 @@ namespace lsp
                 // Perform convolutions
                 for (size_t j=i; j<pData->nSamples; j += src_step)
                 {
-                    dsp::add_multiplied(&b[p], k, src[j], k_size);
+                    dsp::scale_add3(&b[p], k, src[j], k_size);
                     p   += dst_step;
                 }
             }
