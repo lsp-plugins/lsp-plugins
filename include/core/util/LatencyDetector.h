@@ -121,7 +121,7 @@ namespace lsp
 
             bool            bCycleComplete;         // True if the machine operated a whole measurement cycle
             bool            bLatencyDetected;       // True if latency was detected
-            ssize_t         nLatency;               // Value of latency in samples
+            ssize_t         nLatency;               // Value of latency in samples. Signed so that -1 is meaningful
 
             bool            bSync;
 
@@ -356,7 +356,7 @@ namespace lsp
              *
              * @return latency in samples
              */
-            inline size_t get_latency_samples() const
+            inline ssize_t get_latency_samples() const
             {
                 if (!bCycleComplete)
                     return -1;

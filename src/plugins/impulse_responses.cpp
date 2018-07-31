@@ -764,7 +764,8 @@ namespace lsp
             return STATUS_NO_MEM;
 
         // Try to load file
-        status_t status = af->load(fname, impulse_responses_base_metadata::CONV_LENGTH_MAX * 0.001f);
+        float convLengthMaxSeconds = impulse_reverb_base_metadata::CONV_LENGTH_MAX * 0.001f;
+        status_t status = af->load(fname,  convLengthMaxSeconds, -0.5f * convLengthMaxSeconds); // Offset of half max length to center the impulse response.
         if (status != STATUS_OK)
         {
             af->destroy();

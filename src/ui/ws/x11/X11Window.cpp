@@ -942,7 +942,7 @@ namespace lsp
                 unsigned long *dst  = &buffer[2];
 
                 for (size_t i=0; i<n; ++i)
-                    *(dst++) = LE_DATA(*(ptr++));
+                    *(dst++) = LE_TO_CPU(*(ptr++));
 
                 const x11_atoms_t &a = pX11Display->atoms();
 

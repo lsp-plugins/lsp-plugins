@@ -1,0 +1,161 @@
+<plugin resizable="false">
+	<vbox spacing="4">	
+		<group text="Results" expand="true" fill="true">
+			<grid rows="3" cols="1" vspacing="10">
+				<grid rows="1" cols="2" expand="true" fill="true">
+					<label text="Input Level (dB)" />
+					<meter id="ilvl" angle="0.0" logarithmic="true" min="-72 db" max="24 db" height="768" color="green" type="rms_peak" />
+				</grid>
+				<graph width="1024" height="300" expand="true" fill="true">
+					<center hpos="-1.0" vpos="0.0" visible="false" />
+					<axis min="0" max="2.0" color="white" angle="0.0" logarithmic="false" />
+					<axis min="-1.0" max="1.0" color="white" angle="0.5" logarithmic="false" />
+
+					<mesh id="resdy" width="3" />
+					
+					<marker value="-1" color="white" basis="1" parallel="0" />
+					<marker value="-0.75" color="gray" basis="1" parallel="0" />
+					<marker value="-0.5" color="white" basis="1" parallel="0" />
+					<marker value="-0.25" color="gray" basis="1" parallel="0" />
+					<marker value="0.25" color="gray" basis="1" parallel="0" />
+					<marker value="0.5" color="white" basis="1" parallel="0" />
+					<marker value="0.75" color="gray" basis="1" parallel="0" />
+					<marker value="1" color="white" basis="1" parallel="0" />
+					
+					<marker value="0.25" color="gray" basis="0" parallel="1" />
+					<marker value="0.5" color="white" basis="0" parallel="1" />
+					<marker value="0.75" color="gray" basis="0" parallel="1" />
+					<marker value="1" color="white" basis="0" parallel="1" />
+					<marker value="1.25" color="gray" basis="0" parallel="1" />
+					<marker value="1.5" color="white" basis="0" parallel="1" />
+					<marker value="1.75" color="gray" basis="0" parallel="1" />
+					<marker value="2" color="white" basis="0" parallel="1" />
+
+					<text text="RT" coord="0;-1" halign="1" valign="1" />
+					<text text="0.25" coord="0.5;-1" halign="-1" valign="1" />					
+					<text text="0.5" coord="1;-1" halign="-1" valign="1" />					
+					<text text="0.75" coord="1.5;-1" halign="-1" valign="1" />
+					<text text="1.0" coord="2;-1" halign="-1" valign="1" />					
+					
+					<text text="Level" coord="0;1" halign="1" valign="-1" />
+					<text text="0.5" coord="0;0.5" halign="1" valign="-1" />
+					<text text="0" coord="0;0" halign="1" valign="-1" />
+					<text text="-0.5" coord="0;-0.5" halign="1" valign="-1" />
+				</graph>
+				<grid rows="2" cols="10" expand="true" fill="true">
+					<label text="Offset" />
+					<label text="Latency (ms)" />
+					<label text="RT Algorithm" />
+					<label text="Low Back&#10;Noise" />
+					<label text="RT (s)" />
+					<label text="R" />
+					<label text="Coarse&#10;IR Duration (s)" />
+					<label text="Post-process" />
+					<label text="Save Mode" />
+					<label text="Save" />
+					
+					<grid rows="2" cols="1" expand="false" fill="true">
+						<knob id="offc" />
+						<value id="offc"/>
+					</grid>
+					<indicator id="ltind" format="f6.3!" text_color="green" />
+					<combo id="scra" fill="true" />
+					<led id="rta" />
+					<indicator id="rtind" format="f6.3!" text_color="green" />
+					<indicator id="rind" format="f6.3!" text_color="green" />
+					<indicator id="ilind" format="f6.3!" text_color="green" />
+					<button id="post" size="32" color="yellow" led="true" />
+					<combo fill="true" id="scsv" />
+					<grid rows="1" cols="2" expand="false" fill="true">
+						<grid rows="1" cols="1" expand="false" fill="true" visibility="(:scsv != 4)">
+							<save id="irfn" format="wav" command_id="irfc" status_id="irfs" progress_id="irfp" />
+						</grid>
+						<grid rows="1" cols="1" expand="false" fill="true" visibility="(:scsv == 4)">
+							<save id="irfn" format="lspc" command_id="irfc" status_id="irfs" progress_id="irfp" />
+						</grid>
+					</grid>
+				</grid>
+			</grid>
+		</group>
+		<hbox spacing="4">
+			<group text="Calibrator" expand="true" fill="true">
+				<grid rows="3" cols="3">
+					<label text="Frequency" />
+					<knob id="calf" />
+					<value id="calf" />
+					
+					<label text="Amplitude" />
+					<knob id="cala" />
+					<value id="cala"/>
+					
+					<label text="ON/OFF" />
+					<button id="cals" size="32" />
+					<led id="stld" key="1" />
+				</grid>	
+			</group>
+			<group text="Latency Detector" expand="true" fill="true">
+				<grid rows="3" cols="4">
+					<label text="Max Latency" />
+					<label text="Peak"/>
+					<label text="Absolute"/>
+					<label text="Skip" />
+					
+					<knob id="ltdm" />
+					<knob id="ltdp" />
+					<knob id="ltda" />
+					<button id="ltsk" size="32" />
+					
+					<value id="ltdm" />
+					<value id="ltdp" />
+					<value id="ltda" />
+					<led id="skld" />
+				</grid>	
+			</group>
+			<group text="Test Signal" expand="true" fill="true">
+				<grid rows="2" cols="3" expand="true">
+					<label text="Coarse&#10;Duration" fill="true" halign="0" />
+					<knob id="tsgl" />
+					<value id="tsgl" />
+					
+					<label text="Actual&#10;Duration" fill="true" halign="0" />
+					<indicator id="tind" format="f6.3!" text_color="green" />
+					<label text="s" />
+				</grid>
+			</group>
+			<group text="Controls" expand="true" fill="true">
+				<grid rows="3" cols="2">
+					<label text="Feedback" fill="true" halign="0" />
+					<button id="fbck" size="32" led="true" />
+					<label text="Measure&#10;Latency" fill="true" halign="0" />
+					
+					<button id="latt" size="32" color="yellow" led="true" />								
+					<label text="Profile" fill="true" halign="0" />
+					<button id="lint" size="32" color="yellow" led="true" />	
+				</grid>	
+			</group>
+			<group text="State" expand="true" fill="true">
+				<grid rows="9" cols="2" hspacing="4" transpose="true">
+					<label text="IDLE" fill="true" halign="1" />
+					<label text="CALIBRATION" fill="true" halign="1" />
+					<label text="LATENCY DETECTION" fill="true" halign="1" />
+					<label text="PREPROCESSING" fill="true" halign="1" />
+					<label text="WAIT" fill="true" halign="1" />
+					<label text="RECORDING" fill="true" halign="1" />
+					<label text="CONVOLVING" fill="true" halign="1" />
+					<label text="POSTPROCESSING" fill="true" halign="1" />
+					<label text="SAVING" fill="true" halign="1" />
+					
+					<led id="stld" key="0" />
+					<led id="stld" key="1" />
+					<led id="stld" key="2" />
+					<led id="stld" key="3" />
+					<led id="stld" key="4" />
+					<led id="stld" key="5" />
+					<led id="stld" key="6" />
+					<led id="stld" key="7" />
+					<led id="stld" key="8" />
+				</grid>
+			</group>
+		</hbox>
+	</vbox>
+</plugin>

@@ -2250,3 +2250,27 @@ Description:	Multiband compressor with up to 8 independent compression bands and
 	Registration:	
 		
 	*Plugin ID:	hjdp
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+	Developer Info:	
+		
+	*Company Name:	LSP Project
+	*First Name:	Stefano
+	*Last Name:	Tronci
+	*eMail Address:	lsp.plugin@gmail.com
+		
+	PlugIn Info:	
+		
+	Category:	Analysis ( e.g. phasescope )
+	*PlugIn Name:	Profiler Mono
+	Supported OS :	
+		Other
+		
+	Short PlugIn
+Description:	A simple plugin for audio systems profiling.
+		
+	Registration:	
+		
+	*Plugin ID:	hwrc

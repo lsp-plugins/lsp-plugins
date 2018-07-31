@@ -25,10 +25,14 @@
 #define LSP_EXPANDER_BASE               LSP_LADSPA_BASE + 42
 #define LSP_GATE_BASE                   LSP_LADSPA_BASE + 50
 #define LSP_LIMITER_BASE                LSP_LADSPA_BASE + 58
+#define LSP_IMPULSE_RESPONSES_BASE      LSP_LADSPA_BASE + 62
+#define LSP_IMPULSE_REVERB_BASE         LSP_LADSPA_BASE + 64
 #define LSP_SLAP_DELAY_BASE             LSP_LADSPA_BASE + 66
 #define LSP_OSCILLATOR_BASE             LSP_LADSPA_BASE + 68
 #define LSP_LATENCY_METER_BASE          LSP_LADSPA_BASE + 69
 #define LSP_MB_COMPRESSOR_BASE          LSP_LADSPA_BASE + 70
+#define LSP_PROFILER_BASE               LSP_LADSPA_BASE + 78
+#define LSP_NONLINEAR_CONVOLVER_BASE    LSP_LADSPA_BASE + 79
 
 
 // Plugin metadata definitions
@@ -51,5 +55,8 @@
 #include <metadata/oscillator.h>
 #include <metadata/latency_meter.h>
 #include <metadata/mb_compressor.h>
+
+#include <metadata/profiler.h>
+#include <metadata/nonlinear_convolver.h>
 
 #endif /* METADATA_PLUGINS_H_ */

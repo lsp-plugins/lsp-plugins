@@ -737,12 +737,12 @@ namespace lsp
         pState->nDataSize               = chunk_size;
 
         memset(&pState->sHeader, 0x00, sizeof(fxBank));
-        pState->sHeader.chunkMagic      = BE_DATA(VstInt32(cMagic));
+        pState->sHeader.chunkMagic      = CPU_TO_BE(VstInt32(cMagic));
         pState->sHeader.byteSize        = 0;
-        pState->sHeader.fxMagic         = BE_DATA(VstInt32(chunkBankMagic));
-        pState->sHeader.version         = BE_DATA(1);
-        pState->sHeader.fxID            = BE_DATA(VstInt32(pEffect->uniqueID));
-        pState->sHeader.fxVersion       = BE_DATA(VstInt32(pEffect->version));
+        pState->sHeader.fxMagic         = CPU_TO_BE(VstInt32(chunkBankMagic));
+        pState->sHeader.version         = CPU_TO_BE(1);
+        pState->sHeader.fxID            = CPU_TO_BE(VstInt32(pEffect->uniqueID));
+        pState->sHeader.fxVersion       = CPU_TO_BE(VstInt32(pEffect->version));
         pState->sHeader.numPrograms     = 0;
 
         pState->sState.nItems           = 0;
@@ -752,7 +752,7 @@ namespace lsp
     #ifdef LSP_TRACE
         static void dump_vst_bank(const fxBank *bank)
         {
-            size_t ck_size              = BE_DATA(bank->byteSize) + 2 * sizeof(VstInt32);
+            size_t ck_size              = BE_TO_CPU(bank->byteSize) + 2 * sizeof(VstInt32);
 
             const uint8_t *ddump        = reinterpret_cast<const uint8_t *>(bank);
             lsp_trace("Chunk dump:");
@@ -844,8 +844,8 @@ namespace lsp
         }
 
         // Write the size of chunk
-        pState->sState.nItems           = BE_DATA(uint32_t(params));
-        pState->sHeader.byteSize        = BE_DATA(VstInt32(ptr - reinterpret_cast<uint8_t *>(&pState->sState) + VST_BANK_HDR_SIZE));
+        pState->sState.nItems           = CPU_TO_BE(uint32_t(params));
+        pState->sHeader.byteSize        = CPU_TO_BE(VstInt32(ptr - reinterpret_cast<uint8_t *>(&pState->sState) + VST_BANK_HDR_SIZE));
         size_t ck_size                  = ptr - reinterpret_cast<uint8_t *>(&pState->sHeader);
 
         dump_vst_bank(&pState->sHeader);
@@ -861,14 +861,14 @@ namespace lsp
         dump_vst_bank(bank);
 
         // Validate chunkMagic
-        if (bank->chunkMagic != BE_DATA(cMagic))
+        if (bank->chunkMagic != BE_TO_CPU(cMagic))
         {
-            lsp_trace("bank->chunkMagic (%08x) != BE_DATA(VST_CHUNK_MAGIC) (%08x)", int(bank->chunkMagic), int(BE_DATA(cMagic)));
+            lsp_trace("bank->chunkMagic (%08x) != BE_DATA(VST_CHUNK_MAGIC) (%08x)", int(bank->chunkMagic), int(BE_TO_CPU(cMagic)));
             return;
         }
 
         // Get size of chunk
-        size_t byte_size                = BE_DATA(VstInt32(bank->byteSize));
+        size_t byte_size                = BE_TO_CPU(VstInt32(bank->byteSize));
         if (byte_size < VST_STATE_BUFFER_SIZE)
         {
             lsp_trace("byte_size (%d) < VST_STATE_BUFFER_SIZE (%d)", int(byte_size), int(VST_STATE_BUFFER_SIZE));
@@ -876,21 +876,21 @@ namespace lsp
         }
 
         // Validate fxMagic
-        if (bank->fxMagic != BE_DATA(chunkBankMagic))
+        if (bank->fxMagic != BE_TO_CPU(chunkBankMagic))
         {
-            lsp_trace("bank->fxMagic (%08x) != BE_DATA(VST_OPAQUE_BANK_MAGIC) (%08x)", int(bank->fxMagic), int(BE_DATA(chunkBankMagic)));
+            lsp_trace("bank->fxMagic (%08x) != BE_DATA(VST_OPAQUE_BANK_MAGIC) (%08x)", int(bank->fxMagic), int(BE_TO_CPU(chunkBankMagic)));
             return;
         }
 
         // Validate fxID
-        if (bank->fxID != BE_DATA(VstInt32(pEffect->uniqueID)))
+        if (bank->fxID != BE_TO_CPU(VstInt32(pEffect->uniqueID)))
         {
-            lsp_trace("bank->fxID (%08x) != BE_DATA(VstInt32(pEffect->uniqueID)) (%08x)", int(bank->fxID), int(BE_DATA(VstInt32(pEffect->uniqueID))));
+            lsp_trace("bank->fxID (%08x) != BE_DATA(VstInt32(pEffect->uniqueID)) (%08x)", int(bank->fxID), int(BE_TO_CPU(VstInt32(pEffect->uniqueID))));
             return;
         }
 
         // Validate the version
-        VstInt32 version  = BE_DATA(bank->version);
+        VstInt32 version  = BE_TO_CPU(bank->version);
         if (version > pEffect->version)
         {
             lsp_error("Unsupported effect version (%d)", version);
@@ -906,7 +906,7 @@ namespace lsp
 
         // Ready to de-serialize
         const vst_state *state  = reinterpret_cast<const vst_state *>(bank + 1);
-        size_t params           = BE_DATA(state->nItems);
+        size_t params           = BE_TO_CPU(state->nItems);
         const uint8_t *ptr      = state->vData;
         const uint8_t *tail     = reinterpret_cast<const uint8_t *>(state) + byte_size - sizeof(vst_state);
         char param_id[LSP_MAX_PARAM_ID_BYTES];

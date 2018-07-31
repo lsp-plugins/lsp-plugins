@@ -97,10 +97,10 @@ namespace lsp
                 nFileOff   += sizeof(lspc_chunk_header_t);
 
                 // Validate chunk header
-                if ((BE_DATA(hdr.magic) == nMagic) && (BE_DATA(hdr.uid) == nUID)) // We've found our chunk, remember unread bytes count
-                    nUnread         = BE_DATA(hdr.size);
+                if ((BE_TO_CPU(hdr.magic) == nMagic) && (BE_TO_CPU(hdr.uid) == nUID)) // We've found our chunk, remember unread bytes count
+                    nUnread         = BE_TO_CPU(hdr.size);
                 else // Skip this chunk
-                    nFileOff       += BE_DATA(hdr.size);
+                    nFileOff       += BE_TO_CPU(hdr.size);
             }
         }
 
@@ -152,7 +152,7 @@ namespace lsp
             {
                 // Read chunk header
                 ssize_t n   = pFile->read(nFileOff, &hdr, sizeof(lspc_chunk_header_t));
-                if (n <= ssize_t(sizeof(lspc_chunk_header_t)))
+                if (n < ssize_t(sizeof(lspc_chunk_header_t)))
                 {
                     set_error(STATUS_EOF);
                     return 0;
@@ -160,10 +160,10 @@ namespace lsp
                 nFileOff   += sizeof(lspc_chunk_header_t);
 
                 // Validate chunk header
-                if ((BE_DATA(hdr.magic) == nMagic) && (BE_DATA(hdr.uid) == nUID)) // We've found our chunk, remember unread bytes count
-                    nUnread         = BE_DATA(hdr.size);
+                if ((BE_TO_CPU(hdr.magic) == nMagic) && (BE_TO_CPU(hdr.uid) == nUID)) // We've found our chunk, remember unread bytes count
+                    nUnread         = BE_TO_CPU(hdr.size);
                 else // Skip this chunk
-                    nFileOff       += BE_DATA(hdr.size);
+                    nFileOff       += BE_TO_CPU(hdr.size);
             }
         }
 

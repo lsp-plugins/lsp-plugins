@@ -1,0 +1,20 @@
+# Created by Octave 4.4.0, Sun Jun 17 13:04:34 2018 BST <crocoduck@arch>
+# name: b
+# type: matrix
+# rows: 1
+# columns: 3
+ 0.99745783509943076 -1.9949156701988615 0.99745783509943076
+
+
+# name: a
+# type: matrix
+# rows: 1
+# columns: 3
+ 1 -1.9949092075860382 0.99492213281168418
+
+
+# name: antialFIRTaps
+# type: scalar
+16
+
+

@@ -17,7 +17,7 @@ namespace jack_test
 //                "spectrum_analyzer_x8";
 //                "spectrum_analyzer_x12";
 //                "spectrum_analyzer_x16";
-//                "impulse_responses_mono";
+                "impulse_responses_mono";
 //                "impulse_responses_stereo";
 //                "impulse_reverb_mono";
 //                "impulse_reverb_stereo";
@@ -100,8 +100,10 @@ namespace jack_test
 //                "sc_mb_compressor_mono";
 //                "sc_mb_compressor_stereo";
 //                "sc_mb_compressor_lr";
-                "sc_mb_compressor_ms";
+//                "sc_mb_compressor_ms";
 //                "test_plugin";
+//                "profiler_mono";
+//                "nonlinear_convolver_mono";
 
         return JACK_MAIN_FUNCTION(plugin, argc, argv);
     }

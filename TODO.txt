@@ -8,16 +8,21 @@
 - Refactored and optimized filter transfer function calculation. 
 - Implemented sampler with stereo outputs.
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
+- Move to GitHub.
 
 === 1.1.5 ===
 
 - Migrated to CMake build system.
 - Additional display mode for spectrum analyzer added.
 - Added possibility to double-click the parameter's value number and enter it manually from keyboard.
+- Implemented normal unit testing system.
+- Implemented normal performance testing system.
 
 === 1.1.4 ===
-- Implemented linear profiler plugin.
 
+* Added LSPC file format.
+* Added LSPC file format support to convolver plugins.
+- Implemented linear impulse response profiler.
 
 *******************************************************************************
 * Release steps
@@ -30,8 +35,8 @@
 * Upload release video to the site
 * Add link to the video to src/doc/config/youtube.php
 * Run ./release.sh to build binaries
-* Commit all changes to GIT
-* Tag version in GIT
+* Commit all changes to SVN
+* Tag version in SVN
 * Upload binaries to sourceforge
 * Copy contents of src/doc and res/doc/img/plugins to the site
 * Publish video on youtube

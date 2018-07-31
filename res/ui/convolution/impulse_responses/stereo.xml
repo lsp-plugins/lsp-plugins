@@ -23,6 +23,7 @@
 						width="600" height="128"
 						visibility=":fsel ie 0"
 						path_id="ui:dlg_ir_path"
+						format="audio_lspc,all"
 						/>
 					<file
 						id="ifn1" head_id="ihc1" tail_id="itc1"
@@ -31,6 +32,7 @@
 						width="600" height="128"
 						visibility=":fsel ie 1"
 						path_id="ui:dlg_ir_path"
+						format="audio_lspc,audio,all"
 						/>
 				</hbox>
 	

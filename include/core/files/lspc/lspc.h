@@ -56,7 +56,7 @@ namespace lsp
         uint16_t    pad;            // Padding (reserved)s
         uint32_t    chunk_id;       // Chunk identifier related to the audio profile
         uint32_t    chirp_order;    // Chirp order
-        double      alpha;          // The chirp parameter alpha, a double value
+        float       alpha;          // The chirp parameter alpha, a float value
         double      beta;           // The chirp parameter beta, a double value
         double      gamma;          // The chirp parameter gamma, a double value
         double      delta;          // The chirp parameter delta, a double value
@@ -96,6 +96,11 @@ namespace lsp
 
 #define LSPC_SAMPLE_FMT_IS_LE(x)    (!(x & 1))
 #define LSPC_SAMPLE_FMT_IS_BE(x)    (x & 1)
+#ifdef ARCH_LE /* Little-endian architecture */
+    #define LSPC_SAMPLE_FMT_NEED_REVERSE(x)     LSPC_SAMPLE_FMT_IS_BE(x)
+#else /* Big-endian architecture */
+    #define  LSPC_SAMPLE_FMT_NEED_REVERSE(x)     LSPC_SAMPLE_FMT_IS_LE(x)
+#endif /* ARCH_LE */
 
 // Different codec types
 #define LSPC_CODEC_PCM              0

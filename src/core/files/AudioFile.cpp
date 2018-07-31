@@ -8,8 +8,10 @@
 #include <core/types.h>
 #include <core/debug.h>
 #include <core/dsp.h>
+#include <core/files/LSPCFile.h>
 #include <core/files/AudioFile.h>
 #include <core/alloc.h>
+#include <core/endian.h>
 
 #include <sndfile.h>
 
@@ -96,7 +98,7 @@ namespace lsp
         lsp_free(content);
     }
 
-    AudioFile::temporary_buffer_t *AudioFile::create_temporary_buffer(file_content_t *content)
+    AudioFile::temporary_buffer_t *AudioFile::create_temporary_buffer(file_content_t *content, size_t from)
     {
         // Make number of samples multiple of 0x20 bytes
         size_t buffer_samples   = content->nChannels * TMP_BUFFER_SIZE;
@@ -120,7 +122,10 @@ namespace lsp
         tb->nCapacity           = TMP_BUFFER_SIZE;
         tb->vData               = reinterpret_cast<float *>(ptr);
         for (size_t i=0; i<content->nChannels; ++i)
-            tb->vChannels[i]        = content->vChannels[i];
+        {
+            float *chPtr            = content->vChannels[i];
+            tb->vChannels[i]        = &chPtr[from];
+        }
 
         return tb;
     }
@@ -188,20 +193,17 @@ namespace lsp
         lsp_free(buffer);
     }
 
-    status_t AudioFile::create(size_t channels, size_t sample_rate, float duration)
+    status_t AudioFile::create_samples(size_t channels, size_t sample_rate, size_t count)
     {
-        // Calculate the file length (in samples)
-        size_t samples          = sample_rate * duration;
-
         // Allocate content
-        file_content_t *fc      = create_file_content(channels, samples);
+        file_content_t *fc  = create_file_content(channels, count);
         if (fc == NULL)
             return STATUS_NO_MEM;
 
         // Cleanup content
-        fc->nSampleRate         = sample_rate;
+        fc->nSampleRate     = sample_rate;
         for (size_t i=0; i<channels; ++i)
-            dsp::fill_zero(fc->vChannels[i], samples);
+            dsp::fill_zero(fc->vChannels[i], count);
 
         // Destroy previously used content and store new
         if (pData != NULL)
@@ -210,7 +212,224 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t AudioFile::load(const char *path, float max_duration)
+    status_t AudioFile::create(size_t channels, size_t sample_rate, float duration)
+    {
+        // Calculate the file length (in samples) and call the previous method
+        size_t count        = sample_rate * duration;
+        return create_samples(channels, sample_rate, count);
+    }
+
+    status_t AudioFile::load_lspc(const char *path, float max_duration, float alignmentOffset)
+    {
+        LSPCFile fd;
+        status_t res = fd.open(path);
+        if (res != STATUS_OK)
+        {
+            fd.close();
+            return res;
+        }
+
+        uint32_t chunk_id = 0;
+
+        // Read profile
+        size_t skip = 0;
+        LSPCChunkReader *prof = fd.find_chunk(LSPC_CHUNK_PROFILE);
+        if (prof != NULL)
+        {
+            // Read profile header
+            lspc_chunk_audio_profile_t p;
+            ssize_t n = prof->read(&p, sizeof(lspc_chunk_audio_profile_t));
+            if (n != sizeof(lspc_chunk_audio_profile_t))
+                res = (n < 0) ? -n : STATUS_CORRUPTED_FILE;
+
+            // Check version
+            if ((res == STATUS_OK) && (BE_TO_CPU(p.version) < 1))
+                res = STATUS_CORRUPTED_FILE;
+
+            // Get related chunk identifier
+            chunk_id = BE_TO_CPU(p.chunk_id);
+            if ((res == STATUS_OK) && (chunk_id == 0))
+                res = STATUS_CORRUPTED_FILE;
+
+            // Analyze final status
+            status_t res2 = prof->close();
+            if (res == STATUS_OK)
+                res = res2;
+
+            // Analyze status
+            if (res != STATUS_OK)
+            {
+                fd.close();
+                return res;
+            }
+        }
+
+        // Read audio chunk
+        LSPCChunkReader *audi = (chunk_id != 0) ?
+                                    fd.read_chunk(chunk_id) :
+                                    fd.find_chunk(LSPC_CHUNK_AUDIO);
+
+        // Now reading audio chunk
+        if (audi == NULL)
+        {
+            fd.close();
+            return STATUS_BAD_FORMAT;
+        }
+
+        // Read audio chunk header
+        lspc_chunk_audio_header_t ahdr;
+        ssize_t n = audi->read(&ahdr, sizeof(lspc_chunk_audio_header_t));
+        if (n != sizeof(lspc_chunk_audio_header_t))
+            res = (n < 0) ? -n : STATUS_CORRUPTED_FILE;
+
+        // Analyze header
+        ahdr.version        = BE_TO_CPU(ahdr.version);
+        ahdr.channels       = BE_TO_CPU(ahdr.channels);
+        ahdr.sample_format  = BE_TO_CPU(ahdr.sample_format);
+        ahdr.sample_rate    = BE_TO_CPU(ahdr.sample_rate);
+        ahdr.codec          = BE_TO_CPU(ahdr.codec);
+        ahdr.frames         = BE_TO_CPU(ahdr.frames);
+
+        // Calculation of samples/frames to skip
+        if (res == STATUS_OK)
+        {
+            // This is the middle of the convolution result
+            size_t middle       = (ahdr.frames / 2) - 1;
+            // We remove 1 now because, without offset, we skip all samples BEFORE the middle.
+            size_t skipNoOffset = middle - 1;
+            size_t maxAhead     = ahdr.frames - skipNoOffset;
+
+            if (alignmentOffset >= 0.0f)
+            {
+                size_t offset   = seconds_to_samples(ahdr.sample_rate, alignmentOffset);
+                offset          = (offset > maxAhead)? maxAhead : offset;
+                skip            = skipNoOffset + offset;
+            }
+            else
+            {
+                size_t offset   = seconds_to_samples(ahdr.sample_rate, -alignmentOffset);
+                offset          = (offset > skipNoOffset)? skipNoOffset : offset;
+                skip            = skipNoOffset - offset;
+            }
+        }
+
+        if (res == STATUS_OK)
+            res = ((ahdr.version < 1) ||
+                   (ahdr.codec != LSPC_CODEC_PCM) ||
+                   ((ahdr.sample_format != LSPC_SAMPLE_FMT_F32LE) && (ahdr.sample_format != LSPC_SAMPLE_FMT_F32BE)))
+                   ? STATUS_UNSUPPORTED_FORMAT: STATUS_OK;
+
+        // Read sample file
+        if (res == STATUS_OK)
+        {
+            size_t max_samples      = (max_duration >= 0.0f) ? seconds_to_samples(ahdr.sample_rate, max_duration) : -1;
+            lsp_trace("file parameters: frames=%d, channels=%d, sample_rate=%d max_duration=%.3f\n, max_samples=%d",
+                        int(ahdr.frames), int(ahdr.channels), int(ahdr.sample_rate), max_duration, int(max_samples));
+
+            // Patch audio header
+            if ((max_samples >= 0) && (ahdr.frames > max_samples))
+                ahdr.frames     = max_samples;
+        }
+
+        // Skip set of frames
+        if ((res == STATUS_OK) && (skip > 0))
+        {
+            ssize_t to_read = skip * ahdr.channels * sizeof(float);
+            n = audi->skip(to_read);
+            if (n != to_read)
+                res = (n < 0) ? -n : STATUS_CORRUPTED_FILE;
+        }
+
+        // Create file content
+        file_content_t *fc      = NULL;
+        if (res == STATUS_OK)
+        {
+            fc = create_file_content(ahdr.channels, ahdr.frames);
+            if (fc == NULL)
+                res = STATUS_NO_MEM;
+
+            fc->nSampleRate         = ahdr.sample_rate;
+        }
+
+        // Allocate temporary buffer
+        temporary_buffer_t *tb  = NULL;
+        if (res == STATUS_OK)
+        {
+            tb = create_temporary_buffer(fc);
+            if (tb == NULL)
+                res = STATUS_NO_MEM;
+        }
+
+        // Read frames
+        if (res == STATUS_OK)
+        {
+            skip = ahdr.frames;
+
+            while (skip > 0)
+            {
+                // Determine how many data is available to read
+                size_t can_read     = tb->nCapacity - tb->nSize;
+                if (can_read <= 0)
+                {
+                    flush_temporary_buffer(tb);
+                    can_read            = tb->nCapacity - tb->nSize;
+                }
+
+                // Calculate amount of samples to read
+                size_t to_read      = (skip > can_read) ? can_read : skip;
+                ssize_t bytes       = to_read * tb->nChannels * sizeof(float);
+                float *dst          = &tb->vData[tb->nSize  * tb->nChannels];
+                n                   = audi->read(dst, bytes);
+
+                if (n != bytes)
+                {
+                    res = (n < 0) ? -n : STATUS_CORRUPTED_FILE;
+                    break;
+                }
+
+                // Swap bytes
+                if (ahdr.sample_format == LSPC_SAMPLE_FMT_F32LE)
+                    VLE_TO_CPU(dst, to_read * tb->nChannels);
+                else // LSPC_SAMPLE_FMT_F32BE
+                    VBE_TO_CPU(dst, to_read * tb->nChannels);
+
+                // Update counters
+                tb->nSize          += to_read;
+                skip               -= to_read;
+            }
+
+            // Flush last read data (if present)
+            flush_temporary_buffer(tb);
+        }
+
+        // Destroy temporary buffer
+        if (tb != NULL)
+            destroy_temporary_buffer(tb);
+
+        // Close chunk reader
+        status_t res2 = audi->close();
+        if (res == STATUS_OK)
+            res     = res2;
+
+        // Close LSPC file
+        res2 = fd.close();
+        if (res == STATUS_OK)
+            res     = res2;
+
+        // Store new data
+        if (res == STATUS_OK)
+        {
+            if (pData != NULL)
+                destroy_file_content(pData);
+            pData               = fc;
+        }
+        else if (fc != NULL)
+            destroy_file_content(fc);
+
+        return res;
+    }
+
+    status_t AudioFile::load_sndfile(const char *path, float max_duration)
     {
         // Load sound file
         SNDFILE *sf_obj;
@@ -261,7 +480,7 @@ namespace lsp
 
             // Calculate amount of samples to read
             size_t to_read      = (count > can_read) ? can_read : count;
-            sf_count_t amount   = sf_readf_float(sf_obj, &tb->vData[tb->nSize], to_read);
+            sf_count_t amount   = sf_readf_float(sf_obj, &tb->vData[tb->nSize * tb->nChannels], to_read);
             if (amount <= 0)
             {
                 status_t status     = decode_sf_error(sf_obj);
@@ -293,7 +512,15 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t AudioFile::store(const char *path, float max_duration)
+    status_t AudioFile::load(const char *path, float max_duration, float alignmentOffset)
+    {
+        status_t res = load_lspc(path, max_duration, alignmentOffset);
+        if (res != STATUS_OK)
+            res = load_sndfile(path, max_duration);
+        return res;
+    }
+
+    status_t AudioFile::store_samples(const char *path, size_t from, size_t max_count)
     {
         if (pData == NULL)
             return STATUS_NO_DATA;
@@ -302,17 +529,15 @@ namespace lsp
         SNDFILE *sf_obj;
         SF_INFO sf_info;
 
-        size_t count        = (max_duration < 0) ? pData->nSamples : max_duration * pData->nSampleRate;
-
-        sf_info.frames      = count;
+        sf_info.frames      = max_count;
         sf_info.samplerate  = pData->nSampleRate;
         sf_info.channels    = pData->nChannels;
         sf_info.format      = SF_FORMAT_WAV | SF_FORMAT_FLOAT | SF_ENDIAN_LITTLE;
         sf_info.sections    = 0;
         sf_info.seekable    = 0;
 
-        if (sf_info.frames > sf_count_t(pData->nSamples))
-            sf_info.frames      = pData->nSamples;
+        if (sf_info.frames > sf_count_t(pData->nSamples - from))
+            sf_info.frames      = pData->nSamples - from;
 
         // Open sound file
         lsp_trace("storing file: %s\n", path);
@@ -323,14 +548,14 @@ namespace lsp
         }
 
         // Allocate temporary buffer
-        temporary_buffer_t *tb  = create_temporary_buffer(pData);
+        temporary_buffer_t *tb  = create_temporary_buffer(pData, from);
         if (tb == NULL)
             return STATUS_NO_MEM;
 
-        while ((count > 0) || (tb->nSize > 0))
+        while ((max_count > 0) || (tb->nSize > 0))
         {
             // Fill buffer
-            count   -=  fill_temporary_buffer(tb, count);
+            max_count   -=  fill_temporary_buffer(tb, max_count);
 
             // Flush buffer
             if (tb->nSize > 0)
@@ -360,6 +585,18 @@ namespace lsp
         destroy_temporary_buffer(tb);
 
         return STATUS_OK;
+    }
+
+    status_t AudioFile::store_samples(const char *path, size_t max_count)
+    {
+        return store_samples(path, 0, max_count);
+    }
+
+    status_t AudioFile::store(const char *path, float max_duration)
+    {
+        // Calculate the file length (in samples) and call the previous method
+        size_t max_count = (max_duration < 0) ? pData->nSamples : max_duration * pData->nSampleRate;
+        return store_samples(path, max_count);
     }
 
     bool AudioFile::reverse(ssize_t track_id)

@@ -26,6 +26,7 @@ namespace lsp
             { "lspc", "*.lspc", "LSP chunk data file format (*.lspc)", ".lspc", LSPFileMask::NONE },
             { "cfg", "*.cfg", "LSP plugin configuration file (*.cfg)", ".cfg", LSPFileMask::NONE },
             { "audio", "*.wav", "All supported audio files (*.wav)", ".wav", LSPFileMask::NONE },
+            { "audio_lspc", "*.wav|*.lspc", "All supported audio containers (*.wav, *.lspc)", ".wav", LSPFileMask::NONE },
             { "all", "*", "All files (*.*)", "", LSPFileMask::NONE },
             { NULL, NULL, NULL, 0 }
         };
