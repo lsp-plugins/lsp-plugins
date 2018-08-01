@@ -20,22 +20,17 @@ developed software.
 Still there is no absolute warranty about stability of the software on
 different platforms so you're using this software on your own risk.
 
-The source code takes a lot of time to develop, so the project uses
-donation model to compensate time spent for development.
+The project also does encourage donations that can be submitted here:
+https://salt.bountysource.com/teams/lsp-plugins
 
-That's why the project uses donation model: the binary distributions
-of the software are completely free but the source code for each plugin
-will be published under the free license only after the donation goal
-is reached.
-
-For more information, please read LICENSE.txt.
+For more information about licensing, please read LICENSE.txt.
 
 ==== SYSTEM REQUIREMENTS ====
 
 LSP plugins are developed to support LADSPA, LV2 and LinuxVST formats and
 at least i586 and x86_64 architectures. Plugins that require MIDI channels
-are not implemented in LASDPA format due to format's restrictions. Also
-there are available standalone versions for JACK server.
+and file loading are not implemented in LASDPA format due to format's restrictions.
+Also there are available standalone versions for JACK server.
 
 The LADSPA distribution requirements:
   * glibc >= 2.19
@@ -80,7 +75,7 @@ Known list of supported plugin hosts:
 
 The distribution of plugins consists of two branches:
   * Binary releases with closed source.
-  * Published source code (Source Code Release, SCR).
+  * Published source code.
 
 Binary releases are the mostly actual releases and contain all
 possible plugins. These are packaged into archive named according to
@@ -101,22 +96,7 @@ the plugin modules. The even <micro> version of plugins contains new features
 and, in most cases, new plugin series. The history of changes may be seen in
 attached CHANGELOG.txt.
 
-Published source code contains source code available to build
-and launch plugins that have been donated by the community.
-It is commited into the code repository and currently not packaged into
-the official release to avoid confusion between binary and source code
-package versioning. It's highly recommended to follow the versioning
-of the SCR (source code release) according to the attached CHANGELOG.txt
-file and use the 'scr' abbreviation for the packages that are built from
-the source code. For example, Linux distribution packages could be named:
-
-  lsp-plugins-<format>-scr-<major>.<minor>.<micro>-<arch>.tar.gz
-  lsp-plugins-<format>-scr-<major>.<minor>.<micro>-<arch>.rpm
-  lsp-plugins-<format>-scr-<major>.<minor>.<micro>-<arch>.deb
-
-More information about donation and policy of source code publishing may
-be obtained here:
-  http://lsp-plug.in/?page=download
+Source code is also ready for building, see 'BUILDING' section for details.
 
 ==== INSTALLATION ====
 
@@ -169,8 +149,9 @@ from any location. After execution, the gprof profiling file 'gmon.out' is creat
 
 ==== BUILDING ====
 
-For source code distributions you may build plugins from scratch.
-You need the following packages to be installed:
+You may build plugins from scratch.
+
+For successful build you need the following packages to be installed:
   * gcc >= 4.7
   * gcc-c++ >= 4.7
   * libgcc_s1 >= 5.2
@@ -179,8 +160,9 @@ You need the following packages to be installed:
   * libsndfile-devel >= 1.0.25
   * libcairo-devel >= 1.14
   * jack-devel >= 1.9.5
+  * php >= 5.5.14
 
-Currently there is no automake supported, so to build plugins you
+Currently there is no automake/CMake supported, so to build plugins you
 have to type:
   make
   make install

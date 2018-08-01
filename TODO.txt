@@ -16,8 +16,9 @@
 - Added possibility to double-click the parameter's value number and enter it manually from keyboard.
 
 === 1.1.4 ===
+* Changed licensing to GNU Lesser General Public License version 3 (GNU LGPL v3).
+* Moved code repository to GitHub while keeping release history.
 - Implemented linear profiler plugin.
-
 
 *******************************************************************************
 * Release steps
@@ -99,27 +100,6 @@
     - Make all grid lines more 'darken' in the UI.
     - Add possibility to activate bands not only by switching dropdown menu in the Combo Group.
     - Implement tabs instead of combo group.
-
-==== Compensation delay ====
-  unfa:
-    I've recently used a-Delay to create a comb-filter effect in my session. 
-    It's really great for that kind of stuff, but one thing that could be improved is
-    the resolution of the Time parameter.
-
-	When making an automation ramp going from 1 ms to 5 ms over 8 bars you an clearly
-	hear the individual steps of the parameter being taken. I wish this parameter could
-	have higher resolution so I could make automation of that with not stairsteps, even
-	with very slow automation.
-
-==== Slapback delay ====
-  Marcel <bas.lendi@gmail.com>
-	I was playing with the Slapback Delay to get some "Giorgio Moroder-like" synth disco bass.
-	It is working great, but I have calculate all the time the delays I need for fitting the beat.
-	And when I change the bpm I have to set up a new Slapback Delay with other settings.
-
-	Would it be possible to add a delay mode  by which you can set delay based on synced beats instead
-	of time and distance? Would be nice to have a " synced beat" with the rotary knob you could increase
-	in steps of 1/16 up to e.g 64/16.
 
 ==== Equalizer tuning ====
   Jan Lentfer
