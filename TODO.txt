@@ -22,7 +22,7 @@
 
 * Added LSPC file format.
 * Added LSPC file format support to convolver plugins.
-- Implemented linear impulse response profiler.
+* Implemented linear impulse response profiler.
 
 *******************************************************************************
 * Release steps

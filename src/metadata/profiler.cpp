@@ -92,7 +92,7 @@ namespace lsp
         &developers::s_tronci,
         "profiler_mono",
         "hwrc",
-        LSP_PROFILER_BASE + 0,
+        0,
         LSP_VERSION(1, 0, 0),
         profiler_classes,
         profiler_ports,
