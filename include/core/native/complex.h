@@ -37,6 +37,32 @@ namespace lsp
                 src2_im             ++;
             }
         }
+        
+        void (* complex_rcp1)(float *dst_re, float *dst_im, size_t count)
+        {
+            while (count--)
+            {
+                float re            = *dst_re;
+                float im            = *dst_im;
+                float mag           = 1.0f / (re * re + im * im);
+                
+                *(dst_re++)         = re * mag;
+                *(dst_im++)         = -im * mag;
+            }
+        }
+        
+        void (* complex_rcp2)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count)
+        {
+            while (count--)
+            {
+                float re            = *(src_re++);
+                float im            = *(src_im++);
+                float mag           = 1.0f / (re * re + im * im);
+                
+                *(dst_re++)         = re * mag;
+                *(dst_im++)         = -im * mag;
+            }
+        }
 
         void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count)
         {
@@ -54,6 +80,32 @@ namespace lsp
                 src1               += 2;
                 src2               += 2;
                 dst                += 2;
+            }
+        }
+        
+        void (* packed_complex_rcp1)(float *dst, size_t count)
+        {
+            while (count--)
+            {
+                float re            = dst[0];
+                float im            = dst[1];
+                float mag           = 1.0f / (re * re + im * im);
+                
+                *(dst++)            = re * mag;
+                *(dst++)            = -im * mag;
+            }
+        }
+        
+        void (* packed_complex_rcp2)(float *dst, const float *src, size_t count)
+        {
+            while (count--)
+            {
+                float re            = *(src++);
+                float im            = *(src++);
+                float mag           = 1.0f / (re * re + im * im);
+                
+                *(dst++)            = re * mag;
+                *(dst++)            = -im * mag;
             }
         }
 
