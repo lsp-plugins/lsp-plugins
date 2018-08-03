@@ -595,7 +595,7 @@ namespace lsp
          * @param dst_im source, destination imaginary part
          * @param count number of multiplications
          */
-        extern void (* complex_rcp2)(
+        extern void (* complex_rcp1)(
                 float *dst_re, float *dst_im,
                 size_t count
             );

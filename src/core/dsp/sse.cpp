@@ -178,7 +178,11 @@ namespace lsp
 
             dsp::normalize_fft              = sse::normalize_fft;
             dsp::complex_mul                = sse::complex_mul;
+            dsp::complex_rcp1               = sse::complex_rcp1;
+            dsp::complex_rcp2               = sse::complex_rcp2;
             dsp::packed_complex_mul         = sse::packed_complex_mul;
+            dsp::packed_complex_rcp1        = sse::packed_complex_rcp1;
+            dsp::packed_complex_rcp2        = sse::packed_complex_rcp2;
             dsp::packed_real_to_complex     = sse::packed_real_to_complex;
             dsp::packed_complex_to_real     = sse::packed_complex_to_real;
             dsp::packed_complex_add_to_real = sse::packed_complex_add_to_real;

@@ -38,7 +38,7 @@ namespace lsp
             }
         }
         
-        void (* complex_rcp1)(float *dst_re, float *dst_im, size_t count)
+        void complex_rcp1(float *dst_re, float *dst_im, size_t count)
         {
             while (count--)
             {
@@ -51,7 +51,7 @@ namespace lsp
             }
         }
         
-        void (* complex_rcp2)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count)
+        void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count)
         {
             while (count--)
             {
@@ -83,7 +83,7 @@ namespace lsp
             }
         }
         
-        void (* packed_complex_rcp1)(float *dst, size_t count)
+        void packed_complex_rcp1(float *dst, size_t count)
         {
             while (count--)
             {
@@ -96,7 +96,7 @@ namespace lsp
             }
         }
         
-        void (* packed_complex_rcp2)(float *dst, const float *src, size_t count)
+        void packed_complex_rcp2(float *dst, const float *src, size_t count)
         {
             while (count--)
             {
