@@ -53,6 +53,8 @@
                     __ASM_EMIT("jmp 100000f") \
     \
     __ASM_EMIT("11000:") \
+        __ASM_EMIT("test $0x0f, %[" dst_im "]") \
+        __ASM_EMIT("jnz 11100f") \
             __ASM_EMIT("test $0x0f, %[" src_re "]") \
             __ASM_EMIT("jnz 11010f") \
                 __ASM_EMIT("test $0x0f, %[" src_im "]") \
@@ -99,7 +101,7 @@
         __ASM_EMIT("jnz 101f") \
             operation("movaps", "movaps") \
             __ASM_EMIT("jmp 1000f") \
-        __ASM_EMIT("110:") \
+        __ASM_EMIT("101:") \
             operation("movaps", "movups") \
             __ASM_EMIT("jmp 1000f") \
     \
@@ -110,7 +112,6 @@
             __ASM_EMIT("jmp 1000f") \
         __ASM_EMIT("111:") \
             operation("movups", "movups") \
-            __ASM_EMIT("jmp 1000f") \
     __ASM_EMIT("1000:")
 
 #define CPLX_OP_MATRIX1(operation, dst) \
@@ -1406,12 +1407,12 @@ void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float
 {
     #define complex_rcp2_core(MV_DST_RE, MV_DST_IM, MV_SRC_RE, MV_SRC_IM) \
         __ASM_EMIT("sub         $8, %[count]")              /* count -= 8 */ \
-        __ASM_EMIT("jbe         2f") \
+        __ASM_EMIT("jb          2f") \
         __ASM_EMIT("1:") \
         /* Perform 8x RCP */ \
         __ASM_EMIT(MV_SRC_RE "  0x00(%[src_re]),  %%xmm0")  /* xmm0  = r0 */ \
-        __ASM_EMIT(MV_SRC_IM "  0x00(%[src_im]),  %%xmm1")  /* xmm1  = i0 */ \
         __ASM_EMIT(MV_SRC_RE "  0x10(%[src_re]),  %%xmm2")  /* xmm2  = r1 */ \
+        __ASM_EMIT(MV_SRC_IM "  0x00(%[src_im]),  %%xmm1")  /* xmm1  = i0 */ \
         __ASM_EMIT(MV_SRC_IM "  0x10(%[src_im]),  %%xmm3")  /* xmm3  = i1 */ \
         __ASM_EMIT("movaps      %%xmm0, %%xmm4")            /* xmm4  = r0 */ \
         __ASM_EMIT("movaps      %%xmm1, %%xmm5")            /* xmm5  = i0 */ \
@@ -1434,19 +1435,19 @@ void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float
         __ASM_EMIT("mulps       %%xmm5, %%xmm1")            /* xmm1  = i0' = -i0 / (r0*r0 + i0*i0) */ \
         __ASM_EMIT("mulps       %%xmm7, %%xmm3")            /* xmm3  = i1' = -i1 / (r1*r1 + i1*i1) */ \
         __ASM_EMIT(MV_DST_RE "  %%xmm0, 0x00(%[dst_re])")   /* dst_re[0]  = r0' */ \
-        __ASM_EMIT(MV_DST_IM "  %%xmm1, 0x00(%[dst_im])")   /* dst_im[0]  = i0' */ \
         __ASM_EMIT(MV_DST_RE "  %%xmm2, 0x10(%[dst_re])")   /* dst_re[1]  = r1' */ \
+        __ASM_EMIT(MV_DST_IM "  %%xmm1, 0x00(%[dst_im])")   /* dst_im[0]  = i0' */ \
         __ASM_EMIT(MV_DST_IM "  %%xmm3, 0x10(%[dst_im])")   /* dst_im[1]  = i1' */ \
         __ASM_EMIT("add         $0x20, %[src_re]")          /* src_re += 8 */ \
         __ASM_EMIT("add         $0x20, %[src_im]")          /* src_im += 8 */ \
         __ASM_EMIT("add         $0x20, %[dst_re]")          /* dst_re += 8 */ \
         __ASM_EMIT("add         $0x20, %[dst_im]")          /* dst_im += 8 */ \
         __ASM_EMIT("sub         $8, %[count]")              /* count -= 8 */ \
-        __ASM_EMIT("jb          1b") \
+        __ASM_EMIT("jae         1b") \
         /* 4x RCP */ \
         __ASM_EMIT("2:") \
         __ASM_EMIT("add         $4, %[count]")              /* count += 4 */ \
-        __ASM_EMIT("jbe         10f") \
+        __ASM_EMIT("jl          10f") \
         __ASM_EMIT(MV_SRC_RE "  0x00(%[src_re]),  %%xmm0")  /* xmm0  = r0 */ \
         __ASM_EMIT(MV_SRC_IM "  0x00(%[src_im]),  %%xmm1")  /* xmm1  = i0 */ \
         __ASM_EMIT("movaps      %%xmm0, %%xmm4")            /* xmm4  = r0 */ \
@@ -1465,18 +1466,19 @@ void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float
         __ASM_EMIT("add         $0x10, %[src_im]")          /* src_im += 4 */ \
         __ASM_EMIT("add         $0x10, %[dst_re]")          /* dst_re += 4 */ \
         __ASM_EMIT("add         $0x10, %[dst_im]")          /* dst_im += 4 */ \
+        __ASM_EMIT("sub         $4, %[count]")              /* count -= 4 */ \
 
     __asm__ __volatile__ (
         /* Do block processing */
         __ASM_EMIT("test        %[count], %[count]")
         __ASM_EMIT("jz          50f")
 
-        CPLX_OP_MATRIX4(complex_rcp2_core, "src_re", "src_im", "dst_re", "dst_im")
+        CPLX_OP_MATRIX4(complex_rcp2_core, "dst_re", "dst_im", "src_re", "src_im")
 
         /* 1x RCP */
         __ASM_EMIT("10:")
         __ASM_EMIT("add         $4, %[count]")              /* count += 4 */
-        __ASM_EMIT("jbe         50f")
+        __ASM_EMIT("jle         50f")
         __ASM_EMIT("40:")
         __ASM_EMIT("movss       0x00(%[src_re]), %%xmm0")   /* xmm0  = r0 */
         __ASM_EMIT("movss       0x00(%[src_im]), %%xmm1")   /* xmm1  = i0 */
@@ -1516,12 +1518,12 @@ void complex_rcp1(float *dst_re, float *dst_im, size_t count)
 {
     #define complex_rcp1_core(MV_DST_RE, MV_DST_IM) \
         __ASM_EMIT("sub         $8, %[count]")              /* count -= 8 */ \
-        __ASM_EMIT("jbe         2f") \
+        __ASM_EMIT("jb          2f") \
         __ASM_EMIT("1:") \
         /* Perform 8x RCP */ \
         __ASM_EMIT(MV_DST_RE "  0x00(%[dst_re]), %%xmm0")   /* xmm0  = r0 */ \
-        __ASM_EMIT(MV_DST_IM "  0x00(%[dst_im]), %%xmm1")   /* xmm1  = i0 */ \
         __ASM_EMIT(MV_DST_RE "  0x10(%[dst_re]), %%xmm2")   /* xmm2  = r1 */ \
+        __ASM_EMIT(MV_DST_IM "  0x00(%[dst_im]), %%xmm1")   /* xmm1  = i0 */ \
         __ASM_EMIT(MV_DST_IM "  0x10(%[dst_im]), %%xmm3")   /* xmm3  = i1 */ \
         __ASM_EMIT("movaps      %%xmm0, %%xmm4")            /* xmm4  = r0 */ \
         __ASM_EMIT("movaps      %%xmm1, %%xmm5")            /* xmm5  = i0 */ \
@@ -1544,17 +1546,17 @@ void complex_rcp1(float *dst_re, float *dst_im, size_t count)
         __ASM_EMIT("mulps       %%xmm5, %%xmm1")            /* xmm1  = i0' = -i0 / (r0*r0 + i0*i0) */ \
         __ASM_EMIT("mulps       %%xmm7, %%xmm3")            /* xmm3  = i1' = -i1 / (r1*r1 + i1*i1) */ \
         __ASM_EMIT(MV_DST_RE "  %%xmm0, 0x00(%[dst_re])")   /* dst_re[0]  = r0' */ \
-        __ASM_EMIT(MV_DST_IM "  %%xmm1, 0x00(%[dst_im])")   /* dst_im[0]  = i0' */ \
         __ASM_EMIT(MV_DST_RE "  %%xmm2, 0x10(%[dst_re])")   /* dst_re[1]  = r1' */ \
+        __ASM_EMIT(MV_DST_IM "  %%xmm1, 0x00(%[dst_im])")   /* dst_im[0]  = i0' */ \
         __ASM_EMIT(MV_DST_IM "  %%xmm3, 0x10(%[dst_im])")   /* dst_im[1]  = i1' */ \
         __ASM_EMIT("add         $0x20, %[dst_re]")          /* dst_re += 8 */ \
         __ASM_EMIT("add         $0x20, %[dst_im]")          /* dst_im += 8 */ \
         __ASM_EMIT("sub         $8, %[count]")              /* count -= 8 */ \
-        __ASM_EMIT("jb          1b") \
+        __ASM_EMIT("jae         1b") \
         /* 4x RCP */ \
         __ASM_EMIT("2:") \
         __ASM_EMIT("add         $4, %[count]")              /* count += 4 */ \
-        __ASM_EMIT("jbe         10f") \
+        __ASM_EMIT("jl          10f") \
         __ASM_EMIT(MV_DST_RE "  0x00(%[dst_re]), %%xmm0")   /* xmm0  = r0 */ \
         __ASM_EMIT(MV_DST_IM "  0x00(%[dst_im]), %%xmm1")   /* xmm1  = i0 */ \
         __ASM_EMIT("movaps      %%xmm0, %%xmm4")            /* xmm4  = r0 */ \
@@ -1571,6 +1573,7 @@ void complex_rcp1(float *dst_re, float *dst_im, size_t count)
         __ASM_EMIT(MV_DST_IM "  %%xmm1, 0x00(%[dst_im])")   /* dst_im[0]  = i0' */ \
         __ASM_EMIT("add         $0x10, %[dst_re]")          /* dst_re += 4 */ \
         __ASM_EMIT("add         $0x10, %[dst_im]")          /* dst_im += 4 */ \
+        __ASM_EMIT("sub         $4, %[count]")              /* count -= 4 */ \
 
     __asm__ __volatile__ (
         /* Do block processing */
@@ -1582,7 +1585,7 @@ void complex_rcp1(float *dst_re, float *dst_im, size_t count)
         /* 1x RCP */
         __ASM_EMIT("10:")
         __ASM_EMIT("add         $4, %[count]")              /* count += 4 */
-        __ASM_EMIT("jbe         50f")
+        __ASM_EMIT("jle         50f")
         __ASM_EMIT("40:")
         __ASM_EMIT("movss       0x00(%[dst_re]), %%xmm0")   /* xmm0  = r0 */
         __ASM_EMIT("movss       0x00(%[dst_im]), %%xmm1")   /* xmm1  = i0 */
@@ -1619,20 +1622,20 @@ void packed_complex_rcp2(float *dst, const float *src, size_t count)
 {
     #define packed_complex_rcp2_core(MV_DST, MV_SRC) \
         __ASM_EMIT("sub         $8, %[count]")              /* count -= 8 */ \
-        __ASM_EMIT("jbe         2f") \
+        __ASM_EMIT("jb          2f") \
         __ASM_EMIT("1:") \
         /* Perform 8x RCP */ \
         __ASM_EMIT(MV_SRC    "  0x00(%[src]),  %%xmm0")     /* xmm0  = r0 i0 r1 i1 */ \
-        __ASM_EMIT(MV_SRC    "  0x10(%[src]),  %%xmm1")     /* xmm1  = r2 i2 r3 i3 */ \
+        __ASM_EMIT(MV_SRC    "  0x10(%[src]),  %%xmm4")     /* xmm4  = r2 i2 r3 i3 */ \
         __ASM_EMIT(MV_SRC    "  0x20(%[src]),  %%xmm2")     /* xmm2  = r4 i4 r5 i5 */ \
-        __ASM_EMIT(MV_SRC    "  0x30(%[src]),  %%xmm3")     /* xmm3  = r6 i6 r7 i7 */ \
+        __ASM_EMIT(MV_SRC    "  0x30(%[src]),  %%xmm5")     /* xmm5  = r6 i6 r7 i7 */ \
         /* Do shuffle */ \
-        __ASM_EMIT("movaps      %%xmm0, %%xmm4")            /* xmm4 = r0 i0 r1 i1 */ \
-        __ASM_EMIT("movaps      %%xmm2, %%xmm5")            /* xmm5 = r4 i4 r5 i5 */ \
-        __ASM_EMIT("shufps      $0x88, %%xmm4, %%xmm0")     /* xmm0 = r0 r1 r2 r3 */ \
-        __ASM_EMIT("shufps      $0x88, %%xmm5, %%xmm2")     /* xmm2 = r4 r5 r6 r7 */ \
-        __ASM_EMIT("shufps      $0xdd, %%xmm4, %%xmm1")     /* xmm1 = i0 i1 i2 i3 */ \
-        __ASM_EMIT("shufps      $0xdd, %%xmm5, %%xmm3")     /* xmm3 = i4 i5 i6 i7 */ \
+        __ASM_EMIT("movaps      %%xmm0, %%xmm1")            /* xmm1  = r0 i0 r1 i1 */ \
+        __ASM_EMIT("movaps      %%xmm2, %%xmm3")            /* xmm3  = r4 i4 r5 i5 */ \
+        __ASM_EMIT("shufps      $0x88, %%xmm4, %%xmm0")     /* xmm0  = r0 r1 r2 r3 */ \
+        __ASM_EMIT("shufps      $0x88, %%xmm5, %%xmm2")     /* xmm2  = r4 r5 r6 r7 */ \
+        __ASM_EMIT("shufps      $0xdd, %%xmm4, %%xmm1")     /* xmm1  = i0 i1 i2 i3 */ \
+        __ASM_EMIT("shufps      $0xdd, %%xmm5, %%xmm3")     /* xmm3  = i4 i5 i6 i7 */ \
         /* Perform operations */ \
         __ASM_EMIT("movaps      %%xmm0, %%xmm4")            /* xmm4  = r0 */ \
         __ASM_EMIT("movaps      %%xmm1, %%xmm5")            /* xmm5  = i0 */ \
@@ -1657,30 +1660,30 @@ void packed_complex_rcp2(float *dst, const float *src, size_t count)
         /* Do shuffle back */ \
         __ASM_EMIT("movaps      %%xmm0, %%xmm4")            /* xmm4 = r0' r1' r2' r3' */ \
         __ASM_EMIT("movaps      %%xmm2, %%xmm5")            /* xmm5 = r4' r5' r6' r7' */ \
-        __ASM_EMIT("unpcklps    %%xmm4, %%xmm0")            /* xmm0 = r0' i0' r1' i1' */ \
-        __ASM_EMIT("unpcklps    %%xmm5, %%xmm2")            /* xmm2 = r4' i4' r5' i5' */ \
-        __ASM_EMIT("unpckhps    %%xmm4, %%xmm1")            /* xmm1 = r2' i2' r3' i3' */ \
-        __ASM_EMIT("unpckhps    %%xmm5, %%xmm3")            /* xmm3 = r6' i6' r7' i7' */ \
+        __ASM_EMIT("unpcklps    %%xmm1, %%xmm0")            /* xmm0 = r0' i0' r1' i1' */ \
+        __ASM_EMIT("unpcklps    %%xmm3, %%xmm2")            /* xmm2 = r4' i4' r5' i5' */ \
+        __ASM_EMIT("unpckhps    %%xmm1, %%xmm4")            /* xmm4 = r2' i2' r3' i3' */ \
+        __ASM_EMIT("unpckhps    %%xmm3, %%xmm5")            /* xmm5 = r6' i6' r7' i7' */ \
         \
-        __ASM_EMIT(MV_DST    "  %%xmm0, 0x00(%[dst])")      /* dst[0]  = r0' */ \
-        __ASM_EMIT(MV_DST    "  %%xmm1, 0x10(%[dst])")      /* dst[1]  = i0' */ \
-        __ASM_EMIT(MV_DST    "  %%xmm2, 0x20(%[dst])")      /* dst[2]  = r1' */ \
-        __ASM_EMIT(MV_DST    "  %%xmm3, 0x30(%[dst])")      /* dst[3]  = i1' */ \
+        __ASM_EMIT(MV_DST    "  %%xmm0, 0x00(%[dst])")      /* dst[0]  = r0' i0' r1' i1' */ \
+        __ASM_EMIT(MV_DST    "  %%xmm4, 0x10(%[dst])")      /* dst[1]  = r2' i2' r3' i3' */ \
+        __ASM_EMIT(MV_DST    "  %%xmm2, 0x20(%[dst])")      /* dst[2]  = r4' i4' r5' i5' */ \
+        __ASM_EMIT(MV_DST    "  %%xmm5, 0x30(%[dst])")      /* dst[3]  = r6' i6' r7' i7' */ \
         __ASM_EMIT("add         $0x40, %[src]")             /* src += 16 */ \
         __ASM_EMIT("add         $0x40, %[dst]")             /* dst += 16 */ \
         __ASM_EMIT("sub         $8, %[count]")              /* count -= 8 */ \
-        __ASM_EMIT("jb          1b") \
+        __ASM_EMIT("jae         1b") \
         /* Next step */ \
         __ASM_EMIT("2:") \
         __ASM_EMIT("add         $4, %[count]")              /* count += 4 */ \
-        __ASM_EMIT("jbe         10f") \
+        __ASM_EMIT("jl          10f") \
         /* Perform 4x RCP */ \
         __ASM_EMIT(MV_SRC    "  0x00(%[src]),  %%xmm0")     /* xmm0  = r0 i0 r1 i1 */ \
-        __ASM_EMIT(MV_SRC    "  0x10(%[src]),  %%xmm1")     /* xmm1  = r2 i2 r3 i3 */ \
+        __ASM_EMIT(MV_SRC    "  0x10(%[src]),  %%xmm4")     /* xmm4  = r2 i2 r3 i3 */ \
         /* Do shuffle */ \
-        __ASM_EMIT("movaps      %%xmm0, %%xmm4")            /* xmm4 = r0 i0 r1 i1 */ \
-        __ASM_EMIT("shufps      $0x88, %%xmm4, %%xmm0")     /* xmm0 = r0 r1 r2 r3 */ \
-        __ASM_EMIT("shufps      $0xdd, %%xmm4, %%xmm1")     /* xmm1 = i0 i1 i2 i3 */ \
+        __ASM_EMIT("movaps      %%xmm0, %%xmm1")            /* xmm1  = r0 i0 r1 i1 */ \
+        __ASM_EMIT("shufps      $0x88, %%xmm4, %%xmm0")     /* xmm0  = r0 r1 r2 r3 */ \
+        __ASM_EMIT("shufps      $0xdd, %%xmm4, %%xmm1")     /* xmm1  = i0 i1 i2 i3 */ \
         /* Perform operations */ \
         __ASM_EMIT("movaps      %%xmm0, %%xmm4")            /* xmm4  = r0 */ \
         __ASM_EMIT("movaps      %%xmm1, %%xmm5")            /* xmm5  = i0 */ \
@@ -1694,13 +1697,14 @@ void packed_complex_rcp2(float *dst, const float *src, size_t count)
         __ASM_EMIT("mulps       %%xmm5, %%xmm1")            /* xmm1  = i0' = -i0 / (r0*r0 + i0*i0) */ \
         /* Do shuffle back */ \
         __ASM_EMIT("movaps      %%xmm0, %%xmm4")            /* xmm4 = r0' r1' r2' r3' */ \
-        __ASM_EMIT("unpcklps    %%xmm4, %%xmm0")            /* xmm0 = r0' i0' r1' i1' */ \
-        __ASM_EMIT("unpckhps    %%xmm4, %%xmm1")            /* xmm1 = r2' i2' r3' i3' */ \
+        __ASM_EMIT("unpcklps    %%xmm1, %%xmm0")            /* xmm0 = r0' i0' r1' i1' */ \
+        __ASM_EMIT("unpckhps    %%xmm1, %%xmm4")            /* xmm4 = r2' i2' r3' i3' */ \
         \
         __ASM_EMIT(MV_DST    "  %%xmm0, 0x00(%[dst])")      /* dst[0]  = r0' i0' r1' i1' */ \
-        __ASM_EMIT(MV_DST    "  %%xmm1, 0x10(%[dst])")      /* dst[1]  = r2' i2' r3' i3'  */ \
+        __ASM_EMIT(MV_DST    "  %%xmm4, 0x10(%[dst])")      /* dst[1]  = r2' i2' r3' i3'  */ \
         __ASM_EMIT("add         $0x20, %[src]")             /* src += 8 */ \
         __ASM_EMIT("add         $0x20, %[dst]")             /* dst += 8 */ \
+        __ASM_EMIT("sub         $4, %[count]")              /* count -= 4 */ \
 
     __asm__ __volatile__ (
         /* Do block processing */
@@ -1712,7 +1716,7 @@ void packed_complex_rcp2(float *dst, const float *src, size_t count)
         /* 1x RCP */
         __ASM_EMIT("10:")
         __ASM_EMIT("add         $4, %[count]")              /* count += 4 */
-        __ASM_EMIT("jbe         50f")
+        __ASM_EMIT("jle         50f")
         __ASM_EMIT("40:")
         __ASM_EMIT("movss       0x00(%[src]),  %%xmm0")     /* xmm0  = r0 */
         __ASM_EMIT("movss       0x04(%[src]),  %%xmm1")     /* xmm1  = i0 */
@@ -1727,7 +1731,7 @@ void packed_complex_rcp2(float *dst, const float *src, size_t count)
         __ASM_EMIT("mulss       %%xmm5, %%xmm0")            /* xmm0  = r0' = r0 / (r0*r0 + i0*i0) */
         __ASM_EMIT("mulss       %%xmm5, %%xmm1")            /* xmm1  = i0' = -i0 / (r0*r0 + i0*i0) */
         __ASM_EMIT("movss       %%xmm0, 0x00(%[dst])")      /* dst[0]  = r0' */
-        __ASM_EMIT("movss       %%xmm1, 0x01(%[dst])")      /* dst[1]  = i0' */
+        __ASM_EMIT("movss       %%xmm1, 0x04(%[dst])")      /* dst[1]  = i0' */
         __ASM_EMIT("add         $0x08, %[src]")             /* src += 2 */
         __ASM_EMIT("add         $0x08, %[dst]")             /* dst += 2 */
         __ASM_EMIT("dec         %[count]")                  /* count-- */
@@ -1749,20 +1753,20 @@ void packed_complex_rcp1(float *dst, size_t count)
 {
     #define packed_complex_rcp1_core(MV_DST) \
         __ASM_EMIT("sub         $8, %[count]")              /* count -= 8 */ \
-        __ASM_EMIT("jbe         2f") \
+        __ASM_EMIT("jb          2f") \
         __ASM_EMIT("1:") \
         /* Perform 8x RCP */ \
         __ASM_EMIT(MV_DST    "  0x00(%[dst]),  %%xmm0")     /* xmm0  = r0 i0 r1 i1 */ \
-        __ASM_EMIT(MV_DST    "  0x10(%[dst]),  %%xmm1")     /* xmm1  = r2 i2 r3 i3 */ \
+        __ASM_EMIT(MV_DST    "  0x10(%[dst]),  %%xmm4")     /* xmm4  = r2 i2 r3 i3 */ \
         __ASM_EMIT(MV_DST    "  0x20(%[dst]),  %%xmm2")     /* xmm2  = r4 i4 r5 i5 */ \
-        __ASM_EMIT(MV_DST    "  0x30(%[dst]),  %%xmm3")     /* xmm3  = r6 i6 r7 i7 */ \
+        __ASM_EMIT(MV_DST    "  0x30(%[dst]),  %%xmm5")     /* xmm5  = r6 i6 r7 i7 */ \
         /* Do shuffle */ \
-        __ASM_EMIT("movaps      %%xmm0, %%xmm4")            /* xmm4 = r0 i0 r1 i1 */ \
-        __ASM_EMIT("movaps      %%xmm2, %%xmm5")            /* xmm5 = r4 i4 r5 i5 */ \
-        __ASM_EMIT("shufps      $0x88, %%xmm4, %%xmm0")     /* xmm0 = r0 r1 r2 r3 */ \
-        __ASM_EMIT("shufps      $0x88, %%xmm5, %%xmm2")     /* xmm2 = r4 r5 r6 r7 */ \
-        __ASM_EMIT("shufps      $0xdd, %%xmm4, %%xmm1")     /* xmm1 = i0 i1 i2 i3 */ \
-        __ASM_EMIT("shufps      $0xdd, %%xmm5, %%xmm3")     /* xmm3 = i4 i5 i6 i7 */ \
+        __ASM_EMIT("movaps      %%xmm0, %%xmm1")            /* xmm1  = r0 i0 r1 i1 */ \
+        __ASM_EMIT("movaps      %%xmm2, %%xmm3")            /* xmm3  = r4 i4 r5 i5 */ \
+        __ASM_EMIT("shufps      $0x88, %%xmm4, %%xmm0")     /* xmm0  = r0 r1 r2 r3 */ \
+        __ASM_EMIT("shufps      $0x88, %%xmm5, %%xmm2")     /* xmm2  = r4 r5 r6 r7 */ \
+        __ASM_EMIT("shufps      $0xdd, %%xmm4, %%xmm1")     /* xmm1  = i0 i1 i2 i3 */ \
+        __ASM_EMIT("shufps      $0xdd, %%xmm5, %%xmm3")     /* xmm3  = i4 i5 i6 i7 */ \
         /* Perform operations */ \
         __ASM_EMIT("movaps      %%xmm0, %%xmm4")            /* xmm4  = r0 */ \
         __ASM_EMIT("movaps      %%xmm1, %%xmm5")            /* xmm5  = i0 */ \
@@ -1787,29 +1791,29 @@ void packed_complex_rcp1(float *dst, size_t count)
         /* Do shuffle back */ \
         __ASM_EMIT("movaps      %%xmm0, %%xmm4")            /* xmm4 = r0' r1' r2' r3' */ \
         __ASM_EMIT("movaps      %%xmm2, %%xmm5")            /* xmm5 = r4' r5' r6' r7' */ \
-        __ASM_EMIT("unpcklps    %%xmm4, %%xmm0")            /* xmm0 = r0' i0' r1' i1' */ \
-        __ASM_EMIT("unpcklps    %%xmm5, %%xmm2")            /* xmm2 = r4' i4' r5' i5' */ \
-        __ASM_EMIT("unpckhps    %%xmm4, %%xmm1")            /* xmm1 = r2' i2' r3' i3' */ \
-        __ASM_EMIT("unpckhps    %%xmm5, %%xmm3")            /* xmm3 = r6' i6' r7' i7' */ \
+        __ASM_EMIT("unpcklps    %%xmm1, %%xmm0")            /* xmm0 = r0' i0' r1' i1' */ \
+        __ASM_EMIT("unpcklps    %%xmm3, %%xmm2")            /* xmm2 = r4' i4' r5' i5' */ \
+        __ASM_EMIT("unpckhps    %%xmm1, %%xmm4")            /* xmm4 = r2' i2' r3' i3' */ \
+        __ASM_EMIT("unpckhps    %%xmm3, %%xmm5")            /* xmm5 = r6' i6' r7' i7' */ \
         \
-        __ASM_EMIT(MV_DST    "  %%xmm0, 0x00(%[dst])")      /* dst[0]  = r0' */ \
-        __ASM_EMIT(MV_DST    "  %%xmm1, 0x10(%[dst])")      /* dst[1]  = i0' */ \
-        __ASM_EMIT(MV_DST    "  %%xmm2, 0x20(%[dst])")      /* dst[2]  = r1' */ \
-        __ASM_EMIT(MV_DST    "  %%xmm3, 0x30(%[dst])")      /* dst[3]  = i1' */ \
+        __ASM_EMIT(MV_DST    "  %%xmm0, 0x00(%[dst])")      /* dst[0]  = r0' i0' r1' i1' */ \
+        __ASM_EMIT(MV_DST    "  %%xmm4, 0x10(%[dst])")      /* dst[1]  = r2' i2' r3' i3' */ \
+        __ASM_EMIT(MV_DST    "  %%xmm2, 0x20(%[dst])")      /* dst[2]  = r4' i4' r5' i5' */ \
+        __ASM_EMIT(MV_DST    "  %%xmm5, 0x30(%[dst])")      /* dst[3]  = r6' i6' r7' i7' */ \
         __ASM_EMIT("add         $0x40, %[dst]")             /* dst += 16 */ \
         __ASM_EMIT("sub         $8, %[count]")              /* count -= 8 */ \
-        __ASM_EMIT("jb          1b") \
+        __ASM_EMIT("jae         1b") \
         /* Next step */ \
         __ASM_EMIT("2:") \
         __ASM_EMIT("add         $4, %[count]")              /* count += 4 */ \
-        __ASM_EMIT("jbe         10f") \
+        __ASM_EMIT("jl          10f") \
         /* Perform 4x RCP */ \
         __ASM_EMIT(MV_DST    "  0x00(%[dst]),  %%xmm0")     /* xmm0  = r0 i0 r1 i1 */ \
-        __ASM_EMIT(MV_DST    "  0x10(%[dst]),  %%xmm1")     /* xmm1  = r2 i2 r3 i3 */ \
+        __ASM_EMIT(MV_DST    "  0x10(%[dst]),  %%xmm4")     /* xmm4  = r2 i2 r3 i3 */ \
         /* Do shuffle */ \
-        __ASM_EMIT("movaps      %%xmm0, %%xmm4")            /* xmm4 = r0 i0 r1 i1 */ \
-        __ASM_EMIT("shufps      $0x88, %%xmm4, %%xmm0")     /* xmm0 = r0 r1 r2 r3 */ \
-        __ASM_EMIT("shufps      $0xdd, %%xmm4, %%xmm1")     /* xmm1 = i0 i1 i2 i3 */ \
+        __ASM_EMIT("movaps      %%xmm0, %%xmm1")            /* xmm1  = r0 i0 r1 i1 */ \
+        __ASM_EMIT("shufps      $0x88, %%xmm4, %%xmm0")     /* xmm0  = r0 r1 r2 r3 */ \
+        __ASM_EMIT("shufps      $0xdd, %%xmm4, %%xmm1")     /* xmm1  = i0 i1 i2 i3 */ \
         /* Perform operations */ \
         __ASM_EMIT("movaps      %%xmm0, %%xmm4")            /* xmm4  = r0 */ \
         __ASM_EMIT("movaps      %%xmm1, %%xmm5")            /* xmm5  = i0 */ \
@@ -1823,12 +1827,13 @@ void packed_complex_rcp1(float *dst, size_t count)
         __ASM_EMIT("mulps       %%xmm5, %%xmm1")            /* xmm1  = i0' = -i0 / (r0*r0 + i0*i0) */ \
         /* Do shuffle back */ \
         __ASM_EMIT("movaps      %%xmm0, %%xmm4")            /* xmm4 = r0' r1' r2' r3' */ \
-        __ASM_EMIT("unpcklps    %%xmm4, %%xmm0")            /* xmm0 = r0' i0' r1' i1' */ \
-        __ASM_EMIT("unpckhps    %%xmm4, %%xmm1")            /* xmm1 = r2' i2' r3' i3' */ \
+        __ASM_EMIT("unpcklps    %%xmm1, %%xmm0")            /* xmm0 = r0' i0' r1' i1' */ \
+        __ASM_EMIT("unpckhps    %%xmm1, %%xmm4")            /* xmm4 = r2' i2' r3' i3' */ \
         \
         __ASM_EMIT(MV_DST    "  %%xmm0, 0x00(%[dst])")      /* dst[0]  = r0' i0' r1' i1' */ \
-        __ASM_EMIT(MV_DST    "  %%xmm1, 0x10(%[dst])")      /* dst[1]  = r2' i2' r3' i3'  */ \
+        __ASM_EMIT(MV_DST    "  %%xmm4, 0x10(%[dst])")      /* dst[1]  = r2' i2' r3' i3'  */ \
         __ASM_EMIT("add         $0x20, %[dst]")             /* dst += 8 */ \
+        __ASM_EMIT("sub         $4, %[count]")              /* count -= 4 */ \
 
     __asm__ __volatile__ (
         /* Do block processing */
@@ -1840,7 +1845,7 @@ void packed_complex_rcp1(float *dst, size_t count)
         /* 1x RCP */
         __ASM_EMIT("10:")
         __ASM_EMIT("add         $4, %[count]")              /* count += 4 */
-        __ASM_EMIT("jbe         50f")
+        __ASM_EMIT("jle         50f")
         __ASM_EMIT("40:")
         __ASM_EMIT("movss       0x00(%[dst]),  %%xmm0")     /* xmm0  = r0 */
         __ASM_EMIT("movss       0x04(%[dst]),  %%xmm1")     /* xmm1  = i0 */
@@ -1855,7 +1860,7 @@ void packed_complex_rcp1(float *dst, size_t count)
         __ASM_EMIT("mulss       %%xmm5, %%xmm0")            /* xmm0  = r0' = r0 / (r0*r0 + i0*i0) */
         __ASM_EMIT("mulss       %%xmm5, %%xmm1")            /* xmm1  = i0' = -i0 / (r0*r0 + i0*i0) */
         __ASM_EMIT("movss       %%xmm0, 0x00(%[dst])")      /* dst[0]  = r0' */
-        __ASM_EMIT("movss       %%xmm1, 0x01(%[dst])")      /* dst[1]  = i0' */
+        __ASM_EMIT("movss       %%xmm1, 0x04(%[dst])")      /* dst[1]  = i0' */
         __ASM_EMIT("add         $0x08, %[dst]")             /* dst += 2 */
         __ASM_EMIT("dec         %[count]")                  /* count-- */
         __ASM_EMIT("jnz         40b")

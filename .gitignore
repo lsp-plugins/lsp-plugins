@@ -9,4 +9,7 @@
 /test_data/*
 /.project
 /.cproject
-/Debug/
+/Debug/*
+/Release/*
+/Debug AVX/*
+/Release AVX/*
