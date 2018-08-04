@@ -150,8 +150,7 @@ namespace lsp
             IPort              *pLdMaxLatency;          // Latency Detector Max expected latency
             IPort              *pLdPeakThs;             // Latency Detector Peak Threshold
             IPort              *pLdAbsThs;              // Latency Detector Absolute Threshold
-            IPort              *pLdSkipSwitch;          // Switch to skip LATENCYDETECTION phase in measurement (if possible)
-            IPort              *pLdSkipLed;             // LED to show whether the LATENCYDETECTION is set to be skipped.
+            IPort              *pLdEnableSwitch;        // Switch to enable LATENCYDETECTION phase in measurement (if possible)
 
             IPort              *pDuration;              // Profiling Sync Chirp Duration
             IPort              *pActualDuration;        // Actual Sync Chirp Duration after optimisation

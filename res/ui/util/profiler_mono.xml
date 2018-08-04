@@ -8,30 +8,30 @@
 				</grid>
 				<graph width="1024" height="300" expand="true" fill="true">
 					<center hpos="-1.0" vpos="0.0" visible="false" />
-					<axis min="0" max="2.0" color="white" angle="0.0" logarithmic="false" />
-					<axis min="-1.0" max="1.0" color="white" angle="0.5" logarithmic="false" />
+					<axis min="0" max="2.0" color="g_white" angle="0.0" logarithmic="false" />
+					<axis min="-1.0" max="1.0" color="g_white" angle="0.5" logarithmic="false" />
 
 					<mesh id="resdy" width="3" />
 					
-					<marker value="-1" color="white" basis="1" parallel="0" />
-					<marker value="-0.75" color="gray" basis="1" parallel="0" />
-					<marker value="-0.5" color="white" basis="1" parallel="0" />
-					<marker value="-0.25" color="gray" basis="1" parallel="0" />
-					<marker value="0.25" color="gray" basis="1" parallel="0" />
-					<marker value="0.5" color="white" basis="1" parallel="0" />
-					<marker value="0.75" color="gray" basis="1" parallel="0" />
-					<marker value="1" color="white" basis="1" parallel="0" />
+					<marker value="-1" color="g_white" basis="1" parallel="0" />
+					<marker value="-0.75" color="g_gray" basis="1" parallel="0" />
+					<marker value="-0.5" color="g_yellow" basis="1" parallel="0" />
+					<marker value="-0.25" color="g_gray" basis="1" parallel="0" />
+					<marker value="0.25" color="g_gray" basis="1" parallel="0" />
+					<marker value="0.5" color="g_yellow" basis="1" parallel="0" />
+					<marker value="0.75" color="g_gray" basis="1" parallel="0" />
+					<marker value="1" color="g_white" basis="1" parallel="0" />
 					
-					<marker value="0.25" color="gray" basis="0" parallel="1" />
-					<marker value="0.5" color="white" basis="0" parallel="1" />
-					<marker value="0.75" color="gray" basis="0" parallel="1" />
-					<marker value="1" color="white" basis="0" parallel="1" />
-					<marker value="1.25" color="gray" basis="0" parallel="1" />
-					<marker value="1.5" color="white" basis="0" parallel="1" />
-					<marker value="1.75" color="gray" basis="0" parallel="1" />
-					<marker value="2" color="white" basis="0" parallel="1" />
+					<marker value="0.25" color="g_gray" basis="0" parallel="1" />
+					<marker value="0.5" color="g_yellow" basis="0" parallel="1" />
+					<marker value="0.75" color="g_gray" basis="0" parallel="1" />
+					<marker value="1" color="g_white" basis="0" parallel="1" />
+					<marker value="1.25" color="g_gray" basis="0" parallel="1" />
+					<marker value="1.5" color="g_yellow" basis="0" parallel="1" />
+					<marker value="1.75" color="g_gray" basis="0" parallel="1" />
+					<marker value="2" color="g_white" basis="0" parallel="1" />
 
-					<text text="RT" coord="0;-1" halign="1" valign="1" />
+					<text text="Reverb Time" coord="0;-1" halign="1" valign="1" />
 					<text text="0.25" coord="0.5;-1" halign="-1" valign="1" />					
 					<text text="0.5" coord="1;-1" halign="-1" valign="1" />					
 					<text text="0.75" coord="1.5;-1" halign="-1" valign="1" />
@@ -43,12 +43,12 @@
 					<text text="-0.5" coord="0;-0.5" halign="1" valign="-1" />
 				</graph>
 				<grid rows="2" cols="10" expand="true" fill="true">
-					<label text="Offset" />
+					<label text="IR Offset" />
 					<label text="Latency (ms)" />
 					<label text="RT Algorithm" />
 					<label text="Low Back&#10;Noise" />
-					<label text="RT (s)" />
-					<label text="R" />
+					<label text="Reverb&#10;Time (s)" />
+					<label text="Energy&#10;Decay" />
 					<label text="Coarse&#10;IR Duration (s)" />
 					<label text="Post-process" />
 					<label text="Save Mode" />
@@ -56,7 +56,7 @@
 					
 					<grid rows="2" cols="1" expand="false" fill="true">
 						<knob id="offc" />
-						<value id="offc"/>
+						<value id="offc" same_line="true" />
 					</grid>
 					<indicator id="ltind" format="f6.3!" text_color="green" />
 					<combo id="scra" fill="true" />
@@ -88,9 +88,9 @@
 					<knob id="cala" />
 					<value id="cala"/>
 					
-					<label text="ON/OFF" />
-					<button id="cals" size="32" />
-					<led id="stld" key="1" />
+					<label text="Enabled" />
+					<button id="cals" color="green" size="32" led="true" />
+					<label />
 				</grid>	
 			</group>
 			<group text="Latency Detector" expand="true" fill="true">
@@ -98,17 +98,17 @@
 					<label text="Max Latency" />
 					<label text="Peak"/>
 					<label text="Absolute"/>
-					<label text="Skip" />
+					<label text="Enable" />
 					
 					<knob id="ltdm" />
 					<knob id="ltdp" />
 					<knob id="ltda" />
-					<button id="ltsk" size="32" />
+					<button id="ltena" color="green" size="32" led="true" />
 					
 					<value id="ltdm" />
 					<value id="ltdp" />
 					<value id="ltda" />
-					<led id="skld" />
+					<label />
 				</grid>	
 			</group>
 			<group text="Test Signal" expand="true" fill="true">

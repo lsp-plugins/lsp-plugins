@@ -256,8 +256,7 @@ namespace lsp
         pLdMaxLatency           = NULL;
         pLdPeakThs              = NULL;
         pLdAbsThs               = NULL;
-        pLdSkipSwitch           = NULL;
-        pLdSkipLed              = NULL;
+        pLdEnableSwitch         = NULL;
 
         pDuration               = NULL;
         pActualDuration         = NULL;
@@ -421,8 +420,7 @@ namespace lsp
         pLdMaxLatency           = vPorts[port_id++];
         pLdPeakThs              = vPorts[port_id++];
         pLdAbsThs               = vPorts[port_id++];
-        pLdSkipSwitch           = vPorts[port_id++];
-        pLdSkipLed              = vPorts[port_id++];
+        pLdEnableSwitch         = vPorts[port_id++];
 
         pDuration               = vPorts[port_id++];
         pActualDuration         = vPorts[port_id++];
@@ -783,12 +781,7 @@ namespace lsp
         sLatencyDetector.set_ip_detection(pLdMaxLatency->getValue() / 1000.0f);
         sLatencyDetector.set_peak_threshold(pLdPeakThs->getValue());
         sLatencyDetector.set_abs_threshold(pLdAbsThs->getValue());
-        bSkipLatencyDetection       = pLdSkipSwitch->getValue() >= 0.5f;
-
-        if(bSkipLatencyDetection)
-            pLdSkipLed->setValue(1.0f);
-        else
-            pLdSkipLed->setValue(0.0f);
+        bSkipLatencyDetection       = pLdEnableSwitch->getValue() < 0.5f;
 
         // Since triggers make update_settings() to be called twice (on pressure
         // and on release) these lines are needed in order to make the actual

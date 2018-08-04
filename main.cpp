@@ -135,7 +135,7 @@
 //#define TEST solutions3d_test
 //#define TEST objfile3d_test
 //#define TEST anyfile3d_test
-#define TEST synchronizedchirp_test
+//#define TEST synchronizedchirp_test
 //#define TEST lspc_test
 
 //#define TEST bt_test
@@ -144,7 +144,7 @@
 //#define TEST mt_perf_test
 //#define TEST root_test
 
-//#define TEST jack_test
+#define TEST jack_test
 //#define TEST selection_test
 //#define TEST endian_test
 

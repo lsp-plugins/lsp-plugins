@@ -127,7 +127,7 @@
 <ul>
 	<li><b>Input Level (dB)</b> - Indicator that reports the input level in dB.</li>
 	<li><b>Results Graph</b> - Graph that shows the results of the profiling process.</li>
-	<li><b>Offset</b> - Introduce an offset from the middle of the Linear Impulse Response, for post processing purposes, milliseconds.</li>
+	<li><b>IR Offset</b> - Introduce an offset from the middle of the Linear Impulse Response, for post processing purposes, milliseconds.</li>
     <li><b>Latency (ms)</b> - Indicator that reports the measured latency in milliseconds.</li>
     <li><b>RT Algorithm</b> - Reverberation Time (RT) is calculated by linear regression of the Energy Decay curve.
     The limits are chosen by this selector. All saving ranges are rounded to the next tenth of second.</li>
@@ -139,18 +139,18 @@
 	    <li><b>RT30</b> - Reverberation Time, Linear Regression algorithm on values of Energy Decay between -5 dB and -35 dB from peak.</li>
     </ul>
     <li><b>Low Back Noise</b> - If shining, the background noise and/or offset are optimal for the selected RT algorithm accuracy.</li>
-    <li><b>RT (s)</b> - Indicator that reports the estimated overall Reverberation Time in seconds, according to the selected RT algorithm and offset.</li>
-    <li><b>R</b> - Indicator that reports the correlation coefficient of the Energy Decay linear regression line used for RT calculation.</li>
+    <li><b>Reverb Time (s)</b> - Indicator that reports the estimated overall Reverberation Time in seconds, according to the selected RT algorithm and offset.</li>
+    <li><b>Energy Decay</b> - Indicator that reports the correlation coefficient of the Energy Decay linear regression line used for RT calculation.</li>
     <li><b>Coarse IR Duration (s)</b> - Indicator that reports the coarse value of measured Linear Impulse Response duration,
     estimated by Energy Decay envelope, in seconds.</li>
     <li><b>Post-process</b> - Button that forces the plugin to post-process the measurement result.</li>
     <li><b>Save Mode</b></li>
     <ul>
-	    <li><b>LTI Auto (*.wav)</b> - Save, as a wav file, the Linear Impulse Response from the offset value up to the largest value of time between RT and Coarse IR Duration.</li>
-	    <li><b>LTI RT (*.wav)</b> - Save, as a wav file, the Linear Impulse Response from the offset value up to to the RT value.</li>
-	    <li><b>LTI Coarse (*.wav)</b> - Save, as a wav file, the Linear Impulse Response from the offset value up to the Coarse IR Duration value.</li>
-	    <li><b>LTI All (*.wav)</b> - Save, as a wav file, all the measured samples of Linear Impulse Response to the right of the offset value.</li>
-	    <li><b>All Info (*.lspc)</b> - Save, as an lspc file, all the measured information. In this case the offset control does not affect the saved quantities.</li>
+	    <li><b>LTI Auto (*.wav)</b> - Save, as a WAV file, the Linear Impulse Response from the offset value up to the largest value of time between RT and Coarse IR Duration.</li>
+	    <li><b>LTI RT (*.wav)</b> - Save, as a WAV file, the Linear Impulse Response from the offset value up to to the RT value.</li>
+	    <li><b>LTI Coarse (*.wav)</b> - Save, as a WAV file, the Linear Impulse Response from the offset value up to the Coarse IR Duration value.</li>
+	    <li><b>LTI All (*.wav)</b> - Save, as a WAV file, all the measured samples of Linear Impulse Response to the right of the offset value.</li>
+	    <li><b>All Info (*.lspc)</b> - Save, as an LSPC file, all the measured information. In this case the offset control does not affect the saved quantities.</li>
     </ul>
     <li><b>Save</b> - Save button.</li>
 </ul>
@@ -158,7 +158,7 @@
 <ul>
     <li><b>Frequency</b> - Frequency of the Calibration tone.</li>
     <li><b>Amplitude</b> - Amplitude of the Calibration tone.</li>
-    <li><b>Calibrator Switch</b> - Switches ON and OFF the Calibration tone.</li>
+    <li><b>Enable</b> - Switches ON and OFF the Calibration tone.</li>
 </ul>
 <p><b>'Latency Detector' section:</b></p>
 <ul>
@@ -166,7 +166,7 @@
     <li><b>Peak</b> - Peak threshold for early detection: if the gap between consecutive local convolution peaks is higher than this value
     the plugin returns the latency associated with the highest peak.</li>
     <li><b>Absolute</b> - Absolute threshold for the detection algorithm: values of convolution smaller than this are ignored by the algorithm.</li>
-    <li><b>Skip</b> - If this control is activated, Latency Detection is omitted by the profiling sequence.</li>
+    <li><b>Enable</b> - Enables latency detection, if this control is deactivated, Latency Detection is omitted by the profiling sequence.</li>
 </ul>
 <p><b>'Test Signal' section:</b></p>
 <ul>
