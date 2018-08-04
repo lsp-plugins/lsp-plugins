@@ -6,3 +6,10 @@
 /test/im_reverbs/*
 /design/articles/*
 /test_data/*
+/Debug/*
+/Release/*
+/Debug AVX/*
+/Release AVX/*
+/.cproject
+/.project
+/.settings/*
