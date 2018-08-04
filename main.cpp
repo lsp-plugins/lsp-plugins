@@ -127,7 +127,7 @@
 //#define TEST oversampling_test
 //#define TEST oversampler_test
 
-//#define TEST sse_test
+#define TEST sse_test
 //#define TEST latencydetector_test
 //#define TEST geometry3d_test
 //#define TEST solutions3d_test
@@ -141,7 +141,7 @@
 //#define TEST mt_perf_test
 //#define TEST root_test
 
-#define TEST jack_test
+//#define TEST jack_test
 //#define TEST selection_test
 
 

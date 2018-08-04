@@ -108,6 +108,10 @@ namespace test
                 randomize_positive();
             }
 
+            inline float operator [] (size_t index) {
+                return pBuffer[index];
+            }
+
             template <typename T>
                 inline T *data()
                 {

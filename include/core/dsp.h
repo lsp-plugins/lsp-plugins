@@ -588,6 +588,31 @@ namespace lsp
                 const float *src2_re, const float *src2_im,
                 size_t count
             );
+        
+        /** Calculate complex reciprocal: 1 / (re + j * im)
+         *
+         * @param dst_re source, destination real part
+         * @param dst_im source, destination imaginary part
+         * @param count number of multiplications
+         */
+        extern void (* complex_rcp1)(
+                float *dst_re, float *dst_im,
+                size_t count
+            );
+        
+        /** Calculate complex reciprocal: 1 / (re + j * im)
+         *
+         * @param dst_re destination real part
+         * @param dst_im destination imaginary part
+         * @param src_re source real part
+         * @param src_im source imaginary part
+         * @param count number of multiplications
+         */
+        extern void (* complex_rcp2)(
+                float *dst_re, float *dst_im,
+                const float *src_re, const float *src_im,
+                size_t count
+            );
 
         /** Calculate packed complex multiplication
          *
@@ -597,6 +622,21 @@ namespace lsp
          * @param count number of multiplications
          */
         extern void (* packed_complex_mul)(float *dst, const float *src1, const float *src2, size_t count);
+        
+        /** Calculate packed complex reciprocal: 1 / (re + j * im)
+         *
+         * @param dst source, destination to store complex numbers
+         * @param count number of multiplications
+         */
+        extern void (* packed_complex_rcp1)(float *dst, size_t count);
+        
+        /** Calculate packed complex reciprocal: 1 / (re + j * im)
+         *
+         * @param dst destination to store complex numbers
+         * @param src source
+         * @param count number of multiplications
+         */
+        extern void (* packed_complex_rcp2)(float *dst, const float *src, size_t count);
 
         /** Fill output array with same complex numbers
          *

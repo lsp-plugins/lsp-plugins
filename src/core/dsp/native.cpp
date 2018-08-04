@@ -140,7 +140,11 @@ namespace lsp
             dsp::fastconv_apply             = native::fastconv_apply;
 
             dsp::complex_mul                = native::complex_mul;
+            dsp::complex_rcp1               = native::complex_rcp1;
+            dsp::complex_rcp2               = native::complex_rcp2;
             dsp::packed_complex_mul         = native::packed_complex_mul;
+            dsp::packed_complex_rcp1        = native::packed_complex_rcp1;
+            dsp::packed_complex_rcp2        = native::packed_complex_rcp2;
             dsp::packed_complex_fill        = native::packed_complex_fill;
             dsp::packed_real_to_complex     = native::packed_real_to_complex;
             dsp::packed_complex_to_real     = native::packed_complex_to_real;
