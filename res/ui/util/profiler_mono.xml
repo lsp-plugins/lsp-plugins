@@ -133,27 +133,32 @@
 					<button id="lint" size="32" color="yellow" led="true" />	
 				</grid>	
 			</group>
-			<group text="State" expand="true" fill="true">
-				<grid rows="9" cols="2" hspacing="4" transpose="true">
+			<group text="State" expand="false" fill="true">
+				<grid rows="5" cols="4" hspacing="2" transpose="true" fill="false">
 					<label text="IDLE" fill="true" halign="1" />
-					<label text="CALIBRATION" fill="true" halign="1" />
-					<label text="LATENCY DETECTION" fill="true" halign="1" />
+					<label text="CALIBRATING" fill="true" halign="1" />
+					<label text="DETECTING LATENCY" fill="true" halign="1" />
 					<label text="PREPROCESSING" fill="true" halign="1" />
-					<label text="WAIT" fill="true" halign="1" />
-					<label text="RECORDING" fill="true" halign="1" />
-					<label text="CONVOLVING" fill="true" halign="1" />
-					<label text="POSTPROCESSING" fill="true" halign="1" />
-					<label text="SAVING" fill="true" halign="1" />
+					<label text="WAITING" fill="true" halign="1" />
 					
 					<led id="stld" key="0" />
 					<led id="stld" key="1" />
 					<led id="stld" key="2" />
 					<led id="stld" key="3" />
 					<led id="stld" key="4" />
+					
 					<led id="stld" key="5" />
 					<led id="stld" key="6" />
 					<led id="stld" key="7" />
 					<led id="stld" key="8" />
+					<label />
+					
+					<label text="RECORDING" fill="true" halign="0" />
+					<label text="CONVOLVING" fill="true" halign="0" />
+					<label text="POSTPROCESSING" fill="true" halign="0" />
+					<label text="SAVING" fill="true" halign="0" />
+					<label />
+					
 				</grid>
 			</group>
 		</hbox>
