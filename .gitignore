@@ -13,3 +13,4 @@
 /Release/*
 /Debug AVX/*
 /Release AVX/*
+/Release/

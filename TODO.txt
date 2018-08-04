@@ -18,6 +18,7 @@
 === 1.1.4 ===
 * Changed licensing to GNU Lesser General Public License version 3 (GNU LGPL v3).
 * Moved code repository to GitHub while keeping release history.
+* Implemented additional functions to DSP core.
 - Implemented linear profiler plugin.
 
 *******************************************************************************
