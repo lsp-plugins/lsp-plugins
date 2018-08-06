@@ -3662,8 +3662,10 @@ typedef struct VstPatchChunkInfo
  */
 inline char* vst_strncpy (char* dst, const char* src, size_t max_len)
 {
-    char* result = strncpy (dst, src, max_len);
-    dst[max_len] = '\0';
+    if (max_len <= 0)
+        return dst;
+    char* result = strncpy (dst, src, max_len-1);
+    dst[max_len-1] = '\0';
     return result;
 }
 
@@ -3676,8 +3678,10 @@ inline char* vst_strncpy (char* dst, const char* src, size_t max_len)
  */
 inline char* vst_strncat (char* dst, const char* src, size_t max_len)
 {
-    char* result = strncat (dst, src, max_len);
-    dst[max_len] = '\0';
+    if (max_len <= 0)
+        return dst;
+    char* result = strncat (dst, src, max_len-1);
+    dst[max_len-1] = '\0';
     return result;
 }
 

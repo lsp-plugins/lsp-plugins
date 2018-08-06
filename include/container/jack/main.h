@@ -172,7 +172,7 @@ namespace lsp
     {
         lsp_debug("Trying to find CORE library");
 
-        char path[PATH_MAX];
+        char path[PATH_MAX+1];
         jack_main_function_t jack_main  = NULL;
 
         // Try to find files in current directory
