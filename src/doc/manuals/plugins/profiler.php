@@ -87,7 +87,7 @@
     <ul>
         <li>Background noise magnitude.</li>
         <li>Overall Reverberation Time (RT).</li>
-        <li>Energy Decay Regression Line correlation coefficient (R).</li>
+        <li>Energy Decay Linear Correlation coefficient.</li>
         <li>Coarse Linear Impulse Response Duration</li>
     </ul>
     All the quantities above are mostly relevant for linear time invariant (LTI) systems. The result will be displayed and postprocessed from the middle of the
@@ -139,8 +139,8 @@
 	    <li><b>RT30</b> - Reverberation Time, Linear Regression algorithm on values of Energy Decay between -5 dB and -35 dB from peak.</li>
     </ul>
     <li><b>Low Back Noise</b> - If shining, the background noise and/or offset are optimal for the selected RT algorithm accuracy.</li>
-    <li><b>Reverb Time (s)</b> - Indicator that reports the estimated overall Reverberation Time in seconds, according to the selected RT algorithm and offset.</li>
-    <li><b>Energy Decay</b> - Indicator that reports the correlation coefficient of the Energy Decay linear regression line used for RT calculation.</li>
+    <li><b>Reverberation Time (s)</b> - Indicator that reports the estimated overall Reverberation Time in seconds, according to the selected RT algorithm and Offset.</li>
+    <li><b>Energy Decay Linear Correlation</b> - Indicator that reports the Pearson correlation coefficient of the Energy Decay linear regression line used for Reverberation Time calculation.</li>
     <li><b>Coarse IR Duration (s)</b> - Indicator that reports the coarse value of measured Linear Impulse Response duration,
     estimated by Energy Decay envelope, in seconds.</li>
     <li><b>Post-process</b> - Button that forces the plugin to post-process the measurement result.</li>

@@ -93,7 +93,7 @@ namespace lsp
                 SC_SVMODE_DFL = SC_SVMODE_AUTO
             };
 
-            static const size_t RESULT_MESH_SIZE    = 1024;
+            static const size_t RESULT_MESH_SIZE    = 512;
     };
 }
 
