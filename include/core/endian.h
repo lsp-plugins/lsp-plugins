@@ -18,11 +18,32 @@
 #endif /* defined(__x86_64__) || defined(__i386__) */
 
 // Define macros
-#if defined(__x86_64__) || defined(__i386__)
-    #define LE_DATA(x)              (x)
-    #define BE_DATA(x)              byte_swap(x)
+#ifdef ARCH_LE
+    #define LE_TO_CPU(x)            (x)
+    #define CPU_TO_LE(x)            (x)
+
+    #define BE_TO_CPU(x)            byte_swap(x)
+    #define CPU_TO_BE(x)            byte_swap(x)
+
+    #define VLE_TO_CPU(v, n)
+    #define CPU_TO_VLE(v, n)
+
+    #define VBE_TO_CPU(v, n)        byte_swap(v, n)
+    #define CPU_TO_VBE(v, n)        byte_swap(v, n)
+    
 #else
-    #error "Has to be specified LE/BE model for the architecture"
+    #define LE_TO_CPU(x)            byte_swap(x)
+    #define CPU_TO_LE(x)            byte_swap(x)
+
+    #define BE_TO_CPU(x)            (x)
+    #define CPU_TO_BE(x)            (x)
+
+    #define VLE_TO_CPU(v, n)        byte_swap(v, n)
+    #define CPU_TO_VLE(v, n)        byte_swap(v, n)
+
+    #define VBE_TO_CPU(v, n)
+    #define CPU_TO_VBE(v, n)
+
 #endif /* */
 
 namespace lsp

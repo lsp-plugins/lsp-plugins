@@ -29,12 +29,12 @@ namespace lspc_test
         ahdr.codec          = LSPC_CODEC_PCM;
         ahdr.frames         = 48000;
 
-        ahdr.version        = BE_DATA(ahdr.version);
-        ahdr.channels       = BE_DATA(ahdr.channels);
-        ahdr.sample_format  = BE_DATA(ahdr.sample_format);
-        ahdr.sample_rate    = BE_DATA(ahdr.sample_rate);
-        ahdr.codec          = BE_DATA(ahdr.codec);
-        ahdr.frames         = BE_DATA(ahdr.frames);
+        ahdr.version        = CPU_TO_BE(ahdr.version);
+        ahdr.channels       = CPU_TO_BE(ahdr.channels);
+        ahdr.sample_format  = CPU_TO_BE(ahdr.sample_format);
+        ahdr.sample_rate    = CPU_TO_BE(ahdr.sample_rate);
+        ahdr.codec          = CPU_TO_BE(ahdr.codec);
+        ahdr.frames         = CPU_TO_BE(ahdr.frames);
 
         wr->write(&ahdr, sizeof(ahdr));
         size_t chunk_id     = wr->unique_id();
@@ -42,7 +42,7 @@ namespace lspc_test
         for (size_t i=0; i<48000; ++i)
         {
             frame = sinf(2 * M_PI * i / 48000);
-            frame = LE_DATA(frame);
+            frame = LE_TO_CPU(frame);
             wr->write(&frame, sizeof(frame));
         }
         wr->close();
@@ -64,15 +64,15 @@ namespace lspc_test
         prof.initial_freq   = 10.0;
         prof.final_freq     = 48000.0;
 
-        prof.version        = BE_DATA(prof.version);
-        prof.chunk_id       = BE_DATA(prof.chunk_id);
-        prof.chirp_order    = BE_DATA(prof.chirp_order);
-        prof.alpha          = BE_DATA(prof.alpha);
-        prof.beta           = BE_DATA(prof.beta);
-        prof.gamma          = BE_DATA(prof.gamma);
-        prof.delta          = BE_DATA(prof.delta);
-        prof.initial_freq   = BE_DATA(prof.initial_freq);
-        prof.final_freq     = BE_DATA(prof.final_freq);
+        prof.version        = CPU_TO_BE(prof.version);
+        prof.chunk_id       = CPU_TO_BE(prof.chunk_id);
+        prof.chirp_order    = CPU_TO_BE(prof.chirp_order);
+        prof.alpha          = CPU_TO_BE(prof.alpha);
+        prof.beta           = CPU_TO_BE(prof.beta);
+        prof.gamma          = CPU_TO_BE(prof.gamma);
+        prof.delta          = CPU_TO_BE(prof.delta);
+        prof.initial_freq   = CPU_TO_BE(prof.initial_freq);
+        prof.final_freq     = CPU_TO_BE(prof.final_freq);
 
         wr->write(&prof, sizeof(lspc_chunk_audio_profile_t));
         wr->close();
@@ -97,20 +97,20 @@ namespace lspc_test
                 ssize_t n = rd->read(&prof, sizeof(lspc_chunk_audio_profile_t));
                 if (n != sizeof(lspc_chunk_audio_profile_t))
                     continue;
-                lsp_trace("version = %d", int(BE_DATA(prof.version)));
-                lsp_trace("chunk_id = %d", int(BE_DATA(prof.chunk_id)));
-                lsp_trace("chirp_order = %d", int(BE_DATA(prof.chirp_order)));
-                lsp_trace("alpha = %f", BE_DATA(prof.alpha));
-                lsp_trace("beta = %f", BE_DATA(prof.beta));
-                lsp_trace("gamma = %f", BE_DATA(prof.gamma));
-                lsp_trace("delta = %f", BE_DATA(prof.delta));
-                lsp_trace("initial_freq = %f", BE_DATA(prof.initial_freq));
-                lsp_trace("final_freq = %f", BE_DATA(prof.final_freq));
+                lsp_trace("version = %d", int(BE_TO_CPU(prof.version)));
+                lsp_trace("chunk_id = %d", int(BE_TO_CPU(prof.chunk_id)));
+                lsp_trace("chirp_order = %d", int(BE_TO_CPU(prof.chirp_order)));
+                lsp_trace("alpha = %f", BE_TO_CPU(prof.alpha));
+                lsp_trace("beta = %f", BE_TO_CPU(prof.beta));
+                lsp_trace("gamma = %f", BE_TO_CPU(prof.gamma));
+                lsp_trace("delta = %f", BE_TO_CPU(prof.delta));
+                lsp_trace("initial_freq = %f", BE_TO_CPU(prof.initial_freq));
+                lsp_trace("final_freq = %f", BE_TO_CPU(prof.final_freq));
 
                 rd->close();
 
                 // Read data
-                rd      = fd.read_chunk(BE_DATA(prof.chunk_id));
+                rd      = fd.read_chunk(BE_TO_CPU(prof.chunk_id));
                 if (rd == NULL)
                     continue;
 
@@ -121,13 +121,13 @@ namespace lspc_test
                     continue;
                 }
 
-                lsp_trace("version = %d", int(BE_DATA(ahdr.version)));
-                lsp_trace("channels = %d", int(BE_DATA(ahdr.channels)));
-                lsp_trace("sample_format = %d", int(BE_DATA(ahdr.sample_format)));
-                lsp_trace("sample_rate = %d", int(BE_DATA(ahdr.sample_rate)));
-                lsp_trace("codec = %d", int(BE_DATA(ahdr.codec)));
-                lsp_trace("frames = %d", int(BE_DATA(ahdr.frames)));
-                size_t k =BE_DATA(ahdr.frames);
+                lsp_trace("version = %d", int(BE_TO_CPU(ahdr.version)));
+                lsp_trace("channels = %d", int(BE_TO_CPU(ahdr.channels)));
+                lsp_trace("sample_format = %d", int(BE_TO_CPU(ahdr.sample_format)));
+                lsp_trace("sample_rate = %d", int(BE_TO_CPU(ahdr.sample_rate)));
+                lsp_trace("codec = %d", int(BE_TO_CPU(ahdr.codec)));
+                lsp_trace("frames = %d", int(BE_TO_CPU(ahdr.frames)));
+                size_t k =BE_TO_CPU(ahdr.frames);
 
                 for (size_t i=0; i<k; ++i)
                 {

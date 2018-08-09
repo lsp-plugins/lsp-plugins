@@ -1,0 +1,15 @@
+# Created by Octave 4.4.0, Sat Jun 16 13:03:09 2018 BST <crocoduck@arch>
+# name: b
+# type: matrix
+# rows: 1
+# columns: 3
+ 0.9115866680128315 -1.823173336025663 0.9115866680128315
+
+
+# name: a
+# type: matrix
+# rows: 1
+# columns: 3
+ 1 -1.815341082704568 0.8310055893467575
+
+

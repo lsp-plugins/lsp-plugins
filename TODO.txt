@@ -14,13 +14,17 @@
 - Migrated to CMake build system.
 - Additional display mode for spectrum analyzer added.
 - Added possibility to double-click the parameter's value number and enter it manually from keyboard.
+- Implemented normal unit testing system.
+- Implemented normal performance testing system.
 
 === 1.1.4 ===
 * Changed licensing to GNU Lesser General Public License version 3 (GNU LGPL v3).
 * Moved code repository to GitHub while keeping release history.
 * Implemented additional functions to DSP core.
 * Fixed compilation warnings emitted by the GCC 8 compiler.
-- Implemented linear profiler plugin.
+* Added LSPC file format.
+* Added LSPC file format support to convolver plugins.
+* Implemented linear impulse response profiler.
 
 *******************************************************************************
 * Release steps

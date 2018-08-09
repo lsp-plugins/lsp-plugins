@@ -135,6 +135,8 @@ namespace lsp
 
         void CtlSaveFile::notify(CtlPort *port)
         {
+            CtlWidget::notify(port);
+
             if ((port == pStatus) ||
                 (port == pProgress))
                 update_state();

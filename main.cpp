@@ -50,20 +50,22 @@
 #include "test/files/text_read_test.h"
 
 #include "test/sse_test.h"
+#include "test/endian_test.h"
 
 #include "test/oversampling_test.h"
 #include "test/downsampling_test.h"
 #include "test/oversampler_test.h"
 
-#include "test/geometry3d_test.h"
-#include "test/objfile3d_test.h"
-#include "test/anyfile3d_test.h"
+//#include "test/geometry3d_test.h"
+//#include "test/objfile3d_test.h"
+//#include "test/anyfile3d_test.h"
 
 #include "test/latencydetector_test.h"
 #include "test/lspstring.h"
 #include "test/lspc_test.h"
 #include "test/clipbrd_test.h"
 #include "test/solutions3d_test.h"
+#include "test/synchronizedchirp_test.h"
 
 #include "test/algo/bt_test.h"
 #include "test/algo/mt_test.h"
@@ -133,6 +135,7 @@
 //#define TEST solutions3d_test
 //#define TEST objfile3d_test
 //#define TEST anyfile3d_test
+//#define TEST synchronizedchirp_test
 //#define TEST lspc_test
 
 //#define TEST bt_test
@@ -143,6 +146,7 @@
 
 //#define TEST jack_test
 //#define TEST selection_test
+//#define TEST endian_test
 
 
 int main(int argc, const char**argv)

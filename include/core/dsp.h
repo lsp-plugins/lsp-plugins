@@ -367,7 +367,7 @@ namespace lsp
          */
         extern void (* sub2)(float *dst, const float *src, size_t count);
 
-                /** Multiply: dst[i] = dst[i] * src[i]
+        /** Multiply: dst[i] = dst[i] * src[i]
          *
          * @param dst destination
          * @param src first source
