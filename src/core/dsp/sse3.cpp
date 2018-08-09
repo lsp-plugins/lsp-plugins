@@ -43,6 +43,8 @@ namespace lsp
     namespace sse3
     {
         using namespace x86;
+        
+        #define EXPORT2(function, export)               dsp::function = sse3::export
 
         void dsp_init(const cpu_features_t *f)
         {
@@ -53,18 +55,20 @@ namespace lsp
             #ifdef ARCH_X86_64
                 lsp_trace("Optimizing DSP for SSE3 instruction set");
 
-                dsp::biquad_process_x2          = sse3::x64_biquad_process_x2;
-//                dsp::biquad_process_x4          = sse3::x64_biquad_process_x4; // Pure SSE has a bit better throughput for this case
-                dsp::biquad_process_x8          = sse3::x64_biquad_process_x8;
+                EXPORT2(biquad_process_x2, x64_biquad_process_x2);
+//                EXPORT2(biquad_process_x4, x64_biquad_process_x4); // Pure SSE has a bit better throughput for this case
+                EXPORT2(biquad_process_x8, x64_biquad_process_x8);
 
-                dsp::dyn_biquad_process_x8      = sse3::x64_dyn_biquad_process_x8;
-                dsp::bilinear_transform_x8      = sse3::x64_bilinear_transform_x8;
+                EXPORT2(dyn_biquad_process_x8, x64_dyn_biquad_process_x8);
+                EXPORT2(bilinear_transform_x8, x64_bilinear_transform_x8);
 
-                dsp::axis_apply_log             = sse3::x64_axis_apply_log;
+                EXPORT2(axis_apply_log, x64_axis_apply_log);
 
-                dsp::packed_complex_mul         = sse3::x64_packed_complex_mul;
+                EXPORT2(packed_complex_mul, x64_packed_complex_mul);
             #endif /* ARCH_X86_64 */
         }
+        
+        #undef EXPORT2
     }
 
 }

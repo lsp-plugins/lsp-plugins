@@ -58,6 +58,9 @@ namespace lsp
     {
         using namespace x86;
 
+        #define EXPORT2(function, export)           dsp::function = avx::export
+        #define EXPORT1(function)                   EXPORT2(function, function)
+
         void dsp_init(const cpu_features_t *f)
         {
             #ifdef __AVX__
@@ -66,25 +69,28 @@ namespace lsp
 
             lsp_trace("Optimizing DSP for AVX instruction set");
 
-//            dsp::add_multiplied             = avx::add_multiplied;
-//            dsp::biquad_process_x1          = avx::biquad_process_x1;
-            dsp::biquad_process_x8          = avx::biquad_process_x8;
-            dsp::dyn_biquad_process_x8      = avx::dyn_biquad_process_x8;
+//            EXPORT1(add_multiplied);
+//            EXPORT1(biquad_process_x1);
+            EXPORT1(biquad_process_x8);
+            EXPORT1(dyn_biquad_process_x8);
 
             // This routine sucks on AMD Bulldozer processor family but is pretty great on Intel
             // Not tested on AMD Processors above Bulldozer family
             if (f->vendor == CPU_VENDOR_INTEL)
-                dsp::bilinear_transform_x8      = avx::x64_bilinear_transform_x8;
+                EXPORT2(bilinear_transform_x8, x64_bilinear_transform_x8);
 
             if (f->features & CPU_OPTION_FMA3)
             {
                 lsp_trace("Optimizing DSP for FMA3 instruction set");
 //                dsp::biquad_process_x1          = avx::biquad_process_x1_fma3;
-                dsp::biquad_process_x8          = avx::biquad_process_x8_fma3;
-                dsp::dyn_biquad_process_x8      = avx::dyn_biquad_process_x8_fma3;
+                EXPORT2(biquad_process_x8, biquad_process_x8_fma3);
+                EXPORT2(dyn_biquad_process_x8, dyn_biquad_process_x8_fma3);
             }
             #endif /* __AVX__ */
         }
+        
+        #undef EXPORT1
+        #undef EXPORT2
     }
 }
 

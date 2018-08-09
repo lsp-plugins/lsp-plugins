@@ -33,6 +33,8 @@ namespace lsp
     namespace sse4
     {
         using namespace x86;
+        
+        #define EXPORT1(function)                   dsp::function = sse4::function
 
         void dsp_init(const cpu_features_t *f)
         {
@@ -43,20 +45,22 @@ namespace lsp
             lsp_trace("Optimizing DSP for SSE4 instruction set");
 
             // 3D Math
-            dsp::normalize_point            = sse4::normalize_point;
-            dsp::scale_point1               = sse4::scale_point1;
-            dsp::scale_point2               = sse4::scale_point2;
+            EXPORT1(normalize_point);
+            EXPORT1(scale_point1);
+            EXPORT1(scale_point2);
 
-            dsp::normalize_vector           = sse4::normalize_vector;
-            dsp::scale_vector1              = sse4::scale_vector1;
-            dsp::scale_vector2              = sse4::scale_vector2;
+            EXPORT1(normalize_vector);
+            EXPORT1(scale_vector1);
+            EXPORT1(scale_vector2);
 
-            dsp::check_point3d_on_triangle_p3p  = sse4::check_point3d_on_triangle_p3p;
-            dsp::check_point3d_on_triangle_pvp  = sse4::check_point3d_on_triangle_pvp;
-            dsp::check_point3d_on_triangle_tp   = sse4::check_point3d_on_triangle_tp;
+            EXPORT1(check_point3d_on_triangle_p3p);
+            EXPORT1(check_point3d_on_triangle_pvp);
+            EXPORT1(check_point3d_on_triangle_tp);
 
-            dsp::find_intersection3d_rt     = sse4::find_intersection3d_rt;
+            EXPORT1(find_intersection3d_rt);
         }
+        
+        #undef EXPORT1
     }
 
 }
