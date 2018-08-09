@@ -394,7 +394,7 @@ namespace lsp
         if (ptr == NULL)
             return;
 
-        float *save             = ptr;
+        lsp_guard_assert(float *save = ptr);
         vBuffer                 = ptr; //reinterpret_cast<float *>(ptr);
         ptr                    += TMP_BUF_SIZE; // * sizeof(float);
         vDisplayAbscissa        = ptr; //reinterpret_cast<float *>(ptr);

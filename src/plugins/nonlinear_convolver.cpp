@@ -157,7 +157,7 @@ namespace lsp
                     if (ptr == NULL)
                         return STATUS_NO_MEM;
 
-                    float *save     = ptr;
+                    lsp_guard_assert(float *save = ptr);
                     pCore->mDSP     = ptr;
                     ptr            += samples;
 
@@ -393,7 +393,7 @@ namespace lsp
         if (ptr == NULL)
             return;
 
-        float *save             = ptr;
+        lsp_guard_assert(float *save = ptr);
         vBuffer                 = ptr;
         ptr                    += TMP_BUF_SIZE;
         vProcessBufIn           = ptr;
