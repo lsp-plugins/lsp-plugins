@@ -348,6 +348,9 @@ namespace lsp
 
 #endif /* LSP_TRACE */
 
+        #define EXPORT2(function, export)           dsp::function = x86::export
+        #define EXPORT1(function)                   EXPORT2(function, function)
+
         void dsp_init()
         {
             // Dectect CPU options
@@ -370,17 +373,19 @@ namespace lsp
             // Save previous entry points
             dsp_start                   = dsp::start;
             dsp_finish                  = dsp::finish;
-            dsp::start                  = x86::start;
-            dsp::finish                 = x86::finish;
+            
+            // Export functions
+            EXPORT1(start);
+            EXPORT1(finish);
 
-            dsp::copy_saturated         = x86::copy_saturated;
-            dsp::saturate               = x86::saturate;
-            dsp::rgba32_to_bgra32       = x86::rgba32_to_bgra32;
+            EXPORT1(copy_saturated);
+            EXPORT1(saturate);
+            EXPORT1(rgba32_to_bgra32);
 
             if (f.features & CPU_OPTION_CMOV)
             {
-                dsp::copy_saturated         = x86::copy_saturated_cmov;
-                dsp::saturate               = x86::saturate_cmov;
+                EXPORT2(copy_saturated, copy_saturated_cmov);
+                EXPORT2(saturate, saturate_cmov);
             }
 
             // Initialize extensions
@@ -389,6 +394,9 @@ namespace lsp
             sse4::dsp_init(&f);
             avx::dsp_init(&f);
         }
+        
+        #undef EXPORT1
+        #undef EXPORT2
     }
 
 }

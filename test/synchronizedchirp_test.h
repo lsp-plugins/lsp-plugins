@@ -5,8 +5,8 @@
  *      Author: crocoduck
  */
 
-#include <core/SyncChirpProcessor.h>
-#include <core/ResponseTaker.h>
+#include <core/util/SyncChirpProcessor.h>
+#include <core/util/ResponseTaker.h>
 #include <stdio.h>
 
 #define SYNCHRONIZEDCHIRP_BUF_SIZE      4096

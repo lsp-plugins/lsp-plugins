@@ -13,8 +13,8 @@
 #include <core/util/Bypass.h>
 #include <core/util/Oscillator.h>
 #include <core/util/LatencyDetector.h>
-#include <core/SyncChirpProcessor.h>
-#include <core/ResponseTaker.h>
+#include <core/util/SyncChirpProcessor.h>
+#include <core/util/ResponseTaker.h>
 
 namespace lsp
 {

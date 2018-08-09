@@ -1,12 +1,12 @@
 /*
- * SynchronizedChirp.h
+ * SyncChirpProcessor.h
  *
  *  Created on: 12 Jul 2017
  *      Author: crocoduck
  */
 
-#ifndef CORE_SYNCCHIRPPROCESSOR_H_
-#define CORE_SYNCCHIRPPROCESSOR_H_
+#ifndef CORE_UTIL_SYNCCHIRPPROCESSOR_H_
+#define CORE_UTIL_SYNCCHIRPPROCESSOR_H_
 
 #include <core/types.h>
 #include <core/sampling/SamplePlayer.h>
@@ -766,4 +766,4 @@ namespace lsp
     };
 }
 
-#endif /* CORE_SYNCCHIRPPROCESSOR_H_ */
+#endif /* CORE_UTIL_SYNCCHIRPPROCESSOR_H_ */

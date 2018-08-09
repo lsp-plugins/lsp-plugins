@@ -1,5 +1,5 @@
 /*
- * SynchronizedChirp.cpp
+ * SyncChirpProcessor.cpp
  *
  *  Created on: 12 Jul 2017
  *      Author: crocoduck
@@ -7,7 +7,7 @@
 
 #include <core/debug.h>
 #include <core/dsp.h>
-#include <core/SyncChirpProcessor.h>
+#include <core/util/SyncChirpProcessor.h>
 #include <math.h>
 #include <core/files/LSPCFile.h>
 #include <core/endian.h>
@@ -124,7 +124,7 @@ namespace lsp
         if (ptr == NULL)
             return false;
 
-        float *save     = ptr;
+        lsp_guard_assert(*save = ptr);
         vOverBuffer1    = ptr; //reinterpret_cast<float *>(ptr);
         ptr            += OVER_BUF_LIMIT_SIZE; // * sizeof(float);
         vOverBuffer2    = ptr; //reinterpret_cast<float *>(ptr);
@@ -251,7 +251,7 @@ namespace lsp
         if (ptr == NULL)
             return STATUS_NO_MEM;
 
-        float *save             = ptr;
+        lsp_guard_assert(float *save = ptr);
         sCRPostProc.mCoeffsRe   = ptr; //reinterpret_cast<float *>(ptr);
         ptr                    += order * order; // * sizeof(float);
         sCRPostProc.mCoeffsIm   = ptr; //reinterpret_cast<float *>(ptr);
