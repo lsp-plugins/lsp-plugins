@@ -5,7 +5,7 @@
  *      Author: crocoduck
  */
 
-#include <core/ResponseTaker.h>
+#include <core/util/ResponseTaker.h>
 #include <core/dsp.h>
 
 #define DFL_GAIN    1.0f

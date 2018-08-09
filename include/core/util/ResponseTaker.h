@@ -5,8 +5,8 @@
  *      Author: crocoduck
  */
 
-#ifndef CORE_RESPONSETAKER_H_
-#define CORE_RESPONSETAKER_H_
+#ifndef CORE_UTIL_RESPONSETAKER_H_
+#define CORE_UTIL_RESPONSETAKER_H_
 
 #include <core/types.h>
 #include <core/sampling/SamplePlayer.h>
@@ -287,4 +287,4 @@ namespace lsp
     };
 }
 
-#endif /* CORE_RESPONSETAKER_H_ */
+#endif /* CORE_UTIL_RESPONSETAKER_H_ */

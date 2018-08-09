@@ -7,7 +7,7 @@
 
 #include <core/debug.h>
 #include <core/dsp.h>
-#include <core/SyncChirpProcessor.h>
+#include <core/util/SyncChirpProcessor.h>
 #include <math.h>
 #include <core/files/LSPCFile.h>
 #include <core/endian.h>

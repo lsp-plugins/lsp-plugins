@@ -11,7 +11,7 @@
 #include <core/plugin.h>
 #include <metadata/plugins.h>
 #include <core/util/Bypass.h>
-#include <core/SyncChirpProcessor.h>
+#include <core/util/SyncChirpProcessor.h>
 #include <core/util/Convolver.h>
 
 namespace lsp
