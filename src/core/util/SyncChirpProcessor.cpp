@@ -489,7 +489,7 @@ namespace lsp
             float coeffRe       = 0.0f;
             float coeffIm       = 0.0f;
             size_t coeffIdx     = sub2ind_Coeffs(r, r);
-            dsp::complex_rcp2&coeffRe, &coeffIm, &sCRPostProc.mCoeffsRe[coeffIdx], &sCRPostProc.mCoeffsIm[coeffIdx], 1);
+            dsp::complex_rcp2(&coeffRe, &coeffIm, &sCRPostProc.mCoeffsRe[coeffIdx], &sCRPostProc.mCoeffsIm[coeffIdx], 1);
 
             // Make Hermitian vector
             dsp::fill(sCRPostProc.vTemprow2Re, coeffRe, sCRPostProc.nHwinSize);
