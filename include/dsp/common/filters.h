@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef CORE_DSP_FILTERS_H_
-#define CORE_DSP_FILTERS_H_
+#ifndef DSP_COMMON_FILTERS_H_
+#define DSP_COMMON_FILTERS_H_
 
 #ifndef __DSP_DSP_DEFS
     #error "This header should not be included directly"
@@ -522,4 +522,4 @@ namespace lsp
     } // dsp
 } // lsp
 
-#endif /* CORE_DSP_FILTERS_H_ */
+#endif /* DSP_COMMON_FILTERS_H_ */

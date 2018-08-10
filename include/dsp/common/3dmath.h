@@ -5,15 +5,15 @@
  *      Author: sadko
  */
 
-#ifndef CORE_DSP_3DMATH_H_
-#define CORE_DSP_3DMATH_H_
+#ifndef DSP_COMMON_3DMATH_H_
+#define DSP_COMMON_3DMATH_H_
 
 #ifndef __DSP_DSP_DEFS
     #error "This header should not be included directly"
 #endif /* __DSP_DSP_DEFS */
 
-#include <core/dsp/3dmath/types.h>
-#include <core/dsp/3dmath/tetra3d.h>
+#include <dsp/common/3dmath/types.h>
+#include <dsp/common/3dmath/tetra3d.h>
 
 namespace lsp
 {
@@ -783,4 +783,4 @@ namespace lsp
     } // dsp
 } // lsp
 
-#endif /* CORE_DSP_3DMATH_H_ */
+#endif /* DSP_COMMON_3DMATH_H_ */

@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef CORE_DSP_3DMATH_TETRA3D_H_
-#define CORE_DSP_3DMATH_TETRA3D_H_
+#ifndef DSP_COMMON_3DMATH_TETRA3D_H_
+#define DSP_COMMON_3DMATH_TETRA3D_H_
 
 namespace lsp
 {
@@ -52,4 +52,4 @@ namespace lsp
 }
 
 
-#endif /* CORE_DSP_3DMATH_TETRA3D_H_ */
+#endif /* DSP_COMMON_3DMATH_TETRA3D_H_ */

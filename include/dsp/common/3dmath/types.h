@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef CORE_DSP_3DMATH_TYPES_H_
-#define CORE_DSP_3DMATH_TYPES_H_
+#ifndef DSP_COMMON_3DMATH_TYPES_H_
+#define DSP_COMMON_3DMATH_TYPES_H_
 
 #ifndef __DSP_DSP_DEFS
     #error "This header should not be included directly"
@@ -103,4 +103,4 @@ namespace lsp
 
 }
 
-#endif /* CORE_DSP_3DMATH_TYPES_H_ */
+#endif /* DSP_COMMON_3DMATH_TYPES_H_ */

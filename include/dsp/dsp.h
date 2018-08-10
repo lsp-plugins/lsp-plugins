@@ -17,10 +17,10 @@
 
 #define __DSP_DSP_DEFS
 
-#include <core/dsp/context.h>
-#include <core/dsp/filters.h>
-#include <core/dsp/resampling.h>
-#include <core/dsp/3dmath.h>
+#include <dsp/common/context.h>
+#include <dsp/common/filters.h>
+#include <dsp/common/resampling.h>
+#include <dsp/common/3dmath.h>
 
 #undef __DSP_DSP_DEFS
 
