@@ -8,8 +8,8 @@
 #include <math.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
 #include <core/debug.h>
+#include <dsp/dsp.h>
 
 namespace lsp
 {

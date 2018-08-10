@@ -8,9 +8,9 @@
 #ifndef CORE_DSP_3DMATH_H_
 #define CORE_DSP_3DMATH_H_
 
-#ifndef __CORE_DSP_DEFS
+#ifndef __DSP_DSP_DEFS
     #error "This header should not be included directly"
-#endif /* __CORE_DSP_DEFS */
+#endif /* __DSP_DSP_DEFS */
 
 #include <core/dsp/3dmath/types.h>
 #include <core/dsp/3dmath/tetra3d.h>

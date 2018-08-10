@@ -8,7 +8,7 @@
 #ifndef CORE_3D_TRACECAPTURE3D_H_
 #define CORE_3D_TRACECAPTURE3D_H_
 
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/sampling/Sample.h>
 #include <core/3d/Object3D.h>
 

@@ -10,7 +10,7 @@
 #include <ui/tk/tk.h>
 
 #include <ui/graphics.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 
 namespace lsp

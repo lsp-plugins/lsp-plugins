@@ -4,7 +4,7 @@
 #include <stddef.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/windows.h>
 
 #define BUF_ITEMS 1024

@@ -4,7 +4,7 @@
 #include <time.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 #define MIN_RANK 10
 #define MAX_RANK 16

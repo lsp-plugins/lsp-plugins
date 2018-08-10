@@ -151,4 +151,14 @@
     #define __IF_64(...)
 #endif /* __IF_64 */
 
+//-----------------------------------------------------------------------------
+// Optimizations
+#ifdef ARCH_X86
+    #define DEFAULT_ALIGN                   0x10
+#endif /* ARCH_X86 */
+
+#ifndef DEFAULT_ALIGN
+    #define DEFAULT_ALIGN                   0x10
+#endif /* DEFAULT_ALIGN */
+
 #endif /* DSP_TYPES_H_ */

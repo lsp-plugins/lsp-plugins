@@ -5,23 +5,24 @@
  *      Author: sadko
  */
 
-#ifndef CORE_DSP_H_
-#define CORE_DSP_H_
+#ifndef DSP_DSP_H_
+#define DSP_DSP_H_
 
-#include <core/types.h>
 #include <core/debug.h>
+#include <dsp/types.h>
+
 #include <stddef.h>
 #include <math.h>
 #include <string.h>
 
-#define __CORE_DSP_DEFS
+#define __DSP_DSP_DEFS
 
 #include <core/dsp/context.h>
 #include <core/dsp/filters.h>
 #include <core/dsp/resampling.h>
 #include <core/dsp/3dmath.h>
 
-#undef __CORE_DSP_DEFS
+#undef __DSP_DSP_DEFS
 
 namespace lsp
 {
@@ -848,4 +849,4 @@ namespace lsp
 
 } /* namespace forzee */
 
-#endif /* CORE_DSP_HPP_ */
+#endif /* DSP_DSP_H_ */

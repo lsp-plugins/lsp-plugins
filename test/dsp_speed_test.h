@@ -4,7 +4,7 @@
 #include <time.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 #define BUF_SIZE            (1024 * 1024 * 32)
 #define ITERATIONS          100

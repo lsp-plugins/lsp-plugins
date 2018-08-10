@@ -8,8 +8,9 @@
 #include <core/lib.h>
 #include <core/debug.h>
 #include <core/status.h>
-#include <core/dsp.h>
 #include <core/NativeExecutor.h>
+
+#include <dsp/dsp.h>
 
 #include <ui/ui_locale.h>
 

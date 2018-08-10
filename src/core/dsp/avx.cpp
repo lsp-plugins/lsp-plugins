@@ -7,7 +7,7 @@
 
 #include <core/types.h>
 #include <core/debug.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/bits.h>
 
 #include <core/x86/features.h>
@@ -21,8 +21,6 @@
         #undef __AVX__
     #endif /* ARCH_X86_64 */
 #endif
-
-#include <core/dsp.h>
 
 #define CORE_X86_AVX_IMPL
 

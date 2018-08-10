@@ -6,7 +6,7 @@
  */
 
 #include <ui/tk/tk.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 namespace lsp
 {

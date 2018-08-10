@@ -8,9 +8,9 @@
 #ifndef CORE_DSP_CONTEXT_H_
 #define CORE_DSP_CONTEXT_H_
 
-#ifndef __CORE_DSP_DEFS
+#ifndef __DSP_DSP_DEFS
     #error "This header should not be included directly"
-#endif /* __CORE_DSP_DEFS */
+#endif /* __DSP_DSP_DEFS */
 
 namespace lsp
 {

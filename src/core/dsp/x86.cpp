@@ -7,7 +7,7 @@
 
 #include <core/types.h>
 #include <core/debug.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 #include <core/x86/features.h>
 #include <core/x86/float.h>

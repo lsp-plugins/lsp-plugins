@@ -9,7 +9,7 @@
 #define CORE_3D_TRACEMAP3D_H_
 
 #include <core/status.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/3d/Object3D.h>
 #include <core/3d/TraceCapture3D.h>
 #include <core/3d/RaySource3D.h>

@@ -4,7 +4,7 @@
 #include <stddef.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 #define FFT_CONV_BUF_SIZE 16
 #define FFT_CONV_BLOCK_SIZE 4

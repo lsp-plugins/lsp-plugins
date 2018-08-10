@@ -6,7 +6,7 @@
 #include <errno.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/3d/RayTrace3D.h>
 #include <core/3d/Object3D.h>
 #include <core/3d/Scene3D.h>

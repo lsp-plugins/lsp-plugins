@@ -11,7 +11,7 @@
 #include <stddef.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 namespace fft_join_test
 {

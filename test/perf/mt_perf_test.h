@@ -5,7 +5,7 @@
 #include <math.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 #define PERF_BUF_SIZE   0x200
 #define ITERATIONS      10000

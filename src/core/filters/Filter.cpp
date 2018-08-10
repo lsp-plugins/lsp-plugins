@@ -6,7 +6,7 @@
  */
 
 #include <math.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/debug.h>
 #include <core/filters/Filter.h>
 

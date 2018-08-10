@@ -2,7 +2,7 @@
 #include <math.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/windows.h>
 #include <core/envelope.h>
 #include <core/files/AudioFile.h>

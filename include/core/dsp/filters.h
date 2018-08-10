@@ -5,12 +5,12 @@
  *      Author: sadko
  */
 
-#ifndef INCLUDE_CORE_DSP_FILTERS_H_
-#define INCLUDE_CORE_DSP_FILTERS_H_
+#ifndef CORE_DSP_FILTERS_H_
+#define CORE_DSP_FILTERS_H_
 
-#ifndef __CORE_DSP_DEFS
+#ifndef __DSP_DSP_DEFS
     #error "This header should not be included directly"
-#endif /* __CORE_DSP_DEFS */
+#endif /* __DSP_DSP_DEFS */
 
 namespace lsp
 {
@@ -522,4 +522,4 @@ namespace lsp
     } // dsp
 } // lsp
 
-#endif /* INCLUDE_CORE_DSP_FILTERS_H_ */
+#endif /* CORE_DSP_FILTERS_H_ */

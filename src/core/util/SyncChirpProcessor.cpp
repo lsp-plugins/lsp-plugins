@@ -5,8 +5,8 @@
  *      Author: crocoduck
  */
 
+#include <dsp/dsp.h>
 #include <core/debug.h>
-#include <core/dsp.h>
 #include <core/util/SyncChirpProcessor.h>
 #include <math.h>
 #include <core/files/LSPCFile.h>
