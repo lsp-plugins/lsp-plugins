@@ -24,7 +24,8 @@ namespace lsp
     } dsp_context_t;
 #pragma pack(pop)
 
-    // Namespace containing function
+    //-----------------------------------------------------------------------
+    // DSP context functions
     namespace dsp
     {
         // Start and finish types

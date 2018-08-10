@@ -14,8 +14,6 @@
 
 namespace lsp
 {
-    //-----------------------------------------------------------------------
-    // Resampling
     /** Resampling/oversampling funtion type.
      * Remember that destination buffer must be times greater and have additional gap (>=64 samples) at
      * the tail to contain complete convolution after resampling
@@ -26,6 +24,8 @@ namespace lsp
      */
     typedef void (* resampling_function_t)(float *dst, const float *src, size_t count);
 
+    //-----------------------------------------------------------------------
+    // DSP resampling functions
     namespace dsp
     {
         /** Perform lanczos resampling, destination buffer must be cleared and contain only

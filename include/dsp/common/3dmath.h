@@ -17,6 +17,8 @@
 
 namespace lsp
 {
+    //-----------------------------------------------------------------------
+    // DSP 3D mathematic functions
     namespace dsp
     {
         /** Init point using coordinates
