@@ -197,15 +197,6 @@ namespace lsp
              */
             void fillCoefficientsMatrices();
 
-            /** Invert a single complex number
-             *
-             * @param dst_re destination real part
-             * @param dst_im destination imaginary part
-             * @param src_re source real part
-             * @param src_im source imaginary part
-             */
-            inline void complexInvert(float *dst_re, float *dst_im, const float *src_re, const float *src_im);
-
             /** Solve identification problem
              *
              */

@@ -124,7 +124,7 @@ namespace lsp
         if (ptr == NULL)
             return false;
 
-        lsp_guard_assert(*save = ptr);
+        lsp_guard_assert(float *save = ptr);
         vOverBuffer1    = ptr; //reinterpret_cast<float *>(ptr);
         ptr            += OVER_BUF_LIMIT_SIZE; // * sizeof(float);
         vOverBuffer2    = ptr; //reinterpret_cast<float *>(ptr);
@@ -393,13 +393,6 @@ namespace lsp
         sCRPostProc.mCoeffsImDet = determinantIm;
     }
 
-    inline void SyncChirpProcessor::complexInvert(float *dst_re, float *dst_im, const float *src_re, const float *src_im)
-    {
-        float sqMagnitude   = (*src_re * *src_re) + (*src_im * *src_im);
-        *dst_re             = *src_re / sqMagnitude;
-        *dst_im             = -*src_im / sqMagnitude;
-    }
-
     void SyncChirpProcessor::solve()
     {
         if (
@@ -496,7 +489,7 @@ namespace lsp
             float coeffRe       = 0.0f;
             float coeffIm       = 0.0f;
             size_t coeffIdx     = sub2ind_Coeffs(r, r);
-            complexInvert(&coeffRe, &coeffIm, &sCRPostProc.mCoeffsRe[coeffIdx], &sCRPostProc.mCoeffsIm[coeffIdx]);
+            dsp::complex_rcp2&coeffRe, &coeffIm, &sCRPostProc.mCoeffsRe[coeffIdx], &sCRPostProc.mCoeffsIm[coeffIdx], 1);
 
             // Make Hermitian vector
             dsp::fill(sCRPostProc.vTemprow2Re, coeffRe, sCRPostProc.nHwinSize);
