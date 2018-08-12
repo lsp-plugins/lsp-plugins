@@ -5,20 +5,20 @@
  *      Author: sadko
  */
 
-#ifndef CORE_BITS_H_
-#define CORE_BITS_H_
+#ifndef DSP_BITS_H_
+#define DSP_BITS_H_
 
-#include <core/types.h>
+#include <dsp/types.h>
 
 namespace lsp
 {
     extern const uint8_t    __rb[];
 }
 
-#if defined(__i386__) || defined(__x86_64__)
-    #include <core/x86/bits.h>
+#if defined(ARCH_X86)
+    #include <dsp/arch/x86/bits.h>
 #else
-    #include <core/native/bits.h>
+    #include <dsp/arch/native/bits.h>
 #endif
 
 namespace lsp
@@ -64,4 +64,4 @@ namespace lsp
     }
 }
 
-#endif /* CORE_BITS_H_ */
+#endif /* DSP_BITS_H_ */

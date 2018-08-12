@@ -4,7 +4,7 @@
 
 #include <core/lib.h>
 #include <core/midi.h>
-#include <core/atomic.h>
+#include <dsp/atomic.h>
 #include <plugins/plugins.h>
 
 #include <data/cvector.h>

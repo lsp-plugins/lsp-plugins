@@ -5,9 +5,9 @@
  *      Author: sadko
  */
 
-#include <core/types.h>
 #include <dsp/dsp.h>
-#include <core/bits.h>
+#include <dsp/bits.h>
+#include <core/types.h>
 #include <core/units.h>
 
 #define __DSP_NATIVE_IMPL

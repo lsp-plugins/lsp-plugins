@@ -18,11 +18,6 @@
 
 namespace lsp
 {
-    __IF_32( typedef        uint32_t            umword_t );
-    __IF_32( typedef        int32_t             smword_t );
-    __IF_64( typedef        uint64_t            umword_t );
-    __IF_64( typedef        int64_t             smword_t );
-
     typedef uint64_t        wsize_t;
     typedef int64_t         wssize_t;
 

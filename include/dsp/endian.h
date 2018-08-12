@@ -5,17 +5,17 @@
  *      Author: sadko
  */
 
-#ifndef CORE_ENDIAN_H_
-#define CORE_ENDIAN_H_
+#ifndef DSP_ENDIAN_H_
+#define DSP_ENDIAN_H_
 
-#include <core/types.h>
+#include <dsp/types.h>
 
 // Include unsigned functions definition
-#if defined(__x86_64__) || defined(__i386__)
-    #include <core/x86/bswap.h>
+#if defined(ARCH_X86)
+    #include <dsp/arch/x86/bswap.h>
 #else
-    #include <core/native/bswap.h>
-#endif /* defined(__x86_64__) || defined(__i386__) */
+    #include <dsp/arch/native/bswap.h>
+#endif /* defined(ARCH_X86) */
 
 // Define macros
 #ifdef ARCH_LE
@@ -53,21 +53,21 @@ namespace lsp
         return v;
     }
 
-    inline int16_t __lsp_forced_inline       byte_swap(int16_t v)
+    inline int16_t __lsp_forced_inline      byte_swap(int16_t v)
     {
         return byte_swap(uint16_t(v));
     }
 
-    inline int32_t __lsp_forced_inline       byte_swap(int32_t v)
+    inline int32_t __lsp_forced_inline      byte_swap(int32_t v)
     {
         return byte_swap(uint32_t(v));
     }
 
-    inline int64_t __lsp_forced_inline       byte_swap(int64_t v)
+    inline int64_t __lsp_forced_inline      byte_swap(int64_t v)
     {
         return byte_swap(uint64_t(v));
     }
 }
 
 
-#endif /* CORE_ENDIAN_H_ */
+#endif /* DSP_ENDIAN_H_ */

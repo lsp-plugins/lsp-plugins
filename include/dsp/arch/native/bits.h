@@ -10,11 +10,6 @@
 
 namespace lsp
 {
-    #define ITERATE \
-        result      <<=     8; \
-        v           >>=     8; \
-        result      |=      __rb[v & 0xff];
-
     inline uint8_t      reverse_bits(uint8_t src)
     {
         return __rb[src];
@@ -22,34 +17,29 @@ namespace lsp
 
     inline uint16_t     reverse_bits(uint16_t v)
     {
-        uint32_t    result = __rb[v & 0xff];
-        ITERATE;
-
-        return result;
+        return (uint16_t(__rb[v & 0xff]) << 8) | (uint16_t(__rb[v >> 8]));
     }
 
     inline uint32_t     reverse_bits(uint32_t v)
     {
-        uint32_t    result = __rb[v & 0xff];
-        ITERATE;
-        ITERATE;
-        ITERATE;
-
-        return result;
+        return
+            (uint32_t(__rb[v >> 24])) |
+            (uint32_t(__rb[(v >> 16) & 0xff]) << 8) |
+            (uint32_t(__rb[(v >> 8) & 0xff]) << 16) |
+            (uint32_t(__rb[v & 0xff]) << 24);
     }
 
     inline uint64_t     reverse_bits(uint64_t v)
     {
-        uint64_t    result = __rb[v & 0xff];
-        ITERATE;
-        ITERATE;
-        ITERATE;
-        ITERATE;
-        ITERATE;
-        ITERATE;
-        ITERATE;
-
-        return result;
+        return
+            (uint64_t(__rb[v >> 56])) |
+            (uint64_t(__rb[(v >> 48) & 0xff]) << 8) |
+            (uint64_t(__rb[(v >> 40) & 0xff]) << 16) |
+            (uint64_t(__rb[(v >> 32) & 0xff]) << 24) |
+            (uint64_t(__rb[(v >> 24) & 0xff]) << 32) |
+            (uint64_t(__rb[(v >> 16) & 0xff]) << 40) |
+            (uint64_t(__rb[(v >> 8) & 0xff]) << 48) |
+            (uint64_t(__rb[v & 0xff]) << 56);
     }
 
     inline uint8_t      reverse_bits(uint8_t v, size_t count)
@@ -71,9 +61,6 @@ namespace lsp
     {
         return reverse_bits(v) >> (sizeof(uint64_t) * 8 - count);
     }
-
-
-    #undef ITERATE
 }
 
 #endif /* DSP_ARCH_NATIVE_BITS_H_ */

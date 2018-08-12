@@ -6,10 +6,10 @@
 
 // Core include
 #include <core/types.h>
-#include <core/atomic.h>
 #include <core/midi.h>
 #include <core/lib.h>
-#include <core/endian.h>
+#include <dsp/atomic.h>
+#include <dsp/endian.h>
 #include <plugins/plugins.h>
 
 #include <data/cvector.h>

@@ -6,11 +6,11 @@
  */
 
 #include <dsp/dsp.h>
+#include <dsp/endian.h>
 #include <core/debug.h>
 #include <core/util/SyncChirpProcessor.h>
 #include <math.h>
 #include <core/files/LSPCFile.h>
-#include <core/endian.h>
 
 #define MIN_AMPLITUDE               1.0e-6f         // Chirp Minimal Amplitude
 #define DFL_TAIL                    1.0f;           // Default tail acquisition time [s]

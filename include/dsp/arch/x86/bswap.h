@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef CORE_X86_BSWAP_H_
-#define CORE_X86_BSWAP_H_
+#ifndef DSP_ARCH_X86_BSWAP_H_
+#define DSP_ARCH_X86_BSWAP_H_
 
 namespace lsp
 {
@@ -316,4 +316,4 @@ namespace lsp
     #endif /* ARCH_X86_64 */
 }
 
-#endif /* CORE_X86_BSWAP_H_ */
+#endif /* DSP_ARCH_X86_BSWAP_H_ */

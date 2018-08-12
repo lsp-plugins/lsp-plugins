@@ -10,7 +10,7 @@
 #include <fcntl.h>
 #include <string.h>
 
-#include <core/endian.h>
+#include <dsp/endian.h>
 #include <core/files/lspc/lspc.h>
 #include <core/files/LSPCFile.h>
 

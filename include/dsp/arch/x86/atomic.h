@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef CORE_ATOMIC_X86_H_
-#define CORE_ATOMIC_X86_H_
+#ifndef DSP_ARCH_ATOMIC_X86_H_
+#define DSP_ARCH_ATOMIC_X86_H_
 
 #define ATOMIC_XCHG_DEF(type)                           \
     inline type atomic_exchange(type *ptr, type value)  \
@@ -36,4 +36,10 @@ ATOMIC_XCHG_DEF(uint32_t)
 
 #undef ATOMIC_XCHG_DEF
 
-#endif /* CORE_ATOMIC_X86_H_ */
+//-----------------------------------------------------------------------------
+// Atomic operations
+#define atomic_lock(lk)     atomic_exchange(&lk, 0)
+#define atomic_init(lk)     lk = 1
+#define atomic_unlock(lk)   atomic_exchange(&lk, 1)
+
+#endif /* DSP_ARCH_ATOMIC_X86_H_ */

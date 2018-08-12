@@ -1,14 +1,12 @@
 /*
- * endian.h
+ * bswap.h
  *
  *  Created on: 04 апр. 2016 г.
  *      Author: sadko
  */
 
-#ifndef CORE_NATIVE_BSWAP_H_
-#define CORE_NATIVE_BSWAP_H_
-
-#include <core/types.h>
+#ifndef DSP_ARCH_NATIVE_BSWAP_H_
+#define DSP_ARCH_NATIVE_BSWAP_H_
 
 namespace lsp
 {
@@ -122,8 +120,8 @@ namespace lsp
     inline void __lsp_forced_inline byte_swap(float *v, size_t n)
     {
         union {
-            float *fValue;
-            uint32_t uValue;
+            float      *fValue;
+            uint32_t   *uValue;
         } tmp;
         tmp.fValue      = v;
         uint32_t *p     = tmp.uValue;
@@ -138,8 +136,8 @@ namespace lsp
     inline void __lsp_forced_inline byte_swap(double *v, size_t n)
     {
         union {
-            double *fValue;
-            uint64_t uValue;
+            double     *fValue;
+            uint64_t   *uValue;
         } tmp;
         tmp.fValue      = v;
         uint64_t *p     = tmp.uValue;
@@ -152,4 +150,4 @@ namespace lsp
     }
 }
 
-#endif /* CORE_NATIVE_BSWAP_H_ */
+#endif /* DSP_ARCH_NATIVE_BSWAP_H_ */

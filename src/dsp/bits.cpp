@@ -5,7 +5,7 @@
  *      Author: sadko
  */
 
-#include <core/bits.h>
+#include <dsp/bits.h>
 
 namespace lsp
 {

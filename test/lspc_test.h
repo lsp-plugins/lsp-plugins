@@ -1,4 +1,4 @@
-#include <core/endian.h>
+#include <dsp/endian.h>
 #include <core/debug.h>
 
 #include <core/files/LSPCFile.h>

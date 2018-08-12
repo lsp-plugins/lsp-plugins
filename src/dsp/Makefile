@@ -5,6 +5,7 @@ SSE3_IMPL               = $(OBJDIR)/sse3.o
 SSE4_IMPL               = $(OBJDIR)/sse4.o
 AVX_IMPL                = $(OBJDIR)/avx.o
 DSP_IMPL                = $(OBJDIR)/dsp.o
+BITS_IMPL               = $(OBJDIR)/bits.o
 
 SSE_INSTR_SET           = -mmmx -m3dnow -msse -msse2
 SSE3_INSTR_SET          = $(SSE_INSTR_SET) -msse3 -mssse3
@@ -12,7 +13,7 @@ SSE4_INSTR_SET          = $(SSE_INSTR_SET) -msse4.1 -msse4.2
 AVX_INSTR_SET           = -mavx
 
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
-LINK_OBJECTS            = $(DSP_IMPL) $(NATIVE_IMPL)
+LINK_OBJECTS            = $(DSP_IMPL) $(BITS_IMPL) $(NATIVE_IMPL)
 
 ifeq ($(CPU_ARCH), i586)
 LINK_OBJECTS           += $(X86_IMPL) $(SSE_IMPL) $(SSE3_IMPL) $(SSE4_IMPL) $(AVX_IMPL)
@@ -31,7 +32,7 @@ $(OBJ_DSP): $(LINK_OBJECTS)
 	@echo "  $(LD) $(notdir $(OBJ_DSP))"
 	@$(LD) -r $(LDFLAGS) -o $(OBJ_DSP) $(LINK_OBJECTS)
 
-$(DSP_IMPL) $(NATIVE_IMPL) $(X86_IMPL):
+$(DSP_IMPL) $(BITS_IMPL) $(NATIVE_IMPL) $(X86_IMPL):
 	@echo "  $(CC) $(FILE)"
 	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE) -o $(@)
 	

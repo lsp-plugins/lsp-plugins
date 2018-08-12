@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef CORE_X86_BITS_H_
-#define CORE_X86_BITS_H_
+#ifndef DSP_ARCH_X86_BITS_H_
+#define DSP_ARCH_X86_BITS_H_
 
 namespace lsp
 {
@@ -402,4 +402,4 @@ namespace lsp
     #endif /* __i386__ */
 }
 
-#endif /* CORE_X86_BITS_H_ */
+#endif /* DSP_ARCH_X86_BITS_H_ */

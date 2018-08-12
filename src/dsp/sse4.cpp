@@ -5,10 +5,10 @@
  *      Author: sadko
  */
 
+#include <dsp/dsp.h>
+#include <dsp/bits.h>
 #include <core/types.h>
 #include <core/debug.h>
-#include <dsp/dsp.h>
-#include <core/bits.h>
 
 #include <dsp/arch/x86/features.h>
 
