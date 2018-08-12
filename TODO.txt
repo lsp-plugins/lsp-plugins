@@ -101,6 +101,23 @@
 * FEATURE REQUESTS: Detailed
 *******************************************************************************
 
+==== Sampler ====
+
+  naught101:
+	So, the features I was thinking for Klangerzueger were:
+	  - file preview in the file load dialog
+	  - pitch/tune control (note and fine tuning)
+	  - Allowing a single sample to be used across a range of midi notes (with pitch shifting away from a centre note).
+	  - looping (start/end, fade length)
+
+	I've also been considering a modification of Helm that might cover the same functionality, 
+	and I'm not sure which is the better path to tackle. Helm has a lot of nice modulation options
+	that are pretty attractive, but maybe also a bit overkill for a simple sampler.
+
+	Probably also a filter would be good, and velocity mappable the filter cut-off, 
+	and tail cut/fade-out. Some of these things might be easier to do in Helm, 
+	since the modulation and filter is already built in.
+
 ==== UI ====
   tom-:
     - Make all grid lines more 'darken' in the UI.
