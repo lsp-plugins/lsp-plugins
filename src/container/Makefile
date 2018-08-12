@@ -4,7 +4,7 @@ OBJ_HELPERS             = $(OBJDIR)/CairoCanvas.o
 
 # Detemine what modules to build
 MODULES                 = $(LIB_LADSPA) $(LIB_LV2) $(LIB_JACK) $(BIN_PROFILE) $(LIB_VST)
-PACKAGES                = $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_PLUGINS) $(SNDFILE_LIBS)
+PACKAGES                = $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA) $(OBJ_PLUGINS) $(SNDFILE_LIBS)
 UI_PACKAGES             = $(PACKAGES) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(XLIB_LIBS) $(CAIRO_LIBS)
 
 .PHONY: all

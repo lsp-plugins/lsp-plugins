@@ -82,6 +82,7 @@ export EXE_FLAGS        = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,--gc-sections -lm
 
 # Objects
 export OBJ_CORE         = $(OBJDIR)/core.o
+export OBJ_DSP          = $(OBJDIR)/dsp.o
 export OBJ_CTL_CORE     = $(OBJDIR)/ctl_core.o
 export OBJ_TK_CORE      = $(OBJDIR)/tk_core.o
 export OBJ_WS_CORE      = $(OBJDIR)/ws_core.o

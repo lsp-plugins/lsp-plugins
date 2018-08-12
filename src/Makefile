@@ -1,4 +1,4 @@
-SUBDIRS                 = core metadata plugins ui utils container doc
+SUBDIRS                 = core dsp metadata plugins ui utils container doc
 MODULES                 = $(SUBDIRS) jack_stub vst_stub
 
 .PHONY: all $(MODULES)
@@ -15,6 +15,8 @@ $(SUBDIRS):
 
 # Object dependencies
 $(OBJ_CORE): core
+
+$(OBJ_DSP): dsp
 
 $(OBJ_PLUGINS): plugins
 
@@ -34,11 +36,9 @@ $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(OBJDIR)/res/xml_resource.cpp -o $(OBJ_RES_CORE)
 
 # Target dependencies
-plugins: $(OBJ_CORE) $(OBJ_METADATA)
+container: $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(UTL_FILES) $(OBJ_PLUGINS)
 
-container: $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(UTL_FILES) $(OBJ_PLUGINS)
-
-utils: $(OBJ_CORE) $(OBJ_METADATA)
+utils: $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA)
 
 doc: utils $(PHP_PLUGINS)
 
