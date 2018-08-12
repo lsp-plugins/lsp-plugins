@@ -93,9 +93,9 @@
 * BUG REPORTS: Detailed
 *******************************************************************************
   sysrqer:
-	The graphics seem to be a little buggy on my system, turning a band on/off
-	sometimes doesn't update the graph properly. Also when switching to band
-	view leaves part of the old view at the bottom.
+    The graphics seem to be a little buggy on my system, turning a band on/off
+    sometimes doesn't update the graph properly. Also when switching to band
+    view leaves part of the old view at the bottom.
 
 *******************************************************************************
 * FEATURE REQUESTS: Detailed
@@ -104,19 +104,19 @@
 ==== Sampler ====
 
   naught101:
-	So, the features I was thinking for Klangerzueger were:
-	  - file preview in the file load dialog
-	  - pitch/tune control (note and fine tuning)
-	  - Allowing a single sample to be used across a range of midi notes (with pitch shifting away from a centre note).
-	  - looping (start/end, fade length)
+    So, the features I was thinking for Klangerzueger were:
+      - file preview in the file load dialog
+      - pitch/tune control (note and fine tuning)
+      - Allowing a single sample to be used across a range of midi notes (with pitch shifting away from a centre note).
+      - looping (start/end, fade length)
 
-	I've also been considering a modification of Helm that might cover the same functionality, 
-	and I'm not sure which is the better path to tackle. Helm has a lot of nice modulation options
-	that are pretty attractive, but maybe also a bit overkill for a simple sampler.
+    I've also been considering a modification of Helm that might cover the same functionality, 
+    and I'm not sure which is the better path to tackle. Helm has a lot of nice modulation options
+    that are pretty attractive, but maybe also a bit overkill for a simple sampler.
 
-	Probably also a filter would be good, and velocity mappable the filter cut-off, 
-	and tail cut/fade-out. Some of these things might be easier to do in Helm, 
-	since the modulation and filter is already built in.
+    Probably also a filter would be good, and velocity mappable the filter cut-off, 
+    and tail cut/fade-out. Some of these things might be easier to do in Helm, 
+    since the modulation and filter is already built in.
 
 ==== UI ====
   tom-:
@@ -132,35 +132,35 @@
     Thanks and keep up the great work!
     
     The content of a text exported file looks like this:
-	Filter Settings file
-	Room EQ V5.18
-	Dated: 10.01.2018 18:58:28
-	Notes:
-	Equaliser: Generic
-	Average 1
-	Filter  1: ON  PK       Fc    42.0 Hz  Gain  -6.5 dB  Q 13.20
-	Filter  2: ON  PK       Fc    47.6 Hz  Gain  -3.3 dB  Q 16.77
-	Filter  3: ON  PK       Fc    62.0 Hz  Gain   9.0 dB  Q  5.41
-	Filter  4: ON  PK       Fc    67.1 Hz  Gain -12.3 dB  Q  5.02
-	Filter  5: ON  PK       Fc    86.2 Hz  Gain -15.4 dB  Q  3.01
-	Filter  6: ON  PK       Fc     122 Hz  Gain   6.3 dB  Q 15.03
-	Filter  7: ON  PK       Fc     132 Hz  Gain  -9.1 dB  Q  6.77
-	Filter  8: ON  PK       Fc     150 Hz  Gain  -8.5 dB  Q 10.00
-	Filter  9: ON  PK       Fc     165 Hz  Gain   4.3 dB  Q 26.53
-	Filter 10: ON  PK       Fc     190 Hz  Gain -19.7 dB  Q  5.03
-	Filter 11: ON  PK       Fc     202 Hz  Gain   9.0 dB  Q  5.00
-	Filter 12: ON  PK       Fc     247 Hz  Gain  -9.2 dB  Q  5.00
-	Filter 13: ON  PK       Fc     258 Hz  Gain   9.0 dB  Q  5.00
-	Filter 14: ON  PK       Fc    2073 Hz  Gain  -4.2 dB  Q  5.00
-	Filter 15: ON  PK       Fc   10879 Hz  Gain  -3.8 dB  Q  5.00
-	Filter 16: ON  None  
-	Filter 17: ON  None  
-	Filter 18: ON  None  
-	Filter 19: ON  None  
-	Filter 20: ON  None  
+    Filter Settings file
+    Room EQ V5.18
+    Dated: 10.01.2018 18:58:28
+    Notes:
+    Equaliser: Generic
+    Average 1
+    Filter  1: ON  PK       Fc    42.0 Hz  Gain  -6.5 dB  Q 13.20
+    Filter  2: ON  PK       Fc    47.6 Hz  Gain  -3.3 dB  Q 16.77
+    Filter  3: ON  PK       Fc    62.0 Hz  Gain   9.0 dB  Q  5.41
+    Filter  4: ON  PK       Fc    67.1 Hz  Gain -12.3 dB  Q  5.02
+    Filter  5: ON  PK       Fc    86.2 Hz  Gain -15.4 dB  Q  3.01
+    Filter  6: ON  PK       Fc     122 Hz  Gain   6.3 dB  Q 15.03
+    Filter  7: ON  PK       Fc     132 Hz  Gain  -9.1 dB  Q  6.77
+    Filter  8: ON  PK       Fc     150 Hz  Gain  -8.5 dB  Q 10.00
+    Filter  9: ON  PK       Fc     165 Hz  Gain   4.3 dB  Q 26.53
+    Filter 10: ON  PK       Fc     190 Hz  Gain -19.7 dB  Q  5.03
+    Filter 11: ON  PK       Fc     202 Hz  Gain   9.0 dB  Q  5.00
+    Filter 12: ON  PK       Fc     247 Hz  Gain  -9.2 dB  Q  5.00
+    Filter 13: ON  PK       Fc     258 Hz  Gain   9.0 dB  Q  5.00
+    Filter 14: ON  PK       Fc    2073 Hz  Gain  -4.2 dB  Q  5.00
+    Filter 15: ON  PK       Fc   10879 Hz  Gain  -3.8 dB  Q  5.00
+    Filter 16: ON  None  
+    Filter 17: ON  None  
+    Filter 18: ON  None  
+    Filter 19: ON  None  
+    Filter 20: ON  None  
 
-	I thought about an option to "just" read in such a file and set the Freq, Gain and Q values from this file. As far as I understood,
-	these are just peak filters. 
+    I thought about an option to "just" read in such a file and set the Freq, Gain and Q values from this file. As far as I understood,
+    these are just peak filters. 
 
 ==== Noise reduction ====
   <unknown>:
@@ -311,8 +311,8 @@
 
 ====
   mattpepin:
-  	A useful plugin for live situations would be a feedback analyzer/destroyer like Waves X-FDBK.
-  	It would be a matter of combining the Analyzer and an EQ strip and make it into a standalone plugin.
+      A useful plugin for live situations would be a feedback analyzer/destroyer like Waves X-FDBK.
+      It would be a matter of combining the Analyzer and an EQ strip and make it into a standalone plugin.
 
 ====
   unfa:
@@ -322,31 +322,31 @@
     of looping waveforms and allows the user to alter the sound by picking different table indexes at any given moment.
     Mainstream exampls are NI Massive and Serum, an opensource one - Calf Wavetable.
 
-	What can this concept have to do with convolution (impulse response) reverbs?
+    What can this concept have to do with convolution (impulse response) reverbs?
 
-	What if we had a plugin that could load 128 short IR samples instead of one (like IR.lv2 or Klangfalter)
-	and allowed the user to automate the table index for which sample is used at any given time? This could
-	probably sound like morphing the physical environment of the room you're playing in. Maybe it'd be a boring
-	thing, like there's nothing too amazing about automating a standrd C* Plate 2x2 reverb's tail length, or maybe...
+    What if we had a plugin that could load 128 short IR samples instead of one (like IR.lv2 or Klangfalter)
+    and allowed the user to automate the table index for which sample is used at any given time? This could
+    probably sound like morphing the physical environment of the room you're playing in. Maybe it'd be a boring
+    thing, like there's nothing too amazing about automating a standrd C* Plate 2x2 reverb's tail length, or maybe...
 
-	If we treated the IR table just like a wavetable synthesizer (think more Serum than Massive now), using
-	very short (a few miliseconds) loops extracted from recorded or syntesized sounds like explosions, human
-	speech, mechanical noises, randomly generated sequeces (creating short looped noise bursts - if you ever
-	looped radom 30 samples of a sound in Audacity and loved the tone you know what I mean. Now imagine shifting
-	the looped "selection" along a soundfile and using this as your virtual "stompbox emulation" for playing
-	an instrument or a synth?
+    If we treated the IR table just like a wavetable synthesizer (think more Serum than Massive now), using
+    very short (a few miliseconds) loops extracted from recorded or syntesized sounds like explosions, human
+    speech, mechanical noises, randomly generated sequeces (creating short looped noise bursts - if you ever
+    looped radom 30 samples of a sound in Audacity and loved the tone you know what I mean. Now imagine shifting
+    the looped "selection" along a soundfile and using this as your virtual "stompbox emulation" for playing
+    an instrument or a synth?
 
-	Maybe instead of loading 128 soundfiles, load 1 and split it automatically at zero-crossings? That should be
-	much easier to work with, who can manually cut up a soundfile to 128 chunks and remain sane after that?
+    Maybe instead of loading 128 soundfiles, load 1 and split it automatically at zero-crossings? That should be
+    much easier to work with, who can manually cut up a soundfile to 128 chunks and remain sane after that?
 
-	Adding an LFO and an envelope follower to the table index control, spiced up with manual automation - this
-	could create some interesting moving sounds, from crazy growling bass synths to haunting ambient pads.
+    Adding an LFO and an envelope follower to the table index control, spiced up with manual automation - this
+    could create some interesting moving sounds, from crazy growling bass synths to haunting ambient pads.
 
-	Or maybe we could make a convolution processor that has a sidechain input - it uses that and slices it at zero
-	crossings to create a short IR sample, and uses that to convolute the main input? A bit like a granular vocoder,
-	w wicked stuff?
+    Or maybe we could make a convolution processor that has a sidechain input - it uses that and slices it at zero
+    crossings to create a short IR sample, and uses that to convolute the main input? A bit like a granular vocoder,
+    w wicked stuff?
 
-	Feeling inspired? Or am I crazy?
+    Feeling inspired? Or am I crazy?
 
 ==== Sample replacing ====
   Nekosounds:
