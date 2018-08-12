@@ -33,8 +33,8 @@ namespace lsp
     // Declare static variables
     namespace dsp
     {
-        void    (* start)(dsp_context_t *ctx) = NULL;
-        void    (* finish)(dsp_context_t *ctx) = NULL;
+        void    (* start)(dsp::context_t *ctx) = NULL;
+        void    (* finish)(dsp::context_t *ctx) = NULL;
 
         void    (* copy)(float *dst, const float *src, size_t count) = NULL;
         void    (* copy_saturated)(float *dst, const float *src, size_t count) = NULL;
@@ -307,7 +307,7 @@ namespace lsp
 
     namespace dsp
     {
-        void init_context(dsp_context_t *ctx)
+        void init_context(dsp::context_t *ctx)
         {
             ctx->top        = 0;
         }

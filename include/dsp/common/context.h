@@ -15,22 +15,23 @@
 namespace lsp
 {
     //-----------------------------------------------------------------------
-    // DSP context parameters
-#pragma pack(push, 1)
-    typedef struct dsp_context_t
-    {
-        uint32_t        top;
-        uint32_t        data[15];
-    } dsp_context_t;
-#pragma pack(pop)
-
-    //-----------------------------------------------------------------------
     // DSP context functions
     namespace dsp
     {
+        #pragma pack(push, 1)
+        /**
+         * DSP context to store and restore machine state
+         */
+        typedef struct context_t
+        {
+            uint32_t        top;
+            uint32_t        data[15];
+        } context_t;
+        #pragma pack(pop)
+
         // Start and finish types
-        typedef void (* start_t)(dsp_context_t *ctx);
-        typedef void (* finish_t)(dsp_context_t *ctx);
+        typedef void (* start_t)(context_t *ctx);
+        typedef void (* finish_t)(context_t *ctx);
 
         /** Initialize DSP
          *
@@ -41,13 +42,13 @@ namespace lsp
          *
          * @param ctx structure to save context
          */
-        extern void (* start)(dsp_context_t *ctx);
+        extern void (* start)(context_t *ctx);
 
         /** Finish DSP processing, restore machine context
          *
          * @param ctx structure to restore context
          */
-        extern void (* finish)(dsp_context_t *ctx);
+        extern void (* finish)(context_t *ctx);
     }
 }
 

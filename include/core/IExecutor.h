@@ -38,7 +38,7 @@ namespace lsp
             static inline void run_task(ITask *task)
             {
                 // Enable DSP context for executor service
-                dsp_context_t ctx;
+                dsp::context_t ctx;
                 dsp::start(&ctx);
 
                 task->nState    = ITask::TS_RUNNING;

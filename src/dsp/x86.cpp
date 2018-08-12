@@ -266,7 +266,7 @@ namespace lsp
         static dsp::start_t     dsp_start       = NULL;
         static dsp::finish_t    dsp_finish      = NULL;
 
-        static void start(dsp_context_t *ctx)
+        static void start(dsp::context_t *ctx)
         {
             dsp_start(ctx);
             uint32_t cr                 = fpu_read_cr();
@@ -275,7 +275,7 @@ namespace lsp
             fpu_write_cr(cr);
         }
 
-        static void finish(dsp_context_t *ctx)
+        static void finish(dsp::context_t *ctx)
         {
             fpu_write_cr(ctx->data[--ctx->top]);
             dsp_finish(ctx);

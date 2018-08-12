@@ -116,7 +116,7 @@ namespace latencydetector_test
 
     int test(int argc, const char **argv)
     {
-        dsp_context_t ctx;
+        dsp::context_t ctx;
 
         srand(static_cast<size_t>(time(0)));
 

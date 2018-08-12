@@ -226,7 +226,7 @@ namespace bt_perf_test
 
     int test(int argc, const char **argv)
     {
-        dsp_context_t ctx;
+        dsp::context_t ctx;
 
         dsp::init();
         dsp::start(&ctx);

@@ -55,7 +55,7 @@ namespace lsp
         static dsp::start_t     dsp_start       = NULL;
         static dsp::finish_t    dsp_finish      = NULL;
 
-        static void start(dsp_context_t *ctx)
+        static void start(dsp::context_t *ctx)
         {
             dsp_start(ctx);
             uint32_t    mxcsr       = read_mxcsr();
@@ -63,7 +63,7 @@ namespace lsp
             write_mxcsr(mxcsr | MXCSR_ALL_MASK | MXCSR_FZ | MXCSR_DAZ);
         }
 
-        static void finish(dsp_context_t *ctx)
+        static void finish(dsp::context_t *ctx)
         {
             write_mxcsr(ctx->data[--ctx->top]);
             dsp_finish(ctx);

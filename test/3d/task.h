@@ -34,7 +34,7 @@
 
 void build_scene(Scene3D *s)
 {
-    dsp_context_t ctx;
+    dsp::context_t ctx;
     dsp::start(&ctx);
 
 //    Model3DFile::load(s, "test_data/3d/model01.obj", true);

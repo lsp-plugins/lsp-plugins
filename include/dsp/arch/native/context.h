@@ -12,12 +12,12 @@
     #error "This header should not be included directly"
 #endif /* __DSP_NATIVE_IMPL */
 
-void start(dsp_context_t *ctx)
+void start(dsp::context_t *ctx)
 {
     ctx->top        = 0;
 }
 
-void finish(dsp_context_t *ctx)
+void finish(dsp::context_t *ctx)
 {
     if (ctx->top != 0)
         lsp_warn("DSP context is not empty");

@@ -128,7 +128,7 @@ namespace lsp
             status                  = w.init(argc, argv);
             if (status == STATUS_OK)
             {
-                dsp_context_t ctx;
+                dsp::context_t ctx;
                 dsp::start(&ctx);
 
                 // Perform initial connection
