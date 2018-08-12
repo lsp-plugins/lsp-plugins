@@ -9,15 +9,15 @@
 #include <core/debug.h>
 #include <dsp/dsp.h>
 
-#include <core/x86/features.h>
-#include <core/x86/float.h>
-#include <core/x86/graphics.h>
+#include <dsp/arch/x86/features.h>
+#include <dsp/arch/x86/float.h>
+#include <dsp/arch/x86/graphics.h>
 
 namespace lsp
 {
     namespace x86
     {
-        #include <core/x86/cpuid.h>
+        #include <dsp/arch/x86/cpuid.h>
     }
 }
 

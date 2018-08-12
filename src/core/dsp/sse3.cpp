@@ -10,33 +10,33 @@
 #include <dsp/dsp.h>
 #include <core/bits.h>
 
-#include <core/x86/features.h>
+#include <dsp/arch/x86/features.h>
 
-#define CORE_X86_SSE_IMPL
+#define DSP_ARCH_X86_SSE_IMPL
 
 namespace lsp
 {
     namespace sse
     {
-        #include <core/x86/sse/const.h>
+        #include <dsp/arch/x86/sse/const.h>
     }
 
     namespace sse3
     {
         using namespace sse;
 
-        #include <core/x86/sse3/graphics.h>
+        #include <dsp/arch/x86/sse3/graphics.h>
 
-        #include <core/x86/sse3/filters/static.h>
-        #include <core/x86/sse3/filters/dynamic.h>
-        #include <core/x86/sse3/filters/transform.h>
+        #include <dsp/arch/x86/sse3/filters/static.h>
+        #include <dsp/arch/x86/sse3/filters/dynamic.h>
+        #include <dsp/arch/x86/sse3/filters/transform.h>
     }
 }
 
 
-#include <core/x86/sse3/complex.h>
+#include <dsp/arch/x86/sse3/complex.h>
 
-#undef CORE_X86_SSE_IMPL
+#undef DSP_ARCH_X86_SSE_IMPL
 
 namespace lsp
 {

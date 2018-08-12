@@ -10,7 +10,7 @@
 #include <dsp/dsp.h>
 #include <core/bits.h>
 
-#include <core/x86/features.h>
+#include <dsp/arch/x86/features.h>
 
 #if defined(__AVX__) && defined(LSP_NO_AVX)
     #undef __AVX__
@@ -22,13 +22,13 @@
     #endif /* ARCH_X86_64 */
 #endif
 
-#define CORE_X86_AVX_IMPL
+#define DSP_ARCH_X86_AVX_IMPL
 
 namespace lsp
 {
     namespace x86
     {
-        #include <core/x86/avx/xcr.h>
+        #include <dsp/arch/x86/avx/xcr.h>
     }
 }
 
@@ -37,18 +37,18 @@ namespace lsp
 {
     namespace avx
     {
-        #include <core/x86/avx/const.h>
-        #include <core/x86/avx/vector.h>
-        #include <core/x86/avx/filters/static.h>
-        #include <core/x86/avx/filters/dynamic.h>
-        #include <core/x86/avx/filters/transform.h>
-    //    #include <core/x86/avx/graphics.h>
+        #include <dsp/arch/x86/avx/const.h>
+        #include <dsp/arch/x86/avx/vector.h>
+        #include <dsp/arch/x86/avx/filters/static.h>
+        #include <dsp/arch/x86/avx/filters/dynamic.h>
+        #include <dsp/arch/x86/avx/filters/transform.h>
+    //    #include <dsp/arch/x86/avx/graphics.h>
 
     }
 }
 #endif /* __AVX__*/
 
-#undef CORE_X86_AVX_IMPL
+#undef DSP_ARCH_X86_AVX_IMPL
 
 namespace lsp
 {
