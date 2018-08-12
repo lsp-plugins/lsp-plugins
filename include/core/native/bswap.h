@@ -26,10 +26,6 @@ namespace lsp
     {
         v   = ((v & 0xff00ff00) >> 8) | ((v & 0x00ff00ff) << 8);
         return (v >> 16) | (v << 16);
-//        return (v >> 24) |
-//               ((v >> 8) & (0x0000ff00)) |
-//               (v << 24) |
-//               ((v << 8) & (0x00ff0000));
     }
 
     inline uint64_t __lsp_forced_inline     byte_swap(uint64_t v)
@@ -37,16 +33,6 @@ namespace lsp
         v   = ((v & 0xff00ff00ff00ff00ULL) >> 8)  | ((v & 0x00ff00ff00ff00ffULL) << 8);
         v   = ((v & 0xffff0000ffff0000ULL) >> 16) | ((v & 0x0000ffff0000ffffULL) << 16);
         return (v >> 32) | (v << 32);
-
-//        return (v >> 56) |
-//               ((v >> 40) & 0x0000ff00) |
-//               ((v >> 24) & 0x00ff0000) |
-//               ((v >> 8)  & 0xff000000) |
-//               (v << 56) |
-//               ((v & 0x0000ff00) << 40) |
-//               ((v & 0x00ff0000) << 24) |
-//               ((v & 0xff000000) << 8)
-//        ;
     }
 
     inline float __lsp_forced_inline byte_swap(float v)

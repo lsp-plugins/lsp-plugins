@@ -12,28 +12,30 @@
 
 #define __DSP_NATIVE_IMPL
 
-#include <core/native/dsp.h>
-#include <core/native/fft.h>
-#include <core/native/search.h>
-#include <core/native/fastconv.h>
-#include <core/native/float.h>
-#include <core/native/graphics.h>
-#include <core/native/resampling.h>
-#include <core/native/msmatrix.h>
-#include <core/native/complex.h>
-#include <core/native/3dmath.h>
-
 namespace lsp
 {
-
     namespace native
     {
         using namespace lsp;
 
-        #include <core/native/smath.h>
-        #include <core/native/filters/static.h>
-        #include <core/native/filters/dynamic.h>
-        #include <core/native/filters/transform.h>
+        #include <dsp/arch/native/context.h>
+        #include <dsp/arch/native/copy.h>
+        #include <dsp/arch/native/float.h>
+        #include <dsp/arch/native/fft.h>
+        #include <dsp/arch/native/search.h>
+        #include <dsp/arch/native/fastconv.h>
+        #include <dsp/arch/native/graphics.h>
+        #include <dsp/arch/native/resampling.h>
+        #include <dsp/arch/native/msmatrix.h>
+        #include <dsp/arch/native/complex.h>
+        #include <dsp/arch/native/smath.h>
+        #include <dsp/arch/native/pmath.h>
+        #include <dsp/arch/native/hmath.h>
+        #include <dsp/arch/native/mix.h>
+        #include <dsp/arch/native/filters/static.h>
+        #include <dsp/arch/native/filters/dynamic.h>
+        #include <dsp/arch/native/filters/transform.h>
+        #include <dsp/arch/native/3dmath.h>
     }
 }
 

@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef CORE_NATIVE_FILTERS_STATIC_H_
-#define CORE_NATIVE_FILTERS_STATIC_H_
+#ifndef DSP_ARCH_NATIVE_FILTERS_STATIC_H_
+#define DSP_ARCH_NATIVE_FILTERS_STATIC_H_
 
 #ifndef __DSP_NATIVE_IMPL
     #error "This header should not be included directly"
@@ -374,4 +374,4 @@ void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f)
     }
 }
 
-#endif /* CORE_NATIVE_FILTERS_STATIC_H_ */
+#endif /* DSP_ARCH_NATIVE_FILTERS_STATIC_H_ */

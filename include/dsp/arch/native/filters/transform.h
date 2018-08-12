@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef CORE_NATIVE_FILTERS_TRANSFORM_H_
-#define CORE_NATIVE_FILTERS_TRANSFORM_H_
+#ifndef DSP_ARCH_NATIVE_FILTERS_TRANSFORM_H_
+#define DSP_ARCH_NATIVE_FILTERS_TRANSFORM_H_
 
 #ifndef __DSP_NATIVE_IMPL
     #error "This header should not be included directly"
@@ -883,4 +883,4 @@ void matched_transform_x8(biquad_x8_t *bf, f_cascade_t *bc, float kf, float td, 
     } // for i
 }
 
-#endif /* CORE_NATIVE_FILTERS_TRANSFORM_H_ */
+#endif /* DSP_ARCH_NATIVE_FILTERS_TRANSFORM_H_ */

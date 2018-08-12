@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef CORE_NATIVE_BITS_H_
-#define CORE_NATIVE_BITS_H_
+#ifndef DSP_ARCH_NATIVE_BITS_H_
+#define DSP_ARCH_NATIVE_BITS_H_
 
 namespace lsp
 {
@@ -76,4 +76,4 @@ namespace lsp
     #undef ITERATE
 }
 
-#endif /* CORE_NATIVE_BITS_H_ */
+#endif /* DSP_ARCH_NATIVE_BITS_H_ */
