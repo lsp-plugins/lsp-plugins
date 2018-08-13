@@ -38,6 +38,8 @@ namespace sse3
         if (!(f->features & CPU_OPTION_SSE3))
             return;
 
+        EXPORT2(packed_complex_mul, packed_complex_mul);
+
         // Additional xmm registers are available only in 64-bit mode
         #ifdef ARCH_X86_64
             lsp_trace("Optimizing DSP for SSE3 instruction set");
