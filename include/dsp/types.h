@@ -126,6 +126,55 @@
 #define __lsp_aligned(bytes)                __attribute__ ((aligned (bytes)))
 
 //-----------------------------------------------------------------------------
+// CPU extensions
+
+// Extensions for x86 architecture enabled by compiler
+#ifdef ARCH_X86
+    #ifdef __SSE__
+        #define ARCH_X86_SSE
+    #endif /* __SSE__ */
+
+    #ifdef __SSE2__
+        #define ARCH_X86_SSE2
+    #endif /* __SSE2__ */
+
+    #ifdef __SSE3__
+        #define ARCH_X86_SSE3
+    #endif /* __SSE2__ */
+
+    #ifdef __SSSE3__
+        #define ARCH_X86_SSSE3
+    #endif /* __SSE2__ */
+
+    #ifdef __SSE4_1__
+        #define ARCH_X86_SSE4_1
+    #endif /* __SSE4_1__ */
+
+    #ifdef __SSE4_2__
+        #define ARCH_X86_SSE4_2
+    #endif /* __SSE4_1__ */
+
+    #ifdef __AVX__
+        #define ARCH_X86_AVX
+        #ifdef ARCH_X86_64
+            #define ARCH_X86_64_AVX
+        #else
+            #define ARCH_I386_AVX
+        #endif
+    #endif /* __AVX__ */
+
+    #ifdef __AVX2__
+        #define ARCH_X86_AVX2
+        #ifdef ARCH_X86_64
+            #define ARCH_X86_64_AVX2
+        #else
+            #define ARCH_I386_AVX2
+        #endif
+    #endif /* __AVX2__ */
+#endif /* ARCH_X86 */
+
+
+//-----------------------------------------------------------------------------
 // Define macros that may not be previously defined
 #ifndef __ASM_EMIT32
     #define __ASM_EMIT32(code)
