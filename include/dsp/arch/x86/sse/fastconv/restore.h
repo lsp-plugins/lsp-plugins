@@ -87,8 +87,8 @@ static inline void RESTORE_IMPL(float *dst, float *tmp, size_t rank)
     size_t n        = 8;
     size_t bs       = n << 1;
 
-    const float *wk     = XFFT_W;
-    const float *ak     = XFFT_A;
+    const float *wk     = dsp::XFFT_W;
+    const float *ak     = dsp::XFFT_A;
 
     // Iterate butterflies
     while (n < last)

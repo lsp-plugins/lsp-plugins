@@ -85,9 +85,9 @@
         __ASM_EMIT("2:") \
         \
         : [a] "+r"(a), [b] "+r"(b), [p] "+r"(p) \
-        : [rank] "r" (rank), [XFFT_W] "r"(XFFT_W), \
-          __IF_64([XFFT_A] "r"(XFFT_A)) \
-          __IF_32([XFFT_A] "g"(XFFT_A), [tmp1] "g"(&tmp1)) \
+        : [rank] "r" (rank), [XFFT_W] "r"(dsp::XFFT_W), \
+          __IF_64([XFFT_A] "r"(dsp::XFFT_A)) \
+          __IF_32([XFFT_A] "g"(dsp::XFFT_A), [tmp1] "g"(&tmp1)) \
         : "cc", "memory",  \
         "%xmm0", "%xmm1", "%xmm2", "%xmm3", \
         "%xmm4", "%xmm5", "%xmm6", "%xmm7" \

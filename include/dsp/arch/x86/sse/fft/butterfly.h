@@ -485,8 +485,8 @@
         \
         : [a_re] "+r"(a_re), [a_im] "+r"(a_im), [b_re] "+r"(b_re), [b_im] "+r"(b_im), [p] __ASM_ARG_RW(p) \
         : [rank] "r" (rank), \
-          __IF_64([XFFT_A_RE] "r"(XFFT_A_RE), [XFFT_A_IM] "r"(XFFT_A_IM), [XFFT_W_RE] "r"(XFFT_W_RE), [XFFT_W_IM] "r"(XFFT_W_IM)) \
-          __IF_32([XFFT_A_RE] "g"(XFFT_A_RE), [XFFT_A_IM] "g"(XFFT_A_IM), [XFFT_W_RE] "g"(XFFT_W_RE), [XFFT_W_IM] "g"(XFFT_W_IM), [tmp_re] "g"(&tmp_re), [tmp_im] "g"(&tmp_im)) \
+          __IF_64([XFFT_A_RE] "r"(dsp::XFFT_A_RE), [XFFT_A_IM] "r"(dsp::XFFT_A_IM), [XFFT_W_RE] "r"(dsp::XFFT_W_RE), [XFFT_W_IM] "r"(dsp::XFFT_W_IM)) \
+          __IF_32([XFFT_A_RE] "g"(dsp::XFFT_A_RE), [XFFT_A_IM] "g"(dsp::XFFT_A_IM), [XFFT_W_RE] "g"(dsp::XFFT_W_RE), [XFFT_W_IM] "g"(dsp::XFFT_W_IM), [tmp_re] "g"(&tmp_re), [tmp_im] "g"(&tmp_im)) \
         : "cc", "memory",  \
         "%xmm0", "%xmm1", "%xmm2", "%xmm3", \
         "%xmm4", "%xmm5" \

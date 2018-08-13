@@ -11,8 +11,8 @@
 static inline void PARSE_IMPL(float *dst, const float *src, size_t rank)
 {
     // Prepare for butterflies
-    const float *wk     = &XFFT_W[(rank-3) << 3];
-    const float *ak     = &XFFT_A[(rank-3) << 3];
+    const float *wk     = &dsp::XFFT_W[(rank-3) << 3];
+    const float *ak     = &dsp::XFFT_A[(rank-3) << 3];
     size_t items        = size_t(1) << (rank + 1);
     size_t bs           = items;
     size_t n            = bs >> 1;
@@ -255,8 +255,8 @@ static inline void PARSE_IMPL(float *dst, const float *src, size_t rank)
 static inline void PARSE_INTERNAL_IMPL(float *dst, const float *src, size_t rank)
 {
     // Prepare for butterflies
-    const float *wk     = &XFFT_W[(rank-3) << 3];
-    const float *ak     = &XFFT_A[(rank-3) << 3];
+    const float *wk     = &dsp::XFFT_W[(rank-3) << 3];
+    const float *ak     = &dsp::XFFT_A[(rank-3) << 3];
     size_t items        = size_t(1) << (rank + 1);
     size_t bs           = items;
     size_t n            = bs >> 1;

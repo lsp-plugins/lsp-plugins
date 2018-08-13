@@ -18,7 +18,17 @@
 #define DSP_F32VECX4(name, a, b, c, d)  extern const float name[]
 #define DSP_U32VECX4(name, a, b, c, d)  extern const uint32_t name[]
 
+#define DSP_F32REP4(v)
+#define DSP_U32REP4(v)
+
+#define DSP_F32ARRAY(name, ...)         extern const float name[]
+
 #include <dsp/common/const/const16.h>
+
+#undef DSP_F32ARRAY
+
+#undef DSP_U32REP4
+#undef DSP_F32REP4
 
 #undef DSP_U32VECX4
 #undef DSP_F32VECX4

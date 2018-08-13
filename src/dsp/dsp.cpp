@@ -13,13 +13,24 @@
 
 //-------------------------------------------------------------------------
 // Constants definition
-#define DSP_F32VEC4(name, v)        const float name[] __lsp_aligned16       = { v, v, v, v }
-#define DSP_U32VEC4(name, v)        const uint32_t name[] __lsp_aligned16    = { uint32_t(v), uint32_t(v), uint32_t(v), uint32_t(v) }
+#define DSP_F32VEC4(name, v)        const float name[] __lsp_aligned16          = { v, v, v, v }
+#define DSP_U32VEC4(name, v)        const uint32_t name[] __lsp_aligned16       = { uint32_t(v), uint32_t(v), uint32_t(v), uint32_t(v) }
 
-#define DSP_F32VECX4(name, a, b, c, d)  extern const float name[] __lsp_aligned16 = { a, b, c, d }
-#define DSP_U32VECX4(name, a, b, c, d)  extern const uint32_t name[]         = { uint32_t(a), uint32_t(b), uint32_t(c), uint32_t(d) }
+#define DSP_F32VECX4(name, a, b, c, d)  const float name[] __lsp_aligned16      = { a, b, c, d }
+#define DSP_U32VECX4(name, a, b, c, d)  const uint32_t name[] __lsp_aligned16   = { uint32_t(a), uint32_t(b), uint32_t(c), uint32_t(d) }
+
+#define DSP_F32REP4(v)              v, v, v, v
+#define DSP_U32REP4(v)              uint32_t(v), uint32_t(v), uint32_t(v), uint32_t(v)
+
+#define DSP_F32ARRAY(name, ...)     const float name[] __lsp_aligned16          = { __VA_ARGS__ }
 
 #include <dsp/common/const/const16.h>
+
+#undef DSP_F32ARRAY_IMPL
+#undef DSP_F32ARRAY
+
+#undef DSP_U32REP4
+#undef DSP_F32REP4
 
 #undef DSP_U32VECX4
 #undef DSP_F32VECX4
