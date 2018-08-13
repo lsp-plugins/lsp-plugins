@@ -134,6 +134,7 @@ namespace native
     float calc_angle3d_vv(const vector3d_t *v);
 
     void packed_complex_mod(float *dst_mod, const float *src, size_t count);
+    void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
 
     void complex_rcp1(float *dst_re, float *dst_im, size_t count);
     void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
@@ -266,11 +267,20 @@ namespace sse
     float calc_angle3d_vv(const vector3d_t *v);
 
     void packed_complex_mod(float *dst_mod, const float *src, size_t count);
+    void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
 
     void complex_rcp1(float *dst_re, float *dst_im, size_t count);
     void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
     void packed_complex_rcp1(float *dst, size_t count);
     void packed_complex_rcp2(float *dst, const float *src, size_t count);
+}
+
+namespace sse3
+{
+    void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
+#ifdef ARCH_X86_64
+    void x64_packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
+#endif /* ARCH_X86_64 */
 }
 
 namespace sse_test
@@ -1919,6 +1929,58 @@ namespace sse_test
         return true;
     }
 
+    bool test_packed_complex_mul()
+    {
+        TEST_FOREACH(sz, 0x01, 0x03, 0x04, 0x05, 0x08, 0x09, 0x0f, 0x10, 0x11, 0x20, 0x100)
+        {
+            for (size_t mask=0; mask <= 0x07; ++mask)
+            {
+                FBuffer src1(sz * 2, mask & 0x01);
+                FBuffer src2(sz * 2, mask & 0x02);
+                FBuffer dst1(sz * 2, mask & 0x08);
+                FBuffer dst2(sz * 2, mask & 0x08);
+
+                native::packed_complex_mul(dst1, src1, src2, sz);
+                if (!dst1.validate())
+                {
+                    lsp_error("  Failed native test size = %d, mask = 0x%x, overflow=%s",
+                                            int(sz), int(mask), (dst1.validate()) ? "false" : "true");
+                    return false;
+                }
+
+                dst2.randomize();
+                sse::packed_complex_mul(dst2, src1, src2, sz);
+                if ((!dst2.compare(dst1)) || (!dst2.validate()))
+                {
+                    lsp_error("  Failed sse test size = %d, mask = 0x%x, overflow=%s",
+                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
+                    return false;
+                }
+
+                dst2.randomize();
+                sse3::packed_complex_mul(dst2, src1, src2, sz);
+                if ((!dst2.compare(dst1)) || (!dst2.validate()))
+                {
+                    lsp_error("  Failed sse3 test size = %d, mask = 0x%x, overflow=%s",
+                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
+                    return false;
+                }
+
+            #ifdef ARCH_X86_64
+                dst2.randomize();
+                sse3::x64_packed_complex_mul(dst2, src1, src2, sz);
+                if ((!dst2.compare(dst1)) || (!dst2.validate()))
+                {
+                    lsp_error("  Failed x64_sse3 test size = %d, mask = 0x%x, overflow=%s",
+                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
+                    return false;
+                }
+            #endif
+            }
+        }
+        return true;
+    }
+
     bool test_complex_rcp1()
     {
         TEST_FOREACH(sz, 0x01, 0x03, 0x04, 0x05, 0x08, 0x09, 0x0f, 0x10, 0x11, 0x20, 0x100)
@@ -2011,6 +2073,7 @@ namespace sse_test
         int code = 0;
         #define LAUNCH(x, ...) --code; lsp_trace("Launching %s(%s)...", #x, #__VA_ARGS__); if (!x(__VA_ARGS__)) return code;
 
+        LAUNCH(test_packed_complex_mul)
         LAUNCH(test_complex_rcp2)
         LAUNCH(test_complex_rcp1)
         LAUNCH(test_packed_complex_rcp2)
