@@ -154,23 +154,25 @@
         #define ARCH_X86_SSE4_2
     #endif /* __SSE4_1__ */
 
-    #ifdef __AVX__
-        #define ARCH_X86_AVX
-        #ifdef ARCH_X86_64
-            #define ARCH_X86_64_AVX
-        #else
-            #define ARCH_I386_AVX
-        #endif
-    #endif /* __AVX__ */
+    #ifndef LSP_NO_AVX /* Special directive that forces to disable AVX support */
+        #ifdef __AVX__
+            #define ARCH_X86_AVX
+            #ifdef ARCH_X86_64
+                #define ARCH_X86_64_AVX
+            #else
+                #define ARCH_I386_AVX
+            #endif
+        #endif /* __AVX__ */
 
-    #ifdef __AVX2__
-        #define ARCH_X86_AVX2
-        #ifdef ARCH_X86_64
-            #define ARCH_X86_64_AVX2
-        #else
-            #define ARCH_I386_AVX2
-        #endif
-    #endif /* __AVX2__ */
+        #ifdef __AVX2__
+            #define ARCH_X86_AVX2
+            #ifdef ARCH_X86_64
+                #define ARCH_X86_64_AVX2
+            #else
+                #define ARCH_I386_AVX2
+            #endif
+        #endif /* __AVX2__ */
+    #endif /* LSP_NO_AVX */
 #endif /* ARCH_X86 */
 
 

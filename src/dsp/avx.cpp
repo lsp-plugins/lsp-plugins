@@ -1,5 +1,5 @@
 /*
- * avx256.cpp
+ * avx.cpp
  *
  *  Created on: 09 марта 2016 г.
  *      Author: sadko
@@ -11,16 +11,6 @@
 
 #include <dsp/arch/x86/features.h>
 
-#if defined(__AVX__) && defined(LSP_NO_AVX)
-    #undef __AVX__
-#endif
-
-#ifdef __AVX__
-    #ifndef ARCH_X86_64
-        #undef __AVX__
-    #endif /* ARCH_X86_64 */
-#endif
-
 #define DSP_ARCH_X86_AVX_IMPL
 
 namespace x86
@@ -28,7 +18,7 @@ namespace x86
     #include <dsp/arch/x86/avx/xcr.h>
 }
 
-#ifdef __AVX__
+#ifdef ARCH_X86_64_AVX
 namespace avx
 {
     #include <dsp/arch/x86/avx/const.h>
@@ -39,7 +29,7 @@ namespace avx
 //    #include <dsp/arch/x86/avx/graphics.h>
 
 }
-#endif /* __AVX__*/
+#endif /* ARCH_X86_64_AVX */
 
 #undef DSP_ARCH_X86_AVX_IMPL
 
@@ -52,7 +42,7 @@ namespace avx
 
     void dsp_init(const cpu_features_t *f)
     {
-        #ifdef __AVX__
+        #ifdef ARCH_X86_64_AVX
         if (!(f->features & CPU_OPTION_AVX))
             return;
 
@@ -75,7 +65,7 @@ namespace avx
             EXPORT2(biquad_process_x8, biquad_process_x8_fma3);
             EXPORT2(dyn_biquad_process_x8, dyn_biquad_process_x8_fma3);
         }
-        #endif /* __AVX__ */
+        #endif /* ARCH_X86_64_AVX */
     }
 
     #undef EXPORT1

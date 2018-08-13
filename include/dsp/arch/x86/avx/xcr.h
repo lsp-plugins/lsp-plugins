@@ -12,7 +12,7 @@
     #error "This header should not be included directly"
 #endif /* DSP_ARCH_X86_AVX_IMPL */
 
-#ifdef __AVX__
+#ifdef ARCH_X86_AVX
     uint64_t read_xcr(umword_t xcr_id)
     {
         uint64_t xcr;
@@ -20,7 +20,6 @@
         __asm__ __volatile__
         (
             __ASM_EMIT64("xor       %%rax, %%rax")
-            __ASM_EMIT64("xor       %%rdx, %%rdx")
             __ASM_EMIT("xgetbv")
             __ASM_EMIT64("shl       $32, %%rdx")
             __ASM_EMIT64("or        %%rdx, %%rax")
@@ -35,6 +34,6 @@
     {
         return 0;
     }
-#endif /* __AVX__ */
+#endif /* ARCH_X86_AVX */
 
 #endif /* DSP_ARCH_X86_AVX_XCR_H_ */
