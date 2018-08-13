@@ -35,69 +35,71 @@
 
 #define MXCSR_DEFAULT               0xffbf
 
-static uint32_t mxcsr_mask         = MXCSR_DEFAULT;
-
-inline void init_mxcsr_mask()
+namespace sse
 {
-    uint8_t fxsave[512] __lsp_aligned16;
-    uint8_t *ptr        = fxsave;
+    static uint32_t mxcsr_mask         = MXCSR_DEFAULT;
 
-    __asm__ __volatile__
-    (
-        // Clear FXSAVE structure
-        __ASM_EMIT("xor     %%eax, %%eax")
-        __ASM_EMIT("mov     $0x80, %%ecx")
-        __ASM_EMIT("rep     stosl")
+    inline void init_mxcsr_mask()
+    {
+        uint8_t fxsave[512] __lsp_aligned16;
+        uint8_t *ptr        = fxsave;
 
-        // Issue fxsave
-        __ASM_EMIT("fxsave  (%[fxsave])")
+        __asm__ __volatile__
+        (
+            // Clear FXSAVE structure
+            __ASM_EMIT("xor     %%eax, %%eax")
+            __ASM_EMIT("mov     $0x80, %%ecx")
+            __ASM_EMIT("rep     stosl")
 
-        // Get mask
-        __ASM_EMIT("mov     0x1c(%[fxsave]), %%eax")
-        __ASM_EMIT("test    %%eax, %%eax")
-        __ASM_EMIT("jnz     1f")
-        __ASM_EMIT("mov     %[mxcsr_dfl], %%eax") // Old processors issue zero MXCSR mask
-        __ASM_EMIT("1:")
+            // Issue fxsave
+            __ASM_EMIT("fxsave  (%[fxsave])")
 
-        // Store MXCSR mask
-        __ASM_EMIT("mov     %%eax, %[mask]")
+            // Get mask
+            __ASM_EMIT("mov     0x1c(%[fxsave]), %%eax")
+            __ASM_EMIT("test    %%eax, %%eax")
+            __ASM_EMIT("jnz     1f")
+            __ASM_EMIT("mov     %[mxcsr_dfl], %%eax") // Old processors issue zero MXCSR mask
+            __ASM_EMIT("1:")
 
-        : "+D" (ptr), [fxsave] "+S" (ptr), [mask] "+m" (mxcsr_mask)
-        : [mxcsr_dfl] "i" (MXCSR_DEFAULT)
-        : "cc", "memory",
-          "%eax", "%ecx"
-    );
+            // Store MXCSR mask
+            __ASM_EMIT("mov     %%eax, %[mask]")
+
+            : "+D" (ptr), [fxsave] "+S" (ptr), [mask] "+m" (mxcsr_mask)
+            : [mxcsr_dfl] "i" (MXCSR_DEFAULT)
+            : "cc", "memory",
+              "%eax", "%ecx"
+        );
+    }
+
+    inline uint32_t read_mxcsr()
+    {
+        uint32_t result = 0;
+
+        __asm__ __volatile__
+        (
+            __ASM_EMIT("stmxcsr %[result]")
+
+            : [result] "+m" (result)
+            :
+            : "memory"
+        );
+
+        return result;
+    }
+
+    inline void write_mxcsr(uint32_t value)
+    {
+        __asm__ __volatile__
+        (
+            // Clear FXSAVE structure
+            __ASM_EMIT("and         %[mask], %[value]")
+            __ASM_EMIT("ldmxcsr     %[value]")
+
+            : [value] "+m" (value)
+            : [mask] "r" (mxcsr_mask)
+            : "cc", "memory"
+        );
+    }
 }
-
-inline uint32_t read_mxcsr()
-{
-    uint32_t result = 0;
-
-    __asm__ __volatile__
-    (
-        __ASM_EMIT("stmxcsr %[result]")
-
-        : [result] "+m" (result)
-        :
-        : "memory"
-    );
-
-    return result;
-}
-
-inline void write_mxcsr(uint32_t value)
-{
-    __asm__ __volatile__
-    (
-        // Clear FXSAVE structure
-        __ASM_EMIT("and         %[mask], %[value]")
-        __ASM_EMIT("ldmxcsr     %[value]")
-
-        : [value] "+m" (value)
-        : [mask] "r" (mxcsr_mask)
-        : "cc", "memory"
-    );
-}
-
 
 #endif /* DSP_ARCH_X86_SSE_MXCSR_H_ */

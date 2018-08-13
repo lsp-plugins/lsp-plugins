@@ -13,10 +13,7 @@
 #include <dsp/arch/x86/float.h>
 #include <dsp/arch/x86/graphics.h>
 
-namespace x86
-{
-    #include <dsp/arch/x86/cpuid.h>
-}
+#include <dsp/arch/x86/cpuid.h>
 
 //-------------------------------------------------------------------------
 // References to extension initialization routines

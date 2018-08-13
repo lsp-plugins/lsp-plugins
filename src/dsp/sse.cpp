@@ -14,32 +14,31 @@
 
 #define DSP_ARCH_X86_SSE_IMPL
 
-namespace sse
+namespace sse // TODO: make constants common for all architectures
 {
-    #include <dsp/arch/x86/sse/mxcsr.h>
     #include <dsp/arch/x86/sse/const.h>
-    #include <dsp/arch/x86/sse/copy.h>
-    #include <dsp/arch/x86/sse/lmath.h>
-    #include <dsp/arch/x86/sse/hsum.h>
-    #include <dsp/arch/x86/sse/mix.h>
-    #include <dsp/arch/x86/sse/abs.h>
-
-    #include <dsp/arch/x86/sse/smath.h>
-
-    #include <dsp/arch/x86/sse/complex.h>
-    #include <dsp/arch/x86/sse/fft.h>
-    #include <dsp/arch/x86/sse/fastconv.h>
-    #include <dsp/arch/x86/sse/filters/static.h>
-    #include <dsp/arch/x86/sse/filters/dynamic.h>
-    #include <dsp/arch/x86/sse/filters/transform.h>
-    #include <dsp/arch/x86/sse/float.h>
-    #include <dsp/arch/x86/sse/graphics.h>
-    #include <dsp/arch/x86/sse/msmatrix.h>
-    #include <dsp/arch/x86/sse/search.h>
-    #include <dsp/arch/x86/sse/resampling.h>
-    #include <dsp/arch/x86/sse/3dmath.h>
-    #include <dsp/arch/x86/sse/native.h>
 }
+
+#include <dsp/arch/x86/sse/mxcsr.h>
+#include <dsp/arch/x86/sse/copy.h>
+#include <dsp/arch/x86/sse/lmath.h>
+#include <dsp/arch/x86/sse/hsum.h>
+#include <dsp/arch/x86/sse/mix.h>
+#include <dsp/arch/x86/sse/abs.h>
+#include <dsp/arch/x86/sse/smath.h>
+#include <dsp/arch/x86/sse/complex.h>
+#include <dsp/arch/x86/sse/fft.h>
+#include <dsp/arch/x86/sse/fastconv.h>
+#include <dsp/arch/x86/sse/filters/static.h>
+#include <dsp/arch/x86/sse/filters/dynamic.h>
+#include <dsp/arch/x86/sse/filters/transform.h>
+#include <dsp/arch/x86/sse/float.h>
+#include <dsp/arch/x86/sse/graphics.h>
+#include <dsp/arch/x86/sse/msmatrix.h>
+#include <dsp/arch/x86/sse/search.h>
+#include <dsp/arch/x86/sse/resampling.h>
+#include <dsp/arch/x86/sse/3dmath.h>
+#include <dsp/arch/x86/sse/native.h>
 
 #undef DSP_ARCH_X86_SSE_IMPL
 
