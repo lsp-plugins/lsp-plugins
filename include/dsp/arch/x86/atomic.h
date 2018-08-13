@@ -9,7 +9,7 @@
 #define DSP_ARCH_ATOMIC_X86_H_
 
 #define ATOMIC_XCHG_DEF(type)                           \
-    inline type atomic_exchange(type *ptr, type value)  \
+    inline type x86_atomic_exchange(type *ptr, type value)  \
     {                                                   \
         __asm__ __volatile__                            \
         (                                               \
@@ -38,8 +38,8 @@ ATOMIC_XCHG_DEF(uint32_t)
 
 //-----------------------------------------------------------------------------
 // Atomic operations
-#define atomic_lock(lk)     atomic_exchange(&lk, 0)
-#define atomic_init(lk)     lk = 1
-#define atomic_unlock(lk)   atomic_exchange(&lk, 1)
+#define atomic_init(lk)         lk = 1
+#define atomic_trylock(lk)      x86_atomic_exchange(&lk, 0)
+#define atomic_unlock(lk)       x86_atomic_exchange(&lk, 1)
 
 #endif /* DSP_ARCH_ATOMIC_X86_H_ */

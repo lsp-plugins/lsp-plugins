@@ -69,7 +69,7 @@ namespace lsp
                 return !(nFlags & F_ACCEPTED);
 
             // Check for pending request
-            if (atomic_lock(nDspRequest))
+            if (atomic_trylock(nDspRequest))
             {
                 // Update state of the DSP
                 if (nDspSerial != nDspCommit)
@@ -106,7 +106,7 @@ namespace lsp
                 while (true)
                 {
                     // Try to acquire critical section
-                    if (atomic_lock(nDspRequest))
+                    if (atomic_trylock(nDspRequest))
                     {
                         // Write DSP request
                         memcpy(sDspRequest, path, count);
@@ -135,7 +135,7 @@ namespace lsp
 
         bool ui_sync()
         {
-            if (!atomic_lock(nDspRequest))
+            if (!atomic_trylock(nDspRequest))
                 return false;
             bool sync = (nUiSerial != nUiCommit);
             if (sync)

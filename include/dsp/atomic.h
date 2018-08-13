@@ -17,14 +17,18 @@ typedef signed int      atomic_t;
     #include <dsp/arch/x86/atomic.h>
 #endif /* ARCH_X86 */
 
+#ifdef ARCH_ARM
+    #include <dsp/arch/arm/atomic.h>
+#endif /* ARCH_ARM */
+
 //-----------------------------------------------------------------------------
 // Require macro definitions for target architecture
 #ifndef atomic_init
     #error "atomic_init macro should be defined"
 #endif /* atomic_init */
 
-#ifndef atomic_lock
-    #error "atomic_lock macro should be defined"
+#ifndef atomic_trylock
+    #error "atomic_trylock macro should be defined"
 #endif /* atomic_lock */
 
 #ifndef atomic_unlock

@@ -24,9 +24,34 @@
     #define ARCH_X86_64
 #elif defined(__i386__)
     #define ARCH_I386
+#elif defined(__arm__)
+    #define ARCH_ARM
 #else
-    // TODO
+    #warning "Unsupported archtecture"
 #endif
+
+#define __ARM_SIZEOF_WCHAR_T 4
+#define __ARM_FEATURE_SAT 1
+#define __ARM_ARCH_ISA_ARM 1
+#define __ARMEL__ 1
+#define __ARM_FEATURE_UNALIGNED 1
+#define __ARM_FEATURE_IDIV 1
+#define __ARM_FP 12
+#define __ARM_ARCH_8A__ 1
+#define __ARM_SIZEOF_MINIMAL_ENUM 4
+#define __ARM_PCS_VFP 1
+#define __ARM_FEATURE_LDREX 15
+#define __ARM_FEATURE_QBIT 1
+#define __ARM_ARCH_PROFILE 65
+#define __ARM_32BIT_STATE 1
+#define __ARM_FEATURE_CLZ 1
+#define __ARM_ARCH_ISA_THUMB 2
+#define __ARM_ARCH 8
+#define __ARM_FEATURE_SIMD32 1
+#define __ARM_FEATURE_CRC32 1
+#define __ARM_ARCH_EXT_IDIV__ 1
+#define __ARM_EABI__ 1
+#define __ARM_FEATURE_DSP 1
 
 //-----------------------------------------------------------------------------
 // Detect endianess and operations
@@ -34,6 +59,16 @@
     #define ARCH_X86
     #define ARCH_LE
 #endif /* defined(ARCH_I386) || defined(ARCH_X86_64) */
+
+#if defined(ARCH_ARM)
+    #define ARCH_LE
+
+    #if (__ARM_ARCH == 8)
+        #define ARCH_ARM8
+    #elif (__ARM_ARCH == 7)
+        #define ARCH_ARM7
+    #endif
+#endif /* defined(ARCH_ARM) */
 
 #ifdef ARCH_LE
     #define __IF_LEBE(le, be)   (le)
@@ -107,6 +142,16 @@
     #define __ASM_EMIT64(code)                  code "\n\t"
     #define __IF_64(...)                        __VA_ARGS__
 #endif
+
+#ifdef ARCH_ARM7
+    #define __ASM_EMIT32(code)                  code "\n\t"
+    #define __IF_32(...)                        __VA_ARGS__
+#endif /* ARCH_ARM7 */
+
+#ifdef ARCH_ARM8
+    #define __ASM_EMIT64(code)                  code "\n\t"
+    #define __IF_64(...)                        __VA_ARGS__
+#endif /* ARCH_ARM8 */
 
 #ifdef LSP_PROFILING
     #define __ASM_EMITP(code)                      code "\n\t"
