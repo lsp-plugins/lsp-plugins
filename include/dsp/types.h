@@ -60,6 +60,12 @@
 //-----------------------------------------------------------------------------
 // Detect endianess and operations
 #if defined(ARCH_I386) || defined(ARCH_X86_64)
+    #if defined(ARCH_X86_64)
+        #define ARCH_64BIT
+    #else
+        #define ARCH_32BIT
+    #endif
+
     #define ARCH_X86
     #define ARCH_LE
 #endif /* defined(ARCH_I386) || defined(ARCH_X86_64) */
@@ -68,8 +74,10 @@
     #define ARCH_LE
 
     #if (__ARM_ARCH == 8)
+        #define ARCH_64BIT
         #define ARCH_ARM8
     #elif (__ARM_ARCH == 7)
+        #define ARCH_32BIT
         #define ARCH_ARM7
     #endif
 #endif /* defined(ARCH_ARM) */
