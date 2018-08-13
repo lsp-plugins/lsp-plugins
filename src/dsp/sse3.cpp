@@ -12,27 +12,20 @@
 
 #include <dsp/arch/x86/features.h>
 
-#define DSP_ARCH_X86_SSE_IMPL
-
-namespace sse
-{
-    #include <dsp/arch/x86/sse/const.h>
-}
+#define DSP_ARCH_X86_SSE3_IMPL
 
 namespace sse3
 {
-    using namespace sse;
-
-    #include <dsp/arch/x86/sse3/graphics.h>
-
-    #include <dsp/arch/x86/sse3/filters/static.h>
-    #include <dsp/arch/x86/sse3/filters/dynamic.h>
-    #include <dsp/arch/x86/sse3/filters/transform.h>
+    inline bool __lsp_forced_inline sse_aligned(const void *ptr)         { return !(ptrdiff_t(ptr) & (0x0f));  };
 }
 
+#include <dsp/arch/x86/sse3/graphics.h>
+#include <dsp/arch/x86/sse3/filters/static.h>
+#include <dsp/arch/x86/sse3/filters/dynamic.h>
+#include <dsp/arch/x86/sse3/filters/transform.h>
 #include <dsp/arch/x86/sse3/complex.h>
 
-#undef DSP_ARCH_X86_SSE_IMPL
+#undef DSP_ARCH_X86_SSE3_IMPL
 
 namespace sse3
 {

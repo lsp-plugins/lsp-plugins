@@ -13,16 +13,9 @@
 #include <dsp/arch/x86/features.h>
 
 #define DSP_ARCH_X86_SSE4_IMPL
-#define DSP_ARCH_X86_SSE_IMPL
-
-namespace sse
-{
-    #include <dsp/arch/x86/sse/const.h>
-}
 
 #include <dsp/arch/x86/sse4/3dmath.h>
 
-#undef DSP_ARCH_X86_SSE_IMPL
 #undef DSP_ARCH_X86_SSE4_IMPL
 
 namespace sse4
