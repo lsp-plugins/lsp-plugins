@@ -18,6 +18,33 @@
     #include <linux/limits.h>
 #endif /* __linux__ */
 
+/*
+    ARM-predefined macros on Raspberry Pi
+
+    #define __ARM_SIZEOF_WCHAR_T 4
+    #define __ARM_FEATURE_SAT 1
+    #define __ARM_ARCH_ISA_ARM 1
+    #define __ARMEL__ 1
+    #define __ARM_FEATURE_UNALIGNED 1
+    #define __ARM_FEATURE_IDIV 1
+    #define __ARM_FP 12
+    #define __ARM_ARCH_8A__ 1
+    #define __ARM_SIZEOF_MINIMAL_ENUM 4
+    #define __ARM_PCS_VFP 1
+    #define __ARM_FEATURE_LDREX 15
+    #define __ARM_FEATURE_QBIT 1
+    #define __ARM_ARCH_PROFILE 65
+    #define __ARM_32BIT_STATE 1
+    #define __ARM_FEATURE_CLZ 1
+    #define __ARM_ARCH_ISA_THUMB 2
+    #define __ARM_ARCH 8
+    #define __ARM_FEATURE_SIMD32 1
+    #define __ARM_FEATURE_CRC32 1
+    #define __ARM_ARCH_EXT_IDIV__ 1
+    #define __ARM_EABI__ 1
+    #define __ARM_FEATURE_DSP 1
+ */
+
 //-----------------------------------------------------------------------------
 // Detect build architecture
 #if defined(__x86_64__)
@@ -29,29 +56,6 @@
 #else
     #warning "Unsupported archtecture"
 #endif
-
-#define __ARM_SIZEOF_WCHAR_T 4
-#define __ARM_FEATURE_SAT 1
-#define __ARM_ARCH_ISA_ARM 1
-#define __ARMEL__ 1
-#define __ARM_FEATURE_UNALIGNED 1
-#define __ARM_FEATURE_IDIV 1
-#define __ARM_FP 12
-#define __ARM_ARCH_8A__ 1
-#define __ARM_SIZEOF_MINIMAL_ENUM 4
-#define __ARM_PCS_VFP 1
-#define __ARM_FEATURE_LDREX 15
-#define __ARM_FEATURE_QBIT 1
-#define __ARM_ARCH_PROFILE 65
-#define __ARM_32BIT_STATE 1
-#define __ARM_FEATURE_CLZ 1
-#define __ARM_ARCH_ISA_THUMB 2
-#define __ARM_ARCH 8
-#define __ARM_FEATURE_SIMD32 1
-#define __ARM_FEATURE_CRC32 1
-#define __ARM_ARCH_EXT_IDIV__ 1
-#define __ARM_EABI__ 1
-#define __ARM_FEATURE_DSP 1
 
 //-----------------------------------------------------------------------------
 // Detect endianess and operations
