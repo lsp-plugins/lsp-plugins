@@ -139,15 +139,15 @@ namespace sse
                     __ASM_EMIT("jnz 2f")
                         __ASM_EMIT("test $0x0f, %[side]")
                         __ASM_EMIT("jnz 1f")
-                            _LR_TO_MS("movaps", "movaps", MOVNTPS, MOVNTPS)
+                            _LR_TO_MS("movaps", "movaps", "movaps", "movaps")
                             __ASM_EMIT("jmp 8f")
                         __ASM_EMIT("1:")
-                            _LR_TO_MS("movaps", "movaps", MOVNTPS, "movups")
+                            _LR_TO_MS("movaps", "movaps", "movaps", "movups")
                             __ASM_EMIT("jmp 8f")
                         __ASM_EMIT("2:")
                         __ASM_EMIT("test $0x0f, %[side]")
                         __ASM_EMIT("jnz 3f")
-                            _LR_TO_MS("movaps", "movaps", "movups", MOVNTPS)
+                            _LR_TO_MS("movaps", "movaps", "movups", "movaps")
                             __ASM_EMIT("jmp 8f")
                         __ASM_EMIT("3:")
                             _LR_TO_MS("movaps", "movaps", "movups", "movups")
@@ -157,15 +157,15 @@ namespace sse
                     __ASM_EMIT("jnz 6f")
                         __ASM_EMIT("test $0x0f, %[side]")
                         __ASM_EMIT("jnz 5f")
-                            _LR_TO_MS("movaps", "movups", MOVNTPS, MOVNTPS)
+                            _LR_TO_MS("movaps", "movups", "movaps", "movaps")
                             __ASM_EMIT("jmp 8f")
                         __ASM_EMIT("5:")
-                            _LR_TO_MS("movaps", "movups", MOVNTPS, "movups")
+                            _LR_TO_MS("movaps", "movups", "movaps", "movups")
                             __ASM_EMIT("jmp 8f")
                         __ASM_EMIT("6:")
                         __ASM_EMIT("test $0x0f, %[side]")
                         __ASM_EMIT("jnz 7f")
-                            _LR_TO_MS("movaps", "movups", "movups", MOVNTPS)
+                            _LR_TO_MS("movaps", "movups", "movups", "movaps")
                             __ASM_EMIT("jmp 8f")
                         __ASM_EMIT("7:")
                             _LR_TO_MS("movaps", "movups", "movups", "movups")
@@ -215,8 +215,6 @@ namespace sse
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3"
         );
-
-        SFENCE;
     }
 
     void ms_to_lr(float *l, float *r, const float *m, const float *s, size_t count)
@@ -334,15 +332,15 @@ namespace sse
                     __ASM_EMIT("jnz 2f")
                         __ASM_EMIT("test $0x0f, %[right]")
                         __ASM_EMIT("jnz 1f")
-                            _MS_TO_LR("movaps", "movaps", MOVNTPS, MOVNTPS)
+                            _MS_TO_LR("movaps", "movaps", "movaps", "movaps")
                             __ASM_EMIT("jmp 8f")
                         __ASM_EMIT("1:")
-                            _MS_TO_LR("movaps", "movaps", MOVNTPS, "movups")
+                            _MS_TO_LR("movaps", "movaps", "movaps", "movups")
                             __ASM_EMIT("jmp 8f")
                         __ASM_EMIT("2:")
                         __ASM_EMIT("test $0x0f, %[right]")
                         __ASM_EMIT("jnz 3f")
-                            _MS_TO_LR("movaps", "movaps", "movups", MOVNTPS)
+                            _MS_TO_LR("movaps", "movaps", "movups", "movaps")
                             __ASM_EMIT("jmp 8f")
                         __ASM_EMIT("3:")
                             _MS_TO_LR("movaps", "movaps", "movups", "movups")
@@ -352,15 +350,15 @@ namespace sse
                     __ASM_EMIT("jnz 6f")
                         __ASM_EMIT("test $0x0f, %[right]")
                         __ASM_EMIT("jnz 5f")
-                            _MS_TO_LR("movaps", "movups", MOVNTPS, MOVNTPS)
+                            _MS_TO_LR("movaps", "movups", "movaps", "movaps")
                             __ASM_EMIT("jmp 8f")
                         __ASM_EMIT("5:")
-                            _MS_TO_LR("movaps", "movups", MOVNTPS, "movups")
+                            _MS_TO_LR("movaps", "movups", "movaps", "movups")
                             __ASM_EMIT("jmp 8f")
                         __ASM_EMIT("6:")
                         __ASM_EMIT("test $0x0f, %[right]")
                         __ASM_EMIT("jnz 7f")
-                            _MS_TO_LR("movaps", "movups", "movups", MOVNTPS)
+                            _MS_TO_LR("movaps", "movups", "movups", "movaps")
                             __ASM_EMIT("jmp 8f")
                         __ASM_EMIT("7:")
                             _MS_TO_LR("movaps", "movups", "movups", "movups")
@@ -408,8 +406,6 @@ namespace sse
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2"
         );
-
-        SFENCE;
     }
 
     #define __LR_CVT_BODY(ld_l, ld_r, st_d, op) \

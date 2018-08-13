@@ -772,7 +772,7 @@ namespace sse
                     __ASM_EMIT("addps   %%xmm3, %%xmm2") \
                     __ASM_EMIT("xchg    %0, %2") \
                     __ASM_EMIT("xchg    %1, %3") \
-                    __ASM_EMIT(MOVNTPS " %%xmm0, (%2)") \
+                    __ASM_EMIT("movaps" " %%xmm0, (%2)") \
                     __ASM_EMIT(s_im "   %%xmm2, (%3)") \
                     \
                     /* Move pointers */ \
@@ -814,7 +814,7 @@ namespace sse
                     __ASM_EMIT("mulps   %%xmm4, %%xmm3") \
                     __ASM_EMIT("subps   %%xmm1, %%xmm0") \
                     __ASM_EMIT("addps   %%xmm3, %%xmm2") \
-                    __ASM_EMIT(MOVNTPS " %%xmm0, (%0,%7)") \
+                    __ASM_EMIT("movaps  %%xmm0, (%0,%7)") \
                     __ASM_EMIT(s_im "   %%xmm2, (%1,%7)") \
                     \
                     /* Move pointers */ \
@@ -853,29 +853,29 @@ namespace sse
                             __ASM_EMIT("jnz 2f")
                                 __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
                                 __ASM_EMIT("jnz 1f")
-                                    cplx_mul4x(MOVNTPS, "movaps", "movaps", "movaps", "movaps")
+                                    cplx_mul4x("movaps", "movaps", "movaps", "movaps", "movaps")
                                 __ASM_EMIT("1:") // !sse_aligned(src2_re)
-                                    cplx_mul4x(MOVNTPS, "movaps", "movaps", "movaps", "movups")
+                                    cplx_mul4x("movaps", "movaps", "movaps", "movaps", "movups")
                             __ASM_EMIT("2:") // !sse_aligned(src2_re)
                                 __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
                                 __ASM_EMIT("jnz 3f")
-                                    cplx_mul4x(MOVNTPS, "movaps", "movaps", "movups", "movaps")
+                                    cplx_mul4x("movaps", "movaps", "movaps", "movups", "movaps")
                                 __ASM_EMIT("3:") // !sse_aligned(src2_re)
-                                    cplx_mul4x(MOVNTPS, "movaps", "movaps", "movups", "movups")
+                                    cplx_mul4x("movaps", "movaps", "movaps", "movups", "movups")
                         __ASM_EMIT("4:") // !sse_aligned(src1_im)
                             __ASM_EMIT("test $0x0f, %4") // sse_aligned(src2_re)
                             __ASM_EMIT("jnz 6f")
                                 __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
                                 __ASM_EMIT("jnz 5f")
-                                    cplx_mul4x(MOVNTPS, "movaps", "movups", "movaps", "movaps")
+                                    cplx_mul4x("movaps", "movaps", "movups", "movaps", "movaps")
                                 __ASM_EMIT("5:") // !sse_aligned(src2_re)
-                                    cplx_mul4x(MOVNTPS, "movaps", "movups", "movaps", "movups")
+                                    cplx_mul4x("movaps", "movaps", "movups", "movaps", "movups")
                             __ASM_EMIT("6:") // !sse_aligned(src2_re)
                                 __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
                                 __ASM_EMIT("jnz 7f")
-                                    cplx_mul4x(MOVNTPS, "movaps", "movups", "movups", "movaps")
+                                    cplx_mul4x("movaps", "movaps", "movups", "movups", "movaps")
                                 __ASM_EMIT("7:") // !sse_aligned(src2_re)
-                                    cplx_mul4x(MOVNTPS, "movaps", "movups", "movups", "movups")
+                                    cplx_mul4x("movaps", "movaps", "movups", "movups", "movups")
                     __ASM_EMIT("8:") // !sse_aligned(src1_re)
                     __ASM_EMIT("test $0x0f, %3") // sse_aligned(src1_im)
                         __ASM_EMIT("jnz 12f")
@@ -883,29 +883,29 @@ namespace sse
                             __ASM_EMIT("jnz 10f")
                                 __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
                                 __ASM_EMIT("jnz 9f")
-                                    cplx_mul4x(MOVNTPS, "movups", "movaps", "movaps", "movaps")
+                                    cplx_mul4x("movaps", "movups", "movaps", "movaps", "movaps")
                                 __ASM_EMIT("9:") // !sse_aligned(src2_re)
-                                    cplx_mul4x(MOVNTPS, "movups", "movaps", "movaps", "movups")
+                                    cplx_mul4x("movaps", "movups", "movaps", "movaps", "movups")
                             __ASM_EMIT("10:") // !sse_aligned(src2_re)
                                 __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
                                 __ASM_EMIT("jnz 11f")
-                                    cplx_mul4x(MOVNTPS, "movups", "movaps", "movups", "movaps")
+                                    cplx_mul4x("movaps", "movups", "movaps", "movups", "movaps")
                                 __ASM_EMIT("11:") // !sse_aligned(src2_re)
-                                    cplx_mul4x(MOVNTPS, "movups", "movaps", "movups", "movups")
+                                    cplx_mul4x("movaps", "movups", "movaps", "movups", "movups")
                         __ASM_EMIT("12:") // !sse_aligned(src1_im)
                             __ASM_EMIT("test $0x0f, %4") // sse_aligned(src2_re)
                             __ASM_EMIT("jnz 14f")
                                 __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
                                 __ASM_EMIT("jnz 13f")
-                                    cplx_mul4x(MOVNTPS, "movups", "movups", "movaps", "movaps")
+                                    cplx_mul4x("movaps", "movups", "movups", "movaps", "movaps")
                                 __ASM_EMIT("13:") // !sse_aligned(src2_re)
-                                    cplx_mul4x(MOVNTPS, "movups", "movups", "movaps", "movups")
+                                    cplx_mul4x("movaps", "movups", "movups", "movaps", "movups")
                             __ASM_EMIT("14:") // !sse_aligned(src2_re)
                                 __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
                                 __ASM_EMIT("jnz 15f")
-                                    cplx_mul4x(MOVNTPS, "movups", "movups", "movups", "movaps")
+                                    cplx_mul4x("movaps", "movups", "movups", "movups", "movaps")
                                 __ASM_EMIT("15:") // !sse_aligned(src2_re)
-                                    cplx_mul4x(MOVNTPS, "movups", "movups", "movups", "movups")
+                                    cplx_mul4x("movaps", "movups", "movups", "movups", "movups")
 
                 __ASM_EMIT("16:") // !sse_aligned(dst_im)
                     __ASM_EMIT("test $0x0f, %2") // sse_aligned(src1_re)
@@ -1073,8 +1073,6 @@ namespace sse
                   "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5"
             );
         }
-
-        SFENCE;
     }
 
     static void complex_mod(float *dst_mod, const float *src_re, const float *src_im, size_t count)
@@ -1173,10 +1171,10 @@ namespace sse
                         __ASM_EMIT("sqrtps %%xmm2, %%xmm2") \
                         __ASM_EMIT("sqrtps %%xmm3, %%xmm3") \
                         \
-                        __ASM_EMIT(MOVNTPS " %%xmm0, 0x00(%2)") \
-                        __ASM_EMIT(MOVNTPS " %%xmm1, 0x10(%2)") \
-                        __ASM_EMIT(MOVNTPS " %%xmm2, 0x20(%2)") \
-                        __ASM_EMIT(MOVNTPS " %%xmm3, 0x30(%2)") \
+                        __ASM_EMIT("movaps" " %%xmm0, 0x00(%2)") \
+                        __ASM_EMIT("movaps" " %%xmm1, 0x10(%2)") \
+                        __ASM_EMIT("movaps" " %%xmm2, 0x20(%2)") \
+                        __ASM_EMIT("movaps" " %%xmm3, 0x30(%2)") \
                         \
                         /* Move pointers */ \
                         __ASM_EMIT("add $0x40, %0") \
@@ -1208,7 +1206,7 @@ namespace sse
                         __ASM_EMIT("mulps %%xmm1, %%xmm1") \
                         __ASM_EMIT("addps %%xmm1, %%xmm0") \
                         __ASM_EMIT("sqrtps %%xmm0, %%xmm0") \
-                        __ASM_EMIT(MOVNTPS " %%xmm0, (%2)") \
+                        __ASM_EMIT("movaps" " %%xmm0, (%2)") \
                         \
                         /* Move pointers */ \
                         __ASM_EMIT("add $0x10, %0") \
@@ -1275,8 +1273,6 @@ namespace sse
                   "%xmm0", "%xmm1"
             );
         }
-
-        SFENCE;
     }
 
     // TODO: test it

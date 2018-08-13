@@ -15,9 +15,6 @@
 // Parameters for SSE
 #define SSE_MULTIPLE                4
 #define SSE_ALIGN                   (SSE_MULTIPLE * sizeof(float))
-#define SFENCE                      __asm__ __volatile__ ( __ASM_EMIT("sfence") )
-#define EMMS                        __asm__ __volatile__ ( __ASM_EMIT("emms") )
-#define MOVNTPS                     "movaps"
 
 static inline bool __lsp_forced_inline sse_aligned(const void *ptr)         { return !(ptrdiff_t(ptr) & (SSE_ALIGN - 1));  };
 static inline ptrdiff_t __lsp_forced_inline sse_offset(const void *ptr)     { return (ptrdiff_t(ptr) & (SSE_ALIGN - 1));   };
