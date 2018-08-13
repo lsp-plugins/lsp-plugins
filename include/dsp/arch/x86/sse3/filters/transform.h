@@ -179,7 +179,7 @@ void x64_bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf,
           [count] "+r" (count),
           [bc] "+r" (bc),
           [bf] "+r" (bf)
-        : [ONE] "m" (ONE)
+        : [ONE] "m" (dsp::ONE)
         : "cc", "memory"
     );
 }

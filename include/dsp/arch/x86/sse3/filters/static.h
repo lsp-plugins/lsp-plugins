@@ -523,7 +523,7 @@ void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t 
         : [dst] "+r" (dst), [src] "+r" (src), [mask] "=&r" (mask), [count] "+r" (count)
         :
           [f] "r" (f),
-          [X_MASK] "m" (X_MASK0001),
+          [X_MASK] "m" (dsp::X_MASK0001),
           [MASK_LO] "m" (MASK_LO),
           [MASK_HI] "m" (MASK_HI)
         : "cc", "memory",

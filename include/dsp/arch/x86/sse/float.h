@@ -70,13 +70,13 @@ namespace sse
                 \
                 : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (regs) \
                 : \
-                    [X_ZERO_M1] "m" (X_ZERO_M1), \
-                    [X_P_INF] "m" (X_P_INF), \
-                    [X_N_INF] "m" (X_N_INF), \
-                    [SX_P_INF] "m" (SX_P_INF), \
-                    [SX_N_INF] "m" (SX_N_INF), \
-                    [SX_P_NAN] "m" (SX_P_NAN), \
-                    [SX_N_NAN] "m" (SX_N_NAN) \
+                    [X_ZERO_M1] "m" (dsp::X_ZERO_M1), \
+                    [X_P_INF] "m" (dsp::X_P_INF), \
+                    [X_N_INF] "m" (dsp::X_N_INF), \
+                    [SX_P_INF] "m" (dsp::SX_P_INF), \
+                    [SX_N_INF] "m" (dsp::SX_N_INF), \
+                    [SX_P_NAN] "m" (dsp::SX_P_NAN), \
+                    [SX_N_NAN] "m" (dsp::SX_N_NAN) \
                 : "memory", "cc",   \
                   "%xmm0", "%xmm1", "%xmm2", "%xmm3", \
                   "%xmm4", "%xmm5", "%xmm6", "%xmm7" \
@@ -105,13 +105,13 @@ namespace sse
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
             :
-                [X_ZERO_M1] "m" (X_ZERO_M1),
-                [X_P_INF] "m" (X_P_INF),
-                [X_N_INF] "m" (X_N_INF),
-                [SX_P_INF] "m" (SX_P_INF),
-                [SX_N_INF] "m" (SX_N_INF),
-                [SX_P_NAN] "m" (SX_P_NAN),
-                [SX_N_NAN] "m" (SX_N_NAN)
+                [X_ZERO_M1] "m" (dsp::X_ZERO_M1),
+                [X_P_INF] "m" (dsp::X_P_INF),
+                [X_N_INF] "m" (dsp::X_N_INF),
+                [SX_P_INF] "m" (dsp::SX_P_INF),
+                [SX_N_INF] "m" (dsp::SX_N_INF),
+                [SX_P_NAN] "m" (dsp::SX_P_NAN),
+                [SX_N_NAN] "m" (dsp::SX_N_NAN)
             :   "memory", "cc",
                 "%xmm0", "%xmm1", "%xmm2", "%xmm3",
                 "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -147,13 +147,13 @@ namespace sse
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
             :
-                [X_ZERO_M1] "m" (X_ZERO_M1),
-                [X_P_INF] "m" (X_P_INF),
-                [X_N_INF] "m" (X_N_INF),
-                [SX_P_INF] "m" (SX_P_INF),
-                [SX_N_INF] "m" (SX_N_INF),
-                [SX_P_NAN] "m" (SX_P_NAN),
-                [SX_N_NAN] "m" (SX_N_NAN)
+                [X_ZERO_M1] "m" (dsp::X_ZERO_M1),
+                [X_P_INF] "m" (dsp::X_P_INF),
+                [X_N_INF] "m" (dsp::X_N_INF),
+                [SX_P_INF] "m" (dsp::SX_P_INF),
+                [SX_N_INF] "m" (dsp::SX_N_INF),
+                [SX_P_NAN] "m" (dsp::SX_P_NAN),
+                [SX_N_NAN] "m" (dsp::SX_N_NAN)
             :   "memory", "cc",
                 "%xmm0", "%xmm1", "%xmm2", "%xmm3",
                 "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -228,13 +228,13 @@ namespace sse
 
             : [dst] "+r" (dst), [count] "+r" (count)
             :
-                [X_ZERO_M1] "m" (X_ZERO_M1),
-                [X_P_INF] "m" (X_P_INF),
-                [X_N_INF] "m" (X_N_INF),
-                [SX_P_INF] "m" (SX_P_INF),
-                [SX_N_INF] "m" (SX_N_INF),
-                [SX_P_NAN] "m" (SX_P_NAN),
-                [SX_N_NAN] "m" (SX_N_NAN)
+                [X_ZERO_M1] "m" (dsp::X_ZERO_M1),
+                [X_P_INF] "m" (dsp::X_P_INF),
+                [X_N_INF] "m" (dsp::X_N_INF),
+                [SX_P_INF] "m" (dsp::SX_P_INF),
+                [SX_N_INF] "m" (dsp::SX_N_INF),
+                [SX_P_NAN] "m" (dsp::SX_P_NAN),
+                [SX_N_NAN] "m" (dsp::SX_N_NAN)
             :   "memory", "cc",
                 "%xmm0", "%xmm1", "%xmm2", "%xmm3",
                 "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -256,13 +256,13 @@ namespace sse
 
                 : [dst] "+r" (dst), [count] "+r" (regs)
                 :
-                    [X_ZERO_M1] "m" (X_ZERO_M1),
-                    [X_P_INF] "m" (X_P_INF),
-                    [X_N_INF] "m" (X_N_INF),
-                    [SX_P_INF] "m" (SX_P_INF),
-                    [SX_N_INF] "m" (SX_N_INF),
-                    [SX_P_NAN] "m" (SX_P_NAN),
-                    [SX_N_NAN] "m" (SX_N_NAN)
+                    [X_ZERO_M1] "m" (dsp::X_ZERO_M1),
+                    [X_P_INF] "m" (dsp::X_P_INF),
+                    [X_N_INF] "m" (dsp::X_N_INF),
+                    [SX_P_INF] "m" (dsp::SX_P_INF),
+                    [SX_N_INF] "m" (dsp::SX_N_INF),
+                    [SX_P_NAN] "m" (dsp::SX_P_NAN),
+                    [SX_N_NAN] "m" (dsp::SX_N_NAN)
                 :   "memory", "cc",
                     "%xmm0", "%xmm1", "%xmm2", "%xmm3",
                     "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -283,13 +283,13 @@ namespace sse
 
             : [dst] "+r" (dst), [count] "+r" (count)
             :
-                [X_ZERO_M1] "m" (X_ZERO_M1),
-                [X_P_INF] "m" (X_P_INF),
-                [X_N_INF] "m" (X_N_INF),
-                [SX_P_INF] "m" (SX_P_INF),
-                [SX_N_INF] "m" (SX_N_INF),
-                [SX_P_NAN] "m" (SX_P_NAN),
-                [SX_N_NAN] "m" (SX_N_NAN)
+                [X_ZERO_M1] "m" (dsp::X_ZERO_M1),
+                [X_P_INF] "m" (dsp::X_P_INF),
+                [X_N_INF] "m" (dsp::X_N_INF),
+                [SX_P_INF] "m" (dsp::SX_P_INF),
+                [SX_N_INF] "m" (dsp::SX_N_INF),
+                [SX_P_NAN] "m" (dsp::SX_P_NAN),
+                [SX_N_NAN] "m" (dsp::SX_N_NAN)
             :   "memory", "cc",
                 "%xmm0", "%xmm1", "%xmm2", "%xmm3",
                 "%xmm4", "%xmm5", "%xmm6", "%xmm7"

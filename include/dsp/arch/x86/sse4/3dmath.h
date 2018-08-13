@@ -138,8 +138,8 @@ namespace sse4
 
             : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2)
             : [p] "r" (p),
-              [zmask] "m" (X_MASK0111),
-              [omask] "m" (X_3DPOINT)
+              [zmask] "m" (dsp::X_MASK0111),
+              [omask] "m" (dsp::X_3DPOINT)
             : "cc", "memory"
         );
     }
@@ -158,8 +158,8 @@ namespace sse4
 
             : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "+x" (r)
             : [p] "r" (p),
-              [zmask] "m" (X_MASK0111),
-              [omask] "m" (X_3DPOINT)
+              [zmask] "m" (dsp::X_MASK0111),
+              [omask] "m" (dsp::X_3DPOINT)
             : "cc", "memory"
         );
     }
@@ -178,8 +178,8 @@ namespace sse4
 
             : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "+x" (r)
             : [p] "r" (p), [s] "r" (s),
-              [zmask] "m" (X_MASK0111),
-              [omask] "m" (X_3DPOINT)
+              [zmask] "m" (dsp::X_MASK0111),
+              [omask] "m" (dsp::X_3DPOINT)
             : "cc", "memory"
         );
     }
@@ -213,7 +213,7 @@ namespace sse4
 
             : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "+x" (r)
             : [v] "r" (v),
-              [zmask] "m" (X_MASK0111)
+              [zmask] "m" (dsp::X_MASK0111)
             : "cc", "memory"
         );
     }
@@ -231,7 +231,7 @@ namespace sse4
 
             : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "+x" (r)
             : [v] "r" (v), [s] "r" (s),
-              [zmask] "m" (X_MASK0111)
+              [zmask] "m" (dsp::X_MASK0111)
             : "cc", "memory"
         );
     }
@@ -720,11 +720,11 @@ namespace sse4
               [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
               [x4] "=&x" (x4), [x5] "=&x" (x5), [x6] "=&x" (x6), [x7] "=&x" (x7)
             : [l] "r" (l), [t] "r" (t), [ip] "r" (ip),
-              [smask0001] "m" (X_SMASK0001),
-              [smask0010] "m" (X_SMASK0010),
-              [abs] "m" (X_SIGN),
-              [zero] "m" (X_3D_TOLERANCE),
-              [negative] "m" (X_MINUS_ONE),
+              [smask0001] "m" (dsp::X_SMASK0001),
+              [smask0010] "m" (dsp::X_SMASK0010),
+              [abs] "m" (dsp::X_SIGN),
+              [zero] "m" (dsp::X_3D_TOLERANCE),
+              [negative] "m" (dsp::X_MINUS_ONE),
               [ix] "m" (ix),
               [proj] "m" (proj)
         );

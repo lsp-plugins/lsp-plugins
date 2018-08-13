@@ -12,6 +12,22 @@
 #include <dsp/dsp.h>
 
 //-------------------------------------------------------------------------
+// Constants definition
+#define DSP_F32VEC4(name, v)        const float name[] __lsp_aligned16       = { v, v, v, v }
+#define DSP_U32VEC4(name, v)        const uint32_t name[] __lsp_aligned16    = { uint32_t(v), uint32_t(v), uint32_t(v), uint32_t(v) }
+
+#define DSP_F32VECX4(name, a, b, c, d)  extern const float name[] __lsp_aligned16 = { a, b, c, d }
+#define DSP_U32VECX4(name, a, b, c, d)  extern const uint32_t name[]         = { uint32_t(a), uint32_t(b), uint32_t(c), uint32_t(d) }
+
+#include <dsp/common/const/const16.h>
+
+#undef DSP_U32VECX4
+#undef DSP_F32VECX4
+
+#undef DSP_U32VEC4
+#undef DSP_F32VEC4
+
+//-------------------------------------------------------------------------
 // Native DSP initialization, always present
 namespace native
 {

@@ -311,7 +311,7 @@ namespace sse
             : [dst] "+r" (dst), [src] "+r" (src), [d] "+r" (d), [f] "+r" (f), [count] "+r" (count)
             :
               [d_s] "m" (d_s),
-              [X_MASK] "m" (X_MASK0001),
+              [X_MASK] "m" (dsp::X_MASK0001),
               [MASK] "m" (MASK)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -635,7 +635,7 @@ namespace sse
               [dst_s] "m" (dst_s),
               [f_s] "m" (f_s),
               [count_s] "m" (count_s),
-              [X_MASK] "m" (X_MASK0001),
+              [X_MASK] "m" (dsp::X_MASK0001),
               [MASK] "m" (MASK)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"

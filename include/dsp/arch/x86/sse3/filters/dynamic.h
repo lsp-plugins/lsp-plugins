@@ -245,7 +245,7 @@ void x64_dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t co
 
         : [dst] "+r" (dst), [src] "+r" (src), [d] "+r" (d), [mask] "=&r" (mask), [f] "+r" (f), [count] "+r" (count)
         :
-          [X_MASK] "m" (X_MASK0001)
+          [X_MASK] "m" (dsp::X_MASK0001)
         : "cc", "memory",
           "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7",
           "%xmm8", "%xmm9", "%xmm10", "%xmm11", "%xmm12", "%xmm13", "%xmm14", "%xmm15"

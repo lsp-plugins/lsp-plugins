@@ -191,18 +191,18 @@
             /* Now cosines (w_re) are in xmm6, sines (w_im) in xmm7 */ \
             : \
             : "r"(pairs), "r"(p), \
-                [S0] "m"(S0), \
-                [S0] "m"(S0), \
-                [S2] "m"(S2), \
-                [S3] "m"(S3), \
-                [S4] "m"(S4), \
-                [S5] "m"(S5), \
-                [C0] "m"(C0), \
-                [C1] "m"(C1), \
-                [C2] "m"(C2), \
-                [C3] "m"(C3), \
-                [C4] "m"(C4), \
-                [C5] "m"(C5), \
+                [S0] "m"(SIN_C0), \
+                [S0] "m"(SIN_C0), \
+                [S2] "m"(SIN_C2), \
+                [S3] "m"(SIN_C3), \
+                [S4] "m"(SIN_C4), \
+                [S5] "m"(SIN_C5), \
+                [C0] "m"(COS_C0), \
+                [C1] "m"(COS_C1), \
+                [C2] "m"(COS_C2), \
+                [C3] "m"(COS_C3), \
+                [C4] "m"(COS_C4), \
+                [C5] "m"(COS_C5), \
                 [PI] "m"(PI), \
                 [PI_2] "m"(PI_2) \
             : \

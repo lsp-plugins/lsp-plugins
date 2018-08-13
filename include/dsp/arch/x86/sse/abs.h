@@ -122,7 +122,7 @@ namespace sse
             __ASM_EMIT("2000:")
 
             : [dst] "+r"(dst), [count] "+r" (count)
-            : [mask] "m" (X_SIGN)
+            : [mask] "m" (dsp::X_SIGN)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -250,7 +250,7 @@ namespace sse
             __ASM_EMIT("2000:")
 
             : [src] "+r" (src), [dst] "+r"(dst), [count] "+r" (count)
-            : [mask] "m" (X_SIGN)
+            : [mask] "m" (dsp::X_SIGN)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -349,7 +349,7 @@ namespace sse
             __ASM_EMIT("2000:") \
             \
             : [dst] "+r"(dst), [src] "+r"(src), [count] "+r" (count) \
-            : [mask] "m" (X_SIGN) \
+            : [mask] "m" (dsp::X_SIGN) \
             : "cc", "memory", \
               "%xmm0", "%xmm1", "%xmm2", "%xmm3", \
               "%xmm4", "%xmm5", "%xmm6", "%xmm7" \
