@@ -6,22 +6,19 @@
 #include <core/types.h>
 #include <dsp/dsp.h>
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void fastconv_parse(float *dst, const float *src, size_t rank);
-        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
-        void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
-        void fd_packed_direct_fft(float *dst, const float *src, size_t rank);
-    }
+    void fastconv_parse(float *dst, const float *src, size_t rank);
+    void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+    void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
+    void fd_packed_direct_fft(float *dst, const float *src, size_t rank);
+}
 
-    namespace sse
-    {
-        void fastconv_parse(float *dst, const float *src, size_t rank);
-        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
-        void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
-    }
+namespace sse
+{
+    void fastconv_parse(float *dst, const float *src, size_t rank);
+    void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+    void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
 }
 
 namespace fft_fastconv_test

@@ -15,21 +15,17 @@
 #define BIQUAD_X8_FLOATS    (sizeof(biquad_x8_t) / sizeof(float))
 #define CASCADE_FLOATS      (sizeof(f_cascade_t) / sizeof(float))
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
-//        void test_matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
-    }
-
-    namespace sse
-    {
-        void matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
-//        void test_matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
-    }
+    void matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
+//    void test_matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
 }
 
+namespace sse
+{
+    void matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
+//    void test_matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
+}
 
 namespace mt_test
 {

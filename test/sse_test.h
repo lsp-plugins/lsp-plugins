@@ -10,270 +10,267 @@
 
 #include "common.h"
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void scale2(float *dst, float k, size_t count);
-        void scale3(float *dst, const float *src, float k, size_t count);
+    void scale2(float *dst, float k, size_t count);
+    void scale3(float *dst, const float *src, float k, size_t count);
 
-        void add2(float *dst, const float *src, size_t count);
-        void sub2(float *dst, const float *src, size_t count);
-        void mul2(float *dst, const float *src, size_t count);
-        void div2(float *dst, const float *src, size_t count);
+    void add2(float *dst, const float *src, size_t count);
+    void sub2(float *dst, const float *src, size_t count);
+    void mul2(float *dst, const float *src, size_t count);
+    void div2(float *dst, const float *src, size_t count);
 
-        void add3(float *dst, const float *src1, const float *src2, size_t count);
-        void sub3(float *dst, const float *src1, const float *src2, size_t count);
-        void mul3(float *dst, const float *src1, const float *src2, size_t count);
-        void div3(float *dst, const float *src1, const float *src2, size_t count);
+    void add3(float *dst, const float *src1, const float *src2, size_t count);
+    void sub3(float *dst, const float *src1, const float *src2, size_t count);
+    void mul3(float *dst, const float *src1, const float *src2, size_t count);
+    void div3(float *dst, const float *src1, const float *src2, size_t count);
 
-        void scale_add3(float *dst, const float *src, float k, size_t count);
-        void scale_sub3(float *dst, const float *src, float k, size_t count);
-        void scale_mul3(float *dst, const float *src, float k, size_t count);
-        void scale_div3(float *dst, const float *src, float k, size_t count);
+    void scale_add3(float *dst, const float *src, float k, size_t count);
+    void scale_sub3(float *dst, const float *src, float k, size_t count);
+    void scale_mul3(float *dst, const float *src, float k, size_t count);
+    void scale_div3(float *dst, const float *src, float k, size_t count);
 
-        void mix2(float *dst, const float *src, float k1, float k2, size_t count);
-        void mix3(float *dst, const float *src1, const float *src2, float k1, float k2, float k3, size_t count);
-        void mix4(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, float k4, size_t count);
+    void mix2(float *dst, const float *src, float k1, float k2, size_t count);
+    void mix3(float *dst, const float *src1, const float *src2, float k1, float k2, float k3, size_t count);
+    void mix4(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, float k4, size_t count);
 
-        void mix_copy2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
-        void mix_copy3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
-        void mix_copy4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count);
+    void mix_copy2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
+    void mix_copy3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
+    void mix_copy4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count);
 
-        void mix_add2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
-        void mix_add3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
-        void mix_add4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count);
+    void mix_add2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
+    void mix_add3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
+    void mix_add4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count);
 
-        void fill(float *dst, float value, size_t count);
+    void fill(float *dst, float value, size_t count);
 
-        float h_sum(const float *src, size_t count);
-        float h_sqr_sum(const float *src, size_t count);
-        float h_abs_sum(const float *src, size_t count);
+    float h_sum(const float *src, size_t count);
+    float h_sqr_sum(const float *src, size_t count);
+    float h_abs_sum(const float *src, size_t count);
 
-        void abs1(float *src, size_t count);
-        void abs2(float *dst, const float *src, size_t count);
-        void abs_add2(float *dst, const float *src, size_t count);
-        void abs_sub2(float *dst, const float *src, size_t count);
-        void abs_mul2(float *dst, const float *src, size_t count);
-        void abs_div2(float *dst, const float *src, size_t count);
+    void abs1(float *src, size_t count);
+    void abs2(float *dst, const float *src, size_t count);
+    void abs_add2(float *dst, const float *src, size_t count);
+    void abs_sub2(float *dst, const float *src, size_t count);
+    void abs_mul2(float *dst, const float *src, size_t count);
+    void abs_div2(float *dst, const float *src, size_t count);
 
-        void reverse1(float *dst, size_t count);
-        void reverse2(float *dst, const float *src, size_t count);
+    void reverse1(float *dst, size_t count);
+    void reverse2(float *dst, const float *src, size_t count);
 
-        float min(const float *src, size_t count);
-        float max(const float *src, size_t count);
-        void minmax(const float *src, size_t count, float *min, float *max);
+    float min(const float *src, size_t count);
+    float max(const float *src, size_t count);
+    void minmax(const float *src, size_t count, float *min, float *max);
 
-        float abs_min(const float *src, size_t count);
-        float abs_max(const float *src, size_t count);
-        void abs_minmax(const float *src, size_t count, float *min, float *max);
+    float abs_min(const float *src, size_t count);
+    float abs_max(const float *src, size_t count);
+    void abs_minmax(const float *src, size_t count, float *min, float *max);
 
-        void init_point_xyz(point3d_t *p, float x, float y, float z);
-        void init_point(point3d_t *p, const point3d_t *s);
-        void normalize_point(point3d_t *p);
+    void init_point_xyz(point3d_t *p, float x, float y, float z);
+    void init_point(point3d_t *p, const point3d_t *s);
+    void normalize_point(point3d_t *p);
 
-        void init_vector_dxyz(vector3d_t *v, float dx, float dy, float dz);
-        void init_vector(vector3d_t *p, const vector3d_t *s);
-        void normalize_vector(vector3d_t *v);
+    void init_vector_dxyz(vector3d_t *v, float dx, float dy, float dz);
+    void init_vector(vector3d_t *p, const vector3d_t *s);
+    void normalize_vector(vector3d_t *v);
 
-        void init_ray_xyz(ray3d_t *l, float x0, float y0, float z0, float x1, float y1, float z1);
-        void init_ray_dxyz(ray3d_t *l, float x0, float y0, float z0, float dx, float dy, float dz);
-        void init_ray_pdv(ray3d_t *l, const point3d_t *p, const vector3d_t *v);
-        void init_ray_p2(ray3d_t *l, const point3d_t *p1, const point3d_t *p2);
-        void init_ray_pv(ray3d_t *l, const point3d_t *p);
-        void init_ray(ray3d_t *l, const ray3d_t *r);
-        void calc_ray_xyz(ray3d_t *l, float x0, float y0, float z0, float x1, float y1, float z1);
-        void calc_ray_dxyz(ray3d_t *l, float x0, float y0, float z0, float dx, float dy, float dz);
-        void calc_ray_pdv(ray3d_t *l, const point3d_t *p, const vector3d_t *v);
-        void calc_ray_p2(ray3d_t *l, const point3d_t *p1, const point3d_t *p2);
-        void calc_ray_pv(ray3d_t *l, const point3d_t *p);
-        void calc_ray(ray3d_t *l, const ray3d_t *r);
-        void init_segment_xyz(segment3d_t *s, float x0, float y0, float z0,float x1, float y1, float z1);
-        void init_segment_p2(segment3d_t *s, const point3d_t *p1, const point3d_t *p2);
-        void init_segment_pv(segment3d_t *s, const point3d_t *p);
+    void init_ray_xyz(ray3d_t *l, float x0, float y0, float z0, float x1, float y1, float z1);
+    void init_ray_dxyz(ray3d_t *l, float x0, float y0, float z0, float dx, float dy, float dz);
+    void init_ray_pdv(ray3d_t *l, const point3d_t *p, const vector3d_t *v);
+    void init_ray_p2(ray3d_t *l, const point3d_t *p1, const point3d_t *p2);
+    void init_ray_pv(ray3d_t *l, const point3d_t *p);
+    void init_ray(ray3d_t *l, const ray3d_t *r);
+    void calc_ray_xyz(ray3d_t *l, float x0, float y0, float z0, float x1, float y1, float z1);
+    void calc_ray_dxyz(ray3d_t *l, float x0, float y0, float z0, float dx, float dy, float dz);
+    void calc_ray_pdv(ray3d_t *l, const point3d_t *p, const vector3d_t *v);
+    void calc_ray_p2(ray3d_t *l, const point3d_t *p1, const point3d_t *p2);
+    void calc_ray_pv(ray3d_t *l, const point3d_t *p);
+    void calc_ray(ray3d_t *l, const ray3d_t *r);
+    void init_segment_xyz(segment3d_t *s, float x0, float y0, float z0,float x1, float y1, float z1);
+    void init_segment_p2(segment3d_t *s, const point3d_t *p1, const point3d_t *p2);
+    void init_segment_pv(segment3d_t *s, const point3d_t *p);
 
-        void init_matrix3d(matrix3d_t *dst, const matrix3d_t *src);
-        void init_matrix3d_zero(matrix3d_t *m);
-        void init_matrix3d_one(matrix3d_t *m);
-        void init_matrix3d_identity(matrix3d_t *m);
-        void init_matrix3d_translate(matrix3d_t *m, float dx, float dy, float dz);
-        void init_matrix3d_scale(matrix3d_t *m, float sx, float sy, float sz);
-        void init_matrix3d_rotate_x(matrix3d_t *m, float angle);
-        void init_matrix3d_rotate_y(matrix3d_t *m, float angle);
-        void init_matrix3d_rotate_z(matrix3d_t *m, float angle);
-        void init_matrix3d_rotate_xyz(matrix3d_t *m, float x, float y, float z, float angle);
-        void apply_matrix3d_mv2(vector3d_t *r, const vector3d_t *v, const matrix3d_t *m);
-        void apply_matrix3d_mv1(vector3d_t *r, const matrix3d_t *m);
-        void apply_matrix3d_mp2(point3d_t *r, const point3d_t *p, const matrix3d_t *m);
-        void apply_matrix3d_mp1(point3d_t *r, const matrix3d_t *m);
-        void apply_matrix3d_mm2(matrix3d_t *r, const matrix3d_t *s, const matrix3d_t *m);
-        void apply_matrix3d_mm1(matrix3d_t *r, const matrix3d_t *m);
-        void transpose_matrix3d1(matrix3d_t *r);
-        void transpose_matrix3d2(matrix3d_t *r, const matrix3d_t *m);
+    void init_matrix3d(matrix3d_t *dst, const matrix3d_t *src);
+    void init_matrix3d_zero(matrix3d_t *m);
+    void init_matrix3d_one(matrix3d_t *m);
+    void init_matrix3d_identity(matrix3d_t *m);
+    void init_matrix3d_translate(matrix3d_t *m, float dx, float dy, float dz);
+    void init_matrix3d_scale(matrix3d_t *m, float sx, float sy, float sz);
+    void init_matrix3d_rotate_x(matrix3d_t *m, float angle);
+    void init_matrix3d_rotate_y(matrix3d_t *m, float angle);
+    void init_matrix3d_rotate_z(matrix3d_t *m, float angle);
+    void init_matrix3d_rotate_xyz(matrix3d_t *m, float x, float y, float z, float angle);
+    void apply_matrix3d_mv2(vector3d_t *r, const vector3d_t *v, const matrix3d_t *m);
+    void apply_matrix3d_mv1(vector3d_t *r, const matrix3d_t *m);
+    void apply_matrix3d_mp2(point3d_t *r, const point3d_t *p, const matrix3d_t *m);
+    void apply_matrix3d_mp1(point3d_t *r, const matrix3d_t *m);
+    void apply_matrix3d_mm2(matrix3d_t *r, const matrix3d_t *s, const matrix3d_t *m);
+    void apply_matrix3d_mm1(matrix3d_t *r, const matrix3d_t *m);
+    void transpose_matrix3d1(matrix3d_t *r);
+    void transpose_matrix3d2(matrix3d_t *r, const matrix3d_t *m);
 
-        float check_triplet3d_p3n(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const vector3d_t *n);
-        float check_triplet3d_pvn(const point3d_t *pv, const vector3d_t *n);
-        float check_triplet3d_v2n(const vector3d_t *v1, const vector3d_t *v2, const vector3d_t *n);
-        float check_triplet3d_vvn(const vector3d_t *v, const vector3d_t *n);
-        float check_triplet3d_vv(const vector3d_t *v);
-        float check_triplet3d_t(const triangle3d_t *t);
-        float check_triplet3d_tn(const triangle3d_t *t, const vector3d_t *n);
+    float check_triplet3d_p3n(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const vector3d_t *n);
+    float check_triplet3d_pvn(const point3d_t *pv, const vector3d_t *n);
+    float check_triplet3d_v2n(const vector3d_t *v1, const vector3d_t *v2, const vector3d_t *n);
+    float check_triplet3d_vvn(const vector3d_t *v, const vector3d_t *n);
+    float check_triplet3d_vv(const vector3d_t *v);
+    float check_triplet3d_t(const triangle3d_t *t);
+    float check_triplet3d_tn(const triangle3d_t *t, const vector3d_t *n);
 
-        float check_point3d_location_tp(const triangle3d_t *t, const point3d_t *p);
-        float check_point3d_location_pvp(const point3d_t *t, const point3d_t *p);
-        float check_point3d_location_p3p(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p);
+    float check_point3d_location_tp(const triangle3d_t *t, const point3d_t *p);
+    float check_point3d_location_pvp(const point3d_t *t, const point3d_t *p);
+    float check_point3d_location_p3p(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p);
 
-        float check_point3d_on_triangle_p3p(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p);
-        float check_point3d_on_triangle_pvp(const point3d_t *pv, const point3d_t *p);
-        float check_point3d_on_triangle_tp(const triangle3d_t *t, const point3d_t *p);
+    float check_point3d_on_triangle_p3p(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p);
+    float check_point3d_on_triangle_pvp(const point3d_t *pv, const point3d_t *p);
+    float check_point3d_on_triangle_tp(const triangle3d_t *t, const point3d_t *p);
 
-        size_t longest_edge3d_p3(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3);
-        size_t longest_edge3d_pv(const point3d_t *p);
+    size_t longest_edge3d_p3(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3);
+    size_t longest_edge3d_pv(const point3d_t *p);
 
-        float find_intersection3d_rt(point3d_t *ip, const ray3d_t *l, const triangle3d_t *t);
+    float find_intersection3d_rt(point3d_t *ip, const ray3d_t *l, const triangle3d_t *t);
 
-        float calc_angle3d_v2(const vector3d_t *v1, const vector3d_t *v2);
-        float calc_angle3d_vv(const vector3d_t *v);
+    float calc_angle3d_v2(const vector3d_t *v1, const vector3d_t *v2);
+    float calc_angle3d_vv(const vector3d_t *v);
 
-        void packed_complex_mod(float *dst_mod, const float *src, size_t count);
+    void packed_complex_mod(float *dst_mod, const float *src, size_t count);
 
-        void complex_rcp1(float *dst_re, float *dst_im, size_t count);
-        void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
-        void packed_complex_rcp1(float *dst, size_t count);
-        void packed_complex_rcp2(float *dst, const float *src, size_t count);
-    }
+    void complex_rcp1(float *dst_re, float *dst_im, size_t count);
+    void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+    void packed_complex_rcp1(float *dst, size_t count);
+    void packed_complex_rcp2(float *dst, const float *src, size_t count);
+}
 
-    namespace sse
-    {
-        void scale2(float *dst, float k, size_t count);
-        void scale3(float *dst, const float *src, float k, size_t count);
+namespace sse
+{
+    void scale2(float *dst, float k, size_t count);
+    void scale3(float *dst, const float *src, float k, size_t count);
 
-        void add2(float *dst, const float *src, size_t count);
-        void sub2(float *dst, const float *src, size_t count);
-        void mul2(float *dst, const float *src, size_t count);
-        void div2(float *dst, const float *src, size_t count);
+    void add2(float *dst, const float *src, size_t count);
+    void sub2(float *dst, const float *src, size_t count);
+    void mul2(float *dst, const float *src, size_t count);
+    void div2(float *dst, const float *src, size_t count);
 
-        void add3(float *dst, const float *src1, const float *src2, size_t count);
-        void sub3(float *dst, const float *src1, const float *src2, size_t count);
-        void mul3(float *dst, const float *src1, const float *src2, size_t count);
-        void div3(float *dst, const float *src1, const float *src2, size_t count);
+    void add3(float *dst, const float *src1, const float *src2, size_t count);
+    void sub3(float *dst, const float *src1, const float *src2, size_t count);
+    void mul3(float *dst, const float *src1, const float *src2, size_t count);
+    void div3(float *dst, const float *src1, const float *src2, size_t count);
 
-        void scale_add3(float *dst, const float *src, float k, size_t count);
-        void scale_sub3(float *dst, const float *src, float k, size_t count);
-        void scale_mul3(float *dst, const float *src, float k, size_t count);
-        void scale_div3(float *dst, const float *src, float k, size_t count);
+    void scale_add3(float *dst, const float *src, float k, size_t count);
+    void scale_sub3(float *dst, const float *src, float k, size_t count);
+    void scale_mul3(float *dst, const float *src, float k, size_t count);
+    void scale_div3(float *dst, const float *src, float k, size_t count);
 
-        void mix2(float *dst, const float *src, float k1, float k2, size_t count);
-        void mix3(float *dst, const float *src1, const float *src2, float k1, float k2, float k3, size_t count);
-        void mix4(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, float k4, size_t count);
+    void mix2(float *dst, const float *src, float k1, float k2, size_t count);
+    void mix3(float *dst, const float *src1, const float *src2, float k1, float k2, float k3, size_t count);
+    void mix4(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, float k4, size_t count);
 
-        void mix_copy2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
-        void mix_copy3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
-        void mix_copy4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count);
+    void mix_copy2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
+    void mix_copy3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
+    void mix_copy4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count);
 
-        void mix_add2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
-        void mix_add3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
-        void mix_add4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count);
+    void mix_add2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
+    void mix_add3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
+    void mix_add4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count);
 
-        void move(float *dst, const float *src, size_t count);
-        void fill(float *dst, float value, size_t count);
+    void move(float *dst, const float *src, size_t count);
+    void fill(float *dst, float value, size_t count);
 
-        float h_sum(const float *src, size_t count);
-        float h_sqr_sum(const float *src, size_t count);
-        float h_abs_sum(const float *src, size_t count);
+    float h_sum(const float *src, size_t count);
+    float h_sqr_sum(const float *src, size_t count);
+    float h_abs_sum(const float *src, size_t count);
 
-        void abs1(float *src, size_t count);
-        void abs2(float *dst, const float *src, size_t count);
-        void abs_add2(float *dst, const float *src, size_t count);
-        void abs_sub2(float *dst, const float *src, size_t count);
-        void abs_mul2(float *dst, const float *src, size_t count);
-        void abs_div2(float *dst, const float *src, size_t count);
+    void abs1(float *src, size_t count);
+    void abs2(float *dst, const float *src, size_t count);
+    void abs_add2(float *dst, const float *src, size_t count);
+    void abs_sub2(float *dst, const float *src, size_t count);
+    void abs_mul2(float *dst, const float *src, size_t count);
+    void abs_div2(float *dst, const float *src, size_t count);
 
-        void reverse1(float *dst, size_t count);
-        void reverse2(float *dst, const float *src, size_t count);
+    void reverse1(float *dst, size_t count);
+    void reverse2(float *dst, const float *src, size_t count);
 
-        float min(const float *src, size_t count);
-        float max(const float *src, size_t count);
-        void minmax(const float *src, size_t count, float *min, float *max);
+    float min(const float *src, size_t count);
+    float max(const float *src, size_t count);
+    void minmax(const float *src, size_t count, float *min, float *max);
 
-        float abs_min(const float *src, size_t count);
-        float abs_max(const float *src, size_t count);
-        void abs_minmax(const float *src, size_t count, float *min, float *max);
+    float abs_min(const float *src, size_t count);
+    float abs_max(const float *src, size_t count);
+    void abs_minmax(const float *src, size_t count, float *min, float *max);
 
-        void init_point_xyz(point3d_t *p, float x, float y, float z);
-        void init_point(point3d_t *p, const point3d_t *s);
-        void normalize_point(point3d_t *p);
+    void init_point_xyz(point3d_t *p, float x, float y, float z);
+    void init_point(point3d_t *p, const point3d_t *s);
+    void normalize_point(point3d_t *p);
 
-        void init_vector_dxyz(vector3d_t *v, float dx, float dy, float dz);
-        void init_vector(vector3d_t *p, const vector3d_t *s);
-        void normalize_vector(vector3d_t *v);
+    void init_vector_dxyz(vector3d_t *v, float dx, float dy, float dz);
+    void init_vector(vector3d_t *p, const vector3d_t *s);
+    void normalize_vector(vector3d_t *v);
 
-        void init_ray_xyz(ray3d_t *l, float x0, float y0, float z0, float x1, float y1, float z1);
-        void init_ray_dxyz(ray3d_t *l, float x0, float y0, float z0, float dx, float dy, float dz);
-        void init_ray_pdv(ray3d_t *l, const point3d_t *p, const vector3d_t *v);
-        void init_ray_p2(ray3d_t *l, const point3d_t *p1, const point3d_t *p2);
-        void init_ray_pv(ray3d_t *l, const point3d_t *p);
-        void init_ray(ray3d_t *l, const ray3d_t *r);
-        void calc_ray_xyz(ray3d_t *l, float x0, float y0, float z0, float x1, float y1, float z1);
-        void calc_ray_dxyz(ray3d_t *l, float x0, float y0, float z0, float dx, float dy, float dz);
-        void calc_ray_pdv(ray3d_t *l, const point3d_t *p, const vector3d_t *v);
-        void calc_ray_p2(ray3d_t *l, const point3d_t *p1, const point3d_t *p2);
-        void calc_ray_pv(ray3d_t *l, const point3d_t *p);
-        void calc_ray(ray3d_t *l, const ray3d_t *r);
-        void init_segment_xyz(segment3d_t *s, float x0, float y0, float z0,float x1, float y1, float z1);
-        void init_segment_p2(segment3d_t *s, const point3d_t *p1, const point3d_t *p2);
-        void init_segment_pv(segment3d_t *s, const point3d_t *p);
+    void init_ray_xyz(ray3d_t *l, float x0, float y0, float z0, float x1, float y1, float z1);
+    void init_ray_dxyz(ray3d_t *l, float x0, float y0, float z0, float dx, float dy, float dz);
+    void init_ray_pdv(ray3d_t *l, const point3d_t *p, const vector3d_t *v);
+    void init_ray_p2(ray3d_t *l, const point3d_t *p1, const point3d_t *p2);
+    void init_ray_pv(ray3d_t *l, const point3d_t *p);
+    void init_ray(ray3d_t *l, const ray3d_t *r);
+    void calc_ray_xyz(ray3d_t *l, float x0, float y0, float z0, float x1, float y1, float z1);
+    void calc_ray_dxyz(ray3d_t *l, float x0, float y0, float z0, float dx, float dy, float dz);
+    void calc_ray_pdv(ray3d_t *l, const point3d_t *p, const vector3d_t *v);
+    void calc_ray_p2(ray3d_t *l, const point3d_t *p1, const point3d_t *p2);
+    void calc_ray_pv(ray3d_t *l, const point3d_t *p);
+    void calc_ray(ray3d_t *l, const ray3d_t *r);
+    void init_segment_xyz(segment3d_t *s, float x0, float y0, float z0,float x1, float y1, float z1);
+    void init_segment_p2(segment3d_t *s, const point3d_t *p1, const point3d_t *p2);
+    void init_segment_pv(segment3d_t *s, const point3d_t *p);
 
-        void init_matrix3d(matrix3d_t *dst, const matrix3d_t *src);
-        void init_matrix3d_zero(matrix3d_t *m);
-        void init_matrix3d_one(matrix3d_t *m);
-        void init_matrix3d_identity(matrix3d_t *m);
-        void init_matrix3d_translate(matrix3d_t *m, float dx, float dy, float dz);
-        void init_matrix3d_scale(matrix3d_t *m, float sx, float sy, float sz);
-        void init_matrix3d_rotate_x(matrix3d_t *m, float angle);
-        void init_matrix3d_rotate_y(matrix3d_t *m, float angle);
-        void init_matrix3d_rotate_z(matrix3d_t *m, float angle);
-        void init_matrix3d_rotate_xyz(matrix3d_t *m, float x, float y, float z, float angle);
-        void apply_matrix3d_mv2(vector3d_t *r, const vector3d_t *v, const matrix3d_t *m);
-        void apply_matrix3d_mv1(vector3d_t *r, const matrix3d_t *m);
-        void apply_matrix3d_mp2(point3d_t *r, const point3d_t *p, const matrix3d_t *m);
-        void apply_matrix3d_mp1(point3d_t *r, const matrix3d_t *m);
-        void apply_matrix3d_mm2(matrix3d_t *r, const matrix3d_t *s, const matrix3d_t *m);
-        void apply_matrix3d_mm1(matrix3d_t *r, const matrix3d_t *m);
-        void transpose_matrix3d1(matrix3d_t *r);
-        void transpose_matrix3d2(matrix3d_t *r, const matrix3d_t *m);
+    void init_matrix3d(matrix3d_t *dst, const matrix3d_t *src);
+    void init_matrix3d_zero(matrix3d_t *m);
+    void init_matrix3d_one(matrix3d_t *m);
+    void init_matrix3d_identity(matrix3d_t *m);
+    void init_matrix3d_translate(matrix3d_t *m, float dx, float dy, float dz);
+    void init_matrix3d_scale(matrix3d_t *m, float sx, float sy, float sz);
+    void init_matrix3d_rotate_x(matrix3d_t *m, float angle);
+    void init_matrix3d_rotate_y(matrix3d_t *m, float angle);
+    void init_matrix3d_rotate_z(matrix3d_t *m, float angle);
+    void init_matrix3d_rotate_xyz(matrix3d_t *m, float x, float y, float z, float angle);
+    void apply_matrix3d_mv2(vector3d_t *r, const vector3d_t *v, const matrix3d_t *m);
+    void apply_matrix3d_mv1(vector3d_t *r, const matrix3d_t *m);
+    void apply_matrix3d_mp2(point3d_t *r, const point3d_t *p, const matrix3d_t *m);
+    void apply_matrix3d_mp1(point3d_t *r, const matrix3d_t *m);
+    void apply_matrix3d_mm2(matrix3d_t *r, const matrix3d_t *s, const matrix3d_t *m);
+    void apply_matrix3d_mm1(matrix3d_t *r, const matrix3d_t *m);
+    void transpose_matrix3d1(matrix3d_t *r);
+    void transpose_matrix3d2(matrix3d_t *r, const matrix3d_t *m);
 
-        float check_triplet3d_p3n(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const vector3d_t *n);
-        float check_triplet3d_pvn(const point3d_t *pv, const vector3d_t *n);
-        float check_triplet3d_v2n(const vector3d_t *v1, const vector3d_t *v2, const vector3d_t *n);
-        float check_triplet3d_vvn(const vector3d_t *v, const vector3d_t *n);
-        float check_triplet3d_vv(const vector3d_t *v);
-        float check_triplet3d_t(const triangle3d_t *t);
-        float check_triplet3d_tn(const triangle3d_t *t, const vector3d_t *n);
+    float check_triplet3d_p3n(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const vector3d_t *n);
+    float check_triplet3d_pvn(const point3d_t *pv, const vector3d_t *n);
+    float check_triplet3d_v2n(const vector3d_t *v1, const vector3d_t *v2, const vector3d_t *n);
+    float check_triplet3d_vvn(const vector3d_t *v, const vector3d_t *n);
+    float check_triplet3d_vv(const vector3d_t *v);
+    float check_triplet3d_t(const triangle3d_t *t);
+    float check_triplet3d_tn(const triangle3d_t *t, const vector3d_t *n);
 
-        float check_point3d_location_tp(const triangle3d_t *t, const point3d_t *p);
-        float check_point3d_location_pvp(const point3d_t *t, const point3d_t *p);
-        float check_point3d_location_p3p(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p);
+    float check_point3d_location_tp(const triangle3d_t *t, const point3d_t *p);
+    float check_point3d_location_pvp(const point3d_t *t, const point3d_t *p);
+    float check_point3d_location_p3p(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p);
 
-        float check_point3d_on_triangle_p3p(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p);
-        float check_point3d_on_triangle_pvp(const point3d_t *pv, const point3d_t *p);
-        float check_point3d_on_triangle_tp(const triangle3d_t *t, const point3d_t *p);
+    float check_point3d_on_triangle_p3p(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p);
+    float check_point3d_on_triangle_pvp(const point3d_t *pv, const point3d_t *p);
+    float check_point3d_on_triangle_tp(const triangle3d_t *t, const point3d_t *p);
 
-        size_t longest_edge3d_p3(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3);
-        size_t longest_edge3d_pv(const point3d_t *p);
+    size_t longest_edge3d_p3(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3);
+    size_t longest_edge3d_pv(const point3d_t *p);
 
-        float find_intersection3d_rt(point3d_t *ip, const ray3d_t *l, const triangle3d_t *t);
+    float find_intersection3d_rt(point3d_t *ip, const ray3d_t *l, const triangle3d_t *t);
 
-        float calc_angle3d_v2(const vector3d_t *v1, const vector3d_t *v2);
-        float calc_angle3d_vv(const vector3d_t *v);
+    float calc_angle3d_v2(const vector3d_t *v1, const vector3d_t *v2);
+    float calc_angle3d_vv(const vector3d_t *v);
 
-        void packed_complex_mod(float *dst_mod, const float *src, size_t count);
+    void packed_complex_mod(float *dst_mod, const float *src, size_t count);
 
-        void complex_rcp1(float *dst_re, float *dst_im, size_t count);
-        void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
-        void packed_complex_rcp1(float *dst, size_t count);
-        void packed_complex_rcp2(float *dst, const float *src, size_t count);
-    }
+    void complex_rcp1(float *dst_re, float *dst_im, size_t count);
+    void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+    void packed_complex_rcp1(float *dst, size_t count);
+    void packed_complex_rcp2(float *dst, const float *src, size_t count);
 }
 
 namespace sse_test

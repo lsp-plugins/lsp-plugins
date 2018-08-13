@@ -12,44 +12,41 @@
     #error "This header should not be included directly"
 #endif /* __DSP_DSP_DEFS */
 
-namespace lsp
+//-----------------------------------------------------------------------
+// DSP context functions
+namespace dsp
 {
-    //-----------------------------------------------------------------------
-    // DSP context functions
-    namespace dsp
+    #pragma pack(push, 1)
+    /**
+     * DSP context to store and restore machine state
+     */
+    typedef struct context_t
     {
-        #pragma pack(push, 1)
-        /**
-         * DSP context to store and restore machine state
-         */
-        typedef struct context_t
-        {
-            uint32_t        top;
-            uint32_t        data[15];
-        } context_t;
-        #pragma pack(pop)
+        uint32_t        top;
+        uint32_t        data[15];
+    } context_t;
+    #pragma pack(pop)
 
-        // Start and finish types
-        typedef void (* start_t)(context_t *ctx);
-        typedef void (* finish_t)(context_t *ctx);
+    // Start and finish types
+    typedef void (* start_t)(context_t *ctx);
+    typedef void (* finish_t)(context_t *ctx);
 
-        /** Initialize DSP
-         *
-         */
-        void init();
+    /** Initialize DSP
+     *
+     */
+    void init();
 
-        /** Start DSP processing, save machine context
-         *
-         * @param ctx structure to save context
-         */
-        extern void (* start)(context_t *ctx);
+    /** Start DSP processing, save machine context
+     *
+     * @param ctx structure to save context
+     */
+    extern void (* start)(context_t *ctx);
 
-        /** Finish DSP processing, restore machine context
-         *
-         * @param ctx structure to restore context
-         */
-        extern void (* finish)(context_t *ctx);
-    }
+    /** Finish DSP processing, restore machine context
+     *
+     * @param ctx structure to restore context
+     */
+    extern void (* finish)(context_t *ctx);
 }
 
 #endif /* DSP_COMMON_CONTEXT_H_ */

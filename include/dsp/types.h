@@ -163,12 +163,9 @@
 
 //-----------------------------------------------------------------------------
 // Type definitions
-namespace lsp
-{
-    __IF_32( typedef        uint32_t            umword_t );
-    __IF_32( typedef        int32_t             smword_t );
-    __IF_64( typedef        uint64_t            umword_t );
-    __IF_64( typedef        int64_t             smword_t );
-}
+__IF_32( typedef        uint32_t            umword_t );
+__IF_32( typedef        int32_t             smword_t );
+__IF_64( typedef        uint64_t            umword_t );
+__IF_64( typedef        int64_t             smword_t );
 
 #endif /* DSP_TYPES_H_ */

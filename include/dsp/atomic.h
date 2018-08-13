@@ -10,11 +10,8 @@
 
 #include <dsp/types.h>
 
-namespace lsp
-{
-    typedef unsigned int    uatomic_t;
-    typedef signed int      atomic_t;
-}
+typedef unsigned int    uatomic_t;
+typedef signed int      atomic_t;
 
 #ifdef ARCH_X86
     #include <dsp/arch/x86/atomic.h>

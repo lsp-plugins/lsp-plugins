@@ -6,13 +6,10 @@
 #include <core/types.h>
 #include <dsp/dsp.h>
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void packed_direct_fft(float *dst, const float *src, size_t rank);
-        void fd_packed_direct_fft(float *dst, const float *src, size_t rank);
-    }
+    void packed_direct_fft(float *dst, const float *src, size_t rank);
+    void fd_packed_direct_fft(float *dst, const float *src, size_t rank);
 }
 
 namespace fft_tdomain_test

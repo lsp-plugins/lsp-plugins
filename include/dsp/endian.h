@@ -46,28 +46,24 @@
 
 #endif /* */
 
-namespace lsp
+inline int8_t __lsp_forced_inline       byte_swap(int8_t v)
 {
-    inline int8_t __lsp_forced_inline       byte_swap(int8_t v)
-    {
-        return v;
-    }
-
-    inline int16_t __lsp_forced_inline      byte_swap(int16_t v)
-    {
-        return byte_swap(uint16_t(v));
-    }
-
-    inline int32_t __lsp_forced_inline      byte_swap(int32_t v)
-    {
-        return byte_swap(uint32_t(v));
-    }
-
-    inline int64_t __lsp_forced_inline      byte_swap(int64_t v)
-    {
-        return byte_swap(uint64_t(v));
-    }
+    return v;
 }
 
+inline int16_t __lsp_forced_inline      byte_swap(int16_t v)
+{
+    return byte_swap(uint16_t(v));
+}
+
+inline int32_t __lsp_forced_inline      byte_swap(int32_t v)
+{
+    return byte_swap(uint32_t(v));
+}
+
+inline int64_t __lsp_forced_inline      byte_swap(int64_t v)
+{
+    return byte_swap(uint64_t(v));
+}
 
 #endif /* DSP_ENDIAN_H_ */

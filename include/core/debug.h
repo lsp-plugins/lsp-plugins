@@ -37,7 +37,7 @@
 #ifdef LSP_DEBUG
     #define lsp_printf(msg, ...)    fprintf(LSP_LOG_FD, msg "\n", ## __VA_ARGS__)
     #define lsp_debug(msg, ...)     fprintf(LSP_LOG_FD, "[DBG][%s:%4d] %s: " msg "\n", __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
-    #define lsp_dumpf(s, fmt, p, n) __lsp_dumpf(s, fmt, p, n)
+    #define lsp_dumpf(s, fmt, p, n) ::lsp::__lsp_dumpf(s, fmt, p, n)
 #else
     #define lsp_printf(msg, ...)    fprintf(LSP_LOG_FD, msg "\n", ## __VA_ARGS__)
     #define lsp_debug(msg, ...)

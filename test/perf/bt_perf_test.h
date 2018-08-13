@@ -10,12 +10,9 @@
 #define PERF_BUF_SIZE   0x200
 #define ITERATIONS      10000
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void bilinear_transform_x1(biquad_x1_t *bf, const f_cascade_t *bc, float kf, size_t count);
-    }
+    void bilinear_transform_x1(biquad_x1_t *bf, const f_cascade_t *bc, float kf, size_t count);
 }
 
 namespace bt_perf_test

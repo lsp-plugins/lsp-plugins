@@ -9,24 +9,21 @@
 #define MIN_RANK 8
 #define MAX_RANK 16
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-        void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
-    }
+    void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+    void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
+}
 
-    namespace sse
-    {
-        void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-        void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
-    }
+namespace sse
+{
+    void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+    void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
+}
 
-    namespace sse3
-    {
-        void x64_packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
-    }
+namespace sse3
+{
+    void x64_packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
 }
 
 namespace complex_mul_speed_test

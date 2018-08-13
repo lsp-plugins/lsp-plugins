@@ -6,17 +6,14 @@
 #include <core/types.h>
 #include <dsp/dsp.h>
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void conv_direct_fft(float *dst, const float *src, size_t rank);
-    }
+    void conv_direct_fft(float *dst, const float *src, size_t rank);
+}
 
-    namespace sse
-    {
-        void conv_direct_fft(float *dst, const float *src, size_t rank);
-    }
+namespace sse
+{
+    void conv_direct_fft(float *dst, const float *src, size_t rank);
 }
 
 namespace fft_test3

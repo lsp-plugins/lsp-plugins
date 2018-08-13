@@ -13,12 +13,9 @@
 #define KF              100.0f
 #define TD              (2*M_PI/48000.0)
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
-    }
+    void matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
 }
 
 namespace mt_perf_test
