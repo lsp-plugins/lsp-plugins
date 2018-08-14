@@ -32,7 +32,7 @@ $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@echo "Generating XML resources"
 	@mkdir -p $(OBJDIR)/res
 	@$(UTL_RESGEN) $(BASEDIR)/res/ui $(OBJDIR)/res/xml_resource.cpp
-	@-rm gmon.out &>/dev/null
+	@-rm gmon.out &>/dev/null 2>&1
 	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(OBJDIR)/res/xml_resource.cpp -o $(OBJ_RES_CORE)
 
 # Target dependencies
@@ -51,12 +51,12 @@ vst_stub: $(UTL_VSTMAKE)
 	@echo "Building VST stub"
 	@mkdir -p $(OBJDIR)/vst
 	@$(UTL_VSTMAKE) $(OBJDIR)/vst
-	@-rm gmon.out &>/dev/null
+	@-rm gmon.out &>/dev/null 2>&1
 	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/vst all OBJDIR=$(OBJDIR)/vst
 
 jack_stub: $(UTL_JACKMAKE)
 	@echo "Building JACK stub"
 	@mkdir -p $(OBJDIR)/jack
 	@$(UTL_JACKMAKE) $(OBJDIR)/jack
-	@-rm gmon.out &>/dev/null
+	@-rm gmon.out &>/dev/null 2>&1
 	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/jack all OBJDIR=$(OBJDIR)/jack
