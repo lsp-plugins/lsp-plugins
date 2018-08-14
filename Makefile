@@ -32,15 +32,15 @@ INSTALLATIONS           = install_ladspa install_lv2 install_jack install_doc in
 RELEASES                = release_ladspa release_lv2 release_jack release_src release_doc release_vst
 
 # Build profile
-BUILD_ARCH      	    = $(shell uname -m)
-ifeq ($(patsubst armv6%, armv6, $(BUILD_ARCH)), armv6)
-BUILD_PROFILE 			= armv6a
+BUILD_ARCH              = $(shell uname -m)
+ifeq ($(patsubst armv6%,armv6,$(BUILD_ARCH)), armv6)
+BUILD_PROFILE           = armv6a
 endif
-ifeq ($(patsubst armv7%, armv7, $(BUILD_ARCH)), armv7)
-BUILD_PROFILE 			= armv7a
+ifeq ($(patsubst armv7%,armv7,$(BUILD_ARCH)), armv7)
+BUILD_PROFILE           = armv7a
 endif
-ifeq ($(patsubst armv8%, armv8, $(BUILD_ARCH)), armv8)
-BUILD_PROFILE 			= armv8a
+ifeq ($(patsubst armv8%,armv8,$(BUILD_ARCH)), armv8)
+BUILD_PROFILE           = armv8a
 endif
 ifeq ($(BUILD_ARCH),x86_64)
 BUILD_PROFILE           = x86_64
@@ -76,6 +76,13 @@ export CPU_ARCH         = armv7a
 export CC_ARCH          = -march=armv7-a
 export LD_ARCH          = 
 export LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
+endif
+
+ifeq ($(BUILD_PROFILE),armv8a)
+export CPU_ARCH         = armv8a
+export CC_ARCH          = -march=armv8-a
+export LD_ARCH          = 
+export LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
 ifndef CPU_ARCH
