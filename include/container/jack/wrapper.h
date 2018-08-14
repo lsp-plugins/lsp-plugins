@@ -412,7 +412,15 @@ namespace lsp
         if (pPlugin != NULL)
             pPlugin->init(this);
         if (pUI != NULL)
-            pUI->init(this, argc, argv);
+        {
+            status_t res = pUI->init(this, argc, argv);
+            if (res != STATUS_OK)
+            {
+                if (res == STATUS_NO_DEVICE)
+                    lsp_error("Could not initialize graphical subsystem (display)");
+                return res;
+            }
+        }
 
         // Update state, mark initialized
         nState      = S_INITIALIZED;
