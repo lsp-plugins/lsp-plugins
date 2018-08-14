@@ -13,6 +13,8 @@
 // Include unsigned functions definition
 #if defined(ARCH_X86)
     #include <dsp/arch/x86/bswap.h>
+#elif defined(ARCH_ARM)
+    #include <dsp/arch/arm/bswap.h>
 #else
     #include <dsp/arch/native/bswap.h>
 #endif /* defined(ARCH_X86) */
@@ -46,6 +48,11 @@
 
 #endif /* */
 
+inline uint8_t __lsp_forced_inline    byte_swap(uint8_t v)
+{
+    return v;
+}
+
 inline int8_t __lsp_forced_inline       byte_swap(int8_t v)
 {
     return v;
@@ -64,6 +71,14 @@ inline int32_t __lsp_forced_inline      byte_swap(int32_t v)
 inline int64_t __lsp_forced_inline      byte_swap(int64_t v)
 {
     return byte_swap(uint64_t(v));
+}
+
+inline void __lsp_forced_inline    byte_swap(uint8_t *v, size_t n)
+{
+}
+
+inline void __lsp_forced_inline    byte_swap(int8_t *v, size_t n)
+{
 }
 
 #endif /* DSP_ENDIAN_H_ */

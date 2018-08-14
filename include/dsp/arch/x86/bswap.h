@@ -8,19 +8,6 @@
 #ifndef DSP_ARCH_X86_BSWAP_H_
 #define DSP_ARCH_X86_BSWAP_H_
 
-inline uint8_t __lsp_forced_inline    byte_swap(uint8_t v)
-{
-    return v;
-}
-
-inline void __lsp_forced_inline    byte_swap(uint8_t *v, size_t n)
-{
-}
-
-inline void __lsp_forced_inline    byte_swap(int8_t *v, size_t n)
-{
-}
-
 inline uint16_t __lsp_forced_inline    byte_swap(uint16_t v)
 {
     __asm__ __volatile__ (
@@ -29,42 +16,6 @@ inline uint16_t __lsp_forced_inline    byte_swap(uint16_t v)
         : : "cc"
     );
     return v;
-}
-
-inline void __lsp_forced_inline    byte_swap(uint16_t *v, size_t n)
-{
-    uint16_t tmp;
-    __asm__ __volatile__ (
-        __ASM_EMIT("test    %[n], %[n]")
-        __ASM_EMIT("jz      2f")
-        __ASM_EMIT("1:")
-        __ASM_EMIT("lodsw")
-        __ASM_EMIT("ror     $8, %[tmp]")
-        __ASM_EMIT("dec     %[n]")
-        __ASM_EMIT("mov     %[tmp], -2(%[v])")
-        __ASM_EMIT("jnz     1b")
-        __ASM_EMIT("2:")
-        : [v] "+S"(v), [n] "+r" (n), [tmp] "=&a"(tmp)
-        : : "cc"
-    );
-}
-
-inline void __lsp_forced_inline    byte_swap(int16_t *v, size_t n)
-{
-    uint16_t tmp;
-    __asm__ __volatile__ (
-        __ASM_EMIT("test    %[n], %[n]")
-        __ASM_EMIT("jz      2f")
-        __ASM_EMIT("1:")
-        __ASM_EMIT("lodsw")
-        __ASM_EMIT("ror     $8, %[tmp]")
-        __ASM_EMIT("dec     %[n]")
-        __ASM_EMIT("mov     %[tmp], -2(%[v])")
-        __ASM_EMIT("jnz     1b")
-        __ASM_EMIT("2:")
-        : [v] "+S"(v), [n] "+r" (n), [tmp] "=&a"(tmp)
-        : : "cc"
-    );
 }
 
 inline uint32_t __lsp_forced_inline    byte_swap(uint32_t v)
@@ -85,60 +36,6 @@ inline float __lsp_forced_inline    byte_swap(float v)
         : :
     );
     return v;
-}
-
-inline void __lsp_forced_inline    byte_swap(uint32_t *v, size_t n)
-{
-    uint32_t tmp;
-    __asm__ __volatile__ (
-        __ASM_EMIT("test    %[n], %[n]")
-        __ASM_EMIT("jz      2f")
-        __ASM_EMIT("1:")
-        __ASM_EMIT("lodsl")
-        __ASM_EMIT("bswap   %[tmp]")
-        __ASM_EMIT("dec     %[n]")
-        __ASM_EMIT("mov     %[tmp], -4(%[v])")
-        __ASM_EMIT("jnz     1b")
-        __ASM_EMIT("2:")
-        : [v] "+S"(v), [n] "+r" (n), [tmp] "=&a"(tmp)
-        : : "cc"
-    );
-}
-
-inline void __lsp_forced_inline    byte_swap(int32_t *v, size_t n)
-{
-    uint32_t tmp;
-    __asm__ __volatile__ (
-        __ASM_EMIT("test    %[n], %[n]")
-        __ASM_EMIT("jz      2f")
-        __ASM_EMIT("1:")
-        __ASM_EMIT("lodsl")
-        __ASM_EMIT("bswap   %[tmp]")
-        __ASM_EMIT("dec     %[n]")
-        __ASM_EMIT("mov     %[tmp], -4(%[v])")
-        __ASM_EMIT("jnz     1b")
-        __ASM_EMIT("2:")
-        : [v] "+S"(v), [n] "+r" (n), [tmp] "=&a"(tmp)
-        : : "cc"
-    );
-}
-
-inline void __lsp_forced_inline    byte_swap(float *v, size_t n)
-{
-    uint32_t tmp;
-    __asm__ __volatile__ (
-        __ASM_EMIT("test    %[n], %[n]")
-        __ASM_EMIT("jz      2f")
-        __ASM_EMIT("1:")
-        __ASM_EMIT("lodsl")
-        __ASM_EMIT("bswap   %[tmp]")
-        __ASM_EMIT("dec     %[n]")
-        __ASM_EMIT("mov     %[tmp], -4(%[v])")
-        __ASM_EMIT("jnz     1b")
-        __ASM_EMIT("2:")
-        : [v] "+S"(v), [n] "+r" (n), [tmp] "=&a"(tmp)
-        : : "cc"
-    );
 }
 
 #ifdef ARCH_X86_64
@@ -189,6 +86,96 @@ inline void __lsp_forced_inline    byte_swap(float *v, size_t n)
 
 #endif  /* ARCH_X86_64 */
 
+inline void __lsp_forced_inline    byte_swap(uint16_t *v, size_t n)
+{
+    uint16_t tmp;
+    __asm__ __volatile__ (
+        __ASM_EMIT("test    %[n], %[n]")
+        __ASM_EMIT("jz      2f")
+        __ASM_EMIT("1:")
+        __ASM_EMIT("lodsw")
+        __ASM_EMIT("ror     $8, %[tmp]")
+        __ASM_EMIT("dec     %[n]")
+        __ASM_EMIT("mov     %[tmp], -2(%[v])")
+        __ASM_EMIT("jnz     1b")
+        __ASM_EMIT("2:")
+        : [v] "+S"(v), [n] "+r" (n), [tmp] "=&a"(tmp)
+        : : "cc", "memory"
+    );
+}
+
+inline void __lsp_forced_inline    byte_swap(int16_t *v, size_t n)
+{
+    uint16_t tmp;
+    __asm__ __volatile__ (
+        __ASM_EMIT("test    %[n], %[n]")
+        __ASM_EMIT("jz      2f")
+        __ASM_EMIT("1:")
+        __ASM_EMIT("lodsw")
+        __ASM_EMIT("ror     $8, %[tmp]")
+        __ASM_EMIT("dec     %[n]")
+        __ASM_EMIT("mov     %[tmp], -2(%[v])")
+        __ASM_EMIT("jnz     1b")
+        __ASM_EMIT("2:")
+        : [v] "+S"(v), [n] "+r" (n), [tmp] "=&a"(tmp)
+        : : "cc", "memory"
+    );
+}
+
+inline void __lsp_forced_inline    byte_swap(uint32_t *v, size_t n)
+{
+    uint32_t tmp;
+    __asm__ __volatile__ (
+        __ASM_EMIT("test    %[n], %[n]")
+        __ASM_EMIT("jz      2f")
+        __ASM_EMIT("1:")
+        __ASM_EMIT("lodsl")
+        __ASM_EMIT("bswap   %[tmp]")
+        __ASM_EMIT("dec     %[n]")
+        __ASM_EMIT("mov     %[tmp], -4(%[v])")
+        __ASM_EMIT("jnz     1b")
+        __ASM_EMIT("2:")
+        : [v] "+S"(v), [n] "+r" (n), [tmp] "=&a"(tmp)
+        : : "cc", "memory"
+    );
+}
+
+inline void __lsp_forced_inline    byte_swap(int32_t *v, size_t n)
+{
+    uint32_t tmp;
+    __asm__ __volatile__ (
+        __ASM_EMIT("test    %[n], %[n]")
+        __ASM_EMIT("jz      2f")
+        __ASM_EMIT("1:")
+        __ASM_EMIT("lodsl")
+        __ASM_EMIT("bswap   %[tmp]")
+        __ASM_EMIT("dec     %[n]")
+        __ASM_EMIT("mov     %[tmp], -4(%[v])")
+        __ASM_EMIT("jnz     1b")
+        __ASM_EMIT("2:")
+        : [v] "+S"(v), [n] "+r" (n), [tmp] "=&a"(tmp)
+        : : "cc", "memory"
+    );
+}
+
+inline void __lsp_forced_inline    byte_swap(float *v, size_t n)
+{
+    uint32_t tmp;
+    __asm__ __volatile__ (
+        __ASM_EMIT("test    %[n], %[n]")
+        __ASM_EMIT("jz      2f")
+        __ASM_EMIT("1:")
+        __ASM_EMIT("lodsl")
+        __ASM_EMIT("bswap   %[tmp]")
+        __ASM_EMIT("dec     %[n]")
+        __ASM_EMIT("mov     %[tmp], -4(%[v])")
+        __ASM_EMIT("jnz     1b")
+        __ASM_EMIT("2:")
+        : [v] "+S"(v), [n] "+r" (n), [tmp] "=&a"(tmp)
+        : : "cc", "memory"
+    );
+}
+
 #ifdef ARCH_X86_64
     inline void __lsp_forced_inline    byte_swap(uint64_t *v, size_t n)
     {
@@ -204,7 +191,7 @@ inline void __lsp_forced_inline    byte_swap(float *v, size_t n)
             __ASM_EMIT("jnz     1b")
             __ASM_EMIT("2:")
             : [v] "+S"(v), [n] "+r" (n), [tmp] "=&a"(tmp)
-            : : "cc"
+            : : "cc", "memory"
         );
     }
 
@@ -222,7 +209,7 @@ inline void __lsp_forced_inline    byte_swap(float *v, size_t n)
             __ASM_EMIT("jnz     1b")
             __ASM_EMIT("2:")
             : [v] "+S"(v), [n] "+r" (n), [tmp] "=&a"(tmp)
-            : : "cc"
+            : : "cc", "memory"
         );
     }
 
@@ -240,7 +227,7 @@ inline void __lsp_forced_inline    byte_swap(float *v, size_t n)
             __ASM_EMIT("jnz     1b")
             __ASM_EMIT("2:")
             : [v] "+S"(v), [n] "+r" (n), [tmp] "=&a"(tmp)
-            : : "cc"
+            : : "cc", "memory"
         );
     }
 
@@ -264,7 +251,7 @@ inline void __lsp_forced_inline    byte_swap(float *v, size_t n)
             __ASM_EMIT("jnz     1b")
             __ASM_EMIT("2:")
             : [v] "+r"(v), [n] "+r" (n), [a] "=&r" (a), [b] "=&r" (b)
-            : : "cc"
+            : : "cc", "memory"
         );
     }
 
@@ -286,7 +273,7 @@ inline void __lsp_forced_inline    byte_swap(float *v, size_t n)
             __ASM_EMIT("jnz     1b")
             __ASM_EMIT("2:")
             : [v] "+r"(v), [n] "+r" (n), [a] "=&r" (a), [b] "=&r" (b)
-            : : "cc"
+            : : "cc", "memory"
         );
     }
 
@@ -308,7 +295,7 @@ inline void __lsp_forced_inline    byte_swap(float *v, size_t n)
             __ASM_EMIT("jnz     1b")
             __ASM_EMIT("2:")
             : [v] "+r"(v), [n] "+r" (n), [a] "=&r"(a), [b] "=&r"(b)
-            : : "cc"
+            : : "cc", "memory"
         );
     }
 #endif /* ARCH_X86_64 */
