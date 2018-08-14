@@ -9,7 +9,7 @@ BITS_IMPL               = $(OBJDIR)/bits.o
 
 SSE_INSTR_SET           = -mmmx -m3dnow -msse -msse2
 SSE3_INSTR_SET          = $(SSE_INSTR_SET) -msse3 -mssse3
-SSE4_INSTR_SET          = $(SSE_INSTR_SET) -msse4.1 -msse4.2
+SSE4_INSTR_SET          = $(SSE_INSTR_SET) -msse4.1 -msse4.2 -msse4a
 AVX_INSTR_SET           = -mavx
 
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)

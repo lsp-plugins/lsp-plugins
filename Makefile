@@ -32,6 +32,24 @@ INSTALLATIONS           = install_ladspa install_lv2 install_jack install_doc in
 RELEASES                = release_ladspa release_lv2 release_jack release_src release_doc release_vst
 
 # Build profile
+BUILD_ARCH      	    = $(shell uname -m)
+ifeq ($(patsubst armv6%, armv6, $(BUILD_ARCH)), armv6)
+BUILD_PROFILE 			= armv6a
+endif
+ifeq ($(patsubst armv7%, armv7, $(BUILD_ARCH)), armv7)
+BUILD_PROFILE 			= armv7a
+endif
+ifeq ($(patsubst armv8%, armv8, $(BUILD_ARCH)), armv8)
+BUILD_PROFILE 			= armv8a
+endif
+ifeq ($(BUILD_ARCH),x86_64)
+BUILD_PROFILE           = x86_64
+endif
+ifeq ($(patsubst i%86, i86, $(BUILD_ARCH)), i586)
+BUILD_PROFILE           = i586
+endif
+
+# Build profile
 ifeq ($(BUILD_PROFILE),i586)
 export CPU_ARCH         = i586
 export CC_ARCH          = -m32
@@ -137,7 +155,7 @@ PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)-$(CPU_ARCH)
 SRC_ID                 := $(ARTIFACT_ID)-src-$(VERSION)
 DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 
-.PHONY: all trace debug tracefile debugfile profile gdb compile install uninstall release
+.PHONY: all trace debug tracefile debugfile profile gdb compile install uninstall release test
 .PHONY: install_ladspa install_lv2 install_vst install_jack
 .PHONY: release_ladspa release_lv2 release_vst release_jack
 
@@ -166,7 +184,9 @@ profile: export EXE_FLAGS   += -O0 -pg
 profile: compile
 
 compile:
-	@echo "Building binaries"
+	@echo "-------------------------------------------------------------------------------"
+	@echo "Building binaries for target architecture: $(BUILD_PROFILE)"
+	@echo "-------------------------------------------------------------------------------"
 	@mkdir -p $(OBJDIR)/src
 	@$(MAKE) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
 	@echo "Build OK"
