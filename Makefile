@@ -32,6 +32,7 @@ INSTALLATIONS           = install_ladspa install_lv2 install_jack install_doc in
 RELEASES                = release_ladspa release_lv2 release_jack release_src release_doc release_vst
 
 # Build profile
+ifndef BUILD_PROFILE
 BUILD_ARCH              = $(shell uname -m)
 ifeq ($(patsubst armv6%,armv6,$(BUILD_ARCH)), armv6)
 BUILD_PROFILE           = armv6a
@@ -48,49 +49,40 @@ endif
 ifeq ($(patsubst i%86, i86, $(BUILD_ARCH)), i586)
 BUILD_PROFILE           = i586
 endif
+endif
 
 # Build profile
 ifeq ($(BUILD_PROFILE),i586)
-export CPU_ARCH         = i586
 export CC_ARCH          = -m32
 export LD_ARCH          = -m elf_i386
 export LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
 ifeq ($(BUILD_PROFILE),x86_64)
-export CPU_ARCH         = x86_64
 export CC_ARCH          = -m64
 export LD_ARCH          = -m elf_x86_64
 export LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
 ifeq ($(BUILD_PROFILE),armv6a)
-export CPU_ARCH         = armv6a
 export CC_ARCH          = -march=armv6-a
 export LD_ARCH          = 
 export LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
 ifeq ($(BUILD_PROFILE),armv7a)
-export CPU_ARCH         = armv7a
 export CC_ARCH          = -march=armv7-a
 export LD_ARCH          = 
 export LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
 ifeq ($(BUILD_PROFILE),armv8a)
-export CPU_ARCH         = armv8a
 export CC_ARCH          = -march=armv8-a
 export LD_ARCH          = 
 export LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
-ifndef CPU_ARCH
-export CPU_ARCH         = x86_64
-export CC_ARCH          = -m64
-export LD_ARCH          = -m elf_x86_64
-export LD_PATH          = /usr/lib:/lib:/usr/local/lib
-endif
+export BUILD_PROFILE
 
 # Location
 export BASEDIR          = ${CURDIR}
@@ -122,8 +114,8 @@ export OBJ_FILES        = $(OBJ_CORE) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(OBJ_PLUGI
 # Libraries
 export LIB_LADSPA       = $(OBJDIR)/$(ARTIFACT_ID)-ladspa.so
 export LIB_LV2          = $(OBJDIR)/$(ARTIFACT_ID)-lv2.so
-export LIB_VST          = $(OBJDIR)/$(ARTIFACT_ID)-vst-core-$(VERSION)-$(CPU_ARCH).so
-export LIB_JACK         = $(OBJDIR)/$(ARTIFACT_ID)-jack-core-$(VERSION)-$(CPU_ARCH).so
+export LIB_VST          = $(OBJDIR)/$(ARTIFACT_ID)-vst-core-$(VERSION)-$(BUILD_PROFILE).so
+export LIB_JACK         = $(OBJDIR)/$(ARTIFACT_ID)-jack-core-$(VERSION)-$(BUILD_PROFILE).so
 
 # Binaries
 export BIN_PROFILE      = $(OBJDIR)/$(ARTIFACT_ID)-profile
@@ -154,11 +146,11 @@ export JACK_LIBS        = $(shell pkg-config --libs jack)
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 FILES                   =
 
-LADSPA_ID              := $(ARTIFACT_ID)-ladspa-$(VERSION)-$(CPU_ARCH)
-LV2_ID                 := $(ARTIFACT_ID)-lv2-$(VERSION)-$(CPU_ARCH)
-VST_ID                 := $(ARTIFACT_ID)-lxvst-$(VERSION)-$(CPU_ARCH)
-JACK_ID                := $(ARTIFACT_ID)-jack-$(VERSION)-$(CPU_ARCH)
-PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)-$(CPU_ARCH)
+LADSPA_ID              := $(ARTIFACT_ID)-ladspa-$(VERSION)-$(BUILD_PROFILE)
+LV2_ID                 := $(ARTIFACT_ID)-lv2-$(VERSION)-$(BUILD_PROFILE)
+VST_ID                 := $(ARTIFACT_ID)-lxvst-$(VERSION)-$(BUILD_PROFILE)
+JACK_ID                := $(ARTIFACT_ID)-jack-$(VERSION)-$(BUILD_PROFILE)
+PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)-$(BUILD_PROFILE)
 SRC_ID                 := $(ARTIFACT_ID)-src-$(VERSION)
 DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 
@@ -248,7 +240,7 @@ release: $(RELEASES)
 	@echo "Release OK"
 
 release_prepare: all
-	@echo "Releasing plugins for architecture $(CPU_ARCH)"
+	@echo "Releasing plugins for architecture $(BUILD_PROFILE)"
 	@mkdir -p $(RELEASE)
 	
 release_ladspa: release_prepare
@@ -316,7 +308,7 @@ uninstall:
 	@-rm -f $(DESTDIR)$(LADSPA_PATH)/$(ARTIFACT_ID)-ladspa.so
 	@-rm -rf $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
 	@-rm -f $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-vst-*.so
-	@-rm -rf $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-lxvst-*-$(CPU_ARCH)
+	@-rm -rf $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-lxvst-*-$(BUILD_PROFILE)
 	@-rm -rf $(DESTDIR)$(VST_PATH)/$(VST_ID)
 	@-rm -f $(DESTDIR)$(BIN_PATH)/$(ARTIFACT_ID)-*
 	@-rm -f $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)-jack-core-*.so

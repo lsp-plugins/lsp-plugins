@@ -413,9 +413,9 @@ namespace sse
             __ASM_EMIT("mulps       " BIQUAD_X8_B2_SOFF "(%[f]), %%xmm5")   // xmm5     = s2*b2
             __ASM_EMIT("addps       %%xmm4, %%xmm2")                        // xmm2     = s*a1 + s2*b1 = p1
             __ASM_EMIT("addps       %%xmm5, %%xmm3")                        // xmm3     = s*a2 + s2*b2 = p2
-            __ASM_EMIT("addps       %%xmm7, %%xmm2")                		// xmm2     = p1 + d1
-            __ASM_EMIT("movaps      %%xmm3, %%xmm7")                		// xmm7     = p2
-            __ASM_EMIT("movaps      %%xmm2, %%xmm6")                		// xmm6     = p1 + d1
+            __ASM_EMIT("addps       %%xmm7, %%xmm2")                        // xmm2     = p1 + d1
+            __ASM_EMIT("movaps      %%xmm3, %%xmm7")                        // xmm7     = p2
+            __ASM_EMIT("movaps      %%xmm2, %%xmm6")                        // xmm6     = p1 + d1
 
             // Shift buffer and repeat loop
             __ASM_EMIT("shufps      $0x93, %%xmm1, %%xmm1")                 // xmm1     = s2[3] s2[0] s2[1] s2[2]

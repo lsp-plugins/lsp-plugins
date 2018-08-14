@@ -725,6 +725,7 @@ namespace sse4
               [negative] "m" (dsp::X_MINUS_ONE),
               [ix] "m" (ix),
               [proj] "m" (proj)
+          : "cc", "memory"
         );
 
         return x0;

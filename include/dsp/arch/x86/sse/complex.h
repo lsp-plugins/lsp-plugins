@@ -1506,7 +1506,7 @@ namespace sse
             : [X_ONE] "m" (dsp::ONE),
               [X_ISIGN] "m" (dsp::X_ISIGN)
             : "cc", "memory",
-              "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+              "%xmm0", "%xmm1", "%xmm2", "%xmm4", "%xmm5", "%xmm6"
         );
 
         #undef complex_rcp2_core

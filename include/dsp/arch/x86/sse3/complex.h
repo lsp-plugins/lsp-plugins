@@ -134,7 +134,7 @@ namespace sse3
         #undef complex_core
     }
 
-#ifdef ARCH_X86_64 */
+#ifdef ARCH_X86_64
     void x64_packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count)
     {
         #define complex_core(MV_DST, MV_SRC1, MV_SRC2) \
