@@ -76,7 +76,7 @@ inline void __lsp_forced_inline    byte_swap(uint16_t *v, size_t n)
     uint16_t tmp;
     __asm__ __volatile__ (
         __ASM_EMIT("subs        %[n], #2")
-        __ASM_EMIT("blt         2f")
+        __ASM_EMIT("blo         2f")
 
         __ASM_EMIT("1:")
         __ASM_EMIT("ldr         %[tmp], [%[v]]")
@@ -103,14 +103,14 @@ inline void __lsp_forced_inline    byte_swap(uint32_t *v, size_t n)
     uint32_t tmp;
     __asm__ __volatile__ (
         __ASM_EMIT("cmp         %[n], #0")
-        __ASM_EMIT("ble         2f")
+        __ASM_EMIT("bls         2f")
 
         __ASM_EMIT("1:")
         __ASM_EMIT("ldr         %[tmp], [%[v]]")
         __ASM_EMIT("rev         %[tmp], %[tmp]")
         __ASM_EMIT("str         %[tmp], [%[v]], #4")
         __ASM_EMIT("subs        %[n], #1")
-        __ASM_EMIT("bgt         1b")
+        __ASM_EMIT("bhi         1b")
 
         __ASM_EMIT("2:")
         : [v] "+r"(v), [n] "+r" (n), [tmp] "=&r"(tmp)
@@ -123,14 +123,14 @@ inline void __lsp_forced_inline    byte_swap(int32_t *v, size_t n)
     uint32_t tmp;
     __asm__ __volatile__ (
         __ASM_EMIT("cmp         %[n], #0")
-        __ASM_EMIT("ble         2f")
+        __ASM_EMIT("bls         2f")
 
         __ASM_EMIT("1:")
         __ASM_EMIT("ldr         %[tmp], [%[v]]")
         __ASM_EMIT("rev         %[tmp], %[tmp]")
         __ASM_EMIT("str         %[tmp], [%[v]], #4")
         __ASM_EMIT("subs        %[n], #1")
-        __ASM_EMIT("bgt         1b")
+        __ASM_EMIT("bhi         1b")
 
         __ASM_EMIT("2:")
         : [v] "+r"(v), [n] "+r" (n), [tmp] "=&r"(tmp)
@@ -143,14 +143,14 @@ inline void __lsp_forced_inline    byte_swap(float *v, size_t n)
     uint32_t tmp;
     __asm__ __volatile__ (
         __ASM_EMIT("cmp         %[n], #0")
-        __ASM_EMIT("ble         2f")
+        __ASM_EMIT("bls         2f")
 
         __ASM_EMIT("1:")
         __ASM_EMIT("ldr         %[tmp], [%[v]]")
         __ASM_EMIT("rev         %[tmp], %[tmp]")
         __ASM_EMIT("str         %[tmp], [%[v]], #4")
         __ASM_EMIT("subs        %[n], #1")
-        __ASM_EMIT("bgt         1b")
+        __ASM_EMIT("bhi         1b")
 
         __ASM_EMIT("2:")
         : [v] "+r"(v), [n] "+r" (n), [tmp] "=&r"(tmp)
@@ -163,7 +163,7 @@ inline void __lsp_forced_inline    byte_swap(uint64_t *v, size_t n)
     uint32_t tmp1, tmp2;
     __asm__ __volatile__ (
         __ASM_EMIT("cmp         %[n], #0")
-        __ASM_EMIT("ble         2f")
+        __ASM_EMIT("bls         2f")
 
         __ASM_EMIT("1:")
         __ASM_EMIT("ldr         %[tmp1], [%[v]]")
@@ -173,7 +173,7 @@ inline void __lsp_forced_inline    byte_swap(uint64_t *v, size_t n)
         __ASM_EMIT("str         %[tmp2], [%[v]], #4")
         __ASM_EMIT("str         %[tmp1], [%[v]], #4")
         __ASM_EMIT("subs        %[n], #1")
-        __ASM_EMIT("bgt         1b")
+        __ASM_EMIT("bhi         1b")
 
         __ASM_EMIT("2:")
         : [v] "+r"(v), [n] "+r" (n), [tmp1] "=&r"(tmp1), [tmp2] "=&r"(tmp2)
@@ -186,7 +186,7 @@ inline void __lsp_forced_inline    byte_swap(int64_t *v, size_t n)
     uint32_t tmp1, tmp2;
     __asm__ __volatile__ (
         __ASM_EMIT("cmp         %[n], #0")
-        __ASM_EMIT("ble         2f")
+        __ASM_EMIT("bls         2f")
 
         __ASM_EMIT("1:")
         __ASM_EMIT("ldr         %[tmp1], [%[v]]")
@@ -196,7 +196,7 @@ inline void __lsp_forced_inline    byte_swap(int64_t *v, size_t n)
         __ASM_EMIT("str         %[tmp2], [%[v]], #4")
         __ASM_EMIT("str         %[tmp1], [%[v]], #4")
         __ASM_EMIT("subs        %[n], #1")
-        __ASM_EMIT("bgt         1b")
+        __ASM_EMIT("bhi         1b")
 
         __ASM_EMIT("2:")
         : [v] "+r"(v), [n] "+r" (n), [tmp1] "=&r"(tmp1), [tmp2] "=&r"(tmp2)
@@ -209,7 +209,7 @@ inline void __lsp_forced_inline    byte_swap(double *v, size_t n)
     uint32_t tmp1, tmp2;
     __asm__ __volatile__ (
         __ASM_EMIT("cmp         %[n], #0")
-        __ASM_EMIT("ble         2f")
+        __ASM_EMIT("bls         2f")
 
         __ASM_EMIT("1:")
         __ASM_EMIT("ldr         %[tmp1], [%[v]]")
@@ -219,7 +219,7 @@ inline void __lsp_forced_inline    byte_swap(double *v, size_t n)
         __ASM_EMIT("str         %[tmp2], [%[v]], #4")
         __ASM_EMIT("str         %[tmp1], [%[v]], #4")
         __ASM_EMIT("subs        %[n], #1")
-        __ASM_EMIT("bgt         1b")
+        __ASM_EMIT("bhi         1b")
 
         __ASM_EMIT("2:")
         : [v] "+r"(v), [n] "+r" (n), [tmp1] "=&r"(tmp1), [tmp2] "=&r"(tmp2)
