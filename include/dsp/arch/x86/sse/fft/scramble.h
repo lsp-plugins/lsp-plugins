@@ -185,8 +185,8 @@ static inline void FFT_SCRAMBLE_SELF_REVERSE_NAME(float *dst_re, float *dst_im, 
     // Calculate number of items
     size_t items    = (1 << rank) - 1;
 
-    dsp::move(dst_re, src_re, items);
-    dsp::move(dst_im, src_im, items);
+    move(dst_re, src_re, items);
+    move(dst_im, src_im, items);
 
     for (size_t i = 1; i < items; ++i)
     {
@@ -575,8 +575,8 @@ static inline void FFT_SCRAMBLE_SELF_REVERSE_NAME(float *dst_re, float *dst_im, 
     // Calculate number of items
     size_t items    = (1 << rank) - 1;
 
-    dsp::move(dst_re, src_re, items);
-    dsp::move(dst_im, src_im, items);
+    move(dst_re, src_re, items);
+    move(dst_im, src_im, items);
 
     for (size_t i = 1; i < items; ++i)
     {

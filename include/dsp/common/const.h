@@ -23,7 +23,10 @@
 
 #define DSP_F32ARRAY(name, ...)         extern const float name[]
 
-#include <dsp/common/const/const16.h>
+namespace dsp
+{
+    #include <dsp/common/const/const16.h>
+}
 
 #undef DSP_F32ARRAY
 

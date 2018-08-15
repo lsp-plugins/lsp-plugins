@@ -314,7 +314,7 @@ namespace sse
             __ASM_EMIT("2000:")
 
             : [src] "+r" (src), [count] "+r" (count), "=Yz" (result)
-            : [X_SIGN] "m" (dsp::X_SIGN)
+            : [X_SIGN] "m" (X_SIGN)
             : "cc",
               "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"

@@ -48,8 +48,8 @@ namespace sse
                 __ASM_EMIT("add         %[delta],%[v]") \
                 : [v] "+r" (v) \
                 : [delta]       "i" (d), \
-                  [X_SIGN]      "m" (dsp::X_SIGN), \
-                  [X_AMP]       "m" (dsp::X_AMP_THRESH) \
+                  [X_SIGN]      "m" (X_SIGN), \
+                  [X_AMP]       "m" (X_AMP_THRESH) \
                 : "cc", "%xmm3" \
             )
 
@@ -65,9 +65,9 @@ namespace sse
                 __ASM_EMIT("cvtdq2ps    %%xmm4, %%xmm4")        /* xmm4 = float(frac(v)-127) = E */ \
                 : \
                 : \
-                    [X_MANT]      "m" (dsp::X_MANT), \
-                    [X_MMASK]     "m" (dsp::X_MMASK), \
-                    [X_HALF]      "m" (dsp::X_HALF) \
+                    [X_MANT]      "m" (X_MANT), \
+                    [X_MMASK]     "m" (X_MMASK), \
+                    [X_HALF]      "m" (X_HALF) \
                 : "%xmm4", "%xmm3", "%xmm5" \
             )
 
@@ -86,8 +86,8 @@ namespace sse
                 __ASM_EMIT("subps       %%xmm7, %%xmm3")        /* xmm3 = V + V * / V < sqrt(1/2) / - 1.0   = A */ \
                 : \
                 : \
-                  [SQRT1_2]     "m" (dsp::SQRT1_2), \
-                  [ONE]         "m" (dsp::ONE) \
+                  [SQRT1_2]     "m" (SQRT1_2), \
+                  [ONE]         "m" (ONE) \
                 : "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7" \
             )
 
@@ -141,18 +141,18 @@ namespace sse
                 \
                 : \
                 : \
-                  [L0]          "m" (dsp::LOG_C0), \
-                  [L1]          "m" (dsp::LOG_C1), \
-                  [L2]          "m" (dsp::LOG_C2), \
-                  [L3]          "m" (dsp::LOG_C3), \
-                  [L4]          "m" (dsp::LOG_C4), \
-                  [L5]          "m" (dsp::LOG_C5), \
-                  [L6]          "m" (dsp::LOG_C6), \
-                  [L7]          "m" (dsp::LOG_C7), \
-                  [L8]          "m" (dsp::LOG_C8), \
-                  [L9]          "m" (dsp::LOG_C9), \
-                  [LXE]         "m" (dsp::LOG_LXE), \
-                  [LN2]         "m" (dsp::LN2) \
+                  [L0]          "m" (LOG_C0), \
+                  [L1]          "m" (LOG_C1), \
+                  [L2]          "m" (LOG_C2), \
+                  [L3]          "m" (LOG_C3), \
+                  [L4]          "m" (LOG_C4), \
+                  [L5]          "m" (LOG_C5), \
+                  [L6]          "m" (LOG_C6), \
+                  [L7]          "m" (LOG_C7), \
+                  [L8]          "m" (LOG_C8), \
+                  [L9]          "m" (LOG_C9), \
+                  [LXE]         "m" (LOG_LXE), \
+                  [LN2]         "m" (LN2) \
                 : "%xmm5", "%xmm6", "%xmm7" \
             )
 
@@ -450,7 +450,7 @@ namespace sse
             : [count] "+r" (count),
               [dst] "+r"(dst),
               [src] "+r"(src)
-            : [MASK] "m" (dsp::X_CMASK)
+            : [MASK] "m" (X_CMASK)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"

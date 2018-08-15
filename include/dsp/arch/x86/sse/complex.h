@@ -1503,8 +1503,8 @@ namespace sse
             : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
               [src_re] "+r" (src_re), [src_im] "+r" (src_im),
               [count] "+r" (count)
-            : [X_ONE] "m" (dsp::ONE),
-              [X_ISIGN] "m" (dsp::X_ISIGN)
+            : [X_ONE] "m" (ONE),
+              [X_ISIGN] "m" (X_ISIGN)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm4", "%xmm5", "%xmm6"
         );
@@ -1607,8 +1607,8 @@ namespace sse
             __ASM_EMIT("50:")
             : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
               [count] "+r" (count)
-            : [X_ONE] "m" (dsp::ONE),
-              [X_ISIGN] "m" (dsp::X_ISIGN)
+            : [X_ONE] "m" (ONE),
+              [X_ISIGN] "m" (X_ISIGN)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
@@ -1738,8 +1738,8 @@ namespace sse
             __ASM_EMIT("50:")
             : [dst] "+r" (dst), [src] "+r" (src),
               [count] "+r" (count)
-            : [X_ONE] "m" (dsp::ONE),
-              [X_ISIGN] "m" (dsp::X_ISIGN)
+            : [X_ONE] "m" (ONE),
+              [X_ISIGN] "m" (X_ISIGN)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
@@ -1866,8 +1866,8 @@ namespace sse
             __ASM_EMIT("50:")
             : [dst] "+r" (dst),
               [count] "+r" (count)
-            : [X_ONE] "m" (dsp::ONE),
-              [X_ISIGN] "m" (dsp::X_ISIGN)
+            : [X_ONE] "m" (ONE),
+              [X_ISIGN] "m" (X_ISIGN)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );

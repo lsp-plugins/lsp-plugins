@@ -136,9 +136,9 @@ namespace sse
             : [x] "+x" (x), [a] "=&x" (a), [tmp] "=&x" (tmp), [k] "=&x" (k),
               [sign] "=&x" (sign), [xp] "=&x" (xp), [tres] "=&x" (tres), [tx] "=&x" (tx),
               [deg] "+r" (deg), [tdeg] "=&r" (tdeg)
-            : [X_SIGN] "m" (dsp::X_SIGN),
-              [X_ONE] "m" (dsp::ONE),
-              [X_TOL] "m" (dsp::X_3D_TOLERANCE)
+            : [X_SIGN] "m" (X_SIGN),
+              [X_ONE] "m" (ONE),
+              [X_TOL] "m" (X_3D_TOLERANCE)
             : "cc"
         );
 

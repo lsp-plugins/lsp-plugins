@@ -38,7 +38,6 @@ $(DSP_IMPL) $(BITS_IMPL) $(NATIVE_IMPL) $(X86_IMPL):
 	
 $(SSE_IMPL):
 	@echo "  $(CC) $(FILE)"
-	@echo $(CC) -c $(CPPFLAGS) $(CFLAGS) $(SSE_INSTR_SET) $(INCLUDE) $(FILE) -o $(@)
 	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(SSE_INSTR_SET) $(INCLUDE) $(FILE) -o $(@)
 	
 $(SSE3_IMPL):

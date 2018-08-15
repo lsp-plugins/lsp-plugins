@@ -285,8 +285,8 @@ namespace sse
 
             : [x0] "+x" (x), [x1] "+x" (y), [x2] "+x"(z)
             : [p] "r" (p),
-              [mask] "m" (dsp::X_MASK0001),
-              [omask] "m" (dsp::X_3DPOINT)
+              [mask] "m" (X_MASK0001),
+              [omask] "m" (X_3DPOINT)
             : "memory"
         );
     }
@@ -319,8 +319,8 @@ namespace sse
 
             : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2)
             : [p] "r" (p),
-              [zmask] "m" (dsp::X_MASK0111),
-              [omask] "m" (dsp::X_3DPOINT)
+              [zmask] "m" (X_MASK0111),
+              [omask] "m" (X_3DPOINT)
             : "cc", "memory"
         );
     }
@@ -339,8 +339,8 @@ namespace sse
 
             : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "+x" (r)
             : [p] "r" (p),
-              [zmask] "m" (dsp::X_MASK0111),
-              [omask] "m" (dsp::X_3DPOINT)
+              [zmask] "m" (X_MASK0111),
+              [omask] "m" (X_3DPOINT)
             : "cc", "memory"
         );
     }
@@ -359,8 +359,8 @@ namespace sse
 
             : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "+x" (r)
             : [p] "r" (p), [s] "r" (s),
-              [zmask] "m" (dsp::X_MASK0111),
-              [omask] "m" (dsp::X_3DPOINT)
+              [zmask] "m" (X_MASK0111),
+              [omask] "m" (X_3DPOINT)
             : "cc", "memory"
         );
     }
@@ -378,7 +378,7 @@ namespace sse
             : [x0] "+x" (dx), [x1] "+x" (dy), [x2] "+x"(dz)
             :
                 [p] "r" (p),
-                [mask] "m" (dsp::X_MASK0001)
+                [mask] "m" (X_MASK0001)
             : "memory"
         );
     }
@@ -426,7 +426,7 @@ namespace sse
 
             : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "+x" (r)
             : [v] "r" (v),
-              [zmask] "m" (dsp::X_MASK0111)
+              [zmask] "m" (X_MASK0111)
             : "cc", "memory"
         );
     }
@@ -444,7 +444,7 @@ namespace sse
 
             : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "+x" (r)
             : [v] "r" (v), [s] "r" (s),
-              [zmask] "m" (dsp::X_MASK0111)
+              [zmask] "m" (X_MASK0111)
             : "cc", "memory"
         );
     }
@@ -553,7 +553,7 @@ namespace sse
             : [l] "r" (l),
               [p1] "r" (p1),
               [p2] "r" (p2),
-              [mask] "m" (dsp::X_MASK0111)
+              [mask] "m" (X_MASK0111)
             : "memory"
         );
     }
@@ -574,7 +574,7 @@ namespace sse
             : [x0] "=&x" (x0), [x1] "=&x" (x1)
             : [l] "r" (l),
               [p] "r" (p),
-              [mask] "m" (dsp::X_MASK0111)
+              [mask] "m" (X_MASK0111)
             : "memory"
         );
     }
@@ -704,7 +704,7 @@ namespace sse
             : [l] "r" (l),
               [p1] "r" (p1),
               [p2] "r" (p2),
-              [mask] "m" (dsp::X_MASK0111)
+              [mask] "m" (X_MASK0111)
             : "cc", "memory"
         );
     }
@@ -726,7 +726,7 @@ namespace sse
             : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3)
             : [l] "r" (l),
               [p] "r" (p),
-              [mask] "m" (dsp::X_MASK0111)
+              [mask] "m" (X_MASK0111)
             : "cc", "memory"
         );
     }
@@ -856,7 +856,7 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm0, %%xmm1")
             MATRIX_STORE("m", "%xmm0", "%xmm1", "%xmm0", "%xmm1")
             :
-            : [m] "r" (m), [one] "m" (dsp::ONE)
+            : [m] "r" (m), [one] "m" (ONE)
             : "memory",
                 "%xmm0", "%xmm1"
         );
@@ -928,7 +928,7 @@ namespace sse
               [x3] "=&x" (x3)
             : [m] "r" (m),
               [idm3] "m" (IDENTITY3),
-              [mask] "m" (dsp::X_MASK0001)
+              [mask] "m" (X_MASK0001)
             : "memory"
         );
     }
@@ -957,7 +957,7 @@ namespace sse
                 [m] "r" (m),
                 [idm0] "m" (IDENTITY0),
                 [idm3] "m" (IDENTITY3),
-                [mask] "m" (dsp::X_SMASK0010)
+                [mask] "m" (X_SMASK0010)
             : "memory"
         );
     }
@@ -986,7 +986,7 @@ namespace sse
                 [m] "r" (m),
                 [idm1] "m" (IDENTITY1),
                 [idm3] "m" (IDENTITY3),
-                [mask] "m" (dsp::X_SMASK0001)
+                [mask] "m" (X_SMASK0001)
             : "memory"
         );
     }
@@ -1015,7 +1015,7 @@ namespace sse
                 [m] "r" (m),
                 [idm2] "m" (IDENTITY2),
                 [idm3] "m" (IDENTITY3),
-                [mask] "m" (dsp::X_SMASK0001)
+                [mask] "m" (X_SMASK0001)
             : "memory"
         );
     }
@@ -2337,11 +2337,11 @@ namespace sse
               [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
               [x4] "=&x" (x4), [x5] "=&x" (x5), [x6] "=&x" (x6), [x7] "=&x" (x7)
             : [l] "r" (l), [t] "r" (t), [ip] "r" (ip),
-              [smask0001] "m" (dsp::X_SMASK0001),
-              [smask0010] "m" (dsp::X_SMASK0010),
-              [abs] "m" (dsp::X_SIGN),
-              [zero] "m" (dsp::X_3D_TOLERANCE),
-              [negative] "m" (dsp::X_MINUS_ONE),
+              [smask0001] "m" (X_SMASK0001),
+              [smask0010] "m" (X_SMASK0010),
+              [abs] "m" (X_SIGN),
+              [zero] "m" (X_3D_TOLERANCE),
+              [negative] "m" (X_MINUS_ONE),
               [ix] "m" (ix),
               [proj] "m" (proj)
           : "cc", "memory"
@@ -2514,8 +2514,8 @@ namespace sse
             : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
               [x4] "=&x" (x4)
             : [v1] "r" (v1), [v2] "r" (v2),
-              [ONE] "m" (dsp::ONE),
-              [M_ONE] "m" (dsp::X_MINUS_ONE)
+              [ONE] "m" (ONE),
+              [M_ONE] "m" (X_MINUS_ONE)
             : "cc", "memory"
         );
 
@@ -2535,8 +2535,8 @@ namespace sse
             : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
               [x4] "=&x" (x4)
             : [v] "r" (v),
-              [ONE] "m" (dsp::ONE),
-              [M_ONE] "m" (dsp::X_MINUS_ONE)
+              [ONE] "m" (ONE),
+              [M_ONE] "m" (X_MINUS_ONE)
             : "cc", "memory"
         );
 
@@ -2642,8 +2642,8 @@ namespace sse
             __ASM_EMIT("movups      %[x0], (%[p])")
             : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "+x" (k)
             : [p] "r" (p), [p1] "r" (p1), [p2] "r" (p2),
-              [zmask] "m" (dsp::X_MASK0111),
-              [omask] "m" (dsp::X_3DPOINT)
+              [zmask] "m" (X_MASK0111),
+              [omask] "m" (X_3DPOINT)
             : "memory"
         );
     }
@@ -2665,8 +2665,8 @@ namespace sse
             __ASM_EMIT("movups      %[x0], (%[p])")
             : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "+x" (k)
             : [p] "r" (p), [pv] "r" (pv),
-              [zmask] "m" (dsp::X_MASK0111),
-              [omask] "m" (dsp::X_3DPOINT)
+              [zmask] "m" (X_MASK0111),
+              [omask] "m" (X_3DPOINT)
             : "memory"
         );
     }

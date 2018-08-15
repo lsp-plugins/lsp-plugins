@@ -271,7 +271,7 @@ namespace sse
               [count] "+r" (count),
               [bc] "+r" (bc),
               [bf] "+r" (bf)
-            : [ONE] "m" (dsp::ONE),
+            : [ONE] "m" (ONE),
               [N] "m" (N)
             : "cc", "memory"
         );
@@ -424,7 +424,7 @@ namespace sse
               [count] "+r" (count),
               [bc] "+r" (bc),
               [bf] "+r" (bf)
-            : [ONE] "m" (dsp::ONE),
+            : [ONE] "m" (ONE),
               [N] "m" (N)
             : "cc", "memory"
         );
@@ -499,7 +499,7 @@ namespace sse
               [count] "+r" (count),
               [bc] "+r" (bc),
               [bf] "+r" (bf)
-            : [ONE] "m" (dsp::ONE),
+            : [ONE] "m" (ONE),
               [N] "m" (N)
             : "cc", "memory"
         );
@@ -588,7 +588,7 @@ namespace sse
               [count] "+r" (count),
               [bc] "+r" (bc),
               [bf] "+r" (bf)
-            : [ONE] "m" (dsp::ONE),
+            : [ONE] "m" (ONE),
               [N1] "m" (N1),
               [N2] "m" (N2)
             : "cc", "memory"
@@ -896,7 +896,7 @@ namespace sse
                   [count] "+r" (count),
                   [bc] "+r" (bc),
                   [bf] "+r" (bf)
-                : [ONE] "m" (dsp::ONE),
+                : [ONE] "m" (ONE),
                   [ISIGN] "m" (X_ISIGN),
                   [COSW] "m" (COSW),
                   [SINW] "m" (SINW),
@@ -1210,8 +1210,8 @@ namespace sse
               [count] "+r" (count),
               [bc] "+r" (bc),
               [bf] "+r" (bf)
-            : [ONE] "m" (dsp::ONE),
-              [ISIGN] "m" (dsp::X_ISIGN),
+            : [ONE] "m" (ONE),
+              [ISIGN] "m" (X_ISIGN),
               [COSW] "m" (COSW),
               [SINW] "m" (SINW),
               [COS2W] "m" (COS2W),

@@ -17,7 +17,7 @@
 
 #define __DSP_DSP_DEFS
 
-#include <dsp/common/const.h>
+//#include <dsp/common/const.h>
 #include <dsp/common/context.h>
 #include <dsp/common/filters.h>
 #include <dsp/common/resampling.h>

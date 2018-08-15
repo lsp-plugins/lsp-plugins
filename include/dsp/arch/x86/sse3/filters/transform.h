@@ -185,7 +185,7 @@ namespace sse3
               [count] "+r" (count),
               [bc] "+r" (bc),
               [bf] "+r" (bf)
-            : [ONE] "m" (dsp::ONE)
+            : [ONE] "m" (ONE)
             : "cc", "memory"
         );
     }

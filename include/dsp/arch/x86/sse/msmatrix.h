@@ -52,7 +52,7 @@ namespace sse
             __ASM_EMIT("2:")
 
             : [left] "+r"(l), [right] "+r" (r), [mid] "+r" (m), [side] "+r" (s), [count] "+r" (count)
-            : [X_HALF] "m" (dsp::X_HALF)
+            : [X_HALF] "m" (X_HALF)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3"
         );
@@ -252,7 +252,7 @@ namespace sse
             __ASM_EMIT("2:")
 
             : [left] "+r"(l), [right] "+r" (r), [mid] "+r" (m), [side] "+r" (s), [count] "+r" (count)
-            : [X_HALF] "m" (dsp::X_HALF)
+            : [X_HALF] "m" (X_HALF)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2"
         );
@@ -522,7 +522,7 @@ namespace sse
             __ASM_EMIT("1000:") \
             \
             : [left] "+r"(l), [right] "+r" (r), [dst] "+r" (dst_ptr), [count] "+r" (count) \
-            : [X_HALF] "m" (dsp::X_HALF) \
+            : [X_HALF] "m" (X_HALF) \
             : "cc", "memory", \
               "%xmm0", "%xmm1", "%xmm2", "%xmm3", \
               "%xmm4", "%xmm5", "%xmm6", "%xmm7" \

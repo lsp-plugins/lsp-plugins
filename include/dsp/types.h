@@ -139,7 +139,7 @@
 // Conditional assemblying
 #define __ASM_EMIT(code)                        code "\n\t"
 
-#ifdef ARCH_I386
+#ifdef ARCH_32BIT
     #define __ASM_EMIT32(code)                  code "\n\t"
     #define __IF_32(...)                        __VA_ARGS__
 
@@ -148,22 +148,12 @@
     #else
         #define __IF_32NP(...)                      __VA_ARGS__
     #endif /* LSP_PROFILING */
-#endif /* __i386__ */
+#endif /* ARCH_32BIT */
 
-#ifdef ARCH_X86_64
+#ifdef ARCH_64BIT
     #define __ASM_EMIT64(code)                  code "\n\t"
     #define __IF_64(...)                        __VA_ARGS__
-#endif
-
-#ifdef ARCH_ARM7
-    #define __ASM_EMIT32(code)                  code "\n\t"
-    #define __IF_32(...)                        __VA_ARGS__
-#endif /* ARCH_ARM7 */
-
-#ifdef ARCH_ARM8
-    #define __ASM_EMIT64(code)                  code "\n\t"
-    #define __IF_64(...)                        __VA_ARGS__
-#endif /* ARCH_ARM8 */
+#endif /* ARCH_32BIT */
 
 #ifdef LSP_PROFILING
     #define __ASM_EMITP(code)                      code "\n\t"
