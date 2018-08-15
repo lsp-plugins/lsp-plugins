@@ -4,29 +4,27 @@
 #include <time.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 #define MIN_RANK 8
 #define MAX_RANK 16
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-        void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
-    }
+    void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+    void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
+}
 
-    namespace sse
-    {
-        void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-        void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
-    }
+namespace sse
+{
+    void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+    void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
+}
 
-    namespace sse3
-    {
-        void x64_packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
-    }
+namespace sse3
+{
+    void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
+    void x64_packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
 }
 
 namespace complex_mul_speed_test
@@ -109,7 +107,8 @@ namespace complex_mul_speed_test
             test_cplx_mul(out, in1, in2, i, native::packed_complex_mul, "Native Packed Complex Multiplication");
 //            test_cplx_mul(out, in1, in2, i, sse::complex_mul, "SSE Unpacked Complex Multiplication");
             test_cplx_mul(out, in1, in2, i, sse::packed_complex_mul, "SSE Packed Complex Multiplication");
-            test_cplx_mul(out, in1, in2, i, sse3::x64_packed_complex_mul, "SSE3 Packed Complex Multiplication");
+            test_cplx_mul(out, in1, in2, i, sse3::packed_complex_mul, "SSE3 Packed Complex Multiplication");
+            test_cplx_mul(out, in1, in2, i, sse3::x64_packed_complex_mul, "SSE3 x64 Packed Complex Multiplication");
         }
 
         delete [] data;

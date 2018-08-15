@@ -5,7 +5,7 @@
  *      Author: sadko
  */
 
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 #include <plugins/spectrum_analyzer.h>
 #include <core/debug.h>

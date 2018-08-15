@@ -4,7 +4,7 @@
 #include <stddef.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/windows.h>
 #include <core/envelope.h>
 
@@ -15,37 +15,33 @@
 #define BIQUAD_X8_FLOATS    (sizeof(biquad_x8_t) / sizeof(float))
 #define CASCADE_FLOATS      (sizeof(f_cascade_t) / sizeof(float))
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void bilinear_transform_x1(biquad_x1_t *bf, const f_cascade_t *bc, float kf, size_t count);
-        void bilinear_transform_x2(biquad_x2_t *bf, const f_cascade_t *bc, float kf, size_t count);
-        void bilinear_transform_x4(biquad_x4_t *bf, const f_cascade_t *bc, float kf, size_t count);
-        void bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
-    }
-
-    namespace sse
-    {
-        void bilinear_transform_x1(biquad_x1_t *bf, const f_cascade_t *bc, float kf, size_t count);
-        void bilinear_transform_x2(biquad_x2_t *bf, const f_cascade_t *bc, float kf, size_t count);
-        void bilinear_transform_x4(biquad_x4_t *bf, const f_cascade_t *bc, float kf, size_t count);
-        void bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
-    }
-
-    namespace sse3
-    {
-        void x64_bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
-    }
-
-#ifdef __AVX__
-    namespace avx
-    {
-        void x64_bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
-    }
-#endif /* __AVX__ */
+    void bilinear_transform_x1(biquad_x1_t *bf, const f_cascade_t *bc, float kf, size_t count);
+    void bilinear_transform_x2(biquad_x2_t *bf, const f_cascade_t *bc, float kf, size_t count);
+    void bilinear_transform_x4(biquad_x4_t *bf, const f_cascade_t *bc, float kf, size_t count);
+    void bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
 }
 
+namespace sse
+{
+    void bilinear_transform_x1(biquad_x1_t *bf, const f_cascade_t *bc, float kf, size_t count);
+    void bilinear_transform_x2(biquad_x2_t *bf, const f_cascade_t *bc, float kf, size_t count);
+    void bilinear_transform_x4(biquad_x4_t *bf, const f_cascade_t *bc, float kf, size_t count);
+    void bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
+}
+
+namespace sse3
+{
+    void x64_bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
+}
+
+#ifdef __AVX__
+namespace avx
+{
+    void x64_bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
+}
+#endif /* __AVX__ */
 
 namespace bt_test
 {
@@ -313,7 +309,7 @@ namespace bt_test
 
     int test(int argc, const char **argv)
     {
-        dsp_context_t ctx;
+        dsp::context_t ctx;
 
         dsp::init();
         dsp::start(&ctx);

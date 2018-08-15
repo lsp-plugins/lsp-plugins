@@ -7,7 +7,7 @@
 
 #include <ui/tk/tk.h>
 #include <ui/tk/helpers/draw.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 namespace lsp
 {

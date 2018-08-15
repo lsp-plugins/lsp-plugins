@@ -5,7 +5,7 @@
  *      Author: sadko
  */
 
-#include <core/endian.h>
+#include <dsp/endian.h>
 #include <core/files/lspc/LSPCChunkWriter.h>
 
 namespace lsp

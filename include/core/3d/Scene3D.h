@@ -8,7 +8,7 @@
 #ifndef CORE_3D_SCENE3D_H_
 #define CORE_3D_SCENE3D_H_
 
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <data/cvector.h>
 #include <data/cstorage.h>
 #include <core/3d/Object3D.h>

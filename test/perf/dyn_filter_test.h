@@ -5,7 +5,7 @@
 #include <math.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 #define FTEST_BUF_SIZE  0x200
 #define ITERATIONS      10000
@@ -275,7 +275,7 @@ namespace dyn_filter_test
 
     int test(int argc, const char **argv)
     {
-        dsp_context_t ctx;
+        dsp::context_t ctx;
 
         dsp::init();
         dsp::start(&ctx);

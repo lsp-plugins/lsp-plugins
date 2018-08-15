@@ -5,32 +5,29 @@
 #include <math.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 #define RTEST_BUF_SIZE  0x1000
 #define ITERATIONS      10000
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void lanczos_resample_2x2(float *dst, const float *src, size_t count);
-        void lanczos_resample_2x3(float *dst, const float *src, size_t count);
-        void lanczos_resample_3x2(float *dst, const float *src, size_t count);
-        void lanczos_resample_3x3(float *dst, const float *src, size_t count);
-        void lanczos_resample_4x2(float *dst, const float *src, size_t count);
-        void lanczos_resample_4x3(float *dst, const float *src, size_t count);
-    }
+    void lanczos_resample_2x2(float *dst, const float *src, size_t count);
+    void lanczos_resample_2x3(float *dst, const float *src, size_t count);
+    void lanczos_resample_3x2(float *dst, const float *src, size_t count);
+    void lanczos_resample_3x3(float *dst, const float *src, size_t count);
+    void lanczos_resample_4x2(float *dst, const float *src, size_t count);
+    void lanczos_resample_4x3(float *dst, const float *src, size_t count);
+}
 
-    namespace sse
-    {
-        void lanczos_resample_2x2(float *dst, const float *src, size_t count);
-        void lanczos_resample_2x3(float *dst, const float *src, size_t count);
-        void lanczos_resample_3x2(float *dst, const float *src, size_t count);
-        void lanczos_resample_3x3(float *dst, const float *src, size_t count);
-        void lanczos_resample_4x2(float *dst, const float *src, size_t count);
-        void lanczos_resample_4x3(float *dst, const float *src, size_t count);
-    }
+namespace sse
+{
+    void lanczos_resample_2x2(float *dst, const float *src, size_t count);
+    void lanczos_resample_2x3(float *dst, const float *src, size_t count);
+    void lanczos_resample_3x2(float *dst, const float *src, size_t count);
+    void lanczos_resample_3x3(float *dst, const float *src, size_t count);
+    void lanczos_resample_4x2(float *dst, const float *src, size_t count);
+    void lanczos_resample_4x3(float *dst, const float *src, size_t count);
 }
 
 namespace oversampling_test

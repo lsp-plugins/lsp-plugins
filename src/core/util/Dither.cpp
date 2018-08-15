@@ -5,7 +5,7 @@
  *      Author: sadko
  */
 
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/util/Dither.h>
 
 #define DITHER_8BIT         0.00390625  /* 1 / 256 */

@@ -41,6 +41,8 @@
             #define __cdecl __attribute__((__cdecl__))
         #elif defined(__x86_64__)
             #define __cdecl
+        #elif defined(__arm__)
+            #define __cdecl
         #endif /* __cdecl */
     #endif /* __cdecl */
 #endif /* __GNUC__ */

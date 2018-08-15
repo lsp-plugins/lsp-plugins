@@ -1,5 +1,4 @@
 #include <core/types.h>
-#include <core/dsp.h>
 #include <core/alloc.h>
 
 #include <container/jack/defs.h>

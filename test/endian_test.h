@@ -1,5 +1,5 @@
 #include <core/types.h>
-#include <core/endian.h>
+#include <dsp/endian.h>
 
 namespace endian_test
 {

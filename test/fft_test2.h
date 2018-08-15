@@ -4,25 +4,22 @@
 #include <stddef.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
-        void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
-        void packed_direct_fft(float *dst, const float *src, size_t rank);
-        void packed_reverse_fft(float *dst, const float *src, size_t rank);
-    }
+    void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    void packed_direct_fft(float *dst, const float *src, size_t rank);
+    void packed_reverse_fft(float *dst, const float *src, size_t rank);
+}
 
-    namespace sse
-    {
-        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
-        void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
-        void packed_direct_fft(float *dst, const float *src, size_t rank);
-        void packed_reverse_fft(float *dst, const float *src, size_t rank);
-    }
+namespace sse
+{
+    void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    void packed_direct_fft(float *dst, const float *src, size_t rank);
+    void packed_reverse_fft(float *dst, const float *src, size_t rank);
 }
 
 namespace fft_test2

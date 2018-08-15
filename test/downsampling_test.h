@@ -5,30 +5,27 @@
 #include <math.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 #define RTEST_BUF_SIZE  0x1000
 #define ITERATIONS      10000
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void downsample_2x(float *dst, const float *src, size_t count);
-        void downsample_3x(float *dst, const float *src, size_t count);
-        void downsample_4x(float *dst, const float *src, size_t count);
-        void downsample_6x(float *dst, const float *src, size_t count);
-        void downsample_8x(float *dst, const float *src, size_t count);
-    }
+    void downsample_2x(float *dst, const float *src, size_t count);
+    void downsample_3x(float *dst, const float *src, size_t count);
+    void downsample_4x(float *dst, const float *src, size_t count);
+    void downsample_6x(float *dst, const float *src, size_t count);
+    void downsample_8x(float *dst, const float *src, size_t count);
+}
 
-    namespace sse
-    {
-        void downsample_2x(float *dst, const float *src, size_t count);
-        void downsample_3x(float *dst, const float *src, size_t count);
-        void downsample_4x(float *dst, const float *src, size_t count);
-        void downsample_6x(float *dst, const float *src, size_t count);
-        void downsample_8x(float *dst, const float *src, size_t count);
-    }
+namespace sse
+{
+    void downsample_2x(float *dst, const float *src, size_t count);
+    void downsample_3x(float *dst, const float *src, size_t count);
+    void downsample_4x(float *dst, const float *src, size_t count);
+    void downsample_6x(float *dst, const float *src, size_t count);
+    void downsample_8x(float *dst, const float *src, size_t count);
 }
 
 namespace downsampling_test

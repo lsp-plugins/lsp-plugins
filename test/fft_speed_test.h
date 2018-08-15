@@ -4,26 +4,23 @@
 #include <time.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 #define MIN_RANK 10
 #define MAX_RANK 16
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
-        void conv_direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
-        void packed_direct_fft(float *dst, const float *src, size_t rank);
-    }
+    void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    void conv_direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    void packed_direct_fft(float *dst, const float *src, size_t rank);
+}
 
-    namespace sse
-    {
-        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
-        void conv_direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
-        void packed_direct_fft(float *dst, const float *src, size_t rank);
-    }
+namespace sse
+{
+    void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    void conv_direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    void packed_direct_fft(float *dst, const float *src, size_t rank);
 }
 
 namespace fft_speed_test
@@ -102,7 +99,7 @@ namespace fft_speed_test
 
     int test(int argc, const char **argv)
     {
-        dsp_context_t ctx;
+        dsp::context_t ctx;
         dsp::init();
         dsp::start(&ctx);
 

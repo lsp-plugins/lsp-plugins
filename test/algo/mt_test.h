@@ -4,7 +4,7 @@
 #include <stddef.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/windows.h>
 #include <core/envelope.h>
 
@@ -15,21 +15,17 @@
 #define BIQUAD_X8_FLOATS    (sizeof(biquad_x8_t) / sizeof(float))
 #define CASCADE_FLOATS      (sizeof(f_cascade_t) / sizeof(float))
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
-//        void test_matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
-    }
-
-    namespace sse
-    {
-        void matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
-//        void test_matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
-    }
+    void matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
+//    void test_matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
 }
 
+namespace sse
+{
+    void matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
+//    void test_matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
+}
 
 namespace mt_test
 {
@@ -78,7 +74,7 @@ namespace mt_test
 
     int test(int argc, const char **argv)
     {
-        dsp_context_t ctx;
+        dsp::context_t ctx;
 
         dsp::init();
         dsp::start(&ctx);

@@ -4,21 +4,18 @@
 #include <stddef.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void packed_real_to_complex(float *dst, const float *src, size_t count);
-        void packed_complex_to_real(float *dst, const float *src, size_t count);
-    }
+    void packed_real_to_complex(float *dst, const float *src, size_t count);
+    void packed_complex_to_real(float *dst, const float *src, size_t count);
+}
 
-    namespace sse
-    {
-        void packed_real_to_complex(float *dst, const float *src, size_t count);
-        void packed_complex_to_real(float *dst, const float *src, size_t count);
-    }
+namespace sse
+{
+    void packed_real_to_complex(float *dst, const float *src, size_t count);
+    void packed_complex_to_real(float *dst, const float *src, size_t count);
 }
 
 namespace real_to_complex_test

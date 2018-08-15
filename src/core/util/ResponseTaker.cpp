@@ -5,8 +5,8 @@
  *      Author: crocoduck
  */
 
+#include <dsp/dsp.h>
 #include <core/util/ResponseTaker.h>
-#include <core/dsp.h>
 
 #define DFL_GAIN    1.0f
 #define DFL_FADE    0.01f

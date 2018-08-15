@@ -1,7 +1,7 @@
 #ifndef CORE_PLUGIN_H_
 #define CORE_PLUGIN_H_
 
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/types.h>
 #include <core/IPort.h>
 #include <core/IWrapper.h>

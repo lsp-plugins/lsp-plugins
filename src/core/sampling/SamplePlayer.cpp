@@ -5,8 +5,7 @@
  *      Author: sadko
  */
 
-#include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/debug.h>
 #include <core/sampling/SamplePlayer.h>
 

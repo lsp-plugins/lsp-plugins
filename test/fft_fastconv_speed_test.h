@@ -4,50 +4,43 @@
 #include <time.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 #define MIN_RANK 10
 #define MAX_RANK 16
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
-        void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
-        void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-        void add2(float *dst, const float *src, size_t count);
+    void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+    void add2(float *dst, const float *src, size_t count);
 
-        void conv_direct_fft(float *dst, const float *src, size_t rank);
-        void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
-        void packed_reverse_fft(float *dst, const float *src, size_t rank);
-        void packed_complex_add_to_real(float *dst, const float *src, size_t count);
+    void conv_direct_fft(float *dst, const float *src, size_t rank);
+    void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
+    void packed_reverse_fft(float *dst, const float *src, size_t rank);
+    void packed_complex_add_to_real(float *dst, const float *src, size_t count);
 
-        void fastconv_parse(float *dst, const float *src, size_t rank);
-        void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
-        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+    void fastconv_parse(float *dst, const float *src, size_t rank);
+    void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
+    void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+}
 
+namespace sse
+{
+    void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+    void add2(float *dst, const float *src, size_t count);
 
-    }
+    void conv_direct_fft(float *dst, const float *src, size_t rank);
+    void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
+    void packed_reverse_fft(float *dst, const float *src, size_t rank);
+    void packed_complex_add_to_real(float *dst, const float *src, size_t count);
 
-    namespace sse
-    {
-        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
-        void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
-        void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-        void add2(float *dst, const float *src, size_t count);
-
-        void conv_direct_fft(float *dst, const float *src, size_t rank);
-        void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
-        void packed_reverse_fft(float *dst, const float *src, size_t rank);
-        void packed_complex_add_to_real(float *dst, const float *src, size_t count);
-
-        void fastconv_parse(float *dst, const float *src, size_t rank);
-        void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
-        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
-
-
-    }
+    void fastconv_parse(float *dst, const float *src, size_t rank);
+    void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
+    void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
 }
 
 namespace fft_fastconv_speed_test
@@ -248,7 +241,7 @@ namespace fft_fastconv_speed_test
 
     int test(int argc, const char **argv)
     {
-        dsp_context_t ctx;
+        dsp::context_t ctx;
         dsp::init();
         dsp::start(&ctx);
 

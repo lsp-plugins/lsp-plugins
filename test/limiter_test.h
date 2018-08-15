@@ -5,7 +5,7 @@
 #include <math.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/dynamics/Limiter.h>
 
 #define LIMITER_BUF_SIZE        128

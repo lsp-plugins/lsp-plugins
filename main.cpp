@@ -107,7 +107,7 @@
 //#define TEST fft_speed_test
 //#define TEST fft_join_test
 
-//#define TEST complex_mul_speed_test
+#define TEST complex_mul_speed_test
 //#define TEST real_to_complex_test
 
 //#define TEST dsp_speed_test
@@ -129,7 +129,7 @@
 //#define TEST oversampling_test
 //#define TEST oversampler_test
 
-#define TEST sse_test
+//#define TEST sse_test
 //#define TEST latencydetector_test
 //#define TEST geometry3d_test
 //#define TEST solutions3d_test

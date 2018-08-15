@@ -45,7 +45,7 @@ namespace lsp
         change_task_state(task, ITask::TS_SUBMITTED);
 
         // Try to acquire critical section
-        if (!atomic_lock(nLock))
+        if (!atomic_trylock(nLock))
         {
             // Submit task next time
             change_task_state(task, ITask::TS_IDLE);
@@ -73,7 +73,7 @@ namespace lsp
         while (true)
         {
             // Try to acquire critical section
-            if (atomic_lock(nLock))
+            if (atomic_trylock(nLock))
             {
                 // Check that queue is empty
                 if (pHead == NULL)
@@ -100,7 +100,7 @@ namespace lsp
         while (true)
         {
             // Sleep until critical section is acquired
-            while (!atomic_lock(nLock))
+            while (!atomic_trylock(nLock))
                 nanosleep(&spec, NULL);
 
             // Try to get task

@@ -12,7 +12,7 @@
 #include <limits.h>
 #include <errno.h>
 #include <string.h>
-#include <core/endian.h>
+#include <dsp/endian.h>
 
 namespace lsp
 {

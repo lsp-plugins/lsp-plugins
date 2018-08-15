@@ -5,13 +5,13 @@
  *      Author: sadko
  */
 
+#include <dsp/dsp.h>
+#include <dsp/endian.h>
 #include <core/types.h>
 #include <core/debug.h>
-#include <core/dsp.h>
 #include <core/files/LSPCFile.h>
 #include <core/files/AudioFile.h>
 #include <core/alloc.h>
-#include <core/endian.h>
 
 #include <sndfile.h>
 

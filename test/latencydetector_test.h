@@ -5,7 +5,7 @@
 #include <math.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/util/LatencyDetector.h>
 #include <cstdlib>
 #include <ctime>
@@ -116,7 +116,7 @@ namespace latencydetector_test
 
     int test(int argc, const char **argv)
     {
-        dsp_context_t ctx;
+        dsp::context_t ctx;
 
         srand(static_cast<size_t>(time(0)));
 

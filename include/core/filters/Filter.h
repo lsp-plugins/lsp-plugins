@@ -8,7 +8,7 @@
 #ifndef CORE_FILTERS_FILTER_H_
 #define CORE_FILTERS_FILTER_H_
 
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/filters/common.h>
 #include <core/filters/FilterBank.h>
 

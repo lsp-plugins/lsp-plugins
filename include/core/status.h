@@ -43,6 +43,7 @@ namespace lsp
         STATUS_NOT_SUPPORTED,
         STATUS_INVALID_VALUE,
         STATUS_BAD_LOCALE,
+        STATUS_NO_DEVICE,
 
         STATUS_TOTAL,
         STATUS_MAX = STATUS_TOTAL - 1,

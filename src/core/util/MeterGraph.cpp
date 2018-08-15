@@ -5,7 +5,7 @@
  *      Author: sadko
  */
 
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/util/MeterGraph.h>
 
 namespace lsp

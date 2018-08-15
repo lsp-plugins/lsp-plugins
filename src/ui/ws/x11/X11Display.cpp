@@ -124,7 +124,7 @@ namespace lsp
                 if (pDisplay == NULL)
                 {
                     lsp_error("Can not open display");
-                    return -1;
+                    return STATUS_NO_DEVICE;
                 }
 
                 // Get Root window and screen

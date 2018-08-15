@@ -5,7 +5,7 @@
 #include <math.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 #define PERF_BUF_SIZE   0x200
 #define ITERATIONS      10000
@@ -13,12 +13,9 @@
 #define KF              100.0f
 #define TD              (2*M_PI/48000.0)
 
-namespace lsp
+namespace native
 {
-    namespace native
-    {
-        void matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
-    }
+    void matched_transform_x1(biquad_x1_t *bf, f_cascade_t *bc, float kf, float td, size_t count);
 }
 
 namespace mt_perf_test
@@ -135,7 +132,7 @@ namespace mt_perf_test
 
     int test(int argc, const char **argv)
     {
-        dsp_context_t ctx;
+        dsp::context_t ctx;
 
         dsp::init();
         dsp::start(&ctx);

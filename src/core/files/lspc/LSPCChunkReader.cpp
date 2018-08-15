@@ -5,7 +5,7 @@
  *      Author: sadko
  */
 
-#include <core/endian.h>
+#include <dsp/endian.h>
 #include <core/files/lspc/lspc.h>
 #include <core/files/lspc/LSPCChunkReader.h>
 

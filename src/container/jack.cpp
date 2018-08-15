@@ -8,8 +8,9 @@
 #include <core/lib.h>
 #include <core/debug.h>
 #include <core/status.h>
-#include <core/dsp.h>
 #include <core/NativeExecutor.h>
+
+#include <dsp/dsp.h>
 
 #include <ui/ui_locale.h>
 
@@ -127,7 +128,7 @@ namespace lsp
             status                  = w.init(argc, argv);
             if (status == STATUS_OK)
             {
-                dsp_context_t ctx;
+                dsp::context_t ctx;
                 dsp::start(&ctx);
 
                 // Perform initial connection

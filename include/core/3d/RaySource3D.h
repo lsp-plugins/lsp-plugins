@@ -8,7 +8,7 @@
 #ifndef CORE_3D_RAYSOURCE3D_H_
 #define CORE_3D_RAYSOURCE3D_H_
 
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/3d/RayTrace3D.h>
 #include <core/util/Randomizer.h>
 

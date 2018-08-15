@@ -4,7 +4,7 @@
 #include <time.h>
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 #define MIN_PF_RANK 9
 #define MAX_PF_RANK 16

@@ -5,9 +5,8 @@
  *      Author: sadko
  */
 
-#include <core/types.h>
 #include <core/debug.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/util/Crossover.h>
 
 namespace lsp
