@@ -39,18 +39,16 @@
             /* Calculate statistics */ \
             __iterations   += __test_iterations; \
             __time          = (clock() - __start) / CLOCKS_PER_SEC; \
-        } while (time < __test_time); \
+        } while (__time < __test_time); \
         \
-        printf("Time = %.1f/%.1f [s], iterations = %ld/%ld, performance = %.1f [i/s], average time = %.7f [ms/i]\n", \
-            time, __test_time, \
-            long(__iterations), long((__iterations * __test_time) / __time), \
-            __iterations / time, (1000.0f * __time) / __iterations \
-        ); \
+        printf("  time [s]:                 %.2f/%.2f\n", __time, __test_time); \
+        printf("  iterations:               %ld/%ld\n", long(__iterations), long((__iterations * __test_time) / __time)); \
+        printf("  performance [i/s]:        %.2f\n", __iterations / __time); \
+        printf("  iteration time [ms/i]:    %.7f\n\n", (1000.0 * __time) / __iterations); \
     }
 
-
 #define PTEST_FAIL(code)    \
-        fprintf(stderr, "Performance test %s group %s has failed at file %s, line %d", \
+        fprintf(stderr, "Performance test '%s' group '%s' has failed at file %s, line %d", \
                 __test_name, __test_group, __FILE__, __LINE__); \
         exit(code));
 
@@ -66,6 +64,9 @@ namespace test
     {
         class PerformanceTest
         {
+            private:
+                friend PerformanceTest *init();
+
             private:
                 static PerformanceTest    *__root;
                 PerformanceTest           *__next;
@@ -83,12 +84,18 @@ namespace test
             public:
                 inline const char *name() const     { return __test_name; }
                 inline const char *group() const    { return __test_group; }
-                virtual void execute() = 0;
+                inline PerformanceTest *next()      { return __next; }
 
             public:
-                static inline PerformanceTest    *first() { return __root; };
+                virtual void execute() = 0;
         };
 
+
+        /**
+         * Initialize set of performance tests (validate duplicates, etc)
+         * @return valid set of performance tests
+         */
+        PerformanceTest *init();
     }
 }
 

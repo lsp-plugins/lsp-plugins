@@ -148,10 +148,120 @@
 //#define TEST selection_test
 //#define TEST endian_test
 
+#include <dsp/dsp.h>
+#include <test/ptest.h>
+#include <errno.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
-int main(int argc, const char**argv)
+int launch_ptest()
 {
+    using namespace test::ptest;
+    PerformanceTest *v = init();
+    if (v == NULL)
+    {
+        fprintf(stderr, "No performance tests available\n");
+        return -1;
+    }
+
+    int result = 0;
+    struct timespec ts, start, finish;
+    size_t total = 0, success = 0, failed = 0;
+    double time = 0.0;
+
+    clock_gettime(CLOCK_REALTIME, &ts);
+
+    for ( ; v != NULL; v = v->next())
+    {
+        printf("--------------------------------------------------------------------------------\n");
+        printf("Launching performance test '%s' group '%s'\n", v->name(), v->group());
+        printf("--------------------------------------------------------------------------------\n");
+
+        clock_gettime(CLOCK_REALTIME, &start);
+
+        pid_t pid = fork();
+        if (pid < 0) {
+            int error = errno;
+            fprintf(stderr, "Error while spawning child process %d\n", error);
+
+            result = -2;
+            break;
+        } else if (pid == 0) {
+            v->execute();
+            return 0;
+        } else {
+            total ++;
+            do
+            {
+                int w = waitpid(pid, &result, WUNTRACED | WCONTINUED);
+                if (w < 0)
+                {
+                    fprintf(stderr, "Waiting for performance test '%s' group '%s failed\n", v->name(), v->group());
+                    failed++;
+                    break;
+                }
+
+                if (WIFEXITED(result))
+                    printf("Performance test '%s' group '%s' finished, status=%d\n", v->name(), v->group(), WEXITSTATUS(result));
+                else if (WIFSIGNALED(result))
+                    printf("Performance test '%s' group '%s' killed by signal %d\n", v->name(), v->group(), WTERMSIG(result));
+                else if (WIFSTOPPED(result))
+                    printf("Performance test '%s' group '%s' stopped by signal %d\n", v->name(), v->group(), WSTOPSIG(result));
+            } while (!WIFEXITED(result) && !WIFSIGNALED(result));
+
+            clock_gettime(CLOCK_REALTIME, &finish);
+            time = (finish.tv_sec - start.tv_sec) + (finish.tv_nsec - start.tv_nsec) * 1e-9;
+
+            printf("Test execution time: %.2f s\n", time);
+            if (result == 0)
+                success ++;
+            else
+                failed ++;
+        }
+    }
+
+    time = (finish.tv_sec - ts.tv_sec) + (finish.tv_nsec - ts.tv_nsec) * 1e-9;
+
+    printf("--------------------------------------------------------------------------------\n");
+    printf("Overall performance test statistics:\n");
+    printf("  overall time [s]:     %.2f\n", time);
+    printf("  launched:             %d\n", int(total));
+    printf("  succeeded:            %d\n", int(success));
+    printf("  failed:               %d\n", int(failed));
+    return (failed > 0) ? 0 : 2;
+}
+
+int usage()
+{
+    fprintf(stderr, "USAGE: ptest [args...]\n");
+    return 1;
+}
+
+int main(int argc, const char **argv)
+{
+    dsp::context_t ctx;
+
     srand(clock());
+
+    dsp::init();
+    dsp::start(&ctx);
+
+    int res = 0;
+    if (argc >= 2)
+    {
+        if (!strcmp(argv[1], "ptest"))
+            res = launch_ptest();
+        else
+            res = usage();
+    }
+    else
+        res = usage();
+
+    dsp::finish(&ctx);
+
+    return res;
+    /*srand(clock());
     lsp_trace("locale is: %s", setlocale(LC_CTYPE, NULL));
     return TEST::test(argc, argv);
+    */
 }

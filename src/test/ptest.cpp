@@ -6,6 +6,7 @@
  */
 
 #include <test/ptest.h>
+#include <string.h>
 
 namespace test
 {
@@ -27,6 +28,29 @@ namespace test
 
         PerformanceTest::~PerformanceTest()
         {
+        }
+
+        PerformanceTest *init()
+        {
+            // Ensure that there are no duplicates in performance tests
+            for (PerformanceTest *first = PerformanceTest::__root; first != NULL; first = first->__next)
+            {
+                const char *group = first->group();
+                const char *name  = first->name();
+
+                for (PerformanceTest *next = first->__next; next != NULL; next = next->__next)
+                {
+                    if (strcasecmp(group, next->group()))
+                        continue;
+                    if (strcasecmp(name, next->name()))
+                        continue;
+
+                    fprintf(stderr, "Test '%s' group '%s' has duplicate instance\n", name, group);
+                    return NULL;
+                }
+            }
+
+            return PerformanceTest::__root;
         }
     }
 }
