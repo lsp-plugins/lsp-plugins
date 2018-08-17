@@ -190,6 +190,12 @@ namespace lsp
             {
                 process(dst, src, samples, pCallback);
             }
+
+            /**
+             * Get oversampler latency
+             * @return oversampler latency in normal (non-oversampled) samples
+             */
+            size_t latency() const;
     };
 
 } /* namespace lsp */
