@@ -187,9 +187,20 @@ int launch_ptest()
             result = -2;
             break;
         } else if (pid == 0) {
+            srand(clock());
+
+            // Nested process code: initialize DSP
+            dsp::context_t ctx;
+            dsp::init();
+            dsp::start(&ctx);
+
+            // Execute performance test
             v->execute();
+
+            dsp::finish(&ctx);
             return 0;
         } else {
+            // Parent process code: wait for nested process execution
             total ++;
             do
             {
@@ -231,6 +242,12 @@ int launch_ptest()
     return (failed > 0) ? 0 : 2;
 }
 
+enum test_mode_t
+{
+    UNKNOWN,
+    PTEST
+};
+
 int usage()
 {
     fprintf(stderr, "USAGE: ptest [args...]\n");
@@ -239,25 +256,25 @@ int usage()
 
 int main(int argc, const char **argv)
 {
-    dsp::context_t ctx;
+    test_mode_t mode = UNKNOWN;
+    if (argc < 2)
+        return usage();
 
-    srand(clock());
+    if (!strcmp(argv[1], "ptest"))
+        mode = PTEST;
+    if (mode == UNKNOWN)
+        return usage();
 
-    dsp::init();
-    dsp::start(&ctx);
-
+    // Launch tests
     int res = 0;
-    if (argc >= 2)
+    switch (mode)
     {
-        if (!strcmp(argv[1], "ptest"))
+        case PTEST:
             res = launch_ptest();
-        else
-            res = usage();
+            break;
+        default:
+            break;
     }
-    else
-        res = usage();
-
-    dsp::finish(&ctx);
 
     return res;
     /*srand(clock());
