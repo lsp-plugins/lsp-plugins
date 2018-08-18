@@ -42,32 +42,6 @@ namespace oversampling_test
         printf("\n");
     }
 
-    void test_oversampling(float *out, const float *in, size_t count, size_t times, const char *text, resampling_function_t func)
-    {
-        printf("Testing %s resampling on input buffer size %d ...\n", text, int(count));
-
-        clock_t start = clock();
-        float time = 0.0f;
-        size_t iterations = 0;
-
-        do
-        {
-            // Do 100 iterations
-            for (size_t i=0; i<ITERATIONS; ++i)
-            {
-                dsp::fill_zero(out, count*times + 32);
-                func(out, in, count);
-            }
-
-            // Calculate statistics
-            iterations     += ITERATIONS;
-            time            = float(clock() - start) / float(CLOCKS_PER_SEC);
-        } while (time < 30.0f);
-
-        printf("Time = %.1f s, iterations = %d, performance = %.1f [i/s], average time = %.6f [ms/i]\n",
-            time, int(iterations), iterations / time, (1000.0f * time) / iterations);
-    }
-
     void call_oversampling(float *out, float *in, size_t count, size_t times, const char *text, resampling_function_t func)
     {
         printf("\nTesting %s resampling on input buffer size %d ...\n", text, int(count));
@@ -133,19 +107,6 @@ namespace oversampling_test
         }
 
         printf("\n\n");
-
-        test_oversampling(out, in, RTEST_BUF_SIZE, 2, "2x2 native", native::lanczos_resample_2x2);
-        test_oversampling(out, in, RTEST_BUF_SIZE, 2, "2x2 sse", sse::lanczos_resample_2x2);
-        test_oversampling(out, in, RTEST_BUF_SIZE, 2, "2x3 native", native::lanczos_resample_2x3);
-        test_oversampling(out, in, RTEST_BUF_SIZE, 2, "2x3 sse", sse::lanczos_resample_2x3);
-        test_oversampling(out, in, RTEST_BUF_SIZE, 3, "3x2 native", native::lanczos_resample_3x2);
-        test_oversampling(out, in, RTEST_BUF_SIZE, 3, "3x2 sse", sse::lanczos_resample_3x2);
-        test_oversampling(out, in, RTEST_BUF_SIZE, 3, "3x3 native", native::lanczos_resample_3x3);
-        test_oversampling(out, in, RTEST_BUF_SIZE, 3, "3x3 sse", sse::lanczos_resample_3x3);
-        test_oversampling(out, in, RTEST_BUF_SIZE, 4, "4x2 native", native::lanczos_resample_4x2);
-        test_oversampling(out, in, RTEST_BUF_SIZE, 4, "4x2 sse", sse::lanczos_resample_4x2);
-        test_oversampling(out, in, RTEST_BUF_SIZE, 4, "4x3 native", native::lanczos_resample_4x3);
-        test_oversampling(out, in, RTEST_BUF_SIZE, 4, "4x3 sse", sse::lanczos_resample_4x3);
 
         delete [] out;
         delete [] in;
