@@ -56,7 +56,7 @@ namespace test
 
     void PerformanceTest::estimate(size_t *len, const char *text)
     {
-        size_t slen = strlen(text);
+        size_t slen = (text != NULL) ? strlen(text) : 0;
         if (slen > (*len))
             *len = slen;
     }
@@ -74,6 +74,9 @@ namespace test
         stats->n_iterations = NULL;
         stats->performance  = NULL;
         stats->time_cost    = NULL;
+
+        if (key == NULL)
+            return;
 
         stats->key      = strdup(key);
         asprintf(&stats->time, "%.2f", time);
@@ -163,19 +166,38 @@ namespace test
         out_text(performance, "Perf[i/s]", 1, "─", "┬");
         out_text(time_cost, "Cost[us/i]", 1, "─", "┐\n");
 
+        bool separator = false;
+
         // Output table data
         for (size_t i=0, n=__test_stats.size(); i < n; ++i)
         {
             stats_t *stats = __test_stats.at(i);
+            if (stats->key != NULL)
+            {
+                if (separator)
+                {
+                    fputs("├", stdout);
+                    out_text(key, NULL, -1, "─", "┼");
+                    out_text(time, NULL, 1, "─", "┼");
+                    out_text(iterations, NULL, 1, "─", "┼");
+                    out_text(n_time, NULL, 1, "─", "┼");
+                    out_text(n_iterations, NULL, 1, "─", "┼");
+                    out_text(performance, NULL, 1, "─", "┼");
+                    out_text(time_cost, NULL, 1, "─", "┤\n");
+                }
+                separator = false;
 
-            fputs("│", stdout);
-            out_text(key, stats->key, -1, " ", "│");
-            out_text(time, stats->time, 1, " ", "│");
-            out_text(iterations, stats->iterations, 1, " ", "│");
-            out_text(n_time, stats->n_time, 1, " ", "│");
-            out_text(n_iterations, stats->n_iterations, 1, " ", "│");
-            out_text(performance, stats->performance, 1, " ", "│");
-            out_text(time_cost, stats->time_cost, 1, " ", "│\n");
+                fputs("│", stdout);
+                out_text(key, stats->key, -1, " ", "│");
+                out_text(time, stats->time, 1, " ", "│");
+                out_text(iterations, stats->iterations, 1, " ", "│");
+                out_text(n_time, stats->n_time, 1, " ", "│");
+                out_text(n_iterations, stats->n_iterations, 1, " ", "│");
+                out_text(performance, stats->performance, 1, " ", "│");
+                out_text(time_cost, stats->time_cost, 1, " ", "│\n");
+            }
+            else
+                separator = true;
         }
 
         // Output table footer

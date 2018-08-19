@@ -17,24 +17,25 @@ namespace native
     void lanczos_resample_8x3(float *dst, const float *src, size_t count);
 }
 
-namespace sse
-{
-    void lanczos_resample_2x2(float *dst, const float *src, size_t count);
-    void lanczos_resample_2x3(float *dst, const float *src, size_t count);
-    void lanczos_resample_3x2(float *dst, const float *src, size_t count);
-    void lanczos_resample_3x3(float *dst, const float *src, size_t count);
-    void lanczos_resample_4x2(float *dst, const float *src, size_t count);
-    void lanczos_resample_4x3(float *dst, const float *src, size_t count);
-    void lanczos_resample_6x2(float *dst, const float *src, size_t count);
-    void lanczos_resample_6x3(float *dst, const float *src, size_t count);
-    void lanczos_resample_8x2(float *dst, const float *src, size_t count);
-    void lanczos_resample_8x3(float *dst, const float *src, size_t count);
-}
+IF_ARCH_X86(
+    namespace sse
+    {
+        void lanczos_resample_2x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_2x3(float *dst, const float *src, size_t count);
+        void lanczos_resample_3x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_3x3(float *dst, const float *src, size_t count);
+        void lanczos_resample_4x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_4x3(float *dst, const float *src, size_t count);
+        void lanczos_resample_6x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_6x3(float *dst, const float *src, size_t count);
+        void lanczos_resample_8x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_8x3(float *dst, const float *src, size_t count);
+    }
+)
 
 //-----------------------------------------------------------------------------
 // Performance test for lanczos resampling
-PTEST_BEGIN("dsp", oversampling, 10, 10000)
-//PTEST_BEGIN("dsp", oversampling, 0.5, 100)
+PTEST_BEGIN("dsp", oversampling, 5, 1000)
 
     void call(float *out, const float *in, size_t count, size_t times, const char *text, resampling_function_t func)
     {
@@ -59,25 +60,44 @@ PTEST_BEGIN("dsp", oversampling, 10, 10000)
 
         // Do tests
         call(out, in, RTEST_BUF_SIZE, 2, "2x2 native", native::lanczos_resample_2x2);
-        call(out, in, RTEST_BUF_SIZE, 2, "2x2 sse", sse::lanczos_resample_2x2);
+        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 2, "2x2 sse", sse::lanczos_resample_2x2));
+        PTEST_SEPARATOR;
+
         call(out, in, RTEST_BUF_SIZE, 2, "2x3 native", native::lanczos_resample_2x3);
-        call(out, in, RTEST_BUF_SIZE, 2, "2x3 sse", sse::lanczos_resample_2x3);
+        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 2, "2x3 sse", sse::lanczos_resample_2x3));
+        PTEST_SEPARATOR;
+
         call(out, in, RTEST_BUF_SIZE, 3, "3x2 native", native::lanczos_resample_3x2);
-        call(out, in, RTEST_BUF_SIZE, 3, "3x2 sse", sse::lanczos_resample_3x2);
+        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 3, "3x2 sse", sse::lanczos_resample_3x2));
+        PTEST_SEPARATOR;
+
         call(out, in, RTEST_BUF_SIZE, 3, "3x3 native", native::lanczos_resample_3x3);
-        call(out, in, RTEST_BUF_SIZE, 3, "3x3 sse", sse::lanczos_resample_3x3);
+        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 3, "3x3 sse", sse::lanczos_resample_3x3));
+        PTEST_SEPARATOR;
+
         call(out, in, RTEST_BUF_SIZE, 4, "4x2 native", native::lanczos_resample_4x2);
-        call(out, in, RTEST_BUF_SIZE, 4, "4x2 sse", sse::lanczos_resample_4x2);
+        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 4, "4x2 sse", sse::lanczos_resample_4x2));
+        PTEST_SEPARATOR;
+
         call(out, in, RTEST_BUF_SIZE, 4, "4x3 native", native::lanczos_resample_4x3);
-        call(out, in, RTEST_BUF_SIZE, 4, "4x3 sse", sse::lanczos_resample_4x3);
+        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 4, "4x3 sse", sse::lanczos_resample_4x3));
+        PTEST_SEPARATOR;
+
         call(out, in, RTEST_BUF_SIZE, 6, "6x2 native", native::lanczos_resample_6x2);
-        call(out, in, RTEST_BUF_SIZE, 6, "6x2 sse", sse::lanczos_resample_6x2);
+        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 6, "6x2 sse", sse::lanczos_resample_6x2));
+        PTEST_SEPARATOR;
+
         call(out, in, RTEST_BUF_SIZE, 6, "6x3 native", native::lanczos_resample_6x3);
-        call(out, in, RTEST_BUF_SIZE, 6, "6x3 sse", sse::lanczos_resample_6x3);
+        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 6, "6x3 sse", sse::lanczos_resample_6x3));
+        PTEST_SEPARATOR;
+
         call(out, in, RTEST_BUF_SIZE, 8, "8x2 native", native::lanczos_resample_8x2);
-        call(out, in, RTEST_BUF_SIZE, 8, "8x2 sse", sse::lanczos_resample_8x2);
+        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 8, "8x2 sse", sse::lanczos_resample_8x2));
+        PTEST_SEPARATOR;
+
         call(out, in, RTEST_BUF_SIZE, 8, "8x3 native", native::lanczos_resample_8x3);
-        call(out, in, RTEST_BUF_SIZE, 8, "8x3 sse", sse::lanczos_resample_8x3);
+        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 8, "8x3 sse", sse::lanczos_resample_8x3));
+        PTEST_SEPARATOR;
 
         delete [] out;
         delete [] in;

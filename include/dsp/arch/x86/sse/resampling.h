@@ -572,7 +572,6 @@ namespace sse
             __ASM_EMIT("jb          2f")
 
             // Load samples
-            __ASM_EMIT(".align 16")
             __ASM_EMIT("1:")
             __ASM_EMIT("movss       0x00(%[src]), %%xmm0")  // xmm0 = s0
             __ASM_EMIT("movss       0x04(%[src]), %%xmm4")  // xmm4 = s1

@@ -50,11 +50,14 @@
 #if defined(__x86_64__)
     #define ARCH_X86_64
     #define ARCH_STRING "x86_64"
+    #define IF_ARCH_X86_64(...)     __VA_ARGS__
 #elif defined(__i386__)
     #define ARCH_I386
     #define ARCH_STRING "i586"
+    #define IF_ARCH_I386(...)       __VA_ARGS__
 #elif defined(__arm__)
     #define ARCH_ARM
+    #define IF_ARCH_ARM(...)        __VA_ARGS__
 #else
     #warning "Unsupported archtecture"
 #endif
@@ -68,6 +71,8 @@
         #define ARCH_32BIT
     #endif
 
+    #define IF_ARCH_X86(...)        __VA_ARGS__
+
     #define ARCH_X86
     #define ARCH_LE
 #endif /* defined(ARCH_I386) || defined(ARCH_X86_64) */
@@ -79,14 +84,17 @@
         #define ARCH_64BIT
         #define ARCH_ARM8
         #define ARCH_STRING "armv8a"
+        #define IF_ARCH_ARM8(...)        __VA_ARGS__
     #elif (__ARM_ARCH == 7)
         #define ARCH_32BIT
         #define ARCH_ARM7
         #define ARCH_STRING "armv7a"
+        #define IF_ARCH_ARM7(...)        __VA_ARGS__
     #elif (__ARM_ARCH == 6)
         #define ARCH_32BIT
         #define ARCH_ARM6
         #define ARCH_STRING "armv6a"
+        #define IF_ARCH_ARM6(...)        __VA_ARGS__
     #else
         #define ARCH_32BIT
         #define ARCH_STRING "arm-generic"
@@ -263,6 +271,36 @@
 #ifndef __IF_64
     #define __IF_64(...)
 #endif /* __IF_64 */
+
+//-----------------------------------------------------------------------------
+// Default architectures
+#ifndef IF_ARCH_X86
+    #define IF_ARCH_X86(...)
+#endif /* IF_ARCH_X86 */
+
+#ifndef IF_ARCH_I386
+    #define IF_ARCH_I386(...)
+#endif /* IF_ARCH_I386 */
+
+#ifndef IF_ARCH_X86_64
+    #define IF_ARCH_X86_64(...)
+#endif /* IF_ARCH_X86_64 */
+
+#ifndef IF_ARCH_ARM
+    #define IF_ARCH_ARM(...)
+#endif /* IF_ARCH_ARM */
+
+#ifndef IF_ARCH_ARM6
+    #define IF_ARCH_ARM6(...)
+#endif /* IF_ARCH_ARM6 */
+
+#ifndef IF_ARCH_ARM7
+    #define IF_ARCH_ARM7(...)
+#endif /* IF_ARCH_ARM7 */
+
+#ifndef IF_ARCH_ARM8
+    #define IF_ARCH_ARM8(...)
+#endif /* IF_ARCH_ARM8 */
 
 //-----------------------------------------------------------------------------
 // Optimizations
