@@ -34,19 +34,20 @@ namespace sse
 //-----------------------------------------------------------------------------
 // Performance test for lanczos resampling
 PTEST_BEGIN("dsp", oversampling, 10, 10000)
+//PTEST_BEGIN("dsp", oversampling, 0.5, 100)
 
     void call(float *out, const float *in, size_t count, size_t times, const char *text, resampling_function_t func)
     {
         printf("Testing %s resampling on input buffer of %d samples ...\n", text, int(count));
         size_t zeros = count*times + RESAMPLING_RESERVED_SAMPLES;
 
-        PTEST_LOOP(
+        PTEST_LOOP(text,
             dsp::fill_zero(out, zeros);
             func(out, in, count);
         );
     }
 
-    void execute()
+    PTEST_MAIN
     {
         float *out          = new float[RTEST_BUF_SIZE*8 + RESAMPLING_RESERVED_SAMPLES];
         float *in           = new float[RTEST_BUF_SIZE];

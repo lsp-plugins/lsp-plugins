@@ -169,6 +169,7 @@ typedef struct config_t
 {
     mode_t                      mode;
     bool                        fork;
+    bool                        verbose;
     cvector<LSPString>          list;
 } config_t;
 
@@ -244,26 +245,23 @@ bool match_list(lsp::cvector<LSPString> &list, const char *group, const char *na
     return false;
 }
 
-int execute_ptest(test::ptest::PerformanceTest *v)
+int execute_ptest(config_t *cfg, test::PerformanceTest *v)
 {
-    srand(clock());
-
-    // Nested process code: initialize DSP
-    dsp::context_t ctx;
-    dsp::init();
-    dsp::start(&ctx);
-
     // Execute performance test
+    v->set_verbose(cfg->verbose);
     v->execute();
 
-    dsp::finish(&ctx);
+    // Output peformance test statistics
+    printf("\nStatistics of performance test '%s.%s':\n", v->group(), v->name());
+    v->dump_stats();
+    v->free_stats();
     return 0;
 }
 
 int launch_ptest(config_t *cfg)
 {
-    using namespace test::ptest;
-    PerformanceTest *v = init();
+    using namespace test;
+    PerformanceTest *v = ptest_init();
     if (v == NULL)
     {
         fprintf(stderr, "No performance tests available\n");
@@ -279,12 +277,16 @@ int launch_ptest(config_t *cfg)
 
     for ( ; v != NULL; v = v->next())
     {
+        // Check that test is not ignored
+        if (v->ignore())
+            continue;
+
         // Need to check test name and group?
         if (!match_list(cfg->list, v->group(), v->name()))
             continue;
 
-        printf("--------------------------------------------------------------------------------\n");
-        printf("Launching performance test '%s' group '%s'\n", v->name(), v->group());
+        printf("\n--------------------------------------------------------------------------------\n");
+        printf("Launching performance test '%s.%s'\n", v->group(), v->name());
         printf("--------------------------------------------------------------------------------\n");
 
         clock_gettime(CLOCK_REALTIME, &start);
@@ -299,7 +301,7 @@ int launch_ptest(config_t *cfg)
                 result = -2;
                 break;
             } else if (pid == 0) {
-                return execute_ptest(v);
+                return execute_ptest(cfg, v);
             } else {
                 // Parent process code: wait for nested process execution
                 total ++;
@@ -308,24 +310,24 @@ int launch_ptest(config_t *cfg)
                     int w = waitpid(pid, &result, WUNTRACED | WCONTINUED);
                     if (w < 0)
                     {
-                        fprintf(stderr, "Waiting for performance test '%s' group '%s failed\n", v->name(), v->group());
+                        fprintf(stderr, "Waiting for performance test '%s.%s' failed\n", v->group(), v->name());
                         failed++;
                         break;
                     }
 
                     if (WIFEXITED(result))
-                        printf("Performance test '%s' group '%s' finished, status=%d\n", v->name(), v->group(), WEXITSTATUS(result));
+                        printf("Performance test '%s.%s' finished, status=%d\n", v->group(), v->name(), WEXITSTATUS(result));
                     else if (WIFSIGNALED(result))
-                        printf("Performance test '%s' group '%s' killed by signal %d\n", v->name(), v->group(), WTERMSIG(result));
+                        printf("Performance test '%s.%s' killed by signal %d\n", v->group(), v->name(), WTERMSIG(result));
                     else if (WIFSTOPPED(result))
-                        printf("Performance test '%s' group '%s' stopped by signal %d\n", v->name(), v->group(), WSTOPSIG(result));
+                        printf("Performance test '%s.%s' stopped by signal %d\n", v->group(), v->name(), WSTOPSIG(result));
                 } while (!WIFEXITED(result) && !WIFSIGNALED(result));
             }
         }
         else
         {
             total ++;
-            result = execute_ptest(v);
+            result = execute_ptest(cfg, v);
         }
         clock_gettime(CLOCK_REALTIME, &finish);
         time = (finish.tv_sec - start.tv_sec) + (finish.tv_nsec - start.tv_nsec) * 1e-9;
@@ -339,7 +341,7 @@ int launch_ptest(config_t *cfg)
 
     time = (finish.tv_sec - ts.tv_sec) + (finish.tv_nsec - ts.tv_nsec) * 1e-9;
 
-    printf("--------------------------------------------------------------------------------\n");
+    printf("\n--------------------------------------------------------------------------------\n");
     printf("Overall performance test statistics:\n");
     printf("  overall time [s]:     %.2f\n", time);
     printf("  launched:             %d\n", int(total));
@@ -347,8 +349,6 @@ int launch_ptest(config_t *cfg)
     printf("  failed:               %d\n", int(failed));
     return (failed > 0) ? 0 : 2;
 }
-
-
 
 int usage()
 {
@@ -358,8 +358,9 @@ int usage()
 
 int parse_config(config_t *cfg, int argc, const char **argv)
 {
-    cfg->mode   = UNKNOWN;
-    cfg->fork   = true;
+    cfg->mode       = UNKNOWN;
+    cfg->fork       = true;
+    cfg->verbose    = false;
     if (argc < 2)
         return usage();
 
@@ -374,6 +375,10 @@ int parse_config(config_t *cfg, int argc, const char **argv)
             cfg->fork       = false;
         else if (!strcmp(argv[i], "--fork"))
             cfg->fork       = true;
+        else if (!strcmp(argv[i], "--verbose"))
+            cfg->verbose    = true;
+        else if (!strcmp(argv[i], "--silent"))
+            cfg->verbose    = false;
         else
         {
             LSPString *s = new LSPString();
@@ -399,6 +404,27 @@ int main(int argc, const char **argv)
     if (res != 0)
         return res;
 
+    srand(clock());
+
+    // Nested process code: initialize DSP
+    dsp::context_t ctx;
+    dsp::info_t *info;
+
+    dsp::init();
+    info = dsp::info();
+    if (info != NULL)
+    {
+        printf("--------------------------------------------------------------------------------\n");
+        printf("CPU information:\n");
+        printf("  Architecture:   %s\n", info->arch);
+        printf("  CPU string:     %s\n", info->cpu);
+        printf("  CPU model:      %s\n", info->model);
+        printf("  Features:       %s\n", info->features);
+        free(info);
+    }
+
+    dsp::start(&ctx);
+
     // Launch tests
     switch (cfg.mode)
     {
@@ -408,6 +434,8 @@ int main(int argc, const char **argv)
         default:
             break;
     }
+
+    dsp::finish(&ctx);
 
     clear_config(&cfg);
 

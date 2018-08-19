@@ -13,13 +13,15 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
+#include <core/types.h>
+#include <data/cstorage.h>
 
 #define PTEST_BEGIN(group, name, time, iterations) \
         namespace test { \
         namespace ptest { \
         namespace name { \
             \
-            using namespace ::test::ptest; \
+            using namespace ::test; \
             \
             class ptest_ ## name: public PerformanceTest { \
                 public: \
@@ -27,10 +29,16 @@
                     \
                     virtual ~ptest_ ## name() {}
 
-#define PTEST_LOOP(...) { \
+#define PTEST_IGNORE \
+        virtual bool ignore() const { return true; }
+
+#define PTEST_MAIN \
+        virtual void execute()
+
+#define PTEST_LOOP(__key, ...) { \
         double __start = clock(); \
         double __time = 0.0f; \
-        size_t __iterations = 0; \
+        wsize_t __iterations = 0; \
         \
         do { \
             for (size_t i=0; i<__test_iterations; ++i) { \
@@ -41,10 +49,13 @@
             __time          = (clock() - __start) / CLOCKS_PER_SEC; \
         } while (__time < __test_time); \
         \
-        printf("  time [s]:                 %.2f/%.2f\n", __time, __test_time); \
-        printf("  iterations:               %ld/%ld\n", long(__iterations), long((__iterations * __test_time) / __time)); \
-        printf("  performance [i/s]:        %.2f\n", __iterations / __time); \
-        printf("  iteration time [ms/i]:    %.7f\n\n", (1000.0 * __time) / __iterations); \
+        gather_stats(__key, __time, __iterations); \
+        if (__verbose) { \
+            printf("  time [s]:                 %.2f/%.2f\n", __time, __test_time); \
+            printf("  iterations:               %ld/%ld\n", long(__iterations), long((__iterations * __test_time) / __time)); \
+            printf("  performance [i/s]:        %.2f\n", __iterations / __time); \
+            printf("  iteration time [us/i]:    %.4f\n\n", (1000000.0 * __time) / __iterations); \
+        } \
     }
 
 #define PTEST_FAIL(code)    \
@@ -60,43 +71,65 @@
 
 namespace test
 {
-    namespace ptest
+    class PerformanceTest
     {
-        class PerformanceTest
-        {
-            private:
-                friend PerformanceTest *init();
+        private:
+            friend PerformanceTest *ptest_init();
 
-            private:
-                static PerformanceTest    *__root;
-                PerformanceTest           *__next;
+        private:
+            static PerformanceTest    *__root;
+            PerformanceTest           *__next;
 
-            protected:
-                const char *__test_group;
-                const char *__test_name;
-                size_t      __test_iterations;
-                double      __test_time;
+        protected:
+            typedef struct stats_t
+            {
+                char       *key;            /* The loop indicator */
+                char       *time;           /* Actual time [seconds] */
+                char       *n_time;         /* Normalized time [seconds] */
+                char       *iterations;     /* Number of iterations */
+                char       *n_iterations;   /* Normalized number of iterations */
+                char       *performance;    /* The performance of test [iterations per second] */
+                char       *time_cost;      /* The amount of time spent per iteration [milliseconds per iteration] */
+            } stats_t;
 
-            public:
-                explicit PerformanceTest(const char *group, const char *name, float time, size_t iterations);
-                virtual ~PerformanceTest();
+        protected:
+            const char                         *__test_group;
+            const char                         *__test_name;
+            bool                                __verbose;
+            size_t                              __test_iterations;
+            double                              __test_time;
+            mutable lsp::cstorage<stats_t>      __test_stats;
 
-            public:
-                inline const char *name() const     { return __test_name; }
-                inline const char *group() const    { return __test_group; }
-                inline PerformanceTest *next()      { return __next; }
+        protected:
+            void gather_stats(const char *key, double time, wsize_t iterations);
+            static void destroy_stats(stats_t *stats);
+            static void estimate(size_t *len, const char *text);
+            static void out_text(size_t length, const char *text, int align, const char *padding, const char *tail);
 
-            public:
-                virtual void execute() = 0;
-        };
+        public:
+            explicit PerformanceTest(const char *group, const char *name, float time, size_t iterations);
+            virtual ~PerformanceTest();
+
+        public:
+            inline const char *name() const     { return __test_name; }
+            inline const char *group() const    { return __test_group; }
+            inline PerformanceTest *next()      { return __next; }
+            void dump_stats() const;
+            void free_stats();
+            inline void set_verbose(bool verbose)      { __verbose = verbose; }
+
+        public:
+            virtual void execute() = 0;
+
+            virtual bool ignore() const;
+    };
 
 
-        /**
-         * Initialize set of performance tests (validate duplicates, etc)
-         * @return valid set of performance tests
-         */
-        PerformanceTest *init();
-    }
+    /**
+     * Initialize set of performance tests (validate duplicates, etc)
+     * @return valid set of performance tests
+     */
+    PerformanceTest *ptest_init();
 }
 
 #endif /* INCLUDE_TEST_PTEST_H_ */

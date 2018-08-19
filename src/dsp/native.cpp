@@ -5,6 +5,7 @@
  *      Author: sadko
  */
 
+#include <malloc.h>
 #include <dsp/dsp.h>
 #include <dsp/bits.h>
 #include <core/types.h>
@@ -45,6 +46,7 @@ namespace native
         // Generic init
         EXPORT1(start);
         EXPORT1(finish);
+        EXPORT1(info);
 
         EXPORT1(copy);
         EXPORT1(copy_saturated);

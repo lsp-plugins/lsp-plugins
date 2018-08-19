@@ -57,6 +57,7 @@ namespace dsp
 {
     void    (* start)(dsp::context_t *ctx) = NULL;
     void    (* finish)(dsp::context_t *ctx) = NULL;
+    info_t *(*info)() = NULL;
 
     void    (* copy)(float *dst, const float *src, size_t count) = NULL;
     void    (* copy_saturated)(float *dst, const float *src, size_t count) = NULL;

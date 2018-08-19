@@ -27,6 +27,14 @@ namespace dsp
     } context_t;
     #pragma pack(pop)
 
+    typedef struct info_t
+    {
+        const char     *arch;       /* Architecture information */
+        const char     *cpu;        /* CPU information */
+        const char     *model;      /* CPU model information */
+        const char     *features;   /* CPU features */
+    } info_t;
+
     // Start and finish types
     typedef void (* start_t)(context_t *ctx);
     typedef void (* finish_t)(context_t *ctx);
@@ -47,6 +55,13 @@ namespace dsp
      * @param ctx structure to restore context
      */
     extern void (* finish)(context_t *ctx);
+
+    /**
+     * Get DSP information, returns pointer to dsp::info_t structure
+     * that can be freed by free()
+     * @return pointer to dsp::info_t structure
+     */
+    extern info_t * (*info)();
 }
 
 #endif /* DSP_COMMON_CONTEXT_H_ */

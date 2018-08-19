@@ -5,6 +5,8 @@
  *      Author: sadko
  */
 
+#include <string.h>
+
 #include <core/types.h>
 #include <core/debug.h>
 #include <dsp/dsp.h>
@@ -207,6 +209,31 @@ namespace x86
                 }
             }
         }
+
+        // FUNCTION 0x80000002 - 0x80000004
+        if (max_ext_cpuid >= 0x80000004)
+        {
+            uint32_t *dst = reinterpret_cast<uint32_t *>(f->brand);
+            for (size_t i=0x80000002; i<=0x80000004; ++i)
+            {
+                cpuid(&info, i, 0);
+                *(dst++)    = info.eax;
+                *(dst++)    = info.ebx;
+                *(dst++)    = info.ecx;
+                *(dst++)    = info.edx;
+            }
+            *dst        = 0;
+
+            // Cut the end of the string if there are spaces
+            char *end   = &f->brand[3 * 16 - 1];
+            while ((end >= f->brand) && (((*end) == ' ') || ((*end) == '\0')))
+                *(end--) = '\0';
+            char *start = f->brand;
+            while ((start < end) && ((*start) == ' '))
+                start++;
+            if (start > f->brand)
+                memmove(f->brand, start, end - start + 1);
+        }
     }
 
     void detect_options(cpu_features_t *f)
@@ -273,11 +300,9 @@ namespace x86
         dsp_finish(ctx);
     }
 
-#ifdef LSP_TRACE
-
     static const char *cpu_vendors[] =
     {
-        "unknown", "Intel", "AMD"
+        "Unknown", "Intel", "AMD"
     };
 
     static const char *cpu_features[] =
@@ -291,7 +316,7 @@ namespace x86
         "AVX512VBMI"
     };
 
-    char *build_feature_list(const cpu_features_t *f)
+    static size_t estimate_features_size(const cpu_features_t *f)
     {
         // Estimate the string length
         size_t estimate = 1; // End of string character
@@ -307,38 +332,67 @@ namespace x86
             else
                 x >>= 1;
         }
+        return estimate;
+    }
 
-        // Allocate string
-        char *res = reinterpret_cast<char *>(malloc(estimate));
-        if (res == NULL)
-            return res;
-
+    static char *build_features_list(char *dst, const cpu_features_t *f)
+    {
         // Build string
-        char *s = res;
-        *s = '\0';
+        char *s = dst;
 
         for (size_t x = f->features, i=0; x > 0; i++)
         {
             if (x & 1)
             {
-                strcpy(s, cpu_features[i]);
-                while ((*s) != '\0')
-                    s++;
+                s = stpcpy(s, cpu_features[i]);
                 x >>= 1;
                 if (x)
-                {
                     *(s++) = ' ';
-                    *s = '\0';
-                }
             }
             else
                 x >>= 1;
         }
+        *s = '\0';
 
-        return res;
+        return s;
     }
 
-#endif /* LSP_TRACE */
+    dsp::info_t *info()
+    {
+        cpu_features_t f;
+        detect_options(&f);
+
+        char *model     = NULL;
+        asprintf(&model, "vendor=%s, family=%d, model=%d", cpu_vendors[f.vendor], int(f.family), int(f.model));
+        if (model == NULL)
+            return NULL;
+
+        size_t size     = sizeof(dsp::info_t);
+        size           += strlen(ARCH_STRING) + 1;
+        size           += strlen(f.brand) + 1;
+        size           += strlen(model) + 1;
+        size           += estimate_features_size(&f);
+
+        dsp::info_t *res = reinterpret_cast<dsp::info_t *>(malloc(size));
+        if (res == NULL)
+        {
+            free(model);
+            return res;
+        }
+
+        char *text      = reinterpret_cast<char *>(&res[1]);
+        res->arch       = text;
+        text            = stpcpy(text, ARCH_STRING) + 1;
+        res->cpu        = text;
+        text            = stpcpy(text, f.brand) + 1;
+        res->model      = text;
+        text            = stpcpy(text, model) + 1;
+        res->features   = text;
+        build_features_list(text, &f);
+
+        free(model);
+        return res;
+    }
 
     #define EXPORT2(function, export)           dsp::function = x86::export
     #define EXPORT1(function)                   EXPORT2(function, function)
@@ -348,17 +402,6 @@ namespace x86
         // Dectect CPU options
         cpu_features_t f;
         detect_options(&f);
-#ifdef LSP_TRACE
-        char *flist = build_feature_list(&f);
-
-        lsp_printf("Detected CPU: vendor=%s, family=%d, model=%d",
-                    cpu_vendors[f.vendor], int(f.family), int(f.model));
-        if (flist != NULL)
-        {
-            lsp_printf("CPU features: %s", flist);
-            free(flist);
-        }
-#endif /* LSP_TRACE */
 
         lsp_trace("Optimizing system with some assembly code");
 
@@ -369,6 +412,7 @@ namespace x86
         // Export functions
         EXPORT1(start);
         EXPORT1(finish);
+        EXPORT1(info);
 
         EXPORT1(copy_saturated);
         EXPORT1(saturate);

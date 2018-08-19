@@ -49,8 +49,10 @@
 // Detect build architecture
 #if defined(__x86_64__)
     #define ARCH_X86_64
+    #define ARCH_STRING "x86_64"
 #elif defined(__i386__)
     #define ARCH_I386
+    #define ARCH_STRING "i586"
 #elif defined(__arm__)
     #define ARCH_ARM
 #else
@@ -76,9 +78,18 @@
     #if (__ARM_ARCH == 8)
         #define ARCH_64BIT
         #define ARCH_ARM8
+        #define ARCH_STRING "armv8a"
     #elif (__ARM_ARCH == 7)
         #define ARCH_32BIT
         #define ARCH_ARM7
+        #define ARCH_STRING "armv7a"
+    #elif (__ARM_ARCH == 6)
+        #define ARCH_32BIT
+        #define ARCH_ARM6
+        #define ARCH_STRING "armv6a"
+    #else
+        #define ARCH_32BIT
+        #define ARCH_STRING "arm-generic"
     #endif
 #endif /* defined(ARCH_ARM) */
 
@@ -98,6 +109,10 @@
         #define ARCH_LE
     #endif /* ARCH_LE */
 #endif /* ARCH_LE */
+
+#ifndef ARCH_STRING
+    #define ARCH_STRING     "native"
+#endif /* ARCH_STRING */
 
 //-----------------------------------------------------------------------------
 // Detect build platform
