@@ -160,7 +160,8 @@
 enum test_mode_t
 {
     UNKNOWN,
-    PTEST
+    PTEST,
+    UTEST
 };
 
 using namespace lsp;
@@ -170,6 +171,7 @@ typedef struct config_t
     mode_t                      mode;
     bool                        fork;
     bool                        verbose;
+    size_t                      threads;
     cvector<LSPString>          list;
 } config_t;
 
@@ -350,6 +352,13 @@ int launch_ptest(config_t *cfg)
     return (failed > 0) ? 0 : 2;
 }
 
+int launch_utest(config_t *cfg)
+{
+    using namespace test;
+
+    return 0;
+}
+
 int usage()
 {
     fprintf(stderr, "USAGE: ptest [args...]\n");
@@ -361,11 +370,14 @@ int parse_config(config_t *cfg, int argc, const char **argv)
     cfg->mode       = UNKNOWN;
     cfg->fork       = true;
     cfg->verbose    = false;
+    cfg->threads    = sysconf(_SC_NPROCESSORS_ONLN) * 2;
     if (argc < 2)
         return usage();
 
     if (!strcmp(argv[1], "ptest"))
         cfg->mode = PTEST;
+    else if (!strcmp(argv[1], "utest"))
+        cfg->mode = UTEST;
     if (cfg->mode == UNKNOWN)
         return usage();
 
@@ -379,6 +391,23 @@ int parse_config(config_t *cfg, int argc, const char **argv)
             cfg->verbose    = true;
         else if (!strcmp(argv[i], "--silent"))
             cfg->verbose    = false;
+        else if (!strcmp(argv[i], "--threads"))
+        {
+            if ((++i) >= argc)
+            {
+                fprintf(stderr, "Not specified number of threads for --threads parameter\n");
+                return 3;
+            }
+
+            errno           = 0;
+            char *end       = NULL;
+            cfg->threads    = strtol(argv[i], &end, 10);
+            if ((errno != 0) || ((*end) != '\0'))
+            {
+                fprintf(stderr, "Invalid value for --threads parameter: %s\n", argv[i]);
+                return 3;
+            }
+        }
         else
         {
             LSPString *s = new LSPString();
@@ -430,6 +459,9 @@ int main(int argc, const char **argv)
     {
         case PTEST:
             res = launch_ptest(&cfg);
+            break;
+        case UTEST:
+            res = launch_utest(&cfg);
             break;
         default:
             break;
