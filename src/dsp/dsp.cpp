@@ -344,11 +344,10 @@ namespace dsp
         // Information message
         lsp_trace("Initializing DSP");
 
-        // Initialize with native functions
+        // Initialize native functions
         native::dsp_init();
 
-        #ifdef ARCH_X86
-            x86::dsp_init();
-        #endif /* ARCH_X86 */
+        // Initialize architecture-dependent functions that utilize architecture-specific features
+        IF_ARCH_X86(x86::dsp_init());
     }
 }
