@@ -1,4 +1,5 @@
 NATIVE_IMPL             = $(OBJDIR)/native.o
+
 X86_IMPL                = $(OBJDIR)/x86.o
 SSE_IMPL                = $(OBJDIR)/sse.o
 SSE3_IMPL               = $(OBJDIR)/sse3.o
@@ -6,6 +7,8 @@ SSE4_IMPL               = $(OBJDIR)/sse4.o
 AVX_IMPL                = $(OBJDIR)/avx.o
 DSP_IMPL                = $(OBJDIR)/dsp.o
 BITS_IMPL               = $(OBJDIR)/bits.o
+
+ARM_IMPL				= $(OBJDIR)/arm.o
 
 SSE_INSTR_SET           = -mmmx -m3dnow -msse -msse2
 SSE3_INSTR_SET          = $(SSE_INSTR_SET) -msse3 -mssse3
@@ -21,6 +24,9 @@ endif
 ifeq ($(BUILD_PROFILE), x86_64)
 LINK_OBJECTS           += $(X86_IMPL) $(SSE_IMPL) $(SSE3_IMPL) $(SSE4_IMPL) $(AVX_IMPL)
 endif
+ifeq ($(BUILD_PROFILE), armv7a)
+LINK_OBJECTS           += $(ARM_IMPL)
+endif
 
 .PHONY: all target
 
@@ -32,7 +38,7 @@ $(OBJ_DSP): $(LINK_OBJECTS)
 	@echo "  $(LD) $(notdir $(OBJ_DSP))"
 	@$(LD) -r $(LDFLAGS) -o $(OBJ_DSP) $(LINK_OBJECTS)
 
-$(DSP_IMPL) $(BITS_IMPL) $(NATIVE_IMPL) $(X86_IMPL):
+$(DSP_IMPL) $(BITS_IMPL) $(NATIVE_IMPL) $(X86_IMPL) $(ARM_IMPL):
 	@echo "  $(CC) $(FILE)"
 	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE) -o $(@)
 	
@@ -51,4 +57,3 @@ $(SSE4_IMPL):
 $(AVX_IMPL):
 	@echo "  $(CC) $(FILE)"
 	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(AVX_INSTR_SET) $(INCLUDE) $(FILE) -o $(@)
-	

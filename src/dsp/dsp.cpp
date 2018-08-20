@@ -45,12 +45,19 @@ namespace native
     extern void dsp_init();
 }
 
-#ifdef ARCH_X86
-namespace x86
-{
-    extern void dsp_init();
-}
-#endif /* ARCH_X86 */
+IF_ARCH_X86(
+	namespace x86
+	{
+		extern void dsp_init();
+	}
+)
+
+IF_ARCH_ARM(
+	namespace arm
+	{
+		extern void dsp_init();
+	}
+)
 
 // Declare static variables
 namespace dsp
@@ -349,5 +356,6 @@ namespace dsp
 
         // Initialize architecture-dependent functions that utilize architecture-specific features
         IF_ARCH_X86(x86::dsp_init());
+        IF_ARCH_ARM(arm::dsp_init());
     }
 }
