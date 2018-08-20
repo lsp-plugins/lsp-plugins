@@ -41,6 +41,37 @@ namespace avx
 
 namespace x86
 {
+    void read_brand_string(cpuid_info_t *info, uint32_t max_ext_cpuid, char *brand)
+    {
+        // FUNCTION 0x80000002 - 0x80000004
+        if (max_ext_cpuid < 0x80000004)
+        {
+            strcpy(brand, "Generic " ARCH_STRING " processor");
+            return;
+        }
+
+        uint32_t *dst = reinterpret_cast<uint32_t *>(brand);
+        for (size_t i=0x80000002; i<=0x80000004; ++i)
+        {
+            cpuid(info, i, 0);
+            *(dst++)    = info->eax;
+            *(dst++)    = info->ebx;
+            *(dst++)    = info->ecx;
+            *(dst++)    = info->edx;
+        }
+        *dst        = 0;
+
+        // Cut the end of the string if there are spaces
+        char *end   = &brand[3 * 16 - 1];
+        while ((end >= brand) && (((*end) == ' ') || ((*end) == '\0')))
+            *(end--) = '\0';
+        char *start = brand;
+        while ((start < end) && ((*start) == ' '))
+            start++;
+        if (start > brand)
+            memmove(brand, start, end - start + 1);
+    }
+
     void do_intel_cpuid(cpu_features_t *f, size_t max_cpuid, size_t max_ext_cpuid)
     {
         cpuid_info_t info;
@@ -126,6 +157,8 @@ namespace x86
                 }
             }
         }
+
+        read_brand_string(&info, max_ext_cpuid, f->brand);
     }
 
     void do_amd_cpuid(cpu_features_t *f, size_t max_cpuid, size_t max_ext_cpuid)
@@ -210,30 +243,7 @@ namespace x86
             }
         }
 
-        // FUNCTION 0x80000002 - 0x80000004
-        if (max_ext_cpuid >= 0x80000004)
-        {
-            uint32_t *dst = reinterpret_cast<uint32_t *>(f->brand);
-            for (size_t i=0x80000002; i<=0x80000004; ++i)
-            {
-                cpuid(&info, i, 0);
-                *(dst++)    = info.eax;
-                *(dst++)    = info.ebx;
-                *(dst++)    = info.ecx;
-                *(dst++)    = info.edx;
-            }
-            *dst        = 0;
-
-            // Cut the end of the string if there are spaces
-            char *end   = &f->brand[3 * 16 - 1];
-            while ((end >= f->brand) && (((*end) == ' ') || ((*end) == '\0')))
-                *(end--) = '\0';
-            char *start = f->brand;
-            while ((start < end) && ((*start) == ' '))
-                start++;
-            if (start > f->brand)
-                memmove(f->brand, start, end - start + 1);
-        }
+        read_brand_string(&info, max_ext_cpuid, f->brand);
     }
 
     void detect_options(cpu_features_t *f)
