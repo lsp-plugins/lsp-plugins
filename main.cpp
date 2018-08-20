@@ -151,9 +151,11 @@
 #include <errno.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <alloca.h>
 
 #include <dsp/dsp.h>
 #include <test/ptest.h>
+#include <test/utest.h>
 #include <data/cvector.h>
 #include <core/LSPString.h>
 
@@ -174,6 +176,21 @@ typedef struct config_t
     size_t                      threads;
     cvector<LSPString>          list;
 } config_t;
+
+typedef struct stats_t
+{
+    size_t      total;
+    size_t      success;
+    size_t      failed;
+    double      overall;
+} stats_t;
+
+typedef struct task_t
+{
+    pid_t               pid;
+    double              submitted;
+    test::UnitTest     *utest;
+} task_t;
 
 bool match_string(const LSPString *p, const LSPString *m)
 {
@@ -247,6 +264,18 @@ bool match_list(lsp::cvector<LSPString> &list, const char *group, const char *na
     return false;
 }
 
+int output_stats(const stats_t *stats, const char *text)
+{
+    printf("\n--------------------------------------------------------------------------------\n");
+    printf("%s:\n", text);
+    printf("  overall time [s]:     %.2f\n", stats->overall);
+    printf("  launched:             %d\n", int(stats->total));
+    printf("  succeeded:            %d\n", int(stats->success));
+    printf("  failed:               %d\n", int(stats->failed));
+
+    return (stats->failed > 0) ? 0 : 2;
+}
+
 int execute_ptest(config_t *cfg, test::PerformanceTest *v)
 {
     // Execute performance test
@@ -258,6 +287,16 @@ int execute_ptest(config_t *cfg, test::PerformanceTest *v)
     v->dump_stats();
     v->free_stats();
     return 0;
+}
+
+void execute_utest(config_t *cfg, test::UnitTest *v)
+{
+    // TODO: set-up timer for deadline
+
+    // Execute performance test
+    v->execute();
+
+    exit(0);
 }
 
 int launch_ptest(config_t *cfg)
@@ -272,7 +311,11 @@ int launch_ptest(config_t *cfg)
 
     int result = 0;
     struct timespec ts, start, finish;
-    size_t total = 0, success = 0, failed = 0;
+    stats_t stats;
+    stats.total     = 0;
+    stats.success   = 0;
+    stats.failed    = 0;
+    stats.overall   = 0.0;
     double time = 0.0;
 
     clock_gettime(CLOCK_REALTIME, &ts);
@@ -293,27 +336,30 @@ int launch_ptest(config_t *cfg)
 
         clock_gettime(CLOCK_REALTIME, &start);
 
+        stats.total     ++;
         if (cfg->fork)
         {
             pid_t pid = fork();
-            if (pid < 0) {
+            if (pid < 0)
+            {
                 int error = errno;
                 fprintf(stderr, "Error while spawning child process %d\n", error);
 
                 result = -2;
                 break;
-            } else if (pid == 0) {
+            }
+            else if (pid == 0)
                 return execute_ptest(cfg, v);
-            } else {
+            else
+            {
                 // Parent process code: wait for nested process execution
-                total ++;
                 do
                 {
                     int w = waitpid(pid, &result, WUNTRACED | WCONTINUED);
                     if (w < 0)
                     {
                         fprintf(stderr, "Waiting for performance test '%s.%s' failed\n", v->group(), v->name());
-                        failed++;
+                        stats.failed++;
                         break;
                     }
 
@@ -327,36 +373,174 @@ int launch_ptest(config_t *cfg)
             }
         }
         else
-        {
-            total ++;
             result = execute_ptest(cfg, v);
-        }
+
         clock_gettime(CLOCK_REALTIME, &finish);
         time = (finish.tv_sec - start.tv_sec) + (finish.tv_nsec - start.tv_nsec) * 1e-9;
 
-        printf("Test execution time: %.2f s\n", time);
+        printf("Performance test '%s.%s' execution time: %.2f s\n", v->group(), v->name() , time);
         if (result == 0)
-            success ++;
+            stats.success ++;
         else
-            failed ++;
+            stats.failed ++;
     }
 
-    time = (finish.tv_sec - ts.tv_sec) + (finish.tv_nsec - ts.tv_nsec) * 1e-9;
+    stats.overall = (finish.tv_sec - ts.tv_sec) + (finish.tv_nsec - ts.tv_nsec) * 1e-9;
+    return output_stats(&stats, "Overall performance test statistics");
+}
 
-    printf("\n--------------------------------------------------------------------------------\n");
-    printf("Overall performance test statistics:\n");
-    printf("  overall time [s]:     %.2f\n", time);
-    printf("  launched:             %d\n", int(total));
-    printf("  succeeded:            %d\n", int(success));
-    printf("  failed:               %d\n", int(failed));
-    return (failed > 0) ? 0 : 2;
+void submit_utest(config_t *cfg, task_t *threads, stats_t *stats, test::UnitTest *v)
+{
+    struct timespec ts;
+    double time;
+
+    if (!cfg->fork)
+    {
+        clock_gettime(CLOCK_REALTIME, &ts);
+        time = ts.tv_sec + ts.tv_nsec * 1e-9;
+        stats->total++;
+
+        v->execute();
+
+        clock_gettime(CLOCK_REALTIME, &ts);
+        time = ts.tv_sec + ts.tv_nsec * 1e-9 - time;
+
+        printf("Test execution time: %.2f s\n", time);
+        stats->success++;
+        return;
+    }
+
+    // Find placeholder
+    while (true)
+    {
+        int result = 0;
+
+        // Check that we are able to submit task
+        task_t *t = NULL;
+        for (size_t i=0; i<cfg->threads; i++)
+            if (threads[i].pid < 0)
+            {
+                t = &threads[i];
+                break;
+            }
+
+        // Is there a placeholder?
+        if (t != NULL)
+        {
+            pid_t pid = fork();
+            if (pid < 0)
+            {
+                int error = errno;
+                fprintf(stderr, "Error while spawning child process %d\n", error);
+
+                result = -2;
+                break;
+            }
+            else if (pid == 0)
+                execute_utest(cfg, v);
+            else
+            {
+                clock_gettime(CLOCK_REALTIME, &ts);
+                t->pid          = pid;
+                t->utest        = v;
+                t->submitted    = ts.tv_sec + ts.tv_nsec * 1e-9;
+            }
+        }
+        else
+        {
+            pid_t pid = -1;
+            do
+            {
+                pid = waitpid(-1, &result, WUNTRACED | WCONTINUED);
+                if (pid < 0)
+                {
+                    fprintf(stderr, "Waiting for unit test completion failed\n");
+                    exit(4);
+                    break;
+                }
+
+                // Find the associated unit test process
+                t = NULL;
+                for (size_t i=0; i<cfg->threads; i++)
+                    if (threads[i].pid == pid)
+                        t = &threads[i];
+
+                if (WIFEXITED(result))
+                    printf("Unit test '%s.%s' finished, status=%d\n", v->group(), v->name(), WEXITSTATUS(result));
+                else if (WIFSIGNALED(result))
+                    printf("Unit test '%s.%s' killed by signal %d\n", v->group(), v->name(), WTERMSIG(result));
+                else if (WIFSTOPPED(result))
+                    printf("Unit test '%s.%s' stopped by signal %d\n", v->group(), v->name(), WSTOPSIG(result));
+            } while (!WIFEXITED(result) && !WIFSIGNALED(result));
+
+            // Get time
+            clock_gettime(CLOCK_REALTIME, &ts);
+            time = ts.tv_sec + ts.tv_nsec * 1e-9 - t->submitted;
+            printf("Unit test '%s.%s' execution time: %.2f s\n", v->group(), v->name(), time);
+            if (result == 0)
+                stats->success ++;
+            else
+                stats->failed ++;
+
+            // Free task
+            t->pid          = -1;
+            t->submitted    = 0.0;
+            t->utest        = NULL;
+        }
+    }
 }
 
 int launch_utest(config_t *cfg)
 {
     using namespace test;
+    UnitTest *v = utest_init();
+    if (v == NULL)
+    {
+        fprintf(stderr, "No performance tests available\n");
+        return -1;
+    }
 
-    return 0;
+    struct timespec start, finish;
+    stats_t stats;
+
+    clock_gettime(CLOCK_REALTIME, &start);
+    stats.total     = 0;
+    stats.failed    = 0;
+    stats.success   = 0;
+
+    task_t *threads = (cfg->fork) ? reinterpret_cast<task_t *>(alloca(sizeof(task_t) * cfg->threads)) : NULL;
+    if (threads != NULL)
+    {
+        for (size_t i=0; i<cfg->threads; i++)
+        {
+            threads[i].pid          = -1;
+            threads[i].submitted    = 0.0;
+            threads[i].utest        = NULL;
+        }
+    }
+
+    for ( ; v != NULL; v = v->next())
+    {
+        // Check that test is not ignored
+        if (v->ignore())
+            continue;
+
+        // Need to check test name and group?
+        if (!match_list(cfg->list, v->group(), v->name()))
+            continue;
+
+        printf("\n--------------------------------------------------------------------------------\n");
+        printf("Launching unit test '%s.%s'\n", v->group(), v->name());
+        printf("--------------------------------------------------------------------------------\n");
+
+        stats.total ++;
+        submit_utest(cfg, threads, &stats, v);
+    }
+
+    clock_gettime(CLOCK_REALTIME, &finish);
+    stats.overall = (finish.tv_sec - start.tv_sec) + (finish.tv_nsec - start.tv_nsec) * 1e-9;
+
+    return output_stats(&stats, "Overall unit test statistics");
 }
 
 int usage()

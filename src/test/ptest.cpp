@@ -233,7 +233,7 @@ namespace test
                 if (strcasecmp(name, next->name()))
                     continue;
 
-                fprintf(stderr, "Test '%s' group '%s' has duplicate instance\n", name, group);
+                fprintf(stderr, "Performance test '%s.%s' has duplicate instance\n", group, name);
                 return NULL;
             }
         }
