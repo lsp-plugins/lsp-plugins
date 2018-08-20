@@ -12,6 +12,7 @@
 #include <malloc.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 
 namespace arm
 {
@@ -35,7 +36,7 @@ namespace arm
         uint64_t    hwcap;
     } cpu_features_t;
 
-    void get_vendor_id(cpu_features_t *f)  // must be at least 13 bytes
+    void detect_cpu_features(cpu_features_t *f)  // must be at least 13 bytes
     {
         f->implementer      = 0;
         f->architecture     = 0;
@@ -55,7 +56,7 @@ namespace arm
         size_t size = 0;
         char *line  = NULL;
 
-        while (getline(&line, &size, cpuinfo) < 0)
+        while (getline(&line, &size, cpuinfo) >= 0)
         {
             size_t *field = NULL;
 
