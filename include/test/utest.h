@@ -36,15 +36,31 @@
 #define UTEST_MAIN \
         virtual void execute()
 
-#define UTEST_FAIL(code)    \
-        fprintf(stderr, "Unit test '%s' group '%s' has failed at file %s, line %d", \
-                __test_name, __test_group, __FILE__, __LINE__); \
-        exit(1));
+#define UTEST_FAIL_MSG(message, ...) {  \
+            fprintf(stderr, "Unit test '%s.%s' has failed at file %s, line %d with message: \n  " message  "\n", \
+                    __test_group, __test_name, __FILE__, __LINE__, ## __VA_ARGS__); \
+            exit(1); \
+        }
+
+#define UTEST_FAIL() {\
+            fprintf(stderr, "Unit test '%s.%s' has failed at file %s, line %d\n", \
+                    __test_group, __test_name, __FILE__, __LINE__); \
+            exit(1); \
+        }
 
 #define UTEST_ASSERT(code) \
-        fprintf(stderr, "Unit test '%s' group '%s' assertion has failed at file %s, line %d:\n  %s", \
-                __test_name, __test_group, __FILE__, __LINE__, # code); \
-        exit(2));
+        if (!(code)) { \
+            fprintf(stderr, "Unit test '%s.%s' assertion has failed at file %s, line %d:\n  %s", \
+                    __test_group, __test_name, __FILE__, __LINE__, # code); \
+            exit(2); \
+        }
+
+#define UTEST_ASSERT_MSG(code, message, ...) \
+        if (!(code)) { \
+            fprintf(stderr, "Unit test '%s.%s' assertion has failed at file %s, line %d:\n  %s\n  " message "\n", \
+                    __test_group, __test_name, __FILE__, __LINE__, # code, ## __VA_ARGS__); \
+            exit(2); \
+        }
 
 #define UTEST_FOREACH(var, ...)    \
         const size_t ___sizes[] = { __VA_ARGS__ }; \

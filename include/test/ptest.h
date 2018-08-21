@@ -61,10 +61,17 @@
 #define PTEST_SEPARATOR \
         gather_stats(NULL, 0.0f, 0);
 
-#define PTEST_FAIL(code)    \
-        fprintf(stderr, "Performance test '%s' group '%s' has failed at file %s, line %d", \
-                __test_name, __test_group, __FILE__, __LINE__); \
-        exit(code));
+#define PTEST_FAIL_MSG(message, ...) {  \
+            fprintf(stderr, "Performance test '%s.%s' has failed at file %s, line %d with message:\n  " message  "\n", \
+                    __test_group, __test_name, __FILE__, __LINE__, ## __VA_ARGS__); \
+            exit(1); \
+        }
+
+#define PTEST_FAIL() {\
+            fprintf(stderr, "Performance test '%s.%s' has failed at file %s, line %d\n", \
+                    __test_group, __test_name, __FILE__, __LINE__); \
+            exit(1); \
+        }
 
 #define PTEST_END \
         } performance_test;  /* ptest class */ \

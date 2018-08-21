@@ -46,7 +46,8 @@ namespace test
     FloatBuffer::FloatBuffer(size_t samples, size_t align, bool aligned)
     {
         allocate(samples, align, aligned);
-        memset(pBuffer, 0, nLength * sizeof(float));
+        randomize();
+//        memset(pBuffer, 0, nLength * sizeof(float));
     }
 
     FloatBuffer::FloatBuffer(const FloatBuffer &src)
@@ -125,7 +126,7 @@ namespace test
         return (*ptr == (CK_TAIL_SIGNATURE ^ key));
     }
 
-    bool FloatBuffer::equals(const FloatBuffer &src, float tolerance = 1e-6f) const
+    bool FloatBuffer::equals(const FloatBuffer &src, float tolerance) const
     {
         if (src.nLength != nLength)
             return false;
