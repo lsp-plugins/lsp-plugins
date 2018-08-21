@@ -115,6 +115,12 @@ namespace test
         randomize_positive();
     }
 
+    void FloatBuffer::fill_zero()
+    {
+        for (size_t i=0; i<nLength; ++i)
+            pBuffer[i] = 0.0f;
+    }
+
     bool FloatBuffer::validate() const
     {
         uint32_t key            = uint32_t(ptrdiff_t(this));
@@ -145,7 +151,7 @@ namespace test
     {
         printf("%s: ", text);
         for (size_t i=0; i<nLength; ++i)
-            printf("%.3f ", pBuffer[i]);
+            printf("%.5f ", pBuffer[i]);
         printf("\n");
     }
 
@@ -153,7 +159,7 @@ namespace test
     {
         printf("%s: ", text);
         for (size_t i=from; (i<nLength) && (count > 0); ++i, --count)
-            printf("%.3f ", pBuffer[i]);
+            printf("%.5f ", pBuffer[i]);
         printf("\n");
     }
 }

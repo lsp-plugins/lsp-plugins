@@ -175,6 +175,7 @@ typedef struct config_t
     mode_t                      mode;
     bool                        fork;
     bool                        verbose;
+    bool                        debug;
     size_t                      threads;
     cvector<LSPString>          list;
 } config_t;
@@ -297,34 +298,39 @@ void utest_sighandler(int signum)
     exit(2);
 }
 
-void execute_utest(config_t *cfg, test::UnitTest *v)
+int execute_utest(config_t *cfg, test::UnitTest *v)
 {
     // Set-up timer for deadline expiration
     struct itimerval timer;
 
-    timer.it_interval.tv_sec    = v->time_limit();
-    timer.it_interval.tv_usec   = suseconds_t(v->time_limit() * 1e+9) % 1000000000L;
-    timer.it_value              = timer.it_interval;
+    if (!cfg->debug)
+    {
+        timer.it_interval.tv_sec    = v->time_limit();
+        timer.it_interval.tv_usec   = suseconds_t(v->time_limit() * 1e+9) % 1000000000L;
+        timer.it_value              = timer.it_interval;
 
-    signal(SIGALRM, utest_sighandler);
-    if (setitimer(ITIMER_REAL, &timer, NULL) != 0)
-        exit(4);
+        signal(SIGALRM, utest_sighandler);
+        if (setitimer(ITIMER_REAL, &timer, NULL) != 0)
+            exit(4);
+    }
 
     // Execute performance test
     v->execute();
 
-    // Cancel timer
-    timer.it_interval.tv_sec    = 0;
-    timer.it_interval.tv_usec   = 0;
-    timer.it_value              = timer.it_interval;
+    // Cancel and disable timer
+    if (!cfg->debug)
+    {
+        timer.it_interval.tv_sec    = 0;
+        timer.it_interval.tv_usec   = 0;
+        timer.it_value              = timer.it_interval;
 
-    // Disable timer
-    if (setitimer(ITIMER_REAL, &timer, NULL) != 0)
-        exit(4);
-    signal(SIGALRM, SIG_DFL);
+        if (setitimer(ITIMER_REAL, &timer, NULL) != 0)
+            exit(4);
+        signal(SIGALRM, SIG_DFL);
+    }
 
     // Return success
-    exit(0);
+    return 0;
 }
 
 int launch_ptest(config_t *cfg)
@@ -428,13 +434,16 @@ void submit_utest(config_t *cfg, task_t *threads, stats_t *stats, test::UnitTest
         time = ts.tv_sec + ts.tv_nsec * 1e-9;
         stats->total++;
 
-        v->execute();
+        int res     = execute_utest(cfg, v);
 
         clock_gettime(CLOCK_REALTIME, &ts);
         time = ts.tv_sec + ts.tv_nsec * 1e-9 - time;
 
         printf("Test execution time: %.2f s\n", time);
         stats->success++;
+
+        if (res != 0)
+            exit(res);
         return;
     }
 
@@ -465,7 +474,10 @@ void submit_utest(config_t *cfg, task_t *threads, stats_t *stats, test::UnitTest
                 break;
             }
             else if (pid == 0)
-                execute_utest(cfg, v);
+            {
+                int res = execute_utest(cfg, v);
+                exit(res);
+            }
             else
             {
                 clock_gettime(CLOCK_REALTIME, &ts);
@@ -573,7 +585,7 @@ int launch_utest(config_t *cfg)
 
 int usage()
 {
-    fprintf(stderr, "USAGE: ptest [args...]\n");
+    fprintf(stderr, "USAGE: {ptest|utest} [args...]\n");
     return 1;
 }
 
@@ -603,6 +615,8 @@ int parse_config(config_t *cfg, int argc, const char **argv)
             cfg->verbose    = true;
         else if (!strcmp(argv[i], "--silent"))
             cfg->verbose    = false;
+        else if (!strcmp(argv[i], "--debug"))
+            cfg->debug      = true;
         else if (!strcmp(argv[i], "--threads"))
         {
             if ((++i) >= argc)

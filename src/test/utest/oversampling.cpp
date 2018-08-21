@@ -47,7 +47,7 @@ UTEST_BEGIN("dsp", oversampling)
             resampling_function_t func2
          )
     {
-        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        UTEST_FOREACH(count, /* 0, */ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
                 32, 64, 100, 999)
         {
             for (size_t mask=0; mask <= 0x03; ++mask)
@@ -58,6 +58,11 @@ UTEST_BEGIN("dsp", oversampling)
                 FloatBuffer src2(src1);
                 FloatBuffer dst1(count*times + RESAMPLING_RESERVED_SAMPLES, align, mask & 0x02);
                 FloatBuffer dst2(dst1);
+
+                src1[0] = 1.0f;
+                src2[0] = 1.0f;
+                dst1.fill_zero();
+                dst2.fill_zero();
 
                 // Call functions
                 func1(dst1, src1, count);
@@ -73,7 +78,14 @@ UTEST_BEGIN("dsp", oversampling)
                     UTEST_FAIL_MSG("Destination buffer 2 corrupted");
 
                 // Compare buffers
-                UTEST_ASSERT_MSG(dst1.equals(dst2), "Output of functions for test %s difffers", text);
+                if (!dst1.equals(dst2))
+                {
+                    src1.dump("src1");
+                    src2.dump("src2");
+                    dst1.dump("dst1");
+                    dst2.dump("dst2");
+                    UTEST_FAIL_MSG("Output of functions for test '%s' differs", text);
+                }
             }
         }
     }

@@ -36,12 +36,14 @@ namespace test
             void randomize_negative();
             void randomize_sign();
             void randomize();
+            void fill_zero();
 
             bool validate() const;
             inline bool corrupted() const { return !validate(); };
             bool equals(const FloatBuffer &src, float tolerance = 1e-6f) const;
             void dump(const char *text) const;
             void dump(const char *text, size_t from, size_t count) const;
+            inline bool aligned() const { return bAligned; }
 
         public:
             inline float &operator [] (size_t index) {
