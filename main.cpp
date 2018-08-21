@@ -424,7 +424,7 @@ int launch_ptest(config_t *cfg)
     return output_stats(&stats, "Overall performance test statistics");
 }
 
-void wait_thread(config_t *cfg, task_t *threads, stats_t *stats)
+bool wait_thread(config_t *cfg, task_t *threads, stats_t *stats)
 {
     struct timespec ts;
     int result = 0;
@@ -446,6 +446,8 @@ void wait_thread(config_t *cfg, task_t *threads, stats_t *stats)
         for (size_t i=0; i<cfg->threads; i++)
             if (threads[i].pid == pid)
                 t = &threads[i];
+        if (t == NULL)
+            return false;
 
         if (WIFEXITED(result))
             printf("Unit test '%s.%s' finished, status=%d\n", t->utest->group(), t->utest->name(), WEXITSTATUS(result));
@@ -480,8 +482,11 @@ int wait_threads(config_t *cfg, task_t *threads, stats_t *stats)
             nwait++;
 
     // Wait until all children become completed
-    while ((nwait--) > 0)
-        wait_thread(cfg, threads, stats);
+    while (nwait > 0)
+    {
+        if (wait_thread(cfg, threads, stats))
+            nwait--;
+    }
 
     return 0;
 }
@@ -596,6 +601,7 @@ int launch_utest(config_t *cfg)
             break;
     }
 
+    // Wait until all child processes exit
     if (wait_threads(cfg, threads, &stats) != 0)
         fprintf(stderr, "Error while waiting child processes for comletion");
 
