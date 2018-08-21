@@ -191,7 +191,7 @@ typedef struct stats_t
 typedef struct task_t
 {
     pid_t               pid;
-    double              submitted;
+    struct timespec     submitted;
     test::UnitTest     *utest;
 } task_t;
 
@@ -294,7 +294,7 @@ int execute_ptest(config_t *cfg, test::PerformanceTest *v)
 
 void utest_sighandler(int signum)
 {
-    fprintf(stderr, "Unit test time limit exceeded");
+    fprintf(stderr, "Unit test time limit exceeded\n");
     exit(2);
 }
 
@@ -315,6 +315,7 @@ int execute_utest(config_t *cfg, test::UnitTest *v)
     }
 
     // Execute performance test
+    v->set_verbose(cfg->verbose);
     v->execute();
 
     // Cancel and disable timer
@@ -423,35 +424,92 @@ int launch_ptest(config_t *cfg)
     return output_stats(&stats, "Overall performance test statistics");
 }
 
-void submit_utest(config_t *cfg, task_t *threads, stats_t *stats, test::UnitTest *v)
+void wait_thread(config_t *cfg, task_t *threads, stats_t *stats)
 {
     struct timespec ts;
-    double time;
+    int result = 0;
+    pid_t pid = -1;
+    task_t *t;
 
+    do
+    {
+        pid = waitpid(-1, &result, WUNTRACED | WCONTINUED);
+        if (pid < 0)
+        {
+            fprintf(stderr, "Waiting for unit test completion failed\n");
+            exit(4);
+            break;
+        }
+
+        // Find the associated unit test process
+        t = NULL;
+        for (size_t i=0; i<cfg->threads; i++)
+            if (threads[i].pid == pid)
+                t = &threads[i];
+
+        if (WIFEXITED(result))
+            printf("Unit test '%s.%s' finished, status=%d\n", t->utest->group(), t->utest->name(), WEXITSTATUS(result));
+        else if (WIFSIGNALED(result))
+            printf("Unit test '%s.%s' killed by signal %d\n", t->utest->group(), t->utest->name(), WTERMSIG(result));
+        else if (WIFSTOPPED(result))
+            printf("Unit test '%s.%s' stopped by signal %d\n", t->utest->group(), t->utest->name(), WSTOPSIG(result));
+    } while (!WIFEXITED(result) && !WIFSIGNALED(result));
+
+    // Get time
+    clock_gettime(CLOCK_REALTIME, &ts);
+    double time = (ts.tv_sec - t->submitted.tv_sec) + (ts.tv_nsec - t->submitted.tv_nsec) * 1e-9;
+    printf("Unit test '%s.%s' execution time: %.2f s\n", t->utest->group(), t->utest->name(), time);
+    if (result == 0)
+        stats->success ++;
+    else
+        stats->failed ++;
+
+    // Free task
+    t->pid                  = -1;
+    t->submitted.tv_sec     = 0;
+    t->submitted.tv_nsec    = 0;
+    t->utest                = NULL;
+}
+
+int wait_threads(config_t *cfg, task_t *threads, stats_t *stats)
+{
+    // Estimate number of child processes
+    size_t nwait = 0;
+    for (size_t i=0; i<cfg->threads; i++)
+        if (threads[i].pid >= 0)
+            nwait++;
+
+    // Wait until all children become completed
+    while ((nwait--) > 0)
+        wait_thread(cfg, threads, stats);
+
+    return 0;
+}
+
+int submit_utest(config_t *cfg, task_t *threads, stats_t *stats, test::UnitTest *v)
+{
     if (!cfg->fork)
     {
-        clock_gettime(CLOCK_REALTIME, &ts);
-        time = ts.tv_sec + ts.tv_nsec * 1e-9;
+        struct timespec start, finish;
+        clock_gettime(CLOCK_REALTIME, &start);
         stats->total++;
 
         int res     = execute_utest(cfg, v);
 
-        clock_gettime(CLOCK_REALTIME, &ts);
-        time = ts.tv_sec + ts.tv_nsec * 1e-9 - time;
-
+        clock_gettime(CLOCK_REALTIME, &finish);
+        double time = (finish.tv_sec - start.tv_sec) + (finish.tv_nsec - start.tv_nsec) * 1e-9;
         printf("Test execution time: %.2f s\n", time);
-        stats->success++;
 
-        if (res != 0)
-            exit(res);
-        return;
+        if (res)
+            stats->success++;
+        else
+            stats->failed++;
+        return 0;
     }
 
     // Find placeholder
     while (true)
     {
-        int result = 0;
-
         // Check that we are able to submit task
         task_t *t = NULL;
         for (size_t i=0; i<cfg->threads; i++)
@@ -469,9 +527,7 @@ void submit_utest(config_t *cfg, task_t *threads, stats_t *stats, test::UnitTest
             {
                 int error = errno;
                 fprintf(stderr, "Error while spawning child process %d\n", error);
-
-                result = -2;
-                break;
+                return -2;
             }
             else if (pid == 0)
             {
@@ -480,53 +536,14 @@ void submit_utest(config_t *cfg, task_t *threads, stats_t *stats, test::UnitTest
             }
             else
             {
-                clock_gettime(CLOCK_REALTIME, &ts);
+                clock_gettime(CLOCK_REALTIME, &t->submitted);
                 t->pid          = pid;
                 t->utest        = v;
-                t->submitted    = ts.tv_sec + ts.tv_nsec * 1e-9;
+                return 0;
             }
         }
-        else
-        {
-            pid_t pid = -1;
-            do
-            {
-                pid = waitpid(-1, &result, WUNTRACED | WCONTINUED);
-                if (pid < 0)
-                {
-                    fprintf(stderr, "Waiting for unit test completion failed\n");
-                    exit(4);
-                    break;
-                }
-
-                // Find the associated unit test process
-                t = NULL;
-                for (size_t i=0; i<cfg->threads; i++)
-                    if (threads[i].pid == pid)
-                        t = &threads[i];
-
-                if (WIFEXITED(result))
-                    printf("Unit test '%s.%s' finished, status=%d\n", v->group(), v->name(), WEXITSTATUS(result));
-                else if (WIFSIGNALED(result))
-                    printf("Unit test '%s.%s' killed by signal %d\n", v->group(), v->name(), WTERMSIG(result));
-                else if (WIFSTOPPED(result))
-                    printf("Unit test '%s.%s' stopped by signal %d\n", v->group(), v->name(), WSTOPSIG(result));
-            } while (!WIFEXITED(result) && !WIFSIGNALED(result));
-
-            // Get time
-            clock_gettime(CLOCK_REALTIME, &ts);
-            time = ts.tv_sec + ts.tv_nsec * 1e-9 - t->submitted;
-            printf("Unit test '%s.%s' execution time: %.2f s\n", v->group(), v->name(), time);
-            if (result == 0)
-                stats->success ++;
-            else
-                stats->failed ++;
-
-            // Free task
-            t->pid          = -1;
-            t->submitted    = 0.0;
-            t->utest        = NULL;
-        }
+        else // Wait for child process completion
+            wait_thread(cfg, threads, stats);
     }
 }
 
@@ -553,9 +570,10 @@ int launch_utest(config_t *cfg)
     {
         for (size_t i=0; i<cfg->threads; i++)
         {
-            threads[i].pid          = -1;
-            threads[i].submitted    = 0.0;
-            threads[i].utest        = NULL;
+            threads[i].pid              = -1;
+            threads[i].submitted.tv_sec = 0;
+            threads[i].submitted.tv_nsec= 0;
+            threads[i].utest            = NULL;
         }
     }
 
@@ -574,8 +592,12 @@ int launch_utest(config_t *cfg)
         printf("--------------------------------------------------------------------------------\n");
 
         stats.total ++;
-        submit_utest(cfg, threads, &stats, v);
+        if (submit_utest(cfg, threads, &stats, v) != 0)
+            break;
     }
+
+    if (wait_threads(cfg, threads, &stats) != 0)
+        fprintf(stderr, "Error while waiting child processes for comletion");
 
     clock_gettime(CLOCK_REALTIME, &finish);
     stats.overall = (finish.tv_sec - start.tv_sec) + (finish.tv_nsec - start.tv_nsec) * 1e-9;

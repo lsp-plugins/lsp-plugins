@@ -7,6 +7,7 @@
 
 #include <test/utest.h>
 #include <string.h>
+#include <stdarg.h>
 
 namespace test
 {
@@ -17,6 +18,7 @@ namespace test
         __test_group        = group;
         __test_name         = name;
         __next              = __root;
+        __verbose           = false;
 
         // Self-register
         __root              = this;
@@ -34,6 +36,18 @@ namespace test
     double UnitTest::time_limit() const
     {
         return 5.0;
+    }
+
+    int UnitTest::printf(const char *fmt, ...)
+    {
+        if (!__verbose)
+            return 0;
+
+        va_list vl;
+        va_start(vl, fmt);
+        int res = vprintf(fmt, vl);
+        va_end(vl);
+        return res;
     }
 
     UnitTest *utest_init()

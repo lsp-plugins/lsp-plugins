@@ -14,13 +14,13 @@
 
 namespace sse
 {
-    const float lanczos_2x2_k0 = 0.6203830132406946f;
-    const float lanczos_2x2_k1 = -0.1664152316035080f;
+    static const float lanczos_2x2_k0 = 0.6203830132406946f;
+    static const float lanczos_2x2_k1 = -0.1664152316035080f;
 
     // Lanczos kernel 2x3: 3 SSE registers
-    const float lanczos_2x3_k0 = 0.6293724479752082f;
-    const float lanczos_2x3_k1 = -0.1910530560835854f;
-    const float lanczos_2x3_k2 = 0.0939539981090991f;
+    static const float lanczos_2x3_k0 = 0.6293724479752082f;
+    static const float lanczos_2x3_k1 = -0.1910530560835854f;
+    static const float lanczos_2x3_k2 = 0.0939539981090991f;
 
     // Lanczos kernel 3x2: 6 SSE registers
     const float lanczos_kernel_3x2[] __lsp_aligned16 =
@@ -105,7 +105,7 @@ namespace sse
         -0.1993645686793863f,
         -0.1562250559899557f,
         +0.0000000000000000f,
-        +0.1055060549370832f
+        +0.1055060549370832f,
 
         +0.0890793429479492f,
         +0.0000000000000000f,
@@ -367,10 +367,10 @@ namespace sse
     {
         __asm__ __volatile__
         (
-            __ASM_EMIT("sub         $2, %[count]")
-            __ASM_EMIT("jb          2f")
             __ASM_EMIT("movss       %[k0], %%xmm6")         // xmm6 = k0
             __ASM_EMIT("movss       %[k1], %%xmm7")         // xmm7 = k1
+            __ASM_EMIT("sub         $2, %[count]")
+            __ASM_EMIT("jb          2f")
 
             // Load samples
             __ASM_EMIT(".align 16")
@@ -384,7 +384,7 @@ namespace sse
             __ASM_EMIT("mulss       %%xmm7, %%xmm2")        // xmm2 = k1*s0
             __ASM_EMIT("mulss       %%xmm7, %%xmm3")        // xmm3 = k1*s1
             __ASM_EMIT("movaps      %%xmm2, %%xmm4")        // xmm4 = k1*s0
-            __ASM_EMIT("movaps      %%xmm2, %%xmm5")        // xmm5 = k1*s1
+            __ASM_EMIT("movaps      %%xmm3, %%xmm5")        // xmm5 = k1*s1
             __ASM_EMIT("addss       0x04(%[dst]), %%xmm4")  // xmm4 = k1*s0 + d1
             __ASM_EMIT("addss       0x24(%[dst]), %%xmm5")  // xmm5 = k1*s1 + d9
             __ASM_EMIT("movss       %%xmm4, 0x04(%[dst])")  // d1 += k1*s0
@@ -458,10 +458,10 @@ namespace sse
     {
         __asm__ __volatile__
         (
-            __ASM_EMIT("sub         $2, %[count]")
-            __ASM_EMIT("jb          2f")
             __ASM_EMIT("movss       %[k0], %%xmm6")         // xmm6 = k0
             __ASM_EMIT("movss       %[k1], %%xmm7")         // xmm7 = k1
+            __ASM_EMIT("sub         $2, %[count]")
+            __ASM_EMIT("jb          2f")
 
             // Load samples
             __ASM_EMIT(".align 16")
@@ -475,7 +475,7 @@ namespace sse
             __ASM_EMIT("mulss       %[k2], %%xmm2")         // xmm2 = k2*s0
             __ASM_EMIT("mulss       %[k2], %%xmm3")         // xmm3 = k2*s1
             __ASM_EMIT("movaps      %%xmm2, %%xmm4")        // xmm4 = k2*s0
-            __ASM_EMIT("movaps      %%xmm2, %%xmm5")        // xmm5 = k2*s1
+            __ASM_EMIT("movaps      %%xmm3, %%xmm5")        // xmm5 = k2*s1
             __ASM_EMIT("addss       0x04(%[dst]), %%xmm4")  // xmm4 = k2*s0 + d1
             __ASM_EMIT("addss       0x34(%[dst]), %%xmm5")  // xmm5 = k2*s1 + d13
             __ASM_EMIT("movss       %%xmm4, 0x04(%[dst])")  // d1  += k2*s0

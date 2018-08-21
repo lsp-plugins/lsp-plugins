@@ -38,7 +38,8 @@ inline bool float_ck(float a, float b, float tolerance=1e-6)
     else if (b == 0.0f)
         return (fabs(a) < tolerance);
 
-    return fabs(1.0f - b/a) < tolerance;
+    float diff = fabs(b/a);
+    return fabs(1.0f - diff) < tolerance;
 }
 
 namespace test
@@ -132,7 +133,7 @@ namespace test
         return (*ptr == (CK_TAIL_SIGNATURE ^ key));
     }
 
-    bool FloatBuffer::equals(const FloatBuffer &src, float tolerance) const
+    bool FloatBuffer::equals_relative(const FloatBuffer &src, float tolerance) const
     {
         if (src.nLength != nLength)
             return false;
@@ -142,6 +143,21 @@ namespace test
         for (size_t i=0; i<nLength; ++i)
         {
             if (!float_ck(b[i], a[i], tolerance))
+                return false;
+        }
+        return true;
+    }
+
+    bool FloatBuffer::equals_absolute(const FloatBuffer &src, float tolerance) const
+    {
+        if (src.nLength != nLength)
+            return false;
+        if (!(validate() && src.validate()))
+            return false;
+        const float *a = pBuffer, *b = src.pBuffer;
+        for (size_t i=0; i<nLength; ++i)
+        {
+            if (fabs(a[i] - b[i]) >= tolerance)
                 return false;
         }
         return true;

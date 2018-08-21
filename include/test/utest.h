@@ -84,8 +84,12 @@ namespace test
             UnitTest               *__next;
 
         protected:
-            const char *__test_group;
-            const char *__test_name;
+            const char     *__test_group;
+            const char     *__test_name;
+            bool            __verbose;
+
+        protected:
+            int             printf(const char *fmt, ...);
 
         public:
             explicit UnitTest(const char *group, const char *name);
@@ -97,6 +101,8 @@ namespace test
             inline UnitTest *next()             { return __next; }
 
         public:
+            inline void set_verbose(bool verbose)      { __verbose = verbose; }
+
             virtual void execute() = 0;
 
             virtual bool ignore() const;

@@ -47,41 +47,35 @@ UTEST_BEGIN("dsp", oversampling)
             resampling_function_t func2
          )
     {
-        UTEST_FOREACH(count, /* 0, */ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
                 32, 64, 100, 999)
         {
             for (size_t mask=0; mask <= 0x03; ++mask)
             {
                 printf("Testing %s resampling on input buffer of %d samples, mask=0x%x...\n", text, int(count), int(mask));
 
-                FloatBuffer src1(count, align, mask & 0x01);
-                FloatBuffer src2(src1);
+                FloatBuffer src(count, align, mask & 0x01);
                 FloatBuffer dst1(count*times + RESAMPLING_RESERVED_SAMPLES, align, mask & 0x02);
                 FloatBuffer dst2(dst1);
 
-                src1[0] = 1.0f;
-                src2[0] = 1.0f;
                 dst1.fill_zero();
                 dst2.fill_zero();
 
                 // Call functions
-                func1(dst1, src1, count);
-                func2(dst2, src2, count);
+                func1(dst1, src, count);
+                func2(dst2, src, count);
 
-                if (src1.corrupted())
-                    UTEST_FAIL_MSG("Source buffer 1 corrupted");
-                if (src2.corrupted())
-                    UTEST_FAIL_MSG("Source buffer 2 corrupted");
+                if (src.corrupted())
+                    UTEST_FAIL_MSG("Source buffer corrupted");
                 if (dst1.corrupted())
                     UTEST_FAIL_MSG("Destination buffer 1 corrupted");
                 if (dst2.corrupted())
                     UTEST_FAIL_MSG("Destination buffer 2 corrupted");
 
                 // Compare buffers
-                if (!dst1.equals(dst2))
+                if (!dst1.equals_absolute(dst2))
                 {
-                    src1.dump("src1");
-                    src2.dump("src2");
+                    src.dump("src1");
                     dst1.dump("dst1");
                     dst2.dump("dst2");
                     UTEST_FAIL_MSG("Output of functions for test '%s' differs", text);
