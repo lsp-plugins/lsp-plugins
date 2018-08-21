@@ -6,6 +6,7 @@
  */
 
 #include <dsp/types.h>
+#include <dsp/dsp.h>
 
 #include <sys/auxv.h>
 #include <stdio.h>
@@ -25,7 +26,6 @@ namespace arm
     //    CPU variant     : 0x0
     //    CPU part        : 0xd03
     //    CPU revision    : 4
-
     typedef struct cpu_features_t
     {
         size_t      implementer;
@@ -35,6 +35,101 @@ namespace arm
         size_t      revision;
         uint64_t    hwcap;
     } cpu_features_t;
+
+    typedef struct cpu_part_t
+    {
+        uint32_t    id;
+        const char *name;
+    } cpu_part_t;
+
+    typedef struct feature_t
+    {
+        uint32_t    mask;
+        const char *name;
+    } feature_t;
+
+    static const cpu_part_t cpu_parts[] =
+    {
+        { 0xb02, "ARM11 MPCore" },
+        { 0xb36, "ARM1136" },
+        { 0xb56, "ARM1156" },
+        { 0xb76, "ARM1176" },
+
+        { 0xc05, "Cortex-A5" },
+        { 0xc07, "Cortex-A7" },
+        { 0xc08, "Cortex-A8" },
+        { 0xc09, "Cortex-A9" },
+        { 0xc0e, "Cortex-A17" },
+        { 0xc0f, "Cortex-A15" },
+        { 0xc14, "Cortex-R4" },
+        { 0xc15, "Cortex-R5" },
+        { 0xc17, "Cortex-R7" },
+        { 0xc18, "Cortex-R8" },
+
+        { 0xc20, "Cortex-M0" },
+        { 0xc21, "Cortex-M1" },
+        { 0xc23, "Cortex-M3" },
+        { 0xc24, "Cortex-M4" },
+        { 0xc27, "Cortex-M7" },
+        { 0xc60, "Cortex-M0+" },
+
+        { 0xd01, "Cortex-A32" },
+        { 0xd03, "Cortex-A53" },
+        { 0xd04, "Cortex-A35" },
+        { 0xd05, "Cortex-A55" },
+        { 0xd07, "Cortex-A57" },
+        { 0xd08, "Cortex-A72" },
+        { 0xd09, "Cortex-A73" },
+        { 0xd0a, "Cortex‑A75" },
+        { 0xd13, "Cortex‑R52" },
+
+        { 0xd20, "Cortex‑M23" },
+        { 0xd21, "Cortex‑M33" }
+    };
+
+    static const feature_t cpu_features[] =
+    {
+IF_ARCH_ARM(
+        { HWCAP_ARM_SWP, "SWP" },
+        { HWCAP_ARM_HALF, "HALF" },
+        { HWCAP_ARM_THUMB, "THUMB" },
+        { HWCAP_ARM_26BIT, "26BIT" },
+        { HWCAP_ARM_FAST_MULT, "FAST_MULT" },
+        { HWCAP_ARM_FPA, "FPA" },
+        { HWCAP_ARM_VFP, "VFP" },
+        { HWCAP_ARM_EDSP, "EDSP" },
+        { HWCAP_ARM_JAVA, "JAVA" },
+        { HWCAP_ARM_IWMMXT, "IWMMXT" },
+        { HWCAP_ARM_CRUNCH, "CRUNCH" },
+        { HWCAP_ARM_THUMBEE, "THUMBEE" },
+        { HWCAP_ARM_NEON, "NEON" },
+        { HWCAP_ARM_VFPv3, "VFPv3" },
+        { HWCAP_ARM_VFPv3D16, "VFPv3D16" },
+        { HWCAP_ARM_TLS, "TLS" },
+        { HWCAP_ARM_VFPv4, "VFPv4" },
+        { HWCAP_ARM_IDIVA, "IDIVA" },
+        { HWCAP_ARM_IDIVT, "IDIVT" },
+        { HWCAP_ARM_VFPD32, "VFPD32" },
+        { HWCAP_ARM_LPAE, "LPAE" }
+)
+    };
+
+    const char *find_cpu_name(uint32_t id)
+    {
+        ssize_t first = 0, last = sizeof(cpu_parts) / sizeof(cpu_part_t);
+        while (first < last)
+        {
+            ssize_t mid = (first + last) >> 1;
+            ssize_t xmid = cpu_parts[mid].id;
+            if (id < xmid)
+                last = mid - 1;
+            else if (id > xmid)
+                first = mid + 1;
+            else
+                return cpu_parts[mid].name;
+        }
+        return "Generic ARM processor";
+    }
 
     void detect_cpu_features(cpu_features_t *f)  // must be at least 13 bytes
     {
@@ -109,8 +204,90 @@ namespace arm
         fclose(cpuinfo);
     }
 
+    static size_t estimate_features_size(const cpu_features_t *f)
+    {
+        // Estimate the string length
+        size_t estimate = 1; // End of string character
+        for (size_t i = 0, n=sizeof(cpu_features)/sizeof(feature_t); i < n; i++)
+        {
+            if (!(f->hwcap & cpu_features[i].mask))
+                continue;
+
+            if (estimate > 0)
+                estimate++;
+            estimate += strlen(cpu_features[i].name);
+        }
+        return estimate;
+    }
+
+    static char *build_features_list(char *dst, const cpu_features_t *f)
+    {
+        // Build string
+        char *s = dst;
+
+        for (size_t i = 0, n=sizeof(cpu_features)/sizeof(feature_t); i < n; i++)
+        {
+            if (!(f->hwcap & cpu_features[i].mask))
+                continue;
+            if (s != dst)
+                stpcpy(s, " ");
+            stpcpy(s, cpu_features[i].name);
+        }
+        *s = '\0';
+
+        return s;
+    }
+
+    dsp::info_t *info()
+    {
+        cpu_features_t f;
+        detect_cpu_features(&f);
+
+        const char *cpu = find_cpu_name(f.part);
+        char *model     = NULL;
+        asprintf(&model, "vendor=0x%x, architecture=%d, variant=%d, part=0x%x, revision=%d",
+                int(f.implementer), int(f.architecture), int(f.variant), int(f.part), int(f.revision));
+        if (model == NULL)
+            return NULL;
+
+        size_t size     = sizeof(dsp::info_t);
+        size           += strlen(ARCH_STRING) + 1;
+        size           += strlen(cpu) + 1;
+        size           += strlen(model) + 1;
+        size           += estimate_features_size(&f);
+
+        dsp::info_t *res = reinterpret_cast<dsp::info_t *>(malloc(size));
+        if (res == NULL)
+        {
+            free(model);
+            return res;
+        }
+
+        char *text      = reinterpret_cast<char *>(&res[1]);
+        res->arch       = text;
+        text            = stpcpy(text, ARCH_STRING) + 1;
+        res->cpu        = text;
+        text            = stpcpy(text, cpu) + 1;
+        res->model      = text;
+        text            = stpcpy(text, model) + 1;
+        res->features   = text;
+        build_features_list(text, &f);
+
+        free(model);
+        return res;
+    }
+
+#define EXPORT2(function, export)           dsp::function = arm::export
+#define EXPORT1(function)                   EXPORT2(function, function)
+
     void dsp_init()
     {
+        cpu_features_t f;
+        detect_cpu_features(&f);
+
+        // Export functions
+        EXPORT1(info);
+
 // ARM-specific constants
 //        #define HWCAP_ARM_SWP           1
 //        #define HWCAP_ARM_HALF          2
