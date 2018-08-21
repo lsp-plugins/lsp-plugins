@@ -37,7 +37,6 @@
 #include "test/saturation_test.h"
 #include "test/log_test.h"
 #include "test/addm_test.h"
-#include "test/perf/filter_test.h"
 #include "test/perf/dyn_filter_test.h"
 #include "test/perf/bt_perf_test.h"
 #include "test/perf/mt_perf_test.h"
@@ -52,7 +51,6 @@
 #include "test/sse_test.h"
 #include "test/endian_test.h"
 
-#include "test/oversampling_test.h"
 #include "test/downsampling_test.h"
 #include "test/oversampler_test.h"
 

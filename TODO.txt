@@ -19,6 +19,7 @@
 
 === 1.1.4 ===
 * DSP code moved from core to separate subtree.
+* Fixed bugs in some oversampling routines.
 * Optimized complex multiplication functions.
 * Implemented basic Raspberry Pi support (experimental).
 * Changed licensing to GNU Lesser General Public License version 3 (GNU LGPL v3).
