@@ -196,7 +196,7 @@ namespace x86
             {
                 f->features     |= CPU_OPTION_OSXSAVE;
 
-                uint64_t xcr0 = read_xcr(0);
+                xcr0 = read_xcr(0);
 
                 // Additional check for AVX support
                 if ((xcr0 & XCR_FLAGS_AVX) == XCR_FLAGS_AVX)

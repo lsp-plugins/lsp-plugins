@@ -13,22 +13,14 @@
 
 #define DSP_ARCH_X86_AVX_IMPL
 
-namespace x86
-{
-    #include <dsp/arch/x86/avx/xcr.h>
-}
+#include <dsp/arch/x86/avx/xcr.h>
 
 #ifdef ARCH_X86_64_AVX
-namespace avx
-{
     #include <dsp/arch/x86/avx/const.h>
     #include <dsp/arch/x86/avx/vector.h>
     #include <dsp/arch/x86/avx/filters/static.h>
     #include <dsp/arch/x86/avx/filters/dynamic.h>
     #include <dsp/arch/x86/avx/filters/transform.h>
-//    #include <dsp/arch/x86/avx/graphics.h>
-
-}
 #endif /* ARCH_X86_64_AVX */
 
 #undef DSP_ARCH_X86_AVX_IMPL
@@ -50,8 +42,8 @@ namespace avx
 
 //            EXPORT1(add_multiplied);
 //            EXPORT1(biquad_process_x1);
-        EXPORT1(biquad_process_x8);
-        EXPORT1(dyn_biquad_process_x8);
+        EXPORT2(biquad_process_x8, x64_biquad_process_x8);
+        EXPORT2(dyn_biquad_process_x8, x64_dyn_biquad_process_x8);
 
         // This routine sucks on AMD Bulldozer processor family but is pretty great on Intel
         // Not tested on AMD Processors above Bulldozer family
@@ -62,8 +54,8 @@ namespace avx
         {
             lsp_trace("Optimizing DSP for FMA3 instruction set");
 //                dsp::biquad_process_x1          = avx::biquad_process_x1_fma3;
-            EXPORT2(biquad_process_x8, biquad_process_x8_fma3);
-            EXPORT2(dyn_biquad_process_x8, dyn_biquad_process_x8_fma3);
+            EXPORT2(biquad_process_x8, x64_biquad_process_x8_fma3);
+            EXPORT2(dyn_biquad_process_x8, x64_dyn_biquad_process_x8_fma3);
         }
         #endif /* ARCH_X86_64_AVX */
     }
