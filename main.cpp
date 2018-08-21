@@ -151,7 +151,9 @@
 #include <errno.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/time.h>
 #include <alloca.h>
+#include <signal.h>
 
 #include <dsp/dsp.h>
 #include <test/ptest.h>
@@ -289,13 +291,39 @@ int execute_ptest(config_t *cfg, test::PerformanceTest *v)
     return 0;
 }
 
+void utest_sighandler(int signum)
+{
+    fprintf(stderr, "Unit test time limit exceeded");
+    exit(2);
+}
+
 void execute_utest(config_t *cfg, test::UnitTest *v)
 {
-    // TODO: set-up timer for deadline
+    // Set-up timer for deadline expiration
+    struct itimerval timer;
+
+    timer.it_interval.tv_sec    = v->time_limit();
+    timer.it_interval.tv_usec   = suseconds_t(v->time_limit() * 1e+9) % 1000000000L;
+    timer.it_value              = timer.it_interval;
+
+    signal(SIGALRM, utest_sighandler);
+    if (setitimer(ITIMER_REAL, &timer, NULL) != 0)
+        exit(4);
 
     // Execute performance test
     v->execute();
 
+    // Cancel timer
+    timer.it_interval.tv_sec    = 0;
+    timer.it_interval.tv_usec   = 0;
+    timer.it_value              = timer.it_interval;
+
+    // Disable timer
+    if (setitimer(ITIMER_REAL, &timer, NULL) != 0)
+        exit(4);
+    signal(SIGALRM, SIG_DFL);
+
+    // Return success
     exit(0);
 }
 

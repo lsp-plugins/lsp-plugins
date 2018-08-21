@@ -14,24 +14,27 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define UTEST_BEGIN(group, name, time, iterations) \
+#define UTEST_BEGIN(group, name) \
         namespace test { \
-        namespace ptest { \
+        namespace utest { \
         namespace name { \
             \
             using namespace ::test; \
             \
             class utest_ ## name: public UnitTest { \
                 public: \
-                    explicit ptest_ ## name() : UnitTest(group, #name) {} \
+                    explicit utest_ ## name() : UnitTest(group, #name) {} \
                     \
-                    virtual ~ptest_ ## name() {}
+                    virtual ~utest_ ## name() {}
 
 #define UTEST_TIMELIMIT(value) \
         virtual double time_limit() const { return double(value); }
 
 #define UTEST_IGNORE \
         virtual bool ignore() const { return true; }
+
+#define UTEST_MAIN \
+        virtual void execute()
 
 #define UTEST_FAIL(code)    \
         fprintf(stderr, "Unit test '%s' group '%s' has failed at file %s, line %d", \
@@ -42,6 +45,10 @@
         fprintf(stderr, "Unit test '%s' group '%s' assertion has failed at file %s, line %d:\n  %s", \
                 __test_name, __test_group, __FILE__, __LINE__, # code); \
         exit(2));
+
+#define UTEST_FOREACH(var, ...)    \
+        const size_t ___sizes[] = { __VA_ARGS__ }; \
+        for (size_t ___i=0, var=___sizes[0]; ___i<(sizeof(___sizes)/sizeof(size_t)); ++___i, var=___sizes[___i])
 
 #define UTEST_END \
         } unit_test;  /* utest class */ \
