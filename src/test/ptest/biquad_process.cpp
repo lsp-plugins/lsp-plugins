@@ -46,7 +46,7 @@ IF_ARCH_X86(
 typedef void (* biquad_process_t)(float *dst, const float *src, size_t count, biquad_t *f);
 
 //-----------------------------------------------------------------------------
-// Performance test for biquad processing
+// Performance test for static biquad processing
 PTEST_BEGIN("dsp.biquad", process_static, 30, 10000)
 
     void process_8x1(const char *text, float *out, const float *in, size_t count, biquad_process_t process)
