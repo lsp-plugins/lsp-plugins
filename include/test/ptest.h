@@ -19,8 +19,7 @@
 
 #define PTEST_BEGIN(group, name, time, iterations) \
         namespace test { \
-        namespace ptest { \
-        namespace name { \
+        namespace ptest_ ## name { \
             \
             using namespace ::test; \
             \
@@ -78,8 +77,7 @@
 
 #define PTEST_END \
         } performance_test;  /* ptest class */ \
-        } /* namespace name */ \
-        } /* namespace ptest */ \
+        } /* namespace ptest ## name */ \
         } /* namespace test */
 
 namespace test

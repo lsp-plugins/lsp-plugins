@@ -1,5 +1,5 @@
 /*
- * dyn_biquad_process.cpp
+ * dynamic.cpp
  *
  *  Created on: 22 авг. 2018 г.
  *      Author: sadko
@@ -54,7 +54,7 @@ static biquad_x1_t bq_normal = {
 
 //-----------------------------------------------------------------------------
 // Performance test for dynamic biquad processing
-PTEST_BEGIN("dsp.biquad", process_dynamic, 30, 10000)
+PTEST_BEGIN("dsp.filters", dynamic, 30, 10000)
 
     void process_8x1(const char *text, float *out, const float *in, size_t count, dyn_biquad_process_x1_t process)
     {

@@ -1,5 +1,5 @@
 /*
- * biquad_process.cpp
+ * static.cpp
  *
  *  Created on: 21 авг. 2018 г.
  *      Author: sadko
@@ -47,7 +47,7 @@ typedef void (* biquad_process_t)(float *dst, const float *src, size_t count, bi
 
 //-----------------------------------------------------------------------------
 // Performance test for static biquad processing
-PTEST_BEGIN("dsp.biquad", process_static, 30, 10000)
+PTEST_BEGIN("dsp.filters", static, 30, 10000)
 
     void process_8x1(const char *text, float *out, const float *in, size_t count, biquad_process_t process)
     {

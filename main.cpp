@@ -1,7 +1,5 @@
 #include "test/common.h"
 
-#include "test/ladspa_test.h"
-#include "test/vst_test.h"
 #include "test/res_gen.h"
 #include "test/audiofile_test.h"
 #include "test/convolver_test.h"
@@ -14,7 +12,6 @@
 #include "test/fade_test.h"
 #include "test/resample_test.h"
 #include "test/genttl.h"
-#include "test/lv2_buf_size.h"
 #include "test/alloc_test.h"
 #include "test/jack_test.h"
 #include "test/profiling_test.h"

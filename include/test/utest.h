@@ -17,8 +17,7 @@
 
 #define UTEST_BEGIN(group, name) \
         namespace test { \
-        namespace utest { \
-        namespace name { \
+        namespace utest ## name { \
             \
             using namespace ::test; \
             \
@@ -71,8 +70,7 @@
 
 #define UTEST_END \
         } unit_test;  /* utest class */ \
-        } /* namespace name */ \
-        } /* namespace utest */ \
+        } /* namespace utest ## name */ \
         } /* namespace test */
 
 namespace test

@@ -6,6 +6,7 @@
 
 #include <core/types.h>
 #include <dsp/dsp.h>
+#include <core/filters/Equalizer.h>
 
 #define FTEST_BUF_SIZE  0x200
 #define ITERATIONS      10000
