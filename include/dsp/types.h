@@ -165,6 +165,7 @@
 #ifdef ARCH_32BIT
     #define __ASM_EMIT32(code)                  code "\n\t"
     #define __IF_32(...)                        __VA_ARGS__
+    #define __IF_32_64(a, b)                    a
 
     #ifdef LSP_PROFILING
         #define __IF_32P(...)                       __VA_ARGS__
@@ -176,6 +177,7 @@
 #ifdef ARCH_64BIT
     #define __ASM_EMIT64(code)                  code "\n\t"
     #define __IF_64(...)                        __VA_ARGS__
+    #define __IF_32_64(a, b)                    b
 #endif /* ARCH_32BIT */
 
 #ifdef LSP_PROFILING

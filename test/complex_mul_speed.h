@@ -102,7 +102,6 @@ namespace complex_mul_speed_test
 
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
-            printf("\n");
 //            test_cplx_mul(out, in1, in2, i, native::complex_mul, "Native Unpacked Complex Multiplication");
             test_cplx_mul(out, in1, in2, i, native::packed_complex_mul, "Native Packed Complex Multiplication");
 //            test_cplx_mul(out, in1, in2, i, sse::complex_mul, "SSE Unpacked Complex Multiplication");

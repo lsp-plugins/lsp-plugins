@@ -127,99 +127,51 @@ namespace sse
 {
     void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count)
     {
-        #define complex_core(MV_DST, MV_SRC1, MV_SRC2) \
-            __ASM_EMIT("2:") \
-            /* Process vectorized data */ \
-            __ASM_EMIT(MV_SRC1 "    0x00(%[src1]), %%xmm0")     /* xmm0 = ar0 ai0 ar1 ai1 */ \
-            __ASM_EMIT(MV_SRC1 "    0x10(%[src1]), %%xmm1")     /* xmm1 = ar2 ai2 ar3 ai3 */ \
-            __ASM_EMIT(MV_SRC2 "    0x00(%[src2]), %%xmm4")     /* xmm4 = br0 bi0 br1 bi1 */ \
-            __ASM_EMIT(MV_SRC2 "    0x10(%[src2]), %%xmm5")     /* xmm5 = br2 bi2 br3 bi3 */ \
-            /* Do shuffle */ \
-            __ASM_EMIT("movaps      %%xmm0, %%xmm2")            /* xmm2 = ar0 ai0 ar1 ai1 */ \
-            __ASM_EMIT("movaps      %%xmm4, %%xmm6")            /* xmm6 = br0 bi0 br1 bi1 */ \
-            __ASM_EMIT("shufps      $0x88, %%xmm1, %%xmm0")     /* xmm0 = ar0 ar1 ar2 ar3 */ \
-            __ASM_EMIT("shufps      $0x88, %%xmm5, %%xmm4")     /* xmm4 = br0 br1 br2 br3 */ \
-            __ASM_EMIT("shufps      $0xdd, %%xmm1, %%xmm2")     /* xmm2 = ai0 ai1 ai2 ai3 */ \
-            __ASM_EMIT("shufps      $0xdd, %%xmm5, %%xmm6")     /* xmm6 = bi0 bi1 bi2 bi3 */ \
-            /* Calc multiplication */ \
-            __ASM_EMIT("movaps      %%xmm0, %%xmm1")            /* xmm1 = ar0 ar1 ar2 ar3 */ \
-            __ASM_EMIT("mulps       %%xmm4, %%xmm0")            /* xmm0 = ar0*br0 ar1*br1 ar2*br2 ar3*br3 */ \
-            __ASM_EMIT("mulps       %%xmm6, %%xmm1")            /* xmm1 = ar0*bi0 ar1*bi1 ar2*bi2 ar3*bi3 */ \
-            __ASM_EMIT("mulps       %%xmm2, %%xmm6")            /* xmm6 = ai0*bi0 ai1*bi1 ai2*bi2 ai3*bi3 */ \
-            __ASM_EMIT("mulps       %%xmm2, %%xmm4")            /* xmm4 = ai0*br0 ai1*br1 ai2*br2 ai3*br3 */ \
-            __ASM_EMIT("addps       %%xmm4, %%xmm1")            /* xmm1 = ar[i]*bi[i] + ai[i]*br[i] = i0 i1 i2 i3 */ \
-            __ASM_EMIT("subps       %%xmm6, %%xmm0")            /* xmm0 = ar[i]*br[i] - ai[i]*bi[i] = r0 r1 r2 r3 */ \
-            \
-            /* Re-shuffle */ \
-            __ASM_EMIT("movaps      %%xmm0, %%xmm2")            /* xmm2 = r0 r1 r2 r3 */ \
-            __ASM_EMIT("unpcklps    %%xmm1, %%xmm0")            /* xmm0 = r0 i0 r1 i1 */ \
-            __ASM_EMIT("unpckhps    %%xmm1, %%xmm2")            /* xmm2 = r2 i2 r3 i3 */ \
-            \
-            /* Store */ \
-            __ASM_EMIT(MV_DST "     %%xmm0, 0x00(%[dst])") \
-            __ASM_EMIT(MV_DST "     %%xmm2, 0x10(%[dst])") \
-            /* Repeat loop */ \
-            __ASM_EMIT("sub         $4, %[count]") \
-            __ASM_EMIT("add         $0x20, %[src1]") \
-            __ASM_EMIT("add         $0x20, %[src2]") \
-            __ASM_EMIT("add         $0x20, %[dst]") \
-            __ASM_EMIT("cmp         $4, %[count]") \
-            __ASM_EMIT("jae         2b") \
-            __ASM_EMIT("jmp         3f")
-
-
         __asm__ __volatile__
         (
             /* Check count */
             __ASM_EMIT("1:")
-            __ASM_EMIT("cmp         $4, %[count]")
+            __ASM_EMIT("sub         $4, %[count]")
             __ASM_EMIT("jb          3f")
 
-            /* Do block processing */
-            __ASM_EMIT("test $0x0f, %[dst]")
-            __ASM_EMIT("jnz 1100f")
-                __ASM_EMIT("test $0x0f, %[src1]")
-                __ASM_EMIT("jnz 1010f")
-                    __ASM_EMIT("test $0x0f, %[src2]")
-                    __ASM_EMIT("jnz 1001f")
-                        __ASM_EMIT(".align 16")
-                        complex_core("movaps", "movaps", "movaps")
-                    __ASM_EMIT(".align 16")
-                    __ASM_EMIT("1001:")
-                        complex_core("movaps", "movaps", "movups")
-                __ASM_EMIT("1010:")
-                    __ASM_EMIT("test $0x0f, %[src2]")
-                    __ASM_EMIT("jnz 1011f")
-                        __ASM_EMIT(".align 16")
-                        complex_core("movaps", "movups", "movaps")
-                    __ASM_EMIT(".align 16")
-                    __ASM_EMIT("1011:")
-                        complex_core("movaps", "movups", "movups")
+            __ASM_EMIT("2:")
+            /* Process vectorized data */
+            __ASM_EMIT("movups      0x00(%[src1]), %%xmm0")     /* xmm0 = ar0 ai0 ar1 ai1 */
+            __ASM_EMIT("movups      0x10(%[src1]), %%xmm1")     /* xmm1 = ar2 ai2 ar3 ai3 */
+            __ASM_EMIT("movups      0x00(%[src2]), %%xmm4")     /* xmm4 = br0 bi0 br1 bi1 */
+            __ASM_EMIT("movups      0x10(%[src2]), %%xmm5")     /* xmm5 = br2 bi2 br3 bi3 */
+            /* Do shuffle */
+            __ASM_EMIT("movaps      %%xmm0, %%xmm2")            /* xmm2 = ar0 ai0 ar1 ai1 */
+            __ASM_EMIT("movaps      %%xmm4, %%xmm6")            /* xmm6 = br0 bi0 br1 bi1 */
+            __ASM_EMIT("shufps      $0x88, %%xmm1, %%xmm0")     /* xmm0 = ar0 ar1 ar2 ar3 */
+            __ASM_EMIT("shufps      $0x88, %%xmm5, %%xmm4")     /* xmm4 = br0 br1 br2 br3 */
+            __ASM_EMIT("shufps      $0xdd, %%xmm1, %%xmm2")     /* xmm2 = ai0 ai1 ai2 ai3 */
+            __ASM_EMIT("shufps      $0xdd, %%xmm5, %%xmm6")     /* xmm6 = bi0 bi1 bi2 bi3 */
+            /* Calc multiplication */
+            __ASM_EMIT("movaps      %%xmm0, %%xmm1")            /* xmm1 = ar0 ar1 ar2 ar3 */
+            __ASM_EMIT("mulps       %%xmm4, %%xmm0")            /* xmm0 = ar0*br0 ar1*br1 ar2*br2 ar3*br3 */
+            __ASM_EMIT("mulps       %%xmm6, %%xmm1")            /* xmm1 = ar0*bi0 ar1*bi1 ar2*bi2 ar3*bi3 */
+            __ASM_EMIT("mulps       %%xmm2, %%xmm6")            /* xmm6 = ai0*bi0 ai1*bi1 ai2*bi2 ai3*bi3 */
+            __ASM_EMIT("mulps       %%xmm2, %%xmm4")            /* xmm4 = ai0*br0 ai1*br1 ai2*br2 ai3*br3 */
+            __ASM_EMIT("addps       %%xmm4, %%xmm1")            /* xmm1 = ar[i]*bi[i] + ai[i]*br[i] = i0 i1 i2 i3 */
+            __ASM_EMIT("subps       %%xmm6, %%xmm0")            /* xmm0 = ar[i]*br[i] - ai[i]*bi[i] = r0 r1 r2 r3 */
+            /* Re-shuffle */
+            __ASM_EMIT("movaps      %%xmm0, %%xmm2")            /* xmm2 = r0 r1 r2 r3 */
+            __ASM_EMIT("unpcklps    %%xmm1, %%xmm0")            /* xmm0 = r0 i0 r1 i1 */
+            __ASM_EMIT("unpckhps    %%xmm1, %%xmm2")            /* xmm2 = r2 i2 r3 i3 */
+            /* Store */
+            __ASM_EMIT("movups       %%xmm0, 0x00(%[dst])")
+            __ASM_EMIT("movups       %%xmm2, 0x10(%[dst])")
+            /* Repeat loop */
+            __ASM_EMIT("add         $0x20, %[src1]")
+            __ASM_EMIT("add         $0x20, %[src2]")
+            __ASM_EMIT("add         $0x20, %[dst]")
+            __ASM_EMIT("sub         $4, %[count]")
+            __ASM_EMIT("jae         2b")
 
-            __ASM_EMIT("1100:")
-                __ASM_EMIT("test $0x0f, %[src1]")
-                __ASM_EMIT("jnz 1110f")
-                    __ASM_EMIT("test $0x0f, %[src2]")
-                    __ASM_EMIT("jnz 1101f")
-                        __ASM_EMIT(".align 16")
-                        complex_core("movups", "movaps", "movaps")
-                    __ASM_EMIT(".align 16")
-                    __ASM_EMIT("1101:")
-                        complex_core("movups", "movaps", "movups")
-                __ASM_EMIT("1110:")
-                    __ASM_EMIT("test $0x0f, %[src2]")
-                    __ASM_EMIT("jnz 1111f")
-                        __ASM_EMIT(".align 16")
-                        complex_core("movups", "movups", "movaps")
-                    __ASM_EMIT(".align 16")
-                    __ASM_EMIT("1111:")
-                        complex_core("movups", "movups", "movups")
-
-            /* Check count again */
             __ASM_EMIT("3:")
-            __ASM_EMIT("test        %[count], %[count]")
-            __ASM_EMIT("jz          5f")
-
+            __ASM_EMIT("add         $4, %[count]")
+            __ASM_EMIT("jle         5f")
             /* Process scalar data */
             __ASM_EMIT("4:")
             /* Load */
@@ -253,8 +205,6 @@ namespace sse
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm4", "%xmm5", "%xmm6"
         );
-
-        #undef complex_core
     }
 
     void packed_real_to_complex(float *dst, const float *src, size_t count)
@@ -674,405 +624,111 @@ namespace sse
 
     void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count)
     {
-        if (count == 0)
-            return;
+        __IF_32( size_t temp_re, temp_im );
 
         __asm__ __volatile__
         (
+            /* Check count */
             __ASM_EMIT("1:")
+            __ASM_EMIT("sub         $4, %[count]")
+            __ASM_EMIT("jb          3f")
 
-            // Check conditions
-            #ifndef __x86_64__
-            __ASM_EMIT("testb $0x0f, %0")
-            #else
-            __ASM_EMIT("test $0x0f, %0")
-            #endif
-            __ASM_EMIT("jz 2f")
-
-            // Process data
-            __ASM_EMIT("movss   (%2), %%xmm0")    // xmm0 = *src1_re
-            __ASM_EMIT("movss   (%3), %%xmm1")    // xmm1 = *src1_im
-            __ASM_EMIT("movss   (%4), %%xmm2")    // xmm2 = *src2_re
-            __ASM_EMIT("movss   (%5), %%xmm3")    // xmm3 = *src2_im
-            __ASM_EMIT("movaps  %%xmm0, %%xmm4")  // xmm4 = *src1_re
-            __ASM_EMIT("movaps  %%xmm1, %%xmm5")  // xmm5 = *src1_im
-            __ASM_EMIT("mulss   %%xmm2, %%xmm0")  // xmm0 = *src1_re * *src2_re
-            __ASM_EMIT("mulss   %%xmm3, %%xmm1")  // xmm1 = *src1_im * *src2_im
-            __ASM_EMIT("mulss   %%xmm5, %%xmm2")  // xmm2 = *src2_re * *src1_im
-            __ASM_EMIT("mulss   %%xmm4, %%xmm3")  // xmm3 = *src2_im * *src1_re
-            __ASM_EMIT("subss   %%xmm1, %%xmm0")  // xmm0 = *src1_re * *src2_re - *src1_im * *src2_im
-            __ASM_EMIT("addss   %%xmm3, %%xmm2")  // xmm2 = *src2_re * *src1_im + *src2_im * *src1_re
-            #ifndef __x86_64__
-            __ASM_EMIT("xchg    %0, %2")
-            __ASM_EMIT("xchg    %1, %3")
-            __ASM_EMIT("movss   %%xmm0, (%2)")
-            __ASM_EMIT("movss   %%xmm2, (%3)")
-            #else
-            __ASM_EMIT("movss   %%xmm0, (%0)")
-            __ASM_EMIT("movss   %%xmm2, (%1)")
-            #endif
-
-            // Move pointers
-            __ASM_EMIT("add     $0x4, %2")
-            __ASM_EMIT("add     $0x4, %3")
-            __ASM_EMIT("add     $0x4, %4")
-            __ASM_EMIT("add     $0x4, %5")
-            #ifndef __x86_64__
-            __ASM_EMIT("xchg    %0, %2")
-            __ASM_EMIT("xchg    %1, %3")
-            __ASM_EMIT("add     $0x4, %2")
-            __ASM_EMIT("add     $0x4, %3")
-            #else
-            __ASM_EMIT("add     $0x4, %0")
-            __ASM_EMIT("add     $0x4, %1")
-            #endif
-
-            // Repeat loop
-            __ASM_EMIT("dec %6")
-            __ASM_EMIT("jnz 1b")
             __ASM_EMIT("2:")
+            /* Process vectorized data */
+            __ASM_EMIT("movups      0x00(%[src1_re]), %%xmm0")  /* xmm0 = ar0 ar1 ar2 ar3 */
+            __ASM_EMIT("movups      0x00(%[src2_re]), %%xmm4")  /* xmm4 = br0 br1 br2 br3 */
+            __ASM_EMIT("movups      0x00(%[src1_im]), %%xmm2")  /* xmm2 = ai0 ai1 ai2 ai3 */
+            __ASM_EMIT("movups      0x00(%[src2_im]), %%xmm6")  /* xmm6 = bi0 bi1 bi2 bi3 */
+            /* Calc multiplication */
+            __ASM_EMIT("movaps      %%xmm0, %%xmm1")            /* xmm1 = ar0 ar1 ar2 ar3 */
+            __ASM_EMIT("mulps       %%xmm4, %%xmm0")            /* xmm0 = ar0*br0 ar1*br1 ar2*br2 ar3*br3 */
+            __ASM_EMIT("mulps       %%xmm6, %%xmm1")            /* xmm1 = ar0*bi0 ar1*bi1 ar2*bi2 ar3*bi3 */
+            __ASM_EMIT("mulps       %%xmm2, %%xmm6")            /* xmm6 = ai0*bi0 ai1*bi1 ai2*bi2 ai3*bi3 */
+            __ASM_EMIT("mulps       %%xmm2, %%xmm4")            /* xmm4 = ai0*br0 ai1*br1 ai2*br2 ai3*br3 */
+            __ASM_EMIT("addps       %%xmm4, %%xmm1")            /* xmm1 = ar[i]*bi[i] + ai[i]*br[i] = i0 i1 i2 i3 */
+            __ASM_EMIT("subps       %%xmm6, %%xmm0")            /* xmm0 = ar[i]*br[i] - ai[i]*bi[i] = r0 r1 r2 r3 */
+            /* Store (64-bit code) */
+            __ASM_EMIT64("movups    %%xmm0, 0x00(%[dst_re])")
+            __ASM_EMIT64("movups    %%xmm1, 0x00(%[dst_im])")
+            __ASM_EMIT64("add       $0x10, %[dst_re]")
+            __ASM_EMIT64("add       $0x10, %[dst_im]")
+            /* Store (32-bit code) */
+            __ASM_EMIT32("mov       %[src1_re], %[temp_re]")
+            __ASM_EMIT32("mov       %[src1_im], %[temp_im]")
+            __ASM_EMIT32("mov       %[dst_re], %[src1_re]")
+            __ASM_EMIT32("mov       %[dst_im], %[src1_im]")
+            __ASM_EMIT64("movups    %%xmm0, 0x00(%[src1_re])")
+            __ASM_EMIT64("movups    %%xmm1, 0x00(%[src1_im])")
+            __ASM_EMIT64("add       $0x10, %[src1_re]")
+            __ASM_EMIT64("add       $0x10, %[src1_im]")
+            __ASM_EMIT32("mov       %[src1_re], %[dst_re]")
+            __ASM_EMIT32("mov       %[src1_im], %[dst_im]")
+            __ASM_EMIT32("mov       %[dst_re], %[src1_re]")
+            __ASM_EMIT32("mov       %[dst_im], %[src1_im]")
+            /* Repeat loop */
+            __ASM_EMIT("add         $0x10, %[src1_re]")
+            __ASM_EMIT("add         $0x10, %[src2_re]")
+            __ASM_EMIT("add         $0x10, %[src1_im]")
+            __ASM_EMIT("add         $0x10, %[src2_im]")
+            __ASM_EMIT("sub         $4, %[count]")
+            __ASM_EMIT("jae         2b")
 
-            :
-              #ifndef __x86_64__
-              "+m" (dst_re), "+m" (dst_im),
-              #else
-              "+r" (dst_re), "+r" (dst_im),
-              #endif
-              "+r" (src1_re), "+r" (src1_im),
-              "+r" (src2_re), "+r" (src2_im),
-              "+r" (count)
+            __ASM_EMIT("3:")
+            __ASM_EMIT("add         $4, %[count]")
+            __ASM_EMIT("jle         5f")
+
+            /* Process scalar data */
+            __ASM_EMIT("4:")
+            __ASM_EMIT("movss       0x00(%[src1_re]), %%xmm0")  /* xmm0 = ar */
+            __ASM_EMIT("movss       0x00(%[src2_re]), %%xmm4")  /* xmm4 = br */
+            __ASM_EMIT("movss       0x00(%[src1_im]), %%xmm2")  /* xmm2 = ai */
+            __ASM_EMIT("movss       0x00(%[src2_im]), %%xmm6")  /* xmm6 = bi */
+            /* Calculate multiplication */
+            __ASM_EMIT("movaps      %%xmm0, %%xmm1")            /* xmm1 = ar */
+            __ASM_EMIT("mulss       %%xmm4, %%xmm0")            /* xmm0 = ar*br */
+            __ASM_EMIT("mulss       %%xmm6, %%xmm1")            /* xmm1 = ar*bi */
+            __ASM_EMIT("mulss       %%xmm2, %%xmm6")            /* xmm6 = ai*bi */
+            __ASM_EMIT("mulss       %%xmm2, %%xmm4")            /* xmm4 = ai*br */
+            __ASM_EMIT("addss       %%xmm4, %%xmm1")            /* xmm1 = ar*bi + ai*br = i */
+            __ASM_EMIT("subss       %%xmm6, %%xmm0")            /* xmm0 = ar*br - ai*bi = r */
+            /* Store (64-bit code) */
+            __ASM_EMIT64("movups    %%xmm0, 0x00(%[dst_re])")
+            __ASM_EMIT64("movups    %%xmm1, 0x00(%[dst_im])")
+            __ASM_EMIT64("add       $0x04, %[dst_re]")
+            __ASM_EMIT64("add       $0x04, %[dst_im]")
+            /* Store (32-bit code) */
+            __ASM_EMIT32("mov       %[src1_re], %[temp_re]")
+            __ASM_EMIT32("mov       %[src1_im], %[temp_im]")
+            __ASM_EMIT32("mov       %[dst_re], %[src1_re]")
+            __ASM_EMIT32("mov       %[dst_im], %[src1_im]")
+            __ASM_EMIT64("movups    %%xmm0, 0x00(%[src1_re])")
+            __ASM_EMIT64("movups    %%xmm1, 0x00(%[src1_im])")
+            __ASM_EMIT64("add       $0x04, %[src1_re]")
+            __ASM_EMIT64("add       $0x04, %[src1_im]")
+            __ASM_EMIT32("mov       %[src1_re], %[dst_re]")
+            __ASM_EMIT32("mov       %[src1_im], %[dst_im]")
+            __ASM_EMIT32("mov       %[dst_re], %[src1_re]")
+            __ASM_EMIT32("mov       %[dst_im], %[src1_im]")
+            /* Repeat loop */
+            __ASM_EMIT("add         $0x04, %[src1_re]")
+            __ASM_EMIT("add         $0x04, %[src2_re]")
+            __ASM_EMIT("add         $0x04, %[src1_im]")
+            __ASM_EMIT("add         $0x04, %[src2_im]")
+            __ASM_EMIT("dec         %[count]")
+            __ASM_EMIT("jnz         4b")
+
+            /* Exit */
+            __ASM_EMIT("5:")
+
+            : [dst_re] __IF_32_64("m", "+r") (dst_re), [dst_im] __IF_32_64("m", "+r") (dst_im),
+              [src1_re] "+r" (src1_re), [src1_im] "+r" (src1_im),
+              [src2_re] "+r" (src2_re), [src2_im] "+r" (src2_im),
+              __IF_32( [temp_re] "m"  (temp_re), [temp_im] "m"  (temp_im), )
+              [count] "+r" (count)
             :
             : "cc", "memory",
-              "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5"
+              "%xmm0", "%xmm1", "%xmm2", "%xmm4", "%xmm5", "%xmm6"
         );
-
-        if (count >= SSE_MULTIPLE)
-        {
-        #ifdef __i386__
-            #define cplx_mul4x(s_im, r_re1, r_im1, r_re2, r_im2) \
-                    __ASM_EMIT("100:") \
-                    \
-                    /* Prefetch data */ \
-                    __ASM_EMIT("prefetchnta 0x20(%2)") \
-                    __ASM_EMIT("prefetchnta 0x20(%3)") \
-                    __ASM_EMIT("prefetchnta 0x20(%4)") \
-                    __ASM_EMIT("prefetchnta 0x20(%5)") \
-                    /* Process data */ \
-                    __ASM_EMIT(r_re1 "  (%2), %%xmm0") \
-                    __ASM_EMIT(r_im1 "  (%3), %%xmm1") \
-                    __ASM_EMIT(r_re2 "  (%4), %%xmm2") \
-                    __ASM_EMIT(r_im2 "  (%5), %%xmm3") \
-                    __ASM_EMIT("movaps  %%xmm0, %%xmm4") \
-                    __ASM_EMIT("movaps  %%xmm1, %%xmm5") \
-                    __ASM_EMIT("mulps   %%xmm2, %%xmm0") \
-                    __ASM_EMIT("mulps   %%xmm3, %%xmm1") \
-                    __ASM_EMIT("mulps   %%xmm5, %%xmm2") \
-                    __ASM_EMIT("mulps   %%xmm4, %%xmm3") \
-                    __ASM_EMIT("subps   %%xmm1, %%xmm0") \
-                    __ASM_EMIT("addps   %%xmm3, %%xmm2") \
-                    __ASM_EMIT("xchg    %0, %2") \
-                    __ASM_EMIT("xchg    %1, %3") \
-                    __ASM_EMIT("movaps" " %%xmm0, (%2)") \
-                    __ASM_EMIT(s_im "   %%xmm2, (%3)") \
-                    \
-                    /* Move pointers */ \
-                    __ASM_EMIT("sub     $0x4, %6") \
-                    __ASM_EMIT("add     $0x10, %2") \
-                    __ASM_EMIT("add     $0x10, %3") \
-                    __ASM_EMIT("add     $0x10, %4") \
-                    __ASM_EMIT("add     $0x10, %5") \
-                    __ASM_EMIT("xchg    %0, %2") \
-                    __ASM_EMIT("xchg    %1, %3") \
-                    __ASM_EMIT("add     $0x10, %2") \
-                    __ASM_EMIT("add     $0x10, %3") \
-                    \
-                    /* Repeat loop */ \
-                    __ASM_EMIT("test $-4, %6") \
-                    __ASM_EMIT("jnz 100b")  \
-                    __ASM_EMIT("jmp 32f")
-        #else // __x86_64__
-            register size_t offset = 0;
-
-            #define cplx_mul4x(s_im, r_re1, r_im1, r_re2, r_im2) \
-                    __ASM_EMIT("100:") \
-                    \
-                    /* Prefetch data */ \
-                    __ASM_EMIT("prefetchnta 0x20(%2,%7)") \
-                    __ASM_EMIT("prefetchnta 0x20(%3,%7)") \
-                    __ASM_EMIT("prefetchnta 0x20(%4,%7)") \
-                    __ASM_EMIT("prefetchnta 0x20(%5,%7)") \
-                    /* Process data */ \
-                    __ASM_EMIT(r_re1 "  (%2,%7), %%xmm0") \
-                    __ASM_EMIT(r_im1 "  (%3,%7), %%xmm1") \
-                    __ASM_EMIT(r_re2 "  (%4,%7), %%xmm2") \
-                    __ASM_EMIT(r_im2 "  (%5,%7), %%xmm3") \
-                    __ASM_EMIT("movaps  %%xmm0, %%xmm4") \
-                    __ASM_EMIT("movaps  %%xmm1, %%xmm5") \
-                    __ASM_EMIT("mulps   %%xmm2, %%xmm0") \
-                    __ASM_EMIT("mulps   %%xmm3, %%xmm1") \
-                    __ASM_EMIT("mulps   %%xmm5, %%xmm2") \
-                    __ASM_EMIT("mulps   %%xmm4, %%xmm3") \
-                    __ASM_EMIT("subps   %%xmm1, %%xmm0") \
-                    __ASM_EMIT("addps   %%xmm3, %%xmm2") \
-                    __ASM_EMIT("movaps  %%xmm0, (%0,%7)") \
-                    __ASM_EMIT(s_im "   %%xmm2, (%1,%7)") \
-                    \
-                    /* Move pointers */ \
-                    __ASM_EMIT("sub $0x4, %6") \
-                    __ASM_EMIT("add $0x10, %7") \
-                    \
-                    /* Repeat loop */ \
-                    __ASM_EMIT("test $-4, %6") \
-                    __ASM_EMIT("jnz 100b")  \
-                    __ASM_EMIT("jmp 32f")
-
-        #endif /* __i386__ */
-
-            __asm__ __volatile__
-            (
-                __ASM_EMIT("prefetchnta (%0)")
-                __ASM_EMIT("prefetchnta (%1)")
-                __ASM_EMIT("prefetchnta (%2)")
-                __ASM_EMIT("prefetchnta (%3)")
-                : : "r" (src1_re), "r" (src1_im), "r" (src2_re), "r" (src2_im) :
-            );
-
-            __asm__ __volatile__
-            (
-                #ifdef __x86_64__
-                __ASM_EMIT("test $0x0f, %1") // sse_aligned(dst_im)
-                #else
-                __ASM_EMIT("testb $0x0f, %1") // sse_aligned(dst_im)
-                #endif /* __x86_64__ */
-                __ASM_EMIT("jnz 16f")
-                    __ASM_EMIT("test $0x0f, %2") // sse_aligned(src1_re)
-                    __ASM_EMIT("jnz 8f")
-                        __ASM_EMIT("test $0x0f, %3") // sse_aligned(src1_im)
-                        __ASM_EMIT("jnz 4f")
-                            __ASM_EMIT("test $0x0f, %4") // sse_aligned(src2_re)
-                            __ASM_EMIT("jnz 2f")
-                                __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
-                                __ASM_EMIT("jnz 1f")
-                                    cplx_mul4x("movaps", "movaps", "movaps", "movaps", "movaps")
-                                __ASM_EMIT("1:") // !sse_aligned(src2_re)
-                                    cplx_mul4x("movaps", "movaps", "movaps", "movaps", "movups")
-                            __ASM_EMIT("2:") // !sse_aligned(src2_re)
-                                __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
-                                __ASM_EMIT("jnz 3f")
-                                    cplx_mul4x("movaps", "movaps", "movaps", "movups", "movaps")
-                                __ASM_EMIT("3:") // !sse_aligned(src2_re)
-                                    cplx_mul4x("movaps", "movaps", "movaps", "movups", "movups")
-                        __ASM_EMIT("4:") // !sse_aligned(src1_im)
-                            __ASM_EMIT("test $0x0f, %4") // sse_aligned(src2_re)
-                            __ASM_EMIT("jnz 6f")
-                                __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
-                                __ASM_EMIT("jnz 5f")
-                                    cplx_mul4x("movaps", "movaps", "movups", "movaps", "movaps")
-                                __ASM_EMIT("5:") // !sse_aligned(src2_re)
-                                    cplx_mul4x("movaps", "movaps", "movups", "movaps", "movups")
-                            __ASM_EMIT("6:") // !sse_aligned(src2_re)
-                                __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
-                                __ASM_EMIT("jnz 7f")
-                                    cplx_mul4x("movaps", "movaps", "movups", "movups", "movaps")
-                                __ASM_EMIT("7:") // !sse_aligned(src2_re)
-                                    cplx_mul4x("movaps", "movaps", "movups", "movups", "movups")
-                    __ASM_EMIT("8:") // !sse_aligned(src1_re)
-                    __ASM_EMIT("test $0x0f, %3") // sse_aligned(src1_im)
-                        __ASM_EMIT("jnz 12f")
-                            __ASM_EMIT("test $0x0f, %4") // sse_aligned(src2_re)
-                            __ASM_EMIT("jnz 10f")
-                                __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
-                                __ASM_EMIT("jnz 9f")
-                                    cplx_mul4x("movaps", "movups", "movaps", "movaps", "movaps")
-                                __ASM_EMIT("9:") // !sse_aligned(src2_re)
-                                    cplx_mul4x("movaps", "movups", "movaps", "movaps", "movups")
-                            __ASM_EMIT("10:") // !sse_aligned(src2_re)
-                                __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
-                                __ASM_EMIT("jnz 11f")
-                                    cplx_mul4x("movaps", "movups", "movaps", "movups", "movaps")
-                                __ASM_EMIT("11:") // !sse_aligned(src2_re)
-                                    cplx_mul4x("movaps", "movups", "movaps", "movups", "movups")
-                        __ASM_EMIT("12:") // !sse_aligned(src1_im)
-                            __ASM_EMIT("test $0x0f, %4") // sse_aligned(src2_re)
-                            __ASM_EMIT("jnz 14f")
-                                __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
-                                __ASM_EMIT("jnz 13f")
-                                    cplx_mul4x("movaps", "movups", "movups", "movaps", "movaps")
-                                __ASM_EMIT("13:") // !sse_aligned(src2_re)
-                                    cplx_mul4x("movaps", "movups", "movups", "movaps", "movups")
-                            __ASM_EMIT("14:") // !sse_aligned(src2_re)
-                                __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
-                                __ASM_EMIT("jnz 15f")
-                                    cplx_mul4x("movaps", "movups", "movups", "movups", "movaps")
-                                __ASM_EMIT("15:") // !sse_aligned(src2_re)
-                                    cplx_mul4x("movaps", "movups", "movups", "movups", "movups")
-
-                __ASM_EMIT("16:") // !sse_aligned(dst_im)
-                    __ASM_EMIT("test $0x0f, %2") // sse_aligned(src1_re)
-                        __ASM_EMIT("jnz 24f")
-                            __ASM_EMIT("test $0x0f, %3") // sse_aligned(src1_im)
-                            __ASM_EMIT("jnz 20f")
-                                __ASM_EMIT("test $0x0f, %4") // sse_aligned(src2_re)
-                                __ASM_EMIT("jnz 18f")
-                                    __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
-                                    __ASM_EMIT("jnz 17f")
-                                        cplx_mul4x("movups",  "movaps", "movaps", "movaps", "movaps")
-                                    __ASM_EMIT("17:") // !sse_aligned(src2_re)
-                                        cplx_mul4x("movups",  "movaps", "movaps", "movaps", "movups")
-                                __ASM_EMIT("18:") // !sse_aligned(src2_re)
-                                    __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
-                                    __ASM_EMIT("jnz 19f")
-                                        cplx_mul4x("movups",  "movaps", "movaps", "movups", "movaps")
-                                    __ASM_EMIT("19:") // !sse_aligned(src2_re)
-                                        cplx_mul4x("movups",  "movaps", "movaps", "movups", "movups")
-                            __ASM_EMIT("20:") // !sse_aligned(src1_im)
-                                __ASM_EMIT("test $0x0f, %4") // sse_aligned(src2_re)
-                                __ASM_EMIT("jnz 22f")
-                                    __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
-                                    __ASM_EMIT("jnz 21f")
-                                        cplx_mul4x("movups",  "movaps", "movups", "movaps", "movaps")
-                                    __ASM_EMIT("21:") // !sse_aligned(src2_re)
-                                        cplx_mul4x("movups",  "movaps", "movups", "movaps", "movups")
-                                __ASM_EMIT("22:") // !sse_aligned(src2_re)
-                                    __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
-                                    __ASM_EMIT("jnz 23f")
-                                        cplx_mul4x("movups",  "movaps", "movups", "movups", "movaps")
-                                    __ASM_EMIT("23:") // !sse_aligned(src2_re)
-                                        cplx_mul4x("movups",  "movaps", "movups", "movups", "movups")
-                        __ASM_EMIT("24:") // !sse_aligned(src1_re)
-                        __ASM_EMIT("test $0x0f, %3") // sse_aligned(src1_im)
-                            __ASM_EMIT("jnz 28f")
-                                __ASM_EMIT("test $0x0f, %4") // sse_aligned(src2_re)
-                                __ASM_EMIT("jnz 26f")
-                                    __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
-                                    __ASM_EMIT("jnz 25f")
-                                        cplx_mul4x("movups",  "movups", "movaps", "movaps", "movaps")
-                                    __ASM_EMIT("25:") // !sse_aligned(src2_re)
-                                        cplx_mul4x("movups",  "movups", "movaps", "movaps", "movups")
-                                __ASM_EMIT("26:") // !sse_aligned(src2_re)
-                                    __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
-                                    __ASM_EMIT("jnz 27f")
-                                        cplx_mul4x("movups",  "movups", "movaps", "movups", "movaps")
-                                    __ASM_EMIT("27:") // !sse_aligned(src2_re)
-                                        cplx_mul4x("movups",  "movups", "movaps", "movups", "movups")
-                            __ASM_EMIT("28:") // !sse_aligned(src1_im)
-                                __ASM_EMIT("test $0x0f, %4") // sse_aligned(src2_re)
-                                __ASM_EMIT("jnz 30f")
-                                    __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
-                                    __ASM_EMIT("jnz 29f")
-                                        cplx_mul4x("movups",  "movups", "movups", "movaps", "movaps")
-                                    __ASM_EMIT("29:") // !sse_aligned(src2_re)
-                                        cplx_mul4x("movups",  "movups", "movups", "movaps", "movups")
-                                __ASM_EMIT("30:") // !sse_aligned(src2_re)
-                                    __ASM_EMIT("test $0x0f, %5") // sse_aligned(src2_im)
-                                    __ASM_EMIT("jnz 31f")
-                                        cplx_mul4x("movups",  "movups", "movups", "movups", "movaps")
-                                    __ASM_EMIT("31:") // !sse_aligned(src2_re)
-                                        cplx_mul4x("movups",  "movups", "movups", "movups", "movups")
-                __ASM_EMIT("32:")
-
-                :
-                  #ifndef __x86_64__
-                  "+m" (dst_re), "+m" (dst_im),
-                  #else
-                  "+r" (dst_re), "+r" (dst_im),
-                  #endif
-                  "+r" (src1_re), "+r" (src1_im),
-                  "+r" (src2_re), "+r" (src2_im),
-                  "+r" (count)
-                  #ifdef __x86_64__
-                  ,"+r"(offset)
-                  #endif /* __x86_64__ */
-                :
-                : "cc", "memory",
-                  "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5"
-            );
-
-            #undef cplx_mul4x
-
-            #ifdef __x86_64__
-                __asm__ __volatile__
-                (
-                    // Update pointers
-                    __ASM_EMIT("add %6, %0")
-                    __ASM_EMIT("add %6, %1")
-                    __ASM_EMIT("add %6, %2")
-                    __ASM_EMIT("add %6, %3")
-                    __ASM_EMIT("add %6, %4")
-                    __ASM_EMIT("add %6, %5")
-
-                    : "+r" (dst_re), "+r" (dst_im),
-                      "+r" (src1_re), "+r" (src1_im),
-                      "+r" (src2_re), "+r" (src2_im),
-                      "+r" (offset)
-                    :
-                    : "cc",
-                      "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5"
-                );
-            #endif /* __x86_64__ */
-        }
-
-        if (count > 0)
-        {
-            __asm__ __volatile__
-            (
-                __ASM_EMIT("1:")
-
-                // Process data
-                __ASM_EMIT("movss   (%2), %%xmm0")
-                __ASM_EMIT("movss   (%3), %%xmm1")
-                __ASM_EMIT("movss   (%4), %%xmm2")
-                __ASM_EMIT("movss   (%5), %%xmm3")
-                __ASM_EMIT("movaps  %%xmm0, %%xmm4")
-                __ASM_EMIT("movaps  %%xmm1, %%xmm5")
-                __ASM_EMIT("mulss   %%xmm2, %%xmm0")
-                __ASM_EMIT("mulss   %%xmm3, %%xmm1")
-                __ASM_EMIT("mulss   %%xmm5, %%xmm2")
-                __ASM_EMIT("mulss   %%xmm4, %%xmm3")
-                __ASM_EMIT("subss   %%xmm1, %%xmm0")
-                __ASM_EMIT("addss   %%xmm3, %%xmm2")
-                #ifndef __x86_64__
-                __ASM_EMIT("xchg    %0, %2")
-                __ASM_EMIT("xchg    %1, %3")
-                __ASM_EMIT("movss   %%xmm0, (%2)")
-                __ASM_EMIT("movss   %%xmm2, (%3)")
-                #else
-                __ASM_EMIT("movss   %%xmm0, (%0)")
-                __ASM_EMIT("movss   %%xmm2, (%1)")
-                #endif
-
-                // Move pointers
-                __ASM_EMIT("add     $0x4, %2")
-                __ASM_EMIT("add     $0x4, %3")
-                __ASM_EMIT("add     $0x4, %4")
-                __ASM_EMIT("add     $0x4, %5")
-                #ifndef __x86_64__
-                __ASM_EMIT("xchg    %0, %2")
-                __ASM_EMIT("xchg    %1, %3")
-                __ASM_EMIT("add     $0x4, %2")
-                __ASM_EMIT("add     $0x4, %3")
-                #else
-                __ASM_EMIT("add     $0x4, %0")
-                __ASM_EMIT("add     $0x4, %1")
-                #endif
-
-                // Repeat loop
-                __ASM_EMIT("dec %6")
-                __ASM_EMIT("jnz 1b")
-                :
-                  #ifndef __x86_64__
-                  "+m" (dst_re), "+m" (dst_im),
-                  #else
-                  "+r" (dst_re), "+r" (dst_im),
-                  #endif
-                  "+r" (src1_re), "+r" (src1_im),
-                  "+r" (src2_re), "+r" (src2_im),
-                  "+r" (count)
-                :
-                : "cc", "memory",
-                  "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5"
-            );
-        }
     }
 
     static void complex_mod(float *dst_mod, const float *src_re, const float *src_im, size_t count)
