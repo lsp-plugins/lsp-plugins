@@ -15,6 +15,7 @@
 #include <time.h>
 #include <core/types.h>
 #include <data/cstorage.h>
+#include <test/test.h>
 
 #define PTEST_BEGIN(group, name, time, iterations) \
         namespace test { \
@@ -34,6 +35,8 @@
 
 #define PTEST_MAIN \
         virtual void execute()
+
+#define PTEST_SUPPORTED(ptr)        TEST_SUPPORTED(ptr)
 
 #define PTEST_LOOP(__key, ...) { \
         double __start = clock(); \
@@ -81,7 +84,7 @@
 
 namespace test
 {
-    class PerformanceTest
+    class PerformanceTest: public Test
     {
         private:
             friend PerformanceTest *ptest_init();
@@ -103,9 +106,6 @@ namespace test
             } stats_t;
 
         protected:
-            const char                         *__test_group;
-            const char                         *__test_name;
-            bool                                __verbose;
             size_t                              __test_iterations;
             double                              __test_time;
             mutable lsp::cstorage<stats_t>      __test_stats;
@@ -121,17 +121,12 @@ namespace test
             virtual ~PerformanceTest();
 
         public:
-            inline const char *name() const     { return __test_name; }
-            inline const char *group() const    { return __test_group; }
             inline PerformanceTest *next()      { return __next; }
             void dump_stats() const;
             void free_stats();
-            inline void set_verbose(bool verbose)      { __verbose = verbose; }
 
         public:
             virtual void execute() = 0;
-
-            virtual bool ignore() const;
     };
 
 

@@ -16,6 +16,7 @@ namespace avx
 {
     void x64_bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count)
     {
+    #ifdef ARCH_X86_64_AVX
         __asm__ __volatile__
         (
             __ASM_EMIT("test            %[count], %[count]")
@@ -114,6 +115,7 @@ namespace avx
               "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7",
               "%xmm8", "%xmm9", "%xmm10", "%xmm11", "%xmm12", "%xmm13", "%xmm14", "%xmm15"
         );
+    #endif /* ARCH_X86_64_AVX */
 
     //    while (count--)
     //    {

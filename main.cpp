@@ -174,6 +174,7 @@ typedef struct config_t
     bool                        fork;
     bool                        verbose;
     bool                        debug;
+    bool                        list_all;
     size_t                      threads;
     cvector<LSPString>          list;
 } config_t;
@@ -296,6 +297,26 @@ void utest_sighandler(int signum)
     exit(2);
 }
 
+int output_test_list(const char *text, cvector<char> &list)
+{
+    printf("\n%s:\n", text);
+    size_t n = list.size();
+    for (size_t i=0; i<n-1; ++i)
+        for (size_t j=i+1; j<n; ++j)
+            if (strcmp(list.at(i), list.at(j)) > 0)
+                list.swap(i, j);
+
+    for (size_t i=0; i<n; ++i)
+    {
+        char *name = list.at(i);
+        printf("  %s\n", name);
+        free(name);
+    }
+    printf("\n");
+    list.flush();
+    return 0;
+}
+
 int execute_utest(config_t *cfg, test::UnitTest *v)
 {
     // Set-up timer for deadline expiration
@@ -340,6 +361,24 @@ int launch_ptest(config_t *cfg)
     {
         fprintf(stderr, "No performance tests available\n");
         return -1;
+    }
+
+    // List all tests if requested
+    if (cfg->list_all)
+    {
+        cvector<char> names;
+
+        for ( ; v != NULL; v = v->next())
+        {
+            char *str = NULL;
+            asprintf(&str, "%s.%s", v->group(), v->name());
+            if (str != NULL)
+            {
+                if (!names.add(str))
+                    free(str);
+            }
+        }
+        return output_test_list("List of available performance tests", names);
     }
 
     int result = 0;
@@ -418,6 +457,7 @@ int launch_ptest(config_t *cfg)
             stats.failed ++;
     }
 
+    clock_gettime(CLOCK_REALTIME, &finish);
     stats.overall = (finish.tv_sec - ts.tv_sec) + (finish.tv_nsec - ts.tv_nsec) * 1e-9;
     return output_stats(&stats, "Overall performance test statistics");
 }
@@ -469,6 +509,8 @@ bool wait_thread(config_t *cfg, task_t *threads, stats_t *stats)
     t->submitted.tv_sec     = 0;
     t->submitted.tv_nsec    = 0;
     t->utest                = NULL;
+
+    return true;
 }
 
 int wait_threads(config_t *cfg, task_t *threads, stats_t *stats)
@@ -560,6 +602,24 @@ int launch_utest(config_t *cfg)
         return -1;
     }
 
+    // List all tests if requested
+    if (cfg->list_all)
+    {
+        cvector<char> names;
+
+        for ( ; v != NULL; v = v->next())
+        {
+            char *str = NULL;
+            asprintf(&str, "%s.%s", v->group(), v->name());
+            if (str != NULL)
+            {
+                if (!names.add(str))
+                    free(str);
+            }
+        }
+        return output_test_list("List of available performance tests", names);
+    }
+
     struct timespec start, finish;
     stats_t stats;
 
@@ -620,6 +680,7 @@ int parse_config(config_t *cfg, int argc, const char **argv)
     cfg->mode       = UNKNOWN;
     cfg->fork       = true;
     cfg->verbose    = false;
+    cfg->list_all   = false;
     cfg->threads    = sysconf(_SC_NPROCESSORS_ONLN) * 2;
     if (argc < 2)
         return usage();
@@ -643,6 +704,8 @@ int parse_config(config_t *cfg, int argc, const char **argv)
             cfg->verbose    = false;
         else if (!strcmp(argv[i], "--debug"))
             cfg->debug      = true;
+        else if (!strcmp(argv[i], "--list"))
+            cfg->list_all   = true;
         else if (!strcmp(argv[i], "--threads"))
         {
             if ((++i) >= argc)

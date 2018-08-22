@@ -13,24 +13,15 @@ namespace test
 {
     UnitTest *UnitTest::__root = NULL;
 
-    UnitTest::UnitTest(const char *group, const char *name)
+    UnitTest::UnitTest(const char *group, const char *name): Test(group, name)
     {
-        __test_group        = group;
-        __test_name         = name;
-        __next              = __root;
-        __verbose           = false;
-
         // Self-register
+        __next              = __root;
         __root              = this;
     }
 
     UnitTest::~UnitTest()
     {
-    }
-
-    bool UnitTest::ignore() const
-    {
-        return false;
     }
 
     double UnitTest::time_limit() const

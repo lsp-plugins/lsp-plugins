@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
+#include <test/test.h>
 
 #define UTEST_BEGIN(group, name) \
         namespace test { \
@@ -35,6 +36,8 @@
 
 #define UTEST_MAIN \
         virtual void execute()
+
+#define UTEST_SUPPORTED(ptr)        TEST_SUPPORTED(ptr)
 
 #define UTEST_FAIL_MSG(message, ...) {  \
             fprintf(stderr, "Unit test '%s.%s' has failed at file %s, line %d with message: \n  " message  "\n", \
@@ -74,7 +77,7 @@
 
 namespace test
 {
-    class UnitTest
+    class UnitTest: public Test
     {
         private:
             friend UnitTest *utest_init();
@@ -84,11 +87,6 @@ namespace test
             UnitTest               *__next;
 
         protected:
-            const char     *__test_group;
-            const char     *__test_name;
-            bool            __verbose;
-
-        protected:
             int             printf(const char *fmt, ...);
 
         public:
@@ -96,16 +94,10 @@ namespace test
             virtual ~UnitTest();
 
         public:
-            inline const char *name() const     { return __test_name; }
-            inline const char *group() const    { return __test_group; }
             inline UnitTest *next()             { return __next; }
 
         public:
-            inline void set_verbose(bool verbose)      { __verbose = verbose; }
-
             virtual void execute() = 0;
-
-            virtual bool ignore() const;
 
             virtual double time_limit() const;
     };

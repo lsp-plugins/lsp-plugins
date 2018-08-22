@@ -10,6 +10,7 @@
 #include <core/types.h>
 #include <core/debug.h>
 #include <dsp/dsp.h>
+#include <test/test.h>
 
 #include <dsp/arch/x86/features.h>
 #include <dsp/arch/x86/float.h>
@@ -404,7 +405,7 @@ namespace x86
         return res;
     }
 
-    #define EXPORT2(function, export)           dsp::function = x86::export
+    #define EXPORT2(function, export)           dsp::function = x86::export; TEST_EXPORT(x86::export);
     #define EXPORT1(function)                   EXPORT2(function, function)
 
     void dsp_init()

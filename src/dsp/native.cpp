@@ -10,6 +10,7 @@
 #include <dsp/bits.h>
 #include <core/types.h>
 #include <core/units.h>
+#include <test/test.h>
 
 #define __DSP_NATIVE_IMPL
 
@@ -39,7 +40,7 @@ namespace native
 
 namespace native
 {
-    #define EXPORT1(function)            dsp::function = native::function
+    #define EXPORT1(function)            dsp::function = native::function; TEST_EXPORT(native::function);
 
     void dsp_init()
     {

@@ -7,6 +7,7 @@
 
 #include <dsp/types.h>
 #include <dsp/dsp.h>
+#include <test/test.h>
 
 #include <sys/auxv.h>
 #include <stdio.h>
@@ -277,7 +278,7 @@ IF_ARCH_ARM(
         return res;
     }
 
-#define EXPORT2(function, export)           dsp::function = arm::export
+#define EXPORT2(function, export)           dsp::function = arm::export; TEST_EXPORT(arm::export);
 #define EXPORT1(function)                   EXPORT2(function, function)
 
     void dsp_init()

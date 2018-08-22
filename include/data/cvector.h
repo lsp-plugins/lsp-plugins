@@ -10,6 +10,7 @@
 
 #include <stddef.h>
 #include <malloc.h>
+#include <string.h>
 
 #define CVECTOR_GROW        16
 

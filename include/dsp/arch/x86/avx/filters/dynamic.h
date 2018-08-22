@@ -17,6 +17,7 @@ namespace avx
     // This function is tested, works and delivers high performance
     void x64_dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f)
     {
+    #ifdef ARCH_X86_64_AVX
         size_t mask;
 
         __asm__ __volatile__
@@ -166,11 +167,13 @@ namespace avx
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
+    #endif /* ARCH_X86_64_AVX */
     }
 
     // This function is FMA3 implementation of biquad_process_x8
     void x64_dyn_biquad_process_x8_fma3(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f)
     {
+    #ifdef ARCH_X86_64_AVX
         size_t mask;
 
         __asm__ __volatile__
@@ -312,6 +315,7 @@ namespace avx
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
+        #endif /* ARCH_X86_64_AVX */
     }
 
 }

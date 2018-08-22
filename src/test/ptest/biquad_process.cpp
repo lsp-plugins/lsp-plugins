@@ -33,16 +33,14 @@ IF_ARCH_X86(
             void x64_biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f);
             void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
         }
+
+        namespace avx
+        {
+            void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
+            void x64_biquad_process_x8_fma3(float *dst, const float *src, size_t count, biquad_t *f);
+        }
     )
 )
-
-#ifdef ARCH_X86_64_AVX
-    namespace avx
-    {
-        void x64_biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
-        void x64_biquad_process_x8_fma3(float *dst, const float *src, size_t count, biquad_t *f);
-    }
-#endif /* ARCH_X86_AVX */
 
 
 typedef void (* biquad_process_t)(float *dst, const float *src, size_t count, biquad_t *f);
@@ -53,6 +51,9 @@ PTEST_BEGIN("dsp.biquad", process_static, 30, 10000)
 
     void process_8x1(const char *text, float *out, const float *in, size_t count, biquad_process_t process)
     {
+        if (!PTEST_SUPPORTED(process))
+            return;
+
         printf("Testing %s static filters on input buffer of %d samples ...\n", text, int(count));
 
         biquad_t f __lsp_aligned64;
@@ -80,6 +81,8 @@ PTEST_BEGIN("dsp.biquad", process_static, 30, 10000)
 
     void process_4x2(const char *text, float *out, const float *in, size_t count, biquad_process_t process)
     {
+        if (!PTEST_SUPPORTED(process))
+            return;
         printf("Testing %s static filters on input buffer of %d samples ...\n", text, int(count));
 
         biquad_t f __lsp_aligned64;
@@ -117,6 +120,8 @@ PTEST_BEGIN("dsp.biquad", process_static, 30, 10000)
 
     void process_2x4(const char *text, float *out, const float *in, size_t count, biquad_process_t process)
     {
+        if (!PTEST_SUPPORTED(process))
+            return;
         printf("Testing %s static filters on input buffer of %d samples ...\n", text, int(count));
 
         biquad_t f __lsp_aligned64;
@@ -158,6 +163,8 @@ PTEST_BEGIN("dsp.biquad", process_static, 30, 10000)
 
     void process_1x8(const char *text, float *out, const float *in, size_t count, biquad_process_t process)
     {
+        if (!PTEST_SUPPORTED(process))
+            return;
         printf("Testing %s static filters on input buffer of %d samples ...\n", text, int(count));
 
         biquad_t f __lsp_aligned64;
@@ -208,10 +215,8 @@ PTEST_BEGIN("dsp.biquad", process_static, 30, 10000)
         process_1x8("1 biquad x8 native", out, in, FTEST_BUF_SIZE, native::biquad_process_x8);
         IF_ARCH_X86(process_1x8("1 biquad x8 sse", out, in, FTEST_BUF_SIZE, sse::biquad_process_x8));
         IF_ARCH_X86_64(process_1x8("1 biquad x8 x64_sse3", out, in, FTEST_BUF_SIZE, sse3::x64_biquad_process_x8));
-#ifdef ARCH_X86_64_AVX
-        process_1x8("1 biquad x8 x64_avx", out, in, FTEST_BUF_SIZE, avx::x64_biquad_process_x8);
-        process_1x8("1 biquad x8 x64_fma3", out, in, FTEST_BUF_SIZE, avx::x64_biquad_process_x8_fma3);
-#endif /* ARCH_x86_AVX */
+        IF_ARCH_X86_64(process_1x8("1 biquad x8 x64_avx", out, in, FTEST_BUF_SIZE, avx::x64_biquad_process_x8));
+        IF_ARCH_X86_64(process_1x8("1 biquad x8 x64_fma3", out, in, FTEST_BUF_SIZE, avx::x64_biquad_process_x8_fma3));
         PTEST_SEPARATOR;
 
         delete [] out;

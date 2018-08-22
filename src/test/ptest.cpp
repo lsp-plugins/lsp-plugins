@@ -13,27 +13,19 @@ namespace test
 {
     PerformanceTest *PerformanceTest::__root = NULL;
 
-    PerformanceTest::PerformanceTest(const char *group, const char *name, float time, size_t iterations)
+    PerformanceTest::PerformanceTest(const char *group, const char *name, float time, size_t iterations): Test(group, name)
     {
-        __test_group        = group;
-        __test_name         = name;
         __test_time         = time;
         __test_iterations   = iterations;
-        __next              = __root;
-        __verbose           = true;
 
         // Self-register
+        __next              = __root;
         __root              = this;
     }
 
     PerformanceTest::~PerformanceTest()
     {
         free_stats();
-    }
-
-    bool PerformanceTest::ignore() const
-    {
-        return false;
     }
 
     void PerformanceTest::destroy_stats(stats_t *stats)
