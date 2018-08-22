@@ -35,6 +35,12 @@ IF_ARCH_X86(
         {
             void x64_packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
         }
+
+        namespace avx
+        {
+            void x64_packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
+            void x64_packed_complex_mul_fma3(float *dst, const float *src1, const float *src2, size_t count);
+        }
     )
 )
 
@@ -96,6 +102,8 @@ PTEST_BEGIN("dsp.complex", mul, 5, 10000)
             IF_ARCH_X86(test_cplx_mul("packed_sse", out, in1, in2, count, sse::packed_complex_mul));
             IF_ARCH_X86(test_cplx_mul("packed_sse3", out, in1, in2, count, sse3::packed_complex_mul));
             IF_ARCH_X86_64(test_cplx_mul("x64_packed_sse3", out, in1, in2, count, sse3::x64_packed_complex_mul));
+            IF_ARCH_X86_64(test_cplx_mul("x64_packed_avx", out, in1, in2, count, avx::x64_packed_complex_mul));
+            IF_ARCH_X86_64(test_cplx_mul("x64_packed_fma3", out, in1, in2, count, avx::x64_packed_complex_mul_fma3));
 
             PTEST_SEPARATOR;
             printf("\n");

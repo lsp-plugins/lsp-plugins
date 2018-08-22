@@ -23,6 +23,7 @@
 
 #endif /* ARCH_X86_64_AVX */
 
+#include <dsp/arch/x86/avx/complex.h>
 #include <dsp/arch/x86/avx/filters/static.h>
 #include <dsp/arch/x86/avx/filters/dynamic.h>
 #include <dsp/arch/x86/avx/filters/transform.h>
@@ -50,14 +51,20 @@ namespace avx
         EXPORT2_X64(biquad_process_x8, x64_biquad_process_x8);
         EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8);
 
+        IF_ARCH_X86_64(TEST_SUPPORTED(x64_packed_complex_mul));
+//        EXPORT2_X64(packed_complex_mul, x64_packed_complex_mul);
+
         // This routine sucks on AMD Bulldozer processor family but is pretty great on Intel
         // Not tested on AMD Processors above Bulldozer family
+        TEST_SUPPORTED(avx::x64_bilinear_transform_x8);
         if (f->vendor == CPU_VENDOR_INTEL)
             EXPORT2_X64(bilinear_transform_x8, x64_bilinear_transform_x8);
 
         if (f->features & CPU_OPTION_FMA3)
         {
             lsp_trace("Optimizing DSP for FMA3 instruction set");
+            IF_ARCH_X86_64(TEST_SUPPORTED(avx::x64_packed_complex_mul_fma3));
+//            EXPORT2_X64(packed_complex_mul, x64_packed_complex_mul_fma3);
 //                dsp::biquad_process_x1          = avx::biquad_process_x1_fma3;
             EXPORT2_X64(biquad_process_x8, x64_biquad_process_x8_fma3);
             EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8_fma3);
