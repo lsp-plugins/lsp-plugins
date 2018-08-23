@@ -1295,7 +1295,7 @@ namespace sse
     {
         __asm__ __volatile__
         (
-            __ASM_EMIT("cmp         $16, %[count]")
+            __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("jb          2f")
 
             // 16 x sample loop
@@ -1321,16 +1321,15 @@ namespace sse
             __ASM_EMIT("movups      %%xmm3, 0x30(%[dst])")
 
             // Repeat loop
-            __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("add         $0x80, %[src]")
             __ASM_EMIT("add         $0x40, %[dst]")
-            __ASM_EMIT("cmp         $16, %[count]")
+            __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("jae         1b")
 
             // 4x iterations
             __ASM_EMIT("2:")
-            __ASM_EMIT("cmp         $4, %[count]")
-            __ASM_EMIT("jb          4f")
+            __ASM_EMIT("add         $12, %[count]")
+            __ASM_EMIT("jl          4f")
 
             __ASM_EMIT("3:")
             __ASM_EMIT("movups      0x00(%[src]), %%xmm0")  // xmm0 = s0 ? s1 ?
@@ -1338,16 +1337,15 @@ namespace sse
             __ASM_EMIT("shufps      $0x88, %%xmm4, %%xmm0") // xmm0 = s0 s1 s2 s3
             __ASM_EMIT("movups      %%xmm0, 0x00(%[dst])")
 
-            __ASM_EMIT("sub         $4, %[count]")
             __ASM_EMIT("add         $0x20, %[src]")
             __ASM_EMIT("add         $0x10, %[dst]")
-            __ASM_EMIT("cmp         $4, %[count]")
+            __ASM_EMIT("sub         $4, %[count]")
             __ASM_EMIT("jae         3b")
 
             // 1x iterations
             __ASM_EMIT("4:")
-            __ASM_EMIT("test        %[count], %[count]")
-            __ASM_EMIT("jz          6f")
+            __ASM_EMIT("add         $4, %[count]")
+            __ASM_EMIT("jle         6f")
 
             __ASM_EMIT("5:")
             __ASM_EMIT("movss       0x00(%[src]), %%xmm0")  // xmm0 = s0
@@ -1372,7 +1370,7 @@ namespace sse
     {
         __asm__ __volatile__
         (
-            __ASM_EMIT("cmp         $16, %[count]")
+            __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("jb          2f")
 
             // 16 x sample loop
@@ -1414,8 +1412,8 @@ namespace sse
 
             // 4x iterations
             __ASM_EMIT("2:")
-            __ASM_EMIT("cmp         $4, %[count]")
-            __ASM_EMIT("jb          4f")
+            __ASM_EMIT("add         $12, %[count]")
+            __ASM_EMIT("jl          4f")
 
             __ASM_EMIT("3:")
             __ASM_EMIT("movups      0x00(%[src]), %%xmm0")  // xmm0 = s0 ? s1 ?
@@ -1425,16 +1423,15 @@ namespace sse
             __ASM_EMIT("shufps      $0x8c, %%xmm1, %%xmm0") // xmm0 = s0 s1 s2 s3
             __ASM_EMIT("movups      %%xmm0, 0x00(%[dst])")
 
-            __ASM_EMIT("sub         $4, %[count]")
             __ASM_EMIT("add         $0x30, %[src]")
             __ASM_EMIT("add         $0x10, %[dst]")
-            __ASM_EMIT("cmp         $4, %[count]")
+            __ASM_EMIT("sub         $4, %[count]")
             __ASM_EMIT("jae         3b")
 
             // 1x iterations
             __ASM_EMIT("4:")
-            __ASM_EMIT("test        %[count], %[count]")
-            __ASM_EMIT("jz          6f")
+            __ASM_EMIT("add         $4, %[count]")
+            __ASM_EMIT("jle         6f")
 
             __ASM_EMIT("5:")
             __ASM_EMIT("movss       0x00(%[src]), %%xmm0")  // xmm0 = s0
@@ -1459,7 +1456,7 @@ namespace sse
     {
         __asm__ __volatile__
         (
-            __ASM_EMIT("cmp         $16, %[count]")
+            __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("jb          2f")
 
             // 16 x sample loop
@@ -1503,16 +1500,15 @@ namespace sse
             __ASM_EMIT("movups      %%xmm3, 0x30(%[dst])")
 
             // Repeat loop
-            __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("add         $0x100, %[src]")
             __ASM_EMIT("add         $0x40, %[dst]")
-            __ASM_EMIT("cmp         $16, %[count]")
+            __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("jae         1b")
 
             // 4x iterations
             __ASM_EMIT("2:")
-            __ASM_EMIT("cmp         $4, %[count]")
-            __ASM_EMIT("jb          4f")
+            __ASM_EMIT("add         $12, %[count]")
+            __ASM_EMIT("jl          4f")
 
             __ASM_EMIT("3:")
             __ASM_EMIT("movss       0x00(%[src]), %%xmm0")  // xmm0 = s0 ? ? ?
@@ -1524,16 +1520,15 @@ namespace sse
             __ASM_EMIT("shufps      $0x88, %%xmm4, %%xmm0") // xmm0 = s0 s1 s2 s3
             __ASM_EMIT("movups      %%xmm0, 0x00(%[dst])")
 
-            __ASM_EMIT("sub         $4, %[count]")
             __ASM_EMIT("add         $0x40, %[src]")
             __ASM_EMIT("add         $0x10, %[dst]")
-            __ASM_EMIT("cmp         $4, %[count]")
+            __ASM_EMIT("sub         $4, %[count]")
             __ASM_EMIT("jae         3b")
 
             // 1x iterations
             __ASM_EMIT("4:")
-            __ASM_EMIT("test        %[count], %[count]")
-            __ASM_EMIT("jz          6f")
+            __ASM_EMIT("add         $4, %[count]")
+            __ASM_EMIT("jle         6f")
 
             __ASM_EMIT("5:")
             __ASM_EMIT("movss       0x00(%[src]), %%xmm0")  // xmm0 = s0
@@ -1558,7 +1553,7 @@ namespace sse
     {
         __asm__ __volatile__
         (
-            __ASM_EMIT("cmp         $16, %[count]")
+            __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("jb          2f")
 
             // 16 x sample loop
@@ -1602,16 +1597,15 @@ namespace sse
             __ASM_EMIT("movups      %%xmm3, 0x30(%[dst])")
 
             // Repeat loop
-            __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("add         $0x180, %[src]")
             __ASM_EMIT("add         $0x40, %[dst]")
-            __ASM_EMIT("cmp         $16, %[count]")
+            __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("jae         1b")
 
             // 4x iterations
             __ASM_EMIT("2:")
-            __ASM_EMIT("cmp         $4, %[count]")
-            __ASM_EMIT("jb          4f")
+            __ASM_EMIT("add         $12, %[count]")
+            __ASM_EMIT("jl          4f")
 
             __ASM_EMIT("3:")
             __ASM_EMIT("movss       0x000(%[src]), %%xmm0") // xmm0 = s0 ? ? ?
@@ -1623,16 +1617,15 @@ namespace sse
             __ASM_EMIT("shufps      $0x88, %%xmm4, %%xmm0") // xmm0 = s0 s1 s2 s3
             __ASM_EMIT("movups      %%xmm0, 0x00(%[dst])")
 
-            __ASM_EMIT("sub         $4, %[count]")
             __ASM_EMIT("add         $0x60, %[src]")
             __ASM_EMIT("add         $0x10, %[dst]")
-            __ASM_EMIT("cmp         $4, %[count]")
+            __ASM_EMIT("sub         $4, %[count]")
             __ASM_EMIT("jae         3b")
 
             // 1x iterations
             __ASM_EMIT("4:")
-            __ASM_EMIT("test        %[count], %[count]")
-            __ASM_EMIT("jz          6f")
+            __ASM_EMIT("add         $4, %[count]")
+            __ASM_EMIT("jle         6f")
 
             __ASM_EMIT("5:")
             __ASM_EMIT("movss       0x000(%[src]), %%xmm0") // xmm0 = s0
@@ -1657,7 +1650,7 @@ namespace sse
     {
         __asm__ __volatile__
         (
-            __ASM_EMIT("cmp         $16, %[count]")
+            __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("jb          2f")
 
             // 16 x sample loop
@@ -1701,16 +1694,15 @@ namespace sse
             __ASM_EMIT("movups      %%xmm3, 0x30(%[dst])")
 
             // Repeat loop
-            __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("add         $0x200, %[src]")
             __ASM_EMIT("add         $0x40, %[dst]")
-            __ASM_EMIT("cmp         $16, %[count]")
+            __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("jae         1b")
 
             // 4x iterations
             __ASM_EMIT("2:")
-            __ASM_EMIT("cmp         $4, %[count]")
-            __ASM_EMIT("jb          4f")
+            __ASM_EMIT("add         $12, %[count]")
+            __ASM_EMIT("jl          4f")
 
             __ASM_EMIT("3:")
             __ASM_EMIT("movss       0x000(%[src]), %%xmm0") // xmm0 = s0 ? ? ?
@@ -1722,16 +1714,15 @@ namespace sse
             __ASM_EMIT("shufps      $0x88, %%xmm4, %%xmm0") // xmm0 = s0 s1 s2 s3
             __ASM_EMIT("movups      %%xmm0, 0x00(%[dst])")
 
-            __ASM_EMIT("sub         $4, %[count]")
             __ASM_EMIT("add         $0x80, %[src]")
             __ASM_EMIT("add         $0x10, %[dst]")
-            __ASM_EMIT("cmp         $4, %[count]")
+            __ASM_EMIT("sub         $4, %[count]")
             __ASM_EMIT("jae         3b")
 
             // 1x iterations
             __ASM_EMIT("4:")
-            __ASM_EMIT("test        %[count], %[count]")
-            __ASM_EMIT("jz          6f")
+            __ASM_EMIT("add         $4, %[count]")
+            __ASM_EMIT("jle         6f")
 
             __ASM_EMIT("5:")
             __ASM_EMIT("movss       0x000(%[src]), %%xmm0") // xmm0 = s0

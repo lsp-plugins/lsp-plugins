@@ -1,3 +1,10 @@
+/*
+ * oversampling.cpp
+ *
+ *  Created on: 21 авг. 2018 г.
+ *      Author: sadko
+ */
+
 #include <dsp/dsp.h>
 #include <test/ptest.h>
 
@@ -35,14 +42,14 @@ IF_ARCH_X86(
 
 //-----------------------------------------------------------------------------
 // Performance test for lanczos resampling
-PTEST_BEGIN("dsp", oversampling, 5, 1000)
+PTEST_BEGIN("dsp.resample", oversampling, 5, 1000)
 
     void call(float *out, const float *in, size_t count, size_t times, const char *text, resampling_function_t func)
     {
         if (!PTEST_SUPPORTED(func))
             return;
 
-        printf("Testing %s resampling on input buffer of %d samples ...\n", text, int(count));
+        printf("Testing %s oversampling for %d -> %d samples ...\n", text, int(count), int(count * times));
         size_t zeros = count*times + RESAMPLING_RESERVED_SAMPLES;
 
         PTEST_LOOP(text,

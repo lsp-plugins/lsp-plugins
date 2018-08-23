@@ -40,7 +40,7 @@ IF_ARCH_X86(
 )
 
 
-UTEST_BEGIN("dsp", oversampling)
+UTEST_BEGIN("dsp.resampling", oversampling)
 
     void call(size_t times, const char *text, size_t align,
             resampling_function_t func1,
@@ -57,7 +57,7 @@ UTEST_BEGIN("dsp", oversampling)
         {
             for (size_t mask=0; mask <= 0x03; ++mask)
             {
-                printf("Testing %s resampling on input buffer of %d samples, mask=0x%x...\n", text, int(count), int(mask));
+                printf("Testing %s resampling for %d -> %d samples, mask=0x%x...\n", text, int(count), int(count * times), int(mask));
 
                 FloatBuffer src(count, align, mask & 0x01);
                 FloatBuffer dst1(count*times + RESAMPLING_RESERVED_SAMPLES, align, mask & 0x02);

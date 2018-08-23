@@ -27,7 +27,6 @@
 #include "test/fft_filter.h"
 #include "test/fft_join.h"
 
-#include "test/complex_mul_speed.h"
 #include "test/real_to_complex.h"
 
 #include "test/crossover_test.h"
@@ -45,7 +44,6 @@
 #include "test/sse_test.h"
 #include "test/endian_test.h"
 
-#include "test/downsampling_test.h"
 #include "test/oversampler_test.h"
 
 //#include "test/geometry3d_test.h"
@@ -382,7 +380,7 @@ int launch_ptest(config_t *cfg)
     stats.success   = 0;
     stats.failed    = 0;
     stats.overall   = 0.0;
-    double time = 0.0;
+    double time     = 0.0;
 
     clock_gettime(CLOCK_REALTIME, &ts);
 
@@ -531,7 +529,6 @@ int submit_utest(config_t *cfg, task_t *threads, stats_t *stats, test::UnitTest 
     {
         struct timespec start, finish;
         clock_gettime(CLOCK_REALTIME, &start);
-        stats->total++;
 
         int res     = execute_utest(cfg, v);
 
@@ -539,7 +536,7 @@ int submit_utest(config_t *cfg, task_t *threads, stats_t *stats, test::UnitTest 
         double time = (finish.tv_sec - start.tv_sec) + (finish.tv_nsec - start.tv_nsec) * 1e-9;
         printf("Test execution time: %.2f s\n", time);
 
-        if (res)
+        if (res == 0)
             stats->success++;
         else
             stats->failed++;
