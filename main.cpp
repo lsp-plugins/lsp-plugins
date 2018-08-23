@@ -169,8 +169,8 @@ typedef struct stats_t
 {
     size_t      total;
     size_t      success;
-    size_t      failed;
     double      overall;
+    cvector<test::Test> failed; // List of failed tests
 } stats_t;
 
 typedef struct task_t
@@ -252,16 +252,30 @@ bool match_list(lsp::cvector<LSPString> &list, const char *group, const char *na
     return false;
 }
 
-int output_stats(const stats_t *stats, const char *text)
+int output_stats(stats_t *stats, const char *text)
 {
     printf("\n--------------------------------------------------------------------------------\n");
     printf("%s:\n", text);
     printf("  overall time [s]:     %.2f\n", stats->overall);
     printf("  launched:             %d\n", int(stats->total));
     printf("  succeeded:            %d\n", int(stats->success));
-    printf("  failed:               %d\n", int(stats->failed));
+    printf("  failed:               %d\n", int(stats->failed.size()));
 
-    return (stats->failed > 0) ? 0 : 2;
+    if (stats->failed.size() > 0)
+    {
+        printf("\n--------------------------------------------------------------------------------\n");
+        printf("List of failed tests:\n");
+        for (size_t i=0, n=stats->failed.size(); i<n; ++i)
+        {
+            test::Test *t = stats->failed.at(i);
+            printf("  %s.%s\n", t->group(), t->name());
+        }
+        printf("\n");
+        return 2;
+    }
+
+    printf("\n");
+    return 0;
 }
 
 int execute_ptest(config_t *cfg, test::PerformanceTest *v)
@@ -372,7 +386,6 @@ int launch_ptest(config_t *cfg)
     stats_t stats;
     stats.total     = 0;
     stats.success   = 0;
-    stats.failed    = 0;
     stats.overall   = 0.0;
     double time     = 0.0;
 
@@ -417,7 +430,7 @@ int launch_ptest(config_t *cfg)
                     if (w < 0)
                     {
                         fprintf(stderr, "Waiting for performance test '%s.%s' failed\n", v->group(), v->name());
-                        stats.failed++;
+                        stats.failed.add(v);
                         break;
                     }
 
@@ -440,7 +453,7 @@ int launch_ptest(config_t *cfg)
         if (result == 0)
             stats.success ++;
         else
-            stats.failed ++;
+            stats.failed.add(v);
     }
 
     clock_gettime(CLOCK_REALTIME, &finish);
@@ -488,7 +501,7 @@ bool wait_thread(config_t *cfg, task_t *threads, stats_t *stats)
     if (result == 0)
         stats->success ++;
     else
-        stats->failed ++;
+        stats->failed.add(t->utest);
 
     // Free task
     t->pid                  = -1;
@@ -533,7 +546,7 @@ int submit_utest(config_t *cfg, task_t *threads, stats_t *stats, test::UnitTest 
         if (res == 0)
             stats->success++;
         else
-            stats->failed++;
+            stats->failed.add(v);
         return 0;
     }
 
@@ -610,7 +623,6 @@ int launch_utest(config_t *cfg)
 
     clock_gettime(CLOCK_REALTIME, &start);
     stats.total     = 0;
-    stats.failed    = 0;
     stats.success   = 0;
 
     task_t *threads = (cfg->fork) ? reinterpret_cast<task_t *>(alloca(sizeof(task_t) * cfg->threads)) : NULL;

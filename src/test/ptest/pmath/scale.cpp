@@ -78,7 +78,7 @@ PTEST_BEGIN("dsp.pmath", scale, 5, 10000)
             size_t count = 1 << i;
 
             call("scale2 native", dst, src, count, native::scale2);
-            IF_ARCH_X86(call("add2 sse", dst, src, count, sse::scale2));
+            IF_ARCH_X86(call("scale2 sse", dst, src, count, sse::scale2));
 
             call("scale3 native", dst, src, count, native::scale3);
             IF_ARCH_X86(call("scale3 sse", dst, src, count, sse::scale3));
