@@ -32,12 +32,10 @@
 
 #include "test/crossover_test.h"
 #include "test/saturation_test.h"
-#include "test/log_test.h"
 #include "test/addm_test.h"
 #include "test/perf/bt_perf_test.h"
 #include "test/perf/mt_perf_test.h"
 #include "test/equalizer_test.h"
-#include "test/algo/avx_test.h"
 #include "test/sidechain_test.h"
 #include "test/limiter_test.h"
 
