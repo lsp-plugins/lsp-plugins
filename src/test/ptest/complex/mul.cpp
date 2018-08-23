@@ -53,6 +53,9 @@ PTEST_BEGIN("dsp.complex", mul, 5, 10000)
 
     void test_cplx_mul(const char *label, float *dst, const float *src1, const float *src2, size_t count, packed_complex_mul_t mul)
     {
+        if (!PTEST_SUPPORTED(mul))
+            return;
+
         char buf[80];
         sprintf(buf, "%s x %d", label, int(count));
         printf("Testing %s numbers...\n", buf);
@@ -64,6 +67,9 @@ PTEST_BEGIN("dsp.complex", mul, 5, 10000)
 
     void test_cplx_mul(const char *label, float *dst, const float *src1, const float *src2, size_t count, complex_mul_t mul)
     {
+        if (!PTEST_SUPPORTED(mul))
+            return;
+
         char buf[80];
         sprintf(buf, "%s x %d", label, int(count));
         printf("Testing %s numbers...\n", buf);

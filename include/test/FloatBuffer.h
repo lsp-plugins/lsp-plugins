@@ -39,6 +39,7 @@ namespace test
             void fill_zero();
 
             bool validate() const;
+            inline bool valid() const { return validate(); };
             inline bool corrupted() const { return !validate(); };
             bool equals_relative(const FloatBuffer &src, float tolerance = 1e-5f) const;
             bool equals_absolute(const FloatBuffer &src, float tolerance = 1e-5f) const;

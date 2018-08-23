@@ -656,8 +656,11 @@ int launch_utest(config_t *cfg)
     }
 
     // Wait until all child processes exit
-    if (wait_threads(cfg, threads, &stats) != 0)
-        fprintf(stderr, "Error while waiting child processes for comletion");
+    if (threads != NULL)
+    {
+        if (wait_threads(cfg, threads, &stats) != 0)
+            fprintf(stderr, "Error while waiting child processes for comletion");
+    }
 
     clock_gettime(CLOCK_REALTIME, &finish);
     stats.overall = (finish.tv_sec - start.tv_sec) + (finish.tv_nsec - start.tv_nsec) * 1e-9;

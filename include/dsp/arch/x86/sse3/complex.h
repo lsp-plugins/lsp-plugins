@@ -50,6 +50,7 @@ namespace sse3
             __ASM_EMIT("jae         2b")
 
             /* Check count again */
+            __ASM_EMIT("3:")
             __ASM_EMIT("add         $4, %[count]")
             __ASM_EMIT("jle         5f")
 

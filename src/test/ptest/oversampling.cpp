@@ -39,6 +39,9 @@ PTEST_BEGIN("dsp", oversampling, 5, 1000)
 
     void call(float *out, const float *in, size_t count, size_t times, const char *text, resampling_function_t func)
     {
+        if (!PTEST_SUPPORTED(func))
+            return;
+
         printf("Testing %s resampling on input buffer of %d samples ...\n", text, int(count));
         size_t zeros = count*times + RESAMPLING_RESERVED_SAMPLES;
 

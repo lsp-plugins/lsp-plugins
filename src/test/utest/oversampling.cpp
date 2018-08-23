@@ -47,6 +47,11 @@ UTEST_BEGIN("dsp", oversampling)
             resampling_function_t func2
          )
     {
+        if (!UTEST_SUPPORTED(func1))
+            return;
+        if (!UTEST_SUPPORTED(func2))
+            return;
+
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
                 32, 64, 100, 999)
         {
