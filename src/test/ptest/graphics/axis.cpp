@@ -68,7 +68,7 @@ PTEST_BEGIN("dsp.graphics", axis_apply_log, 5, 10000)
             printf("\n");
         }
 
-        delete [] data;
+        free_aligned(data);
     }
 PTEST_END
 

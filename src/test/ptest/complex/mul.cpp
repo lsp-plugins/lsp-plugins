@@ -120,7 +120,7 @@ PTEST_BEGIN("dsp.complex", mul, 5, 10000)
             printf("\n");
         }
 
-        delete [] data;
+        free_aligned(data);
     }
 PTEST_END
 

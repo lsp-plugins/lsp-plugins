@@ -3,7 +3,6 @@
 #include "test/res_gen.h"
 #include "test/audiofile_test.h"
 #include "test/convolver_test.h"
-#include "test/dsp_speed_test.h"
 #include "test/window_test.h"
 #include "test/env_test.h"
 #include "test/frac_test.h"
@@ -14,7 +13,6 @@
 #include "test/genttl.h"
 #include "test/alloc_test.h"
 #include "test/jack_test.h"
-#include "test/profiling_test.h"
 
 #include "test/fft_test.h"
 #include "test/fft_test2.h"
@@ -29,7 +27,6 @@
 
 #include "test/real_to_complex.h"
 
-#include "test/crossover_test.h"
 #include "test/saturation_test.h"
 #include "test/addm_test.h"
 #include "test/equalizer_test.h"
