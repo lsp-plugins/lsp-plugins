@@ -40,7 +40,6 @@
 #include "test/files/text_read_test.h"
 
 #include "test/sse_test.h"
-#include "test/endian_test.h"
 
 #include "test/oversampler_test.h"
 

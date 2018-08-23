@@ -86,7 +86,7 @@ namespace test
         uint32_t key    = uint32_t(ptrdiff_t(this));
         uint32_t *ptr   = reinterpret_cast<uint32_t *>(&pBuffer[-1]);
         *ptr            = uint32_t(CK_HEAD_SIGNATURE ^ key);
-        ptr             = reinterpret_cast<uint32_t *>(&pBuffer[nLength + 1]);
+        ptr             = reinterpret_cast<uint32_t *>(&pBuffer[nLength]);
         *ptr            = uint32_t(CK_TAIL_SIGNATURE ^ key);
     }
 
@@ -128,7 +128,7 @@ namespace test
         const uint32_t *ptr     = reinterpret_cast<uint32_t *>(&pBuffer[-1]);
         if (*ptr != (CK_HEAD_SIGNATURE ^ key))
             return false;
-        ptr                     = reinterpret_cast<uint32_t *>(&pBuffer[nLength + 1]);
+        ptr                     = reinterpret_cast<uint32_t *>(&pBuffer[nLength]);
         return (*ptr == (CK_TAIL_SIGNATURE ^ key));
     }
 
