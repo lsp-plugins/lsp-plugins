@@ -35,6 +35,8 @@ IF_ARCH_X86(
 
         namespace avx
         {
+            void x64_complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+            void x64_complex_mul_fma3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
             void x64_packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
             void x64_packed_complex_mul_fma3(float *dst, const float *src1, const float *src2, size_t count);
         }
@@ -147,6 +149,8 @@ UTEST_BEGIN("dsp.complex", mul)
         IF_ARCH_X86(call("packed_sse", 16, sse::packed_complex_mul));
         IF_ARCH_X86(call("packed_sse3", 16, sse3::packed_complex_mul));
         IF_ARCH_X86_64(call("x64_packed_sse3", 16, sse3::x64_packed_complex_mul));
+        IF_ARCH_X86_64(call("x64_unpacked_avx", 16, avx::x64_complex_mul));
+        IF_ARCH_X86_64(call("x64_unpacked_fma3", 16, avx::x64_complex_mul));
         IF_ARCH_X86_64(call("x64_packed_avx", 32, avx::x64_packed_complex_mul));
         IF_ARCH_X86_64(call("x64_packed_fma3", 32, avx::x64_packed_complex_mul_fma3));
     }

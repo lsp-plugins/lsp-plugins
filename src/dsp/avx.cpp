@@ -38,6 +38,7 @@ namespace avx
     #define EXPORT1(function)                   EXPORT2(function, function)
 
     #define EXPORT2_X64(function, export)       IF_ARCH_X86_64(EXPORT2(function, export));
+    #define SUPPORT_X64(function)               IF_ARCH_X86_64(TEST_EXPORT(avx::function))
 
     void dsp_init(const cpu_features_t *f)
     {
@@ -55,13 +56,15 @@ namespace avx
         // Not tested on AMD Processors above Bulldozer family
         if (f->vendor == CPU_VENDOR_INTEL)
         {
-            EXPORT2_X64(bilinear_transform_x8, x64_bilinear_transform_x8);
+            EXPORT2_X64(complex_mul, x64_complex_mul);
             EXPORT2_X64(packed_complex_mul, x64_packed_complex_mul);
+            EXPORT2_X64(bilinear_transform_x8, x64_bilinear_transform_x8);
         }
         else
         {
-            IF_ARCH_X86_64(TEST_SUPPORTED(x64_packed_complex_mul));
-            IF_ARCH_X86_64(TEST_SUPPORTED(avx::x64_bilinear_transform_x8));
+            SUPPORT_X64(x64_complex_mul);
+            SUPPORT_X64(x64_packed_complex_mul);
+            SUPPORT_X64(x64_bilinear_transform_x8);
         }
 
         if (f->features & CPU_OPTION_FMA3)
@@ -70,11 +73,13 @@ namespace avx
 
             if (f->vendor == CPU_VENDOR_INTEL)
             {
+                EXPORT2_X64(complex_mul, x64_complex_mul_fma3);
                 EXPORT2_X64(packed_complex_mul, x64_packed_complex_mul_fma3)
             }
             else
             {
-                IF_ARCH_X86_64(TEST_SUPPORTED(avx::x64_packed_complex_mul_fma3));
+                SUPPORT_X64(x64_complex_mul_fma3);
+                SUPPORT_X64(x64_packed_complex_mul_fma3);
             }
 
 //                dsp::biquad_process_x1          = avx::biquad_process_x1_fma3;
