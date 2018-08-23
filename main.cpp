@@ -91,7 +91,7 @@
 //#define TEST fft_speed_test
 //#define TEST fft_join_test
 
-#define TEST complex_mul_speed_test
+//#define TEST complex_mul_speed_test
 //#define TEST real_to_complex_test
 
 //#define TEST dsp_speed_test
@@ -128,7 +128,7 @@
 //#define TEST mt_perf_test
 //#define TEST root_test
 
-//#define TEST jack_test
+#define TEST jack_test
 //#define TEST selection_test
 //#define TEST endian_test
 
@@ -743,6 +743,10 @@ void clear_config(config_t *cfg)
 
 int main(int argc, const char **argv)
 {
+    srand(clock());
+    lsp_trace("locale is: %s", setlocale(LC_CTYPE, NULL));
+    return TEST::test(argc, argv);
+
     config_t cfg;
     int res = parse_config(&cfg, argc, argv);
     if (res != 0)

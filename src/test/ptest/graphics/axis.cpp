@@ -22,6 +22,13 @@ IF_ARCH_X86(
     {
         void axis_apply_log(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count);
     }
+
+    IF_ARCH_X86_64(
+        namespace sse3
+        {
+            void x64_axis_apply_log(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count);
+        }
+    )
 )
 
 typedef void (* axis_apply_log_t)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count);
@@ -63,6 +70,7 @@ PTEST_BEGIN("dsp.graphics", axis_apply_log, 5, 10000)
 
             call("native", x, y, v, count, native::axis_apply_log);
             IF_ARCH_X86(call("sse", x, y, v, count, sse::axis_apply_log));
+            IF_ARCH_X86_64(call("x64_sse3", x, y, v, count, sse3::x64_axis_apply_log));
 
             PTEST_SEPARATOR;
             printf("\n");

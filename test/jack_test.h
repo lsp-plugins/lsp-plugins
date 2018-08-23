@@ -70,7 +70,7 @@ namespace jack_test
 //                "graph_equalizer_x32_ms";
 //                "graph_equalizer_x32_stereo";
 //                "para_equalizer_x16_lr";
-//                "para_equalizer_x16_mono";
+                "para_equalizer_x16_mono";
 //                "para_equalizer_x16_ms";
 //                "para_equalizer_x16_stereo";
 //                "para_equalizer_x32_lr";
@@ -101,7 +101,7 @@ namespace jack_test
 //                "sc_mb_compressor_lr";
 //                "sc_mb_compressor_ms";
 //                "test_plugin";
-                "profiler_mono";
+//                "profiler_mono";
 //                "nonlinear_convolver_mono";
 
         return JACK_MAIN_FUNCTION(plugin, argc, argv);
