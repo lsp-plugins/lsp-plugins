@@ -12,24 +12,6 @@
 
 namespace native
 {
-    void scale2(float *dst, float k, size_t count);
-    void scale3(float *dst, const float *src, float k, size_t count);
-
-    void add2(float *dst, const float *src, size_t count);
-    void sub2(float *dst, const float *src, size_t count);
-    void mul2(float *dst, const float *src, size_t count);
-    void div2(float *dst, const float *src, size_t count);
-
-    void add3(float *dst, const float *src1, const float *src2, size_t count);
-    void sub3(float *dst, const float *src1, const float *src2, size_t count);
-    void mul3(float *dst, const float *src1, const float *src2, size_t count);
-    void div3(float *dst, const float *src1, const float *src2, size_t count);
-
-    void scale_add3(float *dst, const float *src, float k, size_t count);
-    void scale_sub3(float *dst, const float *src, float k, size_t count);
-    void scale_mul3(float *dst, const float *src, float k, size_t count);
-    void scale_div3(float *dst, const float *src, float k, size_t count);
-
     void mix2(float *dst, const float *src, float k1, float k2, size_t count);
     void mix3(float *dst, const float *src1, const float *src2, float k1, float k2, float k3, size_t count);
     void mix4(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, float k4, size_t count);
@@ -134,7 +116,6 @@ namespace native
     float calc_angle3d_vv(const vector3d_t *v);
 
     void packed_complex_mod(float *dst_mod, const float *src, size_t count);
-    void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
 
     void complex_rcp1(float *dst_re, float *dst_im, size_t count);
     void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
@@ -144,24 +125,6 @@ namespace native
 
 namespace sse
 {
-    void scale2(float *dst, float k, size_t count);
-    void scale3(float *dst, const float *src, float k, size_t count);
-
-    void add2(float *dst, const float *src, size_t count);
-    void sub2(float *dst, const float *src, size_t count);
-    void mul2(float *dst, const float *src, size_t count);
-    void div2(float *dst, const float *src, size_t count);
-
-    void add3(float *dst, const float *src1, const float *src2, size_t count);
-    void sub3(float *dst, const float *src1, const float *src2, size_t count);
-    void mul3(float *dst, const float *src1, const float *src2, size_t count);
-    void div3(float *dst, const float *src1, const float *src2, size_t count);
-
-    void scale_add3(float *dst, const float *src, float k, size_t count);
-    void scale_sub3(float *dst, const float *src, float k, size_t count);
-    void scale_mul3(float *dst, const float *src, float k, size_t count);
-    void scale_div3(float *dst, const float *src, float k, size_t count);
-
     void mix2(float *dst, const float *src, float k1, float k2, size_t count);
     void mix3(float *dst, const float *src1, const float *src2, float k1, float k2, float k3, size_t count);
     void mix4(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, float k4, size_t count);
@@ -267,20 +230,11 @@ namespace sse
     float calc_angle3d_vv(const vector3d_t *v);
 
     void packed_complex_mod(float *dst_mod, const float *src, size_t count);
-    void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
 
     void complex_rcp1(float *dst_re, float *dst_im, size_t count);
     void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
     void packed_complex_rcp1(float *dst, size_t count);
     void packed_complex_rcp2(float *dst, const float *src, size_t count);
-}
-
-namespace sse3
-{
-    void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
-#ifdef ARCH_X86_64
-    void x64_packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count);
-#endif /* ARCH_X86_64 */
 }
 
 namespace sse_test
@@ -290,88 +244,12 @@ namespace sse_test
 
     typedef void (* unary_math_t) (float *dst, size_t count);
     typedef void (* binary_math_t) (float *dst, const float *src, size_t count);
-    typedef void (* ternary_math_t) (float *dst, const float *src1, const float *src2, size_t count);
-    typedef void (* scale_op_t) (float *dst, const float *src, float k, size_t count);
     typedef float (* hfunc_t) (const float *src, size_t count);
     typedef void (* minmax_t) (const float *src, size_t count, float *a, float *b);
 
     #define TEST_FOREACH(var, ...)    \
         const size_t ___sizes[] = { __VA_ARGS__ }; \
         for (size_t ___i=0, var=___sizes[0]; ___i<(sizeof(___sizes)/sizeof(size_t)); ++___i, var=___sizes[___i])
-
-    bool test_scale3()
-    {
-        TEST_FOREACH(sz, 0, 1, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0xfff)
-        {
-            for (size_t mask=0; mask <= 0x03; ++mask)
-            {
-                FBuffer src(sz, mask & 0x01);
-                FBuffer dst1(sz, mask & 0x02);
-                FBuffer dst2(sz, mask & 0x02);
-
-                native::scale3(dst1, src, 2.0f, sz);
-                sse::scale3(dst2, src, 2.0f, sz);
-
-                if (!dst1.compare(dst2))
-                {
-                    lsp_error("  Failed test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    bool test_scale2()
-    {
-        TEST_FOREACH(sz, 0, 1, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0xfff)
-        {
-            for (size_t mask=0; mask <= 0x01; ++mask)
-            {
-                FBuffer dst1(sz, mask & 0x01);
-                FBuffer dst2(dst1);
-
-                native::scale2(dst1, 2.0f, sz);
-                sse::scale2(dst2, 2.0f, sz);
-
-                if (!dst1.compare(dst2))
-                {
-                    lsp_error("  Failed test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    bool test_scale_op(scale_op_t native, scale_op_t sse)
-    {
-        TEST_FOREACH(sz, 0, 1, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0xfff)
-        {
-            for (size_t mask=0; mask <= 0x03; ++mask)
-            {
-                FBuffer dst1(sz, mask & 0x01);
-                FBuffer dst2(dst1);
-                FBuffer src(sz, mask & 0x02);
-
-                native(dst1, src, 2.0f, sz);
-                sse(dst2, src, 2.0f, sz);
-
-                if (!dst1.compare(dst2))
-                {
-                    lsp_error("  Failed test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
 
     bool test_mix2()
     {
@@ -661,31 +539,6 @@ namespace sse_test
         return true;
     }
 
-    bool test_binary(binary_math_t native, binary_math_t sse)
-    {
-        TEST_FOREACH(sz, 0, 1, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0xfff)
-        {
-            for (size_t mask=0; mask <= 0x03; ++mask)
-            {
-                FBuffer src(sz, mask & 0x01);
-                FBuffer dst1(sz, mask & 0x02);
-                FBuffer dst2(dst1);
-
-                native(dst1, src, sz);
-                sse(dst2, src, sz);
-
-                if (!dst1.compare(dst2))
-                {
-                    lsp_error("  Failed test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
     bool test_binary_abs(binary_math_t native, binary_math_t sse)
     {
         TEST_FOREACH(sz, 0, 1, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0xfff)
@@ -699,32 +552,6 @@ namespace sse_test
 
                 native(dst1, src, sz);
                 sse(dst2, src, sz);
-
-                if (!dst1.compare(dst2))
-                {
-                    lsp_error("  Failed test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    bool test_ternary(ternary_math_t native, ternary_math_t sse)
-    {
-        TEST_FOREACH(sz, 0, 1, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0xfff)
-        {
-            for (size_t mask=0; mask <= 0x07; ++mask)
-            {
-                FBuffer src1(sz, mask & 0x01);
-                FBuffer src2(sz, mask & 0x02);
-                FBuffer dst1(sz, mask & 0x03);
-                FBuffer dst2(sz, mask & 0x03);
-
-                native(dst1, src1, src2, sz);
-                sse(dst2, src1, src2, sz);
 
                 if (!dst1.compare(dst2))
                 {
@@ -1929,58 +1756,6 @@ namespace sse_test
         return true;
     }
 
-    bool test_packed_complex_mul()
-    {
-        TEST_FOREACH(sz, 0x01, 0x03, 0x04, 0x05, 0x08, 0x09, 0x0f, 0x10, 0x11, 0x20, 0x100)
-        {
-            for (size_t mask=0; mask <= 0x07; ++mask)
-            {
-                FBuffer src1(sz * 2, mask & 0x01);
-                FBuffer src2(sz * 2, mask & 0x02);
-                FBuffer dst1(sz * 2, mask & 0x08);
-                FBuffer dst2(sz * 2, mask & 0x08);
-
-                native::packed_complex_mul(dst1, src1, src2, sz);
-                if (!dst1.validate())
-                {
-                    lsp_error("  Failed native test size = %d, mask = 0x%x, overflow=%s",
-                                            int(sz), int(mask), (dst1.validate()) ? "false" : "true");
-                    return false;
-                }
-
-                dst2.randomize();
-                sse::packed_complex_mul(dst2, src1, src2, sz);
-                if ((!dst2.compare(dst1)) || (!dst2.validate()))
-                {
-                    lsp_error("  Failed sse test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-
-                dst2.randomize();
-                sse3::packed_complex_mul(dst2, src1, src2, sz);
-                if ((!dst2.compare(dst1)) || (!dst2.validate()))
-                {
-                    lsp_error("  Failed sse3 test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-
-            #ifdef ARCH_X86_64
-                dst2.randomize();
-                sse3::x64_packed_complex_mul(dst2, src1, src2, sz);
-                if ((!dst2.compare(dst1)) || (!dst2.validate()))
-                {
-                    lsp_error("  Failed x64_sse3 test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-            #endif
-            }
-        }
-        return true;
-    }
-
     bool test_complex_rcp1()
     {
         TEST_FOREACH(sz, 0x01, 0x03, 0x04, 0x05, 0x08, 0x09, 0x0f, 0x10, 0x11, 0x20, 0x100)
@@ -2073,15 +1848,11 @@ namespace sse_test
         int code = 0;
         #define LAUNCH(x, ...) --code; lsp_trace("Launching %s(%s)...", #x, #__VA_ARGS__); if (!x(__VA_ARGS__)) return code;
 
-        LAUNCH(test_packed_complex_mul)
         LAUNCH(test_complex_rcp2)
         LAUNCH(test_complex_rcp1)
         LAUNCH(test_packed_complex_rcp2)
         LAUNCH(test_packed_complex_rcp1)
         LAUNCH(test_complex_mod)
-
-        LAUNCH(test_scale2)
-        LAUNCH(test_scale3)
 
         LAUNCH(test_mix2)
         LAUNCH(test_mix3)
@@ -2095,27 +1866,12 @@ namespace sse_test
         LAUNCH(test_mix_add3)
         LAUNCH(test_mix_add4)
 
-        LAUNCH(test_binary, native::add2, sse::add2)
-        LAUNCH(test_binary, native::sub2, sse::sub2)
-        LAUNCH(test_binary, native::mul2, sse::mul2)
-        LAUNCH(test_binary, native::div2, sse::div2)
-
         LAUNCH(test_unary_abs, native::abs1, sse::abs1)
         LAUNCH(test_binary_abs, native::abs2, sse::abs2)
         LAUNCH(test_binary_abs, native::abs_add2, sse::abs_add2)
         LAUNCH(test_binary_abs, native::abs_sub2, sse::abs_sub2)
         LAUNCH(test_binary_abs, native::abs_mul2, sse::abs_mul2)
         LAUNCH(test_binary_abs, native::abs_div2, sse::abs_div2)
-
-        LAUNCH(test_ternary, native::add3, sse::add3)
-        LAUNCH(test_ternary, native::sub3, sse::sub3)
-        LAUNCH(test_ternary, native::mul3, sse::mul3)
-        LAUNCH(test_ternary, native::div3, sse::div3)
-
-        LAUNCH(test_scale_op, native::scale_add3, sse::scale_add3)
-        LAUNCH(test_scale_op, native::scale_sub3, sse::scale_sub3)
-        LAUNCH(test_scale_op, native::scale_mul3, sse::scale_mul3)
-        LAUNCH(test_scale_op, native::scale_div3, sse::scale_div3)
 
         LAUNCH(test_move)
         LAUNCH(test_fill)
