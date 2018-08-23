@@ -91,6 +91,8 @@ UTEST_BEGIN("dsp", endian)
         call<int32_t>("bswap i32", u32_ex);
         call<uint64_t>("bswap u64", u64_ex);
         call<int64_t>("bswap i64", u64_ex);
+        call<float>("bswap f32", u32_ex);
+        call<double>("bswap f64", u64_ex);
     }
 
 UTEST_END;
