@@ -80,7 +80,7 @@ UTEST_BEGIN("dsp.complex", mul)
                     UTEST_FAIL_MSG("Destination buffer 2 corrupted");
 
                 // Compare buffers
-                if (!dst1.equals_absolute(dst2))
+                if (!dst1.equals_absolute(dst2, 1e-5))
                 {
                     src1.dump("src1");
                     src2.dump("src2");
@@ -102,7 +102,7 @@ UTEST_BEGIN("dsp.complex", mul)
         {
             for (size_t mask=0; mask <= 0x3f; ++mask)
             {
-                printf("Testing %s on input buffer of %d numbers, mask=0x%x...\n", text, int(count), int(mask));
+                printf("Testing123 %s on input buffer of %d numbers, mask=0x%x...\n", text, int(count), int(mask));
 
                 FloatBuffer src1_re(count, align, mask & 0x01);
                 FloatBuffer src1_im(count, align, mask & 0x02);
@@ -127,7 +127,7 @@ UTEST_BEGIN("dsp.complex", mul)
                 UTEST_ASSERT_MSG(dst2_im.valid(), "dst2_im corrupted");
 
                 // Compare buffers
-                if (!(dst1_re.equals_relative(dst2_re) && (dst1_im.equals_relative(dst2_im))))
+                if (!(dst1_re.equals_absolute(dst2_re, 1e-5) && (dst1_im.equals_absolute(dst2_im, 1e-5))))
                 {
                     src1_re.dump("src1_re");
                     src1_im.dump("src1_im");
@@ -146,11 +146,12 @@ UTEST_BEGIN("dsp.complex", mul)
     UTEST_MAIN
     {
         IF_ARCH_X86(call("unpacked_sse", 16, sse::complex_mul));
+        IF_ARCH_X86_64(call("x64_unpacked_avx", 16, avx::x64_complex_mul));
+        IF_ARCH_X86_64(call("x64_unpacked_fma3", 16, avx::x64_complex_mul_fma3));
+
         IF_ARCH_X86(call("packed_sse", 16, sse::packed_complex_mul));
         IF_ARCH_X86(call("packed_sse3", 16, sse3::packed_complex_mul));
         IF_ARCH_X86_64(call("x64_packed_sse3", 16, sse3::x64_packed_complex_mul));
-        IF_ARCH_X86_64(call("x64_unpacked_avx", 16, avx::x64_complex_mul));
-        IF_ARCH_X86_64(call("x64_unpacked_fma3", 16, avx::x64_complex_mul));
         IF_ARCH_X86_64(call("x64_packed_avx", 32, avx::x64_packed_complex_mul));
         IF_ARCH_X86_64(call("x64_packed_fma3", 32, avx::x64_packed_complex_mul_fma3));
     }

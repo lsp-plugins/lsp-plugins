@@ -65,8 +65,8 @@
         }
 
 #define UTEST_FOREACH(var, ...)    \
-        const size_t ___sizes[] = { __VA_ARGS__ }; \
-        for (size_t ___i=0, var=___sizes[0]; ___i<(sizeof(___sizes)/sizeof(size_t)); ++___i, var=___sizes[___i])
+        const size_t ___sizes[] = { __VA_ARGS__, 0 }; \
+        for (size_t ___i=0, var=___sizes[0]; ___i<(sizeof(___sizes)/sizeof(size_t) - 1); var=___sizes[++___i])
 
 #define UTEST_END \
         } unit_test;  /* utest class */ \
