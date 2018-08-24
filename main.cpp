@@ -1,11 +1,9 @@
 #include "test/common.h"
 
-#include "test/res_gen.h"
 #include "test/audiofile_test.h"
 #include "test/window_test.h"
 #include "test/frac_test.h"
 #include "test/sample_player_test.h"
-#include "test/randgen_test.h"
 #include "test/fade_test.h"
 #include "test/resample_test.h"
 #include "test/alloc_test.h"
