@@ -44,7 +44,7 @@ static const f_cascade_t test_c =
 // Performance test for bilinear transform
 PTEST_BEGIN("dsp.filters", bt, 10, 10000)
 
-    void call_x1(const char * label, size_t count, bilinear_transform_x1_t func)
+    void call(const char * label, size_t count, bilinear_transform_x1_t func)
     {
         printf("Testing %s bilinear transform on buffer size %d ...\n", label, int(count));
 
@@ -70,7 +70,7 @@ PTEST_BEGIN("dsp.filters", bt, 10, 10000)
         free_aligned(p2);
     }
 
-    void call_x2(const char * label, size_t count, bilinear_transform_x2_t func)
+    void call(const char * label, size_t count, bilinear_transform_x2_t func)
     {
         printf("Testing %s bilinear transform on buffer size %d ...\n", label, int(count));
 
@@ -93,7 +93,7 @@ PTEST_BEGIN("dsp.filters", bt, 10, 10000)
         free_aligned(p2);
     }
 
-    void call_x4(const char * label, size_t count, bilinear_transform_x4_t func)
+    void call(const char * label, size_t count, bilinear_transform_x4_t func)
     {
         printf("Testing %s bilinear transform on buffer size %d ...\n", label, int(count));
 
@@ -114,7 +114,7 @@ PTEST_BEGIN("dsp.filters", bt, 10, 10000)
         free_aligned(p2);
     }
 
-    void call_x8(const char * label, size_t count, bilinear_transform_x8_t func)
+    void call(const char * label, size_t count, bilinear_transform_x8_t func)
     {
         printf("Testing %s bilinear transform on buffer size %d ...\n", label, int(count));
 
@@ -136,20 +136,20 @@ PTEST_BEGIN("dsp.filters", bt, 10, 10000)
 
     PTEST_MAIN
     {
-        call_x1("8 bilinear x1 native", PERF_BUF_SIZE, native::bilinear_transform_x1);
-        IF_ARCH_X86(call_x1("8 bilinear x1 sse", PERF_BUF_SIZE, sse::bilinear_transform_x1));
+        call("8 bilinear x1 native", PERF_BUF_SIZE, native::bilinear_transform_x1);
+        IF_ARCH_X86(call("8 bilinear x1 sse", PERF_BUF_SIZE, sse::bilinear_transform_x1));
         PTEST_SEPARATOR;
 
-        call_x2("4 bilinear x2 native", PERF_BUF_SIZE, native::bilinear_transform_x2);
-        IF_ARCH_X86(call_x2("4 bilinear x2 sse", PERF_BUF_SIZE, sse::bilinear_transform_x2));
+        call("4 bilinear x2 native", PERF_BUF_SIZE, native::bilinear_transform_x2);
+        IF_ARCH_X86(call("4 bilinear x2 sse", PERF_BUF_SIZE, sse::bilinear_transform_x2));
         PTEST_SEPARATOR;
 
-        call_x4("2 bilinear x4 native", PERF_BUF_SIZE, native::bilinear_transform_x4);
-        IF_ARCH_X86(call_x4("2 bilinear x4 sse", PERF_BUF_SIZE, sse::bilinear_transform_x4));
+        call("2 bilinear x4 native", PERF_BUF_SIZE, native::bilinear_transform_x4);
+        IF_ARCH_X86(call("2 bilinear x4 sse", PERF_BUF_SIZE, sse::bilinear_transform_x4));
         PTEST_SEPARATOR;
 
-        call_x8("1 bilinear x8 native", PERF_BUF_SIZE, native::bilinear_transform_x8);
-        IF_ARCH_X86(call_x8("1 bilinear x1 sse", PERF_BUF_SIZE, sse::bilinear_transform_x8));
+        call("1 bilinear x8 native", PERF_BUF_SIZE, native::bilinear_transform_x8);
+        IF_ARCH_X86(call("1 bilinear x8 sse", PERF_BUF_SIZE, sse::bilinear_transform_x8));
         PTEST_SEPARATOR;
     }
 
