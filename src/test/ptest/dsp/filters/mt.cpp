@@ -40,7 +40,7 @@ PTEST_BEGIN("dsp.filters", mt, 10, 10000)
 
     void call_x1(const char * label, size_t count, matched_transform_x1_t func)
     {
-        printf("Testing %s bilinear transform on buffer size %d ...\n", label, int(count));
+        printf("Testing %s matched transform on buffer size %d ...\n", label, int(count));
 
         void *p1 = NULL, *p2 = NULL;
         biquad_x1_t *dst = alloc_aligned<biquad_x1_t>(p1, count, 32);
