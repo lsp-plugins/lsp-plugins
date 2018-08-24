@@ -24,18 +24,6 @@ namespace test
     {
     }
 
-    int ManualTest::printf(const char *fmt, ...)
-    {
-        if (!__verbose)
-            return 0;
-
-        va_list vl;
-        va_start(vl, fmt);
-        int res = vprintf(fmt, vl);
-        va_end(vl);
-        return res;
-    }
-
     ManualTest *mtest_init()
     {
         // Ensure that there are no duplicates in performance tests

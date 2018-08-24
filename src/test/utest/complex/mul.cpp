@@ -70,14 +70,10 @@ UTEST_BEGIN("dsp.complex", mul)
                 native::packed_complex_mul(dst1, src1, src2, count);
                 func(dst2, src1, src2, count);
 
-                if (src1.corrupted())
-                    UTEST_FAIL_MSG("Source buffer corrupted");
-                if (src2.corrupted())
-                    UTEST_FAIL_MSG("Source buffer corrupted");
-                if (dst1.corrupted())
-                    UTEST_FAIL_MSG("Destination buffer 1 corrupted");
-                if (dst2.corrupted())
-                    UTEST_FAIL_MSG("Destination buffer 2 corrupted");
+                UTEST_ASSERT_MSG(src1.valid(), "Source buffer 1 corrupted");
+                UTEST_ASSERT_MSG(src2.valid(), "Source buffer 2 corrupted");
+                UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
+                UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
 
                 // Compare buffers
                 if (!dst1.equals_absolute(dst2, 1e-5))

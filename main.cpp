@@ -2,15 +2,12 @@
 
 #include "test/res_gen.h"
 #include "test/audiofile_test.h"
-#include "test/convolver_test.h"
 #include "test/window_test.h"
-#include "test/env_test.h"
 #include "test/frac_test.h"
 #include "test/sample_player_test.h"
 #include "test/randgen_test.h"
 #include "test/fade_test.h"
 #include "test/resample_test.h"
-#include "test/genttl.h"
 #include "test/alloc_test.h"
 
 #include "test/fft_test.h"
@@ -21,12 +18,10 @@
 #include "test/fft_fastconv_test.h"
 #include "test/fft_fastconv_speed_test.h"
 #include "test/fft_tdomain_test.h"
-#include "test/fft_filter.h"
 
 #include "test/real_to_complex.h"
 
 #include "test/saturation_test.h"
-#include "test/addm_test.h"
 #include "test/sidechain_test.h"
 #include "test/limiter_test.h"
 
@@ -48,7 +43,6 @@
 #include "test/solutions3d_test.h"
 #include "test/synchronizedchirp_test.h"
 
-#include "test/algo/bt_test.h"
 #include "test/algo/mt_test.h"
 
 #include "test/math/root_test.h"

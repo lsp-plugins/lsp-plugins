@@ -77,7 +77,7 @@
 
 #define PTEST_END \
         } performance_test;  /* ptest class */ \
-        } /* namespace ptest ## name */ \
+        } /* namespace ptest_ ## name */ \
         } /* namespace test */
 
 namespace test

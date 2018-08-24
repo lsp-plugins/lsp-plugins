@@ -17,7 +17,7 @@
 
 #define MTEST_BEGIN(group, name) \
         namespace test { \
-        namespace mtest ## name { \
+        namespace mtest_ ## name { \
             \
             using namespace ::test; \
             \
@@ -62,7 +62,7 @@
 
 #define MTEST_END \
         } manual_test;  /* mtest class */ \
-        } /* namespace mtest ## name */ \
+        } /* namespace mtest_ ## name */ \
         } /* namespace test */
 
 namespace test
@@ -75,9 +75,6 @@ namespace test
         private:
             static ManualTest        *__root;
             ManualTest               *__next;
-
-        protected:
-            int             printf(const char *fmt, ...);
 
         public:
             explicit ManualTest(const char *group, const char *name);

@@ -84,9 +84,9 @@ namespace test
 
         // Mark the head and the tail of the buffer with signatures
         uint32_t key    = uint32_t(ptrdiff_t(this));
-        uint32_t *ptr   = reinterpret_cast<uint32_t *>(&pBuffer[-1]);
+        uint32_t *ptr   = reinterpret_cast<uint32_t *>(&head[-sizeof(uint32_t)]);
         *ptr            = uint32_t(CK_HEAD_SIGNATURE ^ key);
-        ptr             = reinterpret_cast<uint32_t *>(&pBuffer[nLength]);
+        ptr             = reinterpret_cast<uint32_t *>(&head[nLength*sizeof(float)]);
         *ptr            = uint32_t(CK_TAIL_SIGNATURE ^ key);
     }
 
@@ -125,10 +125,11 @@ namespace test
     bool FloatBuffer::validate() const
     {
         uint32_t key            = uint32_t(ptrdiff_t(this));
-        const uint32_t *ptr     = reinterpret_cast<uint32_t *>(&pBuffer[-1]);
+        uint8_t *head           = reinterpret_cast<uint8_t *>(pBuffer);
+        uint32_t *ptr           = reinterpret_cast<uint32_t *>(&head[-sizeof(uint32_t)]);
         if (*ptr != (CK_HEAD_SIGNATURE ^ key))
             return false;
-        ptr                     = reinterpret_cast<uint32_t *>(&pBuffer[nLength]);
+        ptr                     = reinterpret_cast<uint32_t *>(&head[nLength * sizeof(float)]);
         return (*ptr == (CK_TAIL_SIGNATURE ^ key));
     }
 
