@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef INCLUDE_TEST_PTEST_H_
-#define INCLUDE_TEST_PTEST_H_
+#ifndef TEST_PTEST_H_
+#define TEST_PTEST_H_
 
 #include <stdio.h>
 #include <stddef.h>
@@ -33,7 +33,7 @@
         virtual bool ignore() const { return true; }
 
 #define PTEST_MAIN \
-        virtual void execute()
+        virtual void execute(int argc, const char **argv)
 
 #define PTEST_SUPPORTED(ptr)        TEST_SUPPORTED(ptr)
 
@@ -119,12 +119,11 @@ namespace test
             virtual ~PerformanceTest();
 
         public:
-            inline PerformanceTest *next()      { return __next; }
+            inline PerformanceTest *next()          { return __next; }
+            virtual Test *next_test() const         { return const_cast<PerformanceTest *>(__next); };
+
             void dump_stats() const;
             void free_stats();
-
-        public:
-            virtual void execute() = 0;
     };
 
 
@@ -135,4 +134,4 @@ namespace test
     PerformanceTest *ptest_init();
 }
 
-#endif /* INCLUDE_TEST_PTEST_H_ */
+#endif /* TEST_PTEST_H_ */

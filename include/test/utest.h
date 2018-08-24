@@ -34,7 +34,7 @@
         virtual bool ignore() const { return true; }
 
 #define UTEST_MAIN \
-        virtual void execute()
+        virtual void execute(int argc, const char **argv)
 
 #define UTEST_SUPPORTED(ptr)        TEST_SUPPORTED(ptr)
 
@@ -92,11 +92,11 @@ namespace test
             virtual ~UnitTest();
 
         public:
-            inline UnitTest *next()             { return __next; }
+            inline UnitTest *next()                 { return __next; }
+
+            virtual Test *next_test() const         { return const_cast<UnitTest *>(__next); };
 
         public:
-            virtual void execute() = 0;
-
             virtual double time_limit() const;
     };
 

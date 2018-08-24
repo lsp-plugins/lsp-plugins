@@ -142,6 +142,7 @@
 #include <dsp/dsp.h>
 #include <test/ptest.h>
 #include <test/utest.h>
+#include <test/mtest.h>
 #include <data/cvector.h>
 #include <core/LSPString.h>
 
@@ -149,7 +150,8 @@ enum test_mode_t
 {
     UNKNOWN,
     PTEST,
-    UTEST
+    UTEST,
+    MTEST
 };
 
 using namespace lsp;
@@ -163,6 +165,7 @@ typedef struct config_t
     bool                        list_all;
     size_t                      threads;
     cvector<LSPString>          list;
+    cvector<char>               args;
 } config_t;
 
 typedef struct stats_t
@@ -252,6 +255,40 @@ bool match_list(lsp::cvector<LSPString> &list, const char *group, const char *na
     return false;
 }
 
+int list_all(const char *text, test::Test *v)
+{
+    cvector<char> names;
+
+    for ( ; v != NULL; v = v->next_test())
+    {
+        char *str = NULL;
+        asprintf(&str, "%s.%s", v->group(), v->name());
+        if (str != NULL)
+        {
+            if (!names.add(str))
+                free(str);
+        }
+    }
+
+    printf("\n%s:\n", text);
+    size_t n = names.size();
+    for (size_t i=0; i<n-1; ++i)
+        for (size_t j=i+1; j<n; ++j)
+            if (strcmp(names.at(i), names.at(j)) > 0)
+                names.swap(i, j);
+
+    for (size_t i=0; i<n; ++i)
+    {
+        char *name = names.at(i);
+        printf("  %s\n", name);
+        free(name);
+    }
+    printf("\n");
+
+    names.flush();
+    return 0;
+}
+
 int output_stats(stats_t *stats, const char *text)
 {
     printf("\n--------------------------------------------------------------------------------\n");
@@ -282,7 +319,7 @@ int execute_ptest(config_t *cfg, test::PerformanceTest *v)
 {
     // Execute performance test
     v->set_verbose(cfg->verbose);
-    v->execute();
+    v->execute(cfg->args.size(), const_cast<const char **>(cfg->args.get_array()));
 
     // Output peformance test statistics
     printf("\nStatistics of performance test '%s.%s':\n", v->group(), v->name());
@@ -291,30 +328,18 @@ int execute_ptest(config_t *cfg, test::PerformanceTest *v)
     return 0;
 }
 
+int execute_mtest(config_t *cfg, test::ManualTest *v)
+{
+    // Execute performance test
+    v->set_verbose(cfg->verbose);
+    v->execute(cfg->args.size(), const_cast<const char **>(cfg->args.get_array()));
+    return 0;
+}
+
 void utest_sighandler(int signum)
 {
     fprintf(stderr, "Unit test time limit exceeded\n");
     exit(2);
-}
-
-int output_test_list(const char *text, cvector<char> &list)
-{
-    printf("\n%s:\n", text);
-    size_t n = list.size();
-    for (size_t i=0; i<n-1; ++i)
-        for (size_t j=i+1; j<n; ++j)
-            if (strcmp(list.at(i), list.at(j)) > 0)
-                list.swap(i, j);
-
-    for (size_t i=0; i<n; ++i)
-    {
-        char *name = list.at(i);
-        printf("  %s\n", name);
-        free(name);
-    }
-    printf("\n");
-    list.flush();
-    return 0;
 }
 
 int execute_utest(config_t *cfg, test::UnitTest *v)
@@ -335,7 +360,7 @@ int execute_utest(config_t *cfg, test::UnitTest *v)
 
     // Execute performance test
     v->set_verbose(cfg->verbose);
-    v->execute();
+    v->execute(cfg->args.size(), const_cast<const char **>(cfg->args.get_array()));
 
     // Cancel and disable timer
     if (!cfg->debug)
@@ -357,28 +382,14 @@ int launch_ptest(config_t *cfg)
 {
     using namespace test;
     PerformanceTest *v = ptest_init();
-    if (v == NULL)
-    {
-        fprintf(stderr, "No performance tests available\n");
-        return -1;
-    }
 
     // List all tests if requested
     if (cfg->list_all)
+        return list_all("List of available performance tests", v);
+    else if (v == NULL)
     {
-        cvector<char> names;
-
-        for ( ; v != NULL; v = v->next())
-        {
-            char *str = NULL;
-            asprintf(&str, "%s.%s", v->group(), v->name());
-            if (str != NULL)
-            {
-                if (!names.add(str))
-                    free(str);
-            }
-        }
-        return output_test_list("List of available performance tests", names);
+        fprintf(stderr, "No performance tests available\n");
+        return -1;
     }
 
     int result = 0;
@@ -450,6 +461,100 @@ int launch_ptest(config_t *cfg)
         time = (finish.tv_sec - start.tv_sec) + (finish.tv_nsec - start.tv_nsec) * 1e-9;
 
         printf("Performance test '%s.%s' execution time: %.2f s\n", v->group(), v->name() , time);
+        if (result == 0)
+            stats.success ++;
+        else
+            stats.failed.add(v);
+    }
+
+    clock_gettime(CLOCK_REALTIME, &finish);
+    stats.overall = (finish.tv_sec - ts.tv_sec) + (finish.tv_nsec - ts.tv_nsec) * 1e-9;
+    return output_stats(&stats, "Overall performance test statistics");
+}
+
+int launch_mtest(config_t *cfg)
+{
+    using namespace test;
+    ManualTest *v = mtest_init();
+    if (v == NULL)
+    {
+        fprintf(stderr, "No manual tests available\n");
+        return -1;
+    }
+
+    // List all tests if requested
+    if (cfg->list_all)
+        return list_all("List of available manual tests", v);
+
+    int result = 0;
+    struct timespec ts, start, finish;
+    stats_t stats;
+    stats.total     = 0;
+    stats.success   = 0;
+    stats.overall   = 0.0;
+    double time     = 0.0;
+
+    clock_gettime(CLOCK_REALTIME, &ts);
+
+    for ( ; v != NULL; v = v->next())
+    {
+        // Check that test is not ignored
+        if (v->ignore())
+            continue;
+
+        // Need to check test name and group?
+        if (!match_list(cfg->list, v->group(), v->name()))
+            continue;
+
+        printf("\n--------------------------------------------------------------------------------\n");
+        printf("Launching manual test '%s.%s'\n", v->group(), v->name());
+        printf("--------------------------------------------------------------------------------\n");
+
+        clock_gettime(CLOCK_REALTIME, &start);
+
+        stats.total     ++;
+        if (cfg->fork)
+        {
+            pid_t pid = fork();
+            if (pid < 0)
+            {
+                int error = errno;
+                fprintf(stderr, "Error while spawning child process %d\n", error);
+
+                result = -2;
+                break;
+            }
+            else if (pid == 0)
+                return execute_mtest(cfg, v);
+            else
+            {
+                // Parent process code: wait for nested process execution
+                do
+                {
+                    int w = waitpid(pid, &result, WUNTRACED | WCONTINUED);
+                    if (w < 0)
+                    {
+                        fprintf(stderr, "Waiting for manual test '%s.%s' failed\n", v->group(), v->name());
+                        stats.failed.add(v);
+                        break;
+                    }
+
+                    if (WIFEXITED(result))
+                        printf("Manual test '%s.%s' finished, status=%d\n", v->group(), v->name(), WEXITSTATUS(result));
+                    else if (WIFSIGNALED(result))
+                        printf("Manual test '%s.%s' killed by signal %d\n", v->group(), v->name(), WTERMSIG(result));
+                    else if (WIFSTOPPED(result))
+                        printf("Manual test '%s.%s' stopped by signal %d\n", v->group(), v->name(), WSTOPSIG(result));
+                } while (!WIFEXITED(result) && !WIFSIGNALED(result));
+            }
+        }
+        else
+            result = execute_mtest(cfg, v);
+
+        clock_gettime(CLOCK_REALTIME, &finish);
+        time = (finish.tv_sec - start.tv_sec) + (finish.tv_nsec - start.tv_nsec) * 1e-9;
+
+        printf("Manual test '%s.%s' execution time: %.2f s\n", v->group(), v->name() , time);
         if (result == 0)
             stats.success ++;
         else
@@ -594,28 +699,14 @@ int launch_utest(config_t *cfg)
 {
     using namespace test;
     UnitTest *v = utest_init();
-    if (v == NULL)
-    {
-        fprintf(stderr, "No performance tests available\n");
-        return -1;
-    }
 
     // List all tests if requested
     if (cfg->list_all)
+        return list_all("List of available unit tests", v);
+    else if (v == NULL)
     {
-        cvector<char> names;
-
-        for ( ; v != NULL; v = v->next())
-        {
-            char *str = NULL;
-            asprintf(&str, "%s.%s", v->group(), v->name());
-            if (str != NULL)
-            {
-                if (!names.add(str))
-                    free(str);
-            }
-        }
-        return output_test_list("List of available performance tests", names);
+        fprintf(stderr, "No unit tests available\n");
+        return -1;
     }
 
     struct timespec start, finish;
@@ -669,9 +760,28 @@ int launch_utest(config_t *cfg)
     return output_stats(&stats, "Overall unit test statistics");
 }
 
-int usage()
+int usage(bool detailed = false)
 {
-    fprintf(stderr, "USAGE: {ptest|utest} [args...]\n");
+    puts("USAGE: {utest|ptest|mtest} [args...] [test name...]");
+    if (!detailed)
+        return 1;
+
+    puts("  First argument:");
+    puts("    utest                 Unit testing subsystem");
+    puts("    ptest                 Performance testing subsystem");
+    puts("    mtest                 Manual testing subsystem");
+    puts("  Additional arguments:");
+    puts("    -a, --args [args...]  Pass arguments to test");
+    puts("    -d, --debug           Disable time restrictions for unit tests");
+    puts("                          for debugging purporses");
+    puts("    -f, --fork            Fork child processes (opposite to --nofork)");
+    puts("    -h, --help            Display help");
+    puts("    -j, --jobs            Set number of job workers for unit tests");
+    puts("    -l, --list            List all available tests");
+    puts("    -nf, --nofork         Do not fork child processes (for better ");
+    puts("                          debugging capabilities)");
+    puts("    -s, --silent          Do not output additional information from tests");
+    puts("    -v, --verbose         Output additional information from tests");
     return 1;
 }
 
@@ -689,28 +799,37 @@ int parse_config(config_t *cfg, int argc, const char **argv)
         cfg->mode = PTEST;
     else if (!strcmp(argv[1], "utest"))
         cfg->mode = UTEST;
-    if (cfg->mode == UNKNOWN)
+    else if (!strcmp(argv[1], "mtest"))
+        cfg->mode = MTEST;
+    else if ((!strcmp(argv[1], "--help")) || ((!strcmp(argv[1], "-h"))))
+        return usage(true);
+    else
         return usage();
 
     for (int i=2; i<argc; ++i)
     {
-        if (!strcmp(argv[i], "--nofork"))
+        if ((!strcmp(argv[i], "--nofork")) || (!strcmp(argv[i], "-nf")))
             cfg->fork       = false;
-        else if (!strcmp(argv[i], "--fork"))
+        else if ((!strcmp(argv[i], "--fork")) || (!strcmp(argv[i], "-f")))
             cfg->fork       = true;
-        else if (!strcmp(argv[i], "--verbose"))
+        else if ((!strcmp(argv[i], "--verbose")) || (!strcmp(argv[i], "-v")))
             cfg->verbose    = true;
-        else if (!strcmp(argv[i], "--silent"))
+        else if ((!strcmp(argv[i], "--silent")) || (!strcmp(argv[i], "-s")))
             cfg->verbose    = false;
-        else if (!strcmp(argv[i], "--debug"))
+        else if ((!strcmp(argv[i], "--debug")) || (!strcmp(argv[i], "-d")))
             cfg->debug      = true;
-        else if (!strcmp(argv[i], "--list"))
+        else if ((!strcmp(argv[i], "--list")) || (!strcmp(argv[i], "-l")))
             cfg->list_all   = true;
-        else if (!strcmp(argv[i], "--threads"))
+        else if ((!strcmp(argv[i], "--args")) || (!strcmp(argv[i], "-a")))
+        {
+            while (++i < argc)
+                cfg->args.add(const_cast<char *>(argv[i]));
+        }
+        else if ((!strcmp(argv[i], "--jobs")) || (!strcmp(argv[i], "-j")))
         {
             if ((++i) >= argc)
             {
-                fprintf(stderr, "Not specified number of threads for --threads parameter\n");
+                fprintf(stderr, "Not specified number of jobs for --jobs parameter\n");
                 return 3;
             }
 
@@ -777,6 +896,9 @@ int main(int argc, const char **argv)
             break;
         case UTEST:
             res = launch_utest(&cfg);
+            break;
+        case MTEST:
+            res = launch_mtest(&cfg);
             break;
         default:
             break;

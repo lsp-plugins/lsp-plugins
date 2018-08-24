@@ -43,9 +43,11 @@ namespace test
         public:
             inline void set_verbose(bool verbose)      { __verbose = verbose; }
 
-            virtual void execute() = 0;
+            virtual void execute(int argc, const char **argv) = 0;
 
             virtual bool ignore() const;
+
+            virtual Test *next_test() const = 0;
 
         public:
             template <typename T>
