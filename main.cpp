@@ -12,7 +12,6 @@
 #include "test/resample_test.h"
 #include "test/genttl.h"
 #include "test/alloc_test.h"
-#include "test/jack_test.h"
 
 #include "test/fft_test.h"
 #include "test/fft_test2.h"
@@ -23,7 +22,6 @@
 #include "test/fft_fastconv_speed_test.h"
 #include "test/fft_tdomain_test.h"
 #include "test/fft_filter.h"
-#include "test/fft_join.h"
 
 #include "test/real_to_complex.h"
 
@@ -128,7 +126,6 @@
 //#define TEST mt_perf_test
 //#define TEST root_test
 
-#define TEST jack_test
 //#define TEST selection_test
 //#define TEST endian_test
 
@@ -232,16 +229,14 @@ bool match_string(const LSPString *p, const LSPString *m)
     return true;
 }
 
-bool match_list(lsp::cvector<LSPString> &list, const char *group, const char *name)
+bool match_list(lsp::cvector<LSPString> &list, test::Test *v)
 {
     // Empty list always matches
     if (list.size() <= 0)
         return true;
 
     LSPString m;
-    m.set_ascii(group);
-    m.append('.');
-    m.append_ascii(name);
+    m.set_ascii(v->full_name());
 
     for (size_t i=0, n=list.size(); i<n; ++i)
     {
@@ -261,13 +256,9 @@ int list_all(const char *text, test::Test *v)
 
     for ( ; v != NULL; v = v->next_test())
     {
-        char *str = NULL;
-        asprintf(&str, "%s.%s", v->group(), v->name());
+        const char *str = v->full_name();
         if (str != NULL)
-        {
-            if (!names.add(str))
-                free(str);
-        }
+            names.add(const_cast<char *>(str));
     }
 
     printf("\n%s:\n", text);
@@ -281,7 +272,6 @@ int list_all(const char *text, test::Test *v)
     {
         char *name = names.at(i);
         printf("  %s\n", name);
-        free(name);
     }
     printf("\n");
 
@@ -305,7 +295,7 @@ int output_stats(stats_t *stats, const char *text)
         for (size_t i=0, n=stats->failed.size(); i<n; ++i)
         {
             test::Test *t = stats->failed.at(i);
-            printf("  %s.%s\n", t->group(), t->name());
+            printf("  %s\n", t->full_name());
         }
         printf("\n");
         return 2;
@@ -322,7 +312,7 @@ int execute_ptest(config_t *cfg, test::PerformanceTest *v)
     v->execute(cfg->args.size(), const_cast<const char **>(cfg->args.get_array()));
 
     // Output peformance test statistics
-    printf("\nStatistics of performance test '%s.%s':\n", v->group(), v->name());
+    printf("\nStatistics of performance test '%s':\n", v->full_name());
     v->dump_stats();
     v->free_stats();
     return 0;
@@ -409,11 +399,11 @@ int launch_ptest(config_t *cfg)
             continue;
 
         // Need to check test name and group?
-        if (!match_list(cfg->list, v->group(), v->name()))
+        if (!match_list(cfg->list, v))
             continue;
 
         printf("\n--------------------------------------------------------------------------------\n");
-        printf("Launching performance test '%s.%s'\n", v->group(), v->name());
+        printf("Launching performance test '%s'\n", v->full_name());
         printf("--------------------------------------------------------------------------------\n");
 
         clock_gettime(CLOCK_REALTIME, &start);
@@ -440,17 +430,17 @@ int launch_ptest(config_t *cfg)
                     int w = waitpid(pid, &result, WUNTRACED | WCONTINUED);
                     if (w < 0)
                     {
-                        fprintf(stderr, "Waiting for performance test '%s.%s' failed\n", v->group(), v->name());
+                        fprintf(stderr, "Waiting for performance test '%s' failed\n", v->full_name());
                         stats.failed.add(v);
                         break;
                     }
 
                     if (WIFEXITED(result))
-                        printf("Performance test '%s.%s' finished, status=%d\n", v->group(), v->name(), WEXITSTATUS(result));
+                        printf("Performance test '%s' finished, status=%d\n", v->full_name(), WEXITSTATUS(result));
                     else if (WIFSIGNALED(result))
-                        printf("Performance test '%s.%s' killed by signal %d\n", v->group(), v->name(), WTERMSIG(result));
+                        printf("Performance test '%s' killed by signal %d\n", v->full_name(), WTERMSIG(result));
                     else if (WIFSTOPPED(result))
-                        printf("Performance test '%s.%s' stopped by signal %d\n", v->group(), v->name(), WSTOPSIG(result));
+                        printf("Performance test '%s' stopped by signal %d\n", v->full_name(), WSTOPSIG(result));
                 } while (!WIFEXITED(result) && !WIFSIGNALED(result));
             }
         }
@@ -460,7 +450,7 @@ int launch_ptest(config_t *cfg)
         clock_gettime(CLOCK_REALTIME, &finish);
         time = (finish.tv_sec - start.tv_sec) + (finish.tv_nsec - start.tv_nsec) * 1e-9;
 
-        printf("Performance test '%s.%s' execution time: %.2f s\n", v->group(), v->name() , time);
+        printf("Performance test '%s' execution time: %.2f s\n", v->full_name() , time);
         if (result == 0)
             stats.success ++;
         else
@@ -503,11 +493,11 @@ int launch_mtest(config_t *cfg)
             continue;
 
         // Need to check test name and group?
-        if (!match_list(cfg->list, v->group(), v->name()))
+        if (!match_list(cfg->list, v))
             continue;
 
         printf("\n--------------------------------------------------------------------------------\n");
-        printf("Launching manual test '%s.%s'\n", v->group(), v->name());
+        printf("Launching manual test '%s'\n", v->full_name());
         printf("--------------------------------------------------------------------------------\n");
 
         clock_gettime(CLOCK_REALTIME, &start);
@@ -534,17 +524,17 @@ int launch_mtest(config_t *cfg)
                     int w = waitpid(pid, &result, WUNTRACED | WCONTINUED);
                     if (w < 0)
                     {
-                        fprintf(stderr, "Waiting for manual test '%s.%s' failed\n", v->group(), v->name());
+                        fprintf(stderr, "Waiting for manual test '%s' failed\n", v->full_name());
                         stats.failed.add(v);
                         break;
                     }
 
                     if (WIFEXITED(result))
-                        printf("Manual test '%s.%s' finished, status=%d\n", v->group(), v->name(), WEXITSTATUS(result));
+                        printf("Manual test '%s' finished, status=%d\n", v->full_name(), WEXITSTATUS(result));
                     else if (WIFSIGNALED(result))
-                        printf("Manual test '%s.%s' killed by signal %d\n", v->group(), v->name(), WTERMSIG(result));
+                        printf("Manual test '%s' killed by signal %d\n", v->full_name(), WTERMSIG(result));
                     else if (WIFSTOPPED(result))
-                        printf("Manual test '%s.%s' stopped by signal %d\n", v->group(), v->name(), WSTOPSIG(result));
+                        printf("Manual test '%s' stopped by signal %d\n", v->full_name(), WSTOPSIG(result));
                 } while (!WIFEXITED(result) && !WIFSIGNALED(result));
             }
         }
@@ -554,7 +544,7 @@ int launch_mtest(config_t *cfg)
         clock_gettime(CLOCK_REALTIME, &finish);
         time = (finish.tv_sec - start.tv_sec) + (finish.tv_nsec - start.tv_nsec) * 1e-9;
 
-        printf("Manual test '%s.%s' execution time: %.2f s\n", v->group(), v->name() , time);
+        printf("Manual test '%s' execution time: %.2f s\n", v->full_name(), time);
         if (result == 0)
             stats.success ++;
         else
@@ -592,17 +582,17 @@ bool wait_thread(config_t *cfg, task_t *threads, stats_t *stats)
             return false;
 
         if (WIFEXITED(result))
-            printf("Unit test '%s.%s' finished, status=%d\n", t->utest->group(), t->utest->name(), WEXITSTATUS(result));
+            printf("Unit test '%s' finished, status=%d\n", t->utest->full_name(), WEXITSTATUS(result));
         else if (WIFSIGNALED(result))
-            printf("Unit test '%s.%s' killed by signal %d\n", t->utest->group(), t->utest->name(), WTERMSIG(result));
+            printf("Unit test '%s' killed by signal %d\n", t->utest->full_name(), WTERMSIG(result));
         else if (WIFSTOPPED(result))
-            printf("Unit test '%s.%s' stopped by signal %d\n", t->utest->group(), t->utest->name(), WSTOPSIG(result));
+            printf("Unit test '%s' stopped by signal %d\n", t->utest->full_name(), WSTOPSIG(result));
     } while (!WIFEXITED(result) && !WIFSIGNALED(result));
 
     // Get time
     clock_gettime(CLOCK_REALTIME, &ts);
     double time = (ts.tv_sec - t->submitted.tv_sec) + (ts.tv_nsec - t->submitted.tv_nsec) * 1e-9;
-    printf("Unit test '%s.%s' execution time: %.2f s\n", t->utest->group(), t->utest->name(), time);
+    printf("Unit test '%s' execution time: %.2f s\n", t->utest->full_name(), time);
     if (result == 0)
         stats->success ++;
     else
@@ -735,11 +725,11 @@ int launch_utest(config_t *cfg)
             continue;
 
         // Need to check test name and group?
-        if (!match_list(cfg->list, v->group(), v->name()))
+        if (!match_list(cfg->list, v))
             continue;
 
         printf("\n--------------------------------------------------------------------------------\n");
-        printf("Launching unit test '%s.%s'\n", v->group(), v->name());
+        printf("Launching unit test '%s'\n", v->full_name());
         printf("--------------------------------------------------------------------------------\n");
 
         stats.total ++;

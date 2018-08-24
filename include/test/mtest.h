@@ -44,6 +44,8 @@
             exit(1); \
         }
 
+#define MTEST_FAIL_SILENT()     exit(5);
+
 #define MTEST_ASSERT(code) \
         if (!(code)) { \
             fprintf(stderr, "Manual test '%s.%s' assertion has failed at file %s, line %d:\n  %s", \

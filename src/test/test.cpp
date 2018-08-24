@@ -16,10 +16,22 @@ namespace test
         __test_group        = group;
         __test_name         = name;
         __verbose           = false;
+        __full_name         = NULL;
+
+        if ((__test_group != NULL) && (strlen(__test_group) > 0))
+            asprintf(&__full_name, "%s.%s", __test_group, __test_name);
+
+        if (__full_name == NULL)
+            __full_name         = const_cast<char *>(__test_name);
     }
 
     Test::~Test()
     {
+        if ((__full_name != NULL) && (__full_name != __test_name))
+        {
+            free(__full_name);
+            __full_name = NULL;
+        }
     }
 
     bool Test::ignore() const

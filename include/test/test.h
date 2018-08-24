@@ -30,11 +30,13 @@ namespace test
         protected:
             const char     *__test_group;
             const char     *__test_name;
+            char           *__full_name;
             bool            __verbose;
 
         public:
             inline const char *name() const     { return __test_name; }
             inline const char *group() const    { return __test_group; }
+            inline const char *full_name() const{ return __full_name; }
 
         public:
             explicit Test(const char *group, const char *name);
