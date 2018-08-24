@@ -743,10 +743,6 @@ void clear_config(config_t *cfg)
 
 int main(int argc, const char **argv)
 {
-    srand(clock());
-    lsp_trace("locale is: %s", setlocale(LC_CTYPE, NULL));
-    return TEST::test(argc, argv);
-
     config_t cfg;
     int res = parse_config(&cfg, argc, argv);
     if (res != 0)
