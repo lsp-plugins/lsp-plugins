@@ -27,7 +27,6 @@
 
 #include "test/saturation_test.h"
 #include "test/addm_test.h"
-#include "test/equalizer_test.h"
 #include "test/sidechain_test.h"
 #include "test/limiter_test.h"
 
@@ -832,6 +831,8 @@ int parse_config(config_t *cfg, int argc, const char **argv)
                 return 3;
             }
         }
+        else if ((!strcmp(argv[i], "--help")) || ((!strcmp(argv[i], "-h"))))
+            return usage(true);
         else
         {
             LSPString *s = new LSPString();
