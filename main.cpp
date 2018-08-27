@@ -19,15 +19,12 @@
 #include "test/real_to_complex.h"
 
 #include "test/saturation_test.h"
-#include "test/sidechain_test.h"
-#include "test/limiter_test.h"
 
 #include "test/files/config_test.h"
 #include "test/files/text_read_test.h"
 
 #include "test/sse_test.h"
 
-#include "test/oversampler_test.h"
 
 //#include "test/geometry3d_test.h"
 //#include "test/objfile3d_test.h"
@@ -39,8 +36,6 @@
 #include "test/clipbrd_test.h"
 #include "test/solutions3d_test.h"
 #include "test/synchronizedchirp_test.h"
-
-#include "test/algo/mt_test.h"
 
 #include "test/math/root_test.h"
 
