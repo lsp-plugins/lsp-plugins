@@ -104,11 +104,6 @@ namespace native
     float calc_angle3d_vv(const vector3d_t *v);
 
     void packed_complex_mod(float *dst_mod, const float *src, size_t count);
-
-    void complex_rcp1(float *dst_re, float *dst_im, size_t count);
-    void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
-    void packed_complex_rcp1(float *dst, size_t count);
-    void packed_complex_rcp2(float *dst, const float *src, size_t count);
 }
 
 namespace sse
@@ -206,11 +201,6 @@ namespace sse
     float calc_angle3d_vv(const vector3d_t *v);
 
     void packed_complex_mod(float *dst_mod, const float *src, size_t count);
-
-    void complex_rcp1(float *dst_re, float *dst_im, size_t count);
-    void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
-    void packed_complex_rcp1(float *dst, size_t count);
-    void packed_complex_rcp2(float *dst, const float *src, size_t count);
 }
 
 namespace sse_test
@@ -1459,122 +1449,6 @@ namespace sse_test
         return true;
     }
 
-    bool test_complex_rcp2()
-    {
-        TEST_FOREACH(sz, 0x01, 0x03, 0x04, 0x05, 0x08, 0x09, 0x0f, 0x10, 0x11, 0x20, 0x100)
-        {
-            for (size_t mask=0; mask <= 0x0f; ++mask)
-            {
-                FBuffer src_re(sz, mask & 0x01);
-                FBuffer src_im(sz, mask & 0x02);
-                FBuffer dst1_re(sz, mask & 0x04);
-                FBuffer dst2_re(sz, mask & 0x04);
-                FBuffer dst1_im(sz, mask & 0x08);
-                FBuffer dst2_im(sz, mask & 0x08);
-
-                native::complex_rcp2(dst1_re, dst1_im, src_re, src_im, sz);
-                sse::complex_rcp2(dst2_re, dst2_im, src_re, src_im, sz);
-
-                if ((!dst1_re.compare(dst2_re)) || (!dst1_re.validate()) || (!dst2_re.validate()))
-                {
-                    lsp_error("  Failed RE test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2_re.validate()) ? "false" : "true");
-                    return false;
-                }
-                if ((!dst1_im.compare(dst2_im)) || (!dst1_im.validate()) || (!dst2_im.validate()))
-                {
-                    lsp_error("  Failed IM test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2_im.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    bool test_complex_rcp1()
-    {
-        TEST_FOREACH(sz, 0x01, 0x03, 0x04, 0x05, 0x08, 0x09, 0x0f, 0x10, 0x11, 0x20, 0x100)
-        {
-            for (size_t mask=0; mask <= 0x03; ++mask)
-            {
-                FBuffer dst1_re(sz, mask & 0x01);
-                FBuffer dst1_im(sz, mask & 0x02);
-                FBuffer dst2_re(dst1_re);
-                FBuffer dst2_im(dst1_im);
-
-                native::complex_rcp1(dst1_re, dst1_im, sz);
-                sse::complex_rcp1(dst2_re, dst2_im, sz);
-
-                if ((!dst1_re.compare(dst2_re)) || (!dst1_re.validate()) || (!dst2_re.validate()))
-                {
-                    lsp_error("  Failed RE test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2_re.validate()) ? "false" : "true");
-                    return false;
-                }
-                if ((!dst1_im.compare(dst2_im)) || (!dst1_im.validate()) || (!dst2_im.validate()))
-                {
-                    lsp_error("  Failed IM test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2_im.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    bool test_packed_complex_rcp2()
-    {
-        TEST_FOREACH(sz, 0x01, 0x03, 0x04, 0x05, 0x08, 0x09, 0x0f, 0x10, 0x11, 0x20, 0x100)
-        {
-            for (size_t mask=0; mask <= 0x03; ++mask)
-            {
-                FBuffer src(sz*2, mask & 0x01);
-                FBuffer dst1(sz*2, mask & 0x02);
-                FBuffer dst2(sz*2, mask & 0x02);
-
-                native::packed_complex_rcp2(dst1, src, sz);
-                sse::packed_complex_rcp2(dst2, src, sz);
-
-                if ((!dst2.compare(dst1)) || (!dst1.validate()) || (!dst2.validate()))
-                {
-                    src.dump("src");
-                    dst1.dump("dst1");
-                    dst2.dump("dst2");
-                    lsp_error("  Failed test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    bool test_packed_complex_rcp1()
-    {
-        TEST_FOREACH(sz, 0x01, 0x03, 0x04, 0x05, 0x08, 0x09, 0x0f, 0x10, 0x11, 0x20, 0x100)
-        {
-            for (size_t mask=0; mask <= 0x01; ++mask)
-            {
-                FBuffer dst1(sz*2, mask & 0x01);
-                FBuffer dst2(dst1);
-
-                native::packed_complex_rcp1(dst1, sz);
-                sse::packed_complex_rcp1(dst2, sz);
-
-                if ((!dst2.compare(dst1)) || (!dst1.validate()) || (!dst2.validate()))
-                {
-                    dst1.dump("dst1");
-                    dst2.dump("dst2");
-                    lsp_error("  Failed test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
     int test(int argc, const char **argv)
     {
         dsp::context_t ctx;
@@ -1584,10 +1458,6 @@ namespace sse_test
         int code = 0;
         #define LAUNCH(x, ...) --code; lsp_trace("Launching %s(%s)...", #x, #__VA_ARGS__); if (!x(__VA_ARGS__)) return code;
 
-        LAUNCH(test_complex_rcp2)
-        LAUNCH(test_complex_rcp1)
-        LAUNCH(test_packed_complex_rcp2)
-        LAUNCH(test_packed_complex_rcp1)
         LAUNCH(test_complex_mod)
 
         LAUNCH(test_unary_abs, native::abs1, sse::abs1)
