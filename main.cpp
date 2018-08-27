@@ -11,7 +11,6 @@
 #include "test/fft_test.h"
 #include "test/fft_test2.h"
 #include "test/fft_test3.h"
-#include "test/fft_speed_test.h"
 #include "test/fft_conv_test.h"
 #include "test/fft_fastconv_test.h"
 #include "test/fft_fastconv_speed_test.h"
@@ -77,8 +76,6 @@
 //#define TEST fft_fastconv_test
 //#define TEST fft_fastconv_speed_test
 //#define TEST fft_filter_test
-//#define TEST fft_speed_test
-//#define TEST fft_join_test
 
 //#define TEST complex_mul_speed_test
 //#define TEST real_to_complex_test

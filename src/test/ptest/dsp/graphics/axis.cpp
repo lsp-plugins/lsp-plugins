@@ -73,7 +73,6 @@ PTEST_BEGIN("dsp.graphics", axis_apply_log, 5, 10000)
             IF_ARCH_X86_64(call("x64_sse3", x, y, v, count, sse3::x64_axis_apply_log));
 
             PTEST_SEPARATOR;
-            printf("\n");
         }
 
         free_aligned(data);

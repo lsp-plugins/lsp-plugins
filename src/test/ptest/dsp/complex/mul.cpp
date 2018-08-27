@@ -53,7 +53,7 @@ typedef void (* packed_complex_mul_t) (float *dst, const float *src1, const floa
 // Performance test for complex multiplication
 PTEST_BEGIN("dsp.complex", mul, 5, 10000)
 
-    void test_cplx_mul(const char *label, float *dst, const float *src1, const float *src2, size_t count, packed_complex_mul_t mul)
+    void call(const char *label, float *dst, const float *src1, const float *src2, size_t count, packed_complex_mul_t mul)
     {
         if (!PTEST_SUPPORTED(mul))
             return;
@@ -67,7 +67,7 @@ PTEST_BEGIN("dsp.complex", mul, 5, 10000)
         );
     }
 
-    void test_cplx_mul(const char *label, float *dst, const float *src1, const float *src2, size_t count, complex_mul_t mul)
+    void call(const char *label, float *dst, const float *src1, const float *src2, size_t count, complex_mul_t mul)
     {
         if (!PTEST_SUPPORTED(mul))
             return;
@@ -104,20 +104,19 @@ PTEST_BEGIN("dsp.complex", mul, 5, 10000)
         {
             size_t count = 1 << i;
 
-            test_cplx_mul("unpacked_native", out, in1, in2, count, native::complex_mul);
-            IF_ARCH_X86(test_cplx_mul("unpacked_sse", out, in1, in2, count, sse::complex_mul));
-            IF_ARCH_X86_64(test_cplx_mul("x64_unpacked_avx", out, in1, in2, count, avx::x64_complex_mul));
-            IF_ARCH_X86_64(test_cplx_mul("x64_unpacked_fma3", out, in1, in2, count, avx::x64_complex_mul_fma3));
+            call("unpacked_native", out, in1, in2, count, native::complex_mul);
+            IF_ARCH_X86(call("unpacked_sse", out, in1, in2, count, sse::complex_mul));
+            IF_ARCH_X86_64(call("x64_unpacked_avx", out, in1, in2, count, avx::x64_complex_mul));
+            IF_ARCH_X86_64(call("x64_unpacked_fma3", out, in1, in2, count, avx::x64_complex_mul_fma3));
 
-            test_cplx_mul("packed_native", out, in1, in2, count, native::packed_complex_mul);
-            IF_ARCH_X86(test_cplx_mul("packed_sse", out, in1, in2, count, sse::packed_complex_mul));
-            IF_ARCH_X86(test_cplx_mul("packed_sse3", out, in1, in2, count, sse3::packed_complex_mul));
-            IF_ARCH_X86_64(test_cplx_mul("x64_packed_sse3", out, in1, in2, count, sse3::x64_packed_complex_mul));
-            IF_ARCH_X86_64(test_cplx_mul("x64_packed_avx", out, in1, in2, count, avx::x64_packed_complex_mul));
-            IF_ARCH_X86_64(test_cplx_mul("x64_packed_fma3", out, in1, in2, count, avx::x64_packed_complex_mul_fma3));
+            call("packed_native", out, in1, in2, count, native::packed_complex_mul);
+            IF_ARCH_X86(call("packed_sse", out, in1, in2, count, sse::packed_complex_mul));
+            IF_ARCH_X86(call("packed_sse3", out, in1, in2, count, sse3::packed_complex_mul));
+            IF_ARCH_X86_64(call("x64_packed_sse3", out, in1, in2, count, sse3::x64_packed_complex_mul));
+            IF_ARCH_X86_64(call("x64_packed_avx", out, in1, in2, count, avx::x64_packed_complex_mul));
+            IF_ARCH_X86_64(call("x64_packed_fma3", out, in1, in2, count, avx::x64_packed_complex_mul_fma3));
 
             PTEST_SEPARATOR;
-            printf("\n");
         }
 
         free_aligned(data);

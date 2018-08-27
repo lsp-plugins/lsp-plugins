@@ -106,8 +106,6 @@ PTEST_BEGIN("dsp.pmath", scale, 5, 10000)
             IF_ARCH_X86(call("scale_div3 sse", dst, src, count, sse::scale_div3));
 
             PTEST_SEPARATOR;
-
-            printf("\n");
         }
 
         free_aligned(data);

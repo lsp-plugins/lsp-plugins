@@ -79,8 +79,6 @@ PTEST_BEGIN("dsp.pmath", simple2, 5, 10000)
             IF_ARCH_X86(call("div2 sse", dst, src, count, sse::div2));
 
             PTEST_SEPARATOR;
-
-            printf("\n");
         }
 
         free_aligned(data);
