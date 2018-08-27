@@ -70,6 +70,7 @@ void reverse2(float *dst, const float *src, size_t count)
         return;
     }
 
+    count     >>= 1;
     src         = &src[count];
     while (count--)
         *(dst++)    = *(--src);
