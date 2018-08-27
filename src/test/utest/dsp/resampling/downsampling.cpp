@@ -55,17 +55,14 @@ UTEST_BEGIN("dsp.resampling", downsampling)
                 func1(dst1, src, count);
                 func2(dst2, src, count);
 
-                if (src.corrupted())
-                    UTEST_FAIL_MSG("Source buffer corrupted");
-                if (dst1.corrupted())
-                    UTEST_FAIL_MSG("Destination buffer 1 corrupted");
-                if (dst2.corrupted())
-                    UTEST_FAIL_MSG("Destination buffer 2 corrupted");
+                UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
+                UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
+                UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
 
                 // Compare buffers
                 if (!dst1.equals_absolute(dst2))
                 {
-                    src.dump("src1");
+                    src.dump("src");
                     dst1.dump("dst1");
                     dst2.dump("dst2");
                     UTEST_FAIL_MSG("Output of functions for test '%s' differs", text);
