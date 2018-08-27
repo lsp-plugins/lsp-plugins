@@ -30,7 +30,6 @@
 //#include "test/objfile3d_test.h"
 //#include "test/anyfile3d_test.h"
 
-#include "test/latencydetector_test.h"
 #include "test/lspstring.h"
 #include "test/lspc_test.h"
 #include "test/clipbrd_test.h"

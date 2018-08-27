@@ -1,46 +1,33 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <time.h>
-#include <math.h>
+/*
+ * latency_detector.cpp
+ *
+ *  Created on: 27 авг. 2018 г.
+ *      Author: sadko
+ */
+
+#include <test/mtest.h>
+#include <test/helpers.h>
 
 #include <core/types.h>
-#include <dsp/dsp.h>
+#include <core/alloc.h>
+#include <data/cvector.h>
+
+#include <plugins/plugins.h>
+#include <container/jack/defs.h>
+#include <core/envelope.h>
+#include <math.h>
 #include <core/util/LatencyDetector.h>
-#include <cstdlib>
-#include <ctime>
+#include <stdlib.h>
+#include <time.h>
 
 #define LATENCYDETECTOR_BUFFER_SIZE 1024
 #define LATENCYDETECTOR_SAMPLE_RATE 96000
 #define LATENCYDETECTOR_MAX_DELAY   LATENCYDETECTOR_BUFFER_SIZE - 1
 #define LATENCYDETECTOR_DELAY_STEP  1
 
-namespace latencydetector_test
-{
-    using namespace lsp;
+using namespace lsp;
 
-    void dump_buffer(const char *text, const size_t *buf, size_t count)
-    {
-        printf("  dump of buffer %s:\n    ", text);
-        while (count--)
-            printf("%lu ", *(buf++));
-        printf("\n");
-    }
-
-    void dump_buffer(const char *text, const ssize_t *buf, size_t count)
-    {
-        printf("  dump of buffer %s:\n    ", text);
-        while (count--)
-            printf("%ld ", *(buf++));
-        printf("\n");
-    }
-
-    void dump_buffer(const char *text, const float *buf, size_t count)
-    {
-        printf("dump of buffer %s:\n", text);
-        while (count--)
-            printf("%.30f\n", *(buf++));
-    }
+MTEST_BEGIN("core.util", latency_detector)
 
     void test_latencydetector(float *out, float *bak, float *in, size_t *delay_exact, size_t *delay_detected, size_t buf_count, size_t bak_count)
     {
@@ -55,9 +42,9 @@ namespace latencydetector_test
         ld.set_abs_threshold(0.01f);
 
         // Test Parameters
-//        ld.set_duration(0.015f);
-//        ld.set_fading(0.030f);
-//        ld.set_pause(0.025f);
+    //        ld.set_duration(0.015f);
+    //        ld.set_fading(0.030f);
+    //        ld.set_pause(0.025f);
 
         // Random Parameters:
         ld.set_duration((float(rand()) * 0.040f / RAND_MAX) + 0.010f);
@@ -71,12 +58,12 @@ namespace latencydetector_test
 
         ld.start_capture();
 
-//        size_t bak_head = 0;
+    //        size_t bak_head = 0;
 
         while (true)
         {
-//            dump_buffer("in", in, buf_count);
-//            dump_buffer("out", out, buf_count);
+    //            dump_buffer("in", in, buf_count);
+    //            dump_buffer("out", out, buf_count);
             ld.process(out, in, buf_count);
 
             if (ld.cycle_complete())
@@ -114,15 +101,8 @@ namespace latencydetector_test
         }
     }
 
-    int test(int argc, const char **argv)
+    MTEST_MAIN
     {
-        dsp::context_t ctx;
-
-        srand(static_cast<size_t>(time(0)));
-
-        dsp::init();
-        dsp::start(&ctx);
-
         size_t buf_size         = LATENCYDETECTOR_BUFFER_SIZE;
         size_t bak_size         = LATENCYDETECTOR_BUFFER_SIZE * ceil(float(LATENCYDETECTOR_MAX_DELAY) / LATENCYDETECTOR_BUFFER_SIZE);
 
@@ -174,15 +154,11 @@ namespace latencydetector_test
         delete [] bak;
         delete [] delays_exact;
         delete [] delays_detected;
-
-        dsp::finish(&ctx);
-
-        return 0;
     }
 
-}
+MTEST_END
 
-#undef LATENCYDETECTOR_BUFFER_SIZE
-#undef LATENCYDETECTOR_SAMPLE_RATE
-#undef LATENCYDETECTOR_MAX_DELAY
-#undef LATENCYDETECTOR_DELAY_STEP
+
+
+
+
