@@ -53,11 +53,9 @@ typedef void (* mix_dst4_t)(float *dst, const float *src1, const float *src2, co
 
 UTEST_BEGIN("dsp", mix)
 
-    void call(const char *label, size_t align, mix2_t func1, mix2_t func2)
+    void call(const char *label, size_t align, mix2_t func)
     {
-        if (!UTEST_SUPPORTED(func1))
-            return;
-        if (!UTEST_SUPPORTED(func2))
+        if (!UTEST_SUPPORTED(func))
             return;
 
         UTEST_FOREACH(count, 0, 1, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0xfff)
@@ -68,8 +66,8 @@ UTEST_BEGIN("dsp", mix)
                 FloatBuffer dst2(dst1);
                 FloatBuffer src1(count, align, mask & 0x02);
 
-                func1(dst1, src1, 2.0f, 3.0f, count);
-                func2(dst2, src1, 2.0f, 3.0f, count);
+                native::mix2(dst1, src1, 2.0f, 3.0f, count);
+                func(dst2, src1, 2.0f, 3.0f, count);
 
                 UTEST_ASSERT_MSG(src1.valid(), "Source buffer 1 corrupted");
                 UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
@@ -122,11 +120,9 @@ UTEST_BEGIN("dsp", mix)
         }
     }
 
-    void call(const char *label, size_t align, mix3_t func1, mix3_t func2)
+    void call(const char *label, size_t align, mix3_t func)
     {
-        if (!UTEST_SUPPORTED(func1))
-            return;
-        if (!UTEST_SUPPORTED(func2))
+        if (!UTEST_SUPPORTED(func))
             return;
 
         UTEST_FOREACH(count, 0, 1, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0xfff)
@@ -138,8 +134,8 @@ UTEST_BEGIN("dsp", mix)
                 FloatBuffer src1(count, align, mask & 0x02);
                 FloatBuffer src2(count, align, mask & 0x04);
 
-                func1(dst1, src1, src2, 2.0f, 3.0f, 5.0f, count);
-                func2(dst2, src1, src2, 2.0f, 3.0f, 5.0f, count);
+                native::mix3(dst1, src1, src2, 2.0f, 3.0f, 5.0f, count);
+                func(dst2, src1, src2, 2.0f, 3.0f, 5.0f, count);
 
                 UTEST_ASSERT_MSG(src1.valid(), "Source buffer 1 corrupted");
                 UTEST_ASSERT_MSG(src2.valid(), "Source buffer 2 corrupted");
@@ -199,11 +195,9 @@ UTEST_BEGIN("dsp", mix)
         }
     }
 
-    void call(const char *label, size_t align, mix4_t func1, mix4_t func2)
+    void call(const char *label, size_t align, mix4_t func)
     {
-        if (!UTEST_SUPPORTED(func1))
-            return;
-        if (!UTEST_SUPPORTED(func2))
+        if (!UTEST_SUPPORTED(func))
             return;
 
         UTEST_FOREACH(count, 0, 1, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0xfff)
@@ -216,8 +210,8 @@ UTEST_BEGIN("dsp", mix)
                 FloatBuffer src2(count, align, mask & 0x04);
                 FloatBuffer src3(count, align, mask & 0x08);
 
-                func1(dst1, src1, src2, src3, 2.0f, 3.0f, 5.0f, 7.0f, count);
-                func2(dst2, src1, src2, src3, 2.0f, 3.0f, 5.0f, 7.0f, count);
+                native::mix4(dst1, src1, src2, src3, 2.0f, 3.0f, 5.0f, 7.0f, count);
+                func(dst2, src1, src2, src3, 2.0f, 3.0f, 5.0f, 7.0f, count);
 
                 UTEST_ASSERT_MSG(src1.valid(), "Source buffer 1 corrupted");
                 UTEST_ASSERT_MSG(src2.valid(), "Source buffer 2 corrupted");
@@ -285,9 +279,9 @@ UTEST_BEGIN("dsp", mix)
     UTEST_MAIN
     {
         // Do tests
-        IF_ARCH_X86(call("mix2", 16, native::mix2, sse::mix2));
-        IF_ARCH_X86(call("mix3", 16, native::mix3, sse::mix3));
-        IF_ARCH_X86(call("mix4", 16, native::mix4, sse::mix4));
+        IF_ARCH_X86(call("mix2", 16, sse::mix2));
+        IF_ARCH_X86(call("mix3", 16, sse::mix3));
+        IF_ARCH_X86(call("mix4", 16, sse::mix4));
 
         IF_ARCH_X86(call("mix_copy2", 16, native::mix_copy2, sse::mix_copy2));
         IF_ARCH_X86(call("mix_copy3", 16, native::mix_copy3, sse::mix_copy3));
