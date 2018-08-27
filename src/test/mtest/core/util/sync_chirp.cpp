@@ -1,27 +1,22 @@
 /*
- * synchronizedchirp_test.h
+ * sync_chirp.cpp
  *
- *  Created on: 14 Jul 2017
- *      Author: crocoduck
+ *  Created on: 27 авг. 2018 г.
+ *      Author: sadko
  */
 
+#include <test/mtest.h>
+#include <test/helpers.h>
+#include <core/windows.h>
 #include <core/util/SyncChirpProcessor.h>
 #include <core/util/ResponseTaker.h>
-#include <stdio.h>
 
 #define SYNCHRONIZEDCHIRP_BUF_SIZE      4096
 #define SYNCHRONIZEDCHIRP_SAMPLE_RATE   192000
 
-namespace synchronizedchirp_test
-{
-    using namespace lsp;
+using namespace lsp;
 
-    void dump_buffer(const char *text, const float *buf, size_t count)
-    {
-        printf("dump of buffer %s:\n", text);
-        while (count--)
-            printf("%.30f\n", *(buf++));
-    }
+MTEST_BEGIN("core.util", sync_chirp)
 
     void write_buffer(const char *filePath, const char *text, const float *buf, size_t count)
     {
@@ -91,8 +86,8 @@ namespace synchronizedchirp_test
             sc.update_settings();
 
         rt.set_sample_rate(nSampleRate);
-//        rt.set_op_fading();
-//        rt.set_op_pause();
+    //        rt.set_op_fading();
+    //        rt.set_op_pause();
         rt.set_op_tail(tail);
         rt.set_latency_samples(nLatency);
 
@@ -116,19 +111,19 @@ namespace synchronizedchirp_test
         data = sc.get_inverse_filter();
         write_buffer("/tmp/inverseFilter.csv", "Inverse Filter", data->getBuffer(0), data->length());
 
-//        data = sc.get_time_lags();
-//        write_buffer("Time Lags", data->getBuffer(0), data->length());
+    //        data = sc.get_time_lags();
+    //        write_buffer("Time Lags", data->getBuffer(0), data->length());
 
         data = rt.get_capture();
-//        write_buffer("Capture", data->getBuffer(0), data->length());
+    //        write_buffer("Capture", data->getBuffer(0), data->length());
 
         sc.do_linear_convolution(data, rt.get_capture_start());
 
-//        AudioFile *conv = sc.get_convolution_result();
-//        write_buffer("Convolution", conv->channel(0), conv->samples());
+    //        AudioFile *conv = sc.get_convolution_result();
+    //        write_buffer("Convolution", conv->channel(0), conv->samples());
 
-//        sc.save_linear_convolution("/tmp/positiveTimeResponse.wav");
-//        sc.save_nonlinear_convolution("/tmp/allTimeResponse.wav");
+    //        sc.save_linear_convolution("/tmp/positiveTimeResponse.wav");
+    //        sc.save_nonlinear_convolution("/tmp/allTimeResponse.wav");
     }
 
     void test_coefficients_matrices(size_t order, size_t nTaps, size_t offset, float amplitude)
@@ -245,30 +240,23 @@ namespace synchronizedchirp_test
         delete [] kernels;
     }
 
-    int test(int argc, const char **argv)
+    MTEST_MAIN
     {
-        dsp::context_t ctx;
-
-        srand(static_cast<size_t>(time(0)));
-
-        dsp::init();
-        dsp::start(&ctx);
-
         float *in   = new float[SYNCHRONIZEDCHIRP_BUF_SIZE];
         float *out  = new float[SYNCHRONIZEDCHIRP_BUF_SIZE];
 
-//        size_t          sampleRate      = SYNCHRONIZEDCHIRP_SAMPLE_RATE;
-//        size_t          nLatency        = SYNCHRONIZEDCHIRP_BUF_SIZE;
-//        double          initialFreq     = 1.0;
-//        double          finalFreq       = 25000.0;
-//        float           duration        = 10.0f;
-//        float           amplitude       = 1.0f;
-//        float           tail            = 1.0f;
-//        scp_method_t    method          = SCP_SYNTH_BANDLIMITED;
-//        over_mode_t     overMode        = OM_LANCZOS_8X2;
-//        scp_fade_t      fadeMode        = SCP_FADE_RAISED_COSINES;
-//        float           fadeIn          = 0.020f;
-//        float           fadeOut         = 0.020f;
+    //        size_t          sampleRate      = SYNCHRONIZEDCHIRP_SAMPLE_RATE;
+    //        size_t          nLatency        = SYNCHRONIZEDCHIRP_BUF_SIZE;
+    //        double          initialFreq     = 1.0;
+    //        double          finalFreq       = 25000.0;
+    //        float           duration        = 10.0f;
+    //        float           amplitude       = 1.0f;
+    //        float           tail            = 1.0f;
+    //        scp_method_t    method          = SCP_SYNTH_BANDLIMITED;
+    //        over_mode_t     overMode        = OM_LANCZOS_8X2;
+    //        scp_fade_t      fadeMode        = SCP_FADE_RAISED_COSINES;
+    //        float           fadeIn          = 0.020f;
+    //        float           fadeOut         = 0.020f;
 
         // test_time_series(out, in, SYNCHRONIZEDCHIRP_BUF_SIZE, nLatency, nSampleRate, initialFreq, finalFreq, duration, amplitude, tail, method, overMode, fadeMode, fadeIn, fadeOut);
 
@@ -290,12 +278,10 @@ namespace synchronizedchirp_test
 
         delete [] out;
         delete [] in;
-
-        dsp::finish(&ctx);
-
-        return 0;
     }
-}
 
-#undef SYNCHRONIZEDCHIRP_BUF_SIZE
-#undef SYNCHRONIZEDCHIRP_SAMPLE_RATE
+MTEST_END
+
+
+
+

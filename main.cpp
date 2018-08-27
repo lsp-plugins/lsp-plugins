@@ -34,7 +34,6 @@
 #include "test/lspc_test.h"
 #include "test/clipbrd_test.h"
 #include "test/solutions3d_test.h"
-#include "test/synchronizedchirp_test.h"
 
 #include "test/math/root_test.h"
 
