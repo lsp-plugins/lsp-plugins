@@ -25,7 +25,7 @@ MTEST_BEGIN("core", envelope)
         float *buf      = NULL;
         float *envelopes[envelope::TOTAL];
 
-        size_t points   = 2400;
+        size_t points   = 1024;
         if (argc > 0)
             points          = atoi(argv[0]);
         if (points < 10)

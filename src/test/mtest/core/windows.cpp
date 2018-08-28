@@ -1,37 +1,46 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <dlfcn.h>
-#include <stddef.h>
+/*
+ * windows.cpp
+ *
+ *  Created on: 28 авг. 2018 г.
+ *      Author: sadko
+ */
+
+#include <test/mtest.h>
 
 #include <core/types.h>
-#include <dsp/dsp.h>
+#include <core/alloc.h>
+#include <data/cvector.h>
+
+#include <plugins/plugins.h>
+#include <container/jack/defs.h>
 #include <core/windows.h>
 
-#define BUF_ITEMS 1024
+using namespace lsp;
 
-namespace window_test
-{
-    using namespace lsp;
+MTEST_BEGIN("core", windows)
 
-    int test(int argc, const char **argv)
+    MTEST_MAIN
     {
-        dsp::init();
-
         float *buf      = NULL;
         float *windows[windows::TOTAL];
 
-        size_t count    = BUF_ITEMS * windows::TOTAL;
+        size_t points   = 2400;
+        if (argc > 0)
+            points          = atoi(argv[0]);
+        if (points < 10)
+            points          = 10;
+
+        size_t count    = points * windows::TOTAL;
         buf             = new float[count];
-        if (buf == NULL)
-            return -1;
+        MTEST_ASSERT(buf != NULL);
 
         float *ptr      = buf;
         for (size_t i=0; i<windows::TOTAL; ++i)
         {
-            windows::window(ptr, BUF_ITEMS, windows::window_t(i + windows::FIRST));
+            windows::window(ptr, points, windows::window_t(i + windows::FIRST));
 
             windows[i]      = ptr;
-            ptr            += BUF_ITEMS;
+            ptr            += points;
         }
 
         // Print header
@@ -41,7 +50,7 @@ namespace window_test
         printf("\n");
 
         // Print items
-        for (size_t i=0; i<BUF_ITEMS; ++i)
+        for (size_t i=0; i<points; ++i)
         {
             printf("%d;", int(i));
             for (size_t j=0; j< windows::TOTAL; ++j)
@@ -50,10 +59,9 @@ namespace window_test
         }
 
         delete [] buf;
-
-        return 0;
     }
-    
-}
 
-#undef BUF_ITEMS
+MTEST_END
+
+
+

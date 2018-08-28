@@ -1,7 +1,6 @@
 #include "test/common.h"
 
 #include "test/audiofile_test.h"
-#include "test/window_test.h"
 #include "test/frac_test.h"
 #include "test/sample_player_test.h"
 #include "test/resample_test.h"
