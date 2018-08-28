@@ -28,7 +28,6 @@
 //#include "test/objfile3d_test.h"
 //#include "test/anyfile3d_test.h"
 
-#include "test/lspstring.h"
 #include "test/clipbrd_test.h"
 #include "test/solutions3d_test.h"
 
