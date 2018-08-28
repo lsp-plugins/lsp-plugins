@@ -47,7 +47,7 @@ namespace x86
         );
     }
 
-    static void copy_saturated(float *dst, const float *src, size_t count)
+    void copy_saturated(float *dst, const float *src, size_t count)
     {
         register uint32_t tmp;
 
@@ -127,7 +127,7 @@ namespace x86
         #undef STORE_VALUE_REPEAT
     }
 
-    static void saturate(float *dst, size_t count)
+    void saturate(float *dst, size_t count)
     {
         register uint32_t tmp;
 
@@ -204,7 +204,7 @@ namespace x86
         #undef STORE_VALUE_REPEAT
     }
 
-    static void copy_saturated_cmov(float *dst, const float *src, size_t count)
+    void copy_saturated_cmov(float *dst, const float *src, size_t count)
     {
         register uint32_t tmp;
 
@@ -262,7 +262,7 @@ namespace x86
         );
     }
 
-    static void saturate_cmov(float *dst, size_t count)
+    void saturate_cmov(float *dst, size_t count)
     {
         register uint32_t tmp;
 

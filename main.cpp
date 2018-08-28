@@ -15,8 +15,6 @@
 
 #include "test/real_to_complex.h"
 
-#include "test/saturation_test.h"
-
 #include "test/files/config_test.h"
 #include "test/files/text_read_test.h"
 

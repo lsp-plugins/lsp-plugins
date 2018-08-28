@@ -46,6 +46,7 @@ namespace test
             void dump(const char *text) const;
             void dump(const char *text, size_t from, size_t count) const;
             inline bool aligned() const { return bAligned; }
+            inline size_t size() const { return nLength; }
 
         public:
             inline float &operator [] (size_t index) {
