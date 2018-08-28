@@ -4,14 +4,12 @@
 #include "test/window_test.h"
 #include "test/frac_test.h"
 #include "test/sample_player_test.h"
-#include "test/fade_test.h"
 #include "test/resample_test.h"
 #include "test/alloc_test.h"
 
 #include "test/fft_test.h"
 #include "test/fft_test2.h"
 #include "test/fft_test3.h"
-#include "test/fft_conv_test.h"
 #include "test/fft_fastconv_test.h"
 #include "test/fft_fastconv_speed_test.h"
 #include "test/fft_tdomain_test.h"
@@ -31,7 +29,6 @@
 //#include "test/anyfile3d_test.h"
 
 #include "test/lspstring.h"
-#include "test/lspc_test.h"
 #include "test/clipbrd_test.h"
 #include "test/solutions3d_test.h"
 

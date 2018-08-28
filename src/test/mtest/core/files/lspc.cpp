@@ -1,13 +1,19 @@
-#include <dsp/endian.h>
-#include <core/debug.h>
+/*
+ * lspc.cpp
+ *
+ *  Created on: 28 авг. 2018 г.
+ *      Author: sadko
+ */
 
+#include <dsp/endian.h>
+#include <test/mtest.h>
 #include <core/files/LSPCFile.h>
 
-namespace lspc_test
-{
-    using namespace lsp;
+using namespace lsp;
 
-    int test(int argc, const char **argv)
+MTEST_BEGIN("core.files", lspc)
+
+    MTEST_MAIN
     {
         LSPCFile fd;
 
@@ -97,15 +103,15 @@ namespace lspc_test
                 ssize_t n = rd->read(&prof, sizeof(lspc_chunk_audio_profile_t));
                 if (n != sizeof(lspc_chunk_audio_profile_t))
                     continue;
-                lsp_trace("version = %d", int(BE_TO_CPU(prof.version)));
-                lsp_trace("chunk_id = %d", int(BE_TO_CPU(prof.chunk_id)));
-                lsp_trace("chirp_order = %d", int(BE_TO_CPU(prof.chirp_order)));
-                lsp_trace("alpha = %f", BE_TO_CPU(prof.alpha));
-                lsp_trace("beta = %f", BE_TO_CPU(prof.beta));
-                lsp_trace("gamma = %f", BE_TO_CPU(prof.gamma));
-                lsp_trace("delta = %f", BE_TO_CPU(prof.delta));
-                lsp_trace("initial_freq = %f", BE_TO_CPU(prof.initial_freq));
-                lsp_trace("final_freq = %f", BE_TO_CPU(prof.final_freq));
+                printf("version = %d", int(BE_TO_CPU(prof.version)));
+                printf("chunk_id = %d", int(BE_TO_CPU(prof.chunk_id)));
+                printf("chirp_order = %d", int(BE_TO_CPU(prof.chirp_order)));
+                printf("alpha = %f", BE_TO_CPU(prof.alpha));
+                printf("beta = %f", BE_TO_CPU(prof.beta));
+                printf("gamma = %f", BE_TO_CPU(prof.gamma));
+                printf("delta = %f", BE_TO_CPU(prof.delta));
+                printf("initial_freq = %f", BE_TO_CPU(prof.initial_freq));
+                printf("final_freq = %f", BE_TO_CPU(prof.final_freq));
 
                 rd->close();
 
@@ -121,12 +127,12 @@ namespace lspc_test
                     continue;
                 }
 
-                lsp_trace("version = %d", int(BE_TO_CPU(ahdr.version)));
-                lsp_trace("channels = %d", int(BE_TO_CPU(ahdr.channels)));
-                lsp_trace("sample_format = %d", int(BE_TO_CPU(ahdr.sample_format)));
-                lsp_trace("sample_rate = %d", int(BE_TO_CPU(ahdr.sample_rate)));
-                lsp_trace("codec = %d", int(BE_TO_CPU(ahdr.codec)));
-                lsp_trace("frames = %d", int(BE_TO_CPU(ahdr.frames)));
+                printf("version = %d", int(BE_TO_CPU(ahdr.version)));
+                printf("channels = %d", int(BE_TO_CPU(ahdr.channels)));
+                printf("sample_format = %d", int(BE_TO_CPU(ahdr.sample_format)));
+                printf("sample_rate = %d", int(BE_TO_CPU(ahdr.sample_rate)));
+                printf("codec = %d", int(BE_TO_CPU(ahdr.codec)));
+                printf("frames = %d", int(BE_TO_CPU(ahdr.frames)));
                 size_t k =BE_TO_CPU(ahdr.frames);
 
                 for (size_t i=0; i<k; ++i)
@@ -135,18 +141,20 @@ namespace lspc_test
                     if (k != sizeof(frame))
                     {
                         rd->close();
-                        lsp_trace("Audio data corrupted");
+                        printf("Audio data corrupted");
                         continue;
                     }
                 }
-                lsp_trace("All audio frames have been successful read");
+                printf("All audio frames have been successful read");
             }
 
             rd->close();
         }
 
         fd.close();
-
-        return 0;
     }
-}
+
+MTEST_END
+
+
+
