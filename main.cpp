@@ -19,7 +19,6 @@
 
 #include "test/solutions3d_test.h"
 #include "test/math/root_test.h"
-#include "test/x11/selection_test.h"
 
 
 //#define TEST config_test

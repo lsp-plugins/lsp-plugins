@@ -1,14 +1,17 @@
-#include <core/types.h>
-#include <dsp/dsp.h>
-#include <core/alloc.h>
+/*
+ * selection.cpp
+ *
+ *  Created on: 29 авг. 2018 г.
+ *      Author: sadko
+ */
+
+#include <test/mtest.h>
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
-namespace selection_test
-{
-    using namespace lsp;
+MTEST_BEGIN("x11", selection)
 
     void show_targets(Display *dpy, Window w, Atom p)
     {
@@ -39,7 +42,7 @@ namespace selection_test
         XDeleteProperty(dpy, w, p);
     }
 
-    int test(int argc, const char **argv)
+    MTEST_MAIN
     {
         Display *dpy;
         Window target_window, root;
@@ -49,11 +52,7 @@ namespace selection_test
         XSelectionEvent *sev;
 
         dpy = XOpenDisplay(NULL);
-        if (!dpy)
-        {
-            fprintf(stderr, "Could not open X display\n");
-            return 1;
-        }
+        MTEST_ASSERT_MSG(dpy, "Could not open X display");
 
         screen = DefaultScreen(dpy);
         root = RootWindow(dpy, screen);
@@ -74,18 +73,12 @@ namespace selection_test
             {
                 case SelectionNotify:
                     sev = (XSelectionEvent*)&ev.xselection;
-                    if (sev->property == None)
-                    {
-                        printf("Conversion could not be performed.\n");
-                        return 1;
-                    }
-                    else
-                    {
-                        show_targets(dpy, target_window, target_property);
-                        return 0;
-                    }
-                    break;
+                    MTEST_ASSERT_MSG(sev->property != None, "Conversion could not be performed.");
+                    show_targets(dpy, target_window, target_property);
+                    return;
             }
         }
     }
-}
+MTEST_END
+
+
