@@ -31,12 +31,27 @@ namespace lsp
                 virtual status_t    write(lsp_wchar_t c);
 
                 /**
+                 * Write single character to output stream and trailing end-of-line
+                 * @param c character to write
+                 * @return status of operation
+                 */
+                virtual status_t    writeln(lsp_wchar_t c);
+
+                /**
                  * Write multiple characters to output stream
                  * @param c array of characters to write
                  * @param count number of characters to write
                  * @return status of operation
                  */
                 virtual status_t    write(const lsp_wchar_t *c, size_t count);
+
+                /**
+                 * Write multiple characters to output stream and end-of-line
+                 * @param c array of characters to write
+                 * @param count number of characters to write
+                 * @return status of operation
+                 */
+                virtual status_t    writeln(const lsp_wchar_t *c, size_t count);
     
                 /**
                  * Write zero-terminated ASCII string to output
@@ -47,11 +62,26 @@ namespace lsp
                 virtual status_t    write_ascii(const char *s);
 
                 /**
+                 * Write zero-terminated ASCII string to output and end-of-line
+                 * @param s ASCII string to write
+                 * @param count number of characters to write
+                 * @return status of operation
+                 */
+                virtual status_t    writeln_ascii(const char *s);
+
+                /**
                  * Write string to output stream
                  * @param s string to write
                  * @return status of operation
                  */
                 virtual status_t    write(const LSPString *s);
+
+                /**
+                 * Write string to output stream and end-of-line
+                 * @param s string to write
+                 * @return status of operation
+                 */
+                virtual status_t    writeln(const LSPString *s);
 
                 /**
                  * Write substring to output stream
@@ -62,6 +92,14 @@ namespace lsp
                 virtual status_t    write(const LSPString *s, ssize_t first);
 
                 /**
+                 * Write substring to output stream and end-of-line
+                 * @param s string to write
+                 * @param first index of first character to write substring from
+                 * @return status of operation
+                 */
+                virtual status_t    writeln(const LSPString *s, ssize_t first);
+
+                /**
                  * Write substring to output stream
                  * @param s string to write
                  * @param first index of first character to write substring from
@@ -69,6 +107,16 @@ namespace lsp
                  * @return status of operation
                  */
                 virtual status_t    write(const LSPString *s, ssize_t first, ssize_t last);
+
+
+                /**
+                 * Write substring to output stream and end-of-line
+                 * @param s string to write
+                 * @param first index of first character to write substring from
+                 * @param last index of last character to write substring
+                 * @return status of operation
+                 */
+                virtual status_t    writeln(const LSPString *s, ssize_t first, ssize_t last);
 
                 /**
                  * Flush all underlying buffers
