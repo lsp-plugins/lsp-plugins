@@ -6,7 +6,6 @@
  */
 
 
-#include <dsp/endian.h>
 #include <test/mtest.h>
 #include <core/files/3d/ObjFileParser.h>
 

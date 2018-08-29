@@ -1,24 +1,31 @@
+/*
+ * any3d.cpp
+ *
+ *  Created on: 29 авг. 2018 г.
+ *      Author: sadko
+ */
+
+#include <test/mtest.h>
 #include <core/files/Model3DFile.h>
 
-namespace anyfile3d_test
-{
-//    const char *FILE_NAME = "test_data/3d/triangulation.obj";
-    const char *FILE_NAME = "test_data/3d/double_ring.obj";
-    const size_t DUMP_SAMPLES = 32;
+using namespace lsp;
 
-    using namespace lsp;
+static const char *FILE_NAME = "test_data/3d/double_ring.obj";
 
-    int test(int argc, const char **argv)
+using namespace lsp;
+
+MTEST_BEGIN("core.files", any3d)
+
+    MTEST_MAIN
     {
-        using namespace lsp;
-        dsp::init();
+        const char *path = FILE_NAME;
+        if (argc > 0)
+            path = argv[0];
 
         Scene3D *scene = NULL;
 
-        status_t status = Model3DFile::load(&scene, FILE_NAME);
-
-        if (status != STATUS_OK)
-            return -1;
+        status_t status = Model3DFile::load(&scene, path);
+        MTEST_ASSERT_MSG(status == STATUS_OK, "Could not load file %s, status=%d", path, int(status));
 
         size_t n_objects = scene->num_objects();
         printf("Loaded scene num_objects = %d\n", int(n_objects));
@@ -54,7 +61,9 @@ namespace anyfile3d_test
         }
 
         scene->destroy(true);
-
-        return STATUS_OK;
     }
-}
+
+MTEST_END
+
+
+
