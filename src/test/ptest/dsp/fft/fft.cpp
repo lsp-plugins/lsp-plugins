@@ -69,9 +69,8 @@ PTEST_BEGIN("dsp.fft", fft, 30, 1000)
         size_t fft_size = 1 << MAX_RANK;
 
         uint8_t *data   = NULL;
-        float *ptr      = alloc_aligned<float>(data, fft_size * 4, 64);
 
-        float *sig_re   = ptr;
+        float *sig_re   = alloc_aligned<float>(data, fft_size * 4, 64);
         float *sig_im   = &sig_re[fft_size];
         float *fft_re   = &sig_im[fft_size];
         float *fft_im   = &fft_re[fft_size];
