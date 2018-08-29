@@ -16,10 +16,6 @@ namespace native
 
     void abs1(float *src, size_t count);
     void abs2(float *dst, const float *src, size_t count);
-    void abs_add2(float *dst, const float *src, size_t count);
-    void abs_sub2(float *dst, const float *src, size_t count);
-    void abs_mul2(float *dst, const float *src, size_t count);
-    void abs_div2(float *dst, const float *src, size_t count);
 
     void reverse1(float *dst, size_t count);
     void reverse2(float *dst, const float *src, size_t count);
@@ -109,10 +105,6 @@ namespace sse
 
     void abs1(float *src, size_t count);
     void abs2(float *dst, const float *src, size_t count);
-    void abs_add2(float *dst, const float *src, size_t count);
-    void abs_sub2(float *dst, const float *src, size_t count);
-    void abs_mul2(float *dst, const float *src, size_t count);
-    void abs_div2(float *dst, const float *src, size_t count);
 
     void reverse1(float *dst, size_t count);
     void reverse2(float *dst, const float *src, size_t count);
@@ -1427,10 +1419,6 @@ namespace sse_test
 
         LAUNCH(test_unary_abs, native::abs1, sse::abs1)
         LAUNCH(test_binary_abs, native::abs2, sse::abs2)
-        LAUNCH(test_binary_abs, native::abs_add2, sse::abs_add2)
-        LAUNCH(test_binary_abs, native::abs_sub2, sse::abs_sub2)
-        LAUNCH(test_binary_abs, native::abs_mul2, sse::abs_mul2)
-        LAUNCH(test_binary_abs, native::abs_div2, sse::abs_div2)
 
         LAUNCH(test_move)
         LAUNCH(test_fill)
