@@ -11,7 +11,7 @@
 using namespace lsp;
 using namespace lsp::config;
 
-const char *FILE_NAME = "test_data/test_config.cfg";
+static const char *FILE_NAME = "test_data/test_config.cfg";
 
 MTEST_BEGIN("core.files", config)
 

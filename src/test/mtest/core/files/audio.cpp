@@ -11,8 +11,9 @@
 
 using namespace lsp;
 
-const char *FILE_NAME = "test_data/music/test.wav";
-const size_t DUMP_SAMPLES = 32;
+#define DUMP_SAMPLES        32
+
+static const char *FILE_NAME = "test_data/music/test.wav";
 
 MTEST_BEGIN("core.files", audio)
 

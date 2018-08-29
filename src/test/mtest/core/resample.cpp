@@ -10,8 +10,8 @@
 
 using namespace lsp;
 
-const char *SRC_FILE = "test_data/source.wav";
-const char *DST_FILE = "test_data/destination.wav";
+static const char *SRC_FILE = "test_data/source.wav";
+static const char *DST_FILE = "test_data/destination.wav";
 
 MTEST_BEGIN("core", resample)
 

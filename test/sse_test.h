@@ -20,14 +20,6 @@ namespace native
     void reverse1(float *dst, size_t count);
     void reverse2(float *dst, const float *src, size_t count);
 
-    float min(const float *src, size_t count);
-    float max(const float *src, size_t count);
-    void minmax(const float *src, size_t count, float *min, float *max);
-
-    float abs_min(const float *src, size_t count);
-    float abs_max(const float *src, size_t count);
-    void abs_minmax(const float *src, size_t count, float *min, float *max);
-
     void init_point_xyz(point3d_t *p, float x, float y, float z);
     void init_point(point3d_t *p, const point3d_t *s);
     void normalize_point(point3d_t *p);
@@ -109,14 +101,6 @@ namespace sse
     void reverse1(float *dst, size_t count);
     void reverse2(float *dst, const float *src, size_t count);
 
-    float min(const float *src, size_t count);
-    float max(const float *src, size_t count);
-    void minmax(const float *src, size_t count, float *min, float *max);
-
-    float abs_min(const float *src, size_t count);
-    float abs_max(const float *src, size_t count);
-    void abs_minmax(const float *src, size_t count, float *min, float *max);
-
     void init_point_xyz(point3d_t *p, float x, float y, float z);
     void init_point(point3d_t *p, const point3d_t *s);
     void normalize_point(point3d_t *p);
@@ -195,7 +179,6 @@ namespace sse_test
     typedef void (* unary_math_t) (float *dst, size_t count);
     typedef void (* binary_math_t) (float *dst, const float *src, size_t count);
     typedef float (* hfunc_t) (const float *src, size_t count);
-    typedef void (* minmax_t) (const float *src, size_t count, float *a, float *b);
 
     #define TEST_FOREACH(var, ...)    \
         const size_t ___sizes[] = { __VA_ARGS__ }; \
@@ -300,67 +283,6 @@ namespace sse_test
                 {
                     lsp_error("  Failed move dst1 -> dst2 size = %d, mask = 0x%x, overflow=%s",
                         int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    bool test_minmax(hfunc_t native, hfunc_t sse)
-    {
-        TEST_FOREACH(sz, 0x00, 0x01, 0x03, 0x08, 0x09, 0x0f, 0x1f, 0x3f, 0x7f, 0xff, 0xfff, 0x1000)
-        {
-            for (size_t mask=0; mask <= 0x01; ++mask)
-            {
-                FBuffer src(sz, mask & 0x01);
-                src.randomize_sign();
-
-                float s1 = native(src, sz);
-                float s2 = sse(src, sz);
-
-                if (fabs(1.0f - s1/s2) >= 1e-5)
-                {
-                    lsp_error("  Failed hsum: size=%d, mask=0x%x, s1=%f, s2=%f",
-                        int(sz), int(mask), s1, s2);
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    bool test_minmax(minmax_t native, minmax_t sse)
-    {
-        TEST_FOREACH(sz, 0x00, 0x01, 0x03, 0x08, 0x09, 0x0f, 0x1f, 0x3f, 0x7f, 0xff, 0xfff, 0x1000)
-        {
-            for (size_t mask=0; mask <= 0x01; ++mask)
-            {
-                FBuffer src(sz, mask & 0x01);
-                src.randomize_sign();
-
-                float min1, min2, max1, max2;
-                native(src, sz, &min1, &max1);
-                sse(src, sz, &min2, &max2);
-
-                if ((max1 < min1) || (max2 < min2))
-                {
-                    lsp_error("  Failed minmax: size=%d, mask=0x%x, min1=%f, min2=%f, max1=%f, max2=%f",
-                        int(sz), int(mask), min1, min2, max1, max2);
-                    return false;
-                }
-                else if (fabs(1.0f - min1/min2) >= 1e-5)
-                {
-                    lsp_error("  Failed minmax: size=%d, mask=0x%x, min1=%f, min2=%f",
-                        int(sz), int(mask), min1, min2);
-                    return false;
-                }
-                else if (fabs(1.0f - max1/max2) >= 1e-5)
-                {
-                    lsp_error("  Failed minmax: size=%d, mask=0x%x, max1=%f, max2=%f",
-                        int(sz), int(mask), max1, max2);
                     return false;
                 }
             }
@@ -1424,13 +1346,6 @@ namespace sse_test
         LAUNCH(test_fill)
         LAUNCH(test_reverse1)
         LAUNCH(test_reverse2)
-
-        LAUNCH(test_minmax, native::min, sse::min);
-        LAUNCH(test_minmax, native::max, sse::max);
-        LAUNCH(test_minmax, native::abs_min, sse::abs_min);
-        LAUNCH(test_minmax, native::abs_max, sse::abs_max);
-        LAUNCH(test_minmax, native::minmax, sse::minmax);
-        LAUNCH(test_minmax, native::abs_minmax, sse::abs_minmax);
 
         LAUNCH(test_geometry_basic);
         LAUNCH(test_matrix_native);

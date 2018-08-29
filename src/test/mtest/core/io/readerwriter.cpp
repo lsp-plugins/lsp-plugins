@@ -11,8 +11,8 @@
 
 using namespace lsp;
 
-const char *SRC_FILE = "test_data/utf8_in.txt";
-const char *DST_FILE = "test_data/utf8_out.txt";
+static const char *SRC_FILE = "test_data/utf8_in.txt";
+static const char *DST_FILE = "test_data/utf8_out.txt";
 
 MTEST_BEGIN("core.io", readerwriter)
 
