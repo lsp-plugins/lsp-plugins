@@ -1,7 +1,6 @@
 #include "test/common.h"
 
 #include "test/frac_test.h"
-#include "test/sample_player_test.h"
 
 #include "test/fft_test.h"
 #include "test/fft_test2.h"
