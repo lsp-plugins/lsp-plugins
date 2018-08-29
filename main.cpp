@@ -22,7 +22,6 @@
 
 
 //#include "test/geometry3d_test.h"
-//#include "test/objfile3d_test.h"
 //#include "test/anyfile3d_test.h"
 
 #include "test/clipbrd_test.h"

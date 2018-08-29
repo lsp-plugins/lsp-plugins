@@ -29,6 +29,7 @@
 * Implemented linear impulse response profiler.
 - Implemented normal unit testing system.
 - Implemented normal performance testing system.
+- Implemented manual testing system.
 
 *******************************************************************************
 * Release steps
