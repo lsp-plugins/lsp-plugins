@@ -53,6 +53,11 @@ UTEST_BEGIN("dsp.smath", ipowroot)
 
     void call(const char *label, int start, int end, ipowrootf_t func1, ipowrootf_t func2)
     {
+        if (!UTEST_SUPPORTED(func1))
+            return;
+        if (!UTEST_SUPPORTED(func2))
+            return;
+
         printf("Testing %s", label);
         for (int i=start; i <= end; ++i)
         {
