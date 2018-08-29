@@ -8,7 +8,6 @@
 #include "test/fft_fastconv_test.h"
 
 #include "test/files/config_test.h"
-#include "test/files/text_read_test.h"
 
 #include "test/sse_test.h"
 
