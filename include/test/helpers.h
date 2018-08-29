@@ -19,6 +19,8 @@ namespace test
 
     void dump_buffer(const char *text, const float *buf, size_t count);
 
+    void printf_buffer(const float *buf, size_t count, const char *fmt, ...);
+
 }
 
 #endif /* TEST_HELPERS_H_ */

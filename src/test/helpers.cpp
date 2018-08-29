@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 namespace test
 {
@@ -33,6 +34,23 @@ namespace test
         printf("dump of buffer %s:\n", text);
         while (count--)
             printf("%.30f\n", *(buf++));
+    }
+
+    void printf_buffer(const float *buf, size_t count, const char *fmt, ...)
+    {
+        va_list vl;
+        va_start(vl, fmt);
+        vprintf(fmt, vl);
+        puts("");
+        va_end(vl);
+
+        for (size_t i=0; i<count; ++i)
+        {
+            if (i > 0)
+                printf(" ");
+            printf("%.6f", buf[i]);
+        }
+        puts("");
     }
 }
 
