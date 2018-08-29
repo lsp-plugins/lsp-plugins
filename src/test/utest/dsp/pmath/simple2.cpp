@@ -35,7 +35,7 @@ IF_ARCH_X86(
 typedef void (* func2)(float *dst, const float *src, size_t count);
 
 //-----------------------------------------------------------------------------
-// Performance test for complex multiplication
+// Unit test for simple operations
 UTEST_BEGIN("dsp.pmath", simple2)
 
     void call(const char *label, size_t align, func2 func1, func2 func2)

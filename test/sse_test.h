@@ -14,10 +14,6 @@ namespace native
 {
     void fill(float *dst, float value, size_t count);
 
-    float h_sum(const float *src, size_t count);
-    float h_sqr_sum(const float *src, size_t count);
-    float h_abs_sum(const float *src, size_t count);
-
     void abs1(float *src, size_t count);
     void abs2(float *dst, const float *src, size_t count);
     void abs_add2(float *dst, const float *src, size_t count);
@@ -110,10 +106,6 @@ namespace sse
 {
     void move(float *dst, const float *src, size_t count);
     void fill(float *dst, float value, size_t count);
-
-    float h_sum(const float *src, size_t count);
-    float h_sqr_sum(const float *src, size_t count);
-    float h_abs_sum(const float *src, size_t count);
 
     void abs1(float *src, size_t count);
     void abs2(float *dst, const float *src, size_t count);
@@ -316,33 +308,6 @@ namespace sse_test
                 {
                     lsp_error("  Failed move dst1 -> dst2 size = %d, mask = 0x%x, overflow=%s",
                         int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    bool test_horizontal(hfunc_t native, hfunc_t sse)
-    {
-        TEST_FOREACH(sz, 0x00, 0x01, 0x03, 0x08, 0x09, 0x0f, 0x1f, 0x3f, 0x7f, 0xff, 0xfff, 0x1000)
-        {
-            for (size_t mask=0; mask <= 0x01; ++mask)
-            {
-                FBuffer src(sz, mask & 0x01);
-                float *p = src.data();
-                for (size_t i=0; i<sz; ++i)
-                    p[i]        = (i + 1) * -0.1f;
-
-                float s1 = native(src, sz);
-                float s2 = sse(src, sz);
-//                lsp_trace("sz=%d, s1=%f, s2=%f", int(sz), s1, s2);
-
-                if (fabs(1.0f - s1/s2) >= 1e-5)
-                {
-                    lsp_error("  Failed hsum: size=%d, mask=0x%x, s1=%f, s2=%f",
-                        int(sz), int(mask), s1, s2);
                     return false;
                 }
             }
@@ -1471,10 +1436,6 @@ namespace sse_test
         LAUNCH(test_fill)
         LAUNCH(test_reverse1)
         LAUNCH(test_reverse2)
-
-        LAUNCH(test_horizontal, native::h_sum, sse::h_sum)
-        LAUNCH(test_horizontal, native::h_sqr_sum, sse::h_sqr_sum)
-        LAUNCH(test_horizontal, native::h_abs_sum, sse::h_abs_sum)
 
         LAUNCH(test_minmax, native::min, sse::min);
         LAUNCH(test_minmax, native::max, sse::max);

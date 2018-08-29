@@ -10,9 +10,26 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <math.h>
 
 namespace test
 {
+    bool float_equals_relative(float a, float b, float tolerance)
+    {
+        if (a == 0.0f)
+            return (fabs(b) < tolerance);
+        else if (b == 0.0f)
+            return (fabs(a) < tolerance);
+
+        float diff = fabs(b/a);
+        return fabs(1.0f - diff) < tolerance;
+    }
+
+    bool float_equals_absolute(float a, float b, float tolerance)
+    {
+        return fabs(a - b) <= tolerance;
+    }
+
     void dump_buffer(const char *text, const size_t *buf, size_t count)
     {
         printf("  dump of buffer %s:\n    ", text);

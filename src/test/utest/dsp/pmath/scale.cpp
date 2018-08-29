@@ -5,7 +5,6 @@
  *      Author: sadko
  */
 
-
 #include <dsp/dsp.h>
 #include <test/utest.h>
 #include <test/FloatBuffer.h>
@@ -42,7 +41,7 @@ typedef void (* scale2)(float *dst, float k, size_t count);
 typedef void (* scale3)(float *dst, const float *src, float k, size_t count);
 
 //-----------------------------------------------------------------------------
-// Performance test for complex multiplication
+// Unit test for complex multiplication
 UTEST_BEGIN("dsp.pmath", scale)
 
     void call(const char *label, size_t align, scale2 func1, scale2 func2)

@@ -5,6 +5,7 @@
  *      Author: vsadovnikov
  */
 
+#include <test/helpers.h>
 #include <test/FloatBuffer.h>
 #include <string.h>
 #include <stdlib.h>
@@ -29,17 +30,6 @@ inline bool check_alignment(void *src, size_t align)
 {
     ptrdiff_t x     = ptrdiff_t(src);
     return !(x % align);
-}
-
-inline bool float_ck(float a, float b, float tolerance=1e-6)
-{
-    if (a == 0.0f)
-        return (fabs(b) < tolerance);
-    else if (b == 0.0f)
-        return (fabs(a) < tolerance);
-
-    float diff = fabs(b/a);
-    return fabs(1.0f - diff) < tolerance;
 }
 
 namespace test
@@ -142,7 +132,7 @@ namespace test
         const float *a = pBuffer, *b = src.pBuffer;
         for (size_t i=0; i<nLength; ++i)
         {
-            if (!float_ck(b[i], a[i], tolerance))
+            if (!float_equals_relative(a[i], b[i], tolerance))
                 return false;
         }
         return true;
@@ -157,7 +147,7 @@ namespace test
         const float *a = pBuffer, *b = src.pBuffer;
         for (size_t i=0; i<nLength; ++i)
         {
-            if (fabs(a[i] - b[i]) >= tolerance)
+            if (!float_equals_absolute(a[i], b[i], tolerance))
                 return false;
         }
         return true;
