@@ -1,13 +1,21 @@
+/*
+ * clipboard.cpp
+ *
+ *  Created on: 29 авг. 2018 г.
+ *      Author: sadko
+ */
+
+#include <test/mtest.h>
 #include <ui/tk/tk.h>
 #include <core/io/IInputStream.h>
 #include <core/io/IOutputStream.h>
 
-namespace clipbrd_test
-{
-    using namespace lsp::tk;
-    using namespace lsp::io;
+using namespace lsp::tk;
+using namespace lsp::io;
 
-    int test(int argc, const char **argv)
+MTEST_BEGIN("ui.tk", clipboard)
+
+    MTEST_MAIN
     {
         LSPClipboard *clip = new LSPClipboard();
 
@@ -16,7 +24,7 @@ namespace clipbrd_test
 
         // Write to stream
         IOutputStream *os = clip->write("application/octet-stream");
-        lsp_trace("Stream position: %d", int(os->position()));
+        printf("Stream position: %d", int(os->position()));
 
         while (true)
         {
@@ -26,23 +34,19 @@ namespace clipbrd_test
             ptr = buf;
             while (n > 0)
             {
-                lsp_trace("Stream position: %d", int(os->position()));
+                printf("Stream position: %d", int(os->position()));
                 ssize_t k = os->write(ptr, n);
-                if (k < 0)
-                {
-                    lsp_error("Could not write %d bytes", int(n));
-                    return -1;
-                }
+                MTEST_ASSERT_MSG(k >= 0, "Could not write %d bytes", int(n));
                 n -= k;
                 ptr += k;
             }
         }
 
         // Reset the position
-        lsp_trace("Clipboard object size: %d", int(clip->size()));
-        lsp_trace("Clipboard object capacity: %d", int(clip->capacity()));
+        printf("Clipboard object size: %d", int(clip->size()));
+        printf("Clipboard object capacity: %d", int(clip->capacity()));
         os->seek(1234);
-        lsp_trace("Stream position: %d", int(os->position()));
+        printf("Stream position: %d", int(os->position()));
         fseek(fd, 1234, SEEK_SET);
         while (true)
         {
@@ -52,19 +56,15 @@ namespace clipbrd_test
             ptr = buf;
             while (n > 0)
             {
-                lsp_trace("Stream position: %d", int(os->position()));
+                printf("Stream position: %d", int(os->position()));
                 ssize_t k = os->write(ptr, n);
-                if (k < 0)
-                {
-                    lsp_error("Could not write %d bytes", int(n));
-                    return -1;
-                }
+                MTEST_ASSERT_MSG(k >= 0, "Could not write %d bytes", int(n));
                 n -= k;
                 ptr += k;
             }
         }
 
-        lsp_trace("Stream position: %d", int(os->position()));
+        printf("Stream position: %d", int(os->position()));
 
         // Close stream and file
         os->close();
@@ -72,17 +72,13 @@ namespace clipbrd_test
 
         fd = fopen("output.bin", "w");
         IInputStream *is = clip->read("text/html");
-        if (is != NULL)
-        {
-            lsp_error("Invalid content type accepted");
-            return -3;
-        }
+        MTEST_ASSERT_MSG(is == NULL, "Invalid content type accepted");
 
         is = clip->read("application/octet-stream");
 
         while (true)
         {
-            lsp_trace("Stream position: %d", int(is->position()));
+            printf("Stream position: %d", int(is->position()));
             ssize_t n = is->read(buf, sizeof(buf));
             if (n <= 0)
                 break;
@@ -90,23 +86,19 @@ namespace clipbrd_test
             while (n > 0)
             {
                 ssize_t k = fwrite(buf, sizeof(uint8_t), n, fd);
-                if (k < 0)
-                {
-                    lsp_error("Could not write %d bytes", int(n));
-                    return -1;
-                }
+                MTEST_ASSERT_MSG(k >= 0, "Could not write %d bytes", int(n));
                 n -= k;
                 ptr += k;
             }
         }
 
         is->seek(1234);
-        lsp_trace("Stream position: %d", int(is->position()));
+        printf("Stream position: %d", int(is->position()));
         fseek(fd, 1234, SEEK_SET);
 
         while (true)
         {
-            lsp_trace("Stream position: %d", int(is->position()));
+            printf("Stream position: %d", int(is->position()));
             ssize_t n = is->read(buf, sizeof(buf));
             if (n <= 0)
                 break;
@@ -114,11 +106,7 @@ namespace clipbrd_test
             while (n > 0)
             {
                 ssize_t k = fwrite(buf, sizeof(uint8_t), n, fd);
-                if (k < 0)
-                {
-                    lsp_error("Could not write %d bytes", int(n));
-                    return -1;
-                }
+                MTEST_ASSERT_MSG(k >= 0, "Could not write %d bytes", int(n));
                 n -= k;
                 ptr += k;
             }
@@ -128,7 +116,7 @@ namespace clipbrd_test
         fclose(fd);
 
         clip->close(); // Should automatically call delete
-
-        return 0;
     }
-}
+MTEST_END
+
+
