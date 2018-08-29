@@ -3,7 +3,6 @@
 #include "test/frac_test.h"
 #include "test/sample_player_test.h"
 #include "test/resample_test.h"
-#include "test/alloc_test.h"
 
 #include "test/fft_test.h"
 #include "test/fft_test2.h"
