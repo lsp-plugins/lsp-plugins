@@ -9,7 +9,6 @@
 #include "test/fft_test3.h"
 #include "test/fft_fastconv_test.h"
 #include "test/fft_fastconv_speed_test.h"
-#include "test/fft_tdomain_test.h"
 
 #include "test/real_to_complex.h"
 
