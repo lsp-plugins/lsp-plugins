@@ -18,8 +18,8 @@
 #include <test/test.h>
 
 #define PTEST_BEGIN(group, name, time, iterations) \
-        namespace test { \
-        namespace ptest_ ## name { \
+        namespace ptest { \
+        namespace { \
             \
             using namespace ::test; \
             \
@@ -78,8 +78,8 @@
 
 #define PTEST_END \
         } performance_test;  /* ptest class */ \
-        } /* namespace ptest_ ## name */ \
-        } /* namespace test */
+        } /* anonymous namespace */ \
+        } /* namespace ptest */
 
 namespace test
 {

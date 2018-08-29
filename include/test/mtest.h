@@ -16,8 +16,8 @@
 #include <test/test.h>
 
 #define MTEST_BEGIN(group, name) \
-        namespace test { \
-        namespace mtest_ ## name { \
+        namespace mtest { \
+        namespace { \
             \
             using namespace ::test; \
             \
@@ -62,8 +62,8 @@
 
 #define MTEST_END \
         } manual_test;  /* mtest class */ \
-        } /* namespace mtest_ ## name */ \
-        } /* namespace test */
+        } /* anonymous namespace */ \
+        } /* namespace mtest */
 
 namespace test
 {

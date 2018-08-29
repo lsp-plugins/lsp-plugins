@@ -16,8 +16,8 @@
 #include <test/test.h>
 
 #define UTEST_BEGIN(group, name) \
-        namespace test { \
-        namespace utest_ ## name { \
+        namespace utest { \
+        namespace { \
             \
             using namespace ::test; \
             \
@@ -70,8 +70,8 @@
 
 #define UTEST_END \
         } unit_test;  /* utest class */ \
-        } /* namespace utest_ ## name */ \
-        } /* namespace test */
+        } /* anonymous namespace */ \
+        } /* namespace utest */
 
 namespace test
 {
