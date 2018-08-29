@@ -1,3 +1,11 @@
+/*
+ * geometry3d.cpp
+ *
+ *  Created on: 29 авг. 2018 г.
+ *      Author: sadko
+ */
+
+#include <test/mtest.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -29,11 +37,14 @@
 namespace geometry3d_test
 {
     using namespace lsp;
+}
 
-#include "3d/debug.h"
-#include "3d/view.h"
-#include "3d/task.h"
+#include <test/mtest/3d/debug.h>
+#include <test/mtest/3d/view.h>
+#include <test/mtest/3d/task.h>
 
+namespace geometry3d_test
+{
     view_t                 view;
 
     bool on_key_press(view_t *s, KeySym key)
@@ -93,7 +104,7 @@ namespace geometry3d_test
         return false;
     }
 
-    int test(int argc, const char **argv)
+    int test()
     {
         Display                 *dpy;
         Window                  root;
@@ -105,15 +116,13 @@ namespace geometry3d_test
         GLXContext              glc;
         XWindowAttributes       gwa;
 
-        dsp::init();
-
         Scene3D                 scene;
         build_scene(&scene);
 
         dpy = XOpenDisplay(NULL);
         if (dpy == NULL)
         {
-            lsp_error("tcannot connect to X server");
+            lsp_error("cannot connect to X server");
             return 0;
         }
 
@@ -248,8 +257,19 @@ namespace geometry3d_test
 
         return 0;
     }
-    
+
     #undef TOLERANCE3D
 }
 
 #undef ADDM_BUF_SIZE
+
+MTEST_BEGIN("core", geometry3d)
+
+    MTEST_MAIN
+    {
+        MTEST_ASSERT(geometry3d_test::test() == 0);
+    }
+MTEST_END
+
+
+
