@@ -104,7 +104,7 @@ namespace test
         └ ─ ┴ ─ ┘
      */
 
-    void PerformanceTest::out_text(size_t length, const char *text, int align, const char *padding, const char *tail)
+    void PerformanceTest::out_text(FILE *out, size_t length, const char *text, int align, const char *padding, const char *tail)
     {
         size_t tlen     = (text != NULL) ? strlen(text) : 0;
         length         -= tlen;
@@ -113,18 +113,18 @@ namespace test
             size_t pad = (align == 0) ? ((length + 1) >> 1) : length;
             length -= pad;
             while (pad--)
-                fputs(padding, stdout);
+                fputs(padding, out);
         }
         if (text != NULL)
-            fputs(text, stdout);
+            fputs(text, out);
 
         while (length--)
-            fputs(padding, stdout);
+            fputs(padding, out);
         if (tail != NULL)
-            fputs(tail, stdout);
+            fputs(tail, out);
     }
 
-    void PerformanceTest::dump_stats() const
+    void PerformanceTest::dump_stats(FILE *out) const
     {
         size_t key          = strlen("Case");
         size_t time         = strlen("Time[s]");
@@ -149,14 +149,14 @@ namespace test
         }
 
         // Output table header
-        fputs("┌", stdout);
-        out_text(key, "Case", -1, "─", "┬");
-        out_text(time, "Time[s]", 1, "─", "┬");
-        out_text(iterations, "Iter", 1, "─", "┬");
-        out_text(n_time, "Samp[s]", 1, "─", "┬");
-        out_text(n_iterations, "Est", 1, "─", "┬");
-        out_text(performance, "Perf[i/s]", 1, "─", "┬");
-        out_text(time_cost, "Cost[us/i]", 1, "─", "┐\n");
+        fputs("┌", out);
+        out_text(out, key, "Case", -1, "─", "┬");
+        out_text(out, time, "Time[s]", 1, "─", "┬");
+        out_text(out, iterations, "Iter", 1, "─", "┬");
+        out_text(out, n_time, "Samp[s]", 1, "─", "┬");
+        out_text(out, n_iterations, "Est", 1, "─", "┬");
+        out_text(out, performance, "Perf[i/s]", 1, "─", "┬");
+        out_text(out, time_cost, "Cost[us/i]", 1, "─", "┐\n");
 
         bool separator = false;
 
@@ -168,39 +168,39 @@ namespace test
             {
                 if (separator)
                 {
-                    fputs("├", stdout);
-                    out_text(key, NULL, -1, "─", "┼");
-                    out_text(time, NULL, 1, "─", "┼");
-                    out_text(iterations, NULL, 1, "─", "┼");
-                    out_text(n_time, NULL, 1, "─", "┼");
-                    out_text(n_iterations, NULL, 1, "─", "┼");
-                    out_text(performance, NULL, 1, "─", "┼");
-                    out_text(time_cost, NULL, 1, "─", "┤\n");
+                    fputs("├", out);
+                    out_text(out, key, NULL, -1, "─", "┼");
+                    out_text(out, time, NULL, 1, "─", "┼");
+                    out_text(out, iterations, NULL, 1, "─", "┼");
+                    out_text(out, n_time, NULL, 1, "─", "┼");
+                    out_text(out, n_iterations, NULL, 1, "─", "┼");
+                    out_text(out, performance, NULL, 1, "─", "┼");
+                    out_text(out, time_cost, NULL, 1, "─", "┤\n");
                 }
                 separator = false;
 
-                fputs("│", stdout);
-                out_text(key, stats->key, -1, " ", "│");
-                out_text(time, stats->time, 1, " ", "│");
-                out_text(iterations, stats->iterations, 1, " ", "│");
-                out_text(n_time, stats->n_time, 1, " ", "│");
-                out_text(n_iterations, stats->n_iterations, 1, " ", "│");
-                out_text(performance, stats->performance, 1, " ", "│");
-                out_text(time_cost, stats->time_cost, 1, " ", "│\n");
+                fputs("│", out);
+                out_text(out, key, stats->key, -1, " ", "│");
+                out_text(out, time, stats->time, 1, " ", "│");
+                out_text(out, iterations, stats->iterations, 1, " ", "│");
+                out_text(out, n_time, stats->n_time, 1, " ", "│");
+                out_text(out, n_iterations, stats->n_iterations, 1, " ", "│");
+                out_text(out, performance, stats->performance, 1, " ", "│");
+                out_text(out, time_cost, stats->time_cost, 1, " ", "│\n");
             }
             else
                 separator = true;
         }
 
         // Output table footer
-        fputs("└", stdout);
-        out_text(key, NULL, -1, "─", "┴");
-        out_text(time, NULL, 1, "─", "┴");
-        out_text(iterations, NULL, 1, "─", "┴");
-        out_text(n_time, NULL, 1, "─", "┴");
-        out_text(n_iterations, NULL, 1, "─", "┴");
-        out_text(performance, NULL, 1, "─", "┴");
-        out_text(time_cost, NULL, 1, "─", "┘\n");
+        fputs("└", out);
+        out_text(out, key, NULL, -1, "─", "┴");
+        out_text(out, time, NULL, 1, "─", "┴");
+        out_text(out, iterations, NULL, 1, "─", "┴");
+        out_text(out, n_time, NULL, 1, "─", "┴");
+        out_text(out, n_iterations, NULL, 1, "─", "┴");
+        out_text(out, performance, NULL, 1, "─", "┴");
+        out_text(out, time_cost, NULL, 1, "─", "┘\n");
     }
 
     void PerformanceTest::free_stats()

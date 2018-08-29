@@ -108,6 +108,7 @@ typedef struct config_t
     bool                        debug;
     bool                        list_all;
     size_t                      threads;
+    const char                 *outfile;
     cvector<char>               list;
     cvector<char>               args;
 } config_t;
@@ -237,7 +238,7 @@ int output_stats(stats_t *stats, const char *text)
     return 0;
 }
 
-int execute_ptest(config_t *cfg, test::PerformanceTest *v)
+int execute_ptest(FILE *out, config_t *cfg, test::PerformanceTest *v)
 {
     // Execute performance test
     v->set_verbose(cfg->verbose);
@@ -245,7 +246,16 @@ int execute_ptest(config_t *cfg, test::PerformanceTest *v)
 
     // Output peformance test statistics
     printf("\nStatistics of performance test '%s':\n", v->full_name());
-    v->dump_stats();
+    v->dump_stats(stdout);
+
+    if (out != NULL)
+    {
+        fprintf(out, "--------------------------------------------------------------------------------\n");
+        fprintf(out, "Statistics of performance test '%s':\n\n", v->full_name());
+        v->dump_stats(out);
+        fprintf(out, "\n");
+    }
+
     v->free_stats();
     return 0;
 }
@@ -324,6 +334,17 @@ int launch_ptest(config_t *cfg)
 
     clock_gettime(CLOCK_REALTIME, &ts);
 
+    FILE *fd = NULL;
+    if (cfg->outfile != NULL)
+    {
+        fd = fopen(cfg->outfile, "w");
+        if (fd == NULL)
+        {
+            fprintf(stderr, "Could not open output file %s\n", cfg->outfile);
+            return 4;
+        }
+    }
+
     for ( ; v != NULL; v = v->next())
     {
         // Check that test is not ignored
@@ -353,7 +374,7 @@ int launch_ptest(config_t *cfg)
                 break;
             }
             else if (pid == 0)
-                return execute_ptest(cfg, v);
+                return execute_ptest(fd, cfg, v);
             else
             {
                 // Parent process code: wait for nested process execution
@@ -377,7 +398,7 @@ int launch_ptest(config_t *cfg)
             }
         }
         else
-            result = execute_ptest(cfg, v);
+            result = execute_ptest(fd, cfg, v);
 
         clock_gettime(CLOCK_REALTIME, &finish);
         time = (finish.tv_sec - start.tv_sec) + (finish.tv_nsec - start.tv_nsec) * 1e-9;
@@ -388,6 +409,9 @@ int launch_ptest(config_t *cfg)
         else
             stats.failed.add(v);
     }
+
+    if (fd != NULL)
+        fclose(fd);
 
     clock_gettime(CLOCK_REALTIME, &finish);
     stats.overall = (finish.tv_sec - ts.tv_sec) + (finish.tv_nsec - ts.tv_nsec) * 1e-9;
@@ -702,6 +726,7 @@ int usage(bool detailed = false)
     puts("    -l, --list            List all available tests");
     puts("    -nf, --nofork         Do not fork child processes (for better ");
     puts("                          debugging capabilities)");
+    puts("    -o, --outfile file    Output performance test statistics to specified file");
     puts("    -s, --silent          Do not output additional information from tests");
     puts("    -v, --verbose         Output additional information from tests");
     return 1;
@@ -742,6 +767,15 @@ int parse_config(config_t *cfg, int argc, const char **argv)
             cfg->debug      = true;
         else if ((!strcmp(argv[i], "--list")) || (!strcmp(argv[i], "-l")))
             cfg->list_all   = true;
+        else if ((!strcmp(argv[i], "--outfile")) || (!strcmp(argv[i], "-o")))
+        {
+            if ((++i) >= argc)
+            {
+                fprintf(stderr, "Not specified name of output file\n");
+                return 3;
+            }
+            cfg->outfile    = argv[i];
+        }
         else if ((!strcmp(argv[i], "--args")) || (!strcmp(argv[i], "-a")))
         {
             while (++i < argc)

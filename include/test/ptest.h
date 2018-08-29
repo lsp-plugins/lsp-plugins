@@ -113,7 +113,7 @@ namespace test
             void gather_stats(const char *key, double time, wsize_t iterations);
             static void destroy_stats(stats_t *stats);
             static void estimate(size_t *len, const char *text);
-            static void out_text(size_t length, const char *text, int align, const char *padding, const char *tail);
+            static void out_text(FILE *out, size_t length, const char *text, int align, const char *padding, const char *tail);
 
         public:
             explicit PerformanceTest(const char *group, const char *name, float time, size_t iterations);
@@ -123,7 +123,7 @@ namespace test
             inline PerformanceTest *next()          { return __next; }
             virtual Test *next_test() const         { return const_cast<PerformanceTest *>(__next); };
 
-            void dump_stats() const;
+            void dump_stats(FILE *out) const;
             void free_stats();
     };
 
