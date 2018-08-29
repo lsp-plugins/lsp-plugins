@@ -2,7 +2,6 @@
 
 #include "test/frac_test.h"
 #include "test/sample_player_test.h"
-#include "test/resample_test.h"
 
 #include "test/fft_test.h"
 #include "test/fft_test2.h"
@@ -18,7 +17,6 @@
 #include "test/sse_test.h"
 
 #include "test/solutions3d_test.h"
-#include "test/math/root_test.h"
 
 
 //#define TEST config_test
@@ -61,7 +59,6 @@
 //#define TEST frac_test
 //#define TEST randgen_test
 //#define TEST fade_test
-//#define TEST resample_test
 //#define TEST genttl_test
 //#define TEST lv2bufsize_test
 //#define TEST alloc_test
