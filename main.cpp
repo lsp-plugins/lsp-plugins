@@ -2,10 +2,8 @@
 
 #include "test/frac_test.h"
 
-#include "test/fft_test.h"
 #include "test/fft_test2.h"
 #include "test/fft_test3.h"
-#include "test/fft_fastconv_test.h"
 
 #include "test/sse_test.h"
 
