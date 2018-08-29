@@ -7,8 +7,6 @@
 
 #include "test/sse_test.h"
 
-#include "test/solutions3d_test.h"
-
 
 //#define TEST config_test
 //#define TEST text_read_test
