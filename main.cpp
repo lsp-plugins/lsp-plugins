@@ -89,7 +89,6 @@
 #include <test/utest.h>
 #include <test/mtest.h>
 #include <data/cvector.h>
-#include <core/LSPString.h>
 
 enum test_mode_t
 {
@@ -109,7 +108,7 @@ typedef struct config_t
     bool                        debug;
     bool                        list_all;
     size_t                      threads;
-    cvector<LSPString>          list;
+    cvector<char>               list;
     cvector<char>               args;
 } config_t;
 
@@ -128,70 +127,55 @@ typedef struct task_t
     test::UnitTest     *utest;
 } task_t;
 
-bool match_string(const LSPString *p, const LSPString *m)
+bool match_string(const char *p, const char *m)
 {
-    size_t m_off = 0;
-
-    for (size_t off = 0, len = p->length(); off < len; )
+    while (p != NULL)
     {
         // Get pattern token
-        LSPString *pt = NULL;
-        ssize_t next = p->index_of(off, '.');
-        if (next < 0)
-        {
-            pt = p->substring(off);
-            off = p->length();
-        }
-        else
-        {
-            pt = p->substring(off, next);
-            off = next + 1;
-        }
-
-        // Get match token
-        if (m_off >= m->length())
-            return false;
-
-        LSPString *mt = NULL;
-        next = m->index_of(m_off, '.');
-        if (next < 0)
-        {
-            mt = m->substring(m_off);
-            m_off = m->length();
-        }
-        else
-        {
-            mt = m->substring(m_off, next);
-            m_off = next + 1;
-        }
+        const char *pnext = strchr(p, '.');
+        size_t pcount = (pnext == NULL) ? strlen(p) : pnext - p;
+        if (pnext != NULL)
+            pnext++;
 
         // Check wildcard
-        if ((pt->length() == 1) && (pt->char_at(0) == '*'))
-            continue;
+        if ((pcount == 2) && (p[0] == '*') && (p[1] == '*'))
+            return true;
 
-        // Check equality
-        if (!pt->equals(mt))
+        // Get match token
+        if ((m == NULL) || (*m == '\0'))
             return false;
+        const char *mnext = strchr(m, '.');
+        size_t mcount = (mnext == NULL) ? strlen(m) : mnext - m;
+        if (mnext != NULL)
+            mnext++;
+
+        // Check wildcard
+        if ((pcount != 1) || (p[0] != '*'))
+        {
+            // Check that names match
+            if ((pcount != mcount) || (memcmp(p, m, pcount) != 0))
+                return false;
+        }
+
+        // Move pointers
+        p = pnext;
+        m = mnext;
     }
 
-    return true;
+    return ((m == NULL) || (*m == '\0'));
 }
 
-bool match_list(lsp::cvector<LSPString> &list, test::Test *v)
+bool match_list(lsp::cvector<char> &list, test::Test *v)
 {
     // Empty list always matches
     if (list.size() <= 0)
         return true;
 
-    LSPString m;
-    m.set_ascii(v->full_name());
+    const char *full = v->full_name();
 
     for (size_t i=0, n=list.size(); i<n; ++i)
     {
-        LSPString *p = list.at(i);
-        if (p == NULL)
-            continue;
-        if (match_string(p, &m))
+        if (match_string(list.at(i), full))
             return true;
     }
 
@@ -783,11 +767,7 @@ int parse_config(config_t *cfg, int argc, const char **argv)
         else if ((!strcmp(argv[i], "--help")) || ((!strcmp(argv[i], "-h"))))
             return usage(true);
         else
-        {
-            LSPString *s = new LSPString();
-            s->set_native(argv[i]);
-            cfg->list.add(s);
-        }
+            cfg->list.add(const_cast<char *>(argv[i]));
     }
 
     return 0;
@@ -795,9 +775,8 @@ int parse_config(config_t *cfg, int argc, const char **argv)
 
 void clear_config(config_t *cfg)
 {
-    for (size_t i=0, n=cfg->list.size(); i<n; ++i)
-        delete cfg->list.at(i);
-    cfg->list.clear();
+    cfg->list.flush();
+    cfg->args.flush();
 }
 
 int main(int argc, const char **argv)
