@@ -81,9 +81,6 @@ namespace native
 
 namespace sse
 {
-    void abs1(float *src, size_t count);
-    void abs2(float *dst, const float *src, size_t count);
-
     void init_point_xyz(point3d_t *p, float x, float y, float z);
     void init_point(point3d_t *p, const point3d_t *s);
     void normalize_point(point3d_t *p);
@@ -196,88 +193,6 @@ namespace sse_test
         for (size_t i=0; i<16; ++i)
             if (!float_ck(m1->m[i], m2->m[i]))
                 return false;
-        return true;
-    }
-
-    bool test_geometry_basic()
-    {
-        point3d_t   p1, p2, p3;
-        vector3d_t  v1, v2, v3;
-
-        native::init_point_xyz(&p1, 1.0f, 2.0f, 3.0f);
-        sse::init_point_xyz(&p2, 1.0f, 2.0f, 3.0f);
-        if (!point3d_sck(&p1, &p2))
-        {
-            lsp_error("  Failed init_point_xyz");
-            return false;
-        }
-
-        native::init_point(&p2, &p1);
-        sse::init_point(&p3, &p1);
-        if (!point3d_sck(&p1, &p2))
-        {
-            lsp_error("  Failed native init_point");
-            return false;
-        }
-        else if (!point3d_sck(&p1, &p3))
-        {
-            lsp_error("  Failed sse init_point");
-            return false;
-        }
-
-        native::normalize_point(&p2);
-        sse::normalize_point(&p3);
-        if (!point3d_sck(&p2, &p3))
-        {
-            lsp_error("  Failed sse normalize_point");
-            return false;
-        }
-
-        native::init_vector_dxyz(&v1, 1.0f, 2.0f, 3.0f);
-        sse::init_vector_dxyz(&v2, 1.0f, 2.0f, 3.0f);
-        if (!vector3d_sck(&v1, &v2))
-        {
-            lsp_error("  Failed init_vector_dxyz");
-            return false;
-        }
-
-        native::init_vector(&v2, &v1);
-        sse::init_vector(&v3, &v1);
-        if (!vector3d_sck(&v1, &v2))
-        {
-            lsp_error("  Failed native init_vector");
-            return false;
-        }
-        else if (!vector3d_sck(&v1, &v3))
-        {
-            lsp_error("  Failed sse init_vector");
-            return false;
-        }
-
-        native::normalize_vector(&v2);
-        sse::normalize_vector(&v3);
-        if (!vector3d_sck(&v2, &v3))
-        {
-            lsp_error("  Failed sse normalize_vector");
-            return false;
-        }
-
-//        void init_ray_xyz(ray3d_t *l, float x0, float y0, float z0, float x1, float y1, float z1);
-//        void init_ray_dxyz(ray3d_t *l, float x0, float y0, float z0, float dx, float dy, float dz);
-//        void init_ray_pdv(ray3d_t *l, const point3d_t *p, const vector3d_t *v);
-//        void init_ray_p2(ray3d_t *l, const point3d_t *p1, const point3d_t *p2);
-//        void init_ray_pv(ray3d_t *l, const point3d_t *p);
-//        void init_ray(ray3d_t *l, const ray3d_t *r);
-//        void calc_ray_xyz(ray3d_t *l, float x0, float y0, float z0, float x1, float y1, float z1);
-//        void calc_ray_dxyz(ray3d_t *l, float x0, float y0, float z0, float dx, float dy, float dz);
-//        void calc_ray_pdv(ray3d_t *l, const point3d_t *p, const vector3d_t *v);
-//        void calc_ray_p2(ray3d_t *l, const point3d_t *p1, const point3d_t *p2);
-//        void calc_ray_pv(ray3d_t *l, const point3d_t *p);
-//        void calc_ray(ray3d_t *l, const ray3d_t *r);
-//        void init_segment_xyz(segment3d_t *s, float x0, float y0, float z0,float x1, float y1, float z1);
-//        void init_segment_p2(segment3d_t *s, const point3d_t *p1, const point3d_t *p2);
-//        void init_segment_pv(segment3d_t *s, const point3d_t *p);
-
         return true;
     }
 
@@ -1095,7 +1010,6 @@ namespace sse_test
         int code = 0;
         #define LAUNCH(x, ...) --code; lsp_trace("Launching %s(%s)...", #x, #__VA_ARGS__); if (!x(__VA_ARGS__)) return code;
 
-        LAUNCH(test_geometry_basic);
         LAUNCH(test_matrix_native);
         LAUNCH(test_matrix_sse);
 
