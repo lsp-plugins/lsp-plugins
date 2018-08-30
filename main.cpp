@@ -739,6 +739,7 @@ int parse_config(config_t *cfg, int argc, const char **argv)
     cfg->verbose    = false;
     cfg->list_all   = false;
     cfg->threads    = sysconf(_SC_NPROCESSORS_ONLN) * 2;
+    cfg->outfile    = NULL;
     if (argc < 2)
         return usage();
 
