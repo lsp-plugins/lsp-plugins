@@ -11,9 +11,6 @@
 
 namespace native
 {
-    void abs1(float *src, size_t count);
-    void abs2(float *dst, const float *src, size_t count);
-
     void init_point_xyz(point3d_t *p, float x, float y, float z);
     void init_point(point3d_t *p, const point3d_t *s);
     void normalize_point(point3d_t *p);
@@ -167,56 +164,6 @@ namespace sse_test
     #define TEST_FOREACH(var, ...)    \
         const size_t ___sizes[] = { __VA_ARGS__ }; \
         for (size_t ___i=0, var=___sizes[0]; ___i<(sizeof(___sizes)/sizeof(size_t)); ++___i, var=___sizes[___i])
-
-    bool test_unary_abs(unary_math_t native, unary_math_t sse)
-    {
-        TEST_FOREACH(sz, 0, 1, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0xfff)
-        {
-            for (size_t mask=0; mask <= 0x01; ++mask)
-            {
-                FBuffer dst1(sz, mask & 0x01);
-                FBuffer dst2(dst1);
-
-                native(dst1, sz);
-                sse(dst2, sz);
-
-                if (!dst1.compare(dst2))
-                {
-                    lsp_error("  Failed test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    bool test_binary_abs(binary_math_t native, binary_math_t sse)
-    {
-        TEST_FOREACH(sz, 0, 1, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0xfff)
-        {
-            for (size_t mask=0; mask <= 0x03; ++mask)
-            {
-                FBuffer src(sz, mask & 0x01);
-                src.randomize_negative();
-                FBuffer dst1(sz, mask & 0x02);
-                FBuffer dst2(dst1);
-
-                native(dst1, src, sz);
-                sse(dst2, src, sz);
-
-                if (!dst1.compare(dst2))
-                {
-                    lsp_error("  Failed test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
 
     inline bool point3d_ck(const point3d_t *p1, const point3d_t *p2)
     {
@@ -1147,9 +1094,6 @@ namespace sse_test
 
         int code = 0;
         #define LAUNCH(x, ...) --code; lsp_trace("Launching %s(%s)...", #x, #__VA_ARGS__); if (!x(__VA_ARGS__)) return code;
-
-        LAUNCH(test_unary_abs, native::abs1, sse::abs1)
-        LAUNCH(test_binary_abs, native::abs2, sse::abs2)
 
         LAUNCH(test_geometry_basic);
         LAUNCH(test_matrix_native);
