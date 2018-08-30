@@ -91,6 +91,92 @@ namespace sse3
         #undef complex_core
     }
 
+    void packed_complex_mod(float *dst, const float *src, size_t count)
+    {
+        size_t off;
+
+        __asm__ __volatile__
+        (
+            __ASM_EMIT("xor         %[off], %[off]")
+            __ASM_EMIT("sub         $16, %[count]")
+            __ASM_EMIT("jb          2f")
+
+            // 16x blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("lddqu       0x00(%[src], %[off], 2), %%xmm0")
+            __ASM_EMIT("lddqu       0x10(%[src], %[off], 2), %%xmm1")
+            __ASM_EMIT("lddqu       0x20(%[src], %[off], 2), %%xmm2")
+            __ASM_EMIT("lddqu       0x30(%[src], %[off], 2), %%xmm3")
+            __ASM_EMIT("lddqu       0x40(%[src], %[off], 2), %%xmm4")
+            __ASM_EMIT("lddqu       0x50(%[src], %[off], 2), %%xmm5")
+            __ASM_EMIT("lddqu       0x60(%[src], %[off], 2), %%xmm6")
+            __ASM_EMIT("lddqu       0x70(%[src], %[off], 2), %%xmm7")
+
+            __ASM_EMIT("mulps       %%xmm0, %%xmm0")
+            __ASM_EMIT("mulps       %%xmm1, %%xmm1")
+            __ASM_EMIT("mulps       %%xmm2, %%xmm2")
+            __ASM_EMIT("mulps       %%xmm3, %%xmm3")
+            __ASM_EMIT("mulps       %%xmm4, %%xmm4")
+            __ASM_EMIT("mulps       %%xmm5, %%xmm5")
+            __ASM_EMIT("mulps       %%xmm6, %%xmm6")
+            __ASM_EMIT("mulps       %%xmm7, %%xmm7")
+            __ASM_EMIT("haddps      %%xmm1, %%xmm0")
+            __ASM_EMIT("haddps      %%xmm3, %%xmm2")
+            __ASM_EMIT("haddps      %%xmm5, %%xmm4")
+            __ASM_EMIT("haddps      %%xmm7, %%xmm6")
+            __ASM_EMIT("sqrtps      %%xmm0, %%xmm0")
+            __ASM_EMIT("sqrtps      %%xmm2, %%xmm2")
+            __ASM_EMIT("sqrtps      %%xmm4, %%xmm4")
+            __ASM_EMIT("sqrtps      %%xmm6, %%xmm6")
+
+            __ASM_EMIT("movdqu      %%xmm0, 0x00(%[dst], %[off])")
+            __ASM_EMIT("movdqu      %%xmm2, 0x10(%[dst], %[off])")
+            __ASM_EMIT("movdqu      %%xmm4, 0x20(%[dst], %[off])")
+            __ASM_EMIT("movdqu      %%xmm6, 0x30(%[dst], %[off])")
+            __ASM_EMIT("add         $0x40, %[off]")
+            __ASM_EMIT("sub         $16, %[count]")
+            __ASM_EMIT("jae         1b")
+
+            // 4x blocks
+            __ASM_EMIT("2:")
+            __ASM_EMIT("add         $12, %[count]")
+            __ASM_EMIT("jl          4f")
+            __ASM_EMIT("3:")
+            __ASM_EMIT("lddqu       0x00(%[src], %[off], 2), %%xmm0")
+            __ASM_EMIT("lddqu       0x10(%[src], %[off], 2), %%xmm1")
+            __ASM_EMIT("mulps       %%xmm0, %%xmm0")
+            __ASM_EMIT("mulps       %%xmm1, %%xmm1")
+            __ASM_EMIT("haddps      %%xmm1, %%xmm0")
+            __ASM_EMIT("sqrtps      %%xmm0, %%xmm0")
+            __ASM_EMIT("movdqu      %%xmm0, 0x00(%[dst], %[off])")
+            __ASM_EMIT("add         $0x10, %[off]")
+            __ASM_EMIT("sub         $4, %[count]")
+            __ASM_EMIT("jae         3b")
+
+            // 1x blocks
+            __ASM_EMIT("4:")
+            __ASM_EMIT("add         $3, %[count]")
+            __ASM_EMIT("jl          6f")
+            __ASM_EMIT("5:")
+            __ASM_EMIT("movlps      0x00(%[src], %[off], 2), %%xmm0")
+            __ASM_EMIT("mulps       %%xmm0, %%xmm0")
+            __ASM_EMIT("haddps      %%xmm0, %%xmm0")
+            __ASM_EMIT("sqrtss      %%xmm0, %%xmm0")
+            __ASM_EMIT("movss       %%xmm0, 0x00(%[dst], %[off])")
+            __ASM_EMIT("add         $0x4, %[off]")
+            __ASM_EMIT("dec         %[count]")
+            __ASM_EMIT("jge         5b")
+
+            // End
+            __ASM_EMIT("6:")
+            : [dst] "+r" (dst), [src] "+r" (src),
+              [count] "+r" (count), [off] "=&r" (off)
+            :
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
 #ifdef ARCH_X86_64
     void x64_packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count)
     {
@@ -214,6 +300,164 @@ namespace sse3
             :
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm4", "%xmm5", "%xmm6",
+              "%xmm8", "%xmm9", "%xmm10", "%xmm12", "%xmm13", "%xmm14"
+        );
+    }
+
+    void x64_packed_complex_mod(float *dst, const float *src, size_t count)
+    {
+        size_t off;
+
+        __asm__ __volatile__
+        (
+            __ASM_EMIT("xor         %[off], %[off]")
+            __ASM_EMIT("sub         $32, %[count]")
+            __ASM_EMIT("jb          2f")
+
+            // 32x blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("lddqu       0x00(%[src], %[off], 2), %%xmm0")
+            __ASM_EMIT("lddqu       0x10(%[src], %[off], 2), %%xmm1")
+            __ASM_EMIT("lddqu       0x20(%[src], %[off], 2), %%xmm2")
+            __ASM_EMIT("lddqu       0x30(%[src], %[off], 2), %%xmm3")
+            __ASM_EMIT("lddqu       0x40(%[src], %[off], 2), %%xmm4")
+            __ASM_EMIT("lddqu       0x50(%[src], %[off], 2), %%xmm5")
+            __ASM_EMIT("lddqu       0x60(%[src], %[off], 2), %%xmm6")
+            __ASM_EMIT("lddqu       0x70(%[src], %[off], 2), %%xmm7")
+            __ASM_EMIT("lddqu       0x80(%[src], %[off], 2), %%xmm8")
+            __ASM_EMIT("lddqu       0x90(%[src], %[off], 2), %%xmm9")
+            __ASM_EMIT("lddqu       0xa0(%[src], %[off], 2), %%xmm10")
+            __ASM_EMIT("lddqu       0xb0(%[src], %[off], 2), %%xmm11")
+            __ASM_EMIT("lddqu       0xc0(%[src], %[off], 2), %%xmm12")
+            __ASM_EMIT("lddqu       0xd0(%[src], %[off], 2), %%xmm13")
+            __ASM_EMIT("lddqu       0xe0(%[src], %[off], 2), %%xmm14")
+            __ASM_EMIT("lddqu       0xf0(%[src], %[off], 2), %%xmm15")
+
+            __ASM_EMIT("mulps       %%xmm0, %%xmm0")
+            __ASM_EMIT("mulps       %%xmm1, %%xmm1")
+            __ASM_EMIT("mulps       %%xmm2, %%xmm2")
+            __ASM_EMIT("mulps       %%xmm3, %%xmm3")
+            __ASM_EMIT("mulps       %%xmm4, %%xmm4")
+            __ASM_EMIT("mulps       %%xmm5, %%xmm5")
+            __ASM_EMIT("mulps       %%xmm6, %%xmm6")
+            __ASM_EMIT("mulps       %%xmm7, %%xmm7")
+            __ASM_EMIT("mulps       %%xmm8, %%xmm8")
+            __ASM_EMIT("mulps       %%xmm9, %%xmm9")
+            __ASM_EMIT("mulps       %%xmm10, %%xmm10")
+            __ASM_EMIT("mulps       %%xmm11, %%xmm11")
+            __ASM_EMIT("mulps       %%xmm12, %%xmm12")
+            __ASM_EMIT("mulps       %%xmm13, %%xmm13")
+            __ASM_EMIT("mulps       %%xmm14, %%xmm14")
+            __ASM_EMIT("mulps       %%xmm15, %%xmm15")
+
+            __ASM_EMIT("haddps      %%xmm1, %%xmm0")
+            __ASM_EMIT("haddps      %%xmm3, %%xmm2")
+            __ASM_EMIT("haddps      %%xmm5, %%xmm4")
+            __ASM_EMIT("haddps      %%xmm7, %%xmm6")
+            __ASM_EMIT("haddps      %%xmm9, %%xmm8")
+            __ASM_EMIT("haddps      %%xmm11, %%xmm10")
+            __ASM_EMIT("haddps      %%xmm13, %%xmm12")
+            __ASM_EMIT("haddps      %%xmm15, %%xmm14")
+
+            __ASM_EMIT("sqrtps      %%xmm0, %%xmm0")
+            __ASM_EMIT("sqrtps      %%xmm2, %%xmm2")
+            __ASM_EMIT("sqrtps      %%xmm4, %%xmm4")
+            __ASM_EMIT("sqrtps      %%xmm6, %%xmm6")
+            __ASM_EMIT("sqrtps      %%xmm8, %%xmm8")
+            __ASM_EMIT("sqrtps      %%xmm10, %%xmm10")
+            __ASM_EMIT("sqrtps      %%xmm12, %%xmm12")
+            __ASM_EMIT("sqrtps      %%xmm14, %%xmm14")
+
+            __ASM_EMIT("movdqu      %%xmm0, 0x00(%[dst], %[off])")
+            __ASM_EMIT("movdqu      %%xmm2, 0x10(%[dst], %[off])")
+            __ASM_EMIT("movdqu      %%xmm4, 0x20(%[dst], %[off])")
+            __ASM_EMIT("movdqu      %%xmm6, 0x30(%[dst], %[off])")
+            __ASM_EMIT("movdqu      %%xmm8, 0x40(%[dst], %[off])")
+            __ASM_EMIT("movdqu      %%xmm10, 0x50(%[dst], %[off])")
+            __ASM_EMIT("movdqu      %%xmm12, 0x60(%[dst], %[off])")
+            __ASM_EMIT("movdqu      %%xmm14, 0x70(%[dst], %[off])")
+
+            __ASM_EMIT("add         $0x80, %[off]")
+            __ASM_EMIT("sub         $32, %[count]")
+            __ASM_EMIT("jae         1b")
+
+            // 16x blocks
+            __ASM_EMIT("2:")
+            __ASM_EMIT("add         $16, %[count]")
+            __ASM_EMIT("jl          4f")
+
+            __ASM_EMIT("3:")
+            __ASM_EMIT("lddqu       0x00(%[src], %[off], 2), %%xmm0")
+            __ASM_EMIT("lddqu       0x10(%[src], %[off], 2), %%xmm1")
+            __ASM_EMIT("lddqu       0x20(%[src], %[off], 2), %%xmm2")
+            __ASM_EMIT("lddqu       0x30(%[src], %[off], 2), %%xmm3")
+            __ASM_EMIT("lddqu       0x40(%[src], %[off], 2), %%xmm4")
+            __ASM_EMIT("lddqu       0x50(%[src], %[off], 2), %%xmm5")
+            __ASM_EMIT("lddqu       0x60(%[src], %[off], 2), %%xmm6")
+            __ASM_EMIT("lddqu       0x70(%[src], %[off], 2), %%xmm7")
+
+            __ASM_EMIT("mulps       %%xmm0, %%xmm0")
+            __ASM_EMIT("mulps       %%xmm1, %%xmm1")
+            __ASM_EMIT("mulps       %%xmm2, %%xmm2")
+            __ASM_EMIT("mulps       %%xmm3, %%xmm3")
+            __ASM_EMIT("mulps       %%xmm4, %%xmm4")
+            __ASM_EMIT("mulps       %%xmm5, %%xmm5")
+            __ASM_EMIT("mulps       %%xmm6, %%xmm6")
+            __ASM_EMIT("mulps       %%xmm7, %%xmm7")
+            __ASM_EMIT("haddps      %%xmm1, %%xmm0")
+            __ASM_EMIT("haddps      %%xmm3, %%xmm2")
+            __ASM_EMIT("haddps      %%xmm5, %%xmm4")
+            __ASM_EMIT("haddps      %%xmm7, %%xmm6")
+            __ASM_EMIT("sqrtps      %%xmm0, %%xmm0")
+            __ASM_EMIT("sqrtps      %%xmm2, %%xmm2")
+            __ASM_EMIT("sqrtps      %%xmm4, %%xmm4")
+            __ASM_EMIT("sqrtps      %%xmm6, %%xmm6")
+
+            __ASM_EMIT("movdqu      %%xmm0, 0x00(%[dst], %[off])")
+            __ASM_EMIT("movdqu      %%xmm2, 0x10(%[dst], %[off])")
+            __ASM_EMIT("movdqu      %%xmm4, 0x20(%[dst], %[off])")
+            __ASM_EMIT("movdqu      %%xmm6, 0x30(%[dst], %[off])")
+            __ASM_EMIT("add         $0x40, %[off]")
+            __ASM_EMIT("sub         $16, %[count]")
+            __ASM_EMIT("jae         3b")
+
+            // 4x blocks
+            __ASM_EMIT("4:")
+            __ASM_EMIT("add         $12, %[count]")
+            __ASM_EMIT("jl          6f")
+            __ASM_EMIT("5:")
+            __ASM_EMIT("lddqu       0x00(%[src], %[off], 2), %%xmm0")
+            __ASM_EMIT("lddqu       0x10(%[src], %[off], 2), %%xmm1")
+            __ASM_EMIT("mulps       %%xmm0, %%xmm0")
+            __ASM_EMIT("mulps       %%xmm1, %%xmm1")
+            __ASM_EMIT("haddps      %%xmm1, %%xmm0")
+            __ASM_EMIT("sqrtps      %%xmm0, %%xmm0")
+            __ASM_EMIT("movdqu      %%xmm0, 0x00(%[dst], %[off])")
+            __ASM_EMIT("add         $0x10, %[off]")
+            __ASM_EMIT("sub         $4, %[count]")
+            __ASM_EMIT("jae         5b")
+
+            // 1x blocks
+            __ASM_EMIT("6:")
+            __ASM_EMIT("add         $3, %[count]")
+            __ASM_EMIT("jl          8f")
+            __ASM_EMIT("7:")
+            __ASM_EMIT("movlps      0x00(%[src], %[off], 2), %%xmm0")
+            __ASM_EMIT("mulps       %%xmm0, %%xmm0")
+            __ASM_EMIT("haddps      %%xmm0, %%xmm0")
+            __ASM_EMIT("sqrtss      %%xmm0, %%xmm0")
+            __ASM_EMIT("movss       %%xmm0, 0x00(%[dst], %[off])")
+            __ASM_EMIT("add         $0x4, %[off]")
+            __ASM_EMIT("dec         %[count]")
+            __ASM_EMIT("jge         7b")
+
+            // End
+            __ASM_EMIT("8:")
+            : [dst] "+r" (dst), [src] "+r" (src),
+              [count] "+r" (count), [off] "=&r" (off)
+            :
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7",
               "%xmm8", "%xmm9", "%xmm10", "%xmm12", "%xmm13", "%xmm14"
         );
     }

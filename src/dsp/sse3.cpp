@@ -71,6 +71,8 @@ namespace sse3
 
         // Additional xmm registers are available only in 64-bit mode
         EXPORT2(packed_complex_mul, packed_complex_mul);
+        EXPORT2(packed_complex_mod, packed_complex_mod);
+        EXPORT2_X64(packed_complex_mod, x64_packed_complex_mod);
 
         EXPORT2_X64(biquad_process_x2, x64_biquad_process_x2);
 //                EXPORT2_X64(biquad_process_x4, x64_biquad_process_x4); // Pure SSE has a bit better throughput for this case

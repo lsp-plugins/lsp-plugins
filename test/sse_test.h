@@ -83,8 +83,6 @@ namespace native
 
     float calc_angle3d_v2(const vector3d_t *v1, const vector3d_t *v2);
     float calc_angle3d_vv(const vector3d_t *v);
-
-    void packed_complex_mod(float *dst_mod, const float *src, size_t count);
 }
 
 namespace sse
@@ -161,8 +159,6 @@ namespace sse
 
     float calc_angle3d_v2(const vector3d_t *v1, const vector3d_t *v2);
     float calc_angle3d_vv(const vector3d_t *v);
-
-    void packed_complex_mod(float *dst_mod, const float *src, size_t count);
 }
 
 namespace sse_test
@@ -1233,38 +1229,6 @@ namespace sse_test
         return true;
     }
 
-    bool test_complex_mod()
-    {
-        TEST_FOREACH(sz, 12, 13, 16, 17, 23, 0x1000)
-        {
-            for (size_t mask=0; mask <= 0x03; ++mask)
-            {
-                FBuffer src(sz*2, mask & 0x01);
-                FBuffer dst1(sz, mask & 0x02);
-                FBuffer dst2(sz, mask & 0x02);
-
-                float *data = src.data();
-
-                for (size_t i=0; i<sz; ++i)
-                {
-                    *(data++) = i + 1;
-                    *(data++) = float(i + 1) / float(sz + 1);
-                }
-
-                native::packed_complex_mod(dst1, src, sz);
-                sse::packed_complex_mod(dst2, src, sz);
-
-                if (!dst1.compare(dst2))
-                {
-                    lsp_error("  Failed test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
     int test(int argc, const char **argv)
     {
         dsp::context_t ctx;
@@ -1273,8 +1237,6 @@ namespace sse_test
 
         int code = 0;
         #define LAUNCH(x, ...) --code; lsp_trace("Launching %s(%s)...", #x, #__VA_ARGS__); if (!x(__VA_ARGS__)) return code;
-
-        LAUNCH(test_complex_mod)
 
         LAUNCH(test_unary_abs, native::abs1, sse::abs1)
         LAUNCH(test_binary_abs, native::abs2, sse::abs2)

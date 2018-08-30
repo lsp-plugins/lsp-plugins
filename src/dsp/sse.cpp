@@ -219,7 +219,7 @@ namespace sse
 //            EXPORT1(complex_cvt2modarg);
 //            EXPORT1(complex_cvt2reim);
         EXPORT1(complex_mod);
-//            EXPORT1(packed_complex_mod); // TODO: test it
+        EXPORT1(packed_complex_mod);
         EXPORT1(lr_to_ms);
         EXPORT1(lr_to_mid);
         EXPORT1(lr_to_side);
