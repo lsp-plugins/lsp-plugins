@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <dlfcn.h>
 #include <stddef.h>
 
 #include <core/types.h>
@@ -12,8 +11,6 @@
 
 namespace native
 {
-    void fill(float *dst, float value, size_t count);
-
     void abs1(float *src, size_t count);
     void abs2(float *dst, const float *src, size_t count);
 
@@ -92,9 +89,6 @@ namespace native
 
 namespace sse
 {
-    void move(float *dst, const float *src, size_t count);
-    void fill(float *dst, float value, size_t count);
-
     void abs1(float *src, size_t count);
     void abs2(float *dst, const float *src, size_t count);
 
@@ -184,30 +178,6 @@ namespace sse_test
         const size_t ___sizes[] = { __VA_ARGS__ }; \
         for (size_t ___i=0, var=___sizes[0]; ___i<(sizeof(___sizes)/sizeof(size_t)); ++___i, var=___sizes[___i])
 
-    bool test_fill()
-    {
-        TEST_FOREACH(sz, 0, 1, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0x100, 0x1ff, 0xfff)
-        {
-            for (size_t mask=0; mask <= 0x01; ++mask)
-            {
-                FBuffer dst1(sz, mask & 0x01);
-                FBuffer dst2(sz, mask & 0x01);
-
-                native::fill(dst1, 3.14f, sz);
-                sse::fill(dst2, 3.14f, sz);
-
-                if (!dst1.compare(dst2))
-                {
-                    lsp_error("  Failed test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
     bool test_unary_abs(unary_math_t native, unary_math_t sse)
     {
         TEST_FOREACH(sz, 0, 1, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0xfff)
@@ -249,39 +219,6 @@ namespace sse_test
                 if (!dst1.compare(dst2))
                 {
                     lsp_error("  Failed test size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    bool test_move()
-    {
-        TEST_FOREACH(sz, 0x00, 0x01, 0x03, 0x0f, 0x1f, 0x3f, 0x7f, 0xff, 0xfff, 0x1000)
-        {
-            for (size_t mask=0; mask <= 0x03; ++mask)
-            {
-                FBuffer dst1(sz, mask & 0x01);
-                FBuffer dst2(sz, mask & 0x02);
-
-                // Test both forward and backward algorithms
-                sse::move(dst1, dst2, sz);
-                if (!dst1.compare(dst2))
-                {
-                    lsp_error("  Failed move dst2 -> dst1 size = %d, mask = 0x%x, overflow=%s",
-                        int(sz), int(mask), (dst1.validate()) ? "false" : "true");
-                    return false;
-                }
-
-                dst2.randomize();
-                sse::move(dst2, dst1, sz);
-
-                if (!dst2.compare(dst1))
-                {
-                    lsp_error("  Failed move dst1 -> dst2 size = %d, mask = 0x%x, overflow=%s",
                         int(sz), int(mask), (dst2.validate()) ? "false" : "true");
                     return false;
                 }
@@ -1342,8 +1279,6 @@ namespace sse_test
         LAUNCH(test_unary_abs, native::abs1, sse::abs1)
         LAUNCH(test_binary_abs, native::abs2, sse::abs2)
 
-        LAUNCH(test_move)
-        LAUNCH(test_fill)
         LAUNCH(test_reverse1)
         LAUNCH(test_reverse2)
 
