@@ -14,9 +14,6 @@ namespace native
     void abs1(float *src, size_t count);
     void abs2(float *dst, const float *src, size_t count);
 
-    void reverse1(float *dst, size_t count);
-    void reverse2(float *dst, const float *src, size_t count);
-
     void init_point_xyz(point3d_t *p, float x, float y, float z);
     void init_point(point3d_t *p, const point3d_t *s);
     void normalize_point(point3d_t *p);
@@ -89,9 +86,6 @@ namespace sse
 {
     void abs1(float *src, size_t count);
     void abs2(float *dst, const float *src, size_t count);
-
-    void reverse1(float *dst, size_t count);
-    void reverse2(float *dst, const float *src, size_t count);
 
     void init_point_xyz(point3d_t *p, float x, float y, float z);
     void init_point(point3d_t *p, const point3d_t *s);
@@ -216,90 +210,6 @@ namespace sse_test
                 {
                     lsp_error("  Failed test size = %d, mask = 0x%x, overflow=%s",
                         int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    bool test_reverse1()
-    {
-        TEST_FOREACH(sz, 0x00, 0x01, 0x03, 0x08, 0x09, 0x0f, 0x1f, 0x3f, 0x7f, 0xff, 0xfff, 0x1000)
-        {
-            for (size_t mask=0; mask <= 0x01; ++mask)
-            {
-                FBuffer dst(sz, mask & 0x01);
-                FBuffer dst1(dst);
-                FBuffer dst2(dst);
-
-                native::reverse1(dst1, sz);
-                sse::reverse1(dst2, sz);
-
-                if (!dst2.compare(dst1))
-                {
-                    lsp_error("  Failed test_reverse1: size=%d, mask=0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-
-                native::reverse1(dst1, sz);
-                sse::reverse1(dst2, sz);
-
-                if (!dst2.compare(dst1))
-                {
-                    lsp_error("  Failed test_reverse1: size=%d, mask=0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-                else if (!dst2.compare(dst))
-                {
-                    lsp_error("  Failed test_reverse1: size=%d, mask=0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    bool test_reverse2()
-    {
-        TEST_FOREACH(sz, 0x00, 0x01, 0x03, 0x08, 0x09, 0x0f, 0x1f, 0x3f, 0x7f, 0xff, 0xfff, 0x1000)
-        {
-            for (size_t mask=0; mask <= 0x07; ++mask)
-            {
-                FBuffer src(sz, mask & 0x01);
-                FBuffer dst1(sz, mask & 0x02);
-                FBuffer dst2(sz, mask & 0x02);
-                FBuffer dst3(sz, mask & 0x04);
-                FBuffer dst4(sz, mask & 0x04);
-
-                native::reverse2(dst1, src, sz);
-                sse::reverse2(dst2, src, sz);
-
-                if (!dst2.compare(dst1))
-                {
-                    lsp_error("  Failed test_reverse1: size=%d, mask=0x%x, overflow=%s",
-                        int(sz), int(mask), (dst2.validate()) ? "false" : "true");
-                    return false;
-                }
-
-                native::reverse2(dst3, dst1, sz);
-                sse::reverse2(dst4, dst2, sz);
-
-                if (!dst4.compare(dst3))
-                {
-                    lsp_error("  Failed test_reverse1: size=%d, mask=0x%x, overflow=%s",
-                        int(sz), int(mask), (dst4.validate()) ? "false" : "true");
-                    return false;
-                }
-                else if (!dst4.compare(src))
-                {
-                    lsp_error("  Failed test_reverse1: size=%d, mask=0x%x, overflow=%s",
-                        int(sz), int(mask), (dst4.validate()) ? "false" : "true");
                     return false;
                 }
             }
@@ -1240,9 +1150,6 @@ namespace sse_test
 
         LAUNCH(test_unary_abs, native::abs1, sse::abs1)
         LAUNCH(test_binary_abs, native::abs2, sse::abs2)
-
-        LAUNCH(test_reverse1)
-        LAUNCH(test_reverse2)
 
         LAUNCH(test_geometry_basic);
         LAUNCH(test_matrix_native);

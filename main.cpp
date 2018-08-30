@@ -313,13 +313,13 @@ int launch_ptest(config_t *cfg)
     PerformanceTest *v = ptest_init();
 
     // List all tests if requested
-    if (cfg->list_all)
-        return list_all("List of available performance tests", v);
-    else if (v == NULL)
+    if (v == NULL)
     {
         fprintf(stderr, "No performance tests available\n");
         return -1;
     }
+    else if (cfg->list_all)
+        return list_all("List of available performance tests", v);
 
     int result = 0;
     struct timespec ts, start, finish;
@@ -424,9 +424,7 @@ int launch_mtest(config_t *cfg)
         fprintf(stderr, "No manual tests available\n");
         return -1;
     }
-
-    // List all tests if requested
-    if (cfg->list_all)
+    else if (cfg->list_all)
         return list_all("List of available manual tests", v);
 
     int result = 0;
@@ -644,13 +642,13 @@ int launch_utest(config_t *cfg)
     UnitTest *v = utest_init();
 
     // List all tests if requested
-    if (cfg->list_all)
-        return list_all("List of available unit tests", v);
-    else if (v == NULL)
+    if (v == NULL)
     {
         fprintf(stderr, "No unit tests available\n");
         return -1;
     }
+    else if (cfg->list_all)
+        return list_all("List of available unit tests", v);
 
     struct timespec start, finish;
     stats_t stats;

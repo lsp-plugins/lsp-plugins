@@ -14,10 +14,11 @@
 
 #define __DSP_NATIVE_IMPL
 
+#include <dsp/arch/native/context.h>
+#include <dsp/arch/native/copy.h>
+
 namespace native
 {
-    #include <dsp/arch/native/context.h>
-    #include <dsp/arch/native/copy.h>
     #include <dsp/arch/native/float.h>
     #include <dsp/arch/native/fft.h>
     #include <dsp/arch/native/search.h>
