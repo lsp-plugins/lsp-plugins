@@ -35,10 +35,6 @@ namespace native
     void init_segment_p2(segment3d_t *s, const point3d_t *p1, const point3d_t *p2);
     void init_segment_pv(segment3d_t *s, const point3d_t *p);
 
-    float check_point3d_location_tp(const triangle3d_t *t, const point3d_t *p);
-    float check_point3d_location_pvp(const point3d_t *t, const point3d_t *p);
-    float check_point3d_location_p3p(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p);
-
     size_t longest_edge3d_p3(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3);
     size_t longest_edge3d_pv(const point3d_t *p);
 
@@ -70,10 +66,6 @@ namespace sse
     void init_segment_xyz(segment3d_t *s, float x0, float y0, float z0,float x1, float y1, float z1);
     void init_segment_p2(segment3d_t *s, const point3d_t *p1, const point3d_t *p2);
     void init_segment_pv(segment3d_t *s, const point3d_t *p);
-
-    float check_point3d_location_tp(const triangle3d_t *t, const point3d_t *p);
-    float check_point3d_location_pvp(const point3d_t *t, const point3d_t *p);
-    float check_point3d_location_p3p(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p);
 
     size_t longest_edge3d_p3(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3);
     size_t longest_edge3d_pv(const point3d_t *p);
@@ -127,145 +119,6 @@ namespace sse_test
                 return false;
         return true;
     }
-
-/*
-    bool test_point_location_native()
-    {
-        triangle3d_t t[3];
-        dsp::calc_triangle3d_xyz(&t[0], 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, -1.0f, 0.0f);
-        dsp::calc_triangle3d_xyz(&t[1], -1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, -1.0f, 0.0f, -1.0f);
-        dsp::calc_triangle3d_xyz(&t[2], 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, -1.0f);
-
-        point3d_t p[3];
-        dsp::init_point_xyz(&p[0], 0.0f, 0.0f, 0.0f);
-        dsp::init_point_xyz(&p[1], 2.0f, 2.0f, 2.0f);
-        dsp::init_point_xyz(&p[2], 0.1f, 0.1f, 0.1f);
-
-        float k[3] = { 1.0f, -1.0f, 1.0f };
-        float v;
-
-        for (size_t i=0; i<3; ++i)
-        {
-            for (size_t j=0; j<3; ++j)
-            {
-                v = native::check_point3d_location_tp(&t[i], &p[j]);
-                if ((k[j] * v) < 0.0f)
-                {
-                    lsp_error("  native::check_point3d_location_tp(point) failed i=%d, j=%d", int(i), int(j));
-                    return false;
-                }
-
-                v = native::check_point3d_location_tp(&t[i], &t[i].p[j]);
-                if ((k[j] * v) < 0.0f)
-                {
-                    lsp_error("  native::check_point3d_location_tp(self) failed i=%d, j=%d", int(i), int(j));
-                    return false;
-                }
-
-                v = native::check_point3d_location_pvp(t[i].p, &p[j]);
-                if ((k[j] * v) < 0.0f)
-                {
-                    lsp_error("  native::check_point3d_location_pvp(point) failed i=%d, j=%d", int(i), int(j));
-                    return false;
-                }
-
-                v = native::check_point3d_location_pvp(t[i].p, &t[i].p[j]);
-                if ((k[j] * v) < 0.0f)
-                {
-                    lsp_error("  native::check_point3d_location_pvp(self) failed i=%d, j=%d", int(i), int(j));
-                    return false;
-                }
-
-                v = native::check_point3d_location_p3p(&t[i].p[0], &t[i].p[1], &t[i].p[2],&p[j]);
-                if ((k[j] * v) < 0.0f)
-                {
-                    lsp_error("  native::check_point3d_location_p3p(point) failed i=%d, j=%d", int(i), int(j));
-                    return false;
-                }
-
-                v = native::check_point3d_location_p3p(&t[i].p[0], &t[i].p[1], &t[i].p[2],&t[i].p[j]);
-                if ((k[j] * v) < 0.0f)
-                {
-                    lsp_error("  native::check_point3d_location_p3p(self) failed i=%d, j=%d", int(i), int(j));
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    bool test_point_location_sse()
-    {
-        triangle3d_t t[3];
-        dsp::calc_triangle3d_xyz(&t[0], 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, -1.0f, 0.0f);
-        dsp::calc_triangle3d_xyz(&t[1], -1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, -1.0f, 0.0f, -1.0f);
-        dsp::calc_triangle3d_xyz(&t[2], 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, -1.0f);
-
-        point3d_t p[3];
-        dsp::init_point_xyz(&p[0], 0.0f, 0.0f, 0.0f);
-        dsp::init_point_xyz(&p[1], 2.0f, 2.0f, 2.0f);
-        dsp::init_point_xyz(&p[2], 0.1f, 0.1f, 0.1f);
-
-        float v1, v2;
-
-        for (size_t i=0; i<3; ++i)
-        {
-            for (size_t j=0; j<3; ++j)
-            {
-                v1 = sse::check_point3d_location_tp(&t[i], &p[j]);
-                v2 = sse::check_point3d_location_tp(&t[i], &p[j]);
-                if (!float_ck(v1, v2))
-                {
-                    lsp_error("  sse::check_point3d_location_tp(point) failed i=%d, j=%d", int(i), int(j));
-                    return false;
-                }
-
-                v1 = sse::check_point3d_location_tp(&t[i], &t[i].p[j]);
-                v2 = sse::check_point3d_location_tp(&t[i], &t[i].p[j]);
-                if (!float_ck(v1, v2))
-                {
-                    lsp_error("  sse::check_point3d_location_tp(self) failed i=%d, j=%d", int(i), int(j));
-                    return false;
-                }
-
-                v1 = sse::check_point3d_location_pvp(t[i].p, &p[j]);
-                v2 = sse::check_point3d_location_pvp(t[i].p, &p[j]);
-                if (!float_ck(v1, v2))
-                {
-                    lsp_error("  sse::check_point3d_location_pvp(point) failed i=%d, j=%d", int(i), int(j));
-                    return false;
-                }
-
-                v1 = sse::check_point3d_location_pvp(t[i].p, &t[i].p[j]);
-                v2 = sse::check_point3d_location_pvp(t[i].p, &t[i].p[j]);
-                if (!float_ck(v1, v2))
-                {
-                    lsp_error("  sse::check_point3d_location_pvp(self) failed i=%d, j=%d", int(i), int(j));
-                    return false;
-                }
-
-                v1 = sse::check_point3d_location_p3p(&t[i].p[0], &t[i].p[1], &t[i].p[2],&p[j]);
-                v2 = sse::check_point3d_location_p3p(&t[i].p[0], &t[i].p[1], &t[i].p[2],&p[j]);
-                if (!float_ck(v1, v2))
-                {
-                    lsp_error("  sse::check_point3d_location_p3p(point) failed i=%d, j=%d", int(i), int(j));
-                    return false;
-                }
-
-                v1 = sse::check_point3d_location_p3p(&t[i].p[0], &t[i].p[1], &t[i].p[2],&t[i].p[j]);
-                v2 = sse::check_point3d_location_p3p(&t[i].p[0], &t[i].p[1], &t[i].p[2],&t[i].p[j]);
-                if (!float_ck(v1, v2))
-                {
-                    lsp_error("  sse::check_point3d_location_p3p(self) failed i=%d, j=%d", int(i), int(j));
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-*/
 
     bool test_edge_detection_native()
     {
