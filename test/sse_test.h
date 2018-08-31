@@ -43,9 +43,6 @@ namespace native
     size_t longest_edge3d_pv(const point3d_t *p);
 
     float find_intersection3d_rt(point3d_t *ip, const ray3d_t *l, const triangle3d_t *t);
-
-    float calc_angle3d_v2(const vector3d_t *v1, const vector3d_t *v2);
-    float calc_angle3d_vv(const vector3d_t *v);
 }
 
 namespace sse
@@ -82,9 +79,6 @@ namespace sse
     size_t longest_edge3d_pv(const point3d_t *p);
 
     float find_intersection3d_rt(point3d_t *ip, const ray3d_t *l, const triangle3d_t *t);
-
-    float calc_angle3d_v2(const vector3d_t *v1, const vector3d_t *v2);
-    float calc_angle3d_vv(const vector3d_t *v);
 }
 
 namespace sse_test
@@ -361,44 +355,6 @@ namespace sse_test
         return true;
     }
 
-    bool test_angle()
-    {
-        for (float phi=0.0f; phi<M_PI*2; phi += M_PI*0.25f)
-        {
-            for (float rho=0.0f; rho<M_PI; rho += M_PI*0.25f)
-            {
-                vector3d_t v1;
-                vector3d_t v2;
-                matrix3d_t m;
-
-                dsp::init_vector_dxyz(&v1, 1.0f, 0.0f, 0.0f);
-                v2 = v1;
-                dsp::init_matrix3d_rotate_z(&m, rho);
-                dsp::apply_matrix3d_mv1(&v2, &m);
-
-                dsp::init_matrix3d_rotate_y(&m, phi);
-                dsp::apply_matrix3d_mv1(&v1, &m);
-                dsp::apply_matrix3d_mv1(&v2, &m);
-
-                float angle = native::calc_angle3d_v2(&v1, &v2);
-                if (!float_ck(angle, cosf(rho)))
-                {
-                    lsp_error("  native::calc_angle3d_v2 failed phi=%.3f, rho=%.3f, result=%.3f", phi, rho, angle);
-                    return false;
-                }
-
-                angle = sse::calc_angle3d_v2(&v1, &v2);
-                if (!float_ck(angle, cosf(rho)))
-                {
-                    lsp_error("  sse::calc_angle3d_v2 failed phi=%.3f, rho=%.3f, result=%.3f", phi, rho, angle);
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
     int test(int argc, const char **argv)
     {
         dsp::context_t ctx;
@@ -415,8 +371,6 @@ namespace sse_test
         LAUNCH(test_edge_detection_sse);
 
         LAUNCH(check_intersection3d_rt);
-        LAUNCH(test_angle);
-
 
         lsp_info("All tests have been successfully passed");
 
