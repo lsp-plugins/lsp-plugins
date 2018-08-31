@@ -54,14 +54,6 @@ namespace native
     void transpose_matrix3d1(matrix3d_t *r);
     void transpose_matrix3d2(matrix3d_t *r, const matrix3d_t *m);
 
-    float check_triplet3d_p3n(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const vector3d_t *n);
-    float check_triplet3d_pvn(const point3d_t *pv, const vector3d_t *n);
-    float check_triplet3d_v2n(const vector3d_t *v1, const vector3d_t *v2, const vector3d_t *n);
-    float check_triplet3d_vvn(const vector3d_t *v, const vector3d_t *n);
-    float check_triplet3d_vv(const vector3d_t *v);
-    float check_triplet3d_t(const triangle3d_t *t);
-    float check_triplet3d_tn(const triangle3d_t *t, const vector3d_t *n);
-
     float check_point3d_location_tp(const triangle3d_t *t, const point3d_t *p);
     float check_point3d_location_pvp(const point3d_t *t, const point3d_t *p);
     float check_point3d_location_p3p(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p);
@@ -124,14 +116,6 @@ namespace sse
     void transpose_matrix3d1(matrix3d_t *r);
     void transpose_matrix3d2(matrix3d_t *r, const matrix3d_t *m);
 
-    float check_triplet3d_p3n(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const vector3d_t *n);
-    float check_triplet3d_pvn(const point3d_t *pv, const vector3d_t *n);
-    float check_triplet3d_v2n(const vector3d_t *v1, const vector3d_t *v2, const vector3d_t *n);
-    float check_triplet3d_vvn(const vector3d_t *v, const vector3d_t *n);
-    float check_triplet3d_vv(const vector3d_t *v);
-    float check_triplet3d_t(const triangle3d_t *t);
-    float check_triplet3d_tn(const triangle3d_t *t, const vector3d_t *n);
-
     float check_point3d_location_tp(const triangle3d_t *t, const point3d_t *p);
     float check_point3d_location_pvp(const point3d_t *t, const point3d_t *p);
     float check_point3d_location_p3p(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p);
@@ -193,144 +177,6 @@ namespace sse_test
         for (size_t i=0; i<16; ++i)
             if (!float_ck(m1->m[i], m2->m[i]))
                 return false;
-        return true;
-    }
-
-    bool test_triplet_native()
-    {
-        triangle3d_t t[3];
-        dsp::calc_triangle3d_xyz(&t[0], 1.0f, 1.0f, 1.0f, 2.0f, 2.0f, 1.0f, -3.0f, 3.0f, 1.0f);
-        dsp::calc_triangle3d_xyz(&t[1], 1.0f, 2.0f, 2.0f, 1.0f, 1.0f, 1.0f, 1.0f, 3.0f, -3.0f);
-        dsp::calc_triangle3d_xyz(&t[2], 1.0f, 1.0f, 2.0f, 2.0f, 1.0f, 2.0f, 3.0f, 1.0f, -3.0f);
-
-        vector3d_t n1, n2;
-        dsp::init_vector_dxyz(&n1, 1.0f, 1.0f, 1.0f);
-        dsp::init_vector_dxyz(&n2, -1.0f, -1.0f, -1.0f);
-
-        for (size_t i=0; i<3; ++i)
-        {
-            if (native::check_triplet3d_t(&t[i]) < 0.0f)
-            {
-                lsp_error("  native::check_triplet3d_t");
-                return false;
-            }
-
-            if (native::check_triplet3d_tn(&t[i], &n1) < 0.0f)
-            {
-                lsp_error("  native::check_triplet3d_t for 1st normal");
-                return false;
-            }
-            else if (native::check_triplet3d_tn(&t[i], &n2) > 0.0f)
-            {
-                lsp_error("  native::check_triplet3d_tn for 2nd normal");
-                return false;
-            }
-
-            if (native::check_triplet3d_p3n(&t[i].p[0], &t[i].p[1], &t[i].p[2], &n1) < 0.0f)
-            {
-                lsp_error("  native::check_triplet3d_p3n for 1st normal");
-                return false;
-            }
-            else if (native::check_triplet3d_p3n(&t[i].p[0], &t[i].p[1], &t[i].p[2], &n2) > 0.0f)
-            {
-                lsp_error("  native::check_triplet3d_p3n for 2nd normal");
-                return false;
-            }
-
-            if (native::check_triplet3d_pvn(&t[i].p[0], &n1) < 0.0f)
-            {
-                lsp_error("  native::check_triplet3d_pvn for 1st normal");
-                return false;
-            }
-            else if (native::check_triplet3d_pvn(&t[i].p[0], &n2) > 0.0f)
-            {
-                lsp_error("  native::check_triplet3d_pvn for 2nd normal");
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    bool test_triplet_sse()
-    {
-        triangle3d_t t[3];
-        dsp::calc_triangle3d_xyz(&t[0], 1.0f, 1.0f, 1.0f, 2.0f, 2.0f, 1.0f, -3.0f, 3.0f, 1.0f);
-        dsp::calc_triangle3d_xyz(&t[1], 1.0f, 2.0f, 2.0f, 1.0f, 1.0f, 1.0f, 1.0f, 3.0f, -3.0f);
-        dsp::calc_triangle3d_xyz(&t[2], 1.0f, 1.0f, 2.0f, 2.0f, 1.0f, 2.0f, 3.0f, 1.0f, -3.0f);
-
-        vector3d_t n1, n2;
-        dsp::init_vector_dxyz(&n1, 1.0f, 1.0f, 1.0f);
-        dsp::init_vector_dxyz(&n2, -1.0f, -1.0f, -1.0f);
-
-        float v1, v2;
-
-        for (size_t i=0; i<3; ++i)
-        {
-            v1 = native::check_triplet3d_t(&t[i]);
-            v2 = sse::check_triplet3d_t(&t[i]);
-
-            if (!float_ck(v1, v2))
-            {
-                lsp_error("  sse::check_triplet3d_t");
-                return false;
-            }
-
-            v1 = native::check_triplet3d_tn(&t[i], &n1);
-            v2 = sse::check_triplet3d_tn(&t[i], &n1);
-
-            if (!float_ck(v1, v2))
-            {
-                lsp_error("  sse::check_triplet3d_t for 1st normal");
-                return false;
-            }
-
-            v1 = native::check_triplet3d_tn(&t[i], &n2);
-            v2 = sse::check_triplet3d_tn(&t[i], &n2);
-
-            if (!float_ck(v1, v2))
-            {
-                lsp_error("  sse::check_triplet3d_tn for 2nd normal");
-                return false;
-            }
-
-            v1 = native::check_triplet3d_p3n(&t[i].p[0], &t[i].p[1], &t[i].p[2], &n1);
-            v2 = sse::check_triplet3d_p3n(&t[i].p[0], &t[i].p[1], &t[i].p[2], &n1);
-
-            if (!float_ck(v1, v2))
-            {
-                lsp_error("  sse::check_triplet3d_p3n for 1st normal");
-                return false;
-            }
-
-            v1 = native::check_triplet3d_p3n(&t[i].p[0], &t[i].p[1], &t[i].p[2], &n2);
-            v2 = sse::check_triplet3d_p3n(&t[i].p[0], &t[i].p[1], &t[i].p[2], &n2);
-
-            if (!float_ck(v1, v2))
-            {
-                lsp_error("  sse::check_triplet3d_p3n for 2nd normal");
-                return false;
-            }
-
-            v1 = native::check_triplet3d_pvn(t[i].p, &n1);
-            v2 = sse::check_triplet3d_pvn(t[i].p, &n1);
-
-            if (!float_ck(v1, v2))
-            {
-                lsp_error("  sse::check_triplet3d_pvn for 1st normal");
-                return false;
-            }
-
-            v1 = native::check_triplet3d_pvn(t[i].p, &n2);
-            v2 = sse::check_triplet3d_pvn(t[i].p, &n2);
-
-            if (!float_ck(v1, v2))
-            {
-                lsp_error("  sse::check_triplet3d_pvn for 2nd normal");
-                return false;
-            }
-        }
-
         return true;
     }
 
