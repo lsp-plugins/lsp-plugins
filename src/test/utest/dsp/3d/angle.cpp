@@ -67,9 +67,9 @@ UTEST_BEGIN("dsp.3d", angle)
                 native::calc_angle3d_vv
             );
         IF_ARCH_X86(
-            call("native_calc_angle",
-                    native::calc_angle3d_v2,
-                    native::calc_angle3d_vv
+            call("sse_calc_angle",
+                    sse::calc_angle3d_v2,
+                    sse::calc_angle3d_vv
                 )
         );
     }
