@@ -35,25 +35,6 @@ namespace native
     void init_segment_p2(segment3d_t *s, const point3d_t *p1, const point3d_t *p2);
     void init_segment_pv(segment3d_t *s, const point3d_t *p);
 
-    void init_matrix3d(matrix3d_t *dst, const matrix3d_t *src);
-    void init_matrix3d_zero(matrix3d_t *m);
-    void init_matrix3d_one(matrix3d_t *m);
-    void init_matrix3d_identity(matrix3d_t *m);
-    void init_matrix3d_translate(matrix3d_t *m, float dx, float dy, float dz);
-    void init_matrix3d_scale(matrix3d_t *m, float sx, float sy, float sz);
-    void init_matrix3d_rotate_x(matrix3d_t *m, float angle);
-    void init_matrix3d_rotate_y(matrix3d_t *m, float angle);
-    void init_matrix3d_rotate_z(matrix3d_t *m, float angle);
-    void init_matrix3d_rotate_xyz(matrix3d_t *m, float x, float y, float z, float angle);
-    void apply_matrix3d_mv2(vector3d_t *r, const vector3d_t *v, const matrix3d_t *m);
-    void apply_matrix3d_mv1(vector3d_t *r, const matrix3d_t *m);
-    void apply_matrix3d_mp2(point3d_t *r, const point3d_t *p, const matrix3d_t *m);
-    void apply_matrix3d_mp1(point3d_t *r, const matrix3d_t *m);
-    void apply_matrix3d_mm2(matrix3d_t *r, const matrix3d_t *s, const matrix3d_t *m);
-    void apply_matrix3d_mm1(matrix3d_t *r, const matrix3d_t *m);
-    void transpose_matrix3d1(matrix3d_t *r);
-    void transpose_matrix3d2(matrix3d_t *r, const matrix3d_t *m);
-
     float check_point3d_location_tp(const triangle3d_t *t, const point3d_t *p);
     float check_point3d_location_pvp(const point3d_t *t, const point3d_t *p);
     float check_point3d_location_p3p(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p);
@@ -96,25 +77,6 @@ namespace sse
     void init_segment_xyz(segment3d_t *s, float x0, float y0, float z0,float x1, float y1, float z1);
     void init_segment_p2(segment3d_t *s, const point3d_t *p1, const point3d_t *p2);
     void init_segment_pv(segment3d_t *s, const point3d_t *p);
-
-    void init_matrix3d(matrix3d_t *dst, const matrix3d_t *src);
-    void init_matrix3d_zero(matrix3d_t *m);
-    void init_matrix3d_one(matrix3d_t *m);
-    void init_matrix3d_identity(matrix3d_t *m);
-    void init_matrix3d_translate(matrix3d_t *m, float dx, float dy, float dz);
-    void init_matrix3d_scale(matrix3d_t *m, float sx, float sy, float sz);
-    void init_matrix3d_rotate_x(matrix3d_t *m, float angle);
-    void init_matrix3d_rotate_y(matrix3d_t *m, float angle);
-    void init_matrix3d_rotate_z(matrix3d_t *m, float angle);
-    void init_matrix3d_rotate_xyz(matrix3d_t *m, float x, float y, float z, float angle);
-    void apply_matrix3d_mv2(vector3d_t *r, const vector3d_t *v, const matrix3d_t *m);
-    void apply_matrix3d_mv1(vector3d_t *r, const matrix3d_t *m);
-    void apply_matrix3d_mp2(point3d_t *r, const point3d_t *p, const matrix3d_t *m);
-    void apply_matrix3d_mp1(point3d_t *r, const matrix3d_t *m);
-    void apply_matrix3d_mm2(matrix3d_t *r, const matrix3d_t *s, const matrix3d_t *m);
-    void apply_matrix3d_mm1(matrix3d_t *r, const matrix3d_t *m);
-    void transpose_matrix3d1(matrix3d_t *r);
-    void transpose_matrix3d2(matrix3d_t *r, const matrix3d_t *m);
 
     float check_point3d_location_tp(const triangle3d_t *t, const point3d_t *p);
     float check_point3d_location_pvp(const point3d_t *t, const point3d_t *p);
@@ -591,9 +553,6 @@ namespace sse_test
 
         int code = 0;
         #define LAUNCH(x, ...) --code; lsp_trace("Launching %s(%s)...", #x, #__VA_ARGS__); if (!x(__VA_ARGS__)) return code;
-
-        LAUNCH(test_triplet_native);
-        LAUNCH(test_triplet_sse);
 
 //        LAUNCH(test_point_location_native);
 //        LAUNCH(test_point_location_sse);
