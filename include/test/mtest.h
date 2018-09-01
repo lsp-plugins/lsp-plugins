@@ -48,7 +48,7 @@
 
 #define MTEST_ASSERT(code) \
         if (!(code)) { \
-            fprintf(stderr, "Manual test '%s.%s' assertion has failed at file %s, line %d:\n  %s", \
+            fprintf(stderr, "Manual test '%s.%s' assertion has failed at file %s, line %d:\n  %s\n", \
                     __test_group, __test_name, __FILE__, __LINE__, # code); \
             exit(2); \
         }

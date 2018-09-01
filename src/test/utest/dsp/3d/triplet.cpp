@@ -74,6 +74,8 @@ UTEST_BEGIN("dsp.3d", triplet)
 
         for (size_t i=0; i<3; ++i)
         {
+            printf("Checking triangle %d", int(i));
+
             UTEST_ASSERT(check_triplet3d_t(&t[i]) >= 0.0f);
             UTEST_ASSERT(check_triplet3d_tn(&t[i], &n1) >= 0.0f);
             UTEST_ASSERT(check_triplet3d_tn(&t[i], &n2) <= 0.0f);
