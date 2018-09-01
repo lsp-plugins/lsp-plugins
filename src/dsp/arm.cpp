@@ -120,8 +120,8 @@ IF_ARCH_ARM(
         ssize_t first = 0, last = sizeof(cpu_parts) / sizeof(cpu_part_t);
         while (first < last)
         {
-            ssize_t mid = (first + last) >> 1;
-            ssize_t xmid = cpu_parts[mid].id;
+            ssize_t mid     = (first + last) >> 1;
+            uint32_t xmid   = cpu_parts[mid].id;
             if (id < xmid)
                 last = mid - 1;
             else if (id > xmid)
