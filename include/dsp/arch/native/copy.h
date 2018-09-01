@@ -18,14 +18,26 @@ namespace native
     {
         if (dst == src)
             return;
-        memcpy(dst, src, count * sizeof(float));
+        while (count--)
+            *(dst++)    = *(src++);
     }
 
     void move(float *dst, const float *src, size_t count)
     {
         if (dst == src)
             return;
-        memmove(dst, src, count * sizeof(float));
+        if (dst < src)
+        {
+            while (count--)
+                *(dst++)    = *(src++);
+        }
+        else
+        {
+            dst += count;
+            src += count;
+            while (count--)
+                *(--dst)    = *(--src);
+        }
     }
 
     void fill(float *dst, float value, size_t count)
