@@ -231,8 +231,8 @@ IF_ARCH_ARM(
             if (!(f->hwcap & cpu_features[i].mask))
                 continue;
             if (s != dst)
-                stpcpy(s, " ");
-            stpcpy(s, cpu_features[i].name);
+                s = stpcpy(s, " ");
+            s = stpcpy(s, cpu_features[i].name);
         }
         *s = '\0';
 
