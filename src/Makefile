@@ -1,5 +1,11 @@
 SUBDIRS                 = core dsp metadata plugins ui utils container doc
 MODULES                 = $(SUBDIRS) jack_stub vst_stub
+CONTAINER_DEPS			= $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(UTL_FILES) $(OBJ_PLUGINS)
+
+ifeq ($(LSP_TESTING),1)
+SUBDIRS                += test
+CONTAINER_DEPS         += $(OBJ_TEST_CORE)
+endif
 
 .PHONY: all $(MODULES)
 
@@ -26,7 +32,9 @@ $(OBJ_UI_CORE): ui
 
 $(UTL_FILES): utils
 
-$(UTL_JACKMAKE) : utils
+$(UTL_JACKMAKE): utils
+
+$(OBJ_TEST_CORE): test
 
 $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@echo "Generating XML resources"
@@ -36,7 +44,7 @@ $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(OBJDIR)/res/xml_resource.cpp -o $(OBJ_RES_CORE)
 
 # Target dependencies
-container: $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(UTL_FILES) $(OBJ_PLUGINS)
+container: $(CONTAINER_DEPS)
 
 utils: $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA)
 

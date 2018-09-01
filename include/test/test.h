@@ -8,6 +8,8 @@
 #ifndef TEST_TEST_H_
 #define TEST_TEST_H_
 
+#include <data/cvector.h>
+
 #ifdef LSP_TESTING
     #define TEST_EXPORT(ptr)        ::test::Test::mark_supported(ptr)
     #define TEST_SUPPORTED(ptr)     ::test::Test::check_supported(ptr)
@@ -15,8 +17,6 @@
     #define TEST_EXPORT(ptr)
     #define TEST_SUPPORTED(ptr)     false
 #endif /* LSP_TESTING */
-
-#include <data/cvector.h>
 
 namespace test
 {
@@ -66,7 +66,5 @@ namespace test
 
     };
 }
-
-
 
 #endif /* TEST_TEST_H_ */

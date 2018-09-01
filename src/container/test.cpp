@@ -1,75 +1,9 @@
-#include "test/common.h"
-
-#include "test/frac_test.h"
-
-//#define TEST config_test
-//#define TEST text_read_test
-
-//#define TEST xwindow_test
-//#define TEST limiter_test
-//#define TEST fft_conv_test
-//#define TEST crossover_test
-//#define TEST saturation_test
-//#define TEST log_test
-//#define TEST addm_test
-//#define TEST filter_test
-//#define TEST dyn_filter_test
-//#define TEST equalizer_test
-//#define TEST avx_test
-//#define TEST sidechain_test
-
-//#define TEST ladspa_test
-//#define TEST vst_test
-//#define TEST res_gen
-//#define TEST audiofile_test
-//#define TEST convolver_test
-
-//#define TEST fft_test
-//#define TEST fft_test2
-//#define TEST fft_test3
-//#define TEST fft_tdomain_test
-//#define TEST fft_fastconv_test
-//#define TEST fft_fastconv_speed_test
-//#define TEST fft_filter_test
-
-//#define TEST complex_mul_speed_test
-//#define TEST real_to_complex_test
-
-//#define TEST dsp_speed_test
-//#define TEST window_test
-//#define TEST env_test
-//#define TEST sample_player_test
-//#define TEST frac_test
-//#define TEST randgen_test
-//#define TEST fade_test
-//#define TEST genttl_test
-//#define TEST lv2bufsize_test
-//#define TEST alloc_test
-//#define TEST profiling_test
-//#define TEST lspstring_test
-//#define TEST clipbrd_test
-
-//#define TEST downsampling_test
-//#define TEST oversampling_test
-//#define TEST oversampler_test
-
-//#define TEST sse_test
-//#define TEST latencydetector_test
-//#define TEST geometry3d_test
-//#define TEST solutions3d_test
-//#define TEST objfile3d_test
-//#define TEST anyfile3d_test
-//#define TEST synchronizedchirp_test
-//#define TEST lspc_test
-
-//#define TEST bt_test
-//#define TEST mt_test
-//#define TEST bt_perf_test
-//#define TEST mt_perf_test
-//#define TEST root_test
-
-//#define TEST selection_test
-//#define TEST endian_test
+/*
+ * main.cpp
+ *
+ *  Created on: 01 сен. 2018 г.
+ *      Author: sadko
+ */
 
 #include <errno.h>
 #include <unistd.h>
