@@ -27,15 +27,17 @@
 * Added LSPC file format.
 * Added LSPC file format support to convolver plugins.
 * Implemented linear impulse response profiler.
-- Implemented normal unit testing system.
-- Implemented normal performance testing system.
-- Implemented manual testing system.
+* Implemented unit testing system.
+* Implemented performance testing system.
+* Implemented manual testing system.
 
 *******************************************************************************
 * Release steps
 *******************************************************************************
 * Update version in Makefile
 * Update CHANGELOG.txt and TODO.txt
+* Run make clean && make -j8 test to build testing system
+* Run .build/lsp-plugins-test utest for running all unit tests
 * Run make clean && make uninstall && make -j8 install to build and install binaries
 * Make video
 * Add video cover to res/video-covers
