@@ -34,7 +34,7 @@ namespace test
     {
         printf("  dump of buffer %s:\n    ", text);
         while (count--)
-            printf("%lu ", *(buf++));
+            printf("%lu ", (long unsigned int)(*(buf++)));
         printf("\n");
     }
 
@@ -42,7 +42,7 @@ namespace test
     {
         printf("  dump of buffer %s:\n    ", text);
         while (count--)
-            printf("%ld ", *(buf++));
+            printf("%ld ", (long)(*(buf++)));
         printf("\n");
     }
 
