@@ -174,11 +174,12 @@ PTEST_BEGIN("dsp.fft", fastconv, 30, 1000)
 
             IF_ARCH_X86(
                 call("fft_sse", out, tmp, tmp2, conv, in, cv, rank,
-                    sse::direct_fft, sse::complex_mul, sse::reverse_fft, sse::add2));
+                    sse::direct_fft, sse::complex_mul, sse::reverse_fft, sse::add2);
                 call("conv_sse", out, tmp, tmp2, conv, in, cv, rank,
                     sse::conv_direct_fft, sse::packed_complex_mul, sse::packed_reverse_fft, sse::packed_complex_add_to_real);
                 call("fastconv_sse", out, tmp, conv, in, cv, rank,
                     sse::fastconv_parse, sse::fastconv_parse_apply);
+            )
             PTEST_SEPARATOR;
         }
 
