@@ -96,8 +96,8 @@ MTEST_BEGIN("core.util", latency_detector)
         }
         else
         {
-            printf("FAIL: %lu", *delay_exact);
-            printf(" VS %lu\n", *delay_detected);
+            printf("FAIL: %lu", (long unsigned)(*delay_exact));
+            printf(" VS %lu\n", (long unsigned)(*delay_detected));
         }
     }
 
