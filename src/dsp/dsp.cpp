@@ -45,18 +45,26 @@ namespace native
     extern void dsp_init();
 }
 
-#ifdef ARCH_X86
-namespace x86
-{
-    extern void dsp_init();
-}
-#endif /* ARCH_X86 */
+IF_ARCH_X86(
+	namespace x86
+	{
+		extern void dsp_init();
+	}
+)
+
+IF_ARCH_ARM(
+	namespace arm
+	{
+		extern void dsp_init();
+	}
+)
 
 // Declare static variables
 namespace dsp
 {
     void    (* start)(dsp::context_t *ctx) = NULL;
     void    (* finish)(dsp::context_t *ctx) = NULL;
+    info_t *(*info)() = NULL;
 
     void    (* copy)(float *dst, const float *src, size_t count) = NULL;
     void    (* copy_saturated)(float *dst, const float *src, size_t count) = NULL;
@@ -343,11 +351,11 @@ namespace dsp
         // Information message
         lsp_trace("Initializing DSP");
 
-        // Initialize with native functions
+        // Initialize native functions
         native::dsp_init();
 
-        #ifdef ARCH_X86
-            x86::dsp_init();
-        #endif /* ARCH_X86 */
+        // Initialize architecture-dependent functions that utilize architecture-specific features
+        IF_ARCH_X86(x86::dsp_init());
+        IF_ARCH_ARM(arm::dsp_init());
     }
 }

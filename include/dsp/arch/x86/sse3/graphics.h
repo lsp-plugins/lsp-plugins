@@ -165,172 +165,97 @@ namespace sse3
             )
 
         // Step 4: calculate four logarithmic values
-        #define LOG_STEP3   \
+        #define LOG_STEP3  /* B*LXE + A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) + L9*A*A + A + B*LN2 */ \
             __asm__ __volatile__ \
             ( \
-                __ASM_EMIT("movaps      %%xmm3, %%xmm7")        /* xmm5 = A  */ \
-                __ASM_EMIT("mulps       %%xmm7, %%xmm7")        /* xmm7 = A*A */ \
-                \
-                __ASM_EMIT("movaps      %[L0], %%xmm5")         /* xmm5 = L0 */ \
+                __ASM_EMIT("movaps      0x00(%[CC]), %%xmm5")   /* xmm5 = L0 */ \
                 __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = L0*A */ \
-                __ASM_EMIT("movaps      %[L1], %%xmm6")         /* xmm6 = L1 */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = L1+L0*A */ \
+                __ASM_EMIT("addps       0x10(%[CC]), %%xmm5")   /* xmm5 = L1+L0*A */ \
                 __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*(L1+L0*A) */ \
-                __ASM_EMIT("movaps      %[L2], %%xmm6")         /* xmm6 = L2 */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = L2+A*(L1+L0*A) */ \
+                __ASM_EMIT("addps       0x20(%[CC]), %%xmm5")   /* xmm5 = L2+A*(L1+L0*A) */ \
                 __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*(L2+A*(L1+L0*A)) */ \
-                __ASM_EMIT("movaps      %[L3], %%xmm6")         /* xmm6 = L3 */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = L3+A*L2+A*(L1+L0*A) */ \
+                __ASM_EMIT("addps       0x30(%[CC]), %%xmm5")   /* xmm5 = L3+A*L2+A*(L1+L0*A) */ \
                 __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*(L3+A*L2+A*(L1+L0*A)) */ \
-                __ASM_EMIT("movaps      %[L4], %%xmm6")         /* xmm6 = L4 */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = L4+A*(L3+A*L2+A*(L1+L0*A)) */ \
+                __ASM_EMIT("addps       0x40(%[CC]), %%xmm5")   /* xmm5 = L4+A*(L3+A*L2+A*(L1+L0*A)) */ \
                 __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*(L4+A*(L3+A*L2+A*(L1+L0*A))) */ \
-                __ASM_EMIT("movaps      %[L5], %%xmm6")         /* xmm6 = L5 */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))) */ \
+                __ASM_EMIT("addps       0x50(%[CC]), %%xmm5")   /* xmm5 = L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))) */ \
                 __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))) */ \
-                __ASM_EMIT("movaps      %[L6], %%xmm6")         /* xmm6 = L6 */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))) */ \
+                __ASM_EMIT("addps       0x60(%[CC]), %%xmm5")   /* xmm5 = L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))) */ \
                 __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))) */ \
-                __ASM_EMIT("movaps      %[L7], %%xmm6")         /* xmm6 = L7 */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))) */ \
+                __ASM_EMIT("addps       0x70(%[CC]), %%xmm5")   /* xmm5 = L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))) */ \
                 __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))))) */ \
-                __ASM_EMIT("movaps      %[L8], %%xmm6")         /* xmm6 = L8 */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))))) */ \
+                __ASM_EMIT("addps       0x80(%[CC]), %%xmm5")   /* xmm5 = L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))))) */ \
                 __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) */ \
-                __ASM_EMIT("mulps       %%xmm7, %%xmm5")        /* xmm5 = A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) */ \
-                \
-                __ASM_EMIT("movaps      %[LXE], %%xmm6")        /* xmm6 = LXE */ \
-                __ASM_EMIT("mulps       %%xmm4, %%xmm6")        /* xmm6 = B*LXE */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = B*LXE+A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) */ \
-                \
-                __ASM_EMIT("movaps      %[L9], %%xmm6")         /* xmm6 = L9 */ \
-                __ASM_EMIT("mulps       %%xmm7, %%xmm6")        /* xmm6 = L9*A*A */ \
-                __ASM_EMIT("subps       %%xmm6, %%xmm5")        /* xmm5 = B*LXE+A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) - L9*A*A */ \
-                \
-                __ASM_EMIT("movaps      %[LN2], %%xmm6")        /* xmm6 = LN2 */ \
-                __ASM_EMIT("mulps       %%xmm4, %%xmm6")        /* xmm6 = B*LN2 */ \
-                __ASM_EMIT("addps       %%xmm3, %%xmm5")        /* xmm5 = B*LXE+A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) - L9*A*A + A */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = B*LXE+A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) - L9*A*A + A + B*LN2 */ \
+                __ASM_EMIT("addps       0x90(%[CC]), %%xmm5")   /* xmm5 = A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) + L9 */ \
+                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*(A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) + L9) */ \
+                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*A*(A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) + L9) */ \
+                __ASM_EMIT("mulps       0xa0(%[CC]), %%xmm4")   /* xmm4 = B*(LXE + LN2) */ \
+                __ASM_EMIT("addps       %%xmm4, %%xmm5")        /* xmm5 = B*(LXE + LN2) + A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) */ \
+                __ASM_EMIT("addps       %%xmm3, %%xmm5")        /* xmm5 = B*(LXE + LN2) + A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) + A */ \
                 \
                 : \
                 : \
-                  [L0]          "m" (LOG_C0), \
-                  [L1]          "m" (LOG_C1), \
-                  [L2]          "m" (LOG_C2), \
-                  [L3]          "m" (LOG_C3), \
-                  [L4]          "m" (LOG_C4), \
-                  [L5]          "m" (LOG_C5), \
-                  [L6]          "m" (LOG_C6), \
-                  [L7]          "m" (LOG_C7), \
-                  [L8]          "m" (LOG_C8), \
-                  [L9]          "m" (LOG_C9), \
-                  [LXE]         "m" (LOG_LXE), \
-                  [LN2]         "m" (LN2) \
-                : "%xmm5", "%xmm6", "%xmm7" \
+                  [CC]          "r" (LOG_CC) \
+                : "%xmm4", "%xmm5", "%xmm6" \
             )
 
         #define LOG_STEP3x2   \
             __asm__ __volatile__ \
             ( \
-                __ASM_EMIT("movaps      %%xmm3, %%xmm7")        /* xmm5 = A  */ \
-                __ASM_EMIT("movaps      %%xmm11, %%xmm15")      /* xmm13 = A  */ \
-                __ASM_EMIT("mulps       %%xmm7, %%xmm7")        /* xmm7 = A*A */ \
-                __ASM_EMIT("mulps       %%xmm15, %%xmm15")      /* xmm15 = A*A */ \
-                \
-                __ASM_EMIT("movaps      %[L0], %%xmm5")         /* xmm5 = L0 */ \
-                __ASM_EMIT("movaps      %[L0], %%xmm13")         /* xmm13 = L0 */ \
-                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = L0*A */ \
-                __ASM_EMIT("mulps       %%xmm11, %%xmm13")        /* xmm13 = L0*A */ \
-                __ASM_EMIT("movaps      %[L1], %%xmm6")         /* xmm6 = L1 */ \
-                __ASM_EMIT("movaps      %[L1], %%xmm14")         /* xmm14 = L1 */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = L1+L0*A */ \
-                __ASM_EMIT("addps       %%xmm14, %%xmm13")        /* xmm13 = L1+L0*A */ \
-                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*(L1+L0*A) */ \
-                __ASM_EMIT("mulps       %%xmm11, %%xmm13")        /* xmm13 = A*(L1+L0*A) */ \
-                __ASM_EMIT("movaps      %[L2], %%xmm6")         /* xmm6 = L2 */ \
-                __ASM_EMIT("movaps      %[L2], %%xmm14")         /* xmm14 = L2 */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = L2+A*(L1+L0*A) */ \
-                __ASM_EMIT("addps       %%xmm14, %%xmm13")        /* xmm13 = L2+A*(L1+L0*A) */ \
-                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*(L2+A*(L1+L0*A)) */ \
-                __ASM_EMIT("mulps       %%xmm11, %%xmm13")        /* xmm13 = A*(L2+A*(L1+L0*A)) */ \
-                __ASM_EMIT("movaps      %[L3], %%xmm6")         /* xmm6 = L3 */ \
-                __ASM_EMIT("movaps      %[L3], %%xmm14")         /* xmm14 = L3 */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = L3+A*L2+A*(L1+L0*A) */ \
-                __ASM_EMIT("addps       %%xmm14, %%xmm13")        /* xmm13 = L3+A*L2+A*(L1+L0*A) */ \
-                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*(L3+A*L2+A*(L1+L0*A)) */ \
-                __ASM_EMIT("mulps       %%xmm11, %%xmm13")        /* xmm13 = A*(L3+A*L2+A*(L1+L0*A)) */ \
-                __ASM_EMIT("movaps      %[L4], %%xmm6")         /* xmm6 = L4 */ \
-                __ASM_EMIT("movaps      %[L4], %%xmm14")         /* xmm14 = L4 */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = L4+A*(L3+A*L2+A*(L1+L0*A)) */ \
-                __ASM_EMIT("addps       %%xmm14, %%xmm13")        /* xmm13 = L4+A*(L3+A*L2+A*(L1+L0*A)) */ \
-                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*(L4+A*(L3+A*L2+A*(L1+L0*A))) */ \
-                __ASM_EMIT("mulps       %%xmm11, %%xmm13")        /* xmm13 = A*(L4+A*(L3+A*L2+A*(L1+L0*A))) */ \
-                __ASM_EMIT("movaps      %[L5], %%xmm6")         /* xmm6 = L5 */ \
-                __ASM_EMIT("movaps      %[L5], %%xmm14")         /* xmm14 = L5 */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))) */ \
-                __ASM_EMIT("addps       %%xmm14, %%xmm13")        /* xmm13 = L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))) */ \
-                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))) */ \
-                __ASM_EMIT("mulps       %%xmm11, %%xmm13")        /* xmm13 = A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))) */ \
-                __ASM_EMIT("movaps      %[L6], %%xmm6")         /* xmm6 = L6 */ \
-                __ASM_EMIT("movaps      %[L6], %%xmm14")         /* xmm14 = L6 */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))) */ \
-                __ASM_EMIT("addps       %%xmm14, %%xmm13")        /* xmm13 = L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))) */ \
-                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))) */ \
-                __ASM_EMIT("mulps       %%xmm11, %%xmm13")        /* xmm13 = A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))) */ \
-                __ASM_EMIT("movaps      %[L7], %%xmm6")         /* xmm6 = L7 */ \
-                __ASM_EMIT("movaps      %[L7], %%xmm14")         /* xmm14 = L7 */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))) */ \
-                __ASM_EMIT("addps       %%xmm14, %%xmm13")        /* xmm13 = L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))) */ \
-                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))))) */ \
-                __ASM_EMIT("mulps       %%xmm11, %%xmm13")        /* xmm13 = A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))))) */ \
-                __ASM_EMIT("movaps      %[L8], %%xmm6")         /* xmm6 = L8 */ \
-                __ASM_EMIT("movaps      %[L8], %%xmm14")         /* xmm14 = L8 */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))))) */ \
-                __ASM_EMIT("addps       %%xmm14, %%xmm13")        /* xmm13 = L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))))) */ \
-                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) */ \
-                __ASM_EMIT("mulps       %%xmm11, %%xmm13")        /* xmm13 = A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) */ \
-                __ASM_EMIT("mulps       %%xmm7, %%xmm5")        /* xmm5 = A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) */ \
-                __ASM_EMIT("mulps       %%xmm15, %%xmm13")        /* xmm13 = A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) */ \
-                \
-                __ASM_EMIT("movaps      %[LXE], %%xmm6")        /* xmm6 = LXE */ \
-                __ASM_EMIT("movaps      %[LXE], %%xmm14")        /* xmm14 = LXE */ \
-                __ASM_EMIT("mulps       %%xmm4, %%xmm6")        /* xmm6 = B*LXE */ \
-                __ASM_EMIT("mulps       %%xmm12, %%xmm14")        /* xmm14 = B*LXE */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = B*LXE+A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) */ \
-                __ASM_EMIT("addps       %%xmm14, %%xmm13")        /* xmm13 = B*LXE+A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) */ \
-                \
-                __ASM_EMIT("movaps      %[L9], %%xmm6")         /* xmm6 = L9 */ \
-                __ASM_EMIT("movaps      %[L9], %%xmm14")         /* xmm14 = L9 */ \
-                __ASM_EMIT("mulps       %%xmm7, %%xmm6")        /* xmm6 = L9*A*A */ \
-                __ASM_EMIT("mulps       %%xmm15, %%xmm14")        /* xmm14 = L9*A*A */ \
-                __ASM_EMIT("subps       %%xmm6, %%xmm5")        /* xmm5 = B*LXE+A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) - L9*A*A */ \
-                __ASM_EMIT("subps       %%xmm14, %%xmm13")        /* xmm13 = B*LXE+A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) - L9*A*A */ \
-                \
-                __ASM_EMIT("movaps      %[LN2], %%xmm6")        /* xmm6 = LN2 */ \
-                __ASM_EMIT("movaps      %[LN2], %%xmm14")        /* xmm14 = LN2 */ \
-                __ASM_EMIT("mulps       %%xmm4, %%xmm6")        /* xmm6 = B*LN2 */ \
-                __ASM_EMIT("mulps       %%xmm12, %%xmm14")        /* xmm14 = B*LN2 */ \
-                __ASM_EMIT("addps       %%xmm3, %%xmm5")        /* xmm5 = B*LXE+A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) - L9*A*A + A */ \
-                __ASM_EMIT("addps       %%xmm11, %%xmm13")        /* xmm13 = B*LXE+A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) - L9*A*A + A */ \
-                __ASM_EMIT("addps       %%xmm6, %%xmm5")        /* xmm5 = B*LXE+A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) - L9*A*A + A + B*LN2 */ \
-                __ASM_EMIT("addps       %%xmm14, %%xmm13")        /* xmm13 = B*LXE+A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) - L9*A*A + A + B*LN2 */ \
+                __ASM_EMIT("movaps      0x00(%[CC]), %%xmm5")   /* xmm5     = L0 */ \
+                __ASM_EMIT("movaps      0x00(%[CC]), %%xmm13")  /* xmm13    = L0 */ \
+                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5     = L0*A */ \
+                __ASM_EMIT("mulps       %%xmm11, %%xmm13")      /* xmm13    = L0*A */ \
+                __ASM_EMIT("addps       0x10(%[CC]), %%xmm5")   /* xmm5     = L1+L0*A */ \
+                __ASM_EMIT("addps       0x10(%[CC]), %%xmm13")  /* xmm13    = L1+L0*A */ \
+                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5     = A*(L1+L0*A) */ \
+                __ASM_EMIT("mulps       %%xmm11, %%xmm13")      /* xmm13    = A*(L1+L0*A) */ \
+                __ASM_EMIT("addps       0x20(%[CC]), %%xmm5")   /* xmm5     = L2+A*(L1+L0*A) */ \
+                __ASM_EMIT("addps       0x20(%[CC]), %%xmm13")  /* xmm13    = L2+A*(L1+L0*A) */ \
+                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5     = A*(L2+A*(L1+L0*A)) */ \
+                __ASM_EMIT("mulps       %%xmm11, %%xmm13")      /* xmm13    = A*(L2+A*(L1+L0*A)) */ \
+                __ASM_EMIT("addps       0x30(%[CC]), %%xmm5")   /* xmm5     = L3+A*L2+A*(L1+L0*A) */ \
+                __ASM_EMIT("addps       0x30(%[CC]), %%xmm13")  /* xmm13    = L3+A*L2+A*(L1+L0*A) */ \
+                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5     = A*(L3+A*L2+A*(L1+L0*A)) */ \
+                __ASM_EMIT("mulps       %%xmm11, %%xmm13")      /* xmm13    = A*(L3+A*L2+A*(L1+L0*A)) */ \
+                __ASM_EMIT("addps       0x40(%[CC]), %%xmm5")   /* xmm5     = L4+A*(L3+A*L2+A*(L1+L0*A)) */ \
+                __ASM_EMIT("addps       0x40(%[CC]), %%xmm13")  /* xmm13    = L4+A*(L3+A*L2+A*(L1+L0*A)) */ \
+                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5     = A*(L4+A*(L3+A*L2+A*(L1+L0*A))) */ \
+                __ASM_EMIT("mulps       %%xmm11, %%xmm13")      /* xmm13    = A*(L4+A*(L3+A*L2+A*(L1+L0*A))) */ \
+                __ASM_EMIT("addps       0x50(%[CC]), %%xmm5")   /* xmm5     = L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))) */ \
+                __ASM_EMIT("addps       0x50(%[CC]), %%xmm13")  /* xmm13    = L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))) */ \
+                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5     = A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))) */ \
+                __ASM_EMIT("mulps       %%xmm11, %%xmm13")      /* xmm13    = A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))) */ \
+                __ASM_EMIT("addps       0x60(%[CC]), %%xmm5")   /* xmm5     = L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))) */ \
+                __ASM_EMIT("addps       0x60(%[CC]), %%xmm13")  /* xmm13    = L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))) */ \
+                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5     = A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))) */ \
+                __ASM_EMIT("mulps       %%xmm11, %%xmm13")      /* xmm13    = A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))) */ \
+                __ASM_EMIT("addps       0x70(%[CC]), %%xmm5")   /* xmm5     = L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))) */ \
+                __ASM_EMIT("addps       0x70(%[CC]), %%xmm13")  /* xmm13    = L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))) */ \
+                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5     = A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))))) */ \
+                __ASM_EMIT("mulps       %%xmm11, %%xmm13")      /* xmm13    = A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))))) */ \
+                __ASM_EMIT("addps       0x80(%[CC]), %%xmm5")   /* xmm5     = L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))))) */ \
+                __ASM_EMIT("addps       0x80(%[CC]), %%xmm13")  /* xmm13    = L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A)))))) */ \
+                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5     = A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) */ \
+                __ASM_EMIT("mulps       %%xmm11, %%xmm13")      /* xmm13    = A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) */ \
+                __ASM_EMIT("addps       0x90(%[CC]), %%xmm5")   /* xmm5     = A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) + L9 */ \
+                __ASM_EMIT("addps       0x90(%[CC]), %%xmm13")  /* xmm13    = A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) + L9 */ \
+                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm3     = A*(A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) + L9) */ \
+                __ASM_EMIT("mulps       %%xmm11, %%xmm13")      /* xmm11    = A*(A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) + L9) */ \
+                __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm3     = A*A*(A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) + L9) */ \
+                __ASM_EMIT("mulps       %%xmm11, %%xmm13")      /* xmm11    = A*A*(A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) + L9) */ \
+                __ASM_EMIT("mulps       0xa0(%[CC]), %%xmm4")   /* xmm4     = B*(LXE + LN2) */ \
+                __ASM_EMIT("mulps       0xa0(%[CC]), %%xmm12")  /* xmm12    = B*(LXE + LN2) */ \
+                __ASM_EMIT("addps       %%xmm4, %%xmm5")        /* xmm5     = B*(LXE + LN2) + A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) */ \
+                __ASM_EMIT("addps       %%xmm12, %%xmm13")      /* xmm13    = B*(LXE + LN2) + A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) */ \
+                __ASM_EMIT("addps       %%xmm3, %%xmm5")        /* xmm5     = B*(LXE + LN2) + A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) + A */ \
+                __ASM_EMIT("addps       %%xmm11, %%xmm13")      /* xmm13    = B*(LXE + LN2) + A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) + A */ \
                 \
                 : \
                 : \
-                  [L0]          "m" (LOG_C0), \
-                  [L1]          "m" (LOG_C1), \
-                  [L2]          "m" (LOG_C2), \
-                  [L3]          "m" (LOG_C3), \
-                  [L4]          "m" (LOG_C4), \
-                  [L5]          "m" (LOG_C5), \
-                  [L6]          "m" (LOG_C6), \
-                  [L7]          "m" (LOG_C7), \
-                  [L8]          "m" (LOG_C8), \
-                  [L9]          "m" (LOG_C9), \
-                  [LXE]         "m" (LOG_LXE), \
-                  [LN2]         "m" (LN2) \
-                : "%xmm5", "%xmm6", "%xmm7", \
-                  "%xmm13", "%xmm14", "%xmm15" \
+                  [CC]          "r" (LOG_CC) \
+                : "%xmm4", "%xmm5", "%xmm6", \
+                  "%xmm12", "%xmm13", "%xmm14" \
             )
 
         // Step 5: apply vector and store values
@@ -357,23 +282,23 @@ namespace sse3
             __asm__ __volatile__ \
             ( \
                 __ASM_EMIT("movaps      %%xmm5, %%xmm3")        /* xmm3 = log(abs(v*zero)), xmm5=log(abs(v*zero)) */ \
-            __ASM_EMIT("movaps      %%xmm13, %%xmm11")        /* xmm11 = log(abs(v*zero)), xmm5=log(abs(v*zero)) */ \
+                __ASM_EMIT("movaps      %%xmm13, %%xmm11")        /* xmm11 = log(abs(v*zero)), xmm5=log(abs(v*zero)) */ \
                 __ASM_EMIT(mv_x "       0x00(%[x]), %%xmm4")        /* xmm4 = x */ \
-            __ASM_EMIT(mv_x "       0x10(%[x]), %%xmm12")        /* xmm12 = x */ \
+                __ASM_EMIT(mv_x "       0x10(%[x]), %%xmm12")        /* xmm12 = x */ \
                 __ASM_EMIT(mv_y "       0x00(%[y]), %%xmm6")        /* xmm6 = y */ \
-            __ASM_EMIT(mv_y "       0x10(%[y]), %%xmm14")        /* xmm14 = y */ \
+                __ASM_EMIT(mv_y "       0x10(%[y]), %%xmm14")        /* xmm14 = y */ \
                 __ASM_EMIT("mulps       %%xmm1, %%xmm3")        /* xmm3 = log(abs(v*zero)) * norm_x */ \
-            __ASM_EMIT("mulps       %%xmm9, %%xmm11")        /* xmm11 = log(abs(v*zero)) * norm_x */ \
+                __ASM_EMIT("mulps       %%xmm9, %%xmm11")        /* xmm11 = log(abs(v*zero)) * norm_x */ \
                 __ASM_EMIT("mulps       %%xmm2, %%xmm5")        /* xmm5 = log(abs(v*zero)) * norm_y */ \
-            __ASM_EMIT("mulps       %%xmm10, %%xmm13")        /* xmm13 = log(abs(v*zero)) * norm_y */ \
+                __ASM_EMIT("mulps       %%xmm10, %%xmm13")        /* xmm13 = log(abs(v*zero)) * norm_y */ \
                 __ASM_EMIT("addps       %%xmm3, %%xmm4")        /* xmm4 = x + log(abs(v*zero)) * norm_x */ \
-            __ASM_EMIT("addps       %%xmm11, %%xmm12")        /* xmm12 = x + log(abs(v*zero)) * norm_x */ \
+                __ASM_EMIT("addps       %%xmm11, %%xmm12")        /* xmm12 = x + log(abs(v*zero)) * norm_x */ \
                 __ASM_EMIT("addps       %%xmm5, %%xmm6")        /* xmm6 = y + log(abs(v*zero)) * norm_y */ \
-            __ASM_EMIT("addps       %%xmm13, %%xmm14")        /* xmm14 = y + log(abs(v*zero)) * norm_y */ \
+                __ASM_EMIT("addps       %%xmm13, %%xmm14")        /* xmm14 = y + log(abs(v*zero)) * norm_y */ \
                 __ASM_EMIT(mv_x "       %%xmm4, 0x00(%[x])") \
-            __ASM_EMIT(mv_x "       %%xmm12, 0x10(%[x])") \
+                __ASM_EMIT(mv_x "       %%xmm12, 0x10(%[x])") \
                 __ASM_EMIT(mv_y "       %%xmm6, 0x00(%[y])") \
-            __ASM_EMIT(mv_y "       %%xmm14, 0x10(%[y])") \
+                __ASM_EMIT(mv_y "       %%xmm14, 0x10(%[y])") \
                 __ASM_EMIT("add         %[delta], %[x]") \
                 __ASM_EMIT("add         %[delta], %[y]") \
                 : [x] "+r" (x), [y] "+r" (y) \
@@ -415,91 +340,20 @@ namespace sse3
               "%xmm8", "%xmm9", "%xmm10"
         );
 
-        // Ensure v is aligned
-        while (!sse_aligned(v))
-        {
-            LOG_LOAD("movss", 4);
-            LOG_CALC;
-            LOG_STORE("movss", "movss", 4);
-
-            if (!(--count))
-                return;
-        }
-
         // Make main body
-        if (sse_aligned(x))
+        while (count >= 8)
         {
-            if (sse_aligned(y))
-            {
-                while (count >= 8)
-                {
-                    LOG_LOADx2("movaps", 0x20);
-                    LOG_CALCx2;
-                    LOG_STOREx2("movaps", "movaps", 0x20);
-                    count -= 8;
-                }
-                if (count >= 4)
-                {
-                    LOG_LOAD("movaps", 0x10);
-                    LOG_CALC;
-                    LOG_STORE("movaps", "movaps", 0x10);
-                    count -= 4;
-                }
-            }
-            else
-            {
-                while (count >= 8)
-                {
-                    LOG_LOADx2("movaps", 0x20);
-                    LOG_CALCx2;
-                    LOG_STOREx2("movaps", "movups", 0x20);
-                    count -= 8;
-                }
-                if (count >= 4)
-                {
-                    LOG_LOAD("movaps", 0x10);
-                    LOG_CALC;
-                    LOG_STORE("movaps", "movups", 0x10);
-                    count -= 4;
-                }
-            }
+            LOG_LOADx2("lddqu", 0x20);
+            LOG_CALCx2;
+            LOG_STOREx2("movups", "movups", 0x20);
+            count -= 8;
         }
-        else
+        if (count >= 4)
         {
-            if (sse_aligned(y))
-            {
-                while (count >= 8)
-                {
-                    LOG_LOADx2("movups", 0x20);
-                    LOG_CALCx2;
-                    LOG_STOREx2("movups", "movaps", 0x20);
-                    count -= 8;
-                }
-                if (count >= 4)
-                {
-                    LOG_LOAD("movups", 0x10);
-                    LOG_CALC;
-                    LOG_STORE("movups", "movaps", 0x10);
-                    count -= 4;
-                }
-            }
-            else
-            {
-                while (count >= 8)
-                {
-                    LOG_LOADx2("movups", 0x20);
-                    LOG_CALCx2;
-                    LOG_STOREx2("movups", "movups", 0x20);
-                    count -= 8;
-                }
-                if (count >= 4)
-                {
-                    LOG_LOAD("movups", 0x10);
-                    LOG_CALC;
-                    LOG_STORE("movups", "movups", 0x10);
-                    count -= 4;
-                }
-            }
+            LOG_LOAD("lddqu", 0x10);
+            LOG_CALC;
+            LOG_STORE("movups", "movups", 0x10);
+            count -= 4;
         }
 
         // Complete the tail

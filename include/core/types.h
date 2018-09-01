@@ -16,16 +16,13 @@
 
 #include <dsp/types.h>
 
-namespace lsp
-{
-    typedef uint64_t        wsize_t;
-    typedef int64_t         wssize_t;
+typedef uint64_t        wsize_t;
+typedef int64_t         wssize_t;
 
-    /** Unicode character definition
-     *
-     */
-    typedef uint16_t                lsp_wchar_t;
-}
+/** Unicode character definition
+ *
+ */
+typedef uint16_t                lsp_wchar_t;
 
 // Include units
 #include <core/sugar.h>

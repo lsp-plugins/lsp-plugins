@@ -9,6 +9,7 @@
 #include <dsp/bits.h>
 #include <core/types.h>
 #include <core/debug.h>
+#include <test/test.h>
 
 #include <dsp/arch/x86/features.h>
 
@@ -94,7 +95,7 @@ namespace sse
         dsp_finish(ctx);
     }
 
-    #define EXPORT1(function)                   dsp::function = sse::function
+    #define EXPORT1(function)                   dsp::function = sse::function; TEST_EXPORT(sse::function);
 
     void dsp_init(const cpu_features_t *f)
     {
@@ -218,7 +219,7 @@ namespace sse
 //            EXPORT1(complex_cvt2modarg);
 //            EXPORT1(complex_cvt2reim);
         EXPORT1(complex_mod);
-//            EXPORT1(packed_complex_mod); // TODO: test it
+        EXPORT1(packed_complex_mod);
         EXPORT1(lr_to_ms);
         EXPORT1(lr_to_mid);
         EXPORT1(lr_to_side);

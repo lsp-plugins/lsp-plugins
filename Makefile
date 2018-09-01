@@ -106,6 +106,7 @@ export OBJ_WS_CORE      = $(OBJDIR)/ws_core.o
 export OBJ_WS_X11_CORE  = $(OBJDIR)/ws_x11_core.o
 export OBJ_UI_CORE      = $(OBJDIR)/ui_core.o
 export OBJ_RES_CORE     = $(OBJDIR)/res_core.o
+export OBJ_TEST_CORE    = $(OBJDIR)/test_core.o
 export OBJ_PLUGINS      = $(OBJDIR)/plugins.o
 export OBJ_METADATA     = $(OBJDIR)/metadata.o
 export OBJ_FILES        = $(OBJ_CORE) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(OBJ_PLUGINS) $(OBJ_METADATA)
@@ -119,6 +120,7 @@ export LIB_JACK         = $(OBJDIR)/$(ARTIFACT_ID)-jack-core-$(VERSION)-$(BUILD_
 
 # Binaries
 export BIN_PROFILE      = $(OBJDIR)/$(ARTIFACT_ID)-profile
+export BIN_TEST         = $(OBJDIR)/$(ARTIFACT_ID)-test
 
 # Utils
 export UTL_GENTTL       = $(OBJDIR)/lv2_genttl.exe
@@ -142,6 +144,8 @@ export SNDFILE_HEADERS  = $(shell pkg-config --cflags sndfile)
 export SNDFILE_LIBS     = $(shell pkg-config --libs sndfile)
 export JACK_HEADERS     = $(shell pkg-config --cflags jack)
 export JACK_LIBS        = $(shell pkg-config --libs jack)
+export OPENGL_HEADERS   = $(shell pkg-config --cflags gl glu)
+export OPENGL_LIBS      = $(shell pkg-config --libs gl glu)
 
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 FILES                   =
@@ -165,6 +169,10 @@ all: compile
 
 trace: export CFLAGS        += -DLSP_TRACE
 trace: all
+
+test: export CFLAGS         += -DLSP_TESTING
+test: export MAKE_OPTS      += LSP_TESTING=1
+test: all
 
 tracefile: export CFLAGS    += -DLSP_TRACEFILE
 tracefile: trace

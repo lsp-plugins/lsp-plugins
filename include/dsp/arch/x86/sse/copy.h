@@ -48,9 +48,8 @@ namespace sse
             __ASM_EMIT("jae         3b") \
             /* Block of 16 items */ \
             __ASM_EMIT("4:") \
-            __ASM_EMIT("add         $0x20, %[count]") \
-            __ASM_EMIT("test        $0x10, %[count]")   \
-            __ASM_EMIT("jz          5f")   \
+            __ASM_EMIT("add         $0x10, %[count]") \
+            __ASM_EMIT("jl          5f")   \
             __ASM_EMIT(MV_SRC "     0x00(%[src]), %%xmm0") \
             __ASM_EMIT(MV_SRC "     0x10(%[src]), %%xmm1") \
             __ASM_EMIT(MV_SRC "     0x20(%[src]), %%xmm2") \
@@ -61,24 +60,27 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm3, 0x30(%[dst])") \
             __ASM_EMIT("add         $0x40, %[src]") \
             __ASM_EMIT("add         $0x40, %[dst]") \
+            __ASM_EMIT("sub         $0x10, %[count]") \
             /* Block of 8 items */ \
             __ASM_EMIT("5:") \
-            __ASM_EMIT("test        $0x08, %[count]")   \
-            __ASM_EMIT("jz          6f")   \
+            __ASM_EMIT("add         $0x08, %[count]")   \
+            __ASM_EMIT("jl          6f")   \
             __ASM_EMIT(MV_SRC "     0x00(%[src]), %%xmm0") \
             __ASM_EMIT(MV_SRC "     0x10(%[src]), %%xmm1") \
             __ASM_EMIT("movaps      %%xmm0, 0x00(%[dst])") \
             __ASM_EMIT("movaps      %%xmm1, 0x10(%[dst])") \
             __ASM_EMIT("add         $0x20, %[src]") \
             __ASM_EMIT("add         $0x20, %[dst]") \
+            __ASM_EMIT("sub         $0x08, %[count]") \
             /* Block of 4 items */ \
             __ASM_EMIT("6:") \
-            __ASM_EMIT("test        $0x04, %[count]")   \
-            __ASM_EMIT("jz          3000f")   \
+            __ASM_EMIT("add         $0x04, %[count]")   \
+            __ASM_EMIT("jl          3000f")   \
             __ASM_EMIT(MV_SRC "     0x00(%[src]), %%xmm0") \
             __ASM_EMIT("movaps      %%xmm0, 0x00(%[dst])") \
             __ASM_EMIT("add         $0x10, %[src]") \
             __ASM_EMIT("add         $0x10, %[dst]") \
+            __ASM_EMIT("sub         $0x04, %[count]")
 
 
         __asm__ __volatile__
@@ -112,15 +114,15 @@ namespace sse
 
             /* Tail */
             __ASM_EMIT("3000:")
-            __ASM_EMIT("and         $0x03, %[count]")
-            __ASM_EMIT("jz          2000f")
+            __ASM_EMIT("add         $0x03, %[count]")
+            __ASM_EMIT("jl          2000f")
             __ASM_EMIT("8:")
             __ASM_EMIT("movss       0x00(%[src]), %%xmm0")
             __ASM_EMIT("movss       %%xmm0, 0x00(%[dst])")
             __ASM_EMIT("add         $0x04, %[src]")
             __ASM_EMIT("add         $0x04, %[dst]")
             __ASM_EMIT("dec         %[count]")
-            __ASM_EMIT("jnz         8b")
+            __ASM_EMIT("jge         8b")
 
             __ASM_EMIT("2000:")
 

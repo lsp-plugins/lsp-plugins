@@ -9,6 +9,7 @@
 #include <dsp/bits.h>
 #include <core/types.h>
 #include <core/debug.h>
+#include <test/test.h>
 
 #include <dsp/arch/x86/features.h>
 
@@ -52,7 +53,7 @@ namespace sse4
 {
     using namespace x86;
 
-    #define EXPORT1(function)                   dsp::function = sse4::function
+    #define EXPORT1(function)                   dsp::function = sse4::function; TEST_EXPORT(sse4::function);
 
     void dsp_init(const cpu_features_t *f)
     {

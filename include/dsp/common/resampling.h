@@ -12,6 +12,8 @@
     #error "This header should not be included directly"
 #endif /* __DSP_DSP_DEFS */
 
+#define RESAMPLING_RESERVED_SAMPLES         64
+
 /** Resampling/oversampling funtion type.
  * Remember that destination buffer must be times greater and have additional gap (>=64 samples) at
  * the tail to contain complete convolution after resampling
@@ -29,7 +31,7 @@ namespace dsp
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
      * convolution tail from previous resampling
      *
-     * @param dst destination buffer of count*2 samples + 64 samples for convolution tail
+     * @param dst destination buffer of count*2 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
      * @param count number of samples
      */
@@ -38,7 +40,7 @@ namespace dsp
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
      * convolution tail from previous resampling
      *
-     * @param dst destination buffer of count*2 samples + 64 samples for convolution tail
+     * @param dst destination buffer of count*2 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
      * @param count number of samples
      */
@@ -47,7 +49,7 @@ namespace dsp
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
      * convolution tail from previous resampling
      *
-     * @param dst destination buffer of count*3 samples + 64 samples for convolution tail
+     * @param dst destination buffer of count*3 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
      * @param count number of samples
      */
@@ -56,7 +58,7 @@ namespace dsp
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
      * convolution tail from previous resampling
      *
-     * @param dst destination buffer of count*3 samples + 64 samples for convolution tail
+     * @param dst destination buffer of count*3 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
      * @param count number of samples
      */
@@ -65,7 +67,7 @@ namespace dsp
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
      * convolution tail from previous resampling
      *
-     * @param dst destination buffer of count*4 samples + 64 samples for convolution tail
+     * @param dst destination buffer of count*4 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
      * @param count number of samples
      */
@@ -74,7 +76,7 @@ namespace dsp
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
      * convolution tail from previous resampling
      *
-     * @param dst destination buffer of count*4 samples + 64 samples for convolution tail
+     * @param dst destination buffer of count*4 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
      * @param count number of samples
      */
@@ -83,7 +85,7 @@ namespace dsp
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
      * convolution tail from previous resampling
      *
-     * @param dst destination buffer of count*6 samples + 64 samples for convolution tail
+     * @param dst destination buffer of count*6 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
      * @param count number of samples
      */
@@ -92,7 +94,7 @@ namespace dsp
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
      * convolution tail from previous resampling
      *
-     * @param dst destination buffer of count*6 samples + 64 samples for convolution tail
+     * @param dst destination buffer of count*6 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
      * @param count number of samples
      */
@@ -101,7 +103,7 @@ namespace dsp
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
      * convolution tail from previous resampling
      *
-     * @param dst destination buffer of count*8 samples + 64 samples for convolution tail
+     * @param dst destination buffer of count*8 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
      * @param count number of samples
      */
@@ -110,7 +112,7 @@ namespace dsp
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
      * convolution tail from previous resampling
      *
-     * @param dst destination buffer of count*8 samples + 64 samples for convolution tail
+     * @param dst destination buffer of count*8 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
      * @param count number of samples
      */

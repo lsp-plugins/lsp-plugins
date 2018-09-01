@@ -98,6 +98,33 @@ inline void __lsp_forced_inline    byte_swap(uint16_t *v, size_t n)
     );
 }
 
+inline void __lsp_forced_inline    byte_swap(int16_t *v, size_t n)
+{
+    uint16_t tmp;
+    __asm__ __volatile__ (
+        __ASM_EMIT("subs        %[n], #2")
+        __ASM_EMIT("blo         2f")
+
+        __ASM_EMIT("1:")
+        __ASM_EMIT("ldr         %[tmp], [%[v]]")
+        __ASM_EMIT("rev16       %[tmp], %[tmp]")
+        __ASM_EMIT("str         %[tmp], [%[v]], #4")
+        __ASM_EMIT("subs        %[n], #2")
+        __ASM_EMIT("bge         1b")
+
+        __ASM_EMIT("2:")
+        __ASM_EMIT("adds        %[n], #1")
+        __ASM_EMIT("blt         3f")
+        __ASM_EMIT("ldrh        %[tmp], [%[v]]")
+        __ASM_EMIT("rev16       %[tmp], %[tmp]")
+        __ASM_EMIT("strh        %[tmp], [%[v]]")
+
+        __ASM_EMIT("3:")
+        : [v] "+r"(v), [n] "+r" (n), [tmp] "=&r"(tmp)
+        : : "cc", "memory"
+    );
+}
+
 inline void __lsp_forced_inline    byte_swap(uint32_t *v, size_t n)
 {
     uint32_t tmp;

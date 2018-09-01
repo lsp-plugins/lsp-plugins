@@ -1048,6 +1048,7 @@ namespace sse
                 init_matrix3d_rotate_x(m, angle);
             else
                 init_matrix3d_rotate_x(m, -angle);
+            return;
         }
 
         float s = sinf(angle);

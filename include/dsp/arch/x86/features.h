@@ -59,6 +59,7 @@ namespace x86
         uint32_t            family;
         uint32_t            model;
         uint32_t            features;
+        char                brand[56];
     } cpu_features_t;
 }
 

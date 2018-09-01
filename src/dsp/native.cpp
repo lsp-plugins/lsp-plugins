@@ -5,17 +5,20 @@
  *      Author: sadko
  */
 
+#include <malloc.h>
 #include <dsp/dsp.h>
 #include <dsp/bits.h>
 #include <core/types.h>
 #include <core/units.h>
+#include <test/test.h>
 
 #define __DSP_NATIVE_IMPL
 
+#include <dsp/arch/native/context.h>
+#include <dsp/arch/native/copy.h>
+
 namespace native
 {
-    #include <dsp/arch/native/context.h>
-    #include <dsp/arch/native/copy.h>
     #include <dsp/arch/native/float.h>
     #include <dsp/arch/native/fft.h>
     #include <dsp/arch/native/search.h>
@@ -38,13 +41,14 @@ namespace native
 
 namespace native
 {
-    #define EXPORT1(function)            dsp::function = native::function
+    #define EXPORT1(function)            dsp::function = native::function; TEST_EXPORT(native::function);
 
     void dsp_init()
     {
         // Generic init
         EXPORT1(start);
         EXPORT1(finish);
+        EXPORT1(info);
 
         EXPORT1(copy);
         EXPORT1(copy_saturated);

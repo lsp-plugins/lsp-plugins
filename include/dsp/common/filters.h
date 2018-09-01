@@ -479,7 +479,7 @@ namespace dsp
      * function modifies contents of the bc memory chunk
      *
      * @param bf memory-aligned target transformed biquad x1 filters
-     * @param bc memory-aligned source analog bilinear filter cascades
+     * @param bc memory-aligned source analog bilinear filter cascades, modified after execution
      * @param kf frequency shift coefficient (filter frequency)
      * @param td tranformation coefficient (2 * pi / sample rate)
      * @param count number of cascades  to process
@@ -490,7 +490,7 @@ namespace dsp
      * function modifies contents of the bc memory chunk
      *
      * @param bf memory-aligned target transformed biquad x2 filters
-     * @param bc memory-aligned source analog bilinear filter cascades
+     * @param bc memory-aligned source analog bilinear filter cascades, modified after execution
      * @param kf frequency shift coefficient (filter frequency)
      * @param td tranformation coefficient (2 * pi / sample rate)
      * @param count number of cascades  to process
@@ -501,7 +501,7 @@ namespace dsp
      * function modifies contents of the bc memory chunk
      *
      * @param bf memory-aligned target transformed biquad x4 filters
-     * @param bc memory-aligned source analog bilinear filter cascades
+     * @param bc memory-aligned source analog bilinear filter cascades, modified after execution
      * @param kf frequency shift coefficient (filter frequency)
      * @param td tranformation coefficient (2 * pi / sample rate)
      * @param count number of cascades  to process
@@ -512,7 +512,7 @@ namespace dsp
      * function modifies contents of the bc memory chunk
      *
      * @param bf memory-aligned target transformed biquad x8 filters
-     * @param bc memory-aligned source analog bilinear filter cascades
+     * @param bc memory-aligned source analog bilinear filter cascades, modified after execution
      * @param kf frequency shift coefficient (filter frequency)
      * @param td tranformation coefficient (2 * pi / sample rate)
      * @param count number of cascades  to process

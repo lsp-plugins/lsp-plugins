@@ -83,7 +83,7 @@ void normalize_fft(float *dst_re, float *dst_im, const float *src_re, const floa
     }
 }
 
-static void normalize_fft(float *dst_re, float *dst_im, size_t rank)
+static void do_normalize_fft(float *dst_re, float *dst_im, size_t rank)
 {
     size_t items    = 1 << rank;
     float k         = 1.0f / items;
@@ -1199,7 +1199,7 @@ void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float 
     }
 
     // Update amplitudes
-    normalize_fft(dst_re, dst_im, rank);
+    do_normalize_fft(dst_re, dst_im, rank);
 }
 
 void packed_reverse_fft(float *dst, const float *src, size_t rank)

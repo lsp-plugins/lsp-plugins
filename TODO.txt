@@ -14,11 +14,10 @@
 - Migrated to CMake build system.
 - Additional display mode for spectrum analyzer added.
 - Added possibility to double-click the parameter's value number and enter it manually from keyboard.
-- Implemented normal unit testing system.
-- Implemented normal performance testing system.
 
 === 1.1.4 ===
 * DSP code moved from core to separate subtree.
+* Fixed bugs in some oversampling routines.
 * Optimized complex multiplication functions.
 * Implemented basic Raspberry Pi support (experimental).
 * Changed licensing to GNU Lesser General Public License version 3 (GNU LGPL v3).
@@ -28,12 +27,17 @@
 * Added LSPC file format.
 * Added LSPC file format support to convolver plugins.
 * Implemented linear impulse response profiler.
+* Implemented unit testing system.
+* Implemented performance testing system.
+* Implemented manual testing system.
 
 *******************************************************************************
 * Release steps
 *******************************************************************************
 * Update version in Makefile
 * Update CHANGELOG.txt and TODO.txt
+* Run make clean && make -j8 test to build testing system
+* Run .build/lsp-plugins-test utest for running all unit tests
 * Run make clean && make uninstall && make -j8 install to build and install binaries
 * Make video
 * Add video cover to res/video-covers
