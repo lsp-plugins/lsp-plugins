@@ -5,10 +5,10 @@
  *      Author: sadko
  */
 
-#ifndef DSP_ARCH_ARM_NEON_VFPV4_COMPLEX_H_
-#define DSP_ARCH_ARM_NEON_VFPV4_COMPLEX_H_
+#ifndef DSP_ARCH_ARM_NEON_D32_COMPLEX_H_
+#define DSP_ARCH_ARM_NEON_D32_COMPLEX_H_
 
-namespace neon_vfpv4
+namespace neon_d32
 {
     void complex_mul(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count)
     {
@@ -70,4 +70,4 @@ namespace neon_vfpv4
 }
 
 
-#endif /* DSP_ARCH_ARM_NEON_FPV4_COMPLEX_H_ */
+#endif /* DSP_ARCH_ARM_NEON_D32_COMPLEX_H_ */
