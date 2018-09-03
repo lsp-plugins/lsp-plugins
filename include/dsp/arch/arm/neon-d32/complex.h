@@ -158,7 +158,7 @@ namespace neon_d32
 
             : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
               [src1_re] "+r" (src1_re), [src1_im] "+r" (src1_im),
-              [src1_re] "+r" (src2_re), [src2_im] "+r" (src2_im),
+              [src2_re] "+r" (src2_re), [src2_im] "+r" (src2_im),
               [count] "+r" (count)
             :
             : "cc", "memory"
