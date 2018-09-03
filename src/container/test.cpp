@@ -56,6 +56,23 @@ typedef struct task_t
     test::UnitTest     *utest;
 } task_t;
 
+void out_cpu_info(FILE *out)
+{
+    dsp::info_t *info;
+    info = dsp::info();
+    if (info == NULL)
+        return;
+
+    fprintf(out, "--------------------------------------------------------------------------------\n");
+    fprintf(out, "CPU information:\n");
+    fprintf(out, "  Architecture:   %s\n", info->arch);
+    fprintf(out, "  CPU string:     %s\n", info->cpu);
+    fprintf(out, "  CPU model:      %s\n", info->model);
+    fprintf(out, "  Features:       %s\n", info->features);
+    fprintf(out, "\n");
+    free(info);
+}
+
 bool match_string(const char *p, const char *m)
 {
     while (p != NULL)
@@ -271,6 +288,8 @@ int launch_ptest(config_t *cfg)
             fprintf(stderr, "Could not open output file %s\n", cfg->outfile);
             return 4;
         }
+
+        out_cpu_info(fd);
     }
 
     for ( ; v != NULL; v = v->next())
@@ -751,20 +770,8 @@ int main(int argc, const char **argv)
 
     // Nested process code: initialize DSP
     dsp::context_t ctx;
-    dsp::info_t *info;
-
     dsp::init();
-    info = dsp::info();
-    if (info != NULL)
-    {
-        printf("--------------------------------------------------------------------------------\n");
-        printf("CPU information:\n");
-        printf("  Architecture:   %s\n", info->arch);
-        printf("  CPU string:     %s\n", info->cpu);
-        printf("  CPU model:      %s\n", info->model);
-        printf("  Features:       %s\n", info->features);
-        free(info);
-    }
+    out_cpu_info(stdout);
 
     dsp::start(&ctx);
 
