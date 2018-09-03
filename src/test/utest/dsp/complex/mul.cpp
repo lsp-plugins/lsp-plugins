@@ -48,6 +48,8 @@ IF_ARCH_ARM(
     {
         void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
         void complex_mul3_x12(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+
+        void packed_complex_mul3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
@@ -160,6 +162,7 @@ UTEST_BEGIN("dsp.complex", mul)
         IF_ARCH_X86_64(call("x64_packed_sse3", 16, sse3::x64_packed_complex_mul));
         IF_ARCH_X86_64(call("x64_packed_avx", 32, avx::x64_packed_complex_mul));
         IF_ARCH_X86_64(call("x64_packed_fma3", 32, avx::x64_packed_complex_mul_fma3));
+        IF_ARCH_ARM(call("packed_neon_d32", 16, neon_d32::packed_complex_mul3));
     }
 
 UTEST_END;

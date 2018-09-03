@@ -28,6 +28,7 @@ namespace neon_d32
 
         lsp_trace("Optimizing DSP for NEON-D32 instruction set");
         EXPORT2(complex_mul, complex_mul3);
+        EXPORT2(packed_complex_mul, packed_complex_mul3);
         TEST_EXPORT(neon_d32::complex_mul3_x12);
     }
 }
