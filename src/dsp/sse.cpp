@@ -119,7 +119,6 @@ namespace sse
         EXPORT1(finish);
 
         EXPORT1(copy);
-        TEST_EXPORT(sse::copy_new);
         EXPORT1(copy_saturated);
         EXPORT1(saturate);
         EXPORT1(move);

@@ -20,8 +20,6 @@ IF_ARCH_X86(
     {
         void move(float *dst, const float *src, size_t count);
         void copy(float *dst, const float *src, size_t count);
-
-        void copy_new(float *dst, const float *src, size_t count);
     }
 )
 
@@ -88,7 +86,6 @@ UTEST_BEGIN("dsp.copy", copy)
     UTEST_MAIN
     {
         IF_ARCH_X86(call("copy_sse", 16, native::copy, sse::copy));
-        IF_ARCH_X86(call("copy_sse_new", 16, native::copy, sse::copy_new));
         IF_ARCH_X86(call("move_sse", 16, native::move, sse::move));
 
         IF_ARCH_ARM(call("copy_neon_d32", 16, native::move, neon_d32::copy));
