@@ -54,7 +54,7 @@ namespace neon_d32
             __ASM_EMIT("vmla.f32    q10, q0, q6")                   // q10 = si*dr + sr*di
             __ASM_EMIT("vst1.32     {d16-d17}, [%[dst_re]]!")
             __ASM_EMIT("vst1.32     {d20-d21}, [%[dst_im]]!")
-            __ASM_EMIT("subs        %[count], $4")
+            __ASM_EMIT("sub         %[count], $4")
 
             // x1 blocks
             __ASM_EMIT("4:")
@@ -128,7 +128,7 @@ namespace neon_d32
             __ASM_EMIT("vmla.f32    q10, q0, q6")                   // q10 = si*dr + sr*di
             __ASM_EMIT("vst1.32     {d16-d17}, [%[dst_re]]!")
             __ASM_EMIT("vst1.32     {d20-d21}, [%[dst_im]]!")
-            __ASM_EMIT("subs        %[count], $4")
+            __ASM_EMIT("sub         %[count], $4")
 
             // x1 blocks
             __ASM_EMIT("4:")
