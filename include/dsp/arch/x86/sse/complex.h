@@ -8,6 +8,10 @@
 #ifndef DSP_ARCH_X86_SSE_COMPLEX_H_
 #define DSP_ARCH_X86_SSE_COMPLEX_H_
 
+#ifndef DSP_ARCH_X86_SSE_IMPL
+    #error "This header should not be included directly"
+#endif /* DSP_ARCH_X86_SSE_IMPL */
+
 #define CPLX_OP_MATRIX4(operation, dst_re, dst_im, src_re, src_im) \
     __ASM_EMIT("test $0x0f, %[" dst_re "]") \
     __ASM_EMIT("jnz 11000f") \
@@ -129,7 +133,7 @@ namespace sse
     {
         size_t off;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Check count */
             __ASM_EMIT("xor         %[off], %[off]")
@@ -271,7 +275,7 @@ namespace sse
                 __ASM_EMIT("jmp         4f")
 
 
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
                 __ASM_EMIT("xorps       %%xmm6, %%xmm6")
                 __ASM_EMIT("xorps       %%xmm7, %%xmm7")
@@ -378,7 +382,7 @@ namespace sse
                 __ASM_EMIT("jmp         4f")
 
 
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
                 __ASM_EMIT("xorps       %%xmm6, %%xmm6")
                 __ASM_EMIT("xorps       %%xmm7, %%xmm7")
@@ -477,7 +481,7 @@ namespace sse
             __ASM_EMIT("jmp         4f")
 
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Do block processing */
             __ASM_EMIT("test $0x0f, %[dst]")
@@ -580,7 +584,7 @@ namespace sse
             __ASM_EMIT("jmp         4f")
 
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Do block processing */
             __ASM_EMIT("test $0x0f, %[dst]")
@@ -628,7 +632,7 @@ namespace sse
         size_t off;
         __IF_32( size_t temp_re, temp_im );
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Check count */
             __ASM_EMIT("xor         %[off], %[off]")
@@ -725,7 +729,7 @@ namespace sse
     {
         size_t off;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("xor         %[off], %[off]")
             __ASM_EMIT("sub         $16, %[count]")
@@ -811,7 +815,7 @@ namespace sse
     {
         size_t off;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("xor         %[off], %[off]")
             __ASM_EMIT("sub         $12, %[count]")
@@ -965,7 +969,7 @@ namespace sse
             __ASM_EMIT("add         $0x10, %[dst_im]")          /* dst_im += 4 */ \
             __ASM_EMIT("sub         $4, %[count]")              /* count -= 4 */ \
 
-        __asm__ __volatile__ (
+        ARCH_X86_ASM (
             /* Do block processing */
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          50f")
@@ -1072,7 +1076,7 @@ namespace sse
             __ASM_EMIT("add         $0x10, %[dst_im]")          /* dst_im += 4 */ \
             __ASM_EMIT("sub         $4, %[count]")              /* count -= 4 */ \
 
-        __asm__ __volatile__ (
+        ARCH_X86_ASM (
             /* Do block processing */
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          50f")
@@ -1203,7 +1207,7 @@ namespace sse
             __ASM_EMIT("add         $0x20, %[dst]")             /* dst += 8 */ \
             __ASM_EMIT("sub         $4, %[count]")              /* count -= 4 */ \
 
-        __asm__ __volatile__ (
+        ARCH_X86_ASM (
             /* Do block processing */
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          50f")
@@ -1332,7 +1336,7 @@ namespace sse
             __ASM_EMIT("add         $0x20, %[dst]")             /* dst += 8 */ \
             __ASM_EMIT("sub         $4, %[count]")              /* count -= 4 */ \
 
-        __asm__ __volatile__ (
+        ARCH_X86_ASM (
             /* Do block processing */
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          50f")

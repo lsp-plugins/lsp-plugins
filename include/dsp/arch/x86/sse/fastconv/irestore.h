@@ -29,7 +29,7 @@ static inline void RESTORE_INTERNAL_IMPL(float *dst, float *tmp, size_t rank)
             float *b        = &a[n];
             size_t k        = n;
 
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
                 __ASM_EMIT("movaps      0x00(%[ak]), %%xmm6")       /* xmm6 = rak[i] */
                 __ASM_EMIT("movaps      0x10(%[ak]), %%xmm7")       /* xmm7 = iak[i] */
@@ -38,7 +38,7 @@ static inline void RESTORE_INTERNAL_IMPL(float *dst, float *tmp, size_t rank)
                 : "%xmm6", "%xmm7"
             );
 
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
 //                        __ASM_EMIT(".align 16")
                 __ASM_EMIT("1:")
@@ -109,7 +109,7 @@ static inline void RESTORE_INTERNAL_IMPL(float *dst, float *tmp, size_t rank)
         float kn            = 1.0f / last;
         size_t k            = n;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movaps      0x00(%[ak]), %%xmm6")           /* xmm6 = rak[i] */
             __ASM_EMIT("movaps      0x10(%[ak]), %%xmm7")           /* xmm7 = iak[i] */
@@ -120,7 +120,7 @@ static inline void RESTORE_INTERNAL_IMPL(float *dst, float *tmp, size_t rank)
             : "%xmm1", "%xmm6", "%xmm7"
         );
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
 //                    __ASM_EMIT(".align 16")
             __ASM_EMIT("1:")
@@ -178,7 +178,7 @@ static inline void RESTORE_INTERNAL_IMPL(float *dst, float *tmp, size_t rank)
         float kn    = 1.0f / last;
 
         // Unpack 4x split complex to 4x real
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("shufps      $0x00, %%xmm0, %%xmm0")         /* xmm0 = kn */
             __ASM_EMIT(MV_TMP "     0x00(%[tmp]), %%xmm1")          /* xmm0 = s[i] */

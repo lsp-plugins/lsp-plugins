@@ -38,7 +38,7 @@ void axis_apply_log(float *x, float *y, const float *v, float zero, float norm_x
 {
     // Step 1: load vector, take absolute value and limit it by minimum value
     #define LOG_LOAD(r, mv_v, d)   \
-        __asm__ __volatile__ \
+        ARCH_X86_ASM \
         ( \
             __ASM_EMIT(mv_v "       (%[v]), %%" r "mm3")            /* xmm3 = v */ \
             __ASM_EMIT("vandps      %[X_SIGN], %%ymm3, %%ymm3")     /* xmm3 = abs(v) */ \
@@ -54,7 +54,7 @@ void axis_apply_log(float *x, float *y, const float *v, float zero, float norm_x
 
     // Step 2: parse float value
     #define LOG_STEP1       \
-        __asm__ __volatile__ \
+        ARCH_X86_ASM \
         ( \
             __ASM_EMIT("vpsrld      $23, %%ymm3, %%ymm4")           /* xmm4 = frac(v) */ \
             __ASM_EMIT("vandps      %[X_MANT], %%ymm3, %%ymm3")     /* xmm3 = mant(v) */ \
@@ -71,7 +71,7 @@ void axis_apply_log(float *x, float *y, const float *v, float zero, float norm_x
 
     // Step 3: prepare logarithm approximation calculations
     #define LOG_STEP2   \
-        __asm__ __volatile__ \
+        ARCH_X86_ASM \
         ( \
             __ASM_EMIT("vcmpltps    %[SQRT1_2], %%ymm3, %%ymm5")    /* xmm5 = / V < sqrt(1/2) / */ \
             __ASM_EMIT("vmovaps     %[ONE], %%ymm7")                /* xmm7 = 1.0 */ \
@@ -89,7 +89,7 @@ void axis_apply_log(float *x, float *y, const float *v, float zero, float norm_x
 
     // Step 4: calculate four logarithmic values
     #define LOG_STEP3   \
-        __asm__ __volatile__ \
+        ARCH_X86_ASM \
         ( \
             __ASM_EMIT("vmulps      %%ymm3, %%ymm3, %%ymm7")        /* xmm7 = A*A */ \
             \
@@ -141,7 +141,7 @@ void axis_apply_log(float *x, float *y, const float *v, float zero, float norm_x
 
     // Step 5: apply vector and store values
     #define LOG_STORE(r, mv_x, mv_y, d)   \
-        __asm__ __volatile__ \
+        ARCH_X86_ASM \
         ( \
             __ASM_EMIT("vmovaps     %%ymm5, %%ymm3")                /* xmm3 = log(abs(v*zero)), xmm5=log(abs(v*zero)) */ \
             __ASM_EMIT(mv_x "       (%[x]), %%" r "mm4")            /* xmm4 = x */ \
@@ -170,7 +170,7 @@ void axis_apply_log(float *x, float *y, const float *v, float zero, float norm_x
         return;
 
     // Prepare constants
-    __asm__ __volatile__
+    ARCH_X86_ASM
     (
         __ASM_EMIT("vshufps     $0x00, %%ymm0, %%ymm0, %%ymm0") // xmm0 == zero
         __ASM_EMIT("vshufps     $0x00, %%ymm1, %%ymm1, %%ymm1") // xmm1 == norm_x

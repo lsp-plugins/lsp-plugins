@@ -14,7 +14,7 @@ namespace avx
     {
         size_t off;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Check count */
             __ASM_EMIT("xor         %[off], %[off]")
@@ -113,7 +113,7 @@ namespace avx
     {
         size_t off;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Check count */
             __ASM_EMIT("xor         %[off], %[off]")
@@ -207,7 +207,7 @@ namespace avx
     {
         size_t off;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Check count */
             __ASM_EMIT("xor         %[off], %[off]")
@@ -279,7 +279,7 @@ namespace avx
     {
         size_t off;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Check count */
             __ASM_EMIT("xor         %[off], %[off]")

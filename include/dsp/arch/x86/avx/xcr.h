@@ -19,7 +19,7 @@ namespace x86
         {
             uint64_t xcr;
 
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
                 __ASM_EMIT64("xor       %%rax, %%rax")
                 __ASM_EMIT("xgetbv")

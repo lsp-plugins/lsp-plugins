@@ -72,6 +72,7 @@
     #endif
 
     #define IF_ARCH_X86(...)        __VA_ARGS__
+    #define ARCH_X86_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
 
     #define ARCH_X86
     #define ARCH_LE
@@ -79,6 +80,7 @@
 
 #if defined(ARCH_ARM)
     #define ARCH_LE
+    #define ARCH_ARM_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
 
     #if (__ARM_ARCH == 8)
         #define ARCH_64BIT
@@ -187,6 +189,14 @@
     #define __ASM_EMITP(code)
     #define __ASM_EMITNP(code)                     code "\n\t"
 #endif /* LSP_PROFILING */
+
+#ifndef ARCH_X86_ASM
+    #define ARCH_X86_ASM(...)
+#endif /* ARCH_X86_ASM */
+
+#ifndef ARCH_ARM_ASM
+    #define ARCH_ARM_ASM(...)
+#endif /* ARCH_ARM_ASM */
 
 #define __ASM_ARG_TMP(var)                      __IF_32P("=&g"(var)) __IF_32NP("=&r"(var)) __IF_64("=&r"(var))
 #define __ASM_ARG_RW(var)                       __IF_32P("+g"(var))  __IF_32NP("+r"(var))  __IF_64("+r"(var))

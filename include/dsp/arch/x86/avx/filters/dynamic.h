@@ -20,7 +20,7 @@ namespace avx
     #ifdef ARCH_X86_64_AVX
         size_t mask;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("test            %[count], %[count]")
@@ -176,7 +176,7 @@ namespace avx
     #ifdef ARCH_X86_64_AVX
         size_t mask;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("test            %[count], %[count]")

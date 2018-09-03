@@ -102,7 +102,7 @@
         w_re[3]             = cosf(w); \
         w_im[3]             = sinf(w); \
         \
-        __asm__ __volatile__ \
+        ARCH_X86_ASM \
         ( \
             __ASM_EMIT("movaps     %0, %%xmm6") \
             __ASM_EMIT("movaps     %1, %%xmm7") \
@@ -114,7 +114,7 @@
 #else
     // Enhanced-precision sines and cosines
     #define FFT_BUTTERFLY_SINCOS_PREC \
-        __asm__ __volatile \
+        ARCH_X86_ASM \
         ( \
             /* Prepare angles for calculation */ \
             __ASM_EMIT("cvtsi2ss    %1, %%xmm0")                /* xmm0 = p */ \
@@ -212,7 +212,7 @@
 
     // Normal-precision sines and cosines
     #define FFT_BUTTERFLY_SINCOS  \
-        __asm__ __volatile \
+        ARCH_X86_ASM \
         ( \
             /* Prepare angles for calculation */ \
             __ASM_EMIT("cvtsi2ss    %1, %%xmm0")                /* xmm0 = p */ \
@@ -309,7 +309,7 @@
     register float *b_im    = &a_im[pairs]; \
     register size_t b       = blocks; \
     \
-    __asm__ __volatile__ \
+    ARCH_X86_ASM \
     ( \
         /* Prefetch data */ \
         /*__ASM_EMIT("prefetchnta (%[a_re])") */ \
@@ -385,7 +385,7 @@
     register size_t p       = pairs; \
     __IF_32(size_t tmp_re, tmp_im); \
     \
-    __asm__ __volatile__ \
+    ARCH_X86_ASM \
     ( \
         /* Prefetch data */ \
         /*__ASM_EMIT("prefetchnta (%[a_re])") */ \
@@ -493,7 +493,7 @@
     );
 
 #define FFT_ANGLE_INIT   \
-    __asm__ __volatile__ \
+    ARCH_X86_ASM \
     ( \
         __ASM_EMIT("sub $2, %[rank]")                           /* rank -= 2 */ \
         __ASM_EMIT("shl $4, %[rank]")                           /* rank *= 16 */ \
@@ -508,7 +508,7 @@
     );
 
 #define FFT_ANGLE_ROTATE   \
-    __asm__ __volatile__ \
+    ARCH_X86_ASM \
     ( \
         /* xmm6 = a_re[0..3] */ \
         /* xmm7 = a_im[0..3] */ \

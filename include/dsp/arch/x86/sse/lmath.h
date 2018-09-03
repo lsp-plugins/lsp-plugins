@@ -96,7 +96,7 @@ namespace sse
 {
     void add2(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          20000f")
@@ -121,7 +121,7 @@ namespace sse
 
     void sub2(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          20000f")
@@ -146,7 +146,7 @@ namespace sse
 
     void mul2(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          20000f")
@@ -171,7 +171,7 @@ namespace sse
 
     void div2(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          20000f")
@@ -284,7 +284,7 @@ namespace sse
 
     void add3(float *dst, const float *src1, const float *src2, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          20000f")
@@ -319,7 +319,7 @@ namespace sse
 
     void sub3(float *dst, const float *src1, const float *src2, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          20000f")
@@ -354,7 +354,7 @@ namespace sse
 
     void mul3(float *dst, const float *src1, const float *src2, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          20000f")
@@ -389,7 +389,7 @@ namespace sse
 
     void div3(float *dst, const float *src1, const float *src2, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          20000f")
@@ -508,7 +508,7 @@ namespace sse
             __ASM_EMIT("dec         %[count]") \
             __ASM_EMIT("jnz         8b")
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -632,7 +632,7 @@ namespace sse
             __ASM_EMIT("dec         %[count]") \
             __ASM_EMIT("jnz         8b")
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -737,7 +737,7 @@ namespace sse
 
     void scale_add3(float *dst, const float *src, float k, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -767,7 +767,7 @@ namespace sse
 
     void scale_sub3(float *dst, const float *src, float k, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -797,7 +797,7 @@ namespace sse
 
     void scale_mul3(float *dst, const float *src, float k, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -827,7 +827,7 @@ namespace sse
 
     void scale_div3(float *dst, const float *src, float k, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -927,7 +927,7 @@ namespace sse
 
     void scale_add4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -968,7 +968,7 @@ namespace sse
 
     void scale_sub4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -1009,7 +1009,7 @@ namespace sse
 
     void scale_mul4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -1050,7 +1050,7 @@ namespace sse
 
     void scale_div4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")

@@ -16,7 +16,7 @@ static inline void FFT_SCRAMBLE_COPY_DIRECT_NAME(float *dst, const float *src, s
         size_t index    = reverse_bits(FFT_TYPE(i), rank);
 
         // Perform 4-element butterflies
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Load data to registers */
 #if 1

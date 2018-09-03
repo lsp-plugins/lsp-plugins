@@ -41,7 +41,7 @@ namespace sse3
     {
         // Step 1: load vector, take absolute value and limit it by minimum value
         #define LOG_LOAD(mv_v, d)   \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 __ASM_EMIT(mv_v "       (%[v]), %%xmm3")        /* xmm3 = v */ \
                 __ASM_EMIT("andps       %[X_SIGN], %%xmm3")     /* xmm3 = abs(v) */ \
@@ -56,7 +56,7 @@ namespace sse3
             )
 
         #define LOG_LOADx2(mv_v, d)  \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 __ASM_EMIT(mv_v "       0x00(%[v]), %%xmm3")    /* xmm3 = v */ \
                 __ASM_EMIT(mv_v "       0x10(%[v]), %%xmm11")   /* xmm11 = v */ \
@@ -76,7 +76,7 @@ namespace sse3
 
         // Step 2: parse float value
         #define LOG_STEP1       \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 __ASM_EMIT("movdqa      %%xmm3, %%xmm4")        /* xmm4 = v */ \
                 __ASM_EMIT("psrld       $23, %%xmm4")           /* xmm4 = frac(v) */ \
@@ -93,7 +93,7 @@ namespace sse3
             )
 
         #define LOG_STEP1x2     \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 __ASM_EMIT("movdqa      %%xmm3, %%xmm4")        /* xmm4 = v */ \
                 __ASM_EMIT("movdqa      %%xmm11, %%xmm12")      /* xmm12 = v */ \
@@ -117,7 +117,7 @@ namespace sse3
 
         // Step 3: prepare logarithm approximation calculations
         #define LOG_STEP2   \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 __ASM_EMIT("movaps      %%xmm3, %%xmm5")        /* xmm5 = V */ \
                 __ASM_EMIT("movaps      %%xmm3, %%xmm6")        /* xmm6 = V */ \
@@ -136,7 +136,7 @@ namespace sse3
             )
 
         #define LOG_STEP2x2   \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 __ASM_EMIT("movaps      %%xmm3, %%xmm5")        /* xmm5 = V */ \
                 __ASM_EMIT("movaps      %%xmm11, %%xmm13")      /* xmm13 = V */ \
@@ -166,7 +166,7 @@ namespace sse3
 
         // Step 4: calculate four logarithmic values
         #define LOG_STEP3  /* B*LXE + A*A*A*(L8+A*(L7+A*(L6+A*(L5+A*(L4+A*(L3+A*L2+A*(L1+L0*A))))))) + L9*A*A + A + B*LN2 */ \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 __ASM_EMIT("movaps      0x00(%[CC]), %%xmm5")   /* xmm5 = L0 */ \
                 __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = L0*A */ \
@@ -200,7 +200,7 @@ namespace sse3
             )
 
         #define LOG_STEP3x2   \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 __ASM_EMIT("movaps      0x00(%[CC]), %%xmm5")   /* xmm5     = L0 */ \
                 __ASM_EMIT("movaps      0x00(%[CC]), %%xmm13")  /* xmm13    = L0 */ \
@@ -260,7 +260,7 @@ namespace sse3
 
         // Step 5: apply vector and store values
         #define LOG_STORE(mv_x, mv_y, d)   \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 __ASM_EMIT("movaps      %%xmm5, %%xmm3")        /* xmm3 = log(abs(v*zero)), xmm5=log(abs(v*zero)) */ \
                 __ASM_EMIT(mv_x "       (%[x]), %%xmm4")        /* xmm4 = x */ \
@@ -279,7 +279,7 @@ namespace sse3
             )
 
         #define LOG_STOREx2(mv_x, mv_y, d)   \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 __ASM_EMIT("movaps      %%xmm5, %%xmm3")        /* xmm3 = log(abs(v*zero)), xmm5=log(abs(v*zero)) */ \
                 __ASM_EMIT("movaps      %%xmm13, %%xmm11")        /* xmm11 = log(abs(v*zero)), xmm5=log(abs(v*zero)) */ \
@@ -323,7 +323,7 @@ namespace sse3
             return;
 
         // Prepare constants
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movaps      %[zero], %%xmm0")
             __ASM_EMIT("movaps      %[norm_x], %%xmm1")

@@ -20,7 +20,7 @@ namespace sse
             return;
 
         // Head
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movaps %[X_HALF], %%xmm3")
             __ASM_EMIT("1:")
@@ -64,7 +64,7 @@ namespace sse
         if (regs > 0)
         {
             // Prefetch data for iteration
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
                 __ASM_EMIT("prefetchnta  0x00(%[left])")
                 __ASM_EMIT("prefetchnta  0x00(%[right])")
@@ -131,7 +131,7 @@ namespace sse
                 __ASM_EMIT("300:")
 
             // Process blocks
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
                 __ASM_EMIT("test $0x0f, %[right]")
                 __ASM_EMIT("jnz 4f")
@@ -182,7 +182,7 @@ namespace sse
         }
 
         // Tail
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test %[count], %[count]")
             __ASM_EMIT("jz 2f")
@@ -223,7 +223,7 @@ namespace sse
             return;
 
         // Head
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("1:")
 
@@ -264,7 +264,7 @@ namespace sse
         if (regs > 0)
         {
             // Prefetch data for iteration
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
                 __ASM_EMIT("prefetchnta  0x00(%[mid])")
                 __ASM_EMIT("prefetchnta  0x00(%[side])")
@@ -324,7 +324,7 @@ namespace sse
                 __ASM_EMIT("300:")
 
             // Process blocks
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
                 __ASM_EMIT("test $0x0f, %[side]")
                 __ASM_EMIT("jnz 4f")
@@ -375,7 +375,7 @@ namespace sse
         }
 
         // Tail
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test %[count], %[count]")
             __ASM_EMIT("jz 2f")
@@ -477,7 +477,7 @@ namespace sse
         __ASM_EMIT("jnz         500b") \
 
     #define LR_CVT_BODY(dst_ptr, op) \
-        __asm__ __volatile__ \
+        ARCH_X86_ASM \
         ( \
             __ASM_EMIT("test        %[count], %[count]") \
             __ASM_EMIT("jz          1000f") \
@@ -604,7 +604,7 @@ namespace sse
         __ASM_EMIT("jnz         500b") \
 
     #define MS_CVT_BODY(dst_ptr, op) \
-        __asm__ __volatile__ \
+        ARCH_X86_ASM \
         ( \
             __ASM_EMIT("test        %[count], %[count]") \
             __ASM_EMIT("jz          1000f") \

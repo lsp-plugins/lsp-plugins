@@ -60,7 +60,7 @@ static inline void SSE_FFT_NAME(FFT_REPACK, FFT_MODE)(float *dst, size_t rank)
     size_t blocks     = 1 << (rank-3);
 
     // Perform 4-element butterflies
-    __asm__ __volatile__
+    ARCH_X86_ASM
     (
         __ASM_EMIT(".align 16")
         __ASM_EMIT("1:")
@@ -104,7 +104,7 @@ static inline void SSE_FFT_NAME(FFT_REPACK_NORMALIZE, FFT_MODE)(float *dst, size
     float k             = 0.125f/blocks;
 
     // Perform 4-element butterflies
-    __asm__ __volatile__
+    ARCH_X86_ASM
     (
         __ASM_EMIT("shufps      $0x00, %%xmm0, %%xmm0")     /* xmm0 = k  k  k  k  */
         __ASM_EMIT("movaps      %%xmm0, %%xmm1")            /* xmm1 = k  k  k  k  */

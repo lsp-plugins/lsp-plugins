@@ -9,12 +9,18 @@
 #include <dsp/dsp.h>
 #include <test/test.h>
 
-#include <sys/auxv.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <dsp/arch/arm/features.h>
+
+namespace neon_d32
+{
+    extern void dsp_init(const arm::cpu_features_t *f);
+}
 
 namespace arm
 {
@@ -27,15 +33,6 @@ namespace arm
     //    CPU variant     : 0x0
     //    CPU part        : 0xd03
     //    CPU revision    : 4
-    typedef struct cpu_features_t
-    {
-        size_t      implementer;
-        size_t      architecture;
-        size_t      variant;
-        size_t      part;
-        size_t      revision;
-        uint64_t    hwcap;
-    } cpu_features_t;
 
     typedef struct cpu_part_t
     {
@@ -288,6 +285,8 @@ IF_ARCH_ARM(
 
         // Export functions
         EXPORT1(info);
+
+        neon_d32::dsp_init(&f);
 
 // ARM-specific constants
 //        #define HWCAP_ARM_SWP           1

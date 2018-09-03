@@ -126,7 +126,7 @@ namespace sse4
     {
         float x0, x1, x2;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[p]), %[x0]")         // xmm0 = x y z w
             NORMALIZE("[x0]", "[x1]", "[x2]")
@@ -146,7 +146,7 @@ namespace sse4
     {
         float x0, x1, x2;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[p]), %[x0]")         // xmm0 = x y z w
             SCALE("[x0]", "[x3]", "[x1]", "[x2]")
@@ -166,7 +166,7 @@ namespace sse4
     {
         float x0, x1, x2;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[s]), %[x0]")         // xmm0 = x y z w
             SCALE("[x0]", "[x3]", "[x1]", "[x2]")
@@ -186,7 +186,7 @@ namespace sse4
     {
         float x0, x1, x2;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[v]), %[x0]")     // xmm0 = dx dy dz dw
             NORMALIZE("[x0]", "[x1]", "[x2]")
@@ -202,7 +202,7 @@ namespace sse4
     {
         float x0, x1, x2;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[v]), %[x0]")     // xmm0 = dx dy dz dw
             SCALE("[x0]", "[x3]", "[x1]", "[x2]")
@@ -220,7 +220,7 @@ namespace sse4
     {
         float x0, x1, x2;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[s]), %[x0]")     // xmm0 = dx dy dz dw
             SCALE("[x0]", "[x3]", "[x1]", "[x2]")
@@ -238,7 +238,7 @@ namespace sse4
     {
         float x0, x1, x2, x3, x4, x5, x6, x7;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Load vectors */
             __ASM_EMIT("movups      (%[p]), %[x3]")         /* xmm3 = px py pz pw */
@@ -346,7 +346,7 @@ namespace sse4
     {
         float x0, x1, x2, x3, x4, x5, x6, x7;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Load vectors */
             __ASM_EMIT("movups      (%[p]), %[x3]")         /* xmm3 = px py pz pw */
@@ -405,7 +405,7 @@ namespace sse4
     {
         float x0, x1, x2, x3, x4, x5, x6, x7;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Load vectors */
             __ASM_EMIT("movups      (%[p]), %[x3]")         /* xmm3 = px py pz pw */
@@ -467,7 +467,7 @@ namespace sse4
         float x0, x1, x2, x3, x4, x5, x6, x7;
         size_t tmp1;//, tmp2, tmp3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             //---------------------------------------------------
             // PART 0: perform simple culling

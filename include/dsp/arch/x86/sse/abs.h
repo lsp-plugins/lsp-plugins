@@ -82,7 +82,7 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm2, 0x00(%[dst])") \
             __ASM_EMIT("add         $0x10, %[dst]")
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -205,7 +205,7 @@ namespace sse
             __ASM_EMIT("add         $0x10, %[dst]") \
 
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -325,7 +325,7 @@ namespace sse
 
 
     #define ABS_OP2_BODY(OP) \
-        __asm__ __volatile__ \
+        ARCH_X86_ASM \
         ( \
             __ASM_EMIT("test        %[count], %[count]") \
             __ASM_EMIT("jz          2000f") \

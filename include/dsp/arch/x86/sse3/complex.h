@@ -14,7 +14,7 @@ namespace sse3
     {
         size_t off;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Check count */
             __ASM_EMIT("xor         %[off], %[off]")
@@ -95,7 +95,7 @@ namespace sse3
     {
         size_t off;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("xor         %[off], %[off]")
             __ASM_EMIT("sub         $16, %[count]")
@@ -182,7 +182,7 @@ namespace sse3
     {
         size_t off;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Do block processing */
             __ASM_EMIT("xor         %[off], %[off]")
@@ -308,7 +308,7 @@ namespace sse3
     {
         size_t off;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("xor         %[off], %[off]")
             __ASM_EMIT("sub         $32, %[count]")

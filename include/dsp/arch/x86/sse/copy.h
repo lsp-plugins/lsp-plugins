@@ -83,7 +83,7 @@ namespace sse
             __ASM_EMIT("sub         $0x04, %[count]")
 
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("cmp         %[dst], %[src]")
             __ASM_EMIT("je          2000f")
@@ -201,7 +201,7 @@ namespace sse
             __ASM_EMIT(MV_SRC "     0x00(%[src]), %%xmm0") \
             __ASM_EMIT("movaps      %%xmm0, 0x00(%[dst])")
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("cmp         %[dst], %[src]")
             __ASM_EMIT("je          2000f")
@@ -320,7 +320,7 @@ namespace sse
             __ASM_EMIT("dec         %[count]") \
             __ASM_EMIT("jnz         8b")
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -439,7 +439,7 @@ namespace sse
     {
         const float *src;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("lea         (%[head], %[count], 4), %[tail]")
             __ASM_EMIT("shr         $1, %[count]")
@@ -576,7 +576,7 @@ namespace sse
             return;
         }
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")

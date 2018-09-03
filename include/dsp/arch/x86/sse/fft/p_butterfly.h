@@ -12,7 +12,7 @@
     register size_t p       = pairs; \
     __IF_32(size_t tmp1); \
     \
-    __asm__ __volatile__ \
+    ARCH_X86_ASM \
     ( \
         /* Prepare angle */ \
         __ASM_EMIT32("mov       %[a], %[tmp1]") \

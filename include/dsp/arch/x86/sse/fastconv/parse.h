@@ -26,7 +26,7 @@ static inline void PARSE_IMPL(float *dst, const float *src, size_t rank)
         float *b            = &a[n];
         size_t k            = n;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movaps      0x00(%[ak]), %%xmm6")       /* xmm6 = rA[i] */
             __ASM_EMIT("movaps      0x10(%[ak]), %%xmm7")       /* xmm7 = iA[i] */
@@ -37,7 +37,7 @@ static inline void PARSE_IMPL(float *dst, const float *src, size_t rank)
               "%xmm5", "%xmm6", "%xmm7"
         );
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
 //                    __ASM_EMIT(".align 16")
             __ASM_EMIT("1:")
@@ -93,7 +93,7 @@ static inline void PARSE_IMPL(float *dst, const float *src, size_t rank)
     else
     {
         // Unpack 4x real to 4x split complex
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT(MV_SRC "     0x00(%[src]), %%xmm0")      /* xmm0 = s[i] */
             __ASM_EMIT("xorps       %%xmm1, %%xmm1")            /* xmm1 = 0 */
@@ -116,7 +116,7 @@ static inline void PARSE_IMPL(float *dst, const float *src, size_t rank)
             float *b            = &a[n];
             size_t k            = n;
 
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
                 __ASM_EMIT("movaps      0x00(%[ak]), %%xmm6")       /* xmm6 = rA[i] */
                 __ASM_EMIT("movaps      0x10(%[ak]), %%xmm7")       /* xmm7 = iA[i] */
@@ -125,7 +125,7 @@ static inline void PARSE_IMPL(float *dst, const float *src, size_t rank)
                 : "%xmm6", "%xmm7"
             );
 
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
 //                        __ASM_EMIT(".align 16")
                 __ASM_EMIT("1:")
@@ -188,7 +188,7 @@ static inline void PARSE_IMPL(float *dst, const float *src, size_t rank)
         wk     -= 8;
     }
 
-    __asm__ __volatile__
+    ARCH_X86_ASM
     (
 //                __ASM_EMIT(".align 16")
         __ASM_EMIT("1:")
@@ -270,7 +270,7 @@ static inline void PARSE_INTERNAL_IMPL(float *dst, const float *src, size_t rank
         float *b            = &a[n];
         size_t k            = n;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movaps      0x00(%[ak]), %%xmm6")       /* xmm6 = rA[i] */
             __ASM_EMIT("movaps      0x10(%[ak]), %%xmm7")       /* xmm7 = iA[i] */
@@ -281,7 +281,7 @@ static inline void PARSE_INTERNAL_IMPL(float *dst, const float *src, size_t rank
               "%xmm5", "%xmm6", "%xmm7"
         );
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
 //                    __ASM_EMIT(".align 16")
             __ASM_EMIT("1:")
@@ -339,7 +339,7 @@ static inline void PARSE_INTERNAL_IMPL(float *dst, const float *src, size_t rank
     else
     {
         // Unpack 4x real to 4x split complex
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT(MV_SRC "     0x00(%[src]), %%xmm0")      /* xmm0 = s[i] */
             __ASM_EMIT("xorps       %%xmm1, %%xmm1")            /* xmm1 = 0 */
@@ -362,7 +362,7 @@ static inline void PARSE_INTERNAL_IMPL(float *dst, const float *src, size_t rank
             float *b            = &a[n];
             size_t k            = n;
 
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
                 __ASM_EMIT("movaps      0x00(%[ak]), %%xmm6")       /* xmm6 = rA[i] */
                 __ASM_EMIT("movaps      0x10(%[ak]), %%xmm7")       /* xmm7 = iA[i] */
@@ -371,7 +371,7 @@ static inline void PARSE_INTERNAL_IMPL(float *dst, const float *src, size_t rank
                 : "%xmm6", "%xmm7"
             );
 
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
 //                        __ASM_EMIT(".align 16")
                 __ASM_EMIT("1:")

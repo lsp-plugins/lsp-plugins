@@ -18,7 +18,7 @@ namespace sse
     {
         size_t i;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("test        %[count], %[count]")
@@ -69,7 +69,7 @@ namespace sse
     {
         size_t i;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("test        %[count], %[count]")
@@ -155,7 +155,7 @@ namespace sse
         float   MASK[4] __lsp_aligned16;
         size_t  mask;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("test        %[count], %[count]")
@@ -319,7 +319,7 @@ namespace sse
         size_t i, mask;
         float          *dst_bk;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("test        %[count], %[count]")

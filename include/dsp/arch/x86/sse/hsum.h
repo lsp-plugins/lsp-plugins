@@ -18,7 +18,7 @@ namespace sse
     {
         float result;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("xorps       %%xmm0, %%xmm0")
             __ASM_EMIT("test        %[count], %[count]")
@@ -118,7 +118,7 @@ namespace sse
     {
         float result;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("xorps       %%xmm0, %%xmm0")
             __ASM_EMIT("test        %[count], %[count]")
@@ -233,7 +233,7 @@ namespace sse
     {
         float result;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("xorps       %%xmm0, %%xmm0")
             __ASM_EMIT("test        %[count], %[count]")

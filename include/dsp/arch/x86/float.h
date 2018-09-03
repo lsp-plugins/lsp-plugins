@@ -21,7 +21,7 @@ namespace x86
     {
         uint16_t cr = 0;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("fstcw   %[cr]")
 
@@ -37,7 +37,7 @@ namespace x86
     {
         uint16_t cr     = value;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("fldcw   %[cr]")
 
@@ -57,7 +57,7 @@ namespace x86
             __ASM_EMIT("dec %[count]")  \
             __ASM_EMIT("jnz 1b")
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("cld")
@@ -136,7 +136,7 @@ namespace x86
             __ASM_EMIT("dec %[count]") \
             __ASM_EMIT("jnz 1b")
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("cld")
@@ -208,7 +208,7 @@ namespace x86
     {
         register uint32_t tmp;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("cld")
@@ -266,7 +266,7 @@ namespace x86
     {
         register uint32_t tmp;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("cld")

@@ -20,7 +20,7 @@ namespace avx
         if (count == 0)
             return;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("1:")
 
@@ -62,7 +62,7 @@ namespace avx
             #endif /* __i386__ */
 
             // Prefetch data for iteration
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
                 __ASM_EMIT      ("prefetchnta  0x000(%[src1])")
                 __ASM_EMIT      ("prefetchnta  0x040(%[src1])")
@@ -79,7 +79,7 @@ namespace avx
             { \
                 if (blocks > 0) \
                 { \
-                    __asm__ __volatile__ \
+                    ARCH_X86_ASM \
                     ( \
                         __ASM_EMIT("1:") \
                         \
@@ -145,7 +145,7 @@ namespace avx
                 \
                 if (regs > 0) \
                 { \
-                    __asm__ __volatile__ \
+                    ARCH_X86_ASM \
                     ( \
                         __ASM_EMIT("1:") \
                         \
@@ -191,7 +191,7 @@ namespace avx
 
         if (count > 0)
         {
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
                 __ASM_EMIT("1:")
 
@@ -227,7 +227,7 @@ namespace avx
         if (count == 0)
             return;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("vshufps $0x00, %[k], %[k], %%xmm4")
             : : [k] "x" (k)
@@ -235,7 +235,7 @@ namespace avx
         );
 
         // Align destination
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("1:")
 
@@ -274,7 +274,7 @@ namespace avx
         );
 
         #define ADD_MULT_CORE(ld_m)   \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 __ASM_EMIT("100:") \
                 __ASM_EMIT("vinsertf128     $1, %%xmm4, %%ymm4, %%ymm4") \
@@ -386,7 +386,7 @@ namespace avx
         if (count == 0)
             return;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("vshufps $0x00, %[k], %[k], %%xmm7")
             : : [k] "x" (k)
@@ -394,7 +394,7 @@ namespace avx
         );
 
         // Align destination
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("1:")
 
@@ -429,7 +429,7 @@ namespace avx
         */
 
         #define ADD_MULT_CORE(ld_m)   \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 __ASM_EMIT("100:") \
                 \

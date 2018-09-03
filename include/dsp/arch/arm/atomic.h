@@ -13,7 +13,7 @@
     { \
         type tmp; \
         \
-        __asm__ __volatile__ \
+        ARCH_ARM_ASM \
         ( \
             __ASM_EMIT("dmb") \
             __ASM_EMIT("ldrex       %[tmp], [%[ptr]]") \

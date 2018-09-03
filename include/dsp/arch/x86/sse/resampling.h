@@ -365,7 +365,7 @@ namespace sse
 
     void lanczos_resample_2x2(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movss       %[k0], %%xmm6")         // xmm6 = k0
             __ASM_EMIT("movss       %[k1], %%xmm7")         // xmm7 = k1
@@ -456,7 +456,7 @@ namespace sse
 
     void lanczos_resample_2x3(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movss       %[k0], %%xmm6")         // xmm6 = k0
             __ASM_EMIT("movss       %[k1], %%xmm7")         // xmm7 = k1
@@ -566,7 +566,7 @@ namespace sse
 
     void lanczos_resample_3x2(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("sub         $2, %[count]")
             __ASM_EMIT("jb          2f")
@@ -648,7 +648,7 @@ namespace sse
 
     void lanczos_resample_3x3(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("sub         $2, %[count]")
             __ASM_EMIT("jb          2f")
@@ -758,7 +758,7 @@ namespace sse
 
     void lanczos_resample_4x2(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("sub         $2, %[count]")
             __ASM_EMIT("jb          2f")
@@ -853,7 +853,7 @@ namespace sse
 
     void lanczos_resample_4x3(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("sub         $2, %[count]")
             __ASM_EMIT("jb          2f")
@@ -975,7 +975,7 @@ namespace sse
 
     void lanczos_resample_6x2(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2f")
@@ -1038,7 +1038,7 @@ namespace sse
 
     void lanczos_resample_6x3(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2f")
@@ -1118,7 +1118,7 @@ namespace sse
 
     void lanczos_resample_8x2(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2f")
@@ -1194,7 +1194,7 @@ namespace sse
 
     void lanczos_resample_8x3(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2f")
@@ -1293,7 +1293,7 @@ namespace sse
 
     void downsample_2x(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("jb          2f")
@@ -1368,7 +1368,7 @@ namespace sse
 
     void downsample_3x(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("jb          2f")
@@ -1454,7 +1454,7 @@ namespace sse
 
     void downsample_4x(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("jb          2f")
@@ -1551,7 +1551,7 @@ namespace sse
 
     void downsample_6x(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("jb          2f")
@@ -1648,7 +1648,7 @@ namespace sse
 
     void downsample_8x(float *dst, const float *src, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("jb          2f")

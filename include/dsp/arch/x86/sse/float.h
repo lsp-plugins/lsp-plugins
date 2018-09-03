@@ -58,7 +58,7 @@ namespace sse
             __ASM_EMIT(st    "  %%xmm1, (%[dst])")
 
         #define MULTIPLE_SATURATION(ld, st) \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 /* Perorm loop */ \
                 __ASM_EMIT("1:") \
@@ -85,7 +85,7 @@ namespace sse
         if (count == 0)
             return;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Prepare constants */
             __ASM_EMIT("movapd %[X_ZERO_M1], %%xmm7")   /* xmm7 = 0 - 1 */
@@ -132,7 +132,7 @@ namespace sse
             }
         }
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Test for source alignmens */
             __ASM_EMIT("test    %[count], %[count]")
@@ -209,7 +209,7 @@ namespace sse
         if (count == 0)
             return;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Prepare constants */
             __ASM_EMIT("movapd %[X_ZERO_M1], %%xmm7")   /* xmm7 = 0 - 1 */
@@ -245,7 +245,7 @@ namespace sse
 
         if (regs > 0)
         {
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
                 /* Test for source alignmens */
                 __ASM_EMIT("1:")
@@ -269,7 +269,7 @@ namespace sse
             );
         }
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Test for source alignmens */
             __ASM_EMIT("test    %[count], %[count]")

@@ -43,6 +43,13 @@ IF_ARCH_X86(
     )
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+    }
+)
+
 typedef void (* complex_mul_t) (float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
 typedef void (* packed_complex_mul_t) (float *dst, const float *src1, const float *src2, size_t count);
 
@@ -144,6 +151,7 @@ UTEST_BEGIN("dsp.complex", mul)
         IF_ARCH_X86(call("unpacked_sse", 16, sse::complex_mul));
         IF_ARCH_X86_64(call("x64_unpacked_avx", 16, avx::x64_complex_mul));
         IF_ARCH_X86_64(call("x64_unpacked_fma3", 16, avx::x64_complex_mul_fma3));
+        IF_ARCH_ARM(call("unpacked_neon_d32", 16, neon_d32::complex_mul3));
 
         IF_ARCH_X86(call("packed_sse", 16, sse::packed_complex_mul));
         IF_ARCH_X86(call("packed_sse3", 16, sse3::packed_complex_mul));

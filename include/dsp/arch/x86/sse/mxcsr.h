@@ -44,7 +44,7 @@ namespace sse
         uint8_t fxsave[512] __lsp_aligned16;
         uint8_t *ptr        = fxsave;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Clear FXSAVE structure
             __ASM_EMIT("xor     %%eax, %%eax")
@@ -75,7 +75,7 @@ namespace sse
     {
         uint32_t result = 0;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("stmxcsr %[result]")
 
@@ -89,7 +89,7 @@ namespace sse
 
     inline void write_mxcsr(uint32_t value)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Clear FXSAVE structure
             __ASM_EMIT("and         %[mask], %[value]")

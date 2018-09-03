@@ -12,7 +12,7 @@ static inline void APPLY_INTERNAL_IMPL(float *tmp, const float *conv, size_t ran
 {
     size_t items    = size_t(1) << (rank + 1);
 
-    __asm__ __volatile__
+    ARCH_X86_ASM
     (
 //                __ASM_EMIT(".align 16")
         __ASM_EMIT("1:")

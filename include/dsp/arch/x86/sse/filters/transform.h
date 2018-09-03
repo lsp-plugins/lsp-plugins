@@ -126,7 +126,7 @@ namespace sse
         float x1, x2, x3, x4, x5, x6, x7;
         float N[4] __lsp_aligned16;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          100f")
@@ -283,7 +283,7 @@ namespace sse
         float N[4] __lsp_aligned16;
 
         // Same ad bilinear_tranform_x1 but number of cycles is doubled
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          100f")
@@ -436,7 +436,7 @@ namespace sse
         float N[4] __lsp_aligned16;
 
         // Same ad bilinear_tranform_x1 but number of cycles is doubled
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          100f")
@@ -512,7 +512,7 @@ namespace sse
         float N2[4] __lsp_aligned16;
 
         // Same ad bilinear_tranform_x1 but number of cycles is doubled
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          100f")
@@ -708,7 +708,7 @@ namespace sse
 
         float x2, x3, x4, x5, x6, x7;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Prepare
             // Calculate COSW, SINW, COS2W, SIN2W
@@ -739,7 +739,7 @@ namespace sse
 
         while (count >= 4)
         {
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
                 // Load top part
                 __ASM_EMIT("movaps      0x00(%[bc]), %[x0]")    // x0 = t0[0] t0[1] t0[2] t0[3]
@@ -960,7 +960,7 @@ namespace sse
 
         float x2, x3, x4, x5, x6, x7;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Prepare
             // Calculate COSW, SINW, COS2W, SIN2W
