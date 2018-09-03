@@ -4,10 +4,12 @@ OBJ_HELPERS             = $(OBJDIR)/CairoCanvas.o
 
 # Detemine what modules to build
 PACKAGES                = $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA) $(OBJ_PLUGINS) $(SNDFILE_LIBS)
-MODULES                 = $(LIB_LADSPA) $(LIB_LV2) $(LIB_JACK) $(BIN_PROFILE) $(LIB_VST)
 ifeq ($(LSP_TESTING),1)
 PACKAGES               += $(OBJ_TEST_CORE) $(OPENGL_LIBS)
-MODULES                += $(BIN_TEST)
+MODULES                 = $(BIN_TEST)
+endif
+ifneq ($(LSP_TESTING),1)
+MODULES                 = $(LIB_LADSPA) $(LIB_LV2) $(LIB_JACK) $(BIN_PROFILE) $(LIB_VST)
 endif
 
 UI_PACKAGES             = $(PACKAGES) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(XLIB_LIBS) $(CAIRO_LIBS)
