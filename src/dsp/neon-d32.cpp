@@ -12,6 +12,7 @@
 
 #define DSP_ARCH_ARM_NEON_32_IMPL
 
+#include <dsp/arch/arm/neon-d32/copy.h>
 #include <dsp/arch/arm/neon-d32/complex.h>
 
 #undef DSP_ARCH_ARM_NEON_32_IMPL
@@ -27,8 +28,13 @@ namespace neon_d32
             return;
 
         lsp_trace("Optimizing DSP for NEON-D32 instruction set");
+        EXPORT1(copy);
+        EXPORT1(move);
+
         EXPORT2(complex_mul, complex_mul3);
         EXPORT2(packed_complex_mul, packed_complex_mul3);
+
+        // Misc for testing
         TEST_EXPORT(neon_d32::complex_mul3_x12);
     }
 }

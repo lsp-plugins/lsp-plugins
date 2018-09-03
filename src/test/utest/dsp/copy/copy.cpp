@@ -23,6 +23,14 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void move(float *dst, const float *src, size_t count);
+        void copy(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* copy_t)(float *dst, const float *src, size_t count);
 
 UTEST_BEGIN("dsp.copy", copy)
@@ -77,6 +85,9 @@ UTEST_BEGIN("dsp.copy", copy)
     {
         IF_ARCH_X86(call("copy_sse", 16, native::copy, sse::copy));
         IF_ARCH_X86(call("move_sse", 16, native::move, sse::move));
+
+        IF_ARCH_ARM(call("copy_neon_d32", 16, native::move, neon_d32::copy));
+        IF_ARCH_ARM(call("move_neon_d32", 16, native::move, neon_d32::move));
     }
 
 UTEST_END;
