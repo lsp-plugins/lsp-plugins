@@ -36,8 +36,6 @@ IF_ARCH_ARM(
     {
         void move(float *dst, const float *src, size_t count);
         void copy(float *dst, const float *src, size_t count);
-
-        void copy_new(float *dst, const float *src, size_t count);
     }
 )
 
@@ -96,7 +94,6 @@ PTEST_BEGIN("dsp.copy", copy, 5, 1000)
             IF_ARCH_X86(call("sse3_copy", out, in, count, sse3::copy));
             IF_ARCH_X86(call("sse_move", out, in, count, sse::move));
             IF_ARCH_ARM(call("neon_d32_copy", out, in, count, neon_d32::copy));
-            IF_ARCH_ARM(call("neon_d32_copy_new", out, in, count, neon_d32::copy_new));
             IF_ARCH_ARM(call("neon_d32_move", out, in, count, neon_d32::move));
 
             PTEST_SEPARATOR;
