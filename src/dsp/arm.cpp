@@ -16,6 +16,7 @@
 #include <string.h>
 
 #include <dsp/arch/arm/features.h>
+#include <dsp/arch/arm/fpscr.h>
 
 namespace neon_d32
 {

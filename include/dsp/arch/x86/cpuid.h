@@ -8,7 +8,7 @@
 #ifndef DSP_ARCH_X86_CPUID_H_
 #define DSP_ARCH_X86_CPUID_H_
 
-#include <core/types.h>
+#include <dsp/types.h>
 
 //-------------------------------------------------------------------------
 // CPUID Function 0
