@@ -20,6 +20,8 @@ IF_ARCH_X86(
     {
         void move(float *dst, const float *src, size_t count);
         void copy(float *dst, const float *src, size_t count);
+
+        void copy_new(float *dst, const float *src, size_t count);
     }
 )
 
@@ -28,6 +30,8 @@ IF_ARCH_ARM(
     {
         void move(float *dst, const float *src, size_t count);
         void copy(float *dst, const float *src, size_t count);
+
+        void copy_new(float *dst, const float *src, size_t count);
     }
 )
 
@@ -41,7 +45,7 @@ UTEST_BEGIN("dsp.copy", copy)
         if (!UTEST_SUPPORTED(func2))
             return;
 
-        UTEST_FOREACH(count, /*0, 1, 3,*/ 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0x100, 0x1ff, 999, 0xfff)
+        UTEST_FOREACH(count, 0, 1, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0x100, 0x1ff, 999, 0xfff)
         {
             for (size_t mask=0; mask <= 0x03; ++mask)
             {
@@ -84,9 +88,11 @@ UTEST_BEGIN("dsp.copy", copy)
     UTEST_MAIN
     {
         IF_ARCH_X86(call("copy_sse", 16, native::copy, sse::copy));
+        IF_ARCH_X86(call("copy_sse_new", 16, native::copy, sse::copy_new));
         IF_ARCH_X86(call("move_sse", 16, native::move, sse::move));
 
         IF_ARCH_ARM(call("copy_neon_d32", 16, native::move, neon_d32::copy));
+        IF_ARCH_ARM(call("copy_new_neon_d32", 16, native::move, neon_d32::copy_new));
         IF_ARCH_ARM(call("move_neon_d32", 16, native::move, neon_d32::move));
     }
 
