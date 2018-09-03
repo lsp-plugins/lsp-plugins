@@ -84,7 +84,9 @@ namespace neon_d32
               [src_re] "+r" (src_re), [src_im] "+r" (src_im),
               [count] "+r" (count)
             :
-            : "cc", "memory"
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11"
         );
     }
 
@@ -161,7 +163,9 @@ namespace neon_d32
               [src2_re] "+r" (src2_re), [src2_im] "+r" (src2_im),
               [count] "+r" (count)
             :
-            : "cc", "memory"
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11"
         );
     }
 }
