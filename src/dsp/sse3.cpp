@@ -47,6 +47,7 @@ namespace sse3
     #undef DSP_F32VEC4
 }
 
+#include <dsp/arch/x86/sse3/copy.h>
 #include <dsp/arch/x86/sse3/graphics.h>
 #include <dsp/arch/x86/sse3/filters/static.h>
 #include <dsp/arch/x86/sse3/filters/dynamic.h>
@@ -71,6 +72,7 @@ namespace sse3
 
         // Additional xmm registers are available only in 64-bit mode
         EXPORT2(packed_complex_mul, packed_complex_mul);
+        TEST_EXPORT(sse3::copy);
         EXPORT2(packed_complex_mod, packed_complex_mod);
         EXPORT2_X64(packed_complex_mod, x64_packed_complex_mod);
 

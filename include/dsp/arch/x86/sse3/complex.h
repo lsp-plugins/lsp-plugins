@@ -8,6 +8,10 @@
 #ifndef DSP_ARCH_X86_SSE3_COMPLEX_H_
 #define DSP_ARCH_X86_SSE3_COMPLEX_H_
 
+#ifndef DSP_ARCH_X86_SSE3_IMPL
+    #error "This header should not be included directly"
+#endif /* DSP_ARCH_X86_SSE3_IMPL */
+
 namespace sse3
 {
     void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count)

@@ -24,6 +24,11 @@ IF_ARCH_X86(
         void move(float *dst, const float *src, size_t count);
         void copy(float *dst, const float *src, size_t count);
     }
+
+    namespace sse3
+    {
+        void copy(float *dst, const float *src, size_t count);
+    }
 )
 
 IF_ARCH_ARM(
@@ -49,7 +54,7 @@ static void move(float *dst, const float *src, size_t count)
     memmove(dst, src, count * sizeof(float));
 }
 
-PTEST_BEGIN("dsp.copy", copy, 5, 10000)
+PTEST_BEGIN("dsp.copy", copy, 5, 1000)
 
     void call(const char *label, float *dst, const float *src, size_t count, copy_t copy)
     {
@@ -79,7 +84,7 @@ PTEST_BEGIN("dsp.copy", copy, 5, 10000)
         TEST_EXPORT(::copy);
         TEST_EXPORT(::move);
 
-        for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
+        for (size_t i=MIN_RANK; i <= MAX_RANK; i += 2)
         {
             size_t count = 1 << i;
 
@@ -88,6 +93,7 @@ PTEST_BEGIN("dsp.copy", copy, 5, 10000)
             call("native_copy", out, in, count, native::copy);
             call("native_move", out, in, count, native::move);
             IF_ARCH_X86(call("sse_copy", out, in, count, sse::copy));
+            IF_ARCH_X86(call("sse3_copy", out, in, count, sse3::copy));
             IF_ARCH_X86(call("sse_move", out, in, count, sse::move));
             IF_ARCH_ARM(call("neon_d32_copy", out, in, count, neon_d32::copy));
             IF_ARCH_ARM(call("neon_d32_copy_new", out, in, count, neon_d32::copy_new));
