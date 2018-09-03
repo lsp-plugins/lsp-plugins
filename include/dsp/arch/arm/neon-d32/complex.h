@@ -76,7 +76,7 @@ namespace neon_d32
             __ASM_EMIT("add         %[dst_re], $4")
             __ASM_EMIT("add         %[dst_im], $4")
             __ASM_EMIT("subs        %[count], $1")
-            __ASM_EMIT("bge         1b")
+            __ASM_EMIT("bge         5b")
 
             __ASM_EMIT("6:")
 
@@ -152,7 +152,7 @@ namespace neon_d32
             __ASM_EMIT("add         %[dst_re], $4")
             __ASM_EMIT("add         %[dst_im], $4")
             __ASM_EMIT("subs        %[count], $1")
-            __ASM_EMIT("bge         1b")
+            __ASM_EMIT("bge         5b")
 
             __ASM_EMIT("6:")
 
