@@ -33,6 +33,8 @@ IF_ARCH_ARM(
     {
         void move(float *dst, const float *src, size_t count);
         void copy(float *dst, const float *src, size_t count);
+
+        void copy_new(float *dst, const float *src, size_t count);
     }
 )
 

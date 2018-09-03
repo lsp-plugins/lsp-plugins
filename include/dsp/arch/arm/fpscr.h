@@ -74,7 +74,7 @@ namespace arm
     inline void write_fpscr(uint32_t fpscr)
     {
     }
-#endif ARCH_ARM
+#endif /* ARCH_ARM */
 }
 
 #endif /* DSP_ARCH_ARM_FPSCR_H_ */
