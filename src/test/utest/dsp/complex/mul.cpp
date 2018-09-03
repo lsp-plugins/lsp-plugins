@@ -47,6 +47,7 @@ IF_ARCH_ARM(
     namespace neon_d32
     {
         void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+        void complex_mul3_x12(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
     }
 )
 
@@ -105,7 +106,7 @@ UTEST_BEGIN("dsp.complex", mul)
         {
             for (size_t mask=0; mask <= 0x3f; ++mask)
             {
-                printf("Testing123 %s on input buffer of %d numbers, mask=0x%x...\n", text, int(count), int(mask));
+                printf("Testing %s on input buffer of %d numbers, mask=0x%x...\n", text, int(count), int(mask));
 
                 FloatBuffer src1_re(count, align, mask & 0x01);
                 FloatBuffer src1_im(count, align, mask & 0x02);
@@ -152,6 +153,7 @@ UTEST_BEGIN("dsp.complex", mul)
         IF_ARCH_X86_64(call("x64_unpacked_avx", 16, avx::x64_complex_mul));
         IF_ARCH_X86_64(call("x64_unpacked_fma3", 16, avx::x64_complex_mul_fma3));
         IF_ARCH_ARM(call("unpacked_neon_d32", 16, neon_d32::complex_mul3));
+        IF_ARCH_ARM(call("unpacked_neon_d32_x12", 16, neon_d32::complex_mul3_x12));
 
         IF_ARCH_X86(call("packed_sse", 16, sse::packed_complex_mul));
         IF_ARCH_X86(call("packed_sse3", 16, sse3::packed_complex_mul));
