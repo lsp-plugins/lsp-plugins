@@ -74,6 +74,9 @@ PTEST_BEGIN("dsp.copy", copy, 5, 10000)
         for (size_t i=0; i < (1 << MAX_RANK); ++i)
             in[i]          = float(rand()) / RAND_MAX;
 
+        TEST_EXPORT(::copy);
+        TEST_EXPORT(::move);
+
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
