@@ -87,8 +87,8 @@ PTEST_BEGIN("dsp.copy", copy, 5, 10000)
             call("native_move", out, in, count, native::move);
             IF_ARCH_X86(call("sse_copy", out, in, count, sse::copy));
             IF_ARCH_X86(call("sse_move", out, in, count, sse::move));
-            IF_ARCH_ARM(call("neon_d16_copy", out, in, count, neon_d16::copy));
-            IF_ARCH_ARM(call("neon_d16_move", out, in, count, neon_d16::move));
+            IF_ARCH_ARM(call("neon_d16_copy", out, in, count, neon_d32::copy));
+            IF_ARCH_ARM(call("neon_d16_move", out, in, count, neon_d32::move));
 
             PTEST_SEPARATOR;
         }
