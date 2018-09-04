@@ -33,6 +33,13 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void pcomplex_mod(float *dst_mod, const float *src, size_t count);
+    }
+)
+
 typedef void (* pcomplex_mod_t)(float *dst_mod, const float *src, size_t count);
 typedef void (* complex_mod_t)(float *dst_mod, const float *src_re, const float *src_im, size_t count);
 
@@ -119,7 +126,8 @@ UTEST_BEGIN("dsp.complex", mod)
         IF_ARCH_X86(call("sse:pcomplex_mod", 16, sse::pcomplex_mod));
         IF_ARCH_X86(call("sse3:pcomplex_mod", 16, sse3::pcomplex_mod));
         IF_ARCH_X86(call("sse3:x64_pcomplex_mod", 16, sse3::x64_pcomplex_mod));
-        IF_ARCH_X86(call("avx:x64_pcomplex_mod", 16, avx::x64_pcomplex_mod));
+        IF_ARCH_X86(call("avx:x64_pcomplex_mod", 32, avx::x64_pcomplex_mod));
+        IF_ARCH_ARM(call("neon_d32:pcomplex_mod", 16, neon_d32::pcomplex_mod));
     }
 
 UTEST_END
