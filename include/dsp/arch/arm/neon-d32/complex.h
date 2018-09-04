@@ -433,7 +433,7 @@ namespace neon_d32
             __ASM_EMIT("vrecps.f32      q10, q3, q2")
             __ASM_EMIT("vmul.f32        q0, q8, q1")                // q0 = x2 = x1 * (2 - R*x0)
             __ASM_EMIT("vmul.f32        q1, q10, q3")
-            __ASM_EMIT("sub             %[count], $4")
+            __ASM_EMIT("sub             %[count], $8")
             __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
 
             //-----------------------------------------------------------------
