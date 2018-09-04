@@ -65,22 +65,24 @@ namespace dsp
      * @param src2 source 2
      * @param count number of multiplications
      */
-    extern void (* packed_complex_mul)(float *dst, const float *src1, const float *src2, size_t count);
+    extern void (* pcomplex_mul)(float *dst, const float *src1, const float *src2, size_t count);
 
-    /** Calculate packed complex reciprocal: 1 / (re + j * im)
+    /** Calculate packed complex reciprocal:
+     *   dst[i].{re,im} = 1 / (dst[i].re + j * dst[i].im)
      *
      * @param dst source, destination to store complex numbers
      * @param count number of multiplications
      */
-    extern void (* packed_complex_rcp1)(float *dst, size_t count);
+    extern void (* pcomplex_rcp1)(float *dst, size_t count);
 
-    /** Calculate packed complex reciprocal: 1 / (re + j * im)
+    /** Calculate packed complex reciprocal:
+     *   dst[i].{re,im} = 1 / (src[i].re + j * src[i].im)
      *
      * @param dst destination to store complex numbers
      * @param src source
      * @param count number of multiplications
      */
-    extern void (* packed_complex_rcp2)(float *dst, const float *src, size_t count);
+    extern void (* pcomplex_rcp2)(float *dst, const float *src, size_t count);
 
     /** Fill output array with same complex numbers
      *
@@ -89,7 +91,7 @@ namespace dsp
      * @param im imaginary part of complex number
      * @param count number of elements to fill
      */
-    extern void (* packed_complex_fill)(float *dst, float re, float im, size_t count);
+    extern void (* pcomplex_fill_ri)(float *dst, float re, float im, size_t count);
 
     /** Convert real to packed complex:
      *  dst[i].re = src[i]
@@ -116,7 +118,7 @@ namespace dsp
      * @param src source packed complex data
      * @param count number of items to convert
      */
-    extern void (* packed_complex_add_to_real)(float *dst, const float *src, size_t count);
+    extern void (* pcomplex_add_r)(float *dst, const float *src, size_t count);
 
     /** Convert real+imaginary complex number to polar form
      *
@@ -151,7 +153,7 @@ namespace dsp
      * @param src packed complex number data
      * @param count count number of elements to process
      */
-    extern void (* packed_complex_mod)(float *dst_mod, const float *src, size_t count);
+    extern void (* pcomplex_mod)(float *dst_mod, const float *src, size_t count);
 
     /** Convert polar-form of complex number to real+imaginary
      *

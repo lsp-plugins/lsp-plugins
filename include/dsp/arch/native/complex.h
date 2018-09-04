@@ -62,7 +62,7 @@ namespace native
         }
     }
 
-    void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count)
+    void pcomplex_mul(float *dst, const float *src1, const float *src2, size_t count)
     {
         while (count--)
         {
@@ -81,7 +81,7 @@ namespace native
         }
     }
 
-    void packed_complex_rcp1(float *dst, size_t count)
+    void pcomplex_rcp1(float *dst, size_t count)
     {
         while (count--)
         {
@@ -94,7 +94,7 @@ namespace native
         }
     }
 
-    void packed_complex_rcp2(float *dst, const float *src, size_t count)
+    void pcomplex_rcp2(float *dst, const float *src, size_t count)
     {
         while (count--)
         {
@@ -133,7 +133,7 @@ namespace native
         }
     }
 
-    void packed_complex_fill(float *dst, float re, float im, size_t count)
+    void pcomplex_fill_ri(float *dst, float re, float im, size_t count)
     {
         while (count --)
         {
@@ -152,7 +152,7 @@ namespace native
         }
     }
 
-    void packed_complex_add_to_real(float *dst, const float *src, size_t count)
+    void pcomplex_add_r(float *dst, const float *src, size_t count)
     {
         while (count --)
         {
@@ -218,7 +218,7 @@ namespace native
         }
     }
 
-    void packed_complex_mod(float *dst_mod, const float *src, size_t count)
+    void pcomplex_mod(float *dst_mod, const float *src, size_t count)
     {
         while (count--)
         {

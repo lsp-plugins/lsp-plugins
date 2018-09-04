@@ -60,13 +60,15 @@ namespace avx
         if (f->vendor == CPU_VENDOR_INTEL)
         {
             EXPORT2_X64(complex_mul, x64_complex_mul);
-            EXPORT2_X64(packed_complex_mul, x64_packed_complex_mul);
+            EXPORT2_X64(pcomplex_mul, x64_pcomplex_mul);
+            EXPORT2_X64(pcomplex_mod, x64_pcomplex_mod);
             EXPORT2_X64(bilinear_transform_x8, x64_bilinear_transform_x8);
         }
         else
         {
             SUPPORT_X64(x64_complex_mul);
-            SUPPORT_X64(x64_packed_complex_mul);
+            SUPPORT_X64(x64_pcomplex_mul);
+            SUPPORT_X64(x64_pcomplex_mod);
             SUPPORT_X64(x64_bilinear_transform_x8);
         }
 
@@ -77,12 +79,12 @@ namespace avx
             if (f->vendor == CPU_VENDOR_INTEL)
             {
                 EXPORT2_X64(complex_mul, x64_complex_mul_fma3);
-                EXPORT2_X64(packed_complex_mul, x64_packed_complex_mul_fma3)
+                EXPORT2_X64(pcomplex_mul, x64_pcomplex_mul_fma3)
             }
             else
             {
                 SUPPORT_X64(x64_complex_mul_fma3);
-                SUPPORT_X64(x64_packed_complex_mul_fma3);
+                SUPPORT_X64(x64_pcomplex_mul_fma3);
             }
 
 //                dsp::biquad_process_x1          = avx::biquad_process_x1_fma3;

@@ -152,17 +152,17 @@ namespace dsp
     void    (* complex_mul)(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count) = NULL;
     void    (* complex_rcp1)(float *dst_re, float *dst_im, size_t count) = NULL;
     void    (* complex_rcp2)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count) = NULL;
-    void    (* packed_complex_mul)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
-    void    (* packed_complex_rcp1)(float *dst, size_t count) = NULL;
-    void    (* packed_complex_rcp2)(float *dst, const float *src, size_t count) = NULL;
-    void    (* packed_complex_fill)(float *dst, float re, float im, size_t count) = NULL;
+    void    (* pcomplex_mul)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
+    void    (* pcomplex_rcp1)(float *dst, size_t count) = NULL;
+    void    (* pcomplex_rcp2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_fill_ri)(float *dst, float re, float im, size_t count) = NULL;
     void    (* pcomplex_r2c)(float *dst, const float *src, size_t count) = NULL;
     void    (* pcomplex_c2r)(float *dst, const float *src, size_t count) = NULL;
-    void    (* packed_complex_add_to_real)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_add_r)(float *dst, const float *src, size_t count) = NULL;
     void    (* complex_cvt2modarg)(float *dst_mod, float *dst_arg, const float *src_re, const float *src_im, size_t count) = NULL;
     void    (* complex_cvt2reim)(float *dst_re, float *dst_im, const float *src_mod, const float *src_arg, size_t count) = NULL;
     void    (* complex_mod)(float *dst_mod, const float *src_re, const float *src_im, size_t count) = NULL;
-    void    (* packed_complex_mod)(float *dst_mod, const float *src, size_t count) = NULL;
+    void    (* pcomplex_mod)(float *dst_mod, const float *src, size_t count) = NULL;
 
     void    (* fastconv_parse)(float *dst, const float *src, size_t rank) = NULL;
     void    (* fastconv_parse_apply)(float *dst, float *tmp, const float *c, const float *src, size_t rank) = NULL;

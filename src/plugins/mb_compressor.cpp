@@ -908,8 +908,8 @@ namespace lsp
                     // Update transfer function for equalizer
                     b->sEQ[0].freq_chart(0, b->vTr, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
                     b->sEQ[0].freq_chart(1, vTr, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::packed_complex_mul(b->vTr, b->vTr, vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::packed_complex_mod(b->vTr, b->vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mul(b->vTr, b->vTr, vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mod(b->vTr, b->vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
 
                     // Update filter parameters, depending on operating mode
                     if (bModern)
@@ -1275,20 +1275,20 @@ namespace lsp
             // Calculate transfer function for the compressor
             if (bModern)
             {
-                dsp::packed_complex_fill(vTr, 1.0f, 0.0f, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                dsp::pcomplex_fill_ri(vTr, 1.0f, 0.0f, mb_compressor_base_metadata::FFT_MESH_POINTS);
 
                 // Calculate transfer function
                 for (size_t j=0; j<c->nPlanSize; ++j)
                 {
                     comp_band_t *b      = c->vPlan[j];
                     sFilters.freq_chart(b->nFilterID, c->vTr, vFreqs, b->fGainLevel, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::packed_complex_mul(vTr, vTr, c->vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mul(vTr, vTr, c->vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
                 }
             }
             else
             {
                 dsp::fill_zero(vTr, mb_compressor_base_metadata::FFT_MESH_POINTS*2);
-                dsp::packed_complex_fill(c->vTr, 1.0f, 0.0f, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                dsp::pcomplex_fill_ri(c->vTr, 1.0f, 0.0f, mb_compressor_base_metadata::FFT_MESH_POINTS);
 
                 // Calculate transfer function
                 for (size_t j=0; j<c->nPlanSize; ++j)
@@ -1296,14 +1296,14 @@ namespace lsp
                     comp_band_t *b      = c->vPlan[j];
 
                     b->sPassFilter.freq_chart(vTr2, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::packed_complex_mul(vTr2, c->vTr, vTr2, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mul(vTr2, c->vTr, vTr2, mb_compressor_base_metadata::FFT_MESH_POINTS);
                     dsp::scale_add3(vTr, vTr2, b->fGainLevel, mb_compressor_base_metadata::FFT_MESH_POINTS*2);
 
                     b->sRejFilter.freq_chart(vTr2, vFreqs, mb_compressor_base_metadata::FFT_MESH_POINTS);
-                    dsp::packed_complex_mul(c->vTr, c->vTr, vTr2, mb_compressor_base_metadata::FFT_MESH_POINTS);
+                    dsp::pcomplex_mul(c->vTr, c->vTr, vTr2, mb_compressor_base_metadata::FFT_MESH_POINTS);
                 }
             }
-            dsp::packed_complex_mod(c->vTrMem, vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
+            dsp::pcomplex_mod(c->vTrMem, vTr, mb_compressor_base_metadata::FFT_MESH_POINTS);
 
             // Output FFT curve, compression curve and FFT spectrogram for each band
             for (size_t j=0; j<mb_compressor_base_metadata::BANDS_MAX; ++j)

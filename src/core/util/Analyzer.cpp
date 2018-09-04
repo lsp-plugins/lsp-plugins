@@ -189,7 +189,7 @@ namespace lsp
                         dsp::pcomplex_r2c(vFftReIm, vSigRe, fft_size);
                         dsp::packed_direct_fft(vFftReIm, vFftReIm, nRank);
                         // Get complex argument
-                        dsp::packed_complex_mod(vFftReIm, vFftReIm, fft_csize);
+                        dsp::pcomplex_mod(vFftReIm, vFftReIm, fft_csize);
                         // Mix with the previous value
                         dsp::mix2(c->vAmp, vFftReIm, 1.0 - fTau, fTau, fft_csize);
                     }

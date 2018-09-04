@@ -72,7 +72,7 @@ namespace sse3
         lsp_trace("Optimizing DSP for SSE3 instruction set");
 
         // Additional xmm registers are available only in 64-bit mode
-        EXPORT2(packed_complex_mul, packed_complex_mul);
+        EXPORT2(pcomplex_mul, pcomplex_mul);
         if (!hwops_check(f, HWOPS_FAST_MOVS))
         {
             EXPORT2(copy, copy);
@@ -81,8 +81,8 @@ namespace sse3
         {
             TEST_EXPORT(copy);
         }
-        EXPORT2(packed_complex_mod, packed_complex_mod);
-        EXPORT2_X64(packed_complex_mod, x64_packed_complex_mod);
+        EXPORT2(pcomplex_mod, pcomplex_mod);
+        EXPORT2_X64(pcomplex_mod, x64_pcomplex_mod);
 
         EXPORT2_X64(biquad_process_x2, x64_biquad_process_x2);
 //                EXPORT2_X64(biquad_process_x4, x64_biquad_process_x4); // Pure SSE has a bit better throughput for this case
@@ -90,7 +90,7 @@ namespace sse3
         EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8);
         EXPORT2_X64(bilinear_transform_x8, x64_bilinear_transform_x8);
         EXPORT2_X64(axis_apply_log, x64_axis_apply_log);
-        EXPORT2_X64(packed_complex_mul, x64_packed_complex_mul);
+        EXPORT2_X64(pcomplex_mul, x64_pcomplex_mul);
     }
 
     #undef EXPORT2

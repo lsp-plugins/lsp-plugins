@@ -10,25 +10,30 @@
 
 namespace native
 {
-    void packed_complex_mod(float *dst_mod, const float *src, size_t count);
+    void pcomplex_mod(float *dst_mod, const float *src, size_t count);
     void complex_mod(float *dst_mod, const float *src_re, const float *src_im, size_t count);
 }
 
 IF_ARCH_X86(
     namespace sse
     {
-        void packed_complex_mod(float *dst_mod, const float *src, size_t count);
+        void pcomplex_mod(float *dst_mod, const float *src, size_t count);
         void complex_mod(float *dst_mod, const float *src_re, const float *src_im, size_t count);
     }
 
     namespace sse3
     {
-        void packed_complex_mod(float *dst_mod, const float *src, size_t count);
-        void x64_packed_complex_mod(float *dst_mod, const float *src, size_t count);
+        void pcomplex_mod(float *dst_mod, const float *src, size_t count);
+        void x64_pcomplex_mod(float *dst_mod, const float *src, size_t count);
+    }
+
+    namespace avx
+    {
+        void x64_pcomplex_mod(float *dst_mod, const float *src, size_t count);
     }
 )
 
-typedef void (* packed_complex_mod_t)(float *dst_mod, const float *src, size_t count);
+typedef void (* pcomplex_mod_t)(float *dst_mod, const float *src, size_t count);
 typedef void (* complex_mod_t)(float *dst_mod, const float *src_re, const float *src_im, size_t count);
 
 UTEST_BEGIN("dsp.complex", mod)
@@ -38,8 +43,8 @@ UTEST_BEGIN("dsp.complex", mod)
         if (!UTEST_SUPPORTED(func))
             return;
 
-        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                32, 33, 37, 48, 49, 64, 65, 100, 999)
+        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+                32, 33, 37, 48, 49, 64, 65, 0x3f, 100, 999, 0x1fff)
         {
             for (size_t mask=0; mask <= 0x07; ++mask)
             {
@@ -72,13 +77,13 @@ UTEST_BEGIN("dsp.complex", mod)
         }
     }
 
-    void call(const char *text,  size_t align, packed_complex_mod_t func)
+    void call(const char *text,  size_t align, pcomplex_mod_t func)
     {
         if (!UTEST_SUPPORTED(func))
             return;
 
-        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                32, 33, 37, 48, 49, 64, 65, 100, 999)
+        UTEST_FOREACH(count, /* 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, */ 16,
+                32, 33, 37, 48, 49, 64, 65, 0x3f, 100, 999, 0x1fff)
         {
             for (size_t mask=0; mask <= 0x03; ++mask)
             {
@@ -89,7 +94,7 @@ UTEST_BEGIN("dsp.complex", mod)
                 FloatBuffer dst2(dst1);
 
                 // Call functions
-                native::packed_complex_mod(dst1, src, count);
+                native::pcomplex_mod(dst1, src, count);
                 func(dst2, src, count);
 
                 UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
@@ -110,10 +115,11 @@ UTEST_BEGIN("dsp.complex", mod)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("complex_mod_sse", 16, sse::complex_mod));
-        IF_ARCH_X86(call("packed_complex_mod_sse", 16, sse::packed_complex_mod));
-        IF_ARCH_X86(call("packed_complex_mod_sse3", 16, sse3::packed_complex_mod));
-        IF_ARCH_X86(call("x64_packed_complex_mod_sse3", 16, sse3::x64_packed_complex_mod));
+        IF_ARCH_X86(call("sse:complex_mod", 16, sse::complex_mod));
+        IF_ARCH_X86(call("sse:pcomplex_mod", 16, sse::pcomplex_mod));
+        IF_ARCH_X86(call("sse3:pcomplex_mod", 16, sse3::pcomplex_mod));
+        IF_ARCH_X86(call("sse3:x64_pcomplex_mod", 16, sse3::x64_pcomplex_mod));
+        IF_ARCH_X86(call("avx:x64_pcomplex_mod", 16, avx::x64_pcomplex_mod));
     }
 
 UTEST_END

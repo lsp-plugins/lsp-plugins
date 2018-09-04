@@ -482,7 +482,7 @@ namespace lsp
                             // Do FFT
                             dsp::packed_direct_fft(pChannels->vFftReIm, pChannels->vFftReIm, pChannels->nRank);
                             // Get complex argument
-                            dsp::packed_complex_mod(pChannels->vFftReIm, pChannels->vFftReIm, fft_csize);
+                            dsp::pcomplex_mod(pChannels->vFftReIm, pChannels->vFftReIm, fft_csize);
                             // Mix with the previous value
                             dsp::mix2(c->vFftAmp, pChannels->vFftReIm, 1.0 - pChannels->fTau, pChannels->fTau, fft_csize);
                         }

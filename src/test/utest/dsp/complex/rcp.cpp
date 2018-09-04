@@ -13,8 +13,8 @@ namespace native
 {
     void complex_rcp1(float *dst_re, float *dst_im, size_t count);
     void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
-    void packed_complex_rcp1(float *dst, size_t count);
-    void packed_complex_rcp2(float *dst, const float *src, size_t count);
+    void pcomplex_rcp1(float *dst, size_t count);
+    void pcomplex_rcp2(float *dst, const float *src, size_t count);
 }
 
 IF_ARCH_X86(
@@ -22,8 +22,8 @@ IF_ARCH_X86(
     {
         void complex_rcp1(float *dst_re, float *dst_im, size_t count);
         void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
-        void packed_complex_rcp1(float *dst, size_t count);
-        void packed_complex_rcp2(float *dst, const float *src, size_t count);
+        void pcomplex_rcp1(float *dst, size_t count);
+        void pcomplex_rcp2(float *dst, const float *src, size_t count);
     }
 )
 
@@ -135,7 +135,7 @@ UTEST_BEGIN("dsp.complex", rcp)
                 FloatBuffer dst2(dst1);
 
                 // Call functions
-                native::packed_complex_rcp1(dst1, count);
+                native::pcomplex_rcp1(dst1, count);
                 func(dst2, count);
 
                 UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
@@ -169,7 +169,7 @@ UTEST_BEGIN("dsp.complex", rcp)
                 FloatBuffer dst2(dst1);
 
                 // Call functions
-                native::packed_complex_rcp2(dst1, src, count);
+                native::pcomplex_rcp2(dst1, src, count);
                 func(dst2, src, count);
 
                 UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
@@ -192,8 +192,8 @@ UTEST_BEGIN("dsp.complex", rcp)
     {
         IF_ARCH_X86(call("complex_rcp1_sse", 16, sse::complex_rcp1));
         IF_ARCH_X86(call("complex_rcp2_sse", 16, sse::complex_rcp2));
-        IF_ARCH_X86(call("packed_complex_rcp1_sse", 16, sse::packed_complex_rcp1));
-        IF_ARCH_X86(call("packed_complex_rcp2_sse", 16, sse::packed_complex_rcp2));
+        IF_ARCH_X86(call("packed_complex_rcp1_sse", 16, sse::pcomplex_rcp1));
+        IF_ARCH_X86(call("packed_complex_rcp2_sse", 16, sse::pcomplex_rcp2));
     }
 
 UTEST_END;

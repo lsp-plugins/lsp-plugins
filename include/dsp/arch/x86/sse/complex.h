@@ -129,7 +129,7 @@
 
 namespace sse
 {
-    void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count)
+    void pcomplex_mul(float *dst, const float *src1, const float *src2, size_t count)
     {
         size_t off;
 
@@ -524,7 +524,7 @@ namespace sse
         #undef complex_to_real_core
     }
 
-    void packed_complex_add_to_real(float *dst, const float *src, size_t count)
+    void pcomplex_add_r(float *dst, const float *src, size_t count)
     {
         #define complex_to_real_core(MV_DST, MV_SRC) \
             __ASM_EMIT("cmp         $16, %[count]") \
@@ -811,7 +811,7 @@ namespace sse
         );
     }
 
-    void packed_complex_mod(float *dst, const float *src, size_t count)
+    void pcomplex_mod(float *dst, const float *src, size_t count)
     {
         size_t off;
 
@@ -1119,7 +1119,7 @@ namespace sse
         #undef complex_rcp1_core
     }
 
-    void packed_complex_rcp2(float *dst, const float *src, size_t count)
+    void pcomplex_rcp2(float *dst, const float *src, size_t count)
     {
         #define packed_complex_rcp2_core(MV_DST, MV_SRC) \
             __ASM_EMIT("sub         $8, %[count]")              /* count -= 8 */ \
@@ -1250,7 +1250,7 @@ namespace sse
         #undef packed_complex_rcp2_core
     }
 
-    void packed_complex_rcp1(float *dst, size_t count)
+    void pcomplex_rcp1(float *dst, size_t count)
     {
         #define packed_complex_rcp1_core(MV_DST) \
             __ASM_EMIT("sub         $8, %[count]")              /* count -= 8 */ \

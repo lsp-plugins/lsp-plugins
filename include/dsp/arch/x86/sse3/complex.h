@@ -14,7 +14,7 @@
 
 namespace sse3
 {
-    void packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count)
+    void pcomplex_mul(float *dst, const float *src1, const float *src2, size_t count)
     {
         size_t off;
 
@@ -95,7 +95,7 @@ namespace sse3
         #undef complex_core
     }
 
-    void packed_complex_mod(float *dst, const float *src, size_t count)
+    void pcomplex_mod(float *dst, const float *src, size_t count)
     {
         size_t off;
 
@@ -182,7 +182,7 @@ namespace sse3
     }
 
 #ifdef ARCH_X86_64
-    void x64_packed_complex_mul(float *dst, const float *src1, const float *src2, size_t count)
+    void x64_pcomplex_mul(float *dst, const float *src1, const float *src2, size_t count)
     {
         size_t off;
 
@@ -308,7 +308,7 @@ namespace sse3
         );
     }
 
-    void x64_packed_complex_mod(float *dst, const float *src, size_t count)
+    void x64_pcomplex_mod(float *dst, const float *src, size_t count)
     {
         size_t off;
 
@@ -439,7 +439,7 @@ namespace sse3
             __ASM_EMIT("movdqu      %%xmm0, 0x00(%[dst], %[off])")
             __ASM_EMIT("add         $0x10, %[off]")
             __ASM_EMIT("sub         $4, %[count]")
-            __ASM_EMIT("jae         5b")
+            __ASM_EMIT("jge         5b")
 
             // 1x blocks
             __ASM_EMIT("6:")
