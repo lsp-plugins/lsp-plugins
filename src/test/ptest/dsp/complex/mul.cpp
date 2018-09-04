@@ -114,20 +114,20 @@ PTEST_BEGIN("dsp.complex", mul, 5, 1000)
         {
             size_t count = 1 << i;
 
-            call("unpacked_native", out, in1, in2, count, native::complex_mul);
-            IF_ARCH_X86(call("unpacked_sse", out, in1, in2, count, sse::complex_mul));
-            IF_ARCH_X86_64(call("x64_unpacked_avx", out, in1, in2, count, avx::x64_complex_mul));
-            IF_ARCH_X86_64(call("x64_unpacked_fma3", out, in1, in2, count, avx::x64_complex_mul_fma3));
-            IF_ARCH_ARM(call("unpacked_neon_d32", out, in1, in2, count, neon_d32::complex_mul3));
-            IF_ARCH_ARM(call("unpacked_neon_d32_x12", out, in1, in2, count, neon_d32::complex_mul3_x12));
+            call("native:complex_mul", out, in1, in2, count, native::complex_mul);
+            IF_ARCH_X86(call("sse:complex_mul", out, in1, in2, count, sse::complex_mul));
+            IF_ARCH_X86_64(call("x64_avx:complex_mul", out, in1, in2, count, avx::x64_complex_mul));
+            IF_ARCH_X86_64(call("x64_fma3:complex_mul", out, in1, in2, count, avx::x64_complex_mul_fma3));
+            IF_ARCH_ARM(call("neon_d32:complex_mul", out, in1, in2, count, neon_d32::complex_mul3));
+            IF_ARCH_ARM(call("neon_d32:complex_mul_x12", out, in1, in2, count, neon_d32::complex_mul3_x12));
 
-            call("packed_native", out, in1, in2, count, native::pcomplex_mul);
-            IF_ARCH_X86(call("packed_sse", out, in1, in2, count, sse::pcomplex_mul));
-            IF_ARCH_X86(call("packed_sse3", out, in1, in2, count, sse3::pcomplex_mul));
-            IF_ARCH_X86_64(call("x64_packed_sse3", out, in1, in2, count, sse3::x64_pcomplex_mul));
-            IF_ARCH_X86_64(call("x64_packed_avx", out, in1, in2, count, avx::x64_pcomplex_mul));
-            IF_ARCH_X86_64(call("x64_packed_fma3", out, in1, in2, count, avx::x64_pcomplex_mul_fma3));
-            IF_ARCH_ARM(call("packed_neon_d32", out, in1, in2, count, neon_d32::packed_complex_mul3));
+            call("native:pcomplex_mul", out, in1, in2, count, native::pcomplex_mul);
+            IF_ARCH_X86(call("sse:pcomplex_mul", out, in1, in2, count, sse::pcomplex_mul));
+            IF_ARCH_X86(call("sse3:pcomplex_mul", out, in1, in2, count, sse3::pcomplex_mul));
+            IF_ARCH_X86_64(call("x64_sse3:pcomplex_mul", out, in1, in2, count, sse3::x64_pcomplex_mul));
+            IF_ARCH_X86_64(call("x64_avx:pcomplex_mul", out, in1, in2, count, avx::x64_pcomplex_mul));
+            IF_ARCH_X86_64(call("x64_fma3:pcomplex_mul", out, in1, in2, count, avx::x64_pcomplex_mul_fma3));
+            IF_ARCH_ARM(call("neon_d32:pcomplex_mul", out, in1, in2, count, neon_d32::packed_complex_mul3));
 
             PTEST_SEPARATOR;
         }
