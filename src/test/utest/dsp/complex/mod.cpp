@@ -82,7 +82,7 @@ UTEST_BEGIN("dsp.complex", mod)
         if (!UTEST_SUPPORTED(func))
             return;
 
-        UTEST_FOREACH(count, /* 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, */ 16,
+        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
                 32, 33, 37, 48, 49, 64, 65, 0x3f, 100, 999, 0x1fff)
         {
             for (size_t mask=0; mask <= 0x03; ++mask)

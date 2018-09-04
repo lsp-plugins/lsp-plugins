@@ -252,7 +252,7 @@ namespace neon_d32
         );
     }
 
-    void packed_complex_mul3(float *dst, const float *src1, const float *src2, size_t count)
+    void pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count)
     {
         ARCH_ARM_ASM
         (
