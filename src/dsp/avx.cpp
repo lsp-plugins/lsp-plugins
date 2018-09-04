@@ -23,6 +23,7 @@
 
 #endif /* ARCH_X86_64_AVX */
 
+#include <dsp/arch/x86/avx/copy.h>
 #include <dsp/arch/x86/avx/complex.h>
 #include <dsp/arch/x86/avx/filters/static.h>
 #include <dsp/arch/x86/avx/filters/dynamic.h>
@@ -51,6 +52,8 @@ namespace avx
 //            EXPORT1(biquad_process_x1);
         EXPORT2_X64(biquad_process_x8, x64_biquad_process_x8);
         EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8);
+
+        TEST_EXPORT(avx::copy);
 
         // This routine sucks on AMD Bulldozer processor family but is pretty great on Intel
         // Not tested on AMD Processors above Bulldozer family
