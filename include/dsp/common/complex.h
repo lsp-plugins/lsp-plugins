@@ -91,21 +91,24 @@ namespace dsp
      */
     extern void (* packed_complex_fill)(float *dst, float re, float im, size_t count);
 
-    /** Convert real to packed complex
+    /** Convert real to packed complex:
+     *  dst[i].re = src[i]
+     *  dst[i].im = 0
      *
      * @param dst destination packed complex data
      * @param src source real data
      * @param count number of items to convert
      */
-    extern void (* packed_real_to_complex)(float *dst, const float *src, size_t count);
+    extern void (* pcomplex_r2c)(float *dst, const float *src, size_t count);
 
-    /** Convert packed complex to real
+    /** Convert packed complex to real:
+     *  dst[i] = src[i].re
      *
      * @param dst destination real data
      * @param src source packed complex data
      * @param count number of items to convert
      */
-    extern void (* packed_complex_to_real)(float *dst, const float *src, size_t count);
+    extern void (* pcomplex_c2r)(float *dst, const float *src, size_t count);
 
     /** Convert packed complex to real and add to destination buffer
      *

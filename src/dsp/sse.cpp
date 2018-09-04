@@ -223,8 +223,8 @@ namespace sse
         EXPORT1(packed_complex_mul);
         EXPORT1(packed_complex_rcp1);
         EXPORT1(packed_complex_rcp2);
-        EXPORT1(packed_real_to_complex);
-        EXPORT1(packed_complex_to_real);
+        EXPORT1(pcomplex_r2c);
+        EXPORT1(pcomplex_c2r);
         EXPORT1(packed_complex_add_to_real);
 //            EXPORT1(complex_cvt2modarg);
 //            EXPORT1(complex_cvt2reim);

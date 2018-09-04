@@ -212,7 +212,7 @@ namespace sse
         );
     }
 
-    void packed_real_to_complex(float *dst, const float *src, size_t count)
+    void pcomplex_r2c(float *dst, const float *src, size_t count)
     {
         if (dst == src)
         {
@@ -429,7 +429,7 @@ namespace sse
         }
     }
 
-    void packed_complex_to_real(float *dst, const float *src, size_t count)
+    void pcomplex_c2r(float *dst, const float *src, size_t count)
     {
         #define complex_to_real_core(MV_DST, MV_SRC) \
             __ASM_EMIT("cmp         $16, %[count]") \

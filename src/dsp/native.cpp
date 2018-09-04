@@ -16,6 +16,7 @@
 
 #include <dsp/arch/native/context.h>
 #include <dsp/arch/native/copy.h>
+#include <dsp/arch/native/complex.h>
 
 namespace native
 {
@@ -26,7 +27,6 @@ namespace native
     #include <dsp/arch/native/graphics.h>
     #include <dsp/arch/native/resampling.h>
     #include <dsp/arch/native/msmatrix.h>
-    #include <dsp/arch/native/complex.h>
     #include <dsp/arch/native/smath.h>
     #include <dsp/arch/native/pmath.h>
     #include <dsp/arch/native/hmath.h>
@@ -147,8 +147,8 @@ namespace native
         EXPORT1(packed_complex_rcp1);
         EXPORT1(packed_complex_rcp2);
         EXPORT1(packed_complex_fill);
-        EXPORT1(packed_real_to_complex);
-        EXPORT1(packed_complex_to_real);
+        EXPORT1(pcomplex_r2c);
+        EXPORT1(pcomplex_c2r);
         EXPORT1(packed_complex_add_to_real);
         EXPORT1(complex_cvt2modarg);
         EXPORT1(complex_cvt2reim);

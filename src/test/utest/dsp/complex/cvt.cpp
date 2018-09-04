@@ -1,5 +1,5 @@
 /*
- * r2c.cpp
+ * cvt.cpp
  *
  *  Created on: 29 авг. 2018 г.
  *      Author: sadko
@@ -11,21 +11,21 @@
 
 namespace native
 {
-    void packed_real_to_complex(float *dst, const float *src, size_t count);
-    void packed_complex_to_real(float *dst, const float *src, size_t count);
+    void pcomplex_r2c(float *dst, const float *src, size_t count);
+    void pcomplex_c2r(float *dst, const float *src, size_t count);
 }
 
 IF_ARCH_X86(
     namespace sse
     {
-        void packed_real_to_complex(float *dst, const float *src, size_t count);
-        void packed_complex_to_real(float *dst, const float *src, size_t count);
+        void pcomplex_r2c(float *dst, const float *src, size_t count);
+        void pcomplex_c2r(float *dst, const float *src, size_t count);
     }
 )
 
 typedef void (* complex_cvt_t) (float *dst, const float *src, size_t count);
 
-UTEST_BEGIN("dsp.complex", r2c)
+UTEST_BEGIN("dsp.complex", cvt)
 
     void call(const char *label, size_t align, size_t sk, size_t dk, complex_cvt_t func1, complex_cvt_t func2)
     {
@@ -67,8 +67,8 @@ UTEST_BEGIN("dsp.complex", r2c)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("packed_r2c_sse", 16, 1, 2, native::packed_real_to_complex, sse::packed_real_to_complex));
-        IF_ARCH_X86(call("packed_c2r_sse", 16, 2, 1, native::packed_complex_to_real, sse::packed_complex_to_real));
+        IF_ARCH_X86(call("sse:pcomplex_r2c", 16, 1, 2, native::pcomplex_r2c, sse::pcomplex_r2c));
+        IF_ARCH_X86(call("sse:pcomplex_c2r", 16, 2, 1, native::pcomplex_c2r, sse::pcomplex_c2r));
     }
 
 UTEST_END

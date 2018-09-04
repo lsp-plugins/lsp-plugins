@@ -156,8 +156,8 @@ namespace dsp
     void    (* packed_complex_rcp1)(float *dst, size_t count) = NULL;
     void    (* packed_complex_rcp2)(float *dst, const float *src, size_t count) = NULL;
     void    (* packed_complex_fill)(float *dst, float re, float im, size_t count) = NULL;
-    void    (* packed_real_to_complex)(float *dst, const float *src, size_t count) = NULL;
-    void    (* packed_complex_to_real)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_r2c)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_c2r)(float *dst, const float *src, size_t count) = NULL;
     void    (* packed_complex_add_to_real)(float *dst, const float *src, size_t count) = NULL;
     void    (* complex_cvt2modarg)(float *dst_mod, float *dst_arg, const float *src_re, const float *src_im, size_t count) = NULL;
     void    (* complex_cvt2reim)(float *dst_re, float *dst_im, const float *src_mod, const float *src_arg, size_t count) = NULL;

@@ -12,9 +12,11 @@ namespace neon_d32
 {
     void copy(float *dst, const float *src, size_t count)
     {
-        const float *src2;
-        float *dst2;
-        size_t incr;
+        IF_ARCH_ARM(
+            const float *src2;
+            float *dst2;
+            size_t incr;
+        )
 
         ARCH_ARM_ASM
         (

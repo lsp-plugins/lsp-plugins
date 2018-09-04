@@ -478,7 +478,7 @@ namespace lsp
                         {
                             // Apply window to the temporary buffer
                             dsp::mul3(pChannels->vSigRe, c->vSigRe, pChannels->vWindow, fft_size);
-                            dsp::packed_real_to_complex(pChannels->vFftReIm, pChannels->vSigRe, fft_size);
+                            dsp::pcomplex_r2c(pChannels->vFftReIm, pChannels->vSigRe, fft_size);
                             // Do FFT
                             dsp::packed_direct_fft(pChannels->vFftReIm, pChannels->vFftReIm, pChannels->nRank);
                             // Get complex argument

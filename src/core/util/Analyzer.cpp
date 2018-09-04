@@ -186,7 +186,7 @@ namespace lsp
                         // Apply window to the temporary buffer
                         dsp::mul3(vSigRe, c->vBuffer, vWindow, fft_size);
                         // Do Real->complex conversion and FFT
-                        dsp::packed_real_to_complex(vFftReIm, vSigRe, fft_size);
+                        dsp::pcomplex_r2c(vFftReIm, vSigRe, fft_size);
                         dsp::packed_direct_fft(vFftReIm, vFftReIm, nRank);
                         // Get complex argument
                         dsp::packed_complex_mod(vFftReIm, vFftReIm, fft_csize);
