@@ -25,6 +25,7 @@ IF_ARCH_X86(
     {
         void move(float *dst, const float *src, size_t count);
         void copy(float *dst, const float *src, size_t count);
+        void copy_movntps(float *dst, const float *src, size_t count);
     }
 
     namespace sse3
@@ -95,6 +96,7 @@ UTEST_BEGIN("dsp.copy", copy)
     {
         IF_ARCH_X86(call("copy_movs", 16, native::copy, x86::copy));
         IF_ARCH_X86(call("copy_sse", 16, native::copy, sse::copy));
+        IF_ARCH_X86(call("copy_movntps", 16, native::copy, sse::copy_movntps));
         IF_ARCH_X86(call("move_sse", 16, native::move, sse::move));
         IF_ARCH_X86(call("copy_sse3", 16, native::copy, sse3::copy));
 

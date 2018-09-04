@@ -127,6 +127,8 @@ namespace sse
         {
             TEST_EXPORT(copy);
         }
+        TEST_EXPORT(copy_movntps);
+
         EXPORT1(copy_saturated);
         EXPORT1(saturate);
         EXPORT1(move);

@@ -103,6 +103,114 @@ namespace sse
         );
     }
 
+    void copy_movntps(float *dst, const float *src, size_t count)
+    {
+        size_t off;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("cmp         %[dst], %[src]")
+            __ASM_EMIT("je          100f")
+            __ASM_EMIT("test        %[count], %[count]")
+            __ASM_EMIT("jz          100f")
+
+            /* Align destination */
+            __ASM_EMIT("test        $0x0f, %[dst]")
+            __ASM_EMIT("jz          2f")
+            __ASM_EMIT("1:")
+            __ASM_EMIT("movss       (%[src]), %%xmm0")
+            __ASM_EMIT("movss       %%xmm0, (%[dst])")
+            __ASM_EMIT("add         $4, %[src]")
+            __ASM_EMIT("add         $4, %[dst]")
+            __ASM_EMIT("dec         %[count]")
+            __ASM_EMIT("jz          100f")
+            __ASM_EMIT("test        $0x0f, %[dst]")
+            __ASM_EMIT("jnz         1b")
+
+            /* Block of 32 items */
+            __ASM_EMIT("2:")
+            __ASM_EMIT("xor         %[off], %[off]")
+            __ASM_EMIT("sub         $0x20, %[count]")
+            __ASM_EMIT("jb          4f")
+
+            __ASM_EMIT("3:")
+            __ASM_EMIT("movups      0x00(%[src], %[off]), %%xmm0")
+            __ASM_EMIT("movups      0x10(%[src], %[off]), %%xmm1")
+            __ASM_EMIT("movups      0x20(%[src], %[off]), %%xmm2")
+            __ASM_EMIT("movups      0x30(%[src], %[off]), %%xmm3")
+            __ASM_EMIT("movups      0x40(%[src], %[off]), %%xmm4")
+            __ASM_EMIT("movups      0x50(%[src], %[off]), %%xmm5")
+            __ASM_EMIT("movups      0x60(%[src], %[off]), %%xmm6")
+            __ASM_EMIT("movups      0x70(%[src], %[off]), %%xmm7")
+            __ASM_EMIT("movntps     %%xmm0, 0x00(%[dst], %[off])")
+            __ASM_EMIT("movntps     %%xmm1, 0x10(%[dst], %[off])")
+            __ASM_EMIT("movntps     %%xmm2, 0x20(%[dst], %[off])")
+            __ASM_EMIT("movntps     %%xmm3, 0x30(%[dst], %[off])")
+            __ASM_EMIT("movntps     %%xmm4, 0x40(%[dst], %[off])")
+            __ASM_EMIT("movntps     %%xmm5, 0x50(%[dst], %[off])")
+            __ASM_EMIT("movntps     %%xmm6, 0x60(%[dst], %[off])")
+            __ASM_EMIT("movntps     %%xmm7, 0x70(%[dst], %[off])")
+            __ASM_EMIT("add         $0x80, %[off]")
+            __ASM_EMIT("sub         $0x20, %[count]")
+            __ASM_EMIT("jae         3b")
+
+            /* Block of 16 items */
+            __ASM_EMIT("4:")
+            __ASM_EMIT("add         $0x10, %[count]")
+            __ASM_EMIT("jl          6f")
+            __ASM_EMIT("movups      0x00(%[src], %[off]), %%xmm0")
+            __ASM_EMIT("movups      0x10(%[src], %[off]), %%xmm1")
+            __ASM_EMIT("movups      0x20(%[src], %[off]), %%xmm2")
+            __ASM_EMIT("movups      0x30(%[src], %[off]), %%xmm3")
+            __ASM_EMIT("movntps     %%xmm0, 0x00(%[dst], %[off])")
+            __ASM_EMIT("movntps     %%xmm1, 0x10(%[dst], %[off])")
+            __ASM_EMIT("movntps     %%xmm2, 0x20(%[dst], %[off])")
+            __ASM_EMIT("movntps     %%xmm3, 0x30(%[dst], %[off])")
+            __ASM_EMIT("add         $0x40, %[off]")
+            __ASM_EMIT("sub         $0x10, %[count]")
+            /* Block of 8 items */
+            __ASM_EMIT("6:")
+            __ASM_EMIT("add         $0x08, %[count]")
+            __ASM_EMIT("jl          8f")
+            __ASM_EMIT("movups      0x00(%[src], %[off]), %%xmm0")
+            __ASM_EMIT("movups      0x10(%[src], %[off]), %%xmm1")
+            __ASM_EMIT("movntps     %%xmm0, 0x00(%[dst], %[off])")
+            __ASM_EMIT("movntps     %%xmm1, 0x10(%[dst], %[off])")
+            __ASM_EMIT("add         $0x20, %[off]")
+            __ASM_EMIT("sub         $0x08, %[count]")
+            /* Block of 4 items */
+            __ASM_EMIT("8:")
+            __ASM_EMIT("add         $0x04, %[count]")
+            __ASM_EMIT("jl          10f")
+            __ASM_EMIT("movups      0x00(%[src], %[off]), %%xmm0")
+            __ASM_EMIT("movntps     %%xmm0, 0x00(%[dst], %[off])")
+            __ASM_EMIT("add         $0x10, %[off]")
+            __ASM_EMIT("sub         $0x04, %[count]")
+            /* 1x items */
+            __ASM_EMIT("10:")
+            __ASM_EMIT("add         $0x03, %[count]")
+            __ASM_EMIT("jl          12f")
+            __ASM_EMIT("9:")
+            __ASM_EMIT("movss       0x00(%[src], %[off]), %%xmm0")
+            __ASM_EMIT("movss       %%xmm0, 0x00(%[dst], %[off])")
+            __ASM_EMIT("add         $0x04, %[off]")
+            __ASM_EMIT("dec         %[count]")
+            __ASM_EMIT("jge         9b")
+
+            __ASM_EMIT("12:")
+            __ASM_EMIT("sfence")
+
+            __ASM_EMIT("100:")
+
+            : [src] "+r" (src), [dst] "+r"(dst),
+              [count] "+r" (count), [off] "=&r" (off)
+            :
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
     void copy_backward(float *dst, const float *src, size_t count)
     {
         #define RCOPY_CORE(MV_SRC)   \
