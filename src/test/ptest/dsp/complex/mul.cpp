@@ -61,7 +61,7 @@ typedef void (* packed_complex_mul_t) (float *dst, const float *src1, const floa
 
 //-----------------------------------------------------------------------------
 // Performance test for complex multiplication
-PTEST_BEGIN("dsp.complex", mul, 5, 10000)
+PTEST_BEGIN("dsp.complex", mul, 5, 1000)
 
     void call(const char *label, float *dst, const float *src1, const float *src2, size_t count, packed_complex_mul_t mul)
     {
