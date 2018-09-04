@@ -74,6 +74,14 @@
     #define IF_ARCH_X86(...)        __VA_ARGS__
     #define ARCH_X86_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
 
+    #ifdef ARCH_I386
+        #define ARCH_I386_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
+    #endif /* ARCH_I386 */
+
+    #ifdef ARCH_X86_64
+        #define ARCH_X86_64_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
+    #endif /* ARCH_I386 */
+
     #define ARCH_X86
     #define ARCH_LE
 #endif /* defined(ARCH_I386) || defined(ARCH_X86_64) */
@@ -193,6 +201,14 @@
 #ifndef ARCH_X86_ASM
     #define ARCH_X86_ASM(...)
 #endif /* ARCH_X86_ASM */
+
+#ifndef ARCH_I386_ASM
+    #define ARCH_I386_ASM(...)
+#endif /* ARCH_I386_ASM */
+
+#ifndef ARCH_X86_64_ASM
+    #define ARCH_X86_64_ASM(...)
+#endif /* ARCH_I386_ASM */
 
 #ifndef ARCH_ARM_ASM
     #define ARCH_ARM_ASM(...)

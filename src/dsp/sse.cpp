@@ -12,6 +12,7 @@
 #include <test/test.h>
 
 #include <dsp/arch/x86/features.h>
+#include <dsp/arch/x86/hwops.h>
 
 #define DSP_ARCH_X86_SSE_IMPL
 
@@ -118,7 +119,14 @@ namespace sse
         EXPORT1(start);
         EXPORT1(finish);
 
-        EXPORT1(copy);
+        if (!hwops_check(f, HWOPS_FAST_MOVS))
+        {
+            EXPORT1(copy);
+        }
+        else
+        {
+            TEST_EXPORT(copy);
+        }
         EXPORT1(copy_saturated);
         EXPORT1(saturate);
         EXPORT1(move);

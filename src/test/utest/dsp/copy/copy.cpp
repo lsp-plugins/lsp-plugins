@@ -16,6 +16,11 @@ namespace native
 }
 
 IF_ARCH_X86(
+    namespace x86
+    {
+        void copy(float *dst, const float *src, size_t count);
+    }
+
     namespace sse
     {
         void move(float *dst, const float *src, size_t count);
@@ -88,6 +93,7 @@ UTEST_BEGIN("dsp.copy", copy)
 
     UTEST_MAIN
     {
+        IF_ARCH_X86(call("copy_movs", 16, native::copy, x86::copy));
         IF_ARCH_X86(call("copy_sse", 16, native::copy, sse::copy));
         IF_ARCH_X86(call("move_sse", 16, native::move, sse::move));
         IF_ARCH_X86(call("copy_sse3", 16, native::copy, sse3::copy));
