@@ -148,15 +148,21 @@ namespace test
         if (align >= 0)
         {
             size_t pad = (align == 0) ? ((length + 1) >> 1) : length;
-            length -= pad;
-            while (pad--)
-                fputs(padding, out);
+            if (pad > 0)
+            {
+                length -= pad;
+                while (pad--)
+                    fputs(padding, out);
+            }
         }
         if (text != NULL)
             fputs(text, out);
 
-        while (length--)
-            fputs(padding, out);
+        if (length > 0)
+        {
+            while (length--)
+                fputs(padding, out);
+        }
         if (tail != NULL)
             fputs(tail, out);
     }
