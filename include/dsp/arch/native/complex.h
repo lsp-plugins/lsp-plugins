@@ -228,6 +228,95 @@ namespace native
             src            += 2;
         }
     }
+
+    void complex_div2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count)
+    {
+        while (count--)
+        {
+            float re        = (*src_re) * (*dst_re) + (*src_im) * (*dst_im);
+            float im        = (*src_re) * (*dst_im) + (*src_im) * (*dst_re);
+            float n         = 1.0f / ((*src_re) * (*src_re) + (*src_im) * (*src_im));
+
+            *(dst_re++)     = re * n;
+            *(dst_im++)     = -im * n;
+            src_re++;
+            src_im++;
+        }
+    }
+
+    void complex_rdiv2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count)
+    {
+        while (count--)
+        {
+            float re        = (*src_re) * (*dst_re) + (*src_im) * (*dst_im);
+            float im        = (*src_re) * (*dst_im) + (*src_im) * (*dst_re);
+            float n         = 1.0f / ((*dst_re) * (*dst_re) + (*dst_im) * (*dst_im));
+
+            *(dst_re++)     = re * n;
+            *(dst_im++)     = -im * n;
+            src_re++;
+            src_im++;
+        }
+    }
+
+    void complex_div3(float *dst_re, float *dst_im, const float *t_re, const float *t_im, const float *b_re, const float *b_im, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float re        = t_re[i] * b_re[i] + t_im[i] * b_im[i];
+            float im        = t_re[i] * b_im[i] + t_im[i] * b_re[i];
+            float n         = 1.0f / (b_re[i] * b_re[i] + b_im[i] * b_im[i]);
+
+            dst_re[i]       = re * n;
+            dst_im[i]       = -im * n;
+        }
+    }
+
+    void pcomplex_div2(float *dst, const float *src, size_t count)
+    {
+        while (count--)
+        {
+            float re        = src[0] * dst[0] + src[1] * dst[1];
+            float im        = src[0] * dst[1] + src[1] * dst[0];
+            float n         = 1.0f / (src[0] * src[0] + src[1] * src[1]);
+
+            dst[0]          = re * n;
+            dst[1]          = -im * n;
+            src            += 2;
+            dst            += 2;
+        }
+    }
+
+    void pcomplex_rdiv2(float *dst, const float *src, size_t count)
+    {
+        while (count--)
+        {
+            float re        = src[0] * dst[0] + src[1] * dst[1];
+            float im        = src[0] * dst[1] + src[1] * dst[0];
+            float n         = 1.0f / (dst[0] * dst[0] + dst[1] * dst[1]);
+
+            dst[0]          = re * n;
+            dst[1]          = -im * n;
+            src            += 2;
+            dst            += 2;
+        }
+    }
+
+    void pcomplex_div3(float *dst, const float *t, const float *b, size_t count)
+    {
+        while (count--)
+        {
+            float re        = t[0] * b[0] + t[1] * b[1];
+            float im        = t[0] * b[1] + t[1] * b[0];
+            float n         = 1.0f / (b[0] * b[0] + b[1] * b[1]);
+
+            dst[0]          = re * n;
+            dst[1]          = -im * n;
+            t              += 2;
+            b              += 2;
+        }
+    }
+
 }
 
 #endif /* DSP_ARCH_NATIVE_COMPLEX_H_ */

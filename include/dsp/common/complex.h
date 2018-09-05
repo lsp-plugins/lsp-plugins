@@ -33,6 +33,75 @@ namespace dsp
             size_t count
         );
 
+    /**
+     * Divide complex numbers:
+     *      { dst_re, dst_im } = { dst_re, dst_im } / { src_re, src_im }
+     *
+     * @param dst_re destination real part, source top real part
+     * @param dst_im destination imaginary part, source top imaginary part
+     * @param src_re bottom real part
+     * @param src_im bottom imaginary part
+     * @param count number of divisions
+     */
+    extern void (* complex_div2)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+
+    /**
+     * Divide complex numbers:
+     *      { dst_re, dst_im } = { src_re, src_im } / { dst_re, dst_im }
+     *
+     * @param dst_re destination real part, source bottom real part
+     * @param dst_im destination imaginary part, source bottom imaginary part
+     * @param src_re top real part
+     * @param src_im top imaginary part
+     * @param count number of divisions
+     */
+    extern void (* complex_rdiv2)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+
+    /**
+     * Divide complex numbers:
+     *      { dst_re, dst_im } = { t_re, t_im } / { b_re, b_im }
+     *
+     * @param dst_re destination real part, source bottom real part
+     * @param dst_im destination imaginary part, source bottom imaginary part
+     * @param t_re top real part
+     * @param t_im top imaginary part
+     * @param b_re bottom real part
+     * @param b_im bottom imaginary part
+     * @param count number of divisions
+     */
+    extern void (* complex_div3)(float *dst_re, float *dst_im, const float *t_re, const float *t_im, const float *b_re, const float *b_im, size_t count);
+
+    /**
+     * Divide complex numbers:
+     *      dst = dst / src
+     *
+     * @param dst destination, source top
+     * @param src bottom
+     * @param count number of divisions
+     */
+    extern void (* pcomplex_div2)(float *dst, const float *src, size_t count);
+
+    /**
+     * Divide complex numbers:
+     *      dst = src / dst
+     *
+     * @param dst destination, source bottom
+     * @param src top
+     * @param count number of divisions
+     */
+    extern void (* pcomplex_rdiv2)(float *dst, const float *src, size_t count);
+
+    /**
+     * Divide complex numbers:
+     *      dst = t / b
+     *
+     * @param dst destination
+     * @param t top
+     * @param b bottom
+     * @param count number of divisions
+     */
+    extern void (* pcomplex_div3)(float *dst, const float *t, const float *b, size_t count);
+
     /** Calculate complex reciprocal: 1 / (re + j * im)
      *
      * @param dst_re source, destination real part
