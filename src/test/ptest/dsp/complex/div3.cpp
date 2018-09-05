@@ -1,5 +1,5 @@
 /*
- * div.cpp
+ * div3.cpp
  *
  *  Created on: 5 сент. 2018 г.
  *      Author: sadko
@@ -14,16 +14,12 @@
 
 namespace native
 {
-    void complex_div2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
-    void complex_rdiv2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
     void complex_div3(float *dst_re, float *dst_im, const float *t_re, const float *t_im, const float *b_re, const float *b_im, size_t count);
 }
 
 IF_ARCH_X86(
     namespace sse
     {
-        void complex_div2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
-        void complex_rdiv2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
         void complex_div3(float *dst_re, float *dst_im, const float *t_re, const float *t_im, const float *b_re, const float *b_im, size_t count);
     }
 )
@@ -31,32 +27,15 @@ IF_ARCH_X86(
 IF_ARCH_ARM(
     namespace neon_d32
     {
-        void complex_div2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
-        void complex_rdiv2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
         void complex_div3(float *dst_re, float *dst_im, const float *t_re, const float *t_im, const float *b_re, const float *b_im, size_t count);
     }
 )
 
-typedef void (* complex_div2_t) (float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
 typedef void (* complex_div3_t) (float *dst_re, float *dst_im, const float *t_re, const float *t_im, const float *b_re, const float *b_im, size_t count);
 
 //-----------------------------------------------------------------------------
 // Performance test for complex division
-PTEST_BEGIN("dsp.complex", div, 5, 1000)
-
-    void call(const char *label, float *dst, const float *src, size_t count, complex_div2_t mul)
-    {
-        if (!PTEST_SUPPORTED(mul))
-            return;
-
-        char buf[80];
-        sprintf(buf, "%s x %d", label, int(count));
-        printf("Testing %s numbers...\n", buf);
-
-        PTEST_LOOP(buf,
-            mul(dst, &dst[count], src, &src[count], count);
-        );
-    }
+PTEST_BEGIN("dsp.complex", div3, 5, 1000)
 
     void call(const char *label, float *dst, const float *src1, const float *src2, size_t count, complex_div3_t mul)
     {
@@ -95,14 +74,8 @@ PTEST_BEGIN("dsp.complex", div, 5, 1000)
         {
             size_t count = 1 << i;
 
-            CALL("native:complex_div2", out, in1, count, native::complex_div2);
-            CALL("native:complex_rdiv2", out, in1, count, native::complex_rdiv2);
             CALL("native:complex_div3", out, in1, in2, count, native::complex_div3);
-            IF_ARCH_X86(CALL("sse:complex_div2", out, in1, count, sse::complex_div2));
-            IF_ARCH_X86(CALL("sse:complex_rdiv2", out, in1, count, sse::complex_rdiv2));
             IF_ARCH_X86(CALL("sse:complex_div3", out, in1, in2, count, sse::complex_div3));
-            IF_ARCH_ARM(CALL("neon_d32:complex_div2", out, in1, count, neon_d32::complex_div2));
-            IF_ARCH_ARM(CALL("neon_d32:complex_rdiv2", out, in1, count, neon_d32::complex_rdiv2));
             IF_ARCH_ARM(CALL("neon_d32:complex_div3", out, in1, in2, count, neon_d32::complex_div3));
 
             PTEST_SEPARATOR;
