@@ -37,6 +37,7 @@ IF_ARCH_ARM(
     namespace neon_d32
     {
         void pcomplex_mod(float *dst_mod, const float *src, size_t count);
+        void complex_mod(float *dst_mod, const float *src_re, const float *src_im, size_t count);
     }
 )
 
@@ -123,6 +124,8 @@ UTEST_BEGIN("dsp.complex", mod)
     UTEST_MAIN
     {
         IF_ARCH_X86(call("sse:complex_mod", 16, sse::complex_mod));
+        IF_ARCH_ARM(call("neon_d32:complex_mod", 16, neon_d32::complex_mod));
+
         IF_ARCH_X86(call("sse:pcomplex_mod", 16, sse::pcomplex_mod));
         IF_ARCH_X86(call("sse3:pcomplex_mod", 16, sse3::pcomplex_mod));
         IF_ARCH_X86(call("sse3:x64_pcomplex_mod", 16, sse3::x64_pcomplex_mod));
