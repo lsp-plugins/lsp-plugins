@@ -895,6 +895,127 @@ namespace sse
         );
     }
 
+    void complex_div3(float *dst_re, float *dst_im, const float *t_re, const float *t_im, const float *b_re, const float *b_im, size_t count)
+    {
+        IF_ARCH_I386(size_t tmp1, tmp2);
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("sub             $4, %[count]")
+            __ASM_EMIT("jb              2f")
+
+            // x4 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("movups          0x00(%[t_re]), %%xmm0")         // xmm0 = tr
+            __ASM_EMIT("movups          0x00(%[t_im]), %%xmm1")         // xmm1 = ti
+            __ASM_EMIT("movups          0x00(%[b_re]), %%xmm2")         // xmm2 = br
+            __ASM_EMIT("movups          0x00(%[b_im]), %%xmm3")         // xmm3 = bi
+            __ASM_EMIT("movaps          %%xmm0, %%xmm4")                // xmm4 = tr
+            __ASM_EMIT("movaps          %%xmm1, %%xmm5")                // xmm5 = ti
+            __ASM_EMIT("movaps          %%xmm2, %%xmm6")                // xmm6 = br
+            __ASM_EMIT("movaps          %%xmm3, %%xmm7")                // xmm7 = bi
+            __ASM_EMIT("add             $0x10, %[t_re]")
+            __ASM_EMIT("add             $0x10, %[t_im]")
+            __ASM_EMIT("add             $0x10, %[b_re]")
+            __ASM_EMIT("add             $0x10, %[b_im]")
+            __ASM_EMIT32("mov           %[b_re], %[tmp1]")
+            __ASM_EMIT32("mov           %[b_im], %[tmp2]")
+            __ASM_EMIT32("mov           %[dst_re], %[b_re]")
+            __ASM_EMIT32("mov           %[dst_im], %[b_im]")
+            __ASM_EMIT("mulps           %%xmm2, %%xmm0")                // xmm0 = tr*br
+            __ASM_EMIT("mulps           %%xmm3, %%xmm4")                // xmm4 = tr*bi
+            __ASM_EMIT("mulps           %%xmm2, %%xmm1")                // xmm1 = ti*br
+            __ASM_EMIT("mulps           %%xmm3, %%xmm5")                // xmm5 = ti*bi
+            __ASM_EMIT("mulps           %%xmm6, %%xmm6")                // xmm6 = br*br
+            __ASM_EMIT("mulps           %%xmm7, %%xmm7")                // xmm7 = bi*bi
+            __ASM_EMIT("addps           %%xmm5, %%xmm0")                // xmm0 = tr*br + ti*bi
+            __ASM_EMIT("addps           %%xmm1, %%xmm4")                // xmm4 = ti*br + tr*bi
+            __ASM_EMIT("addps           %%xmm7, %%xmm6")                // xmm6 = R = br*br + bi*bi
+            __ASM_EMIT("divps           %%xmm6, %%xmm4")                // xmm4 = (tr*br + ti*bi) / R
+            __ASM_EMIT("xorps           %%xmm1, %%xmm1")                // xmm1 = 0
+            __ASM_EMIT("divps           %%xmm6, %%xmm0")                // xmm0 = (tr*br + ti*bi) / R
+            __ASM_EMIT("subps           %%xmm4, %%xmm1")                // xmm1 = - (tr*br + ti*bi) / R
+
+            __ASM_EMIT64("movups        %%xmm0, 0x00(%[dst_re])")
+            __ASM_EMIT64("movups        %%xmm1, 0x00(%[dst_im])")
+            __ASM_EMIT64("add           $0x10, %[dst_re]")
+            __ASM_EMIT64("add           $0x10, %[dst_im]")
+            __ASM_EMIT32("movups        %%xmm0, 0x00(%[b_re])")
+            __ASM_EMIT32("movups        %%xmm1, 0x00(%[b_im])")
+            __ASM_EMIT32("add           $0x10, %[b_re]")
+            __ASM_EMIT32("add           $0x10, %[b_im]")
+            __ASM_EMIT32("mov           %[b_re], %[dst_re]")
+            __ASM_EMIT32("mov           %[b_im], %[dst_im]")
+            __ASM_EMIT32("mov           %[tmp1], %[b_re]")
+            __ASM_EMIT32("mov           %[tmp2], %[b_im]")
+
+            __ASM_EMIT("sub             $4, %[count]")
+            __ASM_EMIT("jae             1b")
+
+            // x1 blocks
+            __ASM_EMIT("2:")
+            __ASM_EMIT("add             $3, %[count]")
+            __ASM_EMIT("jl              4f")
+            __ASM_EMIT("3:")
+            __ASM_EMIT("movss           0x00(%[t_re]), %%xmm0")         // xmm0 = tr
+            __ASM_EMIT("movss           0x00(%[t_im]), %%xmm1")         // xmm1 = ti
+            __ASM_EMIT("movss           0x00(%[b_re]), %%xmm2")         // xmm2 = br
+            __ASM_EMIT("movss           0x00(%[b_im]), %%xmm3")         // xmm3 = bi
+            __ASM_EMIT("movaps          %%xmm0, %%xmm4")                // xmm4 = tr
+            __ASM_EMIT("movaps          %%xmm1, %%xmm5")                // xmm5 = ti
+            __ASM_EMIT("movaps          %%xmm2, %%xmm6")                // xmm6 = br
+            __ASM_EMIT("movaps          %%xmm3, %%xmm7")                // xmm7 = bi
+            __ASM_EMIT("add             $0x04, %[t_re]")
+            __ASM_EMIT("add             $0x04, %[t_im]")
+            __ASM_EMIT("add             $0x04, %[b_re]")
+            __ASM_EMIT("add             $0x04, %[b_im]")
+            __ASM_EMIT32("mov           %[b_re], %[tmp1]")
+            __ASM_EMIT32("mov           %[b_im], %[tmp2]")
+            __ASM_EMIT32("mov           %[dst_re], %[b_re]")
+            __ASM_EMIT32("mov           %[dst_im], %[b_im]")
+            __ASM_EMIT("mulss           %%xmm2, %%xmm0")                // xmm0 = tr*br
+            __ASM_EMIT("mulss           %%xmm3, %%xmm4")                // xmm4 = tr*bi
+            __ASM_EMIT("mulss           %%xmm2, %%xmm1")                // xmm1 = ti*br
+            __ASM_EMIT("mulss           %%xmm3, %%xmm5")                // xmm5 = ti*bi
+            __ASM_EMIT("mulss           %%xmm6, %%xmm6")                // xmm6 = br*br
+            __ASM_EMIT("mulss           %%xmm7, %%xmm7")                // xmm7 = bi*bi
+            __ASM_EMIT("addss           %%xmm5, %%xmm0")                // xmm0 = tr*br + ti*bi
+            __ASM_EMIT("addss           %%xmm1, %%xmm4")                // xmm4 = ti*br + tr*bi
+            __ASM_EMIT("addss           %%xmm7, %%xmm6")                // xmm6 = R = br*br + bi*bi
+            __ASM_EMIT("divss           %%xmm6, %%xmm4")                // xmm4 = (tr*br + ti*bi) / R
+            __ASM_EMIT("xorps           %%xmm1, %%xmm1")                // xmm1 = 0
+            __ASM_EMIT("divss           %%xmm6, %%xmm0")                // xmm0 = (tr*br + ti*bi) / R
+            __ASM_EMIT("subss           %%xmm4, %%xmm1")                // xmm1 = - (tr*br + ti*bi) / R
+
+            __ASM_EMIT64("movss         %%xmm0, 0x00(%[dst_re])")
+            __ASM_EMIT64("movss         %%xmm1, 0x00(%[dst_im])")
+            __ASM_EMIT64("add           $0x04, %[dst_re]")
+            __ASM_EMIT64("add           $0x04, %[dst_im]")
+            __ASM_EMIT32("movss         %%xmm0, 0x00(%[b_re])")
+            __ASM_EMIT32("movss         %%xmm1, 0x00(%[b_im])")
+            __ASM_EMIT32("add           $0x04, %[b_re]")
+            __ASM_EMIT32("add           $0x04, %[b_im]")
+            __ASM_EMIT32("mov           %[b_re], %[dst_re]")
+            __ASM_EMIT32("mov           %[b_im], %[dst_im]")
+            __ASM_EMIT32("mov           %[tmp1], %[b_re]")
+            __ASM_EMIT32("mov           %[tmp2], %[b_im]")
+
+            __ASM_EMIT("dec             %[count]")
+            __ASM_EMIT("jge             3b")
+
+            __ASM_EMIT("4:")
+
+            : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
+              [t_re] "+r" (t_re), [t_im] "+r" (t_im),
+              IF_ARCH_X86_64([b_re] "+r" (b_re), [b_im] "+r" (b_im),)
+              IF_ARCH_I386([b_re] "+m" (b_re), [b_im] "+m" (b_im), [tmp1] "+m" (tmp1), [tmp2] "+m" (tmp2), )
+              [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
     void complex_mod(float *dst, const float *src_re, const float *src_im, size_t count)
     {
         size_t off;
