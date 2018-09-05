@@ -653,6 +653,103 @@ namespace neon_d32
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
     }
+
+    void complex_rcp1(float *dst_re, float *dst_im, size_t count)
+    {
+        ARCH_ARM_ASM
+        (
+            __ASM_EMIT("subs            %[count], $16")
+            __ASM_EMIT("blo             2f")
+
+            //-----------------------------------------------------------------
+            // x8 blocks
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds            %[count], $8")
+            __ASM_EMIT("blt             4f")
+            __ASM_EMIT("vld1.32         {q0-q1}, [%[dst_re]]")      // q0 = r1, q1 = r2
+            __ASM_EMIT("vld1.32         {q2-q3}, [%[dst_im]]")      // q2 = i1, q3 = i2
+            __ASM_EMIT("vmul.f32        q4, q0, q0")                // q4 = r*r
+            __ASM_EMIT("vmul.f32        q5, q1, q1")
+            __ASM_EMIT("vmla.f32        q4, q2, q2")                // q4 = R = r*r + i*i
+            __ASM_EMIT("vmla.f32        q5, q3, q3")
+            // 1/sqrt(R) calculation
+            __ASM_EMIT("vrsqrte.f32     q6, q4")                    // q6 = x0
+            __ASM_EMIT("vrsqrte.f32     q9, q5")
+            __ASM_EMIT("vmul.f32        q7, q6, q4")                // q7 = R * x0
+            __ASM_EMIT("vmul.f32        q10, q9, q5")
+            __ASM_EMIT("vrsqrts.f32     q8, q7, q6")                // q8 = (3 - R * x0 * x0) / 2
+            __ASM_EMIT("vrsqrts.f32     q11, q10, q9")
+            __ASM_EMIT("vmul.f32        q6, q6, q8")                // q6 = x1 = x0 * (3 - R * x0 * x0) / 2
+            __ASM_EMIT("vmul.f32        q9, q9, q11")
+            __ASM_EMIT("vmul.f32        q7, q6, q4")                // q7 = R * x1
+            __ASM_EMIT("vmul.f32        q10, q9, q5")
+            __ASM_EMIT("vrsqrts.f32     q8, q7, q6")                // q8 = M = (3 - R * x1 * x1) / 2
+            __ASM_EMIT("vrsqrts.f32     q11, q10, q9")
+            // r/M, -i/M
+            __ASM_EMIT("vneg.f32        q2, q2")
+            __ASM_EMIT("vneg.f32        q3, q3")
+            __ASM_EMIT("vmul.f32        q0, q0, q8")
+            __ASM_EMIT("vmul.f32        q1, q1, q11")
+            __ASM_EMIT("vmul.f32        q2, q2, q8")
+            __ASM_EMIT("vmul.f32        q3, q3, q11")
+            __ASM_EMIT("sub             %[count], $8")
+            __ASM_EMIT("vst1.32         {q0-q1}, [%[dst_re]]!")
+            __ASM_EMIT("vst1.32         {q2-q3}, [%[dst_im]]!")
+
+            //-----------------------------------------------------------------
+            // x4 blocks
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds            %[count], $4")
+            __ASM_EMIT("blt             6f")
+            __ASM_EMIT("vld1.32         {q0}, [%[dst_re]]")         // q0 = r
+            __ASM_EMIT("vld1.32         {q2}, [%[dst_im]]")         // q2 = i
+            __ASM_EMIT("vmul.f32        q4, q0, q0")                // q4 = r*r
+            __ASM_EMIT("vmla.f32        q4, q2, q2")                // q4 = R = r*r + i*i
+            // 1/sqrt(R) calculation
+            __ASM_EMIT("vrsqrte.f32     q6, q4")                    // q6 = x0
+            __ASM_EMIT("vmul.f32        q7, q6, q4")                // q7 = R * x0
+            __ASM_EMIT("vrsqrts.f32     q8, q7, q6")                // q8 = (3 - R * x0 * x0) / 2
+            __ASM_EMIT("vmul.f32        q6, q6, q8")                // q6 = x1 = x0 * (3 - R * x0 * x0) / 2
+            __ASM_EMIT("vmul.f32        q7, q6, q4")                // q7 = R * x1
+            __ASM_EMIT("vrsqrts.f32     q8, q7, q6")                // q8 = M = (3 - R * x1 * x1) / 2
+            // r/M, -i/M
+            __ASM_EMIT("vneg.f32        q2, q2")
+            __ASM_EMIT("vmul.f32        q0, q0, q8")
+            __ASM_EMIT("vmul.f32        q2, q2, q8")
+            __ASM_EMIT("sub             %[count], $4")
+            __ASM_EMIT("vst1.32         {q0}, [%[dst_re]]!")
+            __ASM_EMIT("vst1.32         {q2}, [%[dst_im]]!")
+
+            // x1 blocks
+            __ASM_EMIT("6:")
+            __ASM_EMIT("adds        %[count], $3")
+            __ASM_EMIT("blt         8f")
+            __ASM_EMIT("7:")
+            __ASM_EMIT("vldm.32     %[dst_re], {s0}")               // s0 = r
+            __ASM_EMIT("vldm.32     %[dst_im], {s1}")               // s1 = i
+            __ASM_EMIT("vmul.f32    s4, s0, s0")                    // s4 = r*r
+            __ASM_EMIT("vmla.f32    s4, s1, s1")                    // s4 = r*r + i*i
+            __ASM_EMIT("vneg.f32    s1, s1")                        // s1 = -i
+            __ASM_EMIT("vsqrt.f32   s4, s4")                        // s4 = M = sqrt(r*r + i*i)
+            __ASM_EMIT("vdiv.f32    s0, s0, s4")                    // s0 = r / M
+            __ASM_EMIT("vdiv.f32    s1, s1, s4")                    // s1 = -i / M
+            __ASM_EMIT("subs        %[count], $1")
+            __ASM_EMIT("vstm.32     %[dst_re]!, {s0}")
+            __ASM_EMIT("vstm.32     %[dst_im]!, {s1}")
+            __ASM_EMIT("bge         7b")
+
+            __ASM_EMIT("8:")
+
+            : [dst] "+r" (dst), [src_re] "+r" (src_re), [src_im] "+r" (src_im),
+              [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11"
+        );
+    }
+
+
 }
 
 

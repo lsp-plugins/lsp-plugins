@@ -27,10 +27,17 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void complex_rcp1(float *dst_re, float *dst_im, size_t count);
+    }
+)
+
 typedef void (* complex_rcp1_t) (float *dst_re, float *dst_im, size_t count);
 typedef void (* complex_rcp2_t) (float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
-typedef void (* packed_complex_rcp1_t) (float *dst, size_t count);
-typedef void (* packed_complex_rcp2_t) (float *dst, const float *src, size_t count);
+typedef void (* pcomplex_rcp1_t) (float *dst, size_t count);
+typedef void (* pcomplex_rcp2_t) (float *dst, const float *src, size_t count);
 
 
 UTEST_BEGIN("dsp.complex", rcp)
@@ -119,7 +126,7 @@ UTEST_BEGIN("dsp.complex", rcp)
         }
     }
 
-    void call(const char *text, size_t align, packed_complex_rcp1_t func)
+    void call(const char *text, size_t align, pcomplex_rcp1_t func)
     {
         if (!UTEST_SUPPORTED(func))
             return;
@@ -152,7 +159,7 @@ UTEST_BEGIN("dsp.complex", rcp)
         }
     }
 
-    void call(const char *text, size_t align, packed_complex_rcp2_t func)
+    void call(const char *text, size_t align, pcomplex_rcp2_t func)
     {
         if (!UTEST_SUPPORTED(func))
             return;
@@ -190,10 +197,12 @@ UTEST_BEGIN("dsp.complex", rcp)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("complex_rcp1_sse", 16, sse::complex_rcp1));
-        IF_ARCH_X86(call("complex_rcp2_sse", 16, sse::complex_rcp2));
-        IF_ARCH_X86(call("packed_complex_rcp1_sse", 16, sse::pcomplex_rcp1));
-        IF_ARCH_X86(call("packed_complex_rcp2_sse", 16, sse::pcomplex_rcp2));
+        IF_ARCH_X86(call("sse:complex_rcp1", 16, sse::complex_rcp1));
+        IF_ARCH_X86(call("sse:complex_rcp2", 16, sse::complex_rcp2));
+        IF_ARCH_X86(call("sse:pcomplex_rcp1", 16, sse::pcomplex_rcp1));
+        IF_ARCH_X86(call("sse:pcomplex_rcp2", 16, sse::pcomplex_rcp2));
+
+        IF_ARCH_ARM(call("neon_d32:complex_rcp1", 16, neon_d32::complex_rcp1));
     }
 
 UTEST_END;
