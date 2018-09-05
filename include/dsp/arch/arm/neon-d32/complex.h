@@ -1002,7 +1002,7 @@ namespace neon_d32
 
             __ASM_EMIT("6:")
 
-            : [dst] "+r" (dst), [src] "=+r" (src), [count] "+r" (count)
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
             :
             : "cc", "memory",
               "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
