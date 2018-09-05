@@ -72,7 +72,7 @@ UTEST_BEGIN("dsp.complex", rcp)
                 UTEST_ASSERT_MSG(dst2_im.valid(), "Destination buffer 2 corrupted");
 
                 // Compare buffers
-                if ((!dst1_re.equals_absolute(dst2_re, 1e-5)) || (!dst1_im.equals_absolute(dst2_im, 1e-5)))
+                if ((!dst1_re.equals_relative(dst2_re, 1e-4)) || (!dst1_im.equals_relative(dst2_im, 1e-4)))
                 {
                     dst1_re.dump("dst1_re");
                     dst1_im.dump("dst1_im");
@@ -115,7 +115,7 @@ UTEST_BEGIN("dsp.complex", rcp)
                 UTEST_ASSERT_MSG(dst2_im.valid(), "Destination buffer 2 corrupted");
 
                 // Compare buffers
-                if ((!dst1_re.equals_absolute(dst2_re, 1e-5)) || (!dst1_im.equals_absolute(dst2_im, 1e-5)))
+                if ((!dst1_re.equals_relative(dst2_re, 1e-4)) || (!dst1_im.equals_relative(dst2_im, 1e-4)))
                 {
                     src_re.dump("src_re");
                     src_im.dump("src_im");
@@ -152,7 +152,7 @@ UTEST_BEGIN("dsp.complex", rcp)
                 UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
 
                 // Compare buffers
-                if (!dst1.equals_absolute(dst2, 1e-5))
+                if (!dst1.equals_relative(dst2, 1e-4))
                 {
                     dst1.dump("dst1");
                     dst2.dump("dst2");
@@ -187,7 +187,7 @@ UTEST_BEGIN("dsp.complex", rcp)
                 UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
 
                 // Compare buffers
-                if (!dst1.equals_absolute(dst2, 1e-5))
+                if (!dst1.equals_relative(dst2, 1e-4))
                 {
                     src.dump("dst");
                     dst1.dump("dst1");

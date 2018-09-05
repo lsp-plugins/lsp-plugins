@@ -908,7 +908,7 @@ namespace neon_d32
             __ASM_EMIT("vldm.32         %[dst], {s0-s1}")           // s0 = r, s1 = i
             __ASM_EMIT("vmul.f32        s4, s0, s0")                // s4 = r*r
             __ASM_EMIT("vmla.f32        s4, s1, s1")                // s4 = R = r*r + i*i
-            __ASM_EMIT("vneg.f32        s2, s1")                    // s1 = -i
+            __ASM_EMIT("vneg.f32        s1, s1")                    // s1 = -i
             __ASM_EMIT("vdiv.f32        s0, s0, s4")                // s0 = r / R
             __ASM_EMIT("vdiv.f32        s1, s1, s4")                // s1 = -i / R
             __ASM_EMIT("subs            %[count], $1")
@@ -993,7 +993,7 @@ namespace neon_d32
             __ASM_EMIT("vldm.32         %[src]!, {s0-s1}")          // s0 = r, s1 = i
             __ASM_EMIT("vmul.f32        s4, s0, s0")                // s4 = r*r
             __ASM_EMIT("vmla.f32        s4, s1, s1")                // s4 = R = r*r + i*i
-            __ASM_EMIT("vneg.f32        s2, s1")                    // s1 = -i
+            __ASM_EMIT("vneg.f32        s1, s1")                    // s1 = -i
             __ASM_EMIT("vdiv.f32        s0, s0, s4")                // s0 = r / R
             __ASM_EMIT("vdiv.f32        s1, s1, s4")                // s1 = -i / R
             __ASM_EMIT("subs            %[count], $1")
