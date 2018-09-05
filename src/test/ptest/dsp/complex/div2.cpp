@@ -38,7 +38,7 @@ typedef void (* complex_div2_t) (float *dst_re, float *dst_im, const float *src_
 
 //-----------------------------------------------------------------------------
 // Performance test for complex division
-PTEST_BEGIN("dsp.complex", div, 5, 1000)
+PTEST_BEGIN("dsp.complex", div2, 5, 1000)
 
     void call(const char *label, float *dst, const float *src, size_t count, complex_div2_t mul)
     {
