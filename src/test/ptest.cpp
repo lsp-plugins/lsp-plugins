@@ -44,6 +44,8 @@ namespace test
             free(stats->performance);
         if (stats->time_cost != NULL)
             free(stats->time_cost);
+        if (stats->rel != NULL)
+            free(stats->rel);
     }
 
     void PerformanceTest::estimate(size_t *len, const char *text)
@@ -55,7 +57,8 @@ namespace test
 
     void PerformanceTest::gather_stats(const char *key, double time, wsize_t iterations)
     {
-        stats_t *stats = __test_stats.add();
+        size_t count    = __test_stats.size();
+        stats_t *stats  = __test_stats.add();
         if (stats == NULL)
             return;
 
@@ -66,11 +69,45 @@ namespace test
         stats->n_iterations = NULL;
         stats->performance  = NULL;
         stats->time_cost    = NULL;
+        stats->rel          = NULL;
+        stats->cost         = 0.0f;
 
         if (key == NULL)
+        {
+            double cost_max     = 0.0f;
+            size_t first        = -1;
+
+            // Find first non-gathered entry
+            for (size_t i=0; i<count; ++i)
+            {
+                stats = __test_stats.at(i);
+                if ((stats->rel  == NULL) && (stats->key != NULL))
+                {
+                    first = i;
+                    break;
+                }
+            }
+
+            // Find maximum
+            for (size_t i=first; i<count; ++i)
+            {
+                stats = __test_stats.at(i);
+                if (cost_max < stats->cost)
+                    cost_max = stats->cost;
+            }
+
+            // Fill performance column
+            for (size_t i=first; i<count; ++i)
+            {
+                stats = __test_stats.at(i);
+                asprintf(&stats->rel, "%.2f", 100.0 * (cost_max / stats->cost));
+            }
+
             return;
+        }
 
         stats->key      = strdup(key);
+        stats->cost     = time / iterations;
         asprintf(&stats->time, "%.2f", time);
         asprintf(&stats->n_time, "%.2f", __test_time);
         asprintf(&stats->iterations, "%lld", (long long)(iterations));
@@ -79,12 +116,12 @@ namespace test
         asprintf(&stats->time_cost, "%.4f", (1000000.0 * time) / iterations);
 
         if ((stats->key == NULL) ||
-                (stats->time == NULL) ||
-                (stats->n_time == NULL) ||
-                (stats->iterations == NULL) ||
-                (stats->n_iterations == NULL) ||
-                (stats->performance == NULL) ||
-                (stats->time_cost == NULL))
+            (stats->time == NULL) ||
+            (stats->n_time == NULL) ||
+            (stats->iterations == NULL) ||
+            (stats->n_iterations == NULL) ||
+            (stats->performance == NULL) ||
+            (stats->time_cost == NULL))
         {
             destroy_stats(stats);
             __test_stats.remove(stats);
@@ -133,6 +170,7 @@ namespace test
         size_t n_iterations = strlen("Est");
         size_t performance  = strlen("Perf[i/s]");
         size_t time_cost    = strlen("Cost[us/i]");
+        size_t rel          = strlen("Rel[%]");
 
         // Estimate size of all columns
         for (size_t i=0, n=__test_stats.size(); i < n; ++i)
@@ -146,6 +184,7 @@ namespace test
             estimate(&n_iterations, stats->n_iterations);
             estimate(&performance, stats->performance);
             estimate(&time_cost, stats->time_cost);
+            estimate(&time_cost, stats->rel);
         }
 
         // Output table header
@@ -156,7 +195,8 @@ namespace test
         out_text(out, n_time, "Samp[s]", 1, "─", "┬");
         out_text(out, n_iterations, "Est", 1, "─", "┬");
         out_text(out, performance, "Perf[i/s]", 1, "─", "┬");
-        out_text(out, time_cost, "Cost[us/i]", 1, "─", "┐\n");
+        out_text(out, time_cost, "Cost[us/i]", 1, "─", "┬");
+        out_text(out, rel, "Rel[%]", 1, "─", "┐\n");
 
         bool separator = false;
 
@@ -175,7 +215,8 @@ namespace test
                     out_text(out, n_time, NULL, 1, "─", "┼");
                     out_text(out, n_iterations, NULL, 1, "─", "┼");
                     out_text(out, performance, NULL, 1, "─", "┼");
-                    out_text(out, time_cost, NULL, 1, "─", "┤\n");
+                    out_text(out, time_cost, NULL, 1, "─", "┼");
+                    out_text(out, rel, NULL, 1, "─", "┤\n");
                 }
                 separator = false;
 
@@ -186,7 +227,8 @@ namespace test
                 out_text(out, n_time, stats->n_time, 1, " ", "│");
                 out_text(out, n_iterations, stats->n_iterations, 1, " ", "│");
                 out_text(out, performance, stats->performance, 1, " ", "│");
-                out_text(out, time_cost, stats->time_cost, 1, " ", "│\n");
+                out_text(out, time_cost, stats->time_cost, 1, " ", "│");
+                out_text(out, rel, stats->rel, 1, " ", "│\n");
             }
             else
                 separator = true;
@@ -200,7 +242,8 @@ namespace test
         out_text(out, n_time, NULL, 1, "─", "┴");
         out_text(out, n_iterations, NULL, 1, "─", "┴");
         out_text(out, performance, NULL, 1, "─", "┴");
-        out_text(out, time_cost, NULL, 1, "─", "┘\n");
+        out_text(out, time_cost, NULL, 1, "─", "┴");
+        out_text(out, rel, NULL, 1, "─", "┘\n");
     }
 
     void PerformanceTest::free_stats()

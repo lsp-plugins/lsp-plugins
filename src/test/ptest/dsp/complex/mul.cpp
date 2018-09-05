@@ -121,6 +121,8 @@ PTEST_BEGIN("dsp.complex", mul, 5, 1000)
             IF_ARCH_ARM(call("neon_d32:complex_mul", out, in1, in2, count, neon_d32::complex_mul3));
             IF_ARCH_ARM(call("neon_d32:complex_mul_x12", out, in1, in2, count, neon_d32::complex_mul3_x12));
 
+            PTEST_SEPARATOR;
+
             call("native:pcomplex_mul", out, in1, in2, count, native::pcomplex_mul);
             IF_ARCH_X86(call("sse:pcomplex_mul", out, in1, in2, count, sse::pcomplex_mul));
             IF_ARCH_X86(call("sse3:pcomplex_mul", out, in1, in2, count, sse3::pcomplex_mul));

@@ -10,7 +10,8 @@
 #include <core/sugar.h>
 
 #define MIN_RANK 8
-#define MAX_RANK 16
+#define MAX_RANK 9
+//#define MAX_RANK 16
 
 namespace native
 {
@@ -50,7 +51,8 @@ typedef void (* complex_mod_t)(float *dst_mod, const float *src_re, const float 
 
 //-----------------------------------------------------------------------------
 // Performance test for complex multiplication
-PTEST_BEGIN("dsp.complex", mod, 5, 1000)
+//PTEST_BEGIN("dsp.complex", mod, 5, 1000)
+PTEST_BEGIN("dsp.complex", mod, 1, 100)
 
     void call(const char *label, float *dst, const float *src1, size_t count, pcomplex_mod_t mod)
     {
@@ -95,14 +97,16 @@ PTEST_BEGIN("dsp.complex", mod, 5, 1000)
             size_t count = 1 << i;
 
             call("native:complex_mod", out, in, count, native::complex_mod);
-            call("native:pcomplex_mod", out, in, count, native::pcomplex_mod);
             IF_ARCH_X86(call("sse:complex_mod", out, in, count, sse::complex_mod));
+            IF_ARCH_ARM(call("neon_d32:complex_mod", out, in, count, neon_d32::complex_mod));
+
+            PTEST_SEPARATOR;
+
+            call("native:pcomplex_mod", out, in, count, native::pcomplex_mod);
             IF_ARCH_X86(call("sse:pcomplex_mod", out, in, count, sse::pcomplex_mod));
             IF_ARCH_X86(call("sse3:pcomplex_mod", out, in, count, sse3::pcomplex_mod));
             IF_ARCH_X86_64(call("sse3:x64_pcomplex_mod", out, in, count, sse3::x64_pcomplex_mod));
             IF_ARCH_X86_64(call("avx:x64_pcomplex_mod", out, in, count, avx::x64_pcomplex_mod));
-
-            IF_ARCH_ARM(call("neon_d32:complex_mod", out, in, count, neon_d32::complex_mod));
             IF_ARCH_ARM(call("neon_d32:pcomplex_mod", out, in, count, neon_d32::pcomplex_mod));
 
             PTEST_SEPARATOR;

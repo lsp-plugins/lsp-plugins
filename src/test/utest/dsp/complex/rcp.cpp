@@ -32,6 +32,8 @@ IF_ARCH_ARM(
     {
         void complex_rcp1(float *dst_re, float *dst_im, size_t count);
         void complex_rcp2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+        void pcomplex_rcp1(float *dst, size_t count);
+        void pcomplex_rcp2(float *dst, const float *src, size_t count);
     }
 )
 
@@ -205,6 +207,8 @@ UTEST_BEGIN("dsp.complex", rcp)
 
         IF_ARCH_ARM(call("neon_d32:complex_rcp1", 16, neon_d32::complex_rcp1));
         IF_ARCH_ARM(call("neon_d32:complex_rcp2", 16, neon_d32::complex_rcp2));
+        IF_ARCH_ARM(call("neon_d32:pcomplex_rcp1", 16, neon_d32::pcomplex_rcp1));
+        IF_ARCH_ARM(call("neon_d32:pcomplex_rcp2", 16, neon_d32::pcomplex_rcp2));
     }
 
 UTEST_END;
