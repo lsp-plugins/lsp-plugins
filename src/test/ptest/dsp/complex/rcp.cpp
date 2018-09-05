@@ -127,7 +127,7 @@ PTEST_BEGIN("dsp.complex", rcp, 5, 1000)
             IF_ARCH_X86(call("sse:complex_rcp1", out, count, sse::complex_rcp1));
             IF_ARCH_X86(call("sse:complex_rcp2", out, in, count, sse::complex_rcp2));
             IF_ARCH_ARM(call("neon_d32:complex_rcp1", out, count, neon_d32::complex_rcp1));
-            IF_ARCH_ARM(call("neon_d32:complex_rcp2", out, count, neon_d32::complex_rcp2));
+            IF_ARCH_ARM(call("neon_d32:complex_rcp2", out, in, count, neon_d32::complex_rcp2));
 
             PTEST_SEPARATOR;
 
@@ -136,7 +136,7 @@ PTEST_BEGIN("dsp.complex", rcp, 5, 1000)
             IF_ARCH_X86(call("sse:pcomplex_rcp1", out, count, sse::pcomplex_rcp1));
             IF_ARCH_X86(call("sse:pcomplex_rcp2", out, in, count, sse::pcomplex_rcp2));
             IF_ARCH_ARM(call("neon_d32:pcomplex_rcp1", out, count, neon_d32::pcomplex_rcp1));
-            IF_ARCH_ARM(call("neon_d32:pcomplex_rcp2", out, count, neon_d32::pcomplex_rcp2));
+            IF_ARCH_ARM(call("neon_d32:pcomplex_rcp2", out, in, count, neon_d32::pcomplex_rcp2));
 
             PTEST_SEPARATOR;
         }

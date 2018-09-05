@@ -32,10 +32,14 @@ namespace neon_d32
         EXPORT1(move);
 
         EXPORT2(complex_mul, complex_mul3);
-        EXPORT2(pcomplex_mul, pcomplex_mul3);
-        EXPORT1(pcomplex_mod);
         EXPORT1(complex_mod);
         EXPORT1(complex_rcp1);
+        EXPORT1(complex_rcp2);
+
+        EXPORT2(pcomplex_mul, pcomplex_mul3);
+        EXPORT1(pcomplex_mod);
+        EXPORT1(pcomplex_rcp1);
+        EXPORT1(pcomplex_rcp2);
 
         // Misc for testing
         TEST_EXPORT(neon_d32::complex_mul3_x12);
