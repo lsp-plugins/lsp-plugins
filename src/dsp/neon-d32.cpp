@@ -14,6 +14,7 @@
 
 #include <dsp/arch/arm/neon-d32/copy.h>
 #include <dsp/arch/arm/neon-d32/complex.h>
+#include <dsp/arch/arm/neon-d32/pcomplex.h>
 
 #undef DSP_ARCH_ARM_NEON_32_IMPL
 
