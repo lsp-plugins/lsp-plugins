@@ -21,7 +21,7 @@ namespace test
         else if (b == 0.0f)
             return (fabs(a) < tolerance);
 
-        float diff = fabs(b/a);
+        float diff = (a > b) ? fabs(a/b) : fabs(b/a);
         return fabs(1.0f - diff) < tolerance;
     }
 
