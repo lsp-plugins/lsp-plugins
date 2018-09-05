@@ -109,34 +109,35 @@ PTEST_BEGIN("dsp.complex", rcp, 5, 1000)
     {
         size_t buf_size = 1 << MAX_RANK;
         uint8_t *data   = NULL;
-        float *out      = alloc_aligned<float>(data, buf_size * 4, 64);
-        float *in       = &out[buf_size];
+        float *out      = alloc_aligned<float>(data, buf_size * 8, 64);
+        float *in       = &out[buf_size*2];
+        float *backup   = &in[buf_size*2];
 
-        for (size_t i=0; i < (1 << (MAX_RANK + 1)); ++i)
-        {
-            in[i]           = float(rand()) / RAND_MAX;
+        for (size_t i=0; i < buf_size*4; ++i)
             out[i]          = float(rand()) / RAND_MAX;
-        }
+        dsp::copy(backup, out, buf_size * 4);
+
+        #define CALL(...) dsp::copy(out, backup, buf_size * 4); call(__VA_ARGS__)
 
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
-            call("native:complex_rcp1", out, count, native::complex_rcp1);
-            call("native:complex_rcp2", out, in, count, native::complex_rcp2);
-            IF_ARCH_X86(call("sse:complex_rcp1", out, count, sse::complex_rcp1));
-            IF_ARCH_X86(call("sse:complex_rcp2", out, in, count, sse::complex_rcp2));
-            IF_ARCH_ARM(call("neon_d32:complex_rcp1", out, count, neon_d32::complex_rcp1));
-            IF_ARCH_ARM(call("neon_d32:complex_rcp2", out, in, count, neon_d32::complex_rcp2));
+            CALL("native:complex_rcp1", out, count, native::complex_rcp1);
+            CALL("native:complex_rcp2", out, in, count, native::complex_rcp2);
+            IF_ARCH_X86(CALL("sse:complex_rcp1", out, count, sse::complex_rcp1));
+            IF_ARCH_X86(CALL("sse:complex_rcp2", out, in, count, sse::complex_rcp2));
+            IF_ARCH_ARM(CALL("neon_d32:complex_rcp1", out, count, neon_d32::complex_rcp1));
+            IF_ARCH_ARM(CALL("neon_d32:complex_rcp2", out, in, count, neon_d32::complex_rcp2));
 
             PTEST_SEPARATOR;
 
-            call("native:pcomplex_rcp1", out, count, native::pcomplex_rcp1);
-            call("native:pcomplex_rcp2", out, in, count, native::pcomplex_rcp2);
-            IF_ARCH_X86(call("sse:pcomplex_rcp1", out, count, sse::pcomplex_rcp1));
-            IF_ARCH_X86(call("sse:pcomplex_rcp2", out, in, count, sse::pcomplex_rcp2));
-            IF_ARCH_ARM(call("neon_d32:pcomplex_rcp1", out, count, neon_d32::pcomplex_rcp1));
-            IF_ARCH_ARM(call("neon_d32:pcomplex_rcp2", out, in, count, neon_d32::pcomplex_rcp2));
+            CALL("native:pcomplex_rcp1", out, count, native::pcomplex_rcp1);
+            CALL("native:pcomplex_rcp2", out, in, count, native::pcomplex_rcp2);
+            IF_ARCH_X86(CALL("sse:pcomplex_rcp1", out, count, sse::pcomplex_rcp1));
+            IF_ARCH_X86(CALL("sse:pcomplex_rcp2", out, in, count, sse::pcomplex_rcp2));
+            IF_ARCH_ARM(CALL("neon_d32:pcomplex_rcp1", out, count, neon_d32::pcomplex_rcp1));
+            IF_ARCH_ARM(CALL("neon_d32:pcomplex_rcp2", out, in, count, neon_d32::pcomplex_rcp2));
 
             PTEST_SEPARATOR;
         }

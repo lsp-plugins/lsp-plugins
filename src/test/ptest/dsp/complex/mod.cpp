@@ -84,28 +84,32 @@ PTEST_BEGIN("dsp.complex", mod, 5, 1000)
     {
         size_t buf_size = 1 << MAX_RANK;
         uint8_t *data   = NULL;
-        float *out      = alloc_aligned<float>(data, buf_size * 3, 64);
+        float *out      = alloc_aligned<float>(data, buf_size * 6, 64);
         float *in       = &out[buf_size];
+        float *backup   = &in[buf_size*2];
 
-        for (size_t i=0; i < (1 << (MAX_RANK + 1)); ++i)
+        for (size_t i=0; i < buf_size*3; ++i)
             out[i]          = float(rand()) / RAND_MAX;
+        dsp::copy(backup, out, buf_size * 3);
+
+        #define CALL(...) dsp::copy(out, backup, buf_size * 3); call(__VA_ARGS__)
 
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
-            call("native:complex_mod", out, in, count, native::complex_mod);
-            IF_ARCH_X86(call("sse:complex_mod", out, in, count, sse::complex_mod));
-            IF_ARCH_ARM(call("neon_d32:complex_mod", out, in, count, neon_d32::complex_mod));
+            CALL("native:complex_mod", out, in, count, native::complex_mod);
+            IF_ARCH_X86(CALL("sse:complex_mod", out, in, count, sse::complex_mod));
+            IF_ARCH_ARM(CALL("neon_d32:complex_mod", out, in, count, neon_d32::complex_mod));
 
             PTEST_SEPARATOR;
 
-            call("native:pcomplex_mod", out, in, count, native::pcomplex_mod);
-            IF_ARCH_X86(call("sse:pcomplex_mod", out, in, count, sse::pcomplex_mod));
-            IF_ARCH_X86(call("sse3:pcomplex_mod", out, in, count, sse3::pcomplex_mod));
-            IF_ARCH_X86_64(call("sse3:x64_pcomplex_mod", out, in, count, sse3::x64_pcomplex_mod));
-            IF_ARCH_X86_64(call("avx:x64_pcomplex_mod", out, in, count, avx::x64_pcomplex_mod));
-            IF_ARCH_ARM(call("neon_d32:pcomplex_mod", out, in, count, neon_d32::pcomplex_mod));
+            CALL("native:pcomplex_mod", out, in, count, native::pcomplex_mod);
+            IF_ARCH_X86(CALL("sse:pcomplex_mod", out, in, count, sse::pcomplex_mod));
+            IF_ARCH_X86(CALL("sse3:pcomplex_mod", out, in, count, sse3::pcomplex_mod));
+            IF_ARCH_X86_64(CALL("sse3:x64_pcomplex_mod", out, in, count, sse3::x64_pcomplex_mod));
+            IF_ARCH_X86_64(CALL("avx:x64_pcomplex_mod", out, in, count, avx::x64_pcomplex_mod));
+            IF_ARCH_ARM(CALL("neon_d32:pcomplex_mod", out, in, count, neon_d32::pcomplex_mod));
 
             PTEST_SEPARATOR;
         }

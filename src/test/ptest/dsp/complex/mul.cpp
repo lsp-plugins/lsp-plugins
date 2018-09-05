@@ -95,41 +95,37 @@ PTEST_BEGIN("dsp.complex", mul, 5, 1000)
     {
         size_t buf_size = 1 << MAX_RANK;
         uint8_t *data   = NULL;
-        float *ptr      = alloc_aligned<float>(data, buf_size *6, 64);
+        float *out      = alloc_aligned<float>(data, buf_size*12, 64);
+        float *in1      = &out[buf_size*2];
+        float *in2      = &in1[buf_size*2];
+        float *backup   = &in2[buf_size*2];
 
-        float *out      = ptr;
-        ptr            += buf_size*2;
-        float *in1      = ptr;
-        ptr            += buf_size*2;
-        float *in2      = ptr;
-        ptr            += buf_size*2;
+        for (size_t i=0; i < buf_size*6; ++i)
+            out[i]          = float(rand()) / RAND_MAX;
+        dsp::copy(backup, out, buf_size * 6);
 
-        for (size_t i=0; i < (1 << (MAX_RANK + 1)); ++i)
-        {
-            in1[i]          = float(rand()) / RAND_MAX;
-            in2[i]          = float(rand()) / RAND_MAX;
-        }
+        #define CALL(...) dsp::copy(out, backup, buf_size * 6); call(__VA_ARGS__)
 
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
-            call("native:complex_mul", out, in1, in2, count, native::complex_mul);
-            IF_ARCH_X86(call("sse:complex_mul", out, in1, in2, count, sse::complex_mul));
-            IF_ARCH_X86_64(call("x64_avx:complex_mul", out, in1, in2, count, avx::x64_complex_mul));
-            IF_ARCH_X86_64(call("x64_fma3:complex_mul", out, in1, in2, count, avx::x64_complex_mul_fma3));
-            IF_ARCH_ARM(call("neon_d32:complex_mul", out, in1, in2, count, neon_d32::complex_mul3));
-            IF_ARCH_ARM(call("neon_d32:complex_mul_x12", out, in1, in2, count, neon_d32::complex_mul3_x12));
+            CALL("native:complex_mul", out, in1, in2, count, native::complex_mul);
+            IF_ARCH_X86(CALL("sse:complex_mul", out, in1, in2, count, sse::complex_mul));
+            IF_ARCH_X86_64(CALL("x64_avx:complex_mul", out, in1, in2, count, avx::x64_complex_mul));
+            IF_ARCH_X86_64(CALL("x64_fma3:complex_mul", out, in1, in2, count, avx::x64_complex_mul_fma3));
+            IF_ARCH_ARM(CALL("neon_d32:complex_mul", out, in1, in2, count, neon_d32::complex_mul3));
+            IF_ARCH_ARM(CALL("neon_d32:complex_mul_x12", out, in1, in2, count, neon_d32::complex_mul3_x12));
 
             PTEST_SEPARATOR;
 
-            call("native:pcomplex_mul", out, in1, in2, count, native::pcomplex_mul);
-            IF_ARCH_X86(call("sse:pcomplex_mul", out, in1, in2, count, sse::pcomplex_mul));
-            IF_ARCH_X86(call("sse3:pcomplex_mul", out, in1, in2, count, sse3::pcomplex_mul));
-            IF_ARCH_X86_64(call("x64_sse3:pcomplex_mul", out, in1, in2, count, sse3::x64_pcomplex_mul));
-            IF_ARCH_X86_64(call("x64_avx:pcomplex_mul", out, in1, in2, count, avx::x64_pcomplex_mul));
-            IF_ARCH_X86_64(call("x64_fma3:pcomplex_mul", out, in1, in2, count, avx::x64_pcomplex_mul_fma3));
-            IF_ARCH_ARM(call("neon_d32:pcomplex_mul", out, in1, in2, count, neon_d32::pcomplex_mul3));
+            CALL("native:pcomplex_mul", out, in1, in2, count, native::pcomplex_mul);
+            IF_ARCH_X86(CALL("sse:pcomplex_mul", out, in1, in2, count, sse::pcomplex_mul));
+            IF_ARCH_X86(CALL("sse3:pcomplex_mul", out, in1, in2, count, sse3::pcomplex_mul));
+            IF_ARCH_X86_64(CALL("x64_sse3:pcomplex_mul", out, in1, in2, count, sse3::x64_pcomplex_mul));
+            IF_ARCH_X86_64(CALL("x64_avx:pcomplex_mul", out, in1, in2, count, avx::x64_pcomplex_mul));
+            IF_ARCH_X86_64(CALL("x64_fma3:pcomplex_mul", out, in1, in2, count, avx::x64_pcomplex_mul_fma3));
+            IF_ARCH_ARM(CALL("neon_d32:pcomplex_mul", out, in1, in2, count, neon_d32::pcomplex_mul3));
 
             PTEST_SEPARATOR;
         }

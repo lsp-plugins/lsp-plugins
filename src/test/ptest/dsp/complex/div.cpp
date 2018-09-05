@@ -58,9 +58,10 @@ PTEST_BEGIN("dsp.complex", div, 5, 1000)
     {
         size_t buf_size = 1 << MAX_RANK;
         uint8_t *data   = NULL;
-        float *out      = alloc_aligned<float>(data, buf_size * 6, 64);
+        float *out      = alloc_aligned<float>(data, buf_size * 12, 64);
         float *in1      = &out[buf_size*2];
         float *in2      = &in1[buf_size*2];
+        float *backup   = &in2[buf_size*2];
 
         for (size_t i=0; i < (1 << (MAX_RANK + 1)); ++i)
         {
@@ -68,17 +69,20 @@ PTEST_BEGIN("dsp.complex", div, 5, 1000)
             in1[i]          = float(rand()) / RAND_MAX;
             in2[i]          = float(rand()) / RAND_MAX;
         }
+        dsp::copy(backup, out, buf_size * 6);
+
+        #define CALL(...) dsp::copy(out, backup, buf_size * 6); call(__VA_ARGS__)
 
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
-            call("native:complex_div2", out, in1, count, native::complex_div2);
-            call("native:complex_rdiv2", out, in1, count, native::complex_rdiv2);
-            IF_ARCH_X86(call("sse:complex_div2", out, in1, count, sse::complex_div2));
-            IF_ARCH_X86(call("sse:complex_rdiv2", out, in1, count, sse::complex_rdiv2));
-            IF_ARCH_ARM(call("neon_d32:complex_div2", out, in1, count, neon_d32::complex_div2));
-            IF_ARCH_ARM(call("neon_d32:complex_rdiv2", out, in1, count, neon_d32::complex_rdiv2));
+            CALL("native:complex_div2", out, in1, count, native::complex_div2);
+            CALL("native:complex_rdiv2", out, in1, count, native::complex_rdiv2);
+            IF_ARCH_X86(CALL("sse:complex_div2", out, in1, count, sse::complex_div2));
+            IF_ARCH_X86(CALL("sse:complex_rdiv2", out, in1, count, sse::complex_rdiv2));
+            IF_ARCH_ARM(CALL("neon_d32:complex_div2", out, in1, count, neon_d32::complex_div2));
+            IF_ARCH_ARM(CALL("neon_d32:complex_rdiv2", out, in1, count, neon_d32::complex_rdiv2));
 
             PTEST_SEPARATOR;
         }
