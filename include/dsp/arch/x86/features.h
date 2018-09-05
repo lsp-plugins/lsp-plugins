@@ -61,6 +61,20 @@ namespace x86
         uint32_t            features;
         char                brand[56];
     } cpu_features_t;
+
+    enum feature_t
+    {
+        FEAT_FAST_MOVS,         // Processor implements optimized MOVS instruction
+        FEAT_FAST_AVX           // Fast AVX implementation
+    };
+
+    /**
+     * Check only one feature from feature_t at one time
+     * @param f detected CPU features
+     * @param ops feature to check
+     * @return true if feature is supported
+     */
+    bool feature_check(const cpu_features_t *f, feature_t ops);
 }
 
 #endif /* DSP_ARCH_X86_FEATURES_H_ */

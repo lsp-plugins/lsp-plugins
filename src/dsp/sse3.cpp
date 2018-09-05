@@ -47,7 +47,6 @@ namespace sse3
     #undef DSP_F32VEC4
 }
 
-#include <dsp/arch/x86/hwops.h>
 #include <dsp/arch/x86/sse3/copy.h>
 #include <dsp/arch/x86/sse3/graphics.h>
 #include <dsp/arch/x86/sse3/filters/static.h>
@@ -73,7 +72,7 @@ namespace sse3
 
         // Additional xmm registers are available only in 64-bit mode
         EXPORT2(pcomplex_mul, pcomplex_mul);
-        if (!hwops_check(f, HWOPS_FAST_MOVS))
+        if (!feature_check(f, FEAT_FAST_MOVS))
         {
             EXPORT2(copy, copy);
         }

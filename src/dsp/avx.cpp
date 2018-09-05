@@ -57,7 +57,7 @@ namespace avx
 
         // This routine sucks on AMD Bulldozer processor family but is pretty great on Intel
         // Not tested on AMD Processors above Bulldozer family
-        if (f->vendor == CPU_VENDOR_INTEL)
+        if (feature_check(f, FEAT_FAST_AVX))
         {
             EXPORT2_X64(complex_mul, x64_complex_mul);
             EXPORT2_X64(pcomplex_mul, x64_pcomplex_mul);
@@ -66,9 +66,9 @@ namespace avx
         }
         else
         {
+            SUPPORT_X64(x64_pcomplex_mod);
             SUPPORT_X64(x64_complex_mul);
             SUPPORT_X64(x64_pcomplex_mul);
-            SUPPORT_X64(x64_pcomplex_mod);
             SUPPORT_X64(x64_bilinear_transform_x8);
         }
 
