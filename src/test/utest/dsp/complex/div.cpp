@@ -12,12 +12,14 @@
 namespace native
 {
     void complex_div2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+    void complex_rdiv2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
 }
 
 IF_ARCH_X86(
     namespace sse
     {
         void complex_div2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+        void complex_rdiv2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
     }
 )
 
@@ -25,6 +27,7 @@ IF_ARCH_ARM(
     namespace neon_d32
     {
         void complex_div2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+        void complex_rdiv2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
     }
 )
 
@@ -32,9 +35,11 @@ typedef void (* complex_div2_t) (float *dst_re, float *dst_im, const float *src_
 
 UTEST_BEGIN("dsp.complex", div)
 
-    void call(const char *text,  size_t align, complex_div2_t func)
+    void call(const char *text,  size_t align, complex_div2_t func1, complex_div2_t func2)
     {
-        if (!UTEST_SUPPORTED(func))
+        if (!UTEST_SUPPORTED(func1))
+            return;
+        if (!UTEST_SUPPORTED(func2))
             return;
 
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
@@ -52,8 +57,8 @@ UTEST_BEGIN("dsp.complex", div)
                 FloatBuffer dst2_im(dst1_im);
 
                 // Call functions
-                native::complex_div2(dst1_re, dst1_im, src_re, src_im, count);
-                func(dst2_re, dst2_im, src_re, src_im, count);
+                func1(dst1_re, dst1_im, src_re, src_im, count);
+                func2(dst2_re, dst2_im, src_re, src_im, count);
 
                 UTEST_ASSERT_MSG(src_re.valid(), "Source buffer RE corrupted");
                 UTEST_ASSERT_MSG(src_im.valid(), "Source buffer IM corrupted");
@@ -79,8 +84,10 @@ UTEST_BEGIN("dsp.complex", div)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse:complex_div2", 16, sse::complex_div2));
-        IF_ARCH_ARM(call("neon_d32:complex_div2", 16, neon_d32::complex_div2));
+        IF_ARCH_X86(call("sse:complex_div2", 16, native::complex_div2, sse::complex_div2));
+        IF_ARCH_X86(call("sse:complex_rdiv2", 16, native::complex_rdiv2, sse::complex_rdiv2));
+        IF_ARCH_ARM(call("neon_d32:complex_div2", 16, native::complex_div2, neon_d32::complex_div2));
+        IF_ARCH_ARM(call("neon_d32:complex_rdiv2", 16, native::complex_rdiv2, neon_d32::rcomplex_div2));
     }
 
 UTEST_END;

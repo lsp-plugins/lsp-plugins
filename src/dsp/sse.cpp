@@ -219,6 +219,7 @@ namespace sse
 
         EXPORT1(complex_mul);
         EXPORT1(complex_div2);
+        EXPORT1(complex_rdiv2);
         EXPORT1(complex_rcp1);
         EXPORT1(complex_rcp2);
         EXPORT1(complex_mod);
