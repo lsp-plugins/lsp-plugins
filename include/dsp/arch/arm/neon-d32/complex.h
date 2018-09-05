@@ -658,14 +658,12 @@ namespace neon_d32
     {
         ARCH_ARM_ASM
         (
-            __ASM_EMIT("subs            %[count], $16")
+            __ASM_EMIT("subs            %[count], $8")
             __ASM_EMIT("blo             2f")
 
             //-----------------------------------------------------------------
             // x8 blocks
-            __ASM_EMIT("2:")
-            __ASM_EMIT("adds            %[count], $8")
-            __ASM_EMIT("blt             4f")
+            __ASM_EMIT("1:")
             __ASM_EMIT("vld1.32         {q0-q1}, [%[dst_re]]")      // q0 = r1, q1 = r2
             __ASM_EMIT("vld1.32         {q2-q3}, [%[dst_im]]")      // q2 = i1, q3 = i2
             __ASM_EMIT("vmul.f32        q4, q0, q0")                // q4 = r*r
@@ -692,15 +690,16 @@ namespace neon_d32
             __ASM_EMIT("vmul.f32        q1, q1, q11")
             __ASM_EMIT("vmul.f32        q2, q2, q8")
             __ASM_EMIT("vmul.f32        q3, q3, q11")
-            __ASM_EMIT("sub             %[count], $8")
+            __ASM_EMIT("subs            %[count], $8")
             __ASM_EMIT("vst1.32         {q0-q1}, [%[dst_re]]!")
             __ASM_EMIT("vst1.32         {q2-q3}, [%[dst_im]]!")
+            __ASM_EMIT("bhs             1b")
 
             //-----------------------------------------------------------------
             // x4 blocks
-            __ASM_EMIT("4:")
+            __ASM_EMIT("2:")
             __ASM_EMIT("adds            %[count], $4")
-            __ASM_EMIT("blt             6f")
+            __ASM_EMIT("blt             4f")
             __ASM_EMIT("vld1.32         {q0}, [%[dst_re]]")         // q0 = r
             __ASM_EMIT("vld1.32         {q2}, [%[dst_im]]")         // q2 = i
             __ASM_EMIT("vmul.f32        q4, q0, q0")                // q4 = r*r
@@ -721,10 +720,10 @@ namespace neon_d32
             __ASM_EMIT("vst1.32         {q2}, [%[dst_im]]!")
 
             // x1 blocks
-            __ASM_EMIT("6:")
+            __ASM_EMIT("4:")
             __ASM_EMIT("adds        %[count], $3")
-            __ASM_EMIT("blt         8f")
-            __ASM_EMIT("7:")
+            __ASM_EMIT("blt         6f")
+            __ASM_EMIT("5:")
             __ASM_EMIT("vldm.32     %[dst_re], {s0}")               // s0 = r
             __ASM_EMIT("vldm.32     %[dst_im], {s1}")               // s1 = i
             __ASM_EMIT("vmul.f32    s4, s0, s0")                    // s4 = r*r
@@ -736,11 +735,11 @@ namespace neon_d32
             __ASM_EMIT("subs        %[count], $1")
             __ASM_EMIT("vstm.32     %[dst_re]!, {s0}")
             __ASM_EMIT("vstm.32     %[dst_im]!, {s1}")
-            __ASM_EMIT("bge         7b")
+            __ASM_EMIT("bge         5b")
 
-            __ASM_EMIT("8:")
+            __ASM_EMIT("6:")
 
-            : [dst] "+r" (dst), [src_re] "+r" (src_re), [src_im] "+r" (src_im),
+            : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im)
               [count] "+r" (count)
             :
             : "cc", "memory",
