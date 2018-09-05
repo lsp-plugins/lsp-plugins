@@ -190,7 +190,7 @@ namespace test
             estimate(&n_iterations, stats->n_iterations);
             estimate(&performance, stats->performance);
             estimate(&time_cost, stats->time_cost);
-            estimate(&time_cost, stats->rel);
+            estimate(&rel, stats->rel);
         }
 
         // Output table header
