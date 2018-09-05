@@ -17,6 +17,13 @@ namespace native
     void complex_div2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
 }
 
+IF_ARCH_X86(
+    namespace sse
+    {
+        void complex_div2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count);
+    }
+)
+
 IF_ARCH_ARM(
     namespace neon_d32
     {
@@ -64,6 +71,7 @@ PTEST_BEGIN("dsp.complex", div, 5, 1000)
             size_t count = 1 << i;
 
             call("native:complex_div2", out, in1, count, native::complex_div2);
+            IF_ARCH_X86(call("sse:complex_div2", out, in1, count, sse::complex_div2));
             IF_ARCH_ARM(call("neon_d32:complex_div2", out, in1, count, neon_d32::complex_div2));
 
             PTEST_SEPARATOR;

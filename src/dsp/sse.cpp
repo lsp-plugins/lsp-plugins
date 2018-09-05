@@ -216,19 +216,23 @@ namespace sse
         EXPORT1(fastconv_apply);
 
         EXPORT1(normalize_fft);
+
         EXPORT1(complex_mul);
+        EXPORT1(complex_div2);
         EXPORT1(complex_rcp1);
         EXPORT1(complex_rcp2);
+        EXPORT1(complex_mod);
+
         EXPORT1(pcomplex_mul);
         EXPORT1(pcomplex_rcp1);
         EXPORT1(pcomplex_rcp2);
         EXPORT1(pcomplex_r2c);
         EXPORT1(pcomplex_c2r);
         EXPORT1(pcomplex_add_r);
+        EXPORT1(pcomplex_mod);
 //            EXPORT1(complex_cvt2modarg);
 //            EXPORT1(complex_cvt2reim);
-        EXPORT1(complex_mod);
-        EXPORT1(pcomplex_mod);
+
         EXPORT1(lr_to_ms);
         EXPORT1(lr_to_mid);
         EXPORT1(lr_to_side);

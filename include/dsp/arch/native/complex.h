@@ -231,16 +231,14 @@ namespace native
 
     void complex_div2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count)
     {
-        while (count--)
+        for (size_t i=0; i<count; ++i)
         {
-            float re        = (*src_re) * (*dst_re) + (*src_im) * (*dst_im);
-            float im        = (*src_re) * (*dst_im) + (*src_im) * (*dst_re);
-            float n         = 1.0f / ((*src_re) * (*src_re) + (*src_im) * (*src_im));
+            float re        = src_re[i] * dst_re[i] + src_im[i] * dst_im[i];
+            float im        = src_re[i] * dst_im[i] + src_im[i] * dst_re[i];
+            float n         = 1.0f / (src_re[i] * src_re[i] + src_im[i] * src_im[i]);
 
-            *(dst_re++)     = re * n;
-            *(dst_im++)     = -im * n;
-            src_re++;
-            src_im++;
+            dst_re[i]       = re * n;
+            dst_im[i]       = -im * n;
         }
     }
 

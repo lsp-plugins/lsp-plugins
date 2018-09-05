@@ -256,8 +256,8 @@ namespace neon_d32
     {
         ARCH_ARM_ASM
         (
-            __ASM_EMIT("subs        %[count], $8")
-            __ASM_EMIT("blo         2f")
+            __ASM_EMIT("subs            %[count], $8")
+            __ASM_EMIT("blo             2f")
 
             // x8 blocks
             __ASM_EMIT("1:")
