@@ -713,6 +713,7 @@ namespace neon_d32
             __ASM_EMIT("vneg.f32        q2, q2")                    // q2 = -i
             __ASM_EMIT("vmul.f32        q0, q0, q4")                // q0 = r / R
             __ASM_EMIT("vmul.f32        q2, q2, q4")                // q2 = -i / R
+            __ASM_EMIT("sub             %[count], $4")
             __ASM_EMIT("vst1.32         {q0}, [%[dst_re]]!")
             __ASM_EMIT("vst1.32         {q2}, [%[dst_im]]!")
 
@@ -728,6 +729,7 @@ namespace neon_d32
             __ASM_EMIT("vneg.f32        s2, s2")                    // s2 = -i
             __ASM_EMIT("vdiv.f32        s0, s0, s4")                // s0 = r / R
             __ASM_EMIT("vdiv.f32        s2, s2, s4")                // s2 = -i / R
+            __ASM_EMIT("subs            %[count], $1")
             __ASM_EMIT("vstm.32         %[dst_re]!, {s0}")
             __ASM_EMIT("vstm.32         %[dst_im]!, {s2}")
             __ASM_EMIT("bge             5b")
