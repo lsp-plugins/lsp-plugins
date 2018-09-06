@@ -107,16 +107,16 @@ namespace neon_d32
             __ASM_EMIT("vmla.f32        q4, q5, q5")                    // q4  = sr*sr + si*si
             __ASM_EMIT("vmla.f32        q6, q7, q7")
             // q4 = 1 / (sr*sr + si*si)
-            __ASM_EMIT("vrecpe.f32      q6, q4")                        // q6 = x0
-            __ASM_EMIT("vrecpe.f32      q6, q6")
-            __ASM_EMIT("vrecps.f32      q8, q6, q4")                    // q8 = (2 - R*x0)
-            __ASM_EMIT("vrecps.f32      q10, q6, q6")
-            __ASM_EMIT("vmul.f32        q6, q8, q6")                    // q6 = x1 = x0 * (2 - R*x0)
-            __ASM_EMIT("vmul.f32        q6, q10, q6")
-            __ASM_EMIT("vrecps.f32      q8, q6, q4")                    // q8 = (2 - R*x1)
-            __ASM_EMIT("vrecps.f32      q10, q6, q6")
-            __ASM_EMIT("vmul.f32        q4, q8, q6")                    // q4 = x2 = x1 * (2 - R*x0)
-            __ASM_EMIT("vmul.f32        q6, q10, q6")
+            __ASM_EMIT("vrecpe.f32      q5, q4")                        // q5 = x0
+            __ASM_EMIT("vrecpe.f32      q7, q6")
+            __ASM_EMIT("vrecps.f32      q8, q5, q4")                    // q8 = (2 - R*x0)
+            __ASM_EMIT("vrecps.f32      q10, q7, q6")
+            __ASM_EMIT("vmul.f32        q5, q8, q5")                    // q5 = x1 = x0 * (2 - R*x0)
+            __ASM_EMIT("vmul.f32        q7, q10, q7")
+            __ASM_EMIT("vrecps.f32      q8, q5, q4")                    // q8 = (2 - R*x1)
+            __ASM_EMIT("vrecps.f32      q10, q7, q6")
+            __ASM_EMIT("vmul.f32        q4, q8, q5")                    // q4 = x2 = x1 * (2 - R*x0)
+            __ASM_EMIT("vmul.f32        q6, q10, q7")
             __ASM_EMIT("vmul.f32        q0, q0, q4")
             __ASM_EMIT("vmul.f32        q2, q2, q6")
             __ASM_EMIT("vmul.f32        q1, q1, q4")
@@ -140,11 +140,11 @@ namespace neon_d32
             __ASM_EMIT("vneg.f32        q1, q1")                        // q1 = -(sr*di + si*dr)
             __ASM_EMIT("vmla.f32        q4, q5, q5")                    // q4  = sr*sr + si*si
             // q4 = 1 / (sr*sr + si*si)
-            __ASM_EMIT("vrecpe.f32      q6, q4")                        // q6 = x0
-            __ASM_EMIT("vrecps.f32      q8, q6, q4")                    // q8 = (2 - R*x0)
-            __ASM_EMIT("vmul.f32        q6, q8, q6")                    // q6 = x1 = x0 * (2 - R*x0)
-            __ASM_EMIT("vrecps.f32      q8, q6, q4")                    // q8 = (2 - R*x1)
-            __ASM_EMIT("vmul.f32        q4, q8, q6")                    // q4 = x2 = x1 * (2 - R*x0)
+            __ASM_EMIT("vrecpe.f32      q5, q4")                        // q5 = x0
+            __ASM_EMIT("vrecps.f32      q8, q5, q4")                    // q8 = (2 - R*x0)
+            __ASM_EMIT("vmul.f32        q5, q8, q5")                    // q5 = x1 = x0 * (2 - R*x0)
+            __ASM_EMIT("vrecps.f32      q8, q5, q4")                    // q8 = (2 - R*x1)
+            __ASM_EMIT("vmul.f32        q4, q8, q5")                    // q4 = x2 = x1 * (2 - R*x0)
             __ASM_EMIT("vmul.f32        q0, q0, q4")
             __ASM_EMIT("vmul.f32        q1, q1, q4")
             __ASM_EMIT("vst2.32         {q0-q1}, [%[dst]]!")
