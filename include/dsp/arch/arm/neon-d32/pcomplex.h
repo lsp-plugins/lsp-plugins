@@ -81,17 +81,20 @@ namespace neon_d32
 
     void pcomplex_div2(float *dst, const float *src, size_t count)
     {
+        IF_ARCH_ARM(float *src2);
+
         ARCH_ARM_ASM
         (
             __ASM_EMIT("subs            %[count], $8")
             __ASM_EMIT("blo             2f")
+            __ASM_EMIT("mov             %[src2], %[dst]")
 
             // x8 blocks
             __ASM_EMIT("1:")
             __ASM_EMIT("vld2.32         {q4-q5}, [%[src]]!")            // q4  = sr, q5 = si
             __ASM_EMIT("vld2.32         {q6-q7}, [%[src]]!")
-            __ASM_EMIT("vld2.32         {q8-q9}, [%[dst]]")             // q8  = dr, q9 = di
-            __ASM_EMIT("vld2.32         {q10-q11}, [%[dst]]")
+            __ASM_EMIT("vld2.32         {q8-q9}, [%[src2]]!")           // q8  = dr, q9 = di
+            __ASM_EMIT("vld2.32         {q10-q11}, [%[src2]]!")
             __ASM_EMIT("vmul.f32        q0, q4, q8")                    // q0  = sr*dr
             __ASM_EMIT("vmul.f32        q2, q6, q10")
             __ASM_EMIT("vmul.f32        q1, q4, q9")                    // q1  = sr*di
@@ -171,7 +174,7 @@ namespace neon_d32
 
             __ASM_EMIT("6:")
 
-            : [dst] "+r" (dst), [src] "+r" (src),
+            : [dst] "+r" (dst), [src] "+r" (src), [src2] "=&r" (src2),
               [count] "+r" (count)
             :
             : "cc", "memory",
