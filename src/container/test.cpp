@@ -16,6 +16,7 @@
 #include <test/ptest.h>
 #include <test/utest.h>
 #include <test/mtest.h>
+#include <metadata/metadata.h>
 #include <data/cvector.h>
 
 enum test_mode_t
@@ -64,11 +65,14 @@ void out_cpu_info(FILE *out)
         return;
 
     fprintf(out, "--------------------------------------------------------------------------------\n");
+    fprintf(out, "LSP version: %s\n", LSP_MAIN_VERSION);
+    fprintf(out, "--------------------------------------------------------------------------------\n");
     fprintf(out, "CPU information:\n");
     fprintf(out, "  Architecture:   %s\n", info->arch);
     fprintf(out, "  CPU string:     %s\n", info->cpu);
     fprintf(out, "  CPU model:      %s\n", info->model);
     fprintf(out, "  Features:       %s\n", info->features);
+    fprintf(out, "--------------------------------------------------------------------------------\n");
     fprintf(out, "\n");
     free(info);
 }
