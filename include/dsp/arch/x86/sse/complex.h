@@ -693,7 +693,6 @@ namespace sse
               "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
-
 }
 
 #endif /* DSP_ARCH_X86_SSE_COMPLEX_H_ */

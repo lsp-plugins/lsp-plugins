@@ -310,6 +310,7 @@ namespace native
             dst[1]          = -im * n;
             t              += 2;
             b              += 2;
+            dst            += 2;
         }
     }
 
