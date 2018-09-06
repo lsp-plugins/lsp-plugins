@@ -14,30 +14,41 @@
 
 namespace native
 {
-    void complex_mod(float *dst_mod, const float *src_re, const float *src_im, size_t count);
+    void pcomplex_mod(float *dst_mod, const float *src, size_t count);
 }
 
 IF_ARCH_X86(
     namespace sse
     {
-        void complex_mod(float *dst_mod, const float *src_re, const float *src_im, size_t count);
+        void pcomplex_mod(float *dst_mod, const float *src, size_t count);
+    }
+
+    namespace sse3
+    {
+        void pcomplex_mod(float *dst_mod, const float *src, size_t count);
+        void x64_pcomplex_mod(float *dst_mod, const float *src, size_t count);
+    }
+
+    namespace avx
+    {
+        void x64_pcomplex_mod(float *dst_mod, const float *src, size_t count);
     }
 )
 
 IF_ARCH_ARM(
     namespace neon_d32
     {
-        void complex_mod(float *dst_mod, const float *src_re, const float *src_im, size_t count);
+        void pcomplex_mod(float *dst_mod, const float *src, size_t count);
     }
 )
 
-typedef void (* complex_mod_t)(float *dst_mod, const float *src_re, const float *src_im, size_t count);
+typedef void (* pcomplex_mod_t)(float *dst_mod, const float *src, size_t count);
 
 //-----------------------------------------------------------------------------
 // Performance test for complex multiplication
-PTEST_BEGIN("dsp.complex", mod, 5, 1000)
+PTEST_BEGIN("dsp.pcomplex", mod, 5, 1000)
 
-    void call(const char *label, float *dst, const float *src, size_t count, complex_mod_t mod)
+    void call(const char *label, float *dst, const float *src1, size_t count, pcomplex_mod_t mod)
     {
         if (!PTEST_SUPPORTED(mod))
             return;
@@ -47,7 +58,7 @@ PTEST_BEGIN("dsp.complex", mod, 5, 1000)
         printf("Testing %s numbers...\n", buf);
 
         PTEST_LOOP(buf,
-            mod(dst, src, &src[count], count);
+            mod(dst, src1, count);
         );
     }
 
@@ -69,9 +80,12 @@ PTEST_BEGIN("dsp.complex", mod, 5, 1000)
         {
             size_t count = 1 << i;
 
-            CALL("native:complex_mod", out, in, count, native::complex_mod);
-            IF_ARCH_X86(CALL("sse:complex_mod", out, in, count, sse::complex_mod));
-            IF_ARCH_ARM(CALL("neon_d32:complex_mod", out, in, count, neon_d32::complex_mod));
+            CALL("native:pcomplex_mod", out, in, count, native::pcomplex_mod);
+            IF_ARCH_X86(CALL("sse:pcomplex_mod", out, in, count, sse::pcomplex_mod));
+            IF_ARCH_X86(CALL("sse3:pcomplex_mod", out, in, count, sse3::pcomplex_mod));
+            IF_ARCH_X86_64(CALL("sse3:x64_pcomplex_mod", out, in, count, sse3::x64_pcomplex_mod));
+            IF_ARCH_X86_64(CALL("avx:x64_pcomplex_mod", out, in, count, avx::x64_pcomplex_mod));
+            IF_ARCH_ARM(CALL("neon_d32:pcomplex_mod", out, in, count, neon_d32::pcomplex_mod));
 
             PTEST_SEPARATOR;
         }

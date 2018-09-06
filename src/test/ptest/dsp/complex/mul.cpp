@@ -15,33 +15,19 @@
 namespace native
 {
     void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-    void pcomplex_mul(float *dst, const float *src1, const float *src2, size_t count);
 }
 
 IF_ARCH_X86(
     namespace sse
     {
         void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-        void pcomplex_mul(float *dst, const float *src1, const float *src2, size_t count);
-    }
-
-    namespace sse3
-    {
-        void pcomplex_mul(float *dst, const float *src1, const float *src2, size_t count);
     }
 
     IF_ARCH_X86_64(
-        namespace sse3
-        {
-            void x64_pcomplex_mul(float *dst, const float *src1, const float *src2, size_t count);
-        }
-
         namespace avx
         {
             void x64_complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
             void x64_complex_mul_fma3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-            void x64_pcomplex_mul(float *dst, const float *src1, const float *src2, size_t count);
-            void x64_pcomplex_mul_fma3(float *dst, const float *src1, const float *src2, size_t count);
         }
     )
 )
@@ -51,31 +37,14 @@ IF_ARCH_ARM(
     {
         void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
         void complex_mul3_x12(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-
-        void pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
 typedef void (* complex_mul_t) (float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-typedef void (* packed_complex_mul_t) (float *dst, const float *src1, const float *src2, size_t count);
 
 //-----------------------------------------------------------------------------
 // Performance test for complex multiplication
 PTEST_BEGIN("dsp.complex", mul, 5, 1000)
-
-    void call(const char *label, float *dst, const float *src1, const float *src2, size_t count, packed_complex_mul_t mul)
-    {
-        if (!PTEST_SUPPORTED(mul))
-            return;
-
-        char buf[80];
-        sprintf(buf, "%s x %d", label, int(count));
-        printf("Testing %s numbers...\n", buf);
-
-        PTEST_LOOP(buf,
-            mul(dst, src1, src2, count);
-        );
-    }
 
     void call(const char *label, float *dst, const float *src1, const float *src2, size_t count, complex_mul_t mul)
     {
@@ -116,16 +85,6 @@ PTEST_BEGIN("dsp.complex", mul, 5, 1000)
             IF_ARCH_X86_64(CALL("x64_fma3:complex_mul", out, in1, in2, count, avx::x64_complex_mul_fma3));
             IF_ARCH_ARM(CALL("neon_d32:complex_mul", out, in1, in2, count, neon_d32::complex_mul3));
             IF_ARCH_ARM(CALL("neon_d32:complex_mul_x12", out, in1, in2, count, neon_d32::complex_mul3_x12));
-
-            PTEST_SEPARATOR;
-
-            CALL("native:pcomplex_mul", out, in1, in2, count, native::pcomplex_mul);
-            IF_ARCH_X86(CALL("sse:pcomplex_mul", out, in1, in2, count, sse::pcomplex_mul));
-            IF_ARCH_X86(CALL("sse3:pcomplex_mul", out, in1, in2, count, sse3::pcomplex_mul));
-            IF_ARCH_X86_64(CALL("x64_sse3:pcomplex_mul", out, in1, in2, count, sse3::x64_pcomplex_mul));
-            IF_ARCH_X86_64(CALL("x64_avx:pcomplex_mul", out, in1, in2, count, avx::x64_pcomplex_mul));
-            IF_ARCH_X86_64(CALL("x64_fma3:pcomplex_mul", out, in1, in2, count, avx::x64_pcomplex_mul_fma3));
-            IF_ARCH_ARM(CALL("neon_d32:pcomplex_mul", out, in1, in2, count, neon_d32::pcomplex_mul3));
 
             PTEST_SEPARATOR;
         }
