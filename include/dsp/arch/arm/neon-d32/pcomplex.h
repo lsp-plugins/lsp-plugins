@@ -121,8 +121,8 @@ namespace neon_d32
             __ASM_EMIT("vmul.f32        q2, q2, q6")
             __ASM_EMIT("vmul.f32        q1, q1, q4")
             __ASM_EMIT("vmul.f32        q3, q3, q6")
-            __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
-            __ASM_EMIT("vst1.32         {q2-q3}, [%[dst]]!")
+            __ASM_EMIT("vst2.32         {q0-q1}, [%[dst]]!")
+            __ASM_EMIT("vst2.32         {q2-q3}, [%[dst]]!")
             __ASM_EMIT("subs            %[count], $8")
             __ASM_EMIT("bhs             1b")
 
@@ -147,7 +147,7 @@ namespace neon_d32
             __ASM_EMIT("vmul.f32        q4, q8, q6")                    // q4 = x2 = x1 * (2 - R*x0)
             __ASM_EMIT("vmul.f32        q0, q0, q4")
             __ASM_EMIT("vmul.f32        q1, q1, q4")
-            __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
+            __ASM_EMIT("vst2.32         {q0-q1}, [%[dst]]!")
             __ASM_EMIT("sub             %[count], $4")
 
             // x1 blocks
