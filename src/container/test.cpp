@@ -74,6 +74,7 @@ void out_cpu_info(FILE *out)
     fprintf(out, "  Features:       %s\n", info->features);
     fprintf(out, "--------------------------------------------------------------------------------\n");
     fprintf(out, "\n");
+    fflush(out);
     free(info);
 }
 
@@ -203,6 +204,7 @@ int execute_ptest(FILE *out, config_t *cfg, test::PerformanceTest *v)
         fprintf(out, "Statistics of performance test '%s':\n\n", v->full_name());
         v->dump_stats(out);
         fprintf(out, "\n");
+        fflush(out);
     }
 
     v->free_stats();
@@ -315,6 +317,10 @@ int launch_ptest(config_t *cfg)
         stats.total     ++;
         if (cfg->fork)
         {
+            fflush(stdout);
+            fflush(stderr);
+            if (fd != NULL)
+                fflush(fd);
             pid_t pid = fork();
             if (pid < 0)
             {
@@ -410,6 +416,8 @@ int launch_mtest(config_t *cfg)
         stats.total     ++;
         if (cfg->fork)
         {
+            fflush(stdout);
+            fflush(stderr);
             pid_t pid = fork();
             if (pid < 0)
             {
@@ -565,6 +573,8 @@ int submit_utest(config_t *cfg, task_t *threads, stats_t *stats, test::UnitTest 
         // Is there a placeholder?
         if (t != NULL)
         {
+            fflush(stdout);
+            fflush(stderr);
             pid_t pid = fork();
             if (pid < 0)
             {
