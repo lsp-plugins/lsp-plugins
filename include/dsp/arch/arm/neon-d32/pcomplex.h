@@ -160,9 +160,8 @@ namespace neon_d32
             __ASM_EMIT("vmul.f32        s0, s4, s8")                    // s0  = sr*dr
             __ASM_EMIT("vmul.f32        s1, s4, s9")                    // s1  = sr*di
             __ASM_EMIT("vmla.f32        s0, s5, s9")                    // s0  = sr*dr + si*di
-            __ASM_EMIT("vnmla.f32        s1, s5, s8")                   // s1  = -(sr*di + si*dr)
+            __ASM_EMIT("vnmla.f32       s1, s5, s8")                    // s1  = -(sr*di + si*dr)
             __ASM_EMIT("vmul.f32        s4, s4, s4")                    // s4  = sr*sr
-            __ASM_EMIT("vneg.f32        s1, s1")                        // s1 = -(sr*di + si*dr)
             __ASM_EMIT("vmla.f32        s4, s5, s5")                    // s4  = sr*sr + si*si
             __ASM_EMIT("vdiv.f32        s0, s0, s4")                    // s0  = (sr*dr + si*di) / R
             __ASM_EMIT("vdiv.f32        s1, s1, s4")                    // s1  = (sr*dr + si*di) / R
