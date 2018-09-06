@@ -64,6 +64,7 @@ namespace sse // TODO: make constants common for all architectures
 #include <dsp/arch/x86/sse/resampling.h>
 
 #include <dsp/arch/x86/sse/complex.h>
+#include <dsp/arch/x86/sse/pcomplex.h>
 
 #include <dsp/arch/x86/sse/filters/static.h>
 #include <dsp/arch/x86/sse/filters/dynamic.h>
