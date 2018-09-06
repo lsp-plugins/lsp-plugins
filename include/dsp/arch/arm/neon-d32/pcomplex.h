@@ -79,7 +79,7 @@ namespace neon_d32
         );
     }
 
-    void pcomplex_div(float *dst, const float *src, size_t count)
+    void pcomplex_div2(float *dst, const float *src, size_t count)
     {
         ARCH_ARM_ASM
         (

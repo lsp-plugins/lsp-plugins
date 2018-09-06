@@ -77,7 +77,7 @@ PTEST_BEGIN("dsp.pcomplex", div2, 5, 1000)
             IF_ARCH_X86(CALL("sse:complex_div2", out, in, count, sse::pcomplex_div2));
             IF_ARCH_X86(CALL("sse:complex_rdiv2", out, in, count, sse::pcomplex_rdiv2));
             IF_ARCH_ARM(CALL("neon_d32:complex_div2", out, in, count, neon_d32::pcomplex_div2));
-            IF_ARCH_ARM(CALL("neon_d32:complex_rdiv2", out, in, count, neon_d32::pcomplex_rdiv2));
+//            IF_ARCH_ARM(CALL("neon_d32:complex_rdiv2", out, in, count, neon_d32::pcomplex_rdiv2));
 
             PTEST_SEPARATOR;
         }
