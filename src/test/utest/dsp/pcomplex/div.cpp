@@ -122,8 +122,8 @@ UTEST_BEGIN("dsp.pcomplex", div)
         IF_ARCH_X86(call("sse:pcomplex_rdiv2", 16, native::pcomplex_rdiv2, sse::pcomplex_rdiv2));
         IF_ARCH_X86(call("sse:pcomplex_div3", 16, sse::pcomplex_div3));
         IF_ARCH_ARM(call("neon_d32:pcomplex_div2", 16, native::pcomplex_div2, neon_d32::pcomplex_div2));
-//        IF_ARCH_ARM(call("neon_d32:pcomplex_rdiv2", 16, native::pcomplex_rdiv2, neon_d32::pcomplex_rdiv2));
-//        IF_ARCH_ARM(call("neon_d32:pcomplex_div3", 16, neon_d32::pcomplex_div3));
+        IF_ARCH_ARM(call("neon_d32:pcomplex_rdiv2", 16, native::pcomplex_rdiv2, neon_d32::pcomplex_rdiv2));
+        IF_ARCH_ARM(call("neon_d32:pcomplex_div3", 16, neon_d32::pcomplex_div3));
     }
 
 UTEST_END;

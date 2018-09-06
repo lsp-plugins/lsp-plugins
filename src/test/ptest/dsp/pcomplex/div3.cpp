@@ -72,7 +72,7 @@ PTEST_BEGIN("dsp.pcomplex", div3, 5, 1000)
 
             CALL("native:complex_div3", out, in1, in2, count, native::pcomplex_div3);
             IF_ARCH_X86(CALL("sse:complex_div3", out, in1, in2, count, sse::pcomplex_div3));
-//            IF_ARCH_ARM(CALL("neon_d32:complex_div3", out, in1, in2, count, neon_d32::pcomplex_div3));
+            IF_ARCH_ARM(CALL("neon_d32:complex_div3", out, in1, in2, count, neon_d32::pcomplex_div3));
 
             PTEST_SEPARATOR;
         }

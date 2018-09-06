@@ -42,6 +42,8 @@ namespace neon_d32
 
         EXPORT2(pcomplex_mul, pcomplex_mul3);
         EXPORT1(pcomplex_div2);
+        EXPORT1(pcomplex_rdiv2);
+        EXPORT1(pcomplex_div3);
         EXPORT1(pcomplex_mod);
         EXPORT1(pcomplex_rcp1);
         EXPORT1(pcomplex_rcp2);
