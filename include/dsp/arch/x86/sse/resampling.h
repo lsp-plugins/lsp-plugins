@@ -14,13 +14,19 @@
 
 namespace sse
 {
-    static const float lanczos_2x2_k0 = 0.6203830132406946f;
-    static const float lanczos_2x2_k1 = -0.1664152316035080f;
+    static const float lanczos_2x2[] __lsp_aligned16 =
+    {
+        0.6203830132406946f, // k0
+        -0.1664152316035080f // k1
+    };
 
     // Lanczos kernel 2x3: 3 SSE registers
-    static const float lanczos_2x3_k0 = 0.6293724479752082f;
-    static const float lanczos_2x3_k1 = -0.1910530560835854f;
-    static const float lanczos_2x3_k2 = 0.0939539981090991f;
+    static const float lanczos_2x3[] __lsp_aligned16 =
+    {
+        0.6293724479752082f, // k0
+        -0.1910530560835854f, // k1
+        0.0939539981090991f, // k2
+    };
 
     // Lanczos kernel 3x2: 6 SSE registers
     const float lanczos_kernel_3x2[] __lsp_aligned16 =
@@ -367,8 +373,8 @@ namespace sse
     {
         ARCH_X86_ASM
         (
-            __ASM_EMIT("movss       %[k0], %%xmm6")         // xmm6 = k0
-            __ASM_EMIT("movss       %[k1], %%xmm7")         // xmm7 = k1
+            __ASM_EMIT("movss       0x00 + %[k], %%xmm6")    // xmm6 = k0
+            __ASM_EMIT("movss       0x04 + %[k], %%xmm7")    // xmm7 = k1
             __ASM_EMIT("sub         $2, %[count]")
             __ASM_EMIT("jb          2f")
 
@@ -446,8 +452,7 @@ namespace sse
             __ASM_EMIT("3:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-            : [k0] "m" (lanczos_2x2_k0),
-              [k1] "m" (lanczos_2x2_k1)
+            : [k] "o" (lanczos_2x2)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -458,8 +463,8 @@ namespace sse
     {
         ARCH_X86_ASM
         (
-            __ASM_EMIT("movss       %[k0], %%xmm6")         // xmm6 = k0
-            __ASM_EMIT("movss       %[k1], %%xmm7")         // xmm7 = k1
+            __ASM_EMIT("movss       0x00 + %[k], %%xmm6")   // xmm6 = k0
+            __ASM_EMIT("movss       0x04 + %[k], %%xmm7")   // xmm7 = k1
             __ASM_EMIT("sub         $2, %[count]")
             __ASM_EMIT("jb          2f")
 
@@ -472,8 +477,8 @@ namespace sse
             // Do convolution
             __ASM_EMIT("movaps      %%xmm0, %%xmm2")        // xmm2 = s0
             __ASM_EMIT("movaps      %%xmm1, %%xmm3")        // xmm3 = s1
-            __ASM_EMIT("mulss       %[k2], %%xmm2")         // xmm2 = k2*s0
-            __ASM_EMIT("mulss       %[k2], %%xmm3")         // xmm3 = k2*s1
+            __ASM_EMIT("mulss       0x08 + %[k], %%xmm2")   // xmm2 = k2*s0
+            __ASM_EMIT("mulss       0x08 + %[k], %%xmm3")   // xmm3 = k2*s1
             __ASM_EMIT("movaps      %%xmm2, %%xmm4")        // xmm4 = k2*s0
             __ASM_EMIT("movaps      %%xmm3, %%xmm5")        // xmm5 = k2*s1
             __ASM_EMIT("addss       0x04(%[dst]), %%xmm4")  // xmm4 = k2*s0 + d1
@@ -531,7 +536,7 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm0, %%xmm3")        // xmm3 = s0
             __ASM_EMIT("mulss       %%xmm6, %%xmm1")        // xmm1 = k0*s0
             __ASM_EMIT("mulss       %%xmm7, %%xmm2")        // xmm2 = k1*s0
-            __ASM_EMIT("mulss       %[k2], %%xmm3")         // xmm3 = k2*s0
+            __ASM_EMIT("mulss       0x08 + %[k], %%xmm3")   // xmm3 = k2*s0
             __ASM_EMIT("movaps      %%xmm1, %%xmm4")        // xmm4 = k0*s0
             __ASM_EMIT("movaps      %%xmm2, %%xmm5")        // xmm5 = k1*s0
             __ASM_EMIT("movaps      %%xmm3, %%xmm6")        // xmm6 = k2*s0
@@ -555,9 +560,7 @@ namespace sse
             __ASM_EMIT("3:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-            : [k0] "m" (lanczos_2x3_k0),
-              [k1] "m" (lanczos_2x3_k1),
-              [k2] "m" (lanczos_2x3_k2)
+            : [k] "o" (lanczos_2x3)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -583,12 +586,12 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm4, %%xmm6")        // xmm6 = s1
 
             // Do convolution
-            __ASM_EMIT("mulps       0x00(%[k]), %%xmm0")    // xmm0 = s0*m0
-            __ASM_EMIT("mulps       0x10(%[k]), %%xmm1")    // xmm1 = s0*m1
-            __ASM_EMIT("mulps       0x20(%[k]), %%xmm2")    // xmm2 = s0*m2
-            __ASM_EMIT("mulps       0x30(%[k]), %%xmm4")    // xmm4 = s1*m3
-            __ASM_EMIT("mulps       0x40(%[k]), %%xmm5")    // xmm5 = s1*m4
-            __ASM_EMIT("mulps       0x50(%[k]), %%xmm6")    // xmm6 = s1*m5
+            __ASM_EMIT("mulps       0x00 + %[k], %%xmm0")    // xmm0 = s0*m0
+            __ASM_EMIT("mulps       0x10 + %[k], %%xmm1")    // xmm1 = s0*m1
+            __ASM_EMIT("mulps       0x20 + %[k], %%xmm2")    // xmm2 = s0*m2
+            __ASM_EMIT("mulps       0x30 + %[k], %%xmm4")    // xmm4 = s1*m3
+            __ASM_EMIT("mulps       0x40 + %[k], %%xmm5")    // xmm5 = s1*m4
+            __ASM_EMIT("mulps       0x50 + %[k], %%xmm6")    // xmm6 = s1*m5
             __ASM_EMIT("addps       %%xmm4, %%xmm1")        // xmm1 = s0*m1 + s1*m3
             __ASM_EMIT("addps       %%xmm5, %%xmm2")        // xmm2 = s0*m2 + s1*m4
             __ASM_EMIT("movups      0x00(%[dst]), %%xmm3")  // xmm3 = d0
@@ -622,9 +625,9 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm0, %%xmm2")        // xmm2 = s0
 
             // Do convolution
-            __ASM_EMIT("mulps       0x00(%[k]), %%xmm0")    // xmm0 = s0*m0
-            __ASM_EMIT("mulps       0x10(%[k]), %%xmm1")    // xmm1 = s0*m1
-            __ASM_EMIT("mulps       0x20(%[k]), %%xmm2")    // xmm2 = s0*m2
+            __ASM_EMIT("mulps       0x00 + %[k], %%xmm0")    // xmm0 = s0*m0
+            __ASM_EMIT("mulps       0x10 + %[k], %%xmm1")    // xmm1 = s0*m1
+            __ASM_EMIT("mulps       0x20 + %[k], %%xmm2")    // xmm2 = s0*m2
 
             __ASM_EMIT("movups      0x00(%[dst]), %%xmm3")  // xmm3 = d0
             __ASM_EMIT("movups      0x10(%[dst]), %%xmm4")  // xmm4 = d1
@@ -639,7 +642,7 @@ namespace sse
             __ASM_EMIT("3:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-            : [k] "r" (lanczos_kernel_3x2)
+            : [k] "o" (lanczos_kernel_3x2)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -667,11 +670,11 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm0, %%xmm3")        // xmm3 = s0
 
             // Do convolution
-            __ASM_EMIT("mulps       0x00(%[k]), %%xmm1")    // xmm1 = s0*m0
-            __ASM_EMIT("mulps       0x10(%[k]), %%xmm2")    // xmm2 = s0*m1
-            __ASM_EMIT("mulps       0x20(%[k]), %%xmm3")    // xmm3 = s0*m2
-            __ASM_EMIT("mulps       0x50(%[k]), %%xmm5")    // xmm5 = s1*m5
-            __ASM_EMIT("mulps       0x60(%[k]), %%xmm6")    // xmm6 = s1*m6
+            __ASM_EMIT("mulps       0x00 + %[k], %%xmm1")    // xmm1 = s0*m0
+            __ASM_EMIT("mulps       0x10 + %[k], %%xmm2")    // xmm2 = s0*m1
+            __ASM_EMIT("mulps       0x20 + %[k], %%xmm3")    // xmm3 = s0*m2
+            __ASM_EMIT("mulps       0x50 + %[k], %%xmm5")    // xmm5 = s1*m5
+            __ASM_EMIT("mulps       0x60 + %[k], %%xmm6")    // xmm6 = s1*m6
             __ASM_EMIT("addps       %%xmm5, %%xmm2")        // xmm2 = s0*m1 + s1*m5
             __ASM_EMIT("addps       %%xmm6, %%xmm3")        // xmm3 = s0*m2 + s1*m6
             __ASM_EMIT("movups      0x00(%[dst]), %%xmm5")  // xmm5 = d0
@@ -687,11 +690,11 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm4, %%xmm5")        // xmm4 = s1
             __ASM_EMIT("movaps      %%xmm0, %%xmm1")        // xmm1 = s0
             __ASM_EMIT("movaps      %%xmm4, %%xmm6")        // xmm6 = s1
-            __ASM_EMIT("mulps       0x30(%[k]), %%xmm0")    // xmm0 = s0*m3
-            __ASM_EMIT("mulps       0x40(%[k]), %%xmm1")    // xmm1 = s0*m4
-            __ASM_EMIT("mulps       0x70(%[k]), %%xmm4")    // xmm4 = s1*m7
-            __ASM_EMIT("mulps       0x80(%[k]), %%xmm5")    // xmm5 = s1*m8
-            __ASM_EMIT("mulss       0x90(%[k]), %%xmm6")    // xmm6 = s1*m9
+            __ASM_EMIT("mulps       0x30 + %[k], %%xmm0")    // xmm0 = s0*m3
+            __ASM_EMIT("mulps       0x40 + %[k], %%xmm1")    // xmm1 = s0*m4
+            __ASM_EMIT("mulps       0x70 + %[k], %%xmm4")    // xmm4 = s1*m7
+            __ASM_EMIT("mulps       0x80 + %[k], %%xmm5")    // xmm5 = s1*m8
+            __ASM_EMIT("mulss       0x90 + %[k], %%xmm6")    // xmm6 = s1*m9
             __ASM_EMIT("addps       %%xmm4, %%xmm0")        // xmm0 = s0*m3 + s1*m7
             __ASM_EMIT("addps       %%xmm5, %%xmm1")        // xmm1 = s0*m4 + s1*m8
             __ASM_EMIT("movups      0x30(%[dst]), %%xmm2")  // xmm2 = d3
@@ -726,11 +729,11 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm0, %%xmm4")        // xmm4 = s0
 
             // Do convolution
-            __ASM_EMIT("mulps       0x00(%[k]), %%xmm0")    // xmm0 = s0*m0
-            __ASM_EMIT("mulps       0x10(%[k]), %%xmm1")    // xmm1 = s0*m1
-            __ASM_EMIT("mulps       0x20(%[k]), %%xmm2")    // xmm2 = s0*m2
-            __ASM_EMIT("mulps       0x30(%[k]), %%xmm3")    // xmm3 = s0*m3
-            __ASM_EMIT("mulps       0x40(%[k]), %%xmm4")    // xmm4 = s0*m4
+            __ASM_EMIT("mulps       0x00 + %[k], %%xmm0")    // xmm0 = s0*m0
+            __ASM_EMIT("mulps       0x10 + %[k], %%xmm1")    // xmm1 = s0*m1
+            __ASM_EMIT("mulps       0x20 + %[k], %%xmm2")    // xmm2 = s0*m2
+            __ASM_EMIT("mulps       0x30 + %[k], %%xmm3")    // xmm3 = s0*m3
+            __ASM_EMIT("mulps       0x40 + %[k], %%xmm4")    // xmm4 = s0*m4
 
             __ASM_EMIT("addps       %%xmm5, %%xmm0")        // xmm0 = d0 + s0*m0
             __ASM_EMIT("addps       %%xmm6, %%xmm1")        // xmm1 = d1 + s0*m1
@@ -749,7 +752,7 @@ namespace sse
             __ASM_EMIT("3:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-            : [k] "r" (lanczos_kernel_3x3)
+            : [k] "o" (lanczos_kernel_3x3)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -778,14 +781,14 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm4, %%xmm7")        // xmm7 = s1
 
             // Do convolution
-            __ASM_EMIT("mulps       0x00(%[k]), %%xmm0")    // xmm0 = s0*k0
-            __ASM_EMIT("mulps       0x00(%[k]), %%xmm4")    // xmm4 = s1*k0
-            __ASM_EMIT("mulps       0x10(%[k]), %%xmm1")    // xmm1 = s0*k1
-            __ASM_EMIT("mulps       0x10(%[k]), %%xmm5")    // xmm5 = s1*k1
-            __ASM_EMIT("mulps       0x20(%[k]), %%xmm2")    // xmm2 = s0*k2
-            __ASM_EMIT("mulps       0x20(%[k]), %%xmm6")    // xmm6 = s1*k2
-            __ASM_EMIT("mulps       0x30(%[k]), %%xmm3")    // xmm3 = s0*k3
-            __ASM_EMIT("mulps       0x30(%[k]), %%xmm7")    // xmm7 = s1*k3
+            __ASM_EMIT("mulps       0x00 + %[k], %%xmm0")    // xmm0 = s0*k0
+            __ASM_EMIT("mulps       0x00 + %[k], %%xmm4")    // xmm4 = s1*k0
+            __ASM_EMIT("mulps       0x10 + %[k], %%xmm1")    // xmm1 = s0*k1
+            __ASM_EMIT("mulps       0x10 + %[k], %%xmm5")    // xmm5 = s1*k1
+            __ASM_EMIT("mulps       0x20 + %[k], %%xmm2")    // xmm2 = s0*k2
+            __ASM_EMIT("mulps       0x20 + %[k], %%xmm6")    // xmm6 = s1*k2
+            __ASM_EMIT("mulps       0x30 + %[k], %%xmm3")    // xmm3 = s0*k3
+            __ASM_EMIT("mulps       0x30 + %[k], %%xmm7")    // xmm7 = s1*k3
             __ASM_EMIT("addps       %%xmm4, %%xmm1")        // xmm1 = s0*k1 + s1*k0
             __ASM_EMIT("addps       %%xmm5, %%xmm2")        // xmm2 = s0*k2 + s1*k1
             __ASM_EMIT("addps       %%xmm6, %%xmm3")        // xmm3 = s0*k3 + s1*k2
@@ -823,10 +826,10 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm1, %%xmm3")        // xmm3 = s0
 
             // Do convolution
-            __ASM_EMIT("mulps       0x00(%[k]), %%xmm0")    // xmm0 = s0*k0
-            __ASM_EMIT("mulps       0x10(%[k]), %%xmm1")    // xmm1 = s0*k1
-            __ASM_EMIT("mulps       0x20(%[k]), %%xmm2")    // xmm2 = s0*k2
-            __ASM_EMIT("mulps       0x30(%[k]), %%xmm3")    // xmm3 = s0*k3
+            __ASM_EMIT("mulps       0x00 + %[k], %%xmm0")    // xmm0 = s0*k0
+            __ASM_EMIT("mulps       0x10 + %[k], %%xmm1")    // xmm1 = s0*k1
+            __ASM_EMIT("mulps       0x20 + %[k], %%xmm2")    // xmm2 = s0*k2
+            __ASM_EMIT("mulps       0x30 + %[k], %%xmm3")    // xmm3 = s0*k3
             __ASM_EMIT("movups      0x00(%[dst]), %%xmm4")  // xmm4 = d0
             __ASM_EMIT("movups      0x10(%[dst]), %%xmm5")  // xmm5 = d1
             __ASM_EMIT("movups      0x20(%[dst]), %%xmm6")  // xmm6 = d2
@@ -844,7 +847,7 @@ namespace sse
             __ASM_EMIT("3:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-            : [k] "r" (lanczos_kernel_4x2)
+            : [k] "o" (lanczos_kernel_4x2)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -873,12 +876,12 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm4, %%xmm7")        // xmm7 = s1
 
             // Do convolution
-            __ASM_EMIT("mulps       0x00(%[k]), %%xmm1")    // xmm1 = s0*k0
-            __ASM_EMIT("mulps       0x00(%[k]), %%xmm5")    // xmm5 = s1*k0
-            __ASM_EMIT("mulps       0x10(%[k]), %%xmm2")    // xmm2 = s0*k1
-            __ASM_EMIT("mulps       0x10(%[k]), %%xmm6")    // xmm6 = s1*k1
-            __ASM_EMIT("mulps       0x20(%[k]), %%xmm3")    // xmm3 = s0*k2
-            __ASM_EMIT("mulps       0x20(%[k]), %%xmm7")    // xmm7 = s1*k2
+            __ASM_EMIT("mulps       0x00 + %[k], %%xmm1")    // xmm1 = s0*k0
+            __ASM_EMIT("mulps       0x00 + %[k], %%xmm5")    // xmm5 = s1*k0
+            __ASM_EMIT("mulps       0x10 + %[k], %%xmm2")    // xmm2 = s0*k1
+            __ASM_EMIT("mulps       0x10 + %[k], %%xmm6")    // xmm6 = s1*k1
+            __ASM_EMIT("mulps       0x20 + %[k], %%xmm3")    // xmm3 = s0*k2
+            __ASM_EMIT("mulps       0x20 + %[k], %%xmm7")    // xmm7 = s1*k2
             __ASM_EMIT("addps       %%xmm5, %%xmm2")        // xmm2 = s0*k1 + s1*k0
             __ASM_EMIT("addps       %%xmm6, %%xmm3")        // xmm3 = s0*k2 + s1*k1
             __ASM_EMIT("movups      0x00(%[dst]), %%xmm5")  // xmm5 = d0
@@ -894,12 +897,12 @@ namespace sse
             __ASM_EMIT("movups      %%xmm5, 0x20(%[dst])")  // d2  += s0*k2 + s1*k1
             __ASM_EMIT("movaps      %%xmm0, %%xmm2")        // xmm2 = s0
             __ASM_EMIT("movaps      %%xmm4, %%xmm5")        // xmm5 = s1
-            __ASM_EMIT("mulps       0x30(%[k]), %%xmm0")    // xmm0 = s0*k3
-            __ASM_EMIT("mulps       0x30(%[k]), %%xmm3")    // xmm3 = s1*k3
-            __ASM_EMIT("mulps       0x40(%[k]), %%xmm1")    // xmm1 = s0*k4
-            __ASM_EMIT("mulps       0x40(%[k]), %%xmm4")    // xmm4 = s1*k4
-            __ASM_EMIT("mulps       0x50(%[k]), %%xmm2")    // xmm2 = s0*k5
-            __ASM_EMIT("mulps       0x50(%[k]), %%xmm5")    // xmm5 = s1*k5
+            __ASM_EMIT("mulps       0x30 + %[k], %%xmm0")    // xmm0 = s0*k3
+            __ASM_EMIT("mulps       0x30 + %[k], %%xmm3")    // xmm3 = s1*k3
+            __ASM_EMIT("mulps       0x40 + %[k], %%xmm1")    // xmm1 = s0*k4
+            __ASM_EMIT("mulps       0x40 + %[k], %%xmm4")    // xmm4 = s1*k4
+            __ASM_EMIT("mulps       0x50 + %[k], %%xmm2")    // xmm2 = s0*k5
+            __ASM_EMIT("mulps       0x50 + %[k], %%xmm5")    // xmm5 = s1*k5
             __ASM_EMIT("addps       %%xmm7, %%xmm0")        // xmm0 = s0*k3 + s1*k2
             __ASM_EMIT("addps       %%xmm3, %%xmm1")        // xmm1 = s0*k4 + s1*k3
             __ASM_EMIT("addps       %%xmm4, %%xmm2")        // xmm2 = s0*k5 + s1*k4
@@ -937,12 +940,12 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm2, %%xmm5")        // xmm5 = s0
 
             // Do convolution
-            __ASM_EMIT("mulps       0x00(%[k]), %%xmm0")    // xmm0 = s0*k0
-            __ASM_EMIT("mulps       0x10(%[k]), %%xmm1")    // xmm1 = s0*k1
-            __ASM_EMIT("mulps       0x20(%[k]), %%xmm2")    // xmm2 = s0*k2
-            __ASM_EMIT("mulps       0x30(%[k]), %%xmm3")    // xmm3 = s0*k3
-            __ASM_EMIT("mulps       0x40(%[k]), %%xmm4")    // xmm2 = s0*k4
-            __ASM_EMIT("mulps       0x50(%[k]), %%xmm5")    // xmm3 = s0*k5
+            __ASM_EMIT("mulps       0x00 + %[k], %%xmm0")    // xmm0 = s0*k0
+            __ASM_EMIT("mulps       0x10 + %[k], %%xmm1")    // xmm1 = s0*k1
+            __ASM_EMIT("mulps       0x20 + %[k], %%xmm2")    // xmm2 = s0*k2
+            __ASM_EMIT("mulps       0x30 + %[k], %%xmm3")    // xmm3 = s0*k3
+            __ASM_EMIT("mulps       0x40 + %[k], %%xmm4")    // xmm2 = s0*k4
+            __ASM_EMIT("mulps       0x50 + %[k], %%xmm5")    // xmm3 = s0*k5
             __ASM_EMIT("movups      0x00(%[dst]), %%xmm6")  // xmm6 = d0
             __ASM_EMIT("movups      0x10(%[dst]), %%xmm7")  // xmm7 = d1
             __ASM_EMIT("addps       %%xmm0, %%xmm6")        // xmm4 = d0 + s0*k0
@@ -966,7 +969,7 @@ namespace sse
             __ASM_EMIT("3:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-            : [k] "r" (lanczos_kernel_4x3)
+            : [k] "o" (lanczos_kernel_4x3)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -991,9 +994,9 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm0, %%xmm4")        // xmm4 = s0
 
             // Do convolution (part 1)
-            __ASM_EMIT("mulps       0x00(%[k]), %%xmm2")    // xmm2 = s0*k0
-            __ASM_EMIT("mulps       0x10(%[k]), %%xmm3")    // xmm3 = s0*k1
-            __ASM_EMIT("mulps       0x20(%[k]), %%xmm4")    // xmm4 = s0*k2
+            __ASM_EMIT("mulps       0x00 + %[k], %%xmm2")    // xmm2 = s0*k0
+            __ASM_EMIT("mulps       0x10 + %[k], %%xmm3")    // xmm3 = s0*k1
+            __ASM_EMIT("mulps       0x20 + %[k], %%xmm4")    // xmm4 = s0*k2
             __ASM_EMIT("movups      0x00(%[dst]), %%xmm5")  // xmm5 = d0
             __ASM_EMIT("movups      0x10(%[dst]), %%xmm6")  // xmm6 = d1
             __ASM_EMIT("movups      0x20(%[dst]), %%xmm7")  // xmm7 = d2
@@ -1006,9 +1009,9 @@ namespace sse
 
             // Do convolution (part 2)
             __ASM_EMIT("movaps      %%xmm1, %%xmm2")        // xmm2 = s0
-            __ASM_EMIT("mulps       0x30(%[k]), %%xmm0")    // xmm0 = s0*k3
-            __ASM_EMIT("mulps       0x40(%[k]), %%xmm1")    // xmm1 = s0*k4
-            __ASM_EMIT("mulps       0x50(%[k]), %%xmm2")    // xmm2 = s0*k5
+            __ASM_EMIT("mulps       0x30 + %[k], %%xmm0")   // xmm0 = s0*k3
+            __ASM_EMIT("mulps       0x40 + %[k], %%xmm1")   // xmm1 = s0*k4
+            __ASM_EMIT("mulps       0x50 + %[k], %%xmm2")   // xmm2 = s0*k5
             __ASM_EMIT("movups      0x30(%[dst]), %%xmm3")  // xmm3 = d3
             __ASM_EMIT("movups      0x40(%[dst]), %%xmm4")  // xmm4 = d4
             __ASM_EMIT("movups      0x50(%[dst]), %%xmm5")  // xmm5 = d5
@@ -1029,7 +1032,7 @@ namespace sse
             __ASM_EMIT("2:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-            : [k] "r" (lanczos_kernel_6x2)
+            : [k] "o" (lanczos_kernel_6x2)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -1054,9 +1057,9 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm0, %%xmm4")        // xmm4 = s0
 
             // Do convolution (part 1)
-            __ASM_EMIT("mulps       0x00(%[k]), %%xmm2")    // xmm2 = s0*k0
-            __ASM_EMIT("mulps       0x10(%[k]), %%xmm3")    // xmm3 = s0*k1
-            __ASM_EMIT("mulps       0x20(%[k]), %%xmm4")    // xmm4 = s0*k2
+            __ASM_EMIT("mulps       0x00 + %[k], %%xmm2")   // xmm2 = s0*k0
+            __ASM_EMIT("mulps       0x10 + %[k], %%xmm3")   // xmm3 = s0*k1
+            __ASM_EMIT("mulps       0x20 + %[k], %%xmm4")   // xmm4 = s0*k2
             __ASM_EMIT("movups      0x00(%[dst]), %%xmm5")  // xmm5 = d0
             __ASM_EMIT("movups      0x10(%[dst]), %%xmm6")  // xmm6 = d1
             __ASM_EMIT("movups      0x20(%[dst]), %%xmm7")  // xmm7 = d2
@@ -1071,9 +1074,9 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm1, %%xmm2")        // xmm2 = s0
             __ASM_EMIT("movaps      %%xmm0, %%xmm6")        // xmm6 = s0
             __ASM_EMIT("movaps      %%xmm1, %%xmm7")        // xmm7 = s0
-            __ASM_EMIT("mulps       0x30(%[k]), %%xmm0")    // xmm0 = s0*k3
-            __ASM_EMIT("mulps       0x40(%[k]), %%xmm1")    // xmm1 = s0*k4
-            __ASM_EMIT("mulps       0x50(%[k]), %%xmm2")    // xmm2 = s0*k5
+            __ASM_EMIT("mulps       0x30 + %[k], %%xmm0")    // xmm0 = s0*k3
+            __ASM_EMIT("mulps       0x40 + %[k], %%xmm1")    // xmm1 = s0*k4
+            __ASM_EMIT("mulps       0x50 + %[k], %%xmm2")    // xmm2 = s0*k5
             __ASM_EMIT("movups      0x30(%[dst]), %%xmm3")  // xmm3 = d3
             __ASM_EMIT("movups      0x40(%[dst]), %%xmm4")  // xmm4 = d4
             __ASM_EMIT("movups      0x50(%[dst]), %%xmm5")  // xmm5 = d5
@@ -1086,9 +1089,9 @@ namespace sse
 
             // Do convolution (part 3)
             __ASM_EMIT("movaps      %%xmm7, %%xmm5")        // xmm5 = s0
-            __ASM_EMIT("mulps       0x60(%[k]), %%xmm6")    // xmm6 = s0*k6
-            __ASM_EMIT("mulps       0x70(%[k]), %%xmm7")    // xmm7 = s0*k7
-            __ASM_EMIT("mulps       0x80(%[k]), %%xmm5")    // xmm5 = s0*k8
+            __ASM_EMIT("mulps       0x60 + %[k], %%xmm6")    // xmm6 = s0*k6
+            __ASM_EMIT("mulps       0x70 + %[k], %%xmm7")    // xmm7 = s0*k7
+            __ASM_EMIT("mulps       0x80 + %[k], %%xmm5")    // xmm5 = s0*k8
             __ASM_EMIT("movups      0x60(%[dst]), %%xmm0")  // xmm0 = d6
             __ASM_EMIT("movups      0x70(%[dst]), %%xmm1")  // xmm1 = d7
             __ASM_EMIT("movups      0x80(%[dst]), %%xmm2")  // xmm2 = d8
@@ -1109,7 +1112,7 @@ namespace sse
             __ASM_EMIT("2:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-            : [k] "r" (lanczos_kernel_6x3)
+            : [k] "o" (lanczos_kernel_6x3)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -1134,10 +1137,10 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm0, %%xmm2")        // xmm2 = s0
             __ASM_EMIT("movaps      %%xmm1, %%xmm3")        // xmm3 = s0
 
-            __ASM_EMIT("mulps       0x00(%[k]), %%xmm0")    // xmm0 = s0*k0
-            __ASM_EMIT("mulps       0x10(%[k]), %%xmm1")    // xmm1 = s0*k1
-            __ASM_EMIT("mulps       0x20(%[k]), %%xmm2")    // xmm2 = s0*k2
-            __ASM_EMIT("mulps       0x30(%[k]), %%xmm3")    // xmm3 = s0*k3
+            __ASM_EMIT("mulps       0x00 + %[k], %%xmm0")    // xmm0 = s0*k0
+            __ASM_EMIT("mulps       0x10 + %[k], %%xmm1")    // xmm1 = s0*k1
+            __ASM_EMIT("mulps       0x20 + %[k], %%xmm2")    // xmm2 = s0*k2
+            __ASM_EMIT("mulps       0x30 + %[k], %%xmm3")    // xmm3 = s0*k3
             __ASM_EMIT("movups      0x00(%[dst]), %%xmm4")  // xmm4 = d0
             __ASM_EMIT("movups      0x10(%[dst]), %%xmm5")  // xmm5 = d1
             __ASM_EMIT("movups      0x20(%[dst]), %%xmm6")  // xmm6 = d2
@@ -1158,10 +1161,10 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm0, %%xmm2")        // xmm2 = s0
             __ASM_EMIT("movaps      %%xmm1, %%xmm3")        // xmm3 = s0
 
-            __ASM_EMIT("mulps       0x40(%[k]), %%xmm0")    // xmm0 = s0*k4
-            __ASM_EMIT("mulps       0x50(%[k]), %%xmm1")    // xmm1 = s0*k5
-            __ASM_EMIT("mulps       0x60(%[k]), %%xmm2")    // xmm2 = s0*k6
-            __ASM_EMIT("mulps       0x70(%[k]), %%xmm3")    // xmm3 = s0*k7
+            __ASM_EMIT("mulps       0x40 + %[k], %%xmm0")    // xmm0 = s0*k4
+            __ASM_EMIT("mulps       0x50 + %[k], %%xmm1")    // xmm1 = s0*k5
+            __ASM_EMIT("mulps       0x60 + %[k], %%xmm2")    // xmm2 = s0*k6
+            __ASM_EMIT("mulps       0x70 + %[k], %%xmm3")    // xmm3 = s0*k7
             __ASM_EMIT("movups      0x40(%[dst]), %%xmm4")  // xmm4 = d4
             __ASM_EMIT("movups      0x50(%[dst]), %%xmm5")  // xmm5 = d5
             __ASM_EMIT("movups      0x60(%[dst]), %%xmm6")  // xmm6 = d6
@@ -1185,7 +1188,7 @@ namespace sse
             __ASM_EMIT("2:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-            : [k] "r" (lanczos_kernel_8x2)
+            : [k] "o" (lanczos_kernel_8x2)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -1210,9 +1213,9 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm0, %%xmm2")        // xmm2 = s0
             __ASM_EMIT("movaps      %%xmm1, %%xmm3")        // xmm3 = s0
             __ASM_EMIT("movaps      %%xmm0, %%xmm4")        // xmm4 = s0
-            __ASM_EMIT("mulps       0x00(%[k]), %%xmm2")    // xmm2 = s0*k0
-            __ASM_EMIT("mulps       0x10(%[k]), %%xmm3")    // xmm3 = s0*k1
-            __ASM_EMIT("mulps       0x20(%[k]), %%xmm4")    // xmm4 = s0*k2
+            __ASM_EMIT("mulps       0x00 + %[k], %%xmm2")    // xmm2 = s0*k0
+            __ASM_EMIT("mulps       0x10 + %[k], %%xmm3")    // xmm3 = s0*k1
+            __ASM_EMIT("mulps       0x20 + %[k], %%xmm4")    // xmm4 = s0*k2
             __ASM_EMIT("movups      0x00(%[dst]), %%xmm5")  // xmm5 = d0
             __ASM_EMIT("movups      0x10(%[dst]), %%xmm6")  // xmm6 = d1
             __ASM_EMIT("movups      0x20(%[dst]), %%xmm7")  // xmm7 = d2
@@ -1227,9 +1230,9 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm0, %%xmm2")        // xmm2 = s0
             __ASM_EMIT("movaps      %%xmm1, %%xmm3")        // xmm3 = s0
             __ASM_EMIT("movaps      %%xmm0, %%xmm4")        // xmm4 = s0
-            __ASM_EMIT("mulps       0x30(%[k]), %%xmm2")    // xmm2 = s0*k3
-            __ASM_EMIT("mulps       0x40(%[k]), %%xmm3")    // xmm3 = s0*k4
-            __ASM_EMIT("mulps       0x50(%[k]), %%xmm4")    // xmm4 = s0*k5
+            __ASM_EMIT("mulps       0x30 + %[k], %%xmm2")    // xmm2 = s0*k3
+            __ASM_EMIT("mulps       0x40 + %[k], %%xmm3")    // xmm3 = s0*k4
+            __ASM_EMIT("mulps       0x50 + %[k], %%xmm4")    // xmm4 = s0*k5
             __ASM_EMIT("movups      0x30(%[dst]), %%xmm5")  // xmm5 = d3
             __ASM_EMIT("movups      0x40(%[dst]), %%xmm6")  // xmm6 = d4
             __ASM_EMIT("movups      0x50(%[dst]), %%xmm7")  // xmm7 = d5
@@ -1244,9 +1247,9 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm0, %%xmm2")        // xmm2 = s0
             __ASM_EMIT("movaps      %%xmm1, %%xmm3")        // xmm3 = s0
             __ASM_EMIT("movaps      %%xmm2, %%xmm4")        // xmm4 = s0
-            __ASM_EMIT("mulps       0x60(%[k]), %%xmm2")    // xmm2 = s0*k6
-            __ASM_EMIT("mulps       0x70(%[k]), %%xmm3")    // xmm3 = s0*k7
-            __ASM_EMIT("mulps       0x80(%[k]), %%xmm4")    // xmm4 = s0*k8
+            __ASM_EMIT("mulps       0x60 + %[k], %%xmm2")    // xmm2 = s0*k6
+            __ASM_EMIT("mulps       0x70 + %[k], %%xmm3")    // xmm3 = s0*k7
+            __ASM_EMIT("mulps       0x80 + %[k], %%xmm4")    // xmm4 = s0*k8
             __ASM_EMIT("movups      0x60(%[dst]), %%xmm5")  // xmm5 = d6
             __ASM_EMIT("movups      0x70(%[dst]), %%xmm6")  // xmm6 = d7
             __ASM_EMIT("movups      0x80(%[dst]), %%xmm7")  // xmm7 = d8
@@ -1261,9 +1264,9 @@ namespace sse
             __ASM_EMIT("movaps      %%xmm0, %%xmm2")        // xmm2 = s0
             __ASM_EMIT("movaps      %%xmm1, %%xmm3")        // xmm3 = s0
             __ASM_EMIT("movaps      %%xmm2, %%xmm4")        // xmm4 = s0
-            __ASM_EMIT("mulps       0x90(%[k]), %%xmm2")    // xmm2 = s0*k9
-            __ASM_EMIT("mulps       0xa0(%[k]), %%xmm3")    // xmm3 = s0*k10
-            __ASM_EMIT("mulps       0xb0(%[k]), %%xmm4")    // xmm4 = s0*k11
+            __ASM_EMIT("mulps       0x90 + %[k], %%xmm2")    // xmm2 = s0*k9
+            __ASM_EMIT("mulps       0xa0 + %[k], %%xmm3")    // xmm3 = s0*k10
+            __ASM_EMIT("mulps       0xb0 + %[k], %%xmm4")    // xmm4 = s0*k11
             __ASM_EMIT("movups      0x90(%[dst]), %%xmm5")  // xmm5 = d9
             __ASM_EMIT("movups      0xa0(%[dst]), %%xmm6")  // xmm6 = d10
             __ASM_EMIT("movups      0xb0(%[dst]), %%xmm7")  // xmm7 = d11
@@ -1284,7 +1287,7 @@ namespace sse
             __ASM_EMIT("2:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-            : [k] "r" (lanczos_kernel_8x3)
+            : [k] "o" (lanczos_kernel_8x3)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
