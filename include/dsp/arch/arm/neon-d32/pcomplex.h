@@ -29,18 +29,18 @@ namespace neon_d32
             __ASM_EMIT("vld2.32     {q0-q1}, [%[src1]]!")        // q0 = sr, q1 = si
             __ASM_EMIT("vld2.32     {q2-q3}, [%[src2]]!")        // q2 = dr, q3 = di
             __ASM_EMIT("vld2.32     {q4-q5}, [%[src1]]!")
-            __ASM_EMIT("vmul.f32    q8, q0, q2")                 // q8 = sr*dr
             __ASM_EMIT("vld2.32     {q6-q7}, [%[src2]]!")
+            __ASM_EMIT("vmul.f32    q8, q0, q2")                 // q8 = sr*dr
             __ASM_EMIT("vmul.f32    q9, q1, q2")                 // q9 = si*dr
             __ASM_EMIT("vmul.f32    q10, q4, q6")
             __ASM_EMIT("vmls.f32    q8, q1, q3")                 // q8 = sr*dr - si*di
             __ASM_EMIT("vmul.f32    q11, q5, q6")
             __ASM_EMIT("vmla.f32    q9, q0, q3")                 // q9 = si*dr + sr*di
             __ASM_EMIT("vmls.f32    q10, q5, q7")
-            __ASM_EMIT("vst2.32     {q8-q9}, [%[dst]]!")
             __ASM_EMIT("vmla.f32    q11, q4, q7")
-            __ASM_EMIT("vst2.32     {q10-q11}, [%[dst]]!")
+            __ASM_EMIT("vst2.32     {q8-q9}, [%[dst]]!")
             __ASM_EMIT("subs        %[count], $8")
+            __ASM_EMIT("vst2.32     {q10-q11}, [%[dst]]!")
             __ASM_EMIT("bhs         1b")
 
             // x4 blocks
@@ -94,18 +94,18 @@ namespace neon_d32
             __ASM_EMIT("vld2.32     {q0-q1}, [%[src1]]!")        // q0 = sr, q1 = si
             __ASM_EMIT("vld2.32     {q2-q3}, [%[src2]]!")        // q2 = dr, q3 = di
             __ASM_EMIT("vld2.32     {q4-q5}, [%[src1]]!")
-            __ASM_EMIT("vmul.f32    q8, q0, q2")                 // q8 = sr*dr
             __ASM_EMIT("vld2.32     {q6-q7}, [%[src2]]!")
+            __ASM_EMIT("vmul.f32    q8, q0, q2")                 // q8 = sr*dr
             __ASM_EMIT("vmul.f32    q9, q1, q2")                 // q9 = si*dr
             __ASM_EMIT("vmul.f32    q10, q4, q6")
             __ASM_EMIT("vmls.f32    q8, q1, q3")                 // q8 = sr*dr - si*di
             __ASM_EMIT("vmul.f32    q11, q5, q6")
             __ASM_EMIT("vmla.f32    q9, q0, q3")                 // q9 = si*dr + sr*di
             __ASM_EMIT("vmls.f32    q10, q5, q7")
-            __ASM_EMIT("vst2.32     {q8-q9}, [%[dst]]!")
             __ASM_EMIT("vmla.f32    q11, q4, q7")
-            __ASM_EMIT("vst2.32     {q10-q11}, [%[dst]]!")
+            __ASM_EMIT("vst2.32     {q8-q9}, [%[dst]]!")
             __ASM_EMIT("subs        %[count], $8")
+            __ASM_EMIT("vst2.32     {q10-q11}, [%[dst]]!")
             __ASM_EMIT("bhs         1b")
 
             // x4 blocks
