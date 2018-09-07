@@ -18,6 +18,7 @@
 #include <dsp/arch/native/copy.h>
 #include <dsp/arch/native/complex.h>
 #include <dsp/arch/native/pcomplex.h>
+#include <dsp/arch/native/convolution.h>
 
 namespace native
 {
@@ -328,6 +329,8 @@ namespace native
         EXPORT1(calc_tetra3d_pv);
         EXPORT1(calc_tetra3d_pv3);
         EXPORT1(calc_tetra3d_pvv);
+
+        TEST_EXPORT(convolve);
     }
 
     #undef EXPORT1
