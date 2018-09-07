@@ -26,6 +26,7 @@
 #include <dsp/common/3dmath.h>
 #include <dsp/common/fft.h>
 #include <dsp/common/complex.h>
+#include <dsp/common/pcomplex.h>
 #include <dsp/common/float.h>
 #include <dsp/common/graphics.h>
 #include <dsp/common/search.h>

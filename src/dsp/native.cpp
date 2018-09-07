@@ -17,6 +17,7 @@
 #include <dsp/arch/native/context.h>
 #include <dsp/arch/native/copy.h>
 #include <dsp/arch/native/complex.h>
+#include <dsp/arch/native/pcomplex.h>
 
 namespace native
 {
@@ -140,7 +141,7 @@ namespace native
         EXPORT1(fastconv_restore);
         EXPORT1(fastconv_apply);
 
-        EXPORT1(complex_mul);
+        EXPORT1(complex_mul3);
         EXPORT1(complex_div2);
         EXPORT1(complex_rdiv2);
         EXPORT1(complex_div3);
@@ -150,7 +151,7 @@ namespace native
         EXPORT1(complex_cvt2reim);
         EXPORT1(complex_mod);
 
-        EXPORT1(pcomplex_mul);
+        EXPORT1(pcomplex_mul3);
         EXPORT1(pcomplex_div2);
         EXPORT1(pcomplex_rdiv2);
         EXPORT1(pcomplex_div3);

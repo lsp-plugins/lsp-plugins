@@ -698,7 +698,7 @@ namespace lsp
                 for (size_t j=0; j<nBands; ++j)
                 {
                     eq_band_t *b  = &c->vBands[j];
-                    dsp::complex_mul(c->vTrRe, c->vTrIm, c->vTrRe, c->vTrIm, b->vTrRe, b->vTrIm, para_equalizer_base_metadata::MESH_POINTS);
+                    dsp::complex_mul3(c->vTrRe, c->vTrIm, c->vTrRe, c->vTrIm, b->vTrRe, b->vTrIm, para_equalizer_base_metadata::MESH_POINTS);
                 }
                 c->nSync    = CS_SYNC_AMP;
             }

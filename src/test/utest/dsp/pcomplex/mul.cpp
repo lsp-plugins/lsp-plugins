@@ -11,30 +11,30 @@
 
 namespace native
 {
-    void pcomplex_mul(float *dst, const float *src1, const float *src2, size_t count);
+    void pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
 }
 
 IF_ARCH_X86(
     namespace sse
     {
-        void pcomplex_mul(float *dst, const float *src1, const float *src2, size_t count);
+        void pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
     }
 
     namespace sse3
     {
-        void pcomplex_mul(float *dst, const float *src1, const float *src2, size_t count);
+        void pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
     }
 
     IF_ARCH_X86_64(
         namespace sse3
         {
-            void x64_pcomplex_mul(float *dst, const float *src1, const float *src2, size_t count);
+            void x64_pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
         }
 
         namespace avx
         {
-            void x64_pcomplex_mul(float *dst, const float *src1, const float *src2, size_t count);
-            void x64_pcomplex_mul_fma3(float *dst, const float *src1, const float *src2, size_t count);
+            void x64_pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
+            void x64_pcomplex_mul3_fma3(float *dst, const float *src1, const float *src2, size_t count);
         }
     )
 )
@@ -49,12 +49,12 @@ IF_ARCH_ARM(
     }
 )
 
-typedef void (* packed_complex_mul_t) (float *dst, const float *src1, const float *src2, size_t count);
+typedef void (* packed_complex_mul3_t) (float *dst, const float *src1, const float *src2, size_t count);
 
 
 UTEST_BEGIN("dsp.pcomplex", mul)
 
-    void call(const char *text,  size_t align, packed_complex_mul_t func)
+    void call(const char *text,  size_t align, packed_complex_mul3_t func)
     {
         if (!UTEST_SUPPORTED(func))
             return;
@@ -72,7 +72,7 @@ UTEST_BEGIN("dsp.pcomplex", mul)
                 FloatBuffer dst2(count*2, align, mask & 0x04);
 
                 // Call functions
-                native::pcomplex_mul(dst1, src1, src2, count);
+                native::pcomplex_mul3(dst1, src1, src2, count);
                 func(dst2, src1, src2, count);
 
                 UTEST_ASSERT_MSG(src1.valid(), "Source buffer 1 corrupted");
@@ -95,11 +95,11 @@ UTEST_BEGIN("dsp.pcomplex", mul)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse:pcomplex_mul", 16, sse::pcomplex_mul));
-        IF_ARCH_X86(call("sse3:pcomplex_mul", 16, sse3::pcomplex_mul));
-        IF_ARCH_X86_64(call("sse3:x64_pcomplex_mul", 16, sse3::x64_pcomplex_mul));
-        IF_ARCH_X86_64(call("avx:x64_pcomplex_mul", 32, avx::x64_pcomplex_mul));
-        IF_ARCH_X86_64(call("fma3:x64_pcomplex_mul", 32, avx::x64_pcomplex_mul_fma3));
+        IF_ARCH_X86(call("sse:pcomplex_mul", 16, sse::pcomplex_mul3));
+        IF_ARCH_X86(call("sse3:pcomplex_mul", 16, sse3::pcomplex_mul3));
+        IF_ARCH_X86_64(call("sse3:x64_pcomplex_mul", 16, sse3::x64_pcomplex_mul3));
+        IF_ARCH_X86_64(call("avx:x64_pcomplex_mul", 32, avx::x64_pcomplex_mul3));
+        IF_ARCH_X86_64(call("fma3:x64_pcomplex_mul", 32, avx::x64_pcomplex_mul3_fma3));
         IF_ARCH_ARM(call("neon_d32:pcomplex_mul", 16, neon_d32::pcomplex_mul3));
     }
 

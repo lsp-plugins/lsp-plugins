@@ -11,20 +11,20 @@
 
 namespace native
 {
-    void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+    void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
 }
 
 IF_ARCH_X86(
     namespace sse
     {
-        void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+        void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
     }
 
     IF_ARCH_X86_64(
         namespace avx
         {
-            void x64_complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-            void x64_complex_mul_fma3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+            void x64_complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+            void x64_complex_mul3_fma3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
         }
     )
 )
@@ -37,12 +37,12 @@ IF_ARCH_ARM(
     }
 )
 
-typedef void (* complex_mul_t) (float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
+typedef void (* complex_mul3_t) (float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
 
 
 UTEST_BEGIN("dsp.complex", mul)
 
-    void call(const char *text,  size_t align, complex_mul_t func)
+    void call(const char *text,  size_t align, complex_mul3_t func)
     {
         if (!UTEST_SUPPORTED(func))
             return;
@@ -64,7 +64,7 @@ UTEST_BEGIN("dsp.complex", mul)
                 FloatBuffer dst2_im(count, align, mask & 0x20);
 
                 // Call functions
-                native::complex_mul(dst1_re, dst1_im, src1_re, src1_im, src2_re, src2_im, count);
+                native::complex_mul3(dst1_re, dst1_im, src1_re, src1_im, src2_re, src2_im, count);
                 func(dst2_re, dst2_im, src1_re, src1_im, src2_re, src2_im, count);
 
                 UTEST_ASSERT_MSG(src1_re.valid(), "src1_re corrupted");
@@ -95,9 +95,9 @@ UTEST_BEGIN("dsp.complex", mul)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse:complex_mul", 16, sse::complex_mul));
-        IF_ARCH_X86_64(call("avx:x64_complex_mul", 16, avx::x64_complex_mul));
-        IF_ARCH_X86_64(call("fma3:x64_complex_mul", 16, avx::x64_complex_mul_fma3));
+        IF_ARCH_X86(call("sse:complex_mul3", 16, sse::complex_mul3));
+        IF_ARCH_X86_64(call("avx:x64_complex_mul3", 16, avx::x64_complex_mul3));
+        IF_ARCH_X86_64(call("fma3:x64_complex_mul3", 16, avx::x64_complex_mul3_fma3));
         IF_ARCH_ARM(call("neon_d32:complex_mul", 16, neon_d32::complex_mul3));
         IF_ARCH_ARM(call("neon_d32:complex_mul_x12", 16, neon_d32::complex_mul3_x12));
     }

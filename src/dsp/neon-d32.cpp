@@ -32,7 +32,7 @@ namespace neon_d32
         EXPORT1(copy);
         EXPORT1(move);
 
-        EXPORT2(complex_mul, complex_mul3);
+        EXPORT2(complex_mul3, complex_mul3);
         EXPORT1(complex_div2);
         EXPORT1(complex_rdiv2);
         EXPORT1(complex_div3);
@@ -40,7 +40,7 @@ namespace neon_d32
         EXPORT1(complex_rcp1);
         EXPORT1(complex_rcp2);
 
-        EXPORT2(pcomplex_mul, pcomplex_mul3);
+        EXPORT2(pcomplex_mul3, pcomplex_mul3);
         EXPORT1(pcomplex_div2);
         EXPORT1(pcomplex_rdiv2);
         EXPORT1(pcomplex_div3);

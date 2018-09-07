@@ -10,7 +10,7 @@
 
 namespace avx
 {
-    void x64_pcomplex_mul(float *dst, const float *src1, const float *src2, size_t count)
+    void x64_pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count)
     {
         size_t off;
 
@@ -109,7 +109,7 @@ namespace avx
         );
     }
 
-    void x64_pcomplex_mul_fma3(float *dst, const float *src1, const float *src2, size_t count)
+    void x64_pcomplex_mul3_fma3(float *dst, const float *src1, const float *src2, size_t count)
     {
         size_t off;
 
@@ -203,7 +203,7 @@ namespace avx
         );
     }
 
-    void x64_complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count)
+    void x64_complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count)
     {
         size_t off;
 
@@ -276,7 +276,7 @@ namespace avx
         );
     }
 
-    void x64_complex_mul_fma3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count)
+    void x64_complex_mul3_fma3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count)
     {
         size_t off;
 

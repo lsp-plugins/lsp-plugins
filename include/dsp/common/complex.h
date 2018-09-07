@@ -26,7 +26,7 @@ namespace dsp
      * @param src2_im source 2 imaginary part
      * @param count number of multiplications
      */
-    extern void (* complex_mul)(
+    extern void (* complex_mul3)(
             float *dst_re, float *dst_im,
             const float *src1_re, const float *src1_im,
             const float *src2_re, const float *src2_im,
@@ -71,37 +71,6 @@ namespace dsp
      */
     extern void (* complex_div3)(float *dst_re, float *dst_im, const float *t_re, const float *t_im, const float *b_re, const float *b_im, size_t count);
 
-    /**
-     * Divide complex numbers:
-     *      dst = dst / src
-     *
-     * @param dst destination, source top
-     * @param src bottom
-     * @param count number of divisions
-     */
-    extern void (* pcomplex_div2)(float *dst, const float *src, size_t count);
-
-    /**
-     * Divide complex numbers:
-     *      dst = src / dst
-     *
-     * @param dst destination, source bottom
-     * @param src top
-     * @param count number of divisions
-     */
-    extern void (* pcomplex_rdiv2)(float *dst, const float *src, size_t count);
-
-    /**
-     * Divide complex numbers:
-     *      dst = t / b
-     *
-     * @param dst destination
-     * @param t top
-     * @param b bottom
-     * @param count number of divisions
-     */
-    extern void (* pcomplex_div3)(float *dst, const float *t, const float *b, size_t count);
-
     /** Calculate complex reciprocal: 1 / (re + j * im)
      *
      * @param dst_re source, destination real part
@@ -127,68 +96,6 @@ namespace dsp
             size_t count
         );
 
-    /** Calculate packed complex multiplication
-     *
-     * @param dst destination to store complex numbers
-     * @param src1 source 1
-     * @param src2 source 2
-     * @param count number of multiplications
-     */
-    extern void (* pcomplex_mul)(float *dst, const float *src1, const float *src2, size_t count);
-
-    /** Calculate packed complex reciprocal:
-     *   dst[i].{re,im} = 1 / (dst[i].re + j * dst[i].im)
-     *
-     * @param dst source, destination to store complex numbers
-     * @param count number of multiplications
-     */
-    extern void (* pcomplex_rcp1)(float *dst, size_t count);
-
-    /** Calculate packed complex reciprocal:
-     *   dst[i].{re,im} = 1 / (src[i].re + j * src[i].im)
-     *
-     * @param dst destination to store complex numbers
-     * @param src source
-     * @param count number of multiplications
-     */
-    extern void (* pcomplex_rcp2)(float *dst, const float *src, size_t count);
-
-    /** Fill output array with same complex numbers
-     *
-     * @param dst target array to fill
-     * @param re real part of complex number
-     * @param im imaginary part of complex number
-     * @param count number of elements to fill
-     */
-    extern void (* pcomplex_fill_ri)(float *dst, float re, float im, size_t count);
-
-    /** Convert real to packed complex:
-     *  dst[i].re = src[i]
-     *  dst[i].im = 0
-     *
-     * @param dst destination packed complex data
-     * @param src source real data
-     * @param count number of items to convert
-     */
-    extern void (* pcomplex_r2c)(float *dst, const float *src, size_t count);
-
-    /** Convert packed complex to real:
-     *  dst[i] = src[i].re
-     *
-     * @param dst destination real data
-     * @param src source packed complex data
-     * @param count number of items to convert
-     */
-    extern void (* pcomplex_c2r)(float *dst, const float *src, size_t count);
-
-    /** Convert packed complex to real and add to destination buffer
-     *
-     * @param dst destination real data
-     * @param src source packed complex data
-     * @param count number of items to convert
-     */
-    extern void (* pcomplex_add_r)(float *dst, const float *src, size_t count);
-
     /** Convert real+imaginary complex number to polar form
      *
      * @param dst_mod module of the complex number
@@ -203,7 +110,7 @@ namespace dsp
             size_t count
         );
 
-    /** Get module for complex numbers
+    /** Get module for complex numbers: mod = sqrt(re*re + im*im)
      *
      * @param dst_mod array to sore module
      * @param src_re real part of complex number

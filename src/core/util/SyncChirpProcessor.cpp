@@ -468,7 +468,7 @@ namespace lsp
                 dsp::fill(sCRPostProc.vTemprow2Im, sCRPostProc.mCoeffsIm[coeffIdx], negStart - 1);
                 dsp::fill(&sCRPostProc.vTemprow2Im[negStart], -sCRPostProc.mCoeffsIm[coeffIdx], sCRPostProc.nHwinSize - negStart);
 
-                dsp::complex_mul(
+                dsp::complex_mul3(
                         sCRPostProc.vTemprow2Re, sCRPostProc.vTemprow2Im,
                         sCRPostProc.vTemprow2Re, sCRPostProc.vTemprow2Im,
                         &sCRPostProc.mKernelsRe[kRowSelect], &sCRPostProc.mKernelsIm[kRowSelect],
@@ -496,7 +496,7 @@ namespace lsp
             dsp::fill(sCRPostProc.vTemprow2Im, coeffIm, negStart - 1);
             dsp::fill(&sCRPostProc.vTemprow2Im[negStart], -coeffIm, sCRPostProc.nHwinSize - negStart);
 
-            dsp::complex_mul(
+            dsp::complex_mul3(
                     &sCRPostProc.mKernelsRe[rowSelect], &sCRPostProc.mKernelsIm[rowSelect],
                     &sCRPostProc.mKernelsRe[rowSelect], &sCRPostProc.mKernelsIm[rowSelect],
                     sCRPostProc.vTemprow2Re, sCRPostProc.vTemprow2Im,
@@ -672,7 +672,7 @@ namespace lsp
 
             }
 
-            dsp::complex_mul(
+            dsp::complex_mul3(
                     &sCRPostProc.mHigherRe[rowSelect], &sCRPostProc.mHigherIm[rowSelect],
                     sCRPostProc.vTemprow2Re, sCRPostProc.vTemprow2Im,
                     sCRPostProc.vTemprow1Re, sCRPostProc.vTemprow1Im,

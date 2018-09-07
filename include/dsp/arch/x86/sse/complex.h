@@ -14,7 +14,7 @@
 
 namespace sse
 {
-    void complex_mul(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count)
+    void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count)
     {
         size_t off;
         __IF_32( size_t temp_re, temp_im );
