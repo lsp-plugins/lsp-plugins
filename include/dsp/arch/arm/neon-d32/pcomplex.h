@@ -14,7 +14,7 @@
 
 namespace neon_d32
 {
-    void pcomplex_mul2(float *dst, const float *src1, size_t count)
+    void pcomplex_mul2(float *dst, const float *src, size_t count)
     {
         IF_ARCH_ARM(float *src2);
 
