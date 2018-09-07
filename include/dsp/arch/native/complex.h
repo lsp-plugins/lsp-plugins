@@ -14,23 +14,23 @@
 
 namespace native
 {
-    void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count)
-    {
-        for (size_t i=0; i<count; ++i)
-        {
-            float re            = (src1_re[i]) * (src2_re[i]) - (src1_im[i]) * (src2_im[i]);
-            float im            = (src1_re[i]) * (src2_im[i]) + (src1_im[i]) * (src2_re[i]);
-            dst_re[i]           = re;
-            dst_im[i]           = im;
-        }
-    }
-
     void complex_mul2(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count)
     {
         for (size_t i=0; i<count; ++i)
         {
             float re            = (dst_re[i]) * (src_re[i]) - (dst_im[i]) * (src_im[i]);
             float im            = (dst_re[i]) * (src_im[i]) + (dst_im[i]) * (src_re[i]);
+            dst_re[i]           = re;
+            dst_im[i]           = im;
+        }
+    }
+
+    void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float re            = (src1_re[i]) * (src2_re[i]) - (src1_im[i]) * (src2_im[i]);
+            float im            = (src1_re[i]) * (src2_im[i]) + (src1_im[i]) * (src2_re[i]);
             dst_re[i]           = re;
             dst_im[i]           = im;
         }

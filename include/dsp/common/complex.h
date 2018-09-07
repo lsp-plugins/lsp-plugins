@@ -16,7 +16,7 @@
 // DSP complex number functions
 namespace dsp
 {
-    /** Calculate complex multiplication
+    /** Calculate complex multiplication: { dst_re, dst_im } = { src1_re, src1_im } * { src2_re, src2_im }
      *
      * @param dst_re destination real part
      * @param dst_im destination imaginary part
@@ -30,6 +30,20 @@ namespace dsp
             float *dst_re, float *dst_im,
             const float *src1_re, const float *src1_im,
             const float *src2_re, const float *src2_im,
+            size_t count
+        );
+
+    /** Calculate complex multiplication: { dst_re, dst_im } = { dst_re, dst_im } * { src_re, src_im }
+     *
+     * @param dst_re destination and source real part
+     * @param dst_im destination and source imaginary part
+     * @param src_re source real part
+     * @param src_im source imaginary part
+     * @param count number of multiplications
+     */
+    extern void (* complex_mul2)(
+            float *dst_re, float *dst_im,
+            const float *src_re, const float *src_im,
             size_t count
         );
 

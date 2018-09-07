@@ -16,7 +16,7 @@
 // DSP complex number functions
 namespace dsp
 {
-    /** Calculate packed complex multiplication
+    /** Calculate packed complex multiplication: dst = src1 * src2
      *
      * @param dst destination to store complex numbers
      * @param src1 source 1
@@ -24,6 +24,14 @@ namespace dsp
      * @param count number of multiplications
      */
     extern void (* pcomplex_mul3)(float *dst, const float *src1, const float *src2, size_t count);
+
+    /** Calculate packed complex multiplication: dst = dst * src
+     *
+     * @param dst destination and source to store complex numbers
+     * @param src source
+     * @param count number of multiplications
+     */
+    extern void (* pcomplex_mul2)(float *dst, const float *src, size_t count);
 
     /**
      * Divide complex numbers:

@@ -141,6 +141,7 @@ namespace native
         EXPORT1(fastconv_restore);
         EXPORT1(fastconv_apply);
 
+        EXPORT1(complex_mul2);
         EXPORT1(complex_mul3);
         EXPORT1(complex_div2);
         EXPORT1(complex_rdiv2);
@@ -151,6 +152,7 @@ namespace native
         EXPORT1(complex_cvt2reim);
         EXPORT1(complex_mod);
 
+        EXPORT1(pcomplex_mul2);
         EXPORT1(pcomplex_mul3);
         EXPORT1(pcomplex_div2);
         EXPORT1(pcomplex_rdiv2);

@@ -1,5 +1,5 @@
 /*
- * mul.cpp
+ * mul3.cpp
  *
  *  Created on: 22 авг. 2018 г.
  *      Author: sadko
@@ -45,18 +45,17 @@ IF_ARCH_X86(
 IF_ARCH_ARM(
     namespace neon_d32
     {
-        void pcomplex_mul33(float *dst, const float *src1, const float *src2, size_t count);
+        void pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
-typedef void (* complex_mul_t) (float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-typedef void (* packed_complex_mul_t) (float *dst, const float *src1, const float *src2, size_t count);
+typedef void (* pcomplex_mul3_t) (float *dst, const float *src1, const float *src2, size_t count);
 
 //-----------------------------------------------------------------------------
 // Performance test for complex multiplication
-PTEST_BEGIN("dsp.pcomplex", mul, 5, 1000)
+PTEST_BEGIN("dsp.pcomplex", mul3, 5, 1000)
 
-    void call(const char *label, float *dst, const float *src1, const float *src2, size_t count, packed_complex_mul_t mul)
+    void call(const char *label, float *dst, const float *src1, const float *src2, size_t count, pcomplex_mul3_t mul)
     {
         if (!PTEST_SUPPORTED(mul))
             return;
@@ -67,20 +66,6 @@ PTEST_BEGIN("dsp.pcomplex", mul, 5, 1000)
 
         PTEST_LOOP(buf,
             mul(dst, src1, src2, count);
-        );
-    }
-
-    void call(const char *label, float *dst, const float *src1, const float *src2, size_t count, complex_mul_t mul)
-    {
-        if (!PTEST_SUPPORTED(mul))
-            return;
-
-        char buf[80];
-        sprintf(buf, "%s x %d", label, int(count));
-        printf("Testing %s numbers...\n", buf);
-
-        PTEST_LOOP(buf,
-            mul(dst, &dst[count], src1, &src1[count], src2, &src2[count], count);
         );
     }
 

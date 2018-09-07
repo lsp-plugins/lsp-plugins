@@ -1,5 +1,5 @@
 /*
- * mul.cpp
+ * mul3.cpp
  *
  *  Created on: 22 авг. 2018 г.
  *      Author: sadko
@@ -44,7 +44,7 @@ typedef void (* complex_mul_t) (float *dst_re, float *dst_im, const float *src1_
 
 //-----------------------------------------------------------------------------
 // Performance test for complex multiplication
-PTEST_BEGIN("dsp.complex", mul, 5, 1000)
+PTEST_BEGIN("dsp.complex", mul3, 5, 1000)
 
     void call(const char *label, float *dst, const float *src1, const float *src2, size_t count, complex_mul_t mul)
     {
@@ -83,8 +83,8 @@ PTEST_BEGIN("dsp.complex", mul, 5, 1000)
             IF_ARCH_X86(CALL("sse:complex_mul3", out, in1, in2, count, sse::complex_mul3));
             IF_ARCH_X86_64(CALL("x64_avx:complex_mul3", out, in1, in2, count, avx::x64_complex_mul3));
             IF_ARCH_X86_64(CALL("x64_fma3:complex_mul3", out, in1, in2, count, avx::x64_complex_mul3_fma3));
-            IF_ARCH_ARM(CALL("neon_d32:complex_mul", out, in1, in2, count, neon_d32::complex_mul3));
-            IF_ARCH_ARM(CALL("neon_d32:complex_mul_x12", out, in1, in2, count, neon_d32::complex_mul3_x12));
+            IF_ARCH_ARM(CALL("neon_d32:complex_mul3", out, in1, in2, count, neon_d32::complex_mul3));
+            IF_ARCH_ARM(CALL("neon_d32:complex_mul3_x12", out, in1, in2, count, neon_d32::complex_mul3_x12));
 
             PTEST_SEPARATOR;
         }

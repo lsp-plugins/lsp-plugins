@@ -152,6 +152,7 @@ namespace dsp
 
     // Complex-number operations
     void    (* complex_mul3)(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count) = NULL;
+    void    (* complex_mul2)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count) = NULL;
     void    (* complex_div2)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count) = NULL;
     void    (* complex_rdiv2)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count) = NULL;
     void    (* complex_div3)(float *dst_re, float *dst_im, const float *t_re, const float *t_im, const float *b_re, const float *b_im, size_t count) = NULL;
@@ -161,6 +162,7 @@ namespace dsp
     void    (* complex_rcp1)(float *dst_re, float *dst_im, size_t count) = NULL;
     void    (* complex_rcp2)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count) = NULL;
     void    (* pcomplex_mul3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
+    void    (* pcomplex_mul2)(float *dst, const float *src, size_t count) = NULL;
     void    (* pcomplex_rcp1)(float *dst, size_t count) = NULL;
     void    (* pcomplex_rcp2)(float *dst, const float *src, size_t count) = NULL;
     void    (* pcomplex_fill_ri)(float *dst, float re, float im, size_t count) = NULL;

@@ -14,6 +14,24 @@
 
 namespace native
 {
+    void pcomplex_mul2(float *dst, const float *src, size_t count)
+    {
+        while (count--)
+        {
+            // Use temporaries to prevent dst_re and dst_im to be the same to one of the sources
+            float res_re        = (dst[0]) * (src[0]) - (dst[1]) * (src[1]);
+            float res_im        = (dst[0]) * (src[1]) + (dst[1]) * (src[0]);
+
+            // Store values
+            dst[0]              = res_re;
+            dst[1]              = res_im;
+
+            // Update pointers
+            src                += 2;
+            dst                += 2;
+        }
+    }
+
     void pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count)
     {
         while (count--)

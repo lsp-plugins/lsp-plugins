@@ -218,6 +218,7 @@ namespace sse
 
         EXPORT1(normalize_fft);
 
+        EXPORT1(complex_mul2);
         EXPORT1(complex_mul3);
         EXPORT1(complex_div2);
         EXPORT1(complex_rdiv2);
@@ -226,6 +227,7 @@ namespace sse
         EXPORT1(complex_rcp2);
         EXPORT1(complex_mod);
 
+        EXPORT1(pcomplex_mul2);
         EXPORT1(pcomplex_mul3);
         EXPORT1(pcomplex_div2);
         EXPORT1(pcomplex_rdiv2);
