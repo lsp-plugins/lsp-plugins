@@ -210,7 +210,7 @@ namespace lsp
             {
                 // Do direct convolution
                 for (size_t i=0; i<to_do; ++i)
-                    dsp::scale_add3(vBufferPtr, vConvFirst, src[i], CONVOLVER_SMALL_FRM_SIZE);
+                    dsp::scale_add3(vBufferPtr, vConvFirst, src[i], CONVOLVER_SMALL_FRM_SIZE); // TODO: check validity. Maybe &vBufferPtr[i] ?
             }
 
             // Update frame size and source pointer

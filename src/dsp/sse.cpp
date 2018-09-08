@@ -66,6 +66,8 @@ namespace sse // TODO: make constants common for all architectures
 #include <dsp/arch/x86/sse/complex.h>
 #include <dsp/arch/x86/sse/pcomplex.h>
 
+#include <dsp/arch/x86/sse/convolution.h>
+
 #include <dsp/arch/x86/sse/filters/static.h>
 #include <dsp/arch/x86/sse/filters/dynamic.h>
 #include <dsp/arch/x86/sse/filters/transform.h>
@@ -369,6 +371,8 @@ namespace sse
         EXPORT1(move_point3d_pv);
 
         EXPORT1(check_octant3d_rv);
+
+        EXPORT1(convolve);
     }
 
     #undef EXPORT1

@@ -330,7 +330,7 @@ namespace native
         EXPORT1(calc_tetra3d_pv3);
         EXPORT1(calc_tetra3d_pvv);
 
-        TEST_EXPORT(convolve);
+        EXPORT1(convolve);
     }
 
     #undef EXPORT1

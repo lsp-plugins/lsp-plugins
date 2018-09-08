@@ -34,7 +34,7 @@ namespace native
 
             if (clen >= 4)
             {
-                while (clen >= 4)
+                do
                 {
                     // Apply convolution
                     d[0]   += k[0]*c[0] + k[1]*p[3] + k[2]*p[2] + k[3]*p[1];
@@ -52,15 +52,13 @@ namespace native
                     clen   -= 4;
                     d      += 4;
                     c      += 4;
-                }
+                } while (clen >= 4);
 
                 // Apply tail
                 d[0]   += /*  0  */ + k[1]*p[3] + k[2]*p[2] + k[3]*p[1];
                 d[1]   += /*  0  */ + /*  0  */ + k[2]*p[3] + k[3]*p[2];
                 d[2]   += /*  0  */ + /*  0  */ + /*  0  */ + k[3]*p[3];
 //                d[3]   += /*  0  */ + /*  0  */ + /*  0  */ + /*  0  */;
-
-                dst    += 4;
             }
 
             // Apply tail
@@ -74,6 +72,7 @@ namespace native
             }
 
             k      += 4;
+            dst    += 4;
             count  -= 4;
         }
 
@@ -103,13 +102,6 @@ namespace native
 
             k++;
         }
-        /*
-        for (size_t i=0; i<count; ++i)
-        {
-            for (size_t j=0; j<length; ++j)
-                dst[i+j] += src[i] * conv[j];
-        }
-        */
     }
 }
 

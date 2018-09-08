@@ -343,6 +343,8 @@ namespace dsp
     void    (* calc_tetra3d_pv3)(tetra3d_t *t, const point3d_t *p, const vector3d_t *v1, const vector3d_t *v2, const vector3d_t *v3) = NULL;
     void    (* calc_tetra3d_pvv)(tetra3d_t *t, const point3d_t *p, const vector3d_t *v) = NULL;
     float   (* find_tetra3d_intersections)(ray3d_t *r, const tetra3d_t *t, const triangle3d_t *tr) = NULL;
+
+    void    (* convolve)(float *dst, const float *src, const float *conv, size_t length, size_t count) = NULL;
 }
 
 namespace dsp

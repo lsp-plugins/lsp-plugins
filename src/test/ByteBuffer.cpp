@@ -67,6 +67,7 @@ namespace test
         nAlign          = align;
         nLength         = samples;
         pData           = new uint8_t[alloc];
+        bAligned        = aligned;
 
         uint8_t *head   = &pData[sizeof(uint32_t)];
         if (aligned)

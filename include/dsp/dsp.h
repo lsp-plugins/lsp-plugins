@@ -36,6 +36,7 @@
 #include <dsp/common/copy.h>
 #include <dsp/common/mix.h>
 #include <dsp/common/misc.h>
+#include <dsp/common/convolution.h>
 
 #undef __DSP_DSP_DEFS
 
