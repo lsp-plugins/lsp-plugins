@@ -8,11 +8,14 @@
 #include <dsp/dsp.h>
 #include <test/utest.h>
 #include <test/FloatBuffer.h>
+#include <test/helpers.h>
 #include <core/util/Convolver.h>
 
 using namespace lsp;
 
+#define CONV_SIZE       0x2000
 #define SRC_SIZE        0x2000
+#define SRC2_SIZE       0x20
 
 static void convolve(float *dst, const float *src, const float *conv, size_t length, size_t count)
 {
@@ -50,10 +53,9 @@ UTEST_BEGIN("core.util", convolver)
         for (size_t i=0; i<conv.size(); ++i)
             conv[i] = i + 1;
         src.fill_zero();
-//        for (size_t i=0, j=0; i<SRC_SIZE; i+=5, ++j)
-//            src[i] = ((j % 3) == 0) ? 1.0f :
-//                     ((j % 3) == 1) ? 0.1f : 0.01f;
-        src[31] = 1.0f;
+        for (size_t i=0, j=0; i<SRC_SIZE; i+=5, ++j)
+            src[i] = ((j % 3) == 0) ? 1.0f :
+                     ((j % 3) == 1) ? 0.1f : 0.01f;
 
         dst1.fill_zero();
         dst2.fill_zero();
@@ -87,19 +89,20 @@ UTEST_BEGIN("core.util", convolver)
     {
         Convolver c;
 
-        FloatBuffer conv(SRC_SIZE);
-        FloatBuffer src(SRC_SIZE + conv.size());
+        FloatBuffer conv(CONV_SIZE);
+        FloatBuffer src(SRC2_SIZE + conv.size());
         FloatBuffer dst1(src.size());
         FloatBuffer dst2(dst1);
         FloatBuffer dst3(dst1);
+        dsp::fill_zero(src.data(SRC2_SIZE), src.size() - SRC2_SIZE);
 
         dst1.fill_zero();
         dst2.fill_zero();
         dst3.fill_zero();
 
         c.init(conv, conv.size(), 9, 0);
-        ::convolve(dst1, src, conv, conv.size(), SRC_SIZE);
-        dsp::convolve(dst2, src, conv, conv.size(), SRC_SIZE);
+        ::convolve(dst1, src, conv, conv.size(), SRC2_SIZE);
+        dsp::convolve(dst2, src, conv, conv.size(), SRC2_SIZE);
         convolve(c, dst3, src, src.size(), 31);
 
         UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
