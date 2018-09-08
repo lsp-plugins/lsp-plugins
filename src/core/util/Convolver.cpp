@@ -135,7 +135,7 @@ namespace lsp
 
         // Move pointers
         data               += frame_size;
-        count              -= frame_size;
+        count              -= to_do;
         conv_re            += bin_size * 2;
 
         while (count > 0)
@@ -202,16 +202,9 @@ namespace lsp
 
             // Check that we are available to apply convolution via FFT
             if (to_do == CONVOLVER_SMALL_FRM_SIZE)
-            {
-                // Apply convolution
                 dsp::fastconv_parse_apply(vBufferPtr, vTempBuf, vConv, &vFrame[nFrameSize], CONVOLVER_RANK_FFT_SMALL);
-            }
             else if (to_do > 0) // We need to do direct convolution
-            {
-                // Do direct convolution
-                for (size_t i=0; i<to_do; ++i)
-                    dsp::scale_add3(vBufferPtr, vConvFirst, src[i], CONVOLVER_SMALL_FRM_SIZE); // TODO: check validity. Maybe &vBufferPtr[i] ?
-            }
+                dsp::convolve(vBufferPtr, vConvFirst, src, CONVOLVER_SMALL_FRM_SIZE, to_do);
 
             // Update frame size and source pointer
             nFrameSize         += to_do;
@@ -315,6 +308,7 @@ namespace lsp
             // Copy data to output and update buffer pointers
             if (to_do > 0)
             {
+                lsp_trace("dsp::copy %p -> %p x %d", vBufferPtr, dst, int(to_do));
                 dsp::copy(dst, vBufferPtr, to_do);
                 vBufferPtr         += to_do;
                 dst                += to_do;

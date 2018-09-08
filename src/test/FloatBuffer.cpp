@@ -169,4 +169,12 @@ namespace test
             printf("%.5f ", pBuffer[i]);
         printf("\n");
     }
+
+    void FloatBuffer::copy(const FloatBuffer &buf)
+    {
+        size_t to_copy = (buf.nLength < nLength) ? buf.nLength : nLength;
+        memcpy(pBuffer, buf.pBuffer, to_copy * sizeof(float));
+        while (to_copy < nLength)
+            pBuffer[to_copy++] = 0.0f;
+    }
 }

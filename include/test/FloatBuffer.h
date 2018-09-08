@@ -37,6 +37,7 @@ namespace test
             void randomize_sign();
             void randomize();
             void fill_zero();
+            void copy(const FloatBuffer &buf);
 
             bool validate() const;
             inline bool valid() const { return validate(); };
@@ -66,6 +67,11 @@ namespace test
             inline float *data()
             {
                 return pBuffer;
+            }
+
+            inline float *data(size_t offset)
+            {
+                return &pBuffer[offset];
             }
 
             inline operator float *()
