@@ -41,18 +41,18 @@ UTEST_BEGIN("dsp", convolve)
         for (size_t mask=0; mask <= 0x07; ++mask)
 //        size_t mask = 0;
         {
-//            UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0x1ff)
-            size_t count = 31;
+            UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0x1ff)
+//            size_t count = 31;
             {
                 FloatBuffer src(count*2, align, mask & 0x01);
-                src.fill_zero();
-                src[31] = 1.0f;
+//                src.fill_zero();
+//                src[31] = 1.0f;
 //                src[2] = -1.0f;
 
-//                UTEST_FOREACH(length, 0, 1, 2, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0x1ff)
-                size_t length=128;
+                UTEST_FOREACH(length, 0, 1, 2, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0x1ff)
+//                size_t lenth = 128;
                 {
-                    printf("Tesing %s convoblution length=%d on buffer count=%d\n", label, int(length), int(count));
+                    printf("Tesing %s convolution length=%d on buffer count=%d\n", label, int(length), int(count));
 
                     ssize_t clen = count + length - 1;
                     FloatBuffer conv(length, align, mask & 0x02);
@@ -63,12 +63,12 @@ UTEST_BEGIN("dsp", convolve)
                     dst1.fill_zero();
                     FloatBuffer dst2(dst1);
 
-                    src.dump("src ");
-                    conv.dump("conv");
+//                    src.dump("src ");
+//                    conv.dump("conv");
                     convolve(dst1, src, conv, length, count);
-                    dst1.dump("dst1");
+//                    dst1.dump("dst1");
                     func(dst2, src, conv, length, count);
-                    dst2.dump("dst2");
+//                    dst2.dump("dst2");
 
                     UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
                     UTEST_ASSERT_MSG(conv.valid(), "Convolution buffer corrupted");

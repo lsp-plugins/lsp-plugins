@@ -169,7 +169,7 @@ namespace lsp
         dsp::copy(vTempBuf, data, nDirectSize);
         dsp::fastconv_parse(conv_re, vTempBuf, bin_rank);
         dump(conv_re, 1 << bin_rank, "conv_re[fft]");
-        dump_fastconv(conv_re, bin_rank, "conv_re[img]")
+        dump_fastconv(conv_re, bin_rank, "conv_re[img]");
 
         // Move pointers
         data               += frame_size;
