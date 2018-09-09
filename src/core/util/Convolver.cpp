@@ -77,7 +77,7 @@ namespace lsp
         dsp::fill_zero(buf, conv_size * 4);
         buf[conv_size] = 1.0f;
 
-        dsp::fastconv_parse_apply(buf, &buf[conv_size*2], conv, conv, rank);
+        dsp::fastconv_parse_apply(buf, &buf[conv_size*2], conv, &buf[conv_size], rank);
         for(size_t i=0; i<conv_size; ++i)
             printf("%.4f ", buf[i]);
 
@@ -160,22 +160,26 @@ namespace lsp
         nFrameMax           = frame_size;
         nDirectSize         = (count > frame_size) ? frame_size : count;
 
+        dump(data, count, "DATA");
+
         // Prepare first frame
         dsp::copy(vConvFirst, data, nDirectSize);
         dump(vConvFirst, CONVOLVER_SMALL_FRM_SIZE, "vConvFirst");
 
         // Calculate FFT of first bin
         dsp::fill_zero(vTempBuf, bin_size*2);
-        dsp::copy(vTempBuf, data, nDirectSize);
+        dsp::copy(vTempBuf, data, nDirectSize); // dbg
+        dump(vTempBuf, 1 << bin_rank, "conv_tmp[0] (%p)", vTempBuf);
         dsp::fastconv_parse(conv_re, vTempBuf, bin_rank);
-        dump(conv_re, 1 << bin_rank, "conv_re[fft]");
-        dump_fastconv(conv_re, bin_rank, "conv_re[img]");
+        dump(conv_re, 1 << bin_rank, "conv_fft[0] (%p)", conv_re); // dbg
+        dump_fastconv(conv_re, bin_rank, "conv_img[0] (%p)", conv_re); // dbg
 
         // Move pointers
         data               += frame_size;
         count              -= nDirectSize;
         conv_re            += bin_size * 2;
 
+        size_t i_dbg        = 1;
         while (count > 0)
         {
             size_t to_do        = (count > frame_size) ? frame_size : count;
@@ -183,8 +187,11 @@ namespace lsp
 
             // Calculate FFT
             dsp::fill_zero(vTempBuf, bin_size*2);
-            dsp::copy(vTempBuf, data, to_do);
-            dsp::fastconv_parse(conv_re, vTempBuf, bin_rank);
+            dsp::copy(vTempBuf, data, to_do); // dbg
+            dump(vTempBuf, 1 << bin_rank, "conv_tmp[%d] (%p)", int(i_dbg), vTempBuf);
+            dsp::fastconv_parse(conv_re, vTempBuf, bin_rank); // dbg
+            dump(conv_re, 1 << bin_rank, "conv_fft[%d] (%p)", int(i_dbg), conv_re);
+            dump_fastconv(conv_re, bin_rank, "conv_img[%d] (%p)", int(i_dbg), conv_re); // dbg
 
             // Move pointers
             data               += frame_size;
@@ -201,6 +208,7 @@ namespace lsp
             }
             else
                 nBlocks        ++;
+            i_dbg++;
         }
 
         // Initialize frame size

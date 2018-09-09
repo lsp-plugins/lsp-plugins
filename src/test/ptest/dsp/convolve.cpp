@@ -85,6 +85,13 @@ PTEST_BEGIN("dsp", convolve, 5, 1000)
 
                 PTEST_SEPARATOR;
             }
+
+        CALL("static:convolve", out, in, conv, (1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, convolve);
+        CALL("static:convolve_sadd", out, in, conv, (1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, convolve_sadd);
+        CALL("native:convolve", out, in, conv, (1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, native::convolve);
+        IF_ARCH_X86(CALL("sse:convolve", out, in, conv, (1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, sse::convolve));
+
+        PTEST_SEPARATOR;
     }
 
 PTEST_END
