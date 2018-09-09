@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef DSP_ARCH_X86_SSE_LMATH_H_
-#define DSP_ARCH_X86_SSE_LMATH_H_
+#ifndef DSP_ARCH_X86_SSE_PMATH_H_
+#define DSP_ARCH_X86_SSE_PMATH_H_
 
 #ifndef DSP_ARCH_X86_SSE_IMPL
     #error "This header should not be included directly"
@@ -1093,4 +1093,4 @@ namespace sse
 #undef SCALE_OP4_ALIGN
 #undef SCALE_OP4_CORE
 
-#endif /* DSP_ARCH_X86_SSE_LMATH_H_ */
+#endif /* DSP_ARCH_X86_SSE_PMATH_H_ */

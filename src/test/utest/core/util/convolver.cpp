@@ -13,7 +13,7 @@
 
 using namespace lsp;
 
-#define CONV_SIZE       0x2000
+#define CONV_SIZE       0x200
 #define SRC_SIZE        0x2000
 #define SRC2_SIZE       0x20
 

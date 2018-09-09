@@ -8,6 +8,7 @@
 #include <dsp/dsp.h>
 #include <core/debug.h>
 #include <core/util/Convolver.h>
+#include <stdarg.h>
 
 #if 1
 
@@ -49,6 +50,42 @@ namespace lsp
         destroy();
     }
 
+    static void dump(const float *buf, size_t count, const char *fmt, ...)
+    {
+        va_list args;
+        va_start(args, fmt);
+        vprintf(fmt, args);
+        va_end(args);
+        printf(": ");
+
+        while (count--)
+            printf("%.4f ", *(buf++));
+
+        printf("\n");
+    }
+
+    static void dump_fastconv(const float *conv, size_t rank, const char *fmt, ...)
+    {
+        va_list args;
+        va_start(args, fmt);
+        vprintf(fmt, args);
+        va_end(args);
+        printf(": ");
+
+        size_t conv_size = 1 << rank;
+        float *buf = new float[conv_size * 4];
+        dsp::fill_zero(buf, conv_size * 4);
+        buf[conv_size] = 1.0f;
+
+        dsp::fastconv_parse_apply(buf, &buf[conv_size*2], conv, conv, rank);
+        for(size_t i=0; i<conv_size; ++i)
+            printf("%.4f ", buf[i]);
+
+        delete [] buf;
+
+        printf("\n");
+    }
+
     bool Convolver::init(const float *data, size_t count, size_t rank, float phase)
     {
         // Check arguments
@@ -76,15 +113,12 @@ namespace lsp
         allocate               += fft_buf_size * 2; // Task buffer (real and imaginary)
         allocate               += bins * data_buf_size * 4 + data_buf_size * 4; // Buffer for convolution tail
 
-        uint8_t *ptr            = new uint8_t[allocate * sizeof(float) + DEFAULT_ALIGN];
-        if (ptr == NULL)
+        float *fptr             = alloc_aligned<float>(vData, allocate);
+        if (fptr == NULL)
             return false;
 
-        // Drop all previously used data
         destroy();
-        vData               = ptr;
-        float *fptr         = reinterpret_cast<float *>(ALIGN_PTR(ptr, DEFAULT_ALIGN));
-        dsp::fill_zero(fptr, allocate);
+        dsp::fill_zero(fptr, allocate); // Drop all previously used data
 
         vBufferHead         = fptr;
         fptr               += bins * data_buf_size * 3;
@@ -128,11 +162,14 @@ namespace lsp
 
         // Prepare first frame
         dsp::copy(vConvFirst, data, nDirectSize);
+        dump(vConvFirst, CONVOLVER_SMALL_FRM_SIZE, "vConvFirst");
 
         // Calculate FFT of first bin
         dsp::fill_zero(vTempBuf, bin_size*2);
         dsp::copy(vTempBuf, data, nDirectSize);
         dsp::fastconv_parse(conv_re, vTempBuf, bin_rank);
+        dump(conv_re, 1 << bin_rank, "conv_re[fft]");
+        dump_fastconv(conv_re, bin_rank, "conv_re[img]")
 
         // Move pointers
         data               += frame_size;
@@ -178,10 +215,7 @@ namespace lsp
     void Convolver::destroy()
     {
         if (vData != NULL)
-        {
-            delete[] vData;
-            vData       = NULL;
-        }
+            free_aligned(vData);
     }
 
     void Convolver::process(float *dst, const float *src, size_t count)
