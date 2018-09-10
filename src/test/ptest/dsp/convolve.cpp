@@ -23,6 +23,13 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void convolve(float *dst, const float *src, const float *conv, size_t length, size_t count);
+    }
+)
+
 static void convolve(float *dst, const float *src, const float *conv, size_t length, size_t count)
 {
     for (size_t i=0; i<count; ++i)
