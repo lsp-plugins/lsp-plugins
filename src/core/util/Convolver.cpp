@@ -113,11 +113,15 @@ namespace lsp
         allocate               += fft_buf_size * 2; // Task buffer (real and imaginary)
         allocate               += bins * data_buf_size * 4 + data_buf_size * 4; // Buffer for convolution tail
 
-        float *fptr             = alloc_aligned<float>(vData, allocate);
+        uint8_t *pdata          = NULL;
+        float *fptr             = alloc_aligned<float>(pdata, allocate);
         if (fptr == NULL)
             return false;
 
+        // Replace previously used data by new allocated data
         destroy();
+        vData               = pdata;
+
         dsp::fill_zero(fptr, allocate); // Drop all previously used data
 
         vBufferHead         = fptr;
@@ -245,16 +249,30 @@ namespace lsp
 
             // Check that we are available to apply convolution via FFT
             if (to_do == CONVOLVER_SMALL_FRM_SIZE)
+            {
+//                printf("fastconv_parse_apply\n");
+//                dump(vBufferHead, 0x80, "pbufhead(%p)", vBufferHead);
+//                dump(vBufferPtr, CONVOLVER_SMALL_FFT_SIZE, "bbufptr(%p)", vBufferPtr);
+//                dump(&vFrame[nFrameSize], CONVOLVER_SMALL_FFT_SIZE, "frame[%x](%p)", int(nFrameSize), &vFrame[nFrameSize]);
+//                dump_fastconv(vConv, CONVOLVER_RANK_FFT_SMALL, "conv(%p)", vConv);
                 dsp::fastconv_parse_apply(vBufferPtr, vTempBuf, vConv, &vFrame[nFrameSize], CONVOLVER_RANK_FFT_SMALL);
+//                dump(vBufferPtr, CONVOLVER_SMALL_FFT_SIZE, "abufptr(%p)", vBufferPtr);
+//                dump(vBufferHead, 0x80, "abufhead(%p)", vBufferHead);
+            }
             else if (to_do > 0) // We need to do direct convolution
             {
 //                for (size_t i=0; i<to_do; ++i)
 //                    dsp::scale_add3(&vBufferPtr[i], vConvFirst, src[i], nDirectSize);
+//                printf("direct_convolve\n");
+//                dump(vBufferHead, 0x80, "pbufhead(%p)", vBufferHead);
                 dsp::convolve(vBufferPtr, src, vConvFirst, nDirectSize, to_do);
+//                dump(vBufferPtr, CONVOLVER_SMALL_FFT_SIZE, "abufptr(%p)", vBufferPtr);
+//                dump(vBufferHead, 0x80, "abufhead(%p)", vBufferHead);
             }
 
             // Update frame size and source pointer
             nFrameSize         += to_do;
+            vBufferPtr         += to_do;
             src                += to_do;
 
             // Check that frame part is full
@@ -287,18 +305,21 @@ namespace lsp
                     if (frm_mask & 1)
                     {
                         // Apply higher-order convolutions
-//                        lsp_trace("Convolve: off=%d, blk1=%d, blk2=%d\n",
-//                            int(frame_id),
-//                            int(&head[-(step >> 1)] - head) / CONVOLVER_SMALL_FRM_SIZE,
-//                            int(conv_re - vConvRe) / CONVOLVER_SMALL_FFT_SIZE);
-
-                        dsp::fastconv_parse_apply(vBufferPtr, vTempBuf, conv_re, &head[-(step >> 1)], rank);
+//                        printf("apply_history vFrame=%p, head=%p, diff=%d\n", vFrame, head, int(head - vFrame));
+//                        dump(vBufferHead, 0x80, "pbhptr(%p)", vBufferHead);
+//                        dump(vBufferPtr, (1 << rank), "bbptr(%p)", vBufferPtr);
+//                        dump(head, (1 << rank), "head(%p)", head);
+//                        dump_fastconv(conv_re, CONVOLVER_RANK_FFT_SMALL, "conv_re(%p)", conv_re);
+                        dsp::fastconv_parse_apply(vBufferPtr, vTempBuf, conv_re, head, rank);
+//                        dump(vBufferPtr, (1 << rank), "abptr(%p)", vBufferPtr);
+//                        dump(vBufferHead, 0x80, "abhptr(%p)", vBufferHead);
                     }
 
-                    conv_re            += step*2;
+                    head               -= (step >> 1);
                     rank               ++;
                     step              <<= 1;
                     frm_mask          >>= 1;
+                    conv_re            += step;
                 }
 
                 if (nBlocksDone < nBlocks)
@@ -324,7 +345,7 @@ namespace lsp
                     if (nBlocks > 0)
                     {
                         // Apply convolution
-                        dsp::fastconv_parse(vTask, &head[-(step >> 1)], rank);
+                        dsp::fastconv_parse(vTask, head, rank);
                         dsp::fastconv_apply(vBufferPtr, vTempBuf, vTask, conv_re, rank);
 
                         // Set number of blocks done
@@ -356,8 +377,7 @@ namespace lsp
             if (to_do > 0)
             {
 //                lsp_trace("dsp::copy %p -> %p x %d", vBufferPtr, dst, int(to_do));
-                dsp::copy(dst, vBufferPtr, to_do);
-                vBufferPtr         += to_do;
+                dsp::copy(dst, vBufferPtr - to_do, to_do);
                 dst                += to_do;
                 count              -= to_do;
             }

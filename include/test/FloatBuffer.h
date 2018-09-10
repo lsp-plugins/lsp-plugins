@@ -22,6 +22,7 @@ namespace test
             size_t      nLength;
             size_t      nAlign;
             bool        bAligned;
+            mutable size_t  nLastDiff;
 
         private:
             void allocate(size_t samples, size_t align, bool aligned);
@@ -48,6 +49,7 @@ namespace test
             void dump(const char *text, size_t from, size_t count) const;
             inline bool aligned() const { return bAligned; }
             inline size_t size() const { return nLength; }
+            inline size_t last_diff() const { return nLastDiff; }
 
         public:
             inline float &operator [] (size_t index) {

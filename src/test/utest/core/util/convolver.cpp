@@ -14,6 +14,7 @@
 using namespace lsp;
 
 #define CONV_SIZE       0x200
+//#define SRC_SIZE        0x100
 #define SRC_SIZE        0x2000
 #define SRC2_SIZE       0x20
 
@@ -34,6 +35,8 @@ UTEST_BEGIN("core.util", convolver)
             size_t todo = count - i;
             if (todo > step)
                 todo = step;
+            if (i == 744)
+                printf("debug\n");
             conv.process(&dst[i], &src[i], todo);
             i += todo;
         }
@@ -56,15 +59,22 @@ UTEST_BEGIN("core.util", convolver)
         for (size_t i=0, j=0; i<SRC_SIZE; i+=5, ++j)
             src[i] = ((j % 3) == 0) ? 1.0f :
                      ((j % 3) == 1) ? 0.1f : 0.01f;
+//        src[15] = 1.0f;
 
         dst1.fill_zero();
         dst2.fill_zero();
         dst3.fill_zero();
 
-        c.init(conv, conv.size(), 9, 0);
+        UTEST_ASSERT(c.init(conv, conv.size(), 9, 0));
         ::convolve(dst1, src, conv, conv.size(), SRC_SIZE);
         dsp::convolve(dst2, src, conv, conv.size(), SRC_SIZE);
         convolve(c, dst3, src, src.size(), 31);
+
+        src.dump("src ");
+        conv.dump("conv");
+        dst1.dump("dst1");
+        dst2.dump("dst2");
+        dst3.dump("dst3");
 
         UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
         UTEST_ASSERT_MSG(conv.valid(), "Convolution 1 buffer corrupted");
@@ -79,7 +89,7 @@ UTEST_BEGIN("core.util", convolver)
             dst1.dump("dst1");
             dst2.dump("dst2");
             dst3.dump("dst3");
-            UTEST_FAIL_MSG("Output of convolver is invalid");
+            UTEST_FAIL_MSG("Output of convolver is invalid, started at sample=%d", int(dst2.last_diff()));
         }
 
         c.destroy();
@@ -100,7 +110,7 @@ UTEST_BEGIN("core.util", convolver)
         dst2.fill_zero();
         dst3.fill_zero();
 
-        c.init(conv, conv.size(), 9, 0);
+        UTEST_ASSERT(c.init(conv, conv.size(), 9, 0));
         ::convolve(dst1, src, conv, conv.size(), SRC2_SIZE);
         dsp::convolve(dst2, src, conv, conv.size(), SRC2_SIZE);
         convolve(c, dst3, src, src.size(), 31);

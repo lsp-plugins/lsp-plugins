@@ -64,6 +64,7 @@ namespace test
         nLength         = samples;
         pData           = new uint8_t[alloc];
         bAligned        = aligned;
+        nLastDiff       = 0;
 
         uint8_t *head   = &pData[sizeof(uint32_t)];
         if (aligned)
@@ -134,7 +135,11 @@ namespace test
         for (size_t i=0; i<nLength; ++i)
         {
             if (!float_equals_relative(a[i], b[i], tolerance))
+            {
+                nLastDiff = i;
+                src.nLastDiff = i;
                 return false;
+            }
         }
         return true;
     }
@@ -149,7 +154,11 @@ namespace test
         for (size_t i=0; i<nLength; ++i)
         {
             if (!float_equals_absolute(a[i], b[i], tolerance))
+            {
+                nLastDiff = i;
+                src.nLastDiff = i;
                 return false;
+            }
         }
         return true;
     }
