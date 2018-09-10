@@ -51,7 +51,7 @@ UTEST_BEGIN("dsp", convolve)
             UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0x1ff)
 //            size_t count = 31;
             {
-                FloatBuffer src(count*2, align, mask & 0x01);
+                FloatBuffer src(count, align, mask & 0x01);
 //                src.fill_zero();
 //                src[31] = 1.0f;
 //                src[2] = -1.0f;
