@@ -39,56 +39,34 @@ namespace neon_d32
 
                 // Load convolution kernel
                 __ASM_EMIT("11:")
-                    __ASM_EMIT("vmov        q14, q15")                  // q14 = p0 p1 p2 p3
-                    __ASM_EMIT("vld1.32     q4, [%[c]]!")               // q4  = c0 c1 c2 c3, c += 4
-                    __ASM_EMIT("vext        q5, q4, q14, $4")           // q5  = p3 c0 c1 c2
-                    __ASM_EMIT("vext        q6, q4, q14, $8")           // q6  = p2 p3 c0 c1
-                    __ASM_EMIT("vext        q7, q4, q14, $12")          // q7  = p1 p2 p3 c0
-
-                    // Apply convolution
                     __ASM_EMIT("vld1.32     {q8}, %[d]")                // q8  = d0 d1 d2 d3
-                    __ASM_EMIT("vmla.f32    q8, q4, q0")                // q8  = d0+k0*c0 d1+k0*c1 d2+k0*c2 d3+k0*c3
+                    __ASM_EMIT("vld1.32     q4, [%[c]]!")               // q4  = c0 c1 c2 c3, c += 4
+                    __ASM_EMIT("vext        q5, q4, q15, $4")           // q5  = p3 c0 c1 c2
+                    __ASM_EMIT("vext        q6, q4, q15, $8")           // q6  = p2 p3 c0 c1
+                    __ASM_EMIT("vext        q7, q4, q15, $12")          // q7  = p1 p2 p3 c0
                     __ASM_EMIT("vmla.f32    q8, q5, q1")                // q8  = d0 + k0*c0 + k1*p3 ...
+                    __ASM_EMIT("vmla.f32    q8, q4, q0")                // q8  = d0+k0*c0 d1+k0*c1 d2+k0*c2 d3+k0*c3
                     __ASM_EMIT("vmla.f32    q8, q6, q2")                // q8  = d0 + k0*c0 + k1*p3 + k2*p2 ...
                     __ASM_EMIT("vmla.f32    q8, q7, q3")                // q8  = d0 + k0*c0 + k1*p3 + k2*p2 + k3*p1 ...
+                    __ASM_EMIT("vmov        q15, q4")                   // q15 = c0 c1 c2 c3
 
-                    __ASM_EMIT("movups      %%xmm0, (%[d])")
-                    __ASM_EMIT("add         $0x10, %[c]")               // c += 4
-                    __ASM_EMIT("add         $0x10, %[d]")               // d += 4
-                    __ASM_EMIT("sub         $4, %[clen]")               // clen -= 4
-                    __ASM_EMIT("jae         11b")
-                // Apply tail: xmm7 =  p0 p1 p2 p3
-                __ASM_EMIT("movaps      %%xmm7, %%xmm5")            // xmm5 = p0 p1 p2 p3
-                __ASM_EMIT("movhlps     %%xmm7, %%xmm6")            // xmm6 = p2
-                __ASM_EMIT("shufps      $0xff, %%xmm5, %%xmm5")     // xmm5 = p3
-                __ASM_EMIT("shufps      $0x55, %%xmm7, %%xmm7")     // xmm7 = p1
-                __ASM_EMIT("movss       0x04(%[k]), %%xmm0")        // xmm0 = k1
-                __ASM_EMIT("movss       0x08(%[k]), %%xmm1")        // xmm1 = k2
-                __ASM_EMIT("movss       0x0c(%[k]), %%xmm2")        // xmm2 = k3
+                    __ASM_EMIT("vst1.32     {q8}, %[d]!")               // d += 4
+                    __ASM_EMIT("subs        %[clen], $4")               // clen -= 4
+                    __ASM_EMIT("bhs         11b")
 
-                __ASM_EMIT("movaps      %%xmm0, %%xmm3")            // xmm3 = k1
-                __ASM_EMIT("movaps      %%xmm1, %%xmm4")            // xmm4 = k2
-                __ASM_EMIT("mulss       %%xmm2, %%xmm7")            // xmm7 = k3*p1
-                __ASM_EMIT("mulss       %%xmm5, %%xmm3")            // xmm3 = k1*p3
-                __ASM_EMIT("mulss       %%xmm6, %%xmm4")            // xmm4 = k2*p2
-                __ASM_EMIT("addss       %%xmm7, %%xmm3")            // xmm3 = k1*p3 + k3*p1
-                __ASM_EMIT("addss       %%xmm4, %%xmm3")            // xmm3 = k1*p3 + k2*p2 + k3*p1
-                __ASM_EMIT("movss       0x00(%[d]), %%xmm7")        // xmm7 = d0
-                __ASM_EMIT("addss       %%xmm3, %%xmm7")            // xmm7 = d0 + k1*p3 + k2*p2 + k3*p1
-                __ASM_EMIT("movss       %%xmm7, 0x00(%[d])")        // xmm7 = d0
+                // Apply tail: q15 = p0 p1 p2 p3 => s28 = p0, s29 = p1, s30 = p2, s31 = p3
+                __ASM_EMIT("vld1.32     {q1}, %[k]")                // s4 = k0, s5 = k1, s6 = k2, s7 = k3
+                __ASM_EMIT("vldm.32     %[d], {s0-s2}")             // s0 = d0, s1 = d1, s2 = d2, s3 = d3
+                __ASM_EMIT("vmul.f32    s8, s7, s29")               // s8 = k3*p1
+                __ASM_EMIT("vmul.f32    s9, s7, s30")               // s9 = k3*p2
+                __ASM_EMIT("vmla.f32    s8, s5, s31")               // s8 = k1*p3 + k3*p1
+                __ASM_EMIT("vmul.f32    s10, s7, s31")              // s10 = k3*p3
+                __ASM_EMIT("vmla.f32    s8, s6, s30")               // s8 = k1*p3 + k2*p2 + k3*p1
+                __ASM_EMIT("vmla.f32    s9, s6, s31")               // s9 = k2*p3 + k3*p2
+                __ASM_EMIT("vmadd.f32   q0, q0, q1")
+                __ASM_EMIT("vstm.f32    %[d], {s0-s2}")
 
-                __ASM_EMIT("movss       0x04(%[d]), %%xmm7")        // xmm4 = d1
-                __ASM_EMIT("mulss       %%xmm2, %%xmm6")            // xmm6 = k3*p2
-                __ASM_EMIT("mulss       %%xmm5, %%xmm1")            // xmm1 = k2*p3
-                __ASM_EMIT("addss       %%xmm6, %%xmm7")            // xmm7 = d1 + k3*p2
-                __ASM_EMIT("addss       %%xmm1, %%xmm7")            // xmm7 = d1 + k3*p2 + k2*p3
-                __ASM_EMIT("movss       %%xmm7, 0x04(%[d])")
-
-                __ASM_EMIT("movss       0x08(%[d]), %%xmm7")        // xmm7 = d2
-                __ASM_EMIT("mulss       %%xmm5, %%xmm2")            // xmm2 = k3*p3
-                __ASM_EMIT("addss       %%xmm2, %%xmm7")            // xmm7 = d2 + k3*p3
-                __ASM_EMIT("movss       %%xmm7, 0x08(%[d])")
-
+                // TODO
                 // Apply tail
                 __ASM_EMIT("12:")
                     __ASM_EMIT("add         $3, %[clen]")       // while (clen >= 0)
