@@ -82,6 +82,7 @@ PTEST_BEGIN("dsp", convolve, 5, 1000)
                 CALL("static:convolve_sadd", out, in, conv, (1 << j), (1 << i), convolve_sadd);
                 CALL("native:convolve", out, in, conv, (1 << j), (1 << i), native::convolve);
                 IF_ARCH_X86(CALL("sse:convolve", out, in, conv, (1 << j), (1 << i), sse::convolve));
+                IF_ARCH_ARM(CALL("neon_d32:convolve", out, in, conv, (1 << j), (1 << i), neon_d32::convolve));
 
                 PTEST_SEPARATOR;
             }
@@ -90,6 +91,7 @@ PTEST_BEGIN("dsp", convolve, 5, 1000)
         CALL("static:convolve_sadd", out, in, conv, (1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, convolve_sadd);
         CALL("native:convolve", out, in, conv, (1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, native::convolve);
         IF_ARCH_X86(CALL("sse:convolve", out, in, conv, (1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, sse::convolve));
+        IF_ARCH_ARM(CALL("neon_d32:convolve", out, in, conv, (1 << MAX_RANK) - 1, (1 << MAX_RANK) - 1, neon_d32::convolve));
 
         PTEST_SEPARATOR;
     }
