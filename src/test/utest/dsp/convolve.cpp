@@ -100,7 +100,7 @@ UTEST_BEGIN("dsp", convolve)
     {
         call("native:convolve", 16, native::convolve);
         IF_ARCH_X86(call("sse:convolve", 16, sse::convolve));
-        IF_ARCH_ARM(call("neon_d32:convolve", 16, sse::convolve));
+        IF_ARCH_ARM(call("neon_d32:convolve", 16, neon_d32::convolve));
     }
 
 UTEST_END;
