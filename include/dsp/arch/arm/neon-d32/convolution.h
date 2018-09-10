@@ -42,7 +42,7 @@ namespace neon_d32
                 // Load convolution kernel
                 __ASM_EMIT("11:")
                     __ASM_EMIT("vld1.32     {q8}, [%[d]]")              // q8  = d0 d1 d2 d3
-                    __ASM_EMIT("vld1.32     q4, [%[c]]!")               // q4  = c0 c1 c2 c3, c += 4
+                    __ASM_EMIT("vld1.32     {q4}, [%[c]]!")             // q4  = c0 c1 c2 c3, c += 4
                     __ASM_EMIT("vext.8      q5, q15, q4, $12")          // q5  = p3 c0 c1 c2
                     __ASM_EMIT("vext.8      q6, q15, q4, $8")           // q6  = p2 p3 c0 c1
                     __ASM_EMIT("vext.8      q7, q15, q4, $4")           // q7  = p1 p2 p3 c0
