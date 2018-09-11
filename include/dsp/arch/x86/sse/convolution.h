@@ -63,39 +63,6 @@ namespace sse
                     __ASM_EMIT("add         $0x10, %[d]")               // d += 4
                     __ASM_EMIT("sub         $4, %[clen]")               // clen -= 4
                     __ASM_EMIT("jae         11b")
-//                // OLD VERSION: Load convolution kernel
-//                __ASM_EMIT("11:")
-//                    __ASM_EMIT("movaps      %%xmm7, %%xmm3")            // xmm3 = p0 p1 p2 p3
-//                    __ASM_EMIT("movups      (%[c]), %%xmm7")            // xmm7 = c0 c1 c2 c3
-//                    __ASM_EMIT("movaps      %%xmm3, %%xmm5")            // xmm5 = p0 p1 p2 p3
-//                    __ASM_EMIT("shufps      $0x4e, %%xmm7, %%xmm5")     // xmm5 = p2 p3 c0 c1 (+)
-//                    __ASM_EMIT("movaps      %%xmm5, %%xmm6")            // xmm6 = p2 p3 c0 c1
-//                    __ASM_EMIT("movaps      %%xmm3, %%xmm4")            // xmm4 = p0 p1 p2 p3
-//                    __ASM_EMIT("shufps      $0x99, %%xmm7, %%xmm6")     // xmm6 = p3 c0 c1 c2 (+)
-//                    __ASM_EMIT("shufps      $0x99, %%xmm5, %%xmm4")     // xmm4 = p1 p2 p3 c0
-//                    // Apply convolution
-//                    __ASM_EMIT("movups      (%[k]), %%xmm0")            // xmm0 = k0 k1 k2 k3
-//                    __ASM_EMIT("movaps      %%xmm0, %%xmm1")            // xmm1 = k0 k1 k2 k3
-//                    __ASM_EMIT("movaps      %%xmm0, %%xmm2")            // xmm2 = k0 k1 k2 k3
-//                    __ASM_EMIT("movaps      %%xmm1, %%xmm3")            // xmm3 = k0 k1 k2 k3
-//                    __ASM_EMIT("shufps      $0x00, %%xmm0, %%xmm0")     // xmm0 = k0 k0 k0 k0
-//                    __ASM_EMIT("shufps      $0x55, %%xmm1, %%xmm1")     // xmm1 = k1 k1 k1 k1
-//                    __ASM_EMIT("shufps      $0xaa, %%xmm2, %%xmm2")     // xmm2 = k2 k2 k2 k2
-//                    __ASM_EMIT("shufps      $0xff, %%xmm3, %%xmm3")     // xmm3 = k2 k2 k2 k2
-//                    __ASM_EMIT("mulps       %%xmm7, %%xmm0")            // xmm0 = k0*c0 k0*c1 k0*c2 k0*c3
-//                    __ASM_EMIT("mulps       %%xmm6, %%xmm1")            // xmm1 = k1*p3 k1*c0 k1*c1 k1*c2
-//                    __ASM_EMIT("mulps       %%xmm5, %%xmm2")            // xmm2 = k2*p2 k2*p3 k2*c0 k2*c1
-//                    __ASM_EMIT("mulps       %%xmm4, %%xmm3")            // xmm3 = k3*p1 k3*p2 k3*p3 k3*c0
-//                    __ASM_EMIT("movups      (%[d]), %%xmm4")
-//                    __ASM_EMIT("addps       %%xmm1, %%xmm0")
-//                    __ASM_EMIT("addps       %%xmm3, %%xmm2")
-//                    __ASM_EMIT("addps       %%xmm2, %%xmm0")
-//                    __ASM_EMIT("addps       %%xmm4, %%xmm0")
-//                    __ASM_EMIT("movups      %%xmm0, (%[d])")
-//                    __ASM_EMIT("add         $0x10, %[c]")               // c += 4
-//                    __ASM_EMIT("add         $0x10, %[d]")               // d += 4
-//                    __ASM_EMIT("sub         $4, %[clen]")               // clen -= 4
-//                    __ASM_EMIT("jae         11b")
 
                 // Apply tail: xmm7 =  p0 p1 p2 p3
                 __ASM_EMIT("movaps      %%xmm7, %%xmm5")            // xmm5 = p0 p1 p2 p3

@@ -59,7 +59,7 @@ UTEST_BEGIN("dsp", convolve)
                 UTEST_FOREACH(length, 0, 1, 2, 3, 4, 5, 8, 16, 24, 32, 33, 64, 47, 0x80, 0x1ff)
 //                size_t lenth = 128;
                 {
-                    printf("Tesing %s convolution length=%d on buffer count=%d\n", label, int(length), int(count));
+                    printf("Tesing %s convolution length=%d on buffer count=%d mask=0x%x\n", label, int(length), int(count), int(mask));
 
                     ssize_t clen = count + length - 1;
                     FloatBuffer conv(length, align, mask & 0x02);
