@@ -115,7 +115,7 @@ namespace neon_d32
                     __ASM_EMIT("vld1.32     {q8}, [%[d]]")      // q8 = d0 d1 d2 d3
                     __ASM_EMIT("vmla.f32    q8, q2, q0")        // q8 = d0+k0*c0 d1+k0*c1 d2+k0*c2 d3+k0*c3
                     __ASM_EMIT("subs        %[clen], $4")       // clen -= 8
-                    __ASM_EMIT("vst1.32     {q2}, [%[d]]!")     // d += 8
+                    __ASM_EMIT("vst1.32     {q8}, [%[d]]!")     // d += 8
 
                 // Apply tail
                 __ASM_EMIT("24:")
