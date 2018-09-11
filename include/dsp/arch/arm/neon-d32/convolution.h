@@ -126,7 +126,7 @@ namespace neon_d32
                     __ASM_EMIT("vldm.32     %[d], {s8}")        // s8 = d0
                     __ASM_EMIT("vmla.f32    s8, s2, s0")        // s8 = d0+k0*c0
                     __ASM_EMIT("subs        %[clen], $1")       // clen --
-                    __ASM_EMIT("vstm.32     %[d]!, {s2}")       // d ++
+                    __ASM_EMIT("vstm.32     %[d]!, {s8}")       // d ++
                     __ASM_EMIT("bge         25b")
 
                 __ASM_EMIT("26:")
