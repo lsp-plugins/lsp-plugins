@@ -104,7 +104,7 @@ namespace neon_d32
                     __ASM_EMIT("vmla.f32    q8, q2, q0")        // q8 = d0+k0*c0 d1+k0*c1 d2+k0*c2 d3+k0*c3
                     __ASM_EMIT("vmla.f32    q9, q3, q1")
                     __ASM_EMIT("subs        %[clen], $8")       // clen -= 8
-                    __ASM_EMIT("vst1.32     {q2-q3}, [%[d]]!")  // d += 8
+                    __ASM_EMIT("vst1.32     {q8-q9}, [%[d]]!")  // d += 8
                     __ASM_EMIT("bge         23b")
 
                 // Apply convolution
