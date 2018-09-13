@@ -14,7 +14,6 @@
 using namespace lsp;
 
 #define CONV_SIZE       0x2000
-//#define SRC_SIZE        0x100
 #define SRC_SIZE        0x2000
 #define SRC2_SIZE       0x20
 
@@ -56,12 +55,9 @@ UTEST_BEGIN("core.util", convolver)
         for (size_t i=0; i<conv.size(); ++i)
             conv[i] = i + 1;
         src.fill_zero();
-//        for (size_t i=0; i<SRC_SIZE; i++)
-//            src[i] = (i + 1) * 0.001f;
         for (size_t i=0, j=0; i<SRC_SIZE; i+=5, ++j)
             src[i] = ((j % 3) == 0) ? 1.0f :
                      ((j % 3) == 1) ? 0.1f : 0.01f;
-//        src[15] = 1.0f;
 
         dst1.fill_zero();
         dst2.fill_zero();
@@ -71,12 +67,6 @@ UTEST_BEGIN("core.util", convolver)
         ::convolve(dst1, src, conv, conv.size(), SRC_SIZE);
         dsp::convolve(dst2, src, conv, conv.size(), SRC_SIZE);
         convolve(c, dst3, src, src.size(), 31);
-
-        src.dump("src ");
-        conv.dump("conv");
-        dst1.dump("dst1");
-        dst2.dump("dst2");
-        dst3.dump("dst3");
 
         UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
         UTEST_ASSERT_MSG(conv.valid(), "Convolution 1 buffer corrupted");
@@ -110,10 +100,10 @@ UTEST_BEGIN("core.util", convolver)
         FloatBuffer dst3(dst1);
         dsp::fill_zero(src.data(SRC2_SIZE), src.size() - SRC2_SIZE);
 
-        for (size_t i=0; i<conv.size(); ++i)
-            conv[i] = i + 1;
-        src.fill_zero();
-        src[10] = 1.0f;
+//        for (size_t i=0; i<conv.size(); ++i)
+//            conv[i] = i + 1;
+//        src.fill_zero();
+//        src[0] = 1.0f;
 
         dst1.fill_zero();
         dst2.fill_zero();
@@ -130,7 +120,7 @@ UTEST_BEGIN("core.util", convolver)
         UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
         UTEST_ASSERT_MSG(dst3.valid(), "Destination buffer 3 corrupted");
 
-        if ((!dst2.equals_relative(dst1, 1e-4)) || (!dst3.equals_relative(dst2, 1e-4)))
+        if ((!dst2.equals_absolute(dst1, 1e-5)) || (!dst3.equals_absolute(dst2, 1e-5)))
         {
             src.dump("src ");
             conv.dump("conv");
@@ -147,7 +137,7 @@ UTEST_BEGIN("core.util", convolver)
 
     UTEST_MAIN
     {
-//        test_small();
+        test_small();
         test_large();
     }
 UTEST_END;

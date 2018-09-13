@@ -16,20 +16,22 @@
 - Added possibility to double-click the parameter's value number and enter it manually from keyboard.
 
 === 1.1.4 ===
-* DSP code moved from core to separate subtree.
-* Fixed bugs in some oversampling routines.
-* Optimized complex multiplication functions.
-* Implemented basic Raspberry Pi support (experimental).
 * Changed licensing to GNU Lesser General Public License version 3 (GNU LGPL v3).
 * Moved code repository to GitHub while keeping release history.
+* Implemented linear impulse response profiler.
+* Added basic Raspberry Pi 3B+ (ARMv7A) support (experimental).
+* Implemented unit testing subsystem.
+* Implemented performance testing subsystem.
+* Implemented manual testing subsystem.
+* Fixed and optimized convolution algorithm for convolver module that produced invalid output.
+* Added LSPC file format implementation.
+* Added LSPC file format support to convolver plugins.
+* Huge refactoring: DSP code moved from core to separate subtree.
+* Fixed bugs in some DSP oversampling routines.
+* Optimized complex multiplication functions.
+* Implemented additional complex number routines.
 * Implemented additional functions to DSP core.
 * Fixed compilation warnings emitted by the GCC 8 compiler.
-* Added LSPC file format.
-* Added LSPC file format support to convolver plugins.
-* Implemented linear impulse response profiler.
-* Implemented unit testing system.
-* Implemented performance testing system.
-* Implemented manual testing system.
 
 *******************************************************************************
 * Release steps
