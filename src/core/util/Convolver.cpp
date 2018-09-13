@@ -111,7 +111,7 @@ namespace lsp
         allocate               += fft_buf_size * 2; // Temporary buffer (real and imaginary)
         allocate               += fft_buf_size * 2; // Frame buffer (real only, two frames)
         allocate               += fft_buf_size * 2; // Task buffer (real and imaginary)
-        allocate               += bins * data_buf_size * 4 + data_buf_size * 4; // Buffer for convolution tail
+        allocate               += bins * data_buf_size * 9 + data_buf_size * 4; // Buffer for convolution tail
 
         uint8_t *pdata          = NULL;
         float *fptr             = alloc_aligned<float>(pdata, allocate);
@@ -125,9 +125,9 @@ namespace lsp
         dsp::fill_zero(fptr, allocate); // Drop all previously used data
 
         vBufferHead         = fptr;
-        fptr               += bins * data_buf_size * 3;
+        fptr               += bins * data_buf_size * 8;
         vBufferTail         = fptr;
-        fptr               += (bins + 4) * data_buf_size;
+        fptr               += bins * data_buf_size + data_buf_size * 4;
         vBufferEnd          = fptr;
         vBufferPtr          = vBufferHead;
 
@@ -259,7 +259,7 @@ namespace lsp
 //                dump(vBufferPtr, CONVOLVER_SMALL_FFT_SIZE, "abufptr(%p)", vBufferPtr);
 //                dump(vBufferHead, 0x80, "abufhead(%p)", vBufferHead);
             }
-            else if (to_do > 0) // We need to do direct convolution
+            else // We need to do direct convolution
             {
 //                for (size_t i=0; i<to_do; ++i)
 //                    dsp::scale_add3(&vBufferPtr[i], vConvFirst, src[i], nDirectSize);
@@ -270,10 +270,8 @@ namespace lsp
 //                dump(vBufferHead, 0x80, "abufhead(%p)", vBufferHead);
             }
 
-            // Update frame size and source pointer
+            // Update frame size
             nFrameSize         += to_do;
-            vBufferPtr         += to_do;
-            src                += to_do;
 
             // Check that frame part is full
             if (!(nFrameSize & CONVOLVER_SMALL_FRM_MASK))
@@ -290,36 +288,38 @@ namespace lsp
                     Formula: trigger = prev ^ curr
 
                  */
-                size_t frame_id = (nFrameSize-1) >> CONVOLVER_RANK_FRM_SMALL;
-                size_t frm_mask = ((frame_id-1) ^ frame_id);
-                size_t step     = CONVOLVER_SMALL_FFT_SIZE;
-                size_t rank     = CONVOLVER_RANK_FFT_SMALL;
-                float *head     = &vFrame[(frame_id << CONVOLVER_RANK_FRM_SMALL)%nFrameMax];
-                float *conv_re  = &vConv[CONVOLVER_SMALL_FFT_SIZE*2];
 
-//                lsp_trace("frame_id = %d, mask=0x%x, size=%d, max_size=%d",
-//                        int(frame_id), int(frm_mask), int(nFrameSize), int(nFrameMax));
+                // Apply higher-order convolutions
+                size_t frame_id     = (nFrameSize-1) >> CONVOLVER_RANK_FRM_SMALL;
+                size_t frm_mask     = ((frame_id-1) ^ frame_id);
+                const float *fptr   = &vFrame[nFrameSize];
+                float *bptr         = &vBufferPtr[to_do];
+                float *conv_re      = &vConv[CONVOLVER_SMALL_FFT_SIZE*2];
+                size_t rank         = CONVOLVER_RANK_FFT_SMALL;
 
                 for (size_t i=0; i<nSteps; ++i)
                 {
+//                    fptr           -= 1 << (rank - 1);
                     if (frm_mask & 1)
                     {
-                        // Apply higher-order convolutions
 //                        printf("apply_history vFrame=%p, head=%p, diff=%d\n", vFrame, head, int(head - vFrame));
 //                        dump(vBufferHead, 0x80, "pbhptr(%p)", vBufferHead);
 //                        dump(vBufferPtr, (1 << rank), "bbptr(%p)", vBufferPtr);
 //                        dump(head, (1 << rank), "head(%p)", head);
 //                        dump_fastconv(conv_re, CONVOLVER_RANK_FFT_SMALL, "conv_re(%p)", conv_re);
-                        dsp::fastconv_parse_apply(vBufferPtr, vTempBuf, conv_re, head, rank);
+                        lsp_trace("fastconv_parse_apply dst=0x%x, conv=0x%x, fptr=-0x%x, n=%d",
+                                (bptr-vBufferHead)/CONVOLVER_SMALL_FRM_SIZE,
+                                (conv_re-vConv)/CONVOLVER_SMALL_FFT_SIZE,
+                                ((1 << (rank-1)))/CONVOLVER_SMALL_FRM_SIZE,
+                                1 << (rank - CONVOLVER_RANK_FFT_SMALL));
+                        dsp::fastconv_parse_apply(&bptr, vTempBuf, conv_re, fptr - (1 << (rank-1)), rank);
 //                        dump(vBufferPtr, (1 << rank), "abptr(%p)", vBufferPtr);
 //                        dump(vBufferHead, 0x80, "abhptr(%p)", vBufferHead);
                     }
-
-                    head               -= (step >> 1);
-                    rank               ++;
-                    step              <<= 1;
-                    frm_mask          >>= 1;
-                    conv_re            += step;
+                    bptr           += 1 << (rank-1);
+                    conv_re        += 1 << (rank+1);
+                    frm_mask      >>= 1;
+                    rank           ++;
                 }
 
                 if (nBlocksDone < nBlocks)
@@ -331,56 +331,63 @@ namespace lsp
                     while (nBlocksDone < tgt_block)
                     {
                         // Do multiplication in frequency domain, reverse FFT and apply it to the history buffer
-                        dsp::fastconv_apply(pTargetPtr, vTempBuf, vTask, pConv, rank);
+                        lsp_trace("fastconv_apply dst=0x%x, fptr=-0x%x, n=%d",
+                                    (pTargetPtr-vBufferHead)/CONVOLVER_SMALL_FRM_SIZE,
+                                    0, 1 << (nRank - CONVOLVER_RANK_FFT_SMALL));
+                        dsp::fastconv_apply(pTargetPtr, vTempBuf, vTask, pConv, nRank);
 
                         // Update pointers
-                        pConv              += step*2;
+                        pConv              += nFrameMax << 1;
                         pTargetPtr         += nFrameMax;
                         nBlocksDone        ++;
                     }
                 }
 
+                // Frame reached it's size?
                 if (nFrameSize >= nFrameMax)
                 {
                     if (nBlocks > 0)
                     {
                         // Apply convolution
-                        dsp::fastconv_parse(vTask, head, rank);
-                        dsp::fastconv_apply(vBufferPtr, vTempBuf, vTask, conv_re, rank);
+                        lsp_trace("fastconv_parse+apply dst=0x%x, conv=0x%x, fptr=0x%x, n=%d",
+                                (bptr-vBufferHead)/CONVOLVER_SMALL_FRM_SIZE,
+                                (conv_re-vConv)/CONVOLVER_SMALL_FFT_SIZE,
+                                0, 1 << (nRank - CONVOLVER_RANK_FFT_SMALL));
+                        dsp::fastconv_parse(vTask, vFrame, nRank);
+                        dsp::fastconv_apply(bptr, vTempBuf, vTask, conv_re, nRank);
+                        bptr           += 1 << (nRank - 1);
 
                         // Set number of blocks done
                         nBlocksDone     = 1;
-                        pConv           = &conv_re[step * 2];
-                        pTargetPtr      = &vBufferPtr[step>>1];
+                        pConv           = conv_re;
+                        pTargetPtr      = bptr;
                     }
 
                     // Update frame
                     dsp::copy(&vFrame[-nFrameMax], vFrame, nFrameMax);
                     dsp::fill_zero(vFrame, nFrameMax);
                     nFrameSize -= nFrameMax;
-
-                    // Check that buffer head is not out of range
-                    if (vBufferPtr >= vBufferTail)
-                    {
-//                        lsp_trace("Buffer shift");
-                        size_t buf_size     = vBufferEnd - vBufferHead;
-                        size_t hist_size    = vBufferEnd - vBufferPtr;
-                        dsp::move(vBufferHead, vBufferPtr, hist_size);
-                        dsp::fill_zero(&vBufferHead[hist_size], buf_size - hist_size);
-                        pTargetPtr         -= (vBufferPtr - vBufferHead); // Move target pointer
-                        vBufferPtr          = vBufferHead;
-                    }
                 }
             }
 
-            // Copy data to output and update buffer pointers
-            if (to_do > 0)
+            // Check that buffer head is not out of range
+            if (vBufferPtr >= vBufferTail)
             {
-//                lsp_trace("dsp::copy %p -> %p x %d", vBufferPtr, dst, int(to_do));
-                dsp::copy(dst, vBufferPtr - to_do, to_do);
-                dst                += to_do;
-                count              -= to_do;
+//                        lsp_trace("Buffer shift");
+                size_t hist_size    = vBufferEnd - vBufferPtr;
+                size_t free_size    = vBufferPtr - vBufferHead;
+                dsp::move(vBufferHead, vBufferPtr, hist_size);
+                dsp::fill_zero(&vBufferHead[hist_size], vBufferPtr - vBufferHead);
+                pTargetPtr         -= free_size;
+                vBufferPtr          = vBufferHead;
             }
+
+            // Copy data to output and update buffer pointers
+            dsp::copy(dst, vBufferPtr, to_do);
+            vBufferPtr         += to_do;
+            src                += to_do;
+            dst                += to_do;
+            count              -= to_do;
         }
     }
 

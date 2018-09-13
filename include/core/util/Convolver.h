@@ -13,8 +13,8 @@
 
 #if 1
 
-#define CONVOLVER_RANK_FFT_SMALL    5                               /* for test purposes                        */
-//#define CONVOLVER_RANK_FFT_SMALL    8                                 /* buffer of 256 samples (128 effective)    */
+//#define CONVOLVER_RANK_FFT_SMALL    5                               /* for test purposes                        */
+#define CONVOLVER_RANK_FFT_SMALL    8                                 /* buffer of 256 samples (128 effective)    */
 //#define CONVOLVER_RANK_FFT_SMALL    4                               /* buffer of 16 samples (8 effective)      */
 #define CONVOLVER_RANK_MIN          (CONVOLVER_RANK_FFT_SMALL+1)    /* buffer of 512 samples (256 effective)    */
 #define CONVOLVER_RANK_MAX          16                              /* buffer of 8192 samples (4096 effective)  */

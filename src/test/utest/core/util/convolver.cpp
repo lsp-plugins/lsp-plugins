@@ -13,7 +13,7 @@
 
 using namespace lsp;
 
-#define CONV_SIZE       0x200
+#define CONV_SIZE       0x2000
 //#define SRC_SIZE        0x100
 #define SRC_SIZE        0x2000
 #define SRC2_SIZE       0x20
@@ -35,7 +35,7 @@ UTEST_BEGIN("core.util", convolver)
             size_t todo = count - i;
             if (todo > step)
                 todo = step;
-            if (i == 744)
+            if (i == 248)
                 printf("debug\n");
             conv.process(&dst[i], &src[i], todo);
             i += todo;
@@ -56,6 +56,8 @@ UTEST_BEGIN("core.util", convolver)
         for (size_t i=0; i<conv.size(); ++i)
             conv[i] = i + 1;
         src.fill_zero();
+//        for (size_t i=0; i<SRC_SIZE; i++)
+//            src[i] = (i + 1) * 0.001f;
         for (size_t i=0, j=0; i<SRC_SIZE; i+=5, ++j)
             src[i] = ((j % 3) == 0) ? 1.0f :
                      ((j % 3) == 1) ? 0.1f : 0.01f;
@@ -89,7 +91,9 @@ UTEST_BEGIN("core.util", convolver)
             dst1.dump("dst1");
             dst2.dump("dst2");
             dst3.dump("dst3");
-            UTEST_FAIL_MSG("Output of convolver is invalid, started at sample=%d", int(dst2.last_diff()));
+            size_t index = dst2.last_diff();
+            UTEST_FAIL_MSG("Output of convolver is invalid, started at sample=%d: %.5f vs %.5f",
+                    int(index), dst2[index], dst3[index]);
         }
 
         c.destroy();
@@ -106,11 +110,16 @@ UTEST_BEGIN("core.util", convolver)
         FloatBuffer dst3(dst1);
         dsp::fill_zero(src.data(SRC2_SIZE), src.size() - SRC2_SIZE);
 
+        for (size_t i=0; i<conv.size(); ++i)
+            conv[i] = i + 1;
+        src.fill_zero();
+        src[10] = 1.0f;
+
         dst1.fill_zero();
         dst2.fill_zero();
         dst3.fill_zero();
 
-        UTEST_ASSERT(c.init(conv, conv.size(), 9, 0));
+        UTEST_ASSERT(c.init(conv, conv.size(), 10, 0));
         ::convolve(dst1, src, conv, conv.size(), SRC2_SIZE);
         dsp::convolve(dst2, src, conv, conv.size(), SRC2_SIZE);
         convolve(c, dst3, src, src.size(), 31);
@@ -128,7 +137,9 @@ UTEST_BEGIN("core.util", convolver)
             dst1.dump("dst1");
             dst2.dump("dst2");
             dst3.dump("dst3");
-            UTEST_FAIL_MSG("Output of convolver is invalid");
+            size_t index = dst2.last_diff();
+            UTEST_FAIL_MSG("Output of convolver is invalid, started at sample=%d: %.5f vs %.5f",
+                    int(index), dst2[index], dst3[index]);
         }
 
         c.destroy();
@@ -136,9 +147,8 @@ UTEST_BEGIN("core.util", convolver)
 
     UTEST_MAIN
     {
-        test_small();
+//        test_small();
         test_large();
-
     }
 UTEST_END;
 
