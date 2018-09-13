@@ -22,7 +22,7 @@ namespace sse3
         float x8, x9, x10, x11, x12, x13, x14, x15;
 
         // Same ad bilinear_tranform_x1 but number of cycles is doubled
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          100f")

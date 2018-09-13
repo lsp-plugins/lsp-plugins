@@ -11,7 +11,7 @@
 #define ATOMIC_XCHG_DEF(type)                           \
     inline type x86_atomic_exchange(type *ptr, type value)  \
     {                                                   \
-        __asm__ __volatile__                            \
+        ARCH_X86_ASM                            \
         (                                               \
             __ASM_EMIT("lock")                          \
             __ASM_EMIT("xchg %0, (%1)")                 \

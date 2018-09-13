@@ -12,7 +12,7 @@ inline uint8_t __lsp_forced_inline    reverse_bits(uint8_t v)
 {
     register size_t tmp;
 
-    __asm__ __volatile__ (
+    ARCH_X86_ASM (
         __ASM_EMIT("movzx %[v], %[tmp]")
         __ASM_EMIT("mov (%[rb], %[tmp]), %[v]")
         : [v] "+r"(v), [tmp] "=&r"(tmp)
@@ -27,7 +27,7 @@ inline uint8_t __lsp_forced_inline    reverse_bits(uint8_t v, size_t count)
 {
     register size_t tmp;
 
-    __asm__ __volatile__ (
+    ARCH_X86_ASM (
         __ASM_EMIT("movzx %[v], %[tmp]")
         __ASM_EMIT("mov (%[rb], %[tmp]), %[v]")
         __ASM_EMIT("shr %%cl, %[v]")
@@ -44,7 +44,7 @@ inline uint16_t __lsp_forced_inline   reverse_bits(uint16_t v)
     #ifdef ARCH_X86_64
     register size_t tmp;
 
-    __asm__ __volatile__ (
+    ARCH_X86_ASM (
         __ASM_EMIT("movzx %%al, %[tmp]")
         __ASM_EMIT("mov (%[rb], %[tmp]), %%al")
         __ASM_EMIT("ror $8, %%ax")
@@ -58,7 +58,7 @@ inline uint16_t __lsp_forced_inline   reverse_bits(uint16_t v)
     #else
     register size_t tmp1, tmp2;
 
-    __asm__ __volatile__ (
+    ARCH_X86_ASM (
         __ASM_EMIT("movzx %%al, %[tmp1]")
         __ASM_EMIT("movzx %%ah, %[tmp2]")
         __ASM_EMIT("mov (%[rb], %[tmp1]), %%ah")
@@ -77,7 +77,7 @@ inline uint16_t __lsp_forced_inline    reverse_bits(uint16_t v, size_t count)
     #ifdef ARCH_X86_64
     register size_t tmp;
 
-    __asm__ __volatile__ (
+    ARCH_X86_ASM (
         __ASM_EMIT("movzx %%al, %[tmp]")
         __ASM_EMIT("mov (%[rb], %[tmp]), %%al")
         __ASM_EMIT("ror $8, %%ax")
@@ -92,7 +92,7 @@ inline uint16_t __lsp_forced_inline    reverse_bits(uint16_t v, size_t count)
     #else
     register size_t tmp1, tmp2;
 
-    __asm__ __volatile__ (
+    ARCH_X86_ASM (
         __ASM_EMIT("movzx %%al, %[tmp1]")
         __ASM_EMIT("movzx %%ah, %[tmp2]")
         __ASM_EMIT("mov (%[rb], %[tmp1]), %%ah")
@@ -111,7 +111,7 @@ inline uint32_t __lsp_forced_inline    reverse_bits(uint32_t v)
 {
     register uint32_t tmp;
 
-    __asm__ __volatile__ (
+    ARCH_X86_ASM (
         __ASM_EMIT("bswap %0")
 
         __ASM_EMIT("mov %0, %1")
@@ -144,7 +144,7 @@ inline uint32_t __lsp_forced_inline    reverse_bits(uint32_t v, size_t count)
 {
     register uint32_t tmp;
 
-    __asm__ __volatile__ (
+    ARCH_X86_ASM (
         __ASM_EMIT("bswap %0")
 
         __ASM_EMIT("mov %0, %1")
@@ -180,7 +180,7 @@ inline uint32_t __lsp_forced_inline    reverse_bits(uint32_t v, size_t count)
     {
         register uint32_t tmp1, tmp2;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("bswap %%eax")
             __ASM_EMIT("bswap %%edx")
@@ -235,7 +235,7 @@ inline uint32_t __lsp_forced_inline    reverse_bits(uint32_t v, size_t count)
 
         if (count < 32)
         {
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
                 __ASM_EMIT("bswap %%eax")
                 __ASM_EMIT("bswap %%edx")
@@ -285,7 +285,7 @@ inline uint32_t __lsp_forced_inline    reverse_bits(uint32_t v, size_t count)
         }
         else
         {
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
                 __ASM_EMIT("bswap %%edx")
 
@@ -324,7 +324,7 @@ inline uint32_t __lsp_forced_inline    reverse_bits(uint32_t v, size_t count)
     {
         register uint64_t tmp;
 
-        __asm__ __volatile__ (
+        ARCH_X86_ASM (
             __ASM_EMIT("bswap %0")
 
             __ASM_EMIT("mov %0, %1")
@@ -361,7 +361,7 @@ inline uint32_t __lsp_forced_inline    reverse_bits(uint32_t v, size_t count)
     {
         register uint64_t tmp;
 
-        __asm__ __volatile__ (
+        ARCH_X86_ASM (
             __ASM_EMIT("bswap %0")
 
             __ASM_EMIT("mov %0, %1")

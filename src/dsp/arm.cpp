@@ -9,12 +9,19 @@
 #include <dsp/dsp.h>
 #include <test/test.h>
 
-#include <sys/auxv.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <dsp/arch/arm/features.h>
+#include <dsp/arch/arm/fpscr.h>
+
+namespace neon_d32
+{
+    extern void dsp_init(const arm::cpu_features_t *f);
+}
 
 namespace arm
 {
@@ -27,15 +34,6 @@ namespace arm
     //    CPU variant     : 0x0
     //    CPU part        : 0xd03
     //    CPU revision    : 4
-    typedef struct cpu_features_t
-    {
-        size_t      implementer;
-        size_t      architecture;
-        size_t      variant;
-        size_t      part;
-        size_t      revision;
-        uint64_t    hwcap;
-    } cpu_features_t;
 
     typedef struct cpu_part_t
     {
@@ -239,6 +237,23 @@ IF_ARCH_ARM(
         return s;
     }
 
+    static dsp::start_t     dsp_start       = NULL;
+    static dsp::finish_t    dsp_finish      = NULL;
+
+    void start(dsp::context_t *ctx)
+    {
+        dsp_start(ctx);
+        uint32_t fpscr          = read_fpscr();
+        ctx->data[ctx->top++]   = fpscr;
+        write_fpscr(fpscr | FPSCR_FZ | FPSCR_DN);
+    }
+
+    void finish(dsp::context_t *ctx)
+    {
+        write_fpscr(ctx->data[--ctx->top]);
+        dsp_finish(ctx);
+    }
+
     dsp::info_t *info()
     {
         cpu_features_t f;
@@ -286,32 +301,21 @@ IF_ARCH_ARM(
         cpu_features_t f;
         detect_cpu_features(&f);
 
+        if (f.hwcap & HWCAP_ARM_VFP)
+        {
+            // Save previous entry points
+            dsp_start                       = dsp::start;
+            dsp_finish                      = dsp::finish;
+
+            // Export routines
+            EXPORT1(start);
+            EXPORT1(finish);
+        }
+
         // Export functions
         EXPORT1(info);
 
-// ARM-specific constants
-//        #define HWCAP_ARM_SWP           1
-//        #define HWCAP_ARM_HALF          2
-//        #define HWCAP_ARM_THUMB         4
-//        #define HWCAP_ARM_26BIT         8
-//        #define HWCAP_ARM_FAST_MULT     16
-//        #define HWCAP_ARM_FPA           32
-//        #define HWCAP_ARM_VFP           64
-//        #define HWCAP_ARM_EDSP          128
-//        #define HWCAP_ARM_JAVA          256
-//        #define HWCAP_ARM_IWMMXT        512
-//        #define HWCAP_ARM_CRUNCH        1024
-//        #define HWCAP_ARM_THUMBEE       2048
-//        #define HWCAP_ARM_NEON          4096
-//        #define HWCAP_ARM_VFPv3         8192
-//        #define HWCAP_ARM_VFPv3D16      16384
-//        #define HWCAP_ARM_TLS           32768
-//        #define HWCAP_ARM_VFPv4         65536
-//        #define HWCAP_ARM_IDIVA         131072
-//        #define HWCAP_ARM_IDIVT         262144
-//        #define HWCAP_ARM_VFPD32        524288
-//        #define HWCAP_ARM_LPAE          1048576
-//        #define HWCAP_ARM_EVTSTRM       2097152
+        neon_d32::dsp_init(&f);
 
     }
 }

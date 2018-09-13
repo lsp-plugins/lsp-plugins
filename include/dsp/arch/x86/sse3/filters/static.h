@@ -19,7 +19,7 @@ namespace sse3
     {
         size_t i;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("test        %[count], %[count]")
@@ -110,7 +110,7 @@ namespace sse3
     {
         size_t i, mask;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("test        %[count], %[count]")
@@ -287,7 +287,7 @@ namespace sse3
         float   MASK_HI[4] __lsp_aligned16;
         size_t mask;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("test        %[count], %[count]")

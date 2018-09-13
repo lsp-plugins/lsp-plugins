@@ -39,7 +39,7 @@ namespace sse
     {
         // Step 1: load vector, take absolute value and limit it by minimum value
         #define LOG_LOAD(mv_v, d)   \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 __ASM_EMIT(mv_v "       (%[v]), %%xmm3")        /* xmm3 = v */ \
                 __ASM_EMIT("andps       %[X_SIGN], %%xmm3")     /* xmm3 = abs(v) */ \
@@ -55,7 +55,7 @@ namespace sse
 
         // Step 2: parse float value
         #define LOG_STEP1       \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 __ASM_EMIT("movdqa      %%xmm3, %%xmm4")        /* xmm4 = v */ \
                 __ASM_EMIT("psrld       $23, %%xmm4")           /* xmm4 = frac(v) */ \
@@ -73,7 +73,7 @@ namespace sse
 
         // Step 3: prepare logarithm approximation calculations
         #define LOG_STEP2   \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 __ASM_EMIT("movaps      %%xmm3, %%xmm5")        /* xmm5 = V */ \
                 __ASM_EMIT("movaps      %%xmm3, %%xmm6")        /* xmm6 = V */ \
@@ -93,7 +93,7 @@ namespace sse
 
         // Step 4: calculate four logarithmic values
         #define LOG_STEP3   \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 __ASM_EMIT("movaps      0x00(%[CC]), %%xmm5")   /* xmm5 = L0 */ \
                 __ASM_EMIT("mulps       %%xmm3, %%xmm5")        /* xmm5 = L0*A */ \
@@ -128,7 +128,7 @@ namespace sse
 
         // Step 5: apply vector and store values
         #define LOG_STORE(mv_x, mv_y, d)   \
-            __asm__ __volatile__ \
+            ARCH_X86_ASM \
             ( \
                 __ASM_EMIT("movaps      %%xmm5, %%xmm3")        /* xmm3 = log(abs(v*zero)), xmm5=log(abs(v*zero)) */ \
                 __ASM_EMIT(mv_x "       (%[x]), %%xmm4")        /* xmm4 = x */ \
@@ -157,7 +157,7 @@ namespace sse
             return;
 
         // Prepare constants
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movaps      %[zero], %%xmm0")
             __ASM_EMIT("movaps      %[norm_x], %%xmm1")
@@ -201,7 +201,7 @@ namespace sse
         if (count == 0)
             return;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movdqa  %[MASK], %%xmm6")   // xmm6 = 00 ff 00 ff
             __ASM_EMIT("movdqa  %%xmm6, %%xmm7")    // xmm7 = 00 ff 00 ff

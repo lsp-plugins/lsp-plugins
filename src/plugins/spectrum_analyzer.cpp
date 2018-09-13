@@ -478,11 +478,11 @@ namespace lsp
                         {
                             // Apply window to the temporary buffer
                             dsp::mul3(pChannels->vSigRe, c->vSigRe, pChannels->vWindow, fft_size);
-                            dsp::packed_real_to_complex(pChannels->vFftReIm, pChannels->vSigRe, fft_size);
+                            dsp::pcomplex_r2c(pChannels->vFftReIm, pChannels->vSigRe, fft_size);
                             // Do FFT
                             dsp::packed_direct_fft(pChannels->vFftReIm, pChannels->vFftReIm, pChannels->nRank);
                             // Get complex argument
-                            dsp::packed_complex_mod(pChannels->vFftReIm, pChannels->vFftReIm, fft_csize);
+                            dsp::pcomplex_mod(pChannels->vFftReIm, pChannels->vFftReIm, fft_csize);
                             // Mix with the previous value
                             dsp::mix2(c->vFftAmp, pChannels->vFftReIm, 1.0 - pChannels->fTau, pChannels->fTau, fft_csize);
                         }

@@ -15,8 +15,8 @@
 // Parameters for SSE
 #define AVX_MULTIPLE                8
 #define AVX_ALIGN                   (AVX_MULTIPLE * sizeof(float))
-#define SFENCE                      __asm__ __volatile__ ( __ASM_EMIT("sfence") )
-#define VZEROUPPER                  __asm__ __volatile__ ( __ASM_EMIT("vzeroupper") )
+#define SFENCE                      ARCH_X86_ASM ( __ASM_EMIT("sfence") )
+#define VZEROUPPER                  ARCH_X86_ASM ( __ASM_EMIT("vzeroupper") )
 #define VMOVNTPS                    "vmovaps"
 
 #define AVX_SVEC8(name, value)      const float name[] __lsp_aligned64      = { value, value, value, value, value, value, value, value }

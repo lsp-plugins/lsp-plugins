@@ -16,7 +16,7 @@ namespace x86
     {
         uint32_t t1, t2;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("test    %[count], %[count]")
@@ -55,7 +55,7 @@ namespace x86
     {
         uint32_t t1, t2, t3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("sub     $4, %[count]")

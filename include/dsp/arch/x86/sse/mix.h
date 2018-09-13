@@ -91,7 +91,7 @@ namespace sse
 
     void mix2(float *dst, const float *src, float k1, float k2, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -217,7 +217,7 @@ namespace sse
 
     void mix_copy2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -368,7 +368,7 @@ namespace sse
 
     void mix_add2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -494,7 +494,7 @@ namespace sse
 
     void mix3(float *dst, const float *src1, const float *src2, float k1, float k2, float k3, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -626,7 +626,7 @@ namespace sse
 
     void mix_copy3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -789,7 +789,7 @@ namespace sse
 
     void mix_add3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -926,7 +926,7 @@ namespace sse
 
     void mix4(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, float k4, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test        %[count], %[count]")
             __ASM_EMIT("jz          2000f")
@@ -1071,7 +1071,7 @@ namespace sse
 
     void mix_copy4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT64("test      %[count], %[count]")
             __ASM_EMIT32("cmpl      $0, %[count]")
@@ -1268,7 +1268,7 @@ namespace sse
 
     void mix_add4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT64("test      %[count], %[count]")
             __ASM_EMIT32("cmpl      $0, %[count]")

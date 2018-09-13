@@ -63,6 +63,8 @@ namespace test
         nAlign          = align;
         nLength         = samples;
         pData           = new uint8_t[alloc];
+        bAligned        = aligned;
+        nLastDiff       = 0;
 
         uint8_t *head   = &pData[sizeof(uint32_t)];
         if (aligned)
@@ -133,7 +135,11 @@ namespace test
         for (size_t i=0; i<nLength; ++i)
         {
             if (!float_equals_relative(a[i], b[i], tolerance))
+            {
+                nLastDiff = i;
+                src.nLastDiff = i;
                 return false;
+            }
         }
         return true;
     }
@@ -148,7 +154,11 @@ namespace test
         for (size_t i=0; i<nLength; ++i)
         {
             if (!float_equals_absolute(a[i], b[i], tolerance))
+            {
+                nLastDiff = i;
+                src.nLastDiff = i;
                 return false;
+            }
         }
         return true;
     }
@@ -167,5 +177,13 @@ namespace test
         for (size_t i=from; (i<nLength) && (count > 0); ++i, --count)
             printf("%.5f ", pBuffer[i]);
         printf("\n");
+    }
+
+    void FloatBuffer::copy(const FloatBuffer &buf)
+    {
+        size_t to_copy = (buf.nLength < nLength) ? buf.nLength : nLength;
+        memcpy(pBuffer, buf.pBuffer, to_copy * sizeof(float));
+        while (to_copy < nLength)
+            pBuffer[to_copy++] = 0.0f;
     }
 }

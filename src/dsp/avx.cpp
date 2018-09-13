@@ -23,6 +23,7 @@
 
 #endif /* ARCH_X86_64_AVX */
 
+#include <dsp/arch/x86/avx/copy.h>
 #include <dsp/arch/x86/avx/complex.h>
 #include <dsp/arch/x86/avx/filters/static.h>
 #include <dsp/arch/x86/avx/filters/dynamic.h>
@@ -52,18 +53,22 @@ namespace avx
         EXPORT2_X64(biquad_process_x8, x64_biquad_process_x8);
         EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8);
 
+        TEST_EXPORT(avx::copy);
+
         // This routine sucks on AMD Bulldozer processor family but is pretty great on Intel
         // Not tested on AMD Processors above Bulldozer family
-        if (f->vendor == CPU_VENDOR_INTEL)
+        if (feature_check(f, FEAT_FAST_AVX))
         {
-            EXPORT2_X64(complex_mul, x64_complex_mul);
-            EXPORT2_X64(packed_complex_mul, x64_packed_complex_mul);
+            EXPORT2_X64(complex_mul3, x64_complex_mul3);
+            EXPORT2_X64(pcomplex_mul3, x64_pcomplex_mul3);
+            EXPORT2_X64(pcomplex_mod, x64_pcomplex_mod);
             EXPORT2_X64(bilinear_transform_x8, x64_bilinear_transform_x8);
         }
         else
         {
-            SUPPORT_X64(x64_complex_mul);
-            SUPPORT_X64(x64_packed_complex_mul);
+            SUPPORT_X64(x64_pcomplex_mod);
+            SUPPORT_X64(x64_complex_mul3);
+            SUPPORT_X64(x64_pcomplex_mul3);
             SUPPORT_X64(x64_bilinear_transform_x8);
         }
 
@@ -73,13 +78,13 @@ namespace avx
 
             if (f->vendor == CPU_VENDOR_INTEL)
             {
-                EXPORT2_X64(complex_mul, x64_complex_mul_fma3);
-                EXPORT2_X64(packed_complex_mul, x64_packed_complex_mul_fma3)
+                EXPORT2_X64(complex_mul3, x64_complex_mul3_fma3);
+                EXPORT2_X64(pcomplex_mul3, x64_pcomplex_mul3_fma3)
             }
             else
             {
-                SUPPORT_X64(x64_complex_mul_fma3);
-                SUPPORT_X64(x64_packed_complex_mul_fma3);
+                SUPPORT_X64(x64_complex_mul3_fma3);
+                SUPPORT_X64(x64_pcomplex_mul3_fma3);
             }
 
 //                dsp::biquad_process_x1          = avx::biquad_process_x1_fma3;

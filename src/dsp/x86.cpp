@@ -14,6 +14,7 @@
 
 #include <dsp/arch/x86/features.h>
 #include <dsp/arch/x86/float.h>
+#include <dsp/arch/x86/copy.h>
 #include <dsp/arch/x86/graphics.h>
 
 #include <dsp/arch/x86/cpuid.h>
@@ -374,7 +375,7 @@ namespace x86
         detect_options(&f);
 
         char *model     = NULL;
-        asprintf(&model, "vendor=%s, family=%d, model=%d", cpu_vendors[f.vendor], int(f.family), int(f.model));
+        asprintf(&model, "vendor=%s, family=0x%x, model=0x%x", cpu_vendors[f.vendor], int(f.family), int(f.model));
         if (model == NULL)
             return NULL;
 
@@ -405,6 +406,30 @@ namespace x86
         return res;
     }
 
+    bool feature_check(const cpu_features_t *f, feature_t ops)
+    {
+        switch (ops)
+        {
+            case FEAT_FAST_MOVS:
+                if (f->vendor == CPU_VENDOR_INTEL)
+                {
+                    if ((f->family == 0x6) && (f->model >= 0x5e))
+                        return true;
+                }
+                break;
+            case FEAT_FAST_AVX:
+                if (f->vendor == CPU_VENDOR_INTEL)
+                {
+                    return true;
+                }
+                break;
+            default:
+                break;
+        }
+
+        return false;
+    }
+
     #define EXPORT2(function, export)           dsp::function = x86::export; TEST_EXPORT(x86::export);
     #define EXPORT1(function)                   EXPORT2(function, function)
 
@@ -425,6 +450,7 @@ namespace x86
         EXPORT1(finish);
         EXPORT1(info);
 
+        EXPORT1(copy);
         EXPORT1(copy_saturated);
         EXPORT1(saturate);
         EXPORT1(rgba32_to_bgra32);

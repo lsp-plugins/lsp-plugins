@@ -20,7 +20,7 @@ namespace sse3
     {
         size_t mask;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("test        %[count], %[count]")

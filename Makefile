@@ -170,7 +170,7 @@ all: compile
 trace: export CFLAGS        += -DLSP_TRACE
 trace: all
 
-test: export CFLAGS         += -DLSP_TESTING
+test: export CFLAGS         += -DLSP_TESTING -DLSP_TRACE
 test: export MAKE_OPTS      += LSP_TESTING=1
 test: all
 

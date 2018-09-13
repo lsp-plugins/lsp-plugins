@@ -1,10 +1,15 @@
-SUBDIRS                 = core dsp metadata plugins ui utils container doc
-MODULES                 = $(SUBDIRS) jack_stub vst_stub
+SUBDIRS                 = core dsp metadata plugins ui utils container
 CONTAINER_DEPS			= $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(UTL_FILES) $(OBJ_PLUGINS)
 
 ifeq ($(LSP_TESTING),1)
 SUBDIRS                += test
 CONTAINER_DEPS         += $(OBJ_TEST_CORE)
+MODULES                 = $(SUBDIRS)
+endif
+
+ifneq ($(LSP_TESTING),1)
+SUBDIRS                += doc
+MODULES                 = $(SUBDIRS) jack_stub vst_stub
 endif
 
 .PHONY: all $(MODULES)

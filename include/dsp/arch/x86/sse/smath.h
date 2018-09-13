@@ -15,7 +15,7 @@ namespace sse
         float res = 1.0f;
         float one;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("cmp     $0, %[deg]")
             __ASM_EMIT("jz      100f")
@@ -68,7 +68,7 @@ namespace sse
         float tres, tx;
         int tdeg;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("cmp     $1, %[deg]")
             __ASM_EMIT("jl      100f")

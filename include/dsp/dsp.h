@@ -26,6 +26,7 @@
 #include <dsp/common/3dmath.h>
 #include <dsp/common/fft.h>
 #include <dsp/common/complex.h>
+#include <dsp/common/pcomplex.h>
 #include <dsp/common/float.h>
 #include <dsp/common/graphics.h>
 #include <dsp/common/search.h>
@@ -35,6 +36,7 @@
 #include <dsp/common/copy.h>
 #include <dsp/common/mix.h>
 #include <dsp/common/misc.h>
+#include <dsp/common/convolution.h>
 
 #undef __DSP_DSP_DEFS
 

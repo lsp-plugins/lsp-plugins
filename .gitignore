@@ -13,9 +13,9 @@
 /Release AVX/*
 /.cproject
 /.project
-/.settings/*
 /Debug/
 /Release/
 /design/
 /Debug AVX/
 /Release AVX/
+*.log

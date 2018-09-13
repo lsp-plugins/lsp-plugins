@@ -16,6 +16,7 @@
 #include <test/ptest.h>
 #include <test/utest.h>
 #include <test/mtest.h>
+#include <metadata/metadata.h>
 #include <data/cvector.h>
 
 enum test_mode_t
@@ -55,6 +56,27 @@ typedef struct task_t
     struct timespec     submitted;
     test::UnitTest     *utest;
 } task_t;
+
+void out_cpu_info(FILE *out)
+{
+    dsp::info_t *info;
+    info = dsp::info();
+    if (info == NULL)
+        return;
+
+    fprintf(out, "--------------------------------------------------------------------------------\n");
+    fprintf(out, "LSP version: %s\n", LSP_MAIN_VERSION);
+    fprintf(out, "--------------------------------------------------------------------------------\n");
+    fprintf(out, "CPU information:\n");
+    fprintf(out, "  Architecture:   %s\n", info->arch);
+    fprintf(out, "  CPU string:     %s\n", info->cpu);
+    fprintf(out, "  CPU model:      %s\n", info->model);
+    fprintf(out, "  Features:       %s\n", info->features);
+    fprintf(out, "--------------------------------------------------------------------------------\n");
+    fprintf(out, "\n");
+    fflush(out);
+    free(info);
+}
 
 bool match_string(const char *p, const char *m)
 {
@@ -182,6 +204,7 @@ int execute_ptest(FILE *out, config_t *cfg, test::PerformanceTest *v)
         fprintf(out, "Statistics of performance test '%s':\n\n", v->full_name());
         v->dump_stats(out);
         fprintf(out, "\n");
+        fflush(out);
     }
 
     v->free_stats();
@@ -271,6 +294,8 @@ int launch_ptest(config_t *cfg)
             fprintf(stderr, "Could not open output file %s\n", cfg->outfile);
             return 4;
         }
+
+        out_cpu_info(fd);
     }
 
     for ( ; v != NULL; v = v->next())
@@ -292,6 +317,10 @@ int launch_ptest(config_t *cfg)
         stats.total     ++;
         if (cfg->fork)
         {
+            fflush(stdout);
+            fflush(stderr);
+            if (fd != NULL)
+                fflush(fd);
             pid_t pid = fork();
             if (pid < 0)
             {
@@ -387,6 +416,8 @@ int launch_mtest(config_t *cfg)
         stats.total     ++;
         if (cfg->fork)
         {
+            fflush(stdout);
+            fflush(stderr);
             pid_t pid = fork();
             if (pid < 0)
             {
@@ -542,6 +573,8 @@ int submit_utest(config_t *cfg, task_t *threads, stats_t *stats, test::UnitTest 
         // Is there a placeholder?
         if (t != NULL)
         {
+            fflush(stdout);
+            fflush(stderr);
             pid_t pid = fork();
             if (pid < 0)
             {
@@ -751,20 +784,8 @@ int main(int argc, const char **argv)
 
     // Nested process code: initialize DSP
     dsp::context_t ctx;
-    dsp::info_t *info;
-
     dsp::init();
-    info = dsp::info();
-    if (info != NULL)
-    {
-        printf("--------------------------------------------------------------------------------\n");
-        printf("CPU information:\n");
-        printf("  Architecture:   %s\n", info->arch);
-        printf("  CPU string:     %s\n", info->cpu);
-        printf("  CPU model:      %s\n", info->model);
-        printf("  Features:       %s\n", info->features);
-        free(info);
-    }
+    out_cpu_info(stdout);
 
     dsp::start(&ctx);
 

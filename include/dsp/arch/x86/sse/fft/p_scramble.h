@@ -22,7 +22,7 @@ static inline void FFT_SCRAMBLE_SELF_DIRECT_NAME(float *dst, const float *src, s
             continue;
 
         /* Copy the values from the reversed position */
-        __asm__ __volatile
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movlps (%[dst], %[i], 8), %%xmm0")
             __ASM_EMIT("movlps (%[dst], %[j], 8), %%xmm1")
@@ -39,7 +39,7 @@ static inline void FFT_SCRAMBLE_SELF_DIRECT_NAME(float *dst, const float *src, s
     items = 1 << (rank - 3);
 
     // Perform 4-element butterflies
-    __asm__ __volatile__
+    ARCH_X86_ASM
     (
         /* Loop */
         __ASM_EMIT(".align 16")
@@ -123,7 +123,7 @@ static inline void FFT_SCRAMBLE_SELF_REVERSE_NAME(float *dst, const float *src, 
             continue;
 
         /* Copy the values from the reversed position */
-        __asm__ __volatile
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movlps (%[dst], %[i], 8), %%xmm0")
             __ASM_EMIT("movlps (%[dst], %[j], 8), %%xmm1")
@@ -140,7 +140,7 @@ static inline void FFT_SCRAMBLE_SELF_REVERSE_NAME(float *dst, const float *src, 
     items = 1 << (rank - 3);
 
     // Perform 4-element butterflies
-    __asm__ __volatile__
+    ARCH_X86_ASM
     (
         /* Loop */
         __ASM_EMIT(".align 16")
@@ -218,7 +218,7 @@ static inline void FFT_SCRAMBLE_COPY_DIRECT_NAME(float *dst, const float *src, s
         size_t index    = reverse_bits(FFT_TYPE(i), rank);
 
         // Perform 4-element butterflies
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
 #if 1
             /* Load data to registers */
@@ -348,7 +348,7 @@ static inline void FFT_SCRAMBLE_COPY_REVERSE_NAME(float *dst, const float *src, 
         size_t index    = reverse_bits(FFT_TYPE(i), rank);
 
         // Perform 4-element butterflies
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
 #if 1
             /* Load data to registers */

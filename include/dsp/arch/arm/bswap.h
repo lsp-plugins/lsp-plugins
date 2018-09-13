@@ -10,7 +10,7 @@
 
 inline uint16_t __lsp_forced_inline    byte_swap(uint16_t v)
 {
-    __asm__ __volatile__ (
+    ARCH_ARM_ASM (
         __ASM_EMIT("rev16   %[v], %[v]")
         : [v] "+r"(v)
         : :
@@ -20,7 +20,7 @@ inline uint16_t __lsp_forced_inline    byte_swap(uint16_t v)
 
 inline uint32_t __lsp_forced_inline    byte_swap(uint32_t v)
 {
-    __asm__ __volatile__ (
+    ARCH_ARM_ASM (
         __ASM_EMIT("rev     %[v], %[v]")
         : [v] "+r"(v)
         : :
@@ -30,7 +30,7 @@ inline uint32_t __lsp_forced_inline    byte_swap(uint32_t v)
 
 inline float __lsp_forced_inline    byte_swap(float v)
 {
-    __asm__ __volatile__ (
+    ARCH_ARM_ASM (
         __ASM_EMIT("rev         %[v], %[v]")
         : [v] "+r"(v)
         : :
@@ -42,7 +42,7 @@ inline uint64_t __lsp_forced_inline    byte_swap(uint64_t v)
 {
     uint32_t lo = uint32_t(v);
     uint32_t hi = uint32_t(v >> 32);
-    __asm__ __volatile__ (
+    ARCH_ARM_ASM (
         __ASM_EMIT("rev     %[lo], %[lo]")
         __ASM_EMIT("rev     %[hi], %[hi]")
         : [lo] "+r"(lo), [hi] "+r"(hi)
@@ -62,7 +62,7 @@ inline double __lsp_forced_inline    byte_swap(double v)
     #pragma pack(pop)
 
     x.d = v;
-    __asm__ __volatile__ (
+    ARCH_ARM_ASM (
         __ASM_EMIT("rev     %[lo], %[lo]")
         __ASM_EMIT("rev     %[hi], %[hi]")
         : [lo] "+r"(x.w.lo), [hi] "+r"(x.w.hi)
@@ -74,7 +74,7 @@ inline double __lsp_forced_inline    byte_swap(double v)
 inline void __lsp_forced_inline    byte_swap(uint16_t *v, size_t n)
 {
     uint16_t tmp;
-    __asm__ __volatile__ (
+    ARCH_ARM_ASM (
         __ASM_EMIT("subs        %[n], #2")
         __ASM_EMIT("blo         2f")
 
@@ -101,7 +101,7 @@ inline void __lsp_forced_inline    byte_swap(uint16_t *v, size_t n)
 inline void __lsp_forced_inline    byte_swap(int16_t *v, size_t n)
 {
     uint16_t tmp;
-    __asm__ __volatile__ (
+    ARCH_ARM_ASM (
         __ASM_EMIT("subs        %[n], #2")
         __ASM_EMIT("blo         2f")
 
@@ -128,7 +128,7 @@ inline void __lsp_forced_inline    byte_swap(int16_t *v, size_t n)
 inline void __lsp_forced_inline    byte_swap(uint32_t *v, size_t n)
 {
     uint32_t tmp;
-    __asm__ __volatile__ (
+    ARCH_ARM_ASM (
         __ASM_EMIT("cmp         %[n], #0")
         __ASM_EMIT("bls         2f")
 
@@ -148,7 +148,7 @@ inline void __lsp_forced_inline    byte_swap(uint32_t *v, size_t n)
 inline void __lsp_forced_inline    byte_swap(int32_t *v, size_t n)
 {
     uint32_t tmp;
-    __asm__ __volatile__ (
+    ARCH_ARM_ASM (
         __ASM_EMIT("cmp         %[n], #0")
         __ASM_EMIT("bls         2f")
 
@@ -168,7 +168,7 @@ inline void __lsp_forced_inline    byte_swap(int32_t *v, size_t n)
 inline void __lsp_forced_inline    byte_swap(float *v, size_t n)
 {
     uint32_t tmp;
-    __asm__ __volatile__ (
+    ARCH_ARM_ASM (
         __ASM_EMIT("cmp         %[n], #0")
         __ASM_EMIT("bls         2f")
 
@@ -188,7 +188,7 @@ inline void __lsp_forced_inline    byte_swap(float *v, size_t n)
 inline void __lsp_forced_inline    byte_swap(uint64_t *v, size_t n)
 {
     uint32_t tmp1, tmp2;
-    __asm__ __volatile__ (
+    ARCH_ARM_ASM (
         __ASM_EMIT("cmp         %[n], #0")
         __ASM_EMIT("bls         2f")
 
@@ -211,7 +211,7 @@ inline void __lsp_forced_inline    byte_swap(uint64_t *v, size_t n)
 inline void __lsp_forced_inline    byte_swap(int64_t *v, size_t n)
 {
     uint32_t tmp1, tmp2;
-    __asm__ __volatile__ (
+    ARCH_ARM_ASM (
         __ASM_EMIT("cmp         %[n], #0")
         __ASM_EMIT("bls         2f")
 
@@ -234,7 +234,7 @@ inline void __lsp_forced_inline    byte_swap(int64_t *v, size_t n)
 inline void __lsp_forced_inline    byte_swap(double *v, size_t n)
 {
     uint32_t tmp1, tmp2;
-    __asm__ __volatile__ (
+    ARCH_ARM_ASM (
         __ASM_EMIT("cmp         %[n], #0")
         __ASM_EMIT("bls         2f")
 

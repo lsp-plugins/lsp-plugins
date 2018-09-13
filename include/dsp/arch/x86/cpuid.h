@@ -8,7 +8,7 @@
 #ifndef DSP_ARCH_X86_CPUID_H_
 #define DSP_ARCH_X86_CPUID_H_
 
-#include <core/types.h>
+#include <dsp/types.h>
 
 //-------------------------------------------------------------------------
 // CPUID Function 0
@@ -116,7 +116,7 @@ namespace x86
         inline bool cpuid_supported()
         {
             bool result;
-            __asm__ __volatile__
+            ARCH_X86_ASM
             (
                 __ASM_EMIT("pushfl")
                 __ASM_EMIT("pop         %%eax")
@@ -144,7 +144,7 @@ namespace x86
 
     inline bool cpuid(cpuid_info_t *info, uint32_t leaf, uint32_t subleaf)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT32("push      %%ebx")
             __ASM_EMIT("cpuid")

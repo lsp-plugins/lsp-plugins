@@ -17,7 +17,7 @@ namespace sse
     #define SSE_MINMAX_CORE(op)    \
         float result; \
         \
-        __asm__ __volatile__ \
+        ARCH_X86_ASM \
         ( \
             /* Prepare */ \
             __ASM_EMIT("xorps       %%xmm0, %%xmm0") \
@@ -132,7 +132,7 @@ namespace sse
 
     void minmax(const float *src, size_t count, float *min, float *max)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("xorps       %%xmm0, %%xmm0")
             __ASM_EMIT("xorps       %%xmm2, %%xmm2")
@@ -236,7 +236,7 @@ namespace sse
     #define SSE_MINMAX_ABS_CORE(op)    \
         float result; \
         \
-        __asm__ __volatile__ \
+        ARCH_X86_ASM \
         ( \
             /* Prepare */ \
             __ASM_EMIT("test        %[count], %[count]") \
@@ -346,7 +346,7 @@ namespace sse
 
     void abs_minmax(const float *src, size_t count, float *min, float *max)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("xorps       %%xmm0, %%xmm0")
             __ASM_EMIT("xorps       %%xmm1, %%xmm1")

@@ -17,7 +17,7 @@ namespace avx
     void x64_bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count)
     {
     #ifdef ARCH_X86_64_AVX
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("test            %[count], %[count]")
             __ASM_EMIT("jz              100f")

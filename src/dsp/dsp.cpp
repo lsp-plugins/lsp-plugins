@@ -149,20 +149,30 @@ namespace dsp
     void    (* center_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
     void    (* combine_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
     void    (* packed_combine_fft)(float *dst, const float *src, size_t rank) = NULL;
-    void    (* complex_mul)(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count) = NULL;
+
+    // Complex-number operations
+    void    (* complex_mul3)(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count) = NULL;
+    void    (* complex_mul2)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count) = NULL;
+    void    (* complex_div2)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count) = NULL;
+    void    (* complex_rdiv2)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count) = NULL;
+    void    (* complex_div3)(float *dst_re, float *dst_im, const float *t_re, const float *t_im, const float *b_re, const float *b_im, size_t count) = NULL;
+    void    (* pcomplex_div2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_rdiv2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_div3)(float *dst, const float *t, const float *b, size_t count) = NULL;
     void    (* complex_rcp1)(float *dst_re, float *dst_im, size_t count) = NULL;
     void    (* complex_rcp2)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t count) = NULL;
-    void    (* packed_complex_mul)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
-    void    (* packed_complex_rcp1)(float *dst, size_t count) = NULL;
-    void    (* packed_complex_rcp2)(float *dst, const float *src, size_t count) = NULL;
-    void    (* packed_complex_fill)(float *dst, float re, float im, size_t count) = NULL;
-    void    (* packed_real_to_complex)(float *dst, const float *src, size_t count) = NULL;
-    void    (* packed_complex_to_real)(float *dst, const float *src, size_t count) = NULL;
-    void    (* packed_complex_add_to_real)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_mul3)(float *dst, const float *src1, const float *src2, size_t count) = NULL;
+    void    (* pcomplex_mul2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_rcp1)(float *dst, size_t count) = NULL;
+    void    (* pcomplex_rcp2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_fill_ri)(float *dst, float re, float im, size_t count) = NULL;
+    void    (* pcomplex_r2c)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_c2r)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_add_r)(float *dst, const float *src, size_t count) = NULL;
     void    (* complex_cvt2modarg)(float *dst_mod, float *dst_arg, const float *src_re, const float *src_im, size_t count) = NULL;
     void    (* complex_cvt2reim)(float *dst_re, float *dst_im, const float *src_mod, const float *src_arg, size_t count) = NULL;
     void    (* complex_mod)(float *dst_mod, const float *src_re, const float *src_im, size_t count) = NULL;
-    void    (* packed_complex_mod)(float *dst_mod, const float *src, size_t count) = NULL;
+    void    (* pcomplex_mod)(float *dst_mod, const float *src, size_t count) = NULL;
 
     void    (* fastconv_parse)(float *dst, const float *src, size_t rank) = NULL;
     void    (* fastconv_parse_apply)(float *dst, float *tmp, const float *c, const float *src, size_t rank) = NULL;
@@ -333,6 +343,8 @@ namespace dsp
     void    (* calc_tetra3d_pv3)(tetra3d_t *t, const point3d_t *p, const vector3d_t *v1, const vector3d_t *v2, const vector3d_t *v3) = NULL;
     void    (* calc_tetra3d_pvv)(tetra3d_t *t, const point3d_t *p, const vector3d_t *v) = NULL;
     float   (* find_tetra3d_intersections)(ray3d_t *r, const tetra3d_t *t, const triangle3d_t *tr) = NULL;
+
+    void    (* convolve)(float *dst, const float *src, const float *conv, size_t length, size_t count) = NULL;
 }
 
 namespace dsp

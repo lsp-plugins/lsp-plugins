@@ -274,7 +274,7 @@ namespace sse
 
     void init_point_xyz(point3d_t *p, float x, float y, float z)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT64("andps     %[mask], %[x0]")        // xmm0 = x 0 0 0
             __ASM_EMIT64("andps     %[mask], %[x2]")        // xmm2 = z 0 0 0
@@ -295,7 +295,7 @@ namespace sse
     {
         float x0;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[s]), %[x0]")
             __ASM_EMIT("movups      %[x0], (%[p])")
@@ -309,7 +309,7 @@ namespace sse
     {
         float x0, x1, x2;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[p]), %[x0]")         // xmm0 = x y z w
             NORMALIZE("[x0]", "[x1]", "[x2]")
@@ -329,7 +329,7 @@ namespace sse
     {
         float x0, x1, x2;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[p]), %[x0]")         // xmm0 = x y z w
             SCALE("[x0]", "[x3]", "[x1]", "[x2]")
@@ -349,7 +349,7 @@ namespace sse
     {
         float x0, x1, x2;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[s]), %[x0]")         // xmm0 = x y z w
             SCALE("[x0]", "[x3]", "[x1]", "[x2]")
@@ -367,7 +367,7 @@ namespace sse
 
     void init_vector_dxyz(vector3d_t *p, float dx, float dy, float dz)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT64("andps     %[mask], %[x0]")        // xmm0 = dx 0 0 0
             __ASM_EMIT64("andps     %[mask], %[x2]")        // xmm2 = dz 0 0 0
@@ -387,7 +387,7 @@ namespace sse
     {
         float x0;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[s]), %[x0]")
             __ASM_EMIT("movups      %[x0], (%[p])")
@@ -401,7 +401,7 @@ namespace sse
     {
         float x0, x1, x2;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[v]), %[x0]")     // xmm0 = dx dy dz dw
             NORMALIZE("[x0]", "[x1]", "[x2]")
@@ -417,7 +417,7 @@ namespace sse
     {
         float x0, x1, x2;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[v]), %[x0]")     // xmm0 = dx dy dz dw
             SCALE("[x0]", "[x3]", "[x1]", "[x2]")
@@ -435,7 +435,7 @@ namespace sse
     {
         float x0, x1, x2;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[s]), %[x0]")     // xmm0 = dx dy dz dw
             SCALE("[x0]", "[x3]", "[x1]", "[x2]")
@@ -456,7 +456,7 @@ namespace sse
     {
         float x7;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // xmm0 = x0 ? ? ?
             // xmm1 = y0 ? ? ?
@@ -491,7 +491,7 @@ namespace sse
     {
         float x7;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // xmm0 = x0 ? ? ?
             // xmm1 = y0 ? ? ?
@@ -522,7 +522,7 @@ namespace sse
     {
         float x0, x1;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[p]), %[x0]")
             __ASM_EMIT("movups      (%[v]), %[x1]")
@@ -540,7 +540,7 @@ namespace sse
     {
         float x0, x1;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      0x00(%[p1]), %[x0]")    // xmm0 = x0 y0 z0 w0
             __ASM_EMIT("movups      0x00(%[p2]), %[x1]")    // xmm1 = x1 y1 z1 w1
@@ -562,7 +562,7 @@ namespace sse
     {
         float x0, x1;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      0x00(%[p]), %[x0]")     // xmm0 = x0 y0 z0 w0
             __ASM_EMIT("movups      0x10(%[p]), %[x1]")     // xmm1 = x1 y1 z1 w1
@@ -583,7 +583,7 @@ namespace sse
     {
         float x0, x1;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      0x00(%[r]), %[x0]")
             __ASM_EMIT("movups      0x10(%[r]), %[x1]")
@@ -603,7 +603,7 @@ namespace sse
     {
         float x7;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // xmm0 = x0 ? ? ?
             // xmm1 = y0 ? ? ?
@@ -639,7 +639,7 @@ namespace sse
     {
         float x7;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // xmm0 = x0 ? ? ?
             // xmm1 = y0 ? ? ?
@@ -671,7 +671,7 @@ namespace sse
     {
         float x0, x1, x2, x3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[p]), %[x0]")
             __ASM_EMIT("movups      (%[v]), %[x1]")
@@ -690,7 +690,7 @@ namespace sse
     {
         float x0, x1, x2, x3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      0x00(%[p1]), %[x0]")    // xmm0 = x0 y0 z0 w0
             __ASM_EMIT("movups      0x00(%[p2]), %[x1]")    // xmm1 = x1 y1 z1 w1
@@ -713,7 +713,7 @@ namespace sse
     {
         float x0, x1, x2, x3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      0x00(%[p]), %[x0]")     // xmm0 = x0 y0 z0 w0
             __ASM_EMIT("movups      0x10(%[p]), %[x1]")     // xmm1 = x1 y1 z1 w1
@@ -735,7 +735,7 @@ namespace sse
     {
         float x0, x1, x2, x3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      0x00(%[r]), %[x0]")
             __ASM_EMIT("movups      0x10(%[r]), %[x1]")
@@ -756,7 +756,7 @@ namespace sse
     {
         float x7;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // xmm0 = x0 ? ? ?
             // xmm1 = y0 ? ? ?
@@ -787,7 +787,7 @@ namespace sse
     {
         float x0, x1;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      0x00(%[p1]), %[x0]")    // xmm0 = x0 y0 z0 w0
             __ASM_EMIT("movups      0x00(%[p2]), %[x1]")    // xmm1 = x1 y1 z1 w1
@@ -806,7 +806,7 @@ namespace sse
     {
         float x0, x1;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      0x00(%[p]), %[x0]")     // xmm0 = x0 y0 z0 w0
             __ASM_EMIT("movups      0x10(%[p]), %[x1]")     // xmm1 = x1 y1 z1 w1
@@ -823,7 +823,7 @@ namespace sse
 
     void init_matrix3d(matrix3d_t *dst, const matrix3d_t *src)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             MATRIX_LOAD("s", "%xmm0", "%xmm1", "%xmm2", "%xmm3")
             MATRIX_STORE("d", "%xmm0", "%xmm1", "%xmm2", "%xmm3")
@@ -836,7 +836,7 @@ namespace sse
 
     void init_matrix3d_zero(matrix3d_t *m)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("xorps       %%xmm0, %%xmm0")
             __ASM_EMIT("xorps       %%xmm1, %%xmm1")
@@ -850,7 +850,7 @@ namespace sse
 
     void init_matrix3d_one(matrix3d_t *m)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movaps      %[one], %%xmm0")
             __ASM_EMIT("movaps      %%xmm0, %%xmm1")
@@ -864,7 +864,7 @@ namespace sse
 
     void init_matrix3d_identity(matrix3d_t *m)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movaps      %[idm0], %%xmm0")
             __ASM_EMIT("movaps      %[idm1], %%xmm1")
@@ -886,7 +886,7 @@ namespace sse
     {
         float x3, x4, x5;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movaps      %[idm0], %[x3]")        // xmm3 = 1 0 0 0
             __ASM_EMIT("movaps      %[idm1], %[x4]")        // xmm4 = 0 1 0 0
@@ -912,7 +912,7 @@ namespace sse
     {
         float x3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("andps     %[mask], %[x0]")          // xmm0 = sx 0 0 0
             __ASM_EMIT("andps     %[mask], %[x1]")          // xmm1 = sy 0 0 0
@@ -939,7 +939,7 @@ namespace sse
         float c     = cosf(angle);
         float x2, x3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movss       %[s], %[x0]")           // xmm0 = s 0 0 0
             __ASM_EMIT("movss       %[c], %[x1]")           // xmm1 = c 0 0 0
@@ -968,7 +968,7 @@ namespace sse
         float c     = cosf(angle);
         float x2, x3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movss       %[s], %[x0]")          // xmm0 = s 0 0 0
             __ASM_EMIT("movss       %[c], %[x1]")          // xmm1 = c 0 0 0
@@ -997,7 +997,7 @@ namespace sse
         float c     = cosf(angle);
         float x2, x3, x4;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movss       %[s], %[x0]")          // xmm0 = s 0 0 0
             __ASM_EMIT("movss       %[c], %[x1]")          // xmm1 = c 0 0 0
@@ -1096,7 +1096,7 @@ namespace sse
 
     void apply_matrix3d_mv2(vector3d_t *r, const vector3d_t *v, const matrix3d_t *m)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[v]), %%xmm0")        // xmm0 = vx vy vz vw
             __ASM_EMIT("movups      0x00(%[m]), %%xmm4")    // xmm4 = m0  m1  m2  m3
@@ -1132,7 +1132,7 @@ namespace sse
 
     void apply_matrix3d_mv1(vector3d_t *r, const matrix3d_t *m)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[r]), %%xmm0")        // xmm0 = vx vy vz vw
             __ASM_EMIT("movups      0x00(%[m]), %%xmm4")    // xmm4 = m0  m1  m2  m3
@@ -1168,7 +1168,7 @@ namespace sse
 
     void apply_matrix3d_mp2(point3d_t *r, const point3d_t *p, const matrix3d_t *m)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[p]), %%xmm0")        // xmm0 = px py pz pw
             __ASM_EMIT("movups      0x00(%[m]), %%xmm4")    // xmm4 = m0  m1  m2  m3
@@ -1206,7 +1206,7 @@ namespace sse
 
     void apply_matrix3d_mp1(point3d_t *r, const matrix3d_t *m)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[r]), %%xmm0")        // xmm0 = px py pz pw
             __ASM_EMIT("movups      0x00(%[m]), %%xmm4")    // xmm4 = m0  m1  m2  m3
@@ -1260,7 +1260,7 @@ namespace sse
 
     void apply_matrix3d_mm2(matrix3d_t *r, const matrix3d_t *s, const matrix3d_t *m)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             MATRIX_LOAD("A", "%xmm0", "%xmm1", "%xmm2", "%xmm3")
 
@@ -1293,7 +1293,7 @@ namespace sse
     {
         matrix3d_t __lsp_aligned16 t;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             MATRIX_LOAD("A", "%xmm0", "%xmm1", "%xmm2", "%xmm3")
 
@@ -1331,7 +1331,7 @@ namespace sse
 
     void transpose_matrix3d1(matrix3d_t *r)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             MATRIX_LOAD("m", "%xmm0", "%xmm1", "%xmm2", "%xmm3")
             MAT4_TRANSPOSE("%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4")
@@ -1345,7 +1345,7 @@ namespace sse
 
     void transpose_matrix3d2(matrix3d_t *r, const matrix3d_t *m)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             MATRIX_LOAD("m", "%xmm0", "%xmm1", "%xmm2", "%xmm3")
             MAT4_TRANSPOSE("%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4")
@@ -1361,7 +1361,7 @@ namespace sse
     {
         float x0, x1, x2, x3, x4;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[p2]), %[x1]")        // xmm1 = px2 py2 pz2 pw2
             __ASM_EMIT("movups      (%[p3]), %[x2]")        // xmm2 = px3 py3 pz3 pw3
@@ -1383,7 +1383,7 @@ namespace sse
     {
         float x0, x1, x2, x3, x4;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      0x10(%[pv]), %[x1]")    // xmm1 = px2 py2 pz2 pw2
             __ASM_EMIT("movups      0x20(%[pv]), %[x2]")    // xmm2 = px3 py3 pz3 pw3
@@ -1405,7 +1405,7 @@ namespace sse
     {
         float x0, x1, x2, x3, x4;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[v1]), %[x1]")       // xmm1 = x1 y1 z1 w1
             __ASM_EMIT("movups      (%[v2]), %[x2]")       // xmm2 = x2 y2 z2 w2
@@ -1424,7 +1424,7 @@ namespace sse
     {
         float x0, x1, x2, x3, x4;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      0x00(%[v]), %[x1]")    // xmm1 = x1 y1 z1 w1
             __ASM_EMIT("movups      0x10(%[v]), %[x2]")    // xmm2 = x2 y2 z2 w2
@@ -1443,7 +1443,7 @@ namespace sse
     {
         float x0, x1, x2, x3, x4;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      0x00(%[v]), %[x1]")    // xmm1 = x1 y1 z1 w1
             __ASM_EMIT("movups      0x10(%[v]), %[x2]")    // xmm2 = x2 y2 z2 w2
@@ -1462,7 +1462,7 @@ namespace sse
     {
         float x0, x1, x2, x3, x4;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      0x10(%[t]), %[x1]")     // xmm1 = px2 py2 pz2 pw2
             __ASM_EMIT("movups      0x20(%[t]), %[x2]")     // xmm2 = px3 py3 pz3 pw3
@@ -1484,7 +1484,7 @@ namespace sse
     {
         float x0, x1, x2, x3, x4;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      0x10(%[t]), %[x1]")     // xmm1 = px2 py2 pz2 pw2
             __ASM_EMIT("movups      0x20(%[t]), %[x2]")     // xmm2 = px3 py3 pz3 pw3
@@ -1506,7 +1506,7 @@ namespace sse
     {
         float x0, x1, x2, x3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Calc vectors
             __ASM_EMIT("movups      (%[p1]), %[x0]")        // xmm0 = x1 y1 z1 w1
@@ -1545,7 +1545,7 @@ namespace sse
     {
         float x0, x1, x2, x3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Calc vectors
             __ASM_EMIT("movups      0x00(%[pv]), %[x0]")    // xmm0 = x1 y1 z1 w1
@@ -1585,7 +1585,7 @@ namespace sse
         size_t res;
         float x0, x1, x2, x3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Calc vectors
             __ASM_EMIT("movups      (%[p1]), %[x2]")        // xmm2 = x0 y0 z0 w0
@@ -1633,7 +1633,7 @@ namespace sse
         size_t res;
         float x0, x1, x2, x3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Calc vectors
             __ASM_EMIT("movups      0x00(%[p]), %[x2]")     // xmm2 = x0 y0 z0 w0
@@ -1680,7 +1680,7 @@ namespace sse
     {
         float x0, x1, x2, x3, x4, x5, x6, x7;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Load vectors */
             __ASM_EMIT("movups      (%[p]), %[x3]")         /* xmm3 = px py pz pw */
@@ -1788,7 +1788,7 @@ namespace sse
     {
         float x0, x1, x2, x3, x4, x5, x6, x7;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Load vectors */
             __ASM_EMIT("movups      (%[p]), %[x3]")         /* xmm3 = px py pz pw */
@@ -1847,7 +1847,7 @@ namespace sse
     {
         float x0, x1, x2, x3, x4, x5, x6, x7;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Load vectors */
             __ASM_EMIT("movups      (%[p]), %[x3]")         /* xmm3 = px py pz pw */
@@ -2035,7 +2035,7 @@ namespace sse
         float x0, x1, x2, x3, x4, x5, x6, x7;
         size_t tmp1;//, tmp2, tmp3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             //---------------------------------------------------
             // PART 0: perform simple culling
@@ -2362,7 +2362,7 @@ namespace sse
         const triangle3d_t **tp     = const_cast<const triangle3d_t **>(ix->t);
         size_t n                    = ix->n;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("mov         (%[m]), %[p1]")
             __ASM_EMIT("mov         (%[t]), %[p2]")
@@ -2415,7 +2415,7 @@ namespace sse
 
         float x0, x1, x2, x3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Calculate the tangent and normal vectors
             __ASM_EMIT("movups      0x10(%[rt]), %%xmm4")       // xmm4 = dx1 dy1 dz1 dw1
@@ -2456,7 +2456,7 @@ namespace sse
 
         x1      = expf(m.damping * x0);
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movss       0x20(%[rt]), %[x2]")        // xmm2 = amplitude
             __ASM_EMIT("mulss       0x08(%[m]), %[x1]")         // xmm1 = absorption * exp
@@ -2479,7 +2479,7 @@ namespace sse
         );
 
         n = sizeof(intersection3d_t)/sizeof(size_t);
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("mov         %[ix], %[src]")
             __ASM_EMIT("lea         0x30(%[dst]), %[dst]")
@@ -2491,7 +2491,7 @@ namespace sse
         );
 
         n = sizeof(intersection3d_t)/sizeof(size_t);
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("lea         0x30(%[dst]), %[dst]")
             __ASM_EMIT32("rep;      movsd")
@@ -2506,7 +2506,7 @@ namespace sse
     {
         float x0, x1, x2, x3, x4;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Load vectors */
             __ASM_EMIT("movups      (%[v1]), %[x0]")        /* xmm0 = dx0 dy0 dz0 dw0 */
@@ -2527,7 +2527,7 @@ namespace sse
     {
         float x0, x1, x2, x3, x4;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             /* Load vectors */
             __ASM_EMIT("movups      0x00(%[v]), %[x0]")      /* xmm0 = dx0 dy0 dz0 dw0 */
@@ -2548,7 +2548,7 @@ namespace sse
     {
         float x0, x1, x2, x3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[v1]), %[x0]")        /* xmm0 = dx1 dy1 dz1 dw1 */
             __ASM_EMIT("movups      (%[v2]), %[x1]")        /* xmm1 = dx2 dy2 dz2 dw2 */
@@ -2567,7 +2567,7 @@ namespace sse
     {
         float x0, x1, x2, x3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      0x00(%[vv]), %[x0]")    /* xmm0 = dx1 dy1 dz1 dw1 */
             __ASM_EMIT("movups      0x10(%[vv]), %[x1]")    /* xmm1 = dx2 dy2 dz2 dw2 */
@@ -2586,7 +2586,7 @@ namespace sse
     {
         float x0, x1, x2, x3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[p1]), %[x2]")        /* xmm0 = x1 y1 z1 w1 */
             __ASM_EMIT("movups      (%[p2]), %[x0]")        /* xmm1 = x2 y2 z2 w2 */
@@ -2608,7 +2608,7 @@ namespace sse
     {
         float x0, x1, x2, x3;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      0x00(%[pv]), %[x2]")    /* xmm0 = x1 y1 z1 w1 */
             __ASM_EMIT("movups      0x10(%[pv]), %[x0]")    /* xmm1 = x2 y2 z2 w2 */
@@ -2630,7 +2630,7 @@ namespace sse
     {
         float x0, x1;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      (%[p1]), %[x0]")        // xmm0 = x0 y0 z0 w0
             __ASM_EMIT("movups      (%[p2]), %[x1]")        // xmm1 = x1 y1 z1 w1
@@ -2653,7 +2653,7 @@ namespace sse
     {
         float x0, x1;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      0x00(%[pv]), %[x0]")    // xmm0 = x0 y0 z0 w0
             __ASM_EMIT("movups      0x10(%[pv]), %[x1]")    // xmm1 = x1 y1 z1 w1
@@ -2678,7 +2678,7 @@ namespace sse
         bool result;
         float x0, x1, x2;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             __ASM_EMIT("movups      0x00(%[r]), %[x0]")     // xmm0 = zx zy zz zw
             __ASM_EMIT("movups      0x10(%[r]), %[x1]")     // xmm1 = rdx rdy rdz rdw

@@ -34,7 +34,7 @@ typedef void (* downsample_t)(float *dst, const float *src, size_t count);
 
 //-----------------------------------------------------------------------------
 // Performance test for lanczos resampling
-PTEST_BEGIN("dsp.resample", downsampling, 5, 1000)
+PTEST_BEGIN("dsp.resampling", downsampling, 5, 1000)
 
     void call(float *out, const float *in, size_t count, size_t times, const char *text, downsample_t func)
     {

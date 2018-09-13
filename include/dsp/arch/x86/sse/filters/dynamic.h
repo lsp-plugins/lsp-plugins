@@ -16,7 +16,7 @@ namespace sse
 {
     void dyn_biquad_process_x1(float *dst, const float *src, float *d, size_t count, const biquad_x1_t *f)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("test        %[count], %[count]")
@@ -64,7 +64,7 @@ namespace sse
 
     void dyn_biquad_process_x2(float *dst, const float *src, float *d, size_t count, const biquad_x2_t *f)
     {
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("test        %[count], %[count]")
@@ -155,7 +155,7 @@ namespace sse
         float   MASK[4] __lsp_aligned16;
         float  *d_s;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("test        %[count], %[count]")
@@ -325,7 +325,7 @@ namespace sse
         float  *d_s, *dst_s;
         size_t  count_s;
 
-        __asm__ __volatile__
+        ARCH_X86_ASM
         (
             // Check count
             __ASM_EMIT("test        %[count], %[count]")

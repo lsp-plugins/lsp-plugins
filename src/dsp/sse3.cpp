@@ -47,6 +47,7 @@ namespace sse3
     #undef DSP_F32VEC4
 }
 
+#include <dsp/arch/x86/sse3/copy.h>
 #include <dsp/arch/x86/sse3/graphics.h>
 #include <dsp/arch/x86/sse3/filters/static.h>
 #include <dsp/arch/x86/sse3/filters/dynamic.h>
@@ -61,6 +62,7 @@ namespace sse3
 
     #define EXPORT2(function, export)               dsp::function = sse3::export; TEST_EXPORT(sse3::export);
     #define EXPORT2_X64(function, export)           IF_ARCH_X86_64(dsp::function = sse3::export; TEST_EXPORT(sse3::export));
+    #define EXPORT1(export)                         EXPORT2(export, export)
 
     void dsp_init(const cpu_features_t *f)
     {
@@ -70,9 +72,17 @@ namespace sse3
         lsp_trace("Optimizing DSP for SSE3 instruction set");
 
         // Additional xmm registers are available only in 64-bit mode
-        EXPORT2(packed_complex_mul, packed_complex_mul);
-        EXPORT2(packed_complex_mod, packed_complex_mod);
-        EXPORT2_X64(packed_complex_mod, x64_packed_complex_mod);
+        EXPORT1(pcomplex_mul3);
+        if (!feature_check(f, FEAT_FAST_MOVS))
+        {
+            EXPORT2(copy, copy);
+        }
+        else
+        {
+            TEST_EXPORT(copy);
+        }
+        EXPORT2(pcomplex_mod, pcomplex_mod);
+        EXPORT2_X64(pcomplex_mod, x64_pcomplex_mod);
 
         EXPORT2_X64(biquad_process_x2, x64_biquad_process_x2);
 //                EXPORT2_X64(biquad_process_x4, x64_biquad_process_x4); // Pure SSE has a bit better throughput for this case
@@ -80,7 +90,7 @@ namespace sse3
         EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8);
         EXPORT2_X64(bilinear_transform_x8, x64_bilinear_transform_x8);
         EXPORT2_X64(axis_apply_log, x64_axis_apply_log);
-        EXPORT2_X64(packed_complex_mul, x64_packed_complex_mul);
+        EXPORT2_X64(pcomplex_mul3, x64_pcomplex_mul3);
     }
 
     #undef EXPORT2

@@ -102,6 +102,8 @@ namespace test
                 char       *n_iterations;   /* Normalized number of iterations */
                 char       *performance;    /* The performance of test [iterations per second] */
                 char       *time_cost;      /* The amount of time spent per iteration [milliseconds per iteration] */
+                char       *rel;            /* The relative speed */
+                double      cost;           /* The overall cost */
             } stats_t;
 
         protected:

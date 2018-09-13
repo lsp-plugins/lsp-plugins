@@ -434,7 +434,7 @@ namespace lsp
 
             case FM_BYPASS:
             default:
-                dsp::packed_complex_fill(c, 1.0f, 0.0f, count);
+                dsp::pcomplex_fill_ri(c, 1.0f, 0.0f, count);
                 return;
         }
     }

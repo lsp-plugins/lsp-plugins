@@ -49,7 +49,7 @@ namespace sse // TODO: make constants common for all architectures
 
 #include <dsp/arch/x86/sse/mxcsr.h>
 #include <dsp/arch/x86/sse/copy.h>
-#include <dsp/arch/x86/sse/lmath.h>
+#include <dsp/arch/x86/sse/pmath.h>
 #include <dsp/arch/x86/sse/hsum.h>
 #include <dsp/arch/x86/sse/mix.h>
 #include <dsp/arch/x86/sse/abs.h>
@@ -64,6 +64,9 @@ namespace sse // TODO: make constants common for all architectures
 #include <dsp/arch/x86/sse/resampling.h>
 
 #include <dsp/arch/x86/sse/complex.h>
+#include <dsp/arch/x86/sse/pcomplex.h>
+
+#include <dsp/arch/x86/sse/convolution.h>
 
 #include <dsp/arch/x86/sse/filters/static.h>
 #include <dsp/arch/x86/sse/filters/dynamic.h>
@@ -81,7 +84,7 @@ namespace sse
     static dsp::start_t     dsp_start       = NULL;
     static dsp::finish_t    dsp_finish      = NULL;
 
-    static void start(dsp::context_t *ctx)
+    void start(dsp::context_t *ctx)
     {
         dsp_start(ctx);
         uint32_t    mxcsr       = read_mxcsr();
@@ -89,7 +92,7 @@ namespace sse
         write_mxcsr(mxcsr | MXCSR_ALL_MASK | MXCSR_FZ | MXCSR_DAZ);
     }
 
-    static void finish(dsp::context_t *ctx)
+    void finish(dsp::context_t *ctx)
     {
         write_mxcsr(ctx->data[--ctx->top]);
         dsp_finish(ctx);
@@ -118,7 +121,16 @@ namespace sse
         EXPORT1(start);
         EXPORT1(finish);
 
-        EXPORT1(copy);
+        if (!feature_check(f, FEAT_FAST_MOVS))
+        {
+            EXPORT1(copy);
+        }
+        else
+        {
+            TEST_EXPORT(copy);
+        }
+        TEST_EXPORT(copy_movntps);
+
         EXPORT1(copy_saturated);
         EXPORT1(saturate);
         EXPORT1(move);
@@ -207,19 +219,30 @@ namespace sse
         EXPORT1(fastconv_apply);
 
         EXPORT1(normalize_fft);
-        EXPORT1(complex_mul);
+
+        EXPORT1(complex_mul2);
+        EXPORT1(complex_mul3);
+        EXPORT1(complex_div2);
+        EXPORT1(complex_rdiv2);
+        EXPORT1(complex_div3);
         EXPORT1(complex_rcp1);
         EXPORT1(complex_rcp2);
-        EXPORT1(packed_complex_mul);
-        EXPORT1(packed_complex_rcp1);
-        EXPORT1(packed_complex_rcp2);
-        EXPORT1(packed_real_to_complex);
-        EXPORT1(packed_complex_to_real);
-        EXPORT1(packed_complex_add_to_real);
+        EXPORT1(complex_mod);
+
+        EXPORT1(pcomplex_mul2);
+        EXPORT1(pcomplex_mul3);
+        EXPORT1(pcomplex_div2);
+        EXPORT1(pcomplex_rdiv2);
+        EXPORT1(pcomplex_div3);
+        EXPORT1(pcomplex_rcp1);
+        EXPORT1(pcomplex_rcp2);
+        EXPORT1(pcomplex_r2c);
+        EXPORT1(pcomplex_c2r);
+        EXPORT1(pcomplex_add_r);
+        EXPORT1(pcomplex_mod);
 //            EXPORT1(complex_cvt2modarg);
 //            EXPORT1(complex_cvt2reim);
-        EXPORT1(complex_mod);
-        EXPORT1(packed_complex_mod);
+
         EXPORT1(lr_to_ms);
         EXPORT1(lr_to_mid);
         EXPORT1(lr_to_side);
@@ -348,6 +371,8 @@ namespace sse
         EXPORT1(move_point3d_pv);
 
         EXPORT1(check_octant3d_rv);
+
+        EXPORT1(convolve);
     }
 
     #undef EXPORT1
