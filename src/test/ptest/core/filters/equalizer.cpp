@@ -16,7 +16,7 @@ using namespace dsp;
 using namespace lsp;
 
 //-----------------------------------------------------------------------------
-// Performance test for complex multiplication
+// Performance test for equalizer module
 PTEST_BEGIN("core.filters", equalizer, 5, 1000)
 
     void call(float *out, const float *in, size_t slope, size_t count)
