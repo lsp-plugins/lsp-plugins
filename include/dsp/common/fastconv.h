@@ -45,10 +45,10 @@ namespace dsp
      */
     extern void (* fastconv_restore)(float *dst, float *src, size_t rank);
 
-    /** Convolve two convolutiona and restore data to real data
+    /** Convolve two convolutions and restore data to real data
      * and add to output buffer
      *
-     * @param dst target real data of 2%rank floats to store convolved data
+     * @param dst target real data of 2^rank floats to apply convolved data
      * @param tmp temporary buffer of 2^(rank+1) floats to store intermediate data
      * @param c1 fast convolution data of 2^(rank+1) floats
      * @param c2 fast convolution data of 2^(rank+1) floats
