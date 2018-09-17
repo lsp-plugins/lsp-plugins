@@ -5,7 +5,7 @@
  *      Author: sadko
  */
 
-#include <dsp/endian.h>
+#include <dsp/dsp.h>
 #include <test/utest.h>
 #include <test/ByteBuffer.h>
 

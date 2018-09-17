@@ -31,6 +31,7 @@ namespace sse // TODO: make constants common for all architectures
     #define DSP_U32REP4(v)              uint32_t(v), uint32_t(v), uint32_t(v), uint32_t(v)
 
     #define DSP_F32ARRAY(name, ...)     static const float name[] __lsp_aligned16          = { __VA_ARGS__ }
+    #define DSP_U32ARRAY(name, ...)     static const uint32_t name[] __lsp_aligned16       = { __VA_ARGS__ }
 
     #include <dsp/common/const/const16.h>
 
@@ -98,7 +99,8 @@ namespace sse
         dsp_finish(ctx);
     }
 
-    #define EXPORT1(function)                   dsp::function = sse::function; TEST_EXPORT(sse::function);
+    #define EXPORT2(function, export)           dsp::function = sse::export; TEST_EXPORT(sse::export);
+    #define EXPORT1(function)                   EXPORT2(function, function);
 
     void dsp_init(const cpu_features_t *f)
     {
