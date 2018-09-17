@@ -29,6 +29,13 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_X86_64(
+    namespace sse3
+    {
+        void x64_rgba32_to_bgra32(void *dst, const void *src, size_t count);
+    }
+)
+
 IF_ARCH_ARM(
     namespace neon_d32
     {
@@ -73,6 +80,7 @@ PTEST_BEGIN("dsp.graphics", rgba, 5, 1000)
             call("native:rgba32_to_bgra32", dst, src, count, native::rgba32_to_bgra32);
             IF_ARCH_X86(call("x86:rgba32_to_bgra32", dst, src, count, x86::rgba32_to_bgra32));
             IF_ARCH_X86(call("sse:rgba32_to_bgra32", dst, src, count, sse::rgba32_to_bgra32));
+            IF_ARCH_X86_64(call("sse3:x64_rgba32_to_bgra32", dst, src, count, sse3::x64_rgba32_to_bgra32));
             IF_ARCH_ARM(call("neon_d32:rgba32_to_bgra32", dst, src, count, neon_d32::rgba32_to_bgra32));
 
             PTEST_SEPARATOR;
