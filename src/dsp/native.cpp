@@ -19,6 +19,7 @@
 #include <dsp/arch/native/complex.h>
 #include <dsp/arch/native/pcomplex.h>
 #include <dsp/arch/native/convolution.h>
+#include <dsp/arch/native/graphics.h>
 
 namespace native
 {
@@ -26,7 +27,6 @@ namespace native
     #include <dsp/arch/native/fft.h>
     #include <dsp/arch/native/search.h>
     #include <dsp/arch/native/fastconv.h>
-    #include <dsp/arch/native/graphics.h>
     #include <dsp/arch/native/resampling.h>
     #include <dsp/arch/native/msmatrix.h>
     #include <dsp/arch/native/smath.h>

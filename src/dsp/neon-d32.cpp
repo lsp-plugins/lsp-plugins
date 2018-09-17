@@ -16,6 +16,7 @@
 #include <dsp/arch/arm/neon-d32/complex.h>
 #include <dsp/arch/arm/neon-d32/pcomplex.h>
 #include <dsp/arch/arm/neon-d32/convolution.h>
+#include <dsp/arch/arm/neon-d32/graphics.h>
 
 #undef DSP_ARCH_ARM_NEON_32_IMPL
 
@@ -52,6 +53,8 @@ namespace neon_d32
         EXPORT1(pcomplex_rcp2);
 
         EXPORT1(convolve);
+
+        EXPORT1(rgba32_to_bgra32);
 
         // Misc for testing
         TEST_EXPORT(neon_d32::complex_mul3_x12);

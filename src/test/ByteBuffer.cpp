@@ -42,7 +42,7 @@ namespace test
     ByteBuffer::ByteBuffer(const ByteBuffer &src)
     {
         allocate(src.nLength, src.nAlign, src.bAligned);
-        memcpy(pBuffer, src.pBuffer, src.nLength * sizeof(float));
+        memcpy(pBuffer, src.pBuffer, src.nLength);
     }
 
     ByteBuffer::ByteBuffer(const void *data, size_t samples, size_t align, bool aligned)
