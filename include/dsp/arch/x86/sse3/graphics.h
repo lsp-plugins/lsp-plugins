@@ -395,12 +395,12 @@ namespace sse3
             __ASM_EMIT("sub         $16, %[count]")
             __ASM_EMIT("jb          2f")
             __ASM_EMIT("1:")
-            __ASM_EMIT("prefetcht0   0x40(%[src], %[off])")
-            __ASM_EMIT("prefetcht0   0x60(%[src], %[off])")
-            __ASM_EMIT("movdqu       0x00(%[src], %[off]), %%xmm0")      // xmm0 = A1 R1 G1 B1
-            __ASM_EMIT("movdqu       0x10(%[src], %[off]), %%xmm1")
-            __ASM_EMIT("movdqu       0x20(%[src], %[off]), %%xmm2")
-            __ASM_EMIT("movdqu       0x30(%[src], %[off]), %%xmm3")
+            __ASM_EMIT("prefetcht0  0x40(%[src], %[off])")
+            __ASM_EMIT("prefetcht0  0x60(%[src], %[off])")
+            __ASM_EMIT("movdqu      0x00(%[src], %[off]), %%xmm0")      // xmm0 = A1 R1 G1 B1
+            __ASM_EMIT("movdqu      0x10(%[src], %[off]), %%xmm1")
+            __ASM_EMIT("movdqu      0x20(%[src], %[off]), %%xmm2")
+            __ASM_EMIT("movdqu      0x30(%[src], %[off]), %%xmm3")
             __ASM_EMIT("movdqa      %%xmm0, %%xmm8")                    // xmm8 = A1 R1 G1 B1
             __ASM_EMIT("movdqa      %%xmm1, %%xmm10")
             __ASM_EMIT("movdqa      %%xmm2, %%xmm12")
@@ -445,8 +445,8 @@ namespace sse3
             __ASM_EMIT("2:")
             __ASM_EMIT("add         $8, %[count]")
             __ASM_EMIT("jl          4f")
-            __ASM_EMIT("movdqu       0x00(%[src], %[off]), %%xmm0")      // xmm0 = A1 R1 G1 B1
-            __ASM_EMIT("movdqu       0x10(%[src], %[off]), %%xmm1")
+            __ASM_EMIT("movdqu      0x00(%[src], %[off]), %%xmm0")      // xmm0 = A1 R1 G1 B1
+            __ASM_EMIT("movdqu      0x10(%[src], %[off]), %%xmm1")
             __ASM_EMIT("movdqa      %%xmm0, %%xmm2")                    // xmm2 = A1 R1 G1 B1
             __ASM_EMIT("movdqa      %%xmm1, %%xmm3")
             __ASM_EMIT("pand        %%xmm7, %%xmm0")                    // xmm0 = 00 R1 00 B1
@@ -472,7 +472,7 @@ namespace sse3
             __ASM_EMIT("4:")
             __ASM_EMIT("add         $4, %[count]")
             __ASM_EMIT("jl          6f")
-            __ASM_EMIT("movdqu       0x00(%[src], %[off]), %%xmm0")      // xmm0 = A1 R1 G1 B1
+            __ASM_EMIT("movdqu      0x00(%[src], %[off]), %%xmm0")      // xmm0 = A1 R1 G1 B1
             __ASM_EMIT("movdqa      %%xmm0, %%xmm2")                    // xmm2 = A1 R1 G1 B1
             __ASM_EMIT("pand        %%xmm7, %%xmm0")                    // xmm0 = 00 R1 00 B1
             __ASM_EMIT("pand        %%xmm6, %%xmm2")                    // xmm2 = A1 00 G1 00
