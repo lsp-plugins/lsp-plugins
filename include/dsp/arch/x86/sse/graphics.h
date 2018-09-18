@@ -41,9 +41,9 @@ namespace sse
         // Prepare constants
         ARCH_X86_ASM
         (
-            __ASM_EMIT("movaps      %[zero], %%xmm0")
-            __ASM_EMIT("movaps      %[norm_x], %%xmm1")
-            __ASM_EMIT("movaps      %[norm_y], %%xmm2")
+            __ASM_EMIT("movss       %[zero], %%xmm0")
+            __ASM_EMIT("movss       %[norm_x], %%xmm1")
+            __ASM_EMIT("movss       %[norm_y], %%xmm2")
 
             __ASM_EMIT("sub         $4, %[count]")
             __ASM_EMIT("jb          2f")
@@ -186,9 +186,9 @@ namespace sse
             __ASM_EMIT("4:")
 
             : [v] "+r" (v), [x] "+r" (x) , [y] "+r" (y),
-              [count] "+r" (count),
-              [zero] "+x" (zero), [norm_x] "+x" (norm_x), [norm_y] "+x" (norm_y)
-            : [ILOG] "o" (LOG_IARGS), [FLOG] "o" (LOG_FARGS)
+              [count] "+r" (count)
+            : [zero] "m" (zero), [norm_x] "m" (norm_x), [norm_y] "m" (norm_y),
+              [ILOG] "o" (LOG_IARGS), [FLOG] "o" (LOG_FARGS)
             : "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
