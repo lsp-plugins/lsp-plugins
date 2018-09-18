@@ -181,12 +181,11 @@ namespace sse3
         );
     }
 
-#ifdef ARCH_X86_64
     void x64_pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86_64(size_t off);
 
-        ARCH_X86_ASM
+        ARCH_X86_64_ASM
         (
             /* Do block processing */
             __ASM_EMIT("xor         %[off], %[off]")
@@ -310,9 +309,9 @@ namespace sse3
 
     void x64_pcomplex_mod(float *dst, const float *src, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86_64(size_t off);
 
-        ARCH_X86_ASM
+        ARCH_X86_64_ASM
         (
             __ASM_EMIT("xor         %[off], %[off]")
             __ASM_EMIT("sub         $32, %[count]")
@@ -465,8 +464,6 @@ namespace sse3
               "%xmm8", "%xmm9", "%xmm10", "%xmm12", "%xmm13", "%xmm14"
         );
     }
-
-#endif /* ARCH_X86_64 */
 }
 
 

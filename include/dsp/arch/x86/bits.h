@@ -15,7 +15,7 @@ inline uint8_t __lsp_forced_inline    reverse_bits(uint8_t v)
     ARCH_X86_ASM (
         __ASM_EMIT("movzx %[v], %[tmp]")
         __ASM_EMIT("mov (%[rb], %[tmp]), %[v]")
-        : [v] "+r"(v), [tmp] "=&r"(tmp)
+        : [v] "+q"(v), [tmp] "=&r"(tmp)
         : [rb] "r"(__rb)
         : "cc"
     );
@@ -31,7 +31,7 @@ inline uint8_t __lsp_forced_inline    reverse_bits(uint8_t v, size_t count)
         __ASM_EMIT("movzx %[v], %[tmp]")
         __ASM_EMIT("mov (%[rb], %[tmp]), %[v]")
         __ASM_EMIT("shr %%cl, %[v]")
-        : [v] "+r"(v), [tmp] "=&r"(tmp)
+        : [v] "+q"(v), [tmp] "=&r"(tmp)
         : [rb] "r"(__rb), "c"(8-count)
         : "cc"
     );

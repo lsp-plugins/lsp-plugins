@@ -317,7 +317,7 @@ namespace sse3
 
     void x64_rgba32_to_bgra32(void *dst, const void *src, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86_64(size_t off);
 
         ARCH_X86_64_ASM
         (

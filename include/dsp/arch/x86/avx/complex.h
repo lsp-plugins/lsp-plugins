@@ -12,9 +12,9 @@ namespace avx
 {
     void x64_pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86_64(size_t off);
 
-        ARCH_X86_ASM
+        ARCH_X86_64_ASM
         (
             /* Check count */
             __ASM_EMIT("xor         %[off], %[off]")
@@ -111,9 +111,9 @@ namespace avx
 
     void x64_pcomplex_mul3_fma3(float *dst, const float *src1, const float *src2, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86_64(size_t off);
 
-        ARCH_X86_ASM
+        ARCH_X86_64_ASM
         (
             /* Check count */
             __ASM_EMIT("xor         %[off], %[off]")
@@ -205,9 +205,9 @@ namespace avx
 
     void x64_complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86_64(size_t off);
 
-        ARCH_X86_ASM
+        ARCH_X86_64_ASM
         (
             /* Check count */
             __ASM_EMIT("xor         %[off], %[off]")
@@ -278,9 +278,9 @@ namespace avx
 
     void x64_complex_mul3_fma3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86_64(size_t off);
 
-        ARCH_X86_ASM
+        ARCH_X86_64_ASM
         (
             /* Check count */
             __ASM_EMIT("xor         %[off], %[off]")
@@ -347,9 +347,9 @@ namespace avx
 
     void x64_pcomplex_mod(float *dst, const float *src, size_t count)
     {
-        size_t off;
+        IF_ARCH_X86_64(size_t off);
 
-        ARCH_X86_ASM
+        ARCH_X86_64_ASM
         (
             __ASM_EMIT("xor             %[off], %[off]")
             __ASM_EMIT("sub             $32, %[count]")
