@@ -239,6 +239,7 @@ namespace sse
         ARCH_X86_ASM \
         ( \
             /* Prepare */ \
+            __ASM_EMIT("xorps       %%xmm0, %%xmm0") \
             __ASM_EMIT("test        %[count], %[count]") \
             __ASM_EMIT("jz          2000f") \
             \

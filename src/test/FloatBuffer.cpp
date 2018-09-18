@@ -64,7 +64,7 @@ namespace test
         nLength         = samples;
         pData           = new uint8_t[alloc];
         bAligned        = aligned;
-        nLastDiff       = 0;
+        nLastDiff       = -1;
 
         uint8_t *head   = &pData[sizeof(uint32_t)];
         if (aligned)
@@ -154,6 +154,28 @@ namespace test
         for (size_t i=0; i<nLength; ++i)
         {
             if (!float_equals_absolute(a[i], b[i], tolerance))
+            {
+                nLastDiff = i;
+                src.nLastDiff = i;
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool FloatBuffer::equals_adaptive(const FloatBuffer &src, float tolerance) const
+    {
+        if (src.nLength != nLength)
+            return false;
+        if (!(validate() && src.validate()))
+            return false;
+        const float *a = pBuffer, *b = src.pBuffer;
+        for (size_t i=0; i<nLength; ++i)
+        {
+            bool equals = (fabs(a[i]) > 1.0f) ?
+                    float_equals_relative(a[i], b[i], tolerance) :
+                    float_equals_absolute(a[i], b[i], tolerance);
+            if (!equals)
             {
                 nLastDiff = i;
                 src.nLastDiff = i;
