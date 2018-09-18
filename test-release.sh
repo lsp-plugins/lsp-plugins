@@ -18,6 +18,14 @@ echo "******************************************************"
 echo "Building RELEASE"
 echo "******************************************************"
 
+ARCH=`uname -m`
+
 make unrelease
-do_release 'i586'
-do_release 'x86_64'
+if [[ "$ARCH" =~ ^x86_64 ]]; then
+	do_release 'i586'
+	do_release 'x86_64'
+elif [[ "$ARCH" =~ ^i[3-6]86 ]]; then
+	do_release 'i586'
+elif [[ "$ARCH" =~ ^armv7.* ]]; then
+	do_release 'armv7a'
+fi

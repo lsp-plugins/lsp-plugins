@@ -32,7 +32,8 @@
 * Optimized complex multiplication functions.
 * Implemented additional complex number routines.
 * Implemented additional functions to DSP core.
-* Fixed compilation warnings emitted by the GCC 8 compiler.
+* Fixed compilation warnings and errors emitted by the GCC 8 compiler.
+* Updated development documentation.
 
 *******************************************************************************
 * Release steps
