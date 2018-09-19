@@ -57,7 +57,7 @@ namespace sse
             __ASM_EMIT("andps       0x00 + %[ILOG], %%xmm3")        // xmm3 = abs(v)
             __ASM_EMIT("add         $0x10, %[v]")                   // v   += 4
             __ASM_EMIT("maxps       0x00 + %[FLOG], %%xmm3")        // xmm3 = max(X_AMP, abs(v)), ignores denormalized values
-            __ASM_EMIT("mulps       %%xmm0, %%xmm3")                // xmm5 = max(X_AMP, abs(v)) * zero
+            __ASM_EMIT("mulps       %%xmm0, %%xmm3")                // xmm3 = max(X_AMP, abs(v)) * zero
             // Step 2: parse float value
             __ASM_EMIT("movdqa      %%xmm3, %%xmm4")                // xmm4 = v
             __ASM_EMIT("psrld       $23, %%xmm4")                   // xmm4 = frac(v)
@@ -71,7 +71,7 @@ namespace sse
             __ASM_EMIT("cmpltps     0x20 + %[FLOG], %%xmm5")        // xmm5 = [ V < sqrt(1/2) ]
             __ASM_EMIT("movaps      0x30 + %[FLOG], %%xmm7")        // xmm7 = 1.0
             __ASM_EMIT("andps       %%xmm5, %%xmm6")                // xmm6 = V * [ V < sqrt(1/2) ]
-            __ASM_EMIT("addps       %%xmm6, %%xmm3")                // xmm6 = V + V * [ V < sqrt(1/2) ]
+            __ASM_EMIT("addps       %%xmm6, %%xmm3")                // xmm3 = V + V * [ V < sqrt(1/2) ]
             __ASM_EMIT("andnps      %%xmm7, %%xmm5")                // xmm5 = 1.0 * [ V >= sqrt(1/2) ]
             __ASM_EMIT("addps       %%xmm5, %%xmm4")                // xmm4 = E + 1.0 * [ V >= sqrt(1/2) ]      = B
             __ASM_EMIT("subps       %%xmm7, %%xmm3")                // xmm3 = V + V * [ V < sqrt(1/2) ] - 1.0   = A
