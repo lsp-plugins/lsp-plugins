@@ -415,7 +415,7 @@ namespace neon_d32
             // Do x1 block
             __ASM_EMIT("6:")
             __ASM_EMIT("adds            %[count], $3")
-            __ASM_EMIT("bls             8f")
+            __ASM_EMIT("blt             8f")
 
             __ASM_EMIT("7:")
             __ASM_EMIT("sub             %[params], $0x10")              // params -= 4

@@ -59,8 +59,8 @@ UTEST_BEGIN("dsp.graphics", axis)
 
                 printf("Tesing %s count=%d mask=0x%x\n", label, int(count), int(mask));
 
-                native::axis_apply_log(x1, y1, v, 0.001f, 0.5f, 0.5f, count);
-                func(x2, y2, v, 0.001f, 0.5f, 0.5f, count);
+                native::axis_apply_log(x1, y1, v, 0.1f, 0.5f, 1.0f, count);
+                func(x2, y2, v, 0.1f, 0.5f, 1.0f, count);
 
                 UTEST_ASSERT_MSG(v.valid(), "v corrupted");
                 UTEST_ASSERT_MSG(x1.valid(), "x1 corrupted");
