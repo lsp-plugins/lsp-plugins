@@ -9,6 +9,14 @@
 #include <test/utest.h>
 #include <test/FloatBuffer.h>
 
+#ifdef ARCH_ARM
+    #define TOLERANCE 1e-2
+#endif ARCH_ARM
+
+#ifndef TOLERANCE
+    #define TOLERANCE 1e-3
+#endif
+
 namespace native
 {
     void axis_apply_log(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count);
@@ -69,7 +77,7 @@ UTEST_BEGIN("dsp.graphics", axis)
                 UTEST_ASSERT_MSG(y2.valid(), "y2 corrupted");
 
                 // Compare buffers
-                if ((!x1.equals_absolute(x2, 1e-3)) || ((!y1.equals_absolute(y2, 1e-3))))
+                if ((!x1.equals_relative(x2, TOLERANCE)) || ((!y1.equals_relative(y2, TOLERANCE))))
                 {
                     v.dump("v ");
                     x1.dump("x1");
