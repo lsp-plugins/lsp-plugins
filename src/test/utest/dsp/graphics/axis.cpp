@@ -28,6 +28,13 @@ IF_ARCH_X86(
     )
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void axis_apply_log(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count);
+    }
+)
+
 typedef void (* axis_apply_log_t)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count);
 
 
@@ -79,6 +86,7 @@ UTEST_BEGIN("dsp.graphics", axis)
     {
         IF_ARCH_X86(call("sse:axis_apply_log", 16, sse::axis_apply_log));
         IF_ARCH_X86_64(call("sse3:x64_axis_apply_log", 16, sse3::x64_axis_apply_log));
+        IF_ARCH_ARM(call("neon_d32:axis_apply_log", 16, neon_d32::axis_apply_log));
     }
 
 UTEST_END;

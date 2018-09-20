@@ -86,6 +86,7 @@ namespace neon_d32
 
         EXPORT1(convolve);
 
+        EXPORT1(axis_apply_log);
         EXPORT1(rgba32_to_bgra32);
 
         // Misc for testing
