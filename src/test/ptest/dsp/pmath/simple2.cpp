@@ -32,7 +32,7 @@ IF_ARCH_X86(
 )
 
 IF_ARCH_ARM(
-    namespace sse
+    namespace neon_d32
     {
         void    add2(float *dst, const float *src, size_t count);
         void    sub2(float *dst, const float *src, size_t count);
@@ -84,7 +84,7 @@ PTEST_BEGIN("dsp.pmath", simple2, 5, 10000)
 
             call("native:sub2", dst, src, count, native::sub2);
             IF_ARCH_X86(call("sse:sub2", dst, src, count, sse::sub2));
-            IF_ARCH_ARM(call("neon_d32:sub2", dst, src, count, neon_d32::sub22));
+            IF_ARCH_ARM(call("neon_d32:sub2", dst, src, count, neon_d32::sub2));
             PTEST_SEPARATOR;
 
             call("native:mul2", dst, src, count, native::mul2);

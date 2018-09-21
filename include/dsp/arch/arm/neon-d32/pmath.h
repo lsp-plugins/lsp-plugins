@@ -69,7 +69,7 @@ namespace neon_d32
     /* 4x blocks */ \
     __ASM_EMIT("6:") \
     __ASM_EMIT("adds        %[count], $4") \
-    __ASM_EMIT("blt         6f") \
+    __ASM_EMIT("blt         8f") \
     __ASM_EMIT("vld1.32     {q0}, [%[" SRC1 "]]!") \
     __ASM_EMIT("vld1.32     {q8}, [%[" SRC2 "]]!") \
     __ASM_EMIT(OP "         q0, q0, q8") \
@@ -117,7 +117,7 @@ namespace neon_d32
         ARCH_ARM_ASM
         (
             OP_CORE("vsub.f32", "dst", "src1", "src2")
-            : [dst] "+r" (dst), [src1] "+r" (src), [src2] "+r" (src2),
+            : [dst] "+r" (dst), [src1] "+r" (src2), [src2] "+r" (src),
               [off] "=&r" (off), [count] "+r" (count)
             :
             : "cc", "memory",
@@ -152,7 +152,7 @@ namespace neon_d32
         ARCH_ARM_ASM
         (
             OP_CORE("vadd.f32", "dst", "src1", "src2")
-            : [dst] "+r" (dst), [src1] "+r" (src), [src2] "+r" (src2),
+            : [dst] "+r" (dst), [src1] "+r" (src1), [src2] "+r" (src2),
               [off] "=&r" (off), [count] "+r" (count)
             :
             : "cc", "memory",
@@ -168,7 +168,7 @@ namespace neon_d32
         ARCH_ARM_ASM
         (
             OP_CORE("vsub.f32", "dst", "src1", "src2")
-            : [dst] "+r" (dst), [src1] "+r" (src), [src2] "+r" (src2),
+            : [dst] "+r" (dst), [src1] "+r" (src1), [src2] "+r" (src2),
               [off] "=&r" (off), [count] "+r" (count)
             :
             : "cc", "memory",
@@ -184,7 +184,7 @@ namespace neon_d32
         ARCH_ARM_ASM
         (
             OP_CORE("vmul.f32", "dst", "src1", "src2")
-            : [dst] "+r" (dst), [src1] "+r" (src), [src2] "+r" (src2),
+            : [dst] "+r" (dst), [src1] "+r" (src1), [src2] "+r" (src2),
               [off] "=&r" (off), [count] "+r" (count)
             :
             : "cc", "memory",

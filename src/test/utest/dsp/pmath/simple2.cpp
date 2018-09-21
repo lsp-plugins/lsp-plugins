@@ -43,7 +43,7 @@ IF_ARCH_X86(
 )
 
 IF_ARCH_ARM(
-    namespace sse
+    namespace neon_d32
     {
         void    add2(float *dst, const float *src, size_t count);
         void    sub2(float *dst, const float *src, size_t count);
