@@ -58,8 +58,9 @@ UTEST_BEGIN("dsp.pmath", scale)
             {
                 printf("Testing %s on input buffer of %d numbers, mask=0x%x...\n", label, int(count), int(mask));
 
-                FloatBuffer dst1(count, align, mask & 0x01);
-                FloatBuffer dst2(dst1);
+                FloatBuffer src(count, align, mask & 0x01);
+                FloatBuffer dst1(src);
+                FloatBuffer dst2(src);
 
                 // Call functions
                 func1(dst1, 0.5f, count);
@@ -71,6 +72,7 @@ UTEST_BEGIN("dsp.pmath", scale)
                 // Compare buffers
                 if (!dst1.equals_absolute(dst2, 1e-5))
                 {
+                    src.dump("src ");
                     dst1.dump("dst1");
                     dst2.dump("dst2");
                     UTEST_FAIL_MSG("Output of functions for test '%s' differs", label);
@@ -119,12 +121,12 @@ UTEST_BEGIN("dsp.pmath", scale)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("scale2 sse", 16, native::scale2, sse::scale2));
-        IF_ARCH_X86(call("scale3 sse", 16, native::scale3, sse::scale3));
-        IF_ARCH_X86(call("scale_add3 sse", 16, native::scale_add3, sse::scale_add3));
-        IF_ARCH_X86(call("scale_sub3 sse", 16, native::scale_sub3, sse::scale_sub3));
-        IF_ARCH_X86(call("scale_mul3 sse", 16, native::scale_mul3, sse::scale_mul3));
-        IF_ARCH_X86(call("scale_div3 sse", 16, native::scale_div3, sse::scale_div3));
+        IF_ARCH_X86(call("sse:scale2", 16, native::scale2, sse::scale2));
+        IF_ARCH_X86(call("sse:scale3", 16, native::scale3, sse::scale3));
+        IF_ARCH_X86(call("sse:scale_add3", 16, native::scale_add3, sse::scale_add3));
+        IF_ARCH_X86(call("sse:scale_sub3", 16, native::scale_sub3, sse::scale_sub3));
+        IF_ARCH_X86(call("sse:scale_mul3", 16, native::scale_mul3, sse::scale_mul3));
+        IF_ARCH_X86(call("sse:scale_div3", 16, native::scale_div3, sse::scale_div3));
     }
 UTEST_END
 

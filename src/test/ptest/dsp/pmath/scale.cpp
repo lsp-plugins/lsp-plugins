@@ -87,24 +87,28 @@ PTEST_BEGIN("dsp.pmath", scale, 5, 10000)
         {
             size_t count = 1 << i;
 
-            call("scale2 native", dst, src, count, native::scale2);
-            IF_ARCH_X86(call("scale2 sse", dst, src, count, sse::scale2));
+            call("native:scale2", dst, src, count, native::scale2);
+            IF_ARCH_X86(call("sse:scale2", dst, src, count, sse::scale2));
+            PTEST_SEPARATOR;
 
-            call("scale3 native", dst, src, count, native::scale3);
-            IF_ARCH_X86(call("scale3 sse", dst, src, count, sse::scale3));
+            call("native:scale3 native", dst, src, count, native::scale3);
+            IF_ARCH_X86(call("sse:scale3", dst, src, count, sse::scale3));
+            PTEST_SEPARATOR;
 
-            call("scale_add3 native", dst, src, count, native::scale_add3);
-            IF_ARCH_X86(call("scale_add3 sse", dst, src, count, sse::scale_add3));
+            call("native:scale_add3 native", dst, src, count, native::scale_add3);
+            IF_ARCH_X86(call("sse:scale_add3", dst, src, count, sse::scale_add3));
+            PTEST_SEPARATOR;
 
-            call("scale_sub3 native", dst, src, count, native::scale_sub3);
-            IF_ARCH_X86(call("scale_sub3 sse", dst, src, count, sse::scale_sub3));
+            call("native:scale_sub3 native", dst, src, count, native::scale_sub3);
+            IF_ARCH_X86(call("sse:scale_sub3", dst, src, count, sse::scale_sub3));
+            PTEST_SEPARATOR;
 
-            call("scale_mul3 native", dst, src, count, native::scale_mul3);
-            IF_ARCH_X86(call("scale_mul3 sse", dst, src, count, sse::scale_mul3));
+            call("native:scale_mul3 native", dst, src, count, native::scale_mul3);
+            IF_ARCH_X86(call("sse:scale_mul3", dst, src, count, sse::scale_mul3));
+            PTEST_SEPARATOR;
 
-            call("scale_div3 native", dst, src, count, native::scale_div3);
-            IF_ARCH_X86(call("scale_div3 sse", dst, src, count, sse::scale_div3));
-
+            call("native:scale_div3 native", dst, src, count, native::scale_div3);
+            IF_ARCH_X86(call("sse:scale_div3", dst, src, count, sse::scale_div3));
             PTEST_SEPARATOR;
         }
 

@@ -11,7 +11,7 @@
 
 #ifdef ARCH_ARM
     #define TOLERANCE 1e-2
-#endif ARCH_ARM
+#endif /* ARCH_ARM */
 
 #ifndef TOLERANCE
     #define TOLERANCE 1e-3
