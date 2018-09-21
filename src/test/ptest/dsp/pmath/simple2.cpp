@@ -66,18 +66,20 @@ PTEST_BEGIN("dsp.pmath", simple2, 5, 10000)
         {
             size_t count = 1 << i;
 
-            call("add2 native", dst, src, count, native::add2);
-            IF_ARCH_X86(call("add2 sse", dst, src, count, sse::add2));
+            call("native:add2", dst, src, count, native::add2);
+            IF_ARCH_X86(call("sse:add2", dst, src, count, sse::add2));
+            PTEST_SEPARATOR;
 
-            call("sub2 native", dst, src, count, native::sub2);
-            IF_ARCH_X86(call("sub2 sse", dst, src, count, sse::sub2));
+            call("native:sub2", dst, src, count, native::sub2);
+            IF_ARCH_X86(call("sse:sub2", dst, src, count, sse::sub2));
+            PTEST_SEPARATOR;
 
-            call("mul2 native", dst, src, count, native::mul2);
-            IF_ARCH_X86(call("mul2 sse", dst, src, count, sse::mul2));
+            call("native:mul2", dst, src, count, native::mul2);
+            IF_ARCH_X86(call("sse:mul2", dst, src, count, sse::mul2));
+            PTEST_SEPARATOR;
 
-            call("div2 native", dst, src, count, native::div2);
-            IF_ARCH_X86(call("div2 sse", dst, src, count, sse::div2));
-
+            call("native:div2", dst, src, count, native::div2);
+            IF_ARCH_X86(call("sse:div2", dst, src, count, sse::div2));
             PTEST_SEPARATOR;
         }
 

@@ -81,10 +81,10 @@ UTEST_BEGIN("dsp.pmath", simple3)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("add3 sse", 16, native::add3, sse::add3));
-        IF_ARCH_X86(call("sub3 sse", 16, native::sub3, sse::sub3));
-        IF_ARCH_X86(call("mul3 sse", 16, native::mul3, sse::mul3));
-        IF_ARCH_X86(call("div3 sse", 16, native::div3, sse::div3));
+        IF_ARCH_X86(call("sse:add3", 16, native::add3, sse::add3));
+        IF_ARCH_X86(call("sse:sub3", 16, native::sub3, sse::sub3));
+        IF_ARCH_X86(call("sse:mul3", 16, native::mul3, sse::mul3));
+        IF_ARCH_X86(call("sse:div3", 16, native::div3, sse::div3));
     }
 UTEST_END
 
