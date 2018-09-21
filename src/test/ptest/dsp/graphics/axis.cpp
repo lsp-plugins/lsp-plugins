@@ -42,7 +42,7 @@ typedef void (* axis_apply_log_t)(float *x, float *y, const float *v, float zero
 
 //-----------------------------------------------------------------------------
 // Performance test for logarithmic axis calculation
-PTEST_BEGIN("dsp.graphics", axis, 5, 10000)
+PTEST_BEGIN("dsp.graphics", axis, 5, 1000)
 
     void call(const char *label, float *x, float *y, const float *v, size_t count, axis_apply_log_t apply)
     {
