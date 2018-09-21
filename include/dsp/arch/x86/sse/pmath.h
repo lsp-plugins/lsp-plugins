@@ -482,72 +482,75 @@ namespace sse
     #undef SCALE_OP3_ALIGN
     #undef SCALE_OP3_CORE
 
-    #define SCALE_OP4_CORE(OP, MV_SRC1, MV_SRC2)  \
-        __ASM_EMIT("sub         $0x08, %[count]") \
-        __ASM_EMIT("jb          4f")    \
-        \
-        /* 8x blocks */ \
-        __ASM_EMIT("3:") \
-        __ASM_EMIT(MV_SRC2 "    0x00(%[src2]), %%xmm2") \
-        __ASM_EMIT(MV_SRC2 "    0x10(%[src2]), %%xmm3") \
-        __ASM_EMIT(MV_SRC1 "    0x00(%[src1]), %%xmm4") \
-        __ASM_EMIT(MV_SRC1 "    0x10(%[src1]), %%xmm5") \
-        __ASM_EMIT("mulps       %%xmm0, %%xmm2") \
-        __ASM_EMIT("mulps       %%xmm1, %%xmm3") \
-        __ASM_EMIT(OP "ps       %%xmm2, %%xmm4") \
-        __ASM_EMIT(OP "ps       %%xmm3, %%xmm5") \
-        __ASM_EMIT("movaps      %%xmm4, 0x00(%[dst])") \
-        __ASM_EMIT("movaps      %%xmm5, 0x10(%[dst])") \
-        __ASM_EMIT("add         $0x20, %[src2]") \
-        __ASM_EMIT("add         $0x20, %[src1]") \
-        __ASM_EMIT("add         $0x20, %[dst]") \
-        __ASM_EMIT("sub         $0x08, %[count]") \
-        __ASM_EMIT("jae         3b") \
-        \
-        /* 4x block */ \
-        __ASM_EMIT("4:") \
-        __ASM_EMIT("add         $0x08, %[count]") \
-        __ASM_EMIT("test        $0x04, %[count]") \
-        __ASM_EMIT("jz          5f") \
-        __ASM_EMIT(MV_SRC2 "    0x00(%[src2]), %%xmm2") \
-        __ASM_EMIT(MV_SRC1 "    0x00(%[src1]), %%xmm4") \
-        __ASM_EMIT("mulps       %%xmm0, %%xmm2") \
-        __ASM_EMIT(OP "ps       %%xmm2, %%xmm4") \
-        __ASM_EMIT("movaps      %%xmm4, 0x00(%[dst])") \
-        __ASM_EMIT("add         $0x10, %[src2]") \
-        __ASM_EMIT("add         $0x10, %[src1]") \
-        __ASM_EMIT("add         $0x10, %[dst]") \
-        /* 1x blocks */ \
-        __ASM_EMIT("5:") \
-        __ASM_EMIT("and         $0x03, %[count]")    \
-        __ASM_EMIT("jz          2000f")    \
-        __ASM_EMIT("6:") \
-        __ASM_EMIT("movss       0x00(%[src2]), %%xmm2") \
-        __ASM_EMIT("movss       0x00(%[src1]), %%xmm4") \
-        __ASM_EMIT("mulss       %%xmm0, %%xmm2") \
-        __ASM_EMIT(OP "ss       %%xmm2, %%xmm4") \
-        __ASM_EMIT("movss       %%xmm4, 0x00(%[dst])") \
-        __ASM_EMIT("add         $0x4, %[src2]") \
-        __ASM_EMIT("add         $0x4, %[src1]") \
-        __ASM_EMIT("add         $0x4, %[dst]") \
-        __ASM_EMIT("dec         %[count]") \
-        __ASM_EMIT("jnz         6b")
+#define SCALE_OP4_CORE(OP, DST, SRC1, SRC2)  \
+    __ASM_EMIT("xorps       %[off], %[off]") \
+    __ASM_EMIT("shufps      $0x00, %%xmm0, %%xmm0") \
+    __ASM_EMIT("sub         $8, %[count]") \
+    __ASM_EMIT("movaps      %%xmm0, %%xmm1") \
+    __ASM_EMIT("jb          2f")    \
+    \
+    /* 8x blocks */ \
+    __ASM_EMIT("1:") \
+    __ASM_EMIT("movups      0x00(%[" SRC2 "]), %%xmm2") \
+    __ASM_EMIT("movups      0x10(%[src2]), %%xmm3") \
+    __ASM_EMIT("movups      0x00(%[src1]), %%xmm4") \
+    __ASM_EMIT("movups      0x10(%[src1]), %%xmm5") \
+    __ASM_EMIT("mulps       %%xmm0, %%xmm2") \
+    __ASM_EMIT("mulps       %%xmm1, %%xmm3") \
+    __ASM_EMIT(OP "ps       %%xmm2, %%xmm4") \
+    __ASM_EMIT(OP "ps       %%xmm3, %%xmm5") \
+    __ASM_EMIT("movaps      %%xmm4, 0x00(%[dst])") \
+    __ASM_EMIT("movaps      %%xmm5, 0x10(%[dst])") \
+    __ASM_EMIT("add         $0x20, %[src2]") \
+    __ASM_EMIT("add         $0x20, %[src1]") \
+    __ASM_EMIT("add         $0x20, %[dst]") \
+    __ASM_EMIT("sub         $0x08, %[count]") \
+    __ASM_EMIT("jae         1b") \
+    \
+    /* 4x block */ \
+    __ASM_EMIT("4:") \
+    __ASM_EMIT("add         $0x08, %[count]") \
+    __ASM_EMIT("test        $0x04, %[count]") \
+    __ASM_EMIT("jz          5f") \
+    __ASM_EMIT(MV_SRC2 "    0x00(%[src2]), %%xmm2") \
+    __ASM_EMIT(MV_SRC1 "    0x00(%[src1]), %%xmm4") \
+    __ASM_EMIT("mulps       %%xmm0, %%xmm2") \
+    __ASM_EMIT(OP "ps       %%xmm2, %%xmm4") \
+    __ASM_EMIT("movaps      %%xmm4, 0x00(%[dst])") \
+    __ASM_EMIT("add         $0x10, %[src2]") \
+    __ASM_EMIT("add         $0x10, %[src1]") \
+    __ASM_EMIT("add         $0x10, %[dst]") \
+    /* 1x blocks */ \
+    __ASM_EMIT("5:") \
+    __ASM_EMIT("and         $0x03, %[count]")    \
+    __ASM_EMIT("jz          2000f")    \
+    __ASM_EMIT("6:") \
+    __ASM_EMIT("movss       0x00(%[src2]), %%xmm2") \
+    __ASM_EMIT("movss       0x00(%[src1]), %%xmm4") \
+    __ASM_EMIT("mulss       %%xmm0, %%xmm2") \
+    __ASM_EMIT(OP "ss       %%xmm2, %%xmm4") \
+    __ASM_EMIT("movss       %%xmm4, 0x00(%[dst])") \
+    __ASM_EMIT("add         $0x4, %[src2]") \
+    __ASM_EMIT("add         $0x4, %[src1]") \
+    __ASM_EMIT("add         $0x4, %[dst]") \
+    __ASM_EMIT("dec         %[count]") \
+    __ASM_EMIT("jnz         6b")
 
-    #define SCALE_OP4_ALIGN(OP)  \
-        __ASM_EMIT("1:") \
-        __ASM_EMIT("test        $0x0f, %[dst]") \
-        __ASM_EMIT("jz          2f") \
-        __ASM_EMIT("movss       0x00(%[src2]), %%xmm2") \
-        __ASM_EMIT("movss       0x00(%[src1]), %%xmm4") \
-        __ASM_EMIT("mulss       %%xmm0, %%xmm2") \
-        __ASM_EMIT(OP "ss       %%xmm2, %%xmm4") \
-        __ASM_EMIT("movss       %%xmm4, 0x00(%[dst])") \
-        __ASM_EMIT("add         $0x4, %[src2]") \
-        __ASM_EMIT("add         $0x4, %[src1]") \
-        __ASM_EMIT("add         $0x4, %[dst]") \
-        __ASM_EMIT("dec         %[count]") \
-        __ASM_EMIT("jnz         1b") \
-        __ASM_EMIT("jmp         2000f")
+#define SCALE_OP4_ALIGN(OP)  \
+    __ASM_EMIT("1:") \
+    __ASM_EMIT("test        $0x0f, %[dst]") \
+    __ASM_EMIT("jz          2f") \
+    __ASM_EMIT("movss       0x00(%[src2]), %%xmm2") \
+    __ASM_EMIT("movss       0x00(%[src1]), %%xmm4") \
+    __ASM_EMIT("mulss       %%xmm0, %%xmm2") \
+    __ASM_EMIT(OP "ss       %%xmm2, %%xmm4") \
+    __ASM_EMIT("movss       %%xmm4, 0x00(%[dst])") \
+    __ASM_EMIT("add         $0x4, %[src2]") \
+    __ASM_EMIT("add         $0x4, %[src1]") \
+    __ASM_EMIT("add         $0x4, %[dst]") \
+    __ASM_EMIT("dec         %[count]") \
+    __ASM_EMIT("jnz         1b") \
+    __ASM_EMIT("jmp         2000f")
 
     void scale_add4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
