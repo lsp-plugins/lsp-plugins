@@ -31,6 +31,16 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void    add3(float *dst, const float *src1, const float *src2, size_t count);
+        void    sub3(float *dst, const float *src1, const float *src2, size_t count);
+        void    mul3(float *dst, const float *src1, const float *src2, size_t count);
+//        void    div3(float *dst, const float *src1, const float *src2, size_t count); // TODO
+    }
+)
+
 typedef void (* func3)(float *dst, const float *src1, const float *src2, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -69,14 +79,18 @@ PTEST_BEGIN("dsp.pmath", simple3, 5, 10000)
         {
             size_t count = 1 << i;
 
-            call("add3 native", dst, src1, src2, count, native::add3);
-            IF_ARCH_X86(call("add3 sse", dst, src1, src2, count, sse::add3));
-            call("sub3 native", dst, src1, src2, count, native::sub3);
-            IF_ARCH_X86(call("sub3 sse", dst, src1, src2, count, sse::sub3));
-            call("mul3 native", dst, src1, src2, count, native::mul3);
-            IF_ARCH_X86(call("mul3 sse", dst, src1, src2, count, sse::mul3));
-            call("div3 native", dst, src1, src2, count, native::div3);
-            IF_ARCH_X86(call("div3 sse", dst, src1, src2, count, sse::div3));
+            call("native:add3", dst, src1, src2, count, native::add3);
+            IF_ARCH_X86(call("sse:add3", dst, src1, src2, count, sse::add3));
+            IF_ARCH_ARM(call("neon_d32:add3", dst, src1, src2, count, neon_d32::add3));
+            call("native:sub3", dst, src1, src2, count, native::sub3);
+            IF_ARCH_X86(call("sse:sub3", dst, src1, src2, count, sse::sub3));
+            IF_ARCH_ARM(call("neon_d32:sub3", dst, src1, src2, count, neon_d32::sub3));
+            call("native:mul3", dst, src1, src2, count, native::mul3);
+            IF_ARCH_X86(call("sse:mul3", dst, src1, src2, count, sse::mul3));
+            IF_ARCH_ARM(call("neon_d32:mul3", dst, src1, src2, count, neon_d32::mul3));
+            call("native:div3", dst, src1, src2, count, native::div3);
+            IF_ARCH_X86(call("sse:div3", dst, src1, src2, count, sse::div3));
+//            IF_ARCH_ARM(call("neon_d32:div3", dst, src1, src2, count, neon_d32::div3)); // TODO
 
             PTEST_SEPARATOR;
         }

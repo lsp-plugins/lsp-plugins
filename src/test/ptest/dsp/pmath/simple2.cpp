@@ -31,6 +31,17 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace sse
+    {
+        void    add2(float *dst, const float *src, size_t count);
+        void    sub2(float *dst, const float *src, size_t count);
+        void    mul2(float *dst, const float *src, size_t count);
+//        void    div2(float *dst, const float *src, size_t count); // TODO
+    }
+)
+
+
 typedef void (* func2)(float *dst, const float *src, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -68,18 +79,22 @@ PTEST_BEGIN("dsp.pmath", simple2, 5, 10000)
 
             call("native:add2", dst, src, count, native::add2);
             IF_ARCH_X86(call("sse:add2", dst, src, count, sse::add2));
+            IF_ARCH_ARM(call("neon_d32:add2", dst, src, count, neon_d32::add2));
             PTEST_SEPARATOR;
 
             call("native:sub2", dst, src, count, native::sub2);
             IF_ARCH_X86(call("sse:sub2", dst, src, count, sse::sub2));
+            IF_ARCH_ARM(call("neon_d32:sub2", dst, src, count, neon_d32::sub22));
             PTEST_SEPARATOR;
 
             call("native:mul2", dst, src, count, native::mul2);
             IF_ARCH_X86(call("sse:mul2", dst, src, count, sse::mul2));
+            IF_ARCH_ARM(call("neon_d32:mul2", dst, src, count, neon_d32::mul2));
             PTEST_SEPARATOR;
 
             call("native:div2", dst, src, count, native::div2);
             IF_ARCH_X86(call("sse:div2", dst, src, count, sse::div2));
+//            IF_ARCH_ARM(call("neon_d32:div2", dst, src, count, neon_d32::div2)); // TODO
             PTEST_SEPARATOR;
         }
 

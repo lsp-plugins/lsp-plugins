@@ -49,6 +49,7 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/pcomplex.h>
 #include <dsp/arch/arm/neon-d32/convolution.h>
 #include <dsp/arch/arm/neon-d32/graphics.h>
+#include <dsp/arch/arm/neon-d32/pmath.h>
 
 #undef DSP_ARCH_ARM_NEON_32_IMPL
 
@@ -88,6 +89,14 @@ namespace neon_d32
 
         EXPORT1(axis_apply_log);
         EXPORT1(rgba32_to_bgra32);
+
+        EXPORT1(add2);
+        EXPORT1(sub2);
+        EXPORT1(mul2);
+
+        EXPORT1(add3);
+        EXPORT1(sub3);
+        EXPORT1(mul3);
 
         // Misc for testing
         TEST_EXPORT(neon_d32::complex_mul3_x12);

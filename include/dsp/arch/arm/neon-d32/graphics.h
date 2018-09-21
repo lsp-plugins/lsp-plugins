@@ -8,6 +8,10 @@
 #ifndef DSP_ARCH_ARM_NEON_D32_GRAPHICS_H_
 #define DSP_ARCH_ARM_NEON_D32_GRAPHICS_H_
 
+#ifndef DSP_ARCH_ARM_NEON_32_IMPL
+    #error "This header should not be included directly"
+#endif /* DSP_ARCH_ARM_NEON_32_IMPL */
+
 namespace neon_d32
 {
     void axis_apply_log(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count)
