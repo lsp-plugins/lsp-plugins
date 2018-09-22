@@ -9,6 +9,7 @@
 #define UI_TK_UTIL_LSPSTRING_H_
 
 #include <core/types.h>
+#include <stdarg.h>
 
 namespace lsp
 {

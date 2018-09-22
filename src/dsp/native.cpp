@@ -5,7 +5,7 @@
  *      Author: sadko
  */
 
-#include <malloc.h>
+#include <stdlib.h>
 #include <dsp/dsp.h>
 #include <dsp/bits.h>
 #include <core/types.h>
