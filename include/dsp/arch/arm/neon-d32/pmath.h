@@ -303,6 +303,142 @@ namespace neon_d32
 
 #undef OP_CORE_DIV
 
+
+#define OP_CORE_ABS(DST, SRC)   \
+    __ASM_EMIT("subs        %[count], $64") \
+    __ASM_EMIT("blo         2f") \
+    /* 64x blocks */ \
+    __ASM_EMIT("1:") \
+    __ASM_EMIT("vld1.32     {q0-q1}, [%[" SRC "]]!") \
+    __ASM_EMIT("vld1.32     {q2-q3}, [%[" SRC "]]!") \
+    __ASM_EMIT("vabs.f32    q0, q0") \
+    __ASM_EMIT("vld1.32     {q4-q5}, [%[" SRC "]]!") \
+    __ASM_EMIT("vabs.f32    q1, q1") \
+    __ASM_EMIT("vld1.32     {q6-q7}, [%[" SRC "]]!") \
+    __ASM_EMIT("vabs.f32    q2, q2") \
+    __ASM_EMIT("vld1.32     {q8-q9}, [%[" SRC "]]!") \
+    __ASM_EMIT("vabs.f32    q3, q3") \
+    __ASM_EMIT("vld1.32     {q10-q11}, [%[" SRC "]]!") \
+    __ASM_EMIT("vabs.f32    q4, q4") \
+    __ASM_EMIT("vld1.32     {q12-q13}, [%[" SRC "]]!") \
+    __ASM_EMIT("vabs.f32    q5, q5") \
+    __ASM_EMIT("vld1.32     {q14-q15}, [%[" SRC "]]!") \
+    __ASM_EMIT("vabs.f32    q6, q6") \
+    __ASM_EMIT("vst1.32     {q0-q1}, [%[" DST "]]!") \
+    __ASM_EMIT("vabs.f32    q7, q7") \
+    __ASM_EMIT("vst1.32     {q2-q3}, [%[" DST "]]!") \
+    __ASM_EMIT("vabs.f32    q8, q8") \
+    __ASM_EMIT("vst1.32     {q4-q5}, [%[" DST "]]!") \
+    __ASM_EMIT("vabs.f32    q9, q9") \
+    __ASM_EMIT("vst1.32     {q6-q7}, [%[" DST "]]!") \
+    __ASM_EMIT("vabs.f32    q10, q10") \
+    __ASM_EMIT("vst1.32     {q8-q9}, [%[" DST "]]!") \
+    __ASM_EMIT("vabs.f32    q11, q11") \
+    __ASM_EMIT("vabs.f32    q12, q12") \
+    __ASM_EMIT("vst1.32     {q10-q11}, [%[" DST "]]!") \
+    __ASM_EMIT("vabs.f32    q13, q13") \
+    __ASM_EMIT("vabs.f32    q14, q14") \
+    __ASM_EMIT("vst1.32     {q12-q13}, [%[" DST "]]!") \
+    __ASM_EMIT("vabs.f32    q15, q15") \
+    __ASM_EMIT("subs        %[count], $64") \
+    __ASM_EMIT("vst1.32     {q14-q15}, [%[" DST "]]!") \
+    __ASM_EMIT("bhs         1b") \
+    /* 32x block */ \
+    __ASM_EMIT("2:") \
+    __ASM_EMIT("adds        %[count], $32") \
+    __ASM_EMIT("blt         4f") \
+    __ASM_EMIT("vld1.32     {q0-q1}, [%[" SRC "]]!") \
+    __ASM_EMIT("vld1.32     {q2-q3}, [%[" SRC "]]!") \
+    __ASM_EMIT("vabs.f32    q0, q0") \
+    __ASM_EMIT("vld1.32     {q4-q5}, [%[" SRC "]]!") \
+    __ASM_EMIT("vabs.f32    q1, q1") \
+    __ASM_EMIT("vld1.32     {q6-q7}, [%[" SRC "]]!") \
+    __ASM_EMIT("vabs.f32    q2, q2") \
+    __ASM_EMIT("vst1.32     {q0-q1}, [%[" DST "]]!") \
+    __ASM_EMIT("vabs.f32    q3, q3") \
+    __ASM_EMIT("vabs.f32    q4, q4") \
+    __ASM_EMIT("vst1.32     {q2-q3}, [%[" DST "]]!") \
+    __ASM_EMIT("vabs.f32    q5, q5") \
+    __ASM_EMIT("vabs.f32    q6, q6") \
+    __ASM_EMIT("vst1.32     {q4-q5}, [%[" DST "]]!") \
+    __ASM_EMIT("vabs.f32    q7, q7") \
+    __ASM_EMIT("sub         %[count], $32") \
+    __ASM_EMIT("vst1.32     {q6-q7}, [%[" DST "]]!") \
+    /* 16x block */ \
+    __ASM_EMIT("4:") \
+    __ASM_EMIT("adds        %[count], $16") \
+    __ASM_EMIT("blt         6f") \
+    __ASM_EMIT("vld1.32     {q0-q1}, [%[" SRC "]]!") \
+    __ASM_EMIT("vld1.32     {q2-q3}, [%[" SRC "]]!") \
+    __ASM_EMIT("vabs.f32    q0, q0") \
+    __ASM_EMIT("vabs.f32    q1, q1") \
+    __ASM_EMIT("vabs.f32    q2, q2") \
+    __ASM_EMIT("vst1.32     {q0-q1}, [%[" DST "]]!") \
+    __ASM_EMIT("vabs.f32    q3, q3") \
+    __ASM_EMIT("sub         %[count], $16") \
+    __ASM_EMIT("vst1.32     {q2-q3}, [%[" DST "]]!") \
+    /* 8x block */ \
+    __ASM_EMIT("6:") \
+    __ASM_EMIT("adds        %[count], $8") \
+    __ASM_EMIT("blt         8f") \
+    __ASM_EMIT("vld1.32     {q0-q1}, [%[" SRC "]]!") \
+    __ASM_EMIT("vabs.f32    q0, q0") \
+    __ASM_EMIT("vabs.f32    q1, q1") \
+    __ASM_EMIT("sub         %[count], $8") \
+    __ASM_EMIT("vst1.32     {q0-q1}, [%[" DST "]]!") \
+    /* 4x block */ \
+    __ASM_EMIT("8:") \
+    __ASM_EMIT("adds        %[count], $4") \
+    __ASM_EMIT("blt         10f") \
+    __ASM_EMIT("vld1.32     {q0}, [%[" SRC "]]!") \
+    __ASM_EMIT("vabs.f32    q0, q0") \
+    __ASM_EMIT("sub         %[count], $4") \
+    __ASM_EMIT("vst1.32     {q0}, [%[" DST "]]!") \
+    /* 1x block */ \
+    __ASM_EMIT("10:") \
+    __ASM_EMIT("adds        %[count], $3") \
+    __ASM_EMIT("blt         12f") \
+    __ASM_EMIT("11:") \
+    __ASM_EMIT("vldm.32     %[" SRC "]!, {s0}") \
+    __ASM_EMIT("vabs.f32    d0, d0") \
+    __ASM_EMIT("subs        %[count], $1") \
+    __ASM_EMIT("vstm.32     %[" DST "]!, {s0}") \
+    __ASM_EMIT("bge         11b") \
+    __ASM_EMIT("12:")
+
+
+    void abs1(float *dst, size_t count)
+    {
+        IF_ARCH_ARM(float *src);
+
+        ARCH_ARM_ASM
+        (
+            __ASM_EMIT("mov         %[src], %[dst]")
+            OP_CORE_ABS("dst", "src")
+            : [dst] "+r" (dst), [src] "=&r" (src),
+              [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+    }
+
+    void abs2(float *dst, const float *src, size_t count)
+    {
+        ARCH_ARM_ASM
+        (
+            OP_CORE_ABS("dst", "src")
+            : [dst] "+r" (dst), [src] "+r" (src),
+              [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+    }
+
+#undef OP_CORE_ABS
 }
 
 #endif /* DSP_ARCH_ARM_NEON_D32_PMATH_H_ */

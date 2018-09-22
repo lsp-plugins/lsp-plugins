@@ -90,6 +90,9 @@ namespace neon_d32
         EXPORT1(axis_apply_log);
         EXPORT1(rgba32_to_bgra32);
 
+        EXPORT1(abs1);
+        EXPORT1(abs2);
+
         EXPORT1(add2);
         EXPORT1(sub2);
         EXPORT1(mul2);
