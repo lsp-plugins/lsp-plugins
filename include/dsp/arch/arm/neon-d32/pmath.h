@@ -589,7 +589,7 @@ namespace neon_d32
         ARCH_ARM_ASM
         (
             __ASM_EMIT("mov         %[src2], %[dst]")
-            OP_CORE_DIV("dst", "src2", "src1")
+            OP_ABS_CORE_DIV("dst", "src2", "src1")
             : [dst] "+r" (dst), [src1] "+r" (src), [src2] "=&r" (src2),
               [count] "+r" (count)
             :
@@ -603,7 +603,7 @@ namespace neon_d32
     {
         ARCH_ARM_ASM
         (
-            OP_CORE_DIV("dst", "src1", "src2")
+            OP_ABS_CORE_DIV("dst", "src1", "src2")
             : [dst] "+r" (dst), [src1] "+r" (src1), [src2] "+r" (src2),
               [count] "+r" (count)
             :
