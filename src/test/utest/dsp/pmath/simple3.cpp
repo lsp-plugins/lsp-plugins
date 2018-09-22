@@ -50,11 +50,10 @@ IF_ARCH_ARM(
         void    mul3(float *dst, const float *src1, const float *src2, size_t count);
         void    div3(float *dst, const float *src1, const float *src2, size_t count);
 
-// TODO
-//        void    abs_add3(float *dst, const float *src1, const float *src2, size_t count);
-//        void    abs_sub3(float *dst, const float *src1, const float *src2, size_t count);
-//        void    abs_mul3(float *dst, const float *src1, const float *src2, size_t count);
-//        void    abs_div3(float *dst, const float *src1, const float *src2, size_t count);
+        void    abs_add3(float *dst, const float *src1, const float *src2, size_t count);
+        void    abs_sub3(float *dst, const float *src1, const float *src2, size_t count);
+        void    abs_mul3(float *dst, const float *src1, const float *src2, size_t count);
+        void    abs_div3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
@@ -122,11 +121,10 @@ UTEST_BEGIN("dsp.pmath", simple3)
         IF_ARCH_ARM(call("neon_d32:mul3", 16, native::mul3, neon_d32::mul3));
         IF_ARCH_ARM(call("neon_d32:div3", 16, native::div3, neon_d32::div3));
 
-// TODO
-//        IF_ARCH_ARM(call("neon_d32:abs_add3", 16, native::abs_dd3, neon_d32::abs_add3));
-//        IF_ARCH_ARM(call("neon_d32:abs_sub3", 16, native::abs_sub3, neon_d32::abs_sub3));
-//        IF_ARCH_ARM(call("neon_d32:abs_mul3", 16, native::abs_mul3, neon_d32::abs_mul3));
-//        IF_ARCH_ARM(call("neon_d32:abs_div3", 16, native::abs_div3, neon_d32::abs_div3));
+        IF_ARCH_ARM(call("neon_d32:abs_add3", 16, native::abs_dd3, neon_d32::abs_add3));
+        IF_ARCH_ARM(call("neon_d32:abs_sub3", 16, native::abs_sub3, neon_d32::abs_sub3));
+        IF_ARCH_ARM(call("neon_d32:abs_mul3", 16, native::abs_mul3, neon_d32::abs_mul3));
+        IF_ARCH_ARM(call("neon_d32:abs_div3", 16, native::abs_div3, neon_d32::abs_div3));
     }
 UTEST_END
 

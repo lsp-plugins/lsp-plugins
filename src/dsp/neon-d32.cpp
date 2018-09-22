@@ -98,10 +98,20 @@ namespace neon_d32
         EXPORT1(mul2);
         EXPORT1(div2);
 
+        EXPORT1(abs_add2);
+        EXPORT1(abs_sub2);
+        EXPORT1(abs_mul2);
+        EXPORT1(abs_div2);
+
         EXPORT1(add3);
         EXPORT1(sub3);
         EXPORT1(mul3);
         EXPORT1(div3);
+
+        EXPORT1(abs_add3);
+        EXPORT1(abs_sub3);
+        EXPORT1(abs_mul3);
+        EXPORT1(abs_div3);
 
         // Misc for testing
         TEST_EXPORT(neon_d32::complex_mul3_x12);
