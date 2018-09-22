@@ -46,7 +46,7 @@ typedef void (* func2)(float *dst, const float *src, size_t count);
 
 //-----------------------------------------------------------------------------
 // Performance test for complex multiplication
-PTEST_BEGIN("dsp.pmath", simple2, 5, 10000)
+PTEST_BEGIN("dsp.pmath", simple2, 5, 1000)
 
     void call(const char *label, float *dst, const float *src, size_t count, func2 func)
     {

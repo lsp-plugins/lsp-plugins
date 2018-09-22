@@ -216,17 +216,17 @@ namespace neon_d32
     __ASM_EMIT("vmul.f32        q2, q14, q10") \
     __ASM_EMIT("vmul.f32        q3, q15, q11") \
     __ASM_EMIT("vmul.f32        q0, q0, q4")                /* s1 / s2 */ \
-    __ASM_EMIT("vmul.f32        q1, q1, q4") \
-    __ASM_EMIT("vmul.f32        q2, q2, q4") \
-    __ASM_EMIT("vmul.f32        q3, q3, q4") \
+    __ASM_EMIT("vmul.f32        q1, q1, q5") \
+    __ASM_EMIT("vmul.f32        q2, q2, q6") \
+    __ASM_EMIT("vmul.f32        q3, q3, q7") \
     __ASM_EMIT("vst1.32         {q0-q1}, [%[" DST "]]!") \
     __ASM_EMIT("subs            %[count], $16") \
     __ASM_EMIT("vst1.32         {q2-q3}, [%[" DST "]]!") \
     __ASM_EMIT("bhs             1b") \
     /* 8x block */ \
-    __ASM_EMIT("4:") \
+    __ASM_EMIT("2:") \
     __ASM_EMIT("adds            %[count], $8") \
-    __ASM_EMIT("blt             6f") \
+    __ASM_EMIT("blt             4f") \
     __ASM_EMIT("vld1.32         {q0-q1}, [%[" SRC2 "]]!") \
     __ASM_EMIT("vld1.32         {q4-q5}, [%[" SRC1 "]]!") \
     __ASM_EMIT("vrecpe.f32      q8, q0")                    /* q8 = s2 */ \
@@ -240,11 +240,13 @@ namespace neon_d32
     __ASM_EMIT("vmul.f32        q0, q12, q8")               /* q0 = s2" = s2' * (2 - R*s2) = 1/s2 */  \
     __ASM_EMIT("vmul.f32        q1, q13, q9") \
     __ASM_EMIT("vmul.f32        q0, q0, q4")                /* s1 / s2 */ \
-    __ASM_EMIT("vmul.f32        q1, q1, q4") \
+    __ASM_EMIT("vmul.f32        q1, q1, q5") \
     __ASM_EMIT("sub             %[count], $8") \
     __ASM_EMIT("vst1.32         {q0-q1}, [%[" DST "]]!") \
     /* 4x blocks */ \
-    __ASM_EMIT("6:") \
+    __ASM_EMIT("4:") \
+    __ASM_EMIT("adds            %[count], $4") \
+    __ASM_EMIT("blt             6f") \
     __ASM_EMIT("vld1.32         {q0}, [%[" SRC2 "]]!") \
     __ASM_EMIT("vld1.32         {q4}, [%[" SRC1 "]]!") \
     __ASM_EMIT("vrecpe.f32      q8, q0")                    /* q8 = s2 */ \
@@ -256,17 +258,17 @@ namespace neon_d32
     __ASM_EMIT("sub             %[count], $4") \
     __ASM_EMIT("vst1.32         {q0}, [%[" DST "]]!") \
     /* 1x blocks */ \
-    __ASM_EMIT("8:") \
+    __ASM_EMIT("6:") \
     __ASM_EMIT("adds            %[count], $3") \
-    __ASM_EMIT("blt             10f") \
-    __ASM_EMIT("9:") \
+    __ASM_EMIT("blt             8f") \
+    __ASM_EMIT("7:") \
     __ASM_EMIT("vldm.32         %[" SRC1 "]!, {s0}") \
     __ASM_EMIT("vldm.32         %[" SRC2 "]!, {s1}") \
     __ASM_EMIT("vdiv.f32        s0, s0, s1") \
     __ASM_EMIT("vstm.32         %[" DST "]!, {s0}") \
     __ASM_EMIT("subs            %[count], $1") \
-    __ASM_EMIT("bge             9b") \
-    __ASM_EMIT("10:")
+    __ASM_EMIT("bge             7b") \
+    __ASM_EMIT("8:")
 
     void div2(float *dst, const float *src, size_t count)
     {
