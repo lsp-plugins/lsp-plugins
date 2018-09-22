@@ -92,12 +92,13 @@ UTEST_BEGIN("dsp.pmath", simple3)
                 UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
 
                 // Compare buffers
-                if (!dst1.equals_absolute(dst2, 1e-5))
+                if (!dst1.equals_absolute(dst2, 1e-4))
                 {
                     src1.dump("src1");
                     src2.dump("src2");
                     dst1.dump("dst1");
                     dst2.dump("dst2");
+                    printf("index=%d, %.6f vs %.6f", dst1.last_diff(), dst1.get_diff(), dst2.get_diff());
                     UTEST_FAIL_MSG("Output of functions for test '%s' differs", label);
                 }
             }
@@ -121,7 +122,7 @@ UTEST_BEGIN("dsp.pmath", simple3)
         IF_ARCH_ARM(call("neon_d32:mul3", 16, native::mul3, neon_d32::mul3));
         IF_ARCH_ARM(call("neon_d32:div3", 16, native::div3, neon_d32::div3));
 
-        IF_ARCH_ARM(call("neon_d32:abs_add3", 16, native::abs_dd3, neon_d32::abs_add3));
+        IF_ARCH_ARM(call("neon_d32:abs_add3", 16, native::abs_add3, neon_d32::abs_add3));
         IF_ARCH_ARM(call("neon_d32:abs_sub3", 16, native::abs_sub3, neon_d32::abs_sub3));
         IF_ARCH_ARM(call("neon_d32:abs_mul3", 16, native::abs_mul3, neon_d32::abs_mul3));
         IF_ARCH_ARM(call("neon_d32:abs_div3", 16, native::abs_div3, neon_d32::abs_div3));

@@ -90,11 +90,12 @@ UTEST_BEGIN("dsp.pmath", simple2)
                 UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
 
                 // Compare buffers
-                if (!dst1.equals_absolute(dst2, 1e-5))
+                if (!dst1.equals_absolute(dst2, 1e-4))
                 {
                     src.dump("src");
                     dst1.dump("dst1");
                     dst2.dump("dst2");
+                    printf("index=%d, %.6f vs %.6f", dst1.last_diff(), dst1.get_diff(), dst2.get_diff());
                     UTEST_FAIL_MSG("Output of functions for test '%s' differs", label);
                 }
             }

@@ -51,6 +51,7 @@ namespace test
             inline bool aligned() const { return bAligned; }
             inline size_t size() const { return nLength; }
             inline ssize_t last_diff() const { return nLastDiff; }
+            inline float get_diff() const { return (nLastDiff >= 0) ? pBuffer[nLastDiff] : 0.0f; }
 
         public:
             inline float &operator [] (size_t index) {
