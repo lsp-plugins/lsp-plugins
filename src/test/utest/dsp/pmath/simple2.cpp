@@ -48,10 +48,8 @@ IF_ARCH_ARM(
         void    add2(float *dst, const float *src, size_t count);
         void    sub2(float *dst, const float *src, size_t count);
         void    mul2(float *dst, const float *src, size_t count);
+        void    div2(float *dst, const float *src, size_t count);
 
-// TODO
-//        void    div2(float *dst, const float *src, size_t count);
-//
 //        void    abs_add2(float *dst, const float *src, size_t count);
 //        void    abs_sub2(float *dst, const float *src, size_t count);
 //        void    abs_mul2(float *dst, const float *src, size_t count);
@@ -113,7 +111,7 @@ UTEST_BEGIN("dsp.pmath", simple2)
         IF_ARCH_ARM(call("neon_d32:add2", 16, native::add2, neon_d32::add2));
         IF_ARCH_ARM(call("neon_d32:sub2", 16, native::sub2, neon_d32::sub2));
         IF_ARCH_ARM(call("neon_d32:mul2", 16, native::mul2, neon_d32::mul2));
-//        IF_ARCH_ARM(call("neon_d32:div2", 16, native::div2, neon_d32::div2)); // TODO
+        IF_ARCH_ARM(call("neon_d32:div2", 16, native::div2, neon_d32::div2));
 
         IF_ARCH_X86(call("sse:abs_add2", 16, native::abs_add2, sse::abs_add2));
         IF_ARCH_X86(call("sse:abs_sub2", 16, native::abs_sub2, sse::abs_sub2));

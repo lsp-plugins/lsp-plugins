@@ -37,7 +37,7 @@ IF_ARCH_ARM(
         void    add2(float *dst, const float *src, size_t count);
         void    sub2(float *dst, const float *src, size_t count);
         void    mul2(float *dst, const float *src, size_t count);
-//        void    div2(float *dst, const float *src, size_t count); // TODO
+        void    div2(float *dst, const float *src, size_t count);
     }
 )
 
@@ -94,7 +94,7 @@ PTEST_BEGIN("dsp.pmath", simple2, 5, 10000)
 
             call("native:div2", dst, src, count, native::div2);
             IF_ARCH_X86(call("sse:div2", dst, src, count, sse::div2));
-//            IF_ARCH_ARM(call("neon_d32:div2", dst, src, count, neon_d32::div2)); // TODO
+            IF_ARCH_ARM(call("neon_d32:div2", dst, src, count, neon_d32::div2));
             PTEST_SEPARATOR;
         }
 
