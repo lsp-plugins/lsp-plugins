@@ -19,6 +19,11 @@ namespace native
     void    sub3(float *dst, const float *src1, const float *src2, size_t count);
     void    mul3(float *dst, const float *src1, const float *src2, size_t count);
     void    div3(float *dst, const float *src1, const float *src2, size_t count);
+
+    void    abs_add3(float *dst, const float *src1, const float *src2, size_t count);
+    void    abs_sub3(float *dst, const float *src1, const float *src2, size_t count);
+    void    abs_mul3(float *dst, const float *src1, const float *src2, size_t count);
+    void    abs_div3(float *dst, const float *src1, const float *src2, size_t count);
 }
 
 IF_ARCH_X86(
@@ -28,6 +33,11 @@ IF_ARCH_X86(
         void    sub3(float *dst, const float *src1, const float *src2, size_t count);
         void    mul3(float *dst, const float *src1, const float *src2, size_t count);
         void    div3(float *dst, const float *src1, const float *src2, size_t count);
+
+        void    abs_add3(float *dst, const float *src1, const float *src2, size_t count);
+        void    abs_sub3(float *dst, const float *src1, const float *src2, size_t count);
+        void    abs_mul3(float *dst, const float *src1, const float *src2, size_t count);
+        void    abs_div3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
@@ -38,6 +48,12 @@ IF_ARCH_ARM(
         void    sub3(float *dst, const float *src1, const float *src2, size_t count);
         void    mul3(float *dst, const float *src1, const float *src2, size_t count);
         void    div3(float *dst, const float *src1, const float *src2, size_t count);
+
+// TODO
+//        void    abs_add3(float *dst, const float *src1, const float *src2, size_t count);
+//        void    abs_sub3(float *dst, const float *src1, const float *src2, size_t count);
+//        void    abs_mul3(float *dst, const float *src1, const float *src2, size_t count);
+//        void    abs_div3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
@@ -80,18 +96,35 @@ PTEST_BEGIN("dsp.pmath", simple3, 5, 1000)
             size_t count = 1 << i;
 
             call("native:add3", dst, src1, src2, count, native::add3);
+            call("native:abs_add3", dst, src1, src2, count, native::abs_add3);
+            IF_ARCH_X86(call("sse:abs_add3", dst, src1, src2, count, sse::abs_add3));
             IF_ARCH_X86(call("sse:add3", dst, src1, src2, count, sse::add3));
             IF_ARCH_ARM(call("neon_d32:add3", dst, src1, src2, count, neon_d32::add3));
-            call("native:sub3", dst, src1, src2, count, native::sub3);
-            IF_ARCH_X86(call("sse:sub3", dst, src1, src2, count, sse::sub3));
-            IF_ARCH_ARM(call("neon_d32:sub3", dst, src1, src2, count, neon_d32::sub3));
-            call("native:mul3", dst, src1, src2, count, native::mul3);
-            IF_ARCH_X86(call("sse:mul3", dst, src1, src2, count, sse::mul3));
-            IF_ARCH_ARM(call("neon_d32:mul3", dst, src1, src2, count, neon_d32::mul3));
-            call("native:div3", dst, src1, src2, count, native::div3);
-            IF_ARCH_X86(call("sse:div3", dst, src1, src2, count, sse::div3));
-            IF_ARCH_ARM(call("neon_d32:div3", dst, src1, src2, count, neon_d32::div3));
+//            IF_ARCH_ARM(call("neon_d32:abs_add3", dst, src1, src2, count, neon_d32::abs_add3)); // TODO
+            PTEST_SEPARATOR;
 
+            call("native:sub3", dst, src1, src2, count, native::sub3);
+            call("native:abs_sub3", dst, src1, src2, count, native::abs_sub3);
+            IF_ARCH_X86(call("sse:sub3", dst, src1, src2, count, sse::sub3));
+            IF_ARCH_X86(call("sse:abs_sub3", dst, src1, src2, count, sse::abs_sub3));
+            IF_ARCH_ARM(call("neon_d32:sub3", dst, src1, src2, count, neon_d32::sub3));
+//            IF_ARCH_ARM(call("neon_d32:abs_sub3", dst, src1, src2, count, neon_d32::abs_sub3)); // TODO
+            PTEST_SEPARATOR;
+
+            call("native:mul3", dst, src1, src2, count, native::mul3);
+            call("native:abs_mul3", dst, src1, src2, count, native::abs_mul3);
+            IF_ARCH_X86(call("sse:mul3", dst, src1, src2, count, sse::mul3));
+            IF_ARCH_X86(call("sse:abs_mul3", dst, src1, src2, count, sse::abs_mul3));
+            IF_ARCH_ARM(call("neon_d32:mul3", dst, src1, src2, count, neon_d32::mul3));
+//            IF_ARCH_ARM(call("neon_d32:abs_mul3", dst, src1, src2, count, neon_d32::abs_mul3)); // TODO
+            PTEST_SEPARATOR;
+
+            call("native:div3", dst, src1, src2, count, native::div3);
+            call("native:abs_div3", dst, src1, src2, count, native::abs_div3);
+            IF_ARCH_X86(call("sse:div3", dst, src1, src2, count, sse::div3));
+            IF_ARCH_X86(call("sse:abs_div3", dst, src1, src2, count, sse::abs_div3));
+            IF_ARCH_ARM(call("neon_d32:div3", dst, src1, src2, count, neon_d32::div3));
+//            IF_ARCH_ARM(call("neon_d32:abs_div3", dst, src1, src2, count, neon_d32::abs_div3)); // TODO
             PTEST_SEPARATOR;
         }
 

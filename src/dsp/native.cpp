@@ -20,6 +20,7 @@
 #include <dsp/arch/native/pcomplex.h>
 #include <dsp/arch/native/convolution.h>
 #include <dsp/arch/native/graphics.h>
+#include <dsp/arch/native/pmath.h>
 
 namespace native
 {
@@ -30,7 +31,6 @@ namespace native
     #include <dsp/arch/native/resampling.h>
     #include <dsp/arch/native/msmatrix.h>
     #include <dsp/arch/native/smath.h>
-    #include <dsp/arch/native/pmath.h>
     #include <dsp/arch/native/hmath.h>
     #include <dsp/arch/native/mix.h>
     #include <dsp/arch/native/filters/static.h>
@@ -70,6 +70,11 @@ namespace native
         EXPORT1(abs_sub2);
         EXPORT1(abs_mul2);
         EXPORT1(abs_div2);
+
+        EXPORT1(abs_add3);
+        EXPORT1(abs_sub3);
+        EXPORT1(abs_mul3);
+        EXPORT1(abs_div3);
 
         EXPORT1(abs_normalized);
         EXPORT1(normalize);

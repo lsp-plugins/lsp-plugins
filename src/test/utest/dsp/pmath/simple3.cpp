@@ -20,6 +20,11 @@ namespace native
     void    sub3(float *dst, const float *src1, const float *src2, size_t count);
     void    mul3(float *dst, const float *src1, const float *src2, size_t count);
     void    div3(float *dst, const float *src1, const float *src2, size_t count);
+
+    void    abs_add3(float *dst, const float *src1, const float *src2, size_t count);
+    void    abs_sub3(float *dst, const float *src1, const float *src2, size_t count);
+    void    abs_mul3(float *dst, const float *src1, const float *src2, size_t count);
+    void    abs_div3(float *dst, const float *src1, const float *src2, size_t count);
 }
 
 IF_ARCH_X86(
@@ -29,6 +34,11 @@ IF_ARCH_X86(
         void    sub3(float *dst, const float *src1, const float *src2, size_t count);
         void    mul3(float *dst, const float *src1, const float *src2, size_t count);
         void    div3(float *dst, const float *src1, const float *src2, size_t count);
+
+        void    abs_add3(float *dst, const float *src1, const float *src2, size_t count);
+        void    abs_sub3(float *dst, const float *src1, const float *src2, size_t count);
+        void    abs_mul3(float *dst, const float *src1, const float *src2, size_t count);
+        void    abs_div3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
@@ -39,6 +49,12 @@ IF_ARCH_ARM(
         void    sub3(float *dst, const float *src1, const float *src2, size_t count);
         void    mul3(float *dst, const float *src1, const float *src2, size_t count);
         void    div3(float *dst, const float *src1, const float *src2, size_t count);
+
+// TODO
+//        void    abs_add3(float *dst, const float *src1, const float *src2, size_t count);
+//        void    abs_sub3(float *dst, const float *src1, const float *src2, size_t count);
+//        void    abs_mul3(float *dst, const float *src1, const float *src2, size_t count);
+//        void    abs_div3(float *dst, const float *src1, const float *src2, size_t count);
     }
 )
 
@@ -56,7 +72,7 @@ UTEST_BEGIN("dsp.pmath", simple3)
             return;
 
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                32, 64, 65, 100, 999)
+                32, 64, 65, 100, 999, 0xfff)
         {
             for (size_t mask=0; mask <= 0x07; ++mask)
             {
@@ -96,10 +112,21 @@ UTEST_BEGIN("dsp.pmath", simple3)
         IF_ARCH_X86(call("sse:mul3", 16, native::mul3, sse::mul3));
         IF_ARCH_X86(call("sse:div3", 16, native::div3, sse::div3));
 
+        IF_ARCH_X86(call("sse:abs_add3", 16, native::abs_add3, sse::abs_add3));
+        IF_ARCH_X86(call("sse:abs_sub3", 16, native::abs_sub3, sse::abs_sub3));
+        IF_ARCH_X86(call("sse:abs_mul3", 16, native::abs_mul3, sse::abs_mul3));
+        IF_ARCH_X86(call("sse:abs_div3", 16, native::abs_div3, sse::abs_div3));
+
         IF_ARCH_ARM(call("neon_d32:add3", 16, native::add3, neon_d32::add3));
         IF_ARCH_ARM(call("neon_d32:sub3", 16, native::sub3, neon_d32::sub3));
         IF_ARCH_ARM(call("neon_d32:mul3", 16, native::mul3, neon_d32::mul3));
         IF_ARCH_ARM(call("neon_d32:div3", 16, native::div3, neon_d32::div3));
+
+// TODO
+//        IF_ARCH_ARM(call("neon_d32:abs_add3", 16, native::abs_dd3, neon_d32::abs_add3));
+//        IF_ARCH_ARM(call("neon_d32:abs_sub3", 16, native::abs_sub3, neon_d32::abs_sub3));
+//        IF_ARCH_ARM(call("neon_d32:abs_mul3", 16, native::abs_mul3, neon_d32::abs_mul3));
+//        IF_ARCH_ARM(call("neon_d32:abs_div3", 16, native::abs_div3, neon_d32::abs_div3));
     }
 UTEST_END
 

@@ -151,6 +151,11 @@ namespace sse
         EXPORT1(abs_mul2);
         EXPORT1(abs_div2);
 
+        EXPORT1(abs_add3);
+        EXPORT1(abs_sub3);
+        EXPORT1(abs_mul3);
+        EXPORT1(abs_div3);
+
         EXPORT1(abs_normalized);
         EXPORT1(normalize);
         EXPORT1(min);
