@@ -6,7 +6,7 @@
  */
 
 #include <string.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <test/ptest.h>
 
 namespace test

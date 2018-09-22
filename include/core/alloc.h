@@ -8,7 +8,7 @@
 #ifndef CORE_ALLOC_H_
 #define CORE_ALLOC_H_
 
-#include <malloc.h>
+#include <stdlib.h>
 
 //#define LSP_MEMORY_PROFILING
 

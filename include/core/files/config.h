@@ -8,6 +8,8 @@
 #ifndef CORE_FILES_CONFIG_H_
 #define CORE_FILES_CONFIG_H_
 
+#include <stdio.h>
+
 #include <core/types.h>
 #include <core/status.h>
 

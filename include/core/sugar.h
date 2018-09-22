@@ -8,7 +8,7 @@
 #ifndef CORE_SUGAR_H_
 #define CORE_SUGAR_H_
 
-#include <malloc.h>
+#include <stdlib.h>
 
 // Alignment
 #define ALIGN64                         0x40
