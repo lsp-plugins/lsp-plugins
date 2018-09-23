@@ -93,6 +93,9 @@ namespace neon_d32
         EXPORT1(abs1);
         EXPORT1(abs2);
 
+        EXPORT1(scale2);
+        EXPORT1(scale3);
+
         EXPORT1(add2);
         EXPORT1(sub2);
         EXPORT1(mul2);
@@ -103,6 +106,11 @@ namespace neon_d32
         EXPORT1(abs_mul2);
         EXPORT1(abs_div2);
 
+        EXPORT1(scale_add3);
+        EXPORT1(scale_sub3);
+        EXPORT1(scale_mul3);
+        EXPORT1(scale_div3);
+
         EXPORT1(add3);
         EXPORT1(sub3);
         EXPORT1(mul3);
@@ -112,6 +120,11 @@ namespace neon_d32
         EXPORT1(abs_sub3);
         EXPORT1(abs_mul3);
         EXPORT1(abs_div3);
+
+        EXPORT1(scale_add4);
+        EXPORT1(scale_sub4);
+        EXPORT1(scale_mul4);
+        EXPORT1(scale_div4);
 
         // Misc for testing
         TEST_EXPORT(neon_d32::complex_mul3_x12);

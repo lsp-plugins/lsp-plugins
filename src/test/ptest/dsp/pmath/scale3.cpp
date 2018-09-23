@@ -33,6 +33,17 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void    scale3(float *dst, const float *src, float k, size_t count);
+        void    scale_add3(float *dst, const float *src, float k, size_t count);
+        void    scale_sub3(float *dst, const float *src, float k, size_t count);
+        void    scale_mul3(float *dst, const float *src, float k, size_t count);
+        void    scale_div3(float *dst, const float *src, float k, size_t count);
+    }
+)
+
 typedef void (* scale3_t)(float *dst, const float *src, float k, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -75,22 +86,27 @@ PTEST_BEGIN("dsp.pmath", scale3, 5, 1000)
 
             CALL("native:scale3 native", dst, src, count, native::scale3);
             IF_ARCH_X86(CALL("sse:scale3", dst, src, count, sse::scale3));
+            IF_ARCH_ARM(CALL("neon_d32:scale3", dst, src, count, neon_d32::scale3));
             PTEST_SEPARATOR;
 
             CALL("native:scale_add3 native", dst, src, count, native::scale_add3);
             IF_ARCH_X86(CALL("sse:scale_add3", dst, src, count, sse::scale_add3));
+            IF_ARCH_ARM(CALL("neon_d32:scale_add3", dst, src, count, neon_d32::scale_add3));
             PTEST_SEPARATOR;
 
             CALL("native:scale_sub3 native", dst, src, count, native::scale_sub3);
             IF_ARCH_X86(CALL("sse:scale_sub3", dst, src, count, sse::scale_sub3));
+            IF_ARCH_ARM(CALL("neon_d32:scale_sub3", dst, src, count, neon_d32::scale_sub3));
             PTEST_SEPARATOR;
 
             CALL("native:scale_mul3 native", dst, src, count, native::scale_mul3);
             IF_ARCH_X86(CALL("sse:scale_mul3", dst, src, count, sse::scale_mul3));
+            IF_ARCH_ARM(CALL("neon_d32:scale_mul3", dst, src, count, neon_d32::scale_mul3));
             PTEST_SEPARATOR;
 
             CALL("native:scale_div3 native", dst, src, count, native::scale_div3);
             IF_ARCH_X86(CALL("sse:scale_div3", dst, src, count, sse::scale_div3));
+            IF_ARCH_ARM(CALL("neon_d32:scale_div3", dst, src, count, neon_d32::scale_div3));
             PTEST_SEPARATOR;
         }
 

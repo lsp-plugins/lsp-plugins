@@ -31,6 +31,16 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void    scale_add4(float *dst, const float *src1, const float *src2, float k, size_t count);
+        void    scale_sub4(float *dst, const float *src1, const float *src2, float k, size_t count);
+        void    scale_mul4(float *dst, const float *src1, const float *src2, float k, size_t count);
+        void    scale_div4(float *dst, const float *src1, const float *src2, float k, size_t count);
+    }
+)
+
 typedef void (* scale4_t)(float *dst, const float *src1, const float *src2, float k, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -74,18 +84,22 @@ PTEST_BEGIN("dsp.pmath", scale4, 5, 1000)
 
             CALL("native:scale_add4 native", dst, src1, src2, count, native::scale_add4);
             IF_ARCH_X86(CALL("sse:scale_add4", dst, src1, src2, count, sse::scale_add4));
+            IF_ARCH_ARM(CALL("neon_d32:scale_add4", dst, src1, src2, count, neon_d32::scale_add4));
             PTEST_SEPARATOR;
 
             CALL("native:scale_sub4 native", dst, src1, src2, count, native::scale_sub4);
             IF_ARCH_X86(CALL("sse:scale_sub4", dst, src1, src2, count, sse::scale_sub4));
+            IF_ARCH_ARM(CALL("neon_d32:scale_sub4", dst, src1, src2, count, neon_d32::scale_sub4));
             PTEST_SEPARATOR;
 
             CALL("native:scale_mul4 native", dst, src1, src2, count, native::scale_mul4);
             IF_ARCH_X86(CALL("sse:scale_mul4", dst, src1, src2, count, sse::scale_mul4));
+            IF_ARCH_ARM(CALL("neon_d32:scale_mul4", dst, src1, src2, count, neon_d32::scale_mul4));
             PTEST_SEPARATOR;
 
             CALL("native:scale_div4 native", dst, src1, src2, count, native::scale_div4);
             IF_ARCH_X86(CALL("sse:scale_div4", dst, src1, src2, count, sse::scale_div4));
+            IF_ARCH_ARM(CALL("neon_d32:scale_div4", dst, src1, src2, count, neon_d32::scale_div4));
             PTEST_SEPARATOR;
         }
 
