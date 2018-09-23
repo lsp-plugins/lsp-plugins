@@ -144,7 +144,8 @@ namespace lsp
             ssize_t res = pFile->read(pos, &hdr, sizeof(lspc_chunk_header_t));
             if (res != sizeof(lspc_chunk_header_t))
                 return NULL;
-            lsp_trace("chunk header uid=%x, search_uid=%x, size=%x", int(BE_TO_CPU(hdr.uid)), int(uid), int(BE_TO_CPU(hdr.size)));
+            lsp_trace("chunk header uid=%x, magic=%x, search_uid=%x, size=%llx",
+                    int(BE_TO_CPU(hdr.uid)), int(BE_TO_CPU(hdr.magic)), int(uid), (long long)(BE_TO_CPU(hdr.size)));
             pos        += sizeof(lspc_chunk_header_t);
             if (BE_TO_CPU(hdr.uid) == uid)
                 break;

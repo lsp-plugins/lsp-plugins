@@ -34,8 +34,12 @@ namespace lsp
         {
             lspc_chunk_header_t hdr;
             hdr.magic       = nMagic;
-            hdr.size        = CPU_TO_BE(nBufPos);
-            hdr.uid         = CPU_TO_BE(nUID);
+            hdr.size        = nBufPos;
+            hdr.uid         = nUID;
+
+            // Convert CPU -> BE
+            hdr.size        = CPU_TO_BE(hdr.size);
+            hdr.uid         = CPU_TO_BE(hdr.uid);
 
             // Write buffer header and data to file
             status_t res    = pFile->write(&hdr, sizeof(lspc_chunk_header_t));
@@ -79,8 +83,12 @@ namespace lsp
                 if (nBufPos >= nBufSize)
                 {
                     hdr.magic       = nMagic;
-                    hdr.size        = CPU_TO_BE(nBufSize);
-                    hdr.uid         = CPU_TO_BE(nUID);
+                    hdr.size        = nBufSize;
+                    hdr.uid         = nUID;
+
+                    // Convert CPU -> BE
+                    hdr.size        = CPU_TO_BE(hdr.size);
+                    hdr.uid         = CPU_TO_BE(hdr.uid);
 
                     // Write buffer header and data to file
                     status_t res    = pFile->write(&hdr, sizeof(lspc_chunk_header_t));
@@ -97,8 +105,12 @@ namespace lsp
             else // Write directly avoiding buffer
             {
                 hdr.magic       = nMagic;
-                hdr.size        = CPU_TO_BE(nBufSize);
-                hdr.uid         = CPU_TO_BE(nUID);
+                hdr.size        = nBufSize;
+                hdr.uid         = nUID;
+
+                // Convert CPU -> BE
+                hdr.size        = CPU_TO_BE(hdr.size);
+                hdr.uid         = CPU_TO_BE(hdr.uid);
 
                 // Write buffer header and data to file
                 status_t res    = pFile->write(&hdr, sizeof(lspc_chunk_header_t));
