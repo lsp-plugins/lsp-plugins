@@ -9,13 +9,7 @@
 #include <test/utest.h>
 #include <test/FloatBuffer.h>
 
-#ifdef ARCH_ARM
-    #define TOLERANCE 1e-2
-#endif /* ARCH_ARM */
-
-#ifndef TOLERANCE
-    #define TOLERANCE 1e-3
-#endif
+#define TOLERANCE 1e-2
 
 namespace native
 {
@@ -85,9 +79,9 @@ UTEST_BEGIN("dsp.graphics", axis)
                     x2.dump("x2");
                     y2.dump("y2");
                     if (x1.last_diff() >= 0)
-                        printf("x1=%.6f vs x2=%.6f\n", x1.get(x1.last_diff()), x2.get(x2.last_diff()));
+                        printf("x1=%.6f vs x2=%.6f\n", x1.get_diff(), x2.get_diff());
                     if (y1.last_diff() >= 0)
-                        printf("y1=%.6f vs y2=%.6f\n", y1.get(y1.last_diff()), y2.get(y2.last_diff()));
+                        printf("y1=%.6f vs y2=%.6f\n", y2.get_diff(), y2.get_diff());
                     UTEST_FAIL_MSG("Output of functions for test '%s' differs", label);
                 }
             }
