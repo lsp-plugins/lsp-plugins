@@ -107,6 +107,57 @@ namespace lsp
         return total;
     }
 
+    ssize_t LSPCChunkReader::read_header(void *hdr, size_t size)
+    {
+        if (size < sizeof(lspc_header_t))
+            return -set_error(STATUS_BAD_ARGUMENTS);
+
+        // Read header data first
+        lspc_header_t shdr;
+        ssize_t count   = read(&shdr, sizeof(lspc_header_t));
+        if (count < 0)
+            return count;
+        else if (count < ssize_t(sizeof(lspc_header_t)))
+            return -set_error(STATUS_EOF); // Unexpected end of file
+
+        // Now read header
+        lspc_chunk_raw_header_t *dhdr = reinterpret_cast<lspc_chunk_raw_header_t *>(hdr);
+        size_t hdr_size             = BE_TO_CPU(shdr.size);
+        if (hdr_size < sizeof(lspc_header_t)) // header size should be at least of sizeof(lspc_header_t)
+            return -set_error(STATUS_CORRUPTED_FILE);
+        dhdr->common.size           = hdr_size;
+        dhdr->common.version        = BE_TO_CPU(shdr.version);
+        hdr_size                   -= sizeof(lspc_header_t);
+        size                       -= sizeof(lspc_header_t);
+
+        // Read header contents
+        ssize_t to_read = (size > hdr_size) ? hdr_size : size;
+        count           = read(&dhdr->data, to_read);
+        if (count < 0)
+            return count;
+        else if (count < to_read)
+            return -set_error(STATUS_EOF); // Unexpected end of file
+
+        // Analyze size of header
+        if (size < hdr_size) // Requested size less than actual header size?
+        {
+            // We need to skip extra bytes that do not fit into header
+            to_read     = hdr_size - size;
+            count       = skip(to_read);
+            if (count < 0)
+                return count;
+            else if (count < to_read)
+                return -set_error(STATUS_EOF); // Unexpected end of file
+
+            // Patch the header size to be at most of size bytes
+            dhdr->common.size           = size + sizeof(lspc_header_t);
+        }
+        else if (size > hdr_size)
+            bzero(&dhdr->data[count], size - hdr_size);
+
+        return dhdr->common.size;
+    }
+
     ssize_t LSPCChunkReader::skip(size_t count)
     {
         if (pFile == NULL)

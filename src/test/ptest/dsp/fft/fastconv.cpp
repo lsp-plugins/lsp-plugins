@@ -165,19 +165,19 @@ PTEST_BEGIN("dsp.fft", fastconv, 30, 1000)
 
         for (size_t rank=MIN_RANK; rank <= MAX_RANK; ++rank)
         {
-            call("fft_native", out, tmp, tmp2, conv, in, cv, rank,
+            call("native:fft", out, tmp, tmp2, conv, in, cv, rank,
                     native::direct_fft, native::complex_mul3, native::reverse_fft, native::add2);
-            call("conv_native", out, tmp, tmp2, conv, in, cv, rank,
+            call("native:conv_fft", out, tmp, tmp2, conv, in, cv, rank,
                     native::conv_direct_fft, native::pcomplex_mul3, native::packed_reverse_fft, native::pcomplex_add_r);
-            call("fastconv_native", out, tmp, conv, in, cv, rank,
+            call("native:fastconv_fft", out, tmp, conv, in, cv, rank,
                     native::fastconv_parse, native::fastconv_parse_apply);
 
             IF_ARCH_X86(
-                call("fft_sse", out, tmp, tmp2, conv, in, cv, rank,
+                call("sse:fft", out, tmp, tmp2, conv, in, cv, rank,
                     sse::direct_fft, sse::complex_mul3, sse::reverse_fft, sse::add2);
-                call("conv_sse", out, tmp, tmp2, conv, in, cv, rank,
+                call("sse:conv_fft", out, tmp, tmp2, conv, in, cv, rank,
                     sse::conv_direct_fft, sse::pcomplex_mul3, sse::packed_reverse_fft, sse::pcomplex_add_r);
-                call("fastconv_sse", out, tmp, conv, in, cv, rank,
+                call("sse:fastconv_fft", out, tmp, conv, in, cv, rank,
                     sse::fastconv_parse, sse::fastconv_parse_apply);
             )
             PTEST_SEPARATOR;

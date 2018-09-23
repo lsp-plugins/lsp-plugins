@@ -68,6 +68,14 @@ namespace lsp
              */
             LSPCChunkReader     *read_chunk(uint32_t uid);
 
+            /** Read chunk of specific type
+             *
+             * @param uid unique chunk identifier
+             * @param magic magic number of the chunk type
+             * @return pointer to chunk reader
+             */
+            LSPCChunkReader     *read_chunk(uint32_t uid, uint32_t magic);
+
             /**
              * Find LSPC chunk in file by magic
              * @param magic chunk magic

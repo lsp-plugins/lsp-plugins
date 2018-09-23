@@ -12,7 +12,7 @@ namespace x86
 {
 #ifdef ARCH_I386
     // Limited number of registers
-    static void rgba32_to_bgra32(void *dst, const void *src, size_t count)
+    void rgba32_to_bgra32(void *dst, const void *src, size_t count)
     {
         uint32_t t1, t2;
 
@@ -51,7 +51,7 @@ namespace x86
 #endif /* ARCH_I386 */
 
 #ifdef ARCH_X86_64
-    static void rgba32_to_bgra32(void *dst, const void *src, size_t count)
+    void rgba32_to_bgra32(void *dst, const void *src, size_t count)
     {
         uint32_t t1, t2, t3;
 
@@ -64,7 +64,6 @@ namespace x86
             // Loop multiple of 4
             __ASM_EMIT("1:")
             __ASM_EMIT("mov     0x00(%[src]), %[t1]")   // t1 = src[0] = RGBA
-            __ASM_EMIT("sub     $4, %[count]")          // count -= 4
             __ASM_EMIT("mov     %[t1], %[t2]")          // t1 = src[0] = RGBA
             __ASM_EMIT("and     $0x00ff00ff, %[t1]")    // t1 = R0B0
             __ASM_EMIT("and     $0xff00ff00, %[t2]")    // t2 = 0G0A
@@ -98,14 +97,13 @@ namespace x86
             __ASM_EMIT("mov     %[t3], 0x0c(%[dst])")   // dst[3] = BGRA
 
             __ASM_EMIT("add     $0x10, %[dst]")         // dst += 16
-            __ASM_EMIT("sub     $4, %[count]")          // count <?> 4
+            __ASM_EMIT("sub     $4, %[count]")          // count -= 4
             __ASM_EMIT("jae     1b")
 
             // Loop not multiple of 4
             __ASM_EMIT("2:")
-            __ASM_EMIT("add     $4, %[count]")
-            __ASM_EMIT("and     $3, %[count]")
-            __ASM_EMIT("jz      4f")
+            __ASM_EMIT("add     $3, %[count]")
+            __ASM_EMIT("jl      4f")
 
             // Complete tail
             __ASM_EMIT("3:")
@@ -115,11 +113,11 @@ namespace x86
             __ASM_EMIT("and     $0x00ff00ff, %[t1]")    // t1 = R0B0
             __ASM_EMIT("and     $0xff00ff00, %[t2]")    // t2 = 0G0A
             __ASM_EMIT("ror     $16, %[t1]")            // t1 = B0R0
-            __ASM_EMIT("add     $4, %[dst]")            // dst++
             __ASM_EMIT("or      %[t2], %[t1]")          // t1 = BGRA
+            __ASM_EMIT("mov     %[t1], (%[dst])")       // *dst = BGRA
+            __ASM_EMIT("add     $4, %[dst]")            // dst++
             __ASM_EMIT("dec     %[count]")              // count--
-            __ASM_EMIT("mov     %[t1], -4(%[dst])")     // dst[-1] = BGRA
-            __ASM_EMIT("jnz     1b")
+            __ASM_EMIT("jge     3b")
 
             __ASM_EMIT("4:")
 

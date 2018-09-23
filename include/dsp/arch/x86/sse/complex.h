@@ -171,11 +171,11 @@ namespace sse
             /* Exit */
             __ASM_EMIT("5:")
 
-            : [dst_re] __IF_32_64("m", "+r") (dst_re), [dst_im] __IF_32_64("m", "+r") (dst_im),
+            : [dst_re] __IF_32_64("+m", "+r") (dst_re), [dst_im] __IF_32_64("+m", "+r") (dst_im),
               [src1_re] "+r" (src1_re), [src1_im] "+r" (src1_im),
               [src2_re] "+r" (src2_re), [src2_im] "+r" (src2_im),
-              [count] __IF_32_64("m", "+r") (count),
-              __IF_32( [temp_re] "m"  (temp_re), [temp_im] "m"  (temp_im), )
+              [count] __IF_32_64("+m", "+r") (count),
+              __IF_32( [temp_re] "+m"  (temp_re), [temp_im] "+m"  (temp_im), )
               [off] "=&r" (off)
             :
             : "cc", "memory",
@@ -376,10 +376,6 @@ namespace sse
             __ASM_EMIT("add             $0x10, %[t_im]")
             __ASM_EMIT("add             $0x10, %[b_re]")
             __ASM_EMIT("add             $0x10, %[b_im]")
-            __ASM_EMIT32("mov           %[b_re], %[tmp1]")
-            __ASM_EMIT32("mov           %[b_im], %[tmp2]")
-            __ASM_EMIT32("mov           %[dst_re], %[b_re]")
-            __ASM_EMIT32("mov           %[dst_im], %[b_im]")
             __ASM_EMIT("mulps           %%xmm2, %%xmm0")                // xmm0 = tr*br
             __ASM_EMIT("mulps           %%xmm3, %%xmm4")                // xmm4 = tr*bi
             __ASM_EMIT("mulps           %%xmm2, %%xmm1")                // xmm1 = ti*br
@@ -398,12 +394,14 @@ namespace sse
             __ASM_EMIT64("movups        %%xmm1, 0x00(%[dst_im])")
             __ASM_EMIT64("add           $0x10, %[dst_re]")
             __ASM_EMIT64("add           $0x10, %[dst_im]")
+            __ASM_EMIT32("mov           %[b_re], %[tmp1]")
+            __ASM_EMIT32("mov           %[b_im], %[tmp2]")
+            __ASM_EMIT32("mov           %[dst_re], %[b_re]")
+            __ASM_EMIT32("mov           %[dst_im], %[b_im]")
             __ASM_EMIT32("movups        %%xmm0, 0x00(%[b_re])")
             __ASM_EMIT32("movups        %%xmm1, 0x00(%[b_im])")
-            __ASM_EMIT32("add           $0x10, %[b_re]")
-            __ASM_EMIT32("add           $0x10, %[b_im]")
-            __ASM_EMIT32("mov           %[b_re], %[dst_re]")
-            __ASM_EMIT32("mov           %[b_im], %[dst_im]")
+            __ASM_EMIT32("addl          $0x10, %[dst_re]")
+            __ASM_EMIT32("addl          $0x10, %[dst_im]")
             __ASM_EMIT32("mov           %[tmp1], %[b_re]")
             __ASM_EMIT32("mov           %[tmp2], %[b_im]")
 
@@ -427,10 +425,6 @@ namespace sse
             __ASM_EMIT("add             $0x04, %[t_im]")
             __ASM_EMIT("add             $0x04, %[b_re]")
             __ASM_EMIT("add             $0x04, %[b_im]")
-            __ASM_EMIT32("mov           %[b_re], %[tmp1]")
-            __ASM_EMIT32("mov           %[b_im], %[tmp2]")
-            __ASM_EMIT32("mov           %[dst_re], %[b_re]")
-            __ASM_EMIT32("mov           %[dst_im], %[b_im]")
             __ASM_EMIT("mulss           %%xmm2, %%xmm0")                // xmm0 = tr*br
             __ASM_EMIT("mulss           %%xmm3, %%xmm4")                // xmm4 = tr*bi
             __ASM_EMIT("mulss           %%xmm2, %%xmm1")                // xmm1 = ti*br
@@ -449,12 +443,14 @@ namespace sse
             __ASM_EMIT64("movss         %%xmm1, 0x00(%[dst_im])")
             __ASM_EMIT64("add           $0x04, %[dst_re]")
             __ASM_EMIT64("add           $0x04, %[dst_im]")
+            __ASM_EMIT32("mov           %[b_re], %[tmp1]")
+            __ASM_EMIT32("mov           %[b_im], %[tmp2]")
+            __ASM_EMIT32("mov           %[dst_re], %[b_re]")
+            __ASM_EMIT32("mov           %[dst_im], %[b_im]")
             __ASM_EMIT32("movss         %%xmm0, 0x00(%[b_re])")
             __ASM_EMIT32("movss         %%xmm1, 0x00(%[b_im])")
-            __ASM_EMIT32("add           $0x04, %[b_re]")
-            __ASM_EMIT32("add           $0x04, %[b_im]")
-            __ASM_EMIT32("mov           %[b_re], %[dst_re]")
-            __ASM_EMIT32("mov           %[b_im], %[dst_im]")
+            __ASM_EMIT32("addl          $0x04, %[dst_re]")
+            __ASM_EMIT32("addl          $0x04, %[dst_im]")
             __ASM_EMIT32("mov           %[tmp1], %[b_re]")
             __ASM_EMIT32("mov           %[tmp2], %[b_im]")
 
@@ -463,10 +459,10 @@ namespace sse
 
             __ASM_EMIT("4:")
 
-            : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
+            : IF_ARCH_X86_64([dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),)
+              IF_ARCH_I386([dst_re] "+m" (dst_re), [dst_im] "+m" (dst_im), [tmp1] "+m" (tmp1), [tmp2] "+m" (tmp2), )
               [t_re] "+r" (t_re), [t_im] "+r" (t_im),
-              IF_ARCH_X86_64([b_re] "+r" (b_re), [b_im] "+r" (b_im),)
-              IF_ARCH_I386([b_re] "+m" (b_re), [b_im] "+m" (b_im), [tmp1] "+m" (tmp1), [tmp2] "+m" (tmp2), )
+              [b_re] "+r" (b_re), [b_im] "+r" (b_im),
               [count] "+r" (count)
             :
             : "cc", "memory",

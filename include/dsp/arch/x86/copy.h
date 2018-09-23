@@ -14,7 +14,7 @@ namespace x86
     {
         IF_ARCH_X86_64(size_t tmp);
 
-        ARCH_X86_ASM
+        ARCH_X86_64_ASM
         (
             __ASM_EMIT("mov     %[count], %[tmp]")
             __ASM_EMIT("shr     $1, %[count]")

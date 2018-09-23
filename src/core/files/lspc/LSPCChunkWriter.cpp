@@ -34,8 +34,12 @@ namespace lsp
         {
             lspc_chunk_header_t hdr;
             hdr.magic       = nMagic;
-            hdr.size        = CPU_TO_BE(nBufPos);
-            hdr.uid         = CPU_TO_BE(nUID);
+            hdr.size        = nBufPos;
+            hdr.uid         = nUID;
+
+            // Convert CPU -> BE
+            hdr.size        = CPU_TO_BE(hdr.size);
+            hdr.uid         = CPU_TO_BE(hdr.uid);
 
             // Write buffer header and data to file
             status_t res    = pFile->write(&hdr, sizeof(lspc_chunk_header_t));
@@ -79,8 +83,12 @@ namespace lsp
                 if (nBufPos >= nBufSize)
                 {
                     hdr.magic       = nMagic;
-                    hdr.size        = CPU_TO_BE(nBufSize);
-                    hdr.uid         = CPU_TO_BE(nUID);
+                    hdr.size        = nBufSize;
+                    hdr.uid         = nUID;
+
+                    // Convert CPU -> BE
+                    hdr.size        = CPU_TO_BE(hdr.size);
+                    hdr.uid         = CPU_TO_BE(hdr.uid);
 
                     // Write buffer header and data to file
                     status_t res    = pFile->write(&hdr, sizeof(lspc_chunk_header_t));
@@ -97,8 +105,12 @@ namespace lsp
             else // Write directly avoiding buffer
             {
                 hdr.magic       = nMagic;
-                hdr.size        = CPU_TO_BE(nBufSize);
-                hdr.uid         = CPU_TO_BE(nUID);
+                hdr.size        = nBufSize;
+                hdr.uid         = nUID;
+
+                // Convert CPU -> BE
+                hdr.size        = CPU_TO_BE(hdr.size);
+                hdr.uid         = CPU_TO_BE(hdr.uid);
 
                 // Write buffer header and data to file
                 status_t res    = pFile->write(&hdr, sizeof(lspc_chunk_header_t));
@@ -115,6 +127,27 @@ namespace lsp
         }
 
         return set_error(STATUS_OK);
+    }
+
+    status_t LSPCChunkWriter::write_header(const void *buf)
+    {
+        if (pFile == NULL)
+            return set_error(STATUS_CLOSED);
+
+        const lspc_header_t *phdr = reinterpret_cast<const lspc_header_t *>(buf);
+        if (phdr->size < sizeof(lspc_header_t))
+            return set_error(STATUS_BAD_ARGUMENTS);
+
+        // Write encoded header
+        lspc_header_t shdr;
+        shdr.size           = CPU_TO_BE(phdr->size);
+        shdr.version        = CPU_TO_BE(phdr->version);
+        status_t res        = write(&shdr, sizeof(shdr));
+        if (res != STATUS_OK)
+            return res;
+
+        // Write header data
+        return write(&phdr[1], phdr->size - sizeof(lspc_header_t));
     }
 
     status_t LSPCChunkWriter::flush()

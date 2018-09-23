@@ -23,6 +23,14 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void abs1(float *src, size_t count);
+        void abs2(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* abs1_t)(float *src, size_t count);
 typedef void (* abs2_t)(float *dst, const float *src, size_t count);
 
@@ -36,7 +44,7 @@ UTEST_BEGIN("dsp.pmath", abs)
             return;
 
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                32, 64, 65, 100, 999)
+                32, 64, 65, 100, 999, 0xfff)
         {
             for (size_t mask=0; mask <= 0x01; ++mask)
             {
@@ -70,7 +78,7 @@ UTEST_BEGIN("dsp.pmath", abs)
             return;
 
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                32, 64, 65, 100, 999)
+                32, 64, 65, 100, 999, 0xfff)
         {
             for (size_t mask=0; mask <= 0x03; ++mask)
             {
@@ -103,8 +111,10 @@ UTEST_BEGIN("dsp.pmath", abs)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("abs1 sse", 16, sse::abs1));
-        IF_ARCH_X86(call("abs2 sse", 16, sse::abs2));
+        IF_ARCH_X86(call("sse:abs1", 16, sse::abs1));
+        IF_ARCH_X86(call("sse:abs2", 16, sse::abs2));
+        IF_ARCH_ARM(call("neon_d32:abs1", 16, neon_d32::abs1));
+        IF_ARCH_ARM(call("neon_d32:abs2", 16, neon_d32::abs2));
     }
 UTEST_END
 

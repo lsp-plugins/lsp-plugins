@@ -8,7 +8,7 @@ AVX_IMPL                = $(OBJDIR)/avx.o
 NEON_D32_IMPL           = $(OBJDIR)/neon-d32.o
 DSP_IMPL                = $(OBJDIR)/dsp.o
 BITS_IMPL               = $(OBJDIR)/bits.o
-ARM_IMPL				= $(OBJDIR)/arm.o
+ARM_IMPL                = $(OBJDIR)/arm.o
 
 SSE_INSTR_SET           = -mmmx -m3dnow -msse -msse2
 SSE3_INSTR_SET          = $(SSE_INSTR_SET) -msse3 -mssse3

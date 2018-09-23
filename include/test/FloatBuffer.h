@@ -22,7 +22,7 @@ namespace test
             size_t      nLength;
             size_t      nAlign;
             bool        bAligned;
-            mutable size_t  nLastDiff;
+            mutable ssize_t  nLastDiff;
 
         private:
             void allocate(size_t samples, size_t align, bool aligned);
@@ -45,11 +45,13 @@ namespace test
             inline bool corrupted() const { return !validate(); };
             bool equals_relative(const FloatBuffer &src, float tolerance = 1e-5f) const;
             bool equals_absolute(const FloatBuffer &src, float tolerance = 1e-5f) const;
+            bool equals_adaptive(const FloatBuffer &src, float tolerance = 1e-5f) const;
             void dump(const char *text) const;
             void dump(const char *text, size_t from, size_t count) const;
             inline bool aligned() const { return bAligned; }
             inline size_t size() const { return nLength; }
-            inline size_t last_diff() const { return nLastDiff; }
+            inline ssize_t last_diff() const { return nLastDiff; }
+            inline float get_diff() const { return (nLastDiff >= 0) ? pBuffer[nLastDiff] : 0.0f; }
 
         public:
             inline float &operator [] (size_t index) {
@@ -57,6 +59,10 @@ namespace test
             }
 
             inline float operator [] (size_t index) const {
+                return pBuffer[index];
+            }
+
+            inline float get(size_t index) const {
                 return pBuffer[index];
             }
 

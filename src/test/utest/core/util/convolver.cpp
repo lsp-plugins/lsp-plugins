@@ -120,7 +120,7 @@ UTEST_BEGIN("core.util", convolver)
         UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
         UTEST_ASSERT_MSG(dst3.valid(), "Destination buffer 3 corrupted");
 
-        if ((!dst2.equals_absolute(dst1, 1e-5)) || (!dst3.equals_absolute(dst2, 1e-5)))
+        if ((!dst2.equals_absolute(dst1, 1e-4)) || (!dst3.equals_absolute(dst2, 1e-4)))
         {
             src.dump("src ");
             conv.dump("conv");

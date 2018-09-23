@@ -6,3 +6,6 @@
 
 <h2>Profiling and Debugging</h2>
 <?php file_content('README.txt', 'profiling \/ debugging'); ?>
+
+<h2>Testing</h2>
+<?php file_content('README.txt', 'testing'); ?>

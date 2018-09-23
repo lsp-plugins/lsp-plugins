@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include <dsp/endian.h>
+#include <core/debug.h>
 #include <core/files/lspc/lspc.h>
 #include <core/files/LSPCFile.h>
 
@@ -143,8 +144,38 @@ namespace lsp
             ssize_t res = pFile->read(pos, &hdr, sizeof(lspc_chunk_header_t));
             if (res != sizeof(lspc_chunk_header_t))
                 return NULL;
+//            lsp_trace("chunk header uid=%x, magic=%x, search_uid=%x, size=%llx",
+//                    int(BE_TO_CPU(hdr.uid)), int(BE_TO_CPU(hdr.magic)), int(uid), (long long)(BE_TO_CPU(hdr.size)));
             pos        += sizeof(lspc_chunk_header_t);
             if (BE_TO_CPU(hdr.uid) == uid)
+                break;
+            pos        += BE_TO_CPU(hdr.size);
+        }
+
+        // Create reader
+        LSPCChunkReader *rd = new LSPCChunkReader(pFile, BE_TO_CPU(hdr.magic), uid);
+        if (rd == NULL)
+            return NULL;
+        rd->nFileOff        = pos;
+        rd->nUnread         = BE_TO_CPU(hdr.size);
+        return rd;
+    }
+
+    LSPCChunkReader *LSPCFile::read_chunk(uint32_t uid, uint32_t magic)
+    {
+        if ((pFile == NULL) || (bWrite))
+            return NULL;
+
+        // Find the initial position of the chunk in file
+        lspc_chunk_header_t hdr;
+        wsize_t pos         = nHdrSize;
+        while (true)
+        {
+            ssize_t res = pFile->read(pos, &hdr, sizeof(lspc_chunk_header_t));
+            if (res != sizeof(lspc_chunk_header_t))
+                return NULL;
+            pos        += sizeof(lspc_chunk_header_t);
+            if ((BE_TO_CPU(hdr.uid) == uid) && (BE_TO_CPU(hdr.magic) == magic))
                 break;
             pos        += BE_TO_CPU(hdr.size);
         }
@@ -168,6 +199,7 @@ namespace lsp
                 return NULL;
 
             // Check chunk type
+//            lsp_trace("rd->magic = %x, req_magic=%x", int(rd->magic()), int(magic));
             if (rd->magic() == magic)
             {
                 if (id != NULL)
@@ -177,6 +209,7 @@ namespace lsp
 
             // Close chunk reader
             rd->close();
+            delete rd;
             start_id++;
         }
     }

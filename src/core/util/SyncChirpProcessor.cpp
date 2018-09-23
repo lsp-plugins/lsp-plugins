@@ -1534,14 +1534,15 @@ namespace lsp
         lspc_chunk_audio_header_t ahdr;
         memset(&ahdr, 0, sizeof(lspc_chunk_audio_header_t));
 
-        ahdr.version            = 1;
+        ahdr.common.version     = 1;
+        ahdr.common.size        = sizeof(lspc_chunk_audio_header_t);
         ahdr.channels           = 1;
         ahdr.sample_format      = __IF_LE(LSPC_SAMPLE_FMT_F32LE) __IF_BE(LSPC_SAMPLE_FMT_F32BE);
         ahdr.sample_rate        = nSampleRate;
         ahdr.codec              = LSPC_CODEC_PCM;
         ahdr.frames             = dataLength;
 
-        ahdr.version            = CPU_TO_BE(ahdr.version);
+        // Convert non-common fields CPU -> BE
         ahdr.channels           = CPU_TO_BE(ahdr.channels);
         ahdr.sample_format      = CPU_TO_BE(ahdr.sample_format);
         ahdr.sample_rate        = CPU_TO_BE(ahdr.sample_rate);
@@ -1549,7 +1550,7 @@ namespace lsp
         ahdr.frames             = CPU_TO_BE(ahdr.frames);
 
         // Write audio header
-        res = wr->write(&ahdr, sizeof(ahdr));
+        res = wr->write_header(&ahdr);
         if (res != STATUS_OK)
         {
             wr->close();
@@ -1560,7 +1561,6 @@ namespace lsp
         size_t chunk_id         = wr->unique_id();
 
         float *vResult          = pConvResult->channel(0);
-//        float frame;
 
         // We can write the complete buffer at one time but specify LE or BE format (see sample_format)
         res = wr->write(vResult, sizeof(float) * dataLength);
@@ -1579,9 +1579,10 @@ namespace lsp
         wr                      = fd.write_chunk(LSPC_CHUNK_PROFILE);
 
         lspc_chunk_audio_profile_t prof;
-        memset(&prof, 0, sizeof(lspc_chunk_audio_profile_t));
+        bzero(&prof, sizeof(lspc_chunk_audio_profile_t));
 
-        prof.version            = 1;
+        prof.common.version     = 1;
+        prof.common.size        = sizeof(lspc_chunk_audio_profile_t);
         prof.chunk_id           = chunk_id;
         prof.chirp_order        = sChirpParams.nOrder;
         prof.alpha              = sChirpParams.fAlpha;
@@ -1591,7 +1592,7 @@ namespace lsp
         prof.initial_freq       = sChirpParams.initialFrequency;
         prof.final_freq         = sChirpParams.finalFrequency;
 
-        prof.version            = CPU_TO_BE(prof.version);
+        // Convert header fields CPU -> BE
         prof.chunk_id           = CPU_TO_BE(prof.chunk_id);
         prof.chirp_order        = CPU_TO_BE(prof.chirp_order);
         prof.alpha              = CPU_TO_BE(prof.alpha);
@@ -1602,7 +1603,7 @@ namespace lsp
         prof.final_freq         = CPU_TO_BE(prof.final_freq);
 
         // Write data with one call
-        res = wr->write(&prof, sizeof(lspc_chunk_audio_profile_t));
+        res = wr->write_header(&prof);
         if (res != STATUS_OK)
         {
             wr->close();
@@ -1648,12 +1649,17 @@ namespace lsp
             if (rd->magic() == LSPC_CHUNK_PROFILE)
             {
                 // Read profile header
-                n                   = rd->read(&prof, sizeof(lspc_chunk_audio_profile_t));
-                if (n != sizeof(lspc_chunk_audio_profile_t))
+                n                   = rd->read_header(&prof, sizeof(lspc_chunk_audio_profile_t));
+                if (n < 0)
                     continue;
+                else if ((prof.common.version < 1) || (prof.common.size < sizeof(lspc_chunk_audio_profile_t)))
+                {
+                    rd->close();
+                    fd.close();
+                    return STATUS_CORRUPTED_FILE;
+                }
 
-                // Convert fields BE -> LE
-                prof.version            = BE_TO_CPU(prof.version);
+                // Convert header fields BE -> CPU
                 prof.chunk_id           = BE_TO_CPU(prof.chunk_id);
                 prof.chirp_order        = BE_TO_CPU(prof.chirp_order);
                 prof.alpha              = BE_TO_CPU(prof.alpha);
@@ -1700,7 +1706,7 @@ namespace lsp
 
         // Read audio header
         n = rd->read(&ahdr, sizeof(lspc_chunk_audio_header_t));
-        if (n != sizeof(lspc_chunk_audio_header_t))
+        if ((n < 0) || (ahdr.common.version < 1) || (ahdr.common.size < sizeof(lspc_chunk_audio_header_t)))
         {
             rd->close();
             delete rd;
@@ -1708,8 +1714,7 @@ namespace lsp
             return STATUS_CORRUPTED_FILE;
         }
 
-        // Convert BE -> LE
-        ahdr.version        = BE_TO_CPU(ahdr.version);
+        // Convert header fields BE -> CPU
         ahdr.channels       = BE_TO_CPU(ahdr.channels);
         ahdr.sample_format  = BE_TO_CPU(ahdr.sample_format);
         ahdr.sample_rate    = BE_TO_CPU(ahdr.sample_rate);

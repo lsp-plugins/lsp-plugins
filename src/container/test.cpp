@@ -233,12 +233,17 @@ int execute_utest(config_t *cfg, test::UnitTest *v)
     if (!cfg->debug)
     {
         timer.it_interval.tv_sec    = v->time_limit();
-        timer.it_interval.tv_usec   = suseconds_t(v->time_limit() * 1e+9) % 1000000000L;
+        timer.it_interval.tv_usec   = suseconds_t(v->time_limit() * 1e+6) % 1000000L;
         timer.it_value              = timer.it_interval;
 
         signal(SIGALRM, utest_sighandler);
         if (setitimer(ITIMER_REAL, &timer, NULL) != 0)
+        {
+            int code = errno;
+            fprintf(stderr, "setitimer failed with errno=%d\n", code);
+            fflush(stderr);
             exit(4);
+        }
     }
 
     // Execute performance test
@@ -253,7 +258,12 @@ int execute_utest(config_t *cfg, test::UnitTest *v)
         timer.it_value              = timer.it_interval;
 
         if (setitimer(ITIMER_REAL, &timer, NULL) != 0)
+        {
+            int code = errno;
+            fprintf(stderr, "setitimer failed with errno=%d\n", code);
+            fflush(stderr);
             exit(4);
+        }
         signal(SIGALRM, SIG_DFL);
     }
 
@@ -292,7 +302,8 @@ int launch_ptest(config_t *cfg)
         if (fd == NULL)
         {
             fprintf(stderr, "Could not open output file %s\n", cfg->outfile);
-            return 4;
+            fflush(stderr);
+            return 5;
         }
 
         out_cpu_info(fd);
@@ -482,7 +493,7 @@ bool wait_thread(config_t *cfg, task_t *threads, stats_t *stats)
         if (pid < 0)
         {
             fprintf(stderr, "Waiting for unit test completion failed\n");
-            exit(4);
+            exit(6);
             break;
         }
 

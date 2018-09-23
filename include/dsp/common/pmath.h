@@ -63,6 +63,42 @@ namespace dsp
      */
     extern void (* abs_div2)(float *dst, const float *src, size_t count);
 
+    /** Calculate absolute values: dst[i] = src1[i] + abs(src2[i])
+     *
+     * @param dst destination vector
+     * @param src1 source vector 1
+     * @param src2 source vector 2
+     * @param count number of elements
+     */
+    extern void (* abs_add3)(float *dst, const float *src1, const float *src2, size_t count);
+
+    /** Calculate absolute values: dst[i] = src1[i] - abs(src2[i])
+     *
+     * @param dst destination vector
+     * @param src1 source vector 1
+     * @param src2 source vector 2
+     * @param count number of elements
+     */
+    extern void (* abs_sub3)(float *dst, const float *src1, const float *src2, size_t count);
+
+    /** Calculate absolute values: dst[i] = src1[i] * abs(src2[i])
+     *
+     * @param dst destination vector
+     * @param src1 source vector 1
+     * @param src2 source vector 2
+     * @param count number of elements
+     */
+    extern void (* abs_mul3)(float *dst, const float *src1, const float *src2, size_t count);
+
+    /** Calculate absolute values: dst[i] = src1[i] / abs(src2[i])
+     *
+     * @param dst destination vector
+     * @param src1 source vector 1
+     * @param src2 source vector 2
+     * @param count number of elements
+     */
+    extern void (* abs_div3)(float *dst, const float *src1, const float *src2, size_t count);
+
     /** Calculate dst[i] = dst[i] + src[i] * k
      *
      * @param dst destination array

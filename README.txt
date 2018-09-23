@@ -27,10 +27,16 @@ For more information about licensing, please read LICENSE.txt.
 
 ==== SYSTEM REQUIREMENTS ====
 
-LSP plugins are developed to support LADSPA, LV2 and LinuxVST formats and
-at least i586 and x86_64 architectures. Plugins that require MIDI channels
-and file loading are not implemented in LASDPA format due to format's restrictions.
-Also there are available standalone versions for JACK server.
+Currently supported architectures are:
+  * i586 (Intel IA-32 architecture, legacy support);
+  * x86_64 (Intel EM64T, AMD64 architecture, full support);
+  * ARMv7-AR (experimental).
+
+Supported plugin formats:
+  * LADSPA (not supported by plugins that use MIDI or file loading);
+  * LV2 (full support);
+  * LinuxVST 2.4 (full support);
+  * Standalone JACK (full support).
 
 The LADSPA distribution requirements:
   * glibc >= 2.19
@@ -47,7 +53,7 @@ The LinuxVST distribution requirements:
   * glibc >= 2.19
   * libsndfile >= 1.0.25
   * libcairo >= 1.14
-  * Host compatible with LinuxVST v2.4
+  * Host compatible with LinuxVST 2.4
 
 The JACK distribution requirements:
   * glibc >= 2.19
@@ -197,6 +203,85 @@ For debugging and getting crash stack trace with Ardour, please follow these ste
   * Do usual stuff to reproduce the problem
   * After Ardour crashes, type 'thread apply all bt' in console and attach the output
     to the bug report.
+
+==== TESTING ====
+
+Since release 1.1.4 there is implemented testing subsystem that allows:
+  * Perform manual tests (mtest module);
+  * Perform automated unit testing (utest module);
+  * Perform automated single-core performance testing (ptest module).
+
+Manual tests are semi-automated or no automated at all. You may launch these tests
+to perform manual interaction with system or for retrieving some text data for further
+processing.
+
+Unit tests are completely automated and check that the produced result is correct for the
+specific input data. By default unit tests are launched in separate processes and utilize
+all CPU cores for maximum performance. The status of each unit test is collected during
+execution and list of all failed tests are printed after completion.
+
+Performance tests measure performance of some function/module under different conditions, 
+gather final statistics and output them in a table format. These tests are very useful for
+measuring single-core performance of different modules and functions and performing code
+optimizations.
+
+To build testing subsystem, issue the following commands:
+  make clean
+  make test
+
+After build, we can launth the test binary by issuing command:
+  .build/lsp-plugins-test
+
+This binary provides simple command-line interface, so here's the full usage:  
+  USAGE: {utest|ptest|mtest} [args...] [test name...]
+    First argument:
+      utest                 Unit testing subsystem
+      ptest                 Performance testing subsystem
+      mtest                 Manual testing subsystem
+    Additional arguments:
+      -a, --args [args...]  Pass arguments to test
+      -d, --debug           Disable time restrictions for unit tests
+                            for debugging purporses
+      -f, --fork            Fork child processes (opposite to --nofork)
+      -h, --help            Display help
+      -j, --jobs            Set number of job workers for unit tests
+      -l, --list            List all available tests
+      -nf, --nofork         Do not fork child processes (for better
+                            debugging capabilities)
+      -o, --outfile file    Output performance test statistics to specified file
+      -s, --silent          Do not output additional information from tests
+      -v, --verbose         Output additional information from tests
+
+Each test has fully-qualified name separated by dot symbols, tests from different
+spaces (utest, ptest, mtest) can have same fully-qualified name.
+
+To obtain a list of all unit tests we can issue:
+  .build/lsp-plugins-test utest --list
+
+And then we can launch all complex number processing unit tests and additionally
+'dsp.mix' unit test:
+  .build/lsp-plugins-test utest dsp.complex.* dsp.pcomplex.* dsp.mix
+
+If we don's specify any unit test name in argument, then all available unit tests
+will be launched.
+
+To start debugging of some unit test, you need to pass additional arguments:
+  .build/lsp-plugins-test utest --nofork --debug --verbose
+  
+Because unit tests are short-time fully-automated tests, they are parallelized and
+executed by default by number_of_cores*2 processes. To disable this, we specify option
+--nofork. Also, unit test execution time is limited by 5 seconds by default, so when
+debugging, our tests will be killed, so we specify --debug option to disable time control.
+Option --verbose allows to output additional information by the unit test that is turned
+off by default.
+
+We also can use performance tests to obtain full performance profile of target machine.
+Because performance tests in most cases take much time for gathering statistics,
+the final statistics for each test can be saved in a separate file by specifying --outfile
+option:
+  .build/lsp-plugins-test ptest -o performance-test.log
+
+Manual tests are mostly designed for developers' purposes.
 
 ==== TROUBLESHOOTING ====
 

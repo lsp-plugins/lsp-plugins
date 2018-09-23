@@ -9,6 +9,12 @@
 #include <test/FloatBuffer.h>
 #include <dsp/dsp.h>
 
+#ifdef ARCH_I386
+    #define TOLERANCE       5e-2
+#else
+    #define TOLERANCE       1e-4
+#endif
+
 namespace native
 {
     void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
@@ -66,15 +72,27 @@ UTEST_BEGIN("dsp.fft", fft)
                 UTEST_ASSERT_MSG(dst2_im.valid(), "Destination buffer 2 IM corrupted");
 
                 // Compare buffers
-                if ((!dst1_re.equals_relative(dst2_re, 1e-4)) || (!dst1_im.equals_relative(dst2_im, 1e-4)))
+                if ((!dst1_re.equals_adaptive(dst2_re, TOLERANCE)) || (!dst1_im.equals_adaptive(dst2_im, TOLERANCE)))
                 {
                     src_re.dump("src_re ");
-                    src_re.dump("src_im ");
+                    src_im.dump("src_im ");
                     dst1_re.dump("dst1_re");
-                    dst1_im.dump("dst1_im");
                     dst2_re.dump("dst2_re");
+                    dst1_im.dump("dst1_im");
                     dst2_im.dump("dst2_im");
-                    UTEST_FAIL_MSG("Output of functions for test '%s' differs", label);
+
+                    ssize_t diff = dst1_re.last_diff();
+                    if (diff >= 0)
+                    {
+                        UTEST_FAIL_MSG("Real output of functions for test '%s' differs at sample %d (%.5f vs %.5f)",
+                                label, int(diff), dst1_re.get(diff), dst2_re.get(diff));
+                    }
+                    else
+                    {
+                        diff = dst1_im.last_diff();
+                        UTEST_FAIL_MSG("Imaginary output of functions for test '%s' differs at sample %d (%.5f vs %.5f)",
+                                label, int(diff), dst1_im.get(diff), dst2_im.get(diff));
+                    }
                 }
             }
         }
@@ -104,12 +122,14 @@ UTEST_BEGIN("dsp.fft", fft)
                 UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
 
                 // Compare buffers
-                if ((!dst1.equals_relative(dst2, 1e-4)))
+                if ((!dst1.equals_adaptive(dst2, TOLERANCE)))
                 {
+                    ssize_t diff = dst1.last_diff();
                     src.dump("src ");
                     dst1.dump("dst1");
                     dst2.dump("dst2");
-                    UTEST_FAIL_MSG("Output of functions for test '%s' differs", label);
+                    UTEST_FAIL_MSG("Output of functions for test '%s' differs at sample %d (%.5f vs %.5f)",
+                            label, int(diff), dst1.get(diff), dst2.get(diff));
                 }
             }
         }

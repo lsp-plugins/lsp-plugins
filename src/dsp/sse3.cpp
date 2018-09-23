@@ -31,6 +31,7 @@ namespace sse3
     #define DSP_U32REP4(v)              uint32_t(v), uint32_t(v), uint32_t(v), uint32_t(v)
 
     #define DSP_F32ARRAY(name, ...)     static const float name[] __lsp_aligned16          = { __VA_ARGS__ }
+    #define DSP_U32ARRAY(name, ...)     static const uint32_t name[] __lsp_aligned16       = { __VA_ARGS__ }
 
     #include <dsp/common/const/const16.h>
 
@@ -63,6 +64,7 @@ namespace sse3
     #define EXPORT2(function, export)               dsp::function = sse3::export; TEST_EXPORT(sse3::export);
     #define EXPORT2_X64(function, export)           IF_ARCH_X86_64(dsp::function = sse3::export; TEST_EXPORT(sse3::export));
     #define EXPORT1(export)                         EXPORT2(export, export)
+    #define SUPPORT_X64(function)                   IF_ARCH_X86_64(TEST_EXPORT(sse3::function))
 
     void dsp_init(const cpu_features_t *f)
     {
@@ -91,6 +93,8 @@ namespace sse3
         EXPORT2_X64(bilinear_transform_x8, x64_bilinear_transform_x8);
         EXPORT2_X64(axis_apply_log, x64_axis_apply_log);
         EXPORT2_X64(pcomplex_mul3, x64_pcomplex_mul3);
+
+        EXPORT2_X64(rgba32_to_bgra32, x64_rgba32_to_bgra32);
     }
 
     #undef EXPORT2
