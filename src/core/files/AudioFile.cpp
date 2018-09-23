@@ -236,14 +236,12 @@ namespace lsp
         LSPCChunkReader *prof = fd.find_chunk(LSPC_CHUNK_PROFILE);
         if (prof != NULL)
         {
-            // Read profile header
+            // Read profile header and check version
             lspc_chunk_audio_profile_t p;
-            ssize_t n = prof->read(&p, sizeof(lspc_chunk_audio_profile_t));
-            if (n != sizeof(lspc_chunk_audio_profile_t))
-                res = (n < 0) ? -n : STATUS_CORRUPTED_FILE;
-
-            // Check version
-            if ((res == STATUS_OK) && (BE_TO_CPU(p.version) < 1))
+            ssize_t n = prof->read_header(&p, sizeof(lspc_chunk_audio_profile_t));
+            if (n < 0)
+                res     = status_t(-n);
+            else if ((p.common.version < 1) || (p.common.size < sizeof(lspc_chunk_audio_profile_t)))
                 res = STATUS_CORRUPTED_FILE;
 
             // Get related chunk identifier
@@ -276,19 +274,25 @@ namespace lsp
             return STATUS_BAD_FORMAT;
         }
 
-        // Read audio chunk header
+        // Read audio chunk header and check it size
         lspc_chunk_audio_header_t ahdr;
-        ssize_t n = audi->read(&ahdr, sizeof(lspc_chunk_audio_header_t));
-        if (n != sizeof(lspc_chunk_audio_header_t))
-            res = (n < 0) ? -n : STATUS_CORRUPTED_FILE;
+        ssize_t n = audi->read_header(&ahdr, sizeof(lspc_chunk_audio_header_t));
+        if (n < 0)
+            res = status_t(-n);
+        else if ((ahdr.common.version < 1) || (ahdr.common.size < sizeof(lspc_chunk_audio_header_t)))
+            res = STATUS_CORRUPTED_FILE;
 
         // Analyze header
-        ahdr.version        = BE_TO_CPU(ahdr.version);
         ahdr.channels       = BE_TO_CPU(ahdr.channels);
         ahdr.sample_format  = BE_TO_CPU(ahdr.sample_format);
         ahdr.sample_rate    = BE_TO_CPU(ahdr.sample_rate);
         ahdr.codec          = BE_TO_CPU(ahdr.codec);
         ahdr.frames         = BE_TO_CPU(ahdr.frames);
+
+        if (res == STATUS_OK)
+            res = ((ahdr.codec != LSPC_CODEC_PCM) ||
+                   ((ahdr.sample_format != LSPC_SAMPLE_FMT_F32LE) && (ahdr.sample_format != LSPC_SAMPLE_FMT_F32BE)))
+                   ? STATUS_UNSUPPORTED_FORMAT: STATUS_OK;
 
         // Calculation of samples/frames to skip
         if (res == STATUS_OK)
@@ -312,12 +316,6 @@ namespace lsp
                 skip            = skipNoOffset - offset;
             }
         }
-
-        if (res == STATUS_OK)
-            res = ((ahdr.version < 1) ||
-                   (ahdr.codec != LSPC_CODEC_PCM) ||
-                   ((ahdr.sample_format != LSPC_SAMPLE_FMT_F32LE) && (ahdr.sample_format != LSPC_SAMPLE_FMT_F32BE)))
-                   ? STATUS_UNSUPPORTED_FORMAT: STATUS_OK;
 
         // Read sample file
         if (res == STATUS_OK)

@@ -32,13 +32,32 @@ namespace lsp
             virtual ~LSPCChunkWriter();
 
         public:
+            /**
+             * Write chunk data header to LSPC chunk.
+             * @param buf buffer containing header
+             * @return status of operation
+             */
+            virtual status_t    write_header(const void *buf);
+
+            /**
+             * Write data to LSPC chunk
+             * @param buf buffer to write
+             * @param count number of bytes to write
+             * @return status of operation
+             */
             virtual status_t    write(const void *buf, size_t count);
 
+            /**
+             * Flush all buffers to file
+             * @return status of operation
+             */
             virtual status_t    flush();
 
+            /**
+             * Close chunk writer
+             * @return status of operation
+             */
             virtual status_t    close();
-
-
     };
 
 } /* namespace lsp */

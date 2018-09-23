@@ -117,6 +117,27 @@ namespace lsp
         return set_error(STATUS_OK);
     }
 
+    status_t LSPCChunkWriter::write_header(const void *buf)
+    {
+        if (pFile == NULL)
+            return set_error(STATUS_CLOSED);
+
+        const lspc_header_t *phdr = reinterpret_cast<const lspc_header_t *>(buf);
+        if (phdr->size < sizeof(lspc_header_t))
+            return set_error(STATUS_BAD_ARGUMENTS);
+
+        // Write encoded header
+        lspc_header_t shdr;
+        shdr.size           = CPU_TO_BE(phdr->size);
+        shdr.version        = CPU_TO_BE(phdr->version);
+        status_t res        = write(&shdr, sizeof(shdr));
+        if (res != STATUS_OK)
+            return res;
+
+        // Write header data
+        return write(&phdr[1], phdr->size - sizeof(lspc_header_t));
+    }
+
     status_t LSPCChunkWriter::flush()
     {
         return do_flush(false);

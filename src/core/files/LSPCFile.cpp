@@ -158,6 +158,34 @@ namespace lsp
         return rd;
     }
 
+    LSPCChunkReader *LSPCFile::read_chunk(uint32_t uid, uint32_t magic)
+    {
+        if ((pFile == NULL) || (bWrite))
+            return NULL;
+
+        // Find the initial position of the chunk in file
+        lspc_chunk_header_t hdr;
+        wsize_t pos         = nHdrSize;
+        while (true)
+        {
+            ssize_t res = pFile->read(pos, &hdr, sizeof(lspc_chunk_header_t));
+            if (res != sizeof(lspc_chunk_header_t))
+                return NULL;
+            pos        += sizeof(lspc_chunk_header_t);
+            if ((BE_TO_CPU(hdr.uid) == uid) && (BE_TO_CPU(hdr.magic) == magic))
+                break;
+            pos        += BE_TO_CPU(hdr.size);
+        }
+
+        // Create reader
+        LSPCChunkReader *rd = new LSPCChunkReader(pFile, BE_TO_CPU(hdr.magic), uid);
+        if (rd == NULL)
+            return NULL;
+        rd->nFileOff        = pos;
+        rd->nUnread         = BE_TO_CPU(hdr.size);
+        return rd;
+    }
+
     LSPCChunkReader *LSPCFile::find_chunk(uint32_t magic, uint32_t *id, uint32_t start_id)
     {
         while (true)

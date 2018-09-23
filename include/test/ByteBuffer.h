@@ -48,6 +48,8 @@ namespace test
             inline bool valid() const { return validate(); };
             inline bool corrupted() const { return !validate(); };
 
+            inline size_t size() const { return nLength; }
+
         public:
             inline uint8_t &operator [] (size_t index) {
                 return pBuffer[index];
@@ -69,6 +71,11 @@ namespace test
             }
 
             inline operator uint8_t *()
+            {
+                return pBuffer;
+            }
+
+            inline operator void *()
             {
                 return pBuffer;
             }
