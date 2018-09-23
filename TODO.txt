@@ -27,7 +27,8 @@
 * Added LSPC file format implementation.
 * Added LSPC file format support to convolver plugins.
 * Huge refactoring: DSP code moved from core to separate subtree.
-* Implemented NEON SIMD instruction support for some DSP assembly functions for ARMv7A architecture.
+* Partially implemented NEON SIMD instruction support for some DSP assembly functions
+  for ARMv7A architecture.
 * Fixed bugs in some DSP oversampling routines.
 * Optimized complex multiplication functions.
 * Implemented additional complex number routines.
