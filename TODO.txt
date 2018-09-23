@@ -40,16 +40,20 @@
 *******************************************************************************
 * Update version in Makefile
 * Update CHANGELOG.txt and TODO.txt
-* Run make clean && make -j8 test to build testing system
-* Run .build/lsp-plugins-test utest for running all unit tests
-* Run make clean && make uninstall && make -j8 install to build and install binaries
+* Run make clean && make test to build testing system
+* Run .build/lsp-plugins-test utest for running all unit tests and
+  ensure that there are no broken unit tests
+* Run make clean && make uninstall && make install to
+  build and install binaries
 * Make video
 * Add video cover to res/video-covers
 * Upload release video to the site
 * Add link to the video to src/doc/config/youtube.php
 * Run ./release.sh to build binaries
-* Commit all changes to GIT
-* Tag version in GIT
+* Commit all changes to GIT into devel branch
+* Merge all changes from devel branch to master branch including complete
+  change set in the message
+* Tag version in GIT at master branch
 * Upload binaries to sourceforge
 * Copy contents of src/doc and res/doc/img/plugins to the site
 * Publish video on youtube
