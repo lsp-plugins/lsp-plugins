@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include <dsp/endian.h>
+#include <core/debug.h>
 #include <core/files/lspc/lspc.h>
 #include <core/files/LSPCFile.h>
 
@@ -143,6 +144,7 @@ namespace lsp
             ssize_t res = pFile->read(pos, &hdr, sizeof(lspc_chunk_header_t));
             if (res != sizeof(lspc_chunk_header_t))
                 return NULL;
+            lsp_trace("chunk header uid=%x, search_uid=%x, size=%x", int(BE_TO_CPU(hdr.uid)), int(uid), int(BE_TO_CPU(hdr.size)));
             pos        += sizeof(lspc_chunk_header_t);
             if (BE_TO_CPU(hdr.uid) == uid)
                 break;
@@ -196,6 +198,7 @@ namespace lsp
                 return NULL;
 
             // Check chunk type
+            lsp_trace("rd->magic = %x, req_magic=%x", int(rd->magic()), int(magic));
             if (rd->magic() == magic)
             {
                 if (id != NULL)
@@ -205,6 +208,7 @@ namespace lsp
 
             // Close chunk reader
             rd->close();
+            delete rd;
             start_id++;
         }
     }
