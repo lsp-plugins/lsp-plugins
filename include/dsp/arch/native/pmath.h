@@ -118,110 +118,110 @@ namespace native
 
     void scale_add3(float *dst, const float *src, float k, size_t count)
     {
-        while (count--)
-            *(dst++) += *(src++) * k;
+        for (size_t i=0; i<count; ++i)
+            dst[i] += src[i] * k;
     }
 
     void scale_sub3(float *dst, const float *src, float k, size_t count)
     {
-        while (count--)
-            *(dst++) -= *(src++) * k;
+        for (size_t i=0; i<count; ++i)
+            dst[i] -= src[i] * k;
     }
 
     void scale_mul3(float *dst, const float *src, float k, size_t count)
     {
-        while (count--)
-            *(dst++) *= *(src++) * k;
+        for (size_t i=0; i<count; ++i)
+            dst[i] *= src[i] * k;
     }
 
     void scale_div3(float *dst, const float *src, float k, size_t count)
     {
-        while (count--)
-            *(dst++) /= *(src++) * k;
+        for (size_t i=0; i<count; ++i)
+            dst[i] /= src[i] * k;
     }
 
     void scale_add4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
-        while (count--)
-            *(dst++) = *(src1++) + *(src2++) * k;
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src1[i] + src2[i] * k;
     }
 
     void scale_sub4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
-        while (count--)
-            *(dst++) = *(src1++) - *(src2++) * k;
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src1[i] - src2[i] * k;
     }
 
     void scale_mul4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
-        while (count--)
-            *(dst++) = *(src1++) * *(src2++) * k;
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src1[i] * src2[i] * k;
     }
 
     void scale_div4(float *dst, const float *src1, const float *src2, float k, size_t count)
     {
-        while (count--)
-            *(dst++) = *(src1++) / (*(src2++) * k);
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src1[i] / (src2[i] * k);
     }
 
     void add2(float *dst, const float *src, size_t count)
     {
-        while (count--)
-            *(dst++) += *(src++);
+        for (size_t i=0; i<count; ++i)
+            dst[i] += src[i];
     }
 
     void sub2(float *dst, const float *src, size_t count)
     {
-        while (count--)
-            *(dst++) -= *(src++);
+        for (size_t i=0; i<count; ++i)
+            dst[i] -= src[i];
     }
 
     void mul2(float *dst, const float *src, size_t count)
     {
-        while (count--)
-            *(dst++) *= *(src++);
+        for (size_t i=0; i<count; ++i)
+            dst[i] *= src[i];
     }
 
     void div2(float *dst, const float *src, size_t count)
     {
-        while (count--)
-            *(dst++) /= *(src++);
+        for (size_t i=0; i<count; ++i)
+            dst[i] /= src[i];
     }
 
     void scale2(float *dst, float k, size_t count)
     {
-        while (count--)
-            *(dst++) *= k;
+        for (size_t i=0; i<count; ++i)
+            dst[i] *= k;
     };
 
     void add3(float *dst, const float *src1, const float *src2, size_t count)
     {
-        while (count--)
-            *(dst++) = *(src1++) + *(src2++);
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src1[i] + src2[i];
     }
 
     void sub3(float *dst, const float *src1, const float *src2, size_t count)
     {
-        while (count--)
-            *(dst++) = *(src1++) - *(src2++);
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src1[i] - src2[i];
     }
 
     void mul3(float *dst, const float *src1, const float *src2, size_t count)
     {
-        while (count--)
-            *(dst++) = *(src1++) * *(src2++);
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src1[i] * src2[i];
     }
 
     void div3(float *dst, const float *src1, const float *src2, size_t count)
     {
-        while (count--)
-            *(dst++) = *(src1++) / *(src2++);
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src1[i] / src2[i];
     }
 
     void scale3(float *dst, const float *src, float k, size_t count)
     {
-        while (count--)
-            *(dst++) = *(src++) * k;
+        for (size_t i=0; i<count; ++i)
+            dst[i] = src[i] * k;
     };
 
     void integrate(float *dst, const float *src, float k, size_t count)

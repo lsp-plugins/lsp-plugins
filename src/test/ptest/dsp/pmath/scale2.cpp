@@ -25,6 +25,13 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void    scale2(float *dst, float k, size_t count);
+    }
+)
+
 typedef void (* scale2_t)(float *dst, float k, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -66,6 +73,7 @@ PTEST_BEGIN("dsp.pmath", scale2, 5, 1000)
 
             CALL("native:scale2", dst, count, native::scale2);
             IF_ARCH_X86(CALL("sse:scale2", dst, count, sse::scale2));
+            IF_ARCH_ARM(CALL("neon_d32:scale2", dst, count, neon_d32::scale2));
             PTEST_SEPARATOR;
         }
 

@@ -754,10 +754,10 @@ namespace neon_d32
 
 #define SCALE_CORE(DST, SRC)   \
     __ASM_EMIT("vldm.32     %[k], {s0}") \
-    __ASM_EMIT("mov         s1, s0") \
-    __ASM_EMIT("mov         d1, d0") \
+    __ASM_EMIT("vmov        s1, s0") \
+    __ASM_EMIT("vmov        d1, d0") \
     __ASM_EMIT("subs        %[count], $56") \
-    __ASM_EMIT("mov         q1, q0") \
+    __ASM_EMIT("vmov        q1, q0") \
     __ASM_EMIT("blo         2f") \
     /* 56x blocks */ \
     __ASM_EMIT("1:") \
@@ -875,7 +875,6 @@ namespace neon_d32
         IF_ARCH_ARM(float *pk = &k);
         ARCH_ARM_ASM
         (
-            __ASM_EMIT("mov     %[src], %[dst]")
             SCALE_CORE("dst", "src")
             : [dst] "+r" (dst), [src] "+r" (src),
               [count] "+r" (count)
@@ -888,10 +887,10 @@ namespace neon_d32
 
 #define SCALE_ADDSUB_CORE(OP, DST, SRC1, SRC2)   \
     __ASM_EMIT("vldm.32     %[k], {s0}") \
-    __ASM_EMIT("mov         s1, s0") \
-    __ASM_EMIT("mov         d1, d0") \
+    __ASM_EMIT("vmov        s1, s0") \
+    __ASM_EMIT("vmov        d1, d0") \
     __ASM_EMIT("subs        %[count], $24") \
-    __ASM_EMIT("mov         q1, q0") \
+    __ASM_EMIT("vmov        q1, q0") \
     __ASM_EMIT("blo         2f") \
     /* 24x blocks */ \
     __ASM_EMIT("1:") \
@@ -1025,10 +1024,10 @@ namespace neon_d32
 
 #define SCALE_MUL_CORE(DST, SRC1, SRC2)   \
     __ASM_EMIT("vldm.32     %[k], {s0}") \
-    __ASM_EMIT("mov         s1, s0") \
-    __ASM_EMIT("mov         d1, d0") \
+    __ASM_EMIT("vmov        s1, s0") \
+    __ASM_EMIT("vmov        d1, d0") \
     __ASM_EMIT("subs        %[count], $24") \
-    __ASM_EMIT("mov         q1, q0") \
+    __ASM_EMIT("vmov        q1, q0") \
     __ASM_EMIT("blo         2f") \
     /* 24x blocks */ \
     __ASM_EMIT("1:") \
@@ -1074,7 +1073,6 @@ namespace neon_d32
     __ASM_EMIT("vmul.f32    q5, q5, q11") \
     __ASM_EMIT("sub         %[count], $16") \
     __ASM_EMIT("vst1.32     {q4-q5}, [%[" DST "]]!") \
-    __ASM_EMIT("bhs         1b") \
     /* 8x block */ \
     __ASM_EMIT("4:") \
     __ASM_EMIT("adds        %[count], $8") \
@@ -1146,15 +1144,13 @@ namespace neon_d32
 
 #define SCALE_DIV_CORE(DST, SRC1, SRC2) \
     __ASM_EMIT("vldm.32         %[k], {s0}") \
-    __ASM_EMIT("mov             s1, s0") \
-    __ASM_EMIT("mov             d1, d0") \
+    __ASM_EMIT("vmov            s1, s0") \
+    __ASM_EMIT("vmov            d1, d0") \
     __ASM_EMIT("subs            %[count], $8") \
-    __ASM_EMIT("mov             q1, q0") \
+    __ASM_EMIT("vmov            q1, q0") \
     __ASM_EMIT("blo             2f") \
     /* 8x blocks */ \
     __ASM_EMIT("1:") \
-    __ASM_EMIT("adds            %[count], $4") \
-    __ASM_EMIT("blt             6f") \
     __ASM_EMIT("vld1.32         {q2-q3}, [%[" SRC2 "]]!") \
     __ASM_EMIT("vld1.32         {q4-q5}, [%[" SRC1 "]]!") \
     __ASM_EMIT("vmul.f32        q2, q0")                    /* q2 = s2 = x * k */ \
@@ -1171,7 +1167,7 @@ namespace neon_d32
     __ASM_EMIT("vmul.f32        q3, q9, q7") \
     __ASM_EMIT("vmul.f32        q2, q2, q4")                /* s1 / s2 */ \
     __ASM_EMIT("vmul.f32        q3, q3, q5") \
-    __ASM_EMIT("subs             %[count], $8") \
+    __ASM_EMIT("subs            %[count], $8") \
     __ASM_EMIT("vst1.32         {q2-q3}, [%[" DST "]]!") \
     __ASM_EMIT("bhs             1b") \
     /* 4x blocks */ \
@@ -1194,10 +1190,11 @@ namespace neon_d32
     __ASM_EMIT("adds            %[count], $3") \
     __ASM_EMIT("blt             6f") \
     __ASM_EMIT("5:") \
-    __ASM_EMIT("vldm.32         %[" SRC1 "]!, {s0}") \
-    __ASM_EMIT("vldm.32         %[" SRC2 "]!, {s1}") \
-    __ASM_EMIT("vdiv.f32        s0, s0, s1") \
-    __ASM_EMIT("vstm.32         %[" DST "]!, {s0}") \
+    __ASM_EMIT("vldm.32         %[" SRC1 "]!, {s1}") \
+    __ASM_EMIT("vldm.32         %[" SRC2 "]!, {s2}") \
+    __ASM_EMIT("vmul.f32        s2, s2, s0") \
+    __ASM_EMIT("vdiv.f32        s1, s1, s2") \
+    __ASM_EMIT("vstm.32         %[" DST "]!, {s1}") \
     __ASM_EMIT("subs            %[count], $1") \
     __ASM_EMIT("bge             5b") \
     __ASM_EMIT("6:")
@@ -1223,7 +1220,7 @@ namespace neon_d32
         IF_ARCH_ARM(float *pk = &k);
         ARCH_ARM_ASM
         (
-                SCALE_DIV_CORE("dst", "src1", "src2")
+            SCALE_DIV_CORE("dst", "src1", "src2")
             : [dst] "+r" (dst), [src1] "+r" (src1), [src2] "+r" (src2),
               [count] "+r" (count)
             : [k] "r" (pk)
