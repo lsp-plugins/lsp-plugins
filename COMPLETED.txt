@@ -2,6 +2,30 @@
 * FEATURE REQUESTS AND BUG REPORTS: Completed
 *******************************************************************************
 
+==== Convolution Reverb ====
+
+  As for the next one? I would like to see your take on a reverb. I've never really found one
+  that I am satisfied with in linux. For convolution ardour cannot lot klangfalter lv2, the vst
+  version loads but I'm not sure is completely stable. X42 plugins convolver is aimed at short
+  impulses and has no controls, IR is unmaintained (I think) and, from experience, can have issues
+  saving/loading parameters. For artificial reverb there are some good ones such as mverb but again
+  I've never really felt very happy with them, none seem to offer the same kind of control that
+  you can get with something like the Valhalla reverbs, epicVerb, or the new fabfilter reverb.
+  
+  An impulse purchase price of $30-$40 would be fine!
+  
+  The left input channel is convolved with the left and right impulse response file channels from IR1-A
+  and the right input channel is convolved with the left and right impulse response file channel from IR1-B.
+  The two output convolutions’ respective left and right components are then summed into a single stereo output.
+  This configuration is necessary to take full advantage of true stereo impulse responses. True stereo impulse
+  responses are required to be provided as two separate stereo files and loaded into IR1-A and IR1-B (or IR2-A and IR2-B).
+  This configuration is typically found in high-end algorithmic reverbs. 
+
+==== Support of ARM Architecture ====
+  Chase: 
+    was just wondering if LSP-PLUGINS, specifically your trigger-midi-mono, will have a version
+    in the near future that will work on the raspberry pi arm7/arm8 ? as a jack standalone and lv2...
+
 ==== Compensation delay ====
   unfa:
     I've recently used a-Delay to create a comb-filter effect in my session. 
