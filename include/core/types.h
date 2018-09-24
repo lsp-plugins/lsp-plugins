@@ -107,23 +107,17 @@ namespace lsp
          */
         virtual const char *get_path();
 
-        /** Accept the pending request for path change,
-         * the port of the path will not trigger as changed
-         * until commit() is called
-         */
-        virtual void accept();
-
-        /** The state change request was processed,
-         * the port is ready to receive new events
-         *
-         */
-        virtual void commit();
-
         /** Check if there is pending request
          *
          * @return true if there is a pending state-change request
          */
         virtual bool pending();
+
+        /** Accept the pending request for path change,
+         * the port of the path will not trigger as changed
+         * until commit() is called
+         */
+        virtual void accept();
 
         /** Check if there is accepted request
          *
@@ -131,6 +125,13 @@ namespace lsp
          */
         virtual bool accepted();
 
+        /** The state change request was processed,
+         * the port is ready to receive new events,
+         * this method SHOULD be called ONLY AFTER
+         * we don't need the value stored in this primitive
+         *
+         */
+        virtual void commit();
     } path_t;
 
     // Position port structure

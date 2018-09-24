@@ -1537,7 +1537,7 @@ namespace lsp
         ahdr.common.version     = 1;
         ahdr.common.size        = sizeof(lspc_chunk_audio_header_t);
         ahdr.channels           = 1;
-        ahdr.sample_format      = __IF_LE(LSPC_SAMPLE_FMT_F32LE) __IF_BE(LSPC_SAMPLE_FMT_F32BE);
+        ahdr.sample_format      = __IF_LEBE(LSPC_SAMPLE_FMT_F32LE, LSPC_SAMPLE_FMT_F32BE);
         ahdr.sample_rate        = nSampleRate;
         ahdr.codec              = LSPC_CODEC_PCM;
         ahdr.frames             = dataLength;

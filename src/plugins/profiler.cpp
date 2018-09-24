@@ -112,11 +112,29 @@ namespace lsp
     profiler_mono::Saver::Saver(profiler_mono *base)
     {
         pCore               = base;
+        sFile[0]            = '\0';
     }
 
     profiler_mono::Saver::~Saver()
     {
         pCore               = NULL;
+        sFile[0]            = '\0';
+    }
+
+    void profiler_mono::Saver::set_file_name(const char *fname)
+    {
+        if (fname != NULL)
+        {
+            strncpy(sFile, fname, PATH_MAX);
+            sFile[PATH_MAX - 1] = '\0';
+        }
+        else
+            sFile[0] = '\0';
+    }
+
+    bool profiler_mono::Saver::is_file_set() const
+    {
+        return sFile[0] != '\0';
     }
 
     int profiler_mono::Saver::run()
@@ -167,14 +185,7 @@ namespace lsp
         size_t saveCount        = seconds_to_samples(pCore->nSampleRate, saveTime); // This count is relative to the middle of the convolution result
 
         // Saving Data:
-        path_t *path = pCore->pIRFileName->getBuffer<path_t>();
-        if (path->accepted())
-            path->commit();
-
-        pCore->bFileSet         = false;
-
         status_t returnValue;
-
         ssize_t nIROffset = millis_to_samples(pCore->nSampleRate, pCore->pIROffset->getValue());
 
         // Update saveCount to account for offset
@@ -183,10 +194,12 @@ namespace lsp
         else
             saveCount += size_t(-nIROffset);
 
+        lsp_trace("Saving %s convolution to path = %s", ((doNlinearSave) ? "nonlinear" : "linear"), sFile);
         if (doNlinearSave)
-            returnValue = pCore->sSyncChirpProcessor.save_nonlinear_convolution(path->get_path());
+            returnValue = pCore->sSyncChirpProcessor.save_nonlinear_convolution(sFile);
         else
-            returnValue = pCore->sSyncChirpProcessor.save_linear_convolution(path->get_path(), nIROffset, saveCount);
+            returnValue = pCore->sSyncChirpProcessor.save_linear_convolution(sFile, nIROffset, saveCount);
+        lsp_trace("save status: %d", int(returnValue));
 
         if (returnValue == STATUS_OK)
         {
@@ -222,7 +235,6 @@ namespace lsp
         nLatency                = 0;
         fScpDurationPrevious    = 0.0f;
         bIRMeasured             = false;
-        bFileSet                = false;
         nSaveMode               = profiler_mono_metadata::SC_SVMODE_DFL;
         bResetSaver             = false;
 
@@ -504,14 +516,23 @@ namespace lsp
             bResetSaver             = false;
         }
 
-        path_t *path = pIRFileName->getBuffer<path_t>();
-        if (path->pending())
+        path_t *path = (pIRFileName != NULL) ? pIRFileName->getBuffer<path_t>() : NULL;
+        if ((path != NULL) && (path->pending()) && (pSaver->idle()))
         {
-            bFileSet                = true;
+            // Accept new file name
             path->accept();
+            lsp_trace("set file name to %s", path->get_path());
+            pSaver->set_file_name(path->get_path());
+
+            // Commit
+            path->commit();
         }
 
-        if ((bFileSet) && (pIRSaveCmd->getValue() > 0.5f) && (bIRMeasured) && (nState == IDLE))
+        // Set state to SAVING if all conditions are met
+        if ((pIRSaveCmd->getValue() > 0.5f) &&
+            (nState == IDLE) &&
+            (bIRMeasured) &&
+            (pSaver->is_file_set()))
             nState                  = SAVING;
 
         while (samples > 0)
@@ -674,8 +695,7 @@ namespace lsp
                 {
                     if (pSaver->idle())
                         pExecutor->submit(pSaver);
-
-                    if (pSaver->completed())
+                    else if (pSaver->completed())
                     {
                         nState      = IDLE;
                         pSaver->reset();

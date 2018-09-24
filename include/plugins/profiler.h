@@ -67,13 +67,18 @@ namespace lsp
             class Saver: public ITask
             {
                 private:
-                    profiler_mono *pCore;
+                    profiler_mono  *pCore;
+                    char            sFile[PATH_MAX]; // The name of file for saving
 
                 public:
                     Saver(profiler_mono *base);
                     virtual ~Saver();
 
                 public:
+                    void set_file_name(const char *fname);
+
+                    bool is_file_set() const;
+
                     virtual int run();
             };
 
@@ -116,7 +121,6 @@ namespace lsp
             size_t              nLatency;               // Store latency value
             float               fScpDurationPrevious;   // Store Sync Chirp Duration Setting between calls to update_settings()
             bool                bIRMeasured;            // If true, an IR measurement was performed and post processed
-            bool                bFileSet;               // If true, the saving file was correctly set
             size_t              nSaveMode;              // Hold save mode enumeration index
             bool                bResetSaver;            // If true, reset save control state
 
