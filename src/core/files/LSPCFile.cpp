@@ -94,6 +94,7 @@ namespace lsp
         hdr.magic       = LSPC_ROOT_MAGIC;
         hdr.version     = 1;
         hdr.size        = sizeof(hdr);
+
         hdr.magic       = CPU_TO_BE(hdr.magic);
         hdr.version     = CPU_TO_BE(hdr.version);
         hdr.size        = CPU_TO_BE(hdr.size);
@@ -127,7 +128,7 @@ namespace lsp
         if ((pFile == NULL) || (!bWrite))
             return NULL;
 
-        LSPCChunkWriter *wr = new LSPCChunkWriter(pFile, CPU_TO_BE(magic));
+        LSPCChunkWriter *wr = new LSPCChunkWriter(pFile, magic);
         return wr;
     }
 
@@ -144,20 +145,26 @@ namespace lsp
             ssize_t res = pFile->read(pos, &hdr, sizeof(lspc_chunk_header_t));
             if (res != sizeof(lspc_chunk_header_t))
                 return NULL;
-//            lsp_trace("chunk header uid=%x, magic=%x, search_uid=%x, size=%llx",
-//                    int(BE_TO_CPU(hdr.uid)), int(BE_TO_CPU(hdr.magic)), int(uid), (long long)(BE_TO_CPU(hdr.size)));
             pos        += sizeof(lspc_chunk_header_t);
-            if (BE_TO_CPU(hdr.uid) == uid)
+
+            hdr.magic   = BE_TO_CPU(hdr.magic);
+            hdr.uid     = BE_TO_CPU(hdr.uid);
+            hdr.flags   = BE_TO_CPU(hdr.flags);
+            hdr.size    = BE_TO_CPU(hdr.size);
+
+//            lsp_trace("chunk header uid=%x, magic=%x, flags=%x, search_uid=%x, size=%llx",
+//                    int(hdr.uid), int(hdr.magic), int(hdr.flags), int(uid), (long long)(hdr.size));
+            if (hdr.uid == uid)
                 break;
-            pos        += BE_TO_CPU(hdr.size);
+            pos        += hdr.size;
         }
 
         // Create reader
-        LSPCChunkReader *rd = new LSPCChunkReader(pFile, BE_TO_CPU(hdr.magic), uid);
+        LSPCChunkReader *rd = new LSPCChunkReader(pFile, hdr.magic, uid);
         if (rd == NULL)
             return NULL;
         rd->nFileOff        = pos;
-        rd->nUnread         = BE_TO_CPU(hdr.size);
+        rd->nUnread         = hdr.size;
         return rd;
     }
 
@@ -175,17 +182,23 @@ namespace lsp
             if (res != sizeof(lspc_chunk_header_t))
                 return NULL;
             pos        += sizeof(lspc_chunk_header_t);
-            if ((BE_TO_CPU(hdr.uid) == uid) && (BE_TO_CPU(hdr.magic) == magic))
+
+            hdr.magic   = BE_TO_CPU(hdr.magic);
+            hdr.uid     = BE_TO_CPU(hdr.uid);
+            hdr.flags   = BE_TO_CPU(hdr.flags);
+            hdr.size    = BE_TO_CPU(hdr.size);
+
+            if ((hdr.uid == uid) && (hdr.magic == magic))
                 break;
-            pos        += BE_TO_CPU(hdr.size);
+            pos        += hdr.size;
         }
 
         // Create reader
-        LSPCChunkReader *rd = new LSPCChunkReader(pFile, BE_TO_CPU(hdr.magic), uid);
+        LSPCChunkReader *rd = new LSPCChunkReader(pFile, hdr.magic, uid);
         if (rd == NULL)
             return NULL;
         rd->nFileOff        = pos;
-        rd->nUnread         = BE_TO_CPU(hdr.size);
+        rd->nUnread         = hdr.size;
         return rd;
     }
 

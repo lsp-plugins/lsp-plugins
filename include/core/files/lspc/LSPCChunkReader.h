@@ -19,9 +19,10 @@ namespace lsp
             friend class LSPCFile;
 
         protected:
-            size_t              nUnread;            // Number of bytes still not read from chunk
+            uint32_t            nUnread;            // Number of bytes still not read from chunk
             size_t              nBufTail;           // Buffer tail
             wsize_t             nFileOff;           // File read offset
+            bool                bLast;
 
         protected:
             LSPCChunkReader(LSPCResource *fd, uint32_t magic, uint32_t uid);

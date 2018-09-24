@@ -19,6 +19,7 @@ namespace lsp
         nBufTail    = 0;
         nFileOff    = 0;
         nUID        = uid;
+        bLast       = false;
     }
     
     LSPCChunkReader::~LSPCChunkReader()
@@ -87,20 +88,35 @@ namespace lsp
             }
             else // Seek for the next valid chunk
             {
+                // There is no chunk after current
+                if (bLast)
+                {
+                    set_error(STATUS_EOF);
+                    return total;
+                }
+
                 // Read chunk header
                 ssize_t n   = pFile->read(nFileOff, &hdr, sizeof(lspc_chunk_header_t));
                 if (n < ssize_t(sizeof(lspc_chunk_header_t)))
                 {
                     set_error(STATUS_EOF);
-                    return 0;
+                    return total;
                 }
                 nFileOff   += sizeof(lspc_chunk_header_t);
 
+                hdr.magic       = BE_TO_CPU(hdr.magic);
+                hdr.flags       = BE_TO_CPU(hdr.flags);
+                hdr.size        = BE_TO_CPU(hdr.size);
+                hdr.uid         = BE_TO_CPU(hdr.uid);
+
                 // Validate chunk header
-                if ((BE_TO_CPU(hdr.magic) == nMagic) && (BE_TO_CPU(hdr.uid) == nUID)) // We've found our chunk, remember unread bytes count
-                    nUnread         = BE_TO_CPU(hdr.size);
+                if ((hdr.magic == nMagic) && (hdr.uid == nUID)) // We've found our chunk, remember unread bytes count
+                {
+                    bLast           = hdr.flags & LSPC_CHUNK_FLAG_LAST;
+                    nUnread         = hdr.size;
+                }
                 else // Skip this chunk
-                    nFileOff       += BE_TO_CPU(hdr.size);
+                    nFileOff       += hdr.size;
             }
         }
 
@@ -201,6 +217,13 @@ namespace lsp
             }
             else // Seek for the next valid chunk
             {
+                // There is no chunk after current
+                if (bLast)
+                {
+                    set_error(STATUS_EOF);
+                    return total;
+                }
+
                 // Read chunk header
                 ssize_t n   = pFile->read(nFileOff, &hdr, sizeof(lspc_chunk_header_t));
                 if (n < ssize_t(sizeof(lspc_chunk_header_t)))
@@ -210,11 +233,19 @@ namespace lsp
                 }
                 nFileOff   += sizeof(lspc_chunk_header_t);
 
+                hdr.magic       = BE_TO_CPU(hdr.magic);
+                hdr.flags       = BE_TO_CPU(hdr.flags);
+                hdr.size        = BE_TO_CPU(hdr.size);
+                hdr.uid         = BE_TO_CPU(hdr.uid);
+
                 // Validate chunk header
-                if ((BE_TO_CPU(hdr.magic) == nMagic) && (BE_TO_CPU(hdr.uid) == nUID)) // We've found our chunk, remember unread bytes count
-                    nUnread         = BE_TO_CPU(hdr.size);
+                if ((hdr.magic == nMagic) && (hdr.uid == nUID)) // We've found our chunk, remember unread bytes count
+                {
+                    bLast           = hdr.flags & LSPC_CHUNK_FLAG_LAST;
+                    nUnread         = hdr.size;
+                }
                 else // Skip this chunk
-                    nFileOff       += BE_TO_CPU(hdr.size);
+                    nFileOff       += hdr.size;
             }
         }
 
