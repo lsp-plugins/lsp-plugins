@@ -200,7 +200,6 @@ compile:
 
 clean:
 	@-rm -rf $(OBJDIR)
-	@-rm -rf tmp/*
 	@echo "Clean OK"
 
 unrelease: clean
