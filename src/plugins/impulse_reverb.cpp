@@ -889,7 +889,7 @@ namespace lsp
 
         // Try to load file
         float convLengthMaxSeconds = impulse_reverb_base_metadata::CONV_LENGTH_MAX * 0.001f;
-        status_t status = af->load(fname, convLengthMaxSeconds, -0.5f * convLengthMaxSeconds); // Offset of half max length to center the impulse response.
+        status_t status = af->load(fname, convLengthMaxSeconds);
         if (status != STATUS_OK)
         {
             af->destroy();

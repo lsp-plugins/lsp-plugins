@@ -81,7 +81,7 @@ namespace lsp
              *
              * @param path path to the file
              * @param max_duration maximum duration of the file to load (in seconds)
-             * @param alignmentOffset offset from default alignment of the file  to load (in seconds)
+             * @param alignmentOffset offset from default alignment of the file to load (in seconds)
              * @return status of operation
              */
             status_t load(const char *path, float max_duration = -1, float alignmentOffset = 0.0f);

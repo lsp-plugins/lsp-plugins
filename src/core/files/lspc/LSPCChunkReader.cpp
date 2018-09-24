@@ -201,7 +201,7 @@ namespace lsp
             {
                 if (nUnread <= count)
                 {
-                    // Update coutners
+                    // Update counters
                     count      -= nUnread;
                     total      += nUnread;
                     nFileOff   += nUnread;

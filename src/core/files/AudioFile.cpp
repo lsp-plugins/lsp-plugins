@@ -231,7 +231,7 @@ namespace lsp
 
         uint32_t chunk_id = 0;
 
-        // Read profile
+        // Read profile (if present)
         size_t skip = 0;
         LSPCChunkReader *prof = fd.find_chunk(LSPC_CHUNK_PROFILE);
         if (prof != NULL)
@@ -242,7 +242,7 @@ namespace lsp
             if (n < 0)
                 res     = status_t(-n);
             else if ((p.common.version < 1) || (p.common.size < sizeof(lspc_chunk_audio_profile_t)))
-                res = STATUS_CORRUPTED_FILE;
+                res     = STATUS_CORRUPTED_FILE;
 
             // Get related chunk identifier
             chunk_id = BE_TO_CPU(p.chunk_id);
@@ -253,6 +253,7 @@ namespace lsp
             status_t res2 = prof->close();
             if (res == STATUS_OK)
                 res = res2;
+            delete prof;
 
             // Analyze status
             if (res != STATUS_OK)
@@ -321,7 +322,7 @@ namespace lsp
         if (res == STATUS_OK)
         {
             size_t max_samples      = (max_duration >= 0.0f) ? seconds_to_samples(ahdr.sample_rate, max_duration) : -1;
-            lsp_trace("file parameters: frames=%d, channels=%d, sample_rate=%d max_duration=%.3f\n, max_samples=%d",
+            lsp_trace("file parameters: frames=%d, channels=%d, sample_rate=%d max_duration=%.3f, max_samples=%d",
                         int(ahdr.frames), int(ahdr.channels), int(ahdr.sample_rate), max_duration, int(max_samples));
 
             // Patch audio header
@@ -408,6 +409,7 @@ namespace lsp
         status_t res2 = audi->close();
         if (res == STATUS_OK)
             res     = res2;
+        delete audi;
 
         // Close LSPC file
         res2 = fd.close();
