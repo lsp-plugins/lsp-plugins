@@ -14,10 +14,10 @@
 <p>First of all, you need to checkout GIT repository into your workspace by
 issuing the following command:</p>
 <pre>
-cd <workspace-path>
+cd &lt;workspace-path&gt;
 git clone https://github.com/sadko4u/lsp-plugins.git lsp-plugins
 cd lsp-plugins
-git checkout -b <your branch> origin/devel
+git checkout -b &lt;your-branch&gt; origin/devel
 </pre>
 
 <p>Now we can switch to C++ development perspective by selecting
