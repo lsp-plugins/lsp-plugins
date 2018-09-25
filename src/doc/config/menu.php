@@ -16,6 +16,11 @@
 	
 	def_menu_item('', 'video', 'Video Tutorials');
 	def_menu_item('', 'development', 'Development Notes');
+	   def_menu_item('development', 'versioning', 'Versioning');
+	   def_menu_item('development', 'building', 'Building');
+	   def_menu_item('development', 'debug', 'Profiling and Debugging');
+	   def_menu_item('development', 'testing', 'Testing');
+	   def_menu_item('development', 'eclipse', 'Eclipse IDE Integration');
 	def_menu_item('', 'troubleshooting', 'Troubleshooting');
 	
 ?>
