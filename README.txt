@@ -30,7 +30,7 @@ For more information about licensing, please read LICENSE.txt.
 Currently supported architectures are:
   * i586 (Intel IA-32 architecture, legacy support);
   * x86_64 (Intel EM64T, AMD64 architecture, full support);
-  * ARMv7-AR (experimental).
+  * ARMv7-AR (experimental, tested on Raspberry Pi 3 Model B).
 
 Supported plugin formats:
   * LADSPA (not supported by plugins that use MIDI or file loading);
@@ -79,10 +79,6 @@ Known list of supported plugin hosts:
 
 ==== VERSIONING ====
 
-The distribution of plugins consists of two branches:
-  * Binary releases with closed source.
-  * Published source code.
-
 Binary releases are the mostly actual releases and contain all
 possible plugins. These are packaged into archive named according to
 the following format:
@@ -95,7 +91,7 @@ The property <format> is the format of plugins, currently available:
   * lv2 - plugins in LV2 format
   * lxvst - plugins in LinuxVST (VST v2.4) format
 
-Supporetd architectures (<arch>) are currently only i586 and x86_64.
+Supporetd architectures (<arch>) are currently i586, x86_64 and armv7a.
 Properties <major>, <minor> and <micro> form the version of release.
 If the <micro> version is odd, it contains mostly bug-fixes and patches for
 the plugin modules. The even <micro> version of plugins contains new features
@@ -109,8 +105,8 @@ Source code is also ready for building, see 'BUILDING' section for details.
 Binary distributions are ready to launch, just copy them to
 the appropriate directory.
 
-Releases containing odd number in minor version provide only
-critical fixes for the previous release.
+Releases containing odd number in minor version provide only enhancements
+and critical fixes for the previous release.
 
 IMPORTANT FOR VST INSTALLATIONS: If you deploy plugins as a subdirectory
 of your VST directory, the subdirectory should contain substring
@@ -175,8 +171,12 @@ have to type:
   make
   make install
 
-To build binaries for debuggin/profiling, use the following commands:
+To build binaries for debugging/profiling, use the following commands:
   make profile
+  
+To build binaries for testing (developers only), use the following commands:
+  make clean
+  make test
 
 You may also specify the installation root by specifying DESTDIR attribute:
   make install DESTDIR=<installation-root>
@@ -207,11 +207,11 @@ For debugging and getting crash stack trace with Ardour, please follow these ste
 ==== TESTING ====
 
 Since release 1.1.4 there is implemented testing subsystem that allows:
-  * Perform manual tests (mtest module);
-  * Perform automated unit testing (utest module);
-  * Perform automated single-core performance testing (ptest module).
+  * perform manual tests (mtest module);
+  * perform automated unit testing (utest module);
+  * perform automated single-core performance testing (ptest module).
 
-Manual tests are semi-automated or no automated at all. You may launch these tests
+Manual tests are semi-automated or not automated at all. You may launch these tests
 to perform manual interaction with system or for retrieving some text data for further
 processing.
 
@@ -253,7 +253,7 @@ This binary provides simple command-line interface, so here's the full usage:
       -v, --verbose         Output additional information from tests
 
 Each test has fully-qualified name separated by dot symbols, tests from different
-spaces (utest, ptest, mtest) can have same fully-qualified name.
+test spaces (utest, ptest, mtest) may have similar fully-qualified names.
 
 To obtain a list of all unit tests we can issue:
   .build/lsp-plugins-test utest --list
@@ -271,9 +271,9 @@ To start debugging of some unit test, you need to pass additional arguments:
 Because unit tests are short-time fully-automated tests, they are parallelized and
 executed by default by number_of_cores*2 processes. To disable this, we specify option
 --nofork. Also, unit test execution time is limited by 5 seconds by default, so when
-debugging, our tests will be killed, so we specify --debug option to disable time control.
-Option --verbose allows to output additional information by the unit test that is turned
-off by default.
+debugging, our tests will be killed. That's why we specify --debug option to disable time
+control. Option --verbose allows to output additional information by the unit test that is
+turned off by default.
 
 We also can use performance tests to obtain full performance profile of target machine.
 Because performance tests in most cases take much time for gathering statistics,
@@ -313,6 +313,9 @@ To submit a good bug or crash report, you should answer these questions:
 There is possible to submit feature requests and bugs on the
 Sourceforge.net page of the project:
   https://sourceforge.net/p/lsp-plugins/tickets/
+
+GitHub.com page of the project:
+  https://github.com/sadko4u/lsp-plugins/issues
 
 You may contact us on the special feedback page:
   http://lsp-plug.in/?page=feedback
