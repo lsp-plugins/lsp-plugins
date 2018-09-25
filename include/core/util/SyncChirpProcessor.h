@@ -40,6 +40,8 @@ namespace lsp
         SCP_RT_T_20,                                // T 20
         SCP_RT_T_30,                                // T 30
         SCP_RT_MAX,
+
+        SCP_RT_DEFAULT          = SCP_RT_EDT_0
     };
 
     class SyncChirpProcessor

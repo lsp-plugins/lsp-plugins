@@ -63,50 +63,30 @@ namespace lsp
     profiler_mono::PostProcessor::PostProcessor(profiler_mono *base)
     {
         pCore           = base;
+        nIROffset       = 0;
+        enAlgo          = SCP_RT_DEFAULT;
     }
 
     profiler_mono::PostProcessor::~PostProcessor()
     {
         pCore           = NULL;
+        nIROffset       = 0;
+        enAlgo          = SCP_RT_DEFAULT;
+    }
+
+    void profiler_mono::PostProcessor::set_ir_offset(ssize_t ir_offset)
+    {
+        nIROffset       = ir_offset;
+    }
+
+    void profiler_mono::PostProcessor::set_rt_algo(scp_rtcalc_t algo)
+    {
+        enAlgo          = algo;
     }
 
     int profiler_mono::PostProcessor::run()
     {
-        status_t returnValue;
-
-        ssize_t nIROffset = seconds_to_samples(pCore->nSampleRate, pCore->pIROffset->getValue() / 1000.0f);
-
-        returnValue     = pCore->sSyncChirpProcessor.postprocess_linear_convolution(nIROffset, pCore->enRtAlgo, POSTPROCESSOR_REACTIVITY, POSTPROCESSOR_TOLERANCE);
-
-        if (returnValue != STATUS_OK)
-            return returnValue;
-
-        pCore->pRTScreen->setValue(pCore->sSyncChirpProcessor.get_reverberation_time_seconds());
-        pCore->pRScreen->setValue(pCore->sSyncChirpProcessor.get_reverberation_correlation());
-        pCore->pILScreen->setValue(pCore->sSyncChirpProcessor.get_integration_limit_seconds());
-        pCore->pRTAccuracyLed->setValue(pCore->sSyncChirpProcessor.get_background_noise_suitability());
-
-        // Do the plot - PROTOTYPE
-        for (size_t n = 0; n < profiler_mono_metadata::RESULT_MESH_SIZE; ++n)
-            pCore->vDisplayAbscissa[n] = float(2 * n) / profiler_mono_metadata::RESULT_MESH_SIZE;
-
-        size_t irQuery = (nIROffset > 0) ? pCore->sSyncChirpProcessor.get_reverberation_time_samples() : pCore->sSyncChirpProcessor.get_reverberation_time_samples() + size_t(-nIROffset);
-
-        pCore->sSyncChirpProcessor.get_convolution_result_plottable_samples(pCore->vDisplayOrdinate, nIROffset, irQuery , profiler_mono_metadata::RESULT_MESH_SIZE, true);
-
-        mesh_t *mesh    = pCore->pResultMesh->getBuffer<mesh_t>();
-
-        if ((mesh != NULL) && (mesh->isEmpty()))
-        {
-            dsp::copy(mesh->pvData[0], pCore->vDisplayAbscissa, profiler_mono_metadata::RESULT_MESH_SIZE);
-            dsp::copy(mesh->pvData[1], pCore->vDisplayOrdinate, profiler_mono_metadata::RESULT_MESH_SIZE);
-            mesh->data(2, profiler_mono_metadata::RESULT_MESH_SIZE);
-        }
-
-        if (pCore->pWrapper != NULL)
-            pCore->pWrapper->query_display_draw();
-
-        return returnValue;
+        return pCore->sSyncChirpProcessor.postprocess_linear_convolution(nIROffset, enAlgo, POSTPROCESSOR_REACTIVITY, POSTPROCESSOR_TOLERANCE);
     }
 
     profiler_mono::Saver::Saver(profiler_mono *base)
@@ -343,6 +323,39 @@ namespace lsp
         vDisplayOrdinate    = NULL;
     }
 
+    bool profiler_mono::update_post_processing_info()
+    {
+        ssize_t nIROffset = pPostProcessor->get_ir_offset();
+
+        pRTScreen->setValue(sSyncChirpProcessor.get_reverberation_time_seconds());
+        pRScreen->setValue(sSyncChirpProcessor.get_reverberation_correlation());
+        pILScreen->setValue(sSyncChirpProcessor.get_integration_limit_seconds());
+        pRTAccuracyLed->setValue(sSyncChirpProcessor.get_background_noise_suitability());
+
+        // Do the plot - PROTOTYPE
+        for (size_t n = 0; n < profiler_mono_metadata::RESULT_MESH_SIZE; ++n)
+            vDisplayAbscissa[n] = float(2 * n) / profiler_mono_metadata::RESULT_MESH_SIZE;
+
+        size_t irQuery = (nIROffset > 0) ? sSyncChirpProcessor.get_reverberation_time_samples() : sSyncChirpProcessor.get_reverberation_time_samples() + size_t(-nIROffset);
+
+        sSyncChirpProcessor.get_convolution_result_plottable_samples(vDisplayOrdinate, nIROffset, irQuery , profiler_mono_metadata::RESULT_MESH_SIZE, true);
+
+        mesh_t *mesh    = pResultMesh->getBuffer<mesh_t>();
+        if (mesh != NULL)
+        {
+            if (!mesh->isEmpty())
+                return false;
+            dsp::copy(mesh->pvData[0], vDisplayAbscissa, profiler_mono_metadata::RESULT_MESH_SIZE);
+            dsp::copy(mesh->pvData[1], vDisplayOrdinate, profiler_mono_metadata::RESULT_MESH_SIZE);
+            mesh->data(2, profiler_mono_metadata::RESULT_MESH_SIZE);
+        }
+
+        if (pWrapper != NULL)
+            pWrapper->query_display_draw();
+
+        return true;
+    }
+
     scp_rtcalc_t profiler_mono::get_rt_algorithm(size_t algorithm)
     {
         switch (algorithm)
@@ -486,11 +499,8 @@ namespace lsp
     void profiler_mono::process(size_t samples)
     {
         float *in = pIn->getBuffer<float>();
-        if (in == NULL)
-            return;
-
         float *out = pOut->getBuffer<float>();
-        if (out == NULL)
+        if ((in == NULL) || (out == NULL))
             return;
 
         pLevelMeter->setValue(dsp::abs_max(in, samples));
@@ -506,7 +516,6 @@ namespace lsp
             sResponseTaker.reset_capture();
 
             nState                  = IDLE;
-
             bDoReset                = false;
         }
 
@@ -678,13 +687,21 @@ namespace lsp
                 case POSTPROCESSING:
                 {
                     if (pPostProcessor->idle())
-                        pExecutor->submit(pPostProcessor);
-
-                    if (pPostProcessor->completed())
                     {
-                        bIRMeasured = true;
-                        nState      = IDLE;
-                        pPostProcessor->reset();
+                        ssize_t nIROffset   = millis_to_samples(nSampleRate, pIROffset->getValue());
+                        pPostProcessor->set_ir_offset(nIROffset);
+                        pPostProcessor->set_rt_algo(enRtAlgo);
+                        pExecutor->submit(pPostProcessor);
+                    }
+                    else if (pPostProcessor->completed())
+                    {
+                        // We should loop until the output mesh is committed to UI
+                        if (update_post_processing_info())
+                        {
+                            bIRMeasured = true;
+                            nState      = IDLE;
+                            pPostProcessor->reset();
+                        }
                     }
 
                     dsp::fill_zero(vBuffer, to_do);
@@ -725,7 +742,6 @@ namespace lsp
          *  result in the plugin being reseted. Reason: the controls alter
          *  all the measurement results.
          */
-
         if ((nState != CALIBRATION) && (nState != IDLE))
             bDoReset                = true; // Actual reset is done in the process() method
 
@@ -735,7 +751,6 @@ namespace lsp
         // the control is being reset after being operated. This way we avoid
         // resetting the plugin without a need for.
         bool bTriggerCtrlReset      = bLinTriggerPrevious && !bLinTrigger;
-
         if (bTriggerCtrlReset)
             bDoReset     = false;
 
@@ -746,9 +761,7 @@ namespace lsp
         bLinTriggerPrevious         = bLinTrigger;
 
         // Similarly with latency trigger:
-
         bLatTrigger                 = pLatTrigger->getValue() >= 0.5f;
-
         bool bLatCtrlReset          = bLatTriggerPrevious && !bLatTrigger;
 
         if (bLatCtrlReset)
@@ -757,16 +770,13 @@ namespace lsp
         bLatTriggerPrevious         = bLatTrigger;
 
         // Similarly with post processor trigger:
-
         bPostprocess                = pPostTrigger->getValue() >= 0.5f;
-
         bool bPostCtrlReset         = bPostprocessPrevious && !bPostprocess;
 
         if (bPostCtrlReset)
             bDoReset                = false;
 
         bPostprocessPrevious        = bPostprocess;
-
         bBypass                     = pBypass->getValue() >= 0.5f;
         sBypass.set_bypass(bBypass);
 

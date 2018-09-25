@@ -28,7 +28,7 @@ namespace lsp
                     profiler_mono   *pCore;
 
                 public:
-                    PreProcessor(profiler_mono *base);
+                    explicit PreProcessor(profiler_mono *base);
                     virtual ~PreProcessor();
 
                 public:
@@ -42,7 +42,7 @@ namespace lsp
                     profiler_mono *pCore;
 
                 public:
-                    Convolver(profiler_mono *base);
+                    explicit Convolver(profiler_mono *base);
                     virtual ~Convolver();
 
                 public:
@@ -53,13 +53,20 @@ namespace lsp
             class PostProcessor: public ITask
             {
                 private:
-                    profiler_mono *pCore;
+                    profiler_mono  *pCore;
+                    ssize_t         nIROffset;
+                    scp_rtcalc_t    enAlgo;
 
                 public:
-                    PostProcessor(profiler_mono *base);
+                    explicit PostProcessor(profiler_mono *base);
                     virtual ~PostProcessor();
 
                 public:
+                    void set_ir_offset(ssize_t ir_offset);
+                    inline ssize_t get_ir_offset() const { return nIROffset; }
+
+                    void set_rt_algo(scp_rtcalc_t algo);
+
                     virtual int run();
             };
 
@@ -71,7 +78,7 @@ namespace lsp
                     char            sFile[PATH_MAX]; // The name of file for saving
 
                 public:
-                    Saver(profiler_mono *base);
+                    explicit Saver(profiler_mono *base);
                     virtual ~Saver();
 
                 public:
@@ -193,6 +200,8 @@ namespace lsp
 
         protected:
             static scp_rtcalc_t get_rt_algorithm(size_t algorithm);
+
+            bool                update_post_processing_info();
 
         public:
             profiler_mono();
