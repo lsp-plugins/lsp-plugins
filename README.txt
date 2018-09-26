@@ -157,7 +157,7 @@ For successful build you need the following packages to be installed:
   * gcc >= 4.7
   * gcc-c++ >= 4.7
   * libgcc_s1 >= 5.2
-  * libstdc++ >= 4.7
+  * libstdc++-devel >= 4.7
   * jack-devel >= 1.9.5
   * lv2-devel >= 1.10
   * ladspa-devel >= 1.13
