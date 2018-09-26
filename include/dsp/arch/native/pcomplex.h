@@ -126,8 +126,8 @@ namespace native
     {
         while (count --)
         {
-            *(dst++)   += *src;
-            src        += 2;
+            *dst       += *(src++);
+            dst        += 2;
         }
     }
 
