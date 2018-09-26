@@ -159,11 +159,13 @@ For successful build you need the following packages to be installed:
   * libgcc_s1 >= 5.2
   * libstdc++ >= 4.7
   * jack-devel >= 1.9.5
-  * lv2-devel >= 1.14
+  * lv2-devel >= 1.10
   * ladspa-devel >= 1.13
   * libexpat-devel >= 2.1
   * libsndfile-devel >= 1.0.25
   * libcairo-devel >= 1.14
+  * glu-devel >= 9.0.0
+  * libGL-devel >= 11.2.2
   * php >= 5.5.14
 
 Currently there is no automake/CMake supported, so to build plugins you
