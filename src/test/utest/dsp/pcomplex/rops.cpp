@@ -22,7 +22,7 @@ IF_ARCH_X86(
 )
 
 IF_ARCH_ARM(
-    namespace sse
+    namespace neon_d32
     {
         void pcomplex_add_r(float *dst, const float *src, size_t count);
     }

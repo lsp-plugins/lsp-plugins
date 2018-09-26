@@ -24,7 +24,7 @@ IF_ARCH_X86(
 )
 
 IF_ARCH_ARM(
-    namespace sse
+    namespace neon_d32
     {
         void pcomplex_r2c(float *dst, const float *src, size_t count);
         void pcomplex_c2r(float *dst, const float *src, size_t count);
