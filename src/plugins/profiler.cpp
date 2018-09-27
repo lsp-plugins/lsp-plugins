@@ -9,11 +9,11 @@
 #include <core/debug.h>
 
 #define TMP_BUF_SIZE                1024
-#define BGNOISE_INTERVAL_FACTOR     2.0f    // Multiply reactivity by this to calculate the time to spend in BGNOISEPROFILING state
-#define POSTPROCESSOR_REACTIVITY    0.085   // Window Size for the Post Processor IR envelope follower [s]
-#define POSTPROCESSOR_TOLERANCE     3.0     // Maximum level above the noise floor below which, if IR peaks are not found, the IR is considered concluded [dB]
-#define SYNC_CHIRP_START_FREQ       1.0     // Synchronized Chirp Starting frequency [Hz]
-#define SYNC_CHIRP_MAX_FREQ         23000.0 // Synchronized Chirp Final frequency [Hz]
+#define BGNOISE_INTERVAL_FACTOR     2.0f    /* Multiply reactivity by this to calculate the time to spend in BGNOISEPROFILING state */
+#define POSTPROCESSOR_REACTIVITY    0.085   /* Window Size for the Post Processor IR envelope follower [s] */
+#define POSTPROCESSOR_TOLERANCE     3.0     /* Maximum level above the noise floor below which, if IR peaks are not found, the IR is considered concluded [dB] */
+#define SYNC_CHIRP_START_FREQ       1.0     /* Synchronized Chirp Starting frequency [Hz] */
+#define SYNC_CHIRP_MAX_FREQ         23000.0 /* Synchronized Chirp Final frequency [Hz] */
 
 namespace lsp
 {
@@ -210,16 +210,6 @@ namespace lsp
         nSaveMode               = profiler_mono_metadata::SC_SVMODE_DFL;
 
         nTriggers               = 0;
-//        bBypass                 = true;
-//        bCalibration            = false;
-//        bSkipLatencyDetection   = false;
-//        bPostprocess            = false;
-//        bPostprocessPrevious    = false;
-//        bLatTrigger             = false;
-//        bLatTriggerPrevious     = false;
-//        bLinTrigger             = false;
-//        bLinTriggerPrevious     = false;
-//        bFeedback               = false;
 
         vBuffer                 = NULL;
         vDisplayAbscissa        = NULL;
@@ -737,7 +727,7 @@ namespace lsp
         if (pLdEnableSwitch->getValue() >= 0.5f)
             nTriggers                  |= T_SKIP_LATENCY_DETECT;
         else
-            nTriggers                  &= T_SKIP_LATENCY_DETECT;
+            nTriggers                  &= ~T_SKIP_LATENCY_DETECT;
 
         // Feedback switch
         if (pFeedback->getValue() >= 0.5f)
