@@ -103,12 +103,22 @@ namespace lsp
                 SAVING                                  // <- Not Realtime: ITask
             };
 
+            enum triggers_t
+            {
+                T_CALIBRATION           = 1 << 0, // Calibration switch is pressed on
+                T_SKIP_LATENCY_DETECT   = 1 << 1, // Latency detection switch is pressed on
+                T_POSTPROCESS           = 1 << 2, // Postprocess switch is pressed on
+                T_LAT_TRIGGER           = 1 << 3, // Latency measurement trigger is pressed
+                T_LIN_TRIGGER           = 1 << 4, // Linear measurement trigger is pressed
+                T_FEEDBACK              = 1 << 5  // feedback break switch is pressed on
+            };
+
         protected:
             state_t             nState;                 // Object State
 
             IExecutor          *pExecutor;              // Executor Service
             PreProcessor       *pPreProcessor;          // Pre Processor Task
-            Convolver          *pConvolver;             // Convovler Task
+            Convolver          *pConvolver;             // Convolver Task
             PostProcessor      *pPostProcessor;         // Post Processor Task
             Saver              *pSaver;                 // Saver Task
 
@@ -129,18 +139,8 @@ namespace lsp
             float               fScpDurationPrevious;   // Store Sync Chirp Duration Setting between calls to update_settings()
             bool                bIRMeasured;            // If true, an IR measurement was performed and post processed
             size_t              nSaveMode;              // Hold save mode enumeration index
-            bool                bResetSaver;            // If true, reset save control state
 
-            bool                bBypass;                // True if bypass switch is pressed on
-            bool                bCalibration;           // True if calibration switch is pressed on
-            bool                bSkipLatencyDetection;  // True if latency detection switch is pressed on
-            bool                bPostprocess;           // True if postprocess switch is pressed on
-            bool                bPostprocessPrevious;   // Store values of bPostprocess between calls to update_settings()
-            bool                bLatTrigger;            // True if latency measurement trigger is pressed
-            bool                bLatTriggerPrevious;    // Store values of bLatTrigger between calls to update_settings()
-            bool                bLinTrigger;            // True if linear measurement trigger is pressed
-            bool                bLinTriggerPrevious;    // Store values of bLinTrigger between calls to update_settings()
-            bool                bFeedback;              // True if feedback break switch is pressed on
+            size_t              nTriggers;              // Set of triggers controlled by triggers_t
 
             float              *vBuffer;                // Auxiliary processing buffer
             float              *vDisplayAbscissa;       // Buffer for display. Abscissa data
@@ -201,6 +201,8 @@ namespace lsp
         protected:
             static scp_rtcalc_t get_rt_algorithm(size_t algorithm);
 
+            void                update_pre_processing_info();
+            void                commit_state_change();
             bool                update_post_processing_info();
 
         public:

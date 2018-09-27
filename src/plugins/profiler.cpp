@@ -29,20 +29,12 @@ namespace lsp
 
     int profiler_mono::PreProcessor::run()
     {
-        status_t returnValue;
-
         // reconfigure() will call update_settings() if needed.
-        returnValue     = pCore->sSyncChirpProcessor.reconfigure();
-
+        status_t  returnValue     = pCore->sSyncChirpProcessor.reconfigure();
         if (returnValue != STATUS_OK)
             return returnValue;
 
-        pCore->pActualDuration->setValue(pCore->sSyncChirpProcessor.get_chirp_duration_seconds());
-        pCore->sResponseTaker.set_op_tail(pCore->sSyncChirpProcessor.get_chirp_duration_seconds());
-
-        returnValue     = pCore->sResponseTaker.reconfigure(pCore->sSyncChirpProcessor.get_chirp());
-
-        return returnValue;
+        return pCore->sResponseTaker.reconfigure(pCore->sSyncChirpProcessor.get_chirp());
     }
 
     profiler_mono::Convolver::Convolver(profiler_mono *base)
@@ -216,18 +208,18 @@ namespace lsp
         fScpDurationPrevious    = 0.0f;
         bIRMeasured             = false;
         nSaveMode               = profiler_mono_metadata::SC_SVMODE_DFL;
-        bResetSaver             = false;
 
-        bBypass                 = true;
-        bCalibration            = false;
-        bSkipLatencyDetection   = false;
-        bPostprocess            = false;
-        bPostprocessPrevious    = false;
-        bLatTrigger             = false;
-        bLatTriggerPrevious     = false;
-        bLinTrigger             = false;
-        bLinTriggerPrevious     = false;
-        bFeedback               = false;
+        nTriggers               = 0;
+//        bBypass                 = true;
+//        bCalibration            = false;
+//        bSkipLatencyDetection   = false;
+//        bPostprocess            = false;
+//        bPostprocessPrevious    = false;
+//        bLatTrigger             = false;
+//        bLatTriggerPrevious     = false;
+//        bLinTrigger             = false;
+//        bLinTriggerPrevious     = false;
+//        bFeedback               = false;
 
         vBuffer                 = NULL;
         vDisplayAbscissa        = NULL;
@@ -321,6 +313,12 @@ namespace lsp
         vBuffer             = NULL;
         vDisplayAbscissa    = NULL;
         vDisplayOrdinate    = NULL;
+    }
+
+    void profiler_mono::update_pre_processing_info()
+    {
+        pActualDuration->setValue(sSyncChirpProcessor.get_chirp_duration_seconds());
+        sResponseTaker.set_op_tail(sSyncChirpProcessor.get_chirp_duration_seconds());
     }
 
     bool profiler_mono::update_post_processing_info()
@@ -505,25 +503,8 @@ namespace lsp
 
         pLevelMeter->setValue(dsp::abs_max(in, samples));
 
-        if (bDoReset)
-        {
-            pPreProcessor->reset();
-            pConvolver->reset();
-            pPostProcessor->reset();
-            pSaver->reset();
-
-            sLatencyDetector.reset_capture();
-            sResponseTaker.reset_capture();
-
-            nState                  = IDLE;
-            bDoReset                = false;
-        }
-
-        if (bResetSaver)
-        {
-            pIRSaveStatus->setValue(STATUS_UNSPECIFIED);
-            bResetSaver             = false;
-        }
+        // Commit new changes to processors
+        commit_state_change();
 
         path_t *path = (pIRFileName != NULL) ? pIRFileName->getBuffer<path_t>() : NULL;
         if ((path != NULL) && (path->pending()) && (pSaver->idle()))
@@ -544,6 +525,8 @@ namespace lsp
             (pSaver->is_file_set()))
             nState                  = SAVING;
 
+        //---------------------------------------------------------------------
+        // Perform processing loop
         while (samples > 0)
         {
             size_t to_do = (samples > TMP_BUF_SIZE) ? TMP_BUF_SIZE : samples;
@@ -558,10 +541,8 @@ namespace lsp
 
                 case CALIBRATION:
                 {
-                    if (bCalibration)
-                    {
+                    if (nTriggers & T_CALIBRATION)
                         sCalOscillator.process_overwrite(vBuffer, to_do);
-                    }
                     else
                     {
                         dsp::fill_zero(vBuffer, to_do);
@@ -577,7 +558,7 @@ namespace lsp
                 {
                     sLatencyDetector.process_in(vBuffer, in, to_do);
 
-                    if (!bFeedback)
+                    if (!(nTriggers & T_FEEDBACK))
                         dsp::fill_zero(vBuffer, to_do);
 
                     sLatencyDetector.process_out(vBuffer, vBuffer, to_do);
@@ -622,10 +603,9 @@ namespace lsp
                     // Advance machine status only if when (and if) the pre processing task is completed
                     if (pPreProcessor->completed())
                     {
-                        if (pPreProcessor->successful())
-                            nState  = WAIT;
-                        else
-                            nState  = IDLE;
+                        nState = (pPreProcessor->successful()) ? WAIT : IDLE;
+                        if (nState == WAIT)
+                            update_pre_processing_info();
 
                         pPreProcessor->reset();
                     }
@@ -655,7 +635,7 @@ namespace lsp
                 {
                     sResponseTaker.process_in(vBuffer, in, to_do);
 
-                    if (!bFeedback)
+                    if (!(nTriggers & T_FEEDBACK))
                         dsp::fill_zero(vBuffer, to_do);
 
                     sResponseTaker.process_out(vBuffer, vBuffer, to_do);
@@ -737,48 +717,47 @@ namespace lsp
 
     void profiler_mono::update_settings()
     {
-        /** Wanted behaviour: controls can be used to set the plugin only in
-         *  IDLE and CALIBRATION states. Otherwise, operating a control should
-         *  result in the plugin being reseted. Reason: the controls alter
-         *  all the measurement results.
-         */
-        if ((nState != CALIBRATION) && (nState != IDLE))
-            bDoReset                = true; // Actual reset is done in the process() method
+        // Commit bypass state
+        sBypass.set_bypass(pBypass->getValue() >= 0.5f);
 
-        bLinTrigger                 = pLinTrigger->getValue() >= 0.5f;
+        if (pLinTrigger->getValue() >= 0.5f)
+            nTriggers                  |= T_LIN_TRIGGER;
+        if (pLatTrigger->getValue() >= 0.5f)
+            nTriggers                  |= T_LAT_TRIGGER;
+        if (pPostTrigger->getValue() >= 0.5f)
+            nTriggers                  |= T_POSTPROCESS;
 
-        // If the bLinTrigger values goes from true to false, then we know
-        // the control is being reset after being operated. This way we avoid
-        // resetting the plugin without a need for.
-        bool bTriggerCtrlReset      = bLinTriggerPrevious && !bLinTrigger;
-        if (bTriggerCtrlReset)
-            bDoReset     = false;
+        // Calibration switch
+        if (pCalSwitch->getValue() >= 0.5f)
+            nTriggers                  |= T_CALIBRATION;
+        else
+            nTriggers                  &= ~T_CALIBRATION;
 
-        // ^^ Without the lines above, when update_settings() will be called again
-        // after the trigger returns to false upon release, doReset will go to true,
-        // thus resetting the plugin and impeding the measurement to start!
+        // Latency detect switch
+        if (pLdEnableSwitch->getValue() >= 0.5f)
+            nTriggers                  |= T_SKIP_LATENCY_DETECT;
+        else
+            nTriggers                  &= T_SKIP_LATENCY_DETECT;
 
-        bLinTriggerPrevious         = bLinTrigger;
+        // Feedback switch
+        if (pFeedback->getValue() >= 0.5f)
+            nTriggers                  |= T_FEEDBACK;
+        else
+            nTriggers                  &= ~T_FEEDBACK;
+    }
 
-        // Similarly with latency trigger:
-        bLatTrigger                 = pLatTrigger->getValue() >= 0.5f;
-        bool bLatCtrlReset          = bLatTriggerPrevious && !bLatTrigger;
+    void profiler_mono::commit_state_change()
+    {
+        if ((nState != CALIBRATION) || (nState != IDLE))
+            return;
 
-        if (bLatCtrlReset)
-            bDoReset                = false;
+        bool reset_saver            = false;
 
-        bLatTriggerPrevious         = bLatTrigger;
+        enRtAlgo                    = get_rt_algorithm(pRTAlgoSelector->getValue());
 
-        // Similarly with post processor trigger:
-        bPostprocess                = pPostTrigger->getValue() >= 0.5f;
-        bool bPostCtrlReset         = bPostprocessPrevious && !bPostprocess;
-
-        if (bPostCtrlReset)
-            bDoReset                = false;
-
-        bPostprocessPrevious        = bPostprocess;
-        bBypass                     = pBypass->getValue() >= 0.5f;
-        sBypass.set_bypass(bBypass);
+        sLatencyDetector.set_ip_detection(pLdMaxLatency->getValue() / 1000.0f);
+        sLatencyDetector.set_peak_threshold(pLdPeakThs->getValue());
+        sLatencyDetector.set_abs_threshold(pLdAbsThs->getValue());
 
         fLtAmplitude                = pCalAmplitude->getValue();
         sCalOscillator.set_amplitude(fLtAmplitude);
@@ -786,12 +765,24 @@ namespace lsp
 
         sCalOscillator.set_frequency(pCalFrequency->getValue());
 
-        bCalibration                = pCalSwitch->getValue() >= 0.5f;
+        // Change duration setting only if the controller actually changed
+        float scDurationSetting     = pDuration->getValue();
+        sSyncChirpProcessor.set_chirp_duration(scDurationSetting);
+        pActualDuration->setValue(scDurationSetting);
 
-        if (bCalibration)
+        nWaitCounter                = seconds_to_samples(nSampleRate, pDuration->getValue());
+        size_t saveMode             = pSaveModeSelector->getValue();
+
+        if (saveMode != nSaveMode)
         {
-            // Reset is done here.
-            bDoReset                = false;
+            nSaveMode               = saveMode;
+            reset_saver             = true;
+        }
+
+        // Update state according to pressed triggers
+        if (nTriggers & T_CALIBRATION)
+        {
+            nTriggers              &= ~T_CALIBRATION; // Reset pending state of trigger
 
             pPreProcessor->reset();
             pConvolver->reset();
@@ -801,41 +792,12 @@ namespace lsp
             sLatencyDetector.reset_capture();
             sResponseTaker.reset_capture();
 
+            reset_saver             = true;
             nState                  = CALIBRATION;
-
-            bResetSaver             = true;
         }
-
-        enRtAlgo                    = get_rt_algorithm(pRTAlgoSelector->getValue());
-
-        sLatencyDetector.set_ip_detection(pLdMaxLatency->getValue() / 1000.0f);
-        sLatencyDetector.set_peak_threshold(pLdPeakThs->getValue());
-        sLatencyDetector.set_abs_threshold(pLdAbsThs->getValue());
-        bSkipLatencyDetection       = pLdEnableSwitch->getValue() < 0.5f;
-
-        // Since triggers make update_settings() to be called twice (on pressure
-        // and on release) these lines are needed in order to make the actual
-        // duration screen reporting the correct value. If the preprocessor is
-        // very fast, in fact, the value it will set for the screen wil be
-        // overwritten by the release call to update settings if the duration
-        // setting is overwritten here without guards.
-
-        // Change duration setting only if the controller actually changed
-        float scDurationSetting     = pDuration->getValue();
-
-        if (scDurationSetting != fScpDurationPrevious)
+        else if (nTriggers & (T_LAT_TRIGGER | T_CALIBRATION | T_LIN_TRIGGER) == T_LAT_TRIGGER) // Allow only if not calibrating and not measuring
         {
-            sSyncChirpProcessor.set_chirp_duration(scDurationSetting);
-            pActualDuration->setValue(scDurationSetting);
-            fScpDurationPrevious    = scDurationSetting;
-        }
-
-        nWaitCounter                = seconds_to_samples(nSampleRate, pDuration->getValue());
-
-        if (bLatTrigger && !bCalibration && !bLinTrigger) // Allow only if not calibrating and not measuring
-        {
-            // Reset is done here.
-            bDoReset                = false;
+            nTriggers              &= ~T_LAT_TRIGGER; // Reset pending state of trigger
 
             // Needs resets in case it was pressed while a previous cycle did not finish yet.
             pPreProcessor->reset();
@@ -849,15 +811,13 @@ namespace lsp
             bLatencyMeasured        = false;
             sLatencyDetector.start_capture();
             pLatencyScreen->setValue(0.0f);
+
+            reset_saver             = true;
             nState                  = LATENCYDETECTION;
-
-            bResetSaver             = true;
         }
-
-        if (bLinTrigger && !bCalibration) // Allow measurement cycle to start only if not calibrating
+        else if (nTriggers & (T_CALIBRATION | T_LIN_TRIGGER) == T_LIN_TRIGGER) // Allow measurement cycle to start only if not calibrating
         {
-            // Reset is done here.
-            bDoReset                = false;
+            nTriggers              &= ~T_LIN_TRIGGER; // Reset pending state of trigger
 
             // Needs resets in case it was pressed while a previous cycle did not finish yet.
             pPreProcessor->reset();
@@ -866,8 +826,9 @@ namespace lsp
             pSaver->reset();
 
             sResponseTaker.reset_capture();
+            reset_saver             = true;
 
-            if (bSkipLatencyDetection && bLatencyMeasured)
+            if ((nTriggers & T_SKIP_LATENCY_DETECT) && bLatencyMeasured)
             {
                 nState              = PREPROCESSING;
                 sResponseTaker.set_latency_samples(nLatency);
@@ -879,12 +840,11 @@ namespace lsp
                 pLatencyScreen->setValue(0.0f);
                 nState              = LATENCYDETECTION;
             }
-
-            bResetSaver             = true;
         }
-
-        if (bPostprocess && !bCalibration && !bLinTrigger) // Allow only if not calibrating and not measuring
+        else if (nTriggers & (T_POSTPROCESS | T_CALIBRATION | T_LIN_TRIGGER) == T_POSTPROCESS) // Allow only if not calibrating and not measuring
         {
+            nTriggers              &= ~T_POSTPROCESS; // Reset pending state of trigger
+
             // Reset is done here.
             bDoReset                = false;
 
@@ -897,27 +857,19 @@ namespace lsp
             sResponseTaker.reset_capture();
 
             bIRMeasured             = false;
+            reset_saver             = true;
             nState                  = POSTPROCESSING;
-
-            bResetSaver             = true;
         }
 
-        size_t saveMode             = pSaveModeSelector->getValue();
+        // Reset saver
+        if (reset_saver)
+            pIRSaveStatus->setValue(STATUS_UNSPECIFIED);
 
-        if (saveMode != nSaveMode)
-        {
-            nSaveMode               = saveMode;
-            bResetSaver             = true;
-        }
-
-        bFeedback                   = pFeedback->getValue() >= 0.5f;
-
+        // Update pending settings for processors
         if (sCalOscillator.needs_update())
             sCalOscillator.update_settings();
-
         if (sLatencyDetector.needs_update())
             sLatencyDetector.update_settings();
-
         if (sResponseTaker.needs_update())
             sResponseTaker.update_settings();
     }
