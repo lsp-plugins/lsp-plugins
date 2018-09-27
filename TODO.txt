@@ -314,10 +314,48 @@
   rghvdberg:
     The reduction meter on the compressors. I think they are a bit to fast to read out. It's also talked about in the lm forum.
 
-====
+==== Feedback Destroyer ====
   mattpepin:
     A useful plugin for live situations would be a feedback analyzer/destroyer like Waves X-FDBK.
     It would be a matter of combining the Analyzer and an EQ strip and make it into a standalone plugin.
+
+==== Formant Processor ====
+  unfa:
+    AFAIK apart from Autotalent there is no opensource formant-processing capable plugin. And Autotalent
+    is pretty limited in that regard. Do you think a dedicated formant processor would be good thing to
+    have? I guess there are more things possible todo with formants than just shifting, I guess compressing/
+    expanding formant could also be a thing, and possibly amplifying/attenuating the formant depth could
+    also be a thing.
+
+==== Ducker/SideChain Compressor ====
+  adiknoth
+    Hi!
+    There's this awesome Waves plugin named "OneKnob pumper", it's essentially a side-chain compressor
+    with a builtin side-chain signal generator.
+    This video illustrates it: https://youtu.be/lVrw3StPi24?t=1m25s
+    So three buttons: amount, rate, offset.
+    I think you already have all the ingredients, it's only about chaining components together.
+    FYI: There are more OneKnob plugins: https://youtu.be/HSjMtYzqlL8. They're all just stripped-down
+    versions of existing tools to simplify the workflow. Instant magic sauce. ;)
+
+==== Shuffler ====
+
+  pms967:
+    would be really nice to have: a good "Blumelein Shuffler".
+    See: http://www.aes.org/e-lib/browse.cfm?elib=6686
+    See also here: http://www.audiosignal.co.uk/Resources/Stereo_shuffling_A4.pdf
+    (there you'll also find a very interesting PFB-based analog implementation, which may be inspiring)
+    ...and here: http://kokkinizita.linuxaudio.org/linuxaudio/zita-bls1-doc/quickguide.html
+    (but this otherwise very nice implementation -unfortunately available only as a stand-alone jack app, no plugin-
+    is somewhat specific and optimized for a special use-case).
+    Well, I know that a similar results can be obtained e.g. applying different shelving eq. to the mid/side
+    signals using your great "5 band Eq" plugin (possibly in combination with the "Stereo Tools" to adjust the
+    overall M-to-S ratio, etc), which in fact is what I'm currently using. Yet, a dedicated plugin would be handy
+    and could provide more specific features, such as different / optimized shelving filters, possibly with
+    phase / delay compensation, etc.
+
+    Moreover, it would have the welcome side effect to have more people re-discover this ancient but very effective
+    and useful technique. :-)
 
 ====
   unfa:
