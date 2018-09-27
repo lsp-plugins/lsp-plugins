@@ -738,7 +738,7 @@ namespace lsp
 
     void profiler_mono::commit_state_change()
     {
-        if ((nState != CALIBRATION) || (nState != IDLE))
+        if ((nState != CALIBRATION) && (nState != IDLE))
             return;
 
         bool reset_saver            = false;
