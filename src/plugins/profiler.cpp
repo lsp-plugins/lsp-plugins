@@ -725,9 +725,9 @@ namespace lsp
 
         // Latency detect switch
         if (pLdEnableSwitch->getValue() >= 0.5f)
-            nTriggers                  |= T_SKIP_LATENCY_DETECT;
-        else
-            nTriggers                  &= ~T_SKIP_LATENCY_DETECT;
+        	nTriggers                  &= ~T_SKIP_LATENCY_DETECT; // We skip if the switch is enabled
+		else
+			nTriggers                  |= T_SKIP_LATENCY_DETECT;
 
         // Feedback switch
         if (pFeedback->getValue() >= 0.5f)
@@ -772,7 +772,11 @@ namespace lsp
         // Update state according to pressed triggers
         if (nTriggers & T_CALIBRATION)
         {
-            nTriggers              &= ~T_CALIBRATION; // Reset pending state of trigger
+        	// Quick fix to allow calibration state to block measurements.
+//            nTriggers              &= ~T_CALIBRATION; // Reset pending state of trigger
+
+        	// Avoid the following actions to be "queued" and executed in one go as soon as the calibrator is swicthed off.
+        	nTriggers &= ~(T_LAT_TRIGGER | T_LIN_TRIGGER | T_POSTPROCESS);
 
             pPreProcessor->reset();
             pConvolver->reset();
@@ -785,7 +789,7 @@ namespace lsp
             reset_saver             = true;
             nState                  = CALIBRATION;
         }
-        else if (nTriggers & (T_LAT_TRIGGER | T_CALIBRATION | T_LIN_TRIGGER) == T_LAT_TRIGGER) // Allow only if not calibrating and not measuring
+        else if ((nTriggers & (T_LAT_TRIGGER | T_CALIBRATION | T_LIN_TRIGGER)) == T_LAT_TRIGGER) // Allow only if not calibrating and not measuring
         {
             nTriggers              &= ~T_LAT_TRIGGER; // Reset pending state of trigger
 
@@ -805,7 +809,7 @@ namespace lsp
             reset_saver             = true;
             nState                  = LATENCYDETECTION;
         }
-        else if (nTriggers & (T_CALIBRATION | T_LIN_TRIGGER) == T_LIN_TRIGGER) // Allow measurement cycle to start only if not calibrating
+        else if ((nTriggers & (T_CALIBRATION | T_LIN_TRIGGER)) == T_LIN_TRIGGER) // Allow measurement cycle to start only if not calibrating
         {
             nTriggers              &= ~T_LIN_TRIGGER; // Reset pending state of trigger
 
@@ -831,7 +835,7 @@ namespace lsp
                 nState              = LATENCYDETECTION;
             }
         }
-        else if (nTriggers & (T_POSTPROCESS | T_CALIBRATION | T_LIN_TRIGGER) == T_POSTPROCESS) // Allow only if not calibrating and not measuring
+        else if ((nTriggers & (T_POSTPROCESS | T_CALIBRATION | T_LIN_TRIGGER)) == T_POSTPROCESS) // Allow only if not calibrating and not measuring
         {
             nTriggers              &= ~T_POSTPROCESS; // Reset pending state of trigger
 
