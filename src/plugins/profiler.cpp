@@ -690,22 +690,25 @@ namespace lsp
             nTriggers                  |= T_POSTPROCESS | T_CHANGE;
 
         // Calibration switch
+        size_t old                  = nTriggers & T_CALIBRATION;
         if (pCalSwitch->getValue() >= 0.5f)
-            nTriggers                  |= T_CALIBRATION | T_CHANGE;
+            nTriggers                  |= T_CALIBRATION;
         else
-            nTriggers                   = (nTriggers & ~T_CALIBRATION) | T_CHANGE;
+            nTriggers                  &= ~T_CALIBRATION;
+        if ((old ^nTriggers) & T_CALIBRATION) // T_CALIBRATION changed
+            nTriggers                  |= T_CHANGE;
 
         // Latency detect switch
         if (pLdEnableSwitch->getValue() >= 0.5f)
-        	nTriggers                   = (nTriggers & ~T_SKIP_LATENCY_DETECT) | T_CHANGE; // We skip if the switch is enabled
+        	nTriggers                  &= ~T_SKIP_LATENCY_DETECT; // We skip if the switch is enabled
 		else
-			nTriggers                  |= T_SKIP_LATENCY_DETECT | T_CHANGE;
+			nTriggers                  |= T_SKIP_LATENCY_DETECT;
 
         // Feedback switch
         if (pFeedback->getValue() >= 0.5f)
-            nTriggers                  |= T_FEEDBACK | T_CHANGE;
+            nTriggers                  |= T_FEEDBACK;
         else
-            nTriggers                   = (nTriggers & ~T_FEEDBACK) | T_CHANGE;
+            nTriggers                  &= ~T_FEEDBACK;
     }
 
     void profiler_mono::commit_state_change()
