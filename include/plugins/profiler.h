@@ -94,7 +94,7 @@ namespace lsp
             {
                 IDLE,
                 CALIBRATION,
-                LATENCYDETECTION,
+                LATENCYDETECTION,                       // Latency detection
                 PREPROCESSING,                          // <- Not Realtime: ITask
                 WAIT,
                 RECORDING,
@@ -133,7 +133,6 @@ namespace lsp
             size_t              nSampleRate;            // Sample Rate
             float               fLtAmplitude;           // Amplitude factor for Latency Detection chirp
             ssize_t             nWaitCounter;           // Count the samples for wait state
-            bool                bDoReset;               // If true, force plugin state reset
             bool                bDoLatencyOnly;         // If true, only latency is measured
             bool                bLatencyMeasured;       // If true, a latency measurement was performed
             size_t              nLatency;               // Store latency value

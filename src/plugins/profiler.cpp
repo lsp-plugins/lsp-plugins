@@ -200,7 +200,6 @@ namespace lsp
         nSampleRate             = 0;
         fLtAmplitude            = 1.0f;
         nWaitCounter            = 0;
-        bDoReset                = false;
         bDoLatencyOnly          = false;
         bLatencyMeasured        = false;
         nLatency                = 0;
@@ -552,18 +551,13 @@ namespace lsp
                     {
                         bLatencyMeasured    = true;
                         nLatency            = sLatencyDetector.get_latency_samples();
+
                         pLatencyScreen->setValue(sLatencyDetector.get_latency_seconds() * 1000.0f); // * 1000.0f to show ms instead of s
                         sResponseTaker.set_latency_samples(nLatency);
-
-                        if (bDoLatencyOnly)
-                        {
-                            nState  = IDLE;
-                            bDoLatencyOnly  = false;
-                        }
-                        else
-                            nState              = PREPROCESSING;
-
                         sLatencyDetector.reset_capture();
+
+                        nState              = (bDoLatencyOnly) ? IDLE : PREPROCESSING;
+                        bDoLatencyOnly      = false;
                     }
                     else if (sLatencyDetector.cycle_complete())
                     {
@@ -618,8 +612,8 @@ namespace lsp
 
                     if (sResponseTaker.cycle_complete())
                     {
-                        nState      = CONVOLVING;
                         sResponseTaker.reset_capture();
+                        nState      = CONVOLVING;
                     }
                     break;
 
@@ -629,8 +623,8 @@ namespace lsp
                     else if (pConvolver->completed())
                     {
                         bIRMeasured = true;
-                        nState      = POSTPROCESSING;
                         pConvolver->reset();
+                        nState      = POSTPROCESSING;
                     }
 
                     dsp::fill_zero(vBuffer, to_do);
@@ -760,13 +754,8 @@ namespace lsp
         // Update state according to pressed triggers
         if (nTriggers & T_CHANGE)
         {
-            nTriggers &= ~T_CHANGE;
-
             if (nTriggers & T_CALIBRATION)
             {
-                // Avoid the following actions to be "queued" and executed in one go as soon as the calibrator is swicthed off.
-                nTriggers               &= ~(T_LAT_TRIGGER | T_LIN_TRIGGER | T_POSTPROCESS);
-
                 pPreProcessor->reset();
                 pConvolver->reset();
                 pPostProcessor->reset();
@@ -780,8 +769,6 @@ namespace lsp
             }
             else if (nTriggers & T_LIN_TRIGGER) // Allow measurement cycle to start only if not calibrating, T_CALIBRATION = 0
             {
-                nTriggers              &= ~T_LIN_TRIGGER; // Reset pending state of trigger
-
                 // Needs resets in case it was pressed while a previous cycle did not finish yet.
                 pPreProcessor->reset();
                 pConvolver->reset();
@@ -804,8 +791,6 @@ namespace lsp
             }
             else if (nTriggers & T_LAT_TRIGGER) // Allow only if not calibrating and not measuring, T_CALIBRATION = 0, T_LIN_TRIGGER = 0
             {
-                nTriggers              &= ~T_LAT_TRIGGER; // Reset pending state of trigger
-
                 // Needs resets in case it was pressed while a previous cycle did not finish yet.
                 pPreProcessor->reset();
                 pConvolver->reset();
@@ -825,11 +810,7 @@ namespace lsp
             }
             else if (nTriggers & T_POSTPROCESS) // Allow only if not calibrating and not measuring, T_CALIBRATION = 0, T_LIN_TRIGGER = 0, T_LAT_TRIGGER = 0
             {
-                nTriggers              &= ~T_POSTPROCESS; // Reset pending state of trigger
-
                 // Reset is done here.
-                bDoReset                = false;
-
                 pPreProcessor->reset();
                 pConvolver->reset();
                 pPostProcessor->reset();
@@ -842,6 +823,8 @@ namespace lsp
                 reset_saver             = true;
                 nState                  = POSTPROCESSING;
             }
+
+            nTriggers &= ~(T_LAT_TRIGGER | T_LIN_TRIGGER | T_POSTPROCESS | T_CHANGE);
         }
 
         // Reset saver
