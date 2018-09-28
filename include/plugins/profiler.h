@@ -92,15 +92,15 @@ namespace lsp
             // Object state descriptor
             enum state_t
             {
-                IDLE,
-                CALIBRATION,
-                LATENCYDETECTION,                       // Latency detection
-                PREPROCESSING,                          // <- Not Realtime: ITask
-                WAIT,
-                RECORDING,
-                CONVOLVING,                             // <- Not Realtime: ITask
-                POSTPROCESSING,                         // <- Not Realtime: ITask
-                SAVING                                  // <- Not Realtime: ITask
+                IDLE,                                   // Realtime: doing nothing, awaiting for command
+                CALIBRATION,                            // Realtime: callibrating device
+                LATENCYDETECTION,                       // Realtime: detecting loopback latency
+                PREPROCESSING,                          // Offline: PreProcessor task
+                WAIT,                                   // Realtime: waiting for signal fall-off
+                RECORDING,                              // Realtime: recording response
+                CONVOLVING,                             // Offline: Convolver task
+                POSTPROCESSING,                         // Offline: PostProcessor task
+                SAVING                                  // Offline: Saver task
             };
 
             enum triggers_t
@@ -109,12 +109,12 @@ namespace lsp
 
                 T_CALIBRATION           = 1 << 1, // Calibration switch is pressed on
                 T_SKIP_LATENCY_DETECT   = 1 << 2, // Latency detection switch is pressed on
-                T_POSTPROCESS           = 1 << 3, // Postprocess switch is pressed on
-                T_POSTPROCESS_DOWN      = 1 << 4, // Current postprocess switch state
+                T_POSTPROCESS           = 1 << 3, // Post-process switch is pressed on
+                T_POSTPROCESS_STATE     = 1 << 4, // Current post-process switch state
                 T_LAT_TRIGGER           = 1 << 5, // Latency measurement trigger was pressed
-                T_LAT_TRIGGER_DOWN      = 1 << 6, // Latency measurement trigger state
+                T_LAT_TRIGGER_STATE     = 1 << 6, // Latency measurement trigger state
                 T_LIN_TRIGGER           = 1 << 7, // Linear measurement trigger is pressed
-                T_LIN_TRIGGER_DOWN      = 1 << 8, // Linear measurement trigger state
+                T_LIN_TRIGGER_STATE     = 1 << 8, // Linear measurement trigger state
                 T_FEEDBACK              = 1 << 9  // feedback break switch is pressed on
             };
 
@@ -206,6 +206,7 @@ namespace lsp
 
             void                update_pre_processing_info();
             void                commit_state_change();
+            void                reset_tasks();
             bool                update_post_processing_info();
 
         public:

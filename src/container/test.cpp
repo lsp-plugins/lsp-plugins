@@ -144,8 +144,9 @@ int list_all(const char *text, test::Test *v)
             names.add(const_cast<char *>(str));
     }
 
-    printf("\n%s:\n", text);
     size_t n = names.size();
+    printf("\n%s (total: %d):\n", text, int(n));
+
     for (size_t i=0; i<n-1; ++i)
         for (size_t j=i+1; j<n; ++j)
             if (strcmp(names.at(i), names.at(j)) > 0)

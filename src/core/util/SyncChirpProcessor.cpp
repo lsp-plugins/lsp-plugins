@@ -969,12 +969,12 @@ namespace lsp
         // Regression line parameters (all variance normalisation factors get erased):
         double slope            = comoment / samplesSqErr;
         double intercept        = energyDecayMean - slope * samplesMean;
-        double correlation      = comoment / sqrt(samplesSqErr * energyDecaySqErr);
+        double correlation      = sqrt(samplesSqErr * energyDecaySqErr);
 
         // RT extrapolation:
         sCRPostProc.nRT             = ((decayThreshold - intercept) / slope); // - middle + head; // to make relative to middle
         sCRPostProc.fRT             = samples_to_seconds(nSampleRate, sCRPostProc.nRT);
-        sCRPostProc.fCorrelation    = correlation;
+        sCRPostProc.fCorrelation    = (correlation == 0.0) ? correlation : comoment / correlation; // Avoid NANs
 
         // Other data:
         sCRPostProc.noiseValueNorm  = convolutionNorm * sCRPostProc.noiseValue;
