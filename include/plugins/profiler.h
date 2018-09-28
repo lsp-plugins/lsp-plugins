@@ -105,12 +105,14 @@ namespace lsp
 
             enum triggers_t
             {
-                T_CALIBRATION           = 1 << 0, // Calibration switch is pressed on
-                T_SKIP_LATENCY_DETECT   = 1 << 1, // Latency detection switch is pressed on
-                T_POSTPROCESS           = 1 << 2, // Postprocess switch is pressed on
-                T_LAT_TRIGGER           = 1 << 3, // Latency measurement trigger is pressed
-                T_LIN_TRIGGER           = 1 << 4, // Linear measurement trigger is pressed
-                T_FEEDBACK              = 1 << 5  // feedback break switch is pressed on
+                T_CHANGE                = 1 << 0, // Change of any following trigger below:
+
+                T_CALIBRATION           = 1 << 1, // Calibration switch is pressed on
+                T_SKIP_LATENCY_DETECT   = 1 << 2, // Latency detection switch is pressed on
+                T_POSTPROCESS           = 1 << 3, // Postprocess switch is pressed on
+                T_LAT_TRIGGER           = 1 << 4, // Latency measurement trigger is pressed
+                T_LIN_TRIGGER           = 1 << 5, // Linear measurement trigger is pressed
+                T_FEEDBACK              = 1 << 6  // feedback break switch is pressed on
             };
 
         protected:
@@ -130,7 +132,6 @@ namespace lsp
 
             size_t              nSampleRate;            // Sample Rate
             float               fLtAmplitude;           // Amplitude factor for Latency Detection chirp
-            scp_rtcalc_t        enRtAlgo;               // Store RT Algorithm
             ssize_t             nWaitCounter;           // Count the samples for wait state
             bool                bDoReset;               // If true, force plugin state reset
             bool                bDoLatencyOnly;         // If true, only latency is measured
