@@ -22,7 +22,7 @@ namespace native
     void conv_direct_fft(float *dst, const float *src, size_t rank);
     void pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
     void packed_reverse_fft(float *dst, const float *src, size_t rank);
-    void pcomplex_add_r(float *dst, const float *src, size_t count);
+//    void pcomplex_add_r(float *dst, const float *src, size_t count);
 
     void fastconv_parse(float *dst, const float *src, size_t rank);
     void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
@@ -39,7 +39,7 @@ IF_ARCH_X86(
         void conv_direct_fft(float *dst, const float *src, size_t rank);
         void pcomplex_mul3(float *dst, const float *src1, const float *src2, size_t count);
         void packed_reverse_fft(float *dst, const float *src, size_t rank);
-        void pcomplex_add_r(float *dst, const float *src, size_t count);
+//        void pcomplex_add_r(float *dst, const float *src, size_t count);
 
         void fastconv_parse(float *dst, const float *src, size_t rank);
         void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
@@ -168,7 +168,7 @@ PTEST_BEGIN("dsp.fft", fastconv, 30, 1000)
             call("native:fft", out, tmp, tmp2, conv, in, cv, rank,
                     native::direct_fft, native::complex_mul3, native::reverse_fft, native::add2);
             call("native:conv_fft", out, tmp, tmp2, conv, in, cv, rank,
-                    native::conv_direct_fft, native::pcomplex_mul3, native::packed_reverse_fft, native::pcomplex_add_r);
+                    native::conv_direct_fft, native::pcomplex_mul3, native::packed_reverse_fft, dsp::pcomplex_c2r_add2);
             call("native:fastconv_fft", out, tmp, conv, in, cv, rank,
                     native::fastconv_parse, native::fastconv_parse_apply);
 
@@ -176,7 +176,7 @@ PTEST_BEGIN("dsp.fft", fastconv, 30, 1000)
                 call("sse:fft", out, tmp, tmp2, conv, in, cv, rank,
                     sse::direct_fft, sse::complex_mul3, sse::reverse_fft, sse::add2);
                 call("sse:conv_fft", out, tmp, tmp2, conv, in, cv, rank,
-                    sse::conv_direct_fft, sse::pcomplex_mul3, sse::packed_reverse_fft, sse::pcomplex_add_r);
+                    sse::conv_direct_fft, sse::pcomplex_mul3, sse::packed_reverse_fft, dsp::pcomplex_c2r_add2);
                 call("sse:fastconv_fft", out, tmp, conv, in, cv, rank,
                     sse::fastconv_parse, sse::fastconv_parse_apply);
             )

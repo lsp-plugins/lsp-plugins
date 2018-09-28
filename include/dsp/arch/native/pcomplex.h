@@ -122,6 +122,62 @@ namespace native
         }
     }
 
+    void pcomplex_c2r_add2(float *dst, const float *src, size_t count)
+    {
+        while (count --)
+        {
+            *(dst++)   += *src;
+            src        += 2;
+        }
+    }
+
+    void pcomplex_c2r_sub2(float *dst, const float *src, size_t count)
+    {
+        while (count --)
+        {
+            *(dst++)   -= *src;
+            src        += 2;
+        }
+    }
+
+    void pcomplex_c2r_rsub2(float *dst, const float *src, size_t count)
+    {
+        while (count --)
+        {
+            *dst        = *src - *dst;
+            src        += 2;
+            dst        ++;
+        }
+    }
+
+    void pcomplex_c2r_mul2(float *dst, const float *src, size_t count)
+    {
+        while (count --)
+        {
+            *(dst++)   *= *src;
+            src        += 2;
+        }
+    }
+
+    void pcomplex_c2r_div2(float *dst, const float *src, size_t count)
+    {
+        while (count --)
+        {
+            *(dst++)   /= *src;
+            src        += 2;
+        }
+    }
+
+    void pcomplex_c2r_rdiv2(float *dst, const float *src, size_t count)
+    {
+        while (count --)
+        {
+            *dst        = *src / *dst;
+            src        += 2;
+            dst        ++;
+        }
+    }
+
     void pcomplex_add_r(float *dst, const float *src, size_t count)
     {
         while (count --)

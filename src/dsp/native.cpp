@@ -171,6 +171,13 @@ namespace native
         EXPORT1(pcomplex_add_r);
         EXPORT1(pcomplex_mod);
 
+        EXPORT1(pcomplex_c2r_add2);
+        EXPORT1(pcomplex_c2r_sub2);
+        EXPORT1(pcomplex_c2r_rsub2);
+        EXPORT1(pcomplex_c2r_mul2);
+        EXPORT1(pcomplex_c2r_div2);
+        EXPORT1(pcomplex_c2r_rdiv2);
+
         EXPORT1(lr_to_ms);
         EXPORT1(lr_to_mid);
         EXPORT1(lr_to_side);
