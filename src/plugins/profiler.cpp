@@ -753,7 +753,6 @@ namespace lsp
             case RECORDING:
                 if (!(nTriggers & T_CHANGE))
                     return;
-                nTriggers &= ~T_CHANGE;
                 break;
             // Do not commit changes for other states
             default:
@@ -835,9 +834,16 @@ namespace lsp
             reset_saver             = true;
             nState                  = POSTPROCESSING;
         }
+        else if (nTriggers & T_CHANGE)
+        {
+            reset_tasks();
+            sLatencyDetector.reset_capture();
+            reset_saver             = true;
+            nState                  = IDLE;
+        }
 
         // Reset all pending trigger events (mark as processed)
-        nTriggers &= ~(T_LAT_TRIGGER | T_LIN_TRIGGER | T_POSTPROCESS);
+        nTriggers &= ~(T_CHANGE | T_LAT_TRIGGER | T_LIN_TRIGGER | T_POSTPROCESS);
 
         // Reset saver
         if (reset_saver)
