@@ -110,9 +110,12 @@ namespace lsp
                 T_CALIBRATION           = 1 << 1, // Calibration switch is pressed on
                 T_SKIP_LATENCY_DETECT   = 1 << 2, // Latency detection switch is pressed on
                 T_POSTPROCESS           = 1 << 3, // Postprocess switch is pressed on
-                T_LAT_TRIGGER           = 1 << 4, // Latency measurement trigger is pressed
-                T_LIN_TRIGGER           = 1 << 5, // Linear measurement trigger is pressed
-                T_FEEDBACK              = 1 << 6  // feedback break switch is pressed on
+                T_POSTPROCESS_DOWN      = 1 << 4, // Current postprocess switch state
+                T_LAT_TRIGGER           = 1 << 5, // Latency measurement trigger was pressed
+                T_LAT_TRIGGER_DOWN      = 1 << 6, // Latency measurement trigger state
+                T_LIN_TRIGGER           = 1 << 7, // Linear measurement trigger is pressed
+                T_LIN_TRIGGER_DOWN      = 1 << 8, // Linear measurement trigger state
+                T_FEEDBACK              = 1 << 9  // feedback break switch is pressed on
             };
 
         protected:

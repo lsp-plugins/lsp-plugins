@@ -682,21 +682,38 @@ namespace lsp
         // Commit bypass state
         sBypass.set_bypass(pBypass->getValue() >= 0.5f);
 
+        // Linear measurement trigger
+        bool old = nTriggers & T_LIN_TRIGGER_DOWN;
         if (pLinTrigger->getValue() >= 0.5f)
-            nTriggers                  |= T_LIN_TRIGGER | T_CHANGE;
+            nTriggers                  |= T_LIN_TRIGGER_DOWN;
+        else
+            nTriggers                  &= ~T_LIN_TRIGGER_DOWN;
+        if (old && (!(nTriggers & T_LIN_TRIGGER_DOWN))) // React on button release
+            nTriggers                  |= T_LIN_TRIGGER;
+
+        // Latency measurement trigger
+        old = nTriggers & T_LAT_TRIGGER_DOWN;
         if (pLatTrigger->getValue() >= 0.5f)
-            nTriggers                  |= T_LAT_TRIGGER | T_CHANGE;
+            nTriggers                  |= T_LAT_TRIGGER_DOWN;
+        else
+            nTriggers                  &= ~T_LAT_TRIGGER_DOWN;
+        if (old && (!(nTriggers & T_LAT_TRIGGER_DOWN))) // React on button release
+            nTriggers                  |= T_LAT_TRIGGER;
+
+        // Post-process trigger
+        old = nTriggers & T_POSTPROCESS_DOWN;
         if (pPostTrigger->getValue() >= 0.5f)
-            nTriggers                  |= T_POSTPROCESS | T_CHANGE;
+            nTriggers                  |= T_POSTPROCESS_DOWN;
+        else
+            nTriggers                  &= ~T_POSTPROCESS_DOWN;
+        if (old && (!(nTriggers & T_POSTPROCESS_DOWN))) // React on button release
+            nTriggers                  |= T_POSTPROCESS;
 
         // Calibration switch
-        size_t old                  = nTriggers & T_CALIBRATION;
         if (pCalSwitch->getValue() >= 0.5f)
             nTriggers                  |= T_CALIBRATION;
         else
             nTriggers                  &= ~T_CALIBRATION;
-        if ((old ^nTriggers) & T_CALIBRATION) // T_CALIBRATION changed
-            nTriggers                  |= T_CHANGE;
 
         // Latency detect switch
         if (pLdEnableSwitch->getValue() >= 0.5f)
@@ -709,6 +726,9 @@ namespace lsp
             nTriggers                  |= T_FEEDBACK;
         else
             nTriggers                  &= ~T_FEEDBACK;
+
+        // There is pending state change request
+        nTriggers           |= T_CHANGE;
     }
 
     void profiler_mono::commit_state_change()
@@ -721,6 +741,9 @@ namespace lsp
             case LATENCYDETECTION:
             case WAIT:
             case RECORDING:
+                if (!(nTriggers & T_CHANGE))
+                    return;
+                nTriggers &= ~T_CHANGE;
                 break;
             // Do not commit changes for other states
             default:
@@ -730,12 +753,9 @@ namespace lsp
         bool reset_saver            = false;
 
         // Do not allow changes for latency detector when it's active
-        if (nState != LATENCYDETECTION)
-        {
-            sLatencyDetector.set_ip_detection(pLdMaxLatency->getValue() * 0.000f);
-            sLatencyDetector.set_peak_threshold(pLdPeakThs->getValue());
-            sLatencyDetector.set_abs_threshold(pLdAbsThs->getValue());
-        }
+        sLatencyDetector.set_ip_detection(pLdMaxLatency->getValue() * 0.001f);
+        sLatencyDetector.set_peak_threshold(pLdPeakThs->getValue());
+        sLatencyDetector.set_abs_threshold(pLdAbsThs->getValue());
 
         sCalOscillator.set_amplitude(fLtAmplitude);
         sCalOscillator.set_frequency(pCalFrequency->getValue());
@@ -755,80 +775,77 @@ namespace lsp
         }
 
         // Update state according to pressed triggers
-        if (nTriggers & T_CHANGE)
+        if (nTriggers & T_CALIBRATION)
         {
-            if (nTriggers & T_CALIBRATION)
+            pPreProcessor->reset();
+            pConvolver->reset();
+            pPostProcessor->reset();
+            pSaver->reset();
+
+            sLatencyDetector.reset_capture();
+            sResponseTaker.reset_capture();
+
+            reset_saver             = true;
+            nState                  = CALIBRATION;
+        }
+        else if (nTriggers & T_LIN_TRIGGER) // Allow measurement cycle to start only if not calibrating, T_CALIBRATION = 0
+        {
+            // Needs resets in case it was pressed while a previous cycle did not finish yet.
+            pPreProcessor->reset();
+            pConvolver->reset();
+            pPostProcessor->reset();
+            pSaver->reset();
+
+            sResponseTaker.reset_capture();
+            reset_saver             = true;
+            nWaitCounter            = seconds_to_samples(nSampleRate, pDuration->getValue());
+
+            if ((nTriggers & T_SKIP_LATENCY_DETECT) && bLatencyMeasured)
+                nState              = PREPROCESSING;
+            else
             {
-                pPreProcessor->reset();
-                pConvolver->reset();
-                pPostProcessor->reset();
-                pSaver->reset();
-
-                sLatencyDetector.reset_capture();
-                sResponseTaker.reset_capture();
-
-                reset_saver             = true;
-                nState                  = CALIBRATION;
-            }
-            else if (nTriggers & T_LIN_TRIGGER) // Allow measurement cycle to start only if not calibrating, T_CALIBRATION = 0
-            {
-                // Needs resets in case it was pressed while a previous cycle did not finish yet.
-                pPreProcessor->reset();
-                pConvolver->reset();
-                pPostProcessor->reset();
-                pSaver->reset();
-
-                sResponseTaker.reset_capture();
-                reset_saver             = true;
-                nWaitCounter            = seconds_to_samples(nSampleRate, pDuration->getValue());
-
-                if ((nTriggers & T_SKIP_LATENCY_DETECT) && bLatencyMeasured)
-                    nState              = PREPROCESSING;
-                else
-                {
-                    bLatencyMeasured    = false;
-                    sLatencyDetector.start_capture();
-                    pLatencyScreen->setValue(0.0f);
-                    nState              = LATENCYDETECTION;
-                }
-            }
-            else if (nTriggers & T_LAT_TRIGGER) // Allow only if not calibrating and not measuring, T_CALIBRATION = 0, T_LIN_TRIGGER = 0
-            {
-                // Needs resets in case it was pressed while a previous cycle did not finish yet.
-                pPreProcessor->reset();
-                pConvolver->reset();
-                pPostProcessor->reset();
-                pSaver->reset();
-
-                sResponseTaker.reset_capture();
-
-                bDoLatencyOnly          = true;
-                bLatencyMeasured        = false;
+                bLatencyMeasured    = false;
                 sLatencyDetector.start_capture();
                 pLatencyScreen->setValue(0.0f);
-
-                reset_saver             = true;
-                nWaitCounter            = seconds_to_samples(nSampleRate, pDuration->getValue());
-                nState                  = LATENCYDETECTION;
+                nState              = LATENCYDETECTION;
             }
-            else if (nTriggers & T_POSTPROCESS) // Allow only if not calibrating and not measuring, T_CALIBRATION = 0, T_LIN_TRIGGER = 0, T_LAT_TRIGGER = 0
-            {
-                // Reset is done here.
-                pPreProcessor->reset();
-                pConvolver->reset();
-                pPostProcessor->reset();
-                pSaver->reset();
-
-                sLatencyDetector.reset_capture();
-                sResponseTaker.reset_capture();
-
-                bIRMeasured             = false;
-                reset_saver             = true;
-                nState                  = POSTPROCESSING;
-            }
-
-            nTriggers &= ~(T_LAT_TRIGGER | T_LIN_TRIGGER | T_POSTPROCESS | T_CHANGE);
         }
+        else if (nTriggers & T_LAT_TRIGGER) // Allow only if not calibrating and not measuring, T_CALIBRATION = 0, T_LIN_TRIGGER = 0
+        {
+            // Needs resets in case it was pressed while a previous cycle did not finish yet.
+            pPreProcessor->reset();
+            pConvolver->reset();
+            pPostProcessor->reset();
+            pSaver->reset();
+
+            sResponseTaker.reset_capture();
+
+            bDoLatencyOnly          = true;
+            bLatencyMeasured        = false;
+            sLatencyDetector.start_capture();
+            pLatencyScreen->setValue(0.0f);
+
+            reset_saver             = true;
+            nWaitCounter            = seconds_to_samples(nSampleRate, pDuration->getValue());
+            nState                  = LATENCYDETECTION;
+        }
+        else if (nTriggers & T_POSTPROCESS) // Allow only if not calibrating and not measuring, T_CALIBRATION = 0, T_LIN_TRIGGER = 0, T_LAT_TRIGGER = 0
+        {
+            // Reset is done here.
+            pPreProcessor->reset();
+            pConvolver->reset();
+            pPostProcessor->reset();
+            pSaver->reset();
+
+            sLatencyDetector.reset_capture();
+            sResponseTaker.reset_capture();
+
+            bIRMeasured             = false;
+            reset_saver             = true;
+            nState                  = POSTPROCESSING;
+        }
+
+        nTriggers &= ~(T_LAT_TRIGGER | T_LIN_TRIGGER | T_POSTPROCESS);
 
         // Reset saver
         if (reset_saver)
