@@ -47,6 +47,12 @@ namespace lsp
             return (_this != NULL) ? _this->on_submit() : STATUS_BAD_ARGUMENTS;
         }
 
+        status_t LSPSaveFile::slot_on_activate(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPSaveFile *_this = widget_ptrcast<LSPSaveFile>(ptr);
+            return (_this != NULL) ? _this->on_activate() : STATUS_BAD_ARGUMENTS;
+        }
+
         status_t LSPSaveFile::slot_on_dialog_close(LSPWidget *sender, void *ptr, void *data)
         {
             // Cast widget
@@ -112,6 +118,7 @@ namespace lsp
             // Add slots
             ui_handler_id_t id = 0;
             id = sSlots.add(LSPSLOT_SUBMIT, slot_on_submit, self());
+            if (id >= 0) id = sSlots.add(LSPSLOT_ACTIVATE, slot_on_activate, self());
             if (id >= 0) id = sSlots.add(LSPSLOT_CLOSE, slot_on_close, self());
             if (id < 0)
                 return -id;
@@ -444,7 +451,14 @@ namespace lsp
             else
                 nBtnState  &= ~S_PRESSED;
             if ((bstate == (1 << MCB_LEFT)) && (e->nCode == MCB_LEFT) && (mover) && (nState != SFS_SAVING))
-                sDialog.show(this);
+            {
+                status_t result = sSlots.execute(LSPSLOT_ACTIVATE, NULL);
+                if (result == STATUS_OK)
+                {
+                    sDialog.set_path(&sPath);
+                    sDialog.show(this);
+                }
+            }
 
             // Query draw if state changed
             if (state != nBtnState)
@@ -477,6 +491,11 @@ namespace lsp
         }
 
         status_t LSPSaveFile::on_submit()
+        {
+            return STATUS_OK;
+        }
+
+        status_t LSPSaveFile::on_activate()
         {
             return STATUS_OK;
         }

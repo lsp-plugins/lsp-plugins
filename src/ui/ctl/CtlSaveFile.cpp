@@ -142,6 +142,7 @@ namespace lsp
             LSPSaveFile *save   = widget_cast<LSPSaveFile>(pWidget);
             if (save != NULL)
             {
+                save->slots()->bind(LSPSLOT_ACTIVATE, slot_on_activate, this);
                 save->slots()->bind(LSPSLOT_SUBMIT, slot_on_file_submit, this);
                 save->slots()->bind(LSPSLOT_CLOSE, slot_on_close, this);
             }
@@ -152,6 +153,19 @@ namespace lsp
             update_state();
 
             CtlWidget::end();
+        }
+
+        status_t CtlSaveFile::slot_on_activate(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlSaveFile *ctl    = static_cast<CtlSaveFile *>(ptr);
+            if ((ctl == NULL) || (ctl->pPath == NULL))
+                return STATUS_BAD_ARGUMENTS;
+            LSPSaveFile *save   = widget_cast<LSPSaveFile>(ctl->pWidget);
+            if (save == NULL)
+                return STATUS_BAD_STATE;
+
+            save->set_path(ctl->pPath->get_buffer<char>());
+            return STATUS_OK;
         }
 
         status_t CtlSaveFile::slot_on_close(LSPWidget *sender, void *ptr, void *data)
@@ -170,8 +184,7 @@ namespace lsp
                 return;
 
             LSPString path;
-            status_t res = save->get_path(&path);
-            if ((res == STATUS_OK) && (path.length() > 0))
+            if ((save->get_path(&path)) && (path.length() > 0))
             {
                 pPath->write(path.get_native(), path.length());
                 pPath->notify_all();
@@ -189,12 +202,6 @@ namespace lsp
             LSPSaveFile *save   = widget_cast<LSPSaveFile>(pWidget);
             if (save == NULL)
                 return;
-            if ((port == pPath))
-            {
-                path_t *p = pPath->get_buffer<path_t>();
-                const char *xp = p->get_path();
-                save->set_path((xp != NULL) ? xp : "");
-            }
 
             if (sFormat.valid())
                 save->filter()->set_default(sFormat.evaluate());

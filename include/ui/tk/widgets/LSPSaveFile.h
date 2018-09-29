@@ -53,10 +53,11 @@ namespace lsp
 
             protected:
                 ISurface   *render_disk(ISurface *s, ssize_t w, const Color &c);
-                static status_t slot_on_submit(LSPWidget *sender, void *ptr, void *data);
-                static status_t slot_on_close(LSPWidget *sender, void *ptr, void *data);
-                static status_t slot_on_file_submit(LSPWidget *sender, void *ptr, void *data);
-                static status_t slot_on_dialog_close(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_activate(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_submit(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_close(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_file_submit(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_dialog_close(LSPWidget *sender, void *ptr, void *data);
 
             public:
                 explicit LSPSaveFile(LSPDisplay *dpy);
@@ -93,6 +94,7 @@ namespace lsp
                 virtual status_t on_mouse_down(const ws_event_t *e);
                 virtual status_t on_mouse_up(const ws_event_t *e);
                 virtual status_t on_mouse_move(const ws_event_t *e);
+                virtual status_t on_activate();
                 virtual status_t on_submit();
                 virtual status_t on_close();
         };

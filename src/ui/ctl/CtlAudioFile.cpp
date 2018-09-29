@@ -518,8 +518,7 @@ namespace lsp
                 return;
 
             LSPString path;
-            status_t res = af->get_path(&path);
-            if ((res == STATUS_OK) && (path.length() > 0))
+            if ((af->get_path(&path)) && (path.length() > 0))
             {
                 pPath->write(path.get_native(), path.length());
                 pPath->notify_all();

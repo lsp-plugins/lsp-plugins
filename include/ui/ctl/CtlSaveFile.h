@@ -29,6 +29,7 @@ namespace lsp
                 status_t    commit_state();
 
             protected:
+                static status_t slot_on_activate(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_on_close(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_on_file_submit(LSPWidget *sender, void *ptr, void *data);
                 void        update_path();
