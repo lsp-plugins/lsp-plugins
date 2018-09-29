@@ -1512,7 +1512,7 @@ namespace lsp
         return save_linear_convolution(path, head, count);
     }
 
-    status_t SyncChirpProcessor::save_nonlinear_convolution(const char *path)
+    status_t SyncChirpProcessor::save_nonlinear_convolution(const char *path, ssize_t offset)
     {
         if (pConvResult == NULL)
             return STATUS_NO_DATA;
@@ -1541,6 +1541,7 @@ namespace lsp
         ahdr.sample_rate        = nSampleRate;
         ahdr.codec              = LSPC_CODEC_PCM;
         ahdr.frames             = dataLength;
+        ahdr.offset 			= offset;
 
         // Convert non-common fields CPU -> BE
         ahdr.channels           = CPU_TO_BE(ahdr.channels);
@@ -1548,6 +1549,7 @@ namespace lsp
         ahdr.sample_rate        = CPU_TO_BE(ahdr.sample_rate);
         ahdr.codec              = CPU_TO_BE(ahdr.codec);
         ahdr.frames             = CPU_TO_BE(ahdr.frames);
+        ahdr.offset             = CPU_TO_BE(ahdr.offset);
 
         // Write audio header
         res = wr->write_header(&ahdr);

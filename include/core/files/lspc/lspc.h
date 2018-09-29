@@ -60,6 +60,7 @@ namespace lsp
         uint32_t        sample_rate;    // Sample rate
         uint32_t        codec;          // Codec used
         uint64_t        frames;         // Overall number of frames in file
+        int64_t 		offset; 		// Offset with which to load the frames
         uint32_t        reserved[4];    // Some reserved data
     } lspc_chunk_audio_header_t;
 

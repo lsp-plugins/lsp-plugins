@@ -219,7 +219,7 @@ namespace lsp
         return create_samples(channels, sample_rate, count);
     }
 
-    status_t AudioFile::load_lspc(const char *path, float max_duration, float alignmentOffset)
+    status_t AudioFile::load_lspc(const char *path, float max_duration)
     {
         LSPCFile fd;
         status_t res = fd.open(path);
@@ -275,7 +275,7 @@ namespace lsp
             return STATUS_BAD_FORMAT;
         }
 
-        // Read audio chunk header and check it size
+        // Read audio chunk header and check its size
         lspc_chunk_audio_header_t ahdr;
         ssize_t n = audi->read_header(&ahdr, sizeof(lspc_chunk_audio_header_t));
         if (n < 0)
@@ -289,6 +289,7 @@ namespace lsp
         ahdr.sample_rate    = BE_TO_CPU(ahdr.sample_rate);
         ahdr.codec          = BE_TO_CPU(ahdr.codec);
         ahdr.frames         = BE_TO_CPU(ahdr.frames);
+        ahdr.offset 		= BE_TO_CPU(ahdr.offset);
 
         if (res == STATUS_OK)
             res = ((ahdr.codec != LSPC_CODEC_PCM) ||
@@ -304,15 +305,15 @@ namespace lsp
             size_t skipNoOffset = middle - 1;
             size_t maxAhead     = ahdr.frames - skipNoOffset;
 
-            if (alignmentOffset >= 0.0f)
+            if (ahdr.offset >= 0.0f)
             {
-                size_t offset   = seconds_to_samples(ahdr.sample_rate, alignmentOffset);
+                size_t offset   = ahdr.offset;
                 offset          = (offset > maxAhead)? maxAhead : offset;
                 skip            = skipNoOffset + offset;
             }
             else
             {
-                size_t offset   = seconds_to_samples(ahdr.sample_rate, -alignmentOffset);
+                size_t offset   = -ahdr.offset;
                 offset          = (offset > skipNoOffset)? skipNoOffset : offset;
                 skip            = skipNoOffset - offset;
             }
@@ -512,9 +513,9 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t AudioFile::load(const char *path, float max_duration, float alignmentOffset)
+    status_t AudioFile::load(const char *path, float max_duration)
     {
-        status_t res = load_lspc(path, max_duration, alignmentOffset);
+        status_t res = load_lspc(path, max_duration);
         if (res != STATUS_OK)
             res = load_sndfile(path, max_duration);
         return res;

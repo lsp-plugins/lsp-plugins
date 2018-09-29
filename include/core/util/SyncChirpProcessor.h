@@ -356,9 +356,10 @@ namespace lsp
             /** Save nonlinear convolution result to file
              *
              * @path path to file
+             * @param offset frames offset from the middle frame (stored as a value only)
              * @return status
              */
-            status_t save_nonlinear_convolution(const char *path);
+            status_t save_nonlinear_convolution(const char *path, ssize_t offset = 0);
 
             /** Load convolution result and chirp parameters from lspc file
              *

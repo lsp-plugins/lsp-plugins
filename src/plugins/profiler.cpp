@@ -84,6 +84,7 @@ namespace lsp
     profiler_mono::Saver::Saver(profiler_mono *base)
     {
         pCore               = base;
+        nIROffset 			= 0;
         sFile[0]            = '\0';
     }
 
@@ -92,6 +93,11 @@ namespace lsp
         pCore               = NULL;
         sFile[0]            = '\0';
     }
+
+    void profiler_mono::Saver::set_ir_offset(ssize_t ir_offset)
+	{
+		nIROffset       = ir_offset;
+	}
 
     void profiler_mono::Saver::set_file_name(const char *fname)
     {
@@ -124,8 +130,7 @@ namespace lsp
             return STATUS_NO_DATA;
         }
 
-        // Calculate saving time. Taking mode from GUI here, so that the combo
-        // item is relevant.
+        // Calculate saving time.
 
         float fRT               = pCore->sSyncChirpProcessor.get_reverberation_time_seconds();
         float fIL               = pCore->sSyncChirpProcessor.get_integration_limit_seconds();
@@ -158,7 +163,6 @@ namespace lsp
 
         // Saving Data:
         status_t returnValue;
-        ssize_t nIROffset = millis_to_samples(pCore->nSampleRate, pCore->pIROffset->getValue());
 
         // Update saveCount to account for offset
         if (nIROffset > 0)
@@ -168,7 +172,7 @@ namespace lsp
 
         lsp_trace("Saving %s convolution to path = %s", ((doNlinearSave) ? "nonlinear" : "linear"), sFile);
         if (doNlinearSave)
-            returnValue = pCore->sSyncChirpProcessor.save_nonlinear_convolution(sFile);
+            returnValue = pCore->sSyncChirpProcessor.save_nonlinear_convolution(sFile, nIROffset);
         else
             returnValue = pCore->sSyncChirpProcessor.save_linear_convolution(sFile, nIROffset, saveCount);
         lsp_trace("save status: %d", int(returnValue));
@@ -635,6 +639,7 @@ namespace lsp
                     {
                         ssize_t nIROffset   = millis_to_samples(nSampleRate, pIROffset->getValue());
                         pPostProcessor->set_ir_offset(nIROffset);
+                        pSaver->set_ir_offset(nIROffset); // We set it here also for the saver, so that it matches the postprocessing value.
                         pPostProcessor->set_rt_algo(get_rt_algorithm(pRTAlgoSelector->getValue()));
                         pExecutor->submit(pPostProcessor);
                     }

@@ -75,6 +75,7 @@ namespace lsp
             {
                 private:
                     profiler_mono  *pCore;
+                    ssize_t 		nIROffset;
                     char            sFile[PATH_MAX]; // The name of file for saving
 
                 public:
@@ -83,6 +84,8 @@ namespace lsp
 
                 public:
                     void set_file_name(const char *fname);
+                    void set_ir_offset(ssize_t ir_offset);
+                    inline ssize_t get_ir_offset() const { return nIROffset; }
 
                     bool is_file_set() const;
 

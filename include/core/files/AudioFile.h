@@ -51,7 +51,7 @@ namespace lsp
             status_t complex_upsample(size_t new_sample_rate);
             status_t complex_downsample(size_t new_sample_rate);
 
-            status_t load_lspc(const char *path, float max_duration, float alignmentOffset = 0.0f);
+            status_t load_lspc(const char *path, float max_duration);
             status_t load_sndfile(const char *path, float max_duration);
 
         public:
@@ -81,10 +81,9 @@ namespace lsp
              *
              * @param path path to the file
              * @param max_duration maximum duration of the file to load (in seconds)
-             * @param alignmentOffset offset from default alignment of the file to load (in seconds)
              * @return status of operation
              */
-            status_t load(const char *path, float max_duration = -1, float alignmentOffset = 0.0f);
+            status_t load(const char *path, float max_duration = -1);
 
             /** Save file
              *
