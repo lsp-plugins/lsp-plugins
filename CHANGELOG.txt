@@ -7,7 +7,7 @@
 * Changed licensing to GNU Lesser General Public License version 3 (GNU LGPL v3).
 * Moved code repository to GitHub while keeping release history.
 * Implemented linear impulse response profiler.
-* Added basic Raspberry Pi 3B+ (ARMv7A) support (experimental).
+* Added basic Raspberry Pi 3B/3B+ (ARMv7A) support (experimental).
 * Implemented unit testing subsystem.
 * Implemented performance testing subsystem.
 * Implemented manual testing subsystem.
