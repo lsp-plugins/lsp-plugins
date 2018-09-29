@@ -49,11 +49,14 @@ namespace lsp
                 LSPWidgetColor      sBgColor;
                 LSPFileDialog       sDialog;
                 ISurface           *pDisk;
+                LSPString           sPath;
 
             protected:
                 ISurface   *render_disk(ISurface *s, ssize_t w, const Color &c);
                 static status_t slot_on_submit(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_on_close(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_on_file_submit(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_on_dialog_close(LSPWidget *sender, void *ptr, void *data);
 
             public:
                 explicit LSPSaveFile(LSPDisplay *dpy);
@@ -73,12 +76,16 @@ namespace lsp
                 inline LSPFont             *font() { return &sFont; }
                 inline LSPColor            *bg_color() { return &sBgColor; }
                 inline LSPFileFilter       *filter() { return sDialog.filter(); }
+                inline status_t             get_path(LSPString *dst) const { return dst->set(&sPath); };
+                inline const char          *get_path() const { return sPath.get_native(); }
 
             public:
                 status_t    set_state(save_file_state_t state);
                 status_t    set_state_text(size_t i, const char *s);
                 status_t    set_state_text(size_t i, const LSPString *s);
                 status_t    set_progress(float value);
+                status_t    set_path(const LSPString *path);
+                status_t    set_path(const char *path);
 
             public:
                 virtual void draw(ISurface *s);
@@ -87,6 +94,7 @@ namespace lsp
                 virtual status_t on_mouse_up(const ws_event_t *e);
                 virtual status_t on_mouse_move(const ws_event_t *e);
                 virtual status_t on_submit();
+                virtual status_t on_close();
         };
     
     } /* namespace tk */

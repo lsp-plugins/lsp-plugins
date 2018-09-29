@@ -5,7 +5,7 @@
  *      Author: sadko
  */
 
-#include <ui/ctl/ctl.h>
+#include <ui/ui.h>
 
 namespace lsp
 {
@@ -18,13 +18,21 @@ namespace lsp
 //            save->set_progress(40);
 
             pFile       = NULL;
+            pPath       = NULL;
             pStatus     = NULL;
             pCommand    = NULL;
             pProgress   = NULL;
+
+            pPathID     = NULL;
         }
 
         CtlSaveFile::~CtlSaveFile()
         {
+            if (pPathID != NULL)
+            {
+                free(pPathID);
+                pPathID = NULL;
+            }
         }
 
         void CtlSaveFile::update_state()
@@ -100,6 +108,11 @@ namespace lsp
                 case A_ID:
                     BIND_PORT(pRegistry, pFile, value);
                     break;
+                case A_PATH_ID:
+                    if (pPathID != NULL)
+                        free(pPathID);
+                    pPathID = (value != NULL) ? strdup(value) : NULL;
+                    break;
                 case A_STATUS_ID:
                     BIND_PORT(pRegistry, pStatus, value);
                     break;
@@ -128,9 +141,40 @@ namespace lsp
         {
             LSPSaveFile *save   = widget_cast<LSPSaveFile>(pWidget);
             if (save != NULL)
+            {
                 save->slots()->bind(LSPSLOT_SUBMIT, slot_on_file_submit, this);
+                save->slots()->bind(LSPSLOT_CLOSE, slot_on_close, this);
+            }
+
+            const char *path = (pPathID != NULL) ? pPathID : DEFAULT_PATH_PORT;
+            BIND_PORT(pRegistry, pPath, path);
 
             update_state();
+
+            CtlWidget::end();
+        }
+
+        status_t CtlSaveFile::slot_on_close(LSPWidget *sender, void *ptr, void *data)
+        {
+            CtlSaveFile *ctl = static_cast<CtlSaveFile *>(ptr);
+            if (ctl == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            ctl->update_path();
+            return STATUS_OK;
+        }
+
+        void CtlSaveFile::update_path()
+        {
+            LSPSaveFile *save   = widget_cast<LSPSaveFile>(pWidget);
+            if ((save == NULL) || (pPath == NULL))
+                return;
+
+            const char *path = save->get_path();
+            if (path != NULL)
+            {
+                pPath->write(path, strlen(path));
+                pPath->notify_all();
+            }
         }
 
         void CtlSaveFile::notify(CtlPort *port)
@@ -144,6 +188,12 @@ namespace lsp
             LSPSaveFile *save   = widget_cast<LSPSaveFile>(pWidget);
             if (save == NULL)
                 return;
+            if ((port == pPath))
+            {
+                path_t *p = pPath->get_buffer<path_t>();
+                const char *xp = p->get_path();
+                save->set_path((xp != NULL) ? xp : "");
+            }
 
             if (sFormat.valid())
                 save->filter()->set_default(sFormat.evaluate());

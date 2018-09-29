@@ -47,6 +47,24 @@ namespace lsp
             return (_this != NULL) ? _this->on_submit() : STATUS_BAD_ARGUMENTS;
         }
 
+        status_t LSPSaveFile::slot_on_dialog_close(LSPWidget *sender, void *ptr, void *data)
+        {
+            // Cast widget
+            LSPSaveFile *_this = widget_ptrcast<LSPSaveFile>(ptr);
+            if (_this == NULL)
+                return STATUS_BAD_STATE;
+
+            // Remember the last path used
+            _this->sDialog.get_path(&_this->sPath);
+            return _this->sSlots.execute(LSPSLOT_CLOSE, _this, data);
+        }
+
+        status_t LSPSaveFile::slot_on_close(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPSaveFile *_this = widget_ptrcast<LSPSaveFile>(ptr);
+            return (_this != NULL) ? _this->on_close() : STATUS_BAD_ARGUMENTS;
+        }
+
         status_t LSPSaveFile::slot_on_file_submit(LSPWidget *sender, void *ptr, void *data)
         {
             LSPSaveFile *_this = widget_ptrcast<LSPSaveFile>(ptr);
@@ -89,9 +107,12 @@ namespace lsp
             sDialog.filter()->add("*", "All files (*.*)", "");
             sDialog.bind_action(slot_on_file_submit, self());
 
+            sDialog.slots()->bind(LSPSLOT_HIDE, slot_on_dialog_close, self());
+
             // Add slots
             ui_handler_id_t id = 0;
             id = sSlots.add(LSPSLOT_SUBMIT, slot_on_submit, self());
+            if (id >= 0) id = sSlots.add(LSPSLOT_CLOSE, slot_on_close, self());
             if (id < 0)
                 return -id;
 
@@ -186,6 +207,20 @@ namespace lsp
                 query_draw();
 
             return STATUS_OK;
+        }
+
+        status_t LSPSaveFile::set_path(const LSPString *path)
+        {
+            if (!sPath.set(path))
+                return STATUS_NO_MEM;
+            return (sDialog.visible()) ? sDialog.set_path(&sPath) : STATUS_OK;
+        }
+
+        status_t LSPSaveFile::set_path(const char *path)
+        {
+            if (!sPath.set_native(path))
+                return STATUS_NO_MEM;
+            return (sDialog.visible()) ? sDialog.set_path(&sPath) : STATUS_OK;
         }
 
         ISurface *LSPSaveFile::render_disk(ISurface *s, ssize_t w, const Color &c)
@@ -442,6 +477,11 @@ namespace lsp
         }
 
         status_t LSPSaveFile::on_submit()
+        {
+            return STATUS_OK;
+        }
+
+        status_t LSPSaveFile::on_close()
         {
             return STATUS_OK;
         }
