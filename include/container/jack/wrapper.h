@@ -154,7 +154,7 @@ namespace lsp
 {
     int JACKWrapper::process(jack_nframes_t nframes, void *arg)
     {
-        dsp_context_t ctx;
+        dsp::context_t ctx;
         int result;
 
         // Call the plugin for processing
@@ -168,7 +168,7 @@ namespace lsp
 
     int JACKWrapper::jack_sync(jack_transport_state_t state, jack_position_t *pos, void *arg)
     {
-        dsp_context_t ctx;
+        dsp::context_t ctx;
         int result;
 
         // Call the plugin for processing
@@ -412,7 +412,15 @@ namespace lsp
         if (pPlugin != NULL)
             pPlugin->init(this);
         if (pUI != NULL)
-            pUI->init(this, argc, argv);
+        {
+            status_t res = pUI->init(this, argc, argv);
+            if (res != STATUS_OK)
+            {
+                if (res == STATUS_NO_DEVICE)
+                    lsp_error("Could not initialize graphical subsystem (display)");
+                return res;
+            }
+        }
 
         // Update state, mark initialized
         nState      = S_INITIALIZED;
@@ -623,7 +631,7 @@ namespace lsp
         if (nState != S_CONNECTED)
             return false;
 
-        dsp_context_t ctx;
+        dsp::context_t ctx;
         dsp::start(&ctx);
 
         // Transfer the values of the ports to the UI

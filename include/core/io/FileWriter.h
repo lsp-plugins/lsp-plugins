@@ -8,6 +8,7 @@
 #ifndef CORE_IO_FILEWRITER_H_
 #define CORE_IO_FILEWRITER_H_
 
+#include <stdio.h>
 #include <core/io/Writer.h>
 #include <core/types.h>
 

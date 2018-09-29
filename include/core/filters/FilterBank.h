@@ -8,7 +8,7 @@
 #ifndef CORE_FILTERS_FILTERBANK_H_
 #define CORE_FILTERS_FILTERBANK_H_
 
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 namespace lsp
 {

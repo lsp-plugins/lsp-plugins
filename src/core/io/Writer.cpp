@@ -81,7 +81,45 @@ namespace lsp
             return write(&v[first], count);
         }
 
-        status_t Writer::flush()
+        status_t Writer::writeln(lsp_wchar_t c)
+        {
+            lsp_wchar_t w[2];
+            w[0] = c;
+            w[1] = '\n';
+            return write(w, 2);
+        }
+
+        status_t Writer::writeln(const lsp_wchar_t *c, size_t count)
+        {
+            LSP_STATUS_ASSERT(write(c, count));
+            return write('\n');
+        }
+
+        status_t Writer::writeln_ascii(const char *s)
+        {
+            LSP_STATUS_ASSERT(write_ascii(s));
+            return write('\n');
+        }
+
+        status_t Writer::writeln(const LSPString *s)
+        {
+            LSP_STATUS_ASSERT(write(s));
+            return write('\n');
+        }
+
+        status_t Writer::writeln(const LSPString *s, ssize_t first)
+        {
+            LSP_STATUS_ASSERT(write(s, first));
+            return write('\n');
+        }
+
+        status_t Writer::writeln(const LSPString *s, ssize_t first, ssize_t last)
+        {
+            LSP_STATUS_ASSERT(write(s, first, last));
+            return write('\n');
+        }
+
+        status_t Writer::Writer::flush()
         {
             return STATUS_OK;
         }

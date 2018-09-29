@@ -6,10 +6,10 @@
 
 // Core include
 #include <core/types.h>
-#include <core/atomic.h>
 #include <core/midi.h>
 #include <core/lib.h>
-#include <core/endian.h>
+#include <dsp/atomic.h>
+#include <dsp/endian.h>
 #include <plugins/plugins.h>
 
 #include <data/cvector.h>
@@ -613,7 +613,7 @@ namespace lsp
     void VSTCALLBACK vst_process(AEffect* effect, float** inputs, float** outputs, VstInt32 sampleFrames)
     {
 //        lsp_trace("vst_process effect=%p, inputs=%p, outputs=%p, frames=%d", effect, inputs, outputs, int(sampleFrames));
-        dsp_context_t ctx;
+        dsp::context_t ctx;
         VSTWrapper *w     = reinterpret_cast<VSTWrapper *>(effect->object);
 
         // Call the plugin for processing
@@ -625,7 +625,7 @@ namespace lsp
     void VSTCALLBACK vst_process_replacing(AEffect* effect, float** inputs, float** outputs, VstInt32 sampleFrames)
     {
 //        lsp_trace("vst_process effect=%p, inputs=%p, outputs=%p, frames=%d", effect, inputs, outputs, int(sampleFrames));
-        dsp_context_t ctx;
+        dsp::context_t ctx;
         VSTWrapper *w     = reinterpret_cast<VSTWrapper *>(effect->object);
 
         // Call the plugin for processing

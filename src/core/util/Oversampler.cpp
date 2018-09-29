@@ -5,15 +5,13 @@
  *      Author: sadko
  */
 
-#include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/debug.h>
 
 #include <core/util/Oversampler.h>
 
 #define OS_UP_BUFFER_SIZE       (12 * 1024)   /* Multiple of 3 and 4 */
 #define OS_DOWN_BUFFER_SIZE     (12 * 1024)   /* Multiple of 3 and 4 */
-#define OS_BUFFER_GAP           64
 #define OS_CUTOFF               21000.0f
 
 namespace lsp
@@ -51,7 +49,7 @@ namespace lsp
 
         if (bData == NULL)
         {
-            size_t samples  = OS_UP_BUFFER_SIZE + OS_DOWN_BUFFER_SIZE + OS_BUFFER_GAP;
+            size_t samples  = OS_UP_BUFFER_SIZE + OS_DOWN_BUFFER_SIZE + RESAMPLING_RESERVED_SAMPLES;
             bData           = new uint8_t[samples * sizeof(float) + DEFAULT_ALIGN];
             if (bData == NULL)
                 return false;
@@ -59,13 +57,13 @@ namespace lsp
             fDownBuffer     = ptr;
             ptr            += OS_DOWN_BUFFER_SIZE;
             fUpBuffer       = reinterpret_cast<float *>(ptr);
-            ptr            += OS_UP_BUFFER_SIZE + OS_BUFFER_GAP;
+            ptr            += OS_UP_BUFFER_SIZE + RESAMPLING_RESERVED_SAMPLES;
 
             lsp_assert(reinterpret_cast<uint8_t *>(ptr) <= &bData[samples * sizeof(float) + DEFAULT_ALIGN]);
         }
 
         // Clear buffer
-        dsp::fill_zero(fUpBuffer, OS_UP_BUFFER_SIZE + OS_BUFFER_GAP);
+        dsp::fill_zero(fUpBuffer, OS_UP_BUFFER_SIZE + RESAMPLING_RESERVED_SAMPLES);
         dsp::fill_zero(fDownBuffer, OS_DOWN_BUFFER_SIZE);
         nUpHead       = 0;
 
@@ -108,7 +106,7 @@ namespace lsp
     {
         if (nUpdate & (UP_MODE | UP_SAMPLE_RATE))
         {
-            dsp::fill_zero(fUpBuffer, OS_UP_BUFFER_SIZE + OS_BUFFER_GAP);
+            dsp::fill_zero(fUpBuffer, OS_UP_BUFFER_SIZE + RESAMPLING_RESERVED_SAMPLES);
             nUpHead       = 0;
             sFilter.clear();
         }
@@ -166,8 +164,8 @@ namespace lsp
                     size_t can_do   = (OS_UP_BUFFER_SIZE - nUpHead) >> 1;
                     if (can_do <= 0)
                     {
-                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], OS_BUFFER_GAP);
-                        dsp::fill_zero(&fUpBuffer[OS_BUFFER_GAP], OS_UP_BUFFER_SIZE);
+                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], RESAMPLING_RESERVED_SAMPLES);
+                        dsp::fill_zero(&fUpBuffer[RESAMPLING_RESERVED_SAMPLES], OS_UP_BUFFER_SIZE);
                         nUpHead         = 0;
                         can_do          = OS_UP_BUFFER_SIZE >> 1;
                     }
@@ -199,8 +197,8 @@ namespace lsp
                     size_t can_do   = (OS_UP_BUFFER_SIZE - nUpHead) / 3;
                     if (can_do <= 0)
                     {
-                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], OS_BUFFER_GAP);
-                        dsp::fill_zero(&fUpBuffer[OS_BUFFER_GAP], OS_UP_BUFFER_SIZE);
+                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], RESAMPLING_RESERVED_SAMPLES);
+                        dsp::fill_zero(&fUpBuffer[RESAMPLING_RESERVED_SAMPLES], OS_UP_BUFFER_SIZE);
                         nUpHead         = 0;
                         can_do          = OS_UP_BUFFER_SIZE / 3;
                     }
@@ -232,8 +230,8 @@ namespace lsp
                     size_t can_do   = (OS_UP_BUFFER_SIZE - nUpHead) >> 2;
                     if (can_do <= 0)
                     {
-                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], OS_BUFFER_GAP);
-                        dsp::fill_zero(&fUpBuffer[OS_BUFFER_GAP], OS_UP_BUFFER_SIZE);
+                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], RESAMPLING_RESERVED_SAMPLES);
+                        dsp::fill_zero(&fUpBuffer[RESAMPLING_RESERVED_SAMPLES], OS_UP_BUFFER_SIZE);
                         nUpHead         = 0;
                         can_do          = OS_UP_BUFFER_SIZE >> 2;
                     }
@@ -265,8 +263,8 @@ namespace lsp
                     size_t can_do   = (OS_UP_BUFFER_SIZE - nUpHead) / 6;
                     if (can_do <= 0)
                     {
-                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], OS_BUFFER_GAP);
-                        dsp::fill_zero(&fUpBuffer[OS_BUFFER_GAP], OS_UP_BUFFER_SIZE);
+                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], RESAMPLING_RESERVED_SAMPLES);
+                        dsp::fill_zero(&fUpBuffer[RESAMPLING_RESERVED_SAMPLES], OS_UP_BUFFER_SIZE);
                         nUpHead         = 0;
                         can_do          = OS_UP_BUFFER_SIZE / 6;
                     }
@@ -298,8 +296,8 @@ namespace lsp
                     size_t can_do   = (OS_UP_BUFFER_SIZE - nUpHead) >> 3;
                     if (can_do <= 0)
                     {
-                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], OS_BUFFER_GAP);
-                        dsp::fill_zero(&fUpBuffer[OS_BUFFER_GAP], OS_UP_BUFFER_SIZE);
+                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], RESAMPLING_RESERVED_SAMPLES);
+                        dsp::fill_zero(&fUpBuffer[RESAMPLING_RESERVED_SAMPLES], OS_UP_BUFFER_SIZE);
                         nUpHead         = 0;
                         can_do          = OS_UP_BUFFER_SIZE >> 3;
                     }
@@ -481,8 +479,8 @@ namespace lsp
                     size_t can_do   = (OS_UP_BUFFER_SIZE - nUpHead) >> 1;
                     if (can_do <= 0)
                     {
-                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], OS_BUFFER_GAP);
-                        dsp::fill_zero(&fUpBuffer[OS_BUFFER_GAP], OS_UP_BUFFER_SIZE);
+                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], RESAMPLING_RESERVED_SAMPLES);
+                        dsp::fill_zero(&fUpBuffer[RESAMPLING_RESERVED_SAMPLES], OS_UP_BUFFER_SIZE);
                         nUpHead         = 0;
                         can_do          = OS_UP_BUFFER_SIZE >> 1;
                     }
@@ -522,8 +520,8 @@ namespace lsp
                     size_t can_do   = (OS_UP_BUFFER_SIZE - nUpHead) / 3;
                     if (can_do <= 0)
                     {
-                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], OS_BUFFER_GAP);
-                        dsp::fill_zero(&fUpBuffer[OS_BUFFER_GAP], OS_UP_BUFFER_SIZE);
+                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], RESAMPLING_RESERVED_SAMPLES);
+                        dsp::fill_zero(&fUpBuffer[RESAMPLING_RESERVED_SAMPLES], OS_UP_BUFFER_SIZE);
                         nUpHead         = 0;
                         can_do          = OS_UP_BUFFER_SIZE / 3;
                     }
@@ -563,8 +561,8 @@ namespace lsp
                     size_t can_do   = (OS_UP_BUFFER_SIZE - nUpHead) >> 2;
                     if (can_do <= 0)
                     {
-                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], OS_BUFFER_GAP);
-                        dsp::fill_zero(&fUpBuffer[OS_BUFFER_GAP], OS_UP_BUFFER_SIZE);
+                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], RESAMPLING_RESERVED_SAMPLES);
+                        dsp::fill_zero(&fUpBuffer[RESAMPLING_RESERVED_SAMPLES], OS_UP_BUFFER_SIZE);
                         nUpHead         = 0;
                         can_do          = OS_UP_BUFFER_SIZE >> 2;
                     }
@@ -604,8 +602,8 @@ namespace lsp
                     size_t can_do   = (OS_UP_BUFFER_SIZE - nUpHead) / 6;
                     if (can_do <= 0)
                     {
-                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], OS_BUFFER_GAP);
-                        dsp::fill_zero(&fUpBuffer[OS_BUFFER_GAP], OS_UP_BUFFER_SIZE);
+                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], RESAMPLING_RESERVED_SAMPLES);
+                        dsp::fill_zero(&fUpBuffer[RESAMPLING_RESERVED_SAMPLES], OS_UP_BUFFER_SIZE);
                         nUpHead         = 0;
                         can_do          = OS_UP_BUFFER_SIZE / 6;
                     }
@@ -645,8 +643,8 @@ namespace lsp
                     size_t can_do   = (OS_UP_BUFFER_SIZE - nUpHead) >> 3;
                     if (can_do <= 0)
                     {
-                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], OS_BUFFER_GAP);
-                        dsp::fill_zero(&fUpBuffer[OS_BUFFER_GAP], OS_UP_BUFFER_SIZE);
+                        dsp::move(fUpBuffer, &fUpBuffer[nUpHead], RESAMPLING_RESERVED_SAMPLES);
+                        dsp::fill_zero(&fUpBuffer[RESAMPLING_RESERVED_SAMPLES], OS_UP_BUFFER_SIZE);
                         nUpHead         = 0;
                         can_do          = OS_UP_BUFFER_SIZE >> 3;
                     }
@@ -685,6 +683,31 @@ namespace lsp
                     dsp::copy(dst, src, samples);
                 break;
         }
+    }
+
+    size_t Oversampler::latency() const
+    {
+        switch (nMode)
+        {
+            case OM_LANCZOS_2X2:
+            case OM_LANCZOS_3X2:
+            case OM_LANCZOS_4X2:
+            case OM_LANCZOS_6X2:
+            case OM_LANCZOS_8X2:
+                return 2;
+
+            case OM_LANCZOS_2X3:
+            case OM_LANCZOS_3X3:
+            case OM_LANCZOS_4X3:
+            case OM_LANCZOS_6X3:
+            case OM_LANCZOS_8X3:
+                return 3;
+
+            default:
+                break;
+        }
+
+        return 0;
     }
 
 } /* namespace lsp */

@@ -5,7 +5,7 @@
  *      Author: sadko
  */
 
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/debug.h>
 #include <core/interpolation.h>
 #include <core/dynamics/Limiter.h>
@@ -635,7 +635,7 @@ namespace lsp
                         // Check that it is a peak
                         if ((s > left) && (s >= right))
                         {
-                            peak_t *p;
+                            peak_t *p = &vPeaks[0];
 
                             if (nPeaks >= LIMITER_PEAKS_MAX)
                             {
@@ -778,7 +778,7 @@ namespace lsp
                         // Check that it is a peak
                         if ((s > left) && (s >= right))
                         {
-                            peak_t *p;
+                            peak_t *p = &vPeaks[0];
 
                             if (nPeaks >= LIMITER_PEAKS_MAX)
                             {

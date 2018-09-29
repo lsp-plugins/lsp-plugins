@@ -5,9 +5,9 @@
  *      Author: sadko
  */
 
+#include <dsp/dsp.h>
 #include <core/dynamics/DynamicProcessor.h>
 #include <core/interpolation.h>
-#include <core/dsp.h>
 #include <core/debug.h>
 #include <core/units.h>
 #include <math.h>

@@ -622,6 +622,9 @@ namespace lsp
         // Request for redraw
         if (pWrapper != NULL)
             pWrapper->query_display_draw();
+
+        // Report latency
+        set_latency(vChannels[0].sOver.latency());
     }
     
     void limiter_base::ui_activated()

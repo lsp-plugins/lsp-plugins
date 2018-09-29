@@ -10,7 +10,7 @@
 
 #include <core/IExecutor.h>
 #include <core/ITask.h>
-#include <core/atomic.h>
+#include <dsp/atomic.h>
 #include <pthread.h>
 
 namespace lsp

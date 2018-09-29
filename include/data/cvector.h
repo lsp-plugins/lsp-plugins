@@ -9,7 +9,8 @@
 #define DATA_CVECTOR_H_
 
 #include <stddef.h>
-#include <malloc.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define CVECTOR_GROW        16
 

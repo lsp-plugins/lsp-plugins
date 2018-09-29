@@ -23,6 +23,7 @@
 							status_id="ifs${i}" mesh_id="ifd${i}"
 							width="600" height="128"
 							path_id="ui:dlg_ir_path"
+							format="audio_lspc,audio,all"
 						/>
 					</hbox>
 					

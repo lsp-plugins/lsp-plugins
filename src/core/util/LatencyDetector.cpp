@@ -5,7 +5,7 @@
  *      Author: crocoduck
  */
 
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/debug.h>
 #include <core/util/LatencyDetector.h>
 

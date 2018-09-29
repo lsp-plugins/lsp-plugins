@@ -5,7 +5,7 @@
  *      Author: sadko
  */
 
-#include <core/endian.h>
+#include <dsp/endian.h>
 #include <core/files/lspc/lspc.h>
 #include <core/files/lspc/LSPCChunkReader.h>
 
@@ -19,6 +19,7 @@ namespace lsp
         nBufTail    = 0;
         nFileOff    = 0;
         nUID        = uid;
+        bLast       = false;
     }
     
     LSPCChunkReader::~LSPCChunkReader()
@@ -87,24 +88,90 @@ namespace lsp
             }
             else // Seek for the next valid chunk
             {
+                // There is no chunk after current
+                if (bLast)
+                {
+                    set_error(STATUS_EOF);
+                    return total;
+                }
+
                 // Read chunk header
                 ssize_t n   = pFile->read(nFileOff, &hdr, sizeof(lspc_chunk_header_t));
                 if (n < ssize_t(sizeof(lspc_chunk_header_t)))
                 {
                     set_error(STATUS_EOF);
-                    return 0;
+                    return total;
                 }
                 nFileOff   += sizeof(lspc_chunk_header_t);
 
+                hdr.magic       = BE_TO_CPU(hdr.magic);
+                hdr.flags       = BE_TO_CPU(hdr.flags);
+                hdr.size        = BE_TO_CPU(hdr.size);
+                hdr.uid         = BE_TO_CPU(hdr.uid);
+
                 // Validate chunk header
-                if ((BE_DATA(hdr.magic) == nMagic) && (BE_DATA(hdr.uid) == nUID)) // We've found our chunk, remember unread bytes count
-                    nUnread         = BE_DATA(hdr.size);
+                if ((hdr.magic == nMagic) && (hdr.uid == nUID)) // We've found our chunk, remember unread bytes count
+                {
+                    bLast           = hdr.flags & LSPC_CHUNK_FLAG_LAST;
+                    nUnread         = hdr.size;
+                }
                 else // Skip this chunk
-                    nFileOff       += BE_DATA(hdr.size);
+                    nFileOff       += hdr.size;
             }
         }
 
         return total;
+    }
+
+    ssize_t LSPCChunkReader::read_header(void *hdr, size_t size)
+    {
+        if (size < sizeof(lspc_header_t))
+            return -set_error(STATUS_BAD_ARGUMENTS);
+
+        // Read header data first
+        lspc_header_t shdr;
+        ssize_t count   = read(&shdr, sizeof(lspc_header_t));
+        if (count < 0)
+            return count;
+        else if (count < ssize_t(sizeof(lspc_header_t)))
+            return -set_error(STATUS_EOF); // Unexpected end of file
+
+        // Now read header
+        lspc_chunk_raw_header_t *dhdr = reinterpret_cast<lspc_chunk_raw_header_t *>(hdr);
+        size_t hdr_size             = BE_TO_CPU(shdr.size);
+        if (hdr_size < sizeof(lspc_header_t)) // header size should be at least of sizeof(lspc_header_t)
+            return -set_error(STATUS_CORRUPTED_FILE);
+        dhdr->common.size           = hdr_size;
+        dhdr->common.version        = BE_TO_CPU(shdr.version);
+        hdr_size                   -= sizeof(lspc_header_t);
+        size                       -= sizeof(lspc_header_t);
+
+        // Read header contents
+        ssize_t to_read = (size > hdr_size) ? hdr_size : size;
+        count           = read(&dhdr->data, to_read);
+        if (count < 0)
+            return count;
+        else if (count < to_read)
+            return -set_error(STATUS_EOF); // Unexpected end of file
+
+        // Analyze size of header
+        if (size < hdr_size) // Requested size less than actual header size?
+        {
+            // We need to skip extra bytes that do not fit into header
+            to_read     = hdr_size - size;
+            count       = skip(to_read);
+            if (count < 0)
+                return count;
+            else if (count < to_read)
+                return -set_error(STATUS_EOF); // Unexpected end of file
+
+            // Patch the header size to be at most of size bytes
+            dhdr->common.size           = size + sizeof(lspc_header_t);
+        }
+        else if (size > hdr_size)
+            bzero(&dhdr->data[count], size - hdr_size);
+
+        return dhdr->common.size;
     }
 
     ssize_t LSPCChunkReader::skip(size_t count)
@@ -134,7 +201,7 @@ namespace lsp
             {
                 if (nUnread <= count)
                 {
-                    // Update coutners
+                    // Update counters
                     count      -= nUnread;
                     total      += nUnread;
                     nFileOff   += nUnread;
@@ -150,20 +217,35 @@ namespace lsp
             }
             else // Seek for the next valid chunk
             {
+                // There is no chunk after current
+                if (bLast)
+                {
+                    set_error(STATUS_EOF);
+                    return total;
+                }
+
                 // Read chunk header
                 ssize_t n   = pFile->read(nFileOff, &hdr, sizeof(lspc_chunk_header_t));
-                if (n <= ssize_t(sizeof(lspc_chunk_header_t)))
+                if (n < ssize_t(sizeof(lspc_chunk_header_t)))
                 {
                     set_error(STATUS_EOF);
                     return 0;
                 }
                 nFileOff   += sizeof(lspc_chunk_header_t);
 
+                hdr.magic       = BE_TO_CPU(hdr.magic);
+                hdr.flags       = BE_TO_CPU(hdr.flags);
+                hdr.size        = BE_TO_CPU(hdr.size);
+                hdr.uid         = BE_TO_CPU(hdr.uid);
+
                 // Validate chunk header
-                if ((BE_DATA(hdr.magic) == nMagic) && (BE_DATA(hdr.uid) == nUID)) // We've found our chunk, remember unread bytes count
-                    nUnread         = BE_DATA(hdr.size);
+                if ((hdr.magic == nMagic) && (hdr.uid == nUID)) // We've found our chunk, remember unread bytes count
+                {
+                    bLast           = hdr.flags & LSPC_CHUNK_FLAG_LAST;
+                    nUnread         = hdr.size;
+                }
                 else // Skip this chunk
-                    nFileOff       += BE_DATA(hdr.size);
+                    nFileOff       += hdr.size;
             }
         }
 

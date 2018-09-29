@@ -6,6 +6,8 @@
  */
 
 #include <core/alloc.h>
+#include <core/types.h>
+#include <dsp/dsp.h>
 #include <core/filters/FilterBank.h>
 
 // Currently disable x8 banks on non-experimental stuff

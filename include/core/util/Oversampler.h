@@ -159,7 +159,7 @@ namespace lsp
              *
              * @param dst destination buffer of samples*ratio size
              * @param src source buffer of samples size
-             * @param samples number of samples to process
+             * @param samples number of samples that should be processed in src buffer
              */
             void upsample(float *dst, const float *src, size_t samples);
 
@@ -167,7 +167,7 @@ namespace lsp
              *
              * @param dst destination buffer of samples size
              * @param src source buffer of samples*ratio size
-             * @param samples number of samples to process
+             * @param samples number of samples that should be produced into the dst buffer
              */
             void downsample(float *dst, const float *src, size_t samples);
 
@@ -190,6 +190,12 @@ namespace lsp
             {
                 process(dst, src, samples, pCallback);
             }
+
+            /**
+             * Get oversampler latency
+             * @return oversampler latency in normal (non-oversampled) samples
+             */
+            size_t latency() const;
     };
 
 } /* namespace lsp */

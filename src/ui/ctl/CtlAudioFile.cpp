@@ -517,10 +517,10 @@ namespace lsp
             if ((af == NULL) || (pPath == NULL))
                 return;
 
-            const char *path = af->get_path();
-            if (path != NULL)
+            LSPString path;
+            if ((af->get_path(&path)) && (path.length() > 0))
             {
-                pPath->write(path, strlen(path));
+                pPath->write(path.get_native(), path.length());
                 pPath->notify_all();
             }
         }

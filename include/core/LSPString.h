@@ -9,6 +9,7 @@
 #define UI_TK_UTIL_LSPSTRING_H_
 
 #include <core/types.h>
+#include <stdarg.h>
 
 namespace lsp
 {
@@ -215,7 +216,7 @@ namespace lsp
             bool set_ascii(const char *s, size_t n);
             bool set_native(const char *s, ssize_t n, const char *charset = NULL);
             inline bool set_utf8(const char *s) { return set_utf8(s, strlen(s)); };
-            inline bool set_ascii(const char *s) { return set_utf8(s, strlen(s)); };
+            inline bool set_ascii(const char *s) { return set_ascii(s, strlen(s)); };
             inline bool set_native(const char *s, const char *charset) { return set_native(s, strlen(s), charset); };
             inline bool set_native(const char *s) { return set_native(s, strlen(s), NULL); };
 

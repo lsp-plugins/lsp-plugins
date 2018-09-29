@@ -8,7 +8,7 @@
 #ifndef CORE_3D_RAYTRACE3D_H_
 #define CORE_3D_RAYTRACE3D_H_
 
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <data/cstorage.h>
 
 namespace lsp

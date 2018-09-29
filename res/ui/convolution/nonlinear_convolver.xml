@@ -1,0 +1,39 @@
+<plugin resizable="false">
+	<vbox spacing="4">
+		<group text="Hammerstein Kernels" expand="true" fill="true">
+			<graph width="1024" height="300" expand="true" fill="true">
+				<center hpos="0.0" vpos="0.0" visible="false" />
+				<axis min="0.0" max="2.0" color="white" angle="0.0" logarithmic="false" />
+				<axis min="-120.0" max="0.0" color="white" angle="0.5" logarithmic="false" />
+		
+				<mesh id="krnl" width="3" />
+			</graph>
+		</group>
+		<group text="Settings" expand="true" fill="true">
+			<grid rows="1" cols="5" expand="true" hspacing="4">
+				<file id="ifpn" status_id="ifps" width="128" height="32" />
+				
+				<grid rows="2" cols="1" expand="true">
+					<label text="Model Order" />
+					<combo id="ords" fill="true" />
+				</grid>
+				
+				<grid rows="2" cols="1" expand="true">
+					<label text="Model Accuracy" />
+					<combo id="wszs" fill="true" />
+				</grid>
+				
+				<grid rows="2" cols="1" expand="true">
+					<label text="Apply Settings" />
+					<button id="prep" size="32" led="true" />
+				</grid>
+				
+				<grid rows="3" cols="1" expand="true">
+					<label text="Output Gain" />
+					<knob id="outg" />
+					<value id="outg"/>
+				</grid>
+			</grid>
+		</group>
+	</vbox>
+</plugin>

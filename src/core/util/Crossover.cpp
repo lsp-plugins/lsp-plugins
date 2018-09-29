@@ -5,9 +5,8 @@
  *      Author: sadko
  */
 
-#include <core/types.h>
 #include <core/debug.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/util/Crossover.h>
 
 namespace lsp
@@ -397,10 +396,10 @@ namespace lsp
 
                 // Calculate frequency charts
                 sp->sLoPass.freq_chart(left->vBuffer, &left->vBuffer[max_items], f, to_process);
-                dsp::complex_mul(left->vBuffer, &left->vBuffer[max_items], left->vBuffer, &left->vBuffer[max_items], tmp_re, tmp_im, to_process);
+                dsp::complex_mul3(left->vBuffer, &left->vBuffer[max_items], left->vBuffer, &left->vBuffer[max_items], tmp_re, tmp_im, to_process);
 
                 sp->sHiPass.freq_chart(right->vBuffer, &right->vBuffer[max_items], f, to_process);
-                dsp::complex_mul(right->vBuffer, &right->vBuffer[max_items], right->vBuffer, &right->vBuffer[max_items], tmp_re, tmp_im, to_process);
+                dsp::complex_mul3(right->vBuffer, &right->vBuffer[max_items], right->vBuffer, &right->vBuffer[max_items], tmp_re, tmp_im, to_process);
 
                 dsp::copy(tmp_re, right->vBuffer, to_process);
                 dsp::copy(tmp_im, &right->vBuffer[max_items], to_process);

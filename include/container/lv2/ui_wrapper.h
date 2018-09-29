@@ -247,7 +247,7 @@ namespace lsp
                 if (pUI == NULL)
                     return -1;
 
-                dsp_context_t ctx;
+                dsp::context_t ctx;
                 dsp::start(&ctx);
 
                 // Synchronize port states avoiding LV2 Atom transport

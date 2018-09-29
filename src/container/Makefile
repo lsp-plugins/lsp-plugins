@@ -3,8 +3,15 @@ FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 OBJ_HELPERS             = $(OBJDIR)/CairoCanvas.o
 
 # Detemine what modules to build
+PACKAGES                = $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA) $(OBJ_PLUGINS) $(SNDFILE_LIBS)
+ifeq ($(LSP_TESTING),1)
+PACKAGES               += $(OBJ_TEST_CORE) $(OPENGL_LIBS)
+MODULES                 = $(BIN_TEST)
+endif
+ifneq ($(LSP_TESTING),1)
 MODULES                 = $(LIB_LADSPA) $(LIB_LV2) $(LIB_JACK) $(BIN_PROFILE) $(LIB_VST)
-PACKAGES                = $(OBJ_CORE) $(OBJ_METADATA) $(OBJ_PLUGINS) $(SNDFILE_LIBS)
+endif
+
 UI_PACKAGES             = $(PACKAGES) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(XLIB_LIBS) $(CAIRO_LIBS)
 
 .PHONY: all
@@ -45,3 +52,8 @@ $(BIN_PROFILE): $(LIB_JACK)
 	@echo "  $(CC) $(notdir $(BIN_PROFILE))"
 	@$(CC) -o $(BIN_PROFILE) $(EXE_FLAGS) $(JACK_LIBS) $(OBJ_HELPERS) $(UI_PACKAGES) $(OBJDIR)/jack.o $(OBJDIR)/profile.o 
 
+$(BIN_TEST): $(LIB_JACK)
+	@echo "  $(CC) test.cpp"
+	@$(CC) -o $(OBJDIR)/test.o -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(JACK_HEADERS) test.cpp
+	@echo "  $(CC) $(notdir $(BIN_TEST))"
+	@$(CC) -o $(BIN_TEST) $(EXE_FLAGS) $(JACK_LIBS) $(OBJ_HELPERS) $(UI_PACKAGES) $(OBJDIR)/jack.o $(OBJDIR)/test.o 

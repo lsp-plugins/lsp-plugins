@@ -8,7 +8,7 @@
 #ifndef INCLUDE_CORE_3D_OBJECT3D_H_
 #define INCLUDE_CORE_3D_OBJECT3D_H_
 
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/status.h>
 #include <data/cstorage.h>
 

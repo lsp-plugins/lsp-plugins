@@ -10,7 +10,8 @@
 #include <fcntl.h>
 #include <string.h>
 
-#include <core/endian.h>
+#include <dsp/endian.h>
+#include <core/debug.h>
 #include <core/files/lspc/lspc.h>
 #include <core/files/LSPCFile.h>
 
@@ -55,17 +56,17 @@ namespace lsp
 
         lspc_root_header_t hdr;
         read(fd, &hdr, sizeof(lspc_root_header_t));
-        if (BE_DATA(hdr.magic) != LSPC_ROOT_MAGIC)
+        if (BE_TO_CPU(hdr.magic) != LSPC_ROOT_MAGIC)
         {
             ::close(fd);
             return STATUS_BAD_FORMAT;
         }
-        else if (BE_DATA(hdr.version) != 1)
+        else if (BE_TO_CPU(hdr.version) != 1)
         {
             ::close(fd);
             return STATUS_BAD_FORMAT;
         }
-        nHdrSize            = BE_DATA(hdr.size);
+        nHdrSize            = BE_TO_CPU(hdr.size);
 
         LSPCResource *res   = create_resource(fd);
         if (res == NULL)
@@ -93,9 +94,10 @@ namespace lsp
         hdr.magic       = LSPC_ROOT_MAGIC;
         hdr.version     = 1;
         hdr.size        = sizeof(hdr);
-        hdr.magic       = BE_DATA(hdr.magic);
-        hdr.version     = BE_DATA(hdr.version);
-        hdr.size        = BE_DATA(hdr.size);
+
+        hdr.magic       = CPU_TO_BE(hdr.magic);
+        hdr.version     = CPU_TO_BE(hdr.version);
+        hdr.size        = CPU_TO_BE(hdr.size);
 
         write(fd, &hdr, sizeof(lspc_root_header_t));
 
@@ -126,7 +128,7 @@ namespace lsp
         if ((pFile == NULL) || (!bWrite))
             return NULL;
 
-        LSPCChunkWriter *wr = new LSPCChunkWriter(pFile, BE_DATA(magic));
+        LSPCChunkWriter *wr = new LSPCChunkWriter(pFile, magic);
         return wr;
     }
 
@@ -144,18 +146,85 @@ namespace lsp
             if (res != sizeof(lspc_chunk_header_t))
                 return NULL;
             pos        += sizeof(lspc_chunk_header_t);
-            if (BE_DATA(hdr.uid) == uid)
+
+            hdr.magic   = BE_TO_CPU(hdr.magic);
+            hdr.uid     = BE_TO_CPU(hdr.uid);
+            hdr.flags   = BE_TO_CPU(hdr.flags);
+            hdr.size    = BE_TO_CPU(hdr.size);
+
+//            lsp_trace("chunk header uid=%x, magic=%x, flags=%x, search_uid=%x, size=%llx",
+//                    int(hdr.uid), int(hdr.magic), int(hdr.flags), int(uid), (long long)(hdr.size));
+            if (hdr.uid == uid)
                 break;
-            pos        += BE_DATA(hdr.size);
+            pos        += hdr.size;
         }
 
         // Create reader
-        LSPCChunkReader *rd = new LSPCChunkReader(pFile, BE_DATA(hdr.magic), uid);
+        LSPCChunkReader *rd = new LSPCChunkReader(pFile, hdr.magic, uid);
         if (rd == NULL)
             return NULL;
         rd->nFileOff        = pos;
-        rd->nUnread         = BE_DATA(hdr.size);
+        rd->nUnread         = hdr.size;
         return rd;
+    }
+
+    LSPCChunkReader *LSPCFile::read_chunk(uint32_t uid, uint32_t magic)
+    {
+        if ((pFile == NULL) || (bWrite))
+            return NULL;
+
+        // Find the initial position of the chunk in file
+        lspc_chunk_header_t hdr;
+        wsize_t pos         = nHdrSize;
+        while (true)
+        {
+            ssize_t res = pFile->read(pos, &hdr, sizeof(lspc_chunk_header_t));
+            if (res != sizeof(lspc_chunk_header_t))
+                return NULL;
+            pos        += sizeof(lspc_chunk_header_t);
+
+            hdr.magic   = BE_TO_CPU(hdr.magic);
+            hdr.uid     = BE_TO_CPU(hdr.uid);
+            hdr.flags   = BE_TO_CPU(hdr.flags);
+            hdr.size    = BE_TO_CPU(hdr.size);
+
+            if ((hdr.uid == uid) && (hdr.magic == magic))
+                break;
+            pos        += hdr.size;
+        }
+
+        // Create reader
+        LSPCChunkReader *rd = new LSPCChunkReader(pFile, hdr.magic, uid);
+        if (rd == NULL)
+            return NULL;
+        rd->nFileOff        = pos;
+        rd->nUnread         = hdr.size;
+        return rd;
+    }
+
+    LSPCChunkReader *LSPCFile::find_chunk(uint32_t magic, uint32_t *id, uint32_t start_id)
+    {
+        while (true)
+        {
+            // Get chunk
+            LSPCChunkReader    *rd = read_chunk(start_id);
+            if (rd == NULL)
+                return NULL;
+
+            // Check chunk type
+//            lsp_trace("rd->magic = %x, req_magic=%x", int(rd->magic()), int(magic));
+            if (rd->magic() == magic)
+            {
+                if (id != NULL)
+                    *id = start_id;
+                return rd;
+            }
+
+            // Close chunk reader
+            rd->close();
+            delete rd;
+            start_id++;
+        }
     }
 
 } /* namespace lsp */

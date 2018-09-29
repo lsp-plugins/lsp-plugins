@@ -20,22 +20,23 @@ developed software.
 Still there is no absolute warranty about stability of the software on
 different platforms so you're using this software on your own risk.
 
-The source code takes a lot of time to develop, so the project uses
-donation model to compensate time spent for development.
+The project also does encourage donations that can be submitted here:
+https://salt.bountysource.com/teams/lsp-plugins
 
-That's why the project uses donation model: the binary distributions
-of the software are completely free but the source code for each plugin
-will be published under the free license only after the donation goal
-is reached.
-
-For more information, please read LICENSE.txt.
+For more information about licensing, please read LICENSE.txt.
 
 ==== SYSTEM REQUIREMENTS ====
 
-LSP plugins are developed to support LADSPA, LV2 and LinuxVST formats and
-at least i586 and x86_64 architectures. Plugins that require MIDI channels
-are not implemented in LASDPA format due to format's restrictions. Also
-there are available standalone versions for JACK server.
+Currently supported architectures are:
+  * i586 (Intel IA-32 architecture, legacy support);
+  * x86_64 (Intel EM64T, AMD64 architecture, full support);
+  * ARMv7-AR (experimental, tested on Raspberry Pi 3 Model B).
+
+Supported plugin formats:
+  * LADSPA (not supported by plugins that use MIDI or file loading);
+  * LV2 (full support);
+  * LinuxVST 2.4 (full support);
+  * Standalone JACK (full support).
 
 The LADSPA distribution requirements:
   * glibc >= 2.19
@@ -52,7 +53,7 @@ The LinuxVST distribution requirements:
   * glibc >= 2.19
   * libsndfile >= 1.0.25
   * libcairo >= 1.14
-  * Host compatible with LinuxVST v2.4
+  * Host compatible with LinuxVST 2.4
 
 The JACK distribution requirements:
   * glibc >= 2.19
@@ -78,10 +79,6 @@ Known list of supported plugin hosts:
 
 ==== VERSIONING ====
 
-The distribution of plugins consists of two branches:
-  * Binary releases with closed source.
-  * Published source code (Source Code Release, SCR).
-
 Binary releases are the mostly actual releases and contain all
 possible plugins. These are packaged into archive named according to
 the following format:
@@ -94,37 +91,22 @@ The property <format> is the format of plugins, currently available:
   * lv2 - plugins in LV2 format
   * lxvst - plugins in LinuxVST (VST v2.4) format
 
-Supporetd architectures (<arch>) are currently only i586 and x86_64.
+Supporetd architectures (<arch>) are currently i586, x86_64 and armv7a.
 Properties <major>, <minor> and <micro> form the version of release.
 If the <micro> version is odd, it contains mostly bug-fixes and patches for
 the plugin modules. The even <micro> version of plugins contains new features
 and, in most cases, new plugin series. The history of changes may be seen in
 attached CHANGELOG.txt.
 
-Published source code contains source code available to build
-and launch plugins that have been donated by the community.
-It is commited into the code repository and currently not packaged into
-the official release to avoid confusion between binary and source code
-package versioning. It's highly recommended to follow the versioning
-of the SCR (source code release) according to the attached CHANGELOG.txt
-file and use the 'scr' abbreviation for the packages that are built from
-the source code. For example, Linux distribution packages could be named:
-
-  lsp-plugins-<format>-scr-<major>.<minor>.<micro>-<arch>.tar.gz
-  lsp-plugins-<format>-scr-<major>.<minor>.<micro>-<arch>.rpm
-  lsp-plugins-<format>-scr-<major>.<minor>.<micro>-<arch>.deb
-
-More information about donation and policy of source code publishing may
-be obtained here:
-  http://lsp-plug.in/?page=download
+Source code is also ready for building, see 'BUILDING' section for details.
 
 ==== INSTALLATION ====
 
 Binary distributions are ready to launch, just copy them to
 the appropriate directory.
 
-Releases containing odd number in minor version provide only
-critical fixes for the previous release.
+Releases containing odd number in minor version provide only enhancements
+and critical fixes for the previous release.
 
 IMPORTANT FOR VST INSTALLATIONS: If you deploy plugins as a subdirectory
 of your VST directory, the subdirectory should contain substring
@@ -169,24 +151,34 @@ from any location. After execution, the gprof profiling file 'gmon.out' is creat
 
 ==== BUILDING ====
 
-For source code distributions you may build plugins from scratch.
-You need the following packages to be installed:
+You may build plugins from scratch.
+
+For successful build you need the following packages to be installed:
   * gcc >= 4.7
   * gcc-c++ >= 4.7
   * libgcc_s1 >= 5.2
-  * libstdc++ >= 4.7
+  * libstdc++-devel >= 4.7
+  * jack-devel >= 1.9.5
+  * lv2-devel >= 1.10
+  * ladspa-devel >= 1.13
   * libexpat-devel >= 2.1
   * libsndfile-devel >= 1.0.25
   * libcairo-devel >= 1.14
-  * jack-devel >= 1.9.5
+  * glu-devel >= 9.0.0
+  * libGL-devel >= 11.2.2
+  * php >= 5.5.14
 
-Currently there is no automake supported, so to build plugins you
+Currently there is no automake/CMake supported, so to build plugins you
 have to type:
   make
   make install
 
-To build binaries for debuggin/profiling, use the following commands:
+To build binaries for debugging/profiling, use the following commands:
   make profile
+  
+To build binaries for testing (developers only), use the following commands:
+  make clean
+  make test
 
 You may also specify the installation root by specifying DESTDIR attribute:
   make install DESTDIR=<installation-root>
@@ -213,6 +205,85 @@ For debugging and getting crash stack trace with Ardour, please follow these ste
   * Do usual stuff to reproduce the problem
   * After Ardour crashes, type 'thread apply all bt' in console and attach the output
     to the bug report.
+
+==== TESTING ====
+
+Since release 1.1.4 there is implemented testing subsystem that allows:
+  * perform manual tests (mtest module);
+  * perform automated unit testing (utest module);
+  * perform automated single-core performance testing (ptest module).
+
+Manual tests are semi-automated or not automated at all. You may launch these tests
+to perform manual interaction with system or for retrieving some text data for further
+processing.
+
+Unit tests are completely automated and check that the produced result is correct for the
+specific input data. By default unit tests are launched in separate processes and utilize
+all CPU cores for maximum performance. The status of each unit test is collected during
+execution and list of all failed tests are printed after completion.
+
+Performance tests measure performance of some function/module under different conditions, 
+gather final statistics and output them in a table format. These tests are very useful for
+measuring single-core performance of different modules and functions and performing code
+optimizations.
+
+To build testing subsystem, issue the following commands:
+  make clean
+  make test
+
+After build, we can launth the test binary by issuing command:
+  .build/lsp-plugins-test
+
+This binary provides simple command-line interface, so here's the full usage:  
+  USAGE: {utest|ptest|mtest} [args...] [test name...]
+    First argument:
+      utest                 Unit testing subsystem
+      ptest                 Performance testing subsystem
+      mtest                 Manual testing subsystem
+    Additional arguments:
+      -a, --args [args...]  Pass arguments to test
+      -d, --debug           Disable time restrictions for unit tests
+                            for debugging purporses
+      -f, --fork            Fork child processes (opposite to --nofork)
+      -h, --help            Display help
+      -j, --jobs            Set number of job workers for unit tests
+      -l, --list            List all available tests
+      -nf, --nofork         Do not fork child processes (for better
+                            debugging capabilities)
+      -o, --outfile file    Output performance test statistics to specified file
+      -s, --silent          Do not output additional information from tests
+      -v, --verbose         Output additional information from tests
+
+Each test has fully-qualified name separated by dot symbols, tests from different
+test spaces (utest, ptest, mtest) may have similar fully-qualified names.
+
+To obtain a list of all unit tests we can issue:
+  .build/lsp-plugins-test utest --list
+
+And then we can launch all complex number processing unit tests and additionally
+'dsp.mix' unit test:
+  .build/lsp-plugins-test utest dsp.complex.* dsp.pcomplex.* dsp.mix
+
+If we don's specify any unit test name in argument, then all available unit tests
+will be launched.
+
+To start debugging of some unit test, you need to pass additional arguments:
+  .build/lsp-plugins-test utest --nofork --debug --verbose
+  
+Because unit tests are short-time fully-automated tests, they are parallelized and
+executed by default by number_of_cores*2 processes. To disable this, we specify option
+--nofork. Also, unit test execution time is limited by 5 seconds by default, so when
+debugging, our tests will be killed. That's why we specify --debug option to disable time
+control. Option --verbose allows to output additional information by the unit test that is
+turned off by default.
+
+We also can use performance tests to obtain full performance profile of target machine.
+Because performance tests in most cases take much time for gathering statistics,
+the final statistics for each test can be saved in a separate file by specifying --outfile
+option:
+  .build/lsp-plugins-test ptest -o performance-test.log
+
+Manual tests are mostly designed for developers' purposes.
 
 ==== TROUBLESHOOTING ====
 
@@ -244,6 +315,9 @@ To submit a good bug or crash report, you should answer these questions:
 There is possible to submit feature requests and bugs on the
 Sourceforge.net page of the project:
   https://sourceforge.net/p/lsp-plugins/tickets/
+
+GitHub.com page of the project:
+  https://github.com/sadko4u/lsp-plugins/issues
 
 You may contact us on the special feedback page:
   http://lsp-plug.in/?page=feedback

@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
+#include <dsp/dsp.h>
 #include <core/types.h>
-#include <core/dsp.h>
 #include <core/debug.h>
 #include <core/util/ShiftBuffer.h>
 

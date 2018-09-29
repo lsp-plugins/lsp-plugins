@@ -40,7 +40,8 @@ namespace lsp
             static file_content_t *create_file_content(size_t channels, size_t samples);
             static void destroy_file_content(file_content_t *content);
 
-            static temporary_buffer_t *create_temporary_buffer(file_content_t *content);
+            static temporary_buffer_t *create_temporary_buffer(file_content_t *content, size_t from = 0);
+//            static temporary_buffer_t *create_temporary_buffer(file_content_t *content);
             static void flush_temporary_buffer(temporary_buffer_t *buffer);
             static size_t fill_temporary_buffer(temporary_buffer_t *buffer, size_t max_samples);
             static void destroy_temporary_buffer(temporary_buffer_t *buffer);
@@ -50,11 +51,23 @@ namespace lsp
             status_t complex_upsample(size_t new_sample_rate);
             status_t complex_downsample(size_t new_sample_rate);
 
+            status_t load_lspc(const char *path, float max_duration);
+            status_t load_sndfile(const char *path, float max_duration);
+
         public:
             AudioFile();
             ~AudioFile();
 
         public:
+            /** Create file
+             *
+             * @param channels number of channels
+             * @param sample_rate sample rate of the file
+             * @param count the duration of the file in samples
+             * @return status of operation
+             */
+            status_t create_samples(size_t channels, size_t sample_rate, size_t count);
+
             /** Create file
              *
              * @param channels number of channels
@@ -71,6 +84,23 @@ namespace lsp
              * @return status of operation
              */
             status_t load(const char *path, float max_duration = -1);
+
+            /** Save file
+             *
+             * @param path path to the file
+             * @param from offset sample from which store the data
+             * @param max_count maximum duration of the file to store (in samples)
+             * @return status of operation
+             */
+            status_t store_samples(const char *path, size_t from, size_t max_count);
+
+            /** Save file
+             *
+             * @param path path to the file
+             * @param max_count maximum duration of the file to store (in samples)
+             * @return status of operation
+             */
+            status_t store_samples(const char *path, size_t max_count);
 
             /** Save file
              *

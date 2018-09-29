@@ -63,7 +63,7 @@ namespace lsp
 
             // Move pending request to path if present,
             // do it in synchronized mode
-            if (atomic_lock(nRequest))
+            if (atomic_trylock(nRequest))
             {
                 // Copy the data
                 strcpy(sPath, sRequest);
@@ -93,7 +93,7 @@ namespace lsp
             while (true)
             {
                 // Try to acquire critical section, this will always be true when using LV2 atom transport
-                if (atomic_lock(nRequest))
+                if (atomic_trylock(nRequest))
                 {
                     // Copy data to request
                     memcpy(sRequest, path, count);

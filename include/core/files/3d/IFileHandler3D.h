@@ -10,7 +10,7 @@
 
 #include <core/types.h>
 #include <core/status.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 namespace lsp
 {

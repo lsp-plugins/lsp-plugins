@@ -5,7 +5,7 @@
  *      Author: sadko
  */
 
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/interpolation.h>
 #include <core/debug.h>
 #include <core/dynamics/Gate.h>

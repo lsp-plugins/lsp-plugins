@@ -8,10 +8,9 @@
 #ifndef CORE_SUGAR_H_
 #define CORE_SUGAR_H_
 
-#include <malloc.h>
+#include <stdlib.h>
 
 // Alignment
-#define DEFAULT_ALIGN                   0x10
 #define ALIGN64                         0x40
 #define ALIGN_SIZE(x, size)             (((x) + (size) - 1) & (~size_t((size) - 1)))
 

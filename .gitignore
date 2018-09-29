@@ -1,4 +1,5 @@
 /.svn/*
+/.settings/*
 /design/*
 /res/specs/*
 /.build/*
@@ -6,3 +7,15 @@
 /test/im_reverbs/*
 /design/articles/*
 /test_data/*
+/Debug/*
+/Release/*
+/Debug AVX/*
+/Release AVX/*
+/.cproject
+/.project
+/Debug/
+/Release/
+/design/
+/Debug AVX/
+/Release AVX/
+*.log

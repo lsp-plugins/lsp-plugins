@@ -31,6 +31,9 @@
 #include <plugins/latency_meter.h>
 #include <plugins/mb_compressor.h>
 
+#include <plugins/profiler.h>
+#include <plugins/nonlinear_convolver.h>
+
 #include <plugins/experimental.h>
 
 #endif /* PLUGINS_PLUGINS_H_ */

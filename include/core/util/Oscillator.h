@@ -406,6 +406,7 @@ namespace lsp
 
             /** Set Oversampler mode
              *
+             * @param mode oversampler mode
              */
             inline void set_oversampler_mode(over_mode_t mode)
             {

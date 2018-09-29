@@ -6,7 +6,7 @@
  */
 
 #include <math.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 #include <core/debug.h>
 #include <core/filters/Filter.h>
 
@@ -434,7 +434,7 @@ namespace lsp
 
             case FM_BYPASS:
             default:
-                dsp::packed_complex_fill(c, 1.0f, 0.0f, count);
+                dsp::pcomplex_fill_ri(c, 1.0f, 0.0f, count);
                 return;
         }
     }

@@ -63,7 +63,7 @@ namespace lsp
                 return !(nFlags & F_ACCEPTED);
 
             // Check for pending change
-            if (atomic_lock(nRequest))
+            if (atomic_trylock(nRequest))
             {
                 // Update state of the DSP
                 if (nSerial != nCommit)
@@ -95,7 +95,7 @@ namespace lsp
             while (true)
             {
                 // Try to acquire critical section
-                if (atomic_lock(nRequest))
+                if (atomic_trylock(nRequest))
                 {
                     // Write request to DSP
                     strcpy(sRequest, path);

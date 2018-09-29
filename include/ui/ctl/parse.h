@@ -38,23 +38,25 @@
        setlocale(lc, value);
 
 #define PARSE_FLOAT(var, code) \
-        { \
-            float __; \
-            if (parse_float(var, &__)) \
-                { code; } \
-        }
+    { \
+        float __; \
+        if (parse_float(var, &__)) \
+            { code; } \
+    }
 
 #define PARSE_DOUBLE(var, code) \
-        { \
-            double __; \
-            if (parse_double(var, &__)) \
-                { code; } \
-        }
+    { \
+        double __; \
+        if (parse_double(var, &__)) \
+            { code; } \
+    }
 
 #define BIND_PORT(ctl, field, id) \
-    field   = ctl->port(id); \
-    if (field != NULL) \
-        field->bind(this);
+    { \
+        field   = ctl->port(id); \
+        if (field != NULL) \
+            field->bind(this); \
+    }
 
 #define BIND_EXPR(field, expr) \
     (field).parse(expr);

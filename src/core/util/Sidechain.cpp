@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
+#include <dsp/dsp.h>
 #include <core/util/Sidechain.h>
-#include <core/dsp.h>
 
 #define REFRESH_RATE        0x1000
 #define MIN_GAP_ITEMS       0x200

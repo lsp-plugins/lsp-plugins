@@ -8,8 +8,7 @@
 #ifndef CORE_UTIL_BYPASS_H_
 #define CORE_UTIL_BYPASS_H_
 
-#include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 namespace lsp
 {

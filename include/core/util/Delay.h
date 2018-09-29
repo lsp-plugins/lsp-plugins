@@ -9,7 +9,7 @@
 #define CORE_UTIL_DELAY_HPP_
 
 #include <core/types.h>
-#include <core/dsp.h>
+#include <dsp/dsp.h>
 
 namespace lsp
 {

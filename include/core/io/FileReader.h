@@ -8,6 +8,7 @@
 #ifndef CORE_IO_FILEREADER_H_
 #define CORE_IO_FILEREADER_H_
 
+#include <stdio.h>
 #include <core/io/Reader.h>
 #include <core/types.h>
 

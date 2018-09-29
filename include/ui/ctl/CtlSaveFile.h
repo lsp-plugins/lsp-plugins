@@ -19,14 +19,20 @@ namespace lsp
                 CtlPort        *pStatus;
                 CtlPort        *pCommand;
                 CtlPort        *pProgress;
+                CtlPort        *pPath;
                 CtlExpression   sFormat;
+
+                char           *pPathID;
 
             protected:
                 void        update_state();
                 status_t    commit_state();
 
             protected:
+                static status_t slot_on_activate(LSPWidget *sender, void *ptr, void *data);
+                static status_t slot_on_close(LSPWidget *sender, void *ptr, void *data);
                 static status_t slot_on_file_submit(LSPWidget *sender, void *ptr, void *data);
+                void        update_path();
 
             public:
                 explicit CtlSaveFile(CtlRegistry *reg, LSPSaveFile *save);

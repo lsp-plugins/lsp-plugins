@@ -64,9 +64,35 @@ namespace lsp
             /** Read chunk
              *
              * @param magic magic number of the chunk type
-             * @return pointer to chunk writer
+             * @return pointer to chunk reader
              */
             LSPCChunkReader     *read_chunk(uint32_t uid);
+
+            /** Read chunk of specific type
+             *
+             * @param uid unique chunk identifier
+             * @param magic magic number of the chunk type
+             * @return pointer to chunk reader
+             */
+            LSPCChunkReader     *read_chunk(uint32_t uid, uint32_t magic);
+
+            /**
+             * Find LSPC chunk in file by magic
+             * @param magic chunk magic
+             * @param id pointer to return chunk number
+             * @param start_id start identifier of chunk
+             * @return pointer to chunk reader
+             */
+            LSPCChunkReader     *find_chunk(uint32_t magic, uint32_t *id, uint32_t start_id = 1);
+
+            /**
+             * Find LSPC chunk in file by magic
+             * @param magic chunk magic
+             * @param id pointer to return chunk number
+             * @param start_id start identifier of chunk
+             * @return pointer to chunk reader
+             */
+            inline LSPCChunkReader *find_chunk(uint32_t magic, uint32_t start_id = 1) { return find_chunk(magic, NULL, start_id); }
     };
 
 } /* namespace lsp */

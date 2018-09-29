@@ -176,7 +176,7 @@ namespace lsp
             {
                 if (length < sizeof(int32_t))
                     return -1;
-                *(reinterpret_cast<int32_t *>(data))    = BE_DATA(nCurrRow);
+                *(reinterpret_cast<int32_t *>(data))    = CPU_TO_BE(nCurrRow);
                 return sizeof(int32_t);
             }
 
@@ -184,7 +184,7 @@ namespace lsp
             {
                 if (length < sizeof(int32_t))
                     return -1;
-                int32_t value   = BE_DATA(*(reinterpret_cast<const int32_t *>(data)));
+                int32_t value   = BE_TO_CPU(*(reinterpret_cast<const int32_t *>(data)));
                 if ((value >= 0) && (value < ssize_t(nRows)))
                     nCurrRow        = value;
                 return sizeof(int32_t);
@@ -307,7 +307,7 @@ namespace lsp
             {
                 if (length < sizeof(float))
                     return -1;
-                *(reinterpret_cast<float *>(data))      = BE_DATA(fValue);
+                *(reinterpret_cast<float *>(data))      = CPU_TO_BE(fValue);
 
                 return sizeof(float);
             }
@@ -316,7 +316,7 @@ namespace lsp
             {
                 if (length < sizeof(float))
                     return -1;
-                float value     = BE_DATA(*(reinterpret_cast<const float *>(data)));
+                float value     = BE_TO_CPU(*(reinterpret_cast<const float *>(data)));
                 writeValue(value);
                 return sizeof(float);
             }
