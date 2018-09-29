@@ -14,7 +14,8 @@ $YOUTUBE = array(
 	'hEUauzc_j3U' => 'Slap-back Delay & Impulsnachhall',
 	'D8evQrkY8nQ' => 'Oszillator',
 	'JFXTcJb4DLs' => 'Latenzmessgerät',
-	'RCdk94Hta3o' => 'Multi-band Kompressor'
+	'RCdk94Hta3o' => 'Multi-band Kompressor',
+    'kXCBRnJL_qo' => 'Profiler Mono'
 );
 
 ?>

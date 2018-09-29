@@ -34,8 +34,8 @@
 * Add video cover to res/video-covers
 * Upload release video to the site
 * Add link to the video to src/doc/config/youtube.php
-* Run ./release.sh to build binaries
 * Commit all changes to GIT into devel branch
+* Run ./release.sh to build binaries
 * Merge all changes from devel branch to master branch including complete
   change set in the message
 * Tag version in GIT at master branch

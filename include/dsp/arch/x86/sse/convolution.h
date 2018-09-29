@@ -115,7 +115,8 @@ namespace sse
                         __ASM_EMIT("jge         15b")
 
                 __ASM_EMIT("14:")
-                __ASM_EMIT("add         $0x10, %[dst]")         // dst += 4
+                __ASM_EMIT64("add       $0x10, %[dst]")         // dst += 4
+                __ASM_EMIT32("addl      $0x10, %[dst]")
                 __ASM_EMIT("add         $0x10, %[k]")           // k += 4
                 __ASM_EMIT("sub         $0x04, %[count]")       // count -= 4
                 __ASM_EMIT("jge         10b")
@@ -178,12 +179,13 @@ namespace sse
 
                 __ASM_EMIT("26:")
                 __ASM_EMIT("add         $0x04, %[k]")
-                __ASM_EMIT("add         $0x04, %[dst]")             // dst++
+                __ASM_EMIT64("add       $0x04, %[dst]")             // dst++
+                __ASM_EMIT32("addl      $0x04, %[dst]")
                 __ASM_EMIT("dec         %[count]")
                 __ASM_EMIT("jge         21b")
 
             __ASM_EMIT("40:")
-            : [dst] "+r" (dst),
+            : __IF_32([dst] "+m" (dst)) __IF_64([dst] "+r" (dst)),
               [k] "+r" (src), [count] "+r" (count),
               [c] "=&r" (c), [d] "=&r" (d), [clen] "=&r" (clen)
             : [conv] "g" (conv), [length] "g" (length)
