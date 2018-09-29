@@ -50,7 +50,8 @@ namespace neon_d32
             __ASM_EMIT("vld2.32     {q0-q1}, [%[src1]]!")        // q0 = sr, q1 = si
             __ASM_EMIT("vld2.32     {q2-q3}, [%[dst]]")          // q2 = dr, q3 = di
             __ASM_EMIT("vmul.f32    q8, q0, q2")                 // q8 = sr*dr
-            __ASM_EMIT("vmul.f32    q9, q1, q2")                 // q9 = si*dr
+            __ASM_EMIT("vmul.f32    q9"
+                    ", q1, q2")                 // q9 = si*dr
             __ASM_EMIT("vmls.f32    q8, q1, q3")                 // q8 = sr*dr - si*di
             __ASM_EMIT("vmla.f32    q9, q0, q3")                 // q9 = si*dr + sr*di
             __ASM_EMIT("vst2.32     {q8-q9}, [%[dst]]!")
@@ -793,6 +794,264 @@ namespace neon_d32
             : "cc", "memory",
               "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11"
+        );
+    }
+
+    void pcomplex_c2r(float *dst, const float *src, size_t count)
+    {
+        ARCH_ARM_ASM
+        (
+            __ASM_EMIT("subs            %[count], $32")
+            __ASM_EMIT("blo             2f")
+
+            // x32 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vld2.32         {q0-q1}, [%[src]]!")        // q0 = r, q1 = i
+            __ASM_EMIT("vld2.32         {q2-q3}, [%[src]]!")
+            __ASM_EMIT("vld2.32         {q4-q5}, [%[src]]!")
+            __ASM_EMIT("vmov            q1, q2")
+            __ASM_EMIT("vld2.32         {q6-q7}, [%[src]]!")
+            __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
+            __ASM_EMIT("vmov            q2, q4")
+            __ASM_EMIT("vld2.32         {q8-q9}, [%[src]]!")
+            __ASM_EMIT("vmov            q3, q6")
+            __ASM_EMIT("vld2.32         {q10-q11}, [%[src]]!")
+            __ASM_EMIT("vst1.32         {q2-q3}, [%[dst]]!")
+            __ASM_EMIT("vmov            q4, q8")
+            __ASM_EMIT("vld2.32         {q12-q13}, [%[src]]!")
+            __ASM_EMIT("vmov            q5, q10")
+            __ASM_EMIT("vld2.32         {q14-q15}, [%[src]]!")
+            __ASM_EMIT("vst1.32         {q4-q5}, [%[dst]]!")
+            __ASM_EMIT("vmov            q6, q12")
+            __ASM_EMIT("vmov            q7, q14")
+            __ASM_EMIT("subs            %[count], $32")
+            __ASM_EMIT("vst1.32         {q6-q7}, [%[dst]]!")
+            __ASM_EMIT("bhs             1b")
+
+            // x16 block
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds            %[count], $16")
+            __ASM_EMIT("blt             4f")
+            __ASM_EMIT("vld2.32         {q0-q1}, [%[src]]!")        // q0 = r, q1 = i
+            __ASM_EMIT("vld2.32         {q2-q3}, [%[src]]!")
+            __ASM_EMIT("vld2.32         {q4-q5}, [%[src]]!")
+            __ASM_EMIT("vmov            q1, q2")
+            __ASM_EMIT("vld2.32         {q6-q7}, [%[src]]!")
+            __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
+            __ASM_EMIT("vmov            q2, q4")
+            __ASM_EMIT("vmov            q3, q6")
+            __ASM_EMIT("sub             %[count], $16")
+            __ASM_EMIT("vst1.32         {q2-q3}, [%[dst]]!")
+
+            // x8 block
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds            %[count], $8")
+            __ASM_EMIT("blt             6f")
+            __ASM_EMIT("vld2.32         {q0-q1}, [%[src]]!")        // q0 = r, q1 = i
+            __ASM_EMIT("vld2.32         {q2-q3}, [%[src]]!")
+            __ASM_EMIT("vmov            q1, q2")
+            __ASM_EMIT("sub             %[count], $8")
+            __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
+
+            // x4 block
+            __ASM_EMIT("6:")
+            __ASM_EMIT("adds            %[count], $4")
+            __ASM_EMIT("blt             8f")
+            __ASM_EMIT("vld2.32         {q0-q1}, [%[src]]!")        // q0 = r, q1 = i
+            __ASM_EMIT("sub             %[count], $4")
+            __ASM_EMIT("vst1.32         {q0}, [%[dst]]!")
+
+            // x1 blocks
+            __ASM_EMIT("8:")
+            __ASM_EMIT("adds            %[count], $3")
+            __ASM_EMIT("blt             10f")
+            __ASM_EMIT("9:")
+            __ASM_EMIT("vldm.32         %[src]!, {s0, s1}")         // s0 = r, s1 = i
+            __ASM_EMIT("subs            %[count], $1")
+            __ASM_EMIT("vstm.32         %[dst]!, {s0}")
+            __ASM_EMIT("bge             9b")
+            __ASM_EMIT("10:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+    }
+
+    void pcomplex_r2c(float *dst, const float *src, size_t count)
+    {
+        ARCH_ARM_ASM
+        (
+            __ASM_EMIT("subs            %[count], $32")
+            __ASM_EMIT("blo             2f")
+
+            // x32 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vld1.32         {q0-q1}, [%[src]]!")        // q0 = r, q1 = r
+            __ASM_EMIT("vld1.32         {q2-q3}, [%[src]]!")
+            __ASM_EMIT("vld1.32         {q4-q5}, [%[src]]!")
+            __ASM_EMIT("vld1.32         {q6-q7}, [%[src]]!")
+            __ASM_EMIT("veor            q15, q15")
+            __ASM_EMIT("veor            q13, q13")
+            __ASM_EMIT("veor            q11, q11")
+            __ASM_EMIT("veor            q9, q9")
+            __ASM_EMIT("vmov            q14, q7")
+            __ASM_EMIT("vmov            q12, q6")
+            __ASM_EMIT("veor            q7, q7")
+            __ASM_EMIT("vmov            q10, q5")
+            __ASM_EMIT("vmov            q8, q4")
+            __ASM_EMIT("veor            q5, q5")
+            __ASM_EMIT("vmov            q6, q3")
+            __ASM_EMIT("vmov            q4, q2")
+            __ASM_EMIT("veor            q3, q3")
+            __ASM_EMIT("vmov            q2, q1")
+            __ASM_EMIT("veor            q1, q1")
+            __ASM_EMIT("vst2.32         {q0-q1}, [%[dst]]!")
+            __ASM_EMIT("vst2.32         {q2-q3}, [%[dst]]!")
+            __ASM_EMIT("vst2.32         {q4-q5}, [%[dst]]!")
+            __ASM_EMIT("vst2.32         {q6-q7}, [%[dst]]!")
+            __ASM_EMIT("vst2.32         {q8-q9}, [%[dst]]!")
+            __ASM_EMIT("vst2.32         {q10-q11}, [%[dst]]!")
+            __ASM_EMIT("vst2.32         {q12-q13}, [%[dst]]!")
+            __ASM_EMIT("vst2.32         {q14-q15}, [%[dst]]!")
+            __ASM_EMIT("subs            %[count], $32")
+            __ASM_EMIT("bhs             1b")
+
+            // x16 block
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds            %[count], $16")
+            __ASM_EMIT("blt             4f")
+
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vld1.32         {q0-q1}, [%[src]]!")        // q0 = r, q1 = r
+            __ASM_EMIT("veor            q7, q7")
+            __ASM_EMIT("vld1.32         {q2-q3}, [%[src]]!")
+            __ASM_EMIT("vmov            q6, q3")
+            __ASM_EMIT("veor            q5, q5")
+            __ASM_EMIT("vmov            q4, q2")
+            __ASM_EMIT("veor            q3, q3")
+            __ASM_EMIT("vmov            q2, q1")
+            __ASM_EMIT("veor            q1, q1")
+            __ASM_EMIT("vst2.32         {q0-q1}, [%[dst]]!")
+            __ASM_EMIT("vst2.32         {q2-q3}, [%[dst]]!")
+            __ASM_EMIT("vst2.32         {q4-q5}, [%[dst]]!")
+            __ASM_EMIT("vst2.32         {q6-q7}, [%[dst]]!")
+            __ASM_EMIT("sub             %[count], $16")
+
+            // x8 block
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds            %[count], $8")
+            __ASM_EMIT("blt             6f")
+            __ASM_EMIT("vld1.32         {q0-q1}, [%[src]]!")        // q0 = r, q1 = r
+            __ASM_EMIT("veor            q3, q3")
+            __ASM_EMIT("vmov            q2, q1")
+            __ASM_EMIT("vmov            q1, q2")
+            __ASM_EMIT("veor            q1, q1")
+            __ASM_EMIT("vst2.32         {q0-q1}, [%[dst]]!")
+            __ASM_EMIT("sub             %[count], $8")
+            __ASM_EMIT("vst2.32         {q2-q3}, [%[dst]]!")
+
+            // x4 block
+            __ASM_EMIT("6:")
+            __ASM_EMIT("adds            %[count], $4")
+            __ASM_EMIT("blt             8f")
+            __ASM_EMIT("vld1.32         {q0}, [%[src]]!")           // q0 = r
+            __ASM_EMIT("vmov            q2, q1")
+            __ASM_EMIT("veor            q1, q1")
+            __ASM_EMIT("sub             %[count], $4")
+            __ASM_EMIT("vst2.32         {q0-q1}, [%[dst]]!")
+
+            // x1 blocks
+            __ASM_EMIT("8:")
+            __ASM_EMIT("adds            %[count], $3")
+            __ASM_EMIT("blt             10f")
+            __ASM_EMIT("veor            q0, q0")
+            __ASM_EMIT("9:")
+            __ASM_EMIT("vldm.32         %[src]!, {s0}")         // s0 = r, s1 = i
+            __ASM_EMIT("subs            %[count], $1")
+            __ASM_EMIT("vstm.32         %[dst]!, {s0, s1}")
+            __ASM_EMIT("bge             9b")
+            __ASM_EMIT("10:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+    }
+
+    void pcomplex_add_r(float *dst, const float *src, size_t count)
+    {
+        ARCH_ARM_ASM
+        (
+            __ASM_EMIT("subs            %[count], $16")
+            __ASM_EMIT("blo             2f")
+
+            // x16 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vld2.32         {q0-q1}, [%[dst]]!")        // q0 = r, q1 = i
+            __ASM_EMIT("vld2.32         {q2-q3}, [%[dst]]!")
+            __ASM_EMIT("vld1.32         {q8-q9}, [%[src]]!")
+            __ASM_EMIT("vld2.32         {q4-q5}, [%[dst]]!")
+            __ASM_EMIT("vld2.32         {q6-q7}, [%[dst]]")
+            __ASM_EMIT("vld1.32         {q10-q11}, [%[src]]!")
+            __ASM_EMIT("vadd.f32        q0, q8")
+            __ASM_EMIT("vadd.f32        q2, q9")
+            __ASM_EMIT("sub             %[dst], $0x60")
+            __ASM_EMIT("vadd.f32        q4, q10")
+            __ASM_EMIT("vadd.f32        q6, q11")
+            __ASM_EMIT("vst2.32         {q0-q1}, [%[dst]]!")
+            __ASM_EMIT("vst2.32         {q2-q3}, [%[dst]]!")
+            __ASM_EMIT("vst2.32         {q4-q5}, [%[dst]]!")
+            __ASM_EMIT("subs            %[count], $16")
+            __ASM_EMIT("vst2.32         {q6-q7}, [%[dst]]!")
+            __ASM_EMIT("bhs             1b")
+
+            // x8 block
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds            %[count], $8")
+            __ASM_EMIT("blt             4f")
+            __ASM_EMIT("vld2.32         {q0-q1}, [%[dst]]!")        // q0 = r, q1 = i
+            __ASM_EMIT("vld1.32         {q8-q9}, [%[src]]!")
+            __ASM_EMIT("vld2.32         {q2-q3}, [%[dst]]")
+            __ASM_EMIT("vadd.f32        q0, q8")
+            __ASM_EMIT("sub             %[dst], $0x20")
+            __ASM_EMIT("vadd.f32        q2, q9")
+            __ASM_EMIT("vst2.32         {q0-q1}, [%[dst]]!")
+            __ASM_EMIT("sub             %[count], $8")
+            __ASM_EMIT("vst2.32         {q2-q3}, [%[dst]]!")
+
+            // x4 block
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds            %[count], $4")
+            __ASM_EMIT("blt             6f")
+            __ASM_EMIT("vld2.32         {q0-q1}, [%[dst]]")         // q0 = r, q1 = i
+            __ASM_EMIT("vld1.32         {q8}, [%[src]]!")           // q0 = r
+            __ASM_EMIT("vadd.f32        q0, q8")
+            __ASM_EMIT("sub             %[count], $4")
+            __ASM_EMIT("vst2.32         {q0-q1}, [%[dst]]!")
+
+            // x1 blocks
+            __ASM_EMIT("6:")
+            __ASM_EMIT("adds            %[count], $3")
+            __ASM_EMIT("blt             8f")
+            __ASM_EMIT("7:")
+            __ASM_EMIT("vldm.32         %[dst], {s0, s1}")          // s0 = r, s1 = i
+            __ASM_EMIT("vldm.32         %[src]!, {s2}")
+            __ASM_EMIT("subs            %[count], $1")
+            __ASM_EMIT("vadd.f32        s0, s2")
+            __ASM_EMIT("vstm.32         %[dst]!, {s0, s1}")
+            __ASM_EMIT("bge             7b")
+            __ASM_EMIT("8:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
     }
 

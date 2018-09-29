@@ -14,7 +14,6 @@
 
 namespace neon_d32
 {
-//#if 0
     void convolve(float *dst, const float *src, const float *conv, size_t length, size_t count)
     {
         IF_ARCH_ARM(
@@ -145,7 +144,6 @@ namespace neon_d32
             : [dst] "+r" (dst),
               [k] "+r" (src), [count] "+r" (count),
               [c] "=&r" (c), [d] "=&r" (d),
-//              [cc] "=&r" (cc), [dd] "=&r" (dd),
               [clen] "=&r" (clen)
             : [conv] "r" (conv), [length] "r" (length)
             : "cc", "memory",
@@ -153,7 +151,6 @@ namespace neon_d32
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
     }
-//#endif
 }
 
 

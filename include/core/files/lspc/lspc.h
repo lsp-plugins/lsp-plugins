@@ -36,7 +36,8 @@ namespace lsp
     {
         uint32_t        magic;          // Chunk type, should be identical for each chunk
         uint32_t        uid;            // Unique chunk identifier within file
-        uint64_t        size;           // The size of chunk data after header
+        uint32_t        flags;          // Chunk flags
+        uint32_t        size;           // The size of chunk data after header
     } lspc_chunk_header_t;
 
     typedef struct lspc_header_t
@@ -59,6 +60,7 @@ namespace lsp
         uint32_t        sample_rate;    // Sample rate
         uint32_t        codec;          // Codec used
         uint64_t        frames;         // Overall number of frames in file
+        int64_t 		offset; 		// Offset with which to load the frames
         uint32_t        reserved[4];    // Some reserved data
     } lspc_chunk_audio_header_t;
 
@@ -83,6 +85,9 @@ namespace lsp
 #define LSPC_ROOT_MAGIC             0x4C535043
 #define LSPC_CHUNK_AUDIO            0x41554449
 #define LSPC_CHUNK_PROFILE          0x50524F46
+
+// Chunk flags
+#define LSPC_CHUNK_FLAG_LAST        (1 << 0)
 
 // Different kinds of sample format
 #define LSPC_SAMPLE_FMT_U8LE        0x00

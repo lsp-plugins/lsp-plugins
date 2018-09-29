@@ -28,7 +28,7 @@ namespace lsp
                     profiler_mono   *pCore;
 
                 public:
-                    PreProcessor(profiler_mono *base);
+                    explicit PreProcessor(profiler_mono *base);
                     virtual ~PreProcessor();
 
                 public:
@@ -42,7 +42,7 @@ namespace lsp
                     profiler_mono *pCore;
 
                 public:
-                    Convolver(profiler_mono *base);
+                    explicit Convolver(profiler_mono *base);
                     virtual ~Convolver();
 
                 public:
@@ -53,13 +53,20 @@ namespace lsp
             class PostProcessor: public ITask
             {
                 private:
-                    profiler_mono *pCore;
+                    profiler_mono  *pCore;
+                    ssize_t         nIROffset;
+                    scp_rtcalc_t    enAlgo;
 
                 public:
-                    PostProcessor(profiler_mono *base);
+                    explicit PostProcessor(profiler_mono *base);
                     virtual ~PostProcessor();
 
                 public:
+                    void set_ir_offset(ssize_t ir_offset);
+                    inline ssize_t get_ir_offset() const { return nIROffset; }
+
+                    void set_rt_algo(scp_rtcalc_t algo);
+
                     virtual int run();
             };
 
@@ -67,28 +74,51 @@ namespace lsp
             class Saver: public ITask
             {
                 private:
-                    profiler_mono *pCore;
+                    profiler_mono  *pCore;
+                    ssize_t 		nIROffset;
+                    char            sFile[PATH_MAX]; // The name of file for saving
 
                 public:
-                    Saver(profiler_mono *base);
+                    explicit Saver(profiler_mono *base);
                     virtual ~Saver();
 
                 public:
+                    void set_file_name(const char *fname);
+                    void set_ir_offset(ssize_t ir_offset);
+                    inline ssize_t get_ir_offset() const { return nIROffset; }
+
+                    bool is_file_set() const;
+
                     virtual int run();
             };
 
             // Object state descriptor
             enum state_t
             {
-                IDLE,
-                CALIBRATION,
-                LATENCYDETECTION,
-                PREPROCESSING,                          // <- Not Realtime: ITask
-                WAIT,
-                RECORDING,
-                CONVOLVING,                             // <- Not Realtime: ITask
-                POSTPROCESSING,                         // <- Not Realtime: ITask
-                SAVING                                  // <- Not Realtime: ITask
+                IDLE,                                   // Realtime: doing nothing, awaiting for command
+                CALIBRATION,                            // Realtime: callibrating device
+                LATENCYDETECTION,                       // Realtime: detecting loopback latency
+                PREPROCESSING,                          // Offline: PreProcessor task
+                WAIT,                                   // Realtime: waiting for signal fall-off
+                RECORDING,                              // Realtime: recording response
+                CONVOLVING,                             // Offline: Convolver task
+                POSTPROCESSING,                         // Offline: PostProcessor task
+                SAVING                                  // Offline: Saver task
+            };
+
+            enum triggers_t
+            {
+                T_CHANGE                = 1 << 0, // Change of any following trigger below:
+
+                T_CALIBRATION           = 1 << 1, // Calibration switch is pressed on
+                T_SKIP_LATENCY_DETECT   = 1 << 2, // Latency detection switch is pressed on
+                T_POSTPROCESS           = 1 << 3, // Post-process switch is pressed on
+                T_POSTPROCESS_STATE     = 1 << 4, // Current post-process switch state
+                T_LAT_TRIGGER           = 1 << 5, // Latency measurement trigger was pressed
+                T_LAT_TRIGGER_STATE     = 1 << 6, // Latency measurement trigger state
+                T_LIN_TRIGGER           = 1 << 7, // Linear measurement trigger is pressed
+                T_LIN_TRIGGER_STATE     = 1 << 8, // Linear measurement trigger state
+                T_FEEDBACK              = 1 << 9  // feedback break switch is pressed on
             };
 
         protected:
@@ -96,7 +126,7 @@ namespace lsp
 
             IExecutor          *pExecutor;              // Executor Service
             PreProcessor       *pPreProcessor;          // Pre Processor Task
-            Convolver          *pConvolver;             // Convovler Task
+            Convolver          *pConvolver;             // Convolver Task
             PostProcessor      *pPostProcessor;         // Post Processor Task
             Saver              *pSaver;                 // Saver Task
 
@@ -108,28 +138,15 @@ namespace lsp
 
             size_t              nSampleRate;            // Sample Rate
             float               fLtAmplitude;           // Amplitude factor for Latency Detection chirp
-            scp_rtcalc_t        enRtAlgo;               // Store RT Algorithm
             ssize_t             nWaitCounter;           // Count the samples for wait state
-            bool                bDoReset;               // If true, force plugin state reset
             bool                bDoLatencyOnly;         // If true, only latency is measured
             bool                bLatencyMeasured;       // If true, a latency measurement was performed
             size_t              nLatency;               // Store latency value
             float               fScpDurationPrevious;   // Store Sync Chirp Duration Setting between calls to update_settings()
             bool                bIRMeasured;            // If true, an IR measurement was performed and post processed
-            bool                bFileSet;               // If true, the saving file was correctly set
             size_t              nSaveMode;              // Hold save mode enumeration index
-            bool                bResetSaver;            // If true, reset save control state
 
-            bool                bBypass;                // True if bypass switch is pressed on
-            bool                bCalibration;           // True if calibration switch is pressed on
-            bool                bSkipLatencyDetection;  // True if latency detection switch is pressed on
-            bool                bPostprocess;           // True if postprocess switch is pressed on
-            bool                bPostprocessPrevious;   // Store values of bPostprocess between calls to update_settings()
-            bool                bLatTrigger;            // True if latency measurement trigger is pressed
-            bool                bLatTriggerPrevious;    // Store values of bLatTrigger between calls to update_settings()
-            bool                bLinTrigger;            // True if linear measurement trigger is pressed
-            bool                bLinTriggerPrevious;    // Store values of bLinTrigger between calls to update_settings()
-            bool                bFeedback;              // True if feedback break switch is pressed on
+            size_t              nTriggers;              // Set of triggers controlled by triggers_t
 
             float              *vBuffer;                // Auxiliary processing buffer
             float              *vDisplayAbscissa;       // Buffer for display. Abscissa data
@@ -189,6 +206,11 @@ namespace lsp
 
         protected:
             static scp_rtcalc_t get_rt_algorithm(size_t algorithm);
+
+            void                update_pre_processing_info();
+            void                commit_state_change();
+            void                reset_tasks();
+            bool                update_post_processing_info();
 
         public:
             profiler_mono();

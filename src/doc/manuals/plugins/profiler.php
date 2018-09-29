@@ -118,7 +118,7 @@
     <p> The Energy Decay Linear Correlation coefficient is the Pearson correlation coefficient for the fitted regression line used for Reverberation Time
     calculation. For well fitted decaying lines this value is close to -1.</p>
     <p>The <b>Coarse IR Duration</b> is instead the Linear Impulse Response duration based on the envelope of the Energy Decay curve.
-    The value of the <b>Coarse IR Duration</b> is the time at which the envelope dives into the noise floor. This time is normally larger than the Reverberation Time.</p>
+    The value of the <b>Coarse IR Duration</b> is the time at which the envelope dives into the noise floor.</p>
     <p><b>7: Saving the results</b></p>
     The profile can be saved by using the Save button in the <b>'Results'</b> section.
     See <b>Save Mode</b> for the available saving modes. All saving ranges are rounded to the next tenth of second.
@@ -154,7 +154,7 @@
 	    <li><b>LTI RT (*.wav)</b> - Save, as a WAV file, the Linear Impulse Response from the Offset value up to to the RT value.</li>
 	    <li><b>LTI Coarse (*.wav)</b> - Save, as a WAV file, the Linear Impulse Response from the Offset value up to the Coarse IR Duration value.</li>
 	    <li><b>LTI All (*.wav)</b> - Save, as a WAV file, all the measured samples of Linear Impulse Response to the right of the Offset value.</li>
-	    <li><b>All Info (*.lspc)</b> - Save, as an LSPC file, all the measured information. In this case the offset control does not affect the saved quantities.</li>
+	    <li><b>All Info (*.lspc)</b> - Save, as an LSPC file, all the measured information.</li>
     </ul>
 	<li><b>Offset</b> - Introduce an offset from the middle of the Linear Impulse Response, for post processing purposes, milliseconds.</li>
 	<li><b>Post-process</b> - Button that forces the plugin to post-process the measurement result.</li>

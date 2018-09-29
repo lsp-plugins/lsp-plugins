@@ -19,11 +19,17 @@ namespace lsp
         protected:
             friend class LSPCFile;
 
+            enum flush_t
+            {
+                F_FORCE         = 1 << 0,
+                F_LAST          = 1 << 1
+            };
+
         protected:
             size_t              nChunksOut;
 
         protected:
-            status_t            do_flush(bool force);
+            status_t            do_flush(size_t flags);
 
         protected:
             LSPCChunkWriter(LSPCResource *fd, uint32_t magic);

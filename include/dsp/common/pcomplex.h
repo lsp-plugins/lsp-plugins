@@ -125,6 +125,53 @@ namespace dsp
      */
     extern void (* pcomplex_mod)(float *dst_mod, const float *src, size_t count);
 
+    /**
+     * Calculate: dst[i] = dst[i] + src[i].re
+     * @param dst destination real number array
+     * @param src source packed complex number array
+     * @param count number of elements
+     */
+    extern void (* pcomplex_c2r_add2)(float *dst, const float *src, size_t count);
+
+    /**
+     * Calculate: dst[i] = dst[i] - src[i].re
+     * @param dst destination real number array
+     * @param src source packed complex number array
+     * @param count number of elements
+     */
+    extern void (* pcomplex_c2r_sub2)(float *dst, const float *src, size_t count);
+
+    /**
+     * Calculate: dst[i] = src[i].re - dst[i]
+     * @param dst destination real number array
+     * @param src source packed complex number array
+     * @param count number of elements
+     */
+    extern void (* pcomplex_c2r_rsub2)(float *dst, const float *src, size_t count);
+
+    /**
+     * Calculate: dst[i] = dst[i] * src[i].re
+     * @param dst destination real number array
+     * @param src source packed complex number array
+     * @param count number of elements
+     */
+    extern void (* pcomplex_c2r_mul2)(float *dst, const float *src, size_t count);
+
+    /**
+     * Calculate: dst[i] = dst[i] / src[i].re
+     * @param dst destination real number array
+     * @param src source packed complex number array
+     * @param count number of elements
+     */
+    extern void (* pcomplex_c2r_div2)(float *dst, const float *src, size_t count);
+
+    /**
+     * Calculate: dst[i] = src[i].re / dst[i]
+     * @param dst destination real number array
+     * @param src source packed complex number array
+     * @param count number of elements
+     */
+    extern void (* pcomplex_c2r_rdiv2)(float *dst, const float *src, size_t count);
 }
 
 #endif /* DSP_COMMON_PCOMPLEX_H_ */

@@ -14,7 +14,7 @@ INSTALL                 = install
 
 # Package version
 ifndef VERSION
-VERSION                 = 1.1.3
+VERSION                 = 1.1.4
 endif
 
 # Directories
@@ -200,7 +200,6 @@ compile:
 
 clean:
 	@-rm -rf $(OBJDIR)
-	@-rm -rf tmp/*
 	@echo "Clean OK"
 
 unrelease: clean

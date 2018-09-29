@@ -969,12 +969,12 @@ namespace lsp
         // Regression line parameters (all variance normalisation factors get erased):
         double slope            = comoment / samplesSqErr;
         double intercept        = energyDecayMean - slope * samplesMean;
-        double correlation      = comoment / sqrt(samplesSqErr * energyDecaySqErr);
+        double correlation      = sqrt(samplesSqErr * energyDecaySqErr);
 
         // RT extrapolation:
         sCRPostProc.nRT             = ((decayThreshold - intercept) / slope); // - middle + head; // to make relative to middle
         sCRPostProc.fRT             = samples_to_seconds(nSampleRate, sCRPostProc.nRT);
-        sCRPostProc.fCorrelation    = correlation;
+        sCRPostProc.fCorrelation    = (correlation == 0.0) ? correlation : comoment / correlation; // Avoid NANs
 
         // Other data:
         sCRPostProc.noiseValueNorm  = convolutionNorm * sCRPostProc.noiseValue;
@@ -1512,7 +1512,7 @@ namespace lsp
         return save_linear_convolution(path, head, count);
     }
 
-    status_t SyncChirpProcessor::save_nonlinear_convolution(const char *path)
+    status_t SyncChirpProcessor::save_nonlinear_convolution(const char *path, ssize_t offset)
     {
         if (pConvResult == NULL)
             return STATUS_NO_DATA;
@@ -1537,10 +1537,11 @@ namespace lsp
         ahdr.common.version     = 1;
         ahdr.common.size        = sizeof(lspc_chunk_audio_header_t);
         ahdr.channels           = 1;
-        ahdr.sample_format      = __IF_LE(LSPC_SAMPLE_FMT_F32LE) __IF_BE(LSPC_SAMPLE_FMT_F32BE);
+        ahdr.sample_format      = __IF_LEBE(LSPC_SAMPLE_FMT_F32LE, LSPC_SAMPLE_FMT_F32BE);
         ahdr.sample_rate        = nSampleRate;
         ahdr.codec              = LSPC_CODEC_PCM;
         ahdr.frames             = dataLength;
+        ahdr.offset 			= offset;
 
         // Convert non-common fields CPU -> BE
         ahdr.channels           = CPU_TO_BE(ahdr.channels);
@@ -1548,6 +1549,7 @@ namespace lsp
         ahdr.sample_rate        = CPU_TO_BE(ahdr.sample_rate);
         ahdr.codec              = CPU_TO_BE(ahdr.codec);
         ahdr.frames             = CPU_TO_BE(ahdr.frames);
+        ahdr.offset             = CPU_TO_BE(ahdr.offset);
 
         // Write audio header
         res = wr->write_header(&ahdr);

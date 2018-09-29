@@ -219,7 +219,7 @@ namespace lsp
         return create_samples(channels, sample_rate, count);
     }
 
-    status_t AudioFile::load_lspc(const char *path, float max_duration, float alignmentOffset)
+    status_t AudioFile::load_lspc(const char *path, float max_duration)
     {
         LSPCFile fd;
         status_t res = fd.open(path);
@@ -231,7 +231,7 @@ namespace lsp
 
         uint32_t chunk_id = 0;
 
-        // Read profile
+        // Read profile (if present)
         size_t skip = 0;
         LSPCChunkReader *prof = fd.find_chunk(LSPC_CHUNK_PROFILE);
         if (prof != NULL)
@@ -242,7 +242,7 @@ namespace lsp
             if (n < 0)
                 res     = status_t(-n);
             else if ((p.common.version < 1) || (p.common.size < sizeof(lspc_chunk_audio_profile_t)))
-                res = STATUS_CORRUPTED_FILE;
+                res     = STATUS_CORRUPTED_FILE;
 
             // Get related chunk identifier
             chunk_id = BE_TO_CPU(p.chunk_id);
@@ -253,6 +253,7 @@ namespace lsp
             status_t res2 = prof->close();
             if (res == STATUS_OK)
                 res = res2;
+            delete prof;
 
             // Analyze status
             if (res != STATUS_OK)
@@ -274,7 +275,7 @@ namespace lsp
             return STATUS_BAD_FORMAT;
         }
 
-        // Read audio chunk header and check it size
+        // Read audio chunk header and check its size
         lspc_chunk_audio_header_t ahdr;
         ssize_t n = audi->read_header(&ahdr, sizeof(lspc_chunk_audio_header_t));
         if (n < 0)
@@ -288,6 +289,7 @@ namespace lsp
         ahdr.sample_rate    = BE_TO_CPU(ahdr.sample_rate);
         ahdr.codec          = BE_TO_CPU(ahdr.codec);
         ahdr.frames         = BE_TO_CPU(ahdr.frames);
+        ahdr.offset 		= BE_TO_CPU(ahdr.offset);
 
         if (res == STATUS_OK)
             res = ((ahdr.codec != LSPC_CODEC_PCM) ||
@@ -303,15 +305,15 @@ namespace lsp
             size_t skipNoOffset = middle - 1;
             size_t maxAhead     = ahdr.frames - skipNoOffset;
 
-            if (alignmentOffset >= 0.0f)
+            if (ahdr.offset >= 0.0f)
             {
-                size_t offset   = seconds_to_samples(ahdr.sample_rate, alignmentOffset);
+                size_t offset   = ahdr.offset;
                 offset          = (offset > maxAhead)? maxAhead : offset;
                 skip            = skipNoOffset + offset;
             }
             else
             {
-                size_t offset   = seconds_to_samples(ahdr.sample_rate, -alignmentOffset);
+                size_t offset   = -ahdr.offset;
                 offset          = (offset > skipNoOffset)? skipNoOffset : offset;
                 skip            = skipNoOffset - offset;
             }
@@ -321,7 +323,7 @@ namespace lsp
         if (res == STATUS_OK)
         {
             size_t max_samples      = (max_duration >= 0.0f) ? seconds_to_samples(ahdr.sample_rate, max_duration) : -1;
-            lsp_trace("file parameters: frames=%d, channels=%d, sample_rate=%d max_duration=%.3f\n, max_samples=%d",
+            lsp_trace("file parameters: frames=%d, channels=%d, sample_rate=%d max_duration=%.3f, max_samples=%d",
                         int(ahdr.frames), int(ahdr.channels), int(ahdr.sample_rate), max_duration, int(max_samples));
 
             // Patch audio header
@@ -408,6 +410,7 @@ namespace lsp
         status_t res2 = audi->close();
         if (res == STATUS_OK)
             res     = res2;
+        delete audi;
 
         // Close LSPC file
         res2 = fd.close();
@@ -510,9 +513,9 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t AudioFile::load(const char *path, float max_duration, float alignmentOffset)
+    status_t AudioFile::load(const char *path, float max_duration)
     {
-        status_t res = load_lspc(path, max_duration, alignmentOffset);
+        status_t res = load_lspc(path, max_duration);
         if (res != STATUS_OK)
             res = load_sndfile(path, max_duration);
         return res;

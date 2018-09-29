@@ -178,6 +178,13 @@ namespace dsp
     void    (* complex_mod)(float *dst_mod, const float *src_re, const float *src_im, size_t count) = NULL;
     void    (* pcomplex_mod)(float *dst_mod, const float *src, size_t count) = NULL;
 
+    void    (* pcomplex_c2r_add2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_c2r_sub2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_c2r_rsub2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_c2r_mul2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_c2r_div2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* pcomplex_c2r_rdiv2)(float *dst, const float *src, size_t count) = NULL;
+
     void    (* fastconv_parse)(float *dst, const float *src, size_t rank) = NULL;
     void    (* fastconv_parse_apply)(float *dst, float *tmp, const float *c, const float *src, size_t rank) = NULL;
     void    (* fastconv_restore)(float *dst, float *tmp, size_t rank) = NULL;
