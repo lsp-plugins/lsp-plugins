@@ -19,6 +19,7 @@
 - Added subsystem for loading missed files.
 - Additional DSP code optimizations for ARMv7A architecture.
 - Extended unit and performance test coverage.
+- Changed link oder of libraries
 
 *******************************************************************************
 * Release steps
@@ -103,6 +104,40 @@
 *******************************************************************************
 * FEATURE REQUESTS: Detailed
 *******************************************************************************
+
+==== Link order of libraries ====
+
+The ordering of libraries on the command line follows the same convection as for object files:
+they are searched from left to right--a library containing the definition of a function should
+appear after any source files or object files which use it. This includes libraries specified
+with the short-cut -l option, as shown in the following command:
+
+$ gcc -Wall calc.c -lm -o calc   (correct order)
+
+With some compilers the opposite ordering (placing the -lm option before the file which uses it)
+would result in an error,
+
+$ cc -Wall -lm calc.c -o calc    (incorrect order)
+main.o: In function `main':
+main.o(.text+0xf): undefined reference to `sqrt'
+
+because there is no library or object file containing sqrt after 'calc.c'. The option -lm
+should appear after the file 'calc.c'.
+
+When several libraries are being used, the same convention should be followed for the libraries
+themselves. A library which calls an external function defined in another library should appear
+before the library containing the function.
+
+For example, a program 'data.c' using the GNU Linear Programming library 'libglpk.a', which in
+turn uses the math library 'libm.a', should be compiled as,
+
+$ gcc -Wall data.c -lglpk -lm
+
+since the object files in 'libglpk.a' use functions defined in 'libm.a'.
+
+As for object files, most current compilers will search all libraries, regardless of order.
+However, since not all compilers do this it is best to follow the convention of ordering libraries
+from left to right. 
 
 ==== Sampler ====
   naught101:
