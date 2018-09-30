@@ -81,10 +81,9 @@ namespace lsp
 
         fprintf(out, "$(FILES):\n");
         fprintf(out, "\t@echo \"  $(CC) $(FILE)\"\n");
-//        fprintf(out, "\t@echo $(CC) $(CPPFLAGS) $(CFLAGS) $(EXE_FLAGS) $(INCLUDE) $(FILE) -o $(@)\n");
-        fprintf(out, "\t@$(CC) $(CPPFLAGS) $(CFLAGS) $(EXE_FLAGS) $(INCLUDE) $(FILE) -o $(@)\n\n");
+        fprintf(out, "\t@$(CC) $(EXE_FLAGS) $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE) -o $(@)\n\n");
 
-        fprintf(out, "install: $(FILES)\n\n");
+        fprintf(out, "install: $(FILES)\n");
         fprintf(out, "\t@$(INSTALL) $(FILES) $(TARGET_PATH)/");
 
         // Close file
