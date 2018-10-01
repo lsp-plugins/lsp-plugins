@@ -12,13 +12,16 @@ namespace lsp
 {
     static int gen_cpp_file(const char *path, const plugin_metadata_t *meta, const char *plugin_name, const char *cpp_name)
     {
-        char fname[PATH_MAX];
-        snprintf(fname, PATH_MAX, "%s/%s", path, cpp_name);
+        char fname[PATH_MAX], cppfile[PATH_MAX];
 
-        // Replace character '_' to '-'
-        for (char *dst = fname; *dst != '\0'; ++dst)
-            if (*dst == '_')
-                *dst = '-';
+        // Replace all underscores
+        strncpy(cppfile, cpp_name, PATH_MAX);
+        cppfile[PATH_MAX-1] = '\0';
+        for (char *p=cppfile; *p != '\0'; ++p)
+            if (*p == '_')
+                *p = '-';
+
+        snprintf(fname, PATH_MAX, "%s/%s", path, cppfile);
 
         printf("Generating source file %s\n", fname);
 
