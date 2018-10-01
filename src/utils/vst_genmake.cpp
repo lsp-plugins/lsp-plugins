@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <alloca.h>
+#include <errno.h>
 
 #include <metadata/metadata.h>
 #include <plugins/plugins.h>
@@ -30,8 +31,9 @@ namespace lsp
         FILE *out = fopen(fname, "w");
         if (out == NULL)
         {
-            fprintf(stderr, "Error creating file %s\n", fname);
-            return -1;
+            int code = errno;
+            fprintf(stderr, "Error creating file %s, code=%d\n", fname, code);
+            return -2;
         }
 
         // Write to file
@@ -70,7 +72,8 @@ namespace lsp
         FILE *out = fopen(fname, "w");
         if (out == NULL)
         {
-            fprintf(stderr, "Error creating file %s\n", fname);
+            int code = errno;
+            fprintf(stderr, "Error creating file %s, code=%d\n", fname, code);
             return -2;
         }
 

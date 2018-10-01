@@ -26,34 +26,34 @@ $(LIB_LADSPA):
 	@echo "  $(CC) ladspa.cpp"
 	@$(CC) -o $(OBJDIR)/ladspa.o -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) ladspa.cpp  
 	@echo "  $(CC) $(notdir $(LIB_LADSPA))"
-	@$(CC) -o $(LIB_LADSPA) $(OBJDIR)/ladspa.o $(PACKAGES) $(SO_FLAGS)  
+	@$(CC) -o $(LIB_LADSPA) $(SO_FLAGS) $(OBJDIR)/ladspa.o $(PACKAGES)
 
 $(LIB_LV2): $(OBJ_HELPERS)
 	@echo "  $(CC) lv2.cpp"
 	@$(CC) -o $(OBJDIR)/lv2.o -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) lv2.cpp 
 	@echo "  $(CC) $(notdir $(LIB_LV2))"
-	@$(CC) -o $(LIB_LV2) $(OBJDIR)/lv2.o $(OBJ_HELPERS) $(UI_PACKAGES) $(SO_FLAGS)
+	@$(CC) -o $(LIB_LV2) $(SO_FLAGS) $(OBJDIR)/lv2.o $(OBJ_HELPERS) $(UI_PACKAGES)
 
 $(LIB_VST):
 	@echo "  $(CC) vst.cpp"
 	@$(CC) -o $(OBJDIR)/vst.o -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) vst.cpp 
 	@echo "  $(CC) $(notdir $(LIB_VST))"
-	@$(CC) -o $(LIB_VST) $(OBJDIR)/vst.o $(UI_PACKAGES) $(SO_FLAGS)  
+	@$(CC) -o $(LIB_VST) $(SO_FLAGS) $(OBJDIR)/vst.o $(UI_PACKAGES)
 
 $(LIB_JACK): $(OBJ_HELPERS)
 	@echo "  $(CC) jack.cpp"
 	@$(CC) -o $(OBJDIR)/jack.o -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(JACK_HEADERS) jack.cpp 
 	@echo "  $(CC) $(notdir $(LIB_JACK))"
-	@$(CC) -o $(LIB_JACK) $(OBJDIR)/jack.o $(JACK_LIBS) $(OBJ_HELPERS) $(UI_PACKAGES) $(SO_FLAGS) 
+	@$(CC) -o $(LIB_JACK) $(SO_FLAGS) $(OBJDIR)/jack.o $(JACK_LIBS) $(OBJ_HELPERS) $(UI_PACKAGES)
 
 $(BIN_PROFILE): $(LIB_JACK)
 	@echo "  $(CC) profile.cpp"
 	@$(CC) -o $(OBJDIR)/profile.o -c $(CPPFLAGS) -DLSP_PROFILING_MAIN $(CFLAGS) $(INCLUDE) $(JACK_HEADERS) profile.cpp
 	@echo "  $(CC) $(notdir $(BIN_PROFILE))"
-	@$(CC) -o $(BIN_PROFILE) $(OBJDIR)/jack.o $(OBJDIR)/profile.o $(JACK_LIBS) $(OBJ_HELPERS) $(UI_PACKAGES) $(EXE_FLAGS)  
+	@$(CC) -o $(BIN_PROFILE) $(EXE_FLAGS) $(OBJDIR)/jack.o $(OBJDIR)/profile.o $(JACK_LIBS) $(OBJ_HELPERS) $(UI_PACKAGES)   
 
 $(BIN_TEST): $(LIB_JACK)
 	@echo "  $(CC) test.cpp"
 	@$(CC) -o $(OBJDIR)/test.o -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(JACK_HEADERS) test.cpp
 	@echo "  $(CC) $(notdir $(BIN_TEST))"
-	@$(CC) -o $(BIN_TEST) $(OBJDIR)/jack.o $(OBJDIR)/test.o $(JACK_LIBS) $(OBJ_HELPERS) $(UI_PACKAGES) $(EXE_FLAGS)  
+	@$(CC) -o $(BIN_TEST) $(EXE_FLAGS) $(OBJDIR)/jack.o $(OBJDIR)/test.o $(JACK_LIBS) $(OBJ_HELPERS) $(UI_PACKAGES)   
