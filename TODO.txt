@@ -11,6 +11,8 @@
 
 === 1.1.5 ===
 
+* Fixed building issues under Ubuntu Linux related to compiler and linker
+  flags reordering.
 - Migrated to CMake build system.
 - Additional display mode for spectrum analyzer added.
 - Added possibility to double-click the parameter's value number and enter it manually from keyboard.

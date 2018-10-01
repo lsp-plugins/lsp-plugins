@@ -18,25 +18,25 @@ $(SUBDIRS):
 
 $(FILES):
 	@echo "  $(CC) $(FILE)"
-	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE) -o $(@)
+	@$(CC) -o $(@) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE)
 
 # Rules for each utility
 $(UTL_GENTTL): $(FILES) $(SUBDIRS)
 	@echo "  $(CC) $(notdir $(UTL_GENTTL))"
-	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) -o $(UTL_GENTTL) $(OBJDIR)/lv2_genttl.o $(OBJ_CORE) $(OBJ_METADATA)
+	@$(CC) -o $(UTL_GENTTL) $(OBJDIR)/lv2_genttl.o $(OBJ_CORE) $(OBJ_METADATA) $(EXE_FLAGS) $(SNDFILE_LIBS) 
 	
 $(UTL_JACKMAKE): $(FILES) $(SUBDIRS)
 	@echo "  $(CC) $(notdir $(UTL_JACKMAKE))"
-	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) -o $(UTL_JACKMAKE) $(OBJDIR)/jack_genmake.o $(OBJ_CORE) $(OBJ_METADATA)
+	@$(CC) -o $(UTL_JACKMAKE)  $(OBJDIR)/jack_genmake.o $(OBJ_CORE) $(OBJ_METADATA) $(EXE_FLAGS) $(SNDFILE_LIBS) 
 	
 $(UTL_VSTMAKE): $(FILES) $(SUBDIRS)
 	@echo "  $(CC) $(notdir $(UTL_VSTMAKE))"
-	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) -o $(UTL_VSTMAKE) $(OBJDIR)/vst_genmake.o $(OBJ_CORE) $(OBJ_METADATA)
+	@$(CC) -o $(UTL_VSTMAKE) $(OBJDIR)/vst_genmake.o $(OBJ_CORE) $(OBJ_METADATA) $(EXE_FLAGS) $(SNDFILE_LIBS) 
 	
 $(UTL_GENPHP): $(FILES) $(SUBDIRS)
 	@echo "  $(CC) $(notdir $(UTL_GENPHP))"
-	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) -o $(UTL_GENPHP) $(OBJDIR)/gen_php.o $(OBJ_CORE) $(OBJ_METADATA)
+	@$(CC) -o $(UTL_GENPHP) $(OBJDIR)/gen_php.o $(OBJ_CORE) $(OBJ_METADATA) $(EXE_FLAGS) $(SNDFILE_LIBS)
 	
 $(UTL_RESGEN): $(FILES) $(SUBDIRS)
 	@echo "  $(CC) $(notdir $(UTL_RESGEN))"
-	@$(CC) $(EXE_FLAGS) $(SNDFILE_LIBS) $(EXPAT_HEADERS) $(EXPAT_LIBS) -o $(UTL_RESGEN) $(OBJDIR)/resource_gen.o $(OBJ_CORE) $(OBJ_METADATA)
+	@$(CC) -o $(UTL_RESGEN) $(OBJDIR)/resource_gen.o $(OBJ_CORE) $(OBJ_METADATA) $(EXPAT_HEADERS) $(EXE_FLAGS) $(EXPAT_LIBS) $(SNDFILE_LIBS) 
