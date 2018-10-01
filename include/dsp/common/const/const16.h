@@ -72,6 +72,7 @@ DSP_U32VEC4(X_N_DENORM, 0x80800000);
 
 /* Positive and negative infinities */
 DSP_U32ARRAY(SAT_IARGS,
+    DSP_U32REP4(0xffffffff),        // X_M_ONE
     DSP_U32REP4(0x7f800000),        // X_P_INF
     DSP_U32REP4(0xff800000),        // X_N_INF
 );
