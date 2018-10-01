@@ -50,6 +50,7 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/convolution.h>
 #include <dsp/arch/arm/neon-d32/graphics.h>
 #include <dsp/arch/arm/neon-d32/pmath.h>
+#include <dsp/arch/arm/neon-d32/hmath.h>
 
 #undef DSP_ARCH_ARM_NEON_32_IMPL
 

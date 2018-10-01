@@ -26,6 +26,15 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_X86(
+    namespace neon_d32
+    {
+        float h_sum(const float *src, size_t count);
+//        float h_sqr_sum(const float *src, size_t count);
+//        float h_abs_sum(const float *src, size_t count);
+    }
+)
+
 typedef float (* h_sum_t)(const float *src, size_t count);
 
 UTEST_BEGIN("dsp.hmath", hsum)
@@ -68,5 +77,10 @@ UTEST_BEGIN("dsp.hmath", hsum)
         IF_ARCH_X86(call("sse:h_sum", 16, native::h_sum, sse::h_sum));
         IF_ARCH_X86(call("sse:h_sqr_sum", 16, native::h_sqr_sum, sse::h_sqr_sum));
         IF_ARCH_X86(call("sse:h_abs_sum", 16, native::h_abs_sum, sse::h_abs_sum));
+
+        IF_ARCH_ARM(call("neon_d32:h_sum", 16, native::h_sum, neon_d32::h_sum));
+        // TODO
+//        IF_ARCH_X86(call("neon_d32:h_sqr_sum", 16, native::h_sqr_sum, neon_d32::h_sqr_sum));
+//        IF_ARCH_X86(call("neon_d32:h_abs_sum", 16, native::h_abs_sum, neon_d32::h_abs_sum));
     }
 UTEST_END
