@@ -28,6 +28,15 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        float h_sum(const float *src, size_t count);
+        float h_sqr_sum(const float *src, size_t count);
+        float h_abs_sum(const float *src, size_t count);
+    }
+)
+
 typedef float (* h_sum_t)(const float *src, size_t count);
 
 PTEST_BEGIN("dsp.hmath", hsum, 5, 10000)
@@ -61,14 +70,17 @@ PTEST_MAIN
 
         call("native:h_sum", src, count, native::h_sum);
         IF_ARCH_X86(call("sse:h_sum", src, count, sse::h_sum));
+        IF_ARCH_ARM(call("neon_d32:h_sum", src, count, neon_d32::h_sum));
         PTEST_SEPARATOR;
 
         call("native:h_sqr_sum", src, count, native::h_sqr_sum);
         IF_ARCH_X86(call("sse:h_sqr_sum", src, count, sse::h_sqr_sum));
+        IF_ARCH_ARM(call("neon_d32:h_sqr_sum", src, count, neon_d32::h_sqr_sum));
         PTEST_SEPARATOR;
 
         call("native:h_abs_sum", src, count, native::h_abs_sum);
         IF_ARCH_X86(call("sse:h_abs_sum", src, count, sse::h_abs_sum));
+        IF_ARCH_ARM(call("neon_d32:h_abs_sum", src, count, neon_d32::h_abs_sum));
         PTEST_SEPARATOR;
     }
 

@@ -130,6 +130,10 @@ namespace neon_d32
         EXPORT1(scale_mul4);
         EXPORT1(scale_div4);
 
+        EXPORT1(h_sum);
+        EXPORT1(h_abs_sum);
+        EXPORT1(h_sqr_sum);
+
         // Misc for testing
         TEST_EXPORT(neon_d32::complex_mul3_x12);
     }
