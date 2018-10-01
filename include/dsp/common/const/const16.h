@@ -72,16 +72,13 @@ DSP_U32VEC4(X_N_DENORM, 0x80800000);
 
 /* Positive and negative infinities */
 DSP_U32ARRAY(SAT_IARGS,
-    DSP_U32REP4(0xffffffff),        // X_M_ONE
-    DSP_U32REP4(0x7f800000),        // X_P_INF
-    DSP_U32REP4(0xff800000),        // X_N_INF
-);
-
-DSP_F32ARRAY(SAT_FARGS,
-    DSP_F32REP4(FLOAT_SAT_P_INF),   // SX_P_INF
-    DSP_F32REP4(FLOAT_SAT_P_NAN),   // SX_P_NAN
-    DSP_F32REP4(FLOAT_SAT_N_INF),   // SX_N_INF
-    DSP_F32REP4(FLOAT_SAT_N_NAN)    // SX_N_NAN
+    DSP_U32REP4(0xffffffff),            // X_M_ONE
+    DSP_U32REP4(0x7f800000),            // X_P_INF
+    DSP_U32REP4(0xff800000),            // X_N_INF
+    DSP_U32REP4(FLOAT_SAT_P_NAN_I),     // SX_P_NAN
+    DSP_U32REP4(FLOAT_SAT_P_INF_I),     // SX_P_INF
+    DSP_U32REP4(FLOAT_SAT_N_NAN_I),     // SX_N_NAN
+    DSP_U32REP4(FLOAT_SAT_N_INF_I)      // SX_N_INF
 );
 
 DSP_U32VEC4(X_P_INF,  0x7f800000);
