@@ -3,16 +3,19 @@ FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 OBJ_HELPERS             = $(OBJDIR)/CairoCanvas.o
 
 # Detemine what modules to build
-PACKAGES                = $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA) $(OBJ_PLUGINS) $(SNDFILE_LIBS)
+OBJFILES                = $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA) $(OBJ_PLUGINS)
+LIBS                    = $(SNDFILE_LIBS)
 ifeq ($(LSP_TESTING),1)
-PACKAGES               += $(OBJ_TEST_CORE) $(OPENGL_LIBS)
+OBJFILES               += $(OBJ_TEST_CORE)
+LIBS                   += $(OPENGL_LIBS)
 MODULES                 = $(BIN_TEST)
 endif
 ifneq ($(LSP_TESTING),1)
 MODULES                 = $(LIB_LADSPA) $(LIB_LV2) $(LIB_JACK) $(BIN_PROFILE) $(LIB_VST)
 endif
 
-UI_PACKAGES             = $(PACKAGES) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(XLIB_LIBS) $(CAIRO_LIBS)
+UI_OBJFILES             = $(OBJFILES) $(OBJ_UI_CORE) $(OBJ_RES_CORE) 
+UI_LIBS                 = $(LIBS) $(XLIB_LIBS) $(CAIRO_LIBS)
 
 .PHONY: all
 
@@ -24,36 +27,36 @@ $(OBJ_HELPERS):
 
 $(LIB_LADSPA):
 	@echo "  $(CC) ladspa.cpp"
-	@$(CC) -o $(OBJDIR)/ladspa.o -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) ladspa.cpp  
+	@$(CC) -o $(OBJDIR)/ladspa.o -c ladspa.cpp $(CPPFLAGS) $(CFLAGS) $(INCLUDE) 
 	@echo "  $(CC) $(notdir $(LIB_LADSPA))"
-	@$(CC) -o $(LIB_LADSPA) $(SO_FLAGS) $(OBJDIR)/ladspa.o $(PACKAGES)
+	@$(CC) -o $(LIB_LADSPA) $(OBJDIR)/ladspa.o $(OBJFILES) $(SO_FLAGS) $(LIBS)
 
 $(LIB_LV2): $(OBJ_HELPERS)
 	@echo "  $(CC) lv2.cpp"
-	@$(CC) -o $(OBJDIR)/lv2.o -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) lv2.cpp 
+	@$(CC) -o $(OBJDIR)/lv2.o -c lv2.cpp $(CPPFLAGS) $(CFLAGS) $(INCLUDE) 
 	@echo "  $(CC) $(notdir $(LIB_LV2))"
-	@$(CC) -o $(LIB_LV2) $(SO_FLAGS) $(OBJDIR)/lv2.o $(OBJ_HELPERS) $(UI_PACKAGES)
+	@$(CC) -o $(LIB_LV2) $(OBJDIR)/lv2.o $(OBJ_HELPERS) $(UI_OBJFILES) $(SO_FLAGS) $(UI_LIBS)
 
 $(LIB_VST):
 	@echo "  $(CC) vst.cpp"
-	@$(CC) -o $(OBJDIR)/vst.o -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) vst.cpp 
+	@$(CC) -o $(OBJDIR)/vst.o -c vst.cpp $(CPPFLAGS) $(CFLAGS) $(INCLUDE) 
 	@echo "  $(CC) $(notdir $(LIB_VST))"
-	@$(CC) -o $(LIB_VST) $(SO_FLAGS) $(OBJDIR)/vst.o $(UI_PACKAGES)
+	@$(CC) -o $(LIB_VST) $(OBJDIR)/vst.o $(UI_OBJFILES) $(SO_FLAGS) $(UI_LIBS) 
 
 $(LIB_JACK): $(OBJ_HELPERS)
 	@echo "  $(CC) jack.cpp"
-	@$(CC) -o $(OBJDIR)/jack.o -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(JACK_HEADERS) jack.cpp 
+	@$(CC) -o $(OBJDIR)/jack.o -c jack.cpp $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(JACK_HEADERS) 
 	@echo "  $(CC) $(notdir $(LIB_JACK))"
-	@$(CC) -o $(LIB_JACK) $(SO_FLAGS) $(OBJDIR)/jack.o $(JACK_LIBS) $(OBJ_HELPERS) $(UI_PACKAGES)
+	@$(CC) -o $(LIB_JACK) $(OBJDIR)/jack.o $(OBJ_HELPERS) $(UI_OBJFILES) $(SO_FLAGS) $(UI_LIBS) $(JACK_LIBS)
 
 $(BIN_PROFILE): $(LIB_JACK)
 	@echo "  $(CC) profile.cpp"
-	@$(CC) -o $(OBJDIR)/profile.o -c $(CPPFLAGS) -DLSP_PROFILING_MAIN $(CFLAGS) $(INCLUDE) $(JACK_HEADERS) profile.cpp
+	@$(CC) -o $(OBJDIR)/profile.o -c profile.cpp $(CPPFLAGS) -DLSP_PROFILING_MAIN $(CFLAGS) $(INCLUDE) $(JACK_HEADERS) 
 	@echo "  $(CC) $(notdir $(BIN_PROFILE))"
-	@$(CC) -o $(BIN_PROFILE) $(EXE_FLAGS) $(OBJDIR)/jack.o $(OBJDIR)/profile.o $(JACK_LIBS) $(OBJ_HELPERS) $(UI_PACKAGES)   
+	@$(CC) -o $(BIN_PROFILE) $(OBJDIR)/jack.o $(OBJDIR)/profile.o $(OBJ_HELPERS) $(UI_OBJFILES) $(EXE_FLAGS) $(UI_LIBS) $(JACK_LIBS)   
 
 $(BIN_TEST): $(LIB_JACK)
 	@echo "  $(CC) test.cpp"
-	@$(CC) -o $(OBJDIR)/test.o -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(JACK_HEADERS) test.cpp
+	@$(CC) -o $(OBJDIR)/test.o -c test.cpp $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(JACK_HEADERS) 
 	@echo "  $(CC) $(notdir $(BIN_TEST))"
-	@$(CC) -o $(BIN_TEST) $(EXE_FLAGS) $(OBJDIR)/jack.o $(OBJDIR)/test.o $(JACK_LIBS) $(OBJ_HELPERS) $(UI_PACKAGES)   
+	@$(CC) -o $(BIN_TEST) $(OBJDIR)/jack.o $(OBJDIR)/test.o $(OBJ_HELPERS) $(UI_OBJFILES) $(EXE_FLAGS) $(UI_LIBS) $(JACK_LIBS)   
