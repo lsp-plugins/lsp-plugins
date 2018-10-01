@@ -28,7 +28,7 @@ IF_ARCH_X86(
 
 typedef float (* h_sum_t)(const float *src, size_t count);
 
-UTEST_BEGIN("dsp.pmath", hsum)
+UTEST_BEGIN("dsp.hmath", hsum)
 
     void call(const char *label, size_t align, h_sum_t func1, h_sum_t func2)
     {
@@ -38,7 +38,7 @@ UTEST_BEGIN("dsp.pmath", hsum)
             return;
 
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                32, 64, 65, 100, 768, 999, 1024)
+                32, 64, 65, 100, 768, 999, 0x1fff)
         {
             for (size_t mask=0; mask <= 0x01; ++mask)
             {
@@ -65,8 +65,8 @@ UTEST_BEGIN("dsp.pmath", hsum)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("h_sum sse", 16, native::h_sum, sse::h_sum));
-        IF_ARCH_X86(call("h_sqr_sum sse", 16, native::h_sqr_sum, sse::h_sqr_sum));
-        IF_ARCH_X86(call("h_abs_sum sse", 16, native::h_abs_sum, sse::h_abs_sum));
+        IF_ARCH_X86(call("sse:h_sum", 16, native::h_sum, sse::h_sum));
+        IF_ARCH_X86(call("sse:h_sqr_sum", 16, native::h_sqr_sum, sse::h_sqr_sum));
+        IF_ARCH_X86(call("sse:h_abs_sum", 16, native::h_abs_sum, sse::h_abs_sum));
     }
 UTEST_END
