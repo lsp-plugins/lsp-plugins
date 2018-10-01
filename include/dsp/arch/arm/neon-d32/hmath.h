@@ -83,7 +83,7 @@ namespace neon_d32
             __ASM_EMIT("blt             8f")
             __ASM_EMIT("vld1.32         {q2-q3}, [%[src]]!")
             __ASM_EMIT("vadd.f32        q0, q2")
-            __ASM_EMIT("sub             $8, %[count]")
+            __ASM_EMIT("sub             %[count], $8")
             __ASM_EMIT("vadd.f32        q1, q3")
             /* x4 Block */
             __ASM_EMIT("8:")
@@ -110,7 +110,7 @@ namespace neon_d32
 
             : [src] "+r" (src), [count] "+r" (count)
             : [dst] "r" (presult)
-            : "cc", "memory"
+            : "cc", "memory",
               "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
@@ -191,7 +191,7 @@ namespace neon_d32
             __ASM_EMIT("blt             8f")
             __ASM_EMIT("vld1.32         {q2-q3}, [%[src]]!")
             __ASM_EMIT("vmla.f32        q0, q2, q2")
-            __ASM_EMIT("sub             $8, %[count]")
+            __ASM_EMIT("sub             %[count], $8")
             __ASM_EMIT("vmla.f32        q1, q3, q3")
             /* x4 Block */
             __ASM_EMIT("8:")
@@ -218,7 +218,7 @@ namespace neon_d32
 
             : [src] "+r" (src), [count] "+r" (count)
             : [dst] "r" (presult)
-            : "cc", "memory"
+            : "cc", "memory",
               "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
@@ -327,7 +327,7 @@ namespace neon_d32
             __ASM_EMIT("vabs.f32        q2, q2")
             __ASM_EMIT("vabs.f32        q3, q3")
             __ASM_EMIT("vadd.f32        q0, q2")
-            __ASM_EMIT("sub             $8, %[count]")
+            __ASM_EMIT("sub             %[count], $8")
             __ASM_EMIT("vadd.f32        q1, q3")
             /* x4 Block */
             __ASM_EMIT("8:")
@@ -356,7 +356,7 @@ namespace neon_d32
 
             : [src] "+r" (src), [count] "+r" (count)
             : [dst] "r" (presult)
-            : "cc", "memory"
+            : "cc", "memory",
               "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
