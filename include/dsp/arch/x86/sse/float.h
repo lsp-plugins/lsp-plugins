@@ -14,6 +14,51 @@
 
 namespace sse
 {
+#define MULTIPLE_SATURATION_BODY(ldst) \
+    __ASM_EMIT("xor             %[off], %[off]") \
+    __ASM_EMIT("sub             $4, %[count]") \
+    __ASM_EMIT("jb              2f") \
+    \
+    __ASM_EMIT("   (%[dst]), %%xmm0")      /* xmm0 = src */ \
+    __ASM_EMIT("movapd  %%xmm0, %%xmm1")        /* xmm1 = src */ \
+    __ASM_EMIT("pcmpgtd %%xmm7, %%xmm1")        /* xmm1 = /src >= 0/ */ \
+    \
+    /* +NAN, +INF */ \
+    __ASM_EMIT("movapd  %%xmm0, %%xmm3")        /* xmm3 = src */ \
+    __ASM_EMIT("movapd  %%xmm0, %%xmm4")        /* xmm4 = src */ \
+    __ASM_EMIT("pcmpgtd %%xmm6, %%xmm3")        /* xmm3 = /src > +inf/ */ \
+    __ASM_EMIT("pcmpeqd %%xmm6, %%xmm4")        /* xmm4 = /src == +inf/ */ \
+    __ASM_EMIT("movapd  %%xmm3, %%xmm2")        /* xmm2 = /src > +inf/ */ \
+    __ASM_EMIT("por     %%xmm4, %%xmm2")        /* xmm2 = /src >= +inf/ */ \
+    __ASM_EMIT("pand    %[SX_P_NAN], %%xmm3")   /* xmm3 = +nan * /src > +inf/ */ \
+    __ASM_EMIT("pand    %[SX_P_INF], %%xmm4")   /* xmm4 = +inf * /src == +inf/ */ \
+    __ASM_EMIT("pand    %%xmm1, %%xmm2")        /* xmm2 = /src >= +inf && src >= 0/ */ \
+    __ASM_EMIT("por     %%xmm3, %%xmm4")        /* xmm4 = +nan * /src > +inf/ + +inf * /src == +inf/ */ \
+    \
+    /* Merge */  \
+    __ASM_EMIT("pandn   %%xmm0, %%xmm2")        /* xmm2 = src * !/src >= +inf && src >= 0/ */ \
+    __ASM_EMIT("por     %%xmm4, %%xmm2")        /* xmm2 = src * !/src >= +inf && src >= 0/ + <+nan> * /src > +inf/ + <+inf> * /src == +inf/ */ \
+    \
+    /* -NAN, -INF */  \
+    __ASM_EMIT("movapd  %%xmm0, %%xmm3")        /* xmm3 = src */  \
+    __ASM_EMIT("movapd  %%xmm0, %%xmm4")        /* xmm4 = src */ \
+    __ASM_EMIT("pcmpgtd %%xmm5, %%xmm3")        /* xmm3 = /src > -inf/ */ \
+    __ASM_EMIT("pcmpeqd %%xmm5, %%xmm4")        /* xmm4 = /src == -inf/ */ \
+    __ASM_EMIT("movapd  %%xmm3, %%xmm0")        /* xmm0 = /src > -inf/ */ \
+    __ASM_EMIT("por     %%xmm4, %%xmm0")        /* xmm0 = /src >= -inf/ */ \
+    __ASM_EMIT("pand    %[SX_N_NAN], %%xmm3")   /* xmm3 = -nan * /src > -inf/ */ \
+    __ASM_EMIT("pand    %[SX_N_INF], %%xmm4")   /* xmm4 = -inf * /src == -inf/ */ \
+    __ASM_EMIT("pandn   %%xmm0, %%xmm1")        /* xmm1 = /src >= -inf && src < 0/ */ \
+    __ASM_EMIT("por     %%xmm3, %%xmm4")        /* xmm4 = -nan * /src > -inf/ + -inf * /src == -inf/ */ \
+    \
+    /* Merge */ \
+    __ASM_EMIT("pand    %%xmm1, %%xmm4") \
+    __ASM_EMIT("pandn   %%xmm2, %%xmm1") \
+    __ASM_EMIT("por     %%xmm4, %%xmm1") \
+    \
+    /* Store and repeat loop */ \
+    __ASM_EMIT(ldst  "  %%xmm1, (%[dst])")
+
     void copy_saturated(float *dst, const float *src, size_t count)
     {
         size_t off;
