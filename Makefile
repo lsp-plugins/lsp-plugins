@@ -1,6 +1,6 @@
-BIN_PATH                = /usr/local/bin
-LIB_PATH                = /usr/local/lib
-DOC_PATH                = /usr/local/share/doc
+BIN_PATH                = $(PREFIX)/usr/local/bin
+LIB_PATH                = $(PREFIX)/usr/local/lib
+DOC_PATH                = $(PREFIX)/usr/local/share/doc
 LADSPA_PATH             = $(LIB_PATH)/ladspa
 LV2_PATH                = $(LIB_PATH)/lv2
 VST_PATH                = $(LIB_PATH)/vst
@@ -157,6 +157,11 @@ JACK_ID                := $(ARTIFACT_ID)-jack-$(VERSION)-$(BUILD_PROFILE)
 PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)-$(BUILD_PROFILE)
 SRC_ID                 := $(ARTIFACT_ID)-src-$(VERSION)
 DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
+
+# Prefix
+ifdef PREFIX
+CFLAGS                 += -DLSP_INSTALL_PREFIX=\"$(PREFIX)\"
+endif
 
 .PHONY: all trace debug tracefile debugfile profile gdb compile install uninstall release test
 .PHONY: install_ladspa install_lv2 install_vst install_jack

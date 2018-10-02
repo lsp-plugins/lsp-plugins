@@ -33,22 +33,18 @@ namespace lsp
 {
     static const char *jack_core_paths[] =
     {
-#ifdef NIXOS_LIB_PATH
-        // Integration with NixOS that provides location of library as generated path based on cryptographical hash
-        LSP_STRINGIFY(NIXOS_LIB_PATH),
-#endif /* NIXOS_LIB_PATH */
-        "/usr/local/lib64",
-        "/usr/lib64",
-        "/lib64",
-        "/usr/local/lib",
-        "/usr/lib",
-        "/lib",
-        "/usr/local/bin",
-        "/usr/bin",
-        "/bin",
-        "/usr/local/sbin",
-        "/usr/sbin",
-        "/sbin",
+        LSP_LIB_PREFIX("/usr/local/lib64"),
+        LSP_LIB_PREFIX("/usr/lib64"),
+        LSP_LIB_PREFIX("/lib64"),
+        LSP_LIB_PREFIX("/usr/local/lib"),
+        LSP_LIB_PREFIX("/usr/lib"),
+        LSP_LIB_PREFIX("/lib"),
+        LSP_LIB_PREFIX("/usr/local/bin"),
+        LSP_LIB_PREFIX("/usr/bin"),
+        LSP_LIB_PREFIX("/bin"),
+        LSP_LIB_PREFIX("/usr/local/sbin"),
+        LSP_LIB_PREFIX("/usr/sbin"),
+        LSP_LIB_PREFIX("/sbin"),
         NULL
     };
 
