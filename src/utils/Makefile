@@ -20,7 +20,7 @@ $(SUBDIRS):
 
 $(FILES):
 	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE)
+	@$(CC) -o $(@) -c $(FILE) $(CPPFLAGS) -fPIC $(CFLAGS) $(INCLUDE)
 
 # Rules for each utility
 $(UTL_GENTTL): $(FILES) $(SUBDIRS)
@@ -29,7 +29,7 @@ $(UTL_GENTTL): $(FILES) $(SUBDIRS)
 	
 $(UTL_JACKMAKE): $(FILES) $(SUBDIRS)
 	@echo "  $(CC) $(notdir $(UTL_JACKMAKE))"
-	@$(CC) -o $(UTL_JACKMAKE)  $(OBJDIR)/jack_genmake.o $(OBJ_FILES) $(EXE_FLAGS) $(SNDFILE_LIBS) $(OBJ_LIBS)
+	@$(CC) -o $(UTL_JACKMAKE) $(OBJDIR)/jack_genmake.o $(OBJ_FILES) $(EXE_FLAGS) $(SNDFILE_LIBS) $(OBJ_LIBS)
 	
 $(UTL_VSTMAKE): $(FILES) $(SUBDIRS)
 	@echo "  $(CC) $(notdir $(UTL_VSTMAKE))"

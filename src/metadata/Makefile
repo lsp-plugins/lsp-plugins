@@ -1,6 +1,6 @@
+rwildcard               = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 FILES                   = $(addprefix $(OBJDIR)/, $(patsubst %.cpp, %.o, $(wildcard *.cpp)))
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
-rwildcard               = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 
 .PHONY: all target
 
@@ -10,8 +10,8 @@ target: all
 
 $(OBJ_METADATA): $(FILES)
 	@echo "  $(LD) $(notdir $(OBJ_METADATA))"
-	@$(LD) $(LDFLAGS) -r -o $(OBJ_METADATA) $(call rwildcard,$(OBJDIR),*.o)
+	@$(LD) -o $(OBJ_METADATA) -r $(LDFLAGS) $(FILES) 
 
 $(FILES):
 	@echo "  $(CC) $(FILE)"
-	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE) -o $(@)
+	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE) 
