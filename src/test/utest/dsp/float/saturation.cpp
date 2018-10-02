@@ -112,7 +112,7 @@ UTEST_BEGIN("dsp.float", saturation)
     void call(const char *label, size_t align, saturate_t func)
     {
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                32, 64, 65, 100, 768, 999, 1024)
+                32, 64, 65, 100, 768, 999, 1024, 0x1fff)
         {
             for (size_t mask=0; mask <= 0x01; ++mask)
             {
