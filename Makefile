@@ -95,7 +95,7 @@ export LD               = ld
 export LDFLAGS          = $(LD_ARCH) -L$(LD_PATH)
 export SO_FLAGS         = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections -shared -Llibrary -lc -lm -fPIC -lpthread
 export MERGE_FLAGS      = $(LD_ARCH) -r
-export EXE_FLAGS        = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections -lm -fPIC -pthread
+export EXE_FLAGS        = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections -lm -pie -fPIE -pthread
 
 # Objects
 export OBJ_CORE         = $(OBJDIR)/core.o
