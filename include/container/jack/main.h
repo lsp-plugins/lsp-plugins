@@ -33,6 +33,10 @@ namespace lsp
 {
     static const char *jack_core_paths[] =
     {
+#ifdef NIXOS_LIB_PATH
+        // Integration with NixOS that provides location of library as generated path based on cryptographical hash
+        LSP_STRINGIFY(NIXOS_LIB_PATH),
+#endif /* NIXOS_LIB_PATH */
         "/usr/local/lib64",
         "/usr/lib64",
         "/lib64",
