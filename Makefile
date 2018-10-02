@@ -30,7 +30,6 @@ export BUILDDIR         = $(OBJDIR)
 INC_FLAGS               = -I"${CURDIR}/include"
 INSTALLATIONS           = install_ladspa install_lv2 install_jack install_doc install_vst
 RELEASES                = release_ladspa release_lv2 release_jack release_src release_doc release_vst
-CC_FLAGS                = -DLSP_NO_EXPERIMENTAL
 
 # Build profile
 ifndef BUILD_PROFILE
@@ -168,7 +167,7 @@ DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 
 default: all
 
-all: export CFLAGS          += -O2
+all: export CFLAGS          += -O2 -DLSP_NO_EXPERIMENTAL
 all: compile
 
 trace: export CFLAGS        += -DLSP_TRACE
