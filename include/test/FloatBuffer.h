@@ -48,6 +48,8 @@ namespace test
             bool equals_adaptive(const FloatBuffer &src, float tolerance = 1e-5f) const;
             void dump(const char *text) const;
             void dump(const char *text, size_t from, size_t count) const;
+            void dump_hex(const char *text) const;
+            void dump_hex(const char *text, size_t from, size_t count) const;
             inline bool aligned() const { return bAligned; }
             inline size_t size() const { return nLength; }
             inline ssize_t last_diff() const { return nLastDiff; }

@@ -76,7 +76,7 @@ UTEST_BEGIN("dsp.float", saturation)
 
     void call(const char *label, size_t align, copy_saturated_t func)
     {
-        UTEST_FOREACH(count, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
                         32, 64, 65, 100, 768, 999, 1024, 0x1fff)
         {
             for (size_t mask=0; mask <= 0x03; ++mask)
@@ -99,7 +99,8 @@ UTEST_BEGIN("dsp.float", saturation)
                 // Compare buffers
                 if (!dst1.equals_relative(dst2, 1e-5))
                 {
-                    src.dump("src");
+                    src.dump("src ");
+                    src.dump_hex("srch");
                     dst1.dump("dst1");
                     dst2.dump("dst2");
                     UTEST_FAIL_MSG("Output of functions for test '%s' differs", label);

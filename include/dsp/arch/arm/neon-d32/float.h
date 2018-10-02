@@ -124,7 +124,7 @@ namespace neon_d32
 
     void copy_saturated(float *dst, const float *src, size_t count)
     {
-        IF_ARCH_ARM(const float *X_IARGS = &SAT_IARGS[4]);
+        IF_ARCH_ARM(const uint32_t *X_IARGS = &SAT_IARGS[4]);
 
         ARCH_ARM_ASM
         (
@@ -142,7 +142,7 @@ namespace neon_d32
     void saturate(float *dst, size_t count)
     {
         IF_ARCH_ARM(
-            const float *X_IARGS = &SAT_IARGS[4];
+            const uint32_t *X_IARGS = &SAT_IARGS[4];
             const float *src = dst;
         )
 
