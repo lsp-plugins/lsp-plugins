@@ -30,6 +30,7 @@ export BUILDDIR         = $(OBJDIR)
 INC_FLAGS               = -I"${CURDIR}/include"
 INSTALLATIONS           = install_ladspa install_lv2 install_jack install_doc install_vst
 RELEASES                = release_ladspa release_lv2 release_jack release_src release_doc release_vst
+CC_FLAGS                = -DLSP_NO_EXPERIMENTAL
 
 # Build profile
 ifndef BUILD_PROFILE
@@ -88,14 +89,14 @@ export BUILD_PROFILE
 export BASEDIR          = ${CURDIR}
 export INCLUDE          = ${INC_FLAGS}
 export MAKE_OPTS        = -s
-export CFLAGS           = $(CC_ARCH) -std=c++98 -fPIC -fdata-sections -ffunction-sections -fno-exceptions -fno-asynchronous-unwind-tables -Wall -pthread -pipe -fno-rtti $(CC_FLAGS) -DLSP_MAIN_VERSION=\"$(VERSION)\"
+export CFLAGS           = $(CC_ARCH) -std=c++98 -fPIC -fdata-sections -ffunction-sections -fno-exceptions -fno-asynchronous-unwind-tables -Wall -pipe -fno-rtti $(CC_FLAGS) -DLSP_MAIN_VERSION=\"$(VERSION)\"
 export CC               = g++
 export PHP              = php
 export LD               = ld
 export LDFLAGS          = $(LD_ARCH) -L$(LD_PATH)
-export SO_FLAGS         = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections -shared -Llibrary -lc -lm -fPIC -lpthread
+export SO_FLAGS         = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections -shared -Llibrary -lc -fPIC
 export MERGE_FLAGS      = $(LD_ARCH) -r
-export EXE_FLAGS        = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections -lm -pie -fPIE -pthread
+export EXE_FLAGS        = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections -pie -fPIE
 
 # Objects
 export OBJ_CORE         = $(OBJDIR)/core.o
@@ -134,6 +135,9 @@ export UTL_FILES        = $(UTL_GENTTL) $(UTL_VSTMAKE) $(UTL_GENPHP) $(UTL_RESGE
 export PHP_PLUGINS      = $(OBJDIR)/plugins.php
 
 # Compile headers and linkage libraries
+export PTHREAD_LIBS     = -lpthread
+export MATH_LIBS        = -lm
+export DL_LIBS          = -ldl
 export CAIRO_HEADERS    = $(shell pkg-config --cflags cairo)
 export CAIRO_LIBS       = $(shell pkg-config --libs cairo)
 export XLIB_HEADERS     = $(shell pkg-config --cflags x11)

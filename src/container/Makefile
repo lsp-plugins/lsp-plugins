@@ -4,7 +4,7 @@ OBJ_HELPERS             = $(OBJDIR)/CairoCanvas.o
 
 # Detemine what modules to build
 OBJFILES                = $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA) $(OBJ_PLUGINS)
-LIBS                    = $(SNDFILE_LIBS)
+LIBS                    = $(SNDFILE_LIBS) $(PTHREAD_LIBS) $(MATH_LIBS)
 ifeq ($(LSP_TESTING),1)
 OBJFILES               += $(OBJ_TEST_CORE)
 LIBS                   += $(OPENGL_LIBS)
@@ -53,7 +53,7 @@ $(BIN_PROFILE): $(LIB_JACK)
 	@echo "  $(CC) profile.cpp"
 	@$(CC) -o $(OBJDIR)/profile.o -c profile.cpp $(CPPFLAGS) -DLSP_PROFILING_MAIN $(CFLAGS) $(INCLUDE) $(JACK_HEADERS) 
 	@echo "  $(CC) $(notdir $(BIN_PROFILE))"
-	@$(CC) -o $(BIN_PROFILE) $(OBJDIR)/jack.o $(OBJDIR)/profile.o $(OBJ_HELPERS) $(UI_OBJFILES) $(EXE_FLAGS) $(UI_LIBS) $(JACK_LIBS)   
+	@$(CC) -o $(BIN_PROFILE) $(OBJDIR)/jack.o $(OBJDIR)/profile.o $(OBJ_HELPERS) $(UI_OBJFILES) $(EXE_FLAGS) $(UI_LIBS) $(JACK_LIBS) 
 
 $(BIN_TEST): $(LIB_JACK)
 	@echo "  $(CC) test.cpp"

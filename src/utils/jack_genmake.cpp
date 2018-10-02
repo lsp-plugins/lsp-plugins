@@ -78,7 +78,6 @@ namespace lsp
 
         fprintf(out, "FILES                   = $(patsubst %%.cpp, %%, $(wildcard *.cpp))\n");
         fprintf(out, "FILE                    = $(@:%%=%%.cpp)\n");
-        fprintf(out, "EXE_FLAGS              += -ldl\n");
         fprintf(out, "\n");
 
         fprintf(out, ".PHONY: all\n\n");
@@ -87,7 +86,7 @@ namespace lsp
 
         fprintf(out, "$(FILES):\n");
         fprintf(out, "\t@echo \"  $(CC) $(FILE)\"\n");
-        fprintf(out, "\t@$(CC) -o $(@) $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE) $(EXE_FLAGS)\n\n");
+        fprintf(out, "\t@$(CC) -o $(@) $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE) $(EXE_FLAGS) $(DL_LIBS)\n\n");
 
         fprintf(out, "install: $(FILES)\n");
         fprintf(out, "\t@$(INSTALL) $(FILES) $(TARGET_PATH)/");
