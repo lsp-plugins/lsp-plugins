@@ -15,7 +15,6 @@
 namespace native
 {
     void copy_saturated(float *dst, const float *src, size_t count);
-
     void saturate(float *dst, size_t count);
 }
 
@@ -23,18 +22,23 @@ IF_ARCH_X86(
     namespace x86
     {
         void copy_saturated(float *dst, const float *src, size_t count);
-
-        void copy_saturated_cmov(float *dst, const float *src, size_t count);
-
         void saturate(float *dst, size_t count);
 
+        void copy_saturated_cmov(float *dst, const float *src, size_t count);
         void saturate_cmov(float *dst, size_t count);
     }
 
     namespace sse
     {
         void copy_saturated(float *dst, const float *src, size_t count);
+        void saturate(float *dst, size_t count);
+    }
+)
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void copy_saturated(float *dst, const float *src, size_t count);
         void saturate(float *dst, size_t count);
     }
 )
@@ -111,6 +115,9 @@ PTEST_BEGIN("dsp.float", saturation, 5, 10000)
 
             IF_ARCH_X86(call("sse:sat", dst, src, count, sse::saturate));
             IF_ARCH_X86(call("sse:copy_sat", dst, src, count, sse::copy_saturated));
+
+            IF_ARCH_ARM(call("neon_d32:sat", dst, src, count, neon_d32::saturate));
+            IF_ARCH_ARM(call("neon_d32:copy_sat", dst, src, count, neon_d32::copy_saturated));
 
             PTEST_SEPARATOR;
         }
