@@ -16,204 +16,87 @@ namespace sse
 {
     void lr_to_ms(float *m, float *s, const float *l, const float *r, size_t count)
     {
-        if (count == 0)
-            return;
+        size_t off;
 
-        // Head
         ARCH_X86_ASM
         (
-            __ASM_EMIT("movaps %[X_HALF], %%xmm3")
+            __ASM_EMIT("xor         %[off], %[off]")
+            __ASM_EMIT("movaps      %[X_HALF], %%xmm7")
+            __ASM_EMIT64("sub       $8, %[count]")
+            __ASM_EMIT32("subl      $8, %[count]")
+            __ASM_EMIT("jb          2f")
+            // 8x blocks
+            __ASM_EMIT("movaps      %%xmm7, %%xmm6")
             __ASM_EMIT("1:")
-
-            // Check conditions
-            __ASM_EMIT("test $0x0f, %[left]")
-            __ASM_EMIT("jz 2f")
-
-            // Process data
-            __ASM_EMIT("movss (%[left]),  %%xmm0")  // xmm0 = l
-            __ASM_EMIT("movss (%[right]), %%xmm2")  // xmm2 = r
-            __ASM_EMIT("movss %%xmm0, %%xmm1")      // xmm1 = l
-            __ASM_EMIT("addss %%xmm2, %%xmm0")      // xmm0 = l + r
-            __ASM_EMIT("subss %%xmm2, %%xmm1")      // xmm1 = l - r
-            __ASM_EMIT("mulss %%xmm3, %%xmm0")      // xmm0 = (l + r) * 0.5f
-            __ASM_EMIT("mulss %%xmm3, %%xmm1")      // xmm1 = (l - r) * 0.5f
-            __ASM_EMIT("movss %%xmm0, (%[mid])")
-            __ASM_EMIT("movss %%xmm1, (%[side])")
-
-            // Move pointers
-            __ASM_EMIT("add $0x4, %[left]")
-            __ASM_EMIT("add $0x4, %[right]")
-            __ASM_EMIT("add $0x4, %[mid]")
-            __ASM_EMIT("add $0x4, %[side]")
-
-            // Repeat loop
-            __ASM_EMIT("dec %[count]")
-            __ASM_EMIT("jnz 1b")
+            __ASM_EMIT("movups      0x00(%[left], %[off]), %%xmm0")     // xmm0 = l
+            __ASM_EMIT("movups      0x10(%[left], %[off]), %%xmm3")
+            __ASM_EMIT("movups      0x00(%[right], %[off]), %%xmm2")    // xmm2 = r
+            __ASM_EMIT("movups      0x10(%[right], %[off]), %%xmm5")
+            __ASM_EMIT("movaps      %%xmm0, %%xmm1")                    // xmm1 = l
+            __ASM_EMIT("movaps      %%xmm3, %%xmm4")
+            __ASM_EMIT("addps       %%xmm2, %%xmm0")                    // xmm0 = l + r
+            __ASM_EMIT("addps       %%xmm5, %%xmm3")
+            __ASM_EMIT("subps       %%xmm2, %%xmm1")                    // xmm1 = l - r
+            __ASM_EMIT("subps       %%xmm5, %%xmm4")
+            __ASM_EMIT("mulps       %%xmm6, %%xmm0")                    // xmm0 = (l + r) * 0.5f
+            __ASM_EMIT("mulps       %%xmm7, %%xmm3")
+            __ASM_EMIT("mulps       %%xmm6, %%xmm1")                    // xmm1 = (l - r) * 0.5f
+            __ASM_EMIT("mulps       %%xmm7, %%xmm4")
+            __ASM_EMIT("movups      %%xmm0, 0x00(%[mid], %[off])")
+            __ASM_EMIT("movups      %%xmm3, 0x10(%[mid], %[off])")
+            __ASM_EMIT("movups      %%xmm1, 0x00(%[side], %[off])")
+            __ASM_EMIT("movups      %%xmm4, 0x10(%[side], %[off])")
+            __ASM_EMIT("add         $0x20, %[off]")
+            __ASM_EMIT64("sub       $8, %[count]")
+            __ASM_EMIT32("subl      $8, %[count]")
+            __ASM_EMIT("jae         1b")
+            // 4x block
             __ASM_EMIT("2:")
+            __ASM_EMIT64("add       $4, %[count]")
+            __ASM_EMIT32("addl      $4, %[count]")
+            __ASM_EMIT("jl          4f")
+            __ASM_EMIT("movups      0x00(%[left], %[off]), %%xmm0")     // xmm0 = l
+            __ASM_EMIT("movups      0x00(%[right], %[off]), %%xmm2")    // xmm2 = r
+            __ASM_EMIT("movaps      %%xmm0, %%xmm1")                    // xmm1 = l
+            __ASM_EMIT("addps       %%xmm2, %%xmm0")                    // xmm0 = l + r
+            __ASM_EMIT("subps       %%xmm2, %%xmm1")                    // xmm1 = l - r
+            __ASM_EMIT("mulps       %%xmm7, %%xmm0")                    // xmm0 = (l + r) * 0.5f
+            __ASM_EMIT("mulps       %%xmm7, %%xmm1")                    // xmm1 = (l - r) * 0.5f
+            __ASM_EMIT("movups      %%xmm0, 0x00(%[mid], %[off])")
+            __ASM_EMIT("movups      %%xmm1, 0x00(%[side], %[off])")
+            __ASM_EMIT64("sub       $4, %[count]")
+            __ASM_EMIT32("subl      $4, %[count]")
+            __ASM_EMIT("add         $0x10, %[off]")
+            // 1x blocks
+            __ASM_EMIT("4:")
+            __ASM_EMIT64("add       $3, %[count]")
+            __ASM_EMIT32("addl      $3, %[count]")
+            __ASM_EMIT("jl          6f")
+            __ASM_EMIT("5:")
+            __ASM_EMIT("movss       0x00(%[left], %[off]), %%xmm0")     // xmm0 = l
+            __ASM_EMIT("movss       0x00(%[right], %[off]), %%xmm2")    // xmm2 = r
+            __ASM_EMIT("movaps      %%xmm0, %%xmm1")                    // xmm1 = l
+            __ASM_EMIT("addss       %%xmm2, %%xmm0")                    // xmm0 = l + r
+            __ASM_EMIT("subss       %%xmm2, %%xmm1")                    // xmm1 = l - r
+            __ASM_EMIT("mulss       %%xmm7, %%xmm0")                    // xmm0 = (l + r) * 0.5f
+            __ASM_EMIT("mulss       %%xmm7, %%xmm1")                    // xmm1 = (l - r) * 0.5f
+            __ASM_EMIT("movss       %%xmm0, 0x00(%[mid], %[off])")
+            __ASM_EMIT("movss       %%xmm1, 0x00(%[side], %[off])")
+            __ASM_EMIT("add         $0x04, %[off]")
+            __ASM_EMIT64("dec       %[count]")
+            __ASM_EMIT32("decl      %[count]")
+            __ASM_EMIT("jge         5b")
+            __ASM_EMIT("6:")
 
-            : [left] "+r"(l), [right] "+r" (r), [mid] "+r" (m), [side] "+r" (s), [count] "+r" (count)
-            : [X_HALF] "m" (X_HALF)
+            : [off] "=&r" (off),
+              __IF_64([count] "+r" (count))
+              __IF_32([count] "+g" (count))
+            : [left] "r"(l), [right] "r" (r),
+              [mid] "r" (m), [side] "r" (s),
+              [X_HALF] "m" (X_HALF)
             : "cc", "memory",
-              "%xmm0", "%xmm1", "%xmm2", "%xmm3"
-        );
-
-        size_t regs     = count / SSE_MULTIPLE;
-        count          %= SSE_MULTIPLE;
-
-        // Body
-        if (regs > 0)
-        {
-            // Prefetch data for iteration
-            ARCH_X86_ASM
-            (
-                __ASM_EMIT("prefetchnta  0x00(%[left])")
-                __ASM_EMIT("prefetchnta  0x00(%[right])")
-                : : [left] "r"(l), [right] "r" (r)
-            );
-
-            #define _LR_TO_MS(l_left, l_right, s_mid, s_side)   \
-                __ASM_EMIT("test $0x1, %[count]")   \
-                __ASM_EMIT("jz 100f")               \
-                /* Blocks of 4 items */             \
-                __ASM_EMIT("dec %[count]")          \
-                __ASM_EMIT("100:")                  \
-                /* Process block */                 \
-                __ASM_EMIT(l_left " (%[left]), %%xmm0")     /* xmm0 = l */ \
-                __ASM_EMIT(l_right " (%[right]), %%xmm2")   /* xmm2 = r */ \
-                __ASM_EMIT("movaps %%xmm0, %%xmm1")         /* xmm1 = l */ \
-                __ASM_EMIT("addps %%xmm2, %%xmm0")          /* xmm0 = l + r */ \
-                __ASM_EMIT("subps %%xmm2, %%xmm1")          /* xmm1 = l - r */ \
-                __ASM_EMIT("mulps %%xmm3, %%xmm0")          /* xmm0 = (l + r) * 0.5f */ \
-                __ASM_EMIT("mulps %%xmm3, %%xmm1")          /* xmm1 = (l - r) * 0.5f */ \
-                __ASM_EMIT(s_mid " %%xmm0, (%[mid])")       \
-                __ASM_EMIT(s_side " %%xmm1, (%[side])")     \
-                /* Increment pointers */            \
-                __ASM_EMIT("add $0x10, %[left]")    \
-                __ASM_EMIT("add $0x10, %[right]")   \
-                __ASM_EMIT("add $0x10, %[mid]")     \
-                __ASM_EMIT("add $0x10, %[side]")    \
-                /* Blocks of 8 items */             \
-                __ASM_EMIT("shr $0x1, %[count]")    \
-                __ASM_EMIT("jz 300f")               \
-                __ASM_EMIT("movaps %%xmm3, %%xmm7") \
-                __ASM_EMIT("200:")                  \
-                /* Prefetch data */                 \
-                __ASM_EMIT("prefetchnta  0x20(%[left])")    \
-                __ASM_EMIT("prefetchnta  0x20(%[right])")   \
-                /* Process block */                 \
-                __ASM_EMIT(l_left " (%[left]), %%xmm0")         /* xmm0 = l0 */ \
-                __ASM_EMIT(l_left " 0x10(%[left]), %%xmm4")     /* xmm4 = l1 */ \
-                __ASM_EMIT(l_right " (%[right]), %%xmm2")       /* xmm2 = r0 */ \
-                __ASM_EMIT(l_right " 0x10(%[right]), %%xmm6")   /* xmm6 = r1 */ \
-                __ASM_EMIT("movaps %%xmm0, %%xmm1")             /* xmm1 = l0 */ \
-                __ASM_EMIT("movaps %%xmm4, %%xmm5")             /* xmm5 = l1 */ \
-                __ASM_EMIT("addps %%xmm2, %%xmm0")              /* xmm0 = l0 + r0 */ \
-                __ASM_EMIT("subps %%xmm2, %%xmm1")              /* xmm1 = l0 - r0 */ \
-                __ASM_EMIT("addps %%xmm6, %%xmm4")              /* xmm4 = l1 + r1 */ \
-                __ASM_EMIT("subps %%xmm6, %%xmm5")              /* xmm5 = l1 - r1 */ \
-                __ASM_EMIT("mulps %%xmm3, %%xmm0")              /* xmm0 = (l0 + r0) * 0.5f */ \
-                __ASM_EMIT("mulps %%xmm7, %%xmm4")              /* xmm4 = (l1 + r1) * 0.5f */ \
-                __ASM_EMIT("mulps %%xmm3, %%xmm1")              /* xmm1 = (l0 - r0) * 0.5f */ \
-                __ASM_EMIT("mulps %%xmm7, %%xmm5")              /* xmm5 = (l1 - r1) * 0.5f */ \
-                __ASM_EMIT(s_mid " %%xmm0, (%[mid])")           \
-                __ASM_EMIT(s_mid " %%xmm4, 0x10(%[mid])")       \
-                __ASM_EMIT(s_side " %%xmm1, (%[side])")         \
-                __ASM_EMIT(s_side " %%xmm5, 0x10(%[side])")     \
-                /* Increment pointers */            \
-                __ASM_EMIT("add $0x20, %[left]")    \
-                __ASM_EMIT("add $0x20, %[right]")   \
-                __ASM_EMIT("add $0x20, %[mid]")     \
-                __ASM_EMIT("add $0x20, %[side]")    \
-                /* Decrement counter */             \
-                __ASM_EMIT("dec %[count]")          \
-                __ASM_EMIT("jnz 200b")              \
-                /* End of block processing */       \
-                __ASM_EMIT("300:")
-
-            // Process blocks
-            ARCH_X86_ASM
-            (
-                __ASM_EMIT("test $0x0f, %[right]")
-                __ASM_EMIT("jnz 4f")
-                    __ASM_EMIT("test $0x0f, %[mid]")
-                    __ASM_EMIT("jnz 2f")
-                        __ASM_EMIT("test $0x0f, %[side]")
-                        __ASM_EMIT("jnz 1f")
-                            _LR_TO_MS("movaps", "movaps", "movaps", "movaps")
-                            __ASM_EMIT("jmp 8f")
-                        __ASM_EMIT("1:")
-                            _LR_TO_MS("movaps", "movaps", "movaps", "movups")
-                            __ASM_EMIT("jmp 8f")
-                        __ASM_EMIT("2:")
-                        __ASM_EMIT("test $0x0f, %[side]")
-                        __ASM_EMIT("jnz 3f")
-                            _LR_TO_MS("movaps", "movaps", "movups", "movaps")
-                            __ASM_EMIT("jmp 8f")
-                        __ASM_EMIT("3:")
-                            _LR_TO_MS("movaps", "movaps", "movups", "movups")
-                            __ASM_EMIT("jmp 8f")
-                __ASM_EMIT("4:")
-                    __ASM_EMIT("test $0x0f, %[mid]")
-                    __ASM_EMIT("jnz 6f")
-                        __ASM_EMIT("test $0x0f, %[side]")
-                        __ASM_EMIT("jnz 5f")
-                            _LR_TO_MS("movaps", "movups", "movaps", "movaps")
-                            __ASM_EMIT("jmp 8f")
-                        __ASM_EMIT("5:")
-                            _LR_TO_MS("movaps", "movups", "movaps", "movups")
-                            __ASM_EMIT("jmp 8f")
-                        __ASM_EMIT("6:")
-                        __ASM_EMIT("test $0x0f, %[side]")
-                        __ASM_EMIT("jnz 7f")
-                            _LR_TO_MS("movaps", "movups", "movups", "movaps")
-                            __ASM_EMIT("jmp 8f")
-                        __ASM_EMIT("7:")
-                            _LR_TO_MS("movaps", "movups", "movups", "movups")
-                __ASM_EMIT("8:")
-
-                : [left] "+r"(l), [right] "+r" (r), [mid] "+r" (m), [side] "+r" (s), [count] "+r" (regs)
-                :
-                : "cc", "memory",
-                  "%xmm0", "%xmm1", "%xmm2", "%xmm3",
-                  "%xmm4", "%xmm5", "%xmm6", "%xmm7"
-            );
-
-            #undef _LR_TO_MS
-        }
-
-        // Tail
-        ARCH_X86_ASM
-        (
-            __ASM_EMIT("test %[count], %[count]")
-            __ASM_EMIT("jz 2f")
-            __ASM_EMIT("1:")
-
-            // Process data
-            __ASM_EMIT("movss (%[left]),  %%xmm0")  // xmm0 = l
-            __ASM_EMIT("movss (%[right]), %%xmm2")  // xmm2 = r
-            __ASM_EMIT("movss %%xmm0, %%xmm1")      // xmm1 = l
-            __ASM_EMIT("addss %%xmm2, %%xmm0")      // xmm0 = l + r
-            __ASM_EMIT("subss %%xmm2, %%xmm1")      // xmm1 = l - r
-            __ASM_EMIT("mulss %%xmm3, %%xmm0")      // xmm0 = (l + r) * 0.5f
-            __ASM_EMIT("mulss %%xmm3, %%xmm1")      // xmm1 = (l - r) * 0.5f
-            __ASM_EMIT("movss %%xmm0, (%[mid])")
-            __ASM_EMIT("movss %%xmm1, (%[side])")
-
-            // Move pointers
-            __ASM_EMIT("add $0x4, %[left]")
-            __ASM_EMIT("add $0x4, %[right]")
-            __ASM_EMIT("add $0x4, %[mid]")
-            __ASM_EMIT("add $0x4, %[side]")
-
-            // Repeat loop
-            __ASM_EMIT("dec %[count]")
-            __ASM_EMIT("jnz 1b")
-            __ASM_EMIT("2:")
-
-            : [left] "+r"(l), [right] "+r" (r), [mid] "+r" (m), [side] "+r" (s), [count] "+r" (count)
-            :
-            : "cc", "memory",
-              "%xmm0", "%xmm1", "%xmm2", "%xmm3"
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
 
