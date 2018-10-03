@@ -30,6 +30,16 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void    lr_to_mid(float *m, const float *l, const float *r, size_t count);
+        void    lr_to_side(float *s, const float *l, const float *r, size_t count);
+        void    ms_to_left(float *l, const float *m, const float *s, size_t count);
+        void    ms_to_right(float *r, const float *m, const float *s, size_t count);
+    }
+)
+
 typedef void (* conv2x1_t)(float *d, const float *s1, const float *s2, size_t count);
 
 PTEST_BEGIN("dsp.msmatrix", conv2x1, 5, 1000)
@@ -65,15 +75,23 @@ PTEST_BEGIN("dsp.msmatrix", conv2x1, 5, 1000)
             size_t count = 1 << i;
 
             call("native:lr_to_mid", d, s1, s2, count, native::lr_to_mid);
-            call("native:lr_to_side", d, s1, s2, count, native::lr_to_side);
-            call("native:ms_to_left", d, s1, s2, count, native::ms_to_left);
-            call("native:ms_to_right", d, s1, s2, count, native::ms_to_right);
-
             IF_ARCH_X86(call("sse:lr_to_mid", d, s1, s2, count, sse::lr_to_mid));
-            IF_ARCH_X86(call("sse:lr_to_side", d, s1, s2, count, sse::lr_to_side));
-            IF_ARCH_X86(call("sse:ms_to_left", d, s1, s2, count, sse::ms_to_left));
-            IF_ARCH_X86(call("sse:ms_to_right", d, s1, s2, count, sse::ms_to_right));
+            IF_ARCH_ARM(call("neon_d32:lr_to_mid", d, s1, s2, count, neon_d32::lr_to_mid));
+            PTEST_SEPARATOR;
 
+            call("native:lr_to_side", d, s1, s2, count, native::lr_to_side);
+            IF_ARCH_X86(call("sse:lr_to_side", d, s1, s2, count, sse::lr_to_side));
+            IF_ARCH_ARM(call("neon_d32:lr_to_side", d, s1, s2, count, neon_d32::lr_to_side));
+            PTEST_SEPARATOR;
+
+            call("native:ms_to_left", d, s1, s2, count, native::ms_to_left);
+            IF_ARCH_X86(call("sse:ms_to_left", d, s1, s2, count, sse::ms_to_left));
+            IF_ARCH_ARM(call("neon_d32:ms_to_left", d, s1, s2, count, neon_d32::ms_to_left));
+            PTEST_SEPARATOR;
+
+            call("native:ms_to_right", d, s1, s2, count, native::ms_to_right);
+            IF_ARCH_X86(call("sse:ms_to_right", d, s1, s2, count, sse::ms_to_right));
+            IF_ARCH_ARM(call("neon_d32:ms_to_right", d, s1, s2, count, neon_d32::ms_to_right));
             PTEST_SEPARATOR;
         }
 

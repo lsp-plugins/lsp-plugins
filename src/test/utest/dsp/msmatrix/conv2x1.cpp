@@ -31,6 +31,16 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void    lr_to_mid(float *m, const float *l, const float *r, size_t count);
+        void    lr_to_side(float *s, const float *l, const float *r, size_t count);
+        void    ms_to_left(float *l, const float *m, const float *s, size_t count);
+        void    ms_to_right(float *r, const float *m, const float *s, size_t count);
+    }
+)
+
 typedef void (* conv2x1_t)(float *d, const float *s1, const float *s2, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -86,6 +96,11 @@ UTEST_BEGIN("dsp.msmatrix", conv2x1)
         IF_ARCH_X86(call("sse:lr_to_side", 16, native::lr_to_side, sse::lr_to_side));
         IF_ARCH_X86(call("sse:ms_to_left", 16, native::ms_to_left, sse::ms_to_left));
         IF_ARCH_X86(call("sse:ms_to_right", 16, native::ms_to_right, sse::ms_to_right));
+
+        IF_ARCH_ARM(call("neon_d32:lr_to_mid", 16, native::lr_to_mid, neon_d32::lr_to_mid));
+        IF_ARCH_ARM(call("neon_d32:lr_to_side", 16, native::lr_to_side, neon_d32::lr_to_side));
+        IF_ARCH_ARM(call("neon_d32:ms_to_left", 16, native::ms_to_left, neon_d32::ms_to_left));
+        IF_ARCH_ARM(call("neon_d32:ms_to_right", 16, native::ms_to_right, neon_d32::ms_to_right));
     }
 UTEST_END
 
