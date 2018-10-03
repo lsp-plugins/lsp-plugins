@@ -1,16 +1,23 @@
-BIN_PATH                = /usr/local/bin
-LIB_PATH                = /usr/local/lib
-DOC_PATH                = /usr/local/share/doc
-LADSPA_PATH             = $(LIB_PATH)/ladspa
-LV2_PATH                = $(LIB_PATH)/lv2
-VST_PATH                = $(LIB_PATH)/vst
-
+# Common definitions
 PRODUCT                 = lsp
 ARTIFACT_ID             = $(PRODUCT)-plugins
 OBJDIR                  = ${CURDIR}/.build
 RELEASE_TEXT            = LICENSE.txt README.txt CHANGELOG.txt
 RELEASE_SRC             = $(RELEASE_TEXT) src include res Makefile release.sh
 INSTALL                 = install
+PREFIX_FILE            := .install-prefix.txt
+
+ifndef PREFIX
+PREFIX                  = $(shell cat "$(OBJDIR)/$(PREFIX_FILE)" 2>/dev/null || echo "/usr/local")
+endif
+
+# Installation locations
+BIN_PATH                = $(PREFIX)/bin
+LIB_PATH                = $(PREFIX)/lib
+DOC_PATH                = $(PREFIX)/share/doc
+LADSPA_PATH             = $(LIB_PATH)/ladspa
+LV2_PATH                = $(LIB_PATH)/lv2
+VST_PATH                = $(LIB_PATH)/vst
 
 # Package version
 ifndef VERSION
@@ -88,7 +95,7 @@ export BUILD_PROFILE
 export BASEDIR          = ${CURDIR}
 export INCLUDE          = ${INC_FLAGS}
 export MAKE_OPTS        = -s
-export CFLAGS           = $(CC_ARCH) -std=c++98 -fPIC -fdata-sections -ffunction-sections -fno-exceptions -fno-asynchronous-unwind-tables -Wall -pthread -pipe -fno-rtti $(CC_FLAGS) -DLSP_MAIN_VERSION=\"$(VERSION)\"
+export CFLAGS           = $(CC_ARCH) -std=c++98 -fPIC -fdata-sections -ffunction-sections -fno-exceptions -fno-asynchronous-unwind-tables -Wall -pthread -pipe -fno-rtti $(CC_FLAGS) -DLSP_MAIN_VERSION=\"$(VERSION)\" -DLSP_INSTALL_PREFIX=\"$(PREFIX)\"
 export CC               = g++
 export PHP              = php
 export LD               = ld
@@ -110,7 +117,6 @@ export OBJ_TEST_CORE    = $(OBJDIR)/test_core.o
 export OBJ_PLUGINS      = $(OBJDIR)/plugins.o
 export OBJ_METADATA     = $(OBJDIR)/metadata.o
 export OBJ_FILES        = $(OBJ_CORE) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(OBJ_PLUGINS) $(OBJ_METADATA)
-
 
 # Libraries
 export LIB_LADSPA       = $(OBJDIR)/$(ARTIFACT_ID)-ladspa.so
@@ -157,14 +163,6 @@ JACK_ID                := $(ARTIFACT_ID)-jack-$(VERSION)-$(BUILD_PROFILE)
 PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)-$(BUILD_PROFILE)
 SRC_ID                 := $(ARTIFACT_ID)-src-$(VERSION)
 DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
-PREFIX_FILE            := .install-prefix.txt
-
-# Prefix
-ifdef PREFIX
-CFLAGS                 += -DLSP_INSTALL_PREFIX=\"$(PREFIX)\"
-endif
-
-INSTALL_PREFIX         := $(shell cat "$(OBJDIR)/$(PREFIX_FILE)" 2>/dev/null || echo "")
 
 .PHONY: all trace debug tracefile debugfile profile gdb compile install uninstall release test
 .PHONY: install_ladspa install_lv2 install_vst install_jack
@@ -219,34 +217,34 @@ install: $(INSTALLATIONS)
 	@echo "Install OK"
 
 install_ladspa: all
-	@echo "Installing LADSPA plugins to $(DESTDIR)$(INSTALL_PREFIX)$(LADSPA_PATH)/"
-	@mkdir -p $(DESTDIR)$(INSTALL_PREFIX)$(LADSPA_PATH)
-	@$(INSTALL) $(LIB_LADSPA) $(DESTDIR)$(INSTALL_PREFIX)$(LADSPA_PATH)/
+	@echo "Installing LADSPA plugins to $(DESTDIR)$(LADSPA_PATH)/"
+	@mkdir -p $(DESTDIR)$(LADSPA_PATH)
+	@$(INSTALL) $(LIB_LADSPA) $(DESTDIR)$(LADSPA_PATH)/
 	
 install_lv2: all
-	@echo "Installing LV2 plugins to $(DESTDIR)$(INSTALL_PREFIX)$(LV2_PATH)/$(ARTIFACT_ID).lv2"
-	@mkdir -p $(DESTDIR)$(INSTALL_PREFIX)$(LV2_PATH)/$(ARTIFACT_ID).lv2
-	@$(INSTALL) $(LIB_LV2) $(DESTDIR)$(INSTALL_PREFIX)$(LV2_PATH)/$(ARTIFACT_ID).lv2/
-	@$(UTL_GENTTL) $(DESTDIR)$(INSTALL_PREFIX)$(LV2_PATH)/$(ARTIFACT_ID).lv2
+	@echo "Installing LV2 plugins to $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2"
+	@mkdir -p $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
+	@$(INSTALL) $(LIB_LV2) $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2/
+	@$(UTL_GENTTL) $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
 	
 install_vst: all
-	@echo "Installing VST plugins to $(DESTDIR)$(INSTALL_PREFIX)$(VST_PATH)/$(VST_ID)"
-	@mkdir -p $(DESTDIR)$(INSTALL_PREFIX)$(VST_PATH)/$(VST_ID)
-	@$(INSTALL) $(LIB_VST) $(DESTDIR)$(INSTALL_PREFIX)$(VST_PATH)/$(VST_ID)/
-	@$(INSTALL) $(OBJDIR)/src/vst/*.so $(DESTDIR)$(INSTALL_PREFIX)$(VST_PATH)/$(VST_ID)/
+	@echo "Installing VST plugins to $(DESTDIR)$(VST_PATH)/$(VST_ID)"
+	@mkdir -p $(DESTDIR)$(VST_PATH)/$(VST_ID)
+	@$(INSTALL) $(LIB_VST) $(DESTDIR)$(VST_PATH)/$(VST_ID)/
+	@$(INSTALL) $(OBJDIR)/src/vst/*.so $(DESTDIR)$(VST_PATH)/$(VST_ID)/
 
 install_jack: all
-	@echo "Installing JACK core to $(DESTDIR)$(INSTALL_PREFIX)$(LIB_PATH)"
-	@mkdir -p $(DESTDIR)$(INSTALL_PREFIX)$(LIB_PATH)
-	@$(INSTALL) $(LIB_JACK) $(DESTDIR)$(INSTALL_PREFIX)$(LIB_PATH)/
-	@echo "Installing JACK standalone plugins to $(DESTDIR)$(INSTALL_PREFIX)$(BIN_PATH)"
-	@mkdir -p $(DESTDIR)$(INSTALL_PREFIX)$(BIN_PATH)
-	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(DESTDIR)$(INSTALL_PREFIX)$(BIN_PATH) INSTALL="$(INSTALL)"
+	@echo "Installing JACK core to $(DESTDIR)$(LIB_PATH)"
+	@mkdir -p $(DESTDIR)$(LIB_PATH)
+	@$(INSTALL) $(LIB_JACK) $(DESTDIR)$(LIB_PATH)/
+	@echo "Installing JACK standalone plugins to $(DESTDIR)$(BIN_PATH)"
+	@mkdir -p $(DESTDIR)$(BIN_PATH)
+	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(DESTDIR)$(BIN_PATH) INSTALL="$(INSTALL)"
 
 install_doc: all
-	@echo "Installing documentation to $(DESTDIR)$(INSTALL_PREFIX)$(DOC_PATH)"
-	@mkdir -p $(DESTDIR)$(INSTALL_PREFIX)$(DOC_PATH)/$(ARTIFACT_ID)
-	@cp -r $(OBJDIR)/html/* $(DESTDIR)$(INSTALL_PREFIX)$(DOC_PATH)/$(ARTIFACT_ID)
+	@echo "Installing documentation to $(DESTDIR)$(DOC_PATH)"
+	@mkdir -p $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
+	@cp -r $(OBJDIR)/html/* $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
 
 dbg_release: export CFLAGS        += -DLSP_TRACE -O2
 dbg_release: $(RELEASES)
@@ -258,77 +256,76 @@ release: $(RELEASES)
 
 release_prepare: all
 	@echo "Releasing plugins for architecture $(BUILD_PROFILE)"
-	@mkdir -p $(RELEASE)$(INSTALL_PREFIX)
+	@mkdir -p $(RELEASE)
 	
 release_ladspa: release_prepare
 	@echo "Releasing LADSPA binaries"
-	@mkdir -p $(RELEASE)$(INSTALL_PREFIX)/$(LADSPA_ID)
-	@$(INSTALL) $(LIB_LADSPA) $(RELEASE)$(INSTALL_PREFIX)/$(LADSPA_ID)/
-	@cp $(RELEASE_TEXT) $(RELEASE)$(INSTALL_PREFIX)/$(LADSPA_ID)/
-	@tar -C $(RELEASE)$(INSTALL_PREFIX) -czf $(RELEASE)$(INSTALL_PREFIX)/$(LADSPA_ID).tar.gz $(LADSPA_ID)
-	@rm -rf $(RELEASE)$(INSTALL_PREFIX)/$(LADSPA_ID)
+	@mkdir -p $(RELEASE)/$(LADSPA_ID)
+	@$(INSTALL) $(LIB_LADSPA) $(RELEASE)/$(LADSPA_ID)/
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(LADSPA_ID)/
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(LADSPA_ID).tar.gz $(LADSPA_ID)
+	@rm -rf $(RELEASE)/$(LADSPA_ID)
 	
 release_lv2: release_prepare
 	@echo "Releasing LV2 binaries"
-	@mkdir -p $(RELEASE)$(INSTALL_PREFIX)/$(LV2_ID)
-	@mkdir -p $(RELEASE)$(INSTALL_PREFIX)/$(LV2_ID)/$(ARTIFACT_ID).lv2
-	@$(INSTALL) $(LIB_LV2) $(RELEASE)$(INSTALL_PREFIX)/$(LV2_ID)/$(ARTIFACT_ID).lv2/
-	@cp $(RELEASE_TEXT) $(RELEASE)$(INSTALL_PREFIX)/$(LV2_ID)/
-	@$(UTL_GENTTL) $(RELEASE)$(INSTALL_PREFIX)/$(LV2_ID)/$(ARTIFACT_ID).lv2
-	@tar -C $(RELEASE)$(INSTALL_PREFIX) -czf $(RELEASE)$(INSTALL_PREFIX)/$(LV2_ID).tar.gz $(LV2_ID)
-	@rm -rf $(RELEASE)$(INSTALL_PREFIX)/$(LV2_ID)
+	@mkdir -p $(RELEASE)/$(LV2_ID)
+	@mkdir -p $(RELEASE)/$(LV2_ID)/$(ARTIFACT_ID).lv2
+	@$(INSTALL) $(LIB_LV2) $(RELEASE)/$(LV2_ID)/$(ARTIFACT_ID).lv2/
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(LV2_ID)/
+	@$(UTL_GENTTL) $(RELEASE)/$(LV2_ID)/$(ARTIFACT_ID).lv2
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(LV2_ID).tar.gz $(LV2_ID)
+	@rm -rf $(RELEASE)/$(LV2_ID)
 	
 release_vst: release_prepare
 	@echo "Releasing VST binaries"
-	@mkdir -p $(RELEASE)$(INSTALL_PREFIX)/$(VST_ID)
-	@$(INSTALL) $(LIB_VST) $(RELEASE)$(INSTALL_PREFIX)/$(VST_ID)/
-	@$(INSTALL) $(OBJDIR)/src/vst/*.so $(RELEASE)$(INSTALL_PREFIX)/$(VST_ID)/
-	@cp $(RELEASE_TEXT) $(RELEASE)$(INSTALL_PREFIX)/$(VST_ID)/
-	@tar -C $(RELEASE)$(INSTALL_PREFIX) -czf $(RELEASE)$(INSTALL_PREFIX)/$(VST_ID).tar.gz $(VST_ID)
-	@rm -rf $(RELEASE)$(INSTALL_PREFIX)/$(VST_ID)
+	@mkdir -p $(RELEASE)/$(VST_ID)
+	@$(INSTALL) $(LIB_VST) $(RELEASE)/$(VST_ID)/
+	@$(INSTALL) $(OBJDIR)/src/vst/*.so $(RELEASE)/$(VST_ID)/
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(VST_ID)/
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(VST_ID).tar.gz $(VST_ID)
+	@rm -rf $(RELEASE)/$(VST_ID)
 	
 release_jack: release_prepare
 	@echo "Releasing JACK binaries"
-	@mkdir -p $(RELEASE)$(INSTALL_PREFIX)/$(JACK_ID)
-	@mkdir -p $(RELEASE)$(INSTALL_PREFIX)/$(JACK_ID)/lib
-	@mkdir -p $(RELEASE)$(INSTALL_PREFIX)/$(JACK_ID)/bin
-	@$(INSTALL) $(LIB_JACK) $(RELEASE)$(INSTALL_PREFIX)/$(JACK_ID)/lib
-	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(RELEASE)$(INSTALL_PREFIX)/$(JACK_ID)/bin INSTALL="$(INSTALL)"
-	@cp $(RELEASE_TEXT) $(RELEASE)$(INSTALL_PREFIX)/$(JACK_ID)/
-	@tar -C $(RELEASE)$(INSTALL_PREFIX) -czf $(RELEASE)$(INSTALL_PREFIX)/$(JACK_ID).tar.gz $(JACK_ID)
-	@rm -rf $(RELEASE)$(INSTALL_PREFIX)/$(JACK_ID)
+	@mkdir -p $(RELEASE)/$(JACK_ID)
+	@mkdir -p $(RELEASE)/$(JACK_ID)/lib
+	@mkdir -p $(RELEASE)/$(JACK_ID)/bin
+	@$(INSTALL) $(LIB_JACK) $(RELEASE)/$(JACK_ID)/lib
+	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(RELEASE)/$(JACK_ID)/bin INSTALL="$(INSTALL)"
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(JACK_ID)/
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(JACK_ID).tar.gz $(JACK_ID)
+	@rm -rf $(RELEASE)/$(JACK_ID)
 
 release_profile: release_prepare
 	@echo "Releasing PROFILE binaries"
-	@mkdir -p $(RELEASE)$(INSTALL_PREFIX)/$(PROFILE_ID)
-	@$(INSTALL) $(BIN_PROFILE) $(RELEASE)$(INSTALL_PREFIX)/$(PROFILE_ID)
-	@cp $(RELEASE_TEXT) $(RELEASE)$(INSTALL_PREFIX)/$(PROFILE_ID)/
-	@tar -C $(RELEASE)$(INSTALL_PREFIX) -czf $(RELEASE)$(INSTALL_PREFIX)/$(PROFILE_ID).tar.gz $(PROFILE_ID)
-	@rm -rf $(RELEASE)$(INSTALL_PREFIX)/$(PROFILE_ID)
+	@mkdir -p $(RELEASE)/$(PROFILE_ID)
+	@$(INSTALL) $(BIN_PROFILE) $(RELEASE)/$(PROFILE_ID)
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(PROFILE_ID)/
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(PROFILE_ID).tar.gz $(PROFILE_ID)
+	@rm -rf $(RELEASE)/$(PROFILE_ID)
 
 release_src:
 	@echo "Releasing source code binaries"
-	@mkdir -p $(RELEASE)$(INSTALL_PREFIX)/$(SRC_ID)
-	@cp -R $(RELEASE_SRC) $(RELEASE)$(INSTALL_PREFIX)/$(SRC_ID)/
-	@tar -C $(RELEASE)$(INSTALL_PREFIX) -czf $(RELEASE)$(INSTALL_PREFIX)/$(SRC_ID).tar.gz $(SRC_ID)
-	@rm -rf $(RELEASE)$(INSTALL_PREFIX)/$(SRC_ID)
+	@mkdir -p $(RELEASE)/$(SRC_ID)
+	@cp -R $(RELEASE_SRC) $(RELEASE)/$(SRC_ID)/
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(SRC_ID).tar.gz $(SRC_ID)
+	@rm -rf $(RELEASE)/$(SRC_ID)
 
 release_doc: release_prepare
 	@echo "Releasing documentation"
-	@mkdir -p $(RELEASE)$(INSTALL_PREFIX)/$(DOC_ID)
-	@cp -r $(OBJDIR)/html/* $(RELEASE)$(INSTALL_PREFIX)/$(DOC_ID)/
-	@cp $(RELEASE_TEXT) $(RELEASE)$(INSTALL_PREFIX)/$(DOC_ID)/
-	@tar -C $(RELEASE)$(INSTALL_PREFIX) -czf $(RELEASE)$(INSTALL_PREFIX)/$(DOC_ID).tar.gz $(DOC_ID)
-	@rm -rf $(RELEASE)$(INSTALL_PREFIX)/$(DOC_ID)
+	@mkdir -p $(RELEASE)/$(DOC_ID)
+	@cp -r $(OBJDIR)/html/* $(RELEASE)/$(DOC_ID)/
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(DOC_ID)/
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(DOC_ID).tar.gz $(DOC_ID)
+	@rm -rf $(RELEASE)/$(DOC_ID)
 
 uninstall:
-	@-rm -f $(DESTDIR)$(INSTALL_PREFIX)$(LADSPA_PATH)/$(ARTIFACT_ID)-ladspa.so
-	@-rm -rf $(DESTDIR)$(INSTALL_PREFIX)$(LV2_PATH)/$(ARTIFACT_ID).lv2
-	@-rm -f $(DESTDIR)$(INSTALL_PREFIX)$(VST_PATH)/$(ARTIFACT_ID)-vst-*.so
-	@-rm -rf $(DESTDIR)$(INSTALL_PREFIX)$(VST_PATH)/$(ARTIFACT_ID)-lxvst-*-$(BUILD_PROFILE)
-	@-rm -rf $(DESTDIR)$(INSTALL_PREFIX)$(VST_PATH)/$(VST_ID)
-	@-rm -f $(DESTDIR)$(INSTALL_PREFIX)$(BIN_PATH)/$(ARTIFACT_ID)-*
-	@-rm -f $(DESTDIR)$(INSTALL_PREFIX)$(LIB_PATH)/$(ARTIFACT_ID)-jack-core-*.so
-	@-rm -rf $(DESTDIR)$(INSTALL_PREFIX)$(DOC_PATH)/$(ARTIFACT_ID)
-	@test -z $(INSTALL_PREFIX) || rm -rf $(DESTDIR)$(INSTALL_PREFIX)
+	@-rm -f $(DESTDIR)$(LADSPA_PATH)/$(ARTIFACT_ID)-ladspa.so
+	@-rm -rf $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
+	@-rm -f $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-vst-*.so
+	@-rm -rf $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-lxvst-*-$(BUILD_PROFILE)
+	@-rm -rf $(DESTDIR)$(VST_PATH)/$(VST_ID)
+	@-rm -f $(DESTDIR)$(BIN_PATH)/$(ARTIFACT_ID)-*
+	@-rm -f $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)-jack-core-*.so
+	@-rm -rf $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
 	@echo "Uninstall OK"

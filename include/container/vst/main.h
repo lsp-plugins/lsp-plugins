@@ -32,12 +32,16 @@ namespace lsp
 {
     static const char *vst_core_paths[] =
     {
-        LSP_LIB_PREFIX("/usr/local/lib64"),
-        LSP_LIB_PREFIX("/usr/lib64"),
-        LSP_LIB_PREFIX("/lib64"),
-        LSP_LIB_PREFIX("/usr/local/lib"),
-        LSP_LIB_PREFIX("/usr/lib") ,
         LSP_LIB_PREFIX("/lib"),
+        LSP_LIB_PREFIX("/lib64"),
+        LSP_LIB_PREFIX("/bin"),
+        LSP_LIB_PREFIX("/sbin"),
+        "/usr/local/lib64",
+        "/usr/lib64",
+        "/lib64",
+        "/usr/local/lib",
+        "/usr/lib" ,
+        "/lib",
         NULL
     };
 
