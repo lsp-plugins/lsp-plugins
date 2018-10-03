@@ -175,138 +175,112 @@ namespace sse
         );
     }
 
-    #define __LR_CVT_BODY(ld_l, ld_r, st_d, op) \
-        __ASM_EMIT("cmp         $16, %[count]") \
-        __ASM_EMIT("jb          200f") \
-        \
-        __ASM_EMIT("100:") \
-        __ASM_EMIT("prefetchnta 0x40(%[left])") \
-        __ASM_EMIT("prefetchnta 0x60(%[left])") \
-        __ASM_EMIT("prefetchnta 0x40(%[right])") \
-        __ASM_EMIT("prefetchnta 0x60(%[right])") \
-        __ASM_EMIT(ld_l "       0x00(%[left]), %%xmm0")     /* xmm0 = l0 */ \
-        __ASM_EMIT(ld_l "       0x10(%[left]), %%xmm2")     /* xmm2 = l1 */ \
-        __ASM_EMIT(ld_l "       0x20(%[left]), %%xmm4")     /* xmm4 = l2 */ \
-        __ASM_EMIT(ld_l "       0x30(%[left]), %%xmm6")     /* xmm6 = l3 */ \
-        __ASM_EMIT(ld_r "       0x00(%[right]), %%xmm1")    /* xmm1 = r0 */ \
-        __ASM_EMIT(ld_r "       0x10(%[right]), %%xmm3")    /* xmm3 = r1 */ \
-        __ASM_EMIT(ld_r "       0x20(%[right]), %%xmm5")    /* xmm5 = r2 */ \
-        __ASM_EMIT(ld_r "       0x30(%[right]), %%xmm7")    /* xmm7 = r3 */ \
-        __ASM_EMIT(op "ps       %%xmm1, %%xmm0")            /* xmm0 = l <+-> r */ \
-        __ASM_EMIT(op "ps       %%xmm3, %%xmm2")            /* xmm2 = l <+-> r */ \
-        __ASM_EMIT(op "ps       %%xmm5, %%xmm4")            /* xmm4 = l <+-> r */ \
-        __ASM_EMIT(op "ps       %%xmm7, %%xmm6")            /* xmm6 = l <+-> r */ \
-        __ASM_EMIT("mulps       %[X_HALF], %%xmm0")         /* xmm0 = (l <+-> r) * 0.5f */ \
-        __ASM_EMIT("mulps       %[X_HALF], %%xmm2")         /* xmm2 = (l <+-> r) * 0.5f */ \
-        __ASM_EMIT("mulps       %[X_HALF], %%xmm4")         /* xmm4 = (l <+-> r) * 0.5f */ \
-        __ASM_EMIT("mulps       %[X_HALF], %%xmm6")         /* xmm6 = (l <+-> r) * 0.5f */ \
-        __ASM_EMIT(st_d "       %%xmm0, 0x00(%[dst])")      \
-        __ASM_EMIT(st_d "       %%xmm2, 0x10(%[dst])")      \
-        __ASM_EMIT(st_d "       %%xmm4, 0x20(%[dst])")      \
-        __ASM_EMIT(st_d "       %%xmm6, 0x30(%[dst])")      \
-        \
+    #define LR_CVT_BODY(d, l, r, op) \
+        __ASM_EMIT("xor         %[off], %[off]") \
         __ASM_EMIT("sub         $16, %[count]") \
-        __ASM_EMIT("add         $0x40, %[left]") \
-        __ASM_EMIT("add         $0x40, %[right]") \
-        __ASM_EMIT("add         $0x40, %[dst]") \
-        __ASM_EMIT("cmp         $16, %[count]") \
-        __ASM_EMIT("jae         100b") \
+        __ASM_EMIT("movaps      %[X_HALF], %%xmm7") \
+        __ASM_EMIT("jb          2f") \
         \
-        __ASM_EMIT("200:") \
-        __ASM_EMIT("cmp         $4, %[count]") \
-        __ASM_EMIT("jb          400f") \
-        __ASM_EMIT("300:") \
-        __ASM_EMIT(ld_l "       (%[left]), %%xmm0")         /* xmm0 = l0 */ \
-        __ASM_EMIT(ld_r "       (%[right]), %%xmm1")        /* xmm1 = r0 */ \
-        __ASM_EMIT(op "ps       %%xmm1, %%xmm0")            /* xmm0 = l <+-> r */ \
-        __ASM_EMIT("mulps       %[X_HALF], %%xmm0")         /* xmm0 = (l <+-> r) * 0.5f */ \
-        __ASM_EMIT(st_d "       %%xmm0, 0x00(%[dst])")      \
+        /* x12 blocks */ \
+        __ASM_EMIT("movaps      %%xmm7, %%xmm6") \
+        __ASM_EMIT("1:") \
+        __ASM_EMIT("movups      0x00(%[" l "], %[off]), %%xmm0") \
+        __ASM_EMIT("movups      0x10(%[" l "], %[off]), %%xmm1") \
+        __ASM_EMIT("movups      0x20(%[" l "], %[off]), %%xmm2") \
+        __ASM_EMIT("movups      0x00(%[" r "], %[off]), %%xmm3") \
+        __ASM_EMIT("movups      0x10(%[" r "], %[off]), %%xmm4") \
+        __ASM_EMIT("movups      0x20(%[" r "], %[off]), %%xmm5") \
+        __ASM_EMIT(op "ps       %%xmm3, %%xmm0")            /* xmm0 = l <+-> r */ \
+        __ASM_EMIT(op "ps       %%xmm4, %%xmm1") \
+        __ASM_EMIT(op "ps       %%xmm5, %%xmm2") \
+        __ASM_EMIT("mulps       %%xmm7, %%xmm0")            /* xmm0 = (l <+-> r) * 0.5f */ \
+        __ASM_EMIT("mulps       %%xmm6, %%xmm1") \
+        __ASM_EMIT("mulps       %%xmm7, %%xmm2") \
+        __ASM_EMIT("movups      %%xmm0, 0x00(%[" d "], %[off])")      \
+        __ASM_EMIT("movups      %%xmm1, 0x10(%[" d "], %[off])")      \
+        __ASM_EMIT("movups      %%xmm2, 0x20(%[" d "], %[off])")      \
+        \
+        __ASM_EMIT("add         $0x30, %[off]") \
+        __ASM_EMIT("sub         $12, %[count]") \
+        __ASM_EMIT("jae         1b") \
+        /* x8 block */ \
+        __ASM_EMIT("2:") \
+        __ASM_EMIT("add         $4, %[count]") \
+        __ASM_EMIT("jl          4f") \
+        __ASM_EMIT("movups      0x00(%[" l "], %[off]), %%xmm0") \
+        __ASM_EMIT("movups      0x10(%[" l "], %[off]), %%xmm1") \
+        __ASM_EMIT("movups      0x00(%[" r "], %[off]), %%xmm3") \
+        __ASM_EMIT("movups      0x10(%[" r "], %[off]), %%xmm4") \
+        __ASM_EMIT(op "ps       %%xmm3, %%xmm0")            /* xmm0 = l <+-> r */ \
+        __ASM_EMIT(op "ps       %%xmm4, %%xmm1") \
+        __ASM_EMIT("mulps       %%xmm7, %%xmm0")            /* xmm0 = (l <+-> r) * 0.5f */ \
+        __ASM_EMIT("mulps       %%xmm7, %%xmm1") \
+        __ASM_EMIT("movups      %%xmm0, 0x00(%[" d "], %[off])")      \
+        __ASM_EMIT("movups      %%xmm1, 0x10(%[" d "], %[off])")      \
+        __ASM_EMIT("sub         $8, %[count]") \
+        __ASM_EMIT("add         $0x20, %[off]") \
+        /* x4 block */ \
+        __ASM_EMIT("4:") \
+        __ASM_EMIT("add         $4, %[count]") \
+        __ASM_EMIT("jl          6f") \
+        __ASM_EMIT("movups      0x00(%[" l "], %[off]), %%xmm0") \
+        __ASM_EMIT("movups      0x00(%[" r "], %[off]), %%xmm3") \
+        __ASM_EMIT(op "ps       %%xmm3, %%xmm0")            /* xmm0 = l <+-> r */ \
+        __ASM_EMIT("mulps       %%xmm7, %%xmm0")            /* xmm0 = (l <+-> r) * 0.5f */ \
+        __ASM_EMIT("movups      %%xmm0, 0x00(%[" d "], %[off])")      \
         __ASM_EMIT("sub         $4, %[count]") \
-        __ASM_EMIT("add         $0x10, %[left]") \
-        __ASM_EMIT("add         $0x10, %[right]") \
-        __ASM_EMIT("add         $0x10, %[dst]") \
-        __ASM_EMIT("cmp         $16, %[count]") \
-        __ASM_EMIT("jae         300b") \
-        \
-        __ASM_EMIT("400:") \
-        __ASM_EMIT("test        %[count], %[count]") \
-        __ASM_EMIT("jz          1000f") \
-        __ASM_EMIT("500:") \
-        __ASM_EMIT("movss       (%[left]), %%xmm0")         /* xmm0 = l0 */ \
-        __ASM_EMIT("movss       (%[right]), %%xmm1")        /* xmm1 = r0 */ \
-        __ASM_EMIT(op "ss       %%xmm1, %%xmm0")            /* xmm0 = l <+-> r */ \
-        __ASM_EMIT("mulss       %[X_HALF], %%xmm0")         /* xmm0 = (l <+-> r) * 0.5f */ \
-        __ASM_EMIT("movss       %%xmm0, 0x00(%[dst])")      \
-        __ASM_EMIT("add         $0x10, %[left]") \
-        __ASM_EMIT("add         $0x10, %[right]") \
-        __ASM_EMIT("add         $0x10, %[dst]") \
+        __ASM_EMIT("add         $0x10, %[off]") \
+        /* x1 blocks */ \
+        __ASM_EMIT("6:") \
+        __ASM_EMIT("add         $3, %[count]") \
+        __ASM_EMIT("jl          8f") \
+        __ASM_EMIT("7:") \
+        __ASM_EMIT("movss       0x00(%[" l "], %[off]), %%xmm0") \
+        __ASM_EMIT("movss       0x00(%[" r "], %[off]), %%xmm3") \
+        __ASM_EMIT(op "ss       %%xmm3, %%xmm0")            /* xmm0 = l <+-> r */ \
+        __ASM_EMIT("mulss       %%xmm7, %%xmm0")            /* xmm0 = (l <+-> r) * 0.5f */ \
+        __ASM_EMIT("movss       %%xmm0, 0x00(%[" d "], %[off])")      \
+        __ASM_EMIT("add         $0x04, %[off]") \
         __ASM_EMIT("dec         %[count]") \
-        __ASM_EMIT("jnz         500b") \
-
-    #define LR_CVT_BODY(dst_ptr, op) \
-        ARCH_X86_ASM \
-        ( \
-            __ASM_EMIT("test        %[count], %[count]") \
-            __ASM_EMIT("jz          1000f") \
-            __ASM_EMIT("1:") \
-            \
-            __ASM_EMIT("test        $0x0f, %[left]") \
-            __ASM_EMIT("jz          2f") \
-            __ASM_EMIT("movss       (%[left]),  %%xmm0")  /* xmm0 = l */ \
-            __ASM_EMIT("movss       (%[right]), %%xmm1")  /* xmm1 = r */ \
-            __ASM_EMIT(op "ss       %%xmm1, %%xmm0")      /* xmm0 = l <+-> r */ \
-            __ASM_EMIT("mulss       %[X_HALF], %%xmm0")   /* xmm0 = (l <+-> r) * 0.5f */ \
-            __ASM_EMIT("movss       %%xmm0, (%[dst])")    \
-            \
-            __ASM_EMIT("add         $0x4, %[left]") \
-            __ASM_EMIT("add         $0x4, %[right]") \
-            __ASM_EMIT("add         $0x4, %[dst]") \
-            __ASM_EMIT("dec         %[count]") \
-            __ASM_EMIT("jnz         1b") \
-            __ASM_EMIT("2:") \
-            \
-            __ASM_EMIT("prefetchnta  0x00(%[left])") \
-            __ASM_EMIT("prefetchnta  0x20(%[left])") \
-            __ASM_EMIT("prefetchnta  0x00(%[right])") \
-            __ASM_EMIT("prefetchnta  0x20(%[right])") \
-            \
-            __ASM_EMIT("test $0x0f, %[right]") \
-            __ASM_EMIT("jnz 2f") \
-                __ASM_EMIT("test $0x0f, %[dst]") \
-                __ASM_EMIT("jnz 1f") \
-                    __LR_CVT_BODY("movaps", "movaps", "movaps", op) \
-                    __ASM_EMIT("jmp 1000f") \
-                __ASM_EMIT("1:") \
-                    __LR_CVT_BODY("movaps", "movaps", "movups", op) \
-                    __ASM_EMIT("jmp 1000f") \
-            __ASM_EMIT("2:") \
-                __ASM_EMIT("test $0x0f, %[dst]") \
-                __ASM_EMIT("jnz 3f") \
-                    __LR_CVT_BODY("movaps", "movups", "movaps", op) \
-                    __ASM_EMIT("jmp 1000f") \
-                __ASM_EMIT("3:") \
-                    __LR_CVT_BODY("movaps", "movups", "movups", op) \
-            __ASM_EMIT("1000:") \
-            \
-            : [left] "+r"(l), [right] "+r" (r), [dst] "+r" (dst_ptr), [count] "+r" (count) \
-            : [X_HALF] "m" (X_HALF) \
-            : "cc", "memory", \
-              "%xmm0", "%xmm1", "%xmm2", "%xmm3", \
-              "%xmm4", "%xmm5", "%xmm6", "%xmm7" \
-        );
+        __ASM_EMIT("jge         7b") \
+        \
+        __ASM_EMIT("8:")
 
     void lr_to_mid(float *m, const float *l, const float *r, size_t count)
     {
-        LR_CVT_BODY(m, "add");
+        size_t off;
+
+        ARCH_X86_ASM
+        (
+            LR_CVT_BODY("mid", "left", "right", "add")
+            : [off] "=&r" (off), [count] "+r" (count)
+            : [left] "r"(l), [right] "r" (r),
+              [mid] "r" (m),
+              [X_HALF] "m" (X_HALF)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
     }
 
     void lr_to_side(float *s, const float *l, const float *r, size_t count)
     {
-        LR_CVT_BODY(s, "sub");
+        size_t off;
+
+        ARCH_X86_ASM
+        (
+            LR_CVT_BODY("side", "left", "right", "sub")
+            : [off] "=&r" (off), [count] "+r" (count)
+            : [left] "r"(l), [right] "r" (r),
+              [side] "r" (s),
+              [X_HALF] "m" (X_HALF)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
     }
 
     #undef LR_CVT_BODY
-    #undef __LR_CVT_BODY
 
     #define __MS_CVT_BODY(ld_l, ld_r, st_d, op) \
         __ASM_EMIT("cmp         $16, %[count]") \
