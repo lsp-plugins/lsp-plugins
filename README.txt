@@ -231,7 +231,7 @@ To build testing subsystem, issue the following commands:
   make clean
   make test
 
-After build, we can launth the test binary by issuing command:
+After build, we can launch the test binary by issuing command:
   .build/lsp-plugins-test
 
 This binary provides simple command-line interface, so here's the full usage:  
