@@ -26,6 +26,14 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void    lr_to_ms(float *m, float *s, const float *l, const float *r, size_t count);
+        void    ms_to_lr(float *l, float *r, const float *m, const float *s, size_t count);
+    }
+)
+
 typedef void (* conv2_t)(float *d1, float *d2, const float *s1, const float *s2, size_t count);
 
 PTEST_BEGIN("dsp.msmatrix", conv2, 5, 1000)
@@ -62,10 +70,13 @@ PTEST_BEGIN("dsp.msmatrix", conv2, 5, 1000)
             size_t count = 1 << i;
 
             call("native:lr_to_ms", d1, d2, s1, s2, count, native::lr_to_ms);
-            call("native:ms_to_lr", d1, d2, s1, s2, count, native::ms_to_lr);
             IF_ARCH_X86(call("sse:lr_to_ms", d1, d2, s1, s2, count, sse::lr_to_ms));
-            IF_ARCH_X86(call("sse:ms_to_lr", d1, d2, s1, s2, count, sse::ms_to_lr));
+            IF_ARCH_ARM(call("neon_d32:lr_to_ms", d1, d2, s1, s2, count, neon_d32::lr_to_ms));
+            PTEST_SEPARATOR;
 
+            call("native:ms_to_lr", d1, d2, s1, s2, count, native::ms_to_lr);
+            IF_ARCH_X86(call("sse:ms_to_lr", d1, d2, s1, s2, count, sse::ms_to_lr));
+            IF_ARCH_ARM(call("neon_d32:ms_to_lr", d1, d2, s1, s2, count, neon_d32::ms_to_lr));
             PTEST_SEPARATOR;
         }
 

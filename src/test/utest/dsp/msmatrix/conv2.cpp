@@ -27,6 +27,14 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void    lr_to_ms(float *m, float *s, const float *l, const float *r, size_t count);
+        void    ms_to_lr(float *l, float *r, const float *m, const float *s, size_t count);
+    }
+)
+
 typedef void (* conv2_t)(float *d1, float *d2, const float *s1, const float *s2, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -88,6 +96,9 @@ UTEST_BEGIN("dsp.msmatrix", conv2)
     {
         IF_ARCH_X86(call("sse:lr_to_ms", 16, native::lr_to_ms, sse::lr_to_ms));
         IF_ARCH_X86(call("sse:ms_to_lr", 16, native::ms_to_lr, sse::ms_to_lr));
+
+        IF_ARCH_ARM(call("neon_d32:lr_to_ms", 16, native::lr_to_ms, neon_d32::lr_to_ms));
+        IF_ARCH_ARM(call("neon_d32:ms_to_lr", 16, native::ms_to_lr, neon_d32::ms_to_lr));
     }
 UTEST_END
 

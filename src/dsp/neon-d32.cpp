@@ -52,6 +52,7 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/pmath.h>
 #include <dsp/arch/arm/neon-d32/hmath.h>
 #include <dsp/arch/arm/neon-d32/float.h>
+#include <dsp/arch/arm/neon-d32/msmatrix.h>
 
 #undef DSP_ARCH_ARM_NEON_32_IMPL
 
@@ -137,6 +138,9 @@ namespace neon_d32
 
         EXPORT1(saturate);
         EXPORT1(copy_saturated);
+
+        EXPORT1(lr_to_ms);
+        EXPORT1(ms_to_lr);
 
         // Misc for testing
         TEST_EXPORT(neon_d32::complex_mul3_x12);
