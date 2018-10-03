@@ -140,7 +140,11 @@ namespace neon_d32
         EXPORT1(copy_saturated);
 
         EXPORT1(lr_to_ms);
+        EXPORT1(lr_to_mid);
+        EXPORT1(lr_to_side);
         EXPORT1(ms_to_lr);
+        EXPORT1(ms_to_left);
+        EXPORT1(ms_to_right);
 
         // Misc for testing
         TEST_EXPORT(neon_d32::complex_mul3_x12);

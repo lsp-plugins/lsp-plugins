@@ -369,7 +369,7 @@ namespace neon_d32
         ARCH_ARM_ASM
         (
             LR_CVT_BODY("mid", "left", "right", "vadd")
-            : [mid] "+r" (m)
+            : [mid] "+r" (m),
               [left] "+r" (l), [right] "+r" (r),
               [count] "+r" (count)
             : [X_HALF] "r" (half)
@@ -386,7 +386,7 @@ namespace neon_d32
         ARCH_ARM_ASM
         (
             LR_CVT_BODY("side", "left", "right", "vsub")
-            : [side] "+r" (s)
+            : [side] "+r" (s),
               [left] "+r" (l), [right] "+r" (r),
               [count] "+r" (count)
             : [X_HALF] "r" (half)
@@ -396,7 +396,7 @@ namespace neon_d32
         );
     }
 
-    #undef LR_CVT_BODY
+#undef LR_CVT_BODY
 
 #define MS_CVT_BODY(d, m, s, op)    \
     __ASM_EMIT("subs        %[count], $32") \
@@ -407,20 +407,20 @@ namespace neon_d32
     __ASM_EMIT("vld1.32     {q8-q9}, [%[" s "]]!")      /* q8 = s, q9 = s */ \
     __ASM_EMIT("vld1.32     {q2-q3}, [%[" m "]]!") \
     __ASM_EMIT("vld1.32     {q10-q11}, [%[" s "]]!") \
-    __ASM_EMIT("vld1.32     {q4-q5}, [%[" m "]]!") \
-    __ASM_EMIT("vld1.32     {q12-q13}, [%[" s "]]!") \
-    __ASM_EMIT("vld1.32     {q6-q7}, [%[" m "]]!") \
-    __ASM_EMIT("vld1.32     {q14-q15}, [%[" s "]]!") \
     __ASM_EMIT(op ".f32     q0, q8")                    /* q0 = m <+-> s */ \
     __ASM_EMIT(op ".f32     q1, q9")                    /* q1 = m <+-> s */ \
+    __ASM_EMIT("vld1.32     {q4-q5}, [%[" m "]]!") \
+    __ASM_EMIT("vld1.32     {q12-q13}, [%[" s "]]!") \
     __ASM_EMIT(op ".f32     q2, q10") \
     __ASM_EMIT(op ".f32     q3, q11") \
+    __ASM_EMIT("vst1.32     {q0-q1}, [%[" d "]]!") \
+    __ASM_EMIT("vld1.32     {q6-q7}, [%[" m "]]!") \
+    __ASM_EMIT("vld1.32     {q14-q15}, [%[" s "]]!") \
     __ASM_EMIT(op ".f32     q4, q12") \
     __ASM_EMIT(op ".f32     q5, q13") \
+    __ASM_EMIT("vst1.32     {q2-q3}, [%[" d "]]!") \
     __ASM_EMIT(op ".f32     q6, q14") \
     __ASM_EMIT(op ".f32     q7, q15") \
-    __ASM_EMIT("vst1.32     {q0-q1}, [%[" d "]]!") \
-    __ASM_EMIT("vst1.32     {q2-q3}, [%[" d "]]!") \
     __ASM_EMIT("vst1.32     {q4-q5}, [%[" d "]]!") \
     __ASM_EMIT("vst1.32     {q6-q7}, [%[" d "]]!") \
     __ASM_EMIT("subs        %[count], $32") \
@@ -464,8 +464,8 @@ namespace neon_d32
     __ASM_EMIT("adds        %[count], $3")              /* 4 - 1 */ \
     __ASM_EMIT("blt         10f") \
     __ASM_EMIT("9:") \
-    __ASM_EMIT("vldm        %[" l "]!, {s0}")           /* s0 = m */ \
-    __ASM_EMIT("vldm        %[" r "]!, {s8}")           /* s4 = s */ \
+    __ASM_EMIT("vldm        %[" m "]!, {s0}")           /* s0 = m */ \
+    __ASM_EMIT("vldm        %[" s "]!, {s8}")           /* s4 = s */ \
     __ASM_EMIT(op ".f32     s0, s8")                    /* q0 = m <+-> s */ \
     __ASM_EMIT("vstm        %[" d "]!, {s0}") \
     __ASM_EMIT("subs        %[count], $1") \
@@ -474,11 +474,9 @@ namespace neon_d32
 
     void ms_to_left(float *l, const float *m, const float *s, size_t count)
     {
-        IF_ARCH_ARM(const float *half = X_HALF);
-
         ARCH_ARM_ASM
         (
-            LR_CVT_BODY("left", "mid", "side", "vadd")
+            MS_CVT_BODY("left", "mid", "side", "vadd")
             : [left] "+r" (l),
               [mid] "+r" (m), [side] "+r" (s),
               [count] "+r" (count)
@@ -491,11 +489,9 @@ namespace neon_d32
 
     void ms_to_right(float *r, const float *m, const float *s, size_t count)
     {
-        IF_ARCH_ARM(const float *half = X_HALF);
-
         ARCH_ARM_ASM
         (
-            LR_CVT_BODY("right", "mid", "side", "vsub")
+            MS_CVT_BODY("right", "mid", "side", "vsub")
             : [right] "+r" (r),
               [mid] "+r" (m), [side] "+r" (s),
               [count] "+r" (count)
@@ -505,6 +501,8 @@ namespace neon_d32
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
     }
+
+#undef MS_CVT_BODY
 }
 
 #endif /* DSP_ARCH_ARM_NEON_D32_MSMATRIX_H_ */
