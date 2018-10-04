@@ -43,8 +43,8 @@ IF_ARCH_ARM(
     namespace neon_d32
     {
         void lanczos_resample_2x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_2x3(float *dst, const float *src, size_t count);
 // TODO
-//        void lanczos_resample_2x3(float *dst, const float *src, size_t count);
 //        void lanczos_resample_3x2(float *dst, const float *src, size_t count);
 //        void lanczos_resample_3x3(float *dst, const float *src, size_t count);
 //        void lanczos_resample_4x2(float *dst, const float *src, size_t count);
@@ -120,8 +120,8 @@ UTEST_BEGIN("dsp.resampling", oversampling)
         IF_ARCH_X86(call(8, "sse:lanczos_resample_8x3", 16, native::lanczos_resample_8x3, sse::lanczos_resample_8x3));
 
         IF_ARCH_ARM(call(2, "neon_d32:lanczos_resample_2x2", 16, native::lanczos_resample_2x2, neon_d32::lanczos_resample_2x2));
+        IF_ARCH_ARM(call(2, "neon_d32lanczos_resample_2x3", 16, native::lanczos_resample_2x3, neon_d32:lanczos_resample_2x3));
 // TODO
-//        IF_ARCH_ARM(call(2, "neon_d32lanczos_resample_2x3", 16, native::lanczos_resample_2x3, neon_d32:lanczos_resample_2x3));
 //        IF_ARCH_ARM(call(3, "neon_d32lanczos_resample_3x2", 16, native::lanczos_resample_3x2, neon_d32:lanczos_resample_3x2));
 //        IF_ARCH_ARM(call(3, "neon_d32lanczos_resample_3x3", 16, native::lanczos_resample_3x3, neon_d32:lanczos_resample_3x3));
 //        IF_ARCH_ARM(call(4, "neon_d32lanczos_resample_4x2", 16, native::lanczos_resample_4x2, neon_d32:lanczos_resample_4x2));

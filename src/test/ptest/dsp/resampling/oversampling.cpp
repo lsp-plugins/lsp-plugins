@@ -44,8 +44,8 @@ IF_ARCH_ARM(
     namespace neon_d32
     {
         void lanczos_resample_2x2(float *dst, const float *src, size_t count);
+        void lanczos_resample_2x3(float *dst, const float *src, size_t count);
 // TODO
-//        void lanczos_resample_2x3(float *dst, const float *src, size_t count);
 //        void lanczos_resample_3x2(float *dst, const float *src, size_t count);
 //        void lanczos_resample_3x3(float *dst, const float *src, size_t count);
 //        void lanczos_resample_4x2(float *dst, const float *src, size_t count);
@@ -93,7 +93,7 @@ PTEST_BEGIN("dsp.resampling", oversampling, 5, 1000)
 
         call(out, in, RTEST_BUF_SIZE, 2, "native:2x3", native::lanczos_resample_2x3);
         IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 2, "sse:2x3", sse::lanczos_resample_2x3));
-//        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 2, "neon_d32:2x3", neon_d32::lanczos_resample_2x3));
+        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 2, "neon_d32:2x3", neon_d32::lanczos_resample_2x3));
         PTEST_SEPARATOR;
 
         call(out, in, RTEST_BUF_SIZE, 3, "native:3x2", native::lanczos_resample_3x2);
