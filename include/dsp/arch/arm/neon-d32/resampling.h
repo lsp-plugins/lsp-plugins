@@ -99,15 +99,13 @@ namespace neon_d32
             __ASM_EMIT("vst1.32         {q9-q10}, [%[dw]]!")
             __ASM_EMIT("vst1.32         {q11}, [%[dw]]")
             __ASM_EMIT("sub             %[dr], $0x50")
-            __ASM_EMIT("sub             %[dw], $0x40")
+            __ASM_EMIT("sub             %[dw], $0x10")
 
             // 4x block
             __ASM_EMIT("2:")
             __ASM_EMIT("adds            %[count], $4")
             __ASM_EMIT("blt             4f")
 
-            __ASM_EMIT("vld1.32         {q7-q8}, [%[dr]]!")
-            __ASM_EMIT("vld1.32         {q9}, [%[dr]]!")
             // Prepare
             __ASM_EMIT("vld1.32         {q2}, [%[src]]!")
             __ASM_EMIT("vmov            q3, q2")
@@ -118,32 +116,29 @@ namespace neon_d32
             __ASM_EMIT("vswp            d5, d8")
             __ASM_EMIT("vswp            d7, d10") // q2 = s0, q3 = s1, q4 = s2, q5 = s3
             // Even cycle: convolve
+            __ASM_EMIT("vld1.32         {q7-q8}, [%[dr]]!")
+            __ASM_EMIT("vld1.32         {q9}, [%[dr]]")
             __ASM_EMIT("vmla.f32        q7, q2, q0")
             __ASM_EMIT("vmla.f32        q8, q4, q0")
             __ASM_EMIT("vmla.f32        q8, q2, q1")
             __ASM_EMIT("vmla.f32        q9, q4, q1")
-            // Even cycle: load/store and shift
-            __ASM_EMIT("vst1.32         {d14}, [%[dw]]!")
-            __ASM_EMIT("vext.8          q7, q7, q8, $8")
-            __ASM_EMIT("vld1.32         {d4}, [%[dr]]!")
-            __ASM_EMIT("vext.8          q8, q8, q9, $8")
-            __ASM_EMIT("vext.8          q9, q9, q2, $8")
+            __ASM_EMIT("vst1.32         {q7-q8}, [%[dw]]!")
+            __ASM_EMIT("vst1.32         {q9}, [%[dw]]")
+            __ASM_EMIT("sub             %[dr], $0x18")
+            __ASM_EMIT("sub             %[dw], $0x18")
             // Odd cycle: convolve
+            __ASM_EMIT("vld1.32         {q7-q8}, [%[dr]]!")
+            __ASM_EMIT("vld1.32         {q9}, [%[dr]]")
             __ASM_EMIT("vmla.f32        q7, q3, q0")
             __ASM_EMIT("vmla.f32        q8, q5, q0")
             __ASM_EMIT("vmla.f32        q8, q3, q1")
             __ASM_EMIT("vmla.f32        q9, q5, q1")
-            // Even cycle: load/store and shift
-            __ASM_EMIT("vst1.32         {d14}, [%[dw]]!")
-            __ASM_EMIT("vext.8          q7, q7, q8, $8")
-            __ASM_EMIT("vld1.32         {d4}, [%[dr]]!")
-            __ASM_EMIT("vext.8          q8, q8, q9, $8")
-            __ASM_EMIT("vext.8          q9, q9, q2, $8")
             __ASM_EMIT("vst1.32         {q7-q8}, [%[dw]]!")
-            __ASM_EMIT("sub             %[count], $4")
             __ASM_EMIT("vst1.32         {q9}, [%[dw]]")
-            __ASM_EMIT("sub             %[dr], $0x30")
-            __ASM_EMIT("sub             %[dw], $0x20")
+            __ASM_EMIT("sub             %[dr], $0x08")
+            __ASM_EMIT("sub             %[dw], $0x08")
+            // Even cycle: load/store and shift
+            __ASM_EMIT("sub             %[count], $4")
 
             // 1x blocks
             __ASM_EMIT("4:")
