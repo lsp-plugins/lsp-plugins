@@ -13,7 +13,7 @@ namespace neon_d32
     static const float lanczos_2x2[] __lsp_aligned16 =
     {
         +0.0000000000000000f,
-        -0.1664152316035080f  // k1
+        -0.1664152316035080f, // k1
         +0.0000000000000000f,
         +0.6203830132406946f, // k0
         +1.0000000000000000f,
@@ -24,7 +24,10 @@ namespace neon_d32
 
     void lanczos_resample_2x2(float *dst, const float *src, size_t count)
     {
-        float *dw       = dst;
+        IF_ARCH_ARM(
+            float *dw = dst;
+            const float *kernel = lanczos_2x2;
+        );
 
         ARCH_ARM_ASM
         (
@@ -101,7 +104,7 @@ namespace neon_d32
             // 4x block
             __ASM_EMIT("2:")
             __ASM_EMIT("adds            %[count], $4")
-            __ASM_EMIt("blt             4f")
+            __ASM_EMIT("blt             4f")
 
             __ASM_EMIT("vld1.32         {q7-q8}, [%[dr]]!")
             __ASM_EMIT("vld1.32         {q9}, [%[dr]]!")
@@ -154,15 +157,17 @@ namespace neon_d32
             __ASM_EMIT("vmla.f32        q3, q2, q0")
             __ASM_EMIT("vmla.f32        q4, q2, q1")
             __ASM_EMIT("vst1.32         {d6}, [%[dw]]!")
-            __ASM_EMIT("vld1.32         {d9}, [%[dr]]!")
-            __ASM_EMIT("sub             %[count], $1")
+            __ASM_EMIT("vld1.32         {d10}, [%[dr]]!")
+            __ASM_EMIT("vext.8          q3, q3, q4, $8")
+            __ASM_EMIT("vext.8          q4, q4, q5, $8")
+            __ASM_EMIT("subs            %[count], $1")
             __ASM_EMIT("bge             7b")
             __ASM_EMIT("vst1.32         {q3-q4}, [%[dw]]!")
 
             __ASM_EMIT("6:")
             : [dr] "+r" (dst), [dw] "+r" (dw), [src] "+r" (src),
               [count] "+r" (count)
-            :
+            : [kernel] "r" (kernel)
             : "cc", "memory",
               "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
