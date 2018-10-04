@@ -95,14 +95,14 @@ export BUILD_PROFILE
 export BASEDIR          = ${CURDIR}
 export INCLUDE          = ${INC_FLAGS}
 export MAKE_OPTS        = -s
-export CFLAGS           = $(CC_ARCH) -std=c++98 -fPIC -fdata-sections -ffunction-sections -fno-exceptions -fno-asynchronous-unwind-tables -Wall -pthread -pipe -fno-rtti $(CC_FLAGS) -DLSP_MAIN_VERSION=\"$(VERSION)\" -DLSP_INSTALL_PREFIX=\"$(PREFIX)\"
+export CFLAGS           = $(CC_ARCH) -std=c++98 -fdata-sections -ffunction-sections -fno-exceptions -fno-asynchronous-unwind-tables -Wall -pipe -fno-rtti $(CC_FLAGS) -DLSP_MAIN_VERSION=\"$(VERSION)\" -DLSP_INSTALL_PREFIX=\"$(PREFIX)\"
 export CC               = g++
 export PHP              = php
 export LD               = ld
 export LDFLAGS          = $(LD_ARCH) -L$(LD_PATH)
-export SO_FLAGS         = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,--gc-sections -shared -Llibrary -lc -lm -fPIC -lpthread
+export SO_FLAGS         = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections -shared -Llibrary -lc -fPIC
 export MERGE_FLAGS      = $(LD_ARCH) -r
-export EXE_FLAGS        = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,--gc-sections -lm -fPIC -pthread
+export EXE_FLAGS        = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections -pie -fPIE
 
 # Objects
 export OBJ_CORE         = $(OBJDIR)/core.o
@@ -140,6 +140,9 @@ export UTL_FILES        = $(UTL_GENTTL) $(UTL_VSTMAKE) $(UTL_GENPHP) $(UTL_RESGE
 export PHP_PLUGINS      = $(OBJDIR)/plugins.php
 
 # Compile headers and linkage libraries
+export PTHREAD_LIBS     = -lpthread
+export MATH_LIBS        = -lm
+export DL_LIBS          = -ldl
 export CAIRO_HEADERS    = $(shell pkg-config --cflags cairo)
 export CAIRO_LIBS       = $(shell pkg-config --libs cairo)
 export XLIB_HEADERS     = $(shell pkg-config --cflags x11)
@@ -170,7 +173,7 @@ DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 
 default: all
 
-all: export CFLAGS          += -O2
+all: export CFLAGS          += -O2 -DLSP_NO_EXPERIMENTAL
 all: compile
 
 trace: export CFLAGS        += -DLSP_TRACE

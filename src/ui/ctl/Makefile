@@ -6,10 +6,10 @@ SUBDIRS					=
 
 $(FILES):
 	@echo "  $(CC) $(FILE)"
-	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE) -o $(@)
+	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE)  
 
 $(OBJ_CTL_CORE): $(FILES)
 	@echo "  $(LD) $(notdir $(@))"
-	@$(LD) $(MERGE_FLAGS) $(PACKAGES) -o $(OBJ_CTL_CORE) $(FILES)
+	@$(LD) -o $(OBJ_CTL_CORE) $(MERGE_FLAGS) $(PACKAGES) $(FILES)
 
 all: $(OBJ_CTL_CORE) $(SUBDIRS)

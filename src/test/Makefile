@@ -9,9 +9,9 @@ all: $(OBJ_TEST_CORE)
 $(FILES):
 	@echo "  $(CC) $(FILE)"
 	@mkdir -p $(dir $@)
-	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(OPENGL_HEADERS) $(FILE) -o $(@)
+	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(OPENGL_HEADERS) 
 
 $(OBJ_TEST_CORE): $(FILES)
 	@echo "  $(LD) $(notdir $(OBJ_TEST_CORE))"
-	@$(LD) $(LDFLAGS) -r -o $(OBJ_TEST_CORE) $(FILES) 
+	@$(LD) -o $(OBJ_TEST_CORE) -r $(LDFLAGS) $(FILES)  
 

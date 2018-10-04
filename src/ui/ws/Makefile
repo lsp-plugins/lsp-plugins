@@ -13,10 +13,10 @@ $(SUBDIRS):
 
 $(FILES):
 	@echo "  $(CC) $(FILE)"
-	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE) -o $(@)
+	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE) 
 
 $(OBJ_WS_CORE): $(FILES) $(OBJ_WS_X11_CORE)
 	@echo "  $(LD) $(notdir $(@))"
-	@$(LD) $(MERGE_FLAGS) $(PACKAGES) -o $(OBJ_WS_CORE) $(FILES) $(OBJ_WS_X11_CORE)
+	@$(LD) -o $(OBJ_WS_CORE) $(MERGE_FLAGS) $(PACKAGES) $(OBJ_WS_X11_CORE) $(FILES)
 
 $(OBJ_WS_X11_CORE): $(SUBDIRS)

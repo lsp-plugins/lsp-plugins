@@ -13,7 +13,7 @@ $(SUBDIRS):
 
 $(FILES):
 	@echo "  $(CC) $(FILE)"
-	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE) -o $(@)
+	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE)
 
 $(OBJ_UI_CORE): $(FILES) $(SUBDIRS)
 	@echo "  $(LD) $(notdir $(@))"
