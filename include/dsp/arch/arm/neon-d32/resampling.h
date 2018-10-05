@@ -388,7 +388,7 @@ namespace neon_d32
             __ASM_EMIT("vld1.32         {q8-q9}, [%[dr]]!")
             __ASM_EMIT("vmov            q1, q0")                    // q1 = s1 s2 s1 s2
             __ASM_EMIT("vld1.32         {q10-q11}, [%[dr]]")
-            __ASM_EMIT("vtrn.32         q1, q0")                    // q0 = s1 s1 s1 s1, q1 = s2 s2 s2 s2
+            __ASM_EMIT("vtrn.32         q0, q1")                    // q0 = s1 s1 s1 s1, q1 = s2 s2 s2 s2
             __ASM_EMIT("vmla.f32        q8, q2, q0")
             __ASM_EMIT("vmla.f32        q9, q3, q0")
             __ASM_EMIT("vmla.f32        q10, q4, q0")
@@ -404,7 +404,7 @@ namespace neon_d32
 
             // 1x block
             __ASM_EMIT("2:")
-            __ASM_EMIT("adds            %[count], $3")
+            __ASM_EMIT("adds            %[count], $1")
             __ASM_EMIT("blt             4f")
 
             __ASM_EMIT("vldm            %[src]!, {s0}")
