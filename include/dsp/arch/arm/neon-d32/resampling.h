@@ -41,6 +41,40 @@ namespace neon_d32
         +0.0939539981090991f    // k2
     };
 
+    static const float lanczos_kernel_3x2[] __lsp_aligned16 =
+    {
+        +0.0000000000000000f,
+        -0.1451906347823569f,
+        -0.1903584501504231f,
+        +0.0000000000000000f,
+
+        +0.4051504629060886f,
+        +0.8228011237053413f,
+        +1.0000000000000000f,
+        +0.8228011237053413f,
+
+        +0.4051504629060886f,
+        +0.0000000000000000f,
+        -0.1903584501504231f,
+        -0.1451906347823569f,
+
+        // Shifted by 1 left
+        -0.1451906347823569f,
+        -0.1903584501504231f,
+        +0.0000000000000000f,
+        +0.4051504629060886f,
+
+        +0.8228011237053413f,
+        +1.0000000000000000f,
+        +0.8228011237053413f,
+        +0.4051504629060886f,
+
+        +0.0000000000000000f,
+        -0.1903584501504231f,
+        -0.1451906347823569f,
+        +0.0000000000000000f
+    };
+
     void lanczos_resample_2x2(float *dst, const float *src, size_t count)
     {
         IF_ARCH_ARM(
@@ -320,6 +354,71 @@ namespace neon_d32
             __ASM_EMIT("bge             7b")
 
             __ASM_EMIT("6:")
+            : [dr] "+r" (dst), [dw] "+r" (dw), [src] "+r" (src),
+              [count] "+r" (count),
+              [kernel] "+r" (kernel)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+    }
+
+    void lanczos_resample_3x2(float *dst, const float *src, size_t count)
+    {
+        IF_ARCH_ARM(
+            float *dw = dst;
+            const float *kernel = lanczos_kernel_3x2;
+        );
+
+        ARCH_ARM_ASM
+        (
+            // Prepare
+            __ASM_EMIT("vld1.32         {q2-q3}, [%[kernel]]!")     // q2 = 0 k3 k2 0, q3 = k1 k0 1 k0
+            __ASM_EMIT("vld1.32         {q4-q5}, [%[kernel]]!")     // q4 = k1 0 k2 k3, q5 = k3 k2 0 k1
+            __ASM_EMIT("vld1.32         {q6-q7}, [%[kernel]]")      // q6 = k0 1 k0 k1, q7 = 0 k2 k3 0
+            __ASM_EMIT("subs            %[count], $2")
+            __ASM_EMIT("blo             2f")
+
+            // 2x blocks
+            __ASM_EMIT("1:")
+            // Even cycle: prepare
+            __ASM_EMIT("vld1.32         {d0}, [%[src]]!")           // d0 = s1 s2
+            __ASM_EMIT("vmov            d1, d0")                    // q0 = s1 s2 s1 s2
+            __ASM_EMIT("vld1.32         {q8-q9}, [%[dr]]!")
+            __ASM_EMIT("vmov            q1, q0")                    // q1 = s1 s2 s1 s2
+            __ASM_EMIT("vld1.32         {q10-q11}, [%[dr]]")
+            __ASM_EMIT("vtrn.32         q1, q0")                    // q0 = s1 s1 s1 s1, q1 = s2 s2 s2 s2
+            __ASM_EMIT("vmla.f32        q8, q2, q0")
+            __ASM_EMIT("vmla.f32        q9, q3, q0")
+            __ASM_EMIT("vmla.f32        q10, q4, q0")
+            __ASM_EMIT("vmla.f32        q9, q5, q1")
+            __ASM_EMIT("vmla.f32        q10, q6, q1")
+            __ASM_EMIT("vst1.32         {q8-q9}, [%[dw]]!")
+            __ASM_EMIT("vmla.f32        q11, q7, q1")
+            __ASM_EMIT("vst1.32         {q10-q11}, [%[dw]]")
+            __ASM_EMIT("sub             %[dr], $0x08")
+            __ASM_EMIT("sub             %[dw], $0x08")
+            __ASM_EMIT("subs            %[count], $2")
+            __ASM_EMIT("bhs             1b")
+
+            // 1x block
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds            %[count], $3")
+            __ASM_EMIT("blt             4f")
+
+            __ASM_EMIT("vldm            %[src]!, {s0}")
+            __ASM_EMIT("vmov            s1, s0")
+            __ASM_EMIT("vld1.32         {q8-q9}, [%[dr]]!")
+            __ASM_EMIT("vmov            d1, d0")
+            __ASM_EMIT("vld1.32         {q10}, [%[dr]]")
+            __ASM_EMIT("vmla.f32        q8, q2, q0")
+            __ASM_EMIT("vmla.f32        q9, q3, q0")
+            __ASM_EMIT("vmla.f32        q10, q4, q0")
+            __ASM_EMIT("vst1.32         {q8-q9}, [%[dw]]!")
+            __ASM_EMIT("vst1.32         {q10}, [%[dw]]")
+
+            __ASM_EMIT("4:")
             : [dr] "+r" (dst), [dw] "+r" (dw), [src] "+r" (src),
               [count] "+r" (count),
               [kernel] "+r" (kernel)
