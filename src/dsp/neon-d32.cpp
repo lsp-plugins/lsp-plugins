@@ -152,6 +152,7 @@ namespace neon_d32
         EXPORT1(lanczos_resample_3x2);
         EXPORT1(lanczos_resample_3x3);
         EXPORT1(lanczos_resample_4x2);
+        EXPORT1(lanczos_resample_4x3);
 
         // Misc for testing
         TEST_EXPORT(neon_d32::complex_mul3_x12);

@@ -618,6 +618,201 @@ namespace neon_d32
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
     }
+
+    static const float lanczos_kernel_4x3[] __lsp_aligned16 =
+    {
+        +0.0000000000000000f,
+        +0.0749573750027847f,
+        +0.1184264228024920f,
+        +0.0943496807888575f,
+
+        +0.0000000000000000f,
+        -0.1241641556633335f,
+        -0.2067943377468982f,
+        -0.1768665375130828f,
+
+        +0.0000000000000000f,
+        +0.2981808178680967f,
+        +0.6348032780190205f,
+        +0.8996736756130924f,
+
+        +1.0000000000000000f,
+        +0.8996736756130924f,
+        +0.6348032780190205f,
+        +0.2981808178680967f,
+
+        +0.0000000000000000f,
+        -0.1768665375130828f,
+        -0.2067943377468982f,
+        -0.1241641556633335f,
+
+        +0.0000000000000000f,
+        +0.0943496807888575f,
+        +0.1184264228024920f,
+        +0.0749573750027847f,
+    };
+
+    void lanczos_resample_4x3(float *dst, const float *src, size_t count)
+    {
+        IF_ARCH_ARM(
+            const float *kernel = lanczos_kernel_4x2;
+        );
+
+        ARCH_ARM_ASM
+        (
+            // Prepare
+            __ASM_EMIT("vldm            %[kernel], {q10-q15}")
+            __ASM_EMIT("subs            %[count], $4")
+            __ASM_EMIT("blo             2f")
+
+            // 4x blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vldm            %[src]!, {q0}")
+            __ASM_EMIT("vmov            q1, q0")
+            __ASM_EMIT("vmov            q2, q0")
+            __ASM_EMIT("vmov            q3, q1")
+            __ASM_EMIT("vtrn.32         q0, q1")
+            __ASM_EMIT("vtrn.32         q2, q3")
+            __ASM_EMIT("vswp            d1, d4")
+            __ASM_EMIT("vswp            d3, d6")
+
+            // Part 1 - process 10 multiplications
+            __ASM_EMIT("vldm            %[dst], {q4-q7}")
+            __ASM_EMIT("vmul.f32        q8, q10, q0")
+            __ASM_EMIT("vmul.f32        q9, q11, q0")
+            __ASM_EMIT("vadd.f23        q4, q8")
+            __ASM_EMIT("vadd.f23        q5, q9")
+            __ASM_EMIT("vmul.f32        q8, q12, q0")
+            __ASM_EMIT("vmul.f32        q9, q13, q0")
+            __ASM_EMIT("vadd.f23        q6, q8")
+            __ASM_EMIT("vadd.f23        q7, q9")
+            __ASM_EMIT("vmul.f32        q8, q11, q1")
+            __ASM_EMIT("vmul.f32        q9, q11, q2")
+            __ASM_EMIT("vadd.f23        q6, q8")
+            __ASM_EMIT("vadd.f23        q7, q9")
+            __ASM_EMIT("vmul.f32        q8, q10, q2")
+            __ASM_EMIT("vmul.f32        q9, q10, q3")
+            __ASM_EMIT("vadd.f23        q6, q8")
+            __ASM_EMIT("vadd.f23        q7, q9")
+            __ASM_EMIT("vmul.f32        q8, q10, q1")
+            __ASM_EMIT("vmul.f32        q9, q12, q1")
+            __ASM_EMIT("vadd.f23        q5, q8")
+            __ASM_EMIT("vadd.f23        q7, q9")
+            __ASM_EMIT("vstm            %[dst]!, {q4-q7}")
+            // Part 2 - process 8 multiplications
+            __ASM_EMIT("vldm            %[dst], {q4-q5}")
+            __ASM_EMIT("vmul.f32        q8, q14, q0")
+            __ASM_EMIT("vmul.f32        q9, q15, q0")
+            __ASM_EMIT("vadd.f23        q4, q8")
+            __ASM_EMIT("vadd.f23        q5, q9")
+            __ASM_EMIT("vmul.f32        q8, q13, q1")
+            __ASM_EMIT("vmul.f32        q9, q14, q1")
+            __ASM_EMIT("vadd.f23        q4, q8")
+            __ASM_EMIT("vadd.f23        q5, q9")
+            __ASM_EMIT("vmul.f32        q8, q12, q2")
+            __ASM_EMIT("vmul.f32        q9, q13, q2")
+            __ASM_EMIT("vadd.f23        q4, q8")
+            __ASM_EMIT("vadd.f23        q5, q9")
+            __ASM_EMIT("vmul.f32        q8, q11, q3")
+            __ASM_EMIT("vmul.f32        q9, q12, q3")
+            __ASM_EMIT("vadd.f23        q4, q8")
+            __ASM_EMIT("vadd.f23        q5, q9")
+            __ASM_EMIT("vstm            %[dst]!, {q4-q5}")
+            // Part 3 - process 6 multiplications
+            __ASM_EMIT("vldm            %[dst], {q4-q6}")
+            __ASM_EMIT("vmul.f32        q8, q15, q1")
+            __ASM_EMIT("vmul.f32        q9, q15, q2")
+            __ASM_EMIT("vadd.f23        q4, q8")
+            __ASM_EMIT("vadd.f23        q5, q9")
+            __ASM_EMIT("vmul.f32        q8, q14, q2")
+            __ASM_EMIT("vmul.f32        q9, q14, q3")
+            __ASM_EMIT("vadd.f23        q4, q8")
+            __ASM_EMIT("vadd.f23        q5, q9")
+            __ASM_EMIT("vmul.f32        q8, q13, q3")
+            __ASM_EMIT("vmul.f32        q9, q15, q3")
+            __ASM_EMIT("vadd.f23        q4, q8")
+            __ASM_EMIT("vadd.f23        q6, q9")
+            __ASM_EMIT("vstm            %[dst], {q4-q6}")
+            __ASM_EMIT("subs            %[count], $4")
+            __ASM_EMIT("sub             %[dst], $0x20")
+            __ASM_EMIT("bhs             1b")
+
+            // 2x block
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds            %[count], $2")
+            __ASM_EMIT("blt             4f")
+
+            __ASM_EMIT("vldm            %[src]!, {d0}")
+            __ASM_EMIT("vmov            d1, d0")
+            __ASM_EMIT("vmov            q1, q0")
+            __ASM_EMIT("vtrn.32         q0, q1")
+
+            // Part 1 - 7 multiplications
+            __ASM_EMIT("vldm            %[dst], {q4-q7}")
+            __ASM_EMIT("vmul.f32        q2, q10, q0")
+            __ASM_EMIT("vmul.f32        q3, q10, q1")
+            __ASM_EMIT("vadd.f32        q4, q2")
+            __ASM_EMIT("vadd.f32        q5, q3")
+            __ASM_EMIT("vmul.f32        q2, q11, q0")
+            __ASM_EMIT("vmul.f32        q3, q11, q1")
+            __ASM_EMIT("vadd.f32        q5, q2")
+            __ASM_EMIT("vadd.f32        q6, q3")
+            __ASM_EMIT("vmul.f32        q2, q12, q0")
+            __ASM_EMIT("vmul.f32        q3, q12, q1")
+            __ASM_EMIT("vmul.f32        q8, q13, q0")
+            __ASM_EMIT("vadd.f32        q7, q3")
+            __ASM_EMIT("vadd.f32        q6, q2")
+            __ASM_EMIT("vadd.f32        q7, q8")
+            __ASM_EMIT("vstm            %[dst]!, {q4-q7}")
+
+            // Part 2 - 5 multiplications
+            __ASM_EMIT("vldm            %[dst], {q4-q6}")
+            __ASM_EMIT("vmul.f32        q2, q14, q0")
+            __ASM_EMIT("vmul.f32        q3, q14, q1")
+            __ASM_EMIT("vadd.f32        q4, q2")
+            __ASM_EMIT("vadd.f32        q5, q3")
+            __ASM_EMIT("vmul.f32        q8, q13, q1")
+            __ASM_EMIT("vmul.f32        q2, q15, q0")
+            __ASM_EMIT("vmul.f32        q3, q15, q1")
+            __ASM_EMIT("vadd.f32        q4, q8")
+            __ASM_EMIT("vadd.f32        q5, q2")
+            __ASM_EMIT("vadd.f32        q6, q3")
+            __ASM_EMIT("vstm            %[dst], {q4-q6}")
+            __ASM_EMIT("sub             %[count], $2")
+            __ASM_EMIT("sub             %[dst], $0x20")
+
+            // 1x block
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds            %[count], $1")
+            __ASM_EMIT("blt             6f")
+
+            __ASM_EMIT("vldm            %[src], {s0}")
+            __ASM_EMIT("vmov            s1, s0")
+            __ASM_EMIT("vldm            %[dst], {q4-q9}")
+            __ASM_EMIT("vmov            d1, d0")
+            __ASM_EMIT("vmul.f32        q2, q0, q10")
+            __ASM_EMIT("vmul.f32        q3, q0, q11")
+            __ASM_EMIT("vadd.f32        q4, q2")
+            __ASM_EMIT("vadd.f32        q5, q3")
+            __ASM_EMIT("vmul.f32        q2, q0, q12")
+            __ASM_EMIT("vmul.f32        q3, q0, q13")
+            __ASM_EMIT("vadd.f32        q6, q2")
+            __ASM_EMIT("vadd.f32        q7, q3")
+            __ASM_EMIT("vmul.f32        q2, q0, q14")
+            __ASM_EMIT("vmul.f32        q3, q0, q15")
+            __ASM_EMIT("vadd.f32        q8, q2")
+            __ASM_EMIT("vadd.f32        q9, q3")
+            __ASM_EMIT("vldm            %[dst], {q4-q9}")
+
+            __ASM_EMIT("6:")
+            : [dst] "+r" (dst), [src] "+r" (src),
+              [count] "+r" (count)
+            : [kernel] "r" (kernel)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+    }
 }
 
 #endif /* DSP_ARCH_ARM_NEON_D32_RESAMPLING_H_ */

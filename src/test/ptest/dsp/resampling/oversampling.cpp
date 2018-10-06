@@ -113,7 +113,7 @@ PTEST_BEGIN("dsp.resampling", oversampling, 5, 1000)
 
         call(out, in, RTEST_BUF_SIZE, 4, "native:4x3", native::lanczos_resample_4x3);
         IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 4, "sse:4x3", sse::lanczos_resample_4x3));
-//        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 4, "neon_d32:4x3", neon_d32::lanczos_resample_4x3));
+        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 4, "neon_d32:4x3", neon_d32::lanczos_resample_4x3));
         PTEST_SEPARATOR;
 
         call(out, in, RTEST_BUF_SIZE, 6, "native:6x2", native::lanczos_resample_6x2);
