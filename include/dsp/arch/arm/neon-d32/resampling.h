@@ -1122,6 +1122,248 @@ namespace neon_d32
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
     }
+
+    static const float lanczos_kernel_8x3[] __lsp_aligned16 =
+    {
+        +0.0000000000000000f,
+        +0.0413762983728270f,
+        +0.0800907151667399f,
+        +0.1098388956286788f,
+
+        +0.1250635280404858f,
+        +0.1218381732799711f,
+        +0.0985951550643596f,
+        +0.0565868891962354f,
+
+        -0.0000000000000000f,
+        -0.0643160644975587f,
+        -0.1274947024165923f,
+        -0.1796106608775988f,
+
+        -0.2108456783342821f,
+        -0.2127234580145891f,
+        -0.1792608653618989f,
+        -0.1078863334836789f,
+
+        +0.0000000000000000f,
+        +0.1389094368005209f,
+        +0.2996235873365793f,
+        +0.4700032639087741f,
+
+        +0.6361653568810439f,
+        +0.7838984051945062f,
+        +0.9001556302107272f,
+        +0.9744518753544421f,
+
+        +1.0000000000000000f,
+        +0.9744518753544421f,
+        +0.9001556302107272f,
+        +0.7838984051945062f,
+
+        +0.6361653568810439f,
+        +0.4700032639087741f,
+        +0.2996235873365793f,
+        +0.1389094368005209f,
+
+        +0.0000000000000000f,
+        -0.1078863334836789f,
+        -0.1792608653618989f,
+        -0.2127234580145891f,
+
+        -0.2108456783342821f,
+        -0.1796106608775988f,
+        -0.1274947024165923f,
+        -0.0643160644975587f,
+
+        -0.0000000000000000f,
+        +0.0565868891962354f,
+        +0.0985951550643596f,
+        +0.1218381732799711f,
+
+        +0.1250635280404858f,
+        +0.1098388956286788f,
+        +0.0800907151667399f,
+        +0.0413762983728270f
+    };
+
+    void lanczos_resample_8x3(float *dst, const float *src, size_t count)
+    {
+        IF_ARCH_ARM(
+            const float *k1, *kernel = lanczos_kernel_8x3;
+            float *d1, *d2;
+        );
+
+        ARCH_ARM_ASM
+        (
+            __ASM_EMIT("subs            %[count], $4")
+            __ASM_EMIT("add             %[k1], %[k0], $0x60")
+            __ASM_EMIT("blo             2f")
+
+            // x4 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vld1.32         {q0}, [%[src]]!")
+            __ASM_EMIT("vmov            q1, q0")
+            __ASM_EMIT("vldm            %[k0], {q10-q15}")
+            __ASM_EMIT("vmov            q2, q0")
+            __ASM_EMIT("vmov            q3, q1")
+            __ASM_EMIT("add             %[d1], %[d0], $0x60")
+            __ASM_EMIT("add             %[d2], %[d0], $0xc0")
+            __ASM_EMIT("vtrn.32         q0, q1")
+            __ASM_EMIT("vtrn.32         q2, q3")
+            __ASM_EMIT("vswp            d1, d4")
+            __ASM_EMIT("vswp            d3, d6") // q2 = s0, q3 = s1, q4 = s2, q5 = s3
+
+            // Part 1
+            __ASM_EMIT("vldm            %[d0], {q4-q9}")
+            __ASM_EMIT("vmla.f32        q4, q10, q0")
+            __ASM_EMIT("vmla.f32        q7, q11, q1")
+            __ASM_EMIT("vmla.f32        q6, q12, q0")
+            __ASM_EMIT("vmla.f32        q9, q13, q1")
+            __ASM_EMIT("vmla.f32        q5, q11, q0")
+            __ASM_EMIT("vmla.f32        q8, q10, q2")
+            __ASM_EMIT("vmla.f32        q7, q13, q0")
+            __ASM_EMIT("vmla.f32        q9, q11, q2")
+            __ASM_EMIT("vmla.f32        q8, q14, q0")
+            __ASM_EMIT("vmla.f32        q6, q10, q1")
+            __ASM_EMIT("vmla.f32        q9, q15, q0")
+            __ASM_EMIT("vmla.f32        q8, q12, q1")
+            __ASM_EMIT("vstm            %[d0], {q4-q9}")
+            // Part 2
+            __ASM_EMIT("vldm            %[d1], {q4-q7}")
+            __ASM_EMIT("vmla.f32        q4, q14, q1")
+            __ASM_EMIT("vmla.f32        q7, q15, q2")
+            __ASM_EMIT("vmla.f32        q8, q14, q1")
+            __ASM_EMIT("vmla.f32        q6, q12, q3")
+            __ASM_EMIT("vmla.f32        q5, q13, q2")
+            __ASM_EMIT("vmla.f32        q9, q15, q3")
+            __ASM_EMIT("vmla.f32        q4, q12, q2")
+            __ASM_EMIT("vmla.f32        q7, q13, q3")
+            __ASM_EMIT("vmla.f32        q6, q14, q2")
+            __ASM_EMIT("vmla.f32        q4, q10, q3")
+            __ASM_EMIT("vmla.f32        q5, q15, q1")
+            __ASM_EMIT("vmla.f32        q5, q11, q3")
+            // Part 3
+            __ASM_EMIT("vldm            %[k1], {q10-q15}")
+            __ASM_EMIT("vmla.f32        q4, q10, q0")
+            __ASM_EMIT("vmla.f32        q7, q11, q1")
+            __ASM_EMIT("vmla.f32        q6, q12, q0")
+            __ASM_EMIT("vmla.f32        q9, q13, q1")
+            __ASM_EMIT("vmla.f32        q5, q11, q0")
+            __ASM_EMIT("vmla.f32        q8, q10, q2")
+            __ASM_EMIT("vmla.f32        q7, q13, q0")
+            __ASM_EMIT("vmla.f32        q9, q11, q2")
+            __ASM_EMIT("vmla.f32        q8, q14, q0")
+            __ASM_EMIT("vmla.f32        q6, q10, q1")
+            __ASM_EMIT("vmla.f32        q9, q15, q0")
+            __ASM_EMIT("vmla.f32        q8, q12, q1")
+            __ASM_EMIT("vstm            %[d1], {q4-q7}")
+            // Part 4
+            __ASM_EMIT("vldm            %[d2], {q4-q7}")
+            __ASM_EMIT("vmla.f32        q4, q14, q1")
+            __ASM_EMIT("vmla.f32        q7, q15, q2")
+            __ASM_EMIT("vmla.f32        q8, q14, q1")
+            __ASM_EMIT("vmla.f32        q6, q12, q3")
+            __ASM_EMIT("vmla.f32        q5, q13, q2")
+            __ASM_EMIT("vmla.f32        q9, q15, q3")
+            __ASM_EMIT("vmla.f32        q4, q12, q2")
+            __ASM_EMIT("vmla.f32        q7, q13, q3")
+            __ASM_EMIT("vmla.f32        q6, q14, q2")
+            __ASM_EMIT("vmla.f32        q4, q10, q3")
+            __ASM_EMIT("vmla.f32        q5, q15, q1")
+            __ASM_EMIT("vmla.f32        q5, q11, q3")
+            __ASM_EMIT("vstm            %[d2], {q4-q7}")
+            __ASM_EMIT("subs            %[count], $4")
+            __ASM_EMIT("add             %[d0], $0x80")
+            __ASM_EMIT("bhs             1b")
+
+            // x2 block
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds            %[count], $2")
+            __ASM_EMIT("add             %[k1], %[k0], $0x40")
+            __ASM_EMIT("blt             4f")
+
+            __ASM_EMIT("vldm            %[src]!, {d0}")
+            __ASM_EMIT("vmov            d1, d0")
+            __ASM_EMIT("add             %[d1], %[d0], $0x60")
+            __ASM_EMIT("vmov            q1, q0")
+            __ASM_EMIT("vldm            %[k0], {q9-q15}")
+            __ASM_EMIT("vtrn.32         q0, q1")
+            // Part 1
+            __ASM_EMIT("vldm            %[d0], {q2-q8}")
+            __ASM_EMIT("vmla.f32        q2, q9, q0")
+            __ASM_EMIT("vmla.f32        q7, q14, q0")
+            __ASM_EMIT("vmla.f32        q4, q9, q1")
+            __ASM_EMIT("vmla.f32        q3, q10, q0")
+            __ASM_EMIT("vmla.f32        q6, q11, q1")
+            __ASM_EMIT("vmla.f32        q8, q15, q0")
+            __ASM_EMIT("vmla.f32        q5, q12, q0")
+            __ASM_EMIT("vmla.f32        q8, q13, q1")
+            __ASM_EMIT("vmla.f32        q4, q11, q0")
+            __ASM_EMIT("vmla.f32        q5, q10, q1")
+            __ASM_EMIT("vmla.f32        q6, q13, q0")
+            __ASM_EMIT("vmla.f32        q7, q12, q1")
+            __ASM_EMIT("vstm            %[d0], {q2-q8}")
+            // Part 2
+            __ASM_EMIT("vldm            %[k1], {q9-q15}")
+            __ASM_EMIT("vldm            %[d1], {q2-q8}")
+            __ASM_EMIT("vmla.f32        q2, q9, q1")
+            __ASM_EMIT("vmla.f32        q3, q10, q1")
+            __ASM_EMIT("vmla.f32        q4, q13, q0")
+            __ASM_EMIT("vmla.f32        q7, q14, q1")
+            __ASM_EMIT("vmla.f32        q2, q11, q0")
+            __ASM_EMIT("vmla.f32        q5, q12, q1")
+            __ASM_EMIT("vmla.f32        q6, q15, q0")
+            __ASM_EMIT("vmla.f32        q4, q11, q1")
+            __ASM_EMIT("vmla.f32        q5, q14, q0")
+            __ASM_EMIT("vmla.f32        q8, q15, q1")
+            __ASM_EMIT("vmla.f32        q3, q12, q0")
+            __ASM_EMIT("vmla.f32        q6, q13, q1")
+            __ASM_EMIT("vstm            %[d1], {q2-q8}")
+            __ASM_EMIT("sub             %[count], $2")
+            __ASM_EMIT("add             %[d0], $0x40")
+
+            // x1 block
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds            %[count], $1")
+            __ASM_EMIT("blt             6f")
+
+            __ASM_EMIT("vldm            %[src]!, {d0}")
+            __ASM_EMIT("vmov            s1, s0")
+            __ASM_EMIT("vldm            %[k0], {q10-q15}")
+            __ASM_EMIT("vmov            d1, d0")
+            __ASM_EMIT("add             %[d1], %[d0], $0x60")
+            __ASM_EMIT("vmov            q1, q0")
+            __ASM_EMIT("add             %[k1], %[k0], $0x60")
+            // Part 1
+            __ASM_EMIT("vldm            %[d0], {q4-q9}")
+            __ASM_EMIT("vmla.f32        q4, q10, q0")
+            __ASM_EMIT("vmla.f32        q5, q11, q0")
+            __ASM_EMIT("vmla.f32        q6, q12, q0")
+            __ASM_EMIT("vmla.f32        q7, q13, q0")
+            __ASM_EMIT("vmla.f32        q8, q14, q0")
+            __ASM_EMIT("vmla.f32        q9, q15, q0")
+            __ASM_EMIT("vstm            %[d0], {q2-q5}")
+            // Part 2
+            __ASM_EMIT("vldm            %[k1], {q10-q15}")
+            __ASM_EMIT("vldm            %[d1], {q4-q9}")
+            __ASM_EMIT("vmla.f32        q4, q10, q0")
+            __ASM_EMIT("vmla.f32        q5, q11, q0")
+            __ASM_EMIT("vmla.f32        q6, q12, q0")
+            __ASM_EMIT("vmla.f32        q7, q13, q0")
+            __ASM_EMIT("vmla.f32        q8, q14, q0")
+            __ASM_EMIT("vmla.f32        q9, q15, q0")
+            __ASM_EMIT("vstm            %[d1], {q2-q5}")
+
+            __ASM_EMIT("6:")
+            : [d0] "+r" (dst), [d1] "=&r" (d1), [d2] "=&r" (d2), [k1] "=r" (k1),
+              [src] "+r" (src),
+              [count] "+r" (count)
+            : [k0] "r" (kernel)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+    }
 }
 
 #endif /* DSP_ARCH_ARM_NEON_D32_RESAMPLING_H_ */
