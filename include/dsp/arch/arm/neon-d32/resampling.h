@@ -1092,12 +1092,11 @@ namespace neon_d32
             __ASM_EMIT("adds            %[count], $1")
             __ASM_EMIT("blt             6f")
 
-            __ASM_EMIT("vldm            %[src]!, {d0}")
+            __ASM_EMIT("vldm            %[src], {s0}")
             __ASM_EMIT("vmov            s1, s0")
             __ASM_EMIT("add             %[d1], %[d0], $0x40")
             __ASM_EMIT("vmov            d1, d0")
             __ASM_EMIT("vldm            %[d0], {q2-q5}")
-            __ASM_EMIT("vmov            q1, q0")
             // Part 1
             __ASM_EMIT("vmla.f32        q2, q8, q0")
             __ASM_EMIT("vmla.f32        q3, q9, q0")
@@ -1196,7 +1195,6 @@ namespace neon_d32
         ARCH_ARM_ASM
         (
             __ASM_EMIT("subs            %[count], $4")
-            __ASM_EMIT("add             %[k1], %[k0], $0x60")
             __ASM_EMIT("blo             2f")
 
             // x4 blocks
@@ -1205,6 +1203,7 @@ namespace neon_d32
             __ASM_EMIT("vmov            q1, q0")
             __ASM_EMIT("vldm            %[k0], {q10-q15}")
             __ASM_EMIT("vmov            q2, q0")
+            __ASM_EMIT("add             %[k1], %[k0], $0x60")
             __ASM_EMIT("vmov            q3, q1")
             __ASM_EMIT("add             %[d1], %[d0], $0x60")
             __ASM_EMIT("add             %[d2], %[d0], $0xc0")
@@ -1229,10 +1228,10 @@ namespace neon_d32
             __ASM_EMIT("vmla.f32        q8, q12, q1")
             __ASM_EMIT("vstm            %[d0], {q4-q9}")
             // Part 2
-            __ASM_EMIT("vldm            %[d1], {q4-q7}")
+            __ASM_EMIT("vldm            %[d1], {q4-q9}")
             __ASM_EMIT("vmla.f32        q4, q14, q1")
             __ASM_EMIT("vmla.f32        q7, q15, q2")
-            __ASM_EMIT("vmla.f32        q8, q14, q1")
+            __ASM_EMIT("vmla.f32        q8, q14, q3")
             __ASM_EMIT("vmla.f32        q6, q12, q3")
             __ASM_EMIT("vmla.f32        q5, q13, q2")
             __ASM_EMIT("vmla.f32        q9, q15, q3")
@@ -1256,12 +1255,12 @@ namespace neon_d32
             __ASM_EMIT("vmla.f32        q6, q10, q1")
             __ASM_EMIT("vmla.f32        q9, q15, q0")
             __ASM_EMIT("vmla.f32        q8, q12, q1")
-            __ASM_EMIT("vstm            %[d1], {q4-q7}")
+            __ASM_EMIT("vstm            %[d1], {q4-q9}")
             // Part 4
-            __ASM_EMIT("vldm            %[d2], {q4-q7}")
+            __ASM_EMIT("vldm            %[d2], {q4-q9}")
             __ASM_EMIT("vmla.f32        q4, q14, q1")
             __ASM_EMIT("vmla.f32        q7, q15, q2")
-            __ASM_EMIT("vmla.f32        q8, q14, q1")
+            __ASM_EMIT("vmla.f32        q8, q14, q3")
             __ASM_EMIT("vmla.f32        q6, q12, q3")
             __ASM_EMIT("vmla.f32        q5, q13, q2")
             __ASM_EMIT("vmla.f32        q9, q15, q3")
@@ -1271,7 +1270,7 @@ namespace neon_d32
             __ASM_EMIT("vmla.f32        q4, q10, q3")
             __ASM_EMIT("vmla.f32        q5, q15, q1")
             __ASM_EMIT("vmla.f32        q5, q11, q3")
-            __ASM_EMIT("vstm            %[d2], {q4-q7}")
+            __ASM_EMIT("vstm            %[d2], {q4-q9}")
             __ASM_EMIT("subs            %[count], $4")
             __ASM_EMIT("add             %[d0], $0x80")
             __ASM_EMIT("bhs             1b")
@@ -1279,15 +1278,15 @@ namespace neon_d32
             // x2 block
             __ASM_EMIT("2:")
             __ASM_EMIT("adds            %[count], $2")
-            __ASM_EMIT("add             %[k1], %[k0], $0x40")
             __ASM_EMIT("blt             4f")
 
             __ASM_EMIT("vldm            %[src]!, {d0}")
             __ASM_EMIT("vmov            d1, d0")
-            __ASM_EMIT("add             %[d1], %[d0], $0x60")
+            __ASM_EMIT("add             %[d1], %[d0], $0x70")
             __ASM_EMIT("vmov            q1, q0")
             __ASM_EMIT("vldm            %[k0], {q9-q15}")
             __ASM_EMIT("vtrn.32         q0, q1")
+            __ASM_EMIT("add             %[k1], %[k0], $0x50")
             // Part 1
             __ASM_EMIT("vldm            %[d0], {q2-q8}")
             __ASM_EMIT("vmla.f32        q2, q9, q0")
@@ -1327,12 +1326,11 @@ namespace neon_d32
             __ASM_EMIT("adds            %[count], $1")
             __ASM_EMIT("blt             6f")
 
-            __ASM_EMIT("vldm            %[src]!, {d0}")
+            __ASM_EMIT("vldm            %[src], {s0}")
             __ASM_EMIT("vmov            s1, s0")
             __ASM_EMIT("vldm            %[k0], {q10-q15}")
             __ASM_EMIT("vmov            d1, d0")
             __ASM_EMIT("add             %[d1], %[d0], $0x60")
-            __ASM_EMIT("vmov            q1, q0")
             __ASM_EMIT("add             %[k1], %[k0], $0x60")
             // Part 1
             __ASM_EMIT("vldm            %[d0], {q4-q9}")
@@ -1342,7 +1340,7 @@ namespace neon_d32
             __ASM_EMIT("vmla.f32        q7, q13, q0")
             __ASM_EMIT("vmla.f32        q8, q14, q0")
             __ASM_EMIT("vmla.f32        q9, q15, q0")
-            __ASM_EMIT("vstm            %[d0], {q2-q5}")
+            __ASM_EMIT("vstm            %[d0], {q4-q9}")
             // Part 2
             __ASM_EMIT("vldm            %[k1], {q10-q15}")
             __ASM_EMIT("vldm            %[d1], {q4-q9}")
@@ -1352,10 +1350,10 @@ namespace neon_d32
             __ASM_EMIT("vmla.f32        q7, q13, q0")
             __ASM_EMIT("vmla.f32        q8, q14, q0")
             __ASM_EMIT("vmla.f32        q9, q15, q0")
-            __ASM_EMIT("vstm            %[d1], {q2-q5}")
+            __ASM_EMIT("vstm            %[d1], {q4-q9}")
 
             __ASM_EMIT("6:")
-            : [d0] "+r" (dst), [d1] "=&r" (d1), [d2] "=&r" (d2), [k1] "=r" (k1),
+            : [d0] "+r" (dst), [d1] "=&r" (d1), [d2] "=&r" (d2), [k1] "=&r" (k1),
               [src] "+r" (src),
               [count] "+r" (count)
             : [k0] "r" (kernel)
