@@ -50,8 +50,8 @@ IF_ARCH_ARM(
         void lanczos_resample_4x3(float *dst, const float *src, size_t count);
         void lanczos_resample_6x2(float *dst, const float *src, size_t count);
         void lanczos_resample_6x3(float *dst, const float *src, size_t count);
+        void lanczos_resample_8x2(float *dst, const float *src, size_t count);
 // TODO
-//        void lanczos_resample_8x2(float *dst, const float *src, size_t count);
 //        void lanczos_resample_8x3(float *dst, const float *src, size_t count);
     }
 )
@@ -127,8 +127,8 @@ UTEST_BEGIN("dsp.resampling", oversampling)
         IF_ARCH_ARM(call(4, "neon_d32:lanczos_resample_4x3", 16, native::lanczos_resample_4x3, neon_d32::lanczos_resample_4x3));
         IF_ARCH_ARM(call(6, "neon_d32:lanczos_resample_6x2", 16, native::lanczos_resample_6x2, neon_d32::lanczos_resample_6x2));
         IF_ARCH_ARM(call(6, "neon_d32:lanczos_resample_6x3", 16, native::lanczos_resample_6x3, neon_d32::lanczos_resample_6x3));
+        IF_ARCH_ARM(call(8, "neon_d32:lanczos_resample_8x2", 16, native::lanczos_resample_8x2, neon_d32::lanczos_resample_8x2));
 // TODO
-//        IF_ARCH_ARM(call(8, "neon_d32:lanczos_resample_8x2", 16, native::lanczos_resample_8x2, neon_d32::lanczos_resample_8x2));
 //        IF_ARCH_ARM(call(8, "neon_d32:lanczos_resample_8x3", 16, native::lanczos_resample_8x3, neon_d32::lanczos_resample_8x3));
     }
 UTEST_END;
