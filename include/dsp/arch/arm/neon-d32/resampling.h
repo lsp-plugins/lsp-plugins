@@ -771,6 +771,77 @@ namespace neon_d32
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
     }
+
+    static const float lanczos_kernel_6x2[] __lsp_aligned16 =
+    {
+        +0.0000000000000000f,
+        -0.0835168749111343f,
+        -0.1602001404590001f,
+        -0.2067943377468982f,
+
+        -0.2025752314530442f,
+        -0.1343073344351001f,
+        +0.0000000000000000f,
+        +0.1894744904080251f,
+
+        +0.4114005618526707f,
+        +0.6348032780190205f,
+        +0.8259440903283795f,
+        +0.9546266788436470f,
+
+        +1.0000000000000000f,
+        +0.9546266788436470f,
+        +0.8259440903283795f,
+        +0.6348032780190205f,
+
+        +0.4114005618526707f,
+        +0.1894744904080251f,
+        +0.0000000000000000f,
+        -0.1343073344351001f,
+
+        -0.2025752314530442f,
+        -0.2067943377468982f,
+        -0.1602001404590001f,
+        -0.0835168749111343f
+    };
+
+    void lanczos_resample_6x2(float *dst, const float *src, size_t count)
+    {
+        IF_ARCH_ARM(
+            const float *kernel = lanczos_kernel_4x3;
+        );
+
+        ARCH_ARM_ASM
+        (
+            __ASM_EMIT("subs            %[count], $1")
+            __ASM_EMIT("blo             2f")
+            __ASM_EMIT("vldm            %[kernel], {q8-q13}")
+
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vldm            %[src]!, {s0}")
+            __ASM_EMIT("vmov            s1, s0")
+            __ASM_EMIT("vldm            %[dst], {q2-q7}")
+            __ASM_EMIT("vmov            d1, d0")
+            __ASM_EMIT("vmla            q2, q8, q0")
+            __ASM_EMIT("vmla            q3, q9, q0")
+            __ASM_EMIT("vmla            q4, q10, q0")
+            __ASM_EMIT("vmla            q5, q11, q0")
+            __ASM_EMIT("vmla            q6, q12, q0")
+            __ASM_EMIT("vmla            q7, q13, q0")
+            __ASM_EMIT("vstm            %[dst], {q2-q7}")
+            __ASM_EMIT("subs            %[count], $1")
+            __ASM_EMIT("add             %[dst], $0x18")
+            __ASM_EMIT("bhs             1b")
+
+            __ASM_EMIT("2:")
+            : [dst] "+r" (dst), [src] "+r" (src),
+              [count] "+r" (count)
+            : [kernel] "r" (kernel)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+    }
 }
 
 #endif /* DSP_ARCH_ARM_NEON_D32_RESAMPLING_H_ */
