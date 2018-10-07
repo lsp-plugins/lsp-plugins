@@ -808,7 +808,7 @@ namespace neon_d32
     void lanczos_resample_6x2(float *dst, const float *src, size_t count)
     {
         IF_ARCH_ARM(
-            const float *kernel = lanczos_kernel_4x3;
+            const float *kernel = lanczos_kernel_6x2;
         );
 
         ARCH_ARM_ASM
@@ -822,12 +822,12 @@ namespace neon_d32
             __ASM_EMIT("vmov            s1, s0")
             __ASM_EMIT("vldm            %[dst], {q2-q7}")
             __ASM_EMIT("vmov            d1, d0")
-            __ASM_EMIT("vmla            q2, q8, q0")
-            __ASM_EMIT("vmla            q3, q9, q0")
-            __ASM_EMIT("vmla            q4, q10, q0")
-            __ASM_EMIT("vmla            q5, q11, q0")
-            __ASM_EMIT("vmla            q6, q12, q0")
-            __ASM_EMIT("vmla            q7, q13, q0")
+            __ASM_EMIT("vmla.f32        q2, q8, q0")
+            __ASM_EMIT("vmla.f32        q3, q9, q0")
+            __ASM_EMIT("vmla.f32        q4, q10, q0")
+            __ASM_EMIT("vmla.f32        q5, q11, q0")
+            __ASM_EMIT("vmla.f32        q6, q12, q0")
+            __ASM_EMIT("vmla.f32        q7, q13, q0")
             __ASM_EMIT("vstm            %[dst], {q2-q7}")
             __ASM_EMIT("subs            %[count], $1")
             __ASM_EMIT("add             %[dst], $0x18")
@@ -837,6 +837,98 @@ namespace neon_d32
             : [dst] "+r" (dst), [src] "+r" (src),
               [count] "+r" (count)
             : [kernel] "r" (kernel)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+    }
+
+    static const float lanczos_kernel_6x3[] __lsp_aligned16 =
+    {
+        +0.0000000000000000f,
+        +0.0539107649662794f,
+        +0.0996822843396933f,
+        +0.1233221256242928f,
+
+        +0.1149032936217488f,
+        +0.0717178866781924f,
+        -0.0000000000000000f,
+        -0.0853379770956540f,
+
+        -0.1630759564500400f,
+        -0.2097908159917360f,
+        -0.2048873332640742f,
+        -0.1354777817419537f,
+
+        +0.0000000000000000f,
+        +0.1903132912211352f,
+        +0.4125642785884168f,
+        +0.6358120571822271f,
+
+        +0.8265269098929101f,
+        +0.9547949937819170f,
+        +1.0000000000000000f,
+        +0.9547949937819170f,
+
+        +0.8265269098929101f,
+        +0.6358120571822271f,
+        +0.4125642785884168f,
+        +0.1903132912211352f,
+
+        +0.0000000000000000f,
+        -0.1354777817419537f,
+        -0.2048873332640742f,
+        -0.2097908159917360f,
+
+        -0.1630759564500400f,
+        -0.0853379770956540f,
+        -0.0000000000000000f,
+        +0.0717178866781924f,
+
+        +0.1149032936217488f,
+        +0.1233221256242928f,
+        +0.0996822843396933f,
+        +0.0539107649662794f
+    };
+
+    void lanczos_resample_6x3(float *dst, const float *src, size_t count)
+    {
+        IF_ARCH_ARM(
+            const float *kernel = lanczos_kernel_6x3;
+        );
+
+        ARCH_ARM_ASM
+        (
+            __ASM_EMIT("subs            %[count], $1")
+            __ASM_EMIT("blo             2f")
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vldm            %[src]!, {s0}")
+            __ASM_EMIT("vmov            s1, s0")
+            __ASM_EMIT("vldm            %[kernel]!, {q8-q13}")
+            __ASM_EMIT("vmov            d1, d0")
+            __ASM_EMIT("vldm            %[dst], {q2-q7}")
+            __ASM_EMIT("vmla.f32        q2, q8, q0")
+            __ASM_EMIT("vmla.f32        q3, q9, q0")
+            __ASM_EMIT("vmla.f32        q4, q10, q0")
+            __ASM_EMIT("vmla.f32        q5, q11, q0")
+            __ASM_EMIT("vmla.f32        q6, q12, q0")
+            __ASM_EMIT("vmla.f32        q7, q13, q0")
+            __ASM_EMIT("vstm            %[dst]!, {q2-q7}")
+            __ASM_EMIT("vldm            %[kernel], {q8-q10}")
+            __ASM_EMIT("vldm            %[dst], {q2-q4}")
+            __ASM_EMIT("vmla.f32        q2, q8, q0")
+            __ASM_EMIT("vmla.f32        q3, q9, q0")
+            __ASM_EMIT("vmla.f32        q4, q10, q0")
+            __ASM_EMIT("vstm            %[dst], {q2-q4}")
+            __ASM_EMIT("subs            %[count], $1")
+            __ASM_EMIT("sub             %[kernel], $0x60")
+            __ASM_EMIT("sub             %[dst], $0x48")
+            __ASM_EMIT("bhs             1b")
+
+            __ASM_EMIT("2:")
+            : [dst] "+r" (dst), [src] "+r" (src),
+              [count] "+r" (count), [kernel] "+r" (kernel)
+            :
             : "cc", "memory",
               "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
