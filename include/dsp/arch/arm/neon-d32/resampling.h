@@ -894,41 +894,46 @@ namespace neon_d32
     void lanczos_resample_6x3(float *dst, const float *src, size_t count)
     {
         IF_ARCH_ARM(
-            const float *kernel = lanczos_kernel_6x3;
+            const float *k1, *kernel = lanczos_kernel_6x3;
+            float *d1;
         );
 
         ARCH_ARM_ASM
         (
             __ASM_EMIT("subs            %[count], $1")
             __ASM_EMIT("blo             2f")
+            __ASM_EMIT("add             %[k1], %[k0], $0x30")
+            __ASM_EMIT("vldm            %[k1], {q11-q13}")
+            __ASM_EMIT("add             %[k1], $0x30")
             __ASM_EMIT("1:")
             __ASM_EMIT("vldm            %[src]!, {s0}")
             __ASM_EMIT("vmov            s1, s0")
-            __ASM_EMIT("vldm            %[kernel]!, {q8-q13}")
+            __ASM_EMIT("vldm            %[k0], {q8-q10}")
             __ASM_EMIT("vmov            d1, d0")
-            __ASM_EMIT("vldm            %[dst], {q2-q7}")
+            __ASM_EMIT("vldm            %[d0], {q2-q7}")
+            __ASM_EMIT("add             %[d1], %[d0], $0x60")
             __ASM_EMIT("vmla.f32        q2, q8, q0")
             __ASM_EMIT("vmla.f32        q3, q9, q0")
             __ASM_EMIT("vmla.f32        q4, q10, q0")
             __ASM_EMIT("vmla.f32        q5, q11, q0")
             __ASM_EMIT("vmla.f32        q6, q12, q0")
             __ASM_EMIT("vmla.f32        q7, q13, q0")
-            __ASM_EMIT("vstm            %[dst]!, {q2-q7}")
-            __ASM_EMIT("vldm            %[kernel], {q8-q10}")
-            __ASM_EMIT("vldm            %[dst], {q2-q4}")
+            __ASM_EMIT("vstm            %[d0], {q2-q7}")
+            __ASM_EMIT("vldm            %[k1], {q8-q10}")
+            __ASM_EMIT("vldm            %[d1], {q2-q4}")
             __ASM_EMIT("vmla.f32        q2, q8, q0")
             __ASM_EMIT("vmla.f32        q3, q9, q0")
             __ASM_EMIT("vmla.f32        q4, q10, q0")
-            __ASM_EMIT("vstm            %[dst], {q2-q4}")
+            __ASM_EMIT("vstm            %[d1], {q2-q4}")
             __ASM_EMIT("subs            %[count], $1")
-            __ASM_EMIT("sub             %[kernel], $0x60")
-            __ASM_EMIT("sub             %[dst], $0x48")
+            __ASM_EMIT("add             %[d0], $0x18")
             __ASM_EMIT("bhs             1b")
 
             __ASM_EMIT("2:")
-            : [dst] "+r" (dst), [src] "+r" (src),
-              [count] "+r" (count), [kernel] "+r" (kernel)
-            :
+            : [d0] "+r" (dst), [d1] "=&r" (d1), [k1] "=&r" (k1),
+              [src] "+r" (src),
+              [count] "+r" (count)
+            : [k0] "r" (kernel)
             : "cc", "memory",
               "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
