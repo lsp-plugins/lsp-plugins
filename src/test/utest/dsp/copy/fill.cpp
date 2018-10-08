@@ -27,6 +27,17 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+// TODO
+//        void fill(float *dst, float value, size_t count);
+//        void fill_one(float *dst, size_t count);
+//        void fill_zero(float *dst, size_t count);
+//        void fill_minus_one(float *dst, size_t count);
+    }
+)
+
 typedef void (* fill_t)(float *dst, float value, size_t count);
 typedef void (* fill_value_t)(float *dst, size_t count);
 
@@ -93,10 +104,16 @@ UTEST_BEGIN("dsp.copy", fill)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("fill_sse", 16, native::fill, sse::fill));
-        IF_ARCH_X86(call("fill_one_sse", 16, native::fill_one, sse::fill_one));
-        IF_ARCH_X86(call("fill_zero_sse", 16, native::fill_zero, sse::fill_zero));
-        IF_ARCH_X86(call("fill_minus_one_sse", 16, native::fill_minus_one, sse::fill_minus_one));
+        IF_ARCH_X86(call("sse:fill", 16, native::fill, sse::fill));
+        IF_ARCH_X86(call("sse:fill_one", 16, native::fill_one, sse::fill_one));
+        IF_ARCH_X86(call("sse:fill_zero", 16, native::fill_zero, sse::fill_zero));
+        IF_ARCH_X86(call("sse:fill_minus_one", 16, native::fill_minus_one, sse::fill_minus_one));
+
+// TODO
+//        IF_ARCH_ARM(call("neon_d32:fill", 16, native::fill, neon_d32::fill));
+//        IF_ARCH_ARM(call("neon_d32:fill_one", 16, native::fill_one, neon_d32::fill_one));
+//        IF_ARCH_ARM(call("neon_d32:fill_zero", 16, native::fill_zero, neon_d32::fill_zero));
+//        IF_ARCH_ARM(call("neon_d32:fill_minus_one", 16, native::fill_minus_one, neon_d32::fill_minus_one));
     }
 
 UTEST_END;

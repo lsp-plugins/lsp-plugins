@@ -8,8 +8,6 @@
 #include <dsp/dsp.h>
 #include <test/ptest.h>
 
-#define RTEST_BUF_SIZE  0x1000
-
 #define MIN_RANK 8
 #define MAX_RANK 20
 
@@ -41,7 +39,7 @@ typedef float (* search1_t) (const float *src, size_t count);
 typedef void  (* search2_t) (const float *src, size_t count, float *min, float *max);
 
 //-----------------------------------------------------------------------------
-// Performance test for lanczos resampling
+// Performance test for minimum and maximum searching
 PTEST_BEGIN("dsp.search", minmax, 5, 1000)
 
     void call(const char *label, const float *in, size_t count, search1_t func)
@@ -82,28 +80,32 @@ PTEST_BEGIN("dsp.search", minmax, 5, 1000)
         for (size_t i=0; i < (1 << MAX_RANK); ++i)
             in[i]          = float(rand()) / RAND_MAX;
 
-        for (size_t i=MIN_RANK; i <= MAX_RANK; i += 2)
+        for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             size_t count = 1 << i;
 
             call("native::min", in, count, native::min);
             call("sse::min", in, count, sse::min);
+            PTEST_SEPARATOR;
 
             call("native::abs_min", in, count, native::abs_min);
             call("sse::abs_min", in, count, sse::abs_min);
+            PTEST_SEPARATOR;
 
             call("native::max", in, count, native::max);
             call("sse::max", in, count, sse::max);
+            PTEST_SEPARATOR;
 
             call("native::abs_max", in, count, native::abs_max);
             call("sse::abs_max", in, count, sse::abs_max);
+            PTEST_SEPARATOR;
 
             call("native::minmax", in, count, native::minmax);
             call("sse::minmax", in, count, sse::minmax);
+            PTEST_SEPARATOR;
 
             call("native::abs_minmax", in, count, native::abs_minmax);
             call("sse::abs_minmax", in, count, sse::abs_minmax);
-
             PTEST_SEPARATOR;
         }
 
