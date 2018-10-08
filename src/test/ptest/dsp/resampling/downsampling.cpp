@@ -30,6 +30,18 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void downsample_2x(float *dst, const float *src, size_t count);
+    // TODO
+    //        void downsample_3x(float *dst, const float *src, size_t count);
+    //        void downsample_4x(float *dst, const float *src, size_t count);
+    //        void downsample_6x(float *dst, const float *src, size_t count);
+    //        void downsample_8x(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* downsample_t)(float *dst, const float *src, size_t count);
 
 //-----------------------------------------------------------------------------
@@ -58,24 +70,29 @@ PTEST_BEGIN("dsp.resampling", downsampling, 5, 1000)
             in[i]               = (i % 1) ? 1.0f : -1.0f;
 
         // Do tests
-        call(out, in, RTEST_BUF_SIZE, 2, "2x native", native::downsample_2x);
-        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 2, "2x sse", sse::downsample_2x));
+        call(out, in, RTEST_BUF_SIZE, 2, "native:downsample_2x", native::downsample_2x);
+        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 2, "sse:downsample_2x", sse::downsample_2x));
+        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 2, "neon_d32:downsample_2x", neon_d32::downsample_2x));
         PTEST_SEPARATOR;
 
-        call(out, in, RTEST_BUF_SIZE, 3, "3x native", native::downsample_3x);
-        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 3, "3x sse", sse::downsample_3x));
+        call(out, in, RTEST_BUF_SIZE, 3, "native:downsample_3x", native::downsample_3x);
+        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 3, "sse:downsample_3x", sse::downsample_3x));
+//        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 3, "neon_d32:downsample_3x", neon_d32::downsample_3x));
         PTEST_SEPARATOR;
 
-        call(out, in, RTEST_BUF_SIZE, 4, "4x native", native::downsample_4x);
-        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 4, "4x sse", sse::downsample_4x));
+        call(out, in, RTEST_BUF_SIZE, 4, "native:downsample_4x", native::downsample_4x);
+        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 4, "sse:downsample_4x", sse::downsample_4x));
+//        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 4, "neon_d32:downsample_4x", neon_d32::downsample_4x));
         PTEST_SEPARATOR;
 
-        call(out, in, RTEST_BUF_SIZE, 6, "6x native", native::downsample_6x);
-        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 6, "6x sse", sse::downsample_6x));
+        call(out, in, RTEST_BUF_SIZE, 6, "native:downsample_6x", native::downsample_6x);
+        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 6, "sse:downsample_6x", sse::downsample_6x));
+//        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 6, "neon_d32:downsample_6x", neon_d32::downsample_6x));
         PTEST_SEPARATOR;
 
-        call(out, in, RTEST_BUF_SIZE, 8, "8x native", native::downsample_8x);
-        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 8, "8x sse", sse::downsample_8x));
+        call(out, in, RTEST_BUF_SIZE, 8, "native:downsample_8x", native::downsample_8x);
+        IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 8, "sse:downsample_8x", sse::downsample_8x));
+//        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 8, "neon_d32:downsample_8x", neon_d32::downsample_8x));
         PTEST_SEPARATOR;
 
         delete [] out;

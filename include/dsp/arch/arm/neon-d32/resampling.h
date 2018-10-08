@@ -1367,6 +1367,89 @@ namespace neon_d32
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
     }
+
+    void downsample_2x(float *dst, const float *src, size_t count)
+    {
+        ARCH_ARM_ASM
+        (
+            __ASM_EMIT("subs            %[count], $32")
+            __ASM_EMIT("blo             2f")
+
+            // x32 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vld2.32         {q0-q1}, [%[src]]!")        // q0 = r, q1 = i
+            __ASM_EMIT("vld2.32         {q2-q3}, [%[src]]!")
+            __ASM_EMIT("vld2.32         {q4-q5}, [%[src]]!")
+            __ASM_EMIT("vmov            q1, q2")
+            __ASM_EMIT("vld2.32         {q6-q7}, [%[src]]!")
+            __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
+            __ASM_EMIT("vmov            q2, q4")
+            __ASM_EMIT("vld2.32         {q8-q9}, [%[src]]!")
+            __ASM_EMIT("vmov            q3, q6")
+            __ASM_EMIT("vld2.32         {q10-q11}, [%[src]]!")
+            __ASM_EMIT("vst1.32         {q2-q3}, [%[dst]]!")
+            __ASM_EMIT("vmov            q4, q8")
+            __ASM_EMIT("vld2.32         {q12-q13}, [%[src]]!")
+            __ASM_EMIT("vmov            q5, q10")
+            __ASM_EMIT("vld2.32         {q14-q15}, [%[src]]!")
+            __ASM_EMIT("vst1.32         {q4-q5}, [%[dst]]!")
+            __ASM_EMIT("vmov            q6, q12")
+            __ASM_EMIT("vmov            q7, q14")
+            __ASM_EMIT("subs            %[count], $32")
+            __ASM_EMIT("vst1.32         {q6-q7}, [%[dst]]!")
+            __ASM_EMIT("bhs             1b")
+
+            // x16 block
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds            %[count], $16")
+            __ASM_EMIT("blt             4f")
+            __ASM_EMIT("vld2.32         {q0-q1}, [%[src]]!")        // q0 = r, q1 = i
+            __ASM_EMIT("vld2.32         {q2-q3}, [%[src]]!")
+            __ASM_EMIT("vld2.32         {q4-q5}, [%[src]]!")
+            __ASM_EMIT("vmov            q1, q2")
+            __ASM_EMIT("vld2.32         {q6-q7}, [%[src]]!")
+            __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
+            __ASM_EMIT("vmov            q2, q4")
+            __ASM_EMIT("vmov            q3, q6")
+            __ASM_EMIT("sub             %[count], $16")
+            __ASM_EMIT("vst1.32         {q2-q3}, [%[dst]]!")
+
+            // x8 block
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds            %[count], $8")
+            __ASM_EMIT("blt             6f")
+            __ASM_EMIT("vld2.32         {q0-q1}, [%[src]]!")        // q0 = r, q1 = i
+            __ASM_EMIT("vld2.32         {q2-q3}, [%[src]]!")
+            __ASM_EMIT("vmov            q1, q2")
+            __ASM_EMIT("sub             %[count], $8")
+            __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
+
+            // x4 block
+            __ASM_EMIT("6:")
+            __ASM_EMIT("adds            %[count], $4")
+            __ASM_EMIT("blt             8f")
+            __ASM_EMIT("vld2.32         {q0-q1}, [%[src]]!")        // q0 = r, q1 = i
+            __ASM_EMIT("sub             %[count], $4")
+            __ASM_EMIT("vst1.32         {q0}, [%[dst]]!")
+
+            // x1 blocks
+            __ASM_EMIT("8:")
+            __ASM_EMIT("adds            %[count], $3")
+            __ASM_EMIT("blt             10f")
+            __ASM_EMIT("9:")
+            __ASM_EMIT("vldm.32         %[src]!, {s0, s1}")         // s0 = r, s1 = i
+            __ASM_EMIT("subs            %[count], $1")
+            __ASM_EMIT("vstm.32         %[dst]!, {s0}")
+            __ASM_EMIT("bge             9b")
+            __ASM_EMIT("10:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+    }
 }
 
 #endif /* DSP_ARCH_ARM_NEON_D32_RESAMPLING_H_ */
