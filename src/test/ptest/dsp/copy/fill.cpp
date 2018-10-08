@@ -44,7 +44,7 @@ typedef void (* fill_value_t)(float *dst, float value, size_t count);
 
 //-----------------------------------------------------------------------------
 // Performance test for destination buffer filling
-PTEST_BEGIN("dsp.copy", fill, 5, 1000)
+PTEST_BEGIN("dsp.copy", fill, 5, 5000)
 
     void call(const char *label, float *out, size_t count, fill_t func)
     {
@@ -70,7 +70,7 @@ PTEST_BEGIN("dsp.copy", fill, 5, 1000)
         printf("Testing %s numbers...\n", buf);
 
         PTEST_LOOP(buf,
-            func(out, count, M_PI);
+            func(out, M_PI, count);
         );
     }
 
