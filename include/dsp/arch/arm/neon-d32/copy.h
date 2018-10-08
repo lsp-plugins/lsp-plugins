@@ -184,6 +184,147 @@ namespace neon_d32
         );
     }
 
+    void fill_zero(float *dst, size_t count)
+    {
+        ARCH_ARM_ASM
+        (
+            __ASM_EMIT("subs        %[count], $32")
+            __ASM_EMIT("veor        q0, q0")
+            __ASM_EMIT("veor        q1, q1")
+            __ASM_EMIT("blo         2f")
+
+            /* 32x block */
+            __ASM_EMIT("veor        q2, q2")
+            __ASM_EMIT("veor        q3, q3")
+            __ASM_EMIT("veor        q4, q4")
+            __ASM_EMIT("veor        q5, q5")
+            __ASM_EMIT("veor        q6, q6")
+            __ASM_EMIT("veor        q7, q7")
+
+            __ASM_EMIT("1:")
+            __ASM_EMIT("subs        %[count], $32")
+            __ASM_EMIT("vstm        %[dst]!, {q0-q7}")
+            __ASM_EMIT("bhs         1b")
+
+            /* 16x block */
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds        %[count], $16")
+            __ASM_EMIT("blt         4f")
+
+            __ASM_EMIT("veor        q2, q2")
+            __ASM_EMIT("veor        q3, q3")
+            __ASM_EMIT("sub         %[count], $16")
+            __ASM_EMIT("vstm        %[dst]!, {q0-q3}")
+
+            /* 8x block */
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds        %[count], $8")
+            __ASM_EMIT("blt         5f")
+            __ASM_EMIT("sub         %[count], $0x08")
+            __ASM_EMIT("vstm        %[dst]!, {q0-q1}")
+
+            /* 4x block */
+            __ASM_EMIT("5:")
+            __ASM_EMIT("adds        %[count], $4")
+            __ASM_EMIT("blt         8f")
+            __ASM_EMIT("sub         %[count], $4")
+            __ASM_EMIT("vst1.32     {q0}, [%[dst]]!")
+
+            /* 1x blocks */
+            __ASM_EMIT("8:")
+            __ASM_EMIT("adds        %[count], $3")
+            __ASM_EMIT("blt         10f")
+            __ASM_EMIT("9:")
+            __ASM_EMIT("subs        %[count], $1")
+            __ASM_EMIT("vstm        %[dst]!, {s0}")
+            __ASM_EMIT("bge         9b")
+
+            __ASM_EMIT("10:")
+
+            : [src] "+r" (src), [dst] "+r"(dst),
+              [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7"
+        );
+    }
+
+    void fill(float *dst, float value, size_t count)
+    {
+        ARCH_ARM_ASM
+        (
+            __ASM_EMIT("vldr        s0, [%[pv]]")
+            __ASM_EMIT("subs        %[count], $32")
+            __ASM_EMIT("vmov        s1, s0")
+            __ASM_EMIT("vmov        d1, s0")
+            __ASM_EMIT("vmov        q1, q0")
+            __ASM_EMIT("blo         2f")
+
+            /* 32x block */
+            __ASM_EMIT("vmov        q2, q0")
+            __ASM_EMIT("vmov        q3, q1")
+            __ASM_EMIT("vmov        q4, q0")
+            __ASM_EMIT("vmov        q5, q1")
+            __ASM_EMIT("vmov        q6, q0")
+            __ASM_EMIT("vmov        q7, q1")
+
+            __ASM_EMIT("1:")
+            __ASM_EMIT("subs        %[count], $32")
+            __ASM_EMIT("vstm        %[dst]!, {q0-q7}")
+            __ASM_EMIT("bhs         1b")
+
+            /* 16x block */
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds        %[count], $16")
+            __ASM_EMIT("blt         4f")
+
+            __ASM_EMIT("vmov        q2, q0")
+            __ASM_EMIT("vmov        q3, q1")
+            __ASM_EMIT("sub         %[count], $16")
+            __ASM_EMIT("vstm        %[dst]!, {q0-q3}")
+
+            /* 8x block */
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds        %[count], $8")
+            __ASM_EMIT("blt         5f")
+            __ASM_EMIT("sub         %[count], $0x08")
+            __ASM_EMIT("vstm        %[dst]!, {q0-q1}")
+
+            /* 4x block */
+            __ASM_EMIT("5:")
+            __ASM_EMIT("adds        %[count], $4")
+            __ASM_EMIT("blt         8f")
+            __ASM_EMIT("sub         %[count], $4")
+            __ASM_EMIT("vst1.32     {q0}, [%[dst]]!")
+
+            /* 1x blocks */
+            __ASM_EMIT("8:")
+            __ASM_EMIT("adds        %[count], $3")
+            __ASM_EMIT("blt         10f")
+            __ASM_EMIT("9:")
+            __ASM_EMIT("subs        %[count], $1")
+            __ASM_EMIT("vstm        %[dst]!, {s0}")
+            __ASM_EMIT("bge         9b")
+
+            __ASM_EMIT("10:")
+
+            : [src] "+r" (src), [dst] "+r"(dst),
+              [count] "+r" (count)
+            : [pv] "r" (&value)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7"
+        );
+    }
+
+    void fill_one(float *dst, size_t count)
+    {
+        fill(dst, 1.0f, count);
+    }
+
+    void fill_minus_one(float *dst, size_t count)
+    {
+        fill(dst, -1.0f, count);
+    }
 }
 
 

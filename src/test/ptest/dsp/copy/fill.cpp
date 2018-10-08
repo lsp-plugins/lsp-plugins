@@ -32,11 +32,10 @@ IF_ARCH_X86(
 IF_ARCH_ARM(
     namespace neon_d32
     {
-// TODO
-//        void fill(float *dst, float value, size_t count);
-//        void fill_one(float *dst, size_t count);
-//        void fill_zero(float *dst, size_t count);
-//        void fill_minus_one(float *dst, size_t count);
+        void fill(float *dst, float value, size_t count);
+        void fill_one(float *dst, size_t count);
+        void fill_zero(float *dst, size_t count);
+        void fill_minus_one(float *dst, size_t count);
     }
 )
 
