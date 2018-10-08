@@ -1450,7 +1450,7 @@ namespace neon_d32
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
     }
-
+/*
     void downsample_3x(float *dst, const float *src, size_t count)
     {
         IF_ARCH_ARM(
@@ -1527,6 +1527,85 @@ namespace neon_d32
             : "cc", "memory",
               "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11"
+        );
+    }
+*/
+    void downsample_3x(float *dst, const float *src, size_t count)
+    {
+        ARCH_ARM_ASM
+        (
+            __ASM_EMIT("subs            %[count], $16")
+            __ASM_EMIT("blo             2f")
+
+            // x16 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vldr            s0,  [%[src], $0x000]")
+            __ASM_EMIT("vldr            s1,  [%[src], $0x00c]")
+            __ASM_EMIT("vldr            s2,  [%[src], $0x018]")
+            __ASM_EMIT("vldr            s3,  [%[src], $0x024]")
+            __ASM_EMIT("vldr            s4,  [%[src], $0x030]")
+            __ASM_EMIT("vldr            s5,  [%[src], $0x03c]")
+            __ASM_EMIT("vldr            s6,  [%[src], $0x048]")
+            __ASM_EMIT("vldr            s7,  [%[src], $0x054]")
+            __ASM_EMIT("vldr            s8,  [%[src], $0x060]")
+            __ASM_EMIT("vldr            s9,  [%[src], $0x06c]")
+            __ASM_EMIT("vldr            s10, [%[src], $0x078]")
+            __ASM_EMIT("vldr            s11, [%[src], $0x084]")
+            __ASM_EMIT("vldr            s12, [%[src], $0x090]")
+            __ASM_EMIT("vldr            s13, [%[src], $0x09c]")
+            __ASM_EMIT("vldr            s14, [%[src], $0x0a8]")
+            __ASM_EMIT("vldr            s15, [%[src], $0x0b4]")
+            __ASM_EMIT("vstm            %[dst]!, {q0-q3}")
+            __ASM_EMIT("add             %[src], $0xc0")
+            __ASM_EMIT("subs            %[count], $16")
+            __ASM_EMIT("bhs             1b")
+
+            // x8 block
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds            %[count], $8")
+            __ASM_EMIT("blt             4f")
+
+            __ASM_EMIT("vldr            s0,  [%[src], $0x000]")
+            __ASM_EMIT("vldr            s1,  [%[src], $0x00c]")
+            __ASM_EMIT("vldr            s2,  [%[src], $0x018]")
+            __ASM_EMIT("vldr            s3,  [%[src], $0x024]")
+            __ASM_EMIT("vldr            s4,  [%[src], $0x030]")
+            __ASM_EMIT("vldr            s5,  [%[src], $0x03c]")
+            __ASM_EMIT("vldr            s6,  [%[src], $0x048]")
+            __ASM_EMIT("vldr            s7,  [%[src], $0x054]")
+            __ASM_EMIT("vstm            %[dst]!, {q0-q1}")
+            __ASM_EMIT("add             %[src], $0x60")
+            __ASM_EMIT("sub             %[count], $8")
+
+            // x4 block
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds            %[count], $4")
+            __ASM_EMIT("blt             6f")
+            __ASM_EMIT("vldr            s0,  [%[src], $0x000]")
+            __ASM_EMIT("vldr            s1,  [%[src], $0x00c]")
+            __ASM_EMIT("vldr            s2,  [%[src], $0x018]")
+            __ASM_EMIT("vldr            s3,  [%[src], $0x024]")
+            __ASM_EMIT("vstm            %[dst]!, {q0}")
+            __ASM_EMIT("add             %[src], $0x30")
+            __ASM_EMIT("sub             %[count], $4")
+
+            // x1 blocks
+            __ASM_EMIT("6:")
+            __ASM_EMIT("adds            %[count], $3")
+            __ASM_EMIT("blt             8f")
+            __ASM_EMIT("7:")
+            __ASM_EMIT("vldm.32         %[src]!, {s0-s2}")
+            __ASM_EMIT("vstm.32         %[dst]!, {s0}")
+            __ASM_EMIT("subs            %[count], $1")
+            __ASM_EMIT("bge             7b")
+
+            __ASM_EMIT("8:")
+
+            : [dst] "+r" (dst), [src] "+r" (src),
+              [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3"
         );
     }
 
@@ -1684,8 +1763,7 @@ namespace neon_d32
               [count] "+r" (count)
             :
             : "cc", "memory",
-              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
-              "q8", "q9", "q10", "q11"
+              "q0", "q1", "q2", "q3"
         );
     }
 
