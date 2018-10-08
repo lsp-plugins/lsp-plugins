@@ -32,11 +32,11 @@ IF_ARCH_X86(
 IF_ARCH_ARM(
     namespace neon_d32
     {
-        void downsample_2x(float *dst, const float *src, size_t count);
 // TODO
+        void downsample_2x(float *dst, const float *src, size_t count);
 //        void downsample_3x(float *dst, const float *src, size_t count);
 //        void downsample_4x(float *dst, const float *src, size_t count);
-//        void downsample_6x(float *dst, const float *src, size_t count);
+        void downsample_6x(float *dst, const float *src, size_t count);
 //        void downsample_8x(float *dst, const float *src, size_t count);
     }
 )
@@ -92,11 +92,11 @@ UTEST_BEGIN("dsp.resampling", downsampling)
         IF_ARCH_X86(call(6, "sse:downsample_6x", 16, native::downsample_6x, sse::downsample_6x));
         IF_ARCH_X86(call(8, "sse:downsample_8x", 16, native::downsample_8x, sse::downsample_8x));
 
-        IF_ARCH_ARM(call(2, "neon_d32:downsample_2x", 16, native::downsample_2x, neon_d32::downsample_2x));
 // TODO
+        IF_ARCH_ARM(call(2, "neon_d32:downsample_2x", 16, native::downsample_2x, neon_d32::downsample_2x));
 //        IF_ARCH_ARM(call(3, "neon_d32:downsample_3x", 16, native::downsample_3x, neon_d32::downsample_3x));
 //        IF_ARCH_ARM(call(4, "neon_d32:downsample_4x", 16, native::downsample_4x, neon_d32::downsample_4x));
-//        IF_ARCH_ARM(call(6, "neon_d32:downsample_6x", 16, native::downsample_6x, neon_d32::downsample_6x));
+        IF_ARCH_ARM(call(6, "neon_d32:downsample_6x", 16, native::downsample_6x, neon_d32::downsample_6x));
 //        IF_ARCH_ARM(call(8, "neon_d32:downsample_8x", 16, native::downsample_8x, neon_d32::downsample_8x));
     }
 UTEST_END;
