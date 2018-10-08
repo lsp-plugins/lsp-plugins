@@ -1492,7 +1492,6 @@ namespace neon_d32
             __ASM_EMIT("vmov            q1, q4")
             __ASM_EMIT("sub             %[count], $8")
             __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
-            __ASM_EMIT("bhs             1b")
 
             // x4 block
             __ASM_EMIT("4:")
@@ -1510,6 +1509,7 @@ namespace neon_d32
             __ASM_EMIT("blt             8f")
             __ASM_EMIT("7:")
             __ASM_EMIT("vld1.32         {q0}, [%[src]]!")
+            __ASM_EMIT("subs            %[count], $1")
             __ASM_EMIT("vstm.32         %[dst]!, {s0}")
             __ASM_EMIT("bge             7b")
             __ASM_EMIT("8:")
