@@ -40,6 +40,7 @@ UTEST_BEGIN("dsp.copy", reverse)
                 FloatBuffer dst1(src);
                 FloatBuffer dst2(src);
 
+                printf("Testing %s on input buffer of %d numbers, mask=0x%x...\n", label, int(count), int(mask));
                 native::reverse1(dst1, count);
                 func(dst2, count);
 

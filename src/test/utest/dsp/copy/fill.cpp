@@ -55,6 +55,7 @@ UTEST_BEGIN("dsp.copy", fill)
                 FloatBuffer dst1(count, align, mask & 0x01);
                 FloatBuffer dst2(count, align, mask & 0x01);
 
+                printf("Testing %s on input buffer of %d numbers, mask=0x%x...\n", label, int(count), int(mask));
                 func1(dst1, M_PI, count);
                 func2(dst2, M_PI, count);
 
@@ -85,6 +86,7 @@ UTEST_BEGIN("dsp.copy", fill)
                 FloatBuffer dst1(count, align, mask & 0x01);
                 FloatBuffer dst2(count, align, mask & 0x01);
 
+                printf("Testing %s on input buffer of %d numbers, mask=0x%x...\n", label, int(count), int(mask));
                 func1(dst1, count);
                 func2(dst2, count);
 

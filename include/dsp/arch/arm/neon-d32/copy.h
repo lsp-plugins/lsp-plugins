@@ -256,7 +256,7 @@ namespace neon_d32
             __ASM_EMIT("vldr        s0, [%[pv]]")
             __ASM_EMIT("subs        %[count], $32")
             __ASM_EMIT("vmov        s1, s0")
-            __ASM_EMIT("vmov        d1, s0")
+            __ASM_EMIT("vmov        d1, d0")
             __ASM_EMIT("vmov        q1, q0")
             __ASM_EMIT("blo         2f")
 
