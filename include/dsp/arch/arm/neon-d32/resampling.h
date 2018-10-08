@@ -1594,7 +1594,7 @@ namespace neon_d32
             __ASM_EMIT("adds            %[count], $3")
             __ASM_EMIT("blt             8f")
             __ASM_EMIT("7:")
-            __ASM_EMIT("vld1.32         {q0}, [%[src]]!")
+            __ASM_EMIT("vld1.32         {q0}, [%[s1]]!")
             __ASM_EMIT("subs            %[count], $1")
             __ASM_EMIT("vstm.32         %[dst]!, {s0}")
             __ASM_EMIT("bge             7b")
@@ -1606,6 +1606,75 @@ namespace neon_d32
             : "cc", "memory",
               "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+    }
+
+    void downsample_6x(float *dst, const float *src, size_t count)
+    {
+        IF_ARCH_ARM(
+            float *s2;
+            size_t incr;
+        );
+
+        ARCH_ARM_ASM
+        (
+            __ASM_EMIT("add             %[s2], %[s1], $0x18")
+            __ASM_EMIT("mov             %[incr], $0x30")
+            __ASM_EMIT("subs            %[count], $8")
+            __ASM_EMIT("blo             2f")
+
+            // x8 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vld3.32         {d0-d2}, [%[s1]], %[incr]")     // d0   = s0 ?
+            __ASM_EMIT("vld3.32         {d3-d5}, [%[s2]], %[incr]")     // d3   = s1 ?
+            __ASM_EMIT("vld3.32         {d6-d8}, [%[s1]], %[incr]")     // d6   = s2 ?
+            __ASM_EMIT("vld3.32         {d9-d11}, [%[s2]], %[incr]")    // d9   = s3 ?
+            __ASM_EMIT("vld3.32         {d12-d14}, [%[s1]], %[incr]")   // d12  = s4 ?
+            __ASM_EMIT("vld3.32         {d15-d17}, [%[s2]], %[incr]")   // d15  = s5 ?
+            __ASM_EMIT("vld3.32         {d18-d20}, [%[s1]], %[incr]")   // d18  = s6 ?
+            __ASM_EMIT("vld3.32         {d21-d23}, [%[s2]], %[incr]")   // d21  = s7 ?
+            __ASM_EMIT("vmov            d1, d6")                        // q0   = s0 ? s2 ?
+            __ASM_EMIT("vmov            d8, d3")                        // q4   = s1 ? s3 ?
+            __ASM_EMIT("vmov            d13, d18")                      // q6   = s4 ? s6 ?
+            __ASM_EMIT("vmov            d20, d15")                      // q10  = s5 ? s7 ?
+            __ASM_EMIT("vuzp.32         q0, q4")                        // q0   = s0 s1 s2 s3, q4 = ? ? ? ?
+            __ASM_EMIT("vuzp.32         q6, q10")                       // q6   = s4 s5 s6 s7, q10 = ? ? ? ?
+            __ASM_EMIT("vmov            q1, q6")
+            __ASM_EMIT("vstm            %[dst]!, {q0-q1}")
+            __ASM_EMIT("subs            %[count], $8")
+            __ASM_EMIT("bhs             1b")
+
+            // x4 block
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds            %[count], $4")
+            __ASM_EMIT("blt             4f")
+            __ASM_EMIT("vld3.32         {d0-d2}, [%[s1]], %[incr]")     // d0   = s0 ?
+            __ASM_EMIT("vld3.32         {d3-d5}, [%[s2]], %[incr]")     // d3   = s1 ?
+            __ASM_EMIT("vld3.32         {d6-d8}, [%[s1]], %[incr]")     // d6   = s2 ?
+            __ASM_EMIT("vld3.32         {d9-d11}, [%[s2]], %[incr]")    // d9   = s3 ?
+            __ASM_EMIT("vmov            d1, d6")                        // q0   = s0 ? s2 ?
+            __ASM_EMIT("vmov            d8, d3")                        // q4   = s1 ? s3 ?
+            __ASM_EMIT("vuzp.32         q0, q4")                        // q0   = s0 s1 s2 s3, q4 = ? ? ? ?
+            __ASM_EMIT("vstm            %[dst]!, {q0}")
+            __ASM_EMIT("sub            %[count], $4")
+
+            // x1 blocks
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds            %[count], $3")
+            __ASM_EMIT("blt             6f")
+            __ASM_EMIT("5:")
+            __ASM_EMIT("vldm.32         %[s1]!, {d0-d2}")
+            __ASM_EMIT("subs            %[count], $1")
+            __ASM_EMIT("vstm.32         %[dst]!, {s0}")
+            __ASM_EMIT("bge             5b")
+            __ASM_EMIT("6:")
+
+            : [dst] "+r" (dst), [s1] "+r" (src), [s2] "=&r" (s2),
+              [count] "+r" (count), [incr] "=&r" (incr)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11"
         );
     }
 

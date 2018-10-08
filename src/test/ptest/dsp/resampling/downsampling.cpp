@@ -37,7 +37,7 @@ IF_ARCH_ARM(
         void downsample_2x(float *dst, const float *src, size_t count);
         void downsample_3x(float *dst, const float *src, size_t count);
         void downsample_4x(float *dst, const float *src, size_t count);
-//        void downsample_6x(float *dst, const float *src, size_t count);
+        void downsample_6x(float *dst, const float *src, size_t count);
 //        void downsample_8x(float *dst, const float *src, size_t count);
     }
 )
@@ -87,7 +87,7 @@ PTEST_BEGIN("dsp.resampling", downsampling, 5, 1000)
 
         call(out, in, RTEST_BUF_SIZE, 6, "native:downsample_6x", native::downsample_6x);
         IF_ARCH_X86(call(out, in, RTEST_BUF_SIZE, 6, "sse:downsample_6x", sse::downsample_6x));
-//        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 6, "neon_d32:downsample_6x", neon_d32::downsample_6x));
+        IF_ARCH_ARM(call(out, in, RTEST_BUF_SIZE, 6, "neon_d32:downsample_6x", neon_d32::downsample_6x));
         PTEST_SEPARATOR;
 
         call(out, in, RTEST_BUF_SIZE, 8, "native:downsample_8x", native::downsample_8x);
