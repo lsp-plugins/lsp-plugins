@@ -1469,11 +1469,14 @@ namespace neon_d32
             __ASM_EMIT("vld4.32         {q10-q11}, [%[src]]!")
             __ASM_EMIT("vswp            d9, d12")
             __ASM_EMIT("vld4.32         {q12-q13}, [%[src]]!")
+            __ASM_EMIT("vmov            q1, q4")
             __ASM_EMIT("vld4.32         {q14-q15}, [%[src]]!")
             __ASM_EMIT("vswp            d17, d20")
             __ASM_EMIT("vswp            d25, d28")
+            __ASM_EMIT("vmov            q2, q8")
+            __ASM_EMIT("vmov            q3, q12")
             __ASM_EMIT("subs            %[count], $16")
-            __ASM_EMIT("vstm            %[dst]!, {q0, q4, q8, q12}")
+            __ASM_EMIT("vstm            %[dst]!, {q0-q3}")
             __ASM_EMIT("bhs             1b")
 
             // x8 block
@@ -1486,8 +1489,9 @@ namespace neon_d32
             __ASM_EMIT("vswp            d1, d4")
             __ASM_EMIT("vld4.32         {q6-q7}, [%[src]]!")
             __ASM_EMIT("vswp            d9, d12")
+            __ASM_EMIT("vmov            q1, q4")
             __ASM_EMIT("sub             %[count], $8")
-            __ASM_EMIT("vstm            %[dst]!, {q0, q4}")
+            __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
             __ASM_EMIT("bhs             1b")
 
             // x4 block

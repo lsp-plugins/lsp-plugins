@@ -36,8 +36,8 @@ IF_ARCH_ARM(
 // TODO
         void downsample_2x(float *dst, const float *src, size_t count);
 //        void downsample_3x(float *dst, const float *src, size_t count);
-//        void downsample_4x(float *dst, const float *src, size_t count);
-        void downsample_6x(float *dst, const float *src, size_t count);
+        void downsample_4x(float *dst, const float *src, size_t count);
+//        void downsample_6x(float *dst, const float *src, size_t count);
 //        void downsample_8x(float *dst, const float *src, size_t count);
     }
 )
