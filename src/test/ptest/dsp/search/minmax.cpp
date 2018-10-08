@@ -35,6 +35,20 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+// TODO
+//        float   min(const float *src, size_t count);
+//        float   max(const float *src, size_t count);
+//        void    minmax(const float *src, size_t count, float *min, float *max);
+//
+//        float   abs_min(const float *src, size_t count);
+//        float   abs_max(const float *src, size_t count);
+//        void    abs_minmax(const float *src, size_t count, float *min, float *max);
+    }
+)
+
 typedef float (* search1_t) (const float *src, size_t count);
 typedef void  (* search2_t) (const float *src, size_t count, float *min, float *max);
 
@@ -85,27 +99,33 @@ PTEST_BEGIN("dsp.search", minmax, 5, 1000)
             size_t count = 1 << i;
 
             call("native::min", in, count, native::min);
-            call("sse::min", in, count, sse::min);
+            IF_ARCH_X86(call("sse::min", in, count, sse::min));
+//            IF_ARCH_ARM(call("neon_d32::min", in, count, neon_d32::min));
             PTEST_SEPARATOR;
 
             call("native::abs_min", in, count, native::abs_min);
-            call("sse::abs_min", in, count, sse::abs_min);
+            IF_ARCH_X86(call("sse::abs_min", in, count, sse::abs_min));
+//            IF_ARCH_ARM(call("neon_d32::abs_min", in, count, neon_d32::abs_min));
             PTEST_SEPARATOR;
 
             call("native::max", in, count, native::max);
-            call("sse::max", in, count, sse::max);
+            IF_ARCH_X86(call("sse::max", in, count, sse::max));
+//            IF_ARCH_ARM(call("neon_d32::max", in, count, neon_d32::max));
             PTEST_SEPARATOR;
 
             call("native::abs_max", in, count, native::abs_max);
-            call("sse::abs_max", in, count, sse::abs_max);
+            IF_ARCH_X86(call("sse::abs_max", in, count, sse::abs_max));
+//            IF_ARCH_ARM(call("neon_d32::max", in, count, neon_d32::max));
             PTEST_SEPARATOR;
 
             call("native::minmax", in, count, native::minmax);
-            call("sse::minmax", in, count, sse::minmax);
+            IF_ARCH_X86(call("sse::minmax", in, count, sse::minmax));
+//            IF_ARCH_ARM(call("neon_d32::minmax", in, count, neon_d32::minmax));
             PTEST_SEPARATOR;
 
             call("native::abs_minmax", in, count, native::abs_minmax);
-            call("sse::abs_minmax", in, count, sse::abs_minmax);
+            IF_ARCH_X86(call("sse::abs_minmax", in, count, sse::abs_minmax));
+//            IF_ARCH_ARM(call("neon_d32::abs_minmax", in, count, neon_d32::abs_minmax));
             PTEST_SEPARATOR;
         }
 

@@ -241,7 +241,7 @@ namespace neon_d32
 
             __ASM_EMIT("10:")
 
-            : [src] "+r" (src), [dst] "+r"(dst),
+            : [dst] "+r"(dst),
               [count] "+r" (count)
             :
             : "cc", "memory",
@@ -308,7 +308,7 @@ namespace neon_d32
 
             __ASM_EMIT("10:")
 
-            : [src] "+r" (src), [dst] "+r"(dst),
+            : [dst] "+r"(dst),
               [count] "+r" (count)
             : [pv] "r" (&value)
             : "cc", "memory",
