@@ -1688,6 +1688,85 @@ namespace neon_d32
         );
     }
 
+    void downsample_8x(float *dst, const float *src, size_t count)
+    {
+        ARCH_ARM_ASM
+        (
+            __ASM_EMIT("subs            %[count], $16")
+            __ASM_EMIT("blo             2f")
+
+            // x16 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vldr            s0,  [%[src], $0x000]")
+            __ASM_EMIT("vldr            s1,  [%[src], $0x020]")
+            __ASM_EMIT("vldr            s2,  [%[src], $0x040]")
+            __ASM_EMIT("vldr            s3,  [%[src], $0x060]")
+            __ASM_EMIT("vldr            s4,  [%[src], $0x080]")
+            __ASM_EMIT("vldr            s5,  [%[src], $0x0a0]")
+            __ASM_EMIT("vldr            s6,  [%[src], $0x0c0]")
+            __ASM_EMIT("vldr            s7,  [%[src], $0x0e0]")
+            __ASM_EMIT("vldr            s8,  [%[src], $0x100]")
+            __ASM_EMIT("vldr            s9,  [%[src], $0x120]")
+            __ASM_EMIT("vldr            s10, [%[src], $0x140]")
+            __ASM_EMIT("vldr            s11, [%[src], $0x160]")
+            __ASM_EMIT("vldr            s12, [%[src], $0x180]")
+            __ASM_EMIT("vldr            s13, [%[src], $0x1a0]")
+            __ASM_EMIT("vldr            s14, [%[src], $0x1c0]")
+            __ASM_EMIT("vldr            s15, [%[src], $0x1e0]")
+            __ASM_EMIT("vstm            %[dst]!, {q0-q3}")
+            __ASM_EMIT("add             %[src], $0x200")
+            __ASM_EMIT("subs            %[count], $16")
+            __ASM_EMIT("bhs             1b")
+
+            // x8 block
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds            %[count], $8")
+            __ASM_EMIT("blt             4f")
+
+            __ASM_EMIT("vldr            s0,  [%[src], $0x000]")
+            __ASM_EMIT("vldr            s1,  [%[src], $0x020]")
+            __ASM_EMIT("vldr            s2,  [%[src], $0x040]")
+            __ASM_EMIT("vldr            s3,  [%[src], $0x060]")
+            __ASM_EMIT("vldr            s4,  [%[src], $0x080]")
+            __ASM_EMIT("vldr            s5,  [%[src], $0x0a0]")
+            __ASM_EMIT("vldr            s6,  [%[src], $0x0c0]")
+            __ASM_EMIT("vldr            s7,  [%[src], $0x0e0]")
+            __ASM_EMIT("vstm            %[dst]!, {q0-q1}")
+            __ASM_EMIT("add             %[src], $0x100")
+            __ASM_EMIT("sub             %[count], $8")
+
+            // x4 block
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds            %[count], $4")
+            __ASM_EMIT("blt             6f")
+            __ASM_EMIT("vldr            s0,  [%[src], $0x000]")
+            __ASM_EMIT("vldr            s1,  [%[src], $0x020]")
+            __ASM_EMIT("vldr            s2,  [%[src], $0x040]")
+            __ASM_EMIT("vldr            s3,  [%[src], $0x060]")
+            __ASM_EMIT("vstm            %[dst]!, {q0}")
+            __ASM_EMIT("add             %[src], $0x80")
+            __ASM_EMIT("sub             %[count], $4")
+
+            // x1 blocks
+            __ASM_EMIT("6:")
+            __ASM_EMIT("adds            %[count], $3")
+            __ASM_EMIT("blt             8f")
+            __ASM_EMIT("7:")
+            __ASM_EMIT("vldm.32         %[src]!, {q0-q1}")
+            __ASM_EMIT("vstm.32         %[dst]!, {s0}")
+            __ASM_EMIT("subs            %[count], $1")
+            __ASM_EMIT("bge             7b")
+
+            __ASM_EMIT("8:")
+
+            : [dst] "+r" (dst), [src] "+r" (src),
+              [count] "+r" (count)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3"
+        );
+    }
+
 }
 
 #endif /* DSP_ARCH_ARM_NEON_D32_RESAMPLING_H_ */
