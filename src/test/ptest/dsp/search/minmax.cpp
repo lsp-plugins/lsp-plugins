@@ -9,7 +9,7 @@
 #include <test/ptest.h>
 
 #define MIN_RANK 8
-#define MAX_RANK 20
+#define MAX_RANK 16
 
 namespace native
 {
