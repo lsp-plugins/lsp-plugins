@@ -159,7 +159,7 @@ namespace neon_d32
         EXPORT1(lanczos_resample_8x3);
 
         EXPORT1(downsample_2x);
-//        EXPORT1(downsample_3x);
+        EXPORT1(downsample_3x);
         EXPORT1(downsample_4x);
 //        EXPORT1(downsample_6x);
 //        EXPORT1(downsample_8x);
