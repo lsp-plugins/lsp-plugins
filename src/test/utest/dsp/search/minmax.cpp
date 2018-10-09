@@ -43,7 +43,7 @@ IF_ARCH_ARM(
 
         float   abs_min(const float *src, size_t count);
         float   abs_max(const float *src, size_t count);
-//        void    abs_minmax(const float *src, size_t count, float *min, float *max);
+        void    abs_minmax(const float *src, size_t count, float *min, float *max);
     }
 )
 
