@@ -54,6 +54,7 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/float.h>
 #include <dsp/arch/arm/neon-d32/msmatrix.h>
 #include <dsp/arch/arm/neon-d32/resampling.h>
+#include <dsp/arch/arm/neon-d32/search.h>
 
 #undef DSP_ARCH_ARM_NEON_32_IMPL
 
@@ -167,6 +168,14 @@ namespace neon_d32
         EXPORT1(downsample_4x);
         EXPORT1(downsample_6x);
         EXPORT1(downsample_8x);
+
+        EXPORT1(min);
+        EXPORT1(max);
+//        EXPORT1(minmax);
+//        EXPORT1(abs_min);
+//        EXPORT1(abs_max);
+//        EXPORT1(abs_minmax);
+
 
         // Misc for testing
         TEST_EXPORT(neon_d32::complex_mul3_x12);

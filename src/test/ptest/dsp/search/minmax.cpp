@@ -9,7 +9,8 @@
 #include <test/ptest.h>
 
 #define MIN_RANK 8
-#define MAX_RANK 16
+//#define MAX_RANK 16
+#define MAX_RANK 9
 
 namespace native
 {
@@ -38,9 +39,8 @@ IF_ARCH_X86(
 IF_ARCH_ARM(
     namespace neon_d32
     {
-// TODO
-//        float   min(const float *src, size_t count);
-//        float   max(const float *src, size_t count);
+        float   min(const float *src, size_t count);
+        float   max(const float *src, size_t count);
 //        void    minmax(const float *src, size_t count, float *min, float *max);
 //
 //        float   abs_min(const float *src, size_t count);
@@ -100,7 +100,7 @@ PTEST_BEGIN("dsp.search", minmax, 5, 1000)
 
             call("native::min", in, count, native::min);
             IF_ARCH_X86(call("sse::min", in, count, sse::min));
-//            IF_ARCH_ARM(call("neon_d32::min", in, count, neon_d32::min));
+            IF_ARCH_ARM(call("neon_d32::min", in, count, neon_d32::min));
             PTEST_SEPARATOR;
 
             call("native::abs_min", in, count, native::abs_min);
@@ -110,7 +110,7 @@ PTEST_BEGIN("dsp.search", minmax, 5, 1000)
 
             call("native::max", in, count, native::max);
             IF_ARCH_X86(call("sse::max", in, count, sse::max));
-//            IF_ARCH_ARM(call("neon_d32::max", in, count, neon_d32::max));
+            IF_ARCH_ARM(call("neon_d32::max", in, count, neon_d32::max));
             PTEST_SEPARATOR;
 
             call("native::abs_max", in, count, native::abs_max);
