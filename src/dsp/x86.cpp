@@ -26,6 +26,11 @@ namespace sse
     extern void dsp_init(const x86::cpu_features_t *f);
 }
 
+namespace sse2
+{
+    extern void dsp_init(const x86::cpu_features_t *f);
+}
+
 namespace sse3
 {
     extern void dsp_init(const x86::cpu_features_t *f);
@@ -463,6 +468,7 @@ namespace x86
 
         // Initialize extensions
         sse::dsp_init(&f);
+        sse2::dsp_init(&f);
         sse3::dsp_init(&f);
         sse4::dsp_init(&f);
         avx::dsp_init(&f);

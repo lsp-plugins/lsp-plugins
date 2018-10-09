@@ -21,12 +21,12 @@
 #include <dsp/arch/native/convolution.h>
 #include <dsp/arch/native/graphics.h>
 #include <dsp/arch/native/pmath.h>
+#include <dsp/arch/native/search.h>
 
 namespace native
 {
     #include <dsp/arch/native/float.h>
     #include <dsp/arch/native/fft.h>
-    #include <dsp/arch/native/search.h>
     #include <dsp/arch/native/fastconv.h>
     #include <dsp/arch/native/resampling.h>
     #include <dsp/arch/native/msmatrix.h>

@@ -39,6 +39,7 @@ namespace test
             void randomize();
             void fill_zero();
             void copy(const FloatBuffer &buf);
+            void copy(const float *buf, size_t count);
 
             bool validate() const;
             inline bool valid() const { return validate(); };
