@@ -12,11 +12,14 @@ namespace neon_d32
 {
     #define MINMAX_SEARCH_CORE(op) \
         __ASM_EMIT("veor        q0, q0") \
-        __ASM_EMIT("cmp         %[count], 0") \
-        __ASM_EMIT("beq         ...f") \
+        __ASM_EMIT("subs        %[count], $1") \
+        __ASM_EMIT("blo         12f") \
         \
+        __ASM_EMIT("vldm        %[src]!, {s0}") \
+        __ASM_EMIT("vmov        s1, s0") \
+        __ASM_EMIT("vmov        d1, d0") \
+        __ASM_EMIT("vmov        q1, q0") \
         __ASM_EMIT("subs        %[count], $56") \
-        __ASM_EMIT("veor        q1, q1") \
         __ASM_EMIT("blo         2f") \
         /* x56 blocks */ \
         __ASM_EMIT("1:") \
@@ -85,40 +88,42 @@ namespace neon_d32
         __ASM_EMIT(op "         d0, d0, d1") \
         __ASM_EMIT("vmov        s2, s1") \
         __ASM_EMIT(op "         d0, d0, d1") \
+        __ASM_EMIT("adds        %[count], $3") \
+        __ASM_EMIT("blt         12f") \
         __ASM_EMIT("11:") \
-        __ASM_EMIT("vldr        %[src]!, {s2}") \
+        __ASM_EMIT("vldm        %[src]!, {s2}") \
         __ASM_EMIT(op "         d0, d0, d1")  \
         __ASM_EMIT("subs        %[count], $1") \
         __ASM_EMIT("bge         11b") \
         \
         __ASM_EMIT("vmov        %[res], s0") \
-        __ASM_EMIT("12:") \
+        __ASM_EMIT("12:")
 
     float min(const float *src, size_t count)
     {
         float res = 0.0f;
-        IF_ARCH_ARM(
-            MINMAX_SEARCH_CORE("vmin")
-            : [count] "+r" (count), [src]
+        ARCH_ARM_ASM(
+            MINMAX_SEARCH_CORE("vmin.f32")
+            : [count] "+r" (count), [src] "+r" (src),
               [res] "+t" (res)
             :
             : "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
-        )
+        );
         return res;
     }
 
     float max(const float *src, size_t count)
     {
         float res = 0.0f;
-        IF_ARCH_ARM(
-            MINMAX_SEARCH_CORE("vmax")
-            : [count] "+r" (count), [src]
+        ARCH_ARM_ASM(
+            MINMAX_SEARCH_CORE("vmax.f32")
+            : [count] "+r" (count), [src] "+r" (src),
               [res] "+t" (res)
             :
             : "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
-        )
+        );
         return res;
     }
 
