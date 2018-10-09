@@ -133,7 +133,7 @@ UTEST_BEGIN("dsp.search", minmax)
         IF_ARCH_ARM(call("neon_d32:minmax", 16, native::minmax, neon_d32::minmax));
         IF_ARCH_ARM(call("neon_d32:abs_min", 16, native::abs_min, neon_d32::abs_min));
         IF_ARCH_ARM(call("neon_d32:abs_max", 16, native::abs_max, neon_d32::abs_max));
-//        IF_ARCH_ARM(call("neon_d32:abs_minmax", 16, native::abs_minmax, neon_d32::abs_minmax));
+        IF_ARCH_ARM(call("neon_d32:abs_minmax", 16, native::abs_minmax, neon_d32::abs_minmax));
     }
 UTEST_END
 

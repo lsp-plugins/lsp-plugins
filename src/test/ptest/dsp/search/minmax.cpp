@@ -9,8 +9,7 @@
 #include <test/ptest.h>
 
 #define MIN_RANK 8
-//#define MAX_RANK 16
-#define MAX_RANK 9
+#define MAX_RANK 16
 
 namespace native
 {
@@ -125,7 +124,7 @@ PTEST_BEGIN("dsp.search", minmax, 5, 1000)
 
             call("native::abs_minmax", in, count, native::abs_minmax);
             IF_ARCH_X86(call("sse::abs_minmax", in, count, sse::abs_minmax));
-//            IF_ARCH_ARM(call("neon_d32::abs_minmax", in, count, neon_d32::abs_minmax));
+            IF_ARCH_ARM(call("neon_d32::abs_minmax", in, count, neon_d32::abs_minmax));
             PTEST_SEPARATOR;
         }
 
