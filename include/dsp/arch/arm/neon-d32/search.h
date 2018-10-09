@@ -542,7 +542,7 @@ namespace neon_d32
             __ASM_EMIT("blt         12f")
             __ASM_EMIT("11:")
             __ASM_EMIT("vldm        %[src]!, {s2}")
-            __ASM_EMIT("vabs.f32    d0, d0")
+            __ASM_EMIT("vabs.f32    d1, d1")
             __ASM_EMIT("vmin.f32    d0, d0, d1")
             __ASM_EMIT("vmax.f32    d4, d4, d1")
             __ASM_EMIT("subs        %[count], $1")
