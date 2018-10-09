@@ -44,9 +44,7 @@ float abs_max(const float *src, size_t count)
     float max = fabs(src[0]);
     for (size_t i=0; i<count; ++i)
     {
-        float tmp = src[i];
-        if (tmp < 0.0f)
-            tmp     = -tmp;
+        float tmp = fabs(src[i]);
         if (tmp > max)
             max     = tmp;
     }
@@ -61,9 +59,7 @@ float abs_min(const float *src, size_t count)
     float min = fabs(src[0]);
     for (size_t i=0; i<count; ++i)
     {
-        float tmp = src[i];
-        if (tmp < 0.0f)
-            tmp     = -tmp;
+        float tmp = fabs(src[i]);
         if (tmp < min)
             min     = tmp;
     }
@@ -101,17 +97,11 @@ void abs_minmax(const float *src, size_t count, float *min, float *max)
         return;
     }
 
-    float a_min = src[0], a_max = src[0];
-    if (a_min < 0.0f)
-        a_min   = - a_min;
-    if (a_max < 0.0f)
-        a_max   = - a_max;
+    float a_min = fabs(src[0]), a_max = fabs(src[0]);
 
     for (size_t i=0; i<count; ++i)
     {
-        float tmp   = src[i];
-        if (tmp < 0.0f)
-            tmp         = -tmp;
+        float tmp   = fabs(src[i]);
         if (tmp < a_min)
             a_min       = tmp;
         if (tmp > a_max)

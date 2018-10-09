@@ -41,8 +41,8 @@ IF_ARCH_ARM(
         float   max(const float *src, size_t count);
 //        void    minmax(const float *src, size_t count, float *min, float *max);
 
-//        float   abs_min(const float *src, size_t count);
-//        float   abs_max(const float *src, size_t count);
+        float   abs_min(const float *src, size_t count);
+        float   abs_max(const float *src, size_t count);
 //        void    abs_minmax(const float *src, size_t count, float *min, float *max);
     }
 )
@@ -131,8 +131,8 @@ UTEST_BEGIN("dsp.search", minmax)
         IF_ARCH_ARM(call("neon_d32:min", 16, native::min, neon_d32::min));
         IF_ARCH_ARM(call("neon_d32:max", 16, native::max, neon_d32::max));
 //        IF_ARCH_ARM(call("neon_d32:minmax", 16, native::minmax, neon_d32::minmax));
-//        IF_ARCH_ARM(call("neon_d32:abs_min", 16, native::abs_min, neon_d32::abs_min));
-//        IF_ARCH_ARM(call("neon_d32:abs_max", 16, native::abs_max, neon_d32::abs_max));
+        IF_ARCH_ARM(call("neon_d32:abs_min", 16, native::abs_min, neon_d32::abs_min));
+        IF_ARCH_ARM(call("neon_d32:abs_max", 16, native::abs_max, neon_d32::abs_max));
 //        IF_ARCH_ARM(call("neon_d32:abs_minmax", 16, native::abs_minmax, neon_d32::abs_minmax));
     }
 UTEST_END

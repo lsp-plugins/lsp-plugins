@@ -172,8 +172,8 @@ namespace neon_d32
         EXPORT1(min);
         EXPORT1(max);
 //        EXPORT1(minmax);
-//        EXPORT1(abs_min);
-//        EXPORT1(abs_max);
+        EXPORT1(abs_min);
+        EXPORT1(abs_max);
 //        EXPORT1(abs_minmax);
 
 
