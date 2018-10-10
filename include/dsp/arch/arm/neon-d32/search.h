@@ -105,7 +105,8 @@ namespace neon_d32
             : [count] "+r" (count), [src] "+r" (src),
               [res] "+t" (res)
             :
-            : "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+            : "cc",
+              "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
         return res;
@@ -119,7 +120,8 @@ namespace neon_d32
             : [count] "+r" (count), [src] "+r" (src),
               [res] "+t" (res)
             :
-            : "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+            : "cc",
+              "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
         return res;
@@ -253,7 +255,8 @@ namespace neon_d32
             : [count] "+r" (count), [src] "+r" (src),
               [res] "+t" (res)
             :
-            : "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+            : "cc",
+              "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
         return res;
@@ -267,7 +270,8 @@ namespace neon_d32
             : [count] "+r" (count), [src] "+r" (src),
               [res] "+t" (res)
             :
-            : "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+            : "cc",
+              "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
         return res;
@@ -398,7 +402,8 @@ namespace neon_d32
             __ASM_EMIT("vstm        %[max], {s8}")
             : [count] "+r" (count), [src] "+r" (src)
             : [min] "r" (min), [max] "r" (max)
-            : "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+            : "cc",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
     }
@@ -553,9 +558,158 @@ namespace neon_d32
             __ASM_EMIT("vstm        %[max], {s8}")
             : [count] "+r" (count), [src] "+r" (src)
             : [min] "r" (min), [max] "r" (max)
-            : "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+            : "cc",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
+    }
+
+    IF_ARCH_ARM(
+        static uint32_t indexes[] __lsp_aligned16 =
+        {
+            0, 1, 2, 3, 4, 5, 6, 7,
+            8, 8, 8, 8, 8, 8, 8, 8,
+            4, 4, 4, 4,
+            1, 1, 1, 1
+        };
+    );
+
+    #define IDX_COND_SEARCH(keep_op) \
+        __ASM_EMIT("vxor        q0, q0")                /* q0 = idx0 */ \
+        __ASM_EMIT("vxor        q1, q1")                /* q0 = idx1 */ \
+        __ASM_EMIT("cmp         %[count], $0") \
+        __ASM_EMIT("beq         6f") \
+        \
+        __ASM_EMIT("vldr        {s8}, %[src]") \
+        __ASM_EMIT("vmov        s9, s8") \
+        __ASM_EMIT("vld1.32     {q4-q5}, %[IDXS]!")     /* q4-q5 = { nidx0, nidx1 } */ \
+        __ASM_EMIT("vmov        d5, d4")                /* q2 = val0 */ \
+        __ASM_EMIT("vldm        %[IDXS], {q12-q15}")    /* q12-q15 = { incr0, incr1, incr2, incr3} */ \
+        __ASM_EMIT("subs        %[count], $8") \
+        __ASM_EMIT("bls         2f") \
+        \
+        /* 8x blocks */ \
+        __ASM_EMIT("vmov        q3, q2")                /* q3 = val1 */ \
+        __ASM_EMIT("1:") \
+        __ASM_EMIT("vld1.32     {q6-q7}, %[src]!")      /* q6-q7 = { sample0, sample1 } */ \
+        __ASM_EMIT(keep_op "    q8, q2, q6")            /* q8 = val0 <=> sample0 */ \
+        __ASM_EMIT(keep_op "    q9, q3, q7")            /* q9 = val1 <=> sample1 */ \
+        __ASM_EMIT("vmvn        q10, q8")               /* q10 = !(val0 <=> sample0) */ \
+        __ASM_EMIT("vmvn        q11, q9")               /* q11 = !(val1 <=> sample1) */ \
+        __ASM_EMIT("vand        q0, q0, q8")            /* q0 = idx0 & (val0 <=> sample0) */ \
+        __ASM_EMIT("vand        q1, q1, q9")            /* q1 = idx1 & (val1 <=> sample1) */ \
+        __ASM_EMIT("vand        q4, q4, q10")           /* q4 = nidx0 & !(val0 <=> sample0) */ \
+        __ASM_EMIT("vand        q5, q5, q11")           /* q5 = nidx1 & !(val1 <=> sample1) */ \
+        __ASM_EMIT("vand        q2, q0, q8")            /* q2 = val0 & (val0 <=> sample0) */ \
+        __ASM_EMIT("vand        q3, q1, q9")            /* q3 = val1 & (val1 <=> sample1) */ \
+        __ASM_EMIT("vand        q6, q4, q10")           /* q6 = sample0 & !(val0 <=> sample0) */ \
+        __ASM_EMIT("vand        q7, q5, q11")           /* q7 = sample1 & !(val1 <=> sample1) */ \
+        __ASM_EMIT("vorr        q0, q4")                /* q0 = idx0 & (val0 <=> sample0) | nidx0 & !(val0 <=> sample0) */ \
+        __ASM_EMIT("vorr        q1, q5")                /* q1 = idx1 & (val1 <=> sample1) | nidx1 & !(val1 <=> sample1) */ \
+        __ASM_EMIT("vorr        q2, q6")                /* q2 = val0 & (val0 <=> sample0) | sample0 & !(val0 <=> sample0) */ \
+        __ASM_EMIT("vorr        q3, q7")                /* q3 = val1 & (val1 <=> sample1) | sample1 & !(val1 <=> sample1) */ \
+        __ASM_EMIT("vadd.u32    q4, q4, q12")           /* q4 = nidx0 + 8 */ \
+        __ASM_EMIT("vadd.u32    q5, q5, q13")           /* q5 = nidx1 + 8 */ \
+        __ASM_EMIT("subs        %[count], $8")          /* count -= 8 */ \
+        __ASM_EMIT("bhs         1b") \
+        /* 8x post-process */ \
+        __ASM_EMIT(keep_op "    q8, q2, q3")            /* q8 = val0 <=> val1 */ \
+        __ASM_EMIT("vmov        q4, q5")                /* q4 = nidx1 */ \
+        __ASM_EMIT("vmvn        q9, q8")                /* q9 = !(val0 <=> val1) */ \
+        __ASM_EMIT("vand        q0, q0, q8")            /* q0 = idx0 & (val0 <=> val1) */ \
+        __ASM_EMIT("vand        q1, q1, q9")            /* q1 = idx1 & !(val0 <=> val1) */ \
+        __ASM_EMIT("vand        q2, q2, q8")            /* q2 = val0 & (val0 <=> val1) */ \
+        __ASM_EMIT("vand        q3, q3, q9")            /* q3 = val1 & !(val0 <=> val1) */ \
+        __ASM_EMIT("vorr        q0, q1")                /* q0 = idx0 & (val0 <=> val1) | idx1 & !(val0 <=> val1) */ \
+        __ASM_EMIT("vorr        q2, q3")                /* q2 = val0 & (val0 <=> val1) | val1 & !(val0 <=> val1) */ \
+        /* 4x block */ \
+        __ASM_EMIT("2:") \
+        __ASM_EMIT("adds        %[count], $4") \
+        __ASM_EMIT("blt         4f") \
+        __ASM_EMIT("vld1.32     {q6}, %[src]!")         /* q6 = sample0 */ \
+        __ASM_EMIT(keep_op "    q8, q2, q6")            /* q8 = val0 <=> sample0 */ \
+        __ASM_EMIT("vmvn        q10, q8")               /* q10 = !(val0 <=> sample0) */ \
+        __ASM_EMIT("vand        q0, q0, q8")            /* q0 = idx0 & (val0 <=> sample0) */ \
+        __ASM_EMIT("vand        q4, q4, q10")           /* q4 = nidx0 & !(val0 <=> sample0) */ \
+        __ASM_EMIT("vand        q2, q0, q8")            /* q2 = val0 & (val0 <=> sample0) */ \
+        __ASM_EMIT("vand        q6, q4, q10")           /* q6 = sample0 & !(val0 <=> sample0) */ \
+        __ASM_EMIT("vorr        q0, q4")                /* q0 = idx0 & (val0 <=> sample0) | nidx0 & !(val0 <=> sample0) */ \
+        __ASM_EMIT("vorr        q2, q6")                /* q2 = val0 & (val0 <=> sample0) | sample0 & !(val0 <=> sample0) */ \
+        __ASM_EMIT("vadd.u32    q4, q4, q14")           /* q4 = nidx0 + 4 */ \
+        __ASM_EMIT("sub         %[count], $4")          /* count -= 8 */ \
+        /* 4x post-process, step 1 */ \
+        __ASM_EMIT(keep_op "    d2, d4, d5")            /* d2 = val0 <=> val1 */ \
+        __ASM_EMIT("vmvn        d3, d2")                /* d3 = !(val0 <=> val1) */ \
+        __ASM_EMIT("vand        d0, d0, d2")            /* d0 = idx0 & (val0 <=> val1) */ \
+        __ASM_EMIT("vand        d1, d1, d3")            /* d1 = idx1 & !(val0 <=> val1) */ \
+        __ASM_EMIT("vand        d4, d4, d2")            /* d4 = val0 & (val0 <=> val1) */ \
+        __ASM_EMIT("vand        d5, d5, d3")            /* d5 = val1 & !(val0 <=> val1) */ \
+        __ASM_EMIT("vorr        d0, d1")                /* d0 = idx0 & (val0 <=> val1) | idx1 & !(val0 <=> val1) */ \
+        __ASM_EMIT("vorr        d4, d5")                /* d4 = val0 & (val0 <=> val1) | val1 & !(val0 <=> val1) */ \
+        __ASM_EMIT("vmov        d8, d9")                /* d8 = nidx */ \
+        /* 4x post-process, step 2 */ \
+        __ASM_EMIT("vmov        s2, s1")                /* d1 = idx1 */ \
+        __ASM_EMIT("vmov        s4, s9")                /* d2 = val1 */ \
+        __ASM_EMIT(keep_op "    d3, d4, d2")            /* d3 = val0 <=> val1 */ \
+        __ASM_EMIT("vmvn        d5, d2")                /* d5 = !(val0 <=> val1) */ \
+        __ASM_EMIT("vand        d0, d0, d3")            /* d0 = idx0 & (val0 <=> val1) */ \
+        __ASM_EMIT("vand        d1, d1, d5")            /* d1 = idx1 & !(val0 <=> val1) */ \
+        __ASM_EMIT("vand        d4, d4, d3")            /* d4 = val0 & (val0 <=> val1) */ \
+        __ASM_EMIT("vand        d2, d2, d5")            /* d2 = val1 & !(val0 <=> val1) */ \
+        __ASM_EMIT("vorr        d0, d1")                /* d0 = idx0 & (val0 <=> val1) | idx1 & !(val0 <=> val1) */ \
+        __ASM_EMIT("vorr        d4, d2")                /* d4 = val0 & (val0 <=> val1) | val1 & !(val0 <=> val1) */ \
+        __ASM_EMIT("vmov        s16, s15")              /* d8 = nidx */ \
+        /* 1x blocks */ \
+        __ASM_EMIT("4:") \
+        __ASM_EMIT("adds        %[count], $3") \
+        __ASM_EMIT("blt         6f") \
+        __ASM_EMIT("5:") \
+        __ASM_EMIT("vldm        %[src]!, {s2}")         /* d1 = sample */ \
+        __ASM_EMIT(keep_op "    d2, d4, d1")            /* d2 = val <=> sample */ \
+        __ASM_EMIT("vmvn        d3, d2")                /* d3 = !(val <=> sample) */ \
+        __ASM_EMIT("vand        d0, d0, d2")            /* d0 = idx & (val <=> sample) */ \
+        __ASM_EMIT("vand        d5, d8, d3")            /* d5 = nidx & !(val <=> sample) */ \
+        __ASM_EMIT("vand        d4, d4, d2")            /* d4 = val & (val <=> sample) */ \
+        __ASM_EMIT("vand        d6, d1, d3")            /* d1 = sample & !(val <=> sample) */ \
+        __ASM_EMIT("vadd.u32    q0, q15")               /* nidx ++ */ \
+        __ASM_EMIT("subs        %[count], $1")          /* count -- */ \
+        __ASM_EMIT("bge         5b") \
+        \
+        __ASM_EMIT("6:") \
+        __ASM_EMIT("vstm        %[index], {s0}")
+
+    size_t min_index(const float *src, size_t count)
+    {
+        uint32_t index = 0;
+
+        ARCH_ARM_ASM(
+            IDX_COND_SEARCH("vcle.f32")
+            : [src] "+r" (src), [count] "+r" (count)
+            : [index] "r" (&index),
+              [IDXS] "r" (indexes)
+            : "cc",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+
+        return index;
+    }
+
+    size_t max_index(const float *src, size_t count)
+    {
+        uint32_t index = 0;
+
+        ARCH_ARM_ASM(
+            IDX_COND_SEARCH("vcge.f32")
+            : [src] "+r" (src), [count] "+r" (count)
+            : [index] "r" (&index),
+              [IDXS] "r" (indexes)
+            : "cc",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+
+        return index;
     }
 }
 
