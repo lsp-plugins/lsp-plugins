@@ -14,11 +14,11 @@ namespace native
 {
     size_t  min_index(const float *src, size_t count);
     size_t  max_index(const float *src, size_t count);
-//    void    minmax_index(const float *src, size_t count, size_t *min, size_t *max);
+    void    minmax_index(const float *src, size_t count, size_t *min, size_t *max);
 
     size_t  abs_min_index(const float *src, size_t count);
     size_t  abs_max_index(const float *src, size_t count);
-//    void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
+    void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
 }
 
 IF_ARCH_X86(
@@ -26,11 +26,11 @@ IF_ARCH_X86(
     {
         size_t  min_index(const float *src, size_t count);
         size_t  max_index(const float *src, size_t count);
-//        void    minmax_index(const float *src, size_t count, size_t *min, size_t *max);
+        void    minmax_index(const float *src, size_t count, size_t *min, size_t *max);
 
         size_t  abs_min_index(const float *src, size_t count);
         size_t  abs_max_index(const float *src, size_t count);
-//        void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
+        void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
     }
 )
 
@@ -65,8 +65,47 @@ UTEST_BEGIN("dsp.search", iminmax)
                 // Compare buffers
                 if (a != b)
                 {
-                    src.dump("src1");
+                    src.dump("src");
                     UTEST_FAIL_MSG("Result of function 1 (%ld) differs result of function 2 (%ld)", (long)a, (long)b)
+                }
+            }
+        }
+    }
+
+    void call(const char *label, size_t align, cond_minmax_t func1, cond_minmax_t func2)
+    {
+        if (!UTEST_SUPPORTED(func1))
+            return;
+        if (!UTEST_SUPPORTED(func2))
+            return;
+
+        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                32, 64, 65, 100, 768, 999, 1024)
+        {
+            for (size_t mask=0; mask <= 0x01; ++mask)
+            {
+                printf("Testing %s on input buffer of %d numbers, mask=0x%x...\n", label, int(count), int(mask));
+
+                FloatBuffer src(count, align, mask & 0x01);
+                src.randomize_sign();
+
+                // Call functions
+                size_t min_a, max_a, min_b, max_b;
+                func1(src, count, &min_a, &max_a);
+                func2(src, count, &min_b, &max_b);
+
+                UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
+
+                // Compare buffers
+                if (min_a != min_b)
+                {
+                    src.dump("src");
+                    UTEST_FAIL_MSG("Result of min differs (%ld vs %ld)", (long)min_a, (long)min_b)
+                }
+                else if (max_a != max_b)
+                {
+                    src.dump("src");
+                    UTEST_FAIL_MSG("Result of min differs (%ld vs %ld)", (long)max_a, (long)max_b)
                 }
             }
         }
@@ -76,9 +115,11 @@ UTEST_BEGIN("dsp.search", iminmax)
     {
         IF_ARCH_X86(call("sse2:min_index", 16, native::min_index, sse2::min_index));
         IF_ARCH_X86(call("sse2:max_index", 16, native::max_index, sse2::max_index));
+        IF_ARCH_X86(call("sse2:minmax_index", 16, native::minmax_index, sse2::minmax_index));
 
         IF_ARCH_X86(call("sse2:abs_min_index", 16, native::abs_min_index, sse2::abs_min_index));
         IF_ARCH_X86(call("sse2:abs_max_index", 16, native::abs_max_index, sse2::abs_max_index));
+        IF_ARCH_X86(call("sse2:abs_minmax_index", 16, native::abs_minmax_index, sse2::abs_minmax_index));
     }
 UTEST_END
 

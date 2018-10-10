@@ -20,9 +20,9 @@ namespace native
             return 0.0f;
 
         float min = src[0];
-        for (size_t i=0; i<count; ++i)
+        for (size_t i=1; i<count; ++i)
         {
-            float tmp = fabs(src[i]);
+            float tmp = src[i];
             if (tmp < min)
                 min = tmp;
         }
@@ -35,26 +35,11 @@ namespace native
             return 0.0f;
 
         float max = src[0];
-        for (size_t i=0; i<count; ++i)
+        for (size_t i=1; i<count; ++i)
         {
-            float tmp = fabs(src[i]);
+            float tmp = src[i];
             if (tmp > max)
                 max = tmp;
-        }
-        return max;
-    }
-
-    float abs_max(const float *src, size_t count)
-    {
-        if (count == 0)
-            return 0.0f;
-
-        float max = fabs(src[0]);
-        for (size_t i=0; i<count; ++i)
-        {
-            float tmp = fabs(src[i]);
-            if (tmp > max)
-                max     = tmp;
         }
         return max;
     }
@@ -65,13 +50,28 @@ namespace native
             return 0.0f;
 
         float min = fabs(src[0]);
-        for (size_t i=0; i<count; ++i)
+        for (size_t i=1; i<count; ++i)
         {
             float tmp = fabs(src[i]);
             if (tmp < min)
                 min     = tmp;
         }
         return min;
+    }
+
+    float abs_max(const float *src, size_t count)
+    {
+        if (count == 0)
+            return 0.0f;
+
+        float max = fabs(src[0]);
+        for (size_t i=1; i<count; ++i)
+        {
+            float tmp = fabs(src[i]);
+            if (tmp > max)
+                max     = tmp;
+        }
+        return max;
     }
 
     void minmax(const float *src, size_t count, float *min, float *max)
@@ -84,7 +84,7 @@ namespace native
         }
 
         float a_min = src[0], a_max = src[0];
-        for (size_t i=0; i<count; ++i)
+        for (size_t i=1; i<count; ++i)
         {
             float tmp   = src[i];
             if (tmp < a_min)
@@ -107,7 +107,7 @@ namespace native
 
         float a_min = fabs(src[0]), a_max = fabs(src[0]);
 
-        for (size_t i=0; i<count; ++i)
+        for (size_t i=1; i<count; ++i)
         {
             float tmp   = fabs(src[i]);
             if (tmp < a_min)
@@ -184,25 +184,6 @@ namespace native
         }
     }
 
-    size_t abs_max_index(const float *src, size_t count)
-    {
-        if (count <= 0)
-            return 0;
-
-        size_t index = 0;
-        float s = fabs(src[0]);
-        for (size_t i=1; i<count; ++i)
-        {
-            float d = fabs(src[i]);
-            if (d > s)
-            {
-                index   = i;
-                s       = d;
-            }
-        }
-        return index;
-    }
-
     size_t abs_min_index(const float *src, size_t count)
     {
         if (count <= 0)
@@ -214,6 +195,25 @@ namespace native
         {
             float d = fabs(src[i]);
             if (d < s)
+            {
+                index   = i;
+                s       = d;
+            }
+        }
+        return index;
+    }
+
+    size_t abs_max_index(const float *src, size_t count)
+    {
+        if (count <= 0)
+            return 0;
+
+        size_t index = 0;
+        float s = fabs(src[0]);
+        for (size_t i=1; i<count; ++i)
+        {
+            float d = fabs(src[i]);
+            if (d > s)
             {
                 index   = i;
                 s       = d;

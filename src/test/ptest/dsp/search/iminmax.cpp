@@ -15,11 +15,11 @@ namespace native
 {
     size_t  min_index(const float *src, size_t count);
     size_t  max_index(const float *src, size_t count);
-//    void    minmax_index(const float *src, size_t count, size_t *min, size_t *max);
+    void    minmax_index(const float *src, size_t count, size_t *min, size_t *max);
 
     size_t  abs_min_index(const float *src, size_t count);
     size_t  abs_max_index(const float *src, size_t count);
-//    void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
+    void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
 }
 
 IF_ARCH_X86(
@@ -27,11 +27,11 @@ IF_ARCH_X86(
     {
         size_t  min_index(const float *src, size_t count);
         size_t  max_index(const float *src, size_t count);
-//        void    minmax_index(const float *src, size_t count, size_t *min, size_t *max);
+        void    minmax_index(const float *src, size_t count, size_t *min, size_t *max);
 
         size_t  abs_min_index(const float *src, size_t count);
         size_t  abs_max_index(const float *src, size_t count);
-//        void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
+        void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
     }
 )
 
@@ -56,6 +56,21 @@ PTEST_BEGIN("dsp.search", iminmax, 5, 1000)
         );
     }
 
+    void call(const char *label, const float *in, size_t count, cond_minmax_t func)
+    {
+        if (!PTEST_SUPPORTED(func))
+            return;
+
+        char buf[80];
+        sprintf(buf, "%s x %d", label, int(count));
+        printf("Testing %s numbers...\n", buf);
+        size_t min, max;
+
+        PTEST_LOOP(buf,
+            func(in, count, &min, &max);
+        );
+    }
+
     PTEST_MAIN
     {
         size_t buf_size = 1 << MAX_RANK;
@@ -69,20 +84,28 @@ PTEST_BEGIN("dsp.search", iminmax, 5, 1000)
         {
             size_t count = 1 << i;
 
+            //--------------
             call("native::min_index", in, count, native::min_index);
             IF_ARCH_X86(call("sse2::min_index", in, count, sse2::min_index));
-            PTEST_SEPARATOR;
 
             call("native::abs_min_index", in, count, native::abs_min_index);
             IF_ARCH_X86(call("sse2::abs_min_index", in, count, sse2::abs_min_index));
             PTEST_SEPARATOR;
 
+            //--------------
             call("native::max_index", in, count, native::max_index);
             IF_ARCH_X86(call("sse2::max_index", in, count, sse2::max_index));
-            PTEST_SEPARATOR;
 
             call("native::abs_max_index", in, count, native::abs_max_index);
             IF_ARCH_X86(call("sse2::abs_max_index", in, count, sse2::abs_max_index));
+            PTEST_SEPARATOR;
+
+            //--------------
+            call("native::minmax_index", in, count, native::minmax_index);
+            IF_ARCH_X86(call("sse2::minmax_index", in, count, sse2::minmax_index));
+
+            call("native::abs_minmax_index", in, count, native::abs_minmax_index);
+            IF_ARCH_X86(call("sse2::abs_minmax_index", in, count, sse2::abs_minmax_index));
             PTEST_SEPARATOR;
         }
 

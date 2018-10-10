@@ -66,9 +66,11 @@ namespace sse2
 
         EXPORT1(min_index);
         EXPORT1(max_index);
+        EXPORT1(minmax_index);
 
         EXPORT1(abs_min_index);
         EXPORT1(abs_max_index);
+        EXPORT1(abs_minmax_index);
     }
 
     #undef EXPORT1

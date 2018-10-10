@@ -22,6 +22,8 @@ namespace sse2
     };
 
     #define CMPLTPS     "$1"
+    #define CMPLEPS     "$2"
+    #define CMPGEPS     "$5"
     #define CMPGTPS     "$6"
 
     #define SEARCH_CORE(op) \
@@ -262,8 +264,312 @@ namespace sse2
 
     #undef ABS_SEARCH_CORE
 
+    void minmax_index(const float *src, size_t count, size_t *min, size_t *max)
+    {
+        uint32_t counters[4] __lsp_aligned16;
+
+        ARCH_X86_ASM(
+            __ASM_EMIT("pxor            %%xmm0, %%xmm0")            // x0 = idx_min
+            __ASM_EMIT("pxor            %%xmm1, %%xmm1")            // x1 = idx_max
+            __ASM_EMIT("test            %[count], %[count]")
+            __ASM_EMIT("jz              4f")
+
+            __ASM_EMIT("movss           0x00(%[src]), %%xmm2")      // x2   = min
+            __ASM_EMIT("shufps          $0x00, %%xmm2, %%xmm2")     // x2   = min
+            __ASM_EMIT("movdqa          0x00 + %[IDXS], %%xmm4")    // x4   = idx_new
+            __ASM_EMIT("movaps          %%xmm2, %%xmm3")            // x3   = max
+            __ASM_EMIT("sub             $0x04, %[count]")
+            __ASM_EMIT("jb              2f")
+
+            // x4 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("movups          0x00(%[src]), %%xmm5")      // x5   = sample
+            // Find minimum
+            __ASM_EMIT("movaps          %%xmm2, %%xmm6")            // x6   = min
+            __ASM_EMIT("cmpps " CMPLEPS ", %%xmm5, %%xmm6")         // x6   = min <= sample
+            __ASM_EMIT("movdqa          %%xmm6, %%xmm7")            // x7   = min <= sample
+            __ASM_EMIT("pand            %%xmm6, %%xmm0")            // x0   = idx_min & (min <= sample)
+            __ASM_EMIT("andps           %%xmm7, %%xmm2")            // x2   = min & (min <= sample)
+            __ASM_EMIT("pandn           %%xmm4, %%xmm6")            // x6   = idx_new & !(min <= sample)
+            __ASM_EMIT("andnps          %%xmm5, %%xmm7")            // x7   = sample & !(min <= sample)
+            __ASM_EMIT("por             %%xmm6, %%xmm0")            // x0   = idx_min & (min <= sample) | idx_new & !(min <= sample)
+            __ASM_EMIT("orps            %%xmm7, %%xmm2")            // x2   = min & (min <= sample) | sample & !(min <= sample)
+            // Find maximum
+            __ASM_EMIT("movaps          %%xmm3, %%xmm6")            // x6   = max
+            __ASM_EMIT("cmpps " CMPGEPS ", %%xmm5, %%xmm6")         // x6   = max >= sample
+            __ASM_EMIT("movdqa          %%xmm6, %%xmm7")            // x7   = max >= sample
+            __ASM_EMIT("pand            %%xmm6, %%xmm1")            // x1   = idx_max & (max >= sample)
+            __ASM_EMIT("andps           %%xmm7, %%xmm3")            // x3   = max & (max >= sample)
+            __ASM_EMIT("pandn           %%xmm4, %%xmm6")            // x6   = idx_new & !(max >= sample)
+            __ASM_EMIT("andnps          %%xmm5, %%xmm7")            // x7   = sample & !(max >= sample)
+            __ASM_EMIT("por             %%xmm6, %%xmm1")            // x1   = idx_max & (max >= sample) | idx_new & !(max >= sample)
+            __ASM_EMIT("orps            %%xmm7, %%xmm3")            // x3   = max & (max >= sample) | sample & !(max >= sample)
+            // Next loop
+            __ASM_EMIT("paddd           0x10 + %[IDXS], %%xmm4")    // x4   = idx_new + 4
+            __ASM_EMIT("add             $0x10, %[src]")             // src += 4
+            __ASM_EMIT("sub             $4, %[count]")              // count -= 4
+            __ASM_EMIT("jae             1b")
+
+            // Post-process
+            __ASM_EMIT("movdqa          %%xmm4, %[COUNTERS]")       // Save current index
+            // Step 1
+            __ASM_EMIT("movhlps         %%xmm0, %%xmm4")
+            __ASM_EMIT("movhlps         %%xmm2, %%xmm5")
+            __ASM_EMIT("movaps          %%xmm2, %%xmm6")
+            __ASM_EMIT("cmpps " CMPLEPS ", %%xmm5, %%xmm6")
+            __ASM_EMIT("movdqa          %%xmm6, %%xmm7")
+            __ASM_EMIT("pand            %%xmm6, %%xmm0")
+            __ASM_EMIT("andps           %%xmm7, %%xmm2")
+            __ASM_EMIT("pandn           %%xmm4, %%xmm6")
+            __ASM_EMIT("andnps          %%xmm5, %%xmm7")
+            __ASM_EMIT("por             %%xmm6, %%xmm0")
+            __ASM_EMIT("orps            %%xmm7, %%xmm2")
+
+            __ASM_EMIT("movhlps         %%xmm1, %%xmm4")
+            __ASM_EMIT("movhlps         %%xmm3, %%xmm5")
+            __ASM_EMIT("movaps          %%xmm3, %%xmm6")
+            __ASM_EMIT("cmpps " CMPGEPS ", %%xmm5, %%xmm6")
+            __ASM_EMIT("movdqa          %%xmm6, %%xmm7")
+            __ASM_EMIT("pand            %%xmm6, %%xmm1")
+            __ASM_EMIT("andps           %%xmm7, %%xmm3")
+            __ASM_EMIT("pandn           %%xmm4, %%xmm6")
+            __ASM_EMIT("andnps          %%xmm5, %%xmm7")
+            __ASM_EMIT("por             %%xmm6, %%xmm1")
+            __ASM_EMIT("orps            %%xmm7, %%xmm3")
+
+            // Step 2
+            __ASM_EMIT("unpcklps        %%xmm0, %%xmm0")
+            __ASM_EMIT("unpcklps        %%xmm2, %%xmm2")
+            __ASM_EMIT("movhlps         %%xmm0, %%xmm4")
+            __ASM_EMIT("movhlps         %%xmm2, %%xmm5")
+            __ASM_EMIT("movaps          %%xmm2, %%xmm6")
+            __ASM_EMIT("cmpps " CMPLEPS ", %%xmm5, %%xmm6")
+            __ASM_EMIT("movdqa          %%xmm6, %%xmm7")
+            __ASM_EMIT("pand            %%xmm6, %%xmm0")
+            __ASM_EMIT("andps           %%xmm7, %%xmm2")
+            __ASM_EMIT("pandn           %%xmm4, %%xmm6")
+            __ASM_EMIT("andnps          %%xmm5, %%xmm7")
+            __ASM_EMIT("por             %%xmm6, %%xmm0")
+            __ASM_EMIT("orps            %%xmm7, %%xmm2")
+
+            __ASM_EMIT("unpcklps        %%xmm1, %%xmm1")
+            __ASM_EMIT("unpcklps        %%xmm3, %%xmm3")
+            __ASM_EMIT("movhlps         %%xmm1, %%xmm4")
+            __ASM_EMIT("movhlps         %%xmm3, %%xmm5")
+            __ASM_EMIT("movaps          %%xmm3, %%xmm6")
+            __ASM_EMIT("cmpps " CMPGEPS ", %%xmm5, %%xmm6")
+            __ASM_EMIT("movdqa          %%xmm6, %%xmm7")
+            __ASM_EMIT("pand            %%xmm6, %%xmm1")
+            __ASM_EMIT("andps           %%xmm7, %%xmm3")
+            __ASM_EMIT("pandn           %%xmm4, %%xmm6")
+            __ASM_EMIT("andnps          %%xmm5, %%xmm7")
+            __ASM_EMIT("por             %%xmm6, %%xmm1")
+            __ASM_EMIT("orps            %%xmm7, %%xmm3")
+
+            __ASM_EMIT("movdqa          %[COUNTERS], %%xmm4")       // Restore current index
+
+            __ASM_EMIT("2:")
+            __ASM_EMIT("add             $3, %[count]")
+            __ASM_EMIT("jl              4f")
+
+            // x1 blocks
+            __ASM_EMIT("3:")
+            __ASM_EMIT("movss           0x00(%[src]), %%xmm5")      // x5   = sample
+            // Find minimum
+            __ASM_EMIT("movaps          %%xmm2, %%xmm6")            // x6   = min
+            __ASM_EMIT("cmpss " CMPLEPS ", %%xmm5, %%xmm6")         // x6   = min <= sample
+            __ASM_EMIT("movdqa          %%xmm6, %%xmm7")            // x7   = min <= sample
+            __ASM_EMIT("pand            %%xmm6, %%xmm0")            // x0   = idx_min & (min <= sample)
+            __ASM_EMIT("andps           %%xmm7, %%xmm2")            // x2   = min & (min <= sample)
+            __ASM_EMIT("pandn           %%xmm4, %%xmm6")            // x6   = idx_new & !(min <= sample)
+            __ASM_EMIT("andnps          %%xmm5, %%xmm7")            // x7   = sample & !(min <= sample)
+            __ASM_EMIT("por             %%xmm6, %%xmm0")            // x0   = idx_min & (min <= sample) | idx_new & !(min <= sample)
+            __ASM_EMIT("orps            %%xmm7, %%xmm2")            // x2   = min & (min <= sample) | sample & !(min <= sample)
+            // Find maximum
+            __ASM_EMIT("movaps          %%xmm3, %%xmm6")            // x6   = max
+            __ASM_EMIT("cmpss " CMPGEPS ", %%xmm5, %%xmm6")         // x6   = max >= sample
+            __ASM_EMIT("movdqa          %%xmm6, %%xmm7")            // x7   = max >= sample
+            __ASM_EMIT("pand            %%xmm6, %%xmm1")            // x1   = idx_max & (max >= sample)
+            __ASM_EMIT("andps           %%xmm7, %%xmm3")            // x3   = max & (max >= sample)
+            __ASM_EMIT("pandn           %%xmm4, %%xmm6")            // x6   = idx_new & !(max >= sample)
+            __ASM_EMIT("andnps          %%xmm5, %%xmm7")            // x7   = sample & !(max >= sample)
+            __ASM_EMIT("por             %%xmm6, %%xmm1")            // x1   = idx_max & (max >= sample) | idx_new & !(max >= sample)
+            __ASM_EMIT("orps            %%xmm7, %%xmm3")            // x3   = max & (max >= sample) | sample & !(max >= sample)
+            // Next loop
+            __ASM_EMIT("paddd           0x20 + %[IDXS], %%xmm4")    // x4   = idx_new + 1
+            __ASM_EMIT("add             $0x04, %[src]")             // src += 4
+            __ASM_EMIT("dec             %[count]")                  // count --
+            __ASM_EMIT("jge             3b")
+
+            __ASM_EMIT("4:")
+            __ASM_EMIT("movd            %%xmm0, (%[min])")
+            __ASM_EMIT("movd            %%xmm1, (%[max])")
+            __ASM_EMIT64("movl          $0, 0x04(%[min])")
+            __ASM_EMIT64("movl          $0, 0x04(%[max])")
+            : [src] "+r" (src), [count] "+r" (count)
+            : [min] "r" (min), [max] "r" (max),
+              [IDXS] "o" (indexes),
+              [COUNTERS] "m" (counters)
+        );
+    }
+
+    void abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max)
+    {
+        uint32_t counters[4] __lsp_aligned16;
+
+        ARCH_X86_ASM(
+            __ASM_EMIT("pxor            %%xmm0, %%xmm0")            // x0 = idx_min
+            __ASM_EMIT("pxor            %%xmm1, %%xmm1")            // x1 = idx_max
+            __ASM_EMIT("test            %[count], %[count]")
+            __ASM_EMIT("jz              4f")
+
+            __ASM_EMIT("movss           0x00(%[src]), %%xmm2")      // x2   = min
+            __ASM_EMIT("shufps          $0x00, %%xmm2, %%xmm2")     // x2   = min
+            __ASM_EMIT("movdqa          0x00 + %[IDXS], %%xmm4")    // x4   = idx_new
+            __ASM_EMIT("andps           %[X_SIGN], %%xmm2")         // x5   = abs(sample)
+            __ASM_EMIT("movaps          %%xmm2, %%xmm3")            // x3   = max = abs(sample)
+            __ASM_EMIT("sub             $0x04, %[count]")
+            __ASM_EMIT("jb              2f")
+
+            // x4 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("movups          0x00(%[src]), %%xmm5")      // x5   = sample
+            // Find minimum
+            __ASM_EMIT("movaps          %%xmm2, %%xmm6")            // x6   = min
+            __ASM_EMIT("andps           %[X_SIGN], %%xmm5")         // x5   = abs(sample)
+            __ASM_EMIT("cmpps " CMPLEPS ", %%xmm5, %%xmm6")         // x6   = min <= sample
+            __ASM_EMIT("movdqa          %%xmm6, %%xmm7")            // x7   = min <= sample
+            __ASM_EMIT("pand            %%xmm6, %%xmm0")            // x0   = idx_min & (min <= sample)
+            __ASM_EMIT("andps           %%xmm7, %%xmm2")            // x2   = min & (min <= sample)
+            __ASM_EMIT("pandn           %%xmm4, %%xmm6")            // x6   = idx_new & !(min <= sample)
+            __ASM_EMIT("andnps          %%xmm5, %%xmm7")            // x7   = sample & !(min <= sample)
+            __ASM_EMIT("por             %%xmm6, %%xmm0")            // x0   = idx_min & (min <= sample) | idx_new & !(min <= sample)
+            __ASM_EMIT("orps            %%xmm7, %%xmm2")            // x2   = min & (min <= sample) | sample & !(min <= sample)
+            // Find maximum
+            __ASM_EMIT("movaps          %%xmm3, %%xmm6")            // x6   = max
+            __ASM_EMIT("cmpps " CMPGEPS ", %%xmm5, %%xmm6")         // x6   = max >= sample
+            __ASM_EMIT("movdqa          %%xmm6, %%xmm7")            // x7   = max >= sample
+            __ASM_EMIT("pand            %%xmm6, %%xmm1")            // x1   = idx_max & (max >= sample)
+            __ASM_EMIT("andps           %%xmm7, %%xmm3")            // x3   = max & (max >= sample)
+            __ASM_EMIT("pandn           %%xmm4, %%xmm6")            // x6   = idx_new & !(max >= sample)
+            __ASM_EMIT("andnps          %%xmm5, %%xmm7")            // x7   = sample & !(max >= sample)
+            __ASM_EMIT("por             %%xmm6, %%xmm1")            // x1   = idx_max & (max >= sample) | idx_new & !(max >= sample)
+            __ASM_EMIT("orps            %%xmm7, %%xmm3")            // x3   = max & (max >= sample) | sample & !(max >= sample)
+            // Next loop
+            __ASM_EMIT("paddd           0x10 + %[IDXS], %%xmm4")    // x4   = idx_new + 4
+            __ASM_EMIT("add             $0x10, %[src]")             // src += 4
+            __ASM_EMIT("sub             $4, %[count]")              // count -= 4
+            __ASM_EMIT("jae             1b")
+
+            // Post-process
+            __ASM_EMIT("movdqa          %%xmm4, %[COUNTERS]")       // Save current index
+            // Step 1
+            __ASM_EMIT("movhlps         %%xmm0, %%xmm4")
+            __ASM_EMIT("movhlps         %%xmm2, %%xmm5")
+            __ASM_EMIT("movaps          %%xmm2, %%xmm6")
+            __ASM_EMIT("cmpps " CMPLEPS ", %%xmm5, %%xmm6")
+            __ASM_EMIT("movdqa          %%xmm6, %%xmm7")
+            __ASM_EMIT("pand            %%xmm6, %%xmm0")
+            __ASM_EMIT("andps           %%xmm7, %%xmm2")
+            __ASM_EMIT("pandn           %%xmm4, %%xmm6")
+            __ASM_EMIT("andnps          %%xmm5, %%xmm7")
+            __ASM_EMIT("por             %%xmm6, %%xmm0")
+            __ASM_EMIT("orps            %%xmm7, %%xmm2")
+
+            __ASM_EMIT("movhlps         %%xmm1, %%xmm4")
+            __ASM_EMIT("movhlps         %%xmm3, %%xmm5")
+            __ASM_EMIT("movaps          %%xmm3, %%xmm6")
+            __ASM_EMIT("cmpps " CMPGEPS ", %%xmm5, %%xmm6")
+            __ASM_EMIT("movdqa          %%xmm6, %%xmm7")
+            __ASM_EMIT("pand            %%xmm6, %%xmm1")
+            __ASM_EMIT("andps           %%xmm7, %%xmm3")
+            __ASM_EMIT("pandn           %%xmm4, %%xmm6")
+            __ASM_EMIT("andnps          %%xmm5, %%xmm7")
+            __ASM_EMIT("por             %%xmm6, %%xmm1")
+            __ASM_EMIT("orps            %%xmm7, %%xmm3")
+
+            // Step 2
+            __ASM_EMIT("unpcklps        %%xmm0, %%xmm0")
+            __ASM_EMIT("unpcklps        %%xmm2, %%xmm2")
+            __ASM_EMIT("movhlps         %%xmm0, %%xmm4")
+            __ASM_EMIT("movhlps         %%xmm2, %%xmm5")
+            __ASM_EMIT("movaps          %%xmm2, %%xmm6")
+            __ASM_EMIT("cmpps " CMPLEPS ", %%xmm5, %%xmm6")
+            __ASM_EMIT("movdqa          %%xmm6, %%xmm7")
+            __ASM_EMIT("pand            %%xmm6, %%xmm0")
+            __ASM_EMIT("andps           %%xmm7, %%xmm2")
+            __ASM_EMIT("pandn           %%xmm4, %%xmm6")
+            __ASM_EMIT("andnps          %%xmm5, %%xmm7")
+            __ASM_EMIT("por             %%xmm6, %%xmm0")
+            __ASM_EMIT("orps            %%xmm7, %%xmm2")
+
+            __ASM_EMIT("unpcklps        %%xmm1, %%xmm1")
+            __ASM_EMIT("unpcklps        %%xmm3, %%xmm3")
+            __ASM_EMIT("movhlps         %%xmm1, %%xmm4")
+            __ASM_EMIT("movhlps         %%xmm3, %%xmm5")
+            __ASM_EMIT("movaps          %%xmm3, %%xmm6")
+            __ASM_EMIT("cmpps " CMPGEPS ", %%xmm5, %%xmm6")
+            __ASM_EMIT("movdqa          %%xmm6, %%xmm7")
+            __ASM_EMIT("pand            %%xmm6, %%xmm1")
+            __ASM_EMIT("andps           %%xmm7, %%xmm3")
+            __ASM_EMIT("pandn           %%xmm4, %%xmm6")
+            __ASM_EMIT("andnps          %%xmm5, %%xmm7")
+            __ASM_EMIT("por             %%xmm6, %%xmm1")
+            __ASM_EMIT("orps            %%xmm7, %%xmm3")
+
+            __ASM_EMIT("movdqa          %[COUNTERS], %%xmm4")       // Restore current index
+
+            __ASM_EMIT("2:")
+            __ASM_EMIT("add             $3, %[count]")
+            __ASM_EMIT("jl              4f")
+
+            // x1 blocks
+            __ASM_EMIT("3:")
+            __ASM_EMIT("movss           0x00(%[src]), %%xmm5")      // x5   = sample
+            // Find minimum
+            __ASM_EMIT("movaps          %%xmm2, %%xmm6")            // x6   = min
+            __ASM_EMIT("andps           %[X_SIGN], %%xmm5")         // x5   = abs(sample)
+            __ASM_EMIT("cmpss " CMPLEPS ", %%xmm5, %%xmm6")         // x6   = min <= sample
+            __ASM_EMIT("movdqa          %%xmm6, %%xmm7")            // x7   = min <= sample
+            __ASM_EMIT("pand            %%xmm6, %%xmm0")            // x0   = idx_min & (min <= sample)
+            __ASM_EMIT("andps           %%xmm7, %%xmm2")            // x2   = min & (min <= sample)
+            __ASM_EMIT("pandn           %%xmm4, %%xmm6")            // x6   = idx_new & !(min <= sample)
+            __ASM_EMIT("andnps          %%xmm5, %%xmm7")            // x7   = sample & !(min <= sample)
+            __ASM_EMIT("por             %%xmm6, %%xmm0")            // x0   = idx_min & (min <= sample) | idx_new & !(min <= sample)
+            __ASM_EMIT("orps            %%xmm7, %%xmm2")            // x2   = min & (min <= sample) | sample & !(min <= sample)
+            // Find maximum
+            __ASM_EMIT("movaps          %%xmm3, %%xmm6")            // x6   = max
+            __ASM_EMIT("cmpss " CMPGEPS ", %%xmm5, %%xmm6")         // x6   = max >= sample
+            __ASM_EMIT("movdqa          %%xmm6, %%xmm7")            // x7   = max >= sample
+            __ASM_EMIT("pand            %%xmm6, %%xmm1")            // x1   = idx_max & (max >= sample)
+            __ASM_EMIT("andps           %%xmm7, %%xmm3")            // x3   = max & (max >= sample)
+            __ASM_EMIT("pandn           %%xmm4, %%xmm6")            // x6   = idx_new & !(max >= sample)
+            __ASM_EMIT("andnps          %%xmm5, %%xmm7")            // x7   = sample & !(max >= sample)
+            __ASM_EMIT("por             %%xmm6, %%xmm1")            // x1   = idx_max & (max >= sample) | idx_new & !(max >= sample)
+            __ASM_EMIT("orps            %%xmm7, %%xmm3")            // x3   = max & (max >= sample) | sample & !(max >= sample)
+            // Next loop
+            __ASM_EMIT("paddd           0x20 + %[IDXS], %%xmm4")    // x4   = idx_new + 1
+            __ASM_EMIT("add             $0x04, %[src]")             // src += 4
+            __ASM_EMIT("dec             %[count]")                  // count --
+            __ASM_EMIT("jge             3b")
+
+            __ASM_EMIT("4:")
+            __ASM_EMIT("movd            %%xmm0, (%[min])")
+            __ASM_EMIT("movd            %%xmm1, (%[max])")
+            __ASM_EMIT64("movl          $0, 0x04(%[min])")
+            __ASM_EMIT64("movl          $0, 0x04(%[max])")
+            : [src] "+r" (src), [count] "+r" (count)
+            : [min] "r" (min), [max] "r" (max),
+              [IDXS] "o" (indexes),
+              [X_SIGN] "o" (X_SIGN),
+              [COUNTERS] "m" (counters)
+        );
+    }
+
     #undef CMPGTPS
+    #undef CMPGEPS
     #undef CMPLTPS
+    #undef CMPLEPS
 }
 
 #endif /* DSP_ARCH_X86_SSE2_SEARCH_H_ */
