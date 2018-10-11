@@ -576,7 +576,6 @@ namespace neon_d32
 
     #define IDX_COND_SEARCH(keep_op) \
         __ASM_EMIT("veor        q0, q0")                /* q0 = idx0 = 0 */ \
-        __ASM_EMIT("veor        q1, q1")                /* q0 = idx1 = 0*/ \
         __ASM_EMIT("cmp         %[count], $0") \
         __ASM_EMIT("beq         6f") \
         \
@@ -589,27 +588,28 @@ namespace neon_d32
         __ASM_EMIT("bls         2f") \
         \
         /* 8x blocks */ \
+        __ASM_EMIT("veor        q1, q1")                /* q0 = idx1 = 0 */ \
         __ASM_EMIT("vmov        q3, q2")                /* q3 = val1 */ \
         __ASM_EMIT("1:") \
         __ASM_EMIT("vld1.32     {q6-q7}, [%[src]]!")    /* q6-q7 = { sample0, sample1 } */ \
         __ASM_EMIT(keep_op "    q8, q2, q6")            /* q8 = val0 <=> sample0 */ \
-        __ASM_EMIT(keep_op "    q9, q3, q7")            /* q9 = val1 <=> sample1 */ \
+        __ASM_EMIT(keep_op "    q9, q3, q7") \
         __ASM_EMIT("vmvn        q10, q8")               /* q10 = !(val0 <=> sample0) */ \
-        __ASM_EMIT("vmvn        q11, q9")               /* q11 = !(val1 <=> sample1) */ \
+        __ASM_EMIT("vmvn        q11, q9") \
         __ASM_EMIT("vand        q0, q0, q8")            /* q0 = idx0 & (val0 <=> sample0) */ \
-        __ASM_EMIT("vand        q1, q1, q9")            /* q1 = idx1 & (val1 <=> sample1) */ \
+        __ASM_EMIT("vand        q1, q1, q9") \
         __ASM_EMIT("vand        q4, q4, q10")           /* q4 = nidx0 & !(val0 <=> sample0) */ \
-        __ASM_EMIT("vand        q5, q5, q11")           /* q5 = nidx1 & !(val1 <=> sample1) */ \
-        __ASM_EMIT("vand        q2, q0, q8")            /* q2 = val0 & (val0 <=> sample0) */ \
-        __ASM_EMIT("vand        q3, q1, q9")            /* q3 = val1 & (val1 <=> sample1) */ \
-        __ASM_EMIT("vand        q6, q4, q10")           /* q6 = sample0 & !(val0 <=> sample0) */ \
-        __ASM_EMIT("vand        q7, q5, q11")           /* q7 = sample1 & !(val1 <=> sample1) */ \
+        __ASM_EMIT("vand        q5, q5, q11") \
+        __ASM_EMIT("vand        q2, q2, q8")            /* q2 = val0 & (val0 <=> sample0) */ \
+        __ASM_EMIT("vand        q3, q3, q9") \
+        __ASM_EMIT("vand        q6, q6, q10")           /* q6 = sample0 & !(val0 <=> sample0) */ \
+        __ASM_EMIT("vand        q7, q7, q11") \
         __ASM_EMIT("vorr        q0, q4")                /* q0 = idx0 & (val0 <=> sample0) | nidx0 & !(val0 <=> sample0) */ \
-        __ASM_EMIT("vorr        q1, q5")                /* q1 = idx1 & (val1 <=> sample1) | nidx1 & !(val1 <=> sample1) */ \
+        __ASM_EMIT("vorr        q1, q5") \
         __ASM_EMIT("vorr        q2, q6")                /* q2 = val0 & (val0 <=> sample0) | sample0 & !(val0 <=> sample0) */ \
-        __ASM_EMIT("vorr        q3, q7")                /* q3 = val1 & (val1 <=> sample1) | sample1 & !(val1 <=> sample1) */ \
+        __ASM_EMIT("vorr        q3, q7" \
         __ASM_EMIT("vadd.u32    q4, q4, q12")           /* q4 = nidx0 + 8 */ \
-        __ASM_EMIT("vadd.u32    q5, q5, q13")           /* q5 = nidx1 + 8 */ \
+        __ASM_EMIT("vadd.u32    q5, q5, q13") \
         __ASM_EMIT("subs        %[count], $8")          /* count -= 8 */ \
         __ASM_EMIT("bhs         1b") \
         /* 8x post-process */ \
@@ -631,8 +631,8 @@ namespace neon_d32
         __ASM_EMIT("vmvn        q10, q8")               /* q10 = !(val0 <=> sample0) */ \
         __ASM_EMIT("vand        q0, q0, q8")            /* q0 = idx0 & (val0 <=> sample0) */ \
         __ASM_EMIT("vand        q4, q4, q10")           /* q4 = nidx0 & !(val0 <=> sample0) */ \
-        __ASM_EMIT("vand        q2, q0, q8")            /* q2 = val0 & (val0 <=> sample0) */ \
-        __ASM_EMIT("vand        q6, q4, q10")           /* q6 = sample0 & !(val0 <=> sample0) */ \
+        __ASM_EMIT("vand        q2, q2, q8")            /* q2 = val0 & (val0 <=> sample0) */ \
+        __ASM_EMIT("vand        q6, q6, q10")           /* q6 = sample0 & !(val0 <=> sample0) */ \
         __ASM_EMIT("vorr        q0, q4")                /* q0 = idx0 & (val0 <=> sample0) | nidx0 & !(val0 <=> sample0) */ \
         __ASM_EMIT("vorr        q2, q6")                /* q2 = val0 & (val0 <=> sample0) | sample0 & !(val0 <=> sample0) */ \
         __ASM_EMIT("vadd.u32    q4, q4, q14")           /* q4 = nidx0 + 4 */ \
@@ -644,8 +644,8 @@ namespace neon_d32
         __ASM_EMIT("vmvn        q10, q8") \
         __ASM_EMIT("vand        q0, q0, q8") \
         __ASM_EMIT("vand        q4, q4, q10") \
-        __ASM_EMIT("vand        q2, q0, q8") \
-        __ASM_EMIT("vand        q6, q4, q10") \
+        __ASM_EMIT("vand        q2, q2, q8") \
+        __ASM_EMIT("vand        q6, q6, q10") \
         __ASM_EMIT("vorr        q0, q4") \
         __ASM_EMIT("vorr        q2, q6") \
         /* 4x post-process, step 2 */ \
@@ -655,8 +655,8 @@ namespace neon_d32
         __ASM_EMIT("vmvn        q10, q8") \
         __ASM_EMIT("vand        q0, q0, q8") \
         __ASM_EMIT("vand        q4, q4, q10") \
-        __ASM_EMIT("vand        q2, q0, q8") \
-        __ASM_EMIT("vand        q6, q4, q10") \
+        __ASM_EMIT("vand        q2, q2, q8") \
+        __ASM_EMIT("vand        q6, q6, q10") \
         __ASM_EMIT("vorr        q0, q4") \
         __ASM_EMIT("vorr        q2, q6") \
         /* 1x blocks */ \
@@ -664,13 +664,13 @@ namespace neon_d32
         __ASM_EMIT("adds        %[count], $3") \
         __ASM_EMIT("blt         6f") \
         __ASM_EMIT("5:") \
-        __ASM_EMIT("vldm        %[src]!, {s24}")        /* d1 = sample */ \
+        __ASM_EMIT("vldm        %[src]!, {s24}")        /* q6 = sample */ \
         __ASM_EMIT(keep_op "    q8, q2, q6") \
         __ASM_EMIT("vmvn        q10, q8") \
         __ASM_EMIT("vand        q0, q0, q8") \
         __ASM_EMIT("vand        q4, q4, q10") \
-        __ASM_EMIT("vand        q2, q0, q8") \
-        __ASM_EMIT("vand        q6, q4, q10") \
+        __ASM_EMIT("vand        q2, q2, q8") \
+        __ASM_EMIT("vand        q6, q6, q10") \
         __ASM_EMIT("vorr        q0, q4") \
         __ASM_EMIT("vorr        q2, q6") \
         __ASM_EMIT("vadd.u32    q4, q15")               /* nidx ++ */ \
@@ -692,7 +692,7 @@ namespace neon_d32
             : [src] "+r" (src), [count] "+r" (count),
               [IDXS] "+r" (pindexes)
             : [index] "r" (&index)
-            : "cc",
+            : "cc", "memory",
               "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
@@ -712,7 +712,7 @@ namespace neon_d32
             : [src] "+r" (src), [count] "+r" (count),
               [IDXS] "+r" (pindexes)
             : [index] "r" (&index)
-            : "cc",
+            : "cc", "memory",
               "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
