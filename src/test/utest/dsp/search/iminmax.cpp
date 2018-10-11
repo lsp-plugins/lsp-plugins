@@ -59,8 +59,9 @@ UTEST_BEGIN("dsp.search", iminmax)
         if (!UTEST_SUPPORTED(func2))
             return;
 
-        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                32, 64, 65, 100, 768, 999, 1024)
+//        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+//                32, 64, 65, 100, 768, 999, 1024)
+        size_t count = 3;
         {
             for (size_t mask=0; mask <= 0x01; ++mask)
             {
@@ -68,6 +69,13 @@ UTEST_BEGIN("dsp.search", iminmax)
 
                 FloatBuffer src(count, align, mask & 0x01);
                 src.randomize_sign();
+
+                // DEBUG BEGIN
+                static const float buf[] = {
+                    0.27510, 0.35106, 0.04490
+                };
+                src.copy(buf, sizeof(buf)/sizeof(float));
+                // DEBUG END
 
                 // Call functions
                 size_t a = func1(src, count);

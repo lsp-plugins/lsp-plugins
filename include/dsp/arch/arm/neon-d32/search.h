@@ -607,7 +607,7 @@ namespace neon_d32
         __ASM_EMIT("vorr        q0, q4")                /* q0 = idx0 & (val0 <=> sample0) | nidx0 & !(val0 <=> sample0) */ \
         __ASM_EMIT("vorr        q1, q5") \
         __ASM_EMIT("vorr        q2, q6")                /* q2 = val0 & (val0 <=> sample0) | sample0 & !(val0 <=> sample0) */ \
-        __ASM_EMIT("vorr        q3, q7" \
+        __ASM_EMIT("vorr        q3, q7") \
         __ASM_EMIT("vadd.u32    q4, q4, q12")           /* q4 = nidx0 + 8 */ \
         __ASM_EMIT("vadd.u32    q5, q5, q13") \
         __ASM_EMIT("subs        %[count], $8")          /* count -= 8 */ \
