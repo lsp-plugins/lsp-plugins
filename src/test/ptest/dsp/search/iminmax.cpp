@@ -41,9 +41,9 @@ IF_ARCH_ARM(
         size_t  min_index(const float *src, size_t count);
         size_t  max_index(const float *src, size_t count);
 //        void    minmax_index(const float *src, size_t count, size_t *min, size_t *max);
-//
-//        size_t  abs_min_index(const float *src, size_t count);
-//        size_t  abs_max_index(const float *src, size_t count);
+
+        size_t  abs_min_index(const float *src, size_t count);
+        size_t  abs_max_index(const float *src, size_t count);
 //        void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
     }
 )
@@ -104,7 +104,7 @@ PTEST_BEGIN("dsp.search", iminmax, 5, 1000)
 
             call("native::abs_min_index", in, count, native::abs_min_index);
             IF_ARCH_X86(call("sse2::abs_min_index", in, count, sse2::abs_min_index));
-//            IF_ARCH_ARM(call("neon_d32::abs_min_index", in, count, neon_d32::abs_min_index));
+            IF_ARCH_ARM(call("neon_d32::abs_min_index", in, count, neon_d32::abs_min_index));
             PTEST_SEPARATOR;
 
             //--------------
@@ -114,7 +114,7 @@ PTEST_BEGIN("dsp.search", iminmax, 5, 1000)
 
             call("native::abs_max_index", in, count, native::abs_max_index);
             IF_ARCH_X86(call("sse2::abs_max_index", in, count, sse2::abs_max_index));
-//            IF_ARCH_ARM(call("neon_d32::abs_max_index", in, count, neon_d32::abs_max_index));
+            IF_ARCH_ARM(call("neon_d32::abs_max_index", in, count, neon_d32::abs_max_index));
             PTEST_SEPARATOR;
 
             //--------------

@@ -178,6 +178,10 @@ namespace neon_d32
 
         EXPORT1(min_index);
         EXPORT1(max_index);
+//        EXPORT1(minmax_index);
+        EXPORT1(abs_min_index);
+        EXPORT1(abs_max_index);
+//        EXPORT1(abs_minmax_index);
 
         // Misc for testing
         TEST_EXPORT(neon_d32::complex_mul3_x12);
