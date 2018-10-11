@@ -75,6 +75,9 @@ UTEST_BEGIN("dsp.search", iminmax)
                     0.27510, 0.35106, 0.04490
                 };
                 src.copy(buf, sizeof(buf)/sizeof(float));
+
+                src.dump("src_f32");
+                src.dump("src_u32");
                 // DEBUG END
 
                 // Call functions
