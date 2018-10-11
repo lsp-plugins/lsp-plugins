@@ -72,7 +72,7 @@ UTEST_BEGIN("dsp.search", iminmax)
 
                 // DEBUG BEGIN
                 static const float buf[] = {
-                    0.27510, 0.35106, 0.04490
+                    0.23474, 0.83814, -0.21671, 0.14151
                 };
                 src.copy(buf, sizeof(buf)/sizeof(float));
 

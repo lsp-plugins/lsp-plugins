@@ -615,12 +615,12 @@ namespace neon_d32
         /* 8x post-process */ \
         __ASM_EMIT(keep_op "    q8, q2, q3")            /* q8 = val0 <=> val1 */ \
         __ASM_EMIT("vmov        q4, q5")                /* q4 = nidx1 */ \
-        __ASM_EMIT("vmvn        q9, q8")                /* q9 = !(val0 <=> val1) */ \
+        __ASM_EMIT("vmvn        q10, q8")               /* q10 = !(val0 <=> val1) */ \
         __ASM_EMIT("vand        q0, q0, q8")            /* q0 = idx0 & (val0 <=> val1) */ \
         __ASM_EMIT("vand        q2, q2, q8")            /* q2 = val0 & (val0 <=> val1) */ \
-        __ASM_EMIT("vand        q3, q3, q9")            /* q3 = val1 & !(val0 <=> val1) */ \
-        __ASM_EMIT("vand        q8, q1, q9")            /* q8 = idx1 & !(val0 <=> val1) */ \
-        __ASM_EMIT("vorr        q2, q3")                /* q2 = val0 & (val0 <=> val1) | val1 & !(val0 <=> val1) */ \
+        __ASM_EMIT("vand        q6, q6, q10")           /* q6 = val1 & !(val0 <=> val1) */ \
+        __ASM_EMIT("vand        q8, q4, q10")           /* q8 = idx1 & !(val0 <=> val1) */ \
+        __ASM_EMIT("vorr        q2, q6")                /* q2 = val0 & (val0 <=> val1) | val1 & !(val0 <=> val1) */ \
         __ASM_EMIT("vorr        q0, q8")                /* q0 = idx0 & (val0 <=> val1) | idx1 & !(val0 <=> val1) */ \
         /* 4x block */ \
         __ASM_EMIT("2:") \
@@ -638,8 +638,9 @@ namespace neon_d32
         __ASM_EMIT("vadd.u32    q4, q4, q14")           /* q4 = nidx0 + 4 */ \
         __ASM_EMIT("sub         %[count], $4")          /* count -= 8 */ \
         /* 4x post-process, step 1 */ \
+        __ASM_EMIT("vmov        q5, q4") \
         __ASM_EMIT("vmov        d8, d1") \
-        __ASM_EMIT("vmov        d12, d4") \
+        __ASM_EMIT("vmov        d12, d5") \
         __ASM_EMIT(keep_op "    q8, q2, q6") \
         __ASM_EMIT("vmvn        q10, q8")  \
         __ASM_EMIT("vand        q0, q0, q8") \
@@ -659,6 +660,7 @@ namespace neon_d32
         __ASM_EMIT("vand        q8, q4, q10") \
         __ASM_EMIT("vorr        q2, q6") \
         __ASM_EMIT("vorr        q0, q8") \
+        __ASM_EMIT("vmov        q4, q5") \
         /* 1x blocks */ \
         __ASM_EMIT("4:") \
         __ASM_EMIT("adds        %[count], $3") \
