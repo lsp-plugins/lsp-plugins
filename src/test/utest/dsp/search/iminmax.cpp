@@ -79,7 +79,7 @@ UTEST_BEGIN("dsp.search", iminmax)
                 if (a != b)
                 {
                     src.dump("src");
-                    UTEST_FAIL_MSG("Result of function 1 (%ld) differs result of function 2 (%ld)", (long)a, (long)b)
+                    UTEST_FAIL_MSG("Result of function 1 (%d) differs result of function 2 (%d)", int(a), int(b))
                 }
             }
         }
@@ -92,15 +92,23 @@ UTEST_BEGIN("dsp.search", iminmax)
         if (!UTEST_SUPPORTED(func2))
             return;
 
-        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                32, 64, 65, 100, 768, 999, 1024)
+        // DEBUG BEGIN
+        static const float src_data[] = {
+                0.91311, -0.95692, -0.49140
+        };
+        size_t count = sizeof(src_data) / sizeof(float);
+        // DEBUG END
+
+//        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+//                32, 64, 65, 100, 768, 999, 1024)
         {
             for (size_t mask=0; mask <= 0x01; ++mask)
             {
                 printf("Testing %s on input buffer of %d numbers, mask=0x%x...\n", label, int(count), int(mask));
 
                 FloatBuffer src(count, align, mask & 0x01);
-                src.randomize_sign();
+//                src.randomize_sign();
+                src.copy(src_data, count); // DEBUG
 
                 // Call functions
                 size_t min_a, max_a, min_b, max_b;
@@ -113,12 +121,12 @@ UTEST_BEGIN("dsp.search", iminmax)
                 if (min_a != min_b)
                 {
                     src.dump("src");
-                    UTEST_FAIL_MSG("Result of min differs (%ld vs %ld)", long(min_a), long(min_b))
+                    UTEST_FAIL_MSG("Result of min differs (f1=%d vs f2=%d)", int(min_a), int(min_b))
                 }
                 else if (max_a != max_b)
                 {
                     src.dump("src");
-                    UTEST_FAIL_MSG("Result of min differs (%ld vs %ld)", long(max_a), long(max_b))
+                    UTEST_FAIL_MSG("Result of max differs (f1=%d vs f2=%d)", int(max_a), int(max_b))
                 }
             }
         }
