@@ -40,7 +40,7 @@ IF_ARCH_ARM(
     {
         size_t  min_index(const float *src, size_t count);
         size_t  max_index(const float *src, size_t count);
-//        void    minmax_index(const float *src, size_t count, size_t *min, size_t *max);
+        void    minmax_index(const float *src, size_t count, size_t *min, size_t *max);
 
         size_t  abs_min_index(const float *src, size_t count);
         size_t  abs_max_index(const float *src, size_t count);
