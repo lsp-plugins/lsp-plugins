@@ -27,19 +27,20 @@ namespace neon_d32
             __ASM_EMIT("vmov        s6, s5")                                // q1   = d0 d1 d1 0
             __ASM_EMIT("vld1.32     {d0[], d1[]}, [%[src]]!")               // q0   = s s s s
             __ASM_EMIT("vmov        s5, s4")                                // q1   = d0 d0 d1 0
-            __ASM_EMIT("vmla.f32    q4, q0, q2")                            // q4   = s*a0+d0 s*a0+d0 s*a1+d1 s*a2
-            __ASM_EMIT("vstr        s16, %[dst]!")                          // *dst = s*a0+d0
-            __ASM_EMIT("vmul.f32    q1, q4, d3")                            // q1   = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
-            __ASM_EMIT("vadd.f32    d2, d9")                                // q1   = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
+            __ASM_EMIT("vmla.f32    q1, q0, q2")                            // q1   = s*a0+d0 s*a0+d0 s*a1+d1 s*a2
+            __ASM_EMIT("vstm        %[dst]!, {s4}")                         // *dst = s*a0+d0
+            __ASM_EMIT("vmul.f32    q4, q1, q3")                            // q4   = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
+            __ASM_EMIT("vadd.f32    d8, d3")                                // q4   = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
             __ASM_EMIT("subs        %[count], $1")
+            __ASM_EMIT("vmov        q1, q4")                                // q1   = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
             __ASM_EMIT("bne         1b")
 
             // Store the updated buffer state
-            __ASM_EMIT("vst1.32     {d2}, [%[FD]]")
+            __ASM_EMIT("vst1.32     {q1}, [%[FD]]")
             __ASM_EMIT("2:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-            : [FD] "r" (f->d), [FX1] "r" (&f->x1)
+            : [FD] "r" (&f->d[0]), [FX1] "r" (&f->x1)
             : "cc", "memory",
               "q0", "q1", "q2", "q3", "q4"
         );
