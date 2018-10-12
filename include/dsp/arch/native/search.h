@@ -157,33 +157,6 @@ namespace native
         return index;
     }
 
-    void minmax_index(const float *src, size_t count, size_t *min, size_t *max)
-    {
-        *min = 0;
-        *max = 0;
-
-        if (count <= 0)
-            return;
-
-        float vmin = src[0];
-        float vmax = vmin;
-
-        for (size_t i=1; i<count; ++i)
-        {
-            float v = src[i];
-            if (v < vmin)
-            {
-                *min    = i;
-                vmin    = v;
-            }
-            if (v > vmax)
-            {
-                *max    = i;
-                vmax    = v;
-            }
-        }
-    }
-
     size_t abs_min_index(const float *src, size_t count)
     {
         if (count <= 0)
@@ -222,32 +195,60 @@ namespace native
         return index;
     }
 
-    void abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max)
+    void minmax_index(const float *src, size_t count, size_t *min, size_t *max)
     {
-        *min = 0;
-        *max = 0;
-
-        if (count <= 0)
-            return;
-
-        float vmin = fabs(src[0]);
-        float vmax = vmin;
-
-        for (size_t i=0; i<count; ++i)
+        size_t imin = 0, imax = 0;
+        if (count > 0)
         {
-            float v = fabs(src[i]);
+            float vmin = src[0];
+            float vmax = vmin;
 
-            if (v < vmin)
+            for (size_t i=1; i<count; ++i)
             {
-                *min    = i;
-                vmin    = v;
-            }
-            if (v > vmax)
-            {
-                *max    = i;
-                vmax    = v;
+                float v = src[i];
+                if (v < vmin)
+                {
+                    imin    = i;
+                    vmin    = v;
+                }
+                if (v > vmax)
+                {
+                    imax    = i;
+                    vmax    = v;
+                }
             }
         }
+
+        *min = imin;
+        *max = imax;
+    }
+
+    void abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max)
+    {
+        size_t imin = 0, imax = 0;
+        if (count > 0)
+        {
+            float vmin = fabs(src[0]);
+            float vmax = vmin;
+
+            for (size_t i=1; i<count; ++i)
+            {
+                float v = fabs(src[i]);
+                if (v < vmin)
+                {
+                    imin    = i;
+                    vmin    = v;
+                }
+                if (v > vmax)
+                {
+                    imax    = i;
+                    vmax    = v;
+                }
+            }
+        }
+
+        *min = imin;
+        *max = imax;
     }
 }
 

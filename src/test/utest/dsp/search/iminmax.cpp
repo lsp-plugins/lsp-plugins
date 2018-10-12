@@ -39,8 +39,8 @@ IF_ARCH_ARM(
     {
         size_t  min_index(const float *src, size_t count);
         size_t  max_index(const float *src, size_t count);
-//        void    minmax_index(const float *src, size_t count, size_t *min, size_t *max);
-//
+        void    minmax_index(const float *src, size_t count, size_t *min, size_t *max);
+
         size_t  abs_min_index(const float *src, size_t count);
         size_t  abs_max_index(const float *src, size_t count);
 //        void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
@@ -113,12 +113,12 @@ UTEST_BEGIN("dsp.search", iminmax)
                 if (min_a != min_b)
                 {
                     src.dump("src");
-                    UTEST_FAIL_MSG("Result of min differs (%ld vs %ld)", (long)min_a, (long)min_b)
+                    UTEST_FAIL_MSG("Result of min differs (%ld vs %ld)", long(min_a), long(min_b))
                 }
                 else if (max_a != max_b)
                 {
                     src.dump("src");
-                    UTEST_FAIL_MSG("Result of min differs (%ld vs %ld)", (long)max_a, (long)max_b)
+                    UTEST_FAIL_MSG("Result of min differs (%ld vs %ld)", long(max_a), long(max_b))
                 }
             }
         }
