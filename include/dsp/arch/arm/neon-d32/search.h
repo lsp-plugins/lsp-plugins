@@ -946,8 +946,8 @@ namespace neon_d32
             __ASM_EMIT("vorr        q1, q1, q13")
             // Find maximum
             __ASM_EMIT("vld1.32     {q4-q5}, [%[src]]!")        // q4-q5 = { samp0, samp1 }
-            __ASM_EMIT("vcge.f32    q12, q6, q4")               // q12 = vmax0 >= samp0
-            __ASM_EMIT("vcge.f32    q13, q7, q5")
+            __ASM_EMIT("vcge.f32    q12, q8, q4")               // q12 = vmax0 >= samp0
+            __ASM_EMIT("vcge.f32    q13, q9, q5")
             __ASM_EMIT("vand        q2, q2, q12")               // q2  = imax0 & (vmax0 >= samp0)
             __ASM_EMIT("vand        q3, q3, q13")
             __ASM_EMIT("vand        q8, q8, q12")               // q8  = vmax0 & (vmax0 >= samp0)
@@ -993,7 +993,7 @@ namespace neon_d32
             __ASM_EMIT("vld1.32     {q4}, [%[src]]!")           // q4  = samp0
             __ASM_EMIT("vmov        q5, q4")                    // q5  = samp0
             __ASM_EMIT("vcle.f32    q12, q6, q4")               // q12 = vmin0 <= samp0
-            __ASM_EMIT("vcge.f32    q13, q6, q5")               // q13 = vmax0 >= samp0
+            __ASM_EMIT("vcge.f32    q13, q8, q5")               // q13 = vmax0 >= samp0
             __ASM_EMIT("vand        q0, q0, q12")               // q0  = imin0 & (vmin0 <= samp0)
             __ASM_EMIT("vand        q2, q2, q13")               // q2  = imax0 & (vmax0 >= samp0)
             __ASM_EMIT("vand        q6, q6, q12")               // q6  = vmin0 & (vmin0 <= samp0)
@@ -1016,7 +1016,7 @@ namespace neon_d32
             __ASM_EMIT("vmov        d2, d1")                    // q1  = inmin
             __ASM_EMIT("vmov        d6, d5")                    // q3  = inmax
             __ASM_EMIT("vcle.f32    q12, q6, q4")               // q12 = vmin0 <= smin
-            __ASM_EMIT("vcge.f32    q13, q6, q5")               // q13 = vmax0 >= smax
+            __ASM_EMIT("vcge.f32    q13, q8, q5")               // q13 = vmax0 >= smax
             __ASM_EMIT("vand        q0, q0, q12")               // q0  = imin0 & (vmin0 <= smin)
             __ASM_EMIT("vand        q2, q2, q13")               // q2  = imax0 & (vmax0 >= smax)
             __ASM_EMIT("vand        q6, q6, q12")               // q6  = vmin0 & (vmin0 <= smin)
@@ -1038,7 +1038,7 @@ namespace neon_d32
             __ASM_EMIT("vmov        s12, s9")                   // q3  = inmax
             __ASM_EMIT("vmov        s20, s21")                  // q5  = smax
             __ASM_EMIT("vcle.f32    q12, q6, q4")               // q12 = vmin0 <= smin
-            __ASM_EMIT("vcge.f32    q13, q6, q5")               // q13 = vmax0 >= smax
+            __ASM_EMIT("vcge.f32    q13, q8, q5")               // q13 = vmax0 >= smax
             __ASM_EMIT("vand        q0, q0, q12")               // q0  = imin0 & (vmin0 <= smin)
             __ASM_EMIT("vand        q2, q2, q13")               // q2  = imax0 & (vmax0 >= smax)
             __ASM_EMIT("vand        q6, q6, q12")               // q6  = vmin0 & (vmin0 <= smin)
@@ -1063,7 +1063,7 @@ namespace neon_d32
             __ASM_EMIT("vldm        %[src]!, {s16}")            // q4  = samp0
             __ASM_EMIT("vmov        q5, q4")                    // q5  = samp0
             __ASM_EMIT("vcle.f32    q12, q6, q4")               // q12 = vmin0 <= samp0
-            __ASM_EMIT("vcge.f32    q13, q6, q5")               // q13 = vmax0 >= samp0
+            __ASM_EMIT("vcge.f32    q13, q8, q5")               // q13 = vmax0 >= samp0
             __ASM_EMIT("vand        q0, q0, q12")               // q0  = imin0 & (vmin0 <= samp0)
             __ASM_EMIT("vand        q2, q2, q13")               // q2  = imax0 & (vmax0 >= samp0)
             __ASM_EMIT("vand        q6, q6, q12")               // q6  = vmin0 & (vmin0 <= samp0)

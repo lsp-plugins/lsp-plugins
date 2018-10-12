@@ -108,7 +108,11 @@ UTEST_BEGIN("dsp.search", iminmax)
 
                 FloatBuffer src(count, align, mask & 0x01);
 //                src.randomize_sign();
-                src.copy(src_data, count); // DEBUG
+                // DEBUG BEING
+                src.copy(src_data, count);
+                src.dump("src.f32");
+                src.dump_hex("src.u32");
+                // DEBUG END
 
                 // Call functions
                 size_t min_a, max_a, min_b, max_b;
