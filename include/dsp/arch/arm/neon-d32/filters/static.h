@@ -39,9 +39,9 @@ namespace neon_d32
             __ASM_EMIT("2:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-            : [FD] "r" (&f.d[0]), [FX1] "r" (&f.x1)
+            : [FD] "r" (f->d), [FX1] "r" (&f->x1)
             : "cc", "memory",
-              "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+              "q0", "q1", "q2", "q3", "q4"
         );
     }
 }
