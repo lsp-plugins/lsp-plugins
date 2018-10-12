@@ -48,24 +48,24 @@ $(DSP_IMPL) $(BITS_IMPL) $(NATIVE_IMPL) $(X86_IMPL) $(ARM_IMPL):
 	
 $(SSE_IMPL):
 	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(SSE_INSTR_SET) $(INCLUDE) 
+	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(SSE_INSTR_SET) $(INCLUDE)
 	
 $(SSE2_IMPL):
 	@echo "  $(CC) $(FILE)"
-	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(SSE2_INSTR_SET) $(INCLUDE) $(FILE) -o $(@)
+	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(SSE2_INSTR_SET) $(INCLUDE)
 	
 $(SSE3_IMPL):
 	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(SSE3_INSTR_SET) $(INCLUDE) 
+	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(SSE3_INSTR_SET) $(INCLUDE)
 	
 $(SSE4_IMPL):
 	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(SSE4_INSTR_SET) $(INCLUDE) 
+	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(SSE4_INSTR_SET) $(INCLUDE)
 
 $(AVX_IMPL):
 	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(AVX_INSTR_SET) $(INCLUDE) 
+	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(AVX_INSTR_SET) $(INCLUDE)
 	
 $(NEON_D32_IMPL):
 	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(NEON_D32_INSTR_SET) $(INCLUDE) 
+	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(NEON_D32_INSTR_SET) $(INCLUDE)
