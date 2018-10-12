@@ -13,6 +13,10 @@
 
 * Fixed building issues under Ubuntu Linux related to compiler and linker
   flags reordering.
+* Improved build process, added possibility to specify PREFIX variable for
+  installing into specified path instead of /usr/local.
+* Fixed window decorating issue under the i3 window manager.
+* Enabled RELRO and PIE option for binaries, simplified build system.
 - Migrated to CMake build system.
 - Additional display mode for spectrum analyzer added.
 - Added possibility to double-click the parameter's value number and enter it manually from keyboard.

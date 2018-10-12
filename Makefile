@@ -1,16 +1,23 @@
-BIN_PATH                = /usr/local/bin
-LIB_PATH                = /usr/local/lib
-DOC_PATH                = /usr/local/share/doc
-LADSPA_PATH             = $(LIB_PATH)/ladspa
-LV2_PATH                = $(LIB_PATH)/lv2
-VST_PATH                = $(LIB_PATH)/vst
-
+# Common definitions
 PRODUCT                 = lsp
 ARTIFACT_ID             = $(PRODUCT)-plugins
 OBJDIR                  = ${CURDIR}/.build
 RELEASE_TEXT            = LICENSE.txt README.txt CHANGELOG.txt
 RELEASE_SRC             = $(RELEASE_TEXT) src include res Makefile release.sh
 INSTALL                 = install
+PREFIX_FILE            := .install-prefix.txt
+
+ifndef PREFIX
+PREFIX                  = $(shell cat "$(OBJDIR)/$(PREFIX_FILE)" 2>/dev/null || echo "/usr/local")
+endif
+
+# Installation locations
+BIN_PATH                = $(PREFIX)/bin
+LIB_PATH                = $(PREFIX)/lib
+DOC_PATH                = $(PREFIX)/share/doc
+LADSPA_PATH             = $(LIB_PATH)/ladspa
+LV2_PATH                = $(LIB_PATH)/lv2
+VST_PATH                = $(LIB_PATH)/vst
 
 # Package version
 ifndef VERSION
@@ -88,14 +95,14 @@ export BUILD_PROFILE
 export BASEDIR          = ${CURDIR}
 export INCLUDE          = ${INC_FLAGS}
 export MAKE_OPTS        = -s
-export CFLAGS           = $(CC_ARCH) -std=c++98 -fPIC -fdata-sections -ffunction-sections -fno-exceptions -fno-asynchronous-unwind-tables -Wall -pthread -pipe -fno-rtti $(CC_FLAGS) -DLSP_MAIN_VERSION=\"$(VERSION)\"
+export CFLAGS           = $(CC_ARCH) -std=c++98 -fdata-sections -ffunction-sections -fno-exceptions -fno-asynchronous-unwind-tables -Wall -pipe -fno-rtti $(CC_FLAGS) -DLSP_MAIN_VERSION=\"$(VERSION)\" -DLSP_INSTALL_PREFIX=\"$(PREFIX)\"
 export CC               = g++
 export PHP              = php
 export LD               = ld
 export LDFLAGS          = $(LD_ARCH) -L$(LD_PATH)
-export SO_FLAGS         = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,--gc-sections -shared -Llibrary -lc -lm -fPIC -lpthread
+export SO_FLAGS         = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections -shared -Llibrary -lc -fPIC
 export MERGE_FLAGS      = $(LD_ARCH) -r
-export EXE_FLAGS        = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,--gc-sections -lm -fPIC -pthread
+export EXE_FLAGS        = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections -pie -fPIE
 
 # Objects
 export OBJ_CORE         = $(OBJDIR)/core.o
@@ -110,7 +117,6 @@ export OBJ_TEST_CORE    = $(OBJDIR)/test_core.o
 export OBJ_PLUGINS      = $(OBJDIR)/plugins.o
 export OBJ_METADATA     = $(OBJDIR)/metadata.o
 export OBJ_FILES        = $(OBJ_CORE) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(OBJ_PLUGINS) $(OBJ_METADATA)
-
 
 # Libraries
 export LIB_LADSPA       = $(OBJDIR)/$(ARTIFACT_ID)-ladspa.so
@@ -134,6 +140,9 @@ export UTL_FILES        = $(UTL_GENTTL) $(UTL_VSTMAKE) $(UTL_GENPHP) $(UTL_RESGE
 export PHP_PLUGINS      = $(OBJDIR)/plugins.php
 
 # Compile headers and linkage libraries
+export PTHREAD_LIBS     = -lpthread
+export MATH_LIBS        = -lm
+export DL_LIBS          = -ldl
 export CAIRO_HEADERS    = $(shell pkg-config --cflags cairo)
 export CAIRO_LIBS       = $(shell pkg-config --libs cairo)
 export XLIB_HEADERS     = $(shell pkg-config --cflags x11)
@@ -164,7 +173,7 @@ DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 
 default: all
 
-all: export CFLAGS          += -O2
+all: export CFLAGS          += -O2 -DLSP_NO_EXPERIMENTAL
 all: compile
 
 trace: export CFLAGS        += -DLSP_TRACE
@@ -195,6 +204,7 @@ compile:
 	@echo "Building binaries for target architecture: $(BUILD_PROFILE)"
 	@echo "-------------------------------------------------------------------------------"
 	@mkdir -p $(OBJDIR)/src
+	@test -f $(OBJDIR)/$(PREFIX_FILE) || echo -n "$(PREFIX)" > $(OBJDIR)/$(PREFIX_FILE)
 	@$(MAKE) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
 	@echo "Build OK"
 

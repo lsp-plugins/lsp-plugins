@@ -434,16 +434,14 @@ namespace lsp
                         break;
 
                     case BS_NONE:
-                        atoms[n_items++] = a.X11__NET_WM_WINDOW_TYPE_DOCK;
                         break;
 
                     case BS_POPUP:
-                        atoms[n_items++] = a.X11__NET_WM_WINDOW_TYPE_DOCK;
+                        atoms[n_items++] = a.X11__NET_WM_WINDOW_TYPE_MENU;
                         atoms[n_items++] = a.X11__NET_WM_WINDOW_TYPE_POPUP_MENU;
                         break;
 
                     case BS_COMBO:
-                        atoms[n_items++] = a.X11__NET_WM_WINDOW_TYPE_DOCK;
                         atoms[n_items++] = a.X11__NET_WM_WINDOW_TYPE_COMBO;
                         break;
 

@@ -46,7 +46,7 @@ $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@mkdir -p $(OBJDIR)/res
 	@$(UTL_RESGEN) $(BASEDIR)/res/ui $(OBJDIR)/res/xml_resource.cpp
 	@-rm gmon.out >/dev/null 2>&1
-	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(OBJDIR)/res/xml_resource.cpp -o $(OBJ_RES_CORE)
+	@$(CC) -o $(OBJ_RES_CORE) -c $(OBJDIR)/res/xml_resource.cpp -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE) 
 
 # Target dependencies
 container: $(CONTAINER_DEPS)

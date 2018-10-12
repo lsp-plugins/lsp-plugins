@@ -237,7 +237,7 @@ namespace lsp
                 if ((pMidi != NULL) && (pBuffer != NULL) && IS_OUT_PORT(pMetadata))
                 {
                     // Reset buffer
-                    jack_midi_reset_buffer(pBuffer);
+                    jack_midi_clear_buffer(pBuffer);
 
                     // Transfer MIDI events
                     size_t events = pMidi->nEvents;
