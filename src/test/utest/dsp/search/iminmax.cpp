@@ -43,7 +43,7 @@ IF_ARCH_ARM(
 
         size_t  abs_min_index(const float *src, size_t count);
         size_t  abs_max_index(const float *src, size_t count);
-//        void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
+        void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
     }
 )
 
@@ -92,27 +92,15 @@ UTEST_BEGIN("dsp.search", iminmax)
         if (!UTEST_SUPPORTED(func2))
             return;
 
-        // DEBUG BEGIN
-        static const float src_data[] = {
-                0.91311, -0.95692, -0.49140
-        };
-        size_t count = sizeof(src_data) / sizeof(float);
-        // DEBUG END
-
-//        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//                32, 64, 65, 100, 768, 999, 1024)
+        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                32, 64, 65, 100, 768, 999, 1024)
         {
             for (size_t mask=0; mask <= 0x01; ++mask)
             {
                 printf("Testing %s on input buffer of %d numbers, mask=0x%x...\n", label, int(count), int(mask));
 
                 FloatBuffer src(count, align, mask & 0x01);
-//                src.randomize_sign();
-                // DEBUG BEING
-                src.copy(src_data, count);
-                src.dump("src.f32");
-                src.dump_hex("src.u32");
-                // DEBUG END
+                src.randomize_sign();
 
                 // Call functions
                 size_t min_a, max_a, min_b, max_b;
@@ -150,7 +138,7 @@ UTEST_BEGIN("dsp.search", iminmax)
         IF_ARCH_X86(call("sse2:abs_minmax_index", 16, native::abs_minmax_index, sse2::abs_minmax_index));
         IF_ARCH_ARM(call("neon_d32:abs_min_index", 16, native::abs_min_index, neon_d32::abs_min_index));
         IF_ARCH_ARM(call("neon_d32:abs_max_index", 16, native::abs_max_index, neon_d32::abs_max_index));
-//        IF_ARCH_ARM(call("neon_d32:abs_minmax_index", 16, native::abs_minmax_index, neon_d32::abs_minmax_index));
+        IF_ARCH_ARM(call("neon_d32:abs_minmax_index", 16, native::abs_minmax_index, neon_d32::abs_minmax_index));
     }
 UTEST_END
 

@@ -44,7 +44,7 @@ IF_ARCH_ARM(
 
         size_t  abs_min_index(const float *src, size_t count);
         size_t  abs_max_index(const float *src, size_t count);
-//        void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
+        void    abs_minmax_index(const float *src, size_t count, size_t *min, size_t *max);
     }
 )
 
@@ -120,11 +120,11 @@ PTEST_BEGIN("dsp.search", iminmax, 5, 1000)
             //--------------
             call("native::minmax_index", in, count, native::minmax_index);
             IF_ARCH_X86(call("sse2::minmax_index", in, count, sse2::minmax_index));
-//            IF_ARCH_ARM(call("neon_d32::minmax_index", in, count, neon_d32::minmax_index));
+            IF_ARCH_ARM(call("neon_d32::minmax_index", in, count, neon_d32::minmax_index));
 
             call("native::abs_minmax_index", in, count, native::abs_minmax_index);
             IF_ARCH_X86(call("sse2::abs_minmax_index", in, count, sse2::abs_minmax_index));
-//            IF_ARCH_ARM(call("neon_d32::abs_minmax_index", in, count, neon_d32::abs_minmax_index));
+            IF_ARCH_ARM(call("neon_d32::abs_minmax_index", in, count, neon_d32::abs_minmax_index));
             PTEST_SEPARATOR;
         }
 
