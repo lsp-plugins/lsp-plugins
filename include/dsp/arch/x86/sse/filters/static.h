@@ -22,7 +22,7 @@ namespace sse
         (
             // Check count
             __ASM_EMIT("test        %[count], %[count]")
-            __ASM_EMIT("jz          1f")
+            __ASM_EMIT("jz          2f")
 
             // Load permanent data
             __ASM_EMIT("movaps      " BIQUAD_D0_SOFF "(%[f]), %%xmm4")      // xmm4 = d0 d1 0  0
@@ -33,33 +33,29 @@ namespace sse
 
             // Start loop
             __ASM_EMIT(".align 16")
-            __ASM_EMIT("2:")
-
-            // Load data
-            __ASM_EMIT("movss       (%[src], %[i], 4), %%xmm0")             // xmm0 = s ? ? ?
+            __ASM_EMIT("1:")
+            __ASM_EMIT("movss       (%[src], %[i]), %%xmm0")                // xmm0 = s ? ? ?
             __ASM_EMIT("shufps      $0xd0, %%xmm4, %%xmm4")                 // xmm4 = d0 d0 d1 0
             __ASM_EMIT("shufps      $0x00, %%xmm0, %%xmm0")                 // xmm0 = s s s s
             __ASM_EMIT("mulps       %%xmm6, %%xmm0")                        // xmm0 = s*a0 s*a0 s*a1 s*a2
             __ASM_EMIT("addps       %%xmm4, %%xmm0")                        // xmm0 = s*a0+d0 s*a0+d0 s*a1+d1 s*a2
             __ASM_EMIT("movaps      %%xmm0, %%xmm4")                        // xmm4 = s*a0+d0 s*a0+d0 s*a1+d1 s*a2
             __ASM_EMIT("movhlps     %%xmm0, %%xmm7")                        // xmm7 = s*a1+d1 s*a2 0 0
-            __ASM_EMIT("movss       %%xmm0, (%[dst], %[i], 4)")             // store value
+            __ASM_EMIT("movss       %%xmm0, (%[dst], %[i])")                // store value
             __ASM_EMIT("mulps       %%xmm5, %%xmm4")                        // xmm4 = (s*a0+d0)*b1 (s*a0+d0)*b2 0 0
-            __ASM_EMIT("inc         %[i]")
-            __ASM_EMIT("cmp         %[count], %[i]")
+            __ASM_EMIT("add         $4, %[i]")
+            __ASM_EMIT("dec         %[count]")
             __ASM_EMIT("addps       %%xmm7, %%xmm4")                        // xmm4 = (s*a0+d0)*b1+s*a1+d1 (s*a0+d0)*b2+s*a2 0 0
-
-            // Update pointers and repeat loop
-            __ASM_EMIT("jb          2b")
+            __ASM_EMIT("jnz         1b")
 
             // Store the updated buffer state
             __ASM_EMIT("movaps      %%xmm4, " BIQUAD_D0_SOFF "(%[f])")
 
             // Exit label
-            __ASM_EMIT("1:")
+            __ASM_EMIT("2:")
 
-            : [i] "=&r"(i)
-            : [dst] "r" (dst), [src] "r" (src), [count] "r" (count), [f] "r" (f)
+            : [i] "=&r"(i), [count] "+r" (count)
+            : [dst] "r" (dst), [src] "r" (src), [f] "r" (f)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );

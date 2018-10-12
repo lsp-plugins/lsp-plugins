@@ -55,6 +55,7 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/msmatrix.h>
 #include <dsp/arch/arm/neon-d32/resampling.h>
 #include <dsp/arch/arm/neon-d32/search.h>
+#include <dsp/arch/arm/neon-d32/filters/static.h>
 
 #undef DSP_ARCH_ARM_NEON_32_IMPL
 
@@ -182,6 +183,8 @@ namespace neon_d32
         EXPORT1(abs_min_index);
         EXPORT1(abs_max_index);
         EXPORT1(abs_minmax_index);
+
+        EXPORT1(biquad_process_x1);
 
         // Misc for testing
         TEST_EXPORT(neon_d32::complex_mul3_x12);
