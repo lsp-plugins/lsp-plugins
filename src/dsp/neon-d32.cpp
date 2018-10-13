@@ -185,6 +185,7 @@ namespace neon_d32
         EXPORT1(abs_minmax_index);
 
         EXPORT1(biquad_process_x1);
+        EXPORT1(biquad_process_x2);
 
         // Misc for testing
         TEST_EXPORT(neon_d32::complex_mul3_x12);
