@@ -54,7 +54,7 @@ namespace neon_d32
         (
             // Check count
             __ASM_EMIT("cmp         %[count], $0")
-            __ASM_EMIT("beq         2f")
+            __ASM_EMIT("beq         4f")
 
             // Load permanent data
             __ASM_EMIT("vld1.32     {q4-q5}, [%[FX2]]!")                    // q4-q5 = { a0 a0 a1 a2, i0 i0 i1 i2 }
@@ -109,6 +109,7 @@ namespace neon_d32
 
             // Store the updated buffer state
             __ASM_EMIT("vst1.32     {q2-q3}, [%[FD]]")
+            __ASM_EMIT("4:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count),
               [FX2] "+r" (fx2)
