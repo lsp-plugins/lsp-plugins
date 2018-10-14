@@ -59,6 +59,98 @@ typedef void (* biquad_process_t)(float *dst, const float *src, size_t count, bi
 
 UTEST_BEGIN("dsp.filters", static)
 
+    void call(const char *label, biquad_process_t func, size_t n)
+    {
+        if (!UTEST_SUPPORTED(func))
+            return;
+
+        biquad_t f1, f2;
+
+        // Initialize biquad filter
+        biquad_x1_t *x1 = &f1.x1;
+        x1->a[0]    = 0.992303491f;
+        x1->a[1]    = 0.992303491f;
+        x1->a[2]    = -1.98460698f;
+        x1->a[3]    = 0.992303491f;
+
+        x1->b[0]    = 1.98398674f;
+        x1->b[1]    = -0.985227287f;
+        x1->b[2]    = 0.0f;
+        x1->b[3]    = 0.0f;
+
+        if (n == 1)
+            f2.x1       = f1.x1;
+        else if (n == 2)
+        {
+            biquad_x2_t *x2 = &f2.x2;
+            dsp::copy(x2->a, x1->a, 4);
+            dsp::copy(&x2->a[4], x1->a, 4);
+            dsp::copy(x2->b, x1->b, 4);
+            dsp::copy(&x2->b[4], x1->b, 4);
+        }
+        else if (n == 4)
+        {
+            biquad_x4_t *x4 = &f2.x4;
+            for (size_t i=0; i<n; ++i)
+            {
+                x4->a0[i]   = x1->a[1];
+                x4->a1[i]   = x1->a[2];
+                x4->a2[i]   = x1->a[3];
+                x4->b1[i]   = x1->b[0];
+                x4->b2[i]   = x1->b[1];
+            }
+        }
+        else if (n == 8)
+        {
+            biquad_x8_t *x8 = &f2.x8;
+            for (size_t i=0; i<n; ++i)
+            {
+                x8->a0[i]   = x1->a[1];
+                x8->a1[i]   = x1->a[2];
+                x8->a2[i]   = x1->a[3];
+                x8->b1[i]   = x1->b[0];
+                x8->b2[i]   = x1->b[1];
+            }
+        }
+
+        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 0x1f, 0x40, 0x1ff)
+//        size_t count = 4;
+        {
+            FloatBuffer src(count);
+            FloatBuffer dst1(count);
+            FloatBuffer dst2(count);
+            src.randomize_sign();
+
+            printf("Testing %s on input buffer size=%d...\n", label, int(count));
+
+            // Apply processing
+            float *ptr = src.data();
+            for (size_t i=0; i<n; ++i)
+            {
+                dsp::fill_zero(f1.d, BIQUAD_D_ITEMS);
+                native::biquad_process_x1(dst1, ptr, count, &f1);
+                ptr = dst1.data();
+            }
+
+            dsp::fill_zero(f2.d, BIQUAD_D_ITEMS);
+            func(dst2, src, count, &f2);
+
+            // Perform validation
+            UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
+            UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
+            UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
+
+            if (!dst1.equals_absolute(dst2, TOLERANCE))
+            {
+                src.dump("src");
+                dst1.dump("dst1");
+                dst2.dump("dst2");
+                UTEST_FAIL_MSG("Output of functions for test '%s' differs at sample %d: %.6f vs %.6f",
+                        label, int(dst1.last_diff()), dst1.get_diff(), dst2.get_diff());
+            }
+        }
+    }
+
     void call(const char *label, const biquad_t *bq, biquad_process_t func1, biquad_process_t func2)
     {
         if (!UTEST_SUPPORTED(func1))
@@ -101,6 +193,28 @@ UTEST_BEGIN("dsp.filters", static)
 
     UTEST_MAIN
     {
+        // PART 1, overall check
+        call("native::biquad_process_x1", native::biquad_process_x1, 1);
+        IF_ARCH_X86(call("sse::biquad_process_x1", sse::biquad_process_x1, 1));
+        IF_ARCH_ARM(call("neon_d32::biquad_process_x1", neon_d32::biquad_process_x1, 1));
+
+        call("native::biquad_process_x2", native::biquad_process_x2, 2);
+        IF_ARCH_X86(call("sse::biquad_process_x2", sse::biquad_process_x2, 2));
+        IF_ARCH_X86_64(call("sse3::x64_biquad_process_x2", sse3::x64_biquad_process_x2, 2));
+        IF_ARCH_ARM(call("neon_d32::biquad_process_x2", neon_d32::biquad_process_x2, 2));
+
+        call("native::biquad_process_x4", native::biquad_process_x4, 4);
+        IF_ARCH_X86(call("sse::biquad_process_x4", sse::biquad_process_x4, 4));
+        IF_ARCH_ARM(call("neon_d32::biquad_process_x4", neon_d32::biquad_process_x4, 4));
+
+        call("native::biquad_process_x8", native::biquad_process_x8, 8);
+        IF_ARCH_X86(call("sse::biquad_process_x8", sse::biquad_process_x8, 8));
+        IF_ARCH_X86_64(call("sse3::x64_biquad_process_x8", sse3::x64_biquad_process_x8, 8));
+        IF_ARCH_X86_64(call("avx::x64_biquad_process_x8", avx::x64_biquad_process_x8, 8));
+        IF_ARCH_X86_64(call("avx::x64_biquad_process_x8_fma3", avx::x64_biquad_process_x8_fma3, 8));
+//        IF_ARCH_ARM(call("neon_d32::biquad_process_x8", neon_d32::biquad_process_x8, 8));
+
+        // PART 2
         biquad_t bq __lsp_aligned64;
         dsp::fill_zero(bq.d, BIQUAD_D_ITEMS);
 

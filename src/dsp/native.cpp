@@ -23,6 +23,8 @@
 #include <dsp/arch/native/pmath.h>
 #include <dsp/arch/native/search.h>
 
+#include <dsp/arch/native/filters/static.h>
+
 namespace native
 {
     #include <dsp/arch/native/float.h>
@@ -33,7 +35,6 @@ namespace native
     #include <dsp/arch/native/smath.h>
     #include <dsp/arch/native/hmath.h>
     #include <dsp/arch/native/mix.h>
-    #include <dsp/arch/native/filters/static.h>
     #include <dsp/arch/native/filters/dynamic.h>
     #include <dsp/arch/native/filters/transform.h>
     #include <dsp/arch/native/3dmath.h>
