@@ -11,7 +11,7 @@
 #include <test/FloatBuffer.h>
 
 #define BUF_SIZE        1024
-#define TOLERANCE       1e-4f
+#define TOLERANCE       1e-3f
 
 namespace native
 {
