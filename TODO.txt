@@ -17,6 +17,7 @@
   installing into specified path instead of /usr/local.
 * Fixed window decorating issue under the i3 window manager.
 * Enabled RELRO and PIE option for binaries, simplified build system.
+- Fixed biquad filter processing routines that could cause memory corruption and/or invalid behaviour.
 - Migrated to CMake build system.
 - Additional display mode for spectrum analyzer added.
 - Added possibility to double-click the parameter's value number and enter it manually from keyboard.
