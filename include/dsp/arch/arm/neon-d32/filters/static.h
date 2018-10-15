@@ -230,7 +230,7 @@ namespace neon_d32
     {
         IF_ARCH_ARM(
             float *fx8a = f->x8.a0;
-            float *fx8b = f->x8.b0;
+            float *fx8b = f->x8.b1;
             float vmask[16] __lsp_aligned16;
             size_t mask;
         );
@@ -244,7 +244,7 @@ namespace neon_d32
             __ASM_EMIT("vldm        %[FD], {q2-q5}")                        // q2-q3 = d0, q4-q5 = d1
             __ASM_EMIT("vldm        %[X_MASK], {q12-q15}")                  // q12-q15 = vmask
             __ASM_EMIT("mov         %[mask], $1")                           // mask  = 1
-            __ASM_EMIT("vstm        {q12-q15}, %[vmask]")
+            __ASM_EMIT("vstm        %[vmask], {q12-q15}")
 
             // Do pre-loop
             __ASM_EMIT("1:")
@@ -324,6 +324,8 @@ namespace neon_d32
             __ASM_EMIT("vstm        %[vmask], {q12-q15}")
 
             __ASM_EMIT("5:")
+            __ASM_EMIT("vldm        %[FX8A], {q6-q11}")                     // q6-q7 = a0, q8-q9 = a1, q10-q11 = a2
+            __ASM_EMIT("vldm        %[FX8B], {q12-q15}")                    // q12-q13 = b1, q14-q15 = b2
             __ASM_EMIT("vmul.f32    q6, q6, q0")                            // q6    = a0*s
             __ASM_EMIT("vmul.f32    q7, q7, q1")
             __ASM_EMIT("vmul.f32    q8, q8, q0")                            // q8    = a1*s
@@ -339,7 +341,7 @@ namespace neon_d32
             __ASM_EMIT("vadd.f32    q8, q8, q4")                            // q8    = a1*s + b1*s2 + d1 = d0'
             __ASM_EMIT("vadd.f32    q9, q9, q5")
 
-            __ASM_EMIT("tst         %[mask], $0x08")
+            __ASM_EMIT("tst         %[mask], $0x80")
             __ASM_EMIT("beq         6f")
             __ASM_EMIT("vstm        %[dst]!, {s31}")
             __ASM_EMIT("6:")
@@ -366,7 +368,7 @@ namespace neon_d32
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count),
               [mask] "=&r" (mask)
             : [FD] "r" (&f->d[0]), [FX8A] "r" (fx8a), [FX8B] "r" (fx8b),
-              [vmask] "r" (&vmask[0]);
+              [vmask] "r" (&vmask[0]),
               [X_MASK] "r" (&biquad_x8_mask[0])
             : "cc", "memory",
               "q0", "q1", "q2", "q3", "q4"
