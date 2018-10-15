@@ -682,8 +682,49 @@ namespace neon_d32
         return index;
     }
 
+    size_t abs_min_index(const float *src, size_t count)
+    {
+        uint32_t index = 0;
+        IF_ARCH_ARM(
+            uint32_t *pindexes = indexes;
+        );
+
+        ARCH_ARM_ASM(
+            IDX_COND_SEARCH("vacle.f32")
+            : [src] "+r" (src), [count] "+r" (count),
+              [IDXS] "+r" (pindexes)
+            : [index] "r" (&index)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+
+        return index;
+    }
+
+    size_t abs_max_index(const float *src, size_t count)
+    {
+        uint32_t index = 0;
+        IF_ARCH_ARM(
+            uint32_t *pindexes = indexes;
+        );
+
+        ARCH_ARM_ASM(
+            IDX_COND_SEARCH("vacge.f32")
+            : [src] "+r" (src), [count] "+r" (count),
+              [IDXS] "+r" (pindexes)
+            : [index] "r" (&index)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+
+        return index;
+    }
+
     #undef IDX_COND_SEARCH
 
+#if 0
     #define IDX_ABS_COND_SEARCH(keep_op) \
         __ASM_EMIT("veor        q0, q0")                /* q0 = idx0 = 0 */ \
         __ASM_EMIT("cmp         %[count], $0") \
@@ -802,6 +843,7 @@ namespace neon_d32
     }
 
     #undef IDX_ABS_COND_SEARCH
+#endif
 
     void minmax_index(const float *src, size_t count, size_t *min, size_t *max)
     {
