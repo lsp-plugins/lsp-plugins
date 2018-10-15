@@ -51,7 +51,7 @@ IF_ARCH_ARM(
         void biquad_process_x1(float *dst, const float *src, size_t count, biquad_t *f);
         void biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f);
         void biquad_process_x4(float *dst, const float *src, size_t count, biquad_t *f);
-//        void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
+        void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
     }
 )
 
@@ -212,7 +212,7 @@ UTEST_BEGIN("dsp.filters", static)
         IF_ARCH_X86_64(call("sse3::x64_biquad_process_x8", sse3::x64_biquad_process_x8, 8));
         IF_ARCH_X86_64(call("avx::x64_biquad_process_x8", avx::x64_biquad_process_x8, 8));
         IF_ARCH_X86_64(call("avx::x64_biquad_process_x8_fma3", avx::x64_biquad_process_x8_fma3, 8));
-//        IF_ARCH_ARM(call("neon_d32::biquad_process_x8", neon_d32::biquad_process_x8, 8));
+        IF_ARCH_ARM(call("neon_d32::biquad_process_x8", neon_d32::biquad_process_x8, 8));
 
         // PART 2
         biquad_t bq __lsp_aligned64;
@@ -288,13 +288,59 @@ UTEST_BEGIN("dsp.filters", static)
         IF_ARCH_X86(call("sse::biquad_process_x4", &bq, native::biquad_process_x4, sse::biquad_process_x4));
         IF_ARCH_ARM(call("neon_d32::biquad_process_x4", &bq, native::biquad_process_x4, neon_d32::biquad_process_x4));
 
-        // TODO
         // Prepare simple 16 zero, 16 pole filter
-        // a0 = 1.79906213, 1.16191483, 1.13150513, 1.11161804, 1.79906213, 1.16191483, 1.13150513, 1.11161804
-        // a1 = -3.38381839, -2.20469999, -2.18261695, -2.19184852, -3.38381839, -2.20469999, -2.18261695, -2.19184852
-        // a2 = 1.59139514, 1.04720736, 1.05562544, 1.08485937, 1.59139514, 1.04720736, 1.05562544, 1.08485937
-        // b1 = 1.8580488, 1.88010871, 1.91898823, 1.96808743, 1.8580488, 1.88010871, 1.91898823, 1.96808743
-        // b2 = -0.863286555, -0.88529253, -0.924120247, -0.97324127, -0.863286555, -0.88529253, -0.924120247, -0.97324127
+        biquad_x8_t *x8 = &bq.x8;
+
+        x8->a0[0]   = 1.79906213f;
+        x8->a0[1]   = 1.16191483f;
+        x8->a0[2]   = 1.13150513f;
+        x8->a0[3]   = 1.11161804f;
+        x8->a0[4]   = 1.79906213f;
+        x8->a0[5]   = 1.16191483f;
+        x8->a0[6]   = 1.13150513f;
+        x8->a0[7]   = 1.11161804f;
+
+        x8->a1[0]   = -3.38381839f;
+        x8->a1[1]   = -2.20469999f;
+        x8->a1[2]   = -2.18261695f;
+        x8->a1[3]   = -2.19184852f;
+        x8->a1[4]   = -3.38381839f;
+        x8->a1[5]   = -2.20469999f;
+        x8->a1[6]   = -2.18261695f;
+        x8->a1[7]   = -2.19184852f;
+
+        x8->a2[0]   = 1.59139514f;
+        x8->a2[1]   = 1.04720736f;
+        x8->a2[2]   = 1.05562544f;
+        x8->a2[3]   = 1.08485937f;
+        x8->a2[4]   = 1.59139514f;
+        x8->a2[5]   = 1.04720736f;
+        x8->a2[6]   = 1.05562544f;
+        x8->a2[7]   = 1.08485937f;
+
+        x8->b1[0]   = 1.8580488f;
+        x8->b1[1]   = 1.88010871f;
+        x8->b1[2]   = 1.91898823f;
+        x8->b1[3]   = 1.96808743f;
+        x8->b1[4]   = 1.8580488f;
+        x8->b1[5]   = 1.88010871f;
+        x8->b1[6]   = 1.91898823f;
+        x8->b1[7]   = 1.96808743f;
+
+        x8->b2[0]   = -0.863286555f;
+        x8->b2[1]   = -0.88529253f;
+        x8->b2[2]   = -0.924120247f;
+        x8->b2[3]   = -0.97324127f;
+        x8->b2[4]   = -0.863286555f;
+        x8->b2[5]   = -0.88529253f;
+        x8->b2[6]   = -0.924120247f;
+        x8->b2[7]   = -0.97324127f;
+
+        IF_ARCH_X86(call("sse::biquad_process_x8", &bq, native::biquad_process_x8, sse::biquad_process_x8));
+        IF_ARCH_X86_64(call("sse3::x64_biquad_process_x8", &bq, native::biquad_process_x8, sse3::x64_biquad_process_x8));
+        IF_ARCH_X86_64(call("avx::x64_biquad_process_x8", &bq, native::biquad_process_x8, avx::x64_biquad_process_x8));
+        IF_ARCH_X86_64(call("avx::x64_biquad_process_x8_fma3", &bq, native::biquad_process_x8, avx::x64_biquad_process_x8_fma3));
+        IF_ARCH_ARM(call("neon_d32::biquad_process_x8", &bq, native::biquad_process_x8, neon_d32::biquad_process_x8));
     }
 
 UTEST_END
