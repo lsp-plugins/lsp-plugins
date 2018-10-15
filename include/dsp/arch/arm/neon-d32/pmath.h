@@ -754,8 +754,7 @@ namespace neon_d32
 
 #define SCALE_CORE(DST, SRC)   \
     __ASM_EMIT("vldm.32     %[k], {s0}") \
-    __ASM_EMIT("vmov        s1, s0") \
-    __ASM_EMIT("vmov        d1, d0") \
+    __ASM_EMIT("vdup        q0, d0[0]") \
     __ASM_EMIT("subs        %[count], $56") \
     __ASM_EMIT("vmov        q1, q0") \
     __ASM_EMIT("blo         2f") \
@@ -887,8 +886,7 @@ namespace neon_d32
 
 #define SCALE_ADDSUB_CORE(OP, DST, SRC1, SRC2)   \
     __ASM_EMIT("vldm.32     %[k], {s0}") \
-    __ASM_EMIT("vmov        s1, s0") \
-    __ASM_EMIT("vmov        d1, d0") \
+    __ASM_EMIT("vdup        q0, d0[0]") \
     __ASM_EMIT("subs        %[count], $24") \
     __ASM_EMIT("vmov        q1, q0") \
     __ASM_EMIT("blo         2f") \
@@ -1024,8 +1022,7 @@ namespace neon_d32
 
 #define SCALE_MUL_CORE(DST, SRC1, SRC2)   \
     __ASM_EMIT("vldm.32     %[k], {s0}") \
-    __ASM_EMIT("vmov        s1, s0") \
-    __ASM_EMIT("vmov        d1, d0") \
+    __ASM_EMIT("vdup        q0, d0[0]") \
     __ASM_EMIT("subs        %[count], $24") \
     __ASM_EMIT("vmov        q1, q0") \
     __ASM_EMIT("blo         2f") \
@@ -1144,8 +1141,7 @@ namespace neon_d32
 
 #define SCALE_DIV_CORE(DST, SRC1, SRC2) \
     __ASM_EMIT("vldm.32         %[k], {s0}") \
-    __ASM_EMIT("vmov            s1, s0") \
-    __ASM_EMIT("vmov            d1, d0") \
+    __ASM_EMIT("vdup            q0, d0[0]") \
     __ASM_EMIT("subs            %[count], $8") \
     __ASM_EMIT("vmov            q1, q0") \
     __ASM_EMIT("blo             2f") \

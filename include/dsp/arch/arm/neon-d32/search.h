@@ -26,8 +26,7 @@ namespace neon_d32
         __ASM_EMIT("blo         12f") \
         \
         __ASM_EMIT("vldm        %[src]!, {s0}") \
-        __ASM_EMIT("vmov        s1, s0") \
-        __ASM_EMIT("vmov        d1, d0") \
+        __ASM_EMIT("vdup        q0, d0[0]") \
         __ASM_EMIT("vmov        q1, q0") \
         __ASM_EMIT("subs        %[count], $56") \
         __ASM_EMIT("blo         2f") \
@@ -145,8 +144,7 @@ namespace neon_d32
         __ASM_EMIT("blo         12f") \
         \
         __ASM_EMIT("vldm        %[src]!, {s0}") \
-        __ASM_EMIT("vmov        s1, s0") \
-        __ASM_EMIT("vmov        d1, d0") \
+        __ASM_EMIT("vdup        q0, d0[0]") \
         __ASM_EMIT("vabs.f32    q0, q0") \
         __ASM_EMIT("subs        %[count], $56") \
         __ASM_EMIT("vmov        q1, q0") \
@@ -297,8 +295,7 @@ namespace neon_d32
             __ASM_EMIT("blo         12f")
 
             __ASM_EMIT("vldm        %[src]!, {s0}")
-            __ASM_EMIT("vmov        s1, s0")
-            __ASM_EMIT("vmov        d1, d0")
+            __ASM_EMIT("vdup        q0, d0[0]")
             __ASM_EMIT("vmov        q1, q0")
             __ASM_EMIT("vmov        q2, q0")
             __ASM_EMIT("vmov        q3, q1")
@@ -426,8 +423,7 @@ namespace neon_d32
             __ASM_EMIT("blo         12f")
 
             __ASM_EMIT("vldm        %[src]!, {s0}")
-            __ASM_EMIT("vmov        s1, s0")
-            __ASM_EMIT("vmov        d1, d0")
+            __ASM_EMIT("vdup        q0, d0[0]")
             __ASM_EMIT("vabs.f32    q0, q0")
             __ASM_EMIT("vmov        q1, q0")
             __ASM_EMIT("vmov        q2, q0")

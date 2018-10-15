@@ -361,9 +361,8 @@ namespace neon_d32
             __ASM_EMIT("blt             4f")
 
             __ASM_EMIT("vldm            %[src], {s0}")
-            __ASM_EMIT("vmov            s1, s0")
+            __ASM_EMIT("vdup            q0, d0[0]")
             __ASM_EMIT("vldm            %[dst], {q8-q10}")
-            __ASM_EMIT("vmov            d1, d0")
             __ASM_EMIT("vmla.f32        q8, q2, q0")
             __ASM_EMIT("vmla.f32        q9, q3, q0")
             __ASM_EMIT("vmla.f32        q10, q4, q0")
@@ -480,10 +479,9 @@ namespace neon_d32
             __ASM_EMIT("blt             4f")
 
             __ASM_EMIT("vldm            %[src], {s0}")
-            __ASM_EMIT("vmov            s1, s0")
+            __ASM_EMIT("vdup            q0, d0[0]")
             __ASM_EMIT("vldm            %[dst], {q2-q6}")
             __ASM_EMIT("vld1.32         {q8-q9}, [%[kernel]]")
-            __ASM_EMIT("vmov            d1, d0")
 
             __ASM_EMIT("vmla.f32        q2, q8, q0")
             __ASM_EMIT("vmla.f32        q3, q9, q0")
@@ -600,9 +598,8 @@ namespace neon_d32
             __ASM_EMIT("blt             6f")
 
             __ASM_EMIT("vldm            %[src], {s0}")
-            __ASM_EMIT("vmov            s1, s0")
+            __ASM_EMIT("vdup            q0, d0[0]")
             __ASM_EMIT("vldm            %[dst], {d8-d15}")
-            __ASM_EMIT("vmov            d1, d0")
             __ASM_EMIT("vmla.f32        q4, q12, q0")
             __ASM_EMIT("vmla.f32        q5, q13, q0")
             __ASM_EMIT("vmla.f32        q6, q14, q0")
@@ -751,9 +748,8 @@ namespace neon_d32
             __ASM_EMIT("blt             6f")
 
             __ASM_EMIT("vldm            %[src], {s0}")
-            __ASM_EMIT("vmov            s1, s0")
+            __ASM_EMIT("vdup            q0, d0[0]")
             __ASM_EMIT("vldm            %[dst], {q4-q9}")
-            __ASM_EMIT("vmov            d1, d0")
             __ASM_EMIT("vmla.f32        q4, q0, q10")
             __ASM_EMIT("vmla.f32        q5, q0, q11")
             __ASM_EMIT("vmla.f32        q6, q0, q12")
@@ -819,9 +815,8 @@ namespace neon_d32
 
             __ASM_EMIT("1:")
             __ASM_EMIT("vldm            %[src]!, {s0}")
-            __ASM_EMIT("vmov            s1, s0")
+            __ASM_EMIT("vdup            q0, d0[0]")
             __ASM_EMIT("vldm            %[dst], {q2-q7}")
-            __ASM_EMIT("vmov            d1, d0")
             __ASM_EMIT("vmla.f32        q2, q8, q0")
             __ASM_EMIT("vmla.f32        q3, q9, q0")
             __ASM_EMIT("vmla.f32        q4, q10, q0")
@@ -907,9 +902,8 @@ namespace neon_d32
             __ASM_EMIT("add             %[k1], $0x30")
             __ASM_EMIT("1:")
             __ASM_EMIT("vldm            %[src]!, {s0}")
-            __ASM_EMIT("vmov            s1, s0")
+            __ASM_EMIT("vdup            q0, d0[0]")
             __ASM_EMIT("vldm            %[k0], {q8-q10}")
-            __ASM_EMIT("vmov            d1, d0")
             __ASM_EMIT("vldm            %[d0], {q2-q7}")
             __ASM_EMIT("add             %[d1], %[d0], $0x60")
             __ASM_EMIT("vmla.f32        q2, q8, q0")
@@ -1098,9 +1092,8 @@ namespace neon_d32
             __ASM_EMIT("blt             6f")
 
             __ASM_EMIT("vldm            %[src], {s0}")
-            __ASM_EMIT("vmov            s1, s0")
+            __ASM_EMIT("vdup            q0, d0[0]")
             __ASM_EMIT("add             %[d1], %[d0], $0x40")
-            __ASM_EMIT("vmov            d1, d0")
             __ASM_EMIT("vldm            %[d0], {q2-q5}")
             // Part 1
             __ASM_EMIT("vmla.f32        q2, q8, q0")
@@ -1332,9 +1325,8 @@ namespace neon_d32
             __ASM_EMIT("blt             6f")
 
             __ASM_EMIT("vldm            %[src], {s0}")
-            __ASM_EMIT("vmov            s1, s0")
+            __ASM_EMIT("vdup            q0, d0[0]")
             __ASM_EMIT("vldm            %[k0], {q10-q15}")
-            __ASM_EMIT("vmov            d1, d0")
             __ASM_EMIT("add             %[d1], %[d0], $0x60")
             __ASM_EMIT("add             %[k1], %[k0], $0x60")
             // Part 1
