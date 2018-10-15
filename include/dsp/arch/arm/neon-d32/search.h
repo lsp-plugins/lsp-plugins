@@ -857,7 +857,7 @@ namespace neon_d32
             // 8x blocks
             __ASM_EMIT("1:")
             // Find minimum
-            __ASM_EMIT("vld1.32     {q4-q5}, [%[src]]")         // q4-q5 = { samp0, samp1 }
+            __ASM_EMIT("vld1.32     {q4-q5}, [%[src]]!")        // q4-q5 = { samp0, samp1 }
             __ASM_EMIT("vcle.f32    q12, q6, q4")               // q12 = vmin0 <= samp0
             __ASM_EMIT("vcle.f32    q13, q7, q5")
             __ASM_EMIT("vbif.f32    q0, q10, q12")              // q0  = imin0 & (vmin0 <= samp0) | inew0 & (vmin0 > samp0)
@@ -866,7 +866,7 @@ namespace neon_d32
             __ASM_EMIT("vbif.f32    q7, q5, q13")
             __ASM_EMIT("vcge.f32    q12, q8, q4")               // q12 = vmax0 >= samp0
             __ASM_EMIT("vcge.f32    q13, q9, q5")
-            __ASM_EMIT("vbif.f32    q2, q10, q12")              // q0  = imax0 & (vmax0 >= samp0) | q12 = inew0 & (vmax0 < samp0)
+            __ASM_EMIT("vbif.f32    q2, q10, q12")              // q2  = imax0 & (vmax0 >= samp0) | q12 = inew0 & (vmax0 < samp0)
             __ASM_EMIT("vbif.f32    q3, q11, q13")
             __ASM_EMIT("vbif.f32    q8, q4, q12")               // q8  = vmax0 & (vmax0 >= samp0) | samp0 & (vmax0 < samp0)
             __ASM_EMIT("vbif.f32    q9, q5, q13")
@@ -903,7 +903,7 @@ namespace neon_d32
             __ASM_EMIT("vcle.f32    q12, q6, q4")               // q12 = vmin0 <= samp0
             __ASM_EMIT("vcge.f32    q13, q8, q5")               // q13 = vmax0 >= samp0
             __ASM_EMIT("vbif.f32    q0, q10, q12")              // q0  = imin0 & (vmin0 <= samp0) | inew0 & (vmin0 > samp0)
-            __ASM_EMIT("vbif.f32    q2, q10, q13")              // q0  = imax0 & (vmax0 >= samp0) | q12 = inew0 & (vmax0 < samp0)
+            __ASM_EMIT("vbif.f32    q2, q10, q13")              // q2  = imax0 & (vmax0 >= samp0) | q12 = inew0 & (vmax0 < samp0)
             __ASM_EMIT("vbif.f32    q6, q4, q12")               // q6  = vmin0 & (vmin0 <= samp0) | samp0 & (vmin0 > samp0)
             __ASM_EMIT("vbif.f32    q8, q5, q13")               // q8  = vmax0 & (vmax0 >= samp0) | samp0 & (vmax0 < samp0)
             __ASM_EMIT("vadd.u32    q10, q15")                  // inew1 += 4
@@ -964,7 +964,7 @@ namespace neon_d32
             __ASM_EMIT("vcle.f32    q12, q6, q4")               // q12 = vmin0 <= samp0
             __ASM_EMIT("vcge.f32    q13, q8, q5")               // q13 = vmax0 >= samp0
             __ASM_EMIT("vbif.f32    q0, q10, q12")              // q0  = imin0 & (vmin0 <= samp0) | inew0 & (vmin0 > samp0)
-            __ASM_EMIT("vbif.f32    q2, q10, q13")              // q0  = imax0 & (vmax0 >= samp0) | q12 = inew0 & (vmax0 < samp0)
+            __ASM_EMIT("vbif.f32    q2, q10, q13")              // q2  = imax0 & (vmax0 >= samp0) | q12 = inew0 & (vmax0 < samp0)
             __ASM_EMIT("vbif.f32    q6, q4, q12")               // q6  = vmin0 & (vmin0 <= samp0) | samp0 & (vmin0 > samp0)
             __ASM_EMIT("vbif.f32    q8, q5, q13")               // q8  = vmax0 & (vmax0 >= samp0) | samp0 & (vmax0 < samp0)
             __ASM_EMIT("vadd.u32    q10, q15")                  // inew1 += 1
