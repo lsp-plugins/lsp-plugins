@@ -30,8 +30,6 @@ namespace sse
             // Start loop
             __ASM_EMIT(".align 16")
             __ASM_EMIT("2:")
-
-            // Load data
             __ASM_EMIT("movss       (%[src]), %%xmm0")                      // xmm0 = *src = s ? ? ?
             __ASM_EMIT("shufps      $0xd0, %%xmm1, %%xmm1")                 // xmm1 = d0 d0 d1 0
             __ASM_EMIT("shufps      $0x00, %%xmm0, %%xmm0")                 // xmm0 = s s s s
