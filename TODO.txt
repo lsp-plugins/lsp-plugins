@@ -112,6 +112,12 @@
 * FEATURE REQUESTS: Detailed
 *******************************************************************************
 
+==== FFT analysis of the Profiler and Convolver ====
+
+Could it be possible to add a frequency-domain display mode? 
+It'd make it much easier to quickly identify room modes and such. Or if the
+plugin could play back the created IR sample - I could use another plugin to analyze that.﻿
+
 ==== Link order of libraries ====
 
 The ordering of libraries on the command line follows the same convection as for object files:
