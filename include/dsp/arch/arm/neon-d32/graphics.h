@@ -30,14 +30,9 @@ namespace neon_d32
         ARCH_ARM_ASM
         (
             __ASM_EMIT("vld1.32         {q0}, [%[params]]")
-            __ASM_EMIT("vmov            s12, s2")
-            __ASM_EMIT("vmov            s8, s1")
-            __ASM_EMIT("vmov            s1, s0")
-            __ASM_EMIT("vmov            s9, s8")
-            __ASM_EMIT("vmov            s13, s12")
-            __ASM_EMIT("vmov            d1, d0")                        // q0 = zero
-            __ASM_EMIT("vmov            d5, d4")                        // q2 = norm_x
-            __ASM_EMIT("vmov            d7, d6")                        // q3 = norm_y
+            __ASM_EMIT("vdup.32         q3, d1[0]")                     // q3 = norm_y
+            __ASM_EMIT("vdup.32         q2, d0[1]")                     // q2 = norm_x
+            __ASM_EMIT("vdup.32         q0, d0[0]")                     // q0 = zero
             __ASM_EMIT("vst1.32         {q0}, [%[params]]!")            // params += 4
             __ASM_EMIT("vst1.32         {q2-q3}, [%[params]]")
 
@@ -104,7 +99,7 @@ namespace neon_d32
             __ASM_EMIT("vclt.f32        q9, q9, q15")
             __ASM_EMIT("vclt.f32        q10, q10, q15")
             __ASM_EMIT("vclt.f32        q11, q11, q15")
-            __ASM_EMIT("vsub.f32        q0, q0, q12")                   // q0   = A = V + V * [ V < sqrt(1/2) ] - 1.0
+            __ASM_EMIT("vsub.f32        q0, q0, q12")                   // q0   = A = V + V & [ V < sqrt(1/2) ] - 1.0
             __ASM_EMIT("vsub.f32        q1, q1, q12")
             __ASM_EMIT("vsub.f32        q2, q2, q12")
             __ASM_EMIT("vsub.f32        q3, q3, q12")
@@ -112,11 +107,11 @@ namespace neon_d32
             __ASM_EMIT("vmvn            q9, q9")
             __ASM_EMIT("vmvn            q10, q10")
             __ASM_EMIT("vmvn            q11, q11")
-            __ASM_EMIT("vand.u32        q8, q8, q12")                   // q8   = 1.0 * [ V >= sqrt(1/2) ]
+            __ASM_EMIT("vand.u32        q8, q8, q12")                   // q8   = 1.0 & [ V >= sqrt(1/2) ]
             __ASM_EMIT("vand.u32        q9, q9, q12")
             __ASM_EMIT("vand.u32        q10, q10, q12")
             __ASM_EMIT("vand.u32        q11, q11, q12")
-            __ASM_EMIT("vadd.f32        q4, q4, q8")                    // q4   = B = E + 1.0 * [ V >= sqrt(1/2) ]
+            __ASM_EMIT("vadd.f32        q4, q4, q8")                    // q4   = B = E + 1.0 & [ V >= sqrt(1/2) ]
             __ASM_EMIT("vadd.f32        q5, q5, q9")
             __ASM_EMIT("vadd.f32        q6, q6, q10")
             __ASM_EMIT("vadd.f32        q7, q7, q11")
@@ -270,19 +265,19 @@ namespace neon_d32
             __ASM_EMIT("vld1.32         {q12-q13}, [%[fptr]]!")         // q12  = 1.0, q13 = L0 , fptr += 4
             __ASM_EMIT("vclt.f32        q0, q8, q15")                   // q0   = [ V < sqrt(1/2) ]
             __ASM_EMIT("vclt.f32        q1, q9, q15")
-            __ASM_EMIT("vand.u32        q0, q0, q8")                    // q0   = V * [ V < sqrt(1/2) ]
+            __ASM_EMIT("vand.u32        q0, q0, q8")                    // q0   = V & [ V < sqrt(1/2) ]
             __ASM_EMIT("vand.u32        q1, q1, q9")
-            __ASM_EMIT("vadd.f32        q0, q0, q8")                    // q0   = V + V * [ V < sqrt(1/2) ]
+            __ASM_EMIT("vadd.f32        q0, q0, q8")                    // q0   = V + V & [ V < sqrt(1/2) ]
             __ASM_EMIT("vadd.f32        q1, q1, q9")
             __ASM_EMIT("vclt.f32        q8, q8, q15")                   // q8   = [ V < sqrt(1/2) ]
             __ASM_EMIT("vclt.f32        q9, q9, q15")
-            __ASM_EMIT("vsub.f32        q0, q0, q12")                   // q0   = A = V + V * [ V < sqrt(1/2) ] - 1.0
+            __ASM_EMIT("vsub.f32        q0, q0, q12")                   // q0   = A = V + V & [ V < sqrt(1/2) ] - 1.0
             __ASM_EMIT("vsub.f32        q1, q1, q12")
             __ASM_EMIT("vmvn            q8, q8")                        // q8   = [ V >= sqrt(1/2) ]
             __ASM_EMIT("vmvn            q9, q9")
-            __ASM_EMIT("vand.u32        q8, q8, q12")                   // q8   = 1.0 * [ V >= sqrt(1/2) ]
+            __ASM_EMIT("vand.u32        q8, q8, q12")                   // q8   = 1.0 & [ V >= sqrt(1/2) ]
             __ASM_EMIT("vand.u32        q9, q9, q12")
-            __ASM_EMIT("vadd.f32        q4, q4, q8")                    // q4   = B = E + 1.0 * [ V >= sqrt(1/2) ]
+            __ASM_EMIT("vadd.f32        q4, q4, q8")                    // q4   = B = E + 1.0 & [ V >= sqrt(1/2) ]
             __ASM_EMIT("vadd.f32        q5, q5, q9")
             // Calculate logarithmic values
             __ASM_EMIT("vld1.32         {q14-q15}, [%[fptr]]!")         // q14  = L1, q15 = L2, fptr += 8
@@ -370,13 +365,13 @@ namespace neon_d32
             // Prepare logarithm approximation calculations
             __ASM_EMIT("vld1.32         {q12-q13}, [%[fptr]]!")         // q12  = 1.0, q13 = L0 , fptr += 4
             __ASM_EMIT("vclt.f32        q0, q8, q15")                   // q0   = [ V < sqrt(1/2) ]
-            __ASM_EMIT("vand.u32        q0, q0, q8")                    // q0   = V * [ V < sqrt(1/2) ]
+            __ASM_EMIT("vand.u32        q0, q0, q8")                    // q0   = V & [ V < sqrt(1/2) ]
             __ASM_EMIT("vadd.f32        q0, q0, q8")                    // q0   = V + V * [ V < sqrt(1/2) ]
             __ASM_EMIT("vclt.f32        q8, q8, q15")                   // q8   = [ V < sqrt(1/2) ]
-            __ASM_EMIT("vsub.f32        q0, q0, q12")                   // q0   = A = V + V * [ V < sqrt(1/2) ] - 1.0
+            __ASM_EMIT("vsub.f32        q0, q0, q12")                   // q0   = A = V + V & [ V < sqrt(1/2) ] - 1.0
             __ASM_EMIT("vmvn            q8, q8")                        // q8   = [ V >= sqrt(1/2) ]
-            __ASM_EMIT("vand.u32        q8, q8, q12")                   // q8   = 1.0 * [ V >= sqrt(1/2) ]
-            __ASM_EMIT("vadd.f32        q4, q4, q8")                    // q4   = B = E + 1.0 * [ V >= sqrt(1/2) ]
+            __ASM_EMIT("vand.u32        q8, q8, q12")                   // q8   = 1.0 & [ V >= sqrt(1/2) ]
+            __ASM_EMIT("vadd.f32        q4, q4, q8")                    // q4   = B = E + 1.0 & [ V >= sqrt(1/2) ]
             // Calculate logarithmic values
             __ASM_EMIT("vld1.32         {q14-q15}, [%[fptr]]!")         // q14  = L1, q15 = L2, fptr += 8
             __ASM_EMIT("vmul.f32        q8, q0, q13")                   // q8   = L0*A
@@ -440,13 +435,13 @@ namespace neon_d32
             // Prepare logarithm approximation calculations
             __ASM_EMIT("vld1.32         {q6-q7}, [%[fptr]]!")           // d12  = 1.0, d14 = L0 , fptr += 4
             __ASM_EMIT("vclt.f32        d0, d8, d18")                   // d0   = [ V < sqrt(1/2) ]
-            __ASM_EMIT("vand.u32        d0, d0, d8")                    // d0   = V * [ V < sqrt(1/2) ]
-            __ASM_EMIT("vadd.f32        d0, d0, d8")                    // d0   = V + V * [ V < sqrt(1/2) ]
+            __ASM_EMIT("vand.u32        d0, d0, d8")                    // d0   = V & [ V < sqrt(1/2) ]
+            __ASM_EMIT("vadd.f32        d0, d0, d8")                    // d0   = V + V & [ V < sqrt(1/2) ]
             __ASM_EMIT("vclt.f32        d8, d8, d18")                   // d8   = [ V < sqrt(1/2) ]
-            __ASM_EMIT("vsub.f32        d0, d0, d12")                   // d0   = A = V + V * [ V < sqrt(1/2) ] - 1.0
+            __ASM_EMIT("vsub.f32        d0, d0, d12")                   // d0   = A = V + V & [ V < sqrt(1/2) ] - 1.0
             __ASM_EMIT("vmvn            d8, d8")                        // d8   = [ V >= sqrt(1/2) ]
-            __ASM_EMIT("vand.u32        d8, d8, d12")                   // d8   = 1.0 * [ V >= sqrt(1/2) ]
-            __ASM_EMIT("vadd.f32        d4, d4, d8")                    // d4   = B = E + 1.0 * [ V >= sqrt(1/2) ]
+            __ASM_EMIT("vand.u32        d8, d8, d12")                   // d8   = 1.0 & [ V >= sqrt(1/2) ]
+            __ASM_EMIT("vadd.f32        d4, d4, d8")                    // d4   = B = E + 1.0 & [ V >= sqrt(1/2) ]
             // Calculate logarithmic values
             __ASM_EMIT("vld1.32         {q8-q9}, [%[fptr]]!")           // d16  = L1, d18 = L2, fptr += 8
             __ASM_EMIT("vmul.f32        d8, d0, d14")                   // d8   = L0*A
