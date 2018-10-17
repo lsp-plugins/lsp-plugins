@@ -159,12 +159,8 @@ namespace avx
             __ASM_EMIT("vaddps          %%ymm7, %%ymm2, %%ymm2")                        // ymm2     = p1 + d1
 
             // Update delay only by mask
-            __ASM_EMIT("vandps          %%ymm8, %%ymm2, %%ymm2")                        // ymm2     = (p1 + d1) & MASK
-            __ASM_EMIT("vandps          %%ymm8, %%ymm3, %%ymm3")                        // ymm3     = p2 & MASK
-            __ASM_EMIT("vandnps         %%ymm6, %%ymm8, %%ymm6")                        // ymm6     = d0 & ~MASK
-            __ASM_EMIT("vandnps         %%ymm7, %%ymm8, %%ymm7")                        // ymm7     = d1 & ~MASK
-            __ASM_EMIT("vorps           %%ymm2, %%ymm6, %%ymm6")                        // ymm6     = (p1 + d1) & MASK | (d0 & ~MASK)
-            __ASM_EMIT("vorps           %%ymm3, %%ymm7, %%ymm7")                        // ymm7     = (p2 & MASK) | (d1 & ~MASK)
+            __ASM_EMIT("vblendvps       %%ymm8, %%ymm2, %%ymm6, %%ymm6")                // ymm6     = (p1 + d1) & MASK | (d0 & ~MASK)
+            __ASM_EMIT("vblendvps       %%ymm8, %%ymm3, %%ymm7, %%ymm7")                // ymm7     = (p2 & MASK) | (d1 & ~MASK)
 
             // Rotate buffer, AVX has better option for it
             __ASM_EMIT("vpermilps       $0x93, %%ymm1, %%ymm1")                         // ymm1     = s2[3] s2[0] s2[1] s2[2] s2[7] s2[4] s2[5] s2[6]
@@ -235,12 +231,8 @@ namespace avx
             __ASM_EMIT("vaddps          %%ymm7, %%ymm2, %%ymm2")                        // ymm2     = p1 + d1
 
             // Update delay only by mask
-            __ASM_EMIT("vandps          %%ymm8, %%ymm2, %%ymm2")                        // ymm2     = (p1 + d1) & MASK
-            __ASM_EMIT("vandps          %%ymm8, %%ymm3, %%ymm3")                        // ymm3     = p2 & MASK
-            __ASM_EMIT("vandnps         %%ymm6, %%ymm8, %%ymm6")                        // ymm6     = d0 & ~MASK
-            __ASM_EMIT("vandnps         %%ymm7, %%ymm8, %%ymm7")                        // ymm7     = d1 & ~MASK
-            __ASM_EMIT("vorps           %%ymm2, %%ymm6, %%ymm6")                        // ymm6     = (p1 + d1) & MASK | (d0 & ~MASK)
-            __ASM_EMIT("vorps           %%ymm3, %%ymm7, %%ymm7")                        // ymm7     = (p2 & MASK) | (d1 & ~MASK)
+            __ASM_EMIT("vblendvps       %%ymm8, %%ymm2, %%ymm6, %%ymm6")                // ymm6     = (p1 + d1) & MASK | (d0 & ~MASK)
+            __ASM_EMIT("vblendvps       %%ymm8, %%ymm3, %%ymm7, %%ymm7")                // ymm7     = (p2 & MASK) | (d1 & ~MASK)
 
             // Rotate buffer and mask, AVX2 has better option for it
             __ASM_EMIT("vpermilps       $0x93, %%ymm1, %%ymm1")                         // ymm1     = s2[3] s2[0] s2[1] s2[2] s2[7] s2[4] s2[5] s2[6]
@@ -315,12 +307,8 @@ namespace avx
             __ASM_EMIT("vaddps          %%ymm7, %%ymm2, %%ymm2")                        // ymm2     = p1 + d1
 
             // Update delay only by mask
-            __ASM_EMIT("vandps          %%ymm8, %%ymm2, %%ymm2")                        // ymm2     = (p1 + d1) & MASK
-            __ASM_EMIT("vandps          %%ymm8, %%ymm3, %%ymm3")                        // ymm3     = p2 & MASK
-            __ASM_EMIT("vandnps         %%ymm6, %%ymm8, %%ymm6")                        // ymm6     = d0 & ~MASK
-            __ASM_EMIT("vandnps         %%ymm7, %%ymm8, %%ymm7")                        // ymm7     = d1 & ~MASK
-            __ASM_EMIT("vorps           %%ymm2, %%ymm6, %%ymm6")                        // ymm6     = (p1 + d1) & MASK | (d0 & ~MASK)
-            __ASM_EMIT("vorps           %%ymm3, %%ymm7, %%ymm7")                        // ymm7     = (p2 & MASK) | (d1 & ~MASK)
+            __ASM_EMIT("vblendvps       %%ymm8, %%ymm2, %%ymm6, %%ymm6")                // ymm6     = (p1 + d1) & MASK | (d0 & ~MASK)
+            __ASM_EMIT("vblendvps       %%ymm8, %%ymm3, %%ymm7, %%ymm7")                // ymm7     = (p2 & MASK) | (d1 & ~MASK)
 
             // Rotate buffer, AVX has better option for it
             __ASM_EMIT("vpermilps       $0x93, %%ymm1, %%ymm1")                         // ymm1     = s2[3] s2[0] s2[1] s2[2] s2[7] s2[4] s2[5] s2[6]
@@ -385,12 +373,8 @@ namespace avx
             __ASM_EMIT("vaddps          %%ymm7, %%ymm2, %%ymm2")                        // ymm2     = p1 + d1
 
             // Update delay only by mask
-            __ASM_EMIT("vandps          %%ymm8, %%ymm2, %%ymm2")                        // ymm2     = (p1 + d1) & MASK
-            __ASM_EMIT("vandps          %%ymm8, %%ymm3, %%ymm3")                        // ymm3     = p2 & MASK
-            __ASM_EMIT("vandnps         %%ymm6, %%ymm8, %%ymm6")                        // ymm6     = d0 & ~MASK
-            __ASM_EMIT("vandnps         %%ymm7, %%ymm8, %%ymm7")                        // ymm7     = d1 & ~MASK
-            __ASM_EMIT("vorps           %%ymm2, %%ymm6, %%ymm6")                        // ymm6     = (p1 + d1) & MASK | (d0 & ~MASK)
-            __ASM_EMIT("vorps           %%ymm3, %%ymm7, %%ymm7")                        // ymm7     = (p2 & MASK) | (d1 & ~MASK)
+            __ASM_EMIT("vblendvps       %%ymm8, %%ymm2, %%ymm6, %%ymm6")                // ymm6     = (p1 + d1) & MASK | (d0 & ~MASK)
+            __ASM_EMIT("vblendvps       %%ymm8, %%ymm3, %%ymm7, %%ymm7")                // ymm7     = (p2 & MASK) | (d1 & ~MASK)
 
             // Rotate buffer and mask, AVX2 has better option for it
             __ASM_EMIT("vpermilps       $0x93, %%ymm1, %%ymm1")                         // ymm1     = s2[3] s2[0] s2[1] s2[2] s2[7] s2[4] s2[5] s2[6]
