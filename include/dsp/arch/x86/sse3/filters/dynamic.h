@@ -37,10 +37,10 @@ namespace sse3
             __ASM_EMIT("movaps      %%xmm1, 0x10 + %[MASK]")
 
             // Load delay buffer
-            __ASM_EMIT("movaps      0x00(%[d]), %%xmm6")                    // xmm6     = d0
-            __ASM_EMIT("movaps      0x10(%[d]), %%xmm14")                   // xmm14    = d2
-            __ASM_EMIT("movaps      0x20(%[d]), %%xmm7")                    // xmm7     = d1
-            __ASM_EMIT("movaps      0x30(%[d]), %%xmm15")                   // xmm15    = d3
+            __ASM_EMIT("movups      0x00(%[d]), %%xmm6")                    // xmm6     = d0
+            __ASM_EMIT("movups      0x10(%[d]), %%xmm14")                   // xmm14    = d2
+            __ASM_EMIT("movups      0x20(%[d]), %%xmm7")                    // xmm7     = d1
+            __ASM_EMIT("movups      0x30(%[d]), %%xmm15")                   // xmm15    = d3
 
             //-------------------------------------------------------------
             // Process first steps
@@ -258,10 +258,10 @@ namespace sse3
 
             //-------------------------------------------------------------
             // Store delay buffers
-            __ASM_EMIT("movaps      %%xmm6, 0x00(%[d])")                    // xmm6     = d0
-            __ASM_EMIT("movaps      %%xmm14, 0x10(%[d])")                   // xmm14    = d2
-            __ASM_EMIT("movaps      %%xmm7, 0x20(%[d])")                    // xmm7     = d1
-            __ASM_EMIT("movaps      %%xmm15, 0x30(%[d])")                   // xmm15    = d3
+            __ASM_EMIT("movups      %%xmm6, 0x00(%[d])")                    // xmm6     = d0
+            __ASM_EMIT("movups      %%xmm14, 0x10(%[d])")                   // xmm14    = d2
+            __ASM_EMIT("movups      %%xmm7, 0x20(%[d])")                    // xmm7     = d1
+            __ASM_EMIT("movups      %%xmm15, 0x30(%[d])")                   // xmm15    = d3
 
             // Exit label
             __ASM_EMIT("8:")
