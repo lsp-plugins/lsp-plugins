@@ -48,10 +48,10 @@ IF_ARCH_X86(
 IF_ARCH_ARM(
     namespace neon_d32
     {
-//        void dyn_biquad_process_x1(float *dst, const float *src, float *d, size_t count, const biquad_x1_t *f);
-//        void dyn_biquad_process_x2(float *dst, const float *src, float *d, size_t count, const biquad_x2_t *f);
-//        void dyn_biquad_process_x4(float *dst, const float *src, float *d, size_t count, const biquad_x4_t *f);
-//        void dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
+        void dyn_biquad_process_x1(float *dst, const float *src, float *d, size_t count, const biquad_x1_t *f);
+        void dyn_biquad_process_x2(float *dst, const float *src, float *d, size_t count, const biquad_x2_t *f);
+        void dyn_biquad_process_x4(float *dst, const float *src, float *d, size_t count, const biquad_x4_t *f);
+        void dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f);
     }
 )
 
@@ -346,22 +346,22 @@ UTEST_BEGIN("dsp.filters", dynamic)
         // Do overall check
         call("native::dyn_biquad_process_x1", native::dyn_biquad_process_x1);
         IF_ARCH_X86(call("sse::dyn_biquad_process_x1", sse::dyn_biquad_process_x1));
-//        IF_ARCH_ARM(call("neon_d32::biquad_process_x1", neon_d32::biquad_process_x1));
+        IF_ARCH_ARM(call("neon_d32::biquad_process_x1", neon_d32::biquad_process_x1));
 
         call("native::dyn_biquad_process_x2", native::dyn_biquad_process_x2);
         IF_ARCH_X86(call("sse::dyn_biquad_process_x2", sse::dyn_biquad_process_x2));
-//        IF_ARCH_ARM(call("neon_d32::dyn_biquad_process_x2", neon_d32::dyn_biquad_process_x2));
+        IF_ARCH_ARM(call("neon_d32::dyn_biquad_process_x2", neon_d32::dyn_biquad_process_x2));
 
         call("native::dyn_biquad_process_x4", native::dyn_biquad_process_x4);
         IF_ARCH_X86(call("sse::dyn_biquad_process_x4", sse::dyn_biquad_process_x4));
-//        IF_ARCH_ARM(call("neon_d32::dyn_biquad_process_x4", neon_d32::dyn_biquad_process_x4));
+        IF_ARCH_ARM(call("neon_d32::dyn_biquad_process_x4", neon_d32::dyn_biquad_process_x4));
 
         call("native::dyn_biquad_process_x8", native::dyn_biquad_process_x8);
         IF_ARCH_X86(call("sse::dyn_biquad_process_x8", sse::dyn_biquad_process_x8));
         IF_ARCH_X86_64(call("sse3::x64_dyn_biquad_process_x8", sse3::x64_dyn_biquad_process_x8));
         IF_ARCH_X86_64(call("avx::x64_dyn_biquad_process_x8", avx::x64_dyn_biquad_process_x8));
         IF_ARCH_X86_64(call("avx::x64_dyn_biquad_process_x8_fma3", avx::x64_dyn_biquad_process_x8_fma3));
-//        IF_ARCH_ARM(call("neon_d32::dyn_biquad_process_x8", neon_d32::dyn_biquad_process_x8));
+        IF_ARCH_ARM(call("neon_d32::dyn_biquad_process_x8", neon_d32::dyn_biquad_process_x8));
     }
 
 UTEST_END

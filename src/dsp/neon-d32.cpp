@@ -56,6 +56,7 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/resampling.h>
 #include <dsp/arch/arm/neon-d32/search.h>
 #include <dsp/arch/arm/neon-d32/filters/static.h>
+#include <dsp/arch/arm/neon-d32/filters/dynamic.h>
 
 #undef DSP_ARCH_ARM_NEON_32_IMPL
 
@@ -188,6 +189,11 @@ namespace neon_d32
         EXPORT1(biquad_process_x2);
         EXPORT1(biquad_process_x4);
         EXPORT1(biquad_process_x8);
+
+        EXPORT1(dyn_biquad_process_x1);
+        EXPORT1(dyn_biquad_process_x2);
+        EXPORT1(dyn_biquad_process_x4);
+        EXPORT1(dyn_biquad_process_x8);
 
         // Misc for testing
         TEST_EXPORT(neon_d32::complex_mul3_x12);

@@ -1,16 +1,16 @@
 /*
- * static.h
+ * dynamic.h
  *
- *  Created on: 12 окт. 2018 г.
+ *  Created on: 17 окт. 2018 г.
  *      Author: sadko
  */
 
-#ifndef DSP_ARCH_ARM_NEON_D32_FILTERS_STATIC_H_
-#define DSP_ARCH_ARM_NEON_D32_FILTERS_STATIC_H_
+#ifndef DSP_ARCH_ARM_NEON_D32_FILTERS_DYNAMIC_H_
+#define DSP_ARCH_ARM_NEON_D32_FILTERS_DYNAMIC_H_
 
 namespace neon_d32
 {
-    void biquad_process_x1(float *dst, const float *src, size_t count, biquad_t *f)
+    void dyn_biquad_process_x1(float *dst, const float *src, float *d, size_t count, const biquad_x1_t *f)
     {
         ARCH_ARM_ASM
         (
@@ -19,11 +19,11 @@ namespace neon_d32
             __ASM_EMIT("beq         2f")
 
             // Load permanent data
-            __ASM_EMIT("vld1.32     {q1}, [%[FD]]")                         // q1   = d0 d1 0 0
-            __ASM_EMIT("vld1.32     {q2-q3}, [%[FX1]]")                     // q2   = a0 a0 a1 a2, q3 = b1 b2 0 0
+            __ASM_EMIT("vld1.32     {q1}, [%[d]]")                          // q1   = d0 d1 0 0
 
             // Start loop
             __ASM_EMIT("1:")
+            __ASM_EMIT("vld1.32     {q2-q3}, [%[f]]!")                      // q2   = a0 a0 a1 a2, q3 = b1 b2 0 0
             __ASM_EMIT("vmov        s6, s5")                                // q1   = d0 d1 d1 0
             __ASM_EMIT("vld1.32     {d0[], d1[]}, [%[src]]!")               // q0   = s s s s
             __ASM_EMIT("vmov        s5, s4")                                // q1   = d0 d0 d1 0
@@ -36,20 +36,19 @@ namespace neon_d32
             __ASM_EMIT("bne         1b")
 
             // Store the updated buffer state
-            __ASM_EMIT("vst1.32     {q1}, [%[FD]]")
+            __ASM_EMIT("vst1.32     {q1}, [%[d]]")
             __ASM_EMIT("2:")
 
-            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-            : [FD] "r" (&f->d[0]), [FX1] "r" (&f->x1)
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count),
+              [f] "+r" (f)
+            : [d] "r" (d)
             : "cc", "memory",
               "q0", "q1", "q2", "q3", "q4"
         );
     }
 
-    void biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f)
+    void dyn_biquad_process_x2(float *dst, const float *src, float *d, size_t count, const biquad_x2_t *f)
     {
-        IF_ARCH_ARM(biquad_x2_t *fx2 = &f->x2);
-
         ARCH_ARM_ASM
         (
             // Check count
@@ -57,8 +56,8 @@ namespace neon_d32
             __ASM_EMIT("beq         4f")
 
             // Load permanent data
-            __ASM_EMIT("vldm        %[FX2], {q4-q7}")                       // q4-q7 = { a0 a0 a1 a2, i0 i0 i1 i2, b1 b2 0 0, j1 j2 0 0 }
-            __ASM_EMIT("vld1.32     {q2-q3}, [%[FD]]")                      // q2-q3 = { d0 d1 0 0, e0 e1 0 0 }
+            __ASM_EMIT("vldm        %[f]!, {q4-q7}")                        // q4-q7 = { a0 a0 a1 a2, i0 i0 i1 i2, b1 b2 0 0, j1 j2 0 0 }
+            __ASM_EMIT("vld1.32     {q2-q3}, [%[d]]")                       // q2-q3 = { d0 d1 0 0, e0 e1 0 0 }
 
             // Peform 1x single A filter processing
             __ASM_EMIT("vmov        s10, s9")                               // q2   = d0 d1 d1 0
@@ -74,6 +73,7 @@ namespace neon_d32
 
             // Perform 2x A+B filter processing
             __ASM_EMIT("1:")
+            __ASM_EMIT("vldm        %[f]!, {q4-q7}")                        // q4-q7 = { a0 a0 a1 a2, i0 i0 i1 i2, b1 b2 0 0, j1 j2 0 0 }
             __ASM_EMIT("vmov        s5, s4")                                // q1   = r r ? ?
             __ASM_EMIT("vmov        s10, s9")                               // q2   = d0 d1 d1 0
             __ASM_EMIT("vmov        s14, s13")                              // q3   = j0 j1 j1 0
@@ -96,6 +96,7 @@ namespace neon_d32
 
             // Peform 1x single B filter processing
             __ASM_EMIT("2:")
+            __ASM_EMIT("vldm        %[f]!, {q4-q7}")                        // q4-q7 = { a0 a0 a1 a2, i0 i0 i1 i2, b1 b2 0 0, j1 j2 0 0 }
             __ASM_EMIT("vmov        s14, s13")                              // q3   = j0 j1 j1 0
             __ASM_EMIT("vdup.32     q1, d2[0]")                             // q1   = r r r r
             __ASM_EMIT("vmov        s13, s12")                              // q3   = j0 j0 j1 0
@@ -106,26 +107,25 @@ namespace neon_d32
             __ASM_EMIT("vmov        q3, q9")                                // q3   = (r*i0+e0)*j1+r*i1+e1 (r*i0+e0)*j2+r*i2 0 0
 
             // Store the updated buffer state
-            __ASM_EMIT("vst1.32     {q2-q3}, [%[FD]]")
+            __ASM_EMIT("vst1.32     {q2-q3}, [%[d]]")
             __ASM_EMIT("4:")
 
-            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-            : [FD] "r" (&f->d[0]), [FX2] "r" (fx2)
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count), [f] "+r" (f)
+            : [d] "r" (d)
             : "cc", "memory",
               "q0", "q1", "q2", "q3", "q4"
         );
     }
 
-    static const uint32_t biquad_x4_mask[8] __lsp_aligned16 =
+    static const uint32_t dyn_biquad_x4_mask[8] __lsp_aligned16 =
     {
         0xffffffff, 0x00000000, 0x00000000, 0x00000000,
         0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
     };
 
-    void biquad_process_x4(float *dst, const float *src, size_t count, biquad_t *f)
+    void dyn_biquad_process_x4(float *dst, const float *src, float *d, size_t count, const biquad_x4_t *f)
     {
         IF_ARCH_ARM(
-            biquad_x4_t *fx4 = &f->x4;
             size_t mask;
         );
 
@@ -135,14 +135,14 @@ namespace neon_d32
             __ASM_EMIT("beq         8f")
 
             // Prepare
-            __ASM_EMIT("vldm        %[FD], {q1-q2}")                        // q1-q2 = { d0, d1 }
-            __ASM_EMIT("vldm        %[FX4], {q3-q7}")                       // q3-q7 = { a0, a1, a2, b1, b2 }
+            __ASM_EMIT("vldm        %[d], {q1-q2}")                         // q1-q2 = { d0, d1 }
             __ASM_EMIT("vldm        %[X_MASK], {q8-q9}")                    // q8-q9 = { vmask, 1 }
             __ASM_EMIT("mov         %[mask], $1")                           // mask  = 1
 
             // Do pre-loop
             __ASM_EMIT("1:")
             __ASM_EMIT("vldm        %[src]!, {s0}")                         // q0    = s
+            __ASM_EMIT("vldm        %[f]!, {q3-q7}")                        // q3-q7 = { a0, a1, a2, b1, b2 }
             __ASM_EMIT("vmul.f32    q10, q3, q0")                           // q10   = a0*s
             __ASM_EMIT("vmul.f32    q11, q4, q0")                           // q11   = a1*s
             __ASM_EMIT("vadd.f32    q10, q1")                               // q10   = a0*s + d0 = s2
@@ -164,6 +164,7 @@ namespace neon_d32
             // Do main loop
             __ASM_EMIT("3:")
             __ASM_EMIT("vldm        %[src]!, {s0}")                         // q0    = s
+            __ASM_EMIT("vldm        %[f]!, {q3-q7}")                        // q3-q7 = { a0, a1, a2, b1, b2 }
             __ASM_EMIT("vmul.f32    q10, q3, q0")                           // q10   = a0*s
             __ASM_EMIT("vmul.f32    q11, q4, q0")                           // q11   = a1*s
             __ASM_EMIT("vadd.f32    q10, q1")                               // q10   = a0*s + d0 = s2
@@ -184,6 +185,7 @@ namespace neon_d32
             __ASM_EMIT("vext.32     q8, q9, q8, $3")                        // q8    = (vmask << 1) | 0
 
             __ASM_EMIT("5:")
+            __ASM_EMIT("vldm        %[f]!, {q3-q7}")                        // q3-q7 = { a0, a1, a2, b1, b2 }
             __ASM_EMIT("vmul.f32    q10, q3, q0")                           // q10   = a0*s
             __ASM_EMIT("vmul.f32    q11, q4, q0")                           // q11   = a1*s
             __ASM_EMIT("vadd.f32    q10, q1")                               // q10   = a0*s + d0 = s2
@@ -205,19 +207,19 @@ namespace neon_d32
 
             // Store memory
             __ASM_EMIT("6:")
-            __ASM_EMIT("vstm        %[FD], {q1-q2}")
+            __ASM_EMIT("vstm        %[d], {q1-q2}")
             __ASM_EMIT("8:")
 
-            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count),
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count), [f] "+r" (f),
               [mask] "=&r" (mask)
-            : [FD] "r" (&f->d[0]), [FX4] "r" (fx4),
-              [X_MASK] "r" (&biquad_x4_mask[0])
+            : [d] "r" (d),
+              [X_MASK] "r" (&dyn_biquad_x4_mask[0])
             : "cc", "memory",
               "q0", "q1", "q2", "q3", "q4"
         );
     }
 
-    static const uint32_t biquad_x8_mask[16] __lsp_aligned16 =
+    static const uint32_t dyn_biquad_x8_mask[16] __lsp_aligned16 =
     {
         0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
         0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
@@ -225,11 +227,9 @@ namespace neon_d32
         0x00000000, 0x00000000, 0x00000000, 0x00000000,
     };
 
-    void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f)
+    void dyn_biquad_process_x8(float *dst, const float *src, float *d, size_t count, const biquad_x8_t *f)
     {
         IF_ARCH_ARM(
-            float *fx8a = f->x8.a0;
-            float *fx8b = f->x8.b1;
             float vmask[16] __lsp_aligned16;
             size_t mask;
         );
@@ -240,16 +240,16 @@ namespace neon_d32
             __ASM_EMIT("beq         8f")
 
             // Prepare
-            __ASM_EMIT("vldm        %[FD], {q2-q5}")                        // q2-q3 = d0, q4-q5 = d1
+            __ASM_EMIT("vldm        %[d], {q2-q5}")                         // q2-q3 = d0, q4-q5 = d1
             __ASM_EMIT("vldm        %[X_MASK], {q12-q15}")                  // q12-q15 = vmask
             __ASM_EMIT("mov         %[mask], $1")                           // mask  = 1
             __ASM_EMIT("vstm        %[vmask], {q12-q15}")
 
             // Do pre-loop
             __ASM_EMIT("1:")
-            __ASM_EMIT("vldm        %[FX8A], {q6-q11}")                     // q6-q7 = a0, q8-q9 = a1, q10-q11 = a2
+            __ASM_EMIT("vldm        %[f]!, {q6-q11}")                       // q6-q7 = a0, q8-q9 = a1, q10-q11 = a2
             __ASM_EMIT("vldm        %[src]!, {s0}")                         // q0    = s
-            __ASM_EMIT("vldm        %[FX8B], {q12-q15}")                    // q12-q13 = b1, q14-q15 = b2
+            __ASM_EMIT("vldm        %[f]!, {q12-q15}")                      // q12-q13 = b1, q14-q15 = b2
 
             __ASM_EMIT("vmul.f32    q6, q6, q0")                            // q6    = a0*s
             __ASM_EMIT("vmul.f32    q7, q7, q1")
@@ -285,9 +285,9 @@ namespace neon_d32
 
             // Do main loop
             __ASM_EMIT("3:")
-            __ASM_EMIT("vldm        %[FX8A], {q6-q11}")                     // q6-q7 = a0, q8-q9 = a1, q10-q11 = a2
+            __ASM_EMIT("vldm        %[f]!, {q6-q11}")                       // q6-q7 = a0, q8-q9 = a1, q10-q11 = a2
             __ASM_EMIT("vldm        %[src]!, {s0}")                         // q0    = s
-            __ASM_EMIT("vldm        %[FX8B], {q12-q15}")                    // q12-q13 = b1, q14-q15 = b2
+            __ASM_EMIT("vldm        %[f]!, {q12-q15}")                      // q12-q13 = b1, q14-q15 = b2
 
             __ASM_EMIT("vmul.f32    q6, q6, q0")                            // q6    = a0*s
             __ASM_EMIT("vmul.f32    q7, q7, q1")
@@ -323,8 +323,8 @@ namespace neon_d32
             __ASM_EMIT("vstm        %[vmask], {q12-q15}")
 
             __ASM_EMIT("5:")
-            __ASM_EMIT("vldm        %[FX8A], {q6-q11}")                     // q6-q7 = a0, q8-q9 = a1, q10-q11 = a2
-            __ASM_EMIT("vldm        %[FX8B], {q12-q15}")                    // q12-q13 = b1, q14-q15 = b2
+            __ASM_EMIT("vldm        %[f]!, {q6-q11}")                       // q6-q7 = a0, q8-q9 = a1, q10-q11 = a2
+            __ASM_EMIT("vldm        %[f]!, {q12-q15}")                      // q12-q13 = b1, q14-q15 = b2
             __ASM_EMIT("vmul.f32    q6, q6, q0")                            // q6    = a0*s
             __ASM_EMIT("vmul.f32    q7, q7, q1")
             __ASM_EMIT("vmul.f32    q8, q8, q0")                            // q8    = a1*s
@@ -361,12 +361,12 @@ namespace neon_d32
 
             // Store memory
             __ASM_EMIT("6:")
-            __ASM_EMIT("vstm        %[FD], {q2-q5}")
+            __ASM_EMIT("vstm        %[d], {q2-q5}")
             __ASM_EMIT("8:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count),
-              [mask] "=&r" (mask)
-            : [FD] "r" (&f->d[0]), [FX8A] "r" (fx8a), [FX8B] "r" (fx8b),
+              [mask] "=&r" (mask), [f] "+r" (f)
+            : [d] "r" (&f->d[0]),
               [vmask] "r" (&vmask[0]),
               [X_MASK] "r" (&biquad_x8_mask[0])
             : "cc", "memory",
@@ -375,4 +375,4 @@ namespace neon_d32
     }
 }
 
-#endif /* DSP_ARCH_ARM_NEON_D32_FILTERS_STATIC_H_ */
+#endif /* DSP_ARCH_ARM_NEON_D32_FILTERS_DYNAMIC_H_ */
