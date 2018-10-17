@@ -346,7 +346,7 @@ UTEST_BEGIN("dsp.filters", dynamic)
         // Do overall check
         call("native::dyn_biquad_process_x1", native::dyn_biquad_process_x1);
         IF_ARCH_X86(call("sse::dyn_biquad_process_x1", sse::dyn_biquad_process_x1));
-        IF_ARCH_ARM(call("neon_d32::biquad_process_x1", neon_d32::biquad_process_x1));
+        IF_ARCH_ARM(call("neon_d32::biquad_process_x1", neon_d32::dyn_biquad_process_x1));
 
         call("native::dyn_biquad_process_x2", native::dyn_biquad_process_x2);
         IF_ARCH_X86(call("sse::dyn_biquad_process_x2", sse::dyn_biquad_process_x2));
