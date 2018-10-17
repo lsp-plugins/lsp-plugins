@@ -351,7 +351,7 @@ namespace sse
             // Cycle 1
             __ASM_EMIT("mov         %[f], 0x00 + %[context]")
             __ASM_EMIT32("mov       %[dst], 0x04 + %[context]")
-            __ASM_EMIT32("mov       %[count], 0x00 + %[context]")
+            __ASM_EMIT32("mov       %[count], 0x08 + %[context]")
             __ASM_EMIT64("mov       %[dst], 0x08 + %[context]")
             __ASM_EMIT64("mov       %[count], 0x10 + %[context]")
 
