@@ -251,7 +251,7 @@ namespace native
         {
             // two x4 filters are in parallel, shift by 4 floats stride
             const biquad_x8_t *bq   = reinterpret_cast<const biquad_x8_t *>(&f[n].a0[n]);
-            size_t mask             = 0;
+            size_t mask             = 1;
             size_t i                = 0;
             float *dp               = dst;
 
@@ -285,6 +285,7 @@ namespace native
                     d[2]        = d[10]  + p1[2];
                     d[10]       = p2[2];
                 }
+                bq          ++;
 
                 // Shift buffer
                 s[3]        = s2[2];
@@ -292,14 +293,13 @@ namespace native
                 s[1]        = s2[0];
 
                 // Update mask
-                mask      <<= 1;
-                bq          ++;
                 if ((++i) >= count)
                     break;
-            } while (i < 3);
+                mask        = (mask << 1) | 1;
+            } while (mask != 0x0f);
 
             // Process all filters simultaneously
-            while (i < count)
+            for ( ; i < count; ++i)
             {
                 // Push sample
                 s[0]        = *(sp++);
@@ -329,18 +329,17 @@ namespace native
                 d[9]        = p2[1];
                 d[10]       = p2[2];
                 d[11]       = p2[3];
+                bq          ++;
 
                 // Shift buffer
                 *(dp++)     = s2[3];
                 s[3]        = s2[2];
                 s[2]        = s2[1];
                 s[1]        = s2[0];
-
-                i           ++;
-                bq          ++;
             }
 
             // Finish processing
+            mask      <<= 1;
             do
             {
                 // Calculate filters by mask and shift buffers
@@ -360,23 +359,26 @@ namespace native
                     d[2]        = d[10]  + p1[2];
                     d[10]       = p2[2];
                 }
+                if (mask & 0x08)
+                {
+                    s2[3]       = bq->a0[3]*s[3] + d[3];
+                    p1[3]       = bq->a1[3]*s[3] + bq->b1[3]*s2[3];
+                    p2[3]       = bq->a2[3]*s[3] + bq->b2[3]*s2[3];
+                    d[3]        = d[11]  + p1[3];
+                    d[11]       = p2[3];
 
-                s2[3]       = bq->a0[3]*s[3] + d[3];
-                p1[3]       = bq->a1[3]*s[3] + bq->b1[3]*s2[3];
-                p2[3]       = bq->a2[3]*s[3] + bq->b2[3]*s2[3];
-                d[3]        = d[11]  + p1[3];
-                d[11]       = p2[3];
+                    *(dp++)     = s2[3];
+                }
+                bq          ++;
 
                 // Shift buffer
-                *(dp++)     = s2[3];
                 s[3]        = s2[2];
                 s[2]        = s2[1];
                 s[1]        = s2[0];
 
                 // Update mask
-                mask        = (mask << 1) & 0x0f;
-                bq          ++;
-            } while (mask != 0);
+                mask      <<= 1;
+            } while (mask & 0x0f);
 
             // Now all data is in the destination buffer
             sp          = dst; // Now all source data is in destination buffer
