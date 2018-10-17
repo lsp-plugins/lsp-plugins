@@ -358,9 +358,9 @@ UTEST_BEGIN("dsp.filters", dynamic)
 
         call("native::dyn_biquad_process_x8", native::dyn_biquad_process_x8);
         IF_ARCH_X86(call("sse::dyn_biquad_process_x8", sse::dyn_biquad_process_x8));
-        IF_ARCH_X86_64(call("sse3::dyn_x64_biquad_process_x8", sse3::x64_dyn_biquad_process_x8));
-        IF_ARCH_X86_64(call("avx::dyn_x64_biquad_process_x8", avx::x64_dyn_biquad_process_x8));
-        IF_ARCH_X86_64(call("avx::dyn_x64_biquad_process_x8_fma3", avx::x64_dyn_biquad_process_x8_fma3));
+        IF_ARCH_X86_64(call("sse3::x64_dyn_biquad_process_x8", sse3::x64_dyn_biquad_process_x8));
+        IF_ARCH_X86_64(call("avx::x64_dyn_biquad_process_x8", avx::x64_dyn_biquad_process_x8));
+        IF_ARCH_X86_64(call("avx::x64_dyn_biquad_process_x8_fma3", avx::x64_dyn_biquad_process_x8_fma3));
 //        IF_ARCH_ARM(call("neon_d32::dyn_biquad_process_x8", neon_d32::dyn_biquad_process_x8));
     }
 
