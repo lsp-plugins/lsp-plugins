@@ -8,6 +8,10 @@
 #ifndef DSP_ARCH_ARM_NEON_D32_FILTERS_DYNAMIC_H_
 #define DSP_ARCH_ARM_NEON_D32_FILTERS_DYNAMIC_H_
 
+#ifndef DSP_ARCH_ARM_NEON_32_IMPL
+    #error "This header should not be included directly"
+#endif /* DSP_ARCH_ARM_NEON_32_IMPL */
+
 namespace neon_d32
 {
     void dyn_biquad_process_x1(float *dst, const float *src, float *d, size_t count, const biquad_x1_t *f)

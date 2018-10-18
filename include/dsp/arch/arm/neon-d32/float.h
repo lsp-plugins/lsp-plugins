@@ -8,6 +8,10 @@
 #ifndef DSP_ARCH_ARM_NEON_D32_FLOAT_H_
 #define DSP_ARCH_ARM_NEON_D32_FLOAT_H_
 
+#ifndef DSP_ARCH_ARM_NEON_32_IMPL
+    #error "This header should not be included directly"
+#endif /* DSP_ARCH_ARM_NEON_32_IMPL */
+
 namespace neon_d32
 {
 #define MULTIPLE_SATURATION_BODY(dst, src) \

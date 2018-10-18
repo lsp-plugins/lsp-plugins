@@ -8,6 +8,10 @@
 #ifndef DSP_ARCH_ARM_NEON_D32_FILTERS_STATIC_H_
 #define DSP_ARCH_ARM_NEON_D32_FILTERS_STATIC_H_
 
+#ifndef DSP_ARCH_ARM_NEON_32_IMPL
+    #error "This header should not be included directly"
+#endif /* DSP_ARCH_ARM_NEON_32_IMPL */
+
 namespace neon_d32
 {
     void biquad_process_x1(float *dst, const float *src, size_t count, biquad_t *f)

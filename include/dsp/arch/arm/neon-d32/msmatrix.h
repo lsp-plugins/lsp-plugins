@@ -8,6 +8,10 @@
 #ifndef DSP_ARCH_ARM_NEON_D32_MSMATRIX_H_
 #define DSP_ARCH_ARM_NEON_D32_MSMATRIX_H_
 
+#ifndef DSP_ARCH_ARM_NEON_32_IMPL
+    #error "This header should not be included directly"
+#endif /* DSP_ARCH_ARM_NEON_32_IMPL */
+
 namespace neon_d32
 {
     void lr_to_ms(float *m, float *s, const float *l, const float *r, size_t count)
