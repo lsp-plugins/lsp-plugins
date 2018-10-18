@@ -52,6 +52,8 @@ namespace neon_d32
 {
     void bilinear_transform_x1(biquad_x1_t *bf, const f_cascade_t *bc, float kf, size_t count)
     {
+        IF_ARCH_ARM(float xkf = kf);
+
         ARCH_ARM_ASM
         (
             __ASM_EMIT("vld1.32         {d28[], d29[]}, [%[kf]]") // q14  = kf
@@ -169,8 +171,9 @@ namespace neon_d32
 
             __ASM_EMIT("4:")
             : [bf] "+r" (bf), [bc] "+r" (bc), [count] "+r" (count)
-            : [kf] "r" (&kf)
-            : "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+            : [kf] "r" (&xkf)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
     }

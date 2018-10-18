@@ -372,7 +372,8 @@ namespace neon_d32
             : [d] "r" (d),
               [vmask] "r" (&vmask[0]),
               [X_MASK] "r" (&dyn_biquad_x8_mask[0])
-            : "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
     }
