@@ -113,7 +113,8 @@ namespace neon_d32
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
             : [FD] "r" (&f->d[0]), [FX2] "r" (fx2)
             : "cc", "memory",
-              "q0", "q1", "q2", "q3", "q4"
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12"
         );
     }
 
@@ -214,7 +215,8 @@ namespace neon_d32
             : [FD] "r" (&f->d[0]), [FX4] "r" (fx4),
               [X_MASK] "r" (&biquad_x4_mask[0])
             : "cc", "memory",
-              "q0", "q1", "q2", "q3", "q4"
+              "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12"
         );
     }
 
@@ -370,8 +372,8 @@ namespace neon_d32
             : [FD] "r" (&f->d[0]), [FX8A] "r" (fx8a), [FX8B] "r" (fx8b),
               [vmask] "r" (&vmask[0]),
               [X_MASK] "r" (&biquad_x8_mask[0])
-            : "cc", "memory",
-              "q0", "q1", "q2", "q3", "q4"
+            : "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
     }
 }
