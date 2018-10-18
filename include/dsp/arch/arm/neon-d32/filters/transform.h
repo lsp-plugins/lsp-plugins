@@ -52,8 +52,9 @@ namespace neon_d32
 {
     void bilinear_transform_x1(biquad_x1_t *bf, const f_cascade_t *bc, float kf, size_t count)
     {
-        ARCH_ARM_ASM(
-            __ASM_EMIT("vldm            {d28[], d29[]}, %[kf]") // q14  = kf
+        ARCH_ARM_ASM
+        (
+            __ASM_EMIT("vld1.32         {d28[], d29[]}, [%[kf]]") // q14  = kf
             __ASM_EMIT("subs            %[count], $4")
             __ASM_EMIT("vmul.f32        q15, q14, q14")         // q15  = kf*kf = kf2
             __ASM_EMIT("blo             2f")
@@ -134,10 +135,10 @@ namespace neon_d32
             __ASM_EMIT("blt             4f")
 
             // 1x blocks
-            __ASM_EMIT("mov             q6, q14")               // q6 = kf
-            __ASM_EMIT("mov             q7, q15")               // q7 = kf2
+            __ASM_EMIT("vmov            q6, q14")               // q6 = kf
+            __ASM_EMIT("vmov            q7, q15")               // q7 = kf2
             __ASM_EMIT("3:")
-            __ASM_EMIT("vld4.32         {q0-q1}, %[bc]!")       // d0 = t[0] b[0] = T[0] B[0], d1 = t[1] b[1], d2 = t[2] b[2], d3 = 0 0
+            __ASM_EMIT("vld4.32         {q0-q1}, [%[bc]]!")     // d0 = t[0] b[0] = T[0] B[0], d1 = t[1] b[1], d2 = t[2] b[2], d3 = 0 0
             __ASM_EMIT("vmul.f32        d1, d1, d12")           // d1 = t[1]*kf b[1]*kf = T[1] B[1]
             __ASM_EMIT("vmul.f32        d2, d2, d14")           // d2 = t[2]*kf b[2]*kf = T[2] B[2]
 
@@ -163,15 +164,15 @@ namespace neon_d32
             __ASM_EMIT("vneg.f32        d2, d2")                // d2  = B1, B2
 
             __ASM_EMIT("subs            %[count], $1")
-            __ASM_EMIT("vst1.32         {q0-q1}, %[bf]!")
+            __ASM_EMIT("vst1.32         {q0-q1}, [%[bf]]!")
             __ASM_EMIT("bge             3b")
 
             __ASM_EMIT("4:")
-            : "+r" (bf), "+r" (bc), "+r" (count)
-            : "r" (&kf)
+            : [bf] "+r" (bf), [bc] "+r" (bc), [count] "+r" (count)
+            : [kf] "r" (&kf)
             : "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
-        )
+        );
     }
 }
 
