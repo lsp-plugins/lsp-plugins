@@ -36,7 +36,6 @@ IF_ARCH_ARM(
     namespace neon_d32
     {
         void complex_mul3(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
-        void complex_mul3_x12(float *dst_re, float *dst_im, const float *src1_re, const float *src1_im, const float *src2_re, const float *src2_im, size_t count);
     }
 )
 
@@ -84,7 +83,6 @@ PTEST_BEGIN("dsp.complex", mul3, 5, 1000)
             IF_ARCH_X86_64(CALL("x64_avx:complex_mul3", out, in1, in2, count, avx::x64_complex_mul3));
             IF_ARCH_X86_64(CALL("x64_fma3:complex_mul3", out, in1, in2, count, avx::x64_complex_mul3_fma3));
             IF_ARCH_ARM(CALL("neon_d32:complex_mul3", out, in1, in2, count, neon_d32::complex_mul3));
-            IF_ARCH_ARM(CALL("neon_d32:complex_mul3_x12", out, in1, in2, count, neon_d32::complex_mul3_x12));
 
             PTEST_SEPARATOR;
         }
