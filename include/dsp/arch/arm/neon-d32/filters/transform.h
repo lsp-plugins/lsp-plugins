@@ -103,11 +103,12 @@ namespace neon_d32
             __ASM_EMIT("vadd.f32        q1, q1, q1")            // q1   = 2 * (B[2] - B[0])
             __ASM_EMIT("vrecps.f32      q11, q10, q9")          // q11  = (2 - R*B)
             __ASM_EMIT("vadd.f32        q0, q0, q2")            // q0   = T[0] + T[1]
-            __ASM_EMIT("vmul.f32        q9, q11, q10")          // q9   = B' = B * (2 - R*B)
+            __ASM_EMIT("vmul.f32        q10, q11, q10")         // q9   = B' = B * (2 - R*B)
             __ASM_EMIT("vsub.f32        q3, q3, q7")            // q3   = B[1] - B[0] - B[2]
             __ASM_EMIT("vrecps.f32      q11, q10, q9")          // q11  = (2 - R*B')
             __ASM_EMIT("vadd.f32        q8, q8, q8")            // q8   = 2 * (T[0] - T[2])
             __ASM_EMIT("vmul.f32        q9, q11, q10")          // q9   = B" = B' * (2 - R*B) = 1/B = N
+
             __ASM_EMIT("vadd.f32        q0, q0, q4")            // q0   = T[0] + T[1] + T[2]
             __ASM_EMIT("veor            q5, q5")                // q5   = 0
             __ASM_EMIT("veor            q7, q7")                // q7   = 0
@@ -133,7 +134,7 @@ namespace neon_d32
             __ASM_EMIT("bhs             1b")
 
             __ASM_EMIT("2:")
-            __ASM_EMIT("add             %[count], $3")
+            __ASM_EMIT("adds            %[count], $3")
             __ASM_EMIT("blt             4f")
 
             // 1x blocks
@@ -152,7 +153,7 @@ namespace neon_d32
 
             __ASM_EMIT("vrecpe.f32      d7, d6")                // d7  = R, d6 = B
             __ASM_EMIT("vrecps.f32      d8, d7, d6")            // d8  = (2 - R*B)
-            __ASM_EMIT("vmul.f32        d6, d8, d7")            // d6  = B' = B * (2 - R*B)
+            __ASM_EMIT("vmul.f32        d7, d8, d7")            // d7  = B' = B * (2 - R*B)
             __ASM_EMIT("vrecps.f32      d8, d7, d6")            // d8  = (2 - R*B')
             __ASM_EMIT("vmul.f32        d7, d8, d7")            // d7  = B" = B' * (2 - R*B) = 1/B = N
             __ASM_EMIT("vdup.32         d7, d7[1]")             // d7  = N

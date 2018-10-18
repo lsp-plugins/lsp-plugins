@@ -97,6 +97,7 @@ UTEST_BEGIN("dsp.filters", bt)
             if (!dst1.equals_relative(dst2, 1e-4f))
             {
                 src.dump("src");
+                src.dump_hex("srch");
                 dst1.dump("dst1");
                 dst2.dump("dst2");
                 UTEST_FAIL_MSG("Output of functions for test '%s' differs", text);
@@ -139,6 +140,7 @@ UTEST_BEGIN("dsp.filters", bt)
             if (!dst1.equals_relative(dst2, 1e-4f))
             {
                 src.dump("src");
+                src.dump_hex("srch");
                 dst1.dump("dst1");
                 dst2.dump("dst2");
                 UTEST_FAIL_MSG("Output of functions for test '%s' differs", text);
@@ -181,6 +183,7 @@ UTEST_BEGIN("dsp.filters", bt)
             if (!dst1.equals_relative(dst2, 1e-4f))
             {
                 src.dump("src");
+                src.dump_hex("srch");
                 dst1.dump("dst1");
                 dst2.dump("dst2");
                 UTEST_FAIL_MSG("Output of functions for test '%s' differs", text);
@@ -223,6 +226,7 @@ UTEST_BEGIN("dsp.filters", bt)
             if (!dst1.equals_relative(dst2, 1e-4f))
             {
                 src.dump("src");
+                src.dump_hex("srch");
                 dst1.dump("dst1");
                 dst2.dump("dst2");
                 UTEST_FAIL_MSG("Output of functions for test '%s' differs", text);
