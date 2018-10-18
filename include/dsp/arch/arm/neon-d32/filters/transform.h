@@ -125,8 +125,8 @@ namespace neon_d32
             __ASM_EMIT("vswp            d12, d5")
             __ASM_EMIT("vswp            d14, d7")
 
-            __ASM_EMIT("vstm            %[bc]!, {q0-q7}")
             __ASM_EMIT("subs            %[count], $4")
+            __ASM_EMIT("vstm            %[bf]!, {q0-q7}")
             __ASM_EMIT("bhs             1b")
 
             __ASM_EMIT("2:")
@@ -134,9 +134,37 @@ namespace neon_d32
             __ASM_EMIT("blt             4f")
 
             // 1x blocks
+            __ASM_EMIT("mov             q6, q14")               // q6 = kf
+            __ASM_EMIT("mov             q7, q15")               // q7 = kf2
             __ASM_EMIT("3:")
+            __ASM_EMIT("vld4.32         {q0-q1}, %[bc]!")       // d0 = t[0] b[0] = T[0] B[0], d1 = t[1] b[1], d2 = t[2] b[2], d3 = 0 0
+            __ASM_EMIT("vmul.f32        d1, d1, d12")           // d1 = t[1]*kf b[1]*kf = T[1] B[1]
+            __ASM_EMIT("vmul.f32        d2, d2, d14")           // d2 = t[2]*kf b[2]*kf = T[2] B[2]
 
+            __ASM_EMIT("vadd.f32        d4, d0, d2")            // d4 = T[0]+T[2], B[0]+B[2]
+            __ASM_EMIT("vsub.f32        d5, d0, d2")            // d5 = T[0]-T[2], B[0]-B[2]
+            __ASM_EMIT("vadd.f32        d6, d4, d1")            // d6 = T[0]+T[1]+T[2], B[0]+B[1]+B[2]
+            __ASM_EMIT("vadd.f32        d5, d5, d5")            // d5 = 2*(T[0]-T[2]), 2*(B[0]-B[2])
+            __ASM_EMIT("vsub.f32        d4, d4, d1")            // d4 = T[0]-T[1]+T[2], B[0]-B[1]+B[2]
 
+            __ASM_EMIT("vrecpe.f32      d7, d6")                // d7  = R, d6 = B
+            __ASM_EMIT("vrecps.f32      d8, d7, d6")            // d8  = (2 - R*B)
+            __ASM_EMIT("vmul.f32        d6, d8, d7")            // d6  = B' = B * (2 - R*B)
+            __ASM_EMIT("vrecps.f32      d8, d7, d6")            // d8  = (2 - R*B')
+            __ASM_EMIT("vmul.f32        d7, d8, d7")            // d7  = B" = B' * (2 - R*B) = 1/B = N
+            __ASM_EMIT("vdup.32         d7, d7[1]")             // d7  = N
+
+            __ASM_EMIT("vmul.f32        d0, d6, d7")            // d0  = (T[0]+T[1]+T[2])*N, (B[0]+B[1]+B[2])*N = A0, 1
+            __ASM_EMIT("vmul.f32        d1, d5, d7")            // d1  = 2*(T[0]-T[2])*N, 2*(B[0]-B[2])*N = A1, -B1
+            __ASM_EMIT("vmul.f32        d2, d4, d7")            // d2  = (T[0]-T[1]+T[2])*N, (B[0]-B[1]+B[2])*N = A2, -B2
+            __ASM_EMIT("vtrn.f32        d1, d2")                // d1  = A1 A2, d2 = -B1, -B2
+            __ASM_EMIT("vdup.32         d0, d0[0]")             // d0  = A0 A0
+            __ASM_EMIT("veor            d3, d3")                // d3  = 0 0
+            __ASM_EMIT("vneg.f32        d2, d2")                // d2  = B1, B2
+
+            __ASM_EMIT("subs            %[count], $1")
+            __ASM_EMIT("vst1.32         {q0-q1}, %[bf]!")
+            __ASM_EMIT("bge             3b")
 
             __ASM_EMIT("4:")
         )
