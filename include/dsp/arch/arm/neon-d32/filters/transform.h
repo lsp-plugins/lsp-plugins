@@ -407,7 +407,7 @@ namespace neon_d32
 
             __ASM_EMIT("vld1.32         {d28[], d29[]}, [%[kf]]")   // q14  = kf
             __ASM_EMIT("vmul.f32        q15, q14, q14")             // q15  = kf*kf = kf2
-            __ASM_EMIT("vstm            %[KF], {q15-q15}")
+            __ASM_EMIT("vstm            %[KF], {q14-q15}")
 
             // 1 x8 blocks
             __ASM_EMIT("1:")
