@@ -29,7 +29,7 @@ typedef void (* resampling_function_t)(float *dst, const float *src, size_t coun
 namespace dsp
 {
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
-     * convolution tail from previous resampling
+     * resampling tail from previous resampling
      *
      * @param dst destination buffer of count*2 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
@@ -38,7 +38,7 @@ namespace dsp
     extern void (* lanczos_resample_2x2)(float *dst, const float *src, size_t count);
 
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
-     * convolution tail from previous resampling
+     * resampling tail from previous resampling
      *
      * @param dst destination buffer of count*2 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
@@ -47,7 +47,7 @@ namespace dsp
     extern void (* lanczos_resample_2x3)(float *dst, const float *src, size_t count);
 
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
-     * convolution tail from previous resampling
+     * resampling tail from previous resampling
      *
      * @param dst destination buffer of count*3 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
@@ -56,7 +56,7 @@ namespace dsp
     extern void (* lanczos_resample_3x2)(float *dst, const float *src, size_t count);
 
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
-     * convolution tail from previous resampling
+     * resampling tail from previous resampling
      *
      * @param dst destination buffer of count*3 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
@@ -65,7 +65,7 @@ namespace dsp
     extern void (* lanczos_resample_3x3)(float *dst, const float *src, size_t count);
 
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
-     * convolution tail from previous resampling
+     * resampling tail from previous resampling
      *
      * @param dst destination buffer of count*4 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
@@ -74,7 +74,7 @@ namespace dsp
     extern void (* lanczos_resample_4x2)(float *dst, const float *src, size_t count);
 
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
-     * convolution tail from previous resampling
+     * resampling tail from previous resampling
      *
      * @param dst destination buffer of count*4 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
@@ -83,7 +83,7 @@ namespace dsp
     extern void (* lanczos_resample_4x3)(float *dst, const float *src, size_t count);
 
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
-     * convolution tail from previous resampling
+     * resampling tail from previous resampling
      *
      * @param dst destination buffer of count*6 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
@@ -92,7 +92,7 @@ namespace dsp
     extern void (* lanczos_resample_6x2)(float *dst, const float *src, size_t count);
 
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
-     * convolution tail from previous resampling
+     * resampling tail from previous resampling
      *
      * @param dst destination buffer of count*6 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
@@ -101,7 +101,7 @@ namespace dsp
     extern void (* lanczos_resample_6x3)(float *dst, const float *src, size_t count);
 
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
-     * convolution tail from previous resampling
+     * resampling tail from previous resampling
      *
      * @param dst destination buffer of count*8 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples
@@ -110,7 +110,7 @@ namespace dsp
     extern void (* lanczos_resample_8x2)(float *dst, const float *src, size_t count);
 
     /** Perform lanczos resampling, destination buffer must be cleared and contain only
-     * convolution tail from previous resampling
+     * resampling tail from previous resampling
      *
      * @param dst destination buffer of count*8 samples + RESAMPLING_RESERVED_SAMPLES samples for convolution tail
      * @param src source buffer of count samples

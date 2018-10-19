@@ -314,8 +314,6 @@ namespace sse
     #include <dsp/arch/x86/sse/fft/p_switch.h>
 
 
-    static void normalize_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
-
     void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
     {
         // Check bounds
@@ -612,7 +610,7 @@ namespace sse
             }
         }
 
-        normalize_fft(dst_re, dst_im, dst_re, dst_im, rank);
+        dsp::normalize_fft(dst_re, dst_im, dst_re, dst_im, rank);
     }
 
     void packed_reverse_fft(float *dst, const float *src, size_t rank)

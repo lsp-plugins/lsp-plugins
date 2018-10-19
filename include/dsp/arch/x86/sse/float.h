@@ -14,289 +14,128 @@
 
 namespace sse
 {
+#define MULTIPLE_SATURATION_BODY(dst, src) \
+    /* Prepare values */ \
+    __ASM_EMIT("movdqa          0x00 + %[X_IARGS], %%xmm7")         /* xmm7 = -1 */ \
+    __ASM_EMIT("movdqa          0x10 + %[X_IARGS], %%xmm6")         /* xmm6 = +inf */ \
+    __ASM_EMIT("movdqa          0x20 + %[X_IARGS], %%xmm5")         /* xmm5 = -inf */ \
+    __ASM_EMIT("xor             %[off], %[off]") \
+    __ASM_EMIT("sub             $4, %[count]") \
+    __ASM_EMIT("jb              2f") \
+    \
+    /* x4 blocks */ \
+    __ASM_EMIT("1:") \
+    __ASM_EMIT("movdqu          0x00(%[" src "], %[off]), %%xmm0")  /* xmm0 = s */ \
+    /* +NAN, +INF */ \
+    __ASM_EMIT("movdqa          %%xmm0, %%xmm1")                    /* xmm1 = s */ \
+    __ASM_EMIT("pcmpgtd         %%xmm7, %%xmm1")                    /* xmm1 = [s >= 0] */ \
+    __ASM_EMIT("movdqa          %%xmm0, %%xmm3")                    /* xmm3 = s */ \
+    __ASM_EMIT("movdqa          %%xmm0, %%xmm4")                    /* xmm4 = s */ \
+    __ASM_EMIT("pcmpgtd         %%xmm6, %%xmm3")                    /* xmm3 = [s > +inf] */ \
+    __ASM_EMIT("pcmpeqd         %%xmm6, %%xmm4")                    /* xmm4 = [s == +inf] */ \
+    __ASM_EMIT("movdqa          %%xmm3, %%xmm2")                    /* xmm2 = [s > +inf] */ \
+    __ASM_EMIT("por             %%xmm4, %%xmm2")                    /* xmm2 = [s >= +inf] */ \
+    __ASM_EMIT("pand            0x30 + %[X_IARGS], %%xmm3")         /* xmm3 = X_P_NAN * [s > +inf] */ \
+    __ASM_EMIT("pand            0x40 + %[X_IARGS], %%xmm4")         /* xmm4 = X_P_INF * [s == +inf] */ \
+    __ASM_EMIT("pand            %%xmm1, %%xmm2")                    /* xmm2 = [s >= +inf && s >= 0] */ \
+    __ASM_EMIT("por             %%xmm3, %%xmm4")                    /* xmm4 = X_P_NAN * [s > +inf] + X_P_INF * [s == +inf] */ \
+    __ASM_EMIT("pandn           %%xmm0, %%xmm2")                    /* xmm2 = s * ![s >= +inf && s >= 0] */ \
+    __ASM_EMIT("por             %%xmm4, %%xmm2")                    /* xmm2 = s * ![s >= +inf && s >= 0] + X_P_NAN * [s > +inf] + X_P_INF * [s == +inf] */ \
+    /* -NAN, -INF */  \
+    __ASM_EMIT("movdqa          %%xmm0, %%xmm3")                    /* xmm3 = s */  \
+    __ASM_EMIT("movdqa          %%xmm0, %%xmm4")                    /* xmm4 = s */ \
+    __ASM_EMIT("pcmpgtd         %%xmm5, %%xmm3")                    /* xmm3 = [s > -inf] */ \
+    __ASM_EMIT("pcmpeqd         %%xmm5, %%xmm4")                    /* xmm4 = [s == -inf] */ \
+    __ASM_EMIT("movdqa          %%xmm3, %%xmm0")                    /* xmm0 = [s > -inf] */ \
+    __ASM_EMIT("por             %%xmm4, %%xmm0")                    /* xmm0 = [s >= -inf] */ \
+    __ASM_EMIT("pand            0x50 + %[X_IARGS], %%xmm3")         /* xmm3 = X_M_NAN * [s > -inf] */ \
+    __ASM_EMIT("pand            0x60 + %[X_IARGS], %%xmm4")         /* xmm4 = X_M_INF * [s == -inf] */ \
+    __ASM_EMIT("pandn           %%xmm0, %%xmm1")                    /* xmm1 = [s >= -inf && s < 0] */ \
+    __ASM_EMIT("por             %%xmm3, %%xmm4")                    /* xmm4 = X_M_NAN * [s > -inf] + X_M_INF * [s == -inf] */ \
+    __ASM_EMIT("pand            %%xmm1, %%xmm4") \
+    __ASM_EMIT("pandn           %%xmm2, %%xmm1") \
+    __ASM_EMIT("por             %%xmm4, %%xmm1") \
+    \
+    __ASM_EMIT("movdqu          %%xmm1, 0x00(%[" dst "], %[off])") \
+    __ASM_EMIT("add             $0x10, %[off]") \
+    __ASM_EMIT("sub             $4, %[count]") \
+    __ASM_EMIT("jae             1b") \
+    \
+    __ASM_EMIT("2:") \
+    __ASM_EMIT("add             $3, %[count]") \
+    __ASM_EMIT("jl              4f") \
+    /* x1 blocks */ \
+    __ASM_EMIT("3:") \
+    __ASM_EMIT("movd            0x00(%[" src "], %[off]), %%xmm0")  /* xmm0 = s */ \
+    /* +NAN, +INF */ \
+    __ASM_EMIT("movdqa          %%xmm0, %%xmm1")                    /* xmm1 = s */ \
+    __ASM_EMIT("pcmpgtd         %%xmm7, %%xmm1")                    /* xmm1 = [s >= 0] */ \
+    __ASM_EMIT("movdqa          %%xmm0, %%xmm3")                    /* xmm3 = src */ \
+    __ASM_EMIT("movdqa          %%xmm0, %%xmm4")                    /* xmm4 = src */ \
+    __ASM_EMIT("pcmpgtd         %%xmm6, %%xmm3")                    /* xmm3 = /src > +inf/ */ \
+    __ASM_EMIT("pcmpeqd         %%xmm6, %%xmm4")                    /* xmm4 = /src == +inf/ */ \
+    __ASM_EMIT("movdqa          %%xmm3, %%xmm2")                    /* xmm2 = /src > +inf/ */ \
+    __ASM_EMIT("por             %%xmm4, %%xmm2")                    /* xmm2 = /src >= +inf/ */ \
+    __ASM_EMIT("pand            0x30 + %[X_IARGS], %%xmm3")         /* xmm3 = +nan * /src > +inf/ */ \
+    __ASM_EMIT("pand            0x40 + %[X_IARGS], %%xmm4")         /* xmm4 = +inf * /src == +inf/ */ \
+    __ASM_EMIT("pand            %%xmm1, %%xmm2")                    /* xmm2 = /src >= +inf && src >= 0/ */ \
+    __ASM_EMIT("por             %%xmm3, %%xmm4")                    /* xmm4 = +nan * /src > +inf/ + +inf * /src == +inf/ */ \
+    __ASM_EMIT("pandn           %%xmm0, %%xmm2")                    /* xmm2 = src * !/src >= +inf && src >= 0/ */ \
+    __ASM_EMIT("por             %%xmm4, %%xmm2")                    /* xmm2 = src * !/src >= +inf && src >= 0/ + <+nan> * /src > +inf/ + <+inf> * /src == +inf/ */ \
+    /* -NAN, -INF */  \
+    __ASM_EMIT("movdqa          %%xmm0, %%xmm3")                    /* xmm3 = src */  \
+    __ASM_EMIT("movdqa          %%xmm0, %%xmm4")                    /* xmm4 = src */ \
+    __ASM_EMIT("pcmpgtd         %%xmm5, %%xmm3")                    /* xmm3 = /src > -inf/ */ \
+    __ASM_EMIT("pcmpeqd         %%xmm5, %%xmm4")                    /* xmm4 = /src == -inf/ */ \
+    __ASM_EMIT("movdqa          %%xmm3, %%xmm0")                    /* xmm0 = /src > -inf/ */ \
+    __ASM_EMIT("por             %%xmm4, %%xmm0")                    /* xmm0 = /src >= -inf/ */ \
+    __ASM_EMIT("pand            0x50 + %[X_IARGS], %%xmm3")         /* xmm3 = -nan * /src > -inf/ */ \
+    __ASM_EMIT("pand            0x60 + %[X_IARGS], %%xmm4")         /* xmm4 = -inf * /src == -inf/ */ \
+    __ASM_EMIT("pandn           %%xmm0, %%xmm1")                    /* xmm1 = /src >= -inf && src < 0/ */ \
+    __ASM_EMIT("por             %%xmm3, %%xmm4")                    /* xmm4 = -nan * /src > -inf/ + -inf * /src == -inf/ */ \
+    __ASM_EMIT("pand            %%xmm1, %%xmm4") \
+    __ASM_EMIT("pandn           %%xmm2, %%xmm1") \
+    __ASM_EMIT("por             %%xmm4, %%xmm1") \
+    __ASM_EMIT("movd            %%xmm1, 0x00(%[" dst "], %[off])") \
+    __ASM_EMIT("add             $0x04, %[off]") \
+    __ASM_EMIT("dec             %[count]") \
+    __ASM_EMIT("jge             3b") \
+    \
+    __ASM_EMIT("4:") \
+
     void copy_saturated(float *dst, const float *src, size_t count)
     {
-        #define MULTIPLE_SATURATION_BODY(ld, st) \
-            __ASM_EMIT(ld "     (%[src]), %%xmm0")      /* xmm0 = src */ \
-            __ASM_EMIT("movapd  %%xmm0, %%xmm1")        /* xmm1 = src */ \
-            __ASM_EMIT("pcmpgtd %%xmm7, %%xmm1")        /* xmm1 = /src >= 0/ */ \
-            \
-            /* +NAN, +INF */ \
-            __ASM_EMIT("movapd  %%xmm0, %%xmm3")        /* xmm3 = src */ \
-            __ASM_EMIT("movapd  %%xmm0, %%xmm4")        /* xmm4 = src */ \
-            __ASM_EMIT("pcmpgtd %%xmm6, %%xmm3")        /* xmm3 = /src > +inf/ */ \
-            __ASM_EMIT("pcmpeqd %%xmm6, %%xmm4")        /* xmm4 = /src == +inf/ */ \
-            __ASM_EMIT("movapd  %%xmm3, %%xmm2")        /* xmm2 = /src > +inf/ */ \
-            __ASM_EMIT("por     %%xmm4, %%xmm2")        /* xmm2 = /src >= +inf/ */ \
-            __ASM_EMIT("pand    %[SX_P_NAN], %%xmm3")   /* xmm3 = +nan * /src > +inf/ */ \
-            __ASM_EMIT("pand    %[SX_P_INF], %%xmm4")   /* xmm4 = +inf * /src == +inf/ */ \
-            __ASM_EMIT("pand    %%xmm1, %%xmm2")        /* xmm2 = /src >= +inf && src >= 0/ */ \
-            __ASM_EMIT("por     %%xmm3, %%xmm4")        /* xmm4 = +nan * /src > +inf/ + +inf * /src == +inf/ */ \
-            \
-            /* Merge */  \
-            __ASM_EMIT("pandn   %%xmm0, %%xmm2")        /* xmm2 = src * !/src >= +inf && src >= 0/ */ \
-            __ASM_EMIT("por     %%xmm4, %%xmm2")        /* xmm2 = src * !/src >= +inf && src >= 0/ + <+nan> * /src > +inf/ + <+inf> * /src == +inf/ */ \
-            \
-            /* -NAN, -INF */  \
-            __ASM_EMIT("movapd  %%xmm0, %%xmm3")        /* xmm3 = src */  \
-            __ASM_EMIT("movapd  %%xmm0, %%xmm4")        /* xmm4 = src */ \
-            __ASM_EMIT("pcmpgtd %%xmm5, %%xmm3")        /* xmm3 = /src > -inf/ */ \
-            __ASM_EMIT("pcmpeqd %%xmm5, %%xmm4")        /* xmm4 = /src == -inf/ */ \
-            __ASM_EMIT("movapd  %%xmm3, %%xmm0")        /* xmm0 = /src > -inf/ */ \
-            __ASM_EMIT("por     %%xmm4, %%xmm0")        /* xmm0 = /src >= -inf/ */ \
-            __ASM_EMIT("pand    %[SX_N_NAN], %%xmm3")   /* xmm3 = -nan * /src > -inf/ */ \
-            __ASM_EMIT("pand    %[SX_N_INF], %%xmm4")   /* xmm4 = -inf * /src == -inf/ */ \
-            __ASM_EMIT("pandn   %%xmm0, %%xmm1")        /* xmm1 = /src >= -inf && src < 0/ */ \
-            __ASM_EMIT("por     %%xmm3, %%xmm4")        /* xmm4 = -nan * /src > -inf/ + -inf * /src == -inf/ */ \
-            \
-            /* Merge */ \
-            __ASM_EMIT("pand    %%xmm1, %%xmm4") \
-            __ASM_EMIT("pandn   %%xmm2, %%xmm1") \
-            __ASM_EMIT("por     %%xmm4, %%xmm1") \
-            \
-            /* Store and repeat loop */ \
-            __ASM_EMIT(st    "  %%xmm1, (%[dst])")
-
-        #define MULTIPLE_SATURATION(ld, st) \
-            ARCH_X86_ASM \
-            ( \
-                /* Perorm loop */ \
-                __ASM_EMIT("1:") \
-                MULTIPLE_SATURATION_BODY(ld, st) \
-                __ASM_EMIT("add     $0x10, %[src]") \
-                __ASM_EMIT("add     $0x10, %[dst]") \
-                __ASM_EMIT("dec     %[count]") \
-                __ASM_EMIT("jnz 1b") \
-                \
-                : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (regs) \
-                : \
-                    [X_ZERO_M1] "m" (X_ZERO_M1), \
-                    [X_P_INF] "m" (X_P_INF), \
-                    [X_N_INF] "m" (X_N_INF), \
-                    [SX_P_INF] "m" (SX_P_INF), \
-                    [SX_N_INF] "m" (SX_N_INF), \
-                    [SX_P_NAN] "m" (SX_P_NAN), \
-                    [SX_N_NAN] "m" (SX_N_NAN) \
-                : "memory", "cc",   \
-                  "%xmm0", "%xmm1", "%xmm2", "%xmm3", \
-                  "%xmm4", "%xmm5", "%xmm6", "%xmm7" \
-            );
-
-        if (count == 0)
-            return;
+        size_t off;
 
         ARCH_X86_ASM
         (
-            /* Prepare constants */
-            __ASM_EMIT("movapd %[X_ZERO_M1], %%xmm7")   /* xmm7 = 0 - 1 */
-            __ASM_EMIT("movapd %[X_P_INF], %%xmm6")     /* xmm6 = +inf - 1 */
-            __ASM_EMIT("movapd %[X_N_INF], %%xmm5")     /* xmm5 = -inf - 1 */
-
-            /* Test for source alignmens */
-            __ASM_EMIT("1:")
-            __ASM_EMIT("test    $0xf, %[dst]")
-            __ASM_EMIT("jz      2f")
-            MULTIPLE_SATURATION_BODY("movss", "movss")
-            __ASM_EMIT("add     $4, %[src]")
-            __ASM_EMIT("add     $4, %[dst]")
-            __ASM_EMIT("dec     %[count]")
-            __ASM_EMIT("jnz 1b")
-            __ASM_EMIT("2:")
-
-            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-            :
-                [X_ZERO_M1] "m" (X_ZERO_M1),
-                [X_P_INF] "m" (X_P_INF),
-                [X_N_INF] "m" (X_N_INF),
-                [SX_P_INF] "m" (SX_P_INF),
-                [SX_N_INF] "m" (SX_N_INF),
-                [SX_P_NAN] "m" (SX_P_NAN),
-                [SX_N_NAN] "m" (SX_N_NAN)
-            :   "memory", "cc",
-                "%xmm0", "%xmm1", "%xmm2", "%xmm3",
-                "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+            MULTIPLE_SATURATION_BODY("dst", "src")
+            : [count] "+r" (count), [off] "=&r" (off)
+            : [dst] "r" (dst), [src] "r" (src),
+              [X_IARGS] "o" (SAT_IARGS)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
-
-        size_t regs     = count / SSE_MULTIPLE;
-        count          %= SSE_MULTIPLE;
-
-        if (regs > 0)
-        {
-            if (sse_aligned(src))
-            {
-                MULTIPLE_SATURATION("movapd", "movapd")
-            }
-            else
-            {
-                MULTIPLE_SATURATION("movupd", "movapd")
-            }
-        }
-
-        ARCH_X86_ASM
-        (
-            /* Test for source alignmens */
-            __ASM_EMIT("test    %[count], %[count]")
-            __ASM_EMIT("jz      2f")
-            __ASM_EMIT("1:")
-            MULTIPLE_SATURATION_BODY("movss", "movss")
-            __ASM_EMIT("add     $4, %[src]")
-            __ASM_EMIT("add     $4, %[dst]")
-            __ASM_EMIT("dec     %[count]")
-            __ASM_EMIT("jnz 1b")
-            __ASM_EMIT("2:")
-
-            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-            :
-                [X_ZERO_M1] "m" (X_ZERO_M1),
-                [X_P_INF] "m" (X_P_INF),
-                [X_N_INF] "m" (X_N_INF),
-                [SX_P_INF] "m" (SX_P_INF),
-                [SX_N_INF] "m" (SX_N_INF),
-                [SX_P_NAN] "m" (SX_P_NAN),
-                [SX_N_NAN] "m" (SX_N_NAN)
-            :   "memory", "cc",
-                "%xmm0", "%xmm1", "%xmm2", "%xmm3",
-                "%xmm4", "%xmm5", "%xmm6", "%xmm7"
-        );
-
-        #undef MULTIPLE_SATURATION
-        #undef MULTIPLE_SATURATION_BODY
     }
 
     void saturate(float *dst, size_t count)
     {
-        #define MULTIPLE_SATURATION_BODY(ldst) \
-            __ASM_EMIT(ldst "   (%[dst]), %%xmm0")      /* xmm0 = src */ \
-            __ASM_EMIT("movapd  %%xmm0, %%xmm1")        /* xmm1 = src */ \
-            __ASM_EMIT("pcmpgtd %%xmm7, %%xmm1")        /* xmm1 = /src >= 0/ */ \
-            \
-            /* +NAN, +INF */ \
-            __ASM_EMIT("movapd  %%xmm0, %%xmm3")        /* xmm3 = src */ \
-            __ASM_EMIT("movapd  %%xmm0, %%xmm4")        /* xmm4 = src */ \
-            __ASM_EMIT("pcmpgtd %%xmm6, %%xmm3")        /* xmm3 = /src > +inf/ */ \
-            __ASM_EMIT("pcmpeqd %%xmm6, %%xmm4")        /* xmm4 = /src == +inf/ */ \
-            __ASM_EMIT("movapd  %%xmm3, %%xmm2")        /* xmm2 = /src > +inf/ */ \
-            __ASM_EMIT("por     %%xmm4, %%xmm2")        /* xmm2 = /src >= +inf/ */ \
-            __ASM_EMIT("pand    %[SX_P_NAN], %%xmm3")   /* xmm3 = +nan * /src > +inf/ */ \
-            __ASM_EMIT("pand    %[SX_P_INF], %%xmm4")   /* xmm4 = +inf * /src == +inf/ */ \
-            __ASM_EMIT("pand    %%xmm1, %%xmm2")        /* xmm2 = /src >= +inf && src >= 0/ */ \
-            __ASM_EMIT("por     %%xmm3, %%xmm4")        /* xmm4 = +nan * /src > +inf/ + +inf * /src == +inf/ */ \
-            \
-            /* Merge */  \
-            __ASM_EMIT("pandn   %%xmm0, %%xmm2")        /* xmm2 = src * !/src >= +inf && src >= 0/ */ \
-            __ASM_EMIT("por     %%xmm4, %%xmm2")        /* xmm2 = src * !/src >= +inf && src >= 0/ + <+nan> * /src > +inf/ + <+inf> * /src == +inf/ */ \
-            \
-            /* -NAN, -INF */  \
-            __ASM_EMIT("movapd  %%xmm0, %%xmm3")        /* xmm3 = src */  \
-            __ASM_EMIT("movapd  %%xmm0, %%xmm4")        /* xmm4 = src */ \
-            __ASM_EMIT("pcmpgtd %%xmm5, %%xmm3")        /* xmm3 = /src > -inf/ */ \
-            __ASM_EMIT("pcmpeqd %%xmm5, %%xmm4")        /* xmm4 = /src == -inf/ */ \
-            __ASM_EMIT("movapd  %%xmm3, %%xmm0")        /* xmm0 = /src > -inf/ */ \
-            __ASM_EMIT("por     %%xmm4, %%xmm0")        /* xmm0 = /src >= -inf/ */ \
-            __ASM_EMIT("pand    %[SX_N_NAN], %%xmm3")   /* xmm3 = -nan * /src > -inf/ */ \
-            __ASM_EMIT("pand    %[SX_N_INF], %%xmm4")   /* xmm4 = -inf * /src == -inf/ */ \
-            __ASM_EMIT("pandn   %%xmm0, %%xmm1")        /* xmm1 = /src >= -inf && src < 0/ */ \
-            __ASM_EMIT("por     %%xmm3, %%xmm4")        /* xmm4 = -nan * /src > -inf/ + -inf * /src == -inf/ */ \
-            \
-            /* Merge */ \
-            __ASM_EMIT("pand    %%xmm1, %%xmm4") \
-            __ASM_EMIT("pandn   %%xmm2, %%xmm1") \
-            __ASM_EMIT("por     %%xmm4, %%xmm1") \
-            \
-            /* Store and repeat loop */ \
-            __ASM_EMIT(ldst  "  %%xmm1, (%[dst])")
-
-        if (count == 0)
-            return;
+        size_t off;
 
         ARCH_X86_ASM
         (
-            /* Prepare constants */
-            __ASM_EMIT("movapd %[X_ZERO_M1], %%xmm7")   /* xmm7 = 0 - 1 */
-            __ASM_EMIT("movapd %[X_P_INF], %%xmm6")     /* xmm6 = +inf - 1 */
-            __ASM_EMIT("movapd %[X_N_INF], %%xmm5")     /* xmm5 = -inf - 1 */
-
-            /* Test for source alignmens */
-            __ASM_EMIT("1:")
-            __ASM_EMIT("test    $0xf, %[dst]")
-            __ASM_EMIT("jz      2f")
-            MULTIPLE_SATURATION_BODY("movss")
-            __ASM_EMIT("add     $4, %[dst]")
-            __ASM_EMIT("dec     %[count]")
-            __ASM_EMIT("jnz 1b")
-            __ASM_EMIT("2:")
-
-            : [dst] "+r" (dst), [count] "+r" (count)
-            :
-                [X_ZERO_M1] "m" (X_ZERO_M1),
-                [X_P_INF] "m" (X_P_INF),
-                [X_N_INF] "m" (X_N_INF),
-                [SX_P_INF] "m" (SX_P_INF),
-                [SX_N_INF] "m" (SX_N_INF),
-                [SX_P_NAN] "m" (SX_P_NAN),
-                [SX_N_NAN] "m" (SX_N_NAN)
-            :   "memory", "cc",
-                "%xmm0", "%xmm1", "%xmm2", "%xmm3",
-                "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+            MULTIPLE_SATURATION_BODY("dst", "dst")
+            : [count] "+r" (count), [off] "=&r" (off)
+            : [dst] "r" (dst),
+              [X_IARGS] "o" (SAT_IARGS)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
-
-        size_t regs     = count / SSE_MULTIPLE;
-        count          %= SSE_MULTIPLE;
-
-        if (regs > 0)
-        {
-            ARCH_X86_ASM
-            (
-                /* Test for source alignmens */
-                __ASM_EMIT("1:")
-                MULTIPLE_SATURATION_BODY("movapd")
-                __ASM_EMIT("add     $0x10, %[dst]")
-                __ASM_EMIT("dec     %[count]")
-                __ASM_EMIT("jnz 1b")
-
-                : [dst] "+r" (dst), [count] "+r" (regs)
-                :
-                    [X_ZERO_M1] "m" (X_ZERO_M1),
-                    [X_P_INF] "m" (X_P_INF),
-                    [X_N_INF] "m" (X_N_INF),
-                    [SX_P_INF] "m" (SX_P_INF),
-                    [SX_N_INF] "m" (SX_N_INF),
-                    [SX_P_NAN] "m" (SX_P_NAN),
-                    [SX_N_NAN] "m" (SX_N_NAN)
-                :   "memory", "cc",
-                    "%xmm0", "%xmm1", "%xmm2", "%xmm3",
-                    "%xmm4", "%xmm5", "%xmm6", "%xmm7"
-            );
-        }
-
-        ARCH_X86_ASM
-        (
-            /* Test for source alignmens */
-            __ASM_EMIT("test    %[count], %[count]")
-            __ASM_EMIT("jz      2f")
-            __ASM_EMIT("1:")
-            MULTIPLE_SATURATION_BODY("movss")
-            __ASM_EMIT("add     $4, %[dst]")
-            __ASM_EMIT("dec     %[count]")
-            __ASM_EMIT("jnz 1b")
-            __ASM_EMIT("2:")
-
-            : [dst] "+r" (dst), [count] "+r" (count)
-            :
-                [X_ZERO_M1] "m" (X_ZERO_M1),
-                [X_P_INF] "m" (X_P_INF),
-                [X_N_INF] "m" (X_N_INF),
-                [SX_P_INF] "m" (SX_P_INF),
-                [SX_N_INF] "m" (SX_N_INF),
-                [SX_P_NAN] "m" (SX_P_NAN),
-                [SX_N_NAN] "m" (SX_N_NAN)
-            :   "memory", "cc",
-                "%xmm0", "%xmm1", "%xmm2", "%xmm3",
-                "%xmm4", "%xmm5", "%xmm6", "%xmm7"
-        );
-
-        #undef MULTIPLE_SATURATION_BODY
     }
+
+#undef MULTIPLE_SATURATION_BODY
 }
 
 #endif /* DSP_ARCH_X86_SSE_FLOAT_H_ */

@@ -201,10 +201,36 @@ namespace test
         printf("\n");
     }
 
+    void FloatBuffer::dump_hex(const char *text) const
+    {
+        printf("%s: ", text);
+        const uint32_t *ptr = reinterpret_cast<const uint32_t *>(pBuffer);
+        for (size_t i=0; i<nLength; ++i)
+            printf("%08x ", int(ptr[i]));
+        printf("\n");
+    }
+
+    void FloatBuffer::dump_hex(const char *text, size_t from, size_t count) const
+    {
+        printf("%s: ", text);
+        const uint32_t *ptr = reinterpret_cast<const uint32_t *>(pBuffer);
+        for (size_t i=from; (i<nLength) && (count > 0); ++i, --count)
+            printf("%08x ", int(ptr[i]));
+        printf("\n");
+    }
+
     void FloatBuffer::copy(const FloatBuffer &buf)
     {
         size_t to_copy = (buf.nLength < nLength) ? buf.nLength : nLength;
         memcpy(pBuffer, buf.pBuffer, to_copy * sizeof(float));
+        while (to_copy < nLength)
+            pBuffer[to_copy++] = 0.0f;
+    }
+
+    void FloatBuffer::copy(const float *buf, size_t count)
+    {
+        size_t to_copy = (count < nLength) ? count : nLength;
+        memcpy(pBuffer, buf, to_copy * sizeof(float));
         while (to_copy < nLength)
             pBuffer[to_copy++] = 0.0f;
     }

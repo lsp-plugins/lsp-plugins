@@ -27,6 +27,28 @@ IF_ARCH_X86(
         void bilinear_transform_x4(biquad_x4_t *bf, const f_cascade_t *bc, float kf, size_t count);
         void bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
     }
+
+    IF_ARCH_X86_64(
+        namespace sse3
+        {
+            void x64_bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
+        }
+
+        namespace avx
+        {
+            void x64_bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
+        }
+    )
+)
+
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void bilinear_transform_x1(biquad_x1_t *bf, const f_cascade_t *bc, float kf, size_t count);
+        void bilinear_transform_x2(biquad_x2_t *bf, const f_cascade_t *bc, float kf, size_t count);
+        void bilinear_transform_x4(biquad_x4_t *bf, const f_cascade_t *bc, float kf, size_t count);
+        void bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
+    }
 )
 
 typedef void (* bilinear_transform_x1_t)(biquad_x1_t *bf, const f_cascade_t *bc, float kf, size_t count);
@@ -136,20 +158,26 @@ PTEST_BEGIN("dsp.filters", bt, 10, 10000)
 
     PTEST_MAIN
     {
-        call("8 bilinear x1 native", PERF_BUF_SIZE, native::bilinear_transform_x1);
-        IF_ARCH_X86(call("8 bilinear x1 sse", PERF_BUF_SIZE, sse::bilinear_transform_x1));
+        call("native::bilinear_transform_x1 x8", PERF_BUF_SIZE, native::bilinear_transform_x1);
+        IF_ARCH_X86(call("sse::bilinear_transform_x1 x8", PERF_BUF_SIZE, sse::bilinear_transform_x1));
+        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x1 x8", PERF_BUF_SIZE, neon_d32::bilinear_transform_x1));
         PTEST_SEPARATOR;
 
-        call("4 bilinear x2 native", PERF_BUF_SIZE, native::bilinear_transform_x2);
-        IF_ARCH_X86(call("4 bilinear x2 sse", PERF_BUF_SIZE, sse::bilinear_transform_x2));
+        call("native::bilinear_transform_x2 x4", PERF_BUF_SIZE, native::bilinear_transform_x2);
+        IF_ARCH_X86(call("sse::bilinear_transform_x2 x4", PERF_BUF_SIZE, sse::bilinear_transform_x2));
+        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x2 x4", PERF_BUF_SIZE, neon_d32::bilinear_transform_x2));
         PTEST_SEPARATOR;
 
-        call("2 bilinear x4 native", PERF_BUF_SIZE, native::bilinear_transform_x4);
-        IF_ARCH_X86(call("2 bilinear x4 sse", PERF_BUF_SIZE, sse::bilinear_transform_x4));
+        call("native::bilinear_transform_x4 x2", PERF_BUF_SIZE, native::bilinear_transform_x4);
+        IF_ARCH_X86(call("sse::bilinear_transform_x4 x2", PERF_BUF_SIZE, sse::bilinear_transform_x4));
+        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x4 x2", PERF_BUF_SIZE, neon_d32::bilinear_transform_x4));
         PTEST_SEPARATOR;
 
-        call("1 bilinear x8 native", PERF_BUF_SIZE, native::bilinear_transform_x8);
-        IF_ARCH_X86(call("1 bilinear x8 sse", PERF_BUF_SIZE, sse::bilinear_transform_x8));
+        call("native::bilinear_transform_x8 x1", PERF_BUF_SIZE, native::bilinear_transform_x8);
+        IF_ARCH_X86(call("sse::bilinear_transform_x8 x1", PERF_BUF_SIZE, sse::bilinear_transform_x8));
+        IF_ARCH_X86_64(call("sse3::x64_bilinear_transform_x8 x1", PERF_BUF_SIZE, sse3::x64_bilinear_transform_x8));
+        IF_ARCH_X86_64(call("avx::x64_bilinear_transform_x8 x1", PERF_BUF_SIZE, avx::x64_bilinear_transform_x8));
+        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x8 x1", PERF_BUF_SIZE, neon_d32::bilinear_transform_x8));
         PTEST_SEPARATOR;
     }
 

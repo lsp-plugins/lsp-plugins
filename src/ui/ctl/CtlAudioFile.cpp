@@ -518,11 +518,13 @@ namespace lsp
                 return;
 
             LSPString path;
-            if ((af->get_path(&path)) && (path.length() > 0))
-            {
-                pPath->write(path.get_native(), path.length());
-                pPath->notify_all();
-            }
+            if (af->get_path(&path) != STATUS_OK)
+                return;
+            if (path.length() <= 0)
+                return;
+
+            pPath->write(path.get_native(), path.length());
+            pPath->notify_all();
         }
 
         void CtlAudioFile::notify(CtlPort *port)

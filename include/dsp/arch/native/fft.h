@@ -74,13 +74,10 @@ static const float XFFT_A_IM[] __lsp_aligned16 =
 
 void normalize_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
 {
-    size_t items    = 1 << rank;
-    float k         = 1.0f / items;
-    while (items--)
-    {
-        *(dst_re++)     = *(src_re++) * k;
-        *(dst_im++)     = *(src_im++) * k;
-    }
+    rank            = 1 << rank;
+    float k         = 1.0f / rank;
+    dsp::scale3(dst_re, src_re, k, rank);
+    dsp::scale3(dst_im, src_im, k, rank);
 }
 
 static void do_normalize_fft(float *dst_re, float *dst_im, size_t rank)

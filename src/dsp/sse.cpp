@@ -74,7 +74,6 @@ namespace sse // TODO: make constants common for all architectures
 #include <dsp/arch/x86/sse/filters/transform.h>
 
 #include <dsp/arch/x86/sse/3dmath.h>
-#include <dsp/arch/x86/sse/native.h>
 
 #undef DSP_ARCH_X86_SSE_IMPL
 
@@ -156,21 +155,12 @@ namespace sse
         EXPORT1(abs_mul3);
         EXPORT1(abs_div3);
 
-        EXPORT1(abs_normalized);
-        EXPORT1(normalize);
         EXPORT1(min);
         EXPORT1(max);
         EXPORT1(abs_max);
         EXPORT1(abs_min);
         EXPORT1(minmax);
         EXPORT1(abs_minmax);
-
-//            EXPORT1(min_index);
-//            EXPORT1(max_index);
-//            EXPORT1(minmax_index);
-//            EXPORT1(abs_max_index);
-//            EXPORT1(abs_min_index);
-//            EXPORT1(abs_minmax_index);
 
         EXPORT1(add2);
         EXPORT1(sub2);
@@ -224,8 +214,6 @@ namespace sse
         EXPORT1(fastconv_parse_apply);
         EXPORT1(fastconv_restore);
         EXPORT1(fastconv_apply);
-
-        EXPORT1(normalize_fft);
 
         EXPORT1(complex_mul2);
         EXPORT1(complex_mul3);

@@ -9,7 +9,6 @@
 #include <test/utest.h>
 #include <test/FloatBuffer.h>
 
-#define CASCADES            11
 #define BIQUAD_X1_FLOATS    (sizeof(biquad_x1_t) / sizeof(float))
 #define BIQUAD_X2_FLOATS    (sizeof(biquad_x2_t) / sizeof(float))
 #define BIQUAD_X4_FLOATS    (sizeof(biquad_x4_t) / sizeof(float))
@@ -46,6 +45,16 @@ IF_ARCH_X86(
     )
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void bilinear_transform_x1(biquad_x1_t *bf, const f_cascade_t *bc, float kf, size_t count);
+        void bilinear_transform_x2(biquad_x2_t *bf, const f_cascade_t *bc, float kf, size_t count);
+        void bilinear_transform_x4(biquad_x4_t *bf, const f_cascade_t *bc, float kf, size_t count);
+        void bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
+    }
+)
+
 typedef void (* bilinear_transform_x1_t)(biquad_x1_t *bf, const f_cascade_t *bc, float kf, size_t count);
 typedef void (* bilinear_transform_x2_t)(biquad_x2_t *bf, const f_cascade_t *bc, float kf, size_t count);
 typedef void (* bilinear_transform_x4_t)(biquad_x4_t *bf, const f_cascade_t *bc, float kf, size_t count);
@@ -60,33 +69,39 @@ UTEST_BEGIN("dsp.filters", bt)
         if (!UTEST_SUPPORTED(f2))
             return;
 
-        printf("Testing %s bilinear transformation\n", text);
-
-        FloatBuffer src(CASCADE_FLOATS * CASCADES, 64, true);
-        FloatBuffer dst1(BIQUAD_X1_FLOATS * CASCADES, 64, true);
-        FloatBuffer dst2(BIQUAD_X1_FLOATS * CASCADES, 64, true);
-
-        f_cascade_t *bc = src.data<f_cascade_t>();
-        for (size_t i=0; i<CASCADES; ++i)
+        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 0x1ff)
         {
-            float kt = i * 0.1;
-            float kb = i * 0.05;
-            bc[i].t[0] = 1 + kt; bc[i].t[1] = 2 + kt;  bc[i].t[2] = 1 - kt; bc[i].t[3] = 0;
-            bc[i].b[0] = 1 + kb; bc[i].b[1] = -2 + kb; bc[i].b[2] = 1 - kb; bc[i].b[3] = 0;
-        }
+            size_t filters = count;
+            size_t cascades = filters;
+            printf("Testing %s bilinear transformation, filters=%d, cascades=%d\n", text, int(filters), int(cascades));
 
-        f1(dst1.data<biquad_x1_t>(), bc, 1.5f, CASCADES);
-        f2(dst2.data<biquad_x1_t>(), bc, 1.5f, CASCADES);
+            FloatBuffer src(CASCADE_FLOATS * cascades, 64, true);
+            FloatBuffer dst1(BIQUAD_X1_FLOATS * filters, 64, true);
+            FloatBuffer dst2(dst1);
 
-        UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
-        UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
-        UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
-        if (!dst1.equals_relative(dst2, 1e-4f))
-        {
-            src.dump("src");
-            dst1.dump("dst1");
-            dst2.dump("dst2");
-            UTEST_FAIL_MSG("Output of functions for test '%s' differs", text);
+            f_cascade_t *bc = src.data<f_cascade_t>();
+            for (size_t i=0; i<cascades; ++i)
+            {
+                float kt = i * 0.1;
+                float kb = i * 0.05;
+                bc[i].t[0] = 1 + kt; bc[i].t[1] = 2 + kt;  bc[i].t[2] = 1 - kt; bc[i].t[3] = 0;
+                bc[i].b[0] = 1 + kb; bc[i].b[1] = -2 + kb; bc[i].b[2] = 1 - kb; bc[i].b[3] = 0;
+            }
+
+            f1(dst1.data<biquad_x1_t>(), bc, 1.5f, filters);
+            f2(dst2.data<biquad_x1_t>(), bc, 1.5f, filters);
+
+            UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
+            UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
+            UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
+            if (!dst1.equals_relative(dst2, 1e-4f))
+            {
+                src.dump("src");
+                src.dump_hex("srch");
+                dst1.dump("dst1");
+                dst2.dump("dst2");
+                UTEST_FAIL_MSG("Output of functions for test '%s' differs", text);
+            }
         }
     }
 
@@ -97,34 +112,39 @@ UTEST_BEGIN("dsp.filters", bt)
         if (!UTEST_SUPPORTED(f2))
             return;
 
-        printf("Testing %s bilinear transformation\n", text);
-
-        size_t n = (CASCADES + 1) * 2;
-        FloatBuffer src(CASCADE_FLOATS * n, 64, true);
-        FloatBuffer dst1(BIQUAD_X2_FLOATS * (CASCADES + 1), 64, true);
-        FloatBuffer dst2(BIQUAD_X2_FLOATS * (CASCADES + 1), 64, true);
-
-        f_cascade_t *bc = src.data<f_cascade_t>();
-        for (size_t i=0; i<n; ++i)
+        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 0x1ff)
         {
-            float kt = i * 0.1;
-            float kb = i * 0.05;
-            bc[i].t[0] = 1 + kt; bc[i].t[1] = 2 + kt;  bc[i].t[2] = 1 - kt; bc[i].t[3] = 0;
-            bc[i].b[0] = 1 + kb; bc[i].b[1] = -2 + kb; bc[i].b[2] = 1 - kb; bc[i].b[3] = 0;
-        }
+            size_t filters = count + 1;
+            size_t cascades = filters * 2;
+            printf("Testing %s bilinear transformation, filters=%d, cascades=%d\n", text, int(filters), int(cascades));
 
-        f1(dst1.data<biquad_x2_t>(), bc, 1.5f, CASCADES + 1);
-        f2(dst2.data<biquad_x2_t>(), bc, 1.5f, CASCADES + 1);
+            FloatBuffer src(CASCADE_FLOATS * cascades, 64, true);
+            FloatBuffer dst1(BIQUAD_X2_FLOATS * filters, 64, true);
+            FloatBuffer dst2(dst1);
 
-        UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
-        UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
-        UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
-        if (!dst1.equals_relative(dst2, 1e-4f))
-        {
-            src.dump("src");
-            dst1.dump("dst1");
-            dst2.dump("dst2");
-            UTEST_FAIL_MSG("Output of functions for test '%s' differs", text);
+            f_cascade_t *bc = src.data<f_cascade_t>();
+            for (size_t i=0; i<cascades; ++i)
+            {
+                float kt = i * 0.1;
+                float kb = i * 0.05;
+                bc[i].t[0] = 1 + kt; bc[i].t[1] = 2 + kt;  bc[i].t[2] = 1 - kt; bc[i].t[3] = 0;
+                bc[i].b[0] = 1 + kb; bc[i].b[1] = -2 + kb; bc[i].b[2] = 1 - kb; bc[i].b[3] = 0;
+            }
+
+            f1(dst1.data<biquad_x2_t>(), bc, 1.5f, filters);
+            f2(dst2.data<biquad_x2_t>(), bc, 1.5f, filters);
+
+            UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
+            UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
+            UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
+            if (!dst1.equals_relative(dst2, 1e-4f))
+            {
+                src.dump("src");
+                src.dump_hex("srch");
+                dst1.dump("dst1");
+                dst2.dump("dst2");
+                UTEST_FAIL_MSG("Output of functions for test '%s' differs", text);
+            }
         }
     }
 
@@ -135,34 +155,39 @@ UTEST_BEGIN("dsp.filters", bt)
         if (!UTEST_SUPPORTED(f2))
             return;
 
-        printf("Testing %s bilinear transformation\n", text);
-
-        size_t n = (CASCADES + 3) * 4;
-        FloatBuffer src(CASCADE_FLOATS * n, 64, true);
-        FloatBuffer dst1(BIQUAD_X4_FLOATS * (CASCADES + 3), 64, true);
-        FloatBuffer dst2(BIQUAD_X4_FLOATS * (CASCADES + 3), 64, true);
-
-        f_cascade_t *bc = src.data<f_cascade_t>();
-        for (size_t i=0; i<n; ++i)
+        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 0x1ff)
         {
-            float kt = i * 0.1;
-            float kb = i * 0.05;
-            bc[i].t[0] = 1 + kt; bc[i].t[1] = 2 + kt;  bc[i].t[2] = 1 - kt; bc[i].t[3] = 0;
-            bc[i].b[0] = 1 + kb; bc[i].b[1] = -2 + kb; bc[i].b[2] = 1 - kb; bc[i].b[3] = 0;
-        }
+            size_t filters = count + 3;
+            size_t cascades = filters * 4;
+            printf("Testing %s bilinear transformation, filters=%d, cascades=%d\n", text, int(filters), int(cascades));
 
-        f1(dst1.data<biquad_x4_t>(), bc, 1.5f, CASCADES + 3);
-        f2(dst2.data<biquad_x4_t>(), bc, 1.5f, CASCADES + 3);
+            FloatBuffer src(CASCADE_FLOATS * cascades, 64, true);
+            FloatBuffer dst1(BIQUAD_X4_FLOATS * filters, 64, true);
+            FloatBuffer dst2(dst1);
 
-        UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
-        UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
-        UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
-        if (!dst1.equals_relative(dst2, 1e-4f))
-        {
-            src.dump("src");
-            dst1.dump("dst1");
-            dst2.dump("dst2");
-            UTEST_FAIL_MSG("Output of functions for test '%s' differs", text);
+            f_cascade_t *bc = src.data<f_cascade_t>();
+            for (size_t i=0; i<cascades; ++i)
+            {
+                float kt = i * 0.1;
+                float kb = i * 0.05;
+                bc[i].t[0] = 1 + kt; bc[i].t[1] = 2 + kt;  bc[i].t[2] = 1 - kt; bc[i].t[3] = 0;
+                bc[i].b[0] = 1 + kb; bc[i].b[1] = -2 + kb; bc[i].b[2] = 1 - kb; bc[i].b[3] = 0;
+            }
+
+            f1(dst1.data<biquad_x4_t>(), bc, 1.5f, filters);
+            f2(dst2.data<biquad_x4_t>(), bc, 1.5f, filters);
+
+            UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
+            UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
+            UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
+            if (!dst1.equals_relative(dst2, 1e-4f))
+            {
+                src.dump("src");
+                src.dump_hex("srch");
+                dst1.dump("dst1");
+                dst2.dump("dst2");
+                UTEST_FAIL_MSG("Output of functions for test '%s' differs", text);
+            }
         }
     }
 
@@ -173,48 +198,57 @@ UTEST_BEGIN("dsp.filters", bt)
         if (!UTEST_SUPPORTED(f2))
             return;
 
-        printf("Testing %s bilinear transformation\n", text);
-
-        size_t n = (CASCADES + 7) * 8;
-        FloatBuffer src(CASCADE_FLOATS * n, 64, true);
-        FloatBuffer dst1(BIQUAD_X8_FLOATS * (CASCADES + 7), 64, true);
-        FloatBuffer dst2(BIQUAD_X8_FLOATS * (CASCADES + 7), 64, true);
-
-        f_cascade_t *bc = src.data<f_cascade_t>();
-        for (size_t i=0; i<n; ++i)
+        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 0x1ff)
         {
-            float kt = i * 0.1;
-            float kb = i * 0.05;
-            bc[i].t[0] = 1 + kt; bc[i].t[1] = 2 + kt;  bc[i].t[2] = 1 - kt; bc[i].t[3] = 0;
-            bc[i].b[0] = 1 + kb; bc[i].b[1] = -2 + kb; bc[i].b[2] = 1 - kb; bc[i].b[3] = 0;
-        }
+            size_t filters = count + 7;
+            size_t cascades = filters * 8;
+            printf("Testing %s bilinear transformation, filters=%d, cascades=%d\n", text, int(filters), int(cascades));
 
-        f1(dst1.data<biquad_x8_t>(), bc, 1.5f, CASCADES + 7);
-        f2(dst2.data<biquad_x8_t>(), bc, 1.5f, CASCADES + 7);
+            FloatBuffer src(CASCADE_FLOATS * cascades, 64, true);
+            FloatBuffer dst1(BIQUAD_X8_FLOATS * filters, 64, true);
+            FloatBuffer dst2(dst1);
 
-        UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
-        UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
-        UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
-        if (!dst1.equals_relative(dst2, 1e-4f))
-        {
-            src.dump("src");
-            dst1.dump("dst1");
-            dst2.dump("dst2");
-            UTEST_FAIL_MSG("Output of functions for test '%s' differs", text);
+            f_cascade_t *bc = src.data<f_cascade_t>();
+            for (size_t i=0; i<cascades; ++i)
+            {
+                float kt = i * 0.1;
+                float kb = i * 0.05;
+                bc[i].t[0] = 1 + kt; bc[i].t[1] = 2 + kt;  bc[i].t[2] = 1 - kt; bc[i].t[3] = 0;
+                bc[i].b[0] = 1 + kb; bc[i].b[1] = -2 + kb; bc[i].b[2] = 1 - kb; bc[i].b[3] = 0;
+            }
+
+            f1(dst1.data<biquad_x8_t>(), bc, 1.5f, filters);
+            f2(dst2.data<biquad_x8_t>(), bc, 1.5f, filters);
+
+            UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
+            UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
+            UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
+            if (!dst1.equals_relative(dst2, 1e-4f))
+            {
+                src.dump("src");
+                src.dump_hex("srch");
+                dst1.dump("dst1");
+                dst2.dump("dst2");
+                UTEST_FAIL_MSG("Output of functions for test '%s' differs", text);
+            }
         }
     }
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("bt_sse_x1", native::bilinear_transform_x1, sse::bilinear_transform_x1));
+        IF_ARCH_X86(call("sse::bilinear_transform_x1", native::bilinear_transform_x1, sse::bilinear_transform_x1));
+        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x1", native::bilinear_transform_x1, neon_d32::bilinear_transform_x1));
 
-        IF_ARCH_X86(call("bt_sse_x2", native::bilinear_transform_x2, sse::bilinear_transform_x2));
+        IF_ARCH_X86(call("sse::bilinear_transform_x2", native::bilinear_transform_x2, sse::bilinear_transform_x2));
+        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x2", native::bilinear_transform_x2, neon_d32::bilinear_transform_x2));
 
-        IF_ARCH_X86(call("bt_sse_x4", native::bilinear_transform_x4, sse::bilinear_transform_x4));
+        IF_ARCH_X86(call("sse::bilinear_transform_x4", native::bilinear_transform_x4, sse::bilinear_transform_x4));
+        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x4", native::bilinear_transform_x4, neon_d32::bilinear_transform_x4));
 
-        IF_ARCH_X86(call("bt_sse_x8", native::bilinear_transform_x8, sse::bilinear_transform_x8));
-        IF_ARCH_X86_64(call("bt_sse_x8", native::bilinear_transform_x8, sse3::x64_bilinear_transform_x8));
-        IF_ARCH_X86_64(call("bt_sse_x8", native::bilinear_transform_x8, avx::x64_bilinear_transform_x8));
+        IF_ARCH_X86(call("sse::bilinear_transform_x8", native::bilinear_transform_x8, sse::bilinear_transform_x8));
+        IF_ARCH_X86_64(call("sse3::x64_bilinear_transform_x8", native::bilinear_transform_x8, sse3::x64_bilinear_transform_x8));
+        IF_ARCH_X86_64(call("avx::x64_bilinear_transform_x8", native::bilinear_transform_x8, avx::x64_bilinear_transform_x8));
+        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x8", native::bilinear_transform_x8, neon_d32::bilinear_transform_x8));
     }
 
 UTEST_END;

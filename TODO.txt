@@ -17,6 +17,11 @@
   installing into specified path instead of /usr/local.
 * Fixed window decorating issue under the i3 window manager.
 * Enabled RELRO and PIE option for binaries, simplified build system.
+* Fixed biquad filter processing routines that could cause memory corruption and/or invalid behaviour
+  in certain circumstances.
+* Implemented optimized DSP functions for minimum and maximum search.
+* Implemented optimized DSP functions for static biquad processing, dynamic biquad processing,
+  dynamic bilinear transformation. 
 - Migrated to CMake build system.
 - Additional display mode for spectrum analyzer added.
 - Added possibility to double-click the parameter's value number and enter it manually from keyboard.
@@ -25,7 +30,6 @@
 - Added subsystem for loading missed files.
 - Additional DSP code optimizations for ARMv7A architecture.
 - Extended unit and performance test coverage.
-- Changed link oder of libraries
 
 *******************************************************************************
 * Release steps
@@ -110,6 +114,12 @@
 *******************************************************************************
 * FEATURE REQUESTS: Detailed
 *******************************************************************************
+
+==== FFT analysis of the Profiler and Convolver ====
+
+Could it be possible to add a frequency-domain display mode? 
+It'd make it much easier to quickly identify room modes and such. Or if the
+plugin could play back the created IR sample - I could use another plugin to analyze that.﻿
 
 ==== Link order of libraries ====
 

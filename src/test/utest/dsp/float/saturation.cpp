@@ -13,7 +13,6 @@
 namespace native
 {
     void copy_saturated(float *dst, const float *src, size_t count);
-
     void saturate(float *dst, size_t count);
 }
 
@@ -21,18 +20,23 @@ IF_ARCH_X86(
     namespace x86
     {
         void copy_saturated(float *dst, const float *src, size_t count);
-
-        void copy_saturated_cmov(float *dst, const float *src, size_t count);
-
         void saturate(float *dst, size_t count);
 
+        void copy_saturated_cmov(float *dst, const float *src, size_t count);
         void saturate_cmov(float *dst, size_t count);
     }
 
     namespace sse
     {
         void copy_saturated(float *dst, const float *src, size_t count);
+        void saturate(float *dst, size_t count);
+    }
+)
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void copy_saturated(float *dst, const float *src, size_t count);
         void saturate(float *dst, size_t count);
     }
 )
@@ -72,10 +76,8 @@ UTEST_BEGIN("dsp.float", saturation)
 
     void call(const char *label, size_t align, copy_saturated_t func)
     {
-//        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-//                32, 64, 65, 100, 768, 999, 1024)
-        UTEST_FOREACH(count, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                        32, 64, 65, 100, 768, 999, 1024)
+        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                        32, 64, 65, 100, 768, 999, 1024, 0x1fff)
         {
             for (size_t mask=0; mask <= 0x03; ++mask)
             {
@@ -97,7 +99,8 @@ UTEST_BEGIN("dsp.float", saturation)
                 // Compare buffers
                 if (!dst1.equals_relative(dst2, 1e-5))
                 {
-                    src.dump("src");
+                    src.dump("src ");
+                    src.dump_hex("srch");
                     dst1.dump("dst1");
                     dst2.dump("dst2");
                     UTEST_FAIL_MSG("Output of functions for test '%s' differs", label);
@@ -109,7 +112,7 @@ UTEST_BEGIN("dsp.float", saturation)
     void call(const char *label, size_t align, saturate_t func)
     {
         UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                32, 64, 65, 100, 768, 999, 1024)
+                32, 64, 65, 100, 768, 999, 1024, 0x1fff)
         {
             for (size_t mask=0; mask <= 0x01; ++mask)
             {
@@ -139,13 +142,15 @@ UTEST_BEGIN("dsp.float", saturation)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("x86_copy_sat", 16, x86::copy_saturated));
-        IF_ARCH_X86(call("x86_copy_sat_cmov", 16, x86::copy_saturated_cmov));
-        IF_ARCH_X86(call("sse_copy_sat", 16, sse::copy_saturated));
+        IF_ARCH_X86(call("x86:copy_sat", 16, x86::copy_saturated));
+        IF_ARCH_X86(call("x86:copy_sat_cmov", 16, x86::copy_saturated_cmov));
+        IF_ARCH_X86(call("sse:copy_sat", 16, sse::copy_saturated));
+        IF_ARCH_ARM(call("neon_d32:copy_sat", 16, neon_d32::copy_saturated));
 
-        IF_ARCH_X86(call("x86_sat", 16, x86::saturate));
-        IF_ARCH_X86(call("x86_sat_cmov", 16, x86::saturate_cmov));
-        IF_ARCH_X86(call("sse_sat", 16, sse::saturate));
+        IF_ARCH_X86(call("x86:sat", 16, x86::saturate));
+        IF_ARCH_X86(call("x86:sat_cmov", 16, x86::saturate_cmov));
+        IF_ARCH_X86(call("sse:sat", 16, sse::saturate));
+        IF_ARCH_ARM(call("neon_d32:sat", 16, neon_d32::saturate));
     }
 
 UTEST_END;

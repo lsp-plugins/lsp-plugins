@@ -77,7 +77,7 @@ namespace lsp
                 inline LSPFont             *font() { return &sFont; }
                 inline LSPColor            *bg_color() { return &sBgColor; }
                 inline LSPFileFilter       *filter() { return sDialog.filter(); }
-                inline status_t             get_path(LSPString *dst) const { return dst->set(&sPath); };
+                inline status_t             get_path(LSPString *dst) const { return (dst->set(&sPath)) ? STATUS_OK : STATUS_NO_MEM; }
                 inline const char          *get_path() const { return sPath.get_native(); }
 
             public:

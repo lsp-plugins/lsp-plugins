@@ -29,7 +29,7 @@ namespace sse
     };
 
     // Lanczos kernel 3x2: 6 SSE registers
-    const float lanczos_kernel_3x2[] __lsp_aligned16 =
+    static const float lanczos_kernel_3x2[] __lsp_aligned16 =
     {
         +0.0000000000000000f,
         -0.1451906347823569f,
@@ -65,7 +65,7 @@ namespace sse
 
 
     // Lanczos kernel 3x3: 9 SSE registers
-    const float lanczos_kernel_3x3[] __lsp_aligned16 =
+    static const float lanczos_kernel_3x3[] __lsp_aligned16 =
     {
         +0.0000000000000000f,
         +0.0890793429479492f,
@@ -120,7 +120,7 @@ namespace sse
     };
 
     // Lanczos kernel 4x2: 4 SSE registers
-    const float lanczos_kernel_4x2[] __lsp_aligned16 =
+    static const float lanczos_kernel_4x2[] __lsp_aligned16 =
     {
         +0.0000000000000000f,
         -0.1187292496637064f,
@@ -144,7 +144,7 @@ namespace sse
     };
 
     // Lanczos kernel 4x3: 6 SSE registers
-    const float lanczos_kernel_4x3[] __lsp_aligned16 =
+    static const float lanczos_kernel_4x3[] __lsp_aligned16 =
     {
         +0.0000000000000000f,
         +0.0749573750027847f,
@@ -178,7 +178,7 @@ namespace sse
     };
 
     // Lanczos kernel 6x2: 6 SSE registers
-    const float lanczos_kernel_6x2[] __lsp_aligned16 =
+    static const float lanczos_kernel_6x2[] __lsp_aligned16 =
     {
         +0.0000000000000000f,
         -0.0835168749111343f,
@@ -212,7 +212,7 @@ namespace sse
     };
 
     // Lanczos kernel 6x3: 9 SSE registers
-    const float lanczos_kernel_6x3[] __lsp_aligned16 =
+    static const float lanczos_kernel_6x3[] __lsp_aligned16 =
     {
         +0.0000000000000000f,
         +0.0539107649662794f,
@@ -261,7 +261,7 @@ namespace sse
     };
 
     // Lanczos kernel 8x2: 8 SSE registers
-    const float lanczos_kernel_8x2[] __lsp_aligned16 =
+    static const float lanczos_kernel_8x2[] __lsp_aligned16 =
     {
         -0.0000000000000000f,
         -0.0635086982303136f,
@@ -305,7 +305,7 @@ namespace sse
     };
 
     // Lanczos kernel 8x3: 12 SSE registers
-    const float lanczos_kernel_8x3[] __lsp_aligned16 =
+    static const float lanczos_kernel_8x3[] __lsp_aligned16 =
     {
         +0.0000000000000000f,
         +0.0413762983728270f,

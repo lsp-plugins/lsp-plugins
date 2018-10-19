@@ -76,9 +76,8 @@ namespace neon_d32
                     __ASM_EMIT("blt         14f")
                     __ASM_EMIT("vld1.32     {q0}, [%[k]]")          // q0 = k0 k1 k2 k3 k += 4
                     __ASM_EMIT("15:")
-                        __ASM_EMIT("vld1.32     {d2[]}, [%[c]]!")       // q1 = c0 c0 ? ?, c++
+                        __ASM_EMIT("vld1.32     {d2[], d3[]}, [%[c]]!") // q1 = c0 c0 c0 c0, c++
                         __ASM_EMIT("vld1.32     {q2}, [%[d]]")          // q2 = d0 d1 d2 d3
-                        __ASM_EMIT("vmov        d3, d2")                // q1 = c0 c0 c0 c0
                         __ASM_EMIT("vmla.f32    q2, q0, q1")            // q2 = d0+k0*c0 d1+k1*c0 d2+k2*c0 d3+k3*c0
                         __ASM_EMIT("vst1.32     {q2}, [%[d]]")
                         __ASM_EMIT("subs        %[clen], $1")
