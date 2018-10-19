@@ -20,6 +20,8 @@
 * Fixed biquad filter processing routines that could cause memory corruption and/or invalid behaviour
   in certain circumstances.
 * Implemented optimized DSP functions for minimum and maximum search.
+* Implemented optimized DSP functions for static biquad processing, dynamic biquad processing,
+  dynamic bilinear transformation. 
 - Migrated to CMake build system.
 - Additional display mode for spectrum analyzer added.
 - Added possibility to double-click the parameter's value number and enter it manually from keyboard.
