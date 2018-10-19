@@ -47,7 +47,7 @@ IF_ARCH_ARM(
         void bilinear_transform_x1(biquad_x1_t *bf, const f_cascade_t *bc, float kf, size_t count);
         void bilinear_transform_x2(biquad_x2_t *bf, const f_cascade_t *bc, float kf, size_t count);
         void bilinear_transform_x4(biquad_x4_t *bf, const f_cascade_t *bc, float kf, size_t count);
-//        void bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
+        void bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
     }
 )
 
@@ -177,7 +177,7 @@ PTEST_BEGIN("dsp.filters", bt, 10, 10000)
         IF_ARCH_X86(call("sse::bilinear_transform_x8 x1", PERF_BUF_SIZE, sse::bilinear_transform_x8));
         IF_ARCH_X86_64(call("sse3::x64_bilinear_transform_x8 x1", PERF_BUF_SIZE, sse3::x64_bilinear_transform_x8));
         IF_ARCH_X86_64(call("avx::x64_bilinear_transform_x8 x1", PERF_BUF_SIZE, avx::x64_bilinear_transform_x8));
-//        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x8 x1", PERF_BUF_SIZE, neon_d32::bilinear_transform_x8));
+        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x8 x1", PERF_BUF_SIZE, neon_d32::bilinear_transform_x8));
         PTEST_SEPARATOR;
     }
 
