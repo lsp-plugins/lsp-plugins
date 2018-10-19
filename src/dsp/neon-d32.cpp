@@ -198,6 +198,7 @@ namespace neon_d32
 
         EXPORT1(bilinear_transform_x1);
         EXPORT1(bilinear_transform_x2);
+        EXPORT1(bilinear_transform_x4);
     }
 }
 
