@@ -49,7 +49,7 @@ IF_ARCH_ARM(
     namespace neon_d32
     {
         void bilinear_transform_x1(biquad_x1_t *bf, const f_cascade_t *bc, float kf, size_t count);
-//        void bilinear_transform_x2(biquad_x2_t *bf, const f_cascade_t *bc, float kf, size_t count);
+        void bilinear_transform_x2(biquad_x2_t *bf, const f_cascade_t *bc, float kf, size_t count);
 //        void bilinear_transform_x4(biquad_x4_t *bf, const f_cascade_t *bc, float kf, size_t count);
 //        void bilinear_transform_x8(biquad_x8_t *bf, const f_cascade_t *bc, float kf, size_t count);
     }
@@ -240,7 +240,7 @@ UTEST_BEGIN("dsp.filters", bt)
         IF_ARCH_ARM(call("neon_d32::bilinear_transform_x1", native::bilinear_transform_x1, neon_d32::bilinear_transform_x1));
 
         IF_ARCH_X86(call("sse::bilinear_transform_x2", native::bilinear_transform_x2, sse::bilinear_transform_x2));
-//        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x2", native::bilinear_transform_x2, neon_d32::bilinear_transform_x2));
+        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x2", native::bilinear_transform_x2, neon_d32::bilinear_transform_x2));
 
         IF_ARCH_X86(call("sse::bilinear_transform_x4", native::bilinear_transform_x4, sse::bilinear_transform_x4));
 //        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x4", native::bilinear_transform_x4, neon_d32::bilinear_transform_x4));
