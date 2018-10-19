@@ -188,12 +188,12 @@ namespace neon_d32
             __ASM_EMIT("tst             %[count], %[count]")
             __ASM_EMIT("beq             4f")
 
-            __ASM_EMIT("vld1.32         {d28[], d29[]}, [%[kf]]") // q14  = kf
+            __ASM_EMIT("vld1.32         {d28[], d29[]}, [%[kf]]")   // q14  = kf
             __ASM_EMIT("subs            %[count], $2")
-            __ASM_EMIT("vmul.f32        q15, q14, q14")         // q15  = kf*kf = kf2
+            __ASM_EMIT("vmul.f32        q15, q14, q14")             // q15  = kf*kf = kf2
             __ASM_EMIT("blo             2f")
 
-            // x2 blocks
+            // 2 x2 blocks
             __ASM_EMIT("1:")
             __ASM_EMIT("vldm            %[bc]!, {q0-q7}")       // {q0, q2, q4, q6} = t[x,0] t[x,1] t[x,2] t[x,3], {q1, q3, q5, q7} = b[x,0] b[x,1] b[x,2] b[x,3]
             __ASM_EMIT("vtrn.32         q0, q2")                // q0   = t[0,0] t[1,0] t[0,2] t[1,2], q2 = t[0,1] t[1,1] t[0,3] t[1,3]
@@ -252,10 +252,10 @@ namespace neon_d32
             __ASM_EMIT("vswp            d10, d3")
             __ASM_EMIT("vswp            d12, d5")
             __ASM_EMIT("vswp            d14, d7")
-            __ASM_EMIT("vswp            q2, q4")                // The order of filters is a bit different for x2
-            __ASM_EMIT("vswp            q3, q5")                // The order of filters is a bit different for x2
+            __ASM_EMIT("vswp            q1, q2")                // The order of filters is a bit different for x2
+            __ASM_EMIT("vswp            q5, q6")                // The order of filters is a bit different for x2
 
-            __ASM_EMIT("subs            %[count], $4")
+            __ASM_EMIT("subs            %[count], $2")
             __ASM_EMIT("vstm            %[bf]!, {q0-q7}")
             __ASM_EMIT("bhs             1b")
 
@@ -263,7 +263,7 @@ namespace neon_d32
             __ASM_EMIT("adds            %[count], $1")
             __ASM_EMIT("blt             4f")
 
-            // 1x block
+            // 1 x2 block
             __ASM_EMIT("vld4.32         {q0-q1}, [%[bc]]!")     // d0 = t[0] b[0] = T[0] B[0], d1 = t[1] b[1], d2 = t[2] b[2], d3 = 0 0
             __ASM_EMIT("vmul.f32        d1, d1, d28")           // d1 = t[1]*kf b[1]*kf = T[1] B[1]
             __ASM_EMIT("vmul.f32        d2, d2, d30")           // d2 = t[2]*kf b[2]*kf = T[2] B[2]
