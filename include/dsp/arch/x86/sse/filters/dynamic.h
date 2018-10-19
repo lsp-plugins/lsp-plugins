@@ -320,7 +320,7 @@ namespace sse
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count), [f] "+r" (f),
               [mask] "=&r"(mask)
             : __IF_64([d] "r" (d),)
-              __IF_32([d] "g" (d), [d_s] "m" (d_s), )
+              __IF_32([d] "g" (d), [f_s] "m" (f_s), )
               [X_MASK] "m" (X_MASK0001),
               [MASK] "m" (MASK)
             : "cc", "memory",
@@ -674,7 +674,7 @@ namespace sse
             : [dst] "+r" (dst), [src] "+r" (src), [mask] "=&r" (mask), [count] "+r" (count), [f] "+r" (f)
             : [context] "o" (context),
               __IF_64([d] "r" (d),)
-              __IF_32([d] "g" (d), [d_s] "m" (d_s), )
+              __IF_32([d] "g" (d),)
               [X_MASK] "m" (X_MASK0001),
               [MASK] "m" (MASK)
             : "cc", "memory",
