@@ -170,7 +170,7 @@ PTEST_BEGIN("dsp.filters", bt, 10, 10000)
 
         call("native::bilinear_transform_x4 x2", PERF_BUF_SIZE, native::bilinear_transform_x4);
         IF_ARCH_X86(call("sse::bilinear_transform_x4 x2", PERF_BUF_SIZE, sse::bilinear_transform_x4));
-//        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x4 x2", PERF_BUF_SIZE, neon_d32::bilinear_transform_x4));
+        IF_ARCH_ARM(call("neon_d32::bilinear_transform_x4 x2", PERF_BUF_SIZE, neon_d32::bilinear_transform_x4));
         PTEST_SEPARATOR;
 
         call("native::bilinear_transform_x8 x1", PERF_BUF_SIZE, native::bilinear_transform_x8);
