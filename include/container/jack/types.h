@@ -148,7 +148,10 @@ namespace lsp
     inline void jack_destroy_mesh(mesh_t *mesh)
     {
         if (mesh != NULL)
+        {
             lsp_free(mesh);
+            mesh = NULL;
+        }
     }
 }
 

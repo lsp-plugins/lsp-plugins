@@ -93,9 +93,8 @@ namespace lsp
 
     void AudioFile::destroy_file_content(file_content_t *content)
     {
-        if (content == NULL)
-            return;
-        lsp_free(content);
+        if (content != NULL)
+            lsp_free(content);
     }
 
     AudioFile::temporary_buffer_t *AudioFile::create_temporary_buffer(file_content_t *content, size_t from)
@@ -188,9 +187,8 @@ namespace lsp
 
     void AudioFile::destroy_temporary_buffer(temporary_buffer_t *buffer)
     {
-        if (buffer == NULL)
-            return;
-        lsp_free(buffer);
+        if (buffer != NULL)
+            lsp_free(buffer);
     }
 
     status_t AudioFile::create_samples(size_t channels, size_t sample_rate, size_t count)
@@ -404,7 +402,10 @@ namespace lsp
 
         // Destroy temporary buffer
         if (tb != NULL)
+        {
             destroy_temporary_buffer(tb);
+            tb = NULL;
+        }
 
         // Close chunk reader
         status_t res2 = audi->close();
@@ -1006,6 +1007,7 @@ namespace lsp
 
     void AudioFile::destroy()
     {
+        lsp_trace("Destroy this=%p, pData=%p", this, pData);
         if (pData != NULL)
         {
             destroy_file_content(pData);

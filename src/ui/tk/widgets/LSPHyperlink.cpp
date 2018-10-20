@@ -112,7 +112,9 @@ namespace lsp
                 exit(1);
             }
             else if (pid < 0)
+            {
                 lsp_trace("bad fork");
+            }
             else
             {
                 waitpid(pid, &status, WNOHANG);

@@ -790,7 +790,7 @@ namespace lsp
 
                 // (Re)bind sample
                 for (size_t j=0; j<nChannels; ++j)
-                    vChannels[j].bind(af->nID, s);
+                    vChannels[j].bind(af->nID, s, false);
             }
             else
             {
