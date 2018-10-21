@@ -43,13 +43,15 @@ namespace lsp
                 pFD         = NULL;
             }
             if (bBuf != NULL)
+            {
                 free(bBuf);
+                bBuf        = NULL;
+            }
             if (hIconv != iconv_t(-1))
             {
                 iconv_close(hIconv);
                 hIconv      = iconv_t(-1);
             }
-            bBuf        = NULL;
             cBuf        = NULL;
             bClose      = false;
         }

@@ -167,6 +167,7 @@ namespace lsp
                 lsp_error("Error initializing Jack wrapper");
 
             // Destroy objects
+            w.disconnect();
             ui.destroy();
             w.destroy();
         }

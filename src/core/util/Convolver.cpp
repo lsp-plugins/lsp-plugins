@@ -301,6 +301,9 @@ namespace lsp
             return;
         }
 
+        lsp_trace("Start process this=%p, dst=%p, src=%p, count=0x%x, vData=%p",
+                this, dst, src, int(count), vData);
+
         while (count > 0)
         {
             // Determine current offset relative to frame
@@ -455,6 +458,9 @@ namespace lsp
                 vBufferPtr          = vBufferHead;
             }
         }
+
+        lsp_trace("End process this=%p, dst=%p, src=%p, count=0x%x, vData=%p",
+                        this, dst, src, int(count), vData);
     }
 
 } /* namespace lsp */

@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <wctype.h>
 #include <stdarg.h>
+#include <core/io/charset.h>
 
 #define GRANULARITY     0x20
 #define BUF_SIZE        0x200
@@ -131,7 +132,7 @@ namespace lsp
         else
         {
             free(pData);
-            pData = NULL;
+            pData       = NULL;
             nLength     = 0;
             nCapacity   = 0;
         }
@@ -1316,40 +1317,8 @@ namespace lsp
         char buf[BUF_SIZE];
         LSPString temp;
 
-        // Fetch system charset if it is not set
-        if (charset == NULL)
-        {
-            // Save current locale
-            char *current = setlocale(LC_CTYPE, NULL);
-            if (current == NULL)
-                return false;
-            size_t len = strlen(current) + 1;
-            char *psaved = static_cast<char *>(alloca(len));
-            memcpy(psaved, current, len);
-            charset = psaved;
-
-            // Get system locale
-            current = setlocale(LC_CTYPE, "");
-            if (current == NULL)
-                return false;
-
-            // Scan for character set
-            current = strchr(current, '.');
-            if (current == NULL)
-                return false;
-            len = strlen(current);
-            psaved = static_cast<char *>(alloca(len));
-            memcpy(psaved, &current[1], len);
-
-            // Restore saved locale
-            setlocale(LC_CTYPE, charset);
-
-            // Update locale
-            charset  = psaved;
-        }
-
         // Open conversion
-        iconv_t cd = iconv_open(__IF_LEBE("UTF-16LE", "UTF-16BE"), charset);
+        iconv_t cd = init_iconv_to_wchar_t(charset);
         if (cd == iconv_t(-1))
             return false;
 
@@ -1371,7 +1340,7 @@ namespace lsp
                     case EINVAL:
                         break;
                     default:
-                        iconv_close (cd);
+                        iconv_close(cd);
                         return false;
                 }
             }
@@ -1392,7 +1361,7 @@ namespace lsp
             if (tail > 0)
             {
                 // If there is a tail, copy it to the start of buffer
-                memmove(buf, &buf[right], tail);
+                ::memmove(buf, &buf[right], tail);
                 outbuf  = &buf[tail];
                 outsize = BUF_SIZE - tail;
             }
@@ -1405,7 +1374,7 @@ namespace lsp
         }
 
         // Close descriptor
-        iconv_close (cd);
+        iconv_close(cd);
         take(&temp);
         return true;
     }
@@ -1518,41 +1487,8 @@ namespace lsp
         if (first >= last)
             return (last == first) ? "" : NULL;
 
-        // Fetch system charset if it is not set
-        if (charset == NULL)
-        {
-            // Save current locale
-            char *current = setlocale(LC_CTYPE, NULL);
-            if (current == NULL)
-                return NULL;
-            size_t len = strlen(current) + 1;
-            char *psaved = static_cast<char *>(alloca(len));
-            memcpy(psaved, current, len);
-            charset = psaved;
-
-            // Get system locale
-            current = setlocale(LC_CTYPE, "");
-            if (current == NULL)
-                return NULL;
-
-            // Scan for character set
-            current = strchr(current, '.');
-            if (current == NULL)
-                return NULL;
-            len = strlen(current);
-            psaved = static_cast<char *>(alloca(len));
-            memcpy(psaved, &current[1], len);
-
-            // Restore saved locale
-            setlocale(LC_CTYPE, charset);
-
-            // Update locale
-            charset  = psaved;
-        }
-
-
         // Open conversion
-        iconv_t cd = iconv_open(charset, __IF_LEBE("UTF-16LE", "UTF-16BE"));
+        iconv_t cd = init_iconv_from_wchar_t(charset);
         if (cd == iconv_t(-1))
             return NULL;
 
@@ -1711,7 +1647,7 @@ namespace lsp
         }
         else
         {
-            for (ssize_t i=first; i<last; ++i)
+            for (ssize_t i=last; i<first; ++i)
                 if (pData[i] == ch)
                     ++n;
         }
