@@ -93,7 +93,7 @@ namespace lsp
             return true;
         }
 
-        lsp_trace("Initializing convolver this=%p", this);
+//        lsp_trace("Initializing convolver this=%p", this);
 
         // Determine number of buffers
         if (rank < CONVOLVER_RANK_MIN)
@@ -106,8 +106,8 @@ namespace lsp
         size_t data_buf_size    = fft_buf_size >> 1;
         size_t bins             = (count + data_buf_size - 1) >> (rank - 1);
 
-        lsp_trace("count = 0x%x, rank=%d, phase=%.3f, bins=%d",
-                int(count), int(rank), phase, int(bins));
+//        lsp_trace("count = 0x%x, rank=%d, phase=%.3f, bins=%d",
+//                int(count), int(rank), phase, int(bins));
 
         size_t allocate         = CONVOLVER_SMALL_FRM_SIZE; // Non-FFT first frame
         allocate               += bins * fft_buf_size * 2; // FFT of the convolution
@@ -121,52 +121,52 @@ namespace lsp
         float *cptr             = fptr;
         if (fptr == NULL)
             return false;
-        lsp_trace("Allocated %x floats (%x bytes) at: %p, pdata: %p",
-                int(allocate), int(allocate * sizeof(float)), fptr, pdata);
+//        lsp_trace("Allocated %x floats (%x bytes) at: %p, pdata: %p",
+//                int(allocate), int(allocate * sizeof(float)), fptr, pdata);
 
         // Replace previously used data by new allocated data
         destroy();
         vData               = pdata;
-        lsp_trace("vData    = %p x 0x%x", vData, int(allocate));
+//        lsp_trace("vData    = %p x 0x%x", vData, int(allocate));
 
         dsp::fill_zero(fptr, allocate); // Drop all previously used data
 
         vBufferHead         = fptr;
         fptr               += bins * data_buf_size * 8;
-        lsp_trace("vBufferHead = %p x 0x%x", vBufferHead, int(bins * data_buf_size * 8));
+//        lsp_trace("vBufferHead = %p x 0x%x", vBufferHead, int(bins * data_buf_size * 8));
 
         vBufferTail         = fptr;
         fptr               += bins * data_buf_size + data_buf_size * 4;
-        lsp_trace("vBufferTail = %p x 0x%x", vBufferTail, int(bins * data_buf_size * 4));
+//        lsp_trace("vBufferTail = %p x 0x%x", vBufferTail, int(bins * data_buf_size * 4));
 
         vBufferEnd          = fptr;
-        lsp_trace("vBufferEnd = %p", vBufferEnd);
+//        lsp_trace("vBufferEnd = %p", vBufferEnd);
 
         vBufferPtr          = vBufferHead;
-        lsp_trace("vBufferPtr = %p", vBufferPtr);
+//        lsp_trace("vBufferPtr = %p", vBufferPtr);
 
         vConvFirst          = fptr;
         fptr               += CONVOLVER_SMALL_FRM_SIZE;
-        lsp_trace("vConvFirst = %p x 0x%x", vConvFirst, CONVOLVER_SMALL_FRM_SIZE);
+//        lsp_trace("vConvFirst = %p x 0x%x", vConvFirst, CONVOLVER_SMALL_FRM_SIZE);
 
         vTask               = fptr;
         fptr               += fft_buf_size * 2;
 
-        lsp_trace("vTask = %p x 0x%x", vTask, int(fft_buf_size * 2));
+//        lsp_trace("vTask = %p x 0x%x", vTask, int(fft_buf_size * 2));
 
-        lsp_trace("vFrame(prev) = %p x 0x%x", fptr, int(fft_buf_size));
+//        lsp_trace("vFrame(prev) = %p x 0x%x", fptr, int(fft_buf_size));
         fptr               += fft_buf_size; // previous frame (re)
         vFrame              = fptr;
         fptr               += fft_buf_size;
-        lsp_trace("vFrame(curr) = %p x 0x%x", vFrame, int(fft_buf_size));
+//        lsp_trace("vFrame(curr) = %p x 0x%x", vFrame, int(fft_buf_size));
 
         vTempBuf            = fptr;
         fptr               += fft_buf_size * 2;
-        lsp_trace("vTempBuf = %p x 0x%x", vTempBuf, int(fft_buf_size * 2));
+//        lsp_trace("vTempBuf = %p x 0x%x", vTempBuf, int(fft_buf_size * 2));
 
         vConv               = fptr;
         fptr               += bins * fft_buf_size * 2;
-        lsp_trace("vConv = %p x 0x%x", vConv, int(bins * fft_buf_size * 2));
+//        lsp_trace("vConv = %p x 0x%x", vConv, int(bins * fft_buf_size * 2));
 
         /* Calculate convolutions
 
@@ -189,19 +189,19 @@ namespace lsp
 
         // Prepare first frame
         dsp::copy(vConvFirst, data, nDirectSize);
-        lsp_trace("dsp::copy dst=%p, src=%p, count=0x%x", vConvFirst, data, int(nDirectSize));
+//        lsp_trace("dsp::copy dst=%p, src=%p, count=0x%x", vConvFirst, data, int(nDirectSize));
 //        dump(vConvFirst, CONVOLVER_SMALL_FRM_SIZE, "vConvFirst");
 
         // Calculate FFT of first bin
         dsp::fill_zero(vTempBuf, bin_size*2);
-        lsp_trace("dsp::fill_zero dst=%p, count=0x%x", vTempBuf, int(bin_size*2));
+//        lsp_trace("dsp::fill_zero dst=%p, count=0x%x", vTempBuf, int(bin_size*2));
 
         dsp::copy(vTempBuf, data, nDirectSize);
-        lsp_trace("dsp::copy dst=%p, src=%p, count=0x%x", vTempBuf, data, int(nDirectSize));
+//        lsp_trace("dsp::copy dst=%p, src=%p, count=0x%x", vTempBuf, data, int(nDirectSize));
 
 //        dump(vTempBuf, 1 << bin_rank, "conv_tmp[0] (%p)", vTempBuf); // dbg
         dsp::fastconv_parse(conv_re, vTempBuf, bin_rank);
-        lsp_trace("dsp::fastconv_parse dst=%p, src=%p, rank=0x%x", conv_re, vTempBuf, int(bin_rank));
+//        lsp_trace("dsp::fastconv_parse dst=%p, src=%p, rank=0x%x", conv_re, vTempBuf, int(bin_rank));
 //        dump(conv_re, 1 << bin_rank, "conv_fft[0] (%p)", conv_re); // dbg
 //        dump_fastconv(conv_re, bin_rank, "conv_img[0] (%p)", conv_re); // dbg
 //        dump_fastconv(conv_re, bin_rank, "conv[0x%x] (%p)", (conv_re - vConv) / CONVOLVER_SMALL_FFT_SIZE, conv_re); // dbg
@@ -219,12 +219,12 @@ namespace lsp
 
             // Calculate FFT
             dsp::fill_zero(vTempBuf, bin_size*2);
-            lsp_trace("dsp::fill_zero dst=%p, count=0x%x", vTempBuf, int(bin_size*2));
+//            lsp_trace("dsp::fill_zero dst=%p, count=0x%x", vTempBuf, int(bin_size*2));
             dsp::copy(vTempBuf, data, to_do);
-            lsp_trace("dsp::copy dst=%p, src=%p, count=0x%x", vTempBuf, data, int(to_do));
+//            lsp_trace("dsp::copy dst=%p, src=%p, count=0x%x", vTempBuf, data, int(to_do));
 //            dump(vTempBuf, 1 << bin_rank, "conv_tmp[%d] (%p)", int(i_dbg), vTempBuf); // dbg
             dsp::fastconv_parse(conv_re, vTempBuf, bin_rank);
-            lsp_trace("dsp::fastconv_parse dst=%p, src=%p, rank=0x%x", conv_re, vTempBuf, int(bin_rank));
+//            lsp_trace("dsp::fastconv_parse dst=%p, src=%p, rank=0x%x", conv_re, vTempBuf, int(bin_rank));
 //            dump(conv_re, 1 << bin_rank, "conv_fft[%d] (%p)", int(i_dbg), conv_re);
 //            dump_fastconv(conv_re, bin_rank, "conv[0x%x] (%p)", (conv_re - vConv) / CONVOLVER_SMALL_FFT_SIZE, conv_re); // dbg
 
@@ -256,18 +256,18 @@ namespace lsp
             nFrameSize          = 0;
         nBlocksDone         = nBlocks;
 
-        lsp_trace("nSteps   = 0x%x", int(nSteps));
-        lsp_trace("nBlocks  = 0x%x", int(nBlocks));
-        lsp_trace("nFrameSize = 0x%x", int(nFrameSize));
-        lsp_trace("nBlocksDone = 0x%x", int(nBlocksDone));
+//        lsp_trace("nSteps   = 0x%x", int(nSteps));
+//        lsp_trace("nBlocks  = 0x%x", int(nBlocks));
+//        lsp_trace("nFrameSize = 0x%x", int(nFrameSize));
+//        lsp_trace("nBlocksDone = 0x%x", int(nBlocksDone));
 
         return true;
     }
 
     void Convolver::destroy()
     {
-        lsp_trace("Convolver::destroy this=%p", this);
-        lsp_trace("free_aligned vData=%p", vData);
+//        lsp_trace("Convolver::destroy this=%p", this);
+//        lsp_trace("free_aligned vData=%p", vData);
 
         free_aligned(vData);
 
@@ -301,8 +301,8 @@ namespace lsp
             return;
         }
 
-        lsp_trace("Start process this=%p, dst=%p, src=%p, count=0x%x, vData=%p",
-                this, dst, src, int(count), vData);
+//        lsp_trace("Start process this=%p, dst=%p, src=%p, count=0x%x, vData=%p",
+//                this, dst, src, int(count), vData);
 
         while (count > 0)
         {
@@ -459,8 +459,8 @@ namespace lsp
             }
         }
 
-        lsp_trace("End process this=%p, dst=%p, src=%p, count=0x%x, vData=%p",
-                        this, dst, src, int(count), vData);
+//        lsp_trace("End process this=%p, dst=%p, src=%p, count=0x%x, vData=%p",
+//                        this, dst, src, int(count), vData);
     }
 
 } /* namespace lsp */
