@@ -12,45 +12,48 @@
     #error "This header should not be included directly"
 #endif /* __DSP_NATIVE_IMPL */
 
-float scalar_mul(const float *a, const float *b, size_t count)
+namespace native
 {
-    float result = 0;
-    while (count--)
-        result += *(a++) * *(b++);
-    return result;
-}
-
-float h_sum(const float *src, size_t count)
-{
-    float result    = 0.0f;
-    while (count--)
-        result         += *(src++);
-    return result;
-}
-
-float h_sqr_sum(const float *src, size_t count)
-{
-    float result    = 0.0f;
-    while (count--)
+    float scalar_mul(const float *a, const float *b, size_t count)
     {
-        float tmp       = *(src++);
-        result         += tmp * tmp;
+        float result = 0;
+        while (count--)
+            result += *(a++) * *(b++);
+        return result;
     }
-    return result;
-}
 
-float h_abs_sum(const float *src, size_t count)
-{
-    float result    = 0.0f;
-    while (count--)
+    float h_sum(const float *src, size_t count)
     {
-        float tmp       = *(src++);
-        if (tmp < 0.0f)
-            result         -= tmp;
-        else
-            result         += tmp;
+        float result    = 0.0f;
+        while (count--)
+            result         += *(src++);
+        return result;
     }
-    return result;
+
+    float h_sqr_sum(const float *src, size_t count)
+    {
+        float result    = 0.0f;
+        while (count--)
+        {
+            float tmp       = *(src++);
+            result         += tmp * tmp;
+        }
+        return result;
+    }
+
+    float h_abs_sum(const float *src, size_t count)
+    {
+        float result    = 0.0f;
+        while (count--)
+        {
+            float tmp       = *(src++);
+            if (tmp < 0.0f)
+                result         -= tmp;
+            else
+                result         += tmp;
+        }
+        return result;
+    }
 }
 
 #endif /* DSP_ARCH_NATIVE_HMATH_H_ */

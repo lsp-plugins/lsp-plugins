@@ -12,43 +12,46 @@
     #error "This header should not be included directly"
 #endif /* __DSP_NATIVE_IMPL */
 
-void copy_saturated(float *dst, const float *src, size_t count)
+namespace native
 {
-    while (count--)
+    void copy_saturated(float *dst, const float *src, size_t count)
     {
-        float v = *(src++);
-        if (isnanf(v))
-            v       =   FLOAT_SAT_P_NAN;
-        else if (isinff(v))
-            v       =   (v < 0.0f) ? FLOAT_SAT_N_INF : FLOAT_SAT_P_INF;
+        while (count--)
+        {
+            float v = *(src++);
+            if (isnanf(v))
+                v       =   FLOAT_SAT_P_NAN;
+            else if (isinff(v))
+                v       =   (v < 0.0f) ? FLOAT_SAT_N_INF : FLOAT_SAT_P_INF;
 
-        *(dst++)    = v;
+            *(dst++)    = v;
+        }
     }
-}
 
-void saturate(float *dst, size_t count)
-{
-    while (count--)
+    void saturate(float *dst, size_t count)
     {
-        float v = *dst;
-        if (isnanf(v))
-            *(dst++)    = FLOAT_SAT_P_NAN;
-        else if (isinff(v))
-            *(dst++)    = (v < 0.0f) ? FLOAT_SAT_N_INF : FLOAT_SAT_P_INF;
-        else
-            dst++;
+        while (count--)
+        {
+            float v = *dst;
+            if (isnanf(v))
+                *(dst++)    = FLOAT_SAT_P_NAN;
+            else if (isinff(v))
+                *(dst++)    = (v < 0.0f) ? FLOAT_SAT_N_INF : FLOAT_SAT_P_INF;
+            else
+                dst++;
+        }
     }
-}
 
-void avoid_denormals(float *dst, const float *src, size_t count)
-{
-    const uint32_t *si  = reinterpret_cast<const uint32_t *>(src);
-    uint32_t *di        = reinterpret_cast<uint32_t *>(dst);
-
-    while (count--)
+    void avoid_denormals(float *dst, const float *src, size_t count)
     {
-        uint32_t s          = *(si++);
-        *(di++)             = ((s & 0x80000000) < 0x00800000) ? 0 : s;
+        const uint32_t *si  = reinterpret_cast<const uint32_t *>(src);
+        uint32_t *di        = reinterpret_cast<uint32_t *>(dst);
+
+        while (count--)
+        {
+            uint32_t s          = *(si++);
+            *(di++)             = ((s & 0x80000000) < 0x00800000) ? 0 : s;
+        }
     }
 }
 

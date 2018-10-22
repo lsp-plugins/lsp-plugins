@@ -76,8 +76,10 @@ UTEST_BEGIN("dsp.fft", fastconv)
 
                 native::fastconv_restore(dst1, fc1, rank);
                 UTEST_ASSERT_MSG(dst1.valid(), "Buffer DST1 corrupted");
+                UTEST_ASSERT_MSG(dst2.valid(), "Buffer DST2 corrupted");
                 restore(dst2, fc2, rank);
                 UTEST_ASSERT_MSG(dst2.valid(), "Buffer DST2 corrupted");
+                UTEST_ASSERT_MSG(dst1.valid(), "Buffer DST1 corrupted");
 
                 // Compare buffers
                 if (!dst1.equals_adaptive(dst2, TOLERANCE))
