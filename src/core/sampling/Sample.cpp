@@ -98,10 +98,10 @@ namespace lsp
 
     void Sample::destroy()
     {
-        lsp_trace("Sample::destroy this=%p", this);
+//        lsp_trace("Sample::destroy this=%p", this);
         if (vBuffer != NULL)
         {
-            lsp_trace("delete [] vBuffer=%p", vBuffer);
+//            lsp_trace("delete [] vBuffer=%p", vBuffer);
             delete [] vBuffer;
             vBuffer     = NULL;
         }
