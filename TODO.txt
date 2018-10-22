@@ -123,6 +123,26 @@ Could it be possible to add a frequency-domain display mode?
 It'd make it much easier to quickly identify room modes and such. Or if the
 plugin could play back the created IR sample - I could use another plugin to analyze that.﻿
 
+==== Rack / Channel strip plugin ====
+
+Tobbe:
+  Another thing I come and think about is Channel Strip Plugin. Anything you been thinking
+  About? I saw a video and that guy using Studio One and the (I think) stock plugin is called
+  Fat Channel, where he can add plugin in a rack and shift order the way he like.
+  Everything is vertical: Gate, Compressor, EQ ie Compressor, EQ Gate with a touch of a button.
+
+  It's like drag'n'drop plugins the way you want. Looks pretty cool. I know there's tons of them
+  for Windows, but now when I'm a Linux drivers since mid 2000 I rather see things like that for
+  Linux also.
+
+  Exactly what I mean :D a real Channel Strip console where you have the freedom to put whatever
+  you like in whatever order you want. Reverb, Delay, Gate, Compressor...you name it. Maybe it's a
+  crazy idea but what the heck :mrgreen:
+
+  I know about Carla, but that's get me a plugin to add another plugin (like all the Calf Suite)
+  because Reaper only support linux vst for now. Maybe more in the future. Or else I might learn
+  more about Ardour...but I like Reaper alot so...
+
 ==== Link order of libraries ====
 
 The ordering of libraries on the command line follows the same convection as for object files:
