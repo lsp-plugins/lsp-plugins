@@ -9,7 +9,7 @@
 #include <test/FloatBuffer.h>
 #include <dsp/dsp.h>
 
-#define MIN_RANK    5
+#define MIN_RANK    6
 #define MAX_RANK    16
 
 #ifdef ARCH_I386
@@ -46,6 +46,9 @@ typedef void (* fastconv_apply_t)(float *dst, float *tmp, const float *c1, const
 
 UTEST_BEGIN("dsp.fft", fastconv)
 
+    // This is long-time test, raise time limit for it to one second
+    UTEST_TIMELIMIT(60)
+
     void call_pr(const char *label, size_t align,
             fastconv_parse_t parse,
             fastconv_restore_t restore
@@ -56,7 +59,7 @@ UTEST_BEGIN("dsp.fft", fastconv)
         if (!UTEST_SUPPORTED(restore))
             return;
 
-        for (size_t rank=MIN_RANK; rank<=MAX_RANK; ++rank)
+        for (size_t rank=MIN_RANK; rank<=MAX_RANK; rank ++)
         {
             for (size_t mask=0; mask <= 0x07; ++mask)
             {
@@ -67,6 +70,9 @@ UTEST_BEGIN("dsp.fft", fastconv)
                 FloatBuffer fc2(1 << (rank+1), align, mask & 0x02);
                 FloatBuffer dst1(1 << rank, align, mask & 0x04);
                 FloatBuffer dst2(1 << rank, align, mask & 0x04);
+
+                dsp::fill_zero(dst1, dst1.size());
+                dsp::fill_zero(dst2, dst2.size());
 
                 native::fastconv_parse(fc1, src, rank);
                 UTEST_ASSERT_MSG(fc1.valid(), "Buffer FC1 corrupted");
@@ -108,7 +114,7 @@ UTEST_BEGIN("dsp.fft", fastconv)
         if (!UTEST_SUPPORTED(apply))
             return;
 
-        for (size_t rank=MIN_RANK; rank<=MAX_RANK; ++rank)
+        for (size_t rank=MIN_RANK; rank<=MAX_RANK; rank ++)
         {
             for (size_t mask=0; mask <= 0x3f; ++mask)
             {
@@ -126,6 +132,9 @@ UTEST_BEGIN("dsp.fft", fastconv)
 
                 FloatBuffer tmp1(1 << (rank+1), align, mask & 0x20);
                 FloatBuffer tmp2(1 << (rank+1), align, mask & 0x20);
+
+                dsp::fill_zero(dst1, dst1.size());
+                dsp::fill_zero(dst2, dst2.size());
 
                 native::fastconv_parse(fa1, src1, rank);
                 UTEST_ASSERT_MSG(fa1.valid(), "Buffer FA1 corrupted");
@@ -161,6 +170,8 @@ UTEST_BEGIN("dsp.fft", fastconv)
                     fb2.dump("fb2");
                     tmp1.dump("tmp1");
                     tmp2.dump("tmp2");
+                    dst1.dump("dst1");
+                    dst2.dump("dst2");
 
                     ssize_t diff = dst2.last_diff();
                     UTEST_FAIL_MSG("DST1 differs DST2 for test '%s' at sample %d (%.5f vs %.5f)",
@@ -180,7 +191,7 @@ UTEST_BEGIN("dsp.fft", fastconv)
         if (!UTEST_SUPPORTED(papply))
             return;
 
-        for (size_t rank=MIN_RANK; rank<=MAX_RANK; ++rank)
+        for (size_t rank=MIN_RANK; rank<=MAX_RANK; rank ++)
         {
             for (size_t mask=0; mask <= 0x1f; ++mask)
             {
@@ -196,6 +207,9 @@ UTEST_BEGIN("dsp.fft", fastconv)
                 FloatBuffer tmp1(1 << (rank+1), align, mask & 0x10);
                 FloatBuffer tmp2(1 << (rank+1), align, mask & 0x10);
 
+                dsp::fill_zero(dst1, dst1.size());
+                dsp::fill_zero(dst2, dst2.size());
+
                 native::fastconv_parse(fc1, src1, rank);
                 UTEST_ASSERT_MSG(fc1.valid(), "Buffer FC1 corrupted");
                 parse(fc2, src1, rank);
@@ -204,12 +218,18 @@ UTEST_BEGIN("dsp.fft", fastconv)
 
                 native::fastconv_parse_apply(dst1, tmp1, fc1, src2, rank);
                 UTEST_ASSERT_MSG(dst1.valid(), "Buffer DST1 corrupted");
+                UTEST_ASSERT_MSG(dst2.valid(), "Buffer DST2 corrupted");
                 UTEST_ASSERT_MSG(tmp1.valid(), "Buffer TMP1 corrupted");
+                UTEST_ASSERT_MSG(tmp2.valid(), "Buffer TMP2 corrupted");
                 UTEST_ASSERT_MSG(fc1.valid(), "Buffer FC1 corrupted");
+                UTEST_ASSERT_MSG(fc2.valid(), "Buffer FC2 corrupted");
                 papply(dst2, tmp2, fc2, src2, rank);
                 UTEST_ASSERT_MSG(dst2.valid(), "Buffer DST2 corrupted");
+                UTEST_ASSERT_MSG(dst1.valid(), "Buffer DST1 corrupted");
                 UTEST_ASSERT_MSG(tmp2.valid(), "Buffer TMP2 corrupted");
+                UTEST_ASSERT_MSG(tmp1.valid(), "Buffer TMP1 corrupted");
                 UTEST_ASSERT_MSG(fc2.valid(), "Buffer FC2 corrupted");
+                UTEST_ASSERT_MSG(fc1.valid(), "Buffer FC1 corrupted");
 
                 // Compare buffers
                 if (!dst1.equals_adaptive(dst2, TOLERANCE))
@@ -220,6 +240,8 @@ UTEST_BEGIN("dsp.fft", fastconv)
                     fc2.dump("fc2");
                     tmp1.dump("tmp1");
                     tmp2.dump("tmp2");
+                    dst1.dump("dst1");
+                    dst2.dump("dst2");
 
                     ssize_t diff = dst2.last_diff();
                     UTEST_FAIL_MSG("DST1 differs DST2 for test '%s' at sample %d (%.5f vs %.5f)",

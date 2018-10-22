@@ -201,9 +201,9 @@ namespace sse
         {
             // Do direct FFT
             if (sse_aligned(src))
-                fastconv_parse_internal_ua(dst, src, rank);
+                fastconv_parse_internal_ua(tmp, src, rank);
             else
-                fastconv_parse_internal_uu(dst, src, rank);
+                fastconv_parse_internal_uu(tmp, src, rank);
 
             // Apply complex convolution
             if (sse_aligned(c))

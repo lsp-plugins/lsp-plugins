@@ -22,6 +22,8 @@
 * Implemented optimized DSP functions for minimum and maximum search.
 * Implemented optimized DSP functions for static biquad processing, dynamic biquad processing,
   dynamic bilinear transformation. 
+* Fixed serious memory corruption in SSE implementation of fast convolution routines that could cause
+  spontaneous crashes of convolvers.
 - Migrated to CMake build system.
 - Additional display mode for spectrum analyzer added.
 - Added possibility to double-click the parameter's value number and enter it manually from keyboard.

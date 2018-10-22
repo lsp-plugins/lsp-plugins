@@ -12,7 +12,7 @@ static inline void RESTORE_IMPL(float *dst, float *tmp, size_t rank)
 {
     // Prepare for butterflies
     size_t last     = size_t(1) << rank;
-    size_t items    = last << 1;
+    size_t items    = last;
     float *ptr      = tmp;
 
     ARCH_X86_ASM
@@ -209,12 +209,8 @@ static inline void RESTORE_IMPL(float *dst, float *tmp, size_t rank)
             __ASM_EMIT("mulps       %%xmm0, %%xmm4")                /* xmm4 = kn*(ra[i] + rc[i]) */
             __ASM_EMIT("mulps       %%xmm1, %%xmm5")                /* xmm5 = kn*(ra[i] - rc[i]) */
 
-            __ASM_EMIT(MV_DST "     0x00(%[dst]), %%xmm2")
-            __ASM_EMIT(MV_DST "     0x00(%[dst], %[n], 2), %%xmm3")
-            __ASM_EMIT("addps       %%xmm4, %%xmm2")
-            __ASM_EMIT("addps       %%xmm5, %%xmm3")
-            __ASM_EMIT(MV_DST "     %%xmm2, 0x00(%[dst])")
-            __ASM_EMIT(MV_DST "     %%xmm3, 0x00(%[dst],%[n],2)")
+            __ASM_EMIT(MV_DST "     %%xmm4, 0x00(%[dst])")
+            __ASM_EMIT(MV_DST "     %%xmm5, 0x00(%[dst],%[n],2)")
 
             __ASM_EMIT("add         $0x20, %[tmp]")
             __ASM_EMIT("add         $0x10, %[dst]")
@@ -263,6 +259,7 @@ static inline void RESTORE_IMPL(float *dst, float *tmp, size_t rank)
               "%xmm1", "%xmm2"
         );
     }
+
 } // RESTORE_IMPL
 
 #undef RESTORE_IMPL

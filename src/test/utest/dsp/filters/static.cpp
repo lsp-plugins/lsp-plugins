@@ -140,7 +140,7 @@ UTEST_BEGIN("dsp.filters", static)
             UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
             UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
 
-            if (!dst1.equals_absolute(dst2, TOLERANCE))
+            if (!dst1.equals_adaptive(dst2, TOLERANCE))
             {
                 src.dump("src");
                 dst1.dump("dst1");
@@ -172,7 +172,7 @@ UTEST_BEGIN("dsp.filters", static)
         UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
         UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
         UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
-        if (!dst1.equals_absolute(dst2, TOLERANCE))
+        if (!dst1.equals_adaptive(dst2, TOLERANCE))
         {
             src.dump("src");
             dst1.dump("dst1");
