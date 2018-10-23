@@ -65,8 +65,10 @@ namespace lsp
     void destroy_buf(buffer_t *buf)
     {
         if (buf->pString != NULL)
+        {
             lsp_free(buf->pString);
-        buf->pString        = NULL;
+            buf->pString        = NULL;
+        }
         buf->nCapacity      = 0;
         buf->nLength        = 0;
     }

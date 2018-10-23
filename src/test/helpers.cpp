@@ -30,6 +30,13 @@ namespace test
         return fabs(a - b) <= tolerance;
     }
 
+    bool float_equals_adaptive(float a, float b, float tolerance)
+    {
+        return (fabs(a) > 1.0f) ?
+            float_equals_relative(a, b, tolerance) :
+            float_equals_absolute(a, b, tolerance);
+    }
+
     void dump_buffer(const char *text, const size_t *buf, size_t count)
     {
         printf("  dump of buffer %s:\n    ", text);

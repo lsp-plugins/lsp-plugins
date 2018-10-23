@@ -133,7 +133,7 @@ namespace lsp
             ssize_t left    = cBufSize - cBufPos;
             if (left > 0)
             {
-                memmove(cBuf, &cBuf[cBufSize], left * sizeof(lsp_wchar_t));
+                ::memmove(cBuf, &cBuf[cBufSize], left * sizeof(lsp_wchar_t));
                 cBufSize        = left;
             }
             else
@@ -149,7 +149,7 @@ namespace lsp
                     // Ensure that there is data in byte buffer, move it to beginning
                     if (left > 0)
                     {
-                        memmove(bBuf, &bBuf[bBufPos], left * sizeof(uint8_t));
+                        ::memmove(bBuf, &bBuf[bBufPos], left * sizeof(uint8_t));
                         bBufSize        = left;
                     }
                     else

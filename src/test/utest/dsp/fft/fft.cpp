@@ -138,10 +138,10 @@ UTEST_BEGIN("dsp.fft", fft)
     UTEST_MAIN
     {
         // Do tests
-        IF_ARCH_X86(call("direct_fft_sse", 16, native::direct_fft, sse::direct_fft));
-        IF_ARCH_X86(call("reverse_fft_sse", 16, native::reverse_fft, sse::reverse_fft));
-        IF_ARCH_X86(call("packed_direct_fft_sse", 16, native::packed_direct_fft, sse::packed_direct_fft));
-        IF_ARCH_X86(call("packed_reverse_fft_sse", 16, native::packed_reverse_fft, sse::packed_reverse_fft));
-        IF_ARCH_X86(call("conv_direct_fft_sse", 16, native::conv_direct_fft, sse::conv_direct_fft));
+        IF_ARCH_X86(call("sse::direct_fft", 16, native::direct_fft, sse::direct_fft));
+        IF_ARCH_X86(call("sse::reverse_fft", 16, native::reverse_fft, sse::reverse_fft));
+        IF_ARCH_X86(call("sse::packed_direct_fft", 16, native::packed_direct_fft, sse::packed_direct_fft));
+        IF_ARCH_X86(call("sse::packed_reverse_fft", 16, native::packed_reverse_fft, sse::packed_reverse_fft));
+        IF_ARCH_X86(call("sse::conv_direct_fft", 16, native::conv_direct_fft, sse::conv_direct_fft));
     }
 UTEST_END;

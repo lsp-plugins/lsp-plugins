@@ -764,9 +764,13 @@ namespace lsp
                 for (size_t i=0; i<0x10; ++i)
                 {
                     if ((offset + i) < ck_size)
+                    {
                         lsp_printf("%02x ", int(ddump[i]));
+                    }
                     else
+                    {
                         lsp_printf("   ");
+                    }
                 }
                 lsp_printf("   ");
 

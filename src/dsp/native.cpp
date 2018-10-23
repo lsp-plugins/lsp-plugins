@@ -25,20 +25,17 @@
 
 #include <dsp/arch/native/filters/static.h>
 #include <dsp/arch/native/filters/dynamic.h>
+#include <dsp/arch/native/filters/transform.h>
 
-namespace native
-{
-    #include <dsp/arch/native/float.h>
-    #include <dsp/arch/native/fft.h>
-    #include <dsp/arch/native/fastconv.h>
-    #include <dsp/arch/native/resampling.h>
-    #include <dsp/arch/native/msmatrix.h>
-    #include <dsp/arch/native/smath.h>
-    #include <dsp/arch/native/hmath.h>
-    #include <dsp/arch/native/mix.h>
-    #include <dsp/arch/native/filters/transform.h>
-    #include <dsp/arch/native/3dmath.h>
-}
+#include <dsp/arch/native/fft.h>
+#include <dsp/arch/native/fastconv.h>
+#include <dsp/arch/native/float.h>
+#include <dsp/arch/native/resampling.h>
+#include <dsp/arch/native/msmatrix.h>
+#include <dsp/arch/native/smath.h>
+#include <dsp/arch/native/hmath.h>
+#include <dsp/arch/native/mix.h>
+#include <dsp/arch/native/3dmath.h>
 
 #undef __DSP_NATIVE_IMPL
 
