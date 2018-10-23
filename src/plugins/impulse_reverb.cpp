@@ -243,7 +243,6 @@ namespace lsp
 
             cv->pCurr           = NULL;
             cv->pSwap           = NULL;
-            cv->bSwap           = false;
             cv->nRank           = 0;
             cv->nRankReq        = 0;
             cv->nSource         = 0;
@@ -692,31 +691,27 @@ namespace lsp
         if (!ldrs_idle)
             return;
 
-        if (sConfigurator.idle())
+        if ((sConfigurator.idle()) && (nReconfigReq != nReconfigResp))
         {
-            // Check that reconfigure request is pending and there are no loaders active
-            if (nReconfigReq != nReconfigResp)
+            // Remember render state
+            for (size_t i=0; i<impulse_reverb_base_metadata::FILES; ++i)
+                sConfigurator.set_render(i, vFiles[i].bRender);
+            for (size_t i=0; i<impulse_reverb_base_metadata::CONVOLVERS; ++i)
             {
-                // Remember render state
+                sConfigurator.set_file(i, vConvolvers[i].nFileReq);
+                sConfigurator.set_track(i, vConvolvers[i].nTrackReq);
+                sConfigurator.set_rank(i, vConvolvers[i].nRankReq);
+            }
+
+            // Try to submit task
+            if (pExecutor->submit(&sConfigurator))
+            {
+                lsp_trace("successfully submitted configuration task");
+
+                // Clear render state and reconfiguration request
+                nReconfigResp   = nReconfigReq;
                 for (size_t i=0; i<impulse_reverb_base_metadata::FILES; ++i)
-                    sConfigurator.set_render(i, vFiles[i].bRender);
-                for (size_t i=0; i<impulse_reverb_base_metadata::CONVOLVERS; ++i)
-                {
-                    sConfigurator.set_file(i, vConvolvers[i].nFileReq);
-                    sConfigurator.set_track(i, vConvolvers[i].nTrackReq);
-                    sConfigurator.set_rank(i, vConvolvers[i].nRankReq);
-                }
-
-                // Try to submit task
-                if (pExecutor->submit(&sConfigurator))
-                {
-                    lsp_trace("successfully submitted configuration task");
-
-                    // Clear render state and reconfiguration request
-                    nReconfigResp   = nReconfigReq;
-                    for (size_t i=0; i<impulse_reverb_base_metadata::FILES; ++i)
-                        vFiles[i].bRender   = false;
-                }
+                    vFiles[i].bRender   = false;
             }
         }
         else if (sConfigurator.completed())
@@ -878,13 +873,12 @@ namespace lsp
     {
         lsp_trace("descr = %p", descr);
 
-        // Remove swap data
+        // Collect garbage
         AudioFile *af       = descr->pSwap;
         if (af != NULL)
         {
-            lsp_trace("Destroying pSwap = %p", descr->pSwap);
+            lsp_trace("Destroying file pSwap = %p", descr->pSwap);
             descr->pSwap    = NULL;
-
             af->destroy();
             delete af;
         }
@@ -951,6 +945,34 @@ namespace lsp
 
     status_t impulse_reverb_base::reconfigure(const reconfig_t *cfg)
     {
+        // Perform garbage collection
+        for (size_t i=0; i<impulse_reverb_base_metadata::CONVOLVERS; ++i)
+        {
+            convolver_t *c      = &vConvolvers[i];
+            Convolver *cv       = c->pSwap;
+            if (cv == NULL)
+                continue;
+
+            lsp_trace("Destroying convolver pSwap=%p for channel %d (pCurr=%p)", c->pSwap, int(i), c->pCurr);
+            c->pSwap            = NULL;
+            cv->destroy();
+            delete cv;
+        }
+
+        for (size_t i=0; i<impulse_reverb_base_metadata::FILES; ++i)
+        {
+            af_descriptor_t *f  = &vFiles[i];
+            Sample *s           = f->pSwapSample;
+            if (s == NULL)
+                continue;
+
+            lsp_trace("Destroying sample swapSample=%p file=%d (currSample=%p)", f->pSwapSample, int(i), f->pCurrSample);
+            f->pSwapSample  = NULL;
+
+            s->destroy();
+            delete s;
+        }
+
         // Re-render files (if needed)
         for (size_t i=0; i<impulse_reverb_base_metadata::FILES; ++i)
         {
@@ -961,19 +983,8 @@ namespace lsp
             // Get audio file
             af_descriptor_t *f  = &vFiles[i];
 
-            // Destroy swap sample
-            Sample *s           = f->pSwapSample;
-            if (s != NULL)
-            {
-                lsp_trace("Destroying swapSample=%p file=%d (currSample=%p)", f->pSwapSample, int(i), f->pCurrSample);
-                f->pSwapSample  = NULL;
-
-                s->destroy();
-                delete s;
-            }
-
             // Allocate new sample
-            s                   = new Sample();
+            Sample *s           = new Sample();
             if (s == NULL)
                 return STATUS_NO_MEM;
             f->pSwapSample      = s;
@@ -1045,16 +1056,6 @@ namespace lsp
         {
             convolver_t *c      = &vConvolvers[i];
 
-            // Check that we need to free previous convolver
-            Convolver *cv       = c->pSwap;
-            if (c->pSwap != NULL)
-            {
-                lsp_trace("Destroying pSwap=%p for channel %d (pCurr=%p)", c->pSwap, int(i), c->pCurr);
-                c->pSwap        = NULL;
-                cv->destroy();
-                delete cv;
-            }
-
             // Check that routing has changed
             size_t file     = cfg->nFile[i];
             size_t track    = cfg->nTrack[i];
@@ -1073,9 +1074,7 @@ namespace lsp
                 continue;
 
             // Now we can create convolver
-            cv              = new Convolver();
-            lsp_trace("Allocated convolver pSwap=%p for channel %d (pCurr=%p)", cv, int(i), c->pCurr);
-
+            Convolver *cv   = new Convolver();
             if (!cv->init(s->getBuffer(track), s->length(), cfg->nRank[i], float((phase + i*step)& 0x7fffffff)/float(0x80000000)))
             {
                 cv->destroy();
@@ -1083,7 +1082,7 @@ namespace lsp
                 return STATUS_NO_MEM;
             }
 
-            lsp_trace("Setting pSwap=%p for channel %d (pCurr=%p)", cv, int(i), c->pCurr);
+            lsp_trace("Allocated convolver pSwap=%p for channel %d (pCurr=%p)", cv, int(i), c->pCurr);
             c->pSwap        = cv;
         }
 
