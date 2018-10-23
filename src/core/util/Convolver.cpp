@@ -386,7 +386,7 @@ namespace lsp
 //                                pTargetPtr, vTempBuf, vTask, pConv, int(nRank));
                         if (vBufferEnd < &pTargetPtr[1 << nRank])
                         {
-                            lsp_assert(vBufferEnd >= &pTargetPtr[1 << nRank]);
+                            lsp_error("Failed assertion: vBufferEnd >= &pTargetPtr[1 << nRank]");
                         }
                         dsp::fastconv_apply(pTargetPtr, vTempBuf, vTask, pConv, nRank);
 
@@ -458,13 +458,13 @@ namespace lsp
 //                lsp_trace("dsp::move dst=%p src=%p, count=0x%x", vBufferHead, vBufferPtr, int(hist_size));
                 dsp::move(vBufferHead, sptr, hist_size);
 //                lsp_trace("dsp::fill_zero dst=%p, count=0x%x", &vBufferHead[hist_size], int(vBufferPtr - vBufferHead));
-                dsp::fill_zero(&vBufferHead[hist_size], sptr - vBufferHead);
+                dsp::fill_zero(&vBufferHead[hist_size], free_size);
                 vBufferPtr         -= free_size;
                 pTargetPtr         -= free_size;
 
                 if ((vBufferPtr < vBufferHead) || (pTargetPtr < vBufferHead))
                 {
-                    lsp_assert((vBufferPtr >= vBufferHead) && (pTargetPtr >= vBufferHead));
+                    lsp_error("Failed assertion: (vBufferPtr >= vBufferHead) && (pTargetPtr >= vBufferHead)");
                 }
             }
         }
