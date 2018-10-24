@@ -114,7 +114,7 @@ namespace lsp
         allocate               += fft_buf_size * 2; // Temporary buffer (real and imaginary)
         allocate               += fft_buf_size * 2; // Frame buffer (real only, two frames)
         allocate               += fft_buf_size * 2; // Task buffer (real and imaginary)
-        allocate               += bins * data_buf_size * 9 + data_buf_size * 4; // Buffer for convolution tail
+        allocate               += bins * data_buf_size * 9 + data_buf_size * 6; // Buffer for convolution tail
 
         uint8_t *pdata          = NULL;
         float *fptr             = alloc_aligned<float>(pdata, allocate);
@@ -136,8 +136,8 @@ namespace lsp
 //        lsp_trace("vBufferHead = %p x 0x%x", vBufferHead, int(bins * data_buf_size * 8));
 
         vBufferTail         = fptr;
-        fptr               += bins * data_buf_size + data_buf_size * 4;
-//        lsp_trace("vBufferTail = %p x 0x%x", vBufferTail, int(bins * data_buf_size * 4));
+        fptr               += bins * data_buf_size + data_buf_size * 6;
+//        lsp_trace("vBufferTail = %p x 0x%x", vBufferTail, int(bins * data_buf_size * 6));
 
         vBufferEnd          = fptr;
 //        lsp_trace("vBufferEnd = %p", vBufferEnd);
@@ -384,7 +384,10 @@ namespace lsp
 //                                    );
 //                        lsp_trace("dsp::fastconv_apply dst=%p, tmp=%p, conv1=%p, conv2=%p, rank=0x%x",
 //                                pTargetPtr, vTempBuf, vTask, pConv, int(nRank));
-                        lsp_assert(vBufferEnd >= &pTargetPtr[1 << nRank]);
+                        if (vBufferEnd < &pTargetPtr[1 << nRank])
+                        {
+                            lsp_error("Failed assertion: vBufferEnd >= &pTargetPtr[1 << nRank]");
+                        }
                         dsp::fastconv_apply(pTargetPtr, vTempBuf, vTask, pConv, nRank);
 
                         // Update pointers
@@ -447,15 +450,22 @@ namespace lsp
             // Check that buffer head is required to be moved
             if (vBufferPtr >= vBufferTail)
             {
-//                lsp_trace("buffer_shift");
-                size_t hist_size    = vBufferEnd - vBufferPtr;
-                size_t free_size    = vBufferPtr - vBufferHead;
+                float *sptr = (pTargetPtr >= vBufferPtr) ? vBufferPtr : pTargetPtr;
+
+                size_t hist_size    = vBufferEnd - sptr;
+                size_t free_size    = sptr - vBufferHead;
+
 //                lsp_trace("dsp::move dst=%p src=%p, count=0x%x", vBufferHead, vBufferPtr, int(hist_size));
-                dsp::move(vBufferHead, vBufferPtr, hist_size);
+                dsp::move(vBufferHead, sptr, hist_size);
 //                lsp_trace("dsp::fill_zero dst=%p, count=0x%x", &vBufferHead[hist_size], int(vBufferPtr - vBufferHead));
-                dsp::fill_zero(&vBufferHead[hist_size], vBufferPtr - vBufferHead);
+                dsp::fill_zero(&vBufferHead[hist_size], free_size);
+                vBufferPtr         -= free_size;
                 pTargetPtr         -= free_size;
-                vBufferPtr          = vBufferHead;
+
+                if ((vBufferPtr < vBufferHead) || (pTargetPtr < vBufferHead))
+                {
+                    lsp_error("Failed assertion: (vBufferPtr >= vBufferHead) && (pTargetPtr >= vBufferHead)");
+                }
             }
         }
 

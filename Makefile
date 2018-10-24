@@ -102,6 +102,7 @@ export LD               = ld
 export LDFLAGS          = $(LD_ARCH) -L$(LD_PATH)
 export SO_FLAGS         = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections -shared -Llibrary -lc -fPIC
 export MERGE_FLAGS      = $(LD_ARCH) -r
+export EXE_TEST_FLAGS   = $(CC_ARCH) -Wl,-rpath,$(LD_PATH)
 export EXE_FLAGS        = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections -pie -fPIE
 
 # Objects
@@ -179,7 +180,8 @@ all: compile
 trace: export CFLAGS        += -DLSP_TRACE
 trace: all
 
-test: export CFLAGS         += -DLSP_TESTING -DLSP_TRACE
+test: export CFLAGS         += -DLSP_TESTING -DLSP_TRACE -g3
+test: export EXE_TEST_FLAGS += -g3
 test: export MAKE_OPTS      += LSP_TESTING=1
 test: all
 
@@ -195,8 +197,8 @@ debugfile: debug
 gdb: export CFLAGS          += -O0
 gdb: compile
 
-profile: export CFLAGS      += -O0 -pg -DLSP_PROFILING
-profile: export EXE_FLAGS   += -O0 -pg
+profile: export CFLAGS      += -O0 -pg -g3 -DLSP_PROFILING
+profile: export EXE_FLAGS   += -O0 -pg -g3
 profile: compile
 
 compile:

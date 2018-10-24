@@ -114,7 +114,7 @@ namespace lsp
 
                 Convolver      *pCurr;          // Currently used convolver
                 Convolver      *pSwap;          // Swap
-                bool            bSwap;          // Swapping flag
+//                bool            bSwap;          // Swapping flag
                 size_t          nRank;          // Last applied rank
                 size_t          nRankReq;       // Rank request
                 size_t          nSource;        // Source
