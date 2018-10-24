@@ -19,6 +19,7 @@ namespace lsp
 
         char path[PATH_MAX];
         snprintf(path, PATH_MAX, "/tmp/lsp-plugins-%s.log", subsystem);
+        fprintf(stderr, "Log data will be written to file: %s\n", path);
 
         log_fd      = fopen(path, "a");
         if (log_fd != NULL)

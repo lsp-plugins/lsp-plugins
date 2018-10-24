@@ -11,6 +11,7 @@
 #include <sys/time.h>
 #include <alloca.h>
 #include <signal.h>
+#include <mcheck.h>
 
 #include <dsp/dsp.h>
 #include <test/ptest.h>
@@ -18,6 +19,7 @@
 #include <test/mtest.h>
 #include <metadata/metadata.h>
 #include <data/cvector.h>
+#include <sys/stat.h>
 
 enum test_mode_t
 {
@@ -36,8 +38,10 @@ typedef struct config_t
     bool                        verbose;
     bool                        debug;
     bool                        list_all;
+    bool                        mtrace;
     size_t                      threads;
     const char                 *outfile;
+    const char                 *tracepath;
     cvector<char>               list;
     cvector<char>               args;
 } config_t;
@@ -76,6 +80,37 @@ void out_cpu_info(FILE *out)
     fprintf(out, "\n");
     fflush(out);
     free(info);
+}
+
+void start_memcheck(config_t *cfg, test::Test *v)
+{
+    if (!cfg->mtrace)
+        return;
+
+    // Enable memory trace
+    char fname[PATH_MAX];
+    mkdir(cfg->tracepath, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+    snprintf(fname, PATH_MAX, "%s/%s.utest.mtrace", cfg->tracepath, v->full_name());
+    fname[PATH_MAX-1] = '\0';
+
+    v->set_verbose(cfg->verbose);
+    v->full_name();
+
+    fprintf(stderr, "Enabling memory trace for test '%s' into file '%s'\n", v->full_name(), fname);
+    fflush(stderr);
+
+    setenv("MALLOC_TRACE", fname, 1);
+    mtrace();
+}
+
+void end_memcheck(config_t *cfg)
+{
+    // Disable memory trace
+    if (cfg->mtrace)
+        muntrace();
+
+    // Validate heap
+//    mcheck_check_all();
 }
 
 bool match_string(const char *p, const char *m)
@@ -193,7 +228,9 @@ int execute_ptest(FILE *out, config_t *cfg, test::PerformanceTest *v)
 {
     // Execute performance test
     v->set_verbose(cfg->verbose);
+    start_memcheck(cfg, v);
     v->execute(cfg->args.size(), const_cast<const char **>(cfg->args.get_array()));
+    end_memcheck(cfg);
 
     // Output peformance test statistics
     printf("\nStatistics of performance test '%s':\n", v->full_name());
@@ -216,7 +253,9 @@ int execute_mtest(config_t *cfg, test::ManualTest *v)
 {
     // Execute performance test
     v->set_verbose(cfg->verbose);
+    start_memcheck(cfg, v);
     v->execute(cfg->args.size(), const_cast<const char **>(cfg->args.get_array()));
+    end_memcheck(cfg);
     return 0;
 }
 
@@ -247,9 +286,10 @@ int execute_utest(config_t *cfg, test::UnitTest *v)
         }
     }
 
-    // Execute performance test
-    v->set_verbose(cfg->verbose);
+    // Execute unit test
+    start_memcheck(cfg, v);
     v->execute(cfg->args.size(), const_cast<const char **>(cfg->args.get_array()));
+    end_memcheck(cfg);
 
     // Cancel and disable timer
     if (!cfg->debug)
@@ -695,10 +735,13 @@ int usage(bool detailed = false)
     puts("    -h, --help            Display help");
     puts("    -j, --jobs            Set number of job workers for unit tests");
     puts("    -l, --list            List all available tests");
+    puts("    -mt, --mtrace         Enable mtrace log");
     puts("    -nf, --nofork         Do not fork child processes (for better ");
     puts("                          debugging capabilities)");
+    puts("    -nt, --nomtrace       Disable mtrace log");
     puts("    -o, --outfile file    Output performance test statistics to specified file");
     puts("    -s, --silent          Do not output additional information from tests");
+    puts("    -t, --tracepath path  Override default trace path with specified value");
     puts("    -v, --verbose         Output additional information from tests");
     return 1;
 }
@@ -709,6 +752,8 @@ int parse_config(config_t *cfg, int argc, const char **argv)
     cfg->fork       = true;
     cfg->verbose    = false;
     cfg->list_all   = false;
+    cfg->mtrace     = false;
+    cfg->tracepath  = "/tmp/lsp-plugins-trace";
     cfg->threads    = sysconf(_SC_NPROCESSORS_ONLN) * 2;
     cfg->outfile    = NULL;
     if (argc < 2)
@@ -739,6 +784,19 @@ int parse_config(config_t *cfg, int argc, const char **argv)
             cfg->debug      = true;
         else if ((!strcmp(argv[i], "--list")) || (!strcmp(argv[i], "-l")))
             cfg->list_all   = true;
+        else if ((!strcmp(argv[i], "--mtrace")) || (!strcmp(argv[i], "-mt")))
+            cfg->mtrace     = true;
+        else if ((!strcmp(argv[i], "--nomtrace")) || (!strcmp(argv[i], "-nt")))
+            cfg->mtrace     = false;
+        else if ((!strcmp(argv[i], "--tracepath")) || (!strcmp(argv[i], "-t")))
+        {
+            if ((++i) >= argc)
+            {
+                fprintf(stderr, "Not specified trace path\n");
+                return 3;
+            }
+            cfg->tracepath  = argv[i];
+        }
         else if ((!strcmp(argv[i], "--outfile")) || (!strcmp(argv[i], "-o")))
         {
             if ((++i) >= argc)
@@ -787,6 +845,13 @@ void clear_config(config_t *cfg)
 
 int main(int argc, const char **argv)
 {
+//    // Enable mcheck
+//    if (mcheck(NULL) != 0)
+//    {
+//        fprintf(stderr, "Installing mcheck() failed\n");
+//        return -4;
+//    }
+
     config_t cfg;
     int res = parse_config(&cfg, argc, argv);
     if (res != 0)

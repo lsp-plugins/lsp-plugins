@@ -64,7 +64,7 @@ template <class T, class P>
             return NULL;
 
         // Allocate data
-        void *p         = malloc(count * sizeof(T) + align);
+        void *p         = malloc((count * sizeof(T)) + align);
         if (p == NULL)
             return NULL;
 

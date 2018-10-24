@@ -430,6 +430,12 @@ namespace lsp
 
     status_t JACKWrapper::connect()
     {
+        // Ensure that client identifier is not longer than jack_client_name_size()
+        size_t max_client_size = jack_client_name_size();
+        char *client_name = static_cast<char *>(alloca(max_client_size));
+        strncpy(client_name, pPlugin->get_metadata()->lv2_uid, max_client_size);
+        client_name[max_client_size-1] = '\0';
+
         // Check connection state
         switch (nState)
         {
@@ -455,7 +461,7 @@ namespace lsp
 
         // Get JACK client
         jack_status_t jack_status;
-        pClient     = jack_client_open(pPlugin->get_metadata()->lv2_uid, JackNoStartServer, &jack_status);
+        pClient     = jack_client_open(client_name, JackNoStartServer, &jack_status);
         if (pClient == NULL)
         {
             lsp_warn("Could not connect to JACK (status=0x%08x)", int(jack_status));

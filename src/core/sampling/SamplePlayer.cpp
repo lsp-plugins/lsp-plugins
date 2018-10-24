@@ -208,15 +208,18 @@ namespace lsp
             return false;
 
         Sample     *old = vSamples[id];
-        if (old == *sample)
-        {
-            *sample     = NULL;
-            return true;
-        }
-
-        vSamples[id]    = *sample;
         if (sample != NULL)
+        {
+            Sample     *ns  = *sample;
+            if (old == ns)
+            {
+                *sample     = NULL;
+                return true;
+            }
+
+            vSamples[id]    = ns;
             *sample         = old;
+        }
 
         // Cleanup all active playbacks associated with this sample
         playback_t *pb = sActive.pHead;

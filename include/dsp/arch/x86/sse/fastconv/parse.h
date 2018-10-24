@@ -325,7 +325,7 @@ static inline void PARSE_INTERNAL_IMPL(float *dst, const float *src, size_t rank
             __ASM_EMIT("2:")
 
             : [a] "+r" (a), [b] "+r" (b), [src] "+r" (src), [k] "+r" (k)
-            : [wk] "r"(wk)
+            : [wk] "r" (wk)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"

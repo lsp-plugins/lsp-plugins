@@ -19,3 +19,4 @@
 /Debug AVX/
 /Release AVX/
 *.log
+/gmon.out

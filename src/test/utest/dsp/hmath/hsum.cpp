@@ -15,7 +15,7 @@
 #endif
 
 #ifndef TOLERANCE
-    #define TOLERANCE 1e-4
+    #define TOLERANCE 1e-5
 #endif
 
 namespace native
@@ -71,7 +71,7 @@ UTEST_BEGIN("dsp.hmath", hsum)
                 UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
 
                 // Compare buffers
-                if (!float_equals_relative(a, b, TOLERANCE))
+                if (!float_equals_adaptive(a, b, TOLERANCE))
                 {
                     src.dump("src1");
                     UTEST_FAIL_MSG("Result of function 1 (%f) differs result of function 2 (%f)", a, b)

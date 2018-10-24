@@ -110,16 +110,16 @@ namespace lsp
                     last            = center - 1;
             }
 
-            // Add task to the found place keeping it's time order
-            dtask_t *t = sTasks.insert(first);
-            if (t == NULL)
-                return -STATUS_NO_MEM;
-
             // Generate task ID
             do
             {
                 nTaskID     = (nTaskID + 1) & 0x7fffff;
             } while (taskid_exists(nTaskID));
+
+            // Add task to the found place keeping it's time order
+            dtask_t *t = sTasks.insert(first);
+            if (t == NULL)
+                return -STATUS_NO_MEM;
 
             t->nID          = nTaskID;
             t->nTime        = time;

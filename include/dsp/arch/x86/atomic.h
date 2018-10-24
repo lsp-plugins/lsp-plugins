@@ -11,12 +11,12 @@
 #define ATOMIC_XCHG_DEF(type)                           \
     inline type x86_atomic_exchange(type *ptr, type value)  \
     {                                                   \
-        ARCH_X86_ASM                            \
+        ARCH_X86_ASM                                    \
         (                                               \
             __ASM_EMIT("lock")                          \
-            __ASM_EMIT("xchg %0, (%1)")                 \
-            : "+r"(value)                               \
-            : "r" (ptr)                                 \
+            __ASM_EMIT("xchg    %[value], (%[ptr])")    \
+            : [value] "+r"(value)                       \
+            : [ptr] "r" (ptr)                           \
             : "memory", "cc"                            \
         );                                              \
         return value;                                   \
