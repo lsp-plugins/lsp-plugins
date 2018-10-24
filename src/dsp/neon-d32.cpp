@@ -58,6 +58,7 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/filters/static.h>
 #include <dsp/arch/arm/neon-d32/filters/dynamic.h>
 #include <dsp/arch/arm/neon-d32/filters/transform.h>
+#include <dsp/arch/arm/neon-d32/fft.h>
 
 #undef DSP_ARCH_ARM_NEON_32_IMPL
 
