@@ -136,8 +136,8 @@ namespace lsp
 //        lsp_trace("vBufferHead = %p x 0x%x", vBufferHead, int(bins * data_buf_size * 8));
 
         vBufferTail         = fptr;
-        fptr               += bins * data_buf_size + data_buf_size * 4;
-//        lsp_trace("vBufferTail = %p x 0x%x", vBufferTail, int(bins * data_buf_size * 4));
+        fptr               += bins * data_buf_size + data_buf_size * 6;
+//        lsp_trace("vBufferTail = %p x 0x%x", vBufferTail, int(bins * data_buf_size * 6));
 
         vBufferEnd          = fptr;
 //        lsp_trace("vBufferEnd = %p", vBufferEnd);
