@@ -118,7 +118,7 @@ namespace lsp
 
         uint8_t *pdata          = NULL;
         float *fptr             = alloc_aligned<float>(pdata, allocate);
-        float *cptr             = fptr;
+//        float *cptr             = fptr;
         if (fptr == NULL)
             return false;
 //        lsp_trace("Allocated %x floats (%x bytes) at: %p, pdata: %p",

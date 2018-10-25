@@ -14,7 +14,7 @@
 
 namespace neon_d32
 {
-    void fft_scramble(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
+    static void scramble_direct(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
     {
         IF_ARCH_ARM( size_t count = 1 << rank );
 
@@ -52,6 +52,7 @@ namespace neon_d32
                 __ASM_EMIT("cmp         %[i], %[count]")                    // i <=> count
                 __ASM_EMIT("blo         1b")
 
+#if 0
                 // Perform butterflies
                 __ASM_EMIT("mov         %[td_re], %[dst_re]")               // td_re = dst_re
                 __ASM_EMIT("mov         %[td_im], %[dst_im]")               // td_re = dst_re
@@ -64,41 +65,36 @@ namespace neon_d32
                 __ASM_EMIT("vsub.f32    q0, q0, q1")                        // q0 = r0-r1 r2-r3 r4-r5 r6-r7 = r1' r3' r5' r7'
                 __ASM_EMIT("vsub.f32    q1, q2, q3")                        // q1 = i0-i1 i2-i3 i4-i5 i6-i7 = i1' i3' i5' i7'
 
-                __ASM_EMIT("vtrn.32     q4, q5")                            // q4 = r0' i0' r4' i4', q5 = r2' i2' r6' i6'
-                __ASM_EMIT("vtrn.32     q0, q1")                            // q0 = r1' i1' r5' i5', q1 = r3' i3' r7' i7'
-                __ASM_EMIT("vtrn.32     d2, d3")                            // q1 = r3' r7' i3' i7'
+                // q4 = r0' r2' r4' r6'
+                // q0 = r1' r3' r5' r7'
+                // q5 = i0' i2' i4' i6'
+                // q1 = i1' i3' i5' i7'
+                __ASM_EMIT("vuzp.32     q4, q0")                            // q4 = r0' r4' r1' r5', q0 = r2' r6' r3' r7'
+                __ASM_EMIT("vuzp.32     q5, q1")                            // q5 = i0' i4' i1' i5', q1 = i2' i6' i3' i7'
+                __ASM_EMIT("vswp        d1, d3")                            // q0 = r2' r6' i3' i7', q1 = i2' i6' r3' r7'
+                __ASM_EMIT("vadd.f32    q2, q4, q0")                        // q2 = r0'+r2' r4'+r6' r1'+i3' r5'+i7' = r0" r4" r1" r5"
+                __ASM_EMIT("vsub.f32    q3, q4, q0")                        // q3 = r0'-r2' r4'-r6' r1'-i3' r5'-i7' = r2" r6" r3" r7"
+                __ASM_EMIT("vadd.f32    q0, q5, q1")                        // q0 = i0'+i2' i4'+i6' i1'+r3' i5'+r7' = i0" i4" i3" i7"
+                __ASM_EMIT("vsub.f32    q1, q5, q1")                        // q1 = i0'-i2' i4'-i6' i1'-r3' i5'-r7' = i2" i6" i1" i5"
 
+                // q0 = i0" i4" i3" i7"
+                // q1 = i2" i6" i1" i5"
+                // q2 = r0" r4" r1" r5"
+                // q3 = r2" r6" r3" r7"
+                __ASM_EMIT("vuzp.32    q2, q3")                             // q2 = r0" r1" r2" r3", q3 = r4" r5" r6" r7"
+                __ASM_EMIT("vuzp.32    q0, q1")                             // q0 = i0" i3" i2" i1", q1 = i4" i7" i6" i5"
+                __ASM_EMIT("vswp       s1, s3")                             // q0 = i0" i1" i2" i3"
+                __ASM_EMIT("vswp       s5, s7")                             // q1 = i4" i5" i6" i7"
 
-                /*
-                     r0"    = r0'+r2'   q4+q5 *
-                     r1"    = r1'-i3'
-                     r2"    = r0'-r2'   q4-q5 #
-                     r3"    = r1'+i3'
-                     r4"    = r4'+r6'   q4+q5 *
-                     r5"    = r5'-i7'
-                     r6"    = r4'-r6'   q4-q5 #
-                     r7"    = r5'+i7'
-
-                     i0"    = i0'+i2'   q4+q5 *
-                     i1"    = i1'+i3'
-                     i2"    = i0'-i2'   q4-q5 #
-                     i3"    = i1'-i3'
-                     i4"    = i4'+i6'   q4+q5 *
-                     i5"    = i5'+i7'
-                     i6"    = i4'-i6'   q4-q5 #
-                     i7"    = i5'-i7'
-                 */
-                __ASM_EMIT("addps       %%xmm1, %%xmm0")            /* xmm0 =     =  */
-                __ASM_EMIT("addps       %%xmm3, %%xmm2")            /* xmm2 =     = i0" i4" i1" i5" */
-                __ASM_EMIT("subps       %%xmm1, %%xmm4")            /* xmm4 =     = r2" r6" r1" r5" */
-                __ASM_EMIT("subps       %%xmm3, %%xmm6")            /* xmm6 =     = i2" i6" i3" i7" */
-
+                __ASM_EMIT("vst1.32    {q2-q3}, %[dst_re]!")
+                __ASM_EMIT("vst1.32    {q0-q1}, %[dst_im]!")
+#endif
                 : [ts_re] "=&r" (ts_re), [ts_im] "=&r" (ts_im),
                   [td_re] "=&r" (td_re), [td_im] "=&r" (td_im),
                   [i] "=&r" (i), [j] "=&r" (j), [rrank] "=&r" (rrank)
                 : [count] "r" (count), [rank] "r" (rank)
                 : "cc", "memory",
-                  "q0"
+                  "q0", "q1", "q2", "q3", "q4", "q5"
             );
         }
         else
