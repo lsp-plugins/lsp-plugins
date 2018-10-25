@@ -130,8 +130,8 @@ MTEST_BEGIN("dsp", fft)
         dst1i.dump("dst1i");
 
         direct_fft(src1r, src1i, src1r, src1i, RANK);
-        dst1r.dump("src1r");
-        dst1i.dump("src1i");
+        src1r.dump("src1r");
+        src1i.dump("src1i");
 
         IF_ARCH_ARM(
             src2r.dump("src2r");
@@ -142,8 +142,8 @@ MTEST_BEGIN("dsp", fft)
             dst2i.dump("dst2i");
 
             neon_d32::direct_fft(src2r, src2i, src2r, src2i, RANK);
-            dst2r.dump("src2r");
-            dst2i.dump("src2i");
+            src2r.dump("src2r");
+            src2i.dump("src2i");
         );
 
     }

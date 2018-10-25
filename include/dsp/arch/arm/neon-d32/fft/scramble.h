@@ -21,41 +21,42 @@ namespace neon_d32
         if ((dst_re == src_re) || (dst_im == src_im))
         {
             IF_ARCH_ARM(
-                    size_t i, j, rrank;
-                    float *td_re, *td_im, *ts_re, *ts_im;
+                    size_t i, j, rrank = rank;
+                    float *d_re, *d_im;
             );
 
             // Self algorithm
             ARCH_ARM_ASM(
                 // Do bit-reverse shuffle
-                __ASM_EMIT("rsb         %[rrank], %[rank], $32")            // rrank = 32 - rank
-                __ASM_EMIT("mov         %[ts_re], %[src_re]")               // ts_re = src_re
+                __ASM_EMIT("rsb         %[rrank], %[rrank], $32")           // rrank = 32 - rank
+                __ASM_EMIT("push        {%[dst_re], %[dst_im], %[src_re], %[src_im]}")
                 __ASM_EMIT("mov         %[i], %1")                          // i = 1
-                __ASM_EMIT("mov         %[ts_im], %[src_im]")               // ts_im = src_im
+
                 __ASM_EMIT("1:")
                 __ASM_EMIT("rbit        %[j], %[i]")                        // j = reverse_bits(i)
                 __ASM_EMIT("lsr         %[j], %[rrank]")                    // j = reverse_bits(i) >> rank
                 __ASM_EMIT("cmp         %[i], %[j]")                        // i <=> j
                 __ASM_EMIT("bhs         2f")                                // if (i >= j) continue
-                __ASM_EMIT("vadd        %[td_re], %[dst_re], %[j], LSL $2") // td_re = &dst_re[j]
-                __ASM_EMIT("vadd        %[td_im], %[dst_im], %[j], LSL $2") // td_im = &dst_im[j]
-                __ASM_EMIT("vldm        %[ts_re], {s0}")                    // s0 = *ts_re
-                __ASM_EMIT("vldm        %[ts_im], {s1}")                    // s1 = *ts_im
-                __ASM_EMIT("vldm        %[td_re], {s2}")                    // s2 = *td_re
-                __ASM_EMIT("vldm        %[td_im], {s3}")                    // s3 = *td_im
-                __ASM_EMIT("vstm        %[ts_re]!, {s2}")                   // *(ts_re++) = s2
-                __ASM_EMIT("vstm        %[ts_im]!, {s3}")                   // *(ts_im++) = s3
-                __ASM_EMIT("vstm        %[td_re], {s0}")                    // *td_re = s0
-                __ASM_EMIT("vstm        %[td_im], {s1}")                    // td_im = s1
+                __ASM_EMIT("add         %[d_re], %[dst_re], %[j], LSL $2")  // d_re = &dst_re[j]
+                __ASM_EMIT("add         %[d_im], %[dst_im], %[j], LSL $2")  // d_im = &dst_im[j]
+                __ASM_EMIT("vldm        %[src_re], {s0}")                   // s0 = *src_re
+                __ASM_EMIT("vldm        %[src_im], {s1}")                   // s1 = *src_im
+                __ASM_EMIT("vldm        %[d_re], {s2}")                     // s2 = *td_re
+                __ASM_EMIT("vldm        %[d_im], {s3}")                     // s3 = *td_im
+                __ASM_EMIT("vstm        %[src_re]!, {s2}")                  // *(src_re++) = s2
+                __ASM_EMIT("vstm        %[src_im]!, {s3}")                  // *(src_im++) = s3
+                __ASM_EMIT("vstm        %[d_re], {s0}")                     // *d_re = s0
+                __ASM_EMIT("vstm        %[d_im], {s1}")                     // *d_im = s1
                 __ASM_EMIT("2:")
-                __ASM_EMIT("adds        %[i], $1")                          // i++
+                __ASM_EMIT("add         %[i], $1")                          // i++
                 __ASM_EMIT("cmp         %[i], %[count]")                    // i <=> count
                 __ASM_EMIT("blo         1b")
 
+                __ASM_EMIT("pop         {%[dst_re], %[dst_im], %[src_re], %[src_im]}")
+
 #if 0
                 // Perform butterflies
-                __ASM_EMIT("mov         %[td_re], %[dst_re]")               // td_re = dst_re
-                __ASM_EMIT("mov         %[td_im], %[dst_im]")               // td_re = dst_re
+
 
                 __ASM_EMIT("3:")
                 __ASM_EMIT("vld2.32     {q0-q1}, %[dst_re]")                // q0 = r0 r2 r4 r6, q1 = r1 r3 r5 r7
@@ -89,10 +90,11 @@ namespace neon_d32
                 __ASM_EMIT("vst1.32    {q2-q3}, %[dst_re]!")
                 __ASM_EMIT("vst1.32    {q0-q1}, %[dst_im]!")
 #endif
-                : [ts_re] "=&r" (ts_re), [ts_im] "=&r" (ts_im),
-                  [td_re] "=&r" (td_re), [td_im] "=&r" (td_im),
+                : [src_re] "+r" (src_re), [src_im] "+r" (src_im),
+                  [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
+                  [d_re] "=&r" (d_re), [d_im] "=&r" (d_im),
                   [i] "=&r" (i), [j] "=&r" (j), [rrank] "=&r" (rrank)
-                : [count] "r" (count), [rank] "r" (rank)
+                : [count] "r" (count)
                 : "cc", "memory",
                   "q0", "q1", "q2", "q3", "q4", "q5"
             );
