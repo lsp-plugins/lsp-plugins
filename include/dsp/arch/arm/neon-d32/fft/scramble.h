@@ -58,8 +58,8 @@ namespace neon_d32
 
                 // Perform x8 butterflies
                 __ASM_EMIT("3:")
-                __ASM_EMIT("vld2.32     {q0-q1}, %[dst_re]")                // q0 = r0 r2 r4 r6, q1 = r1 r3 r5 r7
-                __ASM_EMIT("vld2.32     {q2-q3}, %[dst_im]")                // q2 = i0 i2 i4 i6, q3 = i1 i3 i5 i7
+                __ASM_EMIT("vld2.32     {q0-q1}, [%[dst_re]]")              // q0 = r0 r2 r4 r6, q1 = r1 r3 r5 r7
+                __ASM_EMIT("vld2.32     {q2-q3}, [%[dst_im]]")              // q2 = i0 i2 i4 i6, q3 = i1 i3 i5 i7
                 __ASM_EMIT("vadd.f32    q4, q0, q1")                        // q4 = r0+r1 r2+r3 r4+r5 r6+r7 = r0' r2' r4' r6'
                 __ASM_EMIT("vadd.f32    q5, q2, q3")                        // q5 = i0+i1 i2+i3 i4+i5 i6+i7 = i0' i2' i4' i6'
                 __ASM_EMIT("vsub.f32    q0, q0, q1")                        // q0 = r0-r1 r2-r3 r4-r5 r6-r7 = r1' r3' r5' r7'

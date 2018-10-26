@@ -450,7 +450,8 @@ namespace lsp
             // Check that buffer head is required to be moved
             if (vBufferPtr >= vBufferTail)
             {
-                float *sptr = (pTargetPtr >= vBufferPtr) ? vBufferPtr : pTargetPtr;
+                float *sptr = ((pTargetPtr == NULL) || (pTargetPtr >= vBufferPtr)) ?
+                        vBufferPtr : pTargetPtr;
 
                 size_t hist_size    = vBufferEnd - sptr;
                 size_t free_size    = sptr - vBufferHead;
@@ -460,7 +461,8 @@ namespace lsp
 //                lsp_trace("dsp::fill_zero dst=%p, count=0x%x", &vBufferHead[hist_size], int(vBufferPtr - vBufferHead));
                 dsp::fill_zero(&vBufferHead[hist_size], free_size);
                 vBufferPtr         -= free_size;
-                pTargetPtr         -= free_size;
+                if (pTargetPtr != NULL)
+                    pTargetPtr         -= free_size;
 
 //                if ((vBufferPtr < vBufferHead) || (pTargetPtr < vBufferHead))
 //                {
