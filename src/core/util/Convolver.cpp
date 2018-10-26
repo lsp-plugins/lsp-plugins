@@ -388,7 +388,7 @@ namespace lsp
 //                        {
 //                            lsp_error("Failed assertion: vBufferEnd >= &pTargetPtr[1 << nRank]");
 //                        }
-//                        dsp::fastconv_apply(pTargetPtr, vTempBuf, vTask, pConv, nRank);
+                        dsp::fastconv_apply(pTargetPtr, vTempBuf, vTask, pConv, nRank);
 
                         // Update pointers
                         pConv              += nFrameMax << 2;
@@ -460,9 +460,9 @@ namespace lsp
                 dsp::move(vBufferHead, sptr, hist_size);
 //                lsp_trace("dsp::fill_zero dst=%p, count=0x%x", &vBufferHead[hist_size], int(vBufferPtr - vBufferHead));
                 dsp::fill_zero(&vBufferHead[hist_size], free_size);
-                vBufferPtr         -= free_size;
                 if (pTargetPtr != NULL)
                     pTargetPtr         -= free_size;
+                vBufferPtr         -= free_size;
 
 //                if ((vBufferPtr < vBufferHead) || (pTargetPtr < vBufferHead))
 //                {
