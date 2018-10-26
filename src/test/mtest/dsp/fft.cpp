@@ -87,9 +87,7 @@ static void start_direct_fft(float *dst_re, float *dst_im, size_t rank)
 static void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
 {
     scramble_fft(dst_re, dst_im, src_re, src_im, rank);
-#if 0
     start_direct_fft(dst_re, dst_im, rank);
-#endif
 }
 
 IF_ARCH_ARM(

@@ -54,11 +54,9 @@ namespace neon_d32
                 __ASM_EMIT("blo         1b")
 
                 __ASM_EMIT("pop         {%[dst_re], %[dst_im], %[src_re], %[src_im]}")
+                __ASM_EMIT("eor         %[i], %[i]")
 
-#if 0
-                // Perform butterflies
-
-
+                // Perform x8 butterflies
                 __ASM_EMIT("3:")
                 __ASM_EMIT("vld2.32     {q0-q1}, %[dst_re]")                // q0 = r0 r2 r4 r6, q1 = r1 r3 r5 r7
                 __ASM_EMIT("vld2.32     {q2-q3}, %[dst_im]")                // q2 = i0 i2 i4 i6, q3 = i1 i3 i5 i7
@@ -83,19 +81,22 @@ namespace neon_d32
                 // q1 = i2" i6" i1" i5"
                 // q2 = r0" r4" r1" r5"
                 // q3 = r2" r6" r3" r7"
-                __ASM_EMIT("vuzp.32    q2, q3")                             // q2 = r0" r1" r2" r3", q3 = r4" r5" r6" r7"
-                __ASM_EMIT("vuzp.32    q0, q1")                             // q0 = i0" i3" i2" i1", q1 = i4" i7" i6" i5"
-                __ASM_EMIT("vswp       s1, s3")                             // q0 = i0" i1" i2" i3"
-                __ASM_EMIT("vswp       s5, s7")                             // q1 = i4" i5" i6" i7"
+                __ASM_EMIT("vuzp.32     q2, q3")                            // q2 = r0" r1" r2" r3", q3 = r4" r5" r6" r7"
+                __ASM_EMIT("vuzp.32     q0, q1")                            // q0 = i0" i3" i2" i1", q1 = i4" i7" i6" i5"
+                __ASM_EMIT("vswp        s1, s3")                            // q0 = i0" i1" i2" i3"
+                __ASM_EMIT("vswp        s5, s7")                            // q1 = i4" i5" i6" i7"
 
-                __ASM_EMIT("vst1.32    {q2-q3}, %[dst_re]!")
-                __ASM_EMIT("vst1.32    {q0-q1}, %[dst_im]!")
-#endif
-                : [src_re] "+r" (src_re), [src_im] "+r" (src_im),
-                  [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
+                __ASM_EMIT("subs        %[count], $8")                      // i <=> count
+                __ASM_EMIT("vst1.32     {q2-q3}, %[dst_re]!")
+                __ASM_EMIT("vst1.32     {q0-q1}, %[dst_im]!")
+                __ASM_EMIT("bne         3b")
+
+
+                : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
                   [d_re] "=&r" (d_re), [d_im] "=&r" (d_im),
-                  [rrank] "+r" (rrank), [i] "=&r" (i), [j] "=&r" (j)
-                : [count] "r" (count)
+                  [rrank] "+r" (rrank), [i] "=&r" (i), [j] "=&r" (j),
+                  [count] "+r" (count)
+                : [src_re] "r" (src_re), [src_im] "r" (src_im)
                 : "cc", "memory",
                   "q0", "q1", "q2", "q3", "q4", "q5"
             );
@@ -155,9 +156,37 @@ namespace neon_d32
                 // q2 = i0 i2 i4 i6
                 // q3 = i1 i3 i5 i7
                 __ASM_EMIT("add         %[i], $1")
-                __ASM_EMIT("vst2.32     {q0-q1}, [%[dst_re]]!")
-                __ASM_EMIT("vst2.32     {q2-q3}, [%[dst_im]]!")
+
+                // Perform x8 butterflies
+                __ASM_EMIT("vadd.f32    q4, q0, q1")                        // q4 = r0+r1 r2+r3 r4+r5 r6+r7 = r0' r2' r4' r6'
+                __ASM_EMIT("vadd.f32    q5, q2, q3")                        // q5 = i0+i1 i2+i3 i4+i5 i6+i7 = i0' i2' i4' i6'
+                __ASM_EMIT("vsub.f32    q0, q0, q1")                        // q0 = r0-r1 r2-r3 r4-r5 r6-r7 = r1' r3' r5' r7'
+                __ASM_EMIT("vsub.f32    q1, q2, q3")                        // q1 = i0-i1 i2-i3 i4-i5 i6-i7 = i1' i3' i5' i7'
+
+                // q4 = r0' r2' r4' r6'
+                // q0 = r1' r3' r5' r7'
+                // q5 = i0' i2' i4' i6'
+                // q1 = i1' i3' i5' i7'
+                __ASM_EMIT("vuzp.32     q4, q0")                            // q4 = r0' r4' r1' r5', q0 = r2' r6' r3' r7'
+                __ASM_EMIT("vuzp.32     q5, q1")                            // q5 = i0' i4' i1' i5', q1 = i2' i6' i3' i7'
+                __ASM_EMIT("vswp        d1, d3")                            // q0 = r2' r6' i3' i7', q1 = i2' i6' r3' r7'
+                __ASM_EMIT("vadd.f32    q2, q4, q0")                        // q2 = r0'+r2' r4'+r6' r1'+i3' r5'+i7' = r0" r4" r1" r5"
+                __ASM_EMIT("vsub.f32    q3, q4, q0")                        // q3 = r0'-r2' r4'-r6' r1'-i3' r5'-i7' = r2" r6" r3" r7"
+                __ASM_EMIT("vadd.f32    q0, q5, q1")                        // q0 = i0'+i2' i4'+i6' i1'+r3' i5'+r7' = i0" i4" i3" i7"
+                __ASM_EMIT("vsub.f32    q1, q5, q1")                        // q1 = i0'-i2' i4'-i6' i1'-r3' i5'-r7' = i2" i6" i1" i5"
+
+                // q0 = i0" i4" i3" i7"
+                // q1 = i2" i6" i1" i5"
+                // q2 = r0" r4" r1" r5"
+                // q3 = r2" r6" r3" r7"
+                __ASM_EMIT("vuzp.32     q2, q3")                            // q2 = r0" r1" r2" r3", q3 = r4" r5" r6" r7"
+                __ASM_EMIT("vuzp.32     q0, q1")                            // q0 = i0" i3" i2" i1", q1 = i4" i7" i6" i5"
+                __ASM_EMIT("vswp        s1, s3")                            // q0 = i0" i1" i2" i3"
+                __ASM_EMIT("vswp        s5, s7")                            // q1 = i4" i5" i6" i7"
+
                 __ASM_EMIT("cmp         %[i], %[regs]")
+                __ASM_EMIT("vst1.32     {q2-q3}, %[dst_re]!")
+                __ASM_EMIT("vst1.32     {q0-q1}, %[dst_im]!")
                 __ASM_EMIT("blo         1b")
 
                 : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
