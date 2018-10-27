@@ -15,7 +15,7 @@
 namespace neon_d32
 {
     #define BUTTERFLY_RANK3(op1, op2) \
-        __ASM_EMIT("vldm        %[XFFT_A]!, {q8-q11}")          /* q8   = wr1, q9 = wr2, q10 = wi1, q11 = wi2 */ \
+        __ASM_EMIT("vldm        %[XFFT_A], {q8-q11}")           /* q8   = wr1, q9 = wr2, q10 = wi1, q11 = wi2 */ \
         \
         /* Calculate complex c = w * b */ \
         __ASM_EMIT("1:") \
@@ -47,8 +47,20 @@ namespace neon_d32
         ARCH_ARM_ASM(
             BUTTERFLY_RANK3("vmla.f32", "vmls.f32")
             : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
-              [blocks] "+r" (blocks), [XFFT_A] "+r" (X_FFT_A)
-            :
+              [blocks] "+r" (blocks)
+            : [XFFT_A] "r" (X_FFT_A)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        )
+    }
+
+    void reverse_butterfly_rank3(float *dst_re, float *dst_im, size_t blocks) {
+        ARCH_ARM_ASM(
+            BUTTERFLY_RANK3("vmls.f32", "vmla.f32")
+            : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
+              [blocks] "+r" (blocks)
+            : [XFFT_A] "r" (X_FFT_A)
             : "cc", "memory",
               "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
