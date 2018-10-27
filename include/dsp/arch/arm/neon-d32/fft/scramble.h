@@ -28,7 +28,7 @@ namespace neon_d32
             ARCH_ARM_ASM(
                 // Do bit-reverse shuffle
                 __ASM_EMIT("rsb         %[rrank], %[rrank], $32")           // rrank = 32 - rank
-                __ASM_EMIT("push        {%[dst_re], %[dst_im], %[src_re], %[src_im]}")
+                __ASM_EMIT("push        {%[src_re], %[src_im]}")
                 __ASM_EMIT("mov         %[i], $1")                          // i = 1
 
                 __ASM_EMIT("1:")
@@ -53,7 +53,7 @@ namespace neon_d32
                 __ASM_EMIT("cmp         %[i], %[count]")                    // i <=> count
                 __ASM_EMIT("blo         1b")
 
-                __ASM_EMIT("pop         {%[dst_re], %[dst_im], %[src_re], %[src_im]}")
+                __ASM_EMIT("pop         {%[src_re], %[src_im]}")
                 __ASM_EMIT("eor         %[i], %[i]")
 
                 // Perform x8 butterflies

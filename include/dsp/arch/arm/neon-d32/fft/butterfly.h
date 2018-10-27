@@ -48,11 +48,11 @@ namespace neon_d32
             BUTTERFLY_RANK3("vmla.f32", "vmls.f32")
             : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
               [blocks] "+r" (blocks)
-            : [XFFT_A] "r" (X_FFT_A)
+            : [XFFT_A] "r" (&XFFT_A[0])
             : "cc", "memory",
               "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
-        )
+        );
     }
 
     void reverse_butterfly_rank3(float *dst_re, float *dst_im, size_t blocks) {
@@ -60,11 +60,11 @@ namespace neon_d32
             BUTTERFLY_RANK3("vmls.f32", "vmla.f32")
             : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
               [blocks] "+r" (blocks)
-            : [XFFT_A] "r" (X_FFT_A)
+            : [XFFT_A] "r" (&XFFT_A[0])
             : "cc", "memory",
               "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
-        )
+        );
     }
 
 }
