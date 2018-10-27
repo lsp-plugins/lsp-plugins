@@ -14,7 +14,7 @@
 
 namespace neon_d32
 {
-    static void scramble_direct(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
+    void scramble_direct(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
     {
         if ((dst_re == src_re) || (dst_im == src_im))
         {
@@ -28,7 +28,6 @@ namespace neon_d32
             ARCH_ARM_ASM(
                 // Do bit-reverse shuffle
                 __ASM_EMIT("rsb         %[rrank], %[rrank], $32")           // rrank = 32 - rank
-                __ASM_EMIT("push        {%[src_re], %[src_im]}")
                 __ASM_EMIT("mov         %[i], $1")                          // i = 1
 
                 __ASM_EMIT("1:")
@@ -53,7 +52,6 @@ namespace neon_d32
                 __ASM_EMIT("cmp         %[i], %[count]")                    // i <=> count
                 __ASM_EMIT("blo         1b")
 
-                __ASM_EMIT("pop         {%[src_re], %[src_im]}")
                 __ASM_EMIT("eor         %[i], %[i]")
 
                 // Perform x8 butterflies
@@ -96,11 +94,12 @@ namespace neon_d32
                 __ASM_EMIT("bne         3b")
 
 
-                : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
+                : [src_re] "+r" (src_re), [src_im] "+r" (src_im)
+                  [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
                   [d_re] "=&r" (d_re), [d_im] "=&r" (d_im),
                   [rrank] "+r" (rrank), [i] "=&r" (i), [j] "=&r" (j),
                   [count] "+r" (count)
-                : [src_re] "r" (src_re), [src_im] "r" (src_im)
+                :
                 : "cc", "memory",
                   "q0", "q1", "q2", "q3", "q4", "q5"
             );
