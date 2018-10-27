@@ -33,14 +33,14 @@ namespace neon_d32
         __ASM_EMIT(op2 "        q14, q10, q1")                  /* q14  = wr1 * bi1 -+ wi1 * br1 = ci1 */ \
         __ASM_EMIT(op2 "        q15, q11, q3")                  /* q15  = wr1 * bi1 -+ wi2 * br2 = ci2 */ \
         /* Apply butterfly */ \
-        __ASM_EMIT("vadd.f32    q0, q12")                       /* q0   = ar1 + cr1 */ \
-        __ASM_EMIT("vadd.f32    q2, q13")                       /* q2   = ar2 + cr2 */ \
-        __ASM_EMIT("vsub.f32    q1, q12")                       /* q1   = ar1 - cr1 */ \
-        __ASM_EMIT("vsub.f32    q3, q13")                       /* q3   = ar2 - cr2 */ \
-        __ASM_EMIT("vadd.f32    q4, q14")                       /* q4   = ai1 + ci1 */ \
-        __ASM_EMIT("vadd.f32    q6, q15")                       /* q6   = ai2 + ci2 */ \
-        __ASM_EMIT("vsub.f32    q5, q14")                       /* q5   = ai1 - ci1 */ \
-        __ASM_EMIT("vsub.f32    q7, q15")                       /* q7   = ai2 - ci2 */ \
+        __ASM_EMIT("vsub.f32    q1, q0, q12")                   /* q1   = ar1 - cr1 */ \
+        __ASM_EMIT("vsub.f32    q3, q2, q13")                   /* q3   = ar2 - cr2 */ \
+        __ASM_EMIT("vsub.f32    q5, q4, q14")                   /* q5   = ai1 - ci1 */ \
+        __ASM_EMIT("vsub.f32    q7, q6, q15")                   /* q7   = ai2 - ci2 */ \
+        __ASM_EMIT("vadd.f32    q0, q0, q12")                   /* q0   = ar1 + cr1 */ \
+        __ASM_EMIT("vadd.f32    q2, q2, q13")                   /* q2   = ar2 + cr2 */ \
+        __ASM_EMIT("vadd.f32    q4, q4, q14")                   /* q4   = ai1 + ci1 */ \
+        __ASM_EMIT("vadd.f32    q6, q6, q15")                   /* q6   = ai2 + ci2 */ \
         __ASM_EMIT("vstm        %[dst_re]!, {q0-q3}") \
         __ASM_EMIT("vstm        %[dst_im]!, {q4-q7}") \
         __ASM_EMIT("subs        %[blocks], $2") \
@@ -57,10 +57,10 @@ namespace neon_d32
         __ASM_EMIT(op1 "        q12, q10, q5")                  /* q12  = wr1 * br1 +- wi1 * bi1 = cr1 */ \
         __ASM_EMIT(op2 "        q14, q10, q1")                  /* q14  = wr1 * bi1 -+ wi1 * br1 = ci1 */ \
         /* Apply butterfly */ \
-        __ASM_EMIT("vadd.f32    q0, q12")                       /* q0   = ar1 + cr1 */ \
-        __ASM_EMIT("vsub.f32    q1, q12")                       /* q1   = ar1 - cr1 */ \
-        __ASM_EMIT("vadd.f32    q4, q14")                       /* q4   = ai1 + ci1 */ \
-        __ASM_EMIT("vsub.f32    q5, q14")                       /* q5   = ai1 - ci1 */ \
+        __ASM_EMIT("vsub.f32    q1, q0, q12")                   /* q1   = ar1 - cr1 */ \
+        __ASM_EMIT("vsub.f32    q5, q4, q14")                   /* q5   = ai1 - ci1 */ \
+        __ASM_EMIT("vadd.f32    q0, q0, q12")                   /* q0   = ar1 + cr1 */ \
+        __ASM_EMIT("vadd.f32    q4, q4, q14")                   /* q4   = ai1 + ci1 */ \
         __ASM_EMIT("vstm        %[dst_re]!, {q0-q1}") \
         __ASM_EMIT("vstm        %[dst_im]!, {q4-q5}") \
         __ASM_EMIT("4:")
