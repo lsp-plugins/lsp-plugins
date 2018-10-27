@@ -48,7 +48,7 @@ namespace neon_d32
         \
         __ASM_EMIT("2:") \
         __ASM_EMIT("adds        %[blocks], $1") \
-        __ASM_EMIT("jl          4f") \
+        __ASM_EMIT("blo         4f") \
         /* 4x butterflies */ \
         __ASM_EMIT("vldm        %[dst_re], {q0-q1}")            /* q0   = ar1, q1 = br1 */ \
         __ASM_EMIT("vldm        %[dst_im], {q4-q5}")            /* q4   = ai1, q5 = bi1 */ \
@@ -62,7 +62,8 @@ namespace neon_d32
         __ASM_EMIT("vadd.f32    q4, q14")                       /* q4   = ai1 + ci1 */ \
         __ASM_EMIT("vsub.f32    q5, q14")                       /* q5   = ai1 - ci1 */ \
         __ASM_EMIT("vstm        %[dst_re]!, {q0-q1}") \
-        __ASM_EMIT("vstm        %[dst_im]!, {q4-q5}")
+        __ASM_EMIT("vstm        %[dst_im]!, {q4-q5}") \
+        __ASM_EMIT("4:")
 
 
     void direct_butterfly_rank3(float *dst_re, float *dst_im, size_t blocks) {
