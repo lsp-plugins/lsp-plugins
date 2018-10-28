@@ -99,7 +99,7 @@ namespace neon_d32
 #undef BUTTERFLY_RANK3
 
 #define BUTTERFLY_RANK4(op1, op2) \
-    __ASM_EMIT("vldm        %[XFFT_A], {q8-q11}")           /* q8   = ar1, q9 = ar2, q10 = ai1, q11 = ai2 */ \
+    __ASM_EMIT("vldm        %[XFFT_A], {q8-q11}")           /* q8   = wr1, q9 = wr2, q10 = wi1, q11 = wi2 */ \
     __ASM_EMIT("1:") \
         /* Initialize sub-loop */ \
         __ASM_EMIT("mov         %[pairs], $1")                  /* pairs = 1 */ \
@@ -114,14 +114,14 @@ namespace neon_d32
         __ASM_EMIT("vld1.32     {q4-q5}, [%[b_re]]")            /* q4   = br1, q5 = br2 */ \
         __ASM_EMIT("vld1.32     {q6-q7}, [%[b_im]]")            /* q6   = bi1, q7 = bi2 */ \
         /* Calc cr and ci */ \
-        __ASM_EMIT("vmul.f32    q12, q8, q4")                   /* q12  = ar1 * br1 */ \
-        __ASM_EMIT("vmul.f32    q13, q9, q5")                   /* q13  = ar2 * br2 */ \
-        __ASM_EMIT("vmul.f32    q14, q8, q6")                   /* q14  = ar1 * bi1 */ \
-        __ASM_EMIT("vmul.f32    q15, q9, q7")                   /* q15  = ar2 * bi2 */ \
-        __ASM_EMIT(op1 "        q12, q10, q6")                  /* q12  = ar1 * br1 +- ai1 * bi1 = cr1 */ \
-        __ASM_EMIT(op1 "        q13, q11, q7")                  /* q13  = ar2 * br2 +- ai2 * bi2 = cr2 */ \
-        __ASM_EMIT(op2 "        q14, q10, q4")                  /* q14  = ar1 * bi1 -+ ai1 * br1 = ci1 */ \
-        __ASM_EMIT(op2 "        q15, q11, q5")                  /* q15  = ar1 * bi1 -+ ai2 * br2 = ci2 */ \
+        __ASM_EMIT("vmul.f32    q12, q8, q4")                   /* q12  = wr1 * br1 */ \
+        __ASM_EMIT("vmul.f32    q13, q9, q5")                   /* q13  = wr2 * br2 */ \
+        __ASM_EMIT("vmul.f32    q14, q8, q6")                   /* q14  = wr1 * bi1 */ \
+        __ASM_EMIT("vmul.f32    q15, q9, q7")                   /* q15  = wr2 * bi2 */ \
+        __ASM_EMIT(op1 "        q12, q10, q6")                  /* q12  = wr1 * br1 +- wi1 * bi1 = cr1 */ \
+        __ASM_EMIT(op1 "        q13, q11, q7")                  /* q13  = wr2 * br2 +- wi2 * bi2 = cr2 */ \
+        __ASM_EMIT(op2 "        q14, q10, q4")                  /* q14  = wr1 * bi1 -+ wi1 * br1 = ci1 */ \
+        __ASM_EMIT(op2 "        q15, q11, q5")                  /* q15  = wr1 * bi1 -+ wi2 * br2 = ci2 */ \
         /* Apply butterfly */ \
         __ASM_EMIT("vsub.f32    q4, q0, q12")                   /* q4   = ar1 - cr1 */ \
         __ASM_EMIT("vsub.f32    q5, q1, q13")                   /* q5   = ar2 - cr2 */ \
@@ -138,19 +138,19 @@ namespace neon_d32
         __ASM_EMIT("subs        %[pairs], $2") \
         __ASM_EMIT("beq         4f") \
         /* Prepare next loop: rotate angle */ \
-        __ASM_EMIT("vld1.32     {q0-q1}, [%[XFFT_W]]")          /* q0   = wr, q1 = wi */ \
-        __ASM_EMIT("vmul.f32    q12, q8, q0")                   /* q12  = ar1 * wr */ \
-        __ASM_EMIT("vmul.f32    q13, q8, q1")                   /* q13  = ar1 * wi */ \
-        __ASM_EMIT("vmul.f32    q14, q9, q0")                   /* q14  = ar2 * wr */ \
-        __ASM_EMIT("vmul.f32    q15, q9, q1")                   /* q15  = ar2 * wi */ \
-        __ASM_EMIT("vmul.f32    q8, q8, q1")                    /* q8   = ar1 * wi */ \
-        __ASM_EMIT("vmul.f32    q9, q9, q1")                    /* q9   = ar2 * wi */ \
-        __ASM_EMIT("vmul.f32    q10, q10, q0")                  /* q10  = ai1 * wr */ \
-        __ASM_EMIT("vmul.f32    q11, q11, q0")                  /* q11  = ai2 * wr */ \
-        __ASM_EMIT("vsub.f32    q8, q12, q8")                   /* q8   = ar1*wr - ar1*wi */ \
-        __ASM_EMIT("vsub.f32    q9, q14, q9")                   /* q9   = ar2*wr - ar2*wi */ \
-        __ASM_EMIT("vadd.f32    q10, q13, q10")                 /* q10  = ar1*wi + ai1*wr */ \
-        __ASM_EMIT("vadd.f32    q11, q15, q11")                 /* q11  = qr2*wi + ai2*wr */ \
+        __ASM_EMIT("vld1.32     {q0-q1}, [%[XFFT_W]]")          /* q0   = dr, q1 = di */ \
+        __ASM_EMIT("vmul.f32    q12, q8, q1")                   /* q12  = wr1 * di */ \
+        __ASM_EMIT("vmul.f32    q13, q9, q1")                   /* q13  = wr2 * di */ \
+        __ASM_EMIT("vmul.f32    q14, q10, q1")                  /* q14  = wi1 * di */ \
+        __ASM_EMIT("vmul.f32    q15, q11, q1")                  /* q15  = wi2 * di */ \
+        __ASM_EMIT("vmul.f32    q8, q8, q0")                    /* q8   = wr1 * dr */ \
+        __ASM_EMIT("vmul.f32    q9, q9, q0")                    /* q9   = wr2 * dr */ \
+        __ASM_EMIT("vmul.f32    q10, q10, q0")                  /* q10  = wi1 * dr */ \
+        __ASM_EMIT("vmul.f32    q11, q11, q0")                  /* q11  = wi2 * dr */ \
+        __ASM_EMIT("vsub.f32    q8, q8, q14")                   /* q8   = wr1*dr - wi1*di */ \
+        __ASM_EMIT("vsub.f32    q9, q9, q15")                   /* q9   = wr2*dr - wi2*di */ \
+        __ASM_EMIT("vadd.f32    q10, q10, q12")                 /* q10  = wi1*dr + wr1*di */ \
+        __ASM_EMIT("vadd.f32    q11, q11, q13")                 /* q11  = wi2*dr + wr2*di */ \
         __ASM_EMIT("b           3b") \
     __ASM_EMIT("4:") \
     __ASM_EMIT("mov         %[a_re], %[b_re]") \
@@ -165,13 +165,13 @@ namespace neon_d32
             const float *xfft_dw = &XFFT_DW[rank << 3];
             float *b_re, *b_im;
             size_t pairs;
-
-            printf("rank=%d, iw_re={%.6f, %.6f, %.6f, %.6f}, iw_im={%.6f, %.6f, %.6f, %.6f}, dw={%.6f, %.6f}\n",
-                    int(rank),
-                    xfft_a[0], xfft_a[1], xfft_a[2], xfft_a[3],
-                    xfft_a[8], xfft_a[9], xfft_a[10], xfft_a[11],
-                    xfft_dw[0], xfft_dw[4]
-            );
+//
+//            printf("rank=%d, iw_re={%.6f, %.6f, %.6f, %.6f}, iw_im={%.6f, %.6f, %.6f, %.6f}, dw={%.6f, %.6f}\n",
+//                    int(rank),
+//                    xfft_a[0], xfft_a[1], xfft_a[2], xfft_a[3],
+//                    xfft_a[8], xfft_a[9], xfft_a[10], xfft_a[11],
+//                    xfft_dw[0], xfft_dw[4]
+//            );
         )
 
         ARCH_ARM_ASM(
@@ -200,7 +200,7 @@ namespace neon_d32
             BUTTERFLY_RANK4("vmls.f32", "vmla.f32")
             : [a_re] "+r" (dst_re), [a_im] "+r" (dst_im),
               [b_re] "=&r" (b_re), [b_im] "=&r" (b_im),
-              [blocks] "+r" (blocks), [pairs] "=&r" (pairs),
+              [blocks] "+r" (blocks), [pairs] "=&r" (pairs)
             : [XFFT_A] "r" (xfft_a), [XFFT_W] "r" (xfft_dw),
               [rank] "r" (rank)
             : "cc", "memory",
