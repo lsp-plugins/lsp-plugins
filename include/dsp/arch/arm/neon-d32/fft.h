@@ -67,6 +67,9 @@ namespace neon_d32
         // Scramble data
         scramble_direct(dst_re, dst_im, src_re, src_im, rank);
         direct_butterfly_rank3(dst_re, dst_im, 1 << (rank-3));
+
+        for (size_t i=4; i <= rank; ++i)
+            direct_butterfly_rank4p(dst_re, dst_im, i, 1 << (rank - i));
     }
 }
 
