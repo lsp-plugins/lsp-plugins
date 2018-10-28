@@ -9,7 +9,7 @@
 #include <test/mtest.h>
 #include <test/FloatBuffer.h>
 
-#define RANK        4
+#define RANK        5
 #define BUF_SIZE    (1 << RANK)
 
 static const float XFFT_DW[] __lsp_aligned16 =
@@ -164,6 +164,14 @@ static void direct_fft(float *dst_re, float *dst_im, const float *src_re, const 
 
         for (size_t p=0; p<items; p += bs)
         {
+            printf("rank=%d, iw_re={%.6f, %.6f, %.6f, %.6f}, iw_im={%.6f, %.6f, %.6f, %.6f}, dw={%.6f, %.6f}\n",
+                    int(rank),
+                    iw_re[0], iw_re[1], iw_re[2], iw_re[3],
+                    iw_im[0], iw_im[1], iw_im[2], iw_im[3],
+                    dw[0], dw[1]
+            );
+
+
             // Set initial values of pointers
             float *a_re         = &dst_re[p];
             float *a_im         = &dst_im[p];
