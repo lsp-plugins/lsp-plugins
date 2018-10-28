@@ -68,10 +68,10 @@ namespace neon_d32
 
 
     void direct_butterfly_rank3(float *dst_re, float *dst_im, size_t blocks) {
-        printf("rank=%d, iw_re={%.6f, %.6f, %.6f, %.6f}\n",
-                3,
-                XFFT_A[0], XFFT_A[1], XFFT_A[2], XFFT_A[3]
-        );
+//        printf("rank=%d, iw_re={%.6f, %.6f, %.6f, %.6f}\n",
+//                3,
+//                XFFT_A[0], XFFT_A[1], XFFT_A[2], XFFT_A[3]
+//        );
 
         ARCH_ARM_ASM(
             BUTTERFLY_RANK3("vmla.f32", "vmls.f32")

@@ -29,7 +29,7 @@ IF_ARCH_X86(
 )
 
 IF_ARCH_ARM(
-    namespace sse
+    namespace neon_d32
     {
         void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
 //        void conv_direct_fft(float *dst, const float *src, size_t rank);
