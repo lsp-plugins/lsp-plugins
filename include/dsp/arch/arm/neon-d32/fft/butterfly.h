@@ -134,8 +134,8 @@ namespace neon_d32
         __ASM_EMIT("vadd.f32    q2, q2, q14")                   /* q2   = ai1 + ci1 */ \
         __ASM_EMIT("vst1.32     {q0-q1}, [%[a_re]]!") \
         __ASM_EMIT("vadd.f32    q3, q3, q15")                   /* q3   = ai2 + ci2 */ \
-        __ASM_EMIT("vst1.32     {q2-q3}, [%[a_im]]!") \
         __ASM_EMIT("subs        %[pairs], $2") \
+        __ASM_EMIT("vst1.32     {q2-q3}, [%[a_im]]!") \
         __ASM_EMIT("beq         4f") \
         /* Prepare next loop: rotate angle */ \
         __ASM_EMIT("vld1.32     {q0-q1}, [%[XFFT_W]]")          /* q0   = dr, q1 = di */ \
