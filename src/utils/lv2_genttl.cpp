@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <core/types.h>
 #include <core/lib.h>
 
 #include <metadata/metadata.h>

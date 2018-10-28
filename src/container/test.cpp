@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <mcheck.h>
 
+#include <core/types.h>
 #include <dsp/dsp.h>
 #include <test/ptest.h>
 #include <test/utest.h>

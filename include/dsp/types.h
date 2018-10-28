@@ -14,10 +14,6 @@
 #include <string.h>
 #include <stdint.h>
 
-#ifdef __linux__
-    #include <linux/limits.h>
-#endif /* __linux__ */
-
 /*
     ARM-predefined macros on Raspberry Pi
 
@@ -142,7 +138,7 @@
     #define PLATFORM_LINUX
 #endif /* __linux__ */
 
-#if defined(__bsd__) || defined(__bsd) || defined(__FreeBSD__)
+#if defined(__bsd__) || defined(__bsd) || defined(__FreeBSD__) || defined(freebsd) || defined(openbsd) || defined(bsdi) || defined(__darwin__)
     #define PLATFORM_BSD
 #endif /* __bsd__ */
 
@@ -346,5 +342,13 @@ __IF_32( typedef        uint32_t            umword_t );
 __IF_32( typedef        int32_t             smword_t );
 __IF_64( typedef        uint64_t            umword_t );
 __IF_64( typedef        int64_t             smword_t );
+
+#ifdef PLATFORM_LINUX
+    #include <linux/limits.h>
+#endif /* __linux__ */
+
+#ifdef PLATFORM_BSD
+    #include <sys/syslimits.h>
+#endif /* __bsd__ */
 
 #endif /* DSP_TYPES_H_ */
