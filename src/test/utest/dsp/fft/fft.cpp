@@ -37,6 +37,18 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace sse
+    {
+        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+//        void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+//        void packed_direct_fft(float *dst, const float *src, size_t rank);
+//        void packed_reverse_fft(float *dst, const float *src, size_t rank);
+//        void conv_direct_fft(float *dst, const float *src, size_t rank);
+//        void conv_reverse_fft(float *dst, const float *src, size_t rank);
+    }
+)
+
 typedef void (* fft_t)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
 typedef void (* packed_fft_t)(float *dst, const float *src, size_t rank);
 
@@ -143,5 +155,11 @@ UTEST_BEGIN("dsp.fft", fft)
         IF_ARCH_X86(call("sse::packed_direct_fft", 16, native::packed_direct_fft, sse::packed_direct_fft));
         IF_ARCH_X86(call("sse::packed_reverse_fft", 16, native::packed_reverse_fft, sse::packed_reverse_fft));
         IF_ARCH_X86(call("sse::conv_direct_fft", 16, native::conv_direct_fft, sse::conv_direct_fft));
+
+        IF_ARCH_ARM(call("neon_d32::direct_fft", 16, native::direct_fft, neon_d32::direct_fft));
+//        IF_ARCH_ARM(call("neon_d32::reverse_fft", 16, native::reverse_fft, neon_d32::reverse_fft));
+//        IF_ARCH_ARM(call("neon_d32::packed_direct_fft", 16, native::packed_direct_fft, neon_d32::packed_direct_fft));
+//        IF_ARCH_ARM(call("neon_d32::packed_reverse_fft", 16, native::packed_reverse_fft, neon_d32::packed_reverse_fft));
+//        IF_ARCH_ARM(call("neon_d32::conv_direct_fft", 16, native::conv_direct_fft, neon_d32::conv_direct_fft));
     }
 UTEST_END;

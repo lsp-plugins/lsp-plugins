@@ -99,10 +99,10 @@ namespace neon_d32
 #undef BUTTERFLY_RANK3
 
 #define BUTTERFLY_RANK4(op1, op2) \
-    __ASM_EMIT("vldm        %[XFFT_A], {q8-q11}")           /* q8   = wr1, q9 = wr2, q10 = wi1, q11 = wi2 */ \
     __ASM_EMIT("1:") \
         /* Initialize sub-loop */ \
         __ASM_EMIT("mov         %[pairs], $1")                  /* pairs = 1 */ \
+        __ASM_EMIT("vldm        %[XFFT_A], {q8-q11}")           /* q8   = wr1, q9 = wr2, q10 = wi1, q11 = wi2 */ \
         __ASM_EMIT("lsl         %[pairs], %[pairs], %[rank]")   /* pairs = 1 << rank */ \
         __ASM_EMIT("add         %[b_re], %[a_re], %[pairs], LSL $4")    /* b_re = &a_re[pairs*8] */ \
         __ASM_EMIT("add         %[b_im], %[a_im], %[pairs], LSL $4")    /* b_im = &a_im[pairs*8] */ \
