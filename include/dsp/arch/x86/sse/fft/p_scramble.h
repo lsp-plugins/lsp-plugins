@@ -10,7 +10,7 @@
 static inline void FFT_SCRAMBLE_SELF_DIRECT_NAME(float *dst, const float *src, size_t rank)
 {
     // Calculate number of items
-    size_t items    = (1 << rank);
+    size_t items    = (1 << rank) - 1;
 
     move(dst, src, items);
     move(dst, src, items);
@@ -111,7 +111,7 @@ static inline void FFT_SCRAMBLE_SELF_DIRECT_NAME(float *dst, const float *src, s
 static inline void FFT_SCRAMBLE_SELF_REVERSE_NAME(float *dst, const float *src, size_t rank)
 {
     // Calculate number of items
-    size_t items    = (1 << rank);
+    size_t items    = (1 << rank) - 1;
 
     move(dst, src, items);
     move(dst, src, items);

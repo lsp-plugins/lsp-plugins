@@ -69,6 +69,8 @@ UTEST_BEGIN("dsp.fft", fft)
                 FloatBuffer dst2_re(dst1_re);
                 FloatBuffer dst2_im(dst1_im);
 
+                printf("Testing '%s' for rank=%d, mask=0x%x...\n", label, int(rank), int(mask));
+
                 func1(dst1_re, dst1_im, src_re, src_im, rank);
                 func2(dst2_re, dst2_im, src_re, src_im, rank);
 
@@ -121,6 +123,8 @@ UTEST_BEGIN("dsp.fft", fft)
                 FloatBuffer src(count, align, mask & 0x01);
                 FloatBuffer dst1(count, align, mask & 0x02);
                 FloatBuffer dst2(dst1);
+
+                printf("Testing '%s' for rank=%d, mask=0x%x...\n", label, int(rank), int(mask));
 
                 func1(dst1, src, rank);
                 func2(dst2, src, rank);
