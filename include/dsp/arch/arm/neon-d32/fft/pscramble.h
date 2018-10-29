@@ -14,7 +14,7 @@
 
 namespace neon_d32
 {
-    void pscramble_direct(float *dst, const float *src, size_t rank)
+    void packed_scramble_direct(float *dst, const float *src, size_t rank)
     {
         if (dst == src)
         {

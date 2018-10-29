@@ -16,6 +16,7 @@
 #include <dsp/arch/arm/neon-d32/fft/scramble.h>
 #include <dsp/arch/arm/neon-d32/fft/pscramble.h>
 #include <dsp/arch/arm/neon-d32/fft/butterfly.h>
+#include <dsp/arch/arm/neon-d32/fft/pbutterfly.h>
 
 namespace neon_d32
 {
@@ -175,7 +176,8 @@ namespace neon_d32
             return;
         }
 
-        pscramble_direct(dst, src, rank);
+        packed_scramble_direct(dst, src, rank);
+        packed_direct_butterfly_rank3(dst, 1 << (rank-3));
     }
 }
 
