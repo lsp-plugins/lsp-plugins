@@ -171,7 +171,7 @@ namespace neon_d32
         )
 
         ARCH_ARM_ASM(
-            BUTTERFLY_RANK4("vmla.f32", "vmls.f32")
+            PBUTTERFLY_RANK4("vmla.f32", "vmls.f32")
             : [a] "+r" (dst), [b] "=&r" (b),
               [blocks] "+r" (blocks), [pairs] "=&r" (pairs)
             : [XFFT_A] "r" (xfft_a), [XFFT_W] "r" (xfft_dw),
@@ -182,7 +182,7 @@ namespace neon_d32
         );
     }
 
-    void packed_reverse_butterfly_rank4p(float *dst_re, float *dst_im, size_t rank, size_t blocks) {
+    void packed_reverse_butterfly_rank4p(float *dst, size_t rank, size_t blocks) {
         IF_ARCH_ARM(
             rank -= 3;
             const float *xfft_a = &XFFT_A[rank << 4];
@@ -192,7 +192,7 @@ namespace neon_d32
         )
 
         ARCH_ARM_ASM(
-            BUTTERFLY_RANK4("vmls.f32", "vmla.f32")
+            PBUTTERFLY_RANK4("vmls.f32", "vmla.f32")
             : [a] "+r" (dst), [b] "=&r" (b),
               [blocks] "+r" (blocks), [pairs] "=&r" (pairs)
             : [XFFT_A] "r" (xfft_a), [XFFT_W] "r" (xfft_dw),
