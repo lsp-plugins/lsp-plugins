@@ -28,6 +28,16 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+//        void conv_direct_fft(float *dst, const float *src, size_t rank);
+//        void packed_direct_fft(float *dst, const float *src, size_t rank);
+    }
+)
+
+
 typedef void (* direct_fft_t) (float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
 typedef void (* conv_direct_fft_t) (float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
 typedef void (* packed_direct_fft_t) (float *dst, const float *src, size_t rank);
@@ -83,13 +93,17 @@ PTEST_BEGIN("dsp.fft", fft, 30, 1000)
 
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
-            call("native_direct_fft", fft_re, fft_im, sig_re, sig_im, i, native::direct_fft);
-            call("native_conv_direct_fft", fft_re, sig_re, i, native::conv_direct_fft);
-            call("native_packed_direct_fft", fft_re, sig_re, i, native::packed_direct_fft);
+            call("native::direct_fft", fft_re, fft_im, sig_re, sig_im, i, native::direct_fft);
+            call("native::conv_direct_fft", fft_re, sig_re, i, native::conv_direct_fft);
+            call("native::packed_direct_fft", fft_re, sig_re, i, native::packed_direct_fft);
 
-            IF_ARCH_X86(call("sse_direct_fft", fft_re, fft_im, sig_re, sig_im, i, sse::direct_fft));
-            IF_ARCH_X86(call("sse_conv_direct_fft", fft_re, sig_re, i, sse::conv_direct_fft));
-            IF_ARCH_X86(call("sse_packed_direct_fft", fft_re, sig_re, i, sse::packed_direct_fft));
+            IF_ARCH_X86(call("sse::direct_fft", fft_re, fft_im, sig_re, sig_im, i, sse::direct_fft));
+            IF_ARCH_X86(call("sse::conv_direct_fft", fft_re, sig_re, i, sse::conv_direct_fft));
+            IF_ARCH_X86(call("sse::packed_direct_fft", fft_re, sig_re, i, sse::packed_direct_fft));
+
+            IF_ARCH_ARM(call("neon_d32::direct_fft", fft_re, fft_im, sig_re, sig_im, i, neon_d32::direct_fft));
+//            IF_ARCH_ARM(call("neon_d32::conv_direct_fft", fft_re, sig_re, i, neon_d32::conv_direct_fft));
+//            IF_ARCH_ARM(call("neon_d32::packed_direct_fft", fft_re, sig_re, i, neon_d32::packed_direct_fft));
 
             PTEST_SEPARATOR;
         }

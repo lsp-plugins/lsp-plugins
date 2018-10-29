@@ -149,7 +149,8 @@ namespace dsp
     void    (* reverse_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
     void    (* packed_reverse_fft)(float *dst, const float *src, size_t rank) = NULL;
 //        void    (* join_fft)(float *dst_re, float *dst_im, float *src_re, float *src_im, size_t rank) = NULL;
-    void    (* normalize_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
+    void    (* normalize_fft3)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
+    void    (* normalize_fft2)(float *re, float *im, size_t rank) = NULL;
     void    (* center_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
     void    (* combine_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
     void    (* packed_combine_fft)(float *dst, const float *src, size_t rank) = NULL;
