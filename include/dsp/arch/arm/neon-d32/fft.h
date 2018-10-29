@@ -127,6 +127,53 @@ namespace neon_d32
 
         dsp::normalize_fft2(dst_re, dst_im, rank);
     }
+
+    void packed_direct_fft(float *dst, const float *src, size_t rank)
+    {
+        // Check bounds
+        if (rank <= 2)
+        {
+            if (rank == 2)
+            {
+                float s0_re     = dst[0] + dst[2];
+                float s1_re     = dst[0] - dst[2];
+                float s0_im     = dst[1] + dst[3];
+                float s1_im     = dst[1] - dst[3];
+
+                float s2_re     = dst[4] + dst[6];
+                float s3_re     = dst[4] - dst[6];
+                float s2_im     = dst[5] + dst[7];
+                float s3_im     = dst[5] - dst[7];
+
+                dst[0]          = s0_re + s2_re;
+                dst[1]          = s0_im + s2_im;
+                dst[2]          = s1_re + s3_im;
+                dst[3]          = s1_im - s3_re;
+
+                dst[4]          = s0_re - s2_re;
+                dst[5]          = s0_im - s2_im;
+                dst[6]          = s1_re - s3_im;
+                dst[7]          = s1_im + s3_re;
+            }
+            else if (rank == 1)
+            {
+                // s0' = s0 + s1
+                // s1' = s0 - s1
+                float s1_re     = src[2];
+                float s1_im     = src[3];
+                dst[2]          = src[0] - s1_re;
+                dst[3]          = src[1] - s1_im;
+                dst[0]          = src[0] + s1_re;
+                dst[1]          = src[1] + s1_im;
+            }
+            else
+            {
+                dst[0]          = src[0];
+                dst[1]          = src[1];
+            }
+            return;
+        }
+    }
 }
 
 #endif /* DSP_ARCH_ARM_NEON_D32_FFT_H_ */
