@@ -93,8 +93,7 @@ namespace neon_d32
                 __ASM_EMIT("bne         3b")
 
 
-                : [src] "+r" (src), [dst] "+r" (dst),
-                  [dp] "=&r" (dp)
+                : [src] "+r" (src), [dst] "+r" (dst), [dp] "=&r" (dp),
                   [rrank] "+r" (rrank), [i] "=&r" (i), [j] "=&r" (j),
                   [count] "+r" (count)
                 :
