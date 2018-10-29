@@ -251,7 +251,7 @@ static void packed_direct_fft(float *dst, const float *src, size_t rank)
 IF_ARCH_ARM(
     namespace neon_d32
     {
-        void packed_direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void packed_direct_fft(float *dst, const float *src, size_t rank);
     }
 )
 
@@ -259,10 +259,10 @@ MTEST_BEGIN("dsp.fft", pfft)
 
     MTEST_MAIN
     {
-        FloatBuffer src1(BUF_SIZE, 64);
-        FloatBuffer src2(BUF_SIZE, 64);
-        FloatBuffer dst1(BUF_SIZE, 64);
-        FloatBuffer dst2(BUF_SIZE, 64);
+        FloatBuffer src1(BUF_SIZE*2, 64);
+        FloatBuffer src2(BUF_SIZE*2, 64);
+        FloatBuffer dst1(BUF_SIZE*2, 64);
+        FloatBuffer dst2(BUF_SIZE*2, 64);
 
         // Prepare data
         for (size_t i=0; i<BUF_SIZE; ++i)

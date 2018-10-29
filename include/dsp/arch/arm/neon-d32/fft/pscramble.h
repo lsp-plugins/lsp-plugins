@@ -37,10 +37,10 @@ namespace neon_d32
                 __ASM_EMIT("cmp         %[i], %[j]")                        // i <=> j
                 __ASM_EMIT("bhs         2f")                                // if (i >= j) continue
                 __ASM_EMIT("add         %[dp], %[dst], %[j], LSL $3")       // d_re = &dst[j]
-                __ASM_EMIT("vld1.32     {d0}, [%[src]]")                    // d0 = *src
-                __ASM_EMIT("vld1.32     {d1}, [%[dp]]")                     // d1 = *dp
-                __ASM_EMIT("vst1.32     {d1}, [%[src]]")                    // *(src++) = d1
-                __ASM_EMIT("vst1.32     {d0}, [%[dp]]")                     // *dp = d0
+                __ASM_EMIT("vld1.32     {d0}, [%[src]]")                    // d0   = *src
+                __ASM_EMIT("vld1.32     {d1}, [%[dp]]")                     // d1   = *dp
+                __ASM_EMIT("vst1.32     {d1}, [%[src]]")                    // *src = d1
+                __ASM_EMIT("vst1.32     {d0}, [%[dp]]")                     // *dp  = d0
                 __ASM_EMIT("2:")
                 __ASM_EMIT("add         %[i], $1")                          // i++
                 __ASM_EMIT("cmp         %[i], %[count]")                    // i <=> count
@@ -51,6 +51,7 @@ namespace neon_d32
 
                 // Perform x8 butterflies
                 __ASM_EMIT("3:")
+
                 __ASM_EMIT("vld4.32     {q0-q1}, [%[src]]!")                // q0 = r0 r2 i0 i2, q1 = r1 r3 i1 i3
                 __ASM_EMIT("vld4.32     {q2-q3}, [%[src]]!")                // q2 = r4 r6 i4 i6, q3 = r5 r7 i5 i7
 
@@ -110,7 +111,7 @@ namespace neon_d32
             );
 
             ARCH_ARM_ASM(
-                __ASM_EMIT("eor         %[i], %[i]")                         // i = 0
+                __ASM_EMIT("eor         %[i], %[i]")                        // i = 0
                 __ASM_EMIT("rsb         %[rrank], %[rrank], $32")           // rrank = 32 - rank
 
                 __ASM_EMIT("1:")
@@ -133,7 +134,7 @@ namespace neon_d32
                 __ASM_EMIT("add         %[sr], %[sr], %[regs], LSL $3")     // sr = &src[i + regs*6]
                 __ASM_EMIT("vldm        %[sr], {d3}")                       // q1 = r1 i1 r3 i3
                 __ASM_EMIT("add         %[sr], %[sr], %[regs], LSL $3")     // sr = &src[i + regs*7]
-                __ASM_EMIT("vldm        %[sr], {d6}")                       // q3 = r5 i5 r7 i7
+                __ASM_EMIT("vldm        %[sr], {d7}")                       // q3 = r5 i5 r7 i7
 
                 __ASM_EMIT("vtrn.32     d0, d1")                            // q0 = r0 r2 i0 i2
                 __ASM_EMIT("vtrn.32     d2, d3")                            // q1 = r1 r3 i1 i3
