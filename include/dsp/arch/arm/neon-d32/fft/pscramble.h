@@ -59,38 +59,37 @@ namespace neon_d32
                 __ASM_EMIT("vsub.f32    q0, q0, q1")                        // q0 = r0-r1 r2-r3 i0-i1 i2-i3 = r1' r3' i1' i3'
                 __ASM_EMIT("vsub.f32    q1, q2, q3")                        // q1 = r4-r5 r6-r7 i4-i5 i6-i7 = r5' r7' i5' i7'
 
-
                 // q4 = r0' r2' i0' i2'
                 // q5 = r4' r6' i4' i6'
                 // q0 = r1' r3' i1' i3'
                 // q1 = r5' r7' i5' i7'
                 __ASM_EMIT("vtrn.32     q4, q5")                            // q4 = r0' r4' i0' i4', q5 = r2' r6' i2' i6'
                 __ASM_EMIT("vtrn.32     q0, q1")                            // q0 = r1' r5' i1' i5', q1 = r3' r7' i3' i7'
-                // TODO:
-                __ASM_EMIT("vuzp.32     q4, q0")                            // q4 = r0' r4' r1' r5', q0 = r2' r6' r3' r7'
-                __ASM_EMIT("vuzp.32     q5, q1")                            // q5 = i0' i4' i1' i5', q1 = i2' i6' i3' i7'
-                __ASM_EMIT("vswp        d1, d3")                            // q0 = r2' r6' i3' i7', q1 = i2' i6' r3' r7'
-                __ASM_EMIT("vadd.f32    q2, q4, q0")                        // q2 = r0'+r2' r4'+r6' r1'+i3' r5'+i7' = r0" r4" r1" r5"
-                __ASM_EMIT("vsub.f32    q3, q4, q0")                        // q3 = r0'-r2' r4'-r6' r1'-i3' r5'-i7' = r2" r6" r3" r7"
-                __ASM_EMIT("vadd.f32    q0, q5, q1")                        // q0 = i0'+i2' i4'+i6' i1'+r3' i5'+r7' = i0" i4" i3" i7"
-                __ASM_EMIT("vsub.f32    q1, q5, q1")                        // q1 = i0'-i2' i4'-i6' i1'-r3' i5'-r7' = i2" i6" i1" i5"
+                __ASM_EMIT("vext.32     q6, q1, q1, $2")                    // q6 = i3' i7' r3' r7'
 
-                // q0 = i0" i4" i3" i7"
-                // q1 = i2" i6" i1" i5"
-                // q2 = r0" r4" r1" r5"
-                // q3 = r2" r6" r3" r7"
-                __ASM_EMIT("vuzp.32     q2, q3")                            // q2 = r0" r1" r2" r3", q3 = r4" r5" r6" r7"
-                __ASM_EMIT("vuzp.32     q0, q1")                            // q0 = i0" i3" i2" i1", q1 = i4" i7" i6" i5"
-                __ASM_EMIT("vmov        s16, s1")
-                __ASM_EMIT("vmov        s17, s5")
-                __ASM_EMIT("vmov        s1, s3")
-                __ASM_EMIT("vmov        s5, s7")
-                __ASM_EMIT("vmov        s3, s16")                           // q0 = i0" i1" i2" i3"
-                __ASM_EMIT("vmov        s7, s17")                           // q1 = i4" i5" i6" i7"
+                __ASM_EMIT("vadd.f32    q2, q4, q5")                        // q2 = r0'+r2' r4'+r6' i0'+i2' i4'+i6' = r0" r4" i0" i4"
+                __ASM_EMIT("vsub.f32    q1, q0, q6")                        // q1 = r1'-i3' r5'-i7' i1'-r3' i5'-r7' = r3" r7" i1" i5"
+                __ASM_EMIT("vsub.f32    q3, q4, q5")                        // q3 = r0'-r2' r4'-r6' i0'-i2' i4'-i6' = r2" r6" i2" i6"
+                __ASM_EMIT("vadd.f32    q0, q0, q6")                        // q0 = r1'+i3' r5'+i7' i1'+r3' i5'+r7' = r1" r5" i3" i7"
 
+                // q2 = r0" r4" i0" i4"
+                // q0 = r1" r5" i3" i7"
+                // q3 = r2" r6" i2" i6"
+                // q1 = r3" r7" i1" i5"
+
+                __ASM_EMIT("vtrn.32     q2, q0")                            // q2 = r0" r1" i0" i3", q0 = r4" r5" i4" i7"
+                __ASM_EMIT("vtrn.32     q3, q1")                            // q3 = r2" r3" i2" i1", q1 = r6" r7" i6" i5"
+                __ASM_EMIT("vswp        d5, d6")                            // q2 = r0" r1" r2" r3", q3 = i0" i3" i2" i1"
+                __ASM_EMIT("vswp        d1, d2")                            // q0 = r4" r5" r6" r7", q1 = i4" i7" i6" i5"
+
+                __ASM_EMIT("vrev64.32   q3, q3")                            // q3 = i3" i0" i1" i2"
+                __ASM_EMIT("vrev64.32   q1, q1")                            // q1 = i7" i4" i5" i6"
+                __ASM_EMIT("vext.32     q3, q3, q3, $1")                    // q3 = i0" i1" i2" i3"
+                __ASM_EMIT("vext.32     q1, q1, q1, $1")                    // q3 = i4" i5" i6" i7"
+
+                __ASM_EMIT("vst2.32     {q2-q3}, [%[dst]]!")
                 __ASM_EMIT("subs        %[count], $8")                      // i <=> count
-                __ASM_EMIT("vst1.32     {q2-q3}, [%[dst_re]]!")
-                __ASM_EMIT("vst1.32     {q0-q1}, [%[dst_im]]!")
+                __ASM_EMIT("vst2.32     {q0-q1}, [%[dst]]!")
                 __ASM_EMIT("bne         3b")
 
 
@@ -100,7 +99,7 @@ namespace neon_d32
                   [count] "+r" (count)
                 :
                 : "cc", "memory",
-                  "q0", "q1", "q2", "q3", "q4", "q5"
+                  "q0", "q1", "q2", "q3", "q4", "q5", "q6"
             );
         }
         else
@@ -108,7 +107,7 @@ namespace neon_d32
             IF_ARCH_ARM(
                     size_t i, j, rrank = rank - 3;
                     size_t regs = 1 << rrank;
-                    float *s_re, *s_im;
+                    float *sr;
             );
 
             ARCH_ARM_ASM(
@@ -119,89 +118,77 @@ namespace neon_d32
                 __ASM_EMIT("rbit        %[j], %[i]")                        // j = reverse_bits(i)
                 __ASM_EMIT("lsr         %[j], %[rrank]")                    // j = reverse_bits(i) >> rank
 
-                __ASM_EMIT("add         %[s_re], %[src_re], %[j], LSL $2")  // s_re = &src_re[i]
-                __ASM_EMIT("add         %[s_im], %[src_im], %[j], LSL $2")  // s_re = &src_im[i]
-                __ASM_EMIT("vldm        %[s_re], {s0}")                     // q0 = r0 ? ? ?
-                __ASM_EMIT("vldm        %[s_im], {s8}")                     // q2 = i0 ? ? ?
-                __ASM_EMIT("add         %[s_re], %[s_re], %[regs], LSL $2") // s_re = &src_re[i + regs]
-                __ASM_EMIT("add         %[s_im], %[s_im], %[regs], LSL $2") // s_re = &src_im[i + regs]
-                __ASM_EMIT("vldm        %[s_re], {s2}")                     // q0 = r0 ? r4 ?
-                __ASM_EMIT("vldm        %[s_im], {s10}")                    // q2 = i0 ? i4 ?
-                __ASM_EMIT("add         %[s_re], %[s_re], %[regs], LSL $2") // s_re = &src_re[i + regs*2]
-                __ASM_EMIT("add         %[s_im], %[s_im], %[regs], LSL $2") // s_re = &src_im[i + regs*2]
-                __ASM_EMIT("vldm        %[s_re], {s1}")                     // q0 = r0 r2 r4 ?
-                __ASM_EMIT("vldm        %[s_im], {s9}")                     // q2 = i0 i2 i4 ?
-                __ASM_EMIT("add         %[s_re], %[s_re], %[regs], LSL $2") // s_re = &src_re[i + regs*3]
-                __ASM_EMIT("add         %[s_im], %[s_im], %[regs], LSL $2") // s_re = &src_im[i + regs*3]
-                __ASM_EMIT("vldm        %[s_re], {s3}")                     // q0 = r0 r2 r4 r6
-                __ASM_EMIT("vldm        %[s_im], {s11}")                    // q2 = i0 i2 i4 i6
+                __ASM_EMIT("add         %[sr], %[src], %[j], LSL $3")       // sr = &src[i]
+                __ASM_EMIT("vldm        %[sr], {d0}")                       // q0 = r0 i0 ? ?
+                __ASM_EMIT("add         %[sr], %[sr], %[regs], LSL $3")     // sr = &src[i + regs]
+                __ASM_EMIT("vldm        %[sr], {d4}")                       // q2 = r4 i4 ? ?
+                __ASM_EMIT("add         %[sr], %[sr], %[regs], LSL $3")     // sr = &src[i + regs*2]
+                __ASM_EMIT("vldm        %[sr], {d1}")                       // q0 = r0 i0 r2 i2
+                __ASM_EMIT("add         %[sr], %[sr], %[regs], LSL $3")     // sr = &src[i + regs*3]
+                __ASM_EMIT("vldm        %[sr], {d5}")                       // q2 = r4 i4 r6 i6
 
-                __ASM_EMIT("add         %[s_re], %[s_re], %[regs], LSL $2") // s_re = &src_re[i + regs*4]
-                __ASM_EMIT("add         %[s_im], %[s_im], %[regs], LSL $2") // s_re = &src_im[i + regs*4]
-                __ASM_EMIT("vldm        %[s_re], {s4}")                     // q1 = r1 ? ? ?
-                __ASM_EMIT("vldm        %[s_im], {s12}")                    // q3 = i1 ? ? ?
-                __ASM_EMIT("add         %[s_re], %[s_re], %[regs], LSL $2") // s_re = &src_re[i + regs*5]
-                __ASM_EMIT("add         %[s_im], %[s_im], %[regs], LSL $2") // s_re = &src_im[i + regs*5]
-                __ASM_EMIT("vldm        %[s_re], {s6}")                     // q1 = r1 ? r5 ?
-                __ASM_EMIT("vldm        %[s_im], {s14}")                    // q3 = i1 ? i5 ?
-                __ASM_EMIT("add         %[s_re], %[s_re], %[regs], LSL $2") // s_re = &src_re[i + regs*6]
-                __ASM_EMIT("add         %[s_im], %[s_im], %[regs], LSL $2") // s_re = &src_im[i + regs*6]
-                __ASM_EMIT("vldm        %[s_re], {s5}")                     // q1 = r1 r3 r5 ?
-                __ASM_EMIT("vldm        %[s_im], {s13}")                    // q3 = i1 i3 i5 ?
-                __ASM_EMIT("add         %[s_re], %[s_re], %[regs], LSL $2") // s_re = &src_re[i + regs*7]
-                __ASM_EMIT("add         %[s_im], %[s_im], %[regs], LSL $2") // s_re = &src_im[i + regs*7]
-                __ASM_EMIT("vldm        %[s_re], {s7}")                     // q1 = r1 r3 r5 r7
-                __ASM_EMIT("vldm        %[s_im], {s15}")                    // q3 = i1 i3 i5 i7
+                __ASM_EMIT("add         %[sr], %[sr], %[regs], LSL $3")     // sr = &src[i + regs*4]
+                __ASM_EMIT("vldm        %[sr], {d2}")                       // q1 = r1 i1 ? ?
+                __ASM_EMIT("add         %[sr], %[sr], %[regs], LSL $3")     // sr = &src[i + regs*5]
+                __ASM_EMIT("vldm        %[sr], {d6}")                       // q3 = r5 i5 ? ?
+                __ASM_EMIT("add         %[sr], %[sr], %[regs], LSL $3")     // sr = &src[i + regs*6]
+                __ASM_EMIT("vldm        %[sr], {d3}")                       // q1 = r1 i1 r3 i3
+                __ASM_EMIT("add         %[sr], %[sr], %[regs], LSL $3")     // sr = &src[i + regs*7]
+                __ASM_EMIT("vldm        %[sr], {d6}")                       // q3 = r5 i5 r7 i7
 
-                // q0 = r0 r2 r4 r6
-                // q1 = r1 r3 r5 r7
-                // q2 = i0 i2 i4 i6
-                // q3 = i1 i3 i5 i7
+                __ASM_EMIT("vtrn.32     d0, d1")                            // q0 = r0 r2 i0 i2
+                __ASM_EMIT("vtrn.32     d2, d3")                            // q1 = r1 r3 i1 i3
+                __ASM_EMIT("vtrn.32     d4, d5")                            // q2 = r4 r6 i4 i6
+                __ASM_EMIT("vtrn.32     d6, d7")                            // q3 = r5 r7 i5 i7
+
+                // q0 = r0 r2 i0 i2
+                // q1 = r1 r3 i1 i3
+                // q2 = r4 r6 i4 i6
+                // q3 = r5 r7 i5 i7
                 __ASM_EMIT("add         %[i], $1")
 
-                // Perform x8 butterflies
-                __ASM_EMIT("vadd.f32    q4, q0, q1")                        // q4 = r0+r1 r2+r3 r4+r5 r6+r7 = r0' r2' r4' r6'
-                __ASM_EMIT("vadd.f32    q5, q2, q3")                        // q5 = i0+i1 i2+i3 i4+i5 i6+i7 = i0' i2' i4' i6'
-                __ASM_EMIT("vsub.f32    q0, q0, q1")                        // q0 = r0-r1 r2-r3 r4-r5 r6-r7 = r1' r3' r5' r7'
-                __ASM_EMIT("vsub.f32    q1, q2, q3")                        // q1 = i0-i1 i2-i3 i4-i5 i6-i7 = i1' i3' i5' i7'
+                __ASM_EMIT("vadd.f32    q4, q0, q1")                        // q4 = r0+r1 r2+r3 i0+i1 i2+i3 = r0' r2' i0' i2'
+                __ASM_EMIT("vadd.f32    q5, q2, q3")                        // q5 = r4+r5 r6+r7 i4+i5 i6+i7 = r4' r6' i4' i6'
+                __ASM_EMIT("vsub.f32    q0, q0, q1")                        // q0 = r0-r1 r2-r3 i0-i1 i2-i3 = r1' r3' i1' i3'
+                __ASM_EMIT("vsub.f32    q1, q2, q3")                        // q1 = r4-r5 r6-r7 i4-i5 i6-i7 = r5' r7' i5' i7'
 
-                // q4 = r0' r2' r4' r6'
-                // q0 = r1' r3' r5' r7'
-                // q5 = i0' i2' i4' i6'
-                // q1 = i1' i3' i5' i7'
-                __ASM_EMIT("vuzp.32     q4, q0")                            // q4 = r0' r4' r1' r5', q0 = r2' r6' r3' r7'
-                __ASM_EMIT("vuzp.32     q5, q1")                            // q5 = i0' i4' i1' i5', q1 = i2' i6' i3' i7'
-                __ASM_EMIT("vswp        d1, d3")                            // q0 = r2' r6' i3' i7', q1 = i2' i6' r3' r7'
-                __ASM_EMIT("vadd.f32    q2, q4, q0")                        // q2 = r0'+r2' r4'+r6' r1'+i3' r5'+i7' = r0" r4" r1" r5"
-                __ASM_EMIT("vsub.f32    q3, q4, q0")                        // q3 = r0'-r2' r4'-r6' r1'-i3' r5'-i7' = r2" r6" r3" r7"
-                __ASM_EMIT("vadd.f32    q0, q5, q1")                        // q0 = i0'+i2' i4'+i6' i1'+r3' i5'+r7' = i0" i4" i3" i7"
-                __ASM_EMIT("vsub.f32    q1, q5, q1")                        // q1 = i0'-i2' i4'-i6' i1'-r3' i5'-r7' = i2" i6" i1" i5"
+                // q4 = r0' r2' i0' i2'
+                // q5 = r4' r6' i4' i6'
+                // q0 = r1' r3' i1' i3'
+                // q1 = r5' r7' i5' i7'
+                __ASM_EMIT("vtrn.32     q4, q5")                            // q4 = r0' r4' i0' i4', q5 = r2' r6' i2' i6'
+                __ASM_EMIT("vtrn.32     q0, q1")                            // q0 = r1' r5' i1' i5', q1 = r3' r7' i3' i7'
+                __ASM_EMIT("vext.32     q6, q1, q1, $2")                    // q6 = i3' i7' r3' r7'
 
-                // q0 = i0" i4" i3" i7"
-                // q1 = i2" i6" i1" i5"
-                // q2 = r0" r4" r1" r5"
-                // q3 = r2" r6" r3" r7"
-                __ASM_EMIT("vuzp.32     q2, q3")                            // q2 = r0" r1" r2" r3", q3 = r4" r5" r6" r7"
-                __ASM_EMIT("vuzp.32     q0, q1")                            // q0 = i0" i3" i2" i1", q1 = i4" i7" i6" i5"
-                __ASM_EMIT("vmov        s16, s1")
-                __ASM_EMIT("vmov        s17, s5")
-                __ASM_EMIT("vmov        s1, s3")
-                __ASM_EMIT("vmov        s5, s7")
-                __ASM_EMIT("vmov        s3, s16")                           // q0 = i0" i1" i2" i3"
-                __ASM_EMIT("vmov        s7, s17")                           // q1 = i4" i5" i6" i7"
+                __ASM_EMIT("vadd.f32    q2, q4, q5")                        // q2 = r0'+r2' r4'+r6' i0'+i2' i4'+i6' = r0" r4" i0" i4"
+                __ASM_EMIT("vsub.f32    q1, q0, q6")                        // q1 = r1'-i3' r5'-i7' i1'-r3' i5'-r7' = r3" r7" i1" i5"
+                __ASM_EMIT("vsub.f32    q3, q4, q5")                        // q3 = r0'-r2' r4'-r6' i0'-i2' i4'-i6' = r2" r6" i2" i6"
+                __ASM_EMIT("vadd.f32    q0, q0, q6")                        // q0 = r1'+i3' r5'+i7' i1'+r3' i5'+r7' = r1" r5" i3" i7"
 
+                // q2 = r0" r4" i0" i4"
+                // q0 = r1" r5" i3" i7"
+                // q3 = r2" r6" i2" i6"
+                // q1 = r3" r7" i1" i5"
+                __ASM_EMIT("vtrn.32     q2, q0")                            // q2 = r0" r1" i0" i3", q0 = r4" r5" i4" i7"
+                __ASM_EMIT("vtrn.32     q3, q1")                            // q3 = r2" r3" i2" i1", q1 = r6" r7" i6" i5"
+                __ASM_EMIT("vswp        d5, d6")                            // q2 = r0" r1" r2" r3", q3 = i0" i3" i2" i1"
+                __ASM_EMIT("vswp        d1, d2")                            // q0 = r4" r5" r6" r7", q1 = i4" i7" i6" i5"
+
+                __ASM_EMIT("vrev64.32   q3, q3")                            // q3 = i3" i0" i1" i2"
+                __ASM_EMIT("vrev64.32   q1, q1")                            // q1 = i7" i4" i5" i6"
+                __ASM_EMIT("vext.32     q3, q3, q3, $1")                    // q3 = i0" i1" i2" i3"
+                __ASM_EMIT("vext.32     q1, q1, q1, $1")                    // q3 = i4" i5" i6" i7"
+
+                __ASM_EMIT("vst2.32     {q2-q3}, [%[dst]]!")
                 __ASM_EMIT("cmp         %[i], %[regs]")
-                __ASM_EMIT("vst1.32     {q2-q3}, [%[dst_re]]!")
-                __ASM_EMIT("vst1.32     {q0-q1}, [%[dst_im]]!")
+                __ASM_EMIT("vst2.32     {q0-q1}, [%[dst]]!")
                 __ASM_EMIT("blo         1b")
 
-                : [dst_re] "+r" (dst_re), [dst_im] "+r" (dst_im),
-                  [s_re] "=&r" (s_re), [s_im] "=&r" (s_im),
+                : [dst] "+r" (dst), [sr] "=&r" (sr),
                   [rrank] "+r" (rrank), [i] "=&r" (i), [j] "=&r" (j)
-                : [src_re] "r" (src_re), [src_im] "r" (src_im),
-                  [regs] "r" (regs)
+                : [src] "r" (src), [regs] "r" (regs)
                 : "cc", "memory",
-                  "q0", "q1", "q2", "q3", "q4", "q5"
+                  "q0", "q1", "q2", "q3", "q4", "q5", "q6"
             );
         }
     }

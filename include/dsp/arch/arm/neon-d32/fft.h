@@ -174,6 +174,8 @@ namespace neon_d32
             }
             return;
         }
+
+        pscramble_direct(dst, src, rank);
     }
 }
 
