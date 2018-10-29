@@ -74,12 +74,20 @@ namespace native
         0.0000000000000000f, 0.0000479368996031f, 0.0000958737990960f, 0.0001438106983686f
     };
 
-    void normalize_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
+    void normalize_fft3(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
     {
         rank            = 1 << rank;
         float k         = 1.0f / rank;
         dsp::scale3(dst_re, src_re, k, rank);
         dsp::scale3(dst_im, src_im, k, rank);
+    }
+
+    void normalize_fft2(float *re, float *im, size_t rank)
+    {
+        rank            = 1 << rank;
+        float k         = 1.0f / rank;
+        dsp::scale2(re, k, rank);
+        dsp::scale2(im, k, rank);
     }
 
     static void do_normalize_fft(float *dst_re, float *dst_im, size_t rank)

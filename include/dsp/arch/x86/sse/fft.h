@@ -738,7 +738,7 @@ namespace sse
             }
         }
 
-        dsp::normalize_fft(dst_re, dst_im, dst_re, dst_im, rank);
+        dsp::normalize_fft2(dst_re, dst_im, rank);
     }
 
     void packed_reverse_fft(float *dst, const float *src, size_t rank)

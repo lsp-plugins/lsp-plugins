@@ -203,6 +203,7 @@ namespace neon_d32
         EXPORT1(bilinear_transform_x8);
 
         EXPORT1(direct_fft);
+        EXPORT1(reverse_fft);
     }
 }
 
