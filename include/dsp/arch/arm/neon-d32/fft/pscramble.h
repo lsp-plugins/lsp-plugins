@@ -85,7 +85,7 @@ namespace neon_d32
                 __ASM_EMIT("vrev64.32   q3, q3")                            // q3 = i3" i0" i1" i2"
                 __ASM_EMIT("vrev64.32   q1, q1")                            // q1 = i7" i4" i5" i6"
                 __ASM_EMIT("vext.32     q3, q3, q3, $1")                    // q3 = i0" i1" i2" i3"
-                __ASM_EMIT("vext.32     q1, q1, q1, $1")                    // q3 = i4" i5" i6" i7"
+                __ASM_EMIT("vext.32     q1, q1, q1, $1")                    // q1 = i4" i5" i6" i7"
 
                 __ASM_EMIT("vst2.32     {q2-q3}, [%[dst]]!")
                 __ASM_EMIT("subs        %[count], $8")                      // i <=> count

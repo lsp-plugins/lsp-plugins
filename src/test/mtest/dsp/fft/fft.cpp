@@ -268,7 +268,7 @@ IF_ARCH_ARM(
     }
 )
 
-MTEST_BEGIN("dsp", fft)
+MTEST_BEGIN("dsp.fft", fft)
 
     MTEST_MAIN
     {
