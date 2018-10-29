@@ -18,10 +18,10 @@ namespace neon_d32
         /* 8x butterflies */ \
         /* Calculate complex c = w * b */ \
         __ASM_EMIT("1:") \
-        __ASM_EMIT("vld2.32     {q0-q1}, %[src]!")              /* q0   = ar1, q1 = ai1 */ \
-        __ASM_EMIT("vld2.32     {q2-q3}, %[src]!")              /* q2   = br1, q3 = bi1 */ \
-        __ASM_EMIT("vld2.32     {q4-q5}, %[src]!")              /* q4   = ar2, q5 = ai2 */ \
-        __ASM_EMIT("vld2.32     {q6-q7}, %[src]!")              /* q6   = br2, q7 = bi2 */ \
+        __ASM_EMIT("vld2.32     {q0-q1}, [%[src]]!")            /* q0   = ar1, q1 = ai1 */ \
+        __ASM_EMIT("vld2.32     {q2-q3}, [%[src]]!")            /* q2   = br1, q3 = bi1 */ \
+        __ASM_EMIT("vld2.32     {q4-q5}, [%[src]]!")            /* q4   = ar2, q5 = ai2 */ \
+        __ASM_EMIT("vld2.32     {q6-q7}, [%[src]]!")            /* q6   = br2, q7 = bi2 */ \
         /* Calc cr and ci */ \
         __ASM_EMIT("vmul.f32    q12, q8, q2")                   /* q12  = wr1 * br1 */ \
         __ASM_EMIT("vmul.f32    q13, q9, q6")                   /* q13  = wr2 * br2 */ \
@@ -51,8 +51,8 @@ namespace neon_d32
         __ASM_EMIT("adds        %[blocks], $1") \
         __ASM_EMIT("blo         4f") \
         /* 4x butterflies */ \
-        __ASM_EMIT("vld2.32     {q0-q1}, %[src]!")              /* q0   = ar1, q1 = ai1 */ \
-        __ASM_EMIT("vld2.32     {q2-q3}, %[src]!")              /* q2   = br1, q3 = bi1 */ \
+        __ASM_EMIT("vld2.32     {q0-q1}, [%[src]]!")            /* q0   = ar1, q1 = ai1 */ \
+        __ASM_EMIT("vld2.32     {q2-q3}, [%[src]]!")            /* q2   = br1, q3 = bi1 */ \
         __ASM_EMIT("vmul.f32    q12, q8, q2")                   /* q12  = wr1 * br1 */ \
         __ASM_EMIT("vmul.f32    q14, q8, q3")                   /* q14  = wr1 * bi1 */ \
         __ASM_EMIT(op1 "        q12, q10, q3")                  /* q12  = wr1 * br1 +- wi1 * bi1 = cr1 */ \
@@ -83,7 +83,7 @@ namespace neon_d32
         );
     }
 
-    void packed_reverse_butterfly_rank3(float *dst_re, float *dst_im, size_t blocks) {
+    void packed_reverse_butterfly_rank3(float *dst, size_t blocks) {
         IF_ARCH_ARM(
             const float *src = dst;
         );

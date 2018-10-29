@@ -183,12 +183,12 @@ static void packed_direct_fft(float *dst, const float *src, size_t rank)
                 c_re[0]         = w_re[0] * b[0] + w_im[0] * b[1];
                 c_re[1]         = w_re[1] * b[2] + w_im[1] * b[3];
                 c_re[2]         = w_re[2] * b[4] + w_im[2] * b[5];
-                c_re[3]         = w_re[3] * b[5] + w_im[3] * b[7];
+                c_re[3]         = w_re[3] * b[6] + w_im[3] * b[7];
 
                 c_im[0]         = w_re[0] * b[1] - w_im[0] * b[0];
                 c_im[1]         = w_re[1] * b[3] - w_im[1] * b[2];
                 c_im[2]         = w_re[2] * b[5] - w_im[2] * b[4];
-                c_im[3]         = w_re[3] * b[7] - w_im[3] * b[5];
+                c_im[3]         = w_re[3] * b[7] - w_im[3] * b[6];
 
                 // Calculate the output values:
                 // a'   = a + c
