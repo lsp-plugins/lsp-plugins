@@ -25,14 +25,6 @@ namespace lsp
                 static const w_class_t    metadata;
 
             protected:
-//                typedef struct filter_t
-//                {
-//                    LSPFileMask     sPattern;
-//                    LSPString       sTitle;
-//                    float           fUID;
-//                    size_t          nIndex;
-//                } filter_t;
-
                 enum
                 {
                     F_ISDIR     = 1 << 0,
@@ -95,7 +87,6 @@ namespace lsp
                 LSPString           sConfirm;       // Confirmation message
                 LSPString           sSelected;
                 LSPFileDialogFilter sFilter;
-//                cvector<filter_t>   vFilters;
                 size_t              nDefaultFilter;
                 size_t              nUIDGen;
 
@@ -109,14 +100,14 @@ namespace lsp
                 static status_t     slot_on_go(LSPWidget *sender, void *ptr, void *data);
                 static status_t     slot_on_up(LSPWidget *sender, void *ptr, void *data);
 
-                virtual status_t    on_action(void *data);
-                virtual status_t    on_confirm(void *data);
-                virtual status_t    on_cancel(void *data);
-                virtual status_t    on_search(void *data);
-                virtual status_t    on_mouse_dbl_click(void *data);
-                virtual status_t    on_list_change(void *data);
-                virtual status_t    on_go(void *data);
-                virtual status_t    on_up(void *data);
+                virtual status_t    on_dlg_action(void *data);
+                virtual status_t    on_dlg_confirm(void *data);
+                virtual status_t    on_dlg_cancel(void *data);
+                virtual status_t    on_dlg_search(void *data);
+                virtual status_t    on_dlg_mouse_dbl_click(void *data);
+                virtual status_t    on_dlg_list_change(void *data);
+                virtual status_t    on_dlg_go(void *data);
+                virtual status_t    on_dlg_up(void *data);
 
                 void                do_destroy();
                 status_t            refresh_current_path();
