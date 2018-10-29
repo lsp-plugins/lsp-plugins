@@ -14,6 +14,7 @@
 
 #include <dsp/arch/arm/neon-d32/fft/const.h>
 #include <dsp/arch/arm/neon-d32/fft/scramble.h>
+#include <dsp/arch/arm/neon-d32/fft/pscramble.h>
 #include <dsp/arch/arm/neon-d32/fft/butterfly.h>
 
 namespace neon_d32
