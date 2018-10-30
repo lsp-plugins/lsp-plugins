@@ -451,7 +451,7 @@ MTEST_BEGIN("dsp.fft", pfft)
         src2.copy(src1);
 
         // Test
-        printf("Doing direct FFT...");
+        printf("Doing direct FFT...\n");
         src1.dump("src1");
         packed_direct_fft(dst1, src1, RANK);
         dst1.dump("dst1");
@@ -466,7 +466,7 @@ MTEST_BEGIN("dsp.fft", pfft)
             src2.dump("src2");
         );
 
-        printf("Doing reverse FFT...");
+        printf("Doing reverse FFT...\n");
         packed_reverse_fft(dst1, src1, RANK);
         dst1.dump("dst1");
         packed_reverse_fft(src1, src1, RANK);

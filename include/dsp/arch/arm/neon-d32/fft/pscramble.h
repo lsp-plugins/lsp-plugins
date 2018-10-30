@@ -257,7 +257,6 @@ namespace neon_d32
                 // q2 = r1" r5" i3" i7"
                 // q1 = r2" r6" i2" i6"
                 // q3 = r3" r7" i1" i5"
-
                 __ASM_EMIT("vtrn.32     q1, q3")                            // q1 = r2" r3" i2" i1", q3 = r6" r7" i6" i5"
                 __ASM_EMIT("vtrn.32     q0, q2")                            // q0 = r0" r1" i0" i3", q2 = r4" r5" i4" i7"
                 __ASM_EMIT("vswp        d5, d6")                            // q2 = r4" r5" r6" r7", q3 = i4" i7" i6" i5"
