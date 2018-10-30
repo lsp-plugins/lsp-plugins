@@ -201,38 +201,41 @@ namespace neon_d32
         );
 
         ARCH_ARM_ASM(
-            __ASM_EMIT("sub         %[count], $32")
+            __ASM_EMIT("subs        %[count], $32")
             __ASM_EMIT("blo         2f")
 
+            // 32x blocks
             __ASM_EMIT("1:")
             __ASM_EMIT("vldm        %[src]!, {q0-q7}")
-            __ASM_EMIT("vldm        %[src]!, {q8-q15}")
             __ASM_EMIT("vzip.32     q0, q1")
             __ASM_EMIT("vzip.32     q2, q3")
+            __ASM_EMIT("vldm        %[src]!, {q8-q15}")
             __ASM_EMIT("vzip.32     q4, q5")
             __ASM_EMIT("vzip.32     q6, q7")
             __ASM_EMIT("vzip.32     q8, q9")
             __ASM_EMIT("vzip.32     q10, q11")
+            __ASM_EMIT("vstm        %[dst]!, {q0-q7}")
             __ASM_EMIT("vzip.32     q12, q13")
             __ASM_EMIT("vzip.32     q14, q15")
-            __ASM_EMIT("vstm        %[dst]!, {q0-q7}")
-            __ASM_EMIT("vstm        %[dst]!, {q8-q15}")
             __ASM_EMIT("subs        %[count], $32")
+            __ASM_EMIT("vstm        %[dst]!, {q8-q15}")
             __ASM_EMIT("bhs         1b")
 
+            // 16x block
             __ASM_EMIT("2:")
-            __ASM_EMIT("add         %[count], $16")
+            __ASM_EMIT("adds        %[count], $16")
             __ASM_EMIT("blt         4f")
             __ASM_EMIT("vldm        %[src]!, {q0-q7}")
             __ASM_EMIT("vzip.32     q0, q1")
             __ASM_EMIT("vzip.32     q2, q3")
             __ASM_EMIT("vzip.32     q4, q5")
             __ASM_EMIT("vzip.32     q6, q7")
+            __ASM_EMIT("sub         %[count], $16")
             __ASM_EMIT("vstm        %[dst]!, {q0-q7}")
-            __ASM_EMIT("subs        %[count], $16")
 
+            // 8x block
             __ASM_EMIT("4:")
-            __ASM_EMIT("add         %[count], $8")
+            __ASM_EMIT("adds        %[count], $8")
             __ASM_EMIT("blt         6f")
             __ASM_EMIT("vldm        %[src]!, {q0-q4}")
             __ASM_EMIT("vzip.32     q0, q1")

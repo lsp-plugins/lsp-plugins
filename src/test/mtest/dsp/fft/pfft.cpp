@@ -144,6 +144,34 @@ static void start_packed_direct_fft(float *dst, size_t rank)
     }
 }
 
+static void repack_fft(float *dst, size_t rank)
+{
+    size_t count = 1 << rank;
+    float t[8];
+    for (size_t i=0; i<count; ++i)
+    {
+        t[0] = dst[0];
+        t[1] = dst[1];
+        t[2] = dst[2];
+        t[3] = dst[3];
+        t[4] = dst[4];
+        t[5] = dst[5];
+        t[6] = dst[6];
+        t[7] = dst[7];
+
+        dst[0] = t[0];
+        dst[1] = t[4];
+        dst[2] = t[1];
+        dst[3] = t[5];
+        dst[4] = t[2];
+        dst[5] = t[6];
+        dst[6] = t[3];
+        dst[7] = t[7];
+
+        dst += 8;
+    }
+}
+
 static void packed_direct_fft(float *dst, const float *src, size_t rank)
 {
     packed_scramble_fft(dst, src, rank);
@@ -247,6 +275,8 @@ static void packed_direct_fft(float *dst, const float *src, size_t rank)
         iw_re  += 4;
         iw_im  += 4;
     }
+
+    repack_fft(dst, rank);
 }
 
 IF_ARCH_ARM(
