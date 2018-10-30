@@ -232,12 +232,15 @@ namespace neon_d32
         }
 
         packed_scramble_reverse(dst, src, rank);
+
+#if 0
         packed_reverse_butterfly_rank3(dst, 1 << (rank-3));
 
         for (size_t i=4; i <= rank; ++i)
             packed_reverse_butterfly_rank4p(dst, i, 1 << (rank - i));
 
         packed_unscramble_reverse(dst, rank);
+#endif
     }
 }
 

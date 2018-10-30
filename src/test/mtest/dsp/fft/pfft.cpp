@@ -144,6 +144,46 @@ static void start_packed_direct_fft(float *dst, size_t rank)
     }
 }
 
+static void start_packed_reverse_fft(float *dst, size_t rank)
+{
+    size_t iterations    = 1 << (rank - 2);
+    while (iterations--)
+    {
+        // Perform 4-calculations
+        // s0' = s0 + s1
+        // s1' = s0 - s1
+        // s2' = s2 + s3
+        // s3' = s2 - s3
+        // s0'' = s0' + s2'
+        // s1'' = s1' + j * s3'
+        // s2'' = s0' - s2'
+        // s3'' = s1' - j * s3'
+        float s0_re     = dst[0] + dst[2];
+        float s1_re     = dst[0] - dst[2];
+        float s0_im     = dst[1] + dst[3];
+        float s1_im     = dst[1] - dst[3];
+
+        float s2_re     = dst[4] + dst[6];
+        float s3_re     = dst[4] - dst[6];
+        float s2_im     = dst[5] + dst[7];
+        float s3_im     = dst[5] - dst[7];
+
+        // Re-shuffle output to store [re0, re1, re2, re3, im0, im1, im2, im3]
+        dst[0]          = s0_re + s2_re;
+        dst[1]          = s1_re - s3_im;
+        dst[2]          = s0_re - s2_re;
+        dst[3]          = s1_re + s3_im;
+
+        dst[4]          = s0_im + s2_im;
+        dst[5]          = s1_im + s3_re;
+        dst[6]          = s0_im - s2_im;
+        dst[7]          = s1_im - s3_re;
+
+        // Move pointers
+        dst            += 8;
+    }
+}
+
 static void repack_fft(float *dst, size_t rank)
 {
     size_t count = 1 << rank;
@@ -277,10 +317,119 @@ static void packed_direct_fft(float *dst, const float *src, size_t rank)
     repack_fft(dst, rank);
 }
 
+static void packed_reverse_fft(float *dst, const float *src, size_t rank)
+{
+    packed_scramble_fft(dst, src, rank);
+    start_packed_reverse_fft(dst, rank);
+
+#if 0
+    // Prepare for butterflies
+    size_t items    = size_t(1) << (rank + 1);
+
+    float c_re[4], c_im[4], w_re[4], w_im[4];
+    const float *dw     = XFFT_DW;
+    const float *iw_re  = XFFT_A_RE;
+    const float *iw_im  = XFFT_A_IM;
+
+    // Iterate butterflies
+    for (size_t n=8, bs=(n << 1); n < items; n <<= 1, bs <<= 1)
+    {
+        for (size_t p=0; p<items; p += bs)
+        {
+            // Set initial values of pointers
+            float *a            = &dst[p];
+            float *b            = &a[n];
+
+            w_re[0]             = iw_re[0];
+            w_re[1]             = iw_re[1];
+            w_re[2]             = iw_re[2];
+            w_re[3]             = iw_re[3];
+            w_im[0]             = iw_im[0];
+            w_im[1]             = iw_im[1];
+            w_im[2]             = iw_im[2];
+            w_im[3]             = iw_im[3];
+
+            for (size_t k=0; ;)
+            {
+                // Calculate complex c = w * b
+                c_re[0]         = w_re[0] * b[0] - w_im[0] * b[4];
+                c_re[1]         = w_re[1] * b[1] - w_im[1] * b[5];
+                c_re[2]         = w_re[2] * b[2] - w_im[2] * b[6];
+                c_re[3]         = w_re[3] * b[3] - w_im[3] * b[7];
+
+                c_im[0]         = w_re[0] * b[4] + w_im[0] * b[0];
+                c_im[1]         = w_re[1] * b[5] + w_im[1] * b[1];
+                c_im[2]         = w_re[2] * b[6] + w_im[2] * b[2];
+                c_im[3]         = w_re[3] * b[7] + w_im[3] * b[3];
+
+                // Calculate the output values:
+                // a'   = a + c
+                // b'   = a - c
+                b[0]            = a[0] - c_re[0];
+                b[1]            = a[1] - c_re[1];
+                b[2]            = a[2] - c_re[2];
+                b[3]            = a[3] - c_re[3];
+
+                b[4]            = a[4] - c_im[0];
+                b[5]            = a[5] - c_im[1];
+                b[6]            = a[6] - c_im[2];
+                b[7]            = a[7] - c_im[3];
+
+                a[0]            = a[0] + c_re[0];
+                a[1]            = a[1] + c_re[1];
+                a[2]            = a[2] + c_re[2];
+                a[3]            = a[3] + c_re[3];
+
+                a[4]            = a[4] + c_im[0];
+                a[5]            = a[5] + c_im[1];
+                a[6]            = a[6] + c_im[2];
+                a[7]            = a[7] + c_im[3];
+
+                // Update pointers
+                a              += 8;
+                b              += 8;
+
+                if ((k += 8) >= n)
+                    break;
+
+                // Rotate w vector
+                c_re[0]         = w_re[0]*dw[0] - w_im[0]*dw[1];
+                c_re[1]         = w_re[1]*dw[0] - w_im[1]*dw[1];
+                c_re[2]         = w_re[2]*dw[0] - w_im[2]*dw[1];
+                c_re[3]         = w_re[3]*dw[0] - w_im[3]*dw[1];
+
+                c_im[0]         = w_re[0]*dw[1] + w_im[0]*dw[0];
+                c_im[1]         = w_re[1]*dw[1] + w_im[1]*dw[0];
+                c_im[2]         = w_re[2]*dw[1] + w_im[2]*dw[0];
+                c_im[3]         = w_re[3]*dw[1] + w_im[3]*dw[0];
+
+                w_re[0]         = c_re[0];
+                w_re[1]         = c_re[1];
+                w_re[2]         = c_re[2];
+                w_re[3]         = c_re[3];
+
+                w_im[0]         = c_im[0];
+                w_im[1]         = c_im[1];
+                w_im[2]         = c_im[2];
+                w_im[3]         = c_im[3];
+            }
+        }
+
+        dw     += 2;
+        iw_re  += 4;
+        iw_im  += 4;
+    }
+
+    repack_fft(dst, rank);
+#endif
+}
+
 IF_ARCH_ARM(
     namespace neon_d32
     {
         void packed_direct_fft(float *dst, const float *src, size_t rank);
+
+        void packed_reverse_fft(float *dst, const float *src, size_t rank);
     }
 )
 
@@ -302,6 +451,7 @@ MTEST_BEGIN("dsp.fft", pfft)
         src2.copy(src1);
 
         // Test
+        printf("Doing direct FFT...");
         src1.dump("src1");
         packed_direct_fft(dst1, src1, RANK);
         dst1.dump("dst1");
@@ -316,5 +466,17 @@ MTEST_BEGIN("dsp.fft", pfft)
             src2.dump("src2");
         );
 
+        printf("Doing reverse FFT...");
+        packed_reverse_fft(dst1, src1, RANK);
+        dst1.dump("dst1");
+        packed_reverse_fft(src1, src1, RANK);
+        src1.dump("src1");
+
+        IF_ARCH_ARM(
+            neon_d32::packed_reverse_fft(dst2, src2, RANK);
+            dst2.dump("dst2");
+            neon_d32::packed_reverse_fft(src2, src2, RANK);
+            src2.dump("src2");
+        );
     }
 MTEST_END
