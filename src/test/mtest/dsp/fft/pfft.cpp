@@ -194,23 +194,23 @@ static void packed_direct_fft(float *dst, const float *src, size_t rank)
                 // a'   = a + c
                 // b'   = a - c
                 b[0]            = a[0] - c_re[0];
-                b[1]            = a[2] - c_re[1];
-                b[2]            = a[4] - c_re[2];
-                b[3]            = a[6] - c_re[3];
+                b[1]            = a[1] - c_re[1];
+                b[2]            = a[2] - c_re[2];
+                b[3]            = a[3] - c_re[3];
 
-                b[4]            = a[1] - c_im[0];
-                b[5]            = a[3] - c_im[1];
-                b[6]            = a[5] - c_im[2];
+                b[4]            = a[4] - c_im[0];
+                b[5]            = a[5] - c_im[1];
+                b[6]            = a[6] - c_im[2];
                 b[7]            = a[7] - c_im[3];
 
                 a[0]            = a[0] + c_re[0];
-                a[1]            = a[2] + c_re[1];
-                a[2]            = a[4] + c_re[2];
-                a[3]            = a[6] + c_re[3];
+                a[1]            = a[1] + c_re[1];
+                a[2]            = a[2] + c_re[2];
+                a[3]            = a[3] + c_re[3];
 
-                a[4]            = a[1] + c_im[0];
-                a[5]            = a[3] + c_im[1];
-                a[6]            = a[5] + c_im[2];
+                a[4]            = a[4] + c_im[0];
+                a[5]            = a[5] + c_im[1];
+                a[6]            = a[6] + c_im[2];
                 a[7]            = a[7] + c_im[3];
 
                 // Update pointers

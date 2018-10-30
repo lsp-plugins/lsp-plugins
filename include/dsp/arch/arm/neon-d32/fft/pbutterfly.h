@@ -31,8 +31,8 @@ namespace neon_d32
         /* Apply butterfly */ \
         __ASM_EMIT("vsub.f32    q2, q0, q12")                   /* q2   = ar1 - cr1 */ \
         __ASM_EMIT("vsub.f32    q3, q1, q14")                   /* q3   = ai1 - ci1 */ \
-        __ASM_EMIT("vsub.f32    q6, q4, q13")                   /* q2   = ar2 - cr2 */ \
-        __ASM_EMIT("vsub.f32    q7, q5, q15")                   /* q3   = ai2 - ci2 */ \
+        __ASM_EMIT("vsub.f32    q6, q4, q13")                   /* q6   = ar2 - cr2 */ \
+        __ASM_EMIT("vsub.f32    q7, q5, q15")                   /* q7   = ai2 - ci2 */ \
         __ASM_EMIT("vadd.f32    q0, q0, q12")                   /* q0   = ar1 + cr1 */ \
         __ASM_EMIT("vadd.f32    q1, q1, q14")                   /* q1   = ai1 + ci1 */ \
         __ASM_EMIT("vadd.f32    q4, q4, q13")                   /* q4   = ar2 + cr2 */ \
