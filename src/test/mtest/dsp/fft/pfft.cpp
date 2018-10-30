@@ -130,13 +130,13 @@ static void start_packed_direct_fft(float *dst, size_t rank)
         float s3_im     = dst[5] - dst[7];
 
         dst[0]          = s0_re + s2_re;
-        dst[2]          = s1_re + s3_im;
-        dst[4]          = s0_re - s2_re;
-        dst[6]          = s1_re - s3_im;
+        dst[1]          = s1_re + s3_im;
+        dst[2]          = s0_re - s2_re;
+        dst[3]          = s1_re - s3_im;
 
-        dst[1]          = s0_im + s2_im;
-        dst[3]          = s1_im - s3_re;
-        dst[5]          = s0_im - s2_im;
+        dst[4]          = s0_im + s2_im;
+        dst[5]          = s1_im - s3_re;
+        dst[6]          = s0_im - s2_im;
         dst[7]          = s1_im + s3_re;
 
         // Move pointers
@@ -147,6 +147,7 @@ static void start_packed_direct_fft(float *dst, size_t rank)
 static void packed_direct_fft(float *dst, const float *src, size_t rank)
 {
     packed_scramble_fft(dst, src, rank);
+#if 0
     start_packed_direct_fft(dst, rank);
 
     // Prepare for butterflies
@@ -178,37 +179,37 @@ static void packed_direct_fft(float *dst, const float *src, size_t rank)
             for (size_t k=0; ;)
             {
                 // Calculate complex c = w * b
-                c_re[0]         = w_re[0] * b[0] + w_im[0] * b[1];
-                c_re[1]         = w_re[1] * b[2] + w_im[1] * b[3];
-                c_re[2]         = w_re[2] * b[4] + w_im[2] * b[5];
-                c_re[3]         = w_re[3] * b[6] + w_im[3] * b[7];
+                c_re[0]         = w_re[0] * b[0] + w_im[0] * b[4];
+                c_re[1]         = w_re[1] * b[1] + w_im[1] * b[5];
+                c_re[2]         = w_re[2] * b[2] + w_im[2] * b[6];
+                c_re[3]         = w_re[3] * b[3] + w_im[3] * b[7];
 
-                c_im[0]         = w_re[0] * b[1] - w_im[0] * b[0];
-                c_im[1]         = w_re[1] * b[3] - w_im[1] * b[2];
-                c_im[2]         = w_re[2] * b[5] - w_im[2] * b[4];
-                c_im[3]         = w_re[3] * b[7] - w_im[3] * b[6];
+                c_im[0]         = w_re[0] * b[4] - w_im[0] * b[0];
+                c_im[1]         = w_re[1] * b[5] - w_im[1] * b[1];
+                c_im[2]         = w_re[2] * b[6] - w_im[2] * b[2];
+                c_im[3]         = w_re[3] * b[7] - w_im[3] * b[3];
 
                 // Calculate the output values:
                 // a'   = a + c
                 // b'   = a - c
                 b[0]            = a[0] - c_re[0];
-                b[2]            = a[2] - c_re[1];
-                b[4]            = a[4] - c_re[2];
-                b[6]            = a[6] - c_re[3];
+                b[1]            = a[2] - c_re[1];
+                b[2]            = a[4] - c_re[2];
+                b[3]            = a[6] - c_re[3];
 
-                b[1]            = a[1] - c_im[0];
-                b[3]            = a[3] - c_im[1];
-                b[5]            = a[5] - c_im[2];
+                b[4]            = a[1] - c_im[0];
+                b[5]            = a[3] - c_im[1];
+                b[6]            = a[5] - c_im[2];
                 b[7]            = a[7] - c_im[3];
 
                 a[0]            = a[0] + c_re[0];
-                a[2]            = a[2] + c_re[1];
-                a[4]            = a[4] + c_re[2];
-                a[6]            = a[6] + c_re[3];
+                a[1]            = a[2] + c_re[1];
+                a[2]            = a[4] + c_re[2];
+                a[3]            = a[6] + c_re[3];
 
-                a[1]            = a[1] + c_im[0];
-                a[3]            = a[3] + c_im[1];
-                a[5]            = a[5] + c_im[2];
+                a[4]            = a[1] + c_im[0];
+                a[5]            = a[3] + c_im[1];
+                a[6]            = a[5] + c_im[2];
                 a[7]            = a[7] + c_im[3];
 
                 // Update pointers
@@ -245,6 +246,7 @@ static void packed_direct_fft(float *dst, const float *src, size_t rank)
         iw_re  += 4;
         iw_im  += 4;
     }
+#
 }
 
 IF_ARCH_ARM(
