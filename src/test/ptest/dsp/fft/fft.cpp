@@ -10,8 +10,7 @@
 #include <core/sugar.h>
 
 #define MIN_RANK 8
-#define MAX_RANK 12
-//#define MAX_RANK 16
+#define MAX_RANK 16
 
 namespace native
 {
@@ -45,8 +44,7 @@ typedef void (* packed_direct_fft_t) (float *dst, const float *src, size_t rank)
 
 //-----------------------------------------------------------------------------
 // Performance test for complex multiplication
-//PTEST_BEGIN("dsp.fft", fft, 30, 1000)
-PTEST_BEGIN("dsp.fft", fft, 10, 1000)
+PTEST_BEGIN("dsp.fft", fft, 30, 1000)
 
     void call(const char *label, float *fft_re, float *fft_im, const float *sig_re, const float *sig_im, size_t rank, direct_fft_t fft)
     {
@@ -96,8 +94,8 @@ PTEST_BEGIN("dsp.fft", fft, 10, 1000)
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
             call("native::direct_fft", fft_re, fft_im, sig_re, sig_im, i, native::direct_fft);
-//            call("native::packed_direct_fft", fft_re, sig_re, i, native::packed_direct_fft);
-//            call("native::conv_direct_fft", fft_re, sig_re, i, native::conv_direct_fft);
+            call("native::packed_direct_fft", fft_re, sig_re, i, native::packed_direct_fft);
+            call("native::conv_direct_fft", fft_re, sig_re, i, native::conv_direct_fft);
 
             IF_ARCH_X86(call("sse::direct_fft", fft_re, fft_im, sig_re, sig_im, i, sse::direct_fft));
             IF_ARCH_X86(call("sse::packed_direct_fft", fft_re, sig_re, i, sse::packed_direct_fft));
