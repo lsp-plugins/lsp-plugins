@@ -248,10 +248,10 @@ namespace neon_d32
                 __ASM_EMIT("vtrn.32     q0, q1")                            // q0 = r1' r5' i1' i5', q1 = r3' r7' i3' i7'
                 __ASM_EMIT("vext.32     q6, q1, q1, $2")                    // q6 = i3' i7' r3' r7'
 
-                __ASM_EMIT("vadd.f32    q0, q4, q5")                        // q0 = r0'+r2' r4'+r6' i0'+i2' i4'+i6' = r0" r4" i0" i4"
                 __ASM_EMIT("vsub.f32    q2, q0, q6")                        // q2 = r1'-i3' r5'-i7' i1'-r3' i5'-r7' = r1" r5" i3" i7"
                 __ASM_EMIT("vsub.f32    q1, q4, q5")                        // q1 = r0'-r2' r4'-r6' i0'-i2' i4'-i6' = r2" r6" i2" i6"
                 __ASM_EMIT("vadd.f32    q3, q0, q6")                        // q3 = r1'+i3' r5'+i7' i1'+r3' i5'+r7' = r3" r7" i1" i5"
+                __ASM_EMIT("vadd.f32    q0, q4, q5")                        // q0 = r0'+r2' r4'+r6' i0'+i2' i4'+i6' = r0" r4" i0" i4"
 
                 // q0 = r0" r4" i0" i4"
                 // q1 = r2" r6" i2" i6"
@@ -338,10 +338,10 @@ namespace neon_d32
                 __ASM_EMIT("vtrn.32     q0, q1")                            // q0 = r1' r5' i1' i5', q1 = r3' r7' i3' i7'
                 __ASM_EMIT("vext.32     q6, q1, q1, $2")                    // q6 = i3' i7' r3' r7'
 
-                __ASM_EMIT("vadd.f32    q0, q4, q5")                        // q0 = r0'+r2' r4'+r6' i0'+i2' i4'+i6' = r0" r4" i0" i4"
                 __ASM_EMIT("vsub.f32    q2, q0, q6")                        // q2 = r1'-i3' r5'-i7' i1'-r3' i5'-r7' = r1" r5" i3" i7"
                 __ASM_EMIT("vsub.f32    q1, q4, q5")                        // q1 = r0'-r2' r4'-r6' i0'-i2' i4'-i6' = r2" r6" i2" i6"
                 __ASM_EMIT("vadd.f32    q3, q0, q6")                        // q3 = r1'+i3' r5'+i7' i1'+r3' i5'+r7' = r3" r7" i1" i5"
+                __ASM_EMIT("vadd.f32    q0, q4, q5")                        // q0 = r0'+r2' r4'+r6' i0'+i2' i4'+i6' = r0" r4" i0" i4"
 
                 // q0 = r0" r4" i0" i4"
                 // q1 = r2" r6" i2" i6"
