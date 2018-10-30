@@ -212,6 +212,36 @@ static void repack_fft(float *dst, size_t rank)
     }
 }
 
+static void repack_reverse_fft(float *dst, size_t rank)
+{
+    size_t count = 1 << rank;
+    float t[8];
+    float k = 1.0f / count;
+
+    for (size_t i=0; i<count; i += 4)
+    {
+        t[0] = dst[0];
+        t[1] = dst[1];
+        t[2] = dst[2];
+        t[3] = dst[3];
+        t[4] = dst[4];
+        t[5] = dst[5];
+        t[6] = dst[6];
+        t[7] = dst[7];
+
+        dst[0] = t[0] * k;
+        dst[1] = t[4] * k;
+        dst[2] = t[1] * k;
+        dst[3] = t[5] * k;
+        dst[4] = t[2] * k;
+        dst[5] = t[6] * k;
+        dst[6] = t[3] * k;
+        dst[7] = t[7] * k;
+
+        dst += 8;
+    }
+}
+
 static void packed_direct_fft(float *dst, const float *src, size_t rank)
 {
     packed_scramble_fft(dst, src, rank);
@@ -322,7 +352,6 @@ static void packed_reverse_fft(float *dst, const float *src, size_t rank)
     packed_scramble_fft(dst, src, rank);
     start_packed_reverse_fft(dst, rank);
 
-#if 0
     // Prepare for butterflies
     size_t items    = size_t(1) << (rank + 1);
 
@@ -420,15 +449,21 @@ static void packed_reverse_fft(float *dst, const float *src, size_t rank)
         iw_im  += 4;
     }
 
-    repack_fft(dst, rank);
-#endif
+    repack_reverse_fft(dst, rank);
 }
 
 IF_ARCH_ARM(
     namespace neon_d32
     {
         void packed_direct_fft(float *dst, const float *src, size_t rank);
+        void packed_reverse_fft(float *dst, const float *src, size_t rank);
+    }
+)
 
+IF_ARCH_X86(
+    namespace sse
+    {
+        void packed_direct_fft(float *dst, const float *src, size_t rank);
         void packed_reverse_fft(float *dst, const float *src, size_t rank);
     }
 )
@@ -451,22 +486,30 @@ MTEST_BEGIN("dsp.fft", pfft)
         src2.copy(src1);
 
         // Test
-        printf("Doing direct FFT...\n");
+        printf("Testing packed direct FFT...\n");
         src1.dump("src1");
         packed_direct_fft(dst1, src1, RANK);
         dst1.dump("dst1");
         packed_direct_fft(src1, src1, RANK);
         src1.dump("src1");
 
+        src2.dump("src2");
+
         IF_ARCH_ARM(
-            src2.dump("src2");
             neon_d32::packed_direct_fft(dst2, src2, RANK);
             dst2.dump("dst2");
             neon_d32::packed_direct_fft(src2, src2, RANK);
             src2.dump("src2");
         );
 
-        printf("Doing reverse FFT...\n");
+        IF_ARCH_X86(
+            sse::packed_direct_fft(dst2, src2, RANK);
+            dst2.dump("dst2");
+            sse::packed_direct_fft(src2, src2, RANK);
+            src2.dump("src2");
+        );
+
+        printf("Doing packed reverse FFT...\n");
         packed_reverse_fft(dst1, src1, RANK);
         dst1.dump("dst1");
         packed_reverse_fft(src1, src1, RANK);
@@ -476,6 +519,13 @@ MTEST_BEGIN("dsp.fft", pfft)
             neon_d32::packed_reverse_fft(dst2, src2, RANK);
             dst2.dump("dst2");
             neon_d32::packed_reverse_fft(src2, src2, RANK);
+            src2.dump("src2");
+        );
+
+        IF_ARCH_X86(
+            sse::packed_reverse_fft(dst2, src2, RANK);
+            dst2.dump("dst2");
+            sse::packed_reverse_fft(src2, src2, RANK);
             src2.dump("src2");
         );
     }

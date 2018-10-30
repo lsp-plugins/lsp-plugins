@@ -261,6 +261,14 @@ static void direct_fft(float *dst_re, float *dst_im, const float *src_re, const 
     }
 }
 
+IF_ARCH_X86(
+    namespace sse
+    {
+        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    }
+)
+
 IF_ARCH_ARM(
     namespace neon_d32
     {
@@ -292,6 +300,7 @@ MTEST_BEGIN("dsp.fft", fft)
         src2i.copy(src1i);
 
         // Test
+        printf("Testing direct FFT...\n");
         src1r.dump("src1r");
         src1i.dump("src1i");
 
@@ -303,10 +312,10 @@ MTEST_BEGIN("dsp.fft", fft)
         src1r.dump("src1r");
         src1i.dump("src1i");
 
-        IF_ARCH_ARM(
-            src2r.dump("src2r");
-            src2i.dump("src2i");
+        src2r.dump("src2r");
+        src2i.dump("src2i");
 
+        IF_ARCH_ARM(
             neon_d32::direct_fft(dst2r, dst2i, src2r, src2i, RANK);
             dst2r.dump("dst2r");
             dst2i.dump("dst2i");
@@ -314,7 +323,21 @@ MTEST_BEGIN("dsp.fft", fft)
             neon_d32::direct_fft(src2r, src2i, src2r, src2i, RANK);
             src2r.dump("src2r");
             src2i.dump("src2i");
+        );
 
+        IF_ARCH_X86(
+            sse::direct_fft(dst2r, dst2i, src2r, src2i, RANK);
+            dst2r.dump("dst2r");
+            dst2i.dump("dst2i");
+
+            sse::direct_fft(src2r, src2i, src2r, src2i, RANK);
+            src2r.dump("src2r");
+            src2i.dump("src2i");
+        );
+
+        printf("Testing reverse FFT...\n");
+
+        IF_ARCH_ARM(
             neon_d32::reverse_fft(dst2r, dst2i, src2r, src2i, RANK);
             dst2r.dump("dst2r");
             dst2i.dump("dst2i");
@@ -324,5 +347,14 @@ MTEST_BEGIN("dsp.fft", fft)
             src2i.dump("src2i");
         );
 
+        IF_ARCH_X86(
+            sse::reverse_fft(dst2r, dst2i, src2r, src2i, RANK);
+            dst2r.dump("dst2r");
+            dst2i.dump("dst2i");
+
+            sse::reverse_fft(src2r, src2i, src2r, src2i, RANK);
+            src2r.dump("src2r");
+            src2i.dump("src2i");
+        );
     }
 MTEST_END
