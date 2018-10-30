@@ -107,7 +107,7 @@ namespace neon_d32
             IF_ARCH_ARM(
                     size_t i, j, rrank = rank - 3;
                     size_t regs = 1 << rrank;
-                    float *sr;
+                    float *sr1, *sr2;
             );
 
             ARCH_ARM_ASM(
@@ -118,23 +118,23 @@ namespace neon_d32
                 __ASM_EMIT("rbit        %[j], %[i]")                        // j = reverse_bits(i)
                 __ASM_EMIT("lsr         %[j], %[rrank]")                    // j = reverse_bits(i) >> rank
 
-                __ASM_EMIT("add         %[sr], %[src], %[j], LSL $3")       // sr = &src[i]
-                __ASM_EMIT("vldm        %[sr], {d0}")                       // q0 = r0 i0 ? ?
-                __ASM_EMIT("add         %[sr], %[sr], %[regs], LSL $3")     // sr = &src[i + regs]
-                __ASM_EMIT("vldm        %[sr], {d4}")                       // q2 = r4 i4 ? ?
-                __ASM_EMIT("add         %[sr], %[sr], %[regs], LSL $3")     // sr = &src[i + regs*2]
-                __ASM_EMIT("vldm        %[sr], {d1}")                       // q0 = r0 i0 r2 i2
-                __ASM_EMIT("add         %[sr], %[sr], %[regs], LSL $3")     // sr = &src[i + regs*3]
-                __ASM_EMIT("vldm        %[sr], {d5}")                       // q2 = r4 i4 r6 i6
+                __ASM_EMIT("add         %[sr1], %[src], %[j], LSL $3")      // sr1 = &src[i]
+                __ASM_EMIT("add         %[sr2], %[src], %[regs], LSL $3")   // sr2 = &src[i + regs]
+                __ASM_EMIT("vldm        %[sr1], {d0}")                      // q0 = r0 i0 ? ?
+                __ASM_EMIT("vldm        %[sr2], {d4}")                      // q2 = r4 i4 ? ?
+                __ASM_EMIT("add         %[sr1], %[sr1], %[regs], LSL $4")   // sr1 = &src[i + regs*2]
+                __ASM_EMIT("add         %[sr2], %[sr2], %[regs], LSL $4")   // sr2 = &src[i + regs*3]
+                __ASM_EMIT("vldm        %[sr1], {d1}")                      // q0 = r0 i0 r2 i2
+                __ASM_EMIT("vldm        %[sr2], {d5}")                      // q2 = r4 i4 r6 i6
 
-                __ASM_EMIT("add         %[sr], %[sr], %[regs], LSL $3")     // sr = &src[i + regs*4]
-                __ASM_EMIT("vldm        %[sr], {d2}")                       // q1 = r1 i1 ? ?
-                __ASM_EMIT("add         %[sr], %[sr], %[regs], LSL $3")     // sr = &src[i + regs*5]
-                __ASM_EMIT("vldm        %[sr], {d6}")                       // q3 = r5 i5 ? ?
-                __ASM_EMIT("add         %[sr], %[sr], %[regs], LSL $3")     // sr = &src[i + regs*6]
-                __ASM_EMIT("vldm        %[sr], {d3}")                       // q1 = r1 i1 r3 i3
-                __ASM_EMIT("add         %[sr], %[sr], %[regs], LSL $3")     // sr = &src[i + regs*7]
-                __ASM_EMIT("vldm        %[sr], {d7}")                       // q3 = r5 i5 r7 i7
+                __ASM_EMIT("add         %[sr1], %[sr1], %[regs], LSL $4")   // sr1 = &src[i + regs*4]
+                __ASM_EMIT("add         %[sr2], %[sr2], %[regs], LSL $4")   // sr2 = &src[i + regs*5]
+                __ASM_EMIT("vldm        %[sr1], {d2}")                      // q1 = r1 i1 ? ?
+                __ASM_EMIT("vldm        %[sr2], {d6}")                      // q3 = r5 i5 ? ?
+                __ASM_EMIT("add         %[sr1], %[sr1], %[regs], LSL $4")   // sr1 = &src[i + regs*6]
+                __ASM_EMIT("add         %[sr2], %[sr2], %[regs], LSL $4")   // sr2 = &src[i + regs*7]
+                __ASM_EMIT("vldm        %[sr1], {d3}")                      // q1 = r1 i1 r3 i3
+                __ASM_EMIT("vldm        %[sr2], {d7}")                      // q3 = r5 i5 r7 i7
 
                 __ASM_EMIT("vtrn.32     d0, d1")                            // q0 = r0 r2 i0 i2
                 __ASM_EMIT("vtrn.32     d2, d3")                            // q1 = r1 r3 i1 i3
@@ -184,7 +184,7 @@ namespace neon_d32
                 __ASM_EMIT("vst2.32     {q0-q1}, [%[dst]]!")
                 __ASM_EMIT("blo         1b")
 
-                : [dst] "+r" (dst), [sr] "=&r" (sr),
+                : [dst] "+r" (dst), [sr1] "=&r" (sr1), [sr2] "=&r" (sr2),
                   [rrank] "+r" (rrank), [i] "=&r" (i), [j] "=&r" (j)
                 : [src] "r" (src), [regs] "r" (regs)
                 : "cc", "memory",
