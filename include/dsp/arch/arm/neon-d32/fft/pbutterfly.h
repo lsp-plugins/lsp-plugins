@@ -98,8 +98,8 @@ namespace neon_d32
         /* Calculate complex c = w * b */ \
         __ASM_EMIT("3:") \
         /* Calc cr and ci */ \
-        __ASM_EMIT("vldm        %[b], {q4-q7}")                 /* q0   = ar1, q1 = ai1, q2 = ar2, q3 = ai2 */ \
-        __ASM_EMIT("vldm        %[a], {q0-q3}")                 /* q4   = br1, q5 = bi1, q6 = br2, q7 = bi2 */ \
+        __ASM_EMIT("vldm        %[b], {q4-q7}")                 /* q4   = br1, q5 = bi1, q6 = br2, q7 = bi2 */ \
+        __ASM_EMIT("vldm        %[a], {q0-q3}")                 /* q0   = ar1, q1 = ai1, q2 = ar2, q3 = ai2 */ \
         __ASM_EMIT("vmul.f32    q12, q8, q4")                   /* q12  = wr1 * br1 */ \
         __ASM_EMIT("vmul.f32    q14, q8, q5")                   /* q14  = wr1 * bi1 */ \
         __ASM_EMIT("vmul.f32    q13, q9, q6")                   /* q13  = wr2 * br2 */ \
@@ -117,8 +117,8 @@ namespace neon_d32
         __ASM_EMIT("vadd.f32    q1, q1, q14")                   /* q5   = ai1 + ci1 */ \
         __ASM_EMIT("vadd.f32    q2, q2, q13")                   /* q6   = ar2 + cr2 */ \
         __ASM_EMIT("vadd.f32    q3, q3, q15")                   /* q7   = ai2 + ci2 */ \
-        __ASM_EMIT("subs        %[pairs], $2") \
         __ASM_EMIT("vstm        %[b]!, {q4-q7}") \
+        __ASM_EMIT("subs        %[pairs], $2") \
         __ASM_EMIT("vstm        %[a]!, {q0-q3}") \
         __ASM_EMIT("beq         4f") \
         /* Prepare next loop: rotate angle */ \

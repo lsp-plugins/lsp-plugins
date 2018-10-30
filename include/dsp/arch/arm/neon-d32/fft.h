@@ -177,7 +177,7 @@ namespace neon_d32
         }
 
         packed_scramble_direct(dst, src, rank);
-//        packed_direct_butterfly_rank3(dst, 1 << (rank-3));
+        packed_direct_butterfly_rank3(dst, 1 << (rank-3));
 //
 //        for (size_t i=4; i <= rank; ++i)
 //            packed_direct_butterfly_rank4p(dst, i, 1 << (rank - i));
