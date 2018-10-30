@@ -113,10 +113,10 @@ namespace neon_d32
             __ASM_EMIT("vsub.f32    q5, q1, q14")                   /* q5   = ai1 - ci1 */ \
             __ASM_EMIT("vsub.f32    q6, q2, q13")                   /* q6   = ar2 - cr2 */ \
             __ASM_EMIT("vsub.f32    q7, q3, q15")                   /* q7   = ai2 - ci2 */ \
-            __ASM_EMIT("vadd.f32    q0, q0, q12")                   /* q4   = ar1 + cr1 */ \
-            __ASM_EMIT("vadd.f32    q1, q1, q14")                   /* q5   = ai1 + ci1 */ \
-            __ASM_EMIT("vadd.f32    q2, q2, q13")                   /* q6   = ar2 + cr2 */ \
-            __ASM_EMIT("vadd.f32    q3, q3, q15")                   /* q7   = ai2 + ci2 */ \
+            __ASM_EMIT("vadd.f32    q0, q0, q12")                   /* q0   = ar1 + cr1 */ \
+            __ASM_EMIT("vadd.f32    q1, q1, q14")                   /* q1   = ai1 + ci1 */ \
+            __ASM_EMIT("vadd.f32    q2, q2, q13")                   /* q2   = ar2 + cr2 */ \
+            __ASM_EMIT("vadd.f32    q3, q3, q15")                   /* q3   = ai2 + ci2 */ \
             __ASM_EMIT("vstm        %[b]!, {q4-q7}") \
             __ASM_EMIT("subs        %[pairs], $2") \
             __ASM_EMIT("vstm        %[a]!, {q0-q3}") \
