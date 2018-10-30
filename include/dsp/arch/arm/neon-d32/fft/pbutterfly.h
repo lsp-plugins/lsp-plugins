@@ -18,14 +18,14 @@ namespace neon_d32
         /* 8x butterflies */ \
         /* Calculate complex c = w * b */ \
         __ASM_EMIT("1:") \
+        /* Calc cr and ci */ \
         __ASM_EMIT("vld2.32     {q0-q1}, [%[src]]!")            /* q0   = ar1, q1 = ai1 */ \
         __ASM_EMIT("vld2.32     {q2-q3}, [%[src]]!")            /* q2   = br1, q3 = bi1 */ \
         __ASM_EMIT("vld2.32     {q4-q5}, [%[src]]!")            /* q4   = ar2, q5 = ai2 */ \
-        __ASM_EMIT("vld2.32     {q6-q7}, [%[src]]!")            /* q6   = br2, q7 = bi2 */ \
-        /* Calc cr and ci */ \
         __ASM_EMIT("vmul.f32    q12, q8, q2")                   /* q12  = wr1 * br1 */ \
-        __ASM_EMIT("vmul.f32    q13, q9, q6")                   /* q13  = wr2 * br2 */ \
+        __ASM_EMIT("vld2.32     {q6-q7}, [%[src]]!")            /* q6   = br2, q7 = bi2 */ \
         __ASM_EMIT("vmul.f32    q14, q8, q3")                   /* q14  = wr1 * bi1 */ \
+        __ASM_EMIT("vmul.f32    q13, q9, q6")                   /* q13  = wr2 * br2 */ \
         __ASM_EMIT("vmul.f32    q15, q9, q7")                   /* q15  = wr2 * bi2 */ \
         __ASM_EMIT(op1 "        q12, q10, q3")                  /* q12  = wr1 * br1 +- wi1 * bi1 = cr1 */ \
         __ASM_EMIT(op1 "        q13, q11, q7")                  /* q13  = wr2 * br2 +- wi2 * bi2 = cr2 */ \
@@ -39,8 +39,8 @@ namespace neon_d32
         __ASM_EMIT("vadd.f32    q0, q0, q12")                   /* q0   = ar1 + cr1 */ \
         __ASM_EMIT("vadd.f32    q1, q1, q14")                   /* q1   = ai1 + ci1 */ \
         __ASM_EMIT("vadd.f32    q4, q4, q13")                   /* q4   = ar2 + cr2 */ \
-        __ASM_EMIT("vadd.f32    q5, q5, q15")                   /* q5   = ai2 + ci2 */ \
         __ASM_EMIT("vst2.32     {q0-q1}, [%[dst]]!") \
+        __ASM_EMIT("vadd.f32    q5, q5, q15")                   /* q5   = ai2 + ci2 */ \
         __ASM_EMIT("vst2.32     {q2-q3}, [%[dst]]!") \
         __ASM_EMIT("vst2.32     {q4-q5}, [%[dst]]!") \
         __ASM_EMIT("vst2.32     {q6-q7}, [%[dst]]!") \
@@ -111,35 +111,35 @@ namespace neon_d32
         /* 8x butterflies */ \
         /* Calculate complex c = w * b */ \
         __ASM_EMIT("3:") \
-        __ASM_EMIT("vld2.32     {q0-q1}, [%[a]]!")              /* q0   = ar1, q1 = ai1, a += 8 */ \
-        __ASM_EMIT("vld2.32     {q4-q5}, [%[b]]!")              /* q4   = br1, q5 = bi1, b += 8 */ \
-        __ASM_EMIT("vld2.32     {q2-q3}, [%[a]]")               /* q2   = ar2, q3 = ai2 */ \
-        __ASM_EMIT("vld2.32     {q6-q7}, [%[b]]")               /* q6   = br2, q7 = bi2 */ \
         /* Calc cr and ci */ \
+        __ASM_EMIT("vld2.32     {q4-q5}, [%[b]]!")              /* q4   = br1, q5 = bi1, b += 8 */ \
         __ASM_EMIT("vmul.f32    q12, q8, q4")                   /* q12  = wr1 * br1 */ \
-        __ASM_EMIT("vmul.f32    q13, q9, q6")                   /* q13  = wr2 * br2 */ \
+        __ASM_EMIT("vld2.32     {q6-q7}, [%[b]]")               /* q6   = br2, q7 = bi2 */ \
         __ASM_EMIT("vmul.f32    q14, q8, q5")                   /* q14  = wr1 * bi1 */ \
+        __ASM_EMIT("vld2.32     {q0-q1}, [%[a]]!")              /* q0   = ar1, q1 = ai1, a += 8 */ \
+        __ASM_EMIT("vmul.f32    q13, q9, q6")                   /* q13  = wr2 * br2 */ \
+        __ASM_EMIT("vld2.32     {q2-q3}, [%[a]]")               /* q2   = ar2, q3 = ai2 */ \
         __ASM_EMIT("vmul.f32    q15, q9, q7")                   /* q15  = wr2 * bi2 */ \
         __ASM_EMIT(op1 "        q12, q10, q5")                  /* q12  = wr1 * br1 +- wi1 * bi1 = cr1 */ \
         __ASM_EMIT(op1 "        q13, q11, q7")                  /* q13  = wr2 * br2 +- wi2 * bi2 = cr2 */ \
         __ASM_EMIT(op2 "        q14, q10, q4")                  /* q14  = wr1 * bi1 -+ wi1 * br1 = ci1 */ \
         __ASM_EMIT(op2 "        q15, q11, q6")                  /* q15  = wr1 * bi1 -+ wi2 * br2 = ci2 */ \
         /* Apply butterfly */ \
-        __ASM_EMIT("vsub.f32    q4, q0, q12")                   /* q4   = ar1 - cr1 */ \
-        __ASM_EMIT("vsub.f32    q6, q2, q13")                   /* q6   = ar2 - cr2 */ \
-        __ASM_EMIT("vsub.f32    q5, q1, q14")                   /* q5   = ai1 - ci1 */ \
-        __ASM_EMIT("vsub.f32    q7, q3, q15")                   /* q7   = ai2 - ci2 */ \
-        __ASM_EMIT("vadd.f32    q0, q0, q12")                   /* q4   = ar1 + cr1 */ \
-        __ASM_EMIT("vadd.f32    q2, q2, q13")                   /* q6   = ar2 + cr2 */ \
-        __ASM_EMIT("vadd.f32    q1, q1, q14")                   /* q5   = ai1 + ci1 */ \
-        __ASM_EMIT("vadd.f32    q3, q3, q15")                   /* q7   = ai2 + ci2 */ \
         __ASM_EMIT("sub         %[a], $0x20")                   /* a   -= 8 */ \
         __ASM_EMIT("sub         %[b], $0x20")                   /* b   -= 8 */ \
-        __ASM_EMIT("subs        %[pairs], $2") \
-        __ASM_EMIT("vst2.32     {q0-q1}, [%[a]]!")              /* q0   = ar1, q1 = ai1 */ \
+        __ASM_EMIT("vsub.f32    q4, q0, q12")                   /* q4   = ar1 - cr1 */ \
+        __ASM_EMIT("vsub.f32    q5, q1, q14")                   /* q5   = ai1 - ci1 */ \
+        __ASM_EMIT("vsub.f32    q6, q2, q13")                   /* q6   = ar2 - cr2 */ \
         __ASM_EMIT("vst2.32     {q4-q5}, [%[b]]!")              /* q4   = br1, q5 = bi1 */ \
-        __ASM_EMIT("vst2.32     {q2-q3}, [%[a]]!")              /* q2   = ar2, q3 = ai2 */ \
+        __ASM_EMIT("vsub.f32    q7, q3, q15")                   /* q7   = ai2 - ci2 */ \
+        __ASM_EMIT("vadd.f32    q0, q0, q12")                   /* q4   = ar1 + cr1 */ \
         __ASM_EMIT("vst2.32     {q6-q7}, [%[b]]!")              /* q6   = br2, q7 = bi2 */ \
+        __ASM_EMIT("vadd.f32    q1, q1, q14")                   /* q5   = ai1 + ci1 */ \
+        __ASM_EMIT("vadd.f32    q2, q2, q13")                   /* q6   = ar2 + cr2 */ \
+        __ASM_EMIT("vst2.32     {q0-q1}, [%[a]]!")              /* q0   = ar1, q1 = ai1 */ \
+        __ASM_EMIT("vadd.f32    q3, q3, q15")                   /* q7   = ai2 + ci2 */ \
+        __ASM_EMIT("subs        %[pairs], $2") \
+        __ASM_EMIT("vst2.32     {q2-q3}, [%[a]]!")              /* q2   = ar2, q3 = ai2 */ \
         __ASM_EMIT("beq         4f") \
         /* Prepare next loop: rotate angle */ \
         __ASM_EMIT("vld1.32     {q0-q1}, [%[XFFT_W]]")          /* q0   = dr, q1 = di */ \
