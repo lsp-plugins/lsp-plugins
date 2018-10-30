@@ -77,14 +77,14 @@ namespace lsp
 
         status_t status = STATUS_OK;
 
-        status = pCore->sSyncChirpProcessor.postprocess_nonlinear_convolution(
-                            pCore->nModelOrder,
-                            false,
-                            10,
-                            10,
-                            windows::HANN,
-                            pCore->calculate_rank(pCore->nWindowSize)
-                            );
+//        status = pCore->sSyncChirpProcessor.postprocess_nonlinear_convolution(
+//                            pCore->nModelOrder,
+//                            false,
+//                            10,
+//                            10,
+//                            windows::HANN,
+//                            pCore->calculate_rank(pCore->nWindowSize)
+//                            );
 
         if (status != STATUS_OK)
             return status;
