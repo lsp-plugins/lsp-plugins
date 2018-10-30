@@ -265,6 +265,7 @@ IF_ARCH_ARM(
     namespace neon_d32
     {
         void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
     }
 )
 
@@ -311,6 +312,14 @@ MTEST_BEGIN("dsp.fft", fft)
             dst2i.dump("dst2i");
 
             neon_d32::direct_fft(src2r, src2i, src2r, src2i, RANK);
+            src2r.dump("src2r");
+            src2i.dump("src2i");
+
+            neon_d32::reverse_fft(dst2r, dst2i, src2r, src2i, RANK);
+            dst2r.dump("dst2r");
+            dst2i.dump("dst2i");
+
+            neon_d32::reverse_fft(src2r, src2i, src2r, src2i, RANK);
             src2r.dump("src2r");
             src2i.dump("src2i");
         );
