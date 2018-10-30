@@ -181,6 +181,8 @@ namespace neon_d32
 
         for (size_t i=4; i <= rank; ++i)
             packed_direct_butterfly_rank4p(dst, i, 1 << (rank - i));
+
+        packed_unscramble_direct(dst, rank);
     }
 }
 
