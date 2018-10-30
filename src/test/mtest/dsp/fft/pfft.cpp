@@ -148,7 +148,7 @@ static void repack_fft(float *dst, size_t rank)
 {
     size_t count = 1 << rank;
     float t[8];
-    for (size_t i=0; i<count; ++i)
+    for (size_t i=0; i<count; i += 4)
     {
         t[0] = dst[0];
         t[1] = dst[1];
@@ -186,10 +186,8 @@ static void packed_direct_fft(float *dst, const float *src, size_t rank)
     const float *iw_im  = XFFT_A_IM;
 
     // Iterate butterflies
-//    for (size_t n=8, bs=(n << 1); n < items; n <<= 1, bs <<= 1)
+    for (size_t n=8, bs=(n << 1); n < items; n <<= 1, bs <<= 1)
     {
-        size_t n=8, bs=(n << 1);
-
         for (size_t p=0; p<items; p += bs)
         {
             // Set initial values of pointers
