@@ -440,8 +440,9 @@ namespace neon_d32
         );
 
         ARCH_ARM_ASM(
-            __ASM_EMIT("vld1.32     {d16[], d17[], d18[], d19[]} , %[k]")
+            __ASM_EMIT("vld1.32     {d16[], d17[]} , [%[k]]")
             __ASM_EMIT("subs        %[count], $16")
+            __ASM_EMIT("vmov        q9, q8")
             __ASM_EMIT("blo         2f")
 
             // 16x blocks
