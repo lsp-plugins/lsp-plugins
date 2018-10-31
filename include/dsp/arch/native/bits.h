@@ -8,6 +8,7 @@
 #ifndef DSP_ARCH_NATIVE_BITS_H_
 #define DSP_ARCH_NATIVE_BITS_H_
 
+// Unsigned implementation
 inline uint8_t      reverse_bits(uint8_t src)
 {
     return __rb[src];
@@ -58,6 +59,47 @@ inline uint32_t     reverse_bits(uint32_t v, size_t count)
 inline uint64_t     reverse_bits(uint64_t v, size_t count)
 {
     return reverse_bits(v) >> (sizeof(uint64_t) * 8 - count);
+}
+
+// Signed implementation
+inline int8_t __lsp_forced_inline      reverse_bits(int8_t v)
+{
+    return reverse_bits(uint8_t(v));
+}
+
+inline int16_t __lsp_forced_inline     reverse_bits(int16_t v)
+{
+    return reverse_bits(uint16_t(v));
+}
+
+inline int32_t __lsp_forced_inline     reverse_bits(int32_t v)
+{
+    return reverse_bits(uint32_t(v));
+}
+
+inline int64_t __lsp_forced_inline     reverse_bits(int64_t v)
+{
+    return reverse_bits(uint64_t(v));
+}
+
+inline int8_t __lsp_forced_inline      reverse_bits(int8_t v, size_t count)
+{
+    return reverse_bits(uint8_t(v), count);
+}
+
+inline int16_t __lsp_forced_inline     reverse_bits(int16_t v, size_t count)
+{
+    return reverse_bits(uint16_t(v), count);
+}
+
+inline int32_t __lsp_forced_inline     reverse_bits(int32_t v, size_t count)
+{
+    return reverse_bits(uint32_t(v), count);
+}
+
+inline int64_t __lsp_forced_inline     reverse_bits(int64_t v, size_t count)
+{
+    return reverse_bits(uint64_t(v), count);
 }
 
 #endif /* DSP_ARCH_NATIVE_BITS_H_ */
