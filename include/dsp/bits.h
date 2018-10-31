@@ -10,10 +10,16 @@
 
 #include <dsp/types.h>
 
-extern const uint8_t    __rb[];
+// Declare array only for specific architectures
+#if !defined(ARCH_ARM)
+    extern const uint8_t    __rb[];
+#endif
 
+// Include CPU-optimized code for bit reversal
 #if defined(ARCH_X86)
     #include <dsp/arch/x86/bits.h>
+#elif defined(ARCH_ARM)
+    #include <dsp/arch/arm/bits.h>
 #else
     #include <dsp/arch/native/bits.h>
 #endif
