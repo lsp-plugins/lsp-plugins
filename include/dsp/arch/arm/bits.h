@@ -19,7 +19,7 @@ inline uint32_t reverse_bits(uint32_t src)
         : [res] "=r" (res)
         : [src] "r" (src)
         :
-    )
+    );
 
     return res;
 }
@@ -29,13 +29,13 @@ inline uint32_t reverse_bits(uint32_t src, size_t count)
     uint32_t res;
 
     ARCH_ARM_ASM (
-        __ASM_EMIT("rsub    %[count], %[count], $32")
+        __ASM_EMIT("rsb     %[count], %[count], $32")
         __ASM_EMIT("rbit    %[res], %[src]")
         __ASM_EMIT("lsr     %[res], %[count]")
         : [res] "=r" (res), [count] "+r" (count)
         : [src] "r" (src)
         :
-    )
+    );
 
     return res;
 }
@@ -49,7 +49,7 @@ inline int32_t reverse_bits(int32_t src)
         : [res] "=r" (res)
         : [src] "r" (src)
         :
-    )
+    );
 
     return res;
 }
@@ -59,13 +59,13 @@ inline int32_t reverse_bits(int32_t src, size_t count)
     int32_t res;
 
     ARCH_ARM_ASM (
-        __ASM_EMIT("rsub    %[count], %[count], $32")
+        __ASM_EMIT("rsb     %[count], %[count], $32")
         __ASM_EMIT("rbit    %[res], %[src]")
         __ASM_EMIT("lsr     %[res], %[count]")
         : [res] "=r" (res), [count] "+r" (count)
         : [src] "r" (src)
         :
-    )
+    );
 
     return res;
 }
@@ -80,24 +80,25 @@ inline uint16_t reverse_bits(uint16_t src)
         : [res] "=r" (res)
         : [src] "r" (src)
         :
-    )
+    );
 
     return res;
 }
 
 inline uint16_t reverse_bits(uint16_t src, size_t count)
 {
-    uint32_t res = src;
+    uint16_t res;
 
     ARCH_ARM_ASM (
-        __ASM_EMIT("rsub    %[count], %[count], $32")
-        __ASM_EMIT("rbit    %[res], %[res]")
+        __ASM_EMIT("rsb     %[count], %[count], $32")
+        __ASM_EMIT("rbit    %[res], %[src]")
         __ASM_EMIT("lsr     %[res], %[count]")
         : [res] "=r" (res), [count] "+r" (count)
-        : :
-    )
+        : [src] "r" (src)
+        :
+    );
 
-    return uint16_t(res);
+    return res;
 }
 
 inline int16_t reverse_bits(int16_t src)
@@ -110,59 +111,30 @@ inline int16_t reverse_bits(int16_t src)
         : [res] "=r" (res)
         : [src] "r" (src)
         :
-    )
+    );
 
     return res;
 }
 
 inline int16_t reverse_bits(int16_t src, size_t count)
 {
-    uint32_t res = uint16_t(src);
+    int16_t res;
 
     ARCH_ARM_ASM (
-        __ASM_EMIT("rsub    %[count], %[count], $32")
-        __ASM_EMIT("rbit    %[res], %[res]")
+        __ASM_EMIT("rsb     %[count], %[count], $32")
+        __ASM_EMIT("rbit    %[res], %[src]")
         __ASM_EMIT("lsr     %[res], %[count]")
         : [res] "=r" (res), [count] "+r" (count)
-        : :
-    )
-
-    return int16_t(res);
-}
-
-inline uint8_t reverse_bits(uint8_t src)
-{
-    uint16_t res;
-
-    ARCH_ARM_ASM (
-        __ASM_EMIT("rbit    %[res], %[src]")
-        __ASM_EMIT("lsr     %[res], $24")
-        : [res] "=r" (res)
         : [src] "r" (src)
         :
-    )
+    );
 
     return res;
 }
 
-inline uint16_t reverse_bits(uint8_t src, size_t count)
+inline uint8_t reverse_bits(uint8_t src)
 {
-    uint32_t res = src;
-
-    ARCH_ARM_ASM (
-        __ASM_EMIT("rsub    %[count], %[count], $32")
-        __ASM_EMIT("rbit    %[res], %[res]")
-        __ASM_EMIT("lsr     %[res], %[count]")
-        : [res] "=r" (res), [count] "+r" (count)
-        : :
-    )
-
-    return uint8_t(res);
-}
-
-inline int8_t reverse_bits(int8_t src)
-{
-    int16_t res;
+    uint8_t res;
 
     ARCH_ARM_ASM (
         __ASM_EMIT("rbit    %[res], %[src]")
@@ -170,27 +142,59 @@ inline int8_t reverse_bits(int8_t src)
         : [res] "=r" (res)
         : [src] "r" (src)
         :
-    )
+    );
+
+    return res;
+}
+
+inline uint8_t reverse_bits(uint8_t src, size_t count)
+{
+    uint8_t res;
+
+    ARCH_ARM_ASM (
+        __ASM_EMIT("rsb     %[count], %[count], $32")
+        __ASM_EMIT("rbit    %[res], %[src]")
+        __ASM_EMIT("lsr     %[res], %[count]")
+        : [res] "=r" (res), [count] "+r" (count)
+        : [src] "r" (src)
+        :
+    );
+
+    return res;
+}
+
+inline int8_t reverse_bits(int8_t src)
+{
+    int8_t res;
+
+    ARCH_ARM_ASM (
+        __ASM_EMIT("rbit    %[res], %[src]")
+        __ASM_EMIT("lsr     %[res], $24")
+        : [res] "=r" (res)
+        : [src] "r" (src)
+        :
+    );
 
     return res;
 }
 
 inline int8_t reverse_bits(int8_t src, size_t count)
 {
-    uint32_t res = src;
+    int8_t res;
 
     ARCH_ARM_ASM (
-        __ASM_EMIT("rsub    %[count], %[count], $32")
-        __ASM_EMIT("rbit    %[res], %[res]")
+        __ASM_EMIT("rsb     %[count], %[count], $32")
+        __ASM_EMIT("rbit    %[res], %[src]")
         __ASM_EMIT("lsr     %[res], %[count]")
         : [res] "=r" (res), [count] "+r" (count)
-        : :
-    )
+        : [src] "r" (src)
+        :
+    );
 
-    return int8_t(res);
+    return res;
 }
 
-uint64_t reverse_bits(uint64_t v)
+inline uint64_t reverse_bits(uint64_t v)
 {
     uint32_t lo = uint32_t(v);
     uint32_t hi = uint32_t(v >> 32);
@@ -206,7 +210,7 @@ uint64_t reverse_bits(uint64_t v)
     return hi | (uint64_t(lo) << 32);
 }
 
-int64_t reverse_bits(int64_t v)
+inline int64_t reverse_bits(int64_t v)
 {
     uint32_t lo = uint32_t(v);
     uint32_t hi = uint32_t(v >> 32);
@@ -222,7 +226,7 @@ int64_t reverse_bits(int64_t v)
     return hi | (int64_t(lo) << 32);
 }
 
-uint64_t reverse_bits(uint64_t v, size_t count)
+inline uint64_t reverse_bits(uint64_t v, size_t count)
 {
     uint32_t lo = uint32_t(v);
     uint32_t hi = uint32_t(v >> 32);
@@ -258,7 +262,7 @@ uint64_t reverse_bits(uint64_t v, size_t count)
     return hi | (uint64_t(lo) << 32);
 }
 
-int64_t reverse_bits(int64_t v, size_t count)
+inline int64_t reverse_bits(int64_t v, size_t count)
 {
     uint32_t lo = uint32_t(v);
     uint32_t hi = uint32_t(v >> 32);
