@@ -247,11 +247,11 @@ inline uint64_t reverse_bits(uint64_t v, size_t count)
         __ASM_EMIT("b               4f")
 
         __ASM_EMIT("2:")
-        __ASM_EMIT("rsb             %[tmp], %[count], $32")         // tmp = 32 - count
+        __ASM_EMIT("rsb             %[tmp], %[count], $32")         // tmp = (32 - count)
         __ASM_EMIT("lsr             %[hi], %[count]")               // [ lo, hi >> count ]
-        __ASM_EMIT("lsl             %[tmp], %[lo], %[count]")       // tmp = lo << (32 - count)
-        __ASM_EMIT("lsr             %[lo], %[count]")               // lo >> count
-        __ASM_EMIT("eor             %[hi], %[tmp]")                 // [ lo >> count, (hi >> count) | (lo << (32 - count)) ]
+        __ASM_EMIT("lsl             %[tmp], %[lo], %[tmp]")         // tmp = lo << (32 - count)
+        __ASM_EMIT("lsr             %[lo], %[count]")               // lo >> (32 - count)
+        __ASM_EMIT("orr             %[hi], %[tmp]")                 // [ lo >> count, (hi >> count) | (lo << (32 - count)) ]
 
         __ASM_EMIT("4:")
         : [lo] "+r" (lo), [hi] "+r" (hi), [tmp] "=&r" (tmp),
@@ -283,11 +283,11 @@ inline int64_t reverse_bits(int64_t v, size_t count)
         __ASM_EMIT("b               4f")
 
         __ASM_EMIT("2:")
-        __ASM_EMIT("rsb             %[tmp], %[count], $32")         // tmp = 32 - count
+        __ASM_EMIT("rsb             %[tmp], %[count], $32")         // tmp = (32 - count)
         __ASM_EMIT("lsr             %[hi], %[count]")               // [ lo, hi >> count ]
-        __ASM_EMIT("lsl             %[tmp], %[lo], %[count]")       // tmp = lo << (32 - count)
-        __ASM_EMIT("lsr             %[lo], %[count]")               // lo >> count
-        __ASM_EMIT("eor             %[hi], %[tmp]")                 // [ lo >> count, (hi >> count) | (lo << (32 - count)) ]
+        __ASM_EMIT("lsl             %[tmp], %[lo], %[tmp]")         // tmp = lo << (32 - count)
+        __ASM_EMIT("lsr             %[lo], %[count]")               // lo >> (32 - count)
+        __ASM_EMIT("orr             %[hi], %[tmp]")                 // [ lo >> count, (hi >> count) | (lo << (32 - count)) ]
 
         __ASM_EMIT("4:")
         : [lo] "+r" (lo), [hi] "+r" (hi), [tmp] "=&r" (tmp),
