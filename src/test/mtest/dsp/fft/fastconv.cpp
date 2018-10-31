@@ -332,7 +332,7 @@ MTEST_BEGIN("dsp.fft", fastconv)
         FloatBuffer conv2(BUF_SIZE << 1, 64);
 
         // Prepare data
-        for (size_t i=0; i<BUF_SIZE; ++i)
+        for (size_t i=0; i<(BUF_SIZE >> 1); ++i)
             samp1[i]          = i;
         samp2.copy(samp1);
 
@@ -341,6 +341,9 @@ MTEST_BEGIN("dsp.fft", fastconv)
         samp1.dump("samp1");
         fastconv_parse(conv1, samp1, RANK);
         conv1.dump("conv1");
+
+        MTEST_ASSERT_MSG(samp1.valid(), "samp1 corrupted");
+        MTEST_ASSERT_MSG(conv1.valid(), "conv1 corrupted");
 
         IF_ARCH_X86(
             samp2.dump("samp2");
@@ -353,6 +356,9 @@ MTEST_BEGIN("dsp.fft", fastconv)
             neon_d32::fastconv_parse(conv2, samp2, RANK);
             conv2.dump("conv2");
         );
+
+        MTEST_ASSERT_MSG(samp2.valid(), "samp2 corrupted");
+        MTEST_ASSERT_MSG(conv2.valid(), "conv2 corrupted");
     }
 MTEST_END
 
