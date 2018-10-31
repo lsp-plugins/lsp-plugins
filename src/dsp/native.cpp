@@ -132,7 +132,6 @@ namespace native
 
         EXPORT1(direct_fft);
         EXPORT1(packed_direct_fft);
-        EXPORT1(conv_direct_fft);
         EXPORT1(reverse_fft);
         EXPORT1(packed_reverse_fft);
         EXPORT1(normalize_fft3);
