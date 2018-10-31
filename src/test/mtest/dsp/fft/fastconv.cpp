@@ -326,10 +326,10 @@ MTEST_BEGIN("dsp.fft", fastconv)
 
     MTEST_MAIN
     {
-        FloatBuffer samp1(BUF_SIZE, 64);
-        FloatBuffer samp2(BUF_SIZE, 64);
-        FloatBuffer conv1(BUF_SIZE*4, 64);
-        FloatBuffer conv2(BUF_SIZE*4, 64);
+        FloatBuffer samp1(BUF_SIZE >> 1, 64);
+        FloatBuffer samp2(BUF_SIZE >> 1, 64);
+        FloatBuffer conv1(BUF_SIZE << 1, 64);
+        FloatBuffer conv2(BUF_SIZE << 1, 64);
 
         // Prepare data
         for (size_t i=0; i<BUF_SIZE; ++i)

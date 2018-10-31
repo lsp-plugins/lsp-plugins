@@ -34,7 +34,7 @@ namespace neon_d32
                 __ASM_EMIT("add         %[b], %[dst], %[items], LSL $2")// b    = &dst[1 << (rank-1)]
                 __ASM_EMIT("vldm        %[XFFT_A], {q8-q11}")           // q8   = wr0, q9 = wr1, q10 = wi0, q11 = wi1
 
-                __ASM_EMIT("subs        %[count], %[items], $16")
+                __ASM_EMIT("subs        %[count], %[items], $8")
                 __ASM_EMIT("blo         2f")
 
                 // 8x butterflies
@@ -45,10 +45,10 @@ namespace neon_d32
                 __ASM_EMIT("vswp        q2, q1")                        // q1   = 0, q2 = ar1
                 __ASM_EMIT("vmul.f32    q5, q0, q10")                   // q5   = ar0 * wi0
                 __ASM_EMIT("vmul.f32    q4, q0, q8")                    // q4   = ar0 * wr0 = br0
-                __ASM_EMIT("vmvn.f32    q5, q5")                        // q5   = - ar0 * wi0 = bi0
+                __ASM_EMIT("vneg.f32    q5, q5")                        // q5   = - ar0 * wi0 = bi0
                 __ASM_EMIT("vmul.f32    q7, q2, q11")                   // q7   = ar1 * wi1
                 __ASM_EMIT("vmul.f32    q6, q2, q9")                    // q6   = ar1 * wr1 = br1
-                __ASM_EMIT("vmvn.f32    q7, q7")                        // q7   = - ar1 * wi1 = bi1
+                __ASM_EMIT("vneg.f32    q7, q7")                        // q7   = - ar1 * wi1 = bi1
                 __ASM_EMIT("vstm        %[a]!, {q0-q3}")
                 __ASM_EMIT("vstm        %[b]!, {q4-q7}")
                 // rotate angle
@@ -65,19 +65,19 @@ namespace neon_d32
                 __ASM_EMIT("vsub.f32    q9, q9, q15")                   // q9   = wr1*dr - wi1*di
                 __ASM_EMIT("vadd.f32    q10, q10, q12")                 // q10  = wi0*dr + wr0*di
                 __ASM_EMIT("vadd.f32    q11, q11, q13")                 // q11  = wi1*dr + wr1*di
-                __ASM_EMIT("subs        %[count], $16")
+                __ASM_EMIT("subs        %[count], $8")
                 __ASM_EMIT("bhs         1b")
 
                 // 4x butterfly
                 __ASM_EMIT("2:")
-                __ASM_EMIT("adds        %[count], $8")
+                __ASM_EMIT("adds        %[count], $4")
                 __ASM_EMIT("blt         4f")
 
                 __ASM_EMIT("vldm        %[ps]!, {q0}")                  // q0   = r0
                 __ASM_EMIT("veor        q1, q1")                        // q1   = 0
                 __ASM_EMIT("vmul.f32    q5, q0, q10")                   // q5   = ar0 * wi0
                 __ASM_EMIT("vmul.f32    q4, q0, q8")                    // q4   = ar0 * wr0 = br0
-                __ASM_EMIT("vmvn.f32    q5, q5")                        // q5   = - ar0 * wi0 = bi0
+                __ASM_EMIT("vneg.f32    q5, q5")                        // q5   = - ar0 * wi0 = bi0
                 __ASM_EMIT("vstm        %[a]!, {q0-q2}")
                 __ASM_EMIT("vstm        %[b]!, {q4-q5}")
 
