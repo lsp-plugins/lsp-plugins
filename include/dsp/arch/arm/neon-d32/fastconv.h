@@ -31,7 +31,7 @@ namespace neon_d32
             ARCH_ARM_ASM(
                 __ASM_EMIT("mov         %[a], %[dst]")                  // a    = dst
                 __ASM_EMIT("mov         %[ps], %[src]")
-                __ASM_EMIT("add         %[b], %[dst], %[items], LSL $1")// b    = &dst[1 << (rank-1)]
+                __ASM_EMIT("add         %[b], %[dst], %[items], LSL $2")// b    = &dst[1 << (rank-1)]
                 __ASM_EMIT("vldm        %[XFFT_A], {q8-q11}")           // q8   = wr0, q9 = wr1, q10 = wi0, q11 = wi1
 
                 __ASM_EMIT("subs        %[count], %[items], $16")
