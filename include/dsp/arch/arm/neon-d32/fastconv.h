@@ -31,7 +31,7 @@ namespace neon_d32
             ARCH_ARM_ASM(
                 __ASM_EMIT("mov         %[a], %[dst]")                  // a    = dst
                 __ASM_EMIT("mov         %[ps], %[src]")
-                __ASM_EMIT("add         %[b], %[dst], %[rank], LSL $1") // b    = &dst[1 << (rank-1)]
+                __ASM_EMIT("add         %[b], %[dst], %[items], LSL $1")// b    = &dst[1 << (rank-1)]
                 __ASM_EMIT("vldm        %[XFFT_A], {q8-q11}")           // q8   = wr0, q9 = wr1, q10 = wi0, q11 = wi1
 
                 __ASM_EMIT("subs        %[count], %[items], $16")
@@ -39,17 +39,18 @@ namespace neon_d32
 
                 // 8x butterflies
                 __ASM_EMIT("1:")
-                __ASM_EMIT("vldm        %[ps]!, {q0-q1}")               // q0   = r0, q1 = r1
+                __ASM_EMIT("vldm        %[ps]!, {q0-q1}")               // q0   = ar0, q1 = ar1
                 __ASM_EMIT("veor        q2, q2")                        // q2   = 0
-                __ASM_EMIT("vswp        q1, q2")                        // q1   = 0, q2 = r1
-                __ASM_EMIT("vmul.f32    q1, q0, q10")                   // q1   = r0 * wi0
-                __ASM_EMIT("vmul.f32    q0, q0, q8")                    // q0   = r0 * wr0
-                __ASM_EMIT("vmvn.f32    q1, q1")                        // q1   = - r0 * wi0
-                __ASM_EMIT("vmul.f32    q3, q2, q11")                   // q3   = r1 * wi1
-                __ASM_EMIT("vmul.f32    q2, q2, q9")                    // q2   = r1 * wr1
-                __ASM_EMIT("vmvn.f32    q3, q3")                        // q3   = - r1 * wi1
-                __ASM_EMIT("vstm        %[a]!, {q0-q1}")
-                __ASM_EMIT("vstm        %[b]!, {q2-q3}")
+                __ASM_EMIT("veor        q3, q3")                        // q3   = 0
+                __ASM_EMIT("vswp        q2, q1")                        // q1   = 0, q2 = ar1
+                __ASM_EMIT("vmul.f32    q5, q0, q10")                   // q5   = ar0 * wi0
+                __ASM_EMIT("vmul.f32    q4, q0, q8")                    // q4   = ar0 * wr0 = br0
+                __ASM_EMIT("vmvn.f32    q5, q5")                        // q5   = - ar0 * wi0 = bi0
+                __ASM_EMIT("vmul.f32    q7, q2, q11")                   // q7   = ar1 * wi1
+                __ASM_EMIT("vmul.f32    q6, q2, q9")                    // q6   = ar1 * wr1 = br1
+                __ASM_EMIT("vmvn.f32    q7, q7")                        // q7   = - ar1 * wi1 = bi1
+                __ASM_EMIT("vstm        %[a]!, {q0-q3}")
+                __ASM_EMIT("vstm        %[b]!, {q4-q7}")
                 // rotate angle
                 __ASM_EMIT("vld1.32     {q0-q1}, [%[XFFT_DW]]")         // q0   = dr, q1 = di
                 __ASM_EMIT("vmul.f32    q12, q8, q1")                   // q12  = wr0 * di
@@ -68,15 +69,17 @@ namespace neon_d32
                 __ASM_EMIT("bhs         1b")
 
                 // 4x butterfly
+                __ASM_EMIT("2:")
                 __ASM_EMIT("adds        %[count], $8")
                 __ASM_EMIT("blt         4f")
 
                 __ASM_EMIT("vldm        %[ps]!, {q0}")                  // q0   = r0
-                __ASM_EMIT("vmul.f32    q1, q0, q10")                   // q1   = r0 * wi0
-                __ASM_EMIT("vmul.f32    q0, q0, q8")                    // q0   = r0 * wr0
-                __ASM_EMIT("vmvn.f32    q1, q1")                        // q1   = - r0 * wi0
-                __ASM_EMIT("vstm        %[a]!, {q0}")
-                __ASM_EMIT("vstm        %[b]!, {q1}")
+                __ASM_EMIT("veor        q1, q1")                        // q1   = 0
+                __ASM_EMIT("vmul.f32    q5, q0, q10")                   // q5   = ar0 * wi0
+                __ASM_EMIT("vmul.f32    q4, q0, q8")                    // q4   = ar0 * wr0 = br0
+                __ASM_EMIT("vmvn.f32    q5, q5")                        // q5   = - ar0 * wi0 = bi0
+                __ASM_EMIT("vstm        %[a]!, {q0-q2}")
+                __ASM_EMIT("vstm        %[b]!, {q4-q5}")
 
                 __ASM_EMIT("4:")
                 __ASM_EMIT("sub         %[XFFT_A], $0x40")              // fw  -= 16
@@ -103,7 +106,7 @@ namespace neon_d32
                 : [src] "r" (src), [dst] "r" (dst)
                 : "memory",
                   "q0", "q1"
-            )
+            );
         }
     }
 }
