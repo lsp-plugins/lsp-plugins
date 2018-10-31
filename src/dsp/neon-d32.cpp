@@ -204,6 +204,8 @@ namespace neon_d32
 
         EXPORT1(direct_fft);
         EXPORT1(reverse_fft);
+        EXPORT1(packed_direct_fft);
+        EXPORT1(packed_reverse_fft);
     }
 }
 

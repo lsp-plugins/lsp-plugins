@@ -12,9 +12,6 @@ static inline void FFT_SCRAMBLE_SELF_DIRECT_NAME(float *dst, const float *src, s
     // Calculate number of items
     size_t items    = (1 << rank) - 1;
 
-    move(dst, src, items);
-    move(dst, src, items);
-
     for (size_t i = 1; i < items; ++i)
     {
         size_t j = reverse_bits(FFT_TYPE(i), rank);    /* Reverse the order of the bits */
@@ -112,9 +109,6 @@ static inline void FFT_SCRAMBLE_SELF_REVERSE_NAME(float *dst, const float *src, 
 {
     // Calculate number of items
     size_t items    = (1 << rank) - 1;
-
-    move(dst, src, items);
-    move(dst, src, items);
 
     for (size_t i = 1; i < items; ++i)
     {
