@@ -26,6 +26,7 @@
   spontaneous crashes of convolvers.
 * Fixed buffer underflow in Convolver module that could cause memory corruption and spontaneous crashes
   of host.
+* Added support of FreeBSD operating system.
 - Migrated to CMake build system.
 - Additional display mode for spectrum analyzer added.
 - Added possibility to double-click the parameter's value number and enter it manually from keyboard.

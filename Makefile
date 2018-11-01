@@ -188,11 +188,11 @@ export OPENGL_LIBS      = $(shell pkg-config --libs gl glu)
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 FILES                   =
 
-LADSPA_ID              := $(ARTIFACT_ID)-ladspa-$(VERSION)-$(BUILD_PROFILE)
-LV2_ID                 := $(ARTIFACT_ID)-lv2-$(VERSION)-$(BUILD_PROFILE)
-VST_ID                 := $(ARTIFACT_ID)-lxvst-$(VERSION)-$(BUILD_PROFILE)
-JACK_ID                := $(ARTIFACT_ID)-jack-$(VERSION)-$(BUILD_PROFILE)
-PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)-$(BUILD_PROFILE)
+LADSPA_ID              := $(ARTIFACT_ID)-ladspa-$(VERSION)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+LV2_ID                 := $(ARTIFACT_ID)-lv2-$(VERSION)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+VST_ID                 := $(ARTIFACT_ID)-lxvst-$(VERSION)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+JACK_ID                := $(ARTIFACT_ID)-jack-$(VERSION)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
 SRC_ID                 := $(ARTIFACT_ID)-src-$(VERSION)
 DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 
