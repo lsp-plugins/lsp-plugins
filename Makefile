@@ -77,7 +77,6 @@ ifeq ($(BUILD_PROFILE),i586)
   ifeq ($(patsubst %BSD%,BSD,$(BUILD_OS)),BSD)
     export LD_ARCH          = -m elf_i386_fbsd
   endif
-  ifeq ($(BUILD_OS),Linux)
   export LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
