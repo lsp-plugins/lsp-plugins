@@ -39,8 +39,8 @@ INSTALLATIONS           = install_ladspa install_lv2 install_jack install_doc in
 RELEASES                = release_ladspa release_lv2 release_jack release_src release_doc release_vst
 
 # Detect operating system
-ifndef BUILD_OS
-  BUILD_OS = $(shell uname -s 2>/dev/null || echo "Unknown")
+ifndef BUILD_PLATFORM
+  BUILD_PLATFORM = $(shell uname -s 2>/dev/null || echo "Unknown")
 endif
 
 # Build profile
@@ -71,10 +71,10 @@ export LD_ARCH          =
 # Build profile
 ifeq ($(BUILD_PROFILE),i586)
   export CC_ARCH          = -m32
-  ifeq ($(patsubst %Linux%,Linux,$(BUILD_OS)),Linux)
+  ifeq ($(patsubst %Linux%,Linux,$(BUILD_PLATFORM)),Linux)
     export LD_ARCH          = -m elf_i386
   endif
-  ifeq ($(patsubst %BSD%,BSD,$(BUILD_OS)),BSD)
+  ifeq ($(patsubst %BSD%,BSD,$(BUILD_PLATFORM)),BSD)
     export LD_ARCH          = -m elf_i386_fbsd
   endif
   export LD_PATH          = /usr/lib:/lib:/usr/local/lib
@@ -82,10 +82,10 @@ endif
 
 ifeq ($(BUILD_PROFILE),x86_64)
   export CC_ARCH          = -m64
-  ifeq ($(patsubst %Linux%,Linux,$(BUILD_OS)),Linux)
+  ifeq ($(patsubst %Linux%,Linux,$(BUILD_PLATFORM)),Linux)
     export LD_ARCH          = -m elf_x86_64
   endif
-  ifeq ($(patsubst %BSD%,BSD,$(BUILD_OS)),BSD)
+  ifeq ($(patsubst %BSD%,BSD,$(BUILD_PLATFORM)),BSD)
   	export LD_ARCH          = -m elf_x86_64_fbsd
   endif
   export LD_PATH          = /usr/lib:/lib:/usr/local/lib
@@ -107,6 +107,7 @@ ifeq ($(BUILD_PROFILE),armv8a)
 endif
 
 export BUILD_PROFILE
+export BUILD_PLATFORM
 
 # Location
 export BASEDIR          = ${CURDIR}
@@ -159,6 +160,7 @@ export PHP_PLUGINS      = $(OBJDIR)/plugins.php
 
 # Compile headers and linkage libraries
 export PTHREAD_LIBS     = -lpthread
+export ICONV_LIBS       = -liconv
 export MATH_LIBS        = -lm
 export DL_LIBS          = -ldl
 export CAIRO_HEADERS    = $(shell pkg-config --cflags cairo)
