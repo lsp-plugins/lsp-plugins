@@ -41,7 +41,6 @@ RELEASES                = release_ladspa release_lv2 release_jack release_src re
 # Detect operating system
 ifndef BUILD_OS
   BUILD_OS = $(shell uname -s 2>/dev/null || echo "Unknown")
-  ifew
 endif
 
 # Build profile
