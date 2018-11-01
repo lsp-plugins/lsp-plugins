@@ -343,12 +343,10 @@ __IF_32( typedef        int32_t             smword_t );
 __IF_64( typedef        uint64_t            umword_t );
 __IF_64( typedef        int64_t             smword_t );
 
+#include <limits.h>
+
 #ifdef PLATFORM_LINUX
     #include <linux/limits.h>
 #endif /* __linux__ */
-
-#ifdef PLATFORM_BSD
-    #include <sys/syslimits.h>
-#endif /* __bsd__ */
 
 #endif /* DSP_TYPES_H_ */
