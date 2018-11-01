@@ -43,10 +43,10 @@ ifndef BUILD_PLATFORM
   TARGET_PLATFORM = $(shell uname -s 2>/dev/null || echo "Unknown")
   BUILD_PLATFORM  = Unknown
   
-  ifeq ($(findstring BSD, $(BUILD_PLATFORM)),BSD)
+  ifeq ($(findstring BSD,$(TARGET_PLATFORM)),BSD)
     BUILD_PLATFORM          = BSD
   endif
-  ifeq ($(findstring Linux, $(BUILD_PLATFORM)),Linux)
+  ifeq ($(findstring Linux,$(TARGET_PLATFORM)),Linux)
     BUILD_PLATFORM          = Linux
   endif
 endif
@@ -231,7 +231,7 @@ profile: compile
 
 compile:
 	@echo "-------------------------------------------------------------------------------"
-	@echo "Building binaries for target architecture: $(BUILD_PROFILE)"
+	@echo "Building binaries for target architecture: $(BUILD_PROFILE), platform: $(BUILD_PLATFORM)"
 	@echo "-------------------------------------------------------------------------------"
 	@mkdir -p $(OBJDIR)/src
 	@test -f $(OBJDIR)/$(PREFIX_FILE) || echo -n "$(PREFIX)" > $(OBJDIR)/$(PREFIX_FILE)

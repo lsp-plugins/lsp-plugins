@@ -6,7 +6,7 @@ OBJ_HELPERS             = $(OBJDIR)/CairoCanvas.o
 OBJFILES                = $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA) $(OBJ_PLUGINS)
 LIBS                    = $(SNDFILE_LIBS) $(PTHREAD_LIBS) $(MATH_LIBS)
 
-ifeq ($(BUILD_PLATFORM), BSD)
+ifeq ($(BUILD_PLATFORM),BSD)
   LIBS                   += $(ICONV_LIBS)
 endif
 
