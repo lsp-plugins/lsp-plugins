@@ -8,7 +8,7 @@ INSTALL                 = install
 PREFIX_FILE            := .install-prefix.txt
 
 ifndef PREFIX
-PREFIX                  = $(shell cat "$(OBJDIR)/$(PREFIX_FILE)" 2>/dev/null || echo "/usr/local")
+  PREFIX                  = $(shell cat "$(OBJDIR)/$(PREFIX_FILE)" 2>/dev/null || echo "/usr/local")
 endif
 
 # Installation locations
@@ -21,7 +21,7 @@ VST_PATH                = $(LIB_PATH)/vst
 
 # Package version
 ifndef VERSION
-VERSION                 = 1.1.4
+  VERSION                 = 1.1.4
 endif
 
 # Directories
@@ -38,58 +38,64 @@ INC_FLAGS               = -I"${CURDIR}/include"
 INSTALLATIONS           = install_ladspa install_lv2 install_jack install_doc install_vst
 RELEASES                = release_ladspa release_lv2 release_jack release_src release_doc release_vst
 
+# Detect operating system
+ifndef BUILD_OS
+  BUILD_OS = $(shell uname -s 2>/dev/null || echo "Unknown")
+  ifew
+endif
+
 # Build profile
 ifndef BUILD_PROFILE
-BUILD_ARCH              = $(shell uname -m)
-ifeq ($(patsubst armv6%,armv6,$(BUILD_ARCH)), armv6)
-BUILD_PROFILE           = armv6a
-endif
-ifeq ($(patsubst armv7%,armv7,$(BUILD_ARCH)), armv7)
-BUILD_PROFILE           = armv7a
-endif
-ifeq ($(patsubst armv8%,armv8,$(BUILD_ARCH)), armv8)
-BUILD_PROFILE           = armv8a
-endif
-ifeq ($(BUILD_ARCH),x86_64)
-BUILD_PROFILE           = x86_64
-endif
-ifeq ($(BUILD_ARCH),amd64)
-BUILD_PROFILE           = x86_64
-endif
-ifeq ($(patsubst i%86, i86, $(BUILD_ARCH)), i586)
-BUILD_PROFILE           = i586
-endif
+  BUILD_ARCH              = $(shell uname -m)
+  ifeq ($(patsubst armv6%,armv6,$(BUILD_ARCH)), armv6)
+    BUILD_PROFILE           = armv6a
+  endif
+  ifeq ($(patsubst armv7%,armv7,$(BUILD_ARCH)), armv7)
+    BUILD_PROFILE           = armv7a
+  endif
+  ifeq ($(patsubst armv8%,armv8,$(BUILD_ARCH)), armv8)
+    BUILD_PROFILE           = armv8a
+  endif
+  ifeq ($(BUILD_ARCH),x86_64)
+    BUILD_PROFILE           = x86_64
+  endif
+  ifeq ($(BUILD_ARCH),amd64)
+    BUILD_PROFILE           = x86_64
+  endif
+  ifeq ($(patsubst i%86, i86, $(BUILD_ARCH)), i586)
+    BUILD_PROFILE           = i586
+  endif
 endif
 
 # Build profile
 ifeq ($(BUILD_PROFILE),i586)
-export CC_ARCH          = -m32
-export LD_ARCH          = -m elf_i386
-export LD_PATH          = /usr/lib:/lib:/usr/local/lib
+  export CC_ARCH          = -m32
+  export LD_ARCH          = -m elf_i386
+  export LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
 ifeq ($(BUILD_PROFILE),x86_64)
-export CC_ARCH          = -m64
-export LD_ARCH          = -m elf_x86_64
-export LD_PATH          = /usr/lib:/lib:/usr/local/lib
+  export CC_ARCH          = -m64
+  export LD_ARCH          = -m elf_x86_64
+  export LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
 ifeq ($(BUILD_PROFILE),armv6a)
-export CC_ARCH          = -march=armv6-a
-export LD_ARCH          = 
-export LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
+  export CC_ARCH          = -march=armv6-a
+  export LD_ARCH          = 
+  export LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
 ifeq ($(BUILD_PROFILE),armv7a)
-export CC_ARCH          = -march=armv7-a
-export LD_ARCH          = 
-export LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
+  export CC_ARCH          = -march=armv7-a
+  export LD_ARCH          = 
+  export LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
 ifeq ($(BUILD_PROFILE),armv8a)
-export CC_ARCH          = -march=armv8-a
-export LD_ARCH          = 
-export LD_PATH          = /usr/lib:/lib:/usr/local/lib
+  export CC_ARCH          = -march=armv8-a
+  export LD_ARCH          = 
+  export LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
 export BUILD_PROFILE
