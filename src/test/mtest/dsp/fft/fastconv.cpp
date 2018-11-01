@@ -9,7 +9,7 @@
 #include <test/mtest.h>
 #include <test/FloatBuffer.h>
 
-#define RANK        4
+#define RANK        5
 #define BUF_SIZE    (1 << RANK)
 
 static const float XFFT_DW[] __lsp_aligned16 =
@@ -176,9 +176,9 @@ static void fastconv_parse(float *dst, const float *src, size_t rank)
         dst[6]      = 0.0f;
         dst[7]      = 0.0f;
     }
-/*
+
     // Iterate butterflies
-    for (; n > 4; n >>= 1, bs >>= 1)
+//    for (; n > 4; n >>= 1, bs >>= 1)
     {
         for (size_t p=0; p<items; p += bs)
         {
@@ -267,6 +267,7 @@ static void fastconv_parse(float *dst, const float *src, size_t rank)
         iw_im  -= 4;
     }
 
+/*
     // Add two last stages
     for (size_t i=0; i<items; i += 8)
     {

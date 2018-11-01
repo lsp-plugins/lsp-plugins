@@ -22,7 +22,6 @@ namespace neon_d32
         IF_ARCH_ARM(
             const float *fdw    = &XFFT_DW[(rank - 3) << 3];
             const float *fw     = &XFFT_A[(rank - 3) << 4];
-            const float *ps;
             size_t k, p;
             float *a, *b;
         );
@@ -32,14 +31,13 @@ namespace neon_d32
             // First loop
             ARCH_ARM_ASM(
                 __ASM_EMIT("mov         %[a], %[dst]")                  // a    = dst
-                __ASM_EMIT("mov         %[ps], %[src]")
                 __ASM_EMIT("add         %[b], %[a], %[n], LSL $3")      // b    = &a[n*2]
                 __ASM_EMIT("mov         %[k], %[n]")
                 __ASM_EMIT("vldm        %[XFFT_A], {q8-q11}")           // q8   = wr0, q9 = wr1, q10 = wi0, q11 = wi1
 
                 // 8x butterflies
                 __ASM_EMIT("1:")
-                __ASM_EMIT("vldm        %[ps]!, {q0-q1}")               // q0   = ar0, q1 = ar1
+                __ASM_EMIT("vldm        %[src]!, {q0-q1}")              // q0   = ar0, q1 = ar1
                 __ASM_EMIT("veor        q2, q2")                        // q2   = 0
                 __ASM_EMIT("veor        q3, q3")                        // q3   = 0
                 __ASM_EMIT("vswp        q2, q1")                        // q1   = 0, q2 = ar1
@@ -68,34 +66,34 @@ namespace neon_d32
                 __ASM_EMIT("vsub.f32    q9, q9, q15")                   // q9   = wr1*dr - wi1*di
                 __ASM_EMIT("vadd.f32    q10, q10, q12")                 // q10  = wi0*dr + wr0*di
                 __ASM_EMIT("vadd.f32    q11, q11, q13")                 // q11  = wi1*dr + wr1*di
+                __ASM_EMIT("b           1b")
 
-                // 4x butterfly
+                // Post-process
                 __ASM_EMIT("2:")
                 __ASM_EMIT("sub         %[XFFT_A], $0x40")              // fw  -= 16
                 __ASM_EMIT("sub         %[XFFT_DW], $0x20")             // fdw -= 8
                 __ASM_EMIT("lsr         %[n], $1")                      // n >>= 1
 
-                : [ps] "=&r" (ps), [a] "=&r" (a),
-                  [b] "=&r" (b),
+                : [src] "+r" (src),
+                  [a] "=&r" (a), [b] "=&r" (b),
                   [XFFT_A] "+r" (fw), [XFFT_DW] "+r" (fdw),
-                  [k] "=&r" (k), [n] "+r" (n),
-                : [src] "r" (src), [dst] "r" (dst)
+                  [k] "=&r" (k), [n] "+r" (n)
+                : [dst] "r" (dst)
                 : "cc", "memory",
                   "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
                   "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
             );
 
-#if 0
             // All other loops while n > 4
             ARCH_ARM_ASM(
                 __ASM_EMIT("cmp         %[n], $8")
-                __ASM_EMIT("bls         8f")
+                __ASM_EMIT("blo         8f")
 
                 __ASM_EMIT("1:")
                 __ASM_EMIT("mov         %[a], %[dst]")                  // a    = dst
+                __ASM_EMIT("mov         %[p], %[items]")                // p    = items
 
                     __ASM_EMIT("3:")
-                    __ASM_EMIT("mov         %[p], %[items]")                // p    = items
                     __ASM_EMIT("add         %[b], %[a], %[n], LSL $3")      // b    = &a[n*2]
                     __ASM_EMIT("vldm        %[XFFT_A], {q8-q11}")           // q8   = wr0, q9 = wr1, q10 = wi0, q11 = wi1
                     __ASM_EMIT("mov         %[k], %[n]")
@@ -154,12 +152,11 @@ namespace neon_d32
                   [k] "=&r" (k), [p] "=&r" (p),
                   [XFFT_A] "+r" (fw), [XFFT_DW] "+r" (fdw),
                   [n] "+r" (n)
-                : [dst] "r" (dst)
+                : [dst] "r" (dst), [items] "r" (items)
                 : "cc", "memory",
                   "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
                   "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
             );
-#endif
         }
         else
         {
