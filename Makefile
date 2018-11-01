@@ -66,34 +66,44 @@ ifndef BUILD_PROFILE
   endif
 endif
 
+export LD_ARCH          =
+
 # Build profile
 ifeq ($(BUILD_PROFILE),i586)
   export CC_ARCH          = -m32
-  export LD_ARCH          = -m elf_i386
+  ifeq ($(patsubst %Linux%,Linux,$(BUILD_OS)),Linux)
+    export LD_ARCH          = -m elf_i386
+  endif
+  ifeq ($(patsubst %BSD%,BSD,$(BUILD_OS)),BSD)
+    export LD_ARCH          = -m elf_i386_fbsd
+  endif
+  ifeq ($(BUILD_OS),Linux)
   export LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
 ifeq ($(BUILD_PROFILE),x86_64)
   export CC_ARCH          = -m64
-  export LD_ARCH          = -m elf_x86_64
+  ifeq ($(patsubst %Linux%,Linux,$(BUILD_OS)),Linux)
+    export LD_ARCH          = -m elf_x86_64
+  endif
+  ifeq ($(patsubst %BSD%,BSD,$(BUILD_OS)),BSD)
+  	export LD_ARCH          = -m elf_x86_64_fbsd
+  endif
   export LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
 ifeq ($(BUILD_PROFILE),armv6a)
   export CC_ARCH          = -march=armv6-a
-  export LD_ARCH          = 
   export LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
 ifeq ($(BUILD_PROFILE),armv7a)
   export CC_ARCH          = -march=armv7-a
-  export LD_ARCH          = 
   export LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
 ifeq ($(BUILD_PROFILE),armv8a)
   export CC_ARCH          = -march=armv8-a
-  export LD_ARCH          = 
   export LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
