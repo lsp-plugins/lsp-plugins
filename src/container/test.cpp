@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/time.h>
-#include <alloca.h>
+#include <stdlib.h>
 #include <signal.h>
 #include <mcheck.h>
 
