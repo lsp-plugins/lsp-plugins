@@ -14,7 +14,7 @@
 
 // TODO: for release this code shoulde be deleted and defined in makefile
 // OS-specific windowing system selection
-#if defined(__linux__)
+#if defined(PLATFORM_LINUX) || defined(PLATFORM_BSD)
     #define USE_X11_DISPLAY
 #else
     #error "Unsupported platform"
