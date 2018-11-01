@@ -40,8 +40,18 @@ RELEASES                = release_ladspa release_lv2 release_jack release_src re
 
 # Detect operating system
 ifndef BUILD_PLATFORM
-  BUILD_PLATFORM = $(shell uname -s 2>/dev/null || echo "Unknown")
+  TARGET_PLATFORM = $(shell uname -s 2>/dev/null || echo "Unknown")
+  BUILD_PLATFORM  = Unknown
+  
+  ifeq ($(findstring BSD, $(BUILD_PLATFORM)),BSD)
+    BUILD_PLATFORM          = BSD
+  endif
+  ifeq ($(findstring Linux, $(BUILD_PLATFORM)),Linux)
+    BUILD_PLATFORM          = Linux
+  endif
 endif
+
+export BUILD_PLATFORM
 
 # Build profile
 ifndef BUILD_PROFILE
@@ -66,15 +76,17 @@ ifndef BUILD_PROFILE
   endif
 endif
 
+export BUILD_PROFILE
+
 export LD_ARCH          =
 
 # Build profile
 ifeq ($(BUILD_PROFILE),i586)
   export CC_ARCH          = -m32
-  ifeq ($(patsubst %Linux%,Linux,$(BUILD_PLATFORM)),Linux)
+  ifeq ($(BUILD_PLATFORM), Linux)
     export LD_ARCH          = -m elf_i386
   endif
-  ifeq ($(patsubst %BSD%,BSD,$(BUILD_PLATFORM)),BSD)
+  ifeq ($(BUILD_PLATFORM), BSD)
     export LD_ARCH          = -m elf_i386_fbsd
   endif
   export LD_PATH          = /usr/lib:/lib:/usr/local/lib
@@ -82,10 +94,10 @@ endif
 
 ifeq ($(BUILD_PROFILE),x86_64)
   export CC_ARCH          = -m64
-  ifeq ($(patsubst %Linux%,Linux,$(BUILD_PLATFORM)),Linux)
+  ifeq ($(BUILD_PLATFORM), Linux)
     export LD_ARCH          = -m elf_x86_64
   endif
-  ifeq ($(patsubst %BSD%,BSD,$(BUILD_PLATFORM)),BSD)
+  ifeq ($(BUILD_PLATFORM), BSD)
   	export LD_ARCH          = -m elf_x86_64_fbsd
   endif
   export LD_PATH          = /usr/lib:/lib:/usr/local/lib
@@ -105,9 +117,6 @@ ifeq ($(BUILD_PROFILE),armv8a)
   export CC_ARCH          = -march=armv8-a
   export LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
-
-export BUILD_PROFILE
-export BUILD_PLATFORM
 
 # Location
 export BASEDIR          = ${CURDIR}
