@@ -12,6 +12,8 @@
     #error "This header should not be included directly"
 #endif /* DSP_ARCH_X86_SSE_IMPL */
 
+#include <dsp/arch/x86/sse/fft/const.h>
+
 namespace sse
 {
     // Make set of butterfly implementations
@@ -610,7 +612,7 @@ namespace sse
             }
         }
 
-        dsp::normalize_fft(dst_re, dst_im, dst_re, dst_im, rank);
+        dsp::normalize_fft2(dst_re, dst_im, rank);
     }
 
     void packed_reverse_fft(float *dst, const float *src, size_t rank)

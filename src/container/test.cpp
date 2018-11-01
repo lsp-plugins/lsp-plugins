@@ -94,9 +94,6 @@ void start_memcheck(config_t *cfg, test::Test *v)
     snprintf(fname, PATH_MAX, "%s/%s.utest.mtrace", cfg->tracepath, v->full_name());
     fname[PATH_MAX-1] = '\0';
 
-    v->set_verbose(cfg->verbose);
-    v->full_name();
-
     fprintf(stderr, "Enabling memory trace for test '%s' into file '%s'\n", v->full_name(), fname);
     fflush(stderr);
 
@@ -288,6 +285,7 @@ int execute_utest(config_t *cfg, test::UnitTest *v)
     }
 
     // Execute unit test
+    v->set_verbose(cfg->verbose);
     start_memcheck(cfg, v);
     v->execute(cfg->args.size(), const_cast<const char **>(cfg->args.get_array()));
     end_memcheck(cfg);

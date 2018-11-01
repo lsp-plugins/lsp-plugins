@@ -63,7 +63,15 @@ namespace dsp
      * @param src_im imaginary part of spectrum;
      * @param rank the rank of FFT
      */
-    extern void (* normalize_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+    extern void (* normalize_fft3)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+
+    /** Normalize FFT coefficients
+     *
+     * @param re target array for real part of signal
+     * @param im target array for imaginary part of signal
+     * @param rank the rank of FFT
+     */
+    extern void (* normalize_fft2)(float *re, float *im, size_t rank);
 
     /** Center FFT coefficients
      *

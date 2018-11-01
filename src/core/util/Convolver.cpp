@@ -248,9 +248,9 @@ namespace lsp
             i_dbg++;
         }
 
-        lsp_assert_msg((conv_re <= &cptr[allocate]),
-                "conv_re (%p) is after end of allocated data (%p)",
-                conv_re, &cptr[allocate]);
+//        lsp_assert_msg((conv_re <= &cptr[allocate]),
+//                "conv_re (%p) is after end of allocated data (%p)",
+//                conv_re, &cptr[allocate]);
 
         // Initialize frame size
         nFrameSize          = size_t(phase * nFrameMax) & (~CONVOLVER_SMALL_FRM_MASK);
@@ -346,7 +346,7 @@ namespace lsp
 
 //                        lsp_trace("dsp::fastconv_parse_apply dst=%p, tmp=%p, conv=%p, src=%p, rank=0x%x",
 //                                vBufferPtr, vTempBuf, conv_re, fptr, int(rank));
-                        lsp_assert(vBufferEnd >= &vBufferPtr[1 << rank]);
+//                        lsp_assert(vBufferEnd >= &vBufferPtr[1 << rank]);
                         dsp::fastconv_parse_apply(vBufferPtr, vTempBuf, conv_re, fptr, rank);
                     }
                     conv_re        += 1 << (rank+1); // Move pointer to next convolution
@@ -386,10 +386,10 @@ namespace lsp
 //                                    );
 //                        lsp_trace("dsp::fastconv_apply dst=%p, tmp=%p, conv1=%p, conv2=%p, rank=0x%x",
 //                                pTargetPtr, vTempBuf, vTask, pConv, int(nRank));
-                        if (vBufferEnd < &pTargetPtr[1 << nRank])
-                        {
-                            lsp_error("Failed assertion: vBufferEnd >= &pTargetPtr[1 << nRank]");
-                        }
+//                        if (vBufferEnd < &pTargetPtr[1 << nRank])
+//                        {
+//                            lsp_error("Failed assertion: vBufferEnd >= &pTargetPtr[1 << nRank]");
+//                        }
                         dsp::fastconv_apply(pTargetPtr, vTempBuf, vTask, pConv, nRank);
 
                         // Update pointers
@@ -417,14 +417,14 @@ namespace lsp
             {
 //                lsp_trace("dsp::fastconv_parse_apply dst=%p, temp=%p, conv=%p, src=%p, count=0x%x",
 //                        vBufferPtr, vTempBuf, vConv, &vFrame[nFrameSize], CONVOLVER_RANK_FFT_SMALL);
-                lsp_assert(vBufferEnd >= &vBufferPtr[1 << CONVOLVER_RANK_FFT_SMALL]);
+//                lsp_assert(vBufferEnd >= &vBufferPtr[1 << CONVOLVER_RANK_FFT_SMALL]);
                 dsp::fastconv_parse_apply(vBufferPtr, vTempBuf, vConv, &vFrame[nFrameSize], CONVOLVER_RANK_FFT_SMALL);
             }
             else // We need to do direct convolution
             {
 //                lsp_trace("dsp::convolve dst=%p, src=%p, conv=%p, conv_size=0x%x, count=0x%x",
 //                        vBufferPtr, src, vConvFirst, int(nDirectSize), int(to_do));
-                lsp_assert(vBufferEnd >= &vBufferPtr[nDirectSize + to_do]);
+//                lsp_assert(vBufferEnd >= &vBufferPtr[nDirectSize + to_do]);
                 dsp::convolve(vBufferPtr, src, vConvFirst, nDirectSize, to_do);
             }
 
@@ -452,7 +452,8 @@ namespace lsp
             // Check that buffer head is required to be moved
             if (vBufferPtr >= vBufferTail)
             {
-                float *sptr = (pTargetPtr >= vBufferPtr) ? vBufferPtr : pTargetPtr;
+                float *sptr = ((pTargetPtr == NULL) || (pTargetPtr >= vBufferPtr)) ?
+                        vBufferPtr : pTargetPtr;
 
                 size_t hist_size    = vBufferEnd - sptr;
                 size_t free_size    = sptr - vBufferHead;
@@ -461,13 +462,14 @@ namespace lsp
                 dsp::move(vBufferHead, sptr, hist_size);
 //                lsp_trace("dsp::fill_zero dst=%p, count=0x%x", &vBufferHead[hist_size], int(vBufferPtr - vBufferHead));
                 dsp::fill_zero(&vBufferHead[hist_size], free_size);
+                if (pTargetPtr != NULL)
+                    pTargetPtr         -= free_size;
                 vBufferPtr         -= free_size;
-                pTargetPtr         -= free_size;
 
-                if ((vBufferPtr < vBufferHead) || (pTargetPtr < vBufferHead))
-                {
-                    lsp_error("Failed assertion: (vBufferPtr >= vBufferHead) && (pTargetPtr >= vBufferHead)");
-                }
+//                if ((vBufferPtr < vBufferHead) || (pTargetPtr < vBufferHead))
+//                {
+//                    lsp_error("Failed assertion: (vBufferPtr >= vBufferHead) && (pTargetPtr >= vBufferHead)");
+//                }
             }
         }
 

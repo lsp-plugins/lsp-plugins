@@ -9,20 +9,12 @@
 #include <test/FloatBuffer.h>
 #include <dsp/dsp.h>
 
-#ifdef ARCH_I386
-    #define TOLERANCE       5e-2
-#else
-    #define TOLERANCE       1e-4
-#endif
+#define TOLERANCE       5e-2
 
 namespace native
 {
     void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
     void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
-    void packed_direct_fft(float *dst, const float *src, size_t rank);
-    void packed_reverse_fft(float *dst, const float *src, size_t rank);
-
-    void conv_direct_fft(float *dst, const float *src, size_t rank);
 }
 
 IF_ARCH_X86(
@@ -30,15 +22,18 @@ IF_ARCH_X86(
     {
         void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
         void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
-        void packed_direct_fft(float *dst, const float *src, size_t rank);
-        void packed_reverse_fft(float *dst, const float *src, size_t rank);
+    }
+)
 
-        void conv_direct_fft(float *dst, const float *src, size_t rank);
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
+        void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
     }
 )
 
 typedef void (* fft_t)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
-typedef void (* packed_fft_t)(float *dst, const float *src, size_t rank);
 
 UTEST_BEGIN("dsp.fft", fft)
 
@@ -49,87 +44,68 @@ UTEST_BEGIN("dsp.fft", fft)
         if (!UTEST_SUPPORTED(func2))
             return;
 
-        for (size_t rank=6; rank<=16; ++rank)
+        for (int same=0; same<2; ++same)
         {
-            size_t count = 1 << rank;
-            for (size_t mask=0; mask <= 0x0f; ++mask)
+            for (size_t rank=6; rank<=16; ++rank)
             {
-                FloatBuffer src_re(count, align, mask & 0x01);
-                FloatBuffer src_im(count, align, mask & 0x02);
-                FloatBuffer dst1_re(count, align, mask & 0x04);
-                FloatBuffer dst1_im(count, align, mask & 0x08);
-                FloatBuffer dst2_re(dst1_re);
-                FloatBuffer dst2_im(dst1_im);
-
-                func1(dst1_re, dst1_im, src_re, src_im, rank);
-                func2(dst2_re, dst2_im, src_re, src_im, rank);
-
-                UTEST_ASSERT_MSG(src_re.valid(), "Source buffer RE corrupted");
-                UTEST_ASSERT_MSG(src_im.valid(), "Source buffer IM corrupted");
-                UTEST_ASSERT_MSG(dst1_re.valid(), "Destination buffer 1 RE corrupted");
-                UTEST_ASSERT_MSG(dst1_im.valid(), "Destination buffer 1 IM corrupted");
-                UTEST_ASSERT_MSG(dst2_re.valid(), "Destination buffer 2 RE corrupted");
-                UTEST_ASSERT_MSG(dst2_im.valid(), "Destination buffer 2 IM corrupted");
-
-                // Compare buffers
-                if ((!dst1_re.equals_adaptive(dst2_re, TOLERANCE)) || (!dst1_im.equals_adaptive(dst2_im, TOLERANCE)))
+                size_t count = 1 << rank;
+                for (size_t mask=0; mask <= 0x0f; ++mask)
                 {
-                    src_re.dump("src_re ");
-                    src_im.dump("src_im ");
-                    dst1_re.dump("dst1_re");
-                    dst2_re.dump("dst2_re");
-                    dst1_im.dump("dst1_im");
-                    dst2_im.dump("dst2_im");
+                    FloatBuffer src_re(count, align, mask & 0x01);
+                    FloatBuffer src_im(count, align, mask & 0x02);
+                    FloatBuffer dst1_re(count, align, mask & 0x04);
+                    FloatBuffer dst1_im(count, align, mask & 0x08);
+                    FloatBuffer dst2_re(dst1_re);
+                    FloatBuffer dst2_im(dst1_im);
 
-                    ssize_t diff = dst1_re.last_diff();
-                    if (diff >= 0)
+                    printf("Testing '%s' for rank=%d, mask=0x%x, same=%s...\n", label, int(rank), int(mask), (same) ? "true" : "false");
+
+                    if (same)
                     {
-                        UTEST_FAIL_MSG("Real output of functions for test '%s' differs at sample %d (%.5f vs %.5f)",
-                                label, int(diff), dst1_re.get(diff), dst2_re.get(diff));
+                        dsp::copy(dst1_re, src_re, count);
+                        dsp::copy(dst1_im, src_im, count);
+                        dsp::copy(dst2_re, src_re, count);
+                        dsp::copy(dst2_im, src_im, count);
+
+                        func1(dst1_re, dst1_im, dst1_re, dst1_im, rank);
+                        func2(dst2_re, dst2_im, dst2_re, dst2_im, rank);
                     }
                     else
                     {
-                        diff = dst1_im.last_diff();
-                        UTEST_FAIL_MSG("Imaginary output of functions for test '%s' differs at sample %d (%.5f vs %.5f)",
-                                label, int(diff), dst1_im.get(diff), dst2_im.get(diff));
+                        func1(dst1_re, dst1_im, src_re, src_im, rank);
+                        func2(dst2_re, dst2_im, src_re, src_im, rank);
                     }
-                }
-            }
-        }
-    }
 
-    void call(const char *label, size_t align, packed_fft_t func1, packed_fft_t func2)
-    {
-        if (!UTEST_SUPPORTED(func1))
-            return;
-        if (!UTEST_SUPPORTED(func2))
-            return;
+                    UTEST_ASSERT_MSG(src_re.valid(), "Source buffer RE corrupted");
+                    UTEST_ASSERT_MSG(src_im.valid(), "Source buffer IM corrupted");
+                    UTEST_ASSERT_MSG(dst1_re.valid(), "Destination buffer 1 RE corrupted");
+                    UTEST_ASSERT_MSG(dst1_im.valid(), "Destination buffer 1 IM corrupted");
+                    UTEST_ASSERT_MSG(dst2_re.valid(), "Destination buffer 2 RE corrupted");
+                    UTEST_ASSERT_MSG(dst2_im.valid(), "Destination buffer 2 IM corrupted");
 
-        for (size_t rank=6; rank<=16; ++rank)
-        {
-            size_t count = 1 << (rank + 1);
-            for (size_t mask=0; mask <= 0x03; ++mask)
-            {
-                FloatBuffer src(count, align, mask & 0x01);
-                FloatBuffer dst1(count, align, mask & 0x02);
-                FloatBuffer dst2(dst1);
+                    // Compare buffers
+                    if ((!dst1_re.equals_adaptive(dst2_re, TOLERANCE)) || (!dst1_im.equals_adaptive(dst2_im, TOLERANCE)))
+                    {
+                        src_re.dump("src_re ");
+                        src_im.dump("src_im ");
+                        dst1_re.dump("dst1_re");
+                        dst2_re.dump("dst2_re");
+                        dst1_im.dump("dst1_im");
+                        dst2_im.dump("dst2_im");
 
-                func1(dst1, src, rank);
-                func2(dst2, src, rank);
-
-                UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
-                UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
-                UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
-
-                // Compare buffers
-                if ((!dst1.equals_adaptive(dst2, TOLERANCE)))
-                {
-                    ssize_t diff = dst1.last_diff();
-                    src.dump("src ");
-                    dst1.dump("dst1");
-                    dst2.dump("dst2");
-                    UTEST_FAIL_MSG("Output of functions for test '%s' differs at sample %d (%.5f vs %.5f)",
-                            label, int(diff), dst1.get(diff), dst2.get(diff));
+                        ssize_t diff = dst1_re.last_diff();
+                        if (diff >= 0)
+                        {
+                            UTEST_FAIL_MSG("Real output of functions for test '%s' differs at sample %d (%.5f vs %.5f)",
+                                    label, int(diff), dst1_re.get(diff), dst2_re.get(diff));
+                        }
+                        else
+                        {
+                            diff = dst1_im.last_diff();
+                            UTEST_FAIL_MSG("Imaginary output of functions for test '%s' differs at sample %d (%.5f vs %.5f)",
+                                    label, int(diff), dst1_im.get(diff), dst2_im.get(diff));
+                        }
+                    }
                 }
             }
         }
@@ -140,8 +116,8 @@ UTEST_BEGIN("dsp.fft", fft)
         // Do tests
         IF_ARCH_X86(call("sse::direct_fft", 16, native::direct_fft, sse::direct_fft));
         IF_ARCH_X86(call("sse::reverse_fft", 16, native::reverse_fft, sse::reverse_fft));
-        IF_ARCH_X86(call("sse::packed_direct_fft", 16, native::packed_direct_fft, sse::packed_direct_fft));
-        IF_ARCH_X86(call("sse::packed_reverse_fft", 16, native::packed_reverse_fft, sse::packed_reverse_fft));
-        IF_ARCH_X86(call("sse::conv_direct_fft", 16, native::conv_direct_fft, sse::conv_direct_fft));
+
+        IF_ARCH_ARM(call("neon_d32::direct_fft", 16, native::direct_fft, neon_d32::direct_fft));
+        IF_ARCH_ARM(call("neon_d32::reverse_fft", 16, native::reverse_fft, neon_d32::reverse_fft));
     }
 UTEST_END;

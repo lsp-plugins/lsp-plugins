@@ -58,6 +58,7 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/filters/static.h>
 #include <dsp/arch/arm/neon-d32/filters/dynamic.h>
 #include <dsp/arch/arm/neon-d32/filters/transform.h>
+#include <dsp/arch/arm/neon-d32/fft.h>
 
 #undef DSP_ARCH_ARM_NEON_32_IMPL
 
@@ -200,6 +201,11 @@ namespace neon_d32
         EXPORT1(bilinear_transform_x2);
         EXPORT1(bilinear_transform_x4);
         EXPORT1(bilinear_transform_x8);
+
+        EXPORT1(direct_fft);
+        EXPORT1(reverse_fft);
+        EXPORT1(packed_direct_fft);
+        EXPORT1(packed_reverse_fft);
     }
 }
 
