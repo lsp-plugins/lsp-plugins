@@ -20,19 +20,23 @@ namespace lsp
             return;
 
         setlocale(LC_ALL, var);
-        setlocale(LC_ADDRESS, var);
         setlocale(LC_COLLATE, var);
         setlocale(LC_CTYPE, var);
-        setlocale(LC_IDENTIFICATION, var);
-        setlocale(LC_MEASUREMENT, var);
         setlocale(LC_MESSAGES, var);
         setlocale(LC_MONETARY, var);
-        setlocale(LC_NAME, var);
         setlocale(LC_NUMERIC, var);
-        setlocale(LC_PAPER, var);
-        setlocale(LC_TELEPHONE, var);
         setlocale(LC_TIME, var);
 
+        // Linux-specific stuff
+        #if defined(PLATFORM_LINUX)
+            setlocale(LC_PAPER, var);
+            setlocale(LC_TELEPHONE, var);
+
+            setlocale(LC_NAME, var);
+            setlocale(LC_ADDRESS, var);
+            setlocale(LC_IDENTIFICATION, var);
+            setlocale(LC_MEASUREMENT, var);
+        #endif /* PLATFORM_LINUX */
     }
 }
 
