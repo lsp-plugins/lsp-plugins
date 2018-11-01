@@ -178,7 +178,7 @@ static void fastconv_parse(float *dst, const float *src, size_t rank)
     }
 
     // Iterate butterflies
-//    for (; n > 4; n >>= 1, bs >>= 1)
+    for (; n > 4; n >>= 1, bs >>= 1)
     {
         for (size_t p=0; p<items; p += bs)
         {

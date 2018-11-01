@@ -105,10 +105,10 @@ namespace neon_d32
                         __ASM_EMIT("vsub.f32    q13, q1, q5")                   // q13  = ai0 - bi0 = ci0
                         __ASM_EMIT("vsub.f32    q14, q2, q6")                   // q14  = ar1 - br1 = cr1
                         __ASM_EMIT("vsub.f32    q15, q3, q7")                   // q15  = ai1 - bi1 = ci1
-                        __ASM_EMIT("vadd.f32    q0, q0, q4")                    // q8   = ar0 + br0 = ar0'
-                        __ASM_EMIT("vadd.f32    q1, q1, q5")                    // q9   = ai0 + bi0 = ai0'
-                        __ASM_EMIT("vadd.f32    q2, q2, q6")                    // q10  = ar1 + br1 = ar1'
-                        __ASM_EMIT("vadd.f32    q3, q3, q7")                    // q11  = ai1 + bi1 = ai1'
+                        __ASM_EMIT("vadd.f32    q0, q0, q4")                    // q0   = ar0 + br0 = ar0'
+                        __ASM_EMIT("vadd.f32    q1, q1, q5")                    // q1   = ai0 + bi0 = ai0'
+                        __ASM_EMIT("vadd.f32    q2, q2, q6")                    // q2   = ar1 + br1 = ar1'
+                        __ASM_EMIT("vadd.f32    q3, q3, q7")                    // q3   = ai1 + bi1 = ai1'
                         __ASM_EMIT("vstm        %[a]!, {q0-q3}")
                         __ASM_EMIT("vmul.f32    q0, q8, q12")                   // q0   = wr0 * cr0
                         __ASM_EMIT("vmul.f32    q2, q9, q14")                   // q2   = wr1 * cr1
@@ -147,7 +147,36 @@ namespace neon_d32
                 __ASM_EMIT("cmp         %[n], $8")
                 __ASM_EMIT("bge         1b")
 
+                // Loop for n=4
                 __ASM_EMIT("8:")
+                __ASM_EMIT("mov         %[a], %[dst]")                  // a    = dst
+                __ASM_EMIT("mov         %[p], %[items]")                // p    = items
+                __ASM_EMIT("vldm        %[XFFT_A], {q8-q11}")           // q8   = wr0, q9 = wr1, q10 = wi0, q11 = wi1
+
+                // 8x butterflies
+                __ASM_EMIT("9:")
+                __ASM_EMIT("add         %[b], %[a], %[n], LSL $3")      // b    = &a[n*2]
+                __ASM_EMIT("vldm        %[a], {q0-q7}")                 // q0   = ar0, q1 = ai0, q2 = br0, q3 = bi0, q4 = ar1, q5 = ai1, q6 = br1, q7 = bi1
+                __ASM_EMIT("vsub.f32    q12, q0, q2")                   // q12  = ar0 - br0 = cr0
+                __ASM_EMIT("vsub.f32    q13, q1, q3")                   // q13  = ai0 - bi0 = ci0
+                __ASM_EMIT("vsub.f32    q14, q4, q6")                   // q14  = ar1 - br1 = cr1
+                __ASM_EMIT("vsub.f32    q15, q5, q7")                   // q15  = ai1 - bi1 = ci1
+                __ASM_EMIT("vadd.f32    q0, q0, q2")                    // q0   = ar0 + br0 = ar0'
+                __ASM_EMIT("vadd.f32    q1, q1, q3")                    // q1   = ai0 + bi0 = ai0'
+                __ASM_EMIT("vadd.f32    q4, q4, q6")                    // q4   = ar1 + br1 = ar1'
+                __ASM_EMIT("vadd.f32    q5, q5, q7")                    // q5   = ai1 + bi1 = ai1'
+                __ASM_EMIT("vmul.f32    q2, q8, q12")                   // q2   = wr0 * cr0
+                __ASM_EMIT("vmul.f32    q3, q9, q14")                   // q3   = wr1 * cr1
+                __ASM_EMIT("vmul.f32    q5, q8, q13")                   // q5   = wr0 * ci0
+                __ASM_EMIT("vmul.f32    q6, q9, q15")                   // q6   = wr1 * ci1
+                __ASM_EMIT("vmla.f32    q2, q10, q13")                  // q2   = wr0*cr0 + wi0*ci0 = br0'
+                __ASM_EMIT("vmla.f32    q3, q11, q15")                  // q3   = wr1*cr1 + wi1*ci1 = bi0'
+                __ASM_EMIT("vmls.f32    q5, q10, q12")                  // q5   = wr0*ci0 - wi0*cr0 = br1'
+                __ASM_EMIT("vmls.f32    q6, q11, q14")                  // q6   = wr1*ci1 - wi1*cr1 = bi1'
+                __ASM_EMIT("vstm        %[a]!, {q0-q7}")
+                __ASM_EMIT("subs        %[p], $8")                      // p   -= 8
+                __ASM_EMIT("bne         9b")
+
                 : [a] "=&r" (a), [b] "=&r" (b),
                   [k] "=&r" (k), [p] "=&r" (p),
                   [XFFT_A] "+r" (fw), [XFFT_DW] "+r" (fdw),
