@@ -811,7 +811,7 @@ namespace lsp
         double noisePeak        = dsp::abs_max(&vResult[head], count);
 
         sCRPostProc.noiseLevel  = ceil(20.0 * log10(noisePeak));
-        sCRPostProc.noiseValue  = exp10(sCRPostProc.noiseLevel / 20.0);
+        sCRPostProc.noiseValue  = exp(M_LN10 * 0.05 * sCRPostProc.noiseLevel);
 
         return STATUS_OK;
     }
