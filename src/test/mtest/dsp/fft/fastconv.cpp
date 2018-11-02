@@ -267,7 +267,6 @@ static void fastconv_parse(float *dst, const float *src, size_t rank)
         iw_im  -= 4;
     }
 
-/*
     // Add two last stages
     for (size_t i=0; i<items; i += 8)
     {
@@ -306,7 +305,6 @@ static void fastconv_parse(float *dst, const float *src, size_t rank)
 
     // Now all complex numbers are stored in the following rormat:
     // [r0 r1 r2 r3 i0 i1 i2 i3  r4 r5 r6 r7 i4 i5 i6 i7  ... ]
-*/
 }
 
 IF_ARCH_X86(

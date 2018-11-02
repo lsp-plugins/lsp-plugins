@@ -204,91 +204,93 @@ namespace neon_d32
                   "q0", "q1"
             );
         }
+
+        // Perform small 4x4 post-processing
+        ARCH_ARM_ASM
+        (
+            // Loop for n=4
+            __ASM_EMIT("subs        %[items], $8")
+            __ASM_EMIT("blo         2f")
+
+            // 8x butterflies
+            __ASM_EMIT("mov         %[src], %[dst]")        //
+
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vld4.32     {q0-q1}, %[src]!")      // q0   = r0 i0 r1 i1, q1 = r2 i2 r3 i3
+            __ASM_EMIT("vld4.32     {q2-q3}, %[src]!")      // q2   = r4 i4 r5 i5, q3 = r6 i6 r7 i7
+            // q0 = r0 i0 r1 i1
+            // q1 = r2 i2 r3 i3
+            // q2 = r4 i4 r5 i5
+            // q3 = r6 i6 r7 i7
+            __ASM_EMIT("vsub.f32    q4, q0, q1")            // q4   = r0-r2 i0-i2 r1-r3 i1-i3 = r1' i1' r3' i3'
+            __ASM_EMIT("vsub.f32    q5, q2, q3")            // q5   = r4-r6 i4-i6 r5-r7 i5-i7 = r5' i5' r7' i7'
+            __ASM_EMIT("vadd.f32    q0, q0, q1")            // q0   = r0+r2 i0+i2 r1+r3 i1+i3 = r0' i0' r2' i2'
+            __ASM_EMIT("vadd.f32    q2, q2, q3")            // q2   = r4+r6 i4+i6 r5+r7 i5+i7 = r4' i4' r6' i6'
+
+//            r0'       = r0 + r2;
+//            r1'       = r0 - r2;
+//            r2'       = r1 + r3;
+//            r3'       = r1 - r3;
+//
+//            i0'       = i0 + i2;
+//            i1'       = i0 - i2;
+//            i2'       = i1 + i3;
+//            i3'       = i1 - i3;
+
+            // q0 = r0' i0' r2' i2'
+            // q2 = r4' i4' r6' i6'
+            // q4 = r1' i1' r3' i3'
+            // q5 = r5' i5' r7' i7'
+            __ASM_EMIT("vzip        q0, q4")                // q0   = r0' r1' i0' i1', q4 = r2' r3' i2' i3'
+            __ASM_EMIT("vzip        q2, q5")                // q2   = r4' r5' i4' i5', q5 = r6' r7' i6' i7'
+            __ASM_EMIT("vrev64.32   q4, q4")                // q4   = r3' r2' i3' i2'
+            __ASM_EMIT("vrev64.32   q5, q5")                // q5   = r7' r6' i7' i6'
+            __ASM_EMIT("vext.32     q4, q4, $1")            // q4   = r2' i3' i2' r3'
+            __ASM_EMIT("vext.32     q5, q5, $1")            // q5   = r6' i7' i6' r7'
+
+            // q0 = r0' r1' i0' i1'
+            // q2 = r4' r5' i4' i5'
+            // q4 = r2' i3' i2' r3'
+            // q5 = r6' i7' i6' r7'
+            __ASM_EMIT("vsub.f32    q1, q0, q4")            // q1   = r0'-r2' r1'-i3' i0'-i2' i1'-r3' = r1" r3" i1" i2"
+            __ASM_EMIT("vsub.f32    q3, q2, q5")            // q3   = r4'-r6' r5'-i7' i4'-i6' i5'-r7' = r5" r7" i5" i6"
+            __ASM_EMIT("vadd.f32    q0, q0, q4")            // q0   = r0'+r2' r1'+i3' i0'+i2' i1'+r3' = r0" r2" i0" i3"
+            __ASM_EMIT("vadd.f32    q2, q2, q5")            // q2   = r4'+r6' r5'+i7' i4'+i6' i5'+r7' = r4" r6" i4" i7"
+
+            __ASM_EMIT("vmov        s16, s7")               // s16  = i2"
+            __ASM_EMIT("vmov        s17, s15")              // s17  = i6"
+            __ASM_EMIT("vmov        s7, s3")                // q1   = r1" r3" i1" i3"
+            __ASM_EMIT("vmov        s15, s11")              // q3   = r5" r7" i5" i7"
+            __ASM_EMIT("vmov        s3, s6")                // q0   = r0" r2" i0" i2"
+            __ASM_EMIT("vmov        s11, s17")              // q3   = r4" r6" i4" i6"
+
+            __ASM_EMIT("vzip        q0, q1")                // q0   = r0" r1" r2" r3", q1 = i0" i1" i2" i3"
+            __ASM_EMIT("vzip        q2, q3")                // q2   = r4" r5" r6" r7", q3 = i4" i5" i6" i7"
+
+            __ASM_EMIT("subs        %[items], $8")          // n   -= 8
+            __ASM_EMIT("vstm        %[dst]!, {q0-q3}")
+            __ASM_EMIT("bhs         1b")
+
+            __ASM_EMIT("2:")
+
+//            r0"          = r0' + r2';
+//            r1"          = r0' - r2';
+//            r2"          = r1' + i3';
+//            r3"          = r1' - i3';
+//
+//            i0"          = i0' + i2';
+//            i1"          = i0' - i2';
+//            i2"          = i1' - r3';
+//            i3"          = i1' + r3';
+
+            : [src] "+r" (src), [dst] "+r" (dst), [items] "r" (items)
+            :
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+
     }
-
-    // Perform small 4x4 post-processing
-    ARCH_ARM_ASM
-    (
-        // Loop for n=4
-        __ASM_EMIT("subs        %[items], $8")
-        __ASM_EMIT("blo         2f")
-
-        // 8x butterflies
-        __ASM_EMIT("mov         %[src], %[dst]")        //
-
-        __ASM_EMIT("1:")
-        __ASM_EMIT("vldm        %[src]!, {q0-q3}")      // q0   = r0 r1 r2 r3, q1 = i0 i1 i2 i3 ...
-        // q0 = r0 r1 r2 r3
-        // q1 = i0 i1 i2 i3
-        // q2 = r4 r5 r6 r7
-        // q3 = i4 i5 i6 i7
-        __ASM_EMIT("vtrn.32     q0, q1")                // q0   = r0 i0 r2 i2, q1 = r1 i1 r3 i3
-        __ASM_EMIT("vtrn.32     q2, q3")                // q2   = r4 i4 r6 i6, q3 = r5 i5 r7 i7
-        __ASM_EMIT("vsub.f32    q4, q0, q1")            // q4   = r0-r1 i0-i1 r2-r3 i2-i3 = r1' r3' i1' i3'
-        __ASM_EMIT("vsub.f32    q5, q2, q3")            // q5   = r4-r5 i4-i5 r6-r7 i6-i7 = r5' r7' i5' i7'
-        __ASM_EMIT("vadd.f32    q0, q0, q1")            // q0   = r0+r1 i0+i1 r2+r3 i2+i3 = r0' r2' i0' i2'
-        __ASM_EMIT("vadd.f32    q2, q2, q3")            // q2   = r4+r5 i4+i5 r6+r7 i6+i7 = r4' r6' i4' i6'
-
-        // q0 = r0' r2' i0' i2'
-        // q2 = r4' r6' i4' i6'
-        // q4 = r1' r3' i1' i3'
-        // q5 = r5' r7' i5' i7'
-        __ASM_EMIT("vtrn.32     q0, q4")                // q0   = r0' r1' i0' i1', q4 = r2' r3' i2' i3'
-        __ASM_EMIT("vtrn.32     q2, q5")                // q2   = r4' r5' i4' i5', q5 = r6' r7' i6' i7'
-        __ASM_EMIT("vrev64.32   q4, q4")                // q4   = r3' r2' i3' i2'
-        __ASM_EMIT("vrev64.32   q5, q5")                // q5   = r7' r6' i7' i6'
-        __ASM_EMIT("vext.32     q4, q4, q4, $1")        // q4   = r2' i3' i2' r3'
-        __ASM_EMIT("vext.32     q5, q5, q5, $1")        // q5   = r6' i7' i6' r7'
-
-        // q0 = r0' r1' i0' i1'
-        // q1 = r2' i3' i2' r3'
-        // q2 = r4' r5' i4' i5'
-        // q3 = r6' i7' i6' r7'
-        __ASM_EMIT("vsub.f32    q1, q0, q4")            // q1   = r0'-r2' r1'-i3' i0'-i2' i1'-r3' = i0" i1" i2" r3"
-        __ASM_EMIT("vsub.f32    q3, q2, q5")            // q3   = r4'-r6' r5'-i7' i4'-i6' i5'-r7' = i4" i5" i6" r7"
-        __ASM_EMIT("vadd.f32    q0, q0, q4")            // q0   = r0'+r2' r1'+i3' i0'+i2' i1'+r3' = r0" r1" r2" i3"
-        __ASM_EMIT("vadd.f32    q2, q2, q5")            // q2   = r4'+r6' r5'+i7' i4'+i6' i5'+r7' = r4" r5" r6" i7"
-
-        __ASM_EMIT("vmov        s16, s7")               // s16  = r3"
-        __ASM_EMIT("vmov        s17, s15")              // s17  = r7"
-        __ASM_EMIT("vmov        s7, s3")                // q1   = i0" i1" i2" i3"
-        __ASM_EMIT("vmov        s15, s11")              // q3   = i4" i5" i6" i7"
-        __ASM_EMIT("vmov        s3, s16")               // q0   = r0" r1" r2" r3"
-        __ASM_EMIT("vmov        s11, s17")              // q2   = r4" r5" r6" r7"
-
-        __ASM_EMIT("subs        %[items], $8")          // n   -= 8
-        __ASM_EMIT("vstm        %[dst]!, {q0-q3}")
-        __ASM_EMIT("bhs         1b")
-
-        __ASM_EMIT("2:")
-
-        //        float r0'       = r0 + r1;
-        //        float r1'       = r0 - r1;
-        //        float r2'       = i0 + i1;
-        //        float r3'       = i0 - i1;
-        //
-        //        float i0'       = r2 + r3;
-        //        float i1'       = r2 - r3;
-        //        float i2'       = i2 + i3;
-        //        float i3'       = i2 - i3;
-        //
-        //        dst[0]          = r0' + r2';
-        //        dst[1]          = r0' - r2';
-        //        dst[2]          = r1' + i3';
-        //        dst[3]          = r1' - i3';
-        //
-        //        dst[4]          = i0' + i2';
-        //        dst[5]          = i0' - i2';
-        //        dst[6]          = i1' - r3';
-        //        dst[7]          = i1' + r3';
-
-        __ASM_EMIT("2:")
-        : [src] "+r" (src), [dst] "+r" (dst), [items] "r" (items)
-        :
-        : "cc", "memory",
-          "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
-          "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
-    );
 }
 
 #endif /* DSP_ARCH_ARM_NEON_D32_FASTCONV_H_ */
