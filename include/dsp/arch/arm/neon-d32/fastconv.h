@@ -380,10 +380,10 @@ namespace neon_d32
                 __ASM_EMIT("vmul.f32    q14, q8, q3")       // q14  = wr1 * bi1
                 __ASM_EMIT("vmul.f32    q13, q9, q6")       // q13  = wr2 * br2
                 __ASM_EMIT("vmul.f32    q15, q9, q7")       // q15  = wr2 * bi2
-                __ASM_EMIT(op1 "        q12, q10, q3")      // q12  = wr1 * br1 +- wi1 * bi1 = cr1
-                __ASM_EMIT(op1 "        q13, q11, q7")      // q13  = wr2 * br2 +- wi2 * bi2 = cr2
-                __ASM_EMIT(op2 "        q14, q10, q2")      // q14  = wr1 * bi1 -+ wi1 * br1 = ci1
-                __ASM_EMIT(op2 "        q15, q11, q6")      // q15  = wr1 * bi1 -+ wi2 * br2 = ci2
+                __ASM_EMIT("vmls.f32    q12, q10, q3")      // q12  = wr1 * br1 +- wi1 * bi1 = cr1
+                __ASM_EMIT("vmls.f32    q13, q11, q7")      // q13  = wr2 * br2 +- wi2 * bi2 = cr2
+                __ASM_EMIT("vmla.f32    q14, q10, q2")      // q14  = wr1 * bi1 -+ wi1 * br1 = ci1
+                __ASM_EMIT("vmla.f32    q15, q11, q6")      // q15  = wr1 * bi1 -+ wi2 * br2 = ci2
                 // Apply butterfly
                 __ASM_EMIT("vsub.f32    q2, q0, q12")       // q2   = ar1 - cr1
                 __ASM_EMIT("vsub.f32    q3, q1, q14")       // q3   = ai1 - ci1
@@ -404,8 +404,8 @@ namespace neon_d32
                 __ASM_EMIT("vldm        %[a], {q0-q3}")     // q0   = ar1, q1 = ai1, q2 = br1, q3 = bi1
                 __ASM_EMIT("vmul.f32    q12, q8, q2")       // q12  = wr1 * br1
                 __ASM_EMIT("vmul.f32    q14, q8, q3")       // q14  = wr1 * bi1
-                __ASM_EMIT(op1 "        q12, q10, q3")      // q12  = wr1 * br1 +- wi1 * bi1 = cr1
-                __ASM_EMIT(op2 "        q14, q10, q2")      // q14  = wr1 * bi1 -+ wi1 * br1 = ci1
+                __ASM_EMIT("vmls.f32    q12, q10, q3")      // q12  = wr1 * br1 +- wi1 * bi1 = cr1
+                __ASM_EMIT("vmla.f32    q14, q10, q2")      // q14  = wr1 * bi1 -+ wi1 * br1 = ci1
                 // Apply butterfly
                 __ASM_EMIT("vsub.f32    q2, q0, q12")       // q2   = ar1 - cr1
                 __ASM_EMIT("vsub.f32    q3, q1, q14")       // q3   = ai1 - ci1
@@ -414,7 +414,8 @@ namespace neon_d32
                 __ASM_EMIT("vstm        %[a]!, {q0-q3}")
                 __ASM_EMIT("4:")
 
-                : [a] "=&r" (a), [n] "=&r" (n),
+                : [a] "=&r" (a),
+                  [n] "=&r" (n), [k] "=&r" (k),
                   [XFFT_A] "+r" (xfft_a)
                 : [tmp] "r" (tmp), [items] "r" (items)
                 : "cc", "memory",
