@@ -11,7 +11,7 @@
 
 #include <sys/poll.h>
 #include <errno.h>
-#include <alloca.h>
+#include <stdlib.h>
 
 #define X11IOBUF_SIZE       0x10000
 

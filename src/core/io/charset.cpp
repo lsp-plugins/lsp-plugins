@@ -7,7 +7,7 @@
 
 #include <core/io/charset.h>
 #include <locale.h>
-#include <alloca.h>
+#include <stdlib.h>
 
 namespace lsp
 {

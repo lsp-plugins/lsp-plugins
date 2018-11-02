@@ -5,6 +5,7 @@
 
 #include <ladspa.h>
 
+#include <core/types.h>
 #include <core/lib.h>
 #include <core/debug.h>
 #include <core/NativeExecutor.h>

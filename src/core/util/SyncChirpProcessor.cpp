@@ -184,7 +184,7 @@ namespace lsp
     {
         bool bConvResultReAllocate  = false;
 
-        if ((pConvResult == NULL))
+        if (pConvResult == NULL)
             bConvResultReAllocate   = true;
         else if ((pConvResult->samples() != count) || (pConvResult->channels() != 1))
             bConvResultReAllocate   = true;
@@ -811,7 +811,7 @@ namespace lsp
         double noisePeak        = dsp::abs_max(&vResult[head], count);
 
         sCRPostProc.noiseLevel  = ceil(20.0 * log10(noisePeak));
-        sCRPostProc.noiseValue  = exp10(sCRPostProc.noiseLevel / 20.0);
+        sCRPostProc.noiseValue  = exp(M_LN10 * 0.05 * sCRPostProc.noiseLevel);
 
         return STATUS_OK;
     }

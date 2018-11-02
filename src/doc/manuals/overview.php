@@ -11,9 +11,18 @@
 
 <p>After some contributions to other open source projects the decision was made to implement separate and independent plugin distribution.</p>
 
-<p>Currently supported platform is <b>GNU/Linux</b> only.</p>
+<p>Currently supported platforms are:<p>
+<ul>
+	<li><b>GNU/Linux</b> - full support.</li>
+	<li><b>FreeBSD</b> - experimental support.</li>
+</ul>
 
-<p>Supported architectures are <b>i586</b> and <b>x86_64</b>.</p>
+<p>Currently supported architectures are:</p>
+<ul>
+  <li><b>i586</b> (Intel IA-32 architecture, legacy support).</li>
+  <li><b>x86_64</b> (Intel EM64T/AMD64 architecture, full support).</li>
+  <li><b>ARMv7-AR</b> (experimental, tested on Raspberry Pi 3 Model B).</li>
+</ul>
 
 <p>Currently project is developed and maintained by LSP Project Team with the main founder and developer at the head - Vladimir Sadovnikov.</p>
 

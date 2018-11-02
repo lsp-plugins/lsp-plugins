@@ -747,59 +747,59 @@ namespace lsp
         status_t LSPFileDialog::slot_on_action(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
-            return (dlg != NULL) ? dlg->on_action(data) : STATUS_BAD_STATE;
+            return (dlg != NULL) ? dlg->on_dlg_action(data) : STATUS_BAD_STATE;
         }
 
         status_t LSPFileDialog::slot_on_confirm(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
-            return (dlg != NULL) ? dlg->on_confirm(data) : STATUS_BAD_STATE;
+            return (dlg != NULL) ? dlg->on_dlg_confirm(data) : STATUS_BAD_STATE;
         }
 
         status_t LSPFileDialog::slot_on_cancel(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
-            return (dlg != NULL) ? dlg->on_cancel(data) : STATUS_BAD_STATE;
+            return (dlg != NULL) ? dlg->on_dlg_cancel(data) : STATUS_BAD_STATE;
         }
 
         status_t LSPFileDialog::slot_on_search(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
-            return (dlg != NULL) ? dlg->on_search(data) : STATUS_BAD_STATE;
+            return (dlg != NULL) ? dlg->on_dlg_search(data) : STATUS_BAD_STATE;
         }
 
         status_t LSPFileDialog::slot_mouse_dbl_click(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
-            return (dlg != NULL) ? dlg->on_mouse_dbl_click(data) : STATUS_BAD_STATE;
+            return (dlg != NULL) ? dlg->on_dlg_mouse_dbl_click(data) : STATUS_BAD_STATE;
         }
 
         status_t LSPFileDialog::slot_list_change(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
-            return (dlg != NULL) ? dlg->on_list_change(data) : STATUS_BAD_STATE;
+            return (dlg != NULL) ? dlg->on_dlg_list_change(data) : STATUS_BAD_STATE;
         }
 
         status_t LSPFileDialog::slot_on_go(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
-            return (dlg != NULL) ? dlg->on_go(data) : STATUS_BAD_STATE;
+            return (dlg != NULL) ? dlg->on_dlg_go(data) : STATUS_BAD_STATE;
         }
 
         status_t LSPFileDialog::slot_on_up(LSPWidget *sender, void *ptr, void *data)
         {
             LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
-            return (dlg != NULL) ? dlg->on_up(data) : STATUS_BAD_STATE;
+            return (dlg != NULL) ? dlg->on_dlg_up(data) : STATUS_BAD_STATE;
         }
 
-        status_t LSPFileDialog::on_go(void *data)
+        status_t LSPFileDialog::on_dlg_go(void *data)
         {
             LSPString path;
             LSP_STATUS_ASSERT(sWPath.get_text(&path));
             return set_path(&path);
         }
 
-        status_t LSPFileDialog::on_up(void *data)
+        status_t LSPFileDialog::on_dlg_up(void *data)
         {
             LSPString path;
             LSP_STATUS_ASSERT(sWPath.get_text(&path));
@@ -812,7 +812,7 @@ namespace lsp
             return set_path(&path);
         }
 
-        status_t LSPFileDialog::on_mouse_dbl_click(void *data)
+        status_t LSPFileDialog::on_dlg_mouse_dbl_click(void *data)
         {
             file_entry_t *ent = selected_entry();
             if (ent == NULL)
@@ -821,7 +821,7 @@ namespace lsp
             // Analyze what to do
             LSPString path;
             if (ent->nFlags & F_DOTDOT)
-                return on_up(NULL);
+                return on_dlg_up(NULL);
             else if (ent->nFlags & F_ISDIR)
             {
                 LSP_STATUS_ASSERT(sWPath.get_text(&path));
@@ -829,12 +829,12 @@ namespace lsp
                 return set_path(&path);
             }
             else
-                return on_action(data);
+                return on_dlg_action(data);
 
             return STATUS_OK;
         }
 
-        status_t LSPFileDialog::on_list_change(void *data)
+        status_t LSPFileDialog::on_dlg_list_change(void *data)
         {
             if (enMode != FDM_SAVE_FILE)
                 return STATUS_OK;
@@ -850,7 +850,7 @@ namespace lsp
             return sWSearch.set_text(&ent->sName);
         }
 
-        status_t LSPFileDialog::on_search(void *data)
+        status_t LSPFileDialog::on_dlg_search(void *data)
         {
             if (invisible())
                 return STATUS_OK;
@@ -897,7 +897,7 @@ namespace lsp
             return vFiles.get(index);
         }
 
-        status_t LSPFileDialog::on_action(void *data)
+        status_t LSPFileDialog::on_dlg_action(void *data)
         {
             bool committed = false;
 
@@ -945,7 +945,7 @@ namespace lsp
 
                 // Analyze what to do
                 if (ent->nFlags & F_DOTDOT)
-                    return on_up(NULL);
+                    return on_dlg_up(NULL);
                 else if (ent->nFlags & F_ISDIR)
                 {
                     LSPString path;
@@ -968,12 +968,12 @@ namespace lsp
             if (enMode == FDM_SAVE_FILE)
             {
                 if (sConfirm.length() <= 0)
-                    return on_confirm(data);
+                    return on_dlg_confirm(data);
 
                 // Check that file exists and avoid confirmation if it doesn't
                 lsp_trace("Checking file: %s", sSelected.get_native());
                 if (stat_result != 0)
-                    return on_confirm(data);
+                    return on_dlg_confirm(data);
             }
             else
             {
@@ -981,7 +981,7 @@ namespace lsp
                     return show_message("Attention", "Attention", "The selected file does not exist");
 
                 if (sConfirm.length() <= 0)
-                    return on_confirm(data);
+                    return on_dlg_confirm(data);
             }
 
             if (pWConfirm == NULL)
@@ -1003,7 +1003,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPFileDialog::on_confirm(void *data)
+        status_t LSPFileDialog::on_dlg_confirm(void *data)
         {
             // Hide dialogs
             if (pWConfirm != NULL)
@@ -1015,7 +1015,7 @@ namespace lsp
             return sAction.execute(this, data);
         }
 
-        status_t LSPFileDialog::on_cancel(void *data)
+        status_t LSPFileDialog::on_dlg_cancel(void *data)
         {
             // Hide dialogs
             if (pWConfirm != NULL)
@@ -1040,7 +1040,7 @@ namespace lsp
         status_t LSPFileDialog::on_close(const ws_event_t *e)
         {
             ws_event_t ev = *e;
-            return on_cancel(&ev);
+            return on_dlg_cancel(&ev);
         }
 
     } /* namespace ctl */

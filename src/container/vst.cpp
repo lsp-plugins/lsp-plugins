@@ -1,6 +1,6 @@
 #include <sys/types.h>
 #include <string.h>
-#include <alloca.h>
+#include <stdlib.h>
 #include <dlfcn.h>
 #include <time.h>
 

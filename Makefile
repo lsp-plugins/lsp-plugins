@@ -8,7 +8,7 @@ INSTALL                 = install
 PREFIX_FILE            := .install-prefix.txt
 
 ifndef PREFIX
-PREFIX                  = $(shell cat "$(OBJDIR)/$(PREFIX_FILE)" 2>/dev/null || echo "/usr/local")
+  PREFIX                  = $(shell cat "$(OBJDIR)/$(PREFIX_FILE)" 2>/dev/null || echo "/usr/local")
 endif
 
 # Installation locations
@@ -21,7 +21,7 @@ VST_PATH                = $(LIB_PATH)/vst
 
 # Package version
 ifndef VERSION
-VERSION                 = 1.1.4
+  VERSION                 = 1.1.4
 endif
 
 # Directories
@@ -38,58 +38,85 @@ INC_FLAGS               = -I"${CURDIR}/include"
 INSTALLATIONS           = install_ladspa install_lv2 install_jack install_doc install_vst
 RELEASES                = release_ladspa release_lv2 release_jack release_src release_doc release_vst
 
+# Detect operating system
+ifndef BUILD_PLATFORM
+  TARGET_PLATFORM = $(shell uname -s 2>/dev/null || echo "Unknown")
+  BUILD_PLATFORM  = Unknown
+  
+  ifeq ($(findstring BSD,$(TARGET_PLATFORM)),BSD)
+    BUILD_PLATFORM          = BSD
+  endif
+  ifeq ($(findstring Linux,$(TARGET_PLATFORM)),Linux)
+    BUILD_PLATFORM          = Linux
+  endif
+endif
+
+export BUILD_PLATFORM
+
 # Build profile
 ifndef BUILD_PROFILE
-BUILD_ARCH              = $(shell uname -m)
-ifeq ($(patsubst armv6%,armv6,$(BUILD_ARCH)), armv6)
-BUILD_PROFILE           = armv6a
-endif
-ifeq ($(patsubst armv7%,armv7,$(BUILD_ARCH)), armv7)
-BUILD_PROFILE           = armv7a
-endif
-ifeq ($(patsubst armv8%,armv8,$(BUILD_ARCH)), armv8)
-BUILD_PROFILE           = armv8a
-endif
-ifeq ($(BUILD_ARCH),x86_64)
-BUILD_PROFILE           = x86_64
-endif
-ifeq ($(patsubst i%86, i86, $(BUILD_ARCH)), i586)
-BUILD_PROFILE           = i586
-endif
-endif
-
-# Build profile
-ifeq ($(BUILD_PROFILE),i586)
-export CC_ARCH          = -m32
-export LD_ARCH          = -m elf_i386
-export LD_PATH          = /usr/lib:/lib:/usr/local/lib
-endif
-
-ifeq ($(BUILD_PROFILE),x86_64)
-export CC_ARCH          = -m64
-export LD_ARCH          = -m elf_x86_64
-export LD_PATH          = /usr/lib:/lib:/usr/local/lib
-endif
-
-ifeq ($(BUILD_PROFILE),armv6a)
-export CC_ARCH          = -march=armv6-a
-export LD_ARCH          = 
-export LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
-endif
-
-ifeq ($(BUILD_PROFILE),armv7a)
-export CC_ARCH          = -march=armv7-a
-export LD_ARCH          = 
-export LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
-endif
-
-ifeq ($(BUILD_PROFILE),armv8a)
-export CC_ARCH          = -march=armv8-a
-export LD_ARCH          = 
-export LD_PATH          = /usr/lib:/lib:/usr/local/lib
+  BUILD_ARCH              = $(shell uname -m)
+  ifeq ($(patsubst armv6%,armv6,$(BUILD_ARCH)), armv6)
+    BUILD_PROFILE           = armv6a
+  endif
+  ifeq ($(patsubst armv7%,armv7,$(BUILD_ARCH)), armv7)
+    BUILD_PROFILE           = armv7a
+  endif
+  ifeq ($(patsubst armv8%,armv8,$(BUILD_ARCH)), armv8)
+    BUILD_PROFILE           = armv8a
+  endif
+  ifeq ($(BUILD_ARCH),x86_64)
+    BUILD_PROFILE           = x86_64
+  endif
+  ifeq ($(BUILD_ARCH),amd64)
+    BUILD_PROFILE           = x86_64
+  endif
+  ifeq ($(patsubst i%86, i86, $(BUILD_ARCH)), i586)
+    BUILD_PROFILE           = i586
+  endif
 endif
 
 export BUILD_PROFILE
+
+export LD_ARCH          =
+
+# Build profile
+ifeq ($(BUILD_PROFILE),i586)
+  export CC_ARCH          = -m32
+  ifeq ($(BUILD_PLATFORM), Linux)
+    export LD_ARCH          = -m elf_i386
+  endif
+  ifeq ($(BUILD_PLATFORM), BSD)
+    export LD_ARCH          = -m elf_i386_fbsd
+  endif
+  export LD_PATH          = /usr/lib:/lib:/usr/local/lib
+endif
+
+ifeq ($(BUILD_PROFILE),x86_64)
+  export CC_ARCH          = -m64
+  ifeq ($(BUILD_PLATFORM), Linux)
+    export LD_ARCH          = -m elf_x86_64
+  endif
+  ifeq ($(BUILD_PLATFORM), BSD)
+  	export LD_ARCH          = -m elf_x86_64_fbsd
+  endif
+  export LD_PATH          = /usr/lib:/lib:/usr/local/lib
+endif
+
+ifeq ($(BUILD_PROFILE),armv6a)
+  export CC_ARCH          = -march=armv6-a
+  export LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
+endif
+
+ifeq ($(BUILD_PROFILE),armv7a)
+  export CC_ARCH          = -march=armv7-a
+  export LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
+endif
+
+ifeq ($(BUILD_PROFILE),armv8a)
+  export CC_ARCH          = -march=armv8-a
+  export LD_PATH          = /usr/lib:/lib:/usr/local/lib
+endif
 
 # Location
 export BASEDIR          = ${CURDIR}
@@ -142,6 +169,7 @@ export PHP_PLUGINS      = $(OBJDIR)/plugins.php
 
 # Compile headers and linkage libraries
 export PTHREAD_LIBS     = -lpthread
+export ICONV_LIBS       = -liconv
 export MATH_LIBS        = -lm
 export DL_LIBS          = -ldl
 export CAIRO_HEADERS    = $(shell pkg-config --cflags cairo)
@@ -160,11 +188,11 @@ export OPENGL_LIBS      = $(shell pkg-config --libs gl glu)
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 FILES                   =
 
-LADSPA_ID              := $(ARTIFACT_ID)-ladspa-$(VERSION)-$(BUILD_PROFILE)
-LV2_ID                 := $(ARTIFACT_ID)-lv2-$(VERSION)-$(BUILD_PROFILE)
-VST_ID                 := $(ARTIFACT_ID)-lxvst-$(VERSION)-$(BUILD_PROFILE)
-JACK_ID                := $(ARTIFACT_ID)-jack-$(VERSION)-$(BUILD_PROFILE)
-PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)-$(BUILD_PROFILE)
+LADSPA_ID              := $(ARTIFACT_ID)-ladspa-$(VERSION)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+LV2_ID                 := $(ARTIFACT_ID)-lv2-$(VERSION)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+VST_ID                 := $(ARTIFACT_ID)-lxvst-$(VERSION)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+JACK_ID                := $(ARTIFACT_ID)-jack-$(VERSION)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
 SRC_ID                 := $(ARTIFACT_ID)-src-$(VERSION)
 DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 
@@ -203,7 +231,7 @@ profile: compile
 
 compile:
 	@echo "-------------------------------------------------------------------------------"
-	@echo "Building binaries for target architecture: $(BUILD_PROFILE)"
+	@echo "Building binaries for target architecture: $(BUILD_PROFILE), platform: $(BUILD_PLATFORM)"
 	@echo "-------------------------------------------------------------------------------"
 	@mkdir -p $(OBJDIR)/src
 	@test -f $(OBJDIR)/$(PREFIX_FILE) || echo -n "$(PREFIX)" > $(OBJDIR)/$(PREFIX_FILE)
