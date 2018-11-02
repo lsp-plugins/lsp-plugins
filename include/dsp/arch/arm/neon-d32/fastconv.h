@@ -286,10 +286,75 @@ namespace neon_d32
             : [src] "+r" (src), [dst] "+r" (dst), [items] "+r" (items)
             :
             : "cc", "memory",
-              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
-              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7"
         );
 
+    }
+
+    void fastconv_restore(float *dst, float *tmp, size_t rank)
+    {
+        size_t items        = 1 << rank; // number of complex numbers per half of block (16 for rank=4)
+
+        IF_ARCH_ARM(
+            float *a, *b;
+            size_t n;
+        );
+
+        ARCH_ARM_ASM
+        (
+            __ASM_EMIT("mov         %[n], %[items]")
+            __ASM_EMIT("mov         %[a], %[tmp]")
+            __ASM_EMIT("mov         %[b], %[tmp]")
+            __ASM_EMIT("subs        %[n], $8")
+            __ASM_EMIT("blo         2f")
+
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vld2.32     {q0-q1}, %[a]!")        // q0 = r0 r2 i0 i2, q1 = r1 r3 i1 i3
+            __ASM_EMIT("vld2.32     {q2-q3}, %[a]!")        // q2 = r4 r6 i4 i6, q1 = r5 r7 i5 i7
+
+            __ASM_EMIT("vadd.f32    q4, q0, q1")            // q4 = r0+r1 r2+r3 i0+i1 i2+i3 = r0' r2' i0' i2'
+            __ASM_EMIT("vadd.f32    q5, q2, q3")            // q5 = r4+r5 r6+r7 i4+i5 i6+i7 = r4' r6' i4' i6'
+            __ASM_EMIT("vsub.f32    q0, q0, q1")            // q0 = r0-r1 r2-r3 i0-i1 i2-i3 = r1' r3' i1' i3'
+            __ASM_EMIT("vsub.f32    q1, q2, q3")            // q1 = r4-r5 r6-r7 i4-i5 i6-i7 = r5' r7' i5' i7'
+
+            // q4 = r0' r2' i0' i2'
+            // q5 = r4' r6' i4' i6'
+            // q0 = r1' r3' i1' i3'
+            // q1 = r5' r7' i5' i7'
+            __ASM_EMIT("vtrn.32     q4, q5")                // q4 = r0' r4' i0' i4', q5 = r2' r6' i2' i6'
+            __ASM_EMIT("vtrn.32     q0, q1")                // q0 = r1' r5' i1' i5', q1 = r3' r7' i3' i7'
+            __ASM_EMIT("vext.32     q6, q1, q1, $2")        // q6 = i3' i7' r3' r7'
+
+            __ASM_EMIT("vsub.f32    q2, q0, q6")            // q2 = r1'-i3' r5'-i7' i1'-r3' i5'-r7' = r1" r5" i3" i7"
+            __ASM_EMIT("vsub.f32    q1, q4, q5")            // q1 = r0'-r2' r4'-r6' i0'-i2' i4'-i6' = r2" r6" i2" i6"
+            __ASM_EMIT("vadd.f32    q3, q0, q6")            // q3 = r1'+i3' r5'+i7' i1'+r3' i5'+r7' = r3" r7" i1" i5"
+            __ASM_EMIT("vadd.f32    q0, q4, q5")            // q0 = r0'+r2' r4'+r6' i0'+i2' i4'+i6' = r0" r4" i0" i4"
+
+            // q0 = r0" r4" i0" i4"
+            // q1 = r2" r6" i2" i6"
+            // q2 = r1" r5" i3" i7"
+            // q3 = r3" r7" i1" i5"
+            __ASM_EMIT("vtrn.32     q0, q2")                // q0 = r0" r1" i0" i3", q2 = r4" r5" i4" i7"
+            __ASM_EMIT("vtrn.32     q1, q3")                // q1 = r2" r3" i2" i1", q3 = r6" r7" i6" i5"
+            __ASM_EMIT("vswp        d1, d2")                // q0 = r0" r1" r2" r3", q1 = i0" i3" i2" i1"
+            __ASM_EMIT("vswp        d5, d6")                // q2 = r4" r5" r6" r7", q3 = i4" i7" i6" i5"
+
+            __ASM_EMIT("vrev64.32   q1, q1")                // q1 = i3" i0" i1" i2"
+            __ASM_EMIT("vrev64.32   q3, q3")                // q3 = i7" i4" i5" i6"
+            __ASM_EMIT("vext.32     q1, q1, q1, $1")        // q1 = i0" i1" i2" i3"
+            __ASM_EMIT("vext.32     q3, q3, q3, $1")        // q3 = i4" i5" i6" i7"
+
+            __ASM_EMIT("subs        %[items], $8")          // n   -= 8
+            __ASM_EMIT("vstm        %[b]!, {q0-q3}")
+            __ASM_EMIT("bhs         1b")
+
+            __ASM_EMIT("2:")
+
+            : [ptr] "=&r" (ptr),
+            : [tmp] "r" (tmp), [items] "r" (items)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7"
+        );
     }
 }
 
