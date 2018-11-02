@@ -118,7 +118,7 @@ namespace lsp
 
         uint8_t *pdata          = NULL;
         float *fptr             = alloc_aligned<float>(pdata, allocate);
-//        float *cptr             = fptr;
+        lsp_guard_assert(float *save = fptr);
         if (fptr == NULL)
             return false;
 //        lsp_trace("Allocated %x floats (%x bytes) at: %p, pdata: %p",
@@ -167,6 +167,8 @@ namespace lsp
         vConv               = fptr;
         fptr               += bins * fft_buf_size * 2;
 //        lsp_trace("vConv = %p x 0x%x", vConv, int(bins * fft_buf_size * 2));
+
+        lsp_assert(fptr <= &save[allocate]);
 
         /* Calculate convolutions
 

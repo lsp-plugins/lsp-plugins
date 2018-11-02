@@ -19,9 +19,9 @@ namespace native
         while (count--)
         {
             float v = *(src++);
-            if (isnanf(v))
+            if (isnan(v))
                 v       =   FLOAT_SAT_P_NAN;
-            else if (isinff(v))
+            else if (isinf(v))
                 v       =   (v < 0.0f) ? FLOAT_SAT_N_INF : FLOAT_SAT_P_INF;
 
             *(dst++)    = v;
@@ -33,9 +33,9 @@ namespace native
         while (count--)
         {
             float v = *dst;
-            if (isnanf(v))
+            if (isnan(v))
                 *(dst++)    = FLOAT_SAT_P_NAN;
-            else if (isinff(v))
+            else if (isinf(v))
                 *(dst++)    = (v < 0.0f) ? FLOAT_SAT_N_INF : FLOAT_SAT_P_INF;
             else
                 dst++;

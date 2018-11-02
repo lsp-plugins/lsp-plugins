@@ -27,9 +27,13 @@ For more information about licensing, please read LICENSE.txt.
 
 ==== SYSTEM REQUIREMENTS ====
 
+Currently supported platforms:
+  * GNU/Linux;
+  * FreeBSD (experimental).
+
 Currently supported architectures are:
   * i586 (Intel IA-32 architecture, legacy support);
-  * x86_64 (Intel EM64T, AMD64 architecture, full support);
+  * x86_64 (Intel EM64T/AMD64 architecture, full support);
   * ARMv7-AR (experimental, tested on Raspberry Pi 3 Model B).
 
 Supported plugin formats:

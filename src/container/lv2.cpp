@@ -2,6 +2,7 @@
 #include <time.h>
 #include <string.h>
 
+#include <core/types.h>
 #include <core/lib.h>
 #include <core/midi.h>
 #include <dsp/atomic.h>

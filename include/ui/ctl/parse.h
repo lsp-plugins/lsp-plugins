@@ -12,7 +12,7 @@
 #define PARSE_INT(var, code) \
     { \
         errno = 0; \
-        long __ = strtoll(var, NULL, 10); \
+        long __ = strtol(var, NULL, 10); \
         if (errno == 0) \
             { code; } \
     }

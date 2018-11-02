@@ -9,10 +9,10 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/time.h>
-#include <alloca.h>
+#include <stdlib.h>
 #include <signal.h>
-#include <mcheck.h>
 
+#include <core/types.h>
 #include <dsp/dsp.h>
 #include <test/ptest.h>
 #include <test/utest.h>
@@ -20,6 +20,10 @@
 #include <metadata/metadata.h>
 #include <data/cvector.h>
 #include <sys/stat.h>
+
+#ifdef PLATFORM_LINUX
+    #include <mcheck.h>
+#endif /* PLATFORM_LINUX */
 
 enum test_mode_t
 {
@@ -97,14 +101,18 @@ void start_memcheck(config_t *cfg, test::Test *v)
     fflush(stderr);
 
     setenv("MALLOC_TRACE", fname, 1);
-    mtrace();
+    #ifdef PLATFORM_LINUX
+        mtrace();
+    #endif /* PLATFORM_LINUX */
 }
 
 void end_memcheck(config_t *cfg)
 {
     // Disable memory trace
+    #ifdef PLATFORM_LINUX
     if (cfg->mtrace)
         muntrace();
+    #endif /* PLATFORM_LINUX */
 
     // Validate heap
 //    mcheck_check_all();
@@ -733,10 +741,14 @@ int usage(bool detailed = false)
     puts("    -h, --help            Display help");
     puts("    -j, --jobs            Set number of job workers for unit tests");
     puts("    -l, --list            List all available tests");
+#ifdef PLATFORM_LINUX
     puts("    -mt, --mtrace         Enable mtrace log");
+#endif /* PLATFORM_LINUX */
     puts("    -nf, --nofork         Do not fork child processes (for better ");
     puts("                          debugging capabilities)");
+#ifdef PLATFORM_LINUX
     puts("    -nt, --nomtrace       Disable mtrace log");
+#endif /* PLATFORM_LINUX */
     puts("    -o, --outfile file    Output performance test statistics to specified file");
     puts("    -s, --silent          Do not output additional information from tests");
     puts("    -t, --tracepath path  Override default trace path with specified value");
@@ -782,10 +794,12 @@ int parse_config(config_t *cfg, int argc, const char **argv)
             cfg->debug      = true;
         else if ((!strcmp(argv[i], "--list")) || (!strcmp(argv[i], "-l")))
             cfg->list_all   = true;
+#ifdef PLATFORM_LINUX
         else if ((!strcmp(argv[i], "--mtrace")) || (!strcmp(argv[i], "-mt")))
             cfg->mtrace     = true;
         else if ((!strcmp(argv[i], "--nomtrace")) || (!strcmp(argv[i], "-nt")))
             cfg->mtrace     = false;
+#endif /* PLATFORM_LINUX */
         else if ((!strcmp(argv[i], "--tracepath")) || (!strcmp(argv[i], "-t")))
         {
             if ((++i) >= argc)
