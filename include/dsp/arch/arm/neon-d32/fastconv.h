@@ -309,8 +309,8 @@ namespace neon_d32
             __ASM_EMIT("blo         2f")
 
             __ASM_EMIT("1:")
-            __ASM_EMIT("vld2.32     {q0-q1}, %[a]!")        // q0 = r0 r2 i0 i2, q1 = r1 r3 i1 i3
-            __ASM_EMIT("vld2.32     {q2-q3}, %[a]!")        // q2 = r4 r6 i4 i6, q1 = r5 r7 i5 i7
+            __ASM_EMIT("vld2.32     {q0-q1}, [%[a]]!")      // q0 = r0 r2 i0 i2, q1 = r1 r3 i1 i3
+            __ASM_EMIT("vld2.32     {q2-q3}, [%[a]]!")      // q2 = r4 r6 i4 i6, q1 = r5 r7 i5 i7
 
             __ASM_EMIT("vadd.f32    q4, q0, q1")            // q4 = r0+r1 r2+r3 i0+i1 i2+i3 = r0' r2' i0' i2'
             __ASM_EMIT("vadd.f32    q5, q2, q3")            // q5 = r4+r5 r6+r7 i4+i5 i6+i7 = r4' r6' i4' i6'
@@ -344,13 +344,14 @@ namespace neon_d32
             __ASM_EMIT("vext.32     q1, q1, q1, $1")        // q1 = i0" i1" i2" i3"
             __ASM_EMIT("vext.32     q3, q3, q3, $1")        // q3 = i4" i5" i6" i7"
 
-            __ASM_EMIT("subs        %[items], $8")          // n   -= 8
+            __ASM_EMIT("subs        %[n], $8")              // n   -= 8
             __ASM_EMIT("vstm        %[b]!, {q0-q3}")
             __ASM_EMIT("bhs         1b")
 
             __ASM_EMIT("2:")
 
-            : [ptr] "=&r" (ptr),
+            : [a] "=&r" (a), [b] "=&r" (b),
+              [n] "=&r" (n)
             : [tmp] "r" (tmp), [items] "r" (items)
             : "cc", "memory",
               "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7"
