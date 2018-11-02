@@ -184,7 +184,7 @@ namespace lsp
     {
         bool bConvResultReAllocate  = false;
 
-        if ((pConvResult == NULL))
+        if (pConvResult == NULL)
             bConvResultReAllocate   = true;
         else if ((pConvResult->samples() != count) || (pConvResult->channels() != 1))
             bConvResultReAllocate   = true;
