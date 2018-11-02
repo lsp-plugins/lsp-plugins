@@ -12,5 +12,5 @@ $(FILES):
 	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(OPENGL_HEADERS) 
 
 $(OBJ_CORE): $(FILES)
-	@echo "  $(LD) $(notdir $(OBJ_TEST_CORE))"
+	@echo "  $(LD) $(notdir $(OBJ_CORE))"
 	@$(LD) -o $(OBJ_CORE) -r $(LDFLAGS) $(FILES)  

@@ -177,6 +177,27 @@ have to type:
   make
   make install
 
+By default, all supported formats of plugins are built. You may control
+list of built plugin formats by specifying BUILD_MODULES variable:
+  make clean
+  make BULD_MODULES='lv2 vst doc'
+  make install
+
+Available modules are:
+  * ladspa - LADSPA plugin binaries
+  * lv2 - LV2 plugin binaries
+  * vst - LinuxVST plugin binaries
+  * jack - JACK plugin binaries
+  * doc - HTML documentation
+
+Also possible (but not recommended) to specify compile targets:
+  make clean
+  make build_ladspa
+  make build_lv2
+  make build_vst
+  make build_jack
+  make build_doc
+
 To build binaries for debugging/profiling, use the following commands:
   make profile
   
