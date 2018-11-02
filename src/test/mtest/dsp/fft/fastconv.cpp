@@ -356,13 +356,13 @@ static void fastconv_restore(float *dst, float *tmp, size_t rank)
 
         d              += 8;
     }
-/*
+
     const float *dw     = XFFT_DW;
     const float *iw_re  = XFFT_A_RE;
     const float *iw_im  = XFFT_A_IM;
 
     // Iterate butterflies
-    while (n < last)
+//    while (n < last)
     {
         for (size_t p=0; p<items; p += bs)
         {
@@ -452,6 +452,7 @@ static void fastconv_restore(float *dst, float *tmp, size_t rank)
         bs    <<= 1;
     }
 
+/*
     if (n < items)
     {
         // ONE LARGE CYCLE
