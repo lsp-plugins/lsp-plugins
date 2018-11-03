@@ -362,7 +362,7 @@ static void fastconv_restore(float *dst, float *tmp, size_t rank)
     const float *iw_im  = XFFT_A_IM;
 
     // Iterate butterflies
-//    while (n < last)
+    while (n < last)
     {
         for (size_t p=0; p<items; p += bs)
         {
