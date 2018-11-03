@@ -359,7 +359,6 @@ namespace neon_d32
 
         n = 8;
         const float *xfft_a     = XFFT_A;
-        const float *xfft_dw    = &XFFT_DW[8];
 
         // Perform butterflies without need of vector rotation
         if (n < items)
@@ -423,9 +422,9 @@ namespace neon_d32
             );
 
             n <<= 1;
-            XFFT_A     += 16;
-            XFFT_DW    += 8;
         }
+
+        const float *xfft_dw    = &XFFT_DW[16];
 
         // Perform loops except last one
         while (n < items)
@@ -437,7 +436,7 @@ namespace neon_d32
                     // Initialize sub-loop
                     __ASM_EMIT("mov         %[p], %[n]")
                     __ASM_EMIT("vldm        %[XFFT_A], {q8-q11}")           // q8   = wr1, q9 = wr2, q10 = wi1, q11 = wi2
-                    __ASM_EMIT("add         %[b], %[a], %[n], LSL $4")      // b    = &a[n*4]
+                    __ASM_EMIT("add         %[b], %[a], %[n], LSL $2")      // b    = &a[n*4]
                     // 8x butterflies
                     __ASM_EMIT("3:")
                     // Calc cr and ci
@@ -485,8 +484,8 @@ namespace neon_d32
                 __ASM_EMIT("bne         1b")
 
                 : [a] "=&r" (a), [b] "=&r" (b),
-                  [p] "=&r" (p), [k] "=&r" (k)
-                : [dst] "=r" (tmp),
+                  [p] "=&r" (p), [k] "=&r" (k),
+                : [dst] "r" (tmp), [items] "r" (items), [n] "r" (n)
                   [XFFT_A] "r" (xfft_a), [XFFT_W] "r" (xfft_dw)
                 : "cc", "memory",
                   "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
@@ -494,6 +493,8 @@ namespace neon_d32
             );
 
             n <<= 1;
+            xfft_a     += 16;
+            xfft_dw    += 8;
         }
 
         // TODO: last large loop
