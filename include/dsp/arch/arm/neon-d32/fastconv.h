@@ -427,8 +427,7 @@ namespace neon_d32
         const float *xfft_dw    = &XFFT_DW[8];
 
         // Perform loops except last one
-        size_t loops = 1;
-        while ((n < items) && ((loops++) < 3))
+        while (n < items)
         {
 //            lsp_dumpf("iw_re", "%.6f", xfft_a, 8);
 //            lsp_dumpf("iw_im", "%.6f", &xfft_a[8], 8);

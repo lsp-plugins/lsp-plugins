@@ -363,8 +363,7 @@ static void fastconv_restore(float *dst, float *tmp, size_t rank)
     const float *iw_im  = XFFT_A_IM;
 
     // Iterate butterflies
-    size_t loops = 0;
-    while ((n < last) && ((loops++) < 3))
+    while (n < last)
     {
 //        lsp_dumpf("iw_re", "%.6f", iw_re, 4);
 //        lsp_dumpf("iw_im", "%.6f", iw_im, 4);
