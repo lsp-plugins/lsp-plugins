@@ -376,8 +376,8 @@ namespace neon_d32
                 // Calc cr and ci
                 __ASM_EMIT("vldm        %[a], {q0-q7}")     // q0   = ar1, q1 = ai1, q2 = br1, q3 = bi1, q4 = ar2, q5 = ai2, q6 = br2, q7 = bi2
                 __ASM_EMIT("vmul.f32    q12, q8, q2")       // q12  = wr1 * br1
-                __ASM_EMIT("vmul.f32    q14, q8, q3")       // q14  = wr1 * bi1
                 __ASM_EMIT("vmul.f32    q13, q9, q6")       // q13  = wr2 * br2
+                __ASM_EMIT("vmul.f32    q14, q8, q3")       // q14  = wr1 * bi1
                 __ASM_EMIT("vmul.f32    q15, q9, q7")       // q15  = wr2 * bi2
                 __ASM_EMIT("vmls.f32    q12, q10, q3")      // q12  = wr1 * br1 - wi1 * bi1 = cr1
                 __ASM_EMIT("vmls.f32    q13, q11, q7")      // q13  = wr2 * br2 - wi2 * bi2 = cr2
@@ -447,8 +447,8 @@ namespace neon_d32
                     __ASM_EMIT("vldm        %[b], {q4-q7}")                 // q4   = br1, q5 = bi1, q6 = br2, q7 = bi2
                     __ASM_EMIT("vldm        %[a], {q0-q3}")                 // q0   = ar1, q1 = ai1, q2 = ar2, q3 = ai2
                     __ASM_EMIT("vmul.f32    q12, q8, q4")                   // q12  = wr1 * br1
-                    __ASM_EMIT("vmul.f32    q14, q8, q5")                   // q14  = wr1 * bi1
                     __ASM_EMIT("vmul.f32    q13, q9, q6")                   // q13  = wr2 * br2
+                    __ASM_EMIT("vmul.f32    q14, q8, q5")                   // q14  = wr1 * bi1
                     __ASM_EMIT("vmul.f32    q15, q9, q7")                   // q15  = wr2 * bi2
                     __ASM_EMIT("vmls.f32    q12, q10, q5")                  // q12  = wr1 * br1 - wi1 * bi1 = cr1
                     __ASM_EMIT("vmls.f32    q13, q11, q7")                  // q13  = wr2 * br2 - wi2 * bi2 = cr2
@@ -501,7 +501,62 @@ namespace neon_d32
             xfft_dw    += 8;
         }
 
-        // TODO: last large loop
+        // Last one large loop
+        IF_ARCH_ARM(float fftk = 1.0f / items);
+
+        ARCH_ARM_ASM(
+            // Initialize sub-loop
+            __ASM_EMIT("add         %[b], %[a], %[n], LSL $2")      // b    = &a[n*4]
+            __ASM_EMIT("add         %[db], %[da], %[n], LSL $1")    // db   = &da[n*2]
+            __ASM_EMIT("vldm        %[XFFT_A], {q8-q11}")           // q8   = wr1, q9 = wr2, q10 = wi1, q11 = wi2
+            // 8x butterflies
+            __ASM_EMIT("1:")
+            // Calc cr, do not need ci
+            __ASM_EMIT("vldm        %[b]!, {q4-q7}")                // q4   = br1, q5 = bi1, q6 = br2, q7 = bi2
+            __ASM_EMIT("vldm        %[a]!, {q0-q3}")                // q0   = ar1, q1 = ai1, q2 = ar2, q3 = ai2
+            __ASM_EMIT("vmul.f32    q12, q8, q4")                   // q12  = wr1 * br1
+            __ASM_EMIT("vmul.f32    q13, q9, q6")                   // q13  = wr2 * br2
+            __ASM_EMIT("vmls.f32    q12, q10, q5")                  // q12  = wr1 * br1 - wi1 * bi1 = cr1
+            __ASM_EMIT("vmls.f32    q13, q11, q7")                  // q13  = wr2 * br2 - wi2 * bi2 = cr2
+            // Apply butterfly, we do not need imaginary part
+            __ASM_EMIT("vld1.32     {d2[], d3[]}, [%[fftk]]")       // q1   = 1 / items
+            __ASM_EMIT("vsub.f32    q6, q0, q12")                   // q6   = ar1 - cr1
+            __ASM_EMIT("vsub.f32    q7, q2, q13")                   // q7   = ar2 - cr2
+            __ASM_EMIT("vmul.f32    q6, q1")                        // q6   = (ar1 - cr1) / items
+            __ASM_EMIT("vadd.f32    q4, q0, q12")                   // q4   = ar1 + cr1
+            __ASM_EMIT("vmul.f32    q7, q1")                        // q7   = (ar2 - cr2) / items
+            __ASM_EMIT("vadd.f32    q5, q2, q13")                   // q5   = ar2 + cr2
+            __ASM_EMIT("vmul.f32    q4, q1")                        // q4   = (ar1 + cr1) / items
+            __ASM_EMIT("vmul.f32    q5, q1")                        // q5   = (ar2 + cr2) / items
+            __ASM_EMIT("subs        %[items], $16")
+            __ASM_EMIT("vstm        %[db]!, {q6-q7}")
+            __ASM_EMIT("vstm        %[da]!, {q4-q5}")
+            __ASM_EMIT("beq         4f")
+            // Prepare next loop: rotate angle
+            __ASM_EMIT("vld1.32     {q0-q1}, [%[XFFT_W]]")          // q0   = dr, q1 = di
+            __ASM_EMIT("vmul.f32    q12, q8, q1")                   // q12  = wr1 * di
+            __ASM_EMIT("vmul.f32    q13, q9, q1")                   // q13  = wr2 * di
+            __ASM_EMIT("vmul.f32    q14, q10, q1")                  // q14  = wi1 * di
+            __ASM_EMIT("vmul.f32    q15, q11, q1")                  // q15  = wi2 * di
+            __ASM_EMIT("vmul.f32    q8, q8, q0")                    // q8   = wr1 * dr
+            __ASM_EMIT("vmul.f32    q9, q9, q0")                    // q9   = wr2 * dr
+            __ASM_EMIT("vmul.f32    q10, q10, q0")                  // q10  = wi1 * dr
+            __ASM_EMIT("vmul.f32    q11, q11, q0")                  // q11  = wi2 * dr
+            __ASM_EMIT("vsub.f32    q8, q8, q14")                   // q8   = wr1*dr - wi1*di
+            __ASM_EMIT("vsub.f32    q9, q9, q15")                   // q9   = wr2*dr - wi2*di
+            __ASM_EMIT("vadd.f32    q10, q10, q12")                 // q10  = wi1*dr + wr1*di
+            __ASM_EMIT("vadd.f32    q11, q11, q13")                 // q11  = wi2*dr + wr2*di
+            __ASM_EMIT("b           1b")
+
+            : [da] "+r" (dst), [db] "=&r" (a),
+              [a] "+r" (tmp), [b] "=&r" (b),
+              [items] "+r" (items)
+            : [n] "r" (n), [fftk] "r" (&fftk),
+              [XFFT_A] "r" (xfft_a), [XFFT_W] "r" (xfft_dw)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
     }
 }
 

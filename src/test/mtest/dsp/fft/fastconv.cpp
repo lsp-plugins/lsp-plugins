@@ -457,7 +457,6 @@ static void fastconv_restore(float *dst, float *tmp, size_t rank)
         bs    <<= 1;
     }
 
-/*
     if (n < items)
     {
         // ONE LARGE CYCLE
@@ -545,7 +544,6 @@ static void fastconv_restore(float *dst, float *tmp, size_t rank)
             tmp        += 8;
         }
     }
- */
 }
 
 IF_ARCH_X86(
