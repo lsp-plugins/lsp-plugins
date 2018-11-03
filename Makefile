@@ -6,9 +6,13 @@ RELEASE_TEXT            = LICENSE.txt README.txt CHANGELOG.txt
 RELEASE_SRC             = $(RELEASE_TEXT) src include res Makefile release.sh
 INSTALL                 = install
 PREFIX_FILE            := .install-prefix.txt
+MODULES_FILE           := .install-modules.txt
 
 ifndef PREFIX
   PREFIX                  = $(shell cat "$(OBJDIR)/$(PREFIX_FILE)" 2>/dev/null || echo "/usr/local")
+endif
+ifndef BUILD_MODULES
+  BUILD_MODULES           = $(shell cat "$(OBJDIR)/$(MODULES_FILE)" 2>/dev/null || echo "ladspa lv2 vst jack profile src doc")
 endif
 
 # Installation locations
@@ -35,8 +39,38 @@ export BUILDDIR         = $(OBJDIR)
 
 # Includes
 INC_FLAGS               = -I"${CURDIR}/include"
-INSTALLATIONS           = install_ladspa install_lv2 install_jack install_doc install_vst
-RELEASES                = release_ladspa release_lv2 release_jack release_src release_doc release_vst
+
+INSTALLATIONS           =
+UNINSTALLATIONS         = 
+RELEASES                =
+
+ifeq ($(findstring ladspa,$(BUILD_MODULES)),ladspa)
+  INSTALLATIONS          += install_ladspa
+  UNINSTALLATIONS        += uninstall_ladspa
+  RELEASES               += release_ladspa
+endif
+ifeq ($(findstring lv2,$(BUILD_MODULES)),lv2)
+  INSTALLATIONS          += install_lv2
+  UNINSTALLATIONS        += uninstall_lv2
+  RELEASES               += release_lv2
+endif
+ifeq ($(findstring vst,$(BUILD_MODULES)),vst)
+  INSTALLATIONS          += install_vst
+  UNINSTALLATIONS        += uninstall_vst
+  RELEASES               += release_vst
+endif
+ifeq ($(findstring jack,$(BUILD_MODULES)),jack)
+  INSTALLATIONS          += install_jack
+  UNINSTALLATIONS        += uninstall_jack
+  RELEASES               += release_jack
+endif
+ifeq ($(findstring doc,$(BUILD_MODULES)),doc)
+  UNINSTALLATIONS        += uninstall_doc
+  RELEASES               += release_doc
+endif
+ifeq ($(findstring src,$(BUILD_MODULES)),src)
+  RELEASES               += release_src
+endif
 
 # Detect operating system
 ifndef BUILD_PLATFORM
@@ -118,6 +152,8 @@ ifeq ($(BUILD_PROFILE),armv8a)
   export LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
+export BUILD_MODULES
+
 # Location
 export BASEDIR          = ${CURDIR}
 export INCLUDE          = ${INC_FLAGS}
@@ -196,9 +232,11 @@ PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)-$(BUILD_PLATFORM)-$(
 SRC_ID                 := $(ARTIFACT_ID)-src-$(VERSION)
 DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 
-.PHONY: all trace debug tracefile debugfile profile gdb compile install uninstall release test
-.PHONY: install_ladspa install_lv2 install_vst install_jack
-.PHONY: release_ladspa release_lv2 release_vst release_jack
+.PHONY: all trace debug tracefile debugfile profile gdb test compile 
+.PHONY: install install_ladspa install_lv2 install_vst install_jack install_doc
+.PHONY: uninstall uninstall_ladspa uninstall_lv2 uninstall_vst uninstall_jack uninstall_doc
+.PHONY: release release_ladspa release_lv2 release_vst release_jack release_doc release_src
+.PHONY: build_ladspa build_lv2 build_vst build_jack build_doc
 
 default: all
 
@@ -229,12 +267,17 @@ profile: export CFLAGS      += -O0 -pg -g3 -DLSP_PROFILING
 profile: export EXE_FLAGS   += -O0 -pg -g3
 profile: compile
 
+# Compilation and cleaning targets
 compile:
 	@echo "-------------------------------------------------------------------------------"
-	@echo "Building binaries for target architecture: $(BUILD_PROFILE), platform: $(BUILD_PLATFORM)"
+	@echo "Building binaries"
+	@echo "  target architecture : $(BUILD_PROFILE)"
+	@echo "  target platform     : $(BUILD_PLATFORM)"
+	@echo "  modules             : $(BUILD_MODULES)"
 	@echo "-------------------------------------------------------------------------------"
 	@mkdir -p $(OBJDIR)/src
 	@test -f $(OBJDIR)/$(PREFIX_FILE) || echo -n "$(PREFIX)" > $(OBJDIR)/$(PREFIX_FILE)
+	@test -f $(OBJDIR)/$(MODULES_FILE) || echo -n "$(BUILD_MODULES)" > $(OBJDIR)/$(MODULES_FILE)
 	@$(MAKE) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
 	@echo "Build OK"
 
@@ -242,10 +285,24 @@ clean:
 	@-rm -rf $(OBJDIR)
 	@echo "Clean OK"
 
-unrelease: clean
-	@-rm -rf $(RELEASE)
-	@echo "Unrelease OK"
+# Build targets
+build_ladspa: export BUILD_MODULES = ladspa
+build_ladspa: compile	
 
+build_lv2: export BUILD_MODULES = lv2
+build_lv2: compile
+
+build_vst: export BUILD_MODULES = vst
+build_vst: compile
+
+build_jack: export BUILD_MODULES = jack
+build_jack: compile
+
+build_doc: export BUILD_MODULES = doc
+build_doc: compile
+
+
+# Installation targets
 install: $(INSTALLATIONS)
 	@echo "Install OK"
 
@@ -279,6 +336,7 @@ install_doc: all
 	@mkdir -p $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
 	@cp -r $(OBJDIR)/html/* $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
 
+# Release targets
 dbg_release: export CFLAGS        += -DLSP_TRACE -O2
 dbg_release: $(RELEASES)
 	@echo "Debug Release OK"
@@ -352,13 +410,34 @@ release_doc: release_prepare
 	@tar -C $(RELEASE) -czf $(RELEASE)/$(DOC_ID).tar.gz $(DOC_ID)
 	@rm -rf $(RELEASE)/$(DOC_ID)
 
-uninstall:
+# Unrelease target
+unrelease: clean
+	@-rm -rf $(RELEASE)
+	@echo "Unrelease OK"
+
+# Uninstall target
+uninstall: $(UNINSTALLATIONS)
+	@echo "Uninstall OK"
+	
+uninstall_ladspa:
+	@echo "Uninstalling LADSPA"
 	@-rm -f $(DESTDIR)$(LADSPA_PATH)/$(ARTIFACT_ID)-ladspa.so
+	
+uninstall_lv2:
+	@echo "Uninstalling LV2"
 	@-rm -rf $(DESTDIR)$(LV2_PATH)/$(ARTIFACT_ID).lv2
+	
+uninstall_vst:
+	@echo "Uninstalling VST"
 	@-rm -f $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-vst-*.so
 	@-rm -rf $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-lxvst-*-$(BUILD_PROFILE)
 	@-rm -rf $(DESTDIR)$(VST_PATH)/$(VST_ID)
+	
+uninstall_jack:
+	@echo "Uninstalling JACK"
 	@-rm -f $(DESTDIR)$(BIN_PATH)/$(ARTIFACT_ID)-*
 	@-rm -f $(DESTDIR)$(LIB_PATH)/$(ARTIFACT_ID)-jack-core-*.so
+	
+uninstall_doc:
+	@echo "Uninstalling DOC"
 	@-rm -rf $(DESTDIR)$(DOC_PATH)/$(ARTIFACT_ID)
-	@echo "Uninstall OK"

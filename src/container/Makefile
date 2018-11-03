@@ -10,13 +10,29 @@ ifeq ($(BUILD_PLATFORM),BSD)
   LIBS                   += $(ICONV_LIBS)
 endif
 
+# Configure set of modules to build
 ifeq ($(LSP_TESTING),1)
   OBJFILES               += $(OBJ_TEST_CORE)
   LIBS                   += $(OPENGL_LIBS)
   MODULES                 = $(BIN_TEST)
 endif
 ifneq ($(LSP_TESTING),1)
-  MODULES                 = $(LIB_LADSPA) $(LIB_LV2) $(LIB_JACK) $(BIN_PROFILE) $(LIB_VST)
+  MODULES                 =
+  ifeq ($(findstring ladspa,$(BUILD_MODULES)),ladspa)
+    MODULES                += $(LIB_LADSPA)
+  endif
+  ifeq ($(findstring lv2,$(BUILD_MODULES)),lv2)
+    MODULES                += $(LIB_LV2)
+  endif
+  ifeq ($(findstring vst,$(BUILD_MODULES)),vst)
+    MODULES                += $(LIB_VST)
+  endif
+  ifeq ($(findstring jack,$(BUILD_MODULES)),jack)
+    MODULES                += $(LIB_JACK)
+  endif
+  ifeq ($(findstring profile,$(BUILD_MODULES)),profile)
+    MODULES                += $(BIN_PROFILE)
+  endif
 endif
 
 UI_OBJFILES             = $(OBJFILES) $(OBJ_UI_CORE) $(OBJ_RES_CORE) 
