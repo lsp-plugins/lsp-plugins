@@ -531,7 +531,7 @@ namespace neon_d32
             __ASM_EMIT("subs        %[items], $16")
             __ASM_EMIT("vstm        %[db]!, {q6-q7}")
             __ASM_EMIT("vstm        %[da]!, {q4-q5}")
-            __ASM_EMIT("beq         4f")
+            __ASM_EMIT("beq         2f")
             // Prepare next loop: rotate angle
             __ASM_EMIT("vld1.32     {q0-q1}, [%[XFFT_W]]")          // q0   = dr, q1 = di
             __ASM_EMIT("vmul.f32    q12, q8, q1")                   // q12  = wr1 * di
@@ -547,6 +547,7 @@ namespace neon_d32
             __ASM_EMIT("vadd.f32    q10, q10, q12")                 // q10  = wi1*dr + wr1*di
             __ASM_EMIT("vadd.f32    q11, q11, q13")                 // q11  = wi2*dr + wr2*di
             __ASM_EMIT("b           1b")
+            __ASM_EMIT("2:")
 
             : [da] "+r" (dst), [db] "=&r" (a),
               [a] "+r" (tmp), [b] "=&r" (b),
