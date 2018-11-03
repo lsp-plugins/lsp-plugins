@@ -424,15 +424,15 @@ namespace neon_d32
             n <<= 1;
         }
 
-        const float *xfft_dw    = &XFFT_DW[16];
+        const float *xfft_dw    = &XFFT_DW[8];
 
         // Perform loops except last one
         size_t loops = 1;
         while ((n < items) && ((loops++) < 3))
         {
-            lsp_dumpf("iw_re", "%.6f", xfft_a, 8);
-            lsp_dumpf("iw_im", "%.6f", &xfft_a[8], 8);
-            lsp_dumpf("dw   ", "%.6f", xfft_dw, 8);
+//            lsp_dumpf("iw_re", "%.6f", xfft_a, 8);
+//            lsp_dumpf("iw_im", "%.6f", &xfft_a[8], 8);
+//            lsp_dumpf("dw   ", "%.6f", xfft_dw, 8);
 
             ARCH_ARM_ASM(
                 __ASM_EMIT("mov         %[k], %[items]")

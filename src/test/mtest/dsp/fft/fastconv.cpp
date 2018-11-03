@@ -10,7 +10,7 @@
 #include <test/FloatBuffer.h>
 #include <core/debug.h>
 
-#define RANK        6
+#define RANK        5
 #define BUF_SIZE    (1 << RANK)
 
 static const float XFFT_DW[] __lsp_aligned16 =
@@ -366,9 +366,9 @@ static void fastconv_restore(float *dst, float *tmp, size_t rank)
     size_t loops = 0;
     while ((n < last) && ((loops++) < 3))
     {
-        lsp_dumpf("iw_re", "%.6f", iw_re, 4);
-        lsp_dumpf("iw_im", "%.6f", iw_im, 4);
-        lsp_dumpf("dw   ", "%.6f", dw, 2);
+//        lsp_dumpf("iw_re", "%.6f", iw_re, 4);
+//        lsp_dumpf("iw_im", "%.6f", iw_im, 4);
+//        lsp_dumpf("dw   ", "%.6f", dw, 2);
 
         for (size_t p=0; p<items; p += bs)
         {
