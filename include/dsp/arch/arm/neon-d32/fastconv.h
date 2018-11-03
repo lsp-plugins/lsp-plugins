@@ -561,7 +561,7 @@ namespace neon_d32
         size_t n;
 
         IF_ARCH_ARM(
-            float *a, *b, *p;
+            float *a, *b, *ptr;
             size_t k, p;
         );
 
@@ -629,7 +629,7 @@ namespace neon_d32
             __ASM_EMIT("bhs         1b")
             __ASM_EMIT("2:")
 
-            : [c1] "+r" (c1), [c2] "+r" (c2), [dst] "=&r" (p),
+            : [c1] "+r" (c1), [c2] "+r" (c2), [dst] "=&r" (ptr),
               [n] "=&r" (n)
             : [tmp] "r" (tmp), [items] "r" (items)
             : "cc", "memory",
