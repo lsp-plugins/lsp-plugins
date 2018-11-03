@@ -427,8 +427,13 @@ namespace neon_d32
         const float *xfft_dw    = &XFFT_DW[16];
 
         // Perform loops except last one
-        while (n < items)
+        size_t loops = 1;
+        while ((n < items) && ((loops++) < 3))
         {
+            lsp_dumpf("iw_re", "%.6f", xfft_a, 8);
+            lsp_dumpf("iw_im", "%.6f", &xfft_a[8], 8);
+            lsp_dumpf("dw   ", "%.6f", xfft_dw, 8);
+
             ARCH_ARM_ASM(
                 __ASM_EMIT("mov         %[k], %[items]")
                 __ASM_EMIT("mov         %[a], %[dst]")
@@ -484,8 +489,8 @@ namespace neon_d32
                 __ASM_EMIT("bne         1b")
 
                 : [a] "=&r" (a), [b] "=&r" (b),
-                  [p] "=&r" (p), [k] "=&r" (k),
-                : [dst] "r" (tmp), [items] "r" (items), [n] "r" (n)
+                  [p] "=&r" (p), [k] "=&r" (k)
+                : [dst] "r" (tmp), [items] "r" (items), [n] "r" (n),
                   [XFFT_A] "r" (xfft_a), [XFFT_W] "r" (xfft_dw)
                 : "cc", "memory",
                   "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
