@@ -849,7 +849,7 @@ namespace neon_d32
 
         IF_ARCH_ARM(
             size_t k, p;
-            float *a, *b;
+            float *a, *b, *ptr;
         );
 
         if (n > 4)
@@ -1063,7 +1063,7 @@ namespace neon_d32
             __ASM_EMIT("vrev64.32   q0, q0")                // q0   = r3' r2' i3' i2'
             __ASM_EMIT("vrev64.32   q1, q1")                // q1   = r7' r6' i7' i6'
             __ASM_EMIT("vext.32     q0, q0, $1")            // q0   = r2' i3' i2' r3'
-            __ASM_EMIT("vext.32     q1, 15, $1")            // q1   = r6' i7' i6' r7'
+            __ASM_EMIT("vext.32     q1, q1, $1")            // q1   = r6' i7' i6' r7'
 
             // q4 = r0' r1' i0' i1'
             // q6 = r4' r5' i4' i5'
@@ -1141,11 +1141,12 @@ namespace neon_d32
 
             __ASM_EMIT("2:")
 
-            : [src] "+r" (src), [dst] "+r" (ptr), [conv] "+r" (conv)
+            : [src] "+r" (src), [dst] "=&r" (ptr), [conv] "+r" (c),
               [k] "=&r" (k)
             : [items] "r" (items), [tmp] "r" (tmp)
             : "cc", "memory",
-              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7"
+              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"s
         );
 
         // The following code is body of fastconv_restore functions

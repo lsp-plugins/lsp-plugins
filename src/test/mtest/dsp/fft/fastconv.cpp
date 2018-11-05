@@ -648,7 +648,6 @@ MTEST_BEGIN("dsp.fft", fastconv)
         MTEST_ASSERT_MSG(conv2.valid(), "conv2 corrupted");
         MTEST_ASSERT_MSG(temp.valid(), "temp corrupted");
         MTEST_ASSERT_MSG(rest1.valid(), "rest1 corrupted");
-
         rest1.dump("rest1");
 
         IF_ARCH_X86(sse::fastconv_parse(conv1, samp1, RANK));
@@ -666,7 +665,7 @@ MTEST_BEGIN("dsp.fft", fastconv)
         IF_ARCH_ARM(neon_d32::fastconv_apply(rest2, temp, conv1, conv2, RANK));
         MTEST_ASSERT_MSG(conv2.valid(), "conv2 corrupted");
         MTEST_ASSERT_MSG(temp.valid(), "temp corrupted");
-        MTEST_ASSERT_MSG(rest1.valid(), "rest2 corrupted");
+        MTEST_ASSERT_MSG(rest2.valid(), "rest2 corrupted");
         rest2.dump("rest2");
 
         // Test parse+apply
@@ -676,6 +675,7 @@ MTEST_BEGIN("dsp.fft", fastconv)
             samp2[i]        = 0.1 * i;
         }
 
+        printf("\nTesting fatconv_parse_apply...\n");
         native::fastconv_parse(conv1, samp1, RANK);
         MTEST_ASSERT_MSG(conv1.valid(), "conv1 corrupted");
         MTEST_ASSERT_MSG(samp1.valid(), "samp1 corrupted");
