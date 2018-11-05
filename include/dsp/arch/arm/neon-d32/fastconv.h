@@ -852,6 +852,8 @@ namespace neon_d32
             float *a, *b, *ptr;
         );
 
+        //---------------------------------------------------------------------
+        // PARSE PART
         if (n > 4)
         {
             // First loop
@@ -905,7 +907,7 @@ namespace neon_d32
                   [a] "=&r" (a), [b] "=&r" (b),
                   [XFFT_A] "+r" (fw), [XFFT_DW] "+r" (fdw),
                   [k] "=&r" (k), [n] "+r" (n)
-                : [dst] "r" (dst)
+                : [dst] "r" (tmp)
                 : "cc", "memory",
                   "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
                   "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
@@ -1011,7 +1013,7 @@ namespace neon_d32
                   [k] "=&r" (k), [p] "=&r" (p),
                   [XFFT_A] "+r" (fw), [XFFT_DW] "+r" (fdw),
                   [n] "+r" (n)
-                : [dst] "r" (dst), [items] "r" (items)
+                : [dst] "r" (tmp), [items] "r" (items)
                 : "cc", "memory",
                   "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
                   "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
@@ -1025,13 +1027,14 @@ namespace neon_d32
                 __ASM_EMIT("veor        q1, q1")
                 __ASM_EMIT("vst1.32     {q0-q1}, [%[dst]]")
                 :
-                : [src] "r" (src), [dst] "r" (dst)
+                : [src] "r" (src), [dst] "r" (tmp)
                 : "memory",
                   "q0", "q1"
             );
         }
 
-        // Perform small 4x4 post-processing
+        //---------------------------------------------------------------------
+        // MIDDLE PART
         ARCH_ARM_ASM
         (
             // Loop for n=4
@@ -1146,10 +1149,11 @@ namespace neon_d32
             : [items] "r" (items), [tmp] "r" (tmp)
             : "cc", "memory",
               "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
-              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"s
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
 
-        // The following code is body of fastconv_restore functions
+        //---------------------------------------------------------------------
+        // RESTORE PART
         n = 8;
         fw          = XFFT_A;
 

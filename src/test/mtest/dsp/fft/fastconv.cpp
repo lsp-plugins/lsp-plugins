@@ -591,7 +591,7 @@ MTEST_BEGIN("dsp.fft", fastconv)
         samp2.copy(samp1);
 
         // Test parse
-        printf("Testing fatconv_parse...\n");
+        printf("Testing fastconv_parse...\n");
         samp1.dump("samp1");
         fastconv_parse(conv1, samp1, RANK);
         conv1.dump("conv1");
@@ -608,7 +608,7 @@ MTEST_BEGIN("dsp.fft", fastconv)
         MTEST_ASSERT_MSG(conv2.valid(), "conv2 corrupted");
 
         // Test restore
-        printf("\nTesting fatconv_restore...\n");
+        printf("\nTesting fastconv_restore...\n");
 
         fastconv_restore(rest1, conv1, RANK);
         conv1.dump("conv1");
@@ -626,7 +626,7 @@ MTEST_BEGIN("dsp.fft", fastconv)
         MTEST_ASSERT_MSG(rest2.valid(), "rest2 corrupted");
 
         // Test parse/apply
-        printf("\nTesting fatconv_apply...\n");
+        printf("\nTesting fastconv_apply...\n");
 
         FloatBuffer temp(BUF_SIZE << 1, 64);
         for (size_t i=0; i<(BUF_SIZE >> 1); ++i)
@@ -675,7 +675,7 @@ MTEST_BEGIN("dsp.fft", fastconv)
             samp2[i]        = 0.1 * i;
         }
 
-        printf("\nTesting fatconv_parse_apply...\n");
+        printf("\nTesting fastconv_parse_apply...\n");
         native::fastconv_parse(conv1, samp1, RANK);
         MTEST_ASSERT_MSG(conv1.valid(), "conv1 corrupted");
         MTEST_ASSERT_MSG(samp1.valid(), "samp1 corrupted");
