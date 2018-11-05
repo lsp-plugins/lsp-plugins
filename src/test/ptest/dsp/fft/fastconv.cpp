@@ -151,7 +151,7 @@ PTEST_BEGIN("dsp.fft", fastconv, 30, 1000)
 
             IF_ARCH_ARM(
                 call("neon_d32::fft", out, tmp, tmp2, conv, in, cv, rank,
-                    neon_d32::direct_fft, neon_d32::complex_mul3, neon_d32::reverse_fft, sse::add2);
+                    neon_d32::direct_fft, neon_d32::complex_mul3, neon_d32::reverse_fft, neon_d32::add2);
                 call("neon_d32::fastconv_fft", out, tmp, conv, in, cv, rank,
                     neon_d32::fastconv_parse, neon_d32::fastconv_parse_apply);
             )
