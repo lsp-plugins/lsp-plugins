@@ -207,6 +207,11 @@ namespace neon_d32
         EXPORT1(reverse_fft);
         EXPORT1(packed_direct_fft);
         EXPORT1(packed_reverse_fft);
+
+        EXPORT1(fastconv_parse);
+        EXPORT1(fastconv_restore);
+        EXPORT1(fastconv_apply);
+        EXPORT1(fastconv_parse_apply);
     }
 }
 

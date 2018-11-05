@@ -36,6 +36,16 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void fastconv_parse(float *dst, const float *src, size_t rank);
+        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+        void fastconv_restore(float *dst, float *src, size_t rank);
+        void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
+    }
+)
+
 typedef void (* fastconv_parse_t)(float *dst, const float *src, size_t rank);
 
 typedef void (* fastconv_parse_apply_t)(float *dst, float *tmp, const float *c, const float *src, size_t rank);
@@ -255,8 +265,13 @@ UTEST_BEGIN("dsp.fft", fastconv)
     {
         // Do tests
         IF_ARCH_X86(call_pr("sse::fastconv_parse + sse::fastconv_restore", 16, sse::fastconv_parse, sse::fastconv_restore));
+        IF_ARCH_ARM(call_pr("neon_d32::fastconv_parse + neon_d32::fastconv_restore", 16, neon_d32::fastconv_parse, neon_d32::fastconv_restore));
+
         IF_ARCH_X86(call_pa("sse::fastconv_parse + sse::fastconv_apply", 16, sse::fastconv_parse, sse::fastconv_apply));
+        IF_ARCH_ARM(call_pa("neon_d32::fastconv_parse + neon_d32::fastconv_apply", 16, neon_d32::fastconv_parse, neon_d32::fastconv_apply));
+
         IF_ARCH_X86(call_pap("sse::fastconv_parse + sse::fastconv_parse_apply", 16, sse::fastconv_parse, sse::fastconv_parse_apply));
+        IF_ARCH_ARM(call_pap("neon_d32::fastconv_parse + neon_d32::fastconv_parse_apply", 16, neon_d32::fastconv_parse, neon_d32::fastconv_parse_apply));
     }
 UTEST_END;
 
