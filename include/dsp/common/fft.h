@@ -32,13 +32,6 @@ namespace dsp
      */
     extern void (* packed_direct_fft)(float *dst, const float *src, size_t rank);
 
-    /** Direct Fast Fourier Transform for convolution
-     * @param dst complex spectrum [re, im, re, im ...]
-     * @param src real signal, buffer is twice lower size than output (in elements)
-     * @param rank the rank of FFT
-     */
-    extern void (* conv_direct_fft)(float *dst, const float *src, size_t rank);
-
     /** Reverse Fast Fourier transform
      * @param dst_re real part of signal
      * @param dst_im imaginary part of signal

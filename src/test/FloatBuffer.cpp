@@ -172,10 +172,7 @@ namespace test
         const float *a = pBuffer, *b = src.pBuffer;
         for (size_t i=0; i<nLength; ++i)
         {
-            bool equals = (fabs(a[i]) > 1.0f) ?
-                    float_equals_relative(a[i], b[i], tolerance) :
-                    float_equals_absolute(a[i], b[i], tolerance);
-            if (!equals)
+            if (!float_equals_adaptive(a[i], b[i], tolerance))
             {
                 nLastDiff = i;
                 src.nLastDiff = i;

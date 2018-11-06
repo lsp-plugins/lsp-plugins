@@ -15,7 +15,7 @@
 #endif
 
 #ifndef TOLERANCE
-    #define TOLERANCE 1e-5
+    #define TOLERANCE 1e-4
 #endif
 
 namespace native

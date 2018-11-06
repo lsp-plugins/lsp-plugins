@@ -59,6 +59,7 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/filters/dynamic.h>
 #include <dsp/arch/arm/neon-d32/filters/transform.h>
 #include <dsp/arch/arm/neon-d32/fft.h>
+#include <dsp/arch/arm/neon-d32/fastconv.h>
 
 #undef DSP_ARCH_ARM_NEON_32_IMPL
 
@@ -206,6 +207,11 @@ namespace neon_d32
         EXPORT1(reverse_fft);
         EXPORT1(packed_direct_fft);
         EXPORT1(packed_reverse_fft);
+
+        EXPORT1(fastconv_parse);
+        EXPORT1(fastconv_restore);
+        EXPORT1(fastconv_apply);
+        EXPORT1(fastconv_parse_apply);
     }
 }
 

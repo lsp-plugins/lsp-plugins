@@ -174,6 +174,7 @@ For successful build you need the following packages to be installed:
 
 Currently there is no automake/CMake supported, so to build plugins you
 have to type:
+  make clean
   make
   make install
 
@@ -198,16 +199,55 @@ Also possible (but not recommended) to specify compile targets:
   make build_jack
   make build_doc
 
+By default plugins use '/usr/local' path as installation directory. To
+override this path, you can run build with specifying PREFIX variable:
+  make clean
+  make PREFIX=/usr
+  make install
+
+By default, 'make install' will install all plugin formats (LADSPA, LV2,
+LinuxVST, JACK) and documentation. To install them separately, you can issue
+following commands:
+  make clean
+  make
+  make install_ladspa
+  make install_lv2
+  make install_vst
+  make install_jack
+  make install_doc
+
 To build binaries for debugging/profiling, use the following commands:
+  make clean
   make profile
-  
+
 To build binaries for testing (developers only), use the following commands:
   make clean
   make test
 
 You may also specify the installation root by specifying DESTDIR attribute:
   make install DESTDIR=<installation-root>
-  
+
+To perform cross-building between different architectures, you first should
+have a corresponding toolchain. By default, LSP plugins use 'uname' tool for
+detecting target architecture and set internal variable BUILD_PROFILE to the
+detected value. Currently supported values are 'x86_64', 'i586', 'armv7a'.
+To build plugins for another architecture, just issue following commands:
+  make clean
+  make BUILD_PROFILE=<target architecture>
+
+To automatically build tarballs with binaries, you may use 'release' target:
+  make clean
+  make release
+
+After issuing these commands, '.release' subdirectory will contain tarballs with
+binaries, documentation and sources. To perform release for another architecture,
+same way with BUILD_PROFILE is possible:
+  make clean
+  make BUILD_PROFILE=<target architecture> release
+
+To remove all previsously built tarballs, just issue:
+  make unrelease 
+
 ==== PROFILING / DEBUGGING ====
 
 To profile code, untar special profiling release into directory on the file

@@ -10,9 +10,14 @@
 #include <dsp/dsp.h>
 
 #define MIN_RANK    6
-#define MAX_RANK    16
 
-#ifdef ARCH_I386
+#ifdef ARCH_ARM
+    #define MAX_RANK    12
+#else
+    #define MAX_RANK    16
+#endif
+
+#if (defined(ARCH_I386)) || (defined(ARCH_ARM))
     #define TOLERANCE       5e-2
 #else
     #define TOLERANCE       1e-4
@@ -28,6 +33,16 @@ namespace native
 
 IF_ARCH_X86(
     namespace sse
+    {
+        void fastconv_parse(float *dst, const float *src, size_t rank);
+        void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
+        void fastconv_restore(float *dst, float *src, size_t rank);
+        void fastconv_apply(float *dst, float *tmp, const float *c1, const float *c2, size_t rank);
+    }
+)
+
+IF_ARCH_ARM(
+    namespace neon_d32
     {
         void fastconv_parse(float *dst, const float *src, size_t rank);
         void fastconv_parse_apply(float *dst, float *tmp, const float *c, const float *src, size_t rank);
@@ -71,8 +86,8 @@ UTEST_BEGIN("dsp.fft", fastconv)
                 FloatBuffer dst1(1 << rank, align, mask & 0x04);
                 FloatBuffer dst2(1 << rank, align, mask & 0x04);
 
-                dsp::fill_zero(dst1, dst1.size());
-                dsp::fill_zero(dst2, dst2.size());
+                dsp::fill_one(dst1, dst1.size());
+                dsp::fill_one(dst2, dst2.size());
 
                 native::fastconv_parse(fc1, src, rank);
                 UTEST_ASSERT_MSG(fc1.valid(), "Buffer FC1 corrupted");
@@ -133,8 +148,8 @@ UTEST_BEGIN("dsp.fft", fastconv)
                 FloatBuffer tmp1(1 << (rank+1), align, mask & 0x20);
                 FloatBuffer tmp2(1 << (rank+1), align, mask & 0x20);
 
-                dsp::fill_zero(dst1, dst1.size());
-                dsp::fill_zero(dst2, dst2.size());
+                dsp::fill_one(dst1, dst1.size());
+                dsp::fill_one(dst2, dst2.size());
 
                 native::fastconv_parse(fa1, src1, rank);
                 UTEST_ASSERT_MSG(fa1.valid(), "Buffer FA1 corrupted");
@@ -207,8 +222,8 @@ UTEST_BEGIN("dsp.fft", fastconv)
                 FloatBuffer tmp1(1 << (rank+1), align, mask & 0x10);
                 FloatBuffer tmp2(1 << (rank+1), align, mask & 0x10);
 
-                dsp::fill_zero(dst1, dst1.size());
-                dsp::fill_zero(dst2, dst2.size());
+                dsp::fill_one(dst1, dst1.size());
+                dsp::fill_one(dst2, dst2.size());
 
                 native::fastconv_parse(fc1, src1, rank);
                 UTEST_ASSERT_MSG(fc1.valid(), "Buffer FC1 corrupted");
@@ -255,8 +270,13 @@ UTEST_BEGIN("dsp.fft", fastconv)
     {
         // Do tests
         IF_ARCH_X86(call_pr("sse::fastconv_parse + sse::fastconv_restore", 16, sse::fastconv_parse, sse::fastconv_restore));
+        IF_ARCH_ARM(call_pr("neon_d32::fastconv_parse + neon_d32::fastconv_restore", 16, neon_d32::fastconv_parse, neon_d32::fastconv_restore));
+
         IF_ARCH_X86(call_pa("sse::fastconv_parse + sse::fastconv_apply", 16, sse::fastconv_parse, sse::fastconv_apply));
+        IF_ARCH_ARM(call_pa("neon_d32::fastconv_parse + neon_d32::fastconv_apply", 16, neon_d32::fastconv_parse, neon_d32::fastconv_apply));
+
         IF_ARCH_X86(call_pap("sse::fastconv_parse + sse::fastconv_parse_apply", 16, sse::fastconv_parse, sse::fastconv_parse_apply));
+        IF_ARCH_ARM(call_pap("neon_d32::fastconv_parse + neon_d32::fastconv_parse_apply", 16, neon_d32::fastconv_parse, neon_d32::fastconv_parse_apply));
     }
 UTEST_END;
 
