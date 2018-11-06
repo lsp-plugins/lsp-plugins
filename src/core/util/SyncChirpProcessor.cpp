@@ -66,15 +66,16 @@ namespace lsp
         sFader.nFadeIn_Over             = 0;
         sFader.nFadeOut_Over            = 0;
 
-        sConvParams.nChannels			= 1;
+        sConvParams.nChannels			= 0;
         sConvParams.nPartitionSize		= 0;
         sConvParams.nConvRank			= 0;
         sConvParams.nImage				= 0;
         sConvParams.nAllocationSize		= 0;
         sConvParams.vPartitions 		= NULL;
-        sConvParams.vPaddedLength		= NULL;
-        sConvParams.vInversePrepend		= NULL;
-        sConvParams.vResult 			= NULL;
+        sConvParams.vPaddedLengths		= NULL;
+        sConvParams.vInversePrepends    = NULL;
+        sConvParams.vConvLengths        = NULL;
+        sConvParams.vAlignOffsets       = NULL;
         sConvParams.pData				= NULL;
         sConvParams.vInPart 			= NULL;
         sConvParams.vInvPart 			= NULL;
@@ -569,7 +570,7 @@ namespace lsp
         if (channel >= sConvParams.nChannels)
         	return;
 
-        size_t dataLength       = sConvParams.vResult[channel]; //pConvResult->samples();
+        size_t dataLength = pConvResult->samples();
         if (dataLength == 0)
             return;
 
@@ -578,7 +579,7 @@ namespace lsp
         	return;
 
         // We locate the center of the convolution result, that acts as a
-        // reference point (origin of time). Bewaver that for linear phase
+        // reference point (origin of time). Beware that for linear phase
         // systems we will see a linear impulse response -centered- around this.
         size_t timeOrigin       = (dataLength / 2) - 1;
         size_t maxCount         = dataLength - timeOrigin;
@@ -822,14 +823,14 @@ namespace lsp
 		if (channel >= sConvParams.nChannels)
 			return STATUS_BAD_ARGUMENTS;
 
-        size_t dataLength       = sConvParams.vResult[channel]; // pConvResult->samples();
+        size_t dataLength = pConvResult->samples();
         if (dataLength == 0)
             return STATUS_NO_DATA;
 
         if (head >= (dataLength - count))
             return STATUS_BAD_ARGUMENTS;
 
-        float *vResult          = pConvResult->channel(channel);
+        float *vResult = pConvResult->channel(channel);
 		if (vResult == NULL)
 			return STATUS_BAD_ARGUMENTS;
 
@@ -849,14 +850,14 @@ namespace lsp
 		if (channel >= sConvParams.nChannels)
 			return STATUS_BAD_ARGUMENTS;
 
-        size_t dataLength       = sConvParams.vResult[channel]; // pConvResult->samples();
+        size_t dataLength = pConvResult->samples();
         if (dataLength == 0)
             return STATUS_NO_DATA;
 
         if (head >= dataLength)
             return STATUS_BAD_ARGUMENTS;
 
-        float *vResult          = pConvResult->channel(channel);
+        float *vResult = pConvResult->channel(channel);
         if (vResult == NULL)
         	return STATUS_BAD_ARGUMENTS;
 
@@ -922,7 +923,7 @@ namespace lsp
 		if (channel >= sConvParams.nChannels)
 			return STATUS_BAD_ARGUMENTS;
 
-        size_t dataLength       = sConvParams.vResult[channel]; // pConvResult->samples();
+        size_t dataLength = pConvResult->samples();
         if (dataLength == 0)
             return STATUS_NO_DATA;
 
@@ -1255,7 +1256,7 @@ namespace lsp
     		destroyConvolutionParameters();
 
         	// Each pointer in conv_t points to an array that holds one value per channel.
-        	size_t samples = 4 * nchannels;
+        	size_t samples = 5 * nchannels;
 
     		size_t *ptr              		= alloc_aligned<size_t>(sConvParams.pData, samples);
 			if (ptr == NULL)
@@ -1264,12 +1265,14 @@ namespace lsp
 			lsp_guard_assert(size_t *save = ptr);
 			sConvParams.vPartitions 		= ptr;
 			ptr                    		   += nchannels;
-			sConvParams.vPaddedLength 		= ptr;
+			sConvParams.vPaddedLengths 		= ptr;
 			ptr                    		   += nchannels;
-			sConvParams.vInversePrepend 	= ptr;
+			sConvParams.vInversePrepends 	= ptr;
 			ptr                    		   += nchannels;
-			sConvParams.vResult				= ptr;
+			sConvParams.vConvLengths        = ptr;
 			ptr                    		   += nchannels;
+			sConvParams.vAlignOffsets       = ptr;
+			ptr                            += nchannels;
 
 			lsp_assert(ptr <= &save[samples]);
 
@@ -1284,9 +1287,10 @@ namespace lsp
     	free_aligned(sConvParams.pData);
     	sConvParams.pData				= NULL;
         sConvParams.vPartitions 		= NULL;
-        sConvParams.vPaddedLength		= NULL;
-        sConvParams.vInversePrepend		= NULL;
-        sConvParams.vResult 			= NULL;
+        sConvParams.vPaddedLengths		= NULL;
+        sConvParams.vInversePrepends    = NULL;
+        sConvParams.vConvLengths        = NULL;
+        sConvParams.vAlignOffsets       = NULL;
     }
 
     void SyncChirpProcessor::calculateConvolutionParameters(Sample **data, size_t *offset)
@@ -1303,18 +1307,24 @@ namespace lsp
 			// the tail, the inverse filter as padded at the beginning (to not shift
 			// the convolution centre).
 
-			size_t nInputData       		= data[ch]->length() - offset[ch];
-			size_t nInverseFilter   		= pInverseFilter->length();
+			size_t nInputData       		    = data[ch]->length() - offset[ch];
+			size_t nInverseFilter   		    = pInverseFilter->length();
 
-			size_t nMaxLength       		= (nInputData > nInverseFilter) ? nInputData : nInverseFilter;
-			sConvParams.vPartitions[ch]   	= (nMaxLength / sConvParams.nPartitionSize) + 1;
-			sConvParams.vPaddedLength[ch] 	= sConvParams.vPartitions[ch] * sConvParams.nPartitionSize;
-			sConvParams.vInversePrepend[ch]	= sConvParams.vPaddedLength[ch] - nInverseFilter; // Amount of pad samples prepending the inverse filter
-			sConvParams.vResult[ch]         = 2 * sConvParams.vPaddedLength[ch]; // Size of the convolution of 2 complete padded data sequences
+			size_t nMaxLength       		    = (nInputData > nInverseFilter) ? nInputData : nInverseFilter;
+			sConvParams.vPartitions[ch]   	    = (nMaxLength / sConvParams.nPartitionSize) + 1;
+			sConvParams.vPaddedLengths[ch] 	    = sConvParams.vPartitions[ch] * sConvParams.nPartitionSize;
+			sConvParams.vInversePrepends[ch]    = sConvParams.vPaddedLengths[ch] - nInverseFilter; // Amount of pad samples prepending the inverse filter
+			sConvParams.vConvLengths[ch]        = 2 * sConvParams.vPaddedLengths[ch]; // Size of the convolution of 2 complete padded data sequences
 
-			if (sConvParams.vResult[ch] > sConvParams.nAllocationSize)
-				sConvParams.nAllocationSize 	= sConvParams.vResult[ch];
+			if (sConvParams.vConvLengths[ch] > sConvParams.nAllocationSize)
+				sConvParams.nAllocationSize = sConvParams.vConvLengths[ch];
     	}
+
+    	// The offsets can be calculated only after the allocation size is known
+    	size_t middle = (sConvParams.nAllocationSize / 2) - 1;
+
+    	for (size_t ch = 0; ch < sConvParams.nChannels; ++ch)
+    	    sConvParams.vAlignOffsets[ch] = middle - (sConvParams.vConvLengths[ch] / 2) + 1;
     }
 
     status_t SyncChirpProcessor::allocateConvolutionTempArrays()
@@ -1460,7 +1470,7 @@ namespace lsp
                 size_t virtualHead = invp * sConvParams.nPartitionSize;
 
                 // Evaluate distance of head from end of prepend pad
-                ssize_t viSamplesAhead = ssize_t(sConvParams.vInversePrepend[channel]) - ssize_t(virtualHead);
+                ssize_t viSamplesAhead = ssize_t(sConvParams.vInversePrepends[channel]) - ssize_t(virtualHead);
 
                 if (viSamplesAhead > ssize_t(sConvParams.nPartitionSize)) // The whole partition is within the pad
                 {
@@ -1485,12 +1495,17 @@ namespace lsp
                 if (bNullInputPart || bNullInversePart)
                     continue; // Result is zero, nothing to do.
 
-                dsp::fastconv_apply(&vResult[sConvParams.nPartitionSize * (inp + invp)], sConvParams.vTemp, sConvParams.vInImage, sConvParams.vInvImage, sConvParams.nConvRank);
+                dsp::fastconv_apply(&vResult[sConvParams.nPartitionSize * (inp + invp) + sConvParams.vAlignOffsets[channel]],
+                            sConvParams.vTemp,
+                            sConvParams.vInImage,
+                            sConvParams.vInvImage,
+                            sConvParams.nConvRank
+                            );
             }
         }
 
         // Normalising by square sample rate to recover physical units.
-        dsp::scale2(vResult, sChirpParams.fConvScale / (nSampleRate * nSampleRate), sConvParams.vResult[channel]);
+        dsp::scale2(vResult, sChirpParams.fConvScale / (nSampleRate * nSampleRate), sConvParams.vConvLengths[channel]);
 
         return STATUS_OK;
     }
@@ -1503,11 +1518,11 @@ namespace lsp
 		if (channel >= sConvParams.nChannels)
 			return STATUS_BAD_ARGUMENTS;
 
-        size_t dataLength       = sConvParams.vResult[channel]; // pConvResult->samples();
+        size_t dataLength = pConvResult->samples();
         if (dataLength == 0)
             return STATUS_NO_DATA;
 
-        size_t middle           = (dataLength / 2) - 1;
+        size_t middle = (dataLength / 2) - 1;
 
         // Convert offset to unsigned, so to make safe operations with unsigned types
         size_t nOffset          = 0;
@@ -1592,7 +1607,7 @@ namespace lsp
         if (pConvResult == NULL)
             return STATUS_NO_DATA;
 
-        size_t dataLength       = pConvResult->samples();
+        size_t dataLength = pConvResult->samples();
 
         if (dataLength == 0)
             return STATUS_NO_DATA;
@@ -1616,7 +1631,7 @@ namespace lsp
         if (pConvResult == NULL)
             return STATUS_NO_DATA;
 
-        size_t dataLength       = pConvResult->samples();
+        size_t dataLength = pConvResult->samples();
 
         if (dataLength == 0)
             return STATUS_NO_DATA;
@@ -1647,13 +1662,13 @@ namespace lsp
         if (pConvResult == NULL)
             return STATUS_NO_DATA;
 
-        size_t dataLength       = pConvResult->samples();
+        size_t dataLength = pConvResult->samples();
 
         if (dataLength == 0)
             return STATUS_NO_DATA;
 
         // Save only the positive time result, which starts after the first half
-        size_t head             = (dataLength / 2) - 1;
+        size_t head = (dataLength / 2) - 1;
 
         return save_linear_convolution(path, head, count);
     }
@@ -1730,7 +1745,8 @@ namespace lsp
         lspc_chunk_audio_profile_t prof;
         bzero(&prof, sizeof(lspc_chunk_audio_profile_t));
 
-        prof.common.version     = 2;
+//        prof.common.version     = 2;
+        prof.common.version     = 1;
         prof.common.size        = sizeof(lspc_chunk_audio_profile_t);
         prof.chunk_id           = chunk_id;
         prof.chirp_order        = sChirpParams.nOrder;
@@ -1740,7 +1756,7 @@ namespace lsp
         prof.delta              = sChirpParams.delta;
         prof.initial_freq       = sChirpParams.initialFrequency;
         prof.final_freq         = sChirpParams.finalFrequency;
-        prof.channels 			= sConvParams.nChannels;
+//        prof.channels 			= sConvParams.nChannels;
 
         // Convert header fields CPU -> BE
         prof.chunk_id           = CPU_TO_BE(prof.chunk_id);
@@ -1751,7 +1767,7 @@ namespace lsp
         prof.delta              = CPU_TO_BE(prof.delta);
         prof.initial_freq       = CPU_TO_BE(prof.initial_freq);
         prof.final_freq         = CPU_TO_BE(prof.final_freq);
-        prof.channels 			= CPU_TO_BE(prof.channels);
+//        prof.channels 			= CPU_TO_BE(prof.channels);
 
         // Write data with one call
         res = wr->write_header(&prof);
@@ -1763,15 +1779,15 @@ namespace lsp
             return res;
         }
 
-        // Dump nResult values
-        res = wr->write(sConvParams.vResult, sizeof(size_t) * sConvParams.nChannels);
-		if (res != STATUS_OK)
-		{
-			wr->close();
-			delete wr;
-			fd.close();
-			return res;
-		}
+//        // Dump nResult values
+//        res = wr->write(sConvParams.vConvLengths, sizeof(size_t) * sConvParams.nChannels);
+//		if (res != STATUS_OK)
+//		{
+//			wr->close();
+//			delete wr;
+//			fd.close();
+//			return res;
+//		}
 
         // Close writer and file
         wr->close();
@@ -1829,10 +1845,10 @@ namespace lsp
                 prof.delta              = BE_TO_CPU(prof.delta);
                 prof.initial_freq       = BE_TO_CPU(prof.initial_freq);
                 prof.final_freq         = BE_TO_CPU(prof.final_freq);
-                if (prof.common.version < 2)
-                	prof.channels 		= 1;
-                else
-                	prof.channels 		= BE_TO_CPU(prof.channels);
+//                if (prof.common.version < 2)
+//                	prof.channels 		= 1;
+//                else
+//                	prof.channels 		= BE_TO_CPU(prof.channels);
 
                 // Checking that data are meaningful.
                 if ((prof.alpha < MIN_AMPLITUDE) ||
@@ -1841,8 +1857,10 @@ namespace lsp
                     (prof.delta <= 0.0) ||
                     (prof.initial_freq <= 0.0) ||
                     (prof.final_freq <= prof.initial_freq) ||
-                    (prof.chirp_order != size_t(prof.final_freq / prof.initial_freq)) ||
-					(prof.channels < 1))
+                    (prof.chirp_order != size_t(prof.final_freq / prof.initial_freq)) //||
+                    )
+//					(prof.channels < 1)
+//					)
                 {
                     rd->close();
                     fd.close();
@@ -1889,7 +1907,7 @@ namespace lsp
 
         // Validate the audio file header
         if (
-            (ahdr.channels != prof.channels) ||
+//            (ahdr.channels != prof.channels) ||
             (ahdr.frames <= 0) ||
             (ahdr.codec != LSPC_CODEC_PCM) ||
             ((ahdr.sample_format != LSPC_SAMPLE_FMT_F32LE) && (ahdr.sample_format != LSPC_SAMPLE_FMT_F32BE))
@@ -1901,17 +1919,19 @@ namespace lsp
             return STATUS_BAD_FORMAT;
         }
 
-        status_t status = allocateConvolutionParameters(prof.channels);
-        if (status != STATUS_OK)
-        {
-            rd->close();
-            delete rd;
-            fd.close();
-            return status;
-        }
+//        status_t status = allocateConvolutionParameters(prof.channels);
+//        status_t status = allocateConvolutionParameters(ahdr.channels);
+//        if (status != STATUS_OK)
+//        {
+//            rd->close();
+//            delete rd;
+//            fd.close();
+//            return status;
+//        }
 
         // Allocate convolution result
-        status = allocateConvolutionResult(ahdr.sample_rate, ahdr.channels, ahdr.frames);
+//        status = allocateConvolutionResult(ahdr.sample_rate, ahdr.channels, ahdr.frames);
+        status_t status = allocateConvolutionResult(ahdr.sample_rate, ahdr.channels, ahdr.frames);
         if (status != STATUS_OK)
         {
             rd->close();
@@ -1921,7 +1941,8 @@ namespace lsp
         }
 
         // Set chirp parameters
-        sConvParams.nChannels 			= prof.channels;
+//        sConvParams.nChannels 			= prof.channels;
+        sConvParams.nChannels           = ahdr.channels;
         sChirpParams.nOrder             = prof.chirp_order;
         sChirpParams.fAlpha             = prof.alpha;
         sChirpParams.beta               = prof.beta;
@@ -1933,54 +1954,48 @@ namespace lsp
         sChirpParams.bReconfigure       = true;
         bSync                           = true;
 
-        if (prof.common.version < 2)
-        	sConvParams.vResult[0] = ahdr.frames;
-		else
-		{
-			n = rd->read(sConvParams.vResult, sizeof(size_t) * prof.channels); // Will it work this way?
-
-	        bool isFileCorrupted      	= false;
-	        if (n >= 0)
-	        {
-	            if (size_t(n) != sizeof(size_t) * prof.channels)
-	                isFileCorrupted   	= true;
-	        }
-	        else
-	        {
-	            isFileCorrupted        	= true;
-	        }
-
-	        if (isFileCorrupted)
-	        {
-	            rd->close();
-	            fd.close();
-	            return STATUS_CORRUPTED_FILE;
-	        }
-		}
+//        if (prof.common.version < 2)
+//        	sConvParams.vConvLengths[0] = ahdr.frames;
+//		else
+//		{
+//			n = rd->read(sConvParams.vConvLengths, sizeof(size_t) * prof.channels); // Will it work this way?
+//
+//	        bool isFileCorrupted      	= false;
+//	        if (n >= 0)
+//	        {
+//	            if (size_t(n) != sizeof(size_t) * prof.channels)
+//	                isFileCorrupted   	= true;
+//	        }
+//	        else
+//	        {
+//	            isFileCorrupted        	= true;
+//	        }
+//
+//	        if (isFileCorrupted)
+//	        {
+//	            rd->close();
+//	            fd.close();
+//	            return STATUS_CORRUPTED_FILE;
+//	        }
+//		}
 
         for (size_t ch = 0; ch < ahdr.channels; ++ch)
         {
         	// Read all sample data with one call
-			float *vResult          	= pConvResult->channel(ch);
-			n                         	= rd->read(vResult, sizeof(float) * ahdr.frames); // Will it work this way?
+            float *vResult  = pConvResult->channel(ch);
+            n               = rd->read(vResult, sizeof(float) * ahdr.frames); // Will it work this way?
 
-	        bool isFileCorrupted      	= false;
-	        if (n >= 0)
-	        {
-	            if (size_t(n) != sizeof(float) * ahdr.frames)
-	                isFileCorrupted   	= true;
-	        }
-	        else
-	        {
-	            isFileCorrupted        	= true;
-	        }
+            if (n < 0)
+                status = STATUS_CORRUPTED_FILE;
+            else if (size_t(n) != sizeof(float) * ahdr.frames)
+                status = STATUS_CORRUPTED_FILE;
 
-	        if (isFileCorrupted)
-	        {
-	            rd->close();
-	            fd.close();
-	            return STATUS_CORRUPTED_FILE;
-	        }
+            if (status != STATUS_OK)
+            {
+                rd->close();
+                fd.close();
+                return status;
+            }
 
 	        // Check if we need to do LE <-> BE conversion for the sample data, should be moved into core module method in the future
 	        if (LSPC_SAMPLE_FMT_NEED_REVERSE(ahdr.sample_format))
@@ -2125,7 +2140,6 @@ namespace lsp
 
     void SyncChirpProcessor::get_convolution_result_plottable_samples(size_t channel, float *dst, size_t head, size_t convLimit, size_t plotCount, bool normalize)
     {
-        // PROTOTYPE
         size_t irSamples = pConvResult->samples();
         if (irSamples == 0)
             return;
