@@ -10,13 +10,14 @@
 #include <dsp/dsp.h>
 
 #define MIN_RANK    6
+
 #ifdef ARCH_ARM
     #define MAX_RANK    12
 #else
     #define MAX_RANK    16
 #endif
 
-#ifdef ARCH_I386
+#if (defined(ARCH_I386)) || (defined(ARCH_ARM))
     #define TOLERANCE       5e-2
 #else
     #define TOLERANCE       1e-4
