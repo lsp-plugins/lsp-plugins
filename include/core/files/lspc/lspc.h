@@ -76,7 +76,7 @@ namespace lsp
         double          delta;          // The chirp parameter delta, a double value
         double          initial_freq;   // The chirp initial frequency
         double          final_freq;     // The chirp final frequency
-        uint8_t 		channels; 		// Number of channels in the profile
+//        uint8_t         channels;       // Number of channels in the profile
         uint32_t        reserved[8];    // Some reserved data
     } lspc_chunk_audio_profile_t;
 

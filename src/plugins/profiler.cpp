@@ -65,7 +65,12 @@ namespace lsp
     	}
 
     	// Use 0 to force default partition size defined in SyncChirpProcessor
-        return pCore->sSyncChirpProcessor.do_linear_convolutions(pCore->sResponseData.vResponses, pCore->sResponseData.vOffsets, pCore->nChannels, 0);
+        return pCore->sSyncChirpProcessor.do_linear_convolutions(
+                pCore->sResponseData.vResponses,
+                pCore->sResponseData.vOffsets,
+                pCore->nChannels,
+                0
+                );
     }
 
     profiler_base::PostProcessor::PostProcessor(profiler_base *base)
@@ -717,7 +722,7 @@ namespace lsp
 							c->nLatency			= c->sLatencyDetector.get_latency_samples();
 
 							c->pLatencyScreen->setValue(c->sLatencyDetector.get_latency_seconds() * 1000.0f); // * 1000.0f to show ms instead of s
-							c->sResponseTaker.set_latency_samples(nLatency);
+							c->sResponseTaker.set_latency_samples(c->nLatency);
 							c->sLatencyDetector.reset_capture();
 						}
 						else if (c->sLatencyDetector.cycle_complete())
@@ -776,7 +781,10 @@ namespace lsp
 						nState      = RECORDING;
 
 						for (size_t ch = 0; ch < nChannels; ++ch)
+						{
 							vChannels[ch].sResponseTaker.start_capture();
+							vChannels[ch].bRCycleComplete = false;
+						}
 					}
 
 					for (size_t ch = 0; ch < nChannels; ++ch)
@@ -1034,7 +1042,8 @@ namespace lsp
             {
             	for (size_t ch = 0; ch < nChannels; ++ch)
             	{
-            		vChannels[ch].bLatencyMeasured = false;
+            		vChannels[ch].bLatencyMeasured  = false;
+            		vChannels[ch].bLCycleComplete   = false;
             		vChannels[ch].sLatencyDetector.start_capture();
             		vChannels[ch].pLatencyScreen->setValue(0.0f);
             	}
@@ -1049,8 +1058,9 @@ namespace lsp
 
             for (size_t ch = 0; ch < nChannels; ++ch)
             {
+                vChannels[ch].bLatencyMeasured  = false;
+                vChannels[ch].bLCycleComplete   = false;
             	vChannels[ch].sLatencyDetector.start_capture();
-            	vChannels[ch].bLatencyMeasured = false;
             	vChannels[ch].pLatencyScreen->setValue(0.0f);
             }
 

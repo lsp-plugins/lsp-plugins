@@ -94,16 +94,17 @@ namespace lsp
             // Convolution Parameters
             typedef struct conv_t
             {
-            	size_t 			nChannels;			// Number of channels of convolution result
-            	size_t	 		nPartitionSize; 	// Size of the partition used to compute convolution [samples]
+            	size_t          nChannels;          // Number of channels of convolution result
+            	size_t          nPartitionSize;     // Size of the partition used to compute convolution [samples]
             	size_t 			nConvRank; 			// Rank of single partition convolution
             	size_t 			nImage; 			// Size of single partition convolution images [samples]
 
             	size_t 			nAllocationSize; 	// Number of samples to allocate for convolution result AudioFile object [samples]
             	size_t 		   *vPartitions; 		// Number of partitions used to cover each single padded input time series for each channel
-            	size_t 		   *vPaddedLength; 		// Length of each input time series for each channel, padded with zeros so to be long an integer number of partition sizes [samples] - The zero pad is not real (allocated), but convolution happens as if it was.
-            	size_t 		   *vInversePrepend; 	// Length of the zero prepending at the inverse filter, so that the total length of prepend + filter is the same as the padded channel length [samples] - The zero prepend is not real (allocated), but convolution happens as if it was.
-            	size_t 		   *vResult; 			// For each channel in the convolution result, the length of the result store therein, counted from the beginning [samples]
+            	size_t 		   *vPaddedLengths;     // Length of each input time series for each channel, padded with zeros so to be long an integer number of partition sizes [samples] - The zero pad is not real (allocated), but convolution happens as if it was.
+            	size_t 		   *vInversePrepends; 	// Length of the zero prepending at the inverse filter, so that the total length of prepend + filter is the same as the padded channel length [samples] - The zero prepend is not real (allocated), but convolution happens as if it was.
+            	size_t 		   *vConvLengths;       // For each channel in the convolution result, the length of the result stored therein, counted from the beginning [samples]
+            	size_t         *vAlignOffsets;      // For each channel in the convolution result, the offset with which the result has to be stored so that all the origins of times are aligned [samples]
             	uint8_t        *pData;
 
             	float 		   *vInPart; 			// Holds a single input time series partition
