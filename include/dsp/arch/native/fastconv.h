@@ -693,10 +693,10 @@ namespace native
 
             for (size_t i=0; i<items; i += 8)
             {
-                dst[0]     += tmp[0] * kn;
-                dst[1]     += tmp[1] * kn;
-                dst[2]     += tmp[2] * kn;
-                dst[3]     += tmp[3] * kn;
+                dst[0]      = tmp[0] * kn;
+                dst[1]      = tmp[1] * kn;
+                dst[2]      = tmp[2] * kn;
+                dst[3]      = tmp[3] * kn;
 
                 dst        += 4;
                 tmp        += 8;
@@ -1037,13 +1037,44 @@ namespace native
             d[6]        = ix[2];
             d[7]        = ix[3];
 
+            // Prepare reverse FFT
+            // s0' = s0 + s1        = (r0 + r1) + j*(i0 + i1)
+            // s1' = s0 - s1        = (r0 - r1) + j*(i0 - i1)
+            // s2' = s2 + s3        = (r2 + r3) + j*(i2 + i3)
+            // s3' = s2 - s3        = (r2 - r3) + j*(i2 - i3)
+
+            // s0" = s0' + s2'      = (r0 + r1) + j*(i0 + i1) + (r2 + r3) + j*(i2 + i3)
+            // s1" = s1' + j*s3'    = (r0 - r1) + j*(i0 - i1) - (i2 - i3) + j*(r2 - r3)
+            // s2" = s0' - s2'      = (r0 + r1) + j*(i0 + i1) - (r2 + r3) - j*(i2 + i3)
+            // s3" = s1' - j*s3'    = (r0 - r1) + j*(i0 - i1) + (i2 - i3) - j*(r2 - r3)
+
+            rx[0]       = d[0] + d[1];
+            rx[1]       = d[0] - d[1];
+            rx[2]       = d[2] + d[3];
+            rx[3]       = d[2] - d[3];
+
+            ix[0]       = d[4] + d[5];
+            ix[1]       = d[4] - d[5];
+            ix[2]       = d[6] + d[7];
+            ix[3]       = d[6] - d[7];
+
+            d[0]        = rx[0] + rx[2];
+            d[1]        = rx[1] - ix[3];
+            d[2]        = rx[0] - rx[2];
+            d[3]        = rx[1] + ix[3];
+
+            d[4]        = ix[0] + ix[2];
+            d[5]        = ix[1] + rx[3];
+            d[6]        = ix[0] - ix[2];
+            d[7]        = ix[1] - rx[3];
+
             d          += 8;
             c1         += 8;
             c2         += 8;
         }
 
         // Do reverse FFT transformation
-        fastconv_restore(dst, tmp, rank);
+        fastconv_restore_internal(dst, tmp, rank);
     }
 }
 

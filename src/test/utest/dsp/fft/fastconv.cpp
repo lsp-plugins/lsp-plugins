@@ -86,8 +86,8 @@ UTEST_BEGIN("dsp.fft", fastconv)
                 FloatBuffer dst1(1 << rank, align, mask & 0x04);
                 FloatBuffer dst2(1 << rank, align, mask & 0x04);
 
-                dsp::fill_zero(dst1, dst1.size());
-                dsp::fill_zero(dst2, dst2.size());
+                dsp::fill_one(dst1, dst1.size());
+                dsp::fill_one(dst2, dst2.size());
 
                 native::fastconv_parse(fc1, src, rank);
                 UTEST_ASSERT_MSG(fc1.valid(), "Buffer FC1 corrupted");
@@ -148,8 +148,8 @@ UTEST_BEGIN("dsp.fft", fastconv)
                 FloatBuffer tmp1(1 << (rank+1), align, mask & 0x20);
                 FloatBuffer tmp2(1 << (rank+1), align, mask & 0x20);
 
-                dsp::fill_zero(dst1, dst1.size());
-                dsp::fill_zero(dst2, dst2.size());
+                dsp::fill_one(dst1, dst1.size());
+                dsp::fill_one(dst2, dst2.size());
 
                 native::fastconv_parse(fa1, src1, rank);
                 UTEST_ASSERT_MSG(fa1.valid(), "Buffer FA1 corrupted");
@@ -222,8 +222,8 @@ UTEST_BEGIN("dsp.fft", fastconv)
                 FloatBuffer tmp1(1 << (rank+1), align, mask & 0x10);
                 FloatBuffer tmp2(1 << (rank+1), align, mask & 0x10);
 
-                dsp::fill_zero(dst1, dst1.size());
-                dsp::fill_zero(dst2, dst2.size());
+                dsp::fill_one(dst1, dst1.size());
+                dsp::fill_one(dst2, dst2.size());
 
                 native::fastconv_parse(fc1, src1, rank);
                 UTEST_ASSERT_MSG(fc1.valid(), "Buffer FC1 corrupted");
