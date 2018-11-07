@@ -113,11 +113,11 @@ namespace lsp
 
 typedef struct lspc_audio_parameters_t
 {
-    uint8_t         channels;       // Number of channels
-    uint8_t         sample_format;  // Sample format
-    uint32_t        sample_rate;    // Sample rate
-    uint32_t        codec;          // Codec used
-    uint64_t        frames;         // Overall number of frames in file
+    size_t          channels;       // Number of channels
+    size_t          sample_format;  // Sample format
+    size_t          sample_rate;    // Sample rate
+    size_t          codec;          // Codec used
+    wsize_t         frames;         // Overall number of frames in file
 } lspc_audio_parameters_t;
 
 #define LSPC_SAMPLE_FMT_IS_LE(x)    (!(x & 1))
