@@ -10,8 +10,8 @@
 #include <stdlib.h>
 #include <core/files/lspc/LSPCAudioReader.h>
 
-#define BUFFER_SIZE     0x1000
-#define BUFFER_FRAMES   0x200
+#define BUFFER_SIZE     0x2000
+#define BUFFER_FRAMES   0x400
 
 namespace lsp
 {
@@ -165,9 +165,11 @@ namespace lsp
 
         // Close reader (if required)
         status_t res = STATUS_OK;
-        if ((nFlags & F_CLOSE_READER) && (pRD != NULL))
+        if (pRD != NULL)
         {
-            status_t xr     = pRD->close();
+            status_t xr     = (nFlags & F_CLOSE_READER) ? pRD->close() : STATUS_OK;
+            if (nFlags & F_DROP_READER)
+                delete pRD;
             pRD             = NULL;
             if (res == STATUS_OK)
                 res             = xr;
@@ -349,6 +351,7 @@ namespace lsp
         if (le != arch_le)
             nFlags     |= F_REV_BYTES; // Set-up byte-reversal flag
 
+        sParams         = *p;
         nBPS            = sb;
         nFrameSize      = fz;
         nBytesLeft      = bytes_left;
@@ -378,7 +381,9 @@ namespace lsp
 
         pFD         = lspc;
         pRD         = rd;
-        nFlags     |= (auto_close) ? F_OPENED | F_CLOSE_READER | F_CLOSE_FILE : F_OPENED | F_CLOSE_READER;
+        nFlags     |= F_OPENED | F_CLOSE_READER | F_CLOSE_FILE | F_DROP_READER;
+        if (auto_close)
+            nFlags     |= F_CLOSE_FILE;
         return STATUS_OK;
     }
 
@@ -406,7 +411,9 @@ namespace lsp
 
         pFD         = lspc;
         pRD         = rd;
-        nFlags     |= (auto_close) ? F_OPENED | F_CLOSE_READER | F_CLOSE_FILE : F_OPENED | F_CLOSE_READER;
+        nFlags     |= F_OPENED | F_CLOSE_READER | F_CLOSE_FILE | F_DROP_READER;
+        if (auto_close)
+            nFlags     |= F_CLOSE_FILE;
         return STATUS_OK;
     }
 
@@ -431,7 +438,9 @@ namespace lsp
 
         pFD         = lspc;
         pRD         = rd;
-        nFlags     |= (auto_close) ? F_OPENED | F_CLOSE_READER | F_CLOSE_FILE : F_OPENED | F_CLOSE_READER;
+        nFlags     |= F_OPENED | F_CLOSE_READER | F_CLOSE_FILE | F_DROP_READER;
+        if (auto_close)
+            nFlags     |= F_CLOSE_FILE;
         return STATUS_OK;
     }
 
@@ -456,7 +465,9 @@ namespace lsp
 
         pFD         = lspc;
         pRD         = rd;
-        nFlags     |= (auto_close) ? F_OPENED | F_CLOSE_READER | F_CLOSE_FILE : F_OPENED | F_CLOSE_READER;
+        nFlags     |= F_OPENED | F_CLOSE_READER | F_CLOSE_FILE | F_DROP_READER;
+        if (auto_close)
+            nFlags     |= F_CLOSE_FILE;
         return STATUS_OK;
     }
 
@@ -474,7 +485,9 @@ namespace lsp
 
         pFD         = NULL;
         pRD         = rd;
-        nFlags     |= (auto_close) ? F_OPENED | F_CLOSE_READER : F_OPENED;
+        nFlags     |= F_OPENED;
+        if (auto_close)
+            nFlags     |= F_CLOSE_READER;
         return STATUS_OK;
     }
 
@@ -596,18 +609,18 @@ namespace lsp
                         bytes   = avail;
                         break;
                     case 2:
-                        byte_swap(reinterpret_cast<uint16_t *>(&sBuf.vData[sBuf.nOff]), avail << 1);
+                        byte_swap(reinterpret_cast<uint16_t *>(&sBuf.vData[sBuf.nOff]), avail);
                         bytes   = avail << 1;
                         break;
                     case 3:
                         bytes   = avail + (avail << 1);
                         break;
                     case 4:
-                        byte_swap(reinterpret_cast<uint32_t *>(&sBuf.vData[sBuf.nOff]), avail << 2);
+                        byte_swap(reinterpret_cast<uint32_t *>(&sBuf.vData[sBuf.nOff]), avail);
                         bytes   = avail << 2;
                         break;
                     case 8:
-                        byte_swap(reinterpret_cast<uint64_t *>(&sBuf.vData[sBuf.nOff]), avail << 3);
+                        byte_swap(reinterpret_cast<uint64_t *>(&sBuf.vData[sBuf.nOff]), avail);
                         bytes   = avail << 3;
                         break;
                     default:
@@ -620,11 +633,64 @@ namespace lsp
 
             // Update pointers
             n_read         += avail;
-            avail          -= bytes;
             sBuf.nOff      += bytes;
         }
 
         return n_read;
+    }
+
+    ssize_t LSPCAudioReader::skip_frames(size_t frames)
+    {
+        if (!(nFlags & F_OPENED))
+            return STATUS_CLOSED;
+
+        size_t n_skip   = 0;
+        while (n_skip < frames)
+        {
+            // Ensure that we have enough bytes to read at least one frame
+            size_t avail = sBuf.nSize - sBuf.nOff;
+            if (avail < nFrameSize)
+            {
+                // Try to fill buffer with new data
+                status_t st = fill_buffer();
+                if (st != STATUS_OK)
+                    return (n_skip > 0) ? n_skip : -st;
+                avail = sBuf.nSize - sBuf.nOff;
+                if (avail < nFrameSize)
+                    return (n_skip > 0) ? n_skip : STATUS_CORRUPTED_FILE;
+            }
+
+            // Perform decode
+            avail   /= nBPS;
+            if (avail > n_skip)
+                avail   = n_skip;
+
+            // Update pointers
+            n_skip         += avail;
+            sBuf.nOff      += avail * nBPS;
+        }
+
+        return n_skip;
+    }
+
+    uint32_t LSPCAudioReader::unique_id() const
+    {
+        if (!(nFlags & F_OPENED))
+            return 0;
+        else if (pRD == NULL)
+            return 0;
+
+        return pRD->unique_id();
+    }
+
+    uint32_t LSPCAudioReader::magic() const
+    {
+        if (!(nFlags & F_OPENED))
+            return 0;
+        else if (pRD == NULL)
+            return 0;
+
+        return pRD->magic();
     }
 
 } /* namespace lsp */

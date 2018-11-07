@@ -13,7 +13,9 @@
 
 namespace lsp
 {
-    
+    /**
+     * This is helper class for reading audio content from LSPC files.
+     */
     class LSPCAudioReader
     {
         private:
@@ -22,7 +24,8 @@ namespace lsp
                 F_OPENED        = 1 << 0,
                 F_CLOSE_READER  = 1 << 1,
                 F_CLOSE_FILE    = 1 << 2,
-                F_REV_BYTES     = 1 << 3
+                F_REV_BYTES     = 1 << 3,
+                F_DROP_READER   = 1 << 4
             };
 
             typedef struct buffer_t
@@ -140,11 +143,30 @@ namespace lsp
             ssize_t read_frames(float *data, size_t frames);
 
             /**
+             * Skip number of frames
+             * @param frames number of frames to skip
+             * @return number of frames actually skipped
+             */
+            ssize_t skip_frames(size_t frames);
+
+            /**
              * Obtain current audio parameters of the stream
              * @param dst pointer to store audio parameters
              * @return status of operation
              */
             status_t get_parameters(lspc_audio_parameters_t *dst) const;
+
+            /**
+             * Get current chunk identifier
+             * @return current chunk identifier
+             */
+            uint32_t unique_id() const;
+
+            /**
+             * Get current chunk magic
+             * @return current chunk magic
+             */
+            uint32_t magic() const;
     };
 
 } /* namespace lsp */
