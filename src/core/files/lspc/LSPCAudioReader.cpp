@@ -11,9 +11,125 @@
 #include <core/files/lspc/LSPCAudioReader.h>
 
 #define BUFFER_SIZE     0x1000
+#define BUFFER_FRAMES   0x200
 
 namespace lsp
 {
+    void LSPCAudioReader::decode_u8(float *vp, const void *src, size_t ns)
+    {
+        const uint8_t *p = reinterpret_cast<const uint8_t *>(src);
+        while (ns--)
+            *(vp++) = float(*p - 0x80) / 0x7f;
+    }
+
+    void LSPCAudioReader::decode_s8(float *vp, const void *src, size_t ns)
+    {
+        const int8_t *p = reinterpret_cast<const int8_t *>(src);
+        while (ns--)
+            *(vp++) = float(*p) / 0x7f;
+    }
+
+    void LSPCAudioReader::decode_u16(float *vp, const void *src, size_t ns)
+    {
+        const uint16_t *p = reinterpret_cast<const uint16_t *>(src);
+        while (ns--)
+            *(vp++) = float(*p - 0x8000) / 0x7fff;
+    }
+
+    void LSPCAudioReader::decode_s16(float *vp, const void *src, size_t ns)
+    {
+        const int16_t *p = reinterpret_cast<const int16_t *>(src);
+        while (ns--)
+            *(vp++) = float(*p) / 0x7fff;
+    }
+
+    void LSPCAudioReader::decode_u24le(float *vp, const void *src, size_t ns)
+    {
+        const uint8_t *p = reinterpret_cast<const uint8_t *>(src);
+        while (ns--)
+        {
+            uint32_t v =
+               __IF_LEBE(
+                   p[0] | (p[1] << 8) | (p[2] << 16),
+                   p[2] | (p[1] << 8) | (p[0] << 16)
+               );
+
+            *(vp++) = float(v - 0x800000) / 0x7fffff;
+        }
+    }
+
+    void LSPCAudioReader::decode_u24be(float *vp, const void *src, size_t ns)
+    {
+        const uint8_t *p = reinterpret_cast<const uint8_t *>(src);
+        while (ns--)
+        {
+            uint32_t v =
+               __IF_LEBE(
+                   p[2] | (p[1] << 8) | (p[0] << 16),
+                   p[0] | (p[1] << 8) | (p[2] << 16)
+               );
+
+            *(vp++) = float(v - 0x800000) / 0x7fffff;
+        }
+    }
+
+    void LSPCAudioReader::decode_s24le(float *vp, const void *src, size_t ns)
+    {
+        const uint8_t *p = reinterpret_cast<const uint8_t *>(src);
+        while (ns--)
+        {
+            int32_t v =
+               __IF_LEBE(
+                   p[0] | (p[1] << 8) | (p[2] << 16),
+                   p[2] | (p[1] << 8) | (p[0] << 16)
+               );
+            v = (v << 8) >> 8; // Sign-extend value
+            *(vp++) = float(*p) / 0x7fffff;
+        }
+    }
+
+    void LSPCAudioReader::decode_s24be(float *vp, const void *src, size_t ns)
+    {
+        const uint8_t *p = reinterpret_cast<const uint8_t *>(src);
+        while (ns--)
+        {
+            int32_t v =
+               __IF_LEBE(
+                   p[2] | (p[1] << 8) | (p[0] << 16),
+                   p[0] | (p[1] << 8) | (p[2] << 16)
+               );
+            v = (v << 8) >> 8; // Sign-extend value
+            *(vp++) = float(*p) / 0x7fffff;
+        }
+    }
+
+    void LSPCAudioReader::decode_u32(float *vp, const void *src, size_t ns)
+    {
+        const uint32_t *p = reinterpret_cast<const uint32_t *>(src);
+        while (ns--)
+            *(vp++) = float(*p - 0x80000000) / 0x7fffffff;
+    }
+
+    void LSPCAudioReader::decode_s32(float *vp, const void *src, size_t ns)
+    {
+        const int32_t *p = reinterpret_cast<const int32_t *>(src);
+        while (ns--)
+            *(vp++) = float(*p) / 0x7fffffff;
+    }
+
+    void LSPCAudioReader::decode_f32(float *vp, const void *src, size_t ns)
+    {
+        const float *p = reinterpret_cast<const float *>(src);
+        while (ns--)
+            *(vp++) = *p;
+    }
+
+    void LSPCAudioReader::decode_f64(float *vp, const void *src, size_t ns)
+    {
+        const double *p = reinterpret_cast<const double *>(src);
+        while (ns--)
+            *(vp++) = *p;
+    }
     
     LSPCAudioReader::LSPCAudioReader()
     {
@@ -33,6 +149,7 @@ namespace lsp
         sBuf.nOff               = 0;
         sBuf.nSize              = 0;
         pDecode                 = NULL;
+        pFBuffer                = NULL;
     }
     
     LSPCAudioReader::~LSPCAudioReader()
@@ -65,11 +182,18 @@ namespace lsp
                 res             = xr;
         }
 
-        // Drop buffer
+        // Drop buffers
         if (sBuf.vData != NULL)
         {
             delete [] sBuf.vData;
             sBuf.vData      = NULL;
+        }
+
+        // Drop buffers
+        if (pFBuffer != NULL)
+        {
+            delete [] pFBuffer;
+            pFBuffer        = NULL;
         }
 
         nFlags          = 0;
@@ -117,40 +241,90 @@ namespace lsp
             return STATUS_UNSUPPORTED_FORMAT;
 
         // Check sample format support
-        size_t sb = 0;
+        size_t sb           = 0;
+        decode_func_t df    = NULL;
+        bool le             = false;
+        bool arch_le        = __IF_LEBE(true, false);
 
         switch (p->sample_format)
         {
             case LSPC_SAMPLE_FMT_U8LE:
             case LSPC_SAMPLE_FMT_U8BE:
+                df = decode_u8;
+                sb = 1;
+                le = p->sample_format == LSPC_SAMPLE_FMT_U8LE;
+                break;
+
             case LSPC_SAMPLE_FMT_S8LE:
             case LSPC_SAMPLE_FMT_S8BE:
+                df = decode_s8;
                 sb = 1;
+                le = p->sample_format == LSPC_SAMPLE_FMT_S8LE;
                 break;
+
             case LSPC_SAMPLE_FMT_U16LE:
             case LSPC_SAMPLE_FMT_U16BE:
+                df = decode_u16;
+                sb = 1;
+                le = p->sample_format == LSPC_SAMPLE_FMT_U16LE;
+                break;
+
             case LSPC_SAMPLE_FMT_S16LE:
             case LSPC_SAMPLE_FMT_S16BE:
-                sb = 2;
+                df = decode_s16;
+                sb = 1;
+                le = p->sample_format == LSPC_SAMPLE_FMT_S16LE;
                 break;
+
             case LSPC_SAMPLE_FMT_U24LE:
-            case LSPC_SAMPLE_FMT_U24BE:
-            case LSPC_SAMPLE_FMT_S24LE:
-            case LSPC_SAMPLE_FMT_S24BE:
+                df = decode_u24le;
                 sb = 3;
+                le = true;
                 break;
+            case LSPC_SAMPLE_FMT_U24BE:
+                df = decode_u24be;
+                sb = 3;
+                le = false;
+                break;
+            case LSPC_SAMPLE_FMT_S24LE:
+                df = decode_s24le;
+                sb = 3;
+                le = true;
+                break;
+            case LSPC_SAMPLE_FMT_S24BE:
+                df = decode_s24be;
+                sb = 3;
+                le = false;
+                break;
+
             case LSPC_SAMPLE_FMT_U32LE:
             case LSPC_SAMPLE_FMT_U32BE:
+                df = decode_u32;
+                sb = 4;
+                le = p->sample_format == LSPC_SAMPLE_FMT_U32LE;
+                break;
+
             case LSPC_SAMPLE_FMT_S32LE:
             case LSPC_SAMPLE_FMT_S32BE:
+                df = decode_s32;
+                sb = 4;
+                le = p->sample_format == LSPC_SAMPLE_FMT_S32LE;
+                break;
+
             case LSPC_SAMPLE_FMT_F32LE:
             case LSPC_SAMPLE_FMT_F32BE:
+                df = decode_f32;
                 sb = 4;
+                le = p->sample_format == LSPC_SAMPLE_FMT_F32LE;
                 break;
+
             case LSPC_SAMPLE_FMT_F64LE:
             case LSPC_SAMPLE_FMT_F64BE:
+                df = decode_f64;
                 sb = 8;
+                le = p->sample_format == LSPC_SAMPLE_FMT_F64LE;
                 break;
+
             default:
                 return STATUS_UNSUPPORTED_FORMAT;
         }
@@ -159,15 +333,28 @@ namespace lsp
         size_t fz               = sb * p->channels;
         size_t bytes_left       = fz * p->frames;
 
+        // Allocate buffers
         sBuf.vData      = new uint8_t[BUFFER_SIZE];
         if (sBuf.vData == NULL)
             return STATUS_NO_MEM;
+
+        pFBuffer        = new float[p->channels * BUFFER_FRAMES];
+        if (pFBuffer == NULL)
+        {
+            delete [] sBuf.vData;
+            sBuf.vData = NULL;
+            return STATUS_NO_MEM;
+        }
+
+        if (le != arch_le)
+            nFlags     |= F_REV_BYTES; // Set-up byte-reversal flag
 
         nBPS            = sb;
         nFrameSize      = fz;
         nBytesLeft      = bytes_left;
         sBuf.nOff       = 0;
         sBuf.nSize      = 0;
+        pDecode         = df;
 
         return STATUS_OK;
     }
@@ -176,6 +363,7 @@ namespace lsp
     {
         if (nFlags & F_OPENED)
             return STATUS_OPENED;
+        nFlags      = 0;
 
         LSPCChunkReader *rd = lspc->find_chunk(LSPC_CHUNK_AUDIO, NULL, 0);
         if (rd == NULL)
@@ -190,7 +378,7 @@ namespace lsp
 
         pFD         = lspc;
         pRD         = rd;
-        nFlags      = (auto_close) ? F_OPENED | F_CLOSE_READER | F_CLOSE_FILE : F_OPENED | F_CLOSE_READER;
+        nFlags     |= (auto_close) ? F_OPENED | F_CLOSE_READER | F_CLOSE_FILE : F_OPENED | F_CLOSE_READER;
         return STATUS_OK;
     }
 
@@ -198,6 +386,7 @@ namespace lsp
     {
         if (nFlags & F_OPENED)
             return STATUS_OPENED;
+        nFlags      = 0;
 
         LSPCChunkReader *rd = lspc->read_chunk(uid);
         if (rd == NULL)
@@ -217,7 +406,7 @@ namespace lsp
 
         pFD         = lspc;
         pRD         = rd;
-        nFlags      = (auto_close) ? F_OPENED | F_CLOSE_READER | F_CLOSE_FILE : F_OPENED | F_CLOSE_READER;
+        nFlags     |= (auto_close) ? F_OPENED | F_CLOSE_READER | F_CLOSE_FILE : F_OPENED | F_CLOSE_READER;
         return STATUS_OK;
     }
 
@@ -227,6 +416,7 @@ namespace lsp
             return STATUS_OPENED;
         else if (params == NULL)
             return STATUS_BAD_ARGUMENTS;
+        nFlags      = 0;
 
         LSPCChunkReader *rd = lspc->find_chunk(magic, NULL, 0);
         if (rd == NULL)
@@ -241,7 +431,7 @@ namespace lsp
 
         pFD         = lspc;
         pRD         = rd;
-        nFlags      = (auto_close) ? F_OPENED | F_CLOSE_READER | F_CLOSE_FILE : F_OPENED | F_CLOSE_READER;
+        nFlags     |= (auto_close) ? F_OPENED | F_CLOSE_READER | F_CLOSE_FILE : F_OPENED | F_CLOSE_READER;
         return STATUS_OK;
     }
 
@@ -251,6 +441,7 @@ namespace lsp
             return STATUS_OPENED;
         else if (params == NULL)
             return STATUS_BAD_ARGUMENTS;
+        nFlags      = 0;
 
         LSPCChunkReader *rd = lspc->read_chunk(uid);
         if (rd == NULL)
@@ -265,7 +456,7 @@ namespace lsp
 
         pFD         = lspc;
         pRD         = rd;
-        nFlags      = (auto_close) ? F_OPENED | F_CLOSE_READER | F_CLOSE_FILE : F_OPENED | F_CLOSE_READER;
+        nFlags     |= (auto_close) ? F_OPENED | F_CLOSE_READER | F_CLOSE_FILE : F_OPENED | F_CLOSE_READER;
         return STATUS_OK;
     }
 
@@ -275,6 +466,7 @@ namespace lsp
             return STATUS_OPENED;
         else if (params == NULL)
             return STATUS_BAD_ARGUMENTS;
+        nFlags      = 0;
 
         status_t res = apply_params(params);
         if (res != STATUS_OK)
@@ -282,7 +474,7 @@ namespace lsp
 
         pFD         = NULL;
         pRD         = rd;
-        nFlags      = (auto_close) ? F_OPENED | F_CLOSE_READER : F_OPENED;
+        nFlags     |= (auto_close) ? F_OPENED | F_CLOSE_READER : F_OPENED;
         return STATUS_OK;
     }
 
@@ -328,18 +520,56 @@ namespace lsp
         return STATUS_OK;
     }
 
-    ssize_t LSPCAudioReader::read(float **data, size_t frames)
+    ssize_t LSPCAudioReader::read_samples(float **data, size_t frames)
     {
         if (!(nFlags & F_OPENED))
             return STATUS_CLOSED;
 
-        float **vp = reinterpret_cast<float **>(alloca(sParams.channels) * sizeof(float *));
-        for (size_t i=0; i<sParams.channels; ++i)
+        size_t nc       = sParams.channels;
+        float **vp = reinterpret_cast<float **>(alloca(sParams.channels * sizeof(float *)));
+        for (size_t i=0; i<nc; ++i)
             vp[i]       = data[i];
+
+        size_t n_read   = 0;
+
+        while (n_read < frames)
+        {
+            // Estimate number of frames to read
+            size_t to_read = frames - n_read;
+            if (to_read > BUFFER_FRAMES)
+                to_read = BUFFER_FRAMES;
+
+            // Read frames to temporary buffer
+            ssize_t n   = read_frames(pFBuffer, to_read);
+            if (n <= 0)
+                return (n_read > 0) ? n_read : n;
+
+            n_read     += n;
+
+            // Unpack frames
+            float *p    = pFBuffer;
+            while (n--)
+            {
+                for (size_t j=0; j<nc; ++j, ++p)
+                {
+                    if (!vp[j])
+                        continue;
+                    *(vp[j]++)      = *p;
+                }
+            }
+        }
+
+        return n_read;
+    }
+
+    ssize_t LSPCAudioReader::read_frames(float *data, size_t frames)
+    {
+        if (!(nFlags & F_OPENED))
+            return STATUS_CLOSED;
 
         size_t bytes;
         size_t n_read   = 0;
-        while (frames > 0)
+        while (n_read < frames)
         {
             // Ensure that we have enough bytes to read at least one frame
             size_t avail = sBuf.nSize - sBuf.nOff;
@@ -386,7 +616,7 @@ namespace lsp
             }
 
             // Perform decode
-            pDecode(vp, sParams.channels, avail);
+            pDecode(data, &sBuf.vData[sBuf.nOff], avail * sParams.channels);
 
             // Update pointers
             n_read         += avail;

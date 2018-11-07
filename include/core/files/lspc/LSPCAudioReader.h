@@ -32,7 +32,7 @@ namespace lsp
                 size_t                      nOff;       // Offset to the beginning of non-read data
             } buffer_t;
 
-            typedef void (*decode_func_t)(float **vp, size_t nc, size_t ns);
+            typedef void (*decode_func_t)(float *vp, const void *src, size_t ns);
 
         private:
             lspc_audio_parameters_t     sParams;
@@ -44,18 +44,21 @@ namespace lsp
             size_t                      nBytesLeft;
             buffer_t                    sBuf;
             decode_func_t               pDecode;
+            float                      *pFBuffer;       // frame buffer
 
         protected:
-            static void     decode_u8(float **vp, size_t nc, size_t ns);
-            static void     decode_s8(float **vp, size_t nc, size_t ns);
-            static void     decode_u16(float **vp, size_t nc, size_t ns);
-            static void     decode_s16(float **vp, size_t nc, size_t ns);
-            static void     decode_u24(float **vp, size_t nc, size_t ns);
-            static void     decode_s24(float **vp, size_t nc, size_t ns);
-            static void     decode_u32(float **vp, size_t nc, size_t ns);
-            static void     decode_s32(float **vp, size_t nc, size_t ns);
-            static void     decode_f32(float **vp, size_t nc, size_t ns);
-            static void     decode_f64(float **vp, size_t nc, size_t ns);
+            static void     decode_u8(float *vp, const void *src, size_t ns);
+            static void     decode_s8(float *vp, const void *src, size_t ns);
+            static void     decode_u16(float *vp, const void *src, size_t ns);
+            static void     decode_s16(float *vp, const void *src, size_t ns);
+            static void     decode_u24le(float *vp, const void *src, size_t ns);
+            static void     decode_u24be(float *vp, const void *src, size_t ns);
+            static void     decode_s24le(float *vp, const void *src, size_t ns);
+            static void     decode_s24be(float *vp, const void *src, size_t ns);
+            static void     decode_u32(float *vp, const void *src, size_t ns);
+            static void     decode_s32(float *vp, const void *src, size_t ns);
+            static void     decode_f32(float *vp, const void *src, size_t ns);
+            static void     decode_f64(float *vp, const void *src, size_t ns);
 
         protected:
             status_t    read_audio_header(LSPCChunkReader *rd);
@@ -126,7 +129,15 @@ namespace lsp
              * @param frames number of frames to read
              * @return number of frames actually read or error code as a negative value (0 or STATUS_EOF if there is no data)
              */
-            ssize_t read(float **data, size_t frames);
+            ssize_t read_samples(float **data, size_t frames);
+
+            /**
+             * Read frames from chunk
+             * @param data buffer to store data
+             * @param frames number of frames to read
+             * @return actual number of frames read or error code as a negative value (0 or STATUS_EOF if there is no data)
+             */
+            ssize_t read_frames(float *data, size_t frames);
 
             /**
              * Obtain current audio parameters of the stream
