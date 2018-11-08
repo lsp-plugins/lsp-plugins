@@ -84,7 +84,10 @@
 							<vbox>
 								<button id="post" width="96" height="20" color="yellow" led="true" text="Post-process" />
 								<hbox spacing="4" fill="false">
-									<led id="rta" />
+                                    <vbox spacing="2" fill="false">
+                                        <led id="rta_l" color="left_channel"/>
+                                        <led id="rta_r" color="right_channel"/>
+                                    </vbox>
 									<label text="Noise Floor" />
 								</hbox>
 							</vbox>
@@ -98,11 +101,20 @@
 
 				<hbox spacing="2">
 					<label text="Reverberation&#10;Time (s)" halign="0" />
-					<indicator id="rtind" format="f6.3!" text_color="green" fill="false" />
+                    <vbox spacing="2" fill="false">
+                        <indicator id="rti_l" format="f6.3!" text_color="left_channel" fill="false" />
+                        <indicator id="rti_r" format="f6.3!" text_color="right_channel" fill="false" />
+                    </vbox>
 					<label text="Energy Decay&#10;Linear Correlation" halign="0" />
-					<indicator id="rind" format="f6.3!" text_color="green" fill="false" />
+                    <vbox spacing="2" fill="false">
+                        <indicator id="rci_l" format="f6.3!" text_color="left_channel" fill="false" />
+                        <indicator id="rci_r" format="f6.3!" text_color="right_channel" fill="false" />
+                    </vbox>
 					<label text="Coarse&#10;IR Duration (s)" halign="0" />
-					<indicator id="ilind" format="f6.3!" text_color="green" fill="false" />
+                    <vbox spacing="2" fill="false">
+                        <indicator id="ili_l" format="f6.3!" text_color="left_channel" fill="false" />
+                        <indicator id="ili_r" format="f6.3!" text_color="right_channel" fill="false" />
+                    </vbox>
 				</hbox>
 			</grid>
 		</group>
@@ -116,7 +128,8 @@
 					
 					<knob id="calf" />
 					<knob id="cala" />
-					<meter id="ilvl" angle="0.0" logarithmic="true" min="-72 db" max="24 db" height="128" color="green" type="rms_peak" />
+					<meter id="ilv_l" id2="ilv_r" stereo="true" angle="0.0" logarithmic="true"
+                        min="-72 db" max="24 db" height="128" color="left_channel" color_2="right_channel" type="rms_peak" />
 					
 					<value id="calf" />
 					<value id="cala" />
@@ -141,7 +154,8 @@
 					<knob id="ltdp" />
 					<knob id="ltda" />
 					<vbox spacing="4" fill="false">
-						 <indicator id="ltind" format="f6.3!" text_color="green" />
+						 <indicator id="lti_l" format="f6.3!" text_color="left_channel" />
+                         <indicator id="lti_r" format="f6.3!" text_color="right_channel" />
 						 <hbox spacing="4">
 							 <button id="ltena" color="green" size="16" led="true" fill="false" />
 							 <label text="Enable" fill="true" halign="0" />
