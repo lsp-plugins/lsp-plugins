@@ -50,7 +50,7 @@ static const size_t formats[] =
 
 UTEST_BEGIN("core.files", lspc_audio)
 
-    UTEST_TIMELIMIT(60)
+    UTEST_TIMELIMIT(300)
 
     void create_lspc_file(cvector<FloatBuffer> &v, size_t fmt)
     {
