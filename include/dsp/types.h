@@ -108,16 +108,16 @@
 #endif /* defined(ARCH_ARM) */
 
 #ifdef ARCH_LE
-    #define __IF_LEBE(le, be)   (le)
-    #define __IF_LE(le)         (le)
+    #define __IF_LEBE(le, be)   le
+    #define __IF_LE(le)         le
     #define __IF_BE(be)
     #ifdef ARCH_BE
         #undef ARCH_BE
     #endif /* ARCH_BE */
 #else /* ARCH_BE */
-    #define __IF_LEBE(le, be)   (be)
+    #define __IF_LEBE(le, be)   be
     #define __IF_LE(le)
-    #define __IF_BE(be)         (be)
+    #define __IF_BE(be)         be
 
     #ifndef ARCH_LE
         #define ARCH_LE

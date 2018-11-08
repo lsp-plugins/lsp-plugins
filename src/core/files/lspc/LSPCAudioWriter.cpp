@@ -13,6 +13,109 @@
 
 namespace lsp
 {
+    void LSPCAudioWriter::encode_u8(void *vp, const float *src, size_t ns)
+    {
+        uint8_t *p = reinterpret_cast<uint8_t *>(vp);
+        while (ns--)
+            *(p++)  = uint8_t((*src++) * 0x7f) + 0x80;
+    }
+
+    void LSPCAudioWriter::encode_s8(void *vp, const float *src, size_t ns)
+    {
+        int8_t *p = reinterpret_cast<int8_t *>(vp);
+        while (ns--)
+            *(p++)  = int8_t((*src++) * 0x7f);
+    }
+
+    void LSPCAudioWriter::encode_u16(void *vp, const float *src, size_t ns)
+    {
+        uint16_t *p = reinterpret_cast<uint16_t *>(vp);
+        while (ns--)
+            *(p++)  = uint16_t((*src++) * 0x7fff) + 0x8000;
+    }
+
+    void LSPCAudioWriter::encode_s16(void *vp, const float *src, size_t ns)
+    {
+        int16_t *p = reinterpret_cast<int16_t *>(vp);
+        while (ns--)
+            *(p++)  = int16_t((*src++) * 0x7fff);
+    }
+
+    void LSPCAudioWriter::encode_u24le(void *vp, const float *src, size_t ns)
+    {
+        uint8_t *p = reinterpret_cast<uint8_t *>(vp);
+        while (ns--)
+        {
+            uint32_t s = int32_t(*(src++) * 0x7fffff) + 0x80000;
+            __IF_LE(p[0] = uint8_t(s); p[1] = uint8_t(s >> 8); p[2] = uint8_t(s >> 16));
+            __IF_BE(p[0] = uint8_t(s >> 16); p[1] = uint8_t(s >> 8); p[2] = uint8_t(s));
+            p += 3;
+        }
+    }
+
+    void LSPCAudioWriter::encode_u24be(void *vp, const float *src, size_t ns)
+    {
+        uint8_t *p = reinterpret_cast<uint8_t *>(vp);
+        while (ns--)
+        {
+            uint32_t s = int32_t(*(src++) * 0x7fffff) + 0x80000;
+            __IF_BE(p[0] = uint8_t(s); p[1] = uint8_t(s >> 8); p[2] = uint8_t(s >> 16));
+            __IF_LE(p[0] = uint8_t(s >> 16); p[1] = uint8_t(s >> 8); p[2] = uint8_t(s));
+            p += 3;
+        }
+    }
+
+    void LSPCAudioWriter::encode_s24le(void *vp, const float *src, size_t ns)
+    {
+        uint8_t *p = reinterpret_cast<uint8_t *>(vp);
+        while (ns--)
+        {
+            int32_t s   = int32_t(*(src++) * 0x7fffff);
+            __IF_LE(p[0] = uint8_t(s); p[1] = uint8_t(s >> 8); p[2] = uint8_t(s >> 16));
+            __IF_BE(p[0] = uint8_t(s >> 16); p[1] = uint8_t(s >> 8); p[2] = uint8_t(s));
+            p += 3;
+        }
+    }
+
+    void LSPCAudioWriter::encode_s24be(void *vp, const float *src, size_t ns)
+    {
+        uint8_t *p = reinterpret_cast<uint8_t *>(vp);
+        while (ns--)
+        {
+            int32_t s   = int32_t(*(src++) * 0x7fffff);
+            __IF_BE(p[0] = uint8_t(s); p[1] = uint8_t(s >> 8); p[2] = uint8_t(s >> 16));
+            __IF_LE(p[0] = uint8_t(s >> 16); p[1] = uint8_t(s >> 8); p[2] = uint8_t(s));
+            p += 3;
+        }
+    }
+
+    void LSPCAudioWriter::encode_u32(void *vp, const float *src, size_t ns)
+    {
+        uint32_t *p = reinterpret_cast<uint32_t *>(vp);
+        while (ns--)
+            *(p++)  = uint32_t((*src++) * 0x7fffffff) + 0x80000000;
+    }
+
+    void LSPCAudioWriter::encode_s32(void *vp, const float *src, size_t ns)
+    {
+        int32_t *p = reinterpret_cast<int32_t *>(vp);
+        while (ns--)
+            *(p++)  = int32_t((*src++) * 0x7fffffff);
+    }
+
+    void LSPCAudioWriter::encode_f32(void *vp, const float *src, size_t ns)
+    {
+        float *p = reinterpret_cast<float *>(vp);
+        dsp::copy(p, src, ns);
+    }
+
+    void LSPCAudioWriter::encode_f64(void *vp, const float *src, size_t ns)
+    {
+        double *p = reinterpret_cast<double *>(vp);
+        while (ns--)
+            *(p++)  = *(src++);
+    }
+
     LSPCAudioWriter::LSPCAudioWriter()
     {
         sParams.channels        = 0;
@@ -104,6 +207,7 @@ namespace lsp
         size_t sb           = 0;
         encode_func_t ef    = NULL;
         bool le             = false;
+        bool int_sample     = true;
         bool arch_le        = __IF_LEBE(true, false);
 
         switch (p->sample_format)
@@ -174,6 +278,7 @@ namespace lsp
             case LSPC_SAMPLE_FMT_F32LE:
             case LSPC_SAMPLE_FMT_F32BE:
                 ef = encode_f32;
+                int_sample = false;
                 sb = 4;
                 le = p->sample_format == LSPC_SAMPLE_FMT_F32LE;
                 break;
@@ -181,6 +286,7 @@ namespace lsp
             case LSPC_SAMPLE_FMT_F64LE:
             case LSPC_SAMPLE_FMT_F64BE:
                 ef = encode_f64;
+                int_sample = false;
                 sb = 8;
                 le = p->sample_format == LSPC_SAMPLE_FMT_F64LE;
                 break;
@@ -207,6 +313,8 @@ namespace lsp
 
         if (le != arch_le)
             nFlags     |= F_REV_BYTES; // Set-up byte-reversal flag
+        if (int_sample)
+            nFlags     |= F_INTEGER_SAMPLE;
 
         sParams         = *p;
         nBPS            = sb;
@@ -400,7 +508,13 @@ namespace lsp
 
             // Copy frames to buffer
             size_t floats = to_write * nFrameChannels;
-            pEncode(pFBuffer, data, floats);
+            if (nFlags & F_INTEGER_SAMPLE)
+            {
+                dsp::limit_saturate2(pBuffer, data, floats);
+                pEncode(pFBuffer, pBuffer, floats);
+            }
+            else
+                pEncode(pFBuffer, data, floats);
 
             // Reverse bytes (if required)
             if (nFlags & F_REV_BYTES)

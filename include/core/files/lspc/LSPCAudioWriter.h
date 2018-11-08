@@ -21,11 +21,12 @@ namespace lsp
         private:
             enum flags_t
             {
-                F_OPENED        = 1 << 0,
-                F_CLOSE_WRITER  = 1 << 1,
-                F_CLOSE_FILE    = 1 << 2,
-                F_REV_BYTES     = 1 << 3,
-                F_DROP_WRITER   = 1 << 4
+                F_OPENED            = 1 << 0,
+                F_CLOSE_WRITER      = 1 << 1,
+                F_CLOSE_FILE        = 1 << 2,
+                F_REV_BYTES         = 1 << 3,
+                F_DROP_WRITER       = 1 << 4,
+                F_INTEGER_SAMPLE    = 1 << 5
             };
 
             typedef void (*encode_func_t)(void *dst, const float *src, size_t ns);

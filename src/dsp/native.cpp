@@ -53,6 +53,8 @@ namespace native
         EXPORT1(copy);
         EXPORT1(copy_saturated);
         EXPORT1(saturate);
+        EXPORT1(limit_saturate1);
+        EXPORT1(limit_saturate2);
         EXPORT1(move);
         EXPORT1(fill);
         EXPORT1(fill_one);
