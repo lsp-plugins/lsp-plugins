@@ -143,6 +143,6 @@ namespace lsp
         profiler_classes,
         profiler_stereo_ports,
         "util/profiler/profiler_stereo.xml",
-        mono_plugin_port_groups
+        stereo_plugin_port_groups
     };
 }
