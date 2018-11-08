@@ -229,14 +229,14 @@ namespace lsp
             case LSPC_SAMPLE_FMT_U16LE:
             case LSPC_SAMPLE_FMT_U16BE:
                 ef = encode_u16;
-                sb = 1;
+                sb = 2;
                 le = p->sample_format == LSPC_SAMPLE_FMT_U16LE;
                 break;
 
             case LSPC_SAMPLE_FMT_S16LE:
             case LSPC_SAMPLE_FMT_S16BE:
                 ef = encode_s16;
-                sb = 1;
+                sb = 2;
                 le = p->sample_format == LSPC_SAMPLE_FMT_S16LE;
                 break;
 
@@ -338,10 +338,17 @@ namespace lsp
         hdr.frames          = sParams.frames;
         hdr.offset          = 0;
 
+        hdr.channels        = CPU_TO_BE(hdr.channels);
+        hdr.sample_format   = CPU_TO_BE(hdr.sample_format);
+        hdr.sample_rate     = CPU_TO_BE(hdr.sample_rate);
+        hdr.codec           = CPU_TO_BE(hdr.codec);
+        hdr.frames          = CPU_TO_BE(hdr.frames);
+        hdr.offset          = CPU_TO_BE(hdr.offset);
+
         return wr->write_header(&hdr);
     }
 
-    status_t LSPCAudioWriter::open(LSPCFile *lspc, const lspc_audio_parameters_t *params, bool last, bool auto_close)
+    status_t LSPCAudioWriter::open(LSPCFile *lspc, const lspc_audio_parameters_t *params, bool auto_close)
     {
         if (nFlags & F_OPENED)
             return STATUS_OPENED;
@@ -372,7 +379,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t LSPCAudioWriter::open_raw(LSPCFile *lspc, const lspc_audio_parameters_t *params, bool last, bool auto_close)
+    status_t LSPCAudioWriter::open_raw(LSPCFile *lspc, const lspc_audio_parameters_t *params, bool auto_close)
     {
         if (nFlags & F_OPENED)
             return STATUS_OPENED;
@@ -394,7 +401,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t LSPCAudioWriter::open(LSPCFile *lspc, uint32_t magic, const lspc_audio_parameters_t *params, bool last, bool auto_close)
+    status_t LSPCAudioWriter::open(LSPCFile *lspc, uint32_t magic, const lspc_audio_parameters_t *params, bool auto_close)
     {
         if (nFlags & F_OPENED)
             return STATUS_OPENED;
@@ -425,7 +432,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t LSPCAudioWriter::open_raw(LSPCFile *lspc, uint32_t magic, const lspc_audio_parameters_t *params, bool last, bool auto_close)
+    status_t LSPCAudioWriter::open_raw(LSPCFile *lspc, uint32_t magic, const lspc_audio_parameters_t *params, bool auto_close)
     {
         if (nFlags & F_OPENED)
             return STATUS_OPENED;

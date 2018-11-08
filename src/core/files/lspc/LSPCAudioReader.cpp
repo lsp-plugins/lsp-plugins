@@ -8,6 +8,7 @@
 #include <dsp/endian.h>
 #include <string.h>
 #include <stdlib.h>
+#include <core/debug.h>
 #include <core/files/lspc/LSPCAudioReader.h>
 
 #define BUFFER_SIZE     0x2000
@@ -19,28 +20,28 @@ namespace lsp
     {
         const uint8_t *p = reinterpret_cast<const uint8_t *>(src);
         while (ns--)
-            *(vp++) = float(*p - 0x80) / 0x7f;
+            *(vp++) = float(*(p++) - 0x80) / 0x7f;
     }
 
     void LSPCAudioReader::decode_s8(float *vp, const void *src, size_t ns)
     {
         const int8_t *p = reinterpret_cast<const int8_t *>(src);
         while (ns--)
-            *(vp++) = float(*p) / 0x7f;
+            *(vp++) = float(*(p++)) / 0x7f;
     }
 
     void LSPCAudioReader::decode_u16(float *vp, const void *src, size_t ns)
     {
         const uint16_t *p = reinterpret_cast<const uint16_t *>(src);
         while (ns--)
-            *(vp++) = float(*p - 0x8000) / 0x7fff;
+            *(vp++) = float(*(p++) - 0x8000) / 0x7fff;
     }
 
     void LSPCAudioReader::decode_s16(float *vp, const void *src, size_t ns)
     {
         const int16_t *p = reinterpret_cast<const int16_t *>(src);
         while (ns--)
-            *(vp++) = float(*p) / 0x7fff;
+            *(vp++) = float(*(p++)) / 0x7fff;
     }
 
     void LSPCAudioReader::decode_u24le(float *vp, const void *src, size_t ns)
@@ -55,6 +56,7 @@ namespace lsp
                );
 
             *(vp++) = float(v - 0x800000) / 0x7fffff;
+            p += 3;
         }
     }
 
@@ -70,6 +72,7 @@ namespace lsp
                );
 
             *(vp++) = float(v - 0x800000) / 0x7fffff;
+            p += 3;
         }
     }
 
@@ -85,6 +88,7 @@ namespace lsp
                );
             v = (v << 8) >> 8; // Sign-extend value
             *(vp++) = float(*p) / 0x7fffff;
+            p += 3;
         }
     }
 
@@ -100,6 +104,7 @@ namespace lsp
                );
             v = (v << 8) >> 8; // Sign-extend value
             *(vp++) = float(*p) / 0x7fffff;
+            p += 3;
         }
     }
 
@@ -107,28 +112,28 @@ namespace lsp
     {
         const uint32_t *p = reinterpret_cast<const uint32_t *>(src);
         while (ns--)
-            *(vp++) = float(*p - 0x80000000) / 0x7fffffff;
+            *(vp++) = float(*(p++) - 0x80000000) / 0x7fffffff;
     }
 
     void LSPCAudioReader::decode_s32(float *vp, const void *src, size_t ns)
     {
         const int32_t *p = reinterpret_cast<const int32_t *>(src);
         while (ns--)
-            *(vp++) = float(*p) / 0x7fffffff;
+            *(vp++) = float(*(p++)) / 0x7fffffff;
     }
 
     void LSPCAudioReader::decode_f32(float *vp, const void *src, size_t ns)
     {
         const float *p = reinterpret_cast<const float *>(src);
         while (ns--)
-            *(vp++) = *p;
+            *(vp++) = *(p++);
     }
 
     void LSPCAudioReader::decode_f64(float *vp, const void *src, size_t ns)
     {
         const double *p = reinterpret_cast<const double *>(src);
         while (ns--)
-            *(vp++) = *p;
+            *(vp++) = *(p++);
     }
     
     LSPCAudioReader::LSPCAudioReader()
@@ -267,14 +272,14 @@ namespace lsp
             case LSPC_SAMPLE_FMT_U16LE:
             case LSPC_SAMPLE_FMT_U16BE:
                 df = decode_u16;
-                sb = 1;
+                sb = 2;
                 le = p->sample_format == LSPC_SAMPLE_FMT_U16LE;
                 break;
 
             case LSPC_SAMPLE_FMT_S16LE:
             case LSPC_SAMPLE_FMT_S16BE:
                 df = decode_s16;
-                sb = 1;
+                sb = 2;
                 le = p->sample_format == LSPC_SAMPLE_FMT_S16LE;
                 break;
 
@@ -381,7 +386,7 @@ namespace lsp
 
         pFD         = lspc;
         pRD         = rd;
-        nFlags     |= F_OPENED | F_CLOSE_READER | F_CLOSE_FILE | F_DROP_READER;
+        nFlags     |= F_OPENED | F_CLOSE_READER | F_DROP_READER;
         if (auto_close)
             nFlags     |= F_CLOSE_FILE;
         return STATUS_OK;
@@ -411,7 +416,7 @@ namespace lsp
 
         pFD         = lspc;
         pRD         = rd;
-        nFlags     |= F_OPENED | F_CLOSE_READER | F_CLOSE_FILE | F_DROP_READER;
+        nFlags     |= F_OPENED | F_CLOSE_READER | F_DROP_READER;
         if (auto_close)
             nFlags     |= F_CLOSE_FILE;
         return STATUS_OK;
@@ -438,7 +443,7 @@ namespace lsp
 
         pFD         = lspc;
         pRD         = rd;
-        nFlags     |= F_OPENED | F_CLOSE_READER | F_CLOSE_FILE | F_DROP_READER;
+        nFlags     |= F_OPENED | F_CLOSE_READER | F_DROP_READER;
         if (auto_close)
             nFlags     |= F_CLOSE_FILE;
         return STATUS_OK;
@@ -465,7 +470,7 @@ namespace lsp
 
         pFD         = lspc;
         pRD         = rd;
-        nFlags     |= F_OPENED | F_CLOSE_READER | F_CLOSE_FILE | F_DROP_READER;
+        nFlags     |= F_OPENED | F_CLOSE_READER | F_DROP_READER;
         if (auto_close)
             nFlags     |= F_CLOSE_FILE;
         return STATUS_OK;
@@ -583,6 +588,8 @@ namespace lsp
         size_t n_read   = 0;
         while (n_read < frames)
         {
+            size_t to_read = frames - n_read;
+
             // Ensure that we have enough bytes to read at least one frame
             size_t avail = sBuf.nSize - sBuf.nOff;
             if (avail < nFrameSize)
@@ -597,9 +604,9 @@ namespace lsp
             }
 
             // Perform decode
-            avail   /= nBPS;
-            if (avail > n_read)
-                avail   = n_read;
+            avail   /= nFrameSize;
+            if (avail > to_read)
+                avail   = to_read;
             if (nFlags & F_REV_BYTES)
             {
                 switch (nBPS)
@@ -626,7 +633,7 @@ namespace lsp
 
             // Update pointers
             n_read         += avail;
-            sBuf.nOff      += avail * nBPS;
+            sBuf.nOff      += avail * nFrameSize;
         }
 
         return n_read;

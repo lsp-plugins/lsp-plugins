@@ -70,43 +70,39 @@ namespace lsp
              * Create chunk in LSPC file with magic=LSPC_CHUNK_AUDIO and write header
              * @param lspc LSPC file
              * @param params audio stream parameters
-             * @param last indicates last chunk in LSPC file
              * @param auto_close automatically close file on close()
              * @return status of operation
              */
-            status_t open(LSPCFile *lspc, const lspc_audio_parameters_t *params, bool last, bool auto_close = false);
+            status_t open(LSPCFile *lspc, const lspc_audio_parameters_t *params, bool auto_close = false);
 
             /**
              * Create chunk in LSPC file with magic=LSPC_CHUNK_AUDIO, do not write header
              * @param lspc LSPC file
              * @param params audio stream parameters
-             * @param last indicates last chunk in LSPC file
              * @param auto_close automatically close file on close()
              * @return status of operation
              */
-            status_t open_raw(LSPCFile *lspc, const lspc_audio_parameters_t *params, bool last, bool auto_close = false);
+            status_t open_raw(LSPCFile *lspc, const lspc_audio_parameters_t *params, bool auto_close = false);
 
             /**
              * Create chunk in LSPC file with specified magic and write header
              * @param lspc LSPC file
              * @param magic specified chunk magic
              * @param params audio stream parameters
-             * @param last indicates last chunk in LSPC file
              * @param auto_close automatically close file on close()
              * @return status of operation
              */
-            status_t open(LSPCFile *lspc, uint32_t magic, const lspc_audio_parameters_t *params, bool last, bool auto_close = false);
+            status_t open(LSPCFile *lspc, uint32_t magic, const lspc_audio_parameters_t *params, bool auto_close = false);
 
             /**
              * Create chunk in LSPC file with specified magic, do not write header
              * @param lspc LSPC file
              * @param magic specified chunk magic
              * @param params audio stream parameters
-             * @param last indicates last chunk in LSPC file
              * @param auto_close automatically close file on close()
              * @return status of operation
              */
-            status_t open_raw(LSPCFile *lspc, uint32_t magic, const lspc_audio_parameters_t *params, bool last, bool auto_close = false);
+            status_t open_raw(LSPCFile *lspc, uint32_t magic, const lspc_audio_parameters_t *params, bool auto_close = false);
 
             /**
              * Write header to already opened chunk
