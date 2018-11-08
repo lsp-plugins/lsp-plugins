@@ -93,14 +93,17 @@ namespace lsp
     {
         uint32_t *p = reinterpret_cast<uint32_t *>(vp);
         while (ns--)
-            *(p++)  = uint32_t((*src++) * 0x7fffffff) + 0x80000000;
+        {
+            int32_t v = double(*(src++)) * 0x7fffffff;
+            *(p++)  = v + 0x80000000;
+        }
     }
 
     void LSPCAudioWriter::encode_s32(void *vp, const float *src, size_t ns)
     {
         int32_t *p = reinterpret_cast<int32_t *>(vp);
         while (ns--)
-            *(p++)  = int32_t((*src++) * 0x7fffffff);
+            *(p++)  = double(*(src++)) * 0x7fffffff;
     }
 
     void LSPCAudioWriter::encode_f32(void *vp, const float *src, size_t ns)

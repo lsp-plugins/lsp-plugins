@@ -87,7 +87,7 @@ namespace lsp
                    p[2] | (p[1] << 8) | (p[0] << 16)
                );
             v = (v << 8) >> 8; // Sign-extend value
-            *(vp++) = float(*p) / 0x7fffff;
+            *(vp++) = float(v) / 0x7fffff;
             p += 3;
         }
     }
@@ -103,23 +103,29 @@ namespace lsp
                    p[0] | (p[1] << 8) | (p[2] << 16)
                );
             v = (v << 8) >> 8; // Sign-extend value
-            *(vp++) = float(*p) / 0x7fffff;
+            *(vp++) = float(v) / 0x7fffff;
             p += 3;
         }
     }
 
     void LSPCAudioReader::decode_u32(float *vp, const void *src, size_t ns)
     {
-        const uint32_t *p = reinterpret_cast<const uint32_t *>(src);
+        const int32_t *p = reinterpret_cast<const int32_t *>(src);
         while (ns--)
-            *(vp++) = float(*(p++) - 0x80000000) / 0x7fffffff;
+        {
+            int32_t v = *(p++) - 0x80000000;
+            *(vp++) = double(v) / 0x7fffffff;
+        }
     }
 
     void LSPCAudioReader::decode_s32(float *vp, const void *src, size_t ns)
     {
         const int32_t *p = reinterpret_cast<const int32_t *>(src);
         while (ns--)
-            *(vp++) = float(*(p++)) / 0x7fffffff;
+        {
+            int32_t v = *(p++);
+            *(vp++) = double(v) / 0x7fffffff;
+        }
     }
 
     void LSPCAudioReader::decode_f32(float *vp, const void *src, size_t ns)

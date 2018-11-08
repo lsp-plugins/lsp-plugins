@@ -26,14 +26,14 @@ static const float cvalues[CHANNELS] = { -1.0f, -0.5f, 0.0f, 0.5f, 1.0f };
 
 static const size_t formats[] =
 {
-//    LSPC_SAMPLE_FMT_U8LE,
-//    LSPC_SAMPLE_FMT_U8BE,
-//    LSPC_SAMPLE_FMT_S8LE,
-//    LSPC_SAMPLE_FMT_S8BE,
-//    LSPC_SAMPLE_FMT_U16LE,
-//    LSPC_SAMPLE_FMT_U16BE,
-//    LSPC_SAMPLE_FMT_S16LE,
-//    LSPC_SAMPLE_FMT_S16BE,
+    LSPC_SAMPLE_FMT_U8LE,
+    LSPC_SAMPLE_FMT_U8BE,
+    LSPC_SAMPLE_FMT_S8LE,
+    LSPC_SAMPLE_FMT_S8BE,
+    LSPC_SAMPLE_FMT_U16LE,
+    LSPC_SAMPLE_FMT_U16BE,
+    LSPC_SAMPLE_FMT_S16LE,
+    LSPC_SAMPLE_FMT_S16BE,
     LSPC_SAMPLE_FMT_U24LE,
     LSPC_SAMPLE_FMT_U24BE,
     LSPC_SAMPLE_FMT_S24LE,
@@ -49,6 +49,8 @@ static const size_t formats[] =
 };
 
 UTEST_BEGIN("core.files", lspc_audio)
+
+    UTEST_TIMELIMIT(60)
 
     void create_lspc_file(cvector<FloatBuffer> &v, size_t fmt)
     {
