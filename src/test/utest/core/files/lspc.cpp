@@ -8,10 +8,11 @@
 #include <dsp/endian.h>
 #include <test/utest.h>
 #include <core/files/LSPCFile.h>
+#include <core/LSPString.h>
 #include <test/ByteBuffer.h>
 
-#define EXTRA_SIZE 0x10
-#define BUFFER_SIZE 0x100000
+#define EXTRA_SIZE          0x10
+#define BUFFER_SIZE         0x100000
 
 using namespace lsp;
 
@@ -30,7 +31,10 @@ UTEST_BEGIN("core.files", lspc)
     void create_lspc_file(const ByteBuffer &content, bool v2)
     {
         LSPCFile fd;
-        status_t res    = fd.create("tmp/test.lspc");
+        LSPString file_name;
+        UTEST_ASSERT(file_name.fmt_native("tmp/utest-%s.lspc", full_name()));
+        status_t res    = fd.create(file_name.get_native());
+
         UTEST_ASSERT(res == STATUS_OK);
 
         // Write audio chunk
@@ -180,7 +184,10 @@ UTEST_BEGIN("core.files", lspc)
     void read_lspc_file(ByteBuffer &content, bool v2)
     {
         LSPCFile fd;
-        status_t res        = fd.open("tmp/test.lspc");
+        LSPString file_name;
+        UTEST_ASSERT(file_name.fmt_native("tmp/utest-%s.lspc", full_name()));
+        status_t res    = fd.open(file_name.get_native());
+
         UTEST_ASSERT(res == STATUS_OK);
 
         // Find profile chunk

@@ -42,6 +42,42 @@ namespace native
         }
     }
 
+    void limit_saturate1(float *dst, size_t count)
+    {
+        while (count--)
+        {
+            float v     = *dst;
+            if (isnan(v))
+                v       =   FLOAT_SAT_P_NAN;
+            else if (isinf(v))
+                v       =   (v < 0.0f) ? -1.0f : 1.0f;
+            else if (v > 1.0f)
+                v       =   1.0f;
+            else if (v < -1.0f)
+                v       =  -1.0f;
+
+            *(dst++)    = v;
+        }
+    }
+
+    void limit_saturate2(float *dst, const float *src, size_t count)
+    {
+        while (count--)
+        {
+            float v     = *(src++);
+            if (isnan(v))
+                v       =   FLOAT_SAT_P_NAN;
+            else if (isinf(v))
+                v       =   (v < 0.0f) ? -1.0f : 1.0f;
+            else if (v > 1.0f)
+                v       =   1.0f;
+            else if (v < -1.0f)
+                v       =  -1.0f;
+
+            *(dst++)    = v;
+        }
+    }
+
     void avoid_denormals(float *dst, const float *src, size_t count)
     {
         const uint32_t *si  = reinterpret_cast<const uint32_t *>(src);
