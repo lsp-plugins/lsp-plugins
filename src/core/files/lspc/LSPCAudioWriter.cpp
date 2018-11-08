@@ -17,7 +17,7 @@ namespace lsp
     {
         uint8_t *p = reinterpret_cast<uint8_t *>(vp);
         while (ns--)
-            *(p++)  = uint8_t((*src++) * 0x7f) + 0x80;
+            *(p++)  = int8_t((*src++) * 0x7f) + 0x80;
     }
 
     void LSPCAudioWriter::encode_s8(void *vp, const float *src, size_t ns)
@@ -31,7 +31,7 @@ namespace lsp
     {
         uint16_t *p = reinterpret_cast<uint16_t *>(vp);
         while (ns--)
-            *(p++)  = uint16_t((*src++) * 0x7fff) + 0x8000;
+            *(p++)  = int16_t((*src++) * 0x7fff) + 0x8000;
     }
 
     void LSPCAudioWriter::encode_s16(void *vp, const float *src, size_t ns)
