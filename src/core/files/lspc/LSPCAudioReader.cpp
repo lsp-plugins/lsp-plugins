@@ -49,7 +49,7 @@ namespace lsp
         const uint8_t *p = reinterpret_cast<const uint8_t *>(src);
         while (ns--)
         {
-            uint32_t v =
+            int32_t v =
                __IF_LEBE(
                    p[0] | (p[1] << 8) | (p[2] << 16),
                    p[2] | (p[1] << 8) | (p[0] << 16)
@@ -65,7 +65,7 @@ namespace lsp
         const uint8_t *p = reinterpret_cast<const uint8_t *>(src);
         while (ns--)
         {
-            uint32_t v =
+            int32_t v =
                __IF_LEBE(
                    p[2] | (p[1] << 8) | (p[0] << 16),
                    p[0] | (p[1] << 8) | (p[2] << 16)
@@ -607,6 +607,7 @@ namespace lsp
             avail   /= nFrameSize;
             if (avail > to_read)
                 avail   = to_read;
+            size_t floats = avail * sParams.channels;
             if (nFlags & F_REV_BYTES)
             {
                 switch (nBPS)
@@ -615,13 +616,13 @@ namespace lsp
                     case 3:
                         break;
                     case 2:
-                        byte_swap(reinterpret_cast<uint16_t *>(&sBuf.vData[sBuf.nOff]), avail);
+                        byte_swap(reinterpret_cast<uint16_t *>(&sBuf.vData[sBuf.nOff]), floats);
                         break;
                     case 4:
-                        byte_swap(reinterpret_cast<uint32_t *>(&sBuf.vData[sBuf.nOff]), avail);
+                        byte_swap(reinterpret_cast<uint32_t *>(&sBuf.vData[sBuf.nOff]), floats);
                         break;
                     case 8:
-                        byte_swap(reinterpret_cast<uint64_t *>(&sBuf.vData[sBuf.nOff]), avail);
+                        byte_swap(reinterpret_cast<uint64_t *>(&sBuf.vData[sBuf.nOff]), floats);
                         break;
                     default:
                         return STATUS_BAD_STATE;
@@ -629,11 +630,12 @@ namespace lsp
             }
 
             // Perform decode
-            pDecode(data, &sBuf.vData[sBuf.nOff], avail * sParams.channels);
+            pDecode(data, &sBuf.vData[sBuf.nOff], floats);
 
             // Update pointers
             n_read         += avail;
             sBuf.nOff      += avail * nFrameSize;
+            data           += floats;
         }
 
         return n_read;

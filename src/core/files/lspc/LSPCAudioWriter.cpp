@@ -46,7 +46,7 @@ namespace lsp
         uint8_t *p = reinterpret_cast<uint8_t *>(vp);
         while (ns--)
         {
-            uint32_t s = int32_t(*(src++) * 0x7fffff) + 0x80000;
+            uint32_t s = int32_t(*(src++) * 0x7fffff) + 0x800000;
             __IF_LE(p[0] = uint8_t(s); p[1] = uint8_t(s >> 8); p[2] = uint8_t(s >> 16));
             __IF_BE(p[0] = uint8_t(s >> 16); p[1] = uint8_t(s >> 8); p[2] = uint8_t(s));
             p += 3;
@@ -58,7 +58,7 @@ namespace lsp
         uint8_t *p = reinterpret_cast<uint8_t *>(vp);
         while (ns--)
         {
-            uint32_t s = int32_t(*(src++) * 0x7fffff) + 0x80000;
+            uint32_t s = int32_t(*(src++) * 0x7fffff) + 0x800000;
             __IF_BE(p[0] = uint8_t(s); p[1] = uint8_t(s >> 8); p[2] = uint8_t(s >> 16));
             __IF_LE(p[0] = uint8_t(s >> 16); p[1] = uint8_t(s >> 8); p[2] = uint8_t(s));
             p += 3;
@@ -577,7 +577,7 @@ namespace lsp
             if (res != STATUS_OK)
                 return res;
 
-            data       += to_write;
+            data       += floats;
             n_written  += to_write;
         }
 
