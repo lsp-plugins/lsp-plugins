@@ -341,7 +341,7 @@ namespace lsp
         return wr->write_header(&hdr);
     }
 
-    status_t LSPCAudioWriter::write(LSPCFile *lspc, const lspc_audio_parameters_t *params, bool last, bool auto_close)
+    status_t LSPCAudioWriter::open(LSPCFile *lspc, const lspc_audio_parameters_t *params, bool last, bool auto_close)
     {
         if (nFlags & F_OPENED)
             return STATUS_OPENED;
@@ -372,7 +372,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t LSPCAudioWriter::write_raw(LSPCFile *lspc, const lspc_audio_parameters_t *params, bool last, bool auto_close)
+    status_t LSPCAudioWriter::open_raw(LSPCFile *lspc, const lspc_audio_parameters_t *params, bool last, bool auto_close)
     {
         if (nFlags & F_OPENED)
             return STATUS_OPENED;
@@ -394,7 +394,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t LSPCAudioWriter::write(LSPCFile *lspc, uint32_t magic, const lspc_audio_parameters_t *params, bool last, bool auto_close)
+    status_t LSPCAudioWriter::open(LSPCFile *lspc, uint32_t magic, const lspc_audio_parameters_t *params, bool last, bool auto_close)
     {
         if (nFlags & F_OPENED)
             return STATUS_OPENED;
@@ -425,7 +425,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t LSPCAudioWriter::write_raw(LSPCFile *lspc, uint32_t magic, const lspc_audio_parameters_t *params, bool last, bool auto_close)
+    status_t LSPCAudioWriter::open_raw(LSPCFile *lspc, uint32_t magic, const lspc_audio_parameters_t *params, bool last, bool auto_close)
     {
         if (nFlags & F_OPENED)
             return STATUS_OPENED;
@@ -447,7 +447,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t LSPCAudioWriter::write(LSPCChunkWriter *wr, const lspc_audio_parameters_t *params, bool auto_close)
+    status_t LSPCAudioWriter::open(LSPCChunkWriter *wr, const lspc_audio_parameters_t *params, bool auto_close)
     {
         if (nFlags & F_OPENED)
             return STATUS_OPENED;
@@ -470,7 +470,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t LSPCAudioWriter::write_raw(LSPCChunkWriter *wr, const lspc_audio_parameters_t *params, bool auto_close)
+    status_t LSPCAudioWriter::open_raw(LSPCChunkWriter *wr, const lspc_audio_parameters_t *params, bool auto_close)
     {
         if (nFlags & F_OPENED)
             return STATUS_OPENED;
@@ -490,6 +490,33 @@ namespace lsp
     {
         if (!(nFlags & F_OPENED))
             return STATUS_CLOSED;
+
+        size_t nc       = sParams.channels;
+        const float **vp = reinterpret_cast<const float **>(alloca(nc * sizeof(float *)));
+        for (size_t i=0; i<nc; ++i)
+            vp[i]       = data[i];
+
+        size_t n_written = 0;
+        while (n_written < frames)
+        {
+            // Estimate number of frames to write
+            size_t to_write = frames - n_written;
+            if (to_write > BUFFER_FRAMES)
+                to_write = BUFFER_FRAMES;
+
+            // Pack frames
+            float *p    = pBuffer;
+            for (size_t i=0; i<to_write; ++i)
+                for (size_t j=0; j<nc; ++j, ++p)
+                    *p = (vp[j]) ? *(vp[j]++) : 0.0f;
+
+            // Write frames
+            status_t res    = write_frames(pBuffer, to_write);
+            if (res != STATUS_OK)
+                return res;
+            n_written  += to_write;
+        }
+
         return STATUS_OK;
     }
 
@@ -537,6 +564,11 @@ namespace lsp
                         return STATUS_BAD_STATE;
                 }
             }
+
+            // Write data to LSPC
+            status_t res = pWD->write(pFBuffer, floats * nBPS);
+            if (res != STATUS_OK)
+                return res;
 
             data       += to_write;
             n_written  += to_write;

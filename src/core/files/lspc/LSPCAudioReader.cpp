@@ -539,7 +539,7 @@ namespace lsp
             return STATUS_CLOSED;
 
         size_t nc       = sParams.channels;
-        float **vp = reinterpret_cast<float **>(alloca(sParams.channels * sizeof(float *)));
+        float **vp = reinterpret_cast<float **>(alloca(nc * sizeof(float *)));
         for (size_t i=0; i<nc; ++i)
             vp[i]       = data[i];
 
@@ -580,7 +580,6 @@ namespace lsp
         if (!(nFlags & F_OPENED))
             return STATUS_CLOSED;
 
-        size_t bytes;
         size_t n_read   = 0;
         while (n_read < frames)
         {
@@ -606,22 +605,16 @@ namespace lsp
                 switch (nBPS)
                 {
                     case 1:
-                        bytes   = avail;
+                    case 3:
                         break;
                     case 2:
                         byte_swap(reinterpret_cast<uint16_t *>(&sBuf.vData[sBuf.nOff]), avail);
-                        bytes   = avail << 1;
-                        break;
-                    case 3:
-                        bytes   = avail + (avail << 1);
                         break;
                     case 4:
                         byte_swap(reinterpret_cast<uint32_t *>(&sBuf.vData[sBuf.nOff]), avail);
-                        bytes   = avail << 2;
                         break;
                     case 8:
                         byte_swap(reinterpret_cast<uint64_t *>(&sBuf.vData[sBuf.nOff]), avail);
-                        bytes   = avail << 3;
                         break;
                     default:
                         return STATUS_BAD_STATE;
@@ -633,7 +626,7 @@ namespace lsp
 
             // Update pointers
             n_read         += avail;
-            sBuf.nOff      += bytes;
+            sBuf.nOff      += avail * nBPS;
         }
 
         return n_read;

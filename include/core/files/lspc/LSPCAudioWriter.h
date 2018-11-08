@@ -74,7 +74,7 @@ namespace lsp
              * @param auto_close automatically close file on close()
              * @return status of operation
              */
-            status_t write(LSPCFile *lspc, const lspc_audio_parameters_t *params, bool last, bool auto_close = false);
+            status_t open(LSPCFile *lspc, const lspc_audio_parameters_t *params, bool last, bool auto_close = false);
 
             /**
              * Create chunk in LSPC file with magic=LSPC_CHUNK_AUDIO, do not write header
@@ -84,7 +84,7 @@ namespace lsp
              * @param auto_close automatically close file on close()
              * @return status of operation
              */
-            status_t write_raw(LSPCFile *lspc, const lspc_audio_parameters_t *params, bool last, bool auto_close = false);
+            status_t open_raw(LSPCFile *lspc, const lspc_audio_parameters_t *params, bool last, bool auto_close = false);
 
             /**
              * Create chunk in LSPC file with specified magic and write header
@@ -95,7 +95,7 @@ namespace lsp
              * @param auto_close automatically close file on close()
              * @return status of operation
              */
-            status_t write(LSPCFile *lspc, uint32_t magic, const lspc_audio_parameters_t *params, bool last, bool auto_close = false);
+            status_t open(LSPCFile *lspc, uint32_t magic, const lspc_audio_parameters_t *params, bool last, bool auto_close = false);
 
             /**
              * Create chunk in LSPC file with specified magic, do not write header
@@ -106,7 +106,7 @@ namespace lsp
              * @param auto_close automatically close file on close()
              * @return status of operation
              */
-            status_t write_raw(LSPCFile *lspc, uint32_t magic, const lspc_audio_parameters_t *params, bool last, bool auto_close = false);
+            status_t open_raw(LSPCFile *lspc, uint32_t magic, const lspc_audio_parameters_t *params, bool last, bool auto_close = false);
 
             /**
              * Write header to already opened chunk
@@ -115,7 +115,7 @@ namespace lsp
              * @param auto_close automatically close chunk writer on close()
              * @return status of operation
              */
-            status_t write(LSPCChunkWriter *wr, const lspc_audio_parameters_t *params, bool auto_close = false);
+            status_t open(LSPCChunkWriter *wr, const lspc_audio_parameters_t *params, bool auto_close = false);
 
             /**
              * Open chunk writer as a raw data stream. Does not emit audio header into stream contents.
@@ -124,7 +124,7 @@ namespace lsp
              * @param auto_close automatically close chunk writer on close()
              * @return status of operation
              */
-            status_t write_raw(LSPCChunkWriter *wr, const lspc_audio_parameters_t *params, bool auto_close = false);
+            status_t open_raw(LSPCChunkWriter *wr, const lspc_audio_parameters_t *params, bool auto_close = false);
 
             /**
              * Close audio writer
