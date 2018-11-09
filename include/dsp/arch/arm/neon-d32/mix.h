@@ -595,7 +595,7 @@ namespace neon_d32
     void mix_add4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count)
     {
         ARCH_ARM_ASM(
-            MIX4_CORE
+            MIX_ADD4_CORE
             : [dst] "+r" (dst), [src1] "+r" (src1), [src2] "+r" (src2), [src3] "+r" (src3), [src4] "+r" (src4),
               [count] "+r" (count)
             : [k1] "r" (&k1), [k2] "r" (&k2), [k3] "r" (&k3), [k4] "r" (&k4)
