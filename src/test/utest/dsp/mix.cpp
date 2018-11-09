@@ -46,15 +46,15 @@ IF_ARCH_ARM(
     namespace neon_d32
     {
         void mix2(float *dst, const float *src, float k1, float k2, size_t count);
-//        void mix3(float *dst, const float *src1, const float *src2, float k1, float k2, float k3, size_t count);
+        void mix3(float *dst, const float *src1, const float *src2, float k1, float k2, float k3, size_t count);
 //        void mix4(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, float k4, size_t count);
 
         void mix_copy2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
-//        void mix_copy3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
+        void mix_copy3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
 //        void mix_copy4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count);
 
         void mix_add2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
-//        void mix_add3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
+        void mix_add3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
 //        void mix_add4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count);
     }
 )
