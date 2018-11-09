@@ -164,7 +164,7 @@ namespace neon_d32
         __ASM_EMIT("vldm        %[dst], {s2}") \
         __ASM_EMIT("vldm        %[src1]!, {s0}") \
         __ASM_EMIT("vldm        %[src2]!, {s1}") \
-        __ASM_EMIT("vmul.f32    s2, s0, s4") \
+        __ASM_EMIT("vmla.f32    s2, s0, s4") \
         __ASM_EMIT("vmla.f32    s2, s1, s8") \
         __ASM_EMIT("subs        %[count], $1") \
         __ASM_EMIT("vstm        %[dst]!, {s2}") \
@@ -175,7 +175,7 @@ namespace neon_d32
     void mix_add2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count)
     {
         ARCH_ARM_ASM(
-            MIX2_CORE
+            MIX2_ADD_CORE
             : [dst] "+r" (dst), [src1] "+r" (src1), [src2] "+r" (src2),
               [count] "+r" (count)
             : [k1] "r" (&k1), [k2] "r" (&k2)
