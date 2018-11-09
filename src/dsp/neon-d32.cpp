@@ -216,13 +216,13 @@ namespace neon_d32
 
         EXPORT1(mix2);
         EXPORT1(mix3);
-//        EXPORT1(mix4);
+        EXPORT1(mix4);
         EXPORT1(mix_copy2);
         EXPORT1(mix_copy3);
-//        EXPORT1(mix_copy4);
+        EXPORT1(mix_copy4);
         EXPORT1(mix_add2);
         EXPORT1(mix_add3);
-//        EXPORT1(mix_add4);
+        EXPORT1(mix_add4);
     }
 }
 
