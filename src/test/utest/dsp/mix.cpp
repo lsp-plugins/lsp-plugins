@@ -311,21 +311,21 @@ UTEST_BEGIN("dsp", mix)
         IF_ARCH_X86(call("sse::mix2", 16, sse::mix2));
         IF_ARCH_ARM(call("neon_d32::mix2", 16, neon_d32::mix2));
         IF_ARCH_X86(call("sse::mix3", 16, sse::mix3));
-//        IF_ARCH_ARM(call("neon_d32::mix3", 16, neon_d32::mix3));
+        IF_ARCH_ARM(call("neon_d32::mix3", 16, neon_d32::mix3));
         IF_ARCH_X86(call("sse::mix4", 16, sse::mix4));
 //        IF_ARCH_ARM(call("neon_d32::mix4", 16, neon_d32::mix4));
 
         IF_ARCH_X86(call("sse::mix_copy2", 16, native::mix_copy2, sse::mix_copy2));
         IF_ARCH_ARM(call("neon_d32::mix_copy2", 16, native::mix_copy2, neon_d32::mix_copy2));
         IF_ARCH_X86(call("sse::mix_copy3", 16, native::mix_copy3, sse::mix_copy3));
-//        IF_ARCH_ARM(call("neon_d32::mix_copy3", 16, native::mix_copy3, neon_d32::mix_copy3));
+        IF_ARCH_ARM(call("neon_d32::mix_copy3", 16, native::mix_copy3, neon_d32::mix_copy3));
         IF_ARCH_X86(call("sse::mix_copy4", 16, native::mix_copy4, sse::mix_copy4));
 //        IF_ARCH_ARM(call("neon_d32::mix_copy4", 16, native::mix_copy4, neon_d32::mix_copy4));
 
         IF_ARCH_X86(call("sse::mix_add2", 16, native::mix_add2, sse::mix_add2));
         IF_ARCH_ARM(call("neon_d32::mix_add2", 16, native::mix_add2, neon_d32::mix_add2));
         IF_ARCH_X86(call("sse::mix_add3", 16, native::mix_add3, sse::mix_add3));
-//        IF_ARCH_ARM(call("neon_d32::mix_add3", 16, native::mix_add3, neon_d32::mix_add3));
+        IF_ARCH_ARM(call("neon_d32::mix_add3", 16, native::mix_add3, neon_d32::mix_add3));
         IF_ARCH_X86(call("sse::mix_add4", 16, native::mix_add4, sse::mix_add4));
 //        IF_ARCH_ARM(call("neon_d32::mix_add4", 16, native::mix_add4, neon_d32::mix_add4));
     }

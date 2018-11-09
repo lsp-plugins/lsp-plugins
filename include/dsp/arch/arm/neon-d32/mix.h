@@ -359,7 +359,7 @@ namespace neon_d32
         __ASM_EMIT("vldm        %[src1]!, {s1}") \
         __ASM_EMIT("vldm        %[src2]!, {s2}") \
         __ASM_EMIT("vldm        %[src3]!, {s3}") \
-        __ASM_EMIT("vmul.f32    s0, s1, s4") \
+        __ASM_EMIT("vmla.f32    s0, s1, s4") \
         __ASM_EMIT("vmla.f32    s0, s2, s8") \
         __ASM_EMIT("vmla.f32    s0, s3, s12") \
         __ASM_EMIT("subs        %[count], $1") \
