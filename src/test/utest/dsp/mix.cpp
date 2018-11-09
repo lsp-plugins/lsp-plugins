@@ -42,6 +42,23 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void mix2(float *dst, const float *src, float k1, float k2, size_t count);
+//        void mix3(float *dst, const float *src1, const float *src2, float k1, float k2, float k3, size_t count);
+//        void mix4(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, float k4, size_t count);
+
+        void mix_copy2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
+//        void mix_copy3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
+//        void mix_copy4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count);
+
+        void mix_add2(float *dst, const float *src1, const float *src2, float k1, float k2, size_t count);
+//        void mix_add3(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, size_t count);
+//        void mix_add4(float *dst, const float *src1, const float *src2, const float *src3, const float *src4, float k1, float k2, float k3, float k4, size_t count);
+    }
+)
+
 typedef void (* mix2_t)(float *dst, const float *src, float k1, float k2, size_t count);
 typedef void (* mix3_t)(float *dst, const float *src1, const float *src2, float k1, float k2, float k3, size_t count);
 typedef void (* mix4_t)(float *dst, const float *src1, const float *src2, const float *src3, float k1, float k2, float k3, float k4, size_t count);
@@ -62,6 +79,8 @@ UTEST_BEGIN("dsp", mix)
         {
             for (size_t mask=0; mask <= 0x03; ++mask)
             {
+                printf("Testing %s for count=%d, mask=0x%x\n", label, int(count), int(mask));
+
                 FloatBuffer dst1(count, align, mask & 0x01);
                 FloatBuffer dst2(dst1);
                 FloatBuffer src1(count, align, mask & 0x02);
@@ -96,6 +115,8 @@ UTEST_BEGIN("dsp", mix)
         {
             for (size_t mask=0; mask <= 0x07; ++mask)
             {
+                printf("Testing %s for count=%d, mask=0x%x\n", label, int(count), int(mask));
+
                 FloatBuffer dst1(count, align, mask & 0x01);
                 FloatBuffer dst2(dst1);
                 FloatBuffer src1(count, align, mask & 0x02);
@@ -129,6 +150,8 @@ UTEST_BEGIN("dsp", mix)
         {
             for (size_t mask=0; mask <= 0x07; ++mask)
             {
+                printf("Testing %s for count=%d, mask=0x%x\n", label, int(count), int(mask));
+
                 FloatBuffer dst1(count, align, mask & 0x01);
                 FloatBuffer dst2(dst1);
                 FloatBuffer src1(count, align, mask & 0x02);
@@ -166,6 +189,8 @@ UTEST_BEGIN("dsp", mix)
         {
             for (size_t mask=0; mask <= 0x0f; ++mask)
             {
+                printf("Testing %s for count=%d, mask=0x%x\n", label, int(count), int(mask));
+
                 FloatBuffer dst1(count, align, mask & 0x01);
                 FloatBuffer dst2(dst1);
                 FloatBuffer src1(count, align, mask & 0x02);
@@ -204,6 +229,8 @@ UTEST_BEGIN("dsp", mix)
         {
             for (size_t mask=0; mask <= 0x0f; ++mask)
             {
+                printf("Testing %s for count=%d, mask=0x%x\n", label, int(count), int(mask));
+
                 FloatBuffer dst1(count, align, mask & 0x01);
                 FloatBuffer dst2(dst1);
                 FloatBuffer src1(count, align, mask & 0x02);
@@ -244,6 +271,8 @@ UTEST_BEGIN("dsp", mix)
         {
             for (size_t mask=0; mask <= 0x1f; ++mask)
             {
+                printf("Testing %s for count=%d, mask=0x%x\n", label, int(count), int(mask));
+
                 FloatBuffer dst1(count, align, mask & 0x01);
                 FloatBuffer dst2(dst1);
                 FloatBuffer src1(count, align, mask & 0x02);
@@ -279,17 +308,26 @@ UTEST_BEGIN("dsp", mix)
     UTEST_MAIN
     {
         // Do tests
-        IF_ARCH_X86(call("mix2", 16, sse::mix2));
-        IF_ARCH_X86(call("mix3", 16, sse::mix3));
-        IF_ARCH_X86(call("mix4", 16, sse::mix4));
+        IF_ARCH_X86(call("sse::mix2", 16, sse::mix2));
+        IF_ARCH_ARM(call("neon_d32::mix2", 16, neon_d32::mix2));
+        IF_ARCH_X86(call("sse::mix3", 16, sse::mix3));
+//        IF_ARCH_ARM(call("neon_d32::mix3", 16, neon_d32::mix3));
+        IF_ARCH_X86(call("sse::mix4", 16, sse::mix4));
+//        IF_ARCH_ARM(call("neon_d32::mix4", 16, neon_d32::mix4));
 
-        IF_ARCH_X86(call("mix_copy2", 16, native::mix_copy2, sse::mix_copy2));
-        IF_ARCH_X86(call("mix_copy3", 16, native::mix_copy3, sse::mix_copy3));
-        IF_ARCH_X86(call("mix_copy4", 16, native::mix_copy4, sse::mix_copy4));
+        IF_ARCH_X86(call("sse::mix_copy2", 16, native::mix_copy2, sse::mix_copy2));
+        IF_ARCH_ARM(call("neon_d32::mix_copy2", 16, native::mix_copy2, neon_d32::mix_copy2));
+        IF_ARCH_X86(call("sse::mix_copy3", 16, native::mix_copy3, sse::mix_copy3));
+//        IF_ARCH_ARM(call("neon_d32::mix_copy3", 16, native::mix_copy3, neon_d32::mix_copy3));
+        IF_ARCH_X86(call("sse::mix_copy4", 16, native::mix_copy4, sse::mix_copy4));
+//        IF_ARCH_ARM(call("neon_d32::mix_copy4", 16, native::mix_copy4, neon_d32::mix_copy4));
 
-        IF_ARCH_X86(call("mix_add2", 16, native::mix_add2, sse::mix_add2));
-        IF_ARCH_X86(call("mix_add3", 16, native::mix_add3, sse::mix_add3));
-        IF_ARCH_X86(call("mix_add4", 16, native::mix_add4, sse::mix_add4));
+        IF_ARCH_X86(call("sse::mix_add2", 16, native::mix_add2, sse::mix_add2));
+        IF_ARCH_ARM(call("neon_d32::mix_add2", 16, native::mix_add2, neon_d32::mix_add2));
+        IF_ARCH_X86(call("sse::mix_add3", 16, native::mix_add3, sse::mix_add3));
+//        IF_ARCH_ARM(call("neon_d32::mix_add3", 16, native::mix_add3, neon_d32::mix_add3));
+        IF_ARCH_X86(call("sse::mix_add4", 16, native::mix_add4, sse::mix_add4));
+//        IF_ARCH_ARM(call("neon_d32::mix_add4", 16, native::mix_add4, neon_d32::mix_add4));
     }
 UTEST_END;
 
