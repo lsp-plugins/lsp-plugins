@@ -188,6 +188,7 @@ namespace test
         for (size_t i=0; i<nLength; ++i)
             printf("%.5f ", pBuffer[i]);
         printf("\n");
+        fflush(stdout);
     }
 
     void FloatBuffer::dump(const char *text, size_t from, size_t count) const
@@ -196,6 +197,7 @@ namespace test
         for (size_t i=from; (i<nLength) && (count > 0); ++i, --count)
             printf("%.5f ", pBuffer[i]);
         printf("\n");
+        fflush(stdout);
     }
 
     void FloatBuffer::dump_hex(const char *text) const
@@ -205,6 +207,7 @@ namespace test
         for (size_t i=0; i<nLength; ++i)
             printf("%08x ", int(ptr[i]));
         printf("\n");
+        fflush(stdout);
     }
 
     void FloatBuffer::dump_hex(const char *text, size_t from, size_t count) const
@@ -214,6 +217,7 @@ namespace test
         for (size_t i=from; (i<nLength) && (count > 0); ++i, --count)
             printf("%08x ", int(ptr[i]));
         printf("\n");
+        fflush(stdout);
     }
 
     void FloatBuffer::copy(const FloatBuffer &buf)

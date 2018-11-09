@@ -111,6 +111,15 @@ namespace lsp
 #define LSPC_SAMPLE_FMT_F64LE       0x12
 #define LSPC_SAMPLE_FMT_F64BE       0x13
 
+typedef struct lspc_audio_parameters_t
+{
+    size_t          channels;       // Number of channels
+    size_t          sample_format;  // Sample format
+    size_t          sample_rate;    // Sample rate
+    size_t          codec;          // Codec used
+    wsize_t         frames;         // Overall number of frames in file
+} lspc_audio_parameters_t;
+
 #define LSPC_SAMPLE_FMT_IS_LE(x)    (!(x & 1))
 #define LSPC_SAMPLE_FMT_IS_BE(x)    (x & 1)
 #ifdef ARCH_LE /* Little-endian architecture */

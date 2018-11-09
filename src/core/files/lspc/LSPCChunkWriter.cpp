@@ -111,7 +111,7 @@ namespace lsp
             else // Write directly avoiding buffer
             {
                 hdr.magic       = nMagic;
-                hdr.size        = nBufSize;
+                hdr.size        = can_write;
                 hdr.flags       = 0;
                 hdr.uid         = nUID;
 
@@ -124,13 +124,13 @@ namespace lsp
                 // Write buffer header and data to file
                 status_t res    = pFile->write(&hdr, sizeof(lspc_chunk_header_t));
                 if (res == STATUS_OK)
-                    pFile->write(src, nBufSize);
+                    pFile->write(src, can_write);
                 if (set_error(res) != STATUS_OK)
                     return res;
 
                 // Update position and counter
-                count          -= nBufSize;
-                src            += nBufSize;
+                count          -= can_write;
+                src            += can_write;
                 nChunksOut     ++;
             }
         }

@@ -69,6 +69,8 @@ namespace dsp
     void    (* copy)(float *dst, const float *src, size_t count) = NULL;
     void    (* copy_saturated)(float *dst, const float *src, size_t count) = NULL;
     void    (* saturate)(float *dst, size_t count) = NULL;
+    void    (* limit_saturate1)(float *dst, size_t count) = NULL;
+    void    (* limit_saturate2)(float *dst, const float *src, size_t count) = NULL;
     void    (* move)(float *dst, const float *src, size_t count) = NULL;
     void    (* fill)(float *dst, float value, size_t count) = NULL;
     void    (* fill_zero)(float *dst, size_t count) = NULL;

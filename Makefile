@@ -105,7 +105,7 @@ ifndef BUILD_PROFILE
   ifeq ($(BUILD_ARCH),amd64)
     BUILD_PROFILE           = x86_64
   endif
-  ifeq ($(patsubst i%86, i86, $(BUILD_ARCH)), i586)
+  ifeq ($(patsubst i%86,i586,$(BUILD_ARCH)), i586)
     BUILD_PROFILE           = i586
   endif
 endif
