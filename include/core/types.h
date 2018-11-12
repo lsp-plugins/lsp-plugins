@@ -119,10 +119,23 @@ namespace lsp
             void read_row(float *dst, size_t row_id);
 
             /**
+             * Get pointer to row data of the corresponding row identifier
+             * @param row_id unique row identifier
+             * @return pointer to row data
+             */
+            float *get_row(size_t row_id);
+
+            /**
              * Return actual number of rows
              * @return actual number of rows
              */
             inline size_t rows() const { return nRows; }
+
+            /**
+             * Get number of next row identifier
+             * @return next row identifier
+             */
+            inline size_t next_rowid() const { return nRowId; }
 
             /**
              * Return actual number of columns
@@ -134,6 +147,12 @@ namespace lsp
              * Clear the buffer contents, set number of changes equal to buffer rows
              */
             void clear();
+
+            /**
+             * Seek to the specified row
+             * @param row_id unique row identifier
+             */
+            void seek(size_t row_id);
 
             /** Append the new row to the beginning of frame buffer and increment number of changes
              * @param row row data contents

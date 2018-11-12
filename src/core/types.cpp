@@ -90,10 +90,21 @@ namespace lsp
         nRowId         += nRows;
     }
 
+    void frame_buffer_t::seek(size_t row_id)
+    {
+        nRowId          = row_id;
+    }
+
     void frame_buffer_t::read_row(float *dst, size_t row_id)
     {
         size_t off      = (nRowId - row_id) & (nCapacity - 1);
         dsp::copy(dst, &vData[off * nCols], nCols);
+    }
+
+    float *frame_buffer_t::get_row(size_t row_id)
+    {
+        size_t off      = (nRowId - row_id) & (nCapacity - 1);
+        return &vData[off * nCols];
     }
 
     void frame_buffer_t::write_row(const float *row)
@@ -104,14 +115,15 @@ namespace lsp
 
     frame_buffer_t  *frame_buffer_t::create(size_t rows, size_t cols)
     {
-        // Calculate capacity
-        size_t cap          = 1;
-        while (cap < rows)
-            cap                <<= 1;
-        cap               <<= 2;
+        // Estimate capacity
+        size_t cap          = rows * 4;
+        size_t hcap         = 1;
+        while (hcap < cap)
+            hcap                <<= 1;
 
+        // Estimate amount of data to allocate
         size_t h_size       = ALIGN_SIZE(sizeof(frame_buffer_t), ALIGN64);
-        size_t b_size       = cap * cols * sizeof(float);
+        size_t b_size       = hcap * cols * sizeof(float);
 
         // Allocate memory
         uint8_t *ptr = NULL, *data = NULL;
@@ -125,8 +137,8 @@ namespace lsp
 
         fb->nRows           = rows;
         fb->nCols           = cols;
-        fb->nCapacity       = cap;
-        fb->nRowId          = 0;
+        fb->nCapacity       = hcap;
+        fb->nRowId          = rows;
         fb->vData           = reinterpret_cast<float *>(ptr);
         fb->pData           = data;
 
