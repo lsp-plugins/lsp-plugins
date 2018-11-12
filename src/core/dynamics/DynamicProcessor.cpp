@@ -37,6 +37,9 @@ namespace lsp
             vAttackTime[i]      = 0.0f;
             vReleaseTime[i]     = 0.0f;
         }
+
+        for (size_t i=0; i<CT_TOTAL; ++i)
+            fCount[i]           = 0;
     }
 
     DynamicProcessor::~DynamicProcessor()
