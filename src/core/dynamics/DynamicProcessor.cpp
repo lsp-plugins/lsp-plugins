@@ -21,6 +21,22 @@ namespace lsp
         fEnvelope       = 0.0f;
         nSampleRate     = 0.0f;
         bUpdate         = true;
+
+        for (size_t i=0; i<DYNAMIC_PROCESSOR_DOTS; ++i)
+        {
+            vDots[i].fInput     = 0.0f;
+            vDots[i].fOutput    = 0.0f;
+            vDots[i].fKnee      = 0.0f;
+
+            vAttackLvl[i]       = 0.0f;
+            vReleaseLvl[i]      = 0.0f;
+        }
+
+        for (size_t i=0; i<DYNAMIC_PROCESSOR_RANGES; ++i)
+        {
+            vAttackTime[i]      = 0.0f;
+            vReleaseTime[i]     = 0.0f;
+        }
     }
 
     DynamicProcessor::~DynamicProcessor()
