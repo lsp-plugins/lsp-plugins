@@ -7,6 +7,7 @@
 
 #include <core/types.h>
 #include <core/alloc.h>
+#include <dsp/dsp.h>
 
 namespace lsp
 {
@@ -80,6 +81,62 @@ namespace lsp
     void float_buffer_t::detroy()
     {
         lsp_free(this);
+    }
+
+    // frame_buffer_t methods
+    void frame_buffer_t::clear()
+    {
+        dsp::fill_zero(vData, nCapacity * nCols);
+        nRowId         += nRows;
+    }
+
+    void frame_buffer_t::read_row(float *dst, size_t row_id)
+    {
+        size_t off      = (nRowId - row_id) & (nCapacity - 1);
+        dsp::copy(dst, &vData[off * nCols], nCols);
+    }
+
+    void frame_buffer_t::write_row(const float *row)
+    {
+        size_t off      = (nRowId++) & (nCapacity - 1);
+        dsp::copy(&vData[off * nCols], row, nCols);
+    }
+
+    frame_buffer_t  *frame_buffer_t::create(size_t rows, size_t cols)
+    {
+        // Calculate capacity
+        size_t cap          = 1;
+        while (cap < rows)
+            cap                <<= 1;
+        cap               <<= 2;
+
+        size_t h_size       = ALIGN_SIZE(sizeof(frame_buffer_t), ALIGN64);
+        size_t b_size       = cap * cols * sizeof(float);
+
+        // Allocate memory
+        uint8_t *ptr = NULL, *data = NULL;
+        ptr     = alloc_aligned<uint8_t>(data, h_size + b_size);
+        if (ptr == NULL)
+            return NULL;
+
+        // Create object
+        frame_buffer_t *fb  = reinterpret_cast<frame_buffer_t *>(ptr);
+        ptr                += h_size;
+
+        fb->nRows           = rows;
+        fb->nCols           = cols;
+        fb->nCapacity       = cap;
+        fb->nRowId          = 0;
+        fb->vData           = reinterpret_cast<float *>(ptr);
+        fb->pData           = data;
+
+        dsp::fill_zero(fb->vData, rows * cols);
+        return fb;
+    }
+
+    void frame_buffer_t::destroy(frame_buffer_t *buf)
+    {
+        free_aligned(buf->pData);
     }
 
     void position_t::init(position_t *pos)

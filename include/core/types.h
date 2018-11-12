@@ -29,6 +29,7 @@ typedef uint16_t                lsp_wchar_t;
 #include <core/units.h>
 #include <core/characters.h>
 #include <core/assert.h>
+#include <core/status.h>
 
 namespace lsp
 {
@@ -91,69 +92,54 @@ namespace lsp
     /**
      * This interface describes frame buffer. All data is stored as a single rolling frame.
      * The frame consists of M data rows, each row contains N floating-point numbers.
-     * The most actual row has always index 0, the least actual row has index M-1.
      * While frame buffer is changing, new rows become appended to the frame buffer. Number
      * of appended/modified rows is stored in additional counter to allow the UI apply
      * changes incrementally.
      */
     typedef struct frame_buffer_t
     {
-        /**
-         * Virtual destructor
-         */
-        virtual     ~frame_buffer_t();
+        protected:
+            size_t              nRows;              // Number of rows
+            size_t              nCols;              // Number of columns
+            size_t              nCapacity;          // Capacity (power of 2)
+            size_t              nRowId;             // Unique row identifier
+            float              *vData;              // Aligned row data
+            uint8_t            *pData;              // Allocated row data
 
-        /**
-         * Return the actual data of the requested row
-         * @param row
-         * @return pointer to row beginning
-         */
-        virtual     const float *get_row(size_t row);
+        public:
+            static frame_buffer_t  *create(size_t rows, size_t cols);
+            static void             destroy(frame_buffer_t *buf);
 
-        /**
-         * Return actual number of rows
-         * @return actual number of rows
-         */
-        virtual     size_t rows();
+        public:
+            /**
+             * Return the actual data of the requested row
+             * @param dst destination buffer to store result
+             * @param row_id row number
+             */
+            void read_row(float *dst, size_t row_id);
 
-        /**
-         * Return actual number of columns
-         * @return actual number of columns
-         */
-        virtual     size_t cols();
+            /**
+             * Return actual number of rows
+             * @return actual number of rows
+             */
+            inline size_t rows() const { return nRows; }
 
-        /**
-         * Obtain number of pending (non-fetched) rows appended to the frame
-         * @return number of rows changed since last commit()
-         */
-        virtual     size_t pending();
+            /**
+             * Return actual number of columns
+             * @return actual number of columns
+             */
+            inline size_t cols() const { return nCols; }
 
-        /**
-         * Mark all pending changes as processed
-         */
-        virtual     void commit();
+            /**
+             * Clear the buffer contents, set number of changes equal to buffer rows
+             */
+            void clear();
 
-        /**
-         * Get overall data, same to get_row(0)
-         * @return overall data starting with row 0
-         */
-        virtual     const float *data();
+            /** Append the new row to the beginning of frame buffer and increment number of changes
+             * @param row row data contents
+             */
+            void write_row(const float *row);
 
-        /**
-         * Clear the buffer contents, set number of changes equal to buffer rows
-         */
-        virtual     void clear();
-
-        /** Append the new row to the beginning of frame buffer and increment number of changes
-         * @param row row data contents
-         */
-        virtual     void append_row(const float *row);
-
-        /** Append set of rows to the beginning of frame buffer and increment number of changes
-         * @param rows row data
-         * @param n number of rows to append
-         */
-        virtual     void append_rows(const float *rows, size_t n);
     } frame_buffer_t;
 
     // Path port structure

@@ -6,6 +6,7 @@
  */
 
 #include <core/status.h>
+#include <core/types.h>
 
 namespace lsp
 {
