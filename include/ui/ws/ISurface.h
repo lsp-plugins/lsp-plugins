@@ -139,6 +139,12 @@ namespace lsp
                  */
                 virtual ISurface *create(size_t width, size_t height);
 
+                /**
+                 * Create copy of current surface
+                 * @return copy of current surface
+                 */
+                virtual ISurface *create_copy();
+
                 /** Create linear gradient
                  *
                  * @param x0

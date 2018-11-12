@@ -136,6 +136,11 @@ namespace lsp
             return new ISurface(width, height, ST_UNKNOWN);
         }
 
+        ISurface *ISurface::create_copy()
+        {
+            return new ISurface(width, height, ST_UNKNOWN);
+        }
+
         void ISurface::destroy()
         {
         }
