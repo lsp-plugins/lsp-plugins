@@ -88,6 +88,74 @@ namespace lsp
         float_buffer_t         *resize(size_t lines, size_t items);
     } float_buffer_t;
 
+    /**
+     * This interface describes frame buffer. All data is stored as a single rolling frame.
+     * The frame consists of M data rows, each row contains N floating-point numbers.
+     * The most actual row has always index 0, the least actual row has index M-1.
+     * While frame buffer is changing, new rows become appended to the frame buffer. Number
+     * of appended/modified rows is stored in additional counter to allow the UI apply
+     * changes incrementally.
+     */
+    typedef struct frame_buffer_t
+    {
+        /**
+         * Virtual destructor
+         */
+        virtual     ~frame_buffer_t();
+
+        /**
+         * Return the actual data of the requested row
+         * @param row
+         * @return pointer to row beginning
+         */
+        virtual     const float *get_row(size_t row);
+
+        /**
+         * Return actual number of rows
+         * @return actual number of rows
+         */
+        virtual     size_t rows();
+
+        /**
+         * Return actual number of columns
+         * @return actual number of columns
+         */
+        virtual     size_t cols();
+
+        /**
+         * Obtain number of pending (non-fetched) rows appended to the frame
+         * @return number of rows changed since last commit()
+         */
+        virtual     size_t pending();
+
+        /**
+         * Mark all pending changes as processed
+         */
+        virtual     void commit();
+
+        /**
+         * Get overall data, same to get_row(0)
+         * @return overall data starting with row 0
+         */
+        virtual     const float *data();
+
+        /**
+         * Clear the buffer contents, set number of changes equal to buffer rows
+         */
+        virtual     void clear();
+
+        /** Append the new row to the beginning of frame buffer and increment number of changes
+         * @param row row data contents
+         */
+        virtual     void append_row(const float *row);
+
+        /** Append set of rows to the beginning of frame buffer and increment number of changes
+         * @param rows row data
+         * @param n number of rows to append
+         */
+        virtual     void append_rows(const float *rows, size_t n);
+    } frame_buffer_t;
+
     // Path port structure
     typedef struct path_t
     {
