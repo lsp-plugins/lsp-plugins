@@ -322,12 +322,19 @@ namespace lsp
                 else
                     result = new LV2UIPort(p, pExt); // Stub port
                 break;
-            // case R_BPM: // TODO
             case R_MESH:
                 if (pExt->atom_supported())
                 {
                     result = new LV2UIMeshPort(p, pExt, (w != NULL) ? w->get_port(p->id) : NULL);
                     vMeshPorts.add(result);
+                }
+                else // Stub port
+                    result = new LV2UIPort(p, pExt);
+                break;
+            case R_FBUFFER:
+                if (pExt->atom_supported())
+                {
+                    // TODO
                 }
                 else // Stub port
                     result = new LV2UIPort(p, pExt);
@@ -400,7 +407,7 @@ namespace lsp
 
                 case R_PATH:
                 case R_MESH:
-//                case R_BPM:
+                case R_FBUFFER:
                     pUI->add_port(p);
                     vUIPorts.add(p);
                     break;

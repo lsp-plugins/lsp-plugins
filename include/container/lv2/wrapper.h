@@ -186,6 +186,14 @@ namespace lsp
                 else
                     result = new LV2Port(p, pExt);
                 break;
+            case R_FBUFFER:
+                if (pExt->atom_supported())
+                {
+                    // TODO
+                }
+                else
+                    result = new LV2Port(p, pExt);
+                break;
             case R_MIDI:
                 if (pExt->atom_supported())
                 {
@@ -283,6 +291,7 @@ namespace lsp
                     break;
 
                 case R_MESH:
+                case R_FBUFFER:
                 case R_PATH:
                     pPlugin->add_port(p);
                     vPluginPorts.add(p);
@@ -689,13 +698,14 @@ namespace lsp
                 if (p == NULL)
                     continue;
 
-                // Skip MESH ports and PATH ports visible in global space
+                // Skip MESH, FBUFFER, PATH ports visible in global space
                 switch (p->metadata()->role)
                 {
                     case R_AUDIO:
                     case R_MIDI:
                     case R_UI_SYNC:
                     case R_MESH:
+                    case R_FBUFFER:
                         continue;
                     case R_PATH:
                         if (p->get_id() >= 0) // Skip global PATH ports

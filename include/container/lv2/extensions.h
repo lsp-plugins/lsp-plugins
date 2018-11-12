@@ -726,6 +726,13 @@ namespace lsp
                         break;
                     size            += LV2Mesh::size_of_port(p);
                     break;
+                case R_FBUFFER:
+                    if (IS_OUT_PORT(p) && (!out))
+                        break;
+                    else if (IS_IN_PORT(p) && (!in))
+                        break;
+                    // TODO: modify size
+                    break;
 //                case R_MIDI:
 //                    if (IS_OUT_PORT(p) && (!out))
 //                        break;

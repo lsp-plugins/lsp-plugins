@@ -156,6 +156,10 @@ namespace lsp
                 vup = new VSTUIMeshPort(port, vp);
                 break;
 
+            case R_FBUFFER:
+                // TODO
+                break;
+
             case R_MIDI:
                 if (IS_OUT_PORT(port))
                     vp = new VSTMidiOutputPort(port, pEffect, pMaster);
@@ -254,6 +258,7 @@ namespace lsp
                     break;
 
                 case R_MESH:
+                case R_FBUFFER:
                 case R_MIDI:
                 case R_PATH:
                     pPlugin->add_port(vp);
