@@ -95,11 +95,11 @@ namespace lsp
                     size_t rowid            = data->next_rowid();
                     size_t delta            = rowid - nRowID;
                     if (delta > fb->get_rows())
-                        nRowID                  = rowid - delta;
+                        nRowID                  = rowid - fb->get_rows();
 
                     while (nRowID != rowid)
                     {
-                        float *p = data->get_row(nRowID);
+                        float *p = data->get_row(nRowID++);
                         if (p != NULL)
                             fb->append_data(p);
                     }

@@ -139,6 +139,8 @@
 			<marker value="1" color="g_white" basis="1" parallel="0" />
 			<marker value="0.06310" color="g_yellow" basis="1" parallel="0" />
 
+			<fbuffer id="fb0" width="0.5" height="0.5" hpos="0" vpos="0" />
+
 			<mesh id="fftg" width="3" color="middle_channel" smooth="true" fill="0.8" />
 			
 			<dot hpos="16" vpos_id="g_0" editable="true" color="middle_channel" />

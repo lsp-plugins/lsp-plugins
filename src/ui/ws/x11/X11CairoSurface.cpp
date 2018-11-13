@@ -252,7 +252,10 @@ namespace lsp
                 if (pCR == NULL)
                     return;
                 setSourceRGBA(color);
+                cairo_operator_t op = cairo_get_operator(pCR);
+                cairo_set_operator (pCR, CAIRO_OPERATOR_SOURCE);
                 cairo_paint(pCR);
+                cairo_set_operator (pCR, op);
             }
 
             void X11CairoSurface::fill_rect(float left, float top, float width, float height, const Color &color)

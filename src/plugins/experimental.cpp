@@ -198,7 +198,7 @@ namespace lsp
 
         // Fill framebuffers with some stuff
         size_t ns = nOscLeft + samples;
-        while (ns >= 0)
+        while (ns >= FRM_BUFFER_SIZE)
         {
             nOscPhase       = ((nOscPhase + FRM_BUFFER_SIZE) & 0x7ffff);
             ns             -= FRM_BUFFER_SIZE;

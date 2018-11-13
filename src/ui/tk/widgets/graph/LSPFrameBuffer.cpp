@@ -29,7 +29,7 @@ namespace lsp
             fOpacity    = 1.0f;
             nAngle      = 0;
             fHPos       = -1.0f;
-            fVPos       = -1.0f;
+            fVPos       = 1.0f;
             fWidth      = 1.0f;
             fHeight     = 1.0f;
             bClear      = true;
@@ -67,7 +67,10 @@ namespace lsp
             if (vData == NULL)
                 return NULL;
 
-            dsp::fill_zero(vData, amount);
+//            dsp::fill_zero(vData, amount);
+//            dsp::fill(vData, 0.5f, amount);
+            for (size_t i=0; i<amount; ++i)
+                vData[i] = float(rand()) / RAND_MAX;
             nCurrRow    = 0;
             nChanges    = 0;
             bClear      = true;
@@ -95,10 +98,10 @@ namespace lsp
             if (buf == NULL)
                 return STATUS_NO_MEM;
 
-            if (++nCurrRow > nRows)
+            dsp::copy(&buf[nCurrRow * nCols], data, nCols);
+            if (++nCurrRow >= nRows)
                 nCurrRow = 0;
 
-            dsp::copy(&buf[nCurrRow * nCols], data, nCols);
             query_draw();
 
             nChanges++;
@@ -185,9 +188,15 @@ namespace lsp
         {
             value = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
             if (value < DIV_2_3)
-                c.set_hsla(value, 1.0f, 1.0f, 0.0f);
+            {
+                c.hue(value);
+                c.alpha(0.0f);
+            }
             else
-                c.set_hsla(DIV_2_3, 1.0f, 1.0f, (value - DIV_2_3) * 3.0f);
+            {
+                c.hue(DIV_2_3);
+                c.alpha((value - DIV_2_3) * 3.0f);
+            }
         }
 
         void LSPFrameBuffer::render(ISurface *s, bool force)
@@ -236,8 +245,8 @@ namespace lsp
                 }
 
                 // Draw dots
-                Color c;
-                size_t row = nCurrRow;
+                Color c(1.0f, 0.0f, 0.0f);
+                size_t row = (nCurrRow + nRows - 1) % nRows;
                 switch (nAngle & 0x03)
                 {
                     case 0:
@@ -296,21 +305,22 @@ namespace lsp
             }
 
             // Draw surface on the target
-            float x = (fHPos + 1.0f) * s->width();
-            float y = (1.0f - fVPos) * s->height();
+            float x = 0.5f * (fHPos + 1.0f) * s->width();
+            float y = 0.5f * (1.0f - fVPos) * s->height();
+            s->draw(pp, x, y);
 
-            if (nAngle & 1)
-            {
-                float w = ((s->width() << 1) * fWidth) / nRows;
-                float h = ((s->height() << 1) * fHeight) / nCols;
-                s->draw(pSurface, x, y, w, h);
-            }
-            else
-            {
-                float w = ((s->width() << 1) * fWidth) / nCols;
-                float h = ((s->height() << 1) * fHeight) / nRows;
-                s->draw(pSurface, x, y, w, h);
-            }
+//            if (nAngle & 1)
+//            {
+//                float w = ((s->width() << 1) * fWidth) / nRows;
+//                float h = ((s->height() << 1) * fHeight) / nCols;
+//                s->draw(pp, x, y, w, h);
+//            }
+//            else
+//            {
+//                float w = ((s->width() << 1) * fWidth) / nCols;
+//                float h = ((s->height() << 1) * fHeight) / nRows;
+//                s->draw(pp, x, y, w, h);
+//            }
         }
     } /* namespace tk */
 } /* namespace lsp */
