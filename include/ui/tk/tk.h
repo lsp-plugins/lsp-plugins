@@ -255,7 +255,7 @@ namespace lsp
 #include <ui/tk/widgets/graph/LSPMesh.h>
 #include <ui/tk/widgets/graph/LSPDot.h>
 #include <ui/tk/widgets/graph/LSPText.h>
-#include <ui/tk/widgets/graph/LSPFrame.h>
+#include <ui/tk/widgets/graph/LSPFrameBuffer.h>
 
 
 #endif /* UI_TK_TK_H_ */

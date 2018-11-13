@@ -44,6 +44,10 @@ namespace lsp
         PORTS_STEREO_PLUGIN,
         AMP_GAIN10("gain", "Output gain", 1.0f),
         MESH("fftg", "Some graph", 2, 320),
+        FBUFFER("fb0", "Frame buffer 0", 64, test_plugin_metadata::FRM_BUFFER_SIZE),
+        FBUFFER("fb1", "Frame buffer 1", 64, test_plugin_metadata::FRM_BUFFER_SIZE),
+        FBUFFER("fb2", "Frame buffer 2", 64, test_plugin_metadata::FRM_BUFFER_SIZE),
+        FBUFFER("fb3", "Frame buffer 3", 64, test_plugin_metadata::FRM_BUFFER_SIZE),
 
         PATH("ifn", "File name"),
         CONTROL("ihc", "Head cut", U_MSEC, test_plugin_metadata::FILE_LENGTH),

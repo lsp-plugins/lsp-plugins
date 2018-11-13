@@ -239,15 +239,15 @@ namespace lsp
                 // Estimate what to do
                 size_t src_rid = fb->next_rowid(), dst_rid = pFB->next_rowid();
                 size_t delta = src_rid - dst_rid;
-                if (delta <= 0)
-                    return true;
+                if (delta == 0)
+                    return false; // No changes
                 else if (delta > pFB->rows())
-                    delta   = pFB->rows();
+                    dst_rid = src_rid - pFB->rows();
 
                 // Synchronize buffer data
-                for (size_t rid = src_rid - delta; rid != src_rid; rid++)
-                    pFB->write_row(fb->get_row(rid));
-                pFB->seek(src_rid);
+                while (dst_rid != src_rid)
+                    pFB->write_row(fb->get_row(dst_rid++));
+                pFB->seek(dst_rid);
 
                 return true;
             }

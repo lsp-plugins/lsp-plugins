@@ -138,7 +138,7 @@ namespace lsp
 
         ISurface *ISurface::create_copy()
         {
-            return new ISurface(width, height, ST_UNKNOWN);
+            return new ISurface(nWidth, nHeight, ST_UNKNOWN);
         }
 
         void ISurface::destroy()
@@ -254,6 +254,10 @@ namespace lsp
         }
 
         void ISurface::out_text_relative(const Font &f, float x, float y, float dx, float dy, const char *text, const Color &color)
+        {
+        }
+
+        void ISurface::square_dot(float x, float y, float width, const Color &color)
         {
         }
 

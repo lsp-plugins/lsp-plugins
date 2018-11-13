@@ -439,6 +439,15 @@ namespace lsp
                  */
                 virtual void out_text_relative(const Font &f, float x, float y, float dx, float dy, const char *text, const Color &color);
 
+                /**
+                 * Draw square dot
+                 * @param x dot location X
+                 * @param y dot location Y
+                 * @param width dot width
+                 * @param color dot color
+                 */
+                virtual void square_dot(float x, float y, float width, const Color &color);
+
                 /** Draw line
                  *
                  * @param x0 first point x coordinate

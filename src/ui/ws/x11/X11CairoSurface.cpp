@@ -56,6 +56,24 @@ namespace lsp
                 return NULL;
             }
 
+            ISurface *X11CairoSurface::create_copy()
+            {
+                X11CairoSurface *s = new X11CairoSurface(nWidth, nHeight);
+                if (s == NULL)
+                    return NULL;
+                if (s->pCR == NULL)
+                {
+                    delete s;
+                    return NULL;
+                }
+
+                // Draw one surface on another
+                cairo_set_source_surface(pCR, s->pSurface, 0, 0);
+                cairo_paint(pCR);
+
+                return s;
+            }
+
             IGradient *X11CairoSurface::linear_gradient(float x0, float y0, float x1, float y1)
             {
                 return new X11CairoLinearGradient(x0, y0, x1, y1);
@@ -529,6 +547,23 @@ namespace lsp
 
                 cairo_move_to(pCR, fx, fy);
                 cairo_show_text(pCR, text);
+            }
+
+            void X11CairoSurface::square_dot(float x, float y, float width, const Color &color)
+            {
+                if (pCR == NULL)
+                    return;
+
+                double ow = cairo_get_line_width(pCR);
+                cairo_line_cap_t cap = cairo_get_line_cap(pCR);
+                setSourceRGBA(color);
+                cairo_set_line_width(pCR, width);
+                cairo_set_line_cap(pCR, CAIRO_LINE_CAP_SQUARE);
+                cairo_move_to(pCR, x, y);
+                cairo_line_to(pCR, x+1, y);
+                cairo_stroke(pCR);
+                cairo_set_line_width(pCR, ow);
+                cairo_set_line_cap(pCR, cap);
             }
 
             void X11CairoSurface::line(float x0, float y0, float x1, float y1, float width, const Color &color)

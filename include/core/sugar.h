@@ -90,6 +90,18 @@ template <class P>
         ptr = NULL;
     }
 
+/** Free aligned pointer as member of allocated structure
+ *
+ * @param ptr pointer to free
+ */
+template <class P>
+    inline void free_aligned_self(P *ptr)
+    {
+        if (ptr == NULL)
+            return;
+        free(ptr);
+    }
+
 #if defined(ARCH_I386)
     inline uint32_t seed_addr(const void *ptr)
     {

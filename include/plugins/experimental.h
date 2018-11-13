@@ -22,6 +22,7 @@ namespace lsp
             IPort      *pIn[2];
             IPort      *pOut[2];
             IPort      *pMesh;
+            IPort      *pFB[4];
             IPort      *pGain;
             IPort      *pFileName;
             IPort      *pHeadCut;
@@ -44,6 +45,10 @@ namespace lsp
             size_t      nStatus;
             size_t      nProgCurr;
             size_t      nProgLast;
+
+            size_t      nOscPhase;
+            size_t      nOscLeft;
+            float       vBuffer[FRM_BUFFER_SIZE];
 
         public:
             test_plugin();

@@ -66,6 +66,8 @@ namespace lsp
 
                     virtual ISurface *create(size_t width, size_t height);
 
+                    virtual ISurface *create_copy();
+
                     virtual IGradient *linear_gradient(float x0, float y0, float x1, float y1);
 
                     virtual IGradient *radial_gradient
@@ -127,6 +129,8 @@ namespace lsp
                     virtual void out_text(const Font &f, float x, float y, const char *text, const Color &color);
 
                     virtual void out_text_relative(const Font &f, float x, float y, float dx, float dy, const char *text, const Color &color);
+
+                    virtual void square_dot(float x, float y, float width, const Color &color);
 
                     virtual void line(float x0, float y0, float x1, float y1, float width, const Color &color);
 

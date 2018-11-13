@@ -148,7 +148,7 @@ namespace lsp
 
     void frame_buffer_t::destroy(frame_buffer_t *buf)
     {
-        free_aligned(buf->pData);
+        free_aligned_self(buf->pData);
     }
 
     void position_t::init(position_t *pos)

@@ -54,6 +54,9 @@ namespace lsp
         nProgCurr       = 0;
         nProgLast       = 0;
         bFileSet        = false;
+
+        nOscPhase       = 0;
+        nOscLeft        = 0;
     }
 
     test_plugin::~test_plugin()
@@ -98,11 +101,13 @@ namespace lsp
         // Remember pointers to ports
         size_t port_id = 0;
         for (size_t i=0; i<2; ++i)
-            pIn[i]      = vPorts[port_id++];
+            pIn[i]          = vPorts[port_id++];
         for (size_t i=0; i<2; ++i)
-            pOut[i]     = vPorts[port_id++];
+            pOut[i]         = vPorts[port_id++];
         pGain           = vPorts[port_id++];
         pMesh           = vPorts[port_id++];
+        for (size_t i=0; i<4; ++i)
+            pFB[i]          = vPorts[port_id++];
 
         pFileName       = vPorts[port_id++];
         pHeadCut        = vPorts[port_id++];
@@ -190,6 +195,27 @@ namespace lsp
             }
             mesh->data(2, 320);
         }
+
+        // Fill framebuffers with some stuff
+        size_t ns = nOscLeft + samples;
+        while (ns >= 0)
+        {
+            nOscPhase       = ((nOscPhase + FRM_BUFFER_SIZE) & 0x7ffff);
+            ns             -= FRM_BUFFER_SIZE;
+
+            float phase     = (nPhase * M_PI * 2.0f) / float(0x80000);
+            for (size_t i=0; i<FRM_BUFFER_SIZE; ++i)
+                vBuffer[i]      = 0.5f + 0.5f * cosf(phase + (2.0f * M_PI * i) / 160.0f);
+
+            for (size_t i=0; i<4; ++i)
+            {
+                if (pFB[i] == NULL)
+                    continue;
+                frame_buffer_t *fb = pFB[i]->getBuffer<frame_buffer_t>();
+                fb->write_row(vBuffer);
+            }
+        }
+        nOscLeft            = ns;
 
         // Process file
         path_t *path = pFileName->getBuffer<path_t>();
