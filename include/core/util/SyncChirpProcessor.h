@@ -53,7 +53,7 @@ namespace lsp
             typedef struct chirp_t
             {
                 // Tunable properties:
-            	bool 			bOptimiseDuration; 	// If True, optimise chirp duration
+//            	bool 			bOptimiseDuration; 	// If True, optimise chirp duration
                 scp_method_t    enMethod;           // Synthesis method
                 double          initialFrequency;   // Initial chirp frequency [Hz]
                 double          finalFrequency;     // Final chirp frequency [Hz]
@@ -444,7 +444,7 @@ namespace lsp
              * @param offset frames offset from the middle frame (stored as a value only)
              * @return status
              */
-            status_t save_nonlinear_convolution(const char *path, ssize_t offset = 0);
+            status_t save_to_lspc(const char *path, ssize_t offset = 0);
 
             /** Load convolution result and chirp parameters from lspc file
              *
@@ -494,20 +494,20 @@ namespace lsp
                 bSync                           = true;
             }
 
-            /** Set chirp duration optimization
-             *
-             *  @param optimise if true, optimise duration
-             */
-            inline void set_chirp_duration_optimization(bool optimise)
-            {
-            	if (sChirpParams.bOptimiseDuration == optimise)
-            		return;
-
-            	sChirpParams.bOptimiseDuration  = optimise;
-				sChirpParams.bRecalculate       = true;
-				sChirpParams.bReconfigure       = true;
-				bSync                           = true;
-            }
+//            /** Set chirp duration optimization
+//             *
+//             *  @param optimise if true, optimise duration
+//             */
+//            inline void set_chirp_duration_optimization(bool optimise)
+//            {
+//            	if (sChirpParams.bOptimiseDuration == optimise)
+//            		return;
+//
+//            	sChirpParams.bOptimiseDuration  = optimise;
+//				sChirpParams.bRecalculate       = true;
+//				sChirpParams.bReconfigure       = true;
+//				bSync                           = true;
+//            }
 
             /** Set chirp synthesis method
              *

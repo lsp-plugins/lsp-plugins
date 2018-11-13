@@ -4,19 +4,31 @@
 			<grid rows="3" cols="2" hspacing="8" vspacing="4">
 				<graph width="512" height="320" expand="true" fill="true">
 					<center hpos="-1.0" vpos="0.0" visible="false" />
+                    <center hpos="-1.0" vpos="0.5" visible="false" />
+                    <center hpos="-1.0" vpos="-0.5" visible="false" />
 					<axis min="0" max="2.0" color="g_white" angle="0.0" logarithmic="false" />
-					<axis min="-1.0" max="1.0" color="g_white" angle="0.5" logarithmic="false" />
+					<axis min="-2.0" max="2.0" color="g_white" angle="0.5" logarithmic="false" />
 
-					<mesh id="resdy" width="3" />
+                    <mesh id="rme_l" width="3" color="left_channel" smooth="true" center="1" />
+                    <mesh id="rme_r" width="3" color="right_channel" smooth="true" center="2" />
 
-					<marker value="-1" color="g_white" basis="1" parallel="0" />
+                    <marker value="-2.00" color="g_yellow" basis="1" parallel="0" />
+                    <marker value="-1.75" color="g_gray" basis="1" parallel="0" />
+                    <marker value="-1.50" color="g_gray" basis="1" parallel="0" />
+                    <marker value="-1.25" color="g_gray" basis="1" parallel="0" />
+					<marker value="-1.00" color="g_white" basis="1" parallel="0" />
 					<marker value="-0.75" color="g_gray" basis="1" parallel="0" />
-					<marker value="-0.5" color="g_yellow" basis="1" parallel="0" />
+					<marker value="-0.50" color="g_gray" basis="1" parallel="0" />
 					<marker value="-0.25" color="g_gray" basis="1" parallel="0" />
+                    <marker value="0.00" color="g_yellow" basis="1" parallel="0" />
 					<marker value="0.25" color="g_gray" basis="1" parallel="0" />
-					<marker value="0.5" color="g_yellow" basis="1" parallel="0" />
+					<marker value="0.50" color="g_gray" basis="1" parallel="0" />
 					<marker value="0.75" color="g_gray" basis="1" parallel="0" />
-					<marker value="1" color="g_white" basis="1" parallel="0" />
+					<marker value="1.00" color="g_white" basis="1" parallel="0" />
+                    <marker value="1.25" color="g_gray" basis="1" parallel="0" />
+                    <marker value="1.50" color="g_gray" basis="1" parallel="0" />
+                    <marker value="1.75" color="g_gray" basis="1" parallel="0" />
+                    <marker value="2.00" color="g_yellow" basis="1" parallel="0" />
 
 					<marker value="0.25" color="g_gray" basis="0" parallel="1" />
 					<marker value="0.5" color="g_yellow" basis="0" parallel="1" />
@@ -27,18 +39,23 @@
 					<marker value="1.75" color="g_gray" basis="0" parallel="1" />
 					<marker value="2" color="g_white" basis="0" parallel="1" />
 
-					<text text="Reverb Time" coord="0;-1" halign="1" valign="1" />
-					<text text="0.25" coord="0.5;-1" halign="-1" valign="1" />
-					<text text="0.5" coord="1;-1" halign="-1" valign="1" />
-					<text text="0.75" coord="1.5;-1" halign="-1" valign="1" />
-					<text text="1.0" coord="2;-1" halign="-1" valign="1" />
+					<text text="Reverb Time" coord="0;-2" halign="1" valign="1" />
+					<text text="0.25" coord="0.5;-2" halign="-1" valign="1" />
+					<text text="0.5" coord="1;-2" halign="-1" valign="1" />
+					<text text="0.75" coord="1.5;-2" halign="-1" valign="1" />
+					<text text="1.0" coord="2;-2" halign="-1" valign="1" />
 
-					<text text="Level" coord="0;1" halign="1" valign="-1" />
-					<text text="0.5" coord="0;0.5" halign="1" valign="-1" />
-					<text text="0" coord="0;0" halign="1" valign="-1" />
-					<text text="-0.5" coord="0;-0.5" halign="1" valign="-1" />
+                    <text text="Left" color="left_channel" coord="0;2" halign="1" valign="-1" />
+					<text text="0.5" coord="0;1.5" halign="1" valign="-1" />
+					<text text="0" coord="0;1.0" halign="1" valign="-1" />
+					<text text="-0.5" coord="0;0.5" halign="1" valign="-1" />
+
+					<text text="Right" color="right_channel" coord="0;0" halign="1" valign="-1" />
+					<text text="0.5" coord="0;-0.5" halign="1" valign="-1" />
+					<text text="0" coord="0;-1.0" halign="1" valign="-1" />
+					<text text="-0.5" coord="0;-1.5" halign="1" valign="-1" />
 				</graph>
-				
+
 				<cell rows="2">
 					<vbox spacing="4">
 						<label text="PROFILER STATE:" fill="true" halign="0" />
@@ -52,7 +69,7 @@
 							<led id="stld" key="6" />
 							<led id="stld" key="7" />
 							<led id="stld" key="8" />
-							
+
 							<label text="IDLE" fill="true" halign="0" />
 							<label text="CALIBRATING" fill="true" halign="0" />
 							<label text="DETECTING LATENCY" fill="true" halign="0" />
@@ -64,19 +81,19 @@
 							<label text="SAVING" fill="true" halign="0" />
 						</grid>
 						<hsep />
-						
+
 						<grid rows="2" cols="2" spacing="4">
 							<label text="RT Algorithm" fill="true" halign="0" />
 							<label text="Save Mode" fill="true" halign="0" />
 							<combo id="scra" fill="true" />
 							<combo fill="true" id="scsv" />
 						</grid>
-						
+
 						<grid rows="2" cols="3">
 							<label text="Offset" />
 							<label text="Post-process" />
 							<label text="Save" />
-							
+
 							<vbox>
 								<knob id="offc" size="18" />
 								<value id="offc" same_line="true" />
@@ -118,19 +135,19 @@
 				</hbox>
 			</grid>
 		</group>
-		
+
 		<hbox spacing="4">
 			<group text="Calibrator" expand="true" fill="true">
 				<grid rows="3" cols="3" hspacing="5">
 					<label text="Frequency" />
 					<label text="Amplitude" />
 					<label text="Input Level (dB)" />
-					
+
 					<knob id="calf" />
 					<knob id="cala" />
 					<meter id="ilv_l" id2="ilv_r" stereo="true" angle="0.0" logarithmic="true"
                         min="-72 db" max="24 db" height="128" color="left_channel" color_2="right_channel" type="rms_peak" />
-					
+
 					<value id="calf" />
 					<value id="cala" />
 
@@ -149,7 +166,7 @@
 					<label text="Peak"/>
 					<label text="Absolute"/>
 					<label text="Latency (ms)" />
-					
+
 					<knob id="ltdm" />
 					<knob id="ltdp" />
 					<knob id="ltda" />
@@ -161,7 +178,7 @@
 							 <label text="Enable" fill="true" halign="0" />
 						 </hbox>
 					</vbox>
-					
+
 					<value id="ltdm" />
 					<value id="ltdp" />
 					<value id="ltda" />
@@ -173,10 +190,10 @@
 				<grid rows="3" cols="2" hspacing="5">
 					<label text="Coarse&#10;Duration" fill="true" />
 					<label text="Actual&#10;Duration (s)" fill="true" />
-					
+
 					<knob id="tsgl" />
 					<indicator id="tind" format="f6.3!" text_color="green" />
-					
+
 					<value id="tsgl" />
 					<button id="lint" height="20" width="96" color="yellow" led="true" text="Profile" />
 				</grid>

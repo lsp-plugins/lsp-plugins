@@ -176,7 +176,7 @@ namespace lsp
         		fRT = pCore->vChannels[ch].sPostProc.fReverbTime;
 
         	if (pCore->vChannels[ch].sPostProc.fIntgLimit > fIL)
-				fIL = pCore->vChannels[ch].sPostProc.fReverbTime;
+				fIL = pCore->vChannels[ch].sPostProc.fIntgLimit;
         }
 
         float saveTime		= (fRT > fIL) ? fRT : fIL;
@@ -215,7 +215,7 @@ namespace lsp
 
         lsp_trace("Saving %s convolution to path = %s", ((doNlinearSave) ? "nonlinear" : "linear"), sFile);
         if (doNlinearSave)
-            returnValue = pCore->sSyncChirpProcessor.save_nonlinear_convolution(sFile, nIROffset);
+            returnValue = pCore->sSyncChirpProcessor.save_to_lspc(sFile, nIROffset);
         else
             returnValue = pCore->sSyncChirpProcessor.save_linear_convolution(sFile, nIROffset, saveCount);
         lsp_trace("save status: %d", int(returnValue));
@@ -719,6 +719,7 @@ namespace lsp
 						if (c->sLatencyDetector.latency_detected())
 						{
 							c->bLatencyMeasured = true;
+							c->bLCycleComplete  = true;
 							c->nLatency			= c->sLatencyDetector.get_latency_samples();
 
 							c->pLatencyScreen->setValue(c->sLatencyDetector.get_latency_seconds() * 1000.0f); // * 1000.0f to show ms instead of s

@@ -11,6 +11,8 @@
 #include <core/util/SyncChirpProcessor.h>
 #include <math.h>
 #include <core/files/LSPCFile.h>
+#include <core/files/lspc/LSPCAudioWriter.h>
+#include <core/files/lspc/LSPCAudioReader.h>
 
 #define MIN_AMPLITUDE               1.0e-6f         // Chirp Minimal Amplitude
 #define DFL_TAIL                    1.0f;           // Default tail acquisition time [s]
@@ -36,7 +38,7 @@ namespace lsp
     {
         nSampleRate                     = -1;
 
-        sChirpParams.bOptimiseDuration 	= true;
+//        sChirpParams.bOptimiseDuration 	= true;
         sChirpParams.enMethod           = SCP_SYNTH_SIMPLE;
         sChirpParams.initialFrequency   = DFL_INITIAL_FREQ;
         sChirpParams.finalFrequency     = DFL_FINAL_FREQ;
@@ -1673,7 +1675,7 @@ namespace lsp
         return save_linear_convolution(path, head, count);
     }
 
-    status_t SyncChirpProcessor::save_nonlinear_convolution(const char *path, ssize_t offset)
+    status_t SyncChirpProcessor::save_to_lspc(const char *path, ssize_t offset)
     {
         if (pConvResult == NULL)
             return STATUS_NO_DATA;
@@ -1684,71 +1686,73 @@ namespace lsp
 
         // Create chunk file
         LSPCFile fd;
+        LSPCAudioWriter aw;
+        lspc_audio_parameters_t p;
+
         status_t res = fd.create(path);
         if (res != STATUS_OK)
-            return res;
-
-        // Write complete convolution result as audio chunk
-        LSPCChunkWriter *wr = fd.write_chunk(LSPC_CHUNK_AUDIO);
-
-        lspc_chunk_audio_header_t ahdr;
-        memset(&ahdr, 0, sizeof(lspc_chunk_audio_header_t));
-
-        ahdr.common.version     = 1;
-        ahdr.common.size        = sizeof(lspc_chunk_audio_header_t);
-        ahdr.channels           = sConvParams.nChannels;
-        ahdr.sample_format      = __IF_LEBE(LSPC_SAMPLE_FMT_F32LE, LSPC_SAMPLE_FMT_F32BE);
-        ahdr.sample_rate        = nSampleRate;
-        ahdr.codec              = LSPC_CODEC_PCM;
-        ahdr.frames             = dataLength;
-        ahdr.offset 			= offset;
-
-        // Convert non-common fields CPU -> BE
-        ahdr.channels           = CPU_TO_BE(ahdr.channels);
-        ahdr.sample_format      = CPU_TO_BE(ahdr.sample_format);
-        ahdr.sample_rate        = CPU_TO_BE(ahdr.sample_rate);
-        ahdr.codec              = CPU_TO_BE(ahdr.codec);
-        ahdr.frames             = CPU_TO_BE(ahdr.frames);
-        ahdr.offset             = CPU_TO_BE(ahdr.offset);
-
-        // Write audio header
-        res = wr->write_header(&ahdr);
-        if (res != STATUS_OK)
         {
-            wr->close();
-            delete wr;
+            aw.close();
             fd.close();
             return res;
         }
-        size_t chunk_id = wr->unique_id();
 
-        for (size_t ch = 0; ch < sConvParams.nChannels; ++ch)
+        // Write complete convolution result as audio chunk
+        p.channels          = sConvParams.nChannels;
+        p.sample_format     = __IF_LEBE(LSPC_SAMPLE_FMT_F32LE, LSPC_SAMPLE_FMT_F32BE);;
+        p.sample_rate       = nSampleRate;
+        p.codec             = LSPC_CODEC_PCM;
+        p.frames            = dataLength;
+
+        res = aw.open(&fd, &p);
+        if (res != STATUS_OK)
         {
-        	float *vResult = pConvResult->channel(ch);
-        	// We can write the complete buffer at one time but specify LE or BE format (see sample_format)
-			res = wr->write(vResult, sizeof(float) * dataLength); // Will this work?
-			if (res != STATUS_OK)
-			{
-				wr->close();
-				delete wr;
-				fd.close();
-				return res;
-			}
+            aw.close();
+            fd.close();
+            return res;
         }
 
-        wr->close();
-        delete wr;
+        const float **vp = reinterpret_cast<const float **>(alloca(sizeof(float *) * p.channels));
+        for (size_t i = 0, n = p.channels; i < n; ++i)
+            vp[i] = pConvResult->channel(i);
+
+        size_t written  = 0;
+        while (written < dataLength)
+        {
+            size_t to_write = dataLength - written;
+            if (to_write > dataLength)
+                to_write = dataLength;
+
+            res = aw.write_samples(vp, to_write);
+            if (res != STATUS_OK)
+            {
+                aw.close();
+                fd.close();
+                return res;
+            }
+
+            written += to_write;
+            for (size_t i = 0, n = p.channels; i < n; ++i)
+                vp[i] += to_write;
+        }
+
+        res = aw.close();
+        if (res != STATUS_OK)
+        {
+            aw.close();
+            fd.close();
+            return res;
+        }
 
         // Write profile data chunk
-        wr                      = fd.write_chunk(LSPC_CHUNK_PROFILE);
+        LSPCChunkWriter *wr = fd.write_chunk(LSPC_CHUNK_PROFILE);
 
         lspc_chunk_audio_profile_t prof;
         bzero(&prof, sizeof(lspc_chunk_audio_profile_t));
 
-//        prof.common.version     = 2;
         prof.common.version     = 1;
         prof.common.size        = sizeof(lspc_chunk_audio_profile_t);
-        prof.chunk_id           = chunk_id;
+        prof.chunk_id           = aw.unique_id();
         prof.chirp_order        = sChirpParams.nOrder;
         prof.alpha              = sChirpParams.fAlpha;
         prof.beta               = sChirpParams.beta;
@@ -1756,7 +1760,6 @@ namespace lsp
         prof.delta              = sChirpParams.delta;
         prof.initial_freq       = sChirpParams.initialFrequency;
         prof.final_freq         = sChirpParams.finalFrequency;
-//        prof.channels 			= sConvParams.nChannels;
 
         // Convert header fields CPU -> BE
         prof.chunk_id           = CPU_TO_BE(prof.chunk_id);
@@ -1767,10 +1770,8 @@ namespace lsp
         prof.delta              = CPU_TO_BE(prof.delta);
         prof.initial_freq       = CPU_TO_BE(prof.initial_freq);
         prof.final_freq         = CPU_TO_BE(prof.final_freq);
-//        prof.channels 			= CPU_TO_BE(prof.channels);
 
-        // Write data with one call
-        res = wr->write_header(&prof);
+        res = wr->flush();
         if (res != STATUS_OK)
         {
             wr->close();
@@ -1779,170 +1780,129 @@ namespace lsp
             return res;
         }
 
-//        // Dump nResult values
-//        res = wr->write(sConvParams.vConvLengths, sizeof(size_t) * sConvParams.nChannels);
-//		if (res != STATUS_OK)
-//		{
-//			wr->close();
-//			delete wr;
-//			fd.close();
-//			return res;
-//		}
-
-        // Close writer and file
-        wr->close();
+        res = wr->close();
         delete wr;
-        fd.close();
-        return STATUS_OK;
+        if (res != STATUS_OK)
+        {
+            fd.close();
+            return res;
+        }
+
+        res = fd.close();
+        return res;
     }
 
     status_t SyncChirpProcessor::load_from_lspc(const char *path)
     {
         LSPCFile fd;
-        lspc_chunk_audio_profile_t prof;
-        lspc_chunk_audio_header_t ahdr;
-        LSPCChunkReader *rd = NULL;
-        ssize_t n = 0;
-
-        memset(&prof, 0, sizeof(lspc_chunk_audio_profile_t));
-        memset(&ahdr, 0, sizeof(lspc_chunk_audio_header_t));
-
-        // Open the file
         status_t res = fd.open(path);
         if (res != STATUS_OK)
+        {
+            fd.close();
             return res;
-
-        // Find the PROFILE chunk in the file
-        for (size_t chunk_id = 1; ; chunk_id++)
-        {
-            // Open next chunk reader
-            rd = fd.read_chunk(chunk_id);
-            if (rd == NULL) // No more chunk?
-            {
-                fd.close();
-                return STATUS_NO_DATA;
-            }
-
-            if (rd->magic() == LSPC_CHUNK_PROFILE)
-            {
-                // Read profile header
-                n = rd->read_header(&prof, sizeof(lspc_chunk_audio_profile_t));
-                if (n < 0)
-                    continue;
-                else if ((prof.common.version < 1) || (prof.common.size < sizeof(lspc_chunk_audio_profile_t)))
-                {
-                    rd->close();
-                    fd.close();
-                    return STATUS_CORRUPTED_FILE;
-                }
-
-                // Convert header fields BE -> CPU
-                prof.chunk_id           = BE_TO_CPU(prof.chunk_id);
-                prof.chirp_order        = BE_TO_CPU(prof.chirp_order);
-                prof.alpha              = BE_TO_CPU(prof.alpha);
-                prof.beta               = BE_TO_CPU(prof.beta);
-                prof.gamma              = BE_TO_CPU(prof.gamma);
-                prof.delta              = BE_TO_CPU(prof.delta);
-                prof.initial_freq       = BE_TO_CPU(prof.initial_freq);
-                prof.final_freq         = BE_TO_CPU(prof.final_freq);
-//                if (prof.common.version < 2)
-//                	prof.channels 		= 1;
-//                else
-//                	prof.channels 		= BE_TO_CPU(prof.channels);
-
-                // Checking that data are meaningful.
-                if ((prof.alpha < MIN_AMPLITUDE) ||
-                    (prof.beta <= 0.0) ||
-                    (prof.gamma <= 0.0) ||
-                    (prof.delta <= 0.0) ||
-                    (prof.initial_freq <= 0.0) ||
-                    (prof.final_freq <= prof.initial_freq) ||
-                    (prof.chirp_order != size_t(prof.final_freq / prof.initial_freq)) //||
-                    )
-//					(prof.channels < 1)
-//					)
-                {
-                    rd->close();
-                    fd.close();
-                    return STATUS_CORRUPTED_FILE;
-                }
-
-                // We've found profile metadata, now break the cycle
-                rd->close();
-                delete rd;
-
-                break;
-            }
-
-            // Close current chunk reader
-            rd->close();
-            delete rd;
         }
 
-        // Here, at least data stored in prof is valid
-        // Now we need to read data from audio chunk
-        rd = fd.read_chunk(prof.chunk_id);
-        if (rd == NULL) // Profile metadata points to non-existing chunk
+        // Find profile chunk
+        uint32_t chunk_id = 0;
+        LSPCChunkReader *rd = fd.find_chunk(LSPC_CHUNK_PROFILE, &chunk_id);
+        if (rd == NULL)
         {
             fd.close();
             return STATUS_CORRUPTED_FILE;
         }
 
-        // Read audio header
-        n = rd->read(&ahdr, sizeof(lspc_chunk_audio_header_t));
-        if ((n < 0) || (ahdr.common.version < 1) || (ahdr.common.size < sizeof(lspc_chunk_audio_header_t)))
+        lspc_chunk_audio_profile_t prof;
+        rd->read_header(&prof, sizeof(lspc_chunk_audio_profile_t));
+        res = status_t(rd->last_error());
+        if ((res != STATUS_OK) && (res != STATUS_EOF))
         {
-            rd->close();
-            delete rd;
             fd.close();
-            return STATUS_CORRUPTED_FILE;
+            delete rd;
+            return res;
         }
 
         // Convert header fields BE -> CPU
-        ahdr.channels       = BE_TO_CPU(ahdr.channels);
-        ahdr.sample_format  = BE_TO_CPU(ahdr.sample_format);
-        ahdr.sample_rate    = BE_TO_CPU(ahdr.sample_rate);
-        ahdr.codec          = BE_TO_CPU(ahdr.codec);
-        ahdr.frames         = BE_TO_CPU(ahdr.frames);
+        prof.chunk_id       = BE_TO_CPU(prof.chunk_id);
+        prof.chirp_order    = BE_TO_CPU(prof.chirp_order);
+        prof.alpha          = BE_TO_CPU(prof.alpha);
+        prof.beta           = BE_TO_CPU(prof.beta);
+        prof.gamma          = BE_TO_CPU(prof.gamma);
+        prof.delta          = BE_TO_CPU(prof.delta);
+        prof.initial_freq   = BE_TO_CPU(prof.initial_freq);
+        prof.final_freq     = BE_TO_CPU(prof.final_freq);
 
-        // Validate the audio file header
-        if (
-//            (ahdr.channels != prof.channels) ||
-            (ahdr.frames <= 0) ||
-            (ahdr.codec != LSPC_CODEC_PCM) ||
-            ((ahdr.sample_format != LSPC_SAMPLE_FMT_F32LE) && (ahdr.sample_format != LSPC_SAMPLE_FMT_F32BE))
-           )
+        // Checking that data are meaningful.
+        if ((prof.alpha < MIN_AMPLITUDE) ||
+            (prof.beta <= 0.0) ||
+            (prof.gamma <= 0.0) ||
+            (prof.delta <= 0.0) ||
+            (prof.initial_freq <= 0.0) ||
+            (prof.final_freq <= prof.initial_freq) ||
+            (prof.chirp_order != size_t(prof.final_freq / prof.initial_freq))
+            )
         {
             rd->close();
-            delete rd;
             fd.close();
-            return STATUS_BAD_FORMAT;
+            delete rd;
+            return STATUS_CORRUPTED_FILE;
         }
 
-//        status_t status = allocateConvolutionParameters(prof.channels);
-//        status_t status = allocateConvolutionParameters(ahdr.channels);
-//        if (status != STATUS_OK)
-//        {
-//            rd->close();
-//            delete rd;
-//            fd.close();
-//            return status;
-//        }
+        chunk_id = prof.chunk_id;
 
-        // Allocate convolution result
-//        status = allocateConvolutionResult(ahdr.sample_rate, ahdr.channels, ahdr.frames);
-        status_t status = allocateConvolutionResult(ahdr.sample_rate, ahdr.channels, ahdr.frames);
+        // Close chunk reader
+        res = rd->close();
+        if (res != STATUS_OK)
+        {
+            fd.close();
+            delete rd;
+            return res;
+        }
+        delete rd;
+
+        // Read audio chunk
+        LSPCAudioReader ar;
+        lspc_audio_parameters_t p;
+
+        res = ar.open(&fd);
+        if (res != STATUS_OK)
+        {
+            fd.close();
+            return res;
+        }
+
+        res = ar.get_parameters(&p);
+        if (res != STATUS_OK)
+        {
+            fd.close();
+            return res;
+        }
+
+        status_t status = allocateConvolutionResult(p.sample_rate, p.channels, p.frames);
         if (status != STATUS_OK)
         {
-            rd->close();
-            delete rd;
             fd.close();
             return status;
         }
 
-        // Set chirp parameters
-//        sConvParams.nChannels 			= prof.channels;
-        sConvParams.nChannels           = ahdr.channels;
+        float **vp = reinterpret_cast<float **>(alloca(sizeof(float *) * p.channels));
+        for (size_t i = 0, n = p.channels; i < n; ++i)
+            vp[i] = pConvResult->channel(i);
+
+        size_t read = 0;
+        while (read < p.frames)
+        {
+            size_t to_read = p.frames - read;
+            if (to_read > p.frames)
+                to_read = p.frames;
+
+            ssize_t n_read = ar.read_samples(vp, to_read);
+
+            read += n_read;
+            for (size_t i = 0, n = p.channels; i < n; ++i)
+                vp[i] += n_read;
+        }
+
+        sConvParams.nChannels           = p.channels;
         sChirpParams.nOrder             = prof.chirp_order;
         sChirpParams.fAlpha             = prof.alpha;
         sChirpParams.beta               = prof.beta;
@@ -1954,73 +1914,15 @@ namespace lsp
         sChirpParams.bReconfigure       = true;
         bSync                           = true;
 
-//        if (prof.common.version < 2)
-//        	sConvParams.vConvLengths[0] = ahdr.frames;
-//		else
-//		{
-//			n = rd->read(sConvParams.vConvLengths, sizeof(size_t) * prof.channels); // Will it work this way?
-//
-//	        bool isFileCorrupted      	= false;
-//	        if (n >= 0)
-//	        {
-//	            if (size_t(n) != sizeof(size_t) * prof.channels)
-//	                isFileCorrupted   	= true;
-//	        }
-//	        else
-//	        {
-//	            isFileCorrupted        	= true;
-//	        }
-//
-//	        if (isFileCorrupted)
-//	        {
-//	            rd->close();
-//	            fd.close();
-//	            return STATUS_CORRUPTED_FILE;
-//	        }
-//		}
-
-        for (size_t ch = 0; ch < ahdr.channels; ++ch)
+        res = ar.close();
+        if (res != STATUS_OK)
         {
-        	// Read all sample data with one call
-            float *vResult  = pConvResult->channel(ch);
-            n               = rd->read(vResult, sizeof(float) * ahdr.frames); // Will it work this way?
-
-            if (n < 0)
-                status = STATUS_CORRUPTED_FILE;
-            else if (size_t(n) != sizeof(float) * ahdr.frames)
-                status = STATUS_CORRUPTED_FILE;
-
-            if (status != STATUS_OK)
-            {
-                rd->close();
-                fd.close();
-                return status;
-            }
-
-	        // Check if we need to do LE <-> BE conversion for the sample data, should be moved into core module method in the future
-	        if (LSPC_SAMPLE_FMT_NEED_REVERSE(ahdr.sample_format))
-	        {
-	            float *ptr = vResult;
-	            for (size_t i=0; i<ahdr.frames; ++i, ++ptr)
-	                *ptr    = byte_swap(*ptr);
-	        }
-        }
-
-        // Operate sample rate conversion if needed (checks in the method)
-        status = pConvResult->resample(nSampleRate);
-        if (status != STATUS_OK)
-        {
-            rd->close();
-            delete rd;
             fd.close();
-            return status;
+            return res;
         }
 
-        // Finally, close the reader and close the file
-        rd->close();
-        delete rd;
-        fd.close();
-        return STATUS_OK;
+        res = fd.close();
+        return res;
     }
 
     void SyncChirpProcessor::update_settings()
@@ -2052,42 +1954,52 @@ namespace lsp
             sChirpParams.initialFrequency   = sChirpParams.finalFrequency / sChirpParams.nOrder;
             sChirpParams.beta               = 2.0 * M_PI * sChirpParams.initialFrequency;
 
-            sChirpParams.fDurationCoarse    = sChirpParams.fDuration;   // Saving the pre-optimisation value for reference
-
             if (sChirpParams.fDuration <= 0.0f)
                 sChirpParams.fDuration      = DFL_DURATION;
 
+            sChirpParams.fDurationCoarse    = sChirpParams.fDuration;   // Saving the pre-optimisation value for reference
             sChirpParams.fDuration          = (sChirpParams.fDuration < LIM_DURATION) ? sChirpParams.fDuration : LIM_DURATION;
+
+            double epsilon = 2.0;
+
+            while (sChirpParams.fDuration <= sChirpParams.fDurationCoarse)
+            {
+                sChirpParams.fDuration      = 0.5 * epsilon * log(sChirpParams.nOrder) / sChirpParams.initialFrequency;
+                sChirpParams.gamma          = 0.5 * epsilon / sChirpParams.initialFrequency;
+
+                epsilon += 2.0;
+            }
+
             sChirpParams.nDuration          = seconds_to_samples(nSampleRate, sChirpParams.fDuration);
 
-            if (sChirpParams.bOptimiseDuration)
-            {
-            	// Optimise duration and growth parameters so that the chirp is as long as the time required to sweep
-				// from the initial frequency to the final frequency
-
-            	size_t lag_to_Mth     		= 0;
-				float max_duration     		= LIM_DURATION + LIM_OPT_ADDTIME;
-
-				while (sChirpParams.fDuration <= max_duration)
-				{
-					sChirpParams.gamma 		= (1.0 / sChirpParams.initialFrequency) * round((sChirpParams.fDuration * sChirpParams.initialFrequency) / log(sChirpParams.nOrder));
-					lag_to_Mth          	= seconds_to_samples(nSampleRate, float(sChirpParams.gamma * log(sChirpParams.nOrder)));
-
-					if (sChirpParams.nDuration == lag_to_Mth)
-					{
-						break;
-					}
-					else
-					{
-						++sChirpParams.nDuration;
-						sChirpParams.fDuration  = samples_to_seconds(nSampleRate, sChirpParams.nDuration);
-					}
-				}
-            }
-            else
-            {
-            	sChirpParams.gamma = (1.0 / sChirpParams.initialFrequency) * round((sChirpParams.fDuration * sChirpParams.initialFrequency) / log(sChirpParams.nOrder));
-            }
+//            if (sChirpParams.bOptimiseDuration)
+//            {
+//            	// Optimise duration and growth parameters so that the chirp is as long as the time required to sweep
+//				// from the initial frequency to the final frequency
+//
+//            	size_t lag_to_Mth     		= 0;
+//				float max_duration     		= LIM_DURATION + LIM_OPT_ADDTIME;
+//
+//				while (sChirpParams.fDuration <= max_duration)
+//				{
+//					sChirpParams.gamma 		= (1.0 / sChirpParams.initialFrequency) * round((sChirpParams.fDuration * sChirpParams.initialFrequency) / log(sChirpParams.nOrder));
+//					lag_to_Mth          	= seconds_to_samples(nSampleRate, float(sChirpParams.gamma * log(sChirpParams.nOrder)));
+//
+//					if (sChirpParams.nDuration == lag_to_Mth)
+//					{
+//						break;
+//					}
+//					else
+//					{
+//						++sChirpParams.nDuration;
+//						sChirpParams.fDuration  = samples_to_seconds(nSampleRate, sChirpParams.nDuration);
+//					}
+//				}
+//            }
+//            else
+//            {
+//            	sChirpParams.gamma = (1.0 / sChirpParams.initialFrequency) * round((sChirpParams.fDuration * sChirpParams.initialFrequency) / log(sChirpParams.nOrder));
+//            }
 
             // Final signal parameter:
             sChirpParams.delta              = sChirpParams.beta * sChirpParams.gamma;
