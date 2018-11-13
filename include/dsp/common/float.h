@@ -48,7 +48,7 @@ namespace dsp
     extern void (* limit_saturate1)(float *dst, size_t count);
 
     /** Limit floating-point data in buffer and copy do destination
-     * Avoid +Inf, -Inf values by replacing with large values
+     * Avoid +Inf, -Inf values by replacing with 1.0 and -1.0
      * Avoid +NaN, -NaN values by replacing with zeros
      * Replace values greater than 1 with 1.0
      * Replace values less than -1 with -1.0

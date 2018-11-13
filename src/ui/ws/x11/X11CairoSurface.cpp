@@ -68,8 +68,8 @@ namespace lsp
                 }
 
                 // Draw one surface on another
-                cairo_set_source_surface(pCR, s->pSurface, 0, 0);
-                cairo_paint(pCR);
+                cairo_set_source_surface(s->pCR, pSurface, 0.0f, 0.0f);
+                cairo_paint(s->pCR);
 
                 return s;
             }
@@ -562,8 +562,8 @@ namespace lsp
                 setSourceRGBA(color);
                 cairo_set_line_width(pCR, width);
                 cairo_set_line_cap(pCR, CAIRO_LINE_CAP_SQUARE);
-                cairo_move_to(pCR, x, y);
-                cairo_line_to(pCR, x+1, y);
+                cairo_move_to(pCR, x + 0.5f, y + 0.5f);
+                cairo_line_to(pCR, x + 1.5f, y + 0.5f);
                 cairo_stroke(pCR);
                 cairo_set_line_width(pCR, ow);
                 cairo_set_line_cap(pCR, cap);

@@ -57,6 +57,24 @@ namespace lsp
 
         nOscPhase       = 0;
         nOscLeft        = 0;
+
+        vOsc[0].A0      = 0.25f;
+        vOsc[0].X0      = 64;
+        vOsc[0].W0      = 2.0f;
+        vOsc[0].P0      = 0.0f;
+        vOsc[0].R0      = 0.01f;
+
+        vOsc[1].A0      = 0.25f;
+        vOsc[1].X0      = 128;
+        vOsc[1].W0      = 6.5f;
+        vOsc[1].P0      = 1.0f;
+        vOsc[1].R0      = 0.1f;
+
+        vOsc[2].A0      = 0.15f;
+        vOsc[2].X0      = 192;
+        vOsc[2].W0      = 1.33f;
+        vOsc[2].P0      = 0.5f;
+        vOsc[2].R0      = 0.05f;
     }
 
     test_plugin::~test_plugin()
@@ -106,7 +124,7 @@ namespace lsp
             pOut[i]         = vPorts[port_id++];
         pGain           = vPorts[port_id++];
         pMesh           = vPorts[port_id++];
-        for (size_t i=0; i<4; ++i)
+        for (size_t i=0; i<1; ++i)
             pFB[i]          = vPorts[port_id++];
 
         pFileName       = vPorts[port_id++];
@@ -200,20 +218,31 @@ namespace lsp
         size_t ns = nOscLeft + samples;
         while (ns >= FRM_BUFFER_SIZE)
         {
-            nOscPhase       = ((nOscPhase + FRM_BUFFER_SIZE) & 0x7ffff);
             ns             -= FRM_BUFFER_SIZE;
 
-            float phase     = (nPhase * M_PI * 2.0f) / float(0x80000);
-            for (size_t i=0; i<FRM_BUFFER_SIZE; ++i)
-                vBuffer[i]      = 0.5f + 0.5f * cosf(phase + (2.0f * M_PI * i) / 160.0f);
+            float time      = float(nOscPhase) / 0x80000;
+//            for (size_t i=0; i<FRM_BUFFER_SIZE; ++i)
+//                vBuffer[i]      = 0.5f + 0.5f * cosf(phase + (2.0f * M_PI * i) / FRM_BUFFER_SIZE);
 
-            for (size_t i=0; i<4; ++i)
+            dsp::fill(vBuffer, 0.5f, FRM_BUFFER_SIZE);
+            for (size_t i=0; i<3; ++i)
+                oscillate(vBuffer, &vOsc[i], time, FRM_BUFFER_SIZE);
+
+            for (size_t i=0; i<1; ++i)
             {
                 if (pFB[i] == NULL)
                     continue;
+
                 frame_buffer_t *fb = pFB[i]->getBuffer<frame_buffer_t>();
-                fb->write_row(vBuffer);
+                if (fb != NULL)
+                {
+                    fb->write_row(vBuffer);
+//                    if (i == 0)
+//                        lsp_dumpf("data[]", "%.5f", vBuffer, 8);
+                }
             }
+
+            nOscPhase       = (nOscPhase + FRM_BUFFER_SIZE); // & 0x7ffff;
         }
         nOscLeft            = ns;
 
@@ -252,6 +281,20 @@ namespace lsp
 
         // Query inline display for redraw
         pWrapper->query_display_draw();
+    }
+
+    void test_plugin::oscillate(float *dst, const osc_t *osc, float t, size_t n)
+    {
+        for (ssize_t x=0; x < ssize_t(n); ++x)
+        {
+            float dx = fabs(osc->X0 - x) * 0.05f;
+            float W  = 2.0f * M_PI * osc->W0 * t - dx;
+            dst[x] +=
+                    osc->A0 *
+                    cosf(W + osc->P0) *
+//                    cosf(W + osc->P0 + (dx * osc->W0) * 0.5f * M_1_PI) *
+                    expf(-osc->R0 * dx);
+        }
     }
 
     bool test_plugin::inline_display(ICanvas *cv, size_t width, size_t height)

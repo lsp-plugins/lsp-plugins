@@ -19,6 +19,16 @@ namespace lsp
     class test_plugin: public plugin_t, public test_plugin_metadata
     {
         protected:
+            typedef struct osc_t
+            {
+                float       A0; // Initial amplitude
+                float       X0; // Initial location
+                float       W0; // Frequency
+                float       P0; // Initial phase
+                float       R0; // Reduction/Decay
+            } osc_t;
+
+        protected:
             IPort      *pIn[2];
             IPort      *pOut[2];
             IPort      *pMesh;
@@ -49,6 +59,11 @@ namespace lsp
             size_t      nOscPhase;
             size_t      nOscLeft;
             float       vBuffer[FRM_BUFFER_SIZE];
+
+            osc_t       vOsc[3];
+
+        protected:
+            void        oscillate(float *dst, const osc_t *osc, float t, size_t n);
 
         public:
             test_plugin();

@@ -67,10 +67,8 @@ namespace lsp
             if (vData == NULL)
                 return NULL;
 
-//            dsp::fill_zero(vData, amount);
-//            dsp::fill(vData, 0.5f, amount);
-            for (size_t i=0; i<amount; ++i)
-                vData[i] = float(rand()) / RAND_MAX;
+            dsp::fill_zero(vData, amount);
+
             nCurrRow    = 0;
             nChanges    = 0;
             bClear      = true;
@@ -98,7 +96,7 @@ namespace lsp
             if (buf == NULL)
                 return STATUS_NO_MEM;
 
-            dsp::copy(&buf[nCurrRow * nCols], data, nCols);
+            dsp::limit_saturate2(&buf[nCurrRow * nCols], data, nCols);
             if (++nCurrRow >= nRows)
                 nCurrRow = 0;
 
@@ -211,13 +209,15 @@ namespace lsp
                 return;
 
             // Get drawing surface
-            ISurface *pp = get_surface(s, nRows, nCols);
+            ISurface *pp = get_surface(s, nCols, nRows);
             if (pp == NULL)
                 return;
 
             // Deploy new changes
             if ((nChanges > 0) || (bClear))
             {
+                ISurface *sc = NULL;
+
                 // Shift surface
                 if ((bClear) || (nChanges >= nRows))
                 {
@@ -226,33 +226,25 @@ namespace lsp
                 }
                 else
                 {
-                    ISurface *c = pp->create_copy();
-                    if (c != NULL)
-                    {
+                    sc = pp->create_copy();
+                    if (sc != NULL)
                         pp->clear(sBgColor);
-
-                        switch (nAngle & 0x03)
-                        {
-                            case 0: pp->draw(c, 0, nChanges); break;
-                            case 1: pp->draw(c, nChanges, 0); break;
-                            case 2: pp->draw(c, 0, -ssize_t(nChanges)); break;
-                            case 3: pp->draw(c, -ssize_t(nChanges), 0); break;
-                            default: break;
-                        }
-                        c->destroy();
-                        delete c;
-                    }
                 }
 
                 // Draw dots
                 Color c(1.0f, 0.0f, 0.0f);
                 size_t row = (nCurrRow + nRows - 1) % nRows;
+
                 switch (nAngle & 0x03)
                 {
                     case 0:
+                        if (sc != NULL)
+                            pp->draw(sc, 0, nChanges);
+
                         for (ssize_t y=0; nChanges > 0; ++y, --nChanges)
                         {
                             const float *p = &vData[row * nCols];
+
                             for (size_t x=0; x<nCols; ++x)
                             {
                                 calc_color(c, *(p++));
@@ -262,6 +254,8 @@ namespace lsp
                         }
                         break;
                     case 1:
+                        if (sc != NULL)
+                            pp->draw(sc, nChanges, 0);
                         for (ssize_t x=0; nChanges > 0; ++x, --nChanges)
                         {
                             const float *p = &vData[row * nCols];
@@ -274,6 +268,8 @@ namespace lsp
                         }
                         break;
                     case 2:
+                        if (sc != NULL)
+                            pp->draw(sc, 0, -ssize_t(nChanges));
                         for (ssize_t y=nRows-1; nChanges > 0; --y, --nChanges)
                         {
                             const float *p = &vData[row * nCols];
@@ -286,6 +282,8 @@ namespace lsp
                         }
                         break;
                     case 3:
+                        if (sc != NULL)
+                            pp->draw(sc, -ssize_t(nChanges), 0);
                         for (ssize_t x=nRows-1; nChanges > 0; --x, --nChanges)
                         {
                             const float *p = &vData[row * nCols];
@@ -300,6 +298,12 @@ namespace lsp
                 }
 
                 // Reset number of changes and clear flag
+                if (sc != NULL)
+                {
+                    sc->destroy();
+                    delete sc;
+                }
+
                 nChanges    = 0;
                 bClear      = false;
             }

@@ -245,8 +245,14 @@ namespace lsp
                     dst_rid = src_rid - pFB->rows();
 
                 // Synchronize buffer data
+//                lsp_trace("Start sync %d -> %d", int(dst_rid), int (src_rid));
                 while (dst_rid != src_rid)
-                    pFB->write_row(fb->get_row(dst_rid++));
+                {
+                    const float *row = fb->get_row(dst_rid++);
+//                    lsp_dumpf("row[]", "%.5f", row, 8);
+                    pFB->write_row(row);
+                }
+//                lsp_trace("End sync %d -> %d", int(dst_rid), int (src_rid));
                 pFB->seek(dst_rid);
 
                 return true;

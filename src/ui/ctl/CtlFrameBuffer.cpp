@@ -99,9 +99,9 @@ namespace lsp
 
                     while (nRowID != rowid)
                     {
-                        float *p = data->get_row(nRowID++);
-                        if (p != NULL)
-                            fb->append_data(p);
+                        float *row = data->get_row(nRowID++);
+                        if (row != NULL)
+                            fb->append_data(row);
                     }
                 }
             }

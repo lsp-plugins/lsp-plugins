@@ -97,13 +97,13 @@ namespace lsp
 
     void frame_buffer_t::read_row(float *dst, size_t row_id)
     {
-        size_t off      = (nRowId - row_id) & (nCapacity - 1);
+        size_t off      = row_id & (nCapacity - 1);
         dsp::copy(dst, &vData[off * nCols], nCols);
     }
 
     float *frame_buffer_t::get_row(size_t row_id)
     {
-        size_t off      = (nRowId - row_id) & (nCapacity - 1);
+        size_t off      = row_id & (nCapacity - 1);
         return &vData[off * nCols];
     }
 
