@@ -55,6 +55,10 @@ namespace lsp
                     if (fb != NULL)
                         PARSE_FLOAT(value, fb->set_opacity(__));
                     break;
+                case A_TRANSPARENCY:
+                    if (fb != NULL)
+                        PARSE_FLOAT(value, fb->set_transparency(__));
+                    break;
                 default:
                 {
                     CtlWidget::set(att, value);

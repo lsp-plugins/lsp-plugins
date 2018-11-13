@@ -31,6 +31,7 @@ namespace lsp
             pOut[i]         = NULL;
         }
         pMesh           = NULL;
+        pFB             = NULL;
         pGain           = NULL;
         fGain           = 1.0f;
         nPhase          = 0;
@@ -124,8 +125,7 @@ namespace lsp
             pOut[i]         = vPorts[port_id++];
         pGain           = vPorts[port_id++];
         pMesh           = vPorts[port_id++];
-        for (size_t i=0; i<1; ++i)
-            pFB[i]          = vPorts[port_id++];
+        pFB             = vPorts[port_id++];
 
         pFileName       = vPorts[port_id++];
         pHeadCut        = vPorts[port_id++];
@@ -221,26 +221,17 @@ namespace lsp
             ns             -= FRM_BUFFER_SIZE;
 
             float time      = float(nOscPhase) / 0x80000;
-//            for (size_t i=0; i<FRM_BUFFER_SIZE; ++i)
-//                vBuffer[i]      = 0.5f + 0.5f * cosf(phase + (2.0f * M_PI * i) / FRM_BUFFER_SIZE);
 
             dsp::fill(vBuffer, 0.5f, FRM_BUFFER_SIZE);
             for (size_t i=0; i<3; ++i)
                 oscillate(vBuffer, &vOsc[i], time, FRM_BUFFER_SIZE);
 
-            for (size_t i=0; i<1; ++i)
-            {
-                if (pFB[i] == NULL)
-                    continue;
+            if (pFB == NULL)
+                continue;
 
-                frame_buffer_t *fb = pFB[i]->getBuffer<frame_buffer_t>();
-                if (fb != NULL)
-                {
-                    fb->write_row(vBuffer);
-//                    if (i == 0)
-//                        lsp_dumpf("data[]", "%.5f", vBuffer, 8);
-                }
-            }
+            frame_buffer_t *fb = pFB->getBuffer<frame_buffer_t>();
+            if (fb != NULL)
+                fb->write_row(vBuffer);
 
             nOscPhase       = (nOscPhase + FRM_BUFFER_SIZE); // & 0x7ffff;
         }

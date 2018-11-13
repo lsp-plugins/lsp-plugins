@@ -26,7 +26,7 @@ namespace lsp
             vData       = NULL;
             pData       = NULL;
 
-            fOpacity    = 1.0f;
+            fTransparency    = 1.0f;
             nAngle      = 0;
             fHPos       = -1.0f;
             fVPos       = 1.0f;
@@ -175,10 +175,10 @@ namespace lsp
             query_draw();
         }
 
-        void LSPFrameBuffer::set_opacity(float value)
+        void LSPFrameBuffer::set_transparency(float value)
         {
-            if (fOpacity != value)
-                fOpacity = value;
+            if (fTransparency != value)
+                fTransparency = value;
             query_draw();
         }
 
@@ -209,7 +209,9 @@ namespace lsp
                 return;
 
             // Get drawing surface
-            ISurface *pp = get_surface(s, nCols, nRows);
+            ISurface *pp = (nAngle & 1) ?
+                    get_surface(s, nRows, nCols) :
+                    get_surface(s, nCols, nRows);
             if (pp == NULL)
                 return;
 
@@ -311,20 +313,11 @@ namespace lsp
             // Draw surface on the target
             float x = 0.5f * (fHPos + 1.0f) * s->width();
             float y = 0.5f * (1.0f - fVPos) * s->height();
-            s->draw(pp, x, y);
-
-//            if (nAngle & 1)
-//            {
-//                float w = ((s->width() << 1) * fWidth) / nRows;
-//                float h = ((s->height() << 1) * fHeight) / nCols;
-//                s->draw(pp, x, y, w, h);
-//            }
-//            else
-//            {
-//                float w = ((s->width() << 1) * fWidth) / nCols;
-//                float h = ((s->height() << 1) * fHeight) / nRows;
-//                s->draw(pp, x, y, w, h);
-//            }
+//            s->draw(pp, x, y);
+            if (nAngle & 1)
+                s->draw_alpha(pp, x, y, fWidth * s->width() / nRows, fHeight * s->height() / nCols, fTransparency);
+            else
+                s->draw_alpha(pp, x, y, fWidth * s->width() / nCols, fHeight * s->height() / nRows, fTransparency);
         }
     } /* namespace tk */
 } /* namespace lsp */

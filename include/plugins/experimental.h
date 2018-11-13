@@ -32,7 +32,7 @@ namespace lsp
             IPort      *pIn[2];
             IPort      *pOut[2];
             IPort      *pMesh;
-            IPort      *pFB[4];
+            IPort      *pFB;
             IPort      *pGain;
             IPort      *pFileName;
             IPort      *pHeadCut;

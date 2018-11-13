@@ -163,6 +163,7 @@ namespace lsp
             "format_id",
             "bind",
             "opacity",
+            "transparency",
             NULL
         };
 

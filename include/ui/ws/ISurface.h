@@ -205,6 +205,17 @@ namespace lsp
                  */
                 virtual void draw(ISurface *s, float x, float y, float sx, float sy);
 
+                /** Draw surface with alpha blending
+                 *
+                 * @param s surface to draw
+                 * @param x offset from left
+                 * @param y offset from top
+                 * @param sx surface scale x
+                 * @param sy surface scale y
+                 * @param a alpha
+                 */
+                virtual void draw_alpha(ISurface *s, float x, float y, float sx, float sy, float a);
+
                 /** Draw clipped surface
                  *
                  * @param s surface to draw

@@ -163,6 +163,10 @@ namespace lsp
         {
         }
 
+        void ISurface::draw_alpha(ISurface *s, float x, float y, float sx, float sy, float a)
+        {
+        }
+
         void ISurface::draw_clipped(ISurface *s, float x, float y, float sx, float sy, float sw, float sh)
         {
         }

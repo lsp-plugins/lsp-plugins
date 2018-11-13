@@ -84,6 +84,8 @@ namespace lsp
 
                     virtual void draw(ISurface *s, float x, float y, float sx, float sy);
 
+                    virtual void draw_alpha(ISurface *s, float x, float y, float sx, float sy, float a);
+
                     virtual void draw_clipped(ISurface *s, float x, float y, float sx, float sy, float sw, float sh);
 
                     virtual void begin();

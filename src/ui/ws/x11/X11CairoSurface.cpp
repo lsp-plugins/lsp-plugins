@@ -172,9 +172,30 @@ namespace lsp
 
                 // Draw one surface on another
                 cairo_save(pCR);
+                cairo_translate(pCR, x, y);
                 cairo_scale(pCR, sx, sy);
-                cairo_set_source_surface(pCR, cs->pSurface, x, y);
+                cairo_set_source_surface(pCR, cs->pSurface, 0.0f, 0.0f);
                 cairo_paint(pCR);
+                cairo_restore(pCR);
+            }
+
+            void X11CairoSurface::draw_alpha(ISurface *s, float x, float y, float sx, float sy, float a)
+            {
+                surface_type_t type = s->type();
+                if ((type != ST_XLIB) && (type != ST_IMAGE))
+                    return;
+                if (pCR == NULL)
+                    return;
+                X11CairoSurface *cs = static_cast<X11CairoSurface *>(s);
+                if (cs->pSurface == NULL)
+                    return;
+
+                // Draw one surface on another
+                cairo_save(pCR);
+                cairo_translate(pCR, x, y);
+                cairo_scale(pCR, sx, sy);
+                cairo_set_source_surface(pCR, cs->pSurface, 0.0f, 0.0f);
+                cairo_paint_with_alpha(pCR, 1.0f - a);
                 cairo_restore(pCR);
             }
 

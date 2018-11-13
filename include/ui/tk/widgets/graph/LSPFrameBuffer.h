@@ -24,7 +24,7 @@ namespace lsp
                 size_t      nCurrRow;
                 float      *vData;
                 uint8_t    *pData;
-                float       fOpacity;
+                float       fTransparency;
                 size_t      nAngle;     // Rotation angle 0..3
                 float       fHPos;      // Horizontal position
                 float       fVPos;      // Vertical position
@@ -53,7 +53,8 @@ namespace lsp
                 float   get_vpos() const { return fVPos; }
                 float   get_width() const { return fWidth; }
                 float   get_height() const { return fHeight; }
-                float   get_opacity() const { return fOpacity; }
+                float   get_transparency() const { return fTransparency; }
+                float   get_opacity() const { return 1.0f - fTransparency; }
                 inline Color *bg_color() { return &sBgColor; }
 
             public:
@@ -66,7 +67,8 @@ namespace lsp
                 void set_vpos(float value);
                 void set_width(float value);
                 void set_height(float value);
-                void set_opacity(float value);
+                void set_transparency(float value);
+                inline void set_opacity(float value) { set_transparency(1.0f - value); };
 
             public:
                 virtual void render(ISurface *s, bool force);
