@@ -185,8 +185,8 @@ export OBJ_FILES        = $(OBJ_CORE) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(OBJ_PLUGI
 # Libraries
 export LIB_LADSPA       = $(OBJDIR)/$(ARTIFACT_ID)-ladspa.so
 export LIB_LV2          = $(OBJDIR)/$(ARTIFACT_ID)-lv2.so
-export LIB_VST          = $(OBJDIR)/$(ARTIFACT_ID)-vst-core-$(VERSION)-$(BUILD_PROFILE).so
-export LIB_JACK         = $(OBJDIR)/$(ARTIFACT_ID)-jack-core-$(VERSION)-$(BUILD_PROFILE).so
+export LIB_VST          = $(OBJDIR)/$(ARTIFACT_ID)-vst-core-$(VERSION).so
+export LIB_JACK         = $(OBJDIR)/$(ARTIFACT_ID)-jack-core-$(VERSION).so
 
 # Binaries
 export BIN_PROFILE      = $(OBJDIR)/$(ARTIFACT_ID)-profile
@@ -218,17 +218,17 @@ export SNDFILE_HEADERS  = $(shell pkg-config --cflags sndfile)
 export SNDFILE_LIBS     = $(shell pkg-config --libs sndfile)
 export JACK_HEADERS     = $(shell pkg-config --cflags jack)
 export JACK_LIBS        = $(shell pkg-config --libs jack)
-export OPENGL_HEADERS   = $(shell pkg-config --cflags gl glu)
-export OPENGL_LIBS      = $(shell pkg-config --libs gl glu)
+export OPENGL_HEADERS   = $(shell pkg-config --cflags gl glu 2>/dev/null || echo "")
+export OPENGL_LIBS      = $(shell pkg-config --libs gl glu 2>/dev/null || echo "")
 
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 FILES                   =
 
-LADSPA_ID              := $(ARTIFACT_ID)-ladspa-$(VERSION)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
-LV2_ID                 := $(ARTIFACT_ID)-lv2-$(VERSION)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
-VST_ID                 := $(ARTIFACT_ID)-lxvst-$(VERSION)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
-JACK_ID                := $(ARTIFACT_ID)-jack-$(VERSION)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
-PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+LADSPA_ID              := $(ARTIFACT_ID)-ladspa-$(VERSION)
+LV2_ID                 := $(ARTIFACT_ID)-lv2-$(VERSION)
+VST_ID                 := $(ARTIFACT_ID)-lxvst-$(VERSION)
+JACK_ID                := $(ARTIFACT_ID)-jack-$(VERSION)
+PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)
 SRC_ID                 := $(ARTIFACT_ID)-src-$(VERSION)
 DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 
@@ -351,49 +351,49 @@ release_prepare: all
 	
 release_ladspa: release_prepare
 	@echo "Releasing LADSPA binaries"
-	@mkdir -p $(RELEASE)/$(LADSPA_ID)
-	@$(INSTALL) $(LIB_LADSPA) $(RELEASE)/$(LADSPA_ID)/
-	@cp $(RELEASE_TEXT) $(RELEASE)/$(LADSPA_ID)/
-	@tar -C $(RELEASE) -czf $(RELEASE)/$(LADSPA_ID).tar.gz $(LADSPA_ID)
-	@rm -rf $(RELEASE)/$(LADSPA_ID)
+	@mkdir -p $(RELEASE)/$(LADSPA_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+	@$(INSTALL) $(LIB_LADSPA) $(RELEASE)/$(LADSPA_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(LADSPA_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(LADSPA_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE).tar.gz $(LADSPA_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+	@rm -rf $(RELEASE)/$(LADSPA_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
 	
 release_lv2: release_prepare
 	@echo "Releasing LV2 binaries"
-	@mkdir -p $(RELEASE)/$(LV2_ID)
-	@mkdir -p $(RELEASE)/$(LV2_ID)/$(ARTIFACT_ID).lv2
-	@$(INSTALL) $(LIB_LV2) $(RELEASE)/$(LV2_ID)/$(ARTIFACT_ID).lv2/
-	@cp $(RELEASE_TEXT) $(RELEASE)/$(LV2_ID)/
-	@$(UTL_GENTTL) $(RELEASE)/$(LV2_ID)/$(ARTIFACT_ID).lv2
-	@tar -C $(RELEASE) -czf $(RELEASE)/$(LV2_ID).tar.gz $(LV2_ID)
-	@rm -rf $(RELEASE)/$(LV2_ID)
+	@mkdir -p $(RELEASE)/$(LV2_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+	@mkdir -p $(RELEASE)/$(LV2_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2
+	@$(INSTALL) $(LIB_LV2) $(RELEASE)/$(LV2_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2/
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(LV2_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/
+	@$(UTL_GENTTL) $(RELEASE)/$(LV2_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(LV2_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE).tar.gz $(LV2_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+	@rm -rf $(RELEASE)/$(LV2_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
 	
 release_vst: release_prepare
 	@echo "Releasing VST binaries"
-	@mkdir -p $(RELEASE)/$(VST_ID)
-	@$(INSTALL) $(LIB_VST) $(RELEASE)/$(VST_ID)/
-	@$(INSTALL) $(OBJDIR)/src/vst/*.so $(RELEASE)/$(VST_ID)/
-	@cp $(RELEASE_TEXT) $(RELEASE)/$(VST_ID)/
-	@tar -C $(RELEASE) -czf $(RELEASE)/$(VST_ID).tar.gz $(VST_ID)
-	@rm -rf $(RELEASE)/$(VST_ID)
+	@mkdir -p $(RELEASE)/$(VST_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+	@$(INSTALL) $(LIB_VST) $(RELEASE)/$(VST_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/
+	@$(INSTALL) $(OBJDIR)/src/vst/*.so $(RELEASE)/$(VST_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(VST_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(VST_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE).tar.gz $(VST_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+	@rm -rf $(RELEASE)/$(VST_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
 	
 release_jack: release_prepare
 	@echo "Releasing JACK binaries"
-	@mkdir -p $(RELEASE)/$(JACK_ID)
-	@mkdir -p $(RELEASE)/$(JACK_ID)/lib
-	@mkdir -p $(RELEASE)/$(JACK_ID)/bin
-	@$(INSTALL) $(LIB_JACK) $(RELEASE)/$(JACK_ID)/lib
-	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(RELEASE)/$(JACK_ID)/bin INSTALL="$(INSTALL)"
-	@cp $(RELEASE_TEXT) $(RELEASE)/$(JACK_ID)/
-	@tar -C $(RELEASE) -czf $(RELEASE)/$(JACK_ID).tar.gz $(JACK_ID)
-	@rm -rf $(RELEASE)/$(JACK_ID)
+	@mkdir -p $(RELEASE)/$(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+	@mkdir -p $(RELEASE)/$(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/lib
+	@mkdir -p $(RELEASE)/$(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/bin
+	@$(INSTALL) $(LIB_JACK) $(RELEASE)/$(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/lib
+	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(RELEASE)/$(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/bin INSTALL="$(INSTALL)"
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE).tar.gz $(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+	@rm -rf $(RELEASE)/$(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
 
 release_profile: release_prepare
 	@echo "Releasing PROFILE binaries"
-	@mkdir -p $(RELEASE)/$(PROFILE_ID)
-	@$(INSTALL) $(BIN_PROFILE) $(RELEASE)/$(PROFILE_ID)
-	@cp $(RELEASE_TEXT) $(RELEASE)/$(PROFILE_ID)/
-	@tar -C $(RELEASE) -czf $(RELEASE)/$(PROFILE_ID).tar.gz $(PROFILE_ID)
-	@rm -rf $(RELEASE)/$(PROFILE_ID)
+	@mkdir -p $(RELEASE)/$(PROFILE_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+	@$(INSTALL) $(BIN_PROFILE) $(RELEASE)/$(PROFILE_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(PROFILE_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(PROFILE_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE).tar.gz $(PROFILE_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+	@rm -rf $(RELEASE)/$(PROFILE_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
 
 release_src:
 	@echo "Releasing source code binaries"
@@ -430,7 +430,7 @@ uninstall_lv2:
 uninstall_vst:
 	@echo "Uninstalling VST"
 	@-rm -f $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-vst-*.so
-	@-rm -rf $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-lxvst-*-$(BUILD_PROFILE)
+	@-rm -rf $(DESTDIR)$(VST_PATH)/$(ARTIFACT_ID)-lxvst-*
 	@-rm -rf $(DESTDIR)$(VST_PATH)/$(VST_ID)
 	
 uninstall_jack:
