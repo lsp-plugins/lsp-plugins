@@ -157,7 +157,8 @@ namespace lsp
                 break;
 
             case R_FBUFFER:
-                // TODO
+                vp  = new VSTFrameBufferPort(port, pEffect, pMaster);
+                vup = new VSTUIFrameBufferPort(port, vp);
                 break;
 
             case R_MIDI:

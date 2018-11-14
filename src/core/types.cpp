@@ -87,12 +87,12 @@ namespace lsp
     void frame_buffer_t::clear()
     {
         dsp::fill_zero(vData, nCapacity * nCols);
-        nRowId         += nRows;
+        nRowID         += nRows;
     }
 
     void frame_buffer_t::seek(size_t row_id)
     {
-        nRowId          = row_id;
+        nRowID          = row_id;
     }
 
     void frame_buffer_t::read_row(float *dst, size_t row_id)
@@ -109,8 +109,9 @@ namespace lsp
 
     void frame_buffer_t::write_row(const float *row)
     {
-        size_t off      = (nRowId++) & (nCapacity - 1);
+        size_t off      = (nRowID + 1) & (nCapacity - 1);
         dsp::copy(&vData[off * nCols], row, nCols);
+        nRowID          ++; // Increment row identifier after bulk write
     }
 
     frame_buffer_t  *frame_buffer_t::create(size_t rows, size_t cols)
@@ -138,7 +139,7 @@ namespace lsp
         fb->nRows           = rows;
         fb->nCols           = cols;
         fb->nCapacity       = hcap;
-        fb->nRowId          = rows;
+        fb->nRowID          = rows;
         fb->vData           = reinterpret_cast<float *>(ptr);
         fb->pData           = data;
 

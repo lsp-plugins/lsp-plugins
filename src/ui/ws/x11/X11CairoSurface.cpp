@@ -172,6 +172,10 @@ namespace lsp
 
                 // Draw one surface on another
                 cairo_save(pCR);
+                if (sx < 0.0f)
+                    x       -= sx * s->width();
+                if (sy < 0.0f)
+                    y       -= sy * s->height();
                 cairo_translate(pCR, x, y);
                 cairo_scale(pCR, sx, sy);
                 cairo_set_source_surface(pCR, cs->pSurface, 0.0f, 0.0f);
@@ -192,6 +196,10 @@ namespace lsp
 
                 // Draw one surface on another
                 cairo_save(pCR);
+                if (sx < 0.0f)
+                    x       -= sx * s->width();
+                if (sy < 0.0f)
+                    y       -= sy * s->height();
                 cairo_translate(pCR, x, y);
                 cairo_scale(pCR, sx, sy);
                 cairo_set_source_surface(pCR, cs->pSurface, 0.0f, 0.0f);

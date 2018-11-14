@@ -191,7 +191,6 @@ namespace lsp
                 // Copy mesh data
                 for (size_t i=0; i < mesh->nBuffers; ++i)
                     dsp::copy_saturated(pMesh->pvData[i], mesh->pvData[i], mesh->nItems);
-//                    dsp::copy(pMesh->pvData[i], mesh->pvData[i], mesh->nItems);
                 pMesh->data(mesh->nBuffers, mesh->nItems);
 
                 // Clean source mesh
@@ -203,6 +202,58 @@ namespace lsp
             virtual void *get_buffer()
             {
                 return pMesh;
+            }
+    };
+
+    class VSTUIFrameBufferPort: public VSTUIPort
+    {
+        private:
+            frame_buffer_t     *pFB;
+
+        public:
+            VSTUIFrameBufferPort(const port_t *meta, VSTPort *port):
+                VSTUIPort(meta, port)
+            {
+                pFB     = frame_buffer_t::create(pMetadata->start, pMetadata->step);
+            }
+
+            virtual ~VSTUIFrameBufferPort()
+            {
+                if (pFB != NULL)
+                    frame_buffer_t::destroy(pFB);
+                pFB = NULL;
+            }
+
+        public:
+            virtual bool sync()
+            {
+                // Check if there is data for viewing
+                frame_buffer_t *fb = pPort->getBuffer<frame_buffer_t>();
+                if (fb == NULL)
+                    return false;
+
+                // Estimate what to do
+                size_t src_rid = fb->next_rowid(), dst_rid = pFB->next_rowid();
+                size_t delta = src_rid - dst_rid;
+                if (delta == 0)
+                    return false; // No changes
+                else if (delta > pFB->rows())
+                    dst_rid = src_rid - pFB->rows();
+
+                // Synchronize buffer data
+                while (dst_rid != src_rid)
+                {
+                    const float *row = fb->get_row(dst_rid++);
+                    pFB->write_row(row);
+                }
+                pFB->seek(dst_rid);
+
+                return true;
+            }
+
+            virtual void *get_buffer()
+            {
+                return pFB;
             }
     };
 

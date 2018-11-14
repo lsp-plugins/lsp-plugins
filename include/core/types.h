@@ -102,7 +102,7 @@ namespace lsp
             size_t              nRows;              // Number of rows
             size_t              nCols;              // Number of columns
             size_t              nCapacity;          // Capacity (power of 2)
-            size_t              nRowId;             // Unique row identifier
+            size_t              nRowID;             // Unique row identifier
             float              *vData;              // Aligned row data
             uint8_t            *pData;              // Allocated row data
 
@@ -135,7 +135,7 @@ namespace lsp
              * Get number of next row identifier
              * @return next row identifier
              */
-            inline size_t next_rowid() const { return nRowId; }
+            inline size_t next_rowid() const { return nRowID; }
 
             /**
              * Return actual number of columns

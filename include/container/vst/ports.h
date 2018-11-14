@@ -395,6 +395,44 @@ namespace lsp
             }
     };
 
+    class VSTFrameBufferPort: public VSTPort
+    {
+        private:
+            frame_buffer_t     *pFB;
+
+        public:
+            VSTFrameBufferPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
+            {
+                pFB   = NULL;
+            }
+
+            virtual ~VSTFrameBufferPort()
+            {
+                pFB   = NULL;
+            }
+
+        public:
+            virtual void *getBuffer()
+            {
+                return pFB;
+            }
+
+            virtual int init()
+            {
+                pFB     = frame_buffer_t::create(pMetadata->start, pMetadata->step);
+                return (pFB == NULL) ? STATUS_NO_MEM : STATUS_OK;
+            }
+
+            virtual void destroy()
+            {
+                if (pFB != NULL)
+                {
+                    frame_buffer_t::destroy(pFB);
+                    pFB = NULL;
+                }
+            }
+    };
+
     class VSTMidiInputPort: public VSTPort
     {
         private:
