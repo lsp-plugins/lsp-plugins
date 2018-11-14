@@ -86,20 +86,9 @@ template <class P>
     {
         if (ptr == NULL)
             return;
-        free(ptr);
+        P *tptr = ptr;
         ptr = NULL;
-    }
-
-/** Free aligned pointer as member of allocated structure
- *
- * @param ptr pointer to free
- */
-template <class P>
-    inline void free_aligned_self(P *ptr)
-    {
-        if (ptr == NULL)
-            return;
-        free(ptr);
+        free(tptr);
     }
 
 #if defined(ARCH_I386)

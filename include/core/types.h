@@ -101,8 +101,8 @@ namespace lsp
         protected:
             size_t              nRows;              // Number of rows
             size_t              nCols;              // Number of columns
-            size_t              nCapacity;          // Capacity (power of 2)
-            size_t              nRowID;             // Unique row identifier
+            uint32_t            nCapacity;          // Capacity (power of 2)
+            uint32_t            nRowID;             // Unique row identifier
             float              *vData;              // Aligned row data
             uint8_t            *pData;              // Allocated row data
 
@@ -110,20 +110,23 @@ namespace lsp
             static frame_buffer_t  *create(size_t rows, size_t cols);
             static void             destroy(frame_buffer_t *buf);
 
+            status_t                init(size_t rows, size_t cols);
+            void                    destroy();
+
         public:
             /**
              * Return the actual data of the requested row
              * @param dst destination buffer to store result
              * @param row_id row number
              */
-            void read_row(float *dst, size_t row_id);
+            void read_row(float *dst, size_t row_id) const;
 
             /**
              * Get pointer to row data of the corresponding row identifier
              * @param row_id unique row identifier
              * @return pointer to row data
              */
-            float *get_row(size_t row_id);
+            float *get_row(size_t row_id) const;
 
             /**
              * Return actual number of rows
@@ -135,7 +138,7 @@ namespace lsp
              * Get number of next row identifier
              * @return next row identifier
              */
-            inline size_t next_rowid() const { return nRowID; }
+            inline uint32_t next_rowid() const { return nRowID; }
 
             /**
              * Return actual number of columns
@@ -152,12 +155,24 @@ namespace lsp
              * Seek to the specified row
              * @param row_id unique row identifier
              */
-            void seek(size_t row_id);
+            void seek(uint32_t);
 
-            /** Append the new row to the beginning of frame buffer and increment number of changes
+            /** Append the new row to the beginning of frame buffer and increment current row number
              * @param row row data contents
              */
             void write_row(const float *row);
+
+            /** Overwrite the row of frame buffer
+             * @param row row data contents
+             */
+            void write_row(uint32_t row_id, const float *row);
+
+            /**
+             * Synchronize data to the other frame buffer
+             * @param fb frame buffer object
+             * @return true if changes from other frame buffer have been applied
+             */
+            bool sync(const frame_buffer_t *fb);
 
     } frame_buffer_t;
 

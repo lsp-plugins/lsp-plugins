@@ -266,7 +266,7 @@ namespace lsp
 //                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
 //                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
 
-                if ((body->key != sMesh.uridDimensions) || (body->value.type != pExt->forge.Int))
+                if ((body->key != pExt->uridMeshDimensions) || (body->value.type != pExt->forge.Int))
                     return;
                 ssize_t dimensions = (reinterpret_cast<const LV2_Atom_Int *>(& body->value))->body;
 //                lsp_trace("dimensions=%d", int(dimensions));
@@ -282,7 +282,7 @@ namespace lsp
 //                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
 //                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
 
-                if ((body->key != sMesh.uridItems) || (body->value.type != pExt->forge.Int))
+                if ((body->key != pExt->uridMeshItems) || (body->value.type != pExt->forge.Int))
                     return;
                 ssize_t vector_size = (reinterpret_cast<const LV2_Atom_Int *>(& body->value))->body;
 //                lsp_trace("vector size=%d", int(vector_size));
@@ -302,7 +302,7 @@ namespace lsp
 //                    lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
 //                    lsp_trace("sMesh.pUrids[%d] (%d) = %s", int(i), int(sMesh.pUrids[i]), pExt->unmap_urid(sMesh.pUrids[i]));
 
-                    if ((body->key != sMesh.pUrids[i]) || (body->value.type != pExt->forge.Vector))
+                    if ((body->key != pExt->uridMeshData) || (body->value.type != pExt->forge.Vector))
                         return;
                     const LV2_Atom_Vector *v = reinterpret_cast<const LV2_Atom_Vector *>(&body->value);
 
@@ -353,6 +353,118 @@ namespace lsp
                 mesh->cleanup();
                 bParsed = true;
                 return sMesh.pMesh->containsData();
+            }
+    };
+
+    class LV2UIFrameBufferPort: public LV2UIPort
+    {
+        protected:
+            frame_buffer_t          sFB;
+            LV2FrameBufferPort     *pPort;
+
+        public:
+            explicit LV2UIFrameBufferPort(const port_t *meta, LV2Extensions *ext, LV2Port *xport) : LV2UIPort(meta, ext)
+            {
+                sFB.init(meta->start, meta->step);
+                pPort       = NULL;
+
+                lsp_trace("id=%s, ext=%p, xport=%p", meta->id, ext, xport);
+
+                // Try to perform direct access to the port using LV2:Instance interface
+                const port_t *xmeta = (xport != NULL) ? xport->metadata() : NULL;
+                if ((xmeta != NULL) && (xmeta->role == R_FBUFFER))
+                {
+                    pPort               = static_cast<LV2FrameBufferPort *>(xport);
+                    lsp_trace("Connected direct framebuffer port id=%s", xmeta->id);
+                }
+            }
+
+            virtual ~LV2UIFrameBufferPort()
+            {
+            };
+
+        public:
+            virtual LV2_URID        get_type_urid() const   { return pExt->uridMeshType; };
+
+            virtual void deserialize(const void *data)
+            {
+                const LV2_Atom_Object* obj = reinterpret_cast<const LV2_Atom_Object *>(data);
+
+                // Parse atom body
+                LV2_Atom_Property_Body *body    = lv2_atom_object_begin(&obj->body);
+
+                // Get number of vectors (dimensions)
+                if (lv2_atom_object_is_end(&obj->body, obj->atom.size, body))
+                    return;
+                if ((body->key != pExt->uridFrameBufferRows) || (body->value.type != pExt->forge.Int))
+                    return;
+                uint32_t rows = (reinterpret_cast<const LV2_Atom_Int *>(& body->value))->body;
+                if (rows != sFB.rows())
+                    return;
+
+                // Get size of each vector
+                body = lv2_atom_object_next(body);
+                if (lv2_atom_object_is_end(&obj->body, obj->atom.size, body))
+                    return;
+                if ((body->key != pExt->uridFrameBufferCols) || (body->value.type != pExt->forge.Int))
+                    return;
+                uint32_t cols = (reinterpret_cast<const LV2_Atom_Int *>(& body->value))->body;
+                if (cols != sFB.cols())
+                    return;
+
+                // Get first row
+                body = lv2_atom_object_next(body);
+                if (lv2_atom_object_is_end(&obj->body, obj->atom.size, body))
+                    return;
+                if ((body->key != pExt->uridFrameBufferFirstRowID) || (body->value.type != pExt->forge.Int))
+                    return;
+                uint32_t first_row = (reinterpret_cast<const LV2_Atom_Int *>(& body->value))->body;
+
+                // Get last row
+                body = lv2_atom_object_next(body);
+                if (lv2_atom_object_is_end(&obj->body, obj->atom.size, body))
+                    return;
+                if ((body->key != pExt->uridFrameBufferFirstRowID) || (body->value.type != pExt->forge.Int))
+                    return;
+                uint32_t last_row = (reinterpret_cast<const LV2_Atom_Int *>(& body->value))->body;
+
+                // Validate
+                uint32_t delta = last_row - first_row;
+                if (delta > FRAMEBUFFER_BULK_MAX)
+                    return;
+
+                // Now parse each vector
+                while (first_row != last_row)
+                {
+                    // Read vector as array of floats
+                    body = lv2_atom_object_next(body);
+                    if (lv2_atom_object_is_end(&obj->body, obj->atom.size, body))
+                        return;
+
+                    if ((body->key != pExt->uridFrameBufferData) || (body->value.type != pExt->forge.Vector))
+                        return;
+                    const LV2_Atom_Vector *v = reinterpret_cast<const LV2_Atom_Vector *>(&body->value);
+
+                    if ((v->body.child_size != sizeof(float)) || (v->body.child_type != pExt->forge.Float))
+                        return;
+                    ssize_t v_items     = (v->atom.size - sizeof(LV2_Atom_Vector_Body)) / sizeof(float);
+                    if (v_items != cols)
+                        return;
+
+                    sFB.write_row(first_row++, reinterpret_cast<const float *>(v + 1));
+                }
+            }
+
+            virtual void *get_buffer()
+            {
+                return &sFB;
+            }
+
+            virtual bool sync()
+            {
+                // Check if there is data for viewing
+                frame_buffer_t *fb = reinterpret_cast<frame_buffer_t *>(pPort->getBuffer());
+                return (fb != NULL) ? sFB.sync(fb) : false;
             }
     };
 
