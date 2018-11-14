@@ -168,9 +168,11 @@ For successful build you need the following packages to be installed:
   * libexpat-devel >= 2.1
   * libsndfile-devel >= 1.0.25
   * libcairo-devel >= 1.14
+  * php >= 5.5.14
+
+For development, additional packages are required to be installed:
   * glu-devel >= 9.0.0
   * libGL-devel >= 11.2.2
-  * php >= 5.5.14
 
 Currently there is no automake/CMake supported, so to build plugins you
 have to type:
@@ -313,10 +315,13 @@ This binary provides simple command-line interface, so here's the full usage:
       -h, --help            Display help
       -j, --jobs            Set number of job workers for unit tests
       -l, --list            List all available tests
-      -nf, --nofork         Do not fork child processes (for better
+      -mt, --mtrace         Enable mtrace log
+      -nf, --nofork         Do not fork child processes (for better 
                             debugging capabilities)
+      -nt, --nomtrace       Disable mtrace log
       -o, --outfile file    Output performance test statistics to specified file
       -s, --silent          Do not output additional information from tests
+      -t, --tracepath path  Override default trace path with specified value
       -v, --verbose         Output additional information from tests
 
 Each test has fully-qualified name separated by dot symbols, tests from different
