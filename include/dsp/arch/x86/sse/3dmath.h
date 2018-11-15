@@ -167,18 +167,18 @@
     __ASM_EMIT("subps       %" x1 ", %" x0)          /* xmm0 = dx1*dy2-dx2*dy1 dy1*dz2-dy2*dz1 dz1*dx2-dz2*dx1 dw1*dw1-dw2*dw2 = NY NZ NX NW */
 
 #define MAT4_TRANSPOSE(x0, x1, x2, x3, x4)    \
-    __ASM_EMIT("movaps      %" x2 ", %" x4)      /* xmm0 = c1 c2 c3 c4 */   \
-    __ASM_EMIT("punpckldq   %" x3 ", %" x2)      /* xmm3 = c1 d1 c2 d2 */   \
-    __ASM_EMIT("punpckhdq   %" x3 ", %" x4)      /* xmm0 = c3 d3 c4 d4 */   \
-    __ASM_EMIT("movaps      %" x0 ", %" x3)      /* xmm4 = a1 a2 a3 a4 */   \
-    __ASM_EMIT("punpckldq   %" x1 ", %" x0)      /* xmm1 = a1 b1 a2 b2 */   \
-    __ASM_EMIT("punpckhdq   %" x1 ", %" x3)      /* xmm4 = a3 b3 a4 b4 */   \
-    __ASM_EMIT("movaps      %" x0 ", %" x1)      /* xmm2 = a1 b2 a2 b2 */   \
-    __ASM_EMIT("punpcklqdq  %" x2 ", %" x0)      /* xmm1 = a1 b1 c1 d1 */   \
-    __ASM_EMIT("punpckhqdq  %" x2 ", %" x1)      /* xmm2 = a2 b2 c2 d2 */   \
-    __ASM_EMIT("movaps      %" x3 ", %" x2)      /* xmm3 = a3 b3 a4 b4 */   \
-    __ASM_EMIT("punpcklqdq  %" x4 ", %" x2)      /* xmm3 = a3 b3 c3 d3 */   \
-    __ASM_EMIT("punpckhqdq  %" x4 ", %" x3)      /* xmm4 = a4 b4 c4 d4 */
+    __ASM_EMIT("movaps      %" x2 ", %" x4)      /* xmm4 = c1 c2 c3 c4 */   \
+    __ASM_EMIT("punpckldq   %" x3 ", %" x2)      /* xmm2 = c1 d1 c2 d2 */   \
+    __ASM_EMIT("punpckhdq   %" x3 ", %" x4)      /* xmm4 = c3 d3 c4 d4 */   \
+    __ASM_EMIT("movaps      %" x0 ", %" x3)      /* xmm3 = a1 a2 a3 a4 */   \
+    __ASM_EMIT("punpckldq   %" x1 ", %" x0)      /* xmm0 = a1 b1 a2 b2 */   \
+    __ASM_EMIT("punpckhdq   %" x1 ", %" x3)      /* xmm3 = a3 b3 a4 b4 */   \
+    __ASM_EMIT("movaps      %" x0 ", %" x1)      /* xmm1 = a1 b2 a2 b2 */   \
+    __ASM_EMIT("punpcklqdq  %" x2 ", %" x0)      /* xmm0 = a1 b1 c1 d1 */   \
+    __ASM_EMIT("punpckhqdq  %" x2 ", %" x1)      /* xmm1 = a2 b2 c2 d2 */   \
+    __ASM_EMIT("movaps      %" x3 ", %" x2)      /* xmm2 = a3 b3 a4 b4 */   \
+    __ASM_EMIT("punpcklqdq  %" x4 ", %" x2)      /* xmm2 = a3 b3 c3 d3 */   \
+    __ASM_EMIT("punpckhqdq  %" x4 ", %" x3)      /* xmm3 = a4 b4 c4 d4 */
 
 #define MATRIX_LOAD(ptr, x0, x1, x2, x3) \
     __ASM_EMIT("movups      0x00(%[" ptr "]), %" x0 ) \

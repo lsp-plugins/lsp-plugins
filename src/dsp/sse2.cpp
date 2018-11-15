@@ -47,6 +47,7 @@ namespace sse2 // TODO: make constants common for all architectures
 }
 
 #include <dsp/arch/x86/sse2/search.h>
+#include <dsp/arch/x86/sse2/graphics.h>
 
 #undef DSP_ARCH_X86_SSE2_IMPL
 
