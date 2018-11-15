@@ -53,7 +53,6 @@ namespace lsp
             typedef struct chirp_t
             {
                 // Tunable properties:
-//            	bool 			bOptimiseDuration; 	// If True, optimise chirp duration
                 scp_method_t    enMethod;           // Synthesis method
                 double          initialFrequency;   // Initial chirp frequency [Hz]
                 double          finalFrequency;     // Final chirp frequency [Hz]
@@ -493,21 +492,6 @@ namespace lsp
                 sChirpParams.bReconfigure       = true;
                 bSync                           = true;
             }
-
-//            /** Set chirp duration optimization
-//             *
-//             *  @param optimise if true, optimise duration
-//             */
-//            inline void set_chirp_duration_optimization(bool optimise)
-//            {
-//            	if (sChirpParams.bOptimiseDuration == optimise)
-//            		return;
-//
-//            	sChirpParams.bOptimiseDuration  = optimise;
-//				sChirpParams.bRecalculate       = true;
-//				sChirpParams.bReconfigure       = true;
-//				bSync                           = true;
-//            }
 
             /** Set chirp synthesis method
              *

@@ -38,7 +38,6 @@ namespace lsp
     {
         nSampleRate                     = -1;
 
-//        sChirpParams.bOptimiseDuration 	= true;
         sChirpParams.enMethod           = SCP_SYNTH_SIMPLE;
         sChirpParams.initialFrequency   = DFL_INITIAL_FREQ;
         sChirpParams.finalFrequency     = DFL_FINAL_FREQ;
@@ -1971,35 +1970,6 @@ namespace lsp
             }
 
             sChirpParams.nDuration          = seconds_to_samples(nSampleRate, sChirpParams.fDuration);
-
-//            if (sChirpParams.bOptimiseDuration)
-//            {
-//            	// Optimise duration and growth parameters so that the chirp is as long as the time required to sweep
-//				// from the initial frequency to the final frequency
-//
-//            	size_t lag_to_Mth     		= 0;
-//				float max_duration     		= LIM_DURATION + LIM_OPT_ADDTIME;
-//
-//				while (sChirpParams.fDuration <= max_duration)
-//				{
-//					sChirpParams.gamma 		= (1.0 / sChirpParams.initialFrequency) * round((sChirpParams.fDuration * sChirpParams.initialFrequency) / log(sChirpParams.nOrder));
-//					lag_to_Mth          	= seconds_to_samples(nSampleRate, float(sChirpParams.gamma * log(sChirpParams.nOrder)));
-//
-//					if (sChirpParams.nDuration == lag_to_Mth)
-//					{
-//						break;
-//					}
-//					else
-//					{
-//						++sChirpParams.nDuration;
-//						sChirpParams.fDuration  = samples_to_seconds(nSampleRate, sChirpParams.nDuration);
-//					}
-//				}
-//            }
-//            else
-//            {
-//            	sChirpParams.gamma = (1.0 / sChirpParams.initialFrequency) * round((sChirpParams.fDuration * sChirpParams.initialFrequency) / log(sChirpParams.nOrder));
-//            }
 
             // Final signal parameter:
             sChirpParams.delta              = sChirpParams.beta * sChirpParams.gamma;
