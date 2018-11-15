@@ -22,6 +22,19 @@ namespace lsp
         {
         }
 
+        void CtlFrameBuffer::init()
+        {
+            CtlWidget::init();
+
+            LSPFrameBuffer *fb      = widget_cast<LSPFrameBuffer>(pWidget);
+            if (fb == NULL)
+                return;
+
+            // Initialize color controllers
+            sColor.init_hsl(pRegistry, fb, fb->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
+            sBgColor.init_basic(pRegistry, fb, fb->bg_color(), A_BG_COLOR);
+        }
+
         void CtlFrameBuffer::set(widget_attribute_t att, const char *value)
         {
             LSPFrameBuffer *fb = widget_cast<LSPFrameBuffer>(pWidget);
@@ -59,8 +72,14 @@ namespace lsp
                     if (fb != NULL)
                         PARSE_FLOAT(value, fb->set_transparency(__));
                     break;
+                case A_MODE:
+                    if (fb != NULL)
+                        PARSE_INT(value, fb->set_palette(__));
+                    break;
                 default:
                 {
+                    sColor.set(att, value);
+                    sBgColor.set(att, value);
                     CtlWidget::set(att, value);
                     break;
                 }

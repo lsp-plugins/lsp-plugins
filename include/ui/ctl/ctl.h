@@ -186,7 +186,8 @@ namespace lsp
             A_FORMAT_ID,
             A_BIND,
             A_OPACITY,
-            A_TRANSPARENCY
+            A_TRANSPARENCY,
+            A_MODE
         };
 
         // Helper functions

@@ -18,25 +18,35 @@ namespace lsp
                 static const w_class_t    metadata;
 
             protected:
-                size_t      nChanges;
-                size_t      nRows;
-                size_t      nCols;
-                size_t      nCurrRow;
-                float      *vData;
-                uint8_t    *pData;
-                float       fTransparency;
-                size_t      nAngle;     // Rotation angle 0..3
-                float       fHPos;      // Horizontal position
-                float       fVPos;      // Vertical position
-                float       fWidth;     // Width in pixels
-                float       fHeight;    // Height in pixels
-                bool        bClear;     // Clear flag
-                Color       sBgColor;   // Background color
+                typedef void (LSPFrameBuffer::*calc_color_t)(Color &c, float value);
 
             protected:
-                void        drop_data();
-                void        calc_color(Color &c, float value);
-                float      *get_buffer();
+                size_t          nChanges;       // Number of changes
+                size_t          nRows;          // Number of rows in frame buffer
+                size_t          nCols;          // Number of columns in frame buffer
+                size_t          nCurrRow;       // Current row
+                float          *vData;          // Frame buffer data
+                uint8_t        *pData;          // Allocation pointer
+                float           fTransparency;  // Frame buffer transparency
+                size_t          nAngle;         // Frame buffer rotation angle 0..3
+                float           fHPos;          // Horizontal position on graph widget (-1 .. 1)
+                float           fVPos;          // Vertical position on graph widget (-1 .. 1)
+                float           fWidth;         // Width in pixels (-1 .. 1)
+                float           fHeight;        // Height in pixels (-1 .. 1)
+                bool            bClear;         // Clear flag: do complete redraw
+                size_t          nPalette;       // Palette used for drawing
+                calc_color_t    pCalcColor;     // Function for estimating color
+                Color           sBgColor;       // Background color
+                Color           sColor;         // Base color
+
+            protected:
+                void            drop_data();
+                void            calc_rainbow_color(Color &c, float value);
+                void            calc_fog_color(Color &c, float value);
+                void            calc_color(Color &c, float value);
+                void            calc_lightness(Color &c, float value);
+                void            calc_lightness2(Color &c, float value);
+                float          *get_buffer();
 
             public:
                 explicit LSPFrameBuffer(LSPDisplay *dpy);
@@ -49,6 +59,7 @@ namespace lsp
                 size_t  get_rows() const { return nRows; }
                 size_t  get_cols() const { return nCols; }
                 size_t  get_angle() const { return nAngle; }
+                size_t  get_palette() const { return nPalette; }
                 float   get_hpos() const { return fHPos; }
                 float   get_vpos() const { return fVPos; }
                 float   get_width() const { return fWidth; }
@@ -56,6 +67,7 @@ namespace lsp
                 float   get_transparency() const { return fTransparency; }
                 float   get_opacity() const { return 1.0f - fTransparency; }
                 inline Color *bg_color() { return &sBgColor; }
+                inline Color *color() { return &sColor; }
 
             public:
                 status_t append_data(const float *data);
@@ -68,6 +80,7 @@ namespace lsp
                 void set_width(float value);
                 void set_height(float value);
                 void set_transparency(float value);
+                void set_palette(size_t value);
                 inline void set_opacity(float value) { set_transparency(1.0f - value); };
 
             public:

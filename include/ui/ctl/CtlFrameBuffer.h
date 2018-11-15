@@ -22,8 +22,12 @@ namespace lsp
             protected:
                 CtlPort        *pPort;
                 size_t          nRowID;
+                CtlColor        sColor;
+                CtlColor        sBgColor;
 
             public:
+                virtual void init();
+
                 virtual void set(widget_attribute_t att, const char *value);
 
                 virtual void end();

@@ -24,10 +24,10 @@ namespace lsp
         void CtlMesh::init()
         {
             CtlWidget::init();
-            if (pWidget == NULL)
-                return;
 
-            LSPMesh *mesh       = static_cast<LSPMesh *>(pWidget);
+            LSPMesh *mesh       = widget_cast<LSPMesh>(pWidget);
+            if (mesh == NULL)
+                return;
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, mesh, mesh->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);

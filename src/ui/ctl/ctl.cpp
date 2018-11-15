@@ -164,6 +164,7 @@ namespace lsp
             "bind",
             "opacity",
             "transparency",
+            "mode",
             NULL
         };
 
