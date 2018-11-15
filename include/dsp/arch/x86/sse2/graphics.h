@@ -20,7 +20,8 @@ namespace sse2
     {
         FVEC4(0.5f),                // 1/2
         FVEC4(0.333333333333f),     // 1/3
-        FVEC4(1.0f)                 // 1
+        FVEC4(1.0f),                // 1
+        FVEC4(6.0f)                 // 6
     };
 
     #undef FVEC4
@@ -98,14 +99,23 @@ namespace sse2
             __ASM_EMIT("andnps          %%xmm6, %%xmm7")            // xmm6 = (H - 1/3 + 1) & [0 > (H - 1/3)]
             __ASM_EMIT("orps            %%xmm7, %%xmm2")            // xmm2 = TB = ((H - 1/3) & [0 <= (H - 1/3)]) | ((H - 1/3 + 1) & [0 > (H - 1/3)])
 
+            __ASM_EMIT("movaps          %%xmm4, %%xmm6")            // xmm6 = T2
+            __ASM_EMIT("movaps          0x30 + %[XC], %%xmm7")      // xmm7 = 6.0
+            __ASM_EMIT("subps           %%xmm5, %%xmm6")            // xmm6 = T2 - T1
+            __ASM_EMIT("mulps           %%xmm7, %%xmm6")            // xmm6 = K = (T2 - T1)*6.0
+
             // xmm0 = TR
             // xmm1 = TG
             // xmm2 = TB
             // xmm3 = A
             // xmm4 = T2
             // xmm5 = T1
+            // xmm6 = K
+            __ASM_EMIT("movaps          %%xmm0, 0x00 + %[HSLM]")
+            __ASM_EMIT("movaps          %%xmm1, 0x10 + %[HSLM]")
+            __ASM_EMIT("movaps          %%xmm2, 0x20 + %[HSLM]")
+            __ASM_EMIT("movaps          %%xmm3, 0x30 + %[HSLM]")
 
-            __ASM_EMIT("")
             __ASM_EMIT("")
             __ASM_EMIT("")
             __ASM_EMIT("")
