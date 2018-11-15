@@ -112,10 +112,15 @@ namespace native
         }
     }
 
+    static const float HSL_RGB_0_5          = 0.5f;
+    static const float HSL_RGB_1_3          = 1.0f / 3.0f;
+    static const float HSL_RGB_1_6          = 1.0f / 6.0f;
+    static const float HSL_RGB_2_3          = 2.0f / 3.0f;
+
     void hsla_to_rgba(float *dst, const float *src, size_t count)
     {
         float R, G, B, H, S, L;
-        float temp1, temp2, tempr, tempg, tempb;
+        float temp1, temp2, tempr, tempg, tempb, k;
 
         for (size_t i=0; i<count; ++i, dst += 4, src += 4)
         {
@@ -133,51 +138,41 @@ namespace native
             }
 
             //Set the temporary values
-            if  (L < 0.5)
-                temp2 = L * (1 + S);
+            if  (L < HSL_RGB_0_5)
+                temp2 = L + (L * S);
             else
                 temp2 = (L + S) - (L * S);
 
-            temp1 = 2 * L - temp2;
-            tempr = H + 1.0 / 3.0;
-            if (tempr > 1)
-                tempr--;
+            temp1 = L + L - temp2;
+            tempr = H + HSL_RGB_1_3;
+            if (tempr > 1.0f)
+                tempr   -= 1.0f;
 
             tempg = H;
-            tempb = H - 1.0 / 3.0;
+            tempb = H - HSL_RGB_1_3;
 
-            if (tempb < 0)
-                tempb++;
+            if (tempb < 0.0f)
+                tempb   += 1.0f;
+
+            k = (temp2 - temp1) * 6.0f;
 
             //Red
-            if (tempr < 1.0 / 6.0)
-                R = temp1 + (temp2 - temp1) * 6.0 * tempr;
-            else if (tempr < 0.5)
-                R = temp2;
-            else if (tempr < 2.0 / 3.0)
-                R = temp1 + (temp2 - temp1) * ((2.0 / 3.0) - tempr) * 6.0;
+            if (tempr < HSL_RGB_0_5)
+                R = (tempr < HSL_RGB_1_6) ? temp1 + k * tempr : temp2;
             else
-                R = temp1;
+                R = (tempr < HSL_RGB_2_3) ? temp1 + k * (HSL_RGB_2_3 - tempr) : temp1;
 
             //Green
-            if (tempg < 1.0 / 6.0)
-                G = temp1 + (temp2 - temp1) * 6.0 * tempg;
-            else if (tempg < 0.5)
-                G = temp2;
-            else if (tempg < 2.0 / 3.0)
-                G = temp1 + (temp2 - temp1) * ((2.0 / 3.0) - tempg) * 6.0;
+            if (tempg < HSL_RGB_0_5)
+                G = (tempg < HSL_RGB_1_6) ? temp1 + k * tempg : temp2;
             else
-                G = temp1;
+                G = (tempg < HSL_RGB_2_3) ? temp1 + k * (HSL_RGB_2_3 - tempg) : temp1;
 
             //Blue
-            if (tempb < 1.0 / 6.0)
-                B = temp1 + (temp2 - temp1) * 6.0 * tempb;
-            else if (tempb < 0.5)
-                B = temp2;
-            else if (tempb < 2.0 / 3.0)
-                B = temp1 + (temp2 - temp1) * ((2.0 / 3.0) - tempb) * 6.0;
+            if (tempb < HSL_RGB_0_5)
+                B = (tempb < HSL_RGB_1_6) ? temp1 + k * tempb : temp2;
             else
-                B = temp1;
+                B = (tempb < HSL_RGB_2_3) ? temp1 + k * (HSL_RGB_2_3 - tempb) : temp1;
 
             dst[0]  = R;
             dst[1]  = G;
