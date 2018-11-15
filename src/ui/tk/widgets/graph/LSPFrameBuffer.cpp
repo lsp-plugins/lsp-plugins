@@ -24,6 +24,7 @@ namespace lsp
             nCols       = 0;
             nCurrRow    = 0;
             vData       = NULL;
+            vTempRGBA   = NULL;
             pData       = NULL;
 
             fTransparency    = 1.0f;
@@ -55,28 +56,32 @@ namespace lsp
                 vData = NULL;
                 pData = NULL;
             }
+            vTempRGBA   = NULL;
+        }
+
+        void LSPFrameBuffer::allocate_buffer()
+        {
+            size_t amount = nRows * nCols;
+            if (amount <= 0)
+                return;
+
+            amount     += nCols * 4; // RGBA x number of columns for temporary buffer
+            vData       = alloc_aligned<float>(pData, amount, ALIGN64);
+            vTempRGBA   = &vData[nRows * nCols];
         }
 
         float *LSPFrameBuffer::get_buffer()
         {
-            if (vData != NULL)
-                return vData;
-
-            size_t amount = nRows * nCols;
-            if (amount <= 0)
-                return NULL;
-
-            vData = alloc_aligned<float>(pData, amount, ALIGN64);
             if (vData == NULL)
-                return NULL;
-
-            dsp::fill_zero(vData, amount);
-
-            nCurrRow    = 0;
-            nChanges    = 0;
-            bClear      = true;
-
+                allocate_buffer();
             return vData;
+        }
+
+        float *LSPFrameBuffer::get_rgba_buffer()
+        {
+            if (vTempRGBA == NULL)
+                allocate_buffer();
+            return vTempRGBA;
         }
 
         status_t LSPFrameBuffer::init()
@@ -193,11 +198,12 @@ namespace lsp
             switch (value % 5)
             {
                 case 0: pCalcColor  = &LSPFrameBuffer::calc_rainbow_color; break;
-                case 1: pCalcColor  = &LSPFrameBuffer::calc_fog_color; break;
-                case 2: pCalcColor  = &LSPFrameBuffer::calc_color; break;
-                case 3: pCalcColor  = &LSPFrameBuffer::calc_lightness; break;
-                case 4: pCalcColor  = &LSPFrameBuffer::calc_lightness2; break;
+//                case 1: pCalcColor  = &LSPFrameBuffer::calc_fog_color; break;
+//                case 2: pCalcColor  = &LSPFrameBuffer::calc_color; break;
+//                case 3: pCalcColor  = &LSPFrameBuffer::calc_lightness; break;
+//                case 4: pCalcColor  = &LSPFrameBuffer::calc_lightness2; break;
                 default:
+                    pCalcColor  = &LSPFrameBuffer::calc_rainbow_color; break;
                     break;
             }
 
@@ -206,78 +212,88 @@ namespace lsp
             query_draw();
         }
 
-        void LSPFrameBuffer::calc_rainbow_color(Color &c, float value)
+        void LSPFrameBuffer::calc_rainbow_color(float *rgba, const float *v, size_t n)
         {
-            value = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
-            c.copy(sColor);
+            dsp::fill_hsla(rgba, sColor.hue(), sColor.saturation(), sColor.lightness(), sColor.alpha(), n);
 
-            if (value < DIV_2_3)
+            float value, hue;
+            float *c    = rgba;
+
+            for (size_t i=0; i<n; ++i, c += 4)
             {
-                float hue = c.hue() + value;
-                c.hue(hue - long(hue));
-                c.alpha(0.0f);
+                value   = v[i];
+                value   = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
+
+                if (value < DIV_2_3)
+                {
+                    hue         = c[0] + value;
+                    c[0]        = hue - int(hue); // simple fmod()
+                    c[3]        = 0.0f;
+                }
+                else
+                {
+                    hue         = c[0] + DIV_2_3;
+                    c[0]        = hue - int(hue); // simple fmod()
+                    c[3]        = ((value - DIV_2_3) * 3.0f);
+                }
             }
-            else
-            {
-                float hue = c.hue() + DIV_2_3;
-                c.hue(hue - long(hue));
-                c.alpha((value - DIV_2_3) * 3.0f);
-            }
+
+            dsp::hsla_to_rgba(rgba, rgba, n);
         }
 
-        void LSPFrameBuffer::calc_fog_color(Color &c, float value)
-        {
-            value = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
-            c.copy(&sColor, value);
-        }
-
-        void LSPFrameBuffer::calc_color(Color &c, float value)
-        {
-            value = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
-            c.copy(&sColor, value);
-            if (value >= 0.25f)
-            {
-                c.saturation(c.saturation() * value);
-                c.alpha(0.0f);
-            }
-            else
-            {
-                c.saturation(c.saturation() * 0.25f);
-                c.alpha((0.25f - value) * 4.0f);
-            }
-        }
-
-        void LSPFrameBuffer::calc_lightness(Color &c, float value)
-        {
-            value = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
-            c.copy(&sColor, value);
-            if (value >= 0.25f)
-            {
-                c.lightness(value);
-                c.alpha(0.0f);
-            }
-            else
-            {
-                c.lightness(0.25f);
-                c.alpha((0.25f - value) * 4.0f);
-            }
-        }
-
-        void LSPFrameBuffer::calc_lightness2(Color &c, float value)
-        {
-            value = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
-            c.copy(&sColor, value);
-            if (value >= 0.25f)
-            {
-                c.lightness(value * 0.5f);
-                c.alpha(0.0f);
-            }
-            else
-            {
-                c.lightness(0.125f);
-                c.alpha((0.25f - value) * 4.0f);
-            }
-        }
+//        void LSPFrameBuffer::calc_fog_color(Color &c, float value)
+//        {
+//            value = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
+//            c.copy(&sColor, value);
+//        }
+//
+//        void LSPFrameBuffer::calc_color(Color &c, float value)
+//        {
+//            value = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
+//            c.copy(&sColor, value);
+//            if (value >= 0.25f)
+//            {
+//                c.saturation(c.saturation() * value);
+//                c.alpha(0.0f);
+//            }
+//            else
+//            {
+//                c.saturation(c.saturation() * 0.25f);
+//                c.alpha((0.25f - value) * 4.0f);
+//            }
+//        }
+//
+//        void LSPFrameBuffer::calc_lightness(Color &c, float value)
+//        {
+//            value = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
+//            c.copy(&sColor, value);
+//            if (value >= 0.25f)
+//            {
+//                c.lightness(value);
+//                c.alpha(0.0f);
+//            }
+//            else
+//            {
+//                c.lightness(0.25f);
+//                c.alpha((0.25f - value) * 4.0f);
+//            }
+//        }
+//
+//        void LSPFrameBuffer::calc_lightness2(Color &c, float value)
+//        {
+//            value = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
+//            c.copy(&sColor, value);
+//            if (value >= 0.25f)
+//            {
+//                c.lightness(value * 0.5f);
+//                c.alpha(0.0f);
+//            }
+//            else
+//            {
+//                c.lightness(0.125f);
+//                c.alpha((0.25f - value) * 4.0f);
+//            }
+//        }
 
         void LSPFrameBuffer::render(ISurface *s, bool force)
         {
@@ -287,7 +303,8 @@ namespace lsp
 
             // Get data buffer
             float *buf = get_buffer();
-            if (buf == NULL)
+            float *rgba = get_rgba_buffer();
+            if ((buf == NULL) || (rgba == NULL))
                 return;
 
             // Get drawing surface
@@ -328,12 +345,12 @@ namespace lsp
                         for (ssize_t y=0; nChanges > 0; ++y, --nChanges)
                         {
                             const float *p = &vData[row * nCols];
+                            (this->*pCalcColor)(rgba, p, nCols);
+                            const float *c = rgba;
 
-                            for (size_t x=0; x<nCols; ++x)
-                            {
-                                (this->*pCalcColor)(c, *(p++));
-                                pp->square_dot(x, y, 1.0f, c);
-                            }
+                            for (size_t x=0; x<nCols; ++x, c += 4)
+                                pp->square_dot(x, y, 1.0f, c[0], c[1], c[2], c[3]);
+
                             row = (row + nRows - 1) % nRows;
                         }
                         break;
@@ -343,11 +360,12 @@ namespace lsp
                         for (ssize_t x=0; nChanges > 0; ++x, --nChanges)
                         {
                             const float *p = &vData[row * nCols];
-                            for (size_t y=0; y<nCols; ++y)
-                            {
-                                (this->*pCalcColor)(c, *(p++));
-                                pp->square_dot(x, y, 1.0f, c);
-                            }
+                            (this->*pCalcColor)(rgba, p, nCols);
+                            const float *c = rgba;
+
+                            for (size_t y=0; y<nCols; ++y, c += 4)
+                                pp->square_dot(x, y, 1.0f, c[0], c[1], c[2], c[3]);
+
                             row = (row + nRows - 1) % nRows;
                         }
                         break;
@@ -357,11 +375,12 @@ namespace lsp
                         for (ssize_t y=nRows-1; nChanges > 0; --y, --nChanges)
                         {
                             const float *p = &vData[row * nCols];
-                            for (size_t x=0; x<nCols; ++x)
-                            {
-                                (this->*pCalcColor)(c, *(p++));
-                                pp->square_dot(x, y, 1.0f, c);
-                            }
+                            (this->*pCalcColor)(rgba, p, nCols);
+                            const float *c = rgba;
+
+                            for (size_t x=0; x<nCols; ++x, c += 4)
+                                pp->square_dot(x, y, 1.0f, c[0], c[1], c[2], c[3]);
+
                             row = (row + nRows - 1) % nRows;
                         }
                         break;
@@ -371,11 +390,12 @@ namespace lsp
                         for (ssize_t x=nRows-1; nChanges > 0; --x, --nChanges)
                         {
                             const float *p = &vData[row * nCols];
-                            for (size_t y=0; y<nCols; ++y)
-                            {
-                                (this->*pCalcColor)(c, *(p++));
-                                pp->square_dot(x, y, 1.0f, c);
-                            }
+                            (this->*pCalcColor)(rgba, p, nCols);
+                            const float *c = rgba;
+
+                            for (size_t y=0; y<nCols; ++y, c += 4)
+                                pp->square_dot(x, y, 1.0f, c[0], c[1], c[2], c[3]);
+
                             row = (row + nRows - 1) % nRows;
                         }
                         break;

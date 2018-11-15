@@ -265,6 +265,10 @@ namespace lsp
         {
         }
 
+        void ISurface::square_dot(float x, float y, float width, float r, float g, float b, float a)
+        {
+        }
+
         void ISurface::line(float x0, float y0, float x1, float y1, float width, const Color &color)
         {
         }

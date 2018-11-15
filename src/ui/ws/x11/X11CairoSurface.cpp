@@ -598,6 +598,23 @@ namespace lsp
                 cairo_set_line_cap(pCR, cap);
             }
 
+            void X11CairoSurface::square_dot(float x, float y, float width, float r, float g, float b, float a)
+            {
+                if (pCR == NULL)
+                    return;
+
+                double ow = cairo_get_line_width(pCR);
+                cairo_line_cap_t cap = cairo_get_line_cap(pCR);
+                cairo_set_source_rgba(pCR, r, g, b, 1.0f - a);
+                cairo_set_line_width(pCR, width);
+                cairo_set_line_cap(pCR, CAIRO_LINE_CAP_SQUARE);
+                cairo_move_to(pCR, x + 0.5f, y + 0.5f);
+                cairo_line_to(pCR, x + 1.5f, y + 0.5f);
+                cairo_stroke(pCR);
+                cairo_set_line_width(pCR, ow);
+                cairo_set_line_cap(pCR, cap);
+            }
+
             void X11CairoSurface::line(float x0, float y0, float x1, float y1, float width, const Color &color)
             {
                 if (pCR == NULL)

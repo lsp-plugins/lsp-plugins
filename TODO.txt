@@ -36,6 +36,26 @@
 - Added bookmarks to file opening dialog.
 - Added subsystem for loading missed files.
 
+Graphics optimizations required:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 27.81      0.47     0.47    39639     0.00     0.00  native::hsla_to_rgba(float*, float const*, unsigned long)
+ 13.02      0.69     0.22 10169657     0.00     0.00  lsp::ws::x11::X11CairoSurface::square_dot(float, float, float, float, float, float, float)
+  7.69      0.82     0.13    39705     0.00     0.00  lsp::tk::LSPFrameBuffer::calc_rainbow_color(float*, float const*, unsigned long)
+  7.69      0.95     0.13     5258     0.00     0.00  lsp::tk::LSPFrameBuffer::render(lsp::ws::ISurface*, bool)
+  5.33      1.04     0.09    40616     0.00     0.00  native::limit_saturate2(float*, float const*, unsigned long)
+  3.55      1.10     0.06    39528     0.00     0.00  native::fill_hsla(float*, float, float, float, float, unsigned long)
+  2.37      1.14     0.04   248921     0.00     0.00  sse3::x64_axis_apply_log(float*, float*, float const*, float, float, float, unsigned long)
+  2.37      1.18     0.04    59497     0.00     0.00  lsp::test_plugin::oscillate(float*, lsp::test_plugin::osc_t const*, float, unsigned long)
+  1.78      1.21     0.03 10401923     0.00     0.00  __gnu_cxx::__enable_if<std::__is_arithmetic<float>::__value, int>::__type std::isinf<float>(float)
+  1.78      1.24     0.03    42016     0.00     0.00  lsp::tk::LSPDot::render(lsp::ws::ISurface*, bool)
+  1.78      1.27     0.03      448     0.00     0.00  lsp::ws::x11::X11Window::set_icon(void const*, unsigned long, unsigned long)
+  1.18      1.29     0.02 10400357     0.00     0.00  __gnu_cxx::__enable_if<std::__is_arithmetic<float>::__value, int>::__type std::isnan<float>(float)
+  1.18      1.31     0.02   995564     0.00     0.00  lsp::line2d_intersection(float, float, float, float, float, float, float&, float&)
+  1.18      1.33     0.02   446256     0.00     0.00  lsp::tk::LSPWidget::instance_of(lsp::tk::w_class_t const*) const
+
 *******************************************************************************
 * Release steps
 *******************************************************************************

@@ -134,6 +134,8 @@ namespace lsp
 
                     virtual void square_dot(float x, float y, float width, const Color &color);
 
+                    virtual void square_dot(float x, float y, float width, float r, float g, float b, float a);
+
                     virtual void line(float x0, float y0, float x1, float y1, float width, const Color &color);
 
                     virtual void line(float x0, float y0, float x1, float y1, float width, IGradient *g);

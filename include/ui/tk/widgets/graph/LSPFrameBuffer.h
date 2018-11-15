@@ -18,7 +18,7 @@ namespace lsp
                 static const w_class_t    metadata;
 
             protected:
-                typedef void (LSPFrameBuffer::*calc_color_t)(Color &c, float value);
+                typedef void (LSPFrameBuffer::*calc_color_t)(float *rgba, const float *value, size_t n);
 
             protected:
                 size_t          nChanges;       // Number of changes
@@ -26,6 +26,7 @@ namespace lsp
                 size_t          nCols;          // Number of columns in frame buffer
                 size_t          nCurrRow;       // Current row
                 float          *vData;          // Frame buffer data
+                float          *vTempRGBA;      // Temporary RGBA buffer data
                 uint8_t        *pData;          // Allocation pointer
                 float           fTransparency;  // Frame buffer transparency
                 size_t          nAngle;         // Frame buffer rotation angle 0..3
@@ -41,12 +42,14 @@ namespace lsp
 
             protected:
                 void            drop_data();
-                void            calc_rainbow_color(Color &c, float value);
-                void            calc_fog_color(Color &c, float value);
-                void            calc_color(Color &c, float value);
-                void            calc_lightness(Color &c, float value);
-                void            calc_lightness2(Color &c, float value);
+                void            calc_rainbow_color(float *rgba, const float *value, size_t n);
+//                void            calc_fog_color(float *rgba, const float *value, size_t n);
+//                void            calc_color(float *rgba, const float *value, size_t n);
+//                void            calc_lightness(float *rgba, const float *value, size_t n);
+//                void            calc_lightness2(float *rgba, const float *value, size_t n);
+                void            allocate_buffer();
                 float          *get_buffer();
+                float          *get_rgba_buffer();
 
             public:
                 explicit LSPFrameBuffer(LSPDisplay *dpy);

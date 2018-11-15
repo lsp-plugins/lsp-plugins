@@ -459,6 +459,18 @@ namespace lsp
                  */
                 virtual void square_dot(float x, float y, float width, const Color &color);
 
+                /**
+                 * Draw square dot
+                 * @param x dot location X
+                 * @param y dot location Y
+                 * @param width dot width
+                 * @param r red
+                 * @param g green
+                 * @param b blue
+                 * @param a alpha
+                 */
+                virtual void square_dot(float x, float y, float width, float r, float g, float b, float a);
+
                 /** Draw line
                  *
                  * @param x0 first point x coordinate
