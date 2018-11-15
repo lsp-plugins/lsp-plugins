@@ -7,7 +7,7 @@
 				null ));
 	$c      =   ($m == 'm') ? ' the mono channel' : (
 	            ($m == 's') ? ' the stereo channel' : (
-	            ($m == 'x2s') ? ' each inidividual channel of the stereo channel' :
+	            ($m == 'x2s') ? ' each individual channel of the stereo channel' :
 				null ));
 	$n      =   ($m == 'x2s') ? 2 : 1;
 	$cc     =   ($m == 'x2s') ? ' for the corresponding channel' : '';
