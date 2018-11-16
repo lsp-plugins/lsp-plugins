@@ -65,6 +65,11 @@ namespace native
         }
     }
 
+    static const float HSL_RGB_0_5          = 0.5f;
+    static const float HSL_RGB_1_3          = 1.0f / 3.0f;
+    static const float HSL_RGB_1_6          = 1.0f / 6.0f;
+    static const float HSL_RGB_2_3          = 2.0f / 3.0f;
+
     void rgba_to_hsla(float *dst, const float *src, size_t count)
     {
         float R, G, B, H, S, L;
@@ -79,31 +84,31 @@ namespace native
             float cmin = (R < G) ? ((B < R) ? B : R) : ((B < G) ? B : G);
             float d = cmax - cmin;
 
-            H = 0.0;
-            S = 0.0;
-            L = 0.5 * (cmax + cmin);
+            H = 0.0f;
+            S = 0.0f;
+            L = HSL_RGB_0_5 * (cmax + cmin);
 
             // Calculate hue
             if (R == cmax)
             {
                 H = (G - B) / d;
                 if (G < B)
-                    H += 6.0;
+                    H += 6.0f;
             }
             else if (G == cmax)
-                H = (B - R) / d + 2.0;
+                H = (B - R) / d + 2.0f;
             else if (B == cmax)
-                H = (R - G) / d + 4.0;
+                H = (R - G) / d + 4.0f;
 
             // Calculate saturation
-            if (L < 1.0)
+            if (L < 1.0f)
                 S = d / L;
-            else if (L > 1.0)
-                S = d / (1.0 - L);
+            else if (L > 1.0f)
+                S = d / (1.0f - L);
 
             // Normalize hue and saturation
-            H  /= 6.0;
-            S  *= 0.5;
+            H  *= HSL_RGB_1_6;
+            S  *= HSL_RGB_0_5;
 
             dst[0]  = H;
             dst[1]  = S;
@@ -111,11 +116,6 @@ namespace native
             dst[3]  = src[3];
         }
     }
-
-    static const float HSL_RGB_0_5          = 0.5f;
-    static const float HSL_RGB_1_3          = 1.0f / 3.0f;
-    static const float HSL_RGB_1_6          = 1.0f / 6.0f;
-    static const float HSL_RGB_2_3          = 2.0f / 3.0f;
 
     void hsla_to_rgba(float *dst, const float *src, size_t count)
     {
