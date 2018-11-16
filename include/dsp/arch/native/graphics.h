@@ -128,14 +128,14 @@ namespace native
             S   = src[1];
             L   = src[2];
 
-            if (S <= 0.0f)
-            {
-                dst[0] = L;
-                dst[1] = L;
-                dst[2] = L;
-                dst[3] = src[3];
-                continue;
-            }
+//            if (S <= 0.0f)
+//            {
+//                dst[0] = L;
+//                dst[1] = L;
+//                dst[2] = L;
+//                dst[3] = src[3];
+//                continue;
+//            }
 
             //Set the temporary values
             if  (L < HSL_RGB_0_5)
@@ -155,6 +155,17 @@ namespace native
                 tempb   += 1.0f;
 
             k = (temp2 - temp1) * 6.0f;
+
+            /*
+            float ktr = temp1 + k * tempr;
+            float rtr = temp1 + k * (HSL_RGB_2_3 - tempr);
+            float ktg = temp1 + k * tempg;
+            float rtg = temp1 + k * (HSL_RGB_2_3 - tempg);
+            float ktb = temp1 + k * tempb;
+            float rtb = temp1 + k * (HSL_RGB_2_3 - tempb);
+
+            printf("ktr = %.2f, ktg=%.2f, ktb=%.2f\n", ktr, ktg, ktb);
+            printf("rtr = %.2f, rtg=%.2f, rtb=%.2f\n", rtr, rtg, rtb);*/
 
             //Red
             if (tempr < HSL_RGB_0_5)
