@@ -41,20 +41,47 @@ Graphics optimizations required:
 Each sample counts as 0.01 seconds.
   %   cumulative   self              self     total           
  time   seconds   seconds    calls   s/call   s/call  name    
- 27.81      0.47     0.47    39639     0.00     0.00  native::hsla_to_rgba(float*, float const*, unsigned long)
- 13.02      0.69     0.22 10169657     0.00     0.00  lsp::ws::x11::X11CairoSurface::square_dot(float, float, float, float, float, float, float)
-  7.69      0.82     0.13    39705     0.00     0.00  lsp::tk::LSPFrameBuffer::calc_rainbow_color(float*, float const*, unsigned long)
-  7.69      0.95     0.13     5258     0.00     0.00  lsp::tk::LSPFrameBuffer::render(lsp::ws::ISurface*, bool)
-  5.33      1.04     0.09    40616     0.00     0.00  native::limit_saturate2(float*, float const*, unsigned long)
-  3.55      1.10     0.06    39528     0.00     0.00  native::fill_hsla(float*, float, float, float, float, unsigned long)
-  2.37      1.14     0.04   248921     0.00     0.00  sse3::x64_axis_apply_log(float*, float*, float const*, float, float, float, unsigned long)
-  2.37      1.18     0.04    59497     0.00     0.00  lsp::test_plugin::oscillate(float*, lsp::test_plugin::osc_t const*, float, unsigned long)
-  1.78      1.21     0.03 10401923     0.00     0.00  __gnu_cxx::__enable_if<std::__is_arithmetic<float>::__value, int>::__type std::isinf<float>(float)
-  1.78      1.24     0.03    42016     0.00     0.00  lsp::tk::LSPDot::render(lsp::ws::ISurface*, bool)
-  1.78      1.27     0.03      448     0.00     0.00  lsp::ws::x11::X11Window::set_icon(void const*, unsigned long, unsigned long)
-  1.18      1.29     0.02 10400357     0.00     0.00  __gnu_cxx::__enable_if<std::__is_arithmetic<float>::__value, int>::__type std::isnan<float>(float)
-  1.18      1.31     0.02   995564     0.00     0.00  lsp::line2d_intersection(float, float, float, float, float, float, float&, float&)
-  1.18      1.33     0.02   446256     0.00     0.00  lsp::tk::LSPWidget::instance_of(lsp::tk::w_class_t const*) const
+ 20.16      0.25     0.25  8613494     0.00     0.00  lsp::ws::x11::X11CairoSurface::square_dot(float, float, float, float, float, float, float)
+ 11.29      0.39     0.14    33595     0.00     0.00  lsp::tk::LSPFrameBuffer::calc_rainbow_color(float*, float const*, unsigned long)
+ 11.29      0.53     0.14     4447     0.00     0.00  lsp::tk::LSPFrameBuffer::render(lsp::ws::ISurface*, bool)
+  8.87      0.64     0.11    33672     0.00     0.00  native::limit_saturate2(float*, float const*, unsigned long)
+  7.26      0.73     0.09    33622     0.00     0.00  sse2::hsla_to_rgba(float*, float const*, unsigned long)
+  3.23      0.77     0.04  8621203     0.00     0.00  __gnu_cxx::__enable_if<std::__is_arithmetic<float>::__value, int>::__type std::isnan<float>(float)
+  3.23      0.81     0.04   698080     0.00     0.00  lsp::basic_vector::get_item(unsigned long) const
+  2.42      0.84     0.03  8622479     0.00     0.00  __gnu_cxx::__enable_if<std::__is_arithmetic<float>::__value, int>::__type std::isinf<float>(float)
+  2.42      0.87     0.03   364685     0.00     0.00  lsp::tk::LSPCenter::canvas_left() const
+  1.61      0.89     0.02   843470     0.00     0.00  lsp::line2d_intersection(float, float, float, float, float, float, float&, float&)
+  1.61      0.91     0.02   421812     0.00     0.00  lsp::clip2d(float, float, float, float, float, float)
+  1.61      0.93     0.02   211161     0.00     0.00  lsp::tk::LSPAxis::apply(float*, float*, float const*, unsigned long)
+  1.61      0.95     0.02   210947     0.00     0.00  sse3::x64_axis_apply_log(float*, float*, float const*, float, float, float, unsigned long)
+  1.61      0.97     0.02    73222     0.00     0.00  lsp::tk::LSPWidget::query_draw(unsigned long)
+  1.61      0.99     0.02    35587     0.00     0.00  lsp::tk::LSPDot::render(lsp::ws::ISurface*, bool)
+  1.61      1.01     0.02     4442     0.00     0.00  lsp::tk::LSPFrameBuffer::get_rows() const
+  1.61      1.03     0.02                             lsp::ws::x11::X11CairoSurface::square_dot(float, float, float, lsp::Color const&)
+  0.81      1.04     0.01   840236     0.00     0.00  lsp::Color::check_rgb() const
+  0.81      1.05     0.01   297943     0.00     0.00  lsp::tk::LSPGraph::area_right() const
+  0.81      1.06     0.01   297787     0.00     0.00  lsp::locate_line2d(float, float, float, float, float&, float&, float&)
+  0.81      1.07     0.01   265384     0.00     0.00  lsp::tk::LSPWidget::visible() const
+  0.81      1.08     0.01   211234     0.00     0.00  lsp::clip_line2d(float, float, float, float, float, float, float, float&, float&, float&, float&)
+  0.81      1.09     0.01    81269     0.00     0.00  lsp::LSPString::get_native(long, long, char const*) const
+  0.81      1.10     0.01    81227     0.00     0.00  lsp::init_iconv_from_wchar_t(char const*)
+  0.81      1.11     0.01    37537     0.00     0.00  x86::copy(float*, float const*, unsigned long)
+  0.81      1.12     0.01    33669     0.00     0.00  lsp::tk::LSPFrameBuffer::append_data(float const*)
+  0.81      1.13     0.01    11013     0.00     0.00  lsp::tk::LSPTimer::submit_task(unsigned long)
+  0.81      1.14     0.01     7037     0.00     0.00  lsp::tk::LSPWidget::get_surface(lsp::ws::ISurface*, long, long)
+  0.81      1.15     0.01     5636     0.00     0.00  lsp::tk::LSPGraphItem::inside(long, long)
+  0.81      1.16     0.01     2230     0.00     0.00  lsp::tk::LSPWindow::render(lsp::ws::ISurface*, bool)
+  0.81      1.17     0.01      373     0.00     0.00  lsp::ws::x11::X11Window::set_icon(void const*, unsigned long, unsigned long)
+  0.81      1.18     0.01      284     0.00     0.00  lsp::Color::Color(lsp::Color const&)
+  0.81      1.19     0.01       20     0.00     0.00  lsp::basic_vector::remove_item(unsigned long, bool)
+  0.81      1.20     0.01        3     0.00     0.00  lsp::ws::x11::X11CairoSurface::get_antialiasing()
+  0.81      1.21     0.01                             lsp::ws::x11::decode_keycode(unsigned long)
+  0.40      1.22     0.01   314639     0.00     0.00  lsp::Color::alpha() const
+  0.40      1.22     0.01   279361     0.00     0.00  lsp::Color::blue() const
+  0.40      1.23     0.01    40140     0.00     0.00  lsp::Color::Color(float, float, float)
+  0.40      1.23     0.01    33481     0.00     0.00  sse::fill_hsla(float*, float, float, float, float, unsigned long)
+  0.40      1.24     0.01                             lsp::Convolver::process(float*, float const*, unsigned long)
+  0.40      1.24     0.01                             sse::fill_rgba(float*, float, float, float, float, unsigned long)
 
 *******************************************************************************
 * Release steps

@@ -65,9 +65,9 @@ PTEST_BEGIN("dsp.graphics", hsla_to_rgba, 5, 5000)
         {
             size_t count = 1 << i;
 
-            call("native:hsla_to_rgba", dst, src, count, native::hsla_to_rgba);
-            IF_ARCH_X86(call("sse2:hsla_to_rgba", dst, src, count, sse2::hsla_to_rgba));
-//            IF_ARCH_ARM(call("neon_d32:hsla_to_rgba", dst, src, count, neon_d32::hsla_to_rgba));
+            call("native::hsla_to_rgba", dst, src, count, native::hsla_to_rgba);
+            IF_ARCH_X86(call("sse2::hsla_to_rgba", dst, src, count, sse2::hsla_to_rgba));
+//            IF_ARCH_ARM(call("neon_d32::hsla_to_rgba", dst, src, count, neon_d32::hsla_to_rgba));
 
             PTEST_SEPARATOR;
         }
