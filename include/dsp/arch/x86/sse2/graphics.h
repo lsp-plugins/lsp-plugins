@@ -26,10 +26,14 @@ namespace sse2
         FVEC4(0.666666666667f)      // 2/3
     };
 
+    static const float RGB_HSL[] =
+    {
+        FVEC4(0.5f),                // 1/2
+    };
+
     #undef FVEC4
 
-#define HSLA_TO_RGBA_CORE   \
-    /*  Transpose */\
+#define HSLA_TRANSPOSE \
     __ASM_EMIT("movaps          %%xmm2, %%xmm4") \
     __ASM_EMIT("punpckldq       %%xmm3, %%xmm2") \
     __ASM_EMIT("punpckhdq       %%xmm3, %%xmm4") \
@@ -42,6 +46,10 @@ namespace sse2
     __ASM_EMIT("movaps          %%xmm3, %%xmm2") \
     __ASM_EMIT("punpcklqdq      %%xmm4, %%xmm2") \
     __ASM_EMIT("punpckhqdq      %%xmm4, %%xmm3") \
+
+#define HSLA_TO_RGBA_CORE   \
+    /*  Transpose */\
+    HSLA_TRANSPOSE \
     \
     /*  xmm0 = h0 h1 h2 h3 = H */ \
     /*  xmm1 = s0 s1 s2 s3 = S */ \
@@ -187,18 +195,7 @@ namespace sse2
     __ASM_EMIT("orps            %%xmm6, %%xmm2") \
     \
     /*  Transpose final result back */ \
-    __ASM_EMIT("movaps          %%xmm2, %%xmm4") \
-    __ASM_EMIT("punpckldq       %%xmm3, %%xmm2") \
-    __ASM_EMIT("punpckhdq       %%xmm3, %%xmm4") \
-    __ASM_EMIT("movaps          %%xmm0, %%xmm3") \
-    __ASM_EMIT("punpckldq       %%xmm1, %%xmm0") \
-    __ASM_EMIT("punpckhdq       %%xmm1, %%xmm3") \
-    __ASM_EMIT("movaps          %%xmm0, %%xmm1") \
-    __ASM_EMIT("punpcklqdq      %%xmm2, %%xmm0") \
-    __ASM_EMIT("punpckhqdq      %%xmm2, %%xmm1") \
-    __ASM_EMIT("movaps          %%xmm3, %%xmm2") \
-    __ASM_EMIT("punpcklqdq      %%xmm4, %%xmm2") \
-    __ASM_EMIT("punpckhqdq      %%xmm4, %%xmm3")
+    HSLA_TRANSPOSE
 
     void hsla_to_rgba(float *dst, const float *src, size_t count)
     {
@@ -320,6 +317,194 @@ namespace sse2
 
 #undef HSLA_TO_RGBA_CORE
 
+#define RGBA_TO_HSLA_CORE \
+    /*  Transpose */\
+    HSLA_TRANSPOSE \
+    \
+    /*  xmm0 = r0 r1 r2 r3 = R */ \
+    /*  xmm1 = g0 h1 g2 g3 = G */ \
+    /*  xmm2 = b0 b1 b2 b3 = B */ \
+    /*  xmm3 = a0 a1 a2 a3 = A */ \
+    __ASM_EMIT("movaps      %%xmm0, %%xmm6") \
+    __ASM_EMIT("movaps      %%xmm1, %%xmm7") \
+    __ASM_EMIT("minps       %%xmm2, %%xmm6") \
+    __ASM_EMIT("maxps       %%xmm0, %%xmm7") \
+    __ASM_EMIT("minps       %%xmm1, %%xmm6")            /* xmm6 = CMIN */ \
+    __ASM_EMIT("maxps       %%xmm2, %%xmm7")            /* xmm6 = CMAX */ \
+    __ASM_EMIT("movaps      %%xmm0, 0x00(%[RGBM])")     /* R */ \
+    __ASM_EMIT("movaps      %%xmm1, 0x10(%[RGBM])")     /* G */ \
+    __ASM_EMIT("movaps      %%xmm2, 0x20(%[RGBM])")     /* B */ \
+    __ASM_EMIT("movaps      %%xmm3, 0x30(%[RGBM])")     /* A */ \
+    __ASM_EMIT("movaps      %%xmm6, 0x40(%[RGBM])")     /* CMIN */ \
+    __ASM_EMIT("movaps      %%xmm7, 0x50(%[RGBM])")     /* CMAX */ \
+    __ASM_EMIT("addps       %%xmm6, %%xmm7")            /* xmm7 = D = CMAX - CMIN */ \
+    \
+    __ASM_EMIT("movaps      %%xmm0, %%xmm3")            /* xmm3 = R */ \
+    __ASM_EMIT("subps       %%xmm1, %%xmm0")            /* xmm0 = R - G */ \
+    __ASM_EMIT("subps       %%xmm2, %%xmm1")            /* xmm1 = G - B */ \
+    __ASM_EMIT("divps       %%xmm7, %%xmm0")            /* xmm0 = (R-G)/D */ \
+    __ASM_EMIT("subps       %%xmm3, %%xmm2")            /* xmm2 = B - R */ \
+    __ASM_EMIT("addps       0x00 + %[XC], %%xmm0")      /* xmm0 = HB = (R-G)/D + 4 */ \
+    __ASM_EMIT("divps       %%xmm7, %%xmm2")            /* xmm2 = (B-R)/D */ \
+    __ASM_EMIT("xorps       %%xmm3, %%xmm3")            /* xmm3 = 0 */ \
+    __ASM_EMIT("addps       0x10 + %[XC], %%xmm2")      /* xmm2 = HG = (B-R)/D + 2 */ \
+    __ASM_EMIT("cmpps       $6, %%xmm1, %%xmm3")        /* xmm3 = (G-B)/D < 0 */ \
+    __ASM_EMIT("divps       %%xmm7, %%xmm1")            /* xmm1 = (G-B)/D */ \
+    __ASM_EMIT("andps       0x20 + %[XC], %%xmm3")      /* xmm3 = [ (G-B)/D < 0 ] & 6 */ \
+    __ASM_EMIT("addps       %%xmm3, %%xmm1")            /* xmm1 = HR = (G-B)/D + [ (G-B)/D < 0 ] & 6 */ \
+    \
+    /* xmm0 = HB        */ \
+    /* xmm1 = HR        */ \
+    /* xmm2 = HG        */ \
+    /* xmm6 = CMAX      */ \
+    /* xmm7 = D         */ \
+    __ASM_EMIT("movaps      %%xmm6, %%xmm5")            /* xmm5 = CMAX */ \
+    __ASM_EMIT("movaps      %%xmm6, %%xmm4")            /* xmm4 = CMAX */ \
+    __ASM_EMIT("cmpps       $0, 0x00(%[RGBM]), %%xmm5") /* xmm5 = [ R == CMAX ] */ \
+    __ASM_EMIT("cmpps       $0, 0x10(%[RGBM]), %%xmm6") /* xmm6 = [ G == CMAX ] */ \
+    __ASM_EMIT("movaps      %%xmm5, %%xmm3")            /* xmm3 = [ R == CMAX ] */ \
+    __ASM_EMIT("movaps      %%xmm6, %%xmm4")            /* xmm4 = [ G == CMAX ] */ \
+    __ASM_EMIT("andps       %%xmm5, %%xmm1")            /* xmm1 = HR & [ R == CMAX ] */ \
+    __ASM_EMIT("andnps      %%xmm0, %%xmm3")            /* xmm3 = HB & [ R != CMAX ] */ \
+    __ASM_EMIT("andnps      %%xmm2, %%xmm5")            /* xmm5 = HG & [ R != CMAX ] */ \
+    __ASM_EMIT("andnps      %%xmm3, %%xmm4")            /* xmm4 = HB & [ R != CMAX ] & [ G != CMAX ] */ \
+    __ASM_EMIT("andps       %%xmm6, %%xmm5")            /* xmm5 = HG & [ R != CMAX ] & [ G == CMAX ] */ \
+    __ASM_EMIT("orps        %%xmm4, %%xmm1")            /* xmm1 = (HR & [ R == CMAX ]) | (HB & [ R != CMAX ] & [ G != CMAX ]) */ \
+    __ASM_EMIT("orps        %%xmm5, %%xmm1")            /* xmm1 = h = (HR & [ R == CMAX ]) | (HG & [ R != CMAX ] & [ G == CMAX ]) | (HB & [ R != CMAX ] & [ G != CMAX ]) */ \
+    \
+    __ASM_EMIT("movaps      0x40(%[RGBM]), %%xmm2")     /* xmm2 = CMIN */ \
+    __ASM_EMIT("movaps      0x30 + %[XC], %%xmm6")      /* xmm6 = 1 */ \
+    __ASM_EMIT("movaps      %%xmm1, %%xmm0")            /* xmm0 = h */ \
+    __ASM_EMIT("addps       0x50(%[RGBM]), %%xmm2")     /* xmm2 = CMAX + CMIN */ \
+    __ASM_EMIT("movaps      %%xmm6, %%xmm5")            /* xmm5 = 1 */ \
+    __ASM_EMIT("movaps      %%xmm7, %%xmm1")            /* xmm1 = D */ \
+    __ASM_EMIT("mulps       0x40 + %[XC], %%xmm2")      /* xmm2 = L = 0.5 * (CMAX+CMIN) */ \
+    __ASM_EMIT("subps       %%xmm2, %%xmm5")            /* xmm5 = 1 - L */ \
+    __ASM_EMIT("divps       %%xmm2, %%xmm1")            /* xmm1 = D / L */ \
+    __ASM_EMIT("divps       %%xmm5, %%xmm7")            /* xmm7 = D / (1-L) */ \
+    __ASM_EMIT("cmpps       $6, %%xmm2, %%xmm6")        /* xmm6 = [ L < 1 ] */ \
+    __ASM_EMIT("andps       %%xmm6, %%xmm1")            /* xmm1 = (D / L) & [ L < 1 ] */ \
+    __ASM_EMIT("mulps       0x50 + %[XC], %%xmm0")      /* xmm0 = H = h * 1/6 */ \
+    __ASM_EMIT("andnps      %%xmm7, %%xmm6")            /* xmm6 = (D / (1-L)) & [ L >= 1 ] */ \
+    __ASM_EMIT("orps        %%xmm6, %%xmm1")            /* xmm1 = s = ((D / L) & [ L < 1 ]) | ((D / (1-L)) & [ L >= 1 ]) */ \
+    __ASM_EMIT("movaps      0x30(%[RGBM]), %%xmm3")     /* xmm3 = A */ \
+    __ASM_EMIT("mulps       0x40 + %[XC], %%xmm1")      /* xmm1 = S = s * 0.5 */ \
+    \
+    /*  Transpose back */ \
+    HSLA_TRANSPOSE
+
+/*
+    float cmax = (R < G) ? ((B < G) ? G : B) : ((B < R) ? R : B);
+    float cmin = (R < G) ? ((B < R) ? B : R) : ((B < G) ? B : G);
+    float d = cmax - cmin;
+
+    H = 0.0f;
+    S = 0.0f;
+    L = HSL_RGB_0_5 * (cmax + cmin);
+
+    // Calculate hue
+    if (R == cmax)
+    {
+        H = (G - B) / d;
+        if (H < 0.0f)
+            H += 6.0f;
+    }
+    else if (G == cmax)
+        H = (B - R) / d + 2.0f;
+    else
+        H = (R - G) / d + 4.0f;
+
+    // Calculate saturation
+    if (L < 1.0f)
+        S = d / L;
+    else if (L > 1.0f)
+        S = d / (1.0f - L);
+
+    // Normalize hue and saturation
+    H  *= HSL_RGB_1_6;
+    S  *= HSL_RGB_0_5;
+ */
+
+    void rgba_to_hsla(float *dst, const float *src, size_t count)
+    {
+        #pragma pack(push, 1)
+        struct {
+            float r[4], g[4], b[4], a[4];
+            float cmin[4], cmax[4];
+        } rgbm __lsp_aligned16;
+        #pragma pack(pop)
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("sub             $4, %[count]")
+            __ASM_EMIT("jb              2f")
+
+            //-----------------------------------------------------------------
+            // 4x blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("movups          0x00(%[src]), %%xmm0")      // xmm0 = h0 s0 l0 a0
+            __ASM_EMIT("movups          0x10(%[src]), %%xmm1")      // xmm1 = h1 s1 l1 a1
+            __ASM_EMIT("movups          0x20(%[src]), %%xmm2")      // xmm2 = h2 s2 l2 a2
+            __ASM_EMIT("movups          0x30(%[src]), %%xmm3")      // xmm3 = h3 s3 l3 a3
+
+            RGBA_TO_HSLA_CORE
+
+            // Store result
+            __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
+            __ASM_EMIT("movups          %%xmm1, 0x10(%[dst])")
+            __ASM_EMIT("movups          %%xmm2, 0x20(%[dst])")
+            __ASM_EMIT("movups          %%xmm3, 0x30(%[dst])")
+
+            // Repeat loop
+            __ASM_EMIT("add             $0x40, %[src]")
+            __ASM_EMIT("add             $0x40, %[dst]")
+            __ASM_EMIT("sub             $4, %[count]")
+            __ASM_EMIT("jae             1b")
+
+            __ASM_EMIT("2:")
+
+            __ASM_EMIT("add             $4, %[count]")
+            __ASM_EMIT("jle             10f")
+
+            //-----------------------------------------------------------------
+            // 1x - 3x block
+            // Load last variable-sized chunk
+            __ASM_EMIT("test            $1, %[count]")
+            __ASM_EMIT("jz              4f")
+            __ASM_EMIT("movups          0x00(%[src]), %%xmm0")
+            __ASM_EMIT("add             $0x10, %[src]")
+            __ASM_EMIT("4:")
+            __ASM_EMIT("test            $2, %[count]")
+            __ASM_EMIT("jz              6f")
+            __ASM_EMIT("movups          0x00(%[src]), %%xmm1")
+            __ASM_EMIT("movups          0x10(%[src]), %%xmm2")
+            __ASM_EMIT("6:")
+
+            RGBA_TO_HSLA_CORE
+
+            // Store last chunk
+            __ASM_EMIT("test            $1, %[count]")
+            __ASM_EMIT("jz              8f")
+            __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
+            __ASM_EMIT("add             $0x10, %[dst]")
+            __ASM_EMIT("8:")
+            __ASM_EMIT("test            $2, %[count]")
+            __ASM_EMIT("jz              10f")
+            __ASM_EMIT("movups          %%xmm1, 0x00(%[dst])")
+            __ASM_EMIT("movups          %%xmm2, 0x10(%[dst])")
+
+            __ASM_EMIT("10:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            : [XC] "o" (RGB_HSL), [RGBM] "r" (&rgbm)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+
+#undef HSLA_TRANSPOSE
 }
 
 #endif /* INCLUDE_DSP_ARCH_X86_SSE2_GRAPHICS_H_ */

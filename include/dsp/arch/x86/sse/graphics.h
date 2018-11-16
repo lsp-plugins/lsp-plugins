@@ -365,6 +365,7 @@ namespace sse
     }
 
 #undef FILL4_CORE
+
 }
 
 #endif /* DSP_ARCH_X86_SSE_GRAPHICS_H_ */

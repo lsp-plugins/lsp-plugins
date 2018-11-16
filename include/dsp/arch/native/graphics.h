@@ -92,12 +92,12 @@ namespace native
             if (R == cmax)
             {
                 H = (G - B) / d;
-                if (G < B)
+                if (H < 0.0f)
                     H += 6.0f;
             }
             else if (G == cmax)
                 H = (B - R) / d + 2.0f;
-            else if (B == cmax)
+            else
                 H = (R - G) / d + 4.0f;
 
             // Calculate saturation
