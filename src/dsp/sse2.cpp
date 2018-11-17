@@ -74,6 +74,7 @@ namespace sse2
         EXPORT1(abs_minmax_index);
 
         EXPORT1(hsla_to_rgba);
+        EXPORT1(rgba_to_hsla);
     }
 
     #undef EXPORT1

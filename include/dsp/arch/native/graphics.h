@@ -84,12 +84,12 @@ namespace native
             float cmin = (R < G) ? ((B < R) ? B : R) : ((B < G) ? B : G);
             float d = cmax - cmin;
 
-            H = 0.0f;
-            S = 0.0f;
             L = HSL_RGB_0_5 * (cmax + cmin);
 
             // Calculate hue
-            if (R == cmax)
+            if (d == 0.0f)
+                H = 0.0f;
+            else if (R == cmax)
             {
                 H = (G - B) / d;
                 if (H < 0.0f)
@@ -102,9 +102,9 @@ namespace native
 
             // Calculate saturation
             if (L < 1.0f)
-                S = d / L;
-            else if (L > 1.0f)
-                S = d / (1.0f - L);
+                S = (L != 0.0f) ? d / L : 0.0f;
+            else
+                S = (L != 1.0f) ? d / (1.0f - L) : 0.0f;
 
             // Normalize hue and saturation
             H  *= HSL_RGB_1_6;
