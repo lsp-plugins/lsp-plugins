@@ -347,12 +347,65 @@ namespace lsp
             }
 
             // Draw surface on the target
-            float x = 0.5f * (fHPos + 1.0f) * s->width();
-            float y = 0.5f * (1.0f - fVPos) * s->height();
-            if (nAngle & 1)
-                s->draw_alpha(pp, x, y, fWidth * s->width() / nRows, fHeight * s->height() / nCols, fTransparency);
-            else
-                s->draw_alpha(pp, x, y, fWidth * s->width() / nCols, fHeight * s->height() / nRows, fTransparency);
+            float x, y, sx, sy;
+            float ra = -0.5f * nAngle * M_PI;
+
+            x = 0.5f * (fHPos + 1.0f) * s->width();
+            y = 0.5f * (1.0f - fVPos) * s->height();
+
+            switch (nAngle & 0x03)
+            {
+                case 0:
+                    sx = fWidth * s->width() / nCols;
+                    sy = fHeight * s->height() / nRows;
+
+                    if (sx < 0.0f)
+                        x       -= sx * nCols;
+                    if (sy < 0.0f)
+                        y       -= sy * nRows;
+                    break;
+
+                case 1:
+                    sx = fWidth * s->width() / nRows;
+                    sy = fHeight * s->height() / nCols;
+
+                    if (sx < 0.0f)
+                        x       -= sx * nRows;
+                    if (sy > 0.0f)
+                        y       += sy * nCols;
+                    break;
+
+                case 2:
+                    sx = fWidth * s->width() / nCols;
+                    sy = fHeight * s->height() / nRows;
+
+                    if (sx > 0.0f)
+                        x       += sx * nCols;
+                    if (sy > 0.0f)
+                        y       += sy * nRows;
+                    break;
+
+                case 3:
+                    sx = fWidth * s->width() / nRows;
+                    sy = fHeight * s->height() / nCols;
+
+                    if (sx > 0.0f)
+                        x       += sx * nRows;
+                    if (sy < 0.0f)
+                        y       -= sy * nCols;
+                    break;
+
+                default:
+                    break;
+            }
+
+//
+//
+//
+//            if (nAngle & 1)
+//                s->draw_alpha(pp, x, y, fWidth * s->width() / nRows, fHeight * s->height() / nCols, fTransparency);
+//            else
+            s->draw_rotate_alpha(pp, x, y, sx, sy, ra, fTransparency);
         }
     } /* namespace tk */
 } /* namespace lsp */

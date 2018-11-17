@@ -1,7 +1,7 @@
 /*
- * hsla_to_rgba.cpp
+ * rgba_to_bgra32.cpp
  *
- *  Created on: 16 нояб. 2018 г.
+ *  Created on: 18 нояб. 2018 г.
  *      Author: sadko
  */
 
@@ -14,30 +14,30 @@
 
 namespace native
 {
-    void hsla_to_rgba(float *dst, const float *src, size_t count);
+    void rgba_to_bgra32(void *dst, const float *src, size_t count);
 }
 
 IF_ARCH_X86(
     namespace sse2
     {
-        void hsla_to_rgba(float *dst, const float *src, size_t count);
+        void rgba_to_bgra32(void *dst, const float *src, size_t count);
     }
 )
 
 //IF_ARCH_ARM(
 //    namespace neon_d32
 //    {
-//        void hsla_to_rgba(float *dst, const float *src, size_t count);
+//        void rgba_to_bgra32(void *dst, const float *src, size_t count);
 //    }
 //)
 
-typedef void (* hsla_to_rgba_t)(float *dst, const float *src, size_t count);
+typedef void (* rgba_to_bgra32_t)(void *dst, const float *src, size_t count);
 
 //-----------------------------------------------------------------------------
 // Performance test for logarithmic axis calculation
-PTEST_BEGIN("dsp.graphics", hsla_to_rgba, 5, 5000)
+PTEST_BEGIN("dsp.graphics", rgba_to_bgra32, 5, 5000)
 
-    void call(const char *label, float *dst, float *src, size_t count, hsla_to_rgba_t func)
+    void call(const char *label, void *dst, const float *src, size_t count, rgba_to_bgra32_t func)
     {
         if (!PTEST_SUPPORTED(func))
             return;
@@ -55,8 +55,9 @@ PTEST_BEGIN("dsp.graphics", hsla_to_rgba, 5, 5000)
     {
         size_t buf_size     = 1 << MAX_RANK;
         uint8_t *data       = NULL;
-        float *src          = alloc_aligned<float>(data, (buf_size * 2) * 4, 64);
-        float *dst          = &src[buf_size * 4];
+
+        uint8_t *dst        = alloc_aligned<uint8_t>(data, buf_size * sizeof(float) * 4 + buf_size * sizeof(uint32_t), 64);
+        float *src          = reinterpret_cast<float *>(&dst[buf_size * sizeof(uint32_t)]);
 
         for (size_t i=0; i<buf_size*4; ++i)
              src[i]             = float(rand()) / (RAND_MAX - 1);
@@ -65,9 +66,9 @@ PTEST_BEGIN("dsp.graphics", hsla_to_rgba, 5, 5000)
         {
             size_t count = 1 << i;
 
-            call("native::hsla_to_rgba", dst, src, count, native::hsla_to_rgba);
-            IF_ARCH_X86(call("sse2::hsla_to_rgba", dst, src, count, sse2::hsla_to_rgba));
-//            IF_ARCH_ARM(call("neon_d32::hsla_to_rgba", dst, src, count, neon_d32::hsla_to_rgba));
+            call("native::rgba_to_bgra32", dst, src, count, native::rgba_to_bgra32);
+            IF_ARCH_X86(call("sse2::rgba_to_bgra32", dst, src, count, sse2::rgba_to_bgra32));
+//            IF_ARCH_ARM(call("neon_d32::rgba_to_bgra32", dst, src, count, neon_d32::rgba_to_bgra32));
 
             PTEST_SEPARATOR;
         }
@@ -75,6 +76,5 @@ PTEST_BEGIN("dsp.graphics", hsla_to_rgba, 5, 5000)
         free_aligned(data);
     }
 PTEST_END
-
 
 

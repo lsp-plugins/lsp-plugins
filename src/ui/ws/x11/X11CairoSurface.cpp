@@ -210,6 +210,27 @@ namespace lsp
                 cairo_restore(pCR);
             }
 
+            void X11CairoSurface::draw_rotate_alpha(ISurface *s, float x, float y, float sx, float sy, float ra, float a)
+            {
+                surface_type_t type = s->type();
+                if ((type != ST_XLIB) && (type != ST_IMAGE))
+                    return;
+                if (pCR == NULL)
+                    return;
+                X11CairoSurface *cs = static_cast<X11CairoSurface *>(s);
+                if (cs->pSurface == NULL)
+                    return;
+
+                // Draw one surface on another
+                cairo_save(pCR);
+                cairo_translate(pCR, x, y);
+                cairo_scale(pCR, sx, sy);
+                cairo_rotate(pCR, ra);
+                cairo_set_source_surface(pCR, cs->pSurface, 0.0f, 0.0f);
+                cairo_paint_with_alpha(pCR, 1.0f - a);
+                cairo_restore(pCR);
+            }
+
             void X11CairoSurface::draw_clipped(ISurface *s, float x, float y, float sx, float sy, float sw, float sh)
             {
                 surface_type_t type = s->type();

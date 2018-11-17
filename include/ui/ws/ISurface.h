@@ -218,6 +218,18 @@ namespace lsp
                  */
                 virtual void draw_alpha(ISurface *s, float x, float y, float sx, float sy, float a);
 
+                /** Draw surface with alpha blending and rotating
+                 *
+                 * @param s surface to draw
+                 * @param x offset from left
+                 * @param y offset from top
+                 * @param sx surface scale x
+                 * @param sy surface scale y
+                 * @param ra rotation angle in radians
+                 * @param a alpha
+                 */
+                virtual void draw_rotate_alpha(ISurface *s, float x, float y, float sx, float sy, float ra, float a);
+
                 /** Draw clipped surface
                  *
                  * @param s surface to draw

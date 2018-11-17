@@ -197,7 +197,7 @@ namespace native
         uint8_t *p = reinterpret_cast<uint8_t *>(dst);
         for (; count > 0; count--, p += 4, src +=4 )
         {
-            float A     = (1.0f - src[3]) * 255.0f;
+            float A     = 255.0f - src[3] * 255.0f;
             float R     = src[0] * A;
             float G     = src[1] * A;
             float B     = src[2] * A;

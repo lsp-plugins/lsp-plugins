@@ -58,8 +58,8 @@ PTEST_BEGIN("dsp.graphics", rgba_to_hsla, 5, 5000)
         float *src          = alloc_aligned<float>(data, (buf_size * 2) * 4, 64);
         float *dst          = &src[buf_size * 4];
 
-        for (size_t i=0; i<buf_size*2; ++i)
-             src[i]             = uint8_t(rand());
+        for (size_t i=0; i<buf_size*4; ++i)
+            src[i]             = float(rand()) / (RAND_MAX - 1);
 
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
         {
