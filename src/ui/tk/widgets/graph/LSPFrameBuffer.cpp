@@ -198,10 +198,10 @@ namespace lsp
             switch (value % 5)
             {
                 case 0: pCalcColor  = &LSPFrameBuffer::calc_rainbow_color; break;
-//                case 1: pCalcColor  = &LSPFrameBuffer::calc_fog_color; break;
-//                case 2: pCalcColor  = &LSPFrameBuffer::calc_color; break;
-//                case 3: pCalcColor  = &LSPFrameBuffer::calc_lightness; break;
-//                case 4: pCalcColor  = &LSPFrameBuffer::calc_lightness2; break;
+                case 1: pCalcColor  = &LSPFrameBuffer::calc_fog_color; break;
+                case 2: pCalcColor  = &LSPFrameBuffer::calc_color; break;
+                case 3: pCalcColor  = &LSPFrameBuffer::calc_lightness; break;
+                case 4: pCalcColor  = &LSPFrameBuffer::calc_lightness2; break;
                 default:
                     pCalcColor  = &LSPFrameBuffer::calc_rainbow_color; break;
                     break;
@@ -241,59 +241,103 @@ namespace lsp
             dsp::hsla_to_rgba(rgba, rgba, n);
         }
 
-//        void LSPFrameBuffer::calc_fog_color(Color &c, float value)
-//        {
-//            value = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
-//            c.copy(&sColor, value);
-//        }
-//
-//        void LSPFrameBuffer::calc_color(Color &c, float value)
-//        {
-//            value = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
-//            c.copy(&sColor, value);
-//            if (value >= 0.25f)
-//            {
-//                c.saturation(c.saturation() * value);
-//                c.alpha(0.0f);
-//            }
-//            else
-//            {
-//                c.saturation(c.saturation() * 0.25f);
-//                c.alpha((0.25f - value) * 4.0f);
-//            }
-//        }
-//
-//        void LSPFrameBuffer::calc_lightness(Color &c, float value)
-//        {
-//            value = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
-//            c.copy(&sColor, value);
-//            if (value >= 0.25f)
-//            {
-//                c.lightness(value);
-//                c.alpha(0.0f);
-//            }
-//            else
-//            {
-//                c.lightness(0.25f);
-//                c.alpha((0.25f - value) * 4.0f);
-//            }
-//        }
-//
-//        void LSPFrameBuffer::calc_lightness2(Color &c, float value)
-//        {
-//            value = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
-//            c.copy(&sColor, value);
-//            if (value >= 0.25f)
-//            {
-//                c.lightness(value * 0.5f);
-//                c.alpha(0.0f);
-//            }
-//            else
-//            {
-//                c.lightness(0.125f);
-//                c.alpha((0.25f - value) * 4.0f);
-//            }
-//        }
+        void LSPFrameBuffer::calc_fog_color(float *rgba, const float *v, size_t n)
+        {
+            dsp::fill_hsla(rgba, sColor.hue(), sColor.saturation(), sColor.lightness(), sColor.alpha(), n);
+
+            float value;
+            float *c    = rgba;
+
+            for (size_t i=0; i<n; ++i, c += 4)
+            {
+                value   = v[i];
+                value   = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
+                c[3]    = value; // Fill alpha channel
+            }
+
+            dsp::hsla_to_rgba(rgba, rgba, n);
+        }
+
+        void LSPFrameBuffer::calc_color(float *rgba, const float *v, size_t n)
+        {
+            dsp::fill_hsla(rgba, sColor.hue(), sColor.saturation(), sColor.lightness(), sColor.alpha(), n);
+
+            float value;
+            float *c    = rgba;
+
+            for (size_t i=0; i<n; ++i, c += 4)
+            {
+                value   = v[i];
+                value   = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
+
+                if (value >= 0.25f)
+                {
+                    c[1] *= value;
+                    c[3]  = 0.0f;
+                }
+                else
+                {
+                    c[1] *= 0.25f;
+                    c[3]  = (0.25f - value) * 4.0f;
+                }
+            }
+
+            dsp::hsla_to_rgba(rgba, rgba, n);
+        }
+
+        void LSPFrameBuffer::calc_lightness(float *rgba, const float *v, size_t n)
+        {
+            dsp::fill_hsla(rgba, sColor.hue(), sColor.saturation(), sColor.lightness(), sColor.alpha(), n);
+
+            float value;
+            float *c    = rgba;
+
+            for (size_t i=0; i<n; ++i, c += 4)
+            {
+                value   = v[i];
+                value   = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
+
+                if (value >= 0.25f)
+                {
+                    c[2] = value;
+                    c[3] = 0.0f;
+                }
+                else
+                {
+                    c[2] = 0.25f;
+                    c[3] = (0.25f - value) * 4.0f;
+                }
+            }
+
+            dsp::hsla_to_rgba(rgba, rgba, n);
+        }
+
+        void LSPFrameBuffer::calc_lightness2(float *rgba, const float *v, size_t n)
+        {
+            dsp::fill_hsla(rgba, sColor.hue(), sColor.saturation(), sColor.lightness(), sColor.alpha(), n);
+
+            float value;
+            float *c    = rgba;
+
+            for (size_t i=0; i<n; ++i, c += 4)
+            {
+                value   = v[i];
+                value = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
+
+                if (value >= 0.25f)
+                {
+                    c[2] = value * 0.5f;
+                    c[3] = 0.0f;
+                }
+                else
+                {
+                    c[2] = 0.125f;
+                    c[3] = (0.25f - value) * 4.0f;
+                }
+            }
+
+            dsp::hsla_to_rgba(rgba, rgba, n);
+        }
 
         void LSPFrameBuffer::render(ISurface *s, bool force)
         {
@@ -399,12 +443,6 @@ namespace lsp
                     break;
             }
 
-//
-//
-//
-//            if (nAngle & 1)
-//                s->draw_alpha(pp, x, y, fWidth * s->width() / nRows, fHeight * s->height() / nCols, fTransparency);
-//            else
             s->draw_rotate_alpha(pp, x, y, sx, sy, ra, fTransparency);
         }
     } /* namespace tk */

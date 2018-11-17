@@ -43,10 +43,10 @@ namespace lsp
             protected:
                 void            drop_data();
                 void            calc_rainbow_color(float *rgba, const float *value, size_t n);
-//                void            calc_fog_color(float *rgba, const float *value, size_t n);
-//                void            calc_color(float *rgba, const float *value, size_t n);
-//                void            calc_lightness(float *rgba, const float *value, size_t n);
-//                void            calc_lightness2(float *rgba, const float *value, size_t n);
+                void            calc_fog_color(float *rgba, const float *v, size_t n);
+                void            calc_color(float *rgba, const float *value, size_t n);
+                void            calc_lightness(float *rgba, const float *value, size_t n);
+                void            calc_lightness2(float *rgba, const float *value, size_t n);
                 void            allocate_buffer();
                 float          *get_buffer();
                 float          *get_rgba_buffer();
