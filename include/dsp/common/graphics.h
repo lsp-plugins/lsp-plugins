@@ -74,6 +74,19 @@ namespace dsp
      * @param count number of structures to convert
      */
     extern void (* hsla_to_rgba)(float *dst, const float *src, size_t count);
+
+    /** Convert RGBA (float) -> BGRA32 color
+     * Alpha color is applied to result by formula:
+     *   A' = (1 - A) * 255
+     *   R' = R * (1 - A) * 255
+     *   G' = G * (1 - A) * 255
+     *   B' = B * (1 - A) * 255
+     *
+     * @param dst target buffer (4 bytes per pixel)
+     * @param src source buffer (4 floats per pixel)
+     * @param count number of samples to process
+     */
+    extern void (* rgba_to_bgra32)(void *dst, const float *src, size_t count);
 }
 
 #endif /* DSP_COMMON_GRAPHICS_H_ */

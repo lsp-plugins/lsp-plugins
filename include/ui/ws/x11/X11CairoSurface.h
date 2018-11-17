@@ -174,6 +174,10 @@ namespace lsp
                     virtual surf_line_cap_t get_line_cap();
 
                     virtual surf_line_cap_t set_line_cap(surf_line_cap_t lc);
+
+                    virtual void *start_direct();
+
+                    virtual void end_direct();
             };
         }
     }

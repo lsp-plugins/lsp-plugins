@@ -308,105 +308,39 @@ namespace lsp
                 return;
 
             // Get drawing surface
-            ISurface *pp = (nAngle & 1) ?
-                    get_surface(s, nRows, nCols) :
-                    get_surface(s, nCols, nRows);
+            ISurface *pp = get_surface(s, nCols, nRows);
             if (pp == NULL)
                 return;
 
             // Deploy new changes
             if ((nChanges > 0) || (bClear))
             {
-                ISurface *sc = NULL;
+                // Get target buffer for rendering
+                uint8_t *xp = reinterpret_cast<uint8_t *>(pp->start_direct());
+                if (xp == NULL)
+                    return;
 
-                // Shift surface
-                if ((bClear) || (nChanges >= nRows))
-                {
-                    pp->clear(sBgColor);
-                    nChanges = nRows;
-                }
-                else
-                {
-                    sc = pp->create_copy();
-                    if (sc != NULL)
-                        pp->clear(sBgColor);
-                }
+                // Do not draw more than can
+                if ((nChanges >= nRows) || (bClear))
+                    nChanges    = nRows;
+
+                // Shift buffer
+                size_t stride = pp->stride();
+                ::memmove(&xp[stride * nChanges], xp, (nRows - nChanges) * stride);
 
                 // Draw dots
                 Color c(1.0f, 0.0f, 0.0f);
                 size_t row = (nCurrRow + nRows - 1) % nRows;
 
-                switch (nAngle & 0x03)
+                for (size_t i=0; i<nChanges; ++i, xp += stride)
                 {
-                    case 0:
-                        if (sc != NULL)
-                            pp->draw(sc, 0, nChanges);
-
-                        for (ssize_t y=0; nChanges > 0; ++y, --nChanges)
-                        {
-                            const float *p = &vData[row * nCols];
-                            (this->*pCalcColor)(rgba, p, nCols);
-                            const float *c = rgba;
-
-                            for (size_t x=0; x<nCols; ++x, c += 4)
-                                pp->square_dot(x, y, 1.0f, c[0], c[1], c[2], c[3]);
-
-                            row = (row + nRows - 1) % nRows;
-                        }
-                        break;
-                    case 1:
-                        if (sc != NULL)
-                            pp->draw(sc, nChanges, 0);
-                        for (ssize_t x=0; nChanges > 0; ++x, --nChanges)
-                        {
-                            const float *p = &vData[row * nCols];
-                            (this->*pCalcColor)(rgba, p, nCols);
-                            const float *c = rgba;
-
-                            for (size_t y=0; y<nCols; ++y, c += 4)
-                                pp->square_dot(x, y, 1.0f, c[0], c[1], c[2], c[3]);
-
-                            row = (row + nRows - 1) % nRows;
-                        }
-                        break;
-                    case 2:
-                        if (sc != NULL)
-                            pp->draw(sc, 0, -ssize_t(nChanges));
-                        for (ssize_t y=nRows-1; nChanges > 0; --y, --nChanges)
-                        {
-                            const float *p = &vData[row * nCols];
-                            (this->*pCalcColor)(rgba, p, nCols);
-                            const float *c = rgba;
-
-                            for (size_t x=0; x<nCols; ++x, c += 4)
-                                pp->square_dot(x, y, 1.0f, c[0], c[1], c[2], c[3]);
-
-                            row = (row + nRows - 1) % nRows;
-                        }
-                        break;
-                    case 3:
-                        if (sc != NULL)
-                            pp->draw(sc, -ssize_t(nChanges), 0);
-                        for (ssize_t x=nRows-1; nChanges > 0; --x, --nChanges)
-                        {
-                            const float *p = &vData[row * nCols];
-                            (this->*pCalcColor)(rgba, p, nCols);
-                            const float *c = rgba;
-
-                            for (size_t y=0; y<nCols; ++y, c += 4)
-                                pp->square_dot(x, y, 1.0f, c[0], c[1], c[2], c[3]);
-
-                            row = (row + nRows - 1) % nRows;
-                        }
-                        break;
+                    const float *p = &vData[row * nCols];
+                    (this->*pCalcColor)(rgba, p, nCols);
+                    dsp::rgba_to_bgra32(xp, rgba, nCols);
+                    row = (row + nRows - 1) % nRows;
                 }
 
-                // Reset number of changes and clear flag
-                if (sc != NULL)
-                {
-                    sc->destroy();
-                    delete sc;
-                }
+                pp->end_direct();
 
                 nChanges    = 0;
                 bClear      = false;
@@ -415,7 +349,6 @@ namespace lsp
             // Draw surface on the target
             float x = 0.5f * (fHPos + 1.0f) * s->width();
             float y = 0.5f * (1.0f - fVPos) * s->height();
-//            s->draw(pp, x, y);
             if (nAngle & 1)
                 s->draw_alpha(pp, x, y, fWidth * s->width() / nRows, fHeight * s->height() / nCols, fTransparency);
             else

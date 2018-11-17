@@ -226,6 +226,7 @@ namespace dsp
     void    (* fill_hsla)(float *dst, float h, float s, float l, float a, size_t count) = NULL;
     void    (* rgba_to_hsla)(float *dst, const float *src, size_t count) = NULL;
     void    (* hsla_to_rgba)(float *dst, const float *src, size_t count) = NULL;
+    void    (* rgba_to_bgra32)(void *dst, const float *src, size_t count) = NULL;
 
     void    (* lanczos_resample_2x2)(float *dst, const float *src, size_t count) = NULL;
     void    (* lanczos_resample_2x3)(float *dst, const float *src, size_t count) = NULL;

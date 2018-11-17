@@ -192,6 +192,42 @@ namespace native
         }
     }
 
+    void rgba_to_bgra32(void *dst, const float *src, size_t count)
+    {
+        uint8_t *p = reinterpret_cast<uint8_t *>(dst);
+        for (; count > 0; count--, p += 4, src +=4 )
+        {
+            float A     = (1.0f - src[3]) * 255.0f;
+            float R     = src[0] * A;
+            float G     = src[1] * A;
+            float B     = src[2] * A;
+
+            // Saturate
+            if (A < 0.0f)
+                A           = 0.0f;
+            else if (A > 255.0f)
+                A           = 255.0f;
+            if (R < 0.0f)
+                R           = 0.0f;
+            else if (R > 255.0f)
+                R           = 255.0f;
+            if (G < 0.0f)
+                G           = 0.0f;
+            else if (G > 255.0f)
+                G           = 255.0f;
+            if (B < 0.0f)
+                B           = 0.0f;
+            else if (B > 255.0f)
+                B           = 255.0f;
+
+            // Store result
+            p[0]        = B;
+            p[1]        = G;
+            p[2]        = R;
+            p[3]        = A;
+        }
+    }
+
 
 }
 

@@ -42,6 +42,7 @@ namespace lsp
 
                 cairo_set_antialias(pCR, CAIRO_ANTIALIAS_NONE);
                 cairo_set_line_join(pCR, CAIRO_LINE_JOIN_BEVEL);
+                nStride         = cairo_image_surface_get_stride(pSurface);
             }
 
             ISurface *X11CairoSurface::create(size_t width, size_t height)
@@ -51,6 +52,8 @@ namespace lsp
                     return NULL;
                 if (s->pCR != NULL)
                     return s;
+
+                pData = NULL;
 
                 delete s;
                 return NULL;
@@ -258,12 +261,15 @@ namespace lsp
                 if (pCR == NULL)
                     return;
 
+                cairo_operator_t op = cairo_get_operator(pCR);
+                cairo_set_operator (pCR, CAIRO_OPERATOR_SOURCE);
                 cairo_set_source_rgb(pCR,
                     float((rgba >> 16) & 0xff)/255.0f,
                     float((rgba >> 8) & 0xff)/255.0f,
                     float(rgba & 0xff)/255.0f
                 );
                 cairo_paint(pCR);
+                cairo_set_operator (pCR, op);
             }
 
             inline void X11CairoSurface::setSourceRGB(const Color &col)
@@ -988,6 +994,25 @@ namespace lsp
                     (old == CAIRO_LINE_CAP_BUTT) ? SURFLCAP_BUTT :
                     (old == CAIRO_LINE_CAP_ROUND) ? SURFLCAP_ROUND : SURFLCAP_SQUARE;
             }
+
+            void *X11CairoSurface::start_direct()
+            {
+                if ((pCR == NULL) || (pSurface == NULL) || (nType != ST_IMAGE))
+                    return NULL;
+
+                nStride = cairo_image_surface_get_stride(pSurface);
+                return pData = reinterpret_cast<uint8_t *>(cairo_image_surface_get_data(pSurface));
+            }
+
+            void X11CairoSurface::end_direct()
+            {
+                if ((pCR == NULL) || (pSurface == NULL) || (nType != ST_IMAGE) || (pData == NULL))
+                    return;
+
+                cairo_surface_mark_dirty(pSurface);
+                pData = NULL;
+            }
+
         }
     }
 
