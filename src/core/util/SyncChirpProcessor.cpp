@@ -1711,31 +1711,15 @@ namespace lsp
             return res;
         }
 
+        uint32_t audio_chunk_id = aw.unique_id();
         const float **vp = reinterpret_cast<const float **>(alloca(sizeof(float *) * p.channels));
         for (size_t i = 0, n = p.channels; i < n; ++i)
             vp[i] = pConvResult->channel(i);
 
-        size_t written  = 0;
-        while (written < dataLength)
-        {
-            size_t to_write = dataLength - written;
-            if (to_write > dataLength)
-                to_write = dataLength;
+        res = aw.write_samples(vp, dataLength);
+        if (res == STATUS_OK)
+            res = aw.close();
 
-            res = aw.write_samples(vp, to_write);
-            if (res != STATUS_OK)
-            {
-                aw.close();
-                fd.close();
-                return res;
-            }
-
-            written += to_write;
-            for (size_t i = 0, n = p.channels; i < n; ++i)
-                vp[i] += to_write;
-        }
-
-        res = aw.close();
         if (res != STATUS_OK)
         {
             aw.close();
@@ -1751,7 +1735,7 @@ namespace lsp
 
         prof.common.version     = 1;
         prof.common.size        = sizeof(lspc_chunk_audio_profile_t);
-        prof.chunk_id           = aw.unique_id();
+        prof.chunk_id           = audio_chunk_id;
         prof.chirp_order        = sChirpParams.nOrder;
         prof.alpha              = sChirpParams.fAlpha;
         prof.beta               = sChirpParams.beta;
@@ -1770,7 +1754,12 @@ namespace lsp
         prof.initial_freq       = CPU_TO_BE(prof.initial_freq);
         prof.final_freq         = CPU_TO_BE(prof.final_freq);
 
-        res = wr->flush();
+        res = wr->write_header(&prof);
+        if (res == STATUS_OK)
+            res = wr->flush();
+        if (res == STATUS_OK)
+            res = wr->close();
+
         if (res != STATUS_OK)
         {
             wr->close();
@@ -1779,14 +1768,7 @@ namespace lsp
             return res;
         }
 
-        res = wr->close();
         delete wr;
-        if (res != STATUS_OK)
-        {
-            fd.close();
-            return res;
-        }
-
         res = fd.close();
         return res;
     }
