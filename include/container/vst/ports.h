@@ -398,38 +398,28 @@ namespace lsp
     class VSTFrameBufferPort: public VSTPort
     {
         private:
-            frame_buffer_t     *pFB;
+            frame_buffer_t     sFB;
 
         public:
             VSTFrameBufferPort(const port_t *meta, AEffect *effect, audioMasterCallback callback) : VSTPort(meta, effect, callback)
             {
-                pFB   = NULL;
+                sFB.init(pMetadata->start, pMetadata->step);
             }
 
             virtual ~VSTFrameBufferPort()
             {
-                pFB   = NULL;
+                sFB.destroy();
             }
 
         public:
             virtual void *getBuffer()
             {
-                return pFB;
-            }
-
-            virtual int init()
-            {
-                pFB     = frame_buffer_t::create(pMetadata->start, pMetadata->step);
-                return (pFB == NULL) ? STATUS_NO_MEM : STATUS_OK;
+                return &sFB;
             }
 
             virtual void destroy()
             {
-                if (pFB != NULL)
-                {
-                    frame_buffer_t::destroy(pFB);
-                    pFB = NULL;
-                }
+                sFB.destroy();
             }
     };
 

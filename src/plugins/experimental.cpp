@@ -232,6 +232,8 @@ namespace lsp
             frame_buffer_t *fb = pFB->getBuffer<frame_buffer_t>();
             if (fb != NULL)
                 fb->write_row(vBuffer);
+            else
+                lsp_trace("output framebuffer is NULL");
 
             nOscPhase       = (nOscPhase + FRM_BUFFER_SIZE); // & 0x7ffff;
         }
