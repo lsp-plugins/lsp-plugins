@@ -136,6 +136,89 @@ namespace sse2
     }
 
 #undef MULTIPLE_SATURATION_BODY
+
+#define LIMIT_SAT_BODY \
+    /* xmm0 = s */ \
+    __ASM_EMIT("movaps          %%xmm0, %%xmm1")                /* xmm1 = s */ \
+    __ASM_EMIT("movaps          %%xmm0, %%xmm2")                /* xmm2 = s */ \
+    __ASM_EMIT("movaps          %%xmm1, %%xmm3")                /* xmm3 = s */ \
+    __ASM_EMIT("movaps          %%xmm2, %%xmm4")                /* xmm4 = s */ \
+    __ASM_EMIT("cmpps           $5, 0x00 + %[XC], %%xmm1")      /* xmm1 = [ s >= -1 ] */ \
+    __ASM_EMIT("cmpps           $2, 0x10 + %[XC], %%xmm2")      /* xmm2 = [ s <= 1 ] */ \
+    __ASM_EMIT("andps           0x20 + %[XC], %%xmm3")          /* xmm3 = sign(s) */ \
+    __ASM_EMIT("orps            %%xmm2, %%xmm1")                /* xmm1 = [ s >= -1 ] & [ s <= 1 ] */ \
+    __ASM_EMIT("andps           0x30 + %[XC], %%xmm4")          /* xmm4 = abs(s) */ \
+    __ASM_EMIT("andps           %%xmm2, %%xmm0")                /* xmm0 = s & [ s >= -1 ] & [ s <= 1 ] */ \
+    __ASM_EMIT("pcmpgtd         0x40 + %[XC], %%xmm4")          /* xmm4 = abs(s) > +Inf */ \
+    __ASM_EMIT("andnps          0x10 + %[XC], %%xmm4")          /* xmm4 = 1 & (abs(s) <= +Inf) */ \
+    __ASM_EMIT("orps            %%xmm3, %%xmm4")                /* xmm4 = (1 & (abs(s) == +Inf)) | sign(s) */ \
+    __ASM_EMIT("andnps          %%xmm4, %%xmm1")                /* xmm1 = ((1 & (abs(s) == +Inf)) | sign(s)) & ([ s < -1 ] | [ s > 1 ]) */ \
+    __ASM_EMIT("orps            %%xmm1, %%xmm0")                /* xmm0 = (s & [ s >= -1 ] & [ s <= 1 ]) | (((1 & (abs(s) == +Inf)) | sign(s)) & ([ s < -1 ] | [ s > 1 ])) */
+
+    void limit_saturate1(float *dst, size_t count)
+    {
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("subs        $4, %[count]")
+            __ASM_EMIT("jb          2f")
+
+            // 4x blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("movups      %[dst], %%xmm0")
+            LIMIT_SAT_BODY
+            __ASM_EMIT("movups      %%xmm0, %[dst]")
+            __ASM_EMIT("add         $0x10, %[dst]")
+            __ASM_EMIT("sub         $4, %[count]")
+            __ASM_EMIT("jae         1b")
+
+            __ASM_EMIT("2:")
+            __ASM_EMIT("add         $4, %[count]")
+            __ASM_EMIT("jle         10f")
+
+            // 1x - 3x block
+            __ASM_EMIT("test        $1, %[count]")
+            __ASM_EMIT("jz          4f")
+            __ASM_EMIT("movss       %[dst], %%xmm0")
+            __ASM_EMIT("add         $4, %[dst]")
+            __ASM_EMIT("4:")
+            __ASM_EMIT("test        $2, %[count]")
+            __ASM_EMIT("jz          6f")
+            __ASM_EMIT("movlhps     %%xmm0, %%xmm0")
+            __ASM_EMIT("movlps      %[dst], %%xmm0")
+            __ASM_EMIT("6:")
+
+            LIMIT_SAT_BODY
+
+            __ASM_EMIT("test        $2, %[count]")
+            __ASM_EMIT("jz          8f")
+            __ASM_EMIT("movlps      %%xmm0, %[dst]")
+            __ASM_EMIT("test        $1, %[count]")
+            __ASM_EMIT("jz          10f")
+            __ASM_EMIT("sub         $4, %[dst]")
+            __ASM_EMIT("movss       %%xmm0, %[dst]")
+
+            __ASM_EMIT("10:")
+        );
+    }
+
+    void limit_saturate2(float *dst, const float *src, size_t count)
+    {
+        while (count--)
+        {
+            float v     = *(src++);
+            if (isnan(v))
+                v       =   FLOAT_SAT_P_NAN;
+            else if (isinf(v))
+                v       =   (v < 0.0f) ? -1.0f : 1.0f;
+            else if (v > 1.0f)
+                v       =   1.0f;
+            else if (v < -1.0f)
+                v       =  -1.0f;
+
+            *(dst++)    = v;
+        }
+    }
+
 }
 
 #endif /* DSP_ARCH_X86_SSE2_FLOAT_H_ */
