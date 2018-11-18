@@ -58,6 +58,7 @@ namespace lsp
 
         nOscPhase       = 0;
         nOscLeft        = 0;
+        nRows           = 0;
 
         vOsc[0].A0      = 0.25f;
         vOsc[0].X0      = 64;
@@ -227,13 +228,17 @@ namespace lsp
                 oscillate(vBuffer, &vOsc[i], time, FRM_BUFFER_SIZE);
 
             if (pFB == NULL)
+            {
+                lsp_trace("Framebuffer port is NULL");
                 continue;
+            }
 
             frame_buffer_t *fb = pFB->getBuffer<frame_buffer_t>();
-            if (fb != NULL)
+            if ((fb != NULL) && (fb->rows() > nRows))
+            {
                 fb->write_row(vBuffer);
-            else
-                lsp_trace("output framebuffer is NULL");
+//                nRows += 2;
+            }
 
             nOscPhase       = (nOscPhase + FRM_BUFFER_SIZE); // & 0x7ffff;
         }

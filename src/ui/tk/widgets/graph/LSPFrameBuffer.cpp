@@ -98,19 +98,25 @@ namespace lsp
             drop_data();
         }
 
-        status_t LSPFrameBuffer::append_data(const float *data)
+        status_t LSPFrameBuffer::append_data(uint32_t row_id, const float *data)
         {
             float *buf = get_buffer();
             if (buf == NULL)
                 return STATUS_NO_MEM;
 
-            dsp::limit_saturate2(&buf[nCurrRow * nCols], data, nCols);
-            if (++nCurrRow >= nRows)
-                nCurrRow = 0;
+            if (nCurrRow != row_id)
+            {
+                lsp_trace("Row out of sync: curr=%d, requested=%d", int(nCurrRow), int(row_id));
+                bClear      = true;
+            }
 
+            nCurrRow        = row_id + 1; // Estimate next row number
+            size_t dst_row  = row_id % nRows;
+            dsp::limit_saturate2(&buf[dst_row * nCols], data, nCols);
             query_draw();
 
             nChanges++;
+
             return STATUS_OK;
         }
 

@@ -227,7 +227,6 @@ namespace lsp
             {
                 // Check if there is data for viewing
                 frame_buffer_t *fb = pPort->getBuffer<frame_buffer_t>();
-                lsp_trace("Sync buffer %s: fb=%p", pMetadata->id, fb);
                 return (fb != NULL) ? sFB.sync(fb) : false;
             }
 

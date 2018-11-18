@@ -390,48 +390,85 @@ namespace lsp
             {
                 const LV2_Atom_Object* obj = reinterpret_cast<const LV2_Atom_Object *>(data);
 
+//                lsp_trace("id = %s", pMetadata->id);
+
                 // Parse atom body
                 LV2_Atom_Property_Body *body    = lv2_atom_object_begin(&obj->body);
 
                 // Get number of vectors (dimensions)
                 if (lv2_atom_object_is_end(&obj->body, obj->atom.size, body))
                     return;
+//                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+
                 if ((body->key != pExt->uridFrameBufferRows) || (body->value.type != pExt->forge.Int))
                     return;
                 uint32_t rows = (reinterpret_cast<const LV2_Atom_Int *>(& body->value))->body;
                 if (rows != sFB.rows())
+                {
+//                    lsp_trace("Row count does not match: %d vs %d", int(rows), int(sFB.rows()));
                     return;
+                }
 
                 // Get size of each vector
                 body = lv2_atom_object_next(body);
                 if (lv2_atom_object_is_end(&obj->body, obj->atom.size, body))
+                {
+//                    lsp_trace("unexpected end of object");
                     return;
+                }
+//                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+
                 if ((body->key != pExt->uridFrameBufferCols) || (body->value.type != pExt->forge.Int))
                     return;
                 uint32_t cols = (reinterpret_cast<const LV2_Atom_Int *>(& body->value))->body;
                 if (cols != sFB.cols())
+                {
+//                    lsp_trace("Column count does not match: %d vs %d", int(cols), int(sFB.cols()));
                     return;
+                }
 
                 // Get first row
                 body = lv2_atom_object_next(body);
                 if (lv2_atom_object_is_end(&obj->body, obj->atom.size, body))
+                {
+//                    lsp_trace("unexpected end of object");
                     return;
+                }
+
+//                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
                 if ((body->key != pExt->uridFrameBufferFirstRowID) || (body->value.type != pExt->forge.Int))
                     return;
                 uint32_t first_row = (reinterpret_cast<const LV2_Atom_Int *>(& body->value))->body;
+//                lsp_trace("first_row = %d", int(first_row));
 
                 // Get last row
                 body = lv2_atom_object_next(body);
                 if (lv2_atom_object_is_end(&obj->body, obj->atom.size, body))
+                {
+//                    lsp_trace("unexpected end of object");
                     return;
-                if ((body->key != pExt->uridFrameBufferFirstRowID) || (body->value.type != pExt->forge.Int))
+                }
+
+//                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+
+                if ((body->key != pExt->uridFrameBufferLastRowID) || (body->value.type != pExt->forge.Int))
                     return;
                 uint32_t last_row = (reinterpret_cast<const LV2_Atom_Int *>(& body->value))->body;
+//                lsp_trace("last_row = %d", int(last_row));
+
+                lsp_trace("first_row = %d, last_row = %d", int(first_row), int(last_row));
 
                 // Validate
                 uint32_t delta = last_row - first_row;
                 if (delta > FRAMEBUFFER_BULK_MAX)
+                {
+//                    lsp_trace("delta too large: %d", int(delta));
                     return;
+                }
 
                 // Now parse each vector
                 while (first_row != last_row)
@@ -439,20 +476,32 @@ namespace lsp
                     // Read vector as array of floats
                     body = lv2_atom_object_next(body);
                     if (lv2_atom_object_is_end(&obj->body, obj->atom.size, body))
+                    {
+//                        lsp_trace("unexpected end of object");
                         return;
+                    }
+
+//                    lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                    lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
 
                     if ((body->key != pExt->uridFrameBufferData) || (body->value.type != pExt->forge.Vector))
                         return;
                     const LV2_Atom_Vector *v = reinterpret_cast<const LV2_Atom_Vector *>(&body->value);
 
+//                    lsp_trace("body->child_size = %d, body->child_type (%d) = %s", int(v->body.child_size), int(v->body.child_type), pExt->unmap_urid(v->body.child_type));
+
                     if ((v->body.child_size != sizeof(float)) || (v->body.child_type != pExt->forge.Float))
                         return;
                     ssize_t v_items     = (v->atom.size - sizeof(LV2_Atom_Vector_Body)) / sizeof(float);
                     if (v_items != cols)
+                    {
+//                        lsp_trace("vector items does not match columns count: %d vs %d", int(v_items), int(cols));
                         return;
+                    }
 
                     sFB.write_row(first_row++, reinterpret_cast<const float *>(v + 1));
                 }
+                sFB.seek(first_row);
             }
 
             virtual void *get_buffer()

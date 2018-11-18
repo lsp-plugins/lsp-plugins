@@ -24,7 +24,7 @@ namespace lsp
                 size_t          nChanges;       // Number of changes
                 size_t          nRows;          // Number of rows in frame buffer
                 size_t          nCols;          // Number of columns in frame buffer
-                size_t          nCurrRow;       // Current row
+                uint32_t        nCurrRow;       // Synchronized rowId
                 float          *vData;          // Frame buffer data
                 float          *vTempRGBA;      // Temporary RGBA buffer data
                 uint8_t        *pData;          // Allocation pointer
@@ -73,7 +73,7 @@ namespace lsp
                 inline Color *color() { return &sColor; }
 
             public:
-                status_t append_data(const float *data);
+                status_t append_data(uint32_t row_id, const float *data);
                 void set_rows(size_t rows);
                 void set_cols(size_t cols);
                 void set_size(size_t rows, size_t cols);

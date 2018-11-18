@@ -124,7 +124,7 @@ namespace lsp
                     {
                         float *row = data->get_row(nRowID++);
                         if (row != NULL)
-                            fb->append_data(row);
+                            fb->append_data(nRowID, row);
                     }
                 }
             }

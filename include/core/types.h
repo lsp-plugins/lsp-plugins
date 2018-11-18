@@ -155,7 +155,7 @@ namespace lsp
              * Seek to the specified row
              * @param row_id unique row identifier
              */
-            void seek(uint32_t);
+            void seek(uint32_t row_id);
 
             /** Append the new row to the beginning of frame buffer and increment current row number
              * @param row row data contents

@@ -58,6 +58,7 @@ namespace lsp
 
             size_t      nOscPhase;
             size_t      nOscLeft;
+            size_t      nRows;
             float       vBuffer[FRM_BUFFER_SIZE];
 
             osc_t       vOsc[3];

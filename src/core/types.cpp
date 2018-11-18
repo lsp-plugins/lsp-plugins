@@ -109,7 +109,7 @@ namespace lsp
 
     void frame_buffer_t::write_row(const float *row)
     {
-        uint32_t off    = (nRowID + 1) & (nCapacity - 1);
+        uint32_t off    = nRowID & (nCapacity - 1);
         dsp::copy(&vData[off * nCols], row, nCols);
         nRowID          ++; // Increment row identifier after bulk write
     }
@@ -137,9 +137,10 @@ namespace lsp
         // Synchronize buffer data
         while (dst_rid != src_rid)
         {
-            const float *row = fb->get_row(dst_rid++);
-            size_t off      = (++nRowID) & (nCapacity - 1);
+            const float *row = fb->get_row(dst_rid);
+            size_t off      = (dst_rid) & (nCapacity - 1);
             dsp::copy(&vData[off * nCols], row, nCols);
+            dst_rid++;
         }
 
         nRowID      = dst_rid;

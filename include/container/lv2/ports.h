@@ -476,6 +476,7 @@ namespace lsp
             virtual void ui_connected()
             {
                 // We need to replay buffer contents for the connected client
+                lsp_trace("UI connected event");
                 nRowID      = sFB.next_rowid() - sFB.rows();
             }
 
@@ -484,9 +485,11 @@ namespace lsp
                 // Serialize not more than 4 rows
                 size_t delta = sFB.next_rowid() - nRowID;
                 uint32_t first_row = (delta > sFB.rows()) ? sFB.next_rowid() - sFB.rows() : nRowID;
-                uint32_t last_row = first_row;
-                for (size_t i=0; (i < FRAMEBUFFER_BULK_MAX) && (last_row != sFB.next_rowid()); ++i)
-                    last_row ++;
+                if (delta > FRAMEBUFFER_BULK_MAX)
+                    delta = FRAMEBUFFER_BULK_MAX;
+                uint32_t last_row = first_row + delta;
+
+                lsp_trace("id = %s, first=%d, last=%d", pMetadata->id, int(first_row), int(last_row));
 
                 // Forge frame buffer parameters
                 pExt->forge_key(pExt->uridFrameBufferRows);
@@ -506,7 +509,7 @@ namespace lsp
                 }
 
                 // Update current RowID
-                nRowID = last_row;
+                nRowID = first_row;
             }
     };
 
