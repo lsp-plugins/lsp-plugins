@@ -26,7 +26,7 @@ IF_ARCH_X86(
         void saturate_cmov(float *dst, size_t count);
     }
 
-    namespace sse
+    namespace sse2
     {
         void copy_saturated(float *dst, const float *src, size_t count);
         void saturate(float *dst, size_t count);
@@ -144,12 +144,12 @@ UTEST_BEGIN("dsp.float", saturation)
     {
         IF_ARCH_X86(call("x86:copy_sat", 16, x86::copy_saturated));
         IF_ARCH_X86(call("x86:copy_sat_cmov", 16, x86::copy_saturated_cmov));
-        IF_ARCH_X86(call("sse:copy_sat", 16, sse::copy_saturated));
+        IF_ARCH_X86(call("sse2:copy_sat", 16, sse2::copy_saturated));
         IF_ARCH_ARM(call("neon_d32:copy_sat", 16, neon_d32::copy_saturated));
 
         IF_ARCH_X86(call("x86:sat", 16, x86::saturate));
         IF_ARCH_X86(call("x86:sat_cmov", 16, x86::saturate_cmov));
-        IF_ARCH_X86(call("sse:sat", 16, sse::saturate));
+        IF_ARCH_X86(call("sse2:sat", 16, sse2::saturate));
         IF_ARCH_ARM(call("neon_d32:sat", 16, neon_d32::saturate));
     }
 

@@ -46,6 +46,7 @@ namespace sse2 // TODO: make constants common for all architectures
     #undef DSP_F32VEC4
 }
 
+#include <dsp/arch/x86/sse2/float.h>
 #include <dsp/arch/x86/sse2/search.h>
 #include <dsp/arch/x86/sse2/graphics.h>
 
@@ -64,6 +65,9 @@ namespace sse2
             return;
 
         lsp_trace("Optimizing DSP for SSE2 instruction set");
+
+        EXPORT1(copy_saturated);
+        EXPORT1(saturate);
 
         EXPORT1(min_index);
         EXPORT1(max_index);

@@ -5,14 +5,14 @@
  *      Author: sadko
  */
 
-#ifndef DSP_ARCH_X86_SSE_FLOAT_H_
-#define DSP_ARCH_X86_SSE_FLOAT_H_
+#ifndef DSP_ARCH_X86_SSE2_FLOAT_H_
+#define DSP_ARCH_X86_SSE2_FLOAT_H_
 
-#ifndef DSP_ARCH_X86_SSE_IMPL
+#ifndef DSP_ARCH_X86_SSE2_IMPL
     #error "This header should not be included directly"
-#endif /* DSP_ARCH_X86_SSE_IMPL */
+#endif /* DSP_ARCH_X86_SSE2_IMPL */
 
-namespace sse
+namespace sse2
 {
 #define MULTIPLE_SATURATION_BODY(dst, src) \
     /* Prepare values */ \
@@ -138,4 +138,4 @@ namespace sse
 #undef MULTIPLE_SATURATION_BODY
 }
 
-#endif /* DSP_ARCH_X86_SSE_FLOAT_H_ */
+#endif /* DSP_ARCH_X86_SSE2_FLOAT_H_ */
