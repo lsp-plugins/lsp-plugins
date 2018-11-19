@@ -182,7 +182,7 @@ IF_ARCH_ARM(
     __ASM_EMIT("vand            q6, q6, q13")                   /* q6 = 1 & (abs(s) <= +Inf) */ \
     __ASM_EMIT("vand            q2, q2, q4")                    /* q2 = [ s >= -1 ] & [ s <= +1 ] */ \
     __ASM_EMIT("vorr            q6, q6, q8")                    /* q6 = (1 & (abs(s) <= +Inf)) | sign(s) */ \
-    __ASM_EMIT("vbif            q0, q2, q6")                    /* q0 = (s & ([ s >= -1 ] & [ s <= +1 ])) | (((1 & (abs(s) <= +Inf)) | sign(s)) & ([ s < -1 ] | [ s > +1 ]))*/
+    __ASM_EMIT("vbif            q0, q6, q2")                    /* q0 = (s & ([ s >= -1 ] & [ s <= +1 ])) | (((1 & (abs(s) <= +Inf)) | sign(s)) & ([ s < -1 ] | [ s > +1 ]))*/
 
 #define LIMIT_SAT_BODY_X8 \
     __ASM_EMIT("vcge.f32        q2, q0, q12")                   /* q2 = [ s >= -1 ] */ \
@@ -201,8 +201,8 @@ IF_ARCH_ARM(
     __ASM_EMIT("vand            q3, q3, q5") \
     __ASM_EMIT("vorr            q6, q6, q8")                    /* q6 = (1 & (abs(s) <= +Inf)) | sign(s) */ \
     __ASM_EMIT("vorr            q7, q7, q9") \
-    __ASM_EMIT("vbif            q0, q2, q6")                    /* q0 = (s & ([ s >= -1 ] & [ s <= +1 ])) | (((1 & (abs(s) <= +Inf)) | sign(s)) & ([ s < -1 ] | [ s > +1 ]))*/ \
-    __ASM_EMIT("vbif            q1, q3, q7")
+    __ASM_EMIT("vbif            q0, q6, q2")                    /* q0 = (s & ([ s >= -1 ] & [ s <= +1 ])) | (((1 & (abs(s) <= +Inf)) | sign(s)) & ([ s < -1 ] | [ s > +1 ]))*/ \
+    __ASM_EMIT("vbif            q1, q7, q3")
 
 #define LIMIT_SAT_BODY \
     __ASM_EMIT("vldm            %[XC], {q12-q15}")              /* q12 = -1, q13 = +1, q14 = sign, q15 = +Inf */ \
@@ -211,41 +211,41 @@ IF_ARCH_ARM(
     \
     /* 8x blocks */ \
     __ASM_EMIT("1:") \
-    __ASM_EMIT("vld1.32         {q0-q1}, %[src]!")              /* q0 = s0, q1 = s1 */ \
+    __ASM_EMIT("vld1.32         {q0-q1}, [%[src]]!")            /* q0 = s0, q1 = s1 */ \
     LIMIT_SAT_BODY_X8 \
     __ASM_EMIT("subs            %[count], $8") \
-    __ASM_EMIT("vst1.32         {q0-q1}, %[dst]!") \
+    __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!") \
     __ASM_EMIT("bhs             1b") \
     \
     __ASM_EMIT("2:") \
     __ASM_EMIT("adds            %[count], $4") \
     __ASM_EMIT("blt             4f") \
     /* 4x block */ \
-    __ASM_EMIT("vld1.32         {q0}, %[src]!")                 /* q0 = s */ \
+    __ASM_EMIT("vld1.32         {q0}, [%[src]]!")               /* q0 = s */ \
     LIMIT_SAT_BODY_X4 \
     __ASM_EMIT("sub             %[count], $4") \
-    __ASM_EMIT("vst1.32         {q0}, %[dst]!") \
+    __ASM_EMIT("vst1.32         {q0}, [%[dst]]!") \
     __ASM_EMIT("4:") \
     __ASM_EMIT("adds            %[count], $4") \
     __ASM_EMIT("bls             12f") \
     \
     /* 1x-3x block */ \
     __ASM_EMIT("tst             %[count], $2") \
-    __ASM_EMIT("bne             6f") \
-    __ASM_EMIT("vld1.32         {d1}, %[src]!") \
+    __ASM_EMIT("beq             6f") \
+    __ASM_EMIT("vld1.32         {d1}, [%[src]]!") \
     __ASM_EMIT("6:") \
     __ASM_EMIT("tst             %[count], $1") \
-    __ASM_EMIT("bne             8f") \
-    __ASM_EMIT("vldm            %[src]!, {s0}") \
+    __ASM_EMIT("beq             8f") \
+    __ASM_EMIT("vldm            %[src], {s0}") \
     __ASM_EMIT("8:") \
     LIMIT_SAT_BODY_X4 \
     __ASM_EMIT("tst             %[count], $2") \
-    __ASM_EMIT("bne             10f") \
-    __ASM_EMIT("vst1.32         {d1}, %[dst]!") \
+    __ASM_EMIT("beq             10f") \
+    __ASM_EMIT("vst1.32         {d1}, [%[dst]]!") \
     __ASM_EMIT("10:") \
     __ASM_EMIT("tst             %[count], $1") \
-    __ASM_EMIT("bne             12f") \
-    __ASM_EMIT("vstm            %[dst]!, {s0}") \
+    __ASM_EMIT("beq             12f") \
+    __ASM_EMIT("vstm            %[dst], {s0}") \
     \
     __ASM_EMIT("12:") \
 
