@@ -737,11 +737,45 @@ IF_ARCH_ARM(
     /* q4 = T2 */ \
     /* q5 = T1 */ \
     /* q6 = K */ \
+    /* Process red color */ \
     __ASM_EMIT("vmov            q7, q5")                    /* q7 = T1 */ \
     __ASM_EMIT("vmov            q8, q5")                    /* q8 = T1 */ \
     __ASM_EMIT("vsub.f32        q9, q15, q0")               /* q9 = 2/3 - TR */ \
-    __ASM_EMIT("vmla.f32        q7, q6, q0")                /* q7 = T1 + K*TR */ \
-    __ASM_EMIT("vmla.f32        q8, q6, q9")                /* q8 = T1 + K*(2/3-TR) */ \
+    __ASM_EMIT("vmla.f32        q7, q6, q0")                /* q7 = KTR = T1 + K*TR */ \
+    __ASM_EMIT("vmla.f32        q8, q6, q9")                /* q8 = RTR = T1 + K*(2/3-TR) */ \
+    __ASM_EMIT("vclt.f32        q9, q0, q14")               /* q9 = [TR < 1/6] */ \
+    __ASM_EMIT("vbif            q7, q4, q9")                /* q7 = (KTR & [TR < 1/6]) | ((T2) & (TR >= 1/6)) */ \
+    __ASM_EMIT("vclt.f32        q9, q0, q15")               /* q9 = [TR < 2/3] */ \
+    __ASM_EMIT("vbif            q8, q5, q9")                /* q8 = (RTR & [TR < 2/3]) | ((T1) & (TR >= 2/3)) */ \
+    __ASM_EMIT("vclt.f32        q9, q0, q10")               /* q9 = [TR < 1/2] */ \
+    __ASM_EMIT("vand            q0, q7, q9")                /* q0 = (KTR & [TR < 1/6] & [TR < 1/2]) | ((T2) & (TR >= 1/6) & [TR < 1/2]) */ \
+    __ASM_EMIT("vbif            q0, q8, q9")                /* q0 = (KTR & [TR < 1/6] & [TR < 1/2]) | ((T2) & (TR >= 1/6) & [TR < 1/2]) | (RTR & [TR < 2/3] & [TR >= 1/2]) | ((T1) & (TR >= 2/3) & [TR >= 1/2]) */ \
+    /* Process green color */ \
+    __ASM_EMIT("vmov            q7, q5")                    /* q7 = T1 */ \
+    __ASM_EMIT("vmov            q8, q5")                    /* q8 = T1 */ \
+    __ASM_EMIT("vsub.f32        q9, q15, q1")               /* q9 = 2/3 - TG */ \
+    __ASM_EMIT("vmla.f32        q7, q6, q1")                /* q7 = KTG = T1 + K*TG */ \
+    __ASM_EMIT("vmla.f32        q8, q6, q9")                /* q8 = RTG = T1 + K*(2/3-TG) */ \
+    __ASM_EMIT("vclt.f32        q9, q1, q14")               /* q9 = [TG < 1/6] */ \
+    __ASM_EMIT("vbif            q7, q4, q9")                /* q7 = (KTG & [TG < 1/6]) | ((T2) & (TG >= 1/6)) */ \
+    __ASM_EMIT("vclt.f32        q9, q1, q15")               /* q9 = [TG < 2/3] */ \
+    __ASM_EMIT("vbif            q8, q5, q9")                /* q8 = (RTG & [TG < 2/3]) | ((T1) & (TG >= 2/3)) */ \
+    __ASM_EMIT("vclt.f32        q9, q1, q10")               /* q9 = [TG < 1/2] */ \
+    __ASM_EMIT("vand            q1, q7, q9")                /* q1 = (KTG & [TG < 1/6] & [TG < 1/2]) | ((T2) & (TG >= 1/6) & [TG < 1/2]) */ \
+    __ASM_EMIT("vbif            q1, q8, q9")                /* q1 = (KTG & [TG < 1/6] & [TG < 1/2]) | ((T2) & (TG >= 1/6) & [TG < 1/2]) | (RTG & [TG < 2/3] & [TG >= 1/2]) | ((T1) & (TG >= 2/3) & [TG >= 1/2]) */ \
+    /* Process blue color */ \
+    __ASM_EMIT("vmov            q7, q5")                    /* q7 = T1 */ \
+    __ASM_EMIT("vmov            q8, q5")                    /* q8 = T1 */ \
+    __ASM_EMIT("vsub.f32        q9, q25, q2")               /* q9 = 2/3 - TB */ \
+    __ASM_EMIT("vmla.f32        q7, q6, q2")                /* q7 = KTB = T1 + K*TB */ \
+    __ASM_EMIT("vmla.f32        q8, q6, q9")                /* q8 = RTB = T1 + K*(2/3-TB) */ \
+    __ASM_EMIT("vclt.f32        q9, q2, q24")               /* q9 = [TB < 1/6] */ \
+    __ASM_EMIT("vbif            q7, q4, q9")                /* q7 = (KTB & [TB < 1/6]) | ((T2) & (TB >= 1/6)) */ \
+    __ASM_EMIT("vclt.f32        q9, q2, q25")               /* q9 = [TB < 2/3] */ \
+    __ASM_EMIT("vbif            q8, q5, q9")                /* q8 = (RTB & [TB < 2/3]) | ((T1) & (TB >= 2/3)) */ \
+    __ASM_EMIT("vclt.f32        q9, q2, q20")               /* q9 = [TB < 1/2] */ \
+    __ASM_EMIT("vand            q2, q7, q9")                /* q2 = (KTB & [TB < 1/6] & [TB < 1/2]) | ((T2) & (TB >= 1/6) & [TB < 1/2]) */ \
+    __ASM_EMIT("vbif            q2, q8, q9")                /* q2 = (KTB & [TB < 1/6] & [TB < 1/2]) | ((T2) & (TB >= 1/6) & [TB < 1/2]) | (RTB & [TB < 2/3] & [TB >= 1/2]) | ((T1) & (TB >= 2/3) & [TB >= 1/2]) */ \
 
 
 /*
@@ -783,144 +817,6 @@ IF_ARCH_ARM(
             B = (tempb < HSL_RGB_2_3) ? temp1 + k * (HSL_RGB_2_3 - tempb) : temp1;
 */
 
-#if 0
-    __ASM_EMIT("addps           %%xmm2, %%xmm6")            /*  xmm6 = L + S */ \
-    __ASM_EMIT("mulps           %%xmm1, %%xmm7")            /*  xmm7 = L * S */ \
-    __ASM_EMIT("subps           %%xmm7, %%xmm6")            /*  xmm6 = L + S - L * S */ \
-    __ASM_EMIT("addps           %%xmm2, %%xmm7")            /*  xmm7 = L + L * S */ \
-    __ASM_EMIT("movaps          %%xmm2, %%xmm5")            /*  xmm5 = L */ \
-    __ASM_EMIT("movaps          0x00 + %[XC], %%xmm4")      /*  xmm4 = 0.5 */ \
-    __ASM_EMIT("addps           %%xmm2, %%xmm5")            /*  xmm5 = L + L */ \
-    __ASM_EMIT("cmpps           $2, %%xmm2, %%xmm4")        /*  xmm4 = [L >= 0.5f] */ \
-    __ASM_EMIT("andps           %%xmm4, %%xmm6")            /*  xmm6 = [L >= 0.5f] & (L+S - L*S) */ \
-    __ASM_EMIT("andnps          %%xmm7, %%xmm4")            /*  xmm4 = [L < 0.5f] & (L + L*S) */ \
-    __ASM_EMIT("orps            %%xmm6, %%xmm4")            /*  xmm4 = T2 = ([0.5f < L] & (L + L*S)) | ([0.5f >= L] & (L+S - L*S)) */ \
-    __ASM_EMIT("movaps          %%xmm0, %%xmm1")            /*  xmm1 = TG = H */ \
-    __ASM_EMIT("subps           %%xmm4, %%xmm5")            /*  xmm5 = T1 = L + L - T2 */ \
-    __ASM_EMIT("movaps          %%xmm0, %%xmm2")            /*  xmm2 = H */ \
-    \
-    __ASM_EMIT("movaps          0x10 + %[XC], %%xmm6")      /*  xmm6 = 1/3 */ \
-    __ASM_EMIT("addps           %%xmm6, %%xmm0")            /*  xmm0 = H + 1/3 */ \
-    __ASM_EMIT("subps           %%xmm6, %%xmm2")            /*  xmm2 = H - 1/3 */ \
-    \
-    __ASM_EMIT("movaps          0x20 + %[XC], %%xmm7")      /*  xmm7 = 1 */ \
-    __ASM_EMIT("movaps          %%xmm0, %%xmm6")            /*  xmm6 = H + 1/3 */ \
-    __ASM_EMIT("subps           %%xmm7, %%xmm6")            /*  xmm6 = H + 1/3 - 1 */ \
-    __ASM_EMIT("cmpps           $5, %%xmm0, %%xmm7")        /*  xmm7 = [(H + 1/3) <= 1] */ \
-    __ASM_EMIT("andps           %%xmm7, %%xmm0")            /*  xmm0 = (H + 1/3) & [(H + 1/3) <= 1] */ \
-    __ASM_EMIT("andnps          %%xmm6, %%xmm7")            /*  xmm7 = (H + 1/3 - 1) & [(H + 1/3) > 1] */ \
-    __ASM_EMIT("orps            %%xmm7, %%xmm0")            /*  xmm0 = TR = ((H + 1/3) & [(H + 1/3) <= 1]) | ((H + 1/3 - 1) & [(H + 1/3) > 1]) */ \
-    \
-    __ASM_EMIT("movaps          0x20 + %[XC], %%xmm7")      /*  xmm7 = 1 */ \
-    __ASM_EMIT("movaps          %%xmm2, %%xmm6")            /*  xmm6 = H - 1/3 */ \
-    __ASM_EMIT("addps           %%xmm7, %%xmm6")            /*  xmm6 = H - 1/3 + 1 */ \
-    __ASM_EMIT("xorps           %%xmm7, %%xmm7")            /*  xmm7 = 0 */ \
-    __ASM_EMIT("cmpps           $2, %%xmm2, %%xmm7")        /*  xmm7 = [(H - 1/3) >= 0] */ \
-    __ASM_EMIT("andps           %%xmm7, %%xmm2")            /*  xmm2 = (H - 1/3) & [(H - 1/3) >= 0] */ \
-    __ASM_EMIT("andnps          %%xmm6, %%xmm7")            /*  xmm6 = (H - 1/3 + 1) & [(H - 1/3) < 0] */ \
-    __ASM_EMIT("orps            %%xmm7, %%xmm2")            /*  xmm2 = TB = ((H - 1/3) & [(H - 1/3) >= 0]) | ((H - 1/3 + 1) & [(H - 1/3) < 0]) */ \
-    \
-    __ASM_EMIT("movaps          %%xmm4, %%xmm6")            /*  xmm6 = T2 */ \
-    __ASM_EMIT("subps           %%xmm5, %%xmm6")            /*  xmm6 = T2 - T1 */ \
-    __ASM_EMIT("mulps           0x30 + %[XC], %%xmm6")      /*  xmm6 = K = (T2 - T1)*6.0 */ \
-    \
-    /*  xmm0 = TR */ \
-    /*  xmm1 = TG */ \
-    /*  xmm2 = TB */ \
-    /*  xmm3 = A */ \
-    /*  xmm4 = T2 */ \
-    /*  xmm5 = T1 */ \
-    /*  xmm6 = K */ \
-    __ASM_EMIT("movaps          %%xmm0, 0x00(%[HSLM])")     /*  TR */ \
-    __ASM_EMIT("movaps          %%xmm1, 0x10(%[HSLM])")     /*  TG */ \
-    __ASM_EMIT("movaps          %%xmm2, 0x20(%[HSLM])")     /*  TB */ \
-    __ASM_EMIT("movaps          %%xmm3, 0x30(%[HSLM])")     /*  A */ \
-    __ASM_EMIT("movaps          %%xmm4, 0x40(%[HSLM])")     /*  T2 */ \
-    __ASM_EMIT("movaps          %%xmm5, 0x50(%[HSLM])")     /*  T1 */ \
-    \
-    __ASM_EMIT("movaps          0x50 + %[XC], %%xmm3")      /*  xmm3 = 2/3 */ \
-    __ASM_EMIT("movaps          %%xmm5, %%xmm7")            /*  xmm7 = T1 */ \
-    __ASM_EMIT("mulps           %%xmm6, %%xmm0")            /*  xmm0 = k*TR */ \
-    __ASM_EMIT("mulps           %%xmm6, %%xmm3")            /*  xmm3 = K * 2/3 */ \
-    __ASM_EMIT("mulps           %%xmm6, %%xmm1")            /*  xmm1 = k*TG */ \
-    __ASM_EMIT("movaps          %%xmm3, %%xmm4")            /*  xmm4 = K * 2/3 */ \
-    __ASM_EMIT("mulps           %%xmm6, %%xmm2")            /*  xmm2 = k*TB */ \
-    __ASM_EMIT("movaps          %%xmm3, %%xmm5")            /*  xmm5 = K * 2/3 */ \
-    __ASM_EMIT("subps           %%xmm0, %%xmm3")            /*  xmm3 = K * (2/3 - TR) */ \
-    __ASM_EMIT("subps           %%xmm1, %%xmm4")            /*  xmm4 = K * (2/3 - TG) */ \
-    __ASM_EMIT("subps           %%xmm2, %%xmm5")            /*  xmm5 = K * (2/3 - TB) */ \
-    __ASM_EMIT("addps           %%xmm7, %%xmm0")            /*  xmm0 = KTR = k*TR + T1 */ \
-    __ASM_EMIT("addps           %%xmm7, %%xmm1")            /*  xmm1 = KTG = k*TG + T1 */ \
-    __ASM_EMIT("addps           %%xmm7, %%xmm2")            /*  xmm2 = KTB = k*TB + T1 */ \
-    __ASM_EMIT("addps           %%xmm7, %%xmm3")            /*  xmm3 = RTR = K * (2/3 - TR) + T1 */ \
-    __ASM_EMIT("addps           %%xmm7, %%xmm4")            /*  xmm4 = RTG = K * (2/3 - TG) + T1 */ \
-    __ASM_EMIT("addps           %%xmm7, %%xmm5")            /*  xmm5 = RTB = K * (2/3 - TB) + T1 */ \
-    \
-    __ASM_EMIT("movaps          %%xmm0, 0x60(%[HSLM])")     /*  KTR */ \
-    __ASM_EMIT("movaps          %%xmm1, 0x70(%[HSLM])")     /*  KTG */ \
-    __ASM_EMIT("movaps          %%xmm2, 0x80(%[HSLM])")     /*  KTB */ \
-    __ASM_EMIT("movaps          %%xmm3, 0x90(%[HSLM])")     /*  RTR */ \
-    __ASM_EMIT("movaps          %%xmm4, 0xa0(%[HSLM])")     /*  RTG */ \
-    __ASM_EMIT("movaps          %%xmm5, 0xb0(%[HSLM])")     /*  RTB */ \
-    \
-    /*  Now we have enough data to process */ \
-    __ASM_EMIT("movaps          0x00(%[HSLM]), %%xmm0")     /*  xmm0 = TR */ \
-    __ASM_EMIT("movaps          0x10(%[HSLM]), %%xmm1")     /*  xmm1 = TG */ \
-    __ASM_EMIT("movaps          0x20(%[HSLM]), %%xmm2")     /*  xmm2 = TB */ \
-    __ASM_EMIT("movaps          0x30(%[HSLM]), %%xmm3")     /*  xmm3 = A */ \
-    \
-    /*  Process red */ \
-    __ASM_EMIT("movaps          %%xmm0, %%xmm5")            /*  xmm5 = TR */ \
-    __ASM_EMIT("movaps          %%xmm0, %%xmm6")            /*  xmm6 = TR */ \
-    __ASM_EMIT("cmpps           $1, 0x00 + %[XC], %%xmm0")  /*  xmm0 = [ TR < 0.5 ] */ \
-    __ASM_EMIT("cmpps           $1, 0x40 + %[XC], %%xmm5")  /*  xmm5 = [ TR < 1/6 ] */ \
-    __ASM_EMIT("cmpps           $1, 0x50 + %[XC], %%xmm6")  /*  xmm6 = [ TR < 2/3 ] */ \
-    __ASM_EMIT("movaps          %%xmm5, %%xmm7")            /*  xmm7 = [ TR < 1/6 ] */ \
-    __ASM_EMIT("andnps          %%xmm0, %%xmm7")            /*  xmm7 = [ TR >= 1/6 ] & [ TR < 0.5 ] */ \
-    __ASM_EMIT("andnps          %%xmm6, %%xmm0")            /*  xmm0 = [ TR >= 0.5 ] & [ TR < 2/3 ] */ \
-    __ASM_EMIT("andps           0x60(%[HSLM]), %%xmm5")     /*  xmm5 = KTR & [ TR < 1/6 ] */ \
-    __ASM_EMIT("andps           0x40(%[HSLM]), %%xmm7")     /*  xmm7 = T2 & [ TR < 1/6 ] */ \
-    __ASM_EMIT("andnps          0x50(%[HSLM]), %%xmm6")     /*  xmm6 = T1 & [ TR >= 2/3 ] */ \
-    __ASM_EMIT("andps           0x90(%[HSLM]), %%xmm0")     /*  xmm0 = RTR & [ TR >= 0.5 ] & [ TR < 2/3 ] */ \
-    __ASM_EMIT("orps            %%xmm7, %%xmm6") \
-    __ASM_EMIT("orps            %%xmm5, %%xmm0") \
-    __ASM_EMIT("orps            %%xmm6, %%xmm0") \
-    \
-    /*  Process green */ \
-    __ASM_EMIT("movaps          %%xmm1, %%xmm5")            /*  xmm5 = TG */ \
-    __ASM_EMIT("movaps          %%xmm1, %%xmm6")            /*  xmm6 = TG */ \
-    __ASM_EMIT("cmpps           $1, 0x00 + %[XC], %%xmm1")  /*  xmm1 = [ TG < 0.5 ] */ \
-    __ASM_EMIT("cmpps           $1, 0x40 + %[XC], %%xmm5")  /*  xmm5 = [ TG < 1/6 ] */ \
-    __ASM_EMIT("cmpps           $1, 0x50 + %[XC], %%xmm6")  /*  xmm6 = [ TG < 2/3 ] */ \
-    __ASM_EMIT("movaps          %%xmm5, %%xmm7")            /*  xmm7 = [ TG < 1/6 ] */ \
-    __ASM_EMIT("andnps          %%xmm1, %%xmm7")            /*  xmm7 = [ TG >= 1/6 ] & [ TG < 0.5 ] */ \
-    __ASM_EMIT("andnps          %%xmm6, %%xmm1")            /*  xmm1 = [ TG >= 0.5 ] & [ TG < 2/3 ] */ \
-    __ASM_EMIT("andps           0x70(%[HSLM]), %%xmm5")     /*  xmm5 = KTG & [ TG < 1/6 ] */ \
-    __ASM_EMIT("andps           0x40(%[HSLM]), %%xmm7")     /*  xmm7 = T2 & [ TG < 1/6 ] */ \
-    __ASM_EMIT("andnps          0x50(%[HSLM]), %%xmm6")     /*  xmm6 = T1 & [ TG >= 2/3 ] */ \
-    __ASM_EMIT("andps           0xa0(%[HSLM]), %%xmm1")     /*  xmm1 = RTG & [ TG >= 0.5 ] & [ TG < 2/3 ] */ \
-    __ASM_EMIT("orps            %%xmm7, %%xmm6") \
-    __ASM_EMIT("orps            %%xmm5, %%xmm1") \
-    __ASM_EMIT("orps            %%xmm6, %%xmm1") \
-    \
-    /*  Process blue */ \
-    __ASM_EMIT("movaps          %%xmm2, %%xmm5")            /*  xmm5 = TB */ \
-    __ASM_EMIT("movaps          %%xmm2, %%xmm6")            /*  xmm6 = TB */ \
-    __ASM_EMIT("cmpps           $1, 0x00 + %[XC], %%xmm2")  /*  xmm2 = [ TB < 0.5 ] */ \
-    __ASM_EMIT("cmpps           $1, 0x40 + %[XC], %%xmm5")  /*  xmm5 = [ TB < 1/6 ] */ \
-    __ASM_EMIT("cmpps           $1, 0x50 + %[XC], %%xmm6")  /*  xmm6 = [ TB < 2/3 ] */ \
-    __ASM_EMIT("movaps          %%xmm5, %%xmm7")            /*  xmm7 = [ TB < 1/6 ] */ \
-    __ASM_EMIT("andnps          %%xmm2, %%xmm7")            /*  xmm7 = [ TB >= 1/6 ] & [ TB < 0.5 ] */ \
-    __ASM_EMIT("andnps          %%xmm6, %%xmm2")            /*  xmm2 = [ TB >= 0.5 ] & [ TB < 2/3 ] */ \
-    __ASM_EMIT("andps           0x80(%[HSLM]), %%xmm5")     /*  xmm5 = KTB & [ TB < 1/6 ] */ \
-    __ASM_EMIT("andps           0x40(%[HSLM]), %%xmm7")     /*  xmm7 = T2 & [ TB < 1/6 ] */ \
-    __ASM_EMIT("andnps          0x50(%[HSLM]), %%xmm6")     /*  xmm6 = T1 & [ TB >= 2/3 ] */ \
-    __ASM_EMIT("andps           0xb0(%[HSLM]), %%xmm2")     /*  xmm2 = RTB & [ TB >= 0.5 ] & [ TB < 2/3 ] */ \
-    __ASM_EMIT("orps            %%xmm7, %%xmm6") \
-    __ASM_EMIT("orps            %%xmm5, %%xmm2") \
-    __ASM_EMIT("orps            %%xmm6, %%xmm2") \
-
-#endif
 
 
     void hsla_to_rgba(float *dst, const float *src, size_t count)
