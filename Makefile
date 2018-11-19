@@ -266,8 +266,8 @@ debugfile: debug
 gdb: export CFLAGS          += -O0
 gdb: compile
 
-profile: export CFLAGS      += -O0 -pg -DLSP_PROFILING
-profile: export EXE_FLAGS   += -O0 -pg 
+profile: export CFLAGS      += -O0 -g -pg -DLSP_PROFILING
+profile: export EXE_FLAGS   += -O0 -g -pg 
 profile: compile
 
 # Compilation and cleaning targets
