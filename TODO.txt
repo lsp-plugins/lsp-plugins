@@ -37,8 +37,6 @@
 - Added subsystem for loading missed files.
 
 Porting to ARM required:
-  - void limit_saturate1(float *dst, size_t count);
-  - void limit_saturate2(float *dst, const float *src, size_t count);
   - void hsla_to_rgba(float *dst, const float *src, size_t count);
   - void rgba_to_hsla(float *dst, const float *src, size_t count);
   - void rgba_to_bgra32(void *dst, const float *src, size_t count);
