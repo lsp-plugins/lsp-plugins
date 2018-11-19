@@ -609,20 +609,20 @@ namespace neon_d32
     }
 
 #define FILL4_CORE \
-    __ASM_EMIT("vld1.32     q0, [%[c4]]")       /* q0 = c0 c1 c2 c3 */ \
+    __ASM_EMIT("vld1.32     {q0}, [%[c4]]")     /* q0 = c0 c1 c2 c3 */ \
     __ASM_EMIT("vmov        q1, q0")            /* q1 = c0 c1 c2 c3 */ \
     __ASM_EMIT("vmov        q2, q0")            /* q2 = c0 c1 c2 c3 */ \
     __ASM_EMIT("vmov        q3, q1")            /* q3 = c0 c1 c2 c3 */ \
     \
     /* 8x blocks */ \
-    __ASM_EMIT("sub         $8, %[count]") \
+    __ASM_EMIT("subs        %[count], $8") \
     __ASM_EMIT("blo         2f") \
     __ASM_EMIT("vmov        q4, q0")            /* q4 = c0 c1 c2 c3 */ \
     __ASM_EMIT("vmov        q5, q1")            /* q5 = c0 c1 c2 c3 */ \
     __ASM_EMIT("vmov        q6, q2")            /* q6 = c0 c1 c2 c3 */ \
     __ASM_EMIT("vmov        q7, q3")            /* q7 = c0 c1 c2 c3 */ \
     __ASM_EMIT("1:") \
-    __ASM_EMIT("vstm        {q0-q7}, [%[dst]]") \
+    __ASM_EMIT("vstm        %[dst], {q0-q7}") \
     __ASM_EMIT("subs        %[count], $8") \
     __ASM_EMIT("add         %[dst], $0x80") \
     __ASM_EMIT("bhs         1b") \
@@ -630,20 +630,21 @@ namespace neon_d32
     __ASM_EMIT("2:") \
     __ASM_EMIT("adds        %[count], $4") \
     __ASM_EMIT("blt         4f") \
-    __ASM_EMIT("vstm        {q0-q3}, [%[dst]]") \
+    __ASM_EMIT("vstm        %[dst], {q0-q3}") \
     __ASM_EMIT("sub         %[count], $4") \
     __ASM_EMIT("add         %[dst], $0x40") \
     /* 2x block */ \
+    __ASM_EMIT("4:") \
     __ASM_EMIT("adds        %[count], $2") \
     __ASM_EMIT("blt         6f") \
-    __ASM_EMIT("vstm        {q0-q1}, [%[dst]]") \
+    __ASM_EMIT("vst1.32     {q0-q1}, [%[dst]]") \
     __ASM_EMIT("sub         %[count], $2") \
     __ASM_EMIT("add         %[dst], $0x20") \
     /* 1x block */ \
     __ASM_EMIT("6:") \
     __ASM_EMIT("adds        %[count], $1") \
     __ASM_EMIT("blt         8f") \
-    __ASM_EMIT("vstm        {q0}, [%[dst]]") \
+    __ASM_EMIT("vst1.32     {q0}, [%[dst]]") \
     __ASM_EMIT("8:")
 
     void fill_rgba(float *dst, float r, float g, float b, float a, size_t count)

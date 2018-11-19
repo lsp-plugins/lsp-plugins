@@ -80,11 +80,11 @@ UTEST_BEGIN("dsp.graphics", fill)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse:fill_rgba", 16, native::fill_rgba, sse::fill_rgba));
-        IF_ARCH_X86(call("sse:fill_hsla", 16, native::fill_hsla, sse::fill_hsla));
+        IF_ARCH_X86(call("sse::fill_rgba", 16, native::fill_rgba, sse::fill_rgba));
+        IF_ARCH_X86(call("sse::fill_hsla", 16, native::fill_hsla, sse::fill_hsla));
 
-        IF_ARCH_ARM(call("neon_d32:fill_rgba", 16, native::fill_rgba, neon_d32::fill_rgba));
-        IF_ARCH_ARM(call("neon_d32:fill_hsla", 16, native::fill_hsla, neon_d32::fill_hsla));
+        IF_ARCH_ARM(call("neon_d32::fill_rgba", 16, native::fill_rgba, neon_d32::fill_rgba));
+        IF_ARCH_ARM(call("neon_d32::fill_hsla", 16, native::fill_hsla, neon_d32::fill_hsla));
     }
 
 UTEST_END;
