@@ -26,13 +26,13 @@ IF_ARCH_X86(
     }
 )
 
-//IF_ARCH_ARM(
-//    namespace neon_d32
-//    {
-//        void limit_saturate1(float *dst, size_t count);
-//        void limit_saturate2(float *dst, const float *src, size_t count);
-//    }
-//)
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void limit_saturate1(float *dst, size_t count);
+        void limit_saturate2(float *dst, const float *src, size_t count);
+    }
+)
 
 typedef void (* limit_saturate1_t)(float *dst, size_t count);
 typedef void (* limit_saturate2_t)(float *dst, const float *src, size_t count);
@@ -101,8 +101,8 @@ PTEST_BEGIN("dsp.float", limit_saturate, 5, 10000)
             IF_ARCH_X86(call("sse2::limit_saturate1", dst, src, count, sse2::limit_saturate1));
             IF_ARCH_X86(call("sse2::limit_saturate2", dst, src, count, sse2::limit_saturate2));
 
-//            IF_ARCH_ARM(call("neon_d32::limit_saturate1", dst, src, count, neon_d32::limit_saturate1));
-//            IF_ARCH_ARM(call("neon_d32::limit_saturate2", dst, src, count, neon_d32::limit_saturate2));
+            IF_ARCH_ARM(call("neon_d32::limit_saturate1", dst, src, count, neon_d32::limit_saturate1));
+            IF_ARCH_ARM(call("neon_d32::limit_saturate2", dst, src, count, neon_d32::limit_saturate2));
 
             PTEST_SEPARATOR;
         }
