@@ -10,7 +10,7 @@
 #include <core/sugar.h>
 
 #define MIN_RANK 6
-#define MAX_RANK 14
+#define MAX_RANK 16
 
 namespace native
 {
@@ -26,13 +26,13 @@ IF_ARCH_X86(
     }
 )
 
-//IF_ARCH_ARM(
-//    namespace neon_d32
-//    {
-//        void fill_rgba(float *dst, float r, float g, float b, float a, size_t count);
-//        void fill_hsla(float *dst, float h, float s, float l, float a, size_t count);
-//    }
-//)
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void fill_rgba(float *dst, float r, float g, float b, float a, size_t count);
+        void fill_hsla(float *dst, float h, float s, float l, float a, size_t count);
+    }
+)
 
 typedef void (* hsla_to_fill_t)(float *dst, float c1, float c2, float c3, float c4, size_t count);
 
@@ -70,8 +70,8 @@ PTEST_BEGIN("dsp.graphics", fill, 5, 5000)
             IF_ARCH_X86(call("sse::fill_rgba", dst, count, sse::fill_rgba));
             IF_ARCH_X86(call("sse::fill_hsla", dst, count, sse::fill_hsla));
 
-//            IF_ARCH_ARM(call("neon_d32::fill_rgba", dst, count, neon_d32::fill_rgba));
-//            IF_ARCH_ARM(call("neon_d32::fill_hsla", dst, count, neon_d32::fill_hsla));
+            IF_ARCH_ARM(call("neon_d32::fill_rgba", dst, count, neon_d32::fill_rgba));
+            IF_ARCH_ARM(call("neon_d32::fill_hsla", dst, count, neon_d32::fill_hsla));
 
             PTEST_SEPARATOR;
         }

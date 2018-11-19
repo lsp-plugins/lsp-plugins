@@ -607,6 +607,88 @@ namespace neon_d32
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
         );
     }
+
+#define FILL4_CORE \
+    __ASM_EMIT("vld1.32     q0, [%[c4]]")       /* q0 = c0 c1 c2 c3 */ \
+    __ASM_EMIT("vmov        q1, q0")            /* q1 = c0 c1 c2 c3 */ \
+    __ASM_EMIT("vmov        q2, q0")            /* q2 = c0 c1 c2 c3 */ \
+    __ASM_EMIT("vmov        q3, q1")            /* q3 = c0 c1 c2 c3 */ \
+    \
+    /* 8x blocks */ \
+    __ASM_EMIT("sub         $8, %[count]") \
+    __ASM_EMIT("blo         2f") \
+    __ASM_EMIT("vmov        q4, q0")            /* q4 = c0 c1 c2 c3 */ \
+    __ASM_EMIT("vmov        q5, q1")            /* q5 = c0 c1 c2 c3 */ \
+    __ASM_EMIT("vmov        q6, q2")            /* q6 = c0 c1 c2 c3 */ \
+    __ASM_EMIT("vmov        q7, q3")            /* q7 = c0 c1 c2 c3 */ \
+    __ASM_EMIT("1:") \
+    __ASM_EMIT("vstm        {q0-q7}, [%[dst]]") \
+    __ASM_EMIT("subs        %[count], $8") \
+    __ASM_EMIT("add         %[dst], $0x80") \
+    __ASM_EMIT("bhs         1b") \
+    /* 4x block */ \
+    __ASM_EMIT("2:") \
+    __ASM_EMIT("adds        %[count], $4") \
+    __ASM_EMIT("blt         4f") \
+    __ASM_EMIT("vstm        {q0-q3}, [%[dst]]") \
+    __ASM_EMIT("sub         %[count], $4") \
+    __ASM_EMIT("add         %[dst], $0x40") \
+    /* 2x block */ \
+    __ASM_EMIT("adds        %[count], $2") \
+    __ASM_EMIT("blt         6f") \
+    __ASM_EMIT("vstm        {q0-q1}, [%[dst]]") \
+    __ASM_EMIT("sub         %[count], $2") \
+    __ASM_EMIT("add         %[dst], $0x20") \
+    /* 1x block */ \
+    __ASM_EMIT("6:") \
+    __ASM_EMIT("adds        %[count], $1") \
+    __ASM_EMIT("blt         8f") \
+    __ASM_EMIT("vstm        {q0}, [%[dst]]") \
+    __ASM_EMIT("8:")
+
+    void fill_rgba(float *dst, float r, float g, float b, float a, size_t count)
+    {
+        IF_ARCH_ARM(
+            float c4[4] __lsp_aligned16;
+            c4[0] = r;
+            c4[1] = g;
+            c4[2] = b;
+            c4[3] = a;
+        )
+
+        ARCH_ARM_ASM
+        (
+            FILL4_CORE
+            : [dst] "+r" (dst), [count] "+r" (count)
+            : [c4] "r" (&c4[0])
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7"
+        );
+    }
+
+    void fill_hsla(float *dst, float h, float s, float l, float a, size_t count)
+    {
+        IF_ARCH_ARM(
+            float c4[4] __lsp_aligned16;
+            c4[0] = h;
+            c4[1] = s;
+            c4[2] = l;
+            c4[3] = a;
+        );
+
+        ARCH_ARM_ASM
+        (
+            FILL4_CORE
+            : [dst] "+r" (dst), [count] "+r" (count)
+            : [c4] "r" (&c4[0])
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7"
+        );
+    }
+
+#undef FILL4_CORE
 }
 
 

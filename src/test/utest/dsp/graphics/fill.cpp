@@ -23,13 +23,13 @@ IF_ARCH_X86(
     }
 )
 
-//IF_ARCH_ARM(
-//    namespace neon_d32
-//    {
-//        void fill_rgba(float *dst, float r, float g, float b, float a, size_t count);
-//        void fill_hsla(float *dst, float h, float s, float l, float a, size_t count);
-//    }
-//)
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void fill_rgba(float *dst, float r, float g, float b, float a, size_t count);
+        void fill_hsla(float *dst, float h, float s, float l, float a, size_t count);
+    }
+)
 
 typedef void (* hsla_to_fill_t)(float *dst, float c1, float c2, float c3, float c4, size_t count);
 
@@ -83,8 +83,8 @@ UTEST_BEGIN("dsp.graphics", fill)
         IF_ARCH_X86(call("sse:fill_rgba", 16, native::fill_rgba, sse::fill_rgba));
         IF_ARCH_X86(call("sse:fill_hsla", 16, native::fill_hsla, sse::fill_hsla));
 
-//        IF_ARCH_ARM(call("neon_d32:fill_rgba", 16, native::fill_rgba, neon_d32::fill_rgba));
-//        IF_ARCH_ARM(call("neon_d32:fill_hsla", 16, native::fill_hsla, neon_d32::fill_hsla));
+        IF_ARCH_ARM(call("neon_d32:fill_rgba", 16, native::fill_rgba, neon_d32::fill_rgba));
+        IF_ARCH_ARM(call("neon_d32:fill_hsla", 16, native::fill_hsla, neon_d32::fill_hsla));
     }
 
 UTEST_END;
