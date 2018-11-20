@@ -71,6 +71,11 @@ namespace lsp
              */
             virtual bool tx_pending()                   { return false;     };
 
+            /**
+             * Callback: UI has connected to backend
+             */
+            virtual void ui_connected()                 { };
+
             /** Get the URID of the port in terms of Atom
              *
              * @return UIRD of the port
@@ -419,22 +424,92 @@ namespace lsp
                 mesh_t *mesh = sMesh.pMesh;
 
                 // Forge number of vectors (dimensions)
-                pExt->forge_key(sMesh.uridDimensions);
+                pExt->forge_key(pExt->uridMeshDimensions);
                 pExt->forge_int(mesh->nBuffers);
 
                 // Forge number of items per vector
-                pExt->forge_key(sMesh.uridItems);
+                pExt->forge_key(pExt->uridMeshItems);
                 pExt->forge_int(mesh->nItems);
 
                 // Forge vectors
                 for (size_t i=0; i < mesh->nBuffers; ++i)
                 {
-                    pExt->forge_key(sMesh.pUrids[i]);
+                    pExt->forge_key(pExt->uridMeshData);
                     pExt->forge_vector(sizeof(float), pExt->forge.Float, mesh->nItems, mesh->pvData[i]);
                 }
 
                 // Set mesh waiting until next frame is allowed
                 mesh->setWaiting();
+            }
+    };
+
+    class LV2FrameBufferPort: public LV2Port
+    {
+        private:
+            frame_buffer_t      sFB;
+            size_t              nRowID;
+
+        public:
+            LV2FrameBufferPort(const port_t *meta, LV2Extensions *ext): LV2Port(meta, ext)
+            {
+                sFB.init(meta->start, meta->step);
+                nRowID = 0;
+            }
+
+            virtual ~LV2FrameBufferPort()
+            {
+            };
+
+        public:
+            virtual LV2_URID get_type_urid()        { return pExt->uridFrameBufferType; };
+
+            virtual void *getBuffer()
+            {
+                return &sFB;
+            }
+
+            virtual bool tx_pending()
+            {
+                return sFB.next_rowid() != nRowID;
+            }
+
+            virtual void ui_connected()
+            {
+                // We need to replay buffer contents for the connected client
+                lsp_trace("UI connected event");
+                nRowID      = sFB.next_rowid() - sFB.rows();
+            }
+
+            virtual void serialize()
+            {
+                // Serialize not more than 4 rows
+                size_t delta = sFB.next_rowid() - nRowID;
+                uint32_t first_row = (delta > sFB.rows()) ? sFB.next_rowid() - sFB.rows() : nRowID;
+                if (delta > FRAMEBUFFER_BULK_MAX)
+                    delta = FRAMEBUFFER_BULK_MAX;
+                uint32_t last_row = first_row + delta;
+
+                lsp_trace("id = %s, first=%d, last=%d", pMetadata->id, int(first_row), int(last_row));
+
+                // Forge frame buffer parameters
+                pExt->forge_key(pExt->uridFrameBufferRows);
+                pExt->forge_int(sFB.rows());
+                pExt->forge_key(pExt->uridFrameBufferCols);
+                pExt->forge_int(sFB.cols());
+                pExt->forge_key(pExt->uridFrameBufferFirstRowID);
+                pExt->forge_int(first_row);
+                pExt->forge_key(pExt->uridFrameBufferLastRowID);
+                pExt->forge_int(last_row);
+
+                // Forge vectors
+                while (first_row != last_row)
+                {
+                    pExt->forge_key(pExt->uridFrameBufferData);
+                    pExt->forge_vector(sizeof(float), pExt->forge.Float, sFB.cols(), sFB.get_row(first_row++));
+                }
+
+                // Update current RowID
+                nRowID = first_row;
             }
     };
 

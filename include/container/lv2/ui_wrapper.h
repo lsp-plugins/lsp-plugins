@@ -15,6 +15,7 @@ namespace lsp
         private:
             cvector<LV2UIPort>      vExtPorts;
             cvector<LV2UIPort>      vMeshPorts;
+            cvector<LV2UIPort>      vFrameBufferPorts;
             cvector<LV2UIPort>      vUIPorts;
             cvector<LV2UIPort>      vAllPorts;  // List of all created ports, for garbage collection
             cvector<port_t>         vGenMetadata;   // Generated metadata
@@ -72,6 +73,7 @@ namespace lsp
                 // Sort plugin ports
                 sort_by_urid(vUIPorts);
                 sort_by_urid(vMeshPorts);
+                sort_by_urid(vFrameBufferPorts);
 
                 // Create atom transport
                 if (pExt->atom_supported())
@@ -197,6 +199,7 @@ namespace lsp
                 vAllPorts.clear();
                 vExtPorts.clear();
                 vMeshPorts.clear();
+                vFrameBufferPorts.clear();
 
                 // Drop extensions
                 if (pExt != NULL)
@@ -322,12 +325,20 @@ namespace lsp
                 else
                     result = new LV2UIPort(p, pExt); // Stub port
                 break;
-            // case R_BPM: // TODO
             case R_MESH:
                 if (pExt->atom_supported())
                 {
                     result = new LV2UIMeshPort(p, pExt, (w != NULL) ? w->get_port(p->id) : NULL);
                     vMeshPorts.add(result);
+                }
+                else // Stub port
+                    result = new LV2UIPort(p, pExt);
+                break;
+            case R_FBUFFER:
+                if (pExt->atom_supported())
+                {
+                    result = new LV2UIFrameBufferPort(p, pExt, (w != NULL) ? w->get_port(p->id) : NULL);
+                    vFrameBufferPorts.add(result);
                 }
                 else // Stub port
                     result = new LV2UIPort(p, pExt);
@@ -400,7 +411,7 @@ namespace lsp
 
                 case R_PATH:
                 case R_MESH:
-//                case R_BPM:
+                case R_FBUFFER:
                     pUI->add_port(p);
                     vUIPorts.add(p);
                     break;
@@ -560,6 +571,16 @@ namespace lsp
         {
             // Try to find the corresponding mesh port
             LV2UIPort *p    = find_by_urid(vMeshPorts, obj->body.id);
+            if (p != NULL)
+            {
+                p->deserialize(obj);
+                p->notify_all();
+            }
+        }
+        else if (obj->body.otype == pExt->uridFrameBufferType)
+        {
+            // Try to find the corresponding mesh port
+            LV2UIPort *p    = find_by_urid(vFrameBufferPorts, obj->body.id);
             if (p != NULL)
             {
                 p->deserialize(obj);

@@ -156,6 +156,11 @@ namespace lsp
                 vup = new VSTUIMeshPort(port, vp);
                 break;
 
+            case R_FBUFFER:
+                vp  = new VSTFrameBufferPort(port, pEffect, pMaster);
+                vup = new VSTUIFrameBufferPort(port, vp);
+                break;
+
             case R_MIDI:
                 if (IS_OUT_PORT(port))
                     vp = new VSTMidiOutputPort(port, pEffect, pMaster);
@@ -254,6 +259,7 @@ namespace lsp
                     break;
 
                 case R_MESH:
+                case R_FBUFFER:
                 case R_MIDI:
                 case R_PATH:
                     pPlugin->add_port(vp);
@@ -760,19 +766,15 @@ namespace lsp
             for (size_t offset=0; offset < ck_size; offset += 16)
             {
                 // Print HEX dump
-                lsp_printf("%08x: ", int(offset));
+                lsp_nprintf("%08x: ", int(offset));
                 for (size_t i=0; i<0x10; ++i)
                 {
                     if ((offset + i) < ck_size)
-                    {
-                        lsp_printf("%02x ", int(ddump[i]));
-                    }
+                        lsp_nprintf("%02x ", int(ddump[i]));
                     else
-                    {
-                        lsp_printf("   ");
-                    }
+                        lsp_nprintf("   ");
                 }
-                lsp_printf("   ");
+                lsp_nprintf("   ");
 
                 // Print character dump
                 for (size_t i=0; i<0x10; ++i)
@@ -782,12 +784,12 @@ namespace lsp
                         uint8_t c   = ddump[i];
                         if ((c < 0x20) || (c >= 0x80))
                             c           = '.';
-                        lsp_printf("%c", c);
+                        lsp_nprintf("%c", c);
                     }
                     else
-                        lsp_printf(" ");
+                        lsp_nprintf(" ");
                 }
-                lsp_printf("\n");
+                lsp_printf("");
 
                 // Move pointer
                 ddump       += 0x10;

@@ -26,6 +26,8 @@
     { id, label, U_NONE, R_METER, F_OUT | F_INT | F_UPPER | F_LOWER, 0, STATUS_MAX, STATUS_UNSPECIFIED, 0, NULL, NULL }
 #define MESH(id, label, dim, points) \
     { id, label, U_NONE, R_MESH, F_OUT, 0.0, 0.0, points, dim, NULL, NULL }
+#define FBUFFER(id, label, rows, cols) \
+    { id, label, U_NONE, R_FBUFFER, F_OUT, 0.0, 0.0, rows, cols, NULL, NULL }
 #define PATH(id, label) \
     { id, label, U_STRING, R_PATH, F_IN, 0, 0, 0, 0, NULL, NULL }
 #define TRIGGER(id, label)  \

@@ -308,6 +308,13 @@ namespace lsp
                     vSyncPorts.add(jup);
                 break;
 
+            case R_FBUFFER:
+                jp      = new JACKFrameBufferPort(port, this);
+                jup     = new JACKUIFrameBufferPort(jp);
+                if (IS_OUT_PORT(port))
+                    vSyncPorts.add(jup);
+                break;
+
             case R_MIDI:
             case R_AUDIO:
             {

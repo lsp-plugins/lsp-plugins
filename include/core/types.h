@@ -29,6 +29,7 @@ typedef uint16_t                lsp_wchar_t;
 #include <core/units.h>
 #include <core/characters.h>
 #include <core/assert.h>
+#include <core/status.h>
 
 namespace lsp
 {
@@ -87,6 +88,93 @@ namespace lsp
         void                    detroy();
         float_buffer_t         *resize(size_t lines, size_t items);
     } float_buffer_t;
+
+    /**
+     * This interface describes frame buffer. All data is stored as a single rolling frame.
+     * The frame consists of M data rows, each row contains N floating-point numbers.
+     * While frame buffer is changing, new rows become appended to the frame buffer. Number
+     * of appended/modified rows is stored in additional counter to allow the UI apply
+     * changes incrementally.
+     */
+    typedef struct frame_buffer_t
+    {
+        protected:
+            size_t              nRows;              // Number of rows
+            size_t              nCols;              // Number of columns
+            uint32_t            nCapacity;          // Capacity (power of 2)
+            uint32_t            nRowID;             // Unique row identifier
+            float              *vData;              // Aligned row data
+            uint8_t            *pData;              // Allocated row data
+
+        public:
+            static frame_buffer_t  *create(size_t rows, size_t cols);
+            static void             destroy(frame_buffer_t *buf);
+
+            status_t                init(size_t rows, size_t cols);
+            void                    destroy();
+
+        public:
+            /**
+             * Return the actual data of the requested row
+             * @param dst destination buffer to store result
+             * @param row_id row number
+             */
+            void read_row(float *dst, size_t row_id) const;
+
+            /**
+             * Get pointer to row data of the corresponding row identifier
+             * @param row_id unique row identifier
+             * @return pointer to row data
+             */
+            float *get_row(size_t row_id) const;
+
+            /**
+             * Return actual number of rows
+             * @return actual number of rows
+             */
+            inline size_t rows() const { return nRows; }
+
+            /**
+             * Get number of next row identifier
+             * @return next row identifier
+             */
+            inline uint32_t next_rowid() const { return nRowID; }
+
+            /**
+             * Return actual number of columns
+             * @return actual number of columns
+             */
+            inline size_t cols() const { return nCols; }
+
+            /**
+             * Clear the buffer contents, set number of changes equal to buffer rows
+             */
+            void clear();
+
+            /**
+             * Seek to the specified row
+             * @param row_id unique row identifier
+             */
+            void seek(uint32_t row_id);
+
+            /** Append the new row to the beginning of frame buffer and increment current row number
+             * @param row row data contents
+             */
+            void write_row(const float *row);
+
+            /** Overwrite the row of frame buffer
+             * @param row row data contents
+             */
+            void write_row(uint32_t row_id, const float *row);
+
+            /**
+             * Synchronize data to the other frame buffer
+             * @param fb frame buffer object
+             * @return true if changes from other frame buffer have been applied
+             */
+            bool sync(const frame_buffer_t *fb);
+
+    } frame_buffer_t;
 
     // Path port structure
     typedef struct path_t

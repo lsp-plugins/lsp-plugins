@@ -103,8 +103,10 @@ namespace lsp
             static Color blend(const Color &c1, const Color &c2, float alpha);
 
             void copy(const Color &c);
-
             void copy(const Color *c);
+
+            void copy(const Color &c, float a);
+            void copy(const Color *c, float a);
 
             int format_rgb(char *dst, size_t len, size_t tolerance = 2) const;
 

@@ -26,15 +26,17 @@
   spontaneous crashes of convolvers.
 * Fixed buffer underflow in Convolver module that could cause memory corruption and spontaneous crashes
   of host.
+* Additional DSP code optimizations for ARMv7A architecture.
+* Extended unit and performance test coverage.
 * Added support of FreeBSD operating system.
+* Added Frame Buffer primitive support by plugins and widgets.
+* Implemented RGBA and HSLA color manipulation routines for point array rendering optimizations.
 - Migrated to CMake build system.
 - Additional display mode for spectrum analyzer added.
-- Added possibility to double-click the parameter's value number and enter it manually from keyboard.
+- Added possibility to double-click the parameter's value number and enter it manually with keyboard.
 - Added audio preview to file open dialog.
 - Added bookmarks to file opening dialog.
 - Added subsystem for loading missed files.
-- Additional DSP code optimizations for ARMv7A architecture.
-- Extended unit and performance test coverage.
 
 *******************************************************************************
 * Release steps
