@@ -22,12 +22,12 @@ IF_ARCH_X86(
     }
 )
 
-//IF_ARCH_ARM(
-//    namespace neon_d32
-//    {
-//        void rgba_to_bgra32(void *dst, const float *src, size_t count);
-//    }
-//)
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void rgba_to_bgra32(void *dst, const float *src, size_t count);
+    }
+)
 
 typedef void (* rgba_to_bgra32_t)(void *dst, const float *src, size_t count);
 
@@ -87,7 +87,7 @@ UTEST_BEGIN("dsp.graphics", rgba_to_bgra32)
     UTEST_MAIN
     {
         IF_ARCH_X86(call("sse2::rgba_to_bgra32", 16, sse2::rgba_to_bgra32));
-//        IF_ARCH_ARM(call("neon_d32::rgba_to_bgra32", 16, neon_d32::rgba_to_bgra32));
+        IF_ARCH_ARM(call("neon_d32::rgba_to_bgra32", 16, neon_d32::rgba_to_bgra32));
     }
 
 UTEST_END;

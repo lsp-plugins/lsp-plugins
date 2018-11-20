@@ -113,6 +113,7 @@ namespace neon_d32
         EXPORT1(limit_saturate2);
         EXPORT1(hsla_to_rgba);
         EXPORT1(rgba_to_hsla);
+        EXPORT1(rgba_to_bgra32);
 
         EXPORT1(abs1);
         EXPORT1(abs2);

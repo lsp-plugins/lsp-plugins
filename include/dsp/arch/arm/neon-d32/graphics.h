@@ -713,6 +713,12 @@ IF_ARCH_ARM(
         FVEC4(0.5f),
         FVEC4(0.166666666667f)      // 1/6
     };
+
+    static const float RGBA_TO_BGRA32[] =
+    {
+        FVEC4(255.0f),
+        FVEC4(255.0f)
+    };
 )
 
 #undef FVEC4
@@ -1114,6 +1120,192 @@ IF_ARCH_ARM(
     }
 
 #undef RGBA_TO_HSLA_CORE
+
+#define RGBA_TO_BGRA32_CORE_X8 \
+    /* Transpose */ \
+    __ASM_EMIT("vtrn            q0, q1") \
+    __ASM_EMIT("vtrn            q2, q3") \
+    __ASM_EMIT("vtrn            q4, q5") \
+    __ASM_EMIT("vtrn            q6, q7") \
+    __ASM_EMIT("vswp            d4, d1") \
+    __ASM_EMIT("vswp            d12, d9") \
+    __ASM_EMIT("vswp            d6, d3") \
+    __ASM_EMIT("vswp            d14, d11") \
+    \
+    /* q0 = r, q1 = g, q2 = b, q3 = a */ \
+    __ASM_EMIT("vswp            q0, q2")                        /* q0   = b, q2 = r */ \
+    __ASM_EMIT("vswp            q4, q6") \
+    __ASM_EMIT("vmul.f32        q8, q3, q14")                   /* q8   = a * 255 */ \
+    __ASM_EMIT("vmul.f32        q9, q7, q15") \
+    __ASM_EMIT("vsub.f32        q3, q14, q8")                   /* q3   = A = 255 - a*255 * */ \
+    __ASM_EMIT("vsub.f32        q7, q15, q9") \
+    __ASM_EMIT("veor            q12, q12")                      /* q12  = 0 */ \
+    __ASM_EMIT("veor            q13, q13") \
+    __ASM_EMIT("vmul.f32        q0, q0, q3")                    /* q0   = B = b * A */ \
+    __ASM_EMIT("vmul.f32        q4, q4, q7") \
+    __ASM_EMIT("vmul.f32        q1, q1, q3")                    /* q1   = G = g * A */ \
+    __ASM_EMIT("vmul.f32        q5, q5, q7") \
+    __ASM_EMIT("vmul.f32        q2, q2, q3")                    /* q2   = R = r * A */ \
+    __ASM_EMIT("vmul.f32        q6, q6, q7") \
+    __ASM_EMIT("vcge.f32        q8, q0, q12")                   /* q8   = [B >= 0] */ \
+    __ASM_EMIT("vcge.f32        q9, q4, q13") \
+    __ASM_EMIT("vcge.f32        q10, q1, q12")                  /* q10  = [G >= 0] */ \
+    __ASM_EMIT("vcge.f32        q11, q5, q13") \
+    __ASM_EMIT("vcge.f32        q12, q2, q12")                  /* q11  = [R >= 0] */ \
+    __ASM_EMIT("vcge.f32        q13, q6, q13") \
+    __ASM_EMIT("vand            q0, q0, q8")                    /* q0   = B & [B >= 0] */ \
+    __ASM_EMIT("vand            q4, q4, q9") \
+    __ASM_EMIT("vand            q1, q1, q10")                   /* q1   = G & [G >= 0] */ \
+    __ASM_EMIT("vand            q5, q5, q11") \
+    __ASM_EMIT("vand            q2, q2, q12")                   /* q2   = R & [R >= 0] */ \
+    __ASM_EMIT("vand            q6, q6, q13") \
+    \
+    /* Transpose back */ \
+    __ASM_EMIT("vtrn            q0, q1") \
+    __ASM_EMIT("vtrn            q2, q3") \
+    __ASM_EMIT("vtrn            q4, q5") \
+    __ASM_EMIT("vtrn            q6, q7") \
+    __ASM_EMIT("vswp            d4, d1") \
+    __ASM_EMIT("vswp            d12, d9") \
+    __ASM_EMIT("vswp            d6, d3") \
+    __ASM_EMIT("vswp            d14, d11") \
+    /* q0     = b0 g0 r0 a0 */ \
+    /* q1     = b1 g1 r1 a1 */ \
+    /* q2     = b2 g2 r2 a2 */ \
+    /* q3     = b3 g3 r3 a3 */ \
+    \
+    __ASM_EMIT("vcvt.f32.u32    q0, q0")                        /* q0 = int(b0 g0 r0 a0) */ \
+    __ASM_EMIT("vcvt.f32.u32    q4, q4") \
+    __ASM_EMIT("vcvt.f32.u32    q1, q1")                        /* q1 = int(b1 g1 r1 a1) */ \
+    __ASM_EMIT("vcvt.f32.u32    q5, q5") \
+    __ASM_EMIT("vcvt.f32.u32    q2, q2")                        /* q2 = int(b2 g2 r2 a2) */ \
+    __ASM_EMIT("vcvt.f32.u32    q6, q6") \
+    __ASM_EMIT("vcvt.f32.u32    q3, q3")                        /* q3 = int(b3 g3 r3 a3) */ \
+    __ASM_EMIT("vcvt.f32.u32    q7, q7") \
+    __ASM_EMIT("vqmovun.32      d0, q0") \
+    __ASM_EMIT("vqmovun.32      d1, q1") \
+    __ASM_EMIT("vqmovun.32      d2, q2") \
+    __ASM_EMIT("vqmovun.32      d3, q3") \
+    __ASM_EMIT("vqmovun.32      d4, q4") \
+    __ASM_EMIT("vqmovun.32      d5, q5") \
+    __ASM_EMIT("vqmovun.32      d6, q6") \
+    __ASM_EMIT("vqmovun.32      d7, q7") \
+    __ASM_EMIT("vqmovun.16      d0, q0") \
+    __ASM_EMIT("vqmovun.16      d1, q1") \
+    __ASM_EMIT("vqmovun.16      d2, q2") \
+    __ASM_EMIT("vqmovun.16      d3, q3")
+
+#define RGBA_TO_BGRA32_CORE_X4 \
+    /* Transpose */ \
+    __ASM_EMIT("vtrn            q0, q1") \
+    __ASM_EMIT("vtrn            q2, q3") \
+    __ASM_EMIT("vswp            d4, d1") \
+    __ASM_EMIT("vswp            d6, d3") \
+    \
+    /* q0 = r, q1 = g, q2 = b, q3 = a */ \
+    __ASM_EMIT("vswp            q0, q2")                        /* q0   = b, q2 = r */ \
+    __ASM_EMIT("vmul.f32        q8, q3, q14")                   /* q8   = a * 255 */ \
+    __ASM_EMIT("vsub.f32        q3, q14, q8")                   /* q3   = A = 255 - a*255 * */ \
+    __ASM_EMIT("veor            q12, q12")                      /* q12  = 0 */ \
+    __ASM_EMIT("vmul.f32        q0, q0, q3")                    /* q0   = B = b * A */ \
+    __ASM_EMIT("vmul.f32        q1, q1, q3")                    /* q1   = G = g * A */ \
+    __ASM_EMIT("vmul.f32        q2, q2, q3")                    /* q2   = R = r * A */ \
+    __ASM_EMIT("vcge.f32        q8, q0, q12")                   /* q8   = [B >= 0] */ \
+    __ASM_EMIT("vcge.f32        q10, q1, q12")                  /* q10  = [G >= 0] */ \
+    __ASM_EMIT("vcge.f32        q12, q2, q12")                  /* q11  = [R >= 0] */ \
+    __ASM_EMIT("vand            q0, q0, q8")                    /* q0   = B & [B >= 0] */ \
+    __ASM_EMIT("vand            q1, q1, q10")                   /* q1   = G & [G >= 0] */ \
+    __ASM_EMIT("vand            q2, q2, q12")                   /* q2   = R & [R >= 0] */ \
+    \
+    /* Transpose back */ \
+    __ASM_EMIT("vtrn            q0, q1") \
+    __ASM_EMIT("vtrn            q2, q3") \
+    __ASM_EMIT("vswp            d4, d1") \
+    __ASM_EMIT("vswp            d6, d3") \
+    /* q0     = b0 g0 r0 a0 */ \
+    /* q1     = b1 g1 r1 a1 */ \
+    /* q2     = b2 g2 r2 a2 */ \
+    /* q3     = b3 g3 r3 a3 */ \
+    \
+    __ASM_EMIT("vcvt.f32.u32    q0, q0")                        /* q0 = int(b0 g0 r0 a0) */ \
+    __ASM_EMIT("vcvt.f32.u32    q1, q1")                        /* q1 = int(b1 g1 r1 a1) */ \
+    __ASM_EMIT("vcvt.f32.u32    q2, q2")                        /* q2 = int(b2 g2 r2 a2) */ \
+    __ASM_EMIT("vcvt.f32.u32    q3, q3")                        /* q3 = int(b3 g3 r3 a3) */ \
+    __ASM_EMIT("vqmovun.32      d0, q0") \
+    __ASM_EMIT("vqmovun.32      d1, q1") \
+    __ASM_EMIT("vqmovun.32      d2, q2") \
+    __ASM_EMIT("vqmovun.32      d3, q3") \
+    __ASM_EMIT("vqmovun.16      d0, q0") \
+    __ASM_EMIT("vqmovun.16      d1, q1")
+
+    void rgba_to_bgra32(void *dst, const float *src, size_t count)
+    {
+        uint32_t mxcsr[2];
+        uint32_t tmp;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("vld1.32         {q14-q15}, [%[XC]]")
+            __ASM_EMIT("subs            %[count], $8")
+            __ASM_EMIT("blo             2f")
+
+            //-----------------------------------------------------------------
+            // 8x blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vldm            %[src]!, {q0-q7}")
+            RGBA_TO_BGRA32_CORE_X8
+            __ASM_EMIT("subs            %[count], $8")
+            __ASM_EMIT("vstm            %[dst]!, {q0-q1}")
+            __ASM_EMIT("bhs             1b")
+
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds            %[count], $4")
+            __ASM_EMIT("blt             4f")
+
+            //-----------------------------------------------------------------
+            // 4x blocks
+            __ASM_EMIT("vldm            %[src]!, {q0-q3}")
+            RGBA_TO_BGRA32_CORE_X4
+            __ASM_EMIT("sub             %[count], $4")
+            __ASM_EMIT("vstm            %[dst]!, {q0}")
+
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds            %[count], $4")
+            __ASM_EMIT("bls             12f")
+
+            //-----------------------------------------------------------------
+            // 1x-3x block
+            __ASM_EMIT("tst             %[count], $2")
+            __ASM_EMIT("beq             6f")
+            __ASM_EMIT("vld1.32         {q0-q1}, [%[src]]!")
+            __ASM_EMIT("6:")
+            __ASM_EMIT("tst             %[count], $1")
+            __ASM_EMIT("beq             8f")
+            __ASM_EMIT("vld1.32         {q2}, [%[src]]")
+            __ASM_EMIT("8:")
+            RGBA_TO_BGRA32_CORE_X4
+            __ASM_EMIT("tst             %[count], $2")
+            __ASM_EMIT("beq             10f")
+            __ASM_EMIT("vst1.32         {d0}, [%[dst]]!")
+            __ASM_EMIT("10:")
+            __ASM_EMIT("tst             %[count], $1")
+            __ASM_EMIT("beq             12f")
+            __ASM_EMIT("vstm            %[dst], {s2}")
+
+            __ASM_EMIT("12:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            : [XC] "r" (&RGB_HSL[0]), [RGBA] "r" (&rgba)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11",
+              "q12", "q13", "q14", "q15"
+        );
+    }
+
+#undef RGBA_TO_BGRA32_CORE_X8
+#undef RGBA_TO_BGRA32_CORE_X4
 
 }
 

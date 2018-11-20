@@ -38,7 +38,7 @@ namespace sse2
 
     static const float RGBA_TO_BGRA32[] =
     {
-        FVEC4(255.0f),
+        FVEC4(255.0f)
     };
 
     #undef FVEC4
