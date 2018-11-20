@@ -38,6 +38,9 @@
 - Added bookmarks to file opening dialog.
 - Added subsystem for loading missed files.
 
+Required:
+  - Implement 5 rendering routines that optimize graphic effects when rendering framebuffer.
+
 *******************************************************************************
 * Release steps
 *******************************************************************************
