@@ -963,19 +963,16 @@ IF_ARCH_ARM(
     /* q7  = HG */ \
     /* q8  = HB */ \
     /* q9  = HR */ \
+    __ASM_EMIT("vceq.f32        q2, q2, q4")                /* q2 = [G == CMAX] */ \
     __ASM_EMIT("vceq.f32        q0, q0, q4")                /* q0 = [R == CMAX] */ \
-    __ASM_EMIT("vceq.f32        q1, q1, q4")                /* q1 = [G == CMAX] */ \
-    __ASM_EMIT("vmvn            q2, q0")                    /* q2 = [R != CMAX] */ \
-    __ASM_EMIT("vbif            q7, q8, q1")                /* q7 = (HG & [G == CMAX]) | (HB & [G != CMAX]) */ \
-    __ASM_EMIT("vand            q0, q0, q9")                /* q0 = HR & [R == CMAX] */ \
+    __ASM_EMIT("vbsl            q2, q7, q8")                /* q2 = (HG & [G == CMAX]) | (HB & [G != CMAX]) */ \
     __ASM_EMIT("veor            q4, q4")                    /* q4 = 0 */ \
-    __ASM_EMIT("vand            q7, q2")                    /* q7 = (HG & [G == CMAX] & [R != CMAX]) | (HB & [G != CMAX] & [R != CMAX]) */ \
-    __ASM_EMIT("vceq.f32        q4, q6, q4")                /* q4 = [D == 0] */ \
+    __ASM_EMIT("vbsl            q0, q9, q2")                /* q0 = (HR & [R == CMAX]) | (HG & [G == CMAX] & [R != CMAX]) | (HB & [G != CMAX] & [R != CMAX]) */ \
+    __ASM_EMIT("vceq.f32        q4, q4, q6")                /* q4 = [ D == 0 ] */ \
     __ASM_EMIT("vmul.f32        q1, q5, q14")               /* q1 = L = (CMAX + CMIN) * 0.5 */ \
-    __ASM_EMIT("vmvn            q4, q4")                    /* q4 = [D != 0] */ \
-    __ASM_EMIT("vorr            q0, q7")                    /* q0 = (HR & [R == CMAX]) | (HG & [G == CMAX] & [R != CMAX]) | (HB & [G != CMAX] & [R != CMAX]) */ \
+    __ASM_EMIT("vmvn            q4, q4")                    /* q4 = [ D != 0 ] */ \
     __ASM_EMIT("vsub.f32        q2, q13, q1")               /* q2 = X = 1 - L */ \
-    __ASM_EMIT("vand            q0, q0, q4")                /* q0 = [D != 0] & ((HR & [R == CMAX]) | (HG & [G == CMAX] & [R != CMAX]) | (HB & [G != CMAX] & [R != CMAX])) */ \
+    __ASM_EMIT("vand            q0, q0, q4")                /* q0 = H = [D != 0] & ((HR & [R == CMAX]) | (HG & [G == CMAX] & [R != CMAX]) | (HB & [G != CMAX] & [R != CMAX])) */ \
     \
     __ASM_EMIT("vrecpe.f32      q5, q1")                    /* q5 = RL */ \
     __ASM_EMIT("vrecpe.f32      q9, q2")                    /* q9 = RX */ \
