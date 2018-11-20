@@ -31,6 +31,7 @@ namespace lsp
         static const size_t MESH_SIZE               = 256;      // Maximum mesh size
         static const size_t TRACKS_MAX              = 2;        // Maximum tracks per mesh/sample
 
+        static const size_t FRM_BUFFER_SIZE         = 256;
 
         static const plugin_metadata_t metadata;
     };

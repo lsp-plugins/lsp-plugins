@@ -20,6 +20,7 @@ namespace lsp
             "dot",
             "edit",
             "fader",
+            "fbuffer",
             "file",
             "frac",
             "graph",
@@ -161,6 +162,9 @@ namespace lsp
             "vfill",
             "format_id",
             "bind",
+            "opacity",
+            "transparency",
+            "mode",
             NULL
         };
 

@@ -486,6 +486,13 @@ namespace lsp
                 vWidgets.add(mesh);
                 return new CtlMesh(this, mesh);
             }
+            case WC_FBUFFER:
+            {
+                LSPFrameBuffer *fb = new LSPFrameBuffer(&sDisplay);
+                fb->init();
+                vWidgets.add(fb);
+                return new CtlFrameBuffer(this, fb);
+            }
             case WC_TEXT:
             {
                 LSPText *text = new LSPText(&sDisplay);

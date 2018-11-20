@@ -118,65 +118,79 @@
 				<label />
 			</grid>
 		</group>
-		<graph width="320" height="200" fill="true">
-			<center hpos="-1" vpos="-1" color="white" visible="true" />
-			
-			<ui:for id="f" first="20" last="90" step="10"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
-			<ui:for id="f" first="200" last="900" step="100"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
-			<ui:for id="f" first="2000" last="9000" step="1000"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
-			<marker value="20000" color="g_gray" basis="0" parallel="1" />
-			
-			<marker value="63.09575" color="g_gray" basis="1" parallel="0" />
-			<marker value="3.98107" color="g_gray" basis="1" parallel="0" />
-			<marker value="0.25119" color="g_gray" basis="1" parallel="0" />
-			<marker value="0.01585" color="g_gray" basis="1" parallel="0" />
-			
-			<marker value="100" color="g_yellow" basis="0" parallel="1" />
-			<marker value="1000" color="g_yellow" basis="0" parallel="1" />
-			<marker value="10000" color="g_yellow" basis="0" parallel="1" />
-
-			<marker value="15.84893" color="g_yellow" basis="1" parallel="0" />
-			<marker value="1" color="g_white" basis="1" parallel="0" />
-			<marker value="0.06310" color="g_yellow" basis="1" parallel="0" />
-
-			<mesh id="fftg" width="3" color="middle_channel" smooth="true" fill="0.8" />
-			
-			<dot hpos="16" vpos_id="g_0" editable="true" color="middle_channel" />
-			<dot hpos="25" vpos_id="g_1" editable="true" color="middle_channel" />
-			<dot hpos="40" vpos_id="g_2" editable="true" color="middle_channel" />
-			<dot hpos="63" vpos_id="g_3" editable="true" color="middle_channel" />
-			<dot hpos="100" vpos_id="g_4" editable="true" color="middle_channel" />
-			<dot hpos="160" vpos_id="g_5" editable="true" color="middle_channel" />
-			<dot hpos="250" vpos_id="g_6" editable="true" color="middle_channel" />
-			<dot hpos="400" vpos_id="g_7" editable="true" color="middle_channel" />
-			<dot hpos="630" vpos_id="g_8" editable="true" color="middle_channel" />
-			<dot hpos="1000" vpos_id="g_9" editable="true" color="middle_channel" />
-			<dot hpos="1600" vpos_id="g_10" editable="true" color="middle_channel" />
-			<dot hpos="2500" vpos_id="g_11" editable="true" color="middle_channel" />
-			<dot hpos="4000" vpos_id="g_12" editable="true" color="middle_channel" />
-			<dot hpos="6300" vpos_id="g_13" editable="true" color="middle_channel" />
-			<dot hpos="10000" vpos_id="g_14" editable="true" color="middle_channel" />
-			<dot hpos="16000" vpos_id="g_15" editable="true" color="middle_channel" />
-
-			<marker value="251.18861" color="g_white" basis="1" parallel="0" />
-			<marker value="24000" color="g_white" basis="0" parallel="1" />
-			
-			<axis min="10" max="24000" color="g_white" angle="0.0" logarithmic="true" />
-			<axis min="0.00398" max="251.18861" color="g_white" angle="0.5" logarithmic="true" />
-			
-			<text text="Hz" coord="10;0.00398" halign="1" valign="1" />
-			<text text="100" coord="100;0.00398" halign="1" valign="1" />
-			<text text="1K" coord="1000;0.00398" halign="1" valign="1" />
-			<text text="10K" coord="10000;0.00398" halign="1" valign="1" />
-			
-			<text text="+36" coord="10;63.09575" halign="1" valign="-1" />
-			<text text="+24" coord="10;15.84893" halign="1" valign="-1" />
-			<text text="+12" coord="10;3.98107" halign="1" valign="-1" />
-			<text text="0" coord="10;1" halign="1" valign="1" />
-			<text text="-12" coord="10;0.25119" halign="1" valign="1" />
-			<text text="-24" coord="10;0.06310" halign="1" valign="1" />
-			<text text="-36" coord="10;0.01585" halign="1" valign="1" />
-			<text text="dB" coord="10;251.18861" halign="1" valign="-1" />
-		</graph>
+		<vbox>
+			<graph width="320" height="200" fill="true">
+				<center hpos="-1" vpos="-1" color="white" visible="true" />
+				
+				<ui:for id="f" first="20" last="90" step="10"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+				<ui:for id="f" first="200" last="900" step="100"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+				<ui:for id="f" first="2000" last="9000" step="1000"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+				<marker value="20000" color="g_gray" basis="0" parallel="1" />
+				
+				<marker value="63.09575" color="g_gray" basis="1" parallel="0" />
+				<marker value="3.98107" color="g_gray" basis="1" parallel="0" />
+				<marker value="0.25119" color="g_gray" basis="1" parallel="0" />
+				<marker value="0.01585" color="g_gray" basis="1" parallel="0" />
+				
+				<marker value="100" color="g_yellow" basis="0" parallel="1" />
+				<marker value="1000" color="g_yellow" basis="0" parallel="1" />
+				<marker value="10000" color="g_yellow" basis="0" parallel="1" />
+	
+				<marker value="15.84893" color="g_yellow" basis="1" parallel="0" />
+				<marker value="1" color="g_white" basis="1" parallel="0" />
+				<marker value="0.06310" color="g_yellow" basis="1" parallel="0" />
+	
+				<fbuffer id="fb0" width="1.0" height="0.5" hpos="-1" vpos="0" opacity="0.5" angle="0"
+					mode=":fbm1" color="red" hue_id="fbh1" />
+				<fbuffer id="fb0" width="-1.0" height="-0.5" hpos="-1" vpos="1" opacity="0.5" angle="0"
+					mode=":fbm0" color="green" hue_id="fbh0" />
+	
+				<mesh id="fftg" width="3" color="middle_channel" smooth="true" fill="0.8" />
+				
+				<dot hpos="16" vpos_id="g_0" editable="true" color="middle_channel" />
+				<dot hpos="25" vpos_id="g_1" editable="true" color="middle_channel" />
+				<dot hpos="40" vpos_id="g_2" editable="true" color="middle_channel" />
+				<dot hpos="63" vpos_id="g_3" editable="true" color="middle_channel" />
+				<dot hpos="100" vpos_id="g_4" editable="true" color="middle_channel" />
+				<dot hpos="160" vpos_id="g_5" editable="true" color="middle_channel" />
+				<dot hpos="250" vpos_id="g_6" editable="true" color="middle_channel" />
+				<dot hpos="400" vpos_id="g_7" editable="true" color="middle_channel" />
+				<dot hpos="630" vpos_id="g_8" editable="true" color="middle_channel" />
+				<dot hpos="1000" vpos_id="g_9" editable="true" color="middle_channel" />
+				<dot hpos="1600" vpos_id="g_10" editable="true" color="middle_channel" />
+				<dot hpos="2500" vpos_id="g_11" editable="true" color="middle_channel" />
+				<dot hpos="4000" vpos_id="g_12" editable="true" color="middle_channel" />
+				<dot hpos="6300" vpos_id="g_13" editable="true" color="middle_channel" />
+				<dot hpos="10000" vpos_id="g_14" editable="true" color="middle_channel" />
+				<dot hpos="16000" vpos_id="g_15" editable="true" color="middle_channel" />
+	
+				<marker value="251.18861" color="g_white" basis="1" parallel="0" />
+				<marker value="24000" color="g_white" basis="0" parallel="1" />
+				
+				<axis min="10" max="24000" color="g_white" angle="0.0" logarithmic="true" />
+				<axis min="0.00398" max="251.18861" color="g_white" angle="0.5" logarithmic="true" />
+				
+				<text text="Hz" coord="10;0.00398" halign="1" valign="1" />
+				<text text="100" coord="100;0.00398" halign="1" valign="1" />
+				<text text="1K" coord="1000;0.00398" halign="1" valign="1" />
+				<text text="10K" coord="10000;0.00398" halign="1" valign="1" />
+				
+				<text text="+36" coord="10;63.09575" halign="1" valign="-1" />
+				<text text="+24" coord="10;15.84893" halign="1" valign="-1" />
+				<text text="+12" coord="10;3.98107" halign="1" valign="-1" />
+				<text text="0" coord="10;1" halign="1" valign="1" />
+				<text text="-12" coord="10;0.25119" halign="1" valign="1" />
+				<text text="-24" coord="10;0.06310" halign="1" valign="1" />
+				<text text="-36" coord="10;0.01585" halign="1" valign="1" />
+				<text text="dB" coord="10;251.18861" halign="1" valign="-1" />
+			</graph>
+			<hbox spacing="2">
+				<label text="Fb modes:" />
+				<combo id="fbm0" />
+				<knob id="fbh0" scale_hue_id="fbh0" size="20" />
+				<combo id="fbm1" />
+				<knob id="fbh1" scale_hue_id="fbh1" size="20" />
+			</hbox>
+		</vbox>
 	</hbox>
 </plugin>

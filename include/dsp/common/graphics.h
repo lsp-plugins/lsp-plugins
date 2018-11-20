@@ -36,6 +36,57 @@ namespace dsp
      * @param count number of samples to process
      */
     extern void (* rgba32_to_bgra32)(void *dst, const void *src, size_t count);
+
+    /**
+     * Fill array with RGBA colors
+     * @param dst array to store RGBA
+     * @param r red amount
+     * @param g green amount
+     * @param b blue amount
+     * @param a alpha amount
+     * @param count number of elements
+     */
+    extern void (* fill_rgba)(float *dst, float r, float g, float b, float a, size_t count);
+
+    /**
+     * Fill array with HSLA colors
+     * @param dst array to store HSLA
+     * @param h hue amount
+     * @param s saturation amount
+     * @param l lightness amount
+     * @param a alpha amount
+     * @param count number of elements
+     */
+    extern void (* fill_hsla)(float *dst, float h, float s, float l, float a, size_t count);
+
+    /**
+     * Convert RGBA to HSLA color
+     * @param dst array to store HSLA
+     * @param src array containing RGBA
+     * @param count number of structures to convert
+     */
+    extern void (* rgba_to_hsla)(float *dst, const float *src, size_t count);
+
+    /**
+     * Convert HSLA to RGBA color
+     * @param dst array to store RGBA
+     * @param src array containing HSLA
+     * @param count number of structures to convert
+     */
+    extern void (* hsla_to_rgba)(float *dst, const float *src, size_t count);
+
+    /** Convert RGBA (float) -> BGRA32 color
+     * Alpha color is applied to result by formula:
+     *   A' = (1 - A) * 255
+     *   R' = R * (1 - A) * 255
+     *   G' = G * (1 - A) * 255
+     *   B' = B * (1 - A) * 255
+     *
+     * @param dst target buffer (4 bytes per pixel)
+     * @param src source buffer (4 floats per pixel)
+     * @param count number of samples to process
+     */
+    extern void (* rgba_to_bgra32)(void *dst, const float *src, size_t count);
 }
 
 #endif /* DSP_COMMON_GRAPHICS_H_ */

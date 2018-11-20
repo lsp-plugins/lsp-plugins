@@ -191,7 +191,6 @@ namespace lsp
                 // Copy mesh data
                 for (size_t i=0; i < mesh->nBuffers; ++i)
                     dsp::copy_saturated(pMesh->pvData[i], mesh->pvData[i], mesh->nItems);
-//                    dsp::copy(pMesh->pvData[i], mesh->pvData[i], mesh->nItems);
                 pMesh->data(mesh->nBuffers, mesh->nItems);
 
                 // Clean source mesh
@@ -203,6 +202,37 @@ namespace lsp
             virtual void *get_buffer()
             {
                 return pMesh;
+            }
+    };
+
+    class VSTUIFrameBufferPort: public VSTUIPort
+    {
+        private:
+            frame_buffer_t      sFB;
+
+        public:
+            VSTUIFrameBufferPort(const port_t *meta, VSTPort *port):
+                VSTUIPort(meta, port)
+            {
+                sFB.init(pMetadata->start, pMetadata->step);
+            }
+
+            virtual ~VSTUIFrameBufferPort()
+            {
+                sFB.destroy();
+            }
+
+        public:
+            virtual bool sync()
+            {
+                // Check if there is data for viewing
+                frame_buffer_t *fb = pPort->getBuffer<frame_buffer_t>();
+                return (fb != NULL) ? sFB.sync(fb) : false;
+            }
+
+            virtual void *get_buffer()
+            {
+                return &sFB;
             }
     };
 

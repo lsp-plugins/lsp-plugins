@@ -208,6 +208,11 @@ namespace native
 
         EXPORT1(axis_apply_log);
         EXPORT1(rgba32_to_bgra32);
+        EXPORT1(fill_rgba);
+        EXPORT1(fill_hsla);
+        EXPORT1(rgba_to_hsla);
+        EXPORT1(hsla_to_rgba);
+        EXPORT1(rgba_to_bgra32);
 
         EXPORT1(lanczos_resample_2x2);
         EXPORT1(lanczos_resample_2x3);

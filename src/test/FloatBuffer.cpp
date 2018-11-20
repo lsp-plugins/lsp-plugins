@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdarg.h>
 
 #define CK_HEAD_SIGNATURE       0xa5c33c5aL
 #define CK_TAIL_SIGNATURE       0x35caac53L
@@ -86,6 +87,12 @@ namespace test
     {
         for (size_t i=0; i<nLength; ++i)
             pBuffer[i] = (float(rand())/RAND_MAX) + 0.001f;
+    }
+
+    void FloatBuffer::randomize_0to1()
+    {
+        for (size_t i=0; i<nLength; ++i)
+            pBuffer[i] = (float(rand())/(RAND_MAX-1));
     }
 
     void FloatBuffer::randomize_negative()
@@ -234,5 +241,14 @@ namespace test
         memcpy(pBuffer, buf, to_copy * sizeof(float));
         while (to_copy < nLength)
             pBuffer[to_copy++] = 0.0f;
+    }
+
+    void FloatBuffer::vfill(size_t off, size_t n, ...)
+    {
+        va_list vl;
+        va_start(vl, n);
+        for (size_t i=off; (n > 0) && i<nLength; ++i, --n)
+            pBuffer[i]  = va_arg(vl, double);
+        va_end(vl);
     }
 }

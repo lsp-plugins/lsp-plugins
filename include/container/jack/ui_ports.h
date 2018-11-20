@@ -210,6 +210,36 @@ namespace lsp
             }
     };
 
+    class JACKUIFrameBufferPort: public JACKUIPort
+    {
+        private:
+            frame_buffer_t     sFB;
+
+        public:
+            JACKUIFrameBufferPort(JACKPort *port): JACKUIPort(port)
+            {
+                sFB.init(pMetadata->start, pMetadata->step);
+            }
+
+            virtual ~JACKUIFrameBufferPort()
+            {
+                sFB.destroy();
+            }
+
+        public:
+            virtual bool sync()
+            {
+                // Check if there is data for viewing
+                frame_buffer_t *fb = pPort->getBuffer<frame_buffer_t>();
+                return (fb != NULL) ? sFB.sync(fb) : false;
+            }
+
+            virtual void *get_buffer()
+            {
+                return &sFB;
+            }
+    };
+
     class JACKUIPathPort: public JACKUIPort
     {
         private:

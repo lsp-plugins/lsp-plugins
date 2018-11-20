@@ -28,7 +28,7 @@
 #define FPSCR_RMODE_RN          (0 << 22)   /* Rounding to nearest */
 #define FPSCR_RMODE_RP          (1 << 22)   /* Rounding towards plus infinity  */
 #define FPSCR_RMODE_RM          (2 << 22)   /* Rounding towards minus infinity  */
-#define FPSCR_RMODE_RZ          (4 << 22)   /* Rounding towards zero  */
+#define FPSCR_RMODE_RZ          (3 << 22)   /* Rounding towards zero  */
 #define FPSCR_FZ                (1 << 24)   /* Flush-to-zero mode */
 #define FPSCR_DN                (1 << 25)   /* Default NaN mode control */
 #define FPSCR_AHP               (1 << 26)   /* Alternative half-precision control */

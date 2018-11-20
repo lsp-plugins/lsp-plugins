@@ -28,7 +28,7 @@ IF_ARCH_X86(
         void saturate_cmov(float *dst, size_t count);
     }
 
-    namespace sse
+    namespace sse2
     {
         void copy_saturated(float *dst, const float *src, size_t count);
         void saturate(float *dst, size_t count);
@@ -104,20 +104,20 @@ PTEST_BEGIN("dsp.float", saturation, 5, 10000)
         {
             size_t count = 1 << i;
 
-            call("native:sat", dst, src, count, native::saturate);
-            call("native:copy_sat", dst, src, count, native::copy_saturated);
+            call("native::sat", dst, src, count, native::saturate);
+            call("native::copy_sat", dst, src, count, native::copy_saturated);
 
-            IF_ARCH_X86(call("x86:sat", dst, src, count, x86::saturate));
-            IF_ARCH_X86(call("x86:copy_sat", dst, src, count, x86::copy_saturated));
+            IF_ARCH_X86(call("x86::sat", dst, src, count, x86::saturate));
+            IF_ARCH_X86(call("x86::copy_sat", dst, src, count, x86::copy_saturated));
 
-            IF_ARCH_X86(call("x86:sat_cmov", dst, src, count, x86::saturate_cmov));
-            IF_ARCH_X86(call("x86:copy_sat_cmov", dst, src, count, x86::copy_saturated_cmov));
+            IF_ARCH_X86(call("x86::sat_cmov", dst, src, count, x86::saturate_cmov));
+            IF_ARCH_X86(call("x86::copy_sat_cmov", dst, src, count, x86::copy_saturated_cmov));
 
-            IF_ARCH_X86(call("sse:sat", dst, src, count, sse::saturate));
-            IF_ARCH_X86(call("sse:copy_sat", dst, src, count, sse::copy_saturated));
+            IF_ARCH_X86(call("sse2::sat", dst, src, count, sse2::saturate));
+            IF_ARCH_X86(call("sse2::copy_sat", dst, src, count, sse2::copy_saturated));
 
-            IF_ARCH_ARM(call("neon_d32:sat", dst, src, count, neon_d32::saturate));
-            IF_ARCH_ARM(call("neon_d32:copy_sat", dst, src, count, neon_d32::copy_saturated));
+            IF_ARCH_ARM(call("neon_d32::sat", dst, src, count, neon_d32::saturate));
+            IF_ARCH_ARM(call("neon_d32::copy_sat", dst, src, count, neon_d32::copy_saturated));
 
             PTEST_SEPARATOR;
         }

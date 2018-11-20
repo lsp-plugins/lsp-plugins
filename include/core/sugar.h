@@ -86,8 +86,9 @@ template <class P>
     {
         if (ptr == NULL)
             return;
-        free(ptr);
+        P *tptr = ptr;
         ptr = NULL;
+        free(tptr);
     }
 
 #if defined(ARCH_I386)

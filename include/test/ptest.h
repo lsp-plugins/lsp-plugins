@@ -60,6 +60,30 @@
         } \
     }
 
+#define PTEST_KLOOP(__key, __mul, ...) { \
+        double __start = clock(); \
+        double __time = 0.0f; \
+        wsize_t __iterations = 0; \
+        wsize_t __k_iterations = __test_iterations; \
+        \
+        do { \
+            for (size_t i=0; i<__k_iterations; ++i) { \
+                __VA_ARGS__; \
+            } \
+            /* Calculate statistics */ \
+            __iterations   += __k_iterations; \
+            __time          = (clock() - __start) / CLOCKS_PER_SEC; \
+        } while (__time < __test_time); \
+        \
+        gather_stats(__key, __time, __iterations); \
+        if (__verbose) { \
+            printf("  time [s]:                 %.2f/%.2f\n", __time, __test_time); \
+            printf("  iterations:               %ld/%ld\n", long(__iterations), long((__iterations * __test_time) / __time)); \
+            printf("  performance [i/s]:        %.2f\n", __iterations / __time); \
+            printf("  iteration time [us/i]:    %.4f\n\n", (1000000.0 * __time) / __iterations); \
+        } \
+    }
+
 #define PTEST_SEPARATOR \
         gather_stats(NULL, 0.0f, 0); \
         printf("\n");

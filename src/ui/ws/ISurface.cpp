@@ -115,6 +115,8 @@ namespace lsp
             nWidth      = width;
             nHeight     = height;
             nType       = type;
+            nStride     = nWidth * sizeof(uint32_t);
+            pData       = NULL;
         }
 
         ISurface::ISurface()
@@ -122,6 +124,8 @@ namespace lsp
             nWidth      = 0;
             nHeight     = 0;
             nType       = ST_UNKNOWN;
+            nStride     = nWidth * sizeof(uint32_t);
+            pData       = NULL;
         }
 
         ISurface::~ISurface()
@@ -129,11 +133,18 @@ namespace lsp
             nWidth      = 0;
             nHeight     = 0;
             nType       = ST_UNKNOWN;
+            nStride     = nWidth * sizeof(uint32_t);
+            pData       = NULL;
         }
 
         ISurface *ISurface::create(size_t width, size_t height)
         {
             return new ISurface(width, height, ST_UNKNOWN);
+        }
+
+        ISurface *ISurface::create_copy()
+        {
+            return new ISurface(nWidth, nHeight, ST_UNKNOWN);
         }
 
         void ISurface::destroy()
@@ -156,6 +167,15 @@ namespace lsp
 
         void ISurface::draw(ISurface *s, float x, float y, float sx, float sy)
         {
+        }
+
+        void ISurface::draw_alpha(ISurface *s, float x, float y, float sx, float sy, float a)
+        {
+        }
+
+        void ISurface::draw_rotate_alpha(ISurface *s, float x, float y, float sx, float sy, float ra, float a)
+        {
+
         }
 
         void ISurface::draw_clipped(ISurface *s, float x, float y, float sx, float sy, float sw, float sh)
@@ -252,6 +272,14 @@ namespace lsp
         {
         }
 
+        void ISurface::square_dot(float x, float y, float width, const Color &color)
+        {
+        }
+
+        void ISurface::square_dot(float x, float y, float width, float r, float g, float b, float a)
+        {
+        }
+
         void ISurface::line(float x0, float y0, float x1, float y1, float width, const Color &color)
         {
         }
@@ -327,6 +355,32 @@ namespace lsp
         surf_line_cap_t ISurface::set_line_cap(surf_line_cap_t lc)
         {
             return SURFLCAP_BUTT;
+        }
+
+        size_t ISurface::stride()
+        {
+            return nStride;
+        }
+
+        void *ISurface::data()
+        {
+            return pData;
+        }
+
+        void *ISurface::row(size_t row)
+        {
+            if ((row >= nHeight) || (pData == NULL))
+                return NULL;
+            return &pData[row * nStride];
+        }
+
+        void *ISurface::start_direct()
+        {
+            return NULL;
+        }
+
+        void ISurface::end_direct()
+        {
         }
     }
 
