@@ -116,8 +116,8 @@ UTEST_BEGIN("dsp.graphics", hsla_to_rgba)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse2:hsla_to_rgba", 16, sse2::hsla_to_rgba));
-        IF_ARCH_ARM(call("neon_d32:hsla_to_rgba", 16, neon_d32::hsla_to_rgba));
+        IF_ARCH_X86(call("sse2::hsla_to_rgba", 16, sse2::hsla_to_rgba));
+        IF_ARCH_ARM(call("neon_d32::hsla_to_rgba", 16, neon_d32::hsla_to_rgba));
     }
 
 UTEST_END;

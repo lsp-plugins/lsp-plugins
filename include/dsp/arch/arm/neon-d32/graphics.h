@@ -691,6 +691,8 @@ namespace neon_d32
 
 #undef FILL4_CORE
 
+#define FVEC4(x)    x, x, x, x
+
 IF_ARCH_ARM(
     static const float HSL_RGB[] =
     {
@@ -702,6 +704,8 @@ IF_ARCH_ARM(
         FVEC4(0.666666666667f)      // 2/3
     };
 )
+
+#undef FVEC4
 
 #define HSLA_TO_RGBA_CORE   \
     /*  q10 = 1/2, q11 = 1/3, q12 = 1, q13 = 6, q14 = 1/6, q15 = 2/3 */ \
@@ -716,7 +720,7 @@ IF_ARCH_ARM(
     __ASM_EMIT("vsub.f32        q4, q4, q5")                /* q4 = L+S - L*S */ \
     __ASM_EMIT("vadd.f32        q7, q1, q5")                /* q7 = L + L*S */ \
     __ASM_EMIT("vclt.f32        q8, q1, q10")               /* q8 = [L < 0.5] */ \
-    __ASM_EMIT("vbif            q4, q7, q8")                /* q4 = T2 = ((L+S-L*S) & [L<0.5]) | ((L+L*S) & [L>=0.5]) */ \
+    __ASM_EMIT("vbit            q4, q7, q8")                /* q4 = T2 = (L+L*S) & [L<0.5]) | (((L+S-L*S) & [L>=0.5]) */ \
     __ASM_EMIT("vmov            q2, q0")                    /* q2 = TG = H */ \
     __ASM_EMIT("vsub.f32        q5, q9, q4")                /* q5 = T1 = L+L-T2 */ \
     __ASM_EMIT("vadd.f32        q0, q0, q11")               /* q0 = H + 1/3 */ \
@@ -784,9 +788,9 @@ IF_ARCH_ARM(
 /*
         //Set the temporary values
         if  (L < HSL_RGB_0_5)
-            temp2 = (L + S) - (L * S)
-        else
             temp2 = L + (L * S);
+        else
+            temp2 = (L + S) - (L * S);
 
         temp1 = L + L - temp2;
 
@@ -855,26 +859,26 @@ IF_ARCH_ARM(
             // 1x-3x block
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             4f")
-            __ASM_EMIT("vld1.32         {q0-q1}, [%[src]]!")        // q0 = r0 g0 b0 a0, q1 = r1 g1 b1 a1
+            __ASM_EMIT("vld1.32         {q0-q1}, [%[src]]!")        // q0 = h0 s0 l0 a0, q1 = h1 s1 l1 a1
             __ASM_EMIT("4:")
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             6f")
-            __ASM_EMIT("vld1.32         {q2}, [%[src]]!")           // q2 = r2 g2 b2 a2, q3 = ? ? ? ?
+            __ASM_EMIT("vld1.32         {q2}, [%[src]]")            // q2 = h2 s2 l2 a2, q3 = ? ? ? ?
             __ASM_EMIT("6:")
 
-            __ASM_EMIT("vtrn.32         q0, q1")
-            __ASM_EMIT("vtrn.32         q2, q3")
-            __ASM_EMIT("vswp            d1, d5")
-            __ASM_EMIT("vswp            d3, d7")
-            __ASM_EMIT("vswp            q1, q2")
+            __ASM_EMIT("vtrn.32         q0, q1")                    // q0 = h0 h1 l0 l1, q1 = s0 s1 a0 a1
+            __ASM_EMIT("vtrn.32         q2, q3")                    // q2 = h2  ? l2  ?, q3 = s2  ? a2  ?
+            __ASM_EMIT("vswp            d1, d4")                    // q0 = h0 h1 h2  ?, q2 = l0 l1 l2  ?
+            __ASM_EMIT("vswp            d3, d6")                    // q1 = s0 s1 s2  ?, q3 = a0 a1 a2  ?
 
+            __ASM_EMIT("vswp            q1, q2")                    // q1 = l0 l1 l2  ?, q2 = s0 s1 s2  ?
             HSLA_TO_RGBA_CORE
-
             __ASM_EMIT("vswp            q1, q2")
-            __ASM_EMIT("vswp            d3, d7")
-            __ASM_EMIT("vswp            d1, d5")
-            __ASM_EMIT("vtrn.32         q2, q3")
+
             __ASM_EMIT("vtrn.32         q0, q1")
+            __ASM_EMIT("vtrn.32         q2, q3")
+            __ASM_EMIT("vswp            d1, d4")
+            __ASM_EMIT("vswp            d3, d6")
 
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             8f")
@@ -882,7 +886,7 @@ IF_ARCH_ARM(
             __ASM_EMIT("8:")
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             10f")
-            __ASM_EMIT("vst1.32         {q2}, [%[src]]!")
+            __ASM_EMIT("vst1.32         {q2}, [%[dst]]")
 
             __ASM_EMIT("10:")
 
