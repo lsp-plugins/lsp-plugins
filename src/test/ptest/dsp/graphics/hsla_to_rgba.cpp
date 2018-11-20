@@ -25,12 +25,12 @@ IF_ARCH_X86(
     }
 )
 
-//IF_ARCH_ARM(
-//    namespace neon_d32
-//    {
-//        void hsla_to_rgba(float *dst, const float *src, size_t count);
-//    }
-//)
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void hsla_to_rgba(float *dst, const float *src, size_t count);
+    }
+)
 
 typedef void (* hsla_to_rgba_t)(float *dst, const float *src, size_t count);
 
@@ -69,7 +69,7 @@ PTEST_BEGIN("dsp.graphics", hsla_to_rgba, 5, 5000)
 
             call("native::hsla_to_rgba", dst, src, count, scale, native::hsla_to_rgba);
             IF_ARCH_X86(call("sse2::hsla_to_rgba", dst, src, count, scale, sse2::hsla_to_rgba));
-//            IF_ARCH_ARM(call("neon_d32::hsla_to_rgba", dst, src, count, scale, neon_d32::hsla_to_rgba));
+            IF_ARCH_ARM(call("neon_d32::hsla_to_rgba", dst, src, count, scale, neon_d32::hsla_to_rgba));
 
             PTEST_SEPARATOR;
         }
