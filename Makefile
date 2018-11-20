@@ -166,7 +166,7 @@ export LDFLAGS          = $(LD_ARCH) -L$(LD_PATH)
 export SO_FLAGS         = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections -shared -Llibrary -lc -fPIC
 export MERGE_FLAGS      = $(LD_ARCH) -r
 export EXE_TEST_FLAGS   = $(CC_ARCH) -Wl,-rpath,$(LD_PATH)
-export EXE_FLAGS        = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections -pie -fPIE
+export EXE_FLAGS        = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections
 
 # Objects
 export OBJ_CORE         = $(OBJDIR)/core.o
@@ -241,6 +241,7 @@ DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 default: all
 
 all: export CFLAGS          += -O2 -DLSP_NO_EXPERIMENTAL
+all: export EXE_FLAGS       += -pie -fPIE
 all: compile
 
 experimental: export CFLAGS += -O2
@@ -249,10 +250,10 @@ experimental: compile
 trace: export CFLAGS        += -O2 -DLSP_TRACE
 trace: compile
 
-test: export CFLAGS         += -DLSP_TESTING -DLSP_TRACE -g3
+test: export CFLAGS         += -O2 -DLSP_TESTING -DLSP_TRACE -g3
 test: export EXE_TEST_FLAGS += -g3
 test: export MAKE_OPTS      += LSP_TESTING=1
-test: all
+test: compile
 
 tracefile: export CFLAGS    += -DLSP_TRACEFILE
 tracefile: trace
