@@ -370,23 +370,21 @@ namespace sse2
     /* xmm5 = CMAX      */ \
     /* xmm6 = CMIN      */ \
     /* xmm7 = D         */ \
-    __ASM_EMIT("xorps       %%xmm6, %%xmm6")            /* xmm6 = 0 */ \
-    __ASM_EMIT("cmpps       $4, %%xmm7, %%xmm6")        /* xmm6 = [ D != 0 ] */ \
-    __ASM_EMIT("andps       %%xmm6, %%xmm0")            /* xmm0 = HB & [ D != 0] */ \
-    __ASM_EMIT("andps       %%xmm6, %%xmm1")            /* xmm0 = HR & [ D != 0] */ \
-    __ASM_EMIT("andps       %%xmm6, %%xmm2")            /* xmm0 = HG & [ D != 0] */ \
     __ASM_EMIT("movaps      %%xmm5, %%xmm6")            /* xmm6 = CMAX */ \
     __ASM_EMIT("cmpps       $0, 0x00(%[RGBM]), %%xmm5") /* xmm5 = [ R == CMAX ] */ \
     __ASM_EMIT("cmpps       $0, 0x10(%[RGBM]), %%xmm6") /* xmm6 = [ G == CMAX ] */ \
     __ASM_EMIT("movaps      %%xmm5, %%xmm3")            /* xmm3 = [ R == CMAX ] */ \
     __ASM_EMIT("movaps      %%xmm6, %%xmm4")            /* xmm4 = [ G == CMAX ] */ \
-    __ASM_EMIT("andps       %%xmm5, %%xmm1")            /* xmm1 = HR & [ D != 0] & [ R == CMAX ] */ \
-    __ASM_EMIT("andnps      %%xmm0, %%xmm3")            /* xmm3 = HB & [ D != 0] & [ R != CMAX ] */ \
-    __ASM_EMIT("andnps      %%xmm2, %%xmm5")            /* xmm5 = HG & [ D != 0] & [ R != CMAX ] */ \
-    __ASM_EMIT("andnps      %%xmm3, %%xmm4")            /* xmm4 = HB & [ D != 0] & [ R != CMAX ] & [ G != CMAX ] */ \
-    __ASM_EMIT("andps       %%xmm6, %%xmm5")            /* xmm5 = HG & [ D != 0] & [ R != CMAX ] & [ G == CMAX ] */ \
-    __ASM_EMIT("orps        %%xmm4, %%xmm1")            /* xmm1 = (HR & [ D != 0]& [ R == CMAX ]) | (HB & [ D != 0] & [ R != CMAX ] & [ G != CMAX ]) */ \
-    __ASM_EMIT("orps        %%xmm5, %%xmm1")            /* xmm1 = h = (HR & [ D != 0] & [ R == CMAX ]) | (HG & [ D != 0] & [ R != CMAX ] & [ G == CMAX ]) | (HB & [ D != 0] & [ R != CMAX ] & [ G != CMAX ]) */ \
+    __ASM_EMIT("andps       %%xmm5, %%xmm1")            /* xmm1 = HR & [ R == CMAX ] */ \
+    __ASM_EMIT("andnps      %%xmm0, %%xmm3")            /* xmm3 = HB & [ R != CMAX ] */ \
+    __ASM_EMIT("andnps      %%xmm2, %%xmm5")            /* xmm5 = HG & [ R != CMAX ] */ \
+    __ASM_EMIT("andnps      %%xmm3, %%xmm4")            /* xmm4 = HB & [ R != CMAX ] & [ G != CMAX ] */ \
+    __ASM_EMIT("andps       %%xmm6, %%xmm5")            /* xmm5 = HG & [ R != CMAX ] & [ G == CMAX ] */ \
+    __ASM_EMIT("orps        %%xmm4, %%xmm1")            /* xmm1 = (HR & [ R == CMAX ]) | (HB & [ R != CMAX ] & [ G != CMAX ]) */ \
+    __ASM_EMIT("xorps       %%xmm6, %%xmm6")            /* xmm6 = 0 */ \
+    __ASM_EMIT("orps        %%xmm5, %%xmm1")            /* xmm1 = (HR & [ R == CMAX ]) | (HG & [ R != CMAX ] & [ G == CMAX ]) | (HB & [ R != CMAX ] & [ G != CMAX ]) */ \
+    __ASM_EMIT("cmpps       $4, %%xmm7, %%xmm6")        /* xmm6 = [ D != 0 ] */ \
+    __ASM_EMIT("andps       %%xmm6, %%xmm1")            /* xmm1 = [ D !- 0 ] & ((HR & [ R == CMAX ]) | (HG & [ R != CMAX ] & [ G == CMAX ]) | (HB & [ R != CMAX ] & [ G != CMAX ])) */ \
     \
     __ASM_EMIT("movaps      0x40(%[RGBM]), %%xmm2")     /* xmm2 = CMIN */ \
     __ASM_EMIT("movaps      0x30 + %[XC], %%xmm6")      /* xmm6 = 1 */ \
