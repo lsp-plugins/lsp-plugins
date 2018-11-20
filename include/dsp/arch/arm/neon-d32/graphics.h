@@ -703,6 +703,16 @@ IF_ARCH_ARM(
         FVEC4(0.166666666667f),     // 1/6
         FVEC4(0.666666666667f)      // 2/3
     };
+
+    static const float RGB_HSL[] =
+    {
+        FVEC4(4.0f),
+        FVEC4(2.0f),
+        FVEC4(6.0f),
+        FVEC4(1.0f),
+        FVEC4(0.5f),
+        FVEC4(0.166666666667f)      // 1/6
+    };
 )
 
 #undef FVEC4
@@ -901,6 +911,199 @@ IF_ARCH_ARM(
     }
 
 #undef HSLA_TO_RGBA_CORE
+
+#define RGBA_TO_HSLA_CORE \
+    /*  q0   = R */ \
+    /*  q1   = B */ \
+    /*  q2   = G */ \
+    /*  q3   = A */ \
+    /*  q10  = 4, q11 = 2, q12 = 6, q13 = 1, q14 = 1/2, q15 = 1/6 */ \
+    __ASM_EMIT("vmax.f32        q4, q0, q1") \
+    __ASM_EMIT("vmin.f32        q5, q0, q1") \
+    __ASM_EMIT("vmax.f32        q4, q4, q2")                /* q4 = CMAX */ \
+    __ASM_EMIT("vmin.f32        q5, q5, q2")                /* q5 = CMIN */ \
+    __ASM_EMIT("vsub.f32        q6, q4, q5")                /* q6 = D = CMAX - CMIN */ \
+    __ASM_EMIT("vadd.f32        q5, q4, q5")                /* q5 = CMAX + CMIN */ \
+    __ASM_EMIT("vstm            %[RGBA], {q0-q3}")          /* store R, B, G, A */ \
+    \
+    __ASM_EMIT("vrecpe.f32      q9, q4")                    /* q9 = RD */ \
+    __ASM_EMIT("vrecps.f32      q8, q9, q4")                /* q8 = (2 - RD*D) */ \
+    __ASM_EMIT("vmul.f32        q8, q8, q9")                /* q8 = d' = D * (2 - RD*D) */ \
+    __ASM_EMIT("vrecps.f32      q8, q9, q4")                /* q8 = (2 - RD*d') */ \
+    __ASM_EMIT("vmul.f32        q9, q8, q9")                /* q9 = 1/D = d' * (2 - RD*d') */  \
+    \
+    /* q0  = R */ \
+    /* q1  = B */ \
+    /* q2  = G */ \
+    /* q3  = A */ \
+    /* q4  = CMAX */ \
+    /* q5  = CMAX + CMIN */ \
+    /* q6  = D */ \
+    /* q9  = 1/D */ \
+    __ASM_EMIT("vsub.f32        q7, q1, q0")                /* q7 = B-R */ \
+    __ASM_EMIT("vsub.f32        q8, q0, q2")                /* q8 = R-G */ \
+    __ASM_EMIT("vsub.f32        q0, q2, q1")                /* q0 = G-B */ \
+    __ASM_EMIT("vmul.f32        q7, q7, q9")                /* q7 = (B-R)/D */ \
+    __ASM_EMIT("veor            q1, q1")                    /* q1 = 0 */ \
+    __ASM_EMIT("vmul.f32        q0, q0, q9")                /* q0 = (G-B)/D */ \
+    __ASM_EMIT("vmul.f32        q8, q8, q9")                /* q8 = (R-G)/D */ \
+    __ASM_EMIT("vclt.f32        q1, q0, q1")                /* q1 = [(G-B)/D < 0] */ \
+    __ASM_EMIT("vadd.f32        q7, q7, q11")               /* q7 = HG = (B-R)/D + 2 */ \
+    __ASM_EMIT("vand            q1, q12")                   /* q1 = [(G-B)/D < 0] & 6 */ \
+    __ASM_EMIT("vadd.f32        q8, q8, q10")               /* q8 = HB = (R-G)/D + 4 */ \
+    __ASM_EMIT("vadd.f32        q9, q0, q1")                /* q9 = HR = (G-B)/D + [(G-B)/D < 0] & 6 */ \
+    __ASM_EMIT("vldm            %[RGBA], {q0-q3}")          /* load R, B, G, A */ \
+    /* q0  = R */ \
+    /* q1  = B */ \
+    /* q2  = G */ \
+    /* q3  = A */ \
+    /* q4  = CMAX */ \
+    /* q5  = CMAX + CMIN */ \
+    /* q6  = D */ \
+    /* q7  = HG */ \
+    /* q8  = HB */ \
+    /* q9  = HR */ \
+    __ASM_EMIT("vceq.f32        q0, q0, q4")                /* q0 = [R == CMAX] */ \
+    __ASM_EMIT("vceq.f32        q1, q1, q4")                /* q1 = [G == CMAX] */ \
+    __ASM_EMIT("vmvn            q2, q0")                    /* q2 = [R != CMAX] */ \
+    __ASM_EMIT("vbif            q7, q8, q1")                /* q7 = (HG & [G == CMAX]) | (HB & [G != CMAX]) */ \
+    __ASM_EMIT("vand            q0, q0, q9")                /* q0 = HR & [R == CMAX] */ \
+    __ASM_EMIT("vand            q7, q2")                    /* q7 = (HG & [G == CMAX] & [R != CMAX]) | (HB & [G != CMAX] & [R != CMAX]) */ \
+    __ASM_EMIT("vmul.f32        q1, q5, q14")               /* q1 = L = (CMAX + CMIN) * 0.5 */ \
+    __ASM_EMIT("vorr            q0, q7")                    /* q0 = H = (HR & [R == CMAX]) | (HG & [G == CMAX] & [R != CMAX]) | (HB & [G != CMAX] & [R != CMAX]) */ \
+    __ASM_EMIT("vsub.f32        q2, q13, q1")               /* q2 = X = 1 - L */ \
+    \
+    __ASM_EMIT("vrecpe.f32      q5, q1")                    /* q5 = RL */ \
+    __ASM_EMIT("vrecpe.f32      q9, q2")                    /* q9 = RX */ \
+    __ASM_EMIT("vrecps.f32      q4, q5, q1")                /* q4 = (2 - RL*L) */ \
+    __ASM_EMIT("vrecps.f32      q8, q9, q2")                /* q8 = (2 - RX*X) */ \
+    __ASM_EMIT("vmul.f32        q4, q4, q5")                /* q4 = l' = L * (2 - RL*L) */ \
+    __ASM_EMIT("vmul.f32        q8, q8, q9")                /* q8 = x' = X * (2 - RX*X) */ \
+    __ASM_EMIT("vrecps.f32      q4, q5, q1")                /* q4 = (2 - RL*l') */ \
+    __ASM_EMIT("vrecps.f32      q8, q9, q2")                /* q8 = (2 - RX*X') */ \
+    __ASM_EMIT("vmul.f32        q5, q4, q5")                /* q5 = 1/L = l' * (2 - RL*l') */  \
+    __ASM_EMIT("vmul.f32        q9, q8, q9")                /* q9 = 1/X = x' * (2 - RX*x') */  \
+    __ASM_EMIT("vmul.f32        q2, q6, q5")                /* q2 = D/L */ \
+    __ASM_EMIT("vmul.f32        q4, q6, q9")                /* q4 = D/X */ \
+    __ASM_EMIT("veor            q5, q5")                    /* q5 = 0 */ \
+    \
+    __ASM_EMIT("vclt.f32        q6, q1, q13")               /* q6 = [L < 1] */ \
+    __ASM_EMIT("vceq.f32        q7, q1, q5")                /* q7 = [L == 0] */ \
+    __ASM_EMIT("vcgt.f32        q8, q1, q13")               /* q8 = [L > 1] */ \
+    __ASM_EMIT("vbit            q6, q5, q7")                /* q6 = [L < 1] & [L != 0] */ \
+    __ASM_EMIT("vand            q8, q8, q4")                /* q8 = D/X & [L > 1] */ \
+    __ASM_EMIT("vand            q6, q6, q2")                /* q6 = D/L & [L < 1] & [L != 0] */ \
+    __ASM_EMIT("vorr            q2, q8, q6")                /* q2 = S = (D/L & [L < 1] & [L != 0]) | (D/X & [L > 1]) */ \
+    __ASM_EMIT("vmul.f32        q0, q0, q15")               /* q0 = H * 1/6 */ \
+    __ASM_EMIT("vmul.f32        q2, q2, q14")               /* q2 = S * 1/2 */ \
+
+/*
+    float cmax = (R < G) ? ((B < G) ? G : B) : ((B < R) ? R : B);
+    float cmin = (R < G) ? ((B < R) ? B : R) : ((B < G) ? B : G);
+    float d = cmax - cmin;
+
+    H = 0.0f;
+    S = 0.0f;
+    L = HSL_RGB_0_5 * (cmax + cmin);
+
+    // Calculate hue
+    if (R == cmax)
+    {
+        H = (G - B) / d;
+        if (H < 0.0f)
+            H += 6.0f;
+    }
+    else if (G == cmax)
+        H = (B - R) / d + 2.0f;
+    else
+        H = (R - G) / d + 4.0f;
+
+    // Calculate saturation
+    if (L < 1.0f)
+        S = (L != 0.0f) ? d / L : 0.0f;
+    else
+        S = (L != 1.0f) ? d / (1.0f - L) : 0.0f;
+
+    // Normalize hue and saturation
+    H  *= HSL_RGB_1_6;
+    S  *= HSL_RGB_0_5;
+ */
+
+    void rgba_to_hsla(float *dst, const float *src, size_t count)
+    {
+        ARCH_ARM_ASM
+        (
+            __ASM_EMIT("vldm            %[XC], {q10-q15}")
+            __ASM_EMIT("subs            %[count], $4")
+            __ASM_EMIT("blo             2f")
+
+            //-----------------------------------------------------------------
+            // 4x blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vld4.32         {q0-q1}, [%[src]]!")
+            __ASM_EMIT("vld4.32         {q2-q3}, [%[src]]!")
+            __ASM_EMIT("vswp            d1, d4")
+            __ASM_EMIT("vswp            d3, d6")
+
+            RGBA_TO_HSLA_CORE
+
+            __ASM_EMIT("vswp            d1, d4")
+            __ASM_EMIT("vswp            d3, d6")
+            __ASM_EMIT("vst4.32         {q0-q1}, [%[dst]]!")
+            __ASM_EMIT("vst4.32         {q2-q3}, [%[dst]]!")
+            __ASM_EMIT("subs            %[count], $4")
+            __ASM_EMIT("bhs             1b")
+
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds            %[count], $4")
+            __ASM_EMIT("bls             10f")
+
+            //-----------------------------------------------------------------
+            // 1x-3x block
+            __ASM_EMIT("tst             %[count], $2")
+            __ASM_EMIT("beq             4f")
+            __ASM_EMIT("vld1.32         {q0-q1}, [%[src]]!")
+            __ASM_EMIT("4:")
+            __ASM_EMIT("tst             %[count], $1")
+            __ASM_EMIT("beq             6f")
+            __ASM_EMIT("vld1.32         {q2}, [%[src]]")
+            __ASM_EMIT("6:")
+
+            __ASM_EMIT("vtrn.32         q0, q1")
+            __ASM_EMIT("vtrn.32         q2, q3")
+            __ASM_EMIT("vswp            d1, d4")
+            __ASM_EMIT("vswp            d3, d6")
+
+            __ASM_EMIT("vswp            q1, q2")
+            RGBA_TO_HSLA_CORE
+            __ASM_EMIT("vswp            q1, q2")
+
+            __ASM_EMIT("vtrn.32         q0, q1")
+            __ASM_EMIT("vtrn.32         q2, q3")
+            __ASM_EMIT("vswp            d1, d4")
+            __ASM_EMIT("vswp            d3, d6")
+
+            __ASM_EMIT("tst             %[count], $2")
+            __ASM_EMIT("beq             8f")
+            __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
+            __ASM_EMIT("8:")
+            __ASM_EMIT("tst             %[count], $1")
+            __ASM_EMIT("beq             10f")
+            __ASM_EMIT("vst1.32         {q2}, [%[dst]]")
+
+            __ASM_EMIT("10:")
+
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            : [XC] "r" (&RGB_HSL[0])
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11",
+              "q12", "q13", "q14", "q15"
+        );
+    }
+
+#undef RGBA_TO_HSLA_CORE
 
 }
 
