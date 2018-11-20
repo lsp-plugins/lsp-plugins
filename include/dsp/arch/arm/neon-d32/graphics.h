@@ -1031,6 +1031,15 @@ IF_ARCH_ARM(
 
     void rgba_to_hsla(float *dst, const float *src, size_t count)
     {
+#pragma pack(push, 1)
+        IF_ARCH_ARM(
+            struct
+            {
+                float r[4], g[4], b[4], a[4];
+            } rgba __lsp_aligned16;
+        );
+#pragma pack(pop)
+
         ARCH_ARM_ASM
         (
             __ASM_EMIT("vldm            %[XC], {q10-q15}")
@@ -1094,7 +1103,7 @@ IF_ARCH_ARM(
             __ASM_EMIT("10:")
 
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
-            : [XC] "r" (&RGB_HSL[0])
+            : [XC] "r" (&RGB_HSL[0]), [RGBA] "r" (&rgba)
             : "cc", "memory",
               "q0", "q1", "q2", "q3",
               "q4", "q5", "q6", "q7",
