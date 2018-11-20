@@ -127,6 +127,7 @@ namespace lsp
         pGain           = vPorts[port_id++];
         pMesh           = vPorts[port_id++];
         pFB             = vPorts[port_id++];
+        port_id        += 4; // skip modes
 
         pFileName       = vPorts[port_id++];
         pHeadCut        = vPorts[port_id++];
@@ -237,7 +238,7 @@ namespace lsp
             if ((fb != NULL) && (fb->rows() > nRows))
             {
                 fb->write_row(vBuffer);
-                nRows += 2;
+//                nRows += 2;
             }
 
             nOscPhase       = (nOscPhase + FRM_BUFFER_SIZE); // & 0x7ffff;

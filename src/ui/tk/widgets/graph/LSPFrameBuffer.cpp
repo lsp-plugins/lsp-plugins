@@ -41,6 +41,17 @@ namespace lsp
 
             sBgColor.set_rgba(0.0f, 0.0f, 0.0f, 1.0f); // Full transparency
             sColor.set_rgba(1.0f, 0.0f, 0.0f, 0.0f);
+
+            // Store actual color value
+            sColRGBA.r  = sColor.red();
+            sColRGBA.g  = sColor.green();
+            sColRGBA.b  = sColor.blue();
+            sColRGBA.a  = sColor.alpha();
+
+            sBgRGBA.r   = sBgColor.red();
+            sBgRGBA.g   = sBgColor.green();
+            sBgRGBA.b   = sBgColor.blue();
+            sBgRGBA.a   = sBgColor.alpha();
         }
         
         LSPFrameBuffer::~LSPFrameBuffer()
@@ -96,6 +107,37 @@ namespace lsp
         void LSPFrameBuffer::destroy()
         {
             drop_data();
+        }
+
+        void LSPFrameBuffer::check_color_changed()
+        {
+            // Trigger bClean flag if color changed
+            if (!bClear)
+            {
+                bClear =
+                    (sColor.red() != sColRGBA.r) ||
+                    (sColor.green() != sColRGBA.g) ||
+                    (sColor.blue() != sColRGBA.b) ||
+                    (sColor.alpha() != sColRGBA.a);
+
+                if (!bClear)
+                    bClear =
+                        (sBgColor.red() != sBgRGBA.r) ||
+                        (sBgColor.green() != sBgRGBA.g) ||
+                        (sBgColor.blue() != sBgRGBA.b) ||
+                        (sBgColor.alpha() != sBgRGBA.a);
+            }
+
+            // Store actual color value
+            sColRGBA.r  = sColor.red();
+            sColRGBA.g  = sColor.green();
+            sColRGBA.b  = sColor.blue();
+            sColRGBA.a  = sColor.alpha();
+
+            sBgRGBA.r   = sBgColor.red();
+            sBgRGBA.g   = sBgColor.green();
+            sBgRGBA.b   = sBgColor.blue();
+            sBgRGBA.a   = sBgColor.alpha();
         }
 
         status_t LSPFrameBuffer::append_data(uint32_t row_id, const float *data)
@@ -361,6 +403,9 @@ namespace lsp
             ISurface *pp = get_surface(s, nCols, nRows);
             if (pp == NULL)
                 return;
+
+            // Check whether the color has changed and we need to clear buffer
+            check_color_changed();
 
             // Deploy new changes
             if ((nChanges > 0) || (bClear))

@@ -1240,13 +1240,13 @@ IF_ARCH_ARM(
 
     void rgba_to_bgra32(void *dst, const float *src, size_t count)
     {
-        uint32_t fpscr, b_fpscr;
+        IF_ARCH_ARM( uint32_t fpscr, b_fpscr; )
 
         ARCH_ARM_ASM
         (
             // Set-up rounding mode
             __ASM_EMIT("vmsr            FPSCR, %[bfp]")
-            __ASM_EMIT("orr             %[fp], %[bfp], $3, LSL $22")
+            __ASM_EMIT("orr             %[fp], %[bfp], $0xc00000")
             __ASM_EMIT("vmrs            %[fp], FPSCR")
 
             __ASM_EMIT("vld1.32         {q14-q15}, [%[XC]]")
@@ -1301,7 +1301,7 @@ IF_ARCH_ARM(
             // Restore rounding mode
             __ASM_EMIT("vmrs            %[bfp], FPSCR")
 
-            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count),
               [fp] "=&r" (fpscr), [bfp] "=&r" (b_fpscr)
             : [XC] "r" (&RGBA_TO_BGRA32[0])
             : "cc", "memory",

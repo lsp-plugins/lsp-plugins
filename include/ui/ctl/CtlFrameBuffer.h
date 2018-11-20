@@ -24,9 +24,12 @@ namespace lsp
                 size_t          nRowID;
                 CtlColor        sColor;
                 CtlColor        sBgColor;
+                CtlExpression   sMode;
 
             public:
                 virtual void init();
+
+                virtual void destroy();
 
                 virtual void set(widget_attribute_t att, const char *value);
 

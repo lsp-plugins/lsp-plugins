@@ -20,6 +20,7 @@ namespace lsp
         
         CtlFrameBuffer::~CtlFrameBuffer()
         {
+            destroy();
         }
 
         void CtlFrameBuffer::init()
@@ -33,6 +34,12 @@ namespace lsp
             // Initialize color controllers
             sColor.init_hsl(pRegistry, fb, fb->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
             sBgColor.init_basic(pRegistry, fb, fb->bg_color(), A_BG_COLOR);
+            sMode.init(pRegistry, this);
+        }
+
+        void CtlFrameBuffer::destroy()
+        {
+            sMode.destroy();
         }
 
         void CtlFrameBuffer::set(widget_attribute_t att, const char *value)
@@ -73,8 +80,7 @@ namespace lsp
                         PARSE_FLOAT(value, fb->set_transparency(__));
                     break;
                 case A_MODE:
-                    if (fb != NULL)
-                        PARSE_INT(value, fb->set_palette(__));
+                    BIND_EXPR(sMode, value);
                     break;
                 default:
                 {
@@ -98,6 +104,11 @@ namespace lsp
                 if ((mdata != NULL) && (mdata->role == R_FBUFFER))
                     fb->set_size(mdata->start, mdata->step);
             }
+            if (sMode.valid())
+            {
+                size_t mode = sMode.evaluate();
+                fb->set_palette(mode);
+            }
         }
 
         void CtlFrameBuffer::notify(CtlPort *port)
@@ -107,6 +118,12 @@ namespace lsp
             LSPFrameBuffer *fb = widget_cast<LSPFrameBuffer>(pWidget);
             if (fb == NULL)
                 return;
+
+            if (sMode.valid())
+            {
+                size_t mode = sMode.evaluate();
+                fb->set_palette(mode);
+            }
 
             // Commit changes if there are
             if ((pPort == port) && (pPort != NULL))

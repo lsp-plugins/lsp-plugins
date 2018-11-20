@@ -17,6 +17,11 @@ namespace lsp
             public:
                 static const w_class_t    metadata;
 
+                typedef struct rgba_t
+                {
+                    float r, g, b, a;
+                } rgba_t;
+
             protected:
                 typedef void (LSPFrameBuffer::*calc_color_t)(float *rgba, const float *value, size_t n);
 
@@ -40,6 +45,8 @@ namespace lsp
                 Color           sBgColor;       // Background color
                 Color           sColor;         // Base color
 
+                rgba_t          sColRGBA, sBgRGBA;
+
             protected:
                 void            drop_data();
                 void            calc_rainbow_color(float *rgba, const float *value, size_t n);
@@ -48,6 +55,7 @@ namespace lsp
                 void            calc_lightness(float *rgba, const float *value, size_t n);
                 void            calc_lightness2(float *rgba, const float *value, size_t n);
                 void            allocate_buffer();
+                void            check_color_changed();
                 float          *get_buffer();
                 float          *get_rgba_buffer();
 
