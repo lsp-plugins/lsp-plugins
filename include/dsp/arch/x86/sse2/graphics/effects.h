@@ -34,7 +34,7 @@ namespace sse2
     };
 
 #define EFF_HSLA_HUE_CORE \
-    /* xmm6 = T, xmm7 = KT */ \
+    /* xmm0 = v, xmm6 = T, xmm7 = KT */ \
     __ASM_EMIT("movaps          0x00 + %[XC], %%xmm5")      /* xmm5 = 1 */ \
     __ASM_EMIT("xorps           %%xmm4, %%xmm4")            /* xmm4 = 0 */ \
     __ASM_EMIT("movaps          %%xmm5, %%xmm1")            /* xmm1 = 1 */ \
@@ -174,6 +174,109 @@ namespace sse2
             dst[2]      = eff->l;
             dst[3]      = alpha;
         }*/
+    }
+
+#undef EFF_HSLA_HUE_CORE
+
+    static const float EFF_HSLA_ALPHA_XC[] __lsp_aligned16 =
+    {
+        1.0f, 1.0f, 1.0f, 1.0f
+    };
+
+#define EFF_HSLA_ALPHA_CORE \
+    /* xmm3 = v */ \
+    __ASM_EMIT("xorps           %%xmm4, %%xmm4")            /* xmm4 = 0 */ \
+    __ASM_EMIT("movaps          0x00 + %[XC], %%xmm5")      /* xmm5 = 1 */ \
+    __ASM_EMIT("cmpps           $6, %%xmm3, %%xmm4")        /* xmm4 = [0 > v] */ \
+    __ASM_EMIT("movups          0x00(%[eff]), %%xmm0")      /* xmm0 = hsla */ \
+    __ASM_EMIT("movaps          %%xmm3, %%xmm6")            /* xmm6 = v */ \
+    __ASM_EMIT("movaps          %%xmm0, %%xmm1")            /* xmm1 = hsla */ \
+    __ASM_EMIT("addps           %%xmm5, %%xmm3")            /* xmm3 = 1 + v */ \
+    __ASM_EMIT("movaps          %%xmm1, %%xmm2")            /* xmm2 = hsla */ \
+    __ASM_EMIT("subps           %%xmm6, %%xmm5")            /* xmm5 = 1 - v */ \
+    __ASM_EMIT("shufps          $0x00, %%xmm0, %%xmm0")     /* xmm0 = H */ \
+    __ASM_EMIT("andps           %%xmm4, %%xmm3")            /* xmm4 = (1+v) & [0 > v] */ \
+    __ASM_EMIT("shufps          $0x55, %%xmm1, %%xmm1")     /* xmm1 = S */ \
+    __ASM_EMIT("andnps          %%xmm5, %%xmm4")            /* xmm4 = (1-v) & [0 <= v] */ \
+    __ASM_EMIT("shufps          $0xaa, %%xmm2, %%xmm2")     /* xmm1 = L */ \
+    __ASM_EMIT("orps            %%xmm4, %%xmm3")            /* xmm3 = A = ((1+v) & [0 > v]) | ((1-v) & [0 <= v]) */ \
+    \
+    X4_TRANSPOSE
+
+    /*
+        value   = v[i];
+        value   = (0.0f > value) ? 1.0f + value : 1.0f - value;
+
+        dst[0]  = eff->h;
+        dst[1]  = eff->s;
+        dst[2]  = eff->l;
+        dst[3]  = value; // Fill alpha channel
+     */
+
+    void eff_hsla_alpha(float *dst, const float *v, const dsp::hsla_alpha_eff_t *eff, size_t count)
+    {
+        ARCH_X86_ASM(
+            __ASM_EMIT("sub             $4, %[count]")
+            __ASM_EMIT("jb              2f")
+
+            //-----------------------------------------------------------------
+            // 4x blocks
+            __ASM_EMIT("1:")
+
+            __ASM_EMIT("movups          0x00(%[src]), %%xmm3")      /* xmm3 = v */
+            EFF_HSLA_ALPHA_CORE
+
+            __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
+            __ASM_EMIT("movups          %%xmm1, 0x10(%[dst])")
+            __ASM_EMIT("movups          %%xmm2, 0x20(%[dst])")
+            __ASM_EMIT("movups          %%xmm3, 0x30(%[dst])")
+
+            __ASM_EMIT("add             $0x10, %[src]")
+            __ASM_EMIT("add             $0x40, %[dst]")
+            __ASM_EMIT("sub             $4, %[count]")
+            __ASM_EMIT("jae             1b")
+
+            __ASM_EMIT("2:")
+            __ASM_EMIT("add             $4, %[count]")
+            __ASM_EMIT("jle             10f")
+
+            //-----------------------------------------------------------------
+            // 1x - 3x block
+            // Load last variable-sized chunk
+            __ASM_EMIT("test            $1, %[count]")
+            __ASM_EMIT("jz              4f")
+            __ASM_EMIT("movss           0x00(%[src]), %%xmm3")
+            __ASM_EMIT("add             $0x04, %[src]")
+            __ASM_EMIT("movlhps         %%xmm3, %%xmm3")
+            __ASM_EMIT("4:")
+            __ASM_EMIT("test            $2, %[count]")
+            __ASM_EMIT("jz              6f")
+            __ASM_EMIT("movlps          0x00(%[src]), %%xmm3")
+            __ASM_EMIT("6:")
+
+            EFF_HSLA_ALPHA_CORE
+
+            // Store last chunk
+            __ASM_EMIT("test            $1, %[count]")
+            __ASM_EMIT("jz              8f")
+            __ASM_EMIT("movups          %%xmm2, 0x00(%[dst])")
+            __ASM_EMIT("add             $0x10, %[dst]")
+            __ASM_EMIT("8:")
+            __ASM_EMIT("test            $2, %[count]")
+            __ASM_EMIT("jz              10f")
+            __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
+            __ASM_EMIT("movups          %%xmm1, 0x10(%[dst])")
+
+            __ASM_EMIT("10:")
+
+            : [dst] "+r" (dst), [src] "+r" (v), [count] "+r" (count)
+            : [eff] "r" (eff),
+              [XC] "o" (EFF_HSLA_ALPHA_XC)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+
     }
 }
 

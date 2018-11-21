@@ -218,6 +218,9 @@ namespace native
         EXPORT1(rgba_to_bgra32);
 
         EXPORT1(eff_hsla_hue);
+        EXPORT1(eff_hsla_sat);
+        EXPORT1(eff_hsla_light);
+        EXPORT1(eff_hsla_alpha);
 
         EXPORT1(lanczos_resample_2x2);
         EXPORT1(lanczos_resample_2x3);

@@ -42,6 +42,76 @@ namespace native
             dst[3]      = alpha;
         }
     }
+
+    void eff_hsla_alpha(float *dst, const float *v, const dsp::hsla_alpha_eff_t *eff, size_t count)
+    {
+        float value;
+
+        for (size_t i=0; i<count; ++i, dst += 4)
+        {
+            value   = v[i];
+            value   = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
+
+            dst[0]  = eff->h;
+            dst[1]  = eff->s;
+            dst[2]  = eff->l;
+            dst[3]  = value; // Fill alpha channel
+        }
+    }
+
+    void eff_hsla_sat(float *dst, const float *v, const dsp::hsla_sat_eff_t *eff, size_t count)
+    {
+        float value;
+        float kt = 1.0f / eff->thresh;
+
+        for (size_t i=0; i<count; ++i, dst += 4)
+        {
+            value   = v[i];
+            value   = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
+
+            if (value >= eff->thresh)
+            {
+                dst[0]      = eff->h;
+                dst[1]      = eff->s * value;
+                dst[2]      = eff->l;
+                dst[3]      = 0.0f;
+            }
+            else
+            {
+                dst[0]      = eff->h;
+                dst[1]      = eff->s * eff->thresh;
+                dst[2]      = eff->l;
+                dst[3]      = (eff->thresh - value) * kt;
+            }
+        }
+    }
+
+    void eff_hsla_light(float *dst, const float *v, const dsp::hsla_light_eff_t *eff, size_t count)
+    {
+        float value;
+        float kt = 1.0f / eff->thresh;
+
+        for (size_t i=0; i<count; ++i, dst += 4)
+        {
+            value   = v[i];
+            value   = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
+
+            if (value >= eff->thresh)
+            {
+                dst[0]      = eff->h;
+                dst[1]      = eff->s;
+                dst[2]      = eff->l * value;
+                dst[3]      = 0.0f;
+            }
+            else
+            {
+                dst[0]      = eff->h;
+                dst[1]      = eff->s;
+                dst[2]      = eff->l * eff->thresh;
+                dst[3]      = (eff->thresh - value) * kt;
+            }
+        }
+    }
 }
 
 #endif /* DSP_ARCH_NATIVE_GRAPHICS_EFFECTS_H_ */

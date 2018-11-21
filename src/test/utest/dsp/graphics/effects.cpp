@@ -12,12 +12,14 @@
 namespace native
 {
     void eff_hsla_hue(float *dst, const float *v, const dsp::hsla_hue_eff_t *eff, size_t count);
+    void eff_hsla_alpha(float *dst, const float *v, const dsp::hsla_alpha_eff_t *eff, size_t count);
 }
 
 IF_ARCH_X86(
     namespace sse2
     {
         void eff_hsla_hue(float *dst, const float *v, const dsp::hsla_hue_eff_t *eff, size_t count);
+        void eff_hsla_alpha(float *dst, const float *v, const dsp::hsla_alpha_eff_t *eff, size_t count);
     }
 )
 
@@ -25,6 +27,7 @@ IF_ARCH_X86(
 //    namespace neon_d32
 //    {
 //        void eff_hsla_hue(float *dst, const float *v, const dsp::hsla_hue_eff_t *eff, size_t count);
+//        void eff_hsla_alpha(float *dst, const float *v, const dsp::hsla_alpha_eff_t *eff, size_t count);
 //    }
 //)
 
@@ -91,8 +94,17 @@ UTEST_BEGIN("dsp.graphics", effects)
         hue.a       = 0.0f;
         hue.thresh  = 0.33333333333f;
 
+        dsp::hsla_alpha_eff_t alpha;
+        alpha.h     = 0.5f;
+        alpha.s     = 1.0f;
+        alpha.l     = 0.5f;
+        alpha.a     = 0.0f;
+
         IF_ARCH_X86(call("sse::eff_hsla_hue", 16, native::eff_hsla_hue, sse2::eff_hsla_hue, &hue));
+        IF_ARCH_X86(call("sse::eff_hsla_alpha", 16, native::eff_hsla_alpha, sse2::eff_hsla_alpha, &alpha));
+
 //        IF_ARCH_ARM(call("neon_d32::eff_hsla_hue", 16, native::eff_hsla_hue, neon_d32::eff_hsla_hue, &hue));
+//        IF_ARCH_ARM(call("neon_d32::eff_hsla_alpha", 16, native::eff_hsla_alpha, neon_d32::eff_hsla_alpha, &alpha));
     }
 
 UTEST_END;
