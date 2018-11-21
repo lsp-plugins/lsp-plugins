@@ -339,7 +339,7 @@ namespace neon_d32
     __ASM_EMIT("vmov            q0, q8") \
     __ASM_EMIT("vmov            q4, q8") \
     __ASM_EMIT("vmov            q1, q9") \
-    __ASM_EMIT("vmov            q3, q9") \
+    __ASM_EMIT("vmov            q5, q9") \
     /* Transpose back */ \
     X8_TRANSPOSE
 
@@ -390,7 +390,7 @@ namespace neon_d32
 
             __ASM_EMIT("vld1.32         {q0-q1}, [%[src]]!")        /* q0 = v0, q1 = v1 */
 
-            EFF_HSLA_SAT_CORE
+            EFF_HSLA_LIGHT_CORE
 
             __ASM_EMIT("subs            %[count], $8")
             __ASM_EMIT("vstm            %[dst]!, {q0-q7}")
@@ -415,7 +415,7 @@ namespace neon_d32
             __ASM_EMIT("vldm            %[src], {s6}")
             __ASM_EMIT("8:")
 
-            EFF_HSLA_SAT_CORE
+            EFF_HSLA_LIGHT_CORE
 
             __ASM_EMIT("tst             %[count], $4")
             __ASM_EMIT("beq             10f")
