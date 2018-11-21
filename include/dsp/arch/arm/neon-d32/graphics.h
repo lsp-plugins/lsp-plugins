@@ -934,7 +934,7 @@ IF_ARCH_ARM(
     \
     __ASM_EMIT("vrecpe.f32      q9, q6")                    /* q9 = RD */ \
     __ASM_EMIT("vrecps.f32      q8, q9, q6")                /* q8 = (2 - RD*D) */ \
-    __ASM_EMIT("vmul.f32        q8, q8, q9")                /* q8 = d' = D * (2 - RD*D) */ \
+    __ASM_EMIT("vmul.f32        q8, q8, q9")                /* q8 = d' = RD * (2 - RD*D) */ \
     __ASM_EMIT("vrecps.f32      q8, q9, q6")                /* q8 = (2 - RD*d') */ \
     __ASM_EMIT("vmul.f32        q9, q8, q9")                /* q9 = 1/D = d' * (2 - RD*d') */  \
     \

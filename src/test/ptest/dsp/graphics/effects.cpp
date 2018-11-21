@@ -123,15 +123,15 @@ IF_ARCH_X86(
     }
 )
 
-//IF_ARCH_ARM(
-//    namespace neon_d32
-//    {
-//        void eff_hsla_hue(float *dst, const float *v, const dsp::hsla_hue_eff_t *eff, size_t count);
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void eff_hsla_hue(float *dst, const float *v, const dsp::hsla_hue_eff_t *eff, size_t count);
 //        void eff_hsla_sat(float *dst, const float *v, const dsp::hsla_sat_eff_t *eff, size_t count);
 //        void eff_hsla_light(float *dst, const float *v, const dsp::hsla_light_eff_t *eff, size_t count);
 //        void eff_hsla_alpha(float *dst, const float *v, const dsp::hsla_alpha_eff_t *eff, size_t count);
-//    }
-//)
+    }
+)
 
 //-----------------------------------------------------------------------------
 // Performance test for logarithmic axis calculation
@@ -201,7 +201,7 @@ template <class eff_t>
             call("static::eff_hsla_hue", dst, src, count, &hue, eff_hsla_hue);
             call("native::eff_hsla_hue", dst, src, count, &hue, native::eff_hsla_hue);
             IF_ARCH_X86(call("sse2::eff_hsla_hue", dst, src, count, &hue, sse2::eff_hsla_hue));
-//            IF_ARCH_ARM(call("neon_d32::eff_hsla_hue", dst, src, count, &hue, neon_d32::eff_hsla_hue));
+            IF_ARCH_ARM(call("neon_d32::eff_hsla_hue", dst, src, count, &hue, neon_d32::eff_hsla_hue));
             PTEST_SEPARATOR;
 
             call("static::eff_hsla_sat", dst, src, count, &sat, eff_hsla_sat);
