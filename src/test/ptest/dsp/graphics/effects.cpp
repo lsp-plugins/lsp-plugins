@@ -9,11 +9,8 @@
 #include <test/ptest.h>
 #include <core/sugar.h>
 
-//#define MIN_RANK 6
-//#define MAX_RANK 16
-
-#define MIN_RANK 8
-#define MAX_RANK 11
+#define MIN_RANK 6
+#define MAX_RANK 16
 
 static void eff_hsla_hue(float *dst, const float *v, const dsp::hsla_hue_eff_t *eff, size_t count)
 {
@@ -30,12 +27,12 @@ static void eff_hsla_hue(float *dst, const float *v, const dsp::hsla_hue_eff_t *
 
         if (value < t)
         {
-            hue         = eff->h + value;
+            hue         = dst[0] + value;
             alpha       = 0.0f;
         }
         else
         {
-            hue         = eff->h + t;
+            hue         = dst[0] + t;
             alpha       = ((value - t) * kt);
         }
 
@@ -58,9 +55,61 @@ static void eff_hsla_alpha(float *dst, const float *v, const dsp::hsla_alpha_eff
     }
 }
 
+static void eff_hsla_sat(float *dst, const float *v, const dsp::hsla_sat_eff_t *eff, size_t count)
+{
+    dsp::fill_hsla(dst, eff->h, eff->s, eff->l, eff->a, count);
+
+    float value;
+    float kt = 1.0f / eff->thresh;
+
+    for (size_t i=0; i<count; ++i, dst += 4)
+    {
+        value   = v[i];
+        value   = (value >= 0.0f) ? value : -value;
+
+        if (value >= eff->thresh)
+        {
+            dst[1]     *= value;
+            dst[3]      = 0.0f;
+        }
+        else
+        {
+            dst[1]     *= eff->thresh;
+            dst[3]      = (eff->thresh - value) * kt;
+        }
+    }
+}
+
+static void eff_hsla_light(float *dst, const float *v, const dsp::hsla_light_eff_t *eff, size_t count)
+{
+    dsp::fill_hsla(dst, eff->h, eff->s, eff->l, eff->a, count);
+
+    float value;
+    float kt = 1.0f / eff->thresh;
+
+    for (size_t i=0; i<count; ++i, dst += 4)
+    {
+        value   = v[i];
+        value   = (value >= 0.0f) ? value : -value;
+
+        if (value >= eff->thresh)
+        {
+            dst[2]     *= value;
+            dst[3]      = 0.0f;
+        }
+        else
+        {
+            dst[2]     *= eff->thresh;
+            dst[3]      = (eff->thresh - value) * kt;
+        }
+    }
+}
+
 namespace native
 {
     void eff_hsla_hue(float *dst, const float *v, const dsp::hsla_hue_eff_t *eff, size_t count);
+    void eff_hsla_sat(float *dst, const float *v, const dsp::hsla_sat_eff_t *eff, size_t count);
+    void eff_hsla_light(float *dst, const float *v, const dsp::hsla_light_eff_t *eff, size_t count);
     void eff_hsla_alpha(float *dst, const float *v, const dsp::hsla_alpha_eff_t *eff, size_t count);
 }
 
@@ -68,6 +117,8 @@ IF_ARCH_X86(
     namespace sse2
     {
         void eff_hsla_hue(float *dst, const float *v, const dsp::hsla_hue_eff_t *eff, size_t count);
+        void eff_hsla_sat(float *dst, const float *v, const dsp::hsla_sat_eff_t *eff, size_t count);
+        void eff_hsla_light(float *dst, const float *v, const dsp::hsla_light_eff_t *eff, size_t count);
         void eff_hsla_alpha(float *dst, const float *v, const dsp::hsla_alpha_eff_t *eff, size_t count);
     }
 )
@@ -76,6 +127,8 @@ IF_ARCH_X86(
 //    namespace neon_d32
 //    {
 //        void eff_hsla_hue(float *dst, const float *v, const dsp::hsla_hue_eff_t *eff, size_t count);
+//        void eff_hsla_sat(float *dst, const float *v, const dsp::hsla_sat_eff_t *eff, size_t count);
+//        void eff_hsla_light(float *dst, const float *v, const dsp::hsla_light_eff_t *eff, size_t count);
 //        void eff_hsla_alpha(float *dst, const float *v, const dsp::hsla_alpha_eff_t *eff, size_t count);
 //    }
 //)
@@ -122,7 +175,23 @@ template <class eff_t>
         alpha.l     = 0.5f;
         alpha.a     = 0.0f;
 
+        dsp::hsla_sat_eff_t sat;
+        sat.h       = 0.0f;
+        sat.s       = 1.0f;
+        sat.l       = 0.5f;
+        sat.a       = 0.0f;
+        sat.thresh  = 0.25f;
+
+        dsp::hsla_light_eff_t light;
+        light.h       = 0.0f;
+        light.s       = 1.0f;
+        light.l       = 0.5f;
+        light.a       = 0.0f;
+        light.thresh  = 0.25f;
+
         TEST_EXPORT(eff_hsla_hue);
+        TEST_EXPORT(eff_hsla_sat);
+        TEST_EXPORT(eff_hsla_light);
         TEST_EXPORT(eff_hsla_alpha);
 
         for (size_t i=MIN_RANK; i <= MAX_RANK; ++i)
@@ -133,6 +202,18 @@ template <class eff_t>
             call("native::eff_hsla_hue", dst, src, count, &hue, native::eff_hsla_hue);
             IF_ARCH_X86(call("sse2::eff_hsla_hue", dst, src, count, &hue, sse2::eff_hsla_hue));
 //            IF_ARCH_ARM(call("neon_d32::eff_hsla_hue", dst, src, count, &hue, neon_d32::eff_hsla_hue));
+            PTEST_SEPARATOR;
+
+            call("static::eff_hsla_sat", dst, src, count, &sat, eff_hsla_sat);
+            call("native::eff_hsla_sat", dst, src, count, &sat, native::eff_hsla_sat);
+            IF_ARCH_X86(call("sse2::eff_hsla_sat", dst, src, count, &sat, sse2::eff_hsla_sat));
+//            IF_ARCH_ARM(call("neon_d32::eff_hsla_sat", dst, src, count, &sat, neon_d32::eff_hsla_sat));
+            PTEST_SEPARATOR;
+
+            call("static::eff_hsla_light", dst, src, count, &light, eff_hsla_light);
+            call("native::eff_hsla_light", dst, src, count, &light, native::eff_hsla_light);
+            IF_ARCH_X86(call("sse2::eff_hsla_light", dst, src, count, &light, sse2::eff_hsla_light));
+//            IF_ARCH_ARM(call("neon_d32::eff_hsla_light", dst, src, count, &light, neon_d32::eff_hsla_light));
             PTEST_SEPARATOR;
 
             call("static::eff_hsla_alpha", dst, src, count, &alpha, eff_hsla_alpha);

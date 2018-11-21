@@ -67,7 +67,7 @@ namespace native
         for (size_t i=0; i<count; ++i, dst += 4)
         {
             value   = v[i];
-            value   = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
+            value   = (value >= 0.0f) ? value : -value;
 
             if (value >= eff->thresh)
             {
@@ -94,7 +94,7 @@ namespace native
         for (size_t i=0; i<count; ++i, dst += 4)
         {
             value   = v[i];
-            value   = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
+            value   = (value >= 0.0f) ? value : -value;
 
             if (value >= eff->thresh)
             {
