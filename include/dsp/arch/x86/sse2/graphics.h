@@ -246,7 +246,6 @@ namespace sse2
             __ASM_EMIT("jae             1b")
 
             __ASM_EMIT("2:")
-
             __ASM_EMIT("add             $4, %[count]")
             __ASM_EMIT("jle             10f")
 
@@ -607,7 +606,6 @@ namespace sse2
             __ASM_EMIT("jae             1b")
 
             __ASM_EMIT("2:")
-
             __ASM_EMIT("add             $4, %[count]")
             __ASM_EMIT("jle             10f")
 

@@ -49,6 +49,7 @@ namespace sse2 // TODO: make constants common for all architectures
 #include <dsp/arch/x86/sse2/float.h>
 #include <dsp/arch/x86/sse2/search.h>
 #include <dsp/arch/x86/sse2/graphics.h>
+#include <dsp/arch/x86/sse2/graphics/effects.h>
 
 #undef DSP_ARCH_X86_SSE2_IMPL
 
@@ -82,6 +83,8 @@ namespace sse2
         EXPORT1(hsla_to_rgba);
         EXPORT1(rgba_to_hsla);
         EXPORT1(rgba_to_bgra32);
+
+        EXPORT1(eff_hsla_hue);
     }
 
     #undef EXPORT1

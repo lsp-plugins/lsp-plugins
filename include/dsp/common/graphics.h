@@ -16,6 +16,33 @@
 // DSP different graphical functions
 namespace dsp
 {
+#pragma pack(push, 1)
+    typedef struct hsla_hue_eff_t
+    {
+        float h, s, l, a;   // Hue, saturation, lightness, alpha
+        float thresh;       // alpha threshold
+    } hsla_hue_eff_t;
+
+    typedef struct hsla_alpha_eff_t
+    {
+        float h, s, l, a;   // Hue, saturation, lightness, alpha
+    } hsla_alpha_eff_t;
+
+    typedef struct hsla_sat_eff_t
+    {
+        float h, s, l, a;   // Hue, saturation, lightness, alpha
+        float thresh;       // alpha threshold
+    } hsla_sat_eff_t;
+
+    typedef struct hsla_light_eff_t
+    {
+        float h, s, l, a;   // Hue, saturation, lightness, alpha
+        float thresh;       // alpha threshold
+    } hsla_light_eff_t;
+#pragma pack(pop)
+
+
+
     /** Do logarithmic vector apply:
      *  x[i] = x[i] + norm_x * logf(absf(v[i]*zero))
      *  y[i] = y[i] + norm_y * logf(absf(v[i]*zero))
@@ -87,6 +114,15 @@ namespace dsp
      * @param count number of samples to process
      */
     extern void (* rgba_to_bgra32)(void *dst, const float *src, size_t count);
+
+    /**
+     * Generate set of pixels with applied hue shift effect
+     * @param dst target array to store pixels
+     * @param v hue shift in range (-1 .. +1)
+     * @param eff
+     * @param count
+     */
+    extern void (* eff_hsla_hue)(float *dst, const float *v, const hsla_hue_eff_t *eff, size_t count);
 }
 
 #endif /* DSP_COMMON_GRAPHICS_H_ */

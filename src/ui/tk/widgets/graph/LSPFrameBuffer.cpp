@@ -9,8 +9,6 @@
 #include <core/sugar.h>
 #include <dsp/dsp.h>
 
-static const float DIV_2_3 = 2.0f / 3.0f;
-
 namespace lsp
 {
     namespace tk
@@ -262,30 +260,14 @@ namespace lsp
 
         void LSPFrameBuffer::calc_rainbow_color(float *rgba, const float *v, size_t n)
         {
-            dsp::fill_hsla(rgba, sColor.hue(), sColor.saturation(), sColor.lightness(), sColor.alpha(), n);
+            dsp::hsla_hue_eff_t eff;
+            eff.h       = sColor.hue();
+            eff.s       = sColor.saturation();
+            eff.l       = sColor.lightness();
+            eff.a       = sColor.alpha();
+            eff.thresh  = 1.0f / 3.0f;
 
-            float value, hue;
-            float *c    = rgba;
-
-            for (size_t i=0; i<n; ++i, c += 4)
-            {
-                value   = v[i];
-                value   = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
-
-                if (value < DIV_2_3)
-                {
-                    hue         = c[0] + value;
-                    c[0]        = hue - int(hue); // simple fmod()
-                    c[3]        = 0.0f;
-                }
-                else
-                {
-                    hue         = c[0] + DIV_2_3;
-                    c[0]        = hue - int(hue); // simple fmod()
-                    c[3]        = ((value - DIV_2_3) * 3.0f);
-                }
-            }
-
+            dsp::eff_hsla_hue(rgba, v, &eff, n);
             dsp::hsla_to_rgba(rgba, rgba, n);
         }
 
