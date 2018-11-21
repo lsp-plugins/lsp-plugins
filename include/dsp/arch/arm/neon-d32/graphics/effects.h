@@ -474,7 +474,7 @@ IF_ARCH_ARM
     __ASM_EMIT("vmov            q2, q10") \
     __ASM_EMIT("vmov            q4, q8") \
     __ASM_EMIT("vmov            q5, q9") \
-    __ASM_EMIT("vmov            q6, q11") \
+    __ASM_EMIT("vmov            q6, q10") \
     /* Transpose back */ \
     X8_TRANSPOSE
 
@@ -494,10 +494,11 @@ IF_ARCH_ARM
         (
             __ASM_EMIT("vld1.32         {q8}, [%[eff]]")            /* q8   = hsla */
             __ASM_EMIT("vldm            %[XC], {q15}")              /* q15  = 1 */
+            __ASM_EMIT("vmov            q9, q8")                    /* q9   = hsla */
             __ASM_EMIT("veor            q14, q14")                  /* q14  = 0 */
             __ASM_EMIT("vtrn.32         q8, q9")
-            __ASM_EMIT("vmov            q10, q8")                   /* q10  = hsla */
-            __ASM_EMIT("vmov            q11, q9")                   /* q11  = hsla */
+            __ASM_EMIT("vmov            q10, q8")
+            __ASM_EMIT("vmov            q11, q9")
             __ASM_EMIT("vswp            d20, d17")
             __ASM_EMIT("vswp            d22, d19")
 

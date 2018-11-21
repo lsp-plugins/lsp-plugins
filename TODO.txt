@@ -38,8 +38,6 @@
 - Added bookmarks to file opening dialog.
 - Added subsystem for loading missed files.
 
-Required:
-  - Implement 4 effect routines that optimize graphic effects when rendering framebuffer for ARM.
 
 *******************************************************************************
 * Release steps
