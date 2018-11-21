@@ -443,6 +443,15 @@ namespace neon_d32
 
 #undef EFF_HSLA_LIGHT_CORE
 
+IF_ARCH_ARM
+(
+    static const float EFF_HSLA_ALPHA_XC[] __lsp_aligned16 =
+    {
+        1.0f, 1.0f, 1.0f, 1.0f
+    };
+)
+
+
 #define EFF_HSLA_ALPHA_CORE   \
     /* q0   = v0        */ \
     /* q1   = v1        */ \
@@ -543,9 +552,8 @@ namespace neon_d32
             __ASM_EMIT("14:")
 
 
-            : [dst] "+r" (dst), [src] "+r" (v), [count] "+r" (count),
-              [eff] "+r" (eff)
-            :
+            : [dst] "+r" (dst), [src] "+r" (v), [count] "+r" (count)
+            : [XC] "r" (&EFF_HSLA_ALPHA_XC[0]), [eff] "r" (eff)
             : "cc", "memory",
               "q0", "q1", "q2", "q3" , "q4", "q5", "q6", "q7",
               "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
