@@ -19,6 +19,7 @@ namespace lsp
             sLeft.fMax          = 1.0f;
             sLeft.fValue        = 0.0f;
             sLeft.fLast         = 0.0f;
+            sLeft.fBigStep      = 0.1f;
             sLeft.fStep         = 0.01f;
             sLeft.fTinyStep     = 0.001f;
 
@@ -26,6 +27,7 @@ namespace lsp
             sTop.fMax           = 1.0f;
             sTop.fValue         = 0.0f;
             sTop.fLast          = 0.0f;
+            sTop.fBigStep       = 0.1f;
             sTop.fStep          = 0.01f;
             sTop.fTinyStep      = 0.001f;
 
@@ -33,6 +35,7 @@ namespace lsp
             sScroll.fMax        = 1.0f;
             sScroll.fValue      = 0.0f;
             sScroll.fLast       = 0.0f;
+            sScroll.fBigStep    = 0.1f;
             sScroll.fStep       = 0.01f;
             sScroll.fTinyStep   = 0.001f;
 

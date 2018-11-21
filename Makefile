@@ -264,7 +264,7 @@ debug: compile
 debugfile: export CFLAGS    += -DLSP_TRACEFILE
 debugfile: debug
 
-gdb: export CFLAGS          += -O0
+gdb: export CFLAGS          += -O0 -g3 -DLSP_TRACE
 gdb: compile
 
 profile: export CFLAGS      += -O0 -g -pg -DLSP_PROFILING
