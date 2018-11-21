@@ -934,7 +934,7 @@ IF_ARCH_ARM(
     \
     __ASM_EMIT("vrecpe.f32      q9, q6")                    /* q9 = RD */ \
     __ASM_EMIT("vrecps.f32      q8, q9, q6")                /* q8 = (2 - RD*D) */ \
-    __ASM_EMIT("vmul.f32        q8, q8, q9")                /* q8 = d' = RD * (2 - RD*D) */ \
+    __ASM_EMIT("vmul.f32        q9, q8, q9")                /* q9 = d' = RD * (2 - RD*D) */ \
     __ASM_EMIT("vrecps.f32      q8, q9, q6")                /* q8 = (2 - RD*d') */ \
     __ASM_EMIT("vmul.f32        q9, q8, q9")                /* q9 = 1/D = d' * (2 - RD*d') */  \
     \
@@ -984,8 +984,8 @@ IF_ARCH_ARM(
     __ASM_EMIT("vrecpe.f32      q9, q2")                    /* q9 = RX */ \
     __ASM_EMIT("vrecps.f32      q4, q5, q1")                /* q4 = (2 - RL*L) */ \
     __ASM_EMIT("vrecps.f32      q8, q9, q2")                /* q8 = (2 - RX*X) */ \
-    __ASM_EMIT("vmul.f32        q4, q4, q5")                /* q4 = l' = L * (2 - RL*L) */ \
-    __ASM_EMIT("vmul.f32        q8, q8, q9")                /* q8 = x' = X * (2 - RX*X) */ \
+    __ASM_EMIT("vmul.f32        q5, q4, q5")                /* q5 = l' = L * (2 - RL*L) */ \
+    __ASM_EMIT("vmul.f32        q9, q8, q9")                /* q9 = x' = X * (2 - RX*X) */ \
     __ASM_EMIT("vrecps.f32      q4, q5, q1")                /* q4 = (2 - RL*l') */ \
     __ASM_EMIT("vrecps.f32      q8, q9, q2")                /* q8 = (2 - RX*X') */ \
     __ASM_EMIT("vmul.f32        q5, q4, q5")                /* q5 = 1/L = l' * (2 - RL*l') */  \

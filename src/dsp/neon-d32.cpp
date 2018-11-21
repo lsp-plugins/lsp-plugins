@@ -119,6 +119,7 @@ namespace neon_d32
         EXPORT1(rgba_to_bgra32);
 
         EXPORT1(eff_hsla_hue);
+        EXPORT1(eff_hsla_sat);
 
         EXPORT1(abs1);
         EXPORT1(abs2);

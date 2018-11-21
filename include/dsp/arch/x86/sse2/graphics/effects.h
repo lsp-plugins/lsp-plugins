@@ -310,6 +310,7 @@ namespace sse2
     X4_TRANSPOSE
 
     /*
+        kt      = 1.0f / eff->thresh;
         value   = (value >= 0.0f) ? value : -value;
 
         if (0 >= (eff->thresh - value))
