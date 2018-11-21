@@ -180,14 +180,6 @@ namespace neon_d32
 
 #undef EFF_HSLA_HUE_CORE
 
-    IF_ARCH_ARM
-    (
-        static const float EFF_HSLA_HUE_XC[] __lsp_aligned16 =
-        {
-            1.0f, 1.0f, 1.0f, 1.0f
-        };
-    )
-
 #define EFF_HSLA_SAT_CORE   \
     /* q0   = v0        */ \
     /* q1   = v1        */ \
@@ -247,11 +239,11 @@ namespace neon_d32
             __ASM_EMIT("vmov            q9, q8")                    /* q9   = hsla */
             __ASM_EMIT("vrecpe.f32      q0, q14")                   /* q0   = TD */
             __ASM_EMIT("vtrn.32         q8, q9")
-            __ASM_EMIT("vrecps.f32      q1, q0, q15")               /* q1   = (2 - TD*T) */
+            __ASM_EMIT("vrecps.f32      q1, q0, q14")               /* q1   = (2 - TD*T) */
             __ASM_EMIT("vmov            q10, q8")                   /* q10  = hsla */
             __ASM_EMIT("vmul.f32        q0, q1, q0")                /* q0   = t' = TD * (2 - TD*T) */
             __ASM_EMIT("vmov            q11, q9")                   /* q11  = hsla */
-            __ASM_EMIT("vrecps.f32      q1, q0, q15")               /* q1   = (2 - TD*t') */
+            __ASM_EMIT("vrecps.f32      q1, q0, q14")               /* q1   = (2 - TD*t') */
             __ASM_EMIT("vswp            d20, d17")
             __ASM_EMIT("vmul.f32        q15, q1, q0")               /* q15  = KT = 1/t = t' * (2 - TD*t') */
             __ASM_EMIT("vswp            d22, d19")

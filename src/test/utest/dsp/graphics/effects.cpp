@@ -126,7 +126,7 @@ UTEST_BEGIN("dsp.graphics", effects)
         IF_ARCH_X86(call("sse::eff_hsla_alpha", 16, native::eff_hsla_alpha, sse2::eff_hsla_alpha, &alpha));
 
         IF_ARCH_ARM(call("neon_d32::eff_hsla_hue", 16, native::eff_hsla_hue, neon_d32::eff_hsla_hue, &hue));
-        IF_ARCH_ARM(call("neon_d32::eff_hsla_sat", 16, neon_d32::eff_hsla_sat, neon_d32::eff_hsla_sat, &sat));
+        IF_ARCH_ARM(call("neon_d32::eff_hsla_sat", 16, native::eff_hsla_sat, neon_d32::eff_hsla_sat, &sat));
 //        IF_ARCH_ARM(call("neon_d32::eff_hsla_light", 16, native::eff_hsla_light, neon_d32::eff_hsla_light, &light));
 //        IF_ARCH_ARM(call("neon_d32::eff_hsla_alpha", 16, native::eff_hsla_alpha, neon_d32::eff_hsla_alpha, &alpha));
     }
