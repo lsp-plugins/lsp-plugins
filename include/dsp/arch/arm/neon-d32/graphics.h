@@ -103,14 +103,10 @@ namespace neon_d32
             __ASM_EMIT("vsub.f32        q1, q1, q12")
             __ASM_EMIT("vsub.f32        q2, q2, q12")
             __ASM_EMIT("vsub.f32        q3, q3, q12")
-            __ASM_EMIT("vmvn            q8, q8")                        // q8   = [ V >= sqrt(1/2) ]
-            __ASM_EMIT("vmvn            q9, q9")
-            __ASM_EMIT("vmvn            q10, q10")
-            __ASM_EMIT("vmvn            q11, q11")
-            __ASM_EMIT("vand.u32        q8, q8, q12")                   // q8   = 1.0 & [ V >= sqrt(1/2) ]
-            __ASM_EMIT("vand.u32        q9, q9, q12")
-            __ASM_EMIT("vand.u32        q10, q10, q12")
-            __ASM_EMIT("vand.u32        q11, q11, q12")
+            __ASM_EMIT("vbic.u32        q8, q12, q8")                   // q8   = 1.0 & [ V >= sqrt(1/2) ]
+            __ASM_EMIT("vbic.u32        q9, q12, q9")
+            __ASM_EMIT("vbic.u32        q10, q12, q10")
+            __ASM_EMIT("vbic.u32        q11, q12, q11")
             __ASM_EMIT("vadd.f32        q4, q4, q8")                    // q4   = B = E + 1.0 & [ V >= sqrt(1/2) ]
             __ASM_EMIT("vadd.f32        q5, q5, q9")
             __ASM_EMIT("vadd.f32        q6, q6, q10")
@@ -273,10 +269,8 @@ namespace neon_d32
             __ASM_EMIT("vclt.f32        q9, q9, q15")
             __ASM_EMIT("vsub.f32        q0, q0, q12")                   // q0   = A = V + V & [ V < sqrt(1/2) ] - 1.0
             __ASM_EMIT("vsub.f32        q1, q1, q12")
-            __ASM_EMIT("vmvn            q8, q8")                        // q8   = [ V >= sqrt(1/2) ]
-            __ASM_EMIT("vmvn            q9, q9")
-            __ASM_EMIT("vand.u32        q8, q8, q12")                   // q8   = 1.0 & [ V >= sqrt(1/2) ]
-            __ASM_EMIT("vand.u32        q9, q9, q12")
+            __ASM_EMIT("vbic.u32        q8, q12, q8")                   // q8   = 1.0 & [ V >= sqrt(1/2) ]
+            __ASM_EMIT("vbic.u32        q9, q12, q9")
             __ASM_EMIT("vadd.f32        q4, q4, q8")                    // q4   = B = E + 1.0 & [ V >= sqrt(1/2) ]
             __ASM_EMIT("vadd.f32        q5, q5, q9")
             // Calculate logarithmic values
@@ -369,8 +363,7 @@ namespace neon_d32
             __ASM_EMIT("vadd.f32        q0, q0, q8")                    // q0   = V + V * [ V < sqrt(1/2) ]
             __ASM_EMIT("vclt.f32        q8, q8, q15")                   // q8   = [ V < sqrt(1/2) ]
             __ASM_EMIT("vsub.f32        q0, q0, q12")                   // q0   = A = V + V & [ V < sqrt(1/2) ] - 1.0
-            __ASM_EMIT("vmvn            q8, q8")                        // q8   = [ V >= sqrt(1/2) ]
-            __ASM_EMIT("vand.u32        q8, q8, q12")                   // q8   = 1.0 & [ V >= sqrt(1/2) ]
+            __ASM_EMIT("vbic.u32        q8, q12, q8")                   // q8   = 1.0 & [ V >= sqrt(1/2) ]
             __ASM_EMIT("vadd.f32        q4, q4, q8")                    // q4   = B = E + 1.0 & [ V >= sqrt(1/2) ]
             // Calculate logarithmic values
             __ASM_EMIT("vld1.32         {q14-q15}, [%[fptr]]!")         // q14  = L1, q15 = L2, fptr += 8
@@ -439,8 +432,7 @@ namespace neon_d32
             __ASM_EMIT("vadd.f32        d0, d0, d8")                    // d0   = V + V & [ V < sqrt(1/2) ]
             __ASM_EMIT("vclt.f32        d8, d8, d18")                   // d8   = [ V < sqrt(1/2) ]
             __ASM_EMIT("vsub.f32        d0, d0, d12")                   // d0   = A = V + V & [ V < sqrt(1/2) ] - 1.0
-            __ASM_EMIT("vmvn            d8, d8")                        // d8   = [ V >= sqrt(1/2) ]
-            __ASM_EMIT("vand.u32        d8, d8, d12")                   // d8   = 1.0 & [ V >= sqrt(1/2) ]
+            __ASM_EMIT("vbic.u32        d8, d12, d8")                   // d8   = 1.0 & [ V >= sqrt(1/2) ]
             __ASM_EMIT("vadd.f32        d4, d4, d8")                    // d4   = B = E + 1.0 & [ V >= sqrt(1/2) ]
             // Calculate logarithmic values
             __ASM_EMIT("vld1.32         {q8-q9}, [%[fptr]]!")           // d16  = L1, d18 = L2, fptr += 8
@@ -976,9 +968,8 @@ IF_ARCH_ARM(
     __ASM_EMIT("vbsl            q0, q9, q2")                /* q0 = (HR & [R == CMAX]) | (HG & [G == CMAX] & [R != CMAX]) | (HB & [G != CMAX] & [R != CMAX]) */ \
     __ASM_EMIT("vceq.f32        q4, q4, q6")                /* q4 = [ D == 0 ] */ \
     __ASM_EMIT("vmul.f32        q1, q5, q14")               /* q1 = L = (CMAX + CMIN) * 0.5 */ \
-    __ASM_EMIT("vmvn            q4, q4")                    /* q4 = [ D != 0 ] */ \
     __ASM_EMIT("vsub.f32        q2, q13, q1")               /* q2 = X = 1 - L */ \
-    __ASM_EMIT("vand            q0, q0, q4")                /* q0 = H = [D != 0] & ((HR & [R == CMAX]) | (HG & [G == CMAX] & [R != CMAX]) | (HB & [G != CMAX] & [R != CMAX])) */ \
+    __ASM_EMIT("vbic            q0, q0, q4")                /* q0 = H = [D != 0] & ((HR & [R == CMAX]) | (HG & [G == CMAX] & [R != CMAX]) | (HB & [G != CMAX] & [R != CMAX])) */ \
     \
     __ASM_EMIT("vrecpe.f32      q5, q1")                    /* q5 = RL */ \
     __ASM_EMIT("vrecpe.f32      q9, q2")                    /* q9 = RX */ \
