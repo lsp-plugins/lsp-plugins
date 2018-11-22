@@ -231,7 +231,8 @@ namespace lsp
         uint32_t chunk_id = 0;
 
         // Read profile (if present)
-        size_t skip = 0;
+        size_t skip         = 0;
+        size_t profVersion  = 1;
         LSPCChunkReader *prof = fd.find_chunk(LSPC_CHUNK_PROFILE);
         if (prof != NULL)
         {
@@ -247,6 +248,11 @@ namespace lsp
             chunk_id = BE_TO_CPU(p.chunk_id);
             if ((res == STATUS_OK) && (chunk_id == 0))
                 res = STATUS_CORRUPTED_FILE;
+
+            // Get skip value:
+            profVersion = p.common.version;
+            if (profVersion >= 2)
+                skip = BE_TO_CPU(p.skip);
 
             // Analyze final status
             status_t res2 = prof->close();
@@ -282,9 +288,40 @@ namespace lsp
             return res;
         }
 
-        // This is the middle of the convolution result
-        size_t middle       = (aparams.frames / 2) - 1;
-        skip                = middle;
+        // Setting up skip value for version 1 headers
+        if (profVersion < 2)
+        {
+            LSPCChunkReader *rd = fd.find_chunk(LSPC_CHUNK_AUDIO, NULL, 0);
+            lspc_chunk_audio_header_t hdr;
+
+            ssize_t res = rd->read_header(&hdr, sizeof(lspc_chunk_audio_header_t));
+            if (res >= 0)
+            {
+                if (hdr.common.version >= 1)
+                {
+                    ssize_t offset      = BE_TO_CPU(hdr.offset);
+
+                    size_t middle       = aparams.frames / 2 - 1;
+                    size_t skipNoOffset = middle - 1;
+                    size_t maxAhead     = aparams.frames - skipNoOffset;
+
+                    if (offset >= 0)
+                    {
+                        size_t nOffset  = offset;
+                        nOffset         = (nOffset > maxAhead)? maxAhead : nOffset;
+                        skip            = skipNoOffset + nOffset;
+                    }
+                    else
+                    {
+                        size_t nOffset  = -offset;
+                        nOffset         = (nOffset > skipNoOffset)? skipNoOffset : nOffset;
+                        skip            = skipNoOffset - nOffset;
+                    }
+                }
+            }
+        }
+
+        skip                = (skip > aparams.frames)? aparams.frames : skip;
         size_t max_samples  = (max_duration >= 0.0f) ? seconds_to_samples(aparams.sample_rate, max_duration) : -1;
         lsp_trace("file parameters: frames=%d, channels=%d, sample_rate=%d max_duration=%.3f, max_samples=%d",
                     int(aparams.frames), int(aparams.channels), int(aparams.sample_rate), max_duration, int(max_samples));

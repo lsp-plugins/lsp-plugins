@@ -1728,12 +1728,34 @@ namespace lsp
         }
 
         // Write profile data chunk
+
+        // Figuring out the number of frames to skip
+        size_t skip = 0;
+
+        size_t middle       = dataLength / 2 - 1;
+        // We remove 1 now because, without offset, we skip all samples BEFORE the middle.
+        size_t skipNoOffset = middle - 1;
+        size_t maxAhead     = dataLength - skipNoOffset;
+
+        if (offset >= 0)
+        {
+            size_t nOffset  = offset;
+            nOffset         = (nOffset > maxAhead)? maxAhead : nOffset;
+            skip            = skipNoOffset + nOffset;
+        }
+        else
+        {
+            size_t nOffset  = -offset;
+            nOffset         = (nOffset > skipNoOffset)? skipNoOffset : nOffset;
+            skip            = skipNoOffset - nOffset;
+        }
+
         LSPCChunkWriter *wr = fd.write_chunk(LSPC_CHUNK_PROFILE);
 
         lspc_chunk_audio_profile_t prof;
         bzero(&prof, sizeof(lspc_chunk_audio_profile_t));
 
-        prof.common.version     = 1;
+        prof.common.version     = 2;
         prof.common.size        = sizeof(lspc_chunk_audio_profile_t);
         prof.chunk_id           = audio_chunk_id;
         prof.chirp_order        = sChirpParams.nOrder;
@@ -1743,6 +1765,7 @@ namespace lsp
         prof.delta              = sChirpParams.delta;
         prof.initial_freq       = sChirpParams.initialFrequency;
         prof.final_freq         = sChirpParams.finalFrequency;
+        prof.skip               = skip;
 
         // Convert header fields CPU -> BE
         prof.chunk_id           = CPU_TO_BE(prof.chunk_id);
@@ -1753,6 +1776,7 @@ namespace lsp
         prof.delta              = CPU_TO_BE(prof.delta);
         prof.initial_freq       = CPU_TO_BE(prof.initial_freq);
         prof.final_freq         = CPU_TO_BE(prof.final_freq);
+        prof.skip               = CPU_TO_BE(prof.skip);
 
         res = wr->write_header(&prof);
         if (res == STATUS_OK)
@@ -1883,7 +1907,7 @@ namespace lsp
                 vp[i] += n_read;
         }
 
-        sConvParams.nChannels           = p.channels;
+//        sConvParams.nChannels           = p.channels;
         sChirpParams.nOrder             = prof.chirp_order;
         sChirpParams.fAlpha             = prof.alpha;
         sChirpParams.beta               = prof.beta;
