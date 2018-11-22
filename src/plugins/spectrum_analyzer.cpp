@@ -33,14 +33,8 @@ namespace lsp
         pIDisplay       = NULL;
     }
 
-    spectrum_analyzer_base::sa_core_t *spectrum_analyzer_base::create_channels(const plugin_metadata_t *m)
+    spectrum_analyzer_base::sa_core_t *spectrum_analyzer_base::create_channels(size_t channels)
     {
-        // Determine number of cores
-        size_t channels     = 0;
-        for (const port_t *p=m->ports; p->id != NULL; ++p)
-            if ((p->role == R_AUDIO) && (IS_IN_PORT(p)))
-                channels++;
-
         lsp_trace("this=%p, channels = %d", this, int(channels));
 
         // Calculate header size
@@ -158,8 +152,18 @@ namespace lsp
         // Pass wrapper
         plugin_t::init(wrapper);
 
+        // Determine number of channels
+        size_t channels     = 0;
+        if (pMetadata == NULL)
+            return;
+        for (const port_t *p=pMetadata->ports; p->id != NULL; ++p)
+            if ((p->role == R_AUDIO) && (IS_IN_PORT(p)))
+                channels++;
+
+        sAnalyzer.init(channels, spectrum_analyzer_base_metadata::RANK_MAX);
+
         // Allocate channels
-        pChannels       = create_channels(pMetadata);
+        pChannels       = create_channels(channels);
         if (pChannels == NULL)
             return;
 
@@ -243,6 +247,8 @@ namespace lsp
 
     void spectrum_analyzer_base::destroy()
     {
+        sAnalyzer.destroy();
+
         if (pChannels != NULL)
         {
             destroy_channels(pChannels);
@@ -259,40 +265,37 @@ namespace lsp
     {
         if (pChannels == NULL)
             return;
-        lsp_trace("this=%p", this);
 
-        bool update_window      = false;
-        bool update_env         = false;
-        bool update_buf         = false;
+        // TODO: add mode analysis
+        // Check that there are soloing channels
+        size_t has_solo         = 0;
+        for (size_t i=0; i<pChannels->nChannels; ++i)
+        {
+            sa_channel_t *c     = &pChannels->vChannels[i];
+            if (c->pSolo->getValue() >= 0.5f)
+                has_solo++;
+        }
+
+        // Update analysis parameters
         size_t rank             = pChannels->pTolerance->getValue() + spectrum_analyzer_base_metadata::RANK_MIN;
-        if (rank != pChannels->nRank)
+        bool sync_freqs         = false;
+
+        if (rank != sAnalyzer.get_rank())
         {
-            pChannels->nRank        = rank;
-            update_window           = true;
-            update_env              = true;
-            update_buf              = true;
-            update_frequences();
+            sAnalyzer.set_rank(pChannels->nRank);
+            sync_freqs              = true;
         }
 
-        size_t window           = pChannels->pWindow->getValue();
-        size_t fft_size         = 1 << pChannels->nRank;
-        if (window != pChannels->nWindow)
-        {
-            pChannels->nWindow      = window;
-            update_window           = true;
-        }
+        sAnalyzer.set_window(pChannels->pWindow->getValue());
+        sAnalyzer.set_envelope(pChannels->pEnvelope->getValue());
 
-        size_t env              = pChannels->pEnvelope->getValue();
-        if (env != pChannels->nEnvelope)
-        {
-            pChannels->nEnvelope    = env;
-            update_env              = true;
-        }
+        // Reconfigure analyzer if required
+        if (sAnalyzer.needs_reconfiguration())
+            sAnalyzer.reconfigure();
 
-        if (update_window)
-            init_window(pChannels);
-        if (update_env)
-            envelope::reverse_noise(pChannels->vEnvelope, fft_size >> 1, envelope::envelope_t(pChannels->nEnvelope));
+        if (sync_freqs)
+            sAnalyzer.get_frequencies(pChannels->vFrequences, pChannels->vIndexes,
+                    pChannels->fMinFreq, pChannels->fMaxFreq, spectrum_analyzer_base_metadata::MESH_POINTS);
 
         pChannels->bBypass      = pChannels->pBypass->getValue();
         pChannels->nChannel     = pChannels->pChannel->getValue();
@@ -312,25 +315,19 @@ namespace lsp
 
         size_t step                 = pChannels->nMaxSamples / pChannels->nChannels;
 
-        // Check that there are soloing channels
-        size_t has_solo         = 0;
-        for (size_t i=0; i<pChannels->nChannels; ++i)
-        {
-            sa_channel_t *c     = &pChannels->vChannels[i];
-            if (c->pSolo->getValue() >= 0.5f)
-                has_solo++;
-        }
-
         // Process channel parameters
         for (size_t i=0; i<pChannels->nChannels; ++i)
         {
             sa_channel_t *c     = &pChannels->vChannels[i];
-            c->bOn              = c->pOn->getValue() >= 0.5f;
+
+            sAnalyzer.enable_channel(i, c->pOn->getValue() >= 0.5f);
+            sAnalyzer.freeze_channel(i, c->pFreeze->getValue() >= 0.5f);
+
             c->bSolo            = c->pSolo->getValue() >= 0.5f;
-            c->bFreeze          = c->pFreeze->getValue() >= 0.5f;
             c->bSend            = c->bOn && ((has_solo == 0) || ((has_solo > 0) && (c->bSolo)));
             c->fGain            = c->pShift->getValue();
             c->fHue             = c->pHue->getValue();
+
             if (update_buf)
             {
                 dsp::fill_zero(c->vSigRe, 1 << pChannels->nRank);
@@ -338,8 +335,6 @@ namespace lsp
                 c->nSamples         = step * i;
             }
 
-            lsp_trace("c[%d].on          = %s",     int(i), (c->bOn) ? "true" : "false");
-            lsp_trace("c[%d].freeze      = %s",     int(i), (c->bFreeze) ? "true" : "false");
             lsp_trace("c[%d].gain        = %.3f",   int(i), c->fGain);
             lsp_trace("c[%d].samples     = %d",     int(i), int(c->nSamples));
         }
@@ -393,14 +388,6 @@ namespace lsp
         // Always query for drawing
         pWrapper->query_display_draw();
 
-//        // Check that there are soloing channels
-//        size_t has_solo         = 0;
-//        for (size_t i=0; i<pChannels->nChannels; ++i)
-//        {
-//            if (pChannels->vChannels[i].bSolo)
-//                has_solo++;
-//        }
-
         // Now process the channels
         size_t fft_size     = 1 << pChannels->nRank;
         size_t fft_csize    = (fft_size >> 1);
@@ -421,6 +408,8 @@ namespace lsp
 
             // Bypass signal
             dsp::copy(out, in, samples);
+            sAnalyzer.process(i, in, samples);  // Process the data
+
             if (pChannels->bBypass)
             {
                 if (mesh_request)
@@ -430,71 +419,6 @@ namespace lsp
                     pChannels->pFrequency->setValue(0);
                     pChannels->pLevel->setValue(0);
                 }
-                continue;
-            }
-
-            // Process signal by channel
-            size_t left     = samples;
-            while (true)
-            {
-                // Calculate amount of samples left to process before FFT processing is triggered
-                size_t trigger      = pChannels->nMaxSamples - c->nSamples;
-
-                if (trigger > 0)
-                {
-                    // Calculate number of samples to put to the buffer
-                    size_t put          = (left < trigger) ? left : trigger;
-
-                    // Put the samples to the buffer, limit to fft_size
-                    if (put >= fft_size)
-                    {
-                        dsp::copy(c->vSigRe, in, fft_size); // Overwrite all data
-                        put     = fft_size;
-                    }
-                    else
-                    {
-                        dsp::copy(c->vSigRe, &c->vSigRe[put], fft_size - put); // Remove data from the beginning
-                        dsp::copy(&c->vSigRe[fft_size - put], in, put); // append data to the end
-                    }
-
-                    // Update counters and pointer
-                    in                 += put;
-                    left               -= put;
-                    trigger            -= put;
-                    c->nSamples        += put;
-                }
-
-                // Trigger FFT if buffer is fully filled
-                if (trigger == 0)
-                {
-                    // Perform FFT only for active channels
-                    if (!c->bFreeze)
-                    {
-                        if ((!c->bOn) || (pChannels->bBypass))
-                        {
-                            dsp::fill_zero(c->vFftAmp, fft_size);
-                        }
-                        else
-                        {
-                            // Apply window to the temporary buffer
-                            dsp::mul3(pChannels->vSigRe, c->vSigRe, pChannels->vWindow, fft_size);
-                            dsp::pcomplex_r2c(pChannels->vFftReIm, pChannels->vSigRe, fft_size);
-                            // Do FFT
-                            dsp::packed_direct_fft(pChannels->vFftReIm, pChannels->vFftReIm, pChannels->nRank);
-                            // Get complex argument
-                            dsp::pcomplex_mod(pChannels->vFftReIm, pChannels->vFftReIm, fft_csize);
-                            // Mix with the previous value
-                            dsp::mix2(c->vFftAmp, pChannels->vFftReIm, 1.0 - pChannels->fTau, pChannels->fTau, fft_csize);
-                        }
-                    }
-
-                    // Update counter
-                    c->nSamples        -= pChannels->nMaxSamples;
-                }
-
-                // Check that there are no more samples to process
-                if (left == 0)
-                    break;
             }
 
             // Copy data to output channel
@@ -508,11 +432,6 @@ namespace lsp
             // Copy data to mesh
             if (mesh_request)
             {
-                // Determine that mesh has to be sent to the UI
-//                bool send       = c->bOn;
-//                if (has_solo > 0)
-//                    send            = send && c->bSolo;
-
                 if (c->bSend)
                 {
                     // Copy frequency points

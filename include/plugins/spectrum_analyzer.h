@@ -9,6 +9,7 @@
 #define CORE_PLUGINS_SPECTRUM_ANALYZER_H_
 
 #include <core/plugin.h>
+#include <core/util/Analyzer.h>
 
 #include <metadata/plugins.h>
 
@@ -20,15 +21,10 @@ namespace lsp
         protected:
             typedef struct sa_channel_t
             {
-                float      *vSigRe;             // Real part of the signal
-                float      *vFftAmp;            // FFT transform of the signal
-                bool        bOn;                // On flag
                 bool        bSolo;              // Soloing flag
-                bool        bFreeze;            // Freeze flag
                 bool        bSend;              // Send to UI flag
                 float       fGain;              // Makeup gain
                 float       fHue;               // Hue
-                ssize_t     nSamples;           // Number of skipped samples
 
                 // Port references
                 IPort      *pIn;                // Input samples
@@ -74,11 +70,8 @@ namespace lsp
 
                 float          *vFrequences;
                 uint32_t       *vIndexes;
-//                float          *vFftRe;
-//                float          *vFftIm;
                 float          *vFftReIm;
                 float          *vSigRe;
-//                float          *vSigIm;
                 float          *vWindow;
                 float          *vEnvelope;
 
@@ -86,7 +79,7 @@ namespace lsp
             } sa_core_t;
 
         protected:
-            sa_core_t              *create_channels(const plugin_metadata_t *m);
+            sa_core_t              *create_channels(size_t channels);
             static void             destroy_channels(sa_core_t *channels);
             void                    update_frequences();
             void                    set_reactivity(float reactivity);
@@ -94,6 +87,7 @@ namespace lsp
 
         protected:
             sa_core_t          *pChannels;
+            Analyzer            sAnalyzer;
             float_buffer_t     *pIDisplay;      // Inline display buffer
 
         public:
