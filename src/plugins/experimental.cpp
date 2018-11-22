@@ -282,17 +282,14 @@ namespace lsp
         pWrapper->query_display_draw();
     }
 
-    void test_plugin::oscillate(float *dst, const osc_t *osc, float t, size_t n)
+    void test_plugin::oscillate(float *dst, const osc_t *osc, float t, ssize_t n)
     {
-        for (ssize_t x=0; x < ssize_t(n); ++x)
+        float P = 2.0f * M_PI * osc->W0 * t + osc->P0;
+
+        for (ssize_t x=0; x < n; ++x)
         {
-            float dx = fabs(osc->X0 - x) * 0.05f;
-            float W  = 2.0f * M_PI * osc->W0 * t - dx;
-            dst[x] +=
-                    osc->A0 *
-                    cosf(W + osc->P0) *
-//                    cosf(W + osc->P0 + (dx * osc->W0) * 0.5f * M_1_PI) *
-                    expf(-osc->R0 * dx);
+            float dx = -0.05f * fabs(osc->X0 - x);
+            dst[x] += osc->A0 * cosf(P + dx) * expf(osc->R0 * dx);
         }
     }
 

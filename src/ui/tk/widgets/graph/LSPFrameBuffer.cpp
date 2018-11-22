@@ -9,8 +9,6 @@
 #include <core/sugar.h>
 #include <dsp/dsp.h>
 
-static const float DIV_2_3 = 2.0f / 3.0f;
-
 namespace lsp
 {
     namespace tk
@@ -262,128 +260,65 @@ namespace lsp
 
         void LSPFrameBuffer::calc_rainbow_color(float *rgba, const float *v, size_t n)
         {
-            dsp::fill_hsla(rgba, sColor.hue(), sColor.saturation(), sColor.lightness(), sColor.alpha(), n);
+            dsp::hsla_hue_eff_t eff;
+            eff.h       = sColor.hue();
+            eff.s       = sColor.saturation();
+            eff.l       = sColor.lightness();
+            eff.a       = sColor.alpha();
+            eff.thresh  = 1.0f / 3.0f;
 
-            float value, hue;
-            float *c    = rgba;
-
-            for (size_t i=0; i<n; ++i, c += 4)
-            {
-                value   = v[i];
-                value   = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
-
-                if (value < DIV_2_3)
-                {
-                    hue         = c[0] + value;
-                    c[0]        = hue - int(hue); // simple fmod()
-                    c[3]        = 0.0f;
-                }
-                else
-                {
-                    hue         = c[0] + DIV_2_3;
-                    c[0]        = hue - int(hue); // simple fmod()
-                    c[3]        = ((value - DIV_2_3) * 3.0f);
-                }
-            }
-
+            dsp::eff_hsla_hue(rgba, v, &eff, n);
             dsp::hsla_to_rgba(rgba, rgba, n);
         }
 
         void LSPFrameBuffer::calc_fog_color(float *rgba, const float *v, size_t n)
         {
-            dsp::fill_hsla(rgba, sColor.hue(), sColor.saturation(), sColor.lightness(), sColor.alpha(), n);
+            dsp::hsla_alpha_eff_t eff;
+            eff.h       = sColor.hue();
+            eff.s       = sColor.saturation();
+            eff.l       = sColor.lightness();
+            eff.a       = sColor.alpha();
 
-            float value;
-            float *c    = rgba;
-
-            for (size_t i=0; i<n; ++i, c += 4)
-            {
-                value   = v[i];
-                value   = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
-                c[3]    = value; // Fill alpha channel
-            }
-
+            dsp::eff_hsla_alpha(rgba, v, &eff, n);
             dsp::hsla_to_rgba(rgba, rgba, n);
         }
 
         void LSPFrameBuffer::calc_color(float *rgba, const float *v, size_t n)
         {
-            dsp::fill_hsla(rgba, sColor.hue(), sColor.saturation(), sColor.lightness(), sColor.alpha(), n);
+            dsp::hsla_sat_eff_t eff;
+            eff.h       = sColor.hue();
+            eff.s       = sColor.saturation();
+            eff.l       = sColor.lightness();
+            eff.a       = sColor.alpha();
+            eff.thresh  = 0.25f;
 
-            float value;
-            float *c    = rgba;
-
-            for (size_t i=0; i<n; ++i, c += 4)
-            {
-                value   = v[i];
-                value   = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
-
-                if (value >= 0.25f)
-                {
-                    c[1] *= value;
-                    c[3]  = 0.0f;
-                }
-                else
-                {
-                    c[1] *= 0.25f;
-                    c[3]  = (0.25f - value) * 4.0f;
-                }
-            }
-
+            dsp::eff_hsla_sat(rgba, v, &eff, n);
             dsp::hsla_to_rgba(rgba, rgba, n);
         }
 
         void LSPFrameBuffer::calc_lightness(float *rgba, const float *v, size_t n)
         {
-            dsp::fill_hsla(rgba, sColor.hue(), sColor.saturation(), sColor.lightness(), sColor.alpha(), n);
+            dsp::hsla_light_eff_t eff;
+            eff.h       = sColor.hue();
+            eff.s       = sColor.saturation();
+            eff.l       = 1.0f;
+            eff.a       = sColor.alpha();
+            eff.thresh  = 0.25f;
 
-            float value;
-            float *c    = rgba;
-
-            for (size_t i=0; i<n; ++i, c += 4)
-            {
-                value   = v[i];
-                value   = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
-
-                if (value >= 0.25f)
-                {
-                    c[2] = value;
-                    c[3] = 0.0f;
-                }
-                else
-                {
-                    c[2] = 0.25f;
-                    c[3] = (0.25f - value) * 4.0f;
-                }
-            }
-
+            dsp::eff_hsla_light(rgba, v, &eff, n);
             dsp::hsla_to_rgba(rgba, rgba, n);
         }
 
         void LSPFrameBuffer::calc_lightness2(float *rgba, const float *v, size_t n)
         {
-            dsp::fill_hsla(rgba, sColor.hue(), sColor.saturation(), sColor.lightness(), sColor.alpha(), n);
+            dsp::hsla_light_eff_t eff;
+            eff.h       = sColor.hue();
+            eff.s       = sColor.saturation();
+            eff.l       = 0.5f;
+            eff.a       = sColor.alpha();
+            eff.thresh  = 0.25f;
 
-            float value;
-            float *c    = rgba;
-
-            for (size_t i=0; i<n; ++i, c += 4)
-            {
-                value   = v[i];
-                value = (value >= 0.0f) ? 1.0f - value : 1.0f + value;
-
-                if (value >= 0.25f)
-                {
-                    c[2] = value * 0.5f;
-                    c[3] = 0.0f;
-                }
-                else
-                {
-                    c[2] = 0.125f;
-                    c[3] = (0.25f - value) * 4.0f;
-                }
-            }
-
+            dsp::eff_hsla_light(rgba, v, &eff, n);
             dsp::hsla_to_rgba(rgba, rgba, n);
         }
 

@@ -64,7 +64,7 @@ namespace lsp
             osc_t       vOsc[3];
 
         protected:
-            void        oscillate(float *dst, const osc_t *osc, float t, size_t n);
+            void        oscillate(float *dst, const osc_t *osc, float t, ssize_t n);
 
         public:
             test_plugin();

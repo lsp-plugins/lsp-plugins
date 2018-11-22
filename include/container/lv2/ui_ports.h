@@ -493,7 +493,7 @@ namespace lsp
                     if ((v->body.child_size != sizeof(float)) || (v->body.child_type != pExt->forge.Float))
                         return;
                     ssize_t v_items     = (v->atom.size - sizeof(LV2_Atom_Vector_Body)) / sizeof(float);
-                    if (v_items != cols)
+                    if (v_items != ssize_t(cols))
                     {
 //                        lsp_trace("vector items does not match columns count: %d vs %d", int(v_items), int(cols));
                         return;
