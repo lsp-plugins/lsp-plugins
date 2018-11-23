@@ -291,34 +291,44 @@ namespace lsp
         // Setting up skip value for version 1 headers
         if (profVersion < 2)
         {
-            LSPCChunkReader *rd = fd.find_chunk(LSPC_CHUNK_AUDIO, NULL, 0);
+            LSPCChunkReader *rd     = fd.read_chunk(ar.unique_id()); // Read the chunk with same ID as audio stream reader found
             lspc_chunk_audio_header_t hdr;
 
             ssize_t res = rd->read_header(&hdr, sizeof(lspc_chunk_audio_header_t));
-            if (res >= 0)
+            if ((res >= 0) && (hdr.common.version < 2)) // Field 'offset' is deprecated in header since version 2
             {
-                if (hdr.common.version >= 1)
+                ssize_t offset      = BE_TO_CPU(hdr.offset);
+
+                size_t middle       = aparams.frames / 2 - 1;
+                size_t skipNoOffset = middle - 1;
+                size_t maxAhead     = aparams.frames - skipNoOffset;
+
+                if (offset >= 0)
                 {
-                    ssize_t offset      = BE_TO_CPU(hdr.offset);
-
-                    size_t middle       = aparams.frames / 2 - 1;
-                    size_t skipNoOffset = middle - 1;
-                    size_t maxAhead     = aparams.frames - skipNoOffset;
-
-                    if (offset >= 0)
-                    {
-                        size_t nOffset  = offset;
-                        nOffset         = (nOffset > maxAhead)? maxAhead : nOffset;
-                        skip            = skipNoOffset + nOffset;
-                    }
-                    else
-                    {
-                        size_t nOffset  = -offset;
-                        nOffset         = (nOffset > skipNoOffset)? skipNoOffset : nOffset;
-                        skip            = skipNoOffset - nOffset;
-                    }
+                    size_t nOffset  = offset;
+                    nOffset         = (nOffset > maxAhead)? maxAhead : nOffset;
+                    skip            = skipNoOffset + nOffset;
+                }
+                else
+                {
+                    size_t nOffset  = -offset;
+                    nOffset         = (nOffset > skipNoOffset)? skipNoOffset : nOffset;
+                    skip            = skipNoOffset - nOffset;
                 }
             }
+
+            // Close reader and free resource
+            res = rd->close();
+            if (res != STATUS_OK)
+            {
+                rd->close();
+                delete rd;
+                ar.close();
+                fd.close();
+                return res;
+            }
+            delete rd;
+            rd = NULL;
         }
 
         skip                = (skip > aparams.frames)? aparams.frames : skip;
