@@ -31,10 +31,27 @@ namespace lsp
         NULL
     };
 
+    static const char *spectrum_analyzer_x1_modes[]=
+    {
+        "Analyzer",
+        "Mastering",
+        "Spectralizer",
+        NULL
+    };
+
     static const char *spectrum_analyzer_x2_channels[]=
     {
         "0",
         "1",
+        NULL
+    };
+
+    static const char *spectrum_analyzer_x2_modes[]=
+    {
+        "Analyzer",
+        "Mastering",
+        "Spectralizer x1",
+        "Stereo Spectralizer",
         NULL
     };
 
@@ -44,9 +61,49 @@ namespace lsp
         NULL
     };
 
+    static const char *spectrum_analyzer_x4_modes[]=
+    {
+        "Analyzer",
+        "Stereo Analyzer",
+        "Analyzer x2",
+        "Mastering",
+        "Stereo Mastering",
+        "Mastering x2",
+        "Spectralizer x1",
+        "Stereo Spectralizer",
+        "Spectralizer x2",
+        NULL
+    };
+
+    static const char *spectrum_analyzer_x4_pairs[]=
+    {
+        "0+1", "1+2", "2+3", "3+0",
+        NULL
+    };
+
     static const char *spectrum_analyzer_x8_channels[]=
     {
         "0", "1", "2", "3", "4", "5", "6", "7",
+        NULL
+    };
+
+    static const char *spectrum_analyzer_x8_modes[]=
+    {
+        "Analyzer",
+        "Stereo Analyzer",
+        "Analyzer x2",
+        "Mastering",
+        "Stereo Mastering",
+        "Mastering x2",
+        "Spectralizer x1",
+        "Stereo Spectralizer",
+        "Spectralizer x2",
+        NULL
+    };
+
+    static const char *spectrum_analyzer_x8_pairs[]=
+    {
+        "0+1", "1+2", "2+3", "3+4", "4+5", "5+6", "6+7", "7+0",
         NULL
     };
 
@@ -57,10 +114,52 @@ namespace lsp
         NULL
     };
 
+    static const char *spectrum_analyzer_x12_modes[]=
+    {
+        "Analyzer",
+        "Stereo Analyzer",
+        "Analyzer x2",
+        "Mastering",
+        "Stereo Mastering",
+        "Mastering x2",
+        "Spectralizer x1",
+        "Stereo Spectralizer",
+        "Spectralizer x2",
+        NULL
+    };
+
+    static const char *spectrum_analyzer_x12_pairs[]=
+    {
+        "0+1", "1+2", "2+3", "3+4", "4+5", "5+6", "6+7",
+        "7+8", "8+9", "9+10", "10+11", "11+0",
+        NULL
+    };
+
     static const char *spectrum_analyzer_x16_channels[]=
     {
         "0", "1", "2", "3", "4", "5", "6", "7",
         "8", "9", "10", "11", "12", "13", "14", "15",
+        NULL
+    };
+
+    static const char *spectrum_analyzer_x16_modes[]=
+    {
+        "Analyzer",
+        "Stereo Analyzer",
+        "Analyzer x2",
+        "Mastering",
+        "Stereo Mastering",
+        "Mastering x2",
+        "Spectralizer x1",
+        "Stereo Spectralizer",
+        "Spectralizer x2",
+        NULL
+    };
+
+    static const char *spectrum_analyzer_x16_pairs[]=
+    {
+        "0+1", "1+2", "2+3", "3+4", "4+5", "5+6", "6+7",
+        "7+8", "8+9", "9+10", "10+11", "11+12", "12+13", "13+14", "14+15", "15+0",
         NULL
     };
 

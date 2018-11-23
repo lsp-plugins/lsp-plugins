@@ -112,16 +112,11 @@ namespace lsp
             sa_channel_t *c     = &core->vChannels[i];
 
             // Initialize fields
-            c->vSigRe           = reinterpret_cast<float *>(ptr);
             ptr                += max_fft_buf_size;
-            c->vFftAmp          = reinterpret_cast<float *>(ptr);
             ptr                += max_fft_buf_size;
-            c->bOn              = false;
-            c->bFreeze          = false;
             c->bSend            = false;
             c->fGain            = 1.0f;
             c->fHue             = 0.0f;
-            c->nSamples         = 0;
 
             // Port references
             c->pIn              = NULL;
@@ -131,10 +126,6 @@ namespace lsp
             c->pHue             = NULL;
             c->pShift           = NULL;
             c->pSpec            = NULL;
-
-            // Clear buffers
-            dsp::fill_zero(c->vSigRe, max_fft_items);
-            dsp::fill_zero(c->vFftAmp, max_fft_items);
         }
 
         return core;
@@ -209,15 +200,9 @@ namespace lsp
             c->pSpec            = vPorts[port_id++];
 
             // Sync metadata
-            const port_t *meta  = c->pOn->metadata();
-            if (meta != NULL)
-                c->bOn              = meta->start >= 0.5f;
-            meta                = c->pSolo->metadata();
+            const port_t *meta  = c->pSolo->metadata();
             if (meta != NULL)
                 c->bSolo        = meta->start >= 0.5f;
-            meta                = c->pFreeze->metadata();
-            if (meta != NULL)
-                c->bFreeze          = meta->start >= 0.5f;
             meta                = c->pShift->metadata();
             if (meta != NULL)
                 c->fGain            = meta->start;
