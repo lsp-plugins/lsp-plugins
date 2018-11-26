@@ -268,6 +268,14 @@ namespace lsp
              */
             bool get_spectrum(size_t channel, float *out, const uint32_t *idx, size_t count);
 
+            /**
+             * Get level of one frequency
+             * @param channel channel number
+             * @param idx frequency index
+             * @return level
+             */
+            float get_level(size_t channel, const uint32_t idx);
+
             /** Get list of frequencies
              *
              * @param f frequency list
