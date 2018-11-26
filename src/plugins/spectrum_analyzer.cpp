@@ -66,14 +66,11 @@ namespace lsp
 
         // Calculate header size
         size_t hdr_size         = ALIGN_SIZE(sizeof(sa_channel_t) * channels, 64);
-        size_t max_fft_items    = (1 << spectrum_analyzer_base_metadata::RANK_MAX);
-        size_t max_fft_buf_size = sizeof(float) * max_fft_items;
         size_t freq_buf_size    = sizeof(float) * spectrum_analyzer_base_metadata::MESH_POINTS;
         size_t ind_buf_size     = sizeof(uint32_t) * spectrum_analyzer_base_metadata::MESH_POINTS;
         size_t alloc            = hdr_size + freq_buf_size + ind_buf_size;
 
         lsp_trace("header_size = %d", int(hdr_size));
-        lsp_trace("max_fft_buf_size = %d", int(max_fft_buf_size));
         lsp_trace("freq_buf_size = %d", int(freq_buf_size));
         lsp_trace("ind_buf_size = %d", int(ind_buf_size));
         lsp_trace("alloc = %d", int(alloc));
@@ -82,6 +79,7 @@ namespace lsp
         uint8_t *ptr        = alloc_aligned<uint8_t>(pData, alloc, 64);
         if (ptr == NULL)
             return false;
+        lsp_guard_assert( uint8_t *guard = ptr );
 
         // Initialize core
         nChannels       = channels;
@@ -114,8 +112,7 @@ namespace lsp
             sa_channel_t *c     = &vChannels[i];
 
             // Initialize fields
-            ptr                += max_fft_buf_size;
-            ptr                += max_fft_buf_size;
+            c->bSolo            = false;
             c->bSend            = false;
             c->fGain            = 1.0f;
             c->fHue             = 0.0f;
@@ -129,6 +126,8 @@ namespace lsp
             c->pShift           = NULL;
             c->pSpec            = NULL;
         }
+
+        lsp_assert(ptr <= &guard[alloc]);
 
         return true;
     }
@@ -147,6 +146,7 @@ namespace lsp
                 channels++;
 
         sAnalyzer.init(channels, spectrum_analyzer_base_metadata::RANK_MAX);
+        sAnalyzer.set_rate(spectrum_analyzer_base_metadata::REFRESH_RATE);
 
         // Allocate channels
         if (!create_channels(channels))
@@ -348,6 +348,7 @@ namespace lsp
                     pFrequency->setValue(0);
                     pLevel->setValue(0);
                 }
+                continue;
             }
 
             // Copy data to output channel
