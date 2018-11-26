@@ -22,6 +22,7 @@
 
 #include <dsp/arch/native/graphics.h>
 #include <dsp/arch/native/graphics/effects.h>
+#include <dsp/arch/native/graphics/interpolation.h>
 
 #include <dsp/arch/native/pmath.h>
 #include <dsp/arch/native/search.h>
@@ -221,6 +222,9 @@ namespace native
         EXPORT1(eff_hsla_sat);
         EXPORT1(eff_hsla_light);
         EXPORT1(eff_hsla_alpha);
+
+        EXPORT1(smooth_cubic_linear);
+        EXPORT1(smooth_cubic_log);
 
         EXPORT1(lanczos_resample_2x2);
         EXPORT1(lanczos_resample_2x3);

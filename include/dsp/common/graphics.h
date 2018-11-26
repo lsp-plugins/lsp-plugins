@@ -150,6 +150,24 @@ namespace dsp
      * @param count number of points to process
      */
     extern void (* eff_hsla_alpha)(float *dst, const float *v, const hsla_alpha_eff_t *eff, size_t count);
+
+    /**
+     * Perform cubic smooth of linear-scaled data using x^2*(3-2*x) polynom
+     * @param dst target buffer to store interpolation data, excludes start and stop samples
+     * @param start start interpolation value
+     * @param stop end interpolation value
+     * @param count number of samples to calculate
+     */
+    extern void (* smooth_cubic_linear)(float *dst, float start, float stop, size_t count);
+
+    /**
+     * Perform cubic smooth of logarithmic-scaled data using x^2*(3-2*x) polynom
+     * @param dst target buffer to store interpolation data, excludes start and stop samples
+     * @param start start interpolation value
+     * @param stop end interpolation value
+     * @param count number of samples to calculate
+     */
+    extern void (* smooth_cubic_log)(float *dst, float start, float stop, size_t count);
 }
 
 #endif /* DSP_COMMON_GRAPHICS_H_ */

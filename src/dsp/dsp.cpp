@@ -231,6 +231,8 @@ namespace dsp
     void    (* eff_hsla_sat)(float *dst, const float *v, const hsla_sat_eff_t *eff, size_t count) = NULL;
     void    (* eff_hsla_light)(float *dst, const float *v, const hsla_light_eff_t *eff, size_t count) = NULL;
     void    (* eff_hsla_alpha)(float *dst, const float *v, const hsla_alpha_eff_t *eff, size_t count) = NULL;
+    void    (* smooth_cubic_linear)(float *dst, float start, float stop, size_t count) = NULL;
+    void    (* smooth_cubic_log)(float *dst, float start, float stop, size_t count) = NULL;
 
     void    (* lanczos_resample_2x2)(float *dst, const float *src, size_t count) = NULL;
     void    (* lanczos_resample_2x3)(float *dst, const float *src, size_t count) = NULL;
