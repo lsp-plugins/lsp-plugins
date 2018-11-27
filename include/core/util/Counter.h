@@ -104,6 +104,21 @@ namespace lsp
              */
             bool submit(size_t samples);
 
+            /**
+             * Prefer frequency over initial value when
+             * changing sample rate
+             */
+            inline void preserve_frequency() {
+                nFlags &= ~F_INITIAL;
+            }
+
+            /**
+             * Prefer initial value over frequency when
+             * changing sample rate
+             */
+            inline void preserve_initial_value() {
+                nFlags |= F_INITIAL;
+            }
     };
 } /* namespace lsp */
 

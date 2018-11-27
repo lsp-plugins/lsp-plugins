@@ -11,13 +11,11 @@ namespace lsp
 {
     Counter::Counter()
     {
-        nCurrent        = 0;
-        nInitial        = 0;
+        nCurrent        = DEFAULT_SAMPLE_RATE;
+        nInitial        = DEFAULT_SAMPLE_RATE;
         nSampleRate     = DEFAULT_SAMPLE_RATE;
-        fFrequency      = 0.0f;
+        fFrequency      = 1.0f;
         nFlags          = 0;
-
-        set_frequency(1.0f);
     }
     
     Counter::~Counter()
@@ -76,7 +74,7 @@ namespace lsp
         ssize_t left    = ssize_t(nCurrent) - samples;
         if (left <= 0)
         {
-            nCurrent        = nInitial + (left % nInitial);
+            nCurrent        = nInitial + (left % ssize_t(nInitial));
             nFlags         |= F_FIRED;
         }
         else
