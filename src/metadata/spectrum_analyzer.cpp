@@ -50,8 +50,8 @@ namespace lsp
     {
         "Analyzer",
         "Mastering",
-        "Spectralizer x1",
-        "Stereo Spectralizer",
+        "Spectralizer",
+        "Spectralizer Stereo",
         NULL
     };
 
@@ -64,13 +64,13 @@ namespace lsp
     static const char *spectrum_analyzer_x4_modes[]=
     {
         "Analyzer",
-        "Stereo Analyzer",
+        "Analyzer Stereo",
         "Analyzer x2",
         "Mastering",
-        "Stereo Mastering",
+        "Mastering Stereo",
         "Mastering x2",
-        "Spectralizer x1",
-        "Stereo Spectralizer",
+        "Spectralizer",
+        "Spectralizer Stereo",
         "Spectralizer x2",
         NULL
     };
@@ -90,13 +90,13 @@ namespace lsp
     static const char *spectrum_analyzer_x8_modes[]=
     {
         "Analyzer",
-        "Stereo Analyzer",
+        "Analyzer Stereo",
         "Analyzer x2",
         "Mastering",
-        "Stereo Mastering",
+        "Mastering Stereo",
         "Mastering x2",
-        "Spectralizer x1",
-        "Stereo Spectralizer",
+        "Spectralizer",
+        "Spectralizer Stereo",
         "Spectralizer x2",
         NULL
     };
@@ -117,13 +117,13 @@ namespace lsp
     static const char *spectrum_analyzer_x12_modes[]=
     {
         "Analyzer",
-        "Stereo Analyzer",
+        "Analyzer Stereo",
         "Analyzer x2",
         "Mastering",
-        "Stereo Mastering",
+        "Mastering Stereo",
         "Mastering x2",
-        "Spectralizer x1",
-        "Stereo Spectralizer",
+        "Spectralizer",
+        "Spectralizer Stereo",
         "Spectralizer x2",
         NULL
     };
@@ -145,13 +145,13 @@ namespace lsp
     static const char *spectrum_analyzer_x16_modes[]=
     {
         "Analyzer",
-        "Stereo Analyzer",
+        "Analyzer Stereo",
         "Analyzer x2",
         "Mastering",
-        "Stereo Mastering",
+        "Mastering Stereo",
         "Mastering x2",
-        "Spectralizer x1",
-        "Stereo Spectralizer",
+        "Spectralizer",
+        "Spectralizer Stereo",
         "Spectralizer x2",
         NULL
     };

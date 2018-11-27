@@ -243,6 +243,50 @@ namespace lsp
         }
     }
 
+    spectrum_analyzer_base::mode_t spectrum_analyzer_base::decode_mode(size_t mode)
+    {
+        if (nChannels == 1)
+        {
+            switch (mode)
+            {
+                case 0: return SA_ANALYZER;
+                case 1: return SA_MASTERING;
+                case 2: return SA_SPECTRALIZER;
+                default:
+                    return SA_ANALYZER;
+            }
+        }
+        else if (nChannels == 2)
+        {
+            switch (mode)
+            {
+                case 0: return SA_ANALYZER_STEREO;
+                case 1: return SA_MASTERING_STEREO;
+                case 2: return SA_SPECTRALIZER;
+                case 3: return SA_SPECTRALIZER_STEREO;
+                default:
+                    return SA_ANALYZER;
+            }
+        }
+        else
+        {
+            switch (mode)
+            {
+                case 0: return SA_ANALYZER;
+                case 1: return SA_ANALYZER_STEREO;
+                case 2: return SA_ANALYZER_X2;
+                case 3: return SA_MASTERING;
+                case 4: return SA_MASTERING_STEREO;
+                case 5: return SA_MASTERING_X2;
+                case 6: return SA_SPECTRALIZER;
+                case 7: return SA_SPECTRALIZER_STEREO;
+                case 8: return SA_SPECTRALIZER_X2;
+                default:
+                    return SA_ANALYZER;
+            }
+        }
+    }
+
     void spectrum_analyzer_base::update_settings()
     {
         // TODO: add mode analysis

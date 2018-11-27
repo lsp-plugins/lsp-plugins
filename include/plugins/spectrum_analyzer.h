@@ -37,8 +37,22 @@ namespace lsp
                 IPort      *pSpec;              // Spectrum output
             } sa_channel_t;
 
+            enum mode_t
+            {
+                SA_ANALYZER,
+                SA_ANALYZER_STEREO,
+                SA_ANALYZER_X2,
+                SA_MASTERING,
+                SA_MASTERING_STEREO,
+                SA_MASTERING_X2,
+                SA_SPECTRALIZER,
+                SA_SPECTRALIZER_STEREO,
+                SA_SPECTRALIZER_X2,
+            };
+
         protected:
             bool                create_channels(size_t channels);
+            mode_t              decode_mode(size_t mode);
 
         protected:
             Analyzer            sAnalyzer;
