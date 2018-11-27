@@ -31,6 +31,7 @@ namespace lsp
                 float           fMin;
                 float           fMax;
                 size_t          nWidth;
+                ssize_t         nLength;
                 size_t          nCenter;
                 Color           sColor;
 
@@ -73,6 +74,8 @@ namespace lsp
                 inline size_t center_id() const     { return nCenter;           };
 
                 inline float angle() const          { return fAngle;            };
+
+                inline size_t length() const        { return nLength;           }
 
                 /** Apply axis transformation according to x and y
                  *
@@ -165,6 +168,8 @@ namespace lsp
                 void                set_center_id(size_t value);
 
                 void                set_angle(float value);
+
+                void                set_length(ssize_t value);
 
             public:
                 virtual void render(ISurface *s, bool force);

@@ -87,19 +87,7 @@ namespace lsp
         NULL
     };
 
-    static const char *spectrum_analyzer_x8_modes[]=
-    {
-        "Analyzer",
-        "Analyzer Stereo",
-        "Analyzer x2",
-        "Mastering",
-        "Mastering Stereo",
-        "Mastering x2",
-        "Spectralizer",
-        "Spectralizer Stereo",
-        "Spectralizer x2",
-        NULL
-    };
+    static const char **spectrum_analyzer_x8_modes = spectrum_analyzer_x4_modes;
 
     static const char *spectrum_analyzer_x8_pairs[]=
     {
@@ -114,19 +102,7 @@ namespace lsp
         NULL
     };
 
-    static const char *spectrum_analyzer_x12_modes[]=
-    {
-        "Analyzer",
-        "Analyzer Stereo",
-        "Analyzer x2",
-        "Mastering",
-        "Mastering Stereo",
-        "Mastering x2",
-        "Spectralizer",
-        "Spectralizer Stereo",
-        "Spectralizer x2",
-        NULL
-    };
+    static const char **spectrum_analyzer_x12_modes = spectrum_analyzer_x4_modes;
 
     static const char *spectrum_analyzer_x12_pairs[]=
     {
@@ -142,19 +118,7 @@ namespace lsp
         NULL
     };
 
-    static const char *spectrum_analyzer_x16_modes[]=
-    {
-        "Analyzer",
-        "Analyzer Stereo",
-        "Analyzer x2",
-        "Mastering",
-        "Mastering Stereo",
-        "Mastering x2",
-        "Spectralizer",
-        "Spectralizer Stereo",
-        "Spectralizer x2",
-        NULL
-    };
+    static const char **spectrum_analyzer_x16_modes = spectrum_analyzer_x4_modes;
 
     static const char *spectrum_analyzer_x16_pairs[]=
     {
@@ -173,8 +137,9 @@ namespace lsp
         AMP_GAIN("sh_" #x, "Shift gain " #x, 1.0f, 1000.0f), \
         MESH("spc_" #x, "Spectrum " #x, 2, spectrum_analyzer_base_metadata::MESH_POINTS)
 
-    #define SA_COMMON(c) \
+    #define SA_COMMON(c, modes) \
         BYPASS, \
+        COMBO("mode", "Analyzer mode", 0, modes), \
         { "tol", "FFT Tolerance", U_ENUM, R_CONTROL, F_IN, 0, 0, spectrum_analyzer_base_metadata::RANK_DFL - spectrum_analyzer_base_metadata::RANK_MIN, 0, fft_tolerance }, \
         { "wnd", "FFT Window", U_ENUM, R_CONTROL, F_IN, 0, 0, spectrum_analyzer_base_metadata::WND_DFL, 0, windows::windows }, \
         { "env", "FFT Envelope", U_ENUM, R_CONTROL, F_IN, 0, 0, spectrum_analyzer_base_metadata::ENV_DFL, 0, envelope::envelopes }, \
@@ -192,7 +157,7 @@ namespace lsp
     static const port_t spectrum_analyzer_x1_ports[] =
     {
         SA_INPUT(0, 1),
-        SA_COMMON(1),
+        SA_COMMON(1, spectrum_analyzer_x1_modes),
         PORTS_END
     };
 
@@ -200,7 +165,7 @@ namespace lsp
     {
         SA_INPUT(0, 2),
         SA_INPUT(1, 2),
-        SA_COMMON(2),
+        SA_COMMON(2, spectrum_analyzer_x2_modes),
         PORTS_END
     };
 
@@ -210,7 +175,7 @@ namespace lsp
         SA_INPUT(1, 4),
         SA_INPUT(2, 4),
         SA_INPUT(3, 4),
-        SA_COMMON(4),
+        SA_COMMON(4, spectrum_analyzer_x4_modes),
         PORTS_END
     };
 
@@ -224,7 +189,7 @@ namespace lsp
         SA_INPUT(5, 8),
         SA_INPUT(6, 8),
         SA_INPUT(7, 8),
-        SA_COMMON(8),
+        SA_COMMON(8, spectrum_analyzer_x8_modes),
         PORTS_END
     };
 
@@ -242,7 +207,7 @@ namespace lsp
         SA_INPUT(9, 12),
         SA_INPUT(10, 12),
         SA_INPUT(11, 12),
-        SA_COMMON(12),
+        SA_COMMON(12, spectrum_analyzer_x12_modes),
         PORTS_END
     };
 
@@ -264,7 +229,7 @@ namespace lsp
         SA_INPUT(13, 16),
         SA_INPUT(14, 16),
         SA_INPUT(15, 16),
-        SA_COMMON(16),
+        SA_COMMON(16, spectrum_analyzer_x16_modes),
         PORTS_END
     };
 
@@ -280,7 +245,7 @@ namespace lsp
         "spectrum_analyzer_x1",
         "qtez",
         LSP_SPECTRUM_ANALYZER_BASE + 0,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         spectrum_analyzer_classes,
         spectrum_analyzer_x1_ports,
         "analyzer/spectrum/x1.xml",
@@ -296,7 +261,7 @@ namespace lsp
         "spectrum_analyzer_x2",
         "aw7r",
         LSP_SPECTRUM_ANALYZER_BASE + 1,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         spectrum_analyzer_classes,
         spectrum_analyzer_x2_ports,
         "analyzer/spectrum/x2.xml",
@@ -312,7 +277,7 @@ namespace lsp
         "spectrum_analyzer_x4",
         "xzgo",
         LSP_SPECTRUM_ANALYZER_BASE + 2,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         spectrum_analyzer_classes,
         spectrum_analyzer_x4_ports,
         "analyzer/spectrum/x4.xml",
@@ -328,7 +293,7 @@ namespace lsp
         "spectrum_analyzer_x8",
         "e5hb",
         LSP_SPECTRUM_ANALYZER_BASE + 3,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         spectrum_analyzer_classes,
         spectrum_analyzer_x8_ports,
         "analyzer/spectrum/x8.xml",
@@ -344,7 +309,7 @@ namespace lsp
         "spectrum_analyzer_x12",
         "tj3l",
         LSP_SPECTRUM_ANALYZER_BASE + 4,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         spectrum_analyzer_classes,
         spectrum_analyzer_x12_ports,
         "analyzer/spectrum/x12.xml",
@@ -360,7 +325,7 @@ namespace lsp
         "spectrum_analyzer_x16",
         "nuzi",
         LSP_SPECTRUM_ANALYZER_BASE + 5,
-        LSP_VERSION(1, 0, 1),
+        LSP_VERSION(1, 0, 2),
         spectrum_analyzer_classes,
         spectrum_analyzer_x16_ports,
         "analyzer/spectrum/x16.xml",

@@ -40,6 +40,7 @@ namespace lsp
         fZoom           = 0.0f;
 
         pBypass         = NULL;
+        pMode           = NULL;
         pTolerance      = NULL;
         pWindow         = NULL;
         pEnvelope       = NULL;
@@ -206,6 +207,7 @@ namespace lsp
 
         // Initialize basic ports
         pBypass         = vPorts[port_id++];
+        pMode           = vPorts[port_id++];
         pTolerance      = vPorts[port_id++];
         pWindow         = vPorts[port_id++];
         pEnvelope       = vPorts[port_id++];

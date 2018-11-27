@@ -73,6 +73,7 @@ namespace lsp
             float               fZoom;              // Zoom
 
             IPort              *pBypass;
+            IPort              *pMode;
             IPort              *pTolerance;
             IPort              *pWindow;
             IPort              *pEnvelope;
