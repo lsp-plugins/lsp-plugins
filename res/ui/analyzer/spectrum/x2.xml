@@ -105,6 +105,10 @@
 		
 					<ui:for id="t" first="2" last="6" step="2"><marker value="${t}" color="g_yellow" basis="1" parallel="0" /></ui:for>
 		
+					<!-- Frame buffer -->
+					<fbuffer id="fb0" width="1" height="1" hpos="-1" vpos="1" opacity="0.75" angle="0"
+						mode="1" color="red" />
+		
 					<!-- Boundaries -->
 					<marker value="8" color="g_white" basis="1" parallel="0" />
 					<marker value="24000" color="g_white" basis="0" parallel="1" />

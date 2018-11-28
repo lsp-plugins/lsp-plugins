@@ -111,6 +111,7 @@ namespace lsp
     #define SA_COMMON(c) \
         BYPASS, \
         COMBO("mode", "Analyzer mode", 0, spectrum_analyzer_x ## c ## _modes), \
+        SWITCH("freeze", "Analyzer freeze", 0), \
         { "tol", "FFT Tolerance", U_ENUM, R_CONTROL, F_IN, 0, 0, spectrum_analyzer_base_metadata::RANK_DFL - spectrum_analyzer_base_metadata::RANK_MIN, 0, fft_tolerance }, \
         { "wnd", "FFT Window", U_ENUM, R_CONTROL, F_IN, 0, 0, spectrum_analyzer_base_metadata::WND_DFL, 0, windows::windows }, \
         { "env", "FFT Envelope", U_ENUM, R_CONTROL, F_IN, 0, 0, spectrum_analyzer_base_metadata::ENV_DFL, 0, envelope::envelopes }, \
@@ -138,6 +139,7 @@ namespace lsp
         SA_INPUT(0, 2),
         SA_INPUT(1, 2),
         SA_COMMON(2),
+        COMBO("spc", "Spectralizer channel", 0, spectrum_analyzer_x4_channels),
         FBUFFER("fb0", "Spectralizer buffer 0", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
         FBUFFER("fb1", "Spectralizer buffer 1", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
         PORTS_END

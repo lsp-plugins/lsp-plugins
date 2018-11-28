@@ -10,6 +10,7 @@
 
 #include <core/plugin.h>
 #include <core/util/Analyzer.h>
+#include <core/util/Counter.h>
 
 #include <metadata/plugins.h>
 
@@ -27,6 +28,8 @@ namespace lsp
                 bool        bSend;              // Send to UI flag
                 float       fGain;              // Makeup gain
                 float       fHue;               // Hue
+                float      *vIn;                // Input buffer pointer
+                float      *vOut;               // Output buffer pointer
 
                 // Port references
                 IPort      *pIn;                // Input samples
@@ -42,6 +45,7 @@ namespace lsp
             typedef struct sa_spectralizer_t
             {
                 size_t      nPortId;            // Last port identifier
+                ssize_t     nChannelId;         // Channel identifier
 
                 IPort      *pPortId;            // Port identifier
                 IPort      *pFBuffer;           // Frame buffer port
@@ -63,6 +67,7 @@ namespace lsp
 
         protected:
             Analyzer            sAnalyzer;
+            Counter             sCounter;
             size_t              nChannels;
             sa_channel_t       *vChannels;
             float              *vFrequences;
@@ -78,6 +83,7 @@ namespace lsp
             float               fTau;               // Time constant (dependent on reactivity)
             float               fPreamp;            // Preamplification level
             float               fZoom;              // Zoom
+            mode_t              enMode;
 
             IPort              *pBypass;
             IPort              *pMode;
@@ -102,6 +108,9 @@ namespace lsp
             void                update_multiple_settings();
             void                update_x2_settings(ssize_t ch1, ssize_t ch2);
             void                update_spectralizer_x2_settings(ssize_t ch1, ssize_t ch2);
+
+            void                process_multiple();
+            void                process_spectralizer();
 
         public:
             spectrum_analyzer_base(const plugin_metadata_t &metadata);

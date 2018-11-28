@@ -129,6 +129,13 @@ namespace lsp
             float *get_row(size_t row_id) const;
 
             /**
+             * Get pointer to row data of the current row identifier
+             * @param row_id unique row identifier
+             * @return pointer to data of the next row
+             */
+            float *next_row() const;
+
+            /**
              * Return actual number of rows
              * @return actual number of rows
              */
@@ -166,6 +173,11 @@ namespace lsp
              * @param row row data contents
              */
             void write_row(uint32_t row_id, const float *row);
+
+            /**
+             * Just increment row counter to commit row data
+             */
+            void write_row();
 
             /**
              * Synchronize data to the other frame buffer
