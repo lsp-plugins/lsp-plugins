@@ -25,6 +25,7 @@ namespace lsp
         static const size_t         MESH_POINTS         = 640;
         static const size_t         WND_DFL             = windows::HANN;
         static const size_t         ENV_DFL             = envelope::PINK_NOISE;
+        static const size_t         FB_ROWS             = 320;
 
         static const float          REACT_TIME_MIN      = 0.000;
         static const float          REACT_TIME_MAX      = 1.000;

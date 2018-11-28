@@ -21,6 +21,8 @@ namespace lsp
         protected:
             typedef struct sa_channel_t
             {
+                bool        bOn;                // Enabled flag
+                bool        bFreeze;            // Freeze flag
                 bool        bSolo;              // Soloing flag
                 bool        bSend;              // Send to UI flag
                 float       fGain;              // Makeup gain
@@ -37,17 +39,22 @@ namespace lsp
                 IPort      *pSpec;              // Spectrum output
             } sa_channel_t;
 
+            typedef struct sa_spectralizer_t
+            {
+                size_t      nPortId;            // Last port identifier
+
+                IPort      *pPortId;            // Port identifier
+                IPort      *pFBuffer;           // Frame buffer port
+            } sa_spectralizer_t;
+
             enum mode_t
             {
                 SA_ANALYZER,
                 SA_ANALYZER_STEREO,
-                SA_ANALYZER_X2,
                 SA_MASTERING,
                 SA_MASTERING_STEREO,
-                SA_MASTERING_X2,
                 SA_SPECTRALIZER,
-                SA_SPECTRALIZER_STEREO,
-                SA_SPECTRALIZER_X2,
+                SA_SPECTRALIZER_STEREO
             };
 
         protected:
@@ -85,7 +92,16 @@ namespace lsp
             IPort              *pFrequency;
             IPort              *pLevel;
 
+            IPort              *pFreeze;
+            IPort              *pSpp;
+            sa_spectralizer_t   vSpc[2];
+
             float_buffer_t     *pIDisplay;      // Inline display buffer
+
+        protected:
+            void                update_multiple_settings();
+            void                update_x2_settings(ssize_t ch1, ssize_t ch2);
+            void                update_spectralizer_x2_settings(ssize_t ch1, ssize_t ch2);
 
         public:
             spectrum_analyzer_base(const plugin_metadata_t &metadata);

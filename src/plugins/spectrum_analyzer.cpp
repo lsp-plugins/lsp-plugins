@@ -52,6 +52,17 @@ namespace lsp
         pFrequency      = NULL;
         pLevel          = NULL;
 
+        pFreeze         = NULL;
+        pSpp            = NULL;
+
+        for (size_t i=0; i<2; ++i)
+        {
+            vSpc[i].nPortId     = -1;
+
+            vSpc[i].pPortId     = NULL;
+            vSpc[i].pFBuffer    = NULL;
+        }
+
         pIDisplay       = NULL;
     }
 
@@ -113,6 +124,7 @@ namespace lsp
             sa_channel_t *c     = &vChannels[i];
 
             // Initialize fields
+            c->bOn              = false;
             c->bSolo            = false;
             c->bSend            = false;
             c->fGain            = 1.0f;
@@ -219,6 +231,18 @@ namespace lsp
         pFrequency      = vPorts[port_id++];
         pLevel          = vPorts[port_id++];
 
+        // Bind spectralizer ports
+        if (nChannels > 2)
+            vSpc[0].pPortId     = vPorts[port_id++];
+        vSpc[0].pFBuffer    = vPorts[port_id++];
+
+        if (nChannels >= 2)
+        {
+            if (nChannels > 2)
+                vSpc[1].pPortId     = vPorts[port_id++];
+            vSpc[1].pFBuffer    = vPorts[port_id++];
+        }
+
         // Initialize values
         fMinFreq        = pFrequency->metadata()->min;
         fMaxFreq        = pFrequency->metadata()->max;
@@ -276,22 +300,18 @@ namespace lsp
             {
                 case 0: return SA_ANALYZER;
                 case 1: return SA_ANALYZER_STEREO;
-                case 2: return SA_ANALYZER_X2;
-                case 3: return SA_MASTERING;
-                case 4: return SA_MASTERING_STEREO;
-                case 5: return SA_MASTERING_X2;
-                case 6: return SA_SPECTRALIZER;
-                case 7: return SA_SPECTRALIZER_STEREO;
-                case 8: return SA_SPECTRALIZER_X2;
+                case 2: return SA_MASTERING;
+                case 3: return SA_MASTERING_STEREO;
+                case 4: return SA_SPECTRALIZER;
+                case 5: return SA_SPECTRALIZER_STEREO;
                 default:
                     return SA_ANALYZER;
             }
         }
     }
 
-    void spectrum_analyzer_base::update_settings()
+    void spectrum_analyzer_base::update_multiple_settings()
     {
-        // TODO: add mode analysis
         // Check that there are soloing channels
         size_t has_solo         = 0;
         for (size_t i=0; i<nChannels; ++i)
@@ -301,30 +321,77 @@ namespace lsp
                 has_solo++;
         }
 
-        // Update analysis parameters
+        // Process channel parameters
+        bool freeze_all     = pFreeze->getValue() >= 0.5f;
+
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            sa_channel_t *c     = &vChannels[i];
+
+            c->bOn              = c->pOn->getValue() >= 0.5f;
+            c->bFreeze          = (freeze_all) || (c->pFreeze->getValue() >= 0.5f);
+            c->bSolo            = c->pSolo->getValue() >= 0.5f;
+            c->bSend            = (c->bOn) && ((has_solo == 0) || ((has_solo > 0) && (c->bSolo)));
+            c->fGain            = c->pShift->getValue();
+            c->fHue             = c->pHue->getValue();
+        }
+    }
+
+    void spectrum_analyzer_base::update_x2_settings(ssize_t ch1, ssize_t ch2)
+    {
+        bool freeze_all     = pFreeze->getValue() >= 0.5f;
+        ssize_t nc          = nChannels;
+
+        if (ch1 >= nc)
+            ch1 -= nc;
+        if (ch2 >= nc)
+            ch2 -= nc;
+
+        for (ssize_t i=0; i<nc; ++i)
+        {
+            sa_channel_t *c     = &vChannels[i];
+
+            c->bOn              = (i == ch1) || (i == ch2);
+            c->bFreeze          = (freeze_all) || (c->pFreeze->getValue() >= 0.5f);
+            c->bSolo            = false;
+            c->bSend            = c->bOn;
+            c->fGain            = c->pShift->getValue();
+            c->fHue             = c->pHue->getValue();
+        }
+    }
+
+    void spectrum_analyzer_base::update_spectralizer_x2_settings(ssize_t ch1, ssize_t ch2)
+    {
+        bool freeze_all     = pFreeze->getValue() >= 0.5f;
+        ssize_t nc          = nChannels;
+
+        if (ch1 >= nc)
+            ch1 -= nc;
+        if (ch2 >= nc)
+            ch2 -= nc;
+
+        for (ssize_t i=0; i<nc; ++i)
+        {
+            sa_channel_t *c     = &vChannels[i];
+
+            c->bOn              = (i == ch1) || (i == ch2);
+            c->bFreeze          = (freeze_all) || (c->pFreeze->getValue() >= 0.5f);
+            c->bSolo            = false;
+            c->bSend            = false; // We do not need to send mesh data because utilizing framebuffer ports
+            c->fGain            = c->pShift->getValue();
+            c->fHue             = c->pHue->getValue();
+        }
+    }
+
+    void spectrum_analyzer_base::update_settings()
+    {
+        // Update global settings
+        bBypass                 = pBypass->getValue();
+        nChannel                = pChannel->getValue();
+        fSelector               = pSelector->getValue() * 0.01;
+        fPreamp                 = pPreamp->getValue();
+        fZoom                   = pZoom->getValue();
         size_t rank             = pTolerance->getValue() + spectrum_analyzer_base_metadata::RANK_MIN;
-        bool sync_freqs         = rank != sAnalyzer.get_rank();
-        if (sync_freqs)
-            sAnalyzer.set_rank(rank);
-
-        sAnalyzer.set_window(pWindow->getValue());
-        sAnalyzer.set_envelope(pEnvelope->getValue());
-
-        // Reconfigure analyzer if required
-        if (sAnalyzer.needs_reconfiguration())
-            sAnalyzer.reconfigure();
-
-        if (sync_freqs)
-            sAnalyzer.get_frequencies(vFrequences, vIndexes,
-                    fMinFreq, fMaxFreq, spectrum_analyzer_base_metadata::MESH_POINTS);
-
-        bBypass         = pBypass->getValue();
-        nChannel        = pChannel->getValue();
-        fSelector       = pSelector->getValue() * 0.01;
-        fPreamp         = pPreamp->getValue();
-        fZoom           = pZoom->getValue();
-
-        sAnalyzer.set_reactivity(pReactivity->getValue());
 
         lsp_trace("rank         = %d",     int(rank));
         lsp_trace("channel      = %d",     int(nChannel));
@@ -333,19 +400,55 @@ namespace lsp
         lsp_trace("reactivity   = %.3f",   fReactivity);
         lsp_trace("tau          = %.5f",   fTau);
 
-        // Process channel parameters
+        // Update channel state depending on the mode
+        mode_t mode = decode_mode(pMode->getValue());
+
+        switch (mode)
+        {
+            case SA_ANALYZER:
+            case SA_MASTERING:
+                update_multiple_settings();
+                break;
+
+            case SA_ANALYZER_STEREO:
+            case SA_MASTERING_STEREO:
+                if (nChannels > 2)
+                    update_x2_settings(vSpc[0].pPortId->getValue(), vSpc[1].pPortId->getValue());
+                else if (nChannels == 2)
+                    update_x2_settings(0, 1);
+                else
+                    update_x2_settings(0, -1); // This should not happen, but... let's do a special scenario
+                break;
+
+            case SA_SPECTRALIZER:
+            case SA_SPECTRALIZER_STEREO:
+            default:
+                break;
+        }
+
+        // Update analysis parameters
+        bool sync_freqs         = rank != sAnalyzer.get_rank();
+        if (sync_freqs)
+            sAnalyzer.set_rank(rank);
+
+        sAnalyzer.set_reactivity(pReactivity->getValue());
+        sAnalyzer.set_window(pWindow->getValue());
+        sAnalyzer.set_envelope(pEnvelope->getValue());
+
         for (size_t i=0; i<nChannels; ++i)
         {
             sa_channel_t *c     = &vChannels[i];
-
-            sAnalyzer.enable_channel(i, c->pOn->getValue() >= 0.5f);
-            sAnalyzer.freeze_channel(i, c->pFreeze->getValue() >= 0.5f);
-
-            c->bSolo            = c->pSolo->getValue() >= 0.5f;
-            c->bSend            = (c->pOn->getValue() >= 0.5f) && ((has_solo == 0) || ((has_solo > 0) && (c->bSolo)));
-            c->fGain            = c->pShift->getValue();
-            c->fHue             = c->pHue->getValue();
+            sAnalyzer.enable_channel(i, c->bOn);
+            sAnalyzer.freeze_channel(i, c->bFreeze);
         }
+
+        // Reconfigure analyzer if required
+        if (sAnalyzer.needs_reconfiguration())
+            sAnalyzer.reconfigure();
+
+        if (sync_freqs)
+            sAnalyzer.get_frequencies(vFrequences, vIndexes,
+                    fMinFreq, fMaxFreq, spectrum_analyzer_base_metadata::MESH_POINTS);
     }
 
     void spectrum_analyzer_base::update_sample_rate(long sr)

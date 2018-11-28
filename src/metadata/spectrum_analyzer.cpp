@@ -65,19 +65,10 @@ namespace lsp
     {
         "Analyzer",
         "Analyzer Stereo",
-        "Analyzer x2",
         "Mastering",
         "Mastering Stereo",
-        "Mastering x2",
         "Spectralizer",
         "Spectralizer Stereo",
-        "Spectralizer x2",
-        NULL
-    };
-
-    static const char *spectrum_analyzer_x4_pairs[]=
-    {
-        "0+1", "1+2", "2+3", "3+0",
         NULL
     };
 
@@ -89,12 +80,6 @@ namespace lsp
 
     static const char **spectrum_analyzer_x8_modes = spectrum_analyzer_x4_modes;
 
-    static const char *spectrum_analyzer_x8_pairs[]=
-    {
-        "0+1", "1+2", "2+3", "3+4", "4+5", "5+6", "6+7", "7+0",
-        NULL
-    };
-
     static const char *spectrum_analyzer_x12_channels[]=
     {
         "0", "1", "2", "3", "4", "5", "6", "7",
@@ -104,13 +89,6 @@ namespace lsp
 
     static const char **spectrum_analyzer_x12_modes = spectrum_analyzer_x4_modes;
 
-    static const char *spectrum_analyzer_x12_pairs[]=
-    {
-        "0+1", "1+2", "2+3", "3+4", "4+5", "5+6", "6+7",
-        "7+8", "8+9", "9+10", "10+11", "11+0",
-        NULL
-    };
-
     static const char *spectrum_analyzer_x16_channels[]=
     {
         "0", "1", "2", "3", "4", "5", "6", "7",
@@ -119,13 +97,6 @@ namespace lsp
     };
 
     static const char **spectrum_analyzer_x16_modes = spectrum_analyzer_x4_modes;
-
-    static const char *spectrum_analyzer_x16_pairs[]=
-    {
-        "0+1", "1+2", "2+3", "3+4", "4+5", "5+6", "6+7",
-        "7+8", "8+9", "9+10", "10+11", "11+12", "12+13", "13+14", "14+15", "15+0",
-        NULL
-    };
 
     #define SA_INPUT(x, total) \
         AUDIO_INPUT_N(x), \
@@ -137,9 +108,9 @@ namespace lsp
         AMP_GAIN("sh_" #x, "Shift gain " #x, 1.0f, 1000.0f), \
         MESH("spc_" #x, "Spectrum " #x, 2, spectrum_analyzer_base_metadata::MESH_POINTS)
 
-    #define SA_COMMON(c, modes) \
+    #define SA_COMMON(c) \
         BYPASS, \
-        COMBO("mode", "Analyzer mode", 0, modes), \
+        COMBO("mode", "Analyzer mode", 0, spectrum_analyzer_x ## c ## _modes), \
         { "tol", "FFT Tolerance", U_ENUM, R_CONTROL, F_IN, 0, 0, spectrum_analyzer_base_metadata::RANK_DFL - spectrum_analyzer_base_metadata::RANK_MIN, 0, fft_tolerance }, \
         { "wnd", "FFT Window", U_ENUM, R_CONTROL, F_IN, 0, 0, spectrum_analyzer_base_metadata::WND_DFL, 0, windows::windows }, \
         { "env", "FFT Envelope", U_ENUM, R_CONTROL, F_IN, 0, 0, spectrum_analyzer_base_metadata::ENV_DFL, 0, envelope::envelopes }, \
@@ -157,7 +128,8 @@ namespace lsp
     static const port_t spectrum_analyzer_x1_ports[] =
     {
         SA_INPUT(0, 1),
-        SA_COMMON(1, spectrum_analyzer_x1_modes),
+        SA_COMMON(1),
+        FBUFFER("fb", "Spectralizer buffer", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
         PORTS_END
     };
 
@@ -165,7 +137,9 @@ namespace lsp
     {
         SA_INPUT(0, 2),
         SA_INPUT(1, 2),
-        SA_COMMON(2, spectrum_analyzer_x2_modes),
+        SA_COMMON(2),
+        FBUFFER("fb0", "Spectralizer buffer 0", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
+        FBUFFER("fb1", "Spectralizer buffer 1", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
         PORTS_END
     };
 
@@ -175,7 +149,11 @@ namespace lsp
         SA_INPUT(1, 4),
         SA_INPUT(2, 4),
         SA_INPUT(3, 4),
-        SA_COMMON(4, spectrum_analyzer_x4_modes),
+        SA_COMMON(4),
+        COMBO("spc0", "Spectralizer channel 0", 0, spectrum_analyzer_x4_channels),
+        FBUFFER("fb0", "Spectralizer buffer 0", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
+        COMBO("spc1", "Spectralizer channel 1", 0, spectrum_analyzer_x4_channels),
+        FBUFFER("fb1", "Spectralizer buffer 1", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
         PORTS_END
     };
 
@@ -189,7 +167,11 @@ namespace lsp
         SA_INPUT(5, 8),
         SA_INPUT(6, 8),
         SA_INPUT(7, 8),
-        SA_COMMON(8, spectrum_analyzer_x8_modes),
+        SA_COMMON(8),
+        COMBO("spc0", "Spectralizer channel 0", 0, spectrum_analyzer_x8_channels),
+        FBUFFER("fb0", "Spectralizer buffer 0", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
+        COMBO("spc1", "Spectralizer channel 1", 0, spectrum_analyzer_x8_channels),
+        FBUFFER("fb1", "Spectralizer buffer 1", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
         PORTS_END
     };
 
@@ -207,7 +189,11 @@ namespace lsp
         SA_INPUT(9, 12),
         SA_INPUT(10, 12),
         SA_INPUT(11, 12),
-        SA_COMMON(12, spectrum_analyzer_x12_modes),
+        SA_COMMON(12),
+        COMBO("spc0", "Spectralizer channel 0", 0, spectrum_analyzer_x12_channels),
+        FBUFFER("fb0", "Spectralizer buffer 0", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
+        COMBO("spc1", "Spectralizer channel 1", 0, spectrum_analyzer_x12_channels),
+        FBUFFER("fb1", "Spectralizer buffer 1", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
         PORTS_END
     };
 
@@ -229,7 +215,11 @@ namespace lsp
         SA_INPUT(13, 16),
         SA_INPUT(14, 16),
         SA_INPUT(15, 16),
-        SA_COMMON(16, spectrum_analyzer_x16_modes),
+        SA_COMMON(16),
+        COMBO("spc0", "Spectralizer channel 0", 0, spectrum_analyzer_x16_channels),
+        FBUFFER("fb0", "Spectralizer buffer 0", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
+        COMBO("spc1", "Spectralizer channel 1", 0, spectrum_analyzer_x16_channels),
+        FBUFFER("fb1", "Spectralizer buffer 1", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
         PORTS_END
     };
 
