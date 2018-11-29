@@ -701,8 +701,8 @@ namespace lsp
 
                 dsp::fill(b->v[2], 0.0f, width);
                 dsp::fill(b->v[3], height, width);
-                dsp::axis_apply_log(b->v[2], b->v[3], b->v[0], zx, dx, 0.0f, width);
-                dsp::axis_apply_log(b->v[2], b->v[3], b->v[1], zy, 0.0f, dy, width);
+                dsp::axis_apply_log2(b->v[2], b->v[3], b->v[0], zx, dx, 0.0f, width);
+                dsp::axis_apply_log2(b->v[2], b->v[3], b->v[1], zy, 0.0f, dy, width);
 
                 // Draw mesh
                 col.hue(c->fHue);

@@ -98,7 +98,7 @@ namespace lsp
                 norm            = d / norm;
                 a_min           = 1.0f / a_min;
 
-                dsp::axis_apply_log(x, y, dv, a_min, norm * fDX, norm * fDY, count);
+                dsp::axis_apply_log2(x, y, dv, a_min, norm * fDX, norm * fDY, count);
             }
             else
             {

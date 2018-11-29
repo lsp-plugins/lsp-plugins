@@ -220,7 +220,8 @@ namespace dsp
     void    (* matched_transform_x4)(biquad_x4_t *bf, f_cascade_t *bc, float kf, float td, size_t count) = NULL;
     void    (* matched_transform_x8)(biquad_x8_t *bf, f_cascade_t *bc, float kf, float td, size_t count) = NULL;
 
-    void    (* axis_apply_log)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count) = NULL;
+    void    (* axis_apply_log1)(float *x, const float *v, float zero, float norm_x, size_t count) = NULL;
+    void    (* axis_apply_log2)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count) = NULL;
     void    (* rgba32_to_bgra32)(void *dst, const void *src, size_t count) = NULL;
     void    (* fill_rgba)(float *dst, float r, float g, float b, float a, size_t count) = NULL;
     void    (* fill_hsla)(float *dst, float h, float s, float l, float a, size_t count) = NULL;

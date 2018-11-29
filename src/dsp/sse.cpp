@@ -256,7 +256,8 @@ namespace sse
         EXPORT1(bilinear_transform_x4);
         EXPORT1(bilinear_transform_x8);
 
-        EXPORT1(axis_apply_log);
+        EXPORT1(axis_apply_log1);
+        EXPORT1(axis_apply_log2);
         EXPORT1(rgba32_to_bgra32);
         EXPORT1(fill_rgba);
         EXPORT1(fill_hsla);
