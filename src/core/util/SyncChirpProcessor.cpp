@@ -1954,6 +1954,12 @@ namespace lsp
 
             sChirpParams.initialFrequency   = (sChirpParams.initialFrequency >= sChirpParams.finalFrequency) ? DFL_INITIAL_FREQ : sChirpParams.initialFrequency;
 
+            if (sChirpParams.initialFrequency == sChirpParams.finalFrequency)
+            {
+                sChirpParams.initialFrequency   = DFL_INITIAL_FREQ;
+                sChirpParams.finalFrequency     = DFL_FINAL_FREQ;
+            }
+
             // Optimise initial frequency so that the final frequency is a harmonic of the initial frequency
             sChirpParams.nOrder             = sChirpParams.finalFrequency / sChirpParams.initialFrequency;
             sChirpParams.initialFrequency   = sChirpParams.finalFrequency / sChirpParams.nOrder;
@@ -1965,14 +1971,15 @@ namespace lsp
             sChirpParams.fDurationCoarse    = sChirpParams.fDuration;   // Saving the pre-optimisation value for reference
             sChirpParams.fDuration          = (sChirpParams.fDuration < LIM_DURATION) ? sChirpParams.fDuration : LIM_DURATION;
 
-            double epsilon = 2.0;
+            double n            = 1.0;
+            double minDuration  = log(sChirpParams.nOrder) / sChirpParams.initialFrequency;
 
             while (sChirpParams.fDuration <= sChirpParams.fDurationCoarse)
             {
-                sChirpParams.fDuration      = 0.5 * epsilon * log(sChirpParams.nOrder) / sChirpParams.initialFrequency;
-                sChirpParams.gamma          = 0.5 * epsilon / sChirpParams.initialFrequency;
+                sChirpParams.fDuration      = n * minDuration;
+                sChirpParams.gamma          = n / sChirpParams.initialFrequency;
 
-                epsilon += 2.0;
+                n += 1.0;
             }
 
             sChirpParams.nDuration          = seconds_to_samples(nSampleRate, sChirpParams.fDuration);

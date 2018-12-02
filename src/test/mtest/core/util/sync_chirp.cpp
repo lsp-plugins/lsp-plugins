@@ -11,16 +11,15 @@
 #include <core/util/SyncChirpProcessor.h>
 #include <core/util/ResponseTaker.h>
 
-#define SYNCHRONIZEDCHIRP_BUF_SIZE  4096
-#define TEST_CHANNELS 				2
-
 using namespace lsp;
+
+#define MAX_FNAME_LENGTH 100
 
 MTEST_BEGIN("core.util", sync_chirp)
 
-    void write_buffer(const char *filePath, const char *text, const float *buf, size_t count)
+    void write_buffer(const char *filePath, const char *description, const float *buf, size_t count)
     {
-        printf("Writing buffer %s:\n", text);
+        printf("Writing %s to file %s\n", description, filePath);
 
         FILE *fp = NULL;
         fp = fopen(filePath, "w");
@@ -35,9 +34,9 @@ MTEST_BEGIN("core.util", sync_chirp)
             fclose(fp);
     }
 
-    void write_matrix(const char *text, const char *filePath, const float *matrix, size_t rows, size_t columns)
+    void write_matrix(const char *description, const char *filePath, const float *matrix, size_t rows, size_t columns)
     {
-        printf("Writing matrix %s:\n", text);
+        printf("Writing matrix %s to file %s\n", description, filePath);
 
         FILE *fp = NULL;
 
@@ -63,16 +62,24 @@ MTEST_BEGIN("core.util", sync_chirp)
             fclose(fp);
     }
 
-    void test_time_series(float *out, float *in, size_t count, SyncChirpProcessor &sc, ResponseTaker *rtArray, size_t nChannels)
+    void test_time_series(float *out, float *in, size_t count, SyncChirpProcessor &sc, ResponseTaker *rtArray, size_t nChannels, scp_rtcalc_t enAlgo, float prWsize, double prTol)
     {
-        printf("Testing time series generation...");
+        printf("Testing time series generation...\n");
 
         if (sc.needs_update())
             sc.update_settings();
 
         sc.reconfigure();
 
-        for (size_t ch; ch < nChannels; ++ch)
+        printf("Chirp properties:\n");
+        printf("Initial Frequency:\t%.3f Hz\n", sc.get_chirp_initial_frequency());
+        printf("Final Frequency:  \t%.3f Hz\n", sc.get_chirp_final_frequency());
+        printf("Alpha:            \t%.3f\n", sc.get_chirp_alpha());
+        printf("Gamma:            \t%.3f s\n", sc.get_chirp_gamma());
+        printf("Delta:            \t%.3f rad\n", sc.get_chirp_delta());
+        printf("Duration:         \t%.7f s\n", sc.get_chirp_duration_seconds());
+
+        for (size_t ch = 0; ch < nChannels; ++ch)
         {
             if (rtArray[ch].needs_update())
             	rtArray[ch].update_settings();
@@ -88,12 +95,12 @@ MTEST_BEGIN("core.util", sync_chirp)
         {
         	exitLoop = true;
 
-        	for (size_t ch; ch < nChannels; ++ch)
+        	for (size_t ch = 0; ch < nChannels; ++ch)
         	{
         		float *inPtr 	= &in[ch * count];
         		float *outPtr 	= &out[ch * count];
 
-        		rtArray[ch].process(inPtr, outPtr, count);
+        		rtArray[ch].process(outPtr, inPtr, count);
         		dsp::copy(inPtr, outPtr, count);
 
         		exitLoop = exitLoop && rtArray[ch].cycle_complete();
@@ -102,38 +109,68 @@ MTEST_BEGIN("core.util", sync_chirp)
         }
 
         Sample *data = sc.get_chirp();
-        write_buffer("tmp/syncChirp.csv", "Chirp", data->getBuffer(0), data->length());
+        write_buffer("tmp/syncChirp.csv", "sync chirp samples", data->getBuffer(0), data->length());
 
         data = sc.get_inverse_filter();
-        write_buffer("tmp/inverseFilter.csv", "Inverse Filter", data->getBuffer(0), data->length());
+        write_buffer("tmp/inverseFilter.csv", "inverse filter samples", data->getBuffer(0), data->length());
 
-    //    data = rt.get_capture();
-    //        write_buffer("Capture", data->getBuffer(0), data->length());
-
+        char *fName         = new char[MAX_FNAME_LENGTH];
         Sample **dataArray 	= new Sample*[nChannels];
         size_t *offsets 	= new size_t[nChannels];
 
-        for (size_t ch; ch < nChannels; ++ch)
+        for (size_t ch = 0; ch < nChannels; ++ch)
         {
         	dataArray[ch] 	= rtArray[ch].get_capture();
         	offsets[ch] 	= rtArray[ch].get_capture_start();
+
+            snprintf(fName, MAX_FNAME_LENGTH, "tmp/chirpCapture%lu.csv", ch);
+            write_buffer(fName, "Capture", dataArray[ch]->getBuffer(0), dataArray[ch]->length());
         }
 
         sc.do_linear_convolutions(dataArray, offsets, nChannels, 32768);
 
-    //        AudioFile *conv = sc.get_convolution_result();
-    //        write_buffer("Convolution", conv->channel(0), conv->samples());
+        AudioFile *conv = sc.get_convolution_result();
+        float *fRT      = new float[nChannels];
+        float *fcR      = new float[nChannels];
+        float *fiL      = new float[nChannels];
 
-    //        sc.save_linear_convolution("/tmp/positiveTimeResponse.wav");
-    //        sc.save_nonlinear_convolution("/tmp/allTimeResponse.wav");
+        for (size_t ch = 0; ch < nChannels; ++ch)
+        {
+            snprintf(fName, MAX_FNAME_LENGTH, "tmp/result%lu.csv", ch);
+            write_buffer(fName, "Convolution Result", conv->channel(ch), conv->samples());
 
-        for (size_t ch; ch < nChannels; ++ch)
+            sc.postprocess_linear_convolution(ch, 0, enAlgo, prWsize, prTol);
+
+            fRT[ch] = sc.get_reverberation_time_seconds();
+            fcR[ch] = sc.get_reverberation_correlation();
+            fiL[ch] = sc.get_integration_limit_seconds();
+        }
+
+        write_buffer("tmp/fReverbTimes.csv", "Reverberation Times [s]", fRT, nChannels);
+        write_buffer("tmp/fCorrCoeffs.csv", "Correlation Coefficients", fcR, nChannels);
+        write_buffer("tmp/fIntLimits.csv", "Backward Integration Times [s]", fiL, nChannels);
+
+        sc.save_linear_convolution("tmp/impulseResponse.wav", -1);
+        sc.save_to_lspc("tmp/allData.lspc", 0);
+
+        status_t readStatus = sc.load_from_lspc("tmp/allData.lspc");
+        MTEST_ASSERT(readStatus == STATUS_OK);
+
+        delete [] fName;
+
+        for (size_t ch = 0; ch < nChannels; ++ch)
 		{
 			dataArray[ch]->destroy();
 		}
-
         delete [] dataArray;
+
         delete [] offsets;
+
+        conv->destroy();
+
+        delete [] fRT;
+        delete [] fcR;
+        delete [] fiL;
     }
 
 //    void test_coefficients_matrices(size_t order, size_t nTaps, size_t offset, float amplitude)
@@ -155,16 +192,16 @@ MTEST_BEGIN("core.util", sync_chirp)
 //        write_matrix("mCoeffsIm", "/tmp/mCoeffsIm.csv", coeffIm, order, order);
 //    }
 
-    void test_lspc_read(const char *lspcPath)
-    {
-        printf("Testing lspc file read...");
-
-        SyncChirpProcessor  sc;
-        sc.init();
-        sc.update_settings();
-
-        sc.load_from_lspc(lspcPath);
-    }
+//    void test_lspc_read(const char *lspcPath)
+//    {
+//        printf("Testing lspc file read...");
+//
+//        SyncChirpProcessor  sc;
+//        sc.init();
+//        sc.update_settings();
+//
+//        sc.load_from_lspc(lspcPath);
+//    }
 
 //    void test_nonlinear_identification(const char *lspcPath, size_t sampleRate, size_t order, bool doInnerSmoothing, size_t nFadeIn, size_t nFadeOut, size_t windowOrder, size_t offset)
 //    {
@@ -253,10 +290,10 @@ MTEST_BEGIN("core.util", sync_chirp)
     MTEST_MAIN
     {
 		size_t          nSampleRate     = 48000;
-		size_t 			nChannels 		= TEST_CHANNELS;
-		size_t          nLatency        = SYNCHRONIZEDCHIRP_BUF_SIZE;
+		size_t 			nChannels 		= 2;
+		size_t          nLatency        = 4096;
 		double          initialFreq     = 1.0;
-		double          finalFreq       = 25000.0;
+		double          finalFreq       = 23000.0;
 		float           duration        = 10.0f;
 		float           amplitude       = 1.0f;
 		float           tail            = 1.0f;
@@ -265,8 +302,14 @@ MTEST_BEGIN("core.util", sync_chirp)
 		scp_fade_t      fadeMode        = SCP_FADE_RAISED_COSINES;
 		float           fadeIn          = 0.020f;
 		float           fadeOut         = 0.020f;
+		float           rFadeIn         = 0.020f;
+		float           rPause          = 0.020f;
+		scp_rtcalc_t    enAlgo          = SCP_RT_T_20;
+		float           prWsize         = 0.085f;
+		double          prTol           = 3.0;
 
         SyncChirpProcessor  sc;
+        sc.init();
         sc.set_sample_rate(nSampleRate);
         sc.set_chirp_initial_frequency(initialFreq);
         sc.set_chirp_final_frequency(finalFreq);
@@ -278,21 +321,22 @@ MTEST_BEGIN("core.util", sync_chirp)
         sc.set_fader_fadeout(fadeOut);
         sc.set_oversampler_mode(overMode);
 
-        float *in   = new float[nChannels * SYNCHRONIZEDCHIRP_BUF_SIZE];
-        float *out  = new float[nChannels * SYNCHRONIZEDCHIRP_BUF_SIZE];
+        float *in   = new float[nChannels * nLatency];
+        float *out  = new float[nChannels * nLatency];
 
         ResponseTaker *rtArray = new ResponseTaker[nChannels];
 
-        for (size_t ch; ch < nChannels; ++ch)
+        for (size_t ch = 0; ch < nChannels; ++ch)
         {
+            rtArray[ch].init();
         	rtArray[ch].set_sample_rate(nSampleRate);
-//        	rtArray[ch].set_op_fading();
-//        	rtArray[ch].set_op_pause();
+        	rtArray[ch].set_op_fading(rFadeIn);
+        	rtArray[ch].set_op_pause(rPause);
         	rtArray[ch].set_op_tail(tail);
         	rtArray[ch].set_latency_samples(nLatency);
         }
 
-        test_time_series(out, in, SYNCHRONIZEDCHIRP_BUF_SIZE, sc, rtArray, nChannels);
+        test_time_series(out, in, nLatency, sc, rtArray, nChannels, enAlgo, prWsize, prTol);
 
 //        size_t          iSampleRate         = 48000; // For identification
 //        size_t          order               = 9;
@@ -315,7 +359,7 @@ MTEST_BEGIN("core.util", sync_chirp)
 
         sc.destroy();
 
-        for (size_t ch; ch < nChannels; ++ch)
+        for (size_t ch = 0; ch < nChannels; ++ch)
         {
 			rtArray[ch].destroy();
         }

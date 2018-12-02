@@ -12,7 +12,7 @@
 
 #define TMP_BUF_SIZE                1024
 #define BGNOISE_INTERVAL_FACTOR     2.0f    /* Multiply reactivity by this to calculate the time to spend in BGNOISEPROFILING state */
-#define POSTPROCESSOR_REACTIVITY    0.085   /* Window Size for the Post Processor IR envelope follower [s] */
+#define POSTPROCESSOR_REACTIVITY    0.085f  /* Window Size for the Post Processor IR envelope follower [s] */
 #define POSTPROCESSOR_TOLERANCE     3.0     /* Maximum level above the noise floor below which, if IR peaks are not found, the IR is considered concluded [dB] */
 #define SYNC_CHIRP_START_FREQ       1.0     /* Synchronized Chirp Starting frequency [Hz] */
 #define SYNC_CHIRP_MAX_FREQ         23000.0 /* Synchronized Chirp Final frequency [Hz] */
@@ -107,7 +107,6 @@ namespace lsp
 
             pCore->vChannels[ch].sPostProc.fReverbTime 	= pCore->sSyncChirpProcessor.get_reverberation_time_seconds();
             pCore->vChannels[ch].sPostProc.nReverbTime 	= pCore->sSyncChirpProcessor.get_reverberation_time_samples();
-//            pCore->vChannels[ch].sPostProc.fPosTime 	= pCore->sSyncChirpProcessor.get_convolution_result_positive_time_length();
             pCore->vChannels[ch].sPostProc.fCorrCoeff 	= pCore->sSyncChirpProcessor.get_reverberation_correlation();
             pCore->vChannels[ch].sPostProc.fIntgLimit 	= pCore->sSyncChirpProcessor.get_integration_limit_seconds();
             pCore->vChannels[ch].sPostProc.bRTAccuray 	= pCore->sSyncChirpProcessor.get_background_noise_suitability();
