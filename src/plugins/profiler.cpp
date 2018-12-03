@@ -109,7 +109,7 @@ namespace lsp
             pCore->vChannels[ch].sPostProc.nReverbTime 	= pCore->sSyncChirpProcessor.get_reverberation_time_samples();
             pCore->vChannels[ch].sPostProc.fCorrCoeff 	= pCore->sSyncChirpProcessor.get_reverberation_correlation();
             pCore->vChannels[ch].sPostProc.fIntgLimit 	= pCore->sSyncChirpProcessor.get_integration_limit_seconds();
-            pCore->vChannels[ch].sPostProc.bRTAccuray 	= pCore->sSyncChirpProcessor.get_background_noise_suitability();
+            pCore->vChannels[ch].sPostProc.bRTAccuray 	= pCore->sSyncChirpProcessor.get_background_noise_optimality();
     	}
 
         return STATUS_OK;

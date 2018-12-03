@@ -668,10 +668,10 @@ namespace lsp
                 return sCRPostProc.fIrLimit;
             }
 
-            /** Get noise level suitability for accurate measurements
+            /** Return whether the background noise was optimal for the requested RT measurement
              *
              */
-            inline bool get_background_noise_suitability() const
+            inline bool get_background_noise_optimality() const
             {
                 return sCRPostProc.bLowNoise;
             }
