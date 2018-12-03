@@ -671,44 +671,44 @@ namespace lsp
         if (b == NULL)
             return false;
 
-        if (!bypass)
-        {
-            Color col(CV_MESH);
-            cv->set_line_width(2);
+        if (bypass)
+            return true;
 
-            float ni        = float(spectrum_analyzer_base_metadata::MESH_POINTS) / width; // Normalizing index
-            uint32_t *idx   = reinterpret_cast<uint32_t *>(alloca(width * sizeof(uint32_t))); //vIndexes;
+        Color col(CV_MESH);
+        cv->set_line_width(2);
+
+        float ni        = float(spectrum_analyzer_base_metadata::MESH_POINTS) / width; // Normalizing index
+        uint32_t *idx   = reinterpret_cast<uint32_t *>(alloca(width * sizeof(uint32_t))); //vIndexes;
+
+        for (size_t j=0; j<width; ++j)
+        {
+            size_t k        = j*ni;
+            idx[j]          = vIndexes[k];
+        }
+
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            // Output only active channel
+            sa_channel_t *c = &vChannels[i];
+            if (!c->bSend)
+                continue;
 
             for (size_t j=0; j<width; ++j)
-            {
-                size_t k        = j*ni;
-                idx[j]          = vIndexes[k];
-            }
+                b->v[0][j]      = vFrequences[idx[j]];
 
-            for (size_t i=0; i<nChannels; ++i)
-            {
-                // Output only active channel
-                sa_channel_t *c = &vChannels[i];
-                if (!c->bSend)
-                    continue;
+            sAnalyzer.get_spectrum(i, b->v[1], idx, width);
 
-                for (size_t j=0; j<width; ++j)
-                    b->v[0][j]      = vFrequences[idx[j]];
+            dsp::scale2(b->v[1], c->fGain * fPreamp, width);
 
-                sAnalyzer.get_spectrum(i, b->v[1], idx, width);
+            dsp::fill(b->v[2], 0.0f, width);
+            dsp::fill(b->v[3], height, width);
+            dsp::axis_apply_log1(b->v[2], b->v[0], zx, dx, width+2);
+            dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width+2);
 
-                dsp::scale2(b->v[1], c->fGain * fPreamp, width);
-
-                dsp::fill(b->v[2], 0.0f, width);
-                dsp::fill(b->v[3], height, width);
-                dsp::axis_apply_log2(b->v[2], b->v[3], b->v[0], zx, dx, 0.0f, width);
-                dsp::axis_apply_log2(b->v[2], b->v[3], b->v[1], zy, 0.0f, dy, width);
-
-                // Draw mesh
-                col.hue(c->fHue);
-                cv->set_color(col);
-                cv->draw_lines(b->v[2], b->v[3], width);
-            }
+            // Draw mesh
+            col.hue(c->fHue);
+            cv->set_color(col);
+            cv->draw_lines(b->v[2], b->v[3], width);
         }
 
         return true;
