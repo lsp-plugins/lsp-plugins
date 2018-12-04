@@ -1,10 +1,12 @@
 <?php
 	plugin_header();
+	
+	$s      =   (strpos($PAGE, '_stereo') > 0);
 ?>
 
 <p>
 	A simple plugin for audio systems profiling. The profiling is performed by an algorithm based on the
-	<a href="http://ant-novak.com/swept-sine.php">Synchronized Swept Sine method by Antonin Novak</a>.
+	<a href="https://ant-novak.com/pages/sss/">Synchronized Swept Sine method by Antonin Novak</a>.
 </p>
 <p>
     The profiler plugin allows to profile audio systems. These properties of an audio system can be currently profiled:
@@ -13,7 +15,7 @@
         <li>Linear Impulse Response.</li>
         <li>Nonlinear Characteristics.</li>
     </ul>
-    A brief description of the plugin usage is provided below. For a summary of controls, see the Controls section.
+    A brief description of the plugin usage is provided below. For a summary of controls, see the <b>Controls</b> section.
     <p><b>1: Connection</b></p>
     The audio system to be profiled should be connected as in the measurement chain below:
     <ul>
@@ -21,17 +23,18 @@
     </ul>
     It is advisable to set the audio stack for stable operation (least amount of buffer over/underruns) when profiling.
     By default, in order to remove unwanted latency from the profile, the plugin operates a profiling sequence that includes latency detection.
-    This will remove the latency of the measurement chain. This might alter the phase response measurement of the system under test.
+    This will remove the average group delay of the entire chain above.
+    This might affect the accuracy of the phase response measurement of the audio system under test.
     If this is undesired, it is recommended to assess the systemless latency first, and disable automatic latency measurement during profiling.
     To do so, set up this latency measurement loopback:
 	<ul>
         <li>profiler output -> straight connection -> profiler input</li>
     </ul>
-    More details are provided in section 3.
+    More details are provided in Section 3.
     <p><b>2: Calibration</b></p>
     The plugin has a built-in calibration tone (sine wave) generator whose controls are accessible in the <b>'Calibrator'</b> section.
     After the measurement chain in Section 1 has been realised, it is suggested to set all hardware level controls (if any) to -Inf dB and then enable the calibrator by pressing <b>Enable</b> in the <b>'Calibrator'</b> section (led shines). This forces the plugin to transition into the CALIBRATING state, and
-    the corresponding led in the <b>'Results'</b> section will shine.
+    the corresponding LED in the <b>'Results'</b> section will shine.
     Raise the hardware level controls and/or operate the calibrator <b>Amplitude</b> control until the Input Level meter provides a good level.
     All test signals levels will be set by the calibrator <b>Amplitude</b> control.
     <p>
@@ -55,7 +58,7 @@
     </ul>
     To operate a one time latency measurement, set up the latency measurement loopback of Section 1.
     Then, measure latency once by pressing <b>Measure</b> in the <b>'Latency Detector'</b> section, where all of the plugin Latency Detector controls are available.
-    After a successful measurement, disable the latency detection from the system profiling sequence by pressing the <b>Enable</b> button (ensure the led is off).
+    After a successful measurement, disable the latency detection from the system profiling sequence by pressing the <b>Enable</b> button (ensure the LED is off).
     By doing so the Latency Detection step will be omitted in subsequent profiling measurements, and the systemless latency will used to time align the result,
     thus preventing alteration of the system under test phase response.
     <p>One time latency measurements are also useful when the signal level for optimal latency detection is higher than that for system profiling.
@@ -75,7 +78,7 @@
     This will make the plugin to transition through the following states automatically:
     <ul>
         <li><b>DETECTING LATENCY</b> - In this state the latency of the audio system measurement chain is assessed. This step can be omitted by
-        disabling the <b>Enable</b> button in the <b>'Latency Detector'</b> section. If latency was never measured, the plugin will force
+        disabling the <b>Enable</b> toggle in the <b>'Latency Detector'</b> section. If latency was never measured, the plugin will force
         latency detection.</li>
         <li><b>PREPROCESSING</b> - In this state the plugin optimises the test signal parameters and generates the test chirp.</li>
         <li><b>WAITING</b> - In this state the plugin waits for a time set by the <b>Coarse Duration</b> control. For reverberant systems,
@@ -91,29 +94,30 @@
     <p><b>6: Post processing the results</b></p>
     Post processing is performed automatically after each measurement or manually by pressing the
     <b>Post-process</b> button in the <b>'Results'</b> section. Whenever the plugin is postprocessing, its state will be POSTPROCESSING and the corresponding
-    led in the <b>'Results'</b> section will shine. The post-processing steps can calculate:
+    LED in the <b>'Results'</b> section will shine. The post-processing steps can calculate:
     <ul>
         <li>Background noise magnitude.</li>
         <li>Reverberation Time (RT).</li>
         <li>Energy Decay Linear Correlation coefficient.</li>
         <li>Coarse Linear Impulse Response Duration</li>
     </ul>
-    All the quantities above are mostly relevant for linear time invariant (LTI) systems. The result will be displayed and postprocessed from the middle of the
-    Linear Impulse Response estimate of the system.
+    All the quantities above are mostly relevant for linear time invariant (LTI) systems. The result will be displayed and postprocessed from the 
+    time originle of the Linear Impulse Response estimate of the system.
     To change this, operate the <b>Offset</b> control in the <b>'Results'</b> section, which allows to introduce a time offset.
-    In case the spread of the Linear Impulse Response to the left of the middle is important, introducing a negative offset will increase accuracy of the calculations listed above.
+    For numerical reasons, few details of the measured Linear Impulse Response are mapped into negative time samples to the left ot the origin of time.
+    In case the spread of the Linear Impulse Response to the left of the origin of time is important, introducing a negative offset will increase accuracy of the calculations listed above, as well as providing a more accurate measurement.
     The Reverberation Time can be calculated with any of the algorithms in the <b>RT Algorithm</b> selector in the <b>'Results'</b> section. All the algorithms are based in calculating,
     from the Linear Impulse Response, the Energy Decay curve through backward integration, fitting a straight line in the Energy Decay curve in a
     specified interval and solving for the point at which the straight line intercepts -60 dB from the peak energy.
     See the <b>RT Algorithm</b> description for a list of the implemented algorithms, all based on ISO 3382-2 (but without filtering).
     <p>The algorithms supply the best results only if the background noise floor level in the Energy Decay curve is at least 10 dB below the lower
-    limit of the regression line calculation. If this is true, the <b>Noise Floor</b> led will shine green. In order to improve the Signal To Noise ratio,
+    limit of the regression line calculation. If this is true, the relevant <b>Noise Floor</b> LED will shine. In order to improve the Signal To Noise ratio,
     it can be advised to:<p>
     <ul>
         <li>Make sure there is not unwanted clipping or distortion, as distortion products inflate the background noise assessment.</li>
         <li>Make sure the profiling chirp duration is long enough, as longer chirps provide better Signal To Noise ratio.</li>
         <li>Make sure the amplitude is high enough with respect the background noise, but not so high to produce unwanted distortion.</li>
-        <li>Make sure that samples to the left of the middle are not being omitted by introducing some negative offset.</li>
+        <li>Make sure that eventual Linear Impulse Response samples to the left of the origin of time are not being omitted by introducing some negative offset.</li>
     </ul>
     <p> The Energy Decay Linear Correlation coefficient is the Pearson correlation coefficient for the fitted regression line used for Reverberation Time
     calculation. For well fitted decaying lines this value is close to -1.</p>
@@ -123,12 +127,12 @@
     The profile can be saved by using the Save button in the <b>'Results'</b> section.
     See <b>Save Mode</b> for the available saving modes. All saving ranges are rounded to the next tenth of second.
     Auto should be able to save all the meaningful parts of the Linear Impulse Response.
-    <p>Whenever the plugin is saving to file, its state will be SAVING and the corresponding led in the <b>'Results'</b> section will shine.</p>
+    <p>Whenever the plugin is saving to file, its state will be SAVING and the corresponding LED in the <b>'Results'</b> section will shine.</p>
 </p>
 <p><b>Controls:</b></p>
 <ul>
 	<li>
-		<b>Bypass</b> - bypass switch, when turned on (led indicator is shining), the plugin bypasses signal.
+		<b>Bypass</b> - bypass switch, when turned on (LED indicator is shining), the plugin bypasses signal.
 	</li>
 </ul>
 <p><b>'Results' section:</b></p>
@@ -156,7 +160,7 @@
 	    <li><b>LTI All (*.wav)</b> - Save, as a WAV file, all the measured samples of Linear Impulse Response to the right of the Offset value.</li>
 	    <li><b>All Info (*.lspc)</b> - Save, as an LSPC file, all the measured information.</li>
     </ul>
-	<li><b>Offset</b> - Introduce an offset from the middle of the Linear Impulse Response, for post processing purposes, milliseconds.</li>
+	<li><b>Offset</b> - Introduce an offset from the origin of time of the Linear Impulse Response, for post processing purposes, milliseconds.</li>
 	<li><b>Post-process</b> - Button that forces the plugin to post-process the measurement result.</li>
 	<li><b>Save</b> - Save button.</li>
     <li><b>Noise Floor</b> - If shining, the background noise and/or Offset value are optimal for the selected RT algorithm accuracy.</li>
