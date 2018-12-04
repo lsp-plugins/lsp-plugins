@@ -137,7 +137,7 @@ namespace lsp
         "P1S", // Profiler x1 Stereo
         &developers::s_tronci,
         "profiler_stereo",
-        "xxxx", // Change this <-
+        "hubw",
         0,
         LSP_VERSION(1, 0, 0),
         profiler_classes,
