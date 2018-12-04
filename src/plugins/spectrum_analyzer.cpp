@@ -1,5 +1,5 @@
 /*
- * corellator.cpp
+ * spectrum_analyzer.cpp
  *
  *  Created on: 28 сент. 2015 г.
  *      Author: sadko
@@ -7,7 +7,6 @@
 
 #include <dsp/dsp.h>
 
-#include <plugins/spectrum_analyzer.h>
 #include <core/debug.h>
 #include <core/windows.h>
 #include <core/envelope.h>
@@ -16,7 +15,7 @@
 
 #include <string.h>
 
-#define BUFFER_SIZE         (0x10000 / sizeof(float))
+#include <plugins/spectrum_analyzer.h>
 
 namespace lsp
 {
