@@ -597,7 +597,15 @@ namespace lsp
                             if ((enMode == SA_MASTERING) || (enMode == SA_MASTERING_STEREO))
                             {
                                 sAnalyzer.get_spectrum(i, vMFrequences, vMIndexes, spectrum_analyzer_base_metadata::MMESH_POINTS);
-                                // TODO: smooth values
+                                float p     = sAnalyzer.get_level(i, 0);
+                                for (size_t i=0; i<spectrum_analyzer_base_metadata::MMESH_POINTS; ++i)
+                                {
+                                    dsp::smooth_cubic_linear(v, p, vMFrequences[i], spectrum_analyzer_base_metadata::MMESH_STEP);
+                                    v          += spectrum_analyzer_base_metadata::MMESH_STEP;
+                                    p           = vMFrequences[i];
+                                }
+
+                                v        = mesh->pvData[1];
                             }
                             else
                                 sAnalyzer.get_spectrum(i, v, vIndexes, spectrum_analyzer_base_metadata::MESH_POINTS);

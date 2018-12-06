@@ -24,6 +24,7 @@ namespace lsp
         static const size_t         RANK_MAX            = 14;
         static const size_t         MESH_POINTS         = 640;
         static const size_t         MMESH_POINTS        = 80;
+        static const size_t         MMESH_STEP          = 8;
         static const size_t         WND_DFL             = windows::HANN;
         static const size_t         ENV_DFL             = envelope::PINK_NOISE;
         static const size_t         FB_ROWS             = 360;

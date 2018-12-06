@@ -15,7 +15,7 @@ namespace native
         float dy = stop - start;
         float nx = 1.0f / (count + 1); // Normalizing x
 
-        for (size_t i=1; i<=count; ++i)
+        for (size_t i=0; i<count; ++i)
         {
             float x = i * nx;
             *(dst++) = start + dy * x*x * (3.0f - 2.0f * x);
@@ -27,7 +27,7 @@ namespace native
         float dy = logf(stop/start);
         float nx = 1.0f / (count + 1); // Normalizing x
 
-        for (size_t i=1; i<=count; ++i)
+        for (size_t i=0; i<count; ++i)
         {
             float x = i * nx;
             *(dst++) = start * expf(dy * x*x * (3.0f - 2.0f * x));
