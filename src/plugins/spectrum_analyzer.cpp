@@ -26,7 +26,9 @@ namespace lsp
         vChannels       = NULL;
         pData           = NULL;
         vFrequences     = NULL;
+        vMFrequences    = NULL;
         vIndexes        = NULL;
+        vMIndexes       = NULL;
 
         bBypass         = false;
         nChannel        = 0;
@@ -79,13 +81,17 @@ namespace lsp
         // Calculate header size
         size_t hdr_size         = ALIGN_SIZE(sizeof(sa_channel_t) * channels, 64);
         size_t freq_buf_size    = sizeof(float) * spectrum_analyzer_base_metadata::MESH_POINTS;
+        size_t mfreq_buf_size   = sizeof(float) * spectrum_analyzer_base_metadata::MMESH_POINTS;
         size_t ind_buf_size     = sizeof(uint32_t) * spectrum_analyzer_base_metadata::MESH_POINTS;
-        size_t alloc            = hdr_size + freq_buf_size + ind_buf_size;
+        size_t mind_buf_size    = sizeof(uint32_t) * spectrum_analyzer_base_metadata::MMESH_POINTS;
+        size_t alloc            = hdr_size + freq_buf_size + mfreq_buf_size + ind_buf_size + mind_buf_size;
 
-        lsp_trace("header_size = %d", int(hdr_size));
-        lsp_trace("freq_buf_size = %d", int(freq_buf_size));
-        lsp_trace("ind_buf_size = %d", int(ind_buf_size));
-        lsp_trace("alloc = %d", int(alloc));
+        lsp_trace("header_size      = %d", int(hdr_size));
+        lsp_trace("freq_buf_size    = %d", int(freq_buf_size));
+        lsp_trace("mfreq_buf_size   = %d", int(mfreq_buf_size));
+        lsp_trace("ind_buf_size     = %d", int(ind_buf_size));
+        lsp_trace("mind_buf_size    = %d", int(mind_buf_size));
+        lsp_trace("alloc            = %d", int(alloc));
 
         // Allocate data
         uint8_t *ptr        = alloc_aligned<uint8_t>(pData, alloc, 64);
@@ -117,6 +123,16 @@ namespace lsp
         ptr          += ind_buf_size;
         memset(vIndexes, 0, ind_buf_size);
         lsp_trace("vIndexes = %p", vIndexes);
+
+        vMFrequences  = reinterpret_cast<float *>(ptr);
+        ptr          += mfreq_buf_size;
+        dsp::fill_zero(vMFrequences, spectrum_analyzer_base_metadata::MMESH_POINTS);
+        lsp_trace("vMFrequences = %p", vMFrequences);
+
+        vMIndexes     = reinterpret_cast<uint32_t *>(ptr);
+        ptr          += mind_buf_size;
+        memset(vMIndexes, 0, mind_buf_size);
+        lsp_trace("vMIndexes = %p", vIndexes);
 
         // Initialize channels
         for (size_t i=0; i<channels; ++i)
@@ -485,8 +501,12 @@ namespace lsp
             sAnalyzer.reconfigure();
 
         if (sync_freqs)
+        {
             sAnalyzer.get_frequencies(vFrequences, vIndexes,
                     fMinFreq, fMaxFreq, spectrum_analyzer_base_metadata::MESH_POINTS);
+            sAnalyzer.get_frequencies(vMFrequences, vMIndexes,
+                    fMinFreq, fMaxFreq, spectrum_analyzer_base_metadata::MMESH_POINTS); // For 'mastering' view
+        }
     }
 
     void spectrum_analyzer_base::update_sample_rate(long sr)
@@ -498,6 +518,8 @@ namespace lsp
 
         sAnalyzer.get_frequencies(vFrequences, vIndexes,
                 fMinFreq, fMaxFreq, spectrum_analyzer_base_metadata::MESH_POINTS);
+        sAnalyzer.get_frequencies(vMFrequences, vMIndexes,
+                fMinFreq, fMaxFreq, spectrum_analyzer_base_metadata::MMESH_POINTS); // For 'mastering' view
         sCounter.set_sample_rate(sr, true);
     }
 
@@ -566,16 +588,22 @@ namespace lsp
                     // Copy data to mesh
                     if (mesh_request)
                     {
-                        if (c->bSend)
+                        if ((c->bSend) && (enMode != SA_SPECTRALIZER) && (enMode == SA_SPECTRALIZER_STEREO))
                         {
                             // Copy frequency points
                             dsp::copy(mesh->pvData[0], vFrequences, spectrum_analyzer_base_metadata::MESH_POINTS);
-
                             float *v        = mesh->pvData[1];
-                            sAnalyzer.get_spectrum(i, v, vIndexes, spectrum_analyzer_base_metadata::MESH_POINTS);
-                            dsp::scale2(v, c->fGain * fPreamp, spectrum_analyzer_base_metadata::MESH_POINTS);
+
+                            if ((enMode == SA_MASTERING) || (enMode == SA_MASTERING_STEREO))
+                            {
+                                sAnalyzer.get_spectrum(i, vMFrequences, vMIndexes, spectrum_analyzer_base_metadata::MMESH_POINTS);
+                                // TODO: smooth values
+                            }
+                            else
+                                sAnalyzer.get_spectrum(i, v, vIndexes, spectrum_analyzer_base_metadata::MESH_POINTS);
 
                             // Mark mesh containing data
+                            dsp::scale2(v, c->fGain * fPreamp, spectrum_analyzer_base_metadata::MESH_POINTS);
                             mesh->data(2, spectrum_analyzer_base_metadata::MESH_POINTS);
                         }
                         else

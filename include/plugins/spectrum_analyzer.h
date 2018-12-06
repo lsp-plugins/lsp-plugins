@@ -71,7 +71,9 @@ namespace lsp
             size_t              nChannels;
             sa_channel_t       *vChannels;
             float              *vFrequences;
+            float              *vMFrequences;
             uint32_t           *vIndexes;
+            uint32_t           *vMIndexes;
             uint8_t            *pData;
 
             bool                bBypass;
