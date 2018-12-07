@@ -51,6 +51,8 @@ namespace sse2 // TODO: make constants common for all architectures
 #include <dsp/arch/x86/sse2/graphics.h>
 #include <dsp/arch/x86/sse2/graphics/effects.h>
 
+#include <dsp/arch/x86/sse2/pmath/exp.h>
+
 #undef DSP_ARCH_X86_SSE2_IMPL
 
 namespace sse2
@@ -71,6 +73,9 @@ namespace sse2
         EXPORT1(saturate);
         EXPORT1(limit_saturate1);
         EXPORT1(limit_saturate2);
+
+        EXPORT1(exp1);
+        EXPORT1(exp2);
 
         EXPORT1(min_index);
         EXPORT1(max_index);

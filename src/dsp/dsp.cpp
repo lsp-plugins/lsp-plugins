@@ -117,6 +117,9 @@ namespace dsp
     void    (* scale2)(float *dst, float k, size_t count) = NULL;
     void    (* scale3)(float *dst, const float *src, float k, size_t count) = NULL;
 
+    void    (* exp1)(float *dst, size_t count) = NULL;
+    void    (* exp2)(float *dst, const float *src, size_t count) = NULL;
+
     float   (* h_sum)(const float *src, size_t count) = NULL;
     float   (* h_sqr_sum)(const float *src, size_t count) = NULL;
     float   (* h_abs_sum)(const float *src, size_t count) = NULL;

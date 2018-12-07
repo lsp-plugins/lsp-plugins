@@ -79,6 +79,9 @@ namespace native
         EXPORT1(abs_mul3);
         EXPORT1(abs_div3);
 
+        EXPORT1(exp1);
+        EXPORT1(exp2);
+
         EXPORT1(abs_normalized);
         EXPORT1(normalize);
 

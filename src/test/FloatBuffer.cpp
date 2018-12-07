@@ -95,6 +95,13 @@ namespace test
             pBuffer[i] = (float(rand())/(RAND_MAX-1));
     }
 
+    void FloatBuffer::randomize(float min, float max)
+    {
+        float delta = max - min;
+        for (size_t i=0; i<nLength; ++i)
+            pBuffer[i] = min + delta * (float(rand())/(RAND_MAX-1));
+    }
+
     void FloatBuffer::randomize_negative()
     {
         for (size_t i=0; i<nLength; ++i)

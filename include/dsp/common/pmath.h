@@ -259,6 +259,21 @@ namespace dsp
      */
     extern void (* scale3)(float *dst, const float *src, float k, size_t count);
 
+    /**
+     * Compute dst[i] = exp(dst[i])
+     * @param dst destination
+     * @param count number of elements in destination
+     */
+    extern void (* exp1)(float *dst, size_t count);
+
+    /**
+     * Compute dst[i] = exp(src[i])
+     * @param dst destination
+     * @param src source
+     * @param count number of elements in destination
+     */
+    extern void (* exp2)(float *dst, const float *src, size_t count);
+
 }
 
 #endif /* DSP_COMMON_PMATH_H_ */

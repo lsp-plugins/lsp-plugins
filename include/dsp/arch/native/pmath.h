@@ -234,6 +234,34 @@ namespace native
         }
     }
 
+    void exp1(float *dst, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float x = dst[i];
+            dst[i]  = (x < 0.0f) ? 1.0f / expf(-x) : expf(x);
+        }
+    }
+
+    void exp2(float *dst, const float *src, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+        {
+            float x = src[i];
+            dst[i]  = (x < 0.0f) ? 1.0f / expf(-x) : expf(x);
+        }
+    }
+
+#undef EXP_C0
+#undef EXP_C1
+#undef EXP_C2
+#undef EXP_C3
+#undef EXP_C4
+#undef EXP_C5
+#undef EXP_C6
+#undef EXP_C7
+#undef EXP_C8
+
 }
 
 #endif /* DSP_ARCH_NATIVE_PMATH_H_ */
