@@ -142,7 +142,15 @@ IF_ARCH_ARM(
         f->variant          = 0;
         f->part             = 0;
         f->revision         = 0;
+        f->hwcap            = 0;
+
+        #if defined(PLATFORM_LINUX)
         f->hwcap            = getauxval(AT_HWCAP);
+        #elif defined(PLATFORM_BSD)
+        unsigned long __hwcap;
+        if (elf_aux_info(AT_HWCAP, &__hwcap, sizeof(__hwcap) == 0))
+            f->hwcap            = __hwcap;
+        #endif
 
         // Read /proc/cpuinfo
         FILE *cpuinfo = fopen("/proc/cpuinfo", "r");
