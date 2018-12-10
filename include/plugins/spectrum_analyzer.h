@@ -73,7 +73,6 @@ namespace lsp
             float              *vFrequences;
             float              *vMFrequences;
             uint32_t           *vIndexes;
-            uint32_t           *vMIndexes;
             uint8_t            *pData;
 
             bool                bBypass;

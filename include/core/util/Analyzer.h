@@ -279,7 +279,7 @@ namespace lsp
             /** Get list of frequencies
              *
              * @param f frequency list
-             * @param idx frequency indexes
+             * @param idx frequency indexes containing frequency numbers for future get_spectrum() call
              * @param start start frequency
              * @param stop stop frequency
              * @param count number of elements

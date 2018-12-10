@@ -28,7 +28,6 @@ namespace lsp
         vFrequences     = NULL;
         vMFrequences    = NULL;
         vIndexes        = NULL;
-        vMIndexes       = NULL;
 
         bBypass         = false;
         nChannel        = 0;
@@ -80,17 +79,15 @@ namespace lsp
 
         // Calculate header size
         size_t hdr_size         = ALIGN_SIZE(sizeof(sa_channel_t) * channels, 64);
-        size_t freq_buf_size    = sizeof(float) * spectrum_analyzer_base_metadata::MESH_POINTS;
-        size_t mfreq_buf_size   = sizeof(float) * spectrum_analyzer_base_metadata::MMESH_POINTS;
-        size_t ind_buf_size     = sizeof(uint32_t) * spectrum_analyzer_base_metadata::MESH_POINTS;
-        size_t mind_buf_size    = sizeof(uint32_t) * spectrum_analyzer_base_metadata::MMESH_POINTS;
-        size_t alloc            = hdr_size + freq_buf_size + mfreq_buf_size + ind_buf_size + mind_buf_size;
+        size_t freq_buf_size    = ALIGN_SIZE(sizeof(float) * spectrum_analyzer_base_metadata::MESH_POINTS, 64);
+        size_t mfreq_buf_size   = ALIGN_SIZE(sizeof(float) * spectrum_analyzer_base_metadata::MESH_POINTS, 64);
+        size_t ind_buf_size     = ALIGN_SIZE(sizeof(uint32_t) * spectrum_analyzer_base_metadata::MESH_POINTS, 64);
+        size_t alloc            = hdr_size + freq_buf_size + mfreq_buf_size + ind_buf_size;
 
         lsp_trace("header_size      = %d", int(hdr_size));
         lsp_trace("freq_buf_size    = %d", int(freq_buf_size));
         lsp_trace("mfreq_buf_size   = %d", int(mfreq_buf_size));
         lsp_trace("ind_buf_size     = %d", int(ind_buf_size));
-        lsp_trace("mind_buf_size    = %d", int(mind_buf_size));
         lsp_trace("alloc            = %d", int(alloc));
 
         // Allocate data
@@ -119,20 +116,15 @@ namespace lsp
         dsp::fill_zero(vFrequences, spectrum_analyzer_base_metadata::MESH_POINTS);
         lsp_trace("vFrequences = %p", vFrequences);
 
+        vMFrequences  = reinterpret_cast<float *>(ptr);
+        ptr          += mfreq_buf_size;
+        dsp::fill_zero(vMFrequences, spectrum_analyzer_base_metadata::MESH_POINTS);
+        lsp_trace("vMFrequences = %p", vMFrequences);
+
         vIndexes      = reinterpret_cast<uint32_t *>(ptr);
         ptr          += ind_buf_size;
         memset(vIndexes, 0, ind_buf_size);
         lsp_trace("vIndexes = %p", vIndexes);
-
-        vMFrequences  = reinterpret_cast<float *>(ptr);
-        ptr          += mfreq_buf_size;
-        dsp::fill_zero(vMFrequences, spectrum_analyzer_base_metadata::MMESH_POINTS);
-        lsp_trace("vMFrequences = %p", vMFrequences);
-
-        vMIndexes     = reinterpret_cast<uint32_t *>(ptr);
-        ptr          += mind_buf_size;
-        memset(vMIndexes, 0, mind_buf_size);
-        lsp_trace("vMIndexes = %p", vIndexes);
 
         // Initialize channels
         for (size_t i=0; i<channels; ++i)
@@ -504,8 +496,6 @@ namespace lsp
         {
             sAnalyzer.get_frequencies(vFrequences, vIndexes,
                     fMinFreq, fMaxFreq, spectrum_analyzer_base_metadata::MESH_POINTS);
-            sAnalyzer.get_frequencies(vMFrequences, vMIndexes,
-                    fMinFreq, fMaxFreq, spectrum_analyzer_base_metadata::MMESH_POINTS); // For 'mastering' view
         }
     }
 
@@ -518,8 +508,6 @@ namespace lsp
 
         sAnalyzer.get_frequencies(vFrequences, vIndexes,
                 fMinFreq, fMaxFreq, spectrum_analyzer_base_metadata::MESH_POINTS);
-        sAnalyzer.get_frequencies(vMFrequences, vMIndexes,
-                fMinFreq, fMaxFreq, spectrum_analyzer_base_metadata::MMESH_POINTS); // For 'mastering' view
         sCounter.set_sample_rate(sr, true);
     }
 
@@ -588,22 +576,31 @@ namespace lsp
                     // Copy data to mesh
                     if (mesh_request)
                     {
-                        if ((c->bSend) && (enMode != SA_SPECTRALIZER) && (enMode == SA_SPECTRALIZER_STEREO))
+                        if ((c->bSend) && (enMode != SA_SPECTRALIZER) && (enMode != SA_SPECTRALIZER_STEREO))
                         {
                             // Copy frequency points
                             dsp::copy(mesh->pvData[0], vFrequences, spectrum_analyzer_base_metadata::MESH_POINTS);
                             float *v        = mesh->pvData[1];
+                            size_t off      = 0;
 
                             if ((enMode == SA_MASTERING) || (enMode == SA_MASTERING_STEREO))
                             {
-                                sAnalyzer.get_spectrum(i, vMFrequences, vMIndexes, spectrum_analyzer_base_metadata::MMESH_POINTS);
-                                float p     = sAnalyzer.get_level(i, 0);
-                                for (size_t i=0; i<spectrum_analyzer_base_metadata::MMESH_POINTS; ++i)
+                                sAnalyzer.get_spectrum(i, vMFrequences, vIndexes, spectrum_analyzer_base_metadata::MESH_POINTS);
+                                size_t pi = 0, ni = spectrum_analyzer_base_metadata::MMESH_STEP;
+
+                                for (; ni < spectrum_analyzer_base_metadata::MESH_POINTS; ni += spectrum_analyzer_base_metadata::MMESH_STEP)
                                 {
-                                    dsp::smooth_cubic_linear(v, p, vMFrequences[i], spectrum_analyzer_base_metadata::MMESH_STEP);
-                                    v          += spectrum_analyzer_base_metadata::MMESH_STEP;
-                                    p           = vMFrequences[i];
+                                    if (vIndexes[ni] == vIndexes[pi])
+                                        continue;
+
+//                                    dsp::smooth_cubic_linear(v, vMFrequences[pi], vMFrequences[ni], st);
+                                    dsp::smooth_cubic_log(&v[off], vMFrequences[pi], vMFrequences[ni], ni-pi);
+                                    off        += ni-pi;
+                                    pi          = ni;
                                 }
+
+                                if (pi < spectrum_analyzer_base_metadata::MESH_POINTS)
+                                    dsp::smooth_cubic_log(&v[off], vMFrequences[pi], vMFrequences[ni-1], ni-pi);
 
                                 v        = mesh->pvData[1];
                             }
