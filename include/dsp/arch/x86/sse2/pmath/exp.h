@@ -51,6 +51,7 @@ namespace sse2
 
 #define X4VEC(x)    x, x, x, x
 
+IF_ARCH_X86(
     static const uint32_t EXP2_CONST[] __lsp_aligned16 =
     {
         X4VEC(0x7fffffff), // sign
@@ -70,6 +71,7 @@ namespace sse2
     {
         X4VEC(M_LOG2E)
     };
+)
 
 #undef X4VEC
 
@@ -91,7 +93,7 @@ namespace sse2
         __ASM_EMIT("paddd           0xa0 + %[E2C], %%xmm5") \
         __ASM_EMIT("subps           %%xmm3, %%xmm2")                /* xmm2 = XP - float(R) */ \
         __ASM_EMIT("subps           %%xmm7, %%xmm6") \
-        __ASM_EMIT("pslld           $23, %%xmm1")                   /* xmm1 = 1 << R */ \
+        __ASM_EMIT("pslld           $23, %%xmm1")                   /* xmm1 = 1 << (R+127) */ \
         __ASM_EMIT("pslld           $23, %%xmm5") \
         __ASM_EMIT("mulps           0x10 + %[E2C], %%xmm2")         /* xmm2 = X = ln(2) * (XP - float(R)) */ \
         __ASM_EMIT("mulps           0x10 + %[E2C], %%xmm6") \
@@ -150,7 +152,7 @@ namespace sse2
         __ASM_EMIT("cvtdq2ps        %%xmm3, %%xmm3")                /* xmm3 = float(R) */ \
         __ASM_EMIT("paddd           0xa0 + %[E2C], %%xmm1")         /* xmm1 = R + 127 */ \
         __ASM_EMIT("subps           %%xmm3, %%xmm2")                /* xmm2 = XP - float(R) */ \
-        __ASM_EMIT("pslld           $23, %%xmm1")                   /* xmm1 = 1 << R */ \
+        __ASM_EMIT("pslld           $23, %%xmm1")                   /* xmm1 = 1 << (R+127) */ \
         __ASM_EMIT("mulps           0x10 + %[E2C], %%xmm2")         /* xmm2 = X = ln(2) * (XP - float(R)) */ \
         __ASM_EMIT("movaps          %%xmm2, %%xmm3")                /* xmm3 = X */ \
         /* xmm0 = [ x < 0 ], xmm1 = 1 << R, xmm2 = X, xmm3 = X */ \
@@ -318,6 +320,9 @@ namespace sse2
               "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
     }
+
+#undef POW2_CORE_X8
+#undef POW2_CORE_X4
 
     /*
         const float *E2C = reinterpret_cast<const float *>(EXP2_CONST);

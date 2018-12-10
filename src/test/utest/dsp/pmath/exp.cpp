@@ -26,8 +26,8 @@ IF_ARCH_X86(
 IF_ARCH_ARM(
     namespace neon_d32
     {
-//        void exp1(float *dst, size_t count);
-//        void exp2(float *dst, const float *src, size_t count);
+        void exp1(float *dst, size_t count);
+        void exp2(float *dst, const float *src, size_t count);
     }
 )
 
@@ -138,8 +138,8 @@ UTEST_BEGIN("dsp.pmath", exp)
         IF_ARCH_X86(call("sse2::exp1", 16, sse2::exp1));
         IF_ARCH_X86(call("sse2::exp2", 16, sse2::exp2));
 
-//        IF_ARCH_ARM(call("neon_d32::exp1", 16, neon_d32::exp1));
-//        IF_ARCH_ARM(call("neon_d32::exp2", 16, neon_d32::exp2));
+        IF_ARCH_ARM(call("neon_d32::exp1", 16, neon_d32::exp1));
+        IF_ARCH_ARM(call("neon_d32::exp2", 16, neon_d32::exp2));
     }
 UTEST_END
 
