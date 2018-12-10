@@ -80,12 +80,12 @@ IF_ARCH_ARM(
     __ASM_EMIT("vadd.f32        q5, q5, q9") \
     __ASM_EMIT("vmul.f32        q4, q4, q0")                    /* q4   = X*(C0+X*(C1+X*(C2+X*(C3+X*(C4+X*(C5+X)))))) */ \
     __ASM_EMIT("vmul.f32        q5, q5, q1") \
-    __ASM_EMIT("vmul.f32,       q4, q4, q10")                   /* q4   = 1/7! * X*(C0+X*(C1+X*(C2+X*(C3+X*(C4+X*(C5+X)))))) */ \
-    __ASM_EMIT("vmul.f32,       q5, q5, q10") \
-    __ASM_EMIT("vadd.f32,       q4, q4, q11")                   /* q4   = 1 + 1/7! * X*(C0+X*(C1+X*(C2+X*(C3+X*(C4+X*(C5+X)))))) */ \
-    __ASM_EMIT("vadd.f32,       q5, q5, q11") \
-    __ASM_EMIT("vmul.f32,       q4, q4, q6")                    /* q4   = E = (1 << R) * (1 + 1/7! * X*(C0+X*(C1+X*(C2+X*(C3+X*(C4+X*(C5+X))))))) */ \
-    __ASM_EMIT("vmul.f32,       q5, q5, q7") \
+    __ASM_EMIT("vmul.f32        q4, q4, q10")                   /* q4   = 1/7! * X*(C0+X*(C1+X*(C2+X*(C3+X*(C4+X*(C5+X)))))) */ \
+    __ASM_EMIT("vmul.f32        q5, q5, q10") \
+    __ASM_EMIT("vadd.f32        q4, q4, q11")                   /* q4   = 1 + 1/7! * X*(C0+X*(C1+X*(C2+X*(C3+X*(C4+X*(C5+X)))))) */ \
+    __ASM_EMIT("vadd.f32        q5, q5, q11") \
+    __ASM_EMIT("vmul.f32        q4, q4, q6")                    /* q4   = E = (1 << R) * (1 + 1/7! * X*(C0+X*(C1+X*(C2+X*(C3+X*(C4+X*(C5+X))))))) */ \
+    __ASM_EMIT("vmul.f32        q5, q5, q7") \
     __ASM_EMIT("sub             %[E2C], $0x60")                 /* E2C -= 6*4 */ \
     /* Calc reciprocals into q0 */ \
     __ASM_EMIT("vrecpe.f32      q8, q4")                        /* q8   = e2 */ \
@@ -127,9 +127,9 @@ IF_ARCH_ARM(
     __ASM_EMIT("vmul.f32        q4, q4, q0")                    /* q4   = X*(C1+X*(C2+X*(C3+X*(C4+X*(C5+X))))) */ \
     __ASM_EMIT("vadd.f32        q4, q4, q9")                    /* q4   = C0+X*(C1+X*(C2+X*(C3+X*(C4+X*(C5+X))))) */ \
     __ASM_EMIT("vmul.f32        q4, q4, q0")                    /* q4   = X*(C0+X*(C1+X*(C2+X*(C3+X*(C4+X*(C5+X)))))) */ \
-    __ASM_EMIT("vmul.f32,       q4, q4, q10")                   /* q4   = 1/7! * X*(C0+X*(C1+X*(C2+X*(C3+X*(C4+X*(C5+X)))))) */ \
-    __ASM_EMIT("vadd.f32,       q4, q4, q11")                   /* q4   = 1 + 1/7! * X*(C0+X*(C1+X*(C2+X*(C3+X*(C4+X*(C5+X)))))) */ \
-    __ASM_EMIT("vmul.f32,       q4, q4, q6")                    /* q4   = E = (1 << R) * (1 + 1/7! * X*(C0+X*(C1+X*(C2+X*(C3+X*(C4+X*(C5+X))))))) */ \
+    __ASM_EMIT("vmul.f32        q4, q4, q10")                   /* q4   = 1/7! * X*(C0+X*(C1+X*(C2+X*(C3+X*(C4+X*(C5+X)))))) */ \
+    __ASM_EMIT("vadd.f32        q4, q4, q11")                   /* q4   = 1 + 1/7! * X*(C0+X*(C1+X*(C2+X*(C3+X*(C4+X*(C5+X)))))) */ \
+    __ASM_EMIT("vmul.f32        q4, q4, q6")                    /* q4   = E = (1 << R) * (1 + 1/7! * X*(C0+X*(C1+X*(C2+X*(C3+X*(C4+X*(C5+X))))))) */ \
     __ASM_EMIT("sub             %[E2C], $0x60")                 /* E2C -= 6*4 */ \
     /* Calc reciprocals into q0 */ \
     __ASM_EMIT("vrecpe.f32      q8, q4")                        /* q8   = e2 */ \
@@ -149,12 +149,12 @@ IF_ARCH_ARM(
 
             // x8 blocks
             __ASM_EMIT("1:")
-            __ASM_EMIT("vld1.32         {q0-q1}, %[src]!")
+            __ASM_EMIT("vld1.32         {q0-q1}, [%[src]]!")
             __ASM_EMIT("vmul.f32        q0, q0, q15")
             __ASM_EMIT("vmul.f32        q1, q1, q15")
             POW2_CORE_X8
             __ASM_EMIT("subs            %[count], $8")
-            __ASM_EMIT("vst1.32         {q0-q1}, %[dst]!")
+            __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
             __ASM_EMIT("bhs             1b")
 
             __ASM_EMIT("2:")
@@ -162,12 +162,11 @@ IF_ARCH_ARM(
             __ASM_EMIT("blt             4f")
 
             // x4 block
-            __ASM_EMIT("vld1.32         {q0}, %[src]!")
+            __ASM_EMIT("vld1.32         {q0}, [%[src]]!")
             __ASM_EMIT("vmul.f32        q0, q0, q15")
             POW2_CORE_X4
-            __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
             __ASM_EMIT("sub             %[count], $4")
-            __ASM_EMIT("vst1.32         {q0}, %[dst]!")
+            __ASM_EMIT("vst1.32         {q0}, [%[dst]]!")
 
             __ASM_EMIT("4:")
             __ASM_EMIT("adds            %[count], $4")
@@ -197,9 +196,9 @@ IF_ARCH_ARM(
             // End
             __ASM_EMIT("12:")
 
-            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count),
-              [E2C] "+r" (&EXP2_CONST[0])
-            : [LOG2E] "r" (&EXP_LOG2E[0])
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            : [E2C] "r" (&EXP2_CONST[0]),
+              [LOG2E] "r" (&EXP_LOG2E[0])
             : "cc", "memory",
               "q0", "q1", "q2", "q3",
               "q4", "q5", "q6", "q7",
@@ -219,12 +218,12 @@ IF_ARCH_ARM(
 
             // x8 blocks
             __ASM_EMIT("1:")
-            __ASM_EMIT("vld1.32         {q0-q1}, %[src]!")
+            __ASM_EMIT("vld1.32         {q0-q1}, [%[src]]!")
             __ASM_EMIT("vmul.f32        q0, q0, q15")
             __ASM_EMIT("vmul.f32        q1, q1, q15")
             POW2_CORE_X8
             __ASM_EMIT("subs            %[count], $8")
-            __ASM_EMIT("vst1.32         {q0-q1}, %[dst]!")
+            __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
             __ASM_EMIT("bhs             1b")
 
             __ASM_EMIT("2:")
@@ -232,12 +231,11 @@ IF_ARCH_ARM(
             __ASM_EMIT("blt             4f")
 
             // x4 block
-            __ASM_EMIT("vld1.32         {q0}, %[src]!")
+            __ASM_EMIT("vld1.32         {q0}, [%[src]]!")
             __ASM_EMIT("vmul.f32        q0, q0, q15")
             POW2_CORE_X4
-            __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
             __ASM_EMIT("sub             %[count], $4")
-            __ASM_EMIT("vst1.32         {q0}, %[dst]!")
+            __ASM_EMIT("vst1.32         {q0}, [%[dst]]!")
 
             __ASM_EMIT("4:")
             __ASM_EMIT("adds            %[count], $4")
@@ -267,9 +265,9 @@ IF_ARCH_ARM(
             // End
             __ASM_EMIT("12:")
 
-            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count),
-              [E2C] "+r" (&EXP2_CONST[0])
-            : [LOG2E] "r" (&EXP_LOG2E[0])
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            : [E2C] "r" (&EXP2_CONST[0]),
+              [LOG2E] "r" (&EXP_LOG2E[0])
             : "cc", "memory",
               "q0", "q1", "q2", "q3",
               "q4", "q5", "q6", "q7",
