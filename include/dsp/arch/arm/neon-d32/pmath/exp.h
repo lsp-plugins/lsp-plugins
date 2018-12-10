@@ -44,8 +44,8 @@ IF_ARCH_ARM(
     __ASM_EMIT("vabs.f32        q1, q1") \
     __ASM_EMIT("vcvt.u32.f32    q4, q0")                        /* q4   = R = int(x) */ \
     __ASM_EMIT("vcvt.u32.f32    q5, q1") \
-    __ASM_EMIT("vadd.f32        q6, q4, q8")                    /* q6   = R + 127 */ \
-    __ASM_EMIT("vadd.f32        q7, q5, q8") \
+    __ASM_EMIT("vadd.u32        q6, q4, q8")                    /* q6   = R + 127 */ \
+    __ASM_EMIT("vadd.u32        q7, q5, q8") \
     __ASM_EMIT("vcvt.f32.u32    q4, q4")                        /* q4   = float(R) */ \
     __ASM_EMIT("vcvt.f32.u32    q5, q5") \
     __ASM_EMIT("vshl.u32        q6, q6, $23")                   /* q6   = 1 << (R + 127) */ \
@@ -93,11 +93,11 @@ IF_ARCH_ARM(
     __ASM_EMIT("vrecps.f32      q10, q8, q4")                   /* q10  = (2 - E*e2) */ \
     __ASM_EMIT("vrecps.f32      q11, q9, q5") \
     __ASM_EMIT("vmul.f32        q8, q10, q8")                   /* q8   = e2' = e2 * (2 - E*e2) */ \
-    __ASM_EMIT("vmul.f32        q9, q11, q8") \
+    __ASM_EMIT("vmul.f32        q9, q11, q9") \
     __ASM_EMIT("vrecps.f32      q10, q8, q4")                   /* q10  = (2 - E*e2') */ \
     __ASM_EMIT("vrecps.f32      q11, q9, q5") \
     __ASM_EMIT("vmul.f32        q0, q10, q8")                   /* q0   = 1/E = e2" = e2' * (2 - E*e2) */  \
-    __ASM_EMIT("vmul.f32        q1, q11, q8") \
+    __ASM_EMIT("vmul.f32        q1, q11, q9") \
     /* Perform conditional output */ \
     __ASM_EMIT("vbif            q0, q4, q2")                    /* q0   = ((1/E) & [ x < 0 ]) | (E & [x >= 0]) */ \
     __ASM_EMIT("vbif            q1, q5, q3")
@@ -108,7 +108,7 @@ IF_ARCH_ARM(
     __ASM_EMIT("vshr.s32        q2, q0, $31")                   /* q2   = [ x < 0 ] */ \
     __ASM_EMIT("vabs.f32        q0, q0")                        /* q0   = XP = fabs(x) */ \
     __ASM_EMIT("vcvt.u32.f32    q4, q0")                        /* q4   = R = int(x) */ \
-    __ASM_EMIT("vadd.f32        q6, q4, q8")                    /* q6   = R + 127 */ \
+    __ASM_EMIT("vadd.u32        q6, q4, q8")                    /* q6   = R + 127 */ \
     __ASM_EMIT("vcvt.f32.u32    q4, q4")                        /* q4   = float(R) */ \
     __ASM_EMIT("vshl.u32        q6, q6, $23")                   /* q6   = 1 << (R + 127) */ \
     __ASM_EMIT("vsub.f32        q0, q0, q4")                    /* q0   = XP - float(R) */ \
@@ -187,7 +187,7 @@ IF_ARCH_ARM(
 
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             10f")
-            __ASM_EMIT("vstm            %[dst]!, {q2}")
+            __ASM_EMIT("vstm            %[dst]!, {s2}")
             __ASM_EMIT("10:")
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             12f")
@@ -256,7 +256,7 @@ IF_ARCH_ARM(
 
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             10f")
-            __ASM_EMIT("vstm            %[dst]!, {q2}")
+            __ASM_EMIT("vstm            %[dst]!, {s2}")
             __ASM_EMIT("10:")
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             12f")

@@ -89,14 +89,14 @@ PTEST_BEGIN("dsp.pmath", abs, 5, 1000)
         {
             size_t count = 1 << i;
 
-            CALL("native:abs1", dst, count, native::abs1);
-            IF_ARCH_X86(CALL("sse:abs1", dst, count, sse::abs1));
-            IF_ARCH_ARM(CALL("neon_d32:abs1", dst, count, neon_d32::abs1));
+            CALL("native::abs1", dst, count, native::abs1);
+            IF_ARCH_X86(CALL("sse::abs1", dst, count, sse::abs1));
+            IF_ARCH_ARM(CALL("neon_d32::abs1", dst, count, neon_d32::abs1));
             PTEST_SEPARATOR;
 
-            CALL("native:abs2", dst, src, count, native::abs2);
-            IF_ARCH_X86(CALL("sse:abs2", dst, src, count, sse::abs2));
-            IF_ARCH_ARM(CALL("neon_d32:abs2", dst, src, count, neon_d32::abs2));
+            CALL("native::abs2", dst, src, count, native::abs2);
+            IF_ARCH_X86(CALL("sse::abs2", dst, src, count, sse::abs2));
+            IF_ARCH_ARM(CALL("neon_d32::abs2", dst, src, count, neon_d32::abs2));
             PTEST_SEPARATOR;
         }
 
