@@ -88,6 +88,10 @@
         gather_stats(NULL, 0.0f, 0); \
         printf("\n");
 
+#define PTEST_SEPARATOR2 \
+        gather_stats(NULL, 0.0f, 1); \
+        printf("\n");
+
 #define PTEST_FAIL_MSG(message, ...) {  \
             fprintf(stderr, "Performance test '%s.%s' has failed at file %s, line %d with message:\n  " message  "\n", \
                     __test_group, __test_name, __FILE__, __LINE__, ## __VA_ARGS__); \

@@ -81,6 +81,12 @@ namespace native
 
         EXPORT1(exp1);
         EXPORT1(exp2);
+        EXPORT1(logb1);
+        EXPORT1(logb2);
+        EXPORT1(loge1);
+        EXPORT1(loge2);
+        EXPORT1(logd1);
+        EXPORT1(logd2);
 
         EXPORT1(abs_normalized);
         EXPORT1(normalize);

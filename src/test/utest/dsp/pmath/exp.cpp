@@ -53,7 +53,7 @@ static inline void std_exp2(float *dst, const float *src, size_t count)
 }
 
 //-----------------------------------------------------------------------------
-// Unit test for complex multiplication
+// Unit test
 UTEST_BEGIN("dsp.pmath", exp)
 
     void call(const char *label, size_t align, exp1_t func)
@@ -106,9 +106,10 @@ UTEST_BEGIN("dsp.pmath", exp)
                 printf("Testing %s on input buffer of %d numbers, mask=0x%x...\n", label, int(count), int(mask));
 
                 FloatBuffer src(count, align, mask & 0x01);
+                src.randomize(-20.0f, 20.0f);
+
                 FloatBuffer dst1(count, align, mask & 0x02);
                 FloatBuffer dst2(dst1);
-                dst1.randomize(-20.0f, 20.0f);
 
                 // Call functions
                 std_exp2(dst1, src, count);

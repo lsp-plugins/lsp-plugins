@@ -119,6 +119,12 @@ namespace dsp
 
     void    (* exp1)(float *dst, size_t count) = NULL;
     void    (* exp2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* logb1)(float *dst, size_t count) = NULL;
+    void    (* logb2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* loge1)(float *dst, size_t count) = NULL;
+    void    (* loge2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* logd1)(float *dst, size_t count) = NULL;
+    void    (* logd2)(float *dst, const float *src, size_t count) = NULL;
 
     float   (* h_sum)(const float *src, size_t count) = NULL;
     float   (* h_sqr_sum)(const float *src, size_t count) = NULL;

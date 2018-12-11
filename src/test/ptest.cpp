@@ -62,7 +62,6 @@ namespace test
         if (stats == NULL)
             return;
 
-        stats->key          = NULL;
         stats->time         = NULL;
         stats->n_time       = NULL;
         stats->iterations   = NULL;
@@ -70,10 +69,11 @@ namespace test
         stats->performance  = NULL;
         stats->time_cost    = NULL;
         stats->rel          = NULL;
-        stats->cost         = 0.0f;
 
         if (key == NULL)
         {
+            stats->key          = NULL;
+            stats->cost         = iterations + 1;
             double cost_max     = 0.0f;
             size_t first        = -1;
 
@@ -198,7 +198,7 @@ namespace test
         out_text(out, time_cost, "Cost[us/i]", 1, "─", "┬");
         out_text(out, rel, "Rel[%]", 1, "─", "┐\n");
 
-        bool separator = false;
+        int separator = 0;
 
         // Output table data
         for (size_t i=0, n=__test_stats.size(); i < n; ++i)
@@ -206,7 +206,7 @@ namespace test
             stats_t *stats = __test_stats.at(i);
             if (stats->key != NULL)
             {
-                if (separator)
+                if (separator == 1)
                 {
                     fputs("├", out);
                     out_text(out, key, NULL, -1, "─", "┼");
@@ -218,7 +218,19 @@ namespace test
                     out_text(out, time_cost, NULL, 1, "─", "┼");
                     out_text(out, rel, NULL, 1, "─", "┤\n");
                 }
-                separator = false;
+                else if (separator == 2)
+                {
+                    fputs("╞", out);
+                    out_text(out, key, NULL, -1, "═", "╪");
+                    out_text(out, time, NULL, 1, "═", "╪");
+                    out_text(out, iterations, NULL, 1, "═", "╪");
+                    out_text(out, n_time, NULL, 1, "═", "╪");
+                    out_text(out, n_iterations, NULL, 1, "═", "╪");
+                    out_text(out, performance, NULL, 1, "═", "╪");
+                    out_text(out, time_cost, NULL, 1, "═", "╪");
+                    out_text(out, rel, NULL, 1, "═", "╡\n");
+                }
+                separator = 0;
 
                 fputs("│", out);
                 out_text(out, key, stats->key, -1, " ", "│");
@@ -231,7 +243,7 @@ namespace test
                 out_text(out, rel, stats->rel, 1, " ", "│\n");
             }
             else
-                separator = true;
+                separator = stats->cost;
         }
 
         // Output table footer

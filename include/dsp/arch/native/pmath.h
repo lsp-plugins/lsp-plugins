@@ -252,6 +252,42 @@ namespace native
         }
     }
 
+    void logb1(float *dst, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = logf(dst[i]) * M_LOG2E;
+    }
+
+    void logb2(float *dst, const float *src, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = logf(src[i]) * M_LOG2E;
+    }
+
+    void loge1(float *dst, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = logf(dst[i]);
+    }
+
+    void loge2(float *dst, const float *src, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = logf(src[i]);
+    }
+
+    void logd1(float *dst, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = log10f(dst[i]);
+    }
+
+    void logd2(float *dst, const float *src, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = log10f(src[i]);
+    }
+
 #undef EXP_C0
 #undef EXP_C1
 #undef EXP_C2
