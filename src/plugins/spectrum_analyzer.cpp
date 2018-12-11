@@ -235,6 +235,7 @@ namespace lsp
         // Initialize basic ports
         pBypass         = vPorts[port_id++];
         pMode           = vPorts[port_id++];
+        port_id++; // Skip spectralizer mode
         pFreeze         = vPorts[port_id++];
         pTolerance      = vPorts[port_id++];
         pWindow         = vPorts[port_id++];
@@ -640,6 +641,8 @@ namespace lsp
 
                         // Get row and commit it
                         sa_channel_t *c     = &vChannels[cid];
+                        if (c->bFreeze) // Do not report new data in 'Hold' state
+                            continue;
                         float *v            = fb->next_row();
 
                         sAnalyzer.get_spectrum(cid, v, vIndexes, spectrum_analyzer_base_metadata::MESH_POINTS);

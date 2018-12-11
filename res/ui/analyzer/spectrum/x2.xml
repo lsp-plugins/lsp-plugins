@@ -1,9 +1,17 @@
 <plugin resizable="false">
 	<vbox spacing="4">
-		<hbox spacing="8" border="4" fill="false">
-			<label text="Mode" />
-			<combo id="mode" />
-		</hbox>
+		<align hpos="0" fill="true">
+			<hbox spacing="8" border="4" fill="false">
+				<label text="Mode" />
+				<combo id="mode" />
+				
+				<label text="Spectrogram" visibility=":mode ige 2" />
+				<combo id="spm" visibility=":mode ige 2" />
+				
+				<label text="Channel" visibility=":mode ieq 2" />
+				<combo id="spc" width="32" visibility=":mode ieq 2" />
+			</hbox>
+		</align>
 		
 		<hbox>
 			<vbox fill="true" spacing="4">
@@ -55,10 +63,6 @@
 					<axis min="-72 db / :zoom" max="24 db * :zoom" color="g_white" angle="0.5" logarithmic="true" /> <!-- -72..+24 dB -->
 					<axis min="-1" max="1" visible="false" angle="0.5" />
 					
-					<!-- Marker -->
-					<marker id="freq" color="g_red" basis="0" parallel="1" />
-					<marker id="lvl" color="g_red" basis="1" parallel="0" />
-					
 					<!-- Text -->
 					<text text="Hz" basis="0;2" coord="10;0" halign="1" valign="1" />
 					<text text="100" basis="0;2" coord="100;0" halign="1" valign="1" />
@@ -107,7 +111,7 @@
 		
 					<!-- Frame buffer -->
 					<fbuffer id="fb0" width="1" height="1" hpos="-1" vpos="1" opacity="0.75" angle="0"
-						mode="1" color="red" />
+						mode=":spm" color="left_channel" hue_id="hue[spc]" />
 		
 					<!-- Boundaries -->
 					<marker value="8" color="g_white" basis="1" parallel="0" />
@@ -131,7 +135,7 @@
 				</graph>
 				
 				<!-- Spectralizer (2 channels) -->
-				<graph width="960" height="360" expand="true" fill="true" visibility=":mode ieq 3">
+				<graph width="800" height="360" expand="true" fill="true" visibility=":mode ieq 3">
 					<center hpos="-1" vpos="1" visible="false" />
 					<center hpos="0" vpos="1" visible="false" />
 					
@@ -162,18 +166,21 @@
 		
 					<ui:for id="t" first="2" last="6" step="2"><marker value="${t}" color="g_yellow" basis="1" parallel="0" /></ui:for>
 		
+					<!-- Frame buffer -->
+					<fbuffer id="fb0" width="0.5" height="1" hpos="-1" vpos="1" opacity="0.75" angle="0"
+						mode=":spm" color="left_channel" hue_id="hue_0" />
+					<fbuffer id="fb1" width="0.5" height="1" hpos="0" vpos="1" opacity="0.75" angle="0"
+						mode=":spm" color="left_channel" hue_id="hue_1" />
+		
 					<!-- Boundaries -->
 					<marker center="0" value="8" color="g_white" basis="1" parallel="0" />
 					<marker center="0" value="24000" color="g_white" basis="0" parallel="1" />
 					<marker center="1" value="24000" color="g_white" basis="2" parallel="1" />
 					
 					<!-- Axis -->
-					<axis center="0" min="10" max="24000" length="484" angle="0.0" color="g_white" logarithmic="true" />
+					<axis center="0" min="10" max="24000" length="404" angle="0.0" color="g_white" logarithmic="true" />
 					<axis center="0" min="0" max="8" color="g_white" angle="1.5" logarithmic="false" />
-					<axis center="1" min="10" max="24000" length="484" angle="0.0" color="g_white" logarithmic="true" />
-					
-					<!-- Marker -->
-					<marker id="freq" color="g_red" basis="0" parallel="1" />
+					<axis center="1" min="10" max="24000" length="404" angle="0.0" color="g_white" logarithmic="true" />
 					
 					<!-- Text -->
 					<ui:for id="c" first="0" last="1" >
@@ -208,7 +215,7 @@
 			</vbox>
 		</hbox>
 		
-		<hbox spacing="4">
+		<hbox spacing="4" visibility=":mode ilt 2">
 			<group text="Channels" expand="true">
 				<grid rows="5" cols="6" expand="true">
 					<label text="#" />
@@ -216,13 +223,13 @@
 					<label text="Solo" />
 					<label text="Hold" />
 					<label text="Hue" />
-					<label text="Shift (dB)" />
+					<label text="Shift" />
 					
 					<ui:for id="i" first="0" last="1">
 						<label text="${i}" />
-						<button id="on_${i}" size="16" color="red" led="true" hue_id="hue_${i}" />
-						<button id="solo_${i}" size="16" color="red" led="true" hue_id="hue_${i}" />
-						<button id="frz_${i}" size="16" color="red" led="true" hue_id="hue_${i}" />
+						<button id="on_${i}" size="32" color="red" led="true" hue_id="hue_${i}" />
+						<button id="solo_${i}" size="32" color="red" led="true" hue_id="hue_${i}" />
+						<button id="frz_${i}" size="32" color="red" led="true" hue_id="hue_${i}" />
 						<knob id="hue_${i}" scale_hue_id="hue_${i}" size="20" />
 						<knob id="sh_${i}" scale_hue_id="hue_${i}" size="20" />
 						
@@ -230,8 +237,8 @@
 						<label />
 						<label />
 						<label />
-						<value id="hue_${i}" detailed="false" />
-						<value id="sh_${i}" detailed="false" />
+						<value id="hue_${i}" detailed="false" same_line="true" />
+						<value id="sh_${i}" same_line="true" />
 					</ui:for>
 				</grid>
 			</group>
@@ -260,5 +267,48 @@
 				</grid>
 			</group>
 		</hbox>
+		<group text="Spectralizer" expand="true" visibility=":mode ige 2">
+			<grid rows="4" cols="10" transpose="true" fill="true">
+				<cell cols="3"><label text="Channel 0" /></cell>
+				<label text="Hold" />
+				<button id="frz_0" size="32" color="red" led="true" hue_id="hue_0" />
+				<label />
+				<label text="Hue" />
+				<knob id="hue_0" scale_hue_id="hue_0" size="20" />
+				<value id="hue_0" detailed="false" />
+				<label text="Shift" />
+				<knob id="sh_0" scale_hue_id="hue_0" size="20" />
+				<value id="sh_0" same_line="true" />
+
+				<cell rows="4" expand="false">
+					<vsep />
+				</cell>
+
+				<cell cols="3"><label text="Channel 1" /></cell>
+				<label text="Hold" />
+				<button id="frz_1" size="32" color="red" led="true" hue_id="hue_1" />
+				<label />
+				<label text="Hue" />
+				<knob id="hue_1" scale_hue_id="hue_1" size="20" />
+				<value id="hue_1" detailed="false" />
+				<label text="Shift" />
+				<knob id="sh_1" scale_hue_id="hue_1" size="20" />
+				<value id="sh_1" same_line="true" />
+				
+				<cell rows="4" expand="false">
+					<vsep />
+				</cell>
+				
+				<label />
+				<label text="Preamp" />
+				<knob id="pamp" />
+				<value id="pamp" same_line="true" />
+
+				<label />
+				<label text="Reactivity" />
+				<knob id="react" />
+				<value id="react" same_line="true" />
+			</grid>
+		</group>
 	</vbox>
 </plugin>
