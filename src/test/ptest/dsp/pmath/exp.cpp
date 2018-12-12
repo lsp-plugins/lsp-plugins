@@ -1,7 +1,7 @@
 /*
- * abs.cpp
+ * exp.cpp
  *
- *  Created on: 22 сент. 2018 г.
+ *  Created on: 7 дек. 2018 г.
  *      Author: sadko
  */
 
@@ -14,34 +14,34 @@
 
 namespace native
 {
-    void abs1(float *src, size_t count);
-    void abs2(float *dst, const float *src, size_t count);
+    void exp1(float *dst, size_t count);
+    void exp2(float *dst, const float *src, size_t count);
 }
 
 IF_ARCH_X86(
-    namespace sse
+    namespace sse2
     {
-        void abs1(float *src, size_t count);
-        void abs2(float *dst, const float *src, size_t count);
+        void exp1(float *dst, size_t count);
+        void exp2(float *dst, const float *src, size_t count);
     }
 )
 
 IF_ARCH_ARM(
     namespace neon_d32
     {
-        void abs1(float *src, size_t count);
-        void abs2(float *dst, const float *src, size_t count);
+        void exp1(float *dst, size_t count);
+        void exp2(float *dst, const float *src, size_t count);
     }
 )
 
-typedef void (* abs1_t)(float *src, size_t count);
-typedef void (* abs2_t)(float *dst, const float *src, size_t count);
+typedef void (* exp1_t)(float *dst, size_t count);
+typedef void (* exp2_t)(float *dst, const float *src, size_t count);
 
 //-----------------------------------------------------------------------------
 // Performance test
-PTEST_BEGIN("dsp.pmath", abs, 5, 1000)
+PTEST_BEGIN("dsp.pmath", exp, 5, 1000)
 
-    void call(const char *label, float *dst, size_t count, abs1_t func)
+    void call(const char *label, float *dst, size_t count, exp1_t func)
     {
         if (!PTEST_SUPPORTED(func))
             return;
@@ -55,7 +55,7 @@ PTEST_BEGIN("dsp.pmath", abs, 5, 1000)
         );
     }
 
-    void call(const char *label, float *dst, const float *src, size_t count, abs2_t func)
+    void call(const char *label, float *dst, const float *src, size_t count, exp2_t func)
     {
         if (!PTEST_SUPPORTED(func))
             return;
@@ -89,19 +89,22 @@ PTEST_BEGIN("dsp.pmath", abs, 5, 1000)
         {
             size_t count = 1 << i;
 
-            CALL("native::abs1", dst, count, native::abs1);
-            IF_ARCH_X86(CALL("sse::abs1", dst, count, sse::abs1));
-            IF_ARCH_ARM(CALL("neon_d32::abs1", dst, count, neon_d32::abs1));
+            CALL("native::exp1", dst, count, native::exp1);
+            IF_ARCH_X86(CALL("sse2::exp1", dst, count, sse2::exp1));
+            IF_ARCH_ARM(CALL("neon_d32::exp1", dst, count, neon_d32::exp1));
             PTEST_SEPARATOR;
 
-            CALL("native::abs2", dst, src, count, native::abs2);
-            IF_ARCH_X86(CALL("sse::abs2", dst, src, count, sse::abs2));
-            IF_ARCH_ARM(CALL("neon_d32::abs2", dst, src, count, neon_d32::abs2));
+            CALL("native::exp2", dst, src, count, native::exp2);
+            IF_ARCH_X86(CALL("sse2::exp2", dst, src, count, sse2::exp2));
+            IF_ARCH_ARM(CALL("neon_d32::exp2", dst, src, count, neon_d32::exp2));
             PTEST_SEPARATOR;
         }
 
         free_aligned(data);
     }
 PTEST_END
+
+
+
 
 
