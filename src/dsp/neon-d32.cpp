@@ -65,6 +65,9 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/fastconv.h>
 #include <dsp/arch/arm/neon-d32/mix.h>
 
+#include <dsp/arch/arm/neon-d32/pmath/exp.h>
+#include <dsp/arch/arm/neon-d32/pmath/log.h>
+
 #undef DSP_ARCH_ARM_NEON_32_IMPL
 
 #define EXPORT2(function, export)           dsp::function = neon_d32::export; TEST_EXPORT(neon_d32::export);
@@ -159,6 +162,15 @@ namespace neon_d32
         EXPORT1(scale_sub4);
         EXPORT1(scale_mul4);
         EXPORT1(scale_div4);
+
+        EXPORT1(exp1);
+        EXPORT1(exp2);
+        EXPORT1(logb1);
+        EXPORT1(logb2);
+        EXPORT1(loge1);
+        EXPORT1(loge2);
+        EXPORT1(logd1);
+        EXPORT1(logd2);
 
         EXPORT1(h_sum);
         EXPORT1(h_abs_sum);

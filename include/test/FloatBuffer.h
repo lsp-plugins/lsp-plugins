@@ -37,6 +37,7 @@ namespace test
             void randomize_negative();
             void randomize_sign();
             void randomize_0to1();
+            void randomize(float min, float max);
             void randomize();
             void fill_zero();
             void copy(const FloatBuffer &buf);
