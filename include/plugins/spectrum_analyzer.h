@@ -61,6 +61,13 @@ namespace lsp
                 SA_SPECTRALIZER_STEREO
             };
 
+            enum flags_t
+            {
+                F_MASTERING     = 1 << 0,
+                F_SMOOTH_LOG    = 1 << 1,
+                F_LOG_SCALE     = 1 << 2
+            };
+
         protected:
             bool                create_channels(size_t channels);
             mode_t              decode_mode(size_t mode);
@@ -85,6 +92,7 @@ namespace lsp
             float               fPreamp;            // Preamplification level
             float               fZoom;              // Zoom
             mode_t              enMode;
+            bool                bLogScale;
 
             IPort              *pBypass;
             IPort              *pMode;
@@ -98,6 +106,7 @@ namespace lsp
             IPort              *pSelector;
             IPort              *pFrequency;
             IPort              *pLevel;
+            IPort              *pLogScale;
 
             IPort              *pFreeze;
             IPort              *pSpp;
@@ -112,6 +121,7 @@ namespace lsp
 
             void                process_multiple();
             void                process_spectralizer();
+            void                get_spectrum(float *dst, size_t channel, size_t flags);
 
         public:
             spectrum_analyzer_base(const plugin_metadata_t &metadata);

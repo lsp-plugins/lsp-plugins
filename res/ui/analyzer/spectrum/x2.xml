@@ -10,6 +10,9 @@
 				
 				<label text="Channel" visibility=":mode ieq 2" />
 				<combo id="spc" width="32" visibility=":mode ieq 2" />
+				
+				<label text="Log scale" visibility=":mode ige 2" />
+				<button id="splog" size="16" color="green" led="true" />
 			</hbox>
 		</align>
 		

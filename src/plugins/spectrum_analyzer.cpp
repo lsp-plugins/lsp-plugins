@@ -39,6 +39,7 @@ namespace lsp
         fPreamp         = 0.0f;
         fZoom           = 0.0f;
         enMode          = SA_ANALYZER;
+        bLogScale       = false;
 
         pBypass         = NULL;
         pMode           = NULL;
@@ -52,6 +53,7 @@ namespace lsp
         pSelector       = NULL;
         pFrequency      = NULL;
         pLevel          = NULL;
+        pLogScale       = NULL;
 
         pFreeze         = NULL;
         pSpp            = NULL;
@@ -236,6 +238,7 @@ namespace lsp
         pBypass         = vPorts[port_id++];
         pMode           = vPorts[port_id++];
         port_id++; // Skip spectralizer mode
+        pLogScale       = vPorts[port_id++];
         pFreeze         = vPorts[port_id++];
         pTolerance      = vPorts[port_id++];
         pWindow         = vPorts[port_id++];
@@ -419,6 +422,7 @@ namespace lsp
         fSelector               = pSelector->getValue() * 0.01;
         fPreamp                 = pPreamp->getValue();
         fZoom                   = pZoom->getValue();
+        bLogScale               = (pLogScale != NULL) && (pLogScale->getValue() >= 0.5f);
         size_t rank             = pTolerance->getValue() + spectrum_analyzer_base_metadata::RANK_MIN;
 
         lsp_trace("rank         = %d",     int(rank));
@@ -512,6 +516,57 @@ namespace lsp
         sCounter.set_sample_rate(sr, true);
     }
 
+    void spectrum_analyzer_base::get_spectrum(float *dst, size_t channel, size_t flags)
+    {
+        float *v        = dst;
+        size_t off      = 0;
+
+        // Fetch original data
+        if (flags & F_MASTERING)
+        {
+            sAnalyzer.get_spectrum(channel, vMFrequences, vIndexes, spectrum_analyzer_base_metadata::MESH_POINTS);
+            size_t pi = 0, ni = spectrum_analyzer_base_metadata::MMESH_STEP;
+
+            for (; ni < spectrum_analyzer_base_metadata::MESH_POINTS; ni += spectrum_analyzer_base_metadata::MMESH_STEP)
+            {
+                if (vIndexes[ni] == vIndexes[pi])
+                    continue;
+
+                if (flags & F_SMOOTH_LOG)
+                    dsp::smooth_cubic_log(&v[off], vMFrequences[pi], vMFrequences[ni], ni-pi);
+                else
+                    dsp::smooth_cubic_linear(&v[off], vMFrequences[pi], vMFrequences[ni], ni-pi);
+
+                off        += ni-pi;
+                pi          = ni;
+            }
+
+            if (pi < spectrum_analyzer_base_metadata::MESH_POINTS)
+            {
+                if (flags & F_SMOOTH_LOG)
+                    dsp::smooth_cubic_log(&v[off], vMFrequences[pi], vMFrequences[ni-1], ni-pi);
+                else
+                    dsp::smooth_cubic_linear(&v[off], vMFrequences[pi], vMFrequences[ni-1], ni-pi);
+            }
+        }
+        else
+            sAnalyzer.get_spectrum(channel, v, vIndexes, spectrum_analyzer_base_metadata::MESH_POINTS);
+
+        // Apply gain
+        dsp::scale2(dst, vChannels[channel].fGain * fPreamp, spectrum_analyzer_base_metadata::MESH_POINTS);
+
+        // Apply log scale if necessary
+        if (flags & F_LOG_SCALE)
+        {
+            dsp::logd1(dst, spectrum_analyzer_base_metadata::MESH_POINTS);
+            float k = 10.0f / (spectrum_analyzer_base_metadata::THRESH_HI_DB - spectrum_analyzer_base_metadata::THRESH_LO_DB);
+            float s = 0.1f * spectrum_analyzer_base_metadata::THRESH_LO_DB;
+
+            for (size_t i=0; i<spectrum_analyzer_base_metadata::MESH_POINTS; ++i)
+                dst[i] = k * (dst[i] - s);
+        }
+    }
+
     void spectrum_analyzer_base::process(size_t samples)
     {
         // Always query for drawing
@@ -580,37 +635,12 @@ namespace lsp
                         if ((c->bSend) && (enMode != SA_SPECTRALIZER) && (enMode != SA_SPECTRALIZER_STEREO))
                         {
                             // Copy frequency points
-                            dsp::copy(mesh->pvData[0], vFrequences, spectrum_analyzer_base_metadata::MESH_POINTS);
-                            float *v        = mesh->pvData[1];
-                            size_t off      = 0;
-
+                            size_t flags = 0;
                             if ((enMode == SA_MASTERING) || (enMode == SA_MASTERING_STEREO))
-                            {
-                                sAnalyzer.get_spectrum(i, vMFrequences, vIndexes, spectrum_analyzer_base_metadata::MESH_POINTS);
-                                size_t pi = 0, ni = spectrum_analyzer_base_metadata::MMESH_STEP;
+                                flags |= F_SMOOTH_LOG;
 
-                                for (; ni < spectrum_analyzer_base_metadata::MESH_POINTS; ni += spectrum_analyzer_base_metadata::MMESH_STEP)
-                                {
-                                    if (vIndexes[ni] == vIndexes[pi])
-                                        continue;
-
-//                                    dsp::smooth_cubic_linear(v, vMFrequences[pi], vMFrequences[ni], st);
-                                    dsp::smooth_cubic_log(&v[off], vMFrequences[pi], vMFrequences[ni], ni-pi);
-                                    off        += ni-pi;
-                                    pi          = ni;
-                                }
-
-                                if (pi < spectrum_analyzer_base_metadata::MESH_POINTS)
-                                    dsp::smooth_cubic_log(&v[off], vMFrequences[pi], vMFrequences[ni-1], ni-pi);
-
-                                v        = mesh->pvData[1];
-                            }
-                            else
-                                sAnalyzer.get_spectrum(i, v, vIndexes, spectrum_analyzer_base_metadata::MESH_POINTS);
-
-                            // Mark mesh containing data
-                            dsp::scale2(v, c->fGain * fPreamp, spectrum_analyzer_base_metadata::MESH_POINTS);
-                            mesh->data(2, spectrum_analyzer_base_metadata::MESH_POINTS);
+                            get_spectrum(mesh->pvData[1], i, flags);
+                            mesh->data(2, spectrum_analyzer_base_metadata::MESH_POINTS); // Mark mesh containing data
                         }
                         else
                             mesh->data(2, 0);
@@ -622,11 +652,15 @@ namespace lsp
                 c->vOut        += count;
             }
 
-            // Update frame buffers if counter has fired
-            if ((fired) && (!bBypass))
+            if ((enMode == SA_SPECTRALIZER) || (enMode == SA_SPECTRALIZER_STEREO))
             {
-                if ((enMode == SA_SPECTRALIZER) || (enMode == SA_SPECTRALIZER_STEREO))
+                // Update frame buffers if counter has fired
+                if ((fired) && (!bBypass))
                 {
+                    size_t flags = 0;
+                    if (bLogScale)
+                        flags      |= F_LOG_SCALE;
+
                     for (size_t i=0; i<2; ++i)
                     {
                         ssize_t cid = vSpc[i].nChannelId;
@@ -643,11 +677,11 @@ namespace lsp
                         sa_channel_t *c     = &vChannels[cid];
                         if (c->bFreeze) // Do not report new data in 'Hold' state
                             continue;
-                        float *v            = fb->next_row();
 
-                        sAnalyzer.get_spectrum(cid, v, vIndexes, spectrum_analyzer_base_metadata::MESH_POINTS);
-                        dsp::scale2(v, c->fGain * fPreamp, spectrum_analyzer_base_metadata::MESH_POINTS);
-                        fb->write_row();
+                        // Output data
+                        float *v            = fb->next_row();
+                        get_spectrum(v, cid, flags);
+                        fb->write_row(); // Mark row as written
                     }
                 }
             }

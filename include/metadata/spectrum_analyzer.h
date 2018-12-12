@@ -23,6 +23,9 @@ namespace lsp
         static const size_t         RANK_DFL            = 12;
         static const size_t         RANK_MAX            = 14;
         static const size_t         MESH_POINTS         = 640;
+
+        static const float          THRESH_HI_DB        = 0.0f;
+        static const float          THRESH_LO_DB        = -60.0f;
 //        static const size_t         MMESH_POINTS        = 40;
         static const size_t         MMESH_STEP          = 16;
         static const size_t         WND_DFL             = windows::HANN;

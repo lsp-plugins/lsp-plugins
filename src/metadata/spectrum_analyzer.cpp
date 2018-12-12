@@ -122,6 +122,7 @@ namespace lsp
         BYPASS, \
         COMBO("mode", "Analyzer mode", 0, spectrum_analyzer_x ## c ## _modes), \
         COMBO("spm", "Spectralizer mode", 1, spectralizer_modes), \
+        SWITCH("splog", "Spectralizer logarithmic scale", 1), \
         SWITCH("freeze", "Analyzer freeze", 0), \
         { "tol", "FFT Tolerance", U_ENUM, R_CONTROL, F_IN, 0, 0, spectrum_analyzer_base_metadata::RANK_DFL - spectrum_analyzer_base_metadata::RANK_MIN, 0, fft_tolerance }, \
         { "wnd", "FFT Window", U_ENUM, R_CONTROL, F_IN, 0, 0, spectrum_analyzer_base_metadata::WND_DFL, 0, windows::windows }, \

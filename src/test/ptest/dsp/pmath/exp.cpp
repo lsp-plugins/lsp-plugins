@@ -41,7 +41,7 @@ typedef void (* exp2_t)(float *dst, const float *src, size_t count);
 // Performance test
 PTEST_BEGIN("dsp.pmath", exp, 5, 1000)
 
-    void call(const char *label, float *dst, size_t count, exp1_t func)
+    void call(const char *label, float *dst, const float *src, size_t count, exp1_t func)
     {
         if (!PTEST_SUPPORTED(func))
             return;
@@ -51,6 +51,7 @@ PTEST_BEGIN("dsp.pmath", exp, 5, 1000)
         printf("Testing %s numbers...\n", buf);
 
         PTEST_LOOP(buf,
+            dsp::copy(dst, src, count);
             func(dst, count);
         );
     }
@@ -89,9 +90,9 @@ PTEST_BEGIN("dsp.pmath", exp, 5, 1000)
         {
             size_t count = 1 << i;
 
-            CALL("native::exp1", dst, count, native::exp1);
-            IF_ARCH_X86(CALL("sse2::exp1", dst, count, sse2::exp1));
-            IF_ARCH_ARM(CALL("neon_d32::exp1", dst, count, neon_d32::exp1));
+            CALL("native::exp1", dst, src, count, native::exp1);
+            IF_ARCH_X86(CALL("sse2::exp1", dst, src, count, sse2::exp1));
+            IF_ARCH_ARM(CALL("neon_d32::exp1", dst, src, count, neon_d32::exp1));
             PTEST_SEPARATOR;
 
             CALL("native::exp2", dst, src, count, native::exp2);
