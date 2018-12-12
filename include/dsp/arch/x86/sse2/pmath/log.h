@@ -673,9 +673,6 @@ IF_ARCH_X86(
     }
 */
 
-#undef LOGN_CORE_X8
-#undef LOGN_CORE_X4
-
 }
 
 #endif /* DSP_ARCH_X86_SSE2_PMATH_LOG_H_ */
