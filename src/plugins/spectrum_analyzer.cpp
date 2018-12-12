@@ -522,7 +522,7 @@ namespace lsp
         size_t off      = 0;
 
         // Fetch original data
-        if (flags & F_MASTERING)
+        if (flags & F_SMOOTH_LOG)
         {
             sAnalyzer.get_spectrum(channel, vMFrequences, vIndexes, spectrum_analyzer_base_metadata::MESH_POINTS);
             size_t pi = 0, ni = spectrum_analyzer_base_metadata::MMESH_STEP;
@@ -553,7 +553,10 @@ namespace lsp
             sAnalyzer.get_spectrum(channel, v, vIndexes, spectrum_analyzer_base_metadata::MESH_POINTS);
 
         // Apply gain
-        dsp::scale2(dst, vChannels[channel].fGain * fPreamp, spectrum_analyzer_base_metadata::MESH_POINTS);
+        float gain = (flags & F_BOOST) ?
+                vChannels[channel].fGain * spectrum_analyzer_base_metadata::SPECTRALIZER_BOOST:
+                vChannels[channel].fGain ;
+        dsp::scale2(dst, gain * fPreamp, spectrum_analyzer_base_metadata::MESH_POINTS);
 
         // Apply log scale if necessary
         if (flags & F_LOG_SCALE)
@@ -637,8 +640,9 @@ namespace lsp
                             // Copy frequency points
                             size_t flags = 0;
                             if ((enMode == SA_MASTERING) || (enMode == SA_MASTERING_STEREO))
-                                flags |= F_SMOOTH_LOG;
+                                flags |= F_SMOOTH_LOG | F_MASTERING;
 
+                            dsp::copy(mesh->pvData[0], vFrequences, spectrum_analyzer_base_metadata::MESH_POINTS);
                             get_spectrum(mesh->pvData[1], i, flags);
                             mesh->data(2, spectrum_analyzer_base_metadata::MESH_POINTS); // Mark mesh containing data
                         }
@@ -660,6 +664,8 @@ namespace lsp
                     size_t flags = 0;
                     if (bLogScale)
                         flags      |= F_LOG_SCALE;
+                    else
+                        flags      |= F_BOOST;
 
                     for (size_t i=0; i<2; ++i)
                     {

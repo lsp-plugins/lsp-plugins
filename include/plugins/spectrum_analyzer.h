@@ -65,7 +65,8 @@ namespace lsp
             {
                 F_MASTERING     = 1 << 0,
                 F_SMOOTH_LOG    = 1 << 1,
-                F_LOG_SCALE     = 1 << 2
+                F_LOG_SCALE     = 1 << 2,
+                F_BOOST         = 1 << 3
             };
 
         protected:

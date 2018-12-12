@@ -12,7 +12,7 @@
 				<combo id="spc" width="32" visibility=":mode ieq 2" />
 				
 				<label text="Log scale" visibility=":mode ige 2" />
-				<button id="splog" size="16" color="green" led="true" />
+				<button id="splog" size="16" color="green" led="true" visibility=":mode ige 2" />
 			</hbox>
 		</align>
 		
@@ -96,7 +96,7 @@
 				<!-- Spectralizer (1 channel) -->
 				<graph width="640" height="360" expand="true" fill="true" visibility=":mode ieq 2">
 					<center hpos="-1" vpos="1" visible="false" />
-					
+		
 					<!-- Gray grid -->
 					<ui:for id="f" first="20" last="90" step="10"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
 					<ui:for id="f" first="200" last="900" step="100"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
@@ -111,7 +111,7 @@
 					<marker value="10000" color="g_yellow" basis="0" parallel="1" /> <!-- 10 kHz -->
 		
 					<ui:for id="t" first="2" last="6" step="2"><marker value="${t}" color="g_yellow" basis="1" parallel="0" /></ui:for>
-		
+
 					<!-- Frame buffer -->
 					<fbuffer id="fb0" width="1" height="1" hpos="-1" vpos="1" opacity="0.75" angle="0"
 						mode=":spm" color="left_channel" hue_id="hue[spc]" />
@@ -168,7 +168,7 @@
 					</ui:for>
 		
 					<ui:for id="t" first="2" last="6" step="2"><marker value="${t}" color="g_yellow" basis="1" parallel="0" /></ui:for>
-		
+
 					<!-- Frame buffer -->
 					<fbuffer id="fb0" width="0.5" height="1" hpos="-1" vpos="1" opacity="0.75" angle="0"
 						mode=":spm" color="left_channel" hue_id="hue_0" />
