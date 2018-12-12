@@ -298,28 +298,26 @@ namespace native
 
     void powvc1(float *c, float v, size_t count)
     {
-        float V = logf(v);
         for (size_t i=0; i<count; ++i)
-            c[i] = expf(V * c[i]);
+            c[i] = expf(v * logf(c[i]));
     }
 
     void powvc2(float *dst, const float *c, float v, size_t count)
     {
-        float V = logf(v);
         for (size_t i=0; i<count; ++i)
-            dst[i] = expf(V * c[i]);
+            dst[i] = expf(v * logf(c[i]));
     }
 
     void powvx1(float *v, const float *x, size_t count)
     {
         for (size_t i=0; i<count; ++i)
-            v[i] = expf(logf(v[i]) * x[i]);
+            v[i] = expf(x[i] * logf(v[i]));
     }
 
     void powvx2(float *dst, const float *v, const float *x, size_t count)
     {
         for (size_t i=0; i<count; ++i)
-            dst[i] = expf(logf(v[i]) * x[i]);
+            dst[i] = expf(x[i] * logf(v[i]));
     }
 }
 
