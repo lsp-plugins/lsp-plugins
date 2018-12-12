@@ -34,12 +34,12 @@ IF_ARCH_X86(
 IF_ARCH_ARM(
     namespace neon_d32
     {
-//        void logb1(float *dst, size_t count);
-//        void logb2(float *dst, const float *src, size_t count);
-//        void loge1(float *dst, size_t count);
-//        void loge2(float *dst, const float *src, size_t count);
-//        void logd1(float *dst, size_t count);
-//        void logd2(float *dst, const float *src, size_t count);
+        void logb1(float *dst, size_t count);
+        void logb2(float *dst, const float *src, size_t count);
+        void loge1(float *dst, size_t count);
+        void loge2(float *dst, const float *src, size_t count);
+        void logd1(float *dst, size_t count);
+        void logd2(float *dst, const float *src, size_t count);
     }
 )
 

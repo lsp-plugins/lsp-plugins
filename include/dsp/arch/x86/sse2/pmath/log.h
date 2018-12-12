@@ -8,6 +8,10 @@
 #ifndef DSP_ARCH_X86_SSE2_PMATH_LOG_H_
 #define DSP_ARCH_X86_SSE2_PMATH_LOG_H_
 
+#ifndef DSP_ARCH_X86_SSE2_IMPL
+    #error "This header should not be included directly"
+#endif /* DSP_ARCH_X86_SSE2_IMPL */
+
 /* Algorithm to generate constants:
 
     uint32_t to_hex(float v)
@@ -19,7 +23,6 @@
 
     int main()
     {
-        printf("X4VEC(0x7fffffff), // sign\n");
         printf("X4VEC(0x007fffff), // frac\n");
         printf("X4VEC(0x3f800000), // 1.0f\n");
         printf("X4VEC(0x%08x), // 127\n", 127);
@@ -668,7 +671,11 @@ IF_ARCH_X86(
 
         return L + (f - 127);
     }
- */
+*/
+
+#undef LOGN_CORE_X8
+#undef LOGN_CORE_X4
+
 }
 
 #endif /* DSP_ARCH_X86_SSE2_PMATH_LOG_H_ */
