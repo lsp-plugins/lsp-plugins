@@ -103,32 +103,32 @@ PTEST_BEGIN("dsp.pmath", log, 5, 1000)
 
             CALL("native::logb1", dst, count, native::logb1);
             IF_ARCH_X86(CALL("sse2::logb1", dst, count, sse2::logb1));
-            IF_ARCH_ARM(CALL("neon_d32::logb1", dst, count, neon_d32::logb11));
+            IF_ARCH_ARM(CALL("neon_d32::logb1", dst, count, neon_d32::logb1));
             PTEST_SEPARATOR;
 
             CALL("native::logb2", dst, src, count, native::logb2);
             IF_ARCH_X86(CALL("sse2::logb2", dst, src, count, sse2::logb2));
-            IF_ARCH_ARM(CALL("neon_d32::logb2", dst, src, count, neon_d32::logb21));
-            PTEST_SEPARATOR2;
+            IF_ARCH_ARM(CALL("neon_d32::logb2", dst, src, count, neon_d32::logb2));
+            PTEST_SEPARATOR;
 
             CALL("native::loge1", dst, count, native::loge1);
             IF_ARCH_X86(CALL("sse2::loge1", dst, count, sse2::loge1));
-            IF_ARCH_ARM(CALL("neon_d32::loge1", dst, count, neon_d32::loge11));
+            IF_ARCH_ARM(CALL("neon_d32::loge1", dst, count, neon_d32::loge1));
             PTEST_SEPARATOR;
 
             CALL("native::loge2", dst, src, count, native::loge2);
             IF_ARCH_X86(CALL("sse2::loge2", dst, src, count, sse2::loge2));
-            IF_ARCH_ARM(CALL("neon_d32::loge2", dst, src, count, neon_d32::loge21));
-            PTEST_SEPARATOR2;
+            IF_ARCH_ARM(CALL("neon_d32::loge2", dst, src, count, neon_d32::loge2));
+            PTEST_SEPARATOR;
 
             CALL("native::logd1", dst, count, native::logd1);
             IF_ARCH_X86(CALL("sse2::logd1", dst, count, sse2::logd1));
-            IF_ARCH_ARM(CALL("neon_d32::logd1", dst, count, neon_d32::logd11));
+            IF_ARCH_ARM(CALL("neon_d32::logd1", dst, count, neon_d32::logd1));
             PTEST_SEPARATOR;
 
             CALL("native::logd2", dst, src, count, native::logd2);
             IF_ARCH_X86(CALL("sse2::logd2", dst, src, count, sse2::logd2));
-            IF_ARCH_ARM(CALL("neon_d32::logd2", dst, src, count, neon_d32::logd21));
+            IF_ARCH_ARM(CALL("neon_d32::logd2", dst, src, count, neon_d32::logd2));
             PTEST_SEPARATOR2;
         }
 

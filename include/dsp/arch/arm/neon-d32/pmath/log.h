@@ -60,8 +60,8 @@ IF_ARCH_ARM(
     __ASM_EMIT("vshr.u32        q3, q1, $23")                    \
     __ASM_EMIT("vand            q0, q0, q8")                    /* q0   = x & F_MASK */ \
     __ASM_EMIT("vand            q1, q1, q8")                     \
-    __ASM_EMIT("vsub.u32        q2, q2, q9")                    /* q2   = r = ilog2(x) */ \
-    __ASM_EMIT("vsub.u32        q3, q3, q9")                     \
+    __ASM_EMIT("vsub.i32        q2, q2, q9")                    /* q2   = r = ilog2(x) */ \
+    __ASM_EMIT("vsub.i32        q3, q3, q9")                     \
     __ASM_EMIT("vorr            q0, q0, q13")                   /* q0   = X = (x & F_MASK) | 1.0f */ \
     __ASM_EMIT("vorr            q1, q1, q13")                    \
     __ASM_EMIT("vcvt.f32.u32    q2, q2")                        /* q2   = R = float(r) */ \
@@ -125,7 +125,7 @@ IF_ARCH_ARM(
     __ASM_EMIT("vldm            %[L2C]!, {q8-q13}")             /* q8   = F_MASK, q9 = 127, q10 = C0, q11=C1, q12=C2, q13=1.0f */ \
     __ASM_EMIT("vshr.u32        q2, q0, $23")                   /* q2   = ilog2(x) + 127 */ \
     __ASM_EMIT("vand            q0, q0, q8")                    /* q0   = x & F_MASK */ \
-    __ASM_EMIT("vsub.u32        q2, q2, q9")                    /* q2   = r = ilog2(x) */ \
+    __ASM_EMIT("vsub.i32        q2, q2, q9")                    /* q2   = r = ilog2(x) */ \
     __ASM_EMIT("vorr            q0, q0, q13")                   /* q0   = X = (x & F_MASK) | 1.0f */ \
     __ASM_EMIT("vcvt.f32.u32    q2, q2")                        /* q2   = R = float(r) */ \
     __ASM_EMIT("vadd.f32        q4, q0, q13")                   /* q4   = XB = X + 1 */ \
@@ -205,11 +205,11 @@ IF_ARCH_ARM(
 
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             10f")
-            __ASM_EMIT("vstm            %[dst]!, {s6}")
+            __ASM_EMIT("vstm            %[dst]!, {s10}")
             __ASM_EMIT("10:")
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             12f")
-            __ASM_EMIT("vstm            %[dst], {d2}")
+            __ASM_EMIT("vstm            %[dst], {d4}")
 
             // End
             __ASM_EMIT("12:")
@@ -274,11 +274,11 @@ IF_ARCH_ARM(
 
             __ASM_EMIT("tst             %[count], $1")
             __ASM_EMIT("beq             10f")
-            __ASM_EMIT("vstm            %[dst]!, {s6}")
+            __ASM_EMIT("vstm            %[dst]!, {s10}")
             __ASM_EMIT("10:")
             __ASM_EMIT("tst             %[count], $2")
             __ASM_EMIT("beq             12f")
-            __ASM_EMIT("vstm            %[dst], {d2}")
+            __ASM_EMIT("vstm            %[dst], {d4}")
 
             // End
             __ASM_EMIT("12:")
