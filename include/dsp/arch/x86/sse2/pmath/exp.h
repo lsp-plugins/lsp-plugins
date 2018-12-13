@@ -321,9 +321,6 @@ IF_ARCH_X86(
         );
     }
 
-#undef POW2_CORE_X8
-#undef POW2_CORE_X4
-
     /*
         const float *E2C = reinterpret_cast<const float *>(EXP2_CONST);
 

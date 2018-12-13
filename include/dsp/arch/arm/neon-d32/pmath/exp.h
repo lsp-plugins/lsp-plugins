@@ -280,9 +280,6 @@ IF_ARCH_ARM(
         );
     }
 
-#undef POW2_CORE_X8
-#undef POW2_CORE_X4
-
 }
 
 #endif /* DSP_ARCH_ARM_NEON_D32_PMATH_EXP_H_ */

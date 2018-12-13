@@ -67,6 +67,7 @@ namespace neon_d32 // TODO: make constants common for all architectures
 
 #include <dsp/arch/arm/neon-d32/pmath/exp.h>
 #include <dsp/arch/arm/neon-d32/pmath/log.h>
+#include <dsp/arch/arm/neon-d32/pmath/pow.h>
 
 #undef DSP_ARCH_ARM_NEON_32_IMPL
 
@@ -170,6 +171,12 @@ namespace neon_d32
         EXPORT1(loge2);
         EXPORT1(logd1);
         EXPORT1(logd2);
+        EXPORT1(powcv1);
+        EXPORT1(powcv2);
+        EXPORT1(powvc1);
+        EXPORT1(powvc2);
+        EXPORT1(powvx1);
+        EXPORT1(powvx2);
 
         EXPORT1(h_sum);
         EXPORT1(h_abs_sum);
