@@ -64,8 +64,8 @@ IF_ARCH_ARM(
     __ASM_EMIT("vsub.i32        q3, q3, q9")                     \
     __ASM_EMIT("vorr            q0, q0, q13")                   /* q0   = X = (x & F_MASK) | 1.0f */ \
     __ASM_EMIT("vorr            q1, q1, q13")                    \
-    __ASM_EMIT("vcvt.f32.i32    q2, q2")                        /* q2   = R = float(r) */ \
-    __ASM_EMIT("vcvt.f32.i32    q3, q3")                         \
+    __ASM_EMIT("vcvt.f32.s32    q2, q2")                        /* q2   = R = float(r) */ \
+    __ASM_EMIT("vcvt.f32.s32    q3, q3")                         \
     __ASM_EMIT("vadd.f32        q4, q0, q13")                   /* q4   = XB = X + 1 */ \
     __ASM_EMIT("vadd.f32        q5, q1, q13")                    \
     __ASM_EMIT("vsub.f32        q0, q0, q13")                   /* q0   = XT = X - 1 */ \
@@ -127,7 +127,7 @@ IF_ARCH_ARM(
     __ASM_EMIT("vand            q0, q0, q8")                    /* q0   = x & F_MASK */ \
     __ASM_EMIT("vsub.i32        q2, q2, q9")                    /* q2   = r = ilog2(x) */ \
     __ASM_EMIT("vorr            q0, q0, q13")                   /* q0   = X = (x & F_MASK) | 1.0f */ \
-    __ASM_EMIT("vcvt.f32.i32    q2, q2")                        /* q2   = R = float(r) */ \
+    __ASM_EMIT("vcvt.f32.s32    q2, q2")                        /* q2   = R = float(r) */ \
     __ASM_EMIT("vadd.f32        q4, q0, q13")                   /* q4   = XB = X + 1 */ \
     __ASM_EMIT("vsub.f32        q0, q0, q13")                   /* q0   = XT = X - 1 */ \
     __ASM_EMIT("vrecpe.f32      q6, q4")                        /* q6   = xb */ \
