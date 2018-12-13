@@ -86,12 +86,12 @@ namespace neon_d32
             // End
             __ASM_EMIT("12:")
 
-            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            : [dst] "+r" (dst), [src] "+r" (v), [count] "+r" (count)
             : [L2C] "r" (&LOG2_CONST[0]),
               [LOGC] "r" (&LOGE_C[0]),
               [E2C] "r" (&EXP2_CONST[0]),
               [LOG2E] "r" (&EXP_LOG2E[0]),
-              [C] "r" [&c]
+              [C] "r" (&c)
             : "cc", "memory",
               "q0", "q1", "q2", "q3",
               "q4", "q5", "q6", "q7",
@@ -175,7 +175,7 @@ namespace neon_d32
               [LOGC] "r" (&LOGE_C[0]),
               [E2C] "r" (&EXP2_CONST[0]),
               [LOG2E] "r" (&EXP_LOG2E[0]),
-              [C] "r" [&c]
+              [C] "r" (&c)
             : "cc", "memory",
               "q0", "q1", "q2", "q3",
               "q4", "q5", "q6", "q7",
