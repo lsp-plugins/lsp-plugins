@@ -53,6 +53,7 @@ namespace sse2 // TODO: make constants common for all architectures
 
 #include <dsp/arch/x86/sse2/pmath/exp.h>
 #include <dsp/arch/x86/sse2/pmath/log.h>
+#include <dsp/arch/x86/sse2/pmath/pow.h>
 
 #undef DSP_ARCH_X86_SSE2_IMPL
 
@@ -83,6 +84,12 @@ namespace sse2
         EXPORT1(loge2);
         EXPORT1(logd1);
         EXPORT1(logd2);
+        EXPORT1(powcv1);
+        EXPORT1(powcv2);
+        EXPORT1(powvc1);
+        EXPORT1(powvc2);
+        EXPORT1(powvx1);
+        EXPORT1(powvx2);
 
         EXPORT1(min_index);
         EXPORT1(max_index);
