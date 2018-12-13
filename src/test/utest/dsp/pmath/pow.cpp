@@ -87,6 +87,24 @@ UTEST_BEGIN("dsp.pmath", pow)
                     dst2.dump("dst2");
                     UTEST_FAIL_MSG("Output of functions for test '%s' differs", label);
                 }
+
+                // Call functions
+                dst1.copy(src);
+                dst2.copy(src);
+                func1(dst1, 0.3f, count);
+                func2(dst2, 0.3f, count);
+
+                UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
+                UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
+
+                // Compare buffers
+                if (!dst1.equals_adaptive(dst2, 1e-4))
+                {
+                    src.dump("src ");
+                    dst1.dump("dst1");
+                    dst2.dump("dst2");
+                    UTEST_FAIL_MSG("Output of functions for test '%s' differs", label);
+                }
             }
         }
     }
@@ -108,11 +126,31 @@ UTEST_BEGIN("dsp.pmath", pow)
                 FloatBuffer src(count, align, mask & 0x01);
                 src.randomize(1.0f/6.0f, 6.0f);
                 FloatBuffer dst1(count, align, mask & 0x02);
+                dst1.randomize(1.0f/6.0f, 6.0f);
                 FloatBuffer dst2(dst1);
 
                 // Call functions
                 func1(dst1, src, 3.0f, count);
                 func2(dst2, src, 3.0f, count);
+
+                UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
+                UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
+                UTEST_ASSERT_MSG(dst2.valid(), "Destination buffer 2 corrupted");
+
+                // Compare buffers
+                if (!dst1.equals_adaptive(dst2, 1e-4))
+                {
+                    src.dump("src ");
+                    dst1.dump("dst1");
+                    dst2.dump("dst2");
+                    UTEST_FAIL_MSG("Output of functions for test '%s' differs", label);
+                }
+
+                // Call functions
+                dst1.copy(src);
+                dst2.copy(src);
+                func1(dst1, src, 0.3f, count);
+                func2(dst2, src, 0.3f, count);
 
                 UTEST_ASSERT_MSG(src.valid(), "Source buffer corrupted");
                 UTEST_ASSERT_MSG(dst1.valid(), "Destination buffer 1 corrupted");
@@ -147,7 +185,7 @@ UTEST_BEGIN("dsp.pmath", pow)
                 FloatBuffer src1(count, align, mask & 0x01);
                 FloatBuffer src2(count, align, mask & 0x02);
                 src1.randomize(1.0f/6.0f, 6.0f);
-                src2.copy(src1);
+                src2.randomize(1.0f/6.0f, 6.0f);
                 FloatBuffer dst1(src1);
                 FloatBuffer dst2(src1);
 

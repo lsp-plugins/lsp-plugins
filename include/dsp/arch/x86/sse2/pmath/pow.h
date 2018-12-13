@@ -401,7 +401,7 @@ namespace sse2
         );
     }
 
-    void powvx1(float *x, const float *v, size_t count)
+    void powvx1(float *v, const float *x, size_t count)
     {
 //        for (size_t i=0; i<count; ++i)
 //            v[i] = expf(x[i] * logf(v[i]));
@@ -415,23 +415,23 @@ namespace sse2
 
             // x8 blocks
             __ASM_EMIT("1:")
-            __ASM_EMIT("movups          0x00(%[v]), %%xmm0")
-            __ASM_EMIT("movups          0x10(%[v]), %%xmm4")
+            __ASM_EMIT("movups          0x00(%[src]), %%xmm0")
+            __ASM_EMIT("movups          0x10(%[src]), %%xmm4")
             // logf(v)
             LOGN_CORE_X8
             __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
             __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm4")
-            __ASM_EMIT("movups          0x00(%[dst]), %%xmm2")          // xmm2 = v
-            __ASM_EMIT("movups          0x10(%[dst]), %%xmm6")
+            __ASM_EMIT("movups          0x00(%[x]), %%xmm2")            // xmm2 = x
+            __ASM_EMIT("movups          0x10(%[x]), %%xmm6")
             __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E) + R
             __ASM_EMIT("addps           %%xmm5, %%xmm4")
-            __ASM_EMIT("mulps           %%xmm2, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*v
+            __ASM_EMIT("mulps           %%xmm2, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*x
             __ASM_EMIT("mulps           %%xmm6, %%xmm4")
             // expf(x * logf(v))
             POW2_CORE_X8
             __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
             __ASM_EMIT("movups          %%xmm4, 0x10(%[dst])")
-            __ASM_EMIT("add             $0x20, %[v]")
+            __ASM_EMIT("add             $0x20, %[x]")
             __ASM_EMIT("add             $0x20, %[dst]")
             __ASM_EMIT("sub             $8, %[count]")
             __ASM_EMIT("jae             1b")
@@ -441,17 +441,17 @@ namespace sse2
             __ASM_EMIT("jl              4f")
 
             // x4 block
-            __ASM_EMIT("movups          0x00(%[v]), %%xmm0")
+            __ASM_EMIT("movups          0x00(%[src]), %%xmm0")
             // logf(v)
             LOGN_CORE_X4
             __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
-            __ASM_EMIT("movups          0x00(%[dst]), %%xmm2")          // xmm2 = v
+            __ASM_EMIT("movups          0x00(%[x]), %%xmm2")            // xmm2 = x
             __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E) + R
-            __ASM_EMIT("mulps           %%xmm2, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*v
+            __ASM_EMIT("mulps           %%xmm2, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*x
             // expf(x * logf(x))
             POW2_CORE_X8
             __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
-            __ASM_EMIT("add             $0x10, %[v]")
+            __ASM_EMIT("add             $0x10, %[x]")
             __ASM_EMIT("add             $0x10, %[dst]")
             __ASM_EMIT("sub             $4, %[count]")
 
@@ -463,22 +463,22 @@ namespace sse2
             __ASM_EMIT("mov             %[dst], %[src]")
             __ASM_EMIT("test            $1, %[count]")
             __ASM_EMIT("jz              6f")
-            __ASM_EMIT("movss           0x00(%[v]), %%xmm0")
-            __ASM_EMIT("movss           0x00(%[src]), %%xmm7")
-            __ASM_EMIT("add             $4, %[v]")
+            __ASM_EMIT("movss           0x00(%[src]), %%xmm0")
+            __ASM_EMIT("movss           0x00(%[x]), %%xmm7")
             __ASM_EMIT("add             $4, %[src]")
+            __ASM_EMIT("add             $4, %[x]")
             __ASM_EMIT("6:")
             __ASM_EMIT("test            $2, %[count]")
             __ASM_EMIT("jz              8f")
-            __ASM_EMIT("movhps          0x00(%[v]), %%xmm0")
-            __ASM_EMIT("movhps          0x00(%[src]), %%xmm7")
+            __ASM_EMIT("movhps          0x00(%[src]), %%xmm0")
+            __ASM_EMIT("movhps          0x00(%[x]), %%xmm7")
             __ASM_EMIT("8:")
 
             // logf(x)
             LOGN_CORE_X4
             __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
             __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E) + R
-            __ASM_EMIT("mulps           %%xmm7, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*v
+            __ASM_EMIT("mulps           %%xmm7, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*x
             // expf(v * logf(x))
             POW2_CORE_X8
 
@@ -494,7 +494,7 @@ namespace sse2
             // End
             __ASM_EMIT("12:")
 
-            : [dst] "+r" (x), [v] "+r" (v), [src] "=&r" (src), [count] "+r" (count)
+            : [dst] "+r" (v), [x] "+r" (x), [src] "=&r" (src), [count] "+r" (count)
             : [E2C] "o" (EXP2_CONST),
               [L2C] "o" (LOG2_CONST),
               [LOGC] "o" (LOGB_C)
@@ -503,7 +503,7 @@ namespace sse2
         );
     }
 
-    void powvx2(float *dst, const float *x, const float *v, size_t count)
+    void powvx2(float *dst, const float *v, const float *x, size_t count)
     {
 //        for (size_t i=0; i<count; ++i)
 //            dst[i] = expf(x[i] * logf(v[i]));
@@ -515,17 +515,17 @@ namespace sse2
 
             // x8 blocks
             __ASM_EMIT("1:")
-            __ASM_EMIT("movups          0x00(%[v]), %%xmm0")
-            __ASM_EMIT("movups          0x10(%[v]), %%xmm4")
+            __ASM_EMIT("movups          0x00(%[src]), %%xmm0")
+            __ASM_EMIT("movups          0x10(%[src]), %%xmm4")
             // logf(v)
             LOGN_CORE_X8
             __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
             __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm4")
-            __ASM_EMIT("movups          0x00(%[src]), %%xmm2")          // xmm2 = v
-            __ASM_EMIT("movups          0x10(%[src]), %%xmm6")
+            __ASM_EMIT("movups          0x00(%[x]), %%xmm2")            // xmm2 = x
+            __ASM_EMIT("movups          0x10(%[x]), %%xmm6")
             __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E) + R
             __ASM_EMIT("addps           %%xmm5, %%xmm4")
-            __ASM_EMIT("mulps           %%xmm2, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*v
+            __ASM_EMIT("mulps           %%xmm2, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*x
             __ASM_EMIT("mulps           %%xmm6, %%xmm4")
             // expf(x * logf(v))
             POW2_CORE_X8
@@ -533,7 +533,7 @@ namespace sse2
             __ASM_EMIT("movups          %%xmm4, 0x10(%[dst])")
             __ASM_EMIT("add             $0x20, %[src]")
             __ASM_EMIT("add             $0x20, %[dst]")
-            __ASM_EMIT("add             $0x20, %[v]")
+            __ASM_EMIT("add             $0x20, %[x]")
             __ASM_EMIT("sub             $8, %[count]")
             __ASM_EMIT("jae             1b")
 
@@ -542,19 +542,19 @@ namespace sse2
             __ASM_EMIT("jl              4f")
 
             // x4 block
-            __ASM_EMIT("movups          0x00(%[v]), %%xmm0")
+            __ASM_EMIT("movups          0x00(%[src]), %%xmm0")
             // logf(x)
             LOGN_CORE_X4
             __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
-            __ASM_EMIT("movups          0x00(%[src]), %%xmm2")          // xmm2 = v
+            __ASM_EMIT("movups          0x00(%[x]), %%xmm2")            // xmm2 = x
             __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E) + R
-            __ASM_EMIT("mulps           %%xmm2, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*v
+            __ASM_EMIT("mulps           %%xmm2, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*x
             // expf(x * logf(v))
             POW2_CORE_X8
             __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
             __ASM_EMIT("add             $0x10, %[src]")
             __ASM_EMIT("add             $0x10, %[dst]")
-            __ASM_EMIT("add             $0x10, %[v]")
+            __ASM_EMIT("add             $0x10, %[x]")
             __ASM_EMIT("sub             $4, %[count]")
 
             __ASM_EMIT("4:")
@@ -564,22 +564,22 @@ namespace sse2
             // Tail: 1x-3x block
             __ASM_EMIT("test            $1, %[count]")
             __ASM_EMIT("jz              6f")
-            __ASM_EMIT("movss           0x00(%[v]), %%xmm0")
-            __ASM_EMIT("movss           0x00(%[src]), %%xmm7")
-            __ASM_EMIT("add             $4, %[v]")
+            __ASM_EMIT("movss           0x00(%[src]), %%xmm0")
+            __ASM_EMIT("movss           0x00(%[x]), %%xmm7")
             __ASM_EMIT("add             $4, %[src]")
+            __ASM_EMIT("add             $4, %[x]")
             __ASM_EMIT("6:")
             __ASM_EMIT("test            $2, %[count]")
             __ASM_EMIT("jz              8f")
-            __ASM_EMIT("movhps          0x00(%[v]), %%xmm0")
-            __ASM_EMIT("movhps          0x00(%[src]), %%xmm7")
+            __ASM_EMIT("movhps          0x00(%[src]), %%xmm0")
+            __ASM_EMIT("movhps          0x00(%[x]), %%xmm7")
             __ASM_EMIT("8:")
 
             // logf(v)
             LOGN_CORE_X4
             __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
             __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E) + R
-            __ASM_EMIT("mulps           %%xmm7, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*v
+            __ASM_EMIT("mulps           %%xmm7, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*x
             // expf(x * logf(v))
             POW2_CORE_X8
 
@@ -595,7 +595,7 @@ namespace sse2
             // End
             __ASM_EMIT("12:")
 
-            : [dst] "+r" (dst), [v] "+r" (v), [src] "+r" (x), [count] "+r" (count)
+            : [dst] "+r" (dst), [x] "+r" (x), [src] "+r" (v), [count] "+r" (count)
             : [E2C] "o" (EXP2_CONST),
               [L2C] "o" (LOG2_CONST),
               [LOGC] "o" (LOGB_C)
