@@ -415,8 +415,8 @@ namespace sse2
 
             // x8 blocks
             __ASM_EMIT("1:")
-            __ASM_EMIT("movups          0x00(%[src]), %%xmm0")
-            __ASM_EMIT("movups          0x10(%[src]), %%xmm4")
+            __ASM_EMIT("movups          0x00(%[dst]), %%xmm0")
+            __ASM_EMIT("movups          0x10(%[dst]), %%xmm4")
             // logf(v)
             LOGN_CORE_X8
             __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
@@ -441,7 +441,7 @@ namespace sse2
             __ASM_EMIT("jl              4f")
 
             // x4 block
-            __ASM_EMIT("movups          0x00(%[src]), %%xmm0")
+            __ASM_EMIT("movups          0x00(%[dst]), %%xmm0")
             // logf(v)
             LOGN_CORE_X4
             __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
