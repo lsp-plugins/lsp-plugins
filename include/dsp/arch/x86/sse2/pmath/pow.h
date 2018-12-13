@@ -32,10 +32,8 @@ namespace sse2
             // Calc C = logf(c)
             __ASM_EMIT("shufps          $0x00, %%xmm0, %%xmm0")
             LOGN_CORE_X4
-            __ASM_EMIT("addps           %%xmm0, %%xmm0")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm1")
-            __ASM_EMIT("addps           %%xmm1, %%xmm0")
-            __ASM_EMIT("mulps           %[LOG2E], %%xmm0")
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
+            __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E) + R = log(c)*log2(E)
             __ASM_EMIT("movaps          %%xmm0, %[C]")
 
             // Analyze size
@@ -102,8 +100,7 @@ namespace sse2
               "+Yz" (c)
             : [E2C] "o" (EXP2_CONST),
               [L2C] "o" (LOG2_CONST),
-              [LOGC] "o" (LOGE_C),
-              [LOG2E] "m" (EXP_LOG2E),
+              [LOGC] "o" (LOGB_C),
               [C] "m" (C)
             : "cc", "memory",
               "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -124,10 +121,8 @@ namespace sse2
             // Calc C = logf(c)
             __ASM_EMIT("shufps          $0x00, %%xmm0, %%xmm0")
             LOGN_CORE_X4
-            __ASM_EMIT("addps           %%xmm0, %%xmm0")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm1")
-            __ASM_EMIT("addps           %%xmm1, %%xmm0")
-            __ASM_EMIT("mulps           %[LOG2E], %%xmm0")
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
+            __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E) + R = log(c)*log2(E)
             __ASM_EMIT("movaps          %%xmm0, %[C]")
 
             // Analyze size
@@ -195,8 +190,7 @@ namespace sse2
               "+Yz" (c)
             : [E2C] "o" (EXP2_CONST),
               [L2C] "o" (LOG2_CONST),
-              [LOGC] "o" (LOGE_C),
-              [LOG2E] "m" (EXP_LOG2E),
+              [LOGC] "o" (LOGB_C),
               [C] "m" (C)
             : "cc", "memory",
               "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -215,7 +209,6 @@ namespace sse2
 
         ARCH_X86_ASM(
             __ASM_EMIT("shufps          $0x00, %%xmm0, %%xmm0")
-            __ASM_EMIT("mulps           %[LOG2E], %%xmm0")
             __ASM_EMIT("movaps          %%xmm0, %[V]")
 
             // Analyze size
@@ -228,15 +221,13 @@ namespace sse2
             __ASM_EMIT("movups          0x10(%[dst]), %%xmm4")
             // logf(c)
             LOGN_CORE_X8
-            __ASM_EMIT("addps           %%xmm0, %%xmm0")
-            __ASM_EMIT("addps           %%xmm4, %%xmm4")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm1")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm5")
-            __ASM_EMIT("addps           %%xmm1, %%xmm0")
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm4")
+            __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E)+R
             __ASM_EMIT("addps           %%xmm5, %%xmm4")
-            // expf(v * logf(c))
-            __ASM_EMIT("mulps           %[V], %%xmm0")
+            __ASM_EMIT("mulps           %[V], %%xmm0")                  // xmm0 = (2*y*L*log2(E)+R)*v
             __ASM_EMIT("mulps           %[V], %%xmm4")
+            // expf(v * logf(c))
             POW2_CORE_X8
             __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
             __ASM_EMIT("movups          %%xmm4, 0x10(%[dst])")
@@ -252,11 +243,10 @@ namespace sse2
             __ASM_EMIT("movups          0x00(%[dst]), %%xmm0")
             // logf(c)
             LOGN_CORE_X4
-            __ASM_EMIT("addps           %%xmm0, %%xmm0")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm1")
-            __ASM_EMIT("addps           %%xmm1, %%xmm0")
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
+            __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E)+R
+            __ASM_EMIT("mulps           %[V], %%xmm0")                  // xmm0 = (2*y*L*log2(E)+R)*v
             // expf(v * logf(c))
-            __ASM_EMIT("mulps           %[V], %%xmm0")
             POW2_CORE_X4
             __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
             __ASM_EMIT("add             $0x10, %[dst]")
@@ -280,11 +270,10 @@ namespace sse2
 
             // logf(c)
             LOGN_CORE_X4
-            __ASM_EMIT("addps           %%xmm0, %%xmm0")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm1")
-            __ASM_EMIT("addps           %%xmm1, %%xmm0")
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
+            __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E)+R
+            __ASM_EMIT("mulps           %[V], %%xmm0")                  // xmm0 = (2*y*L*log2(E)+R)*v
             // expf(v * logf(c))
-            __ASM_EMIT("mulps           %[V], %%xmm0")
             POW2_CORE_X4
 
             __ASM_EMIT("test            $1, %[count]")
@@ -303,8 +292,7 @@ namespace sse2
               "+Yz" (v)
             : [E2C] "o" (EXP2_CONST),
               [L2C] "o" (LOG2_CONST),
-              [LOGC] "o" (LOGE_C),
-              [LOG2E] "m" (EXP_LOG2E),
+              [LOGC] "o" (LOGB_C),
               [V] "m" (V)
             : "cc", "memory",
               "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -322,7 +310,6 @@ namespace sse2
 
         ARCH_X86_ASM(
             __ASM_EMIT("shufps          $0x00, %%xmm0, %%xmm0")
-            __ASM_EMIT("mulps           %[LOG2E], %%xmm0")
             __ASM_EMIT("movaps          %%xmm0, %[V]")
 
             // Analyze size
@@ -335,15 +322,13 @@ namespace sse2
             __ASM_EMIT("movups          0x10(%[src]), %%xmm4")
             // logf(c)
             LOGN_CORE_X8
-            __ASM_EMIT("addps           %%xmm0, %%xmm0")
-            __ASM_EMIT("addps           %%xmm4, %%xmm4")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm1")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm5")
-            __ASM_EMIT("addps           %%xmm1, %%xmm0")
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm4")
+            __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E)+R
             __ASM_EMIT("addps           %%xmm5, %%xmm4")
-            // expf(v * logf(c))
-            __ASM_EMIT("mulps           %[V], %%xmm0")
+            __ASM_EMIT("mulps           %[V], %%xmm0")                  // xmm0 = (2*y*L*log2(E)+R)*v
             __ASM_EMIT("mulps           %[V], %%xmm4")
+            // expf(v * logf(c))
             POW2_CORE_X8
             __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
             __ASM_EMIT("movups          %%xmm4, 0x10(%[dst])")
@@ -360,11 +345,10 @@ namespace sse2
             __ASM_EMIT("movups          0x00(%[src]), %%xmm0")
             // logf(c)
             LOGN_CORE_X4
-            __ASM_EMIT("addps           %%xmm0, %%xmm0")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm1")
-            __ASM_EMIT("addps           %%xmm1, %%xmm0")
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
+            __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E)+R
+            __ASM_EMIT("mulps           %[V], %%xmm0")                  // xmm0 = (2*y*L*log2(E)+R)*v
             // expf(v * logf(c))
-            __ASM_EMIT("mulps           %[V], %%xmm0")
             POW2_CORE_X4
             __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
             __ASM_EMIT("add             $0x10, %[src]")
@@ -388,11 +372,10 @@ namespace sse2
 
             // logf(c)
             LOGN_CORE_X4
-            __ASM_EMIT("addps           %%xmm0, %%xmm0")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm1")
-            __ASM_EMIT("addps           %%xmm1, %%xmm0")
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
+            __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E)+R
+            __ASM_EMIT("mulps           %[V], %%xmm0")                  // xmm0 = (2*y*L*log2(E)+R)*v
             // expf(v * logf(c))
-            __ASM_EMIT("mulps           %[V], %%xmm0")
             POW2_CORE_X4
 
             __ASM_EMIT("test            $1, %[count]")
@@ -411,8 +394,7 @@ namespace sse2
               "+Yz" (v)
             : [E2C] "o" (EXP2_CONST),
               [L2C] "o" (LOG2_CONST),
-              [LOGC] "o" (LOGE_C),
-              [LOG2E] "m" (EXP_LOG2E),
+              [LOGC] "o" (LOGB_C),
               [V] "m" (V)
             : "cc", "memory",
               "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
@@ -437,19 +419,15 @@ namespace sse2
             __ASM_EMIT("movups          0x10(%[v]), %%xmm4")
             // logf(v)
             LOGN_CORE_X8
-            __ASM_EMIT("addps           %%xmm0, %%xmm0")
-            __ASM_EMIT("addps           %%xmm4, %%xmm4")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm1")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm5")
-            __ASM_EMIT("addps           %%xmm1, %%xmm0")
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm4")
+            __ASM_EMIT("movups          0x00(%[dst]), %%xmm2")          // xmm2 = v
+            __ASM_EMIT("movups          0x10(%[dst]), %%xmm6")
+            __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E) + R
             __ASM_EMIT("addps           %%xmm5, %%xmm4")
+            __ASM_EMIT("mulps           %%xmm2, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*v
+            __ASM_EMIT("mulps           %%xmm6, %%xmm4")
             // expf(x * logf(v))
-            __ASM_EMIT("movups          0x00(%[dst]), %%xmm1")
-            __ASM_EMIT("movups          0x10(%[dst]), %%xmm5")
-            __ASM_EMIT("mulps           %[LOG2E], %%xmm0")
-            __ASM_EMIT("mulps           %[LOG2E], %%xmm4")
-            __ASM_EMIT("mulps           %%xmm1, %%xmm0")
-            __ASM_EMIT("mulps           %%xmm5, %%xmm4")
             POW2_CORE_X8
             __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
             __ASM_EMIT("movups          %%xmm4, 0x10(%[dst])")
@@ -466,13 +444,11 @@ namespace sse2
             __ASM_EMIT("movups          0x00(%[v]), %%xmm0")
             // logf(v)
             LOGN_CORE_X4
-            __ASM_EMIT("addps           %%xmm0, %%xmm0")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm1")
-            __ASM_EMIT("addps           %%xmm1, %%xmm0")
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
+            __ASM_EMIT("movups          0x00(%[dst]), %%xmm2")          // xmm2 = v
+            __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E) + R
+            __ASM_EMIT("mulps           %%xmm2, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*v
             // expf(x * logf(x))
-            __ASM_EMIT("movups          0x00(%[dst]), %%xmm1")
-            __ASM_EMIT("mulps           %[LOG2E], %%xmm0")
-            __ASM_EMIT("mulps           %%xmm1, %%xmm0")
             POW2_CORE_X8
             __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
             __ASM_EMIT("add             $0x10, %[v]")
@@ -500,12 +476,10 @@ namespace sse2
 
             // logf(x)
             LOGN_CORE_X4
-            __ASM_EMIT("addps           %%xmm0, %%xmm0")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm1")
-            __ASM_EMIT("addps           %%xmm1, %%xmm0")
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
+            __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E) + R
+            __ASM_EMIT("mulps           %%xmm7, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*v
             // expf(v * logf(x))
-            __ASM_EMIT("mulps           %[LOG2E], %%xmm0")
-            __ASM_EMIT("mulps           %%xmm7, %%xmm0")
             POW2_CORE_X8
 
             __ASM_EMIT("test            $1, %[count]")
@@ -523,8 +497,7 @@ namespace sse2
             : [dst] "+r" (x), [v] "+r" (v), [src] "=&r" (src), [count] "+r" (count)
             : [E2C] "o" (EXP2_CONST),
               [L2C] "o" (LOG2_CONST),
-              [LOGC] "o" (LOGE_C),
-              [LOG2E] "m" (EXP_LOG2E)
+              [LOGC] "o" (LOGB_C)
             : "cc", "memory",
               "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );
@@ -546,19 +519,15 @@ namespace sse2
             __ASM_EMIT("movups          0x10(%[v]), %%xmm4")
             // logf(v)
             LOGN_CORE_X8
-            __ASM_EMIT("addps           %%xmm0, %%xmm0")
-            __ASM_EMIT("addps           %%xmm4, %%xmm4")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm1")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm5")
-            __ASM_EMIT("addps           %%xmm1, %%xmm0")
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm4")
+            __ASM_EMIT("movups          0x00(%[src]), %%xmm2")          // xmm2 = v
+            __ASM_EMIT("movups          0x10(%[src]), %%xmm6")
+            __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E) + R
             __ASM_EMIT("addps           %%xmm5, %%xmm4")
+            __ASM_EMIT("mulps           %%xmm2, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*v
+            __ASM_EMIT("mulps           %%xmm6, %%xmm4")
             // expf(x * logf(v))
-            __ASM_EMIT("movups          0x00(%[src]), %%xmm1")
-            __ASM_EMIT("movups          0x10(%[src]), %%xmm5")
-            __ASM_EMIT("mulps           %[LOG2E], %%xmm0")
-            __ASM_EMIT("mulps           %[LOG2E], %%xmm4")
-            __ASM_EMIT("mulps           %%xmm1, %%xmm0")
-            __ASM_EMIT("mulps           %%xmm5, %%xmm4")
             POW2_CORE_X8
             __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
             __ASM_EMIT("movups          %%xmm4, 0x10(%[dst])")
@@ -576,13 +545,11 @@ namespace sse2
             __ASM_EMIT("movups          0x00(%[v]), %%xmm0")
             // logf(x)
             LOGN_CORE_X4
-            __ASM_EMIT("addps           %%xmm0, %%xmm0")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm1")
-            __ASM_EMIT("addps           %%xmm1, %%xmm0")
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
+            __ASM_EMIT("movups          0x00(%[src]), %%xmm2")          // xmm2 = v
+            __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E) + R
+            __ASM_EMIT("mulps           %%xmm2, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*v
             // expf(x * logf(v))
-            __ASM_EMIT("movups          0x00(%[src]), %%xmm1")
-            __ASM_EMIT("mulps           %[LOG2E], %%xmm0")
-            __ASM_EMIT("mulps           %%xmm1, %%xmm0")
             POW2_CORE_X8
             __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
             __ASM_EMIT("add             $0x10, %[src]")
@@ -610,12 +577,10 @@ namespace sse2
 
             // logf(v)
             LOGN_CORE_X4
-            __ASM_EMIT("addps           %%xmm0, %%xmm0")
-            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm1")
-            __ASM_EMIT("addps           %%xmm1, %%xmm0")
+            __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm0")        // xmm0 = 2*y*L*log2(E)
+            __ASM_EMIT("addps           %%xmm1, %%xmm0")                // xmm0 = 2*y*L*log2(E) + R
+            __ASM_EMIT("mulps           %%xmm7, %%xmm0")                // xmm0 = (2*y*L*log2(E) + R)*v
             // expf(x * logf(v))
-            __ASM_EMIT("mulps           %[LOG2E], %%xmm0")
-            __ASM_EMIT("mulps           %%xmm7, %%xmm0")
             POW2_CORE_X8
 
             __ASM_EMIT("test            $1, %[count]")
@@ -633,8 +598,7 @@ namespace sse2
             : [dst] "+r" (dst), [v] "+r" (v), [src] "+r" (x), [count] "+r" (count)
             : [E2C] "o" (EXP2_CONST),
               [L2C] "o" (LOG2_CONST),
-              [LOGC] "o" (LOGE_C),
-              [LOG2E] "m" (EXP_LOG2E)
+              [LOGC] "o" (LOGB_C)
             : "cc", "memory",
               "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
         );

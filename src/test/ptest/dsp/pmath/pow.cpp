@@ -37,12 +37,12 @@ IF_ARCH_X86(
 IF_ARCH_ARM(
     namespace neon_d32
     {
-//        void powcv1(float *v, float c, size_t count);
-//        void powcv2(float *dst, const float *v, float c, size_t count);
-//        void powvc1(float *c, float v, size_t count);
-//        void powvc2(float *dst, const float *c, float v, size_t count);
-//        void powvx1(float *v, const float *x, size_t count);
-//        void powvx2(float *dst, const float *v, const float *x, size_t count);
+        void powcv1(float *v, float c, size_t count);
+        void powcv2(float *dst, const float *v, float c, size_t count);
+        void powvc1(float *c, float v, size_t count);
+        void powvc2(float *dst, const float *c, float v, size_t count);
+        void powvx1(float *v, const float *x, size_t count);
+        void powvx2(float *dst, const float *v, const float *x, size_t count);
     }
 )
 
@@ -130,32 +130,32 @@ PTEST_BEGIN("dsp.pmath", pow, 5, 1000)
 
             call("native::powcv1", dst, src1, count, native::powcv1);
             IF_ARCH_X86(call("sse2::powcv1", dst, src1, count, sse2::powcv1));
-//            IF_ARCH_ARM(call("neon_d32::powcv1", dst, src1, count, neon_d32::powcv1));
+            IF_ARCH_ARM(call("neon_d32::powcv1", dst, src1, count, neon_d32::powcv1));
             PTEST_SEPARATOR;
 
             call("native::powcv2", dst, src1, count, native::powcv2);
             IF_ARCH_X86(call("sse2::powcv2", dst, src1, count, sse2::powcv2));
-//            IF_ARCH_ARM(call("neon_d32::powcv2", dst, src1, count, neon_d32::powcv2));
+            IF_ARCH_ARM(call("neon_d32::powcv2", dst, src1, count, neon_d32::powcv2));
             PTEST_SEPARATOR;
 
             call("native::powvc1", dst, src1, count, native::powvc1);
             IF_ARCH_X86(call("sse2::powvc1", dst, src1, count, sse2::powvc1));
-//            IF_ARCH_ARM(call("neon_d32::powvc1", dst, src1, count, neon_d32::powvc1));
+            IF_ARCH_ARM(call("neon_d32::powvc1", dst, src1, count, neon_d32::powvc1));
             PTEST_SEPARATOR;
 
             call("native::powvc2", dst, src1, count, native::powvc2);
             IF_ARCH_X86(call("sse2::powvc2", dst, src1, count, sse2::powvc2));
-//            IF_ARCH_ARM(call("neon_d32::powvc2", dst, src1, count, neon_d32::powvc2));
+            IF_ARCH_ARM(call("neon_d32::powvc2", dst, src1, count, neon_d32::powvc2));
             PTEST_SEPARATOR;
 
             call("native::powvx1", dst, src1, src2, count, native::powvx1);
             IF_ARCH_X86(call("sse2::powvx1", dst, src1, src2, count, sse2::powvx1));
-//            IF_ARCH_ARM(call("neon_d32::powvx1", dst, src1, src2, count, neon_d32::powvx1));
+            IF_ARCH_ARM(call("neon_d32::powvx1", dst, src1, src2, count, neon_d32::powvx1));
             PTEST_SEPARATOR;
 
             call("native::powvx2", dst, src1, src2, count, native::powvx2);
             IF_ARCH_X86(call("sse2::powvx2", dst, src1, src2, count, sse2::powvx2));
-//            IF_ARCH_ARM(call("neon_d32::powvx2", dst, src1, src2, count, neon_d32::powvx2));
+            IF_ARCH_ARM(call("neon_d32::powvx2", dst, src1, src2, count, neon_d32::powvx2));
             PTEST_SEPARATOR2;
         }
 
