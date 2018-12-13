@@ -400,7 +400,7 @@ namespace neon_d32
 
             LOGN_CORE_X4
             __ASM_EMIT("vmla.f32        q2, q0, q14")           // q2 = 2*y*L*log2(E)+R
-            __ASM_EMIT("vmul.f32        q0, q1, q4")            // q0 = (2*y*L*log2(E)+R)*x = log(v[i])*log2(E) * x
+            __ASM_EMIT("vmul.f32        q0, q2, q1")            // q0 = (2*y*L*log2(E)+R)*x = log(v[i])*log2(E) * x
             POW2_CORE_X4
 
             __ASM_EMIT("tst             %[count], $1")
@@ -431,7 +431,7 @@ namespace neon_d32
     {
 //        for (size_t i=0; i<count; ++i)
 //            dst[i] = expf(x[i] * logf(v[i]));
-        IF_ARCH_ARM(float *dst = x);
+        IF_ARCH_ARM(float *dst = v);
 
         ARCH_ARM_ASM(
             __ASM_EMIT("subs            %[count], $8")
@@ -486,7 +486,7 @@ namespace neon_d32
 
             LOGN_CORE_X4
             __ASM_EMIT("vmla.f32        q2, q0, q14")           // q2 = 2*y*L*log2(E)+R
-            __ASM_EMIT("vmul.f32        q0, q1, q4")            // q0 = (2*y*L*log2(E)+R)*x = log(v[i])*log2(E) * x
+            __ASM_EMIT("vmul.f32        q0, q2, q1")            // q0 = (2*y*L*log2(E)+R)*x = log(v[i])*log2(E) * x
             POW2_CORE_X4
 
             __ASM_EMIT("tst             %[count], $1")
