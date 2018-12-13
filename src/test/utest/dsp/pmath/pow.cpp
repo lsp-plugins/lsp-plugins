@@ -38,8 +38,8 @@ IF_ARCH_ARM(
         void powcv2(float *dst, const float *v, float c, size_t count);
         void powvc1(float *c, float v, size_t count);
         void powvc2(float *dst, const float *c, float v, size_t count);
-//        void powvx1(float *v, const float *x, size_t count);
-//        void powvx2(float *dst, const float *v, const float *x, size_t count);
+        void powvx1(float *v, const float *x, size_t count);
+        void powvx2(float *dst, const float *v, const float *x, size_t count);
     }
 )
 
@@ -229,8 +229,8 @@ UTEST_BEGIN("dsp.pmath", pow)
         IF_ARCH_ARM(call("neon_d32::powcv2", 16, native::powcv2, neon_d32::powcv2));
         IF_ARCH_ARM(call("neon_d32::powvc1", 16, native::powvc1, neon_d32::powvc1));
         IF_ARCH_ARM(call("neon_d32::powvc2", 16, native::powvc2, neon_d32::powvc2));
-//        IF_ARCH_ARM(call("neon_d32::powvx1", 16, native::powvx1, neon_d32::powvx1));
-//        IF_ARCH_ARM(call("neon_d32::powvx2", 16, native::powvx2, neon_d32::powvx2));
+        IF_ARCH_ARM(call("neon_d32::powvx1", 16, native::powvx1, neon_d32::powvx1));
+        IF_ARCH_ARM(call("neon_d32::powvx2", 16, native::powvx2, neon_d32::powvx2));
     }
 UTEST_END
 

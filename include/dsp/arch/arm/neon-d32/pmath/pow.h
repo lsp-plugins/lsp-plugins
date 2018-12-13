@@ -191,7 +191,7 @@ namespace neon_d32
 
         ARCH_ARM_ASM(
             __ASM_EMIT("subs            %[count], $8")
-            __ASM_EMIT("vldm1.32        {d0[], d1[]}, [%[V]]")
+            __ASM_EMIT("vld1.32         {d0[], d1[]}, [%[V]]")
             __ASM_EMIT("vldm            %[LOG2E], {q15}")
             __ASM_EMIT("vldm            %[LOGC], {q14}")        // q14 = 1/log2(E)
             __ASM_EMIT("vmul.f32        q15, q15, q0")          // q0 = log2(E)*v
@@ -284,7 +284,7 @@ namespace neon_d32
 
         ARCH_ARM_ASM(
             __ASM_EMIT("subs            %[count], $8")
-            __ASM_EMIT("vldm1.32        {d0[], d1[]}, [%[V]]")
+            __ASM_EMIT("vld1.32         {d0[], d1[]}, [%[V]]")
             __ASM_EMIT("vldm            %[LOG2E], {q15}")
             __ASM_EMIT("vldm            %[LOGC], {q14}")        // q14 = 1/log2(E)
             __ASM_EMIT("vmul.f32        q15, q15, q0")          // q0 = log2(E)*v
@@ -356,6 +356,205 @@ namespace neon_d32
             __ASM_EMIT("12:")
 
             : [dst] "+r" (dst), [src] "+r" (c), [count] "+r" (count)
+            : [L2C] "r" (&LOG2_CONST[0]),
+              [LOGC] "r" (&LOGE_C[0]),
+              [E2C] "r" (&EXP2_CONST[0]),
+              [LOG2E] "r" (&EXP_LOG2E[0]),
+              [V] "r" (&v)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11",
+              "q12", "q13", "q14", "q15"
+        );
+    }
+
+    void powvx2(float *dst, const float *x, const float *v, size_t count)
+    {
+//        for (size_t i=0; i<count; ++i)
+//            dst[i] = expf(x[i] * logf(v[i]));
+
+        ARCH_ARM_ASM(
+            __ASM_EMIT("subs            %[count], $8")
+            __ASM_EMIT("vldm            %[LOGC], {q14}")        // q14 = 1/log2(E)
+            __ASM_EMIT("vldm            %[LOG2E], {q15}")
+            __ASM_EMIT("blo             2f")
+
+            // x8 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vld1.32         {q0-q1}, [%[v]]!")
+            // log(v[i])
+            LOGN_CORE_X8
+            __ASM_EMIT("vadd.f32        q0, q0, q0")            // q0 = 2*y*L
+            __ASM_EMIT("vadd.f32        q1, q1, q1")
+            __ASM_EMIT("vmla.f32        q0, q2, q14")           // q0 = 2*y*L + R/log2(E)
+            __ASM_EMIT("vmla.f32        q1, q3, q14")
+
+            __ASM_EMIT("vld1.32         {q2-q3}, [%[src]]!")
+            __ASM_EMIT("vmul.f32        q0, q0, q15")           // q0 = log(v[i])*log2(E)
+            __ASM_EMIT("vmul.f32        q1, q1, q15")
+            __ASM_EMIT("vmul.f32        q0, q0, q2")
+            __ASM_EMIT("vmul.f32        q1, q1, q3")
+            POW2_CORE_X8
+            __ASM_EMIT("subs            %[count], $8")
+            __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
+            __ASM_EMIT("bhs             1b")
+
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds            %[count], $4")
+            __ASM_EMIT("blt             4f")
+
+            // x4 block
+            __ASM_EMIT("vld1.32         {q0}, [%[src]]!")
+            // log(c[i])
+            LOGN_CORE_X4
+            __ASM_EMIT("vadd.f32        q0, q0, q0")            // q0 = 2*y*L
+            __ASM_EMIT("vmla.f32        q0, q2, q14")           // q0 = 2*y*L + R/log2(E)
+
+            __ASM_EMIT("vld1.32         {q2}, [%[src]]!")
+            __ASM_EMIT("vmul.f32        q0, q0, q15")           // q0 = log(v[i])*log2(E)
+            __ASM_EMIT("vmul.f32        q0, q0, q2")
+            POW2_CORE_X4
+            __ASM_EMIT("sub             %[count], $4")
+            __ASM_EMIT("vst1.32         {q0}, [%[dst]]!")
+
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds            %[count], $4")
+            __ASM_EMIT("bls             12f")
+
+            // Tail: 1x-3x block
+            __ASM_EMIT("tst             %[count], $1")
+            __ASM_EMIT("beq             6f")
+            __ASM_EMIT("vldm            %[v]!, {s2}")
+            __ASM_EMIT("vldm            %[src]!, {s6}")
+            __ASM_EMIT("6:")
+            __ASM_EMIT("tst             %[count], $2")
+            __ASM_EMIT("beq             8f")
+            __ASM_EMIT("vldm            %[v], {d0}")
+            __ASM_EMIT("vldm            %[src], {d2}")
+            __ASM_EMIT("8:")
+
+            LOGN_CORE_X4
+            __ASM_EMIT("vadd.f32        q0, q0, q0")            // q0 = 2*y*L
+            __ASM_EMIT("vmla.f32        q0, q2, q14")           // q0 = 2*y*L + R/log2(E)
+
+            __ASM_EMIT("vld1.32         {q2}, [%[src]]!")
+            __ASM_EMIT("vmul.f32        q0, q0, q15")           // q0 = log(v[i])*log2(E)
+            __ASM_EMIT("vmul.f32        q0, q0, q1")
+            POW2_CORE_X4
+
+            __ASM_EMIT("tst             %[count], $1")
+            __ASM_EMIT("beq             10f")
+            __ASM_EMIT("vstm            %[dst]!, {s2}")
+            __ASM_EMIT("10:")
+            __ASM_EMIT("tst             %[count], $2")
+            __ASM_EMIT("beq             12f")
+            __ASM_EMIT("vstm            %[dst], {d0}")
+
+            // End
+            __ASM_EMIT("12:")
+
+            : [dst] "+r" (dst), [src] "+r" (x), [v] "+r" (v), [count] "+r" (count)
+            : [L2C] "r" (&LOG2_CONST[0]),
+              [LOGC] "r" (&LOGE_C[0]),
+              [E2C] "r" (&EXP2_CONST[0]),
+              [LOG2E] "r" (&EXP_LOG2E[0]),
+              [V] "r" (&v)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3",
+              "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11",
+              "q12", "q13", "q14", "q15"
+        );
+    }
+
+    void powvx1(const float *x, const float *v, size_t count)
+    {
+//        for (size_t i=0; i<count; ++i)
+//            dst[i] = expf(x[i] * logf(v[i]));
+        IF_ARCH_ARM(float *dst = x);
+
+        ARCH_ARM_ASM(
+            __ASM_EMIT("subs            %[count], $8")
+            __ASM_EMIT("vldm            %[LOGC], {q14}")        // q14 = 1/log2(E)
+            __ASM_EMIT("vldm            %[LOG2E], {q15}")
+            __ASM_EMIT("blo             2f")
+
+            // x8 blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vld1.32         {q0-q1}, [%[v]]!")
+            // log(v[i])
+            LOGN_CORE_X8
+            __ASM_EMIT("vadd.f32        q0, q0, q0")            // q0 = 2*y*L
+            __ASM_EMIT("vadd.f32        q1, q1, q1")
+            __ASM_EMIT("vmla.f32        q0, q2, q14")           // q0 = 2*y*L + R/log2(E)
+            __ASM_EMIT("vmla.f32        q1, q3, q14")
+
+            __ASM_EMIT("vld1.32         {q2-q3}, [%[src]]!")
+            __ASM_EMIT("vmul.f32        q0, q0, q15")           // q0 = log(v[i])*log2(E)
+            __ASM_EMIT("vmul.f32        q1, q1, q15")
+            __ASM_EMIT("vmul.f32        q0, q0, q2")
+            __ASM_EMIT("vmul.f32        q1, q1, q3")
+            POW2_CORE_X8
+            __ASM_EMIT("subs            %[count], $8")
+            __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!")
+            __ASM_EMIT("bhs             1b")
+
+            __ASM_EMIT("2:")
+            __ASM_EMIT("adds            %[count], $4")
+            __ASM_EMIT("blt             4f")
+
+            // x4 block
+            __ASM_EMIT("vld1.32         {q0}, [%[src]]!")
+            // log(c[i])
+            LOGN_CORE_X4
+            __ASM_EMIT("vadd.f32        q0, q0, q0")            // q0 = 2*y*L
+            __ASM_EMIT("vmla.f32        q0, q2, q14")           // q0 = 2*y*L + R/log2(E)
+
+            __ASM_EMIT("vld1.32         {q2}, [%[src]]!")
+            __ASM_EMIT("vmul.f32        q0, q0, q15")           // q0 = log(v[i])*log2(E)
+            __ASM_EMIT("vmul.f32        q0, q0, q2")
+            POW2_CORE_X4
+            __ASM_EMIT("sub             %[count], $4")
+            __ASM_EMIT("vst1.32         {q0}, [%[dst]]!")
+
+            __ASM_EMIT("4:")
+            __ASM_EMIT("adds            %[count], $4")
+            __ASM_EMIT("bls             12f")
+
+            // Tail: 1x-3x block
+            __ASM_EMIT("tst             %[count], $1")
+            __ASM_EMIT("beq             6f")
+            __ASM_EMIT("vldm            %[v]!, {s2}")
+            __ASM_EMIT("vldm            %[src]!, {s6}")
+            __ASM_EMIT("6:")
+            __ASM_EMIT("tst             %[count], $2")
+            __ASM_EMIT("beq             8f")
+            __ASM_EMIT("vldm            %[v], {d0}")
+            __ASM_EMIT("vldm            %[src], {d2}")
+            __ASM_EMIT("8:")
+
+            LOGN_CORE_X4
+            __ASM_EMIT("vadd.f32        q0, q0, q0")            // q0 = 2*y*L
+            __ASM_EMIT("vmla.f32        q0, q2, q14")           // q0 = 2*y*L + R/log2(E)
+
+            __ASM_EMIT("vld1.32         {q2}, [%[src]]!")
+            __ASM_EMIT("vmul.f32        q0, q0, q15")           // q0 = log(v[i])*log2(E)
+            __ASM_EMIT("vmul.f32        q0, q0, q1")
+            POW2_CORE_X4
+
+            __ASM_EMIT("tst             %[count], $1")
+            __ASM_EMIT("beq             10f")
+            __ASM_EMIT("vstm            %[dst]!, {s2}")
+            __ASM_EMIT("10:")
+            __ASM_EMIT("tst             %[count], $2")
+            __ASM_EMIT("beq             12f")
+            __ASM_EMIT("vstm            %[dst], {d0}")
+
+            // End
+            __ASM_EMIT("12:")
+
+            : [dst] "+r" (dst), [src] "+r" (x), [v] "+r" (v), [count] "+r" (count)
             : [L2C] "r" (&LOG2_CONST[0]),
               [LOGC] "r" (&LOGE_C[0]),
               [E2C] "r" (&EXP2_CONST[0]),

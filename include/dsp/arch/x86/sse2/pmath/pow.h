@@ -533,7 +533,7 @@ namespace sse2
     void powvx2(float *dst, const float *x, const float *v, size_t count)
     {
 //        for (size_t i=0; i<count; ++i)
-//            v[i] = expf(x[i] * logf(v[i]));
+//            dst[i] = expf(x[i] * logf(v[i]));
 
         ARCH_X86_ASM(
             // Analyze size

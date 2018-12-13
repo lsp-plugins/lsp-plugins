@@ -175,8 +175,8 @@ namespace neon_d32
         EXPORT1(powcv2);
         EXPORT1(powvc1);
         EXPORT1(powvc2);
-//        EXPORT1(powvx1);
-//        EXPORT1(powvx2);
+        EXPORT1(powvx1);
+        EXPORT1(powvx2);
 
         EXPORT1(h_sum);
         EXPORT1(h_abs_sum);
