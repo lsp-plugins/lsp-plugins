@@ -173,8 +173,8 @@ namespace neon_d32
         EXPORT1(logd2);
         EXPORT1(powcv1);
         EXPORT1(powcv2);
-//        EXPORT1(powvc1);
-//        EXPORT1(powvc2);
+        EXPORT1(powvc1);
+        EXPORT1(powvc2);
 //        EXPORT1(powvx1);
 //        EXPORT1(powvx2);
 

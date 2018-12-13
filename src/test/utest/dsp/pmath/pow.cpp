@@ -227,8 +227,8 @@ UTEST_BEGIN("dsp.pmath", pow)
 
         IF_ARCH_ARM(call("neon_d32::powcv1", 16, native::powcv1, neon_d32::powcv1));
         IF_ARCH_ARM(call("neon_d32::powcv2", 16, native::powcv2, neon_d32::powcv2));
-//        IF_ARCH_ARM(call("neon_d32::powvc1", 16, native::powvc1, neon_d32::powvc1));
-//        IF_ARCH_ARM(call("neon_d32::powvc2", 16, native::powvc2, neon_d32::powvc2));
+        IF_ARCH_ARM(call("neon_d32::powvc1", 16, native::powvc1, neon_d32::powvc1));
+        IF_ARCH_ARM(call("neon_d32::powvc2", 16, native::powvc2, neon_d32::powvc2));
 //        IF_ARCH_ARM(call("neon_d32::powvx1", 16, native::powvx1, neon_d32::powvx1));
 //        IF_ARCH_ARM(call("neon_d32::powvx2", 16, native::powvx2, neon_d32::powvx2));
     }
