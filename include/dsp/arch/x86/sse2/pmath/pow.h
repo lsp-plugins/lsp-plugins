@@ -433,9 +433,9 @@ namespace sse2
 
             // x8 blocks
             __ASM_EMIT("1:")
-            __ASM_EMIT("movups          0x00(%[dst]), %%xmm0")
-            __ASM_EMIT("movups          0x10(%[dst]), %%xmm4")
-            // logf(x)
+            __ASM_EMIT("movups          0x00(%[v]), %%xmm0")
+            __ASM_EMIT("movups          0x10(%[v]), %%xmm4")
+            // logf(v)
             LOGN_CORE_X8
             __ASM_EMIT("addps           %%xmm0, %%xmm0")
             __ASM_EMIT("addps           %%xmm4, %%xmm4")
@@ -443,9 +443,9 @@ namespace sse2
             __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm5")
             __ASM_EMIT("addps           %%xmm1, %%xmm0")
             __ASM_EMIT("addps           %%xmm5, %%xmm4")
-            // expf(v * logf(x))
-            __ASM_EMIT("movups          0x00(%[v]), %%xmm1")
-            __ASM_EMIT("movups          0x10(%[v]), %%xmm5")
+            // expf(x * logf(v))
+            __ASM_EMIT("movups          0x00(%[dst]), %%xmm1")
+            __ASM_EMIT("movups          0x10(%[dst]), %%xmm5")
             __ASM_EMIT("mulps           %[LOG2E], %%xmm0")
             __ASM_EMIT("mulps           %[LOG2E], %%xmm4")
             __ASM_EMIT("mulps           %%xmm1, %%xmm0")
@@ -453,8 +453,8 @@ namespace sse2
             POW2_CORE_X8
             __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
             __ASM_EMIT("movups          %%xmm4, 0x10(%[dst])")
-            __ASM_EMIT("add             $0x20, %[dst]")
             __ASM_EMIT("add             $0x20, %[v]")
+            __ASM_EMIT("add             $0x20, %[dst]")
             __ASM_EMIT("sub             $8, %[count]")
             __ASM_EMIT("jae             1b")
 
@@ -463,20 +463,20 @@ namespace sse2
             __ASM_EMIT("jl              4f")
 
             // x4 block
-            __ASM_EMIT("movups          0x00(%[dst]), %%xmm0")
-            // logf(x)
+            __ASM_EMIT("movups          0x00(%[v]), %%xmm0")
+            // logf(v)
             LOGN_CORE_X4
             __ASM_EMIT("addps           %%xmm0, %%xmm0")
             __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm1")
             __ASM_EMIT("addps           %%xmm1, %%xmm0")
-            // expf(v * logf(x))
-            __ASM_EMIT("movups          0x00(%[v]), %%xmm1")
+            // expf(x * logf(x))
+            __ASM_EMIT("movups          0x00(%[dst]), %%xmm1")
             __ASM_EMIT("mulps           %[LOG2E], %%xmm0")
             __ASM_EMIT("mulps           %%xmm1, %%xmm0")
             POW2_CORE_X8
             __ASM_EMIT("movups          %%xmm0, 0x00(%[dst])")
-            __ASM_EMIT("add             $0x10, %[dst]")
             __ASM_EMIT("add             $0x10, %[v]")
+            __ASM_EMIT("add             $0x10, %[dst]")
             __ASM_EMIT("sub             $4, %[count]")
 
             __ASM_EMIT("4:")
@@ -487,15 +487,15 @@ namespace sse2
             __ASM_EMIT("mov             %[dst], %[src]")
             __ASM_EMIT("test            $1, %[count]")
             __ASM_EMIT("jz              6f")
-            __ASM_EMIT("movss           0x00(%[src]), %%xmm0")
-            __ASM_EMIT("movss           0x00(%[v]), %%xmm7")
-            __ASM_EMIT("add             $4, %[src]")
+            __ASM_EMIT("movss           0x00(%[v]), %%xmm0")
+            __ASM_EMIT("movss           0x00(%[src]), %%xmm7")
             __ASM_EMIT("add             $4, %[v]")
+            __ASM_EMIT("add             $4, %[src]")
             __ASM_EMIT("6:")
             __ASM_EMIT("test            $2, %[count]")
             __ASM_EMIT("jz              8f")
-            __ASM_EMIT("movhps          0x00(%[src]), %%xmm0")
-            __ASM_EMIT("movhps          0x00(%[v]), %%xmm7")
+            __ASM_EMIT("movhps          0x00(%[v]), %%xmm0")
+            __ASM_EMIT("movhps          0x00(%[src]), %%xmm7")
             __ASM_EMIT("8:")
 
             // logf(x)
@@ -542,9 +542,9 @@ namespace sse2
 
             // x8 blocks
             __ASM_EMIT("1:")
-            __ASM_EMIT("movups          0x00(%[src]), %%xmm0")
-            __ASM_EMIT("movups          0x10(%[src]), %%xmm4")
-            // logf(x)
+            __ASM_EMIT("movups          0x00(%[v]), %%xmm0")
+            __ASM_EMIT("movups          0x10(%[v]), %%xmm4")
+            // logf(v)
             LOGN_CORE_X8
             __ASM_EMIT("addps           %%xmm0, %%xmm0")
             __ASM_EMIT("addps           %%xmm4, %%xmm4")
@@ -552,9 +552,9 @@ namespace sse2
             __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm5")
             __ASM_EMIT("addps           %%xmm1, %%xmm0")
             __ASM_EMIT("addps           %%xmm5, %%xmm4")
-            // expf(v * logf(x))
-            __ASM_EMIT("movups          0x00(%[v]), %%xmm1")
-            __ASM_EMIT("movups          0x10(%[v]), %%xmm5")
+            // expf(x * logf(v))
+            __ASM_EMIT("movups          0x00(%[src]), %%xmm1")
+            __ASM_EMIT("movups          0x10(%[src]), %%xmm5")
             __ASM_EMIT("mulps           %[LOG2E], %%xmm0")
             __ASM_EMIT("mulps           %[LOG2E], %%xmm4")
             __ASM_EMIT("mulps           %%xmm1, %%xmm0")
@@ -573,14 +573,14 @@ namespace sse2
             __ASM_EMIT("jl              4f")
 
             // x4 block
-            __ASM_EMIT("movups          0x00(%[src]), %%xmm0")
+            __ASM_EMIT("movups          0x00(%[v]), %%xmm0")
             // logf(x)
             LOGN_CORE_X4
             __ASM_EMIT("addps           %%xmm0, %%xmm0")
             __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm1")
             __ASM_EMIT("addps           %%xmm1, %%xmm0")
-            // expf(v * logf(x))
-            __ASM_EMIT("movups          0x00(%[v]), %%xmm1")
+            // expf(x * logf(v))
+            __ASM_EMIT("movups          0x00(%[src]), %%xmm1")
             __ASM_EMIT("mulps           %[LOG2E], %%xmm0")
             __ASM_EMIT("mulps           %%xmm1, %%xmm0")
             POW2_CORE_X8
@@ -597,23 +597,23 @@ namespace sse2
             // Tail: 1x-3x block
             __ASM_EMIT("test            $1, %[count]")
             __ASM_EMIT("jz              6f")
-            __ASM_EMIT("movss           0x00(%[src]), %%xmm0")
-            __ASM_EMIT("movss           0x00(%[v]), %%xmm7")
-            __ASM_EMIT("add             $4, %[src]")
+            __ASM_EMIT("movss           0x00(%[v]), %%xmm0")
+            __ASM_EMIT("movss           0x00(%[src]), %%xmm7")
             __ASM_EMIT("add             $4, %[v]")
+            __ASM_EMIT("add             $4, %[src]")
             __ASM_EMIT("6:")
             __ASM_EMIT("test            $2, %[count]")
             __ASM_EMIT("jz              8f")
-            __ASM_EMIT("movhps          0x00(%[src]), %%xmm0")
-            __ASM_EMIT("movhps          0x00(%[v]), %%xmm7")
+            __ASM_EMIT("movhps          0x00(%[v]), %%xmm0")
+            __ASM_EMIT("movhps          0x00(%[src]), %%xmm7")
             __ASM_EMIT("8:")
 
-            // logf(x)
+            // logf(v)
             LOGN_CORE_X4
             __ASM_EMIT("addps           %%xmm0, %%xmm0")
             __ASM_EMIT("mulps           0x00 + %[LOGC], %%xmm1")
             __ASM_EMIT("addps           %%xmm1, %%xmm0")
-            // expf(v * logf(x))
+            // expf(x * logf(v))
             __ASM_EMIT("mulps           %[LOG2E], %%xmm0")
             __ASM_EMIT("mulps           %%xmm7, %%xmm0")
             POW2_CORE_X8

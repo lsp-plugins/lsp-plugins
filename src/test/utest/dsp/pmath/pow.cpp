@@ -147,7 +147,7 @@ UTEST_BEGIN("dsp.pmath", pow)
                 FloatBuffer src1(count, align, mask & 0x01);
                 FloatBuffer src2(count, align, mask & 0x02);
                 src1.randomize(1.0f/6.0f, 6.0f);
-                src2.randomize(1.0f/6.0f, 6.0f);
+                src2.copy(src1);
                 FloatBuffer dst1(src1);
                 FloatBuffer dst2(src1);
 
@@ -190,7 +190,7 @@ UTEST_BEGIN("dsp.pmath", pow)
                 FloatBuffer src1(count, align, mask & 0x01);
                 FloatBuffer src2(count, align, mask & 0x02);
                 src1.randomize(1.0f/6.0f, 6.0f);
-                src2.randomize(1.0f/6.0f, 6.0f);
+                src2.copy(src1);
                 FloatBuffer dst1(count, align, mask & 0x04);
                 FloatBuffer dst2(count, align, mask & 0x04);
 
