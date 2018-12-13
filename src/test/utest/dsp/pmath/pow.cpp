@@ -36,8 +36,8 @@ IF_ARCH_ARM(
     {
         void powcv1(float *v, float c, size_t count);
         void powcv2(float *dst, const float *v, float c, size_t count);
-//        void powvc1(float *c, float v, size_t count);
-//        void powvc2(float *dst, const float *c, float v, size_t count);
+        void powvc1(float *c, float v, size_t count);
+        void powvc2(float *dst, const float *c, float v, size_t count);
 //        void powvx1(float *v, const float *x, size_t count);
 //        void powvx2(float *dst, const float *v, const float *x, size_t count);
     }

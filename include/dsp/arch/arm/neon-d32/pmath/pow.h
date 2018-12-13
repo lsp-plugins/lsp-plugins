@@ -227,6 +227,7 @@ namespace neon_d32
 
             __ASM_EMIT("vmul.f32        q0, q0, q15")           // q0 = log(c[i])*log2(E)*v
             POW2_CORE_X4
+            __ASM_EMIT("sub             %[count], $4")
             __ASM_EMIT("vst1.32         {q0}, [%[dst]]!")
 
             __ASM_EMIT("4:")
@@ -243,6 +244,7 @@ namespace neon_d32
             __ASM_EMIT("vldm            %[src], {d0}")
             __ASM_EMIT("8:")
 
+            LOGN_CORE_X4
             __ASM_EMIT("vadd.f32        q0, q0, q0")            // q0 = 2*y*L
             __ASM_EMIT("vmla.f32        q0, q2, q14")           // q0 = 2*y*L + R/log2(E)
 
@@ -318,6 +320,7 @@ namespace neon_d32
 
             __ASM_EMIT("vmul.f32        q0, q0, q15")           // q0 = log(c[i])*log2(E)*v
             POW2_CORE_X4
+            __ASM_EMIT("sub             %[count], $4")
             __ASM_EMIT("vst1.32         {q0}, [%[dst]]!")
 
             __ASM_EMIT("4:")
@@ -334,6 +337,7 @@ namespace neon_d32
             __ASM_EMIT("vldm            %[src], {d0}")
             __ASM_EMIT("8:")
 
+            LOGN_CORE_X4
             __ASM_EMIT("vadd.f32        q0, q0, q0")            // q0 = 2*y*L
             __ASM_EMIT("vmla.f32        q0, q2, q14")           // q0 = 2*y*L + R/log2(E)
 
