@@ -31,6 +31,7 @@
 * Added support of FreeBSD operating system.
 * Added Frame Buffer primitive support by plugins and widgets.
 * Implemented RGBA and HSLA color manipulation routines for point array rendering optimizations.
+* Fixed system character set detection on certain systems that caused disappearing of text labels in the UI.
 - Migrated to CMake build system.
 - Additional display mode for spectrum analyzer added.
 - Added possibility to double-click the parameter's value number and enter it manually with keyboard.

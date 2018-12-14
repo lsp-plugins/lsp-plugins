@@ -27,16 +27,18 @@ namespace lsp
 
             // Get system locale
             current = setlocale(LC_CTYPE, "");
-            if (current == NULL)
-                return iconv_t(-1);
+            if (current != NULL)
+                current = strchr(current, '.');
 
             // Scan for character set
-            current = strchr(current, '.');
-            if (current == NULL)
-                return iconv_t(-1);
-            len = strlen(current);
-            psaved = static_cast<char *>(alloca(len));
-            memcpy(psaved, &current[1], len);
+            if (current != NULL)
+            {
+                len = strlen(current);
+                psaved = static_cast<char *>(alloca(len));
+                memcpy(psaved, &current[1], len);
+            }
+            else
+                strcpy(psaved, "UTF-8");
 
             // Restore saved locale
             setlocale(LC_CTYPE, charset);
@@ -65,21 +67,23 @@ namespace lsp
 
             // Get system locale
             current = setlocale(LC_CTYPE, "");
-            if (current == NULL)
-                return iconv_t(-1);
+            if (current != NULL)
+                current = strchr(current, '.');
 
             // Scan for character set
-            current = strchr(current, '.');
-            if (current == NULL)
-                return iconv_t(-1);
-            len = strlen(current);
-            psaved = static_cast<char *>(alloca(len));
-            memcpy(psaved, &current[1], len);
+            if (current != NULL)
+            {
+                len = strlen(current);
+                psaved = static_cast<char *>(alloca(len));
+                memcpy(psaved, &current[1], len);
+            }
+            else
+                strcpy(psaved, "UTF-8");
 
             // Restore saved locale
             setlocale(LC_CTYPE, charset);
 
-            // Update locale
+            // Update charset
             charset  = psaved;
         }
 
