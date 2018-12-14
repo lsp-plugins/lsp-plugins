@@ -51,8 +51,11 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
+            sFont.init();
             sFont.set_size(10);
             sFont.set_bold(true);
+
+            sHintFont.init();
             sHintFont.set_size(16);
             sHintFont.set_bold(true);
 

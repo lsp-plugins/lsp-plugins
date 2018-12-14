@@ -118,6 +118,7 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
+            sFont.init();
             sFont.set_size(12.0f);
 
             if (pDisplay != NULL)

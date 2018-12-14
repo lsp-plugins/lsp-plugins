@@ -37,8 +37,9 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
-            sFont.set_size(16);
+            sFont.init();
             sFont.set_name("Arial");
+            sFont.set_size(16);
             sFont.set_bold(true);
 
             init_color(C_BACKGROUND, &sBgColor);
