@@ -31,11 +31,11 @@ namespace lsp
             protected:
                 char           *sText;
                 Color           sColor;
-                Color           sTextColor;
                 Color           sBgColor;
                 size_t          nRadius;
                 size_t          nBorder;
                 LSPWidget      *pWidget;
+                LSPWidgetFont   sFont;
 
 
             protected:
@@ -45,22 +45,16 @@ namespace lsp
 
             public:
                 inline const char  *text() const            { return sText; }
-
                 inline Color       *color()                 { return &sColor; }
-
                 inline Color       *bg_color()              { return &sBgColor; }
-
-                inline Color       *text_color()            { return &sTextColor; }
-
+                inline Color       *text_color()            { return sFont.color(); }
                 inline size_t       radius() const          { return nRadius; }
-
                 inline size_t       border() const          { return nBorder; }
+                inline LSPFont     *font()                  { return &sFont; }
 
             public:
                 status_t            set_text(const char *text);
-
                 void                set_radius(size_t value);
-
                 void                set_border(size_t value);
 
             public:

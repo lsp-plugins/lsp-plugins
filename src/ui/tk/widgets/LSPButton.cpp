@@ -56,6 +56,7 @@ namespace lsp
             id = sSlots.add(LSPSLOT_SUBMIT, slot_on_submit, self());
             if (id < 0) return -id;
 
+            sFont.init();
             sFont.set_size(12.0f);
 
             return STATUS_OK;

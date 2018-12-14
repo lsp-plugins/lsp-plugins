@@ -201,6 +201,7 @@ namespace lsp
             sVBar.hide();
             sHBar.hide();
 
+            sFont.init();
             sFont.set_size(12);
 
             // Bind slots

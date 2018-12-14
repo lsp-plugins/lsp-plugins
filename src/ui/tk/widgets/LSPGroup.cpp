@@ -13,7 +13,9 @@ namespace lsp
     {
         const w_class_t LSPGroup::metadata = { "LSPGroup", &LSPWidgetContainer::metadata };
 
-        LSPGroup::LSPGroup(LSPDisplay *dpy): LSPWidgetContainer(dpy)
+        LSPGroup::LSPGroup(LSPDisplay *dpy):
+            LSPWidgetContainer(dpy),
+            sFont(dpy, this)
         {
             sText       = NULL;
             nRadius     = 10;
@@ -40,8 +42,10 @@ namespace lsp
 
                 if (theme != NULL)
                 {
+                    sFont.init(theme->font());
+                    sFont.set_size(12.0f);
                     theme->get_color(C_LABEL_TEXT, &sColor);
-                    theme->get_color(C_BACKGROUND, &sTextColor);
+                    theme->get_color(C_BACKGROUND, sFont.color());
                     theme->get_color(C_BACKGROUND, &sBgColor);
                 }
             }
@@ -200,17 +204,16 @@ namespace lsp
                 if ((text != NULL) && (strlen(text) > 0))
                 {
                     // Draw text border
-                    Font                f(12);
                     font_parameters_t   fp;
                     text_parameters_t   tp;
 
-                    s->get_font_parameters(f, &fp);
-                    s->get_text_parameters(f, &tp, text);
+                    sFont.get_parameters(s, &fp);
+                    sFont.get_text_parameters(s, &tp, text);
 
                     s->fill_round_rect(cx-1, cy-1, 4 + nRadius + tp.Width, fp.Height + 4, nRadius, 0x04, sColor);
 
                     // Show text
-                    s->out_text(f, cx + 4, cy + fp.Ascent + nBorder, text, sTextColor);
+                    sFont.draw(s, cx + 4, cy + fp.Ascent + nBorder, text);
                 }
 
                 s->set_antialiasing(aa);
