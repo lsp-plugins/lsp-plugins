@@ -37,14 +37,12 @@ namespace lsp
                 psaved = static_cast<char *>(alloca(len));
                 memcpy(psaved, &current[1], len);
             }
-            else
-                strcpy(psaved, "UTF-8");
 
             // Restore saved locale
             setlocale(LC_CTYPE, charset);
 
             // Update locale
-            charset  = psaved;
+            charset  = (current != NULL) ? psaved : "UTF-8";
         }
 
         // Open conversion
@@ -77,14 +75,12 @@ namespace lsp
                 psaved = static_cast<char *>(alloca(len));
                 memcpy(psaved, &current[1], len);
             }
-            else
-                strcpy(psaved, "UTF-8");
 
             // Restore saved locale
             setlocale(LC_CTYPE, charset);
 
             // Update charset
-            charset  = psaved;
+            charset  = (current != NULL) ? psaved : "UTF-8";
         }
 
         // Open conversion
