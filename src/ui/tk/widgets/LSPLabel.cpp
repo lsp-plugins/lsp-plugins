@@ -35,6 +35,7 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
+            sFont.init();
             init_color(C_LABEL_TEXT, sFont.color());
             init_color(C_BACKGROUND, &sBgColor);
 

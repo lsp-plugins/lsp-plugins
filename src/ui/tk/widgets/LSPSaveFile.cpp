@@ -102,6 +102,7 @@ namespace lsp
                 vStates[i].sText.set_utf8(sd->text);
             }
 
+            sFont.init();
             sFont.set_size(10);
 
             // Create dialog

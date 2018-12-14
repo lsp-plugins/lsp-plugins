@@ -62,6 +62,7 @@ namespace lsp
                 vCoords[i].fCoord   = 0.0f;
             }
 
+            sFont.init();
             sFont.set_size(10.0f);
 
             return STATUS_OK;

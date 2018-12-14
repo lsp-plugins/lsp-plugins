@@ -114,12 +114,11 @@ namespace lsp
                 LSPTheme *theme = pDisplay->theme();
                 if (theme != NULL)
                 {
+                    sFont.init(theme->font());
                     theme->get_color(C_BACKGROUND, sFont.color());
                     theme->get_color(C_BACKGROUND, &sBorderColor);
                     theme->get_color(C_LABEL_TEXT, &sColor);
                     theme->get_color(C_KNOB_SCALE, &sSelColor);
-
-                    sFont.init(theme->font());
                 }
             }
 

@@ -59,6 +59,7 @@ namespace lsp
             init_color(C_LABEL_TEXT, &sColor);
             init_color(C_BACKGROUND, &sBgColor);
 
+            sFont.init();
             sFont.set_bold(true);
             sFont.set_size(14.0f);
 
