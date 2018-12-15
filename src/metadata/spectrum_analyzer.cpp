@@ -166,7 +166,7 @@ namespace lsp
         SA_COMMON(4),
         COMBO("spc0", "Spectralizer channel 0", 0, spectrum_analyzer_x4_channels),
         FBUFFER("fb0", "Spectralizer buffer 0", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
-        COMBO("spc1", "Spectralizer channel 1", 0, spectrum_analyzer_x4_channels),
+        COMBO("spc1", "Spectralizer channel 1", 1, spectrum_analyzer_x4_channels),
         FBUFFER("fb1", "Spectralizer buffer 1", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
         PORTS_END
     };
@@ -184,7 +184,7 @@ namespace lsp
         SA_COMMON(8),
         COMBO("spc0", "Spectralizer channel 0", 0, spectrum_analyzer_x8_channels),
         FBUFFER("fb0", "Spectralizer buffer 0", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
-        COMBO("spc1", "Spectralizer channel 1", 0, spectrum_analyzer_x8_channels),
+        COMBO("spc1", "Spectralizer channel 1", 1, spectrum_analyzer_x8_channels),
         FBUFFER("fb1", "Spectralizer buffer 1", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
         PORTS_END
     };
@@ -206,7 +206,7 @@ namespace lsp
         SA_COMMON(12),
         COMBO("spc0", "Spectralizer channel 0", 0, spectrum_analyzer_x12_channels),
         FBUFFER("fb0", "Spectralizer buffer 0", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
-        COMBO("spc1", "Spectralizer channel 1", 0, spectrum_analyzer_x12_channels),
+        COMBO("spc1", "Spectralizer channel 1", 1, spectrum_analyzer_x12_channels),
         FBUFFER("fb1", "Spectralizer buffer 1", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
         PORTS_END
     };
@@ -232,7 +232,7 @@ namespace lsp
         SA_COMMON(16),
         COMBO("spc0", "Spectralizer channel 0", 0, spectrum_analyzer_x16_channels),
         FBUFFER("fb0", "Spectralizer buffer 0", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
-        COMBO("spc1", "Spectralizer channel 1", 0, spectrum_analyzer_x16_channels),
+        COMBO("spc1", "Spectralizer channel 1", 1, spectrum_analyzer_x16_channels),
         FBUFFER("fb1", "Spectralizer buffer 1", spectrum_analyzer_base_metadata::FB_ROWS, spectrum_analyzer_base_metadata::MESH_POINTS),
         PORTS_END
     };

@@ -270,7 +270,7 @@
 				</grid>
 			</group>
 		</hbox>
-		<group text="Spectralizer" expand="true" visibility=":mode ige 2">
+		<group text="Channels" expand="true" visibility=":mode ige 2">
 			<grid rows="4" cols="10" transpose="true" fill="true">
 				<cell cols="3"><label text="Channel 0" /></cell>
 				<label text="Hold" />

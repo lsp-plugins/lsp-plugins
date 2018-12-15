@@ -199,7 +199,7 @@
 			</group>
 		</hbox>
 		
-		<group text="Spectralizer" expand="true" visibility=":mode ige 2">
+		<group text="Channel" expand="true" visibility=":mode ige 2">
 			<grid rows="3" cols="6" transpose="true" fill="true">
 				<label text="Hold" />
 				<button id="frz_0" size="32" color="red" led="true" hue_id="hue_0" />
