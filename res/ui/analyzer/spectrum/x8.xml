@@ -21,7 +21,7 @@
 		</align>
 
 		<hbox>
-			<vbox>
+			<vbox spacing="4">
 				<!-- Analyzer, Mastering -->
 				<graph width="640" height="360" expand="true" fill="true" visibility=":mode ilt 4">
 					<center hpos="-1" vpos="-1" visible="false" />
@@ -136,9 +136,6 @@
 					<axis min="10" max="24000" angle="0.0" color="g_white" logarithmic="true" />
 					<axis min="0" max="8" color="g_white" angle="1.5" logarithmic="false" />
 					
-					<!-- Marker -->
-					<marker id="freq" color="g_red" basis="0" parallel="1" />
-					
 					<!-- Text -->
 					<text text="Hz" basis="0;1" coord="10;8" halign="1" valign="1" />
 					<text text="100" basis="0;1" coord="100;8" halign="1" valign="1" />
@@ -236,7 +233,7 @@
 					<label text="Hue" />
 					<label />
 					<label text="Shift" />
-					<label test="(dB)" />
+					<label text="(dB)" />
 					
 					<ui:for id="i" first="0" last="7">
 						<label text="${i}" />
