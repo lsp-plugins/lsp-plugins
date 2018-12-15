@@ -218,7 +218,7 @@
 			</vbox>
 		</hbox>
 		
-		<hbox spacing="4" visibility=":mode ilt 2">
+		<hbox spacing="4" visibility=":mode ile 1">
 			<group text="Channels" expand="true">
 				<grid rows="5" cols="6" expand="true">
 					<label text="#" />
