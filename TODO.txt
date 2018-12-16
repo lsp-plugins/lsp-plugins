@@ -11,7 +11,8 @@
 
 === 1.1.5 ===
 
-* Added 'Spectralizer' and 'Mastering' modes to the Spectrum Analyzer plugin series. 
+* Added 'Spectralizer' and 'Mastering' modes to the Spectrum Analyzer plugin series.
+* All SIMD-optimized DSP code now ported to ARMv7A architecture and optimized using ARM NEON instruction set. 
 * Fixed building issues under Ubuntu Linux related to compiler and linker
   flags reordering.
 * Improved build process, added possibility to specify PREFIX variable for
@@ -27,7 +28,6 @@
   spontaneous crashes of convolvers.
 * Fixed buffer underflow in Convolver module that could cause memory corruption and spontaneous crashes
   of host.
-* Additional DSP code optimizations for ARMv7A architecture.
 * Extended unit and performance test coverage.
 * Added support of FreeBSD operating system.
 * Added Frame Buffer primitive support by plugins and widgets.
