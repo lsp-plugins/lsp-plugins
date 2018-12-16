@@ -65,6 +65,7 @@ ifeq ($(findstring jack,$(BUILD_MODULES)),jack)
   RELEASES               += release_jack
 endif
 ifeq ($(findstring doc,$(BUILD_MODULES)),doc)
+  INSTALLATIONS          += install_doc
   UNINSTALLATIONS        += uninstall_doc
   RELEASES               += release_doc
 endif
