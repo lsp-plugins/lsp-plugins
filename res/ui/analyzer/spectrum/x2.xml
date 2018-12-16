@@ -12,7 +12,7 @@
 				<combo id="spc" width="32" visibility=":mode ieq 2" />
 				
 				<label text="Log scale" visibility=":mode ige 2" />
-				<button id="splog" size="16" color="green" led="true" visibility=":mode ige 2" />
+				<button id="splog" size="16" color="yellow" led="true" visibility=":mode ige 2" />
 			</hbox>
 		</align>
 		
@@ -65,6 +65,10 @@
 					<axis min="10" max="24000" angle="0.0" color="g_white" logarithmic="true" />
 					<axis min="-72 db / :zoom" max="24 db * :zoom" color="g_white" angle="0.5" logarithmic="true" /> <!-- -72..+24 dB -->
 					<axis min="-1" max="1" visible="false" angle="0.5" />
+					
+					<!-- Marker -->
+					<marker id="freq" color="g_red" basis="0" parallel="1" />
+					<marker id="lvl" color="g_red" basis="1" parallel="0" />
 					
 					<!-- Text -->
 					<text text="Hz" basis="0;2" coord="10;0" halign="1" valign="1" />

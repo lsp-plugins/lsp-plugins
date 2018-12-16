@@ -9,7 +9,7 @@
 				<combo id="spm" visibility=":mode ige 2" />
 				
 				<label text="Log scale" visibility=":mode ige 2" />
-				<button id="splog" size="16" color="green" led="true" visibility=":mode ige 2" />
+				<button id="splog" size="16" color="yellow" led="true" visibility=":mode ige 2" />
 			</hbox>
 		</align>
 		

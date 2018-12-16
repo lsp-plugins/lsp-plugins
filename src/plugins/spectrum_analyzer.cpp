@@ -759,17 +759,15 @@ namespace lsp
         {
             size_t k        = j*ni;
             idx[j]          = vIndexes[k];
+            b->v[0][j]      = vFrequences[k];
         }
 
         for (size_t i=0; i<nChannels; ++i)
         {
             // Output only active channel
             sa_channel_t *c = &vChannels[i];
-            if (!c->bSend)
+            if (!c->bOn)
                 continue;
-
-            for (size_t j=0; j<width; ++j)
-                b->v[0][j]      = vFrequences[idx[j]];
 
             sAnalyzer.get_spectrum(i, b->v[1], idx, width);
 
@@ -777,8 +775,8 @@ namespace lsp
 
             dsp::fill(b->v[2], 0.0f, width);
             dsp::fill(b->v[3], height, width);
-            dsp::axis_apply_log1(b->v[2], b->v[0], zx, dx, width+2);
-            dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width+2);
+            dsp::axis_apply_log1(b->v[2], b->v[0], zx, dx, width);
+            dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width);
 
             // Draw mesh
             col.hue(c->fHue);
