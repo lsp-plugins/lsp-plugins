@@ -107,4 +107,27 @@ namespace lsp
     {
     }
 
+    void ICanvas::draw_alpha(ICanvas *s, float x, float y, float sx, float sy, float a)
+    {
+    }
+
+    void *ICanvas::data()
+    {
+        return NULL;
+    }
+
+    void *ICanvas::row(size_t row)
+    {
+        return NULL;
+    }
+
+    void *ICanvas::start_direct()
+    {
+        return NULL;
+    }
+
+    void ICanvas::end_direct()
+    {
+    }
+
 } /* namespace lsp */

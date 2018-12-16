@@ -152,7 +152,8 @@ namespace lsp
 
             nCurrRow        = row_id + 1; // Estimate next row number
             size_t dst_row  = row_id % nRows;
-            dsp::limit_saturate2(&buf[dst_row * nCols], data, nCols);
+            dsp::limit2(&buf[dst_row * nCols], data, 0.0f, 1.0f, nCols);
+//            dsp::limit_saturate2(&buf[dst_row * nCols], data, nCols);
             query_draw();
 
             nChanges++;

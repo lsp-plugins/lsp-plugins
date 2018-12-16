@@ -1,100 +1,230 @@
 <plugin resizable="false">
 	<vbox spacing="4">
-		<grid rows="2" cols="2" hspacing="4" vspacing="4">
-			<graph width="640" height="360" expand="true" fill="true">
-				<center hpos="-1" vpos="-1" visible="false" />
+		<align hpos="0" fill="true">
+			<hbox spacing="8" border="4" fill="false">
+				<label text="Mode" />
+				<combo id="mode" />
 				
-				<!-- Gray grid -->
-				<ui:for id="f" first="20" last="90" step="10"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
-				<ui:for id="f" first="200" last="900" step="100"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
-				<ui:for id="f" first="2000" last="9000" step="1000"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
-				<marker value="20000" color="g_gray" basis="0" parallel="1" />
+				<label text="Spectrogram" visibility=":mode ige 4" />
+				<combo id="spm" visibility=":mode ige 4" />
 				
-				<marker value="+12 db" color="g_gray" basis="1" parallel="0" /> <!-- +12 dB -->
-				<marker value="-12 db" color="g_gray" basis="1" parallel="0" /> <!-- -12 dB -->
-				<marker value="-36 db" color="g_gray" basis="1" parallel="0" /> <!-- -36 dB -->
-				<marker value="-60 db" color="g_gray" basis="1" parallel="0" /> <!-- -60 dB -->
+				<label text="Channel" visibility=":mode ieq 4" />
+				<label text="Channels" visibility=":mode band 1" />
+				<hbox spacing="2">
+					<combo id="spc0" width="32" visibility="(:mode ine 0) and (:mode ine 2)" />
+					<combo id="spc1" width="32" visibility="(:mode ieq 1) or (:mode ieq 3) or (:mode ieq 5)" />
+				</hbox>
 				
-				<!-- Additional markers for zoom -->
-				<marker value="-6 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
-				<marker value="-18 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
-				<marker value="-30 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
-				<marker value="-42 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
-				
-				<marker value="-15 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
-				<marker value="-21 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
-				<marker value="-27 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
-				<marker value="-33 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
-				
-				<!-- Yellow grid -->
-				<marker value="100" color="g_yellow" basis="0" parallel="1" /> <!-- 100 Hz -->
-				<marker value="1000" color="g_yellow" basis="0" parallel="1" /> <!-- 1 kHz -->
-				<marker value="10000" color="g_yellow" basis="0" parallel="1" /> <!-- 10 kHz -->
-
-				<marker value="0 db" color="g_yellow" basis="1" parallel="0" /> <!-- 0 dB -->
-				<marker value="-24 db" color="g_yellow" basis="1" parallel="0" /> <!-- -24 dB -->
-				<marker value="-48 db" color="g_yellow" basis="1" parallel="0" /> <!-- -48 dB -->
-	
-				<!-- Meshes -->
-				<ui:for id="i" first="0" last="4"><mesh id="spc_${i}" width="3" visibility_id="on_${i}" hue_id="hue_${i}" /></ui:for>
-				
-				<!-- Boundaries -->
-				<marker value="1" color="g_white" basis="2" parallel="0" /> <!-- +48 dB -->
-				<marker value="24000" color="g_white" basis="0" parallel="1" />
-				
-				<!-- Axis -->
-				<axis min="10" max="24000" angle="0.0" color="g_white" logarithmic="true" />
-				<axis min="-72 db / :zoom" max="24 db * :zoom" color="g_white" angle="0.5" logarithmic="true" /> <!-- -72..+24 dB -->
-				<axis min="-1" max="1" visible="false" angle="0.5" />
-				
-				<!-- Marker -->
-				<marker id="freq" color="g_red" basis="0" parallel="1" />
-				<marker id="lvl" color="g_red" basis="1" parallel="0" />
-				
-				<!-- Text -->
-				<text text="Hz" basis="0;2" coord="10;0" halign="1" valign="1" />
-				<text text="100" basis="0;2" coord="100;0" halign="1" valign="1" />
-				<text text="1K" basis="0;2" coord="1000;0" halign="1" valign="1" />
-				<text text="10K" basis="0;2" coord="10000;0" halign="1" valign="1" />
-				
-				<text text="0" coord="10;0 db" halign="1" valign="1" />
-				<text text="12" coord="10;12 db" halign="1" valign="1" />
-				<text text="-12" coord="10;-12 db" halign="1" valign="1" />
-				<text text="-24" coord="10;-24 db" halign="1" valign="1" />
-				<text text="-36" coord="10;-36 db" halign="1" valign="1" />
-				<text text="-48" coord="10;-48 db" halign="1" valign="1" />
-				<text text="-60" coord="10;-60 db" halign="1" valign="1" />
-				<text text="dB" basis="0;2" coord="10;1" halign="1" valign="-1" />
-				
-				<!-- Additional text -->
-				<text text="-6" coord="10;-6 db" halign="1" valign="1" visibility=":zoom le -18 db" />
-				<text text="-18" coord="10;-18 db" halign="1" valign="1" visibility=":zoom le -18 db" />
-				<text text="-30" coord="10;-30 db" halign="1" valign="1" visibility=":zoom le -18 db" />
-				<text text="-42" coord="10;-42 db" halign="1" valign="1" visibility=":zoom le -18 db" />
-
-				<text text="-15" coord="10;-15 db" halign="1" valign="1" visibility=":zoom le -33 db" />
-				<text text="-21" coord="10;-21 db" halign="1" valign="1" visibility=":zoom le -33 db" />
-				<text text="-27" coord="10;-27 db" halign="1" valign="1" visibility=":zoom le -33 db" />
-				<text text="-33" coord="10;-33 db" halign="1" valign="1" visibility=":zoom le -33 db" />
-			</graph>
-			<cell rows="2">
-				<vbox>
-					<label text="Zoom" />
-					<fader id="zoom" angle="1" expand="true" />
-					<value id="zoom" />
-				</vbox>
-			</cell>
-			<hbox spacing="8" border="4">
-				<align pad_right="4" fill="true" hpos="0"><label text="FREQUENCY GRAPH" /></align>
-				<label text="Window" />
-				<combo id="wnd" />
-				<label text="Tolerance" />
-				<combo id="tol" />
-				<label text="Envelope" />
-				<combo id="env" />
+				<label text="Log scale" visibility=":mode ige 4" />
+				<button id="splog" size="16" color="yellow" led="true" visibility=":mode ige 4" />
 			</hbox>
-		</grid>
-		<hbox spacing="4">
+		</align>
+		
+		<hbox>
+			<vbox fill="true" spacing="4">
+				<!-- Analyzer, Mastering -->
+				<graph width="640" height="360" expand="true" fill="true" visibility=":mode ilt 4">
+					<center hpos="-1" vpos="-1" visible="false" />
+					
+					<!-- Gray grid -->
+					<ui:for id="f" first="20" last="90" step="10"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+					<ui:for id="f" first="200" last="900" step="100"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+					<ui:for id="f" first="2000" last="9000" step="1000"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+					<marker value="20000" color="g_gray" basis="0" parallel="1" />
+					
+					<marker value="+12 db" color="g_gray" basis="1" parallel="0" /> <!-- +12 dB -->
+					<marker value="-12 db" color="g_gray" basis="1" parallel="0" /> <!-- -12 dB -->
+					<marker value="-36 db" color="g_gray" basis="1" parallel="0" /> <!-- -36 dB -->
+					<marker value="-60 db" color="g_gray" basis="1" parallel="0" /> <!-- -60 dB -->
+					
+					<!-- Additional markers for zoom -->
+					<marker value="-6 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
+					<marker value="-18 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
+					<marker value="-30 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
+					<marker value="-42 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -18 db" />
+					
+					<marker value="-15 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
+					<marker value="-21 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
+					<marker value="-27 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
+					<marker value="-33 db" color="g_gray" basis="1" parallel="0" visibility=":zoom le -33 db" />
+					
+					<!-- Yellow grid -->
+					<marker value="100" color="g_yellow" basis="0" parallel="1" /> <!-- 100 Hz -->
+					<marker value="1000" color="g_yellow" basis="0" parallel="1" /> <!-- 1 kHz -->
+					<marker value="10000" color="g_yellow" basis="0" parallel="1" /> <!-- 10 kHz -->
+	
+					<marker value="0 db" color="g_yellow" basis="1" parallel="0" /> <!-- 0 dB -->
+					<marker value="-24 db" color="g_yellow" basis="1" parallel="0" /> <!-- -24 dB -->
+					<marker value="-48 db" color="g_yellow" basis="1" parallel="0" /> <!-- -48 dB -->
+		
+					<!-- Meshes -->
+					<ui:for id="i" first="0" last="4">
+						<mesh
+							id="spc_${i}" width="3" hue_id="hue_${i}"
+							visibility="(((:mode ieq 0) or (:mode ieq 2)) and (:on_${i})) or ((:mode ieq 1) or (:mode ieq 3) and ((:spc0 ieq ${i}) or (:spc1 ieq ${i})))"
+						/>
+					</ui:for>
+					
+					<!-- Boundaries -->
+					<marker value="1" color="g_white" basis="2" parallel="0" /> <!-- +48 dB -->
+					<marker value="24000" color="g_white" basis="0" parallel="1" />
+					
+					<!-- Axis -->
+					<axis min="10" max="24000" angle="0.0" color="g_white" logarithmic="true" />
+					<axis min="-72 db / :zoom" max="24 db * :zoom" color="g_white" angle="0.5" logarithmic="true" /> <!-- -72..+24 dB -->
+					<axis min="-1" max="1" visible="false" angle="0.5" />
+					
+					<!-- Marker -->
+					<marker id="freq" color="g_red" basis="0" parallel="1" />
+					<marker id="lvl" color="g_red" basis="1" parallel="0" />
+					
+					<!-- Text -->
+					<text text="Hz" basis="0;2" coord="10;0" halign="1" valign="1" />
+					<text text="100" basis="0;2" coord="100;0" halign="1" valign="1" />
+					<text text="1K" basis="0;2" coord="1000;0" halign="1" valign="1" />
+					<text text="10K" basis="0;2" coord="10000;0" halign="1" valign="1" />
+					
+					<text text="0" coord="10;0 db" halign="1" valign="1" />
+					<text text="12" coord="10;12 db" halign="1" valign="1" />
+					<text text="-12" coord="10;-12 db" halign="1" valign="1" />
+					<text text="-24" coord="10;-24 db" halign="1" valign="1" />
+					<text text="-36" coord="10;-36 db" halign="1" valign="1" />
+					<text text="-48" coord="10;-48 db" halign="1" valign="1" />
+					<text text="-60" coord="10;-60 db" halign="1" valign="1" />
+					<text text="dB" basis="0;2" coord="10;1" halign="1" valign="-1" />
+					
+					<!-- Additional text -->
+					<text text="-6" coord="10;-6 db" halign="1" valign="1" visibility=":zoom le -18 db" />
+					<text text="-18" coord="10;-18 db" halign="1" valign="1" visibility=":zoom le -18 db" />
+					<text text="-30" coord="10;-30 db" halign="1" valign="1" visibility=":zoom le -18 db" />
+					<text text="-42" coord="10;-42 db" halign="1" valign="1" visibility=":zoom le -18 db" />
+	
+					<text text="-15" coord="10;-15 db" halign="1" valign="1" visibility=":zoom le -33 db" />
+					<text text="-21" coord="10;-21 db" halign="1" valign="1" visibility=":zoom le -33 db" />
+					<text text="-27" coord="10;-27 db" halign="1" valign="1" visibility=":zoom le -33 db" />
+					<text text="-33" coord="10;-33 db" halign="1" valign="1" visibility=":zoom le -33 db" />
+				</graph>
+				
+				<!-- Spectralizer (1 channel) -->
+				<graph width="640" height="360" expand="true" fill="true" visibility=":mode ieq 4">
+					<center hpos="-1" vpos="1" visible="false" />
+		
+					<!-- Gray grid -->
+					<ui:for id="f" first="20" last="90" step="10"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+					<ui:for id="f" first="200" last="900" step="100"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+					<ui:for id="f" first="2000" last="9000" step="1000"><marker value="${f}" color="g_gray" basis="0" parallel="1" /></ui:for>
+					<marker value="20000" color="g_gray" basis="0" parallel="1" />
+					
+					<ui:for id="t" first="1" last="7" step="2"><marker value="${t}" color="g_gray" basis="1" parallel="0" /></ui:for>
+					
+					<!-- Yellow grid -->
+					<marker value="100" color="g_yellow" basis="0" parallel="1" /> <!-- 100 Hz -->
+					<marker value="1000" color="g_yellow" basis="0" parallel="1" /> <!-- 1 kHz -->
+					<marker value="10000" color="g_yellow" basis="0" parallel="1" /> <!-- 10 kHz -->
+		
+					<ui:for id="t" first="2" last="6" step="2"><marker value="${t}" color="g_yellow" basis="1" parallel="0" /></ui:for>
+
+					<!-- Frame buffer -->
+					<fbuffer id="fb0" width="1" height="1" hpos="-1" vpos="1" opacity="0.75" angle="0"
+						mode=":spm" color="left_channel" hue_id="hue[spc0]" />
+		
+					<!-- Boundaries -->
+					<marker value="8" color="g_white" basis="1" parallel="0" />
+					<marker value="24000" color="g_white" basis="0" parallel="1" />
+					
+					<!-- Axis -->
+					<axis min="10" max="24000" angle="0.0" color="g_white" logarithmic="true" />
+					<axis min="0" max="8" color="g_white" angle="1.5" logarithmic="false" />
+					
+					<!-- Text -->
+					<text text="Hz" basis="0;1" coord="10;8" halign="1" valign="1" />
+					<text text="100" basis="0;1" coord="100;8" halign="1" valign="1" />
+					<text text="1K" basis="0;1" coord="1000;8" halign="1" valign="1" />
+					<text text="10K" basis="0;1" coord="10000;8" halign="1" valign="1" />
+					
+					<ui:for id="t" first="1" last="7"><text text="${t}" coord="10;${t}" halign="1" valign="1" /></ui:for>
+					<text text="time" basis="0;1" coord="10;0" halign="1" valign="-1" />
+				</graph>
+				
+				<!-- Spectralizer (2 channels) -->
+				<graph width="800" height="360" expand="true" fill="true" visibility=":mode ieq 5">
+					<center hpos="-1" vpos="1" visible="false" />
+					<center hpos="0" vpos="1" visible="false" />
+					
+					<!-- Gray grid -->
+					<ui:for id="f" first="20" last="90" step="10">
+						<marker center="0" value="${f}" color="g_gray" basis="0" parallel="1" />
+						<marker center="1" value="${f}" color="g_gray" basis="2" parallel="1" />
+					</ui:for>
+					<ui:for id="f" first="200" last="900" step="100">
+						<marker center="0" value="${f}" color="g_gray" basis="0" parallel="1" />
+						<marker center="1" value="${f}" color="g_gray" basis="2" parallel="1" />
+					</ui:for>
+					<ui:for id="f" first="2000" last="9000" step="1000">
+						<marker center="0" value="${f}" color="g_gray" basis="0" parallel="1" />
+						<marker center="1" value="${f}" color="g_gray" basis="2" parallel="1" />
+					</ui:for>
+					<marker center="0" value="20000" color="g_gray" basis="0" parallel="1" />
+					<marker center="1" value="20000" color="g_gray" basis="2" parallel="1" />
+					
+					<ui:for id="t" first="1" last="7" step="2"><marker value="${t}" color="g_gray" basis="1" parallel="0" /></ui:for>
+					
+					<!-- Yellow grid -->
+					<ui:for id="c" first="0" last="1" >
+						<marker center="${c}" value="100" color="g_yellow" basis="0" parallel="1" /> <!-- 100 Hz -->
+						<marker center="${c}" value="1000" color="g_yellow" basis="0" parallel="1" /> <!-- 1 kHz -->
+						<marker center="${c}" value="10000" color="g_yellow" basis="0" parallel="1" /> <!-- 10 kHz -->
+					</ui:for>
+		
+					<ui:for id="t" first="2" last="6" step="2"><marker value="${t}" color="g_yellow" basis="1" parallel="0" /></ui:for>
+
+					<!-- Frame buffer -->
+					<fbuffer id="fb0" width="0.5" height="1" hpos="-1" vpos="1" opacity="0.75" angle="0"
+						mode=":spm" color="left_channel" hue_id="hue[spc0]" />
+					<fbuffer id="fb1" width="0.5" height="1" hpos="0" vpos="1" opacity="0.75" angle="0"
+						mode=":spm" color="left_channel" hue_id="hue[spc1]" />
+		
+					<!-- Boundaries -->
+					<marker center="0" value="8" color="g_white" basis="1" parallel="0" />
+					<marker center="0" value="24000" color="g_white" basis="0" parallel="1" />
+					<marker center="1" value="24000" color="g_white" basis="2" parallel="1" />
+					
+					<!-- Axis -->
+					<axis center="0" min="10" max="24000" length="404" angle="0.0" color="g_white" logarithmic="true" />
+					<axis center="0" min="0" max="8" color="g_white" angle="1.5" logarithmic="false" />
+					<axis center="1" min="10" max="24000" length="404" angle="0.0" color="g_white" logarithmic="true" />
+					
+					<!-- Text -->
+					<ui:for id="c" first="0" last="1" >
+						<text center="${c}" text="Hz" basis="0;1" coord="10;8" halign="1" valign="1" />
+						<text center="${c}" text="100" basis="0;1" coord="100;8" halign="1" valign="1" />
+						<text center="${c}" text="1K" basis="0;1" coord="1000;8" halign="1" valign="1" />
+						<text center="${c}" text="10K" basis="0;1" coord="10000;8" halign="1" valign="1" />
+						
+						<ui:for id="t" first="1" last="7"><text center="${c}" text="${t}" coord="10;${t}" halign="1" valign="1" /></ui:for>
+						<text center="${c}" text="time" basis="0;1" coord="10;0" halign="1" valign="-1" />
+					</ui:for>
+				</graph>
+				
+				<hbox spacing="8" border="4">
+					<align pad_right="4" fill="true" hpos="0"><label text="FREQUENCY GRAPH" /></align>
+					<label text="Window" />
+					<combo id="wnd" />
+					<label text="Tolerance" />
+					<combo id="tol" />
+					<label text="Envelope" />
+					<combo id="env" />
+				</hbox>
+			</vbox>
+			
+			<vbox visibility=":mode ilt 4">
+				<label text="Zoom" />
+				<fader id="zoom" angle="1" expand="true" />
+				<value id="zoom" />
+			</vbox>
+		</hbox>
+	
+		<hbox spacing="4" visibility="(:mode ieq 0) or (:mode ieq 2)">
 			<group text="Channels" expand="true">
 				<grid rows="7" cols="5" transpose="true">
 					<label text="#" />
@@ -103,7 +233,7 @@
 					<label text="Hue" />
 					<label />
 					<label text="Shift" />
-					<label test="(dB)" />
+					<label text="(dB)" />
 					
 					<ui:for id="i" first="0" last="3">
 						<label text="${i}" />
@@ -148,5 +278,38 @@
 				</grid>
 			</group>
 		</hbox>
+		
+		<group text="Channels" expand="true" visibility="(:mode ine 0) and (:mode ine 2)">
+			<grid rows="4" cols="20" transpose="true" fill="true">
+				<ui:for id="i" first="0" last="3">
+					<cell cols="3"><label text="Channel ${i}" /></cell>
+					<label text="Hold" />
+					<button id="frz_${i}" size="32" color="red" led="true" hue_id="hue_${i}" />
+					<label />
+					
+					<label text="Hue" />
+					<knob id="hue_${i}" scale_hue_id="hue_${i}" size="20" />
+					<value id="hue_${i}" detailed="false" />
+					
+					<label text="Shift" />
+					<knob id="sh_${i}" scale_hue_id="hue_${i}" size="20" />
+					<value id="sh_${i}" same_line="true" />
+	
+					<cell rows="4" expand="false">
+						<vsep />
+					</cell>
+				</ui:for>
+				
+				<label />
+				<label text="Preamp" />
+				<knob id="pamp" />
+				<value id="pamp" same_line="true" />
+
+				<label />
+				<label text="Reactivity" />
+				<knob id="react" />
+				<value id="react" same_line="true" />
+			</grid>
+		</group>
 	</vbox>
 </plugin>

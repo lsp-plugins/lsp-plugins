@@ -37,7 +37,7 @@ Currently supported architectures are:
   * ARMv7-AR (experimental, tested on Raspberry Pi 3 Model B).
 
 Supported plugin formats:
-  * LADSPA (not supported by plugins that use MIDI or file loading);
+  * LADSPA (partial support: not supported by plugins that use MIDI or file loading due to LADSPA plugin format restrictions);
   * LV2 (full support);
   * LinuxVST 2.4 (full support);
   * Standalone JACK (full support).
@@ -77,7 +77,7 @@ Known list of supported plugin hosts:
   * Carla
   * Mixbus
   * Qtractor
-  * Reaper native linux version
+  * Reaper (native Linux version)
   * Renoise
   * Tracktion
 

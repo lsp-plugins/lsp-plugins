@@ -53,7 +53,7 @@ typedef void (* log2_t)(float *dst, const float *src, size_t count);
 // Performance test
 PTEST_BEGIN("dsp.pmath", log, 5, 1000)
 
-    void call(const char *label, float *dst, size_t count, log1_t func)
+    void call(const char *label, float *dst, const float *src, size_t count, log1_t func)
     {
         if (!PTEST_SUPPORTED(func))
             return;
@@ -63,6 +63,7 @@ PTEST_BEGIN("dsp.pmath", log, 5, 1000)
         printf("Testing %s numbers...\n", buf);
 
         PTEST_LOOP(buf,
+            dsp::copy(dst, src, count);
             func(dst, count);
         );
     }
@@ -101,9 +102,9 @@ PTEST_BEGIN("dsp.pmath", log, 5, 1000)
         {
             size_t count = 1 << i;
 
-            CALL("native::logb1", dst, count, native::logb1);
-            IF_ARCH_X86(CALL("sse2::logb1", dst, count, sse2::logb1));
-            IF_ARCH_ARM(CALL("neon_d32::logb1", dst, count, neon_d32::logb1));
+            CALL("native::logb1", dst, src, count, native::logb1);
+            IF_ARCH_X86(CALL("sse2::logb1", dst, src, count, sse2::logb1));
+            IF_ARCH_ARM(CALL("neon_d32::logb1", dst, src, count, neon_d32::logb1));
             PTEST_SEPARATOR;
 
             CALL("native::logb2", dst, src, count, native::logb2);
@@ -111,9 +112,9 @@ PTEST_BEGIN("dsp.pmath", log, 5, 1000)
             IF_ARCH_ARM(CALL("neon_d32::logb2", dst, src, count, neon_d32::logb2));
             PTEST_SEPARATOR;
 
-            CALL("native::loge1", dst, count, native::loge1);
-            IF_ARCH_X86(CALL("sse2::loge1", dst, count, sse2::loge1));
-            IF_ARCH_ARM(CALL("neon_d32::loge1", dst, count, neon_d32::loge1));
+            CALL("native::loge1", dst, src, count, native::loge1);
+            IF_ARCH_X86(CALL("sse2::loge1", dst, src, count, sse2::loge1));
+            IF_ARCH_ARM(CALL("neon_d32::loge1", dst, src, count, neon_d32::loge1));
             PTEST_SEPARATOR;
 
             CALL("native::loge2", dst, src, count, native::loge2);
@@ -121,9 +122,9 @@ PTEST_BEGIN("dsp.pmath", log, 5, 1000)
             IF_ARCH_ARM(CALL("neon_d32::loge2", dst, src, count, neon_d32::loge2));
             PTEST_SEPARATOR;
 
-            CALL("native::logd1", dst, count, native::logd1);
-            IF_ARCH_X86(CALL("sse2::logd1", dst, count, sse2::logd1));
-            IF_ARCH_ARM(CALL("neon_d32::logd1", dst, count, neon_d32::logd1));
+            CALL("native::logd1", dst, src, count, native::logd1);
+            IF_ARCH_X86(CALL("sse2::logd1", dst, src, count, sse2::logd1));
+            IF_ARCH_ARM(CALL("neon_d32::logd1", dst, src, count, neon_d32::logd1));
             PTEST_SEPARATOR;
 
             CALL("native::logd2", dst, src, count, native::logd2);

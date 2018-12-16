@@ -14,8 +14,6 @@ namespace lsp
         CtlAxis::CtlAxis(CtlRegistry *src, LSPAxis *axis): CtlWidget(src, axis)
         {
             nFlags      = 0;
-//            fMin        = 0.0f;
-//            fMax        = 0.0f;
             pPort       = NULL;
         }
 
@@ -40,7 +38,7 @@ namespace lsp
 
         void CtlAxis::set(widget_attribute_t att, const char *value)
         {
-            LSPAxis *axis   = (pWidget != NULL) ? static_cast<LSPAxis *>(pWidget) : NULL;
+            LSPAxis *axis   = widget_cast<LSPAxis>(pWidget);
 
             switch (att)
             {
@@ -52,12 +50,10 @@ namespace lsp
                         PARSE_FLOAT(value, axis->set_angle(__ * M_PI));
                     break;
                 case A_MIN:
-//                    PARSE_FLOAT(value, { fMin = __; nFlags |= F_MIN_SET; } );
                     BIND_EXPR(sMin, value);
                     nFlags |= F_MIN_SET;
                     break;
                 case A_MAX:
-//                    PARSE_FLOAT(value, { fMax = __; nFlags |= F_MAX_SET; } );
                     BIND_EXPR(sMax, value);
                     nFlags |= F_MAX_SET;
                     break;
@@ -78,9 +74,13 @@ namespace lsp
                                 nFlags &= ~F_LOG;
                         });
                     break;
+                case A_LENGTH:
+                    if (axis != NULL)
+                        PARSE_INT(value, axis->set_length(__));
+                    break;
                 case A_WIDTH:
                     if (axis != NULL)
-                    PARSE_INT(value, axis->set_line_width(__));
+                        PARSE_INT(value, axis->set_line_width(__));
                     break;
 
                 default:

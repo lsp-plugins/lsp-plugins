@@ -71,6 +71,9 @@ namespace dsp
     void    (* saturate)(float *dst, size_t count) = NULL;
     void    (* limit_saturate1)(float *dst, size_t count) = NULL;
     void    (* limit_saturate2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* limit1)(float *dst, float min, float max, size_t count) = NULL;
+    void    (* limit2)(float *dst, const float *src, float min, float max, size_t count) = NULL;
+
     void    (* move)(float *dst, const float *src, size_t count) = NULL;
     void    (* fill)(float *dst, float value, size_t count) = NULL;
     void    (* fill_zero)(float *dst, size_t count) = NULL;
@@ -236,7 +239,8 @@ namespace dsp
     void    (* matched_transform_x4)(biquad_x4_t *bf, f_cascade_t *bc, float kf, float td, size_t count) = NULL;
     void    (* matched_transform_x8)(biquad_x8_t *bf, f_cascade_t *bc, float kf, float td, size_t count) = NULL;
 
-    void    (* axis_apply_log)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count) = NULL;
+    void    (* axis_apply_log1)(float *x, const float *v, float zero, float norm_x, size_t count) = NULL;
+    void    (* axis_apply_log2)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count) = NULL;
     void    (* rgba32_to_bgra32)(void *dst, const void *src, size_t count) = NULL;
     void    (* fill_rgba)(float *dst, float r, float g, float b, float a, size_t count) = NULL;
     void    (* fill_hsla)(float *dst, float h, float s, float l, float a, size_t count) = NULL;
@@ -247,6 +251,8 @@ namespace dsp
     void    (* eff_hsla_sat)(float *dst, const float *v, const hsla_sat_eff_t *eff, size_t count) = NULL;
     void    (* eff_hsla_light)(float *dst, const float *v, const hsla_light_eff_t *eff, size_t count) = NULL;
     void    (* eff_hsla_alpha)(float *dst, const float *v, const hsla_alpha_eff_t *eff, size_t count) = NULL;
+    void    (* smooth_cubic_linear)(float *dst, float start, float stop, size_t count) = NULL;
+    void    (* smooth_cubic_log)(float *dst, float start, float stop, size_t count) = NULL;
 
     void    (* lanczos_resample_2x2)(float *dst, const float *src, size_t count) = NULL;
     void    (* lanczos_resample_2x3)(float *dst, const float *src, size_t count) = NULL;

@@ -41,6 +41,13 @@ namespace lsp
             virtual void circle(ssize_t x, ssize_t y, ssize_t r);
             virtual void radial_gradient(ssize_t x, ssize_t y, const Color &c1, const Color &c2, ssize_t r);
 
+            virtual void draw_alpha(ICanvas *s, float x, float y, float sx, float sy, float a);
+
+            virtual void *data();
+            virtual void *row(size_t row);
+            virtual void *start_direct();
+            virtual void end_direct();
+
         public:
             canvas_data_t *get_data();
     };
