@@ -46,6 +46,11 @@ namespace avx
     extern void dsp_init(const x86::cpu_features_t *f);
 }
 
+namespace avx2
+{
+    extern void dsp_init(const x86::cpu_features_t *f);
+}
+
 namespace x86
 {
     void read_brand_string(cpuid_info_t *info, uint32_t max_ext_cpuid, char *brand)
@@ -472,6 +477,7 @@ namespace x86
         sse3::dsp_init(&f);
         sse4::dsp_init(&f);
         avx::dsp_init(&f);
+        avx2::dsp_init(&f);
     }
 
     #undef EXPORT1
