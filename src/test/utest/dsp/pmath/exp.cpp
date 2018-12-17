@@ -23,6 +23,17 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_X86_64(
+    namespace avx2
+    {
+        void x64_exp1(float *dst, size_t count);
+        void x64_exp2(float *dst, const float *src, size_t count);
+
+        void x64_exp1_fma3(float *dst, size_t count);
+        void x64_exp2_fma3(float *dst, const float *src, size_t count);
+    }
+)
+
 IF_ARCH_ARM(
     namespace neon_d32
     {
@@ -138,6 +149,12 @@ UTEST_BEGIN("dsp.pmath", exp)
 
         IF_ARCH_X86(call("sse2::exp1", 16, sse2::exp1));
         IF_ARCH_X86(call("sse2::exp2", 16, sse2::exp2));
+
+        IF_ARCH_X86_64(call("avx2::x64_exp1", 16, avx2::x64_exp1));
+        IF_ARCH_X86_64(call("avx2::x64_exp2", 16, avx2::x64_exp2));
+
+        IF_ARCH_X86_64(call("avx2::x64_exp1_fma3", 16, avx2::x64_exp1_fma3));
+        IF_ARCH_X86_64(call("avx2::x64_exp2_fma3", 16, avx2::x64_exp2_fma3));
 
         IF_ARCH_ARM(call("neon_d32::exp1", 16, neon_d32::exp1));
         IF_ARCH_ARM(call("neon_d32::exp2", 16, neon_d32::exp2));
