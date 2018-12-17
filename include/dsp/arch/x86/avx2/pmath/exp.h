@@ -8,6 +8,8 @@
 #ifndef DSP_ARCH_X86_AVX2_PMATH_EXP_H_
 #define DSP_ARCH_X86_AVX2_PMATH_EXP_H_
 
+#ifdef ARCH_X86_64
+
 namespace avx2
 {
 #define X8VEC(x)    x, x, x, x, x, x, x, x
@@ -354,7 +356,8 @@ IF_ARCH_X86(
             : [E2C] "o" (EXP2_CONST),
               [LOG2E] "m" (EXP_LOG2E)
             : "cc", "memory",
-              "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7",
+              "%xmm8", "%xmm9", "%xmm10", "%xmm11", "%xmm12", "%xmm13", "%xmm14", "%xmm15"
         );
     }
 
@@ -456,9 +459,12 @@ IF_ARCH_X86(
             : [E2C] "o" (EXP2_CONST),
               [LOG2E] "m" (EXP_LOG2E)
             : "cc", "memory",
-              "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5", "%xmm6", "%xmm7",
+              "%xmm8", "%xmm9", "%xmm10", "%xmm11", "%xmm12", "%xmm13", "%xmm14", "%xmm15"
         );
     }
 }
+
+#endif /* ARCH_X86_64 */
 
 #endif /* DSP_ARCH_X86_AVX2_PMATH_EXP_H_ */

@@ -36,7 +36,7 @@ namespace avx2
 
         lsp_trace("Optimizing DSP for AVX2 instruction set");
 
-        if (feature_check(f, FEAT_FAST_AVX))
+//        if (feature_check(f, FEAT_FAST_AVX))
         {
             EXPORT2_X64(exp1, x64_exp1);
             EXPORT2_X64(exp2, x64_exp2);

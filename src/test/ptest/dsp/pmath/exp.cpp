@@ -26,6 +26,14 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_X86_64(
+    namespace avx2
+    {
+        void x64_exp1(float *dst, size_t count);
+        void x64_exp2(float *dst, const float *src, size_t count);
+    }
+)
+
 IF_ARCH_ARM(
     namespace neon_d32
     {
@@ -92,11 +100,13 @@ PTEST_BEGIN("dsp.pmath", exp, 5, 1000)
 
             CALL("native::exp1", dst, src, count, native::exp1);
             IF_ARCH_X86(CALL("sse2::exp1", dst, src, count, sse2::exp1));
+            IF_ARCH_X86_64(CALL("avx2::x64_exp1", dst, src, count, avx2::x64_exp1));
             IF_ARCH_ARM(CALL("neon_d32::exp1", dst, src, count, neon_d32::exp1));
             PTEST_SEPARATOR;
 
             CALL("native::exp2", dst, src, count, native::exp2);
             IF_ARCH_X86(CALL("sse2::exp2", dst, src, count, sse2::exp2));
+            IF_ARCH_X86_64(CALL("avx2::x64_exp2", dst, src, count, avx2::x64_exp2));
             IF_ARCH_ARM(CALL("neon_d32::exp2", dst, src, count, neon_d32::exp2));
             PTEST_SEPARATOR;
         }
