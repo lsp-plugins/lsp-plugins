@@ -11,6 +11,7 @@
 
 === 1.1.5 ===
 
+* Implemented stereo version of Profiler plugin.
 * Added 'Spectralizer' and 'Mastering' modes to the Spectrum Analyzer plugin series.
 * All SIMD-optimized DSP code now ported to ARMv7A architecture and optimized using ARM NEON instruction set. 
 * Fixed building issues under Ubuntu Linux related to compiler and linker
