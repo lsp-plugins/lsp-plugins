@@ -809,7 +809,7 @@ namespace lsp
             dsp::fill(b->v[2], width, width);
             dsp::fill(b->v[3], height, width);
             dsp::scale_add3(b->v[2], b->v[0], dx, width);
-            dsp::axis_apply_log(b->v[2], b->v[3], b->v[1], zy, 0.0f, dy, width);
+            dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width);
 
             // Draw channel
             cv->set_color_rgb((bypass) ? CV_SILVER : c_colors[(nChannels-1)*2 + i]);
@@ -827,7 +827,7 @@ namespace lsp
             dsp::fill(b->v[2], width, width);
             dsp::fill(b->v[3], height, width);
             dsp::scale_add3(b->v[2], b->v[0], dx, width);
-            dsp::axis_apply_log(b->v[2], b->v[3], b->v[1], zy, 0.0f, dy, width);
+            dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width);
 
             // Draw channel
             cv->set_color_rgb((bypass) ? CV_SILVER : CV_GREEN);
@@ -845,7 +845,7 @@ namespace lsp
             dsp::fill(b->v[2], width, width);
             dsp::fill(b->v[3], height, width);
             dsp::scale_add3(b->v[2], b->v[0], dx, width);
-            dsp::axis_apply_log(b->v[2], b->v[3], b->v[1], zy, 0.0f, dy, width);
+            dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width);
 
             // Draw channel
             cv->set_color_rgb((bypass) ? CV_SILVER : CV_MEDIUM_GREEN);

@@ -31,4 +31,10 @@ namespace lsp
     {
         return NULL;
     }
+
+    ICanvas *IWrapper::create_canvas(ICanvas *&cv, size_t width, size_t height)
+    {
+        return NULL;
+    }
+
 } /* namespace lsp */

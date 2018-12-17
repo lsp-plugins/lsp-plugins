@@ -36,10 +36,13 @@ namespace test
             void randomize_positive();
             void randomize_negative();
             void randomize_sign();
+            void randomize_0to1();
+            void randomize(float min, float max);
             void randomize();
             void fill_zero();
             void copy(const FloatBuffer &buf);
             void copy(const float *buf, size_t count);
+            void vfill(size_t off, size_t n, ...);
 
             bool validate() const;
             inline bool valid() const { return validate(); };

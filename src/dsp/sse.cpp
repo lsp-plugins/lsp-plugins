@@ -58,7 +58,6 @@ namespace sse // TODO: make constants common for all architectures
 
 #include <dsp/arch/x86/sse/fft.h>
 #include <dsp/arch/x86/sse/fastconv.h>
-#include <dsp/arch/x86/sse/float.h>
 #include <dsp/arch/x86/sse/graphics.h>
 #include <dsp/arch/x86/sse/msmatrix.h>
 #include <dsp/arch/x86/sse/search.h>
@@ -132,8 +131,6 @@ namespace sse
         }
         TEST_EXPORT(copy_movntps);
 
-        EXPORT1(copy_saturated);
-        EXPORT1(saturate);
         EXPORT1(move);
         EXPORT1(fill);
         EXPORT1(fill_one);
@@ -259,8 +256,11 @@ namespace sse
         EXPORT1(bilinear_transform_x4);
         EXPORT1(bilinear_transform_x8);
 
-        EXPORT1(axis_apply_log);
+        EXPORT1(axis_apply_log1);
+        EXPORT1(axis_apply_log2);
         EXPORT1(rgba32_to_bgra32);
+        EXPORT1(fill_rgba);
+        EXPORT1(fill_hsla);
 
         EXPORT1(lanczos_resample_2x2);
         EXPORT1(lanczos_resample_2x3);

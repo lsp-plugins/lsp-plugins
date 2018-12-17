@@ -78,6 +78,8 @@ namespace lsp
         // All seems to be OK
         sData.nWidth        = width;
         sData.nHeight       = height;
+        sData.nStride       = cairo_image_surface_get_stride(pSurface);
+        sData.pData         = NULL;
         bLocked             = true;     // Lock size update
 
         // Save state of Cairo
@@ -161,8 +163,6 @@ namespace lsp
         if (pCR == NULL)
             return NULL;
 
-//        lsp_trace("drawing final border");
-
         // Restore state
         cairo_restore(pCR);
 
@@ -216,5 +216,54 @@ namespace lsp
         cairo_arc(pCR, x, y, r, 0, 2.0 * M_PI);
         cairo_fill(pCR);
         cairo_pattern_destroy(cp);
+    }
+
+    void CairoCanvas::draw_alpha(ICanvas *s, float x, float y, float sx, float sy, float a)
+    {
+        if (pCR == NULL)
+            return;
+        CairoCanvas *cs = static_cast<CairoCanvas *>(s);
+        if (cs->pSurface == NULL)
+            return;
+
+        // Draw one surface on another
+        cairo_save(pCR);
+        if (sx < 0.0f)
+            x       -= sx * s->width();
+        if (sy < 0.0f)
+            y       -= sy * s->height();
+        cairo_translate(pCR, x, y);
+        cairo_scale(pCR, sx, sy);
+        cairo_set_source_surface(pCR, cs->pSurface, 0.0f, 0.0f);
+        cairo_paint_with_alpha(pCR, 1.0f - a);
+        cairo_restore(pCR);
+    }
+
+    void *CairoCanvas::data()
+    {
+        return sData.pData;
+    }
+
+    void *CairoCanvas::row(size_t row)
+    {
+        return (sData.pData != NULL) ? &sData.pData[row * sData.nStride] : NULL;
+    }
+
+    void *CairoCanvas::start_direct()
+    {
+        if ((pCR == NULL) || (pSurface == NULL))
+            return NULL;
+
+        sData.nStride = cairo_image_surface_get_stride(pSurface);
+        return sData.pData = reinterpret_cast<uint8_t *>(cairo_image_surface_get_data(pSurface));
+    }
+
+    void CairoCanvas::end_direct()
+    {
+        if ((pCR == NULL) || (pSurface == NULL) || (sData.pData == NULL))
+            return;
+
+        cairo_surface_mark_dirty(pSurface);
+        sData.pData = NULL;
     }
 }

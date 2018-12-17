@@ -42,6 +42,7 @@ namespace lsp
             WC_DOT,
             WC_EDIT,
             WC_FADER,
+            WC_FBUFFER,
             WC_FILE,
             WC_FRAC,
             WC_GRAPH,
@@ -183,7 +184,11 @@ namespace lsp
             A_HFILL,
             A_VFILL,
             A_FORMAT_ID,
-            A_BIND
+            A_BIND,
+            A_OPACITY,
+            A_TRANSPARENCY,
+            A_MODE,
+            A_LENGTH
         };
 
         // Helper functions
@@ -255,6 +260,8 @@ namespace lsp
 #include <ui/ctl/CtlMesh.h>
 #include <ui/ctl/CtlDot.h>
 #include <ui/ctl/CtlText.h>
+#include <ui/ctl/CtlFrameBuffer.h>
+
 #include <ui/ctl/CtlFraction.h>
 #include <ui/ctl/CtlTempoTap.h>
 

@@ -2,6 +2,78 @@
 * FEATURE REQUESTS AND BUG REPORTS: Completed
 *******************************************************************************
 
+==== Spectrum Analyzer ====
+  Quirq:
+    Back to the main topic, I'd dearly love to see a usable spectrum analyser that looked and behaved like Voxengo's SPAN:
+    I use it for mix/mastering analysis; I was giving feedback to a friend for a CD release in December and looked again
+    for comparable native analysers but went back to SPAN, even though it was a bit of a pain launching it separately and
+    connecting everything up. (Now I've got Carla-rack that would be much, much less of an issue. But still it would be great
+    to have something native.)
+    I've looked at all the native analysers and none of them seem to come close. It's nice/clear to look at (important when
+    you're using it for hours on end), the slope can be varied (useful for that gradual gentle slope down from low to high
+    frequencies when things are balanced), but above all else, it's the fact that the display is smoothed and not at all spiky
+    and is equally detailed across the spectrum (many analysers seem to be less detailed at the low end than they are for the
+    highs). The image above looks like it's probably not on the more smoothed-out Mastering setting and is a bit spikier than
+    the settings I use.
+
+  ssj71:
+    I think you are exactly right sadko, but Quirq is also right. Even though it's less accurate data,
+    a mode like this can help the user to mentally process the data on screen better, even if it's less accurate.
+    If you are using it for balance of frequencies, rather than trying to surgically remove or boost this or that
+    freq, then I think a "frequency smoothed" mode is a good idea. Really it makes sense to have some independent
+    control over smoothing WRT time AND/OR frequency. Especially with a few good presets ("Mastering," "high-accuracy," etc.)
+    then it would be an even more useable and capable analyzer.
+
+  Quirq:
+    Thanks, you've very eloquently summarised what I was trying to say. The reason I got into using SPAN was because
+    that's what the mastering engineer Ian Shepherd used in his Home Mastering EQ course (which I found incredibly useful).
+    When I looked at all the native analysers to put things into practice, they all seem to be built more/just for precision,
+    which is fine for most purposes but not as helpful for the broader-brush approach of mastering. 
+  
+    There are some analysers that are also scaled in a way that I don't find helpful – being marked 100, 200, 200, 400, 600, 800,
+    1kHz, 2k etc with appropriate ticks in between is far more useful than 110, 220, 440, 880 etc. I understand why that's done,
+    but it's harder to work out quickly where a feature of interest occurs in the spectrum unless it's centred around one of the
+    marks. I think as well, having the area under the line makes things easier to read; most analysers do that, but not all.
+
+  Amadeus Folego:
+    You can check calf-analyzer as well (https://www.youtube.com/watch?v=TWfqcf-EyUE).
+
+    Something like baudline (http://baudline.com) with LV2 would be amazing.
+
+==== Link order of libraries ====
+
+  The ordering of libraries on the command line follows the same convection as for object files:
+  they are searched from left to right--a library containing the definition of a function should
+  appear after any source files or object files which use it. This includes libraries specified
+  with the short-cut -l option, as shown in the following command:
+
+  $ gcc -Wall calc.c -lm -o calc   (correct order)
+
+  With some compilers the opposite ordering (placing the -lm option before the file which uses it)
+  would result in an error,
+
+  $ cc -Wall -lm calc.c -o calc    (incorrect order)
+  main.o: In function `main':
+  main.o(.text+0xf): undefined reference to `sqrt'
+
+  because there is no library or object file containing sqrt after 'calc.c'. The option -lm
+  should appear after the file 'calc.c'.
+
+  When several libraries are being used, the same convention should be followed for the libraries
+  themselves. A library which calls an external function defined in another library should appear
+  before the library containing the function.
+
+  For example, a program 'data.c' using the GNU Linear Programming library 'libglpk.a', which in
+  turn uses the math library 'libm.a', should be compiled as,
+
+  $ gcc -Wall data.c -lglpk -lm
+
+  since the object files in 'libglpk.a' use functions defined in 'libm.a'.
+
+  As for object files, most current compilers will search all libraries, regardless of order.
+  However, since not all compilers do this it is best to follow the convention of ordering libraries
+  from left to right. 
+
 ==== Convolution Reverb ====
 
   As for the next one? I would like to see your take on a reverb. I've never really found one

@@ -89,6 +89,42 @@ namespace native
             *(di++)             = ((s & 0x80000000) < 0x00800000) ? 0 : s;
         }
     }
+
+    void limit1(float *dst, float min, float max, size_t count)
+    {
+        while (count--)
+        {
+            float v     = *dst;
+            if (isnan(v))
+                v       =   min;
+            else if (isinf(v))
+                v       =   (v < 0.0f) ? min : max;
+            else if (v > max)
+                v       =   max;
+            else if (v < min)
+                v       =  min;
+
+            *(dst++)    = v;
+        }
+    }
+
+    void limit2(float *dst, const float *src, float min, float max, size_t count)
+    {
+        while (count--)
+        {
+            float v     = *(src++);
+            if (isnan(v))
+                v       =   min;
+            else if (isinf(v))
+                v       =   (v < 0.0f) ? min : max;
+            else if (v > max)
+                v       =   max;
+            else if (v < min)
+                v       =  min;
+
+            *(dst++)    = v;
+        }
+    }
 }
 
 #endif /* DSP_ARCH_NATIVE_FLOAT_H_ */

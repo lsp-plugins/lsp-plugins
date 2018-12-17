@@ -27,22 +27,22 @@ namespace lsp
 
             // Get system locale
             current = setlocale(LC_CTYPE, "");
-            if (current == NULL)
-                return iconv_t(-1);
+            if (current != NULL)
+                current = strchr(current, '.');
 
             // Scan for character set
-            current = strchr(current, '.');
-            if (current == NULL)
-                return iconv_t(-1);
-            len = strlen(current);
-            psaved = static_cast<char *>(alloca(len));
-            memcpy(psaved, &current[1], len);
+            if (current != NULL)
+            {
+                len = strlen(current);
+                psaved = static_cast<char *>(alloca(len));
+                memcpy(psaved, &current[1], len);
+            }
 
             // Restore saved locale
             setlocale(LC_CTYPE, charset);
 
             // Update locale
-            charset  = psaved;
+            charset  = (current != NULL) ? psaved : "UTF-8";
         }
 
         // Open conversion
@@ -65,22 +65,22 @@ namespace lsp
 
             // Get system locale
             current = setlocale(LC_CTYPE, "");
-            if (current == NULL)
-                return iconv_t(-1);
+            if (current != NULL)
+                current = strchr(current, '.');
 
             // Scan for character set
-            current = strchr(current, '.');
-            if (current == NULL)
-                return iconv_t(-1);
-            len = strlen(current);
-            psaved = static_cast<char *>(alloca(len));
-            memcpy(psaved, &current[1], len);
+            if (current != NULL)
+            {
+                len = strlen(current);
+                psaved = static_cast<char *>(alloca(len));
+                memcpy(psaved, &current[1], len);
+            }
 
             // Restore saved locale
             setlocale(LC_CTYPE, charset);
 
-            // Update locale
-            charset  = psaved;
+            // Update charset
+            charset  = (current != NULL) ? psaved : "UTF-8";
         }
 
         // Open conversion

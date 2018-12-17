@@ -48,7 +48,10 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/complex.h>
 #include <dsp/arch/arm/neon-d32/pcomplex.h>
 #include <dsp/arch/arm/neon-d32/convolution.h>
+
 #include <dsp/arch/arm/neon-d32/graphics.h>
+#include <dsp/arch/arm/neon-d32/graphics/effects.h>
+
 #include <dsp/arch/arm/neon-d32/pmath.h>
 #include <dsp/arch/arm/neon-d32/hmath.h>
 #include <dsp/arch/arm/neon-d32/float.h>
@@ -60,6 +63,11 @@ namespace neon_d32 // TODO: make constants common for all architectures
 #include <dsp/arch/arm/neon-d32/filters/transform.h>
 #include <dsp/arch/arm/neon-d32/fft.h>
 #include <dsp/arch/arm/neon-d32/fastconv.h>
+#include <dsp/arch/arm/neon-d32/mix.h>
+
+#include <dsp/arch/arm/neon-d32/pmath/exp.h>
+#include <dsp/arch/arm/neon-d32/pmath/log.h>
+#include <dsp/arch/arm/neon-d32/pmath/pow.h>
 
 #undef DSP_ARCH_ARM_NEON_32_IMPL
 
@@ -104,8 +112,23 @@ namespace neon_d32
 
         EXPORT1(convolve);
 
-        EXPORT1(axis_apply_log);
+        EXPORT1(axis_apply_log1);
+        EXPORT1(axis_apply_log2);
         EXPORT1(rgba32_to_bgra32);
+        EXPORT1(fill_rgba);
+        EXPORT1(fill_hsla);
+        EXPORT1(limit_saturate1);
+        EXPORT1(limit_saturate2);
+        EXPORT1(limit1);
+        EXPORT1(limit2);
+        EXPORT1(hsla_to_rgba);
+        EXPORT1(rgba_to_hsla);
+        EXPORT1(rgba_to_bgra32);
+
+        EXPORT1(eff_hsla_hue);
+        EXPORT1(eff_hsla_sat);
+        EXPORT1(eff_hsla_light);
+        EXPORT1(eff_hsla_alpha);
 
         EXPORT1(abs1);
         EXPORT1(abs2);
@@ -142,6 +165,21 @@ namespace neon_d32
         EXPORT1(scale_sub4);
         EXPORT1(scale_mul4);
         EXPORT1(scale_div4);
+
+        EXPORT1(exp1);
+        EXPORT1(exp2);
+        EXPORT1(logb1);
+        EXPORT1(logb2);
+        EXPORT1(loge1);
+        EXPORT1(loge2);
+        EXPORT1(logd1);
+        EXPORT1(logd2);
+        EXPORT1(powcv1);
+        EXPORT1(powcv2);
+        EXPORT1(powvc1);
+        EXPORT1(powvc2);
+        EXPORT1(powvx1);
+        EXPORT1(powvx2);
 
         EXPORT1(h_sum);
         EXPORT1(h_abs_sum);
@@ -212,6 +250,16 @@ namespace neon_d32
         EXPORT1(fastconv_restore);
         EXPORT1(fastconv_apply);
         EXPORT1(fastconv_parse_apply);
+
+        EXPORT1(mix2);
+        EXPORT1(mix3);
+        EXPORT1(mix4);
+        EXPORT1(mix_copy2);
+        EXPORT1(mix_copy3);
+        EXPORT1(mix_copy4);
+        EXPORT1(mix_add2);
+        EXPORT1(mix_add3);
+        EXPORT1(mix_add4);
     }
 }
 

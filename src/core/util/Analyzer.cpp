@@ -265,6 +265,14 @@ namespace lsp
         return true;
     }
 
+    float Analyzer::get_level(size_t channel, const uint32_t idx)
+    {
+        if ((vChannels == NULL) || (channel >= nChannels))
+            return 0.0f;
+
+        return vChannels[channel].vAmp[idx] * vEnvelope[idx];
+    }
+
     void Analyzer::get_frequencies(float *frq, uint32_t *idx, float start, float stop, size_t count)
     {
         size_t fft_size     = 1 << nRank;

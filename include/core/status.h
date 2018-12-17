@@ -8,8 +8,6 @@
 #ifndef CORE_STATUS_H_
 #define CORE_STATUS_H_
 
-#include <core/types.h>
-
 namespace lsp
 {
     enum status_codes

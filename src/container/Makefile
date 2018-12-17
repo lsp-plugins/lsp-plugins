@@ -13,7 +13,6 @@ endif
 # Configure set of modules to build
 ifeq ($(LSP_TESTING),1)
   OBJFILES               += $(OBJ_TEST_CORE)
-  LIBS                   += $(OPENGL_LIBS)
   MODULES                 = $(BIN_TEST)
 endif
 ifneq ($(LSP_TESTING),1)
@@ -80,4 +79,4 @@ $(BIN_TEST): $(LIB_JACK)
 	@echo "  $(CC) test.cpp"
 	@$(CC) -o $(OBJDIR)/test.o -c test.cpp -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(JACK_HEADERS) 
 	@echo "  $(CC) $(notdir $(BIN_TEST))"
-	@$(CC) -o $(BIN_TEST) $(OBJDIR)/jack.o $(OBJDIR)/test.o $(OBJ_HELPERS) $(UI_OBJFILES) $(EXE_TEST_FLAGS) $(UI_LIBS) $(JACK_LIBS)   
+	@$(CC) -o $(BIN_TEST) $(OBJDIR)/jack.o $(OBJDIR)/test.o $(OBJ_HELPERS) $(UI_OBJFILES) $(EXE_TEST_FLAGS) $(UI_LIBS) $(JACK_LIBS) $(OPENGL_LIBS)   
