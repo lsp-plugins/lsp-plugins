@@ -280,6 +280,125 @@ IF_ARCH_ARM(
 #undef LIMIT_SAT_BODY_X4
 #undef LIMIT_SAT_BODY
 
+#define U4VEC(x)        x, x, x, x
+IF_ARCH_ARM(
+    static uint32_t XLIM[] __lsp_aligned16 =
+    {
+        U4VEC(0x7f800000),      // +Inf
+        U4VEC(0x7f800000)       // +Inf
+    };
+)
+
+#undef U4VEC
+
+#define LIMIT_BODY_X4 \
+    /* q0 = s, q12 = +Inf, q13 = +Inf, q14 = min, q15 = max */ \
+    __ASM_EMIT("vclt.f32        q2, q0, q14")           /* q2   = [s < min] */ \
+    __ASM_EMIT("vabs.f32        q6, q0")                /* q6   = abs(s) */ \
+    __ASM_EMIT("vcgt.f32        q4, q0, q15")           /* q5   = [s > max] */ \
+    __ASM_EMIT("vbit            q0, q14, q2")           /* q0   = (s & [s >= min]) | (min & [s < min]) */ \
+    __ASM_EMIT("vcgt.u32        q6, q6, q12")           /* q6   = abs(s) > +Inf */ \
+    __ASM_EMIT("vbit            q0, q15, q4")           /* q0   = (s & [s >= min] & [s <= max]) | (min & [s < min]) | (max & [s > max]) */ \
+    __ASM_EMIT("vbit            q0, q14, q6")           /* q0   = ((s & [s >= min] & [s <= max]) | (min & [s < min]) | (max & [s > max])) & (abs(s) <= +Inf) | (min & [abs(s) > +Inf]) */
+
+#define LIMIT_BODY_X8 \
+    /* q0-q1 = s, q12 = +Inf, q13 = +Inf, q14 = min, q15 = max */ \
+    __ASM_EMIT("vclt.f32        q2, q0, q14")           /* q2   = [s < min] */ \
+    __ASM_EMIT("vclt.f32        q3, q1, q14")           \
+    __ASM_EMIT("vabs.f32        q6, q0")                /* q6   = abs(s) */ \
+    __ASM_EMIT("vabs.f32        q7, q1")                \
+    __ASM_EMIT("vcgt.f32        q4, q0, q15")           /* q5   = [s > max] */ \
+    __ASM_EMIT("vcgt.f32        q5, q1, q15")           \
+    __ASM_EMIT("vbit            q0, q14, q2")           /* q0   = (s & [s >= min]) | (min & [s < min]) */ \
+    __ASM_EMIT("vbit            q1, q14, q3")           \
+    __ASM_EMIT("vcgt.u32        q6, q6, q12")           /* q6   = abs(s) > +Inf */ \
+    __ASM_EMIT("vcgt.u32        q7, q7, q13")           \
+    __ASM_EMIT("vbit            q0, q15, q4")           /* q0   = (s & [s >= min] & [s <= max]) | (min & [s < min]) | (max & [s > max]) */ \
+    __ASM_EMIT("vbit            q1, q15, q5")           \
+    __ASM_EMIT("vbit            q0, q14, q6")           /* q0   = ((s & [s >= min] & [s <= max]) | (min & [s < min]) | (max & [s > max])) & (abs(s) <= +Inf) | (min & [abs(s) > +Inf]) */ \
+    __ASM_EMIT("vbit            q1, q14, q7")
+
+#define LIMIT_BODY \
+    __ASM_EMIT("vld1.32         {q12-q13}, [%[XC]]")            /* q12 = -1, q13 = +1, q14 = sign, q15 = +Inf */ \
+    __ASM_EMIT("vld1.32         {d28[], d29[]}, [%[min]]")      \
+    __ASM_EMIT("vld1.32         {d30[], d31[]}, [%[max]]")      \
+    __ASM_EMIT("subs            %[count], $8") \
+    __ASM_EMIT("blo             2f") \
+    \
+    /* 8x blocks */ \
+    __ASM_EMIT("1:") \
+    __ASM_EMIT("vld1.32         {q0-q1}, [%[src]]!")            /* q0 = s0, q1 = s1 */ \
+    LIMIT_BODY_X8 \
+    __ASM_EMIT("subs            %[count], $8") \
+    __ASM_EMIT("vst1.32         {q0-q1}, [%[dst]]!") \
+    __ASM_EMIT("bhs             1b") \
+    \
+    __ASM_EMIT("2:") \
+    __ASM_EMIT("adds            %[count], $4") \
+    __ASM_EMIT("blt             4f") \
+    /* 4x block */ \
+    __ASM_EMIT("vld1.32         {q0}, [%[src]]!")               /* q0 = s */ \
+    LIMIT_BODY_X4 \
+    __ASM_EMIT("sub             %[count], $4") \
+    __ASM_EMIT("vst1.32         {q0}, [%[dst]]!") \
+    __ASM_EMIT("4:") \
+    __ASM_EMIT("adds            %[count], $4") \
+    __ASM_EMIT("bls             12f") \
+    \
+    /* 1x-3x block */ \
+    __ASM_EMIT("tst             %[count], $2") \
+    __ASM_EMIT("beq             6f") \
+    __ASM_EMIT("vld1.32         {d1}, [%[src]]!") \
+    __ASM_EMIT("6:") \
+    __ASM_EMIT("tst             %[count], $1") \
+    __ASM_EMIT("beq             8f") \
+    __ASM_EMIT("vldm            %[src], {s0}") \
+    __ASM_EMIT("8:") \
+    LIMIT_BODY_X4 \
+    __ASM_EMIT("tst             %[count], $2") \
+    __ASM_EMIT("beq             10f") \
+    __ASM_EMIT("vst1.32         {d1}, [%[dst]]!") \
+    __ASM_EMIT("10:") \
+    __ASM_EMIT("tst             %[count], $1") \
+    __ASM_EMIT("beq             12f") \
+    __ASM_EMIT("vstm            %[dst], {s0}") \
+    \
+    __ASM_EMIT("12:") \
+
+
+    void limit1(float *dst, float min, float max, size_t count)
+    {
+        IF_ARCH_ARM(float *src = dst);
+
+        ARCH_ARM_ASM(
+            LIMIT_BODY
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            : [XC] "r" (&XLIM),
+              [min] "r" (&min),
+              [max] "r" (&max)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+    }
+
+    void limit2(float *dst, const float *src, float min, float max, size_t count)
+    {
+        ARCH_ARM_ASM(
+            LIMIT_BODY
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            : [XC] "r" (&XLIM),
+              [min] "r" (&min),
+              [max] "r" (&max)
+            : "cc", "memory",
+              "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7",
+              "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15"
+        );
+    }
+
+#undef LIMIT_BODY_X4
+#undef LIMIT_BODY_X8
+#undef LIMIT_BODY
 
 }
 
