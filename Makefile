@@ -65,6 +65,7 @@ ifeq ($(findstring jack,$(BUILD_MODULES)),jack)
   RELEASES               += release_jack
 endif
 ifeq ($(findstring doc,$(BUILD_MODULES)),doc)
+  INSTALLATIONS          += install_doc
   UNINSTALLATIONS        += uninstall_doc
   RELEASES               += release_doc
 endif
@@ -264,7 +265,7 @@ debug: compile
 debugfile: export CFLAGS    += -DLSP_TRACEFILE
 debugfile: debug
 
-gdb: export CFLAGS          += -O0
+gdb: export CFLAGS          += -O0 -g3 -DLSP_TRACE
 gdb: compile
 
 profile: export CFLAGS      += -O0 -g -pg -DLSP_PROFILING

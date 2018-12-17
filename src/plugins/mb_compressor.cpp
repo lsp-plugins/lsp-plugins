@@ -1516,8 +1516,8 @@ namespace lsp
 
             dsp::fill(b->v[1], 0.0f, width+2);
             dsp::fill(b->v[2], height, width+2);
-            dsp::axis_apply_log(b->v[1], b->v[2], b->v[0], zx, dx, 0.0f, width+2);
-            dsp::axis_apply_log(b->v[1], b->v[2], b->v[3], zy, 0.0f, dy, width+2);
+            dsp::axis_apply_log1(b->v[1], b->v[0], zx, dx, width+2);
+            dsp::axis_apply_log1(b->v[2], b->v[3], zy, dy, width+2);
 
             // Draw mesh
             uint32_t color = (bypassing || !(active())) ? CV_SILVER : c_colors[nMode*2 + i];

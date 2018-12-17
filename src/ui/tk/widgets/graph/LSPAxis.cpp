@@ -29,6 +29,7 @@ namespace lsp
             fMax            = 1.0f;
             nWidth          = 1;
             nCenter         = 0;
+            nLength         = -1;
             pClass          = &metadata;
 
             set_smooth(false);
@@ -63,17 +64,22 @@ namespace lsp
 
             float cx = 0.0f, cy = 0.0f;
             cv->center(nCenter, &cx, &cy);
-            float la, lb, lc;
 
-            if (!locate_line2d(fDX, fDY, cx, cy, la, lb, lc))
-                return false;
+            float d     = nLength;
+            if (d < 0.0f)
+            {
+                float la, lb, lc;
 
-            float x1, y1, x2, y2;
-            if (!clip_line2d(la, lb, lc, cv->area_left(), cv->area_right(), cv->area_top(), cv->area_bottom(), x1, y1, x2, y2))
-                return false;
+                if (!locate_line2d(fDX, fDY, cx, cy, la, lb, lc))
+                    return false;
 
-            float d1    = distance2d(cx, cy, x1, y1), d2 = distance2d(cx, cy, x2, y2);
-            float d     = (d1 > d2) ? d1 : d2;
+                float x1, y1, x2, y2;
+                if (!clip_line2d(la, lb, lc, cv->area_left(), cv->area_right(), cv->area_top(), cv->area_bottom(), x1, y1, x2, y2))
+                    return false;
+
+                float d1    = distance2d(cx, cy, x1, y1), d2 = distance2d(cx, cy, x2, y2);
+                d           = (d1 > d2) ? d1 : d2;
+            }
 
             // Normalize value according to minimum and maximum visible values of the axis
             float a_min = fabsf(fMin), a_max = fabsf(fMax);
@@ -92,7 +98,7 @@ namespace lsp
                 norm            = d / norm;
                 a_min           = 1.0f / a_min;
 
-                dsp::axis_apply_log(x, y, dv, a_min, norm * fDX, norm * fDY, count);
+                dsp::axis_apply_log2(x, y, dv, a_min, norm * fDX, norm * fDY, count);
             }
             else
             {
@@ -128,17 +134,21 @@ namespace lsp
             float dx = x - cx, dy = y - cy;
             float pv = dx*fDX + dy*fDY;
 
-            // Now prepare the image of the line
-            float la, lb, lc;
-            if (!locate_line2d(fDX, fDY, cx, cy, la, lb, lc))
-                return false;
+            float d     = nLength;
+            if (d < 0.0f)
+            {
+                // Now prepare the image of the line
+                float la, lb, lc;
+                if (!locate_line2d(fDX, fDY, cx, cy, la, lb, lc))
+                    return false;
 
-            float x1, y1, x2, y2;
-            if (!clip_line2d(la, lb, lc, cv->area_left(), cv->area_right(), cv->area_top(), cv->area_bottom(), x1, y1, x2, y2))
-                return false;
+                float x1, y1, x2, y2;
+                if (!clip_line2d(la, lb, lc, cv->area_left(), cv->area_right(), cv->area_top(), cv->area_bottom(), x1, y1, x2, y2))
+                    return false;
 
-            float d1    = distance2d(cx, cy, x1, y1), d2 = distance2d(cx, cy, x2, y2);
-            float d     = (d1 > d2) ? d1 : d2;
+                float d1    = distance2d(cx, cy, x1, y1), d2 = distance2d(cx, cy, x2, y2);
+                d           = (d1 > d2) ? d1 : d2;
+            }
 
             // Normalize value according to minimum and maximum visible values of the axis
             float a_min = fabsf(fMin), a_max = fabsf(fMax);
@@ -262,6 +272,14 @@ namespace lsp
 
             fDX         = dx;
             fDY         = dy;
+            query_draw();
+        }
+
+        void LSPAxis::set_length(ssize_t value)
+        {
+            if (nLength == value)
+                return;
+            nLength     = value;
             query_draw();
         }
 

@@ -10,6 +10,7 @@
 
 #include <core/ITask.h>
 #include <core/IExecutor.h>
+#include <core/ICanvas.h>
 
 namespace lsp
 {
@@ -36,6 +37,15 @@ namespace lsp
              * @return current time position
              */
             virtual const position_t *position();
+
+            /**
+             * Create/resize canvas
+             * @param cv valid pointer to ICanvas object or NULL if there's none
+             * @param width the requested width of canvas
+             * @param height the requested height of canvas
+             * @return the pointer to valid canvas object or NULL on error
+             */
+            virtual ICanvas *create_canvas(ICanvas *&cv, size_t width, size_t height);
     };
 
 } /* namespace lsp */

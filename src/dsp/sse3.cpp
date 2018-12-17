@@ -91,7 +91,8 @@ namespace sse3
         EXPORT2_X64(biquad_process_x8, x64_biquad_process_x8);
         EXPORT2_X64(dyn_biquad_process_x8, x64_dyn_biquad_process_x8);
         EXPORT2_X64(bilinear_transform_x8, x64_bilinear_transform_x8);
-        EXPORT2_X64(axis_apply_log, x64_axis_apply_log);
+        EXPORT2_X64(axis_apply_log1, x64_axis_apply_log1);
+        EXPORT2_X64(axis_apply_log2, x64_axis_apply_log2);
         EXPORT2_X64(pcomplex_mul3, x64_pcomplex_mul3);
 
         EXPORT2_X64(rgba32_to_bgra32, x64_rgba32_to_bgra32);

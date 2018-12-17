@@ -43,6 +43,12 @@ namespace lsp
              */
             inline size_t height() const    { return sData.nHeight;     }
 
+            /** Return difference (in bytes) between two sequential rows
+             *
+             * @return stride between rows
+             */
+            inline size_t stride() const    { return sData.nStride;     }
+
         public:
             /** Initialize canvas
              *
@@ -153,6 +159,41 @@ namespace lsp
              * @param r radius of gradient
              */
             virtual void radial_gradient(ssize_t x, ssize_t y, const Color &c1, const Color &c2, ssize_t r);
+
+            /**
+             * Draw another surface with applied alpha channel
+             * @param s source surface to draw
+             * @param x x-axis position
+             * @param y y-axis poisition
+             * @param sx x-axis scale
+             * @param sy y-axis scale
+             * @param a alpha
+             */
+            virtual void draw_alpha(ICanvas *s, float x, float y, float sx, float sy, float a);
+
+            /**
+             * Return raw buffer data for direct rendering
+             *
+             * @return raw buffer data
+             */
+            virtual void *data();
+
+            /**
+             * Return pointer to the beginning of the specified row
+             * @param row row number
+             */
+            virtual void *row(size_t row);
+
+            /**
+             * Start direct access to the surface
+             * @return pointer to surface buffer or NULL if error/not possible
+             */
+            virtual void *start_direct();
+
+            /**
+             * End direct access to the surface
+             */
+            virtual void end_direct();
     };
 
 } /* namespace lsp */

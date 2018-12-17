@@ -155,6 +155,8 @@ namespace lsp
                 return &sPosition;
             }
 
+            virtual ICanvas *create_canvas(ICanvas *&cv, size_t width, size_t height);
+
             LV2Port *get_port(const char *id);
 
             void connect_direct_ui()
@@ -1053,6 +1055,29 @@ namespace lsp
 //            sSurface.data, int(sSurface.width), int(sSurface.height), int(sSurface.stride));
 
         return &sSurface;
+    }
+
+    ICanvas *LV2Wrapper::create_canvas(ICanvas *&cv, size_t width, size_t height)
+    {
+        if ((cv != NULL) && (cv->width() == width) && (cv->height() == height))
+            return cv;
+
+        ICanvas *ncv = new CairoCanvas();
+        if (ncv == NULL)
+            return NULL;
+        if (!ncv->init(width, height))
+        {
+            delete ncv;
+            return NULL;
+        }
+
+        if (cv != NULL)
+        {
+            cv->destroy();
+            delete cv;
+        }
+
+        return cv = ncv;
     }
 }
 

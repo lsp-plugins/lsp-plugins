@@ -105,11 +105,11 @@ namespace lsp
              */
             inline void set_window(size_t window)
             {
-                if (nWindow != window)
-                {
-                    nWindow         = window;
-                    nReconfigure   |= R_WINDOW;
-                }
+                if (nWindow == window)
+                    return;
+
+                nWindow         = window;
+                nReconfigure   |= R_WINDOW;
             }
 
             /** Set envelope for analysis
@@ -118,11 +118,11 @@ namespace lsp
              */
             inline void set_envelope(size_t envelope)
             {
-                if (nEnvelope != envelope)
-                {
-                    nEnvelope       = envelope;
-                    nReconfigure   |= R_ENVELOPE;
-                }
+                if (nEnvelope == envelope)
+                    return;
+
+                nEnvelope       = envelope;
+                nReconfigure   |= R_ENVELOPE;
             }
 
             /** Set shift gain for analysis
@@ -131,11 +131,11 @@ namespace lsp
              */
             inline void set_shift(float shift)
             {
-                if (fShift != shift)
-                {
-                    fShift          = shift;
-                    nReconfigure   |= R_ENVELOPE;
-                }
+                if (fShift == shift)
+                    return;
+
+                fShift          = shift;
+                nReconfigure   |= R_ENVELOPE;
             }
 
             /** Set sample rate for analysis
@@ -144,11 +144,11 @@ namespace lsp
              */
             inline void set_sample_rate(size_t sr)
             {
-                if (nSampleRate != sr)
-                {
-                    nSampleRate     = sr;
-                    nReconfigure   |= R_ALL;
-                }
+                if (nSampleRate == sr)
+                    return;
+
+                nSampleRate     = sr;
+                nReconfigure   |= R_ALL;
             }
 
             /** Set-up FFT analysis rate
@@ -157,11 +157,11 @@ namespace lsp
              */
             inline void set_rate(float rate)
             {
-                if (fRate != rate)
-                {
-                    fRate           = rate;
-                    nReconfigure   |= R_COUNTERS;
-                }
+                if (fRate == rate)
+                    return;
+
+                fRate           = rate;
+                nReconfigure   |= R_COUNTERS;
             }
 
             /** Set-up FFT reactivity
@@ -170,11 +170,11 @@ namespace lsp
              */
             inline void set_reactivity(float reactivity)
             {
-                if (fReactivity != reactivity)
-                {
-                    fReactivity     = reactivity;
-                    nReconfigure   |= R_TAU;
-                }
+                if (fReactivity == reactivity)
+                    return;
+
+                fReactivity     = reactivity;
+                nReconfigure   |= R_TAU;
             }
 
             /** Set rank of the analysis
@@ -186,9 +186,20 @@ namespace lsp
             {
                 if ((rank < 2) || (rank > nMaxRank))
                     return false;
+                else if (nRank == rank)
+                    return true;
                 nRank           = rank;
                 nReconfigure   |= R_ALL;
                 return true;
+            }
+
+            /**
+             * Return current rank of analyzer
+             * @return current rank of analyzer
+             */
+            inline size_t get_rank() const
+            {
+                return nRank;
             }
 
             /** Set analyzer activity
@@ -257,10 +268,18 @@ namespace lsp
              */
             bool get_spectrum(size_t channel, float *out, const uint32_t *idx, size_t count);
 
+            /**
+             * Get level of one frequency
+             * @param channel channel number
+             * @param idx frequency index
+             * @return level
+             */
+            float get_level(size_t channel, const uint32_t idx);
+
             /** Get list of frequencies
              *
              * @param f frequency list
-             * @param idx frequency indexes
+             * @param idx frequency indexes containing frequency numbers for future get_spectrum() call
              * @param start start frequency
              * @param stop stop frequency
              * @param count number of elements

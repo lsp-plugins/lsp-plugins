@@ -198,8 +198,11 @@ namespace lsp
                             if (tok->type == TT_INDEX)
                             {
                                 CtlPort *sw         = pUI->port(tok->data);
-                                sw->bind(this);
-                                vControls[index++]  = sw;
+                                if (sw != NULL)
+                                {
+                                    sw->bind(this);
+                                    vControls[index++]  = sw;
+                                }
                             }
                             tok     = next_token(tok);
                         }

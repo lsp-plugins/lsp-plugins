@@ -34,7 +34,7 @@
 #endif /* DSP_ARCH_X86_AVX_IMPL */
 
 #if 0
-void axis_apply_log(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count)
+void axis_apply_log2(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count)
 {
     // Step 1: load vector, take absolute value and limit it by minimum value
     #define LOG_LOAD(r, mv_v, d)   \

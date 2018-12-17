@@ -165,6 +165,7 @@ namespace lsp
             "opacity",
             "transparency",
             "mode",
+            "length",
             NULL
         };
 

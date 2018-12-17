@@ -132,6 +132,8 @@ namespace lsp
                 return &sPosition;
             }
 
+            virtual ICanvas *create_canvas(ICanvas *&cv, size_t width, size_t height);
+
             void init_state_chunk();
             size_t serialize_state(const void **dst);
             void deserialize_state(const void *data);
@@ -966,6 +968,11 @@ namespace lsp
             }
             ptr                    += delta;
         }
+    }
+
+    ICanvas *VSTWrapper::create_canvas(ICanvas *&cv, size_t width, size_t height)
+    {
+        return NULL;
     }
 }
 

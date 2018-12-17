@@ -107,6 +107,12 @@ namespace lsp
         return &vData[off * nCols];
     }
 
+    float *frame_buffer_t::next_row() const
+    {
+        uint32_t off    = nRowID & (nCapacity - 1);
+        return &vData[off * nCols];
+    }
+
     void frame_buffer_t::write_row(const float *row)
     {
         uint32_t off    = nRowID & (nCapacity - 1);
@@ -118,6 +124,11 @@ namespace lsp
     {
         uint32_t off    = row_id & (nCapacity - 1);
         dsp::copy(&vData[off * nCols], row, nCols);
+    }
+
+    void frame_buffer_t::write_row()
+    {
+        nRowID          ++; // Just increment row identifier
     }
 
     bool frame_buffer_t::sync(const frame_buffer_t *fb)

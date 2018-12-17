@@ -1,5 +1,5 @@
 /*
- * corellator.cpp
+ * spectrum_analyzer.cpp
  *
  *  Created on: 28 сент. 2015 г.
  *      Author: sadko
@@ -7,7 +7,6 @@
 
 #include <dsp/dsp.h>
 
-#include <plugins/spectrum_analyzer.h>
 #include <core/debug.h>
 #include <core/windows.h>
 #include <core/envelope.h>
@@ -16,118 +15,132 @@
 
 #include <string.h>
 
-#define BUFFER_SIZE         (0x10000 / sizeof(float))
+#include <plugins/spectrum_analyzer.h>
 
 namespace lsp
 {
     //-------------------------------------------------------------------------
     spectrum_analyzer_base::spectrum_analyzer_base(const plugin_metadata_t &metadata): plugin_t(metadata)
     {
-        pChannels       = NULL;
+        nChannels       = 0;
+        vChannels       = NULL;
+        pData           = NULL;
+        vFrequences     = NULL;
+        vMFrequences    = NULL;
+        vIndexes        = NULL;
+
+        bBypass         = false;
+        nChannel        = 0;
+        fSelector       = 0;
+        fMinFreq        = 0;
+        fMaxFreq        = 0;
+        fReactivity     = 0.0f;
+        fTau            = 0.0f;
+        fPreamp         = 0.0f;
+        fZoom           = 0.0f;
+        enMode          = SA_ANALYZER;
+        bLogScale       = false;
+
+        pBypass         = NULL;
+        pMode           = NULL;
+        pTolerance      = NULL;
+        pWindow         = NULL;
+        pEnvelope       = NULL;
+        pPreamp         = NULL;
+        pZoom           = NULL;
+        pReactivity     = NULL;
+        pChannel        = NULL;
+        pSelector       = NULL;
+        pFrequency      = NULL;
+        pLevel          = NULL;
+        pLogScale       = NULL;
+
+        pFreeze         = NULL;
+        pSpp            = NULL;
+
+        for (size_t i=0; i<2; ++i)
+        {
+            vSpc[i].nPortId     = -1;
+
+            vSpc[i].pPortId     = NULL;
+            vSpc[i].pFBuffer    = NULL;
+        }
+
         pIDisplay       = NULL;
     }
 
     spectrum_analyzer_base::~spectrum_analyzer_base()
     {
-        pChannels       = NULL;
+        vChannels       = NULL;
         pIDisplay       = NULL;
     }
 
-    spectrum_analyzer_base::sa_core_t *spectrum_analyzer_base::create_channels(const plugin_metadata_t *m)
+    bool spectrum_analyzer_base::create_channels(size_t channels)
     {
-        // Determine number of cores
-        size_t channels     = 0;
-        for (const port_t *p=m->ports; p->id != NULL; ++p)
-            if ((p->role == R_AUDIO) && (IS_IN_PORT(p)))
-                channels++;
-
         lsp_trace("this=%p, channels = %d", this, int(channels));
 
         // Calculate header size
-        size_t hdr_size         = (sizeof(sa_core_t) + sizeof(sa_channel_t) * channels + 0x1f) & (~size_t(0x1f));
-        size_t max_fft_items    = (1 << spectrum_analyzer_base_metadata::RANK_MAX);
-        size_t max_fft_buf_size = sizeof(float) * max_fft_items;
-        size_t freq_buf_size    = sizeof(float) * spectrum_analyzer_base_metadata::MESH_POINTS;
-        size_t ind_buf_size     = sizeof(uint32_t) * spectrum_analyzer_base_metadata::MESH_POINTS;
-        size_t buffers          = channels * 2 + 5; // FFT buffers: (sig_re + fft_amp) * channels + sig_re + fft_re + fft_im + window + envelope
-        size_t alloc            = hdr_size + freq_buf_size + ind_buf_size + buffers * max_fft_buf_size;
+        size_t hdr_size         = ALIGN_SIZE(sizeof(sa_channel_t) * channels, 64);
+        size_t freq_buf_size    = ALIGN_SIZE(sizeof(float) * spectrum_analyzer_base_metadata::MESH_POINTS, 64);
+        size_t mfreq_buf_size   = ALIGN_SIZE(sizeof(float) * spectrum_analyzer_base_metadata::MESH_POINTS, 64);
+        size_t ind_buf_size     = ALIGN_SIZE(sizeof(uint32_t) * spectrum_analyzer_base_metadata::MESH_POINTS, 64);
+        size_t alloc            = hdr_size + freq_buf_size + mfreq_buf_size + ind_buf_size;
 
-        lsp_trace("header_size = %d", int(hdr_size));
-        lsp_trace("max_fft_buf_size = %d", int(max_fft_buf_size));
-        lsp_trace("freq_buf_size = %d", int(freq_buf_size));
-        lsp_trace("ind_buf_size = %d", int(ind_buf_size));
-        lsp_trace("buffers = %d", int(buffers));
-        lsp_trace("alloc = %d", int(alloc));
+        lsp_trace("header_size      = %d", int(hdr_size));
+        lsp_trace("freq_buf_size    = %d", int(freq_buf_size));
+        lsp_trace("mfreq_buf_size   = %d", int(mfreq_buf_size));
+        lsp_trace("ind_buf_size     = %d", int(ind_buf_size));
+        lsp_trace("alloc            = %d", int(alloc));
 
         // Allocate data
-        uint8_t *ptr        = new uint8_t[alloc];
+        uint8_t *ptr        = alloc_aligned<uint8_t>(pData, alloc, 64);
         if (ptr == NULL)
-            return NULL;
+            return false;
+        lsp_guard_assert( uint8_t *guard = ptr );
 
         // Initialize core
-        sa_core_t *core     = reinterpret_cast<sa_core_t *>(ptr);
-        ptr                += hdr_size;
-
-        core->nChannels     = channels;
-        core->bBypass       = false;
-        core->nRank         = spectrum_analyzer_base_metadata::RANK_DFL;
-        core->nChannel      = 0;
-        core->fSelector     = spectrum_analyzer_base_metadata::SELECTOR_DFL;
-        core->fMinFreq      = spectrum_analyzer_base_metadata::FREQ_MIN;
-        core->fMaxFreq      = spectrum_analyzer_base_metadata::FREQ_MAX;
-        core->nWindow       = spectrum_analyzer_base_metadata::WND_DFL;
-        core->nEnvelope     = spectrum_analyzer_base_metadata::ENV_DFL;
-        core->fReactivity   = spectrum_analyzer_base_metadata::REACT_TIME_DFL;
-        core->fTau          = 1.0f;
-        core->fPreamp       = spectrum_analyzer_base_metadata::PREAMP_DFL;
+        nChannels       = channels;
+        nChannel        = 0;
+        fSelector       = spectrum_analyzer_base_metadata::SELECTOR_DFL;
+        fMinFreq        = spectrum_analyzer_base_metadata::FREQ_MIN;
+        fMaxFreq        = spectrum_analyzer_base_metadata::FREQ_MAX;
+        fReactivity     = spectrum_analyzer_base_metadata::REACT_TIME_DFL;
+        fTau            = 1.0f;
+        fPreamp         = spectrum_analyzer_base_metadata::PREAMP_DFL;
 
         // Initialize pointers and cleanup buffers
-        core->vFrequences   = reinterpret_cast<float *>(ptr);
-        ptr                += freq_buf_size;
-        dsp::fill_zero(core->vFrequences, spectrum_analyzer_base_metadata::MESH_POINTS);
-        lsp_trace("vFrequences = %p", core->vFrequences);
+        vChannels       = reinterpret_cast<sa_channel_t *>(ptr);
+        ptr            += hdr_size;
+        lsp_trace("vChannels = %p", vChannels);
 
-        core->vIndexes      = reinterpret_cast<uint32_t *>(ptr);
-        ptr                += ind_buf_size;
-        memset(core->vIndexes, 0, ind_buf_size);
-        lsp_trace("vIndexes = %p", core->vIndexes);
+        vFrequences   = reinterpret_cast<float *>(ptr);
+        ptr          += freq_buf_size;
+        dsp::fill_zero(vFrequences, spectrum_analyzer_base_metadata::MESH_POINTS);
+        lsp_trace("vFrequences = %p", vFrequences);
 
-        core->vSigRe        = reinterpret_cast<float *>(ptr);
-        ptr                += max_fft_buf_size;
-        dsp::fill_zero(core->vSigRe, max_fft_items);
-        lsp_trace("vSigRe = %p", core->vSigRe);
+        vMFrequences  = reinterpret_cast<float *>(ptr);
+        ptr          += mfreq_buf_size;
+        dsp::fill_zero(vMFrequences, spectrum_analyzer_base_metadata::MESH_POINTS);
+        lsp_trace("vMFrequences = %p", vMFrequences);
 
-        core->vFftReIm      = reinterpret_cast<float *>(ptr);
-        ptr                += max_fft_buf_size << 1;
-        dsp::fill_zero(core->vFftReIm, max_fft_items << 1);
-        lsp_trace("vFftReIm = %p", core->vFftReIm);
-
-        core->vWindow       = reinterpret_cast<float *>(ptr);
-        ptr                += max_fft_buf_size;
-        init_window(core);
-        lsp_trace("vWindow = %p", core->vWindow);
-
-        core->vEnvelope     = reinterpret_cast<float *>(ptr);
-        ptr                += max_fft_buf_size;
-        envelope::reverse_noise(core->vEnvelope, 1 << core->nRank, envelope::envelope_t(core->nEnvelope));
-        lsp_trace("vEnvelope = %p", core->vEnvelope);
+        vIndexes      = reinterpret_cast<uint32_t *>(ptr);
+        ptr          += ind_buf_size;
+        memset(vIndexes, 0, ind_buf_size);
+        lsp_trace("vIndexes = %p", vIndexes);
 
         // Initialize channels
         for (size_t i=0; i<channels; ++i)
         {
-            sa_channel_t *c     = &core->vChannels[i];
+            sa_channel_t *c     = &vChannels[i];
 
             // Initialize fields
-            c->vSigRe           = reinterpret_cast<float *>(ptr);
-            ptr                += max_fft_buf_size;
-            c->vFftAmp          = reinterpret_cast<float *>(ptr);
-            ptr                += max_fft_buf_size;
             c->bOn              = false;
-            c->bFreeze          = false;
+            c->bSolo            = false;
             c->bSend            = false;
             c->fGain            = 1.0f;
             c->fHue             = 0.0f;
-            c->nSamples         = 0;
+            c->vIn              = NULL;
+            c->vOut             = NULL;
 
             // Port references
             c->pIn              = NULL;
@@ -137,20 +150,11 @@ namespace lsp
             c->pHue             = NULL;
             c->pShift           = NULL;
             c->pSpec            = NULL;
-
-            // Clear buffers
-            dsp::fill_zero(c->vSigRe, max_fft_items);
-            dsp::fill_zero(c->vFftAmp, max_fft_items);
         }
 
-        return core;
-    }
+        lsp_assert(ptr <= &guard[alloc]);
 
-    void spectrum_analyzer_base::destroy_channels(sa_core_t *channels)
-    {
-        if (channels == NULL)
-            return;
-        delete [] reinterpret_cast<uint8_t *>(channels);
+        return true;
     }
 
     void spectrum_analyzer_base::init(IWrapper *wrapper)
@@ -158,9 +162,24 @@ namespace lsp
         // Pass wrapper
         plugin_t::init(wrapper);
 
+        // Determine number of channels
+        size_t channels     = 0;
+        if (pMetadata == NULL)
+            return;
+        for (const port_t *p=pMetadata->ports; p->id != NULL; ++p)
+            if ((p->role == R_AUDIO) && (IS_IN_PORT(p)))
+                channels++;
+
+        // Initialize analyzer
+        sAnalyzer.init(channels, spectrum_analyzer_base_metadata::RANK_MAX);
+        sAnalyzer.set_rate(spectrum_analyzer_base_metadata::REFRESH_RATE);
+
+        // Initialize counter
+        sCounter.set_frequency(spectrum_analyzer_base_metadata::FB_ROWS /
+                spectrum_analyzer_base_metadata::FB_TIME, true);
+
         // Allocate channels
-        pChannels       = create_channels(pMetadata);
-        if (pChannels == NULL)
+        if (!create_channels(channels))
             return;
 
         // Seek for first input port
@@ -181,7 +200,7 @@ namespace lsp
         lsp_trace("port_id = %d", int(port_id));
 
         // Now we are available to map the ports for channels
-        for (size_t i=0; i<pChannels->nChannels; ++i)
+        for (size_t i=0; i<nChannels; ++i)
         {
             lsp_trace("binding channel %d", int(i));
 
@@ -194,7 +213,7 @@ namespace lsp
             if ((p->id == NULL) || (p->role != R_AUDIO) || (!IS_IN_PORT(p)))
                 break;
 
-            sa_channel_t *c     = &pChannels->vChannels[i];
+            sa_channel_t *c     = &vChannels[i];
             c->pIn              = vPorts[port_id++];
             c->pOut             = vPorts[port_id++];
             c->pOn              = vPorts[port_id++];
@@ -205,15 +224,9 @@ namespace lsp
             c->pSpec            = vPorts[port_id++];
 
             // Sync metadata
-            const port_t *meta  = c->pOn->metadata();
-            if (meta != NULL)
-                c->bOn              = meta->start >= 0.5f;
-            meta                = c->pSolo->metadata();
+            const port_t *meta  = c->pSolo->metadata();
             if (meta != NULL)
                 c->bSolo        = meta->start >= 0.5f;
-            meta                = c->pFreeze->metadata();
-            if (meta != NULL)
-                c->bFreeze          = meta->start >= 0.5f;
             meta                = c->pShift->metadata();
             if (meta != NULL)
                 c->fGain            = meta->start;
@@ -222,32 +235,55 @@ namespace lsp
         }
 
         // Initialize basic ports
-        pChannels->pBypass      = vPorts[port_id++];
-        pChannels->pTolerance   = vPorts[port_id++];
-        pChannels->pWindow      = vPorts[port_id++];
-        pChannels->pEnvelope    = vPorts[port_id++];
-        pChannels->pPreamp      = vPorts[port_id++];
-        pChannels->pZoom        = vPorts[port_id++];
-        pChannels->pReactivity  = vPorts[port_id++];
-        pChannels->pChannel     = vPorts[port_id++];
-        pChannels->pSelector    = vPorts[port_id++];
-        pChannels->pFrequency   = vPorts[port_id++];
-        pChannels->pLevel       = vPorts[port_id++];
+        pBypass         = vPorts[port_id++];
+        pMode           = vPorts[port_id++];
+        port_id++; // Skip spectralizer mode
+        pLogScale       = vPorts[port_id++];
+        pFreeze         = vPorts[port_id++];
+        pTolerance      = vPorts[port_id++];
+        pWindow         = vPorts[port_id++];
+        pEnvelope       = vPorts[port_id++];
+        pPreamp         = vPorts[port_id++];
+        pZoom           = vPorts[port_id++];
+        pReactivity     = vPorts[port_id++];
+        pChannel        = vPorts[port_id++];
+        pSelector       = vPorts[port_id++];
+        pFrequency      = vPorts[port_id++];
+        pLevel          = vPorts[port_id++];
+
+        // Bind spectralizer ports
+        if (nChannels > 1)
+            vSpc[0].pPortId     = vPorts[port_id++];
+        vSpc[0].pFBuffer    = vPorts[port_id++];
+        vSpc[0].nChannelId  = -1;
+
+        if (nChannels >= 2)
+        {
+            if (nChannels > 2)
+                vSpc[1].pPortId     = vPorts[port_id++];
+            vSpc[1].pFBuffer    = vPorts[port_id++];
+            vSpc[1].nChannelId  = -1;
+        }
 
         // Initialize values
-        pChannels->fMinFreq     = pChannels->pFrequency->metadata()->min;
-        pChannels->fMaxFreq     = pChannels->pFrequency->metadata()->max;
+        fMinFreq        = pFrequency->metadata()->min;
+        fMaxFreq        = pFrequency->metadata()->max;
 
         lsp_trace("this=%p, basic ports successful bound", this);
     }
 
     void spectrum_analyzer_base::destroy()
     {
-        if (pChannels != NULL)
+        sAnalyzer.destroy();
+
+        if (pData != NULL)
         {
-            destroy_channels(pChannels);
-            pChannels       = NULL;
+            free_aligned(pData);
+            pData           = NULL;
         }
+        vFrequences     = NULL;
+        vIndexes        = NULL;
+
         if (pIDisplay != NULL)
         {
             pIDisplay->detroy();
@@ -255,324 +291,416 @@ namespace lsp
         }
     }
 
-    void spectrum_analyzer_base::update_settings()
+    spectrum_analyzer_base::mode_t spectrum_analyzer_base::decode_mode(size_t mode)
     {
-        if (pChannels == NULL)
-            return;
-        lsp_trace("this=%p", this);
-
-        bool update_window      = false;
-        bool update_env         = false;
-        bool update_buf         = false;
-        size_t rank             = pChannels->pTolerance->getValue() + spectrum_analyzer_base_metadata::RANK_MIN;
-        if (rank != pChannels->nRank)
+        if (nChannels == 1)
         {
-            pChannels->nRank        = rank;
-            update_window           = true;
-            update_env              = true;
-            update_buf              = true;
-            update_frequences();
+            switch (mode)
+            {
+                case 0: return SA_ANALYZER;
+                case 1: return SA_MASTERING;
+                case 2: return SA_SPECTRALIZER;
+                default:
+                    return SA_ANALYZER;
+            }
         }
-
-        size_t window           = pChannels->pWindow->getValue();
-        size_t fft_size         = 1 << pChannels->nRank;
-        if (window != pChannels->nWindow)
+        else if (nChannels == 2)
         {
-            pChannels->nWindow      = window;
-            update_window           = true;
+            switch (mode)
+            {
+                case 0: return SA_ANALYZER;
+                case 1: return SA_MASTERING;
+                case 2: return SA_SPECTRALIZER;
+                case 3: return SA_SPECTRALIZER_STEREO;
+                default:
+                    return SA_ANALYZER;
+            }
         }
-
-        size_t env              = pChannels->pEnvelope->getValue();
-        if (env != pChannels->nEnvelope)
+        else
         {
-            pChannels->nEnvelope    = env;
-            update_env              = true;
+            switch (mode)
+            {
+                case 0: return SA_ANALYZER;
+                case 1: return SA_ANALYZER_STEREO;
+                case 2: return SA_MASTERING;
+                case 3: return SA_MASTERING_STEREO;
+                case 4: return SA_SPECTRALIZER;
+                case 5: return SA_SPECTRALIZER_STEREO;
+                default:
+                    return SA_ANALYZER;
+            }
         }
+    }
 
-        if (update_window)
-            init_window(pChannels);
-        if (update_env)
-            envelope::reverse_noise(pChannels->vEnvelope, fft_size >> 1, envelope::envelope_t(pChannels->nEnvelope));
-
-        pChannels->bBypass      = pChannels->pBypass->getValue();
-        pChannels->nChannel     = pChannels->pChannel->getValue();
-        pChannels->fSelector    = pChannels->pSelector->getValue() * 0.01;
-        pChannels->fPreamp      = pChannels->pPreamp->getValue();
-        pChannels->fZoom        = pChannels->pZoom->getValue();
-
-        set_reactivity(pChannels->pReactivity->getValue());
-
-        lsp_trace("bypass       = %s",     (pChannels->bBypass) ? "true" : "false");
-        lsp_trace("rank         = %d",     int(pChannels->nRank));
-        lsp_trace("channel      = %d",     int(pChannels->nChannel));
-        lsp_trace("selector     = %.3f",   pChannels->fSelector);
-        lsp_trace("preamp       = %.3f",   pChannels->fPreamp);
-        lsp_trace("reactivity   = %.3f",   pChannels->fReactivity);
-        lsp_trace("tau          = %.5f",   pChannels->fTau);
-
-        size_t step                 = pChannels->nMaxSamples / pChannels->nChannels;
-
+    void spectrum_analyzer_base::update_multiple_settings()
+    {
         // Check that there are soloing channels
         size_t has_solo         = 0;
-        for (size_t i=0; i<pChannels->nChannels; ++i)
+        for (size_t i=0; i<nChannels; ++i)
         {
-            sa_channel_t *c     = &pChannels->vChannels[i];
+            sa_channel_t *c     = &vChannels[i];
             if (c->pSolo->getValue() >= 0.5f)
                 has_solo++;
         }
 
         // Process channel parameters
-        for (size_t i=0; i<pChannels->nChannels; ++i)
+        bool freeze_all     = pFreeze->getValue() >= 0.5f;
+
+        for (size_t i=0; i<nChannels; ++i)
         {
-            sa_channel_t *c     = &pChannels->vChannels[i];
+            sa_channel_t *c     = &vChannels[i];
+
             c->bOn              = c->pOn->getValue() >= 0.5f;
+            c->bFreeze          = (freeze_all) || (c->pFreeze->getValue() >= 0.5f);
             c->bSolo            = c->pSolo->getValue() >= 0.5f;
-            c->bFreeze          = c->pFreeze->getValue() >= 0.5f;
-            c->bSend            = c->bOn && ((has_solo == 0) || ((has_solo > 0) && (c->bSolo)));
+            c->bSend            = (c->bOn) && ((has_solo == 0) || ((has_solo > 0) && (c->bSolo)));
             c->fGain            = c->pShift->getValue();
             c->fHue             = c->pHue->getValue();
-            if (update_buf)
-            {
-                dsp::fill_zero(c->vSigRe, 1 << pChannels->nRank);
-                dsp::fill_zero(c->vFftAmp, 1 << pChannels->nRank);
-                c->nSamples         = step * i;
-            }
+        }
 
-            lsp_trace("c[%d].on          = %s",     int(i), (c->bOn) ? "true" : "false");
-            lsp_trace("c[%d].freeze      = %s",     int(i), (c->bFreeze) ? "true" : "false");
-            lsp_trace("c[%d].gain        = %.3f",   int(i), c->fGain);
-            lsp_trace("c[%d].samples     = %d",     int(i), int(c->nSamples));
+        vSpc[0].nChannelId      = -1;
+        vSpc[1].nChannelId      = -1;
+    }
+
+    void spectrum_analyzer_base::update_x2_settings(ssize_t ch1, ssize_t ch2)
+    {
+        bool freeze_all     = pFreeze->getValue() >= 0.5f;
+        ssize_t nc          = nChannels;
+
+        if (ch1 >= nc)
+            ch1 -= nc;
+        if (ch2 >= nc)
+            ch2 -= nc;
+
+        for (ssize_t i=0; i<nc; ++i)
+        {
+            sa_channel_t *c     = &vChannels[i];
+
+            c->bOn              = (i == ch1) || (i == ch2);
+            c->bFreeze          = (freeze_all) || (c->pFreeze->getValue() >= 0.5f);
+            c->bSolo            = false;
+            c->bSend            = c->bOn;
+            c->fGain            = c->pShift->getValue();
+            c->fHue             = c->pHue->getValue();
+        }
+
+        vSpc[0].nChannelId      = -1;
+        vSpc[1].nChannelId      = -1;
+    }
+
+    void spectrum_analyzer_base::update_spectralizer_x2_settings(ssize_t ch1, ssize_t ch2)
+    {
+        bool freeze_all     = pFreeze->getValue() >= 0.5f;
+        ssize_t nc          = nChannels;
+
+        if (ch1 >= nc)
+            ch1 -= nc;
+        if (ch2 >= nc)
+            ch2 -= nc;
+
+        for (ssize_t i=0; i<nc; ++i)
+        {
+            sa_channel_t *c     = &vChannels[i];
+
+            c->bOn              = (i == ch1) || (i == ch2);
+            c->bFreeze          = (freeze_all) || (c->pFreeze->getValue() >= 0.5f);
+            c->bSolo            = false;
+            c->bSend            = false; // We do not need to send mesh data because utilizing framebuffer ports
+            c->fGain            = c->pShift->getValue();
+            c->fHue             = c->pHue->getValue();
+        }
+
+        vSpc[0].nChannelId      = ch1;
+        vSpc[1].nChannelId      = ch2;
+    }
+
+    void spectrum_analyzer_base::update_settings()
+    {
+        // Update global settings
+        bBypass                 = pBypass->getValue();
+        nChannel                = pChannel->getValue();
+        fSelector               = pSelector->getValue() * 0.01;
+        fPreamp                 = pPreamp->getValue();
+        fZoom                   = pZoom->getValue();
+        bLogScale               = (pLogScale != NULL) && (pLogScale->getValue() >= 0.5f);
+        size_t rank             = pTolerance->getValue() + spectrum_analyzer_base_metadata::RANK_MIN;
+
+        lsp_trace("rank         = %d",     int(rank));
+        lsp_trace("channel      = %d",     int(nChannel));
+        lsp_trace("selector     = %.3f",   fSelector);
+        lsp_trace("preamp       = %.3f",   fPreamp);
+        lsp_trace("reactivity   = %.3f",   fReactivity);
+        lsp_trace("tau          = %.5f",   fTau);
+
+        // Update channel state depending on the mode
+        mode_t mode = decode_mode(pMode->getValue());
+
+        switch (mode)
+        {
+            case SA_ANALYZER:
+            case SA_MASTERING:
+                update_multiple_settings();
+                break;
+
+            case SA_ANALYZER_STEREO:
+            case SA_MASTERING_STEREO:
+                if (nChannels > 2)
+                    update_x2_settings(vSpc[0].pPortId->getValue(), vSpc[1].pPortId->getValue());
+                else if (nChannels == 2)
+                    update_x2_settings(0, 1);
+                else
+                    update_x2_settings(0, -1); // This should not happen, but... let's do a special scenario
+                break;
+
+            case SA_SPECTRALIZER:
+                if (nChannels > 2)
+                    update_spectralizer_x2_settings(vSpc[0].pPortId->getValue(), vSpc[1].pPortId->getValue());
+                else if (nChannels == 2)
+                    update_spectralizer_x2_settings(vSpc[0].pPortId->getValue(), -1);
+                else
+                    update_spectralizer_x2_settings(0, -1); // This should not happen, but... let's do a special scenario
+                break;
+
+            case SA_SPECTRALIZER_STEREO:
+                if (nChannels > 2)
+                    update_spectralizer_x2_settings(vSpc[0].pPortId->getValue(), vSpc[1].pPortId->getValue());
+                else if (nChannels == 2)
+                    update_spectralizer_x2_settings(0, 1);
+                else
+                    update_spectralizer_x2_settings(0, -1); // This should not happen, but... let's do a special scenario
+                break;
+
+            default:
+                break;
+        }
+
+        // Update mode
+        enMode      = mode;
+
+        // Update analysis parameters
+        bool sync_freqs         = rank != sAnalyzer.get_rank();
+        if (sync_freqs)
+            sAnalyzer.set_rank(rank);
+
+        sAnalyzer.set_reactivity(pReactivity->getValue());
+        sAnalyzer.set_window(pWindow->getValue());
+        sAnalyzer.set_envelope(pEnvelope->getValue());
+
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            sa_channel_t *c     = &vChannels[i];
+            sAnalyzer.enable_channel(i, c->bOn);
+            sAnalyzer.freeze_channel(i, c->bFreeze);
+        }
+
+        // Reconfigure analyzer if required
+        if (sAnalyzer.needs_reconfiguration())
+            sAnalyzer.reconfigure();
+
+        if (sync_freqs)
+        {
+            sAnalyzer.get_frequencies(vFrequences, vIndexes,
+                    fMinFreq, fMaxFreq, spectrum_analyzer_base_metadata::MESH_POINTS);
         }
     }
 
     void spectrum_analyzer_base::update_sample_rate(long sr)
     {
         lsp_trace("this=%p, sample_rate = %d", this, int(sr));
-        update_frequences();
+        sAnalyzer.set_sample_rate(sr);
+        if (sAnalyzer.needs_reconfiguration())
+            sAnalyzer.reconfigure();
 
-        pChannels->nMaxSamples      = float(fSampleRate) / float(spectrum_analyzer_base_metadata::REFRESH_RATE);
-        size_t step                 = pChannels->nMaxSamples / pChannels->nChannels;
-        for (size_t i=0; i<pChannels->nChannels; ++i)
-            pChannels->vChannels[i].nSamples    = step * i;
-        lsp_trace("nMaxSamples      = %d", int(pChannels->nMaxSamples));
-        set_reactivity(pChannels->fReactivity);
+        sAnalyzer.get_frequencies(vFrequences, vIndexes,
+                fMinFreq, fMaxFreq, spectrum_analyzer_base_metadata::MESH_POINTS);
+        sCounter.set_sample_rate(sr, true);
     }
 
-    void spectrum_analyzer_base::update_frequences()
+    void spectrum_analyzer_base::get_spectrum(float *dst, size_t channel, size_t flags)
     {
-        size_t fft_size     = 1 << pChannels->nRank;
-        size_t fft_csize    = (fft_size >> 1) + 1;
+        float *v        = dst;
+        size_t off      = 0;
 
-        float *frq          = pChannels->vFrequences;
-        uint32_t *ind       = pChannels->vIndexes;
-        float norm          = logf(pChannels->fMaxFreq / pChannels->fMinFreq) / (spectrum_analyzer_base_metadata::MESH_POINTS);
-        float scale         = float(fft_size) / float(fSampleRate);
-
-        lsp_trace("min_freq     = %.3f", pChannels->fMinFreq);
-        lsp_trace("max_freq     = %.3f", pChannels->fMaxFreq);
-        lsp_trace("norm         = %.3f", norm);
-        lsp_trace("scale        = %.3f", scale);
-
-        for (size_t i=0; i<spectrum_analyzer_base_metadata::MESH_POINTS; ++i, ++frq, ++ind)
+        // Fetch original data
+        if (flags & F_SMOOTH_LOG)
         {
-            float f             = pChannels->fMinFreq * expf(i * norm);
-            size_t idx          = scale * f;
-            if (idx > fft_csize)
-                idx                 = fft_csize + 1;
+            sAnalyzer.get_spectrum(channel, vMFrequences, vIndexes, spectrum_analyzer_base_metadata::MESH_POINTS);
+            size_t pi = 0, ni = spectrum_analyzer_base_metadata::MMESH_STEP;
 
-            *frq                = f;
-            *ind                = idx;
+            for (; ni < spectrum_analyzer_base_metadata::MESH_POINTS; ni += spectrum_analyzer_base_metadata::MMESH_STEP)
+            {
+                if (vIndexes[ni] == vIndexes[pi])
+                    continue;
+
+                if (flags & F_SMOOTH_LOG)
+                    dsp::smooth_cubic_log(&v[off], vMFrequences[pi], vMFrequences[ni], ni-pi);
+                else
+                    dsp::smooth_cubic_linear(&v[off], vMFrequences[pi], vMFrequences[ni], ni-pi);
+
+                off        += ni-pi;
+                pi          = ni;
+            }
+
+            if (pi < spectrum_analyzer_base_metadata::MESH_POINTS)
+            {
+                if (flags & F_SMOOTH_LOG)
+                    dsp::smooth_cubic_log(&v[off], vMFrequences[pi], vMFrequences[ni-1], ni-pi);
+                else
+                    dsp::smooth_cubic_linear(&v[off], vMFrequences[pi], vMFrequences[ni-1], ni-pi);
+            }
+        }
+        else
+            sAnalyzer.get_spectrum(channel, v, vIndexes, spectrum_analyzer_base_metadata::MESH_POINTS);
+
+        // Apply gain
+        float gain = (flags & F_BOOST) ?
+                vChannels[channel].fGain * spectrum_analyzer_base_metadata::SPECTRALIZER_BOOST:
+                vChannels[channel].fGain ;
+        dsp::scale2(dst, gain * fPreamp, spectrum_analyzer_base_metadata::MESH_POINTS);
+
+        // Apply log scale if necessary
+        if (flags & F_LOG_SCALE)
+        {
+            dsp::logd1(dst, spectrum_analyzer_base_metadata::MESH_POINTS);
+            float k = 10.0f / (spectrum_analyzer_base_metadata::THRESH_HI_DB - spectrum_analyzer_base_metadata::THRESH_LO_DB);
+            float s = 0.1f * spectrum_analyzer_base_metadata::THRESH_LO_DB;
+
+            for (size_t i=0; i<spectrum_analyzer_base_metadata::MESH_POINTS; ++i)
+                dst[i] = k * (dst[i] - s);
         }
     }
 
     void spectrum_analyzer_base::process(size_t samples)
     {
-        if (pChannels == NULL)
-            return;
-
         // Always query for drawing
         pWrapper->query_display_draw();
 
-//        // Check that there are soloing channels
-//        size_t has_solo         = 0;
-//        for (size_t i=0; i<pChannels->nChannels; ++i)
-//        {
-//            if (pChannels->vChannels[i].bSolo)
-//                has_solo++;
-//        }
-
         // Now process the channels
-        size_t fft_size     = 1 << pChannels->nRank;
-        size_t fft_csize    = (fft_size >> 1);
+        size_t fft_size     = 1 << sAnalyzer.get_rank();
 
-        for (size_t i=0; i<pChannels->nChannels; ++i)
+        for (size_t i=0; i<nChannels; ++i)
         {
-            // Get channel pointer
-            sa_channel_t *c     = &pChannels->vChannels[i];
+            // Get channel pointers
+            sa_channel_t *c     = &vChannels[i];
+            c->vIn              = c->pIn->getBuffer<float>();
+            c->vOut             = c->pOut->getBuffer<float>();
+        }
 
-            // Get primitives
-            const float *in     = reinterpret_cast<float *>(c->pIn->getBuffer());
-            float *out          = reinterpret_cast<float *>(c->pOut->getBuffer());
-            mesh_t *mesh        = reinterpret_cast<mesh_t *>(c->pSpec->getBuffer());
+        for (size_t n=samples; n > 0;)
+        {
+            // Get number of samples to process
+            size_t count = sCounter.pending();
+            if (count > n)
+                count = n;
+            bool fired = sCounter.submit(count);
 
-            // Determine if there is a request for sync
-            bool mesh_request   = (mesh != NULL) && (mesh->isEmpty());
-            bool data_request   = (pChannels->nChannel == i);
-
-            // Bypass signal
-            dsp::copy(out, in, samples);
-            if (pChannels->bBypass)
+            // Process data
+            for (size_t i=0; i<nChannels; ++i)
             {
-                if (mesh_request)
-                    mesh->data(2, 0);       // Set mesh to empty data
-                if (data_request)
+                // Get channel pointer
+                sa_channel_t *c     = &vChannels[i];
+
+                // Get primitives
+                mesh_t *mesh        = reinterpret_cast<mesh_t *>(c->pSpec->getBuffer());
+
+                // Determine if there is a request for sync
+                bool mesh_request   = (mesh != NULL) && (mesh->isEmpty());
+                bool data_request   = (nChannel == i);
+
+                // Bypass signal
+                dsp::copy(c->vOut, c->vIn, count);
+                sAnalyzer.process(i, c->vIn, count);  // Process the data
+
+                if (bBypass)
                 {
-                    pChannels->pFrequency->setValue(0);
-                    pChannels->pLevel->setValue(0);
-                }
-                continue;
-            }
-
-            // Process signal by channel
-            size_t left     = samples;
-            while (true)
-            {
-                // Calculate amount of samples left to process before FFT processing is triggered
-                size_t trigger      = pChannels->nMaxSamples - c->nSamples;
-
-                if (trigger > 0)
-                {
-                    // Calculate number of samples to put to the buffer
-                    size_t put          = (left < trigger) ? left : trigger;
-
-                    // Put the samples to the buffer, limit to fft_size
-                    if (put >= fft_size)
+                    if (mesh_request)
+                        mesh->data(2, 0);       // Set mesh to empty data
+                    if (data_request)
                     {
-                        dsp::copy(c->vSigRe, in, fft_size); // Overwrite all data
-                        put     = fft_size;
+                        pFrequency->setValue(0);
+                        pLevel->setValue(0);
                     }
-                    else
-                    {
-                        dsp::copy(c->vSigRe, &c->vSigRe[put], fft_size - put); // Remove data from the beginning
-                        dsp::copy(&c->vSigRe[fft_size - put], in, put); // append data to the end
-                    }
-
-                    // Update counters and pointer
-                    in                 += put;
-                    left               -= put;
-                    trigger            -= put;
-                    c->nSamples        += put;
-                }
-
-                // Trigger FFT if buffer is fully filled
-                if (trigger == 0)
-                {
-                    // Perform FFT only for active channels
-                    if (!c->bFreeze)
-                    {
-                        if ((!c->bOn) || (pChannels->bBypass))
-                        {
-                            dsp::fill_zero(c->vFftAmp, fft_size);
-                        }
-                        else
-                        {
-                            // Apply window to the temporary buffer
-                            dsp::mul3(pChannels->vSigRe, c->vSigRe, pChannels->vWindow, fft_size);
-                            dsp::pcomplex_r2c(pChannels->vFftReIm, pChannels->vSigRe, fft_size);
-                            // Do FFT
-                            dsp::packed_direct_fft(pChannels->vFftReIm, pChannels->vFftReIm, pChannels->nRank);
-                            // Get complex argument
-                            dsp::pcomplex_mod(pChannels->vFftReIm, pChannels->vFftReIm, fft_csize);
-                            // Mix with the previous value
-                            dsp::mix2(c->vFftAmp, pChannels->vFftReIm, 1.0 - pChannels->fTau, pChannels->fTau, fft_csize);
-                        }
-                    }
-
-                    // Update counter
-                    c->nSamples        -= pChannels->nMaxSamples;
-                }
-
-                // Check that there are no more samples to process
-                if (left == 0)
-                    break;
-            }
-
-            // Copy data to output channel
-            if (data_request)
-            {
-                size_t idx  = pChannels->fSelector * ((fft_size - 1) >> 1);
-                pChannels->pFrequency->setValue(float(idx * fSampleRate) / float(fft_size));
-                pChannels->pLevel->setValue(c->vFftAmp[idx] * c->fGain * pChannels->fPreamp * pChannels->vEnvelope[idx]);
-            }
-
-            // Copy data to mesh
-            if (mesh_request)
-            {
-                // Determine that mesh has to be sent to the UI
-//                bool send       = c->bOn;
-//                if (has_solo > 0)
-//                    send            = send && c->bSolo;
-
-                if (c->bSend)
-                {
-                    // Copy frequency points
-                    dsp::copy(mesh->pvData[0], pChannels->vFrequences, spectrum_analyzer_base_metadata::MESH_POINTS);
-
-                    float *v        = mesh->pvData[1];
-                    uint32_t *idx   = pChannels->vIndexes;
-                    // Small optimization to prevent additional multiplications
-                    if (pChannels->nEnvelope == envelope::WHITE_NOISE)
-                    {
-                        for (size_t i=0; i<spectrum_analyzer_base_metadata::MESH_POINTS; ++i)
-                            *(v++)          = c->vFftAmp[idx[i]];
-                    }
-                    else
-                    {
-                        for (size_t i=0; i<spectrum_analyzer_base_metadata::MESH_POINTS; ++i)
-                        {
-                            size_t j        = idx[i];
-                            *(v++)          = c->vFftAmp[j] * pChannels->vEnvelope[j];
-                        }
-                    }
-                    dsp::scale2(mesh->pvData[1], c->fGain * pChannels->fPreamp, spectrum_analyzer_base_metadata::MESH_POINTS);
-
-                    // Mark mesh containing data
-                    mesh->data(2, spectrum_analyzer_base_metadata::MESH_POINTS);
                 }
                 else
-                    mesh->data(2, 0);
+                {
+                    // Copy data to output channel
+                    if (data_request)
+                    {
+                        size_t idx  = fSelector * ((fft_size - 1) >> 1);
+                        pFrequency->setValue(float(idx * fSampleRate) / float(fft_size));
+                        float lvl = sAnalyzer.get_level(i, idx);
+                        pLevel->setValue(lvl * c->fGain * fPreamp );
+                    }
+
+                    // Copy data to mesh
+                    if (mesh_request)
+                    {
+                        if ((c->bSend) && (enMode != SA_SPECTRALIZER) && (enMode != SA_SPECTRALIZER_STEREO))
+                        {
+                            // Copy frequency points
+                            size_t flags = 0;
+                            if ((enMode == SA_MASTERING) || (enMode == SA_MASTERING_STEREO))
+                                flags |= F_SMOOTH_LOG | F_MASTERING;
+
+                            dsp::copy(mesh->pvData[0], vFrequences, spectrum_analyzer_base_metadata::MESH_POINTS);
+                            get_spectrum(mesh->pvData[1], i, flags);
+                            mesh->data(2, spectrum_analyzer_base_metadata::MESH_POINTS); // Mark mesh containing data
+                        }
+                        else
+                            mesh->data(2, 0);
+                    }
+                }
+
+                // Update pointers
+                c->vIn         += count;
+                c->vOut        += count;
             }
-        }
-    }
 
-    void spectrum_analyzer_base::set_reactivity(float reactivity)
-    {
-        lsp_trace("this=%p, reactivity = %f, sample_rate=%d, max_samples=%d",
-                this, reactivity, int(fSampleRate), int(pChannels->nMaxSamples));
-        pChannels->fReactivity      = reactivity;
-        pChannels->fTau             = 1.0f - expf(logf(1.0f - M_SQRT1_2) / seconds_to_samples(fSampleRate / pChannels->nMaxSamples, reactivity));
-    }
+            if ((enMode == SA_SPECTRALIZER) || (enMode == SA_SPECTRALIZER_STEREO))
+            {
+                // Update frame buffers if counter has fired
+                if ((fired) && (!bBypass))
+                {
+                    size_t flags = 0;
+                    if (bLogScale)
+                        flags      |= F_LOG_SCALE;
+                    else
+                        flags      |= F_BOOST;
 
-    void spectrum_analyzer_base::init_window(sa_core_t *core)
-    {
-        size_t fft_size     = 1 << core->nRank;
-        size_t fft_minsize  = 1 << spectrum_analyzer_base_metadata::RANK_MIN;
+                    for (size_t i=0; i<2; ++i)
+                    {
+                        ssize_t cid = vSpc[i].nChannelId;
+                        if (cid < 0)
+                            continue;
+                        IPort *p = vSpc[i].pFBuffer;
+                        if (p == NULL)
+                            continue;
+                        frame_buffer_t *fb = p->getBuffer<frame_buffer_t>();
+                        if (fb == NULL)
+                            continue;
 
-        // Create window
-        windows::window(core->vWindow, fft_size, windows::window_t(core->nWindow));
+                        // Get row and commit it
+                        sa_channel_t *c     = &vChannels[cid];
+                        if (c->bFreeze) // Do not report new data in 'Hold' state
+                            continue;
 
-        // Calculate normalization multiplier
-        float norm          = 1.0f / (fft_minsize * sqrtf(1 << (core->nRank - spectrum_analyzer_base_metadata::RANK_MIN)));
+                        // Output data
+                        float *v            = fb->next_row();
+                        get_spectrum(v, cid, flags);
+                        fb->write_row(); // Mark row as written
+                    }
+                }
+            }
 
-        // Normalize window
-        dsp::scale2(core->vWindow, norm, fft_size);
+            // Update state
+            n -= count;
+            if (fired)
+                sCounter.commit();
+        } // for n
     }
 
     bool spectrum_analyzer_base::inline_display(ICanvas *cv, size_t width, size_t height)
     {
-        if (pChannels == NULL)
-            return false;
-
         // Check proportions
         if (height > (R_GOLDEN_RATIO * width))
             height  = R_GOLDEN_RATIO * width;
@@ -584,7 +712,7 @@ namespace lsp
         height  = cv->height();
 
         // Clear background
-        bool bypass = pChannels->bBypass;
+        bool bypass = bBypass;
         cv->set_color_rgb((bypass) ? CV_DISABLED : CV_BACKGROUND);
         cv->paint();
 
@@ -592,9 +720,9 @@ namespace lsp
         cv->set_line_width(1.0);
 
         float zx    = 1.0f/SPEC_FREQ_MIN;
-        float zy    = pChannels->fZoom/GAIN_AMP_M_72_DB;
+        float zy    = fZoom/GAIN_AMP_M_72_DB;
         float dx    = width/(logf(SPEC_FREQ_MAX)-logf(SPEC_FREQ_MIN));
-        float dy    = height/(logf(GAIN_AMP_M_72_DB/pChannels->fZoom)-logf(GAIN_AMP_P_24_DB*pChannels->fZoom));
+        float dy    = height/(logf(GAIN_AMP_M_72_DB/fZoom)-logf(GAIN_AMP_P_24_DB*fZoom));
 
         // Draw vertical lines
         cv->set_color_rgb(CV_YELLOW, 0.5f);
@@ -618,52 +746,42 @@ namespace lsp
         if (b == NULL)
             return false;
 
-        if (!bypass)
+        if (bypass)
+            return true;
+
+        Color col(CV_MESH);
+        cv->set_line_width(2);
+
+        float ni        = float(spectrum_analyzer_base_metadata::MESH_POINTS) / width; // Normalizing index
+        uint32_t *idx   = reinterpret_cast<uint32_t *>(alloca(width * sizeof(uint32_t))); //vIndexes;
+
+        for (size_t j=0; j<width; ++j)
         {
-            Color col(CV_MESH);
-            cv->set_line_width(2);
+            size_t k        = j*ni;
+            idx[j]          = vIndexes[k];
+            b->v[0][j]      = vFrequences[k];
+        }
 
-            float ni        = float(spectrum_analyzer_base_metadata::MESH_POINTS) / width; // Normalizing index
-            uint32_t *idx   = pChannels->vIndexes;
-            for (size_t i=0; i<pChannels->nChannels; ++i)
-            {
-                // Output only active channel
-                sa_channel_t *c = &pChannels->vChannels[i];
-                if (!c->bSend)
-                    continue;
+        for (size_t i=0; i<nChannels; ++i)
+        {
+            // Output only active channel
+            sa_channel_t *c = &vChannels[i];
+            if (!c->bOn)
+                continue;
 
-                if (pChannels->nEnvelope == envelope::WHITE_NOISE)
-                {
-                    for (size_t j=0; j<width; ++j)
-                    {
-                        size_t k        = j*ni;
-                        b->v[0][j]      = pChannels->vFrequences[k];
-                        b->v[1][j]      = c->vFftAmp[idx[k]];
-                    }
-                }
-                else
-                {
-                    for (size_t j=0; j<width; ++j)
-                    {
-                        size_t k        = j*ni;
-                        size_t l        = idx[k];
-                        b->v[0][j]      = pChannels->vFrequences[k];
-                        b->v[1][j]      =  c->vFftAmp[l] * pChannels->vEnvelope[l];
-                    }
-                }
+            sAnalyzer.get_spectrum(i, b->v[1], idx, width);
 
-                dsp::scale2(b->v[1], c->fGain * pChannels->fPreamp, width);
+            dsp::scale2(b->v[1], c->fGain * fPreamp, width);
 
-                dsp::fill(b->v[2], 0.0f, width);
-                dsp::fill(b->v[3], height, width);
-                dsp::axis_apply_log(b->v[2], b->v[3], b->v[0], zx, dx, 0.0f, width);
-                dsp::axis_apply_log(b->v[2], b->v[3], b->v[1], zy, 0.0f, dy, width);
+            dsp::fill(b->v[2], 0.0f, width);
+            dsp::fill(b->v[3], height, width);
+            dsp::axis_apply_log1(b->v[2], b->v[0], zx, dx, width);
+            dsp::axis_apply_log1(b->v[3], b->v[1], zy, dy, width);
 
-                // Draw mesh
-                col.hue(c->fHue);
-                cv->set_color(col);
-                cv->draw_lines(b->v[2], b->v[3], width);
-            }
+            // Draw mesh
+            col.hue(c->fHue);
+            cv->set_color(col);
+            cv->draw_lines(b->v[2], b->v[3], width);
         }
 
         return true;

@@ -135,6 +135,8 @@ namespace lsp
                 return &sPosition;
             }
 
+            virtual ICanvas *create_canvas(ICanvas *&cv, size_t width, size_t height);
+
             inline bool test_display_draw()
             {
                 atomic_t last       = nQueryDraw;
@@ -735,6 +737,29 @@ namespace lsp
         }
 
         return pCanvas->get_data();
+    }
+
+    ICanvas *JACKWrapper::create_canvas(ICanvas *&cv, size_t width, size_t height)
+    {
+        if ((cv != NULL) && (cv->width() == width) && (cv->height() == height))
+            return cv;
+
+        ICanvas *ncv = new CairoCanvas();
+        if (ncv == NULL)
+            return NULL;
+        if (!ncv->init(width, height))
+        {
+            delete ncv;
+            return NULL;
+        }
+
+        if (cv != NULL)
+        {
+            cv->destroy();
+            delete cv;
+        }
+
+        return cv = ncv;
     }
 }
 
