@@ -60,14 +60,14 @@ namespace lsp
         uint32_t        sample_rate;    // Sample rate
         uint32_t        codec;          // Codec used
         uint64_t        frames;         // Overall number of frames in file
-        int64_t 		offset; 		// Offset with which to load the frames
+        int64_t 		offset; 		// Offset with which to load the frames (since header v.1, deprecated since header v.2)
         uint32_t        reserved[4];    // Some reserved data
     } lspc_chunk_audio_header_t;
 
     typedef struct lspc_chunk_audio_profile_t // Magic number: 'LCAP'
     {
         lspc_header_t   common;         // Common header data
-        uint16_t        pad;            // Padding (reserved)s
+        uint16_t        pad;            // Padding (reserved)
         uint32_t        chunk_id;       // Chunk identifier related to the audio profile
         uint32_t        chirp_order;    // Chirp order
         float           alpha;          // The chirp parameter alpha, a float value
@@ -76,7 +76,8 @@ namespace lsp
         double          delta;          // The chirp parameter delta, a double value
         double          initial_freq;   // The chirp initial frequency
         double          final_freq;     // The chirp final frequency
-        uint32_t        reserved[8];    // Some reserved data
+        int64_t         skip;           // Frame to skip for linear response loading (since header v.2)
+        uint32_t        reserved[6];    // Some reserved data for future use
     } lspc_chunk_audio_profile_t;
 
 #pragma pack(pop)

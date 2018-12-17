@@ -521,8 +521,10 @@ namespace lsp
         {
             ::memmove(sBuf.vData, &sBuf.vData[sBuf.nOff], bsize);
             sBuf.nSize      = bsize;
-            sBuf.nOff       = 0;
         }
+        else
+            sBuf.nSize      = 0;
+        sBuf.nOff       = 0;
 
         // Try to read additional data
         bsize       = BUFFER_SIZE - bsize;
@@ -655,6 +657,8 @@ namespace lsp
         size_t n_skip   = 0;
         while (n_skip < frames)
         {
+            size_t to_skip = frames - n_skip;
+
             // Ensure that we have enough bytes to read at least one frame
             size_t avail = sBuf.nSize - sBuf.nOff;
             if (avail < nFrameSize)
@@ -669,13 +673,13 @@ namespace lsp
             }
 
             // Perform decode
-            avail   /= nBPS;
-            if (avail > n_skip)
-                avail   = n_skip;
+            avail   /= nFrameSize;
+            if (avail > to_skip)
+                avail   = to_skip;
 
             // Update pointers
             n_skip         += avail;
-            sBuf.nOff      += avail * nBPS;
+            sBuf.nOff      += avail * nFrameSize;
         }
 
         return n_skip;

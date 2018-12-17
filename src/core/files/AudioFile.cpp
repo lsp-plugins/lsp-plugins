@@ -11,6 +11,7 @@
 #include <core/debug.h>
 #include <core/files/LSPCFile.h>
 #include <core/files/AudioFile.h>
+#include <core/files/lspc/LSPCAudioReader.h>
 #include <core/alloc.h>
 
 #include <sndfile.h>
@@ -230,7 +231,8 @@ namespace lsp
         uint32_t chunk_id = 0;
 
         // Read profile (if present)
-        size_t skip = 0;
+        size_t skip         = 0;
+        size_t profVersion  = 1;
         LSPCChunkReader *prof = fd.find_chunk(LSPC_CHUNK_PROFILE);
         if (prof != NULL)
         {
@@ -247,6 +249,11 @@ namespace lsp
             if ((res == STATUS_OK) && (chunk_id == 0))
                 res = STATUS_CORRUPTED_FILE;
 
+            // Get skip value:
+            profVersion = p.common.version;
+            if (profVersion >= 2)
+                skip = BE_TO_CPU(p.skip);
+
             // Analyze final status
             status_t res2 = prof->close();
             if (res == STATUS_OK)
@@ -261,144 +268,149 @@ namespace lsp
             }
         }
 
-        // Read audio chunk
-        LSPCChunkReader *audi = (chunk_id != 0) ?
-                                    fd.read_chunk(chunk_id) :
-                                    fd.find_chunk(LSPC_CHUNK_AUDIO);
-
-        // Now reading audio chunk
-        if (audi == NULL)
+        // Try to open audio file chunk
+        LSPCAudioReader ar;
+        res = (chunk_id > 0) ? ar.open(&fd, chunk_id) : ar.open(&fd);
+        if (res != STATUS_OK)
         {
+            ar.close();
             fd.close();
             return STATUS_BAD_FORMAT;
         }
 
         // Read audio chunk header and check its size
-        lspc_chunk_audio_header_t ahdr;
-        ssize_t n = audi->read_header(&ahdr, sizeof(lspc_chunk_audio_header_t));
-        if (n < 0)
-            res = status_t(-n);
-        else if ((ahdr.common.version < 1) || (ahdr.common.size < sizeof(lspc_chunk_audio_header_t)))
-            res = STATUS_CORRUPTED_FILE;
-
-        // Analyze header
-        ahdr.channels       = BE_TO_CPU(ahdr.channels);
-        ahdr.sample_format  = BE_TO_CPU(ahdr.sample_format);
-        ahdr.sample_rate    = BE_TO_CPU(ahdr.sample_rate);
-        ahdr.codec          = BE_TO_CPU(ahdr.codec);
-        ahdr.frames         = BE_TO_CPU(ahdr.frames);
-        ahdr.offset 		= BE_TO_CPU(ahdr.offset);
-
-        if (res == STATUS_OK)
-            res = ((ahdr.codec != LSPC_CODEC_PCM) ||
-                   ((ahdr.sample_format != LSPC_SAMPLE_FMT_F32LE) && (ahdr.sample_format != LSPC_SAMPLE_FMT_F32BE)))
-                   ? STATUS_UNSUPPORTED_FORMAT: STATUS_OK;
-
-        // Calculation of samples/frames to skip
-        if (res == STATUS_OK)
+        lspc_audio_parameters_t aparams;
+        res = ar.get_parameters(&aparams);
+        if (res != STATUS_OK)
         {
-            // This is the middle of the convolution result
-            size_t middle       = (ahdr.frames / 2) - 1;
-            // We remove 1 now because, without offset, we skip all samples BEFORE the middle.
-            size_t skipNoOffset = middle - 1;
-            size_t maxAhead     = ahdr.frames - skipNoOffset;
-
-            if (ahdr.offset >= 0.0f)
-            {
-                size_t offset   = ahdr.offset;
-                offset          = (offset > maxAhead)? maxAhead : offset;
-                skip            = skipNoOffset + offset;
-            }
-            else
-            {
-                size_t offset   = -ahdr.offset;
-                offset          = (offset > skipNoOffset)? skipNoOffset : offset;
-                skip            = skipNoOffset - offset;
-            }
+            ar.close();
+            fd.close();
+            return res;
         }
 
-        // Read sample file
-        if (res == STATUS_OK)
+        // Setting up skip value for version 1 headers
+        if (profVersion < 2)
         {
-            size_t max_samples      = (max_duration >= 0.0f) ? seconds_to_samples(ahdr.sample_rate, max_duration) : -1;
-            lsp_trace("file parameters: frames=%d, channels=%d, sample_rate=%d max_duration=%.3f, max_samples=%d",
-                        int(ahdr.frames), int(ahdr.channels), int(ahdr.sample_rate), max_duration, int(max_samples));
+            LSPCChunkReader *rd     = fd.read_chunk(ar.unique_id()); // Read the chunk with same ID as audio stream reader found
+            lspc_chunk_audio_header_t hdr;
 
-            // Patch audio header
-            if ((max_samples >= 0) && (ahdr.frames > max_samples))
-                ahdr.frames     = max_samples;
+            ssize_t res = rd->read_header(&hdr, sizeof(lspc_chunk_audio_header_t));
+            if ((res >= 0) && (hdr.common.version < 2)) // Field 'offset' is deprecated in header since version 2
+            {
+                ssize_t offset      = BE_TO_CPU(hdr.offset);
+
+                size_t middle       = aparams.frames / 2 - 1;
+                size_t skipNoOffset = middle - 1;
+                size_t maxAhead     = aparams.frames - skipNoOffset;
+
+                if (offset >= 0)
+                {
+                    size_t nOffset  = offset;
+                    nOffset         = (nOffset > maxAhead)? maxAhead : nOffset;
+                    skip            = skipNoOffset + nOffset;
+                }
+                else
+                {
+                    size_t nOffset  = -offset;
+                    nOffset         = (nOffset > skipNoOffset)? skipNoOffset : nOffset;
+                    skip            = skipNoOffset - nOffset;
+                }
+            }
+
+            // Close reader and free resource
+            res = rd->close();
+            if (res != STATUS_OK)
+            {
+                rd->close();
+                delete rd;
+                ar.close();
+                fd.close();
+                return res;
+            }
+            delete rd;
+            rd = NULL;
         }
+
+        skip                = (skip > aparams.frames)? aparams.frames : skip;
+        size_t max_samples  = (max_duration >= 0.0f) ? seconds_to_samples(aparams.sample_rate, max_duration) : -1;
+        lsp_trace("file parameters: frames=%d, channels=%d, sample_rate=%d max_duration=%.3f, max_samples=%d",
+                    int(aparams.frames), int(aparams.channels), int(aparams.sample_rate), max_duration, int(max_samples));
+
+        aparams.frames     -= skip; // Remove number of frames to skip from audio parameters
+
+        // Patch audio header
+        if ((max_samples >= 0) && (aparams.frames > max_samples))
+            aparams.frames     = max_samples;
 
         // Skip set of frames
-        if ((res == STATUS_OK) && (skip > 0))
+        if (skip > 0)
         {
-            ssize_t to_read = skip * ahdr.channels * sizeof(float);
-            n = audi->skip(to_read);
-            if (n != to_read)
-                res = (n < 0) ? -n : STATUS_CORRUPTED_FILE;
+            ssize_t skipped = ar.skip_frames(skip);
+            if (skipped != ssize_t(skip))
+            {
+                ar.close();
+                fd.close();
+                return (skipped >= 0) ? STATUS_CORRUPTED_FILE : -skipped;
+            }
         }
 
         // Create file content
         file_content_t *fc      = NULL;
         if (res == STATUS_OK)
         {
-            fc = create_file_content(ahdr.channels, ahdr.frames);
+            fc = create_file_content(aparams.channels, aparams.frames);
             if (fc == NULL)
-                res = STATUS_NO_MEM;
+            {
+                ar.close();
+                fd.close();
+                return STATUS_NO_MEM;
+            }
 
-            fc->nSampleRate         = ahdr.sample_rate;
+            fc->nSampleRate         = aparams.sample_rate;
         }
 
         // Allocate temporary buffer
-        temporary_buffer_t *tb  = NULL;
-        if (res == STATUS_OK)
+        temporary_buffer_t *tb  = create_temporary_buffer(fc);
+        if (tb == NULL)
         {
-            tb = create_temporary_buffer(fc);
-            if (tb == NULL)
-                res = STATUS_NO_MEM;
+            destroy_file_content(fc);
+            ar.close();
+            fd.close();
+            return STATUS_NO_MEM;
         }
 
         // Read frames
-        if (res == STATUS_OK)
+        skip = aparams.frames;
+        while (skip > 0)
         {
-            skip = ahdr.frames;
-
-            while (skip > 0)
+            // Determine how many data is available to read
+            size_t can_read     = tb->nCapacity - tb->nSize;
+            if (can_read <= 0)
             {
-                // Determine how many data is available to read
-                size_t can_read     = tb->nCapacity - tb->nSize;
-                if (can_read <= 0)
-                {
-                    flush_temporary_buffer(tb);
-                    can_read            = tb->nCapacity - tb->nSize;
-                }
-
-                // Calculate amount of samples to read
-                size_t to_read      = (skip > can_read) ? can_read : skip;
-                ssize_t bytes       = to_read * tb->nChannels * sizeof(float);
-                float *dst          = &tb->vData[tb->nSize  * tb->nChannels];
-                n                   = audi->read(dst, bytes);
-
-                if (n != bytes)
-                {
-                    res = (n < 0) ? -n : STATUS_CORRUPTED_FILE;
-                    break;
-                }
-
-                // Swap bytes
-                if (ahdr.sample_format == LSPC_SAMPLE_FMT_F32LE)
-                    VLE_TO_CPU(dst, to_read * tb->nChannels);
-                else // LSPC_SAMPLE_FMT_F32BE
-                    VBE_TO_CPU(dst, to_read * tb->nChannels);
-
-                // Update counters
-                tb->nSize          += to_read;
-                skip               -= to_read;
+                flush_temporary_buffer(tb);
+                can_read            = tb->nCapacity - tb->nSize;
             }
 
-            // Flush last read data (if present)
-            flush_temporary_buffer(tb);
+            // Calculate amount of samples to read
+            size_t to_read      = (skip > can_read) ? can_read : skip;
+
+            ssize_t n           = ar.read_frames(&tb->vData[tb->nSize  * tb->nChannels], to_read);
+            if (n < 0)
+            {
+                destroy_temporary_buffer(tb);
+                destroy_file_content(fc);
+                ar.close();
+                fd.close();
+                return -n;
+            }
+
+            // Update counters
+            tb->nSize          += to_read;
+            skip               -= to_read;
         }
+
+        // Flush last read data (if present)
+        flush_temporary_buffer(tb);
 
         // Destroy temporary buffer
         if (tb != NULL)
@@ -408,27 +420,30 @@ namespace lsp
         }
 
         // Close chunk reader
-        status_t res2 = audi->close();
-        if (res == STATUS_OK)
-            res     = res2;
-        delete audi;
+        res = ar.close();
+        if (res != STATUS_OK)
+        {
+            destroy_file_content(fc);
+            ar.close();
+            fd.close();
+            return res;
+        }
 
         // Close LSPC file
-        res2 = fd.close();
-        if (res == STATUS_OK)
-            res     = res2;
-
-        // Store new data
-        if (res == STATUS_OK)
+        res = fd.close();
+        if (res != STATUS_OK)
         {
-            if (pData != NULL)
-                destroy_file_content(pData);
-            pData               = fc;
-        }
-        else if (fc != NULL)
             destroy_file_content(fc);
+            fd.close();
+            return res;
+        }
 
-        return res;
+        // Destroy previously used content and store new
+        if (pData != NULL)
+            destroy_file_content(pData);
+        pData               = fc;
+
+        return STATUS_OK;
     }
 
     status_t AudioFile::load_sndfile(const char *path, float max_duration)

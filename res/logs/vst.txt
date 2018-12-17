@@ -2274,3 +2274,28 @@ Description:	A simple plugin for audio systems profiling.
 	Registration:	
 		
 	*Plugin ID:	hwrc
+	
+-----------------------------------------------------
+Your Registration form was successfully submitted.
+
+    Developer Info: 
+        
+    *Company Name:  LSP Project
+    *First Name:    Stefano
+    *Last Name: Tronci
+    *eMail Address: lsp.plugin@gmail.com
+        
+    PlugIn Info:    
+        
+    Category:   Analysis ( e.g. phasescope )
+    *PlugIn Name:   Profiler Stereo
+    Supported OS :  
+        Other
+        
+    Short PlugIn
+Description:    A simple plugin for audio systems profiling
+with stereo capability.
+        
+    Registration:   
+        
+    *Plugin ID: hubw
