@@ -75,9 +75,17 @@ endif
 
 # Detect operating system
 ifndef BUILD_PLATFORM
-  TARGET_PLATFORM = $(shell uname -s 2>/dev/null || echo "Unknown")
   BUILD_PLATFORM  = Unknown
+
+  ifeq ($(findstring Windows,$(OS)),Windows)
+    TARGET_PLATFORM = Windows
+  else
+    TARGET_PLATFORM = $(shell uname -s 2>/dev/null || echo "Unknown")
+  endif
   
+  ifeq ($(TARGET_PLATFORM),Windows)
+    BUILD_PLATFORM          = Windows
+  endif
   ifeq ($(findstring BSD,$(TARGET_PLATFORM)),BSD)
     BUILD_PLATFORM          = BSD
   endif
@@ -204,23 +212,27 @@ export UTL_FILES        = $(UTL_GENTTL) $(UTL_VSTMAKE) $(UTL_GENPHP) $(UTL_RESGE
 # Files
 export PHP_PLUGINS      = $(OBJDIR)/plugins.php
 
-# Compile headers and linkage libraries
-export PTHREAD_LIBS     = -lpthread
-export ICONV_LIBS       = -liconv
-export MATH_LIBS        = -lm
-export DL_LIBS          = -ldl
-export CAIRO_HEADERS    = $(shell pkg-config --cflags cairo)
-export CAIRO_LIBS       = $(shell pkg-config --libs cairo)
-export XLIB_HEADERS     = $(shell pkg-config --cflags x11)
-export XLIB_LIBS        = $(shell pkg-config --libs x11)
-export EXPAT_HEADERS    = $(shell pkg-config --cflags expat)
-export EXPAT_LIBS       = $(shell pkg-config --libs expat)
-export SNDFILE_HEADERS  = $(shell pkg-config --cflags sndfile)
-export SNDFILE_LIBS     = $(shell pkg-config --libs sndfile)
-export JACK_HEADERS     = $(shell pkg-config --cflags jack)
-export JACK_LIBS        = $(shell pkg-config --libs jack)
-export OPENGL_HEADERS   = $(shell pkg-config --cflags gl glu 2>/dev/null || echo "")
-export OPENGL_LIBS      = $(shell pkg-config --libs gl glu 2>/dev/null || echo "")
+# Dependencies: compile headers and linkage libraries
+ifeq ($(BUILD_PLATFORM),Windows)
+# TODO
+else
+	export PTHREAD_LIBS     = -lpthread
+	export ICONV_LIBS       = -liconv
+	export MATH_LIBS        = -lm
+	export DL_LIBS          = -ldl
+	export CAIRO_HEADERS    = $(shell pkg-config --cflags cairo)
+	export CAIRO_LIBS       = $(shell pkg-config --libs cairo)
+	export XLIB_HEADERS     = $(shell pkg-config --cflags x11)
+	export XLIB_LIBS        = $(shell pkg-config --libs x11)
+	export EXPAT_HEADERS    = $(shell pkg-config --cflags expat)
+	export EXPAT_LIBS       = $(shell pkg-config --libs expat)
+	export SNDFILE_HEADERS  = $(shell pkg-config --cflags sndfile)
+	export SNDFILE_LIBS     = $(shell pkg-config --libs sndfile)
+	export JACK_HEADERS     = $(shell pkg-config --cflags jack)
+	export JACK_LIBS        = $(shell pkg-config --libs jack)
+	export OPENGL_HEADERS   = $(shell pkg-config --cflags gl glu 2>/dev/null || echo "")
+	export OPENGL_LIBS      = $(shell pkg-config --libs gl glu 2>/dev/null || echo "")
+endif
 
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 FILES                   =
