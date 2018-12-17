@@ -16,7 +16,7 @@ namespace sse2
 {
     #define FVEC4(x)    x, x, x, x
 
-    static const float HSL_RGB[] =
+    static const float HSL_RGB[] __lsp_aligned16 =
     {
         FVEC4(0.5f),                // 1/2
         FVEC4(0.333333333333f),     // 1/3
@@ -26,7 +26,7 @@ namespace sse2
         FVEC4(0.666666666667f)      // 2/3
     };
 
-    static const float RGB_HSL[] =
+    static const float RGB_HSL[] __lsp_aligned16 =
     {
         FVEC4(4.0f),
         FVEC4(2.0f),
@@ -36,7 +36,7 @@ namespace sse2
         FVEC4(0.166666666667f)      // 1/6
     };
 
-    static const float RGBA_TO_BGRA32[] =
+    static const float RGBA_TO_BGRA32[] __lsp_aligned16 =
     {
         FVEC4(255.0f)
     };
