@@ -156,6 +156,7 @@ namespace sse2
     __ASM_EMIT("orps            %%xmm1, %%xmm0")                /* xmm0 = (s & [ s >= -1 ] & [ s <= 1 ]) | (((1 & (abs(s) <= +Inf)) | sign(s)) & ([ s < -1 ] | [ s > 1 ])) */
 
 #define U4VEC(x)        x, x, x, x
+IF_ARCH_X86(
     static uint32_t XLIM_SAT[] __lsp_aligned16 =
     {
         U4VEC(0xbf800000),      // -1
@@ -164,6 +165,7 @@ namespace sse2
         U4VEC(0x7fffffff),      // abs
         U4VEC(0x7f800000)       // +Inf
     };
+)
 
 #undef U4VEC
 
@@ -269,6 +271,162 @@ namespace sse2
             __ASM_EMIT("10:")
             : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
             : [XC] "o" (XLIM_SAT)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+#undef LIMIT_SAT_BODY
+
+#define U4VEC(x)        x, x, x, x
+IF_ARCH_X86(
+    static uint32_t XLIM[] __lsp_aligned16 =
+    {
+        U4VEC(0x7fffffff),      // abs
+        U4VEC(0x7f800000)       // +Inf
+    };
+)
+
+#undef U4VEC
+
+#define LIMIT_BODY \
+    /* xmm0 = s1, xmm6 = min, xmm7 = max */ \
+    __ASM_EMIT("movaps          %%xmm0, %%xmm1")                /* xmm1 = s */ \
+    __ASM_EMIT("movaps          %%xmm6, %%xmm3")                /* xmm3 = min */ \
+    __ASM_EMIT("movaps          %%xmm0, %%xmm2")                /* xmm2 = s */ \
+    __ASM_EMIT("movaps          %%xmm7, %%xmm4")                /* xmm4 = max */ \
+    __ASM_EMIT("movaps          %%xmm6, %%xmm5")                /* xmm5 = min */ \
+    __ASM_EMIT("cmpps           $1, %%xmm6, %%xmm1")            /* xmm1 = [s < min] */ \
+    __ASM_EMIT("cmpps           $6, %%xmm7, %%xmm2")            /* xmm2 = [s > max] */ \
+    __ASM_EMIT("andps           %%xmm1, %%xmm3")                /* xmm3 = [s < min] & min */ \
+    __ASM_EMIT("andps           %%xmm2, %%xmm4")                /* xmm4 = [s > max] & max */ \
+    __ASM_EMIT("orps            %%xmm2, %%xmm1")                /* xmm1 = [s < min] | [ s > max] */ \
+    __ASM_EMIT("orps            %%xmm3, %%xmm4")                /* xmm4 = ([s < min] & min) | ([s > max] & max) */ \
+    __ASM_EMIT("andnps          %%xmm0, %%xmm1")                /* xmm1 = ([s >= min] | [s <= max]) & s */ \
+    __ASM_EMIT("andps           0x00 + %[XC], %%xmm0")          /* xmm0 = abs(s) */ \
+    __ASM_EMIT("orps            %%xmm4, %%xmm1")                /* xmm1 = (([s >= min] | [s <= max]) & s) | ([s < min] & min) | ([s > max] & max) */ \
+    __ASM_EMIT("pcmpgtd         0x10 + %[XC], %%xmm0")          /* xmm0 = [abs(s) > +Inf] */ \
+    __ASM_EMIT("andps           %%xmm0, %%xmm5")                /* xmm5 = [abs(s) > +Inf] & min */ \
+    __ASM_EMIT("andnps          %%xmm1, %%xmm0")                /* xmm0 = [abs(s) <= +Inf] & (([s >= min] | [s <= max]) & s) | ([s < min] & min) | ([s > max] & max) */ \
+    __ASM_EMIT("orps            %%xmm5, %%xmm0")                /* xmm5 = ([abs(s) > +Inf] & min) | ([abs(s) <= +Inf] & (([s >= min] | [s <= max]) & s) | ([s < min] & min) | ([s > max] & max)) */ \
+
+    void limit1(float *dst, float min, float max, size_t count)
+    {
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movss       %[min], %%xmm6")
+            __ASM_EMIT("movss       %[max], %%xmm7")
+            __ASM_EMIT("shufps      $0x00, %%xmm6, %%xmm6")
+            __ASM_EMIT("shufps      $0x00, %%xmm7, %%xmm7")
+
+            __ASM_EMIT("sub         $4, %[count]")
+            __ASM_EMIT("jb          2f")
+
+            // 4x blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("movups      (%[dst]), %%xmm0")
+            LIMIT_BODY
+            __ASM_EMIT("movups      %%xmm0, (%[dst])")
+            __ASM_EMIT("add         $0x10, %[dst]")
+            __ASM_EMIT("sub         $4, %[count]")
+            __ASM_EMIT("jae         1b")
+
+            __ASM_EMIT("2:")
+            __ASM_EMIT("add         $4, %[count]")
+            __ASM_EMIT("jle         10f")
+
+            // 1x - 3x block
+            __ASM_EMIT("test        $1, %[count]")
+            __ASM_EMIT("jz          4f")
+            __ASM_EMIT("movss       (%[dst]), %%xmm0")
+            __ASM_EMIT("add         $4, %[dst]")
+            __ASM_EMIT("4:")
+            __ASM_EMIT("test        $2, %[count]")
+            __ASM_EMIT("jz          6f")
+            __ASM_EMIT("movlhps     %%xmm0, %%xmm0")
+            __ASM_EMIT("movlps      (%[dst]), %%xmm0")
+            __ASM_EMIT("6:")
+
+            LIMIT_BODY
+
+            __ASM_EMIT("test        $2, %[count]")
+            __ASM_EMIT("jz          8f")
+            __ASM_EMIT("movlps      %%xmm0, (%[dst])")
+            __ASM_EMIT("movhlps     %%xmm0, %%xmm0")
+            __ASM_EMIT("8:")
+            __ASM_EMIT("test        $1, %[count]")
+            __ASM_EMIT("jz          10f")
+            __ASM_EMIT("sub         $4, %[dst]")
+            __ASM_EMIT("movss       %%xmm0, (%[dst])")
+
+            __ASM_EMIT("10:")
+            : [dst] "+r" (dst), [count] "+r" (count)
+            : [XC] "o" (XLIM),
+              [min] "m" (min),
+              [max] "m" (max)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7"
+        );
+    }
+
+    void limit2(float *dst, const float *src, float min, float max, size_t count)
+    {
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movss       %[min], %%xmm6")
+            __ASM_EMIT("movss       %[max], %%xmm7")
+            __ASM_EMIT("shufps      $0x00, %%xmm6, %%xmm6")
+            __ASM_EMIT("shufps      $0x00, %%xmm7, %%xmm7")
+
+            __ASM_EMIT("sub         $4, %[count]")
+            __ASM_EMIT("jb          2f")
+
+            // 4x blocks
+            __ASM_EMIT("1:")
+            __ASM_EMIT("movups      (%[src]), %%xmm0")
+            LIMIT_BODY
+            __ASM_EMIT("movups      %%xmm0, (%[dst])")
+            __ASM_EMIT("add         $0x10, %[src]")
+            __ASM_EMIT("add         $0x10, %[dst]")
+            __ASM_EMIT("sub         $4, %[count]")
+            __ASM_EMIT("jae         1b")
+
+            __ASM_EMIT("2:")
+            __ASM_EMIT("add         $4, %[count]")
+            __ASM_EMIT("jle         10f")
+
+            // 1x - 3x block
+            __ASM_EMIT("test        $1, %[count]")
+            __ASM_EMIT("jz          4f")
+            __ASM_EMIT("movss       (%[src]), %%xmm0")
+            __ASM_EMIT("add         $4, %[src]")
+            __ASM_EMIT("add         $4, %[dst]")
+            __ASM_EMIT("4:")
+            __ASM_EMIT("test        $2, %[count]")
+            __ASM_EMIT("jz          6f")
+            __ASM_EMIT("movlhps     %%xmm0, %%xmm0")
+            __ASM_EMIT("movlps      (%[src]), %%xmm0")
+            __ASM_EMIT("6:")
+
+            LIMIT_BODY
+
+            __ASM_EMIT("test        $2, %[count]")
+            __ASM_EMIT("jz          8f")
+            __ASM_EMIT("movlps      %%xmm0, (%[dst])")
+            __ASM_EMIT("movhlps     %%xmm0, %%xmm0")
+            __ASM_EMIT("8:")
+            __ASM_EMIT("test        $1, %[count]")
+            __ASM_EMIT("jz          10f")
+            __ASM_EMIT("sub         $4, %[dst]")
+            __ASM_EMIT("movss       %%xmm0, (%[dst])")
+
+            __ASM_EMIT("10:")
+            : [dst] "+r" (dst), [src] "+r" (src), [count] "+r" (count)
+            : [XC] "o" (XLIM),
+              [min] "m" (min),
+              [max] "m" (max)
             : "cc", "memory",
               "%xmm0", "%xmm1", "%xmm2", "%xmm3",
               "%xmm4", "%xmm5", "%xmm6", "%xmm7"
