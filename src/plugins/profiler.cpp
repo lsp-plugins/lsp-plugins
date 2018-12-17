@@ -329,7 +329,9 @@ namespace lsp
         {
 			for (size_t ch = 0; ch < nChannels; ++ch)
 			{
-				sResponseData.vResponses[ch]->destroy();
+			    Sample *s = sResponseData.vResponses[ch];
+			    if (s != NULL)
+			        s->destroy();
 			}
 
 			delete[] sResponseData.vResponses;
@@ -346,9 +348,12 @@ namespace lsp
         vDisplayAbscissa    	= NULL;
         vDisplayOrdinate		= NULL;
 
-        for (size_t ch = 0; ch < nChannels; ++ch)
+        if (vChannels != NULL)
         {
-        	vChannels[ch].vBuffer = NULL;
+            for (size_t ch = 0; ch < nChannels; ++ch)
+                vChannels[ch].vBuffer = NULL;
+            delete [] vChannels;
+            vChannels = NULL;
         }
     }
 
