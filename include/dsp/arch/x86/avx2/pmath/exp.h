@@ -8,6 +8,10 @@
 #ifndef DSP_ARCH_X86_AVX2_PMATH_EXP_H_
 #define DSP_ARCH_X86_AVX2_PMATH_EXP_H_
 
+#ifndef DSP_ARCH_X86_AVX2_IMPL
+    #error "This header should not be included directly"
+#endif /* DSP_ARCH_X86_AVX2_IMPL */
+
 #ifdef ARCH_X86_64
 
 namespace avx2
