@@ -16,6 +16,7 @@
 #define DSP_ARCH_X86_AVX2_IMPL
 
 #include <dsp/arch/x86/avx2/pmath/exp.h>
+#include <dsp/arch/x86/avx2/pmath/log.h>
 
 #undef DSP_ARCH_X86_AVX2_IMPL
 
@@ -40,6 +41,13 @@ namespace avx2
         {
             EXPORT2_X64(exp1, x64_exp1);
             EXPORT2_X64(exp2, x64_exp2);
+
+            EXPORT2_X64(logb1, x64_logb1);
+            EXPORT2_X64(logb2, x64_logb2);
+            EXPORT2_X64(loge1, x64_loge1);
+            EXPORT2_X64(loge2, x64_loge2);
+            EXPORT2_X64(logd1, x64_logd1);
+            EXPORT2_X64(logd2, x64_logd2);
 
             if (f->features & CPU_OPTION_FMA3)
             {

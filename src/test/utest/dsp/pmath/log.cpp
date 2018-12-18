@@ -31,6 +31,18 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_X86_64(
+    namespace avx2
+    {
+        void x64_logb1(float *dst, size_t count);
+        void x64_logb2(float *dst, const float *src, size_t count);
+        void x64_loge1(float *dst, size_t count);
+        void x64_loge2(float *dst, const float *src, size_t count);
+        void x64_logd1(float *dst, size_t count);
+        void x64_logd2(float *dst, const float *src, size_t count);
+    }
+)
+
 IF_ARCH_ARM(
     namespace neon_d32
     {
@@ -136,6 +148,13 @@ UTEST_BEGIN("dsp.pmath", log)
         IF_ARCH_X86(call("sse2::loge2", 16, native::loge2, sse2::loge2));
         IF_ARCH_X86(call("sse2::logd1", 16, native::logd1, sse2::logd1));
         IF_ARCH_X86(call("sse2::logd2", 16, native::logd2, sse2::logd2));
+
+        IF_ARCH_X86_64(call("avx2::x64_logb1", 16, native::logb1, avx2::x64_logb1));
+        IF_ARCH_X86_64(call("avx2::x64_logb2", 16, native::logb2, avx2::x64_logb2));
+        IF_ARCH_X86_64(call("avx2::x64_loge1", 16, native::loge1, avx2::x64_loge1));
+        IF_ARCH_X86_64(call("avx2::x64_loge2", 16, native::loge2, avx2::x64_loge2));
+        IF_ARCH_X86_64(call("avx2::x64_logd1", 16, native::logd1, avx2::x64_logd1));
+        IF_ARCH_X86_64(call("avx2::x64_logd2", 16, native::logd2, avx2::x64_logd2));
 
         IF_ARCH_ARM(call("neon_d32::logb1", 16, native::logb1, neon_d32::logb1));
         IF_ARCH_ARM(call("neon_d32::logb2", 16, native::logb2, neon_d32::logb2));
