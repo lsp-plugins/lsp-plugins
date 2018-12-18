@@ -11,6 +11,8 @@
 #include <dsp/arch/x86/avx2/pmath/exp.h>
 #include <dsp/arch/x86/avx2/pmath/log.h>
 
+#ifdef ARCH_X86_64
+
 namespace avx2
 {
     void x64_powcv1(float *v, float c, size_t count)
@@ -1671,6 +1673,6 @@ namespace avx2
     }
 }
 
-
+#endif /* ARCH_X86_64 */
 
 #endif /* DSP_ARCH_X86_AVX2_PMATH_POW_H_ */
