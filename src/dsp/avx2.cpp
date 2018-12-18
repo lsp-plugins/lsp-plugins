@@ -68,6 +68,13 @@ namespace avx2
                 EXPORT2_X64(loge2, x64_loge2_fma3);
                 EXPORT2_X64(logd1, x64_logd1_fma3);
                 EXPORT2_X64(logd2, x64_logd2_fma3);
+
+                EXPORT2_X64(powcv1, x64_powcv1_fma3);
+                EXPORT2_X64(powcv2, x64_powcv2_fma3);
+                EXPORT2_X64(powvc1, x64_powvc1_fma3);
+                EXPORT2_X64(powvc2, x64_powvc2_fma3);
+                EXPORT2_X64(powvx1, x64_powvx1_fma3);
+                EXPORT2_X64(powvx2, x64_powvx2_fma3);
             }
         }
     }
