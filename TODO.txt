@@ -22,7 +22,7 @@
 * Run make clean && make test to build testing system
 * Run .build/lsp-plugins-test utest for running all unit tests and
   ensure that there are no broken unit tests
-* Run make clean && make uninstall && make install to
+* Run make clean && make uninstall && make install && make clean to
   build and install binaries
 * Make video
 * Add video cover to res/video-covers
