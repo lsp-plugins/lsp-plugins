@@ -8,38 +8,11 @@
 - Refactored and optimized filter transfer function calculation. 
 - Implemented sampler with stereo outputs.
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
-
-=== 1.1.5 ===
-
-* Implemented stereo version of Profiler plugin.
-* Added 'Spectralizer' and 'Mastering' modes to the Spectrum Analyzer plugin series.
-* All SIMD-optimized DSP code now ported to ARMv7A architecture and optimized using ARM NEON instruction set. 
-* Fixed building issues under Ubuntu Linux related to compiler and linker
-  flags reordering.
-* Improved build process, added possibility to specify PREFIX variable for
-  installing into specified path instead of /usr/local.
-* Fixed window decorating issue under the i3 window manager.
-* Enabled RELRO and PIE option for binaries, simplified build system.
-* Fixed biquad filter processing routines that could cause memory corruption and/or invalid behaviour
-  in certain circumstances.
-* Implemented optimized DSP functions for minimum and maximum search.
-* Implemented optimized DSP functions for static biquad processing, dynamic biquad processing,
-  dynamic bilinear transformation. 
-* Fixed serious memory corruption in SSE implementation of fast convolution routines that could cause
-  spontaneous crashes of convolvers.
-* Fixed buffer underflow in Convolver module that could cause memory corruption and spontaneous crashes
-  of host.
-* Extended unit and performance test coverage.
-* Added support of FreeBSD operating system.
-* Added Frame Buffer primitive support by plugins and widgets.
-* Implemented RGBA and HSLA color manipulation routines for point array rendering optimizations.
-* Fixed system character set detection on certain systems that caused disappearing of text labels in the UI.
 - Migrated to CMake build system.
 - Added possibility to double-click the parameter's value number and enter it manually with keyboard.
 - Added audio preview to file open dialog.
 - Added bookmarks to file opening dialog.
 - Added subsystem for loading missed files.
-
 
 *******************************************************************************
 * Release steps

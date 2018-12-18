@@ -2,6 +2,33 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.1.5 ===
+
+* Implemented stereo version of Profiler plugin.
+* Added 'Spectralizer' and 'Mastering' modes to the Spectrum Analyzer plugin series.
+* All SIMD-optimized DSP code now ported to ARMv7A architecture and optimized using ARM NEON instruction set.
+* Added Frame Buffer primitive support by plugins and widgets.
+* Implemented RGBA and HSLA color manipulation routines for point array rendering optimizations.
+* Extended unit and performance test coverage.
+* Enabled RELRO and PIE option for binaries, simplified build system.
+* Implemented optimized DSP functions for minimum and maximum search.
+* Implemented optimized DSP functions for static biquad processing, dynamic biquad processing,
+  dynamic bilinear transformation.
+* Extended DSP code with different set of software rendering functions that enhance visual effects.
+* Added support of FreeBSD operating system (plugins are available for building in FreeBSD ports).
+* Improved build process, added possibility to specify PREFIX variable for
+  installing into specified path instead of /usr/local.
+* Fixed building issues under Ubuntu Linux related to compiler and linker
+  flags reordering.
+* Fixed system character set detection on certain systems that caused disappearing of text labels in the UI.
+* Fixed window decorating issue under the i3 window manager.
+* Fixed biquad filter processing routines that could cause memory corruption and/or invalid behaviour
+  in certain circumstances. 
+* Fixed serious memory corruption in SSE implementation of fast convolution routines that could cause
+  spontaneous crashes of convolvers.
+* Fixed buffer underflow in Convolver module that could cause memory corruption and spontaneous crashes
+  of host.
+
 === 1.1.4 ===
 
 * Changed licensing to GNU Lesser General Public License version 3 (GNU LGPL v3).
