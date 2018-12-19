@@ -1,19 +1,15 @@
+# Estimate different pre-requisites before launching build
+include scripts/make/set_vars.mk
+include scripts/make/version.mk
+include scripts/make/configure.mk
+
 # Common definitions
-PRODUCT                 = lsp
-ARTIFACT_ID             = $(PRODUCT)-plugins
 OBJDIR                  = ${CURDIR}/.build
 RELEASE_TEXT            = LICENSE.txt README.txt CHANGELOG.txt
 RELEASE_SRC             = $(RELEASE_TEXT) src include res Makefile release.sh
 INSTALL                 = install
 PREFIX_FILE            := .install-prefix.txt
 MODULES_FILE           := .install-modules.txt
-
-ifndef PREFIX
-  PREFIX                  = $(shell cat "$(OBJDIR)/$(PREFIX_FILE)" 2>/dev/null || echo "/usr/local")
-endif
-ifndef BUILD_MODULES
-  BUILD_MODULES           = $(shell cat "$(OBJDIR)/$(MODULES_FILE)" 2>/dev/null || echo "ladspa lv2 vst jack profile src doc")
-endif
 
 # Installation locations
 BIN_PATH                = $(PREFIX)/bin
@@ -22,11 +18,6 @@ DOC_PATH                = $(PREFIX)/share/doc
 LADSPA_PATH             = $(LIB_PATH)/ladspa
 LV2_PATH                = $(LIB_PATH)/lv2
 VST_PATH                = $(LIB_PATH)/vst
-
-# Package version
-ifndef VERSION
-  VERSION                 = 1.1.5
-endif
 
 # Directories
 export VERSION
@@ -39,146 +30,6 @@ export BUILDDIR         = $(OBJDIR)
 
 # Includes
 INC_FLAGS               = -I"${CURDIR}/include"
-
-INSTALLATIONS           =
-UNINSTALLATIONS         = 
-RELEASES                =
-
-ifeq ($(findstring ladspa,$(BUILD_MODULES)),ladspa)
-  INSTALLATIONS          += install_ladspa
-  UNINSTALLATIONS        += uninstall_ladspa
-  RELEASES               += release_ladspa
-endif
-ifeq ($(findstring lv2,$(BUILD_MODULES)),lv2)
-  INSTALLATIONS          += install_lv2
-  UNINSTALLATIONS        += uninstall_lv2
-  RELEASES               += release_lv2
-endif
-ifeq ($(findstring vst,$(BUILD_MODULES)),vst)
-  INSTALLATIONS          += install_vst
-  UNINSTALLATIONS        += uninstall_vst
-  RELEASES               += release_vst
-endif
-ifeq ($(findstring jack,$(BUILD_MODULES)),jack)
-  INSTALLATIONS          += install_jack
-  UNINSTALLATIONS        += uninstall_jack
-  RELEASES               += release_jack
-endif
-ifeq ($(findstring doc,$(BUILD_MODULES)),doc)
-  INSTALLATIONS          += install_doc
-  UNINSTALLATIONS        += uninstall_doc
-  RELEASES               += release_doc
-endif
-ifeq ($(findstring src,$(BUILD_MODULES)),src)
-  RELEASES               += release_src
-endif
-
-# Detect operating system
-ifndef BUILD_SYSTEM
-  ifeq ($(findstring Windows,$(OS)),Windows)
-    BUILD_SYSTEM = Windows
-  else
-    BUILD_SYSTEM = $(shell uname -s 2>/dev/null || echo "Unknown")
-  endif
-endif
-
-ifndef BUILD_PLATFORM
-  BUILD_PLATFORM  = Unknown
-
-  ifeq ($(BUILD_SYSTEM),Windows)
-    BUILD_PLATFORM          = Windows
-  endif
-  ifeq ($(findstring BSD,$(BUILD_SYSTEM)),BSD)
-    BUILD_PLATFORM          = BSD
-  endif
-  ifeq ($(findstring Linux,$(BUILD_SYSTEM)),Linux)
-    BUILD_PLATFORM          = Linux
-  endif
-endif
-
-export BUILD_SYSTEM
-export BUILD_PLATFORM
-
-# Build profile
-ifeq ($(BUILD_PLATFORM),Windows)
-  BUILD_ARCH                = i586
-  BUILD_PROFILE             = i586
-  ifeq ($(PROCESSOR_ARCHITECTURE),32-bit)
-    BUILD_ARCH                = i586
-    BUILD_PROFILE             = i586
-  endif
-  ifeq ($(PROCESSOR_ARCHITECTURE),64-bit)
-    BUILD_ARCH                = x86_64
-    BUILD_PROFILE             = x86_64
-  endif
-else # BUILD_PLATFORM != Windows
-  ifndef BUILD_PROFILE
-    BUILD_ARCH              = $(shell uname -m)
-    BUILD_PROFILE           = $(BUILD_ARCH)
-    ifeq ($(patsubst armv6%,armv6,$(BUILD_ARCH)), armv6)
-      BUILD_PROFILE           = armv6a
-    endif
-    ifeq ($(patsubst armv7%,armv7,$(BUILD_ARCH)), armv7)
-      BUILD_PROFILE           = armv7a
-    endif
-    ifeq ($(patsubst armv8%,armv8,$(BUILD_ARCH)), armv8)
-      BUILD_PROFILE           = armv8a
-    endif
-    ifeq ($(BUILD_ARCH),x86_64)
-      BUILD_PROFILE           = x86_64
-    endif
-    ifeq ($(BUILD_ARCH),amd64)
-      BUILD_PROFILE           = x86_64
-    endif
-    ifeq ($(patsubst i%86,i586,$(BUILD_ARCH)), i586)
-      BUILD_PROFILE           = i586
-    endif
-  endif
-endif # BUILD_PLATFORM != Windows
-
-export BUILD_PROFILE
-
-export LD_ARCH          =
-
-# Build profile
-ifeq ($(BUILD_PROFILE),i586)
-  export CC_ARCH          = -m32
-  ifeq ($(BUILD_PLATFORM), Linux)
-    export LD_ARCH          = -m elf_i386
-  endif
-  ifeq ($(BUILD_PLATFORM), BSD)
-    export LD_ARCH          = -m elf_i386_fbsd
-  endif
-  export LD_PATH          = /usr/lib:/lib:/usr/local/lib
-endif
-
-ifeq ($(BUILD_PROFILE),x86_64)
-  export CC_ARCH          = -m64
-  ifeq ($(BUILD_PLATFORM), Linux)
-    export LD_ARCH          = -m elf_x86_64
-  endif
-  ifeq ($(BUILD_PLATFORM), BSD)
-  	export LD_ARCH          = -m elf_x86_64_fbsd
-  endif
-  export LD_PATH          = /usr/lib:/lib:/usr/local/lib
-endif
-
-ifeq ($(BUILD_PROFILE),armv6a)
-  export CC_ARCH          = -march=armv6-a
-  export LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
-endif
-
-ifeq ($(BUILD_PROFILE),armv7a)
-  export CC_ARCH          = -march=armv7-a
-  export LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
-endif
-
-ifeq ($(BUILD_PROFILE),armv8a)
-  export CC_ARCH          = -march=armv8-a
-  export LD_PATH          = /usr/lib:/lib:/usr/local/lib
-endif
-
-export BUILD_MODULES
 
 # Location
 export BASEDIR          = ${CURDIR}
@@ -228,28 +79,6 @@ export UTL_FILES        = $(UTL_GENTTL) $(UTL_VSTMAKE) $(UTL_GENPHP) $(UTL_RESGE
 
 # Files
 export PHP_PLUGINS      = $(OBJDIR)/plugins.php
-
-# Dependencies: compile headers and linkage libraries
-ifeq ($(BUILD_SYSTEM),Windows)
-# TODO
-else
-	export PTHREAD_LIBS     = -lpthread
-	export ICONV_LIBS       = -liconv
-	export MATH_LIBS        = -lm
-	export DL_LIBS          = -ldl
-	export CAIRO_HEADERS    = $(shell pkg-config --cflags cairo)
-	export CAIRO_LIBS       = $(shell pkg-config --libs cairo)
-	export XLIB_HEADERS     = $(shell pkg-config --cflags x11)
-	export XLIB_LIBS        = $(shell pkg-config --libs x11)
-	export EXPAT_HEADERS    = $(shell pkg-config --cflags expat)
-	export EXPAT_LIBS       = $(shell pkg-config --libs expat)
-	export SNDFILE_HEADERS  = $(shell pkg-config --cflags sndfile)
-	export SNDFILE_LIBS     = $(shell pkg-config --libs sndfile)
-	export JACK_HEADERS     = $(shell pkg-config --cflags jack)
-	export JACK_LIBS        = $(shell pkg-config --libs jack)
-	export OPENGL_HEADERS   = $(shell pkg-config --cflags gl glu 2>/dev/null || echo "")
-	export OPENGL_LIBS      = $(shell pkg-config --libs gl glu 2>/dev/null || echo "")
-endif
 
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 FILES                   =
