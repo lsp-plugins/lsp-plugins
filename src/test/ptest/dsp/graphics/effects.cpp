@@ -235,7 +235,7 @@ template <class eff_t>
             IF_ARCH_X86_64(call("avx2::x64_eff_hsla_alpha", dst, src, count, &alpha, avx2::x64_eff_hsla_alpha));
             IF_ARCH_ARM(call("neon_d32::eff_hsla_alpha", dst, src, count, &alpha, neon_d32::eff_hsla_alpha));
 
-            PTEST_SEPARATOR;
+            PTEST_SEPARATOR2;
         }
 
         free_aligned(data);
