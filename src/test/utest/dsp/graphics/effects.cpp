@@ -27,6 +27,16 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_X86_64(
+    namespace avx2
+    {
+        void x64_eff_hsla_hue(float *dst, const float *v, const dsp::hsla_hue_eff_t *eff, size_t count);
+        void x64_eff_hsla_sat(float *dst, const float *v, const dsp::hsla_sat_eff_t *eff, size_t count);
+        void x64_eff_hsla_light(float *dst, const float *v, const dsp::hsla_light_eff_t *eff, size_t count);
+        void x64_eff_hsla_alpha(float *dst, const float *v, const dsp::hsla_alpha_eff_t *eff, size_t count);
+    }
+)
+
 IF_ARCH_ARM(
     namespace neon_d32
     {
@@ -52,7 +62,7 @@ UTEST_BEGIN("dsp.graphics", effects)
             return;
 
 //        size_t count = 4;
-        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+        UTEST_FOREACH(count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
                 32, 64, 65, 100, 768, 999, 1024, 0x1fff)
         {
             for (size_t mask=0; mask <= 0x03; ++mask)
@@ -64,6 +74,8 @@ UTEST_BEGIN("dsp.graphics", effects)
                 FloatBuffer dst2(count*4, align, mask & 0x02);
 
                 src.randomize_sign();
+//                src[0] = 0.81729;
+//                src[1] = 0.69536;
 //                src.vfill(0, 4,
 //                        0.0f, 0.25f, 0.5f, -0.5f
 //                    );
@@ -120,10 +132,15 @@ UTEST_BEGIN("dsp.graphics", effects)
         light.a       = 0.0f;
         light.thresh  = 0.25f;
 
-        IF_ARCH_X86(call("sse::eff_hsla_hue", 16, native::eff_hsla_hue, sse2::eff_hsla_hue, &hue));
-        IF_ARCH_X86(call("sse::eff_hsla_sat", 16, native::eff_hsla_sat, sse2::eff_hsla_sat, &sat));
-        IF_ARCH_X86(call("sse::eff_hsla_light", 16, native::eff_hsla_light, sse2::eff_hsla_light, &light));
-        IF_ARCH_X86(call("sse::eff_hsla_alpha", 16, native::eff_hsla_alpha, sse2::eff_hsla_alpha, &alpha));
+        IF_ARCH_X86(call("sse2::eff_hsla_hue", 16, native::eff_hsla_hue, sse2::eff_hsla_hue, &hue));
+        IF_ARCH_X86(call("sse2::eff_hsla_sat", 16, native::eff_hsla_sat, sse2::eff_hsla_sat, &sat));
+        IF_ARCH_X86(call("sse2::eff_hsla_light", 16, native::eff_hsla_light, sse2::eff_hsla_light, &light));
+        IF_ARCH_X86(call("sse2::eff_hsla_alpha", 16, native::eff_hsla_alpha, sse2::eff_hsla_alpha, &alpha));
+
+        IF_ARCH_X86_64(call("avx2::x64_eff_hsla_hue", 16, native::eff_hsla_hue, avx2::x64_eff_hsla_hue, &hue));
+        IF_ARCH_X86_64(call("avx2::x64_eff_hsla_sat", 16, native::eff_hsla_sat, avx2::x64_eff_hsla_sat, &sat));
+        IF_ARCH_X86_64(call("avx2::x64_eff_hsla_light", 16, native::eff_hsla_light, avx2::x64_eff_hsla_light, &light));
+        IF_ARCH_X86_64(call("avx2::x64_eff_hsla_alpha", 16, native::eff_hsla_alpha, avx2::x64_eff_hsla_alpha, &alpha));
 
         IF_ARCH_ARM(call("neon_d32::eff_hsla_hue", 16, native::eff_hsla_hue, neon_d32::eff_hsla_hue, &hue));
         IF_ARCH_ARM(call("neon_d32::eff_hsla_sat", 16, native::eff_hsla_sat, neon_d32::eff_hsla_sat, &sat));
