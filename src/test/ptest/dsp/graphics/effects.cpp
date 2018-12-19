@@ -129,7 +129,7 @@ IF_ARCH_X86_64(
         void x64_eff_hsla_hue(float *dst, const float *v, const dsp::hsla_hue_eff_t *eff, size_t count);
 //        void x64_eff_hsla_sat(float *dst, const float *v, const dsp::hsla_sat_eff_t *eff, size_t count);
 //        void x64_eff_hsla_light(float *dst, const float *v, const dsp::hsla_light_eff_t *eff, size_t count);
-//        void x64_eff_hsla_alpha(float *dst, const float *v, const dsp::hsla_alpha_eff_t *eff, size_t count);
+        void x64_eff_hsla_alpha(float *dst, const float *v, const dsp::hsla_alpha_eff_t *eff, size_t count);
     }
 )
 
@@ -232,7 +232,7 @@ template <class eff_t>
             call("static::eff_hsla_alpha", dst, src, count, &alpha, eff_hsla_alpha);
             call("native::eff_hsla_alpha", dst, src, count, &alpha, native::eff_hsla_alpha);
             IF_ARCH_X86(call("sse2::eff_hsla_alpha", dst, src, count, &alpha, sse2::eff_hsla_alpha));
-//            IF_ARCH_X86_64(call("avx2::x64_eff_hsla_alpha", dst, src, count, &alpha, avx2::x64_eff_hsla_alpha));
+            IF_ARCH_X86_64(call("avx2::x64_eff_hsla_alpha", dst, src, count, &alpha, avx2::x64_eff_hsla_alpha));
             IF_ARCH_ARM(call("neon_d32::eff_hsla_alpha", dst, src, count, &alpha, neon_d32::eff_hsla_alpha));
 
             PTEST_SEPARATOR;

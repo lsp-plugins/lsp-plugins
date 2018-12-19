@@ -89,6 +89,33 @@ IF_ARCH_X86(
     __ASM_EMIT("vmovaps         %%xmm11, %%xmm1")                   /* xmm1     = S */ \
     MAT4_TRANSPOSE("%%xmm0", "%%xmm1", "%%xmm2", "%%xmm3", "%%xmm8", "%%xmm9")
 
+/*
+    float value, hue, alpha;
+    float t     = 1.0f - eff->thresh;
+    float kt    = 1.0f / eff->thresh;
+
+    for (size_t i=0; i<count; ++i, dst += 4)
+    {
+        value   = v[i];
+        value   = (value < 0) ? 1.0f + value : 1.0f - value;
+
+        if ((value - t) >= 0)
+        {
+            hue         = eff->h + t;
+            alpha       = ((value - t) * kt);
+        }
+        else
+        {
+            hue         = eff->h + value;
+            alpha       = 0.0f;
+        }
+
+        dst[0]      = (hue < 1.0f) ? hue : hue - 1.0f;
+        dst[1]      = eff->s;
+        dst[2]      = eff->l;
+        dst[3]      = alpha;
+    }*/
+
     void x64_eff_hsla_hue(float *dst, const float *v, const dsp::hsla_hue_eff_t *eff, size_t count)
     {
         ARCH_X86_ASM(
@@ -194,33 +221,167 @@ IF_ARCH_X86(
               "%xmm8", "%xmm9", "%xmm10", "%xmm11",
               "%xmm12", "%xmm13", "%xmm14", "%xmm15"
         );
-/*
-        float value, hue, alpha;
-        float t     = 1.0f - eff->thresh;
-        float kt    = 1.0f / eff->thresh;
-
-        for (size_t i=0; i<count; ++i, dst += 4)
-        {
-            value   = v[i];
-            value   = (value < 0) ? 1.0f + value : 1.0f - value;
-
-            if ((value - t) >= 0)
-            {
-                hue         = eff->h + t;
-                alpha       = ((value - t) * kt);
-            }
-            else
-            {
-                hue         = eff->h + value;
-                alpha       = 0.0f;
-            }
-
-            dst[0]      = (hue < 1.0f) ? hue : hue - 1.0f;
-            dst[1]      = eff->s;
-            dst[2]      = eff->l;
-            dst[3]      = alpha;
-        }*/
     }
+
+static const float EFF_HSLA_ALPHA_XC[] __lsp_aligned32 =
+{
+    1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f
+};
+
+#define EFF_HSLA_ALPHA_CORE_X16 \
+    /* ymm0 = v, ymm12 = h, ymm13 = s, ymm14 = l, ymm15 = 1 */ \
+    __ASM_EMIT("vaddps          %%ymm0, %%ymm15, %%ymm2")           /* ymm2     = 1+v */ \
+    __ASM_EMIT("vaddps          %%ymm4, %%ymm15, %%ymm6")           \
+    __ASM_EMIT("vsubps          %%ymm0, %%ymm15, %%ymm3")           /* ymm3     = 1-v */ \
+    __ASM_EMIT("vsubps          %%ymm4, %%ymm15, %%ymm7")           \
+    __ASM_EMIT("vblendvps       %%ymm0, %%ymm2, %%ymm3, %%ymm3")    /* ymm3     = (v<0) ? 1+v : 1-v */ \
+    __ASM_EMIT("vblendvps       %%ymm4, %%ymm6, %%ymm7, %%ymm7")    \
+    __ASM_EMIT("vmovaps         %%ymm12, %%ymm0")                   /* ymm0     = H */ \
+    __ASM_EMIT("vmovaps         %%ymm13, %%ymm1")                   /* ymm1     = S */ \
+    __ASM_EMIT("vmovaps         %%ymm14, %%ymm2")                   /* ymm2     = L */ \
+    __ASM_EMIT("vmovaps         %%ymm12, %%ymm4")                   \
+    __ASM_EMIT("vmovaps         %%ymm13, %%ymm5")                   \
+    __ASM_EMIT("vmovaps         %%ymm14, %%ymm6")                   \
+    MAT4_TRANSPOSE("%%ymm0", "%%ymm1", "%%ymm2", "%%ymm3", "%%ymm8", "%%ymm9") \
+    MAT4_TRANSPOSE("%%ymm4", "%%ymm5", "%%ymm6", "%%ymm7", "%%ymm8", "%%ymm9") \
+    MAT4X2_INTERLEAVE("0", "1", "2", "3", "8", "9") \
+    MAT4X2_INTERLEAVE("4", "5", "6", "7", "8", "9")
+
+
+#define EFF_HSLA_ALPHA_CORE_X8 \
+    /* ymm0 = v, ymm12 = h, ymm13 = s, ymm14 = l, ymm15 = 1 */ \
+    __ASM_EMIT("vaddps          %%ymm0, %%ymm15, %%ymm2")           /* ymm2     = 1+v */ \
+    __ASM_EMIT("vsubps          %%ymm0, %%ymm15, %%ymm3")           /* ymm3     = 1-v */ \
+    __ASM_EMIT("vblendvps       %%ymm0, %%ymm2, %%ymm3, %%ymm3")    /* ymm3     = (v<0) ? 1+v : 1-v */ \
+    __ASM_EMIT("vmovaps         %%ymm12, %%ymm0")                   /* ymm0     = H */ \
+    __ASM_EMIT("vmovaps         %%ymm13, %%ymm1")                   /* ymm1     = S */ \
+    __ASM_EMIT("vmovaps         %%ymm14, %%ymm2")                   /* ymm2     = L */ \
+    MAT4_TRANSPOSE("%%ymm0", "%%ymm1", "%%ymm2", "%%ymm3", "%%ymm8", "%%ymm9") \
+    MAT4X2_INTERLEAVE("0", "1", "2", "3", "8", "9")
+
+#define EFF_HSLA_ALPHA_CORE_X4 \
+    /* xmm0 = v, xmm12 = h, xmm13 = s, xmm14 = l, xmm15 = 1 */ \
+    __ASM_EMIT("vaddps          %%xmm0, %%xmm15, %%xmm2")           /* xmm2     = 1+v */ \
+    __ASM_EMIT("vsubps          %%xmm0, %%xmm15, %%xmm3")           /* xmm3     = 1-v */ \
+    __ASM_EMIT("vblendvps       %%xmm0, %%xmm2, %%xmm3, %%xmm3")    /* xmm3     = (v<0) ? 1+v : 1-v */ \
+    __ASM_EMIT("vmovaps         %%xmm12, %%xmm0")                   /* xmm0     = H */ \
+    __ASM_EMIT("vmovaps         %%xmm13, %%xmm1")                   /* xmm1     = S */ \
+    __ASM_EMIT("vmovaps         %%xmm14, %%xmm2")                   /* xmm2     = L */ \
+    MAT4_TRANSPOSE("%%xmm0", "%%xmm1", "%%xmm2", "%%xmm3", "%%xmm8", "%%xmm9")
+
+/*
+    value   = v[i];
+    value   = (value < 0) ? 1.0f + value : 1.0f - value;
+
+    dst[0]  = eff->h;
+    dst[1]  = eff->s;
+    dst[2]  = eff->l;
+    dst[3]  = value; // Fill alpha channel
+ */
+    void x64_eff_hsla_alpha(float *dst, const float *v, const dsp::hsla_alpha_eff_t *eff, size_t count)
+    {
+        ARCH_X86_ASM(
+            //-----------------------------------------------------------------
+            // Prepare
+            __ASM_EMIT("vbroadcastf128  0x00(%[eff]), %%ymm12")             /* ymm12    = h s l a h s l a */
+            __ASM_EMIT("vmovaps         0x00 + %[XC], %%ymm15")             /* ymm15    = 1 */
+            __ASM_EMIT("vshufps         $0xaa, %%ymm12, %%ymm12, %%ymm14")  /* ymm14    = l */
+            __ASM_EMIT("vshufps         $0x55, %%ymm12, %%ymm12, %%ymm13")  /* ymm13    = s */
+            __ASM_EMIT("vshufps         $0x00, %%ymm12, %%ymm12, %%ymm12")  /* ymm12    = h */
+
+            //-----------------------------------------------------------------
+            // x16 blocks
+            __ASM_EMIT("sub             $16, %[count]")
+            __ASM_EMIT("jb              2f")
+            __ASM_EMIT("1:")
+            __ASM_EMIT("vmovups         0x00(%[src]), %%ymm0")
+            __ASM_EMIT("vmovups         0x20(%[src]), %%ymm4")
+            EFF_HSLA_ALPHA_CORE_X16
+            __ASM_EMIT("vmovups         %%ymm0, 0x000(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm1, 0x020(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm2, 0x040(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm3, 0x060(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm4, 0x080(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm5, 0x0a0(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm6, 0x0c0(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm7, 0x0e0(%[dst])")
+            __ASM_EMIT("add             $0x40, %[src]")
+            __ASM_EMIT("add             $0x100, %[dst]")
+            __ASM_EMIT("sub             $16, %[count]")
+            __ASM_EMIT("jae             1b")
+
+            //-----------------------------------------------------------------
+            // x8 block
+            __ASM_EMIT("2:")
+            __ASM_EMIT("add             $8, %[count]")
+            __ASM_EMIT("jl              4f")
+            __ASM_EMIT("vmovups         0x00(%[src]), %%ymm0")
+            EFF_HSLA_ALPHA_CORE_X8
+            __ASM_EMIT("vmovups         %%ymm0, 0x000(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm1, 0x020(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm2, 0x040(%[dst])")
+            __ASM_EMIT("vmovups         %%ymm3, 0x060(%[dst])")
+            __ASM_EMIT("sub             $8, %[count]")
+            __ASM_EMIT("add             $0x20, %[src]")
+            __ASM_EMIT("add             $0x80, %[dst]")
+
+            //-----------------------------------------------------------------
+            // x4 block
+            __ASM_EMIT("4:")
+            __ASM_EMIT("add             $4, %[count]")
+            __ASM_EMIT("jl              6f")
+            __ASM_EMIT("vmovups         0x00(%[src]), %%xmm0")
+            EFF_HSLA_ALPHA_CORE_X4
+            __ASM_EMIT("vmovups         %%xmm0, 0x000(%[dst])")
+            __ASM_EMIT("vmovups         %%xmm1, 0x010(%[dst])")
+            __ASM_EMIT("vmovups         %%xmm2, 0x020(%[dst])")
+            __ASM_EMIT("vmovups         %%xmm3, 0x030(%[dst])")
+            __ASM_EMIT("sub             $4, %[count]")
+            __ASM_EMIT("add             $0x10, %[src]")
+            __ASM_EMIT("add             $0x40, %[dst]")
+
+            //-----------------------------------------------------------------
+            // x1-x3 block
+            __ASM_EMIT("6:")
+            __ASM_EMIT("add             $4, %[count]")
+            __ASM_EMIT("jle             14f")
+            __ASM_EMIT("test            $1, %[count]")
+            __ASM_EMIT("jz              8f")
+            __ASM_EMIT("vmovss          0x00(%[src]), %%xmm0")
+            __ASM_EMIT("add             $0x04, %[src]")
+            __ASM_EMIT("8:")
+            __ASM_EMIT("test            $2, %[count]")
+            __ASM_EMIT("jz              10f")
+            __ASM_EMIT("vmovhps         0x00(%[src]), %%xmm0, %%xmm0")
+            __ASM_EMIT("10:")
+
+            EFF_HSLA_ALPHA_CORE_X4
+
+            // Store last chunk
+            __ASM_EMIT("test            $1, %[count]")
+            __ASM_EMIT("jz              12f")
+            __ASM_EMIT("vmovups         %%xmm0, 0x00(%[dst])")
+            __ASM_EMIT("add             $0x10, %[dst]")
+            __ASM_EMIT("12:")
+            __ASM_EMIT("test            $2, %[count]")
+            __ASM_EMIT("jz              14f")
+            __ASM_EMIT("vmovups         %%xmm2, 0x00(%[dst])")
+            __ASM_EMIT("vmovups         %%xmm3, 0x10(%[dst])")
+
+            __ASM_EMIT("14:")
+            __ASM_EMIT("vzeroupper")
+
+            : [dst] "+r" (dst), [src] "+r" (v), [count] "+r" (count)
+            : [eff] "r" (eff),
+              [XC] "o" (EFF_HSLA_ALPHA_XC)
+            : "cc", "memory",
+              "%xmm0", "%xmm1", "%xmm2", "%xmm3",
+              "%xmm4", "%xmm5", "%xmm6", "%xmm7",
+              "%xmm8", "%xmm9", "%xmm10", "%xmm11",
+              "%xmm12", "%xmm13", "%xmm14", "%xmm15"
+        );
+    }
+
 }
 
 
