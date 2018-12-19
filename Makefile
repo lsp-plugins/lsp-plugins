@@ -74,18 +74,22 @@ ifeq ($(findstring src,$(BUILD_MODULES)),src)
 endif
 
 # Detect operating system
+ifndef BUILD_SYSTEM
+  BUILD_SYSTEM=$(shell uname -s 2>/dev/null || echo "Unknown")
+endif
+
 ifndef BUILD_PLATFORM
-  TARGET_PLATFORM = $(shell uname -s 2>/dev/null || echo "Unknown")
   BUILD_PLATFORM  = Unknown
   
-  ifeq ($(findstring BSD,$(TARGET_PLATFORM)),BSD)
+  ifeq ($(findstring BSD,$(BUILD_SYSTEM)),BSD)
     BUILD_PLATFORM          = BSD
   endif
-  ifeq ($(findstring Linux,$(TARGET_PLATFORM)),Linux)
+  ifeq ($(findstring Linux,$(BUILD_SYSTEM)),Linux)
     BUILD_PLATFORM          = Linux
   endif
 endif
 
+export BUILD_SYSTEM
 export BUILD_PLATFORM
 
 # Build profile
@@ -278,6 +282,7 @@ compile:
 	@echo "Building binaries"
 	@echo "  target architecture : $(BUILD_PROFILE)"
 	@echo "  target platform     : $(BUILD_PLATFORM)"
+	@echo "  target system       : $(BUILD_SYSTEM)"
 	@echo "  modules             : $(BUILD_MODULES)"
 	@echo "-------------------------------------------------------------------------------"
 	@mkdir -p $(OBJDIR)/src
@@ -356,49 +361,49 @@ release_prepare: all
 	
 release_ladspa: release_prepare
 	@echo "Releasing LADSPA binaries"
-	@mkdir -p $(RELEASE)/$(LADSPA_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
-	@$(INSTALL) $(LIB_LADSPA) $(RELEASE)/$(LADSPA_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/
-	@cp $(RELEASE_TEXT) $(RELEASE)/$(LADSPA_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/
-	@tar -C $(RELEASE) -czf $(RELEASE)/$(LADSPA_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE).tar.gz $(LADSPA_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
-	@rm -rf $(RELEASE)/$(LADSPA_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+	@mkdir -p $(RELEASE)/$(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@$(INSTALL) $(LIB_LADSPA) $(RELEASE)/$(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@rm -rf $(RELEASE)/$(LADSPA_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 	
 release_lv2: release_prepare
 	@echo "Releasing LV2 binaries"
-	@mkdir -p $(RELEASE)/$(LV2_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
-	@mkdir -p $(RELEASE)/$(LV2_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2
-	@$(INSTALL) $(LIB_LV2) $(RELEASE)/$(LV2_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2/
-	@cp $(RELEASE_TEXT) $(RELEASE)/$(LV2_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/
-	@$(UTL_GENTTL) $(RELEASE)/$(LV2_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2
-	@tar -C $(RELEASE) -czf $(RELEASE)/$(LV2_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE).tar.gz $(LV2_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
-	@rm -rf $(RELEASE)/$(LV2_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+	@mkdir -p $(RELEASE)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@mkdir -p $(RELEASE)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2
+	@$(INSTALL) $(LIB_LV2) $(RELEASE)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2/
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
+	@$(UTL_GENTTL) $(RELEASE)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/$(ARTIFACT_ID).lv2
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@rm -rf $(RELEASE)/$(LV2_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 	
 release_vst: release_prepare
 	@echo "Releasing VST binaries"
-	@mkdir -p $(RELEASE)/$(VST_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
-	@$(INSTALL) $(LIB_VST) $(RELEASE)/$(VST_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/
-	@$(INSTALL) $(OBJDIR)/src/vst/*.so $(RELEASE)/$(VST_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/
-	@cp $(RELEASE_TEXT) $(RELEASE)/$(VST_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/
-	@tar -C $(RELEASE) -czf $(RELEASE)/$(VST_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE).tar.gz $(VST_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
-	@rm -rf $(RELEASE)/$(VST_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+	@mkdir -p $(RELEASE)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@$(INSTALL) $(LIB_VST) $(RELEASE)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
+	@$(INSTALL) $(OBJDIR)/src/vst/*.so $(RELEASE)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@rm -rf $(RELEASE)/$(VST_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 	
 release_jack: release_prepare
 	@echo "Releasing JACK binaries"
-	@mkdir -p $(RELEASE)/$(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
-	@mkdir -p $(RELEASE)/$(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/lib
-	@mkdir -p $(RELEASE)/$(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/bin
-	@$(INSTALL) $(LIB_JACK) $(RELEASE)/$(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/lib
-	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(RELEASE)/$(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/bin INSTALL="$(INSTALL)"
-	@cp $(RELEASE_TEXT) $(RELEASE)/$(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/
-	@tar -C $(RELEASE) -czf $(RELEASE)/$(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE).tar.gz $(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
-	@rm -rf $(RELEASE)/$(JACK_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+	@mkdir -p $(RELEASE)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@mkdir -p $(RELEASE)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/lib
+	@mkdir -p $(RELEASE)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/bin
+	@$(INSTALL) $(LIB_JACK) $(RELEASE)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/lib
+	@$(MAKE) $(MAKE_OPTS) -C $(OBJDIR)/src/jack install TARGET_PATH=$(RELEASE)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/bin INSTALL="$(INSTALL)"
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@rm -rf $(RELEASE)/$(JACK_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 
 release_profile: release_prepare
 	@echo "Releasing PROFILE binaries"
-	@mkdir -p $(RELEASE)/$(PROFILE_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
-	@$(INSTALL) $(BIN_PROFILE) $(RELEASE)/$(PROFILE_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
-	@cp $(RELEASE_TEXT) $(RELEASE)/$(PROFILE_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)/
-	@tar -C $(RELEASE) -czf $(RELEASE)/$(PROFILE_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE).tar.gz $(PROFILE_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
-	@rm -rf $(RELEASE)/$(PROFILE_ID)-$(BUILD_PLATFORM)-$(BUILD_PROFILE)
+	@mkdir -p $(RELEASE)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@$(INSTALL) $(BIN_PROFILE) $(RELEASE)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@cp $(RELEASE_TEXT) $(RELEASE)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)/
+	@tar -C $(RELEASE) -czf $(RELEASE)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE).tar.gz $(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
+	@rm -rf $(RELEASE)/$(PROFILE_ID)-$(BUILD_SYSTEM)-$(BUILD_PROFILE)
 
 release_src:
 	@echo "Releasing source code binaries"
