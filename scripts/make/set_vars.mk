@@ -28,11 +28,11 @@ export BUILD_PLATFORM
 ifeq ($(BUILD_PLATFORM),Windows)
   BUILD_ARCH                = i586
   BUILD_PROFILE             = i586
-  ifeq ($(PROCESSOR_ARCHITECTURE),32-bit)
+  ifeq ($(PROCESSOR_ARCHITECTURE),x86)
     BUILD_ARCH                = i586
     BUILD_PROFILE             = i586
   endif
-  ifeq ($(PROCESSOR_ARCHITECTURE),64-bit)
+  ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
     BUILD_ARCH                = x86_64
     BUILD_PROFILE             = x86_64
   endif
