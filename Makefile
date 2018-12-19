@@ -100,27 +100,41 @@ export BUILD_SYSTEM
 export BUILD_PLATFORM
 
 # Build profile
-ifndef BUILD_PROFILE
-  BUILD_ARCH              = $(shell uname -m)
-  ifeq ($(patsubst armv6%,armv6,$(BUILD_ARCH)), armv6)
-    BUILD_PROFILE           = armv6a
+ifeq ($(BUILD_PLATFORM),Windows)
+  BUILD_ARCH                = i586
+  BUILD_PROFILE             = i586
+  ifeq ($(PROCESSOR_ARCHITECTURE),32-bit)
+    BUILD_ARCH                = i586
+    BUILD_PROFILE             = i586
   endif
-  ifeq ($(patsubst armv7%,armv7,$(BUILD_ARCH)), armv7)
-    BUILD_PROFILE           = armv7a
+  ifeq ($(PROCESSOR_ARCHITECTURE),64-bit)
+    BUILD_ARCH                = x86_64
+    BUILD_PROFILE             = x86_64
   endif
-  ifeq ($(patsubst armv8%,armv8,$(BUILD_ARCH)), armv8)
-    BUILD_PROFILE           = armv8a
+else # BUILD_PLATFORM != Windows
+  ifndef BUILD_PROFILE
+    BUILD_ARCH              = $(shell uname -m)
+    BUILD_PROFILE           = $(BUILD_ARCH)
+    ifeq ($(patsubst armv6%,armv6,$(BUILD_ARCH)), armv6)
+      BUILD_PROFILE           = armv6a
+    endif
+    ifeq ($(patsubst armv7%,armv7,$(BUILD_ARCH)), armv7)
+      BUILD_PROFILE           = armv7a
+    endif
+    ifeq ($(patsubst armv8%,armv8,$(BUILD_ARCH)), armv8)
+      BUILD_PROFILE           = armv8a
+    endif
+    ifeq ($(BUILD_ARCH),x86_64)
+      BUILD_PROFILE           = x86_64
+    endif
+    ifeq ($(BUILD_ARCH),amd64)
+      BUILD_PROFILE           = x86_64
+    endif
+    ifeq ($(patsubst i%86,i586,$(BUILD_ARCH)), i586)
+      BUILD_PROFILE           = i586
+    endif
   endif
-  ifeq ($(BUILD_ARCH),x86_64)
-    BUILD_PROFILE           = x86_64
-  endif
-  ifeq ($(BUILD_ARCH),amd64)
-    BUILD_PROFILE           = x86_64
-  endif
-  ifeq ($(patsubst i%86,i586,$(BUILD_ARCH)), i586)
-    BUILD_PROFILE           = i586
-  endif
-endif
+endif # BUILD_PLATFORM != Windows
 
 export BUILD_PROFILE
 
