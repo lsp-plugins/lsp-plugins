@@ -81,6 +81,8 @@ namespace avx2
             }
 
             EXPORT2_X64(eff_hsla_hue, x64_eff_hsla_hue);
+            EXPORT2_X64(eff_hsla_sat, x64_eff_hsla_sat);
+            EXPORT2_X64(eff_hsla_light, x64_eff_hsla_light);
             EXPORT2_X64(eff_hsla_alpha, x64_eff_hsla_alpha);
         }
     }
