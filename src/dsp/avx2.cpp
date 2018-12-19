@@ -19,6 +19,9 @@
 #include <dsp/arch/x86/avx2/pmath/log.h>
 #include <dsp/arch/x86/avx2/pmath/pow.h>
 
+#include <dsp/arch/x86/avx2/graphics/transpose.h>
+#include <dsp/arch/x86/avx2/graphics/effects.h>
+
 #undef DSP_ARCH_X86_AVX2_IMPL
 
 namespace avx2
@@ -76,6 +79,8 @@ namespace avx2
                 EXPORT2_X64(powvx1, x64_powvx1_fma3);
                 EXPORT2_X64(powvx2, x64_powvx2_fma3);
             }
+
+            EXPORT2_X64(eff_hsla_hue, x64_eff_hsla_hue);
         }
     }
 }
