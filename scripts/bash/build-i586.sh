@@ -2,8 +2,10 @@
 
 . scripts/bash/set_vars.sh
 
+export ARCH=i586
+
 echo "******************************************************"
-echo "  Building profile=$BUILD_PROFILE"
+echo "  Building profile=$ARCH"
 echo "******************************************************"
 
-$MAKE clean && $MAKE -j$THREADS all
+$MAKE clean && $MAKE BUILD_PROFILE=$ARCH -j$THREADS all
