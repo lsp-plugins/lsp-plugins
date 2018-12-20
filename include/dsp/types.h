@@ -14,10 +14,6 @@
 #include <string.h>
 #include <stdint.h>
 
-#ifdef __linux__
-    #include <linux/limits.h>
-#endif /* __linux__ */
-
 /*
     ARM-predefined macros on Raspberry Pi
 
@@ -112,16 +108,16 @@
 #endif /* defined(ARCH_ARM) */
 
 #ifdef ARCH_LE
-    #define __IF_LEBE(le, be)   (le)
-    #define __IF_LE(le)         (le)
+    #define __IF_LEBE(le, be)   le
+    #define __IF_LE(le)         le
     #define __IF_BE(be)
     #ifdef ARCH_BE
         #undef ARCH_BE
     #endif /* ARCH_BE */
 #else /* ARCH_BE */
-    #define __IF_LEBE(le, be)   (be)
+    #define __IF_LEBE(le, be)   be
     #define __IF_LE(le)
-    #define __IF_BE(be)         (be)
+    #define __IF_BE(be)         be
 
     #ifndef ARCH_LE
         #define ARCH_LE
@@ -142,7 +138,7 @@
     #define PLATFORM_LINUX
 #endif /* __linux__ */
 
-#if defined(__bsd__) || defined(__bsd) || defined(__FreeBSD__)
+#if defined(__bsd__) || defined(__bsd) || defined(__FreeBSD__) || defined(freebsd) || defined(openbsd) || defined(bsdi) || defined(__darwin__)
     #define PLATFORM_BSD
 #endif /* __bsd__ */
 
@@ -220,6 +216,7 @@
 
 #define __lsp_forced_inline                 __attribute__ ((always_inline))
 #define __lsp_aligned16                     __attribute__ ((aligned (16)))
+#define __lsp_aligned32                     __attribute__ ((aligned (32)))
 #define __lsp_aligned64                     __attribute__ ((aligned (64)))
 #define __lsp_aligned(bytes)                __attribute__ ((aligned (bytes)))
 
@@ -346,5 +343,11 @@ __IF_32( typedef        uint32_t            umword_t );
 __IF_32( typedef        int32_t             smword_t );
 __IF_64( typedef        uint64_t            umword_t );
 __IF_64( typedef        int64_t             smword_t );
+
+#include <limits.h>
+
+#ifdef PLATFORM_LINUX
+    #include <linux/limits.h>
+#endif /* __linux__ */
 
 #endif /* DSP_TYPES_H_ */

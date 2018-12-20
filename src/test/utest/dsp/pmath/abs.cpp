@@ -111,10 +111,10 @@ UTEST_BEGIN("dsp.pmath", abs)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("sse:abs1", 16, sse::abs1));
-        IF_ARCH_X86(call("sse:abs2", 16, sse::abs2));
-        IF_ARCH_ARM(call("neon_d32:abs1", 16, neon_d32::abs1));
-        IF_ARCH_ARM(call("neon_d32:abs2", 16, neon_d32::abs2));
+        IF_ARCH_X86(call("sse::abs1", 16, sse::abs1));
+        IF_ARCH_X86(call("sse::abs2", 16, sse::abs2));
+        IF_ARCH_ARM(call("neon_d32::abs1", 16, neon_d32::abs1));
+        IF_ARCH_ARM(call("neon_d32::abs2", 16, neon_d32::abs2));
     }
 UTEST_END
 

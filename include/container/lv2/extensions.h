@@ -104,7 +104,6 @@ namespace lsp
             LV2_URID                uridConnectUI;
             LV2_URID                uridUINotification;
             LV2_URID                uridDisconnectUI;
-            LV2_URID                uridMeshType;
             LV2_URID                uridPathType;
             LV2_URID                uridMidiEventType;
 
@@ -128,6 +127,18 @@ namespace lsp
             LV2_URID                uridTimeBeatUnit;
             LV2_URID                uridTimeBeatsPerBar;
             LV2_URID                uridTimeBeatsPerMinute;
+
+            // LSP-related URIDs
+            LV2_URID                uridMeshType;
+            LV2_URID                uridMeshItems;
+            LV2_URID                uridMeshDimensions;
+            LV2_URID                uridMeshData;
+            LV2_URID                uridFrameBufferType;
+            LV2_URID                uridFrameBufferRows;        // Number of rows
+            LV2_URID                uridFrameBufferCols;        // Number of cols
+            LV2_URID                uridFrameBufferFirstRowID;  // First row identifier
+            LV2_URID                uridFrameBufferLastRowID;   // Last row identifier
+            LV2_URID                uridFrameBufferData;        // Frame buffer row data
 
             LV2UI_Controller        ctl;
             LV2UI_Write_Function    wf;
@@ -209,7 +220,6 @@ namespace lsp
                 uridDisconnectUI    = map_primitive("ui_disconnect");
                 uridStateRequest    = map_type("StateRequest");
                 uridStateChange     = map_type("StateChange");
-                uridMeshType        = map_type("Mesh");
                 uridPathType        = forge.Path;
                 uridMidiEventType   = map_uri(LV2_MIDI__MidiEvent);
                 uridPatchGet        = map_uri(LV2_PATCH__Get);
@@ -231,6 +241,19 @@ namespace lsp
                 uridTimeBeatUnit    = map_uri(LV2_TIME__beatUnit);
                 uridTimeBeatsPerBar = map_uri(LV2_TIME__beatsPerBar);
                 uridTimeBeatsPerMinute = map_uri(LV2_TIME__beatsPerMinute);
+
+                // LSP-related URIDs
+                uridMeshType                = map_type("Mesh");
+                uridMeshItems               = map_field("Mesh#items");
+                uridMeshDimensions          = map_field("Mesh#dimensions");
+                uridMeshData                = map_field("Mesh#data");
+
+                uridFrameBufferType         = map_type("FrameBuffer");
+                uridFrameBufferRows         = map_field("FrameBuffer#rows");
+                uridFrameBufferCols         = map_field("FrameBuffer#columns");
+                uridFrameBufferFirstRowID   = map_field("FrameBuffer#firstRowID");
+                uridFrameBufferLastRowID    = map_field("FrameBuffer#lastRowID");
+                uridFrameBufferData         = map_field("FrameBuffer#data");
 
                 // Decode passed options if they are present
                 if (opts != NULL)
@@ -449,6 +472,11 @@ namespace lsp
                 return map_uri("%s/types#%s", LSP_TYPE_URI(lv2), id);
             }
 
+            inline LV2_URID map_field(const char *id)
+            {
+                return map_uri("%s/%s", LSP_TYPE_URI(lv2), id);
+            }
+
             inline LV2_URID map_primitive(const char *id)
             {
                 return map_uri("%s/%s", uriPlugin, id);
@@ -614,10 +642,7 @@ namespace lsp
     {
         size_t                  nMaxItems;
         size_t                  nBuffers;
-        LV2_URID                uridItems;
-        LV2_URID                uridDimensions;
         mesh_t                 *pMesh;
-        LV2_URID               *pUrids;
         uint8_t                *pData;
 
         LV2Mesh()
@@ -625,10 +650,7 @@ namespace lsp
             nMaxItems       = 0;
             nBuffers        = 0;
             pMesh           = NULL;
-            pUrids          = NULL;
             pData           = NULL;
-            uridItems       = 0;
-            uridDimensions  = 0;
         }
 
         ~LV2Mesh()
@@ -639,7 +661,6 @@ namespace lsp
                 delete [] (pData);
                 pData       = NULL;
             }
-            pUrids      = NULL;
             pMesh       = NULL;
         }
 
@@ -662,17 +683,14 @@ namespace lsp
             uint8_t *ptr        = ALIGN_PTR(pData, DEFAULT_ALIGN);
             pMesh               = reinterpret_cast<mesh_t *>(ptr);
             ptr                += hdr_size;
-            pUrids              = reinterpret_cast<LV2_URID *>(ptr);
-            ptr                += urid_size;
 
-            lsp_trace("ptr = %p, pMesh = %p, pUrids = %p", ptr, pMesh, pUrids);
+            lsp_trace("ptr = %p, pMesh = %p", ptr, pMesh);
 
             for (size_t i=0; i<nBuffers; ++i)
             {
                 lsp_trace("bufs[%d] = %p", int(i), ptr);
                 pMesh->pvData[i]    = reinterpret_cast<float *>(ptr);
                 ptr                += buf_size;
-                pUrids[i]           = ext->map_uri("%s/Mesh#dimension%d", LSP_TYPE_URI(lv2), int(i));
             }
 
             lsp_assert(ptr <= &pData[to_alloc + DEFAULT_ALIGN]);
@@ -680,8 +698,6 @@ namespace lsp
             pMesh->nState       = M_WAIT;
             pMesh->nBuffers     = 0;
             pMesh->nItems       = 0;
-            uridItems           = ext->map_uri("%s/Mesh#items", LSP_TYPE_URI(lv2));
-            uridDimensions      = ext->map_uri("%s/Mesh#dimensions", LSP_TYPE_URI(lv2));
 
             lsp_trace("Initialized");
         }
@@ -725,6 +741,14 @@ namespace lsp
                     else if (IS_IN_PORT(p) && (!in))
                         break;
                     size            += LV2Mesh::size_of_port(p);
+                    break;
+                case R_FBUFFER:
+                    if (IS_OUT_PORT(p) && (!out))
+                        break;
+                    else if (IS_IN_PORT(p) && (!in))
+                        break;
+                    size           += (4 * sizeof(LV2_Atom_Int) + 0x100) + // Headers
+                                        size_t(p->step) * FRAMEBUFFER_BULK_MAX * sizeof(float);
                     break;
 //                case R_MIDI:
 //                    if (IS_OUT_PORT(p) && (!out))

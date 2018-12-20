@@ -643,7 +643,7 @@ namespace lsp
                 for (size_t j=0; j<nChannels; ++j)
                 {
                     af_descriptor_t *f = &vFiles[j];
-                    c->sPlayer.bind(j, f->pCurrSample);
+                    c->sPlayer.bind(j, f->pCurrSample, false);
                 }
             }
 

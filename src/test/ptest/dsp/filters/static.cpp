@@ -42,6 +42,15 @@ IF_ARCH_X86(
     )
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void biquad_process_x1(float *dst, const float *src, size_t count, biquad_t *f);
+        void biquad_process_x2(float *dst, const float *src, size_t count, biquad_t *f);
+        void biquad_process_x4(float *dst, const float *src, size_t count, biquad_t *f);
+        void biquad_process_x8(float *dst, const float *src, size_t count, biquad_t *f);
+    }
+)
 
 typedef void (* biquad_process_t)(float *dst, const float *src, size_t count, biquad_t *f);
 
@@ -199,24 +208,28 @@ PTEST_BEGIN("dsp.filters", static, 30, 10000)
             out[i]              = 0.0f;
         }
 
-        process_8x1("8 biquad x1 native", out, in, FTEST_BUF_SIZE, native::biquad_process_x1);
-        IF_ARCH_X86(process_8x1("8 biquad x1 sse", out, in, FTEST_BUF_SIZE, sse::biquad_process_x1));
+        process_8x1("native::biquad_process_x1 x8", out, in, FTEST_BUF_SIZE, native::biquad_process_x1);
+        IF_ARCH_X86(process_8x1("sse::biquad_process_x1 x8", out, in, FTEST_BUF_SIZE, sse::biquad_process_x1));
+        IF_ARCH_ARM(process_8x1("neon_d32::biquad_process_x1 x8", out, in, FTEST_BUF_SIZE, neon_d32::biquad_process_x1));
         PTEST_SEPARATOR;
 
-        process_4x2("4 biquad x2 native", out, in, FTEST_BUF_SIZE, native::biquad_process_x2);
-        IF_ARCH_X86(process_4x2("4 biquad x2 sse", out, in, FTEST_BUF_SIZE, sse::biquad_process_x2));
-        IF_ARCH_X86_64(process_4x2("4 biquad x2 x64_sse3", out, in, FTEST_BUF_SIZE, sse3::x64_biquad_process_x2));
+        process_4x2("native::biquad_process_x2 x4", out, in, FTEST_BUF_SIZE, native::biquad_process_x2);
+        IF_ARCH_X86(process_4x2("sse::biquad_process_x2 x4", out, in, FTEST_BUF_SIZE, sse::biquad_process_x2));
+        IF_ARCH_X86_64(process_4x2("sse3::x64_biquad_process_x2 x4", out, in, FTEST_BUF_SIZE, sse3::x64_biquad_process_x2));
+        IF_ARCH_ARM(process_4x2("neon_d32::biquad_process_x2 x4", out, in, FTEST_BUF_SIZE, neon_d32::biquad_process_x2));
         PTEST_SEPARATOR;
 
-        process_2x4("2 biquad x4 native", out, in, FTEST_BUF_SIZE, native::biquad_process_x4);
-        IF_ARCH_X86(process_2x4("2 biquad x4 sse", out, in, FTEST_BUF_SIZE, sse::biquad_process_x4));
+        process_2x4("native::biquad_process_x4 x2", out, in, FTEST_BUF_SIZE, native::biquad_process_x4);
+        IF_ARCH_X86(process_2x4("sse::biquad_process_x4 x2", out, in, FTEST_BUF_SIZE, sse::biquad_process_x4));
+        IF_ARCH_ARM(process_2x4("neon_d32::biquad_process_x4 x2", out, in, FTEST_BUF_SIZE, neon_d32::biquad_process_x4));
         PTEST_SEPARATOR;
 
-        process_1x8("1 biquad x8 native", out, in, FTEST_BUF_SIZE, native::biquad_process_x8);
-        IF_ARCH_X86(process_1x8("1 biquad x8 sse", out, in, FTEST_BUF_SIZE, sse::biquad_process_x8));
-        IF_ARCH_X86_64(process_1x8("1 biquad x8 x64_sse3", out, in, FTEST_BUF_SIZE, sse3::x64_biquad_process_x8));
-        IF_ARCH_X86_64(process_1x8("1 biquad x8 x64_avx", out, in, FTEST_BUF_SIZE, avx::x64_biquad_process_x8));
-        IF_ARCH_X86_64(process_1x8("1 biquad x8 x64_fma3", out, in, FTEST_BUF_SIZE, avx::x64_biquad_process_x8_fma3));
+        process_1x8("native::biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, native::biquad_process_x8);
+        IF_ARCH_X86(process_1x8("sse::biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, sse::biquad_process_x8));
+        IF_ARCH_X86_64(process_1x8("sse3::x64_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, sse3::x64_biquad_process_x8));
+        IF_ARCH_X86_64(process_1x8("avx::x64_biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, avx::x64_biquad_process_x8));
+        IF_ARCH_X86_64(process_1x8("avx::x64_biquad_process_x8_fma3 x1", out, in, FTEST_BUF_SIZE, avx::x64_biquad_process_x8_fma3));
+        IF_ARCH_ARM(process_1x8("neon_d32::biquad_process_x8 x1", out, in, FTEST_BUF_SIZE, neon_d32::biquad_process_x8));
         PTEST_SEPARATOR;
 
         delete [] out;

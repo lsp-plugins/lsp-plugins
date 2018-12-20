@@ -66,6 +66,8 @@ namespace lsp
 
                     virtual ISurface *create(size_t width, size_t height);
 
+                    virtual ISurface *create_copy();
+
                     virtual IGradient *linear_gradient(float x0, float y0, float x1, float y1);
 
                     virtual IGradient *radial_gradient
@@ -81,6 +83,10 @@ namespace lsp
                     virtual void draw(ISurface *s, float x, float y);
 
                     virtual void draw(ISurface *s, float x, float y, float sx, float sy);
+
+                    virtual void draw_alpha(ISurface *s, float x, float y, float sx, float sy, float a);
+
+                    virtual void draw_rotate_alpha(ISurface *s, float x, float y, float sx, float sy, float ra, float a);
 
                     virtual void draw_clipped(ISurface *s, float x, float y, float sx, float sy, float sw, float sh);
 
@@ -128,6 +134,10 @@ namespace lsp
 
                     virtual void out_text_relative(const Font &f, float x, float y, float dx, float dy, const char *text, const Color &color);
 
+                    virtual void square_dot(float x, float y, float width, const Color &color);
+
+                    virtual void square_dot(float x, float y, float width, float r, float g, float b, float a);
+
                     virtual void line(float x0, float y0, float x1, float y1, float width, const Color &color);
 
                     virtual void line(float x0, float y0, float x1, float y1, float width, IGradient *g);
@@ -166,6 +176,10 @@ namespace lsp
                     virtual surf_line_cap_t get_line_cap();
 
                     virtual surf_line_cap_t set_line_cap(surf_line_cap_t lc);
+
+                    virtual void *start_direct();
+
+                    virtual void end_direct();
             };
         }
     }

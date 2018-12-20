@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdarg.h>
 
 #define CK_HEAD_SIGNATURE       0xa5c33c5aL
 #define CK_TAIL_SIGNATURE       0x35caac53L
@@ -86,6 +87,19 @@ namespace test
     {
         for (size_t i=0; i<nLength; ++i)
             pBuffer[i] = (float(rand())/RAND_MAX) + 0.001f;
+    }
+
+    void FloatBuffer::randomize_0to1()
+    {
+        for (size_t i=0; i<nLength; ++i)
+            pBuffer[i] = (float(rand())/(RAND_MAX-1));
+    }
+
+    void FloatBuffer::randomize(float min, float max)
+    {
+        float delta = max - min;
+        for (size_t i=0; i<nLength; ++i)
+            pBuffer[i] = min + delta * (float(rand())/(RAND_MAX-1));
     }
 
     void FloatBuffer::randomize_negative()
@@ -172,10 +186,7 @@ namespace test
         const float *a = pBuffer, *b = src.pBuffer;
         for (size_t i=0; i<nLength; ++i)
         {
-            bool equals = (fabs(a[i]) > 1.0f) ?
-                    float_equals_relative(a[i], b[i], tolerance) :
-                    float_equals_absolute(a[i], b[i], tolerance);
-            if (!equals)
+            if (!float_equals_adaptive(a[i], b[i], tolerance))
             {
                 nLastDiff = i;
                 src.nLastDiff = i;
@@ -191,6 +202,7 @@ namespace test
         for (size_t i=0; i<nLength; ++i)
             printf("%.5f ", pBuffer[i]);
         printf("\n");
+        fflush(stdout);
     }
 
     void FloatBuffer::dump(const char *text, size_t from, size_t count) const
@@ -199,6 +211,27 @@ namespace test
         for (size_t i=from; (i<nLength) && (count > 0); ++i, --count)
             printf("%.5f ", pBuffer[i]);
         printf("\n");
+        fflush(stdout);
+    }
+
+    void FloatBuffer::dump_hex(const char *text) const
+    {
+        printf("%s: ", text);
+        const uint32_t *ptr = reinterpret_cast<const uint32_t *>(pBuffer);
+        for (size_t i=0; i<nLength; ++i)
+            printf("%08x ", int(ptr[i]));
+        printf("\n");
+        fflush(stdout);
+    }
+
+    void FloatBuffer::dump_hex(const char *text, size_t from, size_t count) const
+    {
+        printf("%s: ", text);
+        const uint32_t *ptr = reinterpret_cast<const uint32_t *>(pBuffer);
+        for (size_t i=from; (i<nLength) && (count > 0); ++i, --count)
+            printf("%08x ", int(ptr[i]));
+        printf("\n");
+        fflush(stdout);
     }
 
     void FloatBuffer::copy(const FloatBuffer &buf)
@@ -207,5 +240,22 @@ namespace test
         memcpy(pBuffer, buf.pBuffer, to_copy * sizeof(float));
         while (to_copy < nLength)
             pBuffer[to_copy++] = 0.0f;
+    }
+
+    void FloatBuffer::copy(const float *buf, size_t count)
+    {
+        size_t to_copy = (count < nLength) ? count : nLength;
+        memcpy(pBuffer, buf, to_copy * sizeof(float));
+        while (to_copy < nLength)
+            pBuffer[to_copy++] = 0.0f;
+    }
+
+    void FloatBuffer::vfill(size_t off, size_t n, ...)
+    {
+        va_list vl;
+        va_start(vl, n);
+        for (size_t i=off; (n > 0) && i<nLength; ++i, --n)
+            pBuffer[i]  = va_arg(vl, double);
+        va_end(vl);
     }
 }

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <core/types.h>
 #include <core/lib.h>
 
 #include <metadata/metadata.h>
@@ -216,6 +217,7 @@ namespace lsp
             {
                 case R_UI_SYNC:
                 case R_MESH:
+                case R_FBUFFER:
                 case R_PATH:
                 case R_PORT_SET:
                     continue;
@@ -334,6 +336,7 @@ namespace lsp
                     result     |= REQ_PATH_MASK | REQ_INSTANCE;
                     break;
                 case R_MESH:
+                case R_FBUFFER:
                     result     |= REQ_INSTANCE;
                     break;
                 case R_MIDI:
@@ -607,6 +610,7 @@ namespace lsp
             {
                 case R_UI_SYNC:
                 case R_MESH:
+                case R_FBUFFER:
                 case R_PATH:
                 case R_PORT_SET:
                     continue;

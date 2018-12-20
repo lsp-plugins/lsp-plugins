@@ -90,6 +90,31 @@ namespace lsp
                 size_t          nFadeOut_Over;      // Fade out time, oversampled [samples]
             } fader_t;
 
+            // Convolution Parameters
+            typedef struct conv_t
+            {
+            	size_t          nChannels;          // Number of channels of convolution result
+            	size_t          nPartitionSize;     // Size of the partition used to compute convolution [samples]
+            	size_t 			nConvRank; 			// Rank of single partition convolution
+            	size_t 			nImage; 			// Size of single partition convolution images [samples]
+
+            	size_t 			nAllocationSize; 	// Number of samples to allocate for convolution result AudioFile object [samples]
+            	size_t 		   *vPartitions; 		// Number of partitions used to cover each single padded input time series for each channel
+            	size_t 		   *vPaddedLengths;     // Length of each input time series for each channel, padded with zeros so to be long an integer number of partition sizes [samples] - The zero pad is not real (allocated), but convolution happens as if it was.
+            	size_t 		   *vInversePrepends; 	// Length of the zero prepending at the inverse filter, so that the total length of prepend + filter is the same as the padded channel length [samples] - The zero prepend is not real (allocated), but convolution happens as if it was.
+            	size_t 		   *vConvLengths;       // For each channel in the convolution result, the length of the result stored therein, counted from the beginning [samples]
+            	size_t         *vAlignOffsets;      // For each channel in the convolution result, the offset with which the result has to be stored so that all the origins of times are aligned [samples]
+            	uint8_t        *pData;
+
+            	float 		   *vInPart; 			// Holds a single input time series partition
+            	float          *vInvPart; 			// Holds a single inverse filter partition
+				float          *vInImage; 			// Holds a single input time series FFT image
+				float 	       *vInvImage; 			// Holds a single inverse filter FFT image
+				float 		   *vTemp; 				// Holds temporary data
+            	uint8_t 	   *pTempData;
+            	bool 			bReallocateTemp;
+            } conv_t;
+
             // Convolution Result Post-processing values:
             typedef struct crpostproc_t
             {
@@ -140,6 +165,8 @@ namespace lsp
 
             fader_t             sFader;
 
+            conv_t 				sConvParams;
+
             crpostproc_t        sCRPostProc;
 
             Sample             *pChirp;
@@ -165,12 +192,57 @@ namespace lsp
 
         protected:
 
+            /** Calculate the best partition size for convolution. Also computes rank and image size.
+             *
+             * @param partSizeLimit max partition size
+             */
+            void calculateConvolutionPartitionSize(size_t partSizeLimit);
+
+            /** Allocate arrays for channel dependent properties.
+             *
+             * @param nchannels number of channels in the convolution result.
+             */
+            status_t allocateConvolutionParameters(size_t nchannels);
+
+            /** Destroy arrays for channel dependent properties.
+             *
+             */
+            void destroyConvolutionParameters();
+
+            /** Calculate convolution parameters from convolution operation input.
+             *
+             * @param data array of pointers to mono Sample objects, as many as the allocated number of channels for the result.
+             * @param offset 0 time index for the time series
+             */
+            void calculateConvolutionParameters(Sample **data, size_t *offset);
+
+            /** Allocate temporary arrays for convolution.
+             *
+             */
+            status_t allocateConvolutionTempArrays();
+
+            /** Destroy temporary arrays for convolution.
+             *
+             */
+            void destroyConvolutionTempArrays();
+
             /** Allocate memory for the convolution result
+             *
              * @param size_t sampleRate sample rate of the convolution result
+             * @param size_t nchannels number of channels of the convolution result
              * @param size_t count number of samples to be allocated
              * @return status
              */
-            status_t allocateConvolutionResult(size_t sampleRate, size_t count);
+            status_t allocateConvolutionResult(size_t sampleRate, size_t nchannels, size_t count);
+
+            /** Convolve a time series with the inverse filter
+             *
+             * @param data pointer to Sample object containing the time series
+             * @param offset 0 time index for the time series
+             * @param channel channel destination in the multichannel convolution result
+             * @return status
+             */
+            status_t do_linear_convolution(Sample *data, size_t offset, size_t channel);
 
             /** Allocate memory for the nonlinear identification matrices
              *
@@ -179,6 +251,11 @@ namespace lsp
              * @return status
              */
             status_t allocateIdentificationMatrices(size_t order, size_t windowSize);
+
+            /** Destroy the nonlinear identification matrices
+             *
+             */
+            void destroyIdentificationMatrices();
 
             /** Convert from matrix subscript to allocated memory index for coefficients matrices
              *
@@ -211,12 +288,13 @@ namespace lsp
 
             /** Window Higher Order Responses
              *
+             * @param channel channel in the convolution result
              * @param doInnerSmoothing if true, it will apply a fade in and fadeout to the the higher order response
              * @param nFadeIn number of samples for the inner fade in
              * @param nFadeOut number of samples for the inner fade out
              * @param windowType type of smoothing window to be applied to the whole of the higher order response vector
              */
-            void windowHigherOrderResponses(bool doInnerSmoothing, size_t nFadeIn, size_t nFadeOut, windows::window_t windowType);
+            void windowHigherOrderResponses(size_t channel, bool doInnerSmoothing, size_t nFadeIn, size_t nFadeOut, windows::window_t windowType);
 
             /** Calculate a sample of a synchronized chirp wave
              *
@@ -249,20 +327,22 @@ namespace lsp
              * @param limit number of negative time samples to use in the assessment [samples]
              * @return status
              */
-            status_t profile_background_noise(size_t head, size_t count);
+            status_t profile_background_noise(size_t channel, size_t head, size_t count);
 
             /** Calibrate backwards integration limit. This will calculate the limit for a backwards integration which starts
              *  at the supplied head parameter
              *
+             * @param channel channel in the convolution result
              * @param head sample of the convolution result from which to start analysis [samples]
              * @oaram windowSize size of the window used for the envelope follower [samples]
              * @param tolerance level above background noise below which, even if convolution result peaks are found, the convolution result is considered faded into noise [dB]
              * @return status
              */
-            status_t calibrate_backwards_integration_limit(size_t head, size_t windowSize, double tolerance);
+            status_t calibrate_backwards_integration_limit(size_t channel, size_t head, size_t windowSize, double tolerance);
 
             /** Calculate reverberation time of the positive time response by backward integration, relative to head.
              *
+             * @param channel channel in the convolution result
              * @param head sample of the convolution result from which to start analysis [samples]
              * @param decayThreshold IR level threshold below which reverberation is considered complete [dB]
              * @param highRegLevel higher level of the limits at which regression line fitting is to be performed [dB]
@@ -270,16 +350,17 @@ namespace lsp
              * @param limit limit sample up to which the squared impulse response is summed, with respect head [samples]
              * @return status
              */
-            status_t calculate_reverberation_time(size_t head, double decayThreshold, double highRegLevel, double lowRegLevel, size_t limit);
+            status_t calculate_reverberation_time(size_t channel, size_t head, double decayThreshold, double highRegLevel, double lowRegLevel, size_t limit);
 
             /** Calculate reverberation time of the positive time response by backward integration, relative to head.
              *
+             * @param channel channel in the convolution result
              * @param head sample of the convolution result from which to start analysis [samples]
              * @param rtCalc reverberation time calculation method
              * @param limit integration limit [samples]
              * @return status
              */
-            status_t calculate_reverberation_time(size_t head, scp_rtcalc_t rtCalc, size_t limit);
+            status_t calculate_reverberation_time(size_t channel, size_t head, scp_rtcalc_t rtCalc, size_t limit);
 
             /** Calculate the binomial coefficient n over k (n choose k)
              *
@@ -297,26 +378,29 @@ namespace lsp
              */
             status_t reconfigure();
 
-            /** Convolve a time series with the inverse filter
+            /** Do multiple convolutions, each for each channel in the convolution result
              *
-             * @param data pointer to Sample object containing the time series
+             * @param data array of pointers to mono Sample objects, as many as the allocated number of channels for the result.
              * @param offset 0 time index for the time series
-             * @return status
+             * @param nchannels number of channels in the convolution result
+             * @param partSizeLimit maximum size for convolution partision size
              */
-            status_t do_linear_convolution(Sample *data, size_t offset);
+            status_t do_linear_convolutions(Sample **data, size_t *offset, size_t nchannels, size_t partSizeLimit);
 
             /** Postprocess the Linear Convolution result
              *
+             * @param channel channel in the convolution result
              * @param offset samples offset from the middle of the convolution result [samples]
              * @param rtCalc reverberation time calculation method
              * @oaram windowSize size of the window used for the envelope follower [s]
              * @param tolerance level above background noise below which, even if convolution result peaks are found, the convolution result is considered faded into noise [dB]
              *
              */
-            status_t postprocess_linear_convolution(ssize_t offset, scp_rtcalc_t rtCalc, float windowSize, double tolerance);
+            status_t postprocess_linear_convolution(size_t channel, ssize_t offset, scp_rtcalc_t rtCalc, float windowSize, double tolerance);
 
             /** Postprocess the Nonlinear Convolution result
              *
+             * @param channel channel in the convolution result
              * @param order order of the model
              * @param nFadeIn number of samples for the inner fade in
              * @param nFadeOut number of samples for the inner fade out
@@ -324,7 +408,7 @@ namespace lsp
              * @param nWindowRank rank of resulting FIR responses kernels (exponent of 2 defining their length: 2^nWindowRank)
              * @return status
              */
-            status_t postprocess_nonlinear_convolution(size_t order, bool doInnerSmoothing, size_t nFadeIn, size_t nFadeOut, windows::window_t windowType, size_t nWindowRank);
+            status_t postprocess_nonlinear_convolution(size_t channel, size_t order, bool doInnerSmoothing, size_t nFadeIn, size_t nFadeOut, windows::window_t windowType, size_t nWindowRank);
 
             /** Save linear convolution result to file, any wanted interval
              *
@@ -359,7 +443,7 @@ namespace lsp
              * @param offset frames offset from the middle frame (stored as a value only)
              * @return status
              */
-            status_t save_nonlinear_convolution(const char *path, ssize_t offset = 0);
+            status_t save_to_lspc(const char *path, ssize_t offset = 0);
 
             /** Load convolution result and chirp parameters from lspc file
              *
@@ -584,10 +668,10 @@ namespace lsp
                 return sCRPostProc.fIrLimit;
             }
 
-            /** Get noise level suitability for accurate measurements
+            /** Return whether the background noise was optimal for the requested RT measurement
              *
              */
-            inline bool get_background_noise_suitability() const
+            inline bool get_background_noise_optimality() const
             {
                 return sCRPostProc.bLowNoise;
             }
@@ -719,30 +803,33 @@ namespace lsp
 
             /** Get convolution result samples for plots, arbitrary initial head
              *
+             * @param channel channel in the convolution result
              * @param dst pointer to destination data
              * @param head sample of the convolution result from which to start collecting plot data
              * @param convLimit sample of the convolution result up to which the plot data are extracted, relative to head
              * @param plotCount requested samples for plot
              */
-            void get_convolution_result_plottable_samples(float *dst, size_t head, size_t convLimit, size_t plotCount, bool normalize = true);
+            void get_convolution_result_plottable_samples(size_t channel, float *dst, size_t head, size_t convLimit, size_t plotCount, bool normalize = true);
 
             /** Get convolution result samples for plots, arbitrary initial offset
              *
+             * @param channel channel in the convolution result
              * @param dst pointer to destination data
              * @param offset samples offset from the middle of the convolution result from which to start collecting plot data
              * @param convLimit sample of the convolution result up to which the plot data are extracted, relative to head
              * @param plotCount requested samples for plot
              * @param normalize if true, normalise the plot samples with respect convolution result peak
              */
-            void get_convolution_result_plottable_samples(float *dst, ssize_t offset, size_t convLimit, size_t plotCount, bool normalize = true);
+            void get_convolution_result_plottable_samples(size_t channel, float *dst, ssize_t offset, size_t convLimit, size_t plotCount, bool normalize = true);
 
             /** Get convolution result samples for plots, starting from middle of convolution result
              *
+             * @param channel channel in the convolution result
              * @param dst pointer to destination data
              * @param convLimit sample of the convolution result up to which the plot data are extracted, relative to middle
              * @param plotCount requested samples for plot
              */
-            void get_convolution_result_plottable_samples(float *dst, size_t convLimit, size_t plotCount, bool normalize = true);
+            void get_convolution_result_plottable_samples(size_t channel, float *dst, size_t convLimit, size_t plotCount, bool normalize = true);
 
             /** Set Oversampler mode
              *

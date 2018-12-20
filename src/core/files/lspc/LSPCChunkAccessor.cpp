@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <core/debug.h>
 #include <core/files/lspc/LSPCChunkAccessor.h>
 
 namespace lsp
@@ -52,9 +53,16 @@ namespace lsp
         while (count > 0)
         {
             errno       = 0;
-            size_t written  = pwrite(fd, bptr, count, length);
-            if ((written < count) && (errno != 0))
-                return STATUS_IO_ERROR;
+            ssize_t written  = pwrite(fd, bptr, count, length);
+            if (written < ssize_t(count))
+            {
+                int error = errno;
+                if (error != 0)
+                {
+                    lsp_trace("Error write: errno=%d", error);
+                    return STATUS_IO_ERROR;
+                }
+            }
 
             bptr       += written;
             length     += written;

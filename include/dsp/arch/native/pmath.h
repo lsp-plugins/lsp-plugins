@@ -234,6 +234,91 @@ namespace native
         }
     }
 
+    void exp1(float *dst, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i]  = expf(dst[i]);
+    }
+
+    void exp2(float *dst, const float *src, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i]  = expf(src[i]);
+    }
+
+    void logb1(float *dst, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = logf(dst[i]) * M_LOG2E;
+    }
+
+    void logb2(float *dst, const float *src, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = logf(src[i]) * M_LOG2E;
+    }
+
+    void loge1(float *dst, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = logf(dst[i]);
+    }
+
+    void loge2(float *dst, const float *src, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = logf(src[i]);
+    }
+
+    void logd1(float *dst, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = log10f(dst[i]);
+    }
+
+    void logd2(float *dst, const float *src, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = log10f(src[i]);
+    }
+
+    void powcv1(float *v, float c, size_t count)
+    {
+        float C = logf(c);
+        for (size_t i=0; i<count; ++i)
+            v[i] = expf(v[i] * C);
+    }
+
+    void powcv2(float *dst, const float *v, float c, size_t count)
+    {
+        float C = logf(c);
+        for (size_t i=0; i<count; ++i)
+            dst[i] = expf(v[i] * C);
+    }
+
+    void powvc1(float *c, float v, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            c[i] = expf(v * logf(c[i]));
+    }
+
+    void powvc2(float *dst, const float *c, float v, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = expf(v * logf(c[i]));
+    }
+
+    void powvx1(float *v, const float *x, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            v[i] = expf(x[i] * logf(v[i]));
+    }
+
+    void powvx2(float *dst, const float *v, const float *x, size_t count)
+    {
+        for (size_t i=0; i<count; ++i)
+            dst[i] = expf(x[i] * logf(v[i]));
+    }
 }
 
 #endif /* DSP_ARCH_NATIVE_PMATH_H_ */

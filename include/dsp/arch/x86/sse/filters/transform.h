@@ -413,8 +413,8 @@ namespace sse
             // x2 = fa3[k], x3 = fa2[k], x4 = fa0[k]
             __ASM_EMIT("movlhps     %[x3], %[x2]")              // x2 = fa2[0] fa2[1] fa3[0] fa3[1]
             __ASM_EMIT("movaps      %[x4], %[x5]")              // x5 = fa0[0] fa0[1]
-            __ASM_EMIT("shufps      $0x80, %[x2], %[x4]")       // x4 = fa0[0] fa0[0] fa2[0] fa3[0]
-            __ASM_EMIT("shufps      $0xd5, %[x2], %[x5]")       // x5 = fa0[1] fa0[1] fa2[1] fa3[1]
+            __ASM_EMIT("shufps      $0x20, %[x2], %[x4]")       // x4 = fa0[0] fa0[0] fa2[0] fa3[0]
+            __ASM_EMIT("shufps      $0x75, %[x2], %[x5]")       // x5 = fa0[1] fa0[1] fa2[1] fa3[1]
             __ASM_EMIT("movaps      %[x4], 0x00(%[bf])")
             __ASM_EMIT("movaps      %[x5], 0x10(%[bf])")
 

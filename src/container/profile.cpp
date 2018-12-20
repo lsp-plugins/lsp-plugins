@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <core/types.h>
 #include <core/status.h>
 #include <plugins/plugins.h>
 #include <data/cvector.h>

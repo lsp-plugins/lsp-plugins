@@ -170,19 +170,19 @@ namespace lsp
 
         bool LSPFont::get_text_parameters(ISurface *s, text_parameters_t *tp, const LSPString *text)
         {
-            const char *str = text->get_native();
+            const char *str = text->get_utf8();
             return (str != NULL) ? s->get_text_parameters(sFont, tp, str) : false;
         }
 
         bool LSPFont::get_text_parameters(ISurface *s, text_parameters_t *tp, const LSPString *text, ssize_t first)
         {
-            const char *str = text->get_native(first);
+            const char *str = text->get_utf8(first);
             return (str != NULL) ? s->get_text_parameters(sFont, tp, str) : false;
         }
 
         bool LSPFont::get_text_parameters(ISurface *s, text_parameters_t *tp, const LSPString *text, ssize_t first, ssize_t last)
         {
-            const char *str = text->get_native(first, last);
+            const char *str = text->get_utf8(first, last);
             return (str != NULL) ? s->get_text_parameters(sFont, tp, str) : false;
         }
 
@@ -203,19 +203,19 @@ namespace lsp
 
         bool LSPFont::estimate_text_parameters(text_parameters_t *tp, const LSPString *text)
         {
-            const char *str = text->get_native();
+            const char *str = text->get_utf8();
             return (str != NULL) ? estimate_text_parameters(tp, str) : false;
         }
 
         bool LSPFont::estimate_text_parameters(text_parameters_t *tp, const LSPString *text, ssize_t first)
         {
-            const char *str = text->get_native(first);
+            const char *str = text->get_utf8(first);
             return (str != NULL) ? estimate_text_parameters(tp, str) : false;
         }
 
         bool LSPFont::estimate_text_parameters(text_parameters_t *tp, const LSPString *text, ssize_t first, ssize_t last)
         {
-            const char *str = text->get_native(first, last);
+            const char *str = text->get_utf8(first, last);
             return (str != NULL) ? estimate_text_parameters(tp, str) : false;
         }
 
@@ -270,7 +270,7 @@ namespace lsp
                 }
 
                 // Get text parameters
-                const char *str = text->get_native(prev, tail);
+                const char *str = text->get_utf8(prev, tail);
                 if (str == NULL)
                     return false;
 
@@ -298,21 +298,21 @@ namespace lsp
 
         void LSPFont::draw(ISurface *s, float x, float y, const LSPString *text)
         {
-            const char *str = text->get_native();
+            const char *str = text->get_utf8();
             if (str != NULL)
                 s->out_text(sFont, x, y, str, sColor);
         }
 
         void LSPFont::draw(ISurface *s, float x, float y, const LSPString *text, size_t first)
         {
-            const char *str = text->get_native(first);
+            const char *str = text->get_utf8(first);
             if (str != NULL)
                 s->out_text(sFont, x, y, str, sColor);
         }
 
         void LSPFont::draw(ISurface *s, float x, float y, const LSPString *text, size_t first, size_t last)
         {
-            const char *str = text->get_native(first, last);
+            const char *str = text->get_utf8(first, last);
             if (str != NULL)
                 s->out_text(sFont, x, y, str, sColor);
         }
@@ -324,21 +324,21 @@ namespace lsp
 
         void LSPFont::draw(ISurface *s, float x, float y, const Color & c, const LSPString *text)
         {
-            const char *str = text->get_native();
+            const char *str = text->get_utf8();
             if (str != NULL)
                 s->out_text(sFont, x, y, str, c);
         }
 
         void LSPFont::draw(ISurface *s, float x, float y, const Color & c, const LSPString *text, size_t first)
         {
-            const char *str = text->get_native(first);
+            const char *str = text->get_utf8(first);
             if (str != NULL)
                 s->out_text(sFont, x, y, str, c);
         }
 
         void LSPFont::draw(ISurface *s, float x, float y, const Color & c, const LSPString *text, size_t first, size_t last)
         {
-            const char *str = text->get_native(first, last);
+            const char *str = text->get_utf8(first, last);
             if (str != NULL)
                 s->out_text(sFont, x, y, str, c);
         }

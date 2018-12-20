@@ -140,6 +140,7 @@ MOD_PLUGIN(sc_mb_compressor_ms)
 
 // Profiler
 MOD_PLUGIN(profiler_mono)
+MOD_PLUGIN(profiler_stereo)
 
 // Nonlinear Convolver
 // MOD_PLUGIN(nonlinear_convolver_mono)

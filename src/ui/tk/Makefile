@@ -7,10 +7,10 @@ FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 $(FILES):
 	@echo "  $(CC) $(FILE)"
 	@mkdir -p $(dir $@)
-	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE) -o $(@)
+	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE)
 
 $(OBJ_TK_CORE): $(FILES)
 	@echo "  $(LD) $(notdir $(@))"
-	@$(LD) $(MERGE_FLAGS) $(PACKAGES) -o $(OBJ_TK_CORE) $(FILES)
+	@$(LD) -o $(OBJ_TK_CORE) $(MERGE_FLAGS) $(PACKAGES) $(FILES)
 
 all: $(OBJ_TK_CORE)

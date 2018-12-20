@@ -51,6 +51,7 @@ namespace lsp
                 }
             }
 
+            sFont.init();
             sFont.set_size(9);
 
             return STATUS_OK;

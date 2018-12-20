@@ -2,7 +2,8 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <alloca.h>
+#include <stdlib.h>
+#include <errno.h>
 
 #include <metadata/metadata.h>
 #include <plugins/plugins.h>
@@ -11,13 +12,16 @@ namespace lsp
 {
     static int gen_cpp_file(const char *path, const plugin_metadata_t *meta, const char *plugin_name, const char *cpp_name)
     {
-        char fname[PATH_MAX];
-        snprintf(fname, PATH_MAX, "%s/%s", path, cpp_name);
+        char fname[PATH_MAX], cppfile[PATH_MAX];
 
-        // Replace character '_' to '-'
-        for (char *dst = fname; *dst != '\0'; ++dst)
-            if (*dst == '_')
-                *dst = '-';
+        // Replace all underscores
+        strncpy(cppfile, cpp_name, PATH_MAX);
+        cppfile[PATH_MAX-1] = '\0';
+        for (char *p=cppfile; *p != '\0'; ++p)
+            if (*p == '_')
+                *p = '-';
+
+        snprintf(fname, PATH_MAX, "%s/%s", path, cppfile);
 
         printf("Generating source file %s\n", fname);
 
@@ -25,7 +29,8 @@ namespace lsp
         FILE *out = fopen(fname, "w");
         if (out == NULL)
         {
-            fprintf(stderr, "Error creating file %s\n", fname);
+            int code = errno;
+            fprintf(stderr, "Error creating file %s, code=%d\n", fname, code);
             return -1;
         }
 
@@ -64,7 +69,8 @@ namespace lsp
         FILE *out = fopen(fname, "w");
         if (out == NULL)
         {
-            fprintf(stderr, "Error creating file %s\n", fname);
+            int code = errno;
+            fprintf(stderr, "Error creating file %s, code=%d\n", fname, code);
             return -2;
         }
 
@@ -72,7 +78,6 @@ namespace lsp
 
         fprintf(out, "FILES                   = $(patsubst %%.cpp, %%, $(wildcard *.cpp))\n");
         fprintf(out, "FILE                    = $(@:%%=%%.cpp)\n");
-        fprintf(out, "EXE_FLAGS              += -ldl\n");
         fprintf(out, "\n");
 
         fprintf(out, ".PHONY: all\n\n");
@@ -81,10 +86,9 @@ namespace lsp
 
         fprintf(out, "$(FILES):\n");
         fprintf(out, "\t@echo \"  $(CC) $(FILE)\"\n");
-//        fprintf(out, "\t@echo $(CC) $(CPPFLAGS) $(CFLAGS) $(EXE_FLAGS) $(INCLUDE) $(FILE) -o $(@)\n");
-        fprintf(out, "\t@$(CC) $(CPPFLAGS) $(CFLAGS) $(EXE_FLAGS) $(INCLUDE) $(FILE) -o $(@)\n\n");
+        fprintf(out, "\t@$(CC) -o $(@) $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE) $(EXE_FLAGS) $(DL_LIBS)\n\n");
 
-        fprintf(out, "install: $(FILES)\n\n");
+        fprintf(out, "install: $(FILES)\n");
         fprintf(out, "\t@$(INSTALL) $(FILES) $(TARGET_PATH)/");
 
         // Close file

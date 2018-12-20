@@ -27,13 +27,17 @@ For more information about licensing, please read LICENSE.txt.
 
 ==== SYSTEM REQUIREMENTS ====
 
+Currently supported platforms:
+  * GNU/Linux;
+  * FreeBSD (experimental).
+
 Currently supported architectures are:
   * i586 (Intel IA-32 architecture, legacy support);
-  * x86_64 (Intel EM64T, AMD64 architecture, full support);
+  * x86_64 (Intel EM64T/AMD64 architecture, full support);
   * ARMv7-AR (experimental, tested on Raspberry Pi 3 Model B).
 
 Supported plugin formats:
-  * LADSPA (not supported by plugins that use MIDI or file loading);
+  * LADSPA (partial support: not supported by plugins that use MIDI or file loading due to LADSPA plugin format restrictions);
   * LV2 (full support);
   * LinuxVST 2.4 (full support);
   * Standalone JACK (full support).
@@ -73,7 +77,7 @@ Known list of supported plugin hosts:
   * Carla
   * Mixbus
   * Qtractor
-  * Reaper native linux version
+  * Reaper (native Linux version)
   * Renoise
   * Tracktion
 
@@ -164,25 +168,88 @@ For successful build you need the following packages to be installed:
   * libexpat-devel >= 2.1
   * libsndfile-devel >= 1.0.25
   * libcairo-devel >= 1.14
+  * php >= 5.5.14
+
+For development, additional packages are required to be installed:
   * glu-devel >= 9.0.0
   * libGL-devel >= 11.2.2
-  * php >= 5.5.14
 
 Currently there is no automake/CMake supported, so to build plugins you
 have to type:
+  make clean
   make
   make install
 
+By default, all supported formats of plugins are built. You may control
+list of built plugin formats by specifying BUILD_MODULES variable:
+  make clean
+  make BULD_MODULES='lv2 vst doc'
+  make install
+
+Available modules are:
+  * ladspa - LADSPA plugin binaries
+  * lv2 - LV2 plugin binaries
+  * vst - LinuxVST plugin binaries
+  * jack - JACK plugin binaries
+  * doc - HTML documentation
+
+Also possible (but not recommended) to specify compile targets:
+  make clean
+  make build_ladspa
+  make build_lv2
+  make build_vst
+  make build_jack
+  make build_doc
+
+By default plugins use '/usr/local' path as installation directory. To
+override this path, you can run build with specifying PREFIX variable:
+  make clean
+  make PREFIX=/usr
+  make install
+
+By default, 'make install' will install all plugin formats (LADSPA, LV2,
+LinuxVST, JACK) and documentation. To install them separately, you can issue
+following commands:
+  make clean
+  make
+  make install_ladspa
+  make install_lv2
+  make install_vst
+  make install_jack
+  make install_doc
+
 To build binaries for debugging/profiling, use the following commands:
+  make clean
   make profile
-  
+
 To build binaries for testing (developers only), use the following commands:
   make clean
   make test
 
 You may also specify the installation root by specifying DESTDIR attribute:
   make install DESTDIR=<installation-root>
-  
+
+To perform cross-building between different architectures, you first should
+have a corresponding toolchain. By default, LSP plugins use 'uname' tool for
+detecting target architecture and set internal variable BUILD_PROFILE to the
+detected value. Currently supported values are 'x86_64', 'i586', 'armv7a'.
+To build plugins for another architecture, just issue following commands:
+  make clean
+  make BUILD_PROFILE=<target architecture>
+
+To automatically build tarballs with binaries, you may use 'release' target:
+  make clean
+  make release
+
+After issuing these commands, '.release' subdirectory will contain tarballs with
+binaries, documentation and sources. To perform release for another architecture,
+same way with BUILD_PROFILE is possible:
+  make clean
+  make BUILD_PROFILE=<target architecture> release
+
+To remove all previsously built tarballs, just issue:
+  make unrelease 
+
 ==== PROFILING / DEBUGGING ====
 
 To profile code, untar special profiling release into directory on the file
@@ -231,7 +298,7 @@ To build testing subsystem, issue the following commands:
   make clean
   make test
 
-After build, we can launth the test binary by issuing command:
+After build, we can launch the test binary by issuing command:
   .build/lsp-plugins-test
 
 This binary provides simple command-line interface, so here's the full usage:  
@@ -248,10 +315,13 @@ This binary provides simple command-line interface, so here's the full usage:
       -h, --help            Display help
       -j, --jobs            Set number of job workers for unit tests
       -l, --list            List all available tests
-      -nf, --nofork         Do not fork child processes (for better
+      -mt, --mtrace         Enable mtrace log
+      -nf, --nofork         Do not fork child processes (for better 
                             debugging capabilities)
+      -nt, --nomtrace       Disable mtrace log
       -o, --outfile file    Output performance test statistics to specified file
       -s, --silent          Do not output additional information from tests
+      -t, --tracepath path  Override default trace path with specified value
       -v, --verbose         Output additional information from tests
 
 Each test has fully-qualified name separated by dot symbols, tests from different

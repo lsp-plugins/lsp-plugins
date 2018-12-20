@@ -103,6 +103,8 @@ namespace lsp
             protected:
                 size_t          nWidth;
                 size_t          nHeight;
+                size_t          nStride;
+                uint8_t        *pData;
                 surface_type_t  nType;
 
             protected:
@@ -138,6 +140,12 @@ namespace lsp
                  * @return created surface or NULL
                  */
                 virtual ISurface *create(size_t width, size_t height);
+
+                /**
+                 * Create copy of current surface
+                 * @return copy of current surface
+                 */
+                virtual ISurface *create_copy();
 
                 /** Create linear gradient
                  *
@@ -198,6 +206,29 @@ namespace lsp
                  * @param sy surface scale y
                  */
                 virtual void draw(ISurface *s, float x, float y, float sx, float sy);
+
+                /** Draw surface with alpha blending
+                 *
+                 * @param s surface to draw
+                 * @param x offset from left
+                 * @param y offset from top
+                 * @param sx surface scale x
+                 * @param sy surface scale y
+                 * @param a alpha
+                 */
+                virtual void draw_alpha(ISurface *s, float x, float y, float sx, float sy, float a);
+
+                /** Draw surface with alpha blending and rotating
+                 *
+                 * @param s surface to draw
+                 * @param x offset from left
+                 * @param y offset from top
+                 * @param sx surface scale x
+                 * @param sy surface scale y
+                 * @param ra rotation angle in radians
+                 * @param a alpha
+                 */
+                virtual void draw_rotate_alpha(ISurface *s, float x, float y, float sx, float sy, float ra, float a);
 
                 /** Draw clipped surface
                  *
@@ -433,6 +464,27 @@ namespace lsp
                  */
                 virtual void out_text_relative(const Font &f, float x, float y, float dx, float dy, const char *text, const Color &color);
 
+                /**
+                 * Draw square dot
+                 * @param x dot location X
+                 * @param y dot location Y
+                 * @param width dot width
+                 * @param color dot color
+                 */
+                virtual void square_dot(float x, float y, float width, const Color &color);
+
+                /**
+                 * Draw square dot
+                 * @param x dot location X
+                 * @param y dot location Y
+                 * @param width dot width
+                 * @param r red
+                 * @param g green
+                 * @param b blue
+                 * @param a alpha
+                 */
+                virtual void square_dot(float x, float y, float width, float r, float g, float b, float a);
+
                 /** Draw line
                  *
                  * @param x0 first point x coordinate
@@ -595,6 +647,36 @@ namespace lsp
                  * @return line cap
                  */
                 virtual surf_line_cap_t set_line_cap(surf_line_cap_t lc);
+
+                /** Return difference (in bytes) between two sequential rows
+                 *
+                 * @return stride between rows
+                 */
+                virtual     size_t stride();
+
+                /**
+                 * Return raw buffer data
+                 *
+                 * @return raw buffer data
+                 */
+                virtual     void *data();
+
+                /**
+                 * Return pointer to the beginning of the specified row
+                 * @param row row number
+                 */
+                virtual     void *row(size_t row);
+
+                /**
+                 * Start direct access to the surface
+                 * @return pointer to surface buffer or NULL if error/not possible
+                 */
+                virtual     void *start_direct();
+
+                /**
+                 * End direct access to the surface
+                 */
+                virtual     void end_direct();
         };
     }
 

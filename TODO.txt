@@ -8,17 +8,11 @@
 - Refactored and optimized filter transfer function calculation. 
 - Implemented sampler with stereo outputs.
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
-
-=== 1.1.5 ===
-
 - Migrated to CMake build system.
-- Additional display mode for spectrum analyzer added.
-- Added possibility to double-click the parameter's value number and enter it manually from keyboard.
+- Added possibility to double-click the parameter's value number and enter it manually with keyboard.
 - Added audio preview to file open dialog.
 - Added bookmarks to file opening dialog.
 - Added subsystem for loading missed files.
-- Additional DSP code optimizations for ARMv7A architecture.
-- Extended unit and performance test coverage.
 
 *******************************************************************************
 * Release steps
@@ -28,7 +22,7 @@
 * Run make clean && make test to build testing system
 * Run .build/lsp-plugins-test utest for running all unit tests and
   ensure that there are no broken unit tests
-* Run make clean && make uninstall && make install to
+* Run make clean && make uninstall && make install && make clean to
   build and install binaries
 * Make video
 * Add video cover to res/video-covers
@@ -103,6 +97,32 @@
 *******************************************************************************
 * FEATURE REQUESTS: Detailed
 *******************************************************************************
+
+==== FFT analysis of the Profiler and Convolver ====
+
+Could it be possible to add a frequency-domain display mode? 
+It'd make it much easier to quickly identify room modes and such. Or if the
+plugin could play back the created IR sample - I could use another plugin to analyze that.﻿
+
+==== Rack / Channel strip plugin ====
+
+Tobbe:
+  Another thing I come and think about is Channel Strip Plugin. Anything you been thinking
+  About? I saw a video and that guy using Studio One and the (I think) stock plugin is called
+  Fat Channel, where he can add plugin in a rack and shift order the way he like.
+  Everything is vertical: Gate, Compressor, EQ ie Compressor, EQ Gate with a touch of a button.
+
+  It's like drag'n'drop plugins the way you want. Looks pretty cool. I know there's tons of them
+  for Windows, but now when I'm a Linux drivers since mid 2000 I rather see things like that for
+  Linux also.
+
+  Exactly what I mean :D a real Channel Strip console where you have the freedom to put whatever
+  you like in whatever order you want. Reverb, Delay, Gate, Compressor...you name it. Maybe it's a
+  crazy idea but what the heck :mrgreen:
+
+  I know about Carla, but that's get me a plugin to add another plugin (like all the Calf Suite)
+  because Reaper only support linux vst for now. Maybe more in the future. Or else I might learn
+  more about Ardour...but I like Reaper alot so...
 
 ==== Sampler ====
   naught101:
@@ -200,43 +220,6 @@
 
     Here is a quick overview of it https://youtu.be/Za7cbeKJUoY?t=164
     
-  Quirq:
-    Back to the main topic, I'd dearly love to see a usable spectrum analyser that looked and behaved like Voxengo's SPAN:
-    I use it for mix/mastering analysis; I was giving feedback to a friend for a CD release in December and looked again
-    for comparable native analysers but went back to SPAN, even though it was a bit of a pain launching it separately and
-    connecting everything up. (Now I've got Carla-rack that would be much, much less of an issue. But still it would be great
-    to have something native.)
-    I've looked at all the native analysers and none of them seem to come close. It's nice/clear to look at (important when
-    you're using it for hours on end), the slope can be varied (useful for that gradual gentle slope down from low to high
-    frequencies when things are balanced), but above all else, it's the fact that the display is smoothed and not at all spiky
-    and is equally detailed across the spectrum (many analysers seem to be less detailed at the low end than they are for the
-    highs). The image above looks like it's probably not on the more smoothed-out Mastering setting and is a bit spikier than
-    the settings I use.
-
-  ssj71:
-    I think you are exactly right sadko, but Quirq is also right. Even though it's less accurate data,
-    a mode like this can help the user to mentally process the data on screen better, even if it's less accurate.
-    If you are using it for balance of frequencies, rather than trying to surgically remove or boost this or that
-    freq, then I think a "frequency smoothed" mode is a good idea. Really it makes sense to have some independent
-    control over smoothing WRT time AND/OR frequency. Especially with a few good presets ("Mastering," "high-accuracy," etc.)
-    then it would be an even more useable and capable analyzer.
-
-  Quirq:
-    Thanks, you've very eloquently summarised what I was trying to say. The reason I got into using SPAN was because
-    that's what the mastering engineer Ian Shepherd used in his Home Mastering EQ course (which I found incredibly useful).
-    When I looked at all the native analysers to put things into practice, they all seem to be built more/just for precision,
-    which is fine for most purposes but not as helpful for the broader-brush approach of mastering. 
-  
-    There are some analysers that are also scaled in a way that I don't find helpful – being marked 100, 200, 200, 400, 600, 800,
-    1kHz, 2k etc with appropriate ticks in between is far more useful than 110, 220, 440, 880 etc. I understand why that's done,
-    but it's harder to work out quickly where a feature of interest occurs in the spectrum unless it's centred around one of the
-    marks. I think as well, having the area under the line makes things easier to read; most analysers do that, but not all.
-
-  Amadeus Folego:
-    You can check calf-analyzer as well (https://www.youtube.com/watch?v=TWfqcf-EyUE).
-
-    Something like baudline (http://baudline.com) with LV2 would be amazing.
-
 ====
   bhilmers:
     A channel-strip style drum plugin would be really great for Linux. Maybe someone will get inspired one day and make it.

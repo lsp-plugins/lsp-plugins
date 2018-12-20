@@ -208,6 +208,7 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
+            sFont.init();
             sFont.set_size(12.0f);
 
             // Bind slots
@@ -331,33 +332,32 @@ namespace lsp
             sListBox.optimal_size_request(&opr);
 
             wr1.nLeft       = r.nLeft + sSize.nLeft;
+            wr1.nTop        = r.nTop + sSize.nTop + sSize.nHeight;
+            wr1.nWidth      = opr.nMaxWidth;
+            wr1.nHeight     = sh - wr1.nTop;
+
             if (wr1.nLeft < 0)
                 wr1.nLeft       = 0;
-            wr1.nWidth      = opr.nMaxWidth;
-
             if ((wr1.nWidth < sSize.nWidth) && (sSize.nWidth < sw))
                 wr1.nWidth      = sSize.nWidth;
             if (wr1.nWidth > sw)
                 wr1.nWidth      = sw;
             if (wr1.nHeight > sh)
                 wr1.nHeight     = sh;
+            if (wr1.nHeight > opr.nMaxHeight)
+                wr1.nHeight     = opr.nMaxHeight;
             if ((wr1.nLeft + wr1.nWidth) >= sw)
             {
                 wr1.nLeft      = sw - wr1.nWidth;
                 if (wr1.nLeft < 0)
                     wr1.nLeft   = 0;
             }
+
             wr2.nLeft       = wr1.nLeft;
-            wr2.nWidth      = wr1.nWidth;
-
-            wr1.nTop        = r.nTop + sSize.nTop + sSize.nHeight;
             wr2.nTop        = 0;
-
-            wr1.nHeight     = sh - wr1.nTop;
+            wr2.nWidth      = wr1.nWidth;
             wr2.nHeight     = r.nTop + sSize.nTop - wr2.nTop;
 
-            if (wr1.nHeight > opr.nMaxHeight)
-                wr1.nHeight     = opr.nMaxHeight;
             if (wr2.nHeight > opr.nMaxHeight)
             {
                 wr2.nTop       += wr2.nHeight - opr.nMaxHeight;

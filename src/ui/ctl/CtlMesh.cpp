@@ -24,10 +24,10 @@ namespace lsp
         void CtlMesh::init()
         {
             CtlWidget::init();
-            if (pWidget == NULL)
-                return;
 
-            LSPMesh *mesh       = static_cast<LSPMesh *>(pWidget);
+            LSPMesh *mesh       = widget_cast<LSPMesh>(pWidget);
+            if (mesh == NULL)
+                return;
 
             // Initialize color controllers
             sColor.init_hsl(pRegistry, mesh, mesh->color(), A_COLOR, A_HUE_ID, A_SAT_ID, A_LIGHT_ID);
@@ -35,7 +35,7 @@ namespace lsp
 
         void CtlMesh::set(widget_attribute_t att, const char *value)
         {
-            LSPMesh *mesh = (pWidget != NULL) ? static_cast<LSPMesh *>(pWidget) : NULL;
+            LSPMesh *mesh = widget_cast<LSPMesh>(pWidget);
 
             switch (att)
             {
@@ -43,10 +43,12 @@ namespace lsp
                     BIND_PORT(pRegistry, pPort, value);
                     break;
                 case A_WIDTH:
-                    PARSE_INT(value, mesh->set_line_width(__));
+                    if (mesh != NULL)
+                        PARSE_INT(value, mesh->set_line_width(__));
                     break;
                 case A_CENTER:
-                    PARSE_INT(value, mesh->set_center_id(__));
+                    if (mesh != NULL)
+                        PARSE_INT(value, mesh->set_center_id(__));
                     break;
                 case A_FILL:
                     PARSE_FLOAT(value, fTransparency = __);

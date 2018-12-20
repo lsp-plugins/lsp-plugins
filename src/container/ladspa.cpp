@@ -5,6 +5,7 @@
 
 #include <ladspa.h>
 
+#include <core/types.h>
 #include <core/lib.h>
 #include <core/debug.h>
 #include <core/NativeExecutor.h>
@@ -21,6 +22,7 @@ namespace lsp
         {
             case R_UI_SYNC:
             case R_MESH:
+            case R_FBUFFER:
                 return false;
             default:
                 return true;
@@ -152,9 +154,6 @@ namespace lsp
             // Generate port descriptor
             switch (p->role)
             {
-                case R_MESH: // Not supported by LADSPA, make it stub
-                case R_UI_SYNC:
-                    continue;
                 case R_AUDIO:
                     *p_descr = (IS_OUT_PORT(p)) ? LADSPA_PORT_OUTPUT | LADSPA_PORT_AUDIO : LADSPA_PORT_INPUT | LADSPA_PORT_AUDIO;
                     break;

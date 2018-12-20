@@ -27,6 +27,16 @@ IF_ARCH_X86(
     }
 )
 
+IF_ARCH_ARM(
+    namespace neon_d32
+    {
+        void fill(float *dst, float value, size_t count);
+        void fill_one(float *dst, size_t count);
+        void fill_zero(float *dst, size_t count);
+        void fill_minus_one(float *dst, size_t count);
+    }
+)
+
 typedef void (* fill_t)(float *dst, float value, size_t count);
 typedef void (* fill_value_t)(float *dst, size_t count);
 
@@ -45,6 +55,7 @@ UTEST_BEGIN("dsp.copy", fill)
                 FloatBuffer dst1(count, align, mask & 0x01);
                 FloatBuffer dst2(count, align, mask & 0x01);
 
+                printf("Testing %s on input buffer of %d numbers, mask=0x%x...\n", label, int(count), int(mask));
                 func1(dst1, M_PI, count);
                 func2(dst2, M_PI, count);
 
@@ -75,6 +86,7 @@ UTEST_BEGIN("dsp.copy", fill)
                 FloatBuffer dst1(count, align, mask & 0x01);
                 FloatBuffer dst2(count, align, mask & 0x01);
 
+                printf("Testing %s on input buffer of %d numbers, mask=0x%x...\n", label, int(count), int(mask));
                 func1(dst1, count);
                 func2(dst2, count);
 
@@ -93,10 +105,15 @@ UTEST_BEGIN("dsp.copy", fill)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("fill_sse", 16, native::fill, sse::fill));
-        IF_ARCH_X86(call("fill_one_sse", 16, native::fill_one, sse::fill_one));
-        IF_ARCH_X86(call("fill_zero_sse", 16, native::fill_zero, sse::fill_zero));
-        IF_ARCH_X86(call("fill_minus_one_sse", 16, native::fill_minus_one, sse::fill_minus_one));
+        IF_ARCH_X86(call("sse:fill", 16, native::fill, sse::fill));
+        IF_ARCH_X86(call("sse:fill_one", 16, native::fill_one, sse::fill_one));
+        IF_ARCH_X86(call("sse:fill_zero", 16, native::fill_zero, sse::fill_zero));
+        IF_ARCH_X86(call("sse:fill_minus_one", 16, native::fill_minus_one, sse::fill_minus_one));
+
+        IF_ARCH_ARM(call("neon_d32:fill", 16, native::fill, neon_d32::fill));
+        IF_ARCH_ARM(call("neon_d32:fill_one", 16, native::fill_one, neon_d32::fill_one));
+        IF_ARCH_ARM(call("neon_d32:fill_zero", 16, native::fill_zero, neon_d32::fill_zero));
+        IF_ARCH_ARM(call("neon_d32:fill_minus_one", 16, native::fill_minus_one, neon_d32::fill_minus_one));
     }
 
 UTEST_END;

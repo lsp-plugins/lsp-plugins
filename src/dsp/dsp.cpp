@@ -69,6 +69,11 @@ namespace dsp
     void    (* copy)(float *dst, const float *src, size_t count) = NULL;
     void    (* copy_saturated)(float *dst, const float *src, size_t count) = NULL;
     void    (* saturate)(float *dst, size_t count) = NULL;
+    void    (* limit_saturate1)(float *dst, size_t count) = NULL;
+    void    (* limit_saturate2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* limit1)(float *dst, float min, float max, size_t count) = NULL;
+    void    (* limit2)(float *dst, const float *src, float min, float max, size_t count) = NULL;
+
     void    (* move)(float *dst, const float *src, size_t count) = NULL;
     void    (* fill)(float *dst, float value, size_t count) = NULL;
     void    (* fill_zero)(float *dst, size_t count) = NULL;
@@ -115,6 +120,22 @@ namespace dsp
     void    (* scale2)(float *dst, float k, size_t count) = NULL;
     void    (* scale3)(float *dst, const float *src, float k, size_t count) = NULL;
 
+    void    (* exp1)(float *dst, size_t count) = NULL;
+    void    (* exp2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* logb1)(float *dst, size_t count) = NULL;
+    void    (* logb2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* loge1)(float *dst, size_t count) = NULL;
+    void    (* loge2)(float *dst, const float *src, size_t count) = NULL;
+    void    (* logd1)(float *dst, size_t count) = NULL;
+    void    (* logd2)(float *dst, const float *src, size_t count) = NULL;
+
+    void    (* powcv1)(float *v, float c, size_t count) = NULL;
+    void    (* powcv2)(float *dst, const float *v, float c, size_t count) = NULL;
+    void    (* powvc1)(float *c, float v, size_t count) = NULL;
+    void    (* powvc2)(float *dst, const float *c, float v, size_t count) = NULL;
+    void    (* powvx1)(float *v, const float *x, size_t count) = NULL;
+    void    (* powvx2)(float *dst, const float *v, const float *x, size_t count) = NULL;
+
     float   (* h_sum)(const float *src, size_t count) = NULL;
     float   (* h_sqr_sum)(const float *src, size_t count) = NULL;
     float   (* h_abs_sum)(const float *src, size_t count) = NULL;
@@ -145,11 +166,11 @@ namespace dsp
 
     void    (* direct_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
     void    (* packed_direct_fft)(float *dst, const float *src, size_t rank) = NULL;
-    void    (* conv_direct_fft)(float *dst, const float *src, size_t rank) = NULL;
     void    (* reverse_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
     void    (* packed_reverse_fft)(float *dst, const float *src, size_t rank) = NULL;
 //        void    (* join_fft)(float *dst_re, float *dst_im, float *src_re, float *src_im, size_t rank) = NULL;
-    void    (* normalize_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
+    void    (* normalize_fft3)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
+    void    (* normalize_fft2)(float *re, float *im, size_t rank) = NULL;
     void    (* center_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
     void    (* combine_fft)(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank) = NULL;
     void    (* packed_combine_fft)(float *dst, const float *src, size_t rank) = NULL;
@@ -218,8 +239,20 @@ namespace dsp
     void    (* matched_transform_x4)(biquad_x4_t *bf, f_cascade_t *bc, float kf, float td, size_t count) = NULL;
     void    (* matched_transform_x8)(biquad_x8_t *bf, f_cascade_t *bc, float kf, float td, size_t count) = NULL;
 
-    void    (* axis_apply_log)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count) = NULL;
+    void    (* axis_apply_log1)(float *x, const float *v, float zero, float norm_x, size_t count) = NULL;
+    void    (* axis_apply_log2)(float *x, float *y, const float *v, float zero, float norm_x, float norm_y, size_t count) = NULL;
     void    (* rgba32_to_bgra32)(void *dst, const void *src, size_t count) = NULL;
+    void    (* fill_rgba)(float *dst, float r, float g, float b, float a, size_t count) = NULL;
+    void    (* fill_hsla)(float *dst, float h, float s, float l, float a, size_t count) = NULL;
+    void    (* rgba_to_hsla)(float *dst, const float *src, size_t count) = NULL;
+    void    (* hsla_to_rgba)(float *dst, const float *src, size_t count) = NULL;
+    void    (* rgba_to_bgra32)(void *dst, const float *src, size_t count) = NULL;
+    void    (* eff_hsla_hue)(float *dst, const float *v, const hsla_hue_eff_t *eff, size_t count) = NULL;
+    void    (* eff_hsla_sat)(float *dst, const float *v, const hsla_sat_eff_t *eff, size_t count) = NULL;
+    void    (* eff_hsla_light)(float *dst, const float *v, const hsla_light_eff_t *eff, size_t count) = NULL;
+    void    (* eff_hsla_alpha)(float *dst, const float *v, const hsla_alpha_eff_t *eff, size_t count) = NULL;
+    void    (* smooth_cubic_linear)(float *dst, float start, float stop, size_t count) = NULL;
+    void    (* smooth_cubic_log)(float *dst, float start, float stop, size_t count) = NULL;
 
     void    (* lanczos_resample_2x2)(float *dst, const float *src, size_t count) = NULL;
     void    (* lanczos_resample_2x3)(float *dst, const float *src, size_t count) = NULL;

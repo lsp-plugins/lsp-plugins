@@ -13,9 +13,6 @@ static inline void FFT_SCRAMBLE_SELF_DIRECT_NAME(float *dst_re, float *dst_im, c
     // Calculate number of items
     size_t items    = (1 << rank) - 1;
 
-    move(dst_re, src_re, items);
-    move(dst_im, src_im, items);
-
     for (size_t i = 1; i < items; ++i)
     {
         size_t j = reverse_bits(FFT_TYPE(i), rank);    /* Reverse the order of the bits */
@@ -185,9 +182,6 @@ static inline void FFT_SCRAMBLE_SELF_REVERSE_NAME(float *dst_re, float *dst_im, 
     // Calculate number of items
     size_t items    = (1 << rank) - 1;
 
-    move(dst_re, src_re, items);
-    move(dst_im, src_im, items);
-
     for (size_t i = 1; i < items; ++i)
     {
         size_t j = reverse_bits(FFT_TYPE(i), rank);    /* Reverse the order of the bits */
@@ -355,10 +349,7 @@ static inline void FFT_SCRAMBLE_COPY_REVERSE_NAME(float *dst_re, float *dst_im, 
 static inline void FFT_SCRAMBLE_SELF_DIRECT_NAME(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
 {
     // Calculate number of items
-    size_t items    = (1 << rank);
-
-    move(dst_re, src_re, items);
-    move(dst_im, src_im, items);
+    size_t items    = (1 << rank) - 1;
 
     for (size_t i = 1; i < items; ++i)
     {
@@ -426,9 +417,9 @@ static inline void FFT_SCRAMBLE_SELF_DIRECT_NAME(float *dst_re, float *dst_im, c
         __ASM_EMIT("movaps      %%xmm0, %%xmm4")            /* xmm4 = r0' r4' r1' r5' */
         __ASM_EMIT("movaps      %%xmm2, %%xmm6")            /* xmm5 = i0' i4' i1' i5' */
         __ASM_EMIT("addps       %%xmm1, %%xmm0")            /* xmm0 = r0'+r2' r4'+r6' r1'+i3' r5'+i7' = r0" r4" r1" r5" */
-        __ASM_EMIT("addps       %%xmm3, %%xmm2")            /* xmm2 = i0'+i2' i4'+i6' i1'+i3' i5'+i7' = i0" i4" i3" i7" */
+        __ASM_EMIT("addps       %%xmm3, %%xmm2")            /* xmm2 = i0'+i2' i4'+i6' i1'+r3' i5'+r7' = i0" i4" i3" i7" */
         __ASM_EMIT("subps       %%xmm1, %%xmm4")            /* xmm4 = r0'-r2' r4'-r6' r1'-i3' r5'-i7' = r2" r6" r3" r7" */
-        __ASM_EMIT("subps       %%xmm3, %%xmm6")            /* xmm6 = i0'-i2' i4'-i6' i1'-i3' i5'-i7' = i2" i6" i1" i5" */
+        __ASM_EMIT("subps       %%xmm3, %%xmm6")            /* xmm6 = i0'-i2' i4'-i6' i1'-r3' i5'-r7' = i2" i6" i1" i5" */
 
         /* Reorder and store */
         __ASM_EMIT("movaps      %%xmm0, %%xmm1")            /* xmm1 = r0" r4" r1" r5" */
@@ -574,9 +565,6 @@ static inline void FFT_SCRAMBLE_SELF_REVERSE_NAME(float *dst_re, float *dst_im, 
 {
     // Calculate number of items
     size_t items    = (1 << rank) - 1;
-
-    move(dst_re, src_re, items);
-    move(dst_im, src_im, items);
 
     for (size_t i = 1; i < items; ++i)
     {

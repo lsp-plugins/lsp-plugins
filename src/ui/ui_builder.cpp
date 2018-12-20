@@ -218,21 +218,21 @@ namespace lsp
                         else if (strcmp(a_name, "first") == 0)
                         {
                             errno = 0;
-                            ssize_t tmp = strtoll(a_value, NULL, 10);
+                            ssize_t tmp = strtol(a_value, NULL, 10);
                             if (errno == 0)
                                 nFirst      = tmp;
                         }
                         else if (strcmp(a_name, "last") == 0)
                         {
                             errno = 0;
-                            ssize_t tmp = strtoll(a_value, NULL, 10);
+                            ssize_t tmp = strtol(a_value, NULL, 10);
                             if (errno == 0)
                                 nLast       = tmp;
                         }
                         else if (strcmp(a_name, "step") == 0)
                         {
                             errno = 0;
-                            ssize_t tmp = strtoll(a_value, NULL, 10);
+                            ssize_t tmp = strtol(a_value, NULL, 10);
                             if (errno == 0)
                             {
                                 nStep  = tmp;

@@ -36,9 +36,13 @@ namespace test
             void randomize_positive();
             void randomize_negative();
             void randomize_sign();
+            void randomize_0to1();
+            void randomize(float min, float max);
             void randomize();
             void fill_zero();
             void copy(const FloatBuffer &buf);
+            void copy(const float *buf, size_t count);
+            void vfill(size_t off, size_t n, ...);
 
             bool validate() const;
             inline bool valid() const { return validate(); };
@@ -48,6 +52,8 @@ namespace test
             bool equals_adaptive(const FloatBuffer &src, float tolerance = 1e-5f) const;
             void dump(const char *text) const;
             void dump(const char *text, size_t from, size_t count) const;
+            void dump_hex(const char *text) const;
+            void dump_hex(const char *text, size_t from, size_t count) const;
             inline bool aligned() const { return bAligned; }
             inline size_t size() const { return nLength; }
             inline ssize_t last_diff() const { return nLastDiff; }

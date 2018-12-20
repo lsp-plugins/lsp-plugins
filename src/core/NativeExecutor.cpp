@@ -42,15 +42,12 @@ namespace lsp
         if (!task->idle())
             return false;
 
-        change_task_state(task, ITask::TS_SUBMITTED);
-
         // Try to acquire critical section
         if (!atomic_trylock(nLock))
-        {
-            // Submit task next time
-            change_task_state(task, ITask::TS_IDLE);
             return false;
-        }
+
+        // Update task state to SUBMITTED
+        change_task_state(task, ITask::TS_SUBMITTED);
 
         // Critical section acquired, bind new task
         // Check that queue is empty

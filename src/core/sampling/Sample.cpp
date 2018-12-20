@@ -55,13 +55,14 @@ namespace lsp
         float *buf      = new float[max_length * channels];
         if (buf == NULL)
             return false;
+        lsp_trace("Allocated buffer=%p of %d floats", buf, int(max_length * channels));
 
         // Copy previously allocated data
         if (vBuffer != NULL)
         {
             float *dptr         = buf;
             const float *sptr   = vBuffer;
-            size_t to_copy      = (nMaxLength <= max_length) ? nMaxLength : max_length;
+            size_t to_copy      = (nMaxLength > max_length) ? max_length : nMaxLength;
 
             // Copy channels
             for (size_t ch=0; ch < channels; ++ch)
@@ -97,8 +98,10 @@ namespace lsp
 
     void Sample::destroy()
     {
+//        lsp_trace("Sample::destroy this=%p", this);
         if (vBuffer != NULL)
         {
+//            lsp_trace("delete [] vBuffer=%p", vBuffer);
             delete [] vBuffer;
             vBuffer     = NULL;
         }

@@ -65,6 +65,11 @@
 #define LSP_LV2_ATOM_PORT_OUT                           "out_ui"
 #define LSP_LV2_MIDI_PORT_OUT                           "out_midi"
 
+#ifdef LSP_INSTALL_PREFIX
+    #define LSP_LIB_PREFIX(x)       LSP_INSTALL_PREFIX x
+#else
+    #define LSP_LIB_PREFIX(x)       x
+#endif /* PREFIX */
 
 namespace lsp
 {
@@ -120,6 +125,7 @@ namespace lsp
         R_CONTROL,              // Control port
         R_METER,                // Metering port
         R_MESH,                 // Mesh port
+        R_FBUFFER,              // Frame buffer
         R_PATH,                 // Path to the local file
         R_MIDI,                 // MIDI events
         R_PORT_SET              // Set of ports

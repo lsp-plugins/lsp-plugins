@@ -294,8 +294,8 @@
 // Analog filter cascade
 typedef struct f_cascade_t
 {
-    float       t[4];       // Top part of polynom (zeros)
-    float       b[4];       // Bottom part of polynom (poles)
+    float       t[4];       // Top part of polynom (zeros): T[p] = t[0] + t[1] * p + t[2] * p^2
+    float       b[4];       // Bottom part of polynom (poles): B[p] = b[0] + b[1] * p + b[2] * p^2
 } f_cascade_t;
 
 // Biquad filter banks
@@ -308,7 +308,7 @@ typedef struct biquad_x1_t
 typedef struct biquad_x2_t
 {
     float   a[8];  //  a0 a0 a1 a2 i0 i1 i2 i3
-    float   b[8];  //  b1 b2 0  0  j0 j1 0  0
+    float   b[8];  //  b1 b2 0  0  j1 j2 0  0
 } biquad_x2_t;
 
 typedef struct biquad_x4_t

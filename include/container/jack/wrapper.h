@@ -135,6 +135,8 @@ namespace lsp
                 return &sPosition;
             }
 
+            virtual ICanvas *create_canvas(ICanvas *&cv, size_t width, size_t height);
+
             inline bool test_display_draw()
             {
                 atomic_t last       = nQueryDraw;
@@ -308,6 +310,13 @@ namespace lsp
                     vSyncPorts.add(jup);
                 break;
 
+            case R_FBUFFER:
+                jp      = new JACKFrameBufferPort(port, this);
+                jup     = new JACKUIFrameBufferPort(jp);
+                if (IS_OUT_PORT(port))
+                    vSyncPorts.add(jup);
+                break;
+
             case R_MIDI:
             case R_AUDIO:
             {
@@ -430,6 +439,12 @@ namespace lsp
 
     status_t JACKWrapper::connect()
     {
+        // Ensure that client identifier is not longer than jack_client_name_size()
+        size_t max_client_size = jack_client_name_size();
+        char *client_name = static_cast<char *>(alloca(max_client_size));
+        strncpy(client_name, pPlugin->get_metadata()->lv2_uid, max_client_size);
+        client_name[max_client_size-1] = '\0';
+
         // Check connection state
         switch (nState)
         {
@@ -455,7 +470,7 @@ namespace lsp
 
         // Get JACK client
         jack_status_t jack_status;
-        pClient     = jack_client_open(pPlugin->get_metadata()->lv2_uid, JackNoStartServer, &jack_status);
+        pClient     = jack_client_open(client_name, JackNoStartServer, &jack_status);
         if (pClient == NULL)
         {
             lsp_warn("Could not connect to JACK (status=0x%08x)", int(jack_status));
@@ -722,6 +737,29 @@ namespace lsp
         }
 
         return pCanvas->get_data();
+    }
+
+    ICanvas *JACKWrapper::create_canvas(ICanvas *&cv, size_t width, size_t height)
+    {
+        if ((cv != NULL) && (cv->width() == width) && (cv->height() == height))
+            return cv;
+
+        ICanvas *ncv = new CairoCanvas();
+        if (ncv == NULL)
+            return NULL;
+        if (!ncv->init(width, height))
+        {
+            delete ncv;
+            return NULL;
+        }
+
+        if (cv != NULL)
+        {
+            cv->destroy();
+            delete cv;
+        }
+
+        return cv = ncv;
     }
 }
 

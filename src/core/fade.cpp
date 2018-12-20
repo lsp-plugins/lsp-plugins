@@ -18,8 +18,8 @@ namespace lsp
         if (fade_len > buf_len)
             fade_len = buf_len;
 
-        for (size_t i=0; i < fade_len; )
-            *(dst++) = *(src++) * ((i++) * k);
+        for (size_t i=0; i < fade_len; ++i)
+            dst[i] = src[i] * i * k;
     }
 
     void fade_out(float *dst, const float *src, size_t fade_len, size_t buf_len)

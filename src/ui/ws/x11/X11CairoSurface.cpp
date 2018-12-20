@@ -42,6 +42,7 @@ namespace lsp
 
                 cairo_set_antialias(pCR, CAIRO_ANTIALIAS_NONE);
                 cairo_set_line_join(pCR, CAIRO_LINE_JOIN_BEVEL);
+                nStride         = cairo_image_surface_get_stride(pSurface);
             }
 
             ISurface *X11CairoSurface::create(size_t width, size_t height)
@@ -52,8 +53,28 @@ namespace lsp
                 if (s->pCR != NULL)
                     return s;
 
+                pData = NULL;
+
                 delete s;
                 return NULL;
+            }
+
+            ISurface *X11CairoSurface::create_copy()
+            {
+                X11CairoSurface *s = new X11CairoSurface(nWidth, nHeight);
+                if (s == NULL)
+                    return NULL;
+                if (s->pCR == NULL)
+                {
+                    delete s;
+                    return NULL;
+                }
+
+                // Draw one surface on another
+                cairo_set_source_surface(s->pCR, pSurface, 0.0f, 0.0f);
+                cairo_paint(s->pCR);
+
+                return s;
             }
 
             IGradient *X11CairoSurface::linear_gradient(float x0, float y0, float x1, float y1)
@@ -154,9 +175,59 @@ namespace lsp
 
                 // Draw one surface on another
                 cairo_save(pCR);
+                if (sx < 0.0f)
+                    x       -= sx * s->width();
+                if (sy < 0.0f)
+                    y       -= sy * s->height();
+                cairo_translate(pCR, x, y);
                 cairo_scale(pCR, sx, sy);
-                cairo_set_source_surface(pCR, cs->pSurface, x, y);
+                cairo_set_source_surface(pCR, cs->pSurface, 0.0f, 0.0f);
                 cairo_paint(pCR);
+                cairo_restore(pCR);
+            }
+
+            void X11CairoSurface::draw_alpha(ISurface *s, float x, float y, float sx, float sy, float a)
+            {
+                surface_type_t type = s->type();
+                if ((type != ST_XLIB) && (type != ST_IMAGE))
+                    return;
+                if (pCR == NULL)
+                    return;
+                X11CairoSurface *cs = static_cast<X11CairoSurface *>(s);
+                if (cs->pSurface == NULL)
+                    return;
+
+                // Draw one surface on another
+                cairo_save(pCR);
+                if (sx < 0.0f)
+                    x       -= sx * s->width();
+                if (sy < 0.0f)
+                    y       -= sy * s->height();
+                cairo_translate(pCR, x, y);
+                cairo_scale(pCR, sx, sy);
+                cairo_set_source_surface(pCR, cs->pSurface, 0.0f, 0.0f);
+                cairo_paint_with_alpha(pCR, 1.0f - a);
+                cairo_restore(pCR);
+            }
+
+            void X11CairoSurface::draw_rotate_alpha(ISurface *s, float x, float y, float sx, float sy, float ra, float a)
+            {
+                surface_type_t type = s->type();
+                if ((type != ST_XLIB) && (type != ST_IMAGE))
+                    return;
+                if (pCR == NULL)
+                    return;
+                X11CairoSurface *cs = static_cast<X11CairoSurface *>(s);
+                if (cs->pSurface == NULL)
+                    return;
+
+                // Draw one surface on another
+                cairo_save(pCR);
+                cairo_translate(pCR, x, y);
+                cairo_scale(pCR, sx, sy);
+                cairo_rotate(pCR, ra);
+                cairo_set_source_surface(pCR, cs->pSurface, 0.0f, 0.0f);
+                cairo_paint_with_alpha(pCR, 1.0f - a);
                 cairo_restore(pCR);
             }
 
@@ -211,12 +282,15 @@ namespace lsp
                 if (pCR == NULL)
                     return;
 
+                cairo_operator_t op = cairo_get_operator(pCR);
+                cairo_set_operator (pCR, CAIRO_OPERATOR_SOURCE);
                 cairo_set_source_rgb(pCR,
                     float((rgba >> 16) & 0xff)/255.0f,
                     float((rgba >> 8) & 0xff)/255.0f,
                     float(rgba & 0xff)/255.0f
                 );
                 cairo_paint(pCR);
+                cairo_set_operator (pCR, op);
             }
 
             inline void X11CairoSurface::setSourceRGB(const Color &col)
@@ -234,7 +308,10 @@ namespace lsp
                 if (pCR == NULL)
                     return;
                 setSourceRGBA(color);
+                cairo_operator_t op = cairo_get_operator(pCR);
+                cairo_set_operator (pCR, CAIRO_OPERATOR_SOURCE);
                 cairo_paint(pCR);
+                cairo_set_operator (pCR, op);
             }
 
             void X11CairoSurface::fill_rect(float left, float top, float width, float height, const Color &color)
@@ -529,6 +606,40 @@ namespace lsp
 
                 cairo_move_to(pCR, fx, fy);
                 cairo_show_text(pCR, text);
+            }
+
+            void X11CairoSurface::square_dot(float x, float y, float width, const Color &color)
+            {
+                if (pCR == NULL)
+                    return;
+
+                double ow = cairo_get_line_width(pCR);
+                cairo_line_cap_t cap = cairo_get_line_cap(pCR);
+                setSourceRGBA(color);
+                cairo_set_line_width(pCR, width);
+                cairo_set_line_cap(pCR, CAIRO_LINE_CAP_SQUARE);
+                cairo_move_to(pCR, x + 0.5f, y + 0.5f);
+                cairo_line_to(pCR, x + 1.5f, y + 0.5f);
+                cairo_stroke(pCR);
+                cairo_set_line_width(pCR, ow);
+                cairo_set_line_cap(pCR, cap);
+            }
+
+            void X11CairoSurface::square_dot(float x, float y, float width, float r, float g, float b, float a)
+            {
+                if (pCR == NULL)
+                    return;
+
+                double ow = cairo_get_line_width(pCR);
+                cairo_line_cap_t cap = cairo_get_line_cap(pCR);
+                cairo_set_source_rgba(pCR, r, g, b, 1.0f - a);
+                cairo_set_line_width(pCR, width);
+                cairo_set_line_cap(pCR, CAIRO_LINE_CAP_SQUARE);
+                cairo_move_to(pCR, x + 0.5f, y + 0.5f);
+                cairo_line_to(pCR, x + 1.5f, y + 0.5f);
+                cairo_stroke(pCR);
+                cairo_set_line_width(pCR, ow);
+                cairo_set_line_cap(pCR, cap);
             }
 
             void X11CairoSurface::line(float x0, float y0, float x1, float y1, float width, const Color &color)
@@ -904,6 +1015,25 @@ namespace lsp
                     (old == CAIRO_LINE_CAP_BUTT) ? SURFLCAP_BUTT :
                     (old == CAIRO_LINE_CAP_ROUND) ? SURFLCAP_ROUND : SURFLCAP_SQUARE;
             }
+
+            void *X11CairoSurface::start_direct()
+            {
+                if ((pCR == NULL) || (pSurface == NULL) || (nType != ST_IMAGE))
+                    return NULL;
+
+                nStride = cairo_image_surface_get_stride(pSurface);
+                return pData = reinterpret_cast<uint8_t *>(cairo_image_surface_get_data(pSurface));
+            }
+
+            void X11CairoSurface::end_direct()
+            {
+                if ((pCR == NULL) || (pSurface == NULL) || (nType != ST_IMAGE) || (pData == NULL))
+                    return;
+
+                cairo_surface_mark_dirty(pSurface);
+                pData = NULL;
+            }
+
         }
     }
 

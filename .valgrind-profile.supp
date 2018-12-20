@@ -1,0 +1,26 @@
+{
+   X11 warning suppressions
+   Memcheck:Param
+   writev(vector[...])
+   obj:/lib64/libc-2.22.so
+   fun:xcb_writev
+}
+{
+   JACK warning suppressions
+   Memcheck:Param
+   write(buf)
+   obj:/lib64/libpthread-2.22.so
+   fun:_ZN4Jack16JackClientSocket5WriteEPvi
+}
+{
+   PIXMAN warning suppressions
+   Memcheck:Cond
+   obj:/usr/lib64/libpixman-1.so.0.34.0
+   fun:pixman_image_composite32
+}
+{
+   LIBSNDFILE warning suppressions
+   Memcheck:Cond
+   obj:/usr/lib64/libsndfile.so.1.0.25
+   fun:_ZN3lsp9AudioFile12load_sndfileEPKcf
+}

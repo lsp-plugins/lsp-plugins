@@ -1,15 +1,49 @@
-SUBDIRS                 = core dsp metadata plugins ui utils container
-CONTAINER_DEPS			= $(OBJ_CORE) $(OBJ_DSP) $(OBJ_METADATA) $(OBJ_UI_CORE) $(OBJ_RES_CORE) $(UTL_FILES) $(OBJ_PLUGINS)
+SUBDIRS                 = core metadata utils 
+MODULES                 = $(SUBDIRS)
+CONTAINER_DEPS          = $(OBJ_METADATA) $(OBJ_CORE) $(UTL_FILES) 
+
+NEED_UI                 = 0
+NEED_PLUGINS            = 0
 
 ifeq ($(LSP_TESTING),1)
-SUBDIRS                += test
-CONTAINER_DEPS         += $(OBJ_TEST_CORE)
-MODULES                 = $(SUBDIRS)
+  SUBDIRS                += test
+  CONTAINER_DEPS         += $(OBJ_TEST_CORE)
+  NEED_UI                 = 1
+  NEED_PLUGINS            = 1
 endif
 
 ifneq ($(LSP_TESTING),1)
-SUBDIRS                += doc
-MODULES                 = $(SUBDIRS) jack_stub vst_stub
+  ifeq ($(findstring ladspa,$(BUILD_MODULES)),ladspa)
+    NEED_PLUGINS            = 1
+  endif
+  ifeq ($(findstring lv2,$(BUILD_MODULES)),lv2)
+    NEED_UI                 = 1
+    NEED_PLUGINS            = 1
+  endif
+  ifeq ($(findstring vst,$(BUILD_MODULES)),vst)
+    MODULES                += vst_stub
+    NEED_UI                 = 1
+    NEED_PLUGINS            = 1
+  endif
+  ifeq ($(findstring jack,$(BUILD_MODULES)),jack)
+    MODULES                += jack_stub
+    NEED_UI                 = 1
+    NEED_PLUGINS            = 1
+  endif
+  ifeq ($(findstring doc,$(BUILD_MODULES)),doc)
+    SUBDIRS                += doc
+    MODULES                += doc
+  endif
+endif
+
+ifeq ($(NEED_PLUGINS), 1)
+  SUBDIRS                += dsp plugins container
+  CONTAINER_DEPS         += $(OBJ_DSP) $(OBJ_PLUGINS)
+endif
+ifeq ($(NEED_UI),1)
+  SUBDIRS                += ui
+  MODULES                += ui
+  CONTAINER_DEPS         += $(OBJ_UI_CORE) $(OBJ_RES_CORE)
 endif
 
 .PHONY: all $(MODULES)
@@ -46,7 +80,7 @@ $(OBJ_RES_CORE): $(OBJ_CORE) $(UTL_RESGEN)
 	@mkdir -p $(OBJDIR)/res
 	@$(UTL_RESGEN) $(BASEDIR)/res/ui $(OBJDIR)/res/xml_resource.cpp
 	@-rm gmon.out >/dev/null 2>&1
-	@$(CC) -c $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(OBJDIR)/res/xml_resource.cpp -o $(OBJ_RES_CORE)
+	@$(CC) -o $(OBJ_RES_CORE) -c $(OBJDIR)/res/xml_resource.cpp -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE) 
 
 # Target dependencies
 container: $(CONTAINER_DEPS)

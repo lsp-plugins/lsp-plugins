@@ -38,6 +38,9 @@ namespace lsp
             if (result != STATUS_OK)
                 return result;
 
+            sFont.init();
+            sFont.set_size(12.0f);
+
             if (pDisplay != NULL)
             {
                 LSPTheme *theme = pDisplay->theme();
@@ -55,8 +58,6 @@ namespace lsp
             if (id < 0) return -id;
             id = sSlots.add(LSPSLOT_SUBMIT, slot_on_submit, self());
             if (id < 0) return -id;
-
-            sFont.set_size(12.0f);
 
             return STATUS_OK;
         }

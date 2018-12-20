@@ -14,6 +14,9 @@
 #define ALIGN64                         0x40
 #define ALIGN_SIZE(x, size)             (((x) + (size) - 1) & (~size_t((size) - 1)))
 
+#define __LSP_STRINGIFY(s)              #s
+#define LSP_STRINGIFY(s)                __LSP_STRINGIFY(s)
+
 // Array management
 #define DROP_ARRAY(ptr)     \
     if (ptr != NULL) \
@@ -61,7 +64,7 @@ template <class T, class P>
             return NULL;
 
         // Allocate data
-        void *p         = malloc(count * sizeof(T) + align);
+        void *p         = malloc((count * sizeof(T)) + align);
         if (p == NULL)
             return NULL;
 
@@ -83,8 +86,9 @@ template <class P>
     {
         if (ptr == NULL)
             return;
-        free(ptr);
+        P *tptr = ptr;
         ptr = NULL;
+        free(tptr);
     }
 
 #if defined(ARCH_I386)

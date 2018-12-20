@@ -136,6 +136,7 @@ namespace lsp
 
         if (cv->pCurr != NULL)
         {
+            lsp_trace("Destroying pCurr=%p", cv->pSwap);
             cv->pCurr->destroy();
             delete cv->pCurr;
             cv->pCurr    = NULL;
@@ -143,6 +144,7 @@ namespace lsp
 
         if (cv->pSwap != NULL)
         {
+            lsp_trace("Destroying pSwap=%p", cv->pSwap);
             cv->pSwap->destroy();
             delete cv->pSwap;
             cv->pSwap    = NULL;
@@ -241,7 +243,6 @@ namespace lsp
 
             cv->pCurr           = NULL;
             cv->pSwap           = NULL;
-            cv->bSwap           = false;
             cv->nRank           = 0;
             cv->nRankReq        = 0;
             cv->nSource         = 0;
@@ -616,20 +617,7 @@ namespace lsp
                 if (n_c > 0)
                 {
                     for (size_t j=0; j<2; ++j)
-                        vChannels[j].sPlayer.play(i, j%n_c, 1.0f, 0);
-                }
-            }
-
-            // Analyze path
-            path_t *path        = f->pFile->getBuffer<path_t>();
-            if ((path != NULL) && (path->pending()) && (f->sLoader.idle()))
-            {
-                // Try to submit task
-                if (pExecutor->submit(&f->sLoader))
-                {
-                    lsp_trace("successfully submitted load task");
-                    f->nStatus      = STATUS_LOADING;
-                    path->accept();
+                        vChannels[j].sPlayer.play(i, j % n_c, 1.0f, 0);
                 }
             }
         }
@@ -647,65 +635,83 @@ namespace lsp
         }
     }
 
-    void impulse_reverb_base::process(size_t samples)
+    void impulse_reverb_base::sync_offline_tasks()
     {
-        //---------------------------------------------------------------------
-        // Stage 1: process reconfiguration requests and file events
-        if (sConfigurator.idle())
+        bool ldrs_idle = true; // Indicator that all loaders are currently in idle state
+
+        for (size_t i=0; i<impulse_reverb_base_metadata::FILES; ++i)
         {
-            // Check that reconfigure is pending
-            if (nReconfigReq != nReconfigResp)
+            // Get descriptor
+            af_descriptor_t *f  = &vFiles[i];
+            if (f->pFile == NULL)
+                continue;
+
+            // Get related file path
+            path_t *path        = f->pFile->getBuffer<path_t>();
+            if (path == NULL)
+                continue;
+
+            // Do not allow launch loaders when reconfiguration is active
+            if (sConfigurator.idle())
             {
-                // Remember render state
-                for (size_t i=0; i<impulse_reverb_base_metadata::FILES; ++i)
-                    sConfigurator.set_render(i, vFiles[i].bRender);
-                for (size_t i=0; i<impulse_reverb_base_metadata::CONVOLVERS; ++i)
+                if ((path->pending()) && (f->sLoader.idle())) // There is pending request for file reload
                 {
-                    sConfigurator.set_file(i, vConvolvers[i].nFileReq);
-                    sConfigurator.set_track(i, vConvolvers[i].nTrackReq);
-                    sConfigurator.set_rank(i, vConvolvers[i].nRankReq);
-                }
-
-                // Try to submit task
-                if (pExecutor->submit(&sConfigurator))
-                {
-                    lsp_trace("successfully submitted configuration task");
-
-                    // Clear render state and reconfiguration request
-                    nReconfigResp   = nReconfigReq;
-                    for (size_t i=0; i<impulse_reverb_base_metadata::FILES; ++i)
-                        vFiles[i].bRender   = false;
-                }
-            }
-            else
-            {
-                // Process file requests
-                for (size_t i=0; i<impulse_reverb_base_metadata::FILES; ++i)
-                {
-                    // Get descriptor
-                    af_descriptor_t *af     = &vFiles[i];
-                    if (af->pFile == NULL)
-                        continue;
-
-                    // Get path and check task state
-                    path_t *path = af->pFile->getBuffer<path_t>();
-                    if ((path != NULL) && (path->accepted()) && (af->sLoader.completed()))
+                    // Try to submit task
+                    if (pExecutor->submit(&f->sLoader))
                     {
-                        // Swap file data
-                        AudioFile *fd   = af->pSwap;
-                        af->pSwap       = af->pCurr;
-                        af->pCurr       = fd;
-
-                        // Update file status and set re-rendering flag
-                        af->nStatus     = af->sLoader.code();
-                        af->bRender     = true;
-                        nReconfigReq    ++;
-
-                        // Now we surely can commit changes and reset task state
-                        path->commit();
-                        af->sLoader.reset();
+                        lsp_trace("successfully submitted load task");
+                        f->nStatus      = STATUS_LOADING;
+                        path->accept();
                     }
                 }
+                else if ((path->accepted()) && (f->sLoader.completed())) // The reload request has been processed
+                {
+                    // Swap file data
+                    AudioFile *fd   = f->pSwap;
+                    f->pSwap        = f->pCurr;
+                    f->pCurr        = fd;
+
+                    // Update file status and set re-rendering flag
+                    f->nStatus      = f->sLoader.code();
+                    f->bRender      = true;
+                    nReconfigReq    ++;
+
+                    // Now we surely can commit changes and reset task state
+                    path->commit();
+                    f->sLoader.reset();
+                }
+            }
+
+            // Ensure that there are no active loader tasks
+            if (!f->sLoader.idle())
+                ldrs_idle = false;
+        }
+
+        // Do not allow launch reconfiguration when loaders are active
+        if (!ldrs_idle)
+            return;
+
+        if ((sConfigurator.idle()) && (nReconfigReq != nReconfigResp))
+        {
+            // Remember render state
+            for (size_t i=0; i<impulse_reverb_base_metadata::FILES; ++i)
+                sConfigurator.set_render(i, vFiles[i].bRender);
+            for (size_t i=0; i<impulse_reverb_base_metadata::CONVOLVERS; ++i)
+            {
+                sConfigurator.set_file(i, vConvolvers[i].nFileReq);
+                sConfigurator.set_track(i, vConvolvers[i].nTrackReq);
+                sConfigurator.set_rank(i, vConvolvers[i].nRankReq);
+            }
+
+            // Try to submit task
+            if (pExecutor->submit(&sConfigurator))
+            {
+                lsp_trace("successfully submitted configuration task");
+
+                // Clear render state and reconfiguration request
+                nReconfigResp   = nReconfigReq;
+                for (size_t i=0; i<impulse_reverb_base_metadata::FILES; ++i)
+                    vFiles[i].bRender   = false;
             }
         }
         else if (sConfigurator.completed())
@@ -728,7 +734,7 @@ namespace lsp
                 for (size_t j=0; j<2; ++j)
                 {
                     channel_t *c = &vChannels[j];
-                    c->sPlayer.bind(i, f->pCurrSample);
+                    c->sPlayer.bind(i, f->pCurrSample, false);
                 }
             }
 
@@ -744,6 +750,13 @@ namespace lsp
             // Reset configurator
             sConfigurator.reset();
         }
+    }
+
+    void impulse_reverb_base::process(size_t samples)
+    {
+        //---------------------------------------------------------------------
+        // Stage 1: process reconfiguration requests and file events
+        sync_offline_tasks();
 
         //---------------------------------------------------------------------
         // Stage 2: perform convolution
@@ -860,12 +873,14 @@ namespace lsp
     {
         lsp_trace("descr = %p", descr);
 
-        // Remove swap data
-        if (descr->pSwap != NULL)
+        // Collect garbage
+        AudioFile *af       = descr->pSwap;
+        if (af != NULL)
         {
-            descr->pSwap->destroy();
-            delete descr->pSwap;
+            lsp_trace("Destroying file pSwap = %p", descr->pSwap);
             descr->pSwap    = NULL;
+            af->destroy();
+            delete af;
         }
 
         // Check state
@@ -883,7 +898,7 @@ namespace lsp
             return STATUS_UNSPECIFIED;
 
         // Load audio file
-        AudioFile *af   = new AudioFile();
+        af   = new AudioFile();
         if (af == NULL)
             return STATUS_NO_MEM;
 
@@ -923,12 +938,41 @@ namespace lsp
 
         // File was successfully loaded, report to caller
         descr->pSwap    = af;
+        lsp_trace("Setting pSwap = %p", descr->pSwap);
 
         return STATUS_OK;
     }
 
     status_t impulse_reverb_base::reconfigure(const reconfig_t *cfg)
     {
+        // Perform garbage collection
+        for (size_t i=0; i<impulse_reverb_base_metadata::CONVOLVERS; ++i)
+        {
+            convolver_t *c      = &vConvolvers[i];
+            Convolver *cv       = c->pSwap;
+            if (cv == NULL)
+                continue;
+
+            lsp_trace("Destroying convolver pSwap=%p for channel %d (pCurr=%p)", c->pSwap, int(i), c->pCurr);
+            c->pSwap            = NULL;
+            cv->destroy();
+            delete cv;
+        }
+
+        for (size_t i=0; i<impulse_reverb_base_metadata::FILES; ++i)
+        {
+            af_descriptor_t *f  = &vFiles[i];
+            Sample *s           = f->pSwapSample;
+            if (s == NULL)
+                continue;
+
+            lsp_trace("Destroying sample swapSample=%p file=%d (currSample=%p)", f->pSwapSample, int(i), f->pCurrSample);
+            f->pSwapSample  = NULL;
+
+            s->destroy();
+            delete s;
+        }
+
         // Re-render files (if needed)
         for (size_t i=0; i<impulse_reverb_base_metadata::FILES; ++i)
         {
@@ -938,22 +982,16 @@ namespace lsp
 
             // Get audio file
             af_descriptor_t *f  = &vFiles[i];
-            AudioFile *af       = f->pCurr;
 
-            // Destroy swap sample
-            if (f->pSwapSample != NULL)
-            {
-                f->pSwapSample->destroy();
-                delete f->pSwapSample;
-                f->pSwapSample  = NULL;
-            }
-
+            // Allocate new sample
             Sample *s           = new Sample();
             if (s == NULL)
                 return STATUS_NO_MEM;
             f->pSwapSample      = s;
             f->bSwap            = true;
+            lsp_trace("Allocated swapSample=%p file=%d (currSample=%p)", s, int(i), f->pCurrSample);
 
+            AudioFile *af       = f->pCurr;
             if (af == NULL)
                 continue;
 
@@ -1018,14 +1056,6 @@ namespace lsp
         {
             convolver_t *c      = &vConvolvers[i];
 
-            // Check that we need to free previous convolver
-            if (c->pSwap != NULL)
-            {
-                c->pSwap->destroy();
-                delete c->pSwap;
-                c->pSwap = NULL;
-            }
-
             // Check that routing has changed
             size_t file     = cfg->nFile[i];
             size_t track    = cfg->nTrack[i];
@@ -1045,9 +1075,14 @@ namespace lsp
 
             // Now we can create convolver
             Convolver *cv   = new Convolver();
-
             if (!cv->init(s->getBuffer(track), s->length(), cfg->nRank[i], float((phase + i*step)& 0x7fffffff)/float(0x80000000)))
+            {
+                cv->destroy();
+                delete cv;
                 return STATUS_NO_MEM;
+            }
+
+            lsp_trace("Allocated convolver pSwap=%p for channel %d (pCurr=%p)", cv, int(i), c->pCurr);
             c->pSwap        = cv;
         }
 

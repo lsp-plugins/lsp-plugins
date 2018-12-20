@@ -76,8 +76,8 @@ namespace lsp
 
             typedef struct af_descriptor_t
             {
-                AudioFile      *pCurr;
-                AudioFile      *pSwap;
+                AudioFile      *pCurr;          // Current audio file
+                AudioFile      *pSwap;          // Pointer to audio file for swapping between RT and non-RT code
 
                 Sample         *pSwapSample;
                 Sample         *pCurrSample;                                                    // Rendered file sample
@@ -114,7 +114,7 @@ namespace lsp
 
                 Convolver      *pCurr;          // Currently used convolver
                 Convolver      *pSwap;          // Swap
-                bool            bSwap;          // Swapping flag
+//                bool            bSwap;          // Swapping flag
                 size_t          nRank;          // Last applied rank
                 size_t          nRankReq;       // Rank request
                 size_t          nSource;        // Source
@@ -169,6 +169,7 @@ namespace lsp
             static void             destroy_channel(channel_t *c);
             static void             destroy_convolver(convolver_t *cv);
             static size_t           get_fft_rank(size_t rank);
+            void                    sync_offline_tasks();
 
         protected:
             size_t                  nInputs;

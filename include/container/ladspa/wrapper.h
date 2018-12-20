@@ -85,6 +85,7 @@ namespace lsp
                         }
                         case R_PORT_SET: // TODO: implement recursive port creation?
                         case R_MESH: // Not supported by LADSPA, make it stub
+                        case R_FBUFFER:
                         case R_UI_SYNC:
                         case R_MIDI:
                         case R_PATH:

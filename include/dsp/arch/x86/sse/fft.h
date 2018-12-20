@@ -12,6 +12,8 @@
     #error "This header should not be included directly"
 #endif /* DSP_ARCH_X86_SSE_IMPL */
 
+#include <dsp/arch/x86/sse/fft/const.h>
+
 namespace sse
 {
     // Make set of butterfly implementations
@@ -103,16 +105,6 @@ namespace sse
     #define LS_RE                           "movups"
     #include <dsp/arch/x86/sse/fft/p_scramble.h>
 
-    #define FFT_SCRAMBLE_COPY_DIRECT_NAME   conv_scramble_copy_direct8_a
-    #define FFT_TYPE                        uint8_t
-    #define LS_RE                           "movaps"
-    #include <dsp/arch/x86/sse/fft/c_scramble.h>
-
-    #define FFT_SCRAMBLE_COPY_DIRECT_NAME   conv_scramble_copy_direct8_u
-    #define FFT_TYPE                        uint8_t
-    #define LS_RE                           "movups"
-    #include <dsp/arch/x86/sse/fft/c_scramble.h>
-
     // Use 16-bit reversive algorithm
     #define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct16_aa
     #define FFT_SCRAMBLE_SELF_REVERSE_NAME  scramble_self_reverse16_aa
@@ -165,16 +157,6 @@ namespace sse
     #define FFT_TYPE                        uint16_t
     #define LS_RE                           "movups"
     #include <dsp/arch/x86/sse/fft/p_scramble.h>
-
-    #define FFT_SCRAMBLE_COPY_DIRECT_NAME   conv_scramble_copy_direct16_a
-    #define FFT_TYPE                        uint16_t
-    #define LS_RE                           "movaps"
-    #include <dsp/arch/x86/sse/fft/c_scramble.h>
-
-    #define FFT_SCRAMBLE_COPY_DIRECT_NAME   conv_scramble_copy_direct16_u
-    #define FFT_TYPE                        uint16_t
-    #define LS_RE                           "movups"
-    #include <dsp/arch/x86/sse/fft/c_scramble.h>
 
     //// Use 32-bit reversive algorithm
     //#define FFT_SCRAMBLE_SELF_DIRECT_NAME   scramble_self_direct32_aa
@@ -313,8 +295,6 @@ namespace sse
     #define FFT_MODE                            u
     #include <dsp/arch/x86/sse/fft/p_switch.h>
 
-
-    static void normalize_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank);
 
     void direct_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
     {
@@ -466,70 +446,6 @@ namespace sse
         }
     }
 
-    void conv_direct_fft(float *dst, const float *src, size_t rank)
-    {
-        // Check bounds
-        if (rank <= 2)
-        {
-            if (rank == 2)
-            {
-                float r0        = src[0];
-                float r1        = src[2];
-
-                // Re-shuffle output to store [re0, re1, re2, re3, im0, im1, im2, im3]
-                dst[0]          = r0 + r1;
-                dst[1]          = 0.0f;
-                dst[2]          = r0;
-                dst[3]          = - r1;
-                dst[4]          = r0 - r1;
-                dst[5]          = 0.0f;
-                dst[6]          = r0;
-                dst[7]          = + r1;
-            }
-            else if (rank == 1)
-            {
-                // s0' = s0 + s1
-                // s1' = s0 - s1
-                dst[0]          = src[0] + src[1];
-                dst[1]          = 0.0f;
-                dst[2]          = src[0] - src[1];
-                dst[3]          = 0.0f;
-            }
-            else
-            {
-                dst[0]          = src[0];
-                dst[1]          = 0.0f;
-            }
-            return;
-        }
-
-        // Iterate butterflies
-        if (sse_aligned(dst))
-        {
-            if (rank <= 8)
-                conv_scramble_copy_direct8_a(dst, src, rank-3);
-            else //if (rank <= 16)
-                conv_scramble_copy_direct16_a(dst, src, rank-3);
-
-            for (size_t i=2; i < rank; ++i)
-                packed_butterfly_direct_a(dst, i /*1 << i*/, 1 << (rank - i - 1));
-
-            packed_fft_repack_a(dst, rank);
-        }
-        else
-        {
-            if (rank <= 8)
-                conv_scramble_copy_direct8_u(dst, src, rank-3);
-            else //if (rank <= 16)
-                conv_scramble_copy_direct16_u(dst, src, rank-3);
-
-            for (size_t i=2; i < rank; ++i)
-                packed_butterfly_direct_u(dst, i /*1 << i*/, 1 << (rank - i - 1));
-
-            packed_fft_repack_u(dst, rank);
-        }
-    }
-
     void reverse_fft(float *dst_re, float *dst_im, const float *src_re, const float *src_im, size_t rank)
     {
         // Check bounds
@@ -612,7 +528,7 @@ namespace sse
             }
         }
 
-        normalize_fft(dst_re, dst_im, dst_re, dst_im, rank);
+        dsp::normalize_fft2(dst_re, dst_im, rank);
     }
 
     void packed_reverse_fft(float *dst, const float *src, size_t rank)

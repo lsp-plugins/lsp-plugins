@@ -8,21 +8,50 @@
 				(strpos($PAGE, '_x2') > 0) ? 2 : (
 				(strpos($PAGE, '_x1') > 0) ? 1 : '?'
 				)))));
-	$cd     =   ($nc == 1) ? 'a single audio channel.' : (
-				($nc == 2) ? 'a pair of audio channels. Stereo channel may be analyzed by this version of plugin, too.' :
-					"${nc} independent channels simultaneously."
+	$cd     =   ($nc == 1) ? 'a single audio channel' : (
+				($nc == 2) ? 'a pair of audio channels' :
+					"${nc} independent channels simultaneously"
 				);
 ?>
 
-<p>This plugin performs spectral analysis of <?= $cd ?>
-	It does not affect any changes on the input signal, so can be placed anywhere where the metering is needed.
+<p>
+	This plugin performs spectral analysis of <?= $cd ?>.
+	<?php if ($nc > 1) { ?>
+		Stereo channels also are possible to analyze by utilizing special modes and selecting corresponsing channels.
+	<?php } ?>
+	It does not affect any changes to the input signal, so can be placed anywhere where the metering is needed.
 </p>
 
 <p><b>Controls:</b></p>
 <ul>
-	<li>
-		<b>Bypass</b> - bypass switch, when turned on (led indicator is shining), the plugin does not work.
-	</li>
+	<li><b>Bypass</b> - bypass switch, when turned on (led indicator is shining), the plugin does not work.</li>
+	<li><b>Mode</b> Depending on operating modes, different analysis can be performed:</li>
+	<ul>
+    	<li><b>Analyzer</b> - performs analysis of <?= $cd ?>.</li>
+    	<?php if ($nc > 2) {?>
+    	<li><b>Analyzer Stereo</b> - performs analysis of two selected audio channels.</li>
+    	<?php }?>
+    	<li><b>Mastering</b> - performs less accurate but more demonstrative analysis of <?= $cd ?>.</li>
+    	<?php if ($nc > 2) {?>
+    	<li><b>Mastering Stereo</b> - performs less accurate but more demonstrative analysis of two selected channels.</li>
+    	<?php }?>
+    	<li><b>Spectralizer</b> - draws spectral analysis of single channel.</li>
+    	<?php if ($nc >= 2) {?>
+    	<li><b>Spectralizer Stereo</b> - draws spectral analysis of <?php if ($nc > 2) {?>two selected channels<?php } else {?>stereo channel <?php }?>.</li>
+    	<?php }?>
+    </ul>
+	<li><b>Spectrogram</b> - the rendering mechanism of the spectrogram in the <b>Spectralizer</b> mode:</li>
+	<ul>
+		<li><b>Rainbow</b> - each dot on a spectrogram changes it's color's hue component depending on the amplitude of the signal starting with <b>Hue</b> of the selected channel.</li>
+		<li><b>Fog</b> - each dot on a spectrogram changes it's transparency depending on the amplitude of the signal.</li>
+		<li><b>Color</b> - each dot on a spectrogram changes it's color's saturation component depending on the amplitude of the signal.</li>
+		<li><b>Lightning</b> - each dot changes it's solor's lightness component depending on the amplitude of the signal, the <b>Hue</b> is interpreted as a middle value of the possible value range.</li>
+		<li><b>Lightness</b> - each dot changes it's solor's lightness component depending on the amplitude of the signal, the <b>Hue</b> is interpreted as a maximum value of the possible value range.</li>
+	</ul>
+    <?php if ($nc > 1) {?>
+		<li><b>Channel(s)</b> - numbers of channels currently displayed on the graph.</li>
+	<?php } ?>
+	<li><b>Log scale</b> - the way how dots on the spectrogram are rendered. When button is down, logarithmic scale is used to translate amplitude into dot's color.</li>
 	<li><b>On</b> - turns on the analysis of the channel.</li>
 	<?php if ($nc > 1) { ?>
 	<li><b>Solo</b> - allows to individually inspect the corresponding channel.</li>

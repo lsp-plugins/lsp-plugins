@@ -26,6 +26,11 @@ namespace sse
     extern void dsp_init(const x86::cpu_features_t *f);
 }
 
+namespace sse2
+{
+    extern void dsp_init(const x86::cpu_features_t *f);
+}
+
 namespace sse3
 {
     extern void dsp_init(const x86::cpu_features_t *f);
@@ -37,6 +42,11 @@ namespace sse4
 }
 
 namespace avx
+{
+    extern void dsp_init(const x86::cpu_features_t *f);
+}
+
+namespace avx2
 {
     extern void dsp_init(const x86::cpu_features_t *f);
 }
@@ -413,15 +423,15 @@ namespace x86
             case FEAT_FAST_MOVS:
                 if (f->vendor == CPU_VENDOR_INTEL)
                 {
-                    if ((f->family == 0x6) && (f->model >= 0x5e))
+                    if ((f->family == 0x6) && (f->model >= 0x5e)) // Should be some Core i3 microarchitecture...
                         return true;
                 }
                 break;
             case FEAT_FAST_AVX:
-                if (f->vendor == CPU_VENDOR_INTEL)
-                {
+                if (f->vendor == CPU_VENDOR_INTEL) // Any Intel CPU is good enough with AVX
                     return true;
-                }
+                if (f->vendor == CPU_VENDOR_AMD)
+                    return (f->family >= AMD_FAMILY_ZEN); // Only starting with ZEN architecture AMD's implementation of AVX is fast enough
                 break;
             default:
                 break;
@@ -463,9 +473,11 @@ namespace x86
 
         // Initialize extensions
         sse::dsp_init(&f);
+        sse2::dsp_init(&f);
         sse3::dsp_init(&f);
         sse4::dsp_init(&f);
         avx::dsp_init(&f);
+        avx2::dsp_init(&f);
     }
 
     #undef EXPORT1

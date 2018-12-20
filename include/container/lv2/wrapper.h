@@ -27,6 +27,7 @@ namespace lsp
             cvector<LV2Port>    vAllPorts;      // List of all created ports, for garbage collection
             cvector<LV2Port>    vPluginPorts;   // All plugin ports sorted in urid order
             cvector<LV2Port>    vMeshPorts;
+            cvector<LV2Port>    vFrameBufferPorts;
             cvector<port_t>     vGenMetadata;   // Generated metadata
 
             plugin_t           *pPlugin;
@@ -154,6 +155,8 @@ namespace lsp
                 return &sPosition;
             }
 
+            virtual ICanvas *create_canvas(ICanvas *&cv, size_t width, size_t height);
+
             LV2Port *get_port(const char *id);
 
             void connect_direct_ui()
@@ -182,6 +185,15 @@ namespace lsp
                 {
                     result = new LV2MeshPort(p, pExt);
                     vMeshPorts.add(result);
+                }
+                else
+                    result = new LV2Port(p, pExt);
+                break;
+            case R_FBUFFER:
+                if (pExt->atom_supported())
+                {
+                    result = new LV2FrameBufferPort(p, pExt);
+                    vFrameBufferPorts.add(result);
                 }
                 else
                     result = new LV2Port(p, pExt);
@@ -283,6 +295,7 @@ namespace lsp
                     break;
 
                 case R_MESH:
+                case R_FBUFFER:
                 case R_PATH:
                     pPlugin->add_port(p);
                     vPluginPorts.add(p);
@@ -332,6 +345,7 @@ namespace lsp
         // Sort port lists
         sort_by_urid(vPluginPorts);
         sort_by_urid(vMeshPorts);
+        sort_by_urid(vFrameBufferPorts);
 
         // Initialize plugin
         lsp_trace("Initializing plugin");
@@ -559,6 +573,14 @@ namespace lsp
             {
                 nClients    ++;
                 lsp_trace("UI has connected, current number of clients=%d", int(nClients));
+
+                // Notify all ports that UI has connected to backend
+                for (size_t i=0, n = vAllPorts.size(); i<n; ++i)
+                {
+                    LV2Port *p = vAllPorts.get(i);
+                    if (p != NULL)
+                        p->ui_connected();
+                }
             }
             else if ((obj->body.id == pExt->uridDisconnectUI) && (obj->body.otype == pExt->uridUINotification))
             {
@@ -689,13 +711,14 @@ namespace lsp
                 if (p == NULL)
                     continue;
 
-                // Skip MESH ports and PATH ports visible in global space
+                // Skip MESH, FBUFFER, PATH ports visible in global space
                 switch (p->metadata()->role)
                 {
                     case R_AUDIO:
                     case R_MIDI:
                     case R_UI_SYNC:
                     case R_MESH:
+                    case R_FBUFFER:
                         continue;
                     case R_PATH:
                         if (p->get_id() >= 0) // Skip global PATH ports
@@ -759,12 +782,28 @@ namespace lsp
                 // Cleanup data of the mesh for refill
                 mesh->markEmpty();
             }
+
+            // Serialize frame buffers (it's own primitive FRAMEBUFFER)
+            n_ports         = vFrameBufferPorts.size();
+            for (size_t i=0; i<n_ports; ++i)
+            {
+                LV2Port *p = vFrameBufferPorts[i];
+                if ((p == NULL) || (!p->tx_pending()))
+                    continue;
+                frame_buffer_t *fb= p->getBuffer<frame_buffer_t>();
+                if (fb == NULL)
+                    continue;
+
+                pExt->forge_frame_time(0);  // Event header
+                msg         = pExt->forge_object(&frame, p->get_urid(), pExt->uridFrameBufferType);
+                p->serialize();
+                pExt->forge_pop(&frame);
+                bytes_out   += lv2_atom_total_size(msg);
+            }
         }
 
         // Complete sequence
         pExt->forge_pop(&seq);
-
-//        lsp_trace("Total bytes transferred = %d", int(bytes_out));
     }
 
     void LV2Wrapper::destroy()
@@ -818,6 +857,7 @@ namespace lsp
         vAllPorts.clear();
         vExtPorts.clear();
         vMeshPorts.clear();
+        vFrameBufferPorts.clear();
         vPluginPorts.clear();
         vGenMetadata.clear();
 
@@ -1015,6 +1055,29 @@ namespace lsp
 //            sSurface.data, int(sSurface.width), int(sSurface.height), int(sSurface.stride));
 
         return &sSurface;
+    }
+
+    ICanvas *LV2Wrapper::create_canvas(ICanvas *&cv, size_t width, size_t height)
+    {
+        if ((cv != NULL) && (cv->width() == width) && (cv->height() == height))
+            return cv;
+
+        ICanvas *ncv = new CairoCanvas();
+        if (ncv == NULL)
+            return NULL;
+        if (!ncv->init(width, height))
+        {
+            delete ncv;
+            return NULL;
+        }
+
+        if (cv != NULL)
+        {
+            cv->destroy();
+            delete cv;
+        }
+
+        return cv = ncv;
     }
 }
 

@@ -9,6 +9,8 @@
 #define CORE_PLUGINS_SPECTRUM_ANALYZER_H_
 
 #include <core/plugin.h>
+#include <core/util/Analyzer.h>
+#include <core/util/Counter.h>
 
 #include <metadata/plugins.h>
 
@@ -20,15 +22,14 @@ namespace lsp
         protected:
             typedef struct sa_channel_t
             {
-                float      *vSigRe;             // Real part of the signal
-                float      *vFftAmp;            // FFT transform of the signal
-                bool        bOn;                // On flag
-                bool        bSolo;              // Soloing flag
+                bool        bOn;                // Enabled flag
                 bool        bFreeze;            // Freeze flag
+                bool        bSolo;              // Soloing flag
                 bool        bSend;              // Send to UI flag
                 float       fGain;              // Makeup gain
                 float       fHue;               // Hue
-                ssize_t     nSamples;           // Number of skipped samples
+                float      *vIn;                // Input buffer pointer
+                float      *vOut;               // Output buffer pointer
 
                 // Port references
                 IPort      *pIn;                // Input samples
@@ -41,60 +42,87 @@ namespace lsp
                 IPort      *pSpec;              // Spectrum output
             } sa_channel_t;
 
-            typedef struct sa_core_t
+            typedef struct sa_spectralizer_t
             {
-                size_t          nChannels;
+                size_t      nPortId;            // Last port identifier
+                ssize_t     nChannelId;         // Channel identifier
 
-                bool            bBypass;
-                size_t          nRank;
-                size_t          nChannel;
-                float           fSelector;
-                float           fMinFreq;
-                float           fMaxFreq;
-                float           fReactivity;        // Reactivity
-                float           fTau;               // Time constant (dependent on reactivity)
-                float           fPreamp;            // Preamplification level
-                float           fZoom;              // Zoom
+                IPort      *pPortId;            // Port identifier
+                IPort      *pFBuffer;           // Frame buffer port
+            } sa_spectralizer_t;
 
-                size_t          nWindow;
-                size_t          nEnvelope;
-                ssize_t         nMaxSamples;
+            enum mode_t
+            {
+                SA_ANALYZER,
+                SA_ANALYZER_STEREO,
+                SA_MASTERING,
+                SA_MASTERING_STEREO,
+                SA_SPECTRALIZER,
+                SA_SPECTRALIZER_STEREO
+            };
 
-                IPort          *pBypass;
-                IPort          *pTolerance;
-                IPort          *pWindow;
-                IPort          *pEnvelope;
-                IPort          *pPreamp;
-                IPort          *pZoom;
-                IPort          *pReactivity;
-                IPort          *pChannel;
-                IPort          *pSelector;
-                IPort          *pFrequency;
-                IPort          *pLevel;
-
-                float          *vFrequences;
-                uint32_t       *vIndexes;
-//                float          *vFftRe;
-//                float          *vFftIm;
-                float          *vFftReIm;
-                float          *vSigRe;
-//                float          *vSigIm;
-                float          *vWindow;
-                float          *vEnvelope;
-
-                sa_channel_t    vChannels[];
-            } sa_core_t;
+            enum flags_t
+            {
+                F_MASTERING     = 1 << 0,
+                F_SMOOTH_LOG    = 1 << 1,
+                F_LOG_SCALE     = 1 << 2,
+                F_BOOST         = 1 << 3
+            };
 
         protected:
-            sa_core_t              *create_channels(const plugin_metadata_t *m);
-            static void             destroy_channels(sa_core_t *channels);
-            void                    update_frequences();
-            void                    set_reactivity(float reactivity);
-            static void             init_window(sa_core_t *core);
+            bool                create_channels(size_t channels);
+            mode_t              decode_mode(size_t mode);
 
         protected:
-            sa_core_t          *pChannels;
+            Analyzer            sAnalyzer;
+            Counter             sCounter;
+            size_t              nChannels;
+            sa_channel_t       *vChannels;
+            float              *vFrequences;
+            float              *vMFrequences;
+            uint32_t           *vIndexes;
+            uint8_t            *pData;
+
+            bool                bBypass;
+            size_t              nChannel;
+            float               fSelector;
+            float               fMinFreq;
+            float               fMaxFreq;
+            float               fReactivity;        // Reactivity
+            float               fTau;               // Time constant (dependent on reactivity)
+            float               fPreamp;            // Preamplification level
+            float               fZoom;              // Zoom
+            mode_t              enMode;
+            bool                bLogScale;
+
+            IPort              *pBypass;
+            IPort              *pMode;
+            IPort              *pTolerance;
+            IPort              *pWindow;
+            IPort              *pEnvelope;
+            IPort              *pPreamp;
+            IPort              *pZoom;
+            IPort              *pReactivity;
+            IPort              *pChannel;
+            IPort              *pSelector;
+            IPort              *pFrequency;
+            IPort              *pLevel;
+            IPort              *pLogScale;
+
+            IPort              *pFreeze;
+            IPort              *pSpp;
+            sa_spectralizer_t   vSpc[2];
+
             float_buffer_t     *pIDisplay;      // Inline display buffer
+
+        protected:
+            void                update_multiple_settings();
+            void                update_x2_settings(ssize_t ch1, ssize_t ch2);
+            void                update_spectralizer_x2_settings(ssize_t ch1, ssize_t ch2);
+
+            void                process_multiple();
+            void                process_spectralizer();
+            void                get_spectrum(float *dst, size_t channel, size_t flags);
 
         public:
             spectrum_analyzer_base(const plugin_metadata_t &metadata);

@@ -31,6 +31,7 @@ namespace lsp
             pOut[i]         = NULL;
         }
         pMesh           = NULL;
+        pFB             = NULL;
         pGain           = NULL;
         fGain           = 1.0f;
         nPhase          = 0;
@@ -54,6 +55,28 @@ namespace lsp
         nProgCurr       = 0;
         nProgLast       = 0;
         bFileSet        = false;
+
+        nOscPhase       = 0;
+        nOscLeft        = 0;
+        nRows           = 0;
+
+        vOsc[0].A0      = 0.25f;
+        vOsc[0].X0      = 64;
+        vOsc[0].W0      = 2.0f;
+        vOsc[0].P0      = 0.0f;
+        vOsc[0].R0      = 0.01f;
+
+        vOsc[1].A0      = 0.25f;
+        vOsc[1].X0      = 128;
+        vOsc[1].W0      = 6.5f;
+        vOsc[1].P0      = 1.0f;
+        vOsc[1].R0      = 0.1f;
+
+        vOsc[2].A0      = 0.15f;
+        vOsc[2].X0      = 192;
+        vOsc[2].W0      = 1.33f;
+        vOsc[2].P0      = 0.5f;
+        vOsc[2].R0      = 0.05f;
     }
 
     test_plugin::~test_plugin()
@@ -98,11 +121,13 @@ namespace lsp
         // Remember pointers to ports
         size_t port_id = 0;
         for (size_t i=0; i<2; ++i)
-            pIn[i]      = vPorts[port_id++];
+            pIn[i]          = vPorts[port_id++];
         for (size_t i=0; i<2; ++i)
-            pOut[i]     = vPorts[port_id++];
+            pOut[i]         = vPorts[port_id++];
         pGain           = vPorts[port_id++];
         pMesh           = vPorts[port_id++];
+        pFB             = vPorts[port_id++];
+        port_id        += 4; // skip modes
 
         pFileName       = vPorts[port_id++];
         pHeadCut        = vPorts[port_id++];
@@ -191,6 +216,35 @@ namespace lsp
             mesh->data(2, 320);
         }
 
+        // Fill framebuffers with some stuff
+        size_t ns = nOscLeft + samples;
+        while (ns >= FRM_BUFFER_SIZE)
+        {
+            ns             -= FRM_BUFFER_SIZE;
+
+            float time      = float(nOscPhase) / 0x80000;
+
+            dsp::fill(vBuffer, 0.5f, FRM_BUFFER_SIZE);
+            for (size_t i=0; i<3; ++i)
+                oscillate(vBuffer, &vOsc[i], time, FRM_BUFFER_SIZE);
+
+            if (pFB == NULL)
+            {
+                lsp_trace("Framebuffer port is NULL");
+                continue;
+            }
+
+            frame_buffer_t *fb = pFB->getBuffer<frame_buffer_t>();
+            if ((fb != NULL) && (fb->rows() > nRows))
+            {
+                fb->write_row(vBuffer);
+//                nRows += 2;
+            }
+
+            nOscPhase       = (nOscPhase + FRM_BUFFER_SIZE); // & 0x7ffff;
+        }
+        nOscLeft            = ns;
+
         // Process file
         path_t *path = pFileName->getBuffer<path_t>();
         if ((path != NULL) && (path->accepted()))
@@ -226,6 +280,17 @@ namespace lsp
 
         // Query inline display for redraw
         pWrapper->query_display_draw();
+    }
+
+    void test_plugin::oscillate(float *dst, const osc_t *osc, float t, ssize_t n)
+    {
+        float P = 2.0f * M_PI * osc->W0 * t + osc->P0;
+
+        for (ssize_t x=0; x < n; ++x)
+        {
+            float dx = -0.05f * fabs(osc->X0 - x);
+            dst[x] += osc->A0 * cosf(P + dx) * expf(osc->R0 * dx);
+        }
     }
 
     bool test_plugin::inline_display(ICanvas *cv, size_t width, size_t height)

@@ -10,7 +10,7 @@
 
 namespace lsp
 {
-    struct profiler_mono_metadata
+    struct profiler_base_metadata
     {
             static const plugin_metadata_t metadata;
 
@@ -94,6 +94,16 @@ namespace lsp
             };
 
             static const size_t RESULT_MESH_SIZE    = 512;
+    };
+
+    struct profiler_mono_metadata: public profiler_base_metadata
+    {
+        static const plugin_metadata_t metadata;
+    };
+
+    struct profiler_stereo_metadata: public profiler_base_metadata
+    {
+        static const plugin_metadata_t metadata;
     };
 }
 

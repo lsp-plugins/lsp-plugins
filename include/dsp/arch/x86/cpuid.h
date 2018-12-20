@@ -99,6 +99,15 @@
 #define XCR_FLAGS_AVX512                        (XCR_FLAGS_AVX | XCR0_FLAG_OPMASK | XCR0_FLAG_ZMM_HI256 | XCR0_FLAG_HI16_ZMM)
 
 //-------------------------------------------------------------------------
+// Different processor families
+#define AMD_FAMILY_K8_HAMMER                    0x0f
+#define AMD_FAMILY_K10                          0x10
+#define AMD_FAMILY_BOBCAT                       0x14
+#define AMD_FAMILY_BULLDOZER                    0x15
+#define AMD_FAMILY_JAGUAR                       0x16
+#define AMD_FAMILY_ZEN                          0x17
+
+//-------------------------------------------------------------------------
 // CPUID structures and functions
 namespace x86
 {

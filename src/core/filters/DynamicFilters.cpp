@@ -16,8 +16,8 @@ namespace lsp
     // Normal analog filter that does not affect any changes to the signal
     const f_cascade_t DynamicFilters::sNormal =
     {
-        1.0f, 0.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 0.0f, 0.0f
+        { 1.0f, 0.0f, 0.0f, 0.0f },
+        { 1.0f, 0.0f, 0.0f, 0.0f }
     };
 
     DynamicFilters::DynamicFilters()

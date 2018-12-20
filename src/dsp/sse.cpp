@@ -58,7 +58,6 @@ namespace sse // TODO: make constants common for all architectures
 
 #include <dsp/arch/x86/sse/fft.h>
 #include <dsp/arch/x86/sse/fastconv.h>
-#include <dsp/arch/x86/sse/float.h>
 #include <dsp/arch/x86/sse/graphics.h>
 #include <dsp/arch/x86/sse/msmatrix.h>
 #include <dsp/arch/x86/sse/search.h>
@@ -74,7 +73,6 @@ namespace sse // TODO: make constants common for all architectures
 #include <dsp/arch/x86/sse/filters/transform.h>
 
 #include <dsp/arch/x86/sse/3dmath.h>
-#include <dsp/arch/x86/sse/native.h>
 
 #undef DSP_ARCH_X86_SSE_IMPL
 
@@ -133,8 +131,6 @@ namespace sse
         }
         TEST_EXPORT(copy_movntps);
 
-        EXPORT1(copy_saturated);
-        EXPORT1(saturate);
         EXPORT1(move);
         EXPORT1(fill);
         EXPORT1(fill_one);
@@ -156,21 +152,12 @@ namespace sse
         EXPORT1(abs_mul3);
         EXPORT1(abs_div3);
 
-        EXPORT1(abs_normalized);
-        EXPORT1(normalize);
         EXPORT1(min);
         EXPORT1(max);
         EXPORT1(abs_max);
         EXPORT1(abs_min);
         EXPORT1(minmax);
         EXPORT1(abs_minmax);
-
-//            EXPORT1(min_index);
-//            EXPORT1(max_index);
-//            EXPORT1(minmax_index);
-//            EXPORT1(abs_max_index);
-//            EXPORT1(abs_min_index);
-//            EXPORT1(abs_minmax_index);
 
         EXPORT1(add2);
         EXPORT1(sub2);
@@ -214,7 +201,6 @@ namespace sse
 
         EXPORT1(direct_fft);
         EXPORT1(packed_direct_fft);
-        EXPORT1(conv_direct_fft);
         EXPORT1(reverse_fft);
         EXPORT1(packed_reverse_fft);
 //            EXPORT1(center_fft);
@@ -224,8 +210,6 @@ namespace sse
         EXPORT1(fastconv_parse_apply);
         EXPORT1(fastconv_restore);
         EXPORT1(fastconv_apply);
-
-        EXPORT1(normalize_fft);
 
         EXPORT1(complex_mul2);
         EXPORT1(complex_mul3);
@@ -272,8 +256,11 @@ namespace sse
         EXPORT1(bilinear_transform_x4);
         EXPORT1(bilinear_transform_x8);
 
-        EXPORT1(axis_apply_log);
+        EXPORT1(axis_apply_log1);
+        EXPORT1(axis_apply_log2);
         EXPORT1(rgba32_to_bgra32);
+        EXPORT1(fill_rgba);
+        EXPORT1(fill_hsla);
 
         EXPORT1(lanczos_resample_2x2);
         EXPORT1(lanczos_resample_2x3);

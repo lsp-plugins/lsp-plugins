@@ -237,7 +237,7 @@ namespace lsp
                 if ((pMidi != NULL) && (pBuffer != NULL) && IS_OUT_PORT(pMetadata))
                 {
                     // Reset buffer
-                    jack_midi_reset_buffer(pBuffer);
+                    jack_midi_clear_buffer(pBuffer);
 
                     // Transfer MIDI events
                     size_t events = pMidi->nEvents;
@@ -413,6 +413,37 @@ namespace lsp
                     jack_destroy_mesh(pMesh);
                     pMesh = NULL;
                 }
+            }
+    };
+
+    class JACKFrameBufferPort: public JACKPort
+    {
+        private:
+            frame_buffer_t      sFB;
+
+        public:
+            JACKFrameBufferPort(const port_t *meta, JACKWrapper *w) : JACKPort(meta, w)
+            {
+            }
+
+            virtual ~JACKFrameBufferPort()
+            {
+            }
+
+        public:
+            virtual void *getBuffer()
+            {
+                return &sFB;
+            }
+
+            virtual int init()
+            {
+                return sFB.init(pMetadata->start, pMetadata->step);
+            }
+
+            virtual void destroy()
+            {
+                sFB.destroy();
             }
     };
 
