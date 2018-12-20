@@ -124,10 +124,10 @@ MTEST_BEGIN("core.util", sync_chirp)
         	dataArray[ch] 	= rtArray[ch].get_capture();
         	offsets[ch] 	= rtArray[ch].get_capture_start();
 
-            snprintf(fName, MAX_FNAME_LENGTH, "tmp/chirpCapture%lu.csv", ch);
+            snprintf(fName, MAX_FNAME_LENGTH, "tmp/chirpCapture%lu.csv", (unsigned long)ch);
             write_buffer(fName, "Capture", dataArray[ch]->getBuffer(0), dataArray[ch]->length());
 
-            printf("Channel %lu offset: %lu\n", ch, offsets[ch]);
+            printf("Channel %lu offset: %lu\n", (unsigned long)ch, (unsigned long)offsets[ch]);
         }
 
         sc.do_linear_convolutions(dataArray, offsets, nChannels, 32768);
@@ -139,7 +139,7 @@ MTEST_BEGIN("core.util", sync_chirp)
 
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
-            snprintf(fName, MAX_FNAME_LENGTH, "tmp/result%lu.csv", ch);
+            snprintf(fName, MAX_FNAME_LENGTH, "tmp/result%lu.csv", (unsigned long)ch);
             write_buffer(fName, "Convolution Result", conv->channel(ch), conv->samples());
 
             sc.postprocess_linear_convolution(ch, offset, enAlgo, prWsize, prTol);
@@ -147,7 +147,7 @@ MTEST_BEGIN("core.util", sync_chirp)
             fRT[ch] = sc.get_reverberation_time_seconds();
             printf("Reverberation Time: %.10f s\n", fRT[ch]);
             size_t nRT = sc.get_reverberation_time_samples();
-            printf("Reverberation Time: %.lu samples\n", nRT);
+            printf("Reverberation Time: %.lu samples\n", (unsigned long)nRT);
 
             fcR[ch] = sc.get_reverberation_correlation();
             printf("Decay Line Fit Correlation: %.10f\n", fcR[ch]);
@@ -158,9 +158,9 @@ MTEST_BEGIN("core.util", sync_chirp)
             bool lowNoise = sc.get_background_noise_optimality();
 
             if (lowNoise)
-                printf("Channel %lu background noise suitable for requested RT algorithm.\n", ch);
+                printf("Channel %lu background noise suitable for requested RT algorithm.\n", (unsigned long)ch);
             else
-                printf("Channel %lu background noise unsuitable for requested RT algorithm.\n", ch);
+                printf("Channel %lu background noise unsuitable for requested RT algorithm.\n", (unsigned long)ch);
         }
 
         write_buffer("tmp/fReverbTimes.csv", "Reverberation Times [s]", fRT, nChannels);
