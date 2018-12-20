@@ -10,6 +10,8 @@
 
 #include <dsp/arch/x86/avx2/graphics/transpose.h>
 
+#ifdef ARCH_X86_64
+
 namespace avx2
 {
 IF_ARCH_X86(
@@ -748,5 +750,6 @@ static const uint32_t EFF_HSLA_SAT_XC[] __lsp_aligned32 =
     }
 }
 
+#endif /* ARCH_X86_64 */
 
 #endif /* INCLUDE_DSP_ARCH_X86_AVX2_GRAPHICS_EFFECTS_H_ */
