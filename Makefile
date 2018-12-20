@@ -6,7 +6,8 @@ include scripts/make/configure.mk
 # Common definitions
 OBJDIR                  = ${CURDIR}/.build
 RELEASE_TEXT            = LICENSE.txt README.txt CHANGELOG.txt
-RELEASE_SRC             = $(RELEASE_TEXT) src include res Makefile release.sh
+RELEASE_SRC             = $(RELEASE_TEXT) src build-*.sh include res Makefile release.sh
+RELEASE_SCRIPTS         = scripts/bash scripts/make
 INSTALL                 = install
 
 # Installation locations
@@ -261,7 +262,9 @@ release_profile: release_prepare
 release_src:
 	@echo "Releasing source code binaries"
 	@mkdir -p $(RELEASE)/$(SRC_ID)
+	@mkdir -p $(RELEASE)/$(SRC_ID)/scripts
 	@cp -R $(RELEASE_SRC) $(RELEASE)/$(SRC_ID)/
+	@cp -R $(RELEASE_SCRIPTS) $(RELEASE)/$(SRC_ID)/scripts/
 	@tar -C $(RELEASE) -czf $(RELEASE)/$(SRC_ID).tar.gz $(SRC_ID)
 	@rm -rf $(RELEASE)/$(SRC_ID)
 
