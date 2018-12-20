@@ -147,7 +147,7 @@ MTEST_BEGIN("core.util", sync_chirp)
             fRT[ch] = sc.get_reverberation_time_seconds();
             printf("Reverberation Time: %.10f s\n", fRT[ch]);
             size_t nRT = sc.get_reverberation_time_samples();
-            printf("Reverberation Time: %.lu samples\n", nRT);
+            printf("Reverberation Time: %.lu samples\n", (unsigned long)nRT);
 
             fcR[ch] = sc.get_reverberation_correlation();
             printf("Decay Line Fit Correlation: %.10f\n", fcR[ch]);
