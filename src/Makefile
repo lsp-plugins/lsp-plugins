@@ -1,6 +1,6 @@
 SUBDIRS                 = core metadata utils 
 MODULES                 = $(SUBDIRS)
-CONTAINER_DEPS			= $(OBJ_METADATA) $(OBJ_CORE) $(UTL_FILES) 
+CONTAINER_DEPS          = $(OBJ_METADATA) $(OBJ_CORE) $(UTL_FILES) 
 
 NEED_UI                 = 0
 NEED_PLUGINS            = 0

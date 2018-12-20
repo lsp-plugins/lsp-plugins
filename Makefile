@@ -8,8 +8,6 @@ OBJDIR                  = ${CURDIR}/.build
 RELEASE_TEXT            = LICENSE.txt README.txt CHANGELOG.txt
 RELEASE_SRC             = $(RELEASE_TEXT) src include res Makefile release.sh
 INSTALL                 = install
-PREFIX_FILE            := .install-prefix.txt
-MODULES_FILE           := .install-modules.txt
 
 # Installation locations
 BIN_PATH                = $(PREFIX)/bin
@@ -20,7 +18,6 @@ LV2_PATH                = $(LIB_PATH)/lv2
 VST_PATH                = $(LIB_PATH)/vst
 
 # Directories
-export VERSION
 export RELEASE_TEXT
 export ROOTDIR          = ${CURDIR}
 export SRCDIR           = ${CURDIR}/src
@@ -151,7 +148,7 @@ clean:
 
 # Build targets
 build_ladspa: export BUILD_MODULES = ladspa
-build_ladspa: compile	
+build_ladspa: compile
 
 build_lv2: export BUILD_MODULES = lv2
 build_lv2: compile

@@ -1,16 +1,21 @@
+PREFIX_FILE            := .install-prefix.txt
+MODULES_FILE           := .install-modules.txt
+
 # Determine installation prefix
 ifndef PREFIX
-  PREFIX                  = $(shell cat "$(OBJDIR)/$(PREFIX_FILE)" 2>/dev/null || echo "/usr/local")
+  PREFIX                 := $(shell cat "$(OBJDIR)/$(PREFIX_FILE)" 2>/dev/null || echo "/usr/local")
 endif
 
 # Determine list of modules to build
 ifndef BUILD_MODULES
-  BUILD_MODULES           = $(shell cat "$(OBJDIR)/$(MODULES_FILE)" 2>/dev/null || echo "ladspa lv2 vst jack profile src doc")
+  BUILD_MODULES          := $(shell cat "$(OBJDIR)/$(MODULES_FILE)" 2>/dev/null || echo "ladspa lv2 vst jack profile src doc")
 endif
+
+export BUILD_MODULES
 
 # Configure list of targets to execute
 INSTALLATIONS           =
-UNINSTALLATIONS         = 
+UNINSTALLATIONS         =
 RELEASES                =
 
 ifeq ($(findstring ladspa,$(BUILD_MODULES)),ladspa)
@@ -42,11 +47,13 @@ ifeq ($(findstring src,$(BUILD_MODULES)),src)
   RELEASES               += release_src
 endif
 
-export BUILD_MODULES
+export INSTALLATIONS
+export UNINSTALLATIONS
+export RELEASES
 
 # Configure compiler and linker flags
 LD_ARCH         =
-CC_ARCH			=
+CC_ARCH         =
 LD_PATH         =
 
 # Build profile

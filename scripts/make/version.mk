@@ -6,3 +6,4 @@ ifndef VERSION
   VERSION                 = 1.1.5
 endif
 
+export VERSION
