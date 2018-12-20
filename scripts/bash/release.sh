@@ -24,7 +24,7 @@ $MAKE unrelease
 # Perform a release
 if [[ "$ARCH" == "x86_64" ]]; then
     export THREADS=$((THREADS*2)) # For x86_64 architecture we use twice greater number of threads
-    if [ "$PLATFORM" -eq "Linux" ]; then # Cross-compiling for 32-bit architecture
+    if [[ "$PLATFORM" == "Linux" ]]; then # Cross-compiling for 32-bit architecture
         do_release 'i586'
     fi;
     do_release 'x86_64'
