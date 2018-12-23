@@ -6,13 +6,22 @@
 - Implemented Frequenzselektiver Kompressor (Multiband Compressor) Mono, Stereo, LeftRight, MidSide
   plugin series
 - Refactored and optimized filter transfer function calculation. 
-- Implemented sampler with stereo outputs.
-- Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
 - Migrated to CMake build system.
+
+=== 1.1.6 ===
+
+- Implemented 3D reverb simulator.
+- Implemented sampler plugin series with stereo outputs
+- Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
+- Ported all DSP code to support AArch64 architecture.
+- Additionally ptimized DSP code with AVX, AVX2 and FMA3 instruction set.
 - Added possibility to double-click the parameter's value number and enter it manually with keyboard.
-- Added audio preview to file open dialog.
 - Added bookmarks to file opening dialog.
-- Added subsystem for loading missed files.
+- Added audio preview to file open dialog.
+- Added subsystem for loading missed files. 
+- Added frequency-domain spectral analysis to convolver plugin series.
+- Added frequency-domain spectral analysis to profiler plugin series.
+ 
 
 *******************************************************************************
 * Release steps
