@@ -40,7 +40,7 @@ namespace geometry3d_test
 }
 
 #include <test/mtest/3d/debug.h>
-#include <test/mtest/3d/view.h>
+#include <test/mtest/3d/common/view.h>
 #include <test/mtest/3d/task.h>
 
 namespace geometry3d_test

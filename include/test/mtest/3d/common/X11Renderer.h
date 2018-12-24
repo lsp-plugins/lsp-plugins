@@ -10,6 +10,7 @@
 
 #include <core/types.h>
 #include <core/status.h>
+#include <core/3d/Scene3D.h>
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -33,13 +34,43 @@ namespace mtest
             size_t                  nBMask;
             ssize_t                 nMouseX, nMouseY;
 
+        protected:
+            bool                    bWireframe;
+            bool                    bRotate;
+            bool                    bLight;
+            bool                    bInvert;
+            bool                    bCullFace;
+            bool                    bDrawRays;
+            bool                    bDrawSegments;
+            bool                    bDrawTriangles;
+            bool                    bDrawPoints;
+            bool                    bDrawNormals;
+            bool                    bDrawCapture;
+            bool                    bDrawSource;
+
+            float                   fAngleX;
+            float                   fAngleY;
+            float                   fAngleZ;
+            float                   fScale;
+
+            float                   fAngleDX;
+            float                   fAngleDY;
+            float                   fAngleDZ;
+            float                   fDeltaScale;
+            Scene3D                *pScene;
+
         public:
-            X11Renderer();
+            X11Renderer(Scene3D *scene);
             virtual ~X11Renderer();
+
+        protected:
+            static bool is_supported(const char *set, const char *ext);
+            static void perspectiveGL(double fovY, double aspect, double zNear, double zFar);
 
         public:
             virtual status_t init();
             virtual status_t run();
+            virtual void render(size_t width, size_t height);
             void stop();
             virtual void destroy();
 

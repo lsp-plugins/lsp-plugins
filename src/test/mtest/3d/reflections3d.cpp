@@ -7,6 +7,7 @@
 
 #include <test/mtest.h>
 #include <test/mtest/3d/common/X11Renderer.h>
+#include <core/files/Model3DFile.h>
 
 #include <core/types.h>
 #include <core/debug.h>
@@ -28,7 +29,7 @@ MTEST_BEGIN("3d", reflections)
     class Renderer: public X11Renderer
     {
         public:
-            explicit Renderer()
+            explicit Renderer(Scene3D *scene): X11Renderer(scene)
             {
             }
 
@@ -97,10 +98,21 @@ MTEST_BEGIN("3d", reflections)
 
     MTEST_MAIN
     {
-        Renderer r;
+        const char *scene_file = (argc < 1) ? "res/test/3d/cross.obj" : argv[0];
+
+        // Load scene
+        Scene3D s;
+        status_t res = Model3DFile::load(&s, scene_file, true);
+        MTEST_ASSERT_MSG(res == STATUS_OK, "Error loading scene from file %s", scene_file);
+
+        // Initialize renderer
+        Renderer r(&s);
         MTEST_ASSERT_MSG(r.init() == STATUS_OK, "Error initializing renderer");
         r.run();
         r.destroy();
+
+        // Destroy scene
+        s.destroy();
     }
 
 MTEST_END
