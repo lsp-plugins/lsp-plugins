@@ -11,6 +11,7 @@
 #include <core/types.h>
 #include <core/status.h>
 #include <core/3d/Scene3D.h>
+#include <test/mtest/3d/common/View3D.h>
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -57,10 +58,11 @@ namespace mtest
             float                   fAngleDY;
             float                   fAngleDZ;
             float                   fDeltaScale;
-            Scene3D                *pScene;
+            View3D                 *pView;
+//            Scene3D                *pScene;
 
         public:
-            X11Renderer(Scene3D *scene);
+            X11Renderer(View3D *view);
             virtual ~X11Renderer();
 
         protected:

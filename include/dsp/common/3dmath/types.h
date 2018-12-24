@@ -29,6 +29,11 @@ typedef struct vector3d_t
     float dx, dy, dz, dw;
 } vector3d_t;
 
+typedef struct color3d_t
+{
+    float r, g, b, a;
+} color3d_t;
+
 typedef struct ray3d_t
 {
     point3d_t   z;          // The start point: x, y, z = point coordinates

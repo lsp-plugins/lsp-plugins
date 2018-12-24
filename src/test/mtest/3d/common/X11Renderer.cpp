@@ -15,7 +15,7 @@
 
 namespace mtest
 {
-    X11Renderer::X11Renderer(Scene3D *scene)
+    X11Renderer::X11Renderer(View3D *view)
     {
         dpy                 = NULL;
         win                 = None;
@@ -48,7 +48,7 @@ namespace mtest
         fAngleDY            = 0.0f;
         fAngleDZ            = 0.0f;
         fDeltaScale         = 0.0f;
-        pScene              = scene;
+        pView               = view;
     }
     
     X11Renderer::~X11Renderer()
@@ -277,14 +277,14 @@ namespace mtest
             case 'd':
                 bDrawCapture = !bDrawCapture;
                 break;
-            case '0': case '1': case '2': case '3': case '4':
-            case '5': case '6': case '7': case '8': case '9':
-            {
-                Object3D *obj = pScene->get_object(key - '0');
-                if (obj != NULL)
-                    obj->set_visible(!obj->is_visible());
-                break;
-            }
+//            case '0': case '1': case '2': case '3': case '4':
+//            case '5': case '6': case '7': case '8': case '9':
+//            {
+//                Object3D *obj = pScene->get_object(key - '0');
+//                if (obj != NULL)
+//                    obj->set_visible(!obj->is_visible());
+//                break;
+//            }
         }
     }
 
@@ -407,239 +407,44 @@ namespace mtest
         glEnable(GL_POLYGON_OFFSET_POINT);
         glPointSize(5.0f);
 
-        // Draw triangles
         if (bDrawTriangles)
         {
-            matrix3d_t mv, m;
-            glGetFloatv(GL_MODELVIEW_MATRIX, mv.m);
+            size_t n = pView->num_vertexes();
+            v_vertex3d_t *vv = pView->get_vertexes();
 
-            Object3D **objs = pScene->get_objects();
-            TraceCapture3D **capts = pScene->get_captures();
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_NORMAL_ARRAY);
+            glEnableClientState(GL_COLOR_ARRAY);
 
-            for (size_t i = pScene->num_objects(); i>0; --i)
+            glVertexPointer(3, GL_FLOAT, sizeof(v_vertex3d_t), &vv->p);
+            glNormalPointer(GL_FLOAT, sizeof(v_vertex3d_t), &vv->n);
+            glColorPointer(3, GL_FLOAT, sizeof(v_vertex3d_t), &vv->c);
+
+            if (bWireframe)
             {
-                Object3D *obj        = *(objs++);
-                TraceCapture3D *capt = *(capts++);
-                if ((obj == NULL) || (capt != NULL) || (!obj->is_visible()))
-                    continue;
-
-                dsp::apply_matrix3d_mm2(&m, &mv, obj->get_matrix());
-                glLoadMatrixf(m.m);
-
-                point3d_t *tr       = obj->get_vertexes();
-                vector3d_t *tn      = obj->get_normals();
-                vertex_index_t *vvx = obj->get_vertex_indexes();
-                vertex_index_t *vnx = obj->get_normal_indexes();
-
-                for (ssize_t i=obj->get_triangles_count(); i > 0; --i)
-                {
-                    glBegin((bWireframe) ? GL_LINE_LOOP : GL_TRIANGLES);
-
-                        glColor3f(1.0f, 0.0f, 0.0f);
-                        glNormal3fv(&tn[*(vnx++)].dx);
-                        glVertex3fv(&tr[*(vvx++)].x);
-
-                        glColor3f(0.0f, 1.0f, 0.0f);
-                        glNormal3fv(&tn[*(vnx++)].dx);
-                        glVertex3fv(&tr[*(vvx++)].x);
-
-                        glColor3f(0.0f, 0.0f, 1.0f);
-                        glNormal3fv(&tn[*(vnx++)].dx);
-                        glVertex3fv(&tr[*(vvx++)].x);
-
-                    glEnd();
-                }
-
-                if (bDrawNormals)
-                {
-    //                tr = obj->get_triangles();
-                    tr      = obj->get_vertexes();
-                    tn      = obj->get_normals();
-                    vvx     = obj->get_vertex_indexes();
-                    vnx     = obj->get_normal_indexes();
-
-                    for (ssize_t i=obj->get_triangles_count(); i > 0; --i)
-                    {
-                        glColor3f(1.0f, 1.0f, 0.0f);
-                        glBegin(GL_LINES);
-                            for (int j=0; j<3; ++j)
-                            {
-                                point3d_t *xp   = &tr[*(vvx++)];
-                                vector3d_t *xv  = &tn[*(vnx++)];
-
-                                glVertex3fv(&xp->x);
-                                glVertex3f(xp->x + xv->dx, xp->y + xv->dy, xp->z + xv->dz);
-                            }
-                        glEnd();
-                    }
-                }
+                for (size_t i=0; i<n; i += 3)
+                    glDrawArrays(GL_LINE_LOOP, i, 3);
             }
-            glLoadMatrixf(mv.m);
-        }
+            else
+                glDrawArrays(GL_TRIANGLES, 0, n);
 
-        if (bDrawSource)
-        {
-            matrix3d_t mv, m;
-            glGetFloatv(GL_MODELVIEW_MATRIX, mv.m);
+            glDisableClientState(GL_COLOR_ARRAY);
+            glDisableClientState(GL_NORMAL_ARRAY);
+            glDisableClientState(GL_VERTEX_ARRAY);
 
-            RaySource3D **rs = pScene->get_sources();
-
-            for (size_t i = pScene->num_sources(); i>0; --i)
+            if (bDrawNormals)
             {
-                RaySource3D *rrs    = *(rs++);
-                if (rrs == NULL)
-                    continue;
-
-                dsp::apply_matrix3d_mm2(&m, &mv, rrs->get_matrix());
-                glLoadMatrixf(m.m);
-
-                float r = (rrs->get_radius1() + rrs->get_radius2()) * 0.5f;
-
-                glColor3f(1.0f, 0.5f, 0.0f);
-                glBegin(GL_LINE_LOOP);
-                    glVertex3f(r, r, r);
-                    glVertex3f(r, -r, r);
-                    glVertex3f(-r, -r, r);
-                    glVertex3f(-r, r, r);
-                glEnd();
-
-                glBegin(GL_LINE_LOOP);
-                    glVertex3f(r, r, -r);
-                    glVertex3f(r, -r, -r);
-                    glVertex3f(-r, -r, -r);
-                    glVertex3f(-r, r, -r);
-                glEnd();
-
+                glColor3f(1.0f, 1.0f, 0.0f);
                 glBegin(GL_LINES);
-                    glVertex3f(r, r, -r);
-                    glVertex3f(r, r, r);
 
-                    glVertex3f(r, -r, -r);
-                    glVertex3f(r, -r, r);
-
-                    glVertex3f(-r, -r, -r);
-                    glVertex3f(-r, -r, r);
-
-                    glVertex3f(-r, r, -r);
-                    glVertex3f(-r, r, r);
-                glEnd();
-
-                glBegin(GL_POINTS);
-                    glVertex3f(0.0f, 0.0f, 0.0f);
-                glEnd();
-
-    //            r *= 2.0f;
-    //
-    //            glBegin(GL_LINES);
-    //                glVertex3f(0.0f, 0.0f, 0.0f);
-    //                glVertex3f(r, 0.0f, 0.0f);
-    //                glVertex3f(r, 0.0f, 0.0f);
-    //                glVertex3f(r * 0.8f, r * 0.05f, 0.0f);
-    //                glVertex3f(r, 0.0f, 0.0f);
-    //                glVertex3f(r * 0.8f, r * -0.05f, 0.0f);
-    //                glVertex3f(r, 0.0f, 0.0f);
-    //                glVertex3f(r * 0.8f, 0.0f, r * 0.05f);
-    //                glVertex3f(r, 0.0f, 0.0f);
-    //                glVertex3f(r * 0.8f, 0.0f, r * -0.05f);
-    //            glEnd();
-            }
-
-            glLoadMatrixf(mv.m);
-        }
-
-        if (bDrawCapture)
-        {
-            matrix3d_t mv, m;
-            glGetFloatv(GL_MODELVIEW_MATRIX, mv.m);
-
-            Object3D **objs = pScene->get_objects();
-            TraceCapture3D **capts = pScene->get_captures();
-
-            for (size_t i = pScene->num_objects(); i>0; --i)
-            {
-                Object3D *obj        = *(objs++);
-                TraceCapture3D *capt = *(capts++);
-                if ((obj == NULL) || (capt == NULL) || (!obj->is_visible()))
-                    continue;
-
-                dsp::apply_matrix3d_mm2(&m, &mv, obj->get_matrix());
-                glLoadMatrixf(m.m);
-
-                point3d_t *tr       = obj->get_vertexes();
-                vector3d_t *tn      = obj->get_normals();
-                vertex_index_t *vvx = obj->get_vertex_indexes();
-                vertex_index_t *vnx = obj->get_normal_indexes();
-
-                for (ssize_t i=obj->get_triangles_count(); i > 0; --i)
+                for (size_t i=0; i < n; ++i)
                 {
-                    glBegin((bWireframe) ? GL_LINE_LOOP : GL_TRIANGLES);
-
-                        glColor3f(1.0f, 0.0f, 0.0f);
-                        glNormal3fv(&tn[*(vnx++)].dx);
-                        glVertex3fv(&tr[*(vvx++)].x);
-
-                        glColor3f(0.0f, 1.0f, 0.0f);
-                        glNormal3fv(&tn[*(vnx++)].dx);
-                        glVertex3fv(&tr[*(vvx++)].x);
-
-                        glColor3f(0.0f, 0.0f, 1.0f);
-                        glNormal3fv(&tn[*(vnx++)].dx);
-                        glVertex3fv(&tr[*(vvx++)].x);
-
-                    glEnd();
+                    v_vertex3d_t *v = &vv[i];
+                    glVertex3fv(&v[0].p.x);
+                    glVertex3f(v[0].p.x + v[0].n.dx, v[0].p.y + v[0].n.dy, v[0].p.z + v[0].n.dz);
                 }
-
-                float r = capt->get_radius();
-
-                glColor3f(1.0f, 0.0f, 1.0f);
-                glBegin(GL_LINE_LOOP);
-                    glVertex3f(r, r, r);
-                    glVertex3f(r, -r, r);
-                    glVertex3f(-r, -r, r);
-                    glVertex3f(-r, r, r);
-                glEnd();
-
-                glBegin(GL_LINE_LOOP);
-                    glVertex3f(r, r, -r);
-                    glVertex3f(r, -r, -r);
-                    glVertex3f(-r, -r, -r);
-                    glVertex3f(-r, r, -r);
-                glEnd();
-
-                glBegin(GL_LINES);
-                    glVertex3f(r, r, -r);
-                    glVertex3f(r, r, r);
-
-                    glVertex3f(r, -r, -r);
-                    glVertex3f(r, -r, r);
-
-                    glVertex3f(-r, -r, -r);
-                    glVertex3f(-r, -r, r);
-
-                    glVertex3f(-r, r, -r);
-                    glVertex3f(-r, r, r);
-                glEnd();
-
-                glBegin(GL_POINTS);
-                    glVertex3f(0.0f, 0.0f, 0.0f);
-                glEnd();
-
-                r *= 2.0f;
-
-                glBegin(GL_LINES);
-                    glVertex3f(0.0f, 0.0f, 0.0f);
-                    glVertex3f(r, 0.0f, 0.0f);
-                    glVertex3f(r, 0.0f, 0.0f);
-                    glVertex3f(r * 0.8f, r * 0.05f, 0.0f);
-                    glVertex3f(r, 0.0f, 0.0f);
-                    glVertex3f(r * 0.8f, r * -0.05f, 0.0f);
-                    glVertex3f(r, 0.0f, 0.0f);
-                    glVertex3f(r * 0.8f, 0.0f, r * 0.05f);
-                    glVertex3f(r, 0.0f, 0.0f);
-                    glVertex3f(r * 0.8f, 0.0f, r * -0.05f);
                 glEnd();
             }
-            glLoadMatrixf(mv.m);
         }
 
         if (bLight)
@@ -651,11 +456,12 @@ namespace mtest
         // Draw segments
         if (bDrawSegments)
         {
-            segment3d_t *s = pScene->get_segments();
+            v_segment3d_t *s = pView->get_segments();
+            size_t n = pView->num_segments();
 
-            for (size_t i=pScene->num_segments(); i>0; --i, ++s)
+            for (size_t i=0; i<n; ++i, ++s)
             {
-                glColor3f(0.0f, 1.0f, 0.0f);
+                glColor3fv(&s->c.r);
                 glBegin(GL_POINTS);
                     glVertex3fv(&s->p[0].x);
                     glVertex3fv(&s->p[1].x);
@@ -674,23 +480,25 @@ namespace mtest
             glEnable (GL_BLEND);
             glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-            ray3d_t *r = pScene->get_rays();
+            v_ray3d_t *r    = pView->get_rays();
+            size_t n        = pView->num_rays();
+
             glPointSize(5.0f);
 
-            for (size_t i=pScene->num_rays(); i>0; --i, ++r)
+            for (size_t i=0; i<n; ++i)
             {
                 if (r->v.dw < 0.0f)
                     continue;
 
-                glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
+                glColor4f(r->c.r, r->c.g, r->c.b, 1.0f);
                 glBegin(GL_POINTS);
-                    glVertex3fv(&r->z.x);
+                    glVertex3fv(&r->p.x);
                 glEnd();
 
                 glBegin(GL_LINES);
-                    glVertex3fv(&r->z.x);
-                    glColor4f(0.0f, 1.0f, 0.0f, 0.0f);
-                    glVertex3f(r->z.x + r->v.dx*4.0f, r->z.y + r->v.dy*4.0f, r->z.z + r->v.dz*4.0f);
+                    glVertex3fv(&r->p.x);
+                    glColor4f(r->c.r, r->c.g, r->c.b, 0.0f);
+                    glVertex3f(r->p.x + r->v.dx*4.0f, r->p.y + r->v.dy*4.0f, r->p.z + r->v.dz*4.0f);
                 glEnd();
             }
 
@@ -700,13 +508,20 @@ namespace mtest
         // Draw points
         if (bDrawPoints)
         {
-            point3d_t *p = pScene->get_points();
+            v_point3d_t *p = pView->get_points();
+            size_t n = pView->num_points();
 
             glColor3f(0.0f, 1.0f, 1.0f);
-            glBegin(GL_POINTS);
-                for (size_t i=pScene->num_points(); i>0; --i, ++p)
-                    glVertex3fv(&p->x);
-            glEnd();
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_COLOR_ARRAY);
+
+            glVertexPointer(3, GL_FLOAT, sizeof(v_point3d_t), &p->p.x);
+            glColorPointer(3, GL_FLOAT, sizeof(v_vertex3d_t), &p->c.r);
+
+            glDrawArrays(GL_POINTS, 0, n);
+
+            glDisableClientState(GL_COLOR_ARRAY);
+            glDisableClientState(GL_VERTEX_ARRAY);
         }
 
         if (bLight)
