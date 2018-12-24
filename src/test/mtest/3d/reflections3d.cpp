@@ -24,9 +24,16 @@
 
 using namespace lsp;
 
-static const color3d_t C_RED    = { 1.0f, 0.0f, 0.0f, 0.0f };
-static const color3d_t C_GREEN  = { 0.0f, 1.0f, 0.0f, 0.0f };
-static const color3d_t C_BLUE   = { 0.0f, 0.0f, 1.0f, 0.0f };
+static const color3d_t C_RED        = { 1.0f, 0.0f, 0.0f, 0.0f };
+static const color3d_t C_GREEN      = { 0.0f, 1.0f, 0.0f, 0.0f };
+static const color3d_t C_BLUE       = { 0.0f, 0.0f, 1.0f, 0.0f };
+static const color3d_t C_MAGENTA    = { 1.0f, 0.0f, 1.0f, 0.0f };
+
+typedef struct wfront_t
+{
+    ray3d_t  r[3];      // Rays, counter-clockwise order
+    point3d_t s;        // Source point
+} wfront_t;
 
 MTEST_BEGIN("3d", reflections)
 
@@ -34,11 +41,29 @@ MTEST_BEGIN("3d", reflections)
     {
         private:
             Scene3D     *pScene;
+            wfront_t     sFront;
 
         public:
             explicit Renderer(Scene3D *scene, View3D *view): X11Renderer(view)
             {
                 pScene = scene;
+
+                point3d_t p[4];
+                dsp::init_point_xyz(&p[0], 0.0f, 1.0f, 0.0f);
+                dsp::init_point_xyz(&p[1], -1.0f, -0.5f, 0.0f);
+                dsp::init_point_xyz(&p[2], 1.0f, -0.5f, 0.0f);
+                dsp::init_point_xyz(&p[3], 0.0f, 0.0f, 1.0f);
+
+                vector3d_t v[3];
+                dsp::init_vector_p2(&v[0], &p[3], &p[0]);
+                dsp::init_vector_p2(&v[1], &p[3], &p[1]);
+                dsp::init_vector_p2(&v[2], &p[3], &p[2]);
+
+                dsp::init_ray_pdv(&sFront.r[0], &p[0], &v[0]);
+                dsp::init_ray_pdv(&sFront.r[1], &p[1], &v[1]);
+                dsp::init_ray_pdv(&sFront.r[2], &p[2], &v[2]);
+                sFront.s = p[3];
+
                 update_view();
             }
 
@@ -51,6 +76,74 @@ MTEST_BEGIN("3d", reflections)
             {
                 switch (key)
                 {
+                    case XK_F1:
+                    {
+                        float incr = (ev.state & ShiftMask) ? 0.25f : -0.25f;
+                        sFront.r[0].z.x += incr;
+                        sFront.r[1].z.x += incr;
+                        sFront.r[2].z.x += incr;
+                        sFront.s.x += incr;
+                        update_view();
+                        break;
+                    }
+
+                    case XK_F2:
+                    {
+                        float incr = (ev.state & ShiftMask) ? 0.25f : -0.25f;
+                        sFront.r[0].z.y += incr;
+                        sFront.r[1].z.y += incr;
+                        sFront.r[2].z.y += incr;
+                        sFront.s.y += incr;
+                        update_view();
+                        break;
+                    }
+
+                    case XK_F3:
+                    {
+                        float incr = (ev.state & ShiftMask) ? 0.25f : -0.25f;
+                        sFront.r[0].z.z += incr;
+                        sFront.r[1].z.z += incr;
+                        sFront.r[2].z.z += incr;
+                        sFront.s.z += incr;
+                        update_view();
+                        break;
+                    }
+
+                    case XK_F4:
+                    case XK_F5:
+                    case XK_F6:
+                    {
+                        matrix3d_t m;
+                        float incr = (ev.state & ShiftMask) ? M_PI/16.0f : -M_PI/16.0f;
+
+                        for (size_t i=0; i<3; ++i)
+                        {
+                            sFront.r[i].z.x -= sFront.s.x;
+                            sFront.r[i].z.y -= sFront.s.y;
+                            sFront.r[i].z.z -= sFront.s.z;
+                        }
+                        if (key == XK_F4)
+                            dsp::init_matrix3d_rotate_x(&m, incr);
+                        else if (key == XK_F5)
+                            dsp::init_matrix3d_rotate_y(&m, incr);
+                        else
+                            dsp::init_matrix3d_rotate_z(&m, incr);
+                        for (size_t i=0; i<3; ++i)
+                        {
+                            dsp::apply_matrix3d_mp1(&sFront.r[i].z, &m);
+                            dsp::apply_matrix3d_mv1(&sFront.r[i].v, &m);
+                        }
+                        for (size_t i=0; i<3; ++i)
+                        {
+                            sFront.r[i].z.x += sFront.s.x;
+                            sFront.r[i].z.y += sFront.s.y;
+                            sFront.r[i].z.z += sFront.s.z;
+                        }
+                        update_view();
+                        break;
+                    }
+
+
                     case '0': case '1': case '2': case '3': case '4':
                     case '5': case '6': case '7': case '8': case '9':
                     {
@@ -115,6 +208,26 @@ MTEST_BEGIN("3d", reflections)
 
                         pView->add_triangle(v);
                     }
+                }
+
+                // Draw front
+                v_ray3d_t r;
+                v_segment3d_t s;
+                r.c = C_MAGENTA;
+                s.c = C_MAGENTA;
+
+                for (size_t i=0; i<3; ++i)
+                {
+                    r.p = sFront.r[i].z;
+                    r.v = sFront.r[i].v;
+                    pView->add_ray(&r);
+
+                    s.p[0] = sFront.s;
+                    s.p[1] = sFront.r[i].z;
+                    pView->add_segment(&s);
+
+                    s.p[0] = sFront.r[(i+1)%3].z;
+                    pView->add_segment(&s);
                 }
             }
     };

@@ -485,7 +485,7 @@ namespace mtest
 
             glPointSize(5.0f);
 
-            for (size_t i=0; i<n; ++i)
+            for (size_t i=0; i<n; ++i, ++r)
             {
                 if (r->v.dw < 0.0f)
                     continue;
