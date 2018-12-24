@@ -86,6 +86,24 @@ static size_t check_colocation(const vector3d_t *pl, const point3d_t *p1, const 
     return m;
 }
 
+static size_t intersect(point3d_t *p, const ray3d_t *r, const vector3d_t *pl)
+{
+    /*
+         Line equation:
+             x = x0 + dx * t
+             y = y0 + dy * t
+             z = z0 + dz * t
+         Plane equation:
+             nx*x + ny*y + nz*z + w = 0
+
+         Then:
+             nx*(x0+dx*t) + ny*(y0+dy*t) + nz*(z0+dz*t) + w = 0;
+                    w + (nx*x0 + ny*y0 + nz*z0)
+             t = - ----------------------------
+                      (nx*dx + ny*dy + nz*dz)
+     */
+}
+
 MTEST_BEGIN("3d", reflections)
 
     class Renderer: public X11Renderer
