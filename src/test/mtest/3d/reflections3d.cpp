@@ -28,12 +28,63 @@ static const color3d_t C_RED        = { 1.0f, 0.0f, 0.0f, 0.0f };
 static const color3d_t C_GREEN      = { 0.0f, 1.0f, 0.0f, 0.0f };
 static const color3d_t C_BLUE       = { 0.0f, 0.0f, 1.0f, 0.0f };
 static const color3d_t C_MAGENTA    = { 1.0f, 0.0f, 1.0f, 0.0f };
+static const color3d_t C_YELLOW     = { 1.0f, 1.0f, 0.0f, 0.0f };
+static const color3d_t C_GRAY       = { 0.75f, 0.75f, 0.75f, 0.0f };
 
 typedef struct wfront_t
 {
     ray3d_t  r[3];      // Rays, counter-clockwise order
     point3d_t s;        // Source point
 } wfront_t;
+
+static void calc_plane_vector_p3(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+{
+    // Calculate edge parameters
+    vector3d_t d[2];
+    d[0].dx     = p1->x - p0->x;
+    d[0].dy     = p1->y - p0->y;
+    d[0].dz     = p1->z - p0->z;
+    d[0].dw     = p1->w - p0->w;
+
+    d[1].dx     = p2->x - p0->x;
+    d[1].dy     = p2->y - p0->y;
+    d[1].dz     = p2->z - p0->z;
+    d[1].dw     = p2->w - p0->w;
+
+    // Do vector multiplication to calculate the normal vector
+    v->dx       = + d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+    v->dy       = - d[0].dx*d[1].dz + d[0].dz*d[1].dx;
+    v->dz       = + d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+    dsp::normalize_vector(v);
+    v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
+}
+
+static void calc_plane_vector_rv(vector3d_t *v, const ray3d_t *r, const vector3d_t *u)
+{
+    // Calculate edge parameters
+    const vector3d_t  *w  = &r->v;
+    const point3d_t *p    = &r->z;
+
+    // Do vector multiplication to calculate the normal vector
+    v->dx       = + w->dy * u->dz - w->dz*u->dy;
+    v->dy       = - w->dx * u->dz + w->dz*u->dx;
+    v->dz       = + w->dx * u->dy - w->dy*u->dx;
+    dsp::normalize_vector(v);
+    v->dw       = - ( v->dx * p->x + v->dy * p->y + v->dz * p->z); // Parameter for the plane equation
+}
+
+static size_t check_colocation(const vector3d_t *pl, const point3d_t *p1, const point3d_t *p2, const point3d_t *p3)
+{
+    size_t m = 0;
+    if ((pl->dx * p1->x + pl->dy*p1->y + pl->dz*p1->z + pl->dw*p1->w) > 0.0f)
+        m |= 0x01;
+    if ((pl->dx * p2->x + pl->dy*p2->y + pl->dz*p2->z + pl->dw*p2->w) > 0.0f)
+        m |= 0x02;
+    if ((pl->dx * p3->x + pl->dy*p3->y + pl->dz*p3->z + pl->dw*p3->w) > 0.0f)
+        m |= 0x04;
+
+    return m;
+}
 
 MTEST_BEGIN("3d", reflections)
 
@@ -167,6 +218,14 @@ MTEST_BEGIN("3d", reflections)
                 // Clear view state
                 pView->clear_all();
 
+                // Calc scissor planes' normals
+                vector3d_t pl[4];
+                size_t cl[4];
+                calc_plane_vector_rv(&pl[0], &sFront.r[0], &sFront.r[1].v);
+                calc_plane_vector_rv(&pl[1], &sFront.r[1], &sFront.r[2].v);
+                calc_plane_vector_rv(&pl[2], &sFront.r[2], &sFront.r[0].v);
+                calc_plane_vector_p3(&pl[3], &sFront.r[0].z, &sFront.r[1].z, &sFront.r[2].z);
+
                 // Generate visible triangles
                 v_vertex3d_t v[3];
 
@@ -206,6 +265,22 @@ MTEST_BEGIN("3d", reflections)
                         dsp::apply_matrix3d_mv1(&v[1].n, om);
                         dsp::apply_matrix3d_mv1(&v[2].n, om);
 
+                        // Check co-location
+                        bool skip = false;
+                        for (size_t i=0; i<4; ++i)
+                            cl[i] = check_colocation(&pl[i], &v[0].p, &v[1].p, &v[2].p);
+
+                        for (size_t i=0; i<4; ++i)
+                            if (cl[i] == 0x07)
+                                skip = true;
+
+                        if (skip)
+                        {
+                            v[0].c              = C_GRAY;
+                            v[1].c              = C_GRAY;
+                            v[2].c              = C_GRAY;
+                        }
+
                         pView->add_triangle(v);
                     }
                 }
@@ -213,13 +288,14 @@ MTEST_BEGIN("3d", reflections)
                 // Draw front
                 v_ray3d_t r;
                 v_segment3d_t s;
-                r.c = C_MAGENTA;
                 s.c = C_MAGENTA;
 
                 for (size_t i=0; i<3; ++i)
                 {
+                    // State
                     r.p = sFront.r[i].z;
                     r.v = sFront.r[i].v;
+                    r.c = C_MAGENTA;
                     pView->add_ray(&r);
 
                     s.p[0] = sFront.s;
@@ -228,6 +304,20 @@ MTEST_BEGIN("3d", reflections)
 
                     s.p[0] = sFront.r[(i+1)%3].z;
                     pView->add_segment(&s);
+
+                    // Normals
+                    r.p = sFront.r[i].z;
+                    r.v = pl[i];
+                    r.v.dw = 0.0f;
+                    r.c = C_YELLOW;
+                    pView->add_ray(&r);
+
+                    r.p = sFront.r[(i+1)%3].z;
+                    pView->add_ray(&r);
+
+                    r.v = pl[3];
+                    r.v.dw = 0.0f;
+                    pView->add_ray(&r);
                 }
             }
     };
