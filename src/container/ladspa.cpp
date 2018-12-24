@@ -1,15 +1,20 @@
+
 #include <sys/types.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include <ladspa.h>
 
 #include <core/types.h>
 #include <core/lib.h>
 #include <core/debug.h>
 #include <core/NativeExecutor.h>
 #include <plugins/plugins.h>
+
+#ifdef PLATFORM_WINDOWS
+    #include <3rdparty/ladspa/ladspa.h>
+#else
+    #include <ladspa.h>
+#endif /* PLATFORM_WINDOWS */
 
 #include <container/ladspa/ports.h>
 #include <container/ladspa/wrapper.h>

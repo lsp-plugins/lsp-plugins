@@ -8,7 +8,7 @@
 #include <test/utest.h>
 #include <test/helpers.h>
 #include <dsp/dsp.h>
-#include <math.h>
+#include <core/math.h>
 
 namespace native
 {

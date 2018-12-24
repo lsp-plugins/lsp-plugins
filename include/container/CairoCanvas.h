@@ -9,7 +9,11 @@
 #define CONTAINER_CAIRO_CANVAS_H_
 
 #include <core/ICanvas.h>
-#include <cairo/cairo.h>
+#if defined(PLATFORM_WINDOWS)
+    // TODO
+#else
+    #include <cairo/cairo.h>
+#endif /* PLATFORM_WINDOWS */
 
 namespace lsp
 {

@@ -12,7 +12,7 @@
 #include <dsp/types.h>
 
 #include <stddef.h>
-#include <math.h>
+#include <core/math.h>
 #include <string.h>
 
 #define __DSP_DSP_DEFS

@@ -16,6 +16,8 @@
 // OS-specific windowing system selection
 #if defined(PLATFORM_LINUX) || defined(PLATFORM_BSD)
     #define USE_X11_DISPLAY
+#elif defined(PLATFORM_WINDOWS)
+    #define USE_WINAPI_DISPLAY
 #else
     #error "Unsupported platform"
 #endif

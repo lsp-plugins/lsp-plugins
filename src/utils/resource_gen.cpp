@@ -3,7 +3,13 @@
 #include <stdlib.h>
 #include <dirent.h>
 
-#include <expat.h>
+#include <core/types.h>
+
+#if defined(PLATFORM_WINDOWS)
+    #include <msxml.h>
+#else
+    #include <expat.h>
+#endif /* PLATFORM_WINDOWS */
 
 #include <core/types.h>
 

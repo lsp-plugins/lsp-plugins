@@ -6,6 +6,7 @@
  */
 
 #include <ui/ctl/ctl.h>
+#include <stdio.h>
 
 #define METER_ATT       0.1f
 #define METER_REL       0.5f

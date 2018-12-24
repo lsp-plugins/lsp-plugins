@@ -10,19 +10,19 @@
 
 #include <string.h>
 
-#ifndef LSP_USE_EXPAT
+#if defined(LSP_XML_BUILTIN)
 //    #define XML_OPEN_TAG        '\x55'
     #define XML_CLOSE_TAG       '\xff'
 //    #define XML_END_DOCUMENT    '\0'
-#endif /* LSP_USE_EXPAT */
+#endif /* LSP_XML_BUILTIN */
 
 namespace lsp
 {
-#ifndef LSP_USE_EXPAT
+#if defined(LSP_XML_BUILTIN)
     extern const char *xml_dictionary;
 
     extern const resource_t xml_resources[];
-#endif /* LSP_USE_EXPAT */
+#endif /* LSP_XML_BUILTIN */
 
 
     XMLParser::XMLParser()
@@ -48,9 +48,11 @@ namespace lsp
     {
         if (node == NULL)
             return;
-#ifdef LSP_USE_EXPAT
+#if defined(LSP_USE_EXPAT)
         if (node->tag != NULL)
             lsp_free(node->tag);
+#elif defined(LSP_USE_MSXML)
+        // TODO
 #endif /* LSP_USE_EXPAT */
 
         node->tag       = NULL;
@@ -58,7 +60,7 @@ namespace lsp
 
     bool XMLParser::init_node(node_t *node, const char *tag, XMLHandler *handler)
     {
-#ifdef LSP_USE_EXPAT
+#if defined(LSP_USE_EXPAT)
         if (tag != NULL)
         {
             node->tag           = lsp_strdup(tag);
@@ -67,9 +69,11 @@ namespace lsp
         }
         else
             node->tag           = NULL;
-#else
+#elif defined(LSP_USE_MSXML)
+        // TODO
+#elif defined(LSP_XML_BUILTIN)
         node->tag           = tag;
-#endif /* LSP_USE_EXPAT */
+#endif /* LSP_XML_BUILTIN */
 
         node->handler       = handler;
         return true;
@@ -116,7 +120,7 @@ namespace lsp
         free_node(node);
     }
 
-#ifndef LSP_USE_EXPAT
+#if defined(LSP_XML_BUILTIN)
     const char *XMLParser::fetch_string(const char * &text)
     {
         size_t offset       = 0;
@@ -133,7 +137,7 @@ namespace lsp
 
         return &xml_dictionary[offset];
     }
-#endif /* LSP_USE_EXPAT */
+#endif /* LSP_XML_BUILTIN */
 
     bool XMLParser::push(const xml_char_t *tag, XMLHandler *handler)
     {
@@ -173,7 +177,7 @@ namespace lsp
         if (!push(NULL, root))
             return false;
 
-#ifdef LSP_USE_EXPAT
+#if defined(LSP_USE_EXPAT)
         XML_Parser parser = XML_ParserCreate(NULL);
         XML_SetUserData(parser, this);
         XML_SetElementHandler(parser, startElementHandler, endElementHandler);
@@ -212,7 +216,9 @@ namespace lsp
         XML_ParserFree(parser);
         fclose(fd);
         return true;
-#else
+#elif defined(LSP_USE_MSXML)
+        // TODO
+#elif defined(LSP_XML_BUILTIN)
         for (const resource_t *res = xml_resources; (res->id != NULL) && (res->text != NULL); ++res)
         {
             // Check that resource matched
@@ -276,7 +282,7 @@ namespace lsp
         }
 
         return false;
-#endif /* LSP_USE_EXPAT */
+#endif /* LSP_XML_BUILTIN */
     }
 
 } /* namespace lsp */
