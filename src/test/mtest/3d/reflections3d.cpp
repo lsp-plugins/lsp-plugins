@@ -144,9 +144,9 @@ static void calc_plane_vector_rv(vector3d_t *v, const ray3d_t *r, const vector3d
 /**
  * Split triangle with plane
  * @param out array of vertexes above plane
- * @param n_out counter of vertexes above plane (multiple of 3)
+ * @param n_out counter of vertexes above plane (multiple of 3), should be initialized
  * @param in array of vertexes below plane
- * @param n_in counter of vertexes below plane (multiple of 3)
+ * @param n_in counter of vertexes below plane (multiple of 3), should be iniitialized
  * @param pl plane equation
  * @param pv triangle to perform the split
  */
@@ -164,13 +164,17 @@ static void split_triangle(
     point3d_t p[3];     // Triangle sources
     float k[3];         // Co-location of points
     float t[2];
-    p[0]   = pv[0];
-    p[1]   = pv[1];
-    p[2]   = pv[2];
 
-    k[0]   = pl->dx*p[0].x + pl->dy*p[0].y + pl->dz*p[0].z + pl->dw;
-    k[1]   = pl->dx*p[1].x + pl->dy*p[1].y + pl->dz*p[1].z + pl->dw;
-    k[2]   = pl->dx*p[2].x + pl->dy*p[2].y + pl->dz*p[2].z + pl->dw;
+    in     += *n_in;
+    out    += *n_out;
+
+    p[0]    = pv[0];
+    p[1]    = pv[1];
+    p[2]    = pv[2];
+
+    k[0]    = pl->dx*p[0].x + pl->dy*p[0].y + pl->dz*p[0].z + pl->dw;
+    k[1]    = pl->dx*p[1].x + pl->dy*p[1].y + pl->dz*p[1].z + pl->dw;
+    k[2]    = pl->dx*p[2].x + pl->dy*p[2].y + pl->dz*p[2].z + pl->dw;
 
     // Check that the whole triangle lies above the plane or below the plane
     if (k[0] < 0.0f)
@@ -493,7 +497,7 @@ MTEST_BEGIN("3d", reflections)
                 // Generate visible triangles
                 v_vertex3d_t v[3];
 
-                point3d_t out[2*3], buf1[16*3], buf2[16*3], *q, *in, *tmp;
+                point3d_t out[16*3], buf1[16*3], buf2[16*3], *q, *in, *tmp;
                 size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
 
                 for (size_t i=0, n=pScene->num_objects(); i<n; ++i)
@@ -526,6 +530,7 @@ MTEST_BEGIN("3d", reflections)
 
                         // Put to queue with updated matrix
                         *n_q    = 3;
+                        n_out   = 0;
                         q[0]    = tr[*(vvx++)];
                         q[1]    = tr[*(vvx++)];
                         q[2]    = tr[*(vvx++)];
@@ -535,35 +540,19 @@ MTEST_BEGIN("3d", reflections)
                         dsp::apply_matrix3d_mp1(&in[2], om);
 
                         // Process planes
-                        for (size_t k=3; k<4; ++k)
+                        for (size_t k=0; ; )
                         {
                             // Reset counters
                             *n_in   = 0;
-                            n_out   = 0;
-
                             // Split all triangles:
                             // Put all triangles above the plane to out
                             // Put all triangles below the plane to in
                             for (size_t l=0; l < *n_q; l += 3)
                                 split_triangle(out, &n_out, in, n_in, &pl[k], &q[l]);
 
-                            // Emit all triangles above the plane as grayed-out
-                            for (size_t l=0; l < n_out; )
-                            {
-                                v[0].p              = out[l++];
-                                v[0].n              = tn[*vnx];
-                                v[0].c              = C_GRAY;
-
-                                v[1].p              = out[l++];
-                                v[1].n              = tn[*vnx];
-                                v[1].c              = C_GRAY;
-
-                                v[2].p              = out[l++];
-                                v[2].n              = tn[*vnx];
-                                v[2].c              = C_GRAY;
-
-                                pView->add_triangle(v);
-                            }
+                            // Interrupt cycle if there is no data to process
+                            if ((*n_in <= 0) || ((++k) >= 4))
+                               break;
 
                             // Swap buffers buf0 <-> buf1
                             n_tmp       = n_in;
@@ -572,25 +561,37 @@ MTEST_BEGIN("3d", reflections)
                             in          = q;
                             n_q         = n_tmp;
                             q           = tmp;
+                        }
 
-                            // Interrupt cycle if there is no data to process
-                            if (*n_q <= 0)
-                               break;
+                        v[0].n              = tn[*vnx];
+                        v[1].n              = tn[*vnx];
+                        v[2].n              = tn[*vnx];
+
+                        // Emit all triangles above the plane (outside vision) as grayed-out
+                        for (size_t l=0; l < n_out; )
+                        {
+                            v[0].p              = out[l++];
+                            v[0].c              = C_GRAY;
+
+                            v[1].p              = out[l++];
+                            v[1].c              = C_GRAY;
+
+                            v[2].p              = out[l++];
+                            v[2].c              = C_GRAY;
+
+                            pView->add_triangle(v);
                         }
 
                         // The final set of triangles inside vision is in 'q' buffer
-                        for (size_t l=0; l < *n_q; )
+                        for (size_t l=0; l < *n_in; )
                         {
-                            v[0].p              = q[l++];
-                            v[0].n              = tn[*vnx];
+                            v[0].p              = in[l++];
                             v[0].c              = C_RED;
 
-                            v[1].p              = q[l++];
-                            v[1].n              = tn[*vnx];
+                            v[1].p              = in[l++];
                             v[1].c              = C_GREEN;
 
-                            v[2].p              = q[l++];
-                            v[2].n              = tn[*vnx];
+                            v[2].p              = in[l++];
                             v[2].c              = C_BLUE;
 
                             pView->add_triangle(v);
