@@ -79,68 +79,6 @@ static void calc_plane_vector_rv(vector3d_t *v, const ray3d_t *r, const vector3d
     v->dw       = - ( v->dx * p->x + v->dy * p->y + v->dz * p->z); // Parameter for the plane equation
 }
 
-///**
-// * Check co-location of triangle points and the plane
-// * @param pl plane equation vector
-// * @param p1 point 1 of triangle
-// * @param p2 point 2 of triangle
-// * @param p3 point 3 of triangle
-// * @return bit mask containing non-zero bits if the corresponding point lays over the plane
-// */
-//static size_t check_colocation(const vector3d_t *pl, const point3d_t *p1, const point3d_t *p2, const point3d_t *p3)
-//{
-//    size_t m = 0;
-//    if ((pl->dx * p1->x + pl->dy*p1->y + pl->dz*p1->z + pl->dw*p1->w) > 0.0f)
-//        m |= 0x01;
-//    if ((pl->dx * p2->x + pl->dy*p2->y + pl->dz*p2->z + pl->dw*p2->w) > 0.0f)
-//        m |= 0x02;
-//    if ((pl->dx * p3->x + pl->dy*p3->y + pl->dz*p3->z + pl->dw*p3->w) > 0.0f)
-//        m |= 0x04;
-//
-//    return m;
-//}
-//
-///**
-// * Split the line cut with a plane
-// * @param p target point to store result
-// * @param p1 first point of the cut
-// * @param p2 second point of the cut
-// * @param pl plane equation vector
-// * @return value in range (0..1) if there is intersection (0 is p1, 1 is p2)
-// *   values less than 0 if both points lay below the plane
-// *   values less than 1 if both points lay above the plane
-// */
-//static float split_cut(point3d_t *p, const point3d_t *p1, const point3d_t *p2, const vector3d_t *pl)
-//{
-//    /*
-//         Line equation:
-//             x = x0 + dx * t
-//             y = y0 + dy * t
-//             z = z0 + dz * t
-//         Plane equation:
-//             nx*x + ny*y + nz*z + w = 0
-//
-//         Then:
-//             nx*(x0+dx*t) + ny*(y0+dy*t) + nz*(z0+dz*t) + w = 0;
-//                    w + nx*x0 + ny*y0 + nz*z0
-//             t = - ----------------------------
-//                      (nx*dx + ny*dy + nz*dz)
-//     */
-//    vector3d_t d;
-//    d.dx = p2->x - p1->x;
-//    d.dy = p2->y - p1->y;
-//    d.dz = p2->z - p1->z;
-//
-//    float t = - (pl->dw + pl->dx*p1->x + pl->dy*p1->y + pl->dz*p1->z) / (pl->dx*d.dx + pl->dy*d.dy + pl->dz*d.dz);
-//
-//    p->x    = p1->x + d.dx * t;
-//    p->y    = p1->y + d.dy * t;
-//    p->z    = p1->z + d.dz * t;
-//    p->w    = 1.0f;
-//
-//    return t;
-//}
-
 /**
  * Split triangle with plane
  * @param out array of vertexes above plane
@@ -234,7 +172,7 @@ static void split_triangle(
         p[2]    = sp[0];
     }
 
-    // Now we have p[0] guatanteed to be above plane, analyze p[1] and p[2]
+    // Now we have p[0] guaranteed to be above plane, analyze p[1] and p[2]
     if (k[1] < 0)
     {
         d[0].dx = p[0].x - p[1].x;
@@ -353,6 +291,88 @@ static void split_triangle(
         in[2]   = sp[1];
         *n_in  += 3;
     }
+}
+
+/**
+ * Project triangle to the plane
+ * @param pv array of 3 points to store projected points
+ * @param fp focus point, the point where all projective lines do intersect
+ * @param pl plane equation vector
+ * @param tv triangle points
+ */
+static void project_triangle(
+    point3d_t *pv,
+    const point3d_t *fp,
+    const vector3d_t *pl,
+    const point3d_t *tv
+)
+{
+    vector3d_t d[3];
+    float k, t[3];
+
+    d[0].dx     = fp->x - tv[0].x;
+    d[0].dy     = fp->y - tv[0].y;
+    d[0].dz     = fp->z - tv[0].z;
+    d[0].dw     = 0.0f;
+
+    d[1].dx     = fp->x - tv[1].x;
+    d[1].dy     = fp->y - tv[1].y;
+    d[1].dz     = fp->z - tv[1].z;
+    d[1].dw     = 0.0f;
+
+    d[2].dx     = fp->x - tv[2].x;
+    d[2].dy     = fp->y - tv[2].y;
+    d[2].dz     = fp->z - tv[2].z;
+    d[2].dw     = 0.0f;
+
+    k           = - (pl->dx*fp->x + pl->dy*fp->y + pl->dz*fp->z + pl->dw);
+    t[0]        = k / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz);
+    t[1]        = k / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
+    t[2]        = k / (pl->dx*d[2].dx + pl->dy*d[2].dy + pl->dz*d[2].dz);
+
+    pv[0].x     = fp->x + t[0] * d[0].dx;
+    pv[0].y     = fp->y + t[0] * d[0].dy;
+    pv[0].z     = fp->z + t[0] * d[0].dz;
+    pv[0].w     = 1.0f;
+
+    pv[1].x     = fp->x + t[1] * d[1].dx;
+    pv[1].y     = fp->y + t[1] * d[1].dy;
+    pv[1].z     = fp->z + t[1] * d[1].dz;
+    pv[1].w     = 1.0f;
+
+    pv[2].x     = fp->x + t[2] * d[2].dx;
+    pv[2].y     = fp->y + t[2] * d[2].dy;
+    pv[2].z     = fp->z + t[2] * d[2].dz;
+    pv[2].w     = 1.0f;
+}
+
+/**
+ * Estimate near and far cutting planes
+ * @param znear near cutting plane depth
+ * @param zfar far cutting plane depth
+ * @param pl parallel plane equation vector
+ * @param pv triangle point
+ */
+static void calc_near_far(float *znear, float *zfar, const vector3d_t *pl, const point3d_t *pv)
+{
+    float pw[3];
+    pw[0] = -(pl->dx * pv[0].x + pl->dy * pv[0].y + pl->dz * pv[0].z);
+    pw[1] = -(pl->dx * pv[1].x + pl->dy * pv[1].y + pl->dz * pv[1].z);
+    pw[2] = -(pl->dx * pv[2].x + pl->dy * pv[2].y + pl->dz * pv[2].z);
+
+    if (*znear > pw[0])
+        *znear = pw[0];
+    if (*znear > pw[1])
+        *znear = pw[1];
+    if (*znear > pw[2])
+        *znear = pw[2];
+
+    if (*zfar < pw[0])
+        *zfar = pw[0];
+    if (*zfar < pw[1])
+        *zfar = pw[1];
+    if (*zfar < pw[2])
+        *zfar = pw[2];
 }
 
 MTEST_BEGIN("3d", reflections)
@@ -496,12 +516,13 @@ MTEST_BEGIN("3d", reflections)
 
                 // Generate visible triangles
                 v_vertex3d_t v[3];
+                v_segment3d_t vs;
+                vector3d_t znear, zfar;
 
                 point3d_t out[16*3], buf1[16*3], buf2[16*3], *q, *in, *tmp;
                 size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
 
                 for (size_t i=0, n=pScene->num_objects(); i<n; ++i)
-//                size_t i=0;
                 {
                     Object3D *obj   = pScene->get_object(i);
                     if ((obj == NULL) || (!obj->is_visible()))
@@ -515,15 +536,6 @@ MTEST_BEGIN("3d", reflections)
 
                     for (ssize_t j=0, m=obj->get_triangles_count(); j < m; ++j)
                     {
-                        // 6
-                        // 2
-//                        if ((j < 2) || (j > 2))
-//                        {
-//                            vvx += 3;
-//                            vnx += 3;
-//                            continue;
-//                        }
-
                         // Initialize input and queue buffer
                         q = buf1, in = buf2;
                         n_q = &n_buf1, n_in = &n_buf2;
@@ -572,29 +584,42 @@ MTEST_BEGIN("3d", reflections)
                         {
                             v[0].p              = out[l++];
                             v[0].c              = C_GRAY;
-
                             v[1].p              = out[l++];
                             v[1].c              = C_GRAY;
-
                             v[2].p              = out[l++];
                             v[2].c              = C_GRAY;
-
                             pView->add_triangle(v);
                         }
 
                         // The final set of triangles inside vision is in 'q' buffer
                         for (size_t l=0; l < *n_in; )
                         {
-                            v[0].p              = in[l++];
+                            out[0]              = in[l++];
+                            out[1]              = in[l++];
+                            out[2]              = in[l++];
+
+                            project_triangle(&out[3], &sFront.s, &pl[3], &out[0]);
+
+                            v[0].p              = out[0];
                             v[0].c              = C_RED;
-
-                            v[1].p              = in[l++];
+                            v[1].p              = out[1];
                             v[1].c              = C_GREEN;
-
-                            v[2].p              = in[l++];
+                            v[2].p              = out[2];
                             v[2].c              = C_BLUE;
-
                             pView->add_triangle(v);
+
+                            vs.c                = C_MAGENTA;
+                            vs.p[0]             = out[3];
+                            vs.p[1]             = out[4];
+                            pView->add_segment(&vs);
+
+                            vs.p[0]             = out[4];
+                            vs.p[1]             = out[5];
+                            pView->add_segment(&vs);
+
+                            vs.p[0]             = out[5];
+                            vs.p[1]             = out[3];
+                            pView->add_segment(&vs);
                         }
 
                         // Move normal pointer

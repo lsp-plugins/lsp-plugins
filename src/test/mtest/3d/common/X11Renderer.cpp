@@ -434,6 +434,9 @@ namespace mtest
 
             if (bDrawNormals)
             {
+                if (bLight)
+                    glDisable(GL_LIGHTING);
+
                 glColor3f(1.0f, 1.0f, 0.0f);
                 glBegin(GL_LINES);
 
@@ -444,6 +447,9 @@ namespace mtest
                     glVertex3f(v[0].p.x + v[0].n.dx, v[0].p.y + v[0].n.dy, v[0].p.z + v[0].n.dz);
                 }
                 glEnd();
+
+                if (bLight)
+                    glEnable(GL_LIGHTING);
             }
         }
 
