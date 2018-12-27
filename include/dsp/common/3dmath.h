@@ -780,6 +780,14 @@ namespace dsp
      * @return true if intersection of ray with object in octant is possible
      */
     extern bool (* check_octant3d_rv)(const octant3d_t *o, const ray3d_t *r);
+
+    /**
+     * Compute bounding box around object
+     * @param b bounding box object
+     * @param p array of object vertexes
+     * @param n number of vertexes in object
+     */
+    extern void (* calc_bound_box)(bound_box3d_t *b, const point3d_t *p, size_t n);
 } // dsp
 
 #endif /* DSP_COMMON_3DMATH_H_ */

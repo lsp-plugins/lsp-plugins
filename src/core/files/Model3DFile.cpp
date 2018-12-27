@@ -130,12 +130,24 @@ namespace lsp
                         return STATUS_BAD_STATE;
                     vx->in              = *(vn++);
                     vx->n               = (vx->in >= 0) ? pObject->get_normal(vx->in) : NULL;
-                    if (vx->n == NULL)
-                        return STATUS_BAD_STATE;
+                }
+
+                // Calc default normals
+                vertex_t *v1, *v2, *v3;
+                vector3d_t normal;
+                v1 = sVertex.at(0);
+                v2 = sVertex.at(1);
+                v3 = sVertex.at(2);
+
+                dsp::calc_normal3d_p3(&normal, v1->p, v2->p, v3->p);
+                for (size_t i=0; i<n; ++i)
+                {
+                    v1 = sVertex.at(i);
+                    if (v1->n == NULL)
+                        v1->n = &normal;
                 }
 
                 // Triangulation algorithm
-                vertex_t *v1, *v2, *v3;
                 size_t index = 0;
                 float ck = 0.0f;
 

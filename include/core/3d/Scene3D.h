@@ -26,6 +26,7 @@ namespace lsp
             cvector<Object3D>       vObjects;
             cvector<RaySource3D>    vSources;
             cvector<TraceCapture3D> vCaptures;
+            cstorage<bound_box3d_t> vBoundBoxes;
             cstorage<ray3d_t>       vRays;
             cstorage<point3d_t>     vPoints;
             cstorage<segment3d_t>   vSegments;
@@ -130,6 +131,13 @@ namespace lsp
              * @return object or NULL
              */
             Object3D *get_object(size_t index);
+
+            /**
+             * Get object's bound box by object index
+             * @param index object index
+             * @return bound box or NULL
+             */
+            bound_box3d_t *get_bound_box(size_t index);
 
             /** Get capture associated to object by it's index
              *

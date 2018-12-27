@@ -60,18 +60,31 @@ namespace lsp
 
     bool Scene3D::add_object(Object3D *obj, TraceCapture3D *capt)
     {
-        size_t size = vObjects.size();
-
         // Add object
         if (!vObjects.add(obj))
             return false;
 
         // Add capture
-        if (vCaptures.add(capt))
-            return true;
+        if (!vCaptures.add(capt))
+        {
+            vObjects.remove(vObjects.size());
+            return false;
+        }
 
-        vObjects.remove(size);
-        return false;
+        // Add bounding box
+        bound_box3d_t *bbox = vBoundBoxes.add();
+        if (bbox == NULL)
+        {
+            vObjects.remove(vObjects.size());
+            vCaptures.remove(vCaptures.size());
+        }
+
+        // Compute bounding box
+        point3d_t *p = obj->get_vertexes();
+        size_t n = obj->get_vertex_count();
+        dsp::calc_bound_box(bbox, p, n);
+
+        return true;
     }
 
     bool Scene3D::add_ray(const ray3d_t *r)
@@ -97,6 +110,11 @@ namespace lsp
     Object3D *Scene3D::get_object(size_t index)
     {
         return vObjects.get(index);
+    }
+
+    bound_box3d_t *Scene3D::get_bound_box(size_t index)
+    {
+        return vBoundBoxes.get(index);
     }
 
     TraceCapture3D *Scene3D::get_capture(size_t index)

@@ -32,6 +32,7 @@ namespace mtest
     static const color3d_t C_BLUE       = { 0.0f, 0.0f, 1.0f, 0.0f };
     static const color3d_t C_MAGENTA    = { 1.0f, 0.0f, 1.0f, 0.0f };
     static const color3d_t C_YELLOW     = { 1.0f, 1.0f, 0.0f, 0.0f };
+    static const color3d_t C_ORANGE     = { 1.0f, 0.5f, 0.0f, 0.0f };
     static const color3d_t C_GRAY       = { 0.75f, 0.75f, 0.75f, 0.0f };
 
     typedef struct wfront_t
@@ -92,12 +93,12 @@ namespace mtest
      * @param pv triangle to perform the split
      */
     static void split_triangle(
-            point3d_t *out,
+            v_triangle3d_t *out,
             size_t *n_out,
-            point3d_t *in,
+            v_triangle3d_t *in,
             size_t *n_in,
             const vector3d_t *pl,
-            const point3d_t *pv
+            const v_triangle3d_t *pv
         )
     {
         point3d_t sp[2];    // Split point
@@ -109,9 +110,9 @@ namespace mtest
         in     += *n_in;
         out    += *n_out;
 
-        p[0]    = pv[0];
-        p[1]    = pv[1];
-        p[2]    = pv[2];
+        p[0]    = pv->p[0];
+        p[1]    = pv->p[1];
+        p[2]    = pv->p[2];
 
         k[0]    = pl->dx*p[0].x + pl->dy*p[0].y + pl->dz*p[0].z + pl->dw;
         k[1]    = pl->dx*p[1].x + pl->dy*p[1].y + pl->dz*p[1].z + pl->dw;
@@ -122,10 +123,10 @@ namespace mtest
         {
             if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
             {
-                in[0]   = p[0];
-                in[1]   = p[1];
-                in[2]   = p[2];
-                *n_in  += 3;
+                in[0].p[0]      = p[0];
+                in[0].p[1]      = p[1];
+                in[0].p[2]      = p[2];
+                *n_in          += 1;
                 return;
             }
         }
@@ -133,10 +134,10 @@ namespace mtest
         {
             if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
             {
-                out[0]  = p[0];
-                out[1]  = p[1];
-                out[2]  = p[2];
-                *n_out += 3;
+                out[0].p[0]     = p[0];
+                out[0].p[1]     = p[1];
+                out[0].p[2]     = p[2];
+                *n_out += 1;
                 return;
             }
         }
@@ -144,18 +145,18 @@ namespace mtest
         {
             if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
             {
-                out[0]  = p[0];
-                out[1]  = p[1];
-                out[2]  = p[2];
-                *n_out += 3;
+                out[0].p[0]     = p[0];
+                out[0].p[1]     = p[1];
+                out[0].p[2]     = p[2];
+                *n_out += 1;
                 return;
             }
             else if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
             {
-                in[0]   = p[0];
-                in[1]   = p[1];
-                in[2]   = p[2];
-                *n_in  += 3;
+                in[0].p[0]      = p[0];
+                in[0].p[1]      = p[1];
+                in[0].p[2]      = p[2];
+                *n_in          += 1;
                 return;
             }
         }
@@ -203,18 +204,18 @@ namespace mtest
                 sp[1].w = 1.0f;
 
                 // 1 triangle above plane, 2 below
-                out[0]  = p[0];
-                out[1]  = sp[0];
-                out[2]  = sp[1];
-                *n_out += 3;
+                out[0].p[0]     = p[0];
+                out[0].p[1]     = sp[0];
+                out[0].p[2]     = sp[1];
+                *n_out         += 1;
 
-                in[0]   = p[1];
-                in[1]   = p[2];
-                in[2]   = sp[0];
-                in[3]   = p[2];
-                in[4]   = sp[1];
-                in[5]   = sp[0];
-                *n_in  += 6;
+                in[0].p[0]      = p[1];
+                in[0].p[1]      = p[2];
+                in[0].p[2]      = sp[0];
+                in[1].p[0]      = p[2];
+                in[1].p[1]      = sp[1];
+                in[1].p[2]      = sp[0];
+                *n_in          += 2;
             }
             else if (k[2] > 0)
             {
@@ -230,31 +231,31 @@ namespace mtest
                 sp[1].w = 1.0f;
 
                 // 2 triangles above plane, 1 below
-                out[0]  = p[2];
-                out[1]  = p[0];
-                out[2]  = sp[0];
-                out[3]  = p[2];
-                out[4]  = sp[0];
-                out[5]  = sp[1];
-                *n_out += 6;
+                out[0].p[0]     = p[2];
+                out[0].p[1]     = p[0];
+                out[0].p[2]     = sp[0];
+                out[1].p[0]     = p[2];
+                out[1].p[1]     = sp[0];
+                out[1].p[2]     = sp[1];
+                *n_out         += 2;
 
-                in[0]   = p[1];
-                in[1]   = sp[1];
-                in[2]   = sp[0];
-                *n_in  += 3;
+                in[0].p[0]      = p[1];
+                in[0].p[1]      = sp[1];
+                in[0].p[2]      = sp[0];
+                *n_in          += 1;
             }
             else // k[2] == 0
             {
                 // 1 triangle above plane, 1 below
-                out[0]  = p[2];
-                out[1]  = p[0];
-                out[2]  = sp[0];
-                *n_out += 3;
+                out[0].p[0]     = p[2];
+                out[0].p[1]     = p[0];
+                out[0].p[2]     = sp[0];
+                *n_out         += 1;
 
-                in[0]   = p[1];
-                in[1]   = p[2];
-                in[2]   = sp[0];
-                *n_in  += 3;
+                in[0].p[0]      = p[1];
+                in[0].p[1]      = p[2];
+                in[0].p[2]      = sp[0];
+                *n_in          += 1;
             }
         }
         else // (k[1] > 0) && (k[2] < 0)
@@ -281,18 +282,18 @@ namespace mtest
             sp[1].w = 1.0f;
 
             // 2 triangles above plane, 1 below
-            out[0]  = p[0];
-            out[1]  = p[1];
-            out[2]  = sp[1];
-            out[3]  = p[0];
-            out[4]  = sp[1];
-            out[5]  = sp[0];
-            *n_out += 6;
+            out[0].p[0]     = p[0];
+            out[0].p[1]     = p[1];
+            out[0].p[2]     = sp[1];
+            out[1].p[0]     = p[0];
+            out[1].p[1]     = sp[1];
+            out[1].p[2]     = sp[0];
+            *n_out         += 2;
 
-            in[0]   = p[2];
-            in[1]   = sp[0];
-            in[2]   = sp[1];
-            *n_in  += 3;
+            in[0].p[0]      = p[2];
+            in[0].p[1]      = sp[0];
+            in[0].p[2]      = sp[1];
+            *n_in          += 1;
         }
     }
 
@@ -351,7 +352,7 @@ namespace mtest
 
     static void clip_triangles(View3D *view, cstorage<v_triangle3d_t> &ignored, cstorage<v_triangle3d_t> &matched, Object3D *obj, const wfront_t *wf)
     {
-        point3d_t out[16*3], buf1[16*3], buf2[16*3], *q, *in, *tmp;
+        v_triangle3d_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
         size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
         vector3d_t pl[4];
         v_segment3d_t vs;
@@ -382,15 +383,15 @@ namespace mtest
             n_in = &n_buf2;
 
             // Put to queue with updated matrix
-            *n_q    = 3;
-            n_out   = 0;
-            q[0]    = tr[*(vvx++)];
-            q[1]    = tr[*(vvx++)];
-            q[2]    = tr[*(vvx++)];
+            *n_q        = 1;
+            n_out       = 0;
+            q->p[0]     = tr[*(vvx++)];
+            q->p[1]     = tr[*(vvx++)];
+            q->p[2]     = tr[*(vvx++)];
 
-            dsp::apply_matrix3d_mp1(&in[0], om);
-            dsp::apply_matrix3d_mp1(&in[1], om);
-            dsp::apply_matrix3d_mp1(&in[2], om);
+            dsp::apply_matrix3d_mp1(&q->p[0], om);
+            dsp::apply_matrix3d_mp1(&q->p[1], om);
+            dsp::apply_matrix3d_mp1(&q->p[2], om);
 
             // Cull triangle with planes
             for (size_t k=0; ; )
@@ -400,7 +401,7 @@ namespace mtest
                 // Split all triangles:
                 // Put all triangles above the plane to out
                 // Put all triangles below the plane to in
-                for (size_t l=0; l < *n_q; l += 3)
+                for (size_t l=0; l < *n_q; l ++)
                     split_triangle(out, &n_out, in, n_in, &pl[k], &q[l]);
 
                 // Interrupt cycle if there is no data to process
@@ -424,11 +425,11 @@ namespace mtest
             t.c[2]              = C_GRAY;
 
             // Emit all triangles above the plane (outside vision) as ignored
-            for (size_t l=0; l < n_out; )
+            for (size_t l=0; l < n_out; ++l)
             {
-                t.p[0]              = out[l++];
-                t.p[1]              = out[l++];
-                t.p[2]              = out[l++];
+                t.p[0]              = out[l].p[0];
+                t.p[1]              = out[l].p[1];
+                t.p[2]              = out[l].p[2];
 
                 ignored.add(&t);
                 if (view != NULL) // DEBUG
@@ -440,32 +441,147 @@ namespace mtest
             t.c[2]              = C_BLUE;
 
             // The final set of triangles inside vision is in 'q' buffer, put them as visible
-            for (size_t l=0; l < *n_in; )
+            for (size_t l=0; l < *n_in; ++l)
             {
-                t.p[0]              = in[l++];
-                t.p[1]              = in[l++];
-                t.p[2]              = in[l++];
+                t.p[0]              = in[l].p[0];
+                t.p[1]              = in[l].p[1];
+                t.p[2]              = in[l].p[2];
 
                 matched.add(&t);
                 if (view != NULL) // DEBUG
                 {
                     view->add_triangle(&t);
 
-                    project_triangle(&out[0], &wf->s, &pl[3], &t.p[0]);
-                    vs.p[0]             = out[0];
-                    vs.p[1]             = out[1];
-                    view->add_segment(&vs);
-
-                    vs.p[0]             = out[1];
-                    vs.p[1]             = out[2];
-                    view->add_segment(&vs);
-
-                    vs.p[0]             = out[2];
-                    vs.p[1]             = out[0];
-                    view->add_segment(&vs);
+//                    project_triangle(&out[0], &wf->s, &pl[3], &t.p[0]);
+//                    vs.p[0]             = out[0];
+//                    vs.p[1]             = out[1];
+//                    view->add_segment(&vs);
+//
+//                    vs.p[0]             = out[1];
+//                    vs.p[1]             = out[2];
+//                    view->add_segment(&vs);
+//
+//                    vs.p[0]             = out[2];
+//                    vs.p[1]             = out[0];
+//                    view->add_segment(&vs);
                 }
             }
         }
+    }
+
+    static const size_t bbox_map[] =
+    {
+        0, 1, 2,
+        0, 2, 3,
+        6, 5, 4,
+        6, 4, 7,
+        1, 0, 4,
+        1, 4, 5,
+        3, 2, 6,
+        3, 6, 7,
+        1, 5, 2,
+        2, 5, 6,
+        0, 3, 4,
+        3, 7, 4
+    };
+
+    static void check_bound_box(
+            View3D *view,
+            cstorage<v_triangle3d_t> &ignored,
+            cstorage<v_triangle3d_t> &matched,
+            Object3D *obj,
+            const bound_box3d_t *box,
+            const wfront_t *wf
+        )
+    {
+        size_t n = obj->get_triangles_count();
+
+        // Initialize pointers
+        matrix3d_t *om      = obj->get_matrix();
+        point3d_t *tr       = obj->get_vertexes();
+        vector3d_t *tn      = obj->get_normals();
+        vertex_index_t *vvx = obj->get_vertex_indexes();
+        vertex_index_t *vnx = obj->get_normal_indexes();
+
+        // Update object matrix
+        v_triangle3d_t t;
+
+        for (ssize_t j=0, m=obj->get_triangles_count(); j < m; ++j)
+        {
+            t.p[0]          = tr[*(vvx++)];
+            t.p[1]          = tr[*(vvx++)];
+            t.p[2]          = tr[*(vvx++)];
+            t.n[0]          = tn[*(vnx++)];
+            t.n[1]          = tn[*(vnx++)];
+            t.n[2]          = tn[*(vnx++)];
+
+            dsp::apply_matrix3d_mp1(&t.p[0], om);
+            dsp::apply_matrix3d_mp1(&t.p[1], om);
+            dsp::apply_matrix3d_mp1(&t.p[2], om);
+
+            dsp::apply_matrix3d_mv1(&t.n[0], om);
+            dsp::apply_matrix3d_mv1(&t.n[1], om);
+            dsp::apply_matrix3d_mv1(&t.n[2], om);
+
+            matched.add(&t);
+        }
+
+        // Not more than 16 faces?
+        if (n <= 16)
+            return;
+
+        // Check crossing with bounding box
+        vector3d_t pl[4];
+        calc_plane_vector_rv(&pl[0], &wf->r[0], &wf->r[1].v);
+        calc_plane_vector_rv(&pl[1], &wf->r[1], &wf->r[2].v);
+        calc_plane_vector_rv(&pl[2], &wf->r[2], &wf->r[0].v);
+        calc_plane_vector_p3(&pl[3], &wf->r[0].z, &wf->r[1].z, &wf->r[2].z);
+
+        v_triangle3d_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
+        size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
+
+        // Cull each triangle of bounding box with four scissor planes
+        for (size_t j=0, m = sizeof(bbox_map)/sizeof(size_t); j < m; )
+        {
+            // Initialize input and queue buffer
+            q = buf1;
+            in = buf2;
+            n_q = &n_buf1;
+            n_in = &n_buf2;
+
+            // Put to queue with updated matrix
+            t.p[0]      = box->p[bbox_map[j++]];
+            t.p[1]      = box->p[bbox_map[j++]];
+            t.p[2]      = box->p[bbox_map[j++]];
+
+            // Cull triangle with planes
+            for (size_t k=0; ; )
+            {
+                // Reset counters
+                *n_in   = 0;
+
+                // Split all triangles:
+                // Put all triangles above the plane to out
+                // Put all triangles below the plane to in
+                for (size_t l=0; l < *n_q; l += 3)
+                    split_triangle(out, &n_out, in, n_in, &pl[k], &q[l]);
+
+                // Interrupt cycle if there is no data to process
+                if ((*n_in <= 0) || ((++k) >= 4))
+                   break;
+
+                // Swap buffers buf0 <-> buf1
+                n_tmp = n_in, tmp = in;
+                n_in = n_q, in = q;
+                n_q = n_tmp, q = tmp;
+            }
+
+            if (*n_in > 0) // Is there intersection with bounding box?
+                return; // Yes, return as is
+        }
+
+        // There is no intersection with bounding box, skip the object
+        matched.swap(&ignored);
     }
 
     static void do_raytrace(cstorage<v_triangle3d_t> &ignored, cstorage<v_triangle3d_t> matched, Object3D *obj)
@@ -479,13 +595,15 @@ MTEST_BEGIN("3d", reflections)
     class Renderer: public X11Renderer
     {
         private:
-            Scene3D     *pScene;
-            wfront_t     sFront;
+            Scene3D        *pScene;
+            wfront_t        sFront;
+            bool            bBoundBoxes;
 
         public:
             explicit Renderer(Scene3D *scene, View3D *view): X11Renderer(view)
             {
                 pScene = scene;
+                bBoundBoxes = true;
 
                 point3d_t p[4];
                 dsp::init_point_xyz(&p[0], 0.0f, 1.0f, 0.0f);
@@ -582,6 +700,12 @@ MTEST_BEGIN("3d", reflections)
                         break;
                     }
 
+                    case 'b':
+                    {
+                        bBoundBoxes = ! bBoundBoxes;
+                        update_view();
+                        break;
+                    }
 
                     case '0': case '1': case '2': case '3': case '4':
                     case '5': case '6': case '7': case '8': case '9':
@@ -603,17 +727,44 @@ MTEST_BEGIN("3d", reflections)
         protected:
             void    update_view()
             {
+                v_segment3d_t s;
+
                 // Clear view state
                 pView->clear_all();
 
                 // List of ignored and matched triangles
                 cstorage<v_triangle3d_t> ignored, matched;
 
+                s.c = C_ORANGE;
+
                 for (size_t i=0, n=pScene->num_objects(); i<n; ++i)
                 {
                     Object3D *obj   = pScene->get_object(i);
                     if ((obj == NULL) || (!obj->is_visible()))
                         continue;
+
+                    // Add bounding box
+                    bound_box3d_t *bbox = pScene->get_bound_box(i);
+                    if (bbox == NULL)
+                        continue;
+
+                    if (bBoundBoxes)
+                    {
+                        for (size_t i=0; i<4; ++i)
+                        {
+                            s.p[0] = bbox->p[i];
+                            s.p[1] = bbox->p[(i+1)%4];
+                            pView->add_segment(&s);
+                            s.p[0] = bbox->p[i];
+                            s.p[1] = bbox->p[i+4];
+                            pView->add_segment(&s);
+                            s.p[0] = bbox->p[i+4];
+                            s.p[1] = bbox->p[(i+1)%4 + 4];
+                            pView->add_segment(&s);
+                        }
+                    }
+
+//                    check_bound_box(pView, ignored, matched, obj, bbox, &sFront);
 
                     // Perform triangle clip
                     clip_triangles(pView, ignored, matched, obj, &sFront);
@@ -628,7 +779,6 @@ MTEST_BEGIN("3d", reflections)
 
                 // Draw front
                 v_ray3d_t r;
-                v_segment3d_t s;
                 s.c = C_MAGENTA;
 
                 for (size_t i=0; i<3; ++i)

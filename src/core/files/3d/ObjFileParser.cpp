@@ -51,7 +51,7 @@ namespace lsp
 
     bool ObjFileParser::parse_int(ssize_t *dst, const char **s)
     {
-        if (*s == NULL)
+        if ((*s == NULL) || (**s == '\0') || (**s == ' '))
             return false;
 
         errno = 0;

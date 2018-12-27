@@ -380,6 +380,8 @@ namespace dsp
     void    (* init_octant3d_v)(octant3d_t *o, const point3d_t *t, size_t n) = NULL;
     bool    (* check_octant3d_rv)(const octant3d_t *o, const ray3d_t *r) = NULL;
 
+    void    (* calc_bound_box)(bound_box3d_t *b, const point3d_t *p, size_t n) = NULL;
+
     void    (* vector_mul_v2)(vector3d_t *r, const vector3d_t *v1, const vector3d_t *v2) = NULL;
     void    (* vector_mul_vv)(vector3d_t *r, const vector3d_t *vv) = NULL;
 

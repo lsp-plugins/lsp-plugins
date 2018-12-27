@@ -40,6 +40,11 @@ typedef struct ray3d_t
     vector3d_t  v;          // The spread vector: dx, dy, dz = direction
 } ray3d_t;
 
+typedef struct bound_box3d_t
+{
+    point3d_t   p[8];       // Bounding-box contains 8 points
+} bound_box3d_t;
+
 typedef struct segment3d_t
 {
     point3d_t   p[2];

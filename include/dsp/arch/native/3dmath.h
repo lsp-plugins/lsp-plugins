@@ -2106,6 +2106,89 @@ namespace native
 
         return m.dx; // TODO: this is returned currently to avoid GCC warnings
     }
+
+    void calc_bound_box(bound_box3d_t *b, const point3d_t *p, size_t n)
+    {
+        if (n <= 0)
+        {
+            for (size_t i=0; i<8; ++i)
+            {
+                b->p[i].x = 0.0f;
+                b->p[i].y = 0.0f;
+                b->p[i].z = 0.0f;
+                b->p[i].w = 1.0f;
+            }
+            return;
+        }
+
+        for (size_t i=0; i<8; ++i)
+            b->p[i] = *p;
+
+        while (--n)
+        {
+            ++p;
+
+            // Left plane
+            if (b->p[0].x > p->x)
+                b->p[0].x = p->x;
+            if (b->p[1].x > p->x)
+                b->p[1].x = p->x;
+            if (b->p[4].x > p->x)
+                b->p[4].x = p->x;
+            if (b->p[5].x > p->x)
+                b->p[5].x = p->x;
+
+            // Right plane
+            if (b->p[2].x < p->x)
+                b->p[2].x = p->x;
+            if (b->p[3].x < p->x)
+                b->p[3].x = p->x;
+            if (b->p[6].x < p->x)
+                b->p[6].x = p->x;
+            if (b->p[7].x < p->x)
+                b->p[7].x = p->x;
+
+            // Near plane
+            if (b->p[1].y > p->y)
+                b->p[1].y = p->y;
+            if (b->p[2].y > p->y)
+                b->p[2].y = p->y;
+            if (b->p[5].y > p->y)
+                b->p[5].y = p->y;
+            if (b->p[6].y > p->y)
+                b->p[6].y = p->y;
+
+            // Far plane
+            if (b->p[0].y < p->y)
+                b->p[0].y = p->y;
+            if (b->p[3].y < p->y)
+                b->p[3].y = p->y;
+            if (b->p[4].y < p->y)
+                b->p[4].y = p->y;
+            if (b->p[7].y < p->y)
+                b->p[7].y = p->y;
+
+            // Top plane
+            if (b->p[0].z < p->z)
+                b->p[0].z = p->z;
+            if (b->p[1].z < p->z)
+                b->p[1].z = p->z;
+            if (b->p[2].z < p->z)
+                b->p[2].z = p->z;
+            if (b->p[3].z < p->z)
+                b->p[3].z = p->z;
+
+            // Bottom plane
+            if (b->p[4].z > p->z)
+                b->p[4].z = p->z;
+            if (b->p[5].z > p->z)
+                b->p[5].z = p->z;
+            if (b->p[6].z > p->z)
+                b->p[6].z = p->z;
+            if (b->p[7].z > p->z)
+                b->p[7].z = p->z;
+        }
+    }
 }
 
 #endif /* DSP_ARCH_NATIVE_3DMATH_H_ */
