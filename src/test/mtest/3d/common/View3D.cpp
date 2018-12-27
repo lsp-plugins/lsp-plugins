@@ -58,26 +58,26 @@ namespace mtest
         return true;
     }
 
-    bool View3D::add_triangle(const v_triangle3d_t *t)
-    {
-        v_vertex3d_t *v = vVertexes.append_n(3);
-        if (v == NULL)
-            return false;
-
-        v[0].p      = t->p[0];
-        v[0].n      = t->n[0];
-        v[0].c      = t->c[0];
-
-        v[1].p      = t->p[1];
-        v[1].n      = t->n[1];
-        v[1].c      = t->c[1];
-
-        v[2].p      = t->p[2];
-        v[2].n      = t->n[2];
-        v[2].c      = t->c[2];
-
-        return true;
-    }
+//    bool View3D::add_triangle(const v_triangle3d_t *t)
+//    {
+//        v_vertex3d_t *v = vVertexes.append_n(3);
+//        if (v == NULL)
+//            return false;
+//
+//        v[0].p      = t->p[0];
+//        v[0].n      = t->n[0];
+//        v[0].c      = t->c[0];
+//
+//        v[1].p      = t->p[1];
+//        v[1].n      = t->n[1];
+//        v[1].c      = t->c[1];
+//
+//        v[2].p      = t->p[2];
+//        v[2].n      = t->n[2];
+//        v[2].c      = t->c[2];
+//
+//        return true;
+//    }
 
     bool View3D::add_triangle(const v_vertex3d_t *v1, const v_vertex3d_t *v2, const v_vertex3d_t *v3)
     {

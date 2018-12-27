@@ -27,7 +27,6 @@ namespace mtest
     {
         point3d_t   p[3];   // Positions
         vector3d_t  n[3];   // Normals
-        color3d_t   c[3];   // Colors
     } v_triangle3d_t;
 
     typedef struct v_point3d_t
@@ -136,12 +135,12 @@ namespace mtest
              */
             bool add_triangle(const v_vertex3d_t *vi);
 
-            /**
-             * Add triangle to scene
-             * @param t triangle to add
-             * @return true if triangle was added
-             */
-            bool add_triangle(const v_triangle3d_t *t);
+//            /**
+//             * Add triangle to scene
+//             * @param t triangle to add
+//             * @return true if triangle was added
+//             */
+//            bool add_triangle(const v_triangle3d_t *t);
 
             /**
              * Add triangle to scene and automatically generate indexes

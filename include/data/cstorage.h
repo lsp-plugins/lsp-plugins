@@ -333,6 +333,14 @@ namespace lsp
                 }
 
                 inline void swap(cstorage<T, A> *src) { do_swap_data(src); }
+
+                inline bool add_all(const cstorage<T, A> *src) {
+                    if (src->nItems <= 0)
+                        return true;
+                    T *ptr = append_n(src->nItems);
+                    ::memcpy(ptr, src->vItems, src->nItems * nSizeOf);
+                    return true;
+                }
         };
 }
 

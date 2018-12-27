@@ -137,7 +137,7 @@ namespace mtest
                 out[0].p[0]     = p[0];
                 out[0].p[1]     = p[1];
                 out[0].p[2]     = p[2];
-                *n_out += 1;
+                *n_out         += 1;
                 return;
             }
         }
@@ -148,7 +148,7 @@ namespace mtest
                 out[0].p[0]     = p[0];
                 out[0].p[1]     = p[1];
                 out[0].p[2]     = p[2];
-                *n_out += 1;
+                *n_out         += 1;
                 return;
             }
             else if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
@@ -350,48 +350,36 @@ namespace mtest
         pv[2].w     = 1.0f;
     }
 
-    static void clip_triangles(View3D *view, cstorage<v_triangle3d_t> &ignored, cstorage<v_triangle3d_t> &matched, Object3D *obj, const wfront_t *wf)
+    static void clip_triangles(cstorage<v_triangle3d_t> &ignored, cstorage<v_triangle3d_t> &matched, const wfront_t *wf)
     {
-        v_triangle3d_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
-        size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
         vector3d_t pl[4];
-        v_segment3d_t vs;
-        v_triangle3d_t t;
+        v_triangle3d_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
+        size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp; // Small triangle queue
 
-        // Calc scissor planes' normals
+        // Move all matched triangles to list of triangles for processing
+        cstorage<v_triangle3d_t> source;
+        source.swap(&matched);
+
+        // Calculate scissor planes' normals
         calc_plane_vector_rv(&pl[0], &wf->r[0], &wf->r[1].v);
         calc_plane_vector_rv(&pl[1], &wf->r[1], &wf->r[2].v);
         calc_plane_vector_rv(&pl[2], &wf->r[2], &wf->r[0].v);
         calc_plane_vector_p3(&pl[3], &wf->r[0].z, &wf->r[1].z, &wf->r[2].z);
 
-        vs.c                = C_MAGENTA;
-
-        // Initialize pointers
-        matrix3d_t *om      = obj->get_matrix();
-        point3d_t *tr       = obj->get_vertexes();
-        vector3d_t *tn      = obj->get_normals();
-        vertex_index_t *vvx = obj->get_vertex_indexes();
-        vertex_index_t *vnx = obj->get_normal_indexes();
-
         // Cull each triangle with four scissor planes
-        for (ssize_t j=0, m=obj->get_triangles_count(); j < m; ++j)
+        for (ssize_t j=0, m=source.size(); j < m; ++j)
         {
-            // Initialize input and queue buffer
-            q = buf1;
-            in = buf2;
-            n_q = &n_buf1;
-            n_in = &n_buf2;
+            // Get next triangle for processing
+            v_triangle3d_t t   = *(source.at(j));
 
-            // Put to queue with updated matrix
+            // Initialize input and queue buffer
+            q = buf1, in = buf2;
+            n_q = &n_buf1, n_in = &n_buf2;
+
+            // Put triangle to queue
             *n_q        = 1;
             n_out       = 0;
-            q->p[0]     = tr[*(vvx++)];
-            q->p[1]     = tr[*(vvx++)];
-            q->p[2]     = tr[*(vvx++)];
-
-            dsp::apply_matrix3d_mp1(&q->p[0], om);
-            dsp::apply_matrix3d_mp1(&q->p[1], om);
-            dsp::apply_matrix3d_mp1(&q->p[2], om);
+            *q          = t;
 
             // Cull triangle with planes
             for (size_t k=0; ; )
@@ -401,7 +389,7 @@ namespace mtest
                 // Split all triangles:
                 // Put all triangles above the plane to out
                 // Put all triangles below the plane to in
-                for (size_t l=0; l < *n_q; l ++)
+                for (size_t l=0; l < *n_q; ++l)
                     split_triangle(out, &n_out, in, n_in, &pl[k], &q[l]);
 
                 // Interrupt cycle if there is no data to process
@@ -409,20 +397,10 @@ namespace mtest
                    break;
 
                 // Swap buffers buf0 <-> buf1
-                n_tmp       = n_in;
-                tmp         = in;
-                n_in        = n_q;
-                in          = q;
-                n_q         = n_tmp;
-                q           = tmp;
+                n_tmp = n_in, tmp = in;
+                n_in = n_q, in = q;
+                n_q = n_tmp, q = tmp;
             }
-
-            t.n[0]              = tn[*(vnx++)];
-            t.n[1]              = tn[*(vnx++)];
-            t.n[2]              = tn[*(vnx++)];
-            t.c[0]              = C_GRAY;
-            t.c[1]              = C_GRAY;
-            t.c[2]              = C_GRAY;
 
             // Emit all triangles above the plane (outside vision) as ignored
             for (size_t l=0; l < n_out; ++l)
@@ -430,15 +408,8 @@ namespace mtest
                 t.p[0]              = out[l].p[0];
                 t.p[1]              = out[l].p[1];
                 t.p[2]              = out[l].p[2];
-
                 ignored.add(&t);
-                if (view != NULL) // DEBUG
-                    view->add_triangle(&t);
             }
-
-            t.c[0]              = C_RED;
-            t.c[1]              = C_GREEN;
-            t.c[2]              = C_BLUE;
 
             // The final set of triangles inside vision is in 'q' buffer, put them as visible
             for (size_t l=0; l < *n_in; ++l)
@@ -446,25 +417,7 @@ namespace mtest
                 t.p[0]              = in[l].p[0];
                 t.p[1]              = in[l].p[1];
                 t.p[2]              = in[l].p[2];
-
                 matched.add(&t);
-                if (view != NULL) // DEBUG
-                {
-                    view->add_triangle(&t);
-
-//                    project_triangle(&out[0], &wf->s, &pl[3], &t.p[0]);
-//                    vs.p[0]             = out[0];
-//                    vs.p[1]             = out[1];
-//                    view->add_segment(&vs);
-//
-//                    vs.p[0]             = out[1];
-//                    vs.p[1]             = out[2];
-//                    view->add_segment(&vs);
-//
-//                    vs.p[0]             = out[2];
-//                    vs.p[1]             = out[0];
-//                    view->add_segment(&vs);
-                }
             }
         }
     }
@@ -486,7 +439,6 @@ namespace mtest
     };
 
     static void check_bound_box(
-            View3D *view,
             cstorage<v_triangle3d_t> &ignored,
             cstorage<v_triangle3d_t> &matched,
             Object3D *obj,
@@ -494,6 +446,7 @@ namespace mtest
             const wfront_t *wf
         )
     {
+        cstorage<v_triangle3d_t> source;
         size_t n = obj->get_triangles_count();
 
         // Initialize pointers
@@ -523,12 +476,15 @@ namespace mtest
             dsp::apply_matrix3d_mv1(&t.n[1], om);
             dsp::apply_matrix3d_mv1(&t.n[2], om);
 
-            matched.add(&t);
+            source.add(&t);
         }
 
         // Not more than 16 faces?
         if (n <= 16)
+        {
+            matched.add_all(&source);
             return;
+        }
 
         // Check crossing with bounding box
         vector3d_t pl[4];
@@ -544,15 +500,15 @@ namespace mtest
         for (size_t j=0, m = sizeof(bbox_map)/sizeof(size_t); j < m; )
         {
             // Initialize input and queue buffer
-            q = buf1;
-            in = buf2;
-            n_q = &n_buf1;
-            n_in = &n_buf2;
+            q = buf1, in = buf2;
+            n_q = &n_buf1, n_in = &n_buf2;
 
             // Put to queue with updated matrix
-            t.p[0]      = box->p[bbox_map[j++]];
-            t.p[1]      = box->p[bbox_map[j++]];
-            t.p[2]      = box->p[bbox_map[j++]];
+            *n_q        = 1;
+            n_out       = 0;
+            q->p[0]     = box->p[bbox_map[j++]];
+            q->p[1]     = box->p[bbox_map[j++]];
+            q->p[2]     = box->p[bbox_map[j++]];
 
             // Cull triangle with planes
             for (size_t k=0; ; )
@@ -563,7 +519,7 @@ namespace mtest
                 // Split all triangles:
                 // Put all triangles above the plane to out
                 // Put all triangles below the plane to in
-                for (size_t l=0; l < *n_q; l += 3)
+                for (size_t l=0; l < *n_q; ++l)
                     split_triangle(out, &n_out, in, n_in, &pl[k], &q[l]);
 
                 // Interrupt cycle if there is no data to process
@@ -577,11 +533,14 @@ namespace mtest
             }
 
             if (*n_in > 0) // Is there intersection with bounding box?
+            {
+                matched.add_all(&source);
                 return; // Yes, return as is
+            }
         }
 
         // There is no intersection with bounding box, skip the object
-        matched.swap(&ignored);
+        ignored.add_all(&source);
     }
 
     static void do_raytrace(cstorage<v_triangle3d_t> &ignored, cstorage<v_triangle3d_t> matched, Object3D *obj)
@@ -728,6 +687,7 @@ MTEST_BEGIN("3d", reflections)
             void    update_view()
             {
                 v_segment3d_t s;
+                v_vertex3d_t v[3];
 
                 // Clear view state
                 pView->clear_all();
@@ -764,11 +724,62 @@ MTEST_BEGIN("3d", reflections)
                         }
                     }
 
-//                    check_bound_box(pView, ignored, matched, obj, bbox, &sFront);
-
-                    // Perform triangle clip
-                    clip_triangles(pView, ignored, matched, obj, &sFront);
+                    // Process bound-box checking
+                    check_bound_box(ignored, matched, obj, bbox, &sFront);
                 }
+
+                if (matched.size() > 0)
+                    clip_triangles(ignored, matched, &sFront);
+
+                // Build final scene from matched and ignored items
+                for (size_t i=0, m=ignored.size(); i < m; ++i)
+                {
+                    v_triangle3d_t *t = ignored.at(i);
+                    v[0].p     = t->p[0];
+                    v[0].n     = t->n[0];
+                    v[0].c     = C_GRAY;
+
+                    v[1].p     = t->p[1];
+                    v[1].n     = t->n[1];
+                    v[1].c     = C_GRAY;
+
+                    v[2].p     = t->p[2];
+                    v[2].n     = t->n[2];
+                    v[2].c     = C_GRAY;
+
+                    pView->add_triangle(v);
+                }
+
+                for (size_t i=0, m=matched.size(); i < m; ++i)
+                {
+                    v_triangle3d_t *t = matched.at(i);
+                    v[0].p     = t->p[0];
+                    v[0].n     = t->n[0];
+                    v[0].c     = C_RED;
+
+                    v[1].p     = t->p[1];
+                    v[1].n     = t->n[1];
+                    v[1].c     = C_GREEN;
+
+                    v[2].p     = t->p[2];
+                    v[2].n     = t->n[2];
+                    v[2].c     = C_BLUE;
+
+                    pView->add_triangle(v);
+                }
+
+//                    project_triangle(&out[0], &wf->s, &pl[3], &t.p[0]);
+//                    vs.p[0]             = out[0];
+//                    vs.p[1]             = out[1];
+//                    view->add_segment(&vs);
+//
+//                    vs.p[0]             = out[1];
+//                    vs.p[1]             = out[2];
+//                    view->add_segment(&vs);
+//
+//                    vs.p[0]             = out[2];
+//                    vs.p[1]             = out[0];
+//                    view->add_segment(&vs);
 
                 // Calc scissor planes' normals
                 vector3d_t pl[4];
