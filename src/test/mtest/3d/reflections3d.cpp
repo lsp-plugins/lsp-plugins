@@ -11,6 +11,8 @@
 
 #include <core/types.h>
 #include <core/debug.h>
+#include <core/sugar.h>
+#include <core/status.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <data/cstorage.h>
@@ -40,6 +42,23 @@ namespace mtest
         ray3d_t  r[3];      // Rays, counter-clockwise order
         point3d_t s;        // Source point
     } wfront_t;
+
+    typedef struct object_t
+    {
+        bound_box3d_t               box;      // Bounding box for each object
+        size_t                      nt;     // Number of triangles
+        v_triangle3d_t             *t;      // List of triangles for each object
+    } object_t;
+
+    typedef struct context_t
+    {
+        wfront_t                    front;      // Wave front
+        cstorage<v_triangle3d_t>    source;     // Triangles for processing
+        cstorage<v_triangle3d_t>   *matched;    // List of matched triangles (for debug)
+        cstorage<v_triangle3d_t>   *ignored;    // List of ignored triangles (for debug)
+        cvector<object_t>          *scene;      // Overall scene
+        bool                        scan;       // Fully scan scene
+    } context_t;
 
     static void calc_plane_vector_p3(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
     {
@@ -350,27 +369,196 @@ namespace mtest
         pv[2].w     = 1.0f;
     }
 
-    static void clip_triangles(cstorage<v_triangle3d_t> &ignored, cstorage<v_triangle3d_t> &matched, const wfront_t *wf)
+    static const size_t bbox_map[] =
     {
-        vector3d_t pl[4];
-        v_triangle3d_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
-        size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp; // Small triangle queue
+        0, 1, 2,
+        0, 2, 3,
+        6, 5, 4,
+        6, 4, 7,
+        1, 0, 4,
+        1, 4, 5,
+        3, 2, 6,
+        3, 6, 7,
+        1, 5, 2,
+        2, 5, 6,
+        0, 3, 4,
+        3, 7, 4
+    };
 
-        // Move all matched triangles to list of triangles for processing
+    static void destroy_scene(cvector<object_t> &list)
+    {
+        for (size_t i=0, n=list.size(); i<n; ++i)
+        {
+            object_t *obj = list.get(i);
+            if (obj != NULL)
+                free(obj);
+        }
+        list.flush();
+    }
+
+    static status_t prepare_scene(cstorage<v_triangle3d_t> &ignored, cvector<object_t> &scene, Scene3D *s)
+    {
+        status_t res        = STATUS_OK;
+        size_t hsize        = ALIGN_SIZE(sizeof(object_t), DEFAULT_ALIGN);
+
+        cvector<object_t> ol;
+
+        for (size_t i=0, n=s->num_objects(); i<n; ++i)
+        {
+            // Get scene object
+            Object3D *obj   = s->get_object(i);
+            if ((obj == NULL) || (!obj->is_visible()))
+                continue;
+
+            // Add bounding box
+            bound_box3d_t *bbox = s->get_bound_box(i);
+            if (bbox == NULL)
+                continue;
+
+            // Initialize pointers
+            matrix3d_t *om      = obj->get_matrix();
+            point3d_t *tr       = obj->get_vertexes();
+            vector3d_t *tn      = obj->get_normals();
+            vertex_index_t *vvx = obj->get_vertex_indexes();
+            vertex_index_t *vnx = obj->get_normal_indexes();
+
+            // Allocate object descriptor
+            size_t nt           = obj->get_triangles_count();
+            size_t osize        = hsize + ALIGN_SIZE(sizeof(v_triangle3d_t) * nt, DEFAULT_ALIGN);
+            object_t *o         = reinterpret_cast<object_t *>(malloc(osize));
+            if (o == NULL)
+            {
+                res             = STATUS_NO_MEM;
+                break;
+            }
+            if (!ol.add(o))
+            {
+                free(o);
+                res             = STATUS_NO_MEM;
+                break;
+            }
+
+            o->t                = reinterpret_cast<v_triangle3d_t *>(reinterpret_cast<uint8_t *>(o) + hsize);
+            o->box              = *bbox;
+            o->nt               = nt;
+
+            // Apply object matrix to vertexes and produce final array
+            v_triangle3d_t *t   = o->t;
+
+            for (size_t j=0; j < nt; ++j, ++t)
+            {
+                dsp::apply_matrix3d_mp2(&t->p[0], &tr[*(vvx++)], om);
+                dsp::apply_matrix3d_mp2(&t->p[1], &tr[*(vvx++)], om);
+                dsp::apply_matrix3d_mp2(&t->p[2], &tr[*(vvx++)], om);
+
+                dsp::apply_matrix3d_mv2(&t->n[0], &tn[*(vnx++)], om);
+                dsp::apply_matrix3d_mv2(&t->n[1], &tn[*(vnx++)], om);
+                dsp::apply_matrix3d_mv2(&t->n[2], &tn[*(vnx++)], om);
+            }
+        }
+
+        if (res == STATUS_OK)
+            ol.swap_data(&scene);
+
+        destroy_scene(ol);
+        return res;
+    }
+
+    /**
+     * Scan scene for triangles laying inside the viewing area of wave front
+     * @param ctx wave front context
+     * @return statuf of operation
+     */
+    static status_t scan_scene(context_t *ctx)
+    {
+        if (!ctx->scan)
+            return STATUS_OK;
+
+        // Check crossing with bounding box
         cstorage<v_triangle3d_t> source;
-        source.swap(&matched);
+        vector3d_t pl[4];
+        calc_plane_vector_rv(&pl[0], &ctx->front.r[0], &ctx->front.r[1].v);
+        calc_plane_vector_rv(&pl[1], &ctx->front.r[1], &ctx->front.r[2].v);
+        calc_plane_vector_rv(&pl[2], &ctx->front.r[2], &ctx->front.r[0].v);
+        calc_plane_vector_p3(&pl[3], &ctx->front.r[0].z, &ctx->front.r[1].z, &ctx->front.r[2].z);
 
-        // Calculate scissor planes' normals
-        calc_plane_vector_rv(&pl[0], &wf->r[0], &wf->r[1].v);
-        calc_plane_vector_rv(&pl[1], &wf->r[1], &wf->r[2].v);
-        calc_plane_vector_rv(&pl[2], &wf->r[2], &wf->r[0].v);
-        calc_plane_vector_p3(&pl[3], &wf->r[0].z, &wf->r[1].z, &wf->r[2].z);
+        v_triangle3d_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
+        size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
 
+        // STEP 1
+        // Check for crossing with all bounding boxes
+        for (size_t i=0, n=ctx->scene->size(); i<n; ++i)
+        {
+            object_t *obj = ctx->scene->get(i);
+            if (obj->nt < 16)
+            {
+                if (obj->nt == 0)
+                    continue;
+
+                if (!source.append(obj->t, obj->nt))
+                    return STATUS_NO_MEM;
+                continue;
+            }
+
+            // Cull each triangle of bounding box with four scissor planes
+            for (size_t j=0, m = sizeof(bbox_map)/sizeof(size_t); j < m; )
+            {
+                // Initialize input and queue buffer
+                q = buf1, in = buf2;
+                n_q = &n_buf1, n_in = &n_buf2;
+
+                // Put to queue with updated matrix
+                *n_q        = 1;
+                n_out       = 0;
+                q->p[0]     = obj->box.p[bbox_map[j++]];
+                q->p[1]     = obj->box.p[bbox_map[j++]];
+                q->p[2]     = obj->box.p[bbox_map[j++]];
+
+                // Cull triangle with planes
+                for (size_t k=0; ; )
+                {
+                    // Reset counters
+                    *n_in   = 0;
+
+                    // Split all triangles:
+                    // Put all triangles above the plane to out
+                    // Put all triangles below the plane to in
+                    for (size_t l=0; l < *n_q; ++l)
+                        split_triangle(out, &n_out, in, n_in, &pl[k], &q[l]);
+
+                    // Interrupt cycle if there is no data to process
+                    if ((*n_in <= 0) || ((++k) >= 4))
+                       break;
+
+                    // Swap buffers buf0 <-> buf1
+                    n_tmp = n_in, tmp = in;
+                    n_in = n_q, in = q;
+                    n_q = n_tmp, q = tmp;
+                }
+
+                if (*n_in > 0) // Is there intersection with bounding box?
+                {
+                    if (!source.append(obj->t, obj->nt))
+                        return STATUS_NO_MEM;
+                }
+                else
+                {
+                    if (!ctx->ignored->append(obj->t, obj->nt))
+                        return STATUS_NO_MEM;
+                }
+            }
+        }
+
+        ctx->scan = false;
+        if (source.size() <= 0)
+            return STATUS_OK;
+
+        // STEP 2
         // Cull each triangle with four scissor planes
-        for (ssize_t j=0, m=source.size(); j < m; ++j)
+        for (ssize_t i=0, n=source.size(); i < n; ++i)
         {
             // Get next triangle for processing
-            v_triangle3d_t t   = *(source.at(j));
+            v_triangle3d_t t   = *(source.at(i));
 
             // Initialize input and queue buffer
             q = buf1, in = buf2;
@@ -408,7 +596,8 @@ namespace mtest
                 t.p[0]              = out[l].p[0];
                 t.p[1]              = out[l].p[1];
                 t.p[2]              = out[l].p[2];
-                ignored.add(&t);
+                if (!ctx->ignored->add(&t))
+                    return STATUS_NO_MEM;
             }
 
             // The final set of triangles inside vision is in 'q' buffer, put them as visible
@@ -417,135 +606,57 @@ namespace mtest
                 t.p[0]              = in[l].p[0];
                 t.p[1]              = in[l].p[1];
                 t.p[2]              = in[l].p[2];
-                matched.add(&t);
+                if (!ctx->source.add(&t))
+                    return STATUS_NO_MEM;
             }
         }
+
+        return STATUS_OK;
     }
 
-    static const size_t bbox_map[] =
-    {
-        0, 1, 2,
-        0, 2, 3,
-        6, 5, 4,
-        6, 4, 7,
-        1, 0, 4,
-        1, 4, 5,
-        3, 2, 6,
-        3, 6, 7,
-        1, 5, 2,
-        2, 5, 6,
-        0, 3, 4,
-        3, 7, 4
-    };
-
-    static void check_bound_box(
-            cstorage<v_triangle3d_t> &ignored,
-            cstorage<v_triangle3d_t> &matched,
-            Object3D *obj,
-            const bound_box3d_t *box,
-            const wfront_t *wf
+    static status_t perform_raytrace(
+            cvector<context_t> &tasks
         )
     {
-        cstorage<v_triangle3d_t> source;
-        size_t n = obj->get_triangles_count();
+        context_t *ctx = NULL;
 
-        // Initialize pointers
-        matrix3d_t *om      = obj->get_matrix();
-        point3d_t *tr       = obj->get_vertexes();
-        vector3d_t *tn      = obj->get_normals();
-        vertex_index_t *vvx = obj->get_vertex_indexes();
-        vertex_index_t *vnx = obj->get_normal_indexes();
-
-        // Update object matrix
-        v_triangle3d_t t;
-
-        for (ssize_t j=0, m=obj->get_triangles_count(); j < m; ++j)
+        while (tasks.size() > 0)
         {
-            t.p[0]          = tr[*(vvx++)];
-            t.p[1]          = tr[*(vvx++)];
-            t.p[2]          = tr[*(vvx++)];
-            t.n[0]          = tn[*(vnx++)];
-            t.n[1]          = tn[*(vnx++)];
-            t.n[2]          = tn[*(vnx++)];
+            // Get next context from queue
+            if (!tasks.pop(&ctx))
+                return STATUS_CORRUPTED;
 
-            dsp::apply_matrix3d_mp1(&t.p[0], om);
-            dsp::apply_matrix3d_mp1(&t.p[1], om);
-            dsp::apply_matrix3d_mp1(&t.p[2], om);
+            // Check that we need to perform a scan
+            if (ctx->scan)
+                scan_scene(ctx);
 
-            dsp::apply_matrix3d_mv1(&t.n[0], om);
-            dsp::apply_matrix3d_mv1(&t.n[1], om);
-            dsp::apply_matrix3d_mv1(&t.n[2], om);
+            if (!ctx->matched->add_all(&ctx->source))
+                return STATUS_NO_MEM;
 
-            source.add(&t);
+            ctx->source.flush();
+            delete ctx;
         }
 
-        // Not more than 16 faces?
-        if (n <= 16)
-        {
-            matched.add_all(&source);
-            return;
-        }
-
-        // Check crossing with bounding box
-        vector3d_t pl[4];
-        calc_plane_vector_rv(&pl[0], &wf->r[0], &wf->r[1].v);
-        calc_plane_vector_rv(&pl[1], &wf->r[1], &wf->r[2].v);
-        calc_plane_vector_rv(&pl[2], &wf->r[2], &wf->r[0].v);
-        calc_plane_vector_p3(&pl[3], &wf->r[0].z, &wf->r[1].z, &wf->r[2].z);
-
-        v_triangle3d_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
-        size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
-
-        // Cull each triangle of bounding box with four scissor planes
-        for (size_t j=0, m = sizeof(bbox_map)/sizeof(size_t); j < m; )
-        {
-            // Initialize input and queue buffer
-            q = buf1, in = buf2;
-            n_q = &n_buf1, n_in = &n_buf2;
-
-            // Put to queue with updated matrix
-            *n_q        = 1;
-            n_out       = 0;
-            q->p[0]     = box->p[bbox_map[j++]];
-            q->p[1]     = box->p[bbox_map[j++]];
-            q->p[2]     = box->p[bbox_map[j++]];
-
-            // Cull triangle with planes
-            for (size_t k=0; ; )
-            {
-                // Reset counters
-                *n_in   = 0;
-
-                // Split all triangles:
-                // Put all triangles above the plane to out
-                // Put all triangles below the plane to in
-                for (size_t l=0; l < *n_q; ++l)
-                    split_triangle(out, &n_out, in, n_in, &pl[k], &q[l]);
-
-                // Interrupt cycle if there is no data to process
-                if ((*n_in <= 0) || ((++k) >= 4))
-                   break;
-
-                // Swap buffers buf0 <-> buf1
-                n_tmp = n_in, tmp = in;
-                n_in = n_q, in = q;
-                n_q = n_tmp, q = tmp;
-            }
-
-            if (*n_in > 0) // Is there intersection with bounding box?
-            {
-                matched.add_all(&source);
-                return; // Yes, return as is
-            }
-        }
-
-        // There is no intersection with bounding box, skip the object
-        ignored.add_all(&source);
+        return STATUS_OK;
     }
 
-    static void do_raytrace(cstorage<v_triangle3d_t> &ignored, cstorage<v_triangle3d_t> matched, Object3D *obj)
+    static void destroy_tasks(cvector<context_t> &tasks)
     {
+        for (size_t i=0, n=tasks.size(); i<n; ++i)
+        {
+            context_t *ctx = tasks.get(i);
+            if (ctx == NULL)
+                continue;
 
+            ctx->ignored    = NULL;
+            ctx->matched    = NULL;
+            ctx->scene      = NULL;
+            ctx->source.flush();
+
+            delete ctx;
+        }
+
+        tasks.flush();
     }
 } // Namespace mtest
 
@@ -684,7 +795,7 @@ MTEST_BEGIN("3d", reflections)
             }
 
         protected:
-            void    update_view()
+            status_t    update_view()
             {
                 v_segment3d_t s;
                 v_vertex3d_t v[3];
@@ -694,19 +805,42 @@ MTEST_BEGIN("3d", reflections)
 
                 // List of ignored and matched triangles
                 cstorage<v_triangle3d_t> ignored, matched;
+                cvector<object_t> scene;
+                cvector<context_t> tasks;
 
-                s.c = C_ORANGE;
+                // Create initial context
+                context_t *ctx = new context_t;
+                if (ctx == NULL)
+                    return STATUS_NO_MEM;
 
-                for (size_t i=0, n=pScene->num_objects(); i<n; ++i)
+                ctx->scan       = true;
+                ctx->front      = sFront;
+                ctx->ignored    = &ignored;
+                ctx->matched    = &matched;
+                ctx->scene      = &scene;
+
+                // Add context to tasks
+                if (!tasks.add(ctx))
                 {
-                    Object3D *obj   = pScene->get_object(i);
-                    if ((obj == NULL) || (!obj->is_visible()))
-                        continue;
+                    delete ctx;
+                    return STATUS_NO_MEM;
+                }
 
-                    // Add bounding box
-                    bound_box3d_t *bbox = pScene->get_bound_box(i);
-                    if (bbox == NULL)
-                        continue;
+                // Prepare scene for analysis
+                status_t res = prepare_scene(ignored, scene, pScene);
+                if (res != STATUS_OK)
+                {
+                    tasks.flush();
+                    delete ctx;
+                    return res;
+                }
+
+                // Render bounding boxes of the scene
+                s.c = C_ORANGE;
+                for (size_t i=0, n=scene.size(); i<n; ++i)
+                {
+                    object_t *o = scene.at(i);
+                    bound_box3d_t *bbox = &o->box;
 
                     if (bBoundBoxes)
                     {
@@ -723,13 +857,53 @@ MTEST_BEGIN("3d", reflections)
                             pView->add_segment(&s);
                         }
                     }
-
-                    // Process bound-box checking
-                    check_bound_box(ignored, matched, obj, bbox, &sFront);
                 }
 
-                if (matched.size() > 0)
-                    clip_triangles(ignored, matched, &sFront);
+                // Clear allocated resources, tasks and ctx should be already deleted
+                res = perform_raytrace(tasks);
+
+                destroy_tasks(tasks);
+                destroy_scene(scene);
+//
+//
+//                context_t *ctx = new context_t;
+//                cvector<context_t> tasks;
+//                tasks.add(ctx);
+//                ctx->s
+//
+//                for (size_t i=0, n=pScene->num_objects(); i<n; ++i)
+//                {
+//                    Object3D *obj   = pScene->get_object(i);
+//                    if ((obj == NULL) || (!obj->is_visible()))
+//                        continue;
+//
+//                    // Add bounding box
+//                    bound_box3d_t *bbox = pScene->get_bound_box(i);
+//                    if (bbox == NULL)
+//                        continue;
+//
+//                    if (bBoundBoxes)
+//                    {
+//                        for (size_t i=0; i<4; ++i)
+//                        {
+//                            s.p[0] = bbox->p[i];
+//                            s.p[1] = bbox->p[(i+1)%4];
+//                            pView->add_segment(&s);
+//                            s.p[0] = bbox->p[i];
+//                            s.p[1] = bbox->p[i+4];
+//                            pView->add_segment(&s);
+//                            s.p[0] = bbox->p[i+4];
+//                            s.p[1] = bbox->p[(i+1)%4 + 4];
+//                            pView->add_segment(&s);
+//                        }
+//                    }
+//
+//                    // Process bound-box checking
+//                    check_bound_box(ignored, matched, obj, bbox, &sFront);
+//                }
+//
+//                if (matched.size() > 0)
+//                    clip_triangles(ignored, matched, &sFront);
 
                 // Build final scene from matched and ignored items
                 for (size_t i=0, m=ignored.size(); i < m; ++i)
@@ -749,6 +923,7 @@ MTEST_BEGIN("3d", reflections)
 
                     pView->add_triangle(v);
                 }
+                ignored.flush();
 
                 for (size_t i=0, m=matched.size(); i < m; ++i)
                 {
@@ -767,6 +942,7 @@ MTEST_BEGIN("3d", reflections)
 
                     pView->add_triangle(v);
                 }
+                matched.flush();
 
 //                    project_triangle(&out[0], &wf->s, &pl[3], &t.p[0]);
 //                    vs.p[0]             = out[0];
@@ -821,6 +997,8 @@ MTEST_BEGIN("3d", reflections)
                     r.v.dw = 0.0f;
                     pView->add_ray(&r);
                 }
+
+                return res;
             }
     };
 

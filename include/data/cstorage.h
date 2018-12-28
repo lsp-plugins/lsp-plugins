@@ -217,6 +217,14 @@ namespace lsp
                     return dst;
                 }
 
+                inline T *push(const T *v)
+                {
+                    T *dst = reinterpret_cast<T *>(basic_storage::alloc_item());
+                    if (dst != NULL)
+                        *dst = *v;
+                    return dst;
+                }
+
                 inline T *append(const T *v, size_t n)
                 {
                     T *dst = reinterpret_cast<T *>(basic_storage::alloc_item());

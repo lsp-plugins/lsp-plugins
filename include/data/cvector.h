@@ -156,6 +156,27 @@ namespace lsp
                 return -1;
             }
 
+            inline bool pop_last(void **ptr)
+            {
+                if (nItems <= 0)
+                    return false;
+
+                void *p = pvItems[--nItems];
+                if (ptr != NULL)
+                    *ptr = p;
+                pvItems[nItems+1] = NULL;
+                return true;
+            }
+
+            inline bool pop()
+            {
+                if (nItems <= 0)
+                    return false;
+
+                pvItems[nItems--] = NULL;
+                return true;
+            }
+
         public:
             explicit inline basic_vector()
             {
@@ -211,6 +232,28 @@ namespace lsp
         {
             public:
                 inline bool add(T *item) { return basic_vector::add_item(item); }
+
+                inline bool push(T *item) { return basic_vector::add_item(item); }
+
+                inline bool pop() { return basic_vector::pop(); }
+
+                inline bool pop(T **item)
+                {
+                    void *ptr;
+                    if (!basic_vector::pop_last(&ptr))
+                        return false;
+                    *item = reinterpret_cast<T *>(ptr);
+                    return true;
+                }
+
+                inline bool pop_last(T **item)
+                {
+                    void *ptr;
+                    if (!basic_vector::pop_last(&ptr))
+                        return false;
+                    *item = reinterpret_cast<T *>(ptr);
+                    return true;
+                }
 
                 inline bool add_unique(T *item) { return basic_vector::add_unique(item); }
 
