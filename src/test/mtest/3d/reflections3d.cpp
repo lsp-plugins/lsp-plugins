@@ -864,46 +864,6 @@ MTEST_BEGIN("3d", reflections)
 
                 destroy_tasks(tasks);
                 destroy_scene(scene);
-//
-//
-//                context_t *ctx = new context_t;
-//                cvector<context_t> tasks;
-//                tasks.add(ctx);
-//                ctx->s
-//
-//                for (size_t i=0, n=pScene->num_objects(); i<n; ++i)
-//                {
-//                    Object3D *obj   = pScene->get_object(i);
-//                    if ((obj == NULL) || (!obj->is_visible()))
-//                        continue;
-//
-//                    // Add bounding box
-//                    bound_box3d_t *bbox = pScene->get_bound_box(i);
-//                    if (bbox == NULL)
-//                        continue;
-//
-//                    if (bBoundBoxes)
-//                    {
-//                        for (size_t i=0; i<4; ++i)
-//                        {
-//                            s.p[0] = bbox->p[i];
-//                            s.p[1] = bbox->p[(i+1)%4];
-//                            pView->add_segment(&s);
-//                            s.p[0] = bbox->p[i];
-//                            s.p[1] = bbox->p[i+4];
-//                            pView->add_segment(&s);
-//                            s.p[0] = bbox->p[i+4];
-//                            s.p[1] = bbox->p[(i+1)%4 + 4];
-//                            pView->add_segment(&s);
-//                        }
-//                    }
-//
-//                    // Process bound-box checking
-//                    check_bound_box(ignored, matched, obj, bbox, &sFront);
-//                }
-//
-//                if (matched.size() > 0)
-//                    clip_triangles(ignored, matched, &sFront);
 
                 // Build final scene from matched and ignored items
                 for (size_t i=0, m=ignored.size(); i < m; ++i)
