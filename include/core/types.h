@@ -28,7 +28,13 @@ typedef int64_t         wssize_t;
 /** Unicode character definition
  *
  */
-typedef uint16_t                lsp_wchar_t;
+#if defined(PLATFORM_WINDOWS)
+    #include <windows.h>
+
+    typedef WCHAR               lsp_wchar_t;
+#else
+    typedef uint16_t            lsp_wchar_t;
+#endif /* PLATFORM_WINDOWS */
 
 // Include units
 #include <core/sugar.h>

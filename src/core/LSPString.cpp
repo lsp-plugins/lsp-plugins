@@ -5,14 +5,14 @@
  *      Author: sadko
  */
 
-#include <ui/tk/tk.h>
+#include <core/types.h>
 #include <stdlib.h>
-#include <iconv.h>
-#include <locale.h>
 #include <errno.h>
 #include <wctype.h>
 #include <stdarg.h>
+
 #include <core/io/charset.h>
+#include <LSPString.h>
 
 #define GRANULARITY     0x20
 #define BUF_SIZE        0x200
@@ -1312,8 +1312,52 @@ namespace lsp
         return true;
     }
 
+#if defined(PLATFORM_WINDOWS)
     bool LSPString::set_native(const char *s, ssize_t n, const char *charset)
     {
+        if (n < 0)
+            return false;
+        else if (n == 0)
+        {
+            nLength = 0;
+            return true;
+        }
+
+        // Get codepage
+        ssize_t cp = codepage_from_name(charset);
+        if (cp < 0)
+            return false;
+
+        // Estimate size of string in memory
+        ssize_t slen = MultiByteToWideChar(cp, 0, const_cast<CHAR *>(s), n, NULL, 0);
+        if (slen == 0)
+            return false;
+
+        lsp_wchar_t *buf = xmalloc(slen);
+        if (buf == NULL)
+            return false;
+
+        slen = MultiByteToWideChar(cp, 0, const_cast<CHAR *>(s), n, buf, slen);
+        if (slen == 0)
+        {
+            xfree(buf);
+            return false;
+        }
+
+        if (pData != NULL)
+            xfree(pData);
+        pData = buf;
+        nLength = slen;
+        nCapacity = slen;
+
+        return true;
+    }
+#else
+    bool LSPString::set_native(const char *s, ssize_t n, const char *charset)
+    {
+        if (n < 0)
+            return false;
+
         char buf[BUF_SIZE];
         LSPString temp;
 
@@ -1378,6 +1422,7 @@ namespace lsp
         take(&temp);
         return true;
     }
+#endif /* PLATFORM_WINDOWS */
 
     bool LSPString::set_ascii(const char *s, size_t n)
     {
