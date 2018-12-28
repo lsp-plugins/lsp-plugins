@@ -60,6 +60,35 @@ namespace mtest
         bool                        scan;       // Fully scan scene
     } context_t;
 
+    static void inv_normal(vector3d_t *v)
+    {
+        v->dx = - v->dy;
+        v->dy = - v->dy;
+        v->dz = - v->dz;
+    }
+
+    static void calc_plane_vector_pv(vector3d_t *v, const point3d_t *p)
+    {
+        // Calculate edge parameters
+        vector3d_t d[2];
+        d[0].dx     = p[1].x - p[0].x;
+        d[0].dy     = p[1].y - p[0].y;
+        d[0].dz     = p[1].z - p[0].z;
+        d[0].dw     = p[1].w - p[0].w;
+
+        d[1].dx     = p[2].x - p[0].x;
+        d[1].dy     = p[2].y - p[0].y;
+        d[1].dz     = p[2].z - p[0].z;
+        d[1].dw     = p[2].w - p[0].w;
+
+        // Do vector multiplication to calculate the normal vector
+        v->dx       = + d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+        v->dy       = - d[0].dx*d[1].dz + d[0].dz*d[1].dx;
+        v->dz       = + d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+        dsp::normalize_vector(v);
+        v->dw       = - ( v->dx * p[0].x + v->dy * p[0].y + v->dz * p[0].z); // Parameter for the plane equation
+    }
+
     static void calc_plane_vector_p3(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
     {
         // Calculate edge parameters
@@ -145,6 +174,10 @@ namespace mtest
                 in[0].p[0]      = p[0];
                 in[0].p[1]      = p[1];
                 in[0].p[2]      = p[2];
+
+                in[0].n[0]      = pv->n[0];
+                in[0].n[1]      = pv->n[1];
+                in[0].n[2]      = pv->n[2];
                 *n_in          += 1;
                 return;
             }
@@ -156,6 +189,11 @@ namespace mtest
                 out[0].p[0]     = p[0];
                 out[0].p[1]     = p[1];
                 out[0].p[2]     = p[2];
+
+                out[0].n[0]     = pv->n[0];
+                out[0].n[1]     = pv->n[1];
+                out[0].n[2]     = pv->n[2];
+
                 *n_out         += 1;
                 return;
             }
@@ -167,6 +205,11 @@ namespace mtest
                 out[0].p[0]     = p[0];
                 out[0].p[1]     = p[1];
                 out[0].p[2]     = p[2];
+
+                out[0].n[0]     = pv->n[0];
+                out[0].n[1]     = pv->n[1];
+                out[0].n[2]     = pv->n[2];
+
                 *n_out         += 1;
                 return;
             }
@@ -175,6 +218,11 @@ namespace mtest
                 in[0].p[0]      = p[0];
                 in[0].p[1]      = p[1];
                 in[0].p[2]      = p[2];
+
+                in[0].n[0]      = pv->n[0];
+                in[0].n[1]      = pv->n[1];
+                in[0].n[2]      = pv->n[2];
+
                 *n_in          += 1;
                 return;
             }
@@ -226,6 +274,11 @@ namespace mtest
                 out[0].p[0]     = p[0];
                 out[0].p[1]     = sp[0];
                 out[0].p[2]     = sp[1];
+
+                out[0].n[0]     = pv->n[0];
+                out[0].n[1]     = pv->n[1];
+                out[0].n[2]     = pv->n[2];
+
                 *n_out         += 1;
 
                 in[0].p[0]      = p[1];
@@ -234,6 +287,14 @@ namespace mtest
                 in[1].p[0]      = p[2];
                 in[1].p[1]      = sp[1];
                 in[1].p[2]      = sp[0];
+
+                in[0].n[0]      = pv->n[0];
+                in[0].n[1]      = pv->n[1];
+                in[0].n[2]      = pv->n[2];
+                in[1].n[0]      = pv->n[0];
+                in[1].n[1]      = pv->n[1];
+                in[1].n[2]      = pv->n[2];
+
                 *n_in          += 2;
             }
             else if (k[2] > 0)
@@ -256,11 +317,24 @@ namespace mtest
                 out[1].p[0]     = p[2];
                 out[1].p[1]     = sp[0];
                 out[1].p[2]     = sp[1];
+
+                out[0].n[0]     = pv->n[0];
+                out[0].n[1]     = pv->n[1];
+                out[0].n[2]     = pv->n[2];
+                out[1].n[0]     = pv->n[0];
+                out[1].n[1]     = pv->n[1];
+                out[1].n[2]     = pv->n[2];
+
                 *n_out         += 2;
 
                 in[0].p[0]      = p[1];
                 in[0].p[1]      = sp[1];
                 in[0].p[2]      = sp[0];
+
+                in[0].n[0]      = pv->n[0];
+                in[0].n[1]      = pv->n[1];
+                in[0].n[2]      = pv->n[2];
+
                 *n_in          += 1;
             }
             else // k[2] == 0
@@ -269,11 +343,20 @@ namespace mtest
                 out[0].p[0]     = p[2];
                 out[0].p[1]     = p[0];
                 out[0].p[2]     = sp[0];
+
+                out[0].n[0]     = pv->n[0];
+                out[0].n[1]     = pv->n[1];
+                out[0].n[2]     = pv->n[2];
                 *n_out         += 1;
 
                 in[0].p[0]      = p[1];
                 in[0].p[1]      = p[2];
                 in[0].p[2]      = sp[0];
+
+                in[0].n[0]      = pv->n[0];
+                in[0].n[1]      = pv->n[1];
+                in[0].n[2]      = pv->n[2];
+
                 *n_in          += 1;
             }
         }
@@ -307,11 +390,24 @@ namespace mtest
             out[1].p[0]     = p[0];
             out[1].p[1]     = sp[1];
             out[1].p[2]     = sp[0];
+
+            out[0].n[0]     = pv->n[0];
+            out[0].n[1]     = pv->n[1];
+            out[0].n[2]     = pv->n[2];
+            out[1].n[0]     = pv->n[0];
+            out[1].n[1]     = pv->n[1];
+            out[1].n[2]     = pv->n[2];
+
             *n_out         += 2;
 
             in[0].p[0]      = p[2];
             in[0].p[1]      = sp[0];
             in[0].p[2]      = sp[1];
+
+            in[0].n[0]      = pv->n[0];
+            in[0].n[1]      = pv->n[1];
+            in[0].n[2]      = pv->n[2];
+
             *n_in          += 1;
         }
     }
@@ -557,9 +653,6 @@ namespace mtest
         // Cull each triangle with four scissor planes
         for (ssize_t i=0, n=source.size(); i < n; ++i)
         {
-            // Get next triangle for processing
-            v_triangle3d_t t   = *(source.at(i));
-
             // Initialize input and queue buffer
             q = buf1, in = buf2;
             n_q = &n_buf1, n_in = &n_buf2;
@@ -567,7 +660,7 @@ namespace mtest
             // Put triangle to queue
             *n_q        = 1;
             n_out       = 0;
-            *q          = t;
+            *q          = *(source.at(i)); // Get next triangle for processing
 
             // Cull triangle with planes
             for (size_t k=0; ; )
@@ -593,20 +686,14 @@ namespace mtest
             // Emit all triangles above the plane (outside vision) as ignored
             for (size_t l=0; l < n_out; ++l)
             {
-                t.p[0]              = out[l].p[0];
-                t.p[1]              = out[l].p[1];
-                t.p[2]              = out[l].p[2];
-                if (!ctx->ignored->add(&t))
+                if (!ctx->ignored->add(&out[l]))
                     return STATUS_NO_MEM;
             }
 
             // The final set of triangles inside vision is in 'q' buffer, put them as visible
             for (size_t l=0; l < *n_in; ++l)
             {
-                t.p[0]              = in[l].p[0];
-                t.p[1]              = in[l].p[1];
-                t.p[2]              = in[l].p[2];
-                if (!ctx->source.add(&t))
+                if (!ctx->source.add(&in[l]))
                     return STATUS_NO_MEM;
             }
         }
@@ -614,11 +701,22 @@ namespace mtest
         return STATUS_OK;
     }
 
+    static status_t split_space(cvector<context_t> &tasks, context_t *ctx, const vector3d_t *pl, bool keep)
+    {
+
+    }
+
     static status_t perform_raytrace(
             cvector<context_t> &tasks
         )
     {
+        v_triangle3d_t t;
+        vector3d_t pl[5];
         context_t *ctx = NULL;
+        status_t res = STATUS_OK;
+
+        v_triangle3d_t out[2], in[2];
+        size_t n_out, n_in;
 
         while (tasks.size() > 0)
         {
@@ -630,11 +728,86 @@ namespace mtest
             if (ctx->scan)
                 scan_scene(ctx);
 
+#if 0
+            // Context is in final state?
+            size_t n = ctx->source.size();
+            if (n <= 0)
+            {
+                ctx->source.flush();
+                delete ctx;
+                continue;
+            }
+
+            // Remove the triangle that caused the culling
+            if (!ctx->source.remove(0, &t))
+                return STATUS_CORRUPTED;
+
+            // Compute the normal and angle
+            calc_plane_vector_pv(&pl[3], t.p);
+            calc_plane_vector_p3(&pl[4], &ctx->front.r[0].z, &ctx->front.r[1].z, &ctx->front.r[2].z);
+            float a = (pl[3].dx * pl[4].dx + pl[3].dy * pl[4].dy + pl[3].dz * pl[4].dz + pl[3].dw * pl[4].dw);
+
+            // There are no more triangles in the space?
+            if (n <= 1)
+            {
+                if (a != 0.0f) // We don't need to process perpendicular triangles
+                {
+                    if (!ctx->matched->add(&t)) // Emit the triangle!
+                        return STATUS_NO_MEM;
+                }
+                ctx->source.flush();
+                delete ctx;
+                continue;
+            }
+
+            // We need to split 3D space into sub-spaces
+            calc_plane_vector_p3(&pl[0], &t.p[0], &t.p[1], &ctx->front.s);
+            calc_plane_vector_p3(&pl[1], &t.p[1], &t.p[2], &ctx->front.s);
+            calc_plane_vector_p3(&pl[2], &t.p[2], &t.p[0], &ctx->front.s);
+            if (a < 0.0f) // We need to invert clipping plane normals if we see back side of triangle
+            {
+                inv_normal(&pl[0]);
+                inv_normal(&pl[1]);
+                inv_normal(&pl[2]);
+                inv_normal(&pl[3]);
+            }
+
+            for (size_t i= (a != 0.0f) ? 0 : 2; i<4; ++i)
+            {
+                // Split space into sub-spaces
+                res = split_space(tasks, ctx, &pl[i], i < 3);
+                if (res != STATUS_OK)
+                    return res;
+
+                // There are no triangles left inside the context?
+                if (ctx->source.size() <= 0)
+                {
+                    // Immediately add selected triangle to matched
+                    if (!ctx->matched->add(&t))
+                        return STATUS_NO_MEM;
+
+                    // Destroy context
+                    ctx->source.flush();
+                    delete ctx;
+                    goto NEXT_LOOP;
+                }
+            }
+
+            // There are some triangles left inside the context
+            // Add current triangle as the last and submit context to the queue
+            if (!ctx->source.append(&t))
+                return STATUS_NO_MEM;
+            if (!tasks.push(ctx))
+                return STATUS_NO_MEM;
+#else
+            // TODO: this is debug stub, remove it after algorithm is completed
             if (!ctx->matched->add_all(&ctx->source))
                 return STATUS_NO_MEM;
 
             ctx->source.flush();
             delete ctx;
+#endif
+            NEXT_LOOP:;
         }
 
         return STATUS_OK;
