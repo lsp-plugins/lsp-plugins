@@ -6,8 +6,8 @@
  */
 
 #include <test/utest.h>
+#include <core/stdlib/math.h>
 #include <test/FloatBuffer.h>
-#include <core/math.h>
 
 namespace native
 {
