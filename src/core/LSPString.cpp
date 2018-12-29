@@ -6,8 +6,9 @@
  */
 
 #include <core/types.h>
+#include <core/stdlib/stdio.h>
+
 #include <stdlib.h>
-#include <stdio.h>
 #include <errno.h>
 #include <wctype.h>
 #include <stdarg.h>

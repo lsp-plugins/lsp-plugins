@@ -8,11 +8,11 @@
 #ifndef DSP_DSP_H_
 #define DSP_DSP_H_
 
-#include <core/debug.h>
 #include <dsp/types.h>
+#include <core/debug.h>
+#include <core/stdlib/math.h>
 
 #include <stddef.h>
-#include <core/math.h>
 #include <string.h>
 
 #define __DSP_DSP_DEFS
