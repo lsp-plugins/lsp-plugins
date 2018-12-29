@@ -18,6 +18,7 @@
 #endif /* PLATFORM_WINDOWS */
 
 #include <stdlib.h>
+#include <stdio.h>
 
 namespace lsp
 {

@@ -1,11 +1,11 @@
-# This script generates table of character sets supported by native Windows functions
-
 #!/usr/bin/perl
+
+# This script generates table of character sets supported by native Windows functions
 
 use strict;
 
 my @codepages = (
-['37', 'IBM037'],
+['037', 'IBM037'],
 ['437', 'IBM437'],
 ['500', 'IBM500'],
 ['708', 'ASMO-708'],
@@ -159,6 +159,12 @@ my @codepages = (
 ['65001', 'utf-8'],
 );
 
+# Additional 'patching' codepages
+push @codepages, (
+    ['1200', 'utf-16le'],
+    ['12000', 'utf-32le']
+);
+
 my %cp = ();
 
 foreach my $item (@codepages)
@@ -168,8 +174,11 @@ foreach my $item (@codepages)
     $cp{$item->[0]} = $code;
     
     my $alias = $item->[1];
-    ($alias) or
+    unless ($alias) {
+    	$cp{"cp$code"} = $code;
+    	$cp{"cp-$code"} = $code;
         next;
+    }
     
     $alias = lc $alias;
     $cp{$alias} = $code;
@@ -213,6 +222,19 @@ foreach my $item (@codepages)
     #alias 7
     $alias2 = $alias;
     $alias2 =~ s/cp(\d+)/cp-$1/g;
+    ($alias2 eq $alias) or
+       $cp{$alias2} = $code;
+       
+    #alias 8
+    $alias2 = $alias;
+    $alias2 =~ s/(\d+)\-([a-zA-Z]+)/$1$2/g;
+    $alias2 =~ s/([a-zA-Z]+)\-(\d+)/$1$2/g;
+    ($alias2 eq $alias) or
+       $cp{$alias2} = $code;
+       
+    #alias 9
+    $alias2 = $alias;
+    $alias2 =~ s/_/-/g;
     ($alias2 eq $alias) or
        $cp{$alias2} = $code;
 }

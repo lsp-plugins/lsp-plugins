@@ -12,7 +12,7 @@
 #include <stdarg.h>
 
 #include <core/io/charset.h>
-#include <LSPString.h>
+#include <core/LSPString.h>
 
 #define GRANULARITY     0x20
 #define BUF_SIZE        0x200

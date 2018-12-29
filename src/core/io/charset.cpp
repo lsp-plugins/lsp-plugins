@@ -20,6 +20,7 @@ namespace lsp
     // This is a generated list of codepages supported by Windows,
     // see script:   scripts/perl/core/oi/charset/gen_cp.pl
     static const codepage_t win_codepages[] = {
+            { "037", 37 },
             { "10000", 10000 },
             { "10001", 10001 },
             { "10002", 10002 },
@@ -185,6 +186,18 @@ namespace lsp
             { "cp-1256", 1256 },
             { "cp-1257", 1257 },
             { "cp-1258", 1258 },
+            { "cp-21027", 21027 },
+            { "cp-50229", 50229 },
+            { "cp-50930", 50930 },
+            { "cp-50931", 50931 },
+            { "cp-50933", 50933 },
+            { "cp-50935", 50935 },
+            { "cp-50936", 50936 },
+            { "cp-50937", 50937 },
+            { "cp-50939", 50939 },
+            { "cp-51950", 51950 },
+            { "cp-709", 709 },
+            { "cp-710", 710 },
             { "cp-866", 866 },
             { "cp-874", 874 },
             { "cp-875", 875 },
@@ -198,6 +211,18 @@ namespace lsp
             { "cp1256", 1256 },
             { "cp1257", 1257 },
             { "cp1258", 1258 },
+            { "cp21027", 21027 },
+            { "cp50229", 50229 },
+            { "cp50930", 50930 },
+            { "cp50931", 50931 },
+            { "cp50933", 50933 },
+            { "cp50935", 50935 },
+            { "cp50936", 50936 },
+            { "cp50937", 50937 },
+            { "cp50939", 50939 },
+            { "cp51950", 51950 },
+            { "cp709", 709 },
+            { "cp710", 710 },
             { "cp866", 866 },
             { "cp874", 874 },
             { "cp875", 875 },
@@ -277,6 +302,8 @@ namespace lsp
             { "iso-8859-9", 28599 },
             { "iso2022-jp", 50222 },
             { "iso2022-kr", 50225 },
+            { "iso2022jp", 50222 },
+            { "iso2022kr", 50225 },
             { "iso8859-1", 28591 },
             { "iso8859-13", 28603 },
             { "iso8859-15", 28605 },
@@ -288,25 +315,32 @@ namespace lsp
             { "iso8859-7", 28597 },
             { "iso8859-8", 28598 },
             { "iso8859-8-i", 38598 },
+            { "iso8859-8i", 38598 },
             { "iso8859-9", 28599 },
             { "johab", 1361 },
             { "koi8-r", 20866 },
             { "koi8-u", 21866 },
             { "koi8r", 20866 },
             { "koi8u", 21866 },
+            { "ks-c-5601-1987", 949 },
             { "ks_c_5601-1987", 949 },
             { "macintosh", 10000 },
+            { "shift-jis", 932 },
             { "shift_jis", 932 },
             { "unicodefffe", 1201 },
             { "us-ascii", 20127 },
             { "utf-16", 1200 },
+            { "utf-16le", 1200 },
             { "utf-32", 12000 },
             { "utf-32be", 12001 },
+            { "utf-32le", 12000 },
             { "utf-7", 65000 },
             { "utf-8", 65001 },
             { "utf16", 1200 },
+            { "utf16le", 1200 },
             { "utf32", 12000 },
             { "utf32be", 12001 },
+            { "utf32le", 12000 },
             { "utf7", 65000 },
             { "utf8", 65001 },
             { "windows-1250", 1250 },
@@ -329,6 +363,8 @@ namespace lsp
             { "windows1257", 1257 },
             { "windows1258", 1258 },
             { "windows874", 874 },
+            { "x-chinese-cns", 20000 },
+            { "x-chinese-eten", 20002 },
             { "x-chinese_cns", 20000 },
             { "x-cp-20001", 20001 },
             { "x-cp-20003", 20003 },
@@ -415,13 +451,13 @@ namespace lsp
     {
         if (charset != NULL)
         {
-            // Do lowercase the character set
+            // Do lower-case the character set
             size_t n = strlen(charset) + 1;
             char *lower = static_cast<char *>(alloca(n));
             for (size_t i=0; i<n; ++i)
                 lower[i] = tolower(charset[i]);
 
-            // Perform binary search of charset
+            // Perform binary search of character set
             size_t first = 0, last = sizeof(win_codepages)/sizeof(codepage_t);
             while (first < last)
             {
@@ -450,7 +486,7 @@ namespace lsp
 #else
     iconv_t init_iconv_to_wchar_t(const char *charset)
     {
-        // Fetch system charset if it is not set
+        // Fetch system character set if it is not set
         if (charset == NULL)
         {
             // Save current locale
