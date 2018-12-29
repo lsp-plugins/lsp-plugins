@@ -911,10 +911,7 @@ namespace mtest
             cvector<context_t> &tasks
         )
     {
-        v_triangle3d_t t;
-        vector3d_t pl[5];
         context_t *ctx = NULL;
-        status_t res = STATUS_OK;
 
         while (tasks.size() > 0)
         {
@@ -927,34 +924,44 @@ namespace mtest
             {
                 case S_SCAN_SCENE:
                     scan_scene(ctx);
-                    if (ctx->source.size() <= 0)
-                    {
-                        delete ctx;
-                        continue;
-                    }
-
                     ctx->state = S_CULL_FRONT;
-                    if (!tasks.push(ctx))
-                    {
-                        delete ctx;
-                        return STATUS_NO_MEM;
-                    }
                     break;
 
                 case S_CULL_FRONT:
                     cull_front(ctx);
-                    if (ctx->source.size() <= 0)
+                    if (ctx->source.size() == 1)
                     {
+                        bool success = (ctx->source.size() > 0) ?
+                                (ctx->matched->add(ctx->source.get(0)) != NULL) : true;
                         delete ctx;
+                        ctx = NULL;
+                        if (!success)
+                            return STATUS_NO_MEM;
                         continue;
                     }
+                    ctx->state = S_CULL_BACK;
+                    break;
 
+                case S_CULL_BACK:
+                    // TODO: replace this stub with back-culling algorithm
                     if (!ctx->matched->add_all(&ctx->source))
                         return STATUS_NO_MEM;
                     delete ctx;
+                    ctx = NULL;
                     break;
-                // TODO
             }
+
+            // Post-process context state
+            if (ctx == NULL)
+                continue;
+            else if (ctx->source.size() <= 0)
+                delete ctx;
+            else if (!tasks.push(ctx))
+            {
+                delete ctx;
+                return STATUS_NO_MEM;
+            }
+        }
 
 #if 0
             // Context is in final state?
@@ -1028,7 +1035,6 @@ namespace mtest
             if (!tasks.push(ctx))
                 return STATUS_NO_MEM;
 #endif
-        }
 
         return STATUS_OK;
     }
