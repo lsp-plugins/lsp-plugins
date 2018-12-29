@@ -133,7 +133,7 @@ namespace mtest
 
     /**
      * Split triangle with plane, generates output set of triangles into out (triangles above split plane)
-     * and in (triangles below split plane). For every triangle, first two points are the points that
+     * and in (triangles below split plane). For every triangle, points 1 and 2 are the points that
      * lay on the split plane
      *
      * @param out array of vertexes above plane
@@ -274,9 +274,9 @@ namespace mtest
                 sp[1].w = 1.0f;
 
                 // 1 triangle above plane, 2 below
-                out[0].p[0]     = sp[0];
-                out[0].p[1]     = sp[1];
-                out[0].p[2]     = p[0];
+                out[0].p[0]     = p[0];
+                out[0].p[1]     = sp[0];
+                out[0].p[2]     = sp[1];
 
                 out[0].n[0]     = pv->n[0];
                 out[0].n[1]     = pv->n[1];
@@ -284,12 +284,12 @@ namespace mtest
 
                 *n_out         += 1;
 
-                in[0].p[0]      = sp[1];
-                in[0].p[1]      = sp[0];
-                in[0].p[2]      = p[1];
-                in[1].p[0]      = sp[1];
-                in[1].p[1]      = p[1];
-                in[1].p[2]      = p[2];
+                in[0].p[0]      = p[1];
+                in[0].p[1]      = sp[1];
+                in[0].p[2]      = sp[0];
+                in[1].p[0]      = p[2];
+                in[1].p[1]      = sp[1];
+                in[1].p[2]      = p[1];
 
                 in[0].n[0]      = pv->n[0];
                 in[0].n[1]      = pv->n[1];
@@ -314,12 +314,12 @@ namespace mtest
                 sp[1].w = 1.0f;
 
                 // 2 triangles above plane, 1 below
-                out[0].p[0]     = sp[0];
-                out[0].p[1]     = sp[1];
-                out[0].p[2]     = p[2];
-                out[1].p[0]     = sp[0];
-                out[1].p[1]     = p[2];
-                out[1].p[2]     = p[0];
+                out[0].p[0]     = p[2];
+                out[0].p[1]     = sp[0];
+                out[0].p[2]     = sp[1];
+                out[1].p[0]     = p[0];
+                out[1].p[1]     = sp[0];
+                out[1].p[2]     = p[2];
 
                 out[0].n[0]     = pv->n[0];
                 out[0].n[1]     = pv->n[1];
@@ -330,9 +330,9 @@ namespace mtest
 
                 *n_out         += 2;
 
-                in[0].p[0]      = sp[1];
-                in[0].p[1]      = sp[0];
-                in[0].p[2]      = p[1];
+                in[0].p[0]      = p[1];
+                in[0].p[1]      = sp[1];
+                in[0].p[2]      = sp[0];
 
                 in[0].n[0]      = pv->n[0];
                 in[0].n[1]      = pv->n[1];
@@ -343,18 +343,18 @@ namespace mtest
             else // (k[1] < 0) && (k[2] == 0)
             {
                 // 1 triangle above plane, 1 below
-                out[0].p[0]     = sp[0];
-                out[0].p[1]     = p[2];
-                out[0].p[2]     = p[0];
+                out[0].p[0]     = p[0];
+                out[0].p[1]     = sp[0];
+                out[0].p[2]     = p[2];
 
                 out[0].n[0]     = pv->n[0];
                 out[0].n[1]     = pv->n[1];
                 out[0].n[2]     = pv->n[2];
                 *n_out         += 1;
 
-                in[0].p[0]      = p[2];
-                in[0].p[1]      = sp[0];
-                in[0].p[2]      = p[1];
+                in[0].p[0]      = p[1];
+                in[0].p[1]      = p[2];
+                in[0].p[2]      = sp[0];
 
                 in[0].n[0]      = pv->n[0];
                 in[0].n[1]      = pv->n[1];
@@ -390,12 +390,12 @@ namespace mtest
                 sp[1].w = 1.0f;
 
                 // 2 triangles above plane, 1 below
-                out[0].p[0]     = sp[1];
-                out[0].p[1]     = sp[0];
-                out[0].p[2]     = p[0];
-                out[1].p[0]     = sp[1];
-                out[1].p[1]     = p[0];
-                out[1].p[2]     = p[1];
+                out[0].p[0]     = p[0];
+                out[0].p[1]     = sp[1];
+                out[0].p[2]     = sp[0];
+                out[1].p[0]     = p[1];
+                out[1].p[1]     = sp[1];
+                out[1].p[2]     = p[0];
 
                 out[0].n[0]     = pv->n[0];
                 out[0].n[1]     = pv->n[1];
@@ -406,9 +406,9 @@ namespace mtest
 
                 *n_out         += 2;
 
-                in[0].p[0]      = sp[0];
-                in[0].p[1]      = sp[1];
-                in[0].p[2]      = p[2];
+                in[0].p[0]      = p[2];
+                in[0].p[1]      = sp[0];
+                in[0].p[2]      = sp[1];
 
                 in[0].n[0]      = pv->n[0];
                 in[0].n[1]      = pv->n[1];
@@ -419,9 +419,9 @@ namespace mtest
             else // (k[1] == 0) && (k[2] < 0)
             {
                 // 1 triangle above plane, 1 triangle below plane
-                out[0].p[0]     = p[1];
-                out[0].p[1]     = sp[0];
-                out[0].p[2]     = p[0];
+                out[0].p[0]     = p[0];
+                out[0].p[1]     = p[1];
+                out[0].p[2]     = sp[0];
 
                 out[0].n[0]     = pv->n[0];
                 out[0].n[1]     = pv->n[1];
@@ -429,9 +429,9 @@ namespace mtest
 
                 *n_out         += 1;
 
-                in[0].p[0]      = sp[0];
-                in[0].p[1]      = p[1];
-                in[0].p[2]      = p[2];
+                in[0].p[0]      = p[2];
+                in[0].p[1]      = sp[0];
+                in[0].p[2]      = p[1];
 
                 in[0].n[0]      = pv->n[0];
                 in[0].n[1]      = pv->n[1];
