@@ -132,7 +132,10 @@ namespace mtest
     }
 
     /**
-     * Split triangle with plane
+     * Split triangle with plane, generates output set of triangles into out (triangles above split plane)
+     * and in (triangles below split plane). For every triangle, first two points are the points that
+     * lay on the split plane
+     *
      * @param out array of vertexes above plane
      * @param n_out counter of vertexes above plane (multiple of 3), should be initialized
      * @param in array of vertexes below plane
@@ -244,7 +247,7 @@ namespace mtest
         }
 
         // Now we have p[0] guaranteed to be above plane, analyze p[1] and p[2]
-        if (k[1] < 0)
+        if (k[1] < 0.0f) // k[1] < 0
         {
             d[0].dx = p[0].x - p[1].x;
             d[0].dy = p[0].y - p[1].y;
@@ -257,7 +260,7 @@ namespace mtest
             sp[0].z = p[0].z + d[0].dz * t[0];
             sp[0].w = 1.0f;
 
-            if (k[2] < 0)
+            if (k[2] < 0.0f) // (k[1] < 0) && (k[2] < 0)
             {
                 d[1].dx = p[0].x - p[2].x;
                 d[1].dy = p[0].y - p[2].y;
@@ -271,9 +274,9 @@ namespace mtest
                 sp[1].w = 1.0f;
 
                 // 1 triangle above plane, 2 below
-                out[0].p[0]     = p[0];
-                out[0].p[1]     = sp[0];
-                out[0].p[2]     = sp[1];
+                out[0].p[0]     = sp[0];
+                out[0].p[1]     = sp[1];
+                out[0].p[2]     = p[0];
 
                 out[0].n[0]     = pv->n[0];
                 out[0].n[1]     = pv->n[1];
@@ -281,12 +284,12 @@ namespace mtest
 
                 *n_out         += 1;
 
-                in[0].p[0]      = p[1];
-                in[0].p[1]      = p[2];
-                in[0].p[2]      = sp[0];
-                in[1].p[0]      = p[2];
-                in[1].p[1]      = sp[1];
-                in[1].p[2]      = sp[0];
+                in[0].p[0]      = sp[1];
+                in[0].p[1]      = sp[0];
+                in[0].p[2]      = p[1];
+                in[1].p[0]      = sp[1];
+                in[1].p[1]      = p[1];
+                in[1].p[2]      = p[2];
 
                 in[0].n[0]      = pv->n[0];
                 in[0].n[1]      = pv->n[1];
@@ -297,7 +300,7 @@ namespace mtest
 
                 *n_in          += 2;
             }
-            else if (k[2] > 0)
+            else if (k[2] > 0.0f) // (k[1] < 0) && (k[2] > 0)
             {
                 d[1].dx = p[2].x - p[1].x;
                 d[1].dy = p[2].y - p[1].y;
@@ -311,12 +314,12 @@ namespace mtest
                 sp[1].w = 1.0f;
 
                 // 2 triangles above plane, 1 below
-                out[0].p[0]     = p[2];
-                out[0].p[1]     = p[0];
-                out[0].p[2]     = sp[0];
-                out[1].p[0]     = p[2];
-                out[1].p[1]     = sp[0];
-                out[1].p[2]     = sp[1];
+                out[0].p[0]     = sp[0];
+                out[0].p[1]     = sp[1];
+                out[0].p[2]     = p[2];
+                out[1].p[0]     = sp[0];
+                out[1].p[1]     = p[2];
+                out[1].p[2]     = p[0];
 
                 out[0].n[0]     = pv->n[0];
                 out[0].n[1]     = pv->n[1];
@@ -327,9 +330,9 @@ namespace mtest
 
                 *n_out         += 2;
 
-                in[0].p[0]      = p[1];
-                in[0].p[1]      = sp[1];
-                in[0].p[2]      = sp[0];
+                in[0].p[0]      = sp[1];
+                in[0].p[1]      = sp[0];
+                in[0].p[2]      = p[1];
 
                 in[0].n[0]      = pv->n[0];
                 in[0].n[1]      = pv->n[1];
@@ -337,21 +340,21 @@ namespace mtest
 
                 *n_in          += 1;
             }
-            else // k[2] == 0
+            else // (k[1] < 0) && (k[2] == 0)
             {
                 // 1 triangle above plane, 1 below
-                out[0].p[0]     = p[2];
-                out[0].p[1]     = p[0];
-                out[0].p[2]     = sp[0];
+                out[0].p[0]     = sp[0];
+                out[0].p[1]     = p[2];
+                out[0].p[2]     = p[0];
 
                 out[0].n[0]     = pv->n[0];
                 out[0].n[1]     = pv->n[1];
                 out[0].n[2]     = pv->n[2];
                 *n_out         += 1;
 
-                in[0].p[0]      = p[1];
-                in[0].p[1]      = p[2];
-                in[0].p[2]      = sp[0];
+                in[0].p[0]      = p[2];
+                in[0].p[1]      = sp[0];
+                in[0].p[2]      = p[1];
 
                 in[0].n[0]      = pv->n[0];
                 in[0].n[1]      = pv->n[1];
@@ -360,55 +363,82 @@ namespace mtest
                 *n_in          += 1;
             }
         }
-        else // (k[1] > 0) && (k[2] < 0)
+        else // (k[1] >= 0) && (k[2] < 0)
         {
             d[0].dx = p[0].x - p[2].x;
             d[0].dy = p[0].y - p[2].y;
             d[0].dz = p[0].z - p[2].z;
 
-            d[1].dx = p[1].x - p[2].x;
-            d[1].dy = p[1].y - p[2].y;
-            d[1].dz = p[1].z - p[2].z;
-
             t[0]    = -k[0] / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz);
-            t[1]    = -k[1] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
 
             sp[0].x = p[0].x + d[0].dx * t[0];
             sp[0].y = p[0].y + d[0].dy * t[0];
             sp[0].z = p[0].z + d[0].dz * t[0];
             sp[0].w = 1.0f;
 
-            sp[1].x = p[1].x + d[1].dx * t[1];
-            sp[1].y = p[1].y + d[1].dy * t[1];
-            sp[1].z = p[1].z + d[1].dz * t[1];
-            sp[1].w = 1.0f;
+            if (k[1] > 0.0f) // (k[1] > 0) && (k[2] < 0)
+            {
+                d[1].dx = p[1].x - p[2].x;
+                d[1].dy = p[1].y - p[2].y;
+                d[1].dz = p[1].z - p[2].z;
 
-            // 2 triangles above plane, 1 below
-            out[0].p[0]     = p[0];
-            out[0].p[1]     = p[1];
-            out[0].p[2]     = sp[1];
-            out[1].p[0]     = p[0];
-            out[1].p[1]     = sp[1];
-            out[1].p[2]     = sp[0];
+                t[1]    = -k[1] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
 
-            out[0].n[0]     = pv->n[0];
-            out[0].n[1]     = pv->n[1];
-            out[0].n[2]     = pv->n[2];
-            out[1].n[0]     = pv->n[0];
-            out[1].n[1]     = pv->n[1];
-            out[1].n[2]     = pv->n[2];
+                sp[1].x = p[1].x + d[1].dx * t[1];
+                sp[1].y = p[1].y + d[1].dy * t[1];
+                sp[1].z = p[1].z + d[1].dz * t[1];
+                sp[1].w = 1.0f;
 
-            *n_out         += 2;
+                // 2 triangles above plane, 1 below
+                out[0].p[0]     = sp[1];
+                out[0].p[1]     = sp[0];
+                out[0].p[2]     = p[0];
+                out[1].p[0]     = sp[1];
+                out[1].p[1]     = p[0];
+                out[1].p[2]     = p[1];
 
-            in[0].p[0]      = p[2];
-            in[0].p[1]      = sp[0];
-            in[0].p[2]      = sp[1];
+                out[0].n[0]     = pv->n[0];
+                out[0].n[1]     = pv->n[1];
+                out[0].n[2]     = pv->n[2];
+                out[1].n[0]     = pv->n[0];
+                out[1].n[1]     = pv->n[1];
+                out[1].n[2]     = pv->n[2];
 
-            in[0].n[0]      = pv->n[0];
-            in[0].n[1]      = pv->n[1];
-            in[0].n[2]      = pv->n[2];
+                *n_out         += 2;
 
-            *n_in          += 1;
+                in[0].p[0]      = sp[0];
+                in[0].p[1]      = sp[1];
+                in[0].p[2]      = p[2];
+
+                in[0].n[0]      = pv->n[0];
+                in[0].n[1]      = pv->n[1];
+                in[0].n[2]      = pv->n[2];
+
+                *n_in          += 1;
+            }
+            else // (k[1] == 0) && (k[2] < 0)
+            {
+                // 1 triangle above plane, 1 triangle below plane
+                out[0].p[0]     = p[1];
+                out[0].p[1]     = sp[0];
+                out[0].p[2]     = p[0];
+
+                out[0].n[0]     = pv->n[0];
+                out[0].n[1]     = pv->n[1];
+                out[0].n[2]     = pv->n[2];
+
+                *n_out         += 1;
+
+                in[0].p[0]      = sp[0];
+                in[0].p[1]      = p[1];
+                in[0].p[2]      = p[2];
+
+                in[0].n[0]      = pv->n[0];
+                in[0].n[1]      = pv->n[1];
+                in[0].n[2]      = pv->n[2];
+
+                *n_in          += 1;
+            }
         }
     }
 
@@ -703,7 +733,110 @@ namespace mtest
 
     static status_t split_space(cvector<context_t> &tasks, context_t *ctx, const vector3d_t *pl, bool keep)
     {
+        v_triangle3d_t out[2], in[2], sout[2], sin[2], t;
+        size_t n_out, n_in, n_sout, n_sin;
 
+        // First, split front triangle into sub-triangles
+        t.p[0] = ctx->front.r[0].z;
+        t.p[1] = ctx->front.r[1].z;
+        t.p[2] = ctx->front.r[2].z;
+        dsp::init_normal3d_dxyz(&t.n[0], 0.0f, 0.0f, 0.0f);
+        dsp::init_normal3d_dxyz(&t.n[0], 0.0f, 0.0f, 0.0f);
+        dsp::init_normal3d_dxyz(&t.n[0], 0.0f, 0.0f, 0.0f);
+
+        n_out = 0;
+        n_in = 0;
+        split_triangle(out, &n_out, in, &n_in, pl, &t);
+
+        // Analyze result: out and in may be in range of [0..2]
+        if (out <= 0) // There are no triangles outside
+            return STATUS_OK; // Nothing to do
+        else if (in <= 0) // There are no triangle inside
+        {
+            ctx->source.clear(); // All triangles are outside
+            return STATUS_OK;
+        }
+
+        context_t *sctx;
+        vector3d_t spl;
+
+        if (n_in == 1) // 1 triangle in and 1-2 triangles out
+        {
+            // Update triangle of current context
+            ctx->front.r[0].z   = in[0].p[0];
+            ctx->front.r[1].z   = in[0].p[1];
+            ctx->front.r[2].z   = in[0].p[2];
+            dsp::init_vector_p2(&ctx->front.r[0].v, &ctx->front.s, &ctx->front.r[0].z);
+            dsp::init_vector_p2(&ctx->front.r[1].v, &ctx->front.s, &ctx->front.r[1].z);
+            dsp::init_vector_p2(&ctx->front.r[2].v, &ctx->front.s, &ctx->front.r[2].z);
+
+            for (size_t i=0; i<n_out; )
+            {
+                // Create new context
+                sctx = new context_t;
+                if (sctx == NULL)
+                    return STATUS_NO_MEM;
+
+                // Generate new context
+                sctx->front.s       = ctx->front.s;
+                sctx->front.r[0].z  = out[i].p[0];
+                sctx->front.r[1].z  = out[i].p[1];
+                sctx->front.r[2].z  = out[i].p[2];
+                dsp::init_vector_p2(&sctx->front.r[0].v, &sctx->front.s, &sctx->front.r[0].z);
+                dsp::init_vector_p2(&sctx->front.r[1].v, &sctx->front.s, &sctx->front.r[1].z);
+                dsp::init_vector_p2(&sctx->front.r[2].v, &sctx->front.s, &sctx->front.r[2].z);
+                sctx->matched       = ctx->matched;
+                sctx->ignored       = ctx->ignored;
+                sctx->scene         = ctx->scene;
+                sctx->scan          = ctx->scan;
+
+                // Obtain all data from current context to temporary buffer
+                cstorage<v_triangle3d_t> source;
+                source.swap(&ctx->source);
+
+                // Perform split
+                for (size_t j=0, nt=source.size(); j<nt; ++j)
+                {
+                    n_sin = 0, n_sout = 0;
+                    split_triangle(sout, &n_sout, sin, &n_sin, pl, source.at(i));
+
+                    // Add generated triangles to target buffers
+                    for (size_t l=0; l < n_sout; ++l)
+                    {
+                        if (!sctx->source.add(&sout[l]))
+                            return STATUS_NO_MEM;
+                    }
+                    for (size_t l=0; l < n_sin; ++l)
+                    {
+                        if (!ctx->source.add(&sin[l]))
+                            return STATUS_NO_MEM;
+                    }
+                }
+
+                if (sctx->source.size() < 0)
+                    break;
+                if (!tasks.add(sctx))
+                    break;
+                if ((++i) >= n_out)
+                    break;
+
+                // Prepare new split plane
+
+            }
+
+//            wfront_t                    front;      // Wave front
+//            cstorage<v_triangle3d_t>    source;     // Triangles for processing
+//            cstorage<v_triangle3d_t>   *matched;    // List of matched triangles (for debug)
+//            cstorage<v_triangle3d_t>   *ignored;    // List of ignored triangles (for debug)
+//            cvector<object_t>          *scene;      // Overall scene
+//            bool                        scan;       // Fully scan scene
+        }
+        else if (n_in == 2) // 2 triangles in and 1 triangle out
+        {
+
+        }
+
+        return STATUS_OK;
     }
 
     static status_t perform_raytrace(
@@ -714,9 +847,6 @@ namespace mtest
         vector3d_t pl[5];
         context_t *ctx = NULL;
         status_t res = STATUS_OK;
-
-        v_triangle3d_t out[2], in[2];
-        size_t n_out, n_in;
 
         while (tasks.size() > 0)
         {
