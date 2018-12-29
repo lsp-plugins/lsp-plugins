@@ -7,6 +7,8 @@
 
 #include <core/io/charset.h>
 #include <errno.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 namespace lsp
 {

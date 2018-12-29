@@ -17,9 +17,6 @@
     #include <locale.h>
 #endif /* PLATFORM_WINDOWS */
 
-#include <stdlib.h>
-#include <stdio.h>
-
 namespace lsp
 {
 #if defined(PLATFORM_WINDOWS)
