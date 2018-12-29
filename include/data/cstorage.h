@@ -227,7 +227,7 @@ namespace lsp
 
                 inline T *append(const T *v, size_t n)
                 {
-                    T *dst = reinterpret_cast<T *>(basic_storage::alloc_item());
+                    T *dst = reinterpret_cast<T *>(basic_storage::alloc_items(n));
                     if (dst != NULL)
                         ::memcpy(dst, v, n*sizeof(T));
                     return dst;

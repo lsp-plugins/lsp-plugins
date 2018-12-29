@@ -39,7 +39,8 @@ namespace mtest
 
     typedef struct wfront_t
     {
-        ray3d_t  r[3];      // Rays, counter-clockwise order
+//        ray3d_t  r[3];      // Rays, counter-clockwise order
+        point3d_t p[3];     // Three points showing directions
         point3d_t s;        // Source point
     } wfront_t;
 
@@ -57,6 +58,7 @@ namespace mtest
         cstorage<v_triangle3d_t>   *matched;    // List of matched triangles (for debug)
         cstorage<v_triangle3d_t>   *ignored;    // List of ignored triangles (for debug)
         cvector<object_t>          *scene;      // Overall scene
+        size_t                      state;
         bool                        scan;       // Fully scan scene
     } context_t;
 
@@ -134,7 +136,7 @@ namespace mtest
     /**
      * Split triangle with plane, generates output set of triangles into out (triangles above split plane)
      * and in (triangles below split plane). For every triangle, points 1 and 2 are the points that
-     * lay on the split plane
+     * lay on the split plane, the first triangle ALWAYS has 2 common points with plane (1 and 2)
      *
      * @param out array of vertexes above plane
      * @param n_out counter of vertexes above plane (multiple of 3), should be initialized
@@ -603,10 +605,10 @@ namespace mtest
         // Check crossing with bounding box
         cstorage<v_triangle3d_t> source;
         vector3d_t pl[4];
-        calc_plane_vector_rv(&pl[0], &ctx->front.r[0], &ctx->front.r[1].v);
-        calc_plane_vector_rv(&pl[1], &ctx->front.r[1], &ctx->front.r[2].v);
-        calc_plane_vector_rv(&pl[2], &ctx->front.r[2], &ctx->front.r[0].v);
-        calc_plane_vector_p3(&pl[3], &ctx->front.r[0].z, &ctx->front.r[1].z, &ctx->front.r[2].z);
+        calc_plane_vector_p3(&pl[0], &ctx->front.s, &ctx->front.p[0], &ctx->front.p[1]);
+        calc_plane_vector_p3(&pl[1], &ctx->front.s, &ctx->front.p[1], &ctx->front.p[2]);
+        calc_plane_vector_p3(&pl[2], &ctx->front.s, &ctx->front.p[2], &ctx->front.p[0]);
+        calc_plane_vector_p3(&pl[3], &ctx->front.p[0], &ctx->front.p[1], &ctx->front.p[2]);
 
         v_triangle3d_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
         size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
@@ -666,13 +668,13 @@ namespace mtest
                 {
                     if (!source.append(obj->t, obj->nt))
                         return STATUS_NO_MEM;
-                }
-                else
-                {
-                    if (!ctx->ignored->append(obj->t, obj->nt))
-                        return STATUS_NO_MEM;
+                    goto CROSSING_FOUND;
                 }
             }
+
+            if (!ctx->ignored->append(obj->t, obj->nt))
+                return STATUS_NO_MEM;
+            CROSSING_FOUND: ;
         }
 
         ctx->scan = false;
@@ -735,18 +737,20 @@ namespace mtest
     {
         v_triangle3d_t out[2], in[2], sout[2], sin[2], t;
         size_t n_out, n_in, n_sout, n_sin;
+        vector3d_t spl, npl;
 
         // First, split front triangle into sub-triangles
-        t.p[0] = ctx->front.r[0].z;
-        t.p[1] = ctx->front.r[1].z;
-        t.p[2] = ctx->front.r[2].z;
+        t.p[0] = ctx->front.p[0];
+        t.p[1] = ctx->front.p[1];
+        t.p[2] = ctx->front.p[2];
         dsp::init_normal3d_dxyz(&t.n[0], 0.0f, 0.0f, 0.0f);
         dsp::init_normal3d_dxyz(&t.n[0], 0.0f, 0.0f, 0.0f);
         dsp::init_normal3d_dxyz(&t.n[0], 0.0f, 0.0f, 0.0f);
 
-        n_out = 0;
-        n_in = 0;
-        split_triangle(out, &n_out, in, &n_in, pl, &t);
+        n_out   = 0;
+        n_in    = 0;
+        spl     = *pl;
+        split_triangle(out, &n_out, in, &n_in, &spl, &t);
 
         // Analyze result: out and in may be in range of [0..2]
         if (out <= 0) // There are no triangles outside
@@ -756,84 +760,138 @@ namespace mtest
             ctx->source.clear(); // All triangles are outside
             return STATUS_OK;
         }
-
-        context_t *sctx;
-        vector3d_t spl;
-
-        if (n_in == 1) // 1 triangle in and 1-2 triangles out
+        else if ((n_in == 2) && (n_out == 1)) // Need to invert space ?
         {
-            // Update triangle of current context
-            ctx->front.r[0].z   = in[0].p[0];
-            ctx->front.r[1].z   = in[0].p[1];
-            ctx->front.r[2].z   = in[0].p[2];
-            dsp::init_vector_p2(&ctx->front.r[0].v, &ctx->front.s, &ctx->front.r[0].z);
-            dsp::init_vector_p2(&ctx->front.r[1].v, &ctx->front.s, &ctx->front.r[1].z);
-            dsp::init_vector_p2(&ctx->front.r[2].v, &ctx->front.s, &ctx->front.r[2].z);
-
-            for (size_t i=0; i<n_out; )
-            {
-                // Create new context
-                sctx = new context_t;
-                if (sctx == NULL)
-                    return STATUS_NO_MEM;
-
-                // Generate new context
-                sctx->front.s       = ctx->front.s;
-                sctx->front.r[0].z  = out[i].p[0];
-                sctx->front.r[1].z  = out[i].p[1];
-                sctx->front.r[2].z  = out[i].p[2];
-                dsp::init_vector_p2(&sctx->front.r[0].v, &sctx->front.s, &sctx->front.r[0].z);
-                dsp::init_vector_p2(&sctx->front.r[1].v, &sctx->front.s, &sctx->front.r[1].z);
-                dsp::init_vector_p2(&sctx->front.r[2].v, &sctx->front.s, &sctx->front.r[2].z);
-                sctx->matched       = ctx->matched;
-                sctx->ignored       = ctx->ignored;
-                sctx->scene         = ctx->scene;
-                sctx->scan          = ctx->scan;
-
-                // Obtain all data from current context to temporary buffer
-                cstorage<v_triangle3d_t> source;
-                source.swap(&ctx->source);
-
-                // Perform split
-                for (size_t j=0, nt=source.size(); j<nt; ++j)
-                {
-                    n_sin = 0, n_sout = 0;
-                    split_triangle(sout, &n_sout, sin, &n_sin, pl, source.at(i));
-
-                    // Add generated triangles to target buffers
-                    for (size_t l=0; l < n_sout; ++l)
-                    {
-                        if (!sctx->source.add(&sout[l]))
-                            return STATUS_NO_MEM;
-                    }
-                    for (size_t l=0; l < n_sin; ++l)
-                    {
-                        if (!ctx->source.add(&sin[l]))
-                            return STATUS_NO_MEM;
-                    }
-                }
-
-                if (sctx->source.size() < 0)
-                    break;
-                if (!tasks.add(sctx))
-                    break;
-                if ((++i) >= n_out)
-                    break;
-
-                // Prepare new split plane
-
-            }
-
-//            wfront_t                    front;      // Wave front
-//            cstorage<v_triangle3d_t>    source;     // Triangles for processing
-//            cstorage<v_triangle3d_t>   *matched;    // List of matched triangles (for debug)
-//            cstorage<v_triangle3d_t>   *ignored;    // List of ignored triangles (for debug)
-//            cvector<object_t>          *scene;      // Overall scene
-//            bool                        scan;       // Fully scan scene
+            inv_normal(&spl);           // Invert normal of splitting plane
+            // Swap state of 'in' and 'out' arrays
+            t       = out[0];
+            out[1]  = in[1];
+            out[0]  = in[0];
+            in[0]   = t;
+            n_in    = 1;
+            n_out   = 2;
         }
-        else if (n_in == 2) // 2 triangles in and 1 triangle out
-        {
 
+        cstorage<v_triangle3d_t> source, clipped;
+        source.swap(&ctx->source);
+
+        // Perform split using main plane
+        if (keep)
+        {
+            for (size_t i=0, nt=source.size(); i<nt; ++i)
+            {
+                n_sin = 0, n_sout = 0;
+                split_triangle(sout, &n_sout, sin, &n_sin, &spl, source.at(i));
+
+                // Add generated triangles to target buffers
+                for (size_t l=0; l < n_sout; ++l)
+                {
+                    if (!clipped.add(&sout[l]))
+                        return STATUS_NO_MEM;
+                }
+                for (size_t l=0; l < n_sin; ++l)
+                {
+                    if (!ctx->source.add(&sin[l]))
+                        return STATUS_NO_MEM;
+                }
+            }
+        }
+        else
+        {
+            for (size_t i=0, nt=source.size(); i<nt; ++i)
+            {
+                n_sin = 0, n_sout = 0;
+                split_triangle(sout, &n_sout, sin, &n_sin, &spl, source.at(i));
+
+                // Add generated triangles to target buffer, ignore 'out' triangles
+                for (size_t l=0; l < n_sin; ++l)
+                {
+                    if (!ctx->source.add(&sin[l]))
+                        return STATUS_NO_MEM;
+                }
+            }
+        }
+        source.flush(); // Drop all temporary data
+
+        // Now we have triangles in ctx->source and t_out, analyze split state
+        // Update triangle of current context
+        ctx->front.p[0]     = in[0].p[0];
+        ctx->front.p[1]     = in[0].p[1];
+        ctx->front.p[2]     = in[0].p[2];
+
+        // Is there any data for analysis?
+        if (clipped.size() <= 0)
+            return STATUS_OK;
+
+        cstorage<v_triangle3d_t> space1, space2;
+
+        // Are there two triangles that should be generated?
+        if (n_out == 2)
+        {
+            // There are two triangles above the split plane, perform second split
+            // Prepare split plane and ensure it's direction
+            calc_plane_vector_p3(&npl, &ctx->front.s, &out[1].p[1], &out[1].p[2]);
+            float a = (npl.dx * spl.dx + npl.dy * spl.dy + npl.dz * spl.dz + npl.dw * spl.dw);
+            if (a < 0.0f)
+                inv_normal(&npl);
+
+            // Do second split
+            for (size_t i=0, nt=clipped.size(); i<nt; ++i)
+            {
+                n_sin = 0, n_sout = 0;
+                split_triangle(sout, &n_sout, sin, &n_sin, &npl, clipped.at(i));
+
+                // Add generated triangles to target buffers
+                for (size_t l=0; l < n_sout; ++l)
+                {
+                    if (!space2.add(&sout[l]))
+                        return STATUS_NO_MEM;
+                }
+                for (size_t l=0; l < n_sin; ++l)
+                {
+                    if (!space1.add(&sin[l]))
+                        return STATUS_NO_MEM;
+                }
+            }
+            clipped.flush();
+        }
+        else
+            space1.swap(&clipped);
+
+        // Non-empty space for context 1?
+        if (space1.size() > 0)
+        {
+            context_t *sctx = new context_t;
+            if (ctx == NULL)
+                return STATUS_NO_MEM;
+
+            // Initialize context with clipped sub-set
+            sctx->front.p[0]    = out[0].p[0];
+            sctx->front.p[1]    = out[0].p[1];
+            sctx->front.p[2]    = out[0].p[2];
+            sctx->matched       = ctx->matched;
+            sctx->ignored       = ctx->ignored;
+            sctx->scene         = ctx->scene;
+            sctx->scan          = ctx->scan;
+            sctx->source.swap(&space1);
+        }
+
+        // Non-empty space for context 2?
+        if (space2.size() > 0)
+        {
+            context_t *sctx = new context_t;
+            if (ctx == NULL)
+                return STATUS_NO_MEM;
+
+            // Initialize context with clipped sub-set
+            sctx->front.p[0]    = out[1].p[0];
+            sctx->front.p[1]    = out[1].p[1];
+            sctx->front.p[2]    = out[1].p[2];
+            sctx->matched       = ctx->matched;
+            sctx->ignored       = ctx->ignored;
+            sctx->scene         = ctx->scene;
+            sctx->scan          = ctx->scan;
+            sctx->source.swap(&space2);
         }
 
         return STATUS_OK;
@@ -978,21 +1036,10 @@ MTEST_BEGIN("3d", reflections)
                 pScene = scene;
                 bBoundBoxes = true;
 
-                point3d_t p[4];
-                dsp::init_point_xyz(&p[0], 0.0f, 1.0f, 0.0f);
-                dsp::init_point_xyz(&p[1], -1.0f, -0.5f, 0.0f);
-                dsp::init_point_xyz(&p[2], 1.0f, -0.5f, 0.0f);
-                dsp::init_point_xyz(&p[3], 0.0f, 0.0f, 1.0f);
-
-                vector3d_t v[3];
-                dsp::init_vector_p2(&v[0], &p[3], &p[0]);
-                dsp::init_vector_p2(&v[1], &p[3], &p[1]);
-                dsp::init_vector_p2(&v[2], &p[3], &p[2]);
-
-                dsp::init_ray_pdv(&sFront.r[0], &p[0], &v[0]);
-                dsp::init_ray_pdv(&sFront.r[1], &p[1], &v[1]);
-                dsp::init_ray_pdv(&sFront.r[2], &p[2], &v[2]);
-                sFront.s = p[3];
+                dsp::init_point_xyz(&sFront.p[0], 0.0f, 1.0f, 0.0f);
+                dsp::init_point_xyz(&sFront.p[1], -1.0f, -0.5f, 0.0f);
+                dsp::init_point_xyz(&sFront.p[2], 1.0f, -0.5f, 0.0f);
+                dsp::init_point_xyz(&sFront.s, 0.0f, 0.0f, 1.0f);
 
                 update_view();
             }
@@ -1009,9 +1056,9 @@ MTEST_BEGIN("3d", reflections)
                     case XK_F1:
                     {
                         float incr = (ev.state & ShiftMask) ? 0.25f : -0.25f;
-                        sFront.r[0].z.x += incr;
-                        sFront.r[1].z.x += incr;
-                        sFront.r[2].z.x += incr;
+                        sFront.p[0].x += incr;
+                        sFront.p[1].x += incr;
+                        sFront.p[2].x += incr;
                         sFront.s.x += incr;
                         update_view();
                         break;
@@ -1020,9 +1067,9 @@ MTEST_BEGIN("3d", reflections)
                     case XK_F2:
                     {
                         float incr = (ev.state & ShiftMask) ? 0.25f : -0.25f;
-                        sFront.r[0].z.y += incr;
-                        sFront.r[1].z.y += incr;
-                        sFront.r[2].z.y += incr;
+                        sFront.p[0].y += incr;
+                        sFront.p[1].y += incr;
+                        sFront.p[2].y += incr;
                         sFront.s.y += incr;
                         update_view();
                         break;
@@ -1031,9 +1078,9 @@ MTEST_BEGIN("3d", reflections)
                     case XK_F3:
                     {
                         float incr = (ev.state & ShiftMask) ? 0.25f : -0.25f;
-                        sFront.r[0].z.z += incr;
-                        sFront.r[1].z.z += incr;
-                        sFront.r[2].z.z += incr;
+                        sFront.p[0].z += incr;
+                        sFront.p[1].z += incr;
+                        sFront.p[2].z += incr;
                         sFront.s.z += incr;
                         update_view();
                         break;
@@ -1048,9 +1095,9 @@ MTEST_BEGIN("3d", reflections)
 
                         for (size_t i=0; i<3; ++i)
                         {
-                            sFront.r[i].z.x -= sFront.s.x;
-                            sFront.r[i].z.y -= sFront.s.y;
-                            sFront.r[i].z.z -= sFront.s.z;
+                            sFront.p[i].x -= sFront.s.x;
+                            sFront.p[i].y -= sFront.s.y;
+                            sFront.p[i].z -= sFront.s.z;
                         }
                         if (key == XK_F4)
                             dsp::init_matrix3d_rotate_x(&m, incr);
@@ -1059,15 +1106,12 @@ MTEST_BEGIN("3d", reflections)
                         else
                             dsp::init_matrix3d_rotate_z(&m, incr);
                         for (size_t i=0; i<3; ++i)
-                        {
-                            dsp::apply_matrix3d_mp1(&sFront.r[i].z, &m);
-                            dsp::apply_matrix3d_mv1(&sFront.r[i].v, &m);
-                        }
+                            dsp::apply_matrix3d_mp1(&sFront.p[i], &m);
                         for (size_t i=0; i<3; ++i)
                         {
-                            sFront.r[i].z.x += sFront.s.x;
-                            sFront.r[i].z.y += sFront.s.y;
-                            sFront.r[i].z.z += sFront.s.z;
+                            sFront.p[i].x += sFront.s.x;
+                            sFront.p[i].y += sFront.s.y;
+                            sFront.p[i].z += sFront.s.z;
                         }
                         update_view();
                         break;
@@ -1222,10 +1266,10 @@ MTEST_BEGIN("3d", reflections)
 
                 // Calc scissor planes' normals
                 vector3d_t pl[4];
-                calc_plane_vector_rv(&pl[0], &sFront.r[0], &sFront.r[1].v);
-                calc_plane_vector_rv(&pl[1], &sFront.r[1], &sFront.r[2].v);
-                calc_plane_vector_rv(&pl[2], &sFront.r[2], &sFront.r[0].v);
-                calc_plane_vector_p3(&pl[3], &sFront.r[0].z, &sFront.r[1].z, &sFront.r[2].z);
+                calc_plane_vector_p3(&pl[0], &sFront.s, &sFront.p[0], &sFront.p[1]);
+                calc_plane_vector_p3(&pl[1], &sFront.s, &sFront.p[1], &sFront.p[2]);
+                calc_plane_vector_p3(&pl[2], &sFront.s, &sFront.p[2], &sFront.p[0]);
+                calc_plane_vector_p3(&pl[3], &sFront.p[0], &sFront.p[1], &sFront.p[2]);
 
                 // Draw front
                 v_ray3d_t r;
@@ -1234,26 +1278,26 @@ MTEST_BEGIN("3d", reflections)
                 for (size_t i=0; i<3; ++i)
                 {
                     // State
-                    r.p = sFront.r[i].z;
-                    r.v = sFront.r[i].v;
+                    r.p = sFront.p[i];
+                    dsp::init_vector_p2(&r.v, &sFront.s, &r.p);
                     r.c = C_MAGENTA;
                     pView->add_ray(&r);
 
                     s.p[0] = sFront.s;
-                    s.p[1] = sFront.r[i].z;
+                    s.p[1] = sFront.p[i];
                     pView->add_segment(&s);
 
-                    s.p[0] = sFront.r[(i+1)%3].z;
+                    s.p[0] = sFront.p[(i+1)%3];
                     pView->add_segment(&s);
 
                     // Normals
-                    r.p = sFront.r[i].z;
+                    r.p = sFront.p[i];
                     r.v = pl[i];
                     r.v.dw = 0.0f;
                     r.c = C_YELLOW;
                     pView->add_ray(&r);
 
-                    r.p = sFront.r[(i+1)%3].z;
+                    r.p = sFront.p[(i+1)%3];
                     pView->add_ray(&r);
 
                     r.v = pl[3];
