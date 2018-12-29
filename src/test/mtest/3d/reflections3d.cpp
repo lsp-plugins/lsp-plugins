@@ -39,7 +39,6 @@ namespace mtest
 
     typedef struct wfront_t
     {
-//        ray3d_t  r[3];      // Rays, counter-clockwise order
         point3d_t p[3];     // Three points showing directions
         point3d_t s;        // Source point
     } wfront_t;
@@ -51,6 +50,13 @@ namespace mtest
         v_triangle3d_t             *t;      // List of triangles for each object
     } object_t;
 
+    enum context_state_t
+    {
+        S_SCAN_SCENE,
+        S_CULL_FRONT,
+        S_CULL_BACK
+    };
+
     typedef struct context_t
     {
         wfront_t                    front;      // Wave front
@@ -58,9 +64,9 @@ namespace mtest
         cstorage<v_triangle3d_t>   *matched;    // List of matched triangles (for debug)
         cstorage<v_triangle3d_t>   *ignored;    // List of ignored triangles (for debug)
         cvector<object_t>          *scene;      // Overall scene
-        size_t                      state;
-        bool                        scan;       // Fully scan scene
+        context_state_t             state;      // Context state
     } context_t;
+
 
     static void inv_normal(vector3d_t *v)
     {
@@ -599,11 +605,7 @@ namespace mtest
      */
     static status_t scan_scene(context_t *ctx)
     {
-        if (!ctx->scan)
-            return STATUS_OK;
-
         // Check crossing with bounding box
-        cstorage<v_triangle3d_t> source;
         vector3d_t pl[4];
         calc_plane_vector_p3(&pl[0], &ctx->front.s, &ctx->front.p[0], &ctx->front.p[1]);
         calc_plane_vector_p3(&pl[1], &ctx->front.s, &ctx->front.p[1], &ctx->front.p[2]);
@@ -613,7 +615,6 @@ namespace mtest
         v_triangle3d_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
         size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
 
-        // STEP 1
         // Check for crossing with all bounding boxes
         for (size_t i=0, n=ctx->scene->size(); i<n; ++i)
         {
@@ -623,7 +624,7 @@ namespace mtest
                 if (obj->nt == 0)
                     continue;
 
-                if (!source.append(obj->t, obj->nt))
+                if (!ctx->source.append(obj->t, obj->nt))
                     return STATUS_NO_MEM;
                 continue;
             }
@@ -665,23 +666,34 @@ namespace mtest
                 }
 
                 if (*n_in > 0) // Is there intersection with bounding box?
-                {
-                    if (!source.append(obj->t, obj->nt))
-                        return STATUS_NO_MEM;
-                    goto CROSSING_FOUND;
-                }
+                    break;
             }
-
-            if (!ctx->ignored->append(obj->t, obj->nt))
+            if (*n_in > 0)
+            {
+                if (!ctx->source.append(obj->t, obj->nt))
+                    return STATUS_NO_MEM;
+            }
+            else if (!ctx->ignored->append(obj->t, obj->nt))
                 return STATUS_NO_MEM;
-            CROSSING_FOUND: ;
         }
 
-        ctx->scan = false;
-        if (source.size() <= 0)
-            return STATUS_OK;
+        return STATUS_OK;
+    }
 
-        // STEP 2
+    static status_t cull_front(context_t *ctx)
+    {
+        v_triangle3d_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
+        size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
+        vector3d_t pl[4];
+
+        cstorage<v_triangle3d_t> source;
+        source.swap(&ctx->source);
+
+        calc_plane_vector_p3(&pl[0], &ctx->front.s, &ctx->front.p[0], &ctx->front.p[1]);
+        calc_plane_vector_p3(&pl[1], &ctx->front.s, &ctx->front.p[1], &ctx->front.p[2]);
+        calc_plane_vector_p3(&pl[2], &ctx->front.s, &ctx->front.p[2], &ctx->front.p[0]);
+        calc_plane_vector_p3(&pl[3], &ctx->front.p[0], &ctx->front.p[1], &ctx->front.p[2]);
+
         // Cull each triangle with four scissor planes
         for (ssize_t i=0, n=source.size(); i < n; ++i)
         {
@@ -872,7 +884,6 @@ namespace mtest
             sctx->matched       = ctx->matched;
             sctx->ignored       = ctx->ignored;
             sctx->scene         = ctx->scene;
-            sctx->scan          = ctx->scan;
             sctx->source.swap(&space1);
         }
 
@@ -890,7 +901,6 @@ namespace mtest
             sctx->matched       = ctx->matched;
             sctx->ignored       = ctx->ignored;
             sctx->scene         = ctx->scene;
-            sctx->scan          = ctx->scan;
             sctx->source.swap(&space2);
         }
 
@@ -913,8 +923,38 @@ namespace mtest
                 return STATUS_CORRUPTED;
 
             // Check that we need to perform a scan
-            if (ctx->scan)
-                scan_scene(ctx);
+            switch (ctx->state)
+            {
+                case S_SCAN_SCENE:
+                    scan_scene(ctx);
+                    if (ctx->source.size() <= 0)
+                    {
+                        delete ctx;
+                        continue;
+                    }
+
+                    ctx->state = S_CULL_FRONT;
+                    if (!tasks.push(ctx))
+                    {
+                        delete ctx;
+                        return STATUS_NO_MEM;
+                    }
+                    break;
+
+                case S_CULL_FRONT:
+                    cull_front(ctx);
+                    if (ctx->source.size() <= 0)
+                    {
+                        delete ctx;
+                        continue;
+                    }
+
+                    if (!ctx->matched->add_all(&ctx->source))
+                        return STATUS_NO_MEM;
+                    delete ctx;
+                    break;
+                // TODO
+            }
 
 #if 0
             // Context is in final state?
@@ -987,15 +1027,7 @@ namespace mtest
                 return STATUS_NO_MEM;
             if (!tasks.push(ctx))
                 return STATUS_NO_MEM;
-#else
-            // TODO: this is debug stub, remove it after algorithm is completed
-            if (!ctx->matched->add_all(&ctx->source))
-                return STATUS_NO_MEM;
-
-            ctx->source.flush();
-            delete ctx;
 #endif
-            NEXT_LOOP:;
         }
 
         return STATUS_OK;
@@ -1160,7 +1192,7 @@ MTEST_BEGIN("3d", reflections)
                 if (ctx == NULL)
                     return STATUS_NO_MEM;
 
-                ctx->scan       = true;
+                ctx->state      = S_SCAN_SCENE;
                 ctx->front      = sFront;
                 ctx->ignored    = &ignored;
                 ctx->matched    = &matched;
