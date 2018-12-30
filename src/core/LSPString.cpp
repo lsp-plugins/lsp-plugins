@@ -1527,6 +1527,39 @@ namespace lsp
         return get_native(first, nLength, charset);
     }
 
+#if defined(PLATFORM_WINDOWS)
+    const char *LSPString::get_native(ssize_t first, ssize_t last, const char *charset) const
+    {
+        XSAFE_TRANS(first, nLength, NULL);
+        XSAFE_TRANS(last, nLength, NULL);
+        ssize_t length = last - first;
+        if (length <= 0)
+            return (length == 0) ? "" : NULL;
+
+        // Get codepage
+        ssize_t cp = codepage_from_name(charset);
+        if (cp < 0)
+            return NULL;
+
+        // Estimate number of bytes required
+        size_t n = WideCharToMultiByte(cp, 0, &pData[first], length, NULL, 0, 0, 0) + 4; // + terminating 0
+        if (!resize_temp(n))
+            return NULL;
+
+        // We have enough space for saving data
+        n = WideCharToMultiByte(cp, 0, &pData[first], length, pTemp->pData, pTemp->nLength, 0, 0);
+        if (n <= 0)
+            return NULL;
+
+        // Append terminating zero
+        pTemp->pData[n++] = '\0';
+        pTemp->pData[n++] = '\0';
+        pTemp->pData[n++] = '\0';
+        pTemp->pData[n] = '\0';
+
+        return pTemp->pData;
+    }
+#else
     const char *LSPString::get_native(ssize_t first, ssize_t last, const char *charset) const
     {
         XSAFE_TRANS(first, nLength, NULL);
@@ -1597,6 +1630,7 @@ namespace lsp
 
         return pTemp->pData;
     }
+#endif /* PLATFORM_WINDOWS */
 
     bool LSPString::append_temp(const char *p, size_t n) const
     {
