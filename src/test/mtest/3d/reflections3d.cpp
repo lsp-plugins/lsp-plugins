@@ -67,6 +67,24 @@ namespace mtest
         context_state_t             state;      // Context state
     } context_t;
 
+    static void destroy_tasks(cvector<context_t> &tasks)
+    {
+        for (size_t i=0, n=tasks.size(); i<n; ++i)
+        {
+            context_t *ctx = tasks.get(i);
+            if (ctx == NULL)
+                continue;
+
+            ctx->ignored    = NULL;
+            ctx->matched    = NULL;
+            ctx->scene      = NULL;
+            ctx->source.flush();
+
+            delete ctx;
+        }
+
+        tasks.flush();
+    }
 
     static void inv_normal(vector3d_t *v)
     {
@@ -907,6 +925,138 @@ namespace mtest
         return STATUS_OK;
     }
 
+    static status_t split_binary(
+            cstorage<v_triangle3d_t> &out,
+            cstorage<v_triangle3d_t> &in,
+            cstorage<v_triangle3d_t> &source,
+            const vector3d_t *pl
+        )
+    {
+        return STATUS_OK; // TODO
+    }
+
+    static status_t cull_back(cvector<context_t> &tasks, context_t *ctx)
+    {
+        vector3d_t pl[4];
+        v_triangle3d_t t;
+
+        // Select triangle from queue that will be used for culling
+        while (true)
+        {
+            if (ctx->source.size() <= 0)
+            {
+                delete ctx;
+                return STATUS_OK;
+            }
+            else if (!ctx->source.remove(0, &t))
+                return STATUS_UNKNOWN_ERR;
+
+            // Compute culling planes
+            calc_plane_vector_p3(&pl[3], &t.p[0], &t.p[1], &t.p[2]);
+
+            // Re-arrange normals if it is required
+            float a = (pl[3].dx * pl[4].dx + pl[3].dy * pl[4].dy + pl[3].dz * pl[4].dz + pl[3].dw * pl[4].dw);
+            if (a > 0.0f) // Normals of projection plane and culling plane have same directions
+            {
+                // compute plane equations
+                if (ctx->source.size() > 0)
+                {
+                    calc_plane_vector_p3(&pl[0], &ctx->front.s, &t.p[0], &t.p[1]);
+                    calc_plane_vector_p3(&pl[1], &ctx->front.s, &t.p[1], &t.p[2]);
+                    calc_plane_vector_p3(&pl[2], &ctx->front.s, &t.p[2], &t.p[0]);
+                }
+            }
+            else if (a < 0.0f) // Normals of projection plane and culling plane have opposite directions
+            {
+                inv_normal(&pl[4]);
+                // compute plane equations
+                if (ctx->source.size() > 0)
+                {
+                    calc_plane_vector_p3(&pl[0], &ctx->front.s, &t.p[1], &t.p[0]);
+                    calc_plane_vector_p3(&pl[1], &ctx->front.s, &t.p[2], &t.p[1]);
+                    calc_plane_vector_p3(&pl[2], &ctx->front.s, &t.p[0], &t.p[2]);
+                }
+            }
+            else // We skip this triangle because it's perpendicular to the source
+                continue;
+
+            delete ctx;
+            return ctx->matched->add(&t) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        // Now we have 3 planes for culling and one plane for back-culling
+        cvector<context_t> inside, queue; // Store all triangle contexts that are inside the culling space
+
+        // Put context to queue
+        if (!inside.add(ctx))
+        {
+            delete ctx;
+            return STATUS_NO_MEM;
+        }
+
+        // Operate with each plane
+        size_t count;
+
+        for (size_t i=0; i<3; ++i)
+        {
+            // Check if there is still data for processing
+            count = inside.size();
+            if (count <= 0)
+                return STATUS_OK;
+
+            // Obtain number of contexts in queue
+            for (size_t j=0; j < count; ++j)
+            {
+                // Fetch new context
+                ctx = inside.get(0);
+                if (!inside.remove(size_t(0), true))
+                {
+                    delete ctx;
+                    return STATUS_CORRUPTED;
+                }
+
+                // Perform binary space split
+                status_t res = split_binary(tasks, queue, ctx, &pl[i]); // TODO: implement this function
+                if (res != STATUS_OK)
+                {
+                    delete ctx;
+                    destroy_tasks(inside);
+                    destroy_tasks(queue);
+                    return res;
+                }
+            }
+
+            // Now we have all pending items in 'queue' array, take them for the next iteration
+            inside.swap_data(&queue);
+        }
+
+        // Cut all triangles behind the space, partition the cutting triangle and put triangle back to the queue
+        count = inside.size();
+        if (count <= 0)
+            return STATUS_OK;
+
+        for (size_t i=0; i<count; ++i)
+        {
+            // Fetch new context
+            ctx = inside.get(0);
+            if (!inside.remove(size_t(0), true))
+            {
+                delete ctx;
+                return STATUS_CORRUPTED;
+            }
+
+            status_t res = cull_binary(tasks, ctx, &t, &pl[i]); // TODO: implement this function
+            if (res != STATUS_OK)
+            {
+                delete ctx;
+                destroy_tasks(inside);
+                return res;
+            }
+        }
+
+        return STATUS_OK;
+    }
+
     static status_t perform_raytrace(
             cvector<context_t> &tasks
         )
@@ -943,11 +1093,13 @@ namespace mtest
                     break;
 
                 case S_CULL_BACK:
-                    // TODO: replace this stub with back-culling algorithm
-                    if (!ctx->matched->add_all(&ctx->source))
-                        return STATUS_NO_MEM;
-                    delete ctx;
+                    cull_back(tasks, ctx);
                     ctx = NULL;
+                    // TODO: replace this stub with back-culling algorithm
+//                    if (!ctx->matched->add_all(&ctx->source))
+//                        return STATUS_NO_MEM;
+//                    delete ctx;
+//                    ctx = NULL;
                     break;
             }
 
@@ -1037,25 +1189,6 @@ namespace mtest
 #endif
 
         return STATUS_OK;
-    }
-
-    static void destroy_tasks(cvector<context_t> &tasks)
-    {
-        for (size_t i=0, n=tasks.size(); i<n; ++i)
-        {
-            context_t *ctx = tasks.get(i);
-            if (ctx == NULL)
-                continue;
-
-            ctx->ignored    = NULL;
-            ctx->matched    = NULL;
-            ctx->scene      = NULL;
-            ctx->source.flush();
-
-            delete ctx;
-        }
-
-        tasks.flush();
     }
 } // Namespace mtest
 
