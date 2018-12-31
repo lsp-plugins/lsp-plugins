@@ -925,10 +925,36 @@ namespace mtest
         return STATUS_OK;
     }
 
+    /**
+     * Perform binary split of the space
+     * @param out list of context tasks outside the space
+     * @param in list of context tasks inside the space
+     * @param ctx context to apply split
+     * @param pl plane to use splitting
+     * @return status of operation
+     */
     static status_t split_binary(
-            cstorage<v_triangle3d_t> &out,
-            cstorage<v_triangle3d_t> &in,
-            cstorage<v_triangle3d_t> &source,
+            cvector<context_t> &out,
+            cvector<context_t> &in,
+            context_t *ctx,
+            const vector3d_t *pl
+        )
+    {
+        return STATUS_OK; // TODO
+    }
+
+    /**
+     * Perform binary space culling and return culled triangle to it's queue
+     * @param tasks list of tasks to save contexts
+     * @param ctx context to process
+     * @param ct triangle to split and return to queue
+     * @param pl culling plane
+     * @return status of operation
+     */
+    static status_t cull_binary(
+            cvector<context_t> &tasks,
+            context_t *ctx,
+            const v_triangle3d_t *ct,
             const vector3d_t *pl
         )
     {
