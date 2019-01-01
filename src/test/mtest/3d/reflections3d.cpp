@@ -927,20 +927,210 @@ namespace mtest
 
     /**
      * Perform binary split of the space
-     * @param out list of context tasks outside the space
-     * @param in list of context tasks inside the space
+     * @param tout list of context tasks outside the space
+     * @param tin list of context tasks inside the space
      * @param ctx context to apply split
      * @param pl plane to use splitting
      * @return status of operation
      */
     static status_t split_binary(
-            cvector<context_t> &out,
-            cvector<context_t> &in,
+            cvector<context_t> &tout,
+            cvector<context_t> &tin,
             context_t *ctx,
             const vector3d_t *pl
         )
     {
-        return STATUS_OK; // TODO
+        v_triangle3d_t out[2], in[2], sout[2], sin[2], t;
+        size_t n_out, n_in, n_sout, n_sin;
+        vector3d_t npl;
+        context_t *sctx1, *sctx2;
+
+        // First, split front triangle into sub-triangles
+        t.p[0] = ctx->front.p[0];
+        t.p[1] = ctx->front.p[1];
+        t.p[2] = ctx->front.p[2];
+        dsp::calc_normal3d_p3(&t.n[0], t.p);
+        dsp::calc_normal3d_p3(&t.n[1], t.p);
+        dsp::calc_normal3d_p3(&t.n[2], t.p);
+
+        n_out= 0, n_in = 0;
+        split_triangle(out, &n_out, in, &n_in, pl, &t);
+
+        // Analyze result: out and in may be in range of [0..2]
+        if (out <= 0) // There are no triangles outside
+        {
+            // There's nothing to do, return back to the 'in' queue
+            if (tin.add(ctx))
+                return STATUS_OK;
+
+            delete ctx;
+            return STATUS_NO_MEM;
+        }
+        else if (in <= 0) // There are no triangle inside
+        {
+            // There's nothing to do, return back to the 'out' queue
+            if (tout.add(ctx))
+                return STATUS_OK;
+
+            delete ctx;
+            return STATUS_NO_MEM;
+        }
+
+        // Perform space split
+        cstorage<v_triangle3d_t> source, clipped;
+        source.swap(&ctx->source);
+
+        for (size_t i=0, nt=source.size(); i<nt; ++i)
+        {
+            n_sin = 0, n_sout = 0;
+            split_triangle(sout, &n_sout, sin, &n_sin, pl, source.at(i));
+
+            // Add generated triangles to target buffers
+            for (size_t l=0; l < n_sout; ++l)
+            {
+                if (!clipped.add(&sout[l]))
+                    return STATUS_NO_MEM;
+            }
+            for (size_t l=0; l < n_sin; ++l)
+            {
+                if (!ctx->source.add(&sin[l]))
+                    return STATUS_NO_MEM;
+            }
+        }
+        source.flush();
+
+        // Add source context to queue
+        if (!tin.add(ctx))
+        {
+            delete ctx;
+            return STATUS_NO_MEM;
+        }
+
+        // Create at least one additional context
+        sctx1               = new context_t;
+        if (sctx1 == NULL)
+            return STATUS_NO_MEM;
+        else if (!tout.add(sctx1))
+        {
+            delete sctx1;
+            return STATUS_NO_MEM;
+        }
+
+        // Create additional context if needed
+        if ((in == 2) || (out == 2))
+        {
+            sctx2               = new context_t;
+            if (sctx2 == NULL)
+                return STATUS_NO_MEM;
+            else if (!tout.add(sctx2))
+            {
+                delete sctx1;
+                return STATUS_NO_MEM;
+            }
+        }
+
+        // Now there are possble variants:
+        // {in=1, out=1}, {in=1, out=2}, {in=2, out=1}
+        if (in == 1)
+        {
+            ctx->front.p[0]     = in[0].p[0];
+            ctx->front.p[1]     = in[0].p[1];
+            ctx->front.p[2]     = in[0].p[2];
+
+            if (out == 2) // in=1, out=2
+            {
+                // Need to split 'clipped' into two sub-spaces
+                // Prepare cutting plane
+                calc_plane_vector_p3(&npl, &ctx->front.s, &out[1].p[1], &out[1].p[2]);
+                float a = (npl.dx * pl->dx + npl.dy * pl->dy + npl.dz * pl->dz + npl.dw * pl->dw);
+                if (a < 0.0f)
+                    inv_normal(&npl);
+
+                for (size_t i=0, nt=clipped.size(); i<nt; ++i)
+                {
+                    n_sin = 0, n_sout = 0;
+                    split_triangle(sout, &n_sout, sin, &n_sin, pl, clipped.at(i));
+
+                    // Add generated triangles to target buffers
+                    for (size_t l=0; l < n_sin; ++l)
+                    {
+                        if (!sctx1->source.add(&sin[l]))
+                            return STATUS_NO_MEM;
+                    }
+                    for (size_t l=0; l < n_sout; ++l)
+                    {
+                        if (!sctx2->source.add(&sout[l]))
+                            return STATUS_NO_MEM;
+                    }
+                }
+
+                sctx2->front.p[0]   = out[1].p[0];
+                sctx2->front.p[1]   = out[1].p[1];
+                sctx2->front.p[2]   = out[1].p[2];
+                sctx2->matched      = ctx->matched;
+                sctx2->ignored      = ctx->ignored;
+                sctx2->scene        = ctx->scene;
+            }
+            else // in=1, out=1
+                sctx1->source.swap(&clipped);
+
+            sctx1->front.p[0]   = out[0].p[0];
+            sctx1->front.p[1]   = out[0].p[1];
+            sctx1->front.p[2]   = out[0].p[2];
+            sctx1->matched      = ctx->matched;
+            sctx1->ignored      = ctx->ignored;
+            sctx1->scene        = ctx->scene;
+        }
+        else // in=2, out=1
+        {
+            ctx->front.p[0]     = in[1].p[0];
+            ctx->front.p[1]     = in[1].p[1];
+            ctx->front.p[2]     = in[1].p[2];
+            source.swap(&ctx->source);
+
+            sctx2->front.p[0]   = out[0].p[0];
+            sctx2->front.p[1]   = out[0].p[1];
+            sctx2->front.p[2]   = out[0].p[2];
+            sctx2->matched      = ctx->matched;
+            sctx2->ignored      = ctx->ignored;
+            sctx2->scene        = ctx->scene;
+            sctx2->source.swap(&clipped);
+
+            // Need to split 'source' into two sub-spaces
+            // Prepare cutting plane
+            calc_plane_vector_p3(&npl, &ctx->front.s, &in[1].p[1], &in[1].p[2]);
+            float a = (npl.dx * pl->dx + npl.dy * pl->dy + npl.dz * pl->dz + npl.dw * pl->dw);
+            if (a < 0.0f)
+                inv_normal(&npl);
+
+            for (size_t i=0, nt=source.size(); i<nt; ++i)
+            {
+                n_sin = 0, n_sout = 0;
+                split_triangle(sout, &n_sout, sin, &n_sin, pl, source.at(i));
+
+                // Add generated triangles to target buffers
+                for (size_t l=0; l < n_sin; ++l)
+                {
+                    if (!ctx->source.add(&sin[l]))
+                        return STATUS_NO_MEM;
+                }
+                for (size_t l=0; l < n_sout; ++l)
+                {
+                    if (!sctx1->source.add(&sout[l]))
+                        return STATUS_NO_MEM;
+                }
+            }
+
+            sctx1->front.p[0]   = in[0].p[0];
+            sctx1->front.p[1]   = in[0].p[1];
+            sctx1->front.p[2]   = in[0].p[2];
+            sctx1->matched      = ctx->matched;
+            sctx1->ignored      = ctx->ignored;
+            sctx1->scene        = ctx->scene;
+            sctx1->source.swap(&clipped);;
+        }
+
+        return STATUS_OK;
     }
 
     /**
