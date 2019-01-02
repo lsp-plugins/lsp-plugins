@@ -203,7 +203,7 @@
     __ASM_EMIT("xorps       %" x1 ", %" x1)         /* xmm1 = 0 */ \
     __ASM_EMIT("sqrtss      %" x2", %" x2)          /* xmm2 = sqrt(x*x + y*y + z*z) */ \
     __ASM_EMIT("ucomiss     %" x1 ", %" x2)         /* xmm2 =?= xmm1 */ \
-    __ASM_EMIT("jbe         1000000f") \
+    __ASM_EMIT("jle         1000000f") \
     __ASM_EMIT("shufps      $0x00, %" x2 ", %" x2)  /* xmm2 = w w w w */ \
     __ASM_EMIT("divps       %" x2 ", %" x0)         /* xmm0 = x/w y/w z/w w/w */ \
     __ASM_EMIT("1000000:")
@@ -227,7 +227,7 @@
     __ASM_EMIT("xorps       %" x2 ", %" x2)         /* xmm2 = 0 */ \
     __ASM_EMIT("sqrtss      %" x3", %" x3)          /* xmm3 = sqrt(x*x + y*y + z*z) */ \
     __ASM_EMIT("ucomiss     %" x2 ", %" x3)         /* xmm3 =?= xmm2 */ \
-    __ASM_EMIT("jbe         1000000f") \
+    __ASM_EMIT("jle         1000000f") \
     __ASM_EMIT("divss       %" x3 ", %" x1)         /* xmm1 = r/w */ \
     __ASM_EMIT("shufps      $0x00, %" x1 ", %" x1)  /* xmm1 = r/w r/w r/w r/w */ \
     __ASM_EMIT("mulps       %" x1 ", %" x0)         /* xmm0 = x*r/w y*r/w z*r/w w*r/w */ \

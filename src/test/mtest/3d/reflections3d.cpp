@@ -274,7 +274,7 @@ namespace mtest
 
         // There is an intersection with plane, we need to analyze it
         // Rotate triangle until vertex 0 is above the split plane
-        while (k[0] <= 0)
+        while (k[0] <= 0.0f)
         {
             t[0]    = k[0];
             sp[0]   = p[0];
@@ -812,6 +812,7 @@ namespace mtest
 
 #define TRACE_BREAK(ctx, action) \
     if ((ctx->global->breakpoint >= 0) && ((ctx->global->step++) == ctx->global->breakpoint)) { \
+        lsp_trace("Triggered breakpoint %d\n", int(ctx->global->breakpoint)); \
         action; \
         return STATUS_OK; \
     }
@@ -1032,7 +1033,7 @@ namespace mtest
             {
                 TRACE_BREAK(ctx,
                     ctx->global->view->add_triangle_pv1c(ctx->front.p, &C_RED);
-                    ctx->global->view->add_triangle_pv1c(sctx2->front.p, &C_BLUE);
+                    ctx->global->view->add_triangle_pv1c(sctx1->front.p, &C_BLUE);
 
                     ctx->global->view->add_plane_pv1c(npt[0].p, &C_MAGENTA);
 
@@ -1260,10 +1261,23 @@ namespace mtest
         return STATUS_OK;
     }
 
+    static inline void dump_triangle(const char *label, const v_triangle3d_t *t)
+    {
+        lsp_trace("%s: {\n"
+                "\t(%f, %f, %f),\n"
+                "\t(%f, %f, %f),\n"
+                "\t(%f, %f, %f)}\n",
+                label,
+                t->p[0].x, t->p[0].y, t->p[0].z,
+                t->p[1].x, t->p[1].y, t->p[1].z,
+                t->p[2].x, t->p[2].y, t->p[2].z
+           );
+    }
+
     static status_t cull_back(cvector<context_t> &tasks, context_t *ctx)
     {
-        vector3d_t pl[5];
         v_triangle3d_t pt[5];
+        vector3d_t pl[5];
         v_triangle3d_t t;
 
         // STEP
@@ -1273,6 +1287,18 @@ namespace mtest
 
         calc_plane_vector_pv(&pl[4], ctx->front.p);
         init_triangle_pv(&pt[4], ctx->front.p);
+
+        TRACE_BREAK(ctx,
+            lsp_trace("Source triangles (%d):", int(ctx->source.size()));
+            for (size_t i=0, n=ctx->source.size(); i<n; ++i)
+            {
+                char s[80];
+                sprintf(s, "[%d]", int(i));
+                dump_triangle(s, ctx->source.at(i));
+                ctx->global->view->add_triangle_1c(ctx->source.at(i), &C_YELLOW);
+            }
+            delete ctx;
+        );
 
         // Select triangle from queue that will be used for culling
         while (true)
@@ -1290,6 +1316,9 @@ namespace mtest
             }
             else if (!ctx->source.remove(0, &t))
                 return STATUS_UNKNOWN_ERR;
+
+            if ((ctx->global->breakpoint >= 0) && (ctx->global->step == 18))
+                lsp_trace("debug");
 
             // Compute culling planes
             calc_plane_vector_p3(&pl[3], &t.p[0], &t.p[1], &t.p[2]);
@@ -1314,7 +1343,7 @@ namespace mtest
             }
             else if (a < 0.0f) // Normals of projection plane and culling plane have opposite directions
             {
-                flip_plane(&pl[4]);
+                flip_plane(&pl[3]);
                 // compute plane equations
                 if (ctx->source.size() > 0)
                 {
@@ -1328,14 +1357,23 @@ namespace mtest
                 }
                 break;
             }
+            else
+            {
+                dump_triangle("Skipping triangle", &t);
+            }
         }
 
         TRACE_BREAK(ctx,
+            dump_triangle("Selected triangle", &t);
             ctx->global->view->add_triangle_1c(&t, &C_MAGENTA);
             ctx->global->view->add_plane_pv1c(pt[0].p, &C_RED);
+            dump_triangle("Culling plane #0", &pt[0]);
             ctx->global->view->add_plane_pv1c(pt[1].p, &C_GREEN);
+            dump_triangle("Culling plane #1", &pt[1]);
             ctx->global->view->add_plane_pv1c(pt[2].p, &C_BLUE);
+            dump_triangle("Culling plane #2", &pt[2]);
             ctx->global->view->add_plane_pv1c(pt[3].p, &C_YELLOW);
+            dump_triangle("Culling plane #3", &pt[3]);
             delete ctx;
         );
         // END OF STEP
@@ -1377,6 +1415,11 @@ namespace mtest
                 }
 
                 TRACE_BREAK(ctx,
+                    char s[80];
+                    dump_triangle("Selected triangle", &t);
+                    sprintf(s, "Culling with plane #%d", int(i));
+                    dump_triangle(s, &pt[i]);
+
                     ctx->global->view->add_plane_pv1c(pt[i].p, &C_YELLOW);
                     ctx->global->view->add_triangle_1c(&t, &C_GREEN);
                     delete ctx;
@@ -1420,6 +1463,8 @@ namespace mtest
             }
 
             TRACE_BREAK(ctx,
+                dump_triangle("Selected triangle", &t);
+                lsp_trace("Culling with plane #3");
                 ctx->global->view->add_plane_pv1c(pt[3].p, &C_YELLOW);
                 ctx->global->view->add_triangle_1c(&t, &C_GREEN);
                 delete ctx;

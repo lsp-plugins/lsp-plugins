@@ -98,7 +98,7 @@ namespace sse4
         __ASM_EMIT("dpps        $0x7f, %" x1 ", %" x1)  /* xmm1 = dx*dx+dy*dy+dz*dz */ \
         __ASM_EMIT("sqrtps      %" x1", %" x1)          /* xmm1 = sqrt(x*x + y*y + z*z) = w */ \
         __ASM_EMIT("ucomiss     %" x2 ", %" x1)         /* xmm2 =?= xmm1 */ \
-        __ASM_EMIT("jbe         1000000f") \
+        __ASM_EMIT("jle         1000000f") \
         __ASM_EMIT("divps       %" x1 ", %" x0)         /* xmm0 = dx/w dy/w dz/w dw/w */ \
         __ASM_EMIT("1000000:")
 
@@ -117,7 +117,7 @@ namespace sse4
         __ASM_EMIT("shufps      $0x00, %" x1 ", %" x1)  /* xmm1 = r r r r */ \
         __ASM_EMIT("sqrtps      %" x3", %" x3)          /* xmm3 = sqrt(x*x + y*y + z*z) = W W W W */ \
         __ASM_EMIT("ucomiss     %" x2 ", %" x3)         /* xmm3 =?= xmm2 */ \
-        __ASM_EMIT("jbe         1000000f") \
+        __ASM_EMIT("jle         1000000f") \
         __ASM_EMIT("divps       %" x3 ", %" x0)         /* xmm0 = r/W r/W r/W r/W */ \
         __ASM_EMIT("mulps       %" x1 ", %" x0)         /* xmm0 = x*r/W y*r/W z*r/W w*r/W */ \
         __ASM_EMIT("1000000:")
