@@ -135,6 +135,32 @@ namespace mtest
              */
             bool add_triangle(const v_vertex3d_t *vi);
 
+            /**
+             * Add triangle
+             * @param t triangle
+             * @param c triangle color
+             * @return status of operation
+             */
+            bool add_triangle_1c(const v_triangle3d_t *t, const color3d_t *c);
+
+            bool add_triangle_3c(const v_triangle3d_t *t, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2);
+
+            /**
+             * Add triangle
+             * @param t triangle
+             * @param c triangle color
+             * @return status of operation
+             */
+            bool add_plane_pv1c(const point3d_t *t, const color3d_t *c);
+
+            /**
+             * Add triangle
+             * @param t triangle
+             * @param c color
+             * @return status of operation
+             */
+            bool add_triangle_pv1c(const point3d_t *pv, const color3d_t *c);
+
 //            /**
 //             * Add triangle to scene
 //             * @param t triangle to add

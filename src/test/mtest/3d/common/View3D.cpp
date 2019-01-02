@@ -58,26 +58,117 @@ namespace mtest
         return true;
     }
 
-//    bool View3D::add_triangle(const v_triangle3d_t *t)
-//    {
-//        v_vertex3d_t *v = vVertexes.append_n(3);
-//        if (v == NULL)
-//            return false;
-//
-//        v[0].p      = t->p[0];
-//        v[0].n      = t->n[0];
-//        v[0].c      = t->c[0];
-//
-//        v[1].p      = t->p[1];
-//        v[1].n      = t->n[1];
-//        v[1].c      = t->c[1];
-//
-//        v[2].p      = t->p[2];
-//        v[2].n      = t->n[2];
-//        v[2].c      = t->c[2];
-//
-//        return true;
-//    }
+    bool View3D::add_triangle_1c(const v_triangle3d_t *t, const color3d_t *c)
+    {
+        v_vertex3d_t *v = vVertexes.append_n(3);
+        if (v == NULL)
+            return false;
+
+        v[0].p      = t->p[0];
+        v[0].n      = t->n[0];
+        v[0].c      = *c;
+
+        v[1].p      = t->p[1];
+        v[1].n      = t->n[1];
+        v[1].c      = *c;
+
+        v[2].p      = t->p[2];
+        v[2].n      = t->n[2];
+        v[2].c      = *c;
+
+        return true;
+    }
+
+    bool View3D::add_triangle_3c(const v_triangle3d_t *t, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2)
+    {
+        v_vertex3d_t *v = vVertexes.append_n(3);
+        if (v == NULL)
+            return false;
+
+        v[0].p      = t->p[0];
+        v[0].n      = t->n[0];
+        v[0].c      = *c0;
+
+        v[1].p      = t->p[1];
+        v[1].n      = t->n[1];
+        v[1].c      = *c1;
+
+        v[2].p      = t->p[2];
+        v[2].n      = t->n[2];
+        v[2].c      = *c2;
+
+        return true;
+    }
+
+    bool View3D::add_plane_pv1c(const point3d_t *t, const color3d_t *c)
+    {
+        v_segment3d_t *v = vSegments.append_n(6);
+        if (v == NULL)
+            return false;
+
+        v[0].p[0]   = t[0];
+        v[1].p[0]   = t[1];
+        v[2].p[0]   = t[2];
+
+        v[0].p[1]   = t[1];
+        v[1].p[1]   = t[2];
+        v[2].p[1]   = t[0];
+
+        v[0].c      = *c;
+        v[1].c      = *c;
+        v[2].c      = *c;
+
+        point3d_t mp[3];
+        mp[0].x     = 0.5f * (t[1].x + t[2].x);
+        mp[0].y     = 0.5f * (t[1].y + t[2].y);
+        mp[0].z     = 0.5f * (t[1].z + t[2].z);
+
+        mp[1].x     = 0.5f * (t[2].x + t[0].x);
+        mp[1].y     = 0.5f * (t[2].y + t[0].y);
+        mp[1].z     = 0.5f * (t[2].z + t[0].z);
+
+        mp[2].x     = 0.5f * (t[0].x + t[1].x);
+        mp[2].y     = 0.5f * (t[0].y + t[1].y);
+        mp[2].z     = 0.5f * (t[0].z + t[1].z);
+
+        v[3].p[0]   = t[0];
+        v[4].p[0]   = t[1];
+        v[5].p[0]   = t[2];
+
+        v[3].p[1]   = mp[0];
+        v[4].p[1]   = mp[1];
+        v[5].p[1]   = mp[2];
+
+        v[3].c      = *c;
+        v[4].c      = *c;
+        v[5].c      = *c;
+
+        return true;
+    }
+
+    bool View3D::add_triangle_pv1c(const point3d_t *pv, const color3d_t *c)
+    {
+        v_vertex3d_t *v = vVertexes.append_n(3);
+        if (v == NULL)
+            return false;
+
+        vector3d_t n;
+        dsp::calc_normal3d_pv(&n, pv);
+
+        v[0].p      = pv[0];
+        v[0].n      = n;
+        v[0].c      = *c;
+
+        v[1].p      = pv[1];
+        v[1].n      = n;
+        v[1].c      = *c;
+
+        v[2].p      = pv[2];
+        v[2].n      = n;
+        v[2].c      = *c;
+
+        return true;
+    }
 
     bool View3D::add_triangle(const v_vertex3d_t *v1, const v_vertex3d_t *v2, const v_vertex3d_t *v3)
     {
