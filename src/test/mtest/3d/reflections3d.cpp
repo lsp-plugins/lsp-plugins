@@ -863,6 +863,7 @@ namespace mtest
         split_triangle(out, &n_out, in, &n_in, pl, &t);
 
         TRACE_BREAK(ctx,
+            lsp_trace("split performed into %d in triangles, %d out triangles", int(n_in), int(n_out));
             for (size_t i=0; i<n_out; ++i)
                 ctx->global->view->add_triangle_1c(&out[i], (i) ? &C_RED : &C_MAGENTA);
             for (size_t i=0; i<n_in; ++i)
@@ -972,6 +973,7 @@ namespace mtest
             ctx->front.p[2]     = in[0].p[2];
             ctx->state          = S_CULL_BACK;
 
+            sctx1->front.s      = ctx->front.s;
             sctx1->front.p[0]   = out[0].p[0];
             sctx1->front.p[1]   = out[0].p[1];
             sctx1->front.p[2]   = out[0].p[2];
@@ -991,6 +993,7 @@ namespace mtest
                 if (a < 0.0f)
                     flip_plane(&npl);
 
+                sctx2->front.s      = ctx->front.s;
                 sctx2->front.p[0]   = out[1].p[0];
                 sctx2->front.p[1]   = out[1].p[1];
                 sctx2->front.p[2]   = out[1].p[2];
@@ -1054,6 +1057,7 @@ namespace mtest
             ctx->state          = S_CULL_BACK;
             source.swap(&ctx->source);
 
+            sctx2->front.s      = ctx->front.s;
             sctx2->front.p[0]   = out[0].p[0];
             sctx2->front.p[1]   = out[0].p[1];
             sctx2->front.p[2]   = out[0].p[2];
@@ -1069,6 +1073,7 @@ namespace mtest
             if (a < 0.0f)
                 flip_plane(&npl);
 
+            sctx1->front.s      = ctx->front.s;
             sctx1->front.p[0]   = in[0].p[0];
             sctx1->front.p[1]   = in[0].p[1];
             sctx1->front.p[2]   = in[0].p[2];
@@ -1144,7 +1149,7 @@ namespace mtest
             const vector3d_t *pl
         )
     {
-        v_triangle3d_t out[8], buf1[8], buf2[8], *q, *in, *tmp;
+        v_triangle3d_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
         size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
         vector3d_t spl[3];
         v_triangle3d_t spt[3];
@@ -1396,34 +1401,35 @@ namespace mtest
             // Check if there is still data for processing
             count = inside.size();
             if (count <= 0)
+            {
+                TRACE_BREAK(ctx,
+                    lsp_trace("No more context 'inside' for splitting\n");
+                );
                 return STATUS_OK;
+            }
 
             // Obtain number of contexts in queue
             for (size_t j=0; j < count; ++j)
             {
-                // STEP
-                TRACE_SKIP(ctx,
-                    destroy_tasks(inside);
-                );
-
                 // Fetch new context
-                ctx = inside.get(0);
-                if (!inside.remove(size_t(0), true))
-                {
-                    destroy_tasks(inside);
-                    return STATUS_CORRUPTED;
-                }
+                ctx = inside.at(j);
+                inside.set(j, NULL);
 
                 TRACE_BREAK(ctx,
                     char s[80];
                     dump_triangle("Selected triangle", &t);
+                    dump_triangle("Culling plane #0", &pt[0]);
+                    dump_triangle("Culling plane #1", &pt[1]);
+                    dump_triangle("Culling plane #2", &pt[2]);
+                    dump_triangle("Culling plane #3", &pt[3]);
+
                     sprintf(s, "Culling with plane #%d", int(i));
                     dump_triangle(s, &pt[i]);
 
                     ctx->global->view->add_plane_pv1c(pt[i].p, &C_YELLOW);
                     ctx->global->view->add_triangle_1c(&t, &C_GREEN);
-                    delete ctx;
                     destroy_tasks(inside);
+                    delete ctx;
                 );
                 // END STEP
 
@@ -1440,27 +1446,17 @@ namespace mtest
 
             // Now we have all pending items in 'queue' array, take them for the next iteration
             inside.swap_data(&queue);
+            destroy_tasks(queue);
         }
 
         // Cut all triangles behind the space, partition the cutting triangle and put triangle back to the queue
         count = inside.size();
-        if (count <= 0)
-            return STATUS_OK;
 
         for (size_t i=0; i<count; ++i)
         {
-            // STEP
-            TRACE_SKIP(ctx,
-                destroy_tasks(inside);
-            );
-
             // Fetch new context
-            ctx = inside.get(0);
-            if (!inside.remove(size_t(0), true))
-            {
-                delete ctx;
-                return STATUS_CORRUPTED;
-            }
+            ctx = inside.at(i);
+            inside.set(i, NULL);
 
             TRACE_BREAK(ctx,
                 dump_triangle("Selected triangle", &t);
@@ -1480,6 +1476,7 @@ namespace mtest
                 return res;
             }
         }
+        destroy_tasks(inside);
 
         return STATUS_OK;
     }
@@ -1497,37 +1494,63 @@ namespace mtest
             if (!tasks.pop(&ctx))
                 return STATUS_CORRUPTED;
 
+            TRACE_SKIP(ctx,
+                delete ctx;
+                destroy_tasks(tasks);
+            );
+
             // Check that we need to perform a scan
             switch (ctx->state)
             {
                 case S_SCAN_SCENE:
-                    scan_scene(ctx);
+                    // Scan scene for intersections with objects
+                    res = scan_scene(ctx);
+                    if (res != STATUS_OK)
+                        break;
+
+                    // Change state and put to queue
                     ctx->state = S_CULL_FRONT;
+                    if (!tasks.push(ctx))
+                        res = STATUS_NO_MEM;
+                    else
+                        ctx = NULL;
                     break;
 
                 case S_CULL_FRONT:
                     res = cull_front(ctx);
                     if (res != STATUS_OK)
                         break;
-                    if (ctx->source.size() == 1)
+
+                    if (ctx->source.size() <= 1)
                     {
                         bool success = (ctx->source.size() > 0) ?
                                 (ctx->global->matched.add(ctx->source.get(0)) != NULL) : true;
-                        delete ctx;
-                        ctx = NULL;
                         if (!success)
-                            return STATUS_NO_MEM;
-                        continue;
+                        {
+                            res = STATUS_NO_MEM;
+                            break;
+                        }
                     }
-                    ctx->state = S_CULL_BACK;
+                    else
+                    {
+                        // Update state and return task to queue
+                        ctx->state = S_CULL_BACK;
+
+                        if (!tasks.push(ctx))
+                            res = STATUS_NO_MEM;
+                        else
+                            ctx = NULL;
+                    }
                     break;
 
                 case S_CULL_BACK:
 #if 1
+                    // This function will automatically manage context instance
+                    // when execution result is successful
                     res = cull_back(tasks, ctx);
+                    ctx = NULL;
                     if (res != STATUS_OK)
                         break;
-                    ctx = NULL;
 #else
                     // TODO: replace this stub with back-culling algorithm
                     if (!ctx->traced->add_all(&ctx->source))
@@ -1539,24 +1562,13 @@ namespace mtest
                     break;
             }
 
+            // Delete context if present
+            if (ctx != NULL)
+                delete ctx;
+
             // Analyze status
             if (res != STATUS_OK)
-            {
-                if (ctx != NULL)
-                    delete ctx;
                 break;
-            }
-
-            // Post-process context state
-            if (ctx == NULL)
-                continue;
-            else if (ctx->source.size() <= 0)
-                delete ctx;
-            else if (!tasks.push(ctx))
-            {
-                delete ctx;
-                return STATUS_NO_MEM;
-            }
         }
 
         return res;
@@ -1578,7 +1590,7 @@ MTEST_BEGIN("3d", reflections)
             {
                 pScene = scene;
                 bBoundBoxes = true;
-                nTrace = -1;
+                nTrace = 0; //-1;
 
                 dsp::init_point_xyz(&sFront.p[0], 0.0f, 1.0f, 0.0f);
                 dsp::init_point_xyz(&sFront.p[1], -1.0f, -0.5f, 0.0f);

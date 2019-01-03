@@ -90,7 +90,7 @@ PROFILE_ID             := $(ARTIFACT_ID)-profile-$(VERSION)
 SRC_ID                 := $(ARTIFACT_ID)-src-$(VERSION)
 DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 
-.PHONY: all experimental trace debug tracefile debugfile profile gdb test compile 
+.PHONY: all experimental trace debug tracefile debugfile profile gdb test testdebug compile 
 .PHONY: install install_ladspa install_lv2 install_vst install_jack install_doc
 .PHONY: uninstall uninstall_ladspa uninstall_lv2 uninstall_vst uninstall_jack uninstall_doc
 .PHONY: release release_ladspa release_lv2 release_vst release_jack release_doc release_src
@@ -112,6 +112,11 @@ test: export CFLAGS         += -O2 -DLSP_TESTING -DLSP_TRACE -g3
 test: export EXE_TEST_FLAGS += -g3
 test: export MAKE_OPTS      += LSP_TESTING=1
 test: compile
+
+testdebug: export CFLAGS         += -O0 -DLSP_TESTING -DLSP_TRACE -g3
+testdebug: export EXE_TEST_FLAGS += -g3
+testdebug: export MAKE_OPTS      += LSP_TESTING=1
+testdebug: compile
 
 tracefile: export CFLAGS    += -DLSP_TRACEFILE
 tracefile: trace

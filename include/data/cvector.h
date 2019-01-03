@@ -164,7 +164,7 @@ namespace lsp
                 void *p = pvItems[--nItems];
                 if (ptr != NULL)
                     *ptr = p;
-                pvItems[nItems+1] = NULL;
+                pvItems[nItems] = NULL; // Replace with NULL
                 return true;
             }
 
@@ -173,7 +173,7 @@ namespace lsp
                 if (nItems <= 0)
                     return false;
 
-                pvItems[nItems--] = NULL;
+                pvItems[--nItems] = NULL;
                 return true;
             }
 
