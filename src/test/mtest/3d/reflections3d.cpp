@@ -172,6 +172,26 @@ namespace mtest
         v->dw       = - ( v->dx * p[0].x + v->dy * p[0].y + v->dz * p[0].z); // Parameter for the plane equation
     }
 
+    static bool check_triangle(const v_triangle3d_t *t)
+    {
+        vector3d_t d[3];
+        d[0].dx     = t->p[1].x - t->p[0].x;
+        d[0].dy     = t->p[1].y - t->p[0].y;
+        d[0].dz     = t->p[1].z - t->p[0].z;
+
+        d[1].dx     = t->p[2].x - t->p[0].x;
+        d[1].dy     = t->p[2].y - t->p[0].y;
+        d[1].dz     = t->p[2].z - t->p[0].z;
+
+        d[2].dx     = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+        d[2].dy     = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
+        d[2].dz     = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+
+        float w     = d[2].dx*d[2].dx + d[2].dy*d[2].dy + d[2].dz+d[2].dz;
+
+        return w > DSP_3D_TOLERANCE;
+    }
+
     /**
      * Split triangle with plane, generates output set of triangles into out (triangles above split plane)
      * and in (triangles below split plane). For every triangle, points 1 and 2 are the points that
@@ -210,19 +230,26 @@ namespace mtest
         k[1]    = pl->dx*p[1].x + pl->dy*p[1].y + pl->dz*p[1].z + pl->dw;
         k[2]    = pl->dx*p[2].x + pl->dy*p[2].y + pl->dz*p[2].z + pl->dw;
 
+        // Patch location of points relative to the split plane
+        if ((k[0] >= -DSP_3D_TOLERANCE) && (k[0] <= DSP_3D_TOLERANCE))
+            k[0]    = 0.0f;
+        if ((k[1] >= -DSP_3D_TOLERANCE) && (k[1] <= DSP_3D_TOLERANCE))
+            k[1]    = 0.0f;
+        if ((k[2] >= -DSP_3D_TOLERANCE) && (k[2] <= DSP_3D_TOLERANCE))
+            k[2]    = 0.0f;
+
         // Check that the whole triangle lies above the plane or below the plane
         if (k[0] < 0.0f)
         {
             if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
             {
-                in[0].p[0]      = p[0];
-                in[0].p[1]      = p[1];
-                in[0].p[2]      = p[2];
-
-                in[0].n[0]      = pv->n[0];
-                in[0].n[1]      = pv->n[1];
-                in[0].n[2]      = pv->n[2];
-                *n_in          += 1;
+                in->p[0]        = p[0];
+                in->p[1]        = p[1];
+                in->p[2]        = p[2];
+                in->n[0]        = pv->n[0];
+                in->n[1]        = pv->n[1];
+                in->n[2]        = pv->n[2];
+                ++*n_in;
                 return;
             }
         }
@@ -230,15 +257,13 @@ namespace mtest
         {
             if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
             {
-                out[0].p[0]     = p[0];
-                out[0].p[1]     = p[1];
-                out[0].p[2]     = p[2];
-
-                out[0].n[0]     = pv->n[0];
-                out[0].n[1]     = pv->n[1];
-                out[0].n[2]     = pv->n[2];
-
-                *n_out         += 1;
+                out->p[0]       = p[0];
+                out->p[1]       = p[1];
+                out->p[2]       = p[2];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
+                ++*n_out;
                 return;
             }
         }
@@ -246,28 +271,24 @@ namespace mtest
         {
             if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
             {
-                out[0].p[0]     = p[0];
-                out[0].p[1]     = p[1];
-                out[0].p[2]     = p[2];
-
-                out[0].n[0]     = pv->n[0];
-                out[0].n[1]     = pv->n[1];
-                out[0].n[2]     = pv->n[2];
-
-                *n_out         += 1;
+                out->p[0]       = p[0];
+                out->p[1]       = p[1];
+                out->p[2]       = p[2];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
+                ++*n_out;
                 return;
             }
             else if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
             {
-                in[0].p[0]      = p[0];
-                in[0].p[1]      = p[1];
-                in[0].p[2]      = p[2];
-
-                in[0].n[0]      = pv->n[0];
-                in[0].n[1]      = pv->n[1];
-                in[0].n[2]      = pv->n[2];
-
-                *n_in          += 1;
+                in->p[0]        = p[0];
+                in->p[1]        = p[1];
+                in->p[2]        = p[2];
+                in->n[0]        = pv->n[0];
+                in->n[1]        = pv->n[1];
+                in->n[2]        = pv->n[2];
+                ++*n_in;
                 return;
             }
         }
@@ -333,31 +354,41 @@ namespace mtest
 //                    );
 
                 // 1 triangle above plane, 2 below
-                out[0].p[0]     = p[0];
-                out[0].p[1]     = sp[0];
-                out[0].p[2]     = sp[1];
+                out->p[0]       = p[0];
+                out->p[1]       = sp[0];
+                out->p[2]       = sp[1];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
 
-                out[0].n[0]     = pv->n[0];
-                out[0].n[1]     = pv->n[1];
-                out[0].n[2]     = pv->n[2];
+                if (check_triangle(out))
+                {
+                    ++*n_out;
+                    ++out;
+                }
 
-                *n_out         += 1;
+                in->p[0]        = p[1];
+                in->p[1]        = sp[1];
+                in->p[2]        = sp[0];
+                in->n[0]        = pv->n[0];
+                in->n[1]        = pv->n[1];
+                in->n[2]        = pv->n[2];
 
-                in[0].p[0]      = p[1];
-                in[0].p[1]      = sp[1];
-                in[0].p[2]      = sp[0];
-                in[1].p[0]      = p[2];
-                in[1].p[1]      = sp[1];
-                in[1].p[2]      = p[1];
+                if (check_triangle(in))
+                {
+                    ++*n_in;
+                    ++in;
+                }
 
-                in[0].n[0]      = pv->n[0];
-                in[0].n[1]      = pv->n[1];
-                in[0].n[2]      = pv->n[2];
-                in[1].n[0]      = pv->n[0];
-                in[1].n[1]      = pv->n[1];
-                in[1].n[2]      = pv->n[2];
+                in->p[0]        = p[2];
+                in->p[1]        = sp[1];
+                in->p[2]        = p[1];
+                in->n[0]        = pv->n[0];
+                in->n[1]        = pv->n[1];
+                in->n[2]        = pv->n[2];
 
-                *n_in          += 2;
+                if (check_triangle(in))
+                    ++*n_in;
             }
             else if (k[2] > 0.0f) // (k[1] < 0) && (k[2] > 0)
             {
@@ -377,53 +408,64 @@ namespace mtest
 //                    );
 
                 // 2 triangles above plane, 1 below
-                out[0].p[0]     = p[2];
-                out[0].p[1]     = sp[0];
-                out[0].p[2]     = sp[1];
-                out[1].p[0]     = p[0];
-                out[1].p[1]     = sp[0];
-                out[1].p[2]     = p[2];
+                out->p[0]       = p[2];
+                out->p[1]       = sp[0];
+                out->p[2]       = sp[1];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
 
-                out[0].n[0]     = pv->n[0];
-                out[0].n[1]     = pv->n[1];
-                out[0].n[2]     = pv->n[2];
-                out[1].n[0]     = pv->n[0];
-                out[1].n[1]     = pv->n[1];
-                out[1].n[2]     = pv->n[2];
+                if (check_triangle(out))
+                {
+                    ++*n_out;
+                    ++out;
+                }
 
-                *n_out         += 2;
+                out->p[0]       = p[0];
+                out->p[1]       = sp[0];
+                out->p[2]       = p[2];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
 
-                in[0].p[0]      = p[1];
-                in[0].p[1]      = sp[1];
-                in[0].p[2]      = sp[0];
+                if (check_triangle(out))
+                {
+                    ++*n_out;
+                    ++out;
+                }
 
-                in[0].n[0]      = pv->n[0];
-                in[0].n[1]      = pv->n[1];
-                in[0].n[2]      = pv->n[2];
+                in->p[0]        = p[1];
+                in->p[1]        = sp[1];
+                in->p[2]        = sp[0];
+                in->n[0]        = pv->n[0];
+                in->n[1]        = pv->n[1];
+                in->n[2]        = pv->n[2];
 
-                *n_in          += 1;
+                if (check_triangle(in))
+                    ++*n_in;
             }
             else // (k[1] < 0) && (k[2] == 0)
             {
                 // 1 triangle above plane, 1 below
-                out[0].p[0]     = p[0];
-                out[0].p[1]     = sp[0];
-                out[0].p[2]     = p[2];
+                out->p[0]       = p[0];
+                out->p[1]       = sp[0];
+                out->p[2]       = p[2];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
 
-                out[0].n[0]     = pv->n[0];
-                out[0].n[1]     = pv->n[1];
-                out[0].n[2]     = pv->n[2];
-                *n_out         += 1;
+                if (check_triangle(out))
+                    ++*n_out;
 
-                in[0].p[0]      = p[1];
-                in[0].p[1]      = p[2];
-                in[0].p[2]      = sp[0];
+                in->p[0]        = p[1];
+                in->p[1]        = p[2];
+                in->p[2]        = sp[0];
+                in->n[0]        = pv->n[0];
+                in->n[1]        = pv->n[1];
+                in->n[2]        = pv->n[2];
 
-                in[0].n[0]      = pv->n[0];
-                in[0].n[1]      = pv->n[1];
-                in[0].n[2]      = pv->n[2];
-
-                *n_in          += 1;
+                if (check_triangle(in))
+                    ++*n_in;
             }
         }
         else // (k[1] >= 0) && (k[2] < 0)
@@ -461,54 +503,61 @@ namespace mtest
 //                    );
 
                 // 2 triangles above plane, 1 below
-                out[0].p[0]     = p[0];
-                out[0].p[1]     = sp[1];
-                out[0].p[2]     = sp[0];
-                out[1].p[0]     = p[1];
-                out[1].p[1]     = sp[1];
-                out[1].p[2]     = p[0];
+                out->p[0]       = p[0];
+                out->p[1]       = sp[1];
+                out->p[2]       = sp[0];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
 
-                out[0].n[0]     = pv->n[0];
-                out[0].n[1]     = pv->n[1];
-                out[0].n[2]     = pv->n[2];
-                out[1].n[0]     = pv->n[0];
-                out[1].n[1]     = pv->n[1];
-                out[1].n[2]     = pv->n[2];
+                if (check_triangle(out))
+                {
+                    ++*n_out;
+                    ++out;
+                }
 
-                *n_out         += 2;
+                out->p[0]       = p[1];
+                out->p[1]       = sp[1];
+                out->p[2]       = p[0];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
 
-                in[0].p[0]      = p[2];
-                in[0].p[1]      = sp[0];
-                in[0].p[2]      = sp[1];
+                if (check_triangle(out))
+                    ++*n_out;
 
-                in[0].n[0]      = pv->n[0];
-                in[0].n[1]      = pv->n[1];
-                in[0].n[2]      = pv->n[2];
+                in->p[0]        = p[2];
+                in->p[1]        = sp[0];
+                in->p[2]        = sp[1];
+                in->n[0]        = pv->n[0];
+                in->n[1]        = pv->n[1];
+                in->n[2]        = pv->n[2];
 
-                *n_in          += 1;
+                if (check_triangle(in))
+                    ++*n_in;
             }
             else // (k[1] == 0) && (k[2] < 0)
             {
                 // 1 triangle above plane, 1 triangle below plane
-                out[0].p[0]     = p[0];
-                out[0].p[1]     = p[1];
-                out[0].p[2]     = sp[0];
+                out->p[0]       = p[0];
+                out->p[1]       = p[1];
+                out->p[2]       = sp[0];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
 
-                out[0].n[0]     = pv->n[0];
-                out[0].n[1]     = pv->n[1];
-                out[0].n[2]     = pv->n[2];
+                if (check_triangle(out))
+                    ++*n_out;
 
-                *n_out         += 1;
+                in->p[0]        = p[2];
+                in->p[1]        = sp[0];
+                in->p[2]        = p[1];
+                in->n[0]        = pv->n[0];
+                in->n[1]        = pv->n[1];
+                in->n[2]        = pv->n[2];
 
-                in[0].p[0]      = p[2];
-                in[0].p[1]      = sp[0];
-                in[0].p[2]      = p[1];
-
-                in[0].n[0]      = pv->n[0];
-                in[0].n[1]      = pv->n[1];
-                in[0].n[2]      = pv->n[2];
-
-                *n_in          += 1;
+                if (check_triangle(in))
+                    ++*n_in;
             }
         }
     }
@@ -1549,16 +1598,11 @@ namespace mtest
                     // when execution result is successful
                     res = cull_back(tasks, ctx);
                     ctx = NULL;
-                    if (res != STATUS_OK)
-                        break;
 #else
                     // TODO: replace this stub with back-culling algorithm
-                    if (!ctx->traced->add_all(&ctx->source))
+                    if (!ctx->global->traced.add_all(&ctx->source))
                         return STATUS_NO_MEM;
-                    delete ctx;
-                    ctx = NULL;
 #endif
-
                     break;
             }
 
@@ -1590,7 +1634,7 @@ MTEST_BEGIN("3d", reflections)
             {
                 pScene = scene;
                 bBoundBoxes = true;
-                nTrace = 0; //-1;
+                nTrace = -1;
 
                 dsp::init_point_xyz(&sFront.p[0], 0.0f, 1.0f, 0.0f);
                 dsp::init_point_xyz(&sFront.p[1], -1.0f, -0.5f, 0.0f);
