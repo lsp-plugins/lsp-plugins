@@ -1368,8 +1368,8 @@ namespace mtest
 
     static status_t cull_back(cvector<context_t> &tasks, context_t *ctx)
     {
-        v_triangle3d_t pt[5];
-        vector3d_t pl[5];
+        v_triangle3d_t pt[4];
+        vector3d_t pl[4];
         v_triangle3d_t t;
 
         // STEP
@@ -1377,8 +1377,8 @@ namespace mtest
             delete ctx;
         );
 
-        calc_plane_vector_pv(&pl[4], ctx->front.p);
-        init_triangle_pv(&pt[4], ctx->front.p);
+//        calc_plane_vector_pv(&pl[4], ctx->front.p);
+//        init_triangle_pv(&pt[4], ctx->front.p);
 
         TRACE_BREAK(ctx,
             lsp_trace("Source triangles (%d):", int(ctx->source.size()));
@@ -1414,46 +1414,38 @@ namespace mtest
 
             // Compute culling planes
             calc_plane_vector_p3(&pl[3], &t.p[0], &t.p[1], &t.p[2]);
-            init_triangle_p3(&pt[3], &t.p[0], &t.p[1], &t.p[2], &pl[3]);
 
-            // Re-arrange normals if it is required
-            float a = (pl[3].dx * pl[4].dx + pl[3].dy * pl[4].dy + pl[3].dz * pl[4].dz);
-            if (a > 0.0f) // Normals of projection plane and culling plane have same directions
+            // Analyze position
+            float a = (pl[3].dx * ctx->front.s.x + pl[3].dy * ctx->front.s.y + pl[3].dz * ctx->front.s.z + pl[3].dw);
+            if (a == 0.0f)
             {
-                // compute plane equations
-                if (ctx->source.size() > 0)
-                {
-                    calc_plane_vector_p3(&pl[0], &ctx->front.s, &t.p[0], &t.p[1]);
-                    calc_plane_vector_p3(&pl[1], &ctx->front.s, &t.p[1], &t.p[2]);
-                    calc_plane_vector_p3(&pl[2], &ctx->front.s, &t.p[2], &t.p[0]);
-
-                    init_triangle_p3(&pt[0], &ctx->front.s, &t.p[0], &t.p[1], &pl[0]);
-                    init_triangle_p3(&pt[1], &ctx->front.s, &t.p[1], &t.p[2], &pl[1]);
-                    init_triangle_p3(&pt[2], &ctx->front.s, &t.p[2], &t.p[0], &pl[2]);
-                }
-                break;
+                dump_triangle("Skipping triangle", &t);
+                continue;
             }
-            else if (a < 0.0f) // Normals of projection plane and culling plane have opposite directions
-            {
-                flip_plane(&pl[3]);
-                // compute plane equations
-                if (ctx->source.size() > 0)
-                {
-                    calc_plane_vector_p3(&pl[0], &ctx->front.s, &t.p[1], &t.p[0]);
-                    calc_plane_vector_p3(&pl[1], &ctx->front.s, &t.p[2], &t.p[1]);
-                    calc_plane_vector_p3(&pl[2], &ctx->front.s, &t.p[0], &t.p[2]);
 
-                    init_triangle_p3(&pt[0], &ctx->front.s, &t.p[1], &t.p[0], &pl[0]);
-                    init_triangle_p3(&pt[1], &ctx->front.s, &t.p[2], &t.p[1], &pl[1]);
-                    init_triangle_p3(&pt[2], &ctx->front.s, &t.p[0], &t.p[2], &pl[2]);
-                }
-                break;
+            // Normals of projection plane and culling plane have same directions
+            // patch plane equations if needed
+            if (a < 0.0f)
+            {
+                calc_plane_vector_p3(&pl[0], &ctx->front.s, &t.p[1], &t.p[0]);
+                calc_plane_vector_p3(&pl[1], &ctx->front.s, &t.p[2], &t.p[1]);
+                calc_plane_vector_p3(&pl[2], &ctx->front.s, &t.p[0], &t.p[2]);
+                flip_plane(&pl[3]);
             }
             else
             {
-                dump_triangle("Skipping triangle", &t);
+                calc_plane_vector_p3(&pl[0], &ctx->front.s, &t.p[0], &t.p[1]);
+                calc_plane_vector_p3(&pl[1], &ctx->front.s, &t.p[1], &t.p[2]);
+                calc_plane_vector_p3(&pl[2], &ctx->front.s, &t.p[2], &t.p[0]);
             }
+
+            break;
         }
+
+        init_triangle_p3(&pt[0], &ctx->front.s, &t.p[0], &t.p[1], &pl[0]);
+        init_triangle_p3(&pt[1], &ctx->front.s, &t.p[1], &t.p[2], &pl[1]);
+        init_triangle_p3(&pt[2], &ctx->front.s, &t.p[2], &t.p[0], &pl[2]);
+        init_triangle_p3(&pt[3], &t.p[0], &t.p[1], &t.p[2], &pl[3]);
 
         TRACE_BREAK(ctx,
             dump_triangle("Selected triangle", &t);
