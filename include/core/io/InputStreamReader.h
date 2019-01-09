@@ -8,6 +8,7 @@
 #ifndef CORE_IO_INPUTSTREAMREADER_H_
 #define CORE_IO_INPUTSTREAMREADER_H_
 
+#include <core/io/charset.h>
 #include <core/io/IInputStream.h>
 #include <core/io/Reader.h>
 
@@ -27,8 +28,12 @@ namespace lsp
                 IInputStream   *pIS;
                 bool            bClose;
                 status_t        nError;
-                iconv_t         hIconv;
                 LSPString       sLine;
+#if defined(PLATFORM_WINDOWS)
+                UINT            nCodePage;
+#else
+                iconv_t         hIconv;
+#endif /* PLATFORM_WINDOWS */
 
             protected:
                 void            do_destroy();

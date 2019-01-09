@@ -31,7 +31,11 @@ namespace lsp
             pFD         = NULL;
             nError      = STATUS_OK;
             bClose      = false;
-            hIconv      = iconv_t(-1);
+            #if defined(PLATFORM_WINDOWS)
+                nCodePage   = UINT(-1);
+            #else
+                hIconv      = iconv_t(-1);
+            #endif /* PLATFORM_WINDOWS */
         }
 
         FileReader::~FileReader()
@@ -48,11 +52,15 @@ namespace lsp
             }
             if (bBuf != NULL)
                 free(bBuf);
-            if (hIconv != iconv_t(-1))
-            {
-                iconv_close(hIconv);
-                hIconv      = iconv_t(-1);
-            }
+            #if defined(PLATFORM_WINDOWS)
+                nCodePage   = UINT(-1);
+            #else
+                if (hIconv != iconv_t(-1))
+                {
+                    iconv_close(hIconv);
+                    hIconv      = iconv_t(-1);
+                }
+            #endif /* PLATFORM_WINDOWS */
             bBuf        = NULL;
             cBuf        = NULL;
             bClose      = false;
@@ -89,12 +97,22 @@ namespace lsp
                 return res;
             }
 
-            hIconv      = init_iconv_to_wchar_t(charset);
-            if (hIconv == iconv_t(-1))
-            {
-                do_destroy();
-                return STATUS_BAD_LOCALE;
-            }
+            #if defined(PLATFORM_WINDOWS)
+                ssize_t cp  = codepage_from_name(charset);
+                if (cp < 0)
+                {
+                    do_destroy();
+                    return STATUS_BAD_LOCALE;
+                }
+                nCodePage   = cp;
+            #else
+                hIconv      = init_iconv_from_wchar_t(charset);
+                if (hIconv == iconv_t(-1))
+                {
+                    do_destroy();
+                    return STATUS_BAD_LOCALE;
+                }
+            #endif /* PLATFORM_WINDOWS */
 
             pFD         = fd;
             bClose      = close;
@@ -169,22 +187,58 @@ namespace lsp
                 // Do the conversion
                 size_t xb_left  = left;
                 size_t xc_left  = c_left;
-                char *inbuf     = reinterpret_cast<char *>(&bBuf[bBufPos]);
-                char *outbuf    = reinterpret_cast<char *>(&cBuf[cBufSize]);
-                size_t nconv    = iconv(hIconv, &inbuf, &xb_left, &outbuf, &xc_left);
 
-                if (nconv == size_t(-1))
-                {
-                    int code = errno;
-                    switch (code)
+                #if defined(PLATFORM_WINDOWS)
+                    CHAR *inbuf     = reinterpret_cast<CHAR *>(&bBuf[bBufPos]);
+                    WCHAR *outbuf   = reinterpret_cast<WCHAR *>(&cBuf[cBufSize]);
+
+                    ssize_t nchars  = MultiByteToWideChar(nCodePage, 0, inbuf, xb_left, outbuf, c_left);
+                    if (nchars == 0)
                     {
-                        case E2BIG:
-                        case EINVAL:
-                            break;
-                        default:
-                            return nError = STATUS_BAD_FORMAT;
+                        switch (GetLastError())
+                        {
+                            case ERROR_INSUFFICIENT_BUFFER:
+                                return STATUS_NO_MEM;
+                            case ERROR_INVALID_FLAGS:
+                            case ERROR_INVALID_PARAMETER:
+                                return STATUS_BAD_STATE;
+                            case ERROR_NO_UNICODE_TRANSLATION:
+                                return STATUS_BAD_LOCALE;
+                            default:
+                                return STATUS_UNKNOWN_ERR;
+                        }
                     }
-                }
+
+                    // If function meets invalid sequence, it replaces the codepoint with such magic value
+                    // We should know if function has failed
+                    if (outbuf[nchars-1] == 0xfffd)
+                        --nchars;
+
+                    // Estimate number of bytes decoded (yep, this is dumb but no way...)
+                    ssize_t nbytes = WideCharToMultiByte(nCodePage, 0, outbuf, nchars, NULL, 0, 0, 0);
+                    if ((nbytes <= 0) || (nbytes > ssize_t(xb_left)))
+                        return STATUS_IO_ERROR;
+
+                    xc_left        -= nchars;
+                    xb_left        -= nbytes;
+                #else
+                    char *inbuf     = reinterpret_cast<char *>(&bBuf[bBufPos]);
+                    char *outbuf    = reinterpret_cast<char *>(&cBuf[cBufSize]);
+                    size_t nconv    = iconv(hIconv, &inbuf, &xb_left, &outbuf, &xc_left);
+
+                    if (nconv == size_t(-1))
+                    {
+                        int code = errno;
+                        switch (code)
+                        {
+                            case E2BIG:
+                            case EINVAL:
+                                break;
+                            default:
+                                return nError = STATUS_BAD_FORMAT;
+                        }
+                    }
+                #endif /* PLATFORM_WINDOWS */
 
                 // Update state of buffers
                 cBufSize       += (c_left - xc_left) / sizeof(lsp_wchar_t);
