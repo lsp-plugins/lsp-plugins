@@ -102,15 +102,15 @@ namespace mtest
         v->dw   = - v->dw;
     }
 
-    static void init_triangle_pv(v_triangle3d_t *t, const point3d_t *pv)
-    {
-        t->p[0] = pv[0];
-        t->p[1] = pv[1];
-        t->p[2] = pv[2];
-        dsp::calc_normal3d_pv(&t->n[0], pv);
-        t->n[1] = t->n[0];
-        t->n[2] = t->n[0];
-    }
+//    static void init_triangle_pv(v_triangle3d_t *t, const point3d_t *pv)
+//    {
+//        t->p[0] = pv[0];
+//        t->p[1] = pv[1];
+//        t->p[2] = pv[2];
+//        dsp::calc_normal3d_pv(&t->n[0], pv);
+//        t->n[1] = t->n[0];
+//        t->n[2] = t->n[0];
+//    }
 
     static void init_triangle_p3(v_triangle3d_t *t, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2, const vector3d_t *n)
     {
@@ -162,30 +162,30 @@ namespace mtest
         v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
     }
 
-    static void calc_plane_vector_pv(vector3d_t *v, const point3d_t *p)
-    {
-        // Calculate edge parameters
-        vector3d_t d[2];
-        d[0].dx     = p[1].x - p[0].x;
-        d[0].dy     = p[1].y - p[0].y;
-        d[0].dz     = p[1].z - p[0].z;
-        d[0].dw     = p[1].w - p[0].w;
-
-        d[1].dx     = p[2].x - p[1].x;
-        d[1].dy     = p[2].y - p[1].y;
-        d[1].dz     = p[2].z - p[1].z;
-        d[1].dw     = p[2].w - p[1].w;
-
-        // Do vector multiplication to calculate the normal vector
-        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
-        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
-        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
-        v->dw       = 0.0f;
-
-        dsp::normalize_vector(v);
-
-        v->dw       = - ( v->dx * p[0].x + v->dy * p[0].y + v->dz * p[0].z); // Parameter for the plane equation
-    }
+//    static void calc_plane_vector_pv(vector3d_t *v, const point3d_t *p)
+//    {
+//        // Calculate edge parameters
+//        vector3d_t d[2];
+//        d[0].dx     = p[1].x - p[0].x;
+//        d[0].dy     = p[1].y - p[0].y;
+//        d[0].dz     = p[1].z - p[0].z;
+//        d[0].dw     = p[1].w - p[0].w;
+//
+//        d[1].dx     = p[2].x - p[1].x;
+//        d[1].dy     = p[2].y - p[1].y;
+//        d[1].dz     = p[2].z - p[1].z;
+//        d[1].dw     = p[2].w - p[1].w;
+//
+//        // Do vector multiplication to calculate the normal vector
+//        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+//        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
+//        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+//        v->dw       = 0.0f;
+//
+//        dsp::normalize_vector(v);
+//
+//        v->dw       = - ( v->dx * p[0].x + v->dy * p[0].y + v->dz * p[0].z); // Parameter for the plane equation
+//    }
 
     static bool check_triangle(const v_triangle3d_t *t)
     {
@@ -202,7 +202,7 @@ namespace mtest
         d[2].dy     = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
         d[2].dz     = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
 
-        float w     = d[2].dx*d[2].dx + d[2].dy*d[2].dy + d[2].dz+d[2].dz;
+        float w     = d[2].dx*d[2].dx + d[2].dy*d[2].dy + d[2].dz*d[2].dz;
 
         return w > DSP_3D_TOLERANCE;
     }
@@ -972,7 +972,7 @@ namespace mtest
             delete ctx;
             return STATUS_NO_MEM;
         }
-        else if (n_in <= 0) // There are no triangle inside
+        else if (n_in <= 0) // There are no triangles inside
         {
             TRACE_BREAK(ctx,
                 lsp_trace("All triangles are OUT, moving context to OUT TASKS");
@@ -1377,9 +1377,6 @@ namespace mtest
             delete ctx;
         );
 
-//        calc_plane_vector_pv(&pl[4], ctx->front.p);
-//        init_triangle_pv(&pt[4], ctx->front.p);
-
         TRACE_BREAK(ctx,
             lsp_trace("Source triangles (%d):", int(ctx->source.size()));
             for (size_t i=0, n=ctx->source.size(); i<n; ++i)
@@ -1409,17 +1406,21 @@ namespace mtest
             else if (!ctx->source.remove(0, &t))
                 return STATUS_UNKNOWN_ERR;
 
-            if ((ctx->global->breakpoint >= 0) && (ctx->global->step == 18))
-                lsp_trace("debug");
-
-            // Compute culling planes
-            calc_plane_vector_p3(&pl[3], &t.p[0], &t.p[1], &t.p[2]);
+//            // Skip very small triangles
+//            if (!check_triangle(&t))
+//            {
+//                if (!ctx->global->ignored.add(&t))
+//                        return STATUS_NO_MEM;
+//                dump_triangle("Skipping triangle (too small)", &t);
+//                continue;
+//            }
 
             // Analyze position
+            calc_plane_vector_p3(&pl[3], &t.p[0], &t.p[1], &t.p[2]); // Compute culling plane
             float a = (pl[3].dx * ctx->front.s.x + pl[3].dy * ctx->front.s.y + pl[3].dz * ctx->front.s.z + pl[3].dw);
             if (a == 0.0f)
             {
-                dump_triangle("Skipping triangle", &t);
+                dump_triangle("Skipping triangle (perpendicular to point-of-view)", &t);
                 continue;
             }
 
@@ -1599,6 +1600,14 @@ namespace mtest
                     res = cull_front(ctx);
                     if (res != STATUS_OK)
                         break;
+
+                    TRACE_BREAK(ctx,
+                        lsp_trace("State after culled data");
+                        for (size_t i=0, n=ctx->source.size(); i<n; ++i)
+                            ctx->global->matched.add(ctx->source.get(i));
+                        delete ctx;
+                        ctx = NULL;
+                    );
 
                     if (ctx->source.size() <= 1)
                     {
