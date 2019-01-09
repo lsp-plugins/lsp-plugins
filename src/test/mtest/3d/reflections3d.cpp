@@ -1417,7 +1417,7 @@ namespace mtest
             init_triangle_p3(&pt[3], &t.p[0], &t.p[1], &t.p[2], &pl[3]);
 
             // Re-arrange normals if it is required
-            float a = (pl[3].dx * pl[4].dx + pl[3].dy * pl[4].dy + pl[3].dz * pl[4].dz + pl[3].dw * pl[4].dw);
+            float a = (pl[3].dx * pl[4].dx + pl[3].dy * pl[4].dy + pl[3].dz * pl[4].dz);
             if (a > 0.0f) // Normals of projection plane and culling plane have same directions
             {
                 // compute plane equations
