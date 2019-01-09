@@ -231,6 +231,9 @@ namespace lsp
         class cvector: public basic_vector
         {
             public:
+                explicit inline cvector() {}
+
+            public:
                 inline bool add(T *item) { return basic_vector::add_item(item); }
 
                 inline bool push(T *item) { return basic_vector::add_item(item); }

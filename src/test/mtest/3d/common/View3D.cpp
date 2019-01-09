@@ -102,9 +102,15 @@ namespace mtest
 
     bool View3D::add_plane_pv1c(const point3d_t *t, const color3d_t *c)
     {
+        v_ray3d_t *r = vRays.append();
+        if (r == NULL)
+            return false;
         v_segment3d_t *v = vSegments.append_n(6);
         if (v == NULL)
+        {
+            vRays.remove_last();
             return false;
+        }
 
         v[0].p[0]   = t[0];
         v[1].p[0]   = t[1];
@@ -142,6 +148,15 @@ namespace mtest
         v[3].c      = *c;
         v[4].c      = *c;
         v[5].c      = *c;
+
+        r->p.x      = (t[0].x + t[1].x + t[2].x)/ 3.0f;
+        r->p.y      = (t[0].y + t[1].y + t[2].y)/ 3.0f;
+        r->p.z      = (t[0].z + t[1].z + t[2].z)/ 3.0f;
+        r->p.w      = 1.0f;
+
+        r->c        = *c;
+
+        dsp::calc_normal3d_pv(&r->v, t);
 
         return true;
     }
