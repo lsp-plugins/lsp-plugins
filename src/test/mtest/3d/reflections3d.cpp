@@ -77,6 +77,41 @@ namespace mtest
         global_context_t           *global;     // Global state
     } context_t;
 
+    static inline void dump_triangle(const char *label, const v_triangle3d_t *t)
+    {
+        lsp_trace("%s: {\n"
+                "\t(%f, %f, %f),\n"
+                "\t(%f, %f, %f),\n"
+                "\t(%f, %f, %f)}\n",
+                label,
+                t->p[0].x, t->p[0].y, t->p[0].z,
+                t->p[1].x, t->p[1].y, t->p[1].z,
+                t->p[2].x, t->p[2].y, t->p[2].z
+           );
+    }
+
+    static inline void dump_context(const char *label, const context_t *ctx)
+    {
+        const wfront_t &f = ctx->front;
+
+        lsp_trace("%s: src_size=%d, front=["
+                "s={%f, %f, %f}, "
+                "p=[{%f, %f, %f}, {%f, %f, %f}, {%f, %f, %f}], "
+                "pv=[{%f, %f, %f}, {%f, %f, %f}, {%f, %f, %f}]"
+                "]",
+                label, int(ctx->source.size()),
+                f.s.x, f.s.y, f.s.z,
+
+                f.p[0].x, f.p[0].y, f.p[0].z,
+                f.p[1].x, f.p[1].y, f.p[1].z,
+                f.p[2].x, f.p[2].y, f.p[2].z,
+
+                f.p[1].x-f.p[0].x, f.p[1].y-f.p[0].y, f.p[1].z-f.p[0].z,
+                f.p[2].x-f.p[1].x, f.p[2].y-f.p[1].y, f.p[2].z-f.p[1].z,
+                f.p[0].x-f.p[2].x, f.p[0].y-f.p[2].y, f.p[0].z-f.p[2].z
+                );
+    }
+
     static void destroy_tasks(cvector<context_t> &tasks)
     {
         for (size_t i=0, n=tasks.size(); i<n; ++i)
@@ -967,7 +1002,10 @@ namespace mtest
 
             // There's nothing to do, return back to the 'in' queue
             if (tin.add(ctx))
+            {
+                dump_context("added context to 'in'", ctx);
                 return STATUS_OK;
+            }
 
             delete ctx;
             return STATUS_NO_MEM;
@@ -983,7 +1021,10 @@ namespace mtest
 
             // There's nothing to do, return back to the 'out' queue
             if (tout.add(ctx))
+            {
+                dump_context("added context to 'out'", ctx);
                 return STATUS_OK;
+            }
 
             delete ctx;
             return STATUS_NO_MEM;
@@ -1199,6 +1240,13 @@ namespace mtest
             }
         }
 
+        dump_context("added context to 'in'", ctx);
+        dump_context("added context to 'out'", sctx1);
+        if (n_in == 2)
+            dump_context("added context to 'in'", sctx2);
+        else if (n_out == 2)
+            dump_context("added context to 'out'", sctx2);
+
         TRACE_BREAK(ctx,
             lsp_trace("End of view split, ctx is RED, sctx1 is GREEN, sctx2 is BLUE");
             ctx->global->view->add_triangle_pv1c(ctx->front.p, &C_RED);
@@ -1353,19 +1401,6 @@ namespace mtest
         return STATUS_OK;
     }
 
-    static inline void dump_triangle(const char *label, const v_triangle3d_t *t)
-    {
-        lsp_trace("%s: {\n"
-                "\t(%f, %f, %f),\n"
-                "\t(%f, %f, %f),\n"
-                "\t(%f, %f, %f)}\n",
-                label,
-                t->p[0].x, t->p[0].y, t->p[0].z,
-                t->p[1].x, t->p[1].y, t->p[1].z,
-                t->p[2].x, t->p[2].y, t->p[2].z
-           );
-    }
-
     static status_t cull_back(cvector<context_t> &tasks, context_t *ctx)
     {
         v_triangle3d_t pt[4];
@@ -1421,6 +1456,8 @@ namespace mtest
             if (a == 0.0f)
             {
                 dump_triangle("Skipping triangle (perpendicular to point-of-view)", &t);
+                if (!ctx->global->ignored.add(&t))
+                    return STATUS_NO_MEM;
                 continue;
             }
 
@@ -1632,16 +1669,10 @@ namespace mtest
                     break;
 
                 case S_CULL_BACK:
-#if 1
                     // This function will automatically manage context instance
                     // when execution result is successful
                     res = cull_back(tasks, ctx);
                     ctx = NULL;
-#else
-                    // TODO: replace this stub with back-culling algorithm
-                    if (!ctx->global->traced.add_all(&ctx->source))
-                        return STATUS_NO_MEM;
-#endif
                     break;
             }
 
