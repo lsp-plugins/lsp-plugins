@@ -497,10 +497,7 @@ namespace mtest
                 out->n[2]       = pv->n[2];
 
                 if (check_triangle(out))
-                {
                     ++*n_out;
-                    ++out;
-                }
 
                 in->p[0]        = p[1];
                 in->p[1]        = sp[1];
@@ -835,7 +832,11 @@ namespace mtest
                     // Put all triangles above the plane to out
                     // Put all triangles below the plane to in
                     for (size_t l=0; l < *n_q; ++l)
+                    {
                         split_triangle(out, &n_out, in, n_in, &pl[k], &q[l]);
+                        if ((n_out > 16) || ((*n_in) > 16))
+                            lsp_trace("split overflow: n_out=%d, n_in=%d", int(n_out), int(*n_in));
+                    }
 
                     // Interrupt cycle if there is no data to process
                     if ((*n_in <= 0) || ((++k) >= 4))
@@ -864,6 +865,7 @@ namespace mtest
 
     static status_t cull_front(context_t *ctx)
     {
+#if 0
         v_triangle3d_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
         size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
         vector3d_t pl[4];
@@ -896,8 +898,15 @@ namespace mtest
                 // Split all triangles:
                 // Put all triangles above the plane to out
                 // Put all triangles below the plane to in
+                if (*n_q >= 8)
+                    lsp_trace("split overflow: n_q=%d", int(*n_q));
+
                 for (size_t l=0; l < *n_q; ++l)
+                {
                     split_triangle(out, &n_out, in, n_in, &pl[k], &q[l]);
+                    if ((n_out > 16) || ((*n_in) > 16))
+                        lsp_trace("split overflow: n_out=%d, n_in=%d", int(n_out), int(*n_in));
+                }
 
                 // Interrupt cycle if there is no data to process
                 if ((*n_in <= 0) || ((++k) >= 4))
@@ -923,6 +932,49 @@ namespace mtest
                     return STATUS_NO_MEM;
             }
         }
+#else
+        /*
+
+         src_size=1, front=[s={0.000000, 0.000000, -0.750000},
+         p=[
+             {0.378978, -0.513494, -1.580061},
+             {0.453656, -0.486792, -1.562277},
+             {0.352607, -0.494265, -1.620808}
+         ], pv=[{0.074678, 0.026702, 0.017784}, {-0.101049, -0.007473, -0.058531}, {0.026372, -0.019229, 0.040747}]]
+
+        Planes:
+            Details:{{x = 0, y = 0, z = -0.75, w = 1}, {x = 0.506148219, y = -0.709491611, z = -2, w = 1}, {x = 0.652818084, y = -0.757707298, z = -2, w = 1}}
+            Details:{{x = 0, y = 0, z = -0.75, w = 1}, {x = 0.652818084, y = -0.757707298, z = -2, w = 1}, {x = 0.698123634, y = -0.749116242, z = -2, w = 1}}
+            Details:{{x = 0, y = 0, z = -0.75, w = 1}, {x = 0.698123634, y = -0.749116242, z = -2, w = 1}, {x = 0.506148219, y = -0.709491611, z = -2, w = 1}}
+            Details:{{x = 0.506148219, y = -0.709491611, z = -2, w = 1}, {x = 0.652818084, y = -0.757707298, z = -2, w = 1}, {x = 0.698123634, y = -0.749116242, z = -2, w = 1}}
+        Triangle:
+            Details:{{x = 0.506148219, y = -0.709491611, z = -2, w = 1}, {x = 0.570708156, y = -0.773277402, z = -2, w = 1}, {x = 0.652818084, y = -0.757707298, z = -2, w = 1}}
+         */
+
+        ctx->source.clear();
+
+        dsp::init_point_xyz(&ctx->front.s, 0.0f, 0.0f, -0.75f);
+        dsp::init_point_xyz(&ctx->front.p[0], 0.378978, -0.513494, -1.580061);
+        dsp::init_point_xyz(&ctx->front.p[1], 0.453656, -0.486792, -1.562277);
+        dsp::init_point_xyz(&ctx->front.p[2], 0.352607, -0.494265, -1.620808);
+
+        v_triangle3d_t t;
+        dsp::init_point_xyz(&t.p[0], 0.506148219, -0.709491611, -2.0);
+        dsp::init_point_xyz(&t.p[1], 0.652818084, -0.757707298, -2.0);
+        dsp::init_point_xyz(&t.p[2], 0.698123634, -0.749116242, -2.0);
+        dsp::calc_normal3d_pv(&t.n[0], t.p);
+        dsp::calc_normal3d_pv(&t.n[1], t.p);
+        dsp::calc_normal3d_pv(&t.n[2], t.p);
+        ctx->source.add(&t);
+
+        dsp::init_point_xyz(&t.p[0], 0.506148219, -0.709491611, -2.0);
+        dsp::init_point_xyz(&t.p[1], 0.570708156, -0.773277402, -2.0);
+        dsp::init_point_xyz(&t.p[2], 0.652818084, -0.757707298, -2.0);
+        dsp::calc_normal3d_pv(&t.n[0], t.p);
+        dsp::calc_normal3d_pv(&t.n[1], t.p);
+        dsp::calc_normal3d_pv(&t.n[2], t.p);
+        ctx->source.add(&t);
+#endif
 
         return STATUS_OK;
     }
@@ -976,8 +1028,10 @@ namespace mtest
         dsp::calc_normal3d_pv(&t.n[1], t.p);
         dsp::calc_normal3d_pv(&t.n[2], t.p);
 
-        n_out= 0, n_in = 0;
+        n_out = 0, n_in = 0;
         split_triangle(out, &n_out, in, &n_in, pl, &t);
+        if ((n_out > 2) || (n_in > 2))
+            lsp_trace("split overflow: n_out=%d, n_in=%d", int(n_out), int(n_in));
 
         TRACE_BREAK(ctx,
             lsp_trace("split performed into %d in triangles, %d out triangles", int(n_in), int(n_out));
@@ -1040,6 +1094,8 @@ namespace mtest
         {
             n_sin = 0, n_sout = 0;
             split_triangle(sout, &n_sout, sin, &n_sin, pl, source.at(i));
+            if ((n_sout > 2) || ((n_sin) > 2))
+                lsp_trace("split overflow: n_sout=%d, n_sin=%d", int(n_sout), int(n_sin));
 
             // Add generated triangles to target buffers
             for (size_t l=0; l < n_sout; ++l)
@@ -1145,6 +1201,8 @@ namespace mtest
                 {
                     n_sin = 0, n_sout = 0;
                     split_triangle(sout, &n_sout, sin, &n_sin, &npl, clipped.at(i));
+                    if ((n_sout > 2) || ((n_sin) > 2))
+                        lsp_trace("split overflow: n_sout=%d, n_sin=%d", int(n_sout), int(n_sin));
 
                     // Add generated triangles to target buffers
                     for (size_t l=0; l < n_sin; ++l)
@@ -1225,6 +1283,8 @@ namespace mtest
             {
                 n_sin = 0, n_sout = 0;
                 split_triangle(sout, &n_sout, sin, &n_sin, &npl, source.at(i));
+                if ((n_sout > 2) || ((n_sin) > 2))
+                    lsp_trace("split overflow: n_sout=%d, n_sin=%d", int(n_sout), int(n_sin));
 
                 // Add generated triangles to target buffers
                 for (size_t l=0; l < n_sin; ++l)
@@ -1307,6 +1367,8 @@ namespace mtest
 
             // Split all triangles:
             split_triangle(out, &n_out, buf1, &n_buf1, pl, &t);
+            if ((n_out > 16) || ((n_buf1) > 16))
+                lsp_trace("split overflow: n_out=%d, n_buf1=%d", int(n_out), int(n_buf1));
 
             for (size_t j=0; j<n_out; ++j)
                 ctx->source.add(&out[j]);
@@ -1356,7 +1418,11 @@ namespace mtest
             // Put all triangles above the plane to out
             // Put all triangles below the plane to in
             for (size_t l=0; l < *n_q; ++l)
+            {
                 split_triangle(out, &n_out, in, n_in, &spl[k], &q[l]);
+                if ((n_out > 16) || (*n_in > 16))
+                    lsp_trace("split overflow: n_out=%d, n_in=%d", int(n_out), int(*n_in));
+            }
 
             // Interrupt cycle if there is no data to process
             if ((*n_in <= 0) || ((++k) >= 3))
