@@ -31,10 +31,18 @@
     #define BREAKPOINT_STEP     -1
 
     #define INIT_FRONT(front) \
-        dsp::init_point_xyz(&sFront.p[0], 0.0f, 1.0f, 0.0f); \
-        dsp::init_point_xyz(&sFront.p[1], -1.0f, -0.5f, 0.0f); \
-        dsp::init_point_xyz(&sFront.p[2], 1.0f, -0.5f, 0.0f); \
-        dsp::init_point_xyz(&sFront.s, 0.0f, 0.0f, 1.0f);
+        dsp::init_point_xyz(&front.t.p[0], 0.0f, 1.0f, 0.0f); \
+        dsp::init_point_xyz(&front.t.p[1], -1.0f, -0.5f, 0.0f); \
+        dsp::init_point_xyz(&front.t.p[2], 1.0f, -0.5f, 0.0f); \
+        dsp::init_point_xyz(&front.s, 0.0f, 0.0f, 1.0f);
+
+/*
+        dsp::init_point_xyz(&front.p[0], -0.980776, -0.195088, 0.000000); \
+        dsp::init_point_xyz(&front.p[1], 0.685477, -0.883233, 0.000000); \
+        dsp::init_point_xyz(&front.p[2], 0.295300, 1.078322, 0.000000); \
+        dsp::init_point_xyz(&front.s, 0.000000, 0.000000, 1.000000);
+*/
+
 #else /* DEBUG */
     #define BREAKPOINT_STEP     0
 
@@ -58,10 +66,25 @@ namespace mtest
     static const color3d_t C_ORANGE     = { 1.0f, 0.5f, 0.0f, 0.0f };
     static const color3d_t C_GRAY       = { 0.75f, 0.75f, 0.75f, 0.0f };
 
+#pragma pack(push, 1)
+    typedef struct raw_triangle3d_t
+    {
+        point3d_t   p[3];
+    } raw_triangle3d_t;
+
+    typedef struct rt_triangle3d_t // Raytracing triangle
+    {
+        raw_triangle3d_t    t;          // Raw triangle
+        vector3d_t          n;          // Normal
+        uint32_t            e[3];       // Three edge flags
+        float               w;          // Weight (for sorting)
+    } rt_triangle3d_t;
+#pragma pack(pop)
+
     typedef struct wfront_t
     {
-        point3d_t p[3];     // Three points showing directions
-        point3d_t s;        // Source point
+        raw_triangle3d_t t;     // Raw triangle view
+        point3d_t s;            // Source point
     } wfront_t;
 
     typedef struct object_t
@@ -113,22 +136,34 @@ namespace mtest
     static inline void dump_context(const char *label, const context_t *ctx)
     {
         const wfront_t &f = ctx->front;
+        const raw_triangle3d_t &t = f.t;
 
         lsp_trace("%s: src_size=%d, front=["
                 "s={%f, %f, %f}, "
                 "p=[{%f, %f, %f}, {%f, %f, %f}, {%f, %f, %f}], "
-                "pv=[{%f, %f, %f}, {%f, %f, %f}, {%f, %f, %f}]"
+                "pv=[{%f, %f, %f}, {%f, %f, %f}, {%f, %f, %f}], "
+                "init=[\n"
+                "dsp::init_point_xyz(&front.p[0], %f, %f, %f); \\\n"
+                "dsp::init_point_xyz(&front.p[1], %f, %f, %f); \\\n"
+                "dsp::init_point_xyz(&front.p[2], %f, %f, %f); \\\n"
+                "dsp::init_point_xyz(&front.s, %f, %f, %f);\n"
                 "]",
                 label, int(ctx->source.size()),
                 f.s.x, f.s.y, f.s.z,
 
-                f.p[0].x, f.p[0].y, f.p[0].z,
-                f.p[1].x, f.p[1].y, f.p[1].z,
-                f.p[2].x, f.p[2].y, f.p[2].z,
+                t.p[0].x, t.p[0].y, t.p[0].z,
+                t.p[1].x, t.p[1].y, t.p[1].z,
+                t.p[2].x, t.p[2].y, t.p[2].z,
 
-                f.p[1].x-f.p[0].x, f.p[1].y-f.p[0].y, f.p[1].z-f.p[0].z,
-                f.p[2].x-f.p[1].x, f.p[2].y-f.p[1].y, f.p[2].z-f.p[1].z,
-                f.p[0].x-f.p[2].x, f.p[0].y-f.p[2].y, f.p[0].z-f.p[2].z
+                t.p[1].x-t.p[0].x, t.p[1].y-t.p[0].y, t.p[1].z-t.p[0].z,
+                t.p[2].x-t.p[1].x, t.p[2].y-t.p[1].y, t.p[2].z-t.p[1].z,
+                t.p[0].x-t.p[2].x, t.p[0].y-t.p[2].y, t.p[0].z-t.p[2].z,
+
+
+                t.p[0].x, t.p[0].y, t.p[0].z,
+                t.p[1].x, t.p[1].y, t.p[1].z,
+                t.p[2].x, t.p[2].y, t.p[2].z,
+                f.s.x, f.s.y, f.s.z
                 );
     }
 
@@ -217,30 +252,30 @@ namespace mtest
         v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
     }
 
-//    static void calc_plane_vector_pv(vector3d_t *v, const point3d_t *p)
-//    {
-//        // Calculate edge parameters
-//        vector3d_t d[2];
-//        d[0].dx     = p[1].x - p[0].x;
-//        d[0].dy     = p[1].y - p[0].y;
-//        d[0].dz     = p[1].z - p[0].z;
-//        d[0].dw     = p[1].w - p[0].w;
-//
-//        d[1].dx     = p[2].x - p[1].x;
-//        d[1].dy     = p[2].y - p[1].y;
-//        d[1].dz     = p[2].z - p[1].z;
-//        d[1].dw     = p[2].w - p[1].w;
-//
-//        // Do vector multiplication to calculate the normal vector
-//        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
-//        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
-//        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
-//        v->dw       = 0.0f;
-//
-//        dsp::normalize_vector(v);
-//
-//        v->dw       = - ( v->dx * p[0].x + v->dy * p[0].y + v->dz * p[0].z); // Parameter for the plane equation
-//    }
+    static void calc_plane_vector_pv(vector3d_t *v, const point3d_t *p)
+    {
+        // Calculate edge parameters
+        vector3d_t d[2];
+        d[0].dx     = p[1].x - p[0].x;
+        d[0].dy     = p[1].y - p[0].y;
+        d[0].dz     = p[1].z - p[0].z;
+        d[0].dw     = p[1].w - p[0].w;
+
+        d[1].dx     = p[2].x - p[1].x;
+        d[1].dy     = p[2].y - p[1].y;
+        d[1].dz     = p[2].z - p[1].z;
+        d[1].dw     = p[2].w - p[1].w;
+
+        // Do vector multiplication to calculate the normal vector
+        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
+        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+        v->dw       = 0.0f;
+
+        dsp::normalize_vector(v);
+
+        v->dw       = - ( v->dx * p[0].x + v->dy * p[0].y + v->dz * p[0].z); // Parameter for the plane equation
+    }
 
     static bool check_triangle(const v_triangle3d_t *t)
     {
@@ -281,11 +316,9 @@ namespace mtest
 //    }
 
     /**
-     * Split triangle with plane, generates output set of triangles into out (triangles above split plane)
+     * Split raw triangle with plane, generates output set of triangles into out (triangles above split plane)
      * and in (triangles below split plane). For every triangle, points 1 and 2 are the points that
      * lay on the split plane, the first triangle ALWAYS has 2 common points with plane (1 and 2)
-     *
-     * The strict mode performs strict splitting of trianlges as an opposite to relaxed mode
      *
      * @param out array of vertexes above plane
      * @param n_out counter of vertexes above plane (multiple of 3), should be initialized
@@ -294,13 +327,13 @@ namespace mtest
      * @param pl plane equation
      * @param pv triangle to perform the split
      */
-    static void split_triangle_strict(
-            v_triangle3d_t *out,
+    static void split_triangle_raw(
+            raw_triangle3d_t *out,
             size_t *n_out,
-            v_triangle3d_t *in,
+            raw_triangle3d_t *in,
             size_t *n_in,
             const vector3d_t *pl,
-            const v_triangle3d_t *pv
+            const raw_triangle3d_t *pv
         )
     {
         point3d_t sp[2];    // Split point
@@ -328,9 +361,6 @@ namespace mtest
                 in->p[0]        = p[0];
                 in->p[1]        = p[1];
                 in->p[2]        = p[2];
-                in->n[0]        = pv->n[0];
-                in->n[1]        = pv->n[1];
-                in->n[2]        = pv->n[2];
                 ++*n_in;
                 return;
             }
@@ -342,9 +372,6 @@ namespace mtest
                 out->p[0]       = p[0];
                 out->p[1]       = p[1];
                 out->p[2]       = p[2];
-                out->n[0]       = pv->n[0];
-                out->n[1]       = pv->n[1];
-                out->n[2]       = pv->n[2];
                 ++*n_out;
                 return;
             }
@@ -356,9 +383,6 @@ namespace mtest
                 out->p[0]       = p[0];
                 out->p[1]       = p[1];
                 out->p[2]       = p[2];
-                out->n[0]       = pv->n[0];
-                out->n[1]       = pv->n[1];
-                out->n[2]       = pv->n[2];
                 ++*n_out;
                 return;
             }
@@ -367,9 +391,6 @@ namespace mtest
                 in->p[0]        = p[0];
                 in->p[1]        = p[1];
                 in->p[2]        = p[2];
-                in->n[0]        = pv->n[0];
-                in->n[1]        = pv->n[1];
-                in->n[2]        = pv->n[2];
                 ++*n_in;
                 return;
             }
@@ -417,35 +438,22 @@ namespace mtest
                 sp[1].z = p[0].z + d[1].dz * t[1];
                 sp[1].w = 1.0f;
 
-//                lsp_trace("sp[1]: (%f, %f, %f)",
-//                        sp[1].x, sp[1].y, sp[1].z
-//                    );
-
                 // 1 triangle above plane, 2 below
                 out->p[0]       = p[0];
                 out->p[1]       = sp[0];
                 out->p[2]       = sp[1];
-                out->n[0]       = pv->n[0];
-                out->n[1]       = pv->n[1];
-                out->n[2]       = pv->n[2];
                 ++*n_out;
                 ++out;
 
                 in->p[0]        = p[1];
                 in->p[1]        = sp[1];
                 in->p[2]        = sp[0];
-                in->n[0]        = pv->n[0];
-                in->n[1]        = pv->n[1];
-                in->n[2]        = pv->n[2];
                 ++*n_in;
                 ++in;
 
                 in->p[0]        = p[2];
                 in->p[1]        = sp[1];
                 in->p[2]        = p[1];
-                in->n[0]        = pv->n[0];
-                in->n[1]        = pv->n[1];
-                in->n[2]        = pv->n[2];
                 ++*n_in;
             }
             else if (k[2] > 0.0f) // (k[1] < 0) && (k[2] > 0)
@@ -461,34 +469,21 @@ namespace mtest
                 sp[1].z = p[2].z + d[1].dz * t[1];
                 sp[1].w = 1.0f;
 
-//                lsp_trace("sp[1]: (%f, %f, %f)",
-//                        sp[1].x, sp[1].y, sp[1].z
-//                    );
-
                 // 2 triangles above plane, 1 below
                 out->p[0]       = p[2];
                 out->p[1]       = sp[0];
                 out->p[2]       = sp[1];
-                out->n[0]       = pv->n[0];
-                out->n[1]       = pv->n[1];
-                out->n[2]       = pv->n[2];
                 ++*n_out;
                 ++out;
 
                 out->p[0]       = p[0];
                 out->p[1]       = sp[0];
                 out->p[2]       = p[2];
-                out->n[0]       = pv->n[0];
-                out->n[1]       = pv->n[1];
-                out->n[2]       = pv->n[2];
                 ++*n_out;
 
                 in->p[0]        = p[1];
                 in->p[1]        = sp[1];
                 in->p[2]        = sp[0];
-                in->n[0]        = pv->n[0];
-                in->n[1]        = pv->n[1];
-                in->n[2]        = pv->n[2];
                 ++*n_in;
             }
             else // (k[1] < 0) && (k[2] == 0)
@@ -497,17 +492,11 @@ namespace mtest
                 out->p[0]       = p[0];
                 out->p[1]       = sp[0];
                 out->p[2]       = p[2];
-                out->n[0]       = pv->n[0];
-                out->n[1]       = pv->n[1];
-                out->n[2]       = pv->n[2];
                 ++*n_out;
 
                 in->p[0]        = p[1];
                 in->p[1]        = p[2];
                 in->p[2]        = sp[0];
-                in->n[0]        = pv->n[0];
-                in->n[1]        = pv->n[1];
-                in->n[2]        = pv->n[2];
                 ++*n_in;
             }
         }
@@ -524,10 +513,6 @@ namespace mtest
             sp[0].z = p[0].z + d[0].dz * t[0];
             sp[0].w = 1.0f;
 
-//            lsp_trace("sp[0]: (%f, %f, %f)",
-//                    sp[0].x, sp[0].y, sp[0].z
-//                );
-
             if (k[1] > 0.0f) // (k[1] > 0) && (k[2] < 0)
             {
                 d[1].dx = p[1].x - p[2].x;
@@ -541,34 +526,21 @@ namespace mtest
                 sp[1].z = p[1].z + d[1].dz * t[1];
                 sp[1].w = 1.0f;
 
-//                lsp_trace("sp[1]: (%f, %f, %f)",
-//                        sp[1].x, sp[1].y, sp[1].z
-//                    );
-
                 // 2 triangles above plane, 1 below
                 out->p[0]       = p[0];
                 out->p[1]       = sp[1];
                 out->p[2]       = sp[0];
-                out->n[0]       = pv->n[0];
-                out->n[1]       = pv->n[1];
-                out->n[2]       = pv->n[2];
                 ++*n_out;
                 ++out;
 
                 out->p[0]       = p[1];
                 out->p[1]       = sp[1];
                 out->p[2]       = p[0];
-                out->n[0]       = pv->n[0];
-                out->n[1]       = pv->n[1];
-                out->n[2]       = pv->n[2];
                 ++*n_out;
 
                 in->p[0]        = p[2];
                 in->p[1]        = sp[0];
                 in->p[2]        = sp[1];
-                in->n[0]        = pv->n[0];
-                in->n[1]        = pv->n[1];
-                in->n[2]        = pv->n[2];
                 ++*n_in;
             }
             else // (k[1] == 0) && (k[2] < 0)
@@ -577,17 +549,11 @@ namespace mtest
                 out->p[0]       = p[0];
                 out->p[1]       = p[1];
                 out->p[2]       = sp[0];
-                out->n[0]       = pv->n[0];
-                out->n[1]       = pv->n[1];
-                out->n[2]       = pv->n[2];
                 ++*n_out;
 
                 in->p[0]        = p[2];
                 in->p[1]        = sp[0];
                 in->p[2]        = p[1];
-                in->n[0]        = pv->n[0];
-                in->n[1]        = pv->n[1];
-                in->n[2]        = pv->n[2];
                 ++*n_in;
             }
         }
@@ -1122,10 +1088,10 @@ namespace mtest
     {
         // Check crossing with bounding box
         vector3d_t pl[4];
-        calc_plane_vector_p3(&pl[0], &ctx->front.s, &ctx->front.p[0], &ctx->front.p[1]);
-        calc_plane_vector_p3(&pl[1], &ctx->front.s, &ctx->front.p[1], &ctx->front.p[2]);
-        calc_plane_vector_p3(&pl[2], &ctx->front.s, &ctx->front.p[2], &ctx->front.p[0]);
-        calc_plane_vector_p3(&pl[3], &ctx->front.p[0], &ctx->front.p[1], &ctx->front.p[2]);
+        calc_plane_vector_p3(&pl[0], &ctx->front.s, &ctx->front.t.p[0], &ctx->front.t.p[1]);
+        calc_plane_vector_p3(&pl[1], &ctx->front.s, &ctx->front.t.p[1], &ctx->front.t.p[2]);
+        calc_plane_vector_p3(&pl[2], &ctx->front.s, &ctx->front.t.p[2], &ctx->front.t.p[0]);
+        calc_plane_vector_pv(&pl[3], ctx->front.t.p);
 
         v_triangle3d_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
         size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
@@ -1209,10 +1175,10 @@ namespace mtest
         cstorage<v_triangle3d_t> source;
         source.swap(&ctx->source);
 
-        calc_plane_vector_p3(&pl[0], &ctx->front.s, &ctx->front.p[0], &ctx->front.p[1]);
-        calc_plane_vector_p3(&pl[1], &ctx->front.s, &ctx->front.p[1], &ctx->front.p[2]);
-        calc_plane_vector_p3(&pl[2], &ctx->front.s, &ctx->front.p[2], &ctx->front.p[0]);
-        calc_plane_vector_p3(&pl[3], &ctx->front.p[0], &ctx->front.p[1], &ctx->front.p[2]);
+        calc_plane_vector_p3(&pl[0], &ctx->front.s, &ctx->front.t.p[0], &ctx->front.t.p[1]);
+        calc_plane_vector_p3(&pl[1], &ctx->front.s, &ctx->front.t.p[1], &ctx->front.t.p[2]);
+        calc_plane_vector_p3(&pl[2], &ctx->front.s, &ctx->front.t.p[2], &ctx->front.t.p[0]);
+        calc_plane_vector_pv(&pl[3], ctx->front.t.p);
 
         // Cull each triangle with four scissor planes
         for (ssize_t i=0, n=source.size(); i < n; ++i)
@@ -1340,7 +1306,8 @@ namespace mtest
             const vector3d_t *pl
         )
     {
-        v_triangle3d_t out[2], in[2], sout[2], sin[2], t;
+        raw_triangle3d_t out[2], in[2];
+        v_triangle3d_t sout[2], sin[2];
         size_t n_out, n_in, n_sout, n_sin;
         vector3d_t npl;
         v_triangle3d_t npt[2];
@@ -1352,24 +1319,17 @@ namespace mtest
         );
 
         // First, split front triangle into sub-triangles
-        t.p[0] = ctx->front.p[0];
-        t.p[1] = ctx->front.p[1];
-        t.p[2] = ctx->front.p[2];
-        dsp::calc_normal3d_pv(&t.n[0], t.p);
-        dsp::calc_normal3d_pv(&t.n[1], t.p);
-        dsp::calc_normal3d_pv(&t.n[2], t.p);
-
         n_out = 0, n_in = 0;
-        split_triangle_strict(out, &n_out, in, &n_in, pl, &t);
+        split_triangle_raw(out, &n_out, in, &n_in, pl, &ctx->front.t);
         if ((n_out > 2) || (n_in > 2))
             lsp_trace("split overflow: n_out=%d, n_in=%d", int(n_out), int(n_in));
 
         TRACE_BREAK(ctx,
             lsp_trace("split performed into %d in triangles, %d out triangles", int(n_in), int(n_out));
             for (size_t i=0; i<n_out; ++i)
-                ctx->global->view->add_triangle_1c(&out[i], (i) ? &C_RED : &C_MAGENTA);
+                ctx->global->view->add_triangle_pv1c(out[i].p, (i) ? &C_RED : &C_MAGENTA);
             for (size_t i=0; i<n_in; ++i)
-                ctx->global->view->add_triangle_1c(&in[i], (i) ? &C_BLUE : &C_CYAN);
+                ctx->global->view->add_triangle_pv1c(in[i].p, (i) ? &C_BLUE : &C_CYAN);
         );
         // END STEP
 
@@ -1380,7 +1340,7 @@ namespace mtest
         {
             TRACE_BREAK(ctx,
                 lsp_trace("All triangles are IN, moving context to IN TASKS");
-                ctx->global->view->add_triangle_pv1c(ctx->front.p, &C_RED);
+                ctx->global->view->add_triangle_pv1c(ctx->front.t.p, &C_RED);
                 for (size_t i=0, n=ctx->source.size(); i<n; ++i)
                     ctx->global->view->add_triangle_1c(ctx->source.at(i), &C_RED);
             );
@@ -1399,7 +1359,7 @@ namespace mtest
         {
             TRACE_BREAK(ctx,
                 lsp_trace("All triangles are OUT, moving context to OUT TASKS");
-                ctx->global->view->add_triangle_pv1c(ctx->front.p, &C_RED);
+                ctx->global->view->add_triangle_pv1c(ctx->front.t.p, &C_RED);
                 for (size_t i=0, n=ctx->source.size(); i<n; ++i)
                     ctx->global->view->add_triangle_1c(ctx->source.at(i), &C_RED);
             );
@@ -1479,17 +1439,17 @@ namespace mtest
 
         // Now there are possble variants:
         // {in=1, out=1}, {in=1, out=2}, {in=2, out=1}
-        ctx->front.p[0]     = in[0].p[0];
-        ctx->front.p[1]     = in[0].p[1];
-        ctx->front.p[2]     = in[0].p[2];
+        ctx->front.t.p[0]   = in[0].p[0];
+        ctx->front.t.p[1]   = in[0].p[1];
+        ctx->front.t.p[2]   = in[0].p[2];
         ctx->state          = S_CULL_BACK;
 
         if (n_in == 1)
         {
             sctx1->front.s      = ctx->front.s;
-            sctx1->front.p[0]   = out[0].p[0];
-            sctx1->front.p[1]   = out[0].p[1];
-            sctx1->front.p[2]   = out[0].p[2];
+            sctx1->front.t.p[0] = out[0].p[0];
+            sctx1->front.t.p[1] = out[0].p[1];
+            sctx1->front.t.p[2] = out[0].p[2];
             sctx1->global       = ctx->global;
             sctx1->state        = S_CULL_BACK;
 
@@ -1507,17 +1467,17 @@ namespace mtest
                 init_triangle_p3(&npt[1], &ctx->front.s, &out[1].p[1], &out[1].p[2], &npl);
 
                 sctx2->front.s      = ctx->front.s;
-                sctx2->front.p[0]   = out[1].p[0];
-                sctx2->front.p[1]   = out[1].p[1];
-                sctx2->front.p[2]   = out[1].p[2];
+                sctx2->front.t.p[0] = out[1].p[0];
+                sctx2->front.t.p[1] = out[1].p[1];
+                sctx2->front.t.p[2] = out[1].p[2];
                 sctx2->global       = ctx->global;
                 sctx2->state        = S_CULL_BACK;
 
                 TRACE_BREAK(ctx,
                     lsp_trace("ctx is IN(RED), sctx1 and sctx2 are OUT(BLUE)");
-                    ctx->global->view->add_triangle_pv1c(ctx->front.p, &C_RED);
-                    ctx->global->view->add_triangle_pv1c(sctx1->front.p, &C_BLUE);
-                    ctx->global->view->add_triangle_pv1c(sctx2->front.p, &C_BLUE);
+                    ctx->global->view->add_triangle_pv1c(ctx->front.t.p, &C_RED);
+                    ctx->global->view->add_triangle_pv1c(sctx1->front.t.p, &C_BLUE);
+                    ctx->global->view->add_triangle_pv1c(sctx2->front.t.p, &C_BLUE);
 
                     for (size_t i=0, n=ctx->source.size(); i<n; ++i)
                         ctx->global->view->add_triangle_1c(ctx->source.at(i), &C_RED);
@@ -1552,8 +1512,8 @@ namespace mtest
             {
                 TRACE_BREAK(ctx,
                     lsp_trace("ctx is IN(RED), sctx1 is OUT(BLUE)");
-                    ctx->global->view->add_triangle_pv1c(ctx->front.p, &C_RED);
-                    ctx->global->view->add_triangle_pv1c(sctx1->front.p, &C_BLUE);
+                    ctx->global->view->add_triangle_pv1c(ctx->front.t.p, &C_RED);
+                    ctx->global->view->add_triangle_pv1c(sctx1->front.t.p, &C_BLUE);
 
                     ctx->global->view->add_plane_pv1c(npt[0].p, &C_MAGENTA);
 
@@ -1571,9 +1531,9 @@ namespace mtest
             init_triangle_p3(&npt[0], &ctx->front.s, &in[0].p[1], &in[0].p[2], pl);
 
             sctx1->front.s      = ctx->front.s;
-            sctx1->front.p[0]   = out[0].p[0];
-            sctx1->front.p[1]   = out[0].p[1];
-            sctx1->front.p[2]   = out[0].p[2];
+            sctx1->front.t.p[0] = out[0].p[0];
+            sctx1->front.t.p[1] = out[0].p[1];
+            sctx1->front.t.p[2] = out[0].p[2];
             sctx1->global       = ctx->global;
             sctx1->state        = S_CULL_BACK;
             sctx1->source.swap(&clipped);
@@ -1587,17 +1547,17 @@ namespace mtest
             init_triangle_p3(&npt[1], &ctx->front.s, &in[1].p[1], &in[1].p[2], &npl);
 
             sctx2->front.s      = ctx->front.s;
-            sctx2->front.p[0]   = in[1].p[0];
-            sctx2->front.p[1]   = in[1].p[1];
-            sctx2->front.p[2]   = in[1].p[2];
+            sctx2->front.t.p[0] = in[1].p[0];
+            sctx2->front.t.p[1] = in[1].p[1];
+            sctx2->front.t.p[2] = in[1].p[2];
             sctx2->global       = ctx->global;
             sctx2->state        = S_CULL_BACK;
 
             TRACE_BREAK(ctx,
                 lsp_trace("ctx is IN(RED), sctx2 is IN(MAGENTA), sctx1 is OUT(BLUE)");
-                ctx->global->view->add_triangle_pv1c(ctx->front.p, &C_RED);
-                ctx->global->view->add_triangle_pv1c(sctx1->front.p, &C_BLUE);
-                ctx->global->view->add_triangle_pv1c(sctx2->front.p, &C_MAGENTA);
+                ctx->global->view->add_triangle_pv1c(ctx->front.t.p, &C_RED);
+                ctx->global->view->add_triangle_pv1c(sctx1->front.t.p, &C_BLUE);
+                ctx->global->view->add_triangle_pv1c(sctx2->front.t.p, &C_MAGENTA);
 
                 for (size_t i=0, n=ctx->source.size(); i<n; ++i)
                     ctx->global->view->add_triangle_1c(ctx->source.at(i), &C_RED);
@@ -1631,27 +1591,27 @@ namespace mtest
             }
         }
 
-        dump_context("added context to 'in'", ctx);
-        dump_context("added context to 'out'", sctx1);
-        if (n_in == 2)
-            dump_context("added context to 'in'", sctx2);
-        else if (n_out == 2)
-            dump_context("added context to 'out'", sctx2);
+//        dump_context("added context to 'in'", ctx);
+//        dump_context("added context to 'out'", sctx1);
+//        if (n_in == 2)
+//            dump_context("added context to 'in'", sctx2);
+//        else if (n_out == 2)
+//            dump_context("added context to 'out'", sctx2);
 
         TRACE_BREAK(ctx,
             lsp_trace("End of view split, ctx is RED, sctx1 is GREEN, sctx2 is BLUE");
-            ctx->global->view->add_triangle_pv1c(ctx->front.p, &C_RED);
+            ctx->global->view->add_triangle_pv1c(ctx->front.t.p, &C_RED);
             for (size_t i=0, n=ctx->source.size(); i<n; ++i)
                 ctx->global->view->add_triangle_1c(ctx->source.at(i), &C_RED);
             if (sctx1 != NULL)
             {
-                sctx1->global->view->add_triangle_pv1c(sctx1->front.p, &C_GREEN);
+                sctx1->global->view->add_triangle_pv1c(sctx1->front.t.p, &C_GREEN);
                 for (size_t i=0, n=sctx1->source.size(); i<n; ++i)
                     sctx1->global->view->add_triangle_1c(sctx1->source.at(i), &C_GREEN);
             }
             if (sctx2 != NULL)
             {
-                sctx2->global->view->add_triangle_pv1c(sctx2->front.p, &C_BLUE);
+                sctx2->global->view->add_triangle_pv1c(sctx2->front.t.p, &C_BLUE);
                 for (size_t i=0, n=sctx2->source.size(); i<n; ++i)
                     sctx2->global->view->add_triangle_1c(sctx2->source.at(i), &C_BLUE);
             }
@@ -1708,13 +1668,13 @@ namespace mtest
         }
 
         // Now we need to split source triangle and add parts back to context queue
-        calc_plane_vector_p3(&spl[0], &ctx->front.s, &ctx->front.p[0], &ctx->front.p[1]);
-        calc_plane_vector_p3(&spl[1], &ctx->front.s, &ctx->front.p[1], &ctx->front.p[2]);
-        calc_plane_vector_p3(&spl[2], &ctx->front.s, &ctx->front.p[2], &ctx->front.p[0]);
+        calc_plane_vector_p3(&spl[0], &ctx->front.s, &ctx->front.t.p[0], &ctx->front.t.p[1]);
+        calc_plane_vector_p3(&spl[1], &ctx->front.s, &ctx->front.t.p[1], &ctx->front.t.p[2]);
+        calc_plane_vector_p3(&spl[2], &ctx->front.s, &ctx->front.t.p[2], &ctx->front.t.p[0]);
 
-        init_triangle_p3(&spt[0], &ctx->front.s, &ctx->front.p[0], &ctx->front.p[1], &spl[0]);
-        init_triangle_p3(&spt[1], &ctx->front.s, &ctx->front.p[1], &ctx->front.p[2], &spl[1]);
-        init_triangle_p3(&spt[2], &ctx->front.s, &ctx->front.p[2], &ctx->front.p[0], &spl[2]);
+        init_triangle_p3(&spt[0], &ctx->front.s, &ctx->front.t.p[0], &ctx->front.t.p[1], &spl[0]);
+        init_triangle_p3(&spt[1], &ctx->front.s, &ctx->front.t.p[1], &ctx->front.t.p[2], &spl[1]);
+        init_triangle_p3(&spt[2], &ctx->front.s, &ctx->front.t.p[2], &ctx->front.t.p[0], &spl[2]);
 
         TRACE_BREAK(ctx,
             for (size_t i=0, n=ctx->source.size(); i<n; ++i)
@@ -1810,6 +1770,7 @@ namespace mtest
         );
 
         TRACE_BREAK(ctx,
+            dump_context("Current context: ", ctx);
             lsp_trace("Source triangles (%d):", int(ctx->source.size()));
             for (size_t i=0, n=ctx->source.size(); i<n; ++i)
             {
@@ -1943,6 +1904,7 @@ namespace mtest
 
                     ctx->global->view->add_plane_pv1c(pt[i].p, &C_YELLOW);
                     ctx->global->view->add_triangle_1c(&t, &C_GREEN);
+                    ctx->global->view->add_triangle_pv1c(ctx->front.t.p, &C_MAGENTA);
                     destroy_tasks(inside);
                     delete ctx;
                 );
@@ -2121,9 +2083,9 @@ MTEST_BEGIN("3d", reflections)
                     case XK_F1:
                     {
                         float incr = (ev.state & ShiftMask) ? 0.25f : -0.25f;
-                        sFront.p[0].x += incr;
-                        sFront.p[1].x += incr;
-                        sFront.p[2].x += incr;
+                        sFront.t.p[0].x += incr;
+                        sFront.t.p[1].x += incr;
+                        sFront.t.p[2].x += incr;
                         sFront.s.x += incr;
                         update_view();
                         break;
@@ -2132,9 +2094,9 @@ MTEST_BEGIN("3d", reflections)
                     case XK_F2:
                     {
                         float incr = (ev.state & ShiftMask) ? 0.25f : -0.25f;
-                        sFront.p[0].y += incr;
-                        sFront.p[1].y += incr;
-                        sFront.p[2].y += incr;
+                        sFront.t.p[0].y += incr;
+                        sFront.t.p[1].y += incr;
+                        sFront.t.p[2].y += incr;
                         sFront.s.y += incr;
                         update_view();
                         break;
@@ -2143,9 +2105,9 @@ MTEST_BEGIN("3d", reflections)
                     case XK_F3:
                     {
                         float incr = (ev.state & ShiftMask) ? 0.25f : -0.25f;
-                        sFront.p[0].z += incr;
-                        sFront.p[1].z += incr;
-                        sFront.p[2].z += incr;
+                        sFront.t.p[0].z += incr;
+                        sFront.t.p[1].z += incr;
+                        sFront.t.p[2].z += incr;
                         sFront.s.z += incr;
                         update_view();
                         break;
@@ -2160,9 +2122,9 @@ MTEST_BEGIN("3d", reflections)
 
                         for (size_t i=0; i<3; ++i)
                         {
-                            sFront.p[i].x -= sFront.s.x;
-                            sFront.p[i].y -= sFront.s.y;
-                            sFront.p[i].z -= sFront.s.z;
+                            sFront.t.p[i].x -= sFront.s.x;
+                            sFront.t.p[i].y -= sFront.s.y;
+                            sFront.t.p[i].z -= sFront.s.z;
                         }
                         if (key == XK_F4)
                             dsp::init_matrix3d_rotate_x(&m, incr);
@@ -2171,12 +2133,12 @@ MTEST_BEGIN("3d", reflections)
                         else
                             dsp::init_matrix3d_rotate_z(&m, incr);
                         for (size_t i=0; i<3; ++i)
-                            dsp::apply_matrix3d_mp1(&sFront.p[i], &m);
+                            dsp::apply_matrix3d_mp1(&sFront.t.p[i], &m);
                         for (size_t i=0; i<3; ++i)
                         {
-                            sFront.p[i].x += sFront.s.x;
-                            sFront.p[i].y += sFront.s.y;
-                            sFront.p[i].z += sFront.s.z;
+                            sFront.t.p[i].x += sFront.s.x;
+                            sFront.t.p[i].y += sFront.s.y;
+                            sFront.t.p[i].z += sFront.s.z;
                         }
                         update_view();
                         break;
@@ -2354,10 +2316,10 @@ MTEST_BEGIN("3d", reflections)
 
                 // Calc scissor planes' normals
                 vector3d_t pl[4];
-                calc_plane_vector_p3(&pl[0], &sFront.s, &sFront.p[0], &sFront.p[1]);
-                calc_plane_vector_p3(&pl[1], &sFront.s, &sFront.p[1], &sFront.p[2]);
-                calc_plane_vector_p3(&pl[2], &sFront.s, &sFront.p[2], &sFront.p[0]);
-                calc_plane_vector_p3(&pl[3], &sFront.p[0], &sFront.p[1], &sFront.p[2]);
+                calc_plane_vector_p3(&pl[0], &sFront.s, &sFront.t.p[0], &sFront.t.p[1]);
+                calc_plane_vector_p3(&pl[1], &sFront.s, &sFront.t.p[1], &sFront.t.p[2]);
+                calc_plane_vector_p3(&pl[2], &sFront.s, &sFront.t.p[2], &sFront.t.p[0]);
+                calc_plane_vector_pv(&pl[3], sFront.t.p);
 
                 // Draw front
                 v_ray3d_t r;
@@ -2366,16 +2328,16 @@ MTEST_BEGIN("3d", reflections)
                 for (size_t i=0; i<3; ++i)
                 {
                     // State
-                    r.p = sFront.p[i];
+                    r.p = sFront.t.p[i];
                     dsp::init_vector_p2(&r.v, &sFront.s, &r.p);
                     r.c = C_MAGENTA;
                     pView->add_ray(&r);
 
                     s.p[0] = sFront.s;
-                    s.p[1] = sFront.p[i];
+                    s.p[1] = sFront.t.p[i];
                     pView->add_segment(&s);
 
-                    s.p[0] = sFront.p[(i+1)%3];
+                    s.p[0] = sFront.t.p[(i+1)%3];
                     pView->add_segment(&s);
 
                     // Normals
