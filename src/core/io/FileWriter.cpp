@@ -9,11 +9,13 @@
 #include <core/io/charset.h>
 #include <core/io/FileWriter.h>
 
-#define CBUF_SIZE        0x1000
-#define BBUF_SIZE        0x4000
-// Values for tests
-//#define CBUF_SIZE       64
-//#define BBUF_SIZE       4 * CBUF_SIZE
+#if 0
+    #define CBUF_SIZE        0x1000
+    #define BBUF_SIZE        0x4000
+#else
+    #define CBUF_SIZE       32
+    #define BBUF_SIZE       (CBUF_SIZE * 4)
+#endif
 
 namespace lsp
 {
@@ -131,7 +133,11 @@ namespace lsp
         {
             do_destroy();
 
-            FILE *fd        = fopen(path, "w");
+            #if defined(PLATFORM_WINDOWS)
+                FILE *fd        = fopen(path, "wb");
+            #else
+                FILE *fd        = fopen(path, "w");
+            #endif /* PLATFORM_WINDOWS */
             if (fd == NULL)
                 return STATUS_IO_ERROR;
 
@@ -182,6 +188,41 @@ namespace lsp
             return STATUS_OK;
         }
 
+#if defined(PLATFORM_WINDOWS)
+        status_t FileWriter::flush_buffer(bool force)
+        {
+            status_t res = flush_byte_buffer();
+            if (res != STATUS_OK)
+                return res;
+            if (cBufPos <= 0)
+                return STATUS_OK;
+
+            WCHAR *inbuf    = reinterpret_cast<WCHAR *>(cBuf);
+            CHAR *outbuf    = reinterpret_cast<CHAR *>(bBuf);
+            size_t bytes    = WideCharToMultiByte(nCodePage, 0, inbuf, cBufPos, outbuf, BBUF_SIZE-bBufPos, 0, FALSE);
+
+            if (bytes == 0)
+            {
+                switch (GetLastError())
+                {
+                    case ERROR_INSUFFICIENT_BUFFER:
+                        return STATUS_NO_MEM;
+                    case ERROR_INVALID_FLAGS:
+                    case ERROR_INVALID_PARAMETER:
+                        return STATUS_BAD_STATE;
+                    case ERROR_NO_UNICODE_TRANSLATION:
+                        return STATUS_BAD_LOCALE;
+                    default:
+                        return STATUS_UNKNOWN_ERR;
+                }
+            }
+
+            bBufPos        += bytes;
+            cBufPos         = 0;
+
+            return (force) ? flush_byte_buffer() : STATUS_OK;
+        }
+#else
         status_t FileWriter::flush_buffer(bool force)
         {
             for (size_t pos=0; pos < cBufPos; )
@@ -197,50 +238,22 @@ namespace lsp
                 size_t xc_left  = (cBufPos - pos) * sizeof(lsp_wchar_t);
                 size_t xb_left  = BBUF_SIZE - bBufPos;
 
-                #if defined(PLATFORM_WINDOWS)
-                    WCHAR *inbuf    = reinterpret_cast<WCHAR *>(&cBuf[pos]);
-                    CHAR *outbuf    = reinterpret_cast<CHAR *>(&bBuf[bBufPos]);
+                char *inbuf     = reinterpret_cast<char *>(&cBuf[pos]);
+                char *outbuf    = reinterpret_cast<char *>(&bBuf[bBufPos]);
+                size_t nconv    = iconv(hIconv, &inbuf, &xc_left, &outbuf, &xb_left);
 
-                    ssize_t nconv   = WideCharToMultiByte(nCodePage, 0, inbuf, xb_left, outbuf, xc_left, 0, FALSE);
-                    ssize_t est     = 0;
-                    if (nconv != 0)
-                        est             = MultiByteToWideChar(nCodePage, 0, outbuf, nconv, NULL, 0);
-                    if ((est == 0) || (est > ssize_t(xb_left)))
+                if (nconv == size_t(-1))
+                {
+                    int code = errno;
+                    switch (code)
                     {
-                        switch (GetLastError())
-                        {
-                            case ERROR_INSUFFICIENT_BUFFER:
-                                return STATUS_NO_MEM;
-                            case ERROR_INVALID_FLAGS:
-                            case ERROR_INVALID_PARAMETER:
-                                return STATUS_BAD_STATE;
-                            case ERROR_NO_UNICODE_TRANSLATION:
-                                return STATUS_BAD_LOCALE;
-                            default:
-                                return STATUS_UNKNOWN_ERR;
-                        }
+                        case E2BIG:
+                        case EINVAL:
+                            break;
+                        default:
+                            return STATUS_BAD_FORMAT;
                     }
-
-                    xc_left        -= est;
-                    xb_left        -= nconv;
-                #else
-                    char *inbuf     = reinterpret_cast<char *>(&cBuf[pos]);
-                    char *outbuf    = reinterpret_cast<char *>(&bBuf[bBufPos]);
-                    size_t nconv    = iconv(hIconv, &inbuf, &xc_left, &outbuf, &xb_left);
-
-                    if (nconv == size_t(-1))
-                    {
-                        int code = errno;
-                        switch (code)
-                        {
-                            case E2BIG:
-                            case EINVAL:
-                                break;
-                            default:
-                                return STATUS_BAD_FORMAT;
-                        }
-                    }
-                #endif /* PLATFORM_WINDOWS */
+                }
 
                 // Update pointers
                 bBufPos         = BBUF_SIZE - xb_left;
@@ -250,8 +263,9 @@ namespace lsp
             // Reset character buffer size
             cBufPos     = 0;
 
-            return ((force) && (bBufPos > 0)) ? flush_byte_buffer() : STATUS_OK;
+            return (force) ? flush_byte_buffer() : STATUS_OK;
         }
+#endif /* PLATFORM_WINDOWS */
 
         status_t FileWriter::write(lsp_wchar_t c)
         {
@@ -288,7 +302,7 @@ namespace lsp
                 if (avail > count)
                     avail = count;
 
-                memcpy(&cBuf[cBufPos], c, avail * sizeof(lsp_wchar_t));
+                ::memcpy(&cBuf[cBufPos], c, avail * sizeof(lsp_wchar_t));
                 cBufPos += avail;
                 c       += avail;
                 count   -= avail;

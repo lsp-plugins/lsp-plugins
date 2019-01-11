@@ -9,7 +9,7 @@
 #include <core/io/charset.h>
 #include <core/io/FileReader.h>
 
-#if 1
+#if 0
     #if defined(PLATFORM_WINDOWS)
         // Character buffer should have enough space to decode characters
         #define CBUF_SIZE        0x4000
@@ -149,7 +149,11 @@ namespace lsp
         {
             do_destroy();
 
-            FILE *fd        = fopen(path, "r");
+            #if defined(PLATFORM_WINDOWS)
+                FILE *fd        = fopen(path, "rb");
+            #else
+                FILE *fd        = fopen(path, "r");
+            #endif /* PLATFORM_WINDOWS */
             if (fd == NULL)
                 return nError = STATUS_IO_ERROR;
 
@@ -163,25 +167,27 @@ namespace lsp
         status_t FileReader::fill_char_buf()
         {
             // Move memory buffers
-            if ((bBufPos < bBufSize) && (bBufPos > 0))
+            if (bBufPos > 0)
             {
                 bBufSize   -= bBufPos;
-                ::memmove(bBuf, &bBuf[bBufPos], bBufSize);
+                if (bBufSize > 0)
+                    ::memmove(bBuf, &bBuf[bBufPos], bBufSize);
+                bBufPos     = 0;
             }
-            bBufPos     = 0;
-
-            if ((cBufPos < cBufSize) && (cBufPos > 0))
+            if (cBufPos > 0)
             {
                 cBufSize   -= cBufPos;
-                ::memmove(cBuf, &cBuf[cBufPos], cBufSize * sizeof(lsp_wchar_t));
+                if (cBufSize > 0)
+                    ::memmove(cBuf, &cBuf[cBufPos], cBufSize * sizeof(lsp_wchar_t));
+                cBufPos     = 0;
             }
-            cBufPos     = 0;
 
             // Try to read new portion of data into buffer
             size_t nbytes   = fread(&bBuf[bBufSize], sizeof(uint8_t), BBUF_SIZE - bBufSize, pFD);
-            if (nbytes <= 0)
-                return nError = (cBufSize > cBufPos) ? STATUS_OK : STATUS_EOF;
-            bBufSize       += nbytes;
+            if ((nbytes <= 0) && (bBufPos >= bBufSize))
+                return nError = STATUS_EOF;
+            else if (nbytes > 0)
+                bBufSize       += nbytes;
 
             // Do the conversion
             CHAR *inbuf     = reinterpret_cast<CHAR *>(&bBuf[bBufPos]);
@@ -251,7 +257,12 @@ namespace lsp
                     bBufPos     = 0;
 
                     // Try to additionally read data
-                    bBufSize   += fread(&bBuf[bBufSize], sizeof(uint8_t), BBUF_SIZE - bBufSize, pFD);
+                    size_t nbytes       = fread(&bBuf[bBufSize], sizeof(uint8_t), BBUF_SIZE - bBufSize, pFD);
+                    if ((nbytes <= 0) && (left <= 0))
+                        return nError = STATUS_EOF;
+                    else if (nbytes > 0)
+                        bBufSize       += nbytes;
+
                     left        = bBufSize - bBufPos;
                 }
 
@@ -312,7 +323,7 @@ namespace lsp
                     // Try to fill character buffer
                     status_t res = fill_char_buf();
                     if (res != STATUS_OK)
-                        return res;
+                        return (n_read > 0) ? n_read : -res;
 
                     // Ensure that there is data in character buffer
                     n_copy = cBufSize - cBufPos;
@@ -325,7 +336,7 @@ namespace lsp
                     n_copy = count;
 
                 // Copy data from character buffer and update pointers
-                memcpy(dst, &cBuf[cBufPos], n_copy * sizeof(lsp_wchar_t));
+                ::memcpy(dst, &cBuf[cBufPos], n_copy * sizeof(lsp_wchar_t));
                 cBufPos    += n_copy;
                 dst        += n_copy;
                 n_read     += n_copy;
@@ -352,7 +363,7 @@ namespace lsp
                 // Try to fill character buffer
                 status_t res = fill_char_buf();
                 if (res != STATUS_OK)
-                    return res;
+                    return -res;
 
                 // Ensure that there is data in character buffer
                 if (cBufPos >= cBufSize)

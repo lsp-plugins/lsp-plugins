@@ -149,25 +149,27 @@ namespace lsp
         status_t InputStreamReader::fill_char_buf()
         {
             // Move memory buffers
-            if ((bBufPos < bBufSize) && (bBufPos > 0))
+            if (bBufPos > 0)
             {
                 bBufSize   -= bBufPos;
-                ::memmove(bBuf, &bBuf[bBufPos], bBufSize);
+                if (bBufSize > 0)
+                    ::memmove(bBuf, &bBuf[bBufPos], bBufSize);
+                bBufPos     = 0;
             }
-            bBufPos     = 0;
-
-            if ((cBufPos < cBufSize) && (cBufPos > 0))
+            if (cBufPos > 0)
             {
                 cBufSize   -= cBufPos;
-                ::memmove(cBuf, &cBuf[cBufPos], cBufSize * sizeof(lsp_wchar_t));
+                if (cBufSize > 0)
+                    ::memmove(cBuf, &cBuf[cBufPos], cBufSize * sizeof(lsp_wchar_t));
+                cBufPos     = 0;
             }
-            cBufPos     = 0;
 
             // Try to read new portion of data into buffer
             ssize_t nbytes  = pIS->read(&bBuf[bBufSize], BBUF_SIZE - bBufSize);
-            if (nbytes <= 0)
-                return nError = (cBufSize > cBufPos) ? STATUS_OK : STATUS_EOF;
-            bBufSize       += nbytes;
+            if ((nbytes <= 0) && (bBufPos >= bBufSize) && (cBufPos >= cBufSize))
+                return nError = - nbytes;
+            else if (nbytes > 0)
+                bBufSize       += nbytes;
 
             // Do the conversion
             CHAR *inbuf     = reinterpret_cast<CHAR *>(&bBuf[bBufPos]);
@@ -197,7 +199,7 @@ namespace lsp
 
             // Estimate number of bytes decoded (yep, this is dumb but no way...)
             nbytes = WideCharToMultiByte(nCodePage, 0, outbuf, nchars, NULL, 0, 0, 0);
-            if ((nbytes <= 0) || (nbytes > (bBufSize - bBufPos)))
+            if ((nbytes <= 0) || (nbytes > ssize_t(bBufSize - bBufPos)))
                 return nError = STATUS_IO_ERROR;
 
             // Update state of buffers
@@ -238,10 +240,11 @@ namespace lsp
 
                     // Try to additionally read data
                     ssize_t res = pIS->read(&bBuf[bBufSize], BBUF_SIZE - bBufSize);
-                    if (res < 0)
+                    if ((res < 0) && (left <= 0))
                         return nError = - res;
+                    else if (res > 0)
+                        bBufSize   += res;
 
-                    bBufSize   += res;
                     left        = bBufSize - bBufPos;
                 }
 
@@ -302,7 +305,7 @@ namespace lsp
                     // Try to fill character buffer
                     status_t res = fill_char_buf();
                     if (res != STATUS_OK)
-                        return res;
+                        return (n_read > 0) ? n_read : -res;
 
                     // Ensure that there is data in character buffer
                     n_copy = cBufSize - cBufPos;
@@ -342,7 +345,7 @@ namespace lsp
                 // Try to fill character buffer
                 status_t res = fill_char_buf();
                 if (res != STATUS_OK)
-                    return res;
+                    return -res;
 
                 // Ensure that there is data in character buffer
                 if (cBufPos >= cBufSize)
