@@ -76,7 +76,7 @@ namespace mtest
     {
         raw_triangle3d_t    t;          // Raw triangle
         vector3d_t          n;          // Normal
-        uint32_t            e[3];       // Three edge flags
+        float               e[3];       // Three edge flags: negative value means that this edge was not analyzed
         float               w;          // Weight (for sorting)
     } rt_triangle3d_t;
 #pragma pack(pop)
@@ -554,6 +554,338 @@ namespace mtest
                 in->p[0]        = p[2];
                 in->p[1]        = sp[0];
                 in->p[2]        = p[1];
+                ++*n_in;
+            }
+        }
+    }
+
+    /**
+     * Split raytracing triangle with plane, generates output set of triangles into out (triangles above split plane)
+     * and in (triangles below split plane). For every triangle, points 1 and 2 are the points that
+     * lay on the split plane, the first triangle ALWAYS has 2 common points with plane (1 and 2)
+     *
+     * Edges left from original triangle inherit their flags from original triangle,
+     * New edges that lay on the split plane are marked with positive values (+1),
+     * New edges that do not lay on the split plane, are marked with negative values (-1)
+     *
+     * @param out array of vertexes above plane
+     * @param n_out counter of vertexes above plane (multiple of 3), should be initialized
+     * @param in array of vertexes below plane
+     * @param n_in counter of vertexes below plane (multiple of 3), should be iniitialized
+     * @param pl plane equation
+     * @param pv triangle to perform the split
+     */
+    static void split_triangle_rt(
+            rt_triangle3d_t *out,
+            size_t *n_out,
+            rt_triangle3d_t *in,
+            size_t *n_in,
+            const vector3d_t *pl,
+            const rt_triangle3d_t *pv
+        )
+    {
+        point3d_t   sp[2];      // Split points
+        vector3d_t  d[2];       // Delta vector
+        point3d_t   p[3];       // Triangle
+        float       e[3], w;    // Edge flags
+        vector3d_t  n;          // Normal
+        float       k[3];       // Co-location of points
+        float       t[2];
+
+        // Copy data
+        p[0]    = pv->t.p[0];
+        p[1]    = pv->t.p[0];
+        p[2]    = pv->t.p[0];
+        e[0]    = pv->e[0];
+        e[1]    = pv->e[1];
+        e[2]    = pv->e[2];
+        w       = pv->w;
+        n       = pv->n;
+
+        // Update pointers
+        in     += *n_in;
+        out    += *n_out;
+
+        // Estimate all point positions
+        k[0]    = pl->dx*p[0].x + pl->dy*p[0].y + pl->dz*p[0].z + pl->dw;
+        k[1]    = pl->dx*p[1].x + pl->dy*p[1].y + pl->dz*p[1].z + pl->dw;
+        k[2]    = pl->dx*p[2].x + pl->dy*p[2].y + pl->dz*p[2].z + pl->dw;
+
+        // Patch location of points relative to the split plane
+        if ((k[0] >= -DSP_3D_TOLERANCE) && (k[0] <= DSP_3D_TOLERANCE))
+            k[0]    = 0.0f;
+        if ((k[1] >= -DSP_3D_TOLERANCE) && (k[1] <= DSP_3D_TOLERANCE))
+            k[1]    = 0.0f;
+        if ((k[2] >= -DSP_3D_TOLERANCE) && (k[2] <= DSP_3D_TOLERANCE))
+            k[2]    = 0.0f;
+
+        // Check that the whole triangle lies above the plane or below the plane
+        if (k[0] < 0.0f)
+        {
+            if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
+            {
+                *in             = *pv;
+                ++*n_in;
+                return;
+            }
+        }
+        else if (k[0] > 0.0f)
+        {
+            if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
+            {
+                *out            = *pv;
+                ++*n_out;
+                return;
+            }
+        }
+        else // (k[0] == 0)
+        {
+            if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
+            {
+                *out            = *pv;
+                ++*n_out;
+                return;
+            }
+            else if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
+            {
+                *in             = *pv;
+                ++*n_in;
+                return;
+            }
+        }
+
+        // There is an intersection with plane, we need to analyze it
+        // Rotate triangle until vertex 0 is above the split plane
+        while (k[0] <= 0.0f)
+        {
+            // Rotate points
+            sp[0]   = p[0];
+            p[0]    = p[1];
+            p[1]    = p[2];
+            p[2]    = sp[0];
+
+            // Rotate edge flags
+            t[0]    = e[0];
+            e[0]    = e[1];
+            e[1]    = e[2];
+            e[2]    = t[0];
+
+            // Rotate point locations
+            t[0]    = k[0];
+            k[0]    = k[1];
+            k[1]    = k[2];
+            k[2]    = t[0];
+        }
+
+        // Now we have p[0] guaranteed to be above plane, analyze p[1] and p[2]
+        if (k[1] < 0.0f) // k[1] < 0
+        {
+            d[0].dx = p[0].x - p[1].x;
+            d[0].dy = p[0].y - p[1].y;
+            d[0].dz = p[0].z - p[1].z;
+
+            t[0]    = -k[0] / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz);
+
+            sp[0].x = p[0].x + d[0].dx * t[0];
+            sp[0].y = p[0].y + d[0].dy * t[0];
+            sp[0].z = p[0].z + d[0].dz * t[0];
+            sp[0].w = 1.0f;
+
+            if (k[2] < 0.0f) // (k[1] < 0) && (k[2] < 0)
+            {
+                d[1].dx = p[0].x - p[2].x;
+                d[1].dy = p[0].y - p[2].y;
+                d[1].dz = p[0].z - p[2].z;
+
+                t[1]    = -k[0] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
+
+                sp[1].x = p[0].x + d[1].dx * t[1];
+                sp[1].y = p[0].y + d[1].dy * t[1];
+                sp[1].z = p[0].z + d[1].dz * t[1];
+                sp[1].w = 1.0f;
+
+                // 1 triangle above plane, 2 below
+                out->t.p[0]     = p[0];
+                out->t.p[1]     = sp[0];
+                out->t.p[2]     = sp[1];
+                out->n          = n;
+                out->e[0]       = e[0];
+                out->e[1]       = 1.0f;
+                out->e[2]       = e[2];
+                out->w          = w;
+
+                ++*n_out;
+                ++out;
+
+                in->t.p[0]      = p[1];
+                in->t.p[1]      = sp[1];
+                in->t.p[2]      = sp[0];
+                in->n           = n;
+                in->e[0]        = -1.0f;
+                in->e[1]        = 1.0f;
+                in->e[2]        = e[0];
+                in->w           = w;
+                ++*n_in;
+                ++in;
+
+                in->t.p[0]      = p[2];
+                in->t.p[1]      = sp[1];
+                in->t.p[2]      = p[1];
+                in->n           = n;
+                in->e[0]        = e[2];
+                in->e[1]        = -1.0f;
+                in->e[2]        = e[1];
+                in->w           = w;
+                ++*n_in;
+            }
+            else if (k[2] > 0.0f) // (k[1] < 0) && (k[2] > 0)
+            {
+                d[1].dx = p[2].x - p[1].x;
+                d[1].dy = p[2].y - p[1].y;
+                d[1].dz = p[2].z - p[1].z;
+
+                t[1]    = -k[2] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
+
+                sp[1].x = p[2].x + d[1].dx * t[1];
+                sp[1].y = p[2].y + d[1].dy * t[1];
+                sp[1].z = p[2].z + d[1].dz * t[1];
+                sp[1].w = 1.0f;
+
+                // 2 triangles above plane, 1 below
+                out->t.p[0]     = p[2];
+                out->t.p[1]     = sp[0];
+                out->t.p[2]     = sp[1];
+                out->n          = n;
+                out->e[0]       = -1.0f;
+                out->e[1]       = 1.0f;
+                out->e[2]       = e[1];
+                out->w          = w;
+                ++*n_out;
+                ++out;
+
+                out->t.p[0]     = p[0];
+                out->t.p[1]     = sp[0];
+                out->t.p[2]     = p[2];
+                out->n          = n;
+                out->e[0]       = e[0];
+                out->e[1]       = -1.0f;
+                out->e[2]       = e[2];
+                out->w          = w;
+                ++*n_out;
+
+                in->t.p[0]      = p[1];
+                in->t.p[1]      = sp[1];
+                in->t.p[2]      = sp[0];
+                in->n           = n;
+                in->e[0]        = e[1];
+                in->e[1]        = 1.0f;
+                in->e[2]        = e[0];
+                in->w           = w;
+                ++*n_in;
+            }
+            else // (k[1] < 0) && (k[2] == 0)
+            {
+                // 1 triangle above plane, 1 below
+                out->t.p[0]     = p[0];
+                out->t.p[1]     = sp[0];
+                out->t.p[2]     = p[2];
+                out->n          = n;
+                out->e[0]       = e[0];
+                out->e[1]       = 1.0f;
+                out->e[2]       = e[2];
+                out->w          = w;
+                ++*n_out;
+
+                in->t.p[0]      = p[1];
+                in->t.p[1]      = p[2];
+                in->t.p[2]      = sp[0];
+                in->n           = n;
+                in->e[0]        = e[1];
+                in->e[1]        = 1.0f;
+                in->e[2]        = e[0];
+                in->w           = w;
+                ++*n_in;
+            }
+        }
+        else // (k[1] >= 0) && (k[2] < 0)
+        {
+            d[0].dx = p[0].x - p[2].x;
+            d[0].dy = p[0].y - p[2].y;
+            d[0].dz = p[0].z - p[2].z;
+
+            t[0]    = -k[0] / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz);
+
+            sp[0].x = p[0].x + d[0].dx * t[0];
+            sp[0].y = p[0].y + d[0].dy * t[0];
+            sp[0].z = p[0].z + d[0].dz * t[0];
+            sp[0].w = 1.0f;
+
+            if (k[1] > 0.0f) // (k[1] > 0) && (k[2] < 0)
+            {
+                d[1].dx = p[1].x - p[2].x;
+                d[1].dy = p[1].y - p[2].y;
+                d[1].dz = p[1].z - p[2].z;
+
+                t[1]    = -k[1] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
+
+                sp[1].x = p[1].x + d[1].dx * t[1];
+                sp[1].y = p[1].y + d[1].dy * t[1];
+                sp[1].z = p[1].z + d[1].dz * t[1];
+                sp[1].w = 1.0f;
+
+                // 2 triangles above plane, 1 below
+                out->t.p[0]     = p[0];
+                out->t.p[1]     = sp[1];
+                out->t.p[2]     = sp[0];
+                out->n          = n;
+                out->e[0]       = -1.0f;
+                out->e[1]       = 1.0f;
+                out->e[2]       = e[2];
+                out->w          = w;
+                ++*n_out;
+                ++out;
+
+                out->t.p[0]     = p[1];
+                out->t.p[1]     = sp[1];
+                out->t.p[2]     = p[0];
+                out->n          = n;
+                out->e[0]       = e[1];
+                out->e[1]       = -1.0f;
+                out->e[2]       = e[0];
+                out->w          = w;
+                ++*n_out;
+
+                in->t.p[0]      = p[2];
+                in->t.p[1]      = sp[0];
+                in->t.p[2]      = sp[1];
+                in->n           = n;
+                in->e[0]        = e[2];
+                in->e[1]        = 1.0f;
+                in->e[2]        = e[1];
+                in->w           = w;
+                ++*n_in;
+            }
+            else // (k[1] == 0) && (k[2] < 0)
+            {
+                // 1 triangle above plane, 1 triangle below plane
+                out->t.p[0]     = p[0];
+                out->t.p[1]     = p[1];
+                out->t.p[2]     = sp[0];
+                out->n          = n;
+                out->e[0]       = e[0];
+                out->e[1]       = 1.0f;
+                out->e[2]       = e[2];
+                out->w          = w;
+                ++*n_out;
+
+                in->t.p[0]      = p[2];
+                in->t.p[1]      = sp[0];
+                in->t.p[2]      = p[1];
+                in->n           = n;
+                in->e[0]        = e[2];
+                in->e[1]        = 1.0f;
+                in->e[2]        = e[1];
+                in->w           = w;
                 ++*n_in;
             }
         }
