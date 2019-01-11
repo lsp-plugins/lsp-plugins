@@ -25,6 +25,26 @@
 #include <GL/glu.h>
 #include <sys/poll.h>
 
+//#define TEST_DEBUG
+
+#ifndef TEST_DEBUG
+    #define BREAKPOINT_STEP     -1
+
+    #define INIT_FRONT(front) \
+        dsp::init_point_xyz(&sFront.p[0], 0.0f, 1.0f, 0.0f); \
+        dsp::init_point_xyz(&sFront.p[1], -1.0f, -0.5f, 0.0f); \
+        dsp::init_point_xyz(&sFront.p[2], 1.0f, -0.5f, 0.0f); \
+        dsp::init_point_xyz(&sFront.s, 0.0f, 0.0f, 1.0f);
+#else /* DEBUG */
+    #define BREAKPOINT_STEP     0
+
+    #define INIT_FRONT(front) \
+        dsp::init_point_xyz(&front.s, 0.0f, 0.0f, -0.75f); \
+        dsp::init_point_xyz(&front.p[0], 0.378978, -0.513494, -1.580061); \
+        dsp::init_point_xyz(&front.p[1], 0.453656, -0.486792, -1.562277); \
+        dsp::init_point_xyz(&front.p[2], 0.352607, -0.494265, -1.620808);
+#endif /* DEBUG */
+
 namespace mtest
 {
     using namespace lsp;
@@ -265,6 +285,8 @@ namespace mtest
      * and in (triangles below split plane). For every triangle, points 1 and 2 are the points that
      * lay on the split plane, the first triangle ALWAYS has 2 common points with plane (1 and 2)
      *
+     * The strict mode performs strict splitting of trianlges as an opposite to relaxed mode
+     *
      * @param out array of vertexes above plane
      * @param n_out counter of vertexes above plane (multiple of 3), should be initialized
      * @param in array of vertexes below plane
@@ -272,7 +294,321 @@ namespace mtest
      * @param pl plane equation
      * @param pv triangle to perform the split
      */
-    static void split_triangle(
+    static void split_triangle_strict(
+            v_triangle3d_t *out,
+            size_t *n_out,
+            v_triangle3d_t *in,
+            size_t *n_in,
+            const vector3d_t *pl,
+            const v_triangle3d_t *pv
+        )
+    {
+        point3d_t sp[2];    // Split point
+        vector3d_t d[2];    // Delta vector
+        point3d_t p[3];     // Triangle sources
+        float k[3];         // Co-location of points
+        float t[2];
+
+        in     += *n_in;
+        out    += *n_out;
+
+        p[0]    = pv->p[0];
+        p[1]    = pv->p[1];
+        p[2]    = pv->p[2];
+
+        k[0]    = pl->dx*p[0].x + pl->dy*p[0].y + pl->dz*p[0].z + pl->dw;
+        k[1]    = pl->dx*p[1].x + pl->dy*p[1].y + pl->dz*p[1].z + pl->dw;
+        k[2]    = pl->dx*p[2].x + pl->dy*p[2].y + pl->dz*p[2].z + pl->dw;
+
+        // Check that the whole triangle lies above the plane or below the plane
+        if (k[0] < 0.0f)
+        {
+            if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
+            {
+                in->p[0]        = p[0];
+                in->p[1]        = p[1];
+                in->p[2]        = p[2];
+                in->n[0]        = pv->n[0];
+                in->n[1]        = pv->n[1];
+                in->n[2]        = pv->n[2];
+                ++*n_in;
+                return;
+            }
+        }
+        else if (k[0] > 0.0f)
+        {
+            if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
+            {
+                out->p[0]       = p[0];
+                out->p[1]       = p[1];
+                out->p[2]       = p[2];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
+                ++*n_out;
+                return;
+            }
+        }
+        else // (k[0] == 0)
+        {
+            if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
+            {
+                out->p[0]       = p[0];
+                out->p[1]       = p[1];
+                out->p[2]       = p[2];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
+                ++*n_out;
+                return;
+            }
+            else if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
+            {
+                in->p[0]        = p[0];
+                in->p[1]        = p[1];
+                in->p[2]        = p[2];
+                in->n[0]        = pv->n[0];
+                in->n[1]        = pv->n[1];
+                in->n[2]        = pv->n[2];
+                ++*n_in;
+                return;
+            }
+        }
+
+        // There is an intersection with plane, we need to analyze it
+        // Rotate triangle until vertex 0 is above the split plane
+        while (k[0] <= 0.0f)
+        {
+            t[0]    = k[0];
+            sp[0]   = p[0];
+
+            k[0]    = k[1];
+            p[0]    = p[1];
+            k[1]    = k[2];
+            p[1]    = p[2];
+            k[2]    = t[0];
+            p[2]    = sp[0];
+        }
+
+        // Now we have p[0] guaranteed to be above plane, analyze p[1] and p[2]
+        if (k[1] < 0.0f) // k[1] < 0
+        {
+            d[0].dx = p[0].x - p[1].x;
+            d[0].dy = p[0].y - p[1].y;
+            d[0].dz = p[0].z - p[1].z;
+
+            t[0]    = -k[0] / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz);
+
+            sp[0].x = p[0].x + d[0].dx * t[0];
+            sp[0].y = p[0].y + d[0].dy * t[0];
+            sp[0].z = p[0].z + d[0].dz * t[0];
+            sp[0].w = 1.0f;
+
+            if (k[2] < 0.0f) // (k[1] < 0) && (k[2] < 0)
+            {
+                d[1].dx = p[0].x - p[2].x;
+                d[1].dy = p[0].y - p[2].y;
+                d[1].dz = p[0].z - p[2].z;
+
+                t[1]    = -k[0] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
+
+                sp[1].x = p[0].x + d[1].dx * t[1];
+                sp[1].y = p[0].y + d[1].dy * t[1];
+                sp[1].z = p[0].z + d[1].dz * t[1];
+                sp[1].w = 1.0f;
+
+//                lsp_trace("sp[1]: (%f, %f, %f)",
+//                        sp[1].x, sp[1].y, sp[1].z
+//                    );
+
+                // 1 triangle above plane, 2 below
+                out->p[0]       = p[0];
+                out->p[1]       = sp[0];
+                out->p[2]       = sp[1];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
+                ++*n_out;
+                ++out;
+
+                in->p[0]        = p[1];
+                in->p[1]        = sp[1];
+                in->p[2]        = sp[0];
+                in->n[0]        = pv->n[0];
+                in->n[1]        = pv->n[1];
+                in->n[2]        = pv->n[2];
+                ++*n_in;
+                ++in;
+
+                in->p[0]        = p[2];
+                in->p[1]        = sp[1];
+                in->p[2]        = p[1];
+                in->n[0]        = pv->n[0];
+                in->n[1]        = pv->n[1];
+                in->n[2]        = pv->n[2];
+                ++*n_in;
+            }
+            else if (k[2] > 0.0f) // (k[1] < 0) && (k[2] > 0)
+            {
+                d[1].dx = p[2].x - p[1].x;
+                d[1].dy = p[2].y - p[1].y;
+                d[1].dz = p[2].z - p[1].z;
+
+                t[1]    = -k[2] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
+
+                sp[1].x = p[2].x + d[1].dx * t[1];
+                sp[1].y = p[2].y + d[1].dy * t[1];
+                sp[1].z = p[2].z + d[1].dz * t[1];
+                sp[1].w = 1.0f;
+
+//                lsp_trace("sp[1]: (%f, %f, %f)",
+//                        sp[1].x, sp[1].y, sp[1].z
+//                    );
+
+                // 2 triangles above plane, 1 below
+                out->p[0]       = p[2];
+                out->p[1]       = sp[0];
+                out->p[2]       = sp[1];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
+                ++*n_out;
+                ++out;
+
+                out->p[0]       = p[0];
+                out->p[1]       = sp[0];
+                out->p[2]       = p[2];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
+                ++*n_out;
+
+                in->p[0]        = p[1];
+                in->p[1]        = sp[1];
+                in->p[2]        = sp[0];
+                in->n[0]        = pv->n[0];
+                in->n[1]        = pv->n[1];
+                in->n[2]        = pv->n[2];
+                ++*n_in;
+            }
+            else // (k[1] < 0) && (k[2] == 0)
+            {
+                // 1 triangle above plane, 1 below
+                out->p[0]       = p[0];
+                out->p[1]       = sp[0];
+                out->p[2]       = p[2];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
+                ++*n_out;
+
+                in->p[0]        = p[1];
+                in->p[1]        = p[2];
+                in->p[2]        = sp[0];
+                in->n[0]        = pv->n[0];
+                in->n[1]        = pv->n[1];
+                in->n[2]        = pv->n[2];
+                ++*n_in;
+            }
+        }
+        else // (k[1] >= 0) && (k[2] < 0)
+        {
+            d[0].dx = p[0].x - p[2].x;
+            d[0].dy = p[0].y - p[2].y;
+            d[0].dz = p[0].z - p[2].z;
+
+            t[0]    = -k[0] / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz);
+
+            sp[0].x = p[0].x + d[0].dx * t[0];
+            sp[0].y = p[0].y + d[0].dy * t[0];
+            sp[0].z = p[0].z + d[0].dz * t[0];
+            sp[0].w = 1.0f;
+
+//            lsp_trace("sp[0]: (%f, %f, %f)",
+//                    sp[0].x, sp[0].y, sp[0].z
+//                );
+
+            if (k[1] > 0.0f) // (k[1] > 0) && (k[2] < 0)
+            {
+                d[1].dx = p[1].x - p[2].x;
+                d[1].dy = p[1].y - p[2].y;
+                d[1].dz = p[1].z - p[2].z;
+
+                t[1]    = -k[1] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
+
+                sp[1].x = p[1].x + d[1].dx * t[1];
+                sp[1].y = p[1].y + d[1].dy * t[1];
+                sp[1].z = p[1].z + d[1].dz * t[1];
+                sp[1].w = 1.0f;
+
+//                lsp_trace("sp[1]: (%f, %f, %f)",
+//                        sp[1].x, sp[1].y, sp[1].z
+//                    );
+
+                // 2 triangles above plane, 1 below
+                out->p[0]       = p[0];
+                out->p[1]       = sp[1];
+                out->p[2]       = sp[0];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
+                ++*n_out;
+                ++out;
+
+                out->p[0]       = p[1];
+                out->p[1]       = sp[1];
+                out->p[2]       = p[0];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
+                ++*n_out;
+
+                in->p[0]        = p[2];
+                in->p[1]        = sp[0];
+                in->p[2]        = sp[1];
+                in->n[0]        = pv->n[0];
+                in->n[1]        = pv->n[1];
+                in->n[2]        = pv->n[2];
+                ++*n_in;
+            }
+            else // (k[1] == 0) && (k[2] < 0)
+            {
+                // 1 triangle above plane, 1 triangle below plane
+                out->p[0]       = p[0];
+                out->p[1]       = p[1];
+                out->p[2]       = sp[0];
+                out->n[0]       = pv->n[0];
+                out->n[1]       = pv->n[1];
+                out->n[2]       = pv->n[2];
+                ++*n_out;
+
+                in->p[0]        = p[2];
+                in->p[1]        = sp[0];
+                in->p[2]        = p[1];
+                in->n[0]        = pv->n[0];
+                in->n[1]        = pv->n[1];
+                in->n[2]        = pv->n[2];
+                ++*n_in;
+            }
+        }
+    }
+
+    /**
+     * Split triangle with plane, generates output set of triangles into out (triangles above split plane)
+     * and in (triangles below split plane). For every triangle, points 1 and 2 are the points that
+     * lay on the split plane, the first triangle ALWAYS has 2 common points with plane (1 and 2)
+     *
+     * The relaxed mode enables triangle bounds checking to prevent small triangles from being
+     * infinitely splitted
+     *
+     * @param out array of vertexes above plane
+     * @param n_out counter of vertexes above plane (multiple of 3), should be initialized
+     * @param in array of vertexes below plane
+     * @param n_in counter of vertexes below plane (multiple of 3), should be iniitialized
+     * @param pl plane equation
+     * @param pv triangle to perform the split
+     */
+    static void split_triangle_relaxed(
             v_triangle3d_t *out,
             size_t *n_out,
             v_triangle3d_t *in,
@@ -833,7 +1169,7 @@ namespace mtest
                     // Put all triangles below the plane to in
                     for (size_t l=0; l < *n_q; ++l)
                     {
-                        split_triangle(out, &n_out, in, n_in, &pl[k], &q[l]);
+                        split_triangle_relaxed(out, &n_out, in, n_in, &pl[k], &q[l]);
                         if ((n_out > 16) || ((*n_in) > 16))
                             lsp_trace("split overflow: n_out=%d, n_in=%d", int(n_out), int(*n_in));
                     }
@@ -865,7 +1201,7 @@ namespace mtest
 
     static status_t cull_front(context_t *ctx)
     {
-#if 0
+#ifndef TEST_DEBUG
         v_triangle3d_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
         size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
         vector3d_t pl[4];
@@ -903,7 +1239,7 @@ namespace mtest
 
                 for (size_t l=0; l < *n_q; ++l)
                 {
-                    split_triangle(out, &n_out, in, n_in, &pl[k], &q[l]);
+                    split_triangle_relaxed(out, &n_out, in, n_in, &pl[k], &q[l]);
                     if ((n_out > 16) || ((*n_in) > 16))
                         lsp_trace("split overflow: n_out=%d, n_in=%d", int(n_out), int(*n_in));
                 }
@@ -952,11 +1288,6 @@ namespace mtest
          */
 
         ctx->source.clear();
-
-        dsp::init_point_xyz(&ctx->front.s, 0.0f, 0.0f, -0.75f);
-        dsp::init_point_xyz(&ctx->front.p[0], 0.378978, -0.513494, -1.580061);
-        dsp::init_point_xyz(&ctx->front.p[1], 0.453656, -0.486792, -1.562277);
-        dsp::init_point_xyz(&ctx->front.p[2], 0.352607, -0.494265, -1.620808);
 
         v_triangle3d_t t;
         dsp::init_point_xyz(&t.p[0], 0.506148219, -0.709491611, -2.0);
@@ -1029,7 +1360,7 @@ namespace mtest
         dsp::calc_normal3d_pv(&t.n[2], t.p);
 
         n_out = 0, n_in = 0;
-        split_triangle(out, &n_out, in, &n_in, pl, &t);
+        split_triangle_strict(out, &n_out, in, &n_in, pl, &t);
         if ((n_out > 2) || (n_in > 2))
             lsp_trace("split overflow: n_out=%d, n_in=%d", int(n_out), int(n_in));
 
@@ -1093,7 +1424,7 @@ namespace mtest
         for (size_t i=0, nt=source.size(); i<nt; ++i)
         {
             n_sin = 0, n_sout = 0;
-            split_triangle(sout, &n_sout, sin, &n_sin, pl, source.at(i));
+            split_triangle_relaxed(sout, &n_sout, sin, &n_sin, pl, source.at(i));
             if ((n_sout > 2) || ((n_sin) > 2))
                 lsp_trace("split overflow: n_sout=%d, n_sin=%d", int(n_sout), int(n_sin));
 
@@ -1200,7 +1531,7 @@ namespace mtest
                 for (size_t i=0, nt=clipped.size(); i<nt; ++i)
                 {
                     n_sin = 0, n_sout = 0;
-                    split_triangle(sout, &n_sout, sin, &n_sin, &npl, clipped.at(i));
+                    split_triangle_relaxed(sout, &n_sout, sin, &n_sin, &npl, clipped.at(i));
                     if ((n_sout > 2) || ((n_sin) > 2))
                         lsp_trace("split overflow: n_sout=%d, n_sin=%d", int(n_sout), int(n_sin));
 
@@ -1282,7 +1613,7 @@ namespace mtest
             for (size_t i=0, nt=source.size(); i<nt; ++i)
             {
                 n_sin = 0, n_sout = 0;
-                split_triangle(sout, &n_sout, sin, &n_sin, &npl, source.at(i));
+                split_triangle_relaxed(sout, &n_sout, sin, &n_sin, &npl, source.at(i));
                 if ((n_sout > 2) || ((n_sin) > 2))
                     lsp_trace("split overflow: n_sout=%d, n_sin=%d", int(n_sout), int(n_sin));
 
@@ -1366,7 +1697,7 @@ namespace mtest
             t   = *(source.at(i));
 
             // Split all triangles:
-            split_triangle(out, &n_out, buf1, &n_buf1, pl, &t);
+            split_triangle_relaxed(out, &n_out, buf1, &n_buf1, pl, &t);
             if ((n_out > 16) || ((n_buf1) > 16))
                 lsp_trace("split overflow: n_out=%d, n_buf1=%d", int(n_out), int(n_buf1));
 
@@ -1419,7 +1750,7 @@ namespace mtest
             // Put all triangles below the plane to in
             for (size_t l=0; l < *n_q; ++l)
             {
-                split_triangle(out, &n_out, in, n_in, &spl[k], &q[l]);
+                split_triangle_relaxed(out, &n_out, in, n_in, &spl[k], &q[l]);
                 if ((n_out > 16) || (*n_in > 16))
                     lsp_trace("split overflow: n_out=%d, n_in=%d", int(n_out), int(*n_in));
             }
@@ -1552,6 +1883,7 @@ namespace mtest
         init_triangle_p3(&pt[3], &t.p[0], &t.p[1], &t.p[2], &pl[3]);
 
         TRACE_BREAK(ctx,
+            dump_context("Selected context", ctx);
             dump_triangle("Selected triangle", &t);
             ctx->global->view->add_triangle_1c(&t, &C_MAGENTA);
             ctx->global->view->add_plane_pv1c(pt[0].p, &C_RED);
@@ -1770,12 +2102,9 @@ MTEST_BEGIN("3d", reflections)
             {
                 pScene = scene;
                 bBoundBoxes = true;
-                nTrace = -1;
+                nTrace = BREAKPOINT_STEP;
 
-                dsp::init_point_xyz(&sFront.p[0], 0.0f, 1.0f, 0.0f);
-                dsp::init_point_xyz(&sFront.p[1], -1.0f, -0.5f, 0.0f);
-                dsp::init_point_xyz(&sFront.p[2], 1.0f, -0.5f, 0.0f);
-                dsp::init_point_xyz(&sFront.s, 0.0f, 0.0f, 1.0f);
+                INIT_FRONT(sFront);
 
                 update_view();
             }
