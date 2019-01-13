@@ -143,6 +143,10 @@ namespace mtest
              */
             bool add_triangle_1c(const v_triangle3d_t *t, const color3d_t *c);
 
+            bool add_triangle_pvnc1(const point3d_t *t, const vector3d_t *n, const color3d_t *c);
+
+            bool add_triangle_pvnc3(const point3d_t *t, const vector3d_t *n, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2);
+
             bool add_triangle_3c(const v_triangle3d_t *t, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2);
 
             /**
