@@ -10,7 +10,7 @@
 
 using namespace lsp;
 
-static const char *FILE_NAME = "res/test/3d/quad.obj";
+static const char *FILE_NAME = "res/test/3d/double_ring.obj";
 
 using namespace lsp;
 
