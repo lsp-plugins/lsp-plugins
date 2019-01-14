@@ -11,6 +11,7 @@
 #include <dsp/dsp.h>
 #include <core/status.h>
 #include <data/cstorage.h>
+#include <core/3d/common.h>
 
 namespace lsp
 {

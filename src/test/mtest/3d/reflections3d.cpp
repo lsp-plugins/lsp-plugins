@@ -300,8 +300,7 @@ namespace mtest
         v->dw       = - ( v->dx * p[0].x + v->dy * p[0].y + v->dz * p[0].z); // Parameter for the plane equation
     }
 
-    /*
-    static bool check_triangle(const v_triangle3d_t *t)
+    static bool check_triangle(const rt_triangle3d_t *t)
     {
         vector3d_t d[3];
         d[0].dx     = t->p[1].x - t->p[0].x;
@@ -320,7 +319,6 @@ namespace mtest
 
         return w > DSP_3D_TOLERANCE;
     }
-    */
 
 //    static float check_triangle_left_order_pv(const vector3d_t *pov, const point3d_t *p)
 //    {
@@ -348,7 +346,7 @@ namespace mtest
      * @param out array of vertexes above plane
      * @param n_out counter of vertexes above plane (multiple of 3), should be initialized
      * @param in array of vertexes below plane
-     * @param n_in counter of vertexes below plane (multiple of 3), should be iniitialized
+     * @param n_in counter of vertexes below plane (multiple of 3), should be initialized
      * @param pl plane equation
      * @param pv triangle to perform the split
      */
@@ -738,9 +736,11 @@ namespace mtest
                 out->e[1]       = 1.0f;
                 out->e[2]       = e[2];
                 out->w          = w;
-
-                ++*n_out;
-                ++out;
+                if (check_triangle(out))
+                {
+                    ++*n_out;
+                    ++out;
+                }
 
                 in->p[0]        = p[1];
                 in->p[1]        = sp[1];
@@ -750,8 +750,11 @@ namespace mtest
                 in->e[1]        = 1.0f;
                 in->e[2]        = e[0];
                 in->w           = w;
-                ++*n_in;
-                ++in;
+                if (check_triangle(in))
+                {
+                    ++*n_in;
+                    ++in;
+                }
 
                 in->p[0]        = p[2];
                 in->p[1]        = sp[1];
@@ -761,7 +764,8 @@ namespace mtest
                 in->e[1]        = -1.0f;
                 in->e[2]        = e[1];
                 in->w           = w;
-                ++*n_in;
+                if (check_triangle(in))
+                    ++*n_in;
             }
             else if (k[2] > 0.0f) // (k[1] < 0) && (k[2] > 0)
             {
@@ -785,8 +789,11 @@ namespace mtest
                 out->e[1]       = 1.0f;
                 out->e[2]       = e[1];
                 out->w          = w;
-                ++*n_out;
-                ++out;
+                if (check_triangle(out))
+                {
+                    ++*n_out;
+                    ++out;
+                }
 
                 out->p[0]       = p[0];
                 out->p[1]       = sp[0];
@@ -796,7 +803,8 @@ namespace mtest
                 out->e[1]       = -1.0f;
                 out->e[2]       = e[2];
                 out->w          = w;
-                ++*n_out;
+                if (check_triangle(out))
+                    ++*n_out;
 
                 in->p[0]        = p[1];
                 in->p[1]        = sp[1];
@@ -806,7 +814,8 @@ namespace mtest
                 in->e[1]        = 1.0f;
                 in->e[2]        = e[0];
                 in->w           = w;
-                ++*n_in;
+                if (check_triangle(in))
+                    ++*n_in;
             }
             else // (k[1] < 0) && (k[2] == 0)
             {
@@ -819,7 +828,8 @@ namespace mtest
                 out->e[1]       = 1.0f;
                 out->e[2]       = e[2];
                 out->w          = w;
-                ++*n_out;
+                if (check_triangle(out))
+                    ++*n_out;
 
                 in->p[0]        = p[1];
                 in->p[1]        = p[2];
@@ -829,7 +839,8 @@ namespace mtest
                 in->e[1]        = 1.0f;
                 in->e[2]        = e[0];
                 in->w           = w;
-                ++*n_in;
+                if (check_triangle(in))
+                    ++*n_in;
             }
         }
         else // (k[1] >= 0) && (k[2] < 0)
@@ -867,8 +878,11 @@ namespace mtest
                 out->e[1]       = 1.0f;
                 out->e[2]       = e[2];
                 out->w          = w;
-                ++*n_out;
-                ++out;
+                if (check_triangle(out))
+                {
+                    ++*n_out;
+                    ++out;
+                }
 
                 out->p[0]       = p[1];
                 out->p[1]       = sp[1];
@@ -878,7 +892,8 @@ namespace mtest
                 out->e[1]       = -1.0f;
                 out->e[2]       = e[0];
                 out->w          = w;
-                ++*n_out;
+                if (check_triangle(out))
+                    ++*n_out;
 
                 in->p[0]        = p[2];
                 in->p[1]        = sp[0];
@@ -888,7 +903,8 @@ namespace mtest
                 in->e[1]        = 1.0f;
                 in->e[2]        = e[1];
                 in->w           = w;
-                ++*n_in;
+                if (check_triangle(in))
+                    ++*n_in;
             }
             else // (k[1] == 0) && (k[2] < 0)
             {
@@ -901,7 +917,8 @@ namespace mtest
                 out->e[1]       = 1.0f;
                 out->e[2]       = e[2];
                 out->w          = w;
-                ++*n_out;
+                if (check_triangle(out))
+                    ++*n_out;
 
                 in->p[0]        = p[2];
                 in->p[1]        = sp[0];
@@ -911,7 +928,8 @@ namespace mtest
                 in->e[1]        = 1.0f;
                 in->e[2]        = e[1];
                 in->w           = w;
-                ++*n_in;
+                if (check_triangle(in))
+                    ++*n_in;
             }
         }
     }
@@ -2208,11 +2226,11 @@ namespace mtest
             dump_context("Selected context", ctx);
             dump_triangle("Selected triangle", &t);
             add_to_view(ctx, &t, &C_MAGENTA);
-            ctx->global->view->add_plane_pv1c(pt[0].p, &C_RED);
+            ctx->global->view->add_plane_pv1c(pt[0].p, (t.e[0] > 0.0f) ? &C_GRAY : &C_RED);
             dump_triangle("Culling plane #0", &pt[0]);
-            ctx->global->view->add_plane_pv1c(pt[1].p, &C_GREEN);
+            ctx->global->view->add_plane_pv1c(pt[1].p, (t.e[1] > 0.0f) ? &C_GRAY : &C_GREEN);
             dump_triangle("Culling plane #1", &pt[1]);
-            ctx->global->view->add_plane_pv1c(pt[2].p, &C_BLUE);
+            ctx->global->view->add_plane_pv1c(pt[2].p, (t.e[2] > 0.0f) ? &C_GRAY : &C_BLUE);
             dump_triangle("Culling plane #2", &pt[2]);
             ctx->global->view->add_plane_pv1c(pt[3].p, &C_YELLOW);
             dump_triangle("Culling plane #3", &pt[3]);
@@ -2248,6 +2266,9 @@ namespace mtest
             {
                 TRACE_BREAK(ctx,
                     lsp_trace("Edge has been processed previously, skipping\n");
+                    ctx->global->view->add_plane_pv1c(pt[i].p, &C_GRAY);
+                    add_to_view(ctx, &t, &C_GREEN);
+                    ctx->global->view->add_triangle_pv1c(ctx->front.t.p, &C_MAGENTA);
                 );
                 continue;
             }
