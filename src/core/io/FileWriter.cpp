@@ -9,7 +9,7 @@
 #include <core/io/charset.h>
 #include <core/io/FileWriter.h>
 
-#if 0
+#if 1
     #define CBUF_SIZE        0x1000
     #define BBUF_SIZE        0x4000
 #else

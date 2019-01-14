@@ -9,7 +9,7 @@
 #include <core/io/charset.h>
 #include <core/io/FileReader.h>
 
-#if 0
+#if 1
     #if defined(PLATFORM_WINDOWS)
         // Character buffer should have enough space to decode characters
         #define CBUF_SIZE        0x4000
