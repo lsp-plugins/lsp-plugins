@@ -10,11 +10,14 @@
 
 #include <dsp/dsp.h>
 #include <core/status.h>
-#include <data/cstorage.h>
+#include <data/cvector.h>
+#include <core/LSPString.h>
 #include <core/3d/common.h>
 
 namespace lsp
 {
+    class Scene3D;
+
     /** One scene object in the 3D space
      *
      */
@@ -28,84 +31,32 @@ namespace lsp
                 OF_HAS_
             };
 
-        private:
-            cstorage<point3d_t>         sVertexes;
-            cstorage<vector3d_t>        sNormals;
-            cstorage<vertex_index_t>    sVxInd;
-            cstorage<vertex_index_t>    sNormInd;
+        protected:
+            LSPString                   sName;
+            cvector<obj_triangle_t>     vTriangles;
 
-            material3d_t                sMaterial;
             matrix3d_t                  sMatrix;
-            point3d_t                   sCenter;
-            size_t                      nTriangles;
-            char                       *sName;
             bool                        bVisible;
-            bool                        bTraceable;
+            Scene3D                    *pScene;
 
-        public:
+            friend class Scene3D;
+
+        protected:
             /** Default constructor
              *
              */
-            Object3D();
+            explicit Object3D(Scene3D *scene, const LSPString *name);
 
             /** Destructor
              *
              */
             ~Object3D();
 
+        public:
             /** Destroy object's contents
              *
              */
             void destroy();
-
-            /** Get object's material
-             *
-             * @param m object's material
-             * @return pointer to object's material
-             */
-            inline material3d_t *get_material() { return &sMaterial; };
-
-            /** Set material
-             *
-             * @param m material
-             */
-            inline void set_material(const material3d_t *m) { sMaterial = *m; };
-
-            /** Get number of vertex
-             *
-             * @return number of vertex
-             */
-            inline size_t get_vertex_count() const { return sVertexes.size(); }
-
-            /** Get capacity in vertexes
-             *
-             * @return capacity in vertexes
-             */
-            inline size_t get_vertex_capacity() const { return sVertexes.capacity(); }
-
-            /** Get number of normals
-             *
-             * @return number of normals
-             */
-            inline size_t get_normals_count() const { return sNormals.size(); };
-
-            /** Get capacity in normals
-             *
-             * @return capacity in normals
-             */
-            inline size_t get_normals_capacity() const { return sNormals.capacity(); };
-
-            /** Get number of indices in object
-             *
-             * @return number of indices in object
-             */
-            inline size_t get_indices_count() const { return sVxInd.size(); };
-
-            /** Get capacity in indices
-             *
-             * @return capacity in indices
-             */
-            inline size_t get_indices_capacity() const { return sVxInd.capacity(); };
 
             /** Add triangle
              *
@@ -130,6 +81,19 @@ namespace lsp
              */
             status_t add_triangle(ssize_t *vv, ssize_t *vn);
 
+            /**
+             * Return number of triangles
+             * @return number of triangles
+             */
+            inline size_t num_triangles() const { return vTriangles.size(); }
+
+            /**
+             * Get triangle
+             * @param index triangle index
+             * @return pointer to triangle or NULL
+             */
+            inline obj_triangle_t *triangle(size_t index) { return vTriangles.get(index); }
+
             /** Add triangle
              *
              * @param vv array of three vertex indexes
@@ -137,139 +101,6 @@ namespace lsp
              */
             status_t add_triangle(ssize_t *vv);
 
-            /** Add vertex with normal
-             *
-             * @param p vertex to add
-             * @param n normal to add
-             * @return index of added vertex or negative value of status
-             */
-            ssize_t add_vertex(const point3d_t *p, const vector3d_t *n);
-
-            /** Add vertex
-             *
-             * @param p vertex to add
-             * @return index of added vertex or negative value of status
-             */
-            ssize_t add_vertex(const point3d_t *p);
-
-            /** Add vertex
-             *
-             * @param x x coordinate
-             * @param y y coordinate
-             * @param z z coordinate
-             * @return index of added vertex or negative value of status
-             */
-            ssize_t add_vertex(float x, float y, float z);
-
-            /** Create vertex and return pointer to it
-             *
-             * @return pointer to vertex or NULL
-             */
-            point3d_t *create_vertex();
-
-            /** Create vertexes and return pointer to the first of it
-             *
-             * @return pointer to the first vertex or NULL
-             */
-            point3d_t *create_vertex(size_t n);
-
-            /** Get vertex at specified position
-             *
-             * @param idx vertex identifier
-             * @return normal pointer or NULL
-             */
-            point3d_t *get_vertex(ssize_t idx);
-
-            /** Add normal
-             *
-             * @param n normal to add
-             * @return index of added normal or negative value of status
-             */
-            ssize_t add_normal(const vector3d_t *n);
-
-            /** Add normal
-             *
-             * @param dx x delta
-             * @param dy y delta
-             * @param dz z delta
-             * @return index of added normal or negative value of status
-             */
-            ssize_t add_normal(float dx, float dy, float dz);
-
-            /** Get normal at specified position
-             *
-             * @param idx normal identifier
-             * @return normal pointer or NULL
-             */
-            vector3d_t *get_normal(ssize_t idx);
-
-            /** Get array of vertexes
-             *
-             * @return array of vertexes
-             */
-            inline point3d_t *get_vertexes() { return sVertexes.get_array(); };
-
-            /** Get array of normals
-             *
-             * @return array of normals
-             */
-            inline vector3d_t *get_normals() { return sNormals.get_array(); };
-
-            /** Get array of vertex indexes
-             *
-             * @return array of vertex indexes
-             */
-            inline vertex_index_t *get_vertex_indexes() { return sVxInd.get_array(); };
-
-            /** Get array of normal indexes
-             *
-             * @return array of normal indexes
-             */
-            inline vertex_index_t *get_normal_indexes() { return sNormInd.get_array(); };
-
-            /** Get number of triangles
-             *
-             * @return number of triangles
-             */
-            inline size_t get_triangles_count() const { return nTriangles; };
-
-            /** Get matrix
-             *
-             * @return object matrix
-             */
-            inline matrix3d_t *get_matrix() { return &sMatrix; }
-
-            /** Get object name
-             *
-             * @return object name
-             */
-            inline const char *get_name() const { return sName; }
-
-            /** Set object name
-             *
-             * @param name
-             * @return
-             */
-            bool set_name(const char *name);
-
-            /** Check if object is ray-traceable
-             *
-             * @return true if object is ray-traceable
-             */
-            inline bool is_traceable() const
-            {
-                return bTraceable;
-            }
-            
-            /** Set object ray-traceable
-             *
-             * @param traceable traceable flag
-             */
-            inline void set_traceable(bool traceable)
-            {
-                bTraceable = traceable;
-            }
-            
             /** Check if object is visible
              *
              * @return true if object is visible
@@ -288,14 +119,18 @@ namespace lsp
                 bVisible = visible;
             }
 
-            /** Get center of the object
-             *
-             * @return center of the object
+            /**
+             * Get name of object
+             * @param name pointer to store name
+             * @return true on success
              */
-            inline point3d_t *get_center()
-            {
-                return &sCenter;
-            }
+            inline bool get_name(LSPString *name) const { return name->set(&sName); }
+
+            /**
+             * Get name of object in UTF-8 character set
+             * @return name of object in UTF-8 character set
+             */
+            inline const char *get_name() const { return sName.get_utf8(); }
     };
 
 } /* namespace lsp */

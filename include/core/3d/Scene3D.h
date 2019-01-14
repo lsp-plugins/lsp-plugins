@@ -11,9 +11,9 @@
 #include <dsp/dsp.h>
 #include <data/cvector.h>
 #include <data/cstorage.h>
+#include <core/3d/common.h>
+#include <core/3d/Allocator3D.h>
 #include <core/3d/Object3D.h>
-#include <core/3d/RaySource3D.h>
-#include <core/3d/TraceMap3D.h>
 
 namespace lsp
 {
@@ -22,20 +22,21 @@ namespace lsp
      */
     class Scene3D
     {
-        private:
-            cvector<Object3D>       vObjects;
-            cvector<RaySource3D>    vSources;
-            cvector<TraceCapture3D> vCaptures;
-            cstorage<bound_box3d_t> vBoundBoxes;
-            cstorage<ray3d_t>       vRays;
-            cstorage<point3d_t>     vPoints;
-            cstorage<segment3d_t>   vSegments;
+        protected:
+            cvector<Object3D>           vObjects;
+            Allocator3D<obj_vertex_t>   vVertexes;      // Vertex allocator
+            Allocator3D<obj_normal_t>   vNormals;       // Normal allocator
+            Allocator3D<obj_normal_t>   vXNormals;      // Extra normal allocator
+            Allocator3D<obj_edge_t>     vEdges;         // Edge allocator
+            Allocator3D<obj_triangle_t> vTriangles;     // Triangle allocator
+
+            friend class Object3D;
 
         public:
             /** Default constructor
              *
              */
-            Scene3D();
+            explicit Scene3D();
 
             /** Destructor
              *
@@ -46,48 +47,12 @@ namespace lsp
              *
              * @param recursive destroy attached objects
              */
-            void destroy(bool recursive=true);
+            void destroy();
 
             /** Clear scene
              *
              */
-            inline void clear() { destroy(true); };
-
-            /** Add object to scene
-             *
-             * @param obj object to add
-             * @param capt object capture
-             * @return true if object was added
-             */
-            bool add_object(Object3D *obj, TraceCapture3D *capt = NULL);
-
-            /** Add ray source to scene
-             *
-             * @param obj ray source to add
-             * @return true if ray source was added
-             */
-            bool add_source(RaySource3D *obj);
-
-            /** Add ray to scene
-             *
-             * @param r ray to add
-             * @return true if ray was added
-             */
-            bool add_ray(const ray3d_t *r);
-
-            /** Add point to scene
-             *
-             * @param p point to add
-             * @return true if point was added
-             */
-            bool add_point(const point3d_t *p);
-
-            /** Add segment to scene
-             *
-             * @param p segment to add
-             * @return true if segment was added
-             */
-            bool add_segment(const segment3d_t *s);
+            inline void clear() { destroy(); };
 
             /** Return number of objects in scene
              *
@@ -95,119 +60,85 @@ namespace lsp
              */
             inline size_t num_objects() const { return vObjects.size(); }
 
-            /** Return number of rays in scene
-             *
-             * @return number of rays in scene
+            /**
+             * Return number of vertexes in scene
+             * @return number of vertexes in scene
              */
-            inline size_t num_rays() const { return vRays.size(); }
-
-            /** Return number of points in scene
-             *
-             * @return number of points in scene
-             */
-            inline size_t num_points() const { return vPoints.size(); }
-
-            /** Return number of segments in scene
-             *
-             * @return number of segments in scene
-             */
-            inline size_t num_segments() const { return vSegments.size(); }
-
-            /** Return number of ray sources in scene
-             *
-             * @return number of ray sources in scene
-             */
-            inline size_t num_sources() const { return vSources.size(); }
-
-            /** Calculate overall number of triangles
-             *
-             * @return overall number of triangles
-             */
-            size_t num_triangles();
-
-            /** Get object by it's index
-             *
-             * @param index object index
-             * @return object or NULL
-             */
-            Object3D *get_object(size_t index);
+            inline size_t num_vertexes() const { return vVertexes.size(); }
 
             /**
-             * Get object's bound box by object index
+             * Return number of normals in scene
+             * @return number of normals in scene
+             */
+            inline size_t num_normals() const { return vNormals.size(); }
+
+            /**
+             * Return number of edges in scene
+             * @return number of edges in scene
+             */
+            inline size_t num_edges() const { return vEdges.size(); }
+
+            /**
+             * Return number of triangles in scene
+             * @return number of triangles in scene
+             */
+            inline size_t num_triangles() const { return vTriangles.size(); }
+
+            /**
+             * Get vertex by specified index
+             * @param idx vertex index
+             * @return vertex or NULL
+             */
+            inline obj_vertex_t *vertex(size_t idx) { return vVertexes.get(idx); }
+
+            /**
+             * Get normal by specified index
+             * @param idx normal index
+             * @return normal or NULL
+             */
+            inline obj_normal_t *normal(size_t idx) { return vNormals.get(idx); }
+
+            /**
+             * Get edge by specified index
+             * @param idx edge index
+             * @return edge or NULL
+             */
+            inline obj_edge_t *edge(size_t idx) { return vEdges.get(idx); }
+
+            /**
+             * Get triangle by specified index
+             * @param idx triangle index
+             * @return triangle or NULL
+             */
+            inline obj_triangle_t *triangle(size_t idx) { return vTriangles.get(idx); }
+
+            /**
+             * Add object
+             * @param name name of object
+             * @return pointer to object or NULL on error
+             */
+            Object3D *add_object(const LSPString *name);
+
+            /**
+             * Add vertex
+             * @param p vertex to add
+             * @return index of vertex or negative status of operation
+             */
+            ssize_t add_vertex(const point3d_t *p);
+
+            /**
+             * Add vertex
+             * @param n normal to add
+             * @return index of normal or negative status of operation
+             */
+            ssize_t add_normal(const vector3d_t *n);
+
+            /**
+             * Get object by it's index
              * @param index object index
-             * @return bound box or NULL
+             * @return pointer to object or NULL
              */
-            bound_box3d_t *get_bound_box(size_t index);
-
-            /** Get capture associated to object by it's index
-             *
-             * @param index object index
-             * @return capture or NULL
-             */
-            TraceCapture3D *get_capture(size_t index);
-
-            /** Get ray by it's index
-             *
-             * @param index ray index
-             * @return ray or NULL
-             */
-            ray3d_t *get_ray(size_t index);
-
-            /** Get point by it's index
-             *
-             * @param index point index
-             * @return point or NULL
-             */
-            point3d_t *get_point(size_t index);
-
-            /** Get segment by it's index
-             *
-             * @param index segment index
-             * @return segment or NULL
-             */
-            segment3d_t *get_segment(size_t index);
-
-            /** Get array of objects
-             *
-             * @return array of objects
-             */
-            inline Object3D **get_objects() { return vObjects.get_array(); }
-
-            /** Get array of ray sources
-             *
-             * @return array of ray sources
-             */
-            inline RaySource3D **get_sources() { return vSources.get_array(); }
-
-            /** Get array of captures
-             *
-             * @return array of captures attached to objects, elements may be null
-             */
-            inline TraceCapture3D **get_captures() { return vCaptures.get_array(); }
-
-            /** Get array of rays
-             *
-             * @return array of rays
-             */
-            inline ray3d_t *get_rays() { return vRays.get_array(); }
-
-            /** Get array of points
-             *
-             * @return array of points
-             */
-            inline point3d_t *get_points() { return vPoints.get_array(); }
-
-            /** Get array of segments
-             *
-             * @return array of segments
-             */
-            inline segment3d_t *get_segments() { return vSegments.get_array(); }
-
-            /** Build tracing map
-             *
-             * @return tracing map
-             */
-            TraceMap3D     *build_trace_map();
+            Object3D *get_object(size_t index) { return vObjects.get(index); }
     };
 
 } /* namespace lsp */

@@ -25,6 +25,8 @@
 #include <GL/glu.h>
 #include <sys/poll.h>
 
+#if 0
+
 //#define TEST_DEBUG
 
 #ifndef TEST_DEBUG
@@ -2771,4 +2773,4 @@ MTEST_BEGIN("3d", reflections)
 MTEST_END
 
 
-
+#endif

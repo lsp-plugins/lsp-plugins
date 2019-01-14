@@ -17,16 +17,15 @@ namespace lsp
         protected:
             typedef struct vertex_t
             {
-                point3d_t  *p;
-                vector3d_t *n;
-                ssize_t     ip;
-                ssize_t     in;
+                obj_vertex_t   *p;
+                obj_normal_t   *n;
+                ssize_t         ip;
+                ssize_t         in;
             } vertex_t;
 
         protected:
-            Scene3D        *pScene;
-            Object3D       *pObject;
-            cstorage<vertex_t> sVertex;
+            Scene3D                *pScene;
+            Object3D               *pObject;
 
         public:
             FileHandler3D(Scene3D *scene)
@@ -48,14 +47,8 @@ namespace lsp
             void reset_state()
             {
                 if (pScene != NULL)
-                    pScene->destroy(true);
-
-                if (pObject != NULL)
-                {
-                    pObject->destroy();
-                    delete pObject;
-                    pObject = NULL;
-                }
+                    pScene->destroy();
+                pObject     = NULL;
             }
 
             status_t complete()
@@ -71,11 +64,12 @@ namespace lsp
                 if (pObject != NULL)
                     return STATUS_BAD_STATE;
 
-                pObject = new Object3D();
-                if (pObject == NULL)
+                LSPString sname;
+                if (!sname.set_utf8(name))
                     return STATUS_NO_MEM;
 
-                return (pObject->set_name(name)) ? STATUS_OK : STATUS_NO_MEM;
+                pObject = pScene->add_object(&sname);
+                return (pObject != NULL) ? STATUS_OK : STATUS_NO_MEM;
             }
 
             virtual status_t end_object(size_t id)
@@ -83,23 +77,15 @@ namespace lsp
                 if (pObject == NULL)
                     return STATUS_BAD_STATE;
 
-                if (pScene->add_object(pObject))
-                {
-                    pObject = NULL;
-                    return STATUS_OK;
-                }
-
-                pObject->destroy();
-                delete pObject;
                 pObject = NULL;
-                return STATUS_NO_MEM;
+                return STATUS_OK;
             }
 
             virtual status_t add_vertex(const point3d_t *p)
             {
                 if (pObject == NULL)
                     return STATUS_BAD_STATE;
-                ssize_t idx = pObject->add_vertex(p);
+                ssize_t idx = pScene->add_vertex(p);
                 return (idx < 0)? status_t(-idx) : STATUS_OK;
             }
 
@@ -107,44 +93,44 @@ namespace lsp
             {
                 if (pObject == NULL)
                     return STATUS_BAD_STATE;
-                ssize_t idx = pObject->add_normal(v);
+                ssize_t idx = pScene->add_normal(v);
                 return (idx < 0)? status_t(-idx) : STATUS_OK;
             }
 
             virtual status_t add_face(const ssize_t *vv, const ssize_t *vn, const ssize_t *vt, size_t n)
             {
-                if (n < 3)
+                if ((pObject == NULL) || (n < 3))
                     return STATUS_BAD_STATE;
 
+                cstorage<vertex_t> vertex;
+                vertex_t *vx = vertex.append_n(n);
+                if (vx == NULL)
+                    return STATUS_NO_MEM;
+
                 // Prepare structure
-                sVertex.clear();
                 for (size_t i=0; i<n; ++i)
                 {
-                    vertex_t *vx        = sVertex.append();
-                    if (vx == NULL)
-                        return STATUS_NO_MEM;
-
-                    vx->ip              = *(vv++);
-                    vx->p               = (vx->ip >= 0) ? pObject->get_vertex(vx->ip) : NULL;
-                    if (vx->p == NULL)
+                    vx[i].ip            = *(vv++);
+                    vx[i].p             = (vx[i].ip >= 0) ? pScene->vertex(vx[i].ip) : NULL;
+                    if (vx[i].p == NULL)
                         return STATUS_BAD_STATE;
-                    vx->in              = *(vn++);
-                    vx->n               = (vx->in >= 0) ? pObject->get_normal(vx->in) : NULL;
+                    vx[i].in            = *(vn++);
+                    vx[i].n             = (vx[i].in >= 0) ? pScene->normal(vx[i].in) : NULL;
                 }
 
-                // Calc default normals
+                // Calc default normals for vertexes without normals
                 vertex_t *v1, *v2, *v3;
-                vector3d_t normal;
-                v1 = sVertex.at(0);
-                v2 = sVertex.at(1);
-                v3 = sVertex.at(2);
+                obj_normal_t on;
+                v1 = vertex.at(0);
+                v2 = vertex.at(1);
+                v3 = vertex.at(2);
 
-                dsp::calc_normal3d_p3(&normal, v1->p, v2->p, v3->p);
+                dsp::calc_normal3d_p3(&on, v1->p, v2->p, v3->p);
                 for (size_t i=0; i<n; ++i)
                 {
-                    v1 = sVertex.at(i);
+                    v1 = &vx[i];
                     if (v1->n == NULL)
-                        v1->n = &normal;
+                        v1->n = &on;
                 }
 
                 // Triangulation algorithm
@@ -153,9 +139,9 @@ namespace lsp
 
                 while (n > 3)
                 {
-                    v1 = sVertex.at(index % n);
-                    v2 = sVertex.at((index+1) % n);
-                    v3 = sVertex.at((index+2) % n);
+                    v1 = vertex.at(index % n);
+                    v2 = vertex.at((index+1) % n);
+                    v3 = vertex.at((index+2) % n);
 
                     lsp_trace(
                         "analyzing triangle (%8.3f, %8.3f, %8.3f):(%8.3f, %8.3f, %8.3f):(%8.3f, %8.3f, %8.3f)",
@@ -177,7 +163,7 @@ namespace lsp
                         size_t remove = (longest + 2) % 3;
 
                         // Need to eliminate point that lies on the line
-                        if (!sVertex.remove((index + remove) % n))
+                        if (!vertex.remove((index + remove) % n))
                             return STATUS_BAD_STATE;
 
                         // Rollback index and decrement counter
@@ -190,7 +176,7 @@ namespace lsp
                     int found = 0;
                     for (size_t i=0; i<n; ++i)
                     {
-                        vertex_t *vx = sVertex.at(i);
+                        vertex_t *vx = vertex.at(i);
                         if ((vx->ip == v1->ip) || (vx->ip == v2->ip) || (vx->ip == v3->ip))
                             continue;
 
@@ -221,7 +207,7 @@ namespace lsp
                         return result;
 
                     // Remove the middle point
-                    if (!sVertex.remove((index + 1) % n))
+                    if (!vertex.remove((index + 1) % n))
                         return STATUS_BAD_STATE;
 
                     if (index >= (--n))
@@ -229,9 +215,9 @@ namespace lsp
                 }
 
                 // Add last triangle
-                v1 = sVertex.at(0);
-                v2 = sVertex.at(1);
-                v3 = sVertex.at(2);
+                v1 = vertex.at(0);
+                v2 = vertex.at(1);
+                v3 = vertex.at(2);
 
                 ck = dsp::check_triplet3d_p3n(v1->p, v2->p, v3->p, v1->n);
                 if (ck != 0.0f)
@@ -271,7 +257,7 @@ namespace lsp
         status_t status = load(s, path, false);
         if (status != STATUS_OK)
         {
-            s->destroy(true);
+            s->destroy();
             delete s;
             return status;
         }

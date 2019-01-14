@@ -9,6 +9,7 @@
 #define INCLUDE_CORE_3D_COMMON_H_
 
 #include <core/types.h>
+#include <dsp/dsp.h>
 
 namespace lsp
 {
@@ -16,16 +17,31 @@ namespace lsp
     typedef ssize_t         normal_index_t; // Normal index
     typedef ssize_t         edge_index_t;   // Edge index
 
+    struct obj_normal_t;
+    struct obj_vertex_t;
+    struct obj_edge_t;
+    struct obj_triangle_t;
+
+    typedef struct obj_normal_t: public vector3d_t
+    {
+    } obj_normal_t;
+
+    typedef struct obj_vertex_t: public point3d_t
+    {
+        obj_edge_t         *ve;         // Edge list
+    } obj_vertex_t;
+
     typedef struct obj_edge_t
     {
-        vertex_index_t  vi[2];      // Index of start and end vertex
+        obj_vertex_t       *v[2];       // Pointers to vertexes
+        obj_edge_t         *vlnk[2];    // Link to next edge for the vertex v[i]
     } obj_edge_t;
 
     typedef struct obj_triangle_t
     {
-        vertex_index_t  v[3];       // Vertex indexes
-        normal_index_t  n[3];       // Normal indexes
-        edge_index_t    e[3];       // Edge indexes
+        obj_vertex_t       *v[3];       // Vertexes
+        obj_edge_t         *e[3];       // Edges
+        obj_normal_t       *n[3];       // Normals
     } obj_triangle_t;
 }
 

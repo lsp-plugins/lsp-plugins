@@ -16,6 +16,7 @@ namespace lsp
         nChunkCapacity  = c_size;
         nChunkSize      = c_size;
         nSizeOf         = sz_of;
+        nAllocated      = 0;
         pCurrChunk      = NULL;
         vChunks         = NULL;
     }
@@ -51,6 +52,15 @@ namespace lsp
         nChunkSize          = 0;
     }
 
+    void *BasicAllocator3D::do_get(size_t idx)
+    {
+        if (idx >= nAllocated)
+            return NULL;
+
+        uint8_t *chunk      = vChunks[idx / nChunkCapacity];
+        return &chunk[nSizeOf * (idx % nChunkCapacity)];
+    }
+
     void *BasicAllocator3D::do_alloc()
     {
         if (nChunkSize >= nChunkCapacity)
@@ -59,7 +69,21 @@ namespace lsp
             if (nChunkSize >= nChunkCapacity)
                 return NULL;
         }
+        ++nAllocated;
         return &pCurrChunk[nSizeOf * (nChunkSize++)];
+    }
+
+    ssize_t BasicAllocator3D::do_ialloc(void **p)
+    {
+        if (nChunkSize >= nChunkCapacity)
+        {
+            allocate_new_chunk();
+            if (nChunkSize >= nChunkCapacity)
+                return -1;
+        }
+        ssize_t index = nAllocated++;
+        *p = &pCurrChunk[nSizeOf * (nChunkSize++)];
+        return index;
     }
 
     void BasicAllocator3D::do_destroy()
@@ -80,8 +104,10 @@ namespace lsp
             vChunks = NULL;
         }
 
+        nAllocated      = 0;
         nCapacity       = 0;
         nChunks         = 0;
+        nChunkSize      = nChunkCapacity;
         pCurrChunk      = NULL;
     }
 }

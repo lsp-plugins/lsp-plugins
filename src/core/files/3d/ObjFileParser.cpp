@@ -530,10 +530,10 @@ namespace lsp
                             return result;
                     }
                     result = st->pHandler->begin_object(++st->nObjectID, s);
-                    st->nVxID           = 0;
-                    st->nParmVxID       = 0;
-                    st->nNormID         = 0;
-                    st->nTexVxID        = 0;
+//                    st->nVxID           = 0;
+//                    st->nParmVxID       = 0;
+//                    st->nNormID         = 0;
+//                    st->nTexVxID        = 0;
                 }
                 break;
 

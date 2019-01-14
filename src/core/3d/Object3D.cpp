@@ -7,28 +7,18 @@
 
 #include <core/alloc.h>
 #include <core/status.h>
+#include <core/3d/Scene3D.h>
 #include <core/3d/Object3D.h>
 
 namespace lsp
 {
-    Object3D::Object3D()
+    Object3D::Object3D(Scene3D *scene, const LSPString *name)
     {
-        sMaterial.speed         = 1.0f;
-        sMaterial.damping       = 0.0f;
-        sMaterial.absorption    = 0.0f;
-        sMaterial.transparency  = 0.0f;
-        sMaterial.refraction    = 1.0f;
-        sMaterial.reflection    = 1.0f;
-        sMaterial.diffuse       = 0.0f;
-
-        sName                   = NULL;
-        nTriangles              = 0;
-
+        pScene                  = scene;
         bVisible                = true;
-        bTraceable              = true;
 
+        sName.set(name);
         dsp::init_matrix3d_identity(&sMatrix);
-        dsp::init_point_xyz(&sCenter, 0.0f, 0.0f, 0.0f);
     }
 
     Object3D::~Object3D()
@@ -38,77 +28,7 @@ namespace lsp
     
     void Object3D::destroy()
     {
-        sVertexes.flush();
-        sNormals.flush();
-        sVxInd.flush();
-        sNormInd.flush();
-    }
-
-    ssize_t Object3D::add_vertex(const point3d_t *p, const vector3d_t *n)
-    {
-        size_t index = sVertexes.size();
-        if (!sVertexes.append(p))
-            return -STATUS_NO_MEM;
-        if (!sNormals.append(n))
-        {
-            sVertexes.remove(index);
-            return -STATUS_NO_MEM;
-        }
-        return index;
-    }
-
-    ssize_t Object3D::add_vertex(const point3d_t *p)
-    {
-        size_t index = sVertexes.size();
-        if (!sVertexes.append(p))
-            return -STATUS_NO_MEM;
-        return index;
-    }
-
-    ssize_t Object3D::add_vertex(float x, float y, float z)
-    {
-        point3d_t p = { x, y, z, 1.0f };
-        size_t index = sVertexes.size();
-        if (!sVertexes.append(&p))
-            return -STATUS_NO_MEM;
-        return index;
-    }
-
-    point3d_t *Object3D::create_vertex()
-    {
-        return sVertexes.append();
-    }
-
-    point3d_t *Object3D::create_vertex(size_t n)
-    {
-        return sVertexes.append_n(n);
-    }
-
-    point3d_t *Object3D::get_vertex(ssize_t idx)
-    {
-        return sVertexes[idx];
-    }
-
-    ssize_t Object3D::add_normal(const vector3d_t *n)
-    {
-        size_t index = sVertexes.size();
-        if (!sNormals.append(n))
-            return -STATUS_NO_MEM;
-        return index;
-    }
-
-    ssize_t Object3D::add_normal(float dx, float dy, float dz)
-    {
-        vector3d_t v = { dx, dy, dz, 0.0f };
-        size_t index = sVertexes.size();
-        if (!sNormals.append(&v))
-            return -STATUS_NO_MEM;
-        return index;
-    }
-
-    vector3d_t *Object3D::get_normal(ssize_t idx)
-    {
-        return sNormals[idx];
+        vTriangles.flush();
     }
 
     status_t Object3D::add_triangle(
@@ -117,53 +37,89 @@ namespace lsp
         )
     {
         // Check vertex index
-        ssize_t v_limit  = sVertexes.size();
+        ssize_t v_limit  = pScene->vVertexes.size();
         if ((v1 >= v_limit) || (v2 >= v_limit) || (v3 >= v_limit))
             return -STATUS_INVALID_VALUE;
         if ((v1 < 0) || (v2 < 0) || (v3 < 0))
             return -STATUS_INVALID_VALUE;
 
         // Check normal index
-        ssize_t n_limit  = sNormals.size();
+        ssize_t n_limit  = pScene->vNormals.size();
         if ((vn1 >= n_limit) || (vn2 >= n_limit) || (vn3 >= n_limit))
             return -STATUS_INVALID_VALUE;
+
+        // Allocate triangle
+        obj_triangle_t *t = pScene->vTriangles.alloc();
+        if (t == NULL)
+            return -STATUS_NO_MEM;
+
+        // Store vertexes
+        t->v[0]     = pScene->vertex(v1);
+        t->v[1]     = pScene->vertex(v2);
+        t->v[2]     = pScene->vertex(v3);
+
+        // Store normals
+        obj_normal_t *xvn       = NULL;
         if ((vn1 < 0) || (vn2 < 0) || (vn3 < 0))
         {
             // Add normal
-            vector3d_t *xvn     = sNormals.append();
-            point3d_t *p1       = sVertexes.at(v1);
-            point3d_t *p2       = sVertexes.at(v2);
-            point3d_t *p3       = sVertexes.at(v3);
-            dsp::calc_normal3d_p3(xvn, p1, p2, p3);
+            obj_normal_t *xvn       = pScene->vXNormals.alloc();
+            if (xvn == NULL)
+                return -STATUS_NO_MEM;
+
+            // Get points
+            dsp::calc_normal3d_p3(xvn, t->v[0], t->v[1], t->v[2]);
         }
-        if (vn1 < 0)
-            vn1     = n_limit;
-        if (vn2 < 0)
-            vn2     = n_limit;
-        if (vn3 < 0)
-            vn3     = n_limit;
 
-        // Append elements
-        vertex_index_t *vi  = sVxInd.append_n(3);
-        if (!vi)
-            return STATUS_NO_MEM;
-        vertex_index_t *ni  = sNormInd.append_n(3);
-        if (!ni)
-            return STATUS_NO_MEM;
+        t->n[0]     = (vn1 >= 0) ? pScene->normal(vn1) : xvn;
+        t->n[1]     = (vn2 >= 0) ? pScene->normal(vn2) : xvn;
+        t->n[2]     = (vn3 >= 0) ? pScene->normal(vn3) : xvn;
 
-        // Store indexes
-        vi[0]   = v1;
-        vi[1]   = v2;
-        vi[2]   = v3;
+        // Store edges
+        obj_vertex_t *v[2];
+        for (size_t i=0; i<3; ++i)
+        {
+            v[0]    = t->v[i];
+            v[1]    = t->v[(i+1)%3];
 
-        ni[0]   = vn1;
-        ni[1]   = vn2;
-        ni[2]   = vn3;
+            // Lookup for already existing edge
+            obj_edge_t *e = v[0]->ve;
+            while (e != NULL)
+            {
+                if (e->v[0] == v[0])
+                {
+                    if (e->v[1] == v[1])
+                        break;
+                    e = e->vlnk[0];
+                }
+                else // e->v[1] == v[0]
+                {
+                    if (e->v[0] == v[1])
+                        break;
+                    e = e->vlnk[1];
+                }
+            }
 
-        // Update number of triangles
-        nTriangles  ++;
+            // Need to create new edge and link?
+            if (e == NULL)
+            {
+                e = pScene->vEdges.alloc();
+                if (e == NULL)
+                    return -STATUS_NO_MEM;
 
-        return STATUS_OK;
+                e->v[0]     = v[0];
+                e->v[1]     = v[1];
+                e->vlnk[0]  = v[0]->ve;
+                e->vlnk[1]  = v[1]->ve;
+                v[0]->ve    = e;
+                v[1]->ve    = e;
+            }
+
+            // Add edge to triangle
+            t->e[i]     = e;
+        }
+
+        return (vTriangles.add(t)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
     status_t Object3D::add_triangle(ssize_t *vv, ssize_t *vn)
@@ -174,33 +130,6 @@ namespace lsp
     status_t Object3D::add_triangle(ssize_t *vv)
     {
         return add_triangle(vv[0], vv[1], vv[2], -1, -1, -1);
-    }
-
-    bool Object3D::set_name(const char *name)
-    {
-        if (name == NULL)
-        {
-            if (sName != NULL)
-                free(sName);
-            sName = NULL;
-            return true;
-        }
-        else if (sName == NULL)
-        {
-            sName = strdup(name);
-            return sName != NULL;
-        }
-        else if (strcmp(sName, name) == 0)
-            return true;
-
-        // Make copy of string
-        char *dup = strdup(name);
-        if (dup == NULL)
-            return false;
-        free(sName);
-        sName = dup;
-
-        return true;
     }
 
 } /* namespace lsp */
