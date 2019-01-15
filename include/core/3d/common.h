@@ -28,16 +28,16 @@ namespace lsp
     typedef struct obj_normal_t: public vector3d_t
     {
         normal_index_t      id;         // Normal index
-        void               *ptag;       // Pointer tag
-        ssize_t             itag;       // Integer tag
+        void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
+        ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
     } obj_normal_t;
 
     typedef struct obj_vertex_t: public point3d_t
     {
         vertex_index_t      id;         // Vertex index
         obj_edge_t         *ve;         // Edge list
-        void               *ptag;       // Pointer tag
-        ssize_t             itag;       // Integer tag
+        void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
+        ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
     } obj_vertex_t;
 
     typedef struct obj_edge_t
@@ -45,8 +45,8 @@ namespace lsp
         edge_index_t        id;         // Edge index
         obj_vertex_t       *v[2];       // Pointers to vertexes
         obj_edge_t         *vlnk[2];    // Link to next edge for the vertex v[i]
-        void               *ptag;       // Pointer tag
-        ssize_t             itag;       // Integer tag
+        void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
+        ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
     } obj_edge_t;
 
     typedef struct obj_triangle_t
@@ -55,8 +55,8 @@ namespace lsp
         obj_vertex_t       *v[3];       // Vertexes
         obj_edge_t         *e[3];       // Edges
         obj_normal_t       *n[3];       // Normals
-        void               *ptag;       // Pointer tag
-        ssize_t             itag;       // Integer tag
+        void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
+        ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
     } obj_triangle_t;
 
     typedef struct obj_boundbox_t: public bound_box3d_t
