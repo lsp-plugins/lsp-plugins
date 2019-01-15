@@ -28,7 +28,7 @@ namespace lsp
 
     enum rt_context_state_t
     {
-        S_SCAN_SCENE,
+        S_SCAN_OBJECTS,
         S_CULL_FRONT,
         S_CULL_BACK
     };

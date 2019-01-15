@@ -54,6 +54,21 @@
         dsp::init_point_xyz(&front.p[2], 0.352607, -0.494265, -1.620808);
 #endif /* DEBUG */
 
+#define TRACE_BREAK(ctx, action) \
+    if ((ctx->shared->breakpoint >= 0) && ((ctx->shared->step++) == ctx->shared->breakpoint)) { \
+        lsp_trace("Triggered breakpoint %d\n", int(ctx->global->breakpoint)); \
+        action; \
+        return STATUS_OK; \
+    }
+
+#define TRACE_SKIP(ctx, action) \
+    if (ctx->shared->breakpoint >= 0) { \
+        if (ctx->shared->step > ctx->shared->breakpoint) { \
+            action; \
+            return STATUS_OK; \
+        } \
+    }
+
 namespace mtest
 {
     using namespace lsp;
@@ -68,13 +83,15 @@ namespace mtest
     static const color3d_t C_ORANGE     = { 1.0f, 0.5f, 0.0f, 0.0f };
     static const color3d_t C_GRAY       = { 0.75f, 0.75f, 0.75f, 0.0f };
 
+    typedef struct raw_triangle_t
+    {
+        point3d_t   p[3];
+    } raw_triangle_t;
+
 #if 0
 #if 0
 #pragma pack(push, 1)
-    typedef struct raw_triangle3d_t
-    {
-        point3d_t   p[3];
-    } raw_triangle3d_t;
+
 
     typedef struct rt_triangle3d_t // Raytracing triangle
     {
@@ -100,7 +117,7 @@ namespace mtest
 
     enum context_state_t
     {
-        S_SCAN_SCENE,
+        S_SCAN_OBJECTS,
         S_CULL_FRONT,
         S_CULL_BACK
     };
@@ -318,250 +335,6 @@ namespace mtest
 //
 //        return pov->dx * d[2].dx + pov->dy * d[2].dy + pov->dz * d[2].dz;
 //    }
-
-    /**
-     * Split raw triangle with plane, generates output set of triangles into out (triangles above split plane)
-     * and in (triangles below split plane). For every triangle, points 1 and 2 are the points that
-     * lay on the split plane, the first triangle ALWAYS has 2 common points with plane (1 and 2)
-     *
-     * @param out array of vertexes above plane
-     * @param n_out counter of vertexes above plane (multiple of 3), should be initialized
-     * @param in array of vertexes below plane
-     * @param n_in counter of vertexes below plane (multiple of 3), should be initialized
-     * @param pl plane equation
-     * @param pv triangle to perform the split
-     */
-    static void split_triangle_raw(
-            raw_triangle3d_t *out,
-            size_t *n_out,
-            raw_triangle3d_t *in,
-            size_t *n_in,
-            const vector3d_t *pl,
-            const raw_triangle3d_t *pv
-        )
-    {
-        point3d_t sp[2];    // Split point
-        vector3d_t d[2];    // Delta vector
-        point3d_t p[3];     // Triangle sources
-        float k[3];         // Co-location of points
-        float t[2];
-
-        in     += *n_in;
-        out    += *n_out;
-
-        p[0]    = pv->p[0];
-        p[1]    = pv->p[1];
-        p[2]    = pv->p[2];
-
-        k[0]    = pl->dx*p[0].x + pl->dy*p[0].y + pl->dz*p[0].z + pl->dw;
-        k[1]    = pl->dx*p[1].x + pl->dy*p[1].y + pl->dz*p[1].z + pl->dw;
-        k[2]    = pl->dx*p[2].x + pl->dy*p[2].y + pl->dz*p[2].z + pl->dw;
-
-        // Check that the whole triangle lies above the plane or below the plane
-        if (k[0] < 0.0f)
-        {
-            if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
-            {
-                in->p[0]        = p[0];
-                in->p[1]        = p[1];
-                in->p[2]        = p[2];
-                ++*n_in;
-                return;
-            }
-        }
-        else if (k[0] > 0.0f)
-        {
-            if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
-            {
-                out->p[0]       = p[0];
-                out->p[1]       = p[1];
-                out->p[2]       = p[2];
-                ++*n_out;
-                return;
-            }
-        }
-        else // (k[0] == 0)
-        {
-            if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
-            {
-                out->p[0]       = p[0];
-                out->p[1]       = p[1];
-                out->p[2]       = p[2];
-                ++*n_out;
-                return;
-            }
-            else if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
-            {
-                in->p[0]        = p[0];
-                in->p[1]        = p[1];
-                in->p[2]        = p[2];
-                ++*n_in;
-                return;
-            }
-        }
-
-        // There is an intersection with plane, we need to analyze it
-        // Rotate triangle until vertex 0 is above the split plane
-        while (k[0] <= 0.0f)
-        {
-            t[0]    = k[0];
-            sp[0]   = p[0];
-
-            k[0]    = k[1];
-            p[0]    = p[1];
-            k[1]    = k[2];
-            p[1]    = p[2];
-            k[2]    = t[0];
-            p[2]    = sp[0];
-        }
-
-        // Now we have p[0] guaranteed to be above plane, analyze p[1] and p[2]
-        if (k[1] < 0.0f) // k[1] < 0
-        {
-            d[0].dx = p[0].x - p[1].x;
-            d[0].dy = p[0].y - p[1].y;
-            d[0].dz = p[0].z - p[1].z;
-
-            t[0]    = -k[0] / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz);
-
-            sp[0].x = p[0].x + d[0].dx * t[0];
-            sp[0].y = p[0].y + d[0].dy * t[0];
-            sp[0].z = p[0].z + d[0].dz * t[0];
-            sp[0].w = 1.0f;
-
-            if (k[2] < 0.0f) // (k[1] < 0) && (k[2] < 0)
-            {
-                d[1].dx = p[0].x - p[2].x;
-                d[1].dy = p[0].y - p[2].y;
-                d[1].dz = p[0].z - p[2].z;
-
-                t[1]    = -k[0] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
-
-                sp[1].x = p[0].x + d[1].dx * t[1];
-                sp[1].y = p[0].y + d[1].dy * t[1];
-                sp[1].z = p[0].z + d[1].dz * t[1];
-                sp[1].w = 1.0f;
-
-                // 1 triangle above plane, 2 below
-                out->p[0]       = p[0];
-                out->p[1]       = sp[0];
-                out->p[2]       = sp[1];
-                ++*n_out;
-                ++out;
-
-                in->p[0]        = p[1];
-                in->p[1]        = sp[1];
-                in->p[2]        = sp[0];
-                ++*n_in;
-                ++in;
-
-                in->p[0]        = p[2];
-                in->p[1]        = sp[1];
-                in->p[2]        = p[1];
-                ++*n_in;
-            }
-            else if (k[2] > 0.0f) // (k[1] < 0) && (k[2] > 0)
-            {
-                d[1].dx = p[2].x - p[1].x;
-                d[1].dy = p[2].y - p[1].y;
-                d[1].dz = p[2].z - p[1].z;
-
-                t[1]    = -k[2] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
-
-                sp[1].x = p[2].x + d[1].dx * t[1];
-                sp[1].y = p[2].y + d[1].dy * t[1];
-                sp[1].z = p[2].z + d[1].dz * t[1];
-                sp[1].w = 1.0f;
-
-                // 2 triangles above plane, 1 below
-                out->p[0]       = p[2];
-                out->p[1]       = sp[0];
-                out->p[2]       = sp[1];
-                ++*n_out;
-                ++out;
-
-                out->p[0]       = p[0];
-                out->p[1]       = sp[0];
-                out->p[2]       = p[2];
-                ++*n_out;
-
-                in->p[0]        = p[1];
-                in->p[1]        = sp[1];
-                in->p[2]        = sp[0];
-                ++*n_in;
-            }
-            else // (k[1] < 0) && (k[2] == 0)
-            {
-                // 1 triangle above plane, 1 below
-                out->p[0]       = p[0];
-                out->p[1]       = sp[0];
-                out->p[2]       = p[2];
-                ++*n_out;
-
-                in->p[0]        = p[1];
-                in->p[1]        = p[2];
-                in->p[2]        = sp[0];
-                ++*n_in;
-            }
-        }
-        else // (k[1] >= 0) && (k[2] < 0)
-        {
-            d[0].dx = p[0].x - p[2].x;
-            d[0].dy = p[0].y - p[2].y;
-            d[0].dz = p[0].z - p[2].z;
-
-            t[0]    = -k[0] / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz);
-
-            sp[0].x = p[0].x + d[0].dx * t[0];
-            sp[0].y = p[0].y + d[0].dy * t[0];
-            sp[0].z = p[0].z + d[0].dz * t[0];
-            sp[0].w = 1.0f;
-
-            if (k[1] > 0.0f) // (k[1] > 0) && (k[2] < 0)
-            {
-                d[1].dx = p[1].x - p[2].x;
-                d[1].dy = p[1].y - p[2].y;
-                d[1].dz = p[1].z - p[2].z;
-
-                t[1]    = -k[1] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
-
-                sp[1].x = p[1].x + d[1].dx * t[1];
-                sp[1].y = p[1].y + d[1].dy * t[1];
-                sp[1].z = p[1].z + d[1].dz * t[1];
-                sp[1].w = 1.0f;
-
-                // 2 triangles above plane, 1 below
-                out->p[0]       = p[0];
-                out->p[1]       = sp[1];
-                out->p[2]       = sp[0];
-                ++*n_out;
-                ++out;
-
-                out->p[0]       = p[1];
-                out->p[1]       = sp[1];
-                out->p[2]       = p[0];
-                ++*n_out;
-
-                in->p[0]        = p[2];
-                in->p[1]        = sp[0];
-                in->p[2]        = sp[1];
-                ++*n_in;
-            }
-            else // (k[1] == 0) && (k[2] < 0)
-            {
-                // 1 triangle above plane, 1 triangle below plane
-                out->p[0]       = p[0];
-                out->p[1]       = p[1];
-                out->p[2]       = sp[0];
-                ++*n_out;
-
-                in->p[0]        = p[2];
-                in->p[1]        = sp[0];
-                in->p[2]        = p[1];
-                ++*n_in;
-            }
-        }
-    }
 
     /**
      * Split raytracing triangle with plane, generates output set of triangles into out (triangles above split plane)
@@ -1341,22 +1114,6 @@ namespace mtest
     }
 #endif
 
-    static const size_t bbox_map[] =
-    {
-        0, 1, 2,
-        0, 2, 3,
-        6, 5, 4,
-        6, 4, 7,
-        1, 0, 4,
-        1, 4, 5,
-        3, 2, 6,
-        3, 6, 7,
-        1, 5, 2,
-        2, 5, 6,
-        0, 3, 4,
-        3, 7, 4
-    };
-
     static void destroy_scene(cvector<object_t> &list)
     {
         for (size_t i=0, n=list.size(); i<n; ++i)
@@ -1563,21 +1320,6 @@ namespace mtest
 #endif
 
         return STATUS_OK;
-    }
-
-#define TRACE_BREAK(ctx, action) \
-    if ((ctx->global->breakpoint >= 0) && ((ctx->global->step++) == ctx->global->breakpoint)) { \
-        lsp_trace("Triggered breakpoint %d\n", int(ctx->global->breakpoint)); \
-        action; \
-        return STATUS_OK; \
-    }
-
-#define TRACE_SKIP(ctx, action) \
-    if (ctx->global->breakpoint >= 0) { \
-        if (ctx->global->step > ctx->global->breakpoint) { \
-            action; \
-            return STATUS_OK; \
-        } \
     }
 
     /**
@@ -2257,95 +1999,7 @@ namespace mtest
         return STATUS_OK;
     }
 
-    static status_t perform_raytrace(
-            cvector<context_t> &tasks
-        )
-    {
-        context_t *ctx = NULL;
-        status_t res = STATUS_OK;
 
-        while (tasks.size() > 0)
-        {
-            // Get next context from queue
-            if (!tasks.pop(&ctx))
-                return STATUS_CORRUPTED;
-
-            TRACE_SKIP(ctx,
-                delete ctx;
-                destroy_tasks(tasks);
-            );
-
-            // Check that we need to perform a scan
-            switch (ctx->state)
-            {
-                case S_SCAN_SCENE:
-                    // Scan scene for intersections with objects
-                    res = scan_scene(ctx);
-                    if (res != STATUS_OK)
-                        break;
-
-                    // Change state and put to queue
-                    ctx->state = S_CULL_FRONT;
-                    if (!tasks.push(ctx))
-                        res = STATUS_NO_MEM;
-                    else
-                        ctx = NULL;
-                    break;
-
-                case S_CULL_FRONT:
-                    res = cull_front(ctx);
-                    if (res != STATUS_OK)
-                        break;
-
-                    TRACE_BREAK(ctx,
-                        lsp_trace("State after culled data");
-                        for (size_t i=0, n=ctx->source.size(); i<n; ++i)
-                            ctx->global->matched.add(ctx->source.get(i));
-                        delete ctx;
-                        ctx = NULL;
-                    );
-
-                    if (ctx->source.size() <= 1)
-                    {
-                        bool success = (ctx->source.size() > 0) ?
-                                (ctx->global->matched.add(ctx->source.get(0)) != NULL) : true;
-                        if (!success)
-                        {
-                            res = STATUS_NO_MEM;
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        // Update state and return task to queue
-                        ctx->state = S_CULL_BACK;
-
-                        if (!tasks.push(ctx))
-                            res = STATUS_NO_MEM;
-                        else
-                            ctx = NULL;
-                    }
-                    break;
-
-                case S_CULL_BACK:
-                    // This function will automatically manage context instance
-                    // when execution result is successful
-                    res = cull_back(tasks, ctx);
-                    ctx = NULL;
-                    break;
-            }
-
-            // Delete context if present
-            if (ctx != NULL)
-                delete ctx;
-
-            // Analyze status
-            if (res != STATUS_OK)
-                break;
-        }
-
-        return res;
-    }
 #endif
 
     static void calc_plane_vector_p3(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
@@ -2373,8 +2027,464 @@ namespace mtest
         v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
     }
 
-} // Namespace mtest
+    /**
+     * Split raw triangle with plane, generates output set of triangles into out (triangles above split plane)
+     * and in (triangles below split plane). For every triangle, points 1 and 2 are the points that
+     * lay on the split plane, the first triangle ALWAYS has 2 common points with plane (1 and 2)
+     *
+     * @param out array of vertexes above plane
+     * @param n_out counter of vertexes above plane (multiple of 3), should be initialized
+     * @param in array of vertexes below plane
+     * @param n_in counter of vertexes below plane (multiple of 3), should be initialized
+     * @param pl plane equation
+     * @param pv triangle to perform the split
+     */
+    static void split_triangle_raw(
+            raw_triangle_t *out,
+            size_t *n_out,
+            raw_triangle_t *in,
+            size_t *n_in,
+            const vector3d_t *pl,
+            const raw_triangle_t *pv
+        )
+    {
+        point3d_t sp[2];    // Split point
+        vector3d_t d[2];    // Delta vector
+        point3d_t p[3];     // Triangle sources
+        float k[3];         // Co-location of points
+        float t[2];
 
+        in     += *n_in;
+        out    += *n_out;
+
+        p[0]    = pv->p[0];
+        p[1]    = pv->p[1];
+        p[2]    = pv->p[2];
+
+        k[0]    = pl->dx*p[0].x + pl->dy*p[0].y + pl->dz*p[0].z + pl->dw;
+        k[1]    = pl->dx*p[1].x + pl->dy*p[1].y + pl->dz*p[1].z + pl->dw;
+        k[2]    = pl->dx*p[2].x + pl->dy*p[2].y + pl->dz*p[2].z + pl->dw;
+
+        // Check that the whole triangle lies above the plane or below the plane
+        if (k[0] < 0.0f)
+        {
+            if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
+            {
+                in->p[0]        = p[0];
+                in->p[1]        = p[1];
+                in->p[2]        = p[2];
+                ++*n_in;
+                return;
+            }
+        }
+        else if (k[0] > 0.0f)
+        {
+            if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
+            {
+                out->p[0]       = p[0];
+                out->p[1]       = p[1];
+                out->p[2]       = p[2];
+                ++*n_out;
+                return;
+            }
+        }
+        else // (k[0] == 0)
+        {
+            if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
+            {
+                out->p[0]       = p[0];
+                out->p[1]       = p[1];
+                out->p[2]       = p[2];
+                ++*n_out;
+                return;
+            }
+            else if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
+            {
+                in->p[0]        = p[0];
+                in->p[1]        = p[1];
+                in->p[2]        = p[2];
+                ++*n_in;
+                return;
+            }
+        }
+
+        // There is an intersection with plane, we need to analyze it
+        // Rotate triangle until vertex 0 is above the split plane
+        while (k[0] <= 0.0f)
+        {
+            t[0]    = k[0];
+            sp[0]   = p[0];
+
+            k[0]    = k[1];
+            p[0]    = p[1];
+            k[1]    = k[2];
+            p[1]    = p[2];
+            k[2]    = t[0];
+            p[2]    = sp[0];
+        }
+
+        // Now we have p[0] guaranteed to be above plane, analyze p[1] and p[2]
+        if (k[1] < 0.0f) // k[1] < 0
+        {
+            d[0].dx = p[0].x - p[1].x;
+            d[0].dy = p[0].y - p[1].y;
+            d[0].dz = p[0].z - p[1].z;
+
+            t[0]    = -k[0] / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz);
+
+            sp[0].x = p[0].x + d[0].dx * t[0];
+            sp[0].y = p[0].y + d[0].dy * t[0];
+            sp[0].z = p[0].z + d[0].dz * t[0];
+            sp[0].w = 1.0f;
+
+            if (k[2] < 0.0f) // (k[1] < 0) && (k[2] < 0)
+            {
+                d[1].dx = p[0].x - p[2].x;
+                d[1].dy = p[0].y - p[2].y;
+                d[1].dz = p[0].z - p[2].z;
+
+                t[1]    = -k[0] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
+
+                sp[1].x = p[0].x + d[1].dx * t[1];
+                sp[1].y = p[0].y + d[1].dy * t[1];
+                sp[1].z = p[0].z + d[1].dz * t[1];
+                sp[1].w = 1.0f;
+
+                // 1 triangle above plane, 2 below
+                out->p[0]       = p[0];
+                out->p[1]       = sp[0];
+                out->p[2]       = sp[1];
+                ++*n_out;
+                ++out;
+
+                in->p[0]        = p[1];
+                in->p[1]        = sp[1];
+                in->p[2]        = sp[0];
+                ++*n_in;
+                ++in;
+
+                in->p[0]        = p[2];
+                in->p[1]        = sp[1];
+                in->p[2]        = p[1];
+                ++*n_in;
+            }
+            else if (k[2] > 0.0f) // (k[1] < 0) && (k[2] > 0)
+            {
+                d[1].dx = p[2].x - p[1].x;
+                d[1].dy = p[2].y - p[1].y;
+                d[1].dz = p[2].z - p[1].z;
+
+                t[1]    = -k[2] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
+
+                sp[1].x = p[2].x + d[1].dx * t[1];
+                sp[1].y = p[2].y + d[1].dy * t[1];
+                sp[1].z = p[2].z + d[1].dz * t[1];
+                sp[1].w = 1.0f;
+
+                // 2 triangles above plane, 1 below
+                out->p[0]       = p[2];
+                out->p[1]       = sp[0];
+                out->p[2]       = sp[1];
+                ++*n_out;
+                ++out;
+
+                out->p[0]       = p[0];
+                out->p[1]       = sp[0];
+                out->p[2]       = p[2];
+                ++*n_out;
+
+                in->p[0]        = p[1];
+                in->p[1]        = sp[1];
+                in->p[2]        = sp[0];
+                ++*n_in;
+            }
+            else // (k[1] < 0) && (k[2] == 0)
+            {
+                // 1 triangle above plane, 1 below
+                out->p[0]       = p[0];
+                out->p[1]       = sp[0];
+                out->p[2]       = p[2];
+                ++*n_out;
+
+                in->p[0]        = p[1];
+                in->p[1]        = p[2];
+                in->p[2]        = sp[0];
+                ++*n_in;
+            }
+        }
+        else // (k[1] >= 0) && (k[2] < 0)
+        {
+            d[0].dx = p[0].x - p[2].x;
+            d[0].dy = p[0].y - p[2].y;
+            d[0].dz = p[0].z - p[2].z;
+
+            t[0]    = -k[0] / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz);
+
+            sp[0].x = p[0].x + d[0].dx * t[0];
+            sp[0].y = p[0].y + d[0].dy * t[0];
+            sp[0].z = p[0].z + d[0].dz * t[0];
+            sp[0].w = 1.0f;
+
+            if (k[1] > 0.0f) // (k[1] > 0) && (k[2] < 0)
+            {
+                d[1].dx = p[1].x - p[2].x;
+                d[1].dy = p[1].y - p[2].y;
+                d[1].dz = p[1].z - p[2].z;
+
+                t[1]    = -k[1] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
+
+                sp[1].x = p[1].x + d[1].dx * t[1];
+                sp[1].y = p[1].y + d[1].dy * t[1];
+                sp[1].z = p[1].z + d[1].dz * t[1];
+                sp[1].w = 1.0f;
+
+                // 2 triangles above plane, 1 below
+                out->p[0]       = p[0];
+                out->p[1]       = sp[1];
+                out->p[2]       = sp[0];
+                ++*n_out;
+                ++out;
+
+                out->p[0]       = p[1];
+                out->p[1]       = sp[1];
+                out->p[2]       = p[0];
+                ++*n_out;
+
+                in->p[0]        = p[2];
+                in->p[1]        = sp[0];
+                in->p[2]        = sp[1];
+                ++*n_in;
+            }
+            else // (k[1] == 0) && (k[2] < 0)
+            {
+                // 1 triangle above plane, 1 triangle below plane
+                out->p[0]       = p[0];
+                out->p[1]       = p[1];
+                out->p[2]       = sp[0];
+                ++*n_out;
+
+                in->p[0]        = p[2];
+                in->p[1]        = sp[0];
+                in->p[2]        = p[1];
+                ++*n_in;
+            }
+        }
+    }
+
+    static void destroy_tasks(cvector<rt_context_t> &tasks)
+    {
+        for (size_t i=0, n=tasks.size(); i<n; ++i)
+        {
+            rt_context_t *ctx = tasks.get(i);
+            if (ctx != NULL)
+                delete ctx;
+        }
+
+        tasks.flush();
+    }
+
+    static bool check_bound_box(const bound_box3d_t *bbox, const rt_view_t *view)
+    {
+        static const size_t bbox_map[] =
+        {
+            0, 1, 2,
+            0, 2, 3,
+            6, 5, 4,
+            6, 4, 7,
+            1, 0, 4,
+            1, 4, 5,
+            3, 2, 6,
+            3, 6, 7,
+            1, 5, 2,
+            2, 5, 6,
+            0, 3, 4,
+            3, 7, 4
+        };
+
+        vector3d_t pl[4];
+
+        calc_plane_vector_p3(&pl[0], &view->s, &view->p[0], &view->p[1]);
+        calc_plane_vector_p3(&pl[1], &view->s, &view->p[1], &view->p[2]);
+        calc_plane_vector_p3(&pl[2], &view->s, &view->p[2], &view->p[0]);
+        calc_plane_vector_p3(&pl[3], &view->p[0], &view->p[1], &view->p[2]);
+
+        raw_triangle_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
+        size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
+
+        // Cull each triangle of bounding box with four scissor planes
+        for (size_t j=0, m = sizeof(bbox_map)/sizeof(size_t); j < m; )
+        {
+            // Initialize input and queue buffer
+            q = buf1, in = buf2;
+            n_q = &n_buf1, n_in = &n_buf2;
+
+            // Put to queue with updated matrix
+            *n_q        = 1;
+            n_out       = 0;
+            q->p[0]     = bbox->p[bbox_map[j++]];
+            q->p[1]     = bbox->p[bbox_map[j++]];
+            q->p[2]     = bbox->p[bbox_map[j++]];
+
+            // Cull triangle with planes
+            for (size_t k=0; ; )
+            {
+                // Reset counters
+                *n_in   = 0;
+
+                // Split all triangles:
+                // Put all triangles above the plane to out
+                // Put all triangles below the plane to in
+                for (size_t l=0; l < *n_q; ++l)
+                {
+                    split_triangle_raw(out, &n_out, in, n_in, &pl[k], &q[l]);
+                    if ((n_out > 16) || ((*n_in) > 16))
+                        lsp_trace("split overflow: n_out=%d, n_in=%d", int(n_out), int(*n_in));
+                }
+
+                // Interrupt cycle if there is no data to process
+                if ((*n_in <= 0) || ((++k) >= 4))
+                   break;
+
+                // Swap buffers buf0 <-> buf1
+                n_tmp = n_in, tmp = in;
+                n_in = n_q, in = q;
+                n_q = n_tmp, q = tmp;
+            }
+
+            if (*n_in > 0) // Is there intersection with bounding box?
+                break;
+        }
+
+        return (*n_in) > 0;
+    }
+
+    static status_t add_object(rt_context_t *ctx, Object3D *obj)
+    {
+        // Reset tags
+        obj->scene()->init_tags(NULL, -1);
+
+        // Clone triangles
+        for (size_t i=0, n=obj->num_triangles(); i<n; ++i)
+        {
+            obj_triangle_t *st = obj->triangle(i);
+            if (st == NULL)
+                return STATUS_BAD_STATE;
+            else if (st->ptag != NULL) // Skip already emitted triangle
+                continue;
+
+            // Allocate triangle and store pointer
+            rt_triangle_t *dt = ctx->triangle.alloc();
+            if (dt == NULL)
+                return STATUS_NO_MEM;
+            st->ptag    = dt;
+            dt->n       = *(st->n[0]);
+
+            // Copy data
+            for (size_t j=0; j<3; ++j)
+            {
+                // Allocate vertex and edge
+                rt_vertex_t *vx     = (st->v[j]->ptag == NULL) ? ctx->vertex.alloc() : reinterpret_cast<rt_vertex_t *>(st->v[j]->ptag);
+                rt_edge_t *ex       = (st->e[j]->ptag == NULL) ? ctx->edge.alloc() : reinterpret_cast<rt_edge_t *>(st->e[j]->ptag);
+
+                if ((vx == NULL) || (ex == NULL))
+                    return STATUS_NO_MEM;
+
+                // Copy contents
+                dt->v[j]        = vx;
+                dt->e[j]        = ex;
+                st->v[j]->ptag  = vx;
+                st->e[j]->ptag  = ex;
+            }
+        }
+
+        // TODO: patch pointers of vertexes and edges
+
+        return STATUS_OK;
+    }
+
+    /**
+     * Scan scene for triangles laying inside the viewing area of wave front
+     * @param ctx wave front context
+     * @return status of operation
+     */
+    static status_t scan_objects(rt_context_t *ctx)
+    {
+        status_t res = STATUS_OK;
+
+        // Check for crossing with all bounding boxes
+        for (size_t i=0, n=ctx->shared->scene->num_objects(); i<n; ++i)
+        {
+            Object3D *obj = ctx->shared->scene->object(i);
+
+            // Ensure that we need to add the object to queue
+            if (obj->num_triangles() >= 16)
+            {
+                matrix3d_t *m = obj->matrix();
+                bound_box3d_t box = *(obj->bound_box());
+                for (size_t j=0; j<8; ++j)
+                    dsp::apply_matrix3d_mp1(&box.p[i], m);
+
+                // Skip object if view is not crossing bounding-box
+                if (!check_bound_box(obj->bound_box(), &ctx->view))
+                    continue;
+            }
+
+            // Add object to context
+            res = add_object(ctx, obj);
+            if (res != STATUS_OK)
+                break;
+        }
+
+        return res;
+    }
+
+
+    static status_t perform_raytrace(cvector<rt_context_t> &tasks)
+    {
+        rt_context_t *ctx = NULL;
+        status_t res = STATUS_OK;
+
+        while (tasks.size() > 0)
+        {
+            // Get next context from queue
+            if (!tasks.pop(&ctx))
+                return STATUS_CORRUPTED;
+
+            TRACE_SKIP(ctx,
+                delete ctx;
+                destroy_tasks(tasks);
+            );
+
+            // Check that we need to perform a scan
+            switch (ctx->state)
+            {
+                case S_SCAN_OBJECTS:
+                    // Scan scene for intersections with objects
+                    res = scan_objects(ctx);
+                    if (res != STATUS_OK)
+                        break;
+
+                    // Change state and put to queue
+                    ctx->state = S_CULL_FRONT;
+                    if (!tasks.push(ctx))
+                        res = STATUS_NO_MEM;
+                    else
+                        ctx = NULL;
+                    break;
+            }
+
+            // Delete context if present
+            if (ctx != NULL)
+                delete ctx;
+
+            // Analyze status
+            if (res != STATUS_OK)
+                break;
+        }
+
+        return res;
+    }
+} // Namespace mtest
 
 MTEST_BEGIN("3d", reflections)
 
@@ -2533,7 +2643,7 @@ MTEST_BEGIN("3d", reflections)
                 if (ctx == NULL)
                     return STATUS_NO_MEM;
 
-                ctx->state          = S_SCAN_SCENE;
+                ctx->state          = S_SCAN_OBJECTS;
                 ctx->view           = sFront;
 
                 // Add context to tasks
@@ -2571,6 +2681,8 @@ MTEST_BEGIN("3d", reflections)
                         }
                     }
                 }
+
+                res = perform_raytrace(tasks);
 
                 /*
                 // Clear allocated resources, tasks and ctx should be already deleted

@@ -14,12 +14,14 @@ namespace lsp
         edge(256),
         triangle(256)
     {
-        this->state     = S_SCAN_SCENE;
+        this->state     = S_SCAN_OBJECTS;
         this->shared    = shared;
     }
     
     rt_context_t::~rt_context_t()
     {
+        shared          = NULL;
+
         vertex.destroy();
         edge.destroy();
         triangle.destroy();
