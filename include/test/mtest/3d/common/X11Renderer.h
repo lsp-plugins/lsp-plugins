@@ -11,7 +11,7 @@
 #include <core/types.h>
 #include <core/status.h>
 #include <core/3d/Scene3D.h>
-#include <test/mtest/3d/common/View3D.h>
+#include <core/3d/View3D.h>
 
 #include <X11/X.h>
 #include <X11/Xlib.h>

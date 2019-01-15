@@ -5,11 +5,10 @@
  *      Author: sadko
  */
 
-#include <test/mtest/3d/common/View3D.h>
+#include <core/3d/View3D.h>
 
-namespace mtest
+namespace lsp
 {
-    
     View3D::View3D()
     {
     }

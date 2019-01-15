@@ -1,55 +1,19 @@
 /*
- * View.h
+ * View3D.h
  *
  *  Created on: 24 дек. 2018 г.
  *      Author: sadko
  */
 
-#ifndef TEST_MTEST_3D_COMMON_VIEW3D_H_
-#define TEST_MTEST_3D_COMMON_VIEW3D_H_
+#ifndef CORE_3D_VIEW3D_H_
+#define CORE_3D_VIEW3D_H_
 
-#include <dsp/dsp.h>
+#include <core/3d/common.h>
 #include <data/cstorage.h>
 
-namespace mtest
+namespace lsp
 {
     using namespace lsp;
-
-#pragma pack (push, 1)
-    typedef struct v_vertex3d_t
-    {
-        point3d_t   p;      // Position
-        vector3d_t  n;      // Normal
-        color3d_t   c;      // Color
-    } v_vertex3d_t;
-
-    typedef struct v_triangle3d_t
-    {
-        point3d_t   p[3];   // Positions
-        vector3d_t  n[3];   // Normals
-    } v_triangle3d_t;
-
-    typedef struct v_point3d_t
-    {
-        point3d_t   p;      // Position
-        color3d_t   c;      // Color
-    } v_point3d_t;
-
-    typedef struct v_ray3d_t
-    {
-        point3d_t   p;      // Position
-        vector3d_t  v;      // Direction
-        color3d_t   c;      // Color
-    } v_ray3d_t;
-
-    typedef struct v_segment3d_t
-    {
-        point3d_t   p[2];   // Position
-        color3d_t   c;      // Color
-    } v_segment3d_t;
-
-    typedef uint32_t            index3d_t;
-#pragma pack (pop)
 
     typedef enum v3dflags_t
     {
@@ -165,13 +129,6 @@ namespace mtest
              */
             bool add_triangle_pv1c(const point3d_t *pv, const color3d_t *c);
 
-//            /**
-//             * Add triangle to scene
-//             * @param t triangle to add
-//             * @return true if triangle was added
-//             */
-//            bool add_triangle(const v_triangle3d_t *t);
-
             /**
              * Add triangle to scene and automatically generate indexes
              */
@@ -232,4 +189,4 @@ namespace mtest
 
 } /* namespace mtest */
 
-#endif /* TEST_MTEST_3D_COMMON_VIEW3D_H_ */
+#endif /* CORE_3D_VIEW3D_H_ */

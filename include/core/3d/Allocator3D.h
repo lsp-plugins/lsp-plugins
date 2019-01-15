@@ -35,6 +35,7 @@ namespace lsp
             void       *do_get(size_t idx);
             void        do_destroy();
             size_t     *do_alloc_n(void **ptr, size_t n);
+            void        do_swap(BasicAllocator3D *alloc);
 
         public:
             explicit BasicAllocator3D(size_t sz_of, size_t c_size);
@@ -138,6 +139,12 @@ namespace lsp
                  * @return element at specified index or NULL if index is invalid
                  */
                 inline T * operator[] (size_t idx) { return do_get(idx); }
+
+                /**
+                 * Swap internal contents with another allocator
+                 * @param src allocator to perform swapping
+                 */
+                inline void swap(Allocator3D<T> *src) { return do_swap(src); };
 
                 /** Drop all allocated data
                  *

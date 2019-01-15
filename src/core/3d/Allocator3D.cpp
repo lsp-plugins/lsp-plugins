@@ -110,5 +110,35 @@ namespace lsp
         nChunkSize      = nChunkCapacity;
         pCurrChunk      = NULL;
     }
+
+    void BasicAllocator3D::do_swap(BasicAllocator3D *src)
+    {
+        size_t tnCapacity       = nCapacity;
+        size_t tnChunks         = nChunks;
+        size_t tnChunkCapacity  = nChunkCapacity;
+        size_t tnChunkSize      = nChunkSize;
+        size_t tnSizeOf         = nSizeOf;
+        size_t tnAllocated      = nAllocated;
+        uint8_t *tpCurrChunk    = pCurrChunk;
+        uint8_t **tvChunks      = vChunks;
+
+        nCapacity               = src->nCapacity;
+        nChunks                 = src->nChunks;
+        nChunkCapacity          = src->nChunkCapacity;
+        nChunkSize              = src->nChunkSize;
+        nSizeOf                 = src->nSizeOf;
+        nAllocated              = src->nAllocated;
+        pCurrChunk              = src->pCurrChunk;
+        vChunks                 = src->vChunks;
+
+        src->nCapacity          = tnCapacity;
+        src->nChunks            = tnChunks;
+        src->nChunkCapacity     = tnChunkCapacity;
+        src->nChunkSize         = tnChunkSize;
+        src->nSizeOf            = tnSizeOf;
+        src->nAllocated         = tnAllocated;
+        src->pCurrChunk         = tpCurrChunk;
+        src->vChunks            = tvChunks;
+    }
 }
 
