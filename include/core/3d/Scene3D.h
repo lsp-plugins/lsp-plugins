@@ -101,6 +101,13 @@ namespace lsp
             inline size_t num_triangles() const { return vTriangles.size(); }
 
             /**
+             * Get object by it's index
+             * @param idx object index
+             * @return pointer to object or NULL
+             */
+            inline Object3D *object(size_t idx) { return vObjects.get(idx); }
+
+            /**
              * Get vertex by specified index
              * @param idx vertex index
              * @return vertex or NULL

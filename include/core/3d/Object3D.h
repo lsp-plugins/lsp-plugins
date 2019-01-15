@@ -154,6 +154,12 @@ namespace lsp
              * @return the scene the object relates to
              */
             inline Scene3D *scene() { return pScene; }
+
+            /** Get object transformation matrix
+             *
+             * @return object transformation matrix
+             */
+            inline matrix3d_t *matrix() { return &sMatrix; }
     };
 
 } /* namespace lsp */

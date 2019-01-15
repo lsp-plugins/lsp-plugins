@@ -28,8 +28,6 @@
 
 //#define TEST_DEBUG
 
-#if 0
-
 #ifndef TEST_DEBUG
     #define BREAKPOINT_STEP     -1
 
@@ -60,6 +58,7 @@ namespace mtest
 {
     using namespace lsp;
 
+
     static const color3d_t C_RED        = { 1.0f, 0.0f, 0.0f, 0.0f };
     static const color3d_t C_GREEN      = { 0.0f, 1.0f, 0.0f, 0.0f };
     static const color3d_t C_BLUE       = { 0.0f, 0.0f, 1.0f, 0.0f };
@@ -69,6 +68,7 @@ namespace mtest
     static const color3d_t C_ORANGE     = { 1.0f, 0.5f, 0.0f, 0.0f };
     static const color3d_t C_GRAY       = { 0.75f, 0.75f, 0.75f, 0.0f };
 
+#if 0
 #if 0
 #pragma pack(push, 1)
     typedef struct raw_triangle3d_t
@@ -254,30 +254,7 @@ namespace mtest
         t->n[2] = t->n[0];
     }
 
-    static void calc_plane_vector_p3(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
-    {
-        // Calculate edge parameters
-        vector3d_t d[2];
-        d[0].dx     = p1->x - p0->x;
-        d[0].dy     = p1->y - p0->y;
-        d[0].dz     = p1->z - p0->z;
-        d[0].dw     = p1->w - p0->w;
 
-        d[1].dx     = p2->x - p1->x;
-        d[1].dy     = p2->y - p1->y;
-        d[1].dz     = p2->z - p1->z;
-        d[1].dw     = p2->w - p1->w;
-
-        // Do vector multiplication to calculate the normal vector
-        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
-        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
-        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
-        v->dw       = 0.0f;
-
-        dsp::normalize_vector(v);
-
-        v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
-    }
 
     static void calc_plane_vector_pv(vector3d_t *v, const point3d_t *p)
     {
@@ -1391,77 +1368,6 @@ namespace mtest
         list.flush();
     }
 
-    static status_t prepare_scene(cvector<object_t> &scene, Scene3D *s)
-    {
-        status_t res        = STATUS_OK;
-        size_t hsize        = ALIGN_SIZE(sizeof(object_t), DEFAULT_ALIGN);
-
-        cvector<object_t> ol;
-
-        for (size_t i=0, n=s->num_objects(); i<n; ++i)
-        {
-            // Get scene object
-            Object3D *obj   = s->get_object(i);
-            if ((obj == NULL) || (!obj->is_visible()))
-                continue;
-
-            // Add bounding box
-            bound_box3d_t *bbox = s->get_bound_box(i);
-            if (bbox == NULL)
-                continue;
-
-            // Initialize pointers
-            matrix3d_t *om      = obj->get_matrix();
-            point3d_t *tr       = obj->get_vertexes();
-            vector3d_t *tn      = obj->get_normals();
-            vertex_index_t *vvx = obj->get_vertex_indexes();
-            vertex_index_t *vnx = obj->get_normal_indexes();
-
-            // Allocate object descriptor
-            size_t nt           = obj->get_triangles_count();
-            size_t osize        = hsize + ALIGN_SIZE(sizeof(rt_triangle3d_t) * nt, DEFAULT_ALIGN);
-            object_t *o         = reinterpret_cast<object_t *>(malloc(osize));
-            if (o == NULL)
-            {
-                res             = STATUS_NO_MEM;
-                break;
-            }
-            if (!ol.add(o))
-            {
-                free(o);
-                res             = STATUS_NO_MEM;
-                break;
-            }
-
-            o->t                = reinterpret_cast<rt_triangle3d_t *>(reinterpret_cast<uint8_t *>(o) + hsize);
-            o->box              = *bbox;
-            o->nt               = nt;
-
-            // Apply object matrix to vertexes and produce final array
-            rt_triangle3d_t *t  = o->t;
-
-            for (size_t j=0; j < nt; ++j, ++t)
-            {
-                dsp::apply_matrix3d_mp2(&t->p[0], &tr[*(vvx++)], om);
-                dsp::apply_matrix3d_mp2(&t->p[1], &tr[*(vvx++)], om);
-                dsp::apply_matrix3d_mp2(&t->p[2], &tr[*(vvx++)], om);
-
-                dsp::apply_matrix3d_mv2(&t->n, &tn[*(vnx++)], om);
-
-                t->e[0]     = -1.0f;
-                t->e[1]     = -1.0f;
-                t->e[2]     = -1.0f;
-                t->w        = 0.0f;
-            }
-        }
-
-        if (res == STATUS_OK)
-            ol.swap_data(&scene);
-
-        destroy_scene(ol);
-        return res;
-    }
-
     /**
      * Scan scene for triangles laying inside the viewing area of wave front
      * @param ctx wave front context
@@ -2440,7 +2346,35 @@ namespace mtest
 
         return res;
     }
+#endif
+
+    static void calc_plane_vector_p3(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    {
+        // Calculate edge parameters
+        vector3d_t d[2];
+        d[0].dx     = p1->x - p0->x;
+        d[0].dy     = p1->y - p0->y;
+        d[0].dz     = p1->z - p0->z;
+        d[0].dw     = p1->w - p0->w;
+
+        d[1].dx     = p2->x - p1->x;
+        d[1].dy     = p2->y - p1->y;
+        d[1].dz     = p2->z - p1->z;
+        d[1].dw     = p2->w - p1->w;
+
+        // Do vector multiplication to calculate the normal vector
+        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
+        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+        v->dw       = 0.0f;
+
+        dsp::normalize_vector(v);
+
+        v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
+    }
+
 } // Namespace mtest
+
 
 MTEST_BEGIN("3d", reflections)
 
@@ -2579,7 +2513,8 @@ MTEST_BEGIN("3d", reflections)
             status_t    update_view()
             {
                 v_segment3d_t s;
-                v_vertex3d_t v[3];
+//                v_vertex3d_t v[3];
+                status_t res = STATUS_OK;
 
                 // Clear view state
                 pView->clear_all();
@@ -2588,6 +2523,7 @@ MTEST_BEGIN("3d", reflections)
                 rt_shared_t global;
                 global.breakpoint   = nTrace;
                 global.step         = 0;
+                global.scene        = pScene;
                 global.view         = pView;
 
                 cvector<rt_context_t> tasks;
@@ -2607,39 +2543,36 @@ MTEST_BEGIN("3d", reflections)
                     return STATUS_NO_MEM;
                 }
 
-                // Prepare scene for analysis
-                status_t res = prepare_scene(global.scene, pScene);
-                if (res != STATUS_OK)
-                {
-                    tasks.flush();
-                    delete ctx;
-                    return res;
-                }
-
                 // Render bounding boxes of the scene
-                s.c = C_ORANGE;
-                for (size_t i=0, n=global.scene.size(); i<n; ++i)
+                if (bBoundBoxes)
                 {
-                    object_t *o = global.scene.at(i);
-                    bound_box3d_t *bbox = &o->box;
-
-                    if (bBoundBoxes)
+                    s.c = C_ORANGE;
+                    for (size_t i=0, n=global.scene->num_objects(); i<n; ++i)
                     {
+                        Object3D *o = global.scene->object(i);
+                        matrix3d_t *m = o->matrix();
+                        bound_box3d_t *pmbox = o->bound_box();
+                        bound_box3d_t bbox;
+
+                        for (size_t i=0; i<8; ++i)
+                            dsp::apply_matrix3d_mp2(&bbox.p[i], &pmbox->p[i], m);
+
                         for (size_t i=0; i<4; ++i)
                         {
-                            s.p[0] = bbox->p[i];
-                            s.p[1] = bbox->p[(i+1)%4];
+                            s.p[0] = bbox.p[i];
+                            s.p[1] = bbox.p[(i+1)%4];
                             pView->add_segment(&s);
-                            s.p[0] = bbox->p[i];
-                            s.p[1] = bbox->p[i+4];
+                            s.p[0] = bbox.p[i];
+                            s.p[1] = bbox.p[i+4];
                             pView->add_segment(&s);
-                            s.p[0] = bbox->p[i+4];
-                            s.p[1] = bbox->p[(i+1)%4 + 4];
+                            s.p[0] = bbox.p[i+4];
+                            s.p[1] = bbox.p[(i+1)%4 + 4];
                             pView->add_segment(&s);
                         }
                     }
                 }
 
+                /*
                 // Clear allocated resources, tasks and ctx should be already deleted
                 res = perform_raytrace(tasks);
 
@@ -2705,13 +2638,14 @@ MTEST_BEGIN("3d", reflections)
                 }
 
                 global.matched.flush();
+                */
 
                 // Calc scissor planes' normals
                 vector3d_t pl[4];
-                calc_plane_vector_p3(&pl[0], &sFront.s, &sFront.t.p[0], &sFront.t.p[1]);
-                calc_plane_vector_p3(&pl[1], &sFront.s, &sFront.t.p[1], &sFront.t.p[2]);
-                calc_plane_vector_p3(&pl[2], &sFront.s, &sFront.t.p[2], &sFront.t.p[0]);
-                calc_plane_vector_pv(&pl[3], sFront.t.p);
+                calc_plane_vector_p3(&pl[0], &sFront.s, &sFront.p[0], &sFront.p[1]);
+                calc_plane_vector_p3(&pl[1], &sFront.s, &sFront.p[1], &sFront.p[2]);
+                calc_plane_vector_p3(&pl[2], &sFront.s, &sFront.p[2], &sFront.p[0]);
+                calc_plane_vector_p3(&pl[3], &sFront.p[0], &sFront.p[1], &sFront.p[2]);
 
                 // Draw front
                 v_ray3d_t r;
@@ -2720,31 +2654,17 @@ MTEST_BEGIN("3d", reflections)
                 for (size_t i=0; i<3; ++i)
                 {
                     // State
-                    r.p = sFront.t.p[i];
+                    r.p = sFront.p[i];
                     dsp::init_vector_p2(&r.v, &sFront.s, &r.p);
                     r.c = C_MAGENTA;
                     pView->add_ray(&r);
 
                     s.p[0] = sFront.s;
-                    s.p[1] = sFront.t.p[i];
+                    s.p[1] = sFront.p[i];
                     pView->add_segment(&s);
 
-                    s.p[0] = sFront.t.p[(i+1)%3];
+                    s.p[0] = sFront.p[(i+1)%3];
                     pView->add_segment(&s);
-
-                    // Normals
-/*                    r.p = sFront.p[i];
-                    r.v = pl[i];
-                    r.v.dw = 0.0f;
-                    r.c = C_YELLOW;
-                    pView->add_ray(&r);
-
-                    r.p = sFront.p[(i+1)%3];
-                    pView->add_ray(&r);
-
-                    r.v = pl[3];
-                    r.v.dw = 0.0f;
-                    pView->add_ray(&r);*/
                 }
 
                 return res;
@@ -2773,4 +2693,3 @@ MTEST_BEGIN("3d", reflections)
 
 MTEST_END
 
-#endif

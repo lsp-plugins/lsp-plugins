@@ -107,14 +107,8 @@ namespace lsp
         // Commit tirangle edges
         if (first)
         {
-            sBoundBox.p[0] = *(t->v[0]);
-            sBoundBox.p[1] = *(t->v[0]);
-            sBoundBox.p[2] = *(t->v[0]);
-            sBoundBox.p[3] = *(t->v[0]);
-            sBoundBox.p[4] = *(t->v[0]);
-            sBoundBox.p[5] = *(t->v[0]);
-            sBoundBox.p[6] = *(t->v[0]);
-            sBoundBox.p[7] = *(t->v[0]);
+            for (size_t i=0; i<8; ++i)
+                sBoundBox.p[i] = *(t->v[0]);
         }
         else
             calc_bound_box(t->v[0]);
