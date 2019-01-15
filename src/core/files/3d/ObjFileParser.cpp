@@ -730,6 +730,9 @@ namespace lsp
                 return result;
         }
 
+        if (result == STATUS_OK)
+            result = st->pHandler->end_of_data();
+
         return result;
     }
 } /* namespace lsp */

@@ -32,17 +32,21 @@ namespace lsp
 
             friend class Object3D;
 
+        private:
+            status_t do_clone(Scene3D *s);
+
         public:
             /** Default constructor
              *
              */
-            explicit Scene3D();
+            explicit Scene3D(size_t blk_size = 1024);
 
             /** Destructor
              *
              */
             ~Scene3D();
 
+        public:
             /** Destroy scene
              *
              * @param recursive destroy attached objects
@@ -53,6 +57,18 @@ namespace lsp
              *
              */
             inline void clear() { destroy(); };
+
+            /**
+             * Clone contents from another scene
+             * @param src
+             */
+            status_t clone_from(const Scene3D *src);
+
+        public:
+            /**
+             * Do some post-processing after loading scene from file
+             */
+            void postprocess_after_loading();
 
             /** Return number of objects in scene
              *
@@ -96,7 +112,12 @@ namespace lsp
              * @param idx normal index
              * @return normal or NULL
              */
-            inline obj_normal_t *normal(size_t idx) { return vNormals.get(idx); }
+            inline obj_normal_t *normal(size_t idx)
+            {
+                return (idx < vNormals.size()) ?
+                        vNormals.get(idx) :
+                        vXNormals.get(idx - vNormals.size());
+            }
 
             /**
              * Get edge by specified index
@@ -139,6 +160,13 @@ namespace lsp
              * @return pointer to object or NULL
              */
             Object3D *get_object(size_t index) { return vObjects.get(index); }
+
+            /**
+             * Initialize all tags (prepare for data manipulations)
+             * @param ptag pointer tag
+             * @param itag integer tag
+             */
+            void init_tags(void *ptag, ssize_t itag);
     };
 
 } /* namespace lsp */

@@ -25,13 +25,21 @@ namespace lsp
         View3D                   *view;
     } rt_shared_t;
 
+    enum rt_context_state_t
+    {
+        S_SCAN_SCENE,
+        S_CULL_FRONT,
+        S_CULL_BACK
+    };
+
     typedef struct rt_context_t
     {
-        rt_front_t                  front;          // Raytracing front
-        rt_shared_t                *shared;         // Shared settings
+        rt_view_t                   view;       // Ray tracing point of view
+        rt_shared_t                *shared;     // Shared settings
+        rt_context_state_t          state;      // Context state
 
         Allocator3D<rt_vertex_t>    vertex;     // Collection of vertexes
-        Allocator3D<rt_edge_t>      edge;       // Collection of eges
+        Allocator3D<rt_edge_t>      edge;       // Collection of edges
         Allocator3D<rt_triangle_t>  triangle;   // Collection of triangles
 
         // Construction/destruction

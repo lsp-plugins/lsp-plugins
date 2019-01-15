@@ -8,6 +8,7 @@
 #include <test/mtest.h>
 #include <test/mtest/3d/common/X11Renderer.h>
 #include <core/files/Model3DFile.h>
+#include <core/3d/rt_context.h>
 
 #include <core/types.h>
 #include <core/debug.h>
@@ -25,17 +26,17 @@
 #include <GL/glu.h>
 #include <sys/poll.h>
 
-#if 0
-
 //#define TEST_DEBUG
+
+#if 0
 
 #ifndef TEST_DEBUG
     #define BREAKPOINT_STEP     -1
 
     #define INIT_FRONT(front) \
-        dsp::init_point_xyz(&front.t.p[0], 0.0f, 1.0f, 0.0f); \
-        dsp::init_point_xyz(&front.t.p[1], -1.0f, -0.5f, 0.0f); \
-        dsp::init_point_xyz(&front.t.p[2], 1.0f, -0.5f, 0.0f); \
+        dsp::init_point_xyz(&front.p[0], 0.0f, 1.0f, 0.0f); \
+        dsp::init_point_xyz(&front.p[1], -1.0f, -0.5f, 0.0f); \
+        dsp::init_point_xyz(&front.p[2], 1.0f, -0.5f, 0.0f); \
         dsp::init_point_xyz(&front.s, 0.0f, 0.0f, 1.0f);
 
 /*
@@ -68,6 +69,7 @@ namespace mtest
     static const color3d_t C_ORANGE     = { 1.0f, 0.5f, 0.0f, 0.0f };
     static const color3d_t C_GRAY       = { 0.75f, 0.75f, 0.75f, 0.0f };
 
+#if 0
 #pragma pack(push, 1)
     typedef struct raw_triangle3d_t
     {
@@ -1307,7 +1309,7 @@ namespace mtest
     }
 */
 
-#if 0
+
     /**
      * Project triangle to the plane
      * @param pv array of 3 points to store projected points
@@ -2446,7 +2448,7 @@ MTEST_BEGIN("3d", reflections)
     {
         private:
             Scene3D        *pScene;
-            wfront_t        sFront;
+            rt_view_t       sFront;
             ssize_t         nTrace;
             bool            bBoundBoxes;
 
@@ -2474,9 +2476,9 @@ MTEST_BEGIN("3d", reflections)
                     case XK_F1:
                     {
                         float incr = (ev.state & ShiftMask) ? 0.25f : -0.25f;
-                        sFront.t.p[0].x += incr;
-                        sFront.t.p[1].x += incr;
-                        sFront.t.p[2].x += incr;
+                        sFront.p[0].x += incr;
+                        sFront.p[1].x += incr;
+                        sFront.p[2].x += incr;
                         sFront.s.x += incr;
                         update_view();
                         break;
@@ -2485,9 +2487,9 @@ MTEST_BEGIN("3d", reflections)
                     case XK_F2:
                     {
                         float incr = (ev.state & ShiftMask) ? 0.25f : -0.25f;
-                        sFront.t.p[0].y += incr;
-                        sFront.t.p[1].y += incr;
-                        sFront.t.p[2].y += incr;
+                        sFront.p[0].y += incr;
+                        sFront.p[1].y += incr;
+                        sFront.p[2].y += incr;
                         sFront.s.y += incr;
                         update_view();
                         break;
@@ -2496,9 +2498,9 @@ MTEST_BEGIN("3d", reflections)
                     case XK_F3:
                     {
                         float incr = (ev.state & ShiftMask) ? 0.25f : -0.25f;
-                        sFront.t.p[0].z += incr;
-                        sFront.t.p[1].z += incr;
-                        sFront.t.p[2].z += incr;
+                        sFront.p[0].z += incr;
+                        sFront.p[1].z += incr;
+                        sFront.p[2].z += incr;
                         sFront.s.z += incr;
                         update_view();
                         break;
@@ -2513,9 +2515,9 @@ MTEST_BEGIN("3d", reflections)
 
                         for (size_t i=0; i<3; ++i)
                         {
-                            sFront.t.p[i].x -= sFront.s.x;
-                            sFront.t.p[i].y -= sFront.s.y;
-                            sFront.t.p[i].z -= sFront.s.z;
+                            sFront.p[i].x -= sFront.s.x;
+                            sFront.p[i].y -= sFront.s.y;
+                            sFront.p[i].z -= sFront.s.z;
                         }
                         if (key == XK_F4)
                             dsp::init_matrix3d_rotate_x(&m, incr);
@@ -2524,12 +2526,12 @@ MTEST_BEGIN("3d", reflections)
                         else
                             dsp::init_matrix3d_rotate_z(&m, incr);
                         for (size_t i=0; i<3; ++i)
-                            dsp::apply_matrix3d_mp1(&sFront.t.p[i], &m);
+                            dsp::apply_matrix3d_mp1(&sFront.p[i], &m);
                         for (size_t i=0; i<3; ++i)
                         {
-                            sFront.t.p[i].x += sFront.s.x;
-                            sFront.t.p[i].y += sFront.s.y;
-                            sFront.t.p[i].z += sFront.s.z;
+                            sFront.p[i].x += sFront.s.x;
+                            sFront.p[i].y += sFront.s.y;
+                            sFront.p[i].z += sFront.s.z;
                         }
                         update_view();
                         break;
@@ -2583,21 +2585,20 @@ MTEST_BEGIN("3d", reflections)
                 pView->clear_all();
 
                 // List of ignored and matched triangles
-                global_context_t global;
-                cvector<context_t> tasks;
-
-                // Create initial context
-                context_t *ctx = new context_t;
-                if (ctx == NULL)
-                    return STATUS_NO_MEM;
-
+                rt_shared_t global;
                 global.breakpoint   = nTrace;
                 global.step         = 0;
                 global.view         = pView;
 
-                ctx->state      = S_SCAN_SCENE;
-                ctx->front      = sFront;
-                ctx->global     = &global;
+                cvector<rt_context_t> tasks;
+
+                // Create initial context
+                rt_context_t *ctx = new rt_context_t(&global);
+                if (ctx == NULL)
+                    return STATUS_NO_MEM;
+
+                ctx->state          = S_SCAN_SCENE;
+                ctx->view           = sFront;
 
                 // Add context to tasks
                 if (!tasks.add(ctx))
@@ -2771,6 +2772,5 @@ MTEST_BEGIN("3d", reflections)
     }
 
 MTEST_END
-
 
 #endif

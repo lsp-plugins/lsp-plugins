@@ -81,6 +81,14 @@ namespace lsp
                 return STATUS_OK;
             }
 
+            virtual status_t end_of_data()
+            {
+                if (pScene == NULL)
+                    return STATUS_BAD_STATE;
+                pScene->postprocess_after_loading();
+                return STATUS_OK;
+            }
+
             virtual status_t add_vertex(const point3d_t *p)
             {
                 if (pObject == NULL)

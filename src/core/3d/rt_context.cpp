@@ -14,7 +14,8 @@ namespace lsp
         edge(256),
         triangle(256)
     {
-        this->shared = shared;
+        this->state     = S_SCAN_SCENE;
+        this->shared    = shared;
     }
     
     rt_context_t::~rt_context_t()

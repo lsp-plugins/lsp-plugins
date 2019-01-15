@@ -23,6 +23,11 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t IFileHandler3D::end_of_data()
+    {
+        return STATUS_OK;
+    }
+
     status_t IFileHandler3D::add_vertex(const point3d_t *p)
     {
         return STATUS_OK;

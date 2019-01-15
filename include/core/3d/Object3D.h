@@ -38,6 +38,7 @@ namespace lsp
             matrix3d_t                  sMatrix;
             bool                        bVisible;
             Scene3D                    *pScene;
+            obj_boundbox_t              sBoundBox;
 
             friend class Scene3D;
 
@@ -51,6 +52,10 @@ namespace lsp
              *
              */
             ~Object3D();
+
+        protected:
+            void calc_bound_box(const obj_vertex_t *v);
+            obj_edge_t *register_edge(obj_vertex_t *v0, obj_vertex_t *v1);
 
         public:
             /** Destroy object's contents
@@ -131,6 +136,24 @@ namespace lsp
              * @return name of object in UTF-8 character set
              */
             inline const char *get_name() const { return sName.get_utf8(); }
+
+            /**
+             * Get bounding box
+             * @return pointer to bounding box
+             */
+            inline obj_boundbox_t *bound_box() { return &sBoundBox; }
+
+            /**
+             * Get bounding box (const version)
+             * @return pointer to bounding box
+             */
+            inline const obj_boundbox_t *bound_box() const { return &sBoundBox; }
+
+            /**
+             * Get the scene the object relates to
+             * @return the scene the object relates to
+             */
+            inline Scene3D *scene() { return pScene; }
     };
 
 } /* namespace lsp */
