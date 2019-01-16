@@ -76,7 +76,7 @@ namespace lsp
         if ((vn1 < 0) || (vn2 < 0) || (vn3 < 0))
         {
             // Add normal
-            obj_normal_t *xvn       = pScene->vXNormals.alloc();
+            xvn         = pScene->vXNormals.alloc();
             if (xvn == NULL)
                 return -STATUS_NO_MEM;
 

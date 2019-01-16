@@ -54,14 +54,17 @@
         dsp::init_point_xyz(&front.p[2], 0.352607, -0.494265, -1.620808);
 #endif /* DEBUG */
 
-#define TRACE_BREAK(ctx, action) \
+#define RT_TRACE(...) \
+    { __VA_ARGS__; }
+
+#define RT_TRACE_BREAK(ctx, action) \
     if ((ctx->shared->breakpoint >= 0) && ((ctx->shared->step++) == ctx->shared->breakpoint)) { \
-        lsp_trace("Triggered breakpoint %d\n", int(ctx->global->breakpoint)); \
+        lsp_trace("Triggered breakpoint %d\n", int(ctx->shared->breakpoint)); \
         action; \
         return STATUS_OK; \
     }
 
-#define TRACE_SKIP(ctx, action) \
+#define RT_TRACE_SKIP(ctx, action) \
     if (ctx->shared->breakpoint >= 0) { \
         if (ctx->shared->step > ctx->shared->breakpoint) { \
             action; \
@@ -82,6 +85,22 @@ namespace mtest
     static const color3d_t C_YELLOW     = { 1.0f, 1.0f, 0.0f, 0.0f };
     static const color3d_t C_ORANGE     = { 1.0f, 0.5f, 0.0f, 0.0f };
     static const color3d_t C_GRAY       = { 0.75f, 0.75f, 0.75f, 0.0f };
+
+    static const size_t bbox_map[] =
+    {
+        0, 1, 2,
+        0, 2, 3,
+        6, 5, 4,
+        6, 4, 7,
+        1, 0, 4,
+        1, 4, 5,
+        3, 2, 6,
+        3, 6, 7,
+        1, 5, 2,
+        2, 5, 6,
+        0, 3, 4,
+        3, 7, 4
+    };
 
     typedef struct raw_triangle_t
     {
@@ -1113,17 +1132,6 @@ namespace mtest
         pv[2].w     = 1.0f;
     }
 #endif
-
-    static void destroy_scene(cvector<object_t> &list)
-    {
-        for (size_t i=0, n=list.size(); i<n; ++i)
-        {
-            object_t *obj = list.get(i);
-            if (obj != NULL)
-                free(obj);
-        }
-        list.flush();
-    }
 
     /**
      * Scan scene for triangles laying inside the viewing area of wave front
@@ -2285,22 +2293,6 @@ namespace mtest
 
     static bool check_bound_box(const bound_box3d_t *bbox, const rt_view_t *view)
     {
-        static const size_t bbox_map[] =
-        {
-            0, 1, 2,
-            0, 2, 3,
-            6, 5, 4,
-            6, 4, 7,
-            1, 0, 4,
-            1, 4, 5,
-            3, 2, 6,
-            3, 6, 7,
-            1, 5, 2,
-            2, 5, 6,
-            0, 3, 4,
-            3, 7, 4
-        };
-
         vector3d_t pl[4];
 
         calc_plane_vector_p3(&pl[0], &view->s, &view->p[0], &view->p[1]);
@@ -2361,9 +2353,14 @@ namespace mtest
     static status_t add_object(rt_context_t *ctx, Object3D *obj)
     {
         // Reset tags
-        obj->scene()->init_tags(NULL, -1);
+        obj->scene()->init_tags(NULL, 0);
+        matrix3d_t *m   = obj->matrix();
 
-        // Clone triangles
+//        lsp_trace("Processing object \"%s\"", obj->get_name());
+        size_t start_t = ctx->triangle.size();
+        size_t start_e = ctx->edge.size();
+
+        // Clone triangles and apply object matrix to vertexes
         for (size_t i=0, n=obj->num_triangles(); i<n; ++i)
         {
             obj_triangle_t *st = obj->triangle(i);
@@ -2376,28 +2373,108 @@ namespace mtest
             rt_triangle_t *dt = ctx->triangle.alloc();
             if (dt == NULL)
                 return STATUS_NO_MEM;
+
+            dt->elnk[0] = NULL;
+            dt->elnk[1] = NULL;
+            dt->elnk[2] = NULL;
+            dt->ptag    = st;
+            dt->itag    = 0;
             st->ptag    = dt;
-            dt->n       = *(st->n[0]);
+
+//            lsp_trace("Link rt_triangle[%p] to obj_triangle[%p]", dt, st);
+
+            dsp::apply_matrix3d_mv2(&dt->n, st->n[0], m);
 
             // Copy data
             for (size_t j=0; j<3; ++j)
             {
-                // Allocate vertex and edge
-                rt_vertex_t *vx     = (st->v[j]->ptag == NULL) ? ctx->vertex.alloc() : reinterpret_cast<rt_vertex_t *>(st->v[j]->ptag);
-                rt_edge_t *ex       = (st->e[j]->ptag == NULL) ? ctx->edge.alloc() : reinterpret_cast<rt_edge_t *>(st->e[j]->ptag);
+                // Allocate vertex
+                rt_vertex_t *vx     = reinterpret_cast<rt_vertex_t *>(st->v[j]->ptag);
+                if (st->v[j]->ptag == NULL)
+                {
+                    vx              = ctx->vertex.alloc();
+                    if (vx == NULL)
+                        return STATUS_NO_MEM;
 
-                if ((vx == NULL) || (ex == NULL))
-                    return STATUS_NO_MEM;
+                    dsp::apply_matrix3d_mp2(vx, st->v[j], m);
+                    vx->ve          = NULL;
+                    vx->ptag        = st->v[j];
+                    vx->itag        = 0;
+                    vx->split[0]    = NULL;
+                    vx->split[1]    = NULL;
 
-                // Copy contents
+                    st->v[j]->ptag  = vx;
+//                    lsp_trace("Link #%d rt_vertex[%p] to obj_vertex[%p]", int(j), vx, st->v[j]);
+                }
+
+                // Allocate edge
+                rt_edge_t *ex       = reinterpret_cast<rt_edge_t *>(st->e[j]->ptag);
+                if (ex == NULL)
+                {
+                    ex              = ctx->edge.alloc();
+                    if (ex == NULL)
+                        return STATUS_NO_MEM;
+
+                    ex->v[0]        = NULL;
+                    ex->v[1]        = NULL;
+                    ex->vt          = NULL;
+                    ex->vlnk[0]     = NULL;
+                    ex->vlnk[1]     = NULL;
+                    ex->split[0]    = NULL;
+                    ex->split[1]    = NULL;
+                    ex->ptag        = st->e[j];
+                    ex->itag        = 0;
+
+                    st->e[j]->ptag  = ex;
+//                    lsp_trace("Link #%d rt_edge[%p] to obj_edge[%p]", int(j), ex, st->e[j]);
+                }
+
                 dt->v[j]        = vx;
                 dt->e[j]        = ex;
-                st->v[j]->ptag  = vx;
-                st->e[j]->ptag  = ex;
             }
         }
 
-        // TODO: patch pointers of vertexes and edges
+        // Patch edge structures and link to vertexes
+        for (size_t i=start_e, n=ctx->edge.size(); i<n; ++i)
+        {
+            rt_edge_t *de       = ctx->edge.get(i);
+            obj_edge_t *se      = reinterpret_cast<obj_edge_t *>(de->ptag);
+
+//            lsp_trace("patching rt_edge[%p] with obj_edge[%p]", de, se);
+            de->v[0]            = reinterpret_cast<rt_vertex_t *>(se->v[0]->ptag);
+            de->v[1]            = reinterpret_cast<rt_vertex_t *>(se->v[1]->ptag);
+
+            de->vlnk[0]         = de->v[0]->ve;
+            de->vlnk[1]         = de->v[1]->ve;
+            de->v[0]->ve        = de;
+            de->v[1]->ve        = de;
+        }
+
+        // Patch triangle structures and link to edges
+        for (size_t i=start_t, n=ctx->triangle.size(); i<n; ++i)
+        {
+            rt_triangle_t *dt   = ctx->triangle.get(i);
+            obj_triangle_t *st  = reinterpret_cast<obj_triangle_t *>(dt->ptag);
+
+//            lsp_trace("patching rt_triangle[%p] with obj_triangle[%p]", dt, st);
+
+            dt->v[0]            = reinterpret_cast<rt_vertex_t *>(st->v[0]->ptag);
+            dt->v[1]            = reinterpret_cast<rt_vertex_t *>(st->v[1]->ptag);
+            dt->v[2]            = reinterpret_cast<rt_vertex_t *>(st->v[2]->ptag);
+
+            dt->e[0]            = reinterpret_cast<rt_edge_t *>(st->e[0]->ptag);
+            dt->e[1]            = reinterpret_cast<rt_edge_t *>(st->e[1]->ptag);
+            dt->e[2]            = reinterpret_cast<rt_edge_t *>(st->e[2]->ptag);
+
+            // Link triangle to the edge
+            dt->elnk[0]         = dt->e[0]->vt;
+            dt->elnk[1]         = dt->e[1]->vt;
+            dt->elnk[2]         = dt->e[2]->vt;
+
+            dt->e[0]->vt        = dt;
+            dt->e[1]->vt        = dt;
+            dt->e[2]->vt        = dt;
+        }
 
         return STATUS_OK;
     }
@@ -2411,10 +2488,27 @@ namespace mtest
     {
         status_t res = STATUS_OK;
 
+        RT_TRACE_BREAK(ctx,
+            lsp_trace("Scanning objects...");
+
+            for (size_t i=0, n=ctx->shared->scene->num_objects(); i<n; ++i)
+            {
+                Object3D *obj = ctx->shared->scene->object(i);
+                if ((obj == NULL) || (!obj->is_visible()))
+                    continue;
+                for (size_t j=0,m=obj->num_triangles(); j<m; ++j)
+                    ctx->shared->view->add_triangle_3c(obj->triangle(j), &C_RED, &C_GREEN, &C_BLUE);
+            }
+        )
+
         // Check for crossing with all bounding boxes
         for (size_t i=0, n=ctx->shared->scene->num_objects(); i<n; ++i)
         {
             Object3D *obj = ctx->shared->scene->object(i);
+            if (obj == NULL)
+                return STATUS_BAD_STATE;
+            else if (!obj->is_visible()) // Skip invisible objects
+                continue;
 
             // Ensure that we need to add the object to queue
             if (obj->num_triangles() >= 16)
@@ -2425,8 +2519,51 @@ namespace mtest
                     dsp::apply_matrix3d_mp1(&box.p[i], m);
 
                 // Skip object if view is not crossing bounding-box
+                RT_TRACE_BREAK(ctx,
+                    lsp_trace("Testing bound box");
+
+                    v_vertex3d_t v[3];
+                    for (size_t j=0, m = sizeof(bbox_map)/sizeof(size_t); j < m; )
+                    {
+                        v[0].p      = box.p[bbox_map[j++]];
+                        v[0].c      = C_YELLOW;
+                        v[1].p      = box.p[bbox_map[j++]];
+                        v[1].c      = C_YELLOW;
+                        v[2].p      = box.p[bbox_map[j++]];
+                        v[2].c      = C_YELLOW;
+
+                        dsp::calc_normal3d_p3(&v[0].n, &v[0].p, &v[1].p, &v[2].p);
+                        v[1].n      = v[0].n;
+                        v[2].n      = v[0].n;
+
+                        ctx->shared->view->add_triangle(v);
+                    }
+                )
+
                 if (!check_bound_box(obj->bound_box(), &ctx->view))
+                {
+                    RT_TRACE(
+                        matrix3d_t *mx = obj->matrix();
+
+                        for (size_t j=0,m=obj->num_triangles(); j<m; ++j)
+                        {
+                            obj_triangle_t *st = obj->triangle(j);
+
+                            v_triangle3d_t t;
+                            dsp::apply_matrix3d_mp2(&t.p[0], st->v[0], mx);
+                            dsp::apply_matrix3d_mp2(&t.p[1], st->v[1], mx);
+                            dsp::apply_matrix3d_mp2(&t.p[2], st->v[2], mx);
+
+                            dsp::apply_matrix3d_mv2(&t.n[0], st->n[0], mx);
+                            dsp::apply_matrix3d_mv2(&t.n[1], st->n[1], mx);
+                            dsp::apply_matrix3d_mv2(&t.n[2], st->n[2], mx);
+
+                            ctx->shared->ignored.add(&t);
+                        }
+                    );
+
                     continue;
+                }
             }
 
             // Add object to context
@@ -2434,6 +2571,10 @@ namespace mtest
             if (res != STATUS_OK)
                 break;
         }
+
+        // DEBUG
+        for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
+            ctx->shared->view->add_triangle_3c(ctx->triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
 
         return res;
     }
@@ -2450,7 +2591,7 @@ namespace mtest
             if (!tasks.pop(&ctx))
                 return STATUS_CORRUPTED;
 
-            TRACE_SKIP(ctx,
+            RT_TRACE_SKIP(ctx,
                 delete ctx;
                 destroy_tasks(tasks);
             );
@@ -2466,10 +2607,13 @@ namespace mtest
 
                     // Change state and put to queue
                     ctx->state = S_CULL_FRONT;
+                    /* TODO
                     if (!tasks.push(ctx))
                         res = STATUS_NO_MEM;
                     else
-                        ctx = NULL;
+                        ctx = NULL;*/
+                    break;
+                default:
                     break;
             }
 
@@ -2623,7 +2767,7 @@ MTEST_BEGIN("3d", reflections)
             status_t    update_view()
             {
                 v_segment3d_t s;
-//                v_vertex3d_t v[3];
+                v_vertex3d_t v[3];
                 status_t res = STATUS_OK;
 
                 // Clear view state
@@ -2684,73 +2828,50 @@ MTEST_BEGIN("3d", reflections)
 
                 res = perform_raytrace(tasks);
 
-                /*
                 // Clear allocated resources, tasks and ctx should be already deleted
                 res = perform_raytrace(tasks);
 
                 destroy_tasks(tasks);
-                destroy_scene(global.scene);
 
                 // Build final scene from matched and ignored items
                 for (size_t i=0, m=global.ignored.size(); i < m; ++i)
                 {
-                    rt_triangle3d_t *t = global.ignored.at(i);
+                    v_triangle3d_t *t = global.ignored.at(i);
                     v[0].p     = t->p[0];
-                    v[0].n     = t->n;
+                    v[0].n     = t->n[0];
                     v[0].c     = C_GRAY;
 
                     v[1].p     = t->p[1];
-                    v[1].n     = t->n;
+                    v[1].n     = t->n[1];
                     v[1].c     = C_GRAY;
 
                     v[2].p     = t->p[2];
-                    v[2].n     = t->n;
+                    v[2].n     = t->n[2];
                     v[2].c     = C_GRAY;
 
                     pView->add_triangle(v);
                 }
-                global.ignored.flush();
-
-                for (size_t i=0, m=global.traced.size(); i < m; ++i)
-                {
-                    rt_triangle3d_t *t = global.traced.at(i);
-                    v[0].p     = t->p[0];
-                    v[0].n     = t->n;
-                    v[0].c     = C_CYAN;
-
-                    v[1].p     = t->p[1];
-                    v[1].n     = t->n;
-                    v[1].c     = C_MAGENTA;
-
-                    v[2].p     = t->p[2];
-                    v[2].n     = t->n;
-                    v[2].c     = C_YELLOW;
-
-                    pView->add_triangle(v);
-                }
-
-                global.traced.flush();
 
                 for (size_t i=0, m=global.matched.size(); i < m; ++i)
                 {
-                    rt_triangle3d_t *t = global.matched.at(i);
+                    v_triangle3d_t *t = global.matched.at(i);
                     v[0].p     = t->p[0];
-                    v[0].n     = t->n;
+                    v[0].n     = t->n[0];
                     v[0].c     = C_RED;
 
                     v[1].p     = t->p[1];
-                    v[1].n     = t->n;
+                    v[1].n     = t->n[1];
                     v[1].c     = C_GREEN;
 
                     v[2].p     = t->p[2];
-                    v[2].n     = t->n;
+                    v[2].n     = t->n[2];
                     v[2].c     = C_BLUE;
 
                     pView->add_triangle(v);
                 }
 
+                global.ignored.flush();
                 global.matched.flush();
-                */
 
                 // Calc scissor planes' normals
                 vector3d_t pl[4];

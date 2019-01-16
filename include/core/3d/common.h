@@ -70,22 +70,30 @@ namespace lsp
 
     typedef struct rt_vertex_t: public point3d_t
     {
-        rt_edge_t          *ve;
-        rt_vertex_t        *split[3];   // The replacement pointers
+        rt_edge_t          *ve;         // List of linked edges
+        rt_vertex_t        *split[2];   // The replacement pointers
+        void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
+        ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
     } rt_vertex_t;
 
     typedef struct rt_edge_t
     {
         rt_vertex_t        *v[2];       // Pointers to vertexes
-        rt_vertex_t        *vlnk[2];    // Link to next edge for the vertex v[i]
-        rt_edge_t          *split[3];   // The replacement pointers
+        rt_triangle_t      *vt;         // List of linked triangles
+        rt_edge_t          *vlnk[2];    // Link to next edge for the vertex v[i]
+        rt_edge_t          *split[2];   // The replacement pointers
+        void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
+        ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
     } rt_edge_t;
 
     typedef struct rt_triangle_t
     {
         rt_vertex_t        *v[3];       // Vertexes
         rt_edge_t          *e[3];       // Edges
+        rt_triangle_t      *elnk[3];    // Link to next triangle for the edge e[i]
         vector3d_t          n;          // Normal
+        void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
+        ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
     } rt_triangle_t;
 
     typedef struct rt_view_t

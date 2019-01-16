@@ -141,6 +141,90 @@ namespace lsp
         return true;
     }
 
+    bool View3D::add_triangle_3c(const obj_triangle_t *t, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2)
+    {
+        v_vertex3d_t *v = vVertexes.append_n(3);
+        if (v == NULL)
+            return false;
+
+        v[0].p          = *(t->v[0]);
+        v[0].n          = *(t->n[0]);
+        v[0].c          = *c0;
+
+        v[1].p          = *(t->v[1]);
+        v[1].n          = *(t->n[1]);
+        v[1].c          = *c1;
+
+        v[2].p          = *(t->v[2]);
+        v[2].n          = *(t->n[2]);
+        v[2].c          = *c2;
+
+        return true;
+    }
+
+    bool View3D::add_triangle_1c(const obj_triangle_t *t, const color3d_t *c)
+    {
+        v_vertex3d_t *v = vVertexes.append_n(3);
+        if (v == NULL)
+            return false;
+
+        v[0].p          = *(t->v[0]);
+        v[0].n          = *(t->n[0]);
+        v[0].c          = *c;
+
+        v[1].p          = *(t->v[1]);
+        v[1].n          = *(t->n[1]);
+        v[1].c          = *c;
+
+        v[2].p          = *(t->v[2]);
+        v[2].n          = *(t->n[2]);
+        v[2].c          = *c;
+
+        return true;
+    }
+
+    bool View3D::add_triangle_3c(const rt_triangle_t *t, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2)
+    {
+        v_vertex3d_t *v = vVertexes.append_n(3);
+        if (v == NULL)
+            return false;
+
+        v[0].p          = *(t->v[0]);
+        v[0].n          = t->n;
+        v[0].c          = *c0;
+
+        v[1].p          = *(t->v[1]);
+        v[1].n          = t->n;
+        v[1].c          = *c1;
+
+        v[2].p          = *(t->v[2]);
+        v[2].n          = t->n;
+        v[2].c          = *c2;
+
+        return true;
+    }
+
+    bool View3D::add_triangle_1c(const rt_triangle_t *t, const color3d_t *c)
+    {
+        v_vertex3d_t *v = vVertexes.append_n(3);
+        if (v == NULL)
+            return false;
+
+        v[0].p          = *(t->v[0]);
+        v[0].n          = t->n;
+        v[0].c          = *c;
+
+        v[1].p          = *(t->v[1]);
+        v[1].n          = t->n;
+        v[1].c          = *c;
+
+        v[2].p          = *(t->v[2]);
+        v[2].n          = t->n;
+        v[2].c          = *c;
+
+        return true;
+    }
+
     bool View3D::add_plane_pv1c(const point3d_t *t, const color3d_t *c)
     {
         v_ray3d_t *r = vRays.append();

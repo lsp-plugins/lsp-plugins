@@ -18,8 +18,8 @@ namespace lsp
 {
     typedef struct rt_shared_t
     {
-        cstorage<rt_triangle_t>     matched;    // List of matched triangles (for debug)
-        cstorage<rt_triangle_t>     ignored;    // List of ignored triangles (for debug)
+        cstorage<v_triangle3d_t>    matched;    // List of matched triangles (for debug)
+        cstorage<v_triangle3d_t>    ignored;    // List of ignored triangles (for debug)
         ssize_t                     step;       // Trace step
         ssize_t                     breakpoint; // Trace breakpoint
         Scene3D                    *scene;
