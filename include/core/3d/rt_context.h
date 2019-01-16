@@ -29,8 +29,8 @@ namespace lsp
     enum rt_context_state_t
     {
         S_SCAN_OBJECTS,
-        S_CULL_FRONT,
-        S_CULL_BACK
+        S_CULL_VIEW,
+        S_PARTITION
     };
 
     typedef struct rt_context_t
@@ -38,6 +38,7 @@ namespace lsp
         rt_view_t                   view;       // Ray tracing point of view
         rt_shared_t                *shared;     // Shared settings
         rt_context_state_t          state;      // Context state
+        size_t                      index;      // Plane index
 
         Allocator3D<rt_vertex_t>    vertex;     // Collection of vertexes
         Allocator3D<rt_edge_t>      edge;       // Collection of edges

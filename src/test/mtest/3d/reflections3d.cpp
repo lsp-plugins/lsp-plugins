@@ -55,7 +55,7 @@
 #endif /* DEBUG */
 
 #define RT_TRACE(...) \
-    { __VA_ARGS__; }
+    __VA_ARGS__
 
 #define RT_TRACE_BREAK(ctx, action) \
     if ((ctx->shared->breakpoint >= 0) && ((ctx->shared->step++) == ctx->shared->breakpoint)) { \
@@ -79,6 +79,7 @@ namespace mtest
 
     static const color3d_t C_RED        = { 1.0f, 0.0f, 0.0f, 0.0f };
     static const color3d_t C_GREEN      = { 0.0f, 1.0f, 0.0f, 0.0f };
+    static const color3d_t C_DARKGREEN  = { 0.0f, 0.75f, 0.0f, 0.0f };
     static const color3d_t C_BLUE       = { 0.0f, 0.0f, 1.0f, 0.0f };
     static const color3d_t C_CYAN       = { 0.0f, 1.0f, 1.0f, 0.0f };
     static const color3d_t C_MAGENTA    = { 1.0f, 0.0f, 1.0f, 0.0f };
@@ -137,7 +138,7 @@ namespace mtest
     enum context_state_t
     {
         S_SCAN_OBJECTS,
-        S_CULL_FRONT,
+        S_CULL_VIEW,
         S_CULL_BACK
     };
 
@@ -264,32 +265,6 @@ namespace mtest
 //        t->n[1] = t->n[0];
 //        t->n[2] = t->n[0];
 //    }
-
-    static void init_triangle_p3(v_triangle3d_t *t, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2, const vector3d_t *n)
-    {
-        dsp::calc_normal3d_p3(&t->n[0], p0, p1, p2);
-        float a = t->n[0].dx * n->dx + t->n[0].dy * n->dy + t->n[0].dz * n->dz;
-        if (a < 0.0f)
-        {
-            t->p[0] = *p0;
-            t->p[1] = *p2;
-            t->p[2] = *p1;
-
-            t->n[0].dx  = -t->n[0].dx;
-            t->n[0].dy  = -t->n[0].dy;
-            t->n[0].dz  = -t->n[0].dz;
-        }
-        else
-        {
-            t->p[0] = *p0;
-            t->p[1] = *p1;
-            t->p[2] = *p2;
-        }
-
-        t->n[1] = t->n[0];
-        t->n[2] = t->n[0];
-    }
-
 
 
     static void calc_plane_vector_pv(vector3d_t *v, const point3d_t *p)
@@ -2035,6 +2010,31 @@ namespace mtest
         v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
     }
 
+    static void init_triangle_p3(v_triangle3d_t *t, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2, const vector3d_t *n)
+    {
+        dsp::calc_normal3d_p3(&t->n[0], p0, p1, p2);
+        float a = t->n[0].dx * n->dx + t->n[0].dy * n->dy + t->n[0].dz * n->dz;
+        if (a < 0.0f)
+        {
+            t->p[0] = *p0;
+            t->p[1] = *p2;
+            t->p[2] = *p1;
+
+            t->n[0].dx  = -t->n[0].dx;
+            t->n[0].dy  = -t->n[0].dy;
+            t->n[0].dz  = -t->n[0].dz;
+        }
+        else
+        {
+            t->p[0] = *p0;
+            t->p[1] = *p1;
+            t->p[2] = *p2;
+        }
+
+        t->n[1] = t->n[0];
+        t->n[2] = t->n[0];
+    }
+
     /**
      * Split raw triangle with plane, generates output set of triangles into out (triangles above split plane)
      * and in (triangles below split plane). For every triangle, points 1 and 2 are the points that
@@ -2484,7 +2484,7 @@ namespace mtest
      * @param ctx wave front context
      * @return status of operation
      */
-    static status_t scan_objects(rt_context_t *ctx)
+    static status_t scan_objects(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
         status_t res = STATUS_OK;
 
@@ -2572,13 +2572,63 @@ namespace mtest
                 break;
         }
 
-        // DEBUG
-        for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-            ctx->shared->view->add_triangle_3c(ctx->triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
-
-        return res;
+        // Update state
+        ctx->index  = 0;
+        ctx->state  = S_CULL_VIEW;
+        return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
+    static status_t cull_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
+    {
+        vector3d_t pl; // Split plane
+        RT_TRACE(v_triangle3d_t npt); // Split plane presentation
+
+        switch (ctx->index)
+        {
+            case 0:
+                calc_plane_vector_p3(&pl, &ctx->view.s, &ctx->view.p[0], &ctx->view.p[1]);
+                RT_TRACE(init_triangle_p3(&npt, &ctx->view.s, &ctx->view.p[0], &ctx->view.p[1], &pl));
+                break;
+            case 1:
+                calc_plane_vector_p3(&pl, &ctx->view.s, &ctx->view.p[1], &ctx->view.p[2]);
+                RT_TRACE(init_triangle_p3(&npt, &ctx->view.s, &ctx->view.p[1], &ctx->view.p[2], &pl));
+                break;
+            case 2:
+                calc_plane_vector_p3(&pl, &ctx->view.s, &ctx->view.p[2], &ctx->view.p[0]);
+                RT_TRACE(init_triangle_p3(&npt, &ctx->view.s, &ctx->view.p[2], &ctx->view.p[0], &pl));
+                break;
+            case 3:
+                RT_TRACE(init_triangle_p3(&npt, &ctx->view.p[0], &ctx->view.p[1], &ctx->view.p[2], &pl));
+                calc_plane_vector_p3(&pl, &ctx->view.p[0], &ctx->view.p[1], &ctx->view.p[2]);
+                break;
+            default:
+                return STATUS_BAD_STATE;
+        }
+
+        RT_TRACE_BREAK(ctx,
+            lsp_trace("Culling space with view plane #%d", int(ctx->index));
+
+            for (size_t i=0, n=ctx->triangle.size(); i<n; ++i)
+               ctx->shared->view->add_triangle_1c(ctx->triangle.get(i), &C_DARKGREEN);
+
+            ctx->shared->view->add_triangle_pv1c(ctx->view.p, &C_MAGENTA);
+            ctx->shared->view->add_plane_pv1c(npt.p, &C_YELLOW);
+        )
+
+        if ((++ctx->index) >= 4)
+        {
+            // DEBUG
+            for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
+                ctx->shared->view->add_triangle_3c(ctx->triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+
+            // TODO
+//            ctx->index  = 0;
+//            ctx->state  = S_PARTITION;
+            delete ctx;
+            return STATUS_OK;
+        }
+        return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+    }
 
     static status_t perform_raytrace(cvector<rt_context_t> &tasks)
     {
@@ -2600,31 +2650,27 @@ namespace mtest
             switch (ctx->state)
             {
                 case S_SCAN_OBJECTS:
-                    // Scan scene for intersections with objects
-                    res = scan_objects(ctx);
-                    if (res != STATUS_OK)
-                        break;
-
-                    // Change state and put to queue
-                    ctx->state = S_CULL_FRONT;
-                    /* TODO
-                    if (!tasks.push(ctx))
-                        res = STATUS_NO_MEM;
-                    else
-                        ctx = NULL;*/
+                    res = scan_objects(tasks, ctx);
                     break;
+
+                case S_CULL_VIEW:
+                    res = cull_view(tasks, ctx);
+                    break;
+
                 default:
+                    res = STATUS_BAD_STATE;
                     break;
             }
 
-            // Delete context if present
-            if (ctx != NULL)
-                delete ctx;
-
             // Analyze status
             if (res != STATUS_OK)
+            {
+                delete ctx;
                 break;
+            }
         }
+
+        destroy_tasks(tasks);
 
         return res;
     }
@@ -2826,12 +2872,8 @@ MTEST_BEGIN("3d", reflections)
                     }
                 }
 
-                res = perform_raytrace(tasks);
-
                 // Clear allocated resources, tasks and ctx should be already deleted
                 res = perform_raytrace(tasks);
-
-                destroy_tasks(tasks);
 
                 // Build final scene from matched and ignored items
                 for (size_t i=0, m=global.ignored.size(); i < m; ++i)

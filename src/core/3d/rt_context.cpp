@@ -16,6 +16,7 @@ namespace lsp
     {
         this->state     = S_SCAN_OBJECTS;
         this->shared    = shared;
+        this->index     = 0;
     }
     
     rt_context_t::~rt_context_t()
