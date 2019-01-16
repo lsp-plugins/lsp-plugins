@@ -2578,15 +2578,39 @@ namespace mtest
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
+    static status_t split_edge(rt_context_t *ctx, rt_edge_t *e, rt_vertex_t *sp)
+    {
+        // TODO: split current edge (e) with split point (sp) and commit this edge to the context
+    }
+
     static status_t split_edges(rt_context_t *out, rt_context_t *in, rt_context_t *ctx, const vector3d_t *pl)
     {
-        point3d_t v[2];
-        float k[2];
-        size_t ks[2], s;
+        float t;
+        size_t s;
+        vector3d_t d;
+        rt_vertex_t *sp;
+
+        // Compute state of all vertexes
+        for (size_t i=0, n=ctx->vertex.size(); i<n; ++i)
+        {
+            rt_vertex_t *v  = ctx->vertex.get(i);
+            t               = (v->x*pl->dx + v->y*pl->dy + v->z*pl->dz + pl->dw);
+            v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > -DSP_3D_TOLERANCE) ? 1 : 0;
+
+            /*
+            The chart of 'itag' (s) state:
+               s=0 s=1 s=2
+              | o |   |   |
+              |   |   |   |
+            ==|===|=o=|===|== <- Splitting plane
+              |   |   |   |
+              |   |   | o |
+            */
+        }
 
         // Mark all triangles as non-modified
         for (size_t i=0, n=ctx->triangle.size(); i<n; ++i)
-            ctx->triangle.get(i)->itag = 0; // Number of affected edges
+            ctx->triangle.get(i)->itag = 0; // Number of modified edges
 
         // Reset all flags of edges
         for (size_t i=0, n=ctx->triangle.size(); i<n; ++i)
@@ -2597,27 +2621,20 @@ namespace mtest
             e->split[1]     = NULL;
         }
 
-        // Try to split all edges
+        // Try to split all edges (including new ones)
         for (size_t i=0; i< ctx->edge.size(); ++i)
         {
             rt_edge_t *e    = ctx->edge.get(i);
+            if (e->itag & RT_EF_SPLIT) // Skip already splitted eges
+                continue;
 
-            v[0]            = *(e->v[0]);
-            v[1]            = *(e->v[1]);
-
-            k[0]            = (v[0].x*pl->dx + v[0].y*pl->dy + v[0].z*pl->dz + pl->dw);
-            k[1]            = (v[1].x*pl->dx + v[1].y*pl->dy + v[1].z*pl->dz + pl->dw);
-
-            ks[0]           = (k[0] < -DSP_3D_TOLERANCE) ? 2 : (k[0] > DSP_3D_TOLERANCE) ? 0 : 1;
-            ks[1]           = (k[1] < -DSP_3D_TOLERANCE) ? 2 : (k[1] > DSP_3D_TOLERANCE) ? 0 : 1;
-            s               = k[0]*3 + k[1];
             /*
-             ks[i]:
+             State of each vertex:
                  0 if point is over the plane
                  1 if point is on the plane
                  2 if point is above the plane
 
-             The chart of 's' state:
+             The chart of egge state 's':
                  s=0   s=1   s=2   s=3   s=4   s=5   s=6   s=7   s=8   Normal
                | 0 1 | 0   | 0   |   1 |     |     |   1 |     |     |  ^
                |     |     |     |     |     |     |     |     |     |  |
@@ -2625,28 +2642,47 @@ namespace mtest
                |     |     |     |     |     |     |     |     |     |
                |     |     |   1 |     |     |   1 | 0   | 0   | 0 1 |
              */
+            s               = e->v[0]->itag*3 + e->v[1]->itag;
 
             // Analyze ks[0] and ks[1]
             switch (s)
             {
-                case 0:
-                case 1:
-                case 3: // edge is over the plane
+                case 0: case 1: case 3: // edge is over the plane, skip
                     break;
-
-                case 5:
-                case 7:
-                case 8: // edge is under the plane
+                case 5: case 7: case 8: // edge is under the plane, skip
                     break;
-
-                case 4: // edge lays on the plane
+                case 4: // edge lays on the plane, mark as split edge and skip
                     e->itag     = RT_EF_SPLIT;
                     break;
 
-                case 2: // edge is crossing the plane, k[0] is over, k[1] is under
-                    break;
+                case 2: // edge is crossing the plane, v0 is over, v1 is under
+                case 6: // edge is crossing the plane, v0 is under, v1 is over
+                    // Find intersection with plane
+                    d.dx        = e->v[0]->x - e->v[1]->x;
+                    d.dy        = e->v[0]->y - e->v[1]->y;
+                    d.dz        = e->v[0]->z - e->v[1]->z;
+                    d.dw        = 0.0f;
 
-                case 6: // edge is crossing the plane, k[0] is under, k[1] is over
+                    t           = - pl->dw / (pl->dx*d.dx + pl->dy*d.dy + pl->dz*d.dz);
+
+                    // Allocate split point
+                    sp      = ctx->vertex.alloc();
+                    if (sp == NULL)
+                        return STATUS_NO_MEM;
+
+                    // Compute split point
+                    sp->x       = e->v[0]->x + d.dx * t;
+                    sp->y       = e->v[0]->y + d.dy * t;
+                    sp->z       = e->v[0]->z + d.dz * t;
+                    sp->w       = 1.0f;
+
+                    sp->ve      = NULL;
+                    sp->split[0]= NULL;
+                    sp->split[1]= NULL;
+                    sp->ptag    = NULL;
+                    sp->itag    = 1;
+
+                    split_edge(ctx, e, sp);
                     break;
 
                 default:
