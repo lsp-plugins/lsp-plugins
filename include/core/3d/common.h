@@ -68,6 +68,14 @@ namespace lsp
     struct rt_edge_t;
     struct rt_triangle_t;
 
+    enum edge_flags_t
+    {
+        RT_EF_CULL          = 1 << 0,       // The edge is part of cull plane
+        RT_EF_SPLIT         = 1 << 8,       // The edge has been split
+
+        RT_EF_TEMP          = RT_EF_SPLIT
+    };
+
     typedef struct rt_vertex_t: public point3d_t
     {
         rt_edge_t          *ve;         // List of linked edges

@@ -28,7 +28,7 @@ namespace lsp
         triangle.destroy();
     }
 
-    void rt_context_t::swap_mesh(rt_context_t *src)
+    void rt_context_t::swap(rt_context_t *src)
     {
         // Do swap
         vertex.swap(&src->vertex);
@@ -36,29 +36,4 @@ namespace lsp
         triangle.swap(&src->triangle);
     }
 
-    void rt_context_t::swap_mesh_for_split(rt_context_t *src)
-    {
-        // Do swap
-        vertex.swap(&src->vertex);
-        edge.swap(&src->edge);
-        triangle.swap(&src->triangle);
-
-        // Prepare all data structures for splitting
-        for (size_t i=0, n=vertex.size(); i<n; ++i)
-        {
-            rt_vertex_t *v  = vertex.get(i);
-            v->split[0]     = NULL;
-            v->split[1]     = NULL;
-            v->split[2]     = NULL;
-        }
-
-        for (size_t i=0, n=edge.size(); i<n; ++i)
-        {
-            rt_edge_t *e    = edge.get(i);
-            e->split[0]     = NULL;
-            e->split[1]     = NULL;
-            e->split[2]     = NULL;
-            e->split[3]     = NULL;
-        }
-    }
 } /* namespace mtest */

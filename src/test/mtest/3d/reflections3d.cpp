@@ -2578,6 +2578,85 @@ namespace mtest
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
+    static status_t split_edges(rt_context_t *out, rt_context_t *in, rt_context_t *ctx, const vector3d_t *pl)
+    {
+        point3d_t v[2];
+        float k[2];
+        size_t ks[2], s;
+
+        // Mark all triangles as non-modified
+        for (size_t i=0, n=ctx->triangle.size(); i<n; ++i)
+            ctx->triangle.get(i)->itag = 0; // Number of affected edges
+
+        // Reset all flags of edges
+        for (size_t i=0, n=ctx->triangle.size(); i<n; ++i)
+        {
+            rt_edge_t *e    = ctx->edge.get(i);
+            e->itag        &= ~RT_EF_TEMP;
+            e->split[0]     = NULL;
+            e->split[1]     = NULL;
+        }
+
+        // Try to split all edges
+        for (size_t i=0; i< ctx->edge.size(); ++i)
+        {
+            rt_edge_t *e    = ctx->edge.get(i);
+
+            v[0]            = *(e->v[0]);
+            v[1]            = *(e->v[1]);
+
+            k[0]            = (v[0].x*pl->dx + v[0].y*pl->dy + v[0].z*pl->dz + pl->dw);
+            k[1]            = (v[1].x*pl->dx + v[1].y*pl->dy + v[1].z*pl->dz + pl->dw);
+
+            ks[0]           = (k[0] < -DSP_3D_TOLERANCE) ? 2 : (k[0] > DSP_3D_TOLERANCE) ? 0 : 1;
+            ks[1]           = (k[1] < -DSP_3D_TOLERANCE) ? 2 : (k[1] > DSP_3D_TOLERANCE) ? 0 : 1;
+            s               = k[0]*3 + k[1];
+            /*
+             ks[i]:
+                 0 if point is over the plane
+                 1 if point is on the plane
+                 2 if point is above the plane
+
+             The chart of 's' state:
+                 s=0   s=1   s=2   s=3   s=4   s=5   s=6   s=7   s=8   Normal
+               | 0 1 | 0   | 0   |   1 |     |     |   1 |     |     |  ^
+               |     |     |     |     |     |     |     |     |     |  |
+             ==|=====|===1=|=====|=0===|=0=1=|=0===|=====|===1=|=====|==== <- Splitting plane
+               |     |     |     |     |     |     |     |     |     |
+               |     |     |   1 |     |     |   1 | 0   | 0   | 0 1 |
+             */
+
+            // Analyze ks[0] and ks[1]
+            switch (s)
+            {
+                case 0:
+                case 1:
+                case 3: // edge is over the plane
+                    break;
+
+                case 5:
+                case 7:
+                case 8: // edge is under the plane
+                    break;
+
+                case 4: // edge lays on the plane
+                    e->itag     = RT_EF_SPLIT;
+                    break;
+
+                case 2: // edge is crossing the plane, k[0] is over, k[1] is under
+                    break;
+
+                case 6: // edge is crossing the plane, k[0] is under, k[1] is over
+                    break;
+
+                default:
+                    return STATUS_BAD_STATE;
+            }
+        }
+
+        return STATUS_OK;
+    }
+
     static status_t cull_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
         vector3d_t pl; // Split plane
@@ -2614,6 +2693,14 @@ namespace mtest
             ctx->shared->view->add_triangle_pv1c(ctx->view.p, &C_MAGENTA);
             ctx->shared->view->add_plane_pv1c(npt.p, &C_YELLOW);
         )
+
+        rt_context_t out, in;
+        status_t res = split_edges(&out, &in, ctx, &pl);
+        if (res != STATUS_OK)
+        {
+            delete ctx;
+            return res;
+        }
 
         if ((++ctx->index) >= 4)
         {

@@ -53,15 +53,7 @@ namespace lsp
          * Swap internal mesh contents with another context
          * @param src source context to perform swap
          */
-        void swap_mesh(rt_context_t *src);
-
-        /**
-         * Swap internal contents with another context
-         * and prepare data structures for splitting
-         *
-         * @param src source context to perform swap
-         */
-        void swap_mesh_for_split(rt_context_t *src);
+        void swap(rt_context_t *src);
     } rt_context_t;
 
 } /* namespace mtest */
