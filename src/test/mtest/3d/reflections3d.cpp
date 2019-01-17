@@ -2578,9 +2578,238 @@ namespace mtest
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
-    static status_t split_edge(rt_context_t *ctx, rt_edge_t *e, rt_vertex_t *sp)
+    static status_t split_rearrange(rt_triangle_t *ct, rt_edge_t *e)
     {
-        // TODO: split current edge (e) with split point (sp) and commit this edge to the context
+        rt_vertex_t *tv;
+        rt_edge_t *te;
+        rt_triangle_t *tt;
+
+        // Rotate triangle to make ct->e[0] == e
+        if (ct->e[1] == e) // Rotate clockwise
+        {
+            tv              = ct->v[0];
+            ct->v[0]        = ct->v[1];
+            ct->v[1]        = ct->v[2];
+            ct->v[2]        = tv;
+
+            te              = ct->e[0];
+            ct->e[0]        = ct->e[1];
+            ct->e[1]        = ct->e[2];
+            ct->e[2]        = te;
+
+            tt              = ct->elnk[0];
+            ct->elnk[0]     = ct->elnk[1];
+            ct->elnk[1]     = ct->elnk[2];
+            ct->elnk[2]     = tt;
+        }
+        else if (ct->e[2] == e) // Rotate counter-clockwise
+        {
+            tv              = ct->v[2];
+            ct->v[2]        = ct->v[1];
+            ct->v[1]        = ct->v[0];
+            ct->v[0]        = tv;
+
+            te              = ct->e[2];
+            ct->e[2]        = ct->e[1];
+            ct->e[1]        = ct->e[0];
+            ct->e[0]        = te;
+
+            tt              = ct->elnk[2];
+            ct->elnk[2]     = ct->elnk[1];
+            ct->elnk[1]     = ct->elnk[0];
+            ct->elnk[0]     = tt;
+        }
+        else if (ct->e[0] != e)
+            return STATUS_BAD_STATE;
+
+        return STATUS_OK;
+    }
+
+    static void unlink_edge(rt_edge_t *e, rt_vertex_t *v)
+    {
+        for (rt_edge_t **pcurr = &v->ve; *pcurr != NULL; )
+        {
+            rt_edge_t *curr = *pcurr;
+            rt_edge_t **pnext = (curr->v[0] == v) ? &curr->vlnk[0] : &curr->vlnk[1];
+            if (curr == e)
+            {
+                *pcurr = *pnext;
+                return;
+            }
+            pcurr = pnext;
+        }
+    }
+
+    static void unlink_triangle(rt_triangle_t *t, rt_edge_t *e)
+    {
+        for (rt_triangle_t **pcurr = &e->vt; *pcurr != NULL; )
+        {
+            rt_triangle_t *curr = *pcurr;
+            rt_triangle_t **pnext = (curr->e[0] == e) ? &curr->elnk[0] :
+                                    (curr->e[1] == e) ? &curr->elnk[1] :
+                                    &curr->elnk[2];
+            if (curr == t)
+            {
+                *pcurr = *pnext;
+                return;
+            }
+            pcurr = pnext;
+        }
+    }
+
+    static status_t split_edge(rt_context_t* ctx, rt_edge_t* e, rt_vertex_t* sp)
+    {
+        status_t res;
+        rt_triangle_t *ct, *nt, *pt;
+        rt_edge_t *ne[2];
+
+        // Rearrange first triangle
+        if ((ct = e->vt) == NULL)
+            return STATUS_OK;
+        res             = split_rearrange(ct, e);
+        if (res != STATUS_OK)
+            return res;
+
+        // Allocate edges
+        ne[0]           = ctx->edge.alloc();
+        ne[1]           = ctx->edge.alloc();
+
+        if ((ne[0] == NULL) || (ne[1] == NULL))
+            return STATUS_NO_MEM;
+
+        // Initialize culled edge and link to corresponding vertexes
+        ne[0]->v[0]     = sp;
+        ne[0]->v[1]     = ct->v[1];
+        ne[0]->vt       = NULL;
+        ne[0]->vlnk[0]  = NULL;
+        ne[0]->vlnk[1]  = NULL;
+        ne[0]->split[0] = NULL;
+        ne[0]->split[1] = NULL;
+        ne[0]->ptag     = NULL;
+        ne[0]->itag     = e->itag | RT_EF_SPLIT;
+
+        ne[0]->vlnk[0]  = ne[1]->v[0]->ve;
+        ne[0]->vlnk[1]  = ne[1]->v[1]->ve;
+        ne[0]->v[0]->ve = ne[1];
+        ne[0]->v[1]->ve = ne[1];
+
+        // Initialize splitting edge and link to corresponding vertexes
+        ne[1]->v[0]     = sp;
+        ne[1]->v[1]     = ct->v[2];
+        ne[1]->vt       = NULL;
+        ne[1]->split[0] = NULL;
+        ne[1]->split[1] = NULL;
+        ne[1]->ptag     = NULL;
+        ne[1]->itag     = RT_EF_SPLIT;
+
+        ne[1]->vlnk[0]  = ne[2]->v[0]->ve;
+        ne[1]->vlnk[1]  = ne[2]->v[1]->ve;
+        ne[1]->v[0]->ve = ne[2];
+        ne[1]->v[1]->ve = ne[2];
+
+        // Re-link current edge
+        unlink_edge(e, e->v[0]);
+        unlink_edge(e, e->v[1]);
+
+        // Process all triangles
+        while (true)
+        {
+            // Save pointer to triangle to move forward
+            pt              = ct->elnk[0];  // Save pointer to pending triangle, splitting edge is always rearranged to have index 0
+
+            // Allocate triangle
+            nt = ctx->triangle.alloc();
+            if (nt == NULL)
+                return STATUS_NO_MEM;
+
+            unlink_triangle(ct, e);
+
+            if (ct->v[0] == e->v[0])
+            {
+                // Initialize new triangle
+                nt->v[0]        = sp;
+                nt->v[1]        = ct->v[1];
+                nt->v[2]        = ct->v[2];
+                nt->e[0]        = ne[0];
+                nt->e[1]        = ct->e[1];
+                nt->e[2]        = ne[1];
+                nt->n           = ct->n;
+                nt->ptag        = NULL;
+                nt->itag        = 1; // 1 modified edge
+
+                // Update current triangle
+              //ct->v[0]        = ct->v[0];
+                ct->v[1]        = sp;
+              //ct->v[2]        = ct->v[2];
+              //ct->e[0]        = e;
+                ct->e[1]        = ne[1];
+              //ct->e[2]        = ct->e[2];
+              //ct->n           = ct->n;
+                ct->itag        = ct->itag + 1; // Increment number of modified edges
+            }
+            else if (ct->v[0] == e->v[1])
+            {
+                // Initialize new triangle
+                nt->v[0]        = sp;
+                nt->v[1]        = ct->v[2];
+                nt->v[2]        = ct->v[0];
+                nt->e[0]        = ne[1];
+                nt->e[1]        = ct->e[2];
+                nt->e[2]        = ne[0];
+                nt->n           = ct->n;
+                nt->ptag        = NULL;
+                nt->itag        = 1; // 1 modified edge
+
+                // Update current triangle
+                ct->v[0]        = sp;
+              //ct->v[1]        = ct->v[1];
+              //ct->v[2]        = ct->v[2];
+              //ct->e[0]        = e;
+              //ct->e[1]        = ct->e[1];
+                ct->e[2]        = ne[1];
+              //ct->n           = ct->n;
+                ct->itag        = ct->itag + 1; // Increment number of modified edges
+            }
+            else
+                return STATUS_BAD_STATE;
+
+            // Link edges to new triangles
+            nt->elnk[0]     = nt->e[0]->vt;
+            nt->elnk[1]     = nt->e[1]->vt;
+            nt->elnk[2]     = nt->e[2]->vt;
+            nt->e[0]->vt    = nt;
+            nt->e[1]->vt    = nt;
+            nt->e[2]->vt    = nt;
+
+            ct->elnk[0]     = ct->e[0]->vt;
+            ct->elnk[1]     = ct->e[1]->vt;
+            ct->elnk[2]     = ct->e[2]->vt;
+            ct->e[0]->vt    = nt;
+            ct->e[1]->vt    = nt;
+            ct->e[2]->vt    = nt;
+
+            // Move to next triangle
+            if ((ct = pt) == NULL)
+            {
+                // Re-link edge to vertexes and leave cycle
+              //e->v[0]         = e->v[0];
+                e->v[1]         = sp;
+
+                e->vlnk[0]      = e->v[0]->ve;
+                e->vlnk[1]      = e->v[1]->ve;
+                e->v[0]->ve     = e;
+                e->v[1]->ve     = e;
+                break;
+            }
+
+            // Re-arrange next triangle and edges
+            res             = split_rearrange(ct, e);
+            if (res != STATUS_OK)
+                return res;
+        }
+
+        // Now the edge 'e' is stored in context but not linked to any primitive
+        return STATUS_OK;
     }
 
     static status_t split_edges(rt_context_t *out, rt_context_t *in, rt_context_t *ctx, const vector3d_t *pl)
@@ -2616,7 +2845,7 @@ namespace mtest
         for (size_t i=0, n=ctx->triangle.size(); i<n; ++i)
         {
             rt_edge_t *e    = ctx->edge.get(i);
-            e->itag        &= ~RT_EF_TEMP;
+            e->itag        &= ~RT_EF_SPLIT; // Clear split flag
             e->split[0]     = NULL;
             e->split[1]     = NULL;
         }
@@ -2693,6 +2922,7 @@ namespace mtest
         return STATUS_OK;
     }
 
+
     static status_t cull_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
         vector3d_t pl; // Split plane
@@ -2730,7 +2960,7 @@ namespace mtest
             ctx->shared->view->add_plane_pv1c(npt.p, &C_YELLOW);
         )
 
-        rt_context_t out, in;
+        rt_context_t out(ctx->shared), in(ctx->shared);
         status_t res = split_edges(&out, &in, ctx, &pl);
         if (res != STATUS_OK)
         {
