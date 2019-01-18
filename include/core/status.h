@@ -46,6 +46,8 @@ namespace lsp
         STATUS_BAD_TYPE,
         STATUS_CORRUPTED,
 
+        STATUS_BREAKPOINT, // This is special status for step-by-step tracing algorithms
+
         STATUS_TOTAL,
         STATUS_MAX = STATUS_TOTAL - 1,
         STATUS_SUCCESS = STATUS_OK
