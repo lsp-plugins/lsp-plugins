@@ -174,6 +174,12 @@ namespace lsp
              * @param itag integer tag
              */
             void init_tags(void *ptag, ssize_t itag);
+
+            /**
+             * Validate scene consistence
+             * @return true if scene is self-consistent
+             */
+            bool validate();
     };
 
 } /* namespace lsp */

@@ -36,6 +36,7 @@ namespace lsp
             void        do_destroy();
             size_t     *do_alloc_n(void **ptr, size_t n);
             void        do_swap(BasicAllocator3D *alloc);
+            bool        do_validate(const void *ptr) const;
 
         public:
             explicit BasicAllocator3D(size_t sz_of, size_t c_size);
@@ -53,20 +54,20 @@ namespace lsp
                  * Allocate single item
                  * @return pointer to allocated single item or NULL
                  */
-                T *alloc() { return reinterpret_cast<T *>(do_alloc()); }
+                inline T *alloc() { return reinterpret_cast<T *>(do_alloc()); }
 
                 /**
                  * Allocate single item
                  * @return pointer to allocated single item or NULL
                  */
-                ssize_t ialloc(T **dst) { return do_ialloc(reinterpret_cast<void **>(dst)); }
+                inline ssize_t ialloc(T **dst) { return do_ialloc(reinterpret_cast<void **>(dst)); }
 
                 /**
                  * Allocate single item and initialize with value
                  * @param src value to initialize
                  * @return pointer to allocated item or NULL
                  */
-                T *alloc(const T *src)
+                inline T *alloc(const T *src)
                 {
                     T *res = reinterpret_cast<T *>(do_alloc());
                     if (res != NULL)
@@ -78,7 +79,7 @@ namespace lsp
                  * Allocate single item
                  * @return pointer to allocated single item or NULL
                  */
-                ssize_t ialloc(T **dst, const T *src) {
+                inline ssize_t ialloc(T **dst, const T *src) {
                     size_t res = do_ialloc(reinterpret_cast<void **>(dst));
                     if (*dst != NULL)
                         **dst = *src;
@@ -90,7 +91,7 @@ namespace lsp
                  * @param src value to initialize
                  * @return pointer to allocated item or NULL
                  */
-                T *alloc(const T &src)
+                inline T *alloc(const T &src)
                 {
                     T *res = reinterpret_cast<T *>(do_alloc());
                     if (res != NULL)
@@ -102,7 +103,7 @@ namespace lsp
                  * Allocate single item
                  * @return pointer to allocated single item or NULL
                  */
-                ssize_t ialloc(T **dst, const T &src) {
+                inline ssize_t ialloc(T **dst, const T &src) {
                     size_t res = do_ialloc(reinterpret_cast<void **>(dst));
                     if (*dst != NULL)
                         **dst = src;
@@ -115,7 +116,7 @@ namespace lsp
                  * @param n number of elements to allocate
                  * @return actual number of allocated items
                  */
-                size_t alloc_n(T **retval, size_t n) { return do_alloc_n(retval, n); }
+                inline size_t alloc_n(T **retval, size_t n) { return do_alloc_n(retval, n); }
 
                 /**
                  * Get number of allocated items
@@ -144,12 +145,20 @@ namespace lsp
                  * Swap internal contents with another allocator
                  * @param src allocator to perform swapping
                  */
-                inline void swap(Allocator3D<T> *src) { return do_swap(src); };
+                inline void swap(Allocator3D<T> *src) { do_swap(src); };
 
                 /** Drop all allocated data
                  *
                  */
-                void destroy() { do_destroy(); };
+                inline void destroy() { do_destroy(); };
+
+                /**
+                 * Ensure that the specified pointer is right pointer, NULL pointers
+                 * also return positive result
+                 * @param ptr pointer
+                 * @return true if pointer is right and belongs to this allocator
+                 */
+                inline bool validate(const void *ptr) const { return do_validate(ptr); };
         };
 }
 

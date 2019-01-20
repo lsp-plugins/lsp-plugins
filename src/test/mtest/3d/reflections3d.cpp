@@ -2422,7 +2422,14 @@ namespace mtest
             res = ctx->add_object(obj);
             if (res != STATUS_OK)
                 break;
+#ifdef LSP_DEBUG
+            if (!ctx->validate())
+                return STATUS_BAD_STATE;
+#endif /* LSP_DEBUG */
         }
+
+        if (!ctx->shared->scene->validate())
+            return STATUS_CORRUPTED;
 
         // Update state
         ctx->index  = 0;
@@ -2468,12 +2475,28 @@ namespace mtest
         )
 
         // Split edges
+        if (!ctx->validate())
+            return STATUS_BAD_STATE;
+        if (!ctx->shared->scene->validate())
+            return STATUS_CORRUPTED;
+
         rt_context_t out(ctx->shared), in(ctx->shared);
         status_t res = ctx->split(&out, &in, &pl);
         if (res != STATUS_OK)
             return res;
+        if (!ctx->shared->scene->validate())
+            return STATUS_CORRUPTED;
 
-        if ((++ctx->index) >= 4)
+#ifdef LSP_DEBUG
+        if (!ctx->validate())
+            return STATUS_BAD_STATE;
+        if (!out.validate())
+            return STATUS_BAD_STATE;
+        if (!in.validate())
+            return STATUS_BAD_STATE;
+#endif /* LSP_DEBUG */
+
+        if ((++ctx->index) >= 1)
         {
             // DEBUG
             for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
@@ -2668,6 +2691,9 @@ MTEST_BEGIN("3d", reflections)
                 v_vertex3d_t v[3];
                 status_t res = STATUS_OK;
 
+                if (!pScene->validate())
+                    return STATUS_BAD_STATE;
+
                 // Clear view state
                 pView->clear_all();
 
@@ -2728,6 +2754,9 @@ MTEST_BEGIN("3d", reflections)
                 res = perform_raytrace(tasks);
                 if (res == STATUS_BREAKPOINT) // This status is used for immediately returning from traced code
                     res = STATUS_OK;
+
+                if (!pScene->validate())
+                    return STATUS_BAD_STATE;
 
                 // Build final scene from matched and ignored items
                 for (size_t i=0, m=global.ignored.size(); i < m; ++i)

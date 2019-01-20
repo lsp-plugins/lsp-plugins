@@ -140,5 +140,26 @@ namespace lsp
         src->pCurrChunk         = tpCurrChunk;
         src->vChunks            = tvChunks;
     }
+
+    bool BasicAllocator3D::do_validate(const void *ptr) const
+    {
+        if (ptr == NULL)
+            return true;
+
+        const uint8_t *uptr     = reinterpret_cast<const uint8_t *>(ptr);
+        ssize_t csize           = nChunkCapacity * nSizeOf;
+
+        for (size_t i=0; i<nChunks; ++i)
+        {
+            if (vChunks[i] == NULL)
+                continue;
+            ssize_t delta           = uptr - vChunks[i];
+            if ((delta < 0) || (delta >= csize))
+                continue;
+            return (delta % nSizeOf) == 0;
+        }
+
+        return false;
+    }
 }
 

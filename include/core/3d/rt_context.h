@@ -82,6 +82,12 @@ namespace lsp
              * @return status of operation
              */
             status_t        split(rt_context_t *out, rt_context_t *in, const vector3d_t *pl);
+
+            /**
+             * Check consistency of the context: that all stored pointers are valid
+             * @return true if context is in valid state
+             */
+            bool            validate();
     } rt_context_t;
 
 } /* namespace mtest */

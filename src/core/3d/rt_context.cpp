@@ -180,7 +180,9 @@ namespace lsp
             if (nt == NULL)
                 return STATUS_NO_MEM;
 
-            unlink_triangle(ct, e);
+            unlink_triangle(ct, ct->e[0]);
+            unlink_triangle(ct, ct->e[1]);
+            unlink_triangle(ct, ct->e[2]);
 
             if (ct->v[0] == e->v[0])
             {
@@ -242,9 +244,9 @@ namespace lsp
             ct->elnk[0]     = ct->e[0]->vt;
             ct->elnk[1]     = ct->e[1]->vt;
             ct->elnk[2]     = ct->e[2]->vt;
-            ct->e[0]->vt    = nt;
-            ct->e[1]->vt    = nt;
-            ct->e[2]->vt    = nt;
+            ct->e[0]->vt    = ct;
+            ct->e[1]->vt    = ct;
+            ct->e[2]->vt    = ct;
 
             // Move to next triangle
             if ((ct = pt) == NULL)
@@ -314,22 +316,23 @@ namespace lsp
                 case 2: // edge is crossing the plane, v0 is over, v1 is under
                 case 6: // edge is crossing the plane, v0 is under, v1 is over
                     // Find intersection with plane
-                    d.dx        = e->v[0]->x - e->v[1]->x;
-                    d.dy        = e->v[0]->y - e->v[1]->y;
-                    d.dz        = e->v[0]->z - e->v[1]->z;
+                    d.dx        = e->v[1]->x - e->v[0]->x;
+                    d.dy        = e->v[1]->y - e->v[0]->y;
+                    d.dz        = e->v[1]->z - e->v[0]->z;
                     d.dw        = 0.0f;
 
-                    t           = - pl->dw / (pl->dx*d.dx + pl->dy*d.dy + pl->dz*d.dz);
+                    t           = (e->v[0]->x*pl->dx + e->v[0]->y*pl->dy + e->v[0]->z*pl->dz + pl->dw) /
+                                  (pl->dx*d.dx + pl->dy*d.dy + pl->dz*d.dz);
 
                     // Allocate split point
-                    sp      = vertex.alloc();
+                    sp          = vertex.alloc();
                     if (sp == NULL)
                         return STATUS_NO_MEM;
 
                     // Compute split point
-                    sp->x       = e->v[0]->x + d.dx * t;
-                    sp->y       = e->v[0]->y + d.dy * t;
-                    sp->z       = e->v[0]->z + d.dz * t;
+                    sp->x       = e->v[0]->x - d.dx * t;
+                    sp->y       = e->v[0]->y - d.dy * t;
+                    sp->z       = e->v[0]->z - d.dz * t;
                     sp->w       = 1.0f;
 
                     sp->ve      = NULL;
@@ -378,7 +381,7 @@ namespace lsp
             tx->ptag            = st;
             tx->itag            = 0;
 
-            for (size_t j=0; i<3; ++j)
+            for (size_t j=0; j<3; ++j)
             {
                 // Allocate vertex if required
                 sv      = st->v[j];
@@ -481,8 +484,9 @@ namespace lsp
         for (size_t i=0, n=vertex.size(); i<n; ++i)
         {
             rt_vertex_t *v  = vertex.get(i);
-            float t         = (v->x*pl->dx + v->y*pl->dy + v->z*pl->dz + pl->dw);
-            v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > -DSP_3D_TOLERANCE) ? 1 : 0;
+            float t         = v->x*pl->dx + v->y*pl->dy + v->z*pl->dz + pl->dw;
+            v->ptag         = NULL;
+            v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
             v->split[0]     = NULL;
             v->split[1]     = NULL;
 
@@ -502,27 +506,37 @@ namespace lsp
         {
             rt_edge_t *e    = edge.get(i);
             e->itag        &= ~RT_EF_SPLIT; // Clear split flag
+            e->ptag         = NULL;
             e->split[0]     = NULL;
             e->split[1]     = NULL;
         }
 
         // Mark all triangles as non-modified
         for (size_t i=0, n=triangle.size(); i<n; ++i)
-            triangle.get(i)->itag = 0; // Number of modified edges
+        {
+            rt_triangle_t *t= triangle.get(i);
+            t->ptag         = NULL;
+            t->itag         = 0; // Number of modified edges
+        }
 
         // First step: split edges
         status_t res = split_edges(pl);
         if (res != STATUS_OK)
             return res;
 
-        // Now we can move triangles
-        return split_triangles(out, in);
+        return STATUS_OK;
+//
+//        // Now we can move triangles
+//        return split_triangles(out, in);
     }
 
     status_t rt_context_t::add_object(Object3D *obj)
     {
         // Reset tags
         obj->scene()->init_tags(NULL, 0);
+        if (!obj->scene()->validate())
+            return STATUS_CORRUPTED;
+
         matrix3d_t *m   = obj->matrix();
 
 //        lsp_trace("Processing object \"%s\"", obj->get_name());
@@ -645,7 +659,58 @@ namespace lsp
             dt->e[2]->vt        = dt;
         }
 
+        if (!obj->scene()->validate())
+            return STATUS_CORRUPTED;
+
         return STATUS_OK;
+    }
+
+    bool rt_context_t::validate()
+    {
+        for (size_t i=0, n=vertex.size(); i<n; ++i)
+        {
+            rt_vertex_t *v      = vertex.get(i);
+            if (v == NULL)
+                return false;
+            if (!edge.validate(v->ve))
+                return false;
+        }
+
+        for (size_t i=0, n=edge.size(); i<n; ++i)
+        {
+            rt_edge_t *e        = edge.get(i);
+            if (e == NULL)
+                return false;
+            if (!triangle.validate(e->vt))
+                return false;
+
+            for (size_t j=0; j<2; ++j)
+            {
+                if (!vertex.validate(e->v[j]))
+                    return false;
+                if (!edge.validate(e->vlnk[j]))
+                    return false;
+            }
+        }
+
+        for (size_t i=0, n=triangle.size(); i<n; ++i)
+        {
+            rt_triangle_t *t    = triangle.get(i);
+            if (t == NULL)
+                return false;
+
+            for (size_t j=0; j<3; ++j)
+            {
+                if (!vertex.validate(t->v[j]))
+                    return false;
+                if (!edge.validate(t->e[j]))
+                    return false;
+                if (!triangle.validate(t->elnk[j]))
+                    return false;
+            }
+        }
+
+        return true;
     }
 
 } /* namespace mtest */

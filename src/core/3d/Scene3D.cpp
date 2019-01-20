@@ -92,6 +92,7 @@ namespace lsp
         vObjects.flush();
         vVertexes.destroy();
         vNormals.destroy();
+        vXNormals.destroy();
         vEdges.destroy();
         vTriangles.destroy();
     }
@@ -320,6 +321,52 @@ namespace lsp
             dt->ptag        = ptag;
             dt->itag        = itag;
         }
+    }
+
+    /**
+     * Validate scene consistence
+     * @return true if scene is self-consistent
+     */
+    bool Scene3D::validate()
+    {
+        for (size_t i=0, n=vVertexes.size(); i<n; ++i)
+        {
+            obj_vertex_t *dv = vVertexes.get(i);
+            if (dv == NULL)
+                return false;
+
+            if (!vEdges.validate(dv->ve))
+                return false;
+        }
+
+        for (size_t i=0, n=vEdges.size(); i<n; ++i)
+        {
+            obj_edge_t *de  = vEdges.get(i);
+
+            for (size_t j=0; j<2; ++j)
+            {
+                if (!vVertexes.validate(de->v[j]))
+                    return false;
+                if (!vEdges.validate(de->vlnk[j]))
+                    return false;
+            }
+        }
+
+        for (size_t i=0, n=vTriangles.size(); i<n; ++i)
+        {
+            obj_triangle_t *dt = vTriangles.get(i);
+
+            for (size_t j=0; j<3; ++j)
+            {
+                if (!vVertexes.validate(dt->v[j]))
+                    return false;
+                if (!vEdges.validate(dt->e[j]))
+                    return false;
+                if (!vNormals.validate(dt->n[j]))
+                    return false;
+            }
+        }
+        return true;
     }
 
     void Scene3D::postprocess_after_loading()
