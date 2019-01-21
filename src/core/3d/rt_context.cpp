@@ -396,6 +396,9 @@ namespace lsp
             tx->ptag            = st;
             tx->itag            = 0;
 
+            st->ptag            = tx;
+
+            // Process each element in triangle
             for (size_t j=0; j<3; ++j)
             {
                 // Allocate vertex if required
@@ -489,6 +492,20 @@ namespace lsp
             tx->e[2]->vt        = tx;
         }
 
+        RT_TRACE_BREAK(this,
+            lsp_trace("Split original context into in (GREEN) and out (RED)");
+            if (out != NULL)
+            {
+                for (size_t i=0,n=out->triangle.size(); i<n; ++i)
+                    shared->view->add_triangle_1c(out->triangle.get(i), &C_RED);
+            }
+            if (in != NULL)
+            {
+                for (size_t i=0,n=in->triangle.size(); i<n; ++i)
+                    shared->view->add_triangle_1c(in->triangle.get(i), &C_GREEN);
+            }
+        );
+
         return STATUS_OK;
     }
 
@@ -540,8 +557,7 @@ namespace lsp
             return res;
 
         // Now we can move triangles
-//        return split_triangles(out, in);
-        return STATUS_OK;
+        return split_triangles(out, in);
     }
 
     status_t rt_context_t::add_object(Object3D *obj)
@@ -722,6 +738,11 @@ namespace lsp
                 return false;
         }
 
+        if (n <= 0)
+        {
+            lsp_trace("Edge has no link with triangle");
+        }
+
         return n > 0; // The edge should be linked at least to one triangle
     }
 
@@ -771,6 +792,20 @@ namespace lsp
         }
 
         return true;
+    }
+
+    status_t rt_context_t::ignore(const rt_triangle_t *t)
+    {
+        v_triangle3d_t vt;
+        vt.p[0]     = *(t->v[0]);
+        vt.p[1]     = *(t->v[1]);
+        vt.p[2]     = *(t->v[2]);
+
+        vt.n[0]     = t->n;
+        vt.n[1]     = t->n;
+        vt.n[2]     = t->n;
+
+        return (shared->ignored.add(&vt)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
 } /* namespace mtest */

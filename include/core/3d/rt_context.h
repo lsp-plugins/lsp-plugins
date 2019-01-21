@@ -91,6 +91,13 @@ namespace lsp
              * @return true if context is in valid state
              */
             bool            validate();
+
+            /**
+             * Add triangle to list of ignored
+             * @param t triangle to add to list of ignored
+             * @return status of operation
+             */
+            status_t        ignore(const rt_triangle_t *t);
     } rt_context_t;
 
 } /* namespace mtest */

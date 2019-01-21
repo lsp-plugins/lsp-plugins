@@ -2470,20 +2470,39 @@ namespace mtest
         if (!ctx->shared->scene->validate())
             return STATUS_CORRUPTED;
 
-        rt_context_t out(ctx->shared), in(ctx->shared);
+        rt_context_t in(ctx->shared);
+
+#ifdef LSP_DEBUG
+        rt_context_t out(ctx->shared);
         status_t res = ctx->split(&out, &in, &pl);
         if (res != STATUS_OK)
             return res;
+
         if (!ctx->shared->scene->validate())
             return STATUS_CORRUPTED;
-
-#ifdef LSP_DEBUG
         if (!ctx->validate())
             return STATUS_BAD_STATE;
         if (!out.validate())
             return STATUS_BAD_STATE;
         if (!in.validate())
             return STATUS_BAD_STATE;
+
+        // Swap context data
+        ctx->swap(&in);
+
+        // Add set of triangles to ignored
+        for (size_t i=0,n=out.triangle.size(); i<n; ++i)
+            ctx->ignore(out.triangle.get(i));
+
+        RT_TRACE_BREAK(ctx,
+            lsp_trace("Data after culling (%d triangles)", int(ctx->triangle.size()));
+            for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
+                ctx->shared->view->add_triangle_3c(ctx->triangle.get(i), &C_CYAN, &C_MAGENTA, &C_YELLOW);
+        );
+#else
+        status_t res = ctx->split(NULL, &in, &pl);
+        if (res != STATUS_OK)
+            return res;
 #endif /* LSP_DEBUG */
 
         if ((++ctx->index) >= 1)
@@ -2750,22 +2769,7 @@ MTEST_BEGIN("3d", reflections)
 
                 // Build final scene from matched and ignored items
                 for (size_t i=0, m=global.ignored.size(); i < m; ++i)
-                {
-                    v_triangle3d_t *t = global.ignored.at(i);
-                    v[0].p     = t->p[0];
-                    v[0].n     = t->n[0];
-                    v[0].c     = C_GRAY;
-
-                    v[1].p     = t->p[1];
-                    v[1].n     = t->n[1];
-                    v[1].c     = C_GRAY;
-
-                    v[2].p     = t->p[2];
-                    v[2].n     = t->n[2];
-                    v[2].c     = C_GRAY;
-
-                    pView->add_triangle(v);
-                }
+                    pView->add_triangle_1c(global.ignored.at(i), &C_GRAY);
 
                 for (size_t i=0, m=global.matched.size(); i < m; ++i)
                 {
