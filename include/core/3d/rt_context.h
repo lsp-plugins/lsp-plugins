@@ -55,6 +55,9 @@ namespace lsp
             static void     unlink_edge(rt_edge_t *e, rt_vertex_t *v);
             static void     unlink_triangle(rt_triangle_t *t, rt_edge_t *e);
 
+            bool            validate_list(rt_vertex_t *v);
+            bool            validate_list(rt_edge_t *e);
+
             status_t        split_edge(rt_edge_t* e, rt_vertex_t* sp);
             status_t        split_edges(const vector3d_t *pl);
             status_t        split_triangles(rt_context_t *out, rt_context_t *in);

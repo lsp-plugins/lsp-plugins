@@ -377,15 +377,15 @@ namespace lsp
         for (size_t i=0, n=triangle.size(); i<n; ++i)
         {
             st          = triangle.get(i);
-            bool out    = (st->v[0]->itag != 1) ? (st->v[0]->itag <= 1) :
+            bool xout   = (st->v[0]->itag != 1) ? (st->v[0]->itag <= 1) :
                           (st->v[1]->itag != 1) ? (st->v[1]->itag <= 1) :
                           (st->v[2]->itag <= 1);
 
             // Get destination to store
-            dst     = (out) ? out : in;
+            dst     = (xout) ? out : in;
             if (dst == NULL)
                 continue;
-            k       = (out) ? 1 : 0;
+            k       = (xout) ? 1 : 0;
 
             // Allocate triangle in destination context
             tx = dst->triangle.alloc();
@@ -539,10 +539,9 @@ namespace lsp
         if (res != STATUS_OK)
             return res;
 
-        return STATUS_OK;
-//
-//        // Now we can move triangles
+        // Now we can move triangles
 //        return split_triangles(out, in);
+        return STATUS_OK;
     }
 
     status_t rt_context_t::add_object(Object3D *obj)
@@ -680,6 +679,52 @@ namespace lsp
         return STATUS_OK;
     }
 
+    bool rt_context_t::validate_list(rt_vertex_t *v)
+    {
+        rt_edge_t *e = v->ve;
+        size_t n = 0;
+
+        while (e != NULL)
+        {
+            if (!edge.validate(e))
+                return false;
+
+            ++n;
+            if (e->v[0] == v)
+                e   = e->vlnk[0];
+            else if (e->v[1] == v)
+                e   = e->vlnk[1];
+            else
+                return false;
+        }
+
+        return n > 0; // The vertex should be linked at least to one edge
+    }
+
+    bool rt_context_t::validate_list(rt_edge_t *e)
+    {
+        rt_triangle_t *t = e->vt;
+        size_t n = 0;
+
+        while (t != NULL)
+        {
+            if (!triangle.validate(t))
+                return false;
+
+            ++n;
+            if (t->e[0] == e)
+                t   = t->elnk[0];
+            else if (t->e[1] == e)
+                t   = t->elnk[1];
+            else if (t->e[2] == e)
+                t   = t->elnk[2];
+            else
+                return false;
+        }
+
+        return n > 0; // The edge should be linked at least to one triangle
+    }
+
     bool rt_context_t::validate()
     {
         for (size_t i=0, n=vertex.size(); i<n; ++i)
@@ -687,7 +732,7 @@ namespace lsp
             rt_vertex_t *v      = vertex.get(i);
             if (v == NULL)
                 return false;
-            if (!edge.validate(v->ve))
+            if (!validate_list(v))
                 return false;
         }
 
@@ -696,7 +741,7 @@ namespace lsp
             rt_edge_t *e        = edge.get(i);
             if (e == NULL)
                 return false;
-            if (!triangle.validate(e->vt))
+            if (!validate_list(e))
                 return false;
 
             for (size_t j=0; j<2; ++j)
