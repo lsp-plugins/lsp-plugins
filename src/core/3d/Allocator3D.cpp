@@ -161,5 +161,29 @@ namespace lsp
 
         return false;
     }
+
+    ssize_t BasicAllocator3D::calc_index_of(const void *ptr) const
+    {
+        if (ptr == NULL)
+            return -1;
+
+        const uint8_t *uptr     = reinterpret_cast<const uint8_t *>(ptr);
+        ssize_t csize           = nChunkCapacity * nSizeOf;
+        ssize_t offset          = 0;
+
+        for (size_t i=0; i<nChunks; ++i, offset += nChunkCapacity)
+        {
+            if (vChunks[i] == NULL)
+                continue;
+            ssize_t delta           = uptr - vChunks[i];
+            if ((delta < 0) || (delta >= csize))
+                continue;
+            if ((delta % nSizeOf) != 0)
+                return -1;
+            return offset + delta / nSizeOf;
+        }
+
+        return -1;
+    }
 }
 

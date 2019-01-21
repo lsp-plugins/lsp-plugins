@@ -37,6 +37,7 @@ namespace lsp
             size_t     *do_alloc_n(void **ptr, size_t n);
             void        do_swap(BasicAllocator3D *alloc);
             bool        do_validate(const void *ptr) const;
+            ssize_t     calc_index_of(const void *ptr) const;
 
         public:
             explicit BasicAllocator3D(size_t sz_of, size_t c_size);
@@ -159,6 +160,13 @@ namespace lsp
                  * @return true if pointer is right and belongs to this allocator
                  */
                 inline bool validate(const void *ptr) const { return do_validate(ptr); };
+
+                /**
+                 * Get index of the item in allocator
+                 * @param ptr pointer to the item
+                 * @return index of the item or negative value on error
+                 */
+                inline ssize_t index_of(const void *ptr) const { return calc_index_of(ptr); }
         };
 }
 

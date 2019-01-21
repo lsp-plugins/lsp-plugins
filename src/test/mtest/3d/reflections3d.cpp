@@ -2505,7 +2505,7 @@ namespace mtest
             return res;
 #endif /* LSP_DEBUG */
 
-        if ((++ctx->index) >= 3)
+        if ((++ctx->index) >= 2)
         {
             // DEBUG
             for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)

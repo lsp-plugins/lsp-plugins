@@ -266,11 +266,14 @@ namespace lsp
             ct->e[2]->vt    = ct;
 
             // Move to next triangle
-            if ((ct = pt) == NULL)
+            if (pt == NULL)
             {
                 // Re-link edge to vertexes and leave cycle
               //e->v[0]         = e->v[0];
-                e->v[1]         = sp;
+                if (ct->v[0] == e->v[0])
+                    e->v[1]         = sp;
+                else
+                    e->v[0]         = sp;
 
                 e->vlnk[0]      = e->v[0]->ve;
                 e->vlnk[1]      = e->v[1]->ve;
@@ -281,6 +284,8 @@ namespace lsp
                     return STATUS_CORRUPTED;
                 break;
             }
+            else
+                ct = pt;
 
             // Re-arrange next triangle and edges
             res             = arrange_triangle(ct, e);
@@ -298,6 +303,8 @@ namespace lsp
         size_t s;
         vector3d_t d;
         rt_vertex_t *sp;
+
+        dump();
 
         // Try to split all edges (including new ones)
         for (size_t i=0; i< edge.size(); ++i)
@@ -329,7 +336,7 @@ namespace lsp
                  1 if point is on the plane
                  2 if point is above the plane
 
-             The chart of egge state 's':
+             The chart of edge state 's':
                  s=0   s=1   s=2   s=3   s=4   s=5   s=6   s=7   s=8   Normal
                | 0 1 | 0   | 0   |   1 |     |     |   1 |     |     |  ^
                |     |     |     |     |     |     |     |     |     |  |
@@ -337,6 +344,10 @@ namespace lsp
                |     |     |     |     |     |     |     |     |     |
                |     |     |   1 |     |     |   1 | 0   | 0   | 0 1 |
              */
+            lsp_trace("Edge: %d: %d-%d", int(edge.index_of(e)),
+                    int(vertex.index_of(e->v[0])),
+                    int(vertex.index_of(e->v[1]))
+                );
             s               = e->v[0]->itag*3 + e->v[1]->itag;
 
             // Analyze ks[0] and ks[1]
@@ -598,6 +609,8 @@ namespace lsp
         status_t res = split_edges(pl);
         if (res != STATUS_OK)
             return res;
+        if (!validate())
+            return STATUS_CORRUPTED;
 
         // Now we can move triangles
         return split_triangles(out, in);
@@ -810,6 +823,8 @@ namespace lsp
 
             for (size_t j=0; j<2; ++j)
             {
+                if (e->v[j] == NULL)
+                    return false;
                 if (!vertex.validate(e->v[j]))
                     return false;
                 if (!edge.validate(e->vlnk[j]))
@@ -825,6 +840,10 @@ namespace lsp
 
             for (size_t j=0; j<3; ++j)
             {
+                if (t->v[j] == NULL)
+                    return false;
+                if (t->e[j] == NULL)
+                    return false;
                 if (!vertex.validate(t->v[j]))
                     return false;
                 if (!edge.validate(t->e[j]))
@@ -849,6 +868,93 @@ namespace lsp
         vt.n[2]     = t->n;
 
         return (shared->ignored.add(&vt)) ? STATUS_OK : STATUS_NO_MEM;
+    }
+
+    void rt_context_t::dump()
+    {
+        printf("Vertexes (%d items):\n", int(vertex.size()));
+        for (size_t i=0,n=vertex.size(); i<n; ++i)
+        {
+            rt_vertex_t *vx = vertex.get(i);
+            printf("  [%3d]: %p\n"
+                   "    p:  (%.6f, %.6f, %.6f)\n",
+                    int(i), vx,
+                    vx->x, vx->y, vx->z
+                );
+            dump_edge_list(4, vx->ve);
+        }
+
+        printf("Edges (%d items):\n", int(edge.size()));
+        for (size_t i=0,n=edge.size(); i<n; ++i)
+        {
+            rt_edge_t *ex = edge.get(i);
+            printf("  [%3d]: %p\n"
+                   "    v:  [%d]-[%d]\n"
+                   "    l:  [%d]-[%d]\n",
+                   int(i), ex,
+                   int(vertex.index_of(ex->v[0])),
+                   int(vertex.index_of(ex->v[1])),
+                   int(edge.index_of(ex->vlnk[0])),
+                   int(edge.index_of(ex->vlnk[1]))
+               );
+            dump_triangle_list(4, ex->vt);
+        }
+
+        printf("Triangles (%d items):\n", int(triangle.size()));
+        for (size_t i=0,n=triangle.size(); i<n; ++i)
+        {
+            rt_triangle_t *vx = triangle.get(i);
+            printf("  [%3d]: %p\n"
+                   "    v:  [%d]-[%d]-[%d]\n"
+                   "    e:  [%d]-[%d]-[%d]\n"
+                   "    n:  (%.6f, %.6f, %.6f)\n"
+                   "    l:  [%d]-[%d]-[%d]\n",
+                    int(i), vx,
+                    int(vertex.index_of(vx->v[0])),
+                    int(vertex.index_of(vx->v[1])),
+                    int(vertex.index_of(vx->v[2])),
+                    int(edge.index_of(vx->e[0])),
+                    int(edge.index_of(vx->e[1])),
+                    int(edge.index_of(vx->e[2])),
+                    vx->n.dx, vx->n.dy, vx->n.dz,
+                    int(triangle.index_of(vx->elnk[0])),
+                    int(triangle.index_of(vx->elnk[1])),
+                    int(triangle.index_of(vx->elnk[2]))
+                );
+        }
+    }
+
+    void rt_context_t::dump_edge_list(size_t lvl, rt_edge_t *e)
+    {
+        for (size_t i=0; i<lvl; ++i)
+            printf(" ");
+
+        if (e == NULL)
+        {
+            printf("-1\n");
+            return;
+        }
+        else
+            printf("%d:\n", int(edge.index_of(e)));
+        dump_edge_list(lvl+2, e->vlnk[0]);
+        dump_edge_list(lvl+2, e->vlnk[1]);
+    }
+
+    void rt_context_t::dump_triangle_list(size_t lvl, rt_triangle_t *t)
+    {
+        for (size_t i=0; i<lvl; ++i)
+            printf(" ");
+
+        if (t == NULL)
+        {
+            printf("-1\n");
+            return;
+        }
+        else
+            printf("%d:\n", int(triangle.index_of(t)));
+        dump_triangle_list(lvl+2, t->elnk[0]);
+        dump_triangle_list(lvl+2, t->elnk[1]);
+        dump_triangle_list(lvl+2, t->elnk[2]);
     }
 
 } /* namespace mtest */

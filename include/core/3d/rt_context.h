@@ -62,6 +62,9 @@ namespace lsp
             status_t        split_edges(const vector3d_t *pl);
             status_t        split_triangles(rt_context_t *out, rt_context_t *in);
 
+            void            dump_edge_list(size_t lvl, rt_edge_t *e);
+            void            dump_triangle_list(size_t lvl, rt_triangle_t *t);
+
         public:
             // Methods
             /**
@@ -98,6 +101,11 @@ namespace lsp
              * @return status of operation
              */
             status_t        ignore(const rt_triangle_t *t);
+
+            /**
+             * Dump context
+             */
+            void            dump();
     } rt_context_t;
 
 } /* namespace mtest */
