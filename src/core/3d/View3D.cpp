@@ -44,6 +44,26 @@ namespace lsp
         return vSegments.append(s);
     }
 
+    bool View3D::add_segment(const rt_edge_t *s, const color3d_t *c)
+    {
+        v_segment3d_t xs;
+        xs.p[0]     = *(s->v[0]);
+        xs.p[1]     = *(s->v[1]);
+        xs.c        = *c;
+
+        return vSegments.append(&xs);
+    }
+
+    bool View3D::add_segment(const rt_vertex_t *p1, const rt_vertex_t *p2, const color3d_t *c)
+    {
+        v_segment3d_t xs;
+        xs.p[0]     = *p1;
+        xs.p[1]     = *p2;
+        xs.c        = *c;
+
+        return vSegments.append(&xs);
+    }
+
     bool View3D::add_triangle(const v_vertex3d_t *vi)
     {
         v_vertex3d_t *v = vVertexes.append_n(3);

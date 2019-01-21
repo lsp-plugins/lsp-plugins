@@ -119,7 +119,7 @@ namespace lsp
     {
         status_t res;
         rt_triangle_t *ct, *nt, *pt;
-        rt_edge_t *ne[2];
+        rt_edge_t *ne, *se;
 
         // Rearrange first triangle
         if ((ct = e->vt) == NULL)
@@ -129,45 +129,34 @@ namespace lsp
             return res;
 
         // Allocate edges
-        ne[0]           = edge.alloc();
-        ne[1]           = edge.alloc();
-
-        if ((ne[0] == NULL) || (ne[1] == NULL))
+        ne              = edge.alloc();
+        if (ne == NULL)
             return STATUS_NO_MEM;
 
         // Initialize culled edge and link to corresponding vertexes
-        ne[0]->v[0]     = sp;
-        ne[0]->v[1]     = ct->v[1];
-        ne[0]->vt       = NULL;
-        ne[0]->vlnk[0]  = NULL;
-        ne[0]->vlnk[1]  = NULL;
-        ne[0]->split[0] = NULL;
-        ne[0]->split[1] = NULL;
-        ne[0]->ptag     = NULL;
-        ne[0]->itag     = e->itag | RT_EF_SPLIT;
+        ne->v[0]        = sp;
+        ne->v[1]        = ct->v[1];
+        ne->vt          = NULL;
+        ne->vlnk[0]     = NULL;
+        ne->vlnk[1]     = NULL;
+        ne->split[0]    = NULL;
+        ne->split[1]    = NULL;
+        ne->ptag        = NULL;
+        ne->itag        = e->itag | RT_EF_SPLIT;
 
-        ne[0]->vlnk[0]  = ne[0]->v[0]->ve;
-        ne[0]->vlnk[1]  = ne[0]->v[1]->ve;
-        ne[0]->v[0]->ve = ne[0];
-        ne[0]->v[1]->ve = ne[0];
+        ne->vlnk[0]     = ne->v[0]->ve;
+        ne->vlnk[1]     = ne->v[1]->ve;
+        ne->v[0]->ve    = ne;
+        ne->v[1]->ve    = ne;
 
-        // Initialize splitting edge and link to corresponding vertexes
-        ne[1]->v[0]     = sp;
-        ne[1]->v[1]     = ct->v[2];
-        ne[1]->vt       = NULL;
-        ne[1]->split[0] = NULL;
-        ne[1]->split[1] = NULL;
-        ne[1]->ptag     = NULL;
-        ne[1]->itag     = RT_EF_SPLIT;
-
-        ne[1]->vlnk[0]  = ne[1]->v[0]->ve;
-        ne[1]->vlnk[1]  = ne[1]->v[1]->ve;
-        ne[1]->v[0]->ve = ne[1];
-        ne[1]->v[1]->ve = ne[1];
+        if ((ne->v[0] == NULL) || (ne->v[1] == NULL))
+            return STATUS_CORRUPTED;
 
         // Re-link current edge
         unlink_edge(e, e->v[0]);
         unlink_edge(e, e->v[1]);
+
+        e->itag        |= RT_EF_SPLIT;
 
         // Process all triangles
         while (true)
@@ -180,6 +169,25 @@ namespace lsp
             if (nt == NULL)
                 return STATUS_NO_MEM;
 
+            // Allocate splitting edge and link
+            se              = edge.alloc();
+
+            se->v[0]        = sp;
+            se->v[1]        = ct->v[2];
+            se->vt          = NULL;
+            se->split[0]    = NULL;
+            se->split[1]    = NULL;
+            se->ptag        = NULL;
+            se->itag        = 0;
+
+            se->vlnk[0]     = se->v[0]->ve;
+            se->vlnk[1]     = se->v[1]->ve;
+            se->v[0]->ve    = se;
+            se->v[1]->ve    = se;
+
+            if ((se->v[0] == NULL) || (se->v[1] == NULL))
+                return STATUS_CORRUPTED;
+
             unlink_triangle(ct, ct->e[0]);
             unlink_triangle(ct, ct->e[1]);
             unlink_triangle(ct, ct->e[2]);
@@ -190,9 +198,9 @@ namespace lsp
                 nt->v[0]        = sp;
                 nt->v[1]        = ct->v[1];
                 nt->v[2]        = ct->v[2];
-                nt->e[0]        = ne[0];
+                nt->e[0]        = ne;
                 nt->e[1]        = ct->e[1];
-                nt->e[2]        = ne[1];
+                nt->e[2]        = se;
                 nt->n           = ct->n;
                 nt->ptag        = NULL;
                 nt->itag        = 1; // 1 modified edge
@@ -202,7 +210,7 @@ namespace lsp
                 ct->v[1]        = sp;
               //ct->v[2]        = ct->v[2];
               //ct->e[0]        = e;
-                ct->e[1]        = ne[1];
+                ct->e[1]        = se;
               //ct->e[2]        = ct->e[2];
               //ct->n           = ct->n;
                 ct->itag        = ct->itag + 1; // Increment number of modified edges
@@ -213,9 +221,9 @@ namespace lsp
                 nt->v[0]        = sp;
                 nt->v[1]        = ct->v[2];
                 nt->v[2]        = ct->v[0];
-                nt->e[0]        = ne[1];
+                nt->e[0]        = se;
                 nt->e[1]        = ct->e[2];
-                nt->e[2]        = ne[0];
+                nt->e[2]        = ne;
                 nt->n           = ct->n;
                 nt->ptag        = NULL;
                 nt->itag        = 1; // 1 modified edge
@@ -226,9 +234,18 @@ namespace lsp
               //ct->v[2]        = ct->v[2];
               //ct->e[0]        = e;
               //ct->e[1]        = ct->e[1];
-                ct->e[2]        = ne[1];
+                ct->e[2]        = ne;
               //ct->n           = ct->n;
                 ct->itag        = ct->itag + 1; // Increment number of modified edges
+
+                RT_TRACE_BREAK(this,
+                    lsp_trace("Drawing new triangles");
+                    shared->view->add_triangle_1c(ct, &C_CYAN);
+                    shared->view->add_triangle_1c(nt, &C_MAGENTA);
+                    shared->view->add_segment(e[0].v[0], sp, &C_RED);
+                    shared->view->add_segment(ne, &C_GREEN);
+                    shared->view->add_segment(se, &C_BLUE);
+                );
             }
             else
                 return STATUS_BAD_STATE;
@@ -259,6 +276,9 @@ namespace lsp
                 e->vlnk[1]      = e->v[1]->ve;
                 e->v[0]->ve     = e;
                 e->v[1]->ve     = e;
+
+                if ((e->v[0] == NULL) || (e->v[1] == NULL))
+                    return STATUS_CORRUPTED;
                 break;
             }
 
@@ -283,6 +303,23 @@ namespace lsp
         for (size_t i=0; i< edge.size(); ++i)
         {
             rt_edge_t *e    = edge.get(i);
+
+            RT_TRACE_BREAK(this,
+                lsp_trace("Testing edge %d", int(i));
+                for (size_t i=0,n=triangle.size(); i<n; ++i)
+                    shared->view->add_triangle_1c(triangle.get(i), &C_RED);
+                for (size_t j=0,n=edge.size(); j<n; ++j)
+                {
+                    rt_edge_t *xe    = edge.get(j);
+                    if (xe == e)
+                        continue;
+                    shared->view->add_segment(xe,
+                            (xe->itag & RT_EF_SPLIT) ? &C_GREEN : &C_CYAN
+                    );
+                }
+                shared->view->add_segment(e, &C_YELLOW);
+            );
+
             if (e->itag & RT_EF_SPLIT) // Skip already splitted eges
                 continue;
 
@@ -463,14 +500,20 @@ namespace lsp
                 if (ex == NULL)
                     continue;
 
-                ex->v[0]            = se->v[0]->split[j];
-                ex->v[1]            = se->v[1]->split[j];
-
                 // Perform link
-                ex->vlnk[0]         = ex->v[0]->ve;
-                ex->vlnk[1]         = ex->v[1]->ve;
-                ex->v[0]->ve        = ex;
-                ex->v[1]->ve        = ex;
+                ex->v[0]            = se->v[0]->split[j];
+                if (ex->v[0] != NULL)
+                {
+                    ex->vlnk[0]         = ex->v[0]->ve;
+                    ex->v[0]->ve        = ex;
+                }
+
+                ex->v[1]            = se->v[1]->split[j];
+                if (ex->v[1] != NULL)
+                {
+                    ex->vlnk[1]         = ex->v[1]->ve;
+                    ex->v[1]->ve        = ex;
+                }
             }
         }
 

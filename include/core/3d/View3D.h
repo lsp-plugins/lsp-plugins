@@ -93,6 +93,22 @@ namespace lsp
             bool add_segment(const v_segment3d_t *s);
 
             /**
+             * Add segment to scene
+             * @param s segment to add
+             * @return true if segment was added
+             */
+            bool add_segment(const rt_edge_t *s, const color3d_t *c);
+
+            /**
+             * Add segment to scene
+             * @param p1 point 1
+             * @param p2 point 2
+             * @param c color
+             * @return status of operation
+             */
+            bool add_segment(const rt_vertex_t *p1, const rt_vertex_t *p2, const color3d_t *c);
+
+            /**
              * Add triangle to scene
              * @param vi array of 3 elements indicating triangle corners
              * @return true if triangle was added

@@ -465,6 +465,8 @@ namespace mtest
             v_segment3d_t *s = pView->get_segments();
             size_t n = pView->num_segments();
 
+            glLineWidth(3.0f);
+
             for (size_t i=0; i<n; ++i, ++s)
             {
                 glColor3fv(&s->c.r);
@@ -478,6 +480,8 @@ namespace mtest
                     glVertex3fv(&s->p[1].x);
                 glEnd();
             }
+
+            glLineWidth(1.0f);
         }
 
         // Draw rays
