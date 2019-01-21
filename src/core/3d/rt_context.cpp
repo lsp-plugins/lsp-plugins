@@ -349,6 +349,19 @@ namespace lsp
             }
         }
 
+        RT_TRACE_BREAK(this,
+            lsp_trace("Triangle edges have been split, out=RED, in=GREEN");
+            for (size_t i=0, n=triangle.size(); i<n; ++i)
+            {
+                rt_triangle_t *t = triangle.get(i);
+                bool out         = (t->v[0]->itag != 1) ? (t->v[0]->itag <= 1) :
+                                   (t->v[1]->itag != 1) ? (t->v[1]->itag <= 1) :
+                                   (t->v[2]->itag <= 1);
+
+                shared->view->add_triangle_1c(t, (out) ? &C_RED : &C_GREEN);
+            }
+        );
+
         return STATUS_OK;
     }
 
@@ -363,14 +376,16 @@ namespace lsp
         // Create data structures in out and in contexts
         for (size_t i=0, n=triangle.size(); i<n; ++i)
         {
-            st      = triangle.get(i);
-            k       = st->v[0]->itag + st->v[1]->itag + st->v[2]->itag; // Estimate the location of triangle
+            st          = triangle.get(i);
+            bool out    = (st->v[0]->itag != 1) ? (st->v[0]->itag <= 1) :
+                          (st->v[1]->itag != 1) ? (st->v[1]->itag <= 1) :
+                          (st->v[2]->itag <= 1);
 
             // Get destination to store
-            dst     = (k >= 0) ? out : in;
+            dst     = (out) ? out : in;
             if (dst == NULL)
                 continue;
-            k       = (k >= 0) ? 1 : 0;
+            k       = (out) ? 1 : 0;
 
             // Allocate triangle in destination context
             tx = dst->triangle.alloc();

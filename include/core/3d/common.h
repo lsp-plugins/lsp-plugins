@@ -155,6 +155,19 @@ namespace lsp
         color3d_t   c;      // Color
     } v_segment3d_t;
 #pragma pack(pop)
+
+#ifdef LSP_DEBUG
+    extern const color3d_t C_RED;
+    extern const color3d_t C_GREEN;
+    extern const color3d_t C_DARKGREEN;
+    extern const color3d_t C_BLUE;
+    extern const color3d_t C_CYAN;
+    extern const color3d_t C_MAGENTA;
+    extern const color3d_t C_YELLOW;
+    extern const color3d_t C_ORANGE;
+    extern const color3d_t C_GRAY;
+#endif /* LSP_DEBUG */
+
 }
 
 #endif /* INCLUDE_CORE_3D_COMMON_H_ */
