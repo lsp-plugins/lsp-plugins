@@ -159,11 +159,11 @@ bool match_string(const char *p, const char *m)
     return ((m == NULL) || (*m == '\0'));
 }
 
-bool match_list(lsp::cvector<char> &list, test::Test *v)
+bool match_list(lsp::cvector<char> &list, test::Test *v, bool match_if_empty)
 {
     // Empty list always matches
     if (list.size() <= 0)
-        return true;
+        return match_if_empty;
 
     const char *full = v->full_name();
 
@@ -172,6 +172,26 @@ bool match_list(lsp::cvector<char> &list, test::Test *v)
         if (match_string(list.at(i), full))
             return true;
     }
+
+    return false;
+}
+
+bool check_test_skip(config_t *cfg, stats_t *stats, test::Test *v)
+{
+    // Check that test is not ignored
+    if (v->ignore())
+        return true;
+
+    // Need to check test name and group?
+    if (match_list(cfg->ignore, v, false))
+    {
+        stats->ignored.add(v);
+        return true;
+    }
+
+    // Is there an explicit list of tests?
+    if (!match_list(cfg->list, v, true))
+        return true;
 
     return false;
 }
@@ -375,17 +395,7 @@ int launch_ptest(config_t *cfg)
 
     for ( ; v != NULL; v = v->next())
     {
-        // Check that test is not ignored
-        if (v->ignore())
-            continue;
-
-        // Need to check test name and group?
-        if (match_list(cfg->ignore, v))
-        {
-            stats.ignored.add(v);
-            continue;
-        }
-        else if (!match_list(cfg->list, v))
+        if (check_test_skip(cfg, &stats, v))
             continue;
 
         printf("\n--------------------------------------------------------------------------------\n");
@@ -480,16 +490,7 @@ int launch_mtest(config_t *cfg)
     for ( ; v != NULL; v = v->next())
     {
         // Check that test is not ignored
-        if (v->ignore())
-            continue;
-
-        // Need to check test name and group?
-        if (match_list(cfg->ignore, v))
-        {
-            stats.ignored.add(v);
-            continue;
-        }
-        else if (!match_list(cfg->list, v))
+        if (check_test_skip(cfg, &stats, v))
             continue;
 
         printf("\n--------------------------------------------------------------------------------\n");
@@ -721,16 +722,7 @@ int launch_utest(config_t *cfg)
     for ( ; v != NULL; v = v->next())
     {
         // Check that test is not ignored
-        if (v->ignore())
-            continue;
-
-        // Need to check test name and group?
-        if (match_list(cfg->ignore, v))
-        {
-            stats.ignored.add(v);
-            continue;
-        }
-        else if (!match_list(cfg->list, v))
+        if (check_test_skip(cfg, &stats, v))
             continue;
 
         printf("\n--------------------------------------------------------------------------------\n");
