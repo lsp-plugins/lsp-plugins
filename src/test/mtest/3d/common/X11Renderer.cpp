@@ -469,14 +469,17 @@ namespace mtest
 
             for (size_t i=0; i<n; ++i, ++s)
             {
-                glColor3fv(&s->c.r);
                 glBegin(GL_POINTS);
+                    glColor3fv(&s->c[0].r);
                     glVertex3fv(&s->p[0].x);
+                    glColor3fv(&s->c[1].r);
                     glVertex3fv(&s->p[1].x);
                 glEnd();
 
                 glBegin(GL_LINES);
+                    glColor3fv(&s->c[0].r);
                     glVertex3fv(&s->p[0].x);
+                    glColor3fv(&s->c[1].r);
                     glVertex3fv(&s->p[1].x);
                 glEnd();
             }

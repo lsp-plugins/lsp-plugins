@@ -2418,13 +2418,24 @@ namespace mtest
 #endif /* LSP_DEBUG */
         }
 
+#ifdef LSP_DEBUG
         if (!ctx->shared->scene->validate())
             return STATUS_CORRUPTED;
+#endif /* LSP_DEBUG */
 
+        // DEBUG
+#if 0
+        for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
+            ctx->shared->view->add_triangle_3c(ctx->triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+        delete ctx;
+
+        return STATUS_OK;
+#else
         // Update state
         ctx->index  = 0;
         ctx->state  = S_CULL_VIEW;
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+#endif
     }
 
     static status_t cull_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
@@ -2505,7 +2516,7 @@ namespace mtest
             return res;
 #endif /* LSP_DEBUG */
 
-        if ((++ctx->index) >= 2)
+        if ((++ctx->index) >= 3)
         {
             // DEBUG
             for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
@@ -2574,7 +2585,7 @@ MTEST_BEGIN("3d", reflections)
             explicit Renderer(Scene3D *scene, View3D *view): X11Renderer(view)
             {
                 pScene = scene;
-                bBoundBoxes = true;
+                bBoundBoxes = false;
                 nTrace = BREAKPOINT_STEP;
 
                 INIT_FRONT(sFront);
@@ -2733,7 +2744,8 @@ MTEST_BEGIN("3d", reflections)
                 // Render bounding boxes of the scene
                 if (bBoundBoxes)
                 {
-                    s.c = C_ORANGE;
+                    s.c[0] = C_ORANGE;
+                    s.c[1] = C_ORANGE;
                     for (size_t i=0, n=global.scene->num_objects(); i<n; ++i)
                     {
                         Object3D *o = global.scene->object(i);
@@ -2801,7 +2813,8 @@ MTEST_BEGIN("3d", reflections)
 
                 // Draw front
                 v_ray3d_t r;
-                s.c = C_MAGENTA;
+                s.c[0] = C_MAGENTA;
+                s.c[1] = C_MAGENTA;
 
                 for (size_t i=0; i<3; ++i)
                 {

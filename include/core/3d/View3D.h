@@ -101,6 +101,13 @@ namespace lsp
 
             /**
              * Add segment to scene
+             * @param s segment to add
+             * @return true if segment was added
+             */
+            bool add_segment(const rt_edge_t *s, const color3d_t *c1, const color3d_t *c2);
+
+            /**
+             * Add segment to scene
              * @param p1 point 1
              * @param p2 point 2
              * @param c color

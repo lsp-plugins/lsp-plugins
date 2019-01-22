@@ -52,11 +52,13 @@ namespace lsp
 
         protected:
             static status_t arrange_triangle(rt_triangle_t *ct, rt_edge_t *e);
-            static void     unlink_edge(rt_edge_t *e, rt_vertex_t *v);
-            static void     unlink_triangle(rt_triangle_t *t, rt_edge_t *e);
+            static bool     unlink_edge(rt_edge_t *e, rt_vertex_t *v);
+            static bool     unlink_triangle(rt_triangle_t *t, rt_edge_t *e);
 
             bool            validate_list(rt_vertex_t *v);
             bool            validate_list(rt_edge_t *e);
+            static ssize_t  linked_count(rt_edge_t *e, rt_vertex_t *v);
+            static ssize_t  linked_count(rt_triangle_t *t, rt_edge_t *e);
 
             status_t        split_edge(rt_edge_t* e, rt_vertex_t* sp);
             status_t        split_edges(const vector3d_t *pl);

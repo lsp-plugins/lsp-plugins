@@ -152,7 +152,7 @@ namespace lsp
     typedef struct v_segment3d_t
     {
         point3d_t   p[2];   // Position
-        color3d_t   c;      // Color
+        color3d_t   c[2];   // Color
     } v_segment3d_t;
 #pragma pack(pop)
 

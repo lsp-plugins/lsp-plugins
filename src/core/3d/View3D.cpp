@@ -49,7 +49,19 @@ namespace lsp
         v_segment3d_t xs;
         xs.p[0]     = *(s->v[0]);
         xs.p[1]     = *(s->v[1]);
-        xs.c        = *c;
+        xs.c[0]     = *c;
+        xs.c[1]     = *c;
+
+        return vSegments.append(&xs);
+    }
+
+    bool View3D::add_segment(const rt_edge_t *s, const color3d_t *c1, const color3d_t *c2)
+    {
+        v_segment3d_t xs;
+        xs.p[0]     = *(s->v[0]);
+        xs.p[1]     = *(s->v[1]);
+        xs.c[0]     = *c1;
+        xs.c[1]     = *c2;
 
         return vSegments.append(&xs);
     }
@@ -59,7 +71,8 @@ namespace lsp
         v_segment3d_t xs;
         xs.p[0]     = *p1;
         xs.p[1]     = *p2;
-        xs.c        = *c;
+        xs.c[0]     = *c;
+        xs.c[1]     = *c;
 
         return vSegments.append(&xs);
     }
@@ -265,9 +278,12 @@ namespace lsp
         v[1].p[1]   = t[2];
         v[2].p[1]   = t[0];
 
-        v[0].c      = *c;
-        v[1].c      = *c;
-        v[2].c      = *c;
+        v[0].c[0]   = *c;
+        v[0].c[1]   = *c;
+        v[1].c[0]   = *c;
+        v[1].c[1]   = *c;
+        v[2].c[0]   = *c;
+        v[2].c[1]   = *c;
 
         point3d_t mp[3];
         mp[0].x     = 0.5f * (t[1].x + t[2].x);
@@ -290,9 +306,12 @@ namespace lsp
         v[4].p[1]   = mp[1];
         v[5].p[1]   = mp[2];
 
-        v[3].c      = *c;
-        v[4].c      = *c;
-        v[5].c      = *c;
+        v[3].c[0]   = *c;
+        v[3].c[1]   = *c;
+        v[4].c[0]   = *c;
+        v[4].c[1]   = *c;
+        v[5].c[0]   = *c;
+        v[5].c[1]   = *c;
 
         r->p.x      = (t[0].x + t[1].x + t[2].x)/ 3.0f;
         r->p.y      = (t[0].y + t[1].y + t[2].y)/ 3.0f;
