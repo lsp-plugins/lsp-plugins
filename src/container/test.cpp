@@ -899,8 +899,4 @@ int main(int argc, const char **argv)
     clear_config(&cfg);
 
     return res;
-    /*srand(clock());
-    lsp_trace("locale is: %s", setlocale(LC_CTYPE, NULL));
-    return TEST::test(argc, argv);
-    */
 }

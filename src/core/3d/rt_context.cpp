@@ -131,18 +131,18 @@ namespace lsp
         rt_triangle_t *ct, *nt, *pt;
         rt_edge_t *ne, *se;
 
-        RT_TRACE_BREAK(this,
-            lsp_trace("Splitting edge");
-            for (rt_triangle_t *t = e->vt; t != NULL;)
-            {
-                shared->view->add_triangle_3c(t, &C_RED, &C_GREEN, &C_BLUE);
-                t = (t->e[0] == e) ? t->elnk[0] :
-                    (t->e[1] == e) ? t->elnk[1] :
-                    (t->e[2] == e) ? t->elnk[2] :
-                    NULL;
-            }
-            shared->view->add_segment(e, &C_RED, &C_YELLOW);
-        );
+//        RT_TRACE_BREAK(this,
+//            lsp_trace("Splitting edge");
+//            for (rt_triangle_t *t = e->vt; t != NULL;)
+//            {
+//                shared->view->add_triangle_3c(t, &C_RED, &C_GREEN, &C_BLUE);
+//                t = (t->e[0] == e) ? t->elnk[0] :
+//                    (t->e[1] == e) ? t->elnk[1] :
+//                    (t->e[2] == e) ? t->elnk[2] :
+//                    NULL;
+//            }
+//            shared->view->add_segment(e, &C_RED, &C_YELLOW);
+//        );
 
         // Rearrange first triangle
         if ((ct = e->vt) == NULL)
@@ -165,7 +165,7 @@ namespace lsp
         ne->split[0]    = NULL;
         ne->split[1]    = NULL;
         ne->ptag        = NULL;
-        ne->itag        = e->itag | RT_EF_SPLIT;
+        ne->itag        = e->itag | RT_EF_PROCESSED;
 
         ne->vlnk[0]     = ne->v[0]->ve;
         ne->vlnk[1]     = ne->v[1]->ve;
@@ -185,18 +185,18 @@ namespace lsp
         else if (linked_count(e, e->v[1]) != 0)
             return STATUS_CORRUPTED;
 
-        e->itag        |= RT_EF_SPLIT;
+        e->itag        |= RT_EF_PROCESSED;
 
         cvector<rt_triangle_t> dbg_out;
 
         // Process all triangles
         while (true)
         {
-            RT_TRACE_BREAK(this,
-                lsp_trace("Splitting triangle");
-                shared->view->add_triangle_3c(ct, &C_RED, &C_GREEN, &C_BLUE);
-                shared->view->add_segment(e, &C_RED, &C_YELLOW);
-            );
+//            RT_TRACE_BREAK(this,
+//                lsp_trace("Splitting triangle");
+//                shared->view->add_triangle_3c(ct, &C_RED, &C_GREEN, &C_BLUE);
+//                shared->view->add_segment(e, &C_RED, &C_YELLOW);
+//            );
 
             // Save pointer to triangle to move forward
             pt              = ct->elnk[0];  // Save pointer to pending triangle, splitting edge is always rearranged to have index 0
@@ -305,11 +305,11 @@ namespace lsp
             dbg_out.add(ct);
             dbg_out.add(nt);
 
-            RT_TRACE_BREAK(this,
-                lsp_trace("Splitted triangle");
-                shared->view->add_triangle_1c(ct, &C_GREEN);
-                shared->view->add_triangle_1c(nt, &C_BLUE);
-            );
+//            RT_TRACE_BREAK(this,
+//                lsp_trace("Splitted triangle");
+//                shared->view->add_triangle_1c(ct, &C_GREEN);
+//                shared->view->add_triangle_1c(nt, &C_BLUE);
+//            );
 
             // Move to next triangle
             if (pt == NULL)
@@ -336,11 +336,11 @@ namespace lsp
                 return res;
         }
 
-        RT_TRACE_BREAK(this,
-            lsp_trace("Final result for edge");
-            for (size_t i=0,n=dbg_out.size();i<n; ++i)
-                shared->view->add_triangle_1c(dbg_out.get(i), &C_GREEN);
-        );
+//        RT_TRACE_BREAK(this,
+//            lsp_trace("Final result for edge");
+//            for (size_t i=0,n=dbg_out.size();i<n; ++i)
+//                shared->view->add_triangle_1c(dbg_out.get(i), &C_GREEN);
+//        );
 
         // Now the edge 'e' is stored in context but not linked to any primitive
         return STATUS_OK;
@@ -359,23 +359,23 @@ namespace lsp
         {
             rt_edge_t *e    = edge.get(i);
 
-            RT_TRACE_BREAK(this,
-                lsp_trace("Testing edge %d", int(i));
-                for (size_t i=0,n=triangle.size(); i<n; ++i)
-                    shared->view->add_triangle_1c(triangle.get(i), &C_RED);
-                for (size_t j=0,n=edge.size(); j<n; ++j)
-                {
-                    rt_edge_t *xe    = edge.get(j);
-                    if (xe == e)
-                        continue;
-                    shared->view->add_segment(xe,
-                            (xe->itag & RT_EF_SPLIT) ? &C_GREEN : &C_CYAN
-                    );
-                }
-                shared->view->add_segment(e, &C_YELLOW);
-            );
+//            RT_TRACE_BREAK(this,
+//                lsp_trace("Testing edge %d", int(i));
+//                for (size_t i=0,n=triangle.size(); i<n; ++i)
+//                    shared->view->add_triangle_1c(triangle.get(i), &C_RED);
+//                for (size_t j=0,n=edge.size(); j<n; ++j)
+//                {
+//                    rt_edge_t *xe    = edge.get(j);
+//                    if (xe == e)
+//                        continue;
+//                    shared->view->add_segment(xe,
+//                            (xe->itag & RT_EF_SPLIT) ? &C_GREEN : &C_CYAN
+//                    );
+//                }
+//                shared->view->add_segment(e, &C_YELLOW);
+//            );
 
-            if (e->itag & RT_EF_SPLIT) // Skip already splitted eges
+            if (e->itag & RT_EF_PROCESSED) // Skip already splitted eges
                 continue;
 
             /*
@@ -398,13 +398,13 @@ namespace lsp
             switch (s)
             {
                 case 0: case 1: case 3: // edge is over the plane, skip
-                    e->itag    |= RT_EF_SPLIT;
+                    e->itag    |= RT_EF_PROCESSED;
                     break;
                 case 5: case 7: case 8: // edge is under the plane, skip
-                    e->itag    |= RT_EF_SPLIT;
+                    e->itag    |= RT_EF_PROCESSED;
                     break;
                 case 4: // edge lays on the plane, mark as split edge and skip
-                    e->itag    |= RT_EF_SPLIT;
+                    e->itag    |= RT_EF_PLANE | RT_EF_PROCESSED;
                     break;
 
                 case 2: // edge is crossing the plane, v0 is over, v1 is under
@@ -639,7 +639,7 @@ namespace lsp
         for (size_t i=0, n=edge.size(); i<n; ++i)
         {
             rt_edge_t *e    = edge.get(i);
-            e->itag        &= ~RT_EF_SPLIT; // Clear split flag
+            e->itag        &= ~RT_EF_PROCESSED; // Clear split flag
             e->ptag         = NULL;
             e->split[0]     = NULL;
             e->split[1]     = NULL;
@@ -660,11 +660,8 @@ namespace lsp
         if (!validate())
             return STATUS_CORRUPTED;
 
-        in->swap(this);
-
-        return STATUS_OK;
         // Now we can move triangles
-//        return split_triangles(out, in);
+        return split_triangles(out, in);
     }
 
     status_t rt_context_t::add_object(Object3D *obj)

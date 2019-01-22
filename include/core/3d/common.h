@@ -81,10 +81,10 @@ namespace lsp
 
     enum edge_flags_t
     {
-        RT_EF_CULL          = 1 << 0,       // The edge is part of cull plane
-        RT_EF_SPLIT         = 1 << 8,       // The edge has been split
+        RT_EF_PLANE         = 1 << 0,       // The edge is part of split plane
+        RT_EF_PROCESSED     = 1 << 8,       // The edge has been processed by split algorithm
 
-        RT_EF_TEMP          = RT_EF_SPLIT
+        RT_EF_TEMP          = RT_EF_PROCESSED
     };
 
     typedef struct rt_vertex_t: public point3d_t
