@@ -219,14 +219,6 @@ namespace mtest
         tasks.flush();
     }
 
-    static void flip_plane(vector3d_t *v)
-    {
-        v->dx   = - v->dx;
-        v->dy   = - v->dy;
-        v->dz   = - v->dz;
-        v->dw   = - v->dw;
-    }
-
 //    static void init_triangle_pv(v_triangle3d_t *t, const point3d_t *pv)
 //    {
 //        t->p[0] = pv[0];
@@ -1609,6 +1601,14 @@ namespace mtest
         v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
     }
 
+    static void flip_plane(vector3d_t *v)
+    {
+        v->dx   = - v->dx;
+        v->dy   = - v->dy;
+        v->dz   = - v->dz;
+        v->dw   = - v->dw;
+    }
+
     static void init_triangle_p3(v_triangle3d_t *t, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2, const vector3d_t *n)
     {
         dsp::calc_normal3d_p3(&t->n[0], p0, p1, p2);
@@ -2052,8 +2052,8 @@ namespace mtest
 #endif /* LSP_DEBUG */
 
         // Update state
-        ctx->index  = 0;
-        ctx->state  = S_CULL_VIEW;
+        ctx->current    = NULL;
+        ctx->state      = S_CULL_VIEW;
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
@@ -2091,7 +2091,7 @@ namespace mtest
         for (size_t pi=0; pi<4; ++pi)
         {
             RT_TRACE_BREAK(ctx,
-                lsp_trace("Culling space with view plane #%d", int(ctx->index));
+                lsp_trace("Culling space with view plane #%d", int(pi));
 
                 for (size_t j=0, n=ctx->triangle.size(); j<n; ++j)
                    ctx->shared->view->add_triangle_1c(ctx->triangle.get(j), &C_DARKGREEN);
@@ -2146,6 +2146,49 @@ namespace mtest
 
     static status_t partition_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
+#if 0
+        rt_edge_t *se;
+        rt_vertex_t *sv;
+        rt_triangle_t *st;
+        float a;
+        vector3d_t pl;
+//        , npl;
+
+        // Select current triangle
+        if (ctx->current == NULL)
+            ctx->current    = ctx->triangle.get(0);
+        st  = ctx->current;
+
+        // Try to split with edge
+        for (size_t ei=0; ei<3; ++ei)
+        {
+            // Check if we need to apply this side of triangle to culling
+            se  = st->e[ei];
+            if (se->itag & RT_EF_PLANE)
+                continue;
+
+            // Select opposite to the edge point
+            sv = st->v[0];
+            if ((sv == se->v[0]) || (sv == se->v[1]))
+            {
+                sv = st->v[1];
+                if ((sv == se->v[0]) || (sv == se->v[1]))
+                {
+                    sv = st->v[2];
+                    if ((sv == se->v[0]) || (sv == se->v[1]))
+                        return STATUS_CORRUPTED;
+                }
+            }
+
+            // Build split plane
+            calc_plane_vector_p3(&pl, &ctx->view.s, se->v[0], se->v[1]);
+            float a = (sv->x * pl.dx + sv->y * pl.dy + sv->z * pl.dz + pl.dw);
+            if (a > 0.0f)
+                flip_plane(&pl);
+
+        }
+#endif
+
         // DEBUG
         for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
             ctx->shared->view->add_triangle_3c(ctx->triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);

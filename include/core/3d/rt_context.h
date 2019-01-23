@@ -39,7 +39,7 @@ namespace lsp
             rt_view_t                   view;       // Ray tracing point of view
             rt_shared_t                *shared;     // Shared settings
             rt_context_state_t          state;      // Context state
-            size_t                      index;      // Plane index
+            rt_triangle_t              *current;    // Current triangle
 
             Allocator3D<rt_vertex_t>    vertex;     // Collection of vertexes
             Allocator3D<rt_edge_t>      edge;       // Collection of edges
@@ -60,6 +60,7 @@ namespace lsp
             static ssize_t  linked_count(rt_edge_t *e, rt_vertex_t *v);
             static ssize_t  linked_count(rt_triangle_t *t, rt_edge_t *e);
 
+            status_t        split_triangle(rt_context_t *dst, rt_triangle_t *st, ssize_t k);
             status_t        split_edge(rt_edge_t* e, rt_vertex_t* sp);
             status_t        split_edges(const vector3d_t *pl);
             status_t        split_triangles(rt_context_t *out, rt_context_t *in);

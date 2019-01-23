@@ -16,12 +16,13 @@ namespace lsp
     {
         this->state     = S_SCAN_OBJECTS;
         this->shared    = shared;
-        this->index     = 0;
+        this->current   = NULL;
     }
     
     rt_context_t::~rt_context_t()
     {
         shared          = NULL;
+        current         = NULL;
 
         vertex.destroy();
         edge.destroy();
@@ -31,6 +32,10 @@ namespace lsp
     void rt_context_t::swap(rt_context_t *src)
     {
         // Do swap
+        rt_triangle_t *t    = current;
+        current             = src->current;
+        src->current        = t;
+
         vertex.swap(&src->vertex);
         edge.swap(&src->edge);
         triangle.swap(&src->triangle);
@@ -461,92 +466,120 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t rt_context_t::split_triangle(rt_context_t *dst, rt_triangle_t *st, ssize_t k)
+    {
+        rt_triangle_t *tx;
+        rt_vertex_t *sv, *vx;
+        rt_edge_t *se, *ex;
+
+        // Allocate triangle in destination context
+        tx = dst->triangle.alloc();
+        if (tx == NULL)
+            return STATUS_NO_MEM;
+
+        tx->n               = st->n;
+        tx->ptag            = st;
+        tx->itag            = 0;
+
+        st->ptag            = tx;
+
+        // Process each element in triangle
+        for (size_t j=0; j<3; ++j)
+        {
+            // Allocate vertex if required
+            sv      = st->v[j];
+            vx      = sv->split[k];
+            if (vx == NULL)
+            {
+                vx              = dst->vertex.alloc();
+                if (vx == NULL)
+                    return STATUS_NO_MEM;
+
+                vx->x           = sv->x;
+                vx->y           = sv->y;
+                vx->z           = sv->z;
+                vx->w           = sv->w;
+                vx->ve          = NULL;
+                vx->ptag        = NULL;
+                vx->itag        = 0;
+                vx->split[0]    = NULL;
+                vx->split[1]    = NULL;
+
+                sv->split[k]    = vx;
+            }
+
+            // Allocate edge if required
+            se      = st->e[j];
+            ex      = se->split[k];
+            if (ex == NULL)
+            {
+                ex              = dst->edge.alloc();
+                if (ex == NULL)
+                    return STATUS_NO_MEM;
+
+                ex->v[0]        = se->v[0];
+                ex->v[1]        = se->v[1];
+                ex->vt          = NULL;
+                ex->vlnk[0]     = NULL;
+                ex->vlnk[1]     = NULL;
+                ex->split[0]    = NULL;
+                ex->split[1]    = NULL;
+                ex->ptag        = NULL;
+                ex->itag        = se->itag & ~RT_EF_TEMP;
+
+                se->split[k]    = ex;
+            }
+
+            // Store pointers
+            tx->v[j]        = vx;
+            tx->e[j]        = ex;
+            tx->elnk[j]     = NULL;
+        }
+
+        return STATUS_OK;
+    }
+
     status_t rt_context_t::split_triangles(rt_context_t *out, rt_context_t *in)
     {
         rt_context_t *dst;
         rt_triangle_t *st, *tx;
-        rt_vertex_t *sv, *vx;
         rt_edge_t *se, *ex;
-        ssize_t k;
+        status_t res;
 
-        // Create data structures in out and in contexts
+        // Split data structures into 'OUT' and 'IN' domains, skip 'current' triangle to put it as last item
         for (size_t i=0, n=triangle.size(); i<n; ++i)
         {
             st          = triangle.get(i);
+            if (st == current) // Current triangle should not be processed
+                continue;
+
+            // Determine target context
             bool xout   = (st->v[0]->itag != 1) ? (st->v[0]->itag <= 1) :
                           (st->v[1]->itag != 1) ? (st->v[1]->itag <= 1) :
                           (st->v[2]->itag <= 1);
 
-            // Get destination to store
+            // Get pointer to destination context to store
             dst     = (xout) ? out : in;
             if (dst == NULL)
                 continue;
-            k       = (xout) ? 1 : 0;
 
-            // Allocate triangle in destination context
-            tx = dst->triangle.alloc();
-            if (tx == NULL)
-                return STATUS_NO_MEM;
-
-            tx->n               = st->n;
-            tx->ptag            = st;
-            tx->itag            = 0;
-
-            st->ptag            = tx;
-
-            // Process each element in triangle
-            for (size_t j=0; j<3; ++j)
-            {
-                // Allocate vertex if required
-                sv      = st->v[j];
-                vx      = sv->split[k];
-                if (vx == NULL)
-                {
-                    vx              = dst->vertex.alloc();
-                    if (vx == NULL)
-                        return STATUS_NO_MEM;
-
-                    vx->x           = sv->x;
-                    vx->y           = sv->y;
-                    vx->z           = sv->z;
-                    vx->w           = sv->w;
-                    vx->ve          = NULL;
-                    vx->ptag        = NULL;
-                    vx->itag        = 0;
-                    vx->split[0]    = NULL;
-                    vx->split[1]    = NULL;
-
-                    sv->split[k]    = vx;
-                }
-
-                // Allocate edge if required
-                se      = st->e[j];
-                ex      = se->split[k];
-                if (ex == NULL)
-                {
-                    ex              = dst->edge.alloc();
-                    if (ex == NULL)
-                        return STATUS_NO_MEM;
-
-                    ex->v[0]        = se->v[0];
-                    ex->v[1]        = se->v[1];
-                    ex->vt          = NULL;
-                    ex->vlnk[0]     = NULL;
-                    ex->vlnk[1]     = NULL;
-                    ex->split[0]    = NULL;
-                    ex->split[1]    = NULL;
-                    ex->ptag        = NULL;
-                    ex->itag        = se->itag & ~RT_EF_TEMP;
-
-                    se->split[k]    = ex;
-                }
-
-                // Store pointers
-                tx->v[j]        = vx;
-                tx->e[j]        = ex;
-                tx->elnk[j]     = NULL;
-            }
+            // Perform split
+            res         = split_triangle(dst, st, (xout) ? 1 : 0);
+            if (res != STATUS_OK)
+                return res;
         } // for
+
+        // Process current triangle (if present), put it always to 'IN' domain as last element
+        if ((current != NULL) && (in != NULL))
+        {
+            // Put to queue as last item
+            res         = split_triangle(in, st, 0);
+            if (res != STATUS_OK)
+                return res;
+
+            // Patch pointer to current triangle
+            in->current     = reinterpret_cast<rt_triangle_t *>(current->ptag);
+        }
 
         // Patch edge structures and link to vertexes
         for (size_t i=0, n=edge.size(); i<n; ++i)
@@ -651,6 +684,14 @@ namespace lsp
             rt_triangle_t *t= triangle.get(i);
             t->ptag         = NULL;
             t->itag         = 0; // Number of modified edges
+        }
+
+        // Mark edges as processed for current triangle
+        if (current != NULL)
+        {
+            current->e[0]->itag    |= RT_EF_PROCESSED;
+            current->e[1]->itag    |= RT_EF_PROCESSED;
+            current->e[2]->itag    |= RT_EF_PROCESSED;
         }
 
         // First step: split edges
