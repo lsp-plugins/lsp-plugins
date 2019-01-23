@@ -12,15 +12,21 @@
 #include <dsp/dsp.h>
 #include <core/debug.h>
 
-#define RT_TRACE(...) \
-    __VA_ARGS__
+#ifdef LSP_DEBUG
+    #define RT_TRACE(...) \
+        __VA_ARGS__
 
-#define RT_TRACE_BREAK(ctx, action) \
-    if ((ctx->shared->breakpoint >= 0) && ((ctx->shared->step++) == ctx->shared->breakpoint)) { \
-        lsp_trace("Triggered breakpoint %d\n", int(ctx->shared->breakpoint)); \
-        action; \
-        return STATUS_BREAKPOINT; \
-    }
+    #define RT_TRACE_BREAK(ctx, action) \
+        if ((ctx->shared->breakpoint >= 0) && ((ctx->shared->step++) == ctx->shared->breakpoint)) { \
+            lsp_trace("Triggered breakpoint %d\n", int(ctx->shared->breakpoint)); \
+            action; \
+            return STATUS_BREAKPOINT; \
+        }
+#else
+    #define RT_TRACE(...)
+
+    #define RT_TRACE_BREAK(ctx, action)
+#endif /* LSP_DEBUG */
 
 namespace lsp
 {

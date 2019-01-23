@@ -2059,101 +2059,105 @@ namespace mtest
 
     static status_t cull_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
-        vector3d_t pl; // Split plane
-        RT_TRACE(v_triangle3d_t npt); // Split plane presentation
+        status_t res;
+        vector3d_t pl[4]; // Split plane
+        RT_TRACE(v_triangle3d_t npt[4]); // Split plane presentation
 
-        switch (ctx->index)
-        {
-            case 0:
-                RT_TRACE(init_triangle_p3(&npt, &ctx->view.p[0], &ctx->view.p[1], &ctx->view.p[2], &pl));
-                calc_plane_vector_p3(&pl, &ctx->view.p[0], &ctx->view.p[1], &ctx->view.p[2]);
-                break;
-            case 1:
-                calc_plane_vector_p3(&pl, &ctx->view.s, &ctx->view.p[0], &ctx->view.p[1]);
-                RT_TRACE(init_triangle_p3(&npt, &ctx->view.s, &ctx->view.p[0], &ctx->view.p[1], &pl));
-                break;
-            case 2:
-                calc_plane_vector_p3(&pl, &ctx->view.s, &ctx->view.p[1], &ctx->view.p[2]);
-                RT_TRACE(init_triangle_p3(&npt, &ctx->view.s, &ctx->view.p[1], &ctx->view.p[2], &pl));
-                break;
-            case 3:
-                calc_plane_vector_p3(&pl, &ctx->view.s, &ctx->view.p[2], &ctx->view.p[0]);
-                RT_TRACE(init_triangle_p3(&npt, &ctx->view.s, &ctx->view.p[2], &ctx->view.p[0], &pl));
-                break;
-            default:
+        RT_TRACE(
+            // Split edges
+            if (!ctx->validate())
                 return STATUS_BAD_STATE;
-        }
-
-        RT_TRACE_BREAK(ctx,
-            lsp_trace("Culling space with view plane #%d", int(ctx->index));
-
-            for (size_t i=0, n=ctx->triangle.size(); i<n; ++i)
-               ctx->shared->view->add_triangle_1c(ctx->triangle.get(i), &C_DARKGREEN);
-
-            ctx->shared->view->add_triangle_pv1c(ctx->view.p, &C_MAGENTA);
-            ctx->shared->view->add_plane_pv1c(npt.p, &C_YELLOW);
+            if (!ctx->shared->scene->validate())
+                return STATUS_CORRUPTED;
         )
 
-        // Split edges
-        if (!ctx->validate())
-            return STATUS_BAD_STATE;
-        if (!ctx->shared->scene->validate())
-            return STATUS_CORRUPTED;
+        calc_plane_vector_p3(&pl[0], &ctx->view.p[0], &ctx->view.p[1], &ctx->view.p[2]);
+        calc_plane_vector_p3(&pl[1], &ctx->view.s, &ctx->view.p[0], &ctx->view.p[1]);
+        calc_plane_vector_p3(&pl[2], &ctx->view.s, &ctx->view.p[1], &ctx->view.p[2]);
+        calc_plane_vector_p3(&pl[3], &ctx->view.s, &ctx->view.p[2], &ctx->view.p[0]);
+
+        RT_TRACE(
+            init_triangle_p3(&npt[0], &ctx->view.p[0], &ctx->view.p[1], &ctx->view.p[2], &pl[0]);
+            init_triangle_p3(&npt[1], &ctx->view.s, &ctx->view.p[0], &ctx->view.p[1], &pl[1]);
+            init_triangle_p3(&npt[2], &ctx->view.s, &ctx->view.p[1], &ctx->view.p[2], &pl[2]);
+            init_triangle_p3(&npt[3], &ctx->view.s, &ctx->view.p[2], &ctx->view.p[0], &pl[3]);
+        );
 
         rt_context_t in(ctx->shared);
+        RT_TRACE(
+            rt_context_t out(ctx->shared);
+        )
+
+        for (size_t pi=0; pi<4; ++pi)
+        {
+            RT_TRACE_BREAK(ctx,
+                lsp_trace("Culling space with view plane #%d", int(ctx->index));
+
+                for (size_t j=0, n=ctx->triangle.size(); j<n; ++j)
+                   ctx->shared->view->add_triangle_1c(ctx->triangle.get(j), &C_DARKGREEN);
+
+                ctx->shared->view->add_triangle_pv1c(ctx->view.p, &C_MAGENTA);
+                ctx->shared->view->add_plane_pv1c(npt[pi].p, &C_YELLOW);
+            )
 
 #ifdef LSP_DEBUG
-        rt_context_t out(ctx->shared);
-        status_t res = ctx->split(&out, &in, &pl);
-        if (res != STATUS_OK)
-            return res;
-
-        if (!ctx->shared->scene->validate())
-            return STATUS_CORRUPTED;
-        if (!ctx->validate())
-            return STATUS_BAD_STATE;
-        if (!out.validate())
-            return STATUS_BAD_STATE;
-        if (!in.validate())
-            return STATUS_BAD_STATE;
-
-        // Swap context data
-        ctx->swap(&in);
-
-        // Add set of triangles to ignored
-        for (size_t i=0,n=out.triangle.size(); i<n; ++i)
-            ctx->ignore(out.triangle.get(i));
-
-        RT_TRACE_BREAK(ctx,
-            lsp_trace("Data after culling (%d triangles)", int(ctx->triangle.size()));
-            for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-                ctx->shared->view->add_triangle_3c(ctx->triangle.get(i), &C_CYAN, &C_MAGENTA, &C_YELLOW);
-        );
+            res = ctx->split(&out, &in, &pl[pi]);
 #else
-        status_t res = ctx->split(NULL, &in, &pl);
-        if (res != STATUS_OK)
-            return res;
+            res = ctx->split(NULL, &in, &pl[pi]);
 #endif /* LSP_DEBUG */
+            if (res != STATUS_OK)
+                return res;
 
-        if ((++ctx->index) >= 4)
-        {
-            // DEBUG
-            for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-                ctx->shared->view->add_triangle_3c(ctx->triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
-            for (size_t i=0,n=ctx->edge.size(); i<n; ++i)
+            RT_TRACE(
+                if (!ctx->shared->scene->validate())
+                    return STATUS_CORRUPTED;
+                if (!ctx->validate())
+                    return STATUS_BAD_STATE;
+                if (!out.validate())
+                    return STATUS_BAD_STATE;
+                if (!in.validate())
+                    return STATUS_BAD_STATE;
+
+                // Add set of triangles to ignored
+                for (size_t j=0,n=out.triangle.size(); j<n; ++j)
+                    ctx->ignore(out.triangle.get(j));
+            );
+
+            RT_TRACE_BREAK(ctx,
+                lsp_trace("Data after culling (%d triangles)", int(in.triangle.size()));
+                for (size_t j=0,n=in.triangle.size(); j<n; ++j)
+                    ctx->shared->view->add_triangle_3c(in.triangle.get(j), &C_CYAN, &C_MAGENTA, &C_YELLOW);
+            );
+
+            // Check that there is data for processing and take it for next iteration
+            if (in.triangle.size() <= 0)
             {
-                rt_edge_t *e = ctx->edge.get(i);
-                if (e->itag & RT_EF_PLANE)
-                    ctx->shared->view->add_segment(e, &C_YELLOW);
+                delete ctx;
+                return STATUS_OK;
             }
-
-            // TODO
-//            ctx->index  = 0;
-//            ctx->state  = S_PARTITION;
-            delete ctx;
-            return STATUS_OK;
+            else
+                ctx->swap(&in);
         }
+
+        // Change state and submit to queue
+        ctx->state  = S_PARTITION;
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+    }
+
+    static status_t partition_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
+    {
+        // DEBUG
+        for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
+            ctx->shared->view->add_triangle_3c(ctx->triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+        for (size_t i=0,n=ctx->edge.size(); i<n; ++i)
+        {
+            rt_edge_t *e = ctx->edge.get(i);
+            if (e->itag & RT_EF_PLANE)
+                ctx->shared->view->add_segment(e, &C_YELLOW);
+        }
+
+        delete ctx;
+        return STATUS_OK;
     }
 
     static status_t perform_raytrace(cvector<rt_context_t> &tasks)
@@ -2176,6 +2180,10 @@ namespace mtest
 
                 case S_CULL_VIEW:
                     res = cull_view(tasks, ctx);
+                    break;
+
+                case S_PARTITION:
+                    res = partition_view(tasks, ctx);
                     break;
 
                 default:

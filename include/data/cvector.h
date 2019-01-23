@@ -230,6 +230,10 @@ namespace lsp
     template <class T>
         class cvector: public basic_vector
         {
+            private:
+                cvector(const cvector<T> &src);                         // Disable copying
+                cvector<T> & operator = (const cvector<T> & src);       // Disable copying
+
             public:
                 explicit inline cvector() {}
 

@@ -201,8 +201,12 @@ namespace lsp
     template <class T, size_t A=DEFAULT_ALIGN>
         class cstorage: public basic_storage
         {
+            private:
+                cstorage(const cstorage<T, A> &src);                            // Disable copying
+                cstorage<T, A> & operator = (const cstorage<T, A> & src);       // Disable copying
+
             public:
-                cstorage() : basic_storage(sizeof(T), A) {};
+                explicit cstorage() : basic_storage(sizeof(T), A) {};
                 ~cstorage() {};
 
             public:
