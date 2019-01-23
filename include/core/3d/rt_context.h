@@ -30,7 +30,8 @@ namespace lsp
     {
         S_SCAN_OBJECTS,
         S_CULL_VIEW,
-        S_PARTITION
+        S_PARTITION,
+        S_REFLECT
     };
 
     typedef struct rt_context_t
@@ -70,6 +71,12 @@ namespace lsp
 
         public:
             // Methods
+
+            /**
+             * Clear context
+             */
+            void            clear();
+
             /**
              * Swap internal mesh contents with another context
              * @param src source context to perform swap
@@ -104,6 +111,13 @@ namespace lsp
              * @return status of operation
              */
             status_t        ignore(const rt_triangle_t *t);
+
+            /**
+             * Add triangle to list of matched
+             * @param t triangle to add to list of matched
+             * @return status of operation
+             */
+            status_t        match(const rt_triangle_t *t);
 
             /**
              * Dump context

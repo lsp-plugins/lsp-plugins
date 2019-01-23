@@ -160,6 +160,14 @@ namespace lsp
         point3d_t   p[2];   // Position
         color3d_t   c[2];   // Color
     } v_segment3d_t;
+
+#pragma pack(pop)
+
+#pragma pack(push, 1)
+    typedef struct raw_triangle_t
+    {
+        point3d_t   p[3];
+    } raw_triangle_t;
 #pragma pack(pop)
 
 #ifdef LSP_DEBUG

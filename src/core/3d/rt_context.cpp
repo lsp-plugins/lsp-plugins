@@ -22,6 +22,11 @@ namespace lsp
     rt_context_t::~rt_context_t()
     {
         shared          = NULL;
+        clear();
+    }
+
+    void rt_context_t::clear()
+    {
         current         = NULL;
 
         vertex.destroy();
@@ -1015,6 +1020,20 @@ namespace lsp
         vt.n[2]     = t->n;
 
         return (shared->ignored.add(&vt)) ? STATUS_OK : STATUS_NO_MEM;
+    }
+
+    status_t rt_context_t::match(const rt_triangle_t *t)
+    {
+        v_triangle3d_t vt;
+        vt.p[0]     = *(t->v[0]);
+        vt.p[1]     = *(t->v[1]);
+        vt.p[2]     = *(t->v[2]);
+
+        vt.n[0]     = t->n;
+        vt.n[1]     = t->n;
+        vt.n[2]     = t->n;
+
+        return (shared->matched.add(&vt)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
     void rt_context_t::dump()
