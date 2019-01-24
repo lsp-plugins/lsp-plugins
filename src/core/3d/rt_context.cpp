@@ -15,8 +15,9 @@ namespace lsp
         triangle(256)
     {
         this->state     = S_SCAN_OBJECTS;
-        this->shared    = shared;
         this->current   = NULL;
+        this->loop      = 0;
+        this->shared    = shared;
     }
     
     rt_context_t::~rt_context_t()

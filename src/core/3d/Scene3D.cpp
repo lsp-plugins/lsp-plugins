@@ -363,7 +363,10 @@ namespace lsp
                 if (!vEdges.validate(dt->e[j]))
                     return false;
                 if (!vNormals.validate(dt->n[j]))
-                    return false;
+                {
+                    if (!vXNormals.validate(dt->n[j]))
+                        return false;
+                }
             }
         }
         return true;

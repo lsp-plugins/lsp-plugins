@@ -41,6 +41,7 @@ namespace lsp
             rt_shared_t                *shared;     // Shared settings
             rt_context_state_t          state;      // Context state
             rt_triangle_t              *current;    // Current triangle
+            size_t                      loop;       // Loop counter
 
             Allocator3D<rt_vertex_t>    vertex;     // Collection of vertexes
             Allocator3D<rt_edge_t>      edge;       // Collection of edges
