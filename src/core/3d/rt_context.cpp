@@ -651,6 +651,12 @@ namespace lsp
 
     status_t rt_context_t::split(rt_context_t *out, rt_context_t *in, const vector3d_t *pl)
     {
+        // Always clear target context before proceeding
+        if (out != NULL)
+            out->clear();
+        if (in != NULL)
+            in->clear();
+
         // Initialize state
         // Compute state of all vertexes
         for (size_t i=0, n=vertex.size(); i<n; ++i)
