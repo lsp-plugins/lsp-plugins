@@ -455,18 +455,18 @@ namespace lsp
             }
         }
 
-        RT_TRACE_BREAK(this,
-            lsp_trace("Triangle edges have been split, out=RED, in=GREEN");
-            for (size_t i=0, n=triangle.size(); i<n; ++i)
-            {
-                rt_triangle_t *t = triangle.get(i);
-                bool out         = (t->v[0]->itag != 1) ? (t->v[0]->itag <= 1) :
-                                   (t->v[1]->itag != 1) ? (t->v[1]->itag <= 1) :
-                                   (t->v[2]->itag <= 1);
-
-                shared->view->add_triangle_1c(t, (out) ? &C_RED : &C_GREEN);
-            }
-        );
+//        RT_TRACE_BREAK(this,
+//            lsp_trace("Triangle edges have been split, out=RED, in=GREEN");
+//            for (size_t i=0, n=triangle.size(); i<n; ++i)
+//            {
+//                rt_triangle_t *t = triangle.get(i);
+//                bool out         = (t->v[0]->itag != 1) ? (t->v[0]->itag <= 1) :
+//                                   (t->v[1]->itag != 1) ? (t->v[1]->itag <= 1) :
+//                                   (t->v[2]->itag <= 1);
+//
+//                shared->view->add_triangle_1c(t, (out) ? &C_RED : &C_GREEN);
+//            }
+//        );
 
         return STATUS_OK;
     }
@@ -578,7 +578,7 @@ namespace lsp
         if ((current != NULL) && (in != NULL))
         {
             // Put to queue as last item
-            res         = split_triangle(in, st, 0);
+            res         = split_triangle(in, current, 0);
             if (res != STATUS_OK)
                 return res;
 
@@ -632,19 +632,19 @@ namespace lsp
             tx->e[2]->vt        = tx;
         }
 
-        RT_TRACE_BREAK(this,
-            lsp_trace("Split original context into in (GREEN) and out (RED)");
-            if (out != NULL)
-            {
-                for (size_t i=0,n=out->triangle.size(); i<n; ++i)
-                    shared->view->add_triangle_1c(out->triangle.get(i), &C_RED);
-            }
-            if (in != NULL)
-            {
-                for (size_t i=0,n=in->triangle.size(); i<n; ++i)
-                    shared->view->add_triangle_1c(in->triangle.get(i), &C_GREEN);
-            }
-        );
+//        RT_TRACE_BREAK(this,
+//            lsp_trace("Split original context into in (GREEN) and out (RED)");
+//            if (out != NULL)
+//            {
+//                for (size_t i=0,n=out->triangle.size(); i<n; ++i)
+//                    shared->view->add_triangle_1c(out->triangle.get(i), &C_RED);
+//            }
+//            if (in != NULL)
+//            {
+//                for (size_t i=0,n=in->triangle.size(); i<n; ++i)
+//                    shared->view->add_triangle_1c(in->triangle.get(i), &C_GREEN);
+//            }
+//        );
 
         return STATUS_OK;
     }

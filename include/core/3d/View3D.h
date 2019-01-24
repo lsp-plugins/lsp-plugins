@@ -145,12 +145,20 @@ namespace lsp
             bool add_triangle_1c(const rt_triangle_t *t, const color3d_t *c);
 
             /**
-             * Add triangle
+             * Add plane triangle
              * @param t triangle
              * @param c triangle color
              * @return status of operation
              */
             bool add_plane_pv1c(const point3d_t *t, const color3d_t *c);
+
+            /**
+             * Add plane triangle
+             * @param t triangle
+             * @param c triangle color
+             * @return status of operation
+             */
+            bool add_plane_3p1c(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const color3d_t *c);
 
             /**
              * Add triangle

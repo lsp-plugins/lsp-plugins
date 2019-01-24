@@ -258,6 +258,15 @@ namespace lsp
         return true;
     }
 
+    bool View3D::add_plane_3p1c(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const color3d_t *c)
+    {
+        point3d_t t[3];
+        t[0] = *p1;
+        t[1] = *p2;
+        t[2] = *p3;
+        return add_plane_pv1c(t, c);
+    }
+
     bool View3D::add_plane_pv1c(const point3d_t *t, const color3d_t *c)
     {
         v_ray3d_t *r = vRays.append();
