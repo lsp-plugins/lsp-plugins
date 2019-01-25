@@ -26,12 +26,14 @@ namespace lsp
         protected:
             Scene3D                *pScene;
             Object3D               *pObject;
+            ssize_t                 nFaceID;
 
         public:
             FileHandler3D(Scene3D *scene)
             {
                 pScene      = scene;
                 pObject     = NULL;
+                nFaceID     = 0;
                 reset_state();
             }
 
@@ -49,6 +51,7 @@ namespace lsp
                 if (pScene != NULL)
                     pScene->destroy();
                 pObject     = NULL;
+                nFaceID     = 0;
             }
 
             status_t complete()
@@ -125,6 +128,8 @@ namespace lsp
                     vx[i].in            = *(vn++);
                     vx[i].n             = (vx[i].in >= 0) ? pScene->normal(vx[i].in) : NULL;
                 }
+
+                ssize_t face_id     = nFaceID++;
 
                 // Calc default normals for vertexes without normals
                 vertex_t *v1, *v2, *v3;
@@ -210,7 +215,7 @@ namespace lsp
                         v2->p->x, v2->p->y, v2->p->z,
                         v3->p->x, v3->p->y, v3->p->z
                     );
-                    status_t result = pObject->add_triangle(v1->ip, v2->ip, v3->ip, v1->in, v2->in, v3->in);
+                    status_t result = pObject->add_triangle(face_id, v1->ip, v2->ip, v3->ip, v1->in, v2->in, v3->in);
                     if (result != STATUS_OK)
                         return result;
 
@@ -237,8 +242,8 @@ namespace lsp
                         v3->p->x, v3->p->y, v3->p->z
                     );
                     status_t result = (ck < 0.0f) ?
-                        pObject->add_triangle(v1->ip, v3->ip, v2->ip, v1->in, v2->in, v3->in) :
-                        pObject->add_triangle(v1->ip, v2->ip, v3->ip, v1->in, v2->in, v3->in);
+                        pObject->add_triangle(face_id, v1->ip, v3->ip, v2->ip, v1->in, v3->in, v2->in) :
+                        pObject->add_triangle(face_id, v1->ip, v2->ip, v3->ip, v1->in, v2->in, v3->in);
                     if (result != STATUS_OK)
                         return result;
                 }

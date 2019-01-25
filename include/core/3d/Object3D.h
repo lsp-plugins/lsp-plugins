@@ -65,6 +65,7 @@ namespace lsp
 
             /** Add triangle
              *
+             * @param face_id unique face identifier
              * @param v1 index of vertex 1, non-negative
              * @param v2 index of vertex 2, non-negative
              * @param v3 index of vertex 3, non-negative
@@ -74,6 +75,7 @@ namespace lsp
              * @return status of operation
              */
             status_t add_triangle(
+                    ssize_t face_id,
                     ssize_t v1, ssize_t v2, ssize_t v3,
                     ssize_t vn1=-1, ssize_t vn2=-1, ssize_t vn3=-1
                 );

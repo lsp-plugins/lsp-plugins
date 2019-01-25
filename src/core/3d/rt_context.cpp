@@ -247,6 +247,7 @@ namespace lsp
                 nt->n           = ct->n;
                 nt->ptag        = NULL;
                 nt->itag        = 1; // 1 modified edge
+                nt->face        = ct->face;
 
                 // Update current triangle
               //ct->v[0]        = ct->v[0];
@@ -270,6 +271,7 @@ namespace lsp
                 nt->n           = ct->n;
                 nt->ptag        = NULL;
                 nt->itag        = 1; // 1 modified edge
+                nt->face        = ct->face;
 
                 // Update current triangle
                 ct->v[0]        = sp;
@@ -490,6 +492,7 @@ namespace lsp
         tx->n       = st->n;
         tx->ptag    = st->ptag;
         tx->itag    = st->itag;
+        tx->face    = st->face;
 
         // Process each element in triangle
         for (size_t j=0; j<3; ++j)
@@ -833,11 +836,12 @@ namespace lsp
             st  = triangle.get(i);
 
             // Determine target context
-            st->itag    = (st->v[0]->itag != 1) ? (st->v[0]->itag <= 1) :
-                          (st->v[1]->itag != 1) ? (st->v[1]->itag <= 1) :
-                          (st->v[2]->itag <= 1);
+            st->itag    =
+                    (st->face == ct->face) ? 0 :
+                    (st->v[0]->itag != 1) ? (st->v[0]->itag <= 1) :
+                    (st->v[1]->itag != 1) ? (st->v[1]->itag <= 1) :
+                    (st->v[2]->itag <= 1);
         }
-        ct->itag    = 0;
 
         // Now we can fetch triangles
         res    = fetch_triangles_safe(in, 0);
@@ -904,6 +908,7 @@ namespace lsp
             dt->elnk[2] = NULL;
             dt->ptag    = st;
             dt->itag    = 0;
+            dt->face    = st->face;
             st->ptag    = dt;
 
 //            lsp_trace("Link rt_triangle[%p] to obj_triangle[%p]", dt, st);

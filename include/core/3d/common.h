@@ -34,6 +34,7 @@ namespace lsp
     typedef ssize_t         normal_index_t;     // Normal index
     typedef ssize_t         edge_index_t;       // Edge index
     typedef ssize_t         triangle_index_t;   // Triangle index
+    typedef ssize_t         face_index_t;       // Face index
 
     // Object structures
     struct obj_normal_t;
@@ -69,6 +70,7 @@ namespace lsp
     typedef struct obj_triangle_t
     {
         triangle_index_t    id;         // Triangle index
+        face_index_t        face;       // Face number
         obj_vertex_t       *v[3];       // Vertexes
         obj_edge_t         *e[3];       // Edges
         obj_normal_t       *n[3];       // Normals
@@ -117,6 +119,7 @@ namespace lsp
         vector3d_t          n;          // Normal
         void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
         ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
+        ssize_t             face;       // Face identifier
     } rt_triangle_t;
 
     typedef struct rt_view_t

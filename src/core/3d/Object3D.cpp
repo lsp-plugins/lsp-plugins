@@ -41,6 +41,7 @@ namespace lsp
     }
 
     status_t Object3D::add_triangle(
+            ssize_t face_id,
             ssize_t v1, ssize_t v2, ssize_t v3,
             ssize_t vn1, ssize_t vn2, ssize_t vn3
         )
@@ -65,6 +66,7 @@ namespace lsp
 
         // Store vertexes
         t->id       = tid;
+        t->face     = face_id;
         t->ptag     = NULL;
         t->itag     = -1;
         t->v[0]     = pScene->vertex(v1);
