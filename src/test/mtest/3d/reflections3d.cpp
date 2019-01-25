@@ -29,7 +29,7 @@
 //#define TEST_DEBUG
 
 #ifndef TEST_DEBUG
-    #define BREAKPOINT_STEP     -1
+    #define BREAKPOINT_STEP     0
 
     #define INIT_FRONT(front) \
         dsp::init_point_xyz(&front.p[0], 0.0f, 1.0f, 0.0f); \
@@ -229,38 +229,14 @@ namespace mtest
     }
 #endif
 
-    static void calc_plane_vector_p3(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
-    {
-        // Calculate edge parameters
-        vector3d_t d[2];
-        d[0].dx     = p1->x - p0->x;
-        d[0].dy     = p1->y - p0->y;
-        d[0].dz     = p1->z - p0->z;
-        d[0].dw     = p1->w - p0->w;
-
-        d[1].dx     = p2->x - p1->x;
-        d[1].dy     = p2->y - p1->y;
-        d[1].dz     = p2->z - p1->z;
-        d[1].dw     = p2->w - p1->w;
-
-        // Do vector multiplication to calculate the normal vector
-        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
-        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
-        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
-        v->dw       = 0.0f;
-
-        dsp::normalize_vector(v);
-
-        v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
-    }
-
-    static void flip_plane(vector3d_t *v)
-    {
-        v->dx   = - v->dx;
-        v->dy   = - v->dy;
-        v->dz   = - v->dz;
-        v->dw   = - v->dw;
-    }
+    //    static void parallel_flip_plane(vector3d_t *v, const vector3d_t *pl, const point3d_t *p)
+//    {
+//        // Calculate edge parameters
+//        v->dx       = - pl->dx;
+//        v->dy       = - pl->dy;
+//        v->dz       = - pl->dz;
+//        v->dw       = pl->dx * p->x + pl->dy * p->y + pl->dz * p->z; // Parameter for the plane equation
+//    }
 
     static void init_triangle_p3(v_triangle3d_t *t, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2, const vector3d_t *n)
     {
@@ -285,6 +261,15 @@ namespace mtest
 
         t->n[1] = t->n[0];
         t->n[2] = t->n[0];
+
+        // Shift triangle in space to match the plane
+        float dw = n->dw + (t->n[0].dx * t->p[0].x + t->n[0].dy * t->p[0].y + t->n[0].dz * t->p[0].z);
+        for (size_t i=0; i<3; ++i)
+        {
+            t->p[i].x  -= dw * t->n[i].dx;
+            t->p[i].y  -= dw * t->n[i].dy;
+            t->p[i].z  -= dw * t->n[i].dz;
+        }
     }
 
     /**
@@ -543,14 +528,14 @@ namespace mtest
         tasks.flush();
     }
 
-    static bool check_bound_box(const bound_box3d_t *bbox, const rt_view_t *view)
+    bool check_bound_box(const bound_box3d_t *bbox, const rt_view_t *view)
     {
         vector3d_t pl[4];
 
-        calc_plane_vector_p3(&pl[0], &view->s, &view->p[0], &view->p[1]);
-        calc_plane_vector_p3(&pl[1], &view->s, &view->p[1], &view->p[2]);
-        calc_plane_vector_p3(&pl[2], &view->s, &view->p[2], &view->p[0]);
-        calc_plane_vector_p3(&pl[3], &view->p[0], &view->p[1], &view->p[2]);
+        dsp::calc_plane_p3(&pl[0], &view->s, &view->p[0], &view->p[1]);
+        dsp::calc_plane_p3(&pl[1], &view->s, &view->p[1], &view->p[2]);
+        dsp::calc_plane_p3(&pl[2], &view->s, &view->p[2], &view->p[0]);
+        dsp::calc_plane_p3(&pl[3], &view->p[0], &view->p[1], &view->p[2]);
 
         raw_triangle_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
         size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
@@ -607,7 +592,7 @@ namespace mtest
      * @param ctx wave front context
      * @return status of operation
      */
-    static status_t scan_objects(cvector<rt_context_t> &tasks, rt_context_t *ctx)
+    status_t scan_objects(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
         status_t res = STATUS_OK;
 
@@ -705,12 +690,11 @@ namespace mtest
 #endif /* LSP_DEBUG */
 
         // Update state
-        ctx->current    = NULL;
-        ctx->state      = S_CULL_VIEW;
+        ctx->state      = S_FILTER_VIEW;
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
-    static status_t cull_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
+    status_t filter_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
         status_t res;
         vector3d_t pl[4]; // Split plane
@@ -724,10 +708,98 @@ namespace mtest
                 return STATUS_CORRUPTED;
         )
 
-        calc_plane_vector_p3(&pl[0], &ctx->view.p[0], &ctx->view.p[1], &ctx->view.p[2]);
-        calc_plane_vector_p3(&pl[1], &ctx->view.s, &ctx->view.p[0], &ctx->view.p[1]);
-        calc_plane_vector_p3(&pl[2], &ctx->view.s, &ctx->view.p[1], &ctx->view.p[2]);
-        calc_plane_vector_p3(&pl[3], &ctx->view.s, &ctx->view.p[2], &ctx->view.p[0]);
+        dsp::calc_plane_p3(&pl[0], &ctx->view.p[0], &ctx->view.p[1], &ctx->view.p[2]);
+        dsp::calc_plane_p3(&pl[1], &ctx->view.s, &ctx->view.p[0], &ctx->view.p[1]);
+        dsp::calc_plane_p3(&pl[2], &ctx->view.s, &ctx->view.p[1], &ctx->view.p[2]);
+        dsp::calc_plane_p3(&pl[3], &ctx->view.s, &ctx->view.p[2], &ctx->view.p[0]);
+
+        RT_TRACE(
+            init_triangle_p3(&npt[0], &ctx->view.p[0], &ctx->view.p[1], &ctx->view.p[2], &pl[0]);
+            init_triangle_p3(&npt[1], &ctx->view.s, &ctx->view.p[0], &ctx->view.p[1], &pl[1]);
+            init_triangle_p3(&npt[2], &ctx->view.s, &ctx->view.p[1], &ctx->view.p[2], &pl[2]);
+            init_triangle_p3(&npt[3], &ctx->view.s, &ctx->view.p[2], &ctx->view.p[0], &pl[3]);
+        );
+
+        rt_context_t in(ctx->shared);
+        RT_TRACE(
+            rt_context_t out(ctx->shared);
+        )
+
+        for (size_t pi=0; pi<4; ++pi)
+        {
+            RT_TRACE_BREAK(ctx,
+                lsp_trace("Filtering space with view plane #%d", int(pi));
+
+                for (size_t j=0, n=ctx->triangle.size(); j<n; ++j)
+                   ctx->shared->view->add_triangle_1c(ctx->triangle.get(j), &C_DARKGREEN);
+
+                ctx->shared->view->add_triangle_pv1c(ctx->view.p, &C_MAGENTA);
+                ctx->shared->view->add_plane_pv1c(npt[pi].p, &C_YELLOW);
+            )
+
+#ifdef LSP_DEBUG
+            res = ctx->filter(&out, &in, &pl[pi]);
+#else
+            res = ctx->filter(NULL, &in, &pl[pi]);
+#endif /* LSP_DEBUG */
+            if (res != STATUS_OK)
+                return res;
+
+            RT_TRACE_BREAK(ctx,
+                lsp_trace("Data after filtering (%d triangles)", int(in.triangle.size()));
+                for (size_t j=0,n=in.triangle.size(); j<n; ++j)
+                    ctx->shared->view->add_triangle_3c(in.triangle.get(j), &C_CYAN, &C_MAGENTA, &C_YELLOW);
+            );
+
+            RT_TRACE(
+                // Add set of triangles to ignored
+                for (size_t i=0,n=out.triangle.size(); i<n; ++i)
+                    ctx->ignore(out.triangle.get(i));
+            );
+
+            // Swap content
+            ctx->swap(&in);
+            if (ctx->triangle.size() <= 0)
+            {
+                delete ctx;
+                return STATUS_OK;
+            }
+        }
+
+        // Change state and submit to queue
+        if (ctx->triangle.size() <= 1)
+        {
+            if (ctx->triangle.size() == 0)
+            {
+                delete ctx;
+                return STATUS_OK;
+            }
+            ctx->state      = S_REFLECT;
+        }
+        else
+            ctx->state      = S_CULL_VIEW;
+
+        return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+    }
+
+    status_t cull_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
+    {
+        status_t res;
+        vector3d_t pl[4]; // Split plane
+        RT_TRACE(v_triangle3d_t npt[4]); // Split plane presentation
+
+        RT_TRACE(
+            // Split edges
+            if (!ctx->validate())
+                return STATUS_BAD_STATE;
+            if (!ctx->shared->scene->validate())
+                return STATUS_CORRUPTED;
+        )
+
+        dsp::calc_plane_p3(&pl[0], &ctx->view.p[0], &ctx->view.p[1], &ctx->view.p[2]);
+        dsp::calc_plane_p3(&pl[1], &ctx->view.s, &ctx->view.p[0], &ctx->view.p[1]);
+        dsp::calc_plane_p3(&pl[2], &ctx->view.s, &ctx->view.p[1], &ctx->view.p[2]);
+        dsp::calc_plane_p3(&pl[3], &ctx->view.s, &ctx->view.p[2], &ctx->view.p[0]);
 
         RT_TRACE(
             init_triangle_p3(&npt[0], &ctx->view.p[0], &ctx->view.p[1], &ctx->view.p[2], &pl[0]);
@@ -796,7 +868,6 @@ namespace mtest
                 delete ctx;
                 return STATUS_OK;
             }
-            ctx->current    = NULL;
             ctx->state      = S_REFLECT;
         }
         else
@@ -805,229 +876,35 @@ namespace mtest
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
-    static status_t partition_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
+    status_t partition_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
-        rt_edge_t *se;
-        rt_vertex_t *sv;
-        rt_triangle_t *st;
-        float a;
-        vector3d_t pl;
-        RT_TRACE(v_triangle3d_t npt);
         status_t res;
-
-        // Check that context is in final state
-        if (ctx->triangle.size() <= 1)
-        {
-            if (ctx->triangle.size() == 0)
-            {
-                delete ctx;
-                return STATUS_OK;
-            }
-
-            ctx->current    = NULL;
-            ctx->state      = S_REFLECT;
-            return (tasks.add(ctx)) ? STATUS_OK : STATUS_NO_MEM;
-        }
-
-        RT_TRACE_BREAK(ctx,
-            lsp_trace("Partitioning view");
-            for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-            {
-                rt_triangle_t *t = ctx->triangle.get(i);
-                ctx->shared->view->add_triangle_1c(t, (t == ctx->current) ? &C_ORANGE : &C_YELLOW);
-            }
-            for (size_t i=0,n=ctx->edge.size(); i<n; ++i)
-            {
-                rt_edge_t *e = ctx->edge.get(i);
-                ctx->shared->view->add_segment(e, (e->itag & RT_EF_PLANE) ? &C_GREEN : &C_CYAN);
-            }
-        )
-
         rt_context_t out(ctx->shared), in(ctx->shared);
 
-        // Select current triangle
-        if (ctx->current == NULL)
-            ctx->current    = ctx->triangle.get(0);
-        st  = ctx->current;
+        // Partition the context into spaces
+        res = ctx->partition(&out, &in);
+        if (res != STATUS_OK)
+            return res;
 
-        // Try to split with each edge of current triangle
-        for (size_t ei=0; ei<3; ++ei)
+        if (out.triangle.size() > 0)
         {
-            // Check if we need to apply this side of triangle to culling
-            se  = st->e[ei];
-            if (se->itag & RT_EF_PLANE)
-                continue;
-            ctx->loop = 0; // Reset loop counter
-
-            // Select opposite to the edge point
-            sv = st->v[0];
-            if ((sv == se->v[0]) || (sv == se->v[1]))
-            {
-                sv = st->v[1];
-                if ((sv == se->v[0]) || (sv == se->v[1]))
-                {
-                    sv = st->v[2];
-                    if ((sv == se->v[0]) || (sv == se->v[1]))
-                        return STATUS_CORRUPTED;
-                }
-            }
-
-            // Build split plane
-            calc_plane_vector_p3(&pl, &ctx->view.s, se->v[0], se->v[1]);
-            float a = (sv->x * pl.dx + sv->y * pl.dy + sv->z * pl.dz + pl.dw);
-            if (a > 0.0f)
-                flip_plane(&pl);
-
-            RT_TRACE(
-                init_triangle_p3(&npt, &ctx->view.s, se->v[0], se->v[1], &pl);
-            )
-
-            RT_TRACE_BREAK(ctx,
-                lsp_trace("Applying edge %d", int(ei));
-
-                for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-                {
-                    rt_triangle_t *t = ctx->triangle.get(i);
-                    ctx->shared->view->add_triangle_1c(t, (t == ctx->current) ? &C_ORANGE : &C_YELLOW);
-                }
-                for (size_t i=0,n=ctx->edge.size(); i<n; ++i)
-                {
-                    rt_edge_t *e = ctx->edge.get(i);
-                    ctx->shared->view->add_segment(e,
-                            (e == se) ? &C_RED :
-                            (e->itag & RT_EF_PLANE) ? &C_GREEN : &C_CYAN
-                    );
-                }
-                ctx->shared->view->add_plane_pv1c(npt.p, &C_RED);
-            )
-
-            se->itag    |= RT_EF_PLANE;     // Mark edge as processed
-
-            // Split context into 'OUT' and 'IN' domain
-            res = ctx->split(&out, &in, &pl);
-            if (res != STATUS_OK)
-                return res;
-
-            RT_TRACE_BREAK(ctx,
-                lsp_trace("Applied edge %d: in is GREEN, out is RED", int(ei));
-
-                for (size_t i=0,n=in.triangle.size(); i<n; ++i)
-                    ctx->shared->view->add_triangle_1c(in.triangle.get(i), &C_GREEN);
-
-                for (size_t i=0,n=out.triangle.size(); i<n; ++i)
-                    ctx->shared->view->add_triangle_1c(out.triangle.get(i), &C_RED);
-
-                ctx->shared->view->add_plane_pv1c(npt.p, &C_YELLOW);
-            )
-
-            // Generate new task for 'out' if required
-            if (out.triangle.size() > 0)
-            {
-                rt_context_t *nctx  = new rt_context_t(ctx->shared);
-                if (nctx == NULL)
-                    return STATUS_NO_MEM;
-                else if (!tasks.add(nctx))
-                {
-                    delete nctx;
-                    return STATUS_NO_MEM;
-                }
-
-                nctx->state         = (out.triangle.size() > 1) ? ctx->state : S_REFLECT;
-                nctx->view          = ctx->view;
-                nctx->swap(&out);
-            }
-
-            // Swap data with 'in' context
-            ctx->swap(&in);
-
-            // generate new task for 'in' if required
-            if (ctx->triangle.size() > 0)
-            {
-                if (ctx->triangle.size() <= 1)
-                    ctx->state          = S_REFLECT;
-                if (!tasks.add(ctx))
-                    return STATUS_NO_MEM;
-            }
-            else
-                delete ctx;
-
-            return STATUS_OK;
-        }
-
-        // Do we need to perform cull-back?
-        if (ctx->triangle.size() > 1)
-        {
-            calc_plane_vector_p3(&pl, st->v[0], st->v[1], st->v[2]);
-            a   = ctx->view.s.x * pl.dx + ctx->view.s.y * pl.dy + ctx->view.s.z * pl.dz + ctx->view.s.w;
-            if (a > 0.0f)
-                flip_plane(&pl);
-
-            RT_TRACE(
-                init_triangle_p3(&npt, st->v[0], st->v[1], st->v[2], &pl);
-            )
-
-            RT_TRACE_BREAK(ctx,
-                lsp_trace("Applying cull-back");
-
-                for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-                {
-                    rt_triangle_t *t = ctx->triangle.get(i);
-                    ctx->shared->view->add_triangle_1c(t, (t == ctx->current) ? &C_ORANGE : &C_YELLOW);
-                }
-                ctx->shared->view->add_plane_pv1c(npt.p, &C_RED);
-            )
-
-    #ifdef LSP_DEBUG
-            res = ctx->split(&out, &in, &pl);
-    #else
-            res = ctx->split(NULL, &in, &pl);
-    #endif /* LSP_DEBUG */
-            if (res != STATUS_OK)
-                return res;
-
-            RT_TRACE_BREAK(ctx,
-                lsp_trace("After back-split: in is GREEN, out is RED");
-                for (size_t i=0,n=in.triangle.size(); i<n; ++i)
-                    ctx->shared->view->add_triangle_1c(in.triangle.get(i), &C_GREEN);
-                for (size_t i=0,n=out.triangle.size(); i<n; ++i)
-                    ctx->shared->view->add_triangle_1c(out.triangle.get(i), &C_RED);
-                ctx->shared->view->add_plane_pv1c(npt.p, &C_YELLOW);
-            )
-
-            RT_TRACE(
-                for (size_t i=0,n=out.triangle.size(); i<n; ++i)
-                    ctx->ignore(out.triangle.get(i));
-            );
-
-            // Swap the contents
-            if (in.triangle.size() == ctx->triangle.size()) // Increment loop counter
-            {
-                ctx->loop       ++;
-
-                // There are no conflicts?
-                if (ctx->loop >= ctx->triangle.size())
-                {
-                    // TODO: split into independent contexts
-                    for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-                        ctx->match(ctx->triangle.get(i));
-
-                    delete ctx;
-                    return STATUS_OK;
-                }
-            }
-            else
-            {
-                ctx->swap(&in);
-                ctx->current    = NULL;
-            }
-        }
-
-        if (ctx->triangle.size() > 0)
-        {
-            if (!tasks.add(ctx))
+            rt_context_t *nctx = new rt_context_t(ctx->shared);
+            if (nctx == NULL)
                 return STATUS_NO_MEM;
+            else if (!tasks.add(nctx))
+            {
+                delete nctx;
+                return STATUS_NO_MEM;
+            }
+            out.swap(nctx);
+            nctx->state = S_PARTITION;
+        }
+
+        if (in.triangle.size() > 0)
+        {
+            in.swap(ctx);
             if (ctx->triangle.size() <= 1)
-                ctx->state          = S_REFLECT;
+                ctx->state = S_REFLECT;
         }
         else
             delete ctx;
@@ -1035,7 +912,7 @@ namespace mtest
         return STATUS_OK;
     }
 
-    static status_t reflect_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
+    static status_t dump_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
         // DEBUG
         for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
@@ -1051,7 +928,23 @@ namespace mtest
         return STATUS_OK;
     }
 
-    static status_t perform_raytrace(cvector<rt_context_t> &tasks)
+    status_t reflect_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
+    {
+        // DEBUG
+        for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
+            ctx->match(ctx->triangle.get(i));
+        for (size_t i=0,n=ctx->edge.size(); i<n; ++i)
+        {
+            rt_edge_t *e = ctx->edge.get(i);
+            if (e->itag & RT_EF_PLANE)
+                ctx->shared->view->add_segment(e, &C_YELLOW);
+        }
+
+        delete ctx;
+        return STATUS_OK;
+    }
+
+    status_t perform_raytrace(cvector<rt_context_t> &tasks)
     {
         rt_context_t *ctx = NULL;
         status_t res = STATUS_OK;
@@ -1068,14 +961,19 @@ namespace mtest
                 case S_SCAN_OBJECTS:
                     res = scan_objects(tasks, ctx);
                     break;
+                case S_FILTER_VIEW:
+                    res = filter_view(tasks, ctx);
+                    break;
                 case S_CULL_VIEW:
                     res = cull_view(tasks, ctx);
                     break;
                 case S_PARTITION:
                     res = partition_view(tasks, ctx);
+//                    res = dump_view(tasks, ctx);
                     break;
                 case S_REFLECT:
-                    res = reflect_view(tasks, ctx);
+//                    res = reflect_view(tasks, ctx);
+                    res = dump_view(tasks, ctx);
                     break;
                 default:
                     res = STATUS_BAD_STATE;
@@ -1330,10 +1228,10 @@ MTEST_BEGIN("3d", reflections)
 
                 // Calc scissor planes' normals
                 vector3d_t pl[4];
-                calc_plane_vector_p3(&pl[0], &sFront.s, &sFront.p[0], &sFront.p[1]);
-                calc_plane_vector_p3(&pl[1], &sFront.s, &sFront.p[1], &sFront.p[2]);
-                calc_plane_vector_p3(&pl[2], &sFront.s, &sFront.p[2], &sFront.p[0]);
-                calc_plane_vector_p3(&pl[3], &sFront.p[0], &sFront.p[1], &sFront.p[2]);
+                dsp::calc_plane_p3(&pl[0], &sFront.s, &sFront.p[0], &sFront.p[1]);
+                dsp::calc_plane_p3(&pl[1], &sFront.s, &sFront.p[1], &sFront.p[2]);
+                dsp::calc_plane_p3(&pl[2], &sFront.s, &sFront.p[2], &sFront.p[0]);
+                dsp::calc_plane_p3(&pl[3], &sFront.p[0], &sFront.p[1], &sFront.p[2]);
 
                 // Draw front
                 v_ray3d_t r;

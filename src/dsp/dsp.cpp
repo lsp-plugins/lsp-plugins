@@ -382,6 +382,12 @@ namespace dsp
 
     void    (* calc_bound_box)(bound_box3d_t *b, const point3d_t *p, size_t n) = NULL;
 
+    void    (* calc_plane_p3)(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
+    void    (* calc_plane_pv)(vector3d_t *v, const point3d_t *pv) = NULL;
+
+    void (* calc_oriented_plane_p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
+    void    (* calc_oriented_plane_pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv) = NULL;
+
     void    (* vector_mul_v2)(vector3d_t *r, const vector3d_t *v1, const vector3d_t *v2) = NULL;
     void    (* vector_mul_vv)(vector3d_t *r, const vector3d_t *vv) = NULL;
 

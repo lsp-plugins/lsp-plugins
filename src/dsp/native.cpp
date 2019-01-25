@@ -380,6 +380,11 @@ namespace native
 
         EXPORT1(calc_bound_box);
 
+        EXPORT1(calc_plane_p3);
+        EXPORT1(calc_plane_pv);
+        EXPORT1(calc_oriented_plane_p3);
+        EXPORT1(calc_oriented_plane_pv);
+
         EXPORT1(convolve);
     }
 

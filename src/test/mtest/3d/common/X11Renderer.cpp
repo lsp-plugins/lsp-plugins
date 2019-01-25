@@ -412,6 +412,16 @@ namespace mtest
             size_t n = pView->num_vertexes();
             v_vertex3d_t *vv = pView->get_vertexes();
 
+//            glBegin(GL_TRIANGLES);
+//
+//            for (size_t i=0; i<n; ++i)
+//            {
+//                glColor3fv(&vv[i].c.r);
+//                glVertex3fv(&vv[i].p.x);
+//                glNormal3fv(&vv[i].n.dx);
+//            }
+//
+//            glEnd();
             glEnableClientState(GL_VERTEX_ARRAY);
             glEnableClientState(GL_NORMAL_ARRAY);
             glEnableClientState(GL_COLOR_ARRAY);

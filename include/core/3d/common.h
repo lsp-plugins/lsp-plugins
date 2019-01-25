@@ -96,7 +96,6 @@ namespace lsp
     typedef struct rt_vertex_t: public point3d_t
     {
         rt_edge_t          *ve;         // List of linked edges
-        rt_vertex_t        *split[2];   // The replacement pointers
         void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
         ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
     } rt_vertex_t;
@@ -106,7 +105,6 @@ namespace lsp
         rt_vertex_t        *v[2];       // Pointers to vertexes
         rt_triangle_t      *vt;         // List of linked triangles
         rt_edge_t          *vlnk[2];    // Link to next edge for the vertex v[i]
-        rt_edge_t          *split[2];   // The replacement pointers
         void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
         ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
     } rt_edge_t;

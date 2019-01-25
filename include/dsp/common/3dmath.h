@@ -788,6 +788,44 @@ namespace dsp
      * @param n number of vertexes in object
      */
     extern void (* calc_bound_box)(bound_box3d_t *b, const point3d_t *p, size_t n);
+
+    /**
+     * Compute plane equation using three points
+     * @param v pointer to store plane equation
+     * @param p0 point 0
+     * @param p1 point 1
+     * @param p2 point 2
+     */
+    extern void (* calc_plane_p3)(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Compute plane equation using three points
+     * @param v pointer to store plane equation
+     * @param pv array of three points that lay on the plane
+     */
+    extern void (* calc_plane_pv)(vector3d_t *v, const point3d_t *pv);
+
+    /**
+     * Compute plane equation using three points and set the proper direction so the orienting point is always 'below'
+     * the plane
+     * @param v pointer to store plane equation
+     * @param sp orienting point
+     * @param p0 point 0
+     * @param p1 point 1
+     * @param p2 point 2
+     */
+    extern void (* calc_oriented_plane_p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Compute plane equation using three points and set the proper direction so the orienting point is always 'below'
+     * the plane
+     * @param v pointer to store plane equation
+     * @param sp orienting point
+     * @param pv array of three points that lay on the plane
+     */
+    extern void (* calc_oriented_plane_pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv);
+
+
 } // dsp
 
 #endif /* DSP_COMMON_3DMATH_H_ */

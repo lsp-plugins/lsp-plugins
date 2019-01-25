@@ -19,18 +19,16 @@ namespace lsp
     class BasicAllocator3D
     {
         protected:
-            size_t      nCapacity;      // Capacity ov vChunks array
             size_t      nChunks;        // Number of chunks in vChunks array
             size_t      nChunkCapacity; // Capacity of chunk (in elements)
-            size_t      nChunkSize;     // Current size of chunk
             size_t      nSizeOf;        // Size of record (in bytes)
             size_t      nAllocated;     // Number of allocated items
-            uint8_t    *pCurrChunk;     // Current chunk
             uint8_t   **vChunks;        // List of all chunks
 
         protected:
-            void        allocate_new_chunk();
+            uint8_t    *get_chunk(size_t id);
             void       *do_alloc();
+            void        do_clear();
             ssize_t     do_ialloc(void **p);
             void       *do_get(size_t idx);
             void        do_destroy();
@@ -59,7 +57,7 @@ namespace lsp
 
                 /**
                  * Allocate single item
-                 * @return pointer to allocated single item or NULL
+                 * @return pointer to allocated single item or negative error status
                  */
                 inline ssize_t ialloc(T **dst) { return do_ialloc(reinterpret_cast<void **>(dst)); }
 
@@ -152,6 +150,16 @@ namespace lsp
                  *
                  */
                 inline void destroy() { do_destroy(); };
+
+                /** Drop all allocated data (similar to destroy)
+                 *
+                 */
+                inline void flush() { do_destroy(); };
+
+                /** Drop all allocated data (currently similar to destroy)
+                 *
+                 */
+                inline void clear() { do_clear(); };
 
                 /**
                  * Ensure that the specified pointer is right pointer, NULL pointers

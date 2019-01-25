@@ -2189,6 +2189,126 @@ namespace native
                 b->p[7].z = p->z;
         }
     }
+
+    void calc_plane_p3(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    {
+        // Calculate edge parameters
+        vector3d_t d[2];
+        d[0].dx     = p1->x - p0->x;
+        d[0].dy     = p1->y - p0->y;
+        d[0].dz     = p1->z - p0->z;
+        d[0].dw     = p1->w - p0->w;
+
+        d[1].dx     = p2->x - p1->x;
+        d[1].dy     = p2->y - p1->y;
+        d[1].dz     = p2->z - p1->z;
+        d[1].dw     = p2->w - p1->w;
+
+        // Do vector multiplication to calculate the normal vector
+        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
+        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+        v->dw       = 0.0f;
+
+        dsp::normalize_vector(v); // TODO: remove it
+
+        v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
+    }
+
+    void calc_plane_pv(vector3d_t *v, const point3d_t *pv)
+    {
+        // Calculate edge parameters
+        vector3d_t d[2];
+        d[0].dx     = pv[1].x - pv[0].x;
+        d[0].dy     = pv[1].y - pv[0].y;
+        d[0].dz     = pv[1].z - pv[0].z;
+        d[0].dw     = pv[1].w - pv[0].w;
+
+        d[1].dx     = pv[2].x - pv[1].x;
+        d[1].dy     = pv[2].y - pv[1].y;
+        d[1].dz     = pv[2].z - pv[1].z;
+        d[1].dw     = pv[2].w - pv[1].w;
+
+        // Do vector multiplication to calculate the normal vector
+        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
+        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+        v->dw       = 0.0f;
+
+        dsp::normalize_vector(v); // TODO: remove it
+
+        v->dw       = - ( v->dx * pv[0].x + v->dy * pv[0].y + v->dz * pv[0].z); // Parameter for the plane equation
+    }
+
+    void calc_oriented_plane_p3(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    {
+        // Calculate edge parameters
+        vector3d_t d[2];
+        d[0].dx     = p1->x - p0->x;
+        d[0].dy     = p1->y - p0->y;
+        d[0].dz     = p1->z - p0->z;
+        d[0].dw     = p1->w - p0->w;
+
+        d[1].dx     = p2->x - p1->x;
+        d[1].dy     = p2->y - p1->y;
+        d[1].dz     = p2->z - p1->z;
+        d[1].dw     = p2->w - p1->w;
+
+        // Do vector multiplication to calculate the normal vector
+        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
+        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+        v->dw       = 0.0f;
+
+        dsp::normalize_vector(v); // TODO: remove it
+
+        v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
+
+        // Set the valid orientation for the plane
+        float a     = (sp->x * v->dx + sp->y * v->dy + sp->z * v->dz + v->dw);
+        if (a > 0.0f)
+        {
+            v->dx       = - v->dx;
+            v->dy       = - v->dy;
+            v->dz       = - v->dz;
+            v->dw       = - v->dw;
+        }
+    }
+
+    void calc_oriented_plane_pv(vector3d_t *v, const point3d_t *sp, const point3d_t *pv)
+    {
+        // Calculate edge parameters
+        vector3d_t d[2];
+        d[0].dx     = pv[1].x - pv[0].x;
+        d[0].dy     = pv[1].y - pv[0].y;
+        d[0].dz     = pv[1].z - pv[0].z;
+        d[0].dw     = pv[1].w - pv[0].w;
+
+        d[1].dx     = pv[2].x - pv[1].x;
+        d[1].dy     = pv[2].y - pv[1].y;
+        d[1].dz     = pv[2].z - pv[1].z;
+        d[1].dw     = pv[2].w - pv[1].w;
+
+        // Do vector multiplication to calculate the normal vector
+        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
+        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+        v->dw       = 0.0f;
+
+        dsp::normalize_vector(v); // TODO: remove it
+
+        v->dw       = - ( v->dx * pv[0].x + v->dy * pv[0].y + v->dz * pv[0].z); // Parameter for the plane equation
+
+        // Set the valid orientation for the plane
+        float a     = (sp->x * v->dx + sp->y * v->dy + sp->z * v->dz + v->dw);
+        if (a > 0.0f)
+        {
+            v->dx       = - v->dx;
+            v->dy       = - v->dy;
+            v->dz       = - v->dz;
+            v->dw       = - v->dw;
+        }
+    }
 }
 
 #endif /* DSP_ARCH_NATIVE_3DMATH_H_ */

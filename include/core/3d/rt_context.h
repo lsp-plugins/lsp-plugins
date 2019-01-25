@@ -29,6 +29,7 @@ namespace lsp
     enum rt_context_state_t
     {
         S_SCAN_OBJECTS,
+        S_FILTER_VIEW,
         S_CULL_VIEW,
         S_PARTITION,
         S_REFLECT
@@ -40,7 +41,6 @@ namespace lsp
             rt_view_t                   view;       // Ray tracing point of view
             rt_shared_t                *shared;     // Shared settings
             rt_context_state_t          state;      // Context state
-            rt_triangle_t              *current;    // Current triangle
             size_t                      loop;       // Loop counter
 
             Allocator3D<rt_vertex_t>    vertex;     // Collection of vertexes
@@ -62,10 +62,15 @@ namespace lsp
             static ssize_t  linked_count(rt_edge_t *e, rt_vertex_t *v);
             static ssize_t  linked_count(rt_triangle_t *t, rt_edge_t *e);
 
-            status_t        split_triangle(rt_context_t *dst, rt_triangle_t *st, ssize_t k);
             status_t        split_edge(rt_edge_t* e, rt_vertex_t* sp);
             status_t        split_edges(const vector3d_t *pl);
-            status_t        split_triangles(rt_context_t *out, rt_context_t *in);
+
+            void            cleanup_tag_pointers();
+            status_t        fetch_triangle(rt_context_t *dst, rt_triangle_t *st);
+            status_t        fetch_triangle_safe(rt_context_t *dst, rt_triangle_t *st);
+            status_t        fetch_triangles(rt_context_t *dst, ssize_t itag);
+            status_t        fetch_triangles_safe(rt_context_t *dst, ssize_t itag);
+            void            complete_fetch(rt_context_t *dst);
 
             void            dump_edge_list(size_t lvl, rt_edge_t *e);
             void            dump_triangle_list(size_t lvl, rt_triangle_t *t);
@@ -74,9 +79,14 @@ namespace lsp
             // Methods
 
             /**
-             * Clear context
+             * Clear context: clear underlying structures
              */
             void            clear();
+
+            /**
+             * Flush context: clear underlying structures and release memory
+             */
+            void            flush();
 
             /**
              * Swap internal mesh contents with another context
@@ -90,6 +100,23 @@ namespace lsp
              * @return
              */
             status_t        add_object(Object3D *obj);
+
+            /**
+             * Filter context state with set of planes
+             * @param out all triangles that are 'outside' the planes
+             * @param in all triangles that are candidates to be inside
+             * @param pl culling plane
+             * @return status of operation
+             */
+            status_t        filter(rt_context_t *out, rt_context_t *in, const vector3d_t *pl);
+
+            /**
+             * Partition space using random-selected triangle
+             * @param out array of three elements that contains pointers to contexts that contain 'out' triangles
+             * @param in context that will contain possible 'in' triangles
+             * @return status of operation
+             */
+            status_t        partition(rt_context_t *out, rt_context_t *in);
 
             /**
              * Split context space into two spaces with plane
