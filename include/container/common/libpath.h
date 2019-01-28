@@ -17,7 +17,7 @@
 
 namespace lsp
 {
-    char *skip_space(char *p, char *end)
+    char *getlibpath_skip_space(char *p, char *end)
     {
         while (p < end)
         {
@@ -29,9 +29,9 @@ namespace lsp
         return end;
     }
 
-    char *skip_field(char *p, char *end)
+    char *getlibpath_skip_field(char *p, char *end)
     {
-        p = skip_space(p, end);
+        p = getlibpath_skip_space(p, end);
 
         while (p < end)
         {
@@ -46,7 +46,7 @@ namespace lsp
         return end;
     }
 
-    char *trim_file(char *p, char *end)
+    char *getlibpath_trim_file(char *p, char *end)
     {
         if ((p < end) && (*p != FILE_SEPARATOR_C))
             return end;
@@ -63,7 +63,7 @@ namespace lsp
         return end;
     }
 
-    bool check_presence(char **paths, const char *path)
+    bool getlibpath_check_presence(char **paths, const char *path)
     {
         if (paths == NULL)
             return false;
@@ -76,7 +76,7 @@ namespace lsp
         return false;
     }
 
-    char *find_end(char *line, size_t len)
+    char *getlibpath_find_end(char *line, size_t len)
     {
         char *end = &line[len];
         while (line < end)
@@ -111,20 +111,20 @@ namespace lsp
         while (getline(&line, &len, fd) >= 0)
         {
             // -> 7fd376cca000-7fd376e7b000 r-xp 00000000 103:04 3276809                   /lib64/libc-2.26.so
-            char *end   = find_end(line, len);
-            char *p     = skip_field(line, end); // -> r-xp 00000000 103:04 3276809                   /lib64/libc-2.26.so
-            p           = skip_field(p, end); // -> 00000000 103:04 3276809                   /lib64/libc-2.26.so
-            p           = skip_field(p, end); // -> 103:04 3276809                   /lib64/libc-2.26.so
-            p           = skip_field(p, end); // -> 3276809                   /lib64/libc-2.26.so
-            p           = skip_field(p, end); // ->                   /lib64/libc-2.26.so
-            p           = skip_space(p, end); // /lib64/libc-2.26.so
-            p           = trim_file(p, end);  // /lib64
+            char *end   = getlibpath_find_end(line, len);
+            char *p     = getlibpath_skip_field(line, end); // -> r-xp 00000000 103:04 3276809                   /lib64/libc-2.26.so
+            p           = getlibpath_skip_field(p, end); // -> 00000000 103:04 3276809                   /lib64/libc-2.26.so
+            p           = getlibpath_skip_field(p, end); // -> 103:04 3276809                   /lib64/libc-2.26.so
+            p           = getlibpath_skip_field(p, end); // -> 3276809                   /lib64/libc-2.26.so
+            p           = getlibpath_skip_field(p, end); // ->                   /lib64/libc-2.26.so
+            p           = getlibpath_skip_space(p, end); // /lib64/libc-2.26.so
+            p           = getlibpath_trim_file(p, end);  // /lib64
 
             if (p == end)
                 continue;
 
             // Check if path is present
-            if (check_presence(paths, p))
+            if (getlibpath_check_presence(paths, p))
                 continue;
 
             // Allocate new item in paths
