@@ -191,7 +191,7 @@ namespace lsp
                 {
                     *line = buf->s;
                     buf->s[buf->pos] = '\0'; // Add line termination character
-                    lsp_trace("got line: %s", buf->s);
+//                    lsp_trace("got line: %s", buf->s);
                     return buf->pos++;
                 }
 
@@ -213,7 +213,7 @@ namespace lsp
                 {
                     buf->s[buf->pos] = '\0'; // Add line termination character
                     *line = buf->s;
-                    lsp_trace("got line: %s", buf->s);
+//                    lsp_trace("got line: %s", buf->s);
                     return buf->pos;
                 }
 
