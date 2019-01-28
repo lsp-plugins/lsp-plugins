@@ -8,15 +8,31 @@
 #ifndef INCLUDE_CONTAINER_COMMON_LIBPATH_H_
 #define INCLUDE_CONTAINER_COMMON_LIBPATH_H_
 
+#include <core/types.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <core/types.h>
+#include <unistd.h>
 
 #define FBUF_SIZE   4096
 
 namespace lsp
 {
+    typedef struct getlibpath_path_t
+    {
+        char      **paths;
+        size_t      np;
+        size_t      cp;
+
+        explicit getlibpath_path_t()
+        {
+            paths   = NULL;
+            np      = 0;
+            cp      = 0;
+        }
+    } getlibpath_path_t;
+
+
     char *getlibpath_skip_space(char *p, char *end)
     {
         while (p < end)
@@ -51,19 +67,19 @@ namespace lsp
         if ((p < end) && (*p != FILE_SEPARATOR_C))
             return end;
 
-        char *s = end;
-        while ((--s) > p)
+        char *last = p; // Position of last file separator
+
+        for (char *s = p; s < end; ++s)
         {
             if (*s == FILE_SEPARATOR_C)
-            {
-                *s = '\0';
-                return p;
-            }
+                last = s;
         }
-        return end;
+
+        *last = '\0';
+        return (last > p) ? p : end;
     }
 
-    bool getlibpath_check_presence(char **paths, const char *path)
+    bool getlibpath_check_presence(const char **paths, const char *path)
     {
         if (paths == NULL)
             return false;
@@ -88,25 +104,50 @@ namespace lsp
         return line;
     }
 
+    bool getlibpath_add_path(getlibpath_path_t *res, const char *path, const char **exclude)
+    {
+        // Check if path is present
+        if (getlibpath_check_presence(exclude, path))
+            return true;
+        if (getlibpath_check_presence(const_cast<const char **>(res->paths), path))
+            return true;
+
+        // Allocate new item in paths
+        if (res->np >= res->cp)
+        {
+            char **npaths   = reinterpret_cast<char **>(realloc(res->paths, sizeof(char **) * (res->cp + 17)));
+            if (npaths == NULL)
+                return false;
+            res->paths      = npaths;
+            res->cp        += 16;
+            for (size_t i=res->np; i<=res->cp; ++i)
+                res->paths[i]   = NULL;
+        }
+
+        // Put item to paths
+        char *dup   = strdup(path);
+        if (dup == NULL)
+            return false;
+        res->paths[res->np++]   = dup;
+        return true;
+    }
+
+#if defined(PLATFORM_LINUX)
     /**
      * Return additional unique paths where the core library can be located
+     * @param exclude NULL-terminated list of strings for paths that should be excluded
      * @return NULL-terminated list of library paths
      */
-    char **get_library_paths()
+    char **getlibpath_proc(const char **exclude)
     {
-        char *line, **paths;
-        size_t len, np, cp;
-
         // Open file for reading
         FILE *fd = fopen("/proc/self/maps", "r");
         if (fd == NULL)
             return NULL;
 
-        paths           = NULL;
-        line            = NULL;
-        len             = 0;
-        np              = 0;
-        cp              = 0;
+        char *line      = NULL;
+        size_t len      = 0;
+        getlibpath_path_t res;
 
         while (getline(&line, &len, fd) >= 0)
         {
@@ -122,35 +163,126 @@ namespace lsp
 
             if (p == end)
                 continue;
-
-            // Check if path is present
-            if (getlibpath_check_presence(paths, p))
-                continue;
-
-            // Allocate new item in paths
-            if (np >= cp)
-            {
-                char **npaths   = reinterpret_cast<char **>(realloc(paths, sizeof(char **) * (cp + 17)));
-                if (npaths == NULL)
-                    break;
-                paths           = npaths;
-                cp             += 16;
-                for (size_t i=np; i<=cp; ++i)
-                    paths[i]        = NULL;
-            }
-
-            // Put item to paths
-            char *dup   = strdup(p);
-            if (dup == NULL)
+            if (!getlibpath_add_path(&res, p, exclude))
                 break;
-            paths[np++]     = dup;
         }
 
         if (line != NULL)
             free(line);
 
         fclose(fd);
-        return paths;
+        return res.paths;
+    }
+#elif defined(PLATFORM_BSD)
+    char **getlibpath_proc(const char **exclude)
+    {
+        // Open file for reading
+        FILE *fd = fopen("/proc/curproc/map", "r");
+        if (fd == NULL)
+            return NULL;
+
+        char *line      = NULL;
+        size_t len      = 0;
+        getlibpath_path_t res;
+
+        while (getline(&line, &len, fd) >= 0)
+        {
+            // -> 0x800602000 0x800622000 32 0 0xfffff8000397e780 r-x 31 0 0x1000 COW NC vnode /libexec/ld-elf.so.1 NCH -1
+            char *end   = getlibpath_find_end(line, len);
+            char *p     = getlibpath_skip_field(line, end); // -> 0x800622000 32 0 0xfffff8000397e780 r-x 31 0 0x1000 COW NC vnode /libexec/ld-elf.so.1 NCH -1
+            p           = getlibpath_skip_field(p, end); // -> 32 0 0xfffff8000397e780 r-x 31 0 0x1000 COW NC vnode /libexec/ld-elf.so.1 NCH -1
+            p           = getlibpath_skip_field(p, end); // -> 0 0xfffff8000397e780 r-x 31 0 0x1000 COW NC vnode /libexec/ld-elf.so.1 NCH -1
+            p           = getlibpath_skip_field(p, end); // -> 0xfffff8000397e780 r-x 31 0 0x1000 COW NC vnode /libexec/ld-elf.so.1 NCH -1
+            p           = getlibpath_skip_field(p, end); // -> r-x 31 0 0x1000 COW NC vnode /libexec/ld-elf.so.1 NCH -1
+            p           = getlibpath_skip_field(p, end); // -> 31 0 0x1000 COW NC vnode /libexec/ld-elf.so.1 NCH -1
+            p           = getlibpath_skip_field(p, end); // -> 0 0x1000 COW NC vnode /libexec/ld-elf.so.1 NCH -1
+            p           = getlibpath_skip_field(p, end); // -> 0x1000 COW NC vnode /libexec/ld-elf.so.1 NCH -1
+            p           = getlibpath_skip_field(p, end); // -> COW NC vnode /libexec/ld-elf.so.1 NCH -1
+            p           = getlibpath_skip_field(p, end); // -> NC vnode /libexec/ld-elf.so.1 NCH -1
+            p           = getlibpath_skip_field(p, end); // -> vnode /libexec/ld-elf.so.1 NCH -1
+            p           = getlibpath_skip_field(p, end); // -> /libexec/ld-elf.so.1 NCH -1
+            p           = getlibpath_skip_space(p, end); // /libexec/ld-elf.so.1 NCH -1
+            p           = getlibpath_trim_file(p, end);  // /libexec
+
+            if (p == end)
+                continue;
+            if (!getlibpath_add_path(&res, p, exclude))
+                break;
+        }
+
+        if (line != NULL)
+            free(line);
+
+        fclose(fd);
+        return res.paths;
+    }
+
+    char **getlibpath_procstat(const char **exclude)
+    {
+        char cmd[80];
+        pid_t pid = getpid();
+        snprintf(cmd, sizeof(cmd), "procstat -v %d", long(pid));
+        cmd[79] = '\0';
+
+        // Open file for reading
+        FILE *fd = popen(cmd, "r");
+        if (fd == NULL)
+            return NULL;
+
+        char *line      = NULL;
+        size_t len      = 0;
+        size_t linenum  = 0;
+        getlibpath_path_t res;
+
+        while (getline(&line, &len, fd) >= 0)
+        {
+            // Skip heading line
+            if (linenum++ == 0)
+                continue;
+
+            // ->   983        0x800ae4000        0x800af1000 r-x   13   14   9   4 CN-- vn /lib/libcrypt.so.5
+            char *end   = getlibpath_find_end(line, len);
+            char *p     = getlibpath_skip_field(line, end); // ->        0x800ae4000        0x800af1000 r-x   13   14   9   4 CN-- vn /lib/libcrypt.so.5
+            p           = getlibpath_skip_field(p, end); // ->        0x800af1000 r-x   13   14   9   4 CN-- vn /lib/libcrypt.so.5
+            p           = getlibpath_skip_field(p, end); // -> r-x   13   14   9   4 CN-- vn /lib/libcrypt.so.5
+            p           = getlibpath_skip_field(p, end); // ->   13   14   9   4 CN-- vn /lib/libcrypt.so.5
+            p           = getlibpath_skip_field(p, end); // ->   14   9   4 CN-- vn /lib/libcrypt.so.5
+            p           = getlibpath_skip_field(p, end); // ->   9   4 CN-- vn /lib/libcrypt.so.5
+            p           = getlibpath_skip_field(p, end); // ->   4 CN-- vn /lib/libcrypt.so.5
+            p           = getlibpath_skip_field(p, end); // -> CN-- vn /lib/libcrypt.so.5
+            p           = getlibpath_skip_field(p, end); // -> vn /lib/libcrypt.so.5
+            p           = getlibpath_skip_field(p, end); // -> /lib/libcrypt.so.5
+            p           = getlibpath_skip_space(p, end); // /lib/libcrypt.so.5
+            p           = getlibpath_trim_file(p, end);  // /lib
+
+            if (p == end)
+                continue;
+            if (!getlibpath_add_path(&res, p, exclude))
+                break;
+        }
+
+        if (line != NULL)
+            free(line);
+
+        fclose(fd);
+        return res.paths;
+    }
+#endif
+
+    /**
+     * Return additional unique paths where the core library can be located
+     * @param exclude NULL-terminated list of strings for paths that should be excluded
+     * @return NULL-terminated list of library paths
+     */
+    char **get_library_paths(const char **exclude)
+    {
+        char **res = getlibpath_proc(exclude);
+#if defined(PLATFORM_BSD)
+        if (res == NULL)
+            res         = getlibpath_procstat(exclude);
+#endif /* PLATFORM_BSD */
+
+        return res;
     }
 
     /**
