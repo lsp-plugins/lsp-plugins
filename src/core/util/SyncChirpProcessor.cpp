@@ -445,10 +445,10 @@ namespace lsp
         // Kernels = mathematical notation for sCRPostProc.mKernelsRe + im * sCRPostProc.mKernelsIm,
         // and Coeffs and Higher similarly.
 
-        // In backward substituion, we calculate the rows of Kernels starting from the bottom, as that has the simplest solution and we have all the data
+        // In backward substitution, we calculate the rows of Kernels starting from the bottom, as that has the simplest solution and we have all the data
         // for it. Then, the other rows are calculated one by one by using all the rows previously calculated.
 
-        // To be noted: the equation above is valid only for positive frequenc. The negative ones need to be calculated by conjugating the Coeff elements,
+        // To be noted: the equation above is valid only for positive frequency. The negative ones need to be calculated by conjugating the Coeff elements,
         // so that we preserve Hermitian symmetry.
 
         size_t nyquist  = sCRPostProc.nHwinSize / 2;
@@ -1590,8 +1590,7 @@ namespace lsp
         sCRPostProc.nWinRank    = (nWindowRank < MAX_WINDOW_RANK) ? nWindowRank : MAX_WINDOW_RANK;
         size_t nTaps            = 1 << nWindowRank;
 
-        status_t returnValue    = allocateIdentificationMatrices(order, nTaps);
-
+        status_t returnValue = allocateIdentificationMatrices(order, nTaps);
         if (returnValue != STATUS_OK)
             return returnValue;
 
@@ -1698,7 +1697,7 @@ namespace lsp
 
         // Write complete convolution result as audio chunk
         p.channels          = sConvParams.nChannels;
-        p.sample_format     = __IF_LEBE(LSPC_SAMPLE_FMT_F32LE, LSPC_SAMPLE_FMT_F32BE);;
+        p.sample_format     = __IF_LEBE(LSPC_SAMPLE_FMT_F32LE, LSPC_SAMPLE_FMT_F32BE);
         p.sample_rate       = nSampleRate;
         p.codec             = LSPC_CODEC_PCM;
         p.frames            = dataLength;
@@ -1907,7 +1906,7 @@ namespace lsp
                 vp[i] += n_read;
         }
 
-//        sConvParams.nChannels           = p.channels;
+        sConvParams.nChannels           = p.channels;
         sChirpParams.nOrder             = prof.chirp_order;
         sChirpParams.fAlpha             = prof.alpha;
         sChirpParams.beta               = prof.beta;

@@ -660,6 +660,15 @@ namespace lsp
                 return sChirpParams.fDuration;
             }
 
+            /** Get number of channels
+             *
+             * @return number of channels in convolution result
+             */
+            inline size_t get_number_of_channels() const
+            {
+                return sConvParams.nChannels;
+            }
+
             /** Get integration limit time in seconds
              *
              */

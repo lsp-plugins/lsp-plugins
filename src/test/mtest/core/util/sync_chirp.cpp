@@ -10,6 +10,7 @@
 #include <core/windows.h>
 #include <core/util/SyncChirpProcessor.h>
 #include <core/util/ResponseTaker.h>
+#include <core/windows.h>
 
 using namespace lsp;
 
@@ -35,7 +36,7 @@ MTEST_BEGIN("core.util", sync_chirp)
             fclose(fp);
     }
 
-    void write_matrix(const char *description, const char *filePath, const float *matrix, size_t rows, size_t columns)
+    void write_matrix(const char *filePath, const char *description, const float *matrix, size_t rows, size_t columns)
     {
         printf("Writing matrix %s to file %s\n", description, filePath);
 
@@ -63,7 +64,7 @@ MTEST_BEGIN("core.util", sync_chirp)
             fclose(fp);
     }
 
-    void test_time_series(float *out, float *in, size_t count, SyncChirpProcessor &sc, ResponseTaker *rtArray, size_t nChannels, ssize_t offset, scp_rtcalc_t enAlgo, float prWsize, double prTol)
+    void test_linear_processing(float *out, float *in, size_t count, SyncChirpProcessor &sc, ResponseTaker *rtArray, size_t nChannels, ssize_t offset, scp_rtcalc_t enAlgo, float prWsize, double prTol)
     {
         printf("Testing time series generation...\n");
 
@@ -190,6 +191,51 @@ MTEST_BEGIN("core.util", sync_chirp)
         delete [] fiL;
     }
 
+    void test_nonlinear_processing(SyncChirpProcessor &sc, size_t order, bool doInnerSmoothing, size_t nFadeIn, size_t nFadeOut, windows::window_t windowType, size_t nWindowRank)
+    {
+        status_t readStatus = sc.load_from_lspc("tmp/allData.lspc");
+        MTEST_ASSERT(readStatus == STATUS_OK);
+
+        if (readStatus != STATUS_OK)
+            return;
+
+        size_t nChannels = sc.get_number_of_channels();
+
+        float *ptr;
+        char *fName = new char[MAX_FNAME_LENGTH];
+
+        for (size_t ch = 0; ch < nChannels; ++ch)
+        {
+            sc.postprocess_nonlinear_convolution(ch, order, doInnerSmoothing, nFadeIn, nFadeOut, windowType, nWindowRank);
+
+            ptr = sc.get_coefficients_matrix_real_part();
+            snprintf(fName, MAX_FNAME_LENGTH, "tmp/coeffs%lu.re.csv", (unsigned long)ch);
+            write_matrix(fName, "Identification Coefficents - Real Part", ptr, order, order);
+
+            ptr = sc.get_coefficients_matrix_imaginary_part();
+            snprintf(fName, MAX_FNAME_LENGTH, "tmp/coeffs%lu.im.csv", (unsigned long)ch);
+            write_matrix(fName, "Identification Coefficents - Imaginary Part", ptr, order, order);
+
+            ptr = sc.get_higher_matrix_real_part();
+            snprintf(fName, MAX_FNAME_LENGTH, "tmp/higher%lu.re.csv", (unsigned long)ch);
+            write_matrix(fName, "Higher Order Responses - Real Part", ptr, order, 1 << nWindowRank);
+
+            ptr = sc.get_higher_matrix_imaginary_part();
+            snprintf(fName, MAX_FNAME_LENGTH, "tmp/higher%lu.im.csv", (unsigned long)ch);
+            write_matrix(fName, "Higher Order Responses - Imaginary Part", ptr, order, 1 << nWindowRank);
+
+            ptr = sc.get_kernels_matrix_real_part();
+            snprintf(fName, MAX_FNAME_LENGTH, "tmp/kernels%lu.re.csv", (unsigned long)ch);
+            write_matrix(fName, "Kernel Responses - Real Part", ptr, order, 1 << nWindowRank);
+
+            ptr = sc.get_kernels_matrix_imaginary_part();
+            snprintf(fName, MAX_FNAME_LENGTH, "tmp/kernels%lu.im.csv", (unsigned long)ch);
+            write_matrix(fName, "Kernel Responses - Imaginary Part", ptr, order, 1 << nWindowRank);
+        }
+
+        delete [] fName;
+    }
+
     MTEST_MAIN
     {
 		size_t          nSampleRate     = 48000;
@@ -211,6 +257,13 @@ MTEST_BEGIN("core.util", sync_chirp)
 		scp_rtcalc_t    enAlgo          = SCP_RT_T_20;
 		float           prWsize         = 0.085f;
 		double          prTol           = 3.0;
+
+		size_t              order               = 10;
+		bool                doInnerSmoothing    = true;
+		size_t              nFadeIn             = 8;
+		size_t              nFadeOut            = 8;
+		windows::window_t   windowType          = windows::HANN;
+		size_t              nWindowRank         = 10;
 
         SyncChirpProcessor  sc;
         sc.init();
@@ -240,7 +293,9 @@ MTEST_BEGIN("core.util", sync_chirp)
         	rtArray[ch].set_latency_samples(nLatency);
         }
 
-        test_time_series(out, in, nLatency, sc, rtArray, nChannels, offset, enAlgo, prWsize, prTol);
+        test_linear_processing(out, in, nLatency, sc, rtArray, nChannels, offset, enAlgo, prWsize, prTol);
+
+        test_nonlinear_processing(sc, order, doInnerSmoothing, nFadeIn, nFadeOut, windowType, nWindowRank);
 
         delete [] out;
         delete [] in;
