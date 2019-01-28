@@ -18,6 +18,7 @@
 #include <core/debug.h>
 #include <container/jack/defs.h>
 #include <metadata/metadata.h>
+#include <container/common/libpath.h>
 
 // System libraries
 #include <sys/types.h>
@@ -31,6 +32,12 @@
 
 namespace lsp
 {
+    typedef struct lib_lookup_t
+    {
+        const char **std_paths;
+        const char **std_subdirs;
+    } lib_lookup_t;
+
     static const char *jack_core_paths[] =
     {
         LSP_LIB_PREFIX("/lib"),
@@ -223,12 +230,12 @@ namespace lsp
             {
                 snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S "lib64", homedir);
                 jack_main       = lookup_jack_main(hInstance, path);
+            }
 
-                if (jack_main == NULL)
-                {
-                    snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S "bin", homedir);
-                    jack_main       = lookup_jack_main(hInstance, path);
-                }
+            if (jack_main == NULL)
+            {
+                snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S "bin", homedir);
+                jack_main       = lookup_jack_main(hInstance, path);
             }
         }
 
@@ -240,6 +247,33 @@ namespace lsp
                 jack_main       = lookup_jack_main(hInstance, *p);
                 if (jack_main != NULL)
                     break;
+            }
+        }
+
+        // Try to lookup additional directories obtained from file mapping
+        if (jack_main == NULL)
+        {
+            char **paths = get_library_paths(jack_core_paths);
+            if (paths != NULL)
+            {
+                for (char **p = paths; (p != NULL) && (*p != NULL); ++p)
+                {
+                    jack_main     = lookup_jack_main(hInstance, *p);
+                    if (jack_main != NULL)
+                        break;
+
+                    snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S "lib", *p);
+                    jack_main       = lookup_jack_main(hInstance, path);
+                    if (jack_main != NULL)
+                        break;
+
+                    snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S "lib64", *p);
+                    jack_main       = lookup_jack_main(hInstance, path);
+                    if (jack_main != NULL)
+                        break;
+                }
+
+                free_library_paths(paths);
             }
         }
 

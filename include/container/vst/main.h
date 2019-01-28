@@ -16,6 +16,7 @@
 #include <core/debug.h>
 #include <core/types.h>
 #include <container/vst/defs.h>
+#include <container/common/libpath.h>
 
 // System libraries
 #include <core/debug.h>
@@ -49,7 +50,7 @@ namespace lsp
     static vst_create_instance_t factory = NULL;
 
     // The factory for creating plugin instances
-    static vst_create_instance_t lookup_factory(const char *path)
+    static vst_create_instance_t lookup_factory(void **hInstance, const char *path, bool subdir = true)
     {
         lsp_trace("Searching core library at %s", path);
 
@@ -98,21 +99,24 @@ namespace lsp
             if (de->d_type == DT_DIR)
             {
                 // Skip directory if it doesn't contain 'lsp-plugins' in name
-                if (strstr(de->d_name, LSP_ARTIFACT_ID) == NULL)
+                if (strcasestr(de->d_name, LSP_ARTIFACT_ID) == NULL)
                     continue;
 
-                vst_create_instance_t f = lookup_factory(ptr);
-                if (f != NULL)
+                if (subdir)
                 {
-                    free(ptr);
-                    closedir(d);
-                    return f;
+                    vst_create_instance_t f = lookup_factory(hInstance, ptr, false);
+                    if (f != NULL)
+                    {
+                        free(ptr);
+                        closedir(d);
+                        return f;
+                    }
                 }
             }
             else if (de->d_type == DT_REG)
             {
                 // Skip library if it doesn't contain 'lsp-plugins' in name
-                if ((strstr(de->d_name, LSP_ARTIFACT_ID) == NULL) || (strstr(de->d_name, ".so") == NULL))
+                if ((strcasestr(de->d_name, LSP_ARTIFACT_ID) == NULL) || (strcasestr(de->d_name, ".so") == NULL))
                     continue;
 
                 lsp_trace("Trying library %s", ptr);
@@ -154,7 +158,7 @@ namespace lsp
                     continue;
                 }
 
-                hInstance = inst;
+                *hInstance = inst;
                 free(ptr);
                 closedir(d);
                 return f;
@@ -168,7 +172,7 @@ namespace lsp
         return NULL;
     }
 
-    static vst_create_instance_t get_vst_main_function()
+    static vst_create_instance_t get_vst_main_function(void **hInstance)
     {
         if (factory != NULL)
             return factory;
@@ -199,43 +203,72 @@ namespace lsp
         // Initialize factory with NULL
         char path[PATH_MAX];
 
+        // Try to lookup home directory
         if (homedir != NULL)
         {
             if (factory == NULL)
             {
                 lsp_trace("home directory = %s", homedir);
                 snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S ".vst", homedir);
-                factory     = lookup_factory(path);
+                factory     = lookup_factory(hInstance, path);
             }
             if (factory == NULL)
             {
                 snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S ".lxvst", homedir);
-                factory     = lookup_factory(path);
+                factory     = lookup_factory(hInstance, path);
             }
             if (factory == NULL)
             {
                 snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S "vst", homedir);
-                factory     = lookup_factory(path);
+                factory     = lookup_factory(hInstance, path);
             }
             if (factory == NULL)
             {
                 snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S "lxvst", homedir);
-                factory     = lookup_factory(path);
+                factory     = lookup_factory(hInstance, path);
             }
         }
 
+        // Try to lookup standard directories
         if (factory == NULL)
         {
             for (const char **p = vst_core_paths; (p != NULL) && (*p != NULL); ++p)
             {
                 snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S "vst", *p);
-                factory     = lookup_factory(path);
+                factory     = lookup_factory(hInstance, path);
                 if (factory != NULL)
                     break;
                 snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S "lxvst", *p);
-                factory     = lookup_factory(path);
+                factory     = lookup_factory(hInstance, path);
                 if (factory != NULL)
                     break;
+            }
+        }
+
+        // Try to lookup additional directories obtained from file mapping
+        if (factory == NULL)
+        {
+            char **paths = get_library_paths(vst_core_paths);
+            if (paths != NULL)
+            {
+                for (char **p = paths; (p != NULL) && (*p != NULL); ++p)
+                {
+                    factory     = lookup_factory(hInstance, *p);
+                    if (factory != NULL)
+                        break;
+
+                    snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S "vst", *p);
+                    factory     = lookup_factory(hInstance, path);
+                    if (factory != NULL)
+                        break;
+
+                    snprintf(path, PATH_MAX, "%s" FILE_SEPARATOR_S "lxvst", *p);
+                    factory     = lookup_factory(hInstance, path);
+                    if (factory != NULL)
+                        break;
+                }
+
+                free_library_paths(paths);
             }
         }
 
@@ -263,7 +296,7 @@ VST_MAIN(callback)
     // Check that we need to instantiate the factory
     lsp_trace("Getting factory");
 
-    vst_create_instance_t f = get_vst_main_function();
+    vst_create_instance_t f = get_vst_main_function(&hInstance);
 
     // Create effect
     AEffect *effect     = NULL;

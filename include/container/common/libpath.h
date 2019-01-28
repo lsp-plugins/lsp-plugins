@@ -9,6 +9,11 @@
 #define INCLUDE_CONTAINER_COMMON_LIBPATH_H_
 
 #include <core/types.h>
+
+#ifndef PLATFORM_UNIX_COMPATIBLE
+    #error "This header should be used for Unix-compatible OS only"
+#endif /* PLATFORM_UNIX_COMPATIBLE */
+
 #include <core/debug.h>
 #include <stdlib.h>
 #include <stdio.h>
