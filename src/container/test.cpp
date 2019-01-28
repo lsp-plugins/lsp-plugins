@@ -43,10 +43,12 @@ typedef struct config_t
     bool                        debug;
     bool                        list_all;
     bool                        mtrace;
+    bool                        ilist;
     size_t                      threads;
     const char                 *outfile;
     const char                 *tracepath;
     cvector<char>               list;
+    cvector<char>               ignore;
     cvector<char>               args;
 } config_t;
 
@@ -56,6 +58,7 @@ typedef struct stats_t
     size_t      success;
     double      overall;
     cvector<test::Test> failed; // List of failed tests
+    cvector<test::Test> ignored; // List of ignored tests
 } stats_t;
 
 typedef struct task_t
@@ -156,11 +159,11 @@ bool match_string(const char *p, const char *m)
     return ((m == NULL) || (*m == '\0'));
 }
 
-bool match_list(lsp::cvector<char> &list, test::Test *v)
+bool match_list(lsp::cvector<char> &list, test::Test *v, bool match_if_empty)
 {
     // Empty list always matches
     if (list.size() <= 0)
-        return true;
+        return match_if_empty;
 
     const char *full = v->full_name();
 
@@ -169,6 +172,26 @@ bool match_list(lsp::cvector<char> &list, test::Test *v)
         if (match_string(list.at(i), full))
             return true;
     }
+
+    return false;
+}
+
+bool check_test_skip(config_t *cfg, stats_t *stats, test::Test *v)
+{
+    // Check that test is not ignored
+    if (v->ignore())
+        return true;
+
+    // Need to check test name and group?
+    if (match_list(cfg->ignore, v, false))
+    {
+        stats->ignored.add(v);
+        return true;
+    }
+
+    // Is there an explicit list of tests?
+    if (!match_list(cfg->list, v, true))
+        return true;
 
     return false;
 }
@@ -209,6 +232,7 @@ int output_stats(stats_t *stats, const char *text)
     printf("%s:\n", text);
     printf("  overall time [s]:     %.2f\n", stats->overall);
     printf("  launched:             %d\n", int(stats->total));
+    printf("  ignored:              %d\n", int(stats->ignored.size()));
     printf("  succeeded:            %d\n", int(stats->success));
     printf("  failed:               %d\n", int(stats->failed.size()));
 
@@ -219,6 +243,19 @@ int output_stats(stats_t *stats, const char *text)
         for (size_t i=0, n=stats->failed.size(); i<n; ++i)
         {
             test::Test *t = stats->failed.at(i);
+            printf("  %s\n", t->full_name());
+        }
+        printf("\n");
+        return 2;
+    }
+
+    if (stats->ignored.size() > 0)
+    {
+        printf("\n--------------------------------------------------------------------------------\n");
+        printf("List of ignored tests:\n");
+        for (size_t i=0, n=stats->ignored.size(); i<n; ++i)
+        {
+            test::Test *t = stats->ignored.at(i);
             printf("  %s\n", t->full_name());
         }
         printf("\n");
@@ -358,12 +395,7 @@ int launch_ptest(config_t *cfg)
 
     for ( ; v != NULL; v = v->next())
     {
-        // Check that test is not ignored
-        if (v->ignore())
-            continue;
-
-        // Need to check test name and group?
-        if (!match_list(cfg->list, v))
+        if (check_test_skip(cfg, &stats, v))
             continue;
 
         printf("\n--------------------------------------------------------------------------------\n");
@@ -458,11 +490,7 @@ int launch_mtest(config_t *cfg)
     for ( ; v != NULL; v = v->next())
     {
         // Check that test is not ignored
-        if (v->ignore())
-            continue;
-
-        // Need to check test name and group?
-        if (!match_list(cfg->list, v))
+        if (check_test_skip(cfg, &stats, v))
             continue;
 
         printf("\n--------------------------------------------------------------------------------\n");
@@ -694,11 +722,7 @@ int launch_utest(config_t *cfg)
     for ( ; v != NULL; v = v->next())
     {
         // Check that test is not ignored
-        if (v->ignore())
-            continue;
-
-        // Need to check test name and group?
-        if (!match_list(cfg->list, v))
+        if (check_test_skip(cfg, &stats, v))
             continue;
 
         printf("\n--------------------------------------------------------------------------------\n");
@@ -737,11 +761,13 @@ int usage(bool detailed = false)
     puts("    -a, --args [args...]  Pass arguments to test");
     puts("    -d, --debug           Disable time restrictions for unit tests");
     puts("                          for debugging purporses");
+    puts("    -e, --execute         Launch tests specified after this switch");
     puts("    -f, --fork            Fork child processes (opposite to --nofork)");
     puts("    -h, --help            Display help");
+    puts("    -i, --ignore          Ignore tests specified after this switch");
     puts("    -j, --jobs            Set number of job workers for unit tests");
     puts("    -l, --list            List all available tests");
-#ifdef PLATFORM_LINUX
+    #ifdef PLATFORM_LINUX
     puts("    -mt, --mtrace         Enable mtrace log");
 #endif /* PLATFORM_LINUX */
     puts("    -nf, --nofork         Do not fork child processes (for better ");
@@ -763,6 +789,7 @@ int parse_config(config_t *cfg, int argc, const char **argv)
     cfg->verbose    = false;
     cfg->list_all   = false;
     cfg->mtrace     = false;
+    cfg->ilist      = false;
     cfg->tracepath  = "/tmp/lsp-plugins-trace";
     cfg->threads    = sysconf(_SC_NPROCESSORS_ONLN) * 2;
     cfg->outfile    = NULL;
@@ -842,8 +869,17 @@ int parse_config(config_t *cfg, int argc, const char **argv)
         }
         else if ((!strcmp(argv[i], "--help")) || ((!strcmp(argv[i], "-h"))))
             return usage(true);
+        else if ((!strcmp(argv[i], "--ignore")) || ((!strcmp(argv[i], "-i"))))
+            cfg->ilist      = true;
+        else if ((!strcmp(argv[i], "--execute")) || ((!strcmp(argv[i], "-e"))))
+            cfg->ilist      = false;
         else
-            cfg->list.add(const_cast<char *>(argv[i]));
+        {
+            if (cfg->ilist)
+                cfg->ignore.add(const_cast<char *>(argv[i]));
+            else
+                cfg->list.add(const_cast<char *>(argv[i]));
+        }
     }
 
     return 0;
@@ -852,6 +888,7 @@ int parse_config(config_t *cfg, int argc, const char **argv)
 void clear_config(config_t *cfg)
 {
     cfg->list.flush();
+    cfg->ignore.flush();
     cfg->args.flush();
 }
 
