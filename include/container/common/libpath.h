@@ -310,7 +310,7 @@ namespace lsp
     {
         char cmd[80];
         pid_t pid = getpid();
-        snprintf(cmd, sizeof(cmd), "procstat -v %l", long(pid));
+        snprintf(cmd, sizeof(cmd)/sizeof(char), "procstat -v %ld", long(pid));
         cmd[79] = '\0';
 
         // Open file for reading
