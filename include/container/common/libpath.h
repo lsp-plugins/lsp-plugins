@@ -9,6 +9,7 @@
 #define INCLUDE_CONTAINER_COMMON_LIBPATH_H_
 
 #include <core/types.h>
+#include <core/debug.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -173,7 +174,8 @@ namespace lsp
             if (buf->pos < buf->size)
             {
                 buf->size   -= buf->pos;
-                ::memmove(buf->s, &buf->s[buf->pos], buf->pos);
+                if (buf->pos > 0)
+                    ::memmove(buf->s, &buf->s[buf->pos], buf->size);
             }
             else
                 buf->size   = 0;
@@ -188,13 +190,15 @@ namespace lsp
                 if (buf->s[buf->pos] == '\n')
                 {
                     *line = buf->s;
-                    return buf->pos;
+                    buf->s[buf->pos] = '\0'; // Add line termination character
+                    lsp_trace("got line: %s", buf->s);
+                    return buf->pos++;
                 }
 
             // No more space in buffer, extend it
             if (buf->size >= buf->cap)
             {
-                char *nl    = reinterpret_cast<char *>(realloc(buf->s, buf->cap << 1));
+                char *nl    = reinterpret_cast<char *>(realloc(buf->s, (buf->cap << 1) + 1));
                 if (nl == NULL)
                     return -1;
                 buf->s      = nl;
@@ -202,12 +206,14 @@ namespace lsp
             }
 
             // No more data in buffer, try to read from file
-            ssize_t n = fread(&buf->s[buf->pos], sizeof(char), buf->cap - buf->size, fd);
+            ssize_t n = fread(&buf->s[buf->size], sizeof(char), buf->cap - buf->size, fd);
             if (n <= 0)
             {
                 if ((feof(fd)) && (buf->pos > 0))
                 {
+                    buf->s[buf->pos] = '\0'; // Add line termination character
                     *line = buf->s;
+                    lsp_trace("got line: %s", buf->s);
                     return buf->pos;
                 }
 
