@@ -231,7 +231,7 @@ namespace lsp
      * @param exclude NULL-terminated list of strings for paths that should be excluded
      * @return NULL-terminated list of library paths
      */
-    char **getlibpath_proc(const char **exclude)
+    bool getlibpath_proc(char ***paths, const char **exclude)
     {
         // Open file for reading
         FILE *fd = fopen("/proc/self/maps", "r");
@@ -242,6 +242,7 @@ namespace lsp
         ssize_t len     = 0;
         getlibpath_path_t res;
         getlibpath_buf_t  buf;
+        bool success    = true;
 
         while ((len = getlibpath_getline(&line, &buf, fd)) >= 0)
         {
@@ -258,14 +259,20 @@ namespace lsp
             if (p == end)
                 continue;
             if (!getlibpath_add_path(&res, p, exclude))
+            {
+                success = false;
                 break;
+            }
         }
 
         fclose(fd);
-        return res.paths;
+
+        if (success)
+            *paths = res.paths;
+        return success;
     }
 #elif defined(PLATFORM_BSD)
-    char **getlibpath_proc(const char **exclude)
+    bool getlibpath_proc(char ***paths, const char **exclude)
     {
         // Open file for reading
         FILE *fd = fopen("/proc/curproc/map", "r");
@@ -276,6 +283,7 @@ namespace lsp
         ssize_t len     = 0;
         getlibpath_path_t res;
         getlibpath_buf_t  buf;
+        bool success    = true;
 
         while ((len = getlibpath_getline(&line, &buf, fd)) >= 0)
         {
@@ -299,14 +307,20 @@ namespace lsp
             if (p == end)
                 continue;
             if (!getlibpath_add_path(&res, p, exclude))
+            {
+                success = false;
                 break;
+            }
         }
 
         fclose(fd);
-        return res.paths;
+        if (success)
+            *paths = res.paths;
+
+        return success;
     }
 
-    char **getlibpath_procstat(const char **exclude)
+    bool getlibpath_procstat(char ***paths, const char **exclude)
     {
         char cmd[80];
         pid_t pid = getpid();
@@ -323,6 +337,7 @@ namespace lsp
         size_t linenum  = 0;
         getlibpath_path_t res;
         getlibpath_buf_t  buf;
+        bool success    = true;
 
         while ((len = getlibpath_getline(&line, &buf, fd)) >= 0)
         {
@@ -348,11 +363,18 @@ namespace lsp
             if (p == end)
                 continue;
             if (!getlibpath_add_path(&res, p, exclude))
+            {
+                success = false;
                 break;
+            }
         }
 
         fclose(fd);
-        return res.paths;
+
+        if (success)
+            *paths = res.paths;
+
+        return success;
     }
 #endif
 
@@ -363,13 +385,15 @@ namespace lsp
      */
     char **get_library_paths(const char **exclude)
     {
-        char **res = getlibpath_proc(exclude);
+        char **res = NULL;
+        if (getlibpath_proc(&res, exclude))
+            return res;
 #if defined(PLATFORM_BSD)
-        if (res == NULL)
-            res         = getlibpath_procstat(exclude);
+        if (getlibpath_procstat(&res, exclude))
+            return res;
 #endif /* PLATFORM_BSD */
 
-        return res;
+        return NULL;
     }
 
     /**
