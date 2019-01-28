@@ -25,6 +25,10 @@
  * for compatibility with old hosts.
  */
 
+#ifdef WIN32
+    #include <windows.h>
+#endif /* WIN32 */
+
 //-------------------------------------------------------------------------------------------------------
 // Main function shared object stub definition
 //-------------------------------------------------------------------------------------------------------
@@ -43,7 +47,6 @@ extern "C" {
 
     // Windows-specific code
     #ifdef WIN32
-        #include <windows.h>
         void* hInstance;
 
         BOOL WINAPI DllMain (HINSTANCE hInst, DWORD dwReason, LPVOID lpvReserved)
