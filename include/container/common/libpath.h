@@ -14,8 +14,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#define FBUF_SIZE   4096
-
 namespace lsp
 {
     typedef struct getlibpath_path_t
@@ -32,6 +30,30 @@ namespace lsp
         }
     } getlibpath_path_t;
 
+    typedef struct getlibpath_buf_t
+    {
+        char       *s;
+        size_t      pos;
+        size_t      size;
+        size_t      cap;
+
+        explicit getlibpath_buf_t()
+        {
+            s       = NULL;
+            pos     = 0;
+            size    = 0;
+            cap     = 0;
+        }
+
+        ~getlibpath_buf_t()
+        {
+            if (s != NULL)
+            {
+                free(s);
+                s = NULL;
+            }
+        }
+    } getlibpath_buf_t;
 
     char *getlibpath_skip_space(char *p, char *end)
     {
@@ -132,6 +154,71 @@ namespace lsp
         return true;
     }
 
+    ssize_t getlibpath_getline(char **line, getlibpath_buf_t *buf, FILE *fd)
+    {
+        // Prepare buffer for reading
+        if (buf->s == NULL)
+        {
+            // Allocate new data
+            buf->s      = reinterpret_cast<char *>(malloc(0x10));
+            if (buf->s == NULL)
+                return -1;
+            buf->cap    = 0x10;
+            buf->size   = 0;
+            buf->pos    = 0;
+        }
+        else
+        {
+            // Remove current line from buffer
+            if (buf->pos < buf->size)
+            {
+                buf->size   -= buf->pos;
+                ::memmove(buf->s, &buf->s[buf->pos], buf->pos);
+            }
+            else
+                buf->size   = 0;
+            buf->pos    = 0;
+        }
+
+        // Perform reading cycle
+        while (true)
+        {
+            // Scan buffer for line delimiter
+            for ( ; buf->pos < buf->size; ++buf->pos)
+                if (buf->s[buf->pos] == '\n')
+                {
+                    *line = buf->s;
+                    return buf->pos;
+                }
+
+            // No more space in buffer, extend it
+            if (buf->size >= buf->cap)
+            {
+                char *nl    = reinterpret_cast<char *>(realloc(buf->s, buf->cap << 1));
+                if (nl == NULL)
+                    return -1;
+                buf->s      = nl;
+                buf->cap  <<= 1;
+            }
+
+            // No more data in buffer, try to read from file
+            ssize_t n = fread(&buf->s[buf->pos], sizeof(char), buf->cap - buf->size, fd);
+            if (n <= 0)
+            {
+                if ((feof(fd)) && (buf->pos > 0))
+                {
+                    *line = buf->s;
+                    return buf->pos;
+                }
+
+                return -1;
+            }
+
+            // Update end pointer by amount of read bytes
+            buf->size  += n;
+        }
+    }
+
 #if defined(PLATFORM_LINUX)
     /**
      * Return additional unique paths where the core library can be located
@@ -146,13 +233,14 @@ namespace lsp
             return NULL;
 
         char *line      = NULL;
-        size_t len      = 0;
+        ssize_t len     = 0;
         getlibpath_path_t res;
+        getlibpath_buf_t  buf;
 
-        while (getline(&line, &len, fd) >= 0)
+        while ((len = getlibpath_getline(&line, &buf, fd)) >= 0)
         {
             // -> 7fd376cca000-7fd376e7b000 r-xp 00000000 103:04 3276809                   /lib64/libc-2.26.so
-            char *end   = getlibpath_find_end(line, len);
+            char *end   = &line[len];
             char *p     = getlibpath_skip_field(line, end); // -> r-xp 00000000 103:04 3276809                   /lib64/libc-2.26.so
             p           = getlibpath_skip_field(p, end); // -> 00000000 103:04 3276809                   /lib64/libc-2.26.so
             p           = getlibpath_skip_field(p, end); // -> 103:04 3276809                   /lib64/libc-2.26.so
@@ -167,9 +255,6 @@ namespace lsp
                 break;
         }
 
-        if (line != NULL)
-            free(line);
-
         fclose(fd);
         return res.paths;
     }
@@ -182,13 +267,14 @@ namespace lsp
             return NULL;
 
         char *line      = NULL;
-        size_t len      = 0;
+        ssize_t len     = 0;
         getlibpath_path_t res;
+        getlibpath_buf_t  buf;
 
-        while (getline(&line, &len, fd) >= 0)
+        while ((len = getlibpath_getline(&line, &buf, fd)) >= 0)
         {
             // -> 0x800602000 0x800622000 32 0 0xfffff8000397e780 r-x 31 0 0x1000 COW NC vnode /libexec/ld-elf.so.1 NCH -1
-            char *end   = getlibpath_find_end(line, len);
+            char *end   = &line[len];
             char *p     = getlibpath_skip_field(line, end); // -> 0x800622000 32 0 0xfffff8000397e780 r-x 31 0 0x1000 COW NC vnode /libexec/ld-elf.so.1 NCH -1
             p           = getlibpath_skip_field(p, end); // -> 32 0 0xfffff8000397e780 r-x 31 0 0x1000 COW NC vnode /libexec/ld-elf.so.1 NCH -1
             p           = getlibpath_skip_field(p, end); // -> 0 0xfffff8000397e780 r-x 31 0 0x1000 COW NC vnode /libexec/ld-elf.so.1 NCH -1
@@ -210,9 +296,6 @@ namespace lsp
                 break;
         }
 
-        if (line != NULL)
-            free(line);
-
         fclose(fd);
         return res.paths;
     }
@@ -230,18 +313,19 @@ namespace lsp
             return NULL;
 
         char *line      = NULL;
-        size_t len      = 0;
+        ssize_t len     = 0;
         size_t linenum  = 0;
         getlibpath_path_t res;
+        getlibpath_buf_t  buf;
 
-        while (getline(&line, &len, fd) >= 0)
+        while ((len = getlibpath_getline(&line, &buf, fd)) >= 0)
         {
             // Skip heading line
             if (linenum++ == 0)
                 continue;
 
             // ->   983        0x800ae4000        0x800af1000 r-x   13   14   9   4 CN-- vn /lib/libcrypt.so.5
-            char *end   = getlibpath_find_end(line, len);
+            char *end   = &line[len];
             char *p     = getlibpath_skip_field(line, end); // ->        0x800ae4000        0x800af1000 r-x   13   14   9   4 CN-- vn /lib/libcrypt.so.5
             p           = getlibpath_skip_field(p, end); // ->        0x800af1000 r-x   13   14   9   4 CN-- vn /lib/libcrypt.so.5
             p           = getlibpath_skip_field(p, end); // -> r-x   13   14   9   4 CN-- vn /lib/libcrypt.so.5
@@ -260,9 +344,6 @@ namespace lsp
             if (!getlibpath_add_path(&res, p, exclude))
                 break;
         }
-
-        if (line != NULL)
-            free(line);
 
         fclose(fd);
         return res.paths;
