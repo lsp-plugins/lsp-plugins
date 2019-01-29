@@ -1002,12 +1002,14 @@ MTEST_BEGIN("3d", reflections)
             rt_view_t       sFront;
             ssize_t         nTrace;
             bool            bBoundBoxes;
+            bool            bDrawFront;
 
         public:
             explicit Renderer(Scene3D *scene, View3D *view): X11Renderer(view)
             {
                 pScene = scene;
                 bBoundBoxes = false;
+                bDrawFront  = true;
                 nTrace = BREAKPOINT_STEP;
 
                 INIT_FRONT(sFront);
@@ -1100,6 +1102,11 @@ MTEST_BEGIN("3d", reflections)
                             lsp_trace("Set trace breakpoint to %d", int(nTrace));
                             update_view();
                         }
+                        break;
+
+                    case 'f':
+                        bDrawFront = ! bDrawFront;
+                        update_view();
                         break;
 
                     case 'b':
@@ -1234,24 +1241,27 @@ MTEST_BEGIN("3d", reflections)
                 dsp::calc_plane_p3(&pl[3], &sFront.p[0], &sFront.p[1], &sFront.p[2]);
 
                 // Draw front
-                v_ray3d_t r;
-                s.c[0] = C_MAGENTA;
-                s.c[1] = C_MAGENTA;
-
-                for (size_t i=0; i<3; ++i)
+                if (bDrawFront)
                 {
-                    // State
-                    r.p = sFront.p[i];
-                    dsp::init_vector_p2(&r.v, &sFront.s, &r.p);
-                    r.c = C_MAGENTA;
-                    pView->add_ray(&r);
+                    v_ray3d_t r;
+                    s.c[0] = C_MAGENTA;
+                    s.c[1] = C_MAGENTA;
 
-                    s.p[0] = sFront.s;
-                    s.p[1] = sFront.p[i];
-                    pView->add_segment(&s);
+                    for (size_t i=0; i<3; ++i)
+                    {
+                        // State
+                        r.p = sFront.p[i];
+                        dsp::init_vector_p2(&r.v, &sFront.s, &r.p);
+                        r.c = C_MAGENTA;
+                        pView->add_ray(&r);
 
-                    s.p[0] = sFront.p[(i+1)%3];
-                    pView->add_segment(&s);
+                        s.p[0] = sFront.s;
+                        s.p[1] = sFront.p[i];
+                        pView->add_segment(&s);
+
+                        s.p[0] = sFront.p[(i+1)%3];
+                        pView->add_segment(&s);
+                    }
                 }
 
                 return res;

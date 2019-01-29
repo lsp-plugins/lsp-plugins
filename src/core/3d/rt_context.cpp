@@ -775,7 +775,7 @@ namespace lsp
     status_t rt_context_t::partition(rt_context_t *out, rt_context_t *in)
     {
         vector3d_t pl[4], d;
-        float k[2], t;
+        float k[3], t;
         point3d_t p[2];
         rt_triangle_t *ct;
         rt_vertex_t *sp;
@@ -792,9 +792,25 @@ namespace lsp
         if (ct == NULL)
             return STATUS_OK;
 
-        dsp::calc_oriented_plane_p3(&pl[0], &view.s, ct->v[0], ct->v[1], ct->v[2]);
-        dsp::calc_oriented_plane_p3(&pl[1], &view.s, ct->v[1], ct->v[2], ct->v[0]);
-        dsp::calc_oriented_plane_p3(&pl[2], &view.s, ct->v[2], ct->v[0], ct->v[1]);
+        dsp::calc_oriented_plane_p3(&pl[0], ct->v[2], &view.s, ct->v[0], ct->v[1]);
+        dsp::calc_oriented_plane_p3(&pl[1], ct->v[0], &view.s, ct->v[1], ct->v[2]);
+        dsp::calc_oriented_plane_p3(&pl[2], ct->v[1], &view.s, ct->v[2], ct->v[0]);
+
+        RT_TRACE_BREAK(this,
+            lsp_trace("Prepare split edges (%d triangles)", int(triangle.size()));
+
+            for (size_t i=0,n=triangle.size(); i<n; ++i)
+            {
+                rt_triangle_t *t = triangle.get(i);
+                shared->view->add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
+            }
+            for (size_t i=0; i<3; ++i)
+            {
+                shared->view->add_plane_3pn1c(&view.s, ct->v[0], ct->v[1], &pl[0], &C_RED);
+                shared->view->add_plane_3pn1c(&view.s, ct->v[1], ct->v[2], &pl[1], &C_GREEN);
+                shared->view->add_plane_3pn1c(&view.s, ct->v[2], ct->v[0], &pl[2], &C_BLUE);
+            }
+        );
 
         // Cleanup edge flags
         for (size_t i=0, n=edge.size(); i<n; ++i)
@@ -820,9 +836,9 @@ namespace lsp
             cv->itag        = 0;
 
             // Check co-location of vertexes and triangle planes
-            k[0]            = cv->x * pl[0].dx + cv->y * pl[0].dy + cv->x * pl[0].dz + pl[0].dw;
-            k[1]            = cv->x * pl[1].dx + cv->y * pl[1].dy + cv->x * pl[1].dz + pl[1].dw;
-            k[2]            = cv->x * pl[2].dx + cv->y * pl[2].dy + cv->x * pl[2].dz + pl[2].dw;
+            k[0]            = cv->x * pl[0].dx + cv->y * pl[0].dy + cv->z * pl[0].dz + pl[0].dw;
+            k[1]            = cv->x * pl[1].dx + cv->y * pl[1].dy + cv->z * pl[1].dz + pl[1].dw;
+            k[2]            = cv->x * pl[2].dx + cv->y * pl[2].dy + cv->z * pl[2].dz + pl[2].dw;
 
             if (k[0] <= -DSP_3D_TOLERANCE)
                 cv->itag       |= 2 << 0;
@@ -848,6 +864,10 @@ namespace lsp
                 cv->itag       |= (1 << 6);
         }
 
+        ct->v[0]->itag      = 0xaa;
+        ct->v[1]->itag      = 0xaa;
+        ct->v[2]->itag      = 0xaa;
+
         // Determine state of all edges
         for (size_t i=0; i<edge.size(); ++i)
         {
@@ -860,6 +880,31 @@ namespace lsp
             // Check that we need to split edge with plane
             for (size_t j=0; j<3; ++j)
             {
+                RT_TRACE_BREAK(this,
+                    lsp_trace("Check co-location i=%d, j=%d", int(i), int(j));
+
+                    for (size_t i=0,n=triangle.size(); i<n; ++i)
+                    {
+                        rt_triangle_t *t = triangle.get(i);
+                        shared->view->add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
+                    }
+
+                    if (j == 0)
+                        shared->view->add_plane_3pn1c(&view.s, ct->v[1], ct->v[2], &pl[0], &C_MAGENTA);
+                    if (j == 1)
+                        shared->view->add_plane_3pn1c(&view.s, ct->v[2], ct->v[0], &pl[1], &C_MAGENTA);
+                    if (j == 2)
+                        shared->view->add_plane_3pn1c(&view.s, ct->v[0], ct->v[1], &pl[2], &C_MAGENTA);
+//
+                    for (size_t i=0; i<3; ++i)
+                        shared->view->add_plane_3pn1c(&view.s, se->v[0], se->v[1], &pl[3], &C_CYAN);
+//                    shared->view->add_segment(se, &C_GREEN);
+//                    shared->view->add_segment(ct->v[j], ct->v[(j+1)%3], &C_MAGENTA);
+//
+//                    shared->view->add_point(ct->v[j], &C_MAGENTA);
+//                    shared->view->add_point(ct->v[(j+1)%3], &C_MAGENTA);
+                );
+
                 // Check that points of current edge are laying on opposite sides of the selected triangle's edge's plane
                 size_t bit      = j << 1;
                 ssize_t s       = ((se->v[0]->itag >> bit) & 0x03) | (((se->v[1]->itag >> bit) & 0x03) << 2);
@@ -884,7 +929,8 @@ namespace lsp
                 d.dz        = se->v[1]->z - se->v[0]->z;
                 d.dw        = 0.0f;
 
-                t           = k[0] / (pl->dx*d.dx + pl->dy*d.dy + pl->dz*d.dz);
+                t           = (p[2].x * pl[j].dx + p[2].y * pl[j].dy + p[2].z * pl[j].dz + pl[j].dw) /
+                        (pl[j].dx*d.dx + pl[j].dy*d.dy + pl[j].dz*d.dz);
 
                 // Allocate split point
                 sp          = vertex.alloc();
@@ -899,7 +945,7 @@ namespace lsp
 
                 sp->ve      = NULL;
                 sp->ptag    = NULL;
-                sp->itag    = (sp->itag & ~(0xc0 | (0x3 << bit))) | 0x40 | (0x1 << bit); // Mark that point lays on the triangle edge
+                sp->itag    = 0x6a - (0x1 << bit); // Mark that point lays on the triangle edge
 
                 res         = split_edge(se, sp);
                 if (res != STATUS_OK)
@@ -928,13 +974,13 @@ namespace lsp
         for (size_t i=0, n=triangle.size(); i<n; ++i)
         {
             rt_triangle_t  *st  = triangle.get(i);
-            st->itag = ((st->v[0]->itag >> 6) & 0x3) > 1;
+            st->itag = ((st->v[0]->itag >> 6) & 0x3) < 1;
             if (st->itag)
                 continue;
-            st->itag = ((st->v[1]->itag >> 6) & 0x3) > 1;
+            st->itag = ((st->v[1]->itag >> 6) & 0x3) < 1;
             if (st->itag)
                 continue;
-            st->itag = ((st->v[2]->itag >> 6) & 0x3) > 1;
+            st->itag = ((st->v[2]->itag >> 6) & 0x3) < 1;
         }
         ct->itag        = 0; // Patch current triangle
 

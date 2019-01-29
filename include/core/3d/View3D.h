@@ -85,6 +85,14 @@ namespace lsp
              */
             bool add_point(const v_point3d_t *p);
 
+            /** Add point to scene
+             *
+             * @param p point to add
+             * @param c color
+             * @return true if point was added
+             */
+            bool add_point(const point3d_t *p, const color3d_t *c);
+
             /** Add segment to scene
              *
              * @param p segment to add

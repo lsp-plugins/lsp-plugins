@@ -39,6 +39,14 @@ namespace lsp
         return vPoints.append(p);
     }
 
+    bool View3D::add_point(const point3d_t *p, const color3d_t *c)
+    {
+        v_point3d_t xp;
+        xp.p = *p;
+        xp.c = *c;
+        return vPoints.append(&xp);
+    }
+
     bool View3D::add_segment(const v_segment3d_t *s)
     {
         return vSegments.append(s);
