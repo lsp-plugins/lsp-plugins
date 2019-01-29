@@ -775,10 +775,10 @@ namespace lsp
     status_t rt_context_t::partition(rt_context_t *out, rt_context_t *in)
     {
         vector3d_t pl[4], d;
-        float k[3], t;
+        float k, t;
         point3d_t p[2];
         rt_triangle_t *ct;
-        rt_vertex_t *sp;
+        rt_vertex_t sp, *asp;
         status_t res;
 
         // Always clear target context before proceeding
@@ -836,37 +836,19 @@ namespace lsp
             cv->itag        = 0;
 
             // Check co-location of vertexes and triangle planes
-            k[0]            = cv->x * pl[0].dx + cv->y * pl[0].dy + cv->z * pl[0].dz + pl[0].dw;
-            k[1]            = cv->x * pl[1].dx + cv->y * pl[1].dy + cv->z * pl[1].dz + pl[1].dw;
-            k[2]            = cv->x * pl[2].dx + cv->y * pl[2].dy + cv->z * pl[2].dz + pl[2].dw;
-
-            if (k[0] <= -DSP_3D_TOLERANCE)
-                cv->itag       |= 2 << 0;
-            else if (k[0] <= DSP_3D_TOLERANCE)
-                cv->itag       |= 1 << 0;
-
-            if (k[1] <= -DSP_3D_TOLERANCE)
-                cv->itag       |= 2 << 2;
-            else if (k[1] <= DSP_3D_TOLERANCE)
-                cv->itag       |= 1 << 2;
-
-            if (k[2] <= -DSP_3D_TOLERANCE)
-                cv->itag       |= 2 << 4;
-            else if (k[2] <= DSP_3D_TOLERANCE)
-                cv->itag       |= 1 << 4;
-
-            // Additionally, check co-location of vertex and triangle
-            if ((k[0] > DSP_3D_TOLERANCE) || (k[1] > DSP_3D_TOLERANCE) || (k[2] > DSP_3D_TOLERANCE))
-                cv->itag       |= (0 << 6);
-            else if ((k[0] <= -DSP_3D_TOLERANCE) && (k[1] <= -DSP_3D_TOLERANCE) && (k[2] <= -DSP_3D_TOLERANCE))
-                cv->itag       |= (2 << 6);
-            else
-                cv->itag       |= (1 << 6);
+            for (size_t j=0; j<3; ++j)
+            {
+                k               = cv->x * pl[j].dx + cv->y * pl[j].dy + cv->z * pl[j].dz + pl[j].dw;
+                if (k <= -DSP_3D_TOLERANCE)
+                    cv->itag       |= 2 << 0;
+                else if (k <= DSP_3D_TOLERANCE)
+                    cv->itag       |= 1 << 0;
+            }
         }
 
-        ct->v[0]->itag      = 0xaa;
-        ct->v[1]->itag      = 0xaa;
-        ct->v[2]->itag      = 0xaa;
+        ct->v[0]->itag      = 0x22; // point 0 lays on planes 0 and 2
+        ct->v[1]->itag      = 0x0a; // point 1 lays on planes 0 and 1
+        ct->v[2]->itag      = 0x24; // point 2 lays on planes 1 and 2
 
         // Determine state of all edges
         for (size_t i=0; i<edge.size(); ++i)
@@ -874,8 +856,6 @@ namespace lsp
             rt_edge_t *se   = edge.get(i);
             if (se->itag & RT_EF_PARTITIONED)
                 continue;
-
-            dsp::calc_plane_p3(&pl[3], &view.s, se->v[0], se->v[1]);
 
             // Check that we need to split edge with plane
             for (size_t j=0; j<3; ++j)
@@ -895,7 +875,7 @@ namespace lsp
                         shared->view->add_plane_3pn1c(&view.s, ct->v[2], ct->v[0], &pl[1], &C_MAGENTA);
                     if (j == 2)
                         shared->view->add_plane_3pn1c(&view.s, ct->v[0], ct->v[1], &pl[2], &C_MAGENTA);
-//
+
                     for (size_t i=0; i<3; ++i)
                         shared->view->add_plane_3pn1c(&view.s, se->v[0], se->v[1], &pl[3], &C_CYAN);
 //                    shared->view->add_segment(se, &C_GREEN);
@@ -911,18 +891,6 @@ namespace lsp
                 if ((s != 0x2) && (s != 0x8))
                     continue;
 
-                // Check that points of current triangle's edge are laying on opposite sides of the current edge's plane
-                p[2]            = *(ct->v[j]);
-                p[3]            = *(ct->v[(j+1)%3]);
-
-                k[0]            = p[2].x * pl[3].dx + p[2].y * pl[3].dy + p[2].z * pl[3].dz + pl[3].dw;
-                k[1]            = p[3].x * pl[3].dx + p[3].y * pl[3].dy + p[3].z * pl[3].dz + pl[3].dw;
-
-                if ((k[0] >= DSP_3D_TOLERANCE) && (k[1] >= -DSP_3D_TOLERANCE))
-                    continue;
-                else if ((k[0] <= -DSP_3D_TOLERANCE) && (k[1] <= DSP_3D_TOLERANCE))
-                    continue;
-
                 // Compute split point coordinates
                 d.dx        = se->v[1]->x - se->v[0]->x;
                 d.dy        = se->v[1]->y - se->v[0]->y;
@@ -930,24 +898,35 @@ namespace lsp
                 d.dw        = 0.0f;
 
                 t           = (p[2].x * pl[j].dx + p[2].y * pl[j].dy + p[2].z * pl[j].dz + pl[j].dw) /
-                        (pl[j].dx*d.dx + pl[j].dy*d.dy + pl[j].dz*d.dz);
+                              (pl[j].dx*d.dx + pl[j].dy*d.dy + pl[j].dz*d.dz);
+
+                sp.x        = se->v[0]->x - d.dx * t;
+                sp.y        = se->v[0]->y - d.dy * t;
+                sp.z        = se->v[0]->z - d.dz * t;
+                sp.w        = 1.0f;
+
+                sp.ve       = NULL;
+                sp.ptag     = NULL;
+
+                // Estimate location of split-point relative to other planes
+                sp.itag     = 1 << bit;
+                for (size_t m = 0; m<3; ++m)
+                {
+                    if (m == j)
+                        continue;
+                    k               = sp.x * pl[m].dx + sp.y * pl[m].dy + sp.z * pl[m].dz + pl[m].dw;
+                    if (k <= -DSP_3D_TOLERANCE)
+                        sp.itag        |= 2 << (m << 1);
+                    else if (k <= DSP_3D_TOLERANCE)
+                        sp.itag        |= 1 << (m << 1);
+                }
 
                 // Allocate split point
-                sp          = vertex.alloc();
-                if (sp == NULL)
+                asp = vertex.alloc(&sp);
+                if (asp == NULL)
                     return STATUS_NO_MEM;
 
-                // Compute split point
-                sp->x       = se->v[0]->x - d.dx * t;
-                sp->y       = se->v[0]->y - d.dy * t;
-                sp->z       = se->v[0]->z - d.dz * t;
-                sp->w       = 1.0f;
-
-                sp->ve      = NULL;
-                sp->ptag    = NULL;
-                sp->itag    = 0x6a - (0x1 << bit); // Mark that point lays on the triangle edge
-
-                res         = split_edge(se, sp);
+                res         = split_edge(se, asp);
                 if (res != STATUS_OK)
                     return res;
             }
