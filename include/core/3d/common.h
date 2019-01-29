@@ -91,8 +91,9 @@ namespace lsp
     {
         RT_EF_PLANE         = 1 << 0,       // The edge is part of split plane
         RT_EF_PROCESSED     = 1 << 8,       // The edge has been processed by split algorithm
+        RT_EF_PARTITIONED   = 1 << 9,       // The edge has been processed by partition algorithm
 
-        RT_EF_TEMP          = RT_EF_PROCESSED
+        RT_EF_TEMP          = RT_EF_PROCESSED | RT_EF_PARTITIONED
     };
 
     typedef struct rt_vertex_t: public point3d_t
