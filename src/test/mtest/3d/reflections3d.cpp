@@ -878,7 +878,7 @@ namespace mtest
 
     status_t partition_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
-        if (ctx->triangle.size() > 0)
+        if (ctx->triangle.size() > 1)
         {
             rt_context_t *nctx[3];
             rt_context_t ign(ctx->shared), in(ctx->shared);
@@ -923,6 +923,41 @@ namespace mtest
             }
             ctx->state      = S_REFLECT;
         }
+        else
+            ctx->state      = S_CUTOFF;
+
+        return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+    }
+
+    status_t cutoff_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
+    {
+        rt_context_t in(ctx->shared), out(ctx->shared);
+
+        // Perform cutoff
+        status_t res = ctx->cutoff(&out, &in);
+        if (res != STATUS_OK)
+            return res;
+        ctx->swap(&in);
+
+        // Analyze state of 'out' context
+        if (out.triangle.size() <= 0)
+            ctx->state  = S_PARTITION; // We need to perform additional partitioning
+        else if (ctx->triangle.size() <= 1)
+        {
+            if (ctx->triangle.size() == 1)
+                ctx->state = S_REFLECT;
+            else
+            {
+                delete ctx;
+                return STATUS_OK;
+            }
+        }
+
+        // Debug
+        RT_TRACE(
+            for (size_t i=0,n=out.triangle.size(); i<n; ++i)
+                ctx->ignore(out.triangle.get(i));
+        )
 
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
@@ -987,8 +1022,7 @@ namespace mtest
 //                    res = dump_view(tasks, ctx);
                     break;
                 case S_CUTOFF:
-//                    res = cutoff_view(tasks, ctx);
-                    res = dump_view(tasks, ctx);
+                    res = cutoff_view(tasks, ctx);
                     break;
                 case S_REFLECT:
 //                    res = reflect_view(tasks, ctx);

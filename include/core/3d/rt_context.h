@@ -132,6 +132,14 @@ namespace lsp
             status_t        split(rt_context_t *out, rt_context_t *in, const vector3d_t *pl);
 
             /**
+             * Perform cutoff by current triangle
+             * @param out outside context
+             * @param in inside context
+             * @return status of operation
+             */
+            status_t        cutoff(rt_context_t *out, rt_context_t *in);
+
+            /**
              * Check consistency of the context: that all stored pointers are valid
              * @return true if context is in valid state
              */

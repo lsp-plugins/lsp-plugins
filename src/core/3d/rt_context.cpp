@@ -772,6 +772,102 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t rt_context_t::cutoff(rt_context_t *out, rt_context_t *in)
+    {
+        vector3d_t pl;
+        status_t res;
+
+        // Cleanup output contexts
+        if (out != NULL)
+            out->clear();
+        if (in != NULL)
+            in->clear();
+
+        rt_triangle_t *ct = triangle.get(0);
+        if (ct == NULL)
+            return STATUS_OK;
+
+        dsp::calc_oriented_plane_pv(&pl, &view.s, view.p);
+
+        for (size_t i=0, n=vertex.size(); i<n; ++i)
+        {
+            rt_vertex_t *v  = vertex.get(i);
+            float t         = v->x*pl.dx + v->y*pl.dy + v->z*pl.dz + pl.dw;
+            v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
+        }
+
+        // Reset all flags of edges
+        for (size_t i=0, n=edge.size(); i<n; ++i)
+            edge.get(i)->itag &= ~RT_EF_PROCESSED; // Clear processed flag
+
+        for (size_t i=0,n=triangle.size(); i<n; ++i)
+        {
+            rt_triangle_t *st = triangle.get(i);
+            if (st->face == ct->face)
+            {
+                st->itag        = 2; // 'Face' tag
+                st->e[0]->itag  |= RT_EF_PROCESSED;
+                st->e[1]->itag  |= RT_EF_PROCESSED;
+                st->e[2]->itag  |= RT_EF_PROCESSED;
+            }
+            else
+                st->itag        = -1;
+        }
+
+        // First step: split edges
+        res = split_edges(&pl);
+        if (res != STATUS_OK)
+            return res;
+        RT_TRACE(
+            if (!validate())
+                return STATUS_CORRUPTED;
+        )
+
+        // Toggle state of all triangles
+        size_t n_out = 0;
+        for (size_t i=0, n=triangle.size(); i<n; ++i)
+        {
+            rt_triangle_t  *st  = triangle.get(i);
+
+            // Determine target context
+            if (st->itag < 0)
+                st->itag    = (st->v[0]->itag < 1) ? 1 :
+                              (st->v[1]->itag < 1) ? 1 :
+                              (st->v[2]->itag < 1);
+
+            // Estimate number of triangles in 'out' context
+            if (st->itag == 1)
+                ++n_out;
+        }
+
+        if (in != NULL)
+        {
+            if (n_out > 0)
+            {
+                // Perform fetch with reordering
+                cleanup_tag_pointers();
+                res = fetch_triangles(in, 0); // First fetch all 'in' triangles that are not tagged as 'Face'
+                if (res != STATUS_OK)
+                    return res;
+                res = fetch_triangles(in, 2); // Then fetch all 'in' triangles that are tagged as 'Face'
+                if (res != STATUS_OK)
+                    return res;
+                complete_fetch(in);
+            }
+            else // Just copy contents
+                in->swap(this);
+        }
+
+        if (n_out > 0)
+        {
+            res    = fetch_triangles_safe(out, 1);
+            if (res != STATUS_OK)
+                return res;
+        }
+
+        return STATUS_OK;
+    }
+
     bool rt_context_t::check_crossing(rt_triangle_t *ct, rt_triangle_t *st)
     {
         vector3d_t pl;
@@ -903,6 +999,15 @@ namespace lsp
         rt_triangle_t *ct;
         status_t res;
 
+        // Clear all target contexts
+        for (size_t i=0; i<3; ++i)
+            if (out[i] != NULL)
+                out[i]->clear();
+        if (ign != NULL)
+            ign->clear();
+        if (in != NULL)
+            in->clear();
+
         // STEP 0
         // Get partitioning triangle
         ct = triangle.get(0);
@@ -925,15 +1030,6 @@ namespace lsp
             shared->view->add_plane_3pn1c(&view.s, ct->v[1], ct->v[2], &pl[1], &C_GREEN);
             shared->view->add_plane_3pn1c(&view.s, ct->v[2], ct->v[0], &pl[2], &C_BLUE);
         );
-
-        // Clear all target contexts
-        for (size_t i=0; i<3; ++i)
-            if (out[i] != NULL)
-                out[i]->clear();
-        if (ign != NULL)
-            ign->clear();
-        if (in != NULL)
-            in->clear();
 
         // STEP 1
         // Estimate the location of each vertex relative to each triangle edge
