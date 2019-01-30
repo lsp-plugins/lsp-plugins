@@ -32,6 +32,7 @@ namespace lsp
         S_FILTER_VIEW,
         S_CULL_VIEW,
         S_PARTITION,
+        S_CUTOFF,
         S_REFLECT
     };
 
@@ -61,6 +62,7 @@ namespace lsp
             bool            validate_list(rt_edge_t *e);
             static ssize_t  linked_count(rt_edge_t *e, rt_vertex_t *v);
             static ssize_t  linked_count(rt_triangle_t *t, rt_edge_t *e);
+            bool            check_crossing(rt_triangle_t *ct, rt_triangle_t *st);
 
             status_t        split_edge(rt_edge_t* e, rt_vertex_t* sp);
             status_t        split_edges(const vector3d_t *pl);
@@ -71,6 +73,7 @@ namespace lsp
             status_t        fetch_triangles(rt_context_t *dst, ssize_t itag);
             status_t        fetch_triangles_safe(rt_context_t *dst, ssize_t itag);
             void            complete_fetch(rt_context_t *dst);
+            void            calc_partition_itag(rt_triangle_t *ct);
 
             void            dump_edge_list(size_t lvl, rt_edge_t *e);
             void            dump_triangle_list(size_t lvl, rt_triangle_t *t);
@@ -112,11 +115,12 @@ namespace lsp
 
             /**
              * Partition space using random-selected triangle
-             * @param out array of three elements that contains pointers to contexts that contain 'out' triangles
-             * @param in context that will contain possible 'in' triangles
+             * @param out ouside contexts (3 items)
+             * @param ign ignore context
+             * @param in inside context
              * @return status of operation
              */
-            status_t        partition(rt_context_t *out, rt_context_t *in);
+            status_t        partition(rt_context_t **out, rt_context_t *ign, rt_context_t *in);
 
             /**
              * Split context space into two spaces with plane

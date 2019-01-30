@@ -878,38 +878,53 @@ namespace mtest
 
     status_t partition_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
-        status_t res;
-        rt_context_t out(ctx->shared), in(ctx->shared);
-
-        // Partition the context into spaces
-        res = ctx->partition(&out, &in);
-        if (res != STATUS_OK)
-            return res;
-
-        if (out.triangle.size() > 0)
+        if (ctx->triangle.size() > 0)
         {
-            rt_context_t *nctx = new rt_context_t(ctx->shared);
-            if (nctx == NULL)
-                return STATUS_NO_MEM;
-            else if (!tasks.add(nctx))
+            rt_context_t *nctx[3];
+            rt_context_t ign(ctx->shared), in(ctx->shared);
+
+            // Create contexts
+            for (size_t i=0; i<3; ++i)
             {
-                delete nctx;
-                return STATUS_NO_MEM;
+                nctx[i]     = new rt_context_t(ctx->shared);
+                if (nctx == NULL)
+                    return STATUS_NO_MEM;
+                else if (!tasks.add(nctx[i]))
+                {
+                    delete nctx[i];
+                    return STATUS_NO_MEM;
+                }
+
+                nctx[i]->view   = ctx->view;
+                nctx[i]->state  = ctx->state;
             }
-            out.swap(nctx);
-            nctx->state = S_PARTITION;
+
+            status_t res = ctx->partition(nctx, &ign, &in);
+            if (res != STATUS_OK)
+                return res;
+
+            // Debug
+            RT_TRACE(
+                for (size_t i=0,n=ign.triangle.size(); i<n; ++i)
+                    ctx->ignore(ign.triangle.get(i));
+            )
+
+            // Change state and submit to queue
+            ctx->swap(&in);
         }
 
-        if (in.triangle.size() > 0)
+        // Change state of current context if needed
+        if (ctx->triangle.size() <= 1)
         {
-            in.swap(ctx);
-            if (ctx->triangle.size() <= 1)
-                ctx->state = S_REFLECT;
+            if (ctx->triangle.size() == 0)
+            {
+                delete ctx;
+                return STATUS_OK;
+            }
+            ctx->state      = S_REFLECT;
         }
-        else
-            delete ctx;
 
-        return STATUS_OK;
+        return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
     static status_t dump_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
@@ -970,6 +985,10 @@ namespace mtest
                 case S_PARTITION:
                     res = partition_view(tasks, ctx);
 //                    res = dump_view(tasks, ctx);
+                    break;
+                case S_CUTOFF:
+//                    res = cutoff_view(tasks, ctx);
+                    res = dump_view(tasks, ctx);
                     break;
                 case S_REFLECT:
 //                    res = reflect_view(tasks, ctx);
