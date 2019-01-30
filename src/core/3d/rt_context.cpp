@@ -789,6 +789,17 @@ namespace lsp
 
         dsp::calc_oriented_plane_pv(&pl, &view.s, view.p);
 
+        RT_TRACE_BREAK(this,
+            lsp_trace("Prepare cutoff (%d triangles)", int(triangle.size()));
+
+            for (size_t i=0,n=triangle.size(); i<n; ++i)
+            {
+                rt_triangle_t *t = triangle.get(i);
+                shared->view->add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
+            }
+            shared->view->add_plane_3pn1c(ct->v[0], ct->v[1], ct->v[2], &pl, &C_YELLOW);
+        );
+
         for (size_t i=0, n=vertex.size(); i<n; ++i)
         {
             rt_vertex_t *v  = vertex.get(i);
@@ -1056,20 +1067,38 @@ namespace lsp
             edge.get(i)->itag &= ~RT_EF_TEMP; // Clear processed flag
 
         // Pre-process triangles
-        for (size_t i=0; i<triangle.size(); ++i)
+        for (size_t i=0,n=triangle.size(); i<n; ++i)
+            triangle.get(i)->itag   = 0;
+
+        for (size_t i=0; i<3; ++i)
         {
-            rt_triangle_t *ct = triangle.get(i);
-            calc_partition_itag(ct);
-            if ((ct->itag >= 0) && (ct->itag != 4))
+            size_t bit = i << 1;
+            for (size_t j=0,n=triangle.size(); j<n; ++j)
             {
-                ct->e[0]->itag     |= RT_EF_PARTITIONED;
-                ct->e[1]->itag     |= RT_EF_PARTITIONED;
-                ct->e[2]->itag     |= RT_EF_PARTITIONED;
+                rt_triangle_t *ct = triangle.get(j);
+                if (ct->itag > 0)
+                    continue;
+
+                if ((((ct->v[0]->itag >> bit) & 0x03) < 1) &&
+                    (((ct->v[1]->itag >> bit) & 0x03) < 1) &&
+                    (((ct->v[2]->itag >> bit) & 0x03) < 1))
+                    ct->itag = i + 1;
+            }
+        }
+
+        for (size_t j=0,n=triangle.size(); j<n; ++j)
+        {
+            rt_triangle_t *ct = triangle.get(j);
+            if (ct->itag > 0)
+            {
+                ct->v[0]->itag     |= RT_EF_PARTITIONED;
+                ct->v[1]->itag     |= RT_EF_PARTITIONED;
+                ct->v[2]->itag     |= RT_EF_PARTITIONED;
             }
         }
 
         RT_TRACE_BREAK(this,
-            lsp_trace("Marked triangles into in (YELLOW), out (RGB), ignore(MAGENTA) and unknown (CYAN)");
+            lsp_trace("Marked triangles into in (YELLOW), out (RGB)");
 
             for (size_t i=0,n=triangle.size(); i<n; ++i)
             {
@@ -1080,9 +1109,7 @@ namespace lsp
                 else if (t->itag == 0) xc = &C_YELLOW;
                 else if (t->itag == 1) xc = &C_RED;
                 else if (t->itag == 2) xc = &C_GREEN;
-                else if (t->itag == 3) xc = &C_BLUE;
-                else if (t->itag == 4) xc = &C_MAGENTA;
-                else xc = &C_CYAN;
+                else xc = &C_BLUE;
 
                 shared->view->add_triangle_1c(t, xc);
             }
@@ -1102,13 +1129,13 @@ namespace lsp
             RT_TRACE_BREAK(this,
                 lsp_trace("Splitting edges with plane %d", int(i));
 
-                for (size_t i=0,n=triangle.size(); i<n; ++i)
+                for (size_t j=0,n=triangle.size(); j<n; ++j)
                 {
-                    rt_triangle_t *t = triangle.get(i);
+                    rt_triangle_t *t = triangle.get(j);
                     const color3d_t *xc;
 
                     if (t == ct) xc = &C_ORANGE;
-                    else if (t->itag < 0) xc = &C_CYAN;
+                    else if (t->itag == 0) xc = &C_CYAN;
                     else xc = &C_YELLOW;
 
                     shared->view->add_triangle_1c(t, xc);
@@ -1135,8 +1162,8 @@ namespace lsp
             for (size_t j=0; j<edge.size(); ++j)
             {
                 rt_edge_t *se   = edge.get(j);
-                // Check partitioning flag
-                if (se->itag & RT_EF_PARTITIONED)
+                // Check processed flag
+                if (se->itag & RT_EF_PROCESSED)
                     continue;
 
                 // Check that points of current edge are laying on opposite sides of the selected triangle's edge's plane
@@ -1209,9 +1236,7 @@ namespace lsp
                     else if (t->itag == 0) xc = &C_YELLOW;
                     else if (t->itag == 1) xc = &C_RED;
                     else if (t->itag == 2) xc = &C_GREEN;
-                    else if (t->itag == 3) xc = &C_BLUE;
-                    else if (t->itag == 4) xc = &C_MAGENTA;
-                    else xc = &C_CYAN;
+                    else xc = &C_BLUE;
 
                     shared->view->add_triangle_1c(t, xc);
                 }
@@ -1222,15 +1247,15 @@ namespace lsp
         }
 
         // Post-process triangles
-        for (size_t j=0; j<triangle.size(); ++j)
+        for (size_t i=0; i<3; ++i)
         {
-            rt_triangle_t *ct = triangle.get(j);ct = triangle.get(j);
+            size_t bit = i << 1;
 
-            for (size_t i=0; i<3; ++i)
+            for (size_t j=0,n=triangle.size(); j<n; ++j)
             {
-                size_t bit = i << 1;
+                rt_triangle_t *ct = triangle.get(j);
 
-                if (ct->itag >= 0)
+                if (ct->itag > 0)
                     continue;
                 else if (((ct->v[0]->itag >> bit) & 0x3) < 1)
                     ct->itag    = i+1;
@@ -1239,8 +1264,6 @@ namespace lsp
                 else if (((ct->v[2]->itag >> bit) & 0x3) < 1)
                     ct->itag    = i+1;
             }
-            if (ct->itag < 0)
-                ct->itag = 0;
         }
 
 //        RT_TRACE_BREAK(this,

@@ -2,9 +2,12 @@
 
 use strict;
 
-my $steps = 16;
+my $min = -2;
+my $max = 2;
+my $steps = 8;
 my $planes = 2;
 my $index = 1;
+my $delta = ($max - $min) / $steps;
 
 print "vn 0 0 1\n";
 
@@ -20,7 +23,7 @@ for (my $p=0; $p<$planes; $p++) {
     
     for (my $y=0; $y<=$steps; $y++) {
         for (my $x=0; $x<=$steps; $x++) {
-            printf("v %.2f %.2f -%d\n", ($x-8)*0.25, ($y-8)*0.25, ($p+2));
+            printf("v %.2f %.2f -%d\n", $min + $x*$delta, $min + $y*$delta, ($p+2));
         }
     }
 
