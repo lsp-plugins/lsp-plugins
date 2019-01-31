@@ -1045,6 +1045,8 @@ namespace lsp
 
         // Mark current edge as processed and laying on the split plane
         se->itag       |= RT_EF_PLANE | RT_EF_PROCESSED;
+        se->v[0]->itag  = 1;
+        se->v[1]->itag  = 1;
 
         RT_TRACE_BREAK(this,
             lsp_trace("Prepare split with edge (%d triangles)", int(triangle.size()));
@@ -1230,8 +1232,7 @@ namespace lsp
         //  2   = vertex lays below the plane
 
         // State of itag for triangle:
-        // -1   = currently unknown state
-        // -2   = unknown state with low priority (need to be placed at the end of array)
+        // -1   = triangle has lower priority
         //  0   = triangle is 'in'
         //  1   = triangle is 'in' but needs to be placed at the end of array
         //  2   = triangle is 'out'
@@ -1243,6 +1244,7 @@ namespace lsp
         for (size_t i=0,n=triangle.size(); i<n; ++i)
         {
             rt_triangle_t *st   = triangle.get(i);
+            st->itag            = 0; // 'in' by default
 
             // Find unprocessed edge in the triangle
             if ((!(st->e[0]->itag & RT_EF_PLANE)) ||
@@ -1254,7 +1256,7 @@ namespace lsp
                 break;
             }
             else
-                st->itag    = -2; // We need to put this triangle to the end of queue because there is nothing to split
+                st->itag    = -1; // We need to put this triangle to the end of queue because there is nothing to split
         }
 
         // Nothing to do?
@@ -1307,6 +1309,8 @@ namespace lsp
 
             // Mark current edge as processed and laying on the split plane
             se->itag       |= RT_EF_PLANE | RT_EF_PROCESSED;
+            se->v[0]->itag  = 1;
+            se->v[1]->itag  = 1;
 
             RT_TRACE_BREAK(this,
                 lsp_trace("Prepare partition with edge (%d triangles)", int(triangle.size()));
@@ -1388,8 +1392,6 @@ namespace lsp
             for (size_t i=0, n=triangle.size(); i<n; ++i)
             {
                 rt_triangle_t  *st  = triangle.get(i);
-                if (st->itag >= 0)
-                    continue;
                 size_t intag     = (st->itag == -1) ? 0 : 1;
                 size_t outtag    = (st->itag == -1) ? 2 : 3;
 
@@ -1415,6 +1417,39 @@ namespace lsp
             if (res != STATUS_OK)
                 return res;
             tmp.swap(this);
+            tmp.clear();
+
+            RT_TRACE_BREAK(this,
+                lsp_trace("Split space with plane %d", int(i));
+
+                lsp_trace("In context is YELLOW (%d triangles)", int(this->triangle.size()));
+                for (size_t j=0,n= this->triangle.size(); j<n; ++j)
+                {
+                    rt_triangle_t *t =  this->triangle.get(j);
+                    shared->view->add_triangle_1c(t, &C_YELLOW);
+                }
+
+                if (out[i] != NULL)
+                {
+                    lsp_trace("Out context %d is RED (%d triangles)", int(i), int(out[i]->triangle.size()));
+                    for (size_t j=0,n=out[i]->triangle.size(); j<n; ++j)
+                    {
+                        rt_triangle_t *t =  out[i]->triangle.get(j);
+                        shared->view->add_triangle_1c(t, &C_RED);
+                    }
+                }
+
+                if (on != NULL)
+                {
+                    lsp_trace("On context is CYAN (%d triangles)", int(on->triangle.size()));
+                    for (size_t j=0,n=on->triangle.size(); j<n; ++j)
+                    {
+                        rt_triangle_t *t =  on->triangle.get(j);
+                        shared->view->add_triangle_1c(t, &C_CYAN);
+                    }
+                }
+            );
+
 
             // Try to obtain new 'current' triangle
             ct          = this->triangle.get(0);
@@ -1521,7 +1556,7 @@ namespace lsp
         if (ct == NULL)
             return STATUS_OK;
 
-        dsp::calc_plane_pv(&pl, view.p);
+        dsp::calc_oriented_plane_pv(&pl, &view.s, view.p);
 
         RT_TRACE_BREAK(this,
             lsp_trace("Prepare cutoff (%d triangles)", int(triangle.size()));
@@ -1654,9 +1689,9 @@ namespace lsp
             }
             if (out != NULL)
             {
-                lsp_trace("Out context is BLUE (%d triangles)", int(in->triangle.size()));
+                lsp_trace("Out context is RED (%d triangles)", int(out->triangle.size()));
                 for (size_t i=0,n=out->triangle.size(); i<n; ++i)
-                    shared->view->add_triangle_1c(out->triangle.get(i), &C_GREEN);
+                    shared->view->add_triangle_1c(out->triangle.get(i), &C_RED);
             }
 
             shared->view->add_plane_3pn1c(ct->v[0], ct->v[1], ct->v[2], &pl, &C_YELLOW);
