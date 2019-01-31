@@ -54,6 +54,8 @@ namespace lsp
             ~rt_context_t();
 
         protected:
+            static int      compare_triangles(const void *p1, const void *p2);
+
             static status_t arrange_triangle(rt_triangle_t *ct, rt_edge_t *e);
             static bool     unlink_edge(rt_edge_t *e, rt_vertex_t *v);
             static bool     unlink_triangle(rt_triangle_t *t, rt_edge_t *e);
@@ -71,7 +73,9 @@ namespace lsp
             status_t        fetch_triangle(rt_context_t *dst, rt_triangle_t *st);
             status_t        fetch_triangle_safe(rt_context_t *dst, rt_triangle_t *st);
             status_t        fetch_triangles(rt_context_t *dst, ssize_t itag);
+            status_t        vfetch_triangles(rt_context_t *dst, size_t n, const ssize_t *itag);
             status_t        fetch_triangles_safe(rt_context_t *dst, ssize_t itag);
+            status_t        vfetch_triangles_safe(rt_context_t *dst, size_t n, const ssize_t *itag);
             void            complete_fetch(rt_context_t *dst);
             void            calc_partition_itag(rt_triangle_t *ct);
 
@@ -114,30 +118,61 @@ namespace lsp
             status_t        filter(rt_context_t *out, rt_context_t *in, const vector3d_t *pl);
 
             /**
-             * Partition space using random-selected triangle
-             * @param out ouside contexts (3 items)
-             * @param ign ignore context
-             * @param in inside context
+             * Reorder triangles according to the location relatively to point-of-view
              * @return status of operation
              */
-            status_t        partition(rt_context_t **out, rt_context_t *ign, rt_context_t *in);
+            status_t        sort();
 
             /**
-             * Split context space into two spaces with plane
-             * @param out context data above the plane
-             * @param in context data below the plane
+             * Perform binary-partitioning of the space using one of the non-processed edges
+             * @param out context for outside data (above the plane)
+             * @param on context for matched data (on the plane)
+             * @param in context for inside data (below the plane)
+             * @return status of operation
+             */
+            status_t        split(rt_context_t *out, rt_context_t *on, rt_context_t *in);
+
+            /**
+             * Perform binary-partitioning of the space using one of the non-processed edges, keep 'in' data
+             * @param out context for outside data (above the plane)
+             * @param on context for matched data (on the plane)
+             * @return status of operation
+             */
+            status_t        split(rt_context_t *out, rt_context_t *on);
+
+            /**
+             * Perform binary-partitioning of the space using specified plane equation
+             * @param out context for outside data (above the plane)
+             * @param on context for matched data (on the plane)
+             * @param in context for inside data (below the plane)
              * @param pl plane equation
              * @return status of operation
              */
-            status_t        split(rt_context_t *out, rt_context_t *in, const vector3d_t *pl);
+            status_t        split(rt_context_t *out, rt_context_t *on, rt_context_t *in, const vector3d_t *pl);
+
+            /**
+             * Perform binary-partitioning of the space using specified plane equation, keep 'in' data
+             * @param out context for outside data (above the plane)
+             * @param on context for matched data (on the plane)
+             * @param pl plane equation
+             * @return status of operation
+             */
+            status_t        split(rt_context_t *out, rt_context_t *on, const vector3d_t *pl);
 
             /**
              * Perform cutoff by current triangle
-             * @param out outside context
-             * @param in inside context
+             * @param out context for outside data (above the plane)
+             * @param in context for inside data (below or on the plane)
              * @return status of operation
              */
             status_t        cutoff(rt_context_t *out, rt_context_t *in);
+
+            /**
+             * Perform cutoff by current triangle, keep 'in' data
+             * @param out context for outside data (above the plane)
+             * @return status of operation
+             */
+            status_t        cutoff(rt_context_t *out);
 
             /**
              * Check consistency of the context: that all stored pointers are valid

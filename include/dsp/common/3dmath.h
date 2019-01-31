@@ -825,7 +825,33 @@ namespace dsp
      */
     extern void (* calc_oriented_plane_pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv);
 
+    /**
+     * Estimate the area of triangle
+     * @param p0 point 0 of triangle
+     * @param p1 point 1 of triangle
+     * @param p2 point 2 of triangle
+     * @return area of triangle
+     */
+    extern float (* calc_area_p3)(const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
 
+    /**
+     * Estimate the shortest distance to triangle
+     * @param sp projection point
+     * @param p0 point 0 of triangle
+     * @param p1 point 1 of triangle
+     * @param p2 point 2 of triangle
+     * @return shortest distance
+     */
+    extern float (* calc_min_distance_p3)(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Compute point that is result of split of line by the plane
+     * @param ip target point to store coordinates
+     * @param l0 line point 0
+     * @param l1 line point 1
+     * @param pl vector containing plane equation
+     */
+    extern void  (* calc_split_point_p2v1)(point3d_t *ip, const point3d_t *l0, const point3d_t *l1, const vector3d_t *pl);
 } // dsp
 
 #endif /* DSP_COMMON_3DMATH_H_ */

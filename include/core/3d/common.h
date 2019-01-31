@@ -123,6 +123,12 @@ namespace lsp
         ssize_t             face;       // Face identifier
     } rt_triangle_t;
 
+    typedef struct rt_triangle_sort_t
+    {
+        rt_triangle_t      *t;          // Pointer to triangle
+        float               w;          // Weight of triangle
+    } rt_triangle_sort_t;
+
     typedef struct rt_view_t
     {
         point3d_t           s;          // Source point

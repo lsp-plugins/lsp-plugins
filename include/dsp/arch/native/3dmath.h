@@ -2309,6 +2309,74 @@ namespace native
             v->dw       = - v->dw;
         }
     }
+
+    float calc_area_p3(const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    {
+        vector3d_t v[2], n;
+        v[0].dx     = p1->x - p0->x;
+        v[0].dy     = p1->y - p0->y;
+        v[0].dz     = p1->z - p0->z;
+        v[0].dw     = 0.0f;
+
+        v[1].dx     = p2->x - p0->x;
+        v[1].dy     = p2->y - p0->y;
+        v[1].dz     = p2->z - p0->z;
+        v[1].dw     = 0.0f;
+
+        // Calculate vector multiplication
+        n.dx        = v[0].dy * v[1].dz - v[0].dz * v[1].dy;
+        n.dy        = v[0].dz * v[1].dx - v[0].dx * v[1].dz;
+        n.dz        = v[0].dx * v[1].dy - v[0].dy * v[1].dx;
+
+        return sqrtf(n.dx*n.dx + n.dy*n.dy + n.dz*n.dz);
+    }
+
+    float calc_min_distance_p3(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    {
+        vector3d_t v[3];
+        float d[3];
+
+        v[0].dx     = sp->x - p0->x;
+        v[0].dy     = sp->y - p0->y;
+        v[0].dz     = sp->z - p0->z;
+        v[0].dw     = 0.0f;
+
+        v[1].dx     = sp->x - p1->x;
+        v[1].dy     = sp->y - p1->y;
+        v[1].dz     = sp->z - p1->z;
+        v[1].dw     = 0.0f;
+
+        v[2].dx     = sp->x - p2->x;
+        v[2].dy     = sp->y - p2->y;
+        v[2].dz     = sp->z - p2->z;
+        v[2].dw     = 0.0f;
+
+        d[0]        = sqrtf(v[0].dx*v[0].dx + v[0].dy*v[0].dy + v[0].dz * v[0].dz);
+        d[1]        = sqrtf(v[1].dx*v[1].dx + v[1].dy*v[1].dy + v[1].dz * v[1].dz);
+        d[2]        = sqrtf(v[2].dx*v[2].dx + v[2].dy*v[2].dy + v[2].dz * v[2].dz);
+
+        if ((d[0] <= d[1]) && (d[0] <= d[2]))
+            return d[0];
+        return (d[1] <= d[2]) ? d[1] : d[2];
+    }
+
+    void  calc_split_point_p2v1(point3d_t *sp, const point3d_t *l0, const point3d_t *l1, const vector3d_t *pl)
+    {
+        vector3d_t d;
+        d.dx        = l1->x - l0->x;
+        d.dy        = l1->y - l0->y;
+        d.dz        = l1->z - l0->z;
+        d.dw        = 0.0f;
+
+        float t     = (l0->x*pl->dx + l0->y*pl->dy + l0->z*pl->dz + pl->dw) /
+                      (pl->dx*d.dx + pl->dy*d.dy + pl->dz*d.dz);
+
+        // Compute split point
+        sp->x       = l0->x - d.dx * t;
+        sp->y       = l0->y - d.dy * t;
+        sp->z       = l0->z - d.dz * t;
+        sp->w       = 1.0f;
+    }
 }
 
 #endif /* DSP_ARCH_NATIVE_3DMATH_H_ */
