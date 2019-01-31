@@ -808,9 +808,8 @@ namespace mtest
             init_triangle_p3(&npt[3], &ctx->view.s, &ctx->view.p[2], &ctx->view.p[0], &pl[3]);
         );
 
-        rt_context_t in(ctx->shared);
         RT_TRACE(
-            rt_context_t out(ctx->shared);
+            rt_context_t out(ctx->shared), on(ctx->shared);
         )
 
         for (size_t pi=0; pi<4; ++pi)
@@ -826,9 +825,9 @@ namespace mtest
             )
 
 #ifdef LSP_DEBUG
-            res = ctx->split(&out, &in, &pl[pi]);
+            res = ctx->split(&out, &on, &pl[pi]);
 #else
-            res = ctx->split(NULL, &in, &pl[pi]);
+            res = ctx->split(NULL, NULL, &pl[pi]);
 #endif /* LSP_DEBUG */
             if (res != STATUS_OK)
                 return res;
@@ -840,7 +839,7 @@ namespace mtest
                     return STATUS_BAD_STATE;
                 if (!out.validate())
                     return STATUS_BAD_STATE;
-                if (!in.validate())
+                if (!on.validate())
                     return STATUS_BAD_STATE;
 
                 // Add set of triangles to ignored
@@ -849,13 +848,12 @@ namespace mtest
             );
 
             RT_TRACE_BREAK(ctx,
-                lsp_trace("Data after culling (%d triangles)", int(in.triangle.size()));
-                for (size_t j=0,n=in.triangle.size(); j<n; ++j)
-                    ctx->shared->view->add_triangle_3c(in.triangle.get(j), &C_CYAN, &C_MAGENTA, &C_YELLOW);
+                lsp_trace("Data after culling (%d triangles)", int(ctx->triangle.size()));
+                for (size_t j=0,n=ctx->triangle.size(); j<n; ++j)
+                    ctx->shared->view->add_triangle_3c(ctx->triangle.get(j), &C_CYAN, &C_MAGENTA, &C_YELLOW);
             );
 
             // Check that there is data for processing and take it for next iteration
-            ctx->swap(&in);
             if (ctx->triangle.size() <= 0)
                 break;
         }
@@ -880,26 +878,14 @@ namespace mtest
     {
         if (ctx->triangle.size() > 1)
         {
-            rt_context_t *nctx[3];
-            rt_context_t ign(ctx->shared), in(ctx->shared);
+            rt_context_t out0(ctx->shared), out1(ctx->shared), out2(ctx->shared);
+            rt_context_t *out[3];
+            rt_context_t ign(ctx->shared);
+            out[0]  = &out0;
+            out[1]  = &out1;
+            out[2]  = &out2;
 
-            // Create contexts
-            for (size_t i=0; i<3; ++i)
-            {
-                nctx[i]     = new rt_context_t(ctx->shared);
-                if (nctx == NULL)
-                    return STATUS_NO_MEM;
-                else if (!tasks.add(nctx[i]))
-                {
-                    delete nctx[i];
-                    return STATUS_NO_MEM;
-                }
-
-                nctx[i]->view   = ctx->view;
-                nctx[i]->state  = ctx->state;
-            }
-
-            status_t res = ctx->partition(nctx, &ign, &in);
+            status_t res = ctx->partition(out, &ign);
             if (res != STATUS_OK)
                 return res;
 
@@ -909,8 +895,26 @@ namespace mtest
                     ctx->ignore(ign.triangle.get(i));
             )
 
-            // Change state and submit to queue
-            ctx->swap(&in);
+            for (size_t i=0; i<3; ++i)
+            {
+                if (out[i]->triangle.size() <= 0)
+                    continue;
+
+                // Create new context
+                rt_context_t *nctx = new rt_context_t(ctx->shared);
+                if (nctx == NULL)
+                    return STATUS_NO_MEM;
+                else if (!tasks.push(nctx))
+                {
+                    delete nctx;
+                    return STATUS_NO_MEM;
+                }
+
+                // Perform swap
+                nctx->swap(out[i]);
+                nctx->view  = ctx->view;
+                nctx->state = (nctx->triangle.size() > 1) ? S_PARTITION : S_REFLECT;
+            }
         }
 
         // Change state of current context if needed
@@ -931,13 +935,18 @@ namespace mtest
 
     status_t cutoff_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
-        rt_context_t in(ctx->shared), out(ctx->shared);
+        rt_context_t out(ctx->shared);
 
         // Perform cutoff
-        status_t res = ctx->cutoff(&out, &in);
+        status_t res = ctx->cutoff(&out);
         if (res != STATUS_OK)
             return res;
-        ctx->swap(&in);
+
+        // Debug
+        RT_TRACE(
+            for (size_t i=0,n=out.triangle.size(); i<n; ++i)
+                ctx->ignore(out.triangle.get(i));
+        )
 
         // Analyze state of 'out' context
         if (out.triangle.size() <= 0)
@@ -952,12 +961,6 @@ namespace mtest
                 return STATUS_OK;
             }
         }
-
-        // Debug
-        RT_TRACE(
-            for (size_t i=0,n=out.triangle.size(); i<n; ++i)
-                ctx->ignore(out.triangle.get(i));
-        )
 
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }

@@ -151,6 +151,24 @@ namespace lsp
             status_t        split(rt_context_t *out, rt_context_t *on, rt_context_t *in, const vector3d_t *pl);
 
             /**
+             * Perform space partitioning by current triangle
+             * @param out contexts for outside data (3 pointers)
+             * @param on triangles that lay on cullint planes
+             * @param in context for inside data (below culling planes)
+             * @return status of operation
+             */
+            status_t        partition(rt_context_t **out, rt_context_t *on, rt_context_t *in);
+
+            /**
+             * Perform space partitioning by current triangle while keeping inside data
+             * @param out contexts for outside data (3 pointers)
+             * @param on triangles that lay on culling planes
+             * @param in context for inside data (below culling planes)
+             * @return status of operation
+             */
+            status_t        partition(rt_context_t **out, rt_context_t *on);
+
+            /**
              * Perform binary-partitioning of the space using specified plane equation, keep 'in' data
              * @param out context for outside data (above the plane)
              * @param on context for matched data (on the plane)
