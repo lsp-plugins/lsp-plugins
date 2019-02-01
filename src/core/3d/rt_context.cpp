@@ -17,6 +17,15 @@ namespace lsp
         this->state     = S_SCAN_OBJECTS;
         this->loop      = 0;
         this->shared    = shared;
+
+        // Initialize point of view
+        dsp::init_point_xyz(&view.s, 0.0f, 0.0f, 0.0f);
+        dsp::init_point_xyz(&view.p[0], 0.0f, 0.0f, 0.0f);
+        dsp::init_point_xyz(&view.p[1], 0.0f, 0.0f, 0.0f);
+        dsp::init_point_xyz(&view.p[2], 0.0f, 0.0f, 0.0f);
+        view.l[0]       = -1.0f;
+        view.l[1]       = -1.0f;
+        view.l[2]       = -1.0f;
     }
     
     rt_context_t::~rt_context_t()
@@ -30,6 +39,30 @@ namespace lsp
         vertex.destroy();
         edge.destroy();
         triangle.destroy();
+    }
+
+    void rt_context_t::init_view(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    {
+        view.s      = *sp;
+        view.p[0]   = *p0;
+        view.p[1]   = *p1;
+        view.p[2]   = *p2;
+
+        view.l[0]   = dsp::calc_sqr_distance_p2(p0, p1);
+        view.l[1]   = dsp::calc_sqr_distance_p2(p1, p2);
+        view.l[2]   = dsp::calc_sqr_distance_p2(p0, p2);
+    }
+
+    void rt_context_t::init_view(const point3d_t *sp, const point3d_t *pv)
+    {
+        view.s      = *sp;
+        view.p[0]   = pv[0];
+        view.p[1]   = pv[1];
+        view.p[2]   = pv[2];
+
+        view.l[0]   = dsp::calc_sqr_distance_pv(&pv[0]);
+        view.l[1]   = dsp::calc_sqr_distance_pv(&pv[1]);
+        view.l[2]   = dsp::calc_sqr_distance_p2(&pv[0], &pv[2]);
     }
 
     void rt_context_t::clear()
@@ -755,7 +788,7 @@ namespace lsp
         const rt_triangle_sort_t *t1 = reinterpret_cast<const rt_triangle_sort_t *>(p1);
         const rt_triangle_sort_t *t2 = reinterpret_cast<const rt_triangle_sort_t *>(p2);
 
-        float x = t1->w - t2->w;
+        float x = t2->w - t1->w;
         if (x < -DSP_3D_TOLERANCE)
             return -1;
         return (x > DSP_3D_TOLERANCE) ? 1 : 0;
@@ -779,18 +812,54 @@ namespace lsp
         {
             rt_triangle_t *ct = triangle.get(i);
             float d     = dsp::calc_min_distance_p3(&view.s, ct->v[0], ct->v[1], ct->v[2]); // User reverse distance: the far locations should give lesser values
-            float a     = dsp::calc_area_p3(ct->v[0], ct->v[1], ct->v[2]);
+//            float a     = dsp::calc_area_p3(ct->v[0], ct->v[1], ct->v[2]);
 
             vt[i].t     = ct;
-            vt[i].w     = sqrtf(1.0f/(d*d) + a); // Finding balance between distance and area
+            vt[i].w     = 1.0f / d; //sqrtf(1.0f/(d*d) + a); // Finding balance between distance and area
         }
+
+        RT_TRACE_BREAK(this,
+            lsp_trace("Prepare sort (%d triangles)", int(nt));
+
+            color3d_t c;
+            c.r     = 1.0f;
+            c.g     = 0.0f;
+            c.b     = 0.0f;
+            c.a     = 0.0f;
+
+            for (size_t i=0; i<nt; ++i)
+            {
+                c.r = float(nt + 1 - i)/nt;
+                shared->view->add_triangle_1c(vt[i].t, &c);
+            }
+            free(vt);
+        );
 
         // Call sorting function
         ::qsort(vt, nt, sizeof(rt_triangle_sort_t), compare_triangles);
 
+        RT_TRACE_BREAK(this,
+            lsp_trace("Triangles have been sorted (%d triangles)", int(nt));
+
+            color3d_t c;
+            c.r     = 0.0f;
+            c.g     = 1.0f;
+            c.b     = 0.0f;
+            c.a     = 0.0f;
+
+            for (size_t i=0; i<nt; ++i)
+            {
+                c.g = float(nt + 1 - i)/nt;
+                shared->view->add_triangle_1c(vt[i].t, &c);
+            }
+            free(vt);
+        );
+
         // Now we are ready to fetch triangles in new order
         rt_context_t tmp(shared);
         status_t res;
+
+        cleanup_tag_pointers();
 
         // Fetch all triangles
         for (size_t i=0; i<nt; ++i)
@@ -1208,6 +1277,493 @@ namespace lsp
         if (res == STATUS_OK)
             tmp.swap(this);
         return res;
+    }
+
+    void rt_context_t::rearrange_view()
+    {
+        if ((view.l[0] > view.l[1]) && (view.l[0] > view.l[2]))
+            return;
+
+        point3d_t tp;
+        float tl;
+
+        if (view.l[1] > view.l[2]) // Rotate clockwise
+        {
+            tp          = view.p[0];
+            view.p[0]   = view.p[1];
+            view.p[1]   = view.p[2];
+            view.p[2]   = tp;
+
+            tl          = view.l[0];
+            view.l[0]   = view.l[1];
+            view.l[1]   = view.l[2];
+            view.l[2]   = tl;
+        }
+        else // Rotate counter-clockwise
+        {
+            tp          = view.p[2];
+            view.p[2]   = view.p[1];
+            view.p[1]   = view.p[0];
+            view.p[0]   = tp;
+
+            tl          = view.l[2];
+            view.l[2]   = view.l[1];
+            view.l[1]   = view.l[0];
+            view.l[0]   = tl;
+        }
+    }
+
+    status_t rt_context_t::binary_split(rt_context_t *out)
+    {
+        status_t res;
+        point3d_t sp;
+        vector3d_t pl;
+        rt_context_t in(shared);
+
+        // Always clear target context before proceeding
+        if (out != NULL)
+            out->clear();
+
+        // Is there data for processing ?
+        if (triangle.size() <= 0)
+            return STATUS_OK;
+
+        // Make the longest edge to have index 0
+        rearrange_view();
+
+        // Estimate coordinates of split-point
+        sp.x        = 0.5f * (view.p[0].x + view.p[1].x);
+        sp.y        = 0.5f * (view.p[0].y + view.p[1].y);
+        sp.z        = 0.5f * (view.p[0].z + view.p[1].z);
+        sp.w        = 1.0f;
+
+        // Compute split plane
+        dsp::calc_oriented_plane_p3(&pl, &view.p[0], &view.s, &view.p[2], &sp);
+
+        // State of itag for vertex:
+        //  0   = vertex lays over the plane
+        //  1   = vertex lays on the plane
+        //  2   = vertex lays below the plane
+
+        // State of itag for triangle:
+        //  0   = triangle is 'in'
+        //  1   = triangle is 'out'
+        for (size_t i=0, n=vertex.size(); i<n; ++i)
+        {
+            rt_vertex_t *v  = vertex.get(i);
+            float t         = v->x*pl.dx + v->y*pl.dy + v->z*pl.dz + pl.dw;
+            v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
+        }
+
+        // Reset all flags of edges
+        for (size_t i=0, n=edge.size(); i<n; ++i)
+            edge.get(i)->itag &= ~RT_EF_TEMP; // Clear processed flag
+
+        for (size_t i=0, n=triangle.size(); i<n; ++i)
+            triangle.get(i)->itag = 0;  // By default, all triangles are considered to be 'in'
+
+        RT_TRACE_BREAK(this,
+            lsp_trace("Prepare binary_split (%d triangles)", int(triangle.size()));
+
+            for (size_t i=0,n=triangle.size(); i<n; ++i)
+                shared->view->add_triangle_1c(triangle.get(i), &C_YELLOW);
+
+            shared->view->add_plane_sp3p1c(&view.p[0], &view.s, &view.p[2], &sp, &C_MAGENTA);
+            shared->view->add_view_3c(&view, &C_RED, &C_GREEN, &C_BLUE);
+        );
+
+        // Call for binary split
+        // First step: split edges
+        // Perform split of edges
+        for (size_t i=0; i<edge.size(); ++i) // The edge array can grow
+        {
+            rt_edge_t *e    = edge.get(i);
+            if (e->itag & RT_EF_PROCESSED) // Skip already split edges
+                continue;
+
+            // Analyze state of edge
+            // 00 00    - edge is over the plane
+            // 00 01    - edge is over the plane
+            // 00 10    - edge is crossing the plane
+            // 01 00    - edge is over the plane
+            // 01 01    - edge is laying on the plane
+            // 01 10    - edge is under the plane
+            // 10 00    - edge is crossing the plane
+            // 10 01    - edge is under the plane
+            // 10 10    - edge is under the plane
+            switch ((e->v[0]->itag << 2) | e->v[1]->itag)
+            {
+                case 0: case 1: case 4: // edge is over the plane, skip
+                case 6: case 9: case 10: // edge is under the plane, skip
+                    e->itag    |= RT_EF_PROCESSED;
+                    break;
+                case 5: // edge lays on the plane, mark as split edge and skip
+                    e->itag    |= RT_EF_PLANE | RT_EF_PROCESSED;
+                    break;
+
+                case 2: // edge is crossing the plane, v0 is over, v1 is under
+                case 8: // edge is crossing the plane, v0 is under, v1 is over
+                {
+                    // Allocate split point
+                    rt_vertex_t *sp     = vertex.alloc();
+                    if (sp == NULL)
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(sp, e->v[0], e->v[1], &pl);
+
+                    sp->ve      = NULL;
+                    sp->ptag    = NULL;
+                    sp->itag    = 1;        // Split-point lays on the plane
+
+                    res         = split_edge(e, sp);
+                    if (res != STATUS_OK)
+                        return res;
+                    break;
+                }
+
+                default:
+                    return STATUS_BAD_STATE;
+            }
+        }
+
+        RT_TRACE(
+            if (!validate())
+                return STATUS_CORRUPTED;
+        )
+
+        // Toggle state of all triangles
+        for (size_t i=0, n=triangle.size(); i<n; ++i)
+        {
+            rt_triangle_t  *st  = triangle.get(i);
+
+            // Detect position of triangle: over the plane or under the plane
+            if (st->v[0]->itag != 1)
+                st->itag    = (st->v[0]->itag < 1) ? 1 : 0;
+            else if (st->v[1]->itag != 1)
+                st->itag    = (st->v[1]->itag < 1) ? 1 : 0;
+            else if (st->v[2]->itag != 1)
+                st->itag    = (st->v[2]->itag < 1) ? 1 : 0;
+            else
+                st->itag    = 1; // Mark triangle as out
+        }
+
+        // Now we can fetch triangles
+        if (out != NULL)
+        {
+            out->view       = this->view;
+            out->view.p[0]  = sp;
+            out->view.l[0] *= 0.5f;
+            out->state      = S_CULL_BACK;
+            res             = fetch_triangles_safe(out, 1);
+            if (res != STATUS_OK)
+                return res;
+        }
+
+        // Update self state
+        view.p[1]       = sp;
+        view.l[0]      *= 0.5f;
+        state           = S_CULL_BACK;
+        res             = fetch_triangles_safe(&in, 0);
+        if (res != STATUS_OK)
+            return res;
+        this->swap(&in);
+
+        RT_TRACE_BREAK(this,
+            lsp_trace("Processed binary_split");
+
+            lsp_trace("IN content is YELLOW/GREEN (%d triangles)", int(this->triangle.size()));
+            for (size_t i=0,n=this->triangle.size(); i<n; ++i)
+                shared->view->add_triangle_1c(this->triangle.get(i), &C_GREEN);
+            shared->view->add_view_3c(&view, &C_YELLOW, &C_YELLOW, &C_YELLOW);
+
+            if (out != NULL)
+            {
+                lsp_trace("OUT content is RED/BLUE (%d triangles)", int(out->triangle.size()));
+                for (size_t i=0,n=out->triangle.size(); i<n; ++i)
+                    shared->view->add_triangle_1c(out->triangle.get(i), &C_BLUE);
+                shared->view->add_view_3c(&out->view, &C_RED, &C_RED, &C_RED);
+            }
+
+            shared->view->add_plane_sp3p1c(&view.p[0], &view.s, &view.p[2], &sp, &C_MAGENTA);
+        );
+
+        RT_TRACE(
+            if (!in.validate())
+                return STATUS_CORRUPTED;
+            if (!out->validate())
+                return STATUS_CORRUPTED;
+            if (!validate())
+                return STATUS_CORRUPTED;
+        )
+
+        return STATUS_OK;
+    }
+
+    rt_triangle_t *rt_context_t::find_cullback_triangle()
+    {
+        size_t nt = triangle.size();
+        if (nt <= 1)
+        {
+            state = (nt < 1) ? S_IGNORE : S_REFLECT;
+            return NULL;
+        }
+
+        size_t n_similar = 0, n_pending = 0;
+        rt_triangle_t *ct = NULL;
+
+        // Check that all triangles lay on the same plane
+        for (size_t i=0; i<nt; ++i)
+        {
+            rt_triangle_t *st = triangle.get(i);
+            if (st->itag == 1) // 'out'
+                continue;
+            else if (ct == NULL)
+                ct = st;
+            ++n_pending;
+            if (st->face == ct->face)
+                ++n_similar;
+        }
+        if (n_similar >= n_pending)
+        {
+            state   = S_REFLECT;    // All triangles are laying on the same plane
+            return NULL;
+        }
+
+        // Find co-planar triangles
+        size_t it = 0;
+        for ( ;it < nt; ++it)
+        {
+            if (it)
+        }
+
+        return NULL;
+    }
+
+    status_t rt_context_t::binary_cullback(rt_context_t *out)
+    {
+        vector3d_t pl;
+        rt_triangle_t *ct;
+        rt_context_t in(shared);
+        status_t res;
+        static const ssize_t in_itags[] = { 0, 2 };
+
+        // Always clear target context before proceeding
+        if (out != NULL)
+            out->clear();
+
+        // State of itag for vertex:
+        //  0   = vertex lays over the plane
+        //  1   = vertex lays on the plane
+        //  2   = vertex lays below the plane
+
+        // State of itag for triangle:
+        // -1   = unknown state (default)
+        //  0   = triangle is 'in'
+        //  1   = triangle is 'out'
+        //  2   = triangle is 'current'
+
+        // Clear itag for all triangles
+        for (size_t i=0,n=triangle.size(); i<n; ++i)
+            triangle.get(i)->itag = -1; // By default, unknown state
+
+        RT_TRACE_BREAK(this,
+            lsp_trace("Prepare cullback (%d triangles)", int(triangle.size()));
+
+            for (size_t i=0,n=triangle.size(); i<n; ++i)
+                shared->view->add_triangle_1c(triangle.get(i), &C_YELLOW);
+
+            for (size_t i=0,n=edge.size(); i<n; ++i)
+            {
+                rt_edge_t *se = edge.get(i);
+                shared->view->add_segment(se, (se->itag & RT_EF_PLANE) ? &C_GREEN : &C_RED);
+            }
+        );
+
+        // Is there triangle for cull-back ?
+        state   = S_SPLIT;
+        ct      = find_cullback_triangle();
+        if (ct == NULL)
+            return STATUS_OK;
+
+        do
+        {
+            // Compute split plane
+            dsp::calc_oriented_plane_p3(&pl, &view.s, ct->v[0], ct->v[1], ct->v[2]);
+
+            // Perform cull-back with plane
+            for (size_t i=0, n=vertex.size(); i<n; ++i)
+            {
+                rt_vertex_t *v  = vertex.get(i);
+                float t         = v->x*pl.dx + v->y*pl.dy + v->z*pl.dz + pl.dw;
+                v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
+            }
+
+            // Reset all flags of edges
+            for (size_t i=0, n=edge.size(); i<n; ++i)
+                edge.get(i)->itag &= ~RT_EF_TEMP; // Clear processed flag
+
+            // Initialize edges for all triangles laying on the same plane
+            for (size_t i=0,n=triangle.size(); i<n; ++i)
+            {
+                rt_triangle_t *st   = triangle.get(i);
+                if (st->face == ct->face)
+                {
+                    st->v[0]->itag      = 1;
+                    st->v[1]->itag      = 1;
+                    st->v[2]->itag      = 1;
+                    st->e[0]->itag     |= RT_EF_PROCESSED;
+                    st->e[1]->itag     |= RT_EF_PROCESSED;
+                    st->e[2]->itag     |= RT_EF_PROCESSED;
+                }
+            }
+
+            RT_TRACE_BREAK(this,
+                lsp_trace("Prepare cullback step (%d triangles)", int(triangle.size()));
+
+                for (size_t i=0,n=triangle.size(); i<n; ++i)
+                {
+                    rt_triangle_t *t = triangle.get(i);
+                    shared->view->add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
+                }
+                shared->view->add_plane_sp3p1c(&view.s, ct->v[0], ct->v[1], ct->v[2], &C_MAGENTA);
+                shared->view->add_view_3c(&view, &C_RED, &C_GREEN, &C_BLUE);
+            );
+
+            // Call for binary split
+            // First step: split edges
+            // Perform split of edges
+            for (size_t i=0; i<edge.size(); ++i) // The edge array can grow
+            {
+                rt_edge_t *e    = edge.get(i);
+                if (e->itag & RT_EF_PROCESSED) // Skip already split edges
+                    continue;
+
+                // Analyze state of edge
+                // 00 00    - edge is over the plane
+                // 00 01    - edge is over the plane
+                // 00 10    - edge is crossing the plane
+                // 01 00    - edge is over the plane
+                // 01 01    - edge is laying on the plane
+                // 01 10    - edge is under the plane
+                // 10 00    - edge is crossing the plane
+                // 10 01    - edge is under the plane
+                // 10 10    - edge is under the plane
+                switch ((e->v[0]->itag << 2) | e->v[1]->itag)
+                {
+                    case 0: case 1: case 4: // edge is over the plane, skip
+                    case 6: case 9: case 10: // edge is under the plane, skip
+                    case 5: // edge lays on the plane, skip
+                        e->itag    |= RT_EF_PROCESSED;
+                        break;
+
+                    case 2: // edge is crossing the plane, v0 is over, v1 is under
+                    case 8: // edge is crossing the plane, v0 is under, v1 is over
+                    {
+                        // Allocate split point
+                        rt_vertex_t *sp     = vertex.alloc();
+                        if (sp == NULL)
+                            return STATUS_NO_MEM;
+                        dsp::calc_split_point_p2v1(sp, e->v[0], e->v[1], &pl);
+
+                        sp->ve      = NULL;
+                        sp->ptag    = NULL;
+                        sp->itag    = 1;        // Split-point lays on the plane
+
+                        res         = split_edge(e, sp);
+                        if (res != STATUS_OK)
+                            return res;
+                        break;
+                    }
+
+                    default:
+                        return STATUS_BAD_STATE;
+                }
+            }
+
+            RT_TRACE(
+                if (!validate())
+                    return STATUS_CORRUPTED;
+            )
+
+            // Toggle state of all triangles
+            for (size_t i=0, n=triangle.size(); i<n; ++i)
+            {
+                rt_triangle_t  *st  = triangle.get(i);
+
+                // Detect position of triangle: over the plane or under the plane
+                if (st->itag <= 0) // Check 'unknown' and 'in' states
+                {
+                    if (st->v[0]->itag != 1)
+                        st->itag    = (st->v[0]->itag < 1) ? 1 : 0;
+                    else if (st->v[1]->itag != 1)
+                        st->itag    = (st->v[1]->itag < 1) ? 1 : 0;
+                    else if (st->v[2]->itag != 1)
+                        st->itag    = (st->v[2]->itag < 1) ? 1 : 0;
+                    else
+                        st->itag    = 0; // Triangle is 'in'
+                }
+                else if (st->itag == 2) // Check 'Current' state
+                {
+                    if ((st->v[0]->itag < 1) ||
+                        (st->v[1]->itag < 1) ||
+                        (st->v[2]->itag < 1))
+                        st->itag    = 1; // Triangle is 'out'
+                }
+            }
+
+            RT_TRACE_BREAK(this,
+                lsp_trace("After cullback step");
+
+                lsp_trace("In is GREEN/BLUE, out is RED");
+                for (size_t i=0,n=this->triangle.size(); i<n; ++i)
+                {
+                    rt_triangle_t *st = triangle.get(i);
+                    shared->view->add_triangle_1c(st,
+                            (st->itag == 0) ? &C_GREEN :
+                            (st->itag == 2) ? &C_BLUE :
+                            &C_RED
+                        );
+                }
+
+                shared->view->add_plane_sp3p1c(&view.s, ct->v[0], ct->v[1], ct->v[2], &C_YELLOW);
+            );
+
+            // Fetch new cull-back triangle
+            ct = find_cullback_triangle();
+
+        } while (ct != NULL);
+
+        // Now we can fetch triangles
+        if (out != NULL)
+        {
+            out->view       = this->view;
+            out->state      = S_IGNORE;
+            res             = fetch_triangles_safe(out, 1);
+            if (res != STATUS_OK)
+                return res;
+        }
+
+        // Update self state
+        res             = vfetch_triangles_safe(&in, 2, in_itags);
+        if (res != STATUS_OK)
+            return res;
+        this->swap(&in);
+
+        RT_TRACE_BREAK(this,
+            lsp_trace("After cullback");
+
+            lsp_trace("In context is GREEN (%d triangles)", int(this->triangle.size()));
+            for (size_t i=0,n=this->triangle.size(); i<n; ++i)
+                shared->view->add_triangle_1c(this->triangle.get(i), &C_GREEN);
+
+            if (out != NULL)
+            {
+                lsp_trace("Out context is RED (%d triangles)", int(out->triangle.size()));
+                for (size_t i=0,n=out->triangle.size(); i<n; ++i)
+                    shared->view->add_triangle_1c(out->triangle.get(i), &C_RED);
+            }
+        );
+
+        return STATUS_OK;
     }
 
     status_t rt_context_t::partition(rt_context_t **out, rt_context_t *on)

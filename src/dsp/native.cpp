@@ -388,6 +388,10 @@ namespace native
         EXPORT1(calc_area_p3);
         EXPORT1(calc_min_distance_p3);
         EXPORT1(calc_split_point_p2v1);
+        EXPORT1(calc_distance_p2);
+        EXPORT1(calc_sqr_distance_p2);
+        EXPORT1(calc_distance_pv);
+        EXPORT1(calc_sqr_distance_pv);
 
         EXPORT1(convolve);
     }

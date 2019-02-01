@@ -845,6 +845,36 @@ namespace dsp
     extern float (* calc_min_distance_p3)(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
 
     /**
+     * Compute distance between two pointes
+     * @param p1 point 1
+     * @param p2 point 2
+     * @return distance
+     */
+    extern float (* calc_distance_p2)(const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Compute square of distance between two points
+     * @param p1 point 1
+     * @param p2 point 2
+     * @return square value of distance
+     */
+    extern float (* calc_sqr_distance_p2)(const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Compute distance between two points
+     * @param pv array of two points
+     * @return distance between two points
+     */
+    extern float (* calc_distance_pv)(const point3d_t *pv);
+
+    /**
+     * Compute square of distance between two points
+     * @param pv array of two points
+     * @return square of distance between two points
+     */
+    extern float (* calc_sqr_distance_pv)(const point3d_t *pv);
+
+    /**
      * Compute point that is result of split of line by the plane
      * @param ip target point to store coordinates
      * @param l0 line point 0

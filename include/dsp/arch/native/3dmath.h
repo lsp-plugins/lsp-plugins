@@ -2377,6 +2377,42 @@ namespace native
         sp->z       = l0->z - d.dz * t;
         sp->w       = 1.0f;
     }
+
+    float calc_distance_p2(const point3d_t *p1, const point3d_t *p2)
+    {
+        vector3d_t d;
+        d.dx        = p2->x - p1->x;
+        d.dy        = p2->y - p1->y;
+        d.dz        = p2->z - p1->z;
+        return sqrtf(d.dx*d.dx + d.dy*d.dy + d.dz*d.dz);
+    }
+
+    float calc_sqr_distance_p2(const point3d_t *p1, const point3d_t *p2)
+    {
+        vector3d_t d;
+        d.dx        = p2->x - p1->x;
+        d.dy        = p2->y - p1->y;
+        d.dz        = p2->z - p1->z;
+        return d.dx*d.dx + d.dy*d.dy + d.dz*d.dz;
+    }
+
+    float calc_distance_pv(const point3d_t *pv)
+    {
+        vector3d_t d;
+        d.dx        = pv[1].x - pv[0].x;
+        d.dy        = pv[1].y - pv[0].y;
+        d.dz        = pv[1].z - pv[0].z;
+        return sqrtf(d.dx*d.dx + d.dy*d.dy + d.dz*d.dz);
+    }
+
+    float calc_sqr_distance_pv(const point3d_t *pv)
+    {
+        vector3d_t d;
+        d.dx        = pv[1].x - pv[0].x;
+        d.dy        = pv[1].y - pv[0].y;
+        d.dz        = pv[1].z - pv[0].z;
+        return d.dx*d.dx + d.dy*d.dy + d.dz*d.dz;
+    }
 }
 
 #endif /* DSP_ARCH_NATIVE_3DMATH_H_ */

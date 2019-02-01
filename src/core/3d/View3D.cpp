@@ -465,6 +465,62 @@ namespace lsp
         return true;
     }
 
+    /**
+     * Add context view
+     * @param v context view to add
+     */
+    void View3D::add_view_3c(const rt_view_t *v, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2)
+    {
+        v_ray3d_t r;
+        v_segment3d_t s, ms;
+
+        // State
+        dsp::init_vector_p2(&r.v, &v->s, &v->p[0]);
+        r.p     = v->p[0];
+        r.c     = *c0;
+        s.p[0]  = v->p[0];
+        s.p[1]  = v->p[1];
+        s.c[0]  = *c0;
+        s.c[1]  = *c0;
+        ms.p[0] = v->s;
+        ms.p[1] = v->p[0];
+        ms.c[0] = *c0;
+        ms.c[1] = *c0;
+        add_ray(&r);
+        add_segment(&s);
+        add_segment(&ms);
+
+        dsp::init_vector_p2(&r.v, &v->s, &v->p[1]);
+        r.p     = v->p[1];
+        r.c     = *c1;
+        s.p[0]  = v->p[1];
+        s.p[1]  = v->p[2];
+        s.c[0]  = *c1;
+        s.c[1]  = *c1;
+        ms.p[0] = v->s;
+        ms.p[1] = v->p[1];
+        ms.c[0]   = *c1;
+        ms.c[1]   = *c1;
+        add_ray(&r);
+        add_segment(&s);
+        add_segment(&ms);
+
+        dsp::init_vector_p2(&r.v, &v->s, &v->p[2]);
+        r.p     = v->p[2];
+        r.c     = *c2;
+        s.p[0]  = v->p[2];
+        s.p[1]  = v->p[0];
+        s.c[0]    = *c2;
+        s.c[1]    = *c2;
+        ms.p[0] = v->s;
+        ms.p[1] = v->p[2];
+        ms.c[0]   = *c2;
+        ms.c[1]   = *c2;
+        add_ray(&r);
+        add_segment(&s);
+        add_segment(&ms);
+    }
+
     v_ray3d_t *View3D::get_ray(size_t index)
     {
         return vRays.get(index);

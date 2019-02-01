@@ -29,8 +29,8 @@
 //#define TEST_DEBUG
 
 #ifndef TEST_DEBUG
-    #define BREAKPOINT_STEP     -1
-//    #define BREAKPOINT_STEP     0
+//    #define BREAKPOINT_STEP     -1
+    #define BREAKPOINT_STEP     0
 //    #define BREAKPOINT_STEP     181
 
     #define INIT_FRONT(front) \
@@ -692,7 +692,7 @@ namespace mtest
 #endif /* LSP_DEBUG */
 
         // Update state
-        ctx->state      = S_FILTER_VIEW;
+        ctx->state      = S_CULL_VIEW;
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
@@ -863,97 +863,86 @@ namespace mtest
             ctx->state      = S_REFLECT;
         }
         else
-            ctx->state      = S_PARTITION;
-
-        return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
-    }
-
-    status_t partition_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
-    {
-        if (ctx->triangle.size() > 1)
         {
-            rt_context_t out0(ctx->shared), out1(ctx->shared), out2(ctx->shared);
-            rt_context_t *out[3];
-            rt_context_t ign(ctx->shared);
-            out[0]  = &out0;
-            out[1]  = &out1;
-            out[2]  = &out2;
-
-            status_t res = ctx->partition(out, &ign);
+            ctx->state      = S_SPLIT;
+            res     = ctx->sort();
             if (res != STATUS_OK)
                 return res;
-
-            // Debug
-            RT_TRACE(
-                for (size_t i=0,n=ign.triangle.size(); i<n; ++i)
-                    ctx->ignore(ign.triangle.get(i));
-            )
-
-            for (size_t i=0; i<3; ++i)
-            {
-                if (out[i]->triangle.size() <= 0)
-                    continue;
-
-                // Create new context
-                rt_context_t *nctx = new rt_context_t(ctx->shared);
-                if (nctx == NULL)
-                    return STATUS_NO_MEM;
-                else if (!tasks.push(nctx))
-                {
-                    delete nctx;
-                    return STATUS_NO_MEM;
-                }
-
-                // Perform swap
-                nctx->swap(out[i]);
-                nctx->view  = ctx->view;
-                nctx->state = (nctx->triangle.size() > 1) ? S_PARTITION : S_REFLECT;
-            }
         }
-
-        // Change state of current context if needed
-        if (ctx->triangle.size() <= 1)
-        {
-            if (ctx->triangle.size() == 0)
-            {
-                delete ctx;
-                return STATUS_OK;
-            }
-            ctx->state      = S_REFLECT;
-        }
-        else
-            ctx->state      = S_CUTOFF;
 
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
-    status_t cutoff_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
+    status_t split_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
-        rt_context_t out(ctx->shared);
+        rt_context_t *out = new rt_context_t(ctx->shared);
+        if (out == NULL)
+            return STATUS_NO_MEM;
 
-        // Perform cutoff
-        status_t res = ctx->cutoff(&out);
+        // Perform binary split
+        status_t res = ctx->binary_split(out);
         if (res != STATUS_OK)
-            return res;
-
-        // Debug
-        RT_TRACE(
-            for (size_t i=0,n=out.triangle.size(); i<n; ++i)
-                ctx->ignore(out.triangle.get(i));
-        )
-
-        if (ctx->triangle.size() <= 1)
         {
-            if (ctx->triangle.size() == 1)
-                ctx->state = S_REFLECT;
-            else
-            {
-                delete ctx;
-                return STATUS_OK;
-            }
+            delete out;
+            return res;
         }
-        else
-            ctx->state  = S_PARTITION;
+
+        // Analyze state of 'out' context
+        if (out->triangle.size() <= 0)
+            delete out;
+        else if (!tasks.push(out))
+        {
+            delete out;
+            return STATUS_NO_MEM;
+        }
+
+        // Analyze state of 'in' context
+        if (ctx->triangle.size() <= 0)
+        {
+            delete ctx;
+            return STATUS_OK;
+        }
+
+        return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+    }
+
+    status_t cullback_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
+    {
+        rt_context_t *out = new rt_context_t(ctx->shared);
+        if (out == NULL)
+            return STATUS_NO_MEM;
+
+        // Perform cullback
+        status_t res = ctx->binary_cullback(out);
+        if (res != STATUS_OK)
+        {
+            delete out;
+            return res;
+        }
+
+        // Analyze state of 'out' context
+        if (out->triangle.size() <= 0)
+            delete out;
+        else if (out->state == S_IGNORE)
+        {
+            RT_TRACE(
+                for (size_t i=0,n=out->triangle.size(); i<n; ++i)
+                    ctx->ignore(out->triangle.get(i));
+            )
+            delete out;
+        }
+        else if (!tasks.push(out))
+        {
+            delete out;
+            return STATUS_NO_MEM;
+        }
+
+        // Analyze state of 'in' context
+        if (ctx->triangle.size() <= 0)
+        {
+            delete ctx;
+            return STATUS_OK;
+        }
 
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
@@ -1007,22 +996,29 @@ namespace mtest
                 case S_SCAN_OBJECTS:
                     res = scan_objects(tasks, ctx);
                     break;
-                case S_FILTER_VIEW:
-                    res = filter_view(tasks, ctx);
-                    break;
+//                case S_FILTER_VIEW:
+//                    res = filter_view(tasks, ctx);
+//                    break;
                 case S_CULL_VIEW:
                     res = cull_view(tasks, ctx);
                     break;
-                case S_PARTITION:
-                    res = partition_view(tasks, ctx);
+                case S_SPLIT:
+                    res = split_view(tasks, ctx);
 //                    res = dump_view(tasks, ctx);
                     break;
-                case S_CUTOFF:
-                    res = cutoff_view(tasks, ctx);
+                case S_CULL_BACK:
+                    res = cullback_view(tasks, ctx);
                     break;
                 case S_REFLECT:
 //                    res = reflect_view(tasks, ctx);
                     res = dump_view(tasks, ctx);
+                    break;
+                case S_IGNORE:
+                    RT_TRACE(
+                        for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
+                            ctx->ignore(ctx->triangle.get(i));
+                    )
+                    delete ctx;
                     break;
                 default:
                     res = STATUS_BAD_STATE;
@@ -1210,7 +1206,7 @@ MTEST_BEGIN("3d", reflections)
                     return STATUS_NO_MEM;
 
                 ctx->state          = S_SCAN_OBJECTS;
-                ctx->view           = sFront;
+                ctx->init_view(&sFront.s, sFront.p);
 
                 // Add context to tasks
                 if (!tasks.add(ctx))

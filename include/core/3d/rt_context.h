@@ -29,11 +29,15 @@ namespace lsp
     enum rt_context_state_t
     {
         S_SCAN_OBJECTS,
-        S_FILTER_VIEW,
         S_CULL_VIEW,
-        S_PARTITION,
-        S_CUTOFF,
-        S_REFLECT
+//        S_FILTER_VIEW,
+        S_SPLIT,
+        S_CULL_BACK,
+        S_REFLECT,
+        S_IGNORE
+//        S_PARTITION,
+//        S_CUTOFF,
+//        S_REFLECT
     };
 
     typedef struct rt_context_t
@@ -68,6 +72,7 @@ namespace lsp
             static ssize_t  linked_count(rt_edge_t *e, rt_vertex_t *v);
             static ssize_t  linked_count(rt_triangle_t *t, rt_edge_t *e);
             bool            check_crossing(rt_triangle_t *ct, rt_triangle_t *st);
+            rt_triangle_t  *find_cullback_triangle();
 
             status_t        split_edge(rt_edge_t* e, rt_vertex_t* sp);
             status_t        split_edges(const vector3d_t *pl);
@@ -85,8 +90,14 @@ namespace lsp
             void            dump_edge_list(size_t lvl, rt_edge_t *e);
             void            dump_triangle_list(size_t lvl, rt_triangle_t *t);
 
+            void            rearrange_view();
+
+            status_t        binary_split_edges(const vector3d_t *pl);
+
         public:
             // Methods
+            void            init_view(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+            void            init_view(const point3d_t *sp, const point3d_t *pv);
 
             /**
              * Clear context: clear underlying structures
@@ -142,6 +153,21 @@ namespace lsp
              * @return status of operation
              */
             status_t        split(rt_context_t *out, rt_context_t *on);
+
+            /**
+             * Perform binary-split of the context space while keeping one of the parts
+             * @param out second part of context
+             * @return status of operation
+             */
+            status_t        binary_split(rt_context_t *out);
+
+            /**
+             * Perform binary-cull of the context space into two spaces if possible
+             * @param out context for outside data (above the split plane)
+             * @param in context for inside data (below the split plane)
+             * @return status of operation
+             */
+            status_t        binary_cullback(rt_context_t *out);
 
             /**
              * Perform binary-partitioning of the space using specified plane equation

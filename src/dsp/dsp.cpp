@@ -390,6 +390,10 @@ namespace dsp
 
     float   (* calc_area_p3)(const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
     float   (* calc_min_distance_p3)(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
+    float   (* calc_distance_p2)(const point3d_t *p1, const point3d_t *p2) = NULL;
+    float   (* calc_sqr_distance_p2)(const point3d_t *p1, const point3d_t *p2) = NULL;
+    float   (* calc_distance_pv)(const point3d_t *pv) = NULL;
+    float   (* calc_sqr_distance_pv)(const point3d_t *pv) = NULL;
     void    (* calc_split_point_p2v1)(point3d_t *ip, const point3d_t *l0, const point3d_t *l1, const vector3d_t *pl) = NULL;
 
     void    (* vector_mul_v2)(vector3d_t *r, const vector3d_t *v1, const vector3d_t *v2) = NULL;

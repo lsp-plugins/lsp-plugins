@@ -139,6 +139,7 @@ namespace lsp
     {
         point3d_t           s;          // Source point
         point3d_t           p[3];       // View points
+        float               l[3];       // Length of edges
     } rt_front_t;
 
     // Viewing structures

@@ -131,6 +131,12 @@ namespace lsp
             bool add_triangle(const v_vertex3d_t *vi);
 
             /**
+             * Add context view
+             * @param v context view to add
+             */
+            void add_view_3c(const rt_view_t *v, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2);
+
+            /**
              * Add triangle
              * @param t triangle
              * @param c triangle color
