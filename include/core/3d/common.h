@@ -22,10 +22,16 @@
             action; \
             return STATUS_BREAKPOINT; \
         }
+
+    #define RT_CALL_DEBUGGER(ctx, xstep) \
+        if (ctx->shared->step == xstep) \
+            debug(ctx);
 #else
     #define RT_TRACE(...)
 
     #define RT_TRACE_BREAK(ctx, action)
+
+    #define RT_CALL_DEBUGGER(ctx, xstep)
 #endif /* LSP_DEBUG */
 
 namespace lsp

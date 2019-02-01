@@ -29,7 +29,9 @@
 //#define TEST_DEBUG
 
 #ifndef TEST_DEBUG
-    #define BREAKPOINT_STEP     0
+    #define BREAKPOINT_STEP     -1
+//    #define BREAKPOINT_STEP     0
+//    #define BREAKPOINT_STEP     181
 
     #define INIT_FRONT(front) \
         dsp::init_point_xyz(&front.p[0], 0.0f, 1.0f, 0.0f); \
@@ -767,17 +769,7 @@ namespace mtest
         }
 
         // Change state and submit to queue
-        if (ctx->triangle.size() <= 1)
-        {
-            if (ctx->triangle.size() == 0)
-            {
-                delete ctx;
-                return STATUS_OK;
-            }
-            ctx->state      = S_REFLECT;
-        }
-        else
-            ctx->state      = S_CULL_VIEW;
+        ctx->state      = S_CULL_VIEW;
 
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
@@ -845,6 +837,8 @@ namespace mtest
                 // Add set of triangles to ignored
                 for (size_t j=0,n=out.triangle.size(); j<n; ++j)
                     ctx->ignore(out.triangle.get(j));
+                for (size_t j=0,n=on.triangle.size(); j<n; ++j)
+                    ctx->ignore(on.triangle.get(j));
             );
 
             RT_TRACE_BREAK(ctx,
@@ -948,10 +942,7 @@ namespace mtest
                 ctx->ignore(out.triangle.get(i));
         )
 
-        // Analyze state of 'out' context
-        if (out.triangle.size() <= 0)
-            ctx->state  = S_PARTITION; // We need to perform additional partitioning
-        else if (ctx->triangle.size() <= 1)
+        if (ctx->triangle.size() <= 1)
         {
             if (ctx->triangle.size() == 1)
                 ctx->state = S_REFLECT;
@@ -961,6 +952,8 @@ namespace mtest
                 return STATUS_OK;
             }
         }
+        else
+            ctx->state  = S_PARTITION;
 
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }

@@ -492,9 +492,10 @@ namespace lsp
             return STATUS_NO_MEM;
 
         tx->n       = st->n;
-        tx->ptag    = st->ptag;
         tx->itag    = st->itag;
         tx->face    = st->face;
+        tx->ptag    = st;
+        st->ptag    = tx;
 
         // Process each element in triangle
         for (size_t j=0; j<3; ++j)
@@ -617,12 +618,14 @@ namespace lsp
         {
             ex              = dst->edge.get(i);
             se              = reinterpret_cast<rt_edge_t *>(ex->ptag);
+            if (se == NULL) // Edge does not need patching
+                continue;
 
-            // Patch vertex pointers
-            ex->v[0]        = reinterpret_cast<rt_vertex_t *>(se->v[0]->ptag);
-            ex->v[1]        = reinterpret_cast<rt_vertex_t *>(se->v[1]->ptag);
+            // Patch vertex pointers if needed
+            ex->v[0]        = (se->v[0]->ptag != NULL) ? reinterpret_cast<rt_vertex_t *>(se->v[0]->ptag) : se->v[0];
+            ex->v[1]        = (se->v[1]->ptag != NULL) ? reinterpret_cast<rt_vertex_t *>(se->v[1]->ptag) : se->v[1];
 
-            // Link to verexes
+            // Link edge to vertexes
             ex->vlnk[0]     = ex->v[0]->ve;
             ex->vlnk[1]     = ex->v[1]->ve;
             ex->v[0]->ve    = ex;
@@ -633,6 +636,8 @@ namespace lsp
         for (size_t i=0, n=dst->triangle.size(); i<n; ++i)
         {
             tx                  = dst->triangle.get(i);
+            if (tx->ptag == NULL) // Triangle does not need patching
+                continue;
 
             // Link triangle to the edge
             tx->elnk[0]         = tx->e[0]->vt;
@@ -1312,25 +1317,25 @@ namespace lsp
             se->v[0]->itag  = 1;
             se->v[1]->itag  = 1;
 
-            RT_TRACE_BREAK(this,
-                lsp_trace("Prepare partition with edge (%d triangles)", int(triangle.size()));
-
-                for (size_t i=0,n=triangle.size(); i<n; ++i)
-                {
-                    rt_triangle_t *t = triangle.get(i);
-                    shared->view->add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
-                }
-                shared->view->add_plane_3pn1c(&view.s, se->v[0], se->v[1], &pl, &C_MAGENTA);
-
-                for (size_t i=0,n=edge.size(); i<n; ++i)
-                {
-                    rt_edge_t *e = edge.get(i);
-                    shared->view->add_segment(e,
-                            (e == se) ? &C_MAGENTA :
-                            (e->itag & RT_EF_PLANE) ? &C_GREEN : &C_RED
-                        );
-                }
-            );
+//            RT_TRACE_BREAK(this,
+//                lsp_trace("Prepare partition with edge (%d triangles)", int(triangle.size()));
+//
+//                for (size_t i=0,n=triangle.size(); i<n; ++i)
+//                {
+//                    rt_triangle_t *t = triangle.get(i);
+//                    shared->view->add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
+//                }
+//                shared->view->add_plane_3pn1c(&view.s, se->v[0], se->v[1], &pl, &C_MAGENTA);
+//
+//                for (size_t i=0,n=edge.size(); i<n; ++i)
+//                {
+//                    rt_edge_t *e = edge.get(i);
+//                    shared->view->add_segment(e,
+//                            (e == se) ? &C_MAGENTA :
+//                            (e->itag & RT_EF_PLANE) ? &C_GREEN : &C_RED
+//                        );
+//                }
+//            );
 
             // Perform split of edges
             for (size_t i=0; i<edge.size(); ++i) // The edge array can grow
@@ -1419,36 +1424,36 @@ namespace lsp
             tmp.swap(this);
             tmp.clear();
 
-            RT_TRACE_BREAK(this,
-                lsp_trace("Split space with plane %d", int(i));
-
-                lsp_trace("In context is YELLOW (%d triangles)", int(this->triangle.size()));
-                for (size_t j=0,n= this->triangle.size(); j<n; ++j)
-                {
-                    rt_triangle_t *t =  this->triangle.get(j);
-                    shared->view->add_triangle_1c(t, &C_YELLOW);
-                }
-
-                if (out[i] != NULL)
-                {
-                    lsp_trace("Out context %d is RED (%d triangles)", int(i), int(out[i]->triangle.size()));
-                    for (size_t j=0,n=out[i]->triangle.size(); j<n; ++j)
-                    {
-                        rt_triangle_t *t =  out[i]->triangle.get(j);
-                        shared->view->add_triangle_1c(t, &C_RED);
-                    }
-                }
-
-                if (on != NULL)
-                {
-                    lsp_trace("On context is CYAN (%d triangles)", int(on->triangle.size()));
-                    for (size_t j=0,n=on->triangle.size(); j<n; ++j)
-                    {
-                        rt_triangle_t *t =  on->triangle.get(j);
-                        shared->view->add_triangle_1c(t, &C_CYAN);
-                    }
-                }
-            );
+//            RT_TRACE_BREAK(this,
+//                lsp_trace("Split space with plane %d", int(i));
+//
+//                lsp_trace("In context is YELLOW (%d triangles)", int(this->triangle.size()));
+//                for (size_t j=0,n= this->triangle.size(); j<n; ++j)
+//                {
+//                    rt_triangle_t *t =  this->triangle.get(j);
+//                    shared->view->add_triangle_1c(t, &C_YELLOW);
+//                }
+//
+//                if (out[i] != NULL)
+//                {
+//                    lsp_trace("Out context %d is RED (%d triangles)", int(i), int(out[i]->triangle.size()));
+//                    for (size_t j=0,n=out[i]->triangle.size(); j<n; ++j)
+//                    {
+//                        rt_triangle_t *t =  out[i]->triangle.get(j);
+//                        shared->view->add_triangle_1c(t, &C_RED);
+//                    }
+//                }
+//
+//                if (on != NULL)
+//                {
+//                    lsp_trace("On context is CYAN (%d triangles)", int(on->triangle.size()));
+//                    for (size_t j=0,n=on->triangle.size(); j<n; ++j)
+//                    {
+//                        rt_triangle_t *t =  on->triangle.get(j);
+//                        shared->view->add_triangle_1c(t, &C_CYAN);
+//                    }
+//                }
+//            );
 
 
             // Try to obtain new 'current' triangle
@@ -1520,6 +1525,11 @@ namespace lsp
         return res;
     }
 
+    void rt_context_t::debug(rt_context_t *ctx)
+    {
+        lsp_trace("Triggered debug on step=%d", int(ctx->shared->step));
+    }
+
     status_t rt_context_t::cutoff(rt_context_t *out, rt_context_t *in)
     {
         static const ssize_t in_itags[] = { 0, 1 };
@@ -1556,7 +1566,7 @@ namespace lsp
         if (ct == NULL)
             return STATUS_OK;
 
-        dsp::calc_oriented_plane_pv(&pl, &view.s, view.p);
+        dsp::calc_oriented_plane_p3(&pl, &view.s, ct->v[0], ct->v[1], ct->v[2]);
 
         RT_TRACE_BREAK(this,
             lsp_trace("Prepare cutoff (%d triangles)", int(triangle.size()));
@@ -1568,6 +1578,7 @@ namespace lsp
             }
             shared->view->add_plane_3pn1c(ct->v[0], ct->v[1], ct->v[2], &pl, &C_MAGENTA);
         );
+//        RT_CALL_DEBUGGER(this, 182);
 
         // Estimate co-location of vertexes and plane
         for (size_t i=0, n=vertex.size(); i<n; ++i)

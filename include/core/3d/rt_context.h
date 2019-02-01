@@ -48,6 +48,9 @@ namespace lsp
             Allocator3D<rt_edge_t>      edge;       // Collection of edges
             Allocator3D<rt_triangle_t>  triangle;   // Collection of triangles
 
+        private:
+            void debug(rt_context_t *ctx);
+
         public:
             // Construction/destruction
             explicit rt_context_t(rt_shared_t *shared);
