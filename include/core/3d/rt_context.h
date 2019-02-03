@@ -62,10 +62,13 @@ namespace lsp
 
         protected:
             static int      compare_triangles(const void *p1, const void *p2);
+            static float    calc_area(const rt_view_t *v);
 
             static status_t arrange_triangle(rt_triangle_t *ct, rt_edge_t *e);
             static bool     unlink_edge(rt_edge_t *e, rt_vertex_t *v);
             static bool     unlink_triangle(rt_triangle_t *t, rt_edge_t *e);
+            static bool     match_face(rt_edge_t *e, ssize_t face_id);
+            /*static */bool     check_face(rt_triangle_t *ct, rt_edge_t *e);
 
             bool            validate_list(rt_vertex_t *v);
             bool            validate_list(rt_edge_t *e);
@@ -73,6 +76,7 @@ namespace lsp
             static ssize_t  linked_count(rt_triangle_t *t, rt_edge_t *e);
             bool            check_crossing(rt_triangle_t *ct, rt_triangle_t *st);
             rt_triangle_t  *find_cullback_triangle();
+
 
             status_t        split_edge(rt_edge_t* e, rt_vertex_t* sp);
             status_t        split_edges(const vector3d_t *pl);

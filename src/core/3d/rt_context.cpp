@@ -26,6 +26,7 @@ namespace lsp
         view.l[0]       = -1.0f;
         view.l[1]       = -1.0f;
         view.l[2]       = -1.0f;
+        view.area       = 0.0f;
     }
     
     rt_context_t::~rt_context_t()
@@ -48,9 +49,10 @@ namespace lsp
         view.p[1]   = *p1;
         view.p[2]   = *p2;
 
-        view.l[0]   = dsp::calc_sqr_distance_p2(p0, p1);
-        view.l[1]   = dsp::calc_sqr_distance_p2(p1, p2);
-        view.l[2]   = dsp::calc_sqr_distance_p2(p0, p2);
+        view.l[0]   = dsp::calc_distance_p2(p0, p1);
+        view.l[1]   = dsp::calc_distance_p2(p1, p2);
+        view.l[2]   = dsp::calc_distance_p2(p0, p2);
+        view.area   = calc_area(&view);
     }
 
     void rt_context_t::init_view(const point3d_t *sp, const point3d_t *pv)
@@ -60,9 +62,10 @@ namespace lsp
         view.p[1]   = pv[1];
         view.p[2]   = pv[2];
 
-        view.l[0]   = dsp::calc_sqr_distance_pv(&pv[0]);
-        view.l[1]   = dsp::calc_sqr_distance_pv(&pv[1]);
-        view.l[2]   = dsp::calc_sqr_distance_p2(&pv[0], &pv[2]);
+        view.l[0]   = dsp::calc_distance_pv(&pv[0]);
+        view.l[1]   = dsp::calc_distance_pv(&pv[1]);
+        view.l[2]   = dsp::calc_distance_p2(&pv[0], &pv[2]);
+        view.area   = calc_area(&view);
     }
 
     void rt_context_t::clear()
@@ -794,6 +797,12 @@ namespace lsp
         return (x > DSP_3D_TOLERANCE) ? 1 : 0;
     }
 
+    float rt_context_t::calc_area(const rt_view_t *v)
+    {
+        float p     = 0.5f * (v->l[0] + v->l[1] + v->l[2]); // Semi-permeter
+        return sqrtf(p * (p - v->l[0]) * (p - v->l[1]) * (p - v->l[2]));
+    }
+
     status_t rt_context_t::sort()
     {
         // Compute number of triangles
@@ -1447,12 +1456,15 @@ namespace lsp
         }
 
         // Now we can fetch triangles
+        float l     = dsp::calc_distance_p2(&view.p[2], &sp);
         if (out != NULL)
         {
             out->view       = this->view;
             out->view.p[0]  = sp;
             out->view.l[0] *= 0.5f;
-            out->state      = S_CULL_BACK;
+            out->view.l[2]  = l;
+            out->view.area  = calc_area(&out->view);
+            out->state      = (out->view.area >= 0.0001f) ? S_CULL_BACK : S_IGNORE;
             res             = fetch_triangles_safe(out, 1);
             if (res != STATUS_OK)
                 return res;
@@ -1461,7 +1473,9 @@ namespace lsp
         // Update self state
         view.p[1]       = sp;
         view.l[0]      *= 0.5f;
-        state           = S_CULL_BACK;
+        view.l[1]       = l;
+        view.area       = calc_area(&view);
+        state           = (view.area >= 0.0001f) ? S_CULL_BACK : S_IGNORE;
         res             = fetch_triangles_safe(&in, 0);
         if (res != STATUS_OK)
             return res;
@@ -1498,6 +1512,66 @@ namespace lsp
         return STATUS_OK;
     }
 
+    bool rt_context_t::match_face(rt_edge_t *e, ssize_t face_id)
+    {
+        for (rt_triangle_t *ct = e->vt; ct != NULL; )
+        {
+            if (ct->face == face_id)
+                return true;
+
+            if (ct->e[0] == e)
+                ct  = ct->elnk[0];
+            else if (ct->e[1] == e)
+                ct  = ct->elnk[1];
+            else if (ct->e[2] == e)
+                ct  = ct->elnk[2];
+        }
+        return false;
+    }
+
+    bool rt_context_t::check_face(rt_triangle_t *ct, rt_edge_t *e)
+    {
+        if (!(e->itag & RT_EF_PLANE))
+            return false;
+
+        rt_edge_t *ce   = e;
+        rt_edge_t *ne;
+        rt_vertex_t *cv = e->v[0];
+
+//        lsp_trace("start edge=%p, start vertex=%p[%d]", ce, cv, 0);
+//        RT_CALL_DEBUGGER(this, 403);
+        cvector<rt_edge_t> path;
+
+        while (true)
+        {
+            // Analyze edge list
+            for (ne = cv->ve; ne != NULL; ne = (ne->v[0] == cv) ? ne->vlnk[0] : ne->vlnk[1])
+            {
+                if (!(ne->itag & RT_EF_PLANE)) // Check that edge has proper tag
+                    continue;
+                else if (ne == ce)
+                    continue;
+                else if (path.index_of(ne) >= 0)//(ne == e)
+                    return true;
+
+                // Check that edge lays on the proper face
+                if (match_face(ne, ct->face))
+                    break;
+            }
+            if (!path.add(ce))
+                return false;
+            if (ne == NULL)
+                return false;
+
+            // Change current edge
+            ce      = ne;
+            cv      = (ne->v[0] == cv) ? ne->v[1] : ne->v[0];
+
+//            lsp_trace("new edge=%p (start=%p, v[0]=%p, v[1]=%p), new vertex=%p[%d]",
+//                    ne, e, e->v[0], e->v[1], cv, int(ce->v[1] == cv));
+        }
+    }
+
     rt_triangle_t *rt_context_t::find_cullback_triangle()
     {
         size_t nt = triangle.size();
@@ -1529,10 +1603,17 @@ namespace lsp
         }
 
         // Find co-planar triangles
-        size_t it = 0;
-        for ( ;it < nt; ++it)
+        for (size_t i=0; i < nt; ++i)
         {
-            if (it)
+            rt_triangle_t *st = triangle.get(i);
+            if (st->itag > 0) // skip 'current' and 'out' faces
+                continue;
+            if (check_face(st, st->e[0]))
+                return st;
+            if (check_face(st, st->e[1]))
+                return st;
+            if (check_face(st, st->e[2]))
+                return st;
         }
 
         return NULL;
@@ -1607,6 +1688,7 @@ namespace lsp
                 rt_triangle_t *st   = triangle.get(i);
                 if (st->face == ct->face)
                 {
+                    st->itag            = 2; // Mark as current
                     st->v[0]->itag      = 1;
                     st->v[1]->itag      = 1;
                     st->v[2]->itag      = 1;
@@ -1725,6 +1807,24 @@ namespace lsp
                 }
 
                 shared->view->add_plane_sp3p1c(&view.s, ct->v[0], ct->v[1], ct->v[2], &C_YELLOW);
+            );
+
+            RT_TRACE_BREAK(this,
+                lsp_trace("Prepare cullback (%d triangles)", int(triangle.size()));
+
+                for (size_t i=0,n=triangle.size(); i<n; ++i)
+                {
+                    rt_triangle_t *st = triangle.get(i);
+                    if (st->itag > 0)
+                        continue;
+                    shared->view->add_triangle_1c(triangle.get(i), &C_YELLOW);
+                }
+
+                for (size_t i=0,n=edge.size(); i<n; ++i)
+                {
+                    rt_edge_t *se = edge.get(i);
+                    shared->view->add_segment(se, (se->itag & RT_EF_PLANE) ? &C_GREEN : &C_RED);
+                }
             );
 
             // Fetch new cull-back triangle
@@ -1857,16 +1957,16 @@ namespace lsp
             }
 
             // Determine co-location of plane and vertexes
-            for (size_t i=0, n=vertex.size(); i<n; ++i)
+            for (size_t j=0, n=vertex.size(); j<n; ++j)
             {
-                rt_vertex_t *v  = vertex.get(i);
+                rt_vertex_t *v  = vertex.get(j);
                 float t         = v->x*pl.dx + v->y*pl.dy + v->z*pl.dz + pl.dw;
                 v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
             }
 
             // Reset all temporary flags of edges
-            for (size_t i=0, n=edge.size(); i<n; ++i)
-                edge.get(i)->itag &= ~RT_EF_TEMP; // Clear temporary flags
+            for (size_t j=0, n=edge.size(); j<n; ++j)
+                edge.get(j)->itag &= ~RT_EF_TEMP; // Clear temporary flags
 
             // Mark current edge as processed and laying on the split plane
             se->itag       |= RT_EF_PLANE | RT_EF_PROCESSED;
@@ -1894,9 +1994,9 @@ namespace lsp
 //            );
 
             // Perform split of edges
-            for (size_t i=0; i<edge.size(); ++i) // The edge array can grow
+            for (size_t j=0; j<edge.size(); ++j) // The edge array can grow
             {
-                rt_edge_t *e    = edge.get(i);
+                rt_edge_t *e    = edge.get(j);
                 if (e->itag & RT_EF_PROCESSED) // Skip already splitted eges
                     continue;
 
@@ -1950,9 +2050,9 @@ namespace lsp
             )
 
             // Toggle state of all triangles
-            for (size_t i=0, n=triangle.size(); i<n; ++i)
+            for (size_t j=0, n=triangle.size(); j<n; ++j)
             {
-                rt_triangle_t  *st  = triangle.get(i);
+                rt_triangle_t  *st  = triangle.get(j);
                 size_t intag     = (st->itag == -1) ? 0 : 1;
                 size_t outtag    = (st->itag == -1) ? 2 : 3;
 
@@ -2084,6 +2184,60 @@ namespace lsp
     void rt_context_t::debug(rt_context_t *ctx)
     {
         lsp_trace("Triggered debug on step=%d", int(ctx->shared->step));
+
+        float min_x, min_y, max_x, max_y;
+
+        for (size_t i=0, n=vertex.size(); i<n; ++i)
+        {
+            rt_vertex_t *v = vertex.get(i);
+            if (v->z < -1.5f)
+                continue;
+
+            if (i == 0)
+            {
+                min_x   = v->x;
+                min_y   = v->y;
+                max_x   = v->x;
+                max_y   = v->y;
+                continue;
+            }
+            if (min_x > v->x)
+                min_x = v->x;
+            if (max_x < v->x)
+                max_x = v->x;
+            if (min_y > v->y)
+                min_y = v->y;
+            if (max_y < v->y)
+                max_y = v->y;
+        }
+
+        lsp_trace("edge dump:");
+        printf("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
+        printf("<svg width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\" xmlns=\"http://www.w3.org/2000/svg\">\n",
+                int((max_x - min_x) * 10000000.0f),
+                int((max_y - min_y) * 10000000.0f),
+                int((max_x - min_x) * 10000000.0f),
+                int((max_y - min_y) * 10000000.0f)
+        );
+        for (size_t i=0, n=edge.size(); i<n; ++i)
+        {
+            rt_edge_t *ce = edge.get(i);
+            if (ce->v[0]->z < -1.5f)
+                continue;
+
+            printf("\t<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\" stroke=\"%s\" stroke-width=\"2\" />\n",
+                    (ce->v[0]->x-min_x)*10000000.0f, (ce->v[0]->y-min_y)*10000000.0f,
+                    (ce->v[1]->x-min_x)*10000000.0f, (ce->v[1]->y-min_y)*10000000.0f,
+                    (ce->itag & RT_EF_PLANE) ? "blue" : "grey"
+                    );
+//            if (!(ce->itag & RT_EF_PLANE))
+//            {
+//                printf("%f,%f,%f\n", ce->v[0]->x, ce->v[0]->y, ce->v[0]->z);
+//                printf("%f,%f,%f\n", ce->v[1]->x, ce->v[1]->y, ce->v[1]->z);
+//            }
+        }
+        printf("</svg>\n");
+        lsp_trace("End of dump");
     }
 
     status_t rt_context_t::cutoff(rt_context_t *out, rt_context_t *in)
@@ -2753,8 +2907,9 @@ namespace lsp
         matrix3d_t *m   = obj->matrix();
 
 //        lsp_trace("Processing object \"%s\"", obj->get_name());
-        size_t start_t = triangle.size();
-        size_t start_e = edge.size();
+        size_t start_t  = triangle.size();
+        size_t start_e  = edge.size();
+        size_t face_id  = triangle.size();
 
         // Clone triangles and apply object matrix to vertexes
         for (size_t i=0, n=obj->num_triangles(); i<n; ++i)
@@ -2775,7 +2930,8 @@ namespace lsp
             dt->elnk[2] = NULL;
             dt->ptag    = st;
             dt->itag    = 0;
-            dt->face    = st->face;
+//            dt->face    = st->face;
+            dt->face    = face_id++; // Generate face identifier
             st->ptag    = dt;
 
 //            lsp_trace("Link rt_triangle[%p] to obj_triangle[%p]", dt, st);

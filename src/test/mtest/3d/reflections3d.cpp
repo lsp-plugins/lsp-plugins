@@ -31,7 +31,7 @@
 #ifndef TEST_DEBUG
 //    #define BREAKPOINT_STEP     -1
     #define BREAKPOINT_STEP     0
-//    #define BREAKPOINT_STEP     181
+//    #define BREAKPOINT_STEP     231
 
     #define INIT_FRONT(front) \
         dsp::init_point_xyz(&front.p[0], 0.0f, 1.0f, 0.0f); \
