@@ -899,6 +899,8 @@ namespace lsp
             out->clear();
         if (in != NULL)
             in->clear();
+        if (on != NULL)
+            on->clear();
 
         // Is there data for processing ?
         if (triangle.size() <= 0)
@@ -977,10 +979,10 @@ namespace lsp
             }
         }
 
-        RT_TRACE(
+//        RT_TRACE(
             if (!validate())
                 return STATUS_CORRUPTED;
-        )
+//        )
 
         // Toggle state of all triangles
         for (size_t i=0, n=triangle.size(); i<n; ++i)
@@ -1009,14 +1011,16 @@ namespace lsp
         if (res != STATUS_OK)
             return res;
 
-        RT_TRACE(
+//        RT_TRACE(
             if (!in->validate())
                 return STATUS_CORRUPTED;
             if (!out->validate())
                 return STATUS_CORRUPTED;
+            if (!on->validate())
+                return STATUS_CORRUPTED;
             if (!validate())
                 return STATUS_CORRUPTED;
-        )
+//        )
 
         return STATUS_OK;
     }

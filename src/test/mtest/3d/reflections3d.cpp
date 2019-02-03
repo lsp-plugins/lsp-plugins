@@ -824,7 +824,7 @@ namespace mtest
             if (res != STATUS_OK)
                 return res;
 
-            RT_TRACE(
+//            RT_TRACE(
                 if (!ctx->shared->scene->validate())
                     return STATUS_CORRUPTED;
                 if (!ctx->validate())
@@ -834,6 +834,7 @@ namespace mtest
                 if (!on.validate())
                     return STATUS_BAD_STATE;
 
+            RT_TRACE(
                 // Add set of triangles to ignored
                 for (size_t j=0,n=out.triangle.size(); j<n; ++j)
                     ctx->ignore(out.triangle.get(j));
