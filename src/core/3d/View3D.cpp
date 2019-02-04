@@ -465,6 +465,11 @@ namespace lsp
         return true;
     }
 
+    void View3D::add_view_1c(const rt_view_t *v, const color3d_t *c)
+    {
+        add_view_3c(v, c, c, c);
+    }
+
     /**
      * Add context view
      * @param v context view to add

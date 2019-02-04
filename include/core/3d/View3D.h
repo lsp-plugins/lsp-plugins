@@ -134,6 +134,8 @@ namespace lsp
              * Add context view
              * @param v context view to add
              */
+            void add_view_1c(const rt_view_t *v, const color3d_t *c);
+
             void add_view_3c(const rt_view_t *v, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2);
 
             /**

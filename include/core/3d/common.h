@@ -179,13 +179,6 @@ namespace lsp
 
 #pragma pack(pop)
 
-#pragma pack(push, 1)
-    typedef struct raw_triangle_t
-    {
-        point3d_t   p[3];
-    } raw_triangle_t;
-#pragma pack(pop)
-
 #ifdef LSP_DEBUG
     extern const color3d_t C_RED;
     extern const color3d_t C_GREEN;

@@ -105,6 +105,11 @@ typedef struct tetra3d_t
     vector3d_t          n[3];           // Three normals for planes formed by three rays
 } tetra3d_t;
 
+typedef struct raw_triangle_t
+{
+    point3d_t           p[3];
+} raw_triangle_t;
+
 #pragma pack(pop)
 
 #endif /* DSP_COMMON_3DMATH_TYPES_H_ */

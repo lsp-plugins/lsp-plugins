@@ -845,6 +845,16 @@ namespace dsp
     extern float (* calc_min_distance_p3)(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
 
     /**
+     * Estimate the average distance to triangle
+     * @param sp projection point
+     * @param p0 point 0 of triangle
+     * @param p1 point 1 of triangle
+     * @param p2 point 2 of triangle
+     * @return average distance
+     */
+    extern float (* calc_avg_distance_p3)(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+
+    /**
      * Compute distance between two pointes
      * @param p1 point 1
      * @param p2 point 2
@@ -882,6 +892,27 @@ namespace dsp
      * @param pl vector containing plane equation
      */
     extern void  (* calc_split_point_p2v1)(point3d_t *ip, const point3d_t *l0, const point3d_t *l1, const vector3d_t *pl);
+
+    /**
+     * Split raw triangle with plane, generates output set of triangles into out (triangles above split plane)
+     * and in (triangles below split plane). For every triangle, points 1 and 2 are the points that
+     * lay on the split plane, the first triangle ALWAYS has 2 common points with plane (1 and 2)
+     *
+     * @param out array of vertexes above plane
+     * @param n_out counter of vertexes above plane (multiple of 3), should be initialized
+     * @param in array of vertexes below plane
+     * @param n_in counter of vertexes below plane (multiple of 3), should be initialized
+     * @param pl plane equation
+     * @param pv triangle to perform the split
+     */
+    extern void  (* split_triangle_raw)(
+            raw_triangle_t *out,
+            size_t *n_out,
+            raw_triangle_t *in,
+            size_t *n_in,
+            const vector3d_t *pl,
+            const raw_triangle_t *pv
+        );
 } // dsp
 
 #endif /* DSP_COMMON_3DMATH_H_ */

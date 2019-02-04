@@ -95,6 +95,7 @@ namespace lsp
             void            dump_triangle_list(size_t lvl, rt_triangle_t *t);
 
             void            rearrange_view();
+            static bool     rearrange_triangle(rt_triangle_t *t);
 
             status_t        binary_split_edges(const vector3d_t *pl);
 
@@ -157,6 +158,13 @@ namespace lsp
              * @return status of operation
              */
             status_t        split(rt_context_t *out, rt_context_t *on);
+
+            /**
+             * Perform context splitting by the non-cutting edge of the first triangle in the list, keep the inside content
+             * @param dst destination storage
+             * @return status of operation
+             */
+            status_t        edge_split(cvector<rt_context_t> &dst);
 
             /**
              * Perform binary-split of the context space while keeping one of the parts

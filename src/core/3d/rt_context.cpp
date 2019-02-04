@@ -791,7 +791,7 @@ namespace lsp
         const rt_triangle_sort_t *t1 = reinterpret_cast<const rt_triangle_sort_t *>(p1);
         const rt_triangle_sort_t *t2 = reinterpret_cast<const rt_triangle_sort_t *>(p2);
 
-        float x = t2->w - t1->w;
+        float x = t1->w - t2->w;
         if (x < -DSP_3D_TOLERANCE)
             return -1;
         return (x > DSP_3D_TOLERANCE) ? 1 : 0;
@@ -820,11 +820,11 @@ namespace lsp
         for (size_t i=0; i<nt; ++i)
         {
             rt_triangle_t *ct = triangle.get(i);
-            float d     = dsp::calc_min_distance_p3(&view.s, ct->v[0], ct->v[1], ct->v[2]); // User reverse distance: the far locations should give lesser values
+            float d     = dsp::calc_avg_distance_p3(&view.s, ct->v[0], ct->v[1], ct->v[2]); // User reverse distance: the far locations should give lesser values
 //            float a     = dsp::calc_area_p3(ct->v[0], ct->v[1], ct->v[2]);
 
             vt[i].t     = ct;
-            vt[i].w     = 1.0f / d; //sqrtf(1.0f/(d*d) + a); // Finding balance between distance and area
+            vt[i].w     = d; //sqrtf(1.0f/(d*d) + a); // Finding balance between distance and area
         }
 
         RT_TRACE_BREAK(this,
@@ -838,7 +838,7 @@ namespace lsp
 
             for (size_t i=0; i<nt; ++i)
             {
-                c.r = float(nt + 1 - i)/nt;
+                c.r = float(nt - i)/nt;
                 shared->view->add_triangle_1c(vt[i].t, &c);
             }
             free(vt);
@@ -858,7 +858,7 @@ namespace lsp
 
             for (size_t i=0; i<nt; ++i)
             {
-                c.g = float(nt + 1 - i)/nt;
+                c.g = float(nt - i)/nt;
                 shared->view->add_triangle_1c(vt[i].t, &c);
             }
             free(vt);
@@ -1290,6 +1290,276 @@ namespace lsp
         if (res == STATUS_OK)
             tmp.swap(this);
         return res;
+    }
+
+    status_t rt_context_t::edge_split(cvector<rt_context_t> &dst)
+    {
+        // Is there data for processing ?
+        if (triangle.size() <= 1)
+        {
+            state   = S_REFLECT;
+            return STATUS_OK;
+        }
+
+        // Find edge to apply split
+        vector3d_t pl;
+        rt_triangle_t *ct = NULL;
+        status_t res;
+
+        for (size_t i=0, n=triangle.size(); i<n; ++i)
+        {
+            rt_triangle_t *st = triangle.get(i);
+            if (rearrange_triangle(st))
+            {
+                ct  = st;
+                break;
+            }
+        }
+        if (ct == NULL)
+            return STATUS_OK;
+
+        // Perform split
+        dsp::calc_oriented_plane_p3(&pl, ct->v[2], &view.s, ct->v[0], ct->v[1]);
+
+        RT_TRACE_BREAK(this,
+            lsp_trace("Prepare split with edge (%d triangles)", int(triangle.size()));
+
+            for (size_t i=0,n=triangle.size(); i<n; ++i)
+            {
+                rt_triangle_t *t = triangle.get(i);
+                shared->view->add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
+            }
+            shared->view->add_plane_3pn1c(&view.s, ct->v[0], ct->v[1], &pl, &C_MAGENTA);
+
+            for (size_t i=0,n=edge.size(); i<n; ++i)
+            {
+                rt_edge_t *e = edge.get(i);
+                shared->view->add_segment(e, (e->itag & RT_EF_PLANE) ? &C_GREEN : &C_RED);
+            }
+        );
+
+        // Do the split
+        rt_context_t in(shared), out(shared), ign(shared);
+        res = split(&out, &ign, &in, &pl);
+        if (res != STATUS_OK)
+            return res;
+
+        // Now perform split of view
+        size_t n_in = 0, n_out = 0;
+        raw_triangle_t vin[2], vout[2], src;
+        rt_context_t *ctin[2], *ctout[2], *ctign;
+        src.p[0]    = view.p[0];
+        src.p[1]    = view.p[1];
+        src.p[2]    = view.p[2];
+
+        dsp::split_triangle_raw(vout, &n_out, vin, &n_in, &pl, &src);
+        ctin[0]     = NULL;
+        ctin[1]     = NULL;
+        ctout[0]    = NULL;
+        ctout[1]    = NULL;
+        ctign       = NULL;
+
+        if ((n_out > 0) && (in.triangle.size() > 0))
+        {
+            if (n_out >= 2)
+            {
+                // Allocate additional context
+                ctout[1] = new rt_context_t(shared);
+                if (ctout[1] == NULL)
+                    return STATUS_NO_MEM;
+                else if (!dst.add(ctout[1]))
+                {
+                    delete ctout[1];
+                    return STATUS_NO_MEM;
+                }
+
+                // Perform additional split
+                dsp::calc_plane_p3(&pl, &view.s, &vout[1].p[2], &vout[1].p[1]);
+                res     = out.split(ctout[1], &ign, &pl);
+                if (res != STATUS_OK)
+                    return res;
+
+                // Set context state
+                ctout[1]->init_view(&view.s, vout[1].p);
+                if ((ctout[1]->triangle.size() < 1) || (ctout[1]->view.area < 1e-5f))
+                    ctout[1]->state     = S_IGNORE;
+                else if (ctout[1]->triangle.size() > 1)
+                    ctout[1]->state     = S_CULL_BACK;
+                else
+                    ctout[1]->state     = S_REFLECT;
+            }
+
+            ctout[0] = new rt_context_t(shared);
+            if (ctout[0] == NULL)
+                return STATUS_NO_MEM;
+            else if (!dst.add(ctout[0]))
+            {
+                delete ctout[0];
+                return STATUS_NO_MEM;
+            }
+            ctout[0]->init_view(&view.s, vout[0].p);
+            ctout[0]->swap(&out);
+
+            if ((ctout[0]->triangle.size() < 1) || (ctout[0]->view.area < 1e-5f))
+                ctout[0]->state     = S_IGNORE;
+            else if (ctout[0]->triangle.size() > 1)
+                ctout[0]->state     = S_CULL_BACK;
+            else
+                ctout[0]->state     = S_REFLECT;
+        }
+
+        if ((n_in > 0) && (in.triangle.size() > 0))
+        {
+            if (n_in >= 2)
+            {
+                // Allocate additional context
+                ctin[1] = new rt_context_t(shared);
+                if (ctin[1] == NULL)
+                    return STATUS_NO_MEM;
+                else if (!dst.add(ctin[1]))
+                {
+                    delete ctin[1];
+                    return STATUS_NO_MEM;
+                }
+
+                // Perform additional split
+                dsp::calc_plane_p3(&pl, &view.s, &vin[1].p[2], &vin[1].p[1]);
+                res     = in.split(ctin[1], &ign, &pl);
+                if (res != STATUS_OK)
+                    return res;
+
+                // Set context state
+                ctin[1]->init_view(&view.s, vin[1].p);
+                if ((ctin[1]->triangle.size() < 1) || (ctin[1]->view.area <= 1e-5f))
+                    ctin[1]->state      = S_IGNORE;
+                else if (ctin[1]->triangle.size() > 1)
+                    ctin[1]->state      = S_CULL_BACK;
+                else
+                    ctin[1]->state      = S_REFLECT;
+            }
+
+            ctin[0] = new rt_context_t(shared);
+            if (ctin[0] == NULL)
+                return STATUS_NO_MEM;
+            else if (!dst.add(ctin[0]))
+            {
+                delete ctin[0];
+                return STATUS_NO_MEM;
+            }
+            ctin[0]->init_view(&view.s, vin[0].p);
+            ctin[0]->swap(&in);
+
+            if ((ctin[0]->triangle.size() < 1) || (ctin[0]->view.area < 1e-5f))
+                ctin[0]->state      = S_IGNORE;
+            else if (ctin[0]->triangle.size() > 1)
+                ctin[0]->state      = S_CULL_BACK;
+            else
+                ctin[0]->state      = S_REFLECT;
+        }
+
+        if (ign.triangle.size() > 0)
+        {
+            ctign = new rt_context_t(shared);
+            if (ctign == NULL)
+                return STATUS_NO_MEM;
+            else if (!dst.add(ctign))
+            {
+                delete ctign;
+                return STATUS_NO_MEM;
+            }
+            ctign->view       = view;
+            ctign->state      = S_IGNORE;
+            ctign->swap(&ign);
+        }
+
+        RT_TRACE_BREAK(this,
+            lsp_trace("Prepare split with edge result in[0]=GREEN, in[1]=BLUE, out[0]=RED, out[1]=MAGENTA, ign=CYAN");
+
+            if (ctin[0] != NULL)
+            {
+                for (size_t i=0,n=ctin[0]->triangle.size(); i<n; ++i)
+                    shared->view->add_triangle_1c(ctin[0]->triangle.get(i), &C_GREEN);
+                shared->view->add_view_1c(&ctin[0]->view, &C_GREEN);
+            }
+            lsp_trace("Prepare split with edge result in[0]=GREEN, in[1]=BLUE, out[0]=RED, out[1]=MAGENTA, ign=CYAN");
+            if (ctin[1] != NULL)
+            {
+                for (size_t i=0,n=ctin[1]->triangle.size(); i<n; ++i)
+                    shared->view->add_triangle_1c(ctin[1]->triangle.get(i), &C_BLUE);
+                shared->view->add_view_1c(&ctin[1]->view, &C_BLUE);
+            }
+            lsp_trace("Prepare split with edge result in[0]=GREEN, in[1]=BLUE, out[0]=RED, out[1]=MAGENTA, ign=CYAN");
+            if (ctout[0] != NULL)
+            {
+                for (size_t i=0,n=ctout[0]->triangle.size(); i<n; ++i)
+                    shared->view->add_triangle_1c(ctout[0]->triangle.get(i), &C_RED);
+                shared->view->add_view_1c(&ctout[0]->view, &C_RED);
+            }
+            lsp_trace("Prepare split with edge result in[0]=GREEN, in[1]=BLUE, out[0]=RED, out[1]=MAGENTA, ign=CYAN");
+            if (ctout[1] != NULL)
+            {
+                for (size_t i=0,n=ctout[1]->triangle.size(); i<n; ++i)
+                    shared->view->add_triangle_1c(ctout[1]->triangle.get(i), &C_MAGENTA);
+                shared->view->add_view_1c(&ctout[1]->view, &C_MAGENTA);
+            }
+            lsp_trace("Prepare split with edge result in[0]=GREEN, in[1]=BLUE, out[0]=RED, out[1]=MAGENTA, ign=CYAN");
+            if (ctign != NULL)
+            {
+                for (size_t i=0,n=ctign->triangle.size(); i<n; ++i)
+                    shared->view->add_triangle_1c(ctign->triangle.get(i), &C_CYAN);
+//                shared->view->add_view_1c(&ctign->view, &C_MAGENTA);
+            }
+        );
+
+        return STATUS_OK;
+    }
+
+    bool rt_context_t::rearrange_triangle(rt_triangle_t *t)
+    {
+        rt_vertex_t *tv;
+        rt_edge_t *te;
+        rt_triangle_t *tt;
+
+        if (!(t->e[0]->itag & RT_EF_PLANE))
+            return true;
+        else if (!(t->e[1]->itag & RT_EF_PLANE)) // Rotate clockwise
+        {
+            tv          = t->v[0];
+            t->v[0]     = t->v[1];
+            t->v[1]     = t->v[2];
+            t->v[2]     = tv;
+
+            te          = t->e[0];
+            t->e[0]     = t->e[1];
+            t->e[1]     = t->e[2];
+            t->e[2]     = te;
+
+            tt          = t->elnk[0];
+            t->elnk[0]  = t->elnk[1];
+            t->elnk[1]  = t->elnk[2];
+            t->elnk[2]  = tt;
+        }
+        else if (!(t->e[2]->itag & RT_EF_PLANE)) // Rotate counter-clockwise
+        {
+            tv          = t->v[2];
+            t->v[2]     = t->v[1];
+            t->v[1]     = t->v[0];
+            t->v[0]     = tv;
+
+            te          = t->e[2];
+            t->e[2]     = t->e[1];
+            t->e[1]     = t->e[0];
+            t->e[0]     = te;
+
+            tt          = t->elnk[2];
+            t->elnk[2]  = t->elnk[1];
+            t->elnk[1]  = t->elnk[0];
+            t->elnk[0]  = tt;
+        }
+        else
+            return false;
+
+        return true;
     }
 
     void rt_context_t::rearrange_view()
