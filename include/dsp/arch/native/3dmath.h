@@ -2240,6 +2240,26 @@ namespace native
         v->dw       = - ( v->dx * pv[0].x + v->dy * pv[0].y + v->dz * pv[0].z); // Parameter for the plane equation
     }
 
+    void calc_plane_v1p2(vector3d_t *v, const vector3d_t *v0, const point3d_t *p0, const point3d_t *p1)
+    {
+        vector3d_t d;
+
+        d.dx        = p1->x - p0->x;
+        d.dy        = p1->y - p0->y;
+        d.dz        = p1->z - p0->z;
+        d.dw        = p1->w - p0->w;
+
+        // Do vector multiplication to calculate the normal vector
+        v->dx       = d.dy*v0->dz - d.dz*v0->dy;
+        v->dy       = d.dz*v0->dx - d.dx*v0->dz;
+        v->dz       = d.dx*v0->dy - d.dy*v0->dx;
+        v->dw       = 0.0f;
+
+        dsp::normalize_vector(v); // TODO: remove it
+
+        v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
+    }
+
     void calc_oriented_plane_p3(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
     {
         // Calculate edge parameters

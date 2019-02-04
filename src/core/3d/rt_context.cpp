@@ -820,11 +820,25 @@ namespace lsp
         for (size_t i=0; i<nt; ++i)
         {
             rt_triangle_t *ct = triangle.get(i);
-            float d     = dsp::calc_avg_distance_p3(&view.s, ct->v[0], ct->v[1], ct->v[2]); // User reverse distance: the far locations should give lesser values
-//            float a     = dsp::calc_area_p3(ct->v[0], ct->v[1], ct->v[2]);
+//            float d     = dsp::calc_avg_distance_p3(&view.s, ct->v[0], ct->v[1], ct->v[2]); // User reverse distance: the far locations should give lesser values
+//            float a     = 1.0f / dsp::calc_area_p3(ct->v[0], ct->v[1], ct->v[2]);
+            point3d_t c;
+            c.x         = (ct->v[0]->x + ct->v[1]->x + ct->v[2]->x) / 3.0f;
+            c.y         = (ct->v[0]->y + ct->v[1]->y + ct->v[2]->y) / 3.0f;
+            c.z         = (ct->v[0]->z + ct->v[1]->z + ct->v[2]->z) / 3.0f;
+            c.w         = 1.0f;
+
+            vector3d_t d;
+            d.dx        = view.s.x - c.x;
+            d.dx        = view.s.y - c.y;
+            d.dx        = view.s.z - c.z;
+            d.dz        = 0.0f;
+
+            dsp::normalize_vector(&d);
 
             vt[i].t     = ct;
-            vt[i].w     = d; //sqrtf(1.0f/(d*d) + a); // Finding balance between distance and area
+            vt[i].w     = - (ct->n.dx * d.dx + ct->n.dy * d.dy + ct->n.dz * d.dz);
+            //sqrtf(d*d + a); // Finding balance between distance and area
         }
 
         RT_TRACE_BREAK(this,
@@ -887,6 +901,91 @@ namespace lsp
         swap(&tmp);
         free(vt);
 
+        return STATUS_OK;
+    }
+
+    status_t rt_context_t::remove_conflicts()
+    {
+        status_t res;
+        vector3d_t pl;
+        vector3d_t spl[3]; // Scissor planes
+        float k[3];
+        ssize_t l[3];
+
+        for (size_t i=0; i<triangle.size()-1; ++i)
+        {
+            rt_triangle_t *t1 = triangle.get(i);
+            dsp::calc_plane_p3(&pl, t1->v[0], t1->v[1], t1->v[2]);
+            dsp::calc_plane_v1p2(&spl[0], t1->v[0], t1->v[1]);
+            dsp::calc_plane_v1p2(&spl[1], t1->v[1], t1->v[2]);
+            dsp::calc_plane_v1p2(&spl[2], t1->v[2], t1->v[0]);
+
+            // Estimate location of each vertex relative to the plane
+            for (size_t j=0,n=vertex.size(); j<n; ++j)
+            {
+                rt_vertex_t *cv = vertex.get(j);
+                float k = cv->x * pl.dx + cv->y * pl.dy + cv->z*pl.dz + pl.dw;
+                cv->itag = (k < -DSP_3D_TOLERANCE) ? -1 : (k > DSP_3D_TOLERANCE) ? 1 : 0;
+            }
+
+            // Split each edge with triangle
+            for (size_t j=0,n=edge.size(); j<n; ++j)
+            {
+                rt_edge_t *ce   = edge.get(j);
+                ssize_t x1      = ce->v[0]->itag;
+                ssize_t x2      = ce->v[1]->itag;
+
+                // Ensure that edge intersects the plane
+                if ((x1 <= 0) && (x2 <= 0))
+                    continue;
+                else if ((x1 >= 0) && (x2 >=0))
+                    continue;
+
+                // But now we need to check that intersection point lays on the triangle
+                rt_vertex_t sp, *spp;
+                dsp::calc_split_point_p2v1(&sp, ce->v[0], ce->v[1], &pl);
+
+                k[0]        = sp.x*spl[0].dx + sp.y*spl[0].dy + sp.z*spl[0].dz + spl[0].dw;
+                k[1]        = sp.x*spl[1].dx + sp.y*spl[1].dy + sp.z*spl[1].dz + spl[1].dw;
+                k[2]        = sp.x*spl[2].dx + sp.y*spl[2].dy + sp.z*spl[2].dz + spl[2].dw;
+
+                l[0]        = (k[0] <= -DSP_3D_TOLERANCE) ? -1 : (k[0] > DSP_3D_TOLERANCE) ? 1 : 0;
+                l[1]        = (k[1] <= -DSP_3D_TOLERANCE) ? -1 : (k[1] > DSP_3D_TOLERANCE) ? 1 : 0;
+                l[2]        = (k[2] <= -DSP_3D_TOLERANCE) ? -1 : (k[2] > DSP_3D_TOLERANCE) ? 1 : 0;
+
+                if ((l[0] < 0) || (l[1] < 0) || (l[2] < 0)) // Point is outside of the triangle
+                    continue;
+                else if ((l[0] == 0) && (l[1] == 0)) // Point lays on the vertex 1
+                    continue;
+                else if ((l[1] == 0) && (l[2] == 0)) // Point lays on the vertex 2
+                    continue;
+                else if ((l[2] == 0) && (l[0] == 0)) // Point lays on the vertex 0
+                    continue;
+
+                sp.itag     = 0;
+                sp.ptag     = NULL;
+                sp.ve       = NULL;
+
+                // Allocate split point and triangle
+                spp         = vertex.alloc(&sp);
+                if (spp == NULL)
+                    return STATUS_NO_MEM;
+
+                if (l[0] == 0) // Split point lays on edge 0
+                    res = split_edge(t1->e[0], spp);
+                else if (l[1] == 0)
+                    res = split_edge(t1->e[1], spp);
+                else if (l[2] == 0)
+                    res = split_edge(t1->e[1], spp);
+                else
+                    res = split_triangle(t1, spp);
+                if (res == STATUS_OK)
+                    res = split_edge(ce, spp);
+
+                if (res != STATUS_OK)
+                    return res;
+            }
+        }
         return STATUS_OK;
     }
 
@@ -1381,7 +1480,7 @@ namespace lsp
 
                 // Set context state
                 ctout[1]->init_view(&view.s, vout[1].p);
-                if ((ctout[1]->triangle.size() < 1) || (ctout[1]->view.area < 1e-5f))
+                if ((ctout[1]->triangle.size() < 1) || (ctout[1]->view.area < 1e-3f))
                     ctout[1]->state     = S_IGNORE;
                 else if (ctout[1]->triangle.size() > 1)
                     ctout[1]->state     = S_CULL_BACK;
@@ -1400,7 +1499,7 @@ namespace lsp
             ctout[0]->init_view(&view.s, vout[0].p);
             ctout[0]->swap(&out);
 
-            if ((ctout[0]->triangle.size() < 1) || (ctout[0]->view.area < 1e-5f))
+            if ((ctout[0]->triangle.size() < 1) || (ctout[0]->view.area < 1e-3f))
                 ctout[0]->state     = S_IGNORE;
             else if (ctout[0]->triangle.size() > 1)
                 ctout[0]->state     = S_CULL_BACK;
@@ -1430,7 +1529,7 @@ namespace lsp
 
                 // Set context state
                 ctin[1]->init_view(&view.s, vin[1].p);
-                if ((ctin[1]->triangle.size() < 1) || (ctin[1]->view.area <= 1e-5f))
+                if ((ctin[1]->triangle.size() < 1) || (ctin[1]->view.area <= 1e-3f))
                     ctin[1]->state      = S_IGNORE;
                 else if (ctin[1]->triangle.size() > 1)
                     ctin[1]->state      = S_CULL_BACK;
@@ -1449,7 +1548,7 @@ namespace lsp
             ctin[0]->init_view(&view.s, vin[0].p);
             ctin[0]->swap(&in);
 
-            if ((ctin[0]->triangle.size() < 1) || (ctin[0]->view.area < 1e-5f))
+            if ((ctin[0]->triangle.size() < 1) || (ctin[0]->view.area < 1e-3f))
                 ctin[0]->state      = S_IGNORE;
             else if (ctin[0]->triangle.size() > 1)
                 ctin[0]->state      = S_CULL_BACK;

@@ -143,6 +143,12 @@ namespace lsp
             status_t        sort();
 
             /**
+             * Remove conflicts between triangles
+             * @return status of operation
+             */
+            status_t        remove_conflicts();
+
+            /**
              * Perform binary-partitioning of the space using one of the non-processed edges
              * @param out context for outside data (above the plane)
              * @param on context for matched data (on the plane)

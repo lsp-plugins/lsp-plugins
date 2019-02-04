@@ -806,6 +806,15 @@ namespace dsp
     extern void (* calc_plane_pv)(vector3d_t *v, const point3d_t *pv);
 
     /**
+     * Compute plane equation using vector and two points
+     * @param v vector to store plane equation
+     * @param v0 vector
+     * @param p0 point 0
+     * @param p1 point 1
+     */
+    extern void (* calc_plane_v1p2)(vector3d_t *v, const vector3d_t *v0, const point3d_t *p0, const point3d_t *p1) = NULL;
+
+    /**
      * Compute plane equation using three points and set the proper direction so the orienting point is always 'below'
      * the plane
      * @param v pointer to store plane equation

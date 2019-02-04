@@ -764,11 +764,11 @@ namespace mtest
                     res = cull_view(tasks, ctx);
                     break;
                 case S_SPLIT:
-                    res = ctx->edge_split(tasks);
-                    delete ctx;
-                    ctx = NULL;
+//                    res = ctx->edge_split(tasks);
+//                    delete ctx;
+//                    ctx = NULL;
+                    res = split_view(tasks, ctx);
 //                    res = split_view(tasks, ctx);
-//                    res = dump_view(tasks, ctx);
                     break;
                 case S_CULL_BACK:
                     res = cullback_view(tasks, ctx);
