@@ -1008,7 +1008,7 @@ namespace lsp
             {
                 rt_vertex_t *cv = vertex.get(j);
                 float k = cv->x * pl.dx + cv->y * pl.dy + cv->z*pl.dz + pl.dw;
-                cv->itag = (k < -DSP_3D_TOLERANCE) ? -1 : (k > DSP_3D_TOLERANCE) ? 1 : 0;
+                cv->itag = (k < -DSP_3D_TOLERANCE) ? 2 : (k > DSP_3D_TOLERANCE) ? 0 : 1;
             }
 
             // Split each edge with triangle, do not process new edges
@@ -1019,52 +1019,62 @@ namespace lsp
                 ssize_t x2      = ce->v[1]->itag;
 
                 // Ensure that edge intersects the plane
-                if ((x1 <= 0) && (x2 <= 0))
+                if ((x1 <= 1) && (x2 <= 1))
                     continue;
-                else if ((x1 >= 0) && (x2 >=0))
+                else if ((x1 >= 1) && (x2 >=1))
                     continue;
 
                 // But now we need to check that intersection point lays on the triangle
                 rt_vertex_t sp, *spp;
                 dsp::calc_split_point_p2v1(&sp, ce->v[0], ce->v[1], &pl);
+                sp.itag     = 0;
+                sp.ptag     = NULL;
+                sp.ve       = NULL;
 
                 k[0]        = sp.x*spl[0].dx + sp.y*spl[0].dy + sp.z*spl[0].dz + spl[0].dw;
                 k[1]        = sp.x*spl[1].dx + sp.y*spl[1].dy + sp.z*spl[1].dz + spl[1].dw;
                 k[2]        = sp.x*spl[2].dx + sp.y*spl[2].dy + sp.z*spl[2].dz + spl[2].dw;
 
-                l[0]        = (k[0] <= -DSP_3D_TOLERANCE) ? -1 : (k[0] > DSP_3D_TOLERANCE) ? 1 : 0;
-                l[1]        = (k[1] <= -DSP_3D_TOLERANCE) ? -1 : (k[1] > DSP_3D_TOLERANCE) ? 1 : 0;
-                l[2]        = (k[2] <= -DSP_3D_TOLERANCE) ? -1 : (k[2] > DSP_3D_TOLERANCE) ? 1 : 0;
+                l[0]        = (k[0] <= -DSP_3D_TOLERANCE) ? 2 : (k[0] > DSP_3D_TOLERANCE) ? 0 : 1;
+                l[1]        = (k[1] <= -DSP_3D_TOLERANCE) ? 2 : (k[1] > DSP_3D_TOLERANCE) ? 0 : 1;
+                l[2]        = (k[2] <= -DSP_3D_TOLERANCE) ? 2 : (k[2] > DSP_3D_TOLERANCE) ? 0 : 1;
 
-                if ((l[0] < 0) || (l[1] < 0) || (l[2] < 0)) // Point is outside of the triangle
-                    continue;
-                else if ((l[0] == 0) && (l[1] == 0)) // Point lays on the vertex 1
-                    continue;
-                else if ((l[1] == 0) && (l[2] == 0)) // Point lays on the vertex 2
-                    continue;
-                else if ((l[2] == 0) && (l[0] == 0)) // Point lays on the vertex 0
-                    continue;
+                switch ((l[0]) | (l[1] << 2) | (l[2] << 4))
+                {
+                    case 0x1a: // Point lays on edge 2
+                        spp         = vertex.alloc(&sp);
+                        if (spp == NULL)
+                            return STATUS_NO_MEM;
+                        res = split_edge(t1->e[2], spp);
+                        break;
 
-                sp.itag     = 0;
-                sp.ptag     = NULL;
-                sp.ve       = NULL;
+                    case 0x26: // Point lays on edge 1
+                        spp         = vertex.alloc(&sp);
+                        if (spp == NULL)
+                            return STATUS_NO_MEM;
+                        res = split_edge(t1->e[1], spp);
+                        break;
 
-                // Allocate split point and triangle
-                spp         = vertex.alloc(&sp);
-                if (spp == NULL)
-                    return STATUS_NO_MEM;
+                    case 0x29: // Point lays on edge 0
+                        spp         = vertex.alloc(&sp);
+                        if (spp == NULL)
+                            return STATUS_NO_MEM;
+                        res = split_edge(t1->e[0], spp);
+                        break;
 
-                if (l[0] == 0) // Split point lays on edge 0
-                    res = split_edge(t1->e[0], spp);
-                else if (l[1] == 0)
-                    res = split_edge(t1->e[1], spp);
-                else if (l[2] == 0)
-                    res = split_edge(t1->e[1], spp);
-                else
-                    res = split_triangle(t1, spp);
+                    case 0x2a: // Point lays inside of the triangle
+                        spp         = vertex.alloc(&sp);
+                        if (spp == NULL)
+                            return STATUS_NO_MEM;
+                        res = split_triangle(t1, spp);
+                        break;
+
+                    default: // Point is not crossing triangle or lays on it's edge
+                        continue;
+                }
+
                 if (res == STATUS_OK)
                     res = split_edge(ce, spp);
-
                 if (res != STATUS_OK)
                     return res;
 
