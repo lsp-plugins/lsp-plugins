@@ -1095,7 +1095,7 @@ namespace lsp
                             res = split_edge(ce, spp);
                         break;
 
-                    default: // Point is not crossing triangle or lays on it's edge
+                    default: // Point is not crossing triangle
                         continue;
                 }
 
