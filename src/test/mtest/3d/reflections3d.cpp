@@ -536,82 +536,9 @@ namespace mtest
 
     status_t cull_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
-        status_t res;
-        vector3d_t pl[4]; // Split plane
-        RT_TRACE(v_triangle3d_t npt[4]); // Split plane presentation
-
-        RT_TRACE(
-            // Split edges
-            if (!ctx->validate())
-                return STATUS_BAD_STATE;
-            if (!ctx->shared->scene->validate())
-                return STATUS_CORRUPTED;
-        )
-
-        dsp::calc_plane_p3(&pl[0], &ctx->view.p[0], &ctx->view.p[1], &ctx->view.p[2]);
-        dsp::calc_plane_p3(&pl[1], &ctx->view.s, &ctx->view.p[0], &ctx->view.p[1]);
-        dsp::calc_plane_p3(&pl[2], &ctx->view.s, &ctx->view.p[1], &ctx->view.p[2]);
-        dsp::calc_plane_p3(&pl[3], &ctx->view.s, &ctx->view.p[2], &ctx->view.p[0]);
-
-        RT_TRACE(
-            init_triangle_p3(&npt[0], &ctx->view.p[0], &ctx->view.p[1], &ctx->view.p[2], &pl[0]);
-            init_triangle_p3(&npt[1], &ctx->view.s, &ctx->view.p[0], &ctx->view.p[1], &pl[1]);
-            init_triangle_p3(&npt[2], &ctx->view.s, &ctx->view.p[1], &ctx->view.p[2], &pl[2]);
-            init_triangle_p3(&npt[3], &ctx->view.s, &ctx->view.p[2], &ctx->view.p[0], &pl[3]);
-        );
-
-        RT_TRACE(
-            rt_context_t out(ctx->shared), on(ctx->shared);
-        )
-
-        for (size_t pi=0; pi<4; ++pi)
-        {
-            RT_TRACE_BREAK(ctx,
-                lsp_trace("Culling space with view plane #%d", int(pi));
-
-                for (size_t j=0, n=ctx->triangle.size(); j<n; ++j)
-                   ctx->shared->view->add_triangle_1c(ctx->triangle.get(j), &C_DARKGREEN);
-
-                ctx->shared->view->add_triangle_pv1c(ctx->view.p, &C_MAGENTA);
-                ctx->shared->view->add_plane_pv1c(npt[pi].p, &C_YELLOW);
-            )
-
-#ifdef LSP_DEBUG
-            res = ctx->split(&out, &on, &pl[pi]);
-#else
-            res = ctx->split(NULL, NULL, &pl[pi]);
-#endif /* LSP_DEBUG */
-            if (res != STATUS_OK)
-                return res;
-
-//            RT_TRACE(
-                if (!ctx->shared->scene->validate())
-                    return STATUS_CORRUPTED;
-                if (!ctx->validate())
-                    return STATUS_BAD_STATE;
-                if (!out.validate())
-                    return STATUS_BAD_STATE;
-                if (!on.validate())
-                    return STATUS_BAD_STATE;
-
-            RT_TRACE(
-                // Add set of triangles to ignored
-                for (size_t j=0,n=out.triangle.size(); j<n; ++j)
-                    ctx->ignore(out.triangle.get(j));
-                for (size_t j=0,n=on.triangle.size(); j<n; ++j)
-                    ctx->ignore(on.triangle.get(j));
-            );
-
-            RT_TRACE_BREAK(ctx,
-                lsp_trace("Data after culling (%d triangles)", int(ctx->triangle.size()));
-                for (size_t j=0,n=ctx->triangle.size(); j<n; ++j)
-                    ctx->shared->view->add_triangle_3c(ctx->triangle.get(j), &C_CYAN, &C_MAGENTA, &C_YELLOW);
-            );
-
-            // Check that there is data for processing and take it for next iteration
-            if (ctx->triangle.size() <= 0)
-                break;
-        }
+        status_t res = ctx->cull_view();
+        if (res != STATUS_OK)
+            return res;
 
         // Change state and submit to queue
         if (ctx->triangle.size() <= 1)
@@ -625,10 +552,12 @@ namespace mtest
         }
         else
         {
-            ctx->state      = S_CULL_BACK;
+            // Re-sort triangles
             res     = ctx->sort();
             if (res != STATUS_OK)
                 return res;
+
+            ctx->state      = S_SPLIT;
         }
 
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
@@ -816,6 +745,8 @@ MTEST_BEGIN("3d", reflections)
             ssize_t         nTrace;
             bool            bBoundBoxes;
             bool            bDrawFront;
+            bool            bDrawMatched;
+            bool            bDrawIgnored;
 
         public:
             explicit Renderer(Scene3D *scene, View3D *view): X11Renderer(view)
@@ -823,6 +754,8 @@ MTEST_BEGIN("3d", reflections)
                 pScene = scene;
                 bBoundBoxes = false;
                 bDrawFront  = true;
+                bDrawMatched = true;
+                bDrawIgnored = true;
                 nTrace = BREAKPOINT_STEP;
 
                 INIT_FRONT(sFront);
@@ -929,6 +862,20 @@ MTEST_BEGIN("3d", reflections)
                         break;
                     }
 
+                    case 'm':
+                    {
+                        bDrawMatched = ! bDrawMatched;
+                        update_view();
+                        break;
+                    }
+
+                    case 'i':
+                    {
+                        bDrawIgnored = ! bDrawIgnored;
+                        update_view();
+                        break;
+                    }
+
                     case '0': case '1': case '2': case '3': case '4':
                     case '5': case '6': case '7': case '8': case '9':
                     {
@@ -1022,25 +969,31 @@ MTEST_BEGIN("3d", reflections)
                     return STATUS_BAD_STATE;
 
                 // Build final scene from matched and ignored items
-                for (size_t i=0, m=global.ignored.size(); i < m; ++i)
-                    pView->add_triangle_1c(global.ignored.at(i), &C_GRAY);
-
-                for (size_t i=0, m=global.matched.size(); i < m; ++i)
+                if (bDrawIgnored)
                 {
-                    v_triangle3d_t *t = global.matched.at(i);
-                    v[0].p     = t->p[0];
-                    v[0].n     = t->n[0];
-                    v[0].c     = C_RED;
+                    for (size_t i=0, m=global.ignored.size(); i < m; ++i)
+                        pView->add_triangle_1c(global.ignored.at(i), &C_GRAY);
+                }
 
-                    v[1].p     = t->p[1];
-                    v[1].n     = t->n[1];
-                    v[1].c     = C_GREEN;
+                if (bDrawMatched)
+                {
+                    for (size_t i=0, m=global.matched.size(); i < m; ++i)
+                    {
+                        v_triangle3d_t *t = global.matched.at(i);
+                        v[0].p     = t->p[0];
+                        v[0].n     = t->n[0];
+                        v[0].c     = C_RED;
 
-                    v[2].p     = t->p[2];
-                    v[2].n     = t->n[2];
-                    v[2].c     = C_BLUE;
+                        v[1].p     = t->p[1];
+                        v[1].n     = t->n[1];
+                        v[1].c     = C_GREEN;
 
-                    pView->add_triangle(v);
+                        v[2].p     = t->p[2];
+                        v[2].n     = t->n[2];
+                        v[2].c     = C_BLUE;
+
+                        pView->add_triangle(v);
+                    }
                 }
 
                 global.ignored.flush();

@@ -1152,21 +1152,85 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t rt_context_t::split(rt_context_t *out, rt_context_t *on, rt_context_t *in, const vector3d_t *pl)
+    status_t rt_context_t::cull_view()
+    {
+        vector3d_t pl[4]; // Split plane
+        status_t res;
+
+        dsp::calc_plane_p3(&pl[0], &view.p[0], &view.p[1], &view.p[2]);
+        dsp::calc_plane_p3(&pl[1], &view.s, &view.p[0], &view.p[1]);
+        dsp::calc_plane_p3(&pl[2], &view.s, &view.p[1], &view.p[2]);
+        dsp::calc_plane_p3(&pl[3], &view.s, &view.p[2], &view.p[0]);
+
+        RT_TRACE(
+            rt_context_t out(shared), on(shared);
+        )
+
+        RT_TRACE_BREAK(this,
+            lsp_trace("Culling space with planes (%d triangles)", int(triangle.size()));
+
+            for (size_t j=0, n=triangle.size(); j<n; ++j)
+               shared->view->add_triangle_1c(triangle.get(j), &C_DARKGREEN);
+
+            shared->view->add_plane_3pn1c(&view.p[0], &view.p[1], &view.p[2], &pl[0], &C_YELLOW);
+            shared->view->add_plane_3pn1c(&view.s, &view.p[0], &view.p[1], &pl[1], &C_RED);
+            shared->view->add_plane_3pn1c(&view.s, &view.p[1], &view.p[2], &pl[2], &C_GREEN);
+            shared->view->add_plane_3pn1c(&view.s, &view.p[2], &view.p[0], &pl[3], &C_BLUE);
+        )
+
+        for (size_t pi=0; pi<4; ++pi)
+        {
+#ifdef LSP_DEBUG
+            res = split(&out, &on, &pl[pi]);
+#else
+            res = split(NULL, NULL, &pl[pi]);
+#endif /* LSP_DEBUG */
+            if (res != STATUS_OK)
+                return res;
+
+            RT_TRACE(
+                // Split edges
+                if (!out.validate())
+                    return STATUS_CORRUPTED;
+                if (!on.validate())
+                    return STATUS_CORRUPTED;
+
+                // Add set of triangles to ignored
+                for (size_t j=0,n=out.triangle.size(); j<n; ++j)
+                    ignore(out.triangle.get(j));
+                for (size_t j=0,n=on.triangle.size(); j<n; ++j)
+                    ignore(on.triangle.get(j));
+            )
+
+            // Check that there is data for processing and take it for next iteration
+            if (triangle.size() <= 0)
+                break;
+        }
+
+        RT_TRACE_BREAK(this,
+            lsp_trace("Data after culling (%d triangles)", int(triangle.size()));
+            for (size_t j=0,n=triangle.size(); j<n; ++j)
+                shared->view->add_triangle_3c(triangle.get(j), &C_CYAN, &C_MAGENTA, &C_YELLOW);
+        );
+
+        return STATUS_OK;
+    }
+
+    status_t rt_context_t::split(rt_context_t *out, rt_context_t *on, const vector3d_t *pl)
     {
         status_t res;
 
         // Always clear target context before proceeding
         if (out != NULL)
             out->clear();
-        if (in != NULL)
-            in->clear();
         if (on != NULL)
             on->clear();
 
         // Is there data for processing ?
         if (triangle.size() <= 0)
             return STATUS_OK;
+
+        rt_context_t in(shared);
 
         // State of itag for vertex:
         //  0   = vertex lays over the plane
@@ -1263,7 +1327,7 @@ namespace lsp
         }
 
         // Now we can fetch triangles
-        res    = fetch_triangles_safe(in, 0);
+        res    = fetch_triangles_safe(&in, 0);
         if (res != STATUS_OK)
             return res;
         res    = fetch_triangles_safe(out, 1);
@@ -1273,8 +1337,8 @@ namespace lsp
         if (res != STATUS_OK)
             return res;
 
-//        RT_TRACE(
-            if (!in->validate())
+        RT_TRACE(
+            if (!in.validate())
                 return STATUS_CORRUPTED;
             if (!out->validate())
                 return STATUS_CORRUPTED;
@@ -1282,17 +1346,21 @@ namespace lsp
                 return STATUS_CORRUPTED;
             if (!validate())
                 return STATUS_CORRUPTED;
-//        )
+        )
 
+        this->swap(&in);
         return STATUS_OK;
     }
 
-    status_t rt_context_t::split(rt_context_t *out, rt_context_t *on, const vector3d_t *pl)
+    status_t rt_context_t::split(rt_context_t *out, rt_context_t *on, rt_context_t *in, const vector3d_t *pl)
     {
-        rt_context_t tmp(shared);
-        status_t res = split(out, on, &tmp, pl);
-        if (res == STATUS_OK)
-            tmp.swap(this);
+        status_t res = split(out, on, pl);
+        if ((res == STATUS_OK) && (in != NULL))
+        {
+            in->swap(this);
+            in->view    = view;
+            in->state   = state;
+        }
         return res;
     }
 

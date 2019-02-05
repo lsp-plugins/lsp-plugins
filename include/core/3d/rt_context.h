@@ -30,8 +30,8 @@ namespace lsp
     {
         S_SCAN_OBJECTS,
         S_CULL_VIEW,
-//        S_FILTER_VIEW,
         S_SPLIT,
+
         S_CULL_BACK,
         S_REFLECT,
         S_IGNORE
@@ -148,6 +148,12 @@ namespace lsp
              * @return status of operation
              */
             status_t        solve_conflicts();
+
+            /**
+             * Cull all triangles that do not match the view
+             * @return status of operation
+             */
+            status_t        cull_view();
 
             /**
              * Perform binary-partitioning of the space using one of the non-processed edges
