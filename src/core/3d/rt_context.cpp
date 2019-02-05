@@ -416,7 +416,7 @@ namespace lsp
             e->vlnk[0]      = e->v[0]->ve;
             e->vlnk[1]      = e->v[1]->ve;
             e->v[0]->ve     = e;
-            e->v[0]->ve     = e;
+            e->v[1]->ve     = e;
         }
 
         // Allocate additional triangles
@@ -473,6 +473,8 @@ namespace lsp
             ct->e[1]->vt    = ct;
             ct->e[2]->vt    = ct;
         }
+
+        return STATUS_OK;
     }
 
     status_t rt_context_t::split_edges(const vector3d_t *pl)
@@ -995,13 +997,28 @@ namespace lsp
         float k[3];
         ssize_t l[3];
 
-        for (size_t i=0; i<triangle.size()-1; ++i)
+        for (size_t i=0; i<triangle.size(); ++i)
         {
-            rt_triangle_t *t1 = triangle.get(i);
-            dsp::calc_plane_p3(&pl, t1->v[0], t1->v[1], t1->v[2]);
-            dsp::calc_plane_v1p2(&spl[0], t1->v[0], t1->v[1]);
-            dsp::calc_plane_v1p2(&spl[1], t1->v[1], t1->v[2]);
-            dsp::calc_plane_v1p2(&spl[2], t1->v[2], t1->v[0]);
+            rt_triangle_t *ct = triangle.get(i);
+            dsp::calc_plane_p3(&pl, ct->v[0], ct->v[1], ct->v[2]);
+            dsp::calc_plane_v1p2(&spl[0], &pl, ct->v[0], ct->v[1]);
+            dsp::calc_plane_v1p2(&spl[1], &pl, ct->v[1], ct->v[2]);
+            dsp::calc_plane_v1p2(&spl[2], &pl, ct->v[2], ct->v[0]);
+
+            RT_TRACE_BREAK(this,
+                lsp_trace("Solving conflicts for triangle %d/%d", int(i), int(triangle.size()));
+
+                for (size_t i=0,n=triangle.size(); i<n; ++i)
+                {
+                    rt_triangle_t *t = triangle.get(i);
+                    shared->view->add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
+                }
+
+                shared->view->add_plane_3pn1c(ct->v[0], ct->v[1], ct->v[2], &pl, &C_MAGENTA);
+                shared->view->add_plane_2pn1c(ct->v[0], ct->v[1], &spl[0], &C_RED);
+                shared->view->add_plane_2pn1c(ct->v[1], ct->v[2], &spl[1], &C_GREEN);
+                shared->view->add_plane_2pn1c(ct->v[2], ct->v[0], &spl[2], &C_BLUE);
+            )
 
             // Estimate location of each vertex relative to the plane
             for (size_t j=0,n=vertex.size(); j<n; ++j)
@@ -1015,6 +1032,29 @@ namespace lsp
             for (size_t j=0,n=edge.size(); j<n; ++j)
             {
                 rt_edge_t *ce   = edge.get(j);
+                if ((ce == ct->e[0]) || (ce == ct->e[1]) || (ce == ct->e[2]))
+                    continue;
+
+                RT_TRACE_BREAK(this,
+                    lsp_trace("Solving conflicts for triangle %d/%d, edge %d/%d",
+                                int(i), int(triangle.size()),
+                                int(j), int(n)
+                    );
+
+                    for (size_t i=0,n=triangle.size(); i<n; ++i)
+                    {
+                        rt_triangle_t *t = triangle.get(i);
+                        shared->view->add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
+                    }
+
+                    shared->view->add_plane_3pn1c(ct->v[0], ct->v[1], ct->v[2], &pl, &C_MAGENTA);
+                    shared->view->add_plane_2pn1c(ct->v[0], ct->v[1], &spl[0], &C_MAGENTA);
+                    shared->view->add_plane_2pn1c(ct->v[1], ct->v[2], &spl[1], &C_MAGENTA);
+                    shared->view->add_plane_2pn1c(ct->v[2], ct->v[0], &spl[2], &C_MAGENTA);
+
+                    shared->view->add_segment(ce, &C_GREEN);
+                )
+
                 ssize_t x1      = ce->v[0]->itag;
                 ssize_t x2      = ce->v[1]->itag;
 
@@ -1042,19 +1082,19 @@ namespace lsp
                 switch ((l[0]) | (l[1] << 2) | (l[2] << 4))
                 {
                     case 0x16: // Point matches edges 1 and 2 (vertex 2)
-                        res     = split_edge(ce, t1->v[2]); // Need to perform only split of crossing edge
+                        res     = split_edge(ce, ct->v[2]); // Need to perform only split of crossing edge
                         if (res != STATUS_OK)
                             return res;
                         continue;
 
                     case 0x19: // Point matches edges 0 and 2 (vertex 0)
-                        res     = split_edge(ce, t1->v[0]); // Need to perform only split of crossing edge
+                        res     = split_edge(ce, ct->v[0]); // Need to perform only split of crossing edge
                         if (res != STATUS_OK)
                             return res;
                         continue;
 
                     case 0x25: // Point matches edges 0 and 1 (vertex 1)
-                        res     = split_edge(ce, t1->v[1]); // Need to perform only split of crossing edge
+                        res     = split_edge(ce, ct->v[1]); // Need to perform only split of crossing edge
                         if (res != STATUS_OK)
                             return res;
                         continue;
@@ -1063,7 +1103,7 @@ namespace lsp
                         spp         = vertex.alloc(&sp);
                         if (spp == NULL)
                             return STATUS_NO_MEM;
-                        res     = split_edge(t1->e[2], spp);
+                        res     = split_edge(ct->e[2], spp);
                         if (res == STATUS_OK)
                             res = split_edge(ce, spp);
                         break;
@@ -1072,7 +1112,7 @@ namespace lsp
                         spp         = vertex.alloc(&sp);
                         if (spp == NULL)
                             return STATUS_NO_MEM;
-                        res     = split_edge(t1->e[1], spp);
+                        res     = split_edge(ct->e[1], spp);
                         if (res == STATUS_OK)
                             res = split_edge(ce, spp);
                         break;
@@ -1081,7 +1121,7 @@ namespace lsp
                         spp         = vertex.alloc(&sp);
                         if (spp == NULL)
                             return STATUS_NO_MEM;
-                        res     = split_edge(t1->e[0], spp);
+                        res     = split_edge(ct->e[0], spp);
                         if (res == STATUS_OK)
                             res = split_edge(ce, spp);
                         break;
@@ -1090,7 +1130,7 @@ namespace lsp
                         spp         = vertex.alloc(&sp);
                         if (spp == NULL)
                             return STATUS_NO_MEM;
-                        res     = split_triangle(t1, spp);
+                        res     = split_triangle(ct, spp);
                         if (res == STATUS_OK)
                             res = split_edge(ce, spp);
                         break;
@@ -1104,9 +1144,9 @@ namespace lsp
                     return res;
 
                 // Current triangle's structure has been modified, update split planes' equations
-                dsp::calc_plane_v1p2(&spl[0], t1->v[0], t1->v[1]);
-                dsp::calc_plane_v1p2(&spl[1], t1->v[1], t1->v[2]);
-                dsp::calc_plane_v1p2(&spl[2], t1->v[2], t1->v[0]);
+                dsp::calc_plane_v1p2(&spl[0], &pl, ct->v[0], ct->v[1]);
+                dsp::calc_plane_v1p2(&spl[1], &pl, ct->v[1], ct->v[2]);
+                dsp::calc_plane_v1p2(&spl[2], &pl, ct->v[2], ct->v[0]);
             }
         }
         return STATUS_OK;

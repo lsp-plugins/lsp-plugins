@@ -121,7 +121,7 @@ namespace lsp
              * @param c color
              * @return status of operation
              */
-            bool add_segment(const rt_vertex_t *p1, const rt_vertex_t *p2, const color3d_t *c);
+            bool add_segment(const point3d_t *p1, const point3d_t *p2, const color3d_t *c);
 
             /**
              * Add triangle to scene
@@ -179,6 +179,8 @@ namespace lsp
             bool add_plane_3p1c(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const color3d_t *c);
 
             bool add_plane_3pn1c(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const vector3d_t *n, const color3d_t *c);
+
+            void add_plane_2pn1c(const point3d_t *p1, const point3d_t *p2, const vector3d_t *n, const color3d_t *c);
 
             bool add_plane_sp3p1c(const point3d_t *sp, const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const color3d_t *c);
 

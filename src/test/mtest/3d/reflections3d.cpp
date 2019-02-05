@@ -447,6 +447,10 @@ namespace mtest
             return STATUS_CORRUPTED;
 #endif /* LSP_DEBUG */
 
+        res = ctx->solve_conflicts();
+        if (res != STATUS_OK)
+            return res;
+
         // Update state
         ctx->state      = S_CULL_VIEW;
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;

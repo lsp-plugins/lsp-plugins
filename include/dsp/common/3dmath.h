@@ -812,7 +812,7 @@ namespace dsp
      * @param p0 point 0
      * @param p1 point 1
      */
-    extern void (* calc_plane_v1p2)(vector3d_t *v, const vector3d_t *v0, const point3d_t *p0, const point3d_t *p1) = NULL;
+    extern void (* calc_plane_v1p2)(vector3d_t *v, const vector3d_t *v0, const point3d_t *p0, const point3d_t *p1);
 
     /**
      * Compute plane equation using three points and set the proper direction so the orienting point is always 'below'

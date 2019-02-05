@@ -74,7 +74,7 @@ namespace lsp
         return vSegments.append(&xs);
     }
 
-    bool View3D::add_segment(const rt_vertex_t *p1, const rt_vertex_t *p2, const color3d_t *c)
+    bool View3D::add_segment(const point3d_t *p1, const point3d_t *p2, const color3d_t *c)
     {
         v_segment3d_t xs;
         xs.p[0]     = *p1;
@@ -282,6 +282,57 @@ namespace lsp
         t[1] = *p2;
         t[2] = *p3;
         return add_plane_pvn1c(t, n, c);
+    }
+
+    void View3D::add_plane_2pn1c(const point3d_t *p1, const point3d_t *p2, const vector3d_t *n, const color3d_t *c)
+    {
+        point3d_t pt[3], xp[3], pb[3];
+        vector3d_t d, v;
+
+        xp[0]       = *p1;
+        xp[1].x     = 0.5f * (p1->x + p2->x);
+        xp[1].y     = 0.5f * (p1->y + p2->y);
+        xp[1].z     = 0.5f * (p1->z + p2->z);
+        xp[1].w     = 1.0f;
+        xp[2]       = *p2;
+
+        v.dx        = p2->x - p1->x;
+        v.dy        = p2->y - p1->y;
+        v.dz        = p2->z - p1->z;
+        v.dw        = 0.0f;
+
+        dsp::calc_normal3d_v2(&d, &v, n);
+
+        for (size_t i=0; i<3; ++i)
+        {
+            pt[i].x     = xp[i].x + 0.5f * d.dx;
+            pt[i].y     = xp[i].y + 0.5f * d.dy;
+            pt[i].z     = xp[i].z + 0.5f * d.dz;
+            pt[i].w     = 1.0f;
+
+            pb[i].x     = xp[i].x - 0.5f * d.dx;
+            pb[i].y     = xp[i].y - 0.5f * d.dy;
+            pb[i].z     = xp[i].z - 0.5f * d.dz;
+            pb[i].w     = 1.0f;
+        }
+
+        add_segment(&pt[0], &pb[0], c);
+        add_segment(&pt[1], &pb[1], c);
+        add_segment(&pt[2], &pb[2], c);
+
+        add_segment(&pt[0], &pt[2], c);
+        add_segment(&xp[0], &xp[2], c);
+        add_segment(&pb[0], &pb[2], c);
+
+        add_segment(&pt[0], &pb[2], c);
+        add_segment(&pt[2], &pb[0], c);
+
+        v_ray3d_t ray;
+        ray.p       = xp[1];
+        ray.v       = *n;
+        ray.v.dw    = 0.0f;
+        ray.c       = *c;
+        add_ray(&ray);
     }
 
     bool View3D::add_plane_sp3p1c(const point3d_t *sp, const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const color3d_t *c)
