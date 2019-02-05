@@ -1041,44 +1041,69 @@ namespace lsp
 
                 switch ((l[0]) | (l[1] << 2) | (l[2] << 4))
                 {
-                    case 0x1a: // Point lays on edge 2
+                    case 0x16: // Point matches edges 1 and 2 (vertex 2)
+                        res     = split_edge(ce, t1->v[2]); // Need to perform only split of crossing edge
+                        if (res != STATUS_OK)
+                            return res;
+                        continue;
+
+                    case 0x19: // Point matches edges 0 and 2 (vertex 0)
+                        res     = split_edge(ce, t1->v[0]); // Need to perform only split of crossing edge
+                        if (res != STATUS_OK)
+                            return res;
+                        continue;
+
+                    case 0x25: // Point matches edges 0 and 1 (vertex 1)
+                        res     = split_edge(ce, t1->v[1]); // Need to perform only split of crossing edge
+                        if (res != STATUS_OK)
+                            return res;
+                        continue;
+
+                    case 0x1a: // Point lays on edge 2, split triangle's edge
                         spp         = vertex.alloc(&sp);
                         if (spp == NULL)
                             return STATUS_NO_MEM;
-                        res = split_edge(t1->e[2], spp);
+                        res     = split_edge(t1->e[2], spp);
+                        if (res == STATUS_OK)
+                            res = split_edge(ce, spp);
                         break;
 
-                    case 0x26: // Point lays on edge 1
+                    case 0x26: // Point lays on edge 1, split triangle's edge
                         spp         = vertex.alloc(&sp);
                         if (spp == NULL)
                             return STATUS_NO_MEM;
-                        res = split_edge(t1->e[1], spp);
+                        res     = split_edge(t1->e[1], spp);
+                        if (res == STATUS_OK)
+                            res = split_edge(ce, spp);
                         break;
 
-                    case 0x29: // Point lays on edge 0
+                    case 0x29: // Point lays on edge 0, split triangle's edge
                         spp         = vertex.alloc(&sp);
                         if (spp == NULL)
                             return STATUS_NO_MEM;
-                        res = split_edge(t1->e[0], spp);
+                        res     = split_edge(t1->e[0], spp);
+                        if (res == STATUS_OK)
+                            res = split_edge(ce, spp);
                         break;
 
-                    case 0x2a: // Point lays inside of the triangle
+                    case 0x2a: // Point lays inside of the triangle, split triangle's edge
                         spp         = vertex.alloc(&sp);
                         if (spp == NULL)
                             return STATUS_NO_MEM;
-                        res = split_triangle(t1, spp);
+                        res     = split_triangle(t1, spp);
+                        if (res == STATUS_OK)
+                            res = split_edge(ce, spp);
                         break;
 
                     default: // Point is not crossing triangle or lays on it's edge
                         continue;
                 }
 
-                if (res == STATUS_OK)
-                    res = split_edge(ce, spp);
+                // Check final result
                 if (res != STATUS_OK)
                     return res;
 
-                // Update split planes' equations
+                // Current triangle's structure has been modified, update split planes' equations
                 dsp::calc_plane_v1p2(&spl[0], t1->v[0], t1->v[1]);
                 dsp::calc_plane_v1p2(&spl[1], t1->v[1], t1->v[2]);
                 dsp::calc_plane_v1p2(&spl[2], t1->v[2], t1->v[0]);
