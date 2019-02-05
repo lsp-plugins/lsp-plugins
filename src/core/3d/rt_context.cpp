@@ -392,6 +392,89 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t rt_context_t::split_triangle(rt_triangle_t* t, rt_vertex_t* sp)
+    {
+        // Unlink triangle from all it's edges
+        unlink_triangle(t, t->e[0]);
+        unlink_triangle(t, t->e[1]);
+        unlink_triangle(t, t->e[2]);
+
+        // Create additional edges and link them to vertexes
+        rt_edge_t *ne[3];
+        for (size_t i=0; i<3; ++i)
+        {
+            rt_edge_t *e    = edge.alloc();
+            if (e == NULL)
+                return STATUS_NO_MEM;
+            ne[i]           = e;
+
+            e->v[0]         = t->v[i];
+            e->v[1]         = sp;
+            e->vt           = NULL;
+            e->ptag         = NULL;
+            e->itag         = 0;
+            e->vlnk[0]      = e->v[0]->ve;
+            e->vlnk[1]      = e->v[1]->ve;
+            e->v[0]->ve     = e;
+            e->v[0]->ve     = e;
+        }
+
+        // Allocate additional triangles
+        rt_triangle_t *nt[3];
+        nt[0]       = triangle.alloc();
+        nt[1]       = triangle.alloc();
+        nt[2]       = t;
+        if ((nt[0] == NULL) || (nt[1] == NULL))
+            return STATUS_NO_MEM;
+
+        // Now bind edges and vertexes to triangles
+        nt[0]->v[0]     = t->v[1];
+        nt[0]->v[1]     = t->v[2];
+        nt[0]->v[2]     = sp;
+        nt[0]->e[0]     = t->e[1];
+        nt[0]->e[1]     = ne[2];
+        nt[0]->e[2]     = ne[1];
+        nt[0]->n        = t->n;
+        nt[0]->ptag     = NULL;
+        nt[0]->itag     = t->itag;
+        nt[0]->face     = t->face;
+
+        nt[1]->v[0]     = t->v[2];
+        nt[1]->v[1]     = t->v[0];
+        nt[1]->v[2]     = sp;
+        nt[1]->e[0]     = t->e[2];
+        nt[1]->e[1]     = ne[0];
+        nt[1]->e[2]     = ne[2];
+        nt[1]->n        = t->n;
+        nt[1]->ptag     = NULL;
+        nt[1]->itag     = t->itag;
+        nt[1]->face     = t->face;
+
+      //nt[2]->v[0]     = t->v[0];
+      //nt[2]->v[1]     = t->v[1];
+        nt[2]->v[2]     = sp;
+      //nt[2]->e[0]     = t->e[0];
+        nt[2]->e[1]     = ne[1];
+        nt[2]->e[2]     = ne[0];
+      //nt[2]->n        = t->n;
+      //nt[2]->ptag     = NULL;
+      //nt[2]->itag     = t->itag;
+      //nt[2]->face     = t->face;
+
+        // Re-link triangles to edges
+        for (size_t i=0; i<3; ++i)
+        {
+            rt_triangle_t *ct   = nt[i];
+
+            ct->elnk[0]     = ct->e[0]->vt;
+            ct->elnk[1]     = ct->e[1]->vt;
+            ct->elnk[2]     = ct->e[2]->vt;
+            ct->e[0]->vt    = ct;
+            ct->e[1]->vt    = ct;
+            ct->e[2]->vt    = ct;
+        }
+    }
+
     status_t rt_context_t::split_edges(const vector3d_t *pl)
     {
         float t;
@@ -904,7 +987,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t rt_context_t::remove_conflicts()
+    status_t rt_context_t::solve_conflicts()
     {
         status_t res;
         vector3d_t pl;
@@ -928,7 +1011,7 @@ namespace lsp
                 cv->itag = (k < -DSP_3D_TOLERANCE) ? -1 : (k > DSP_3D_TOLERANCE) ? 1 : 0;
             }
 
-            // Split each edge with triangle
+            // Split each edge with triangle, do not process new edges
             for (size_t j=0,n=edge.size(); j<n; ++j)
             {
                 rt_edge_t *ce   = edge.get(j);
@@ -984,6 +1067,11 @@ namespace lsp
 
                 if (res != STATUS_OK)
                     return res;
+
+                // Update split planes' equations
+                dsp::calc_plane_v1p2(&spl[0], t1->v[0], t1->v[1]);
+                dsp::calc_plane_v1p2(&spl[1], t1->v[1], t1->v[2]);
+                dsp::calc_plane_v1p2(&spl[2], t1->v[2], t1->v[0]);
             }
         }
         return STATUS_OK;

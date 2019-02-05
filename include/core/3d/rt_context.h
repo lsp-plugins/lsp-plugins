@@ -79,6 +79,7 @@ namespace lsp
 
 
             status_t        split_edge(rt_edge_t* e, rt_vertex_t* sp);
+            status_t        split_triangle(rt_triangle_t* t, rt_vertex_t* sp);
             status_t        split_edges(const vector3d_t *pl);
 
             void            cleanup_tag_pointers();
@@ -146,7 +147,7 @@ namespace lsp
              * Remove conflicts between triangles
              * @return status of operation
              */
-            status_t        remove_conflicts();
+            status_t        solve_conflicts();
 
             /**
              * Perform binary-partitioning of the space using one of the non-processed edges
