@@ -175,9 +175,9 @@ namespace lsp
             /**
              * Perform context splitting by the non-cutting edge of the first triangle in the list, keep the inside content
              * @param dst destination storage
-             * @return status of operation
+             * @return status of operation (STATUS_NOT_FOUND if there is no more edge)
              */
-            status_t        edge_split(cvector<rt_context_t> &dst);
+            status_t        edge_split(rt_context_t *out);
 
             /**
              * Perform binary-split of the context space while keeping one of the parts

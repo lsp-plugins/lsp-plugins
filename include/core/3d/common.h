@@ -107,6 +107,7 @@ namespace lsp
     typedef struct rt_vertex_t: public point3d_t
     {
         rt_edge_t          *ve;         // List of linked edges
+        float               d;          // Distance from point-of-view
         void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
         ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
     } rt_vertex_t;

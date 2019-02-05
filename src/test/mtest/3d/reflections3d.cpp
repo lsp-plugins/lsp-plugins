@@ -551,49 +551,58 @@ namespace mtest
             ctx->state      = S_REFLECT;
         }
         else
-        {
-            // Re-sort triangles
-            res     = ctx->sort();
-            if (res != STATUS_OK)
-                return res;
-
             ctx->state      = S_SPLIT;
-        }
 
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
     status_t split_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
-        rt_context_t *out = new rt_context_t(ctx->shared);
-        if (out == NULL)
-            return STATUS_NO_MEM;
+        rt_context_t out(ctx->shared);
 
         // Perform binary split
-        status_t res = ctx->binary_split(out);
-        if (res != STATUS_OK)
+        status_t res = ctx->edge_split(&out);
+        if (res == STATUS_NOT_FOUND)
         {
-            delete out;
+            ctx->state      = S_CULL_BACK;
+            return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+        }
+        else if (res != STATUS_OK)
             return res;
-        }
 
-        // Analyze state of 'out' context
-        if (out->triangle.size() <= 0)
-            delete out;
-        else if (!tasks.push(out))
+        // Analyze state of current and out context
+        if (ctx->triangle.size() > 0)
         {
-            delete out;
-            return STATUS_NO_MEM;
-        }
+            // Analyze state of 'out' context
+            if (out.triangle.size() > 0)
+            {
+                // Allocate additional context and add to task list
+                rt_context_t *nctx = new rt_context_t(ctx->shared);
+                if (nctx == NULL)
+                    return STATUS_NO_MEM;
+                else if (!tasks.push(nctx))
+                {
+                    delete nctx;
+                    return STATUS_NO_MEM;
+                }
 
-        // Analyze state of 'in' context
-        if (ctx->triangle.size() <= 0)
+                nctx->swap(&out);
+                nctx->view  = ctx->view;
+                nctx->state = (nctx->triangle.size() > 1) ? S_CULL_BACK : S_REFLECT;
+            }
+
+            return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+        }
+        else if (out.triangle.size() > 0)
         {
-            delete ctx;
-            return STATUS_OK;
+            ctx->swap(&out);
+            ctx->state  = (ctx->triangle.size() > 1) ? S_CULL_BACK : S_REFLECT;
+
+            return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
         }
 
-        return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+        delete ctx;
+        return STATUS_OK;
     }
 
     status_t cullback_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
@@ -690,16 +699,10 @@ namespace mtest
                 case S_SCAN_OBJECTS:
                     res = scan_objects(tasks, ctx);
                     break;
-//                case S_FILTER_VIEW:
-//                    res = filter_view(tasks, ctx);
-//                    break;
                 case S_CULL_VIEW:
                     res = cull_view(tasks, ctx);
                     break;
                 case S_SPLIT:
-//                    res = ctx->edge_split(tasks);
-//                    delete ctx;
-//                    ctx = NULL;
                     res = split_view(tasks, ctx);
 //                    res = split_view(tasks, ctx);
                     break;
