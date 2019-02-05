@@ -256,6 +256,8 @@ namespace lsp
                     sSelection.set_first(len);
                 if (sSelection.last() > len)
                     sSelection.set_last(len);
+                if (sSelection.length() <= 0)
+                    sSelection.clear();
             }
             return STATUS_OK;
         }
@@ -563,7 +565,11 @@ namespace lsp
                     pPopup->show(this, e);
             }
             else if ((nMBState == (1 << MCB_LEFT)) && (e->nCode == MCB_LEFT))
+            {
                 update_clipboard(CBUF_PRIMARY);
+                if (sSelection.length() <= 0)
+                    sSelection.clear();
+            }
             else if ((nMBState == (1 << MCB_MIDDLE)) && (e->nCode == MCB_MIDDLE))
             {
                 ssize_t first = mouse_to_cursor_pos(e->nLeft, e->nTop);
@@ -718,18 +724,18 @@ namespace lsp
             switch (key)
             {
                 case WSK_HOME:
-                    sCursor.set_location(0);
                     if (e->nState & MCF_SHIFT)
                         sSelection.set_last(0);
                     else
                         sSelection.clear();
+                    sCursor.set_location(0);
                     break;
                 case WSK_END:
-                    sCursor.set_location(sText.length());
                     if (e->nState & MCF_SHIFT)
                         sSelection.set_last(sText.length());
                     else
                         sSelection.clear();
+                    sCursor.set_location(sText.length());
                     break;
                 case WSK_LEFT:
                     sCursor.move(-1);
