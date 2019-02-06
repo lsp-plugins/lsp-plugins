@@ -93,6 +93,9 @@ namespace mtest
         }
 
         XSelectInput(dpy, win, swa.event_mask);
+        Atom wm_delete = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
+        XSetWMProtocols(dpy, win, &wm_delete, 1);
+
         XMapWindow(dpy, win);
         XStoreName(dpy, win, "3D Viewer");
         glc = glXCreateContext(dpy, vi, NULL, GL_TRUE);
@@ -131,6 +134,8 @@ namespace mtest
         struct timespec sLastRender;
 
         clock_gettime(CLOCK_REALTIME, &sLastRender);
+        Atom wm_proto           = XInternAtom(dpy, "WM_PROTOCOLS", False);
+        Atom wm_delete          = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
 
         while (!stopped)
         {
@@ -195,6 +200,13 @@ namespace mtest
                             break;
                         case MotionNotify:
                             on_mouse_move(xev.xmotion);
+                            break;
+                        case ClientMessage:
+                            if (xev.xclient.message_type == wm_proto)
+                            {
+                                if (xev.xclient.data.l[0] == long(wm_delete))
+                                    stopped = true;
+                            }
                             break;
                     }
                 }

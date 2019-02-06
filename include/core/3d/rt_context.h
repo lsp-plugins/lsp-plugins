@@ -75,7 +75,6 @@ namespace lsp
             bool            validate_list(rt_edge_t *e);
             static ssize_t  linked_count(rt_edge_t *e, rt_vertex_t *v);
             static ssize_t  linked_count(rt_triangle_t *t, rt_edge_t *e);
-            bool            check_crossing(rt_triangle_t *ct, rt_triangle_t *st);
 
             status_t        split_edge(rt_edge_t* e, rt_vertex_t* sp);
             status_t        split_triangle(rt_triangle_t* t, rt_vertex_t* sp);
@@ -136,23 +135,6 @@ namespace lsp
              * @return status of operation
              */
             status_t        cull_view();
-
-            /**
-             * Perform binary-partitioning of the space using one of the non-processed edges
-             * @param out context for outside data (above the plane)
-             * @param on context for matched data (on the plane)
-             * @param in context for inside data (below the plane)
-             * @return status of operation
-             */
-            status_t        split(rt_context_t *out, rt_context_t *on, rt_context_t *in);
-
-            /**
-             * Perform binary-partitioning of the space using one of the non-processed edges, keep 'in' data
-             * @param out context for outside data (above the plane)
-             * @param on context for matched data (on the plane)
-             * @return status of operation
-             */
-            status_t        split(rt_context_t *out, rt_context_t *on);
 
             /**
              * Perform context splitting by the non-cutting edge of the first triangle in the list, keep the inside content

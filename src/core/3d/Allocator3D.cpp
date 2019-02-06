@@ -14,7 +14,13 @@ namespace lsp
     BasicAllocator3D::BasicAllocator3D(size_t sz_of, size_t c_size)
     {
         nChunks         = 0;
-        nChunkCapacity  = c_size;
+        if (c_size && !(c_size & (c_size - 1)))
+            nShift          = c_size;
+        else
+            for (nShift = 0; size_t(1 << nShift) < c_size; nShift ++) {} // Estimate chunk size
+
+        nMask           = (1 << nShift) - 1;
+
         nSizeOf         = sz_of;
         nAllocated      = 0;
         vChunks         = NULL;
@@ -30,11 +36,12 @@ namespace lsp
         // Reallocate chunk index if too small
         if (id >= nChunks)
         {
-            uint8_t **nc    = reinterpret_cast<uint8_t **>(::realloc(vChunks, sizeof(uint8_t *) * (nChunks + 16)));
+            size_t cap      = (id + 0x10) & (~0x0f);
+            uint8_t **nc    = reinterpret_cast<uint8_t **>(::realloc(vChunks, sizeof(uint8_t *) * cap));
             if (nc == NULL)
                 return NULL;
             // Initialize pointers
-            for (size_t i=0; i<16; ++i)
+            for (size_t i=nChunks; i<cap; ++i)
                 nc[nChunks++] = NULL;
             vChunks         = nc;
         }
@@ -45,7 +52,7 @@ namespace lsp
             return chunk;
 
         // Try to allocate
-        chunk = reinterpret_cast<uint8_t *>(::malloc(nChunkCapacity * nSizeOf));
+        chunk = reinterpret_cast<uint8_t *>(::malloc(nSizeOf << nShift));
         if (chunk == NULL)
             return NULL;
 
@@ -57,21 +64,20 @@ namespace lsp
     {
         if (idx >= nAllocated)
             return NULL;
-
-        uint8_t *chunk      = vChunks[idx / nChunkCapacity];
-        return (chunk != NULL) ? &chunk[nSizeOf * (idx % nChunkCapacity)] : NULL;
+        uint8_t *chunk      = vChunks[idx >> nShift];
+        return &chunk[nSizeOf * (idx & nMask)];
     }
 
     void *BasicAllocator3D::do_alloc()
     {
         ssize_t index   = nAllocated;
-        size_t cid      = index / nChunkCapacity;
+        size_t cid      = index >> nShift;
 
         uint8_t *chunk  = get_chunk(cid);
         if (chunk == NULL)
             return NULL;
 
-        size_t iid      = index - (cid * nChunkCapacity);
+        size_t iid      = index & nMask;
         ++nAllocated;
         return &chunk[nSizeOf * iid];
     }
@@ -79,13 +85,13 @@ namespace lsp
     ssize_t BasicAllocator3D::do_ialloc(void **p)
     {
         ssize_t index   = nAllocated;
-        size_t cid      = index / nChunkCapacity;
+        size_t cid      = index >> nShift;
 
         uint8_t *chunk  = get_chunk(cid);
         if (chunk == NULL)
             return -STATUS_NO_MEM;
 
-        size_t iid      = index - (cid * nChunkCapacity);
+        size_t iid      = index & nMask;
         ++nAllocated;
         *p              = &chunk[nSizeOf * iid];
         return iid;
@@ -121,7 +127,8 @@ namespace lsp
     void BasicAllocator3D::do_swap(BasicAllocator3D *src)
     {
         swap(nChunks, src->nChunks);
-        swap(nChunkCapacity, src->nChunkCapacity);
+        swap(nShift, src->nShift);
+        swap(nMask, src->nMask);
         swap(nSizeOf, src->nSizeOf);
         swap(nAllocated, src->nAllocated);
         swap(vChunks, src->vChunks);
@@ -133,7 +140,7 @@ namespace lsp
             return true;
 
         const uint8_t *uptr     = reinterpret_cast<const uint8_t *>(ptr);
-        ssize_t csize           = nChunkCapacity * nSizeOf;
+        ssize_t csize           = nSizeOf << nShift;
 
         for (size_t i=0; i<nChunks; ++i)
         {
@@ -146,7 +153,7 @@ namespace lsp
                 return false;
             delta /= nSizeOf;
 
-            return (i*nChunkCapacity + delta) < nAllocated;
+            return ((i << nShift) + delta) < nAllocated;
         }
 
         return false;
@@ -158,10 +165,11 @@ namespace lsp
             return -1;
 
         const uint8_t *uptr     = reinterpret_cast<const uint8_t *>(ptr);
-        ssize_t csize           = nChunkCapacity * nSizeOf;
+        ssize_t csize           = nSizeOf << nShift;
         ssize_t offset          = 0;
+        ssize_t chunk_cap       = 1 << nShift;
 
-        for (size_t i=0; i<nChunks; ++i, offset += nChunkCapacity)
+        for (size_t i=0; i<nChunks; ++i, offset += chunk_cap)
         {
             if (vChunks[i] == NULL)
                 continue;

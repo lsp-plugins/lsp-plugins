@@ -13,8 +13,10 @@
 #include <core/debug.h>
 
 #ifdef LSP_DEBUG
-    #define RT_TRACE(...) \
-        __VA_ARGS__
+    #define RT_TRACE(...)       __VA_ARGS__
+
+//    #define RT_VALIDATE(...)    __VA_ARGS__
+    #define RT_VALIDATE(...)
 
     #define RT_TRACE_BREAK(ctx, action) \
         if ((ctx->shared->breakpoint >= 0) && ((ctx->shared->step++) == ctx->shared->breakpoint)) { \
@@ -97,11 +99,6 @@ namespace lsp
     {
         RT_EF_PLANE         = 1 << 0,       // The edge is part of split plane
         RT_EF_APPLY         = 1 << 1,       // The flag that requires the edge to be applied
-        RT_EF_PROCESSED     = 1 << 8,       // The edge has been processed by split algorithm
-        RT_EF_PARTITIONED   = 1 << 9,       // The edge has been processed by partition algorithm
-
-        RT_EF_LOCAL         = RT_EF_APPLY,
-        RT_EF_TEMP          = RT_EF_PROCESSED | RT_EF_PARTITIONED
     };
 
     typedef struct rt_vertex_t: public point3d_t
