@@ -118,8 +118,8 @@ testdebug: export EXE_TEST_FLAGS += -g3
 testdebug: export MAKE_OPTS      += LSP_TESTING=1
 testdebug: compile
 
-testprofile: export CFLAGS         += -g -pg -O2 -DLSP_PROFILING -DLSP_TESTING -DLSP_TRACE -g3 -no-pie
-testprofile: export EXE_TEST_FLAGS += -g -pg -O2 -g3 -no-pie
+testprofile: export CFLAGS         += -g -pg -O2 -DLSP_PROFILING -DLSP_TESTING -DLSP_TRACE -g3 -no-pie -fno-pie -fPIC
+testprofile: export EXE_TEST_FLAGS += -g -pg -O2 -g3 -no-pie -fno-pie -fPIC
 testprofile: export MAKE_OPTS      += LSP_TESTING=1
 testprofile: compile
 
@@ -135,8 +135,8 @@ debugfile: debug
 gdb: export CFLAGS          += -O0 -g3 -DLSP_TRACE
 gdb: compile
 
-profile: export CFLAGS      += -g -pg -DLSP_PROFILING -no-pie
-profile: export EXE_FLAGS   += -g -pg -no-pie
+profile: export CFLAGS      += -g -pg -DLSP_PROFILING -no-pie -fno-pie -fPIC
+profile: export EXE_FLAGS   += -g -pg -no-pie -fno-pie -fPIC
 profile: compile
 
 # Compilation and cleaning targets
