@@ -588,7 +588,7 @@ namespace mtest
 
                 nctx->swap(&out);
                 nctx->view  = ctx->view;
-                nctx->state = (nctx->triangle.size() > 1) ? S_CULL_BACK : S_REFLECT;
+                nctx->state = (nctx->triangle.size() > 1) ? S_SPLIT : S_REFLECT;
             }
 
             return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
@@ -596,7 +596,7 @@ namespace mtest
         else if (out.triangle.size() > 0)
         {
             ctx->swap(&out);
-            ctx->state  = (ctx->triangle.size() > 1) ? S_CULL_BACK : S_REFLECT;
+            ctx->state  = (ctx->triangle.size() > 1) ? S_SPLIT : S_REFLECT;
 
             return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
         }
@@ -607,45 +607,16 @@ namespace mtest
 
     status_t cullback_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
-        status_t res    = ctx->sort();
-        if (res != STATUS_OK)
-            return res;
-
-        rt_context_t *out = new rt_context_t(ctx->shared);
-        if (out == NULL)
-            return STATUS_NO_MEM;
-
         // Perform cullback
-        res = ctx->binary_cullback(out);
+        status_t res = ctx->depth_cullback();
         if (res != STATUS_OK)
-        {
-            delete out;
             return res;
-        }
-
-        // Analyze state of 'out' context
-        if (out->triangle.size() <= 0)
-            delete out;
-        else if (out->state == S_IGNORE)
-        {
-            RT_TRACE(
-                for (size_t i=0,n=out->triangle.size(); i<n; ++i)
-                    ctx->ignore(out->triangle.get(i));
-            )
-            delete out;
-        }
-        else if (!tasks.push(out))
-        {
-            delete out;
-            return STATUS_NO_MEM;
-        }
-
-        // Analyze state of 'in' context
         if (ctx->triangle.size() <= 0)
         {
             delete ctx;
             return STATUS_OK;
         }
+        ctx->state  = S_REFLECT;
 
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }

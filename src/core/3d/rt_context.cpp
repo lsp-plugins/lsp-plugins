@@ -905,7 +905,7 @@ namespace lsp
         for (size_t i=0; i<nt; ++i)
         {
             rt_triangle_t *ct = triangle.get(i);
-//            float d     = dsp::calc_avg_distance_p3(&view.s, ct->v[0], ct->v[1], ct->v[2]); // User reverse distance: the far locations should give lesser values
+            float d     = dsp::calc_avg_distance_p3(&view.s, ct->v[0], ct->v[1], ct->v[2]); // User reverse distance: the far locations should give lesser values
 //            float a     = 1.0f / dsp::calc_area_p3(ct->v[0], ct->v[1], ct->v[2]);
 //            point3d_t c;
 //            c.x         = (ct->v[0]->x + ct->v[1]->x + ct->v[2]->x) / 3.0f;
@@ -920,11 +920,11 @@ namespace lsp
 //            d.dz        = 0.0f;
 //
 //            dsp::normalize_vector(&d);
-            float d     = ct->v[0]->d;
-            if (d > ct->v[1]->d)
-                d           = ct->v[1]->d;
-            if (d > ct->v[2]->d)
-                d           = ct->v[2]->d;
+//            float d     = ct->v[0]->d;
+//            if (d > ct->v[1]->d)
+//                d           = ct->v[1]->d;
+//            if (d > ct->v[2]->d)
+//                d           = ct->v[2]->d;
 
             vt[i].t     = ct;
             vt[i].w     = d;
@@ -1109,7 +1109,7 @@ namespace lsp
                         spp         = vertex.alloc(&sp);
                         if (spp == NULL)
                             return STATUS_NO_MEM;
-                        spp->d      = dsp::calc_sqr_distance_p2(spp, &view.s);
+//                        spp->d      = dsp::calc_sqr_distance_p2(spp, &view.s);
                         res         = split_edge(ct->e[2], spp);
                         if (res == STATUS_OK)
                             res         = split_edge(ce, spp);
@@ -1119,7 +1119,7 @@ namespace lsp
                         spp         = vertex.alloc(&sp);
                         if (spp == NULL)
                             return STATUS_NO_MEM;
-                        spp->d      = dsp::calc_sqr_distance_p2(spp, &view.s);
+//                        spp->d      = dsp::calc_sqr_distance_p2(spp, &view.s);
                         res         = split_edge(ct->e[1], spp);
                         if (res == STATUS_OK)
                             res         = split_edge(ce, spp);
@@ -1129,7 +1129,7 @@ namespace lsp
                         spp         = vertex.alloc(&sp);
                         if (spp == NULL)
                             return STATUS_NO_MEM;
-                        spp->d      = dsp::calc_sqr_distance_p2(spp, &view.s);
+//                        spp->d      = dsp::calc_sqr_distance_p2(spp, &view.s);
                         res         = split_edge(ct->e[0], spp);
                         if (res == STATUS_OK)
                             res         = split_edge(ce, spp);
@@ -1139,7 +1139,7 @@ namespace lsp
                         spp         = vertex.alloc(&sp);
                         if (spp == NULL)
                             return STATUS_NO_MEM;
-                        spp->d      = dsp::calc_sqr_distance_p2(spp, &view.s);
+//                        spp->d      = dsp::calc_sqr_distance_p2(spp, &view.s);
                         res         = split_triangle(ct, spp);
                         if (res == STATUS_OK)
                             res         = split_edge(ce, spp);
@@ -1753,7 +1753,7 @@ namespace lsp
                         return STATUS_NO_MEM;
                     dsp::calc_split_point_p2v1(sp, e->v[0], e->v[1], &pl);
 
-                    sp->d       = dsp::calc_sqr_distance_p2(sp, &view.s);
+//                    sp->d       = dsp::calc_sqr_distance_p2(sp, &view.s);
                     sp->ve      = NULL;
                     sp->ptag    = NULL;
                     sp->itag    = 1;        // Split-point lays on the plane
@@ -1833,6 +1833,146 @@ namespace lsp
                     shared->view->add_triangle_1c(out->triangle.get(i), &C_RED);
             }
         );
+
+        return STATUS_OK;
+    }
+
+    /**
+     * Perform depth-testing cullback of faces
+     * @return status of operation
+     */
+    status_t rt_context_t::depth_cullback()
+    {
+        /* itag status:
+             0 = out (above culling plane)
+             1 = on the culling plane
+             2 = in (below culling plane), default
+         */
+        size_t nt = triangle.size(), nv = vertex.size();
+        for (size_t i=0; i<nt; ++i)
+            triangle.get(i)->itag = 2;
+
+        rt_triangle_t *ct, *st;
+        vector3d_t pl;
+        size_t itag;
+
+        RT_TRACE_BREAK(this,
+            lsp_trace("Prepare depth test");
+            for (size_t j=0; j<triangle.size(); ++j)
+                shared->view->add_triangle_1c(triangle.get(j), &C_YELLOW);
+            for (size_t j=0; j<edge.size(); ++j)
+                shared->view->add_segment(edge.get(j), &C_GREEN);
+        )
+
+        while (true)
+        {
+            // Select triangle for culling
+            ct = NULL;
+            for (size_t i=0; i<nt; ++i)
+            {
+                st = triangle.get(i);
+                if (st->itag == 2)
+                {
+                    ct = st;
+                    break;
+                }
+            }
+
+            // Is there a triangle for processing?
+            if (ct == NULL)
+                break;
+
+            // Prepare culling plane
+            dsp::calc_oriented_plane_p3(&pl, &view.s, ct->v[0], ct->v[1], ct->v[2]);
+
+            RT_TRACE_BREAK(this,
+                lsp_trace("Doing depth test for triangle %d/%d", int(triangle.index_of(ct)), int(nt));
+                for (size_t j=0; j<triangle.size(); ++j)
+                {
+                    rt_triangle_t *t = triangle.get(j);
+                    shared->view->add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
+                }
+                for (size_t j=0; j<edge.size(); ++j)
+                    shared->view->add_segment(edge.get(j), &C_GREEN);
+                shared->view->add_plane_sp3p1c(&view.s, ct->v[0], ct->v[1], ct->v[2], &C_MAGENTA);
+            )
+
+            // Estimate location of each vertex relative to the plane
+            for (size_t i=0; i<nv; ++i)
+            {
+                rt_vertex_t *sv = vertex.get(i);
+                float t         = sv->x*pl.dx + sv->y*pl.dy + sv->z*pl.dz + pl.dw;
+                sv->itag        = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
+            }
+
+            // Now process all triangles
+            for (size_t i=0; i<nt; ++i)
+            {
+                st = triangle.get(i);
+                if (st->itag == 0) // Triangle is already 'out', skip
+                    continue;
+                else if (st->face == ct->face) // Triangles laying on the same face are always considered to be 'on'
+                {
+                    st->itag = 1;
+                    continue;
+                }
+
+                // Detect new itag
+                if (st->v[0]->itag != 1)
+                    itag        = st->v[0]->itag;
+                else if (st->v[1]->itag != 1)
+                    itag        = st->v[1]->itag;
+                else if (st->v[2]->itag != 1)
+                    itag        = st->v[2]->itag;
+                else
+                    itag        = 1;
+
+                // Update itag of triangle
+                if (!((st->itag == 1) && (itag == 2))) // 'on' -> 'in' change not possible
+                    st->itag    = itag;
+            }
+
+            RT_TRACE_BREAK(this,
+                lsp_trace("After depth test for triangle %d/%d, in=GREEN, on=BLUE, out=RED", int(triangle.index_of(ct)), int(nt));
+                for (size_t j=0; j<triangle.size(); ++j)
+                {
+                    rt_triangle_t *t = triangle.get(j);
+                    shared->view->add_triangle_1c(t,
+                            (t->itag == 0) ? &C_RED :
+                            (t->itag == 1) ? &C_BLUE : &C_GREEN
+                        );
+                }
+                shared->view->add_plane_sp3p1c(&view.s, ct->v[0], ct->v[1], ct->v[2], &C_YELLOW);
+            )
+        }
+
+        // Trace all ignored triangles
+        RT_TRACE(
+            for (size_t i=0; i<nt; ++i)
+            {
+                rt_triangle_t *t = triangle.get(i);
+                if (t->itag != 1)
+                    ignore(t);
+            }
+        )
+
+        // Now we have all triangles only in 'out' and 'on' state
+        rt_context_t tmp(shared);
+        status_t res = fetch_triangles_safe(&tmp, 1);
+        if (res != STATUS_OK)
+            return res;
+        this->swap(&tmp);
+
+        RT_TRACE_BREAK(this,
+            lsp_trace("After depth test triangles=%d", int(triangle.size()));
+            for (size_t j=0; j<triangle.size(); ++j)
+            {
+                rt_triangle_t *t = triangle.get(j);
+                shared->view->add_triangle_1c(t, &C_GREEN);
+            }
+            for (size_t j=0; j<edge.size(); ++j)
+                shared->view->add_segment(edge.get(j), &C_YELLOW);
+        )
 
         return STATUS_OK;
     }
@@ -3506,7 +3646,6 @@ namespace lsp
 //        lsp_trace("Processing object \"%s\"", obj->get_name());
         size_t start_t  = triangle.size();
         size_t start_e  = edge.size();
-        size_t face_id  = triangle.size();
 
         // Clone triangles and apply object matrix to vertexes
         for (size_t i=0, n=obj->num_triangles(); i<n; ++i)
@@ -3527,8 +3666,7 @@ namespace lsp
             dt->elnk[2] = NULL;
             dt->ptag    = st;
             dt->itag    = 0;
-//            dt->face    = st->face;
-            dt->face    = face_id++; // Generate face identifier
+            dt->face    = st->face;
             st->ptag    = dt;
 
 //            lsp_trace("Link rt_triangle[%p] to obj_triangle[%p]", dt, st);
@@ -3547,7 +3685,7 @@ namespace lsp
                         return STATUS_NO_MEM;
 
                     dsp::apply_matrix3d_mp2(vx, st->v[j], m);
-                    vx->d           = dsp::calc_sqr_distance_p2(vx, &view.s);
+//                    vx->d           = dsp::calc_sqr_distance_p2(vx, &view.s);
                     vx->ve          = NULL;
                     vx->ptag        = st->v[j];
                     vx->itag        = 0;

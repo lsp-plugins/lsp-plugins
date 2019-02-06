@@ -180,6 +180,12 @@ namespace lsp
             status_t        edge_split(rt_context_t *out);
 
             /**
+             * Perform depth-testing cullback of faces
+             * @return status of operation
+             */
+            status_t        depth_cullback();
+
+            /**
              * Perform binary-split of the context space while keeping one of the parts
              * @param out second part of context
              * @return status of operation
