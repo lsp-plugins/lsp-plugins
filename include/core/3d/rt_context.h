@@ -31,13 +31,9 @@ namespace lsp
         S_SCAN_OBJECTS,
         S_CULL_VIEW,
         S_SPLIT,
-
         S_CULL_BACK,
         S_REFLECT,
         S_IGNORE
-//        S_PARTITION,
-//        S_CUTOFF,
-//        S_REFLECT
     };
 
     typedef struct rt_context_t
@@ -67,16 +63,12 @@ namespace lsp
             static status_t arrange_triangle(rt_triangle_t *ct, rt_edge_t *e);
             static bool     unlink_edge(rt_edge_t *e, rt_vertex_t *v);
             static bool     unlink_triangle(rt_triangle_t *t, rt_edge_t *e);
-            static bool     match_face(rt_edge_t *e, ssize_t face_id);
-            /*static */bool     check_face(rt_triangle_t *ct, rt_edge_t *e);
 
             bool            validate_list(rt_vertex_t *v);
             bool            validate_list(rt_edge_t *e);
             static ssize_t  linked_count(rt_edge_t *e, rt_vertex_t *v);
             static ssize_t  linked_count(rt_triangle_t *t, rt_edge_t *e);
             bool            check_crossing(rt_triangle_t *ct, rt_triangle_t *st);
-            rt_triangle_t  *find_cullback_triangle();
-
 
             status_t        split_edge(rt_edge_t* e, rt_vertex_t* sp);
             status_t        split_triangle(rt_triangle_t* t, rt_vertex_t* sp);
@@ -186,21 +178,6 @@ namespace lsp
             status_t        depth_cullback();
 
             /**
-             * Perform binary-split of the context space while keeping one of the parts
-             * @param out second part of context
-             * @return status of operation
-             */
-            status_t        binary_split(rt_context_t *out);
-
-            /**
-             * Perform binary-cull of the context space into two spaces if possible
-             * @param out context for outside data (above the split plane)
-             * @param in context for inside data (below the split plane)
-             * @return status of operation
-             */
-            status_t        binary_cullback(rt_context_t *out);
-
-            /**
              * Perform binary-partitioning of the space using specified plane equation
              * @param out context for outside data (above the plane)
              * @param on context for matched data (on the plane)
@@ -211,24 +188,6 @@ namespace lsp
             status_t        split(rt_context_t *out, rt_context_t *on, rt_context_t *in, const vector3d_t *pl);
 
             /**
-             * Perform space partitioning by current triangle
-             * @param out contexts for outside data (3 pointers)
-             * @param on triangles that lay on cullint planes
-             * @param in context for inside data (below culling planes)
-             * @return status of operation
-             */
-            status_t        partition(rt_context_t **out, rt_context_t *on, rt_context_t *in);
-
-            /**
-             * Perform space partitioning by current triangle while keeping inside data
-             * @param out contexts for outside data (3 pointers)
-             * @param on triangles that lay on culling planes
-             * @param in context for inside data (below culling planes)
-             * @return status of operation
-             */
-            status_t        partition(rt_context_t **out, rt_context_t *on);
-
-            /**
              * Perform binary-partitioning of the space using specified plane equation, keep 'in' data
              * @param out context for outside data (above the plane)
              * @param on context for matched data (on the plane)
@@ -236,21 +195,6 @@ namespace lsp
              * @return status of operation
              */
             status_t        split(rt_context_t *out, rt_context_t *on, const vector3d_t *pl);
-
-            /**
-             * Perform cutoff by current triangle
-             * @param out context for outside data (above the plane)
-             * @param in context for inside data (below or on the plane)
-             * @return status of operation
-             */
-            status_t        cutoff(rt_context_t *out, rt_context_t *in);
-
-            /**
-             * Perform cutoff by current triangle, keep 'in' data
-             * @param out context for outside data (above the plane)
-             * @return status of operation
-             */
-            status_t        cutoff(rt_context_t *out);
 
             /**
              * Check consistency of the context: that all stored pointers are valid

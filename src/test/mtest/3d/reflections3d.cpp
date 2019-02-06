@@ -626,12 +626,12 @@ namespace mtest
         // DEBUG
         for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
             ctx->match(ctx->triangle.get(i));
-        for (size_t i=0,n=ctx->edge.size(); i<n; ++i)
-        {
-            rt_edge_t *e = ctx->edge.get(i);
-            if (e->itag & RT_EF_PLANE)
-                ctx->shared->view->add_segment(e, &C_YELLOW);
-        }
+//        for (size_t i=0,n=ctx->edge.size(); i<n; ++i)
+//        {
+//            rt_edge_t *e = ctx->edge.get(i);
+//            if (e->itag & RT_EF_PLANE)
+//                ctx->shared->view->add_segment(e, &C_YELLOW);
+//        }
 
         delete ctx;
         return STATUS_OK;
@@ -642,12 +642,12 @@ namespace mtest
         // DEBUG
         for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
             ctx->match(ctx->triangle.get(i));
-        for (size_t i=0,n=ctx->edge.size(); i<n; ++i)
-        {
-            rt_edge_t *e = ctx->edge.get(i);
-            if (e->itag & RT_EF_PLANE)
-                ctx->shared->view->add_segment(e, &C_YELLOW);
-        }
+//        for (size_t i=0,n=ctx->edge.size(); i<n; ++i)
+//        {
+//            rt_edge_t *e = ctx->edge.get(i);
+//            if (e->itag & RT_EF_PLANE)
+//                ctx->shared->view->add_segment(e, &C_YELLOW);
+//        }
 
         delete ctx;
         return STATUS_OK;
