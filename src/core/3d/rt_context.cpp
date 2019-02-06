@@ -1186,9 +1186,9 @@ namespace lsp
         }
 
         // Find edge to apply split
+        status_t res;
         vector3d_t pl;
         rt_edge_t *ce = NULL;
-        status_t res;
 
 //        for (size_t i=0, n=edge.size(); i<n; ++i)
 //        {
@@ -1196,10 +1196,15 @@ namespace lsp
         RT_FOREACH(rt_edge_t, se, edge)
             if (se->itag & RT_EF_PLANE)
                 continue;
-            if (se->itag & RT_EF_APPLY)
+            if (!(se->itag & RT_EF_APPLY))
+                continue;
+
+            // We need to check that edge can be applied
+            se->itag       |= RT_EF_PLANE; // Mark current edge as processed
+            if (dsp::calc_plane_p3(&pl, &view.s, se->v[0], se->v[1]) > DSP_3D_TOLERANCE) // Ensure that the normal vector is valid
             {
                 ce = se;
-                break;
+                RT_FOREACH_BREAK;
             }
         RT_FOREACH_END
         if (ce == NULL)
@@ -1208,11 +1213,13 @@ namespace lsp
         if (out != NULL)
             out->clear();
 
-        // Perform split
-        dsp::calc_plane_p3(&pl, &view.s, ce->v[0], ce->v[1]);
+//        RT_CALL_DEBUGGER(this, 7);
 
+        // Perform split
         RT_TRACE_BREAK(this,
-            lsp_trace("Prepare split by edge (%d triangles)", int(triangle.size()));
+            lsp_trace("Prepare split by edge (%f, %f, %f, %f) (%d triangles)",
+                    pl.dx, pl.dy, pl.dz, pl.dw,
+                    int(triangle.size()));
 
             for (size_t i=0,n=triangle.size(); i<n; ++i)
                 shared->view->add_triangle_1c(triangle.get(i), &C_YELLOW);
@@ -1238,7 +1245,6 @@ namespace lsp
         //  2   = vertex lays below the plane
 
         // State of itag for triangle:
-        // -1   = currently unknown state
         //  0   = triangle is 'out'
         //  1   = triangle is 'on'
         //  2   = triangle is 'in'
@@ -1251,7 +1257,7 @@ namespace lsp
         RT_FOREACH_END
 
         // Reset all flags of edges
-        ce->itag       |= RT_EF_PLANE; // Mark current edge as processed
+
 
         // First step: split edges
         // Perform split of edges
@@ -1320,6 +1326,10 @@ namespace lsp
                 st->itag    = st->v[0]->itag;
             else if (st->v[1]->itag != 1)
                 st->itag    = st->v[1]->itag;
+//            else if (st->v[1]->itag != 1)
+//                st->itag    = st->v[2]->itag;
+//            else
+//                st->itag    = 0;
             else
                 st->itag    = st->v[2]->itag;
         RT_FOREACH_END
@@ -1333,16 +1343,6 @@ namespace lsp
         if (res != STATUS_OK)
             return res;
 
-        RT_VALIDATE(
-            if (!in.validate())
-                return STATUS_CORRUPTED;
-            if (!out->validate())
-                return STATUS_CORRUPTED;
-            if (!validate())
-                return STATUS_CORRUPTED;
-        )
-        this->swap(&in);
-
         RT_TRACE(
 //            for (size_t i=0,n=triangle.size();i<n; ++i)
 //            {
@@ -1352,6 +1352,16 @@ namespace lsp
                     ignore(t);
             RT_FOREACH_END
         )
+
+        RT_VALIDATE(
+            if (!in.validate())
+                return STATUS_CORRUPTED;
+            if (!out->validate())
+                return STATUS_CORRUPTED;
+            if (!validate())
+                return STATUS_CORRUPTED;
+        )
+        this->swap(&in);
 
         RT_TRACE_BREAK(this,
             lsp_trace("After split by edge");

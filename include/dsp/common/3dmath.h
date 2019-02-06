@@ -795,15 +795,16 @@ namespace dsp
      * @param p0 point 0
      * @param p1 point 1
      * @param p2 point 2
+     * @return the length of the normal vector
      */
-    extern void (* calc_plane_p3)(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+    extern float (* calc_plane_p3)(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
 
     /**
      * Compute plane equation using three points
      * @param v pointer to store plane equation
      * @param pv array of three points that lay on the plane
      */
-    extern void (* calc_plane_pv)(vector3d_t *v, const point3d_t *pv);
+    extern float (* calc_plane_pv)(vector3d_t *v, const point3d_t *pv);
 
     /**
      * Compute plane equation using vector and two points
@@ -812,7 +813,7 @@ namespace dsp
      * @param p0 point 0
      * @param p1 point 1
      */
-    extern void (* calc_plane_v1p2)(vector3d_t *v, const vector3d_t *v0, const point3d_t *p0, const point3d_t *p1);
+    extern float (* calc_plane_v1p2)(vector3d_t *v, const vector3d_t *v0, const point3d_t *p0, const point3d_t *p1);
 
     /**
      * Compute plane equation using three points and set the proper direction so the orienting point is always 'below'
@@ -823,7 +824,7 @@ namespace dsp
      * @param p1 point 1
      * @param p2 point 2
      */
-    extern void (* calc_oriented_plane_p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+    extern float (* calc_oriented_plane_p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
 
     /**
      * Compute plane equation using three points and set the proper direction so the orienting point is always 'below'
@@ -832,7 +833,7 @@ namespace dsp
      * @param sp orienting point
      * @param pv array of three points that lay on the plane
      */
-    extern void (* calc_oriented_plane_pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv);
+    extern float (* calc_oriented_plane_pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv);
 
     /**
      * Estimate the area of triangle

@@ -2190,7 +2190,7 @@ namespace native
         }
     }
 
-    void calc_plane_p3(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    float calc_plane_p3(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
     {
         // Calculate edge parameters
         vector3d_t d[2];
@@ -2210,12 +2210,21 @@ namespace native
         v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
         v->dw       = 0.0f;
 
-        dsp::normalize_vector(v); // TODO: remove it
+        float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
+        if (w != 0.0f)
+        {
+            w           = 1.0f / w;
+            v->dx      *= w;
+            v->dy      *= w;
+            v->dz      *= w;
+            v->dw       = 0.0f;
+        }
 
         v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
+        return w;
     }
 
-    void calc_plane_pv(vector3d_t *v, const point3d_t *pv)
+    float calc_plane_pv(vector3d_t *v, const point3d_t *pv)
     {
         // Calculate edge parameters
         vector3d_t d[2];
@@ -2235,12 +2244,22 @@ namespace native
         v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
         v->dw       = 0.0f;
 
-        dsp::normalize_vector(v); // TODO: remove it
+        float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
+        if (w != 0.0f)
+        {
+            w           = 1.0f / w;
+            v->dx      *= w;
+            v->dy      *= w;
+            v->dz      *= w;
+            v->dw       = 0.0f;
+        }
 
         v->dw       = - ( v->dx * pv[0].x + v->dy * pv[0].y + v->dz * pv[0].z); // Parameter for the plane equation
+
+        return w;
     }
 
-    void calc_plane_v1p2(vector3d_t *v, const vector3d_t *v0, const point3d_t *p0, const point3d_t *p1)
+    float calc_plane_v1p2(vector3d_t *v, const vector3d_t *v0, const point3d_t *p0, const point3d_t *p1)
     {
         vector3d_t d;
 
@@ -2255,12 +2274,22 @@ namespace native
         v->dz       = d.dx*v0->dy - d.dy*v0->dx;
         v->dw       = 0.0f;
 
-        dsp::normalize_vector(v); // TODO: remove it
+        float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
+        if (w != 0.0f)
+        {
+            w           = 1.0f / w;
+            v->dx      *= w;
+            v->dy      *= w;
+            v->dz      *= w;
+            v->dw       = 0.0f;
+        }
 
         v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
+
+        return w;
     }
 
-    void calc_oriented_plane_p3(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    float calc_oriented_plane_p3(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
     {
         // Calculate edge parameters
         vector3d_t d[2];
@@ -2280,7 +2309,15 @@ namespace native
         v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
         v->dw       = 0.0f;
 
-        dsp::normalize_vector(v); // TODO: remove it
+        float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
+        if (w != 0.0f)
+        {
+            w           = 1.0f / w;
+            v->dx      *= w;
+            v->dy      *= w;
+            v->dz      *= w;
+            v->dw       = 0.0f;
+        }
 
         v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
 
@@ -2293,9 +2330,11 @@ namespace native
             v->dz       = - v->dz;
             v->dw       = - v->dw;
         }
+
+        return w;
     }
 
-    void calc_oriented_plane_pv(vector3d_t *v, const point3d_t *sp, const point3d_t *pv)
+    float calc_oriented_plane_pv(vector3d_t *v, const point3d_t *sp, const point3d_t *pv)
     {
         // Calculate edge parameters
         vector3d_t d[2];
@@ -2315,7 +2354,15 @@ namespace native
         v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
         v->dw       = 0.0f;
 
-        dsp::normalize_vector(v); // TODO: remove it
+        float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
+        if (w != 0.0f)
+        {
+            w           = 1.0f / w;
+            v->dx      *= w;
+            v->dy      *= w;
+            v->dz      *= w;
+            v->dw       = 0.0f;
+        }
 
         v->dw       = - ( v->dx * pv[0].x + v->dy * pv[0].y + v->dz * pv[0].z); // Parameter for the plane equation
 
@@ -2328,6 +2375,8 @@ namespace native
             v->dz       = - v->dz;
             v->dw       = - v->dw;
         }
+
+        return w;
     }
 
     float calc_area_p3(const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)

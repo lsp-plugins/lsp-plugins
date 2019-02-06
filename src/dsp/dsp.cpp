@@ -382,12 +382,12 @@ namespace dsp
 
     void    (* calc_bound_box)(bound_box3d_t *b, const point3d_t *p, size_t n) = NULL;
 
-    void    (* calc_plane_p3)(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
-    void    (* calc_plane_pv)(vector3d_t *v, const point3d_t *pv) = NULL;
-    void    (* calc_plane_v1p2)(vector3d_t *v, const vector3d_t *v0, const point3d_t *p0, const point3d_t *p1) = NULL;
+    float   (* calc_plane_p3)(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
+    float   (* calc_plane_pv)(vector3d_t *v, const point3d_t *pv) = NULL;
+    float   (* calc_plane_v1p2)(vector3d_t *v, const vector3d_t *v0, const point3d_t *p0, const point3d_t *p1) = NULL;
 
-    void    (* calc_oriented_plane_p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
-    void    (* calc_oriented_plane_pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv) = NULL;
+    float   (* calc_oriented_plane_p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
+    float   (* calc_oriented_plane_pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv) = NULL;
 
     float   (* calc_area_p3)(const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
     float   (* calc_min_distance_p3)(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
