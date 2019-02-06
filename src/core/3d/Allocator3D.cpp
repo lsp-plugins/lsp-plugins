@@ -14,10 +14,10 @@ namespace lsp
     BasicAllocator3D::BasicAllocator3D(size_t sz_of, size_t c_size)
     {
         nChunks         = 0;
-        if (c_size && !(c_size & (c_size - 1)))
-            nShift          = c_size;
-        else
-            for (nShift = 0; size_t(1 << nShift) < c_size; nShift ++) {} // Estimate chunk size
+//        if (c_size && !(c_size & (c_size - 1)))
+//            nShift          = c_size;
+//        else
+        for (nShift = 0; size_t(1 << nShift) < c_size; nShift ++) {} // Estimate chunk size
 
         nMask           = (1 << nShift) - 1;
 

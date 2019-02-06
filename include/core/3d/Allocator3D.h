@@ -20,7 +20,6 @@ namespace lsp
     {
         protected:
             size_t      nChunks;        // Number of chunks in vChunks array
-//            size_t      nChunkCapacity; // Capacity of chunk (in elements)
             size_t      nShift;         // Chunk identifier shift
             size_t      nMask;          // Chunk item mask
             size_t      nSizeOf;        // Size of record (in bytes)
@@ -136,6 +135,13 @@ namespace lsp
                  * @return number of allocated chunks
                  */
                 inline size_t chunks() const { return nChunks; }
+
+                /**
+                 * Get chunk pointer
+                 * @param id chunk identifier
+                 * @return chunk pointer
+                 */
+                inline T *chunk(size_t id) { return (id < nChunks) ? reinterpret_cast<T *>(vChunks[id]) : NULL; }
 
                 /**
                  * Get element at specified index

@@ -152,12 +152,11 @@ namespace lsp
             /**
              * Perform binary-partitioning of the space using specified plane equation
              * @param out context for outside data (above the plane)
-             * @param on context for matched data (on the plane)
              * @param in context for inside data (below the plane)
              * @param pl plane equation
              * @return status of operation
              */
-            status_t        split(rt_context_t *out, rt_context_t *on, rt_context_t *in, const vector3d_t *pl);
+            status_t        split(rt_context_t *out, rt_context_t *in, const vector3d_t *pl);
 
             /**
              * Perform binary-partitioning of the space using specified plane equation, keep 'in' data
@@ -166,7 +165,7 @@ namespace lsp
              * @param pl plane equation
              * @return status of operation
              */
-            status_t        split(rt_context_t *out, rt_context_t *on, const vector3d_t *pl);
+            status_t        split(rt_context_t *out, const vector3d_t *pl);
 
             /**
              * Check consistency of the context: that all stored pointers are valid
