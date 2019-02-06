@@ -76,204 +76,6 @@ namespace mtest
         3, 7, 4
     };
 
-#if 0
-    static inline void add_to_view(context_t *ctx, const rt_triangle3d_t *rt, const color3d_t *c)
-    {
-        ctx->global->view->add_triangle_pvnc1(rt->p, &rt->n, c);
-    }
-
-    static inline void add_to_view_3c(context_t *ctx, const rt_triangle3d_t *rt, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2)
-    {
-        ctx->global->view->add_triangle_pvnc3(rt->p, &rt->n, c0, c1, c2);
-    }
-
-    static void destroy_tasks(cvector<context_t> &tasks)
-    {
-        for (size_t i=0, n=tasks.size(); i<n; ++i)
-        {
-            context_t *ctx = tasks.get(i);
-            if (ctx == NULL)
-                continue;
-
-            ctx->global     = NULL;
-            ctx->source.flush();
-
-            delete ctx;
-        }
-
-        tasks.flush();
-    }
-
-//    static void init_triangle_pv(v_triangle3d_t *t, const point3d_t *pv)
-//    {
-//        t->p[0] = pv[0];
-//        t->p[1] = pv[1];
-//        t->p[2] = pv[2];
-//        dsp::calc_normal3d_pv(&t->n[0], pv);
-//        t->n[1] = t->n[0];
-//        t->n[2] = t->n[0];
-//    }
-
-
-    static void calc_plane_vector_pv(vector3d_t *v, const point3d_t *p)
-    {
-        // Calculate edge parameters
-        vector3d_t d[2];
-        d[0].dx     = p[1].x - p[0].x;
-        d[0].dy     = p[1].y - p[0].y;
-        d[0].dz     = p[1].z - p[0].z;
-        d[0].dw     = p[1].w - p[0].w;
-
-        d[1].dx     = p[2].x - p[1].x;
-        d[1].dy     = p[2].y - p[1].y;
-        d[1].dz     = p[2].z - p[1].z;
-        d[1].dw     = p[2].w - p[1].w;
-
-        // Do vector multiplication to calculate the normal vector
-        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
-        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
-        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
-        v->dw       = 0.0f;
-
-        dsp::normalize_vector(v);
-
-        v->dw       = - ( v->dx * p[0].x + v->dy * p[0].y + v->dz * p[0].z); // Parameter for the plane equation
-    }
-
-    static bool check_triangle(const rt_triangle3d_t *t)
-    {
-        vector3d_t d[3];
-        d[0].dx     = t->p[1].x - t->p[0].x;
-        d[0].dy     = t->p[1].y - t->p[0].y;
-        d[0].dz     = t->p[1].z - t->p[0].z;
-
-        d[1].dx     = t->p[2].x - t->p[0].x;
-        d[1].dy     = t->p[2].y - t->p[0].y;
-        d[1].dz     = t->p[2].z - t->p[0].z;
-
-        d[2].dx     = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
-        d[2].dy     = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
-        d[2].dz     = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
-
-        float w     = d[2].dx*d[2].dx + d[2].dy*d[2].dy + d[2].dz*d[2].dz;
-
-        return w > DSP_3D_TOLERANCE;
-    }
-
-//    static float check_triangle_left_order_pv(const vector3d_t *pov, const point3d_t *p)
-//    {
-//        vector3d_t d[3];
-//        d[0].dx     = p[1].x - p[0].x;
-//        d[0].dy     = p[1].y - p[0].y;
-//        d[0].dz     = p[1].z - p[0].z;
-//
-//        d[1].dx     = p[2].x - p[0].x;
-//        d[1].dy     = p[2].y - p[0].y;
-//        d[1].dz     = p[2].z - p[0].z;
-//
-//        d[2].dx     = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
-//        d[2].dy     = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
-//        d[2].dz     = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
-//
-//        return pov->dx * d[2].dx + pov->dy * d[2].dy + pov->dz * d[2].dz;
-//    }
-    /**
-     * Project triangle to the plane
-     * @param pv array of 3 points to store projected points
-     * @param fp focus point, the point where all projective lines do intersect
-     * @param pl plane equation vector
-     * @param tv triangle points
-     */
-    static void project_triangle(
-        point3d_t *pv,
-        const point3d_t *fp,
-        const vector3d_t *pl,
-        const point3d_t *tv
-    )
-    {
-        vector3d_t d[3];
-        float k, t[3];
-
-        d[0].dx     = fp->x - tv[0].x;
-        d[0].dy     = fp->y - tv[0].y;
-        d[0].dz     = fp->z - tv[0].z;
-        d[0].dw     = 0.0f;
-
-        d[1].dx     = fp->x - tv[1].x;
-        d[1].dy     = fp->y - tv[1].y;
-        d[1].dz     = fp->z - tv[1].z;
-        d[1].dw     = 0.0f;
-
-        d[2].dx     = fp->x - tv[2].x;
-        d[2].dy     = fp->y - tv[2].y;
-        d[2].dz     = fp->z - tv[2].z;
-        d[2].dw     = 0.0f;
-
-        k           = - (pl->dx*fp->x + pl->dy*fp->y + pl->dz*fp->z + pl->dw);
-        t[0]        = k / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz);
-        t[1]        = k / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
-        t[2]        = k / (pl->dx*d[2].dx + pl->dy*d[2].dy + pl->dz*d[2].dz);
-
-        pv[0].x     = fp->x + t[0] * d[0].dx;
-        pv[0].y     = fp->y + t[0] * d[0].dy;
-        pv[0].z     = fp->z + t[0] * d[0].dz;
-        pv[0].w     = 1.0f;
-
-        pv[1].x     = fp->x + t[1] * d[1].dx;
-        pv[1].y     = fp->y + t[1] * d[1].dy;
-        pv[1].z     = fp->z + t[1] * d[1].dz;
-        pv[1].w     = 1.0f;
-
-        pv[2].x     = fp->x + t[2] * d[2].dx;
-        pv[2].y     = fp->y + t[2] * d[2].dy;
-        pv[2].z     = fp->z + t[2] * d[2].dz;
-        pv[2].w     = 1.0f;
-    }
-#endif
-
-    //    static void parallel_flip_plane(vector3d_t *v, const vector3d_t *pl, const point3d_t *p)
-//    {
-//        // Calculate edge parameters
-//        v->dx       = - pl->dx;
-//        v->dy       = - pl->dy;
-//        v->dz       = - pl->dz;
-//        v->dw       = pl->dx * p->x + pl->dy * p->y + pl->dz * p->z; // Parameter for the plane equation
-//    }
-
-    static void init_triangle_p3(v_triangle3d_t *t, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2, const vector3d_t *n)
-    {
-        dsp::calc_normal3d_p3(&t->n[0], p0, p1, p2);
-        float a = t->n[0].dx * n->dx + t->n[0].dy * n->dy + t->n[0].dz * n->dz;
-        if (a < 0.0f)
-        {
-            t->p[0] = *p0;
-            t->p[1] = *p2;
-            t->p[2] = *p1;
-
-            t->n[0].dx  = -t->n[0].dx;
-            t->n[0].dy  = -t->n[0].dy;
-            t->n[0].dz  = -t->n[0].dz;
-        }
-        else
-        {
-            t->p[0] = *p0;
-            t->p[1] = *p1;
-            t->p[2] = *p2;
-        }
-
-        t->n[1] = t->n[0];
-        t->n[2] = t->n[0];
-
-        // Shift triangle in space to match the plane
-        float dw = n->dw + (t->n[0].dx * t->p[0].x + t->n[0].dy * t->p[0].y + t->n[0].dz * t->p[0].z);
-        for (size_t i=0; i<3; ++i)
-        {
-            t->p[i].x  -= dw * t->n[i].dx;
-            t->p[i].y  -= dw * t->n[i].dy;
-            t->p[i].z  -= dw * t->n[i].dz;
-        }
-    }
-
     static void destroy_tasks(cvector<rt_context_t> &tasks)
     {
         for (size_t i=0, n=tasks.size(); i<n; ++i)
@@ -436,16 +238,17 @@ namespace mtest
             res = ctx->add_object(obj);
             if (res != STATUS_OK)
                 break;
-#ifdef LSP_DEBUG
-            if (!ctx->validate())
-                return STATUS_BAD_STATE;
-#endif /* LSP_DEBUG */
+
+            RT_TRACE(
+                if (!ctx->validate())
+                    return STATUS_BAD_STATE;
+            )
         }
 
-#ifdef LSP_DEBUG
-        if (!ctx->shared->scene->validate())
-            return STATUS_CORRUPTED;
-#endif /* LSP_DEBUG */
+        RT_TRACE(
+            if (!ctx->shared->scene->validate())
+                return STATUS_CORRUPTED;
+        )
 
         res = ctx->solve_conflicts();
         if (res != STATUS_OK)
@@ -453,84 +256,6 @@ namespace mtest
 
         // Update state
         ctx->state      = S_CULL_VIEW;
-        return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
-    }
-
-    status_t filter_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
-    {
-        status_t res;
-        vector3d_t pl[4]; // Split plane
-        RT_TRACE(v_triangle3d_t npt[4]); // Split plane presentation
-
-        RT_TRACE(
-            // Split edges
-            if (!ctx->validate())
-                return STATUS_BAD_STATE;
-            if (!ctx->shared->scene->validate())
-                return STATUS_CORRUPTED;
-        )
-
-        dsp::calc_plane_p3(&pl[0], &ctx->view.p[0], &ctx->view.p[1], &ctx->view.p[2]);
-        dsp::calc_plane_p3(&pl[1], &ctx->view.s, &ctx->view.p[0], &ctx->view.p[1]);
-        dsp::calc_plane_p3(&pl[2], &ctx->view.s, &ctx->view.p[1], &ctx->view.p[2]);
-        dsp::calc_plane_p3(&pl[3], &ctx->view.s, &ctx->view.p[2], &ctx->view.p[0]);
-
-        RT_TRACE(
-            init_triangle_p3(&npt[0], &ctx->view.p[0], &ctx->view.p[1], &ctx->view.p[2], &pl[0]);
-            init_triangle_p3(&npt[1], &ctx->view.s, &ctx->view.p[0], &ctx->view.p[1], &pl[1]);
-            init_triangle_p3(&npt[2], &ctx->view.s, &ctx->view.p[1], &ctx->view.p[2], &pl[2]);
-            init_triangle_p3(&npt[3], &ctx->view.s, &ctx->view.p[2], &ctx->view.p[0], &pl[3]);
-        );
-
-        rt_context_t in(ctx->shared);
-        RT_TRACE(
-            rt_context_t out(ctx->shared);
-        )
-
-        for (size_t pi=0; pi<4; ++pi)
-        {
-            RT_TRACE_BREAK(ctx,
-                lsp_trace("Filtering space with view plane #%d", int(pi));
-
-                for (size_t j=0, n=ctx->triangle.size(); j<n; ++j)
-                   ctx->shared->view->add_triangle_1c(ctx->triangle.get(j), &C_DARKGREEN);
-
-                ctx->shared->view->add_triangle_pv1c(ctx->view.p, &C_MAGENTA);
-                ctx->shared->view->add_plane_pv1c(npt[pi].p, &C_YELLOW);
-            )
-
-#ifdef LSP_DEBUG
-            res = ctx->filter(&out, &in, &pl[pi]);
-#else
-            res = ctx->filter(NULL, &in, &pl[pi]);
-#endif /* LSP_DEBUG */
-            if (res != STATUS_OK)
-                return res;
-
-            RT_TRACE_BREAK(ctx,
-                lsp_trace("Data after filtering (%d triangles)", int(in.triangle.size()));
-                for (size_t j=0,n=in.triangle.size(); j<n; ++j)
-                    ctx->shared->view->add_triangle_3c(in.triangle.get(j), &C_CYAN, &C_MAGENTA, &C_YELLOW);
-            );
-
-            RT_TRACE(
-                // Add set of triangles to ignored
-                for (size_t i=0,n=out.triangle.size(); i<n; ++i)
-                    ctx->ignore(out.triangle.get(i));
-            );
-
-            // Swap content
-            ctx->swap(&in);
-            if (ctx->triangle.size() <= 0)
-            {
-                delete ctx;
-                return STATUS_OK;
-            }
-        }
-
-        // Change state and submit to queue
-        ctx->state      = S_CULL_VIEW;
-
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
@@ -551,7 +276,12 @@ namespace mtest
             ctx->state      = S_REFLECT;
         }
         else
+        {
+            res     = ctx->sort_edges();
+            if (res != STATUS_OK)
+                return res;
             ctx->state      = S_SPLIT;
+        }
 
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
@@ -639,18 +369,8 @@ namespace mtest
 
     status_t reflect_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
-        // DEBUG
-        for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-            ctx->match(ctx->triangle.get(i));
-//        for (size_t i=0,n=ctx->edge.size(); i<n; ++i)
-//        {
-//            rt_edge_t *e = ctx->edge.get(i);
-//            if (e->itag & RT_EF_PLANE)
-//                ctx->shared->view->add_segment(e, &C_YELLOW);
-//        }
-
-        delete ctx;
-        return STATUS_OK;
+        // TODO: implement reflection method
+        return dump_view(tasks, ctx);
     }
 
     status_t perform_raytrace(cvector<rt_context_t> &tasks)
@@ -675,14 +395,12 @@ namespace mtest
                     break;
                 case S_SPLIT:
                     res = split_view(tasks, ctx);
-//                    res = split_view(tasks, ctx);
                     break;
                 case S_CULL_BACK:
                     res = cullback_view(tasks, ctx);
                     break;
                 case S_REFLECT:
-//                    res = reflect_view(tasks, ctx);
-                    res = dump_view(tasks, ctx);
+                    res = reflect_view(tasks, ctx);
                     break;
                 case S_IGNORE:
                     RT_TRACE(

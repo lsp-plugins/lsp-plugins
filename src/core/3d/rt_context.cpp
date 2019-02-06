@@ -477,119 +477,6 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t rt_context_t::split_edges(const vector3d_t *pl)
-    {
-        float t;
-        size_t s;
-        vector3d_t d;
-        rt_vertex_t *sp;
-        status_t res;
-
-        // Try to split all edges (including new ones)
-        for (size_t i=0; i< edge.size(); ++i)
-        {
-            rt_edge_t *e    = edge.get(i);
-
-//            RT_TRACE_BREAK(this,
-//                lsp_trace("Testing edge %d", int(i));
-//                for (size_t i=0,n=triangle.size(); i<n; ++i)
-//                    shared->view->add_triangle_1c(triangle.get(i), &C_RED);
-//                for (size_t j=0,n=edge.size(); j<n; ++j)
-//                {
-//                    rt_edge_t *xe    = edge.get(j);
-//                    if (xe == e)
-//                        continue;
-//                    shared->view->add_segment(xe,
-//                            (xe->itag & RT_EF_SPLIT) ? &C_GREEN : &C_CYAN
-//                    );
-//                }
-//                shared->view->add_segment(e, &C_YELLOW);
-//            );
-
-            if (e->itag & RT_EF_PROCESSED) // Skip already splitted eges
-                continue;
-
-            /*
-             State of each vertex:
-                 0 if point is over the plane
-                 1 if point is on the plane
-                 2 if point is above the plane
-
-             The chart of edge state 's':
-                 s=0   s=1   s=2   s=4   s=5   s=6   s=8   s=9   s=10   Normal
-               | 0 1 | 0   | 0   |   1 |     |     |   1 |     |     |  ^
-               |     |     |     |     |     |     |     |     |     |  |
-             ==|=====|===1=|=====|=0===|=0=1=|=0===|=====|===1=|=====|==== <- Splitting plane
-               |     |     |     |     |     |     |     |     |     |
-               |     |     |   1 |     |     |   1 | 0   | 0   | 0 1 |
-             */
-            s               = (e->v[0]->itag << 2) | e->v[1]->itag;
-
-            // Analyze ks[0] and ks[1]
-            switch (s)
-            {
-                case 0: case 1: case 4: // edge is over the plane, skip
-                    e->itag    |= RT_EF_PROCESSED;
-                    break;
-                case 6: case 9: case 10: // edge is under the plane, skip
-                    e->itag    |= RT_EF_PROCESSED;
-                    break;
-                case 5: // edge lays on the plane, mark as split edge and skip
-                    e->itag    |= RT_EF_PLANE | RT_EF_PROCESSED;
-                    break;
-
-                case 2: // edge is crossing the plane, v0 is over, v1 is under
-                case 8: // edge is crossing the plane, v0 is under, v1 is over
-                    // Find intersection with plane
-                    d.dx        = e->v[1]->x - e->v[0]->x;
-                    d.dy        = e->v[1]->y - e->v[0]->y;
-                    d.dz        = e->v[1]->z - e->v[0]->z;
-                    d.dw        = 0.0f;
-
-                    t           = (e->v[0]->x*pl->dx + e->v[0]->y*pl->dy + e->v[0]->z*pl->dz + pl->dw) /
-                                  (pl->dx*d.dx + pl->dy*d.dy + pl->dz*d.dz);
-
-                    // Allocate split point
-                    sp          = vertex.alloc();
-                    if (sp == NULL)
-                        return STATUS_NO_MEM;
-
-                    // Compute split point
-                    sp->x       = e->v[0]->x - d.dx * t;
-                    sp->y       = e->v[0]->y - d.dy * t;
-                    sp->z       = e->v[0]->z - d.dz * t;
-                    sp->w       = 1.0f;
-
-                    sp->ve      = NULL;
-                    sp->ptag    = NULL;
-                    sp->itag    = 1;
-
-                    res         = split_edge(e, sp);
-                    if (res != STATUS_OK)
-                        return res;
-                    break;
-
-                default:
-                    return STATUS_BAD_STATE;
-            }
-        }
-
-//        RT_TRACE_BREAK(this,
-//            lsp_trace("Triangle edges have been split, out=RED, in=GREEN");
-//            for (size_t i=0, n=triangle.size(); i<n; ++i)
-//            {
-//                rt_triangle_t *t = triangle.get(i);
-//                bool out         = (t->v[0]->itag != 1) ? (t->v[0]->itag <= 1) :
-//                                   (t->v[1]->itag != 1) ? (t->v[1]->itag <= 1) :
-//                                   (t->v[2]->itag <= 1);
-//
-//                shared->view->add_triangle_1c(t, (out) ? &C_RED : &C_GREEN);
-//            }
-//        );
-
-        return STATUS_OK;
-    }
-
     void rt_context_t::cleanup_tag_pointers()
     {
         // Cleanup pointers
@@ -801,80 +688,10 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t rt_context_t::filter(rt_context_t *out, rt_context_t *in, const vector3d_t *pl)
+    int rt_context_t::compare_edges(const void *p1, const void *p2)
     {
-        status_t res;
-        float t;
-
-        // Always clear target context before proceeding
-        if (out != NULL)
-            out->clear();
-        if (in != NULL)
-            in->clear();
-
-        // Cleanup itag for all triangles
-        for (size_t i=0, n=triangle.size(); i<n; ++i)
-        {
-            rt_triangle_t  *t   = triangle.get(i);
-            t->itag             = 1;        // Mark all triangles as outside
-            t->ptag             = NULL;
-        }
-
-        // Initialize state of all vertexes
-        for (size_t i=0, n=vertex.size(); i<n; ++i)
-        {
-            rt_vertex_t *v  = vertex.get(i);
-            t               = v->x*pl->dx + v->y*pl->dy + v->z*pl->dz + pl->dw;
-
-            v->ptag         = NULL;
-            v->itag         = (t < 0.0f);
-        }
-
-        // Reset all flags of edges
-        for (size_t i=0, n=edge.size(); i<n; ++i)
-        {
-            rt_edge_t *e    = edge.get(i);
-            e->itag        &= ~RT_EF_PROCESSED; // Clear split flag
-            e->ptag         = NULL;
-        }
-
-        // Toggle state of all triangles
-        for (size_t i=0, n=triangle.size(); i<n; ++i)
-        {
-            rt_triangle_t  *st  = triangle.get(i);
-            if (!st->itag) // Skip triangle?
-                continue;
-
-            // Is there at least one point below the plane?
-            if (st->v[0]->itag | st->v[1]->itag | st->v[2]->itag)
-                st->itag    = 0;
-        }
-
-        // Now we can fetch triangles
-        res    = fetch_triangles_safe(in, 0);
-        if (res != STATUS_OK)
-            return res;
-
-        res    = fetch_triangles_safe(out, 1);
-        if (res != STATUS_OK)
-            return res;
-
-        RT_TRACE(
-            if (!in->validate())
-                return STATUS_CORRUPTED;
-            if (!out->validate())
-                return STATUS_CORRUPTED;
-            if (!validate())
-                return STATUS_CORRUPTED;
-        )
-
-        return STATUS_OK;
-    }
-
-    int rt_context_t::compare_triangles(const void *p1, const void *p2)
-    {
-        const rt_triangle_sort_t *t1 = reinterpret_cast<const rt_triangle_sort_t *>(p1);
-        const rt_triangle_sort_t *t2 = reinterpret_cast<const rt_triangle_sort_t *>(p2);
+        const rt_edge_sort_t *t1 = reinterpret_cast<const rt_edge_sort_t *>(p1);
+        const rt_edge_sort_t *t2 = reinterpret_cast<const rt_edge_sort_t *>(p2);
 
         float x = t1->w - t2->w;
         if (x < -DSP_3D_TOLERANCE)
@@ -888,52 +705,32 @@ namespace lsp
         return sqrtf(p * (p - v->l[0]) * (p - v->l[1]) * (p - v->l[2]));
     }
 
-    status_t rt_context_t::sort()
+    status_t rt_context_t::sort_edges()
     {
         // Compute number of triangles
-        size_t nt       = triangle.size();
-        if (nt <= 1)
+        size_t ne       = edge.size();
+        if (ne <= 1)
             return STATUS_OK;
 
         // Allocate temporary array for sort
-        size_t cap      = (nt + 0x3f) & (~0x3f); // Round capacity to some granular size
-        rt_triangle_sort_t *vt = reinterpret_cast<rt_triangle_sort_t *>(malloc(cap * sizeof(rt_triangle_sort_t)));
-        if (vt == NULL)
+        size_t cap          = (ne + 0x3f) & (~0x3f); // Round capacity to some granular size
+        rt_edge_sort_t *ve  = reinterpret_cast<rt_edge_sort_t *>(malloc(cap * sizeof(rt_edge_sort_t)));
+        if (ve == NULL)
             return STATUS_NO_MEM;
 
         // Prepare data for sorting
-        for (size_t i=0; i<nt; ++i)
+        for (size_t i=0; i<ne; ++i)
         {
-            rt_triangle_t *ct = triangle.get(i);
-            float d     = dsp::calc_avg_distance_p3(&view.s, ct->v[0], ct->v[1], ct->v[2]); // User reverse distance: the far locations should give lesser values
-//            float a     = 1.0f / dsp::calc_area_p3(ct->v[0], ct->v[1], ct->v[2]);
-//            point3d_t c;
-//            c.x         = (ct->v[0]->x + ct->v[1]->x + ct->v[2]->x) / 3.0f;
-//            c.y         = (ct->v[0]->y + ct->v[1]->y + ct->v[2]->y) / 3.0f;
-//            c.z         = (ct->v[0]->z + ct->v[1]->z + ct->v[2]->z) / 3.0f;
-//            c.w         = 1.0f;
-//
-//            vector3d_t d;
-//            d.dx        = view.s.x - c.x;
-//            d.dx        = view.s.y - c.y;
-//            d.dx        = view.s.z - c.z;
-//            d.dz        = 0.0f;
-//
-//            dsp::normalize_vector(&d);
-//            float d     = ct->v[0]->d;
-//            if (d > ct->v[1]->d)
-//                d           = ct->v[1]->d;
-//            if (d > ct->v[2]->d)
-//                d           = ct->v[2]->d;
+            rt_edge_t *ce = edge.get(i);
+            float d0    = dsp::calc_sqr_distance_p2(&view.s, ce->v[0]);
+            float d1    = dsp::calc_sqr_distance_p2(&view.s, ce->v[1]);
 
-            vt[i].t     = ct;
-            vt[i].w     = d;
-            //- (ct->n.dx * d.dx + ct->n.dy * d.dy + ct->n.dz * d.dz);
-            //sqrtf(d*d + a); // Finding balance between distance and area
+            ve[i].e     = ce;
+            ve[i].w     = (d0 > d1) ? d1 : d0;
         }
 
         RT_TRACE_BREAK(this,
-            lsp_trace("Prepare sort (%d triangles)", int(nt));
+            lsp_trace("Prepare sort (%d edges)", int(ne));
 
             color3d_t c;
             c.r     = 1.0f;
@@ -941,19 +738,67 @@ namespace lsp
             c.b     = 0.0f;
             c.a     = 0.0f;
 
-            for (size_t i=0; i<nt; ++i)
+            for (size_t i=0; i<ne; ++i)
             {
-                c.r = float(nt - i)/nt;
-                shared->view->add_triangle_1c(vt[i].t, &c);
+                c.r = float(ne - i)/ne;
+                shared->view->add_segment(ve[i].e, &c);
             }
-            free(vt);
+            free(ve);
         );
 
         // Call sorting function
-        ::qsort(vt, nt, sizeof(rt_triangle_sort_t), compare_triangles);
+        ::qsort(ve, ne, sizeof(rt_edge_sort_t), compare_edges);
+
+        Allocator3D<rt_edge_t> new_edges(edge.chunk_size());
+        for (size_t i=0; i<ne; ++i)
+        {
+            rt_edge_t *se   = ve[i].e;
+            rt_edge_t *de   = new_edges.alloc(se);
+            if (de == NULL)
+            {
+                free(ve);
+                return STATUS_NO_MEM;
+            }
+
+            se->ptag        = de;
+        }
+
+        // Now we can remove the temporary array
+        free(ve);
+        ve          = NULL;
+        edge.swap(&new_edges);
+
+        // Patch all vertex pointers
+        for (size_t i=0,n=vertex.size(); i<n; ++i)
+        {
+            rt_vertex_t *v  = vertex.get(i);
+            v->ve           = (v->ve != NULL) ? reinterpret_cast<rt_edge_t *>(v->ve->ptag) : NULL;
+        }
+
+        // Patch all edge pointers
+        for (size_t i=0; i<ne; ++i)
+        {
+            rt_edge_t *e    = edge.get(i);
+            e->vlnk[0]      = (e->vlnk[0] != NULL) ? reinterpret_cast<rt_edge_t *>(e->vlnk[0]->ptag) : NULL;
+            e->vlnk[1]      = (e->vlnk[1] != NULL) ? reinterpret_cast<rt_edge_t *>(e->vlnk[1]->ptag) : NULL;
+        }
+
+        // Patch all triangle pointers
+        for (size_t i=0,n=triangle.size(); i<n; ++i)
+        {
+            rt_triangle_t *t= triangle.get(i);
+            t->e[0]         = reinterpret_cast<rt_edge_t *>(t->e[0]->ptag);
+            t->e[1]         = reinterpret_cast<rt_edge_t *>(t->e[1]->ptag);
+            t->e[2]         = reinterpret_cast<rt_edge_t *>(t->e[2]->ptag);
+        }
+
+        RT_TRACE(
+            if (!validate())
+                return STATUS_CORRUPTED;
+        );
 
         RT_TRACE_BREAK(this,
-            lsp_trace("Triangles have been sorted (%d triangles)", int(nt));
+            lsp_trace("Edges have been sorted (%d edges)", int(ne));
 
             color3d_t c;
             c.r     = 0.0f;
@@ -961,36 +806,12 @@ namespace lsp
             c.b     = 0.0f;
             c.a     = 0.0f;
 
-            for (size_t i=0; i<nt; ++i)
+            for (size_t i=0; i<ne; ++i)
             {
-                c.g = float(nt - i)/nt;
-                shared->view->add_triangle_1c(vt[i].t, &c);
+                c.g = float(ne - i)/ne;
+                shared->view->add_segment(edge.get(i), &c);
             }
-            free(vt);
         );
-
-        // Now we are ready to fetch triangles in new order
-        rt_context_t tmp(shared);
-        status_t res;
-
-        cleanup_tag_pointers();
-
-        // Fetch all triangles
-        for (size_t i=0; i<nt; ++i)
-        {
-            // Fetch triangle
-            res         = fetch_triangle(&tmp, vt[i].t);
-            if (res != STATUS_OK)
-            {
-                free(vt);
-                return res;
-            }
-        }
-        complete_fetch(&tmp);
-
-        // Free resources
-        swap(&tmp);
-        free(vt);
 
         return STATUS_OK;
     }
@@ -1974,88 +1795,6 @@ namespace lsp
         return STATUS_OK;
     }
 
-    bool rt_context_t::rearrange_triangle(rt_triangle_t *t)
-    {
-        rt_vertex_t *tv;
-        rt_edge_t *te;
-        rt_triangle_t *tt;
-
-        if (!(t->e[0]->itag & RT_EF_PLANE))
-            return true;
-        else if (!(t->e[1]->itag & RT_EF_PLANE)) // Rotate clockwise
-        {
-            tv          = t->v[0];
-            t->v[0]     = t->v[1];
-            t->v[1]     = t->v[2];
-            t->v[2]     = tv;
-
-            te          = t->e[0];
-            t->e[0]     = t->e[1];
-            t->e[1]     = t->e[2];
-            t->e[2]     = te;
-
-            tt          = t->elnk[0];
-            t->elnk[0]  = t->elnk[1];
-            t->elnk[1]  = t->elnk[2];
-            t->elnk[2]  = tt;
-        }
-        else if (!(t->e[2]->itag & RT_EF_PLANE)) // Rotate counter-clockwise
-        {
-            tv          = t->v[2];
-            t->v[2]     = t->v[1];
-            t->v[1]     = t->v[0];
-            t->v[0]     = tv;
-
-            te          = t->e[2];
-            t->e[2]     = t->e[1];
-            t->e[1]     = t->e[0];
-            t->e[0]     = te;
-
-            tt          = t->elnk[2];
-            t->elnk[2]  = t->elnk[1];
-            t->elnk[1]  = t->elnk[0];
-            t->elnk[0]  = tt;
-        }
-        else
-            return false;
-
-        return true;
-    }
-
-    void rt_context_t::rearrange_view()
-    {
-        if ((view.l[0] > view.l[1]) && (view.l[0] > view.l[2]))
-            return;
-
-        point3d_t tp;
-        float tl;
-
-        if (view.l[1] > view.l[2]) // Rotate clockwise
-        {
-            tp          = view.p[0];
-            view.p[0]   = view.p[1];
-            view.p[1]   = view.p[2];
-            view.p[2]   = tp;
-
-            tl          = view.l[0];
-            view.l[0]   = view.l[1];
-            view.l[1]   = view.l[2];
-            view.l[2]   = tl;
-        }
-        else // Rotate counter-clockwise
-        {
-            tp          = view.p[2];
-            view.p[2]   = view.p[1];
-            view.p[1]   = view.p[0];
-            view.p[0]   = tp;
-
-            tl          = view.l[2];
-            view.l[2]   = view.l[1];
-            view.l[1]   = view.l[0];
-            view.l[0]   = tl;
-        }
-    }
-
     void rt_context_t::debug(rt_context_t *ctx)
     {
         lsp_trace("Triggered debug on step=%d", int(ctx->shared->step));
@@ -2170,416 +1909,6 @@ namespace lsp
 
         return true;
     }
-
-    void rt_context_t::calc_partition_itag(rt_triangle_t *ct)
-    {
-        size_t it[3], xt[3];
-        it[0] = ct->v[0]->itag;
-        it[1] = ct->v[1]->itag;
-        it[2] = ct->v[2]->itag;
-
-        // Currently tag is unknown
-        ct->itag    = -1; // Unknown
-
-        // Ensure that triangle lays over one of the planes
-        if (((it[0] & 0x3) == 0) && ((it[1] & 0x3) == 0) && ((it[2] & 0x3) == 0))
-        {
-            ct->itag = 1; // Out context 1
-            return;
-        }
-        else if (((it[0] & 0xc) == 0) && ((it[1] & 0xc) == 0) && ((it[2] & 0xc) == 0))
-        {
-            ct->itag = 2; // Out context 2
-            return;
-        }
-        else if (((it[0] & 0x30) == 0) && ((it[1] & 0x30) == 0) && ((it[2] & 0x30)  == 0))
-        {
-            ct->itag = 3; // Out context 3
-            return;
-        }
-
-        // Check case when points lay on the same plane
-        for (size_t mask = 0x03; mask <= 0x30; mask <<= 2)
-        {
-            if ((it[0] & mask) != 1)
-                continue;
-            if ((it[1] & mask) != 1)
-                continue;
-            if ((it[2] & mask) != 1)
-                continue;
-            ct->itag = 4; // Ignore
-            return;
-        }
-
-        // Check that points lay inside the triangle
-        // 10 10 10   point lays inside of triangle
-        // 10 10 01   point lays on edge 0
-        // 10 01 10   point lays on edge 1
-        // 01 10 10   point lays on edge 2
-        // 10 01 01   point is result of crossing of edges 0 and 1
-        // 01 10 01   point is result of crossing of edges 0 and 2
-        // 01 01 10   point is result of crossing of edges 1 and 2
-        for (size_t i=0; i<3; ++i)
-        {
-            switch (it[i])
-            {
-                case 0x2a:
-                    xt[i]       = 2;
-                    break;
-                case 0x29: case 0x26: case 0x1a:
-                case 0x25: case 0x19: case 0x16:
-                    xt[i]       = 1;
-                    continue;
-                default:
-                    xt[i]       = 0;
-                    break;
-            }
-        }
-
-        if ((xt[0] >= 1) && (xt[1] >= 1) && (xt[2] >= 1))
-            ct->itag    = 0; // Inside
-    }
-
-#if 0
-    status_t rt_context_t::partition(rt_context_t **out, rt_context_t *ign, rt_context_t *in)
-    {
-        vector3d_t pl[3];
-        rt_triangle_t *ct;
-        status_t res;
-
-        // Clear all target contexts
-        for (size_t i=0; i<3; ++i)
-            if (out[i] != NULL)
-                out[i]->clear();
-        if (ign != NULL)
-            ign->clear();
-        if (in != NULL)
-            in->clear();
-
-        // STEP 0
-        // Get partitioning triangle
-        ct = triangle.get(0);
-        if (ct == NULL)
-            return STATUS_OK;
-
-        dsp::calc_oriented_plane_p3(&pl[0], ct->v[2], &view.s, ct->v[0], ct->v[1]);
-        dsp::calc_oriented_plane_p3(&pl[1], ct->v[0], &view.s, ct->v[1], ct->v[2]);
-        dsp::calc_oriented_plane_p3(&pl[2], ct->v[1], &view.s, ct->v[2], ct->v[0]);
-
-        RT_TRACE_BREAK(this,
-            lsp_trace("Prepare partition (%d triangles)", int(triangle.size()));
-
-            for (size_t i=0,n=triangle.size(); i<n; ++i)
-            {
-                rt_triangle_t *t = triangle.get(i);
-                shared->view->add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
-            }
-            shared->view->add_plane_3pn1c(&view.s, ct->v[0], ct->v[1], &pl[0], &C_RED);
-            shared->view->add_plane_3pn1c(&view.s, ct->v[1], ct->v[2], &pl[1], &C_GREEN);
-            shared->view->add_plane_3pn1c(&view.s, ct->v[2], ct->v[0], &pl[2], &C_BLUE);
-        );
-
-        // STEP 1
-        // Estimate the location of each vertex relative to each triangle edge
-        for (size_t i=0, n=vertex.size(); i<n; ++i)
-        {
-            rt_vertex_t *cv = vertex.get(i);
-            cv->itag        = 0;
-
-            // Check co-location of vertexes and triangle planes
-            for (size_t j=0; j<3; ++j)
-            {
-                float k         = cv->x * pl[j].dx + cv->y * pl[j].dy + cv->z * pl[j].dz + pl[j].dw;
-                if (k <= -DSP_3D_TOLERANCE)
-                    cv->itag       |= 2 << (j << 1);
-                else if (k <= DSP_3D_TOLERANCE)
-                    cv->itag       |= 1 << (j << 1);
-            }
-        }
-        ct->v[0]->itag      = 0x19; // 01 10 01 - point 0 lays on planes 0 and 2
-        ct->v[1]->itag      = 0x25; // 10 01 01 - point 1 lays on planes 0 and 1
-        ct->v[2]->itag      = 0x16; // 01 01 10 - point 2 lays on planes 1 and 2
-
-        for (size_t i=0, n=edge.size(); i<n; ++i)
-            edge.get(i)->itag &= ~RT_EF_TEMP; // Clear processed flag
-
-        // Pre-process triangles
-        for (size_t i=0,n=triangle.size(); i<n; ++i)
-            triangle.get(i)->itag   = 0;
-
-        for (size_t i=0; i<3; ++i)
-        {
-            size_t bit = i << 1;
-            for (size_t j=0,n=triangle.size(); j<n; ++j)
-            {
-                rt_triangle_t *ct = triangle.get(j);
-                if (ct->itag > 0)
-                    continue;
-
-                if ((((ct->v[0]->itag >> bit) & 0x03) < 1) &&
-                    (((ct->v[1]->itag >> bit) & 0x03) < 1) &&
-                    (((ct->v[2]->itag >> bit) & 0x03) < 1))
-                    ct->itag = i + 1;
-            }
-        }
-
-        for (size_t j=0,n=triangle.size(); j<n; ++j)
-        {
-            rt_triangle_t *ct = triangle.get(j);
-            if (ct->itag > 0)
-            {
-                ct->v[0]->itag     |= RT_EF_PARTITIONED;
-                ct->v[1]->itag     |= RT_EF_PARTITIONED;
-                ct->v[2]->itag     |= RT_EF_PARTITIONED;
-            }
-        }
-
-        RT_TRACE_BREAK(this,
-            lsp_trace("Marked triangles into in (YELLOW), out (RGB)");
-
-            for (size_t i=0,n=triangle.size(); i<n; ++i)
-            {
-                rt_triangle_t *t = triangle.get(i);
-                const color3d_t *xc;
-
-                if (t == ct) xc = &C_ORANGE;
-                else if (t->itag == 0) xc = &C_YELLOW;
-                else if (t->itag == 1) xc = &C_RED;
-                else if (t->itag == 2) xc = &C_GREEN;
-                else xc = &C_BLUE;
-
-                shared->view->add_triangle_1c(t, xc);
-            }
-            shared->view->add_plane_3pn1c(&view.s, ct->v[0], ct->v[1], &pl[0], &C_RED);
-            shared->view->add_plane_3pn1c(&view.s, ct->v[1], ct->v[2], &pl[1], &C_GREEN);
-            shared->view->add_plane_3pn1c(&view.s, ct->v[2], ct->v[0], &pl[2], &C_BLUE);
-        );
-
-        // STEP 2
-        // Perform the partitioning
-        for (size_t i=0; i<3; ++i)
-        {
-            // Is there data for partitioning?
-            if (this->triangle.size() <= 1)
-                break;
-
-            RT_TRACE_BREAK(this,
-                lsp_trace("Splitting edges with plane %d", int(i));
-
-                for (size_t j=0,n=triangle.size(); j<n; ++j)
-                {
-                    rt_triangle_t *t = triangle.get(j);
-                    const color3d_t *xc;
-
-                    if (t == ct) xc = &C_ORANGE;
-                    else if (t->itag == 0) xc = &C_CYAN;
-                    else xc = &C_YELLOW;
-
-                    shared->view->add_triangle_1c(t, xc);
-                }
-                if (i == 0)
-                    shared->view->add_plane_3pn1c(&view.s, ct->v[0], ct->v[1], &pl[0], &C_MAGENTA);
-                else if (i == 1)
-                    shared->view->add_plane_3pn1c(&view.s, ct->v[1], ct->v[2], &pl[1], &C_MAGENTA);
-                else if (i == 2)
-                    shared->view->add_plane_3pn1c(&view.s, ct->v[2], ct->v[0], &pl[2], &C_MAGENTA);
-            );
-
-            // PREPARE DATA
-            // Reset processed flags for all edges
-            for (size_t j=0, n=edge.size(); j<n; ++j)
-            {
-                rt_edge_t *se = edge.get(j);
-                if (!(se->itag & RT_EF_PARTITIONED))
-                    se->itag &= ~RT_EF_PROCESSED; // Clear processed flag
-            }
-
-            size_t bit = i << 1;
-
-            for (size_t j=0; j<edge.size(); ++j)
-            {
-                rt_edge_t *se   = edge.get(j);
-                // Check processed flag
-                if (se->itag & RT_EF_PROCESSED)
-                    continue;
-
-                // Check that points of current edge are laying on opposite sides of the selected triangle's edge's plane
-                ssize_t s       = ((se->v[0]->itag >> bit) & 0x03) | (((se->v[1]->itag >> bit) & 0x03) << 2);
-                switch (s)
-                {
-                    case 0: case 1: case 4: // Edge is outside
-                    case 6: case 9: case 10: // Edge is inside
-                    case 5: // Edge is laying on the plane
-                        se->itag |= RT_EF_PROCESSED;
-                        continue;
-                    case 2: case 8: // Edge is crossing plane
-                        break;
-                    default:
-                        return STATUS_BAD_STATE;
-                }
-                if ((s != 0x2) && (s != 0x8))
-                    continue;
-
-                // Compute split point coordinates
-                vector3d_t d;
-                d.dx        = se->v[1]->x - se->v[0]->x;
-                d.dy        = se->v[1]->y - se->v[0]->y;
-                d.dz        = se->v[1]->z - se->v[0]->z;
-                d.dw        = 0.0f;
-
-                float t     = (se->v[0]->x * pl[i].dx + se->v[0]->y * pl[i].dy + se->v[0]->z * pl[i].dz + pl[i].dw) /
-                              (pl[i].dx*d.dx + pl[i].dy*d.dy + pl[i].dz*d.dz);
-
-                rt_vertex_t *sp = vertex.alloc();
-                if (sp == NULL)
-                    return STATUS_NO_MEM;
-
-                sp->x       = se->v[0]->x - d.dx * t;
-                sp->y       = se->v[0]->y - d.dy * t;
-                sp->z       = se->v[0]->z - d.dz * t;
-                sp->w       = 1.0f;
-
-                sp->ve      = NULL;
-                sp->ptag    = NULL;
-
-                // Estimate location of split-point relative to other planes
-                sp->itag    = 1 << bit;
-                for (size_t m = 0; m<3; ++m)
-                {
-                    if (m == i)
-                        continue;
-                    float k             = sp->x * pl[m].dx + sp->y * pl[m].dy + sp->z * pl[m].dz + pl[m].dw;
-                    if (k <= -DSP_3D_TOLERANCE)
-                        sp->itag       |= 2 << (m << 1);
-                    else if (k <= DSP_3D_TOLERANCE)
-                        sp->itag       |= 1 << (m << 1);
-                }
-
-                // Perform edge split
-                res    = split_edge(se, sp);
-                if (res != STATUS_OK)
-                    return res;
-            }
-
-            RT_TRACE_BREAK(this,
-                lsp_trace("Processed triangles with plane %d: in (YELLOW), out (RGB), ignore(MAGENTA) and unknown (CYAN)", int(i));
-
-                for (size_t i=0,n=triangle.size(); i<n; ++i)
-                {
-                    rt_triangle_t *t = triangle.get(i);
-                    const color3d_t *xc;
-
-                    if (t == ct) xc = &C_ORANGE;
-                    else if (t->itag == 0) xc = &C_YELLOW;
-                    else if (t->itag == 1) xc = &C_RED;
-                    else if (t->itag == 2) xc = &C_GREEN;
-                    else xc = &C_BLUE;
-
-                    shared->view->add_triangle_1c(t, xc);
-                }
-                shared->view->add_plane_3pn1c(&view.s, ct->v[0], ct->v[1], &pl[0], &C_RED);
-                shared->view->add_plane_3pn1c(&view.s, ct->v[1], ct->v[2], &pl[1], &C_GREEN);
-                shared->view->add_plane_3pn1c(&view.s, ct->v[2], ct->v[0], &pl[2], &C_BLUE);
-            );
-        }
-
-        // Post-process triangles
-        for (size_t i=0; i<3; ++i)
-        {
-            size_t bit = i << 1;
-
-            for (size_t j=0,n=triangle.size(); j<n; ++j)
-            {
-                rt_triangle_t *ct = triangle.get(j);
-
-                if (ct->itag > 0)
-                    continue;
-                else if (((ct->v[0]->itag >> bit) & 0x3) < 1)
-                    ct->itag    = i+1;
-                else if (((ct->v[1]->itag >> bit) & 0x3) < 1)
-                    ct->itag    = i+1;
-                else if (((ct->v[2]->itag >> bit) & 0x3) < 1)
-                    ct->itag    = i+1;
-            }
-        }
-
-//        RT_TRACE_BREAK(this,
-//            lsp_trace("Processed triangles: in (YELLOW), out (RGB), ignore(MAGENTA) and unknown (CYAN)");
-//
-//            for (size_t i=0,n=triangle.size(); i<n; ++i)
-//            {
-//                rt_triangle_t *t = triangle.get(i);
-//                const color3d_t *xc;
-//
-//                if (t->itag == 0) xc = &C_YELLOW;
-//                else if (t->itag == 1) xc = &C_RED;
-//                else if (t->itag == 2) xc = &C_GREEN;
-//                else if (t->itag == 3) xc = &C_BLUE;
-//                else if (t->itag == 4) xc = &C_MAGENTA;
-//                else xc = &C_CYAN;
-//
-//                shared->view->add_triangle_1c(t, xc);
-//            }
-//            shared->view->add_plane_3pn1c(&view.s, ct->v[0], ct->v[1], &pl[0], &C_RED);
-//            shared->view->add_plane_3pn1c(&view.s, ct->v[1], ct->v[2], &pl[1], &C_GREEN);
-//            shared->view->add_plane_3pn1c(&view.s, ct->v[2], ct->v[0], &pl[2], &C_BLUE);
-//        );
-
-        // Store data to set of contexts
-        res = fetch_triangles_safe(in, 0);
-        if (res != STATUS_OK)
-            return res;
-        res = fetch_triangles_safe(out[0], 1);
-        if (res != STATUS_OK)
-            return res;
-        res = fetch_triangles_safe(out[1], 2);
-        if (res != STATUS_OK)
-            return res;
-        res = fetch_triangles_safe(out[2], 3);
-        if (res != STATUS_OK)
-            return res;
-        res = fetch_triangles_safe(ign, 4);
-        if (res != STATUS_OK)
-            return res;
-
-        RT_TRACE_BREAK(this,
-            lsp_trace("Partitioned: ");
-
-            if (out[0] != NULL)
-            {
-                lsp_trace("Out context 0 (%d triangles) is RED", int(out[0]->triangle.size()));
-                for (size_t i=0,n=out[0]->triangle.size(); i<n; ++i)
-                    shared->view->add_triangle_1c(out[0]->triangle.get(i), &C_RED);
-            }
-            if (out[1] != NULL)
-            {
-                lsp_trace("Out context 1 (%d triangles) is GREEN", int(out[1]->triangle.size()));
-                for (size_t i=0,n=out[1]->triangle.size(); i<n; ++i)
-                    shared->view->add_triangle_1c(out[1]->triangle.get(i), &C_GREEN);
-            }
-            if (out[2] != NULL)
-            {
-                lsp_trace("Out context 2 (%d triangles) is BLUE", int(out[2]->triangle.size()));
-                for (size_t i=0,n=out[2]->triangle.size(); i<n; ++i)
-                    shared->view->add_triangle_1c(out[2]->triangle.get(i), &C_BLUE);
-            }
-            if (ign != NULL)
-            {
-                lsp_trace("Ignored context (%d triangles) is MAGENTA", int(ign->triangle.size()));
-                for (size_t i=0,n=ign->triangle.size(); i<n; ++i)
-                    shared->view->add_triangle_1c(ign->triangle.get(i), &C_MAGENTA);
-            }
-            if (in != NULL)
-            {
-                lsp_trace("In context (%d triangles) is YELLOW", int(in->triangle.size()));
-                for (size_t i=0,n=in->triangle.size(); i<n; ++i)
-                    shared->view->add_triangle_1c(in->triangle.get(i), &C_YELLOW);
-            }
-        );
-
-        return STATUS_OK;
-    }
-#endif
 
     status_t rt_context_t::add_object(Object3D *obj)
     {

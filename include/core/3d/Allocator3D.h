@@ -121,10 +121,19 @@ namespace lsp
                  * Get number of allocated items
                  * @return number of allocated items
                  */
-                inline size_t size() const
-                {
-                    return nAllocated;
-                }
+                inline size_t size() const { return nAllocated; }
+
+                /**
+                 * Get number of elements per one chunk
+                 * @return number of elements per one chunk
+                 */
+                inline size_t chunk_size() const { return nChunkCapacity; }
+
+                /**
+                 * Get number of allocated chunks
+                 * @return number of allocated chunks
+                 */
+                inline size_t chunks() const { return nChunks; }
 
                 /**
                  * Get element at specified index

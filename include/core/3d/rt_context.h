@@ -38,6 +38,13 @@ namespace lsp
 
     typedef struct rt_context_t
     {
+        protected:
+            typedef struct rt_edge_sort_t
+            {
+                rt_edge_t          *e;          // Pointer to edge
+                float               w;          // Weight of edge
+            } rt_edge_sort_t;
+
         public:
             rt_view_t                   view;       // Ray tracing point of view
             rt_shared_t                *shared;     // Shared settings
@@ -57,7 +64,7 @@ namespace lsp
             ~rt_context_t();
 
         protected:
-            static int      compare_triangles(const void *p1, const void *p2);
+            static int      compare_edges(const void *p1, const void *p2);
             static float    calc_area(const rt_view_t *v);
 
             static status_t arrange_triangle(rt_triangle_t *ct, rt_edge_t *e);
@@ -72,7 +79,6 @@ namespace lsp
 
             status_t        split_edge(rt_edge_t* e, rt_vertex_t* sp);
             status_t        split_triangle(rt_triangle_t* t, rt_vertex_t* sp);
-            status_t        split_edges(const vector3d_t *pl);
 
             void            cleanup_tag_pointers();
             status_t        fetch_triangle(rt_context_t *dst, rt_triangle_t *st);
@@ -82,16 +88,9 @@ namespace lsp
             status_t        fetch_triangles_safe(rt_context_t *dst, ssize_t itag);
             status_t        vfetch_triangles_safe(rt_context_t *dst, size_t n, const ssize_t *itag);
             void            complete_fetch(rt_context_t *dst);
-            void            calc_partition_itag(rt_triangle_t *ct);
 
             void            dump_edge_list(size_t lvl, rt_edge_t *e);
             void            dump_triangle_list(size_t lvl, rt_triangle_t *t);
-
-            void            rearrange_view();
-            static bool     rearrange_triangle(rt_triangle_t *t);
-
-            status_t        binary_split_edges(const vector3d_t *pl);
-
         public:
             // Methods
             void            init_view(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
@@ -121,19 +120,10 @@ namespace lsp
             status_t        add_object(Object3D *obj);
 
             /**
-             * Filter context state with set of planes
-             * @param out all triangles that are 'outside' the planes
-             * @param in all triangles that are candidates to be inside
-             * @param pl culling plane
-             * @return status of operation
-             */
-            status_t        filter(rt_context_t *out, rt_context_t *in, const vector3d_t *pl);
-
-            /**
              * Reorder triangles according to the location relatively to point-of-view
              * @return status of operation
              */
-            status_t        sort();
+            status_t        sort_edges();
 
             /**
              * Remove conflicts between triangles
