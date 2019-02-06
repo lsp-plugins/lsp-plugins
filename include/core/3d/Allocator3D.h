@@ -25,7 +25,7 @@ namespace lsp
             size_t      nSizeOf;        // Size of record (in bytes)
             size_t      nAllocated;     // Number of allocated items
             uint8_t   **vChunks;        // List of all chunks
-            uint8_t    *vCurr;          // Current chunk
+            uint8_t    *pCurr;          // Current chunk
             size_t      nLeft;          // Number of left items
 
         protected:

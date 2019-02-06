@@ -24,7 +24,7 @@ namespace lsp
         nSizeOf         = sz_of;
         nAllocated      = 0;
         vChunks         = NULL;
-        vCurr           = NULL;
+        pCurr           = NULL;
         nLeft           = 0;
     }
 
@@ -72,30 +72,19 @@ namespace lsp
 
     void *BasicAllocator3D::do_alloc()
     {
-//        ssize_t index   = nAllocated;
-//        size_t cid      = index >> nShift;
-//
-//        uint8_t *chunk  = get_chunk(cid);
-//        if (chunk == NULL)
-//            return NULL;
-//
-//        size_t iid      = index & nMask;
-//        ++nAllocated;
-//        return &chunk[nSizeOf * iid];
         // Try to allocate from current chunk
         if (nLeft <= 0)
         {
-            size_t cid      = nAllocated >> nShift;
-            vCurr           = get_chunk(cid);
-            if (vCurr == NULL)
+            pCurr           = get_chunk(nAllocated >> nShift);
+            if (pCurr == NULL)
                 return NULL;
             nLeft           = nMask; // (1 << nShift) - 1
         }
         else
             --nLeft;
 
-        uint8_t *p      = vCurr;
-        vCurr          += nSizeOf;
+        uint8_t *p      = pCurr;
+        pCurr          += nSizeOf;
         ++nAllocated;
         return p;
     }
@@ -105,17 +94,16 @@ namespace lsp
         // Try to allocate from current chunk
         if (nLeft <= 0)
         {
-            size_t cid      = nAllocated >> nShift;
-            vCurr           = get_chunk(cid);
-            if (vCurr == NULL)
+            pCurr           = get_chunk(nAllocated >> nShift);
+            if (pCurr == NULL)
                 return -STATUS_NO_MEM;
             nLeft           = nMask; // (1 << nShift) - 1
         }
         else
             --nLeft;
 
-        *p              = vCurr;
-        vCurr          += nSizeOf;
+        *p              = pCurr;
+        pCurr          += nSizeOf;
         return nAllocated++;
     }
 
@@ -139,13 +127,15 @@ namespace lsp
 
         nAllocated      = 0;
         nChunks         = 0;
-        vCurr           = NULL;
+        pCurr           = NULL;
         nLeft           = 0;
     }
 
     void BasicAllocator3D::do_clear()
     {
         nAllocated      = 0;
+        pCurr           = NULL;
+        nLeft           = 0;
     }
 
     void BasicAllocator3D::do_swap(BasicAllocator3D *src)
@@ -156,7 +146,7 @@ namespace lsp
         swap(nSizeOf, src->nSizeOf);
         swap(nAllocated, src->nAllocated);
         swap(vChunks, src->vChunks);
-        swap(vCurr, src->vCurr);
+        swap(pCurr, src->pCurr);
         swap(nLeft, src->nLeft);
     }
 

@@ -1015,14 +1015,18 @@ namespace lsp
         vector3d_t pl[4]; // Split plane
         status_t res;
 
+        // Mark all edges to be split
+//        for (size_t i=0,n=edge.size(); i<n; ++i)
+//        {
+//            rt_edge_t *e    = edge.get(i);
+        RT_FOREACH(rt_edge_t, e, edge)
+            e->itag        |= RT_EF_APPLY;
+        RT_FOREACH_END
+
         dsp::calc_plane_p3(&pl[0], &view.p[0], &view.p[1], &view.p[2]);
         dsp::calc_plane_p3(&pl[1], &view.s, &view.p[0], &view.p[1]);
         dsp::calc_plane_p3(&pl[2], &view.s, &view.p[1], &view.p[2]);
         dsp::calc_plane_p3(&pl[3], &view.s, &view.p[2], &view.p[0]);
-
-        RT_TRACE(
-            rt_context_t out(shared);
-        )
 
         RT_TRACE_BREAK(this,
             lsp_trace("Culling space with planes (%d triangles)", int(triangle.size()));
@@ -1038,26 +1042,9 @@ namespace lsp
 
         for (size_t pi=0; pi<4; ++pi)
         {
-#ifdef LSP_DEBUG
-            res = split(&out, &pl[pi]);
-#else
-            res = split(NULL, &pl[pi]);
-#endif /* LSP_DEBUG */
+            res = cutoff(&pl[pi]);
             if (res != STATUS_OK)
                 return res;
-
-            RT_VALIDATE(
-                // Split edges
-                if (!out.validate())
-                    return STATUS_CORRUPTED;
-                if (!on.validate())
-                    return STATUS_CORRUPTED;
-            )
-            RT_TRACE(
-                // Add set of triangles to ignored
-                for (size_t j=0,n=out.triangle.size(); j<n; ++j)
-                    ignore(out.triangle.get(j));
-            )
 
             // Check that there is data for processing and take it for next iteration
             if (triangle.size() <= 0)
@@ -1070,24 +1057,12 @@ namespace lsp
                 shared->view->add_triangle_3c(triangle.get(j), &C_CYAN, &C_MAGENTA, &C_YELLOW);
         );
 
-        // Mark all edges to be split
-//        for (size_t i=0,n=edge.size(); i<n; ++i)
-//        {
-//            rt_edge_t *e    = edge.get(i);
-        RT_FOREACH(rt_edge_t, e, edge)
-            e->itag        |= RT_EF_APPLY;
-        RT_FOREACH_END
-
         return STATUS_OK;
     }
 
-    status_t rt_context_t::split(rt_context_t *out, const vector3d_t *pl)
+    status_t rt_context_t::cutoff(const vector3d_t *pl)
     {
         status_t res;
-
-        // Always clear target context before proceeding
-        if (out != NULL)
-            out->clear();
 
         // Is there data for processing ?
         if (triangle.size() <= 0)
@@ -1180,7 +1155,7 @@ namespace lsp
                 st->itag    = st->v[2]->itag;
 
             RT_TRACE(
-                if (st->itag == 1)
+                if (st->itag != 2)
                     ignore(st);
             )
 		RT_FOREACH_END
@@ -1189,14 +1164,9 @@ namespace lsp
         res    = fetch_triangles_safe(&in, 2);
         if (res != STATUS_OK)
             return res;
-        res    = fetch_triangles_safe(out, 0);
-        if (res != STATUS_OK)
-            return res;
 
         RT_VALIDATE(
             if (!in.validate())
-                return STATUS_CORRUPTED;
-            if (!out->validate())
                 return STATUS_CORRUPTED;
             if (!validate())
                 return STATUS_CORRUPTED;
@@ -1204,18 +1174,6 @@ namespace lsp
 
         this->swap(&in);
         return STATUS_OK;
-    }
-
-    status_t rt_context_t::split(rt_context_t *out, rt_context_t *in, const vector3d_t *pl)
-    {
-        status_t res = split(out, pl);
-        if ((res == STATUS_OK) && (in != NULL))
-        {
-            in->swap(this);
-            in->view    = view;
-            in->state   = state;
-        }
-        return res;
     }
 
     status_t rt_context_t::edge_split(rt_context_t *out)

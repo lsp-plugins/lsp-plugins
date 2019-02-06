@@ -90,6 +90,7 @@ namespace lsp
 
             void            dump_edge_list(size_t lvl, rt_edge_t *e);
             void            dump_triangle_list(size_t lvl, rt_triangle_t *t);
+
         public:
             // Methods
             void            init_view(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
@@ -131,6 +132,13 @@ namespace lsp
             status_t        solve_conflicts();
 
             /**
+             * Cut-off all triangles above the specified plane
+             * @param pl plane equation
+             * @return status of operation
+             */
+            status_t        cutoff(const vector3d_t *pl);
+
+            /**
              * Cull all triangles that do not match the view
              * @return status of operation
              */
@@ -148,24 +156,6 @@ namespace lsp
              * @return status of operation
              */
             status_t        depth_cullback();
-
-            /**
-             * Perform binary-partitioning of the space using specified plane equation
-             * @param out context for outside data (above the plane)
-             * @param in context for inside data (below the plane)
-             * @param pl plane equation
-             * @return status of operation
-             */
-            status_t        split(rt_context_t *out, rt_context_t *in, const vector3d_t *pl);
-
-            /**
-             * Perform binary-partitioning of the space using specified plane equation, keep 'in' data
-             * @param out context for outside data (above the plane)
-             * @param on context for matched data (on the plane)
-             * @param pl plane equation
-             * @return status of operation
-             */
-            status_t        split(rt_context_t *out, const vector3d_t *pl);
 
             /**
              * Check consistency of the context: that all stored pointers are valid
