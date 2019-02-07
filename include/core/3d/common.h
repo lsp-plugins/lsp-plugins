@@ -101,6 +101,21 @@ namespace lsp
         RT_EF_APPLY         = 1 << 1,       // The flag that requires the edge to be applied
     };
 
+    struct rt_vertex_t;
+    struct rt_edge_t;
+    struct rt_triangle_t;
+    struct rt_view_t;
+    struct rt_material_t;
+
+    /**
+     * Capture function
+     * @param v the ray-tracing view
+     * @param t the triangle that captures energy
+     * @param data user data from material
+     * @return status of operation
+     */
+    typedef status_t (*rt_capture_t)(const rt_view_t *v, const raw_triangle_t *t, void *data);
+
     typedef struct rt_vertex_t: public point3d_t
     {
         rt_edge_t          *ve;         // List of linked edges
@@ -128,15 +143,32 @@ namespace lsp
         void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
         ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
         ssize_t             face;       // Face identifier
+        rt_material_t      *m;          // Material
+        // Alignment to be multiple of 16
+        __IF_64(uint64_t    __pad);
+        __IF_32(uint32_t    __pad[3]);
     } rt_triangle_t;
 
     typedef struct rt_view_t
     {
         point3d_t           s;          // Source point
         point3d_t           p[3];       // View points
-        float               l[3];       // Length of edges
-        float               area;       // Area of the view
-    } rt_front_t;
+        ssize_t             face;       // Face to ignore
+        float               time[3];    // The corresponding start time for each source point
+        float               energy;     // The energy of the wave, can have both positive and negative signs (if reflected)
+        float               speed;      // The current sound speed
+    } rt_view_t;
+
+    typedef struct rt_material_t
+    {
+        float           dispersion[2];      // The dispersion coefficients for reflected signal
+        float           absorption[2];      // The amount of energy that will be absorpted
+        float           transparency[2];    // The amount of energy that will be passed-through the material
+        float           refraction[2];      // The refraction coefficients for passed-through signal
+        float           permeability;       // Sound permeability of the object
+        rt_capture_t   *capture;            // Routine to call for capturing events
+        void           *capture_data;       // Data to pass to the capture routine
+    } rt_material_t;
 
     // Viewing structures
 #pragma pack(push, 1)

@@ -49,7 +49,6 @@ namespace lsp
             rt_view_t                   view;       // Ray tracing point of view
             rt_shared_t                *shared;     // Shared settings
             rt_context_state_t          state;      // Context state
-            size_t                      loop;       // Loop counter
 
             Allocator3D<rt_vertex_t>    vertex;     // Collection of vertexes
             Allocator3D<rt_edge_t>      edge;       // Collection of edges
@@ -61,11 +60,12 @@ namespace lsp
         public:
             // Construction/destruction
             explicit rt_context_t(rt_shared_t *shared);
+            explicit rt_context_t(const rt_view_t *view, rt_shared_t *shared);
+            explicit rt_context_t(const rt_view_t *view, rt_context_state_t state, rt_shared_t *shared);
             ~rt_context_t();
 
         protected:
             static int      compare_edges(const void *p1, const void *p2);
-            static float    calc_area(const rt_view_t *v);
 
             static status_t arrange_triangle(rt_triangle_t *ct, rt_edge_t *e);
             static bool     unlink_edge(rt_edge_t *e, rt_vertex_t *v);
@@ -115,9 +115,10 @@ namespace lsp
             /**
              * Add object to context
              * @param obj object to add
-             * @return
+             * @param material material that describes behaviour of reflected rays
+             * @return status of operation
              */
-            status_t        add_object(Object3D *obj);
+            status_t        add_object(Object3D *obj, rt_material_t *material);
 
             /**
              * Reorder triangles according to the location relatively to point-of-view

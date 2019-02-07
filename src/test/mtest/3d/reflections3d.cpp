@@ -235,7 +235,7 @@ namespace mtest
             }
 
             // Add object to context
-            res = ctx->add_object(obj);
+            res = ctx->add_object(obj, NULL);
             if (res != STATUS_OK)
                 break;
 

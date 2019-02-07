@@ -19,7 +19,7 @@ namespace lsp
         for ( ; __loops > 0; ++var, --__loops) \
         {
 
-#define RT_FOREACH_BREAK    __ne = 0; break;
+#define RT_FOREACH_BREAK    { __ne = 0; break; }
 
 #define RT_FOREACH_END      } }
 
@@ -29,7 +29,6 @@ namespace lsp
         triangle(256)
     {
         this->state     = S_SCAN_OBJECTS;
-        this->loop      = 0;
         this->shared    = shared;
 
         // Initialize point of view
@@ -37,12 +36,28 @@ namespace lsp
         dsp::init_point_xyz(&view.p[0], 0.0f, 0.0f, 0.0f);
         dsp::init_point_xyz(&view.p[1], 0.0f, 0.0f, 0.0f);
         dsp::init_point_xyz(&view.p[2], 0.0f, 0.0f, 0.0f);
-        view.l[0]       = -1.0f;
-        view.l[1]       = -1.0f;
-        view.l[2]       = -1.0f;
-        view.area       = 0.0f;
     }
     
+    rt_context_t::rt_context_t(const rt_view_t *view, rt_shared_t *shared):
+        vertex(256),
+        edge(256),
+        triangle(256)
+    {
+        this->state     = S_SCAN_OBJECTS;
+        this->shared    = shared;
+        this->view      = *view;
+    }
+
+    rt_context_t::rt_context_t(const rt_view_t *view, rt_context_state_t state, rt_shared_t *shared):
+        vertex(256),
+        edge(256),
+        triangle(256)
+    {
+        this->state     = state;
+        this->shared    = shared;
+        this->view      = *view;
+    }
+
     rt_context_t::~rt_context_t()
     {
         shared          = NULL;
@@ -58,28 +73,30 @@ namespace lsp
 
     void rt_context_t::init_view(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
     {
-        view.s      = *sp;
-        view.p[0]   = *p0;
-        view.p[1]   = *p1;
-        view.p[2]   = *p2;
-
-        view.l[0]   = dsp::calc_distance_p2(p0, p1);
-        view.l[1]   = dsp::calc_distance_p2(p1, p2);
-        view.l[2]   = dsp::calc_distance_p2(p0, p2);
-        view.area   = calc_area(&view);
+        view.s          = *sp;
+        view.p[0]       = *p0;
+        view.p[1]       = *p1;
+        view.p[2]       = *p2;
+        view.face       = -1;
+        view.time[0]    = 0.0f;
+        view.time[1]    = 0.0f;
+        view.time[2]    = 0.0f;
+        view.energy     = 1.0f;
+        view.speed      = SOUND_SPEED_M_S;
     }
 
     void rt_context_t::init_view(const point3d_t *sp, const point3d_t *pv)
     {
-        view.s      = *sp;
-        view.p[0]   = pv[0];
-        view.p[1]   = pv[1];
-        view.p[2]   = pv[2];
-
-        view.l[0]   = dsp::calc_distance_pv(&pv[0]);
-        view.l[1]   = dsp::calc_distance_pv(&pv[1]);
-        view.l[2]   = dsp::calc_distance_p2(&pv[0], &pv[2]);
-        view.area   = calc_area(&view);
+        view.s          = *sp;
+        view.p[0]       = pv[0];
+        view.p[1]       = pv[1];
+        view.p[2]       = pv[2];
+        view.face       = -1;
+        view.time[0]    = 0.0f;
+        view.time[1]    = 0.0f;
+        view.time[2]    = 0.0f;
+        view.energy     = 1.0f;
+        view.speed      = SOUND_SPEED_M_S;
     }
 
     void rt_context_t::clear()
@@ -220,8 +237,8 @@ namespace lsp
         ne->v[0]        = sp;
         ne->v[1]        = e->v[1];
         ne->vt          = NULL;
-        ne->vlnk[0]     = NULL;
-        ne->vlnk[1]     = NULL;
+      //ne->vlnk[0]     = NULL;
+      //ne->vlnk[1]     = NULL;
         ne->ptag        = NULL;
         ne->itag        = e->itag;
 
@@ -246,8 +263,6 @@ namespace lsp
             if (linked_count(e, e->v[1]) != 0)
                 return STATUS_CORRUPTED;
         )
-
-        cvector<rt_triangle_t> dbg_out;
 
         // Process all triangles
         while (true)
@@ -300,6 +315,7 @@ namespace lsp
                 nt->ptag        = NULL;
                 nt->itag        = ct->itag;
                 nt->face        = ct->face;
+                nt->m           = ct->m;
 
                 // Update current triangle
               //ct->v[0]        = ct->v[0];
@@ -324,6 +340,7 @@ namespace lsp
                 nt->ptag        = NULL;
                 nt->itag        = ct->itag;
                 nt->face        = ct->face;
+                nt->m           = ct->m;
 
                 // Update current triangle
                 ct->v[0]        = sp;
@@ -362,9 +379,6 @@ namespace lsp
             ct->e[1]->vt    = ct;
             ct->e[2]->vt    = ct;
 
-            dbg_out.add(ct);
-            dbg_out.add(nt);
-
 //            RT_TRACE_BREAK(this,
 //                lsp_trace("Splitted triangle");
 //                shared->view->add_triangle_1c(ct, &C_GREEN);
@@ -395,12 +409,6 @@ namespace lsp
             if (res != STATUS_OK)
                 return res;
         }
-
-//        RT_TRACE_BREAK(this,
-//            lsp_trace("Final result for edge");
-//            for (size_t i=0,n=dbg_out.size();i<n; ++i)
-//                shared->view->add_triangle_1c(dbg_out.get(i), &C_GREEN);
-//        );
 
         // Now the edge 'e' is stored in context but not linked to any primitive
         return STATUS_OK;
@@ -452,6 +460,7 @@ namespace lsp
         nt[0]->ptag     = NULL;
         nt[0]->itag     = t->itag;
         nt[0]->face     = t->face;
+        nt[0]->m        = t->m;
 
         nt[1]->v[0]     = t->v[2];
         nt[1]->v[1]     = t->v[0];
@@ -463,6 +472,7 @@ namespace lsp
         nt[1]->ptag     = NULL;
         nt[1]->itag     = t->itag;
         nt[1]->face     = t->face;
+        nt[1]->m        = t->m;
 
       //nt[2]->v[0]     = t->v[0];
       //nt[2]->v[1]     = t->v[1];
@@ -526,6 +536,7 @@ namespace lsp
             return STATUS_NO_MEM;
 
         tx->n       = st->n;
+        tx->m       = st->m;
         tx->itag    = st->itag;
         tx->face    = st->face;
         tx->ptag    = st;
@@ -716,12 +727,6 @@ namespace lsp
         if (x < -DSP_3D_TOLERANCE)
             return -1;
         return (x > DSP_3D_TOLERANCE) ? 1 : 0;
-    }
-
-    float rt_context_t::calc_area(const rt_view_t *v)
-    {
-        float p     = 0.5f * (v->l[0] + v->l[1] + v->l[2]); // Semi-permeter
-        return sqrtf(p * (p - v->l[0]) * (p - v->l[1]) * (p - v->l[2]));
     }
 
     status_t rt_context_t::sort_edges()
@@ -1326,10 +1331,6 @@ namespace lsp
                 st->itag    = st->v[0]->itag;
             else if (st->v[1]->itag != 1)
                 st->itag    = st->v[1]->itag;
-//            else if (st->v[1]->itag != 1)
-//                st->itag    = st->v[2]->itag;
-//            else
-//                st->itag    = 0;
             else
                 st->itag    = st->v[2]->itag;
         RT_FOREACH_END
@@ -1585,7 +1586,7 @@ namespace lsp
     }
 
 
-    status_t rt_context_t::add_object(Object3D *obj)
+    status_t rt_context_t::add_object(Object3D *obj, rt_material_t *material)
     {
         // Reset tags
         obj->scene()->init_tags(NULL, 0);
@@ -1608,6 +1609,8 @@ namespace lsp
                 return STATUS_BAD_STATE;
             else if (st->ptag != NULL) // Skip already emitted triangle
                 continue;
+            else if (st->face == view.face) // Skip ignored faces
+                continue;
 
             // Allocate triangle and store pointer
             rt_triangle_t *dt = triangle.alloc();
@@ -1621,6 +1624,7 @@ namespace lsp
             dt->itag    = 0;
             dt->face    = st->face;
             st->ptag    = dt;
+            dt->m       = material;
 
 //            lsp_trace("Link rt_triangle[%p] to obj_triangle[%p]", dt, st);
 
