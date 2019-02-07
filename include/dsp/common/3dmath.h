@@ -795,7 +795,7 @@ namespace dsp
      * @param p0 point 0
      * @param p1 point 1
      * @param p2 point 2
-     * @return the length of the normal vector
+     * @return the length of the original normal vector
      */
     extern float (* calc_plane_p3)(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
 
@@ -803,6 +803,7 @@ namespace dsp
      * Compute plane equation using three points
      * @param v pointer to store plane equation
      * @param pv array of three points that lay on the plane
+     * @return the length of the original normal vector
      */
     extern float (* calc_plane_pv)(vector3d_t *v, const point3d_t *pv);
 
@@ -812,8 +813,18 @@ namespace dsp
      * @param v0 vector
      * @param p0 point 0
      * @param p1 point 1
+     * @return the length of the original normal vector
      */
     extern float (* calc_plane_v1p2)(vector3d_t *v, const vector3d_t *v0, const point3d_t *p0, const point3d_t *p1);
+
+    /**
+     * Orient plane to have source point below the plane
+     * @param v target plane equation vector
+     * @param sp source point
+     * @param pl source plane equation vector
+     * @return distance from point to the plane
+     */
+    extern float (* orient_plane_v1p1)(vector3d_t *v, const point3d_t *sp, const vector3d_t *pl);
 
     /**
      * Compute plane equation using three points and set the proper direction so the orienting point is always 'below'
@@ -823,6 +834,7 @@ namespace dsp
      * @param p0 point 0
      * @param p1 point 1
      * @param p2 point 2
+     * @return the length of the original normal vector
      */
     extern float (* calc_oriented_plane_p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
 
@@ -832,8 +844,20 @@ namespace dsp
      * @param v pointer to store plane equation
      * @param sp orienting point
      * @param pv array of three points that lay on the plane
+     * @return the length of the original normal vector
      */
     extern float (* calc_oriented_plane_pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv);
+
+    /**
+     * Compute plane equation for parallel plane that contains sp and pp points and is parallel to the line formed from p0 and p1 points
+     * @param v pointer to store plane equation
+     * @param sp source (projection) point
+     * @param pp point that lays on the plane
+     * @param p0 line point 0
+     * @param p1 line point 1
+     * @return the length of the original normal vector
+     */
+    extern float (* calc_parallel_plane_p2p2)(vector3d_t *v, const point3d_t *sp, const point3d_t *pp, const point3d_t *p0, const point3d_t *p1);
 
     /**
      * Estimate the area of triangle
@@ -843,6 +867,30 @@ namespace dsp
      * @return area of triangle
      */
     extern float (* calc_area_p3)(const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Return length of the projection of the point on the line
+     * @param p0 projection line point 0
+     * @param p1 projection line point 1
+     * @param pp projected point
+     * @return length of the projection of the point on the line
+     */
+    extern float (* projection_length_p2)(const point3d_t *p0, const point3d_t *p1, const point3d_t *pp);
+
+    /**
+     * Return length of the projection of the vector on another vector
+     * @param v projection vector
+     * @param pv projected vector
+     * @return length of the projection of the vector on another vector
+     */
+    extern float (* projection_length_v2)(const vector3d_t *v, const vector3d_t *pv);
+
+    /**
+     * Estimate the area of triangle
+     * @param pv array of triangle edges
+     * @return area of triangle
+     */
+    extern float (* calc_area_pv)(const point3d_t *pv);
 
     /**
      * Estimate the shortest distance to triangle

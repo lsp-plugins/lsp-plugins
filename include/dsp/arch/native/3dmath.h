@@ -2334,6 +2334,27 @@ namespace native
         return w;
     }
 
+    float orient_plane_v1p1(vector3d_t *v, const point3d_t *sp, const vector3d_t *pl)
+    {
+        float a     = (sp->x * pl->dx + sp->y * pl->dy + sp->z * pl->dz + pl->dw);
+        if (a > 0.0f) // Point is above, need to flip plane
+        {
+            v->dx       = - pl->dx;
+            v->dy       = - pl->dy;
+            v->dz       = - pl->dz;
+            v->dw       = - pl->dw;
+            return a;
+        }
+        else // Point is below or on the plane, just copy plane equation
+        {
+            v->dx       = pl->dx;
+            v->dy       = pl->dy;
+            v->dz       = pl->dz;
+            v->dw       = pl->dw;
+            return -a;
+        }
+    }
+
     float calc_oriented_plane_pv(vector3d_t *v, const point3d_t *sp, const point3d_t *pv)
     {
         // Calculate edge parameters
@@ -2379,6 +2400,51 @@ namespace native
         return w;
     }
 
+    float calc_parallel_plane_p2p2(vector3d_t *v, const point3d_t *sp, const point3d_t *pp, const point3d_t *p0, const point3d_t *p1)
+    {
+        // Calculate edge parameters
+        vector3d_t d[2];
+        d[0].dx     = sp->x - pp->x;
+        d[0].dy     = sp->y - pp->y;
+        d[0].dz     = sp->z - pp->z;
+        d[0].dw     = 0.0f;
+
+        d[1].dx     = p1->x - p0->x;
+        d[1].dy     = p1->y - p0->y;
+        d[1].dz     = p1->z - p0->z;
+        d[1].dw     = p1->w - p0->w;
+
+        // Do vector multiplication to calculate the normal vector
+        v->dx       = d[0].dy*d[1].dz - d[0].dz*d[1].dy;
+        v->dy       = d[0].dz*d[1].dx - d[0].dx*d[1].dz;
+        v->dz       = d[0].dx*d[1].dy - d[0].dy*d[1].dx;
+        v->dw       = 0.0f;
+
+        float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
+        if (w != 0.0f)
+        {
+            w           = 1.0f / w;
+            v->dx      *= w;
+            v->dy      *= w;
+            v->dz      *= w;
+            v->dw       = 0.0f;
+        }
+
+        v->dw       = - ( v->dx * pp->x + v->dy * pp->y + v->dz * pp->z); // Parameter for the plane equation
+
+        // Set the valid orientation for the plane
+        float a     = (sp->x * v->dx + sp->y * v->dy + sp->z * v->dz + v->dw);
+        if (a > 0.0f)
+        {
+            v->dx       = - v->dx;
+            v->dy       = - v->dy;
+            v->dz       = - v->dz;
+            v->dw       = - v->dw;
+        }
+
+        return w;
+    }
+
     float calc_area_p3(const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
     {
         vector3d_t v[2], n;
@@ -2390,6 +2456,27 @@ namespace native
         v[1].dx     = p2->x - p0->x;
         v[1].dy     = p2->y - p0->y;
         v[1].dz     = p2->z - p0->z;
+        v[1].dw     = 0.0f;
+
+        // Calculate vector multiplication
+        n.dx        = v[0].dy * v[1].dz - v[0].dz * v[1].dy;
+        n.dy        = v[0].dz * v[1].dx - v[0].dx * v[1].dz;
+        n.dz        = v[0].dx * v[1].dy - v[0].dy * v[1].dx;
+
+        return sqrtf(n.dx*n.dx + n.dy*n.dy + n.dz*n.dz);
+    }
+
+    float calc_area_pv(const point3d_t *pv)
+    {
+        vector3d_t v[2], n;
+        v[0].dx     = pv[1].x - pv[0].x;
+        v[0].dy     = pv[1].y - pv[0].y;
+        v[0].dz     = pv[1].z - pv[0].z;
+        v[0].dw     = 0.0f;
+
+        v[1].dx     = pv[2].x - pv[0].x;
+        v[1].dy     = pv[2].y - pv[0].y;
+        v[1].dz     = pv[2].z - pv[0].z;
         v[1].dw     = 0.0f;
 
         // Calculate vector multiplication
@@ -2499,6 +2586,35 @@ namespace native
         d.dy        = pv[1].y - pv[0].y;
         d.dz        = pv[1].z - pv[0].z;
         return d.dx*d.dx + d.dy*d.dy + d.dz*d.dz;
+    }
+
+    float projection_length_p2(const point3d_t *p0, const point3d_t *p1, const point3d_t *pp)
+    {
+        vector3d_t v[2];
+        float k[2];
+
+        v[0].dx     = p1->x - p0->x;
+        v[0].dy     = p1->y - p0->y;
+        v[0].dz     = p1->z - p0->z;
+        v[0].dw     = 0.0f;
+
+        v[1].dx     = pp->x - p0->x;
+        v[1].dy     = pp->y - p0->y;
+        v[1].dz     = pp->z - p0->z;
+        v[1].dw     = 0.0f;
+
+        k[0]        = v[0].dx * v[0].dx + v[0].dy * v[0].dy + v[0].dz * v[0].dz;
+        k[1]        = v[1].dx * v[0].dx + v[1].dy * v[0].dy + v[1].dz * v[0].dz;
+        return k[1] / k[0];
+    }
+
+    float projection_length_v2(const vector3d_t *v, const vector3d_t *pv)
+    {
+        float k[2];
+
+        k[0]        = pv->dx * pv->dx + pv->dy * pv->dy + pv->dz * pv->dz;
+        k[1]        = pv->dx * v->dx  + pv->dy * v->dy  + pv->dz * v->dz;
+        return k[1] / k[0];
     }
 
     /**

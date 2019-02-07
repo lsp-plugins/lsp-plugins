@@ -351,7 +351,7 @@ namespace mtest
         return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
-    static status_t dump_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
+    status_t dump_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
         // DEBUG
         for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
@@ -367,10 +367,228 @@ namespace mtest
         return STATUS_OK;
     }
 
+//    static void project_triangle(
+//        point3d_t *pv,
+//        const point3d_t *fp,
+//        const vector3d_t *pl,
+//        const point3d_t *tv
+//    )
+//    {
+//
+//    }
+
+    void rearrange_view(rt_view_t *v)
+    {
+        float d[3], tt;
+        point3d_t tp;
+        d[0]    = dsp::calc_sqr_distance_pv(&v->p[0]);
+        d[1]    = dsp::calc_sqr_distance_pv(&v->p[1]);
+        d[2]    = dsp::calc_sqr_distance_p2(&v->p[0], &v->p[2]);
+
+        if ((d[0] >= d[1]) && (d[0] >= d[2])) // All is OK
+            return;
+
+        if (d[1] >= d[2]) // Rotate clockwise
+        {
+            tp          = v->p[0];
+            v->p[0]     = v->p[1];
+            v->p[1]     = v->p[2];
+            v->p[2]     = tp;
+
+            tt          = v->time[0];
+            v->time[0]  = v->time[1];
+            v->time[1]  = v->time[2];
+            v->time[2]  = tt;
+        }
+        else // Rotate counter-clockwise
+        {
+            tp          = v->p[2];
+            v->p[2]     = v->p[1];
+            v->p[1]     = v->p[0];
+            v->p[0]     = tp;
+
+            tt          = v->time[2];
+            v->time[2]  = v->time[1];
+            v->time[1]  = v->time[0];
+            v->time[0]  = tt;
+        }
+    }
+
     status_t reflect_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
-        // TODO: implement reflection method
+#if 1
+        rt_view_t v, sv;
+        point3d_t sp[2];                // focus point, split points
+        vector3d_t vpl, spl;            // view plane, split plane
+        float ksa, kt[2], t[2];         // area multiplier coefficient, projection coefficient, time coefficients
+        float d[3];                     // distance
+
+        sv      = ctx->view;
+        rearrange_view(&sv);            // Make edge 0 of the view the longest possible
+
+        dsp::calc_plane_pv(&vpl, ctx->view.p);
+        ksa     = 1.0f / dsp::calc_area_pv(sv.p);
+
+        status_t res    = STATUS_OK;
+
+        for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
+        {
+            rt_triangle_t *ct = ctx->triangle.get(i);
+            ctx->match(ctx->triangle.get(i));
+
+            // get material
+            rt_material_t *m    = ct->m;
+            if (m == NULL)
+                continue;
+
+            v.face          = ct->face;
+
+            // Project all triangle's points to view points
+            dsp::calc_split_point_p2v1(&v.p[0], &sv.s, ct->v[0], &vpl);
+            dsp::calc_split_point_p2v1(&v.p[1], &sv.s, ct->v[1], &vpl);
+            dsp::calc_split_point_p2v1(&v.p[2], &sv.s, ct->v[2], &vpl);
+            d[0]    = dsp::calc_distance_p2(&v.p[0], ct->v[0]);
+            d[1]    = dsp::calc_distance_p2(&v.p[0], ct->v[0]);
+            d[2]    = dsp::calc_distance_p2(&v.p[0], ct->v[0]);
+
+            // Estimate the start time for each view point
+            for (size_t j=0; j<3; ++j)
+            {
+                dsp::calc_parallel_plane_p2p2(&spl, &sv.s, &v.p[j], &ctx->view.p[0], &ctx->view.p[1]);
+                dsp::calc_split_point_p2v1(&sp[0], &sv.p[0], &sv.p[2], &spl);
+                dsp::calc_split_point_p2v1(&sp[1], &sv.p[1], &sv.p[2], &spl);
+
+                kt[0]       = dsp::projection_length_p2(&sv.p[0], &sv.p[2], &sp[0]);
+                kt[1]       = dsp::projection_length_p2(&sv.p[1], &sv.p[2], &sp[1]);
+                t[0]        = sv.time[0] + (sv.time[2] - sv.time[0]) * kt[0];
+                t[1]        = sv.time[1] + (sv.time[2] - sv.time[1]) * kt[1];
+
+                kt[0]       = dsp::projection_length_p2(&sp[0], &sp[1], &v.p[j]);
+                v.time[j]   = t[0] + (t[1]-t[0])*kt[0] + d[j]*sv.speed;
+            }
+
+            // Determine the direction from which came the wave front
+            float energy    = ksa * dsp::calc_area_pv(sv.p);
+            float distance  = sv.s.x * ct->n.dx + sv.s.y * ct->n.dy + sv.s.z * ct->n.dz + ct->n.dw;
+
+            if (distance > 0.0f)
+            {
+                // Call capturing routine if present
+                if ((m->capture != NULL) && ((v.energy <= -DSP_3D_TOLERANCE) || (v.energy >= DSP_3D_TOLERANCE)))
+                {
+                    v.s             = sv.s;
+                    v.energy        = energy * m->absorption[0];
+                    res             = m->capture(&v, m->capture_data);
+                    if (res != STATUS_OK)
+                        break;
+                }
+                energy         *= (1.0f - m->absorption[0]);
+
+                // Perform refraction
+                v.energy        = energy * m->transparency[0];
+                if ((v.energy <= -DSP_3D_TOLERANCE) || (v.energy >= DSP_3D_TOLERANCE))
+                {
+                    v.speed         = m->permeability / sv.speed;   // (Vair / Vmet) / (Vair / Vair) = Vair / Vmet
+                    float kd        = m->dissipation[0] * (m->permeability - 1.0f) * distance;
+                    v.s.x           = sv.s.x + kd * ct->n.dx;
+                    v.s.y           = sv.s.y + kd * ct->n.dy;
+                    v.s.z           = sv.s.z + kd * ct->n.dz;
+                    v.s.w           = 1.0f;
+
+                    rt_context_t *rc = new rt_context_t(&v, ctx->shared);
+                    if ((rc == NULL) || (!tasks.add(rc)))
+                        res     = STATUS_NO_MEM;
+                    if (res != STATUS_OK)
+                    {
+                        delete rc;
+                        break;
+                    }
+                }
+
+                // Perform reflection
+                v.energy        = energy * (m->transparency[0] - 1.0f); // Energy will negate sign
+                if ((v.energy <= -DSP_3D_TOLERANCE) || (v.energy >= DSP_3D_TOLERANCE))
+                {
+                    v.speed         = sv.speed;
+                    float kd        = (1.0f + 1.0f / m->dispersion[0]) * distance; // m->dispersion[0] * distance;
+                    v.s.x           = sv.s.x - kd * ct->n.dx;
+                    v.s.y           = sv.s.y - kd * ct->n.dy;
+                    v.s.z           = sv.s.z - kd * ct->n.dz;
+                    v.s.w           = 1.0f;
+
+                    rt_context_t *rc = new rt_context_t(&v, ctx->shared);
+                    if ((rc == NULL) || (!tasks.add(rc)))
+                        res     = STATUS_NO_MEM;
+                    if (res != STATUS_OK)
+                    {
+                        delete rc;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                // Call capturing routine if present
+                if ((m->capture != NULL) && ((v.energy <= -DSP_3D_TOLERANCE) || (v.energy >= DSP_3D_TOLERANCE)))
+                {
+                    v.s             = sv.s;
+                    v.energy        = energy * m->absorption[0];
+                    res             = m->capture(&v, m->capture_data);
+                    if (res != STATUS_OK)
+                        break;
+                }
+                energy         *= (1.0f - m->absorption[0]);
+
+                // Perform refraction
+                v.energy        = energy * m->transparency[1];
+                if ((v.energy <= -DSP_3D_TOLERANCE) || (v.energy >= DSP_3D_TOLERANCE))
+                {
+                    v.speed         = sv.speed / m->permeability;   // (Vair / Vmet) / (Vair / Vmet) = Vair / Vair
+
+                    float kd        = m->dissipation[1] * (m->permeability - 1.0f) * distance;
+                    v.s.x           = sv.s.x - kd * ct->n.dx;
+                    v.s.y           = sv.s.y - kd * ct->n.dy;
+                    v.s.z           = sv.s.z - kd * ct->n.dz;
+                    v.s.w           = 1.0f;
+
+                    rt_context_t *rc = new rt_context_t(&v, ctx->shared);
+                    if ((rc == NULL) || (!tasks.add(rc)))
+                        res     = STATUS_NO_MEM;
+                    if (res != STATUS_OK)
+                    {
+                        delete rc;
+                        break;
+                    }
+                }
+
+                // Perform reflection
+                v.energy        = energy * (m->transparency[1] - 1.0f); // Energy will negate sign
+                if ((v.energy <= -DSP_3D_TOLERANCE) || (v.energy >= DSP_3D_TOLERANCE))
+                {
+                    v.speed         = sv.speed;
+                    float kd        = (1.0f + 1.0f / m->dispersion[1]) * distance; // m->dispersion[0] * distance;
+                    v.s.x           = sv.s.x + kd * ct->n.dx;
+                    v.s.y           = sv.s.y + kd * ct->n.dy;
+                    v.s.z           = sv.s.z + kd * ct->n.dz;
+                    v.s.w           = 1.0f;
+
+                    rt_context_t *rc = new rt_context_t(&v, ctx->shared);
+                    if ((rc == NULL) || (!tasks.add(rc)))
+                        res     = STATUS_NO_MEM;
+                    if (res != STATUS_OK)
+                    {
+                        delete rc;
+                        break;
+                    }
+                }
+            }
+        }
+
+        delete ctx;
+        return res;
+#else
         return dump_view(tasks, ctx);
+#endif
     }
 
     status_t perform_raytrace(cvector<rt_context_t> &tasks)

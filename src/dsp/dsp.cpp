@@ -385,11 +385,14 @@ namespace dsp
     float   (* calc_plane_p3)(vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
     float   (* calc_plane_pv)(vector3d_t *v, const point3d_t *pv) = NULL;
     float   (* calc_plane_v1p2)(vector3d_t *v, const vector3d_t *v0, const point3d_t *p0, const point3d_t *p1) = NULL;
+    float   (* orient_plane_v1p1)(vector3d_t *v, const point3d_t *sp, const vector3d_t *pl) = NULL;
 
     float   (* calc_oriented_plane_p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
     float   (* calc_oriented_plane_pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv) = NULL;
+    float   (* calc_parallel_plane_p2p2)(vector3d_t *v, const point3d_t *sp, const point3d_t *pp, const point3d_t *p0, const point3d_t *p1) = NULL;
 
     float   (* calc_area_p3)(const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
+    float   (* calc_area_pv)(const point3d_t *pv) = NULL;
     float   (* calc_min_distance_p3)(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
     float   (* calc_avg_distance_p3)(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
     float   (* calc_distance_p2)(const point3d_t *p1, const point3d_t *p2) = NULL;
@@ -397,6 +400,9 @@ namespace dsp
     float   (* calc_distance_pv)(const point3d_t *pv) = NULL;
     float   (* calc_sqr_distance_pv)(const point3d_t *pv) = NULL;
     void    (* calc_split_point_p2v1)(point3d_t *ip, const point3d_t *l0, const point3d_t *l1, const vector3d_t *pl) = NULL;
+
+    float   (* projection_length_p2)(const point3d_t *p0, const point3d_t *p1, const point3d_t *pp) = NULL;
+    float   (* projection_length_v2)(const vector3d_t *v, const vector3d_t *pv) = NULL;
 
     void    (* split_triangle_raw)(raw_triangle_t *out, size_t *n_out, raw_triangle_t *in, size_t *n_in, const vector3d_t *pl, const raw_triangle_t *pv) = NULL;
 

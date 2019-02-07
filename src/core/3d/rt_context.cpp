@@ -82,7 +82,7 @@ namespace lsp
         view.time[1]    = 0.0f;
         view.time[2]    = 0.0f;
         view.energy     = 1.0f;
-        view.speed      = SOUND_SPEED_M_S;
+        view.speed      = 1.0f;
     }
 
     void rt_context_t::init_view(const point3d_t *sp, const point3d_t *pv)
@@ -96,7 +96,7 @@ namespace lsp
         view.time[1]    = 0.0f;
         view.time[2]    = 0.0f;
         view.energy     = 1.0f;
-        view.speed      = SOUND_SPEED_M_S;
+        view.speed      = 1.0f;
     }
 
     void rt_context_t::clear()
@@ -1431,7 +1431,7 @@ namespace lsp
                 break;
 
             // Prepare culling plane
-            dsp::calc_oriented_plane_p3(&pl, &view.s, ct->v[0], ct->v[1], ct->v[2]);
+            dsp::orient_plane_v1p1(&pl, &view.s, &ct->n);
 
             RT_TRACE_BREAK(this,
                 lsp_trace("Doing depth test for triangle %d/%d", int(triangle.index_of(ct)), int(triangle.size()));
@@ -1628,8 +1628,6 @@ namespace lsp
 
 //            lsp_trace("Link rt_triangle[%p] to obj_triangle[%p]", dt, st);
 
-            dsp::apply_matrix3d_mv2(&dt->n, st->n[0], m);
-
             // Copy data
             for (size_t j=0; j<3; ++j)
             {
@@ -1674,6 +1672,10 @@ namespace lsp
                 dt->v[j]        = vx;
                 dt->e[j]        = ex;
             }
+
+            // Update normals
+            dsp::apply_matrix3d_mv2(&dt->n, st->n[0], m);
+            dt->n.dw    = - (dt->n.dx * dt->v[0]->x + dt->n.dy * dt->v[0]->y + dt->n.dz * dt->v[0]->z);
         }
 
         // Patch edge structures and link to vertexes

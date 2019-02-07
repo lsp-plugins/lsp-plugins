@@ -109,12 +109,11 @@ namespace lsp
 
     /**
      * Capture function
-     * @param v the ray-tracing view
-     * @param t the triangle that captures energy
+     * @param v the ray-tracing view that captured the energy
      * @param data user data from material
      * @return status of operation
      */
-    typedef status_t (*rt_capture_t)(const rt_view_t *v, const raw_triangle_t *t, void *data);
+    typedef status_t (*rt_capture_t)(const rt_view_t *v, void *data);
 
     typedef struct rt_vertex_t: public point3d_t
     {
@@ -156,17 +155,17 @@ namespace lsp
         ssize_t             face;       // Face to ignore
         float               time[3];    // The corresponding start time for each source point
         float               energy;     // The energy of the wave, can have both positive and negative signs (if reflected)
-        float               speed;      // The current sound speed
+        float               speed;      // This value indicates the (sound speed / current environment sound speed)
     } rt_view_t;
 
     typedef struct rt_material_t
     {
-        float           dispersion[2];      // The dispersion coefficients for reflected signal
         float           absorption[2];      // The amount of energy that will be absorpted
+        float           dispersion[2];      // The dispersion coefficients for reflected signal
+        float           dissipation[2];     // The dissipation coefficients for refracted signal
         float           transparency[2];    // The amount of energy that will be passed-through the material
-        float           refraction[2];      // The refraction coefficients for passed-through signal
-        float           permeability;       // Sound permeability of the object
-        rt_capture_t   *capture;            // Routine to call for capturing events
+        float           permeability;       // Sound permeability of the object (sound speed / current environment sound speed)
+        rt_capture_t    capture;            // Routine to call for capturing events
         void           *capture_data;       // Data to pass to the capture routine
     } rt_material_t;
 
