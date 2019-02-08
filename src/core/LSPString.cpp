@@ -40,6 +40,8 @@
 
 namespace lsp
 {
+    static uint16_t UTF16_NULL = 0;
+
     static bool is_space(lsp_wchar_t c)
     {
         switch (c)
@@ -285,6 +287,16 @@ namespace lsp
         return pData[index];
     }
 
+    lsp_wchar_t LSPString::first() const
+    {
+        return (nLength > 0) ? pData[0] : 0;
+    }
+
+    lsp_wchar_t LSPString::last() const
+    {
+        return (nLength > 0) ? pData[nLength-1] : 0;
+    }
+
     bool LSPString::set(lsp_wchar_t ch)
     {
         drop_temp();
@@ -468,6 +480,14 @@ namespace lsp
         return true;
     }
 
+    bool LSPString::append(char ch)
+    {
+        if (!cap_reserve(nLength + 1))
+            return false;
+        pData[nLength++] = ch;
+        return true;
+    }
+
     bool LSPString::append(lsp_wchar_t ch)
     {
         if (!cap_reserve(nLength + 1))
@@ -641,9 +661,12 @@ namespace lsp
 
     bool LSPString::ends_with(lsp_wchar_t ch) const
     {
-        if (nLength <= 0)
-            return false;
-        return pData[nLength-1] == ch;
+        return (nLength > 0) ? pData[nLength-1] == ch : false;
+    }
+
+    bool LSPString::ends_with(char ch) const
+    {
+        return (nLength > 0) ? pData[nLength-1] == ch : false;
     }
 
     bool LSPString::ends_with_nocase(lsp_wchar_t ch) const
@@ -679,9 +702,12 @@ namespace lsp
 
     bool LSPString::starts_with(lsp_wchar_t ch) const
     {
-        if (nLength <= 0)
-            return false;
-        return pData[0] == ch;
+        return (nLength > 0) ? pData[0] == ch : false;
+    }
+
+    bool LSPString::starts_with(char ch) const
+    {
+        return (nLength > 0) ? pData[0] == ch : false;
     }
 
     bool LSPString::starts_with_nocase(lsp_wchar_t ch) const
@@ -1008,15 +1034,21 @@ namespace lsp
 
     ssize_t LSPString::index_of(lsp_wchar_t ch) const
     {
-        size_t start = 0;
-
-        while (start < nLength)
+        for (size_t start = 0; start < nLength; ++start)
         {
             if (pData[start] == ch)
                 return start;
-            start ++;
         }
+        return -1;
+    }
 
+    ssize_t LSPString::index_of(char ch) const
+    {
+        for (size_t start = 0; start < nLength; ++start)
+        {
+            if (pData[start] == ch)
+                return start;
+        }
         return -1;
     }
 
@@ -1067,14 +1099,21 @@ namespace lsp
 
     ssize_t LSPString::rindex_of(lsp_wchar_t ch) const
     {
-        ssize_t start = nLength - 1;
-        while (start >= 0)
+        for (ssize_t start; start >= 0; --start)
         {
             if (pData[start] == ch)
                 return start;
-            start --;
         }
+        return -1;
+    }
 
+    ssize_t LSPString::rindex_of(char ch) const
+    {
+        for (ssize_t start; start >= 0; --start)
+        {
+            if (pData[start] == ch)
+                return start;
+        }
         return -1;
     }
 
@@ -1282,7 +1321,7 @@ namespace lsp
             uint8_t v   = *(s++);
             if (v <= 0x7f) // 1 byte: 0xxxxxxx
             {
-                if (!tmp.append(v))
+                if (!tmp.append(lsp_wchar_t(v)))
                     return false;
             }
             else if ((v & 0xe0) == 0xc0) // 2 bytes: 110xxxxx 10xxxxxx
@@ -1311,6 +1350,34 @@ namespace lsp
         }
 
         take(&tmp);
+        return true;
+    }
+
+    bool LSPString::set_utf16(const uint16_t *s)
+    {
+        size_t len = 0;
+        while (s[len] != 0)
+            ++len;
+
+        drop_temp();
+        if (!cap_reserve(len))
+            return false;
+
+        for (size_t i=0; i<len; ++i)
+            pData[i] = s[i];
+        nLength     = len;
+        return true;
+    }
+
+    bool LSPString::set_utf16(const uint16_t *s, size_t n)
+    {
+        drop_temp();
+        if (!cap_reserve(n))
+            return false;
+
+        for (size_t i=0; i<n; ++i)
+            pData[i] = s[i];
+        nLength     = n;
         return true;
     }
 
@@ -1486,14 +1553,22 @@ namespace lsp
         return pTemp->pData;
     }
 
-    const char *LSPString::get_utf8(ssize_t first) const
+    const uint16_t *LSPString::get_utf16(ssize_t first, ssize_t last) const
     {
-        return get_utf8(first, nLength);
-    }
+        XSAFE_TRANS(first, nLength, NULL);
+        XSAFE_TRANS(last, nLength, NULL);
+        if (first >= last)
+            return (last == first) ? &UTF16_NULL : NULL;
 
-    const char *LSPString::get_utf8() const
-    {
-        return get_utf8(0, nLength);
+        if (pTemp != NULL)
+            pTemp->nOffset      = 0;
+
+        if (!append_temp(reinterpret_cast<char *>(&pData[first]), last - first))
+            return NULL;
+        if (!append_temp(reinterpret_cast<char *>(&UTF16_NULL), sizeof(UTF16_NULL)))
+            return NULL;
+
+        return reinterpret_cast<uint16_t *>(pTemp->pData);
     }
 
     const char *LSPString::get_ascii() const
