@@ -9,6 +9,7 @@
 #include <string.h>
 
 #if defined(PLATFORM_WINDOWS)
+    #include <windows.h>
     #include <shlwapi.h>
 #endif /* defined(PLATFORM_WINDOWS) */
 
@@ -411,7 +412,7 @@ namespace lsp
         status_t Path::root()
         {
 #if defined(PLATFORM_WINDOWS)
-            if (!sPath.is_absolute())
+            if (!is_absolute())
                 return STATUS_BAD_STATE;
             ssize_t idx = sPath.index_of(FILE_SEPARATOR_C);
             if (idx < 0)
@@ -475,7 +476,7 @@ namespace lsp
         bool Path::is_absolute() const
         {
 #if defined(PLATFORM_WINDOWS)
-            return PathIsAbsoluteW(sPath.get_utf16());
+            return !PathIsRelativeW(reinterpret_cast<LPCWSTR>(sPath.get_utf16()));
 #else
             return (sPath.first() == FILE_SEPARATOR_C);
 #endif
@@ -484,7 +485,7 @@ namespace lsp
         bool Path::is_relative() const
         {
 #if defined(PLATFORM_WINDOWS)
-            return !PathIsAbsoluteW(sPath.get_utf16());
+            return PathIsRelativeW(reinterpret_cast<LPCWSTR>(sPath.get_utf16()));
 #else
             return (sPath.first() != FILE_SEPARATOR_C);
 #endif
@@ -534,7 +535,7 @@ namespace lsp
         bool Path::is_root() const
         {
 #if defined(PLATFORM_WINDOWS)
-            return PathIsRootW(sPath.get_utf16());
+            return PathIsRootW(reinterpret_cast<LPCWSTR>(sPath.get_utf16()));
 #else
             return (sPath.length() == 1) &&
                     (sPath.first() == FILE_SEPARATOR_C);
@@ -543,8 +544,15 @@ namespace lsp
 
         status_t Path::canonicalize()
         {
+#if defined(PLATFORM_WINDOWS)
+            WCHAR path[PATH_MAX];
+            if (!PathCanonicalizeW(path, reinterpret_cast<LPCWSTR>(sPath.get_utf16())))
+                return STATUS_BAD_STATE;
+            return (sPath.set_utf16(reinterpret_cast<uint16_t *>(path))) ? STATUS_OK : STATUS_NO_MEM;
+#else
             // TODO
-            return false;
+            return STATUS_OK;
+#endif
         }
 
         status_t Path::get_canonical(char *path, size_t maxlen) const
