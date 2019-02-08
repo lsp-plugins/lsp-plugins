@@ -389,6 +389,7 @@ namespace native
         EXPORT1(orient_plane_v1p1);
 
         EXPORT1(calc_area_p3);
+        EXPORT1(calc_area_pv);
         EXPORT1(calc_min_distance_p3);
         EXPORT1(calc_avg_distance_p3);
         EXPORT1(calc_split_point_p2v1);

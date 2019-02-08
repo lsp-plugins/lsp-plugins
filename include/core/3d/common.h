@@ -155,7 +155,7 @@ namespace lsp
         ssize_t             face;       // Face to ignore
         float               time[3];    // The corresponding start time for each source point
         float               energy;     // The energy of the wave, can have both positive and negative signs (if reflected)
-        float               speed;      // This value indicates the (sound speed / current environment sound speed)
+        float               speed;      // This value indicates the current sound speed [m/s]
     } rt_view_t;
 
     typedef struct rt_material_t
@@ -164,7 +164,7 @@ namespace lsp
         float           dispersion[2];      // The dispersion coefficients for reflected signal
         float           dissipation[2];     // The dissipation coefficients for refracted signal
         float           transparency[2];    // The amount of energy that will be passed-through the material
-        float           permeability;       // Sound permeability of the object (sound speed / current environment sound speed)
+        float           permeability;       // Sound permeability of the object (inner sound speed / outer sound speed)
         rt_capture_t    capture;            // Routine to call for capturing events
         void           *capture_data;       // Data to pass to the capture routine
     } rt_material_t;

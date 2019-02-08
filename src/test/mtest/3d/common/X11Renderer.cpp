@@ -551,7 +551,7 @@ namespace mtest
             glEnableClientState(GL_COLOR_ARRAY);
 
             glVertexPointer(3, GL_FLOAT, sizeof(v_point3d_t), &p->p.x);
-            glColorPointer(3, GL_FLOAT, sizeof(v_vertex3d_t), &p->c.r);
+            glColorPointer(3, GL_FLOAT, sizeof(v_point3d_t), &p->c.r);
 
             glDrawArrays(GL_POINTS, 0, n);
 

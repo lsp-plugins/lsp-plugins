@@ -152,7 +152,7 @@ namespace mtest
      * @param ctx wave front context
      * @return status of operation
      */
-    status_t scan_objects(cvector<rt_context_t> &tasks, rt_context_t *ctx)
+    status_t scan_objects(cvector<rt_context_t> &tasks, rt_context_t *ctx, rt_material_t *m)
     {
         status_t res = STATUS_OK;
 
@@ -235,7 +235,7 @@ namespace mtest
             }
 
             // Add object to context
-            res = ctx->add_object(obj, NULL);
+            res = ctx->add_object(obj, m);
             if (res != STATUS_OK)
                 break;
 
@@ -367,16 +367,6 @@ namespace mtest
         return STATUS_OK;
     }
 
-//    static void project_triangle(
-//        point3d_t *pv,
-//        const point3d_t *fp,
-//        const vector3d_t *pl,
-//        const point3d_t *tv
-//    )
-//    {
-//
-//    }
-
     void rearrange_view(rt_view_t *v)
     {
         float d[3], tt;
@@ -417,17 +407,16 @@ namespace mtest
     status_t reflect_view(cvector<rt_context_t> &tasks, rt_context_t *ctx)
     {
 #if 1
-        rt_view_t v, sv;
-        point3d_t sp[2];                // focus point, split points
-        vector3d_t vpl, spl;            // view plane, split plane
-        float ksa, kt[2], t[2];         // area multiplier coefficient, projection coefficient, time coefficients
-        float d[3];                     // distance
+        rt_view_t sv, v, cv, rv, tv;    // source view, view, captured view, reflected view, transparent view
+        vector3d_t vpl;                 // view plane, split plane
+        float d[3], t[3];               // distance
+        float a[3], A, kd;              // particular area, area, dispersion coefficient
 
         sv      = ctx->view;
-        rearrange_view(&sv);            // Make edge 0 of the view the longest possible
+//        rearrange_view(&sv);            // Make edge 0 of the view the longest possible
 
         dsp::calc_plane_pv(&vpl, ctx->view.p);
-        ksa     = 1.0f / dsp::calc_area_pv(sv.p);
+        A       = dsp::calc_area_pv(sv.p);
 
         status_t res    = STATUS_OK;
 
@@ -441,40 +430,82 @@ namespace mtest
             if (m == NULL)
                 continue;
 
-            v.face          = ct->face;
+            RT_TRACE_BREAK(ctx,
+                lsp_trace("Reflecting triangle");
+                ctx->shared->view->add_triangle_1c(ct, &C_YELLOW);
+                ctx->shared->view->add_triangle_pvnc1(sv.p, &vpl, &C_MAGENTA);
+                ctx->shared->view->add_plane_3pn1c(ct->v[0], ct->v[1], ct->v[2], &ct->n, &C_MAGENTA);
+                ctx->shared->view->add_plane_3pn1c(&sv.p[0], &sv.p[1], &sv.p[2], &ct->n, &C_YELLOW);
+                ctx->shared->view->add_view_1c(&sv, &C_MAGENTA);
+            )
 
-            // Project all triangle's points to view points
-            dsp::calc_split_point_p2v1(&v.p[0], &sv.s, ct->v[0], &vpl);
-            dsp::calc_split_point_p2v1(&v.p[1], &sv.s, ct->v[1], &vpl);
-            dsp::calc_split_point_p2v1(&v.p[2], &sv.s, ct->v[2], &vpl);
-            d[0]    = dsp::calc_distance_p2(&v.p[0], ct->v[0]);
-            d[1]    = dsp::calc_distance_p2(&v.p[0], ct->v[0]);
-            d[2]    = dsp::calc_distance_p2(&v.p[0], ct->v[0]);
+            // Estimate the start time for each view point using barycentric coordinates
 
-            // Estimate the start time for each view point
             for (size_t j=0; j<3; ++j)
             {
-                dsp::calc_parallel_plane_p2p2(&spl, &sv.s, &v.p[j], &ctx->view.p[0], &ctx->view.p[1]);
-                dsp::calc_split_point_p2v1(&sp[0], &sv.p[0], &sv.p[2], &spl);
-                dsp::calc_split_point_p2v1(&sp[1], &sv.p[1], &sv.p[2], &spl);
+                dsp::calc_split_point_p2v1(&v.p[j], &sv.s, ct->v[j], &vpl);     // Project triangle point to view point
+                d[j]        = dsp::calc_distance_p2(&v.p[j], ct->v[j]);         // Compute distance between projected point and triangle point
 
-                kt[0]       = dsp::projection_length_p2(&sv.p[0], &sv.p[2], &sp[0]);
-                kt[1]       = dsp::projection_length_p2(&sv.p[1], &sv.p[2], &sp[1]);
-                t[0]        = sv.time[0] + (sv.time[2] - sv.time[0]) * kt[0];
-                t[1]        = sv.time[1] + (sv.time[2] - sv.time[1]) * kt[1];
-
-                kt[0]       = dsp::projection_length_p2(&sp[0], &sp[1], &v.p[j]);
-                v.time[j]   = t[0] + (t[1]-t[0])*kt[0] + d[j]*sv.speed;
+                a[0]        = dsp::calc_area_p3(&v.p[j], &sv.p[1], &sv.p[2]);   // Compute area 0
+                a[1]        = dsp::calc_area_p3(&v.p[j], &sv.p[0], &sv.p[2]);   // Compute area 1
+                a[2]        = dsp::calc_area_p3(&v.p[j], &sv.p[0], &sv.p[1]);   // Compute area 2
+                t[j]        = (sv.time[0] * a[0] + sv.time[1] * a[1] + sv.time[2] * a[2]) / A; // Compute projected point's time
+                v.time[j]   = t[j] + (d[j] / sv.speed);
             }
 
             // Determine the direction from which came the wave front
-            float energy    = ksa * dsp::calc_area_pv(sv.p);
+            float energy    = dsp::calc_area_pv(v.p) / A;
             float distance  = sv.s.x * ct->n.dx + sv.s.y * ct->n.dy + sv.s.z * ct->n.dz + ct->n.dw;
+
+            RT_TRACE_BREAK(ctx,
+                lsp_trace("Projection points distance: {%f, %f, %f}", d[0], d[1], d[2]);
+                lsp_trace("View points time: {%f, %f, %f}", sv.time[0], sv.time[1], sv.time[2]);
+                lsp_trace("Projection points time: {%f, %f, %f}", t[0], t[1], t[2]);
+                lsp_trace("Target points time: {%f, %f, %f}", v.time[0], v.time[1], v.time[2]);
+                lsp_trace("Energy: %f -> %f", sv.energy, energy);
+                lsp_trace("Distance between source point and triangle: %f", distance);
+
+                ctx->shared->view->add_triangle_1c(ct, &C_YELLOW);
+                ctx->shared->view->add_plane_3pn1c(ct->v[0], ct->v[1], ct->v[2], &ct->n, &C_GREEN);
+                ctx->shared->view->add_view_1c(&sv, &C_MAGENTA);
+                ctx->shared->view->add_segment(&v.p[0], ct->v[0], &C_RED);
+                ctx->shared->view->add_segment(&v.p[1], ct->v[1], &C_GREEN);
+                ctx->shared->view->add_segment(&v.p[2], ct->v[2], &C_BLUE);
+            )
+
+            v.face      = ct->face;
+            v.s         = sv.s;
+            cv          = v;
+            rv          = v;
+            tv          = v;
 
             if (distance > 0.0f)
             {
-                // Call capturing routine if present
-                if ((m->capture != NULL) && ((v.energy <= -DSP_3D_TOLERANCE) || (v.energy >= DSP_3D_TOLERANCE)))
+                cv.energy       = energy * m->absorption[0];
+                energy         *= (1.0f - m->absorption[0]);
+
+                kd              = (1.0f + 1.0f / m->dispersion[0]) * distance;
+                rv.energy       = energy * (1.0f - m->transparency[0]);
+                rv.s.x         -= kd * ct->n.dx;
+                rv.s.y         -= kd * ct->n.dy;
+                rv.s.z         -= kd * ct->n.dz;
+
+                kd              = m->dissipation[0] * (m->permeability - 1.0f) * distance;
+                tv.energy       = energy * m->transparency[0];
+                tv.speed       *= m->permeability;
+                tv.s.x         += kd * ct->n.dx;
+                tv.s.y         += kd * ct->n.dy;
+                tv.s.z         += kd * ct->n.dz;
+
+                RT_TRACE_BREAK(ctx,
+                    lsp_trace("Outside->inside reflect_view");
+                    lsp_trace("Energy: captured=%d, reflected=%d, refracted=%d", cv.energy, rv.energy, tv.energy);
+                    lsp_trace("Material: absorption, ");
+
+                )
+
+                // Perform capture
+                if (m->capture != NULL)
                 {
                     v.s             = sv.s;
                     v.energy        = energy * m->absorption[0];
@@ -482,49 +513,34 @@ namespace mtest
                     if (res != STATUS_OK)
                         break;
                 }
-                energy         *= (1.0f - m->absorption[0]);
-
-                // Perform refraction
-                v.energy        = energy * m->transparency[0];
-                if ((v.energy <= -DSP_3D_TOLERANCE) || (v.energy >= DSP_3D_TOLERANCE))
-                {
-                    v.speed         = m->permeability / sv.speed;   // (Vair / Vmet) / (Vair / Vair) = Vair / Vmet
-                    float kd        = m->dissipation[0] * (m->permeability - 1.0f) * distance;
-                    v.s.x           = sv.s.x + kd * ct->n.dx;
-                    v.s.y           = sv.s.y + kd * ct->n.dy;
-                    v.s.z           = sv.s.z + kd * ct->n.dz;
-                    v.s.w           = 1.0f;
-
-                    rt_context_t *rc = new rt_context_t(&v, ctx->shared);
-                    if ((rc == NULL) || (!tasks.add(rc)))
-                        res     = STATUS_NO_MEM;
-                    if (res != STATUS_OK)
-                    {
-                        delete rc;
-                        break;
-                    }
-                }
 
                 // Perform reflection
-                v.energy        = energy * (m->transparency[0] - 1.0f); // Energy will negate sign
                 if ((v.energy <= -DSP_3D_TOLERANCE) || (v.energy >= DSP_3D_TOLERANCE))
                 {
-                    v.speed         = sv.speed;
-                    float kd        = (1.0f + 1.0f / m->dispersion[0]) * distance; // m->dispersion[0] * distance;
-                    v.s.x           = sv.s.x - kd * ct->n.dx;
-                    v.s.y           = sv.s.y - kd * ct->n.dy;
-                    v.s.z           = sv.s.z - kd * ct->n.dz;
-                    v.s.w           = 1.0f;
-
-                    rt_context_t *rc = new rt_context_t(&v, ctx->shared);
-                    if ((rc == NULL) || (!tasks.add(rc)))
-                        res     = STATUS_NO_MEM;
-                    if (res != STATUS_OK)
-                    {
-                        delete rc;
-                        break;
-                    }
+//                    rt_context_t *rc  = new rt_context_t(&rv, ctx->shared);
+//                    if ((rc == NULL) || (!tasks.add(rc)))
+//                        res     = STATUS_NO_MEM;
+//                    if (res != STATUS_OK)
+//                    {
+//                        delete rc;
+//                        break;
+//                    }
                 }
+
+                // Perform refraction
+                if ((v.energy <= -DSP_3D_TOLERANCE) || (v.energy >= DSP_3D_TOLERANCE))
+                {
+//                    rt_context_t *rc = new rt_context_t(&tv, ctx->shared);
+//                    if ((rc == NULL) || (!tasks.add(rc)))
+//                        res     = STATUS_NO_MEM;
+//                    if (res != STATUS_OK)
+//                    {
+//                        delete rc;
+//                        break;
+//                    }
+                }
+
+
             }
             else
             {
@@ -537,7 +553,7 @@ namespace mtest
                     if (res != STATUS_OK)
                         break;
                 }
-                energy         *= (1.0f - m->absorption[0]);
+                energy         *= (1.0f - m->absorption[1]);
 
                 // Perform refraction
                 v.energy        = energy * m->transparency[1];
@@ -551,14 +567,14 @@ namespace mtest
                     v.s.z           = sv.s.z - kd * ct->n.dz;
                     v.s.w           = 1.0f;
 
-                    rt_context_t *rc = new rt_context_t(&v, ctx->shared);
-                    if ((rc == NULL) || (!tasks.add(rc)))
-                        res     = STATUS_NO_MEM;
-                    if (res != STATUS_OK)
-                    {
-                        delete rc;
-                        break;
-                    }
+//                    rt_context_t *rc = new rt_context_t(&v, ctx->shared);
+//                    if ((rc == NULL) || (!tasks.add(rc)))
+//                        res     = STATUS_NO_MEM;
+//                    if (res != STATUS_OK)
+//                    {
+//                        delete rc;
+//                        break;
+//                    }
                 }
 
                 // Perform reflection
@@ -572,14 +588,14 @@ namespace mtest
                     v.s.z           = sv.s.z + kd * ct->n.dz;
                     v.s.w           = 1.0f;
 
-                    rt_context_t *rc = new rt_context_t(&v, ctx->shared);
-                    if ((rc == NULL) || (!tasks.add(rc)))
-                        res     = STATUS_NO_MEM;
-                    if (res != STATUS_OK)
-                    {
-                        delete rc;
-                        break;
-                    }
+//                    rt_context_t *rc = new rt_context_t(&v, ctx->shared);
+//                    if ((rc == NULL) || (!tasks.add(rc)))
+//                        res     = STATUS_NO_MEM;
+//                    if (res != STATUS_OK)
+//                    {
+//                        delete rc;
+//                        break;
+//                    }
                 }
             }
         }
@@ -591,7 +607,7 @@ namespace mtest
 #endif
     }
 
-    status_t perform_raytrace(cvector<rt_context_t> &tasks)
+    status_t perform_raytrace(cvector<rt_context_t> &tasks, rt_material_t *m)
     {
         rt_context_t *ctx = NULL;
         status_t res = STATUS_OK;
@@ -606,7 +622,7 @@ namespace mtest
             switch (ctx->state)
             {
                 case S_SCAN_OBJECTS:
-                    res = scan_objects(tasks, ctx);
+                    res = scan_objects(tasks, ctx, m);
                     break;
                 case S_CULL_VIEW:
                     res = cull_view(tasks, ctx);
@@ -642,6 +658,39 @@ namespace mtest
 
         destroy_tasks(tasks);
         return res;
+    }
+
+    void draw_barycentric(View3D *v)
+    {
+        float t[3], a[3];
+        point3d_t p[3], sp;
+
+        t[0] = 1.0f;
+        t[1] = 2.0f;
+        t[2] = -1.0f;
+
+        dsp::init_point_xyz(&p[0], -1, -1, t[0]);
+        dsp::init_point_xyz(&p[1], 1, 1, t[1]);
+        dsp::init_point_xyz(&p[2], -1, 1, t[2]);
+        v->add_triangle_pv1c(p, &C_RED);
+        p[0].z = 0.0f;
+        p[1].z = 0.0f;
+        p[2].z = 0.0f;
+
+        float s     = dsp::calc_area_pv(p);
+
+        for (sp.x=-1.0f; sp.x<=1.0f; sp.x += 0.1f)
+            for (sp.y=-1.0f; sp.y<=1.0f; sp.y += 0.1f)
+            {
+                sp.z    = 0.0f;
+                a[0]    = dsp::calc_area_p3(&sp, &p[1], &p[2]);
+                a[1]    = dsp::calc_area_p3(&sp, &p[2], &p[0]);
+                a[2]    = dsp::calc_area_p3(&sp, &p[0], &p[1]);
+
+                sp.z    = (t[0]*a[0] + t[1]*a[1] + t[2]*a[2])/ s;
+
+                v->add_point(&sp, &C_YELLOW);
+            }
     }
 } // Namespace mtest
 
@@ -832,6 +881,10 @@ MTEST_BEGIN("3d", reflections)
 
                 ctx->state          = S_SCAN_OBJECTS;
                 ctx->init_view(&sFront.s, sFront.p);
+                ctx->view.time[0]   = 1.0f;
+                ctx->view.time[1]   = 2.0f;
+                ctx->view.time[2]   = 3.0f;
+//                draw_barycentric(ctx->shared->view);
 
                 // Add context to tasks
                 if (!tasks.add(ctx))
@@ -871,7 +924,31 @@ MTEST_BEGIN("3d", reflections)
                 }
 
                 // Clear allocated resources, tasks and ctx should be already deleted
-                res = perform_raytrace(tasks);
+                rt_material_t m;
+                m.absorption[0]     = 0.5f;
+                m.dispersion[0]     = 1.0f;
+                m.dissipation[0]    = 1.0f;
+                m.transparency[0]   = 0.0f;
+                m.permeability      = 1.0f;
+
+                m.absorption[1]     = 0.0f;
+                m.dispersion[1]     = 2.0f;
+                m.dissipation[1]    = 1.0f;
+                m.transparency[1]   = 0.5f;
+                m.permeability      = 2.0f;
+
+                m.capture           = NULL;
+                m.capture_data      = NULL;
+
+//                float           absorption[2];      // The amount of energy that will be absorpted
+//                float           dispersion[2];      // The dispersion coefficients for reflected signal
+//                float           dissipation[2];     // The dissipation coefficients for refracted signal
+//                float           transparency[2];    // The amount of energy that will be passed-through the material
+//                float           permeability;       // Sound permeability of the object (sound speed / current environment sound speed)
+//                rt_capture_t    capture;            // Routine to call for capturing events
+//                void           *capture_data;       // Data to pass to the capture routine
+
+                res = perform_raytrace(tasks, &m);
                 if (res == STATUS_BREAKPOINT) // This status is used for immediately returning from traced code
                     res = STATUS_OK;
 

@@ -82,7 +82,7 @@ namespace lsp
         view.time[1]    = 0.0f;
         view.time[2]    = 0.0f;
         view.energy     = 1.0f;
-        view.speed      = 1.0f;
+        view.speed      = SOUND_SPEED_M_S;
     }
 
     void rt_context_t::init_view(const point3d_t *sp, const point3d_t *pv)
@@ -96,7 +96,7 @@ namespace lsp
         view.time[1]    = 0.0f;
         view.time[2]    = 0.0f;
         view.energy     = 1.0f;
-        view.speed      = 1.0f;
+        view.speed      = SOUND_SPEED_M_S;
     }
 
     void rt_context_t::clear()

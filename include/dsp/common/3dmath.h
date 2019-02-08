@@ -943,7 +943,7 @@ namespace dsp
     extern float (* calc_sqr_distance_pv)(const point3d_t *pv);
 
     /**
-     * Compute point that is result of split of line by the plane
+     * Compute intersection point of line and plane
      * @param ip target point to store coordinates
      * @param l0 line point 0
      * @param l1 line point 1
