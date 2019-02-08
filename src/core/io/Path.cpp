@@ -542,6 +542,14 @@ namespace lsp
 #endif
         }
 
+        enum state_t
+        {
+            S_SEEK,
+            S_DOT,
+            S_DOTDOT,
+            S_PATHNAME
+        };
+
         status_t Path::canonicalize()
         {
 #if defined(PLATFORM_WINDOWS)
@@ -550,7 +558,85 @@ namespace lsp
                 return STATUS_BAD_STATE;
             return (sPath.set_utf16(reinterpret_cast<uint16_t *>(path))) ? STATUS_OK : STATUS_NO_MEM;
 #else
-            // TODO
+            size_t len  = sPath.length();
+            if (len <= 0)
+                return STATUS_OK;
+
+            lsp_wchar_t *start  = const_cast<lsp_wchar_t *>(sPath.characters());
+            lsp_wchar_t *end    = &start[len];
+            if (*start == FILE_SEPARATOR_C)
+                ++ start;
+
+            lsp_wchar_t *wptr   = start; // Write pointer
+            lsp_wchar_t *cptr   = start; // Commit pointer
+            state_t state       = S_SEEK;
+
+            for (lsp_wchar_t *rptr; rptr < end; ++rptr)
+            {
+                switch (state)
+                {
+                    case S_SEEK:
+                        if (*rptr == FILE_SEPARATOR_C)
+                            cptr        = rptr + 1; // Move commit pointer
+                        else if (*rptr == '.')
+                            state       = S_DOT;
+                        else
+                            state       = S_PATHNAME;
+                        break;
+                    case S_DOT:
+                        if (*rptr == FILE_SEPARATOR_C)
+                        {
+                            cptr        = rptr + 1; // Move commit pointer
+                            state       = S_SEEK;
+                        }
+                        else if (*rptr == '.')
+                            state       = S_DOTDOT;
+                        else
+                            state       = S_PATHNAME;
+                        break;
+                    case S_DOTDOT:
+                        if (*rptr == FILE_SEPARATOR_C)
+                        {
+                            if (wptr <= start)
+                                break;
+                            if (*wptr == FILE_SEPARATOR_C)
+                                --wptr;
+                            while ((wptr > start) && (*wptr != FILE_SEPARATOR_C))
+                                --wptr;
+                        }
+                        else
+                            state       = S_PATHNAME;
+                        break;
+                    case S_PATHNAME:
+                        if (*rptr == FILE_SEPARATOR_C)
+                        {
+                            if (wptr < cptr)
+                            {
+                                while (cptr <= rptr)
+                                    *(wptr++) = *(cptr++);
+                            }
+                            else
+                            {
+                                cptr        = rptr + 1;
+                                wptr        = rptr + 1;
+                            }
+                        }
+                        state       = S_SEEK;
+                        break;
+                }
+            }
+
+            if ((cptr < end) && (wptr < cptr))
+            {
+                while (cptr <= end)
+                    *(wptr++) = *(cptr++);
+            }
+
+            if ((wptr > start) && (*wptr == FILE_SEPARATOR_C))
+                --wptr;
+
+            sPath.set_length(wptr - start);
+
             return STATUS_OK;
 #endif
         }
