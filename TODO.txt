@@ -11,6 +11,8 @@
 === 1.1.6 ===
 
 * Fixed issue that caused VST plugins not to load from cusom user-defined path.
+* Fixed file listing in the file dialog that caused improper reading of remote directories
+  mounted on the local file system.
 - Implemented 3D reverb simulator.
 - Implemented sampler plugin series with stereo outputs
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
