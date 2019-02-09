@@ -79,21 +79,21 @@ UTEST_BEGIN("core.io", path)
         UTEST_ASSERT(dp.equals(TEST_PATH3));
         UTEST_ASSERT(dp.is_absolute());
         UTEST_ASSERT(!dp.is_relative());
-        UTEST_ASSERT(dp.set_last("") == STATUS_OK);
-        UTEST_ASSERT(dp.equals(TEST_PATH4));
         UTEST_ASSERT(dp.get_last(path, PATH_MAX) == STATUS_OK);
         UTEST_ASSERT(strcmp(path, "bin") == 0);
+        UTEST_ASSERT(dp.set_last("") == STATUS_OK);
+        UTEST_ASSERT(dp.equals(TEST_PATH4));
 
         UTEST_ASSERT(bp.set_last("bin") == STATUS_OK);
         UTEST_ASSERT(bp.set_last(cnull) == STATUS_BAD_ARGUMENTS);
         UTEST_ASSERT(bp.equals("bin"));
         UTEST_ASSERT(!bp.is_absolute());
         UTEST_ASSERT(bp.is_relative());
-        UTEST_ASSERT(bp.set_last("") == STATUS_OK);
-        UTEST_ASSERT(bp.is_empty());
         UTEST_ASSERT(bp.get_last(cnull, PATH_MAX) == STATUS_BAD_ARGUMENTS);
         UTEST_ASSERT(bp.get_last(path2, PATH_MAX) == STATUS_OK);
         UTEST_ASSERT(strcmp(path2, "bin") == 0);
+        UTEST_ASSERT(bp.set_last("") == STATUS_OK);
+        UTEST_ASSERT(bp.is_empty());
 
 //        status_t    set_last(const LSPString *path);
 //        status_t    get_last(LSPString *path) const;
@@ -101,7 +101,7 @@ UTEST_BEGIN("core.io", path)
         dp.clear();
         UTEST_ASSERT(bp.set(&spath) == STATUS_OK);
         UTEST_ASSERT(bp.set_last(&dpath) == STATUS_OK);
-        UTEST_ASSERT(bp.equals(TEST_PATH4));
+        UTEST_ASSERT(bp.equals(TEST_PATH3));
         UTEST_ASSERT(bp.get_last(&t1) == STATUS_OK);
         UTEST_ASSERT(bp.get_last(snull) == STATUS_BAD_ARGUMENTS);
         UTEST_ASSERT(t1.equals(&dpath));

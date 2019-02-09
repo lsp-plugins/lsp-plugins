@@ -1099,7 +1099,7 @@ namespace lsp
 
     ssize_t LSPString::rindex_of(lsp_wchar_t ch) const
     {
-        for (ssize_t start; start >= 0; --start)
+        for (ssize_t start=nLength-1; start >= 0; --start)
         {
             if (pData[start] == ch)
                 return start;
@@ -1109,7 +1109,7 @@ namespace lsp
 
     ssize_t LSPString::rindex_of(char ch) const
     {
-        for (ssize_t start; start >= 0; --start)
+        for (ssize_t start=nLength-1; start >= 0; --start)
         {
             if (pData[start] == ch)
                 return start;
