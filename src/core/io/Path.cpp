@@ -84,15 +84,17 @@ namespace lsp
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
             else if (strlen(path) == 0)
+                return remove_last();
+
+            ssize_t len     = sPath.length();
+            ssize_t idx     = sPath.rindex_of(FILE_SEPARATOR_C);
+            idx             = (idx < 0) ? 0 : idx + 1;
+            sPath.set_length(idx);
+            if (sPath.append_utf8(path))
                 return STATUS_OK;
 
-            size_t len  = sPath.length();
-            bool success = (!sPath.ends_with(FILE_SEPARATOR_C)) ? sPath.append(FILE_SEPARATOR_C) : true;
-            if (success)
-                success     = sPath.append_utf8(path);
-            if (!success)
-                sPath.set_length(len);
-            return (success) ? STATUS_OK : STATUS_NO_MEM;
+            sPath.set_length(len);
+            return STATUS_NO_MEM;
         }
 
         status_t Path::set_last(const LSPString *path)
@@ -100,15 +102,17 @@ namespace lsp
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
             else if (path->length() <= 0)
+                return remove_last();
+
+            ssize_t len     = sPath.length();
+            ssize_t idx     = sPath.rindex_of(FILE_SEPARATOR_C);
+            idx             = (idx < 0) ? 0 : idx + 1;
+            sPath.set_length(idx);
+            if (sPath.append(path))
                 return STATUS_OK;
 
-            size_t len  = sPath.length();
-            bool success = (!sPath.ends_with(FILE_SEPARATOR_C)) ? sPath.append(FILE_SEPARATOR_C) : true;
-            if (success)
-                success     = sPath.append(path);
-            if (!success)
-                sPath.set_length(len);
-            return (success) ? STATUS_OK : STATUS_NO_MEM;
+            sPath.set_length(len);
+            return STATUS_NO_MEM;
         }
 
         status_t Path::set_last(const Path *path)
@@ -116,15 +120,17 @@ namespace lsp
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
             else if (path->sPath.length() <= 0)
+                return remove_last();
+
+            ssize_t len     = sPath.length();
+            ssize_t idx     = sPath.rindex_of(FILE_SEPARATOR_C);
+            idx             = (idx < 0) ? 0 : idx + 1;
+            sPath.set_length(idx);
+            if (sPath.append(&path->sPath))
                 return STATUS_OK;
 
-            size_t len  = sPath.length();
-            bool success = (!sPath.ends_with(FILE_SEPARATOR_C)) ? sPath.append(FILE_SEPARATOR_C) : true;
-            if (success)
-                success     = sPath.append(&path->sPath);
-            if (!success)
-                sPath.set_length(len);
-            return (success) ? STATUS_OK : STATUS_NO_MEM;
+            sPath.set_length(len);
+            return STATUS_NO_MEM;
         }
 
         status_t Path::get_last(char *path, size_t maxlen) const
@@ -678,6 +684,25 @@ namespace lsp
             if (res == STATUS_OK)
                 res     = tmp.get(path);
             return res;
+        }
+
+        bool Path::equals(const Path *path) const
+        {
+            return (path != NULL) ? sPath.equals(&path->sPath) : false;
+        }
+
+        bool Path::equals(const LSPString *path) const
+        {
+            return (path != NULL) ? sPath.equals(path) : false;
+        }
+
+        bool Path::equals(const char *path) const
+        {
+            if (path == NULL)
+                return false;
+
+            LSPString tmp;
+            return (tmp.set_utf8(path)) ? tmp.equals(&sPath) : false;
         }
     }
 } /* namespace lsp */

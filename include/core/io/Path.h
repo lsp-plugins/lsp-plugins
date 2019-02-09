@@ -87,6 +87,10 @@ namespace lsp
                 inline status_t as_relative(const char *path)       { return remove_base(path); }
                 inline status_t as_relative(const LSPString *path)  { return remove_base(path); }
                 inline status_t as_relative(const Path *path)       { return remove_base(path); }
+
+                bool        equals(const Path *path) const;
+                bool        equals(const LSPString *path) const;
+                bool        equals(const char *path) const;
         };
     }
 } /* namespace lsp */
