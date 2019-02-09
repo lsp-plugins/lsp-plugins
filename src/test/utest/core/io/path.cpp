@@ -113,6 +113,17 @@ UTEST_BEGIN("core.io", path)
 
 //        status_t    set_last(const Path *path);
 //        status_t    get_last(Path *path) const;
+        p.clear();
+        UTEST_ASSERT(bp.set(TEST_PATH2) == STATUS_OK);
+        UTEST_ASSERT(dp.set("bin") == STATUS_OK);
+        UTEST_ASSERT(bp.set_last(&dp) == STATUS_OK);
+        UTEST_ASSERT(bp.set_last(pnull) == STATUS_BAD_ARGUMENTS);
+        UTEST_ASSERT(bp.equals(TEST_PATH3));
+        UTEST_ASSERT(bp.get_last(&p) == STATUS_OK);
+        UTEST_ASSERT(p.equals("bin"));
+        UTEST_ASSERT(bp.set(TEST_ROOT) == STATUS_OK);
+        UTEST_ASSERT(bp.get_last(&p) == STATUS_OK);
+        UTEST_ASSERT(p.is_empty());
 
 
 //        status_t    get_parent(char *path, size_t maxlen) const;

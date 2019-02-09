@@ -373,12 +373,22 @@ namespace lsp
         status_t Path::remove_last()
         {
             if (is_root())
-                return STATUS_NOT_FOUND;
+                return STATUS_OK;
 
             ssize_t idx     = sPath.rindex_of(FILE_SEPARATOR_C);
-            if (idx < 0)
-                idx             = 0;
-            sPath.set_length(idx);
+            if (is_relative())
+            {
+                if (idx < 0)
+                    idx             = 0;
+                sPath.set_length(idx);
+            }
+            else if (idx > 0)
+            {
+                ssize_t idx2    = sPath.rindex_of(idx - 1, FILE_SEPARATOR_C);
+                if (idx2 < 0)
+                    idx             = idx + 1;
+                sPath.set_length(idx);
+            }
             return STATUS_OK;
         }
 
