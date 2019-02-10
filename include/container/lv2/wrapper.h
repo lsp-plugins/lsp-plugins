@@ -894,6 +894,8 @@ namespace lsp
 
     inline void LV2Wrapper::run(size_t samples)
     {
+        lsp_trace("processing %d samples", int(samples)); // TODO: remove after debug
+
         // Activate/deactivate the UI
         ssize_t clients = nClients + nDirectClients;
         if (clients > 0)
@@ -949,6 +951,8 @@ namespace lsp
         // Transmit latency (if possible)
         if (pLatency != NULL)
             *pLatency   = pPlugin->get_latency();
+
+        lsp_trace("processed %d samples", int(samples)); // TODO: remove after debug
     }
 
     IExecutor *LV2Wrapper::get_executor()

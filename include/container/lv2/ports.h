@@ -600,6 +600,7 @@ namespace lsp
                 // Check buffer
                 if (pBuffer == NULL)
                     return false;
+                lsp_trace("this=%p id=%s, buffer=%p", this, this->metadata()->id, pBuffer);
 
                 // Get atom sequence
                 const LV2_Atom_Sequence *seq = reinterpret_cast<const LV2_Atom_Sequence *>(pBuffer);
@@ -671,6 +672,9 @@ namespace lsp
                         lsp_error("MIDI event queue overflow");
                 }
 
+                // Force all MIDI events to be chronologically ordered
+                sQueue.sort();
+
                 return false;
             }
 
@@ -678,6 +682,13 @@ namespace lsp
             {
                 sQueue.clear();
             }
+
+            //TODO: DEBUG, remove after completed
+            virtual void bind(void *data)
+            {
+                lsp_trace("this=%p id=%s to data=%p", this, this->metadata()->id, data);
+                LV2RawPort::bind(data);
+            };
     };
 
     class LV2MidiOutputPort: public LV2RawPort
@@ -713,10 +724,13 @@ namespace lsp
 
             virtual void post_process(size_t samples)
             {
-//                lsp_trace("buffer=%p", pBuffer);
+                lsp_trace("this=%p id=%s, buffer=%p", this, this->metadata()->id, pBuffer);
                 // Check that buffer is present
                 if (pBuffer == NULL)
                     return;
+
+                // Force all MIDI events to be chronologically ordered
+                sQueue.sort();
 
                 // Initialize forge
                 LV2_Atom_Sequence *sequence     = reinterpret_cast<LV2_Atom_Sequence *>(pBuffer);
@@ -797,6 +811,13 @@ namespace lsp
             virtual bool pending()
             {
                 return sQueue.nEvents > 0;
+            };
+
+            //TODO: DEBUG, remove after completed
+            virtual void bind(void *data)
+            {
+                lsp_trace("this=%p id=%s to data=%p", this, this->metadata()->id, data);
+                LV2RawPort::bind(data);
             };
     };
 
