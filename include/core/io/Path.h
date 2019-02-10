@@ -29,6 +29,7 @@ namespace lsp
                 status_t    set(const LSPString *path);
                 status_t    set(const Path *path);
 
+                inline const char *get() const                          { return sPath.get_utf8();  }
                 status_t    get(char *path, size_t maxlen) const;
                 status_t    get(LSPString *path) const;
                 status_t    get(Path *path) const;
