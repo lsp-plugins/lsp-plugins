@@ -44,6 +44,7 @@ namespace lsp
         STATUS_NO_DEVICE,
         STATUS_OPENED,
         STATUS_BAD_TYPE,
+        STATUS_INSUFFICIENT,
 
         STATUS_TOTAL,
         STATUS_MAX = STATUS_TOTAL - 1,

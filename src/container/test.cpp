@@ -12,61 +12,19 @@
 #include <stdlib.h>
 #include <signal.h>
 
-#include <core/types.h>
+#include <container/test/types.h>
+#include <container/test/config.h>
 #include <dsp/dsp.h>
-#include <test/ptest.h>
-#include <test/utest.h>
-#include <test/mtest.h>
 #include <metadata/metadata.h>
-#include <data/cvector.h>
 #include <sys/stat.h>
 
 #ifdef PLATFORM_LINUX
     #include <mcheck.h>
 #endif /* PLATFORM_LINUX */
 
-enum test_mode_t
-{
-    UNKNOWN,
-    PTEST,
-    UTEST,
-    MTEST
-};
-
 using namespace lsp;
 
-typedef struct config_t
-{
-    mode_t                      mode;
-    bool                        fork;
-    bool                        verbose;
-    bool                        debug;
-    bool                        list_all;
-    bool                        mtrace;
-    bool                        ilist;
-    size_t                      threads;
-    const char                 *outfile;
-    const char                 *tracepath;
-    cvector<char>               list;
-    cvector<char>               ignore;
-    cvector<char>               args;
-} config_t;
 
-typedef struct stats_t
-{
-    size_t      total;
-    size_t      success;
-    double      overall;
-    cvector<test::Test> failed; // List of failed tests
-    cvector<test::Test> ignored; // List of ignored tests
-} stats_t;
-
-typedef struct task_t
-{
-    pid_t               pid;
-    struct timespec     submitted;
-    test::UnitTest     *utest;
-} task_t;
 
 void out_cpu_info(FILE *out)
 {
@@ -747,151 +705,6 @@ int launch_utest(config_t *cfg)
     return output_stats(&stats, "Overall unit test statistics");
 }
 
-int usage(bool detailed = false)
-{
-    puts("USAGE: {utest|ptest|mtest} [args...] [test name...]");
-    if (!detailed)
-        return 1;
-
-    puts("  First argument:");
-    puts("    utest                 Unit testing subsystem");
-    puts("    ptest                 Performance testing subsystem");
-    puts("    mtest                 Manual testing subsystem");
-    puts("  Additional arguments:");
-    puts("    -a, --args [args...]  Pass arguments to test");
-    puts("    -d, --debug           Disable time restrictions for unit tests");
-    puts("                          for debugging purporses");
-    puts("    -e, --execute         Launch tests specified after this switch");
-    puts("    -f, --fork            Fork child processes (opposite to --nofork)");
-    puts("    -h, --help            Display help");
-    puts("    -i, --ignore          Ignore tests specified after this switch");
-    puts("    -j, --jobs            Set number of job workers for unit tests");
-    puts("    -l, --list            List all available tests");
-    #ifdef PLATFORM_LINUX
-    puts("    -mt, --mtrace         Enable mtrace log");
-#endif /* PLATFORM_LINUX */
-    puts("    -nf, --nofork         Do not fork child processes (for better ");
-    puts("                          debugging capabilities)");
-#ifdef PLATFORM_LINUX
-    puts("    -nt, --nomtrace       Disable mtrace log");
-#endif /* PLATFORM_LINUX */
-    puts("    -o, --outfile file    Output performance test statistics to specified file");
-    puts("    -s, --silent          Do not output additional information from tests");
-    puts("    -t, --tracepath path  Override default trace path with specified value");
-    puts("    -v, --verbose         Output additional information from tests");
-    return 1;
-}
-
-int parse_config(config_t *cfg, int argc, const char **argv)
-{
-    cfg->mode       = UNKNOWN;
-    cfg->fork       = true;
-    cfg->verbose    = false;
-    cfg->list_all   = false;
-    cfg->mtrace     = false;
-    cfg->ilist      = false;
-    cfg->tracepath  = "/tmp/lsp-plugins-trace";
-    cfg->threads    = sysconf(_SC_NPROCESSORS_ONLN) * 2;
-    cfg->outfile    = NULL;
-    if (argc < 2)
-        return usage();
-
-    if (!strcmp(argv[1], "ptest"))
-        cfg->mode = PTEST;
-    else if (!strcmp(argv[1], "utest"))
-        cfg->mode = UTEST;
-    else if (!strcmp(argv[1], "mtest"))
-        cfg->mode = MTEST;
-    else if ((!strcmp(argv[1], "--help")) || ((!strcmp(argv[1], "-h"))))
-        return usage(true);
-    else
-        return usage();
-
-    for (int i=2; i<argc; ++i)
-    {
-        if ((!strcmp(argv[i], "--nofork")) || (!strcmp(argv[i], "-nf")))
-            cfg->fork       = false;
-        else if ((!strcmp(argv[i], "--fork")) || (!strcmp(argv[i], "-f")))
-            cfg->fork       = true;
-        else if ((!strcmp(argv[i], "--verbose")) || (!strcmp(argv[i], "-v")))
-            cfg->verbose    = true;
-        else if ((!strcmp(argv[i], "--silent")) || (!strcmp(argv[i], "-s")))
-            cfg->verbose    = false;
-        else if ((!strcmp(argv[i], "--debug")) || (!strcmp(argv[i], "-d")))
-            cfg->debug      = true;
-        else if ((!strcmp(argv[i], "--list")) || (!strcmp(argv[i], "-l")))
-            cfg->list_all   = true;
-#ifdef PLATFORM_LINUX
-        else if ((!strcmp(argv[i], "--mtrace")) || (!strcmp(argv[i], "-mt")))
-            cfg->mtrace     = true;
-        else if ((!strcmp(argv[i], "--nomtrace")) || (!strcmp(argv[i], "-nt")))
-            cfg->mtrace     = false;
-#endif /* PLATFORM_LINUX */
-        else if ((!strcmp(argv[i], "--tracepath")) || (!strcmp(argv[i], "-t")))
-        {
-            if ((++i) >= argc)
-            {
-                fprintf(stderr, "Not specified trace path\n");
-                return 3;
-            }
-            cfg->tracepath  = argv[i];
-        }
-        else if ((!strcmp(argv[i], "--outfile")) || (!strcmp(argv[i], "-o")))
-        {
-            if ((++i) >= argc)
-            {
-                fprintf(stderr, "Not specified name of output file\n");
-                return 3;
-            }
-            cfg->outfile    = argv[i];
-        }
-        else if ((!strcmp(argv[i], "--args")) || (!strcmp(argv[i], "-a")))
-        {
-            while (++i < argc)
-                cfg->args.add(const_cast<char *>(argv[i]));
-        }
-        else if ((!strcmp(argv[i], "--jobs")) || (!strcmp(argv[i], "-j")))
-        {
-            if ((++i) >= argc)
-            {
-                fprintf(stderr, "Not specified number of jobs for --jobs parameter\n");
-                return 3;
-            }
-
-            errno           = 0;
-            char *end       = NULL;
-            cfg->threads    = strtol(argv[i], &end, 10);
-            if ((errno != 0) || ((*end) != '\0'))
-            {
-                fprintf(stderr, "Invalid value for --threads parameter: %s\n", argv[i]);
-                return 3;
-            }
-        }
-        else if ((!strcmp(argv[i], "--help")) || ((!strcmp(argv[i], "-h"))))
-            return usage(true);
-        else if ((!strcmp(argv[i], "--ignore")) || ((!strcmp(argv[i], "-i"))))
-            cfg->ilist      = true;
-        else if ((!strcmp(argv[i], "--execute")) || ((!strcmp(argv[i], "-e"))))
-            cfg->ilist      = false;
-        else
-        {
-            if (cfg->ilist)
-                cfg->ignore.add(const_cast<char *>(argv[i]));
-            else
-                cfg->list.add(const_cast<char *>(argv[i]));
-        }
-    }
-
-    return 0;
-}
-
-void clear_config(config_t *cfg)
-{
-    cfg->list.flush();
-    cfg->ignore.flush();
-    cfg->args.flush();
-}
-
 int main(int argc, const char **argv)
 {
 //    // Enable mcheck
@@ -902,8 +715,8 @@ int main(int argc, const char **argv)
 //    }
 
     config_t cfg;
-    int res = parse_config(&cfg, argc, argv);
-    if (res != 0)
+    status_t res = cfg.parse(stdout, argc, argv);
+    if (res != STATUS_OK)
         return res;
 
     srand(clock());
@@ -933,11 +746,5 @@ int main(int argc, const char **argv)
 
     dsp::finish(&ctx);
 
-    clear_config(&cfg);
-
     return res;
-    /*srand(clock());
-    lsp_trace("locale is: %s", setlocale(LC_CTYPE, NULL));
-    return TEST::test(argc, argv);
-    */
 }
