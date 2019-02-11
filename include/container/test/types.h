@@ -20,8 +20,9 @@ namespace lsp
     typedef struct stats_t
     {
         size_t      total;
-        size_t      success;
         double      overall;
+
+        cvector<test::Test> success; // List of failed tests
         cvector<test::Test> failed; // List of failed tests
         cvector<test::Test> ignored; // List of ignored tests
     } stats_t;

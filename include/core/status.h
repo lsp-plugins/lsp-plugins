@@ -45,6 +45,9 @@ namespace lsp
         STATUS_OPENED,
         STATUS_BAD_TYPE,
         STATUS_INSUFFICIENT,
+        STATUS_KILLED,
+        STATUS_TIMEOUT,
+        STATUS_FAILED,
 
         STATUS_TOTAL,
         STATUS_MAX = STATUS_TOTAL - 1,

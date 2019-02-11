@@ -34,6 +34,8 @@ namespace lsp
             bool                        list_all;
             bool                        mtrace;
             bool                        ilist;
+            bool                        sysinfo;
+            bool                        is_child;
             size_t                      threads;
             const char                 *outfile;
             const char                 *tracepath;
@@ -79,8 +81,10 @@ namespace lsp
     #ifdef PLATFORM_LINUX
         fputs("    -nt, --nomtrace       Disable mtrace log\n", out);
     #endif /* PLATFORM_LINUX */
+        fputs("    -nsi, --nosysinfo     Do not output system information\n", out);
         fputs("    -o, --outfile file    Output performance test statistics to specified file\n", out);
         fputs("    -s, --silent          Do not output additional information from tests\n", out);
+        fputs("    -si, --sysinfo        Output system information\n", out);
         fputs("    -t, --tracepath path  Override default trace path with specified value\n", out);
         fputs("    -v, --verbose         Output additional information from tests\n", out);
 
@@ -114,6 +118,10 @@ namespace lsp
                 verbose     = true;
             else if ((!strcmp(argv[i], "--silent")) || (!strcmp(argv[i], "-s")))
                 verbose     = false;
+            else if ((!strcmp(argv[i], "--sysinfo")) || (!strcmp(argv[i], "-si")))
+                sysinfo     = true;
+            else if ((!strcmp(argv[i], "--nosysinfo")) || (!strcmp(argv[i], "-nsi")))
+                sysinfo     = false;
             else if ((!strcmp(argv[i], "--debug")) || (!strcmp(argv[i], "-d")))
                 debug       = true;
             else if ((!strcmp(argv[i], "--list")) || (!strcmp(argv[i], "-l")))
@@ -170,6 +178,10 @@ namespace lsp
                 ilist           = true;
             else if ((!strcmp(argv[i], "--execute")) || ((!strcmp(argv[i], "-e"))))
                 ilist           = false;
+#ifdef PLATFORM_WINDOWS
+            else if (!strcmp(argv[i], "--run-as-nested-process"))
+                is_child        = true;
+#endif /* PLATFORM_WINDOWS */
             else
             {
                 if (ilist)
@@ -190,6 +202,8 @@ namespace lsp
         list_all    = false;
         mtrace      = false;
         ilist       = false;
+        sysinfo     = true;
+        is_child    = false;
         tracepath   = "/tmp/lsp-plugins-trace";
         threads     = sysconf(_SC_NPROCESSORS_ONLN) * 2;
         outfile     = NULL;

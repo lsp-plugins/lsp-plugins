@@ -45,6 +45,9 @@ namespace lsp
         "Opened",
         "Bad type",
         "Insufficient data",
+        "Killed",
+        "Timeout",
+        "Failed",
         NULL
     };
 
