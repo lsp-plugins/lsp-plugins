@@ -7,7 +7,6 @@
 
 #include <errno.h>
 #include <unistd.h>
-#include <sys/wait.h>
 #include <sys/time.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -17,6 +16,7 @@
 #include <container/test/executor.h>
 #include <dsp/dsp.h>
 #include <metadata/metadata.h>
+#include <core/stdlib/stdio.h>
 #include <sys/stat.h>
 
 using namespace lsp;
@@ -317,8 +317,8 @@ int main(int argc, const char **argv)
         // Prepare for test
         if (res == STATUS_OK)
         {
-            struct timespec start, finish;
-            clock_gettime(CLOCK_REALTIME, &start);
+            test_clock_t start, finish;
+            get_test_time(&start);
 
             for (test::Test *v = list; v != NULL; v = v->next_test())
             {
@@ -335,8 +335,8 @@ int main(int argc, const char **argv)
             if (res == STATUS_OK)
                 res = executor.wait();
 
-            clock_gettime(CLOCK_REALTIME, &finish);
-            stats.overall = (finish.tv_sec - start.tv_sec) + (finish.tv_nsec - start.tv_nsec) * 1e-9;
+            get_test_time(&finish);
+            stats.overall = calc_test_time_difference(&start, &finish);
         }
 
         // Output statistics
