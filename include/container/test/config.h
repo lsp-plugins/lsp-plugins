@@ -9,10 +9,12 @@
 #define INCLUDE_CONTAINER_TEST_CONFIG_H_
 
 #include <core/types.h>
+#include <core/stdlib/stdio.h>
+#include <container/test/types.h>
 #include <data/cvector.h>
-#include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
+
 
 namespace lsp
 {
@@ -205,8 +207,15 @@ namespace lsp
         sysinfo     = true;
         is_child    = false;
         tracepath   = "/tmp/lsp-plugins-trace";
-        threads     = sysconf(_SC_NPROCESSORS_ONLN) * 2;
         outfile     = NULL;
+
+#if defined(PLATFORM_WINDOWS)
+        SYSTEM_INFO     sysinfo;
+        GetSystemInfo(&sysinfo);
+        threads     = sysinfo.dwNumberOfProcessors;
+#else
+        threads     = sysconf(_SC_NPROCESSORS_ONLN) * 2;
+#endif /* PLATFORM_WINDOWS */
 
         list.flush();
         ignore.flush();

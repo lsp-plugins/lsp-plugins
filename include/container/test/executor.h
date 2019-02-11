@@ -13,21 +13,6 @@
 #include <data/cstorage.h>
 #include <errno.h>
 
-#ifdef PLATFORM_WINDOWS
-    #include <processthreadsapi.h>
-#endif
-
-#ifdef PLATFORM_UNIX_COMPATIBLE
-    #include <unistd.h>
-    #include <sys/wait.h>
-    #include <sys/stat.h>
-    #include <fcntl.h>
-#endif /* PLATFORM_UNIX_COMPATIBLE */
-
-#ifdef PLATFORM_LINUX
-    #include <mcheck.h>
-#endif /* PLATFORM_LINUX */
-
 namespace lsp
 {
     class TestExecutor
@@ -35,12 +20,8 @@ namespace lsp
         protected:
             typedef struct task_t
             {
-#if defined(PLATFORM_WINDOWS)
-                PROCESS_INFORMATION pid;
-#else /* POSIX */
-                pid_t               pid;
-#endif /* PLATFORM_WINDOWS */
-                struct timespec     submitted;
+                test_pid_t          pid;
+                test_clock_t        submitted;
                 test::Test         *test;
                 status_t            result;
             } task_t;
@@ -53,6 +34,11 @@ namespace lsp
             task_t             *vTasks;
             config_t           *pCfg;
             stats_t            *pStats;
+#ifdef PLATFORM_WINDOWS
+            HANDLE              hThread;
+            HANDLE              hTimer;
+            HANDLE              hLock;
+#endif /* PLATFORM_WINDOWS */
 
         protected:
             status_t    launch_test(test::Test *test);
@@ -69,6 +55,10 @@ namespace lsp
             void        start_memcheck(test::Test *test);
             void        end_memcheck();
 
+#ifdef PLATFORM_WINDOWS
+            static DWORD WINAPI  thread_proc(LPVOID params);
+#endif /* PLATFORM_WINDOWS */
+
         public:
             explicit TestExecutor()
             {
@@ -79,6 +69,12 @@ namespace lsp
                 vTasks          = NULL;
                 pCfg            = NULL;
                 pStats          = NULL;
+
+#ifdef PLATFORM_WINDOWS
+                hThread         = 0;
+                hTimer          = 0;
+                hLock           = 0;
+#endif /* PLATFORM_WINDOWS */
             }
 
             ~TestExecutor()
@@ -183,7 +179,7 @@ namespace lsp
 
         // Allocate new task descriptor
         task_t *task        = &vTasks[nTasksActive++];
-        clock_gettime(CLOCK_REALTIME, &task->submitted); // Remember start time of the test
+        get_test_time(&task->submitted); // Remember start time of the test
         task->test          = test;
         task->result        = STATUS_OK;
 
@@ -196,7 +192,7 @@ namespace lsp
 
     status_t TestExecutor::wait_for_children()
     {
-        struct timespec ts;
+        test_clock_t ts;
         const char *test    = (pCfg->mode == UTEST) ? "Unit test" :
                               (pCfg->mode == PTEST) ? "Performance test" :
                               "Manual test";
@@ -208,8 +204,8 @@ namespace lsp
             return res;
 
         // Get execution time
-        clock_gettime(CLOCK_REALTIME, &ts);
-        double time = (ts.tv_sec - task->submitted.tv_sec) + (ts.tv_nsec - task->submitted.tv_nsec) * 1e-9;
+        get_test_time(&ts);
+        double time = calc_test_time_difference(&task->submitted, &ts);
         printf("%s '%s' has %s, execution time: %.2f s\n",
                 test, task->test->full_name(), (task->result == 0) ? "succeeded" : "failed", time);
 
@@ -322,7 +318,147 @@ namespace lsp
     }
 
 #ifdef PLATFORM_WINDOWS
-    // TODO
+    DWORD WINAPI TestExecutor::thread_proc(LPVOID params)
+    {
+        TestExecutor *_this = reinterpret_cast<TestExecutor *>(params);
+
+        HANDLE wait[2];
+        wait[0] = _this->hLock;
+        wait[1] = _this->hTimer;
+
+        DWORD res   = WaitForMultipleObjects(2, wait, FALSE, INFINITE);
+        if (res != 0)
+            ExitProcess(STATUS_TIMED_OUT);
+
+        return STATUS_OK;
+    }
+
+    status_t TestExecutor::set_timeout(double timeout)
+    {
+        hLock   = CreateMutexW(NULL, TRUE, L"timeout_handler");
+        if (!hLock)
+            return STATUS_UNKNOWN_ERR;
+
+        hTimer  = CreateWaitableTimerW(NULL, TRUE, L"timeout_countdown");
+        if (!hTimer)
+        {
+            CloseHandle(hLock);
+            return STATUS_UNKNOWN_ERR;
+        }
+
+        LARGE_INTEGER liDueTime;
+        liDueTime.QuadPart  = int64_t(-1e+7 * timeout); // 100 nsec intervals
+        if (!SetWaitableTimer(hTimer, &liDueTime, 0, NULL, NULL, 0))
+        {
+            CloseHandle(hTimer);
+            CloseHandle(hLock);
+            return STATUS_UNKNOWN_ERR;
+        }
+
+        DWORD tid;
+        hThread = CreateThread(NULL, 0, thread_proc, this, 0, &tid);
+        if (!hThread)
+        {
+            CloseHandle(hTimer);
+            CloseHandle(hLock);
+            return STATUS_UNKNOWN_ERR;
+        }
+
+        return STATUS_OK;
+    }
+
+    status_t TestExecutor::kill_timeout()
+    {
+        ReleaseMutex(hLock);
+        WaitForSingleObject(hThread, INFINITE);
+        CloseHandle(hThread);
+        CloseHandle(hTimer);
+        CloseHandle(hLock);
+
+        hThread     = 0;
+        hTimer      = 0;
+        hLock       = 0;
+
+        return STATUS_OK;
+    }
+
+    status_t TestExecutor::submit_task(task_t *task)
+    {
+        // Obtain command line arguments
+        WCHAR cmd[PATH_MAX];
+
+        LPWSTR cmdline = GetCommandLineW();
+        int args = 0;
+        LPWSTR *arglist = CommandLineToArgvW(cmdline, &args);
+        if ((arglist == NULL) || (args < 1))
+        {
+            fprintf(stderr, "Error obtaining command-line arguments\n");
+            fflush(stderr);
+            return STATUS_UNKNOWN_ERR;
+        }
+
+        lstrcpyW(cmd, arglist[0]);
+        lstrcatW(cmd, L" --run-as-nested-process");
+        lstrcatW(cmd, L" --nofork");
+        lstrcatW(cmd, L" --nosysinfo");
+        if (pCfg->debug)
+            lstrcatW(cmd, L" --debug");
+        lstrcatW(cmd, (pCfg->verbose) ? L" --verbose" : L" --silent");
+
+        // Launch child process
+        STARTUPINFOW si;
+        PROCESS_INFORMATION pi;
+
+        ZeroMemory( &si, sizeof(STARTUPINFOW) );
+        ZeroMemory( &pi, sizeof(PROCESS_INFORMATION) );
+        si.cb = sizeof(si);
+
+        // Start the child process.
+        if( !CreateProcessW(
+            arglist[0],     // No module name (use command line)
+            cmd,            // Command line
+            NULL,           // Process handle not inheritable
+            NULL,           // Thread handle not inheritable
+            FALSE,          // Set handle inheritance to FALSE
+            0,              // No creation flags
+            NULL,           // Use parent's environment block
+            NULL,           // Use parent's starting directory
+            &si,            // Pointer to STARTUPINFO structure
+            &pi             // Pointer to PROCESS_INFORMATION structure
+        ))
+        {
+            LocalFree(arglist);
+            fprintf(stderr, "Failed to create child process (%d)\n", int(GetLastError()));
+            fflush(stderr);
+            return STATUS_UNKNOWN_ERR;
+        }
+
+        LocalFree(arglist);
+
+        task->pid       = pi;
+        return STATUS_OK;
+    }
+
+    status_t TestExecutor::wait_for_child(task_t **task)
+    {
+        if (nTasksActive <= 0)
+            return STATUS_NOT_FOUND;
+
+        // Wait for any child process exit event
+        HANDLE *pids    = reinterpret_cast<HANDLE *>(alloca(nTasksActive * sizeof(HANDLE)));
+        for (size_t i=0; i<nTasksActive; ++i)
+            pids[i]         = vTasks[i].pid.hProcess;
+
+        size_t idx      = WaitForMultipleObjects(nTasksActive, pids, FALSE, INFINITE);
+
+        // Get termination code
+        DWORD code;
+        GetExitCodeProcess(pids[idx], &code);
+        vTasks[idx].result  = code;
+        *task       = &vTasks[idx];
+
+        return STATUS_OK;
+    }
 #endif /* PLATFORM_WINDOWS */
 
 #ifdef PLATFORM_LINUX
@@ -368,7 +504,7 @@ namespace lsp
     void utest_timeout_handler(int signum)
     {
         fprintf(stderr, "Unit test time limit exceeded\n");
-        exit(STATUS_TIMEOUT);
+        exit(STATUS_TIMED_OUT);
     }
 
     status_t TestExecutor::submit_task(task_t *task)

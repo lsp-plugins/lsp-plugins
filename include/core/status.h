@@ -46,7 +46,7 @@ namespace lsp
         STATUS_BAD_TYPE,
         STATUS_INSUFFICIENT,
         STATUS_KILLED,
-        STATUS_TIMEOUT,
+        STATUS_TIMED_OUT,
         STATUS_FAILED,
 
         STATUS_TOTAL,
