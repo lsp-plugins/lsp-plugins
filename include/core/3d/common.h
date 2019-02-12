@@ -114,6 +114,7 @@ namespace lsp
      * @return status of operation
      */
     typedef status_t (*rt_capture_t)(const rt_view_t *v, void *data);
+    typedef status_t (*rt_progress_t)(float progress, void *data);
 
     typedef struct rt_vertex_t: public point3d_t
     {
@@ -165,6 +166,8 @@ namespace lsp
         float           dissipation[2];     // The dissipation coefficients for refracted signal
         float           transparency[2];    // The amount of energy that will be passed-through the material
         float           permeability;       // Sound permeability of the object (inner sound speed / outer sound speed)
+
+        // TODO: hide this
         rt_capture_t    capture;            // Routine to call for capturing events
         void           *capture_data;       // Data to pass to the capture routine
     } rt_material_t;

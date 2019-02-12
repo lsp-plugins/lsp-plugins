@@ -64,6 +64,12 @@ namespace lsp
              */
             status_t clone_from(const Scene3D *src);
 
+            /**
+             * Swap contents with another scene
+             * @param scene scene to perform swap
+             */
+            void swap(Scene3D *scene);
+
         public:
             /**
              * Do some post-processing after loading scene from file
@@ -108,6 +114,13 @@ namespace lsp
             inline Object3D *object(size_t idx) { return vObjects.get(idx); }
 
             /**
+             * Get object index
+             * @param obj object index
+             * @return object index
+             */
+            size_t index_of(Object3D *obj)      { return vObjects.index_of(obj);    }
+
+            /**
              * Get vertex by specified index
              * @param idx vertex index
              * @return vertex or NULL
@@ -146,6 +159,13 @@ namespace lsp
              * @return pointer to object or NULL on error
              */
             Object3D *add_object(const LSPString *name);
+
+            /**
+             * Add object with UTF8-encoded name
+             * @param utf8_name UTF8-encoded name
+             * @return pointer to object or NULL on error
+             */
+            Object3D *add_object(const char *utf8_name);
 
             /**
              * Add vertex

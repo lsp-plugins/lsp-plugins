@@ -25,9 +25,38 @@ namespace lsp
         destroy();
     }
 
+    void Scene3D::swap(Scene3D *scene)
+    {
+        vObjects.swap_data(&scene->vObjects);
+        vVertexes.swap(&scene->vVertexes);
+        vNormals.swap(&scene->vNormals);
+        vXNormals.swap(&scene->vXNormals);
+        vEdges.swap(&scene->vEdges);
+        vTriangles.swap(&scene->vTriangles);
+    }
+
     Object3D *Scene3D::add_object(const LSPString *name)
     {
         Object3D *obj = new Object3D(this, name);
+        if (obj == NULL)
+            return NULL;
+
+        if (!vObjects.add(obj))
+        {
+            delete obj;
+            return NULL;
+        }
+
+        return obj;
+    }
+
+    Object3D *Scene3D::add_object(const char *utf8_name)
+    {
+        LSPString name;
+        if (!name.set_utf8(utf8_name))
+            return NULL;
+
+        Object3D *obj = new Object3D(this, &name);
         if (obj == NULL)
             return NULL;
 
