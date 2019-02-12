@@ -14,6 +14,7 @@
 #include <core/sampling/Sample.h>
 #include <core/3d/common.h>
 #include <core/3d/rt_context.h>
+#include <core/3d/RTObjectFactory.h>
 
 namespace lsp
 {
@@ -67,8 +68,7 @@ namespace lsp
             cstorage<source_t>          vSources;
             cstorage<capture_t>         vCaptures;
             Scene3D                    *pScene;
-            Scene3D                     sPrimitives;
-            ssize_t                     nSphereId;
+            RTObjectFactory             sFactory;
             rt_progress_t              *pProgress;
             void                       *pProgressData;
             size_t                      nSampleRate;

@@ -196,6 +196,13 @@ namespace lsp
             void init_tags(void *ptag, ssize_t itag);
 
             /**
+             * Get index of the object
+             * @param obj object to search for
+             * @return index of object
+             */
+            inline ssize_t get_object_index(Object3D *obj) { return vObjects.index_of(obj); }
+
+            /**
              * Validate scene consistence
              * @return true if scene is self-consistent
              */
