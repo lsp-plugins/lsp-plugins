@@ -562,4 +562,213 @@ namespace lsp
         return iconv_open(charset, __IF_LEBE("UTF-16LE", "UTF-16BE"));
     }
 #endif
+
+    uint32_t get_codepoint(const lsp_utf16_char_t **str)
+    {
+        uint32_t cp, sc;
+        const lsp_utf16_char_t *s = *str;
+
+        cp = *(s++);
+        if (cp == 0)
+            return cp;
+
+        sc = cp & 0xdc00;
+        if (sc == 0xdc00) // cp = Surrogate high
+        {
+            sc = *s;
+            if ((sc & 0xdc00) != 0xd800)
+            {
+                *str = s;
+                return cp; // Mismatched surrogate
+            }
+            cp  = ((cp & 0x3ff) << 10) | (sc & 0x3ff);
+        }
+        else if (sc == 0xd800) // Surrogate low?
+        {
+            sc = *s;
+            if ((sc & 0xdc00) != 0xdc00)
+            {
+                *str = s;
+                return cp; // Mismatched surrogate
+            }
+            cp  = ((sc & 0x3ff) << 10) | (cp & 0x3ff);
+        }
+
+        *str = s + 1;
+        return cp;
+    }
+
+    uint32_t get_codepoint(const char **str)
+    {
+        uint32_t cp, sp, bytes;
+        const char *s = *str;
+
+        // Decode primary byte
+        cp = uint8_t(*(s++));
+        if (cp <= 0x7f)
+            return cp;
+        else if ((cp & 0xe0) == 0xc0) // 2 bytes: 110xxxxx 10xxxxxx
+        {
+            cp     &= 0x1f;
+            bytes   = (cp >= 0x02) ? 1 : 0;
+        }
+        else if ((cp & 0xf0) == 0xe0) // 3 bytes: 1110xxxx 10xxxxxx 10xxxxxx
+        {
+            cp     &= 0x0f;
+            bytes   = (cp) ? 2 : 0;
+        }
+        else if ((cp & 0xf8) == 0xf0) // 4 bytes: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+        {
+            cp     &= 0x07;
+            bytes   = 3;
+        }
+        else
+            bytes   = 0;
+
+        // Invalid first byte sequence?
+        if (!bytes)
+        {
+            *str    = s;
+            return 0xfffd;
+        }
+
+        // Decode extension bytes
+        for (size_t i=0; i<bytes; ++i)
+        {
+            sp  = uint8_t(*s);
+            if ((sp & 0xc0) != 0x80) // Invalid sequence?
+            {
+                *str    = (sp == 0) ? s : s+1;
+                return 0xfffd;
+            }
+            cp     = (cp << 6) | (sp & 0x3f);
+            ++s;
+        }
+
+        if ((bytes == 3) && (cp < 0x10000)) // Check that 4-byte sequence is valid
+            cp      = 0xfffd;
+        else if ((cp >= 0xd800) && (cp < 0xe000)) // Check for surrogates
+            cp      = 0xfffd;
+
+        *str = s;
+        return cp;
+    }
+
+    inline size_t utf8_bytes(uint32_t cp)
+    {
+        if (cp >= 0x800)
+            return (cp >= 0x10000) ? 4 : 3;
+        else
+            return (cp >= 0x80) ? 2 : 1;
+    }
+
+    inline size_t utf16_bytes(uint32_t cp)
+    {
+        return (cp < 0x10000) ? 2 : 4;
+    }
+
+    char *utf16_to_utf8(const lsp_utf16_char_t *str)
+    {
+        // Estimate number of bytes
+        size_t bytes = 0;
+        const lsp_utf16_char_t *p = str;
+        while (true)
+        {
+            uint32_t cp = get_codepoint(&p);
+            if (cp == 0)
+                break;
+            bytes      += utf8_bytes(cp);
+        }
+
+        // Allocate memory
+        char *utf8  = reinterpret_cast<char *>(malloc(++bytes));
+        if (utf8 == NULL)
+            return NULL;
+
+        // Now perform encoding
+        char *dst   = utf8;
+        p = str;
+        while (true)
+        {
+            uint32_t cp = get_codepoint(&p);
+            if (cp == 0)
+                break;
+
+            if (cp >= 0x800) // 3-4 bytes
+            {
+                if (cp >= 0x10000) // 4 bytes
+                {
+                    dst[0]      = (cp >> 16) | 0xf0;
+                    dst[1]      = ((cp >> 12) & 0x3f) | 0x80;
+                    dst[2]      = ((cp >> 6) & 0x3f) | 0x80;
+                    dst[3]      = (cp & 0x3f) | 0x80;
+                    dst        += 3;
+                }
+                else // 3 bytes
+                {
+                    dst[0]      = (cp >> 12) | 0xe0;
+                    dst[1]      = ((cp >> 6) & 0x3f) | 0x80;
+                    dst[2]      = (cp & 0x3f) | 0x80;
+                    dst        += 3;
+                }
+            }
+            else // 1-2 bytes
+            {
+                if (cp >= 0x80) // 2 bytes
+                {
+                    dst[0]      = (cp >> 6) | 0xc0;
+                    dst[1]      = (cp & 0x3f) | 0x80;
+                    dst        += 2;
+                }
+                else // 1 byte
+                    *dst++      = char(cp);
+            }
+        }
+        *dst = '\0';
+
+        return utf8;
+    }
+
+    lsp_utf16_char_t *utf8_to_utf16(const char *str)
+    {
+        // Estimate number of bytes
+        size_t bytes = 0;
+        const char *p = str;
+        while (true)
+        {
+            uint32_t cp = get_codepoint(&p);
+            if (cp == 0)
+                break;
+            bytes      += utf16_bytes(cp);
+        }
+
+        // Allocate memory
+        lsp_utf16_char_t *utf16  = reinterpret_cast<lsp_utf16_char_t *>(malloc((bytes+2) * sizeof(lsp_utf16_char_t)));
+        if (utf16 == NULL)
+            return NULL;
+
+        // Perform encoding
+        lsp_utf16_char_t *dst = utf16;
+
+        while (true)
+        {
+            uint32_t cp = get_codepoint(&p);
+            if (cp < 0x10000)
+            {
+                if (cp == 0)
+                    break;
+                *(dst++)    = cp;
+            }
+            else
+            {
+                dst[0]  = 0xd800 | (cp >> 10);
+                dst[1]  = 0xdc00 | (cp & 0x3ff);
+                dst += 2;
+            }
+        }
+
+        *dst = 0;
+
+        return utf16;
+    }
 }
