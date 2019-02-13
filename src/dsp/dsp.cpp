@@ -299,11 +299,15 @@ namespace dsp
     void    (* init_matrix3d_one)(matrix3d_t *m) = NULL;
     void    (* init_matrix3d_identity)(matrix3d_t *m) = NULL;
     void    (* init_matrix3d_translate)(matrix3d_t *m, float dx, float dy, float dz) = NULL;
+    void    (* init_matrix3d_translate_p1)(matrix3d_t *m, const point3d_t *p) = NULL;
+    void    (* init_matrix3d_translate_v1)(matrix3d_t *m, const vector3d_t *v) = NULL;
     void    (* init_matrix3d_scale)(matrix3d_t *m, float sx, float sy, float sz) = NULL;
     void    (* init_matrix3d_rotate_x)(matrix3d_t *m, float angle) = NULL;
     void    (* init_matrix3d_rotate_y)(matrix3d_t *m, float angle) = NULL;
     void    (* init_matrix3d_rotate_z)(matrix3d_t *m, float angle) = NULL;
     void    (* init_matrix3d_rotate_xyz)(matrix3d_t *m, float x, float y, float z, float angle) = NULL;
+    void    (* calc_tranform_matrix3d_p1v1)(matrix3d_t *m, const point3d_t *p, const vector3d_t *v) = NULL;
+    void    (* calc_tranform_matrix3d_r1)(matrix3d_t *m, const ray3d_t *r) = NULL;
     void    (* apply_matrix3d_mv2)(vector3d_t *r, const vector3d_t *v, const matrix3d_t *m) = NULL;
     void    (* apply_matrix3d_mv1)(vector3d_t *r, const matrix3d_t *m) = NULL;
     void    (* apply_matrix3d_mp2)(point3d_t *r, const point3d_t *p, const matrix3d_t *m) = NULL;

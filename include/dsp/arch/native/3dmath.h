@@ -689,6 +689,56 @@ namespace native
         v[15]       = 1.0;
     }
 
+    void init_matrix3d_translate_p1(matrix3d_t *m, const point3d_t *p)
+    {
+        float *v    = m->m;
+
+        v[0]        = 1.0f;
+        v[1]        = 0.0f;
+        v[2]        = 0.0f;
+        v[3]        = 0.0f;
+
+        v[4]        = 0.0f;
+        v[5]        = 1.0f;
+        v[6]        = 0.0f;
+        v[7]        = 0.0f;
+
+        v[8]        = 0.0f;
+        v[9]        = 0.0f;
+        v[10]       = 1.0f;
+        v[11]       = 0.0f;
+
+        v[12]       = p->x;
+        v[13]       = p->y;
+        v[14]       = p->z;
+        v[15]       = p->w;
+    }
+
+    void init_matrix3d_translate_v1(matrix3d_t *m, const vector3d_t *vt)
+    {
+        float *v    = m->m;
+
+        v[0]        = 1.0f;
+        v[1]        = 0.0f;
+        v[2]        = 0.0f;
+        v[3]        = 0.0f;
+
+        v[4]        = 0.0f;
+        v[5]        = 1.0f;
+        v[6]        = 0.0f;
+        v[7]        = 0.0f;
+
+        v[8]        = 0.0f;
+        v[9]        = 0.0f;
+        v[10]       = 1.0f;
+        v[11]       = 0.0f;
+
+        v[12]       = vt->dx;
+        v[13]       = vt->dy;
+        v[14]       = vt->dz;
+        v[15]       = 1.0f;
+    }
+
     void init_matrix3d_scale(matrix3d_t *m, float sx, float sy, float sz)
     {
         float *v    = m->m;
@@ -856,6 +906,46 @@ namespace native
         M[13]       = 0.0f;
         M[14]       = 0.0f;
         M[15]       = 0.0f;
+    }
+
+    void calc_tranform_matrix3d_p1v1(matrix3d_t *m, const point3d_t *p, const vector3d_t *v)
+    {
+        matrix3d_t xm;
+
+        // Apply translation matrix
+        dsp::init_matrix3d_translate(&m, p);
+
+        // Apply scaling matrix
+        float l = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
+        dsp::init_matrix3d_scale(&xm, l, l, l);
+        dsp::apply_matrix3d_mm1(&m, &xm);
+        if (l <= 0.0f)
+            return;
+
+        // Apply rotation matrix
+        float dx     = v->dx / l;
+        float dy     = v->dy / l;
+        float dz     = v->dz / l;
+    }
+
+    void calc_tranform_matrix3d_r1(matrix3d_t *m, const ray3d_t *r)
+    {
+        matrix3d_t xm;
+
+        // Apply translation matrix
+        dsp::init_matrix3d_translate(&m, &r->z);
+
+        // Apply scaling matrix
+        float l     = sqrtf(r->v.dx * r->v.dx + r->v.dy * r->v.dy + r->v.dz * r->v.dz);
+        dsp::init_matrix3d_scale(&xm, l, l, l);
+        dsp::apply_matrix3d_mm1(&m, &xm);
+        if (l <= 0.0f)
+            return;
+
+        // Apply rotation matrix: YZ around X
+        l           = sqrtf()
+        float dx    = r->v.dx / l;
+        float dy    = r->v.dy / l;
     }
 
     void apply_matrix3d_mv2(vector3d_t *r, const vector3d_t *v, const matrix3d_t *m)
@@ -1117,111 +1207,6 @@ namespace native
         // Return result of scalar multiplication to the normal
         return n->dx * v[2].dx + n->dy * v[2].dy + n->dz * v[2].dz;
     }
-
-    //        float check_point3d_location_tp(const triangle3d_t *t, const point3d_t *p)
-    //        {
-    //            vector3d_t  v[3];
-    //            v[0].dx             = p->x - t->p[0].x;
-    //            v[0].dy             = p->y - t->p[0].y;
-    //            v[0].dz             = p->z - t->p[0].z;
-    //
-    //            v[1].dx             = p->x - t->p[1].x;
-    //            v[1].dy             = p->y - t->p[1].y;
-    //            v[1].dz             = p->z - t->p[1].z;
-    //
-    //            v[2].dx             = p->x - t->p[2].x;
-    //            v[2].dy             = p->y - t->p[2].y;
-    //            v[2].dz             = p->z - t->p[2].z;
-    //
-    //            vector3d_t  m[3];
-    //            m[0].dx             = v[0].dy * v[1].dz - v[0].dz * v[1].dy;
-    //            m[0].dy             = v[0].dz * v[1].dx - v[0].dx * v[1].dz;
-    //            m[0].dz             = v[0].dx * v[1].dy - v[0].dy * v[1].dx;
-    //
-    //            m[1].dx             = v[1].dy * v[2].dz - v[1].dz * v[2].dy;
-    //            m[1].dy             = v[1].dz * v[2].dx - v[1].dx * v[2].dz;
-    //            m[1].dz             = v[1].dx * v[2].dy - v[1].dy * v[2].dx;
-    //
-    //            m[2].dx             = v[2].dy * v[0].dz - v[2].dz * v[0].dy;
-    //            m[2].dy             = v[2].dz * v[0].dx - v[2].dx * v[0].dz;
-    //            m[2].dz             = v[2].dx * v[0].dy - v[2].dy * v[0].dx;
-    //
-    //            float r[2];
-    //            r[0]                = m[0].dx * m[1].dx + m[0].dy * m[1].dy + m[0].dz * m[1].dz;
-    //            r[1]                = m[1].dx * m[2].dx + m[1].dy * m[2].dy + m[1].dz * m[2].dz;
-    //
-    //            return (r[0] < 0.0f) ? r[0] : r[1];
-    //        }
-    //
-    //        float check_point3d_location_pvp(const point3d_t *t, const point3d_t *p)
-    //        {
-    //            vector3d_t  v[3];
-    //            v[0].dx             = p->x - t[0].x;
-    //            v[0].dy             = p->y - t[0].y;
-    //            v[0].dz             = p->z - t[0].z;
-    //
-    //            v[1].dx             = p->x - t[1].x;
-    //            v[1].dy             = p->y - t[1].y;
-    //            v[1].dz             = p->z - t[1].z;
-    //
-    //            v[2].dx             = p->x - t[2].x;
-    //            v[2].dy             = p->y - t[2].y;
-    //            v[2].dz             = p->z - t[2].z;
-    //
-    //            vector3d_t  m[3];
-    //            m[0].dx             = v[0].dy * v[1].dz - v[0].dz * v[1].dy;
-    //            m[0].dy             = v[0].dz * v[1].dx - v[0].dx * v[1].dz;
-    //            m[0].dz             = v[0].dx * v[1].dy - v[0].dy * v[1].dx;
-    //
-    //            m[1].dx             = v[1].dy * v[2].dz - v[1].dz * v[2].dy;
-    //            m[1].dy             = v[1].dz * v[2].dx - v[1].dx * v[2].dz;
-    //            m[1].dz             = v[1].dx * v[2].dy - v[1].dy * v[2].dx;
-    //
-    //            m[2].dx             = v[2].dy * v[0].dz - v[2].dz * v[0].dy;
-    //            m[2].dy             = v[2].dz * v[0].dx - v[2].dx * v[0].dz;
-    //            m[2].dz             = v[2].dx * v[0].dy - v[2].dy * v[0].dx;
-    //
-    //            float r[2];
-    //            r[0]                = m[0].dx * m[1].dx + m[0].dy * m[1].dy + m[0].dz * m[1].dz;
-    //            r[1]                = m[1].dx * m[2].dx + m[1].dy * m[2].dy + m[1].dz * m[2].dz;
-    //
-    //            return (r[0] < 0.0f) ? r[0] : r[1];
-    //        }
-    //
-    //        float check_point3d_location_p3p(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p)
-    //        {
-    //            vector3d_t  v[3];
-    //            v[0].dx             = p->x - p1->x;
-    //            v[0].dy             = p->y - p1->y;
-    //            v[0].dz             = p->z - p1->z;
-    //
-    //            v[1].dx             = p->x - p2->x;
-    //            v[1].dy             = p->y - p2->y;
-    //            v[1].dz             = p->z - p2->z;
-    //
-    //            v[2].dx             = p->x - p3->x;
-    //            v[2].dy             = p->y - p3->y;
-    //            v[2].dz             = p->z - p3->z;
-    //
-    //            vector3d_t  m[3];
-    //            m[0].dx             = v[0].dy * v[1].dz - v[0].dz * v[1].dy;
-    //            m[0].dy             = v[0].dz * v[1].dx - v[0].dx * v[1].dz;
-    //            m[0].dz             = v[0].dx * v[1].dy - v[0].dy * v[1].dx;
-    //
-    //            m[1].dx             = v[1].dy * v[2].dz - v[1].dz * v[2].dy;
-    //            m[1].dy             = v[1].dz * v[2].dx - v[1].dx * v[2].dz;
-    //            m[1].dz             = v[1].dx * v[2].dy - v[1].dy * v[2].dx;
-    //
-    //            m[2].dx             = v[2].dy * v[0].dz - v[2].dz * v[0].dy;
-    //            m[2].dy             = v[2].dz * v[0].dx - v[2].dx * v[0].dz;
-    //            m[2].dz             = v[2].dx * v[0].dy - v[2].dy * v[0].dx;
-    //
-    //            float r[2];
-    //            r[0]                = m[0].dx * m[1].dx + m[0].dy * m[1].dy + m[0].dz * m[1].dz;
-    //            r[1]                = m[1].dx * m[2].dx + m[1].dy * m[2].dy + m[1].dz * m[2].dz;
-    //
-    //            return (r[0] < 0.0f) ? r[0] : r[1];
-    //        }
 
     float check_point3d_on_triangle_p3p(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p)
     {

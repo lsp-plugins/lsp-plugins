@@ -18,7 +18,6 @@ namespace lsp
         pProgress       = NULL;
         pProgressData   = NULL;
         nSampleRate     = DEFAULT_SAMPLE_RATE;
-        nSphereId       = -1;
     }
 
     RayTrace3D::~RayTrace3D()
@@ -97,17 +96,14 @@ namespace lsp
         clear_progress_callback();
         destroy_tasks();
         remove_scene(recursive);
-        sPrimitives.destroy();
+        sFactory.clear();
 
         vMaterials.flush();
         vSources.flush();
         vCaptures.flush();
-
-        sPrimitives.destroy();
-        nSphereId       = -1;
     }
 
-    status_t RayTrace3D::add_source(const ray3d_t *position, float size, rt_audio_source_t type, float volume)
+    status_t RayTrace3D::add_source(const ray3d_t *position, rt_audio_source_t type, float volume)
     {
         if (position == NULL)
             return STATUS_NO_MEM;
@@ -117,7 +113,6 @@ namespace lsp
             return STATUS_NO_MEM;
 
         src->position       = *position;
-        src->size           = size;
         src->type           = type;
         src->volume         = volume;
 
@@ -145,7 +140,6 @@ namespace lsp
 
         cap->position       = *position;
         cap->material       = m;
-        cap->size           = size;
         cap->type           = type;
         cap->sample         = sample;
         cap->channel        = channel;
@@ -207,7 +201,7 @@ namespace lsp
 
             // TODO: estimate matrix
             matrix3d_t tm; // Transformation matrix
-            dsp::init_matrix3d_identity(&tm);
+            dsp::build_transform_matrix(&tm, &src->position);
 
             for (size_t i=0, n=obj->num_triangles(); i<n; ++i)
             {

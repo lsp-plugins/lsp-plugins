@@ -47,7 +47,6 @@ namespace lsp
             typedef struct source_t
             {
                 ray3d_t             position;
-                float               size;
                 rt_audio_source_t   type;
                 float               volume;
             } source_t;
@@ -56,7 +55,6 @@ namespace lsp
             {
                 ray3d_t             position;
                 Material            material;
-                float               size;
                 rt_audio_capture_t  type;
                 Sample             *sample;
                 size_t              channel;
@@ -150,21 +148,21 @@ namespace lsp
             /**
              * Add audio source
              * @param type audio source type
-             * @param position audio source position and direction
+             * @param position audio source position, direction and size
              * @param volume audio source volume
              * @return status of operation
              */
-            status_t add_source(const ray3d_t *position, float size, rt_audio_source_t type, float volume);
+            status_t add_source(const ray3d_t *position, rt_audio_source_t type, float volume);
 
             /**
              * Add audio capture
              * @param type audio capture type
-             * @param position audio capture position and direction
+             * @param position audio capture position, direction and size
              * @param sample sample object to store captured data
              * @param channel the sample channel to store captured data
              * @return status of operation
              */
-            status_t add_capture(const ray3d_t *position, float size, rt_audio_capture_t type, Sample *sample, size_t channel);
+            status_t add_capture(const ray3d_t *position, rt_audio_capture_t type, Sample *sample, size_t channel);
 
             /** Remove all audio sources
              *

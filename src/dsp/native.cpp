@@ -293,6 +293,8 @@ namespace native
         EXPORT1(init_matrix3d_one);
         EXPORT1(init_matrix3d_identity);
         EXPORT1(init_matrix3d_translate);
+        EXPORT1(init_matrix3d_translate_p1);
+        EXPORT1(init_matrix3d_translate_v1);
         EXPORT1(init_matrix3d_scale);
         EXPORT1(init_matrix3d_rotate_x);
         EXPORT1(init_matrix3d_rotate_y);
