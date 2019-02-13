@@ -39,14 +39,20 @@ namespace lsp
             bool                        sysinfo;
             bool                        is_child;
             size_t                      threads;
+            const char                 *executable;
             const char                 *outfile;
             const char                 *tracepath;
             cvector<char>               list;
             cvector<char>               ignore;
             cvector<char>               args;
 
+#ifdef PLATFORM_WINDOWS
+            size_t                      utf8_argc;
+            char                      **utf8_args;
+#endif /* PLATFORM_WINDOWS */
+
         public:
-            explicit config_t() { clear(); }
+            explicit config_t();
             ~config_t()         { clear(); }
 
             status_t        parse(FILE *out, int argc, const char **argv);
@@ -95,9 +101,15 @@ namespace lsp
 
     status_t config_t::parse(FILE *out, int argc, const char **argv)
     {
+#if defined(PLATFORM_WINDOWS)
+        argc        = utf8_argc;
+        argv        = utf8_argv;
+#endif /* PLATFORM_WINDOWS */
         clear();
         if (argc < 2)
             return print_usage(out);
+
+        executable  = argv[0];
 
         if (!strcmp(argv[1], "ptest"))
             mode    = PTEST;
@@ -196,27 +208,62 @@ namespace lsp
         return 0;
     }
 
-    void config_t::clear()
+    config_t::config_t()
     {
         mode        = UNKNOWN;
         fork        = true;
         verbose     = false;
+        debug       = false;
         list_all    = false;
         mtrace      = false;
         ilist       = false;
         sysinfo     = true;
         is_child    = false;
+        executable  = NULL;
         tracepath   = "/tmp/lsp-plugins-trace";
         outfile     = NULL;
 
 #if defined(PLATFORM_WINDOWS)
+        // Get number of processors for system
         SYSTEM_INFO     sysinfo;
         GetSystemInfo(&sysinfo);
         threads     = sysinfo.dwNumberOfProcessors;
+
+        // Get command line
+        LPWSTR cmdline = GetCommandLineW();
+        int args = 0;
+        LPWSTR *arglist = CommandLineToArgvW(cmdline, &args);
+        if ((arglist == NULL) || (args < 1))
+        {
+            fprintf(stderr, "Error obtaining command-line arguments\n");
+            fflush(stderr);
+            return STATUS_UNKNOWN_ERR;
+        }
+
+        // Convert UTF-16-encoded command line arguments to UTF-8-encoded
+        utf8_argc   = args;
+        utf8_argv   = reinterpret_cast<char **>(malloc(argc * sizeof(char *)));
+        for (size_t i=0; i<utf8_argc; ++i)
+            utf8_argv[i]        = utf16_to_utf8(arglist[i]);
+        LocalFree(arglist);
 #else
         threads     = sysconf(_SC_NPROCESSORS_ONLN) * 2;
 #endif /* PLATFORM_WINDOWS */
+    }
 
+    void config_t::clear()
+    {
+#if defined(PLATFORM_WINDOWS)
+        if (utf8_argv != NULL)
+        {
+            for (size_t i=0; i<utf8_argc; ++i)
+                free(utf8_argv[i]);
+            free(utf8_argv);
+
+            utf8_argv       = NULL;
+            utf8_argc       = 0;
+        }
+#endif /* PLATFORM_WINDOWS */
         list.flush();
         ignore.flush();
         args.flush();

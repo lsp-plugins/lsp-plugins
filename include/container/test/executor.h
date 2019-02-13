@@ -392,28 +392,139 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t cmdline_append_char(char **buffer, size_t *length, size_t *capacity, char ch)
+    {
+        char *dst           = *buffer;
+        dst[(*length)++]    = ch; // We have at least 1 character at the tail ('\0')
+
+        if (*length < *capacity)
+            return STATUS_OK;
+
+        *capacity <<= 1;
+        dst         = realloc(dst, *capacity + 1); // Do not count the last '\0' character as capacity
+        if (dst == NULL)
+            return STATUS_NO_MEM;
+        *buffer     = dst;
+
+        return STATUS_OK;
+    }
+
+    status_t cmdline_append_escaped(char **buffer, size_t *length, size_t *capacity, const char *text)
+    {
+        char ch;
+        status_t res    = STATUS_OK;
+
+        // Append space
+        res = cmdline_append_char(buffer, length, capacity, ' ');
+        if (res != STATUS_OK)
+            return res;
+
+        // Check argument length
+        if (*text == '\0')
+        {
+            // Empty argument
+            res = cmdline_append_char(buffer, length, capacity, '\"');
+            if (res == STATUS_OK)
+                res = cmdline_append_char(buffer, length, capacity, '\"');
+        }
+        else
+        {
+            // Non-empty argument, process it:
+            //   ' ' -> '\"', ' ', '\"'
+            //   '"' -> '\\', '\"'
+            while ((ch = *(text++)) != '\0')
+            {
+                switch (ch)
+                {
+                    case ' ':
+                        res = cmdline_append_char(buffer, length, capacity, '\"');
+                        if (res == STATUS_OK)
+                            res = cmdline_append_char(buffer, length, capacity, ' ');
+                        if (res == STATUS_OK)
+                            res = cmdline_append_char(buffer, length, capacity, '\"');
+                        break;
+                    case '"':
+                        res = cmdline_append_char(buffer, length, capacity, '\\');
+                        if (res == STATUS_OK)
+                            res = cmdline_append_char(buffer, length, capacity, '\"');
+                        break;
+                    default:
+                        res = cmdline_append_char(buffer, length, capacity, ch);
+                        break;
+                }
+
+                if (res != STATUS_OK)
+                    break;
+            }
+        }
+
+        // Store end-of-string character
+        (*buffer)[*length]  = '\0';
+
+        return res;
+    }
+
     status_t TestExecutor::submit_task(task_t *task)
     {
         // Obtain command line arguments
-        WCHAR cmd[PATH_MAX];
+        char *cmdbuf = strdup(pCfg->executable);
+        if (cmdbuf == NULL)
+            return STATUS_NO_MEM;
+        size_t len=strlen(cmdbuf);
+        size_t cap=len;
 
-        LPWSTR cmdline = GetCommandLineW();
-        int args = 0;
-        LPWSTR *arglist = CommandLineToArgvW(cmdline, &args);
-        if ((arglist == NULL) || (args < 1))
+        // Append parameters
+        res     = cmdline_append_escaped(&cmdbuf, &len, &cap,
+                (pCfg->mode == UTEST) ? "utest" :
+                (pCfg->mode == pTEST) ? "ptest" :
+                "mtest"
+            );
+        if (res == STATUS_OK)
+            res     = cmdline_append_escaped(&cmdbuf, &len, &cap, "--run-as-nested-process");
+        if (res == STATUS_OK)
+            res     = cmdline_append_escaped(&cmdbuf, &len, &cap, "--nosysinfo");
+        if (res == STATUS_OK)
+            res     = cmdline_append_escaped(&cmdbuf, &len, &cap, "--nofork");
+        if ((res == STATUS_OK) && (pCfg->debug))
+            res     = cmdline_append_escaped(&cmdbuf, &len, &cap, "--debug");
+        if (res == STATUS_OK)
+            res     = cmdline_append_escaped(&cmdbuf, &len, &cap, (pCfg->verbose) ? "--verbose" : "--silent");
+        if ((res == STATUS_OK) && (outfile != NULL))
         {
-            fprintf(stderr, "Error obtaining command-line arguments\n");
-            fflush(stderr);
-            return STATUS_UNKNOWN_ERR;
+            res     = cmdline_append_escaped(&cmdbuf, &len, &cap, "--outfile");
+            if (res == STATUS_OK)
+                res     = cmdline_append_escaped(&cmdbuf, &len, &cap, pCfg->outfile);
+        }
+        if (res == STATUS_OK)
+            res     = cmdline_append_escaped(&cmdbuf, &len, &cap, task->test->full_name());
+        if ((res == STATUS_OK) && (pCfg->args.size() > 0))
+        {
+            res     = cmdline_append_escaped(&cmdbuf, &len, &cap, "--args");
+            if (res == STATUS_OK)
+            {
+                for (size_t i=0, n=args.size(); i<n; ++i)
+                    if ((res = cmdline_append_escaped(&cmdbuf, &len, &cap, args.get(i))) != STATUS_OK)
+                        break;
+            }
         }
 
-        lstrcpyW(cmd, arglist[0]);
-        lstrcatW(cmd, L" --run-as-nested-process");
-        lstrcatW(cmd, L" --nofork");
-        lstrcatW(cmd, L" --nosysinfo");
-        if (pCfg->debug)
-            lstrcatW(cmd, L" --debug");
-        lstrcatW(cmd, (pCfg->verbose) ? L" --verbose" : L" --silent");
+        if (res != STATUS_OK)
+        {
+            free(cmdbuf);
+            return res;
+        }
+
+        // Allocate arguments and executable strings
+        WCHAR *cmd      = utf8_to_utf16(cmdbuf);
+        free(cmdbuf);
+        if (cmd == NULL)
+            return STATUS_NO_MEM;
+        WCHAR *exename  = utf8_to_utf16(pCfg->executable);
+        if (exename == NULL)
+        {
+            free(cmd);
+            return STATUS_NO_MEM;
+        }
 
         // Launch child process
         STARTUPINFOW si;
@@ -425,7 +536,7 @@ namespace lsp
 
         // Start the child process.
         if( !CreateProcessW(
-            arglist[0],     // No module name (use command line)
+            executable,     // No module name (use command line)
             cmd,            // Command line
             NULL,           // Process handle not inheritable
             NULL,           // Thread handle not inheritable
@@ -437,13 +548,15 @@ namespace lsp
             &pi             // Pointer to PROCESS_INFORMATION structure
         ))
         {
-            LocalFree(arglist);
+            free(cmd);
+            free(executable);
             fprintf(stderr, "Failed to create child process (%d)\n", int(GetLastError()));
             fflush(stderr);
             return STATUS_UNKNOWN_ERR;
         }
 
-        LocalFree(arglist);
+        free(cmd);
+        free(executable);
 
         task->pid       = pi;
         return STATUS_OK;
