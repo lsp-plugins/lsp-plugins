@@ -345,6 +345,8 @@ int main(int argc, const char **argv)
     }
 
     dsp::finish(&ctx);
+    fflush(stdout);
+    fflush(stderr);
 
     return res;
 }

@@ -11,6 +11,7 @@
 #include <container/test/types.h>
 #include <container/test/config.h>
 #include <data/cstorage.h>
+#include <core/io/charset.h>
 #include <errno.h>
 
 namespace lsp
@@ -107,6 +108,10 @@ namespace lsp
 
     status_t TestExecutor::init(config_t *config, stats_t *stats)
     {
+#if defined(PLATFORM_WINDOWS)
+        SetErrorMode(SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS);
+#endif /* PLATFORM_WINDOWS */
+
         if (config->fork)
         {
             size_t threads  = (config->threads > 0) ? config->threads : 1;
@@ -401,7 +406,7 @@ namespace lsp
             return STATUS_OK;
 
         *capacity <<= 1;
-        dst         = realloc(dst, *capacity + 1); // Do not count the last '\0' character as capacity
+        dst         = reinterpret_cast<char *>(realloc(dst, *capacity + 1)); // Do not count the last '\0' character as capacity
         if (dst == NULL)
             return STATUS_NO_MEM;
         *buffer     = dst;
@@ -466,6 +471,8 @@ namespace lsp
 
     status_t TestExecutor::submit_task(task_t *task)
     {
+        status_t res;
+
         // Obtain command line arguments
         char *cmdbuf = strdup(pCfg->executable);
         if (cmdbuf == NULL)
@@ -476,7 +483,7 @@ namespace lsp
         // Append parameters
         res     = cmdline_append_escaped(&cmdbuf, &len, &cap,
                 (pCfg->mode == UTEST) ? "utest" :
-                (pCfg->mode == pTEST) ? "ptest" :
+                (pCfg->mode == PTEST) ? "ptest" :
                 "mtest"
             );
         if (res == STATUS_OK)
@@ -489,7 +496,7 @@ namespace lsp
             res     = cmdline_append_escaped(&cmdbuf, &len, &cap, "--debug");
         if (res == STATUS_OK)
             res     = cmdline_append_escaped(&cmdbuf, &len, &cap, (pCfg->verbose) ? "--verbose" : "--silent");
-        if ((res == STATUS_OK) && (outfile != NULL))
+        if ((res == STATUS_OK) && (pCfg->outfile != NULL))
         {
             res     = cmdline_append_escaped(&cmdbuf, &len, &cap, "--outfile");
             if (res == STATUS_OK)
@@ -502,8 +509,8 @@ namespace lsp
             res     = cmdline_append_escaped(&cmdbuf, &len, &cap, "--args");
             if (res == STATUS_OK)
             {
-                for (size_t i=0, n=args.size(); i<n; ++i)
-                    if ((res = cmdline_append_escaped(&cmdbuf, &len, &cap, args.get(i))) != STATUS_OK)
+                for (size_t i=0, n=pCfg->args.size(); i<n; ++i)
+                    if ((res = cmdline_append_escaped(&cmdbuf, &len, &cap, pCfg->args.get(i))) != STATUS_OK)
                         break;
             }
         }
@@ -515,12 +522,12 @@ namespace lsp
         }
 
         // Allocate arguments and executable strings
-        WCHAR *cmd      = utf8_to_utf16(cmdbuf);
+        WCHAR *cmd          = lsp::utf8_to_utf16(cmdbuf);
         free(cmdbuf);
         if (cmd == NULL)
             return STATUS_NO_MEM;
-        WCHAR *exename  = utf8_to_utf16(pCfg->executable);
-        if (exename == NULL)
+        WCHAR *executable   = lsp::utf8_to_utf16(pCfg->executable);
+        if (executable == NULL)
         {
             free(cmd);
             return STATUS_NO_MEM;

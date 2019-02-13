@@ -10,6 +10,7 @@
 
 #include <core/types.h>
 #include <core/stdlib/stdio.h>
+#include <core/io/charset.h>
 #include <container/test/types.h>
 #include <data/cvector.h>
 #include <unistd.h>
@@ -48,7 +49,7 @@ namespace lsp
 
 #ifdef PLATFORM_WINDOWS
             size_t                      utf8_argc;
-            char                      **utf8_args;
+            char                      **utf8_argv;
 #endif /* PLATFORM_WINDOWS */
 
         public:
@@ -101,11 +102,46 @@ namespace lsp
 
     status_t config_t::parse(FILE *out, int argc, const char **argv)
     {
-#if defined(PLATFORM_WINDOWS)
-        argc        = utf8_argc;
-        argv        = utf8_argv;
-#endif /* PLATFORM_WINDOWS */
         clear();
+
+#if defined(PLATFORM_WINDOWS)
+        // Get number of processors for system
+        SYSTEM_INFO     os_sysinfo;
+        GetSystemInfo(&os_sysinfo);
+        threads     = os_sysinfo.dwNumberOfProcessors;
+
+        // Get command line
+        LPWSTR cmdline = GetCommandLineW();
+        int nargs = 0;
+        LPWSTR *arglist = CommandLineToArgvW(cmdline, &nargs);
+        if ((arglist == NULL) || (nargs < 1))
+        {
+            fprintf(stderr, "Error obtaining command-line arguments\n");
+            fflush(stderr);
+            return STATUS_UNKNOWN_ERR;
+        }
+
+        // Convert UTF-16-encoded command line arguments to UTF-8-encoded
+        utf8_argc   = nargs;
+        utf8_argv   = reinterpret_cast<char **>(malloc(nargs * sizeof(char *)));
+        for (size_t i=0; i<utf8_argc; ++i)
+            utf8_argv[i]        = NULL;
+        for (size_t i=0; i<utf8_argc; ++i)
+        {
+            utf8_argv[i]        = lsp::utf16_to_utf8(arglist[i]);
+            if (utf8_argv[i] == NULL)
+                return STATUS_NO_MEM;
+        }
+
+        LocalFree(arglist);
+
+        // Patch arguments
+        argc        = utf8_argc;
+        argv        = const_cast<const char **>(utf8_argv);
+#else
+        threads     = sysconf(_SC_NPROCESSORS_ONLN) * 2;
+#endif /* PLATFORM_WINDOWS */
+
         if (argc < 2)
             return print_usage(out);
 
@@ -222,33 +258,12 @@ namespace lsp
         executable  = NULL;
         tracepath   = "/tmp/lsp-plugins-trace";
         outfile     = NULL;
+        threads     = 1;
 
 #if defined(PLATFORM_WINDOWS)
-        // Get number of processors for system
-        SYSTEM_INFO     sysinfo;
-        GetSystemInfo(&sysinfo);
-        threads     = sysinfo.dwNumberOfProcessors;
-
-        // Get command line
-        LPWSTR cmdline = GetCommandLineW();
-        int args = 0;
-        LPWSTR *arglist = CommandLineToArgvW(cmdline, &args);
-        if ((arglist == NULL) || (args < 1))
-        {
-            fprintf(stderr, "Error obtaining command-line arguments\n");
-            fflush(stderr);
-            return STATUS_UNKNOWN_ERR;
-        }
-
-        // Convert UTF-16-encoded command line arguments to UTF-8-encoded
-        utf8_argc   = args;
-        utf8_argv   = reinterpret_cast<char **>(malloc(argc * sizeof(char *)));
-        for (size_t i=0; i<utf8_argc; ++i)
-            utf8_argv[i]        = utf16_to_utf8(arglist[i]);
-        LocalFree(arglist);
-#else
-        threads     = sysconf(_SC_NPROCESSORS_ONLN) * 2;
-#endif /* PLATFORM_WINDOWS */
+        utf8_argc   = 0;
+        utf8_argv   = NULL;
+#endif
     }
 
     void config_t::clear()
@@ -257,7 +272,10 @@ namespace lsp
         if (utf8_argv != NULL)
         {
             for (size_t i=0; i<utf8_argc; ++i)
-                free(utf8_argv[i]);
+            {
+                if (utf8_argv[i] != NULL)
+                    free(utf8_argv[i]);
+            }
             free(utf8_argv);
 
             utf8_argv       = NULL;

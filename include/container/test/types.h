@@ -18,6 +18,7 @@
 #ifdef PLATFORM_WINDOWS
     #include <processthreadsapi.h>
     #include <sysinfoapi.h>
+    #include <errhandlingapi.h>
 #endif
 
 #ifdef PLATFORM_UNIX_COMPATIBLE
@@ -68,7 +69,7 @@ namespace lsp
     {
         uint64_t ibegin = (uint64_t(begin->dwHighDateTime) << 32) | begin->dwLowDateTime;
         uint64_t iend   = (uint64_t(end->dwHighDateTime) << 32) | end->dwLowDateTime;
-        return (iend - ibegin) * 1e-9;
+        return (iend - ibegin) * 1e-7;
     }
 #else
     inline void get_test_time(test_clock_t *clock)

@@ -1563,7 +1563,7 @@ namespace lsp
         if (pTemp != NULL)
             pTemp->nOffset      = 0;
 
-        if (!append_temp(reinterpret_cast<char *>(&pData[first]), last - first))
+        if (!append_temp(reinterpret_cast<char *>(&pData[first]), (last - first)*sizeof(uint16_t)))
             return NULL;
         if (!append_temp(reinterpret_cast<char *>(&UTF16_NULL), sizeof(UTF16_NULL)))
             return NULL;

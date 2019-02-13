@@ -429,11 +429,13 @@ namespace lsp
         {
             if (is_relative())
                 return STATUS_BAD_STATE;
+            else if (is_root())
+                return STATUS_OK;
 #if defined(PLATFORM_WINDOWS)
             ssize_t idx = sPath.index_of(FILE_SEPARATOR_C);
             if (idx < 0)
                 return STATUS_BAD_STATE;
-            sPath.set_length(idx);
+            sPath.set_length(idx+1);
             return STATUS_OK;
 #else
             return (sPath.set(FILE_SEPARATOR_C)) ? STATUS_OK : STATUS_NO_MEM;
@@ -582,12 +584,6 @@ namespace lsp
 
         status_t Path::canonicalize()
         {
-#if defined(PLATFORM_WINDOWS)
-            WCHAR path[PATH_MAX];
-            if (!PathCanonicalizeW(path, reinterpret_cast<LPCWSTR>(sPath.get_utf16())))
-                return STATUS_BAD_STATE;
-            return (sPath.set_utf16(reinterpret_cast<uint16_t *>(path))) ? STATUS_OK : STATUS_NO_MEM;
-#else
             enum state_t
             {
                 S_SEEK,
@@ -602,9 +598,10 @@ namespace lsp
             lsp_wchar_t *e          = &s[len];
             state_t state           = S_SEEK;
 
-            if ((s < e) && (*s == FILE_SEPARATOR_C))
+            if (is_absolute())
             {
-                ++s;
+                while (*(s++) != FILE_SEPARATOR_C)
+                    /* loop */ ;
                 state               = S_SEPARATOR;
             }
 
@@ -680,7 +677,6 @@ namespace lsp
             sPath.set_length(w - const_cast<lsp_wchar_t *>(sPath.characters()));
 
             return STATUS_OK;
-#endif
         }
 
         status_t Path::get_canonical(char *path, size_t maxlen) const
