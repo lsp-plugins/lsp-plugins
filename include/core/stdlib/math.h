@@ -1,12 +1,12 @@
 /*
  * math.h
  *
- *  Created on: 18 дек. 2018 г.
+ *  Created on: 18 пїЅпїЅпїЅ. 2018 пїЅ.
  *      Author: sadko
  */
 
-#ifndef INCLUDE_CORE_MATH_H_
-#define INCLUDE_CORE_MATH_H_
+#ifndef INCLUDE_CORE_STDLIB_MATH_H_
+#define INCLUDE_CORE_STDLIB_MATH_H_
 
 #include <math.h>
 
@@ -62,4 +62,4 @@
     #define M_SQRT1_2	0.70710678118654752440	/* 1/sqrt(2) */
 #endif
 
-#endif /* INCLUDE_CORE_MATH_H_ */
+#endif /* INCLUDE_CORE_STDLIB_MATH_H_ */

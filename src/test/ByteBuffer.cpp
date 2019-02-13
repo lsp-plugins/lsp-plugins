@@ -93,7 +93,11 @@ namespace test
 
     void ByteBuffer::fill_zero()
     {
+#if defined(PLATFORM_WINDOWS)
+        memset(pBuffer, 0, nLength);
+#else
         bzero(pBuffer, nLength);
+#endif
     }
 
     bool ByteBuffer::validate() const

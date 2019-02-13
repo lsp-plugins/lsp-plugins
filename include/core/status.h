@@ -45,7 +45,10 @@ namespace lsp
         STATUS_OPENED,
         STATUS_BAD_TYPE,
         STATUS_CORRUPTED,
-
+        STATUS_INSUFFICIENT,
+        STATUS_KILLED,
+        STATUS_TIMED_OUT,
+        STATUS_FAILED,
         STATUS_BREAKPOINT, // This is special status for step-by-step tracing algorithms
 
         STATUS_TOTAL,

@@ -8,7 +8,7 @@
 #ifndef CORE_UNITS_H_
 #define CORE_UNITS_H_
 
-#include <core/math.h>
+#include <core/stdlib/math.h>
 
 // Some physical constants
 #define MAX_SAMPLE_RATE                     192000              /* Maximum supported sample rate [samples / s]      */

@@ -9,8 +9,26 @@
 #include <core/io/charset.h>
 #include <errno.h>
 
-#define CBUF_SIZE        0x1000
-#define BBUF_SIZE        0x4000
+#if 1
+    #if defined(PLATFORM_WINDOWS)
+        // Character buffer should have enough space to decode characters
+        #define CBUF_SIZE        0x4000
+        #define BBUF_SIZE        0x1000
+    #else
+        // We economy of I/O operations
+        #define CBUF_SIZE        0x1000
+        #define BBUF_SIZE        0x4000
+    #endif /* PLATFORM_WINDOWS */
+#else
+    // Values for tests
+    #if defined(PLATFORM_WINDOWS)
+        #define BBUF_SIZE       16
+        #define CBUF_SIZE       (BBUF_SIZE * 4)
+    #else
+        #define CBUF_SIZE       32
+        #define BBUF_SIZE       (CBUF_SIZE * 4)
+    #endif
+#endif
 
 namespace lsp
 {
@@ -27,7 +45,11 @@ namespace lsp
             pIS         = NULL;
             nError      = STATUS_OK;
             bClose      = false;
-            hIconv      = iconv_t(-1);
+            #if defined(PLATFORM_WINDOWS)
+                nCodePage   = UINT(-1);
+            #else
+                hIconv      = iconv_t(-1);
+            #endif /* PLATFORM_WINDOWS */
         }
 
         InputStreamReader::~InputStreamReader()
@@ -44,11 +66,15 @@ namespace lsp
             }
             if (bBuf != NULL)
                 free(bBuf);
-            if (hIconv != iconv_t(-1))
-            {
-                iconv_close(hIconv);
-                hIconv      = iconv_t(-1);
-            }
+            #if defined(PLATFORM_WINDOWS)
+                nCodePage   = UINT(-1);
+            #else
+                if (hIconv != iconv_t(-1))
+                {
+                    iconv_close(hIconv);
+                    hIconv      = iconv_t(-1);
+                }
+            #endif /* PLATFORM_WINDOWS */
             bBuf        = NULL;
             cBuf        = NULL;
             bClose      = false;
@@ -85,12 +111,22 @@ namespace lsp
                 return res;
             }
 
-            hIconv      = init_iconv_to_wchar_t(charset);
-            if (hIconv == iconv_t(-1))
-            {
-                do_destroy();
-                return STATUS_BAD_LOCALE;
-            }
+            #if defined(PLATFORM_WINDOWS)
+                ssize_t cp  = codepage_from_name(charset);
+                if (cp < 0)
+                {
+                    do_destroy();
+                    return STATUS_BAD_LOCALE;
+                }
+                nCodePage   = cp;
+            #else
+                hIconv      = init_iconv_from_wchar_t(charset);
+                if (hIconv == iconv_t(-1))
+                {
+                    do_destroy();
+                    return STATUS_BAD_LOCALE;
+                }
+            #endif
 
             pIS         = is;
             bClose      = close;
@@ -109,6 +145,70 @@ namespace lsp
             return initialize(is, charset, true);
         }
 
+#if defined(PLATFORM_WINDOWS)
+        status_t InputStreamReader::fill_char_buf()
+        {
+            // Move memory buffers
+            if (bBufPos > 0)
+            {
+                bBufSize   -= bBufPos;
+                if (bBufSize > 0)
+                    ::memmove(bBuf, &bBuf[bBufPos], bBufSize);
+                bBufPos     = 0;
+            }
+            if (cBufPos > 0)
+            {
+                cBufSize   -= cBufPos;
+                if (cBufSize > 0)
+                    ::memmove(cBuf, &cBuf[cBufPos], cBufSize * sizeof(lsp_wchar_t));
+                cBufPos     = 0;
+            }
+
+            // Try to read new portion of data into buffer
+            ssize_t nbytes  = pIS->read(&bBuf[bBufSize], BBUF_SIZE - bBufSize);
+            if ((nbytes <= 0) && (bBufPos >= bBufSize) && (cBufPos >= cBufSize))
+                return nError = - nbytes;
+            else if (nbytes > 0)
+                bBufSize       += nbytes;
+
+            // Do the conversion
+            CHAR *inbuf     = reinterpret_cast<CHAR *>(&bBuf[bBufPos]);
+            WCHAR *outbuf   = reinterpret_cast<WCHAR *>(&cBuf[cBufSize]);
+
+            ssize_t nchars  = MultiByteToWideChar(nCodePage, 0, inbuf, bBufSize-bBufPos, outbuf, CBUF_SIZE - cBufSize);
+            if (nchars == 0)
+            {
+                switch (GetLastError())
+                {
+                    case ERROR_INSUFFICIENT_BUFFER:
+                        return nError = STATUS_NO_MEM;
+                    case ERROR_INVALID_FLAGS:
+                    case ERROR_INVALID_PARAMETER:
+                        return nError = STATUS_BAD_STATE;
+                    case ERROR_NO_UNICODE_TRANSLATION:
+                        return nError = STATUS_BAD_LOCALE;
+                    default:
+                        return nError = STATUS_UNKNOWN_ERR;
+                }
+            }
+
+            // If function meets invalid sequence, it replaces the code point with such magic value
+            // We should know if function has failed
+            if (outbuf[nchars-1] == 0xfffd)
+                --nchars;
+
+            // Estimate number of bytes decoded (yep, this is dumb but no way...)
+            nbytes = WideCharToMultiByte(nCodePage, 0, outbuf, nchars, NULL, 0, 0, 0);
+            if ((nbytes <= 0) || (nbytes > ssize_t(bBufSize - bBufPos)))
+                return nError = STATUS_IO_ERROR;
+
+            // Update state of buffers
+            cBufSize       += nchars;
+            bBufPos        += nbytes;
+
+            return nError = STATUS_OK;
+        }
+#else
         status_t InputStreamReader::fill_char_buf()
         {
             // If there is data at the tail of buffer, move it to beginning
@@ -140,10 +240,11 @@ namespace lsp
 
                     // Try to additionally read data
                     ssize_t res = pIS->read(&bBuf[bBufSize], BBUF_SIZE - bBufSize);
-                    if (res < 0)
+                    if ((res < 0) && (left <= 0))
                         return nError = - res;
+                    else if (res > 0)
+                        bBufSize   += res;
 
-                    bBufSize   += res;
                     left        = bBufSize - bBufPos;
                 }
 
@@ -155,11 +256,12 @@ namespace lsp
                 // Do the conversion
                 size_t xb_left  = left;
                 size_t xc_left  = c_left;
+
                 char *inbuf     = reinterpret_cast<char *>(&bBuf[bBufPos]);
                 char *outbuf    = reinterpret_cast<char *>(&cBuf[cBufSize]);
-                size_t nconv    = iconv(hIconv, &inbuf, &xb_left, &outbuf, &xc_left);
+                size_t nchars    = iconv(hIconv, &inbuf, &xb_left, &outbuf, &xc_left);
 
-                if (nconv == size_t(-1))
+                if (nchars == size_t(-1))
                 {
                     int code = errno;
                     switch (code)
@@ -179,6 +281,7 @@ namespace lsp
 
             return nError = STATUS_OK;
         }
+#endif /* PLATFORM_WINDOWS */
 
         ssize_t InputStreamReader::read(lsp_wchar_t *dst, size_t count)
         {
@@ -202,7 +305,7 @@ namespace lsp
                     // Try to fill character buffer
                     status_t res = fill_char_buf();
                     if (res != STATUS_OK)
-                        return res;
+                        return (n_read > 0) ? n_read : -res;
 
                     // Ensure that there is data in character buffer
                     n_copy = cBufSize - cBufPos;
@@ -242,7 +345,7 @@ namespace lsp
                 // Try to fill character buffer
                 status_t res = fill_char_buf();
                 if (res != STATUS_OK)
-                    return res;
+                    return -res;
 
                 // Ensure that there is data in character buffer
                 if (cBufPos >= cBufSize)

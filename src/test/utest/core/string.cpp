@@ -5,7 +5,6 @@
  *      Author: sadko
  */
 
-#include <dsp/dsp.h>
 #include <core/LSPString.h>
 #include <test/utest.h>
 

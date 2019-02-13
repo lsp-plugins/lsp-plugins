@@ -29,10 +29,11 @@ namespace lsp
                 {
                     F_ISDIR     = 1 << 0,
                     F_ISLINK    = 1 << 1,
-                    F_ISOTHER   = 1 << 2,
-                    F_ISINVALID = 1 << 3,
-                    F_DOTDOT    = 1 << 4,
-                    F_ISHIDDEN  = 1 << 5
+                    F_ISREG     = 1 << 2,
+                    F_ISOTHER   = 1 << 3,
+                    F_ISINVALID = 1 << 4,
+                    F_DOTDOT    = 1 << 5,
+                    F_ISHIDDEN  = 1 << 6
                 };
 
                 typedef struct file_entry_t
@@ -99,6 +100,7 @@ namespace lsp
                 static status_t     slot_list_change(LSPWidget *sender, void *ptr, void *data);
                 static status_t     slot_on_go(LSPWidget *sender, void *ptr, void *data);
                 static status_t     slot_on_up(LSPWidget *sender, void *ptr, void *data);
+                static status_t     slot_on_path_key_up(LSPWidget *sender, void *ptr, void *data);
 
                 virtual status_t    on_dlg_action(void *data);
                 virtual status_t    on_dlg_confirm(void *data);
@@ -108,6 +110,7 @@ namespace lsp
                 virtual status_t    on_dlg_list_change(void *data);
                 virtual status_t    on_dlg_go(void *data);
                 virtual status_t    on_dlg_up(void *data);
+                virtual status_t    on_path_key_up(ws_event_t *e);
 
                 void                do_destroy();
                 status_t            refresh_current_path();
