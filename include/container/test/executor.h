@@ -157,7 +157,17 @@ namespace lsp
 
         // Do we need to fork() ?
         if ((!pCfg->fork) || (vTasks == NULL) || (nTasksMax <= 0))
-            return launch_test(test);
+        {
+            status_t res = launch_test(test);
+            if (pStats != NULL)
+            {
+                if (res == STATUS_OK)
+                    pStats->success.add(test);
+                else
+                    pStats->failed.add(test);
+            }
+            return res;
+        }
 
         // Wait for empty task descriptor
         while (nTasksActive >= nTasksMax)

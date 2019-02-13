@@ -573,28 +573,26 @@ namespace lsp
             return cp;
 
         sc = cp & 0xdc00;
-        if (sc == 0xdc00) // cp = Surrogate high
+        if (sc == 0xd800) // cp = Surrogate high
         {
             sc = *s;
-            if ((sc & 0xdc00) != 0xd800)
+            if ((sc & 0xdc00) == 0xdc00)
             {
-                *str = s;
-                return cp; // Mismatched surrogate
+                ++s;
+                cp  = 0x10000 | ((cp & 0x3ff) << 10) | (sc & 0x3ff);
             }
-            cp  = ((cp & 0x3ff) << 10) | (sc & 0x3ff);
         }
-        else if (sc == 0xd800) // Surrogate low?
+        else if (sc == 0xdc00) // Surrogate low?
         {
             sc = *s;
-            if ((sc & 0xdc00) != 0xdc00)
+            if ((sc & 0xdc00) == 0xd800)
             {
-                *str = s;
-                return cp; // Mismatched surrogate
+                ++s;
+                cp  = 0x10000 | ((sc & 0x3ff) << 10) | (cp & 0x3ff);
             }
-            cp  = ((sc & 0x3ff) << 10) | (cp & 0x3ff);
         }
 
-        *str = s + 1;
+        *str = s;
         return cp;
     }
 
@@ -604,10 +602,15 @@ namespace lsp
         const char *s = *str;
 
         // Decode primary byte
-        cp = uint8_t(*(s++));
+        cp = uint8_t(*s);
         if (cp <= 0x7f)
+        {
+            *str    = (cp == 0) ? s : s+1;
             return cp;
-        else if ((cp & 0xe0) == 0xc0) // 2 bytes: 110xxxxx 10xxxxxx
+        }
+
+        ++s;
+        if ((cp & 0xe0) == 0xc0) // 2 bytes: 110xxxxx 10xxxxxx
         {
             cp     &= 0x1f;
             bytes   = (cp >= 0x02) ? 1 : 0;
@@ -681,13 +684,13 @@ namespace lsp
         }
 
         // Allocate memory
-        char *utf8  = reinterpret_cast<char *>(malloc(++bytes));
+        char *utf8  = reinterpret_cast<char *>(malloc(bytes + 1));
         if (utf8 == NULL)
             return NULL;
 
         // Now perform encoding
         char *dst   = utf8;
-        p = str;
+        p   = str;
         while (true)
         {
             uint32_t cp = get_codepoint(&p);
@@ -702,7 +705,7 @@ namespace lsp
                     dst[1]      = ((cp >> 12) & 0x3f) | 0x80;
                     dst[2]      = ((cp >> 6) & 0x3f) | 0x80;
                     dst[3]      = (cp & 0x3f) | 0x80;
-                    dst        += 3;
+                    dst        += 4;
                 }
                 else // 3 bytes
                 {
@@ -732,24 +735,24 @@ namespace lsp
     lsp_utf16_char_t *utf8_to_utf16(const char *str)
     {
         // Estimate number of bytes
-        size_t bytes = 0;
+        size_t bytes    = 0;
         const char *p = str;
         while (true)
         {
-            uint32_t cp = get_codepoint(&p);
+            uint32_t cp     = get_codepoint(&p);
             if (cp == 0)
                 break;
-            bytes      += utf16_bytes(cp);
+            bytes          += utf16_bytes(cp);
         }
 
         // Allocate memory
-        lsp_utf16_char_t *utf16  = reinterpret_cast<lsp_utf16_char_t *>(malloc((bytes+2) * sizeof(lsp_utf16_char_t)));
+        lsp_utf16_char_t *utf16  = reinterpret_cast<lsp_utf16_char_t *>(malloc(bytes + 2));
         if (utf16 == NULL)
             return NULL;
 
         // Perform encoding
         lsp_utf16_char_t *dst = utf16;
-
+        p   = str;
         while (true)
         {
             uint32_t cp = get_codepoint(&p);
@@ -761,6 +764,7 @@ namespace lsp
             }
             else
             {
+                cp     -= 0x10000;
                 dst[0]  = 0xd800 | (cp >> 10);
                 dst[1]  = 0xdc00 | (cp & 0x3ff);
                 dst += 2;
