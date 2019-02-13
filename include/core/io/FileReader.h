@@ -9,6 +9,7 @@
 #define CORE_IO_FILEREADER_H_
 
 #include <stdio.h>
+#include <core/io/charset.h>
 #include <core/io/Reader.h>
 #include <core/types.h>
 
@@ -28,8 +29,12 @@ namespace lsp
                 FILE           *pFD;
                 bool            bClose;
                 status_t        nError;
-                iconv_t         hIconv;
                 LSPString       sLine;
+#if defined(PLATFORM_WINDOWS)
+                UINT            nCodePage;
+#else
+                iconv_t         hIconv;
+#endif /* PLATFORM_WINDOWS */
     
             protected:
                 void            do_destroy();

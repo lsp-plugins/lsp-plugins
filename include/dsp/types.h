@@ -132,27 +132,34 @@
 // Detect build platform
 #if defined(__unix__) || defined(unix) || defined(__unix)
     #define PLATFORM_UNIX
+    #define IF_PLATFORM_UNIX(...)       __VA_ARGS__
 #endif /* __unix__ */
 
 #if defined(__linux__) || defined(__linux) || defined(linux)
     #define PLATFORM_LINUX
+    #define IF_PLATFORM_LINUX(...)      __VA_ARGS__
 #endif /* __linux__ */
 
 #if defined(__bsd__) || defined(__bsd) || defined(__FreeBSD__) || defined(freebsd) || defined(openbsd) || defined(bsdi) || defined(__darwin__)
     #define PLATFORM_BSD
+    #define IF_PLATFORM_BSD(...)        __VA_ARGS__
 #endif /* __bsd__ */
 
 #if defined(__macosx__) || defined(__APPLE__) || defined(__MACH__)
     #define PLATFORM_MACOSX
+    #define IF_PLATFORM_MACOSX(...)     __VA_ARGS__
 #endif /* __macosx__ */
 
 #if defined(PLATFORM_UNIX) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOSX) || defined(PLATFORM_BSD)
     #define PLATFORM_UNIX_COMPATIBLE
     #define PLATFORM_POSIX
+
+    #define IF_PLATFORM_POSIX(...)      __VA_ARGS__
 #endif /* unix-compatible platforms */
 
 #if defined(__WINDOWS__) || defined(__WIN32__) || defined(__WIN64__) || defined(_WIN64) || defined(_WIN32) || defined(__WINNT) || defined(__WINNT__)
     #define PLATFORM_WINDOWS
+    #define IF_PLATFORM_WINDOWS(...)    __VA_ARGS__
 #endif /* __macosx__ */
 
 // File separators for platform tuning
@@ -326,6 +333,32 @@
 #ifndef IF_ARCH_ARM8
     #define IF_ARCH_ARM8(...)
 #endif /* IF_ARCH_ARM8 */
+
+//-----------------------------------------------------------------------------
+// Default platform
+#ifndef IF_PLATFORM_UNIX
+    #define IF_PLATFORM_UNIX(...)
+#endif /* IF_PLATFORM_UNIX */
+
+#ifndef IF_PLATFORM_LINUX
+    #define IF_PLATFORM_LINUX(...)
+#endif /* IF_PLATFORM_LINUX */
+
+#ifndef IF_PLATFORM_BSD
+    #define IF_PLATFORM_BSD(...)
+#endif /* IF_PLATFORM_BSD */
+
+#ifndef IF_PLATFORM_MACOSX
+    #define IF_PLATFORM_MACOSX(...)
+#endif /* IF_PLATFORM_MACOSX */
+
+#ifndef IF_PLATFORM_POSIX
+    #define IF_PLATFORM_POSIX(...)
+#endif /* IF_PLATFORM_POSIX */
+
+#ifndef IF_PLATFORM_WINDOWS
+    #define IF_PLATFORM_WINDOWS(...)
+#endif /* IF_PLATFORM_WINDOWS */
 
 //-----------------------------------------------------------------------------
 // Optimizations

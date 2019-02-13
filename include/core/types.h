@@ -8,13 +8,19 @@
 #ifndef CORE_TYPES_H_
 #define CORE_TYPES_H_
 
+#include <dsp/types.h>
+
 // For IDEs: define this symbol in IDE to properly compile and debug
 #ifdef LSP_IDE_DEBUG
-    #define LSP_USE_EXPAT
+    #ifdef PLATFORM_WINDOWS
+        #define LSP_USE_MSXML
+    #else
+        #define LSP_USE_EXPAT
+    #endif /* PLATFORM */
     //#define LSP_HOST_SIMULATION
+#else
+    #define LSP_XML_BUILTIN
 #endif /* LSP_IDE_DEBUG */
-
-#include <dsp/types.h>
 
 typedef uint64_t        wsize_t;
 typedef int64_t         wssize_t;
@@ -22,7 +28,15 @@ typedef int64_t         wssize_t;
 /** Unicode character definition
  *
  */
-typedef uint16_t                lsp_wchar_t;
+#if defined(PLATFORM_WINDOWS)
+    #include <windows.h>
+
+    typedef WCHAR               lsp_wchar_t;
+    typedef WCHAR               lsp_utf16_char_t;
+#else
+    typedef uint16_t            lsp_wchar_t;
+    typedef uint16_t            lsp_utf16_char_t;
+#endif /* PLATFORM_WINDOWS */
 
 // Include units
 #include <core/sugar.h>

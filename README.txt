@@ -310,9 +310,11 @@ This binary provides simple command-line interface, so here's the full usage:
     Additional arguments:
       -a, --args [args...]  Pass arguments to test
       -d, --debug           Disable time restrictions for unit tests
-                            for debugging purporses
+                            for debugging purposes
+      -e, --execute         Launch tests specified after this switch
       -f, --fork            Fork child processes (opposite to --nofork)
       -h, --help            Display help
+      -i, --ignore          Ignore tests specified after this switch
       -j, --jobs            Set number of job workers for unit tests
       -l, --list            List all available tests
       -mt, --mtrace         Enable mtrace log

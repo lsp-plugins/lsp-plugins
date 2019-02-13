@@ -9,8 +9,9 @@
 #define CORE_IO_FILEWRITER_H_
 
 #include <stdio.h>
-#include <core/io/Writer.h>
 #include <core/types.h>
+#include <core/io/charset.h>
+#include <core/io/Writer.h>
 
 namespace lsp
 {
@@ -25,7 +26,11 @@ namespace lsp
                 size_t          cBufPos;
                 FILE           *pFD;
                 bool            bClose;
+#if defined(PLATFORM_WINDOWS)
+                UINT            nCodePage;
+#else
                 iconv_t         hIconv;
+#endif /* PLATFORM_WINDOWS */
     
             protected:
                 void            do_destroy();

@@ -9,11 +9,13 @@
 #include <core/io/charset.h>
 #include <core/io/FileWriter.h>
 
-#define CBUF_SIZE        0x1000
-#define BBUF_SIZE        0x4000
-// Values for tests
-//#define CBUF_SIZE       64
-//#define BBUF_SIZE       4 * CBUF_SIZE
+#if 1
+    #define CBUF_SIZE        0x1000
+    #define BBUF_SIZE        0x4000
+#else
+    #define CBUF_SIZE       32
+    #define BBUF_SIZE       (CBUF_SIZE * 4)
+#endif
 
 namespace lsp
 {
@@ -27,7 +29,11 @@ namespace lsp
             cBufPos     = 0;
             pFD         = NULL;
             bClose      = false;
-            hIconv      = iconv_t(-1);
+            #if defined(PLATFORM_WINDOWS)
+                nCodePage   = UINT(-1);
+            #else
+                hIconv      = iconv_t(-1);
+            #endif
         }
 
         FileWriter::~FileWriter()
@@ -47,11 +53,15 @@ namespace lsp
                 free(bBuf);
                 bBuf        = NULL;
             }
-            if (hIconv != iconv_t(-1))
-            {
-                iconv_close(hIconv);
-                hIconv      = iconv_t(-1);
-            }
+            #if defined(PLATFORM_WINDOWS)
+                nCodePage   = UINT(-1);
+            #else
+                if (hIconv != iconv_t(-1))
+                {
+                    iconv_close(hIconv);
+                    hIconv      = iconv_t(-1);
+                }
+            #endif /* PLATFORM_WINDOWS */
             cBuf        = NULL;
             bClose      = false;
         }
@@ -85,12 +95,22 @@ namespace lsp
                 return res;
             }
 
-            hIconv      = init_iconv_from_wchar_t(charset);
-            if (hIconv == iconv_t(-1))
-            {
-                do_destroy();
-                return STATUS_BAD_LOCALE;
-            }
+            #if defined(PLATFORM_WINDOWS)
+                ssize_t cp  = codepage_from_name(charset);
+                if (cp < 0)
+                {
+                    do_destroy();
+                    return STATUS_BAD_LOCALE;
+                }
+                nCodePage   = cp;
+            #else
+                hIconv      = init_iconv_from_wchar_t(charset);
+                if (hIconv == iconv_t(-1))
+                {
+                    do_destroy();
+                    return STATUS_BAD_LOCALE;
+                }
+            #endif /* PLATFORM_WINDOWS */
 
             pFD         = fd;
             bClose      = close;
@@ -113,7 +133,11 @@ namespace lsp
         {
             do_destroy();
 
-            FILE *fd        = fopen(path, "w");
+            #if defined(PLATFORM_WINDOWS)
+                FILE *fd        = fopen(path, "wb");
+            #else
+                FILE *fd        = fopen(path, "w");
+            #endif /* PLATFORM_WINDOWS */
             if (fd == NULL)
                 return STATUS_IO_ERROR;
 
@@ -164,6 +188,41 @@ namespace lsp
             return STATUS_OK;
         }
 
+#if defined(PLATFORM_WINDOWS)
+        status_t FileWriter::flush_buffer(bool force)
+        {
+            status_t res = flush_byte_buffer();
+            if (res != STATUS_OK)
+                return res;
+            if (cBufPos <= 0)
+                return STATUS_OK;
+
+            WCHAR *inbuf    = reinterpret_cast<WCHAR *>(cBuf);
+            CHAR *outbuf    = reinterpret_cast<CHAR *>(bBuf);
+            size_t bytes    = WideCharToMultiByte(nCodePage, 0, inbuf, cBufPos, outbuf, BBUF_SIZE-bBufPos, 0, FALSE);
+
+            if (bytes == 0)
+            {
+                switch (GetLastError())
+                {
+                    case ERROR_INSUFFICIENT_BUFFER:
+                        return STATUS_NO_MEM;
+                    case ERROR_INVALID_FLAGS:
+                    case ERROR_INVALID_PARAMETER:
+                        return STATUS_BAD_STATE;
+                    case ERROR_NO_UNICODE_TRANSLATION:
+                        return STATUS_BAD_LOCALE;
+                    default:
+                        return STATUS_UNKNOWN_ERR;
+                }
+            }
+
+            bBufPos        += bytes;
+            cBufPos         = 0;
+
+            return (force) ? flush_byte_buffer() : STATUS_OK;
+        }
+#else
         status_t FileWriter::flush_buffer(bool force)
         {
             for (size_t pos=0; pos < cBufPos; )
@@ -178,6 +237,7 @@ namespace lsp
                 // Do the conversion
                 size_t xc_left  = (cBufPos - pos) * sizeof(lsp_wchar_t);
                 size_t xb_left  = BBUF_SIZE - bBufPos;
+
                 char *inbuf     = reinterpret_cast<char *>(&cBuf[pos]);
                 char *outbuf    = reinterpret_cast<char *>(&bBuf[bBufPos]);
                 size_t nconv    = iconv(hIconv, &inbuf, &xc_left, &outbuf, &xb_left);
@@ -203,8 +263,9 @@ namespace lsp
             // Reset character buffer size
             cBufPos     = 0;
 
-            return ((force) && (bBufPos > 0)) ? flush_byte_buffer() : STATUS_OK;
+            return (force) ? flush_byte_buffer() : STATUS_OK;
         }
+#endif /* PLATFORM_WINDOWS */
 
         status_t FileWriter::write(lsp_wchar_t c)
         {
@@ -241,7 +302,7 @@ namespace lsp
                 if (avail > count)
                     avail = count;
 
-                memcpy(&cBuf[cBufPos], c, avail * sizeof(lsp_wchar_t));
+                ::memcpy(&cBuf[cBufPos], c, avail * sizeof(lsp_wchar_t));
                 cBufPos += avail;
                 c       += avail;
                 count   -= avail;
