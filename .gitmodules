@@ -1,0 +1,3 @@
+[submodule "Polynomial-Wiener-Hammerstein"]
+	path = Polynomial-Wiener-Hammerstein
+	url = ../../CrocoDuckoDucks/Polynomial-Wiener-Hammerstein.git
