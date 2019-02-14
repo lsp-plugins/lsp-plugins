@@ -6,12 +6,29 @@
  */
 
 #include <test/utest.h>
-#include <container/common/libpath.h>
+#include <core/types.h>
+#include <core/LSPString.h>
+
+#if defined(PLATFORM_WINDOWS)
+    #include <container/common/winlib.h>
+#else
+    #include <container/common/libpath.h>
+#endif /* PLATFORM_WINDOWS */
 
 UTEST_BEGIN("container", libpath)
 
     UTEST_MAIN
     {
+#if defined(PLATFORM_WINDOWS)
+        WCHAR *path = lsp::get_library_path();
+        UTEST_ASSERT(path != NULL);
+
+        lsp::LSPString s;
+        s.set_utf16(reinterpret_cast<uint16_t *>(path));
+        printf("  Library path: %s\n", s.get_native());
+
+        lsp::free_library_path(path);
+#else
         char **paths = lsp::get_library_paths(NULL);
         UTEST_ASSERT(paths != NULL);
 
@@ -23,6 +40,7 @@ UTEST_BEGIN("container", libpath)
 
         lsp::free_library_paths(paths2);
         lsp::free_library_paths(paths);
+#endif /* PLATFORM_WINDOWS */
     }
 
 UTEST_END;
