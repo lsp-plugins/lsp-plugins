@@ -1914,6 +1914,7 @@ namespace lsp
         sChirpParams.delta              = prof.delta;
         sChirpParams.initialFrequency   = prof.initial_freq;
         sChirpParams.finalFrequency     = prof.final_freq;
+        sChirpParams.fDuration          = sChirpParams.gamma * log(sChirpParams.nOrder);
         sChirpParams.bRecalculate       = true;
         sChirpParams.bReconfigure       = true;
         bSync                           = true;
@@ -1967,19 +1968,25 @@ namespace lsp
             if (sChirpParams.fDuration <= 0.0f)
                 sChirpParams.fDuration      = DFL_DURATION;
 
+            // Length optimisation
             sChirpParams.fDurationCoarse    = sChirpParams.fDuration;   // Saving the pre-optimisation value for reference
             sChirpParams.fDuration          = (sChirpParams.fDuration < LIM_DURATION) ? sChirpParams.fDuration : LIM_DURATION;
 
-            double n            = 1.0;
+//            double n            = 1.0;
             double minDuration  = log(sChirpParams.nOrder) / sChirpParams.initialFrequency;
 
-            while (sChirpParams.fDuration <= sChirpParams.fDurationCoarse)
-            {
-                sChirpParams.fDuration      = n * minDuration;
-                sChirpParams.gamma          = n / sChirpParams.initialFrequency;
+//            while (sChirpParams.fDuration <= sChirpParams.fDurationCoarse)
+//            {
+//                sChirpParams.fDuration      = n * minDuration;
+//                sChirpParams.gamma          = n / sChirpParams.initialFrequency;
+//
+//                n += 1.0;
+//            }
 
-                n += 1.0;
-            }
+            double closestMult      = round(sChirpParams.fDurationCoarse / minDuration);
+            double n                = (closestMult != 0) ? closestMult : 1.0;
+            sChirpParams.fDuration  = closestMult * minDuration;
+            sChirpParams.gamma      = n / sChirpParams.initialFrequency;
 
             sChirpParams.nDuration          = seconds_to_samples(nSampleRate, sChirpParams.fDuration);
 

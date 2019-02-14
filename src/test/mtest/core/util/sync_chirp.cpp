@@ -73,13 +73,20 @@ MTEST_BEGIN("core.util", sync_chirp)
 
         sc.reconfigure();
 
+        double initialFrequency = sc.get_chirp_initial_frequency();
+        double finalFrequency   = sc.get_chirp_final_frequency();
+        float alpha             = sc.get_chirp_alpha();
+        double gamma            = sc.get_chirp_gamma();
+        double delta            = sc.get_chirp_delta();
+        float duration          = sc.get_chirp_duration_seconds();
+
         printf("Chirp properties:\n");
-        printf("Initial Frequency:\t%.3f Hz\n", sc.get_chirp_initial_frequency());
-        printf("Final Frequency:  \t%.3f Hz\n", sc.get_chirp_final_frequency());
-        printf("Alpha:            \t%.3f\n", sc.get_chirp_alpha());
-        printf("Gamma:            \t%.3f s\n", sc.get_chirp_gamma());
-        printf("Delta:            \t%.3f rad\n", sc.get_chirp_delta());
-        printf("Duration:         \t%.7f s\n", sc.get_chirp_duration_seconds());
+        printf("Initial Frequency:\t%.3f Hz\n", initialFrequency);
+        printf("Final Frequency:  \t%.3f Hz\n", finalFrequency);
+        printf("Alpha:            \t%.3f\n", alpha);
+        printf("Gamma:            \t%.3f s\n", gamma);
+        printf("Delta:            \t%.3f rad\n", delta);
+        printf("Duration:         \t%.7f s\n", duration);
 
         Sample *data = sc.get_chirp();
         write_buffer("tmp/syncChirp.csv", "sync chirp samples", data->getBuffer(0), data->length());
@@ -174,6 +181,14 @@ MTEST_BEGIN("core.util", sync_chirp)
         status_t readStatus = sc.load_from_lspc("tmp/allData.lspc");
         MTEST_ASSERT(readStatus == STATUS_OK);
 
+        sc.update_settings();
+        MTEST_ASSERT(initialFrequency == sc.get_chirp_initial_frequency());
+        MTEST_ASSERT(finalFrequency == sc.get_chirp_final_frequency());
+        MTEST_ASSERT(alpha == sc.get_chirp_alpha());
+        MTEST_ASSERT(gamma == sc.get_chirp_gamma());
+        MTEST_ASSERT(delta == sc.get_chirp_delta());
+        MTEST_ASSERT(duration == sc.get_chirp_duration_seconds());
+
         delete [] fName;
 
         for (size_t ch = 0; ch < nChannels; ++ch)
@@ -194,18 +209,33 @@ MTEST_BEGIN("core.util", sync_chirp)
     void test_nonlinear_processing(SyncChirpProcessor &sc, size_t order, bool doInnerSmoothing, size_t nFadeIn, size_t nFadeOut, windows::window_t windowType, size_t nWindowRank)
     {
         status_t readStatus = sc.load_from_lspc("tmp/allData.lspc");
+//        status_t readStatus = sc.load_from_lspc("tmp/test.lspc");
         MTEST_ASSERT(readStatus == STATUS_OK);
 
         if (readStatus != STATUS_OK)
             return;
 
+        sc.update_settings();
+        printf("Chirp properties:\n");
+        printf("Initial Frequency:\t%.3f Hz\n", sc.get_chirp_initial_frequency());
+        printf("Final Frequency:  \t%.3f Hz\n", sc.get_chirp_final_frequency());
+        printf("Alpha:            \t%.3f\n", sc.get_chirp_alpha());
+        printf("Gamma:            \t%.3f s\n", sc.get_chirp_gamma());
+        printf("Delta:            \t%.3f rad\n", sc.get_chirp_delta());
+        printf("Duration:         \t%.7f s\n", sc.get_chirp_duration_seconds());
+
+
         size_t nChannels = sc.get_number_of_channels();
 
         float *ptr;
         char *fName = new char[MAX_FNAME_LENGTH];
+        AudioFile *conv = sc.get_convolution_result();
 
         for (size_t ch = 0; ch < nChannels; ++ch)
         {
+            snprintf(fName, MAX_FNAME_LENGTH, "tmp/result%lu.csv", (unsigned long)ch);
+            write_buffer(fName, "Convolution Result", conv->channel(ch), conv->samples());
+
             sc.postprocess_nonlinear_convolution(ch, order, doInnerSmoothing, nFadeIn, nFadeOut, windowType, nWindowRank);
 
             ptr = sc.get_coefficients_matrix_real_part();
@@ -234,6 +264,8 @@ MTEST_BEGIN("core.util", sync_chirp)
         }
 
         delete [] fName;
+
+        conv->destroy();
     }
 
     MTEST_MAIN
@@ -263,7 +295,7 @@ MTEST_BEGIN("core.util", sync_chirp)
 		size_t              nFadeIn             = 8;
 		size_t              nFadeOut            = 8;
 		windows::window_t   windowType          = windows::HANN;
-		size_t              nWindowRank         = 10;
+		size_t              nWindowRank         = 14;
 
         SyncChirpProcessor  sc;
         sc.init();
