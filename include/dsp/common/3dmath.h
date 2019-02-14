@@ -270,25 +270,30 @@ namespace dsp
     extern void (* init_matrix3d_rotate_xyz)(matrix3d_t *m, float x, float y, float z, float angle);
 
     /**
-     * Compute tranfromation matrix from point and vector which give:
+     * Compute tranfromation matrix from point and vector data which provides:
      *   - position of the object (point)
      *   - direction of the object (vector)
      *   - scale of the object (length of vector)
+     * After applying this matrix, the point with coordinates (0, 0, 1)
+     * will have coordinates (p.x + v.dx, p.y + v.dy, p.z + v.dz)
+     *
      * @param m target matrix
      * @param p point that indicates position of the object
      * @param v vector that indicates rotation and size of the object
      */
-    extern void (* calc_tranform_matrix3d_p1v1)(matrix3d_t *m, const point3d_t *p, const vector3d_t *v);
+    extern void (* calc_matrix3d_transform_p1v1)(matrix3d_t *m, const point3d_t *p, const vector3d_t *v);
 
     /**
-     * Compute tranfromation matrix from ray which gives:
+     * Compute tranfromation matrix from ray data which provides:
      *   - position of the object (point)
      *   - direction of the object (vector)
      *   - scale of the object (length of vector)
+     * After applying this matrix, the point with coordinates (0, 0, 1)
+     * will have coordinates (r.z.x + r.v.dx, r.z.y + r.v.dy, r.z.z + r.v.dz)
      * @param m target matrix
      * @param r ray that indicates position, rotation and size of the object
      */
-    extern void (* calc_tranform_matrix3d_r1)(matrix3d_t *m, const ray3d_t *r);
+    extern void (* calc_matrix3d_transform_r1)(matrix3d_t *m, const ray3d_t *r);
 
     /** Apply matrix to vector
      *

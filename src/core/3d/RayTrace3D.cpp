@@ -119,7 +119,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t RayTrace3D::add_capture(const ray3d_t *position, float size, rt_audio_capture_t type, Sample *sample, size_t channel)
+    status_t RayTrace3D::add_capture(const ray3d_t *position, rt_audio_capture_t type, Sample *sample, size_t channel)
     {
         capture_t *cap      = vCaptures.add();
         if (cap == NULL)
@@ -201,7 +201,7 @@ namespace lsp
 
             // TODO: estimate matrix
             matrix3d_t tm; // Transformation matrix
-            dsp::build_transform_matrix(&tm, &src->position);
+            dsp::calc_matrix3d_transform_r1(&tm, &src->position);
 
             for (size_t i=0, n=obj->num_triangles(); i<n; ++i)
             {

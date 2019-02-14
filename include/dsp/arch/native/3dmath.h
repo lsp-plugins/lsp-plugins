@@ -908,44 +908,130 @@ namespace native
         M[15]       = 0.0f;
     }
 
-    void calc_tranform_matrix3d_p1v1(matrix3d_t *m, const point3d_t *p, const vector3d_t *v)
+    void calc_matrix3d_transform_p1v1(matrix3d_t *m, const point3d_t *p, const vector3d_t *v)
     {
         matrix3d_t xm;
 
-        // Apply translation matrix
-        dsp::init_matrix3d_translate(&m, p);
-
-        // Apply scaling matrix
+        // Initialize matrix with translation and scaling parameters
         float l = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
-        dsp::init_matrix3d_scale(&xm, l, l, l);
-        dsp::apply_matrix3d_mm1(&m, &xm);
+        m->m[0]     = l;
+        m->m[1]     = 0.0f;
+        m->m[2]     = 0.0f;
+        m->m[3]     = 0.0f;
+
+        m->m[4]     = 0.0f;
+        m->m[5]     = l;
+        m->m[6]     = 0.0f;
+        m->m[7]     = 0.0f;
+
+        m->m[8]     = 0.0f;
+        m->m[9]     = 0.0f;
+        m->m[10]    = l;
+        m->m[11]    = 0.0f;
+
+        m->m[12]    = p->x;
+        m->m[13]    = p->y;
+        m->m[14]    = p->z;
+        m->m[15]    = 1.0f;
+
         if (l <= 0.0f)
             return;
 
-        // Apply rotation matrix
-        float dx     = v->dx / l;
-        float dy     = v->dy / l;
-        float dz     = v->dz / l;
+        // Compute normalized vector (with length = 1)
+        vector3d_t tv;
+        tv.dx       = v->dx / l;
+        tv.dy       = v->dy / l;
+        tv.dz       = v->dz / l;
+        tv.dw       = 0.0f;
+
+        // Compute theta and phi
+        float sinp  = tv.dx;
+        float cosp  = sqrtf(tv.dy*tv.dy + tv.dz*tv.dz);
+
+        // Apply rotation matrix around X axis
+        if (cosp > 0.0f)
+        {
+            float cost  = tv.dz/cosp;
+            float sint  = tv.dy/cosp;
+
+            dsp::init_matrix3d_identity(&xm);
+            xm.m[5]     = cost;
+            xm.m[6]     = -sint;
+            xm.m[9]     = sint;
+            xm.m[10]    = cost;
+            dsp::apply_matrix3d_mm1(m, &xm);
+        }
+
+        // Apply rotation matrix around Y axis
+        dsp::init_matrix3d_identity(&xm);
+        xm.m[0]     = cosp;
+        xm.m[2]     = -sinp;
+        xm.m[8]     = sinp;
+        xm.m[10]    = cosp;
+        dsp::apply_matrix3d_mm1(m, &xm);
     }
 
-    void calc_tranform_matrix3d_r1(matrix3d_t *m, const ray3d_t *r)
+    void calc_matrix3d_transform_r1(matrix3d_t *m, const ray3d_t *r)
     {
         matrix3d_t xm;
 
-        // Apply translation matrix
-        dsp::init_matrix3d_translate(&m, &r->z);
-
-        // Apply scaling matrix
+        // Initialize matrix with translation and scaling parameters
         float l     = sqrtf(r->v.dx * r->v.dx + r->v.dy * r->v.dy + r->v.dz * r->v.dz);
-        dsp::init_matrix3d_scale(&xm, l, l, l);
-        dsp::apply_matrix3d_mm1(&m, &xm);
+        m->m[0]     = l;
+        m->m[1]     = 0.0f;
+        m->m[2]     = 0.0f;
+        m->m[3]     = 0.0f;
+
+        m->m[4]     = 0.0f;
+        m->m[5]     = l;
+        m->m[6]     = 0.0f;
+        m->m[7]     = 0.0f;
+
+        m->m[8]     = 0.0f;
+        m->m[9]     = 0.0f;
+        m->m[10]    = l;
+        m->m[11]    = 0.0f;
+
+        m->m[12]    = r->z.x;
+        m->m[13]    = r->z.y;
+        m->m[14]    = r->z.z;
+        m->m[15]    = 1.0f;
+
         if (l <= 0.0f)
             return;
 
-        // Apply rotation matrix: YZ around X
-        l           = sqrtf()
-        float dx    = r->v.dx / l;
-        float dy    = r->v.dy / l;
+        // Compute normalized vector (with length = 1)
+        vector3d_t tv;
+        tv.dx       = r->v.dx / l;
+        tv.dy       = r->v.dy / l;
+        tv.dz       = r->v.dz / l;
+        tv.dw       = 0.0f;
+
+        // Compute theta and phi
+        float sinp  = tv.dx;
+        float cosp  = sqrtf(tv.dy*tv.dy + tv.dz*tv.dz);
+
+        // Apply rotation matrix around X axis
+        if (cosp > 0.0f)
+        {
+            float cost  = tv.dz/cosp;
+            float sint  = tv.dy/cosp;
+
+            dsp::init_matrix3d_identity(&xm);
+            xm.m[5]     = cost;
+            xm.m[6]     = -sint;
+            xm.m[9]     = sint;
+            xm.m[10]    = cost;
+            dsp::apply_matrix3d_mm1(m, &xm);
+        }
+
+        // Apply rotation matrix around Y axis
+        dsp::init_matrix3d_identity(&xm);
+        xm.m[0]     = cosp;
+        xm.m[2]     = -sinp;
+        xm.m[8]     = sinp;
+        xm.m[10]    = cosp;
+        dsp::apply_matrix3d_mm1(m, &xm);
     }
 
     void apply_matrix3d_mv2(vector3d_t *r, const vector3d_t *v, const matrix3d_t *m)

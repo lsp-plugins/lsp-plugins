@@ -306,8 +306,8 @@ namespace dsp
     void    (* init_matrix3d_rotate_y)(matrix3d_t *m, float angle) = NULL;
     void    (* init_matrix3d_rotate_z)(matrix3d_t *m, float angle) = NULL;
     void    (* init_matrix3d_rotate_xyz)(matrix3d_t *m, float x, float y, float z, float angle) = NULL;
-    void    (* calc_tranform_matrix3d_p1v1)(matrix3d_t *m, const point3d_t *p, const vector3d_t *v) = NULL;
-    void    (* calc_tranform_matrix3d_r1)(matrix3d_t *m, const ray3d_t *r) = NULL;
+    void    (* calc_matrix3d_transform_p1v1)(matrix3d_t *m, const point3d_t *p, const vector3d_t *v) = NULL;
+    void    (* calc_matrix3d_transform_r1)(matrix3d_t *m, const ray3d_t *r) = NULL;
     void    (* apply_matrix3d_mv2)(vector3d_t *r, const vector3d_t *v, const matrix3d_t *m) = NULL;
     void    (* apply_matrix3d_mv1)(vector3d_t *r, const matrix3d_t *m) = NULL;
     void    (* apply_matrix3d_mp2)(point3d_t *r, const point3d_t *p, const matrix3d_t *m) = NULL;
