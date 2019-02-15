@@ -10,10 +10,10 @@
 
 #include <dsp/types.h>
 #include <core/debug.h>
-#include <core/stdlib/math.h>
 
 #include <stddef.h>
-#include <string.h>
+#include <core/stdlib/math.h>
+#include <core/stdlib/string.h>
 
 #define __DSP_DSP_DEFS
 

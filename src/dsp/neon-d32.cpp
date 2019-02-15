@@ -8,6 +8,8 @@
 
 #include <dsp/dsp.h>
 #include <core/types.h>
+
+#ifdef ARCH_ARM
 #include <test/test.h>
 #include <dsp/arch/arm/features.h>
 
@@ -263,4 +265,4 @@ namespace neon_d32
     }
 }
 
-//#endif /* ARCH_ARM */
+#endif /* ARCH_ARM */
