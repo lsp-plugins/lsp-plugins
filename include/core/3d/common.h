@@ -174,10 +174,6 @@ namespace lsp
         float           dissipation[2];     // The dissipation coefficients for refracted signal
         float           transparency[2];    // The amount of energy that will be passed-through the material
         float           permeability;       // Sound permeability of the object (inner sound speed / outer sound speed)
-
-        // TODO: hide this
-        rt_capture_t    capture;            // Routine to call for capturing events
-        void           *capture_data;       // Data to pass to the capture routine
     } rt_material_t;
 
     // Viewing structures

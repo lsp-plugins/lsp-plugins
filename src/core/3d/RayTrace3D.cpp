@@ -83,7 +83,7 @@ namespace lsp
 
             while (size < objects)
             {
-                Material *m         = vMaterials.get(size++);
+                rt_material_t *m    = vMaterials.get(size++);
                 if (m == NULL)
                     return STATUS_UNKNOWN_ERR;
 
@@ -99,12 +99,14 @@ namespace lsp
                 m->transparency[1]  = 0.52f;
 
                 m->permeability     = 12.88f;
-
-                m->capture          = NULL;
-                m->capture_data     = NULL;
             }
         }
 
+        return STATUS_OK;
+    }
+
+    status_t RayTrace3D::init()
+    {
         return STATUS_OK;
     }
 
@@ -151,7 +153,7 @@ namespace lsp
         dsp::calc_matrix3d_transform_r1(&cap->matrix, position);
 
         // "Black hole"
-        Material *m         = &cap->material;
+        rt_material_t *m    = &cap->material;
         m->absorption[0]    = 1.0f;
         m->dispersion[0]    = 1.0f;
         m->dissipation[0]   = 1.0f;
@@ -245,18 +247,7 @@ namespace lsp
             if (!vTasks.pop(&ctx))
                 return STATUS_CORRUPTED;
 
-            // Report status if required
-            if (vTasks.size() < p_thresh)
-            {
-                p_thresh    = vTasks.size();
-                res         = report_progress(float(p_points++) / float(p_denom));
-
-                if (res != STATUS_OK)
-                {
-                    delete ctx;
-                    break;
-                }
-            }
+            size_t t_size   = vTasks.size(); // Remember size fo task stack
 
             // Check that we need to perform a scan
             switch (ctx->state)
@@ -288,6 +279,13 @@ namespace lsp
                     break;
             }
 
+            // Report status if required
+            if ((res == STATUS_OK) && (t_size < p_thresh))
+            {
+                p_thresh    = vTasks.size();
+                res         = report_progress(float(p_points++) / float(p_denom));
+            }
+
             // Analyze status
             if (res != STATUS_OK)
             {
@@ -298,6 +296,7 @@ namespace lsp
 
         // Destroy all tasks
         destroy_tasks();
+        sRoot.flush();
         if (res != STATUS_OK)
             return res;
 
@@ -334,7 +333,7 @@ namespace lsp
             for (size_t ti=0, n=obj->num_triangles(); ti<n; ++ti)
             {
                 obj_triangle_t *t   = obj->triangle(ti);
-                rt_context_t *ctx   = new rt_context_t(NULL);
+                rt_context_t *ctx   = new rt_context_t(pDebug);
                 if (ctx == NULL)
                     return STATUS_NO_MEM;
 
@@ -343,7 +342,6 @@ namespace lsp
                 dsp::apply_matrix3d_mp2(&ctx->view.p[1], t->v[1], &tm);
                 dsp::apply_matrix3d_mp2(&ctx->view.p[2], t->v[2], &tm);
 
-                ctx->shared         = pDebug;
                 ctx->view.oid       = -1;
                 ctx->view.face      = -1;
                 ctx->view.speed     = SOUND_SPEED_M_S;
@@ -506,7 +504,7 @@ namespace lsp
                 continue;
 
             // Get material
-            Material *m         = vMaterials.get(i);
+            rt_material_t *m    = vMaterials.get(i);
             if (m == NULL)
                 return STATUS_BAD_STATE;
 
@@ -570,7 +568,7 @@ namespace lsp
                 continue;
 
             // Get material
-            Material *m         = vMaterials.get(i);
+            rt_material_t *m    = vMaterials.get(i);
             if (m == NULL)
                 return STATUS_BAD_STATE;
 
@@ -857,9 +855,11 @@ namespace lsp
             }
 
             // Perform capture
-            if (m->capture != NULL)
+            ssize_t capture_id = ct->oid - pScene->num_objects();
+            if (capture_id >= 0)
             {
-                res             = m->capture(&v, m->capture_data);
+                capture_t *cap  = vCaptures.get(capture_id);
+                res     = (cap != NULL) ? capture(cap, &cv) : STATUS_CORRUPTED;
                 if (res != STATUS_OK)
                     break;
             }
@@ -895,6 +895,12 @@ namespace lsp
 
         delete ctx;
         return res;
+    }
+
+    status_t RayTrace3D::capture(capture_t *capture, const rt_view_t *v)
+    {
+        // TODO
+        return STATUS_OK;
     }
 
 } /* namespace lsp */

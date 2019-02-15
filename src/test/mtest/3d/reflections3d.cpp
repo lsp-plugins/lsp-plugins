@@ -9,6 +9,7 @@
 #include <test/mtest/3d/common/X11Renderer.h>
 #include <core/files/Model3DFile.h>
 #include <core/3d/rt_context.h>
+#include <core/3d/RayTrace3D.h>
 
 #include <core/types.h>
 #include <core/debug.h>
@@ -32,12 +33,6 @@
 //    #define BREAKPOINT_STEP     -1
     #define BREAKPOINT_STEP     5
 //    #define BREAKPOINT_STEP     231
-
-    #define INIT_FRONT(front) \
-        dsp::init_point_xyz(&front.p[0], 0.0f, 1.0f, 0.0f); \
-        dsp::init_point_xyz(&front.p[1], -1.0f, -0.5f, 0.0f); \
-        dsp::init_point_xyz(&front.p[2], 1.0f, -0.5f, 0.0f); \
-        dsp::init_point_xyz(&front.s, 0.0f, 0.0f, 1.0f);
 
 /*
         dsp::init_point_xyz(&front.p[0], -0.980776, -0.195088, 0.000000); \
@@ -544,12 +539,12 @@ namespace mtest
             }
 
             // Perform capture
-            if (m->capture != NULL)
-            {
-                res             = m->capture(&v, m->capture_data);
-                if (res != STATUS_OK)
-                    break;
-            }
+//            if (m->capture != NULL)
+//            {
+//                res             = m->capture(&v, m->capture_data);
+//                if (res != STATUS_OK)
+//                    break;
+//            }
 
             // Perform reflection
             if ((rv.energy <= -DSP_3D_TOLERANCE) || (rv.energy >= DSP_3D_TOLERANCE))
@@ -672,6 +667,7 @@ namespace mtest
                 v->add_point(&sp, &C_YELLOW);
             }
     }
+
 } // Namespace mtest
 
 MTEST_BEGIN("3d", reflections)
@@ -680,8 +676,9 @@ MTEST_BEGIN("3d", reflections)
     {
         private:
             Scene3D        *pScene;
-            rt_view_t       sFront;
             ssize_t         nTrace;
+            ray3d_t         sSource;
+            ray3d_t         sCapture;
             bool            bBoundBoxes;
             bool            bDrawFront;
             bool            bDrawMatched;
@@ -697,7 +694,11 @@ MTEST_BEGIN("3d", reflections)
                 bDrawIgnored = true;
                 nTrace = BREAKPOINT_STEP;
 
-                INIT_FRONT(sFront);
+                dsp::init_point_xyz(&sSource.z, 0.0f, 0.0f, 2.0f);
+                dsp::init_vector_dxyz(&sSource.v, 0.0f, 0.0f, -1.0f);
+
+                dsp::init_point_xyz(&sCapture.z, 0.0f, 0.0f, -4.0f);
+                dsp::init_vector_dxyz(&sCapture.v, 0.0f, 0.0f, 1.0f);
 
                 update_view();
             }
@@ -711,66 +712,65 @@ MTEST_BEGIN("3d", reflections)
             {
                 switch (key)
                 {
-                    case XK_F1:
+                    case XK_F1: case XK_F7:
                     {
-                        float incr = (ev.state & ShiftMask) ? 0.25f : -0.25f;
-                        sFront.p[0].x += incr;
-                        sFront.p[1].x += incr;
-                        sFront.p[2].x += incr;
-                        sFront.s.x += incr;
+                        float incr  = (ev.state & ShiftMask) ? 0.25f : -0.25f;
+                        ray3d_t *r  = (key == XK_F1) ? &sSource : &sCapture;
+                        r->z.x     += incr;
                         update_view();
                         break;
                     }
 
-                    case XK_F2:
+                    case XK_F2: case XK_F8:
                     {
-                        float incr = (ev.state & ShiftMask) ? 0.25f : -0.25f;
-                        sFront.p[0].y += incr;
-                        sFront.p[1].y += incr;
-                        sFront.p[2].y += incr;
-                        sFront.s.y += incr;
+                        float incr  = (ev.state & ShiftMask) ? 0.25f : -0.25f;
+                        ray3d_t *r  = (key == XK_F1) ? &sSource : &sCapture;
+                        r->z.y     += incr;
                         update_view();
                         break;
                     }
 
-                    case XK_F3:
+                    case XK_F3: case XK_F9:
                     {
-                        float incr = (ev.state & ShiftMask) ? 0.25f : -0.25f;
-                        sFront.p[0].z += incr;
-                        sFront.p[1].z += incr;
-                        sFront.p[2].z += incr;
-                        sFront.s.z += incr;
+                        float incr  = (ev.state & ShiftMask) ? 0.25f : -0.25f;
+                        ray3d_t *r  = (key == XK_F1) ? &sSource : &sCapture;
+                        r->z.z     += incr;
                         update_view();
                         break;
                     }
 
                     case XK_F4:
-                    case XK_F5:
-                    case XK_F6:
+                    case XK_F10:
                     {
                         matrix3d_t m;
                         float incr = (ev.state & ShiftMask) ? M_PI/16.0f : -M_PI/16.0f;
+                        ray3d_t *r  = (key == XK_F4) ? &sSource : &sCapture;
+                        dsp::init_matrix3d_rotate_x(&m, incr);
+                        dsp::apply_matrix3d_mv1(&r->v, &m);
+                        update_view();
+                        break;
+                    }
 
-                        for (size_t i=0; i<3; ++i)
-                        {
-                            sFront.p[i].x -= sFront.s.x;
-                            sFront.p[i].y -= sFront.s.y;
-                            sFront.p[i].z -= sFront.s.z;
-                        }
-                        if (key == XK_F4)
-                            dsp::init_matrix3d_rotate_x(&m, incr);
-                        else if (key == XK_F5)
-                            dsp::init_matrix3d_rotate_y(&m, incr);
-                        else
-                            dsp::init_matrix3d_rotate_z(&m, incr);
-                        for (size_t i=0; i<3; ++i)
-                            dsp::apply_matrix3d_mp1(&sFront.p[i], &m);
-                        for (size_t i=0; i<3; ++i)
-                        {
-                            sFront.p[i].x += sFront.s.x;
-                            sFront.p[i].y += sFront.s.y;
-                            sFront.p[i].z += sFront.s.z;
-                        }
+                    case XK_F5:
+                    case XK_F11:
+                    {
+                        matrix3d_t m;
+                        float incr = (ev.state & ShiftMask) ? M_PI/16.0f : -M_PI/16.0f;
+                        ray3d_t *r  = (key == XK_F5) ? &sSource : &sCapture;
+                        dsp::init_matrix3d_rotate_y(&m, incr);
+                        dsp::apply_matrix3d_mv1(&r->v, &m);
+                        update_view();
+                        break;
+                    }
+
+                    case XK_F6:
+                    case XK_F12:
+                    {
+                        matrix3d_t m;
+                        float incr = (ev.state & ShiftMask) ? M_PI/16.0f : -M_PI/16.0f;
+                        ray3d_t *r  = (key == XK_F6) ? &sSource : &sCapture;
+                        dsp::init_matrix3d_rotate_z(&m, incr);
+                        dsp::apply_matrix3d_mv1(&r->v, &m);
                         update_view();
                         break;
                     }
@@ -833,6 +833,30 @@ MTEST_BEGIN("3d", reflections)
             }
 
         protected:
+            status_t perform_trace(RayTrace3D *trace, rt_shared_t *shared)
+            {
+                status_t res    = trace->init();
+                if (res != STATUS_OK)
+                    return res;
+
+                trace->set_debug_context(shared);
+                trace->set_sample_rate(DEFAULT_SAMPLE_RATE);
+
+                res     = trace->set_scene(pScene, true);
+                if (res != STATUS_OK)
+                    return res;
+
+                res     = trace->add_source(&sSource, RT_AS_OMNI, 1.0f);
+                if (res != STATUS_OK)
+                    return res;
+
+                res     = trace->add_capture(&sCapture, RT_AC_OMNIDIRECTIONAL, NULL, 0);
+                if (res != STATUS_OK)
+                    return res;
+
+                return trace->process();
+            }
+
             status_t    update_view()
             {
                 v_segment3d_t s;
@@ -852,26 +876,15 @@ MTEST_BEGIN("3d", reflections)
                 global.scene        = pScene;
                 global.view         = pView;
 
-                cvector<rt_context_t> tasks;
+                // Perform raytrace
+                RayTrace3D trace;
+                res     = perform_trace(&trace, &global);
+                if (res == STATUS_BREAKPOINT)
+                    res     = STATUS_OK;
+                trace.destroy(false);
 
-                // Create initial context
-                rt_context_t *ctx = new rt_context_t(&global);
-                if (ctx == NULL)
-                    return STATUS_NO_MEM;
-
-                ctx->state          = S_SCAN_OBJECTS;
-                ctx->init_view(&sFront.s, sFront.p);
-                ctx->view.time[0]   = 1.0f;
-                ctx->view.time[1]   = 2.0f;
-                ctx->view.time[2]   = 3.0f;
-                draw_barycentric(ctx->shared->view);
-
-                // Add context to tasks
-                if (!tasks.add(ctx))
-                {
-                    delete ctx;
-                    return STATUS_NO_MEM;
-                }
+                if (!pScene->validate())
+                    return STATUS_BAD_STATE;
 
                 // Render bounding boxes of the scene
                 if (bBoundBoxes)
@@ -903,30 +916,6 @@ MTEST_BEGIN("3d", reflections)
                     }
                 }
 
-                // Clear allocated resources, tasks and ctx should be already deleted
-                rt_material_t m;
-                m.absorption[0]     = 0.5f;
-                m.dispersion[0]     = 1.0f;
-                m.dissipation[0]    = 1.0f;
-                m.transparency[0]   = 0.25f;
-
-                m.absorption[1]     = 0.0f;
-                m.dispersion[1]     = 0.5f;
-                m.dissipation[1]    = 2.0f;
-                m.transparency[1]   = 0.5f;
-
-                m.permeability      = 2.0f;
-
-                m.capture           = NULL;
-                m.capture_data      = NULL;
-
-                res = perform_raytrace(tasks, &m);
-                if (res == STATUS_BREAKPOINT) // This status is used for immediately returning from traced code
-                    res = STATUS_OK;
-
-                if (!pScene->validate())
-                    return STATUS_BAD_STATE;
-
                 // Build final scene from matched and ignored items
                 if (bDrawIgnored)
                 {
@@ -957,37 +946,6 @@ MTEST_BEGIN("3d", reflections)
 
                 global.ignored.flush();
                 global.matched.flush();
-
-                // Calc scissor planes' normals
-                vector3d_t pl[4];
-                dsp::calc_plane_p3(&pl[0], &sFront.s, &sFront.p[0], &sFront.p[1]);
-                dsp::calc_plane_p3(&pl[1], &sFront.s, &sFront.p[1], &sFront.p[2]);
-                dsp::calc_plane_p3(&pl[2], &sFront.s, &sFront.p[2], &sFront.p[0]);
-                dsp::calc_plane_p3(&pl[3], &sFront.p[0], &sFront.p[1], &sFront.p[2]);
-
-                // Draw front
-                if (bDrawFront)
-                {
-                    v_ray3d_t r;
-                    s.c[0] = C_MAGENTA;
-                    s.c[1] = C_MAGENTA;
-
-                    for (size_t i=0; i<3; ++i)
-                    {
-                        // State
-                        r.p = sFront.p[i];
-                        dsp::init_vector_p2(&r.v, &sFront.s, &r.p);
-                        r.c = C_MAGENTA;
-                        pView->add_ray(&r);
-
-                        s.p[0] = sFront.s;
-                        s.p[1] = sFront.p[i];
-                        pView->add_segment(&s);
-
-                        s.p[0] = sFront.p[(i+1)%3];
-                        pView->add_segment(&s);
-                    }
-                }
 
                 return res;
             }

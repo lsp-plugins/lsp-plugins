@@ -40,10 +40,6 @@ namespace lsp
     class RayTrace3D
     {
         protected:
-            typedef struct Material: public rt_material_t
-            {
-            } Material;
-
             typedef struct source_t
             {
                 ray3d_t             position;
@@ -54,7 +50,7 @@ namespace lsp
             typedef struct capture_t
             {
                 matrix3d_t          matrix;
-                Material            material;
+                rt_material_t       material;
                 rt_audio_capture_t  type;
                 Sample             *sample;
                 size_t              channel;
@@ -62,7 +58,7 @@ namespace lsp
 
         private:
             cvector<rt_context_t>       vTasks;
-            cstorage<Material>          vMaterials;
+            cstorage<rt_material_t>     vMaterials;
             cstorage<source_t>          vSources;
             cstorage<capture_t>         vCaptures;
             Scene3D                    *pScene;
@@ -90,6 +86,7 @@ namespace lsp
             status_t    split_view(rt_context_t *ctx);
             status_t    cullback_view(rt_context_t *ctx);
             status_t    reflect_view(rt_context_t *ctx);
+            status_t    capture(capture_t *capture, const rt_view_t *v);
 
         public:
             /** Default constructor
@@ -103,6 +100,11 @@ namespace lsp
             ~RayTrace3D();
 
         public:
+            /**
+             * Initialize raytrace object
+             */
+            status_t init();
+
             /** Destroy the ray tracing processor state
              * @param recursive destroy the currently used scene object
              */
