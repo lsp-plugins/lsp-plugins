@@ -77,9 +77,14 @@ namespace lsp
             void        remove_scene(bool destroy);
             status_t    resize_materials(size_t objects);
 
-            status_t    build_sphere();
+            status_t    report_progress(float progress);
 
-            ssize_t     get_icosphere();
+            // Main ray-tracing routines
+            status_t    scan_objects(rt_context_t *ctx);
+            status_t    cull_view(rt_context_t *ctx);
+            status_t    split_view(rt_context_t *ctx);
+            status_t    cullback_view(rt_context_t *ctx);
+            status_t    reflect_view(rt_context_t *ctx);
 
         public:
             /** Default constructor

@@ -178,9 +178,19 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t RayTrace3D::report_progress(float progress)
+    {
+        if (pProgress == NULL)
+            return STATUS_OK;
+        return pProgress(progress, pProgressData);
+    }
+
     status_t RayTrace3D::process()
     {
-        size_t p_points = 0; // Number of progress points
+        size_t p_denom = 1, p_points = 0, p_thresh = 0; // Values to report progress
+        status_t res = report_progress(0.0f);
+        if (res != STATUS_OK)
+            return res;
 
         // Generate sources
         for (size_t i=0,n=vSources.size(); i<n; ++i)
@@ -207,9 +217,9 @@ namespace lsp
             matrix3d_t tm;
             dsp::calc_matrix3d_transform_r1(&tm, &src->position);
 
-            for (size_t i=0, n=obj->num_triangles(); i<n; ++i)
+            for (size_t ti=0, n=obj->num_triangles(); ti<n; ++ti)
             {
-                obj_triangle_t *t = obj->triangle(i);
+                obj_triangle_t *t   = obj->triangle(ti);
                 rt_context_t *ctx   = new rt_context_t(NULL);
                 if (ctx == NULL)
                     return STATUS_NO_MEM;
@@ -233,10 +243,106 @@ namespace lsp
                 }
             }
 
-            p_points       += obj->num_triangles();
+            RT_TRACE_BREAK(pDebug,
+                    lsp_trace("Generated %d raytrace contexts for source %d", int(obj->num_triangles()), int(i));
+                );
         }
 
-        return STATUS_OK;
+        p_points    = 1;
+        p_thresh    = vTasks.size();
+        p_denom    += vTasks.size() + 1;
+
+        // Perform raytracing
+        rt_context_t *ctx = NULL;
+        status_t res = STATUS_OK;
+
+        while (vTasks.size() > 0)
+        {
+            // Get next context from queue
+            if (!vTasks.pop(&ctx))
+                return STATUS_CORRUPTED;
+
+            // Report status if required
+            if (vTasks.size() < p_thresh)
+            {
+                p_thresh    = vTasks.size();
+                res         = report_progress(float(++p_points) / float(p_denom));
+
+                if (res != STATUS_OK)
+                {
+                    delete ctx;
+                    break;
+                }
+            }
+
+            // Check that we need to perform a scan
+            switch (ctx->state)
+            {
+                case S_SCAN_OBJECTS:
+                    res = scan_objects(ctx);
+                    break;
+                case S_CULL_VIEW:
+                    res = cull_view(ctx);
+                    break;
+                case S_SPLIT:
+                    res = split_view(ctx);
+                    break;
+                case S_CULL_BACK:
+                    res = cullback_view(ctx);
+                    break;
+                case S_REFLECT:
+                    res = reflect_view(ctx);
+                    break;
+                case S_IGNORE:
+                    RT_TRACE(ctx->shared,
+                        for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
+                            ctx->ignore(ctx->triangle.get(i));
+                    )
+                    delete ctx;
+                    break;
+                default:
+                    res = STATUS_BAD_STATE;
+                    break;
+            }
+
+            // Analyze status
+            if (res != STATUS_OK)
+            {
+                delete ctx;
+                break;
+            }
+        }
+
+        destroy_tasks();
+        if (res != STATUS_OK)
+            return res;
+
+        return report_progress(1.0f);
+    }
+
+    status_t RayTrace3D::scan_objects(rt_context_t *ctx)
+    {
+        return STATUS_NOT_IMPLEMENTED;
+    }
+
+    status_t RayTrace3D::cull_view(rt_context_t *ctx)
+    {
+        return STATUS_NOT_IMPLEMENTED;
+    }
+
+    status_t RayTrace3D::split_view(rt_context_t *ctx)
+    {
+        return STATUS_NOT_IMPLEMENTED;
+    }
+
+    status_t RayTrace3D::cullback_view(rt_context_t *ctx)
+    {
+        return STATUS_NOT_IMPLEMENTED;
+    }
+
+    status_t RayTrace3D::reflect_view(rt_context_t *ctx)
+    {
+        return STATUS_NOT_IMPLEMENTED;
     }
 
 } /* namespace lsp */
