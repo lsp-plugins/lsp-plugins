@@ -6,6 +6,7 @@
  */
 
 #include <core/alloc.h>
+#include <core/3d/common.h>
 #include <core/3d/RayTrace3D.h>
 
 namespace lsp
@@ -18,6 +19,7 @@ namespace lsp
         pProgress       = NULL;
         pProgressData   = NULL;
         nSampleRate     = DEFAULT_SAMPLE_RATE;
+        pDebug          = NULL;
     }
 
     RayTrace3D::~RayTrace3D()
@@ -178,6 +180,8 @@ namespace lsp
 
     status_t RayTrace3D::process()
     {
+        size_t p_points = 0; // Number of progress points
+
         // Generate sources
         for (size_t i=0,n=vSources.size(); i<n; ++i)
         {
@@ -199,8 +203,8 @@ namespace lsp
             if (obj == NULL)
                 return STATUS_NO_MEM;
 
-            // TODO: estimate matrix
-            matrix3d_t tm; // Transformation matrix
+            // Prepare transformation matrix
+            matrix3d_t tm;
             dsp::calc_matrix3d_transform_r1(&tm, &src->position);
 
             for (size_t i=0, n=obj->num_triangles(); i<n; ++i)
@@ -211,7 +215,25 @@ namespace lsp
                     return STATUS_NO_MEM;
 
                 ctx->view.s         = src->position.z;
+                dsp::apply_matrix3d_mp2(&ctx->view.p[0], t->v[0], &tm);
+                dsp::apply_matrix3d_mp2(&ctx->view.p[1], t->v[1], &tm);
+                dsp::apply_matrix3d_mp2(&ctx->view.p[2], t->v[2], &tm);
+
+                ctx->shared         = pDebug;
+                ctx->view.face      = -1;
+                ctx->view.speed     = SOUND_SPEED_M_S;
+                ctx->view.time[0]   = 0.0f;
+                ctx->view.time[1]   = 0.0f;
+                ctx->view.time[2]   = 0.0f;
+
+                if (!vTasks.add(ctx))
+                {
+                    delete ctx;
+                    return STATUS_NO_MEM;
+                }
             }
+
+            p_points       += obj->num_triangles();
         }
 
         return STATUS_OK;

@@ -70,6 +70,7 @@ namespace lsp
             rt_progress_t              *pProgress;
             void                       *pProgressData;
             size_t                      nSampleRate;
+            rt_shared_t                *pDebug;
 
         protected:
             void        destroy_tasks();
@@ -173,6 +174,12 @@ namespace lsp
              *
              */
             inline void         clear_captures()    {   vCaptures.flush();      };
+
+            /**
+             * Set debug context for debugging purposes
+             * @param shared shared context for debugging
+             */
+            inline void         set_debug_context(rt_shared_t *shared) {    pDebug = shared; }
 
             /**
              * Perform processing

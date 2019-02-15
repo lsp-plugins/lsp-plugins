@@ -756,7 +756,7 @@ namespace lsp
             ++ei;
         RT_FOREACH_END
 
-        RT_TRACE_BREAK(this,
+        RT_TRACE_BREAK(shared,
             lsp_trace("Prepare sort (%d edges)", int(ne));
 
             color3d_t c;
@@ -827,7 +827,7 @@ namespace lsp
                 return STATUS_CORRUPTED;
         );
 
-        RT_TRACE_BREAK(this,
+        RT_TRACE_BREAK(shared,
             lsp_trace("Edges have been sorted (%d edges)", int(ne));
 
             color3d_t c;
@@ -1033,7 +1033,7 @@ namespace lsp
         dsp::calc_plane_p3(&pl[2], &view.s, &view.p[1], &view.p[2]);
         dsp::calc_plane_p3(&pl[3], &view.s, &view.p[2], &view.p[0]);
 
-        RT_TRACE_BREAK(this,
+        RT_TRACE_BREAK(shared,
             lsp_trace("Culling space with planes (%d triangles)", int(triangle.size()));
 
             for (size_t j=0, n=triangle.size(); j<n; ++j)
@@ -1056,7 +1056,7 @@ namespace lsp
                 break;
         }
 
-        RT_TRACE_BREAK(this,
+        RT_TRACE_BREAK(shared,
             lsp_trace("Data after culling (%d triangles)", int(triangle.size()));
             for (size_t j=0,n=triangle.size(); j<n; ++j)
                 shared->view->add_triangle_3c(triangle.get(j), &C_CYAN, &C_MAGENTA, &C_YELLOW);
@@ -1159,7 +1159,7 @@ namespace lsp
             else
                 st->itag    = st->v[2]->itag;
 
-            RT_TRACE(
+            RT_TRACE(shared,
                 if (st->itag != 2)
                     ignore(st);
             )
@@ -1221,7 +1221,7 @@ namespace lsp
 //        RT_CALL_DEBUGGER(this, 7);
 
         // Perform split
-        RT_TRACE_BREAK(this,
+        RT_TRACE_BREAK(shared,
             lsp_trace("Prepare split by edge (%f, %f, %f, %f) (%d triangles)",
                     pl.dx, pl.dy, pl.dz, pl.dw,
                     int(triangle.size()));
@@ -1344,7 +1344,7 @@ namespace lsp
         if (res != STATUS_OK)
             return res;
 
-        RT_TRACE(
+        RT_TRACE(shared,
 //            for (size_t i=0,n=triangle.size();i<n; ++i)
 //            {
 //                rt_triangle_t *t = triangle.get(i);
@@ -1364,7 +1364,7 @@ namespace lsp
         )
         this->swap(&in);
 
-        RT_TRACE_BREAK(this,
+        RT_TRACE_BREAK(shared,
             lsp_trace("After split by edge");
 
             lsp_trace("IN context is GREEN (%d triangles)", int(triangle.size()));
@@ -1403,7 +1403,7 @@ namespace lsp
         vector3d_t pl;
         size_t itag;
 
-        RT_TRACE_BREAK(this,
+        RT_TRACE_BREAK(shared,
             lsp_trace("Prepare depth test");
             for (size_t j=0; j<triangle.size(); ++j)
                 shared->view->add_triangle_1c(triangle.get(j), &C_YELLOW);
@@ -1433,7 +1433,7 @@ namespace lsp
             // Prepare culling plane
             dsp::orient_plane_v1p1(&pl, &view.s, &ct->n);
 
-            RT_TRACE_BREAK(this,
+            RT_TRACE_BREAK(shared,
                 lsp_trace("Doing depth test for triangle %d/%d", int(triangle.index_of(ct)), int(triangle.size()));
                 for (size_t j=0; j<triangle.size(); ++j)
                 {
@@ -1480,7 +1480,7 @@ namespace lsp
                     st->itag    = itag;
             RT_FOREACH_END
 
-            RT_TRACE_BREAK(this,
+            RT_TRACE_BREAK(shared,
                 lsp_trace("After depth test for triangle %d/%d, in=GREEN, on=BLUE, out=RED", int(triangle.index_of(ct)), int(triangle.size()));
                 for (size_t j=0; j<triangle.size(); ++j)
                 {
@@ -1495,7 +1495,7 @@ namespace lsp
         }
 
         // Trace all ignored triangles
-        RT_TRACE(
+        RT_TRACE(shared,
 //            for (size_t i=0; i<nt; ++i)
 //            {
 //                rt_triangle_t *t = triangle.get(i);
@@ -1512,7 +1512,7 @@ namespace lsp
             return res;
         this->swap(&tmp);
 
-        RT_TRACE_BREAK(this,
+        RT_TRACE_BREAK(shared,
             lsp_trace("After depth test triangles=%d", int(triangle.size()));
             for (size_t j=0; j<triangle.size(); ++j)
             {

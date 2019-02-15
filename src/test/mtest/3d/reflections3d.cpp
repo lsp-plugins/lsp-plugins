@@ -156,7 +156,7 @@ namespace mtest
     {
         status_t res = STATUS_OK;
 
-        RT_TRACE_BREAK(ctx,
+        RT_TRACE_BREAK(ctx->shared,
             lsp_trace("Scanning objects...");
 
             for (size_t i=0, n=ctx->shared->scene->num_objects(); i<n; ++i)
@@ -187,7 +187,7 @@ namespace mtest
                     dsp::apply_matrix3d_mp1(&box.p[i], m);
 
                 // Skip object if view is not crossing bounding-box
-                RT_TRACE_BREAK(ctx,
+                RT_TRACE_BREAK(ctx->shared,
                     lsp_trace("Testing bound box");
 
                     v_vertex3d_t v[3];
@@ -210,7 +210,7 @@ namespace mtest
 
                 if (!check_bound_box(obj->bound_box(), &ctx->view))
                 {
-                    RT_TRACE(
+                    RT_TRACE(ctx->shared,
                         matrix3d_t *mx = obj->matrix();
 
                         for (size_t j=0,m=obj->num_triangles(); j<m; ++j)
@@ -239,13 +239,13 @@ namespace mtest
             if (res != STATUS_OK)
                 break;
 
-            RT_TRACE(
+            RT_TRACE(ctx->shared,
                 if (!ctx->validate())
                     return STATUS_BAD_STATE;
             )
         }
 
-        RT_TRACE(
+        RT_TRACE(ctx->shared,
             if (!ctx->shared->scene->validate())
                 return STATUS_CORRUPTED;
         )
@@ -431,7 +431,7 @@ namespace mtest
             if (m == NULL)
                 continue;
 
-            RT_TRACE_BREAK(ctx,
+            RT_TRACE_BREAK(ctx->shared,
                 lsp_trace("Reflecting triangle");
                 ctx->shared->view->add_triangle_1c(ct, &C_YELLOW);
                 ctx->shared->view->add_triangle_pvnc1(sv.p, &vpl, &C_MAGENTA);
@@ -458,7 +458,7 @@ namespace mtest
             float energy    = dsp::calc_area_pv(p) / A;
             float distance  = sv.s.x * ct->n.dx + sv.s.y * ct->n.dy + sv.s.z * ct->n.dz + ct->n.dw;
 
-            RT_TRACE_BREAK(ctx,
+            RT_TRACE_BREAK(ctx->shared,
                 lsp_trace("Projection points distance: {%f, %f, %f}", d[0], d[1], d[2]);
                 lsp_trace("View points time: {%f, %f, %f}", sv.time[0], sv.time[1], sv.time[2]);
                 lsp_trace("Projection points time: {%f, %f, %f}", t[0], t[1], t[2]);
@@ -503,7 +503,7 @@ namespace mtest
                 tv.s.y         += kd * ct->n.dy;
                 tv.s.z         += kd * ct->n.dz;
 
-                RT_TRACE_BREAK(ctx,
+                RT_TRACE_BREAK(ctx->shared,
                     lsp_trace("Outside->inside reflect_view");
                     lsp_trace("Energy: captured=%f, reflected=%f, refracted=%f", cv.energy, rv.energy, tv.energy);
                     lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, dispersion=%f, dissipation=%f",
@@ -532,7 +532,7 @@ namespace mtest
                 tv.s.y         += kd * ct->n.dy;
                 tv.s.z         += kd * ct->n.dz;
 
-                RT_TRACE_BREAK(ctx,
+                RT_TRACE_BREAK(ctx->shared,
                     lsp_trace("Inside->outside reflect_view");
                     lsp_trace("Energy: captured=%f, reflected=%f, refracted=%f", cv.energy, rv.energy, tv.energy);
                     lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, dispersion=%f, dissipation=%f",
@@ -618,7 +618,7 @@ namespace mtest
                     res = reflect_view(tasks, ctx);
                     break;
                 case S_IGNORE:
-                    RT_TRACE(
+                    RT_TRACE(ctx->shared,
                         for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
                             ctx->ignore(ctx->triangle.get(i));
                     )
