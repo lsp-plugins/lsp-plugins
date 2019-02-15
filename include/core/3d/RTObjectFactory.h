@@ -19,7 +19,7 @@ namespace lsp
             enum object_type_t
             {
                 OT_ICOSPHERE
-            } objec_type_t;
+            };
 
             typedef struct f_object_t
             {
@@ -37,7 +37,6 @@ namespace lsp
         protected:
             Scene3D                 sScene;
             cstorage<f_object_t>    sObjects;
-            ssize_t                 nIcosphereId;
 
         protected:
             Object3D    *generateIcosphere(size_t level);

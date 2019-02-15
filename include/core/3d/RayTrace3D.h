@@ -53,7 +53,7 @@ namespace lsp
 
             typedef struct capture_t
             {
-                ray3d_t             position;
+                matrix3d_t          matrix;
                 Material            material;
                 rt_audio_capture_t  type;
                 Sample             *sample;
@@ -67,7 +67,8 @@ namespace lsp
             cstorage<capture_t>         vCaptures;
             Scene3D                    *pScene;
             RTObjectFactory             sFactory;
-            rt_progress_t              *pProgress;
+            rt_progress_t               pProgress;
+            rt_context_t                sRoot;
             void                       *pProgressData;
             size_t                      nSampleRate;
             rt_shared_t                *pDebug;
@@ -80,7 +81,11 @@ namespace lsp
             status_t    report_progress(float progress);
 
             // Main ray-tracing routines
+            status_t    prepare_root_context();
+            status_t    generate_tasks();
             status_t    scan_objects(rt_context_t *ctx);
+            status_t    check_object(rt_context_t *ctx, Object3D *obj, const matrix3d_t *m);
+
             status_t    cull_view(rt_context_t *ctx);
             status_t    split_view(rt_context_t *ctx);
             status_t    cullback_view(rt_context_t *ctx);
@@ -117,7 +122,7 @@ namespace lsp
              * @param data data that will be passed to callback routine
              * @return status of operation
              */
-            status_t set_progress_callback(rt_progress_t *callback, void *data);
+            status_t set_progress_callback(rt_progress_t callback, void *data);
 
             /**
              * Clear progress callback

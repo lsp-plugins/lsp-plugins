@@ -235,7 +235,7 @@ namespace mtest
             }
 
             // Add object to context
-            res = ctx->add_object(obj, m);
+            res = ctx->add_object(obj, i, m);
             if (res != STATUS_OK)
                 break;
 
@@ -414,7 +414,6 @@ namespace mtest
         float a[3], A, kd;              // particular area, area, dispersion coefficient
 
         sv      = ctx->view;
-//        rearrange_view(&sv);            // Make edge 0 of the view the longest possible
 
         dsp::calc_plane_pv(&vpl, ctx->view.p);
         A       = dsp::calc_area_pv(sv.p);
@@ -865,7 +864,7 @@ MTEST_BEGIN("3d", reflections)
                 ctx->view.time[0]   = 1.0f;
                 ctx->view.time[1]   = 2.0f;
                 ctx->view.time[2]   = 3.0f;
-//                draw_barycentric(ctx->shared->view);
+                draw_barycentric(ctx->shared->view);
 
                 // Add context to tasks
                 if (!tasks.add(ctx))

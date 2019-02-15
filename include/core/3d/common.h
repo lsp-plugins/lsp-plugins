@@ -110,10 +110,17 @@ namespace lsp
     /**
      * Capture function
      * @param v the ray-tracing view that captured the energy
-     * @param data user data from material
+     * @param data user data
      * @return status of operation
      */
     typedef status_t (*rt_capture_t)(const rt_view_t *v, void *data);
+
+    /**
+     * Progress reporting function
+     * @param progress the progress value between 0 and 1
+     * @param data user data
+     * @return status of operation
+     */
     typedef status_t (*rt_progress_t)(float progress, void *data);
 
     typedef struct rt_vertex_t: public point3d_t
@@ -142,18 +149,19 @@ namespace lsp
         rt_triangle_t      *elnk[3];    // Link to next triangle for the edge e[i]
         void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
         ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
-        ssize_t             face;       // Face identifier
+        ssize_t             oid;        // Object identifier
+        ssize_t             face;       // Object's face identifier
         rt_material_t      *m;          // Material
         // Alignment to be multiple of 16
-        __IF_64(uint64_t    __pad);
-        __IF_32(uint32_t    __pad[3]);
+        __IF_32(uint32_t    __pad[2]);
     } rt_triangle_t;
 
     typedef struct rt_view_t
     {
         point3d_t           s;          // Source point
         point3d_t           p[3];       // View points
-        ssize_t             face;       // Face to ignore
+        ssize_t             oid;        // Object identifier
+        ssize_t             face;       // Object's face to ignore
         float               time[3];    // The corresponding start time for each source point
         float               energy;     // The energy of the wave, can have both positive and negative signs (if reflected)
         float               speed;      // This value indicates the current sound speed [m/s]

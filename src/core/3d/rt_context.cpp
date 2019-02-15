@@ -314,6 +314,7 @@ namespace lsp
                 nt->n           = ct->n;
                 nt->ptag        = NULL;
                 nt->itag        = ct->itag;
+                nt->oid         = ct->oid;
                 nt->face        = ct->face;
                 nt->m           = ct->m;
 
@@ -339,6 +340,7 @@ namespace lsp
                 nt->n           = ct->n;
                 nt->ptag        = NULL;
                 nt->itag        = ct->itag;
+                nt->oid         = ct->oid;
                 nt->face        = ct->face;
                 nt->m           = ct->m;
 
@@ -459,6 +461,7 @@ namespace lsp
         nt[0]->n        = t->n;
         nt[0]->ptag     = NULL;
         nt[0]->itag     = t->itag;
+        nt[0]->oid      = t->oid;
         nt[0]->face     = t->face;
         nt[0]->m        = t->m;
 
@@ -471,6 +474,7 @@ namespace lsp
         nt[1]->n        = t->n;
         nt[1]->ptag     = NULL;
         nt[1]->itag     = t->itag;
+        nt[1]->oid      = t->oid;
         nt[1]->face     = t->face;
         nt[1]->m        = t->m;
 
@@ -483,6 +487,7 @@ namespace lsp
       //nt[2]->n        = t->n;
       //nt[2]->ptag     = NULL;
       //nt[2]->itag     = t->itag;
+      //nt[2]->oid      = t->oid;
       //nt[2]->face     = t->face;
 
         // Re-link triangles to edges
@@ -538,6 +543,7 @@ namespace lsp
         tx->n       = st->n;
         tx->m       = st->m;
         tx->itag    = st->itag;
+        tx->oid     = st->oid;
         tx->face    = st->face;
         tx->ptag    = st;
         st->ptag    = tx;
@@ -856,7 +862,7 @@ namespace lsp
 
         for (size_t i=0; i<triangle.size(); ++i)
         {
-            rt_triangle_t *ct = triangle.get(i);
+            rt_triangle_t *ct   = triangle.get(i);
             dsp::calc_plane_p3(&pl, ct->v[0], ct->v[1], ct->v[2]);
             dsp::calc_plane_v1p2(&spl[0], &pl, ct->v[0], ct->v[1]);
             dsp::calc_plane_v1p2(&spl[1], &pl, ct->v[1], ct->v[2]);
@@ -1586,7 +1592,12 @@ namespace lsp
     }
 
 
-    status_t rt_context_t::add_object(Object3D *obj, rt_material_t *material)
+    status_t rt_context_t::add_object(Object3D *obj, size_t oid, rt_material_t *material)
+    {
+        return add_object(obj, oid, obj->matrix(), material);
+    }
+
+    status_t rt_context_t::add_object(Object3D *obj, size_t oid, const matrix3d_t *transform, rt_material_t *material)
     {
         // Reset tags
         obj->scene()->init_tags(NULL, 0);
@@ -1594,8 +1605,6 @@ namespace lsp
             if (!obj->scene()->validate())
                 return STATUS_CORRUPTED;
         )
-
-        matrix3d_t *m   = obj->matrix();
 
 //        lsp_trace("Processing object \"%s\"", obj->get_name());
         size_t start_t  = triangle.size();
@@ -1609,8 +1618,6 @@ namespace lsp
                 return STATUS_BAD_STATE;
             else if (st->ptag != NULL) // Skip already emitted triangle
                 continue;
-            else if (st->face == view.face) // Skip ignored faces
-                continue;
 
             // Allocate triangle and store pointer
             rt_triangle_t *dt = triangle.alloc();
@@ -1622,6 +1629,7 @@ namespace lsp
             dt->elnk[2] = NULL;
             dt->ptag    = st;
             dt->itag    = 0;
+            dt->oid     = oid;
             dt->face    = st->face;
             st->ptag    = dt;
             dt->m       = material;
@@ -1639,7 +1647,7 @@ namespace lsp
                     if (vx == NULL)
                         return STATUS_NO_MEM;
 
-                    dsp::apply_matrix3d_mp2(vx, st->v[j], m);
+                    dsp::apply_matrix3d_mp2(vx, st->v[j], transform);
 //                    vx->d           = dsp::calc_sqr_distance_p2(vx, &view.s);
                     vx->ve          = NULL;
                     vx->ptag        = st->v[j];
@@ -1674,7 +1682,7 @@ namespace lsp
             }
 
             // Update normals
-            dsp::apply_matrix3d_mv2(&dt->n, st->n[0], m);
+            dsp::apply_matrix3d_mv2(&dt->n, st->n[0], transform);
             dt->n.dw    = - (dt->n.dx * dt->v[0]->x + dt->n.dy * dt->v[0]->y + dt->n.dz * dt->v[0]->z);
         }
 
@@ -1728,6 +1736,32 @@ namespace lsp
                 return STATUS_CORRUPTED;
         )
 
+        return STATUS_OK;
+    }
+
+    status_t rt_context_t::fetch_objects(rt_context_t *src, size_t n, const size_t *ids)
+    {
+        rt_context_t tmp(this->shared);
+
+        if (n > 0)
+        {
+            // Match triangles by object identifier
+            RT_FOREACH(rt_triangle_t, t, src->triangle)
+                t->itag         = 0; // Not matched
+                for (size_t i=0; i<n; ++i)
+                    if (t->oid == ssize_t(ids[i]))
+                    {
+                        t->itag     = 1;
+                        break;
+                    }
+            RT_FOREACH_END;
+
+            status_t res    = src->fetch_triangles_safe(&tmp, 1);
+            if (res != STATUS_OK)
+                return res;
+        }
+
+        tmp.swap(this);
         return STATUS_OK;
     }
 

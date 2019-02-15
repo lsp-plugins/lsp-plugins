@@ -115,10 +115,30 @@ namespace lsp
             /**
              * Add object to context
              * @param obj object to add
+             * @param oid unique id to identify the object
              * @param material material that describes behaviour of reflected rays
              * @return status of operation
              */
-            status_t        add_object(Object3D *obj, rt_material_t *material);
+            status_t        add_object(Object3D *obj, size_t oid, rt_material_t *material);
+
+            /**
+             * Add object to context
+             * @param obj object to add
+             * @param oid unique id to identify the object
+             * @param transform transformation matrix to apply to object
+             * @param material material that describes behaviour of reflected rays
+             * @return status of operation
+             */
+            status_t        add_object(Object3D *obj, size_t oid, const matrix3d_t *transform, rt_material_t *material);
+
+            /**
+             * Fetch data for all objects identified by specified identifiers
+             * @param src source context to perform fetch
+             * @param n number of object identifiers in array
+             * @param ids pointer to array that contains object identifiers
+             * @return status of operation
+             */
+            status_t        fetch_objects(rt_context_t *src, size_t n, const size_t *ids);
 
             /**
              * Reorder triangles according to the location relatively to point-of-view
@@ -127,7 +147,9 @@ namespace lsp
             status_t        sort_edges();
 
             /**
-             * Remove conflicts between triangles
+             * Remove conflicts between triangles, does not modify the 'itag' field of
+             * triangle, so it can be used to identify objects of the scene
+             *
              * @return status of operation
              */
             status_t        solve_conflicts();

@@ -12,7 +12,6 @@ namespace lsp
     
     RTObjectFactory::RTObjectFactory()
     {
-        nIcosphereId    = 0;
     }
     
     RTObjectFactory::~RTObjectFactory()
