@@ -779,10 +779,7 @@ namespace lsp
                 fprintf(out, ", midi:MidiEvent");
             fprintf(out, " ;\n");
 
-            fprintf(out, "\t\tlv2:designation lv2:control ;\n");
-            fprintf(out, "\t\tlv2:index %d ;\n", int(port_id));
-            fprintf(out, "\t\tlv2:symbol \"%s\" ;\n", p->id);
-
+            const char *p_id    = p->id;
             const char *p_name  = p->name;
             const char *comm    = NULL;
             if (IS_IN_PORT(p))
@@ -790,7 +787,8 @@ namespace lsp
                 comm            = "UI -> DSP communication";
                 if (requirements & REQ_MIDI_IN)
                 {
-                    p_name          = LSP_LV2_MIDI_PORT_IN;
+                    p_id            = LSP_LV2_MIDI_PORT_IN;
+                    p_name          = "MIDI Input, UI Input";
                     comm            = "MIDI IN, UI -> DSP communication";
                 }
             }
@@ -799,11 +797,15 @@ namespace lsp
                 comm            = "DSP -> UI communication";
                 if (requirements & REQ_MIDI_IN)
                 {
-                    p_name          = LSP_LV2_MIDI_PORT_OUT;
+                    p_id            = LSP_LV2_MIDI_PORT_OUT;
+                    p_name          = "MIDI Output, UI Output";
                     comm            = "MIDI OUT, DSP -> UI communication";
                 }
             }
 
+            fprintf(out, "\t\tlv2:designation lv2:control ;\n");
+            fprintf(out, "\t\tlv2:index %d ;\n", int(port_id));
+            fprintf(out, "\t\tlv2:symbol \"%s\" ;\n", p_id);
             fprintf(out, "\t\tlv2:name \"%s\" ;\n", p_name);
             fprintf(out, "\t\trdfs:comment \"%s\" ;\n", comm);
             fprintf(out, "\t\trsz:minimumSize %ld ;\n", lv2_all_port_sizes(m.ports, IS_IN_PORT(p), IS_OUT_PORT(p)) * 2);
