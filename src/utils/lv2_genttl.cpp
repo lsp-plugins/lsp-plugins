@@ -220,8 +220,8 @@ namespace lsp
                 case R_FBUFFER:
                 case R_PATH:
                 case R_PORT_SET:
-                    continue;
                 case R_MIDI:
+                    continue;
                 case R_AUDIO:
                     port_id++;
                     continue;
@@ -378,7 +378,6 @@ namespace lsp
         FILE *out = NULL;
         snprintf(fname, sizeof(fname)-1, "%s/%s.ttl", path, m.lv2_uid);
         size_t requirements     = scan_requirements(m);
-//        bool patch_support = false;
 
         // Generate manifest.ttl
         if (!(out = fopen(fname, "w+")))
@@ -613,6 +612,7 @@ namespace lsp
                 case R_FBUFFER:
                 case R_PATH:
                 case R_PORT_SET:
+                case R_MIDI:
                     continue;
                 default:
                     break;
@@ -625,11 +625,6 @@ namespace lsp
             {
                 case R_AUDIO:
                     fprintf(out, "lv2:AudioPort ;\n");
-                    break;
-                case R_MIDI:
-                    fprintf(out, "atom:AtomPort ;\n");
-                    fprintf(out, "\t\tatom:bufferType atom:Sequence ;\n");
-                    fprintf(out, "\t\tatom:supports atom:Sequence, midi:MidiEvent ;\n");
                     break;
                 case R_CONTROL:
                 case R_METER:
@@ -767,6 +762,8 @@ namespace lsp
         // Add atom ports for state serialization
         for (size_t i=0; i<2; ++i)
         {
+            const port_t *p = &lv2_atom_ports[i];
+
             fprintf(out, "%s [\n", (port_id == 0) ? "\tlv2:port" : " ,");
             fprintf(out, "\t\ta lv2:%s, atom:AtomPort ;\n", (i > 0) ? "OutputPort" : "InputPort");
             fprintf(out, "\t\tatom:bufferType atom:Sequence ;\n");
@@ -776,14 +773,39 @@ namespace lsp
                 fprintf(out, ", patch:Message");
             if (requirements & REQ_TIME)
                 fprintf(out, ", time:Position");
+            if ((i == 0) && (requirements & REQ_MIDI_IN))
+                fprintf(out, ", midi:MidiEvent");
+            else if ((i == 1) && (requirements & REQ_MIDI_OUT))
+                fprintf(out, ", midi:MidiEvent");
             fprintf(out, " ;\n");
 
-            const port_t *p = &lv2_atom_ports[i];
             fprintf(out, "\t\tlv2:designation lv2:control ;\n");
             fprintf(out, "\t\tlv2:index %d ;\n", int(port_id));
             fprintf(out, "\t\tlv2:symbol \"%s\" ;\n", p->id);
-            fprintf(out, "\t\tlv2:name \"%s\" ;\n", p->name);
-            fprintf(out, "\t\trdfs:comment \"%s communication\" ;\n", (IS_IN_PORT(p)) ? "UI -> DSP" : "DSP -> UI");
+
+            const char *p_name  = p->name;
+            const char *comm    = NULL;
+            if (IS_IN_PORT(p))
+            {
+                comm            = "UI -> DSP communication";
+                if (requirements & REQ_MIDI_IN)
+                {
+                    p_name          = LSP_LV2_MIDI_PORT_IN;
+                    comm            = "MIDI IN, UI -> DSP communication";
+                }
+            }
+            else
+            {
+                comm            = "DSP -> UI communication";
+                if (requirements & REQ_MIDI_IN)
+                {
+                    p_name          = LSP_LV2_MIDI_PORT_OUT;
+                    comm            = "MIDI OUT, DSP -> UI communication";
+                }
+            }
+
+            fprintf(out, "\t\tlv2:name \"%s\" ;\n", p_name);
+            fprintf(out, "\t\trdfs:comment \"%s\" ;\n", comm);
             fprintf(out, "\t\trsz:minimumSize %ld ;\n", lv2_all_port_sizes(m.ports, IS_IN_PORT(p), IS_OUT_PORT(p)) * 2);
             fprintf(out, "\t]");
 

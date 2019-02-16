@@ -28,6 +28,8 @@ namespace lsp
             cvector<LV2Port>    vPluginPorts;   // All plugin ports sorted in urid order
             cvector<LV2Port>    vMeshPorts;
             cvector<LV2Port>    vFrameBufferPorts;
+            cvector<LV2Port>    vMidiInPorts;
+            cvector<LV2Port>    vMidiOutPorts;
             cvector<port_t>     vGenMetadata;   // Generated metadata
 
             plugin_t           *pPlugin;
@@ -59,6 +61,11 @@ namespace lsp
             void transmit_atoms(size_t samples);
             static LV2Port *find_by_urid(cvector<LV2Port> &v, LV2_URID urid);
             static void sort_by_urid(cvector<LV2Port> &v);
+
+            void parse_midi_event(const LV2_Atom_Event *ev);
+            void parse_atom_object(const LV2_Atom_Event *ev);
+            void serialize_midi_events(LV2Port *p);
+            void clear_midi_ports();
 
         public:
             inline explicit LV2Wrapper(plugin_t *plugin, LV2Extensions *ext)
@@ -201,7 +208,7 @@ namespace lsp
             case R_MIDI:
                 if (pExt->atom_supported())
                 {
-                    if (IS_OUT_PORT(p))
+                    if (p->flags & F_OUT)
                         result      = new LV2MidiOutputPort(p, pExt);
                     else
                         result      = new LV2MidiInputPort(p, pExt);
@@ -294,6 +301,14 @@ namespace lsp
                 case R_PORT_SET:
                     break;
 
+                case R_MIDI:
+                    pPlugin->add_port(p);
+                    if (port->flags & F_OUT)
+                        vMidiOutPorts.add(p);
+                    else
+                        vMidiInPorts.add(p);
+                    break;
+
                 case R_MESH:
                 case R_FBUFFER:
                 case R_PATH:
@@ -302,7 +317,6 @@ namespace lsp
                     break;
 
                 case R_AUDIO:
-                case R_MIDI:
                 case R_CONTROL:
                 case R_METER:
                     p->set_id(pPlugin->ports_count());
@@ -410,6 +424,7 @@ namespace lsp
         // Get sequence
         if (pAtomIn == NULL)
             return;
+
         const LV2_Atom_Sequence *seq = reinterpret_cast<const LV2_Atom_Sequence *>(pAtomIn);
 
 //        lsp_trace("pSequence->atom.type (%d) = %s", int(pSequence->atom.type), pExt->unmap_urid(pSequence->atom.type));
@@ -422,177 +437,337 @@ namespace lsp
         )
         {
 //            lsp_trace("ev->body.type (%d) = %s", int(ev->body.type), pExt->unmap_urid(ev->body.type));
+            if (ev->body.type == pExt->uridMidiEventType)
+                parse_midi_event(ev);
+            else if ((ev->body.type == pExt->uridObject) || (ev->body.type == pExt->uridBlank))
+                parse_atom_object(ev);
+        }
+    }
 
-            // If the event is an object
-            if ((ev->body.type != pExt->uridObject) && (ev->body.type != pExt->uridBlank))
+    void LV2Wrapper::parse_midi_event(const LV2_Atom_Event *ev)
+    {
+        // Are there any MIDI input ports in plugin?
+        if (vMidiInPorts.size() <= 0)
+            return;
+
+        // Decode MIDI event
+        midi_event_t me;
+        const uint8_t *bytes        = reinterpret_cast<const uint8_t*>(ev + 1);
+
+        // Debug
+        #ifdef LSP_TRACE
+            #define TRACE_KEY(x)    case MIDI_MSG_ ## x: evt_type = #x; break;
+            lsp_trace("midi dump: %02x %02x %02x", int(bytes[0]), int(bytes[1]), int(bytes[2]));
+
+            char tmp_evt_type[32];
+            const char *evt_type = NULL;
+            switch (me.type)
+            {
+                TRACE_KEY(NOTE_OFF)
+                TRACE_KEY(NOTE_ON)
+                TRACE_KEY(NOTE_PRESSURE)
+                TRACE_KEY(NOTE_CONTROLLER)
+                TRACE_KEY(PROGRAM_CHANGE)
+                TRACE_KEY(CHANNEL_PRESSURE)
+                TRACE_KEY(PITCH_BEND)
+                TRACE_KEY(SYSTEM_EXCLUSIVE)
+                TRACE_KEY(MTC_QUARTER)
+                TRACE_KEY(SONG_POS)
+                TRACE_KEY(SONG_SELECT)
+                TRACE_KEY(TUNE_REQUEST)
+                TRACE_KEY(END_EXCLUSIVE)
+                TRACE_KEY(CLOCK)
+                TRACE_KEY(START)
+                TRACE_KEY(CONTINUE)
+                TRACE_KEY(STOP)
+                TRACE_KEY(ACTIVE_SENSING)
+                TRACE_KEY(RESET)
+                default:
+                    snprintf(tmp_evt_type, sizeof(tmp_evt_type), "UNKNOWN(0x%02x)", int(me.type));
+                    evt_type = tmp_evt_type;
+                    break;
+            }
+
+            lsp_trace("MIDI Event: type=%s, timestamp=%ld", evt_type, (long)(me.timestamp));
+
+            #undef TRACE_KEY
+
+        #endif /* LSP_TRACE */
+
+        if (!decode_midi_message(&me, bytes))
+        {
+            lsp_warn("Could not decode MIDI message");
+            return;
+        }
+
+        // Put the event to the queue
+        me.timestamp      = uint32_t(ev->time.frames);
+
+        // For each MIDI port: add event to the queue
+        for (size_t i=0, n=vMidiInPorts.size(); i<n; ++i)
+        {
+            LV2Port *midi   = vMidiInPorts.at(i);
+            if (midi == NULL)
                 continue;
+            midi_t *buf     = midi->getBuffer<midi_t>();
+            if (buf == NULL)
+                continue;
+            if (!buf->push(me))
+                lsp_warn("MIDI event queue overflow");
+        }
+    }
 
-//            lsp_trace("connect_ui (%d) = %s", int(pExt->uridConnectUI), pExt->unmap_urid(pExt->uridConnectUI));
-//            lsp_trace("disconnect_ui (%d) = %s", int(pExt->uridDisconnectUI), pExt->unmap_urid(pExt->uridDisconnectUI));
-//            lsp_trace("urid_notification (%d) = %s", int(pExt->uridUINotification), pExt->unmap_urid(pExt->uridUINotification));
-
+    void LV2Wrapper::parse_atom_object(const LV2_Atom_Event *ev)
+    {
             // Analyze object type
-            const LV2_Atom_Object *obj = reinterpret_cast<const LV2_Atom_Object*>(&ev->body);
-//            lsp_trace("obj->body.otype (%d) = %s", int(obj->body.otype), pExt->unmap_urid(obj->body.otype));
-//            lsp_trace("obj->body.id (%d) = %s", int(obj->body.id), pExt->unmap_urid(obj->body.id));
+        const LV2_Atom_Object *obj = reinterpret_cast<const LV2_Atom_Object*>(&ev->body);
+//        lsp_trace("obj->body.otype (%d) = %s", int(obj->body.otype), pExt->unmap_urid(obj->body.otype));
+//        lsp_trace("obj->body.id (%d) = %s", int(obj->body.id), pExt->unmap_urid(obj->body.id));
 
-            if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateChange)) // State change
+        if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateChange)) // State change
+        {
+            lsp_trace("triggered state change");
+
+            for (
+                LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
+                !lv2_atom_object_is_end(&obj->body, obj->atom.size, body) ;
+                body = lv2_atom_object_next(body)
+            )
             {
-                lsp_trace("triggered state change");
+                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
 
-                for (
-                    LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
-                    !lv2_atom_object_is_end(&obj->body, obj->atom.size, body) ;
-                    body = lv2_atom_object_next(body)
-                )
+                // Try to find the corresponding port
+                LV2Port *p = find_by_urid(vPluginPorts, body->key);
+                if ((p != NULL) && (p->get_type_urid() == body->value.type))
+                    p->deserialize(&body->value);
+            }
+        }
+        else if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateRequest)) // State request
+        {
+            lsp_trace("triggered state request");
+            nStateReqs  ++;
+        }
+        else if ((obj->body.id == pExt->uridChunk) && (obj->body.otype == pExt->uridPatchGet)) // PatchGet request
+        {
+            lsp_trace("triggered patch request");
+            #ifdef LSP_TRACE
+            for (
+                LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
+                !lv2_atom_object_is_end(&obj->body, obj->atom.size, body) ;
+                body = lv2_atom_object_next(body)
+            )
+            {
+                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+            }
+            #endif /* LSP_TRACE */
+
+            // Increment the number of patch requests
+            nPatchReqs  ++;
+        }
+        else if ((obj->body.id == pExt->uridChunk) && (obj->body.otype == pExt->uridPatchSet)) // PatchSet request
+        {
+            // Parse atom body
+            const LV2_Atom_URID    *key     = NULL;
+            const LV2_Atom         *value   = NULL;
+
+            for (
+                LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
+                !lv2_atom_object_is_end(&obj->body, obj->atom.size, body) ;
+                body = lv2_atom_object_next(body)
+            )
+            {
+                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+
+                if ((body->key  == pExt->uridPatchProperty) && (body->value.type == pExt->uridAtomUrid))
                 {
-                    lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
-                    lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+                    key     = reinterpret_cast<const LV2_Atom_URID *>(&body->value);
+                    lsp_trace("body->value.body (%d) = %s", int(key->body), pExt->unmap_urid(key->body));
+                }
+                else if (body->key   == pExt->uridPatchValue)
+                    value   = &body->value;
 
-                    // Try to find the corresponding port
-                    LV2Port *p = find_by_urid(vPluginPorts, body->key);
-                    if ((p != NULL) && (p->get_type_urid() == body->value.type))
-                        p->deserialize(&body->value);
+                if ((key != NULL) && (value != NULL))
+                {
+                    LV2Port *p = find_by_urid(vPluginPorts, body->value.type);
+                    if ((p != NULL) && (p->get_type_urid() == value->type))
+                        p->deserialize(value);
+
+                    key     = NULL;
+                    value   = NULL;
                 }
             }
-            else if ((obj->body.id == pExt->uridState) && (obj->body.otype == pExt->uridStateRequest)) // State request
+        }
+        else if (obj->body.otype == pExt->uridTimePosition) // Time position notification
+        {
+            position_t pos      = sPosition;
+
+            pos.sampleRate      = fSampleRate;
+            pos.ticksPerBeat    = DEFAULT_TICKS_PER_BEAT;
+
+            for (
+                LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
+                !lv2_atom_object_is_end(&obj->body, obj->atom.size, body) ;
+                body = lv2_atom_object_next(body)
+            )
             {
-                lsp_trace("triggered state request");
-                nStateReqs  ++;
+//                lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
+//                lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+
+                if ((body->key == pExt->uridTimeFrame) && (body->value.type == pExt->forge.Long))
+                    pos.frame           = (reinterpret_cast<LV2_Atom_Long *>(&body->value))->body;
+                else if ((body->key == pExt->uridTimeSpeed) && (body->value.type == pExt->forge.Float))
+                    pos.speed           = (reinterpret_cast<LV2_Atom_Float *>(&body->value))->body;
+                else if ((body->key == pExt->uridTimeBeatsPerMinute) && (body->value.type == pExt->forge.Float))
+                    pos.beatsPerMinute  = (reinterpret_cast<LV2_Atom_Float *>(&body->value))->body;
+                else if ((body->key == pExt->uridTimeBeatUnit) && (body->value.type == pExt->forge.Int))
+                    pos.denominator     = (reinterpret_cast<LV2_Atom_Int *>(&body->value))->body;
+                else if ((body->key == pExt->uridTimeBeatsPerBar) && (body->value.type == pExt->forge.Float))
+                    pos.numerator       = (reinterpret_cast<LV2_Atom_Float *>(&body->value))->body;
+                else if ((body->key == pExt->uridTimeBarBeat) && (body->value.type == pExt->forge.Float))
+                    pos.tick            = (reinterpret_cast<LV2_Atom_Float *>(&body->value))->body * pos.ticksPerBeat;
             }
-            else if (obj->body.otype == pExt->uridTimePosition) // Time position notification
+//            lsp_trace("triggered timePosition event\n"
+//                      "  frame      = %lld\n"
+//                      "  speed      = %f\n"
+//                      "  bpm        = %f\n"
+//                      "  numerator  = %f\n"
+//                      "  denominator= %f\n"
+//                      "  tick       = %f\n",
+//                      (long long)(pos.frame), pos.speed, pos.beatsPerMinute, pos.denominator, pos.numerator, pos.tick
+//                    );
+
+            // Call plugin callback and update position
+            bUpdateSettings = pPlugin->set_position(&pos);
+            sPosition = pos;
+        }
+        else if ((obj->body.otype == pExt->uridUINotification) && (obj->body.id == pExt->uridConnectUI))
+        {
+            nClients    ++;
+            lsp_trace("UI has connected, current number of clients=%d", int(nClients));
+
+            // Notify all ports that UI has connected to backend
+            for (size_t i=0, n = vAllPorts.size(); i<n; ++i)
             {
-                position_t pos      = sPosition;
+                LV2Port *p = vAllPorts.get(i);
+                if (p != NULL)
+                    p->ui_connected();
+            }
+        }
+        else if ((obj->body.otype == pExt->uridUINotification) && (obj->body.id == pExt->uridDisconnectUI))
+        {
+            nClients    --;
+            lsp_trace("UI has disconnected, current number of clients=%d", int(nClients));
+        }
+        else
+        {
+            lsp_trace("Unknown object: \n"
+                      "  ev->body.type (%d) = %s\n"
+                      "  obj->body.otype (%d) = %s\n"
+                      "  obj->body.id (%d) = %s",
+                     int(ev->body.type), pExt->unmap_urid(ev->body.type),
+                     int(obj->body.otype), pExt->unmap_urid(obj->body.otype),
+                     int(obj->body.id), pExt->unmap_urid(obj->body.id)
+             );
+        }
+    }
 
-                pos.sampleRate      = fSampleRate;
-                pos.ticksPerBeat    = DEFAULT_TICKS_PER_BEAT;
+    void LV2Wrapper::serialize_midi_events(LV2Port *p)
+    {
+        midi_t  *midi   = p->getBuffer<midi_t>();
+        if ((midi == NULL) || (midi->nEvents <= 0))  // There are no events ?
+            return;
 
-//                lsp_trace("triggered timePosition event");
-                for (
-                    LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
-                    !lv2_atom_object_is_end(&obj->body, obj->atom.size, body) ;
-                    body = lv2_atom_object_next(body)
-                )
+        midi->sort();   // Sort buffer chronologically
+
+        // Serialize MIDI events
+        LV2_Atom_Midi buf;
+        buf.atom.type       = pExt->uridMidiEventType;
+
+        for (size_t i=0; i<midi->nEvents; ++i)
+        {
+            const midi_event_t *me = &midi->vEvents[i];
+
+            // Debug
+            #ifdef LSP_TRACE
+                #define TRACE_KEY(x)    case MIDI_MSG_ ## x: evt_type = #x; break;
+
+                char tmp_evt_type[32];
+                const char *evt_type = NULL;
+                switch (me->type)
                 {
-//                    lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
-//                    lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
-
-                    if ((body->key == pExt->uridTimeFrame) && (body->value.type == pExt->forge.Long))
-                        pos.frame           = (reinterpret_cast<LV2_Atom_Long *>(&body->value))->body;
-                    else if ((body->key == pExt->uridTimeSpeed) && (body->value.type == pExt->forge.Float))
-                        pos.speed           = (reinterpret_cast<LV2_Atom_Float *>(&body->value))->body;
-                    else if ((body->key == pExt->uridTimeBeatsPerMinute) && (body->value.type == pExt->forge.Float))
-                        pos.beatsPerMinute  = (reinterpret_cast<LV2_Atom_Float *>(&body->value))->body;
-                    else if ((body->key == pExt->uridTimeBeatUnit) && (body->value.type == pExt->forge.Int))
-                        pos.denominator     = (reinterpret_cast<LV2_Atom_Int *>(&body->value))->body;
-                    else if ((body->key == pExt->uridTimeBeatsPerBar) && (body->value.type == pExt->forge.Float))
-                        pos.numerator       = (reinterpret_cast<LV2_Atom_Float *>(&body->value))->body;
-                    else if ((body->key == pExt->uridTimeBarBeat) && (body->value.type == pExt->forge.Float))
-                        pos.tick            = (reinterpret_cast<LV2_Atom_Float *>(&body->value))->body * pos.ticksPerBeat;
+                    TRACE_KEY(NOTE_OFF)
+                    TRACE_KEY(NOTE_ON)
+                    TRACE_KEY(NOTE_PRESSURE)
+                    TRACE_KEY(NOTE_CONTROLLER)
+                    TRACE_KEY(PROGRAM_CHANGE)
+                    TRACE_KEY(CHANNEL_PRESSURE)
+                    TRACE_KEY(PITCH_BEND)
+                    TRACE_KEY(SYSTEM_EXCLUSIVE)
+                    TRACE_KEY(MTC_QUARTER)
+                    TRACE_KEY(SONG_POS)
+                    TRACE_KEY(SONG_SELECT)
+                    TRACE_KEY(TUNE_REQUEST)
+                    TRACE_KEY(END_EXCLUSIVE)
+                    TRACE_KEY(CLOCK)
+                    TRACE_KEY(START)
+                    TRACE_KEY(CONTINUE)
+                    TRACE_KEY(STOP)
+                    TRACE_KEY(ACTIVE_SENSING)
+                    TRACE_KEY(RESET)
+                    default:
+                        snprintf(tmp_evt_type, sizeof(tmp_evt_type), "UNKNOWN(0x%02x)", int(me->type));
+                        evt_type = tmp_evt_type;
+                        break;
                 }
 
-                // Call plugin callback and update position
-                bUpdateSettings = pPlugin->set_position(&pos);
-                sPosition = pos;
+                lsp_trace("MIDI Event: type=%s, timestamp=%ld", evt_type, (long)(me->timestamp));
 
-                // Object dump:
-                // receive_atoms: body->key (20) = http://lv2plug.in/ns/ext/time#frame +
-                // receive_atoms: body->value.type (37) = http://lv2plug.in/ns/ext/atom#Long
+                #undef TRACE_KEY
 
-                // receive_atoms: body->key (21) = http://lv2plug.in/ns/ext/time#speed +
-                // receive_atoms: body->value.type (8) = http://lv2plug.in/ns/ext/atom#Float
+            #endif /* LSP_TRACE */
 
-                // receive_atoms: body->key (16) = http://lv2plug.in/ns/ext/time#barBeat +
-                // receive_atoms: body->value.type (8) = http://lv2plug.in/ns/ext/atom#Float
-
-                // receive_atoms: body->key (15) = http://lv2plug.in/ns/ext/time#bar
-                // receive_atoms: body->value.type (37) = http://lv2plug.in/ns/ext/atom#Long
-
-                // receive_atoms: body->key (17) = http://lv2plug.in/ns/ext/time#beatUnit +
-                // receive_atoms: body->value.type (36) = http://lv2plug.in/ns/ext/atom#Int
-
-                // receive_atoms: body->key (18) = http://lv2plug.in/ns/ext/time#beatsPerBar +
-                // receive_atoms: body->value.type (8) = http://lv2plug.in/ns/ext/atom#Float
-
-                // receive_atoms: body->key (19) = http://lv2plug.in/ns/ext/time#beatsPerMinute +
-                // receive_atoms: body->value.type (8) = http://lv2plug.in/ns/ext/atom#Float
-            }
-            else if ((obj->body.id == pExt->uridChunk) && (obj->body.otype == pExt->uridPatchGet)) // PatchGet request
+            buf.atom.size = encode_midi_message(me, buf.body);
+            if (!buf.atom.size)
             {
-                lsp_trace("triggered patch request");
-                #ifdef LSP_TRACE
-                for (
-                    LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
-                    !lv2_atom_object_is_end(&obj->body, obj->atom.size, body) ;
-                    body = lv2_atom_object_next(body)
-                )
-                {
-                    lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
-                    lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
-                }
-                #endif /* LSP_TRACE */
-
-                // Increment the number of patch requests
-                nPatchReqs  ++;
+                lsp_error("Tried to serialize invalid MIDI event");
+                continue;
             }
-            else if ((obj->body.id == pExt->uridChunk) && (obj->body.otype == pExt->uridPatchSet)) // PatchSet request
-            {
-                // Parse atom body
-                const LV2_Atom_URID    *key     = NULL;
-                const LV2_Atom         *value   = NULL;
 
-                for (
-                    LV2_Atom_Property_Body *body = lv2_atom_object_begin(&obj->body) ;
-                    !lv2_atom_object_is_end(&obj->body, obj->atom.size, body) ;
-                    body = lv2_atom_object_next(body)
-                )
-                {
-                    lsp_trace("body->key (%d) = %s", int(body->key), pExt->unmap_urid(body->key));
-                    lsp_trace("body->value.type (%d) = %s", int(body->value.type), pExt->unmap_urid(body->value.type));
+            lsp_trace("midi dump: %02x %02x %02x (%d: %d)",
+                int(buf.body[0]), int(buf.body[1]), int(buf.body[2]), int(buf.atom.size), int(buf.atom.size + sizeof(LV2_Atom)));
 
-                    if ((body->key  == pExt->uridPatchProperty) && (body->value.type == pExt->uridAtomUrid))
-                    {
-                        key     = reinterpret_cast<const LV2_Atom_URID *>(&body->value);
-                        lsp_trace("body->value.body (%d) = %s", int(key->body), pExt->unmap_urid(key->body));
-                    }
-                    else if (body->key   == pExt->uridPatchValue)
-                        value   = &body->value;
+            // Serialize object
+            pExt->forge_frame_time(me->timestamp);
+            pExt->forge_raw(&buf.atom, sizeof(LV2_Atom) + buf.atom.size);
+            pExt->forge_pad(sizeof(LV2_Atom) + buf.atom.size);
+        }
+    }
 
-                    if ((key != NULL) && (value != NULL))
-                    {
-                        LV2Port *p = find_by_urid(vPluginPorts, body->value.type);
-                        if ((p != NULL) && (p->get_type_urid() == value->type))
-                            p->deserialize(value);
+    void LV2Wrapper::clear_midi_ports()
+    {
+        // Clear all MIDI_IN ports
+        for (size_t i=0, n=vMidiInPorts.size(); i<n; ++i)
+        {
+            LV2Port *p      = vMidiInPorts.at(i);
+            if ((p == NULL) || (p->metadata()->role != R_MIDI))
+                continue;
+            midi_t *midi    = p->getBuffer<midi_t>();
+            if (midi != NULL)
+                midi->clear();
+        }
 
-                        key     = NULL;
-                        value   = NULL;
-                    }
-                }
-            }
-            else if ((obj->body.id == pExt->uridConnectUI) && (obj->body.otype == pExt->uridUINotification))
-            {
-                nClients    ++;
-                lsp_trace("UI has connected, current number of clients=%d", int(nClients));
-
-                // Notify all ports that UI has connected to backend
-                for (size_t i=0, n = vAllPorts.size(); i<n; ++i)
-                {
-                    LV2Port *p = vAllPorts.get(i);
-                    if (p != NULL)
-                        p->ui_connected();
-                }
-            }
-            else if ((obj->body.id == pExt->uridDisconnectUI) && (obj->body.otype == pExt->uridUINotification))
-            {
-                nClients    --;
-                lsp_trace("UI has disconnected, current number of clients=%d", int(nClients));
-            }
-            else
-            {
-                lsp_trace("ev->body.type (%d) = %s", int(ev->body.type), pExt->unmap_urid(ev->body.type));
-                lsp_trace("obj->body.otype (%d) = %s", int(obj->body.otype), pExt->unmap_urid(obj->body.otype));
-                lsp_trace("obj->body.id (%d) = %s", int(obj->body.id), pExt->unmap_urid(obj->body.id));
-            }
+        // Clear all MIDI_OUT ports
+        for (size_t i=0, n=vMidiOutPorts.size(); i<n; ++i)
+        {
+            LV2Port *p      = vMidiOutPorts.at(i);
+            if ((p == NULL) || (p->metadata()->role != R_MIDI))
+                continue;
+            midi_t *midi    = p->getBuffer<midi_t>();
+            if (midi != NULL)
+                midi->clear();
         }
     }
 
@@ -638,15 +813,25 @@ namespace lsp
         LV2_Atom_Forge_Frame    frame;
         pExt->forge_sequence_head(&seq, 0);
 
+        // For each MIDI port, serialize it's data
+        size_t n_midi       = vMidiOutPorts.size();
+        for (size_t i=0; i<n_midi; ++i)
+        {
+            LV2Port *p      = vMidiOutPorts.at(i);
+            if ((p == NULL) || (p->metadata()->role != R_MIDI))
+                continue;
+            serialize_midi_events(p);
+        }
+
         // Serialize paths that are visible in global space
         size_t n_ports      = vExtPorts.size();
         for (size_t i=0; i<n_ports; ++i)
         {
             // Get port
-            LV2Port *p = vExtPorts[i];
+            LV2Port *p = vExtPorts.at(i);
             if ((p == NULL) || (p->metadata()->role != R_PATH))
                 continue;
-            if (p->get_id() < 0) // Non-global paths are serialized via STATE CHANGE primitive
+            else if (p->get_id() < 0) // Non-global paths are serialized via STATE CHANGE primitive
                 continue;
 
             // Check that we need to transmit the value
@@ -857,6 +1042,8 @@ namespace lsp
         vAllPorts.clear();
         vExtPorts.clear();
         vMeshPorts.clear();
+        vMidiInPorts.clear();
+        vMidiOutPorts.clear();
         vFrameBufferPorts.clear();
         vPluginPorts.clear();
         vGenMetadata.clear();
@@ -874,7 +1061,7 @@ namespace lsp
         size_t ports_count  = vExtPorts.size();
         if (id < ports_count)
         {
-            LV2Port *p      = vExtPorts[id];
+            LV2Port *p      = vExtPorts.get(id);
             if (p != NULL)
                 p->bind(data);
         }
@@ -886,7 +1073,7 @@ namespace lsp
                 case 1: pAtomOut    = data; break;
                 case 2: pLatency    = reinterpret_cast<float *>(data); break;
                 default:
-                    lsp_warn("Unknown bind port: %d", int(id));
+                    lsp_warn("Unknown port number: %d", int(id));
                     break;
             }
         }
@@ -894,8 +1081,6 @@ namespace lsp
 
     inline void LV2Wrapper::run(size_t samples)
     {
-        lsp_trace("processing %d samples", int(samples)); // TODO: remove after debug
-
         // Activate/deactivate the UI
         ssize_t clients = nClients + nDirectClients;
         if (clients > 0)
@@ -907,6 +1092,7 @@ namespace lsp
             pPlugin->deactivate_ui();
 
         // First pre-process transport ports
+        clear_midi_ports();
         receive_atoms(samples);
 
         // Pre-rocess regular ports
@@ -939,6 +1125,7 @@ namespace lsp
 
         // Transmit atoms (if possible)
         transmit_atoms(samples);
+        clear_midi_ports();
 
         // Post-process regular ports for changes
         for (size_t i=0; i<n_all_ports; ++i)
@@ -951,8 +1138,6 @@ namespace lsp
         // Transmit latency (if possible)
         if (pLatency != NULL)
             *pLatency   = pPlugin->get_latency();
-
-        lsp_trace("processed %d samples", int(samples)); // TODO: remove after debug
     }
 
     IExecutor *LV2Wrapper::get_executor()

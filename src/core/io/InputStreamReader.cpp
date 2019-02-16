@@ -120,7 +120,7 @@ namespace lsp
                 }
                 nCodePage   = cp;
             #else
-                hIconv      = init_iconv_from_wchar_t(charset);
+                hIconv      = init_iconv_to_wchar_t(charset);
                 if (hIconv == iconv_t(-1))
                 {
                     do_destroy();

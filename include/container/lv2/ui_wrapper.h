@@ -309,8 +309,9 @@ namespace lsp
 
         switch (p->role)
         {
+            case R_MIDI: // Skip all MIDI ports
+                break;
             case R_AUDIO: // Stub ports
-            case R_MIDI:
                 result = new LV2UIPort(p, pExt);
                 break;
             case R_CONTROL:
@@ -407,6 +408,7 @@ namespace lsp
             switch (port->role)
             {
                 case R_PORT_SET:
+                case R_MIDI:
                     break;
 
                 case R_PATH:
@@ -417,7 +419,6 @@ namespace lsp
                     break;
 
                 case R_AUDIO:
-                case R_MIDI:
                 case R_METER:
                 case R_CONTROL:
                 {
