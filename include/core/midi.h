@@ -105,6 +105,8 @@ namespace lsp
         {
             nEvents     = 0;
         }
+
+        void sort();
     } midi_t;
 
     enum midi_message_t

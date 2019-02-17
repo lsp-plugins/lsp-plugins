@@ -37,6 +37,14 @@
     #define LV2_ATOM__Object        LV2_ATOM_PREFIX "Object"
 #endif /* LV2_ATOM__Object */
 
+#pragma pack(push, 1)
+typedef struct LV2_Atom_Midi
+{
+    LV2_Atom    atom;
+    uint8_t     body[8];
+} LV2_Atom_Midi;
+#pragma pack(pop)
+
 namespace lsp
 {
     #define LSP_LV2_ATOM_KEY_SIZE       (sizeof(uint32_t) * 2)
@@ -750,13 +758,13 @@ namespace lsp
                     size           += (4 * sizeof(LV2_Atom_Int) + 0x100) + // Headers
                                         size_t(p->step) * FRAMEBUFFER_BULK_MAX * sizeof(float);
                     break;
-//                case R_MIDI:
-//                    if (IS_OUT_PORT(p) && (!out))
-//                        break;
-//                    else if (IS_IN_PORT(p) && (!in))
-//                        break;
-//                    size            += (sizeof(LV2_Atom_Event) + 0x10) * MIDI_EVENTS_MAX; // Size of atom event + pad for MIDI data
-//                    break;
+                case R_MIDI:
+                    if (IS_OUT_PORT(p) && (!out))
+                        break;
+                    else if (IS_IN_PORT(p) && (!in))
+                        break;
+                    size            += (sizeof(LV2_Atom_Event) + 0x10) * MIDI_EVENTS_MAX; // Size of atom event + pad for MIDI data
+                    break;
                 case R_PATH: // Both sizes: IN and OUT
                     size            += PATCH_OVERHEAD + PATH_MAX;
                     break;

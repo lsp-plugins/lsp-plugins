@@ -120,7 +120,7 @@ namespace lsp
                 }
                 nCodePage   = cp;
             #else
-                hIconv      = init_iconv_from_wchar_t(charset);
+                hIconv      = init_iconv_to_wchar_t(charset);
                 if (hIconv == iconv_t(-1))
                 {
                     do_destroy();
@@ -240,64 +240,57 @@ namespace lsp
                 cBufSize        = 0;
             cBufPos         = 0;
 
-            // Read until buffer is fully filled with data
-            while (cBufSize < CBUF_SIZE)
+            // Try to additionally fill byte buffer with data
+            left    = bBufSize - bBufPos;
+            if (left <= (CBUF_SIZE/2))
             {
-                left    = bBufSize - bBufPos;
-                if (left <= (CBUF_SIZE/2))
+                // Ensure that there is data in byte buffer, move it to beginning
+                if (left > 0)
                 {
-                    // Ensure that there is data in byte buffer, move it to beginning
-                    if (left > 0)
-                    {
-                        ::memmove(bBuf, &bBuf[bBufPos], left * sizeof(uint8_t));
-                        bBufSize        = left;
-                    }
-                    else
-                        bBufSize        = 0;
-                    bBufPos     = 0;
-
-                    // Try to additionally read data
-                    size_t nbytes       = fread(&bBuf[bBufSize], sizeof(uint8_t), BBUF_SIZE - bBufSize, pFD);
-                    if ((nbytes <= 0) && (left <= 0))
-                        return nError = STATUS_EOF;
-                    else if (nbytes > 0)
-                        bBufSize       += nbytes;
-
-                    left        = bBufSize - bBufPos;
+                    ::memmove(bBuf, &bBuf[bBufPos], left * sizeof(uint8_t));
+                    bBufSize        = left;
                 }
+                else
+                    bBufSize        = 0;
+                bBufPos     = 0;
 
-                // Prepare to byte-to-character conversion
-                if (left <= 0)
-                    break;
+                // Try to additionally read data
+                size_t nbytes       = fread(&bBuf[bBufSize], sizeof(uint8_t), BBUF_SIZE - bBufSize, pFD);
+                if ((nbytes <= 0) && (left <= 0))
+                    return nError = STATUS_EOF;
+                else if (nbytes > 0)
+                    bBufSize       += nbytes;
 
-                // Do the conversion
-                size_t c_left   = (CBUF_SIZE - cBufSize) * sizeof(lsp_wchar_t);
-                size_t xb_left  = left;
-                size_t xc_left  = c_left;
-
-                char *inbuf     = reinterpret_cast<char *>(&bBuf[bBufPos]);
-                char *outbuf    = reinterpret_cast<char *>(&cBuf[cBufSize]);
-                size_t nconv    = iconv(hIconv, &inbuf, &xb_left, &outbuf, &xc_left);
-
-                if (nconv == size_t(-1))
-                {
-                    int code = errno;
-                    switch (code)
-                    {
-                        case E2BIG:
-                        case EINVAL:
-                            break;
-                        default:
-                            return nError = STATUS_BAD_FORMAT;
-                    }
-                }
-
-                // Update state of buffers
-                cBufSize       += (c_left - xc_left) / sizeof(lsp_wchar_t);
-                bBufPos        += (left - xb_left);
+                left        = bBufSize - bBufPos;
             }
 
-            return nError = STATUS_OK;
+            // Do the conversion
+            size_t c_left   = (CBUF_SIZE - cBufSize) * sizeof(lsp_wchar_t);
+            size_t xb_left  = left;
+            size_t xc_left  = c_left;
+
+            char *inbuf     = reinterpret_cast<char *>(&bBuf[bBufPos]);
+            char *outbuf    = reinterpret_cast<char *>(&cBuf[cBufSize]);
+            size_t nconv    = iconv(hIconv, &inbuf, &xb_left, &outbuf, &xc_left);
+
+            if (nconv == size_t(-1))
+            {
+                int code = errno;
+                switch (code)
+                {
+                    case E2BIG:
+                    case EINVAL:
+                        break;
+                    default:
+                        return nError = STATUS_BAD_FORMAT;
+                }
+            }
+
+            // Update state of buffers
+            cBufSize       += (c_left - xc_left) / sizeof(lsp_wchar_t);
+            bBufPos        += (left - xb_left);
+
+            return nError = (cBufSize > cBufPos) ? STATUS_OK : STATUS_EOF;
         }
 #endif /* PLATFORM_WINDOWS */
 
