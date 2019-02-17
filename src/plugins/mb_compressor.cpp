@@ -614,6 +614,9 @@ namespace lsp
         {
             channel_t *c    = &vChannels[i];
 
+            // Update bypass settings
+            c->sBypass.set_bypass(pBypass->getValue());
+
             // Update frequency split bands
             for (size_t j=0; j<mb_compressor_base_metadata::BANDS_MAX-1; ++j)
             {
@@ -719,8 +722,8 @@ namespace lsp
                 bool cust_lcf   = b->pScLpfOn->getValue() >= 0.5f;
                 bool cust_hcf   = b->pScHpfOn->getValue() >= 0.5f;
                 float sc_gain   = b->pScPreamp->getValue();
-                bool mute       = b->pMute->getValue() >= 0.5f;
-                bool solo       = b->pSolo->getValue() >= 0.5f;
+                bool mute       = (enabled) && (b->pMute->getValue() >= 0.5f);
+                bool solo       = (enabled) && (b->pSolo->getValue() >= 0.5f);
 
                 b->pRelLevelOut->setValue(release);
 
@@ -1265,7 +1268,7 @@ namespace lsp
                     c->vScIn           += to_process;
             }
             samples    -= to_process;
-        }
+        } // while (samples > 0)
 
         // Output FFT curves for each channel
         for (size_t i=0; i<channels; ++i)
