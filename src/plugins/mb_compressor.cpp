@@ -1006,6 +1006,29 @@ namespace lsp
             }
         }
 
+        // Debug:
+#ifdef LSP_TRACE
+        for (size_t i=0; i<channels; ++i)
+        {
+            channel_t *c    = &vChannels[i];
+
+            for (size_t j=0; j<c->nPlanSize; ++j)
+            {
+                comp_band_t *b  = c->vPlan[j];
+                filter_params_t fp;
+                sFilters.get_params(b->nFilterID, &fp);
+
+                lsp_trace("plan[%d, %d] start=%f, end=%f, filter={id=%d, type=%d, slope=%d}, solo=%s, mute=%s",
+                        int(i), int(j),
+                        b->fFreqStart, b->fFreqEnd,
+                        int(b->nFilterID), int(fp.nType), int(fp.nSlope),
+                        (b->bSolo) ? "true" : "false",
+                        (b->bMute) ? "true" : "false"
+                    );
+            }
+        }
+#endif /* LSP_TRACE */
+
         nEnvBoost       = env_boost;
         bEnvUpdate      = false;
     }
