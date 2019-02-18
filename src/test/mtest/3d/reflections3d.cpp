@@ -31,7 +31,7 @@
 
 #ifndef TEST_DEBUG
 //    #define BREAKPOINT_STEP     -1
-    #define BREAKPOINT_STEP     5
+    #define BREAKPOINT_STEP     0
 //    #define BREAKPOINT_STEP     231
 
 /*
@@ -882,6 +882,14 @@ MTEST_BEGIN("3d", reflections)
                 if (res == STATUS_BREAKPOINT)
                     res     = STATUS_OK;
                 trace.destroy(false);
+//                RTObjectFactory f;
+//                Object3D *obj;
+//                obj   = f.buildIcosphere(2);
+//                if (obj != NULL)
+//                {
+//                    for (size_t i=0, m=obj->num_triangles(); i < m; ++i)
+//                        pView->add_triangle_3c(obj->triangle(i), &C_RED, &C_GREEN, &C_BLUE);
+//                }
 
                 if (!pScene->validate())
                     return STATUS_BAD_STATE;

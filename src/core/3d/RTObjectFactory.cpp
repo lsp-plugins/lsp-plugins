@@ -43,30 +43,30 @@ namespace lsp
     // Icosahedron triangle vertex indexes
     static const uint8_t ico_triangle[] =
     {
-        0, 4, 1,
-        0, 9, 4,
-        9, 5, 4,
-        4, 5, 8,
+        0, 1, 4,
+        0, 4, 9,
+        9, 4, 5,
+        4, 8, 5,
 
-        4, 8, 1,
-        8, 10, 1,
-        8, 3, 10,
-        5, 3, 8,
+        4, 1, 8,
+        8, 1, 10,
+        8, 10, 3,
+        5, 8, 3,
 
-        5, 2, 3,
-        2, 7, 3,
-        7, 10, 3,
-        7, 6, 10,
+        5, 3, 2,
+        2, 3, 7,
+        7, 3, 10,
+        7, 10, 6,
 
-        7, 11, 6,
-        11, 0, 6,
-        0, 1, 6,
-        6, 1, 10,
+        7, 6, 11,
+        11, 6, 0,
+        0, 6, 1,
+        6, 10, 1,
 
-        9, 0, 11,
-        9, 11, 2,
-        9, 2, 5,
-        7, 2, 11
+        9, 11, 0,
+        9, 2, 11,
+        9, 5, 2,
+        7, 11, 2
     };
 
 #undef ICO_X
@@ -96,7 +96,7 @@ namespace lsp
         }
 
         // Create initial triangles (icosahedron has 20 triangles)
-        size_t total_triangles  = 20 * (level << 2);  // 20 * 4^level
+        size_t total_triangles  = 20 << (level << 1);  // 20 * 4^level
 
         sp_triangle_t *vt   = new sp_triangle_t[total_triangles]; // Temporary array
         if (vt == NULL)
@@ -117,12 +117,12 @@ namespace lsp
 
         for (size_t step=0; step < level; ++step)
         {
-            size_t nt           = 20 * (step << 2); // 20 * 4^step
+            size_t nt           = 20 << (step << 1); // 20 * 4^step
             sp_triangle_t *st   = vt;       // source triangles
-            sp_triangle_t *dt   = &dt[nt];  // newly-allocated triangles
+            sp_triangle_t *dt   = &vt[nt];  // newly-allocated triangles
 
             // Perform split of each triangle into 4 sub-triangles
-            for (size_t i=0; i<nt; ++i)
+            for (size_t i=0; i<nt; ++i, ++st, dt += 3)
             {
                 p[0]        = sScene.vertex(st->vi[0]);
                 p[1]        = sScene.vertex(st->vi[1]);
@@ -191,7 +191,7 @@ namespace lsp
 
         // Add each triangle to the scene
         vector3d_t n;
-        for (size_t i=0; i<320; ++i)
+        for (size_t i=0; i<total_triangles; ++i)
         {
             // Compute normal value
             p[0]    = sScene.vertex(vt[i].vi[0]);

@@ -339,8 +339,8 @@ namespace lsp
 
                 ctx->view.s         = src->position.z;
                 dsp::apply_matrix3d_mp2(&ctx->view.p[0], t->v[0], &tm);
-                dsp::apply_matrix3d_mp2(&ctx->view.p[1], t->v[1], &tm);
-                dsp::apply_matrix3d_mp2(&ctx->view.p[2], t->v[2], &tm);
+                dsp::apply_matrix3d_mp2(&ctx->view.p[1], t->v[2], &tm);
+                dsp::apply_matrix3d_mp2(&ctx->view.p[2], t->v[1], &tm);
 
                 ctx->view.oid       = -1;
                 ctx->view.face      = -1;
@@ -358,6 +358,11 @@ namespace lsp
 
             RT_TRACE_BREAK(pDebug,
                     lsp_trace("Generated %d raytrace contexts for source %d", int(obj->num_triangles()), int(i));
+                    for (size_t i=0, n=vTasks.size(); i<n; ++i)
+                    {
+                        rt_context_t *ctx = vTasks.at(i);
+                        pDebug->view->add_view_1c(&ctx->view, &C_MAGENTA);
+                    }
                 );
         }
 
@@ -514,6 +519,12 @@ namespace lsp
                 return res;
         }
 
+        RT_TRACE_BREAK(pDebug,
+            lsp_trace("Prepared scene (%d triangles)", int(sRoot.triangle.size()));
+            for (size_t i=0,n=sRoot.triangle.size(); i<n; ++i)
+                pDebug->view->add_triangle_3c(sRoot.triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+        );
+
         // Add capture objects as fake icosphere objects
         for (size_t i=0, n=vCaptures.size(); i<n; ++i, ++obj_id)
         {
@@ -531,8 +542,24 @@ namespace lsp
                 return res;
         }
 
+        RT_TRACE_BREAK(pDebug,
+            lsp_trace("Added capture objects (%d triangles)", int(sRoot.triangle.size()));
+            for (size_t i=0,n=sRoot.triangle.size(); i<n; ++i)
+                pDebug->view->add_triangle_3c(sRoot.triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+        );
+
         // Solve conflicts between all objects
-        return sRoot.solve_conflicts();
+        res = sRoot.solve_conflicts();
+        if (res != STATUS_OK)
+            return res;
+
+        RT_TRACE_BREAK(pDebug,
+            lsp_trace("Solved conflicts (%d triangles)", int(sRoot.triangle.size()));
+            for (size_t i=0,n=sRoot.triangle.size(); i<n; ++i)
+                pDebug->view->add_triangle_3c(sRoot.triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+        );
+
+        return res;
     }
 
     status_t RayTrace3D::scan_objects(rt_context_t *ctx)
