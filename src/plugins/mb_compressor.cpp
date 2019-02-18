@@ -614,6 +614,9 @@ namespace lsp
         {
             channel_t *c    = &vChannels[i];
 
+            // Update bypass settings
+            c->sBypass.set_bypass(pBypass->getValue());
+
             // Update frequency split bands
             for (size_t j=0; j<mb_compressor_base_metadata::BANDS_MAX-1; ++j)
             {
@@ -719,8 +722,8 @@ namespace lsp
                 bool cust_lcf   = b->pScLpfOn->getValue() >= 0.5f;
                 bool cust_hcf   = b->pScHpfOn->getValue() >= 0.5f;
                 float sc_gain   = b->pScPreamp->getValue();
-                bool mute       = b->pMute->getValue() >= 0.5f;
-                bool solo       = b->pSolo->getValue() >= 0.5f;
+                bool mute       = (enabled) && (b->pMute->getValue() >= 0.5f);
+                bool solo       = (enabled) && (b->pSolo->getValue() >= 0.5f);
 
                 b->pRelLevelOut->setValue(release);
 
@@ -1003,6 +1006,29 @@ namespace lsp
             }
         }
 
+        // Debug:
+#ifdef LSP_TRACE
+        for (size_t i=0; i<channels; ++i)
+        {
+            channel_t *c    = &vChannels[i];
+
+            for (size_t j=0; j<c->nPlanSize; ++j)
+            {
+                comp_band_t *b  = c->vPlan[j];
+                filter_params_t fp;
+                sFilters.get_params(b->nFilterID, &fp);
+
+                lsp_trace("plan[%d, %d] start=%f, end=%f, filter={id=%d, type=%d, slope=%d}, solo=%s, mute=%s",
+                        int(i), int(j),
+                        b->fFreqStart, b->fFreqEnd,
+                        int(b->nFilterID), int(fp.nType), int(fp.nSlope),
+                        (b->bSolo) ? "true" : "false",
+                        (b->bMute) ? "true" : "false"
+                    );
+            }
+        }
+#endif /* LSP_TRACE */
+
         nEnvBoost       = env_boost;
         bEnvUpdate      = false;
     }
@@ -1265,7 +1291,7 @@ namespace lsp
                     c->vScIn           += to_process;
             }
             samples    -= to_process;
-        }
+        } // while (samples > 0)
 
         // Output FFT curves for each channel
         for (size_t i=0; i<channels; ++i)

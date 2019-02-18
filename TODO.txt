@@ -15,7 +15,9 @@
   mounted on the local file system.
 * Changed implementation of LV2 MIDI transport so now plugins utilize only one
   LV2:Atom input port and one LV2:Atom output port.
-* Fixed bug in host<->UI time and position synchronization.
+* Fixed bug in host<->UI time and position synchronization for VST format.
+* Fixed AVX+FMA3 implementation of dynamic biquadratic filters.
+* Multiband compressor now properly handles the 'Bypass' button.
 - Implemented 3D reverb simulator.
 - Implemented sampler plugin series with stereo outputs
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
