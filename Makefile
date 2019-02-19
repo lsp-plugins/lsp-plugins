@@ -105,7 +105,8 @@ all: compile
 experimental: export CFLAGS += -O2
 experimental: compile
 
-trace: export CFLAGS        += -O2 -DLSP_TRACE
+trace: export CFLAGS        += -O2 -DLSP_TRACE -g3
+trace: export EXE_FLAGS     += -g3
 trace: compile
 
 test: export CFLAGS         += -O2 -DLSP_TESTING -DLSP_TRACE -g3

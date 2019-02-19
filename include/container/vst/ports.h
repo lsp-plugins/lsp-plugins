@@ -516,6 +516,9 @@ namespace lsp
                     if (!sQueue.push(me))
                         lsp_error("MIDI event queue overflow");
                 }
+
+                // We don't know anything about ordering of events, reorder them chronologically
+                sQueue.sort();
             }
     };
 
@@ -551,6 +554,9 @@ namespace lsp
                 // Check that there are pending MIDI events
                 if (sQueue.nEvents <= 0)
                     return;
+
+                // We don't know anything about ordering of events, reorder them chronologically
+                sQueue.sort();
 
                 // Translate events
                 pEvents->numEvents  = 0;
