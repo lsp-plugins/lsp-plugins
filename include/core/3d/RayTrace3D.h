@@ -67,7 +67,8 @@ namespace lsp
             rt_context_t                sRoot;
             void                       *pProgressData;
             size_t                      nSampleRate;
-            rt_shared_t                *pDebug;
+
+            rt_debug_t                 *pDebug;
 
         protected:
             void        destroy_tasks();
@@ -191,7 +192,10 @@ namespace lsp
              * Set debug context for debugging purposes
              * @param shared shared context for debugging
              */
-            inline void         set_debug_context(rt_shared_t *shared) {    pDebug = shared; }
+            inline void         set_debug_context(rt_debug_t *debug)
+            {
+                pDebug  = debug;
+            }
 
             /**
              * Perform processing

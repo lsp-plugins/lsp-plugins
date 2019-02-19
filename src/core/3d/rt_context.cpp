@@ -5,6 +5,7 @@
  *      Author: sadko
  */
 
+#include <core/3d/common.h>
 #include <core/3d/rt_context.h>
 
 namespace lsp
@@ -23,13 +24,13 @@ namespace lsp
 
 #define RT_FOREACH_END      } }
 
-    rt_context_t::rt_context_t(rt_shared_t *shared):
+    rt_context_t::rt_context_t():
         vertex(256),
         edge(256),
         triangle(256)
     {
         this->state     = S_SCAN_OBJECTS;
-        this->shared    = shared;
+        this->debug     = NULL;
 
         // Initialize point of view
         dsp::init_point_xyz(&view.s, 0.0f, 0.0f, 0.0f);
@@ -38,30 +39,35 @@ namespace lsp
         dsp::init_point_xyz(&view.p[2], 0.0f, 0.0f, 0.0f);
     }
     
-    rt_context_t::rt_context_t(const rt_view_t *view, rt_shared_t *shared):
+    rt_context_t::rt_context_t(const rt_view_t *view):
         vertex(256),
         edge(256),
         triangle(256)
     {
         this->state     = S_SCAN_OBJECTS;
-        this->shared    = shared;
+        this->debug     = NULL;
         this->view      = *view;
     }
 
-    rt_context_t::rt_context_t(const rt_view_t *view, rt_context_state_t state, rt_shared_t *shared):
+    rt_context_t::rt_context_t(const rt_view_t *view, rt_context_state_t state):
         vertex(256),
         edge(256),
         triangle(256)
     {
         this->state     = state;
-        this->shared    = shared;
+        this->debug     = NULL;
         this->view      = *view;
     }
 
     rt_context_t::~rt_context_t()
     {
-        shared          = NULL;
+        debug           = NULL;
         flush();
+    }
+
+    void rt_context_t::set_debug_context(rt_debug_t *debug)
+    {
+        this->debug     = debug;
     }
 
     void rt_context_t::flush()
@@ -212,13 +218,13 @@ namespace lsp
 //            lsp_trace("Splitting edge");
 //            for (rt_triangle_t *t = e->vt; t != NULL;)
 //            {
-//                shared->view->add_triangle_3c(t, &C_RED, &C_GREEN, &C_BLUE);
+//                trace.add_triangle_3c(t, &C_RED, &C_GREEN, &C_BLUE);
 //                t = (t->e[0] == e) ? t->elnk[0] :
 //                    (t->e[1] == e) ? t->elnk[1] :
 //                    (t->e[2] == e) ? t->elnk[2] :
 //                    NULL;
 //            }
-//            shared->view->add_segment(e, &C_RED, &C_YELLOW);
+//            trace.add_segment(e, &C_RED, &C_YELLOW);
 //        );
 
         // Rearrange first triangle
@@ -269,8 +275,8 @@ namespace lsp
         {
 //            RT_TRACE_BREAK(this,
 //                lsp_trace("Splitting triangle");
-//                shared->view->add_triangle_3c(ct, &C_RED, &C_GREEN, &C_BLUE);
-//                shared->view->add_segment(e, &C_RED, &C_YELLOW);
+//                trace.add_triangle_3c(ct, &C_RED, &C_GREEN, &C_BLUE);
+//                trace.add_segment(e, &C_RED, &C_YELLOW);
 //            );
 
             // Save pointer to triangle to move forward
@@ -356,11 +362,11 @@ namespace lsp
 //
 //                RT_TRACE_BREAK(this,
 //                    lsp_trace("Drawing new triangles");
-//                    shared->view->add_triangle_1c(ct, &C_CYAN);
-//                    shared->view->add_triangle_1c(nt, &C_MAGENTA);
-//                    shared->view->add_segment(e[0].v[0], sp, &C_RED);
-//                    shared->view->add_segment(ne, &C_GREEN);
-//                    shared->view->add_segment(se, &C_BLUE);
+//                    trace.add_triangle_1c(ct, &C_CYAN);
+//                    trace.add_triangle_1c(nt, &C_MAGENTA);
+//                    trace.add_segment(e[0].v[0], sp, &C_RED);
+//                    trace.add_segment(ne, &C_GREEN);
+//                    trace.add_segment(se, &C_BLUE);
 //                );
             }
             else
@@ -383,8 +389,8 @@ namespace lsp
 
 //            RT_TRACE_BREAK(this,
 //                lsp_trace("Splitted triangle");
-//                shared->view->add_triangle_1c(ct, &C_GREEN);
-//                shared->view->add_triangle_1c(nt, &C_BLUE);
+//                trace.add_triangle_1c(ct, &C_GREEN);
+//                trace.add_triangle_1c(nt, &C_BLUE);
 //            );
 
             // Move to next triangle
@@ -762,7 +768,7 @@ namespace lsp
             ++ei;
         RT_FOREACH_END
 
-        RT_TRACE_BREAK(shared,
+        RT_TRACE_BREAK(debug,
             lsp_trace("Prepare sort (%d edges)", int(ne));
 
             color3d_t c;
@@ -774,7 +780,7 @@ namespace lsp
             for (size_t i=0; i<ne; ++i)
             {
                 c.r = float(ne - i)/ne;
-                shared->view->add_segment(ve[i].e, &c);
+                trace.add_segment(ve[i].e, &c);
             }
             free(ve);
         );
@@ -833,7 +839,7 @@ namespace lsp
                 return STATUS_CORRUPTED;
         );
 
-        RT_TRACE_BREAK(shared,
+        RT_TRACE_BREAK(debug,
             lsp_trace("Edges have been sorted (%d edges)", int(ne));
 
             color3d_t c;
@@ -845,7 +851,7 @@ namespace lsp
             for (size_t i=0; i<ne; ++i)
             {
                 c.g = float(ne - i)/ne;
-                shared->view->add_segment(edge.get(i), &c);
+                trace.add_segment(edge.get(i), &c);
             }
         );
 
@@ -874,13 +880,13 @@ namespace lsp
 //                for (size_t i=0,n=triangle.size(); i<n; ++i)
 //                {
 //                    rt_triangle_t *t = triangle.get(i);
-//                    shared->view->add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
+//                    trace.add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
 //                }
 //
-//                shared->view->add_plane_3pn1c(ct->v[0], ct->v[1], ct->v[2], &pl, &C_MAGENTA);
-//                shared->view->add_plane_2pn1c(ct->v[0], ct->v[1], &spl[0], &C_RED);
-//                shared->view->add_plane_2pn1c(ct->v[1], ct->v[2], &spl[1], &C_GREEN);
-//                shared->view->add_plane_2pn1c(ct->v[2], ct->v[0], &spl[2], &C_BLUE);
+//                trace.add_plane_3pn1c(ct->v[0], ct->v[1], ct->v[2], &pl, &C_MAGENTA);
+//                trace.add_plane_2pn1c(ct->v[0], ct->v[1], &spl[0], &C_RED);
+//                trace.add_plane_2pn1c(ct->v[1], ct->v[2], &spl[1], &C_GREEN);
+//                trace.add_plane_2pn1c(ct->v[2], ct->v[0], &spl[2], &C_BLUE);
 //            )
 
             // Estimate location of each vertex relative to the plane
@@ -918,15 +924,15 @@ namespace lsp
 //                    for (size_t i=0,n=triangle.size(); i<n; ++i)
 //                    {
 //                        rt_triangle_t *t = triangle.get(i);
-//                        shared->view->add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
+//                        trace.add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
 //                    }
 //
-//                    shared->view->add_plane_3pn1c(ct->v[0], ct->v[1], ct->v[2], &pl, &C_MAGENTA);
-//                    shared->view->add_plane_2pn1c(ct->v[0], ct->v[1], &spl[0], &C_MAGENTA);
-//                    shared->view->add_plane_2pn1c(ct->v[1], ct->v[2], &spl[1], &C_MAGENTA);
-//                    shared->view->add_plane_2pn1c(ct->v[2], ct->v[0], &spl[2], &C_MAGENTA);
+//                    trace.add_plane_3pn1c(ct->v[0], ct->v[1], ct->v[2], &pl, &C_MAGENTA);
+//                    trace.add_plane_2pn1c(ct->v[0], ct->v[1], &spl[0], &C_MAGENTA);
+//                    trace.add_plane_2pn1c(ct->v[1], ct->v[2], &spl[1], &C_MAGENTA);
+//                    trace.add_plane_2pn1c(ct->v[2], ct->v[0], &spl[2], &C_MAGENTA);
 //
-//                    shared->view->add_segment(ce, &C_GREEN);
+//                    trace.add_segment(ce, &C_GREEN);
 //                )
 
                 // But now we need to check that intersection point lays on the triangle
@@ -1039,16 +1045,16 @@ namespace lsp
         dsp::calc_plane_p3(&pl[2], &view.s, &view.p[1], &view.p[2]);
         dsp::calc_plane_p3(&pl[3], &view.s, &view.p[2], &view.p[0]);
 
-        RT_TRACE_BREAK(shared,
+        RT_TRACE_BREAK(debug,
             lsp_trace("Culling space with planes (%d triangles)", int(triangle.size()));
 
             for (size_t j=0, n=triangle.size(); j<n; ++j)
-               shared->view->add_triangle_1c(triangle.get(j), &C_DARKGREEN);
+               trace.add_triangle_1c(triangle.get(j), &C_DARKGREEN);
 
-            shared->view->add_plane_3pn1c(&view.p[0], &view.p[1], &view.p[2], &pl[0], &C_YELLOW);
-            shared->view->add_plane_3pn1c(&view.s, &view.p[0], &view.p[1], &pl[1], &C_RED);
-            shared->view->add_plane_3pn1c(&view.s, &view.p[1], &view.p[2], &pl[2], &C_GREEN);
-            shared->view->add_plane_3pn1c(&view.s, &view.p[2], &view.p[0], &pl[3], &C_BLUE);
+            trace.add_plane_3pn1c(&view.p[0], &view.p[1], &view.p[2], &pl[0], &C_YELLOW);
+            trace.add_plane_3pn1c(&view.s, &view.p[0], &view.p[1], &pl[1], &C_RED);
+            trace.add_plane_3pn1c(&view.s, &view.p[1], &view.p[2], &pl[2], &C_GREEN);
+            trace.add_plane_3pn1c(&view.s, &view.p[2], &view.p[0], &pl[3], &C_BLUE);
         )
 
         for (size_t pi=0; pi<4; ++pi)
@@ -1062,10 +1068,10 @@ namespace lsp
                 break;
         }
 
-        RT_TRACE_BREAK(shared,
+        RT_TRACE_BREAK(debug,
             lsp_trace("Data after culling (%d triangles)", int(triangle.size()));
             for (size_t j=0,n=triangle.size(); j<n; ++j)
-                shared->view->add_triangle_3c(triangle.get(j), &C_CYAN, &C_MAGENTA, &C_YELLOW);
+                trace.add_triangle_3c(triangle.get(j), &C_CYAN, &C_MAGENTA, &C_YELLOW);
         );
 
         return STATUS_OK;
@@ -1079,7 +1085,8 @@ namespace lsp
         if (triangle.size() <= 0)
             return STATUS_OK;
 
-        rt_context_t in(shared);
+        rt_context_t in;
+        RT_TRACE(debug, in.set_debug_context(debug); );
 
         // State of itag for vertex:
         //  0   = vertex lays over the plane
@@ -1165,7 +1172,7 @@ namespace lsp
             else
                 st->itag    = st->v[2]->itag;
 
-            RT_TRACE(shared,
+            RT_TRACE(debug,
                 if (st->itag != 2)
                     ignore(st);
             )
@@ -1227,26 +1234,26 @@ namespace lsp
 //        RT_CALL_DEBUGGER(this, 7);
 
         // Perform split
-        RT_TRACE_BREAK(shared,
+        RT_TRACE_BREAK(debug,
             lsp_trace("Prepare split by edge (%f, %f, %f, %f) (%d triangles)",
                     pl.dx, pl.dy, pl.dz, pl.dw,
                     int(triangle.size()));
 
             for (size_t i=0,n=triangle.size(); i<n; ++i)
-                shared->view->add_triangle_1c(triangle.get(i), &C_YELLOW);
-            shared->view->add_plane_3pn1c(&view.s, ce->v[0], ce->v[1], &pl, &C_MAGENTA);
+                trace.add_triangle_1c(triangle.get(i), &C_YELLOW);
+            trace.add_plane_3pn1c(&view.s, ce->v[0], ce->v[1], &pl, &C_MAGENTA);
 
             for (size_t i=0,n=edge.size(); i<n; ++i)
             {
                 rt_edge_t *se = edge.get(i);
                 if (se->itag & RT_EF_PLANE)
-                    shared->view->add_segment(se, &C_GREEN);
+                    trace.add_segment(se, &C_GREEN);
                 else if (se == ce)
-                    shared->view->add_segment(se, &C_MAGENTA);
+                    trace.add_segment(se, &C_MAGENTA);
                 else if (se->itag & RT_EF_APPLY)
-                    shared->view->add_segment(se, &C_RED);
+                    trace.add_segment(se, &C_RED);
                 else
-                    shared->view->add_segment(se, &C_GREEN);
+                    trace.add_segment(se, &C_GREEN);
             }
         );
 
@@ -1342,7 +1349,8 @@ namespace lsp
         RT_FOREACH_END
 
         // Now we can fetch triangles
-        rt_context_t in(shared);
+        rt_context_t in;
+        RT_TRACE(debug, in.set_debug_context(debug); );
         res    = fetch_triangles_safe(&in, 2);
         if (res != STATUS_OK)
             return res;
@@ -1350,7 +1358,7 @@ namespace lsp
         if (res != STATUS_OK)
             return res;
 
-        RT_TRACE(shared,
+        RT_TRACE(debug,
 //            for (size_t i=0,n=triangle.size();i<n; ++i)
 //            {
 //                rt_triangle_t *t = triangle.get(i);
@@ -1370,18 +1378,18 @@ namespace lsp
         )
         this->swap(&in);
 
-        RT_TRACE_BREAK(shared,
+        RT_TRACE_BREAK(debug,
             lsp_trace("After split by edge");
 
             lsp_trace("IN context is GREEN (%d triangles)", int(triangle.size()));
             for (size_t i=0,n=triangle.size(); i<n; ++i)
-                shared->view->add_triangle_1c(triangle.get(i), &C_GREEN);
+                trace.add_triangle_1c(triangle.get(i), &C_GREEN);
 
             if (out != NULL)
             {
                 lsp_trace("OUT context is RED (%d triangles)", int(out->triangle.size()));
                 for (size_t i=0,n=out->triangle.size(); i<n; ++i)
-                    shared->view->add_triangle_1c(out->triangle.get(i), &C_RED);
+                    trace.add_triangle_1c(out->triangle.get(i), &C_RED);
             }
         );
 
@@ -1409,12 +1417,12 @@ namespace lsp
         vector3d_t pl;
         size_t itag;
 
-        RT_TRACE_BREAK(shared,
+        RT_TRACE_BREAK(debug,
             lsp_trace("Prepare depth test");
             for (size_t j=0; j<triangle.size(); ++j)
-                shared->view->add_triangle_1c(triangle.get(j), &C_YELLOW);
+                trace.add_triangle_1c(triangle.get(j), &C_YELLOW);
             for (size_t j=0; j<edge.size(); ++j)
-                shared->view->add_segment(edge.get(j), &C_GREEN);
+                trace.add_segment(edge.get(j), &C_GREEN);
         )
 
         while (true)
@@ -1439,16 +1447,16 @@ namespace lsp
             // Prepare culling plane
             dsp::orient_plane_v1p1(&pl, &view.s, &ct->n);
 
-            RT_TRACE_BREAK(shared,
+            RT_TRACE_BREAK(debug,
                 lsp_trace("Doing depth test for triangle %d/%d", int(triangle.index_of(ct)), int(triangle.size()));
                 for (size_t j=0; j<triangle.size(); ++j)
                 {
                     rt_triangle_t *t = triangle.get(j);
-                    shared->view->add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
+                    trace.add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
                 }
                 for (size_t j=0; j<edge.size(); ++j)
-                    shared->view->add_segment(edge.get(j), &C_GREEN);
-                shared->view->add_plane_sp3p1c(&view.s, ct->v[0], ct->v[1], ct->v[2], &C_MAGENTA);
+                    trace.add_segment(edge.get(j), &C_GREEN);
+                trace.add_plane_sp3p1c(&view.s, ct->v[0], ct->v[1], ct->v[2], &C_MAGENTA);
             )
 
             // Estimate location of each vertex relative to the plane
@@ -1486,22 +1494,22 @@ namespace lsp
                     st->itag    = itag;
             RT_FOREACH_END
 
-            RT_TRACE_BREAK(shared,
+            RT_TRACE_BREAK(debug,
                 lsp_trace("After depth test for triangle %d/%d, in=GREEN, on=BLUE, out=RED", int(triangle.index_of(ct)), int(triangle.size()));
                 for (size_t j=0; j<triangle.size(); ++j)
                 {
                     rt_triangle_t *t = triangle.get(j);
-                    shared->view->add_triangle_1c(t,
+                    trace.add_triangle_1c(t,
                             (t->itag == 0) ? &C_RED :
                             (t->itag == 1) ? &C_BLUE : &C_GREEN
                         );
                 }
-                shared->view->add_plane_sp3p1c(&view.s, ct->v[0], ct->v[1], ct->v[2], &C_YELLOW);
+                trace.add_plane_sp3p1c(&view.s, ct->v[0], ct->v[1], ct->v[2], &C_YELLOW);
             )
         }
 
         // Trace all ignored triangles
-        RT_TRACE(shared,
+        RT_TRACE(debug,
 //            for (size_t i=0; i<nt; ++i)
 //            {
 //                rt_triangle_t *t = triangle.get(i);
@@ -1512,85 +1520,26 @@ namespace lsp
         )
 
         // Now we have all triangles only in 'out' and 'on' state
-        rt_context_t tmp(shared);
+        rt_context_t tmp;
+        RT_TRACE(debug,  tmp.set_debug_context(debug); )
         status_t res = fetch_triangles_safe(&tmp, 1);
         if (res != STATUS_OK)
             return res;
         this->swap(&tmp);
 
-        RT_TRACE_BREAK(shared,
+        RT_TRACE_BREAK(debug,
             lsp_trace("After depth test triangles=%d", int(triangle.size()));
             for (size_t j=0; j<triangle.size(); ++j)
             {
                 rt_triangle_t *t = triangle.get(j);
-                shared->view->add_triangle_1c(t, &C_GREEN);
+                trace.add_triangle_1c(t, &C_GREEN);
             }
             for (size_t j=0; j<edge.size(); ++j)
-                shared->view->add_segment(edge.get(j), &C_YELLOW);
+                trace.add_segment(edge.get(j), &C_YELLOW);
         )
 
         return STATUS_OK;
     }
-
-    void rt_context_t::debug(rt_context_t *ctx)
-    {
-        lsp_trace("Triggered debug on step=%d", int(ctx->shared->step));
-
-        float min_x, min_y, max_x, max_y;
-
-        for (size_t i=0, n=vertex.size(); i<n; ++i)
-        {
-            rt_vertex_t *v = vertex.get(i);
-            if (v->z < -1.5f)
-                continue;
-
-            if (i == 0)
-            {
-                min_x   = v->x;
-                min_y   = v->y;
-                max_x   = v->x;
-                max_y   = v->y;
-                continue;
-            }
-            if (min_x > v->x)
-                min_x = v->x;
-            if (max_x < v->x)
-                max_x = v->x;
-            if (min_y > v->y)
-                min_y = v->y;
-            if (max_y < v->y)
-                max_y = v->y;
-        }
-
-        lsp_trace("edge dump:");
-        printf("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
-        printf("<svg width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\" xmlns=\"http://www.w3.org/2000/svg\">\n",
-                int((max_x - min_x) * 10000000.0f),
-                int((max_y - min_y) * 10000000.0f),
-                int((max_x - min_x) * 10000000.0f),
-                int((max_y - min_y) * 10000000.0f)
-        );
-        for (size_t i=0, n=edge.size(); i<n; ++i)
-        {
-            rt_edge_t *ce = edge.get(i);
-            if (ce->v[0]->z < -1.5f)
-                continue;
-
-            printf("\t<line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\" stroke=\"%s\" stroke-width=\"2\" />\n",
-                    (ce->v[0]->x-min_x)*10000000.0f, (ce->v[0]->y-min_y)*10000000.0f,
-                    (ce->v[1]->x-min_x)*10000000.0f, (ce->v[1]->y-min_y)*10000000.0f,
-                    (ce->itag & RT_EF_PLANE) ? "blue" : "grey"
-                    );
-//            if (!(ce->itag & RT_EF_PLANE))
-//            {
-//                printf("%f,%f,%f\n", ce->v[0]->x, ce->v[0]->y, ce->v[0]->z);
-//                printf("%f,%f,%f\n", ce->v[1]->x, ce->v[1]->y, ce->v[1]->z);
-//            }
-        }
-        printf("</svg>\n");
-        lsp_trace("End of dump");
-    }
-
 
     status_t rt_context_t::add_object(Object3D *obj, size_t oid, rt_material_t *material)
     {
@@ -1741,7 +1690,8 @@ namespace lsp
 
     status_t rt_context_t::fetch_objects(rt_context_t *src, size_t n, const size_t *ids)
     {
-        rt_context_t tmp(this->shared);
+        rt_context_t tmp;
+        RT_TRACE(debug, tmp.set_debug_context(debug); );
 
         if (n > 0)
         {
@@ -1936,7 +1886,7 @@ namespace lsp
         vt.n[1]     = t->n;
         vt.n[2]     = t->n;
 
-        return (shared->ignored.add(&vt)) ? STATUS_OK : STATUS_NO_MEM;
+        return (ignored.add(&vt)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
     status_t rt_context_t::match(const rt_triangle_t *t)
@@ -1950,7 +1900,7 @@ namespace lsp
         vt.n[1]     = t->n;
         vt.n[2]     = t->n;
 
-        return (shared->matched.add(&vt)) ? STATUS_OK : STATUS_NO_MEM;
+        return (matched.add(&vt)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
     void rt_context_t::dump()

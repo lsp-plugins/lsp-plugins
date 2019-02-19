@@ -12,28 +12,37 @@
 #include <dsp/dsp.h>
 #include <core/debug.h>
 
-#ifdef LSP_DEBUG
-    #define RT_TRACE(shared, ...)       if (shared != NULL) { __VA_ARGS__ }
+#define LSP_RT_TRACE
+
+#if defined(LSP_DEBUG) && defined(LSP_RT_TRACE)
+    #define IF_RT_TRACE_Y(...)          __VA_ARGS__
+    #define IF_RT_TRACE_N(...)
+
+    #define RT_TRACE(debug, ...)        if (debug != NULL) { __VA_ARGS__ }
 
 //    #define RT_VALIDATE(...)    __VA_ARGS__
     #define RT_VALIDATE(...)
 
-    #define RT_TRACE_BREAK(shared, action) \
-        if ((shared != NULL) && (shared->breakpoint >= 0) && ((shared->step++) == shared->breakpoint)) { \
-            lsp_trace("Triggered breakpoint %d\n", int(shared->breakpoint)); \
+    #define RT_TRACE_BREAK(debug, action) \
+        if ((debug != NULL) && (debug->breakpoint >= 0) && ((debug->step++) == debug->breakpoint)) { \
+            lsp_trace("Triggered breakpoint %d\n", int(debug->breakpoint)); \
             action; \
             return STATUS_BREAKPOINT; \
         }
 
-    #define RT_CALL_DEBUGGER(shared, xstep, ...) \
-        if ((shared != NULL) && (shared->step == xstep)) \
-            debug(__VA_ARGS__);
+    #define RT_CALL_DEBUGGER(debug, xstep, ...) \
+        if ((debug != NULL) && (debug->step == xstep)) { \
+            __VA_ARGS__; \
+        }
 #else
+    #define IF_RT_TRACE_Y(...)
+    #define IF_RT_TRACE_N(...)          __VA_ARGS__
+
     #define RT_TRACE(...)
 
-    #define RT_TRACE_BREAK(shared, action)
+    #define RT_TRACE_BREAK(debug, action)
 
-    #define RT_CALL_DEBUGGER(shared, xstep, ...)
+    #define RT_CALL_DEBUGGER(debug, xstep, ...)
 #endif /* LSP_DEBUG */
 
 namespace lsp

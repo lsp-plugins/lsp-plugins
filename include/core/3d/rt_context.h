@@ -16,15 +16,14 @@
 
 namespace lsp
 {
-    typedef struct rt_shared_t
+    typedef struct rt_debug_t
     {
-        cstorage<v_triangle3d_t>    matched;    // List of matched triangles (for debug)
-        cstorage<v_triangle3d_t>    ignored;    // List of ignored triangles (for debug)
         ssize_t                     step;       // Trace step
         ssize_t                     breakpoint; // Trace breakpoint
-        Scene3D                    *scene;
-        View3D                     *view;
-    } rt_shared_t;
+        cstorage<v_triangle3d_t>    matched;    // List of matched triangles (for debug)
+        cstorage<v_triangle3d_t>    ignored;    // List of ignored triangles (for debug)
+        View3D                      trace;
+    } rt_debug_t;
 
     enum rt_context_state_t
     {
@@ -47,22 +46,26 @@ namespace lsp
 
         public:
             rt_view_t                   view;       // Ray tracing point of view
-            rt_shared_t                *shared;     // Shared settings
             rt_context_state_t          state;      // Context state
 
             Allocator3D<rt_vertex_t>    vertex;     // Collection of vertexes
             Allocator3D<rt_edge_t>      edge;       // Collection of edges
             Allocator3D<rt_triangle_t>  triangle;   // Collection of triangles
 
-        private:
-            void debug(rt_context_t *ctx);
+            rt_debug_t                 *debug;      // Debug context
+            cstorage<v_triangle3d_t>    matched;    // List of matched triangles (for debug)
+            cstorage<v_triangle3d_t>    ignored;    // List of ignored triangles (for debug)
+            View3D                      trace;      // The state of the context
 
         public:
             // Construction/destruction
-            explicit rt_context_t(rt_shared_t *shared);
-            explicit rt_context_t(const rt_view_t *view, rt_shared_t *shared);
-            explicit rt_context_t(const rt_view_t *view, rt_context_state_t state, rt_shared_t *shared);
+            explicit rt_context_t();
+            explicit rt_context_t(const rt_view_t *view);
+            explicit rt_context_t(const rt_view_t *view, rt_context_state_t state);
+
             ~rt_context_t();
+
+            void            set_debug_context(rt_debug_t *debug);
 
         protected:
             static int      compare_edges(const void *p1, const void *p2);

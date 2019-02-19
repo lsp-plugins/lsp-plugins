@@ -43,6 +43,12 @@ namespace lsp
             void clear(size_t flags);
 
             /**
+             * Swap contents with destination view
+             * @param dst destination view
+             */
+            void swap(View3D *dst);
+
+            /**
              * Cleanup view
              */
             inline void clear_all() { clear(V3D_VERTEXES | V3D_RAYS | V3D_POINTS | V3D_SEGMENTS); };
