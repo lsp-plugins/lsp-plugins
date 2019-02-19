@@ -373,7 +373,7 @@ namespace lsp
                     for (size_t i=0, n=vTasks.size(); i<n; ++i)
                     {
                         rt_context_t *ctx = vTasks.at(i);
-                        ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
+                        pDebug->trace.add_view_1c(&ctx->view, &C_MAGENTA);
                     }
                 );
         }
@@ -507,6 +507,7 @@ namespace lsp
 
         // Clear contents of the root context
         sRoot.clear();
+        RT_TRACE(pDebug, sRoot.set_debug_context(pDebug); )
 
         // Add scene objects
         for (size_t i=0, n=pScene->num_objects(); i<n; ++i, ++obj_id)
@@ -532,7 +533,7 @@ namespace lsp
         RT_TRACE_BREAK(pDebug,
             lsp_trace("Prepared scene (%d triangles)", int(sRoot.triangle.size()));
             for (size_t i=0,n=sRoot.triangle.size(); i<n; ++i)
-                sRoot.trace.add_triangle_3c(sRoot.triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+                pDebug->trace.add_triangle_3c(sRoot.triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
         );
 
         // Add capture objects as fake icosphere objects
@@ -555,7 +556,7 @@ namespace lsp
         RT_TRACE_BREAK(pDebug,
             lsp_trace("Added capture objects (%d triangles)", int(sRoot.triangle.size()));
             for (size_t i=0,n=sRoot.triangle.size(); i<n; ++i)
-                sRoot.trace.add_triangle_3c(sRoot.triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+                pDebug->trace.add_triangle_3c(sRoot.triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
         );
 
         // Solve conflicts between all objects
@@ -566,7 +567,7 @@ namespace lsp
         RT_TRACE_BREAK(pDebug,
             lsp_trace("Solved conflicts (%d triangles)", int(sRoot.triangle.size()));
             for (size_t i=0,n=sRoot.triangle.size(); i<n; ++i)
-                sRoot.trace.add_triangle_3c(sRoot.triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+                pDebug->trace.add_triangle_3c(sRoot.triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
         );
 
         return res;
@@ -579,15 +580,6 @@ namespace lsp
         RT_TRACE_BREAK(pDebug,
             lsp_trace("Scanning objects...");
             ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
-
-            for (size_t i=0, n=pScene->num_objects(); i<n; ++i)
-            {
-                Object3D *obj = pScene->object(i);
-                if ((obj == NULL) || (!obj->is_visible()))
-                    continue;
-                for (size_t j=0,m=obj->num_triangles(); j<m; ++j)
-                    ctx->trace.add_triangle_3c(obj->triangle(j), &C_RED, &C_GREEN, &C_BLUE);
-            }
         )
 
         size_t max_objs     = pScene->num_objects() + vCaptures.size();
@@ -656,6 +648,13 @@ namespace lsp
             delete ctx;
             return STATUS_OK;
         }
+
+        RT_TRACE_BREAK(pDebug,
+            lsp_trace("Fetched %d objects", int(n_objs));
+            ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
+            for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
+                ctx->trace.add_triangle_3c(ctx->triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+        )
 
         // Update state
         ctx->state      = S_CULL_VIEW;
