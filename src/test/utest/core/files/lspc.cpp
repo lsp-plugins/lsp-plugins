@@ -33,7 +33,7 @@ UTEST_BEGIN("core.files", lspc)
     {
         LSPCFile fd;
         LSPString file_name;
-        UTEST_ASSERT(file_name.fmt_utf8("tmp" FILE_SEPARATOR_S " utest-%s.lspc", full_name()));
+        UTEST_ASSERT(file_name.fmt_utf8("tmp" FILE_SEPARATOR_S "utest-%s.lspc", full_name()));
         printf("Writing file %s ...\n", file_name.get_utf8());
 
         status_t res    = fd.create(&file_name);
@@ -189,7 +189,7 @@ UTEST_BEGIN("core.files", lspc)
         LSPCFile fd;
         LSPString file_name;
 
-        UTEST_ASSERT(file_name.fmt_utf8("tmp" FILE_SEPARATOR_S " utest-%s.lspc", full_name()));
+        UTEST_ASSERT(file_name.fmt_utf8("tmp" FILE_SEPARATOR_S "utest-%s.lspc", full_name()));
         printf("Reading file %s ...\n", file_name.get_utf8());
         status_t res    = fd.open(&file_name);
 
