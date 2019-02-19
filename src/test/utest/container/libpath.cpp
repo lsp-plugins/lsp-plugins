@@ -24,7 +24,7 @@ UTEST_BEGIN("container", libpath)
         UTEST_ASSERT(path != NULL);
 
         lsp::LSPString s;
-        s.set_utf16(reinterpret_cast<uint16_t *>(path));
+        s.set_utf16(path);
         printf("  Library path: %s\n", s.get_native());
 
         lsp::free_library_path(path);
