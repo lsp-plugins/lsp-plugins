@@ -6,6 +6,7 @@
  */
 
 #include <dsp/endian.h>
+#include <core/stdlib/string.h>
 #include <core/files/lspc/lspc.h>
 #include <core/files/lspc/LSPCChunkReader.h>
 

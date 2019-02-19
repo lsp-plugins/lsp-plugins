@@ -234,8 +234,8 @@ namespace lsp
              * @return true on success
              */
             bool set_utf8(const char *s, size_t n);
-            bool set_utf16(const uint16_t *s);
-            bool set_utf16(const uint16_t *s, size_t n);
+            bool set_utf16(const lsp_utf16_t *s);
+            bool set_utf16(const lsp_utf16_t *s, size_t n);
             bool set_ascii(const char *s, size_t n);
             bool set_native(const char *s, ssize_t n, const char *charset = NULL);
             inline bool set_utf8(const char *s) { return set_utf8(s, strlen(s)); };
@@ -247,9 +247,9 @@ namespace lsp
             inline const char *get_utf8(ssize_t first) const { return get_utf8(first, nLength); };
             const char *get_utf8() const { return get_utf8(0, nLength); };
 
-            const uint16_t *get_utf16(ssize_t first, ssize_t last) const;
-            inline const uint16_t *get_utf16(ssize_t first) const { return get_utf16(first, nLength); };
-            const uint16_t *get_utf16() const { return get_utf16(0, nLength); };
+            const lsp_utf16_t *get_utf16(ssize_t first, ssize_t last) const;
+            inline const lsp_utf16_t *get_utf16(ssize_t first) const { return get_utf16(first, nLength); };
+            const lsp_utf16_t *get_utf16() const { return get_utf16(0, nLength); };
 
             const char *get_ascii() const;
             const char *get_native(const char *charset =  NULL) const;

@@ -15,17 +15,17 @@ namespace lsp
 {
     typedef struct LSPCResource
     {
-        int         fd;             // File descriptor
-        size_t      refs;           // Number of references
-        size_t      bufsize;        // Default buffer size
-        uint32_t    chunk_id;       // Chunk identifier allocator
-        wsize_t     length;         // Length of the output file
+        lsp_fhandle_t   fd;             // File handle
+        size_t          refs;           // Number of references
+        size_t          bufsize;        // Default buffer size
+        uint32_t        chunk_id;       // Chunk identifier allocator
+        wsize_t         length;         // Length of the output file
 
-        status_t    acquire();
-        status_t    release();
-        status_t    allocate(uint32_t *id);
-        status_t    write(const void *buf, size_t count);
-        ssize_t     read(wsize_t pos, void *buf, size_t count);
+        status_t        acquire();
+        status_t        release();
+        status_t        allocate(uint32_t *id);
+        status_t        write(const void *buf, size_t count);
+        ssize_t         read(wsize_t pos, void *buf, size_t count);
     } LSPCResource;
 
     class LSPCChunkAccessor
