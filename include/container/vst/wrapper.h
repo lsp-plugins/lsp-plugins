@@ -390,6 +390,13 @@ namespace lsp
         npos.ticksPerBeat   = DEFAULT_TICKS_PER_BEAT;
         npos.frame          = info->samplePos;
 
+//        lsp_trace("info->flags          = 0x%08x", int(info->flags));
+//        lsp_trace("info->sampleRate     = %f", info->sampleRate);
+//        lsp_trace("info->samplePos      = %f", info->samplePos);
+//        lsp_trace("info->numerator      = %d", int(info->timeSigNumerator));
+//        lsp_trace("info->denominator    = %d", int(info->timeSigDenominator));
+//        lsp_trace("info->bpm            = %f", info->tempo);
+
         if (info->flags & kVstTimeSigValid)
         {
             npos.numerator      = info->timeSigNumerator;
@@ -407,7 +414,8 @@ namespace lsp
             npos.beatsPerMinute = info->tempo;
 
 //        lsp_trace("position: sr=%f, frame=%ld, key=%f/%f tick=%f bpm=%f",
-//                float(npos.sampleRate), long(npos.frame), float(npos.numerator), float(npos.denominator), float(npos.tick), float(npos.beatsPerMinute));
+//                float(npos.sampleRate), long(npos.frame), float(npos.numerator),
+//                float(npos.denominator), float(npos.tick), float(npos.beatsPerMinute));
 
         // Report new position to plugin and update position
         if (pPlugin->set_position(&npos))
@@ -703,6 +711,7 @@ namespace lsp
 
         // Try to sync position
         pUI->position_updated(&sPosition);
+        pUI->sync_meta_ports();
 
         // DSP -> UI communication
         for (size_t i=0, nports=vUIPorts.size(); i < nports; ++i)

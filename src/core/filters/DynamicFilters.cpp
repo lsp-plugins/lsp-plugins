@@ -423,6 +423,57 @@ namespace lsp
                 } // for j
             } // for i
         }
+        else
+        {
+            for (size_t i=0; i<loops; ++i)
+            {
+                ppc = pc;
+
+                for (size_t j=0; j<nc; ++j)
+                {
+                    k                   = c->b[0];
+                    kf                  = ppc->tsin2 + k*k * ppc->tcos2;
+
+                    if ((cj + j) & 1)
+                    {
+                        gain                = c->t[0];
+
+                        // Transfer function
+                        c->b[0]             = kf * c->t[2];
+                        c->b[1]             = k * ppc->xtcos_xf;
+                        c->b[2]             = c->t[3] * xf2;
+
+                        c->t[0]             = c->t[3]; // fg;
+                        c->t[1]             = c->b[1];
+                        c->t[2]             = c->b[0] * xf2;
+                    }
+                    else
+                    {
+                        gain                = c->t[0];
+
+                        // Transfer function
+                        c->b[0]             = kf * c->t[3];
+                        c->b[1]             = k * ppc->xtcos;
+                        c->b[2]             = c->t[2];
+
+                        c->t[0]             = c->b[2];
+                        c->t[1]             = c->b[1];
+                        c->t[2]             = c->b[0];
+                    }
+
+                    if (!((cj+j)&(~1)))
+                    {
+                        c->t[0]            *= gain;
+                        c->t[1]            *= gain;
+                        c->t[2]            *= gain;
+                    }
+
+                    // Move to next cascade
+                    c       ++;
+                    ppc     ++;
+                } // for j
+            } // for i
+        }
 #else
 
         f_cascade_t *c;

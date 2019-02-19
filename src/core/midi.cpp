@@ -6,9 +6,24 @@
  */
 
 #include <core/midi.h>
+#include <stdlib.h>
 
 namespace lsp
 {
+    static int compare_midi(const void *p1, const void *p2)
+    {
+        const midi_event_t *e1 = reinterpret_cast<const midi_event_t *>(p1);
+        const midi_event_t *e2 = reinterpret_cast<const midi_event_t *>(p2);
+        return (e1->timestamp < e2->timestamp) ? -1 :
+                (e1->timestamp > e2->timestamp) ? 1 : 0;
+    }
+
+    void midi_t::sort()
+    {
+        if (nEvents > 1)
+            ::qsort(vEvents, sizeof(midi_event_t), nEvents, compare_midi);
+    }
+
     static bool decode_system_message(midi_event_t *ev, const uint8_t *b)
     {
         switch (b[0])
