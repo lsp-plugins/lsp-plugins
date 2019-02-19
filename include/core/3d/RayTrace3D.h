@@ -50,6 +50,7 @@ namespace lsp
             typedef struct capture_t
             {
                 matrix3d_t          matrix;
+                ray3d_t             position;
                 rt_material_t       material;
                 rt_audio_capture_t  type;
                 Sample             *sample;
@@ -79,7 +80,7 @@ namespace lsp
 
             // Main ray-tracing routines
             status_t    prepare_root_context();
-            status_t    generate_tasks();
+            status_t    generate_tasks(float initial);
             status_t    scan_objects(rt_context_t *ctx);
             status_t    check_object(rt_context_t *ctx, Object3D *obj, const matrix3d_t *m);
 
@@ -199,9 +200,10 @@ namespace lsp
 
             /**
              * Perform processing
+             * @param initial initial energy of the signal
              * @return status of operation
              */
-            status_t            process();
+            status_t            process(float initial);
     };
 
 } /* namespace lsp */

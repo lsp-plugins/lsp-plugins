@@ -31,7 +31,8 @@
 
 #ifndef TEST_DEBUG
 //    #define BREAKPOINT_STEP     -1
-    #define BREAKPOINT_STEP     260
+    #define BREAKPOINT_STEP     250
+//    #define BREAKPOINT_STEP     0
 
 /*
         dsp::init_point_xyz(&front.p[0], -0.980776, -0.195088, 0.000000); \
@@ -282,7 +283,7 @@ MTEST_BEGIN("3d", reflections)
                 if (res != STATUS_OK)
                     return res;
 
-                return trace->process();
+                return trace->process(100.0f);
             }
 
             status_t    update_view()

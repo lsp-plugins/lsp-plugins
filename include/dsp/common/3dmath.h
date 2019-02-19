@@ -900,7 +900,7 @@ namespace dsp
     extern float (* calc_parallel_plane_p2p2)(vector3d_t *v, const point3d_t *sp, const point3d_t *pp, const point3d_t *p0, const point3d_t *p1);
 
     /**
-     * Estimate the area of triangle
+     * Estimate the area of parallelogram formed by triangle
      * @param p0 point 0 of triangle
      * @param p1 point 1 of triangle
      * @param p2 point 2 of triangle
@@ -926,7 +926,7 @@ namespace dsp
     extern float (* projection_length_v2)(const vector3d_t *v, const vector3d_t *pv);
 
     /**
-     * Estimate the area of triangle
+     * Estimate the area of parallelogram formed by triangle
      * @param pv array of triangle edges
      * @return area of triangle
      */

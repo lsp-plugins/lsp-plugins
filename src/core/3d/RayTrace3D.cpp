@@ -145,6 +145,7 @@ namespace lsp
         if (cap == NULL)
             return STATUS_NO_MEM;
 
+        cap->position       = *position;
         cap->type           = type;
         cap->sample         = sample;
         cap->channel        = channel;
@@ -204,7 +205,7 @@ namespace lsp
         return pProgress(progress, pProgressData);
     }
 
-    status_t RayTrace3D::process()
+    status_t RayTrace3D::process(float initial)
     {
         // Report progress as 0%
         status_t res = report_progress(0.0f);
@@ -212,7 +213,7 @@ namespace lsp
             return res;
 
         // Generate ray-tracing tasks
-        res         = generate_tasks();
+        res         = generate_tasks(initial);
         if (res != STATUS_OK)
             return res;
 
@@ -316,7 +317,7 @@ namespace lsp
         return report_progress(float(p_points++) / float(p_denom));
     }
 
-    status_t RayTrace3D::generate_tasks()
+    status_t RayTrace3D::generate_tasks(float initial)
     {
         for (size_t i=0,n=vSources.size(); i<n; ++i)
         {
@@ -342,6 +343,21 @@ namespace lsp
             matrix3d_t tm;
             dsp::calc_matrix3d_transform_r1(&tm, &src->position);
 
+            // Estimate area of the source surface and apply it as a denominator of initial energy
+            point3d_t p[3];
+            float area = 0.0f;
+
+            for (size_t ti=0, n=obj->num_triangles(); ti<n; ++ti)
+            {
+                obj_triangle_t *t   = obj->triangle(ti);
+                dsp::apply_matrix3d_mp2(&p[0], t->v[0], &tm);
+                dsp::apply_matrix3d_mp2(&p[1], t->v[1], &tm);
+                dsp::apply_matrix3d_mp2(&p[2], t->v[2], &tm);
+                area               += dsp::calc_area_pv(p);
+            }
+            initial /= area;
+
+            // Generate sources
             for (size_t ti=0, n=obj->num_triangles(); ti<n; ++ti)
             {
                 obj_triangle_t *t   = obj->triangle(ti);
@@ -359,6 +375,7 @@ namespace lsp
                 ctx->view.oid       = -1;
                 ctx->view.face      = -1;
                 ctx->view.speed     = SOUND_SPEED_M_S;
+                ctx->view.energy    = dsp::calc_area_pv(ctx->view.p) * initial;
                 ctx->view.time[0]   = 0.0f;
                 ctx->view.time[1]   = 0.0f;
                 ctx->view.time[2]   = 0.0f;
@@ -712,7 +729,7 @@ namespace lsp
             if (out.triangle.size() > 0)
             {
                 // Allocate additional context and add to task list
-                rt_context_t *nctx = new rt_context_t();
+                rt_context_t *nctx = new rt_context_t(&ctx->view, (out.triangle.size() > 1) ? S_SPLIT : S_REFLECT);
                 if (nctx == NULL)
                     return STATUS_NO_MEM;
                 else if (!vTasks.push(nctx))
@@ -735,8 +752,6 @@ namespace lsp
                 );
 
                 nctx->swap(&out);
-                nctx->view  = ctx->view;
-                nctx->state = (nctx->triangle.size() > 1) ? S_SPLIT : S_REFLECT;
             }
 
             return (vTasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
@@ -771,6 +786,7 @@ namespace lsp
 
     status_t RayTrace3D::reflect_view(rt_context_t *ctx)
     {
+        rt_context_t *rc;
         rt_view_t sv, v, cv, rv, tv;    // source view, view, captured view, reflected view, transparent trace
         vector3d_t vpl;                 // trace plane, split plane
         point3d_t p[3];                 // Projection points
@@ -801,10 +817,9 @@ namespace lsp
                 ctx->trace.add_plane_3pn1c(ct->v[0], ct->v[1], ct->v[2], &ct->n, &C_MAGENTA);
                 ctx->trace.add_plane_3pn1c(&sv.p[0], &sv.p[1], &sv.p[2], &ct->n, &C_YELLOW);
                 ctx->trace.add_view_1c(&sv, &C_MAGENTA);
-            )v.p[0]      = *(ct->v[0]);
+            );
 
             // Estimate the start time for each trace point using barycentric coordinates
-
             for (size_t j=0; j<3; ++j)
             {
                 dsp::calc_split_point_p2v1(&p[j], &sv.s, ct->v[j], &vpl);     // Project triangle point to trace point
@@ -818,7 +833,14 @@ namespace lsp
             }
 
             // Determine the direction from which came the wave front
-            float energy    = dsp::calc_area_pv(p) / A;
+            v.oid       = ct->oid;
+            v.face      = ct->face;
+            v.s         = sv.s;
+            v.energy    = (sv.energy * dsp::calc_area_pv(p)) / A;
+            v.p[0]      = *(ct->v[0]);
+            v.p[1]      = *(ct->v[1]);
+            v.p[2]      = *(ct->v[2]);
+
             float distance  = sv.s.x * ct->n.dx + sv.s.y * ct->n.dy + sv.s.z * ct->n.dz + ct->n.dw;
 
             RT_TRACE_BREAK(pDebug,
@@ -826,7 +848,7 @@ namespace lsp
                 lsp_trace("View points time: {%f, %f, %f}", sv.time[0], sv.time[1], sv.time[2]);
                 lsp_trace("Projection points time: {%f, %f, %f}", t[0], t[1], t[2]);
                 lsp_trace("Target points time: {%f, %f, %f}", v.time[0], v.time[1], v.time[2]);
-                lsp_trace("Energy: %f -> %f", sv.energy, energy);
+                lsp_trace("Energy: %f -> %f", sv.energy, v.energy);
                 lsp_trace("Distance between source point and triangle: %f", distance);
 
                 ctx->trace.add_triangle_1c(ct, &C_YELLOW);
@@ -837,31 +859,23 @@ namespace lsp
                 ctx->trace.add_segment(&p[2], ct->v[2], &C_BLUE);
             )
 
-            v.oid       = ct->oid;
-            v.face      = ct->face;
-            v.s         = sv.s;
-            v.energy    = energy * m->absorption[0];
-            v.p[0]      = *(ct->v[0]);
-            v.p[1]      = *(ct->v[1]);
-            v.p[2]      = *(ct->v[2]);
-
             cv          = v;
             rv          = v;
             tv          = v;
 
             if (distance > 0.0f)
             {
-                cv.energy       = energy * m->absorption[0];
-                energy         *= (1.0f - m->absorption[0]);
+                cv.energy       = v.energy * m->absorption[0];
+                v.energy       *= (1.0f - m->absorption[0]);
 
                 kd              = (1.0f + 1.0f / m->dispersion[0]) * distance;
-                rv.energy       = energy * (1.0f - m->transparency[0]);
+                rv.energy       = v.energy * (m->transparency[0] - 1.0f); // Sign negated
                 rv.s.x         -= kd * ct->n.dx;
                 rv.s.y         -= kd * ct->n.dy;
                 rv.s.z         -= kd * ct->n.dz;
 
                 kd              = (m->permeability/m->dissipation[0] - 1.0f) * distance;
-                tv.energy       = energy * m->transparency[0];
+                tv.energy       = v.energy * m->transparency[0];
                 tv.speed       *= m->permeability;
                 tv.s.x         += kd * ct->n.dx;
                 tv.s.y         += kd * ct->n.dy;
@@ -880,17 +894,17 @@ namespace lsp
             }
             else
             {
-                cv.energy       = energy * m->absorption[1];
-                energy         *= (1.0f - m->absorption[1]);
+                cv.energy       = v.energy * m->absorption[1];
+                v.energy       *= (1.0f - m->absorption[1]);
 
                 kd              = (1.0f + 1.0f / m->dispersion[1]) * distance;
-                rv.energy       = energy * (1.0f - m->transparency[1]);
+                rv.energy       = v.energy * (m->transparency[1] - 1.0f); // Sign negated
                 rv.s.x         -= kd * ct->n.dx;
                 rv.s.y         -= kd * ct->n.dy;
                 rv.s.z         -= kd * ct->n.dz;
 
                 kd              = (1.0f/(m->dissipation[1]*m->permeability) - 1.0f) * distance;
-                tv.energy       = energy * m->transparency[1];
+                tv.energy       = v.energy * m->transparency[1];
                 tv.speed       /= m->permeability;
                 tv.s.x         += kd * ct->n.dx;
                 tv.s.y         += kd * ct->n.dy;
@@ -918,32 +932,40 @@ namespace lsp
                     break;
             }
 
-            // Perform reflection
+            // Create reflection context
             if ((rv.energy <= -DSP_3D_TOLERANCE) || (rv.energy >= DSP_3D_TOLERANCE))
             {
-//                rt_context_t *rc  = new rt_context_t(&rv, pDebug);
-//                if ((rc == NULL) || (!vTasks.add(rc)))
-//                    res     = STATUS_NO_MEM;
-//                if (res != STATUS_OK)
-//                {
-//                    delete rc;
-//                    break;
-//                }
-//                rc->state   = S_SCAN_OBJECTS;
+                rc      = new rt_context_t(&rv, S_SCAN_OBJECTS);
+                if (rc == NULL)
+                    return STATUS_NO_MEM;
+                else if (!vTasks.add(rc))
+                {
+                    delete rc;
+                    res = STATUS_NO_MEM;
+                    break;
+                }
+
+                RT_TRACE(pDebug,
+                    rc->set_debug_context(pDebug);
+                );
             }
 
-            // Perform refraction
-            if ((rv.energy <= -DSP_3D_TOLERANCE) || (rv.energy >= DSP_3D_TOLERANCE))
+            // Create refraction context
+            if ((tv.energy <= -DSP_3D_TOLERANCE) || (tv.energy >= DSP_3D_TOLERANCE))
             {
-//                rt_context_t *rc = new rt_context_t(&tv, pDebug);
-//                if ((rc == NULL) || (!vTasks.add(rc)))
-//                    res     = STATUS_NO_MEM;
-//                if (res != STATUS_OK)
-//                {
-//                    delete rc;
-//                    break;
-//                }
-//                rc->state   = S_SCAN_OBJECTS;
+                rc      = new rt_context_t(&tv, S_SCAN_OBJECTS);
+                if (rc == NULL)
+                    return STATUS_NO_MEM;
+                else if (!vTasks.add(rc))
+                {
+                    delete rc;
+                    res = STATUS_NO_MEM;
+                    break;
+                }
+
+                RT_TRACE(pDebug,
+                    rc->set_debug_context(pDebug);
+                );
             }
         }
 

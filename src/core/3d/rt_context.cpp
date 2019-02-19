@@ -33,6 +33,10 @@ namespace lsp
         this->debug     = NULL;
 
         // Initialize point of view
+        view.energy     = 0.0f;
+        view.face       = -1;
+        view.oid        = -1;
+        view.speed      = SOUND_SPEED_M_S;
         dsp::init_point_xyz(&view.s, 0.0f, 0.0f, 0.0f);
         dsp::init_point_xyz(&view.p[0], 0.0f, 0.0f, 0.0f);
         dsp::init_point_xyz(&view.p[1], 0.0f, 0.0f, 0.0f);
@@ -1546,12 +1550,12 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t rt_context_t::add_object(Object3D *obj, size_t oid, rt_material_t *material)
+    status_t rt_context_t::add_object(Object3D *obj, ssize_t oid, rt_material_t *material)
     {
         return add_object(obj, oid, obj->matrix(), material);
     }
 
-    status_t rt_context_t::add_object(Object3D *obj, size_t oid, const matrix3d_t *transform, rt_material_t *material)
+    status_t rt_context_t::add_object(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material)
     {
         // Reset tags
         obj->scene()->init_tags(NULL, 0);
@@ -1572,6 +1576,21 @@ namespace lsp
                 return STATUS_BAD_STATE;
             else if (st->ptag != NULL) // Skip already emitted triangle
                 continue;
+
+            if ((view.oid == oid) && (view.face == st->face))
+            {
+                RT_TRACE(debug,
+                    v_triangle3d_t it;
+                    it.p[0] = *(st->v[0]);
+                    it.p[1] = *(st->v[1]);
+                    it.p[2] = *(st->v[2]);
+                    it.n[0] = *(st->n[0]);
+                    it.n[1] = *(st->n[1]);
+                    it.n[2] = *(st->n[2]);
+                    ignored.add(&it);
+                );
+                continue;
+            }
 
             // Allocate triangle and store pointer
             rt_triangle_t *dt = triangle.alloc();

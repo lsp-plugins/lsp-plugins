@@ -122,7 +122,7 @@ namespace lsp
              * @param material material that describes behaviour of reflected rays
              * @return status of operation
              */
-            status_t        add_object(Object3D *obj, size_t oid, rt_material_t *material);
+            status_t        add_object(Object3D *obj, ssize_t oid, rt_material_t *material);
 
             /**
              * Add object to context
@@ -132,7 +132,7 @@ namespace lsp
              * @param material material that describes behaviour of reflected rays
              * @return status of operation
              */
-            status_t        add_object(Object3D *obj, size_t oid, const matrix3d_t *transform, rt_material_t *material);
+            status_t        add_object(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material);
 
             /**
              * Fetch data for all objects identified by specified identifiers
