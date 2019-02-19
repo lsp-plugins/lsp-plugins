@@ -49,6 +49,12 @@ namespace lsp
             void swap(View3D *dst);
 
             /**
+             * Add all data
+             * @param src source for the trace
+             */
+            void add_all(const View3D *src);
+
+            /**
              * Cleanup view
              */
             inline void clear_all() { clear(V3D_VERTEXES | V3D_RAYS | V3D_POINTS | V3D_SEGMENTS); };

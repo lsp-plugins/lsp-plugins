@@ -349,6 +349,8 @@ namespace lsp
                 if (ctx == NULL)
                     return STATUS_NO_MEM;
 
+                RT_TRACE(pDebug, ctx->set_debug_context(pDebug); )
+
                 ctx->view.s         = src->position.z;
                 dsp::apply_matrix3d_mp2(&ctx->view.p[0], t->v[0], &tm);
                 dsp::apply_matrix3d_mp2(&ctx->view.p[1], t->v[2], &tm);
@@ -369,13 +371,13 @@ namespace lsp
             }
 
             RT_TRACE_BREAK(pDebug,
-                    lsp_trace("Generated %d raytrace contexts for source %d", int(obj->num_triangles()), int(i));
-                    for (size_t i=0, n=vTasks.size(); i<n; ++i)
-                    {
-                        rt_context_t *ctx = vTasks.at(i);
-                        pDebug->trace.add_view_1c(&ctx->view, &C_MAGENTA);
-                    }
-                );
+                lsp_trace("Generated %d raytrace contexts for source %d", int(obj->num_triangles()), int(i));
+                for (size_t i=0, n=vTasks.size(); i<n; ++i)
+                {
+                    rt_context_t *ctx = vTasks.at(i);
+                    pDebug->trace.add_view_1c(&ctx->view, &C_MAGENTA);
+                }
+            );
         }
 
         return STATUS_OK;
@@ -476,7 +478,7 @@ namespace lsp
         // Perform simple bounding-box check
         bool res    = check_bound_box(&box, &ctx->view);
 
-        if (res)
+        if (!res)
         {
             RT_TRACE(pDebug,
                 for (size_t j=0,n=obj->num_triangles(); j<n; ++j)
@@ -719,7 +721,18 @@ namespace lsp
                     return STATUS_NO_MEM;
                 }
 
-                RT_TRACE(pDebug, nctx->set_debug_context(pDebug); );
+                RT_TRACE(pDebug,
+                    nctx->set_debug_context(pDebug);
+
+                    nctx->ignored.add_all(&ctx->ignored);
+                    nctx->matched.add_all(&ctx->matched);
+                    nctx->trace.add_all(&ctx->trace);
+
+                    for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
+                        nctx->ignore(ctx->triangle.get(i));
+                    for (size_t i=0,n=out.triangle.size(); i<n; ++i)
+                        ctx->ignore(out.triangle.get(i));
+                );
 
                 nctx->swap(&out);
                 nctx->view  = ctx->view;

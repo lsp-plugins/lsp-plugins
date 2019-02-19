@@ -1070,6 +1070,7 @@ namespace lsp
 
         RT_TRACE_BREAK(debug,
             lsp_trace("Data after culling (%d triangles)", int(triangle.size()));
+            trace.add_view_1c(&view, &C_MAGENTA);
             for (size_t j=0,n=triangle.size(); j<n; ++j)
                 trace.add_triangle_3c(triangle.get(j), &C_CYAN, &C_MAGENTA, &C_YELLOW);
         );
@@ -1419,6 +1420,7 @@ namespace lsp
 
         RT_TRACE_BREAK(debug,
             lsp_trace("Prepare depth test");
+            trace.add_view_1c(&view, &C_MAGENTA);
             for (size_t j=0; j<triangle.size(); ++j)
                 trace.add_triangle_1c(triangle.get(j), &C_YELLOW);
             for (size_t j=0; j<edge.size(); ++j)
@@ -1449,6 +1451,7 @@ namespace lsp
 
             RT_TRACE_BREAK(debug,
                 lsp_trace("Doing depth test for triangle %d/%d", int(triangle.index_of(ct)), int(triangle.size()));
+                trace.add_view_1c(&view, &C_MAGENTA);
                 for (size_t j=0; j<triangle.size(); ++j)
                 {
                     rt_triangle_t *t = triangle.get(j);
@@ -1496,6 +1499,7 @@ namespace lsp
 
             RT_TRACE_BREAK(debug,
                 lsp_trace("After depth test for triangle %d/%d, in=GREEN, on=BLUE, out=RED", int(triangle.index_of(ct)), int(triangle.size()));
+                trace.add_view_1c(&view, &C_MAGENTA);
                 for (size_t j=0; j<triangle.size(); ++j)
                 {
                     rt_triangle_t *t = triangle.get(j);
@@ -1529,6 +1533,7 @@ namespace lsp
 
         RT_TRACE_BREAK(debug,
             lsp_trace("After depth test triangles=%d", int(triangle.size()));
+            trace.add_view_1c(&view, &C_MAGENTA);
             for (size_t j=0; j<triangle.size(); ++j)
             {
                 rt_triangle_t *t = triangle.get(j);

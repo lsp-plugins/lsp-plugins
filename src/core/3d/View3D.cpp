@@ -37,6 +37,14 @@ namespace lsp
         vPoints.swap(&dst->vPoints);
     }
 
+    void View3D::add_all(const View3D *src)
+    {
+        vVertexes.add_all(&src->vVertexes);
+        vRays.add_all(&src->vRays);
+        vSegments.add_all(&src->vSegments);
+        vPoints.add_all(&src->vPoints);
+    }
+
     bool View3D::add_ray(const v_ray3d_t *r)
     {
         return vRays.append(r);

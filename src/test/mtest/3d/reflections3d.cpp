@@ -31,8 +31,7 @@
 
 #ifndef TEST_DEBUG
 //    #define BREAKPOINT_STEP     -1
-    #define BREAKPOINT_STEP     0
-//    #define BREAKPOINT_STEP     231
+    #define BREAKPOINT_STEP     260
 
 /*
         dsp::init_point_xyz(&front.p[0], -0.980776, -0.195088, 0.000000); \
@@ -103,15 +102,17 @@ MTEST_BEGIN("3d", reflections)
             bool            bDrawFront;
             bool            bDrawMatched;
             bool            bDrawIgnored;
+            bool            bDrawDebug;
 
         public:
             explicit Renderer(Scene3D *scene, View3D *view): X11Renderer(view)
             {
                 pScene = scene;
-                bBoundBoxes = false;
-                bDrawFront  = true;
-                bDrawMatched = true;
-                bDrawIgnored = true;
+                bBoundBoxes     = false;
+                bDrawFront      = true;
+                bDrawMatched    = true;
+                bDrawIgnored    = true;
+                bDrawDebug      = true;
                 nTrace = BREAKPOINT_STEP;
 
                 dsp::init_point_xyz(&sSource.z, 0.0f, 0.0f, 2.0f);
@@ -235,6 +236,13 @@ MTEST_BEGIN("3d", reflections)
                         break;
                     }
 
+                    case 'd':
+                    {
+                        bDrawDebug = ! bDrawDebug;
+                        update_view();
+                        break;
+                    }
+
                     case '0': case '1': case '2': case '3': case '4':
                     case '5': case '6': case '7': case '8': case '9':
                     {
@@ -308,6 +316,9 @@ MTEST_BEGIN("3d", reflections)
 //                    for (size_t i=0, m=obj->num_triangles(); i < m; ++i)
 //                        pView->add_triangle_3c(obj->triangle(i), &C_RED, &C_GREEN, &C_BLUE);
 //                }
+
+                if (!bDrawDebug)
+                    pView->clear_all();
 
                 if (!pScene->validate())
                     return STATUS_BAD_STATE;
