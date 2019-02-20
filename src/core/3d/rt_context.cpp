@@ -1717,11 +1717,22 @@ namespace lsp
         rt_context_t tmp;
         RT_TRACE(debug, tmp.set_debug_context(debug); );
 
+        lsp_trace("ignore oid=%d, face=%d", int(view.oid), int(view.face));
+
         if (n > 0)
         {
             // Match triangles by object identifier
             RT_FOREACH(rt_triangle_t, t, src->triangle)
                 t->itag         = 0; // Not matched
+
+                // Skip triangles that should be ignored
+                if ((t->oid == view.oid) && (t->face == view.face))
+                {
+                    RT_TRACE(debug, ignore(t); );
+                    continue;
+                }
+
+                // Check that triangle matches specified object
                 for (size_t i=0; i<n; ++i)
                     if (t->oid == ssize_t(ids[i]))
                     {

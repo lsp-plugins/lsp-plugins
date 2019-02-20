@@ -2632,6 +2632,11 @@ namespace native
         return sqrtf(d.dx*d.dx + d.dy*d.dy + d.dz*d.dz);
     }
 
+    float calc_distance_v1(const vector3d_t *v)
+    {
+        return sqrtf(v->dx*v->dx + v->dy*v->dy + v->dz*v->dz);
+    }
+
     float calc_sqr_distance_p2(const point3d_t *p1, const point3d_t *p2)
     {
         vector3d_t d;

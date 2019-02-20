@@ -400,6 +400,7 @@ namespace native
         EXPORT1(calc_distance_p2);
         EXPORT1(calc_sqr_distance_p2);
         EXPORT1(calc_distance_pv);
+        EXPORT1(calc_distance_v1);
         EXPORT1(calc_sqr_distance_pv);
 
         EXPORT1(projection_length_p2);

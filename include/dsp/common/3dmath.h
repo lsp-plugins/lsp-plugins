@@ -976,6 +976,13 @@ namespace dsp
     extern float (* calc_distance_pv)(const point3d_t *pv);
 
     /**
+     * Compute the distance (actually, the length of the vector)
+     * @param v vector
+     * @return distance (vector length)
+     */
+    extern float (* calc_distance_v1)(const vector3d_t *v);
+
+    /**
      * Compute square of distance between two points
      * @param pv array of two points
      * @return square of distance between two points

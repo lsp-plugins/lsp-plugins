@@ -837,6 +837,7 @@ namespace lsp
             v.face      = ct->face;
             v.s         = sv.s;
             v.energy    = (sv.energy * dsp::calc_area_pv(p)) / A;
+            v.speed     = sv.speed;
             v.p[0]      = *(ct->v[0]);
             v.p[1]      = *(ct->v[1]);
             v.p[2]      = *(ct->v[2]);
@@ -975,7 +976,76 @@ namespace lsp
 
     status_t RayTrace3D::capture(capture_t *capture, const rt_view_t *v)
     {
-        // TODO
+        lsp_trace("Capture:\n"
+                "  coord  = {{%f, %f, %f}, {%f, %f, %f}, {%f, %f, %f}}\n"
+                "  time   = {%f, %f, %f}\n"
+                "  energy = %f",
+                v->p[0].x, v->p[0].y, v->p[0].z,
+                v->p[1].x, v->p[1].y, v->p[1].z,
+                v->p[2].x, v->p[2].y, v->p[2].z,
+                v->time[0], v->time[1], v->time[2],
+                v->energy
+            );
+
+        // Estimate distance and time parameters for source point
+        vector3d_t ds[3];
+        raw_triangle_t src;
+        float ts[3], tsn[3];
+
+        for (size_t i=0; i<3; ++i)
+        {
+            src.p[i]    = v->p[i];
+            dsp::init_vector_p2(&ds[i], &v->s, &src.p[i]);  // Delta vector
+            float dist  = dsp::calc_distance_v1(&ds[i]);
+            ts[i]       = v->time[i] - dist / v->speed;     // Time at the source point
+            tsn[i]      = v->time[i] * nSampleRate;         // Sample number
+        }
+
+        // Estimate the culling sample number
+        ssize_t csn;
+        if ((tsn[0] < tsn[1]) && (tsn[0] < tsn[2]))
+            csn     = tsn[0];
+        else
+            csn     = (tsn[1] < tsn[2]) ? tsn[1] : tsn[2];
+        ++csn;                                              // Culling sample number
+
+        // Perform integration
+        vector3d_t spl;
+        raw_triangle_t in[2], out[2];
+        size_t n_in, n_out;
+        float prev_area     = 0.0f;                                 // The area of polygon at previous step
+        float efactor       = v->energy / dsp::calc_area_pv(v->p);  // The norming energy factor
+        point3d_t p[3];
+
+        do {
+            // Estimate the culling plane points
+            for (size_t i=0; i<3; ++i)
+            {
+                float ctime     = csn * nSampleRate;
+                float factor    = (ctime  - ts[i]) / (v->time[i] - ts[i]);
+                p[i].x  = v->s.x + ds[i].dx * factor;
+                p[i].y  = v->s.y + ds[i].dy * factor;
+                p[i].z  = v->s.z + ds[i].dz * factor;
+                p[i].w  = 1.0f;
+            }
+
+            // Compute culling plane
+            dsp::calc_oriented_plane_pv(&spl, &v->s, p);
+
+            // Perform split
+            n_out = 0, n_in = 0;
+            dsp::split_triangle_raw(out, &n_out, in, &n_in, &spl, &src);
+            float in_area       = 0.0f;
+            for (size_t i=0; i<n_in; ++i)
+                in_area          += dsp::calc_area_pv(in[i].p);
+
+            float energy    = (in_area - prev_area) * efactor;
+            prev_area       = in_area;
+            lsp_trace("Sample %d -> energy = %f", int(csn-1), energy);
+
+            ++csn; // Increment culling sample number for next iteration
+        } while (n_out > 0);
+
         return STATUS_OK;
     }
 
