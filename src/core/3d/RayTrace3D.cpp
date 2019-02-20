@@ -36,6 +36,7 @@ namespace lsp
         pProgressData   = NULL;
         nSampleRate     = DEFAULT_SAMPLE_RATE;
         pDebug          = NULL;
+        fEnergyThresh   = 1e-10;
     }
 
     RayTrace3D::~RayTrace3D()
@@ -141,7 +142,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t RayTrace3D::add_capture(const ray3d_t *position, rt_audio_capture_t type, Sample *sample, size_t channel)
+    status_t RayTrace3D::add_capture(const ray3d_t *position, rt_audio_capture_t type, Sample *sample, size_t channel, float gain)
     {
         capture_t *cap      = vCaptures.add();
         if (cap == NULL)
@@ -151,6 +152,8 @@ namespace lsp
         cap->type           = type;
         cap->sample         = sample;
         cap->channel        = channel;
+        cap->gain           = gain;
+        cap->volume         = 1.0f;
 
         dsp::calc_matrix3d_transform_r1(&cap->matrix, position);
 
@@ -230,7 +233,7 @@ namespace lsp
             return res;
 
         // Prepare root context
-        res         = prepare_root_context();
+        res         = generate_root_context();
         if (res != STATUS_OK)
             return res;
 
@@ -357,7 +360,7 @@ namespace lsp
                 dsp::apply_matrix3d_mp2(&p[2], t->v[2], &tm);
                 area               += dsp::calc_area_pv(p);
             }
-            initial /= area;
+            float e_norming     = initial * initial * src->volume / area;
 
             // Generate sources
             for (size_t ti=0, n=obj->num_triangles(); ti<n; ++ti)
@@ -377,7 +380,7 @@ namespace lsp
                 ctx->view.oid       = -1;
                 ctx->view.face      = -1;
                 ctx->view.speed     = SOUND_SPEED_M_S;
-                ctx->view.energy    = dsp::calc_area_pv(ctx->view.p) * initial;
+                ctx->view.energy    = dsp::calc_area_pv(ctx->view.p) * e_norming;
                 ctx->view.time[0]   = 0.0f;
                 ctx->view.time[1]   = 0.0f;
                 ctx->view.time[2]   = 0.0f;
@@ -521,7 +524,7 @@ namespace lsp
         return (res) ? STATUS_OK : STATUS_SKIP;
     }
 
-    status_t RayTrace3D::prepare_root_context()
+    status_t RayTrace3D::generate_root_context()
     {
         status_t res;
         size_t obj_id = 0;
@@ -529,6 +532,8 @@ namespace lsp
         // Clear contents of the root context
         sRoot.clear();
         RT_TRACE(pDebug, sRoot.set_debug_context(pDebug); )
+
+        float max_volume    = 0.0f;
 
         // Add scene objects
         for (size_t i=0, n=pScene->num_objects(); i<n; ++i, ++obj_id)
@@ -568,10 +573,41 @@ namespace lsp
             if (obj == NULL)
                 return STATUS_NO_MEM;
 
+            // Estimate the area of the source
+            float area = 0.0f;
+
+            point3d_t p[3];
+            for (size_t i=0, n=obj->num_triangles(); i<n; ++i)
+            {
+                obj_triangle_t *t = obj->triangle(i);
+                dsp::apply_matrix3d_mp2(&p[0], t->v[0], &cap->matrix);
+                dsp::apply_matrix3d_mp2(&p[1], t->v[1], &cap->matrix);
+                dsp::apply_matrix3d_mp2(&p[2], t->v[2], &cap->matrix);
+
+                area += dsp::calc_area_pv(p);
+            }
+            cap->volume     = cap->gain / area;
+            if (cap->volume > max_volume)
+                max_volume      = cap->volume;
+
             // Add capture object to context
             res     = sRoot.add_object(obj, obj_id, &cap->matrix, &cap->material);
             if (res != STATUS_OK)
                 return res;
+        }
+
+        // Normalize capture volume
+        for (size_t i=0, n=vCaptures.size(); i<n; ++i, ++obj_id)
+        {
+            capture_t *cap      = vCaptures.get(i);
+            cap->volume        /= max_volume;
+        }
+
+        // Update source energy (add extra volume)
+        for (size_t i=0,n=vTasks.size();i<n; ++i)
+        {
+            rt_context_t *ct    = vTasks.get(i);
+            ct->view.energy    *= max_volume;
         }
 
         RT_TRACE_BREAK(pDebug,
@@ -851,7 +887,7 @@ namespace lsp
                 lsp_trace("View points time: {%f, %f, %f}", sv.time[0], sv.time[1], sv.time[2]);
                 lsp_trace("Projection points time: {%f, %f, %f}", t[0], t[1], t[2]);
                 lsp_trace("Target points time: {%f, %f, %f}", v.time[0], v.time[1], v.time[2]);
-                lsp_trace("Energy: %f -> %f", sv.energy, v.energy);
+                lsp_trace("Energy: %e -> %e", sv.energy, v.energy);
                 lsp_trace("Distance between source point and triangle: %f", distance);
 
                 ctx->trace.add_triangle_1c(ct, &C_YELLOW);
@@ -886,7 +922,7 @@ namespace lsp
 
                 RT_TRACE_BREAK(pDebug,
                     lsp_trace("Outside->inside reflect_view");
-                    lsp_trace("Energy: captured=%f, reflected=%f, refracted=%f", cv.energy, rv.energy, tv.energy);
+                    lsp_trace("Energy: captured=%e, reflected=%e, refracted=%e", cv.energy, rv.energy, tv.energy);
                     lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, dispersion=%f, dissipation=%f",
                             m->absorption[0], m->transparency[0], m->permeability, m->dispersion[0], m->dissipation[0]);
 
@@ -915,7 +951,7 @@ namespace lsp
 
                 RT_TRACE_BREAK(pDebug,
                     lsp_trace("Inside->outside reflect_view");
-                    lsp_trace("Energy: captured=%f, reflected=%f, refracted=%f", cv.energy, rv.energy, tv.energy);
+                    lsp_trace("Energy: captured=%e, reflected=%e, refracted=%e", cv.energy, rv.energy, tv.energy);
                     lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, dispersion=%f, dissipation=%f",
                             m->absorption[1], m->transparency[1], m->permeability, m->dispersion[1], m->dissipation[1]);
 
@@ -936,7 +972,7 @@ namespace lsp
             }
 
             // Create reflection context
-            if ((rv.energy <= -DSP_3D_TOLERANCE) || (rv.energy >= DSP_3D_TOLERANCE))
+            if ((rv.energy <= -fEnergyThresh) || (rv.energy >= fEnergyThresh))
             {
                 // Revert the order of triangle because direction has changed to opposite
                 rv.p[1]     = v.p[2];
@@ -961,7 +997,7 @@ namespace lsp
             }
 
             // Create refraction context
-            if ((tv.energy <= -DSP_3D_TOLERANCE) || (tv.energy >= DSP_3D_TOLERANCE))
+            if ((tv.energy <= -fEnergyThresh) || (tv.energy >= fEnergyThresh))
             {
                 rc      = new rt_context_t(&tv, S_SCAN_OBJECTS);
                 if (rc == NULL)
@@ -1026,8 +1062,8 @@ namespace lsp
         vector3d_t spl;
         raw_triangle_t in[2], out[2];
         size_t n_in, n_out;
-        float prev_area     = 0.0f;                                 // The area of polygon at previous step
-        float efactor       = v->energy / dsp::calc_area_pv(v->p);  // The norming energy factor
+        float prev_area     = 0.0f;                                                     // The area of polygon at previous step
+        float efactor       = v->energy * capture->volume / dsp::calc_area_pv(v->p);    // The norming energy factor
         point3d_t p[3];
 
         do {
@@ -1064,7 +1100,7 @@ namespace lsp
             prev_area       = in_area;
 
             RT_TRACE_BREAK(pDebug,
-                lsp_trace("After split in=%d (GREEN), out=%d (RED) sample=%d, energy=%f",
+                lsp_trace("After split in=%d (GREEN), out=%d (RED) sample=%d, energy=%e",
                         int(n_in), int(n_out),
                         int(csn-1), energy
                     );
@@ -1077,10 +1113,11 @@ namespace lsp
             )
 
             // Deploy energy value to the sample
+            float amp = (energy >= 0.0f) ? sqrtf(energy) : -sqrtf(-energy);
+            lsp_trace("Sample %d -> energy=%e, amplitude=%e", int(csn-1), energy, amp);
+
             if ((csn > 0) && (capture->sample != NULL))
             {
-                lsp_trace("Sample %d -> energy = %f", int(csn-1), energy);
-
                 // Ensure that we need to resize sample
                 size_t len = capture->sample->max_length();
                 size_t cnum = capture->sample->channels();
@@ -1094,7 +1131,10 @@ namespace lsp
 
                 // Deploy sample to all channels of the sample
                 float *buf  = capture->sample->getBuffer(capture->channel);
-                buf[cnum]  += energy;
+                if (energy >= 0.0f)
+                    buf[cnum]  += sqrtf(energy);
+                else
+                    buf[cnum]  -= sqrtf(energy);
             }
 
             ++csn; // Increment culling sample number for next iteration

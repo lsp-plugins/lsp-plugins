@@ -55,6 +55,8 @@ namespace lsp
                 rt_audio_capture_t  type;
                 Sample             *sample;
                 size_t              channel;
+                float               gain;
+                float               volume;
             } capture_t;
 
         private:
@@ -68,6 +70,7 @@ namespace lsp
             rt_context_t                sRoot;
             void                       *pProgressData;
             size_t                      nSampleRate;
+            float                       fEnergyThresh;
 
             rt_debug_t                 *pDebug;
 
@@ -79,7 +82,7 @@ namespace lsp
             status_t    report_progress(float progress);
 
             // Main ray-tracing routines
-            status_t    prepare_root_context();
+            status_t    generate_root_context();
             status_t    generate_tasks(float initial);
             status_t    scan_objects(rt_context_t *ctx);
             status_t    check_object(rt_context_t *ctx, Object3D *obj, const matrix3d_t *m);
@@ -175,9 +178,10 @@ namespace lsp
              * @param position audio capture position, direction and size
              * @param sample sample object to store captured data
              * @param channel the sample channel to store captured data
+             * @param gain capture gain
              * @return status of operation
              */
-            status_t add_capture(const ray3d_t *position, rt_audio_capture_t type, Sample *sample, size_t channel);
+            status_t add_capture(const ray3d_t *position, rt_audio_capture_t type, Sample *sample, size_t channel, float gain);
 
             /** Remove all audio sources
              *
@@ -193,10 +197,11 @@ namespace lsp
              * Set debug context for debugging purposes
              * @param shared shared context for debugging
              */
-            inline void         set_debug_context(rt_debug_t *debug)
-            {
-                pDebug  = debug;
-            }
+            inline void         set_debug_context(rt_debug_t *debug) { pDebug  = debug; }
+
+            inline float        get_energy_threshold() const { return fEnergyThresh; }
+
+            void                set_energy_threshold(float thresh) { fEnergyThresh = thresh; }
 
             /**
              * Perform processing

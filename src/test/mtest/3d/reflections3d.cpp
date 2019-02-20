@@ -31,7 +31,7 @@
 
 #ifndef TEST_DEBUG
 //    #define BREAKPOINT_STEP     -1
-    #define BREAKPOINT_STEP     274
+    #define BREAKPOINT_STEP     0
 //    #define BREAKPOINT_STEP     0
 
 /*
@@ -117,10 +117,10 @@ MTEST_BEGIN("3d", reflections)
                 nTrace = BREAKPOINT_STEP;
 
                 dsp::init_point_xyz(&sSource.z, 0.0f, 0.0f, 2.0f);
-                dsp::init_vector_dxyz(&sSource.v, 0.0f, 0.0f, -1.0f);
+                dsp::init_vector_dxyz(&sSource.v, 0.0f, 0.0f, 0.3048f); // 12" speaker source
 
                 dsp::init_point_xyz(&sCapture.z, 0.0f, 0.0f, -4.0f);
-                dsp::init_vector_dxyz(&sCapture.v, 0.0f, 0.0f, 1.0f);
+                dsp::init_vector_dxyz(&sCapture.v, 0.0f, 0.0f, 0.0508f); // 2" microphone diaphragm
 
                 update_view();
             }
@@ -279,7 +279,7 @@ MTEST_BEGIN("3d", reflections)
                 if (res != STATUS_OK)
                     return res;
 
-                res     = trace->add_capture(&sCapture, RT_AC_OMNIDIRECTIONAL, NULL, 0);
+                res     = trace->add_capture(&sCapture, RT_AC_OMNIDIRECTIONAL, NULL, 0, 1.0f);
                 if (res != STATUS_OK)
                     return res;
 
