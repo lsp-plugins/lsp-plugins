@@ -9,6 +9,8 @@
 #include <core/3d/common.h>
 #include <core/3d/RayTrace3D.h>
 
+#define SAMPLE_QUANTITY     512
+
 namespace lsp
 {
     static const size_t bbox_map[] =
@@ -282,12 +284,12 @@ namespace lsp
             // Report status if required
             if ((res == STATUS_OK) && (t_size < p_thresh))
             {
-                p_thresh    = vTasks.size();
                 float prg   = float(p_points) / float(p_denom);
                 lsp_trace("Reporting progress %d/%d = %.2f%%", int(p_points), int(p_denom), prg * 100.0f);
                 res         = report_progress(prg);
 
-                ++p_points;
+                p_points   += p_thresh - t_size;
+                p_thresh    = t_size;
             }
 
             // Analyze status
@@ -803,7 +805,7 @@ namespace lsp
         for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
         {
             rt_triangle_t *ct = ctx->triangle.get(i);
-            ctx->match(ctx->triangle.get(i));
+//            ctx->match(ctx->triangle.get(i));
 
             // get material
             rt_material_t *m    = ct->m;
@@ -928,7 +930,7 @@ namespace lsp
             if (capture_id >= 0)
             {
                 capture_t *cap  = vCaptures.get(capture_id);
-                res     = (cap != NULL) ? capture(cap, &cv) : STATUS_CORRUPTED;
+                res     = (cap != NULL) ? capture(cap, &cv, &ctx->trace) : STATUS_CORRUPTED;
                 if (res != STATUS_OK)
                     break;
             }
@@ -936,10 +938,17 @@ namespace lsp
             // Create reflection context
             if ((rv.energy <= -DSP_3D_TOLERANCE) || (rv.energy >= DSP_3D_TOLERANCE))
             {
+                // Revert the order of triangle because direction has changed to opposite
+                rv.p[1]     = v.p[2];
+                rv.p[2]     = v.p[1];
+
                 rc      = new rt_context_t(&rv, S_SCAN_OBJECTS);
                 if (rc == NULL)
-                    return STATUS_NO_MEM;
-                else if (!vTasks.add(rc))
+                {
+                    res = STATUS_NO_MEM;
+                    break;
+                }
+                if (!vTasks.add(rc))
                 {
                     delete rc;
                     res = STATUS_NO_MEM;
@@ -956,8 +965,11 @@ namespace lsp
             {
                 rc      = new rt_context_t(&tv, S_SCAN_OBJECTS);
                 if (rc == NULL)
-                    return STATUS_NO_MEM;
-                else if (!vTasks.add(rc))
+                {
+                    res = STATUS_NO_MEM;
+                    break;
+                }
+                if (!vTasks.add(rc))
                 {
                     delete rc;
                     res = STATUS_NO_MEM;
@@ -970,22 +982,23 @@ namespace lsp
             }
         }
 
-        delete ctx;
+        if (res == STATUS_OK)
+            delete ctx;
         return res;
     }
 
-    status_t RayTrace3D::capture(capture_t *capture, const rt_view_t *v)
+    status_t RayTrace3D::capture(capture_t *capture, const rt_view_t *v, View3D *trace)
     {
-        lsp_trace("Capture:\n"
-                "  coord  = {{%f, %f, %f}, {%f, %f, %f}, {%f, %f, %f}}\n"
-                "  time   = {%f, %f, %f}\n"
-                "  energy = %f",
-                v->p[0].x, v->p[0].y, v->p[0].z,
-                v->p[1].x, v->p[1].y, v->p[1].z,
-                v->p[2].x, v->p[2].y, v->p[2].z,
-                v->time[0], v->time[1], v->time[2],
-                v->energy
-            );
+//        lsp_trace("Capture:\n"
+//                "  coord  = {{%f, %f, %f}, {%f, %f, %f}, {%f, %f, %f}}\n"
+//                "  time   = {%f, %f, %f}\n"
+//                "  energy = %f",
+//                v->p[0].x, v->p[0].y, v->p[0].z,
+//                v->p[1].x, v->p[1].y, v->p[1].z,
+//                v->p[2].x, v->p[2].y, v->p[2].z,
+//                v->time[0], v->time[1], v->time[2],
+//                v->energy
+//            );
 
         // Estimate distance and time parameters for source point
         vector3d_t ds[3];
@@ -1019,9 +1032,9 @@ namespace lsp
 
         do {
             // Estimate the culling plane points
+            float ctime     = float(csn) / nSampleRate;
             for (size_t i=0; i<3; ++i)
             {
-                float ctime     = csn * nSampleRate;
                 float factor    = (ctime  - ts[i]) / (v->time[i] - ts[i]);
                 p[i].x  = v->s.x + ds[i].dx * factor;
                 p[i].y  = v->s.y + ds[i].dy * factor;
@@ -1032,16 +1045,57 @@ namespace lsp
             // Compute culling plane
             dsp::calc_oriented_plane_pv(&spl, &v->s, p);
 
+            RT_TRACE_BREAK(pDebug,
+                lsp_trace("Integrating triangle...");
+                trace->add_view_1c(v, &C_MAGENTA);
+                trace->add_triangle_pv1c(src.p, &C_ORANGE);
+                trace->add_plane_pvn1c(p, &spl, &C_YELLOW);
+            )
+
             // Perform split
             n_out = 0, n_in = 0;
             dsp::split_triangle_raw(out, &n_out, in, &n_in, &spl, &src);
+
             float in_area       = 0.0f;
             for (size_t i=0; i<n_in; ++i)
                 in_area          += dsp::calc_area_pv(in[i].p);
 
             float energy    = (in_area - prev_area) * efactor;
             prev_area       = in_area;
-            lsp_trace("Sample %d -> energy = %f", int(csn-1), energy);
+
+            RT_TRACE_BREAK(pDebug,
+                lsp_trace("After split in=%d (GREEN), out=%d (RED) sample=%d, energy=%f",
+                        int(n_in), int(n_out),
+                        int(csn-1), energy
+                    );
+                trace->add_view_1c(v, &C_MAGENTA);
+                trace->add_plane_pvn1c(p, &spl, &C_YELLOW);
+                for (size_t i=0; i<n_in; ++i)
+                    trace->add_triangle_pv1c(in[i].p, &C_GREEN);
+                for (size_t i=0; i<n_out; ++i)
+                    trace->add_triangle_pv1c(out[i].p, &C_RED);
+            )
+
+            // Deploy energy value to the sample
+            if ((csn > 0) && (capture->sample != NULL))
+            {
+                lsp_trace("Sample %d -> energy = %f", int(csn-1), energy);
+
+                // Ensure that we need to resize sample
+                size_t len = capture->sample->max_length();
+                size_t cnum = capture->sample->channels();
+
+                if (len <= size_t(csn))
+                {
+                    len     = (csn + 1 + SAMPLE_QUANTITY) / SAMPLE_QUANTITY;
+                    len    *= SAMPLE_QUANTITY;
+                    capture->sample->resize(capture->sample->channels(), len, len);
+                }
+
+                // Deploy sample to all channels of the sample
+                float *buf  = capture->sample->getBuffer(capture->channel);
+                buf[cnum]  += energy;
+            }
 
             ++csn; // Increment culling sample number for next iteration
         } while (n_out > 0);

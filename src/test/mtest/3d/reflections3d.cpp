@@ -31,7 +31,7 @@
 
 #ifndef TEST_DEBUG
 //    #define BREAKPOINT_STEP     -1
-    #define BREAKPOINT_STEP     250
+    #define BREAKPOINT_STEP     274
 //    #define BREAKPOINT_STEP     0
 
 /*

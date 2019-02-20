@@ -88,7 +88,7 @@ namespace lsp
             status_t    split_view(rt_context_t *ctx);
             status_t    cullback_view(rt_context_t *ctx);
             status_t    reflect_view(rt_context_t *ctx);
-            status_t    capture(capture_t *capture, const rt_view_t *v);
+            status_t    capture(capture_t *capture, const rt_view_t *v, View3D *trace);
 
         public:
             /** Default constructor
