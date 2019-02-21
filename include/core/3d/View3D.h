@@ -143,6 +143,13 @@ namespace lsp
             bool add_triangle(const v_vertex3d_t *vi);
 
             /**
+             * Add triangle to scene
+             * @param vi triangle
+             * @return true on success
+             */
+            bool add_triangle(const obj_triangle_t *vi, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2);
+
+            /**
              * Add context view
              * @param v context view to add
              */

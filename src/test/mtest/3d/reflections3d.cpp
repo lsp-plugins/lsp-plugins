@@ -116,10 +116,10 @@ MTEST_BEGIN("3d", reflections)
                 bDrawDebug      = true;
                 nTrace = BREAKPOINT_STEP;
 
-                dsp::init_point_xyz(&sSource.z, 0.0f, 0.0f, 2.0f);
+                dsp::init_point_xyz(&sSource.z, -1.0f, 0.0f, 0.0f);
                 dsp::init_vector_dxyz(&sSource.v, 0.0f, 0.0f, 0.3048f); // 12" speaker source
 
-                dsp::init_point_xyz(&sCapture.z, 0.0f, 0.0f, -4.0f);
+                dsp::init_point_xyz(&sCapture.z, 1.0f, 0.0f, 0.0f);
                 dsp::init_vector_dxyz(&sCapture.v, 0.0f, 0.0f, 0.0508f); // 2" microphone diaphragm
 
                 update_view();

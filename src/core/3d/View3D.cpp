@@ -114,6 +114,28 @@ namespace lsp
         return true;
     }
 
+    bool View3D::add_triangle(const obj_triangle_t *vi, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2)
+    {
+        v_vertex3d_t *v = vVertexes.append_n(3);
+        if (v == NULL)
+            return false;
+
+
+        v[0].p  = *(vi->v[0]);
+        v[0].n  = *(vi->n[0]);
+        v[0].c  = *c0;
+
+        v[1].p  = *(vi->v[1]);
+        v[1].n  = *(vi->n[1]);
+        v[1].c  = *c1;
+
+        v[2].p  = *(vi->v[2]);
+        v[2].n  = *(vi->n[2]);
+        v[2].c  = *c2;
+
+        return true;
+    }
+
     bool View3D::add_triangle_1c(const v_triangle3d_t *t, const color3d_t *c)
     {
         v_vertex3d_t *v = vVertexes.append_n(3);

@@ -889,6 +889,28 @@ namespace dsp
     extern float (* calc_oriented_plane_pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv);
 
     /**
+     * Compute plane equation using three points and set the proper direction so the orienting point is always 'above'
+     * the plane
+     * @param v pointer to store plane equation
+     * @param sp orienting point
+     * @param p0 point 0
+     * @param p1 point 1
+     * @param p2 point 2
+     * @return the length of the original normal vector
+     */
+    extern float (* calc_rev_oriented_plane_p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Compute plane equation using three points and set the proper direction so the orienting point is always 'above'
+     * the plane
+     * @param v pointer to store plane equation
+     * @param sp orienting point
+     * @param pv array of three points that lay on the plane
+     * @return the length of the original normal vector
+     */
+    extern float (* calc_rev_oriented_plane_pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv);
+
+    /**
      * Compute plane equation for parallel plane that contains sp and pp points and is parallel to the line formed from p0 and p1 points
      * @param v pointer to store plane equation
      * @param sp source (projection) point

@@ -71,6 +71,7 @@ namespace lsp
             void                       *pProgressData;
             size_t                      nSampleRate;
             float                       fEnergyThresh;
+            float                       fTolerance;
 
             rt_debug_t                 *pDebug;
 
@@ -202,6 +203,10 @@ namespace lsp
             inline float        get_energy_threshold() const { return fEnergyThresh; }
 
             void                set_energy_threshold(float thresh) { fEnergyThresh = thresh; }
+
+            inline float        get_tolerance() const { return fTolerance; }
+
+            void                set_tolerance(float tolerance) { fTolerance = tolerance; }
 
             /**
              * Perform processing

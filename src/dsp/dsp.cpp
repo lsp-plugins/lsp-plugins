@@ -393,6 +393,8 @@ namespace dsp
 
     float   (* calc_oriented_plane_p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
     float   (* calc_oriented_plane_pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv) = NULL;
+    float   (* calc_rev_oriented_plane_p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
+    float   (* calc_rev_oriented_plane_pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv) = NULL;
     float   (* calc_parallel_plane_p2p2)(vector3d_t *v, const point3d_t *sp, const point3d_t *pp, const point3d_t *p0, const point3d_t *p1) = NULL;
 
     float   (* calc_area_p3)(const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;

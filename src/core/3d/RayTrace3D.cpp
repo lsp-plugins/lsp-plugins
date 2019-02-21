@@ -36,7 +36,8 @@ namespace lsp
         pProgressData   = NULL;
         nSampleRate     = DEFAULT_SAMPLE_RATE;
         pDebug          = NULL;
-        fEnergyThresh   = 1e-10;
+        fEnergyThresh   = 1e-10f;
+        fTolerance      = 1e-4f;
     }
 
     RayTrace3D::~RayTrace3D()
@@ -217,6 +218,17 @@ namespace lsp
         if (res != STATUS_OK)
             return res;
 
+        RT_TRACE_BREAK(pDebug,
+            for (size_t i=0,n=pScene->num_objects(); i<n; ++i)
+            {
+                Object3D *obj = pScene->get_object(i);
+                if (!obj->is_visible())
+                    continue;
+                for (size_t j=0,m=obj->num_triangles(); j<m; ++j)
+                    pDebug->trace.add_triangle(obj->triangle(j), &C_RED, &C_GREEN, &C_BLUE);
+            }
+        );
+
         // Generate ray-tracing tasks
         res         = generate_tasks(initial);
         if (res != STATUS_OK)
@@ -319,6 +331,10 @@ namespace lsp
             return res;
 
         // Report progress
+        {
+            float prg   = float(p_points) / float(p_denom);
+            lsp_trace("Reporting progress %d/%d = %.2f%%", int(p_points), int(p_denom), prg * 100.0f);
+        }
         return report_progress(float(p_points++) / float(p_denom));
     }
 
@@ -610,6 +626,11 @@ namespace lsp
             ct->view.energy    *= max_volume;
         }
 
+        RT_TRACE(pDebug,
+            if (!pScene->validate())
+                return STATUS_CORRUPTED;
+        )
+
         RT_TRACE_BREAK(pDebug,
             lsp_trace("Added capture objects (%d triangles)", int(sRoot.triangle.size()));
             for (size_t i=0,n=sRoot.triangle.size(); i<n; ++i)
@@ -690,13 +711,8 @@ namespace lsp
                 return res;
         }
 
-        RT_TRACE(pDebug,
-            if (!pScene->validate())
-                return STATUS_CORRUPTED;
-        )
-
         // Fetch visible objects from root context into current context
-        lsp_trace("Fetch %d objects", int(n_objs));
+//        lsp_trace("Fetch %d objects", int(n_objs));
         res     = ctx->fetch_objects(&sRoot, n_objs, objs);
         if (res != STATUS_OK) // Some error occurred
             return res;
@@ -832,10 +848,14 @@ namespace lsp
         float a[3], A, kd;              // particular area, area, dispersion coefficient
 
         sv      = ctx->view;
+        A       = dsp::calc_area_pv(sv.p);
+        if (A <= fTolerance)
+        {
+            delete ctx;
+            return STATUS_OK;
+        }
 
         dsp::calc_plane_pv(&vpl, ctx->view.p);
-        A       = dsp::calc_area_pv(sv.p);
-
         status_t res    = STATUS_OK;
 
         for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
@@ -870,11 +890,16 @@ namespace lsp
                 v.time[j]   = t[j] + (d[j] / sv.speed);
             }
 
+            // Compute area of projected triangle
+            float area  = dsp::calc_area_pv(p);
+            if (area <= fTolerance)
+                continue;
+
             // Determine the direction from which came the wave front
             v.oid       = ct->oid;
             v.face      = ct->face;
             v.s         = sv.s;
-            v.energy    = (sv.energy * dsp::calc_area_pv(p)) / A;
+            v.energy    = (sv.energy * area) / A;
             v.speed     = sv.speed;
             v.p[0]      = *(ct->v[0]);
             v.p[1]      = *(ct->v[1]);
@@ -1036,6 +1061,11 @@ namespace lsp
 //                v->energy
 //            );
 
+        // Compute the area of triangle
+        float v_area = dsp::calc_area_pv(v->p);
+        if (v_area <= fTolerance)
+            return STATUS_OK;
+
         // Estimate distance and time parameters for source point
         vector3d_t ds[3];
         raw_triangle_t src;
@@ -1063,7 +1093,7 @@ namespace lsp
         raw_triangle_t in[2], out[2];
         size_t n_in, n_out;
         float prev_area     = 0.0f;                                                     // The area of polygon at previous step
-        float efactor       = v->energy * capture->volume / dsp::calc_area_pv(v->p);    // The norming energy factor
+        float efactor       = v->energy * capture->volume / v_area;                     // The norming energy factor
         point3d_t p[3];
 
         do {

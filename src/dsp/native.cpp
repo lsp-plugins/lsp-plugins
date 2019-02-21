@@ -389,6 +389,8 @@ namespace native
         EXPORT1(calc_plane_v1p2);
         EXPORT1(calc_oriented_plane_p3);
         EXPORT1(calc_oriented_plane_pv);
+        EXPORT1(calc_rev_oriented_plane_p3);
+        EXPORT1(calc_rev_oriented_plane_pv);
         EXPORT1(calc_parallel_plane_p2p2);
         EXPORT1(orient_plane_v1p1);
 

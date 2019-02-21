@@ -79,6 +79,9 @@ namespace lsp
         vertex.destroy();
         edge.destroy();
         triangle.destroy();
+        matched.flush();
+        ignored.flush();
+        trace.clear_all();
     }
 
     void rt_context_t::init_view(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
@@ -1044,10 +1047,10 @@ namespace lsp
             e->itag        |= RT_EF_APPLY;
         RT_FOREACH_END
 
-        dsp::calc_plane_p3(&pl[0], &view.p[0], &view.p[1], &view.p[2]);
-        dsp::calc_plane_p3(&pl[1], &view.s, &view.p[0], &view.p[1]);
-        dsp::calc_plane_p3(&pl[2], &view.s, &view.p[1], &view.p[2]);
-        dsp::calc_plane_p3(&pl[3], &view.s, &view.p[2], &view.p[0]);
+        dsp::calc_rev_oriented_plane_p3(&pl[0], &view.s, &view.p[0], &view.p[1], &view.p[2]);
+        dsp::calc_oriented_plane_p3(&pl[1], &view.p[2], &view.s, &view.p[0], &view.p[1]);
+        dsp::calc_oriented_plane_p3(&pl[2], &view.p[0], &view.s, &view.p[1], &view.p[2]);
+        dsp::calc_oriented_plane_p3(&pl[3], &view.p[1], &view.s, &view.p[2], &view.p[0]);
 
         RT_TRACE_BREAK(debug,
             lsp_trace("Culling space with planes (%d triangles)", int(triangle.size()));
@@ -1717,7 +1720,7 @@ namespace lsp
         rt_context_t tmp;
         RT_TRACE(debug, tmp.set_debug_context(debug); );
 
-        lsp_trace("ignore oid=%d, face=%d", int(view.oid), int(view.face));
+//        lsp_trace("ignore oid=%d, face=%d", int(view.oid), int(view.face));
 
         if (n > 0)
         {
