@@ -44,6 +44,12 @@ namespace lsp
                 float               w;          // Weight of edge
             } rt_edge_sort_t;
 
+            typedef struct rt_triangle_sort_t
+            {
+                rt_triangle_t      *t;          // Pointer to triangle
+                float               w;          // Weight of edge
+            } rt_triangle_sort_t;
+
         public:
             rt_view_t                   view;       // Ray tracing point of view
             rt_context_state_t          state;      // Context state
@@ -69,6 +75,7 @@ namespace lsp
 
         protected:
             static int      compare_edges(const void *p1, const void *p2);
+            static int      compare_triangles(const void *p1, const void *p2);
 
             static status_t arrange_triangle(rt_triangle_t *ct, rt_edge_t *e);
             static bool     unlink_edge(rt_edge_t *e, rt_vertex_t *v);
@@ -93,6 +100,8 @@ namespace lsp
 
             void            dump_edge_list(size_t lvl, rt_edge_t *e);
             void            dump_triangle_list(size_t lvl, rt_triangle_t *t);
+
+            status_t        apply_edge_split(rt_context_t *out, rt_edge_t *ce, const vector3d_t *pl);
 
         public:
             // Methods
@@ -144,10 +153,16 @@ namespace lsp
             status_t        fetch_objects(rt_context_t *src, size_t n, const size_t *ids);
 
             /**
-             * Reorder triangles according to the location relatively to point-of-view
+             * Reorder edges according to the location relatively to point-of-view
              * @return status of operation
              */
             status_t        sort_edges();
+
+            /**
+             * Reorder triangles according to the location relatively to point-of-view
+             * @return status of operation
+             */
+            status_t        sort_triangles();
 
             /**
              * Remove conflicts between triangles, does not modify the 'itag' field of
@@ -176,6 +191,19 @@ namespace lsp
              * @return status of operation (STATUS_NOT_FOUND if there is no more edge)
              */
             status_t        edge_split(rt_context_t *out);
+
+            /** Try to split context with first triangle's edge
+             *
+             * @param out output context containing data outside of triangle
+             * @return status of operation (STATUS_NOT_FOUND if there is no one edge of first triangle that can be processed)
+             */
+            status_t        triangle_split(rt_context_t *out);
+
+            /**
+             * Perform depth-test relative to the current triangle
+             * @return status of operation
+             */
+            status_t        depth_test();
 
             /**
              * Perform depth-testing cullback of faces

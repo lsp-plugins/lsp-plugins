@@ -18,7 +18,8 @@ namespace lsp
         protected:
             enum object_type_t
             {
-                OT_ICOSPHERE
+                OT_ICOSPHERE,
+                OT_TRIANGLE
             };
 
             typedef struct f_object_t
@@ -41,6 +42,8 @@ namespace lsp
         protected:
             Object3D    *generateIcosphere(size_t level);
 
+            Object3D    *generateTriangle();
+
         public:
             explicit RTObjectFactory();
             ~RTObjectFactory();
@@ -49,6 +52,8 @@ namespace lsp
             void        clear();
 
             Object3D    *buildIcosphere(size_t level);
+
+            Object3D    *buildTriangle();
     };
 
 } /* namespace mtest */

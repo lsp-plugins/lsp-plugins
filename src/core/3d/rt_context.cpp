@@ -748,6 +748,17 @@ namespace lsp
         return (x > DSP_3D_TOLERANCE) ? 1 : 0;
     }
 
+    int rt_context_t::compare_triangles(const void *p1, const void *p2)
+    {
+        const rt_triangle_sort_t *t1 = reinterpret_cast<const rt_triangle_sort_t *>(p1);
+        const rt_triangle_sort_t *t2 = reinterpret_cast<const rt_triangle_sort_t *>(p2);
+
+        float x = t1->w - t2->w;
+        if (x < -DSP_3D_TOLERANCE)
+            return -1;
+        return (x > DSP_3D_TOLERANCE) ? 1 : 0;
+    }
+
     status_t rt_context_t::sort_edges()
     {
         // Compute number of triangles
@@ -859,6 +870,107 @@ namespace lsp
             {
                 c.g = float(ne - i)/ne;
                 trace.add_segment(edge.get(i), &c);
+            }
+        );
+
+        return STATUS_OK;
+    }
+
+    status_t rt_context_t::sort_triangles()
+    {
+        // Compute number of triangles
+        size_t nt       = triangle.size();
+        if (nt <= 1)
+            return STATUS_OK;
+
+        // Allocate temporary array for sort
+        size_t cap              = (nt + 0x3f) & (~0x3f); // Round capacity to some granular size
+        rt_triangle_sort_t *vt  = reinterpret_cast<rt_triangle_sort_t *>(malloc(cap * sizeof(rt_triangle_sort_t)));
+        if (vt == NULL)
+            return STATUS_NO_MEM;
+
+        // Prepare data for sorting
+        size_t ti   = 0;
+        RT_FOREACH(rt_triangle_t, ct, triangle)
+            vt[ti].t    = ct;
+            vt[ti].w    = dsp::calc_avg_distance_p3(&view.s, ct->v[0], ct->v[1], ct->v[2]);
+            ++ti;
+        RT_FOREACH_END
+
+        RT_TRACE_BREAK(debug,
+            lsp_trace("Prepare sort (%d triangles)", int(nt));
+
+            color3d_t c;
+            c.r     = 1.0f;
+            c.g     = 0.0f;
+            c.b     = 0.0f;
+            c.a     = 0.0f;
+
+            for (size_t i=0; i<nt; ++i)
+            {
+                c.r = float(nt - i)/nt;
+                trace.add_triangle_1c(vt[i].t, &c);
+            }
+            free(vt);
+        );
+
+        // Call sorting function
+        ::qsort(vt, nt, sizeof(rt_triangle_sort_t), compare_triangles);
+
+        Allocator3D<rt_triangle_t> new_triangles(triangle.chunk_size());
+        for (size_t i=0; i<nt; ++i)
+        {
+            rt_triangle_t *st   = vt[i].t;
+            rt_triangle_t *dt   = new_triangles.alloc(st);
+            if (dt == NULL)
+            {
+                free(vt);
+                return STATUS_NO_MEM;
+            }
+            st->ptag        = dt;
+        }
+
+        // Now we can remove the temporary array
+        free(vt);
+        vt          = NULL;
+        triangle.swap(&new_triangles);
+
+        // Patch all edge pointers
+//        for (size_t i=0; i<ne; ++i)
+//        {
+//            rt_edge_t *e    = edge.get(i);
+        RT_FOREACH(rt_edge_t, e, edge)
+            e->vt           = (e->vt != NULL) ? reinterpret_cast<rt_triangle_t *>(e->vt->ptag) : NULL;
+        RT_FOREACH_END
+
+        // Patch all triangle pointers
+//        for (size_t i=0,n=triangle.size(); i<n; ++i)
+//        {
+//            rt_triangle_t *t= triangle.get(i);
+        RT_FOREACH(rt_triangle_t, t, triangle)
+            t->elnk[0]      = (t->elnk[0] != NULL) ? reinterpret_cast<rt_triangle_t *>(t->elnk[0]->ptag) : NULL;
+            t->elnk[1]      = (t->elnk[1] != NULL) ? reinterpret_cast<rt_triangle_t *>(t->elnk[1]->ptag) : NULL;
+            t->elnk[2]      = (t->elnk[2] != NULL) ? reinterpret_cast<rt_triangle_t *>(t->elnk[2]->ptag) : NULL;
+        RT_FOREACH_END
+
+        RT_VALIDATE(
+            if (!validate())
+                return STATUS_CORRUPTED;
+        );
+
+        RT_TRACE_BREAK(debug,
+            lsp_trace("Triangles have been sorted (%d edges)", int(nt));
+
+            color3d_t c;
+            c.r     = 0.0f;
+            c.g     = 1.0f;
+            c.b     = 0.0f;
+            c.a     = 0.0f;
+
+            for (size_t i=0; i<nt; ++i)
+            {
+                c.g = float(nt - i)/nt;
+                trace.add_triangle_1c(triangle.get(i), &c);
             }
         );
 
@@ -1212,7 +1324,6 @@ namespace lsp
         }
 
         // Find edge to apply split
-        status_t res;
         vector3d_t pl;
         rt_edge_t *ce = NULL;
 
@@ -1233,9 +1344,42 @@ namespace lsp
                 RT_FOREACH_BREAK;
             }
         RT_FOREACH_END
-        if (ce == NULL)
+
+        return (ce != NULL) ? apply_edge_split(out, ce, &pl) : STATUS_NOT_FOUND;
+    }
+
+    status_t rt_context_t::triangle_split(rt_context_t *out)
+    {
+        rt_triangle_t *ct = triangle.get(0);
+        if (ct == NULL)
             return STATUS_NOT_FOUND;
 
+        vector3d_t pl;
+        rt_edge_t *ce = NULL;
+
+        for (size_t i=0; i<3; ++i)
+        {
+            rt_edge_t *se = ct->e[i];
+            if (se->itag & RT_EF_PLANE)
+                continue;
+            if (!(se->itag & RT_EF_APPLY))
+                continue;
+
+            // We need to check that edge can be applied
+            se->itag       |= RT_EF_PLANE; // Mark current edge as processed
+            if (dsp::calc_plane_p3(&pl, &view.s, se->v[0], se->v[1]) > DSP_3D_TOLERANCE) // Ensure that the normal vector is valid
+            {
+                ce = se;
+                break;
+            }
+        }
+
+        return (ce != NULL) ? apply_edge_split(out, ce, &pl) : STATUS_NOT_FOUND;
+    }
+
+    status_t rt_context_t::apply_edge_split(rt_context_t *out, rt_edge_t *ce, const vector3d_t *pl)
+    {
+        status_t res;
         if (out != NULL)
             out->clear();
 
@@ -1244,12 +1388,12 @@ namespace lsp
         // Perform split
         RT_TRACE_BREAK(debug,
             lsp_trace("Prepare split by edge (%f, %f, %f, %f) (%d triangles)",
-                    pl.dx, pl.dy, pl.dz, pl.dw,
+                    pl->dx, pl->dy, pl->dz, pl->dw,
                     int(triangle.size()));
 
             for (size_t i=0,n=triangle.size(); i<n; ++i)
                 trace.add_triangle_1c(triangle.get(i), &C_YELLOW);
-            trace.add_plane_3pn1c(&view.s, ce->v[0], ce->v[1], &pl, &C_MAGENTA);
+            trace.add_plane_3pn1c(&view.s, ce->v[0], ce->v[1], pl, &C_MAGENTA);
 
             for (size_t i=0,n=edge.size(); i<n; ++i)
             {
@@ -1278,7 +1422,7 @@ namespace lsp
 //        {
 //            rt_vertex_t *v  = vertex.get(i);
         RT_FOREACH(rt_vertex_t, v, vertex)
-            float t         = v->x*pl.dx + v->y*pl.dy + v->z*pl.dz + pl.dw;
+            float t         = v->x*pl->dx + v->y*pl->dy + v->z*pl->dz + pl->dw;
             v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
         RT_FOREACH_END
 
@@ -1320,7 +1464,7 @@ namespace lsp
                     rt_vertex_t *sp     = vertex.alloc();
                     if (sp == NULL)
                         return STATUS_NO_MEM;
-                    dsp::calc_split_point_p2v1(sp, e->v[0], e->v[1], &pl);
+                    dsp::calc_split_point_p2v1(sp, e->v[0], e->v[1], pl);
 
                     sp->ve      = NULL;
                     sp->ptag    = NULL;

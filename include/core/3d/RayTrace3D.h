@@ -22,7 +22,8 @@ namespace lsp
     {
         RT_AS_SPOT,
         RT_AS_SPEAKER,
-        RT_AS_OMNI
+        RT_AS_OMNI,
+        RT_AS_TRIANGLE
     };
 
     enum rt_audio_capture_t

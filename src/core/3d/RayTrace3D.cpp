@@ -352,6 +352,9 @@ namespace lsp
             {
                 case RT_AS_SPOT:        // TODO
                 case RT_AS_SPEAKER:     // TODO
+                case RT_AS_TRIANGLE:
+                    obj     = sFactory.buildTriangle();
+                    break;
                 case RT_AS_OMNI:
                     obj     = sFactory.buildIcosphere(2);
                     break;
@@ -752,7 +755,8 @@ namespace lsp
         }
         else
         {
-            res     = ctx->sort_edges();
+//            res     = ctx->sort_edges();
+            res     = ctx->sort_triangles();
             if (res != STATUS_OK)
                 return res;
             ctx->state      = S_SPLIT;

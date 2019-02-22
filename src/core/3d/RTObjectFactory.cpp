@@ -226,6 +226,46 @@ namespace lsp
         return obj;
     }
 
+    Object3D *RTObjectFactory::generateTriangle()
+    {
+        // Generate object name
+        LSPString obj_name;
+        if (!obj_name.set_ascii("Triangle"))
+            return NULL;
+
+        // Allocate icosphere object
+        point3d_t p[3];
+        vector3d_t n;
+        size_t idx[3];
+        ssize_t id;
+        dsp::init_point_xyz(&p[0], 1.0f, 1.0f, 1.0f);
+        dsp::init_point_xyz(&p[1], -1.0f, 1.0f, 1.0f);
+        dsp::init_point_xyz(&p[2], 0.0f, -1.0f, 1.0f);
+        dsp::init_vector_dxyz(&n, 0.0f, 0.0f, 1.0f);
+
+        for (size_t i=0; i<3; ++i)
+        {
+            id = sScene.add_vertex(&p[i]);
+            if (id < 0)
+                return NULL;
+            idx[i] = id;
+        }
+
+        id = sScene.add_normal(&n);
+        if (id < 0)
+            return NULL;
+
+        // Create object and add triangle
+        Object3D *obj = sScene.add_object(&obj_name);
+        if (obj == NULL)
+            return NULL;
+        status_t res = obj->add_triangle(0, idx[0], idx[1], idx[2], id, id, id);
+        if (res < 0)
+            return NULL;
+
+        return obj;
+    }
+
     Object3D *RTObjectFactory::buildIcosphere(size_t level)
     {
         // Lookup for object
@@ -251,6 +291,34 @@ namespace lsp
         obj->type               = OT_ICOSPHERE;
         obj->obj_id             = sScene.get_object_index(res);
         obj->icosphere.level    = level;
+
+        return res;
+    }
+
+    Object3D *RTObjectFactory::buildTriangle()
+    {
+        // Lookup for object
+        for (size_t i=0, n=sObjects.size(); i<n; ++i)
+        {
+            f_object_t *obj = sObjects.get(i);
+            if ((obj != NULL) && (obj->type == OT_TRIANGLE))
+                return sScene.get_object(obj->obj_id);
+        }
+
+        // Object was not found, create new one
+        f_object_t *obj = sObjects.add();
+        if (obj == NULL)
+            return NULL;
+
+        Object3D *res       = generateTriangle();
+        if (res == NULL)
+        {
+            sObjects.remove(obj);
+            return NULL;
+        }
+
+        obj->type               = OT_ICOSPHERE;
+        obj->obj_id             = sScene.get_object_index(res);
 
         return res;
     }
