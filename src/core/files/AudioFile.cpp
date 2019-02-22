@@ -211,6 +211,30 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t AudioFile::create(const Sample *sample, size_t sample_rate)
+    {
+        if (sample == NULL)
+            return STATUS_BAD_ARGUMENTS;
+
+        // Allocate content
+        size_t channels     = sample->channels();
+        size_t length       = sample->length();
+        file_content_t *fc  = create_file_content(channels, length);
+        if (fc == NULL)
+            return STATUS_NO_MEM;
+
+        // Cleanup content
+        fc->nSampleRate     = sample_rate;
+        for (size_t i=0; i<channels; ++i)
+            dsp::copy(fc->vChannels[i], sample->getBuffer(i), length);
+
+        // Destroy previously used content and store new
+        if (pData != NULL)
+            destroy_file_content(pData);
+        pData               = fc;
+        return STATUS_OK;
+    }
+
     status_t AudioFile::create(size_t channels, size_t sample_rate, float duration)
     {
         // Calculate the file length (in samples) and call the previous method
@@ -531,13 +555,52 @@ namespace lsp
 
     status_t AudioFile::load(const char *path, float max_duration)
     {
-        status_t res = load_lspc(path, max_duration);
+        if (path == NULL)
+            return STATUS_BAD_ARGUMENTS;
+
+        LSPString spath;
+        if (!spath.set_utf8(path))
+            return STATUS_NO_MEM;
+
+        return load(&spath, max_duration);
+    }
+
+    status_t AudioFile::load(const LSPString *path, float max_duration)
+    {
+        if (path == NULL)
+            return STATUS_BAD_ARGUMENTS;
+
+        const char *npath = path->get_native();
+        status_t res = load_lspc(npath, max_duration);
         if (res != STATUS_OK)
-            res = load_sndfile(path, max_duration);
+            res = load_sndfile(npath, max_duration);
         return res;
     }
 
+    status_t AudioFile::load(const io::Path *path, float max_duration)
+    {
+        if (path == NULL)
+            return STATUS_BAD_ARGUMENTS;
+        return load(path->as_string(), max_duration);
+    }
+
+    status_t AudioFile::store_samples(const io::Path *path, size_t from, size_t max_count) {
+        if (path == NULL)
+            return STATUS_BAD_ARGUMENTS;
+        return store_samples(path->as_string(), from, max_count);
+    }
+
     status_t AudioFile::store_samples(const char *path, size_t from, size_t max_count)
+    {
+        if (path == NULL)
+            return STATUS_BAD_ARGUMENTS;
+        LSPString spath;
+        if (!spath.set_utf8(path))
+            return STATUS_NO_MEM;
+        return store_samples(path, from, max_count);
+    }
+
+    status_t AudioFile::store_samples(const LSPString *path, size_t from, size_t max_count)
     {
         if (pData == NULL)
             return STATUS_NO_DATA;
@@ -557,8 +620,8 @@ namespace lsp
             sf_info.frames      = pData->nSamples - from;
 
         // Open sound file
-        lsp_trace("storing file: %s\n", path);
-        if ((sf_obj = sf_open(path, SFM_WRITE, &sf_info)) == NULL)
+        lsp_trace("storing file: %s\n", path->get_native());
+        if ((sf_obj = sf_open(path->get_native(), SFM_WRITE, &sf_info)) == NULL)
         {
             lsp_trace("Error: %s", sf_strerror(sf_obj));
             return decode_sf_error(NULL);
@@ -606,14 +669,58 @@ namespace lsp
 
     status_t AudioFile::store_samples(const char *path, size_t max_count)
     {
+        if (path == NULL)
+            return STATUS_BAD_ARGUMENTS;
+        LSPString spath;
+        if (!spath.set_utf8(path))
+            return STATUS_NO_MEM;
+        return store_samples(&spath, 0, max_count);
+    }
+
+    status_t AudioFile::store_samples(const LSPString *path, size_t max_count)
+    {
         return store_samples(path, 0, max_count);
+    }
+
+    status_t AudioFile::store_samples(const io::Path *path, size_t max_count)
+    {
+        if (path == NULL)
+            return STATUS_BAD_ARGUMENTS;
+        return store_samples(path->as_string(), 0, max_count);
     }
 
     status_t AudioFile::store(const char *path, float max_duration)
     {
+        if (path == NULL)
+            return STATUS_BAD_ARGUMENTS;
+
         // Calculate the file length (in samples) and call the previous method
         size_t max_count = (max_duration < 0) ? pData->nSamples : max_duration * pData->nSampleRate;
-        return store_samples(path, max_count);
+        LSPString spath;
+        if (!spath.set_utf8(path))
+            return STATUS_NO_MEM;
+
+        return store_samples(&spath, 0, max_count);
+    }
+
+    status_t AudioFile::store(const LSPString *path, float max_duration)
+    {
+        if (path == NULL)
+            return STATUS_BAD_ARGUMENTS;
+
+        // Calculate the file length (in samples) and call the previous method
+        size_t max_count = (max_duration < 0) ? pData->nSamples : max_duration * pData->nSampleRate;
+        return store_samples(path, 0, max_count);
+    }
+
+    status_t AudioFile::store(const io::Path *path, float max_duration)
+    {
+        if (path == NULL)
+            return STATUS_BAD_ARGUMENTS;
+
+        // Calculate the file length (in samples) and call the previous method
+        size_t max_count = (max_duration < 0) ? pData->nSamples : max_duration * pData->nSampleRate;
+        return store_samples(path->as_string(), 0, max_count);
     }
 
     bool AudioFile::reverse(ssize_t track_id)

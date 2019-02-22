@@ -28,8 +28,13 @@ namespace lsp
             inline bool valid() const { return (vBuffer != NULL) && (nChannels > 0) && (nLength > 0) && (nMaxLength > 0); }
             inline size_t length() const { return nLength; }
             inline size_t max_length() const { return nMaxLength; }
+
             inline float *getBuffer(size_t channel) { return &vBuffer[nMaxLength * channel]; }
+            inline const float *getBuffer(size_t channel) const { return &vBuffer[nMaxLength * channel]; }
+
             inline float *getBuffer(size_t channel, size_t offset) { return &vBuffer[nMaxLength * channel + offset]; }
+            inline const float *getBuffer(size_t channel, size_t offset) const { return &vBuffer[nMaxLength * channel + offset]; }
+
             inline size_t channels() const { return nChannels; };
 
             /** Set length of sample
