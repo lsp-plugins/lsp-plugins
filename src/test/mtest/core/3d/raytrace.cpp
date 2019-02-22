@@ -27,7 +27,7 @@ MTEST_BEGIN("core.3d", raytrace)
 
         // Initialize sample
         Sample sample;
-        MTEST_ASSERT(sample.init(1, 512, 0) == STATUS_OK);
+        MTEST_ASSERT(sample.init(1, 512, 0));
 
         // Prepare raytracing
         RayTrace3D trace;

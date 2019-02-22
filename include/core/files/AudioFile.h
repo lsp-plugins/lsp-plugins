@@ -212,6 +212,13 @@ namespace lsp
              */
             float *channel(size_t track);
 
+            /**
+             * Convert data to sample data
+             * @param dst destination sample to store data
+             * @return status of operation
+             */
+            status_t convert_to_sample(Sample *dst);
+
             /** Reverse track(s)
              *
              * @param track_id ID of track, track_id < 0 - all tracks

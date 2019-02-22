@@ -93,6 +93,12 @@ namespace lsp
              *
              */
             void destroy();
+
+            /**
+             * Swap contents with another sample
+             * @param dst sample to perform swap
+             */
+            void swap(Sample *dst);
     };
 
 } /* namespace lsp */

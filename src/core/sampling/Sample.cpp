@@ -7,6 +7,7 @@
 
 #include <dsp/dsp.h>
 #include <core/sampling/Sample.h>
+#include <core/sugar.h>
 
 namespace lsp
 {
@@ -108,6 +109,14 @@ namespace lsp
         nMaxLength      = 0;
         nLength         = 0;
         nChannels       = 0;
+    }
+
+    void Sample::swap(Sample *dst)
+    {
+        ::swap(vBuffer, dst->vBuffer);
+        ::swap(nMaxLength, dst->nMaxLength);
+        ::swap(nLength, dst->nLength);
+        ::swap(nChannels, dst->nChannels);
     }
 
 } /* namespace lsp */

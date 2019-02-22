@@ -1127,6 +1127,27 @@ namespace lsp
         return pData->vChannels[track];
     }
 
+    status_t AudioFile::convert_to_sample(Sample *dst)
+    {
+        if (dst == NULL)
+            return STATUS_BAD_ARGUMENTS;
+        if (pData == NULL)
+            return STATUS_BAD_STATE;
+
+        // Create and initialize temorary sample instance
+        Sample tmp;
+        if (!tmp.init(pData->nChannels, pData->nSamples, pData->nSamples))
+            return STATUS_NO_MEM;
+
+        // Copy file contents to sample
+        for (size_t i=0; i<pData->nChannels; ++i)
+            dsp::copy(tmp.getBuffer(i), pData->vChannels[i], pData->nSamples);
+
+        tmp.swap(dst);
+        tmp.destroy();
+        return STATUS_OK;
+    }
+
     void AudioFile::destroy()
     {
         lsp_trace("Destroy this=%p, pData=%p", this, pData);
