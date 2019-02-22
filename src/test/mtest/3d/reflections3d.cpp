@@ -116,13 +116,13 @@ MTEST_BEGIN("3d", reflections)
                 bDrawDebug      = true;
                 nTrace = BREAKPOINT_STEP;
 
-                dsp::init_point_xyz(&sSource.z, 0.0f, 0.0f, 1.0f);
-                dsp::init_vector_dxyz(&sSource.v, 0.0f, 0.0f, -1.0f); // 12" speaker source
+//                dsp::init_point_xyz(&sSource.z, 0.0f, 0.0f, 1.0f);
+//                dsp::init_vector_dxyz(&sSource.v, 0.0f, 0.0f, -1.0f); // 12" speaker source
 
-//                dsp::init_point_xyz(&sSource.z, -1.0f, 0.0f, 0.0f);
-//                dsp::init_vector_dxyz(&sSource.v, 0.0f, 0.0f, 0.3048f); // 12" speaker source
-//                dsp::init_point_xyz(&sCapture.z, 1.0f, 0.0f, 0.0f);
-//                dsp::init_vector_dxyz(&sCapture.v, 0.0f, 0.0f, 0.0508f); // 2" microphone diaphragm
+                dsp::init_point_xyz(&sSource.z, -1.0f, 0.0f, 0.0f);
+                dsp::init_vector_dxyz(&sSource.v, 0.0f, 0.0f, 0.3048f); // 12" speaker source
+                dsp::init_point_xyz(&sCapture.z, 1.0f, 0.0f, 0.0f);
+                dsp::init_vector_dxyz(&sCapture.v, 0.0f, 0.0f, 0.0508f); // 2" microphone diaphragm
 
                 update_view();
             }
@@ -277,13 +277,16 @@ MTEST_BEGIN("3d", reflections)
                 if (res != STATUS_OK)
                     return res;
 
-                res     = trace->add_source(&sSource, RT_AS_TRIANGLE, 1.0f);
-                if (res != STATUS_OK)
-                    return res;
-
-//                res     = trace->add_capture(&sCapture, RT_AC_OMNIDIRECTIONAL, NULL, 0, 1.0f);
+//                res     = trace->add_source(&sSource, RT_AS_TRIANGLE, 1.0f);
 //                if (res != STATUS_OK)
 //                    return res;
+
+                res     = trace->add_source(&sSource, RT_AS_OMNI, 1.0f);
+                if (res != STATUS_OK)
+                    return res;
+                res     = trace->add_capture(&sCapture, RT_AC_OMNIDIRECTIONAL, NULL, 0, 1.0f);
+                if (res != STATUS_OK)
+                    return res;
 
                 return trace->process(100.0f);
             }

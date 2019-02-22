@@ -755,8 +755,8 @@ namespace lsp
         }
         else
         {
-//            res     = ctx->sort_edges();
-            res     = ctx->sort_triangles();
+            res     = ctx->sort_edges();
+//            res     = ctx->sort_triangles();
             if (res != STATUS_OK)
                 return res;
             ctx->state      = S_SPLIT;
