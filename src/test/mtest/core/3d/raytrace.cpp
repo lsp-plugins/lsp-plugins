@@ -34,7 +34,7 @@ MTEST_BEGIN("core.3d", raytrace)
         MTEST_ASSERT(trace.init() == STATUS_OK);
         trace.set_sample_rate(48000);
         trace.set_energy_threshold(1e-6f);
-        trace.set_tolerance(1e-4f);
+        trace.set_tolerance(1e-5f);
         MTEST_ASSERT(trace.set_scene(&scene, true) == STATUS_OK);
 
         // Add source

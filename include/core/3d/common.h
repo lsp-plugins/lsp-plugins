@@ -172,7 +172,8 @@ namespace lsp
         ssize_t             oid;        // Object identifier
         ssize_t             face;       // Object's face to ignore
         float               time[3];    // The corresponding start time for each source point
-        float               energy;     // The energy of the wave, can have both positive and negative signs (if reflected)
+        float               amplitude;  // The amplitude of the signal
+//        float               energy;     // The energy of the wave, can have both positive and negative signs (if reflected)
         float               speed;      // This value indicates the current sound speed [m/s]
     } rt_view_t;
 

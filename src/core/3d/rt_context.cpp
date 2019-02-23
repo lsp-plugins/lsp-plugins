@@ -33,7 +33,7 @@ namespace lsp
         this->debug     = NULL;
 
         // Initialize point of view
-        view.energy     = 0.0f;
+        view.amplitude  = 0.0f;
         view.face       = -1;
         view.oid        = -1;
         view.speed      = SOUND_SPEED_M_S;
@@ -94,7 +94,7 @@ namespace lsp
         view.time[0]    = 0.0f;
         view.time[1]    = 0.0f;
         view.time[2]    = 0.0f;
-        view.energy     = 1.0f;
+        view.amplitude  = 1.0f;
         view.speed      = SOUND_SPEED_M_S;
     }
 
@@ -108,7 +108,7 @@ namespace lsp
         view.time[0]    = 0.0f;
         view.time[1]    = 0.0f;
         view.time[2]    = 0.0f;
-        view.energy     = 1.0f;
+        view.amplitude  = 1.0f;
         view.speed      = SOUND_SPEED_M_S;
     }
 

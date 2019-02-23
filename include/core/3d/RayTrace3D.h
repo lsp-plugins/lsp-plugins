@@ -61,7 +61,7 @@ namespace lsp
             } capture_t;
 
         private:
-            cvector<rt_context_t>       vTasks;
+//            cvector<rt_context_t>       vTasks;
             cstorage<rt_material_t>     vMaterials;
             cstorage<source_t>          vSources;
             cstorage<capture_t>         vCaptures;
@@ -77,7 +77,7 @@ namespace lsp
             rt_debug_t                 *pDebug;
 
         protected:
-            void        destroy_tasks();
+            static void destroy_tasks(cvector<rt_context_t> *tasks);
             void        remove_scene(bool destroy);
             status_t    resize_materials(size_t objects);
 
@@ -85,15 +85,17 @@ namespace lsp
 
             // Main ray-tracing routines
             status_t    generate_root_context();
-            status_t    generate_tasks(float initial);
-            status_t    scan_objects(rt_context_t *ctx);
+            status_t    generate_tasks(cvector<rt_context_t> *tasks, float initial);
+            status_t    scan_objects(cvector<rt_context_t> *tasks, rt_context_t *ctx);
             status_t    check_object(rt_context_t *ctx, Object3D *obj, const matrix3d_t *m);
 
-            status_t    cull_view(rt_context_t *ctx);
-            status_t    split_view(rt_context_t *ctx);
-            status_t    cullback_view(rt_context_t *ctx);
-            status_t    reflect_view(rt_context_t *ctx);
+            status_t    cull_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
+            status_t    split_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
+            status_t    cullback_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
+            status_t    reflect_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
             status_t    capture(capture_t *capture, const rt_view_t *v, View3D *trace);
+
+            status_t    process_context(cvector<rt_context_t> *tasks, rt_context_t *ctx);
 
         public:
             /** Default constructor

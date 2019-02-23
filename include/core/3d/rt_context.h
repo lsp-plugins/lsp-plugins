@@ -31,8 +31,7 @@ namespace lsp
         S_CULL_VIEW,
         S_SPLIT,
         S_CULL_BACK,
-        S_REFLECT,
-        S_IGNORE
+        S_REFLECT
     };
 
     typedef struct rt_context_t

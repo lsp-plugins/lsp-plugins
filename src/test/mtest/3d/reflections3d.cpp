@@ -114,7 +114,7 @@ MTEST_BEGIN("3d", reflections)
                 bDrawMatched    = true;
                 bDrawIgnored    = true;
                 bDrawDebug      = true;
-                nTrace = BREAKPOINT_STEP;
+                nTrace          = BREAKPOINT_STEP;
 
 //                dsp::init_point_xyz(&sSource.z, 0.0f, 0.0f, 1.0f);
 //                dsp::init_vector_dxyz(&sSource.v, 0.0f, 0.0f, -1.0f); // 12" speaker source
