@@ -36,8 +36,8 @@ namespace lsp
         pProgressData   = NULL;
         nSampleRate     = DEFAULT_SAMPLE_RATE;
         pDebug          = NULL;
-        fEnergyThresh   = 1e-6f; //1e-10f;
-        fTolerance      = 1e-4f;
+        fEnergyThresh   = 1e-6f;
+        fTolerance      = 1e-5f;
     }
 
     RayTrace3D::~RayTrace3D()

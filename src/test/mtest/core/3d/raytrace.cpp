@@ -60,7 +60,7 @@ MTEST_BEGIN("core.3d", raytrace)
         AudioFile af;
         LSPString path;
 
-        MTEST_ASSERT(path.fmt_utf8("tmp/utest-%s-4track.wav", this->full_name()));
+        MTEST_ASSERT(path.fmt_utf8("tmp/utest-%s-4track-v2.wav", this->full_name()));
         MTEST_ASSERT(af.create(&sample, trace.get_sample_rate()) == STATUS_OK);
         MTEST_ASSERT(af.store(&path) == STATUS_OK);
 

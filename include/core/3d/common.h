@@ -134,7 +134,7 @@ namespace lsp
 
     typedef struct rt_vertex_t: public point3d_t
     {
-        rt_edge_t          *ve;         // List of linked edges
+//        rt_edge_t          *ve;         // List of linked edges
         void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
         ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
         ssize_t             __pad;      // Alignment to be multiple of 16
@@ -143,7 +143,7 @@ namespace lsp
     typedef struct rt_edge_t
     {
         rt_vertex_t        *v[2];       // Pointers to vertexes
-        rt_edge_t          *vlnk[2];    // Link to next edge for the vertex v[i]
+//        rt_edge_t          *vlnk[2];    // Link to next edge for the vertex v[i]
         rt_triangle_t      *vt;         // List of linked triangles
         void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
         ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose

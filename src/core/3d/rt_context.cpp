@@ -130,26 +130,26 @@ namespace lsp
         triangle.swap(&src->triangle);
     }
 
-    bool rt_context_t::unlink_edge(rt_edge_t *e, rt_vertex_t *v)
-    {
-        for (rt_edge_t **pcurr = &v->ve; *pcurr != NULL; )
-        {
-            rt_edge_t *curr = *pcurr;
-            rt_edge_t **pnext = (curr->v[0] == v) ? &curr->vlnk[0] :
-                                (curr->v[1] == v) ? &curr->vlnk[1] :
-                                NULL;
-            if (pnext == NULL) // Unexpected behaviour
-                return false;
-
-            if (curr == e)
-            {
-                *pcurr = *pnext;
-                return true;
-            }
-            pcurr = pnext;
-        }
-        return false;
-    }
+//    bool rt_context_t::unlink_edge(rt_edge_t *e, rt_vertex_t *v)
+//    {
+//        for (rt_edge_t **pcurr = &v->ve; *pcurr != NULL; )
+//        {
+//            rt_edge_t *curr = *pcurr;
+//            rt_edge_t **pnext = (curr->v[0] == v) ? &curr->vlnk[0] :
+//                                (curr->v[1] == v) ? &curr->vlnk[1] :
+//                                NULL;
+//            if (pnext == NULL) // Unexpected behaviour
+//                return false;
+//
+//            if (curr == e)
+//            {
+//                *pcurr = *pnext;
+//                return true;
+//            }
+//            pcurr = pnext;
+//        }
+//        return false;
+//    }
 
     bool rt_context_t::unlink_triangle(rt_triangle_t *t, rt_edge_t *e)
     {
@@ -259,10 +259,10 @@ namespace lsp
         ne->ptag        = NULL;
         ne->itag        = e->itag;
 
-        ne->vlnk[0]     = ne->v[0]->ve;
-        ne->vlnk[1]     = ne->v[1]->ve;
-        ne->v[0]->ve    = ne;
-        ne->v[1]->ve    = ne;
+//        ne->vlnk[0]     = ne->v[0]->ve;
+//        ne->vlnk[1]     = ne->v[1]->ve;
+//        ne->v[0]->ve    = ne;
+//        ne->v[1]->ve    = ne;
 
         RT_VALIDATE(
             if ((ne->v[0] == NULL) || (ne->v[1] == NULL))
@@ -270,10 +270,10 @@ namespace lsp
         )
 
         // Unlink current edge from vertexes
-        if (!unlink_edge(e, e->v[0]))
-            return STATUS_CORRUPTED;
-        if (!unlink_edge(e, e->v[1]))
-            return STATUS_CORRUPTED;
+//        if (!unlink_edge(e, e->v[0]))
+//            return STATUS_CORRUPTED;
+//        if (!unlink_edge(e, e->v[1]))
+//            return STATUS_CORRUPTED;
         RT_VALIDATE(
             if (linked_count(e, e->v[0]) != 0)
                 return STATUS_CORRUPTED;
@@ -306,10 +306,10 @@ namespace lsp
             se->ptag        = NULL;
             se->itag        = 0;
 
-            se->vlnk[0]     = se->v[0]->ve;
-            se->vlnk[1]     = se->v[1]->ve;
-            se->v[0]->ve    = se;
-            se->v[1]->ve    = se;
+//            se->vlnk[0]     = se->v[0]->ve;
+//            se->vlnk[1]     = se->v[1]->ve;
+//            se->v[0]->ve    = se;
+//            se->v[1]->ve    = se;
 
             // Unlink current triangle from all edges
             if (!unlink_triangle(ct, ct->e[0]))
@@ -411,10 +411,10 @@ namespace lsp
               //e->v[0]         = e->v[0];
                 e->v[1]         = sp;
 
-                e->vlnk[0]      = e->v[0]->ve;
-                e->vlnk[1]      = e->v[1]->ve;
-                e->v[0]->ve     = e;
-                e->v[1]->ve     = e;
+//                e->vlnk[0]      = e->v[0]->ve;
+//                e->vlnk[1]      = e->v[1]->ve;
+//                e->v[0]->ve     = e;
+//                e->v[1]->ve     = e;
 
                 if ((e->v[0] == NULL) || (e->v[1] == NULL))
                     return STATUS_CORRUPTED;
@@ -454,10 +454,10 @@ namespace lsp
             e->vt           = NULL;
             e->ptag         = NULL;
             e->itag         = 0;
-            e->vlnk[0]      = e->v[0]->ve;
-            e->vlnk[1]      = e->v[1]->ve;
-            e->v[0]->ve     = e;
-            e->v[1]->ve     = e;
+//            e->vlnk[0]      = e->v[0]->ve;
+//            e->vlnk[1]      = e->v[1]->ve;
+//            e->v[0]->ve     = e;
+//            e->v[1]->ve     = e;
         }
 
         // Allocate additional triangles
@@ -583,7 +583,7 @@ namespace lsp
                 vx->z           = sv->z;
                 vx->w           = sv->w;
                 vx->itag        = 0;
-                vx->ve          = NULL;
+//                vx->ve          = NULL;
 
                 // Link together
                 vx->ptag        = sv;
@@ -602,8 +602,8 @@ namespace lsp
                 ex->v[0]        = se->v[0];
                 ex->v[1]        = se->v[1];
                 ex->vt          = NULL;
-                ex->vlnk[0]     = NULL;
-                ex->vlnk[1]     = NULL;
+//                ex->vlnk[0]     = NULL;
+//                ex->vlnk[1]     = NULL;
                 ex->itag        = se->itag;
 
                 // Link together
@@ -686,10 +686,10 @@ namespace lsp
             ex->v[1]        = (se->v[1]->ptag != NULL) ? reinterpret_cast<rt_vertex_t *>(se->v[1]->ptag) : se->v[1];
 
             // Link edge to vertexes
-            ex->vlnk[0]     = ex->v[0]->ve;
-            ex->vlnk[1]     = ex->v[1]->ve;
-            ex->v[0]->ve    = ex;
-            ex->v[1]->ve    = ex;
+//            ex->vlnk[0]     = ex->v[0]->ve;
+//            ex->vlnk[1]     = ex->v[1]->ve;
+//            ex->v[0]->ve    = ex;
+//            ex->v[1]->ve    = ex;
         RT_FOREACH_END
 
         // Link triangle structures to edges
@@ -830,26 +830,17 @@ namespace lsp
         edge.swap(&new_edges);
 
         // Patch all vertex pointers
-//        for (size_t i=0,n=vertex.size(); i<n; ++i)
-//        {
-//            rt_vertex_t *v  = vertex.get(i);
-        RT_FOREACH(rt_vertex_t, v, vertex)
-            v->ve           = (v->ve != NULL) ? reinterpret_cast<rt_edge_t *>(v->ve->ptag) : NULL;
-        RT_FOREACH_END
+//        RT_FOREACH(rt_vertex_t, v, vertex)
+//            v->ve           = (v->ve != NULL) ? reinterpret_cast<rt_edge_t *>(v->ve->ptag) : NULL;
+//        RT_FOREACH_END
 
         // Patch all edge pointers
-//        for (size_t i=0; i<ne; ++i)
-//        {
-//            rt_edge_t *e    = edge.get(i);
-        RT_FOREACH(rt_edge_t, e, edge)
-            e->vlnk[0]      = (e->vlnk[0] != NULL) ? reinterpret_cast<rt_edge_t *>(e->vlnk[0]->ptag) : NULL;
-            e->vlnk[1]      = (e->vlnk[1] != NULL) ? reinterpret_cast<rt_edge_t *>(e->vlnk[1]->ptag) : NULL;
-        RT_FOREACH_END
+//        RT_FOREACH(rt_edge_t, e, edge)
+//            e->vlnk[0]      = (e->vlnk[0] != NULL) ? reinterpret_cast<rt_edge_t *>(e->vlnk[0]->ptag) : NULL;
+//            e->vlnk[1]      = (e->vlnk[1] != NULL) ? reinterpret_cast<rt_edge_t *>(e->vlnk[1]->ptag) : NULL;
+//        RT_FOREACH_END
 
         // Patch all triangle pointers
-//        for (size_t i=0,n=triangle.size(); i<n; ++i)
-//        {
-//            rt_triangle_t *t= triangle.get(i);
         RT_FOREACH(rt_triangle_t, t, triangle)
             t->e[0]         = reinterpret_cast<rt_edge_t *>(t->e[0]->ptag);
             t->e[1]         = reinterpret_cast<rt_edge_t *>(t->e[1]->ptag);
@@ -1063,7 +1054,7 @@ namespace lsp
                 dsp::calc_split_point_p2v1(&sp, ce->v[0], ce->v[1], &pl);
                 sp.itag     = 0;
                 sp.ptag     = NULL;
-                sp.ve       = NULL;
+//                sp.ve       = NULL;
 
                 k[0]        = sp.x*spl[0].dx + sp.y*spl[0].dy + sp.z*spl[0].dz + spl[0].dw;
                 k[1]        = sp.x*spl[1].dx + sp.y*spl[1].dy + sp.z*spl[1].dz + spl[1].dw;
@@ -1263,7 +1254,7 @@ namespace lsp
                         return STATUS_NO_MEM;
                     dsp::calc_split_point_p2v1(sp, e->v[0], e->v[1], pl);
 
-                    sp->ve      = NULL;
+//                    sp->ve      = NULL;
                     sp->ptag    = NULL;
                     sp->itag    = 1;        // Split-point lays on the plane
 
@@ -1470,7 +1461,7 @@ namespace lsp
                         return STATUS_NO_MEM;
                     dsp::calc_split_point_p2v1(sp, e->v[0], e->v[1], pl);
 
-                    sp->ve      = NULL;
+//                    sp->ve      = NULL;
                     sp->ptag    = NULL;
                     sp->itag    = 1;        // Split-point lays on the plane
 
@@ -1773,7 +1764,7 @@ namespace lsp
 
                     dsp::apply_matrix3d_mp2(vx, st->v[j], transform);
 //                    vx->d           = dsp::calc_sqr_distance_p2(vx, &view.s);
-                    vx->ve          = NULL;
+//                    vx->ve          = NULL;
                     vx->ptag        = st->v[j];
                     vx->itag        = 0;
 
@@ -1792,8 +1783,8 @@ namespace lsp
                     ex->v[0]        = NULL;
                     ex->v[1]        = NULL;
                     ex->vt          = NULL;
-                    ex->vlnk[0]     = NULL;
-                    ex->vlnk[1]     = NULL;
+//                    ex->vlnk[0]     = NULL;
+//                    ex->vlnk[1]     = NULL;
                     ex->ptag        = st->e[j];
                     ex->itag        = 0;
 
@@ -1820,10 +1811,10 @@ namespace lsp
             de->v[0]            = reinterpret_cast<rt_vertex_t *>(se->v[0]->ptag);
             de->v[1]            = reinterpret_cast<rt_vertex_t *>(se->v[1]->ptag);
 
-            de->vlnk[0]         = de->v[0]->ve;
-            de->vlnk[1]         = de->v[1]->ve;
-            de->v[0]->ve        = de;
-            de->v[1]->ve        = de;
+//            de->vlnk[0]         = de->v[0]->ve;
+//            de->vlnk[1]         = de->v[1]->ve;
+//            de->v[0]->ve        = de;
+//            de->v[1]->ve        = de;
         }
 
         // Patch triangle structures and link to edges
@@ -1901,51 +1892,51 @@ namespace lsp
         return STATUS_OK;
     }
 
-    bool rt_context_t::validate_list(rt_vertex_t *v)
-    {
-        rt_edge_t *e = v->ve;
-        size_t n = 0;
+//    bool rt_context_t::validate_list(rt_vertex_t *v)
+//    {
+//        rt_edge_t *e = v->ve;
+//        size_t n = 0;
+//
+//        while (e != NULL)
+//        {
+//            if (!edge.validate(e))
+//                return false;
+//
+//            ++n;
+//            if (e->v[0] == v)
+//                e   = e->vlnk[0];
+//            else if (e->v[1] == v)
+//                e   = e->vlnk[1];
+//            else
+//                return false;
+//        }
+//
+//        return n > 0; // The vertex should be linked at least to one edge
+//    }
 
-        while (e != NULL)
-        {
-            if (!edge.validate(e))
-                return false;
-
-            ++n;
-            if (e->v[0] == v)
-                e   = e->vlnk[0];
-            else if (e->v[1] == v)
-                e   = e->vlnk[1];
-            else
-                return false;
-        }
-
-        return n > 0; // The vertex should be linked at least to one edge
-    }
-
-    ssize_t rt_context_t::linked_count(rt_edge_t *e, rt_vertex_t *v)
-    {
-        if ((e == NULL) || (v == NULL))
-            return -1;
-
-        size_t n = 0;
-        for (rt_edge_t *p = v->ve; p != NULL; )
-        {
-            if (p->v[0] == p->v[1])
-                return -1;
-            if (p == e)
-                ++n;
-
-            if (p->v[0] == v)
-                p = p->vlnk[0];
-            else if (p->v[1] == v)
-                p = p->vlnk[1];
-            else
-                return -1;
-        }
-
-        return n;
-    }
+//    ssize_t rt_context_t::linked_count(rt_edge_t *e, rt_vertex_t *v)
+//    {
+//        if ((e == NULL) || (v == NULL))
+//            return -1;
+//
+//        size_t n = 0;
+//        for (rt_edge_t *p = v->ve; p != NULL; )
+//        {
+//            if (p->v[0] == p->v[1])
+//                return -1;
+//            if (p == e)
+//                ++n;
+//
+//            if (p->v[0] == v)
+//                p = p->vlnk[0];
+//            else if (p->v[1] == v)
+//                p = p->vlnk[1];
+//            else
+//                return -1;
+//        }
+//
+//        return n;
+//    }
 
     ssize_t rt_context_t::linked_count(rt_triangle_t *t, rt_edge_t *e)
     {
@@ -2010,8 +2001,8 @@ namespace lsp
             rt_vertex_t *v      = vertex.get(i);
             if (v == NULL)
                 return false;
-            if (!validate_list(v))
-                return false;
+//            if (!validate_list(v))
+//                return false;
         }
 
         for (size_t i=0, n=edge.size(); i<n; ++i)
@@ -2028,10 +2019,10 @@ namespace lsp
                     return false;
                 if (!vertex.validate(e->v[j]))
                     return false;
-                if (!edge.validate(e->vlnk[j]))
-                    return false;
-                if (linked_count(e, e->v[j]) != 1)
-                    return false;
+//                if (!edge.validate(e->vlnk[j]))
+//                    return false;
+//                if (linked_count(e, e->v[j]) != 1)
+//                    return false;
             }
         }
 
@@ -2100,7 +2091,7 @@ namespace lsp
                     int(i), vx,
                     vx->x, vx->y, vx->z
                 );
-            dump_edge_list(4, vx->ve);
+//            dump_edge_list(4, vx->ve);
         }
 
         printf("Edges (%d items):\n", int(edge.size()));
@@ -2108,13 +2099,13 @@ namespace lsp
         {
             rt_edge_t *ex = edge.get(i);
             printf("  [%3d]: %p\n"
-                   "    v:  [%d]-[%d]\n"
-                   "    l:  [%d]-[%d]\n",
+                   "    v:  [%d]-[%d]\n",
+//                   "    l:  [%d]-[%d]\n",
                    int(i), ex,
                    int(vertex.index_of(ex->v[0])),
-                   int(vertex.index_of(ex->v[1])),
-                   int(edge.index_of(ex->vlnk[0])),
-                   int(edge.index_of(ex->vlnk[1]))
+                   int(vertex.index_of(ex->v[1]))
+//                   int(edge.index_of(ex->vlnk[0])),
+//                   int(edge.index_of(ex->vlnk[1]))
                );
             dump_triangle_list(4, ex->vt);
         }
@@ -2155,8 +2146,8 @@ namespace lsp
         }
         else
             printf("e[%d]:\n", int(edge.index_of(e)));
-        dump_edge_list(lvl+2, e->vlnk[0]);
-        dump_edge_list(lvl+2, e->vlnk[1]);
+//        dump_edge_list(lvl+2, e->vlnk[0]);
+//        dump_edge_list(lvl+2, e->vlnk[1]);
     }
 
     void rt_context_t::dump_triangle_list(size_t lvl, rt_triangle_t *t)
