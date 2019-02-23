@@ -116,8 +116,18 @@ namespace lsp
     void RayTrace3D::destroy(bool recursive)
     {
         clear_progress_callback();
-//        destroy_tasks(&vTasks);
         remove_scene(recursive);
+
+        for (size_t i=0, n=vCaptures.size(); i<n; ++i)
+        {
+            capture_t *cap = vCaptures.get(i);
+            if (cap != NULL)
+            {
+                cap->bindings.flush();
+                delete cap;
+            }
+        }
+        vCaptures.flush();
 
         sFactory.clear();
         sRoot.flush();
@@ -143,16 +153,21 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t RayTrace3D::add_capture(const ray3d_t *position, rt_audio_capture_t type, Sample *sample, size_t channel, float gain)
+    ssize_t RayTrace3D::add_capture(const ray3d_t *position, rt_audio_capture_t type, float gain)
     {
-        capture_t *cap      = vCaptures.add();
+        capture_t *cap      = new capture_t();
         if (cap == NULL)
-            return STATUS_NO_MEM;
+            return -STATUS_NO_MEM;
+
+        size_t idx          = vCaptures.size();
+        if (!vCaptures.add(cap))
+        {
+            delete cap;
+            return -STATUS_NO_MEM;
+        }
 
         cap->position       = *position;
         cap->type           = type;
-        cap->sample         = sample;
-        cap->channel        = channel;
         cap->gain           = gain;
         cap->volume         = 1.0f;
 
@@ -171,6 +186,24 @@ namespace lsp
         m->transparency[0]  = 0.0f;
 
         m->permeability     = 1.0f;
+
+        return idx;
+    }
+
+    status_t RayTrace3D::bind_capture(size_t id, Sample *sample, size_t channel, ssize_t r_min, ssize_t r_max)
+    {
+        capture_t *cap = vCaptures.get(id);
+        if (cap == NULL)
+            return STATUS_INVALID_VALUE;
+
+        sample_t *s     = cap->bindings.add();
+        if (s == NULL)
+            return STATUS_NO_MEM;
+
+        s->sample       = sample;
+        s->channel      = channel;
+        s->r_min        = r_min;
+        s->r_max        = r_max;
 
         return STATUS_OK;
     }
@@ -938,6 +971,7 @@ namespace lsp
             v.s         = sv.s;
             v.amplitude = sv.amplitude * sqrtf(area * revA);
             v.speed     = sv.speed;
+            v.rnum      = sv.rnum;
             v.p[0]      = *(ct->v[0]);
             v.p[1]      = *(ct->v[1]);
             v.p[2]      = *(ct->v[2]);
@@ -974,6 +1008,7 @@ namespace lsp
                 rv.s.x         -= kd * ct->n.dx;
                 rv.s.y         -= kd * ct->n.dy;
                 rv.s.z         -= kd * ct->n.dz;
+                rv.rnum         = v.rnum + 1;       // Increment reflection number
 
                 kd              = (m->permeability/m->dissipation[0] - 1.0f) * distance;
                 tv.amplitude    = v.amplitude * m->transparency[0];
@@ -1003,6 +1038,7 @@ namespace lsp
                 rv.s.x         -= kd * ct->n.dx;
                 rv.s.y         -= kd * ct->n.dy;
                 rv.s.z         -= kd * ct->n.dz;
+                rv.rnum         = v.rnum + 1;       // Increment reflection number
 
                 kd              = (1.0f/(m->dissipation[1]*m->permeability) - 1.0f) * distance;
                 tv.amplitude    = v.amplitude * m->transparency[1];
@@ -1028,7 +1064,13 @@ namespace lsp
             if (capture_id >= 0)
             {
                 capture_t *cap  = vCaptures.get(capture_id);
-                res     = (cap != NULL) ? capture(cap, &cv, &ctx->trace) : STATUS_CORRUPTED;
+                if (cap == NULL)
+                    res = STATUS_CORRUPTED;
+                else if (cap->bindings.size() > 0)
+                    res = capture(cap, &cv, &ctx->trace);
+                else
+                    res = STATUS_OK;
+
                 if (res != STATUS_OK)
                     break;
             }
@@ -1183,23 +1225,34 @@ namespace lsp
                 )
 
                 // Deploy energy value to the sample
-                lsp_trace("Sample %d -> amplitude=%e", int(csn-1), amplitude);
+                lsp_trace("Sample %d -> amplitude=%e rnum=%d", int(csn-1), amplitude, int(v->rnum));
 
-                if ((csn > 0) && (capture->sample != NULL))
+                if (csn > 0)
                 {
-                    // Ensure that we need to resize sample
-                    size_t len = capture->sample->max_length();
-
-                    if (len <= size_t(csn))
+                    // Append sample to each matching capture
+                    for (size_t ci=0, cn=capture->bindings.size(); ci<cn; ++ci)
                     {
-                        len     = (csn + 1 + SAMPLE_QUANTITY) / SAMPLE_QUANTITY;
-                        len    *= SAMPLE_QUANTITY;
-                        capture->sample->resize(capture->sample->channels(), len, len);
-                    }
+                        sample_t *s = capture->bindings.at(ci);
 
-                    // Deploy sample to all channels of the sample
-                    float *buf  = capture->sample->getBuffer(capture->channel);
-                    buf[csn-1] += amplitude;
+                        // Skip reflection not in range
+                        if ((s->r_min >= 0) && (v->rnum < s->r_min))
+                            continue;
+                        else if ((s->r_max >= 0) && (v->rnum > s->r_max))
+                            continue;
+
+                        // Ensure that we need to resize sample
+                        size_t len = s->sample->max_length();
+                        if (len <= size_t(csn))
+                        {
+                            len     = (csn + 1 + SAMPLE_QUANTITY) / SAMPLE_QUANTITY;
+                            len    *= SAMPLE_QUANTITY;
+                            s->sample->resize(s->sample->channels(), len, len);
+                        }
+
+                        // Deploy sample to all channels of the sample
+                        float *buf  = s->sample->getBuffer(s->channel);
+                        buf[csn-1] += amplitude;
+                    }
                 }
             }
 

@@ -37,6 +37,8 @@ namespace lsp
         view.face       = -1;
         view.oid        = -1;
         view.speed      = SOUND_SPEED_M_S;
+        view.rnum       = 0;
+
         dsp::init_point_xyz(&view.s, 0.0f, 0.0f, 0.0f);
         dsp::init_point_xyz(&view.p[0], 0.0f, 0.0f, 0.0f);
         dsp::init_point_xyz(&view.p[1], 0.0f, 0.0f, 0.0f);
@@ -96,6 +98,7 @@ namespace lsp
         view.time[2]    = 0.0f;
         view.amplitude  = 1.0f;
         view.speed      = SOUND_SPEED_M_S;
+        view.rnum       = 0;
     }
 
     void rt_context_t::init_view(const point3d_t *sp, const point3d_t *pv)
@@ -110,6 +113,7 @@ namespace lsp
         view.time[2]    = 0.0f;
         view.amplitude  = 1.0f;
         view.speed      = SOUND_SPEED_M_S;
+        view.rnum       = 0;
     }
 
     void rt_context_t::clear()

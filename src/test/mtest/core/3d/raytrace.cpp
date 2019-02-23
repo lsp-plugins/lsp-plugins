@@ -27,7 +27,7 @@ MTEST_BEGIN("core.3d", raytrace)
 
         // Initialize sample
         Sample sample;
-        MTEST_ASSERT(sample.init(1, 512, 0));
+        MTEST_ASSERT(sample.init(4, 512, 0));
 
         // Prepare raytracing
         RayTrace3D trace;
@@ -47,7 +47,11 @@ MTEST_BEGIN("core.3d", raytrace)
         ray3d_t capture;
         dsp::init_point_xyz(&capture.z, 1.0f, 0.0f, 0.0f);
         dsp::init_vector_dxyz(&capture.v, 0.0f, 0.0f, 0.0508f); // 2" microphone diaphragm
-        MTEST_ASSERT(trace.add_capture(&capture, RT_AC_OMNIDIRECTIONAL, &sample, 0, 1.0f) == STATUS_OK);
+        MTEST_ASSERT(trace.add_capture(&capture, RT_AC_OMNIDIRECTIONAL, 1.0f) == 0);
+        trace.bind_capture(0, &sample, 0, 0, 0);    // Direct reflections
+        trace.bind_capture(0, &sample, 1, 1, 3);    // Early reflections
+        trace.bind_capture(0, &sample, 2, 4, -1);   // Late reflections
+        trace.bind_capture(0, &sample, 3, -1, -1);  // All reflections
 
         // Perform raytracing
         MTEST_ASSERT(trace.process(1.0f) == STATUS_OK);
@@ -55,7 +59,8 @@ MTEST_BEGIN("core.3d", raytrace)
         // Save sample to file
         AudioFile af;
         LSPString path;
-        MTEST_ASSERT(path.fmt_utf8("tmp/utest-%s.wav", this->full_name()));
+
+        MTEST_ASSERT(path.fmt_utf8("tmp/utest-%s-4track.wav", this->full_name()));
         MTEST_ASSERT(af.create(&sample, trace.get_sample_rate()) == STATUS_OK);
         MTEST_ASSERT(af.store(&path) == STATUS_OK);
 

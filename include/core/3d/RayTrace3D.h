@@ -48,23 +48,29 @@ namespace lsp
                 float               volume;
             } source_t;
 
+            typedef struct sample_t
+            {
+                Sample             *sample;
+                size_t              channel;
+                ssize_t             r_min;
+                ssize_t             r_max;
+            } sample_t;
+
             typedef struct capture_t
             {
                 matrix3d_t          matrix;
                 ray3d_t             position;
                 rt_material_t       material;
                 rt_audio_capture_t  type;
-                Sample             *sample;
-                size_t              channel;
+                cstorage<sample_t>  bindings;
                 float               gain;
                 float               volume;
             } capture_t;
 
         private:
-//            cvector<rt_context_t>       vTasks;
             cstorage<rt_material_t>     vMaterials;
             cstorage<source_t>          vSources;
-            cstorage<capture_t>         vCaptures;
+            cvector<capture_t>          vCaptures;
             Scene3D                    *pScene;
             RTObjectFactory             sFactory;
             rt_progress_t               pProgress;
@@ -183,9 +189,20 @@ namespace lsp
              * @param sample sample object to store captured data
              * @param channel the sample channel to store captured data
              * @param gain capture gain
+             * @return non-negative capture identifier or negative error status code
+             */
+            ssize_t add_capture(const ray3d_t *position, rt_audio_capture_t type, float gain);
+
+            /**
+             * Bind audio sample to capture
+             * @param id capture identifier
+             * @param sample audio sample to bind
+             * @param channel number of channel of the sample that will be modified by capture
+             * @param r_min the minimum reflection index, negative value for any
+             * @param r_max the maximum reflection index, negative value for any
              * @return status of operation
              */
-            status_t add_capture(const ray3d_t *position, rt_audio_capture_t type, Sample *sample, size_t channel, float gain);
+            status_t    bind_capture(size_t id, Sample *sample, size_t channel, ssize_t r_min, ssize_t r_max);
 
             /** Remove all audio sources
              *

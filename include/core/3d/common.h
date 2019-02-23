@@ -175,6 +175,7 @@ namespace lsp
         float               amplitude;  // The amplitude of the signal
 //        float               energy;     // The energy of the wave, can have both positive and negative signs (if reflected)
         float               speed;      // This value indicates the current sound speed [m/s]
+        ssize_t             rnum;       // The reflection number
     } rt_view_t;
 
     typedef struct rt_material_t
