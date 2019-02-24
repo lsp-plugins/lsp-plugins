@@ -537,13 +537,6 @@ namespace lsp
         RT_FOREACH(rt_triangle_t, t, triangle)
             t->ptag = NULL;
         RT_FOREACH_END
-
-//        for (size_t i=0, n=vertex.size(); i<n; ++i)
-//            vertex.get(i)->ptag     = NULL;
-//        for (size_t i=0, n=edge.size(); i<n; ++i)
-//            edge.get(i)->ptag       = NULL;
-//        for (size_t i=0, n=triangle.size(); i<n; ++i)
-//            triangle.get(i)->ptag   = NULL;
     }
 
     status_t rt_context_t::fetch_triangle(rt_context_t *dst, rt_triangle_t *st)
@@ -630,9 +623,6 @@ namespace lsp
     status_t rt_context_t::fetch_triangles(rt_context_t *dst, ssize_t itag)
     {
         // Iterate all triangles
-//        for (size_t i=0, n=triangle.size(); i<n; ++i)
-//        {
-//            st          = triangle.get(i);
         RT_FOREACH(rt_triangle_t, st, triangle)
             if (st->itag != itag)
                 continue;
@@ -693,9 +683,6 @@ namespace lsp
         RT_FOREACH_END
 
         // Link triangle structures to edges
-//        for (size_t i=0, n=dst->triangle.size(); i<n; ++i)
-//        {
-//            rt_triangle_t *tx   = dst->triangle.get(i);
         RT_FOREACH(rt_triangle_t, tx, dst->triangle)
             if (tx->ptag == NULL) // Triangle does not need patching
                 continue;
@@ -777,9 +764,6 @@ namespace lsp
             return STATUS_NO_MEM;
 
         // Prepare data for sorting
-//        for (size_t i=0; i<ne; ++i)
-//        {
-//            rt_edge_t *ce = edge.get(i);
         size_t ei   = 0;
         RT_FOREACH(rt_edge_t, ce, edge)
             float d0    = dsp::calc_sqr_distance_p2(&view.s, ce->v[0]);
@@ -931,17 +915,11 @@ namespace lsp
         triangle.swap(&new_triangles);
 
         // Patch all edge pointers
-//        for (size_t i=0; i<ne; ++i)
-//        {
-//            rt_edge_t *e    = edge.get(i);
         RT_FOREACH(rt_edge_t, e, edge)
             e->vt           = (e->vt != NULL) ? reinterpret_cast<rt_triangle_t *>(e->vt->ptag) : NULL;
         RT_FOREACH_END
 
         // Patch all triangle pointers
-//        for (size_t i=0,n=triangle.size(); i<n; ++i)
-//        {
-//            rt_triangle_t *t= triangle.get(i);
         RT_FOREACH(rt_triangle_t, t, triangle)
             t->elnk[0]      = (t->elnk[0] != NULL) ? reinterpret_cast<rt_triangle_t *>(t->elnk[0]->ptag) : NULL;
             t->elnk[1]      = (t->elnk[1] != NULL) ? reinterpret_cast<rt_triangle_t *>(t->elnk[1]->ptag) : NULL;
@@ -1004,18 +982,12 @@ namespace lsp
 //            )
 
             // Estimate location of each vertex relative to the plane
-//            for (size_t j=0,n=vertex.size(); j<n; ++j)
-//            {
-//                rt_vertex_t *cv = vertex.get(j);
             RT_FOREACH(rt_vertex_t, cv, vertex)
                 float k = cv->x * pl.dx + cv->y * pl.dy + cv->z*pl.dz + pl.dw;
                 cv->itag = (k < -DSP_3D_TOLERANCE) ? 2 : (k > DSP_3D_TOLERANCE) ? 0 : 1;
             RT_FOREACH_END
 
             // Split each edge with triangle, do not process new edges
-//            for (size_t j=0,n=edge.size(); j<n; ++j)
-//            {
-//                rt_edge_t *ce   = edge.get(j);
             RT_FOREACH(rt_edge_t, ce, edge)
                 if ((ce == ct->e[0]) || (ce == ct->e[1]) || (ce == ct->e[2]))
                     continue;
@@ -1147,9 +1119,6 @@ namespace lsp
         status_t res;
 
         // Mark all edges to be split
-//        for (size_t i=0,n=edge.size(); i<n; ++i)
-//        {
-//            rt_edge_t *e    = edge.get(i);
         RT_FOREACH(rt_edge_t, e, edge)
             e->itag        |= RT_EF_APPLY;
         RT_FOREACH_END
@@ -1212,9 +1181,6 @@ namespace lsp
         //  0   = triangle is 'out'
         //  1   = triangle is 'on'
         //  2   = triangle is 'in'
-//        for (size_t i=0, n=vertex.size(); i<n; ++i)
-//        {
-//            rt_vertex_t *v  = vertex.get(i);
         RT_FOREACH(rt_vertex_t, v, vertex)
             float t         = v->x*pl->dx + v->y*pl->dy + v->z*pl->dz + pl->dw;
             v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
@@ -1222,9 +1188,6 @@ namespace lsp
 
         // First step: split edges
         // Perform split of edges
-//        for (size_t i=0, n=edge.size(); i<n; ++i)
-//        {
-//            rt_edge_t *e    = edge.get(i);
 		RT_FOREACH(rt_edge_t, e, edge)
             // Analyze state of edge
             // 00 00    - edge is over the plane
@@ -1275,9 +1238,6 @@ namespace lsp
         )
 
         // Toggle state of all triangles
-//        for (size_t i=0, n=triangle.size(); i<n; ++i)
-//        {
-//            rt_triangle_t  *st  = triangle.get(i);
 		RT_FOREACH(rt_triangle_t, st, triangle)
             // Detect position of triangle: over the plane or under the plane
             if (st->v[0]->itag != 1)
@@ -1322,9 +1282,6 @@ namespace lsp
         vector3d_t pl;
         rt_edge_t *ce = NULL;
 
-//        for (size_t i=0, n=edge.size(); i<n; ++i)
-//        {
-//            rt_edge_t *se = edge.get(i);
         RT_FOREACH(rt_edge_t, se, edge)
             if (se->itag & RT_EF_PLANE)
                 continue;
@@ -1378,8 +1335,6 @@ namespace lsp
         if (out != NULL)
             out->clear();
 
-//        RT_CALL_DEBUGGER(this, 7);
-
         // Perform split
         RT_TRACE_BREAK(debug,
             lsp_trace("Prepare split by edge (%f, %f, %f, %f) (%d triangles)",
@@ -1413,9 +1368,6 @@ namespace lsp
         //  0   = triangle is 'out'
         //  1   = triangle is 'on'
         //  2   = triangle is 'in'
-//        for (size_t i=0, n=vertex.size(); i<n; ++i)
-//        {
-//            rt_vertex_t *v  = vertex.get(i);
         RT_FOREACH(rt_vertex_t, v, vertex)
             float t         = v->x*pl->dx + v->y*pl->dy + v->z*pl->dz + pl->dw;
             v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
@@ -1426,9 +1378,6 @@ namespace lsp
 
         // First step: split edges
         // Perform split of edges
-//        for (size_t i=0, n=edge.size(); i<n; ++i)
-//        {
-//            rt_edge_t *e    = edge.get(i);
         RT_FOREACH(rt_edge_t, e, edge)
             if (e == ce) // Skip current edge
                 continue;
@@ -1482,9 +1431,6 @@ namespace lsp
         )
 
         // Toggle state of all triangles
-//        for (size_t i=0, n=triangle.size(); i<n; ++i)
-//        {
-//            rt_triangle_t  *st  = triangle.get(i);
         RT_FOREACH(rt_triangle_t, st, triangle)
             // Detect position of triangle: over the plane or under the plane
             if (st->v[0]->itag != 1)
@@ -1506,9 +1452,6 @@ namespace lsp
             return res;
 
         RT_TRACE(debug,
-//            for (size_t i=0,n=triangle.size();i<n; ++i)
-//            {
-//                rt_triangle_t *t = triangle.get(i);
             RT_FOREACH(rt_triangle_t, t, triangle)
                 if (t->itag == 1)
                     ignore(t);
@@ -1554,8 +1497,6 @@ namespace lsp
              1 = on the culling plane
              2 = in (below culling plane), default
          */
-//        size_t nt = triangle.size(), nv = vertex.size();
-//        for (size_t i=0; i<nt; ++i)
         RT_FOREACH(rt_triangle_t, t, triangle)
             t->itag     = 2;
         RT_FOREACH_END
@@ -1577,9 +1518,7 @@ namespace lsp
         {
             // Select triangle for culling
             ct = NULL;
-//            for (size_t i=0; i<nt; ++i)
-//            {
-//                st = triangle.get(i);
+
             RT_FOREACH(rt_triangle_t, st, triangle)
                 if (st->itag == 2)
                 {
@@ -1609,18 +1548,12 @@ namespace lsp
             )
 
             // Estimate location of each vertex relative to the plane
-//            for (size_t i=0; i<nv; ++i)
-//            {
-//                rt_vertex_t *sv = vertex.get(i);
             RT_FOREACH(rt_vertex_t, sv, vertex)
                 float t         = sv->x*pl.dx + sv->y*pl.dy + sv->z*pl.dz + pl.dw;
                 sv->itag        = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
             RT_FOREACH_END
 
             // Now process all triangles
-//            for (size_t i=0; i<nt; ++i)
-//            {
-//                st = triangle.get(i);
             RT_FOREACH(rt_triangle_t, st, triangle)
                 if (st->itag == 0) // Triangle is already 'out', skip
                     continue;
@@ -1660,9 +1593,6 @@ namespace lsp
 
         // Trace all ignored triangles
         RT_TRACE(debug,
-//            for (size_t i=0; i<nt; ++i)
-//            {
-//                rt_triangle_t *t = triangle.get(i);
             RT_FOREACH(rt_triangle_t, t, triangle)
                 if (t->itag != 1)
                     ignore(t);
@@ -1858,8 +1788,6 @@ namespace lsp
     {
         rt_context_t tmp;
         RT_TRACE(debug, tmp.set_debug_context(debug); );
-
-//        lsp_trace("ignore oid=%d, face=%d", int(view.oid), int(view.face));
 
         if (n > 0)
         {

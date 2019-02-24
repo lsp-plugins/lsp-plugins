@@ -49,6 +49,7 @@ namespace lsp
         "Timeout",
         "Failed",
         "Skip",
+        "Cancelled execution",
         "Debugging breakpoint",
         NULL
     };

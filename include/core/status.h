@@ -50,6 +50,7 @@ namespace lsp
         STATUS_TIMED_OUT,
         STATUS_FAILED,
         STATUS_SKIP,
+        STATUS_CANCELLED,
         STATUS_BREAKPOINT, // This is special status for step-by-step tracing algorithms
 
         STATUS_TOTAL,

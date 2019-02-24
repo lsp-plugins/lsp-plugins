@@ -38,6 +38,8 @@ namespace lsp
         pDebug          = NULL;
         fEnergyThresh   = 1e-6f;
         fTolerance      = 1e-5f;
+        bNormalize      = true;
+        bCancelled      = false;
     }
 
     RayTrace3D::~RayTrace3D()
@@ -289,10 +291,21 @@ namespace lsp
 
     status_t RayTrace3D::process(float initial)
     {
+        // Intialize
+        bCancelled              = false;
+        sStats.calls_scan       = 0;
+        sStats.calls_cull       = 0;
+        sStats.calls_split      = 0;
+        sStats.calls_cullback   = 0;
+        sStats.calls_reflect    = 0;
+        sStats.calls_capture    = 0;
+
         // Report progress as 0%
-        status_t res = report_progress(0.0f);
+        status_t res    = report_progress(0.0f);
         if (res != STATUS_OK)
             return res;
+        else if (bCancelled)
+            return STATUS_CANCELLED;
 
         RT_TRACE_BREAK(pDebug,
             for (size_t i=0,n=pScene->num_objects(); i<n; ++i)
@@ -309,6 +322,8 @@ namespace lsp
         res         = generate_root_context();
         if (res != STATUS_OK)
             return res;
+        else if (bCancelled)
+            return STATUS_CANCELLED;
 
         // Generate ray-tracing tasks
         rt_context_t *ctx = NULL;
@@ -319,12 +334,25 @@ namespace lsp
             destroy_tasks(&tasks);
             return res;
         }
+        else if (bCancelled)
+        {
+            destroy_tasks(&tasks);
+            return STATUS_CANCELLED;
+        }
 
         // Estimate the progress by doing set of steps
         do
         {
             while (tasks.size() > 0)
             {
+                // Check cancellation flag
+                if (bCancelled)
+                {
+                    destroy_tasks(&tasks);
+                    destroy_tasks(&estimate);
+                    return STATUS_CANCELLED;
+                }
+
                 // Get new task
                 if (!tasks.pop(&ctx))
                 {
@@ -354,18 +382,33 @@ namespace lsp
         // Report progress
         res         = report_progress(float(p_points++) / float(p_denom));
         if (res != STATUS_OK)
+        {
+            destroy_tasks(&tasks);
             return res;
+        }
+        else if (bCancelled)
+        {
+            destroy_tasks(&tasks);
+            return STATUS_CANCELLED;
+        }
 
         // Perform main loop of raytracing
         res         = STATUS_OK;
 
         while (tasks.size() > 0)
         {
+            // Check cancellation flag
+            if (bCancelled)
+            {
+                res = STATUS_CANCELLED;
+                break;
+            }
+
             // Get next context from queue
             if (!tasks.pop(&ctx))
             {
-                destroy_tasks(&tasks);
-                return STATUS_CORRUPTED;
+                res = STATUS_CORRUPTED;
+                break;
             }
 
             size_t t_size   = tasks.size(); // Remember size fo task stack
@@ -392,12 +435,95 @@ namespace lsp
         if (res != STATUS_OK)
             return res;
 
+        // Normalize output
+        if (bNormalize)
+            normalize_output();
+
         // Report progress
         {
             float prg   = float(p_points) / float(p_denom);
             lsp_trace("Reporting progress %d/%d = %.2f%%", int(p_points), int(p_denom), prg * 100.0f);
         }
+
+        // Output statistics
+        lsp_trace("Overall statistics:\n"
+                "  scan_objects         = %lld\n"
+                "  cull_view            = %lld\n"
+                "  split_view           = %lld\n"
+                "  cullback_view        = %lld\n"
+                "  reflect_view         = %lld\n"
+                "  capture              = %lld\n",
+            (long long)sStats.calls_scan,
+            (long long)sStats.calls_cull,
+            (long long)sStats.calls_split,
+            (long long)sStats.calls_cullback,
+            (long long)sStats.calls_reflect,
+            (long long)sStats.calls_capture
+        );
+
         return report_progress(float(p_points++) / float(p_denom));
+    }
+
+    bool RayTrace3D::is_already_passed(const sample_t *bind)
+    {
+        for (size_t i=0; i<vCaptures.size(); ++i)
+        {
+            capture_t *cap = vCaptures.at(i);
+            for (size_t j=0; j<cap->bindings.size(); ++j)
+            {
+                sample_t *s = cap->bindings.at(j);
+                // We reached current position?
+                if (s == bind)
+                    return false;
+                // Check that the same sample and channel have been processed earlier than 'bind'
+                if ((s->sample == bind->sample) && (s->channel == bind->channel))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    void RayTrace3D::normalize_output()
+    {
+        float max_gain = 0.0f;
+        cstorage<sample_t> plan;
+
+        // Estimate the maximum output gain for each capture's binding
+        for (size_t i=0; i<vCaptures.size(); ++i)
+        {
+            capture_t *cap = vCaptures.at(i);
+            for (size_t j=0; j<cap->bindings.size(); ++j)
+            {
+                sample_t *s = cap->bindings.at(j);
+                if (is_already_passed(s)) // Protect from measuring gain more than once
+                    continue;
+
+                // Estimate the maximum gain
+                float c_gain = dsp::abs_max(s->sample->getBuffer(s->channel), s->sample->length());
+                if (max_gain < c_gain)
+                    max_gain = c_gain;
+            }
+        }
+
+        // Now we know the maximum gain
+        if (max_gain == 0.0f)
+            return;
+        max_gain = 1.0f / max_gain; // Now it's a norming factor
+
+        // Perform the gain adjustment
+        for (size_t i=0; i<vCaptures.size(); ++i)
+        {
+            capture_t *cap = vCaptures.at(i);
+            for (size_t j=0; j<cap->bindings.size(); ++j)
+            {
+                sample_t *s = cap->bindings.at(j);
+                if (is_already_passed(s)) // Protect from adjusting gain more than once
+                    continue;
+
+                // Apply the norming factor
+                dsp::scale2(s->sample->getBuffer(s->channel), max_gain, s->sample->length());
+            }
+        }
     }
 
     status_t RayTrace3D::generate_tasks(cvector<rt_context_t> *tasks, float initial)
@@ -722,6 +848,7 @@ namespace lsp
     status_t RayTrace3D::scan_objects(cvector<rt_context_t> *tasks, rt_context_t *ctx)
     {
         status_t res = STATUS_OK;
+        ++sStats.calls_scan;
 
         RT_TRACE_BREAK(pDebug,
             lsp_trace("Scanning objects...");
@@ -804,6 +931,7 @@ namespace lsp
 
     status_t RayTrace3D::cull_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
     {
+        ++sStats.calls_cull;
         status_t res = ctx->cull_view();
         if (res != STATUS_OK)
             return res;
@@ -821,7 +949,6 @@ namespace lsp
         else
         {
             res     = ctx->sort_edges();
-//            res     = ctx->sort_triangles();
             if (res != STATUS_OK)
                 return res;
             ctx->state      = S_SPLIT;
@@ -832,6 +959,8 @@ namespace lsp
 
     status_t RayTrace3D::split_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
     {
+        ++sStats.calls_split;
+
         rt_context_t out;
         RT_TRACE(pDebug, out.set_debug_context(pDebug); );
 
@@ -893,6 +1022,8 @@ namespace lsp
 
     status_t RayTrace3D::cullback_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
     {
+        ++sStats.calls_cullback;
+
         // Perform cullback
         status_t res = ctx->depth_cullback();
         if (res != STATUS_OK)
@@ -915,6 +1046,8 @@ namespace lsp
         point3d_t p[3];                 // Projection points
         float d[3], t[3];               // distance
         float a[3], A, kd;              // particular area, area, dispersion coefficient
+
+        ++sStats.calls_reflect;
 
         sv      = ctx->view;
         A       = dsp::calc_area_pv(sv.p);
@@ -1129,6 +1262,7 @@ namespace lsp
 
     status_t RayTrace3D::capture(capture_t *capture, const rt_view_t *v, View3D *trace)
     {
+        ++sStats.calls_capture;
 //        lsp_trace("Capture:\n"
 //                "  coord  = {{%f, %f, %f}, {%f, %f, %f}, {%f, %f, %f}}\n"
 //                "  time   = {%f, %f, %f}\n"

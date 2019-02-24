@@ -134,22 +134,23 @@ namespace lsp
      */
     typedef status_t (*rt_progress_t)(float progress, void *data);
 
+#pragma pack(push, 1)
     typedef struct rt_vertex_t: public point3d_t
     {
-//        rt_edge_t          *ve;         // List of linked edges
         void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
         ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
-        ssize_t             __pad;      // Alignment to be multiple of 16
+        __IF_32(uint32_t    __pad[2];)  // Alignment to be sizeof() multiple of 16
     } rt_vertex_t;
 
     typedef struct rt_edge_t
     {
         rt_vertex_t        *v[2];       // Pointers to vertexes
-//        rt_edge_t          *vlnk[2];    // Link to next edge for the vertex v[i]
         rt_triangle_t      *vt;         // List of linked triangles
         void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
         ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
-        ssize_t             __pad;      // Alignment to be multiple of 16
+//        rt_edge_t          *vlnk[2];    // Link to next edge for the vertex v[i]
+        __IF_64(uint64_t    __pad;)     // Alignment to be sizeof() multiple of 16
+        __IF_32(uint32_t    __pad[3];)  // Alignment to be sizeof() multiple of 16
     } rt_edge_t;
 
     typedef struct rt_triangle_t
@@ -163,20 +164,19 @@ namespace lsp
         ssize_t             oid;        // Object identifier
         ssize_t             face;       // Object's face identifier
         rt_material_t      *m;          // Material
-        // Alignment to be multiple of 16
-        __IF_32(uint32_t    __pad[2]);
+        __IF_32(uint32_t    __pad[2];)  // Alignment to be sizeof() multiple of 16
     } rt_triangle_t;
 
     typedef struct rt_view_t
     {
         point3d_t           s;          // Source point
         point3d_t           p[3];       // View points
-        ssize_t             oid;        // Object identifier
-        ssize_t             face;       // Object's face to ignore
         float               time[3];    // The corresponding start time for each source point
         float               amplitude;  // The amplitude of the signal
-//        float               energy;     // The energy of the wave, can have both positive and negative signs (if reflected)
         float               speed;      // This value indicates the current sound speed [m/s]
+        ssize_t             oid;        // Object identifier
+        ssize_t             face;       // Object's face to ignore
+//        float               energy;     // The energy of the wave, can have both positive and negative signs (if reflected)
         ssize_t             rnum;       // The reflection number
     } rt_view_t;
 
@@ -188,6 +188,8 @@ namespace lsp
         float           transparency[2];    // The amount of energy that will be passed-through the material
         float           permeability;       // Sound permeability of the object (inner sound speed / outer sound speed)
     } rt_material_t;
+
+#pragma pack(pop)
 
     // Viewing structures
 #pragma pack(push, 1)

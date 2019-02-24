@@ -67,6 +67,16 @@ namespace lsp
                 float               volume;
             } capture_t;
 
+            typedef struct stats_t
+            {
+                uint64_t            calls_scan;
+                uint64_t            calls_cull;
+                uint64_t            calls_split;
+                uint64_t            calls_cullback;
+                uint64_t            calls_reflect;
+                uint64_t            calls_capture;
+            } stats_t;
+
         private:
             cstorage<rt_material_t>     vMaterials;
             cstorage<source_t>          vSources;
@@ -79,6 +89,9 @@ namespace lsp
             size_t                      nSampleRate;
             float                       fEnergyThresh;
             float                       fTolerance;
+            bool                        bNormalize;
+            volatile bool               bCancelled;
+            stats_t                     sStats;
 
             rt_debug_t                 *pDebug;
 
@@ -92,9 +105,9 @@ namespace lsp
             // Main ray-tracing routines
             status_t    generate_root_context();
             status_t    generate_tasks(cvector<rt_context_t> *tasks, float initial);
-            status_t    scan_objects(cvector<rt_context_t> *tasks, rt_context_t *ctx);
             status_t    check_object(rt_context_t *ctx, Object3D *obj, const matrix3d_t *m);
 
+            status_t    scan_objects(cvector<rt_context_t> *tasks, rt_context_t *ctx);
             status_t    cull_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
             status_t    split_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
             status_t    cullback_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
@@ -102,6 +115,9 @@ namespace lsp
             status_t    capture(capture_t *capture, const rt_view_t *v, View3D *trace);
 
             status_t    process_context(cvector<rt_context_t> *tasks, rt_context_t *ctx);
+
+            void        normalize_output();
+            bool        is_already_passed(const sample_t *bind);
 
         public:
             /** Default constructor
@@ -228,8 +244,24 @@ namespace lsp
 
             void                set_tolerance(float tolerance) { fTolerance = tolerance; }
 
+            inline bool         get_normalize() const { return bNormalize; };
+            inline void         set_normalize(bool normalize) { bNormalize = normalize; };
+
             /**
-             * Perform processing
+             * This method indicates that the cancel request was sent to
+             * the processor, RT-safe method
+             * @return true if cancel request was sent to processor
+             */
+            inline bool         cancelled() const { return bCancelled; }
+
+            /**
+             * This method allows to cancel the execution of process() method by
+             * another thread, RT-safe method
+             */
+            void                cancel() { if (!bCancelled) bCancelled = true; }
+
+            /**
+             * Perform processing, non-RT-safe, should be launched in a thread
              * @param initial initial energy of the signal
              * @return status of operation
              */

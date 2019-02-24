@@ -21,6 +21,11 @@ MTEST_BEGIN("core.3d", raytrace)
 
     MTEST_MAIN
     {
+        // Perform assertions
+        MTEST_ASSERT_MSG(!(sizeof(rt_vertex_t) & 0x0f), "sizeof(rt_vertex_t) = 0x%x", int(sizeof(rt_vertex_t)));
+        MTEST_ASSERT_MSG(!(sizeof(rt_edge_t) & 0x0f), "sizeof(rt_edge_t) = 0x%x", int(sizeof(rt_edge_t)));
+        MTEST_ASSERT_MSG(!(sizeof(rt_triangle_t) & 0x0f), "sizeof(rt_triangle_t) = 0x%x", int(sizeof(rt_triangle_t)));
+
         // Load scene
         Scene3D scene;
         MTEST_ASSERT(Model3DFile::load(&scene, "res/test/3d/empty-room-4x4x3.obj", true) == STATUS_OK);
@@ -35,6 +40,9 @@ MTEST_BEGIN("core.3d", raytrace)
         trace.set_sample_rate(48000);
         trace.set_energy_threshold(1e-6f);
         trace.set_tolerance(1e-5f);
+
+//        trace.set_energy_threshold(1e-4f);
+//        trace.set_tolerance(1e-4f);
         MTEST_ASSERT(trace.set_scene(&scene, true) == STATUS_OK);
 
         // Add source
@@ -60,7 +68,7 @@ MTEST_BEGIN("core.3d", raytrace)
         AudioFile af;
         LSPString path;
 
-        MTEST_ASSERT(path.fmt_utf8("tmp/utest-%s-4track-v2.wav", this->full_name()));
+        MTEST_ASSERT(path.fmt_utf8("tmp/utest-%s-4track-v4.wav", this->full_name()));
         MTEST_ASSERT(af.create(&sample, trace.get_sample_rate()) == STATUS_OK);
         MTEST_ASSERT(af.store(&path) == STATUS_OK);
 
