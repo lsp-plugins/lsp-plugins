@@ -365,7 +365,13 @@ namespace lsp
 
     const void* lv2ui_extension_data(const char* uri)
     {
-        return &idle_iface;
+        lsp_trace("requested extension data = %s", uri);
+        if (!strcmp(uri, LV2_UI__idleInterface))
+        {
+            lsp_trace("  idle_interface = %p", &idle_iface);
+            return &idle_iface;
+        }
+        return NULL;
     }
 
     LV2UI_Descriptor *lv2ui_descriptors     = NULL;
