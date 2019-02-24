@@ -297,9 +297,23 @@ namespace lsp
                 break;
             }
 
+            case FLT_DR_APO_LOPASS:
+            case FLT_DR_APO_HIPASS:
+            case FLT_DR_APO_BANDPASS:
+            case FLT_DR_APO_NOTCH:
+            case FLT_DR_APO_ALLPASS:
+            case FLT_DR_APO_PEAKING:
+            case FLT_DR_APO_LOSHELF:
+            case FLT_DR_APO_HISHELF:
+            {
+                calc_apo_filter(sParams.nType, &fp);
+                nMode               = FM_APO;
+                break;
+            }
+
             case FLT_NONE:
             default:
-                nMode           = FM_BYPASS;
+                nMode               = FM_BYPASS;
                 break;
         }
 
@@ -373,6 +387,7 @@ namespace lsp
             }
 
             case FM_MATCHED:
+            case FM_APO:
             {
                 double kf   = 1.0 / sParams.fFreq;
 
@@ -385,6 +400,11 @@ namespace lsp
                 }
                 break;
             }
+
+//            case FM_APO:
+//            {
+//                break;
+//            }
 
             case FM_BYPASS:
             default:
@@ -419,6 +439,7 @@ namespace lsp
             }
 
             case FM_MATCHED:
+            case FM_APO:
             {
                 double kf   = 1.0 / sParams.fFreq;
 
@@ -431,6 +452,11 @@ namespace lsp
                 }
                 break;
             }
+
+//            case FM_APO:
+//            {
+//                break;
+//            }
 
             case FM_BYPASS:
             default:
@@ -1053,6 +1079,157 @@ namespace lsp
         // Calculate two similar chains
         calc_bwc_filter(type, &bfp);
         calc_bwc_filter(type, &bfp);
+    }
+
+    void Filter::calc_apo_filter(size_t type, const filter_params_t *fp)
+    {
+        double a0;
+        double a1;
+        double a2;
+        double b0;
+        double b1;
+        double b2;
+
+        double omega    = 2.0 * M_PI * fp->fFreq / double(nSampleRate);
+        double cs       = sin(omega);
+        double cc       = sqrt(1.0 - cs * cs); // cos(omega);
+        double alpha    = 0.5 * cs / fp->fQuality;
+
+        // In LSP convention, the b coefficients are in the denominator. The a coefficients are in the
+        // numerator. This is opposite to the most usual convention.
+        // Coefficients are normalised so that b0 = 1
+
+        switch (type)
+        {
+            case FLT_DR_APO_LOPASS:
+            {
+                double A = pow(10.0, fp->fGain / 20.0);
+
+                a0 = 0.5 * (1 - cc);
+                a1 = 1.0 - cc;
+                a2 = a0;
+                b0 = 1 + alpha;
+                b1 = -2.0 * cc;
+                b2 = 1.0 - alpha;
+
+                break;
+            }
+
+            case FLT_DR_APO_HIPASS:
+            {
+                double A = pow(10.0, fp->fGain / 20.0);
+
+                a0 = 0.5 * (1.0 + cc);
+                a1 = -1.0 - cc;
+                a2 = a0;
+                b0 = 1.0 + alpha;
+                b1 = -2.0 * cc;
+                b2 = 1.0 - alpha;
+
+                break;
+            }
+
+            case FLT_DR_APO_BANDPASS:
+            {
+                double A = pow(10.0, fp->fGain / 20.0);
+
+                a0 = alpha;
+                a1 = 0.0;
+                a2 = -alpha;
+                b0 = 1.0 + alpha;
+                b1 = -2.0 * cc;
+                b2 = 1 - alpha;
+
+                break;
+            }
+
+            case FLT_DR_APO_NOTCH:
+            {
+                double A = pow(10.0, fp->fGain / 20.0);
+
+                a0 = 1.0;
+                a1 = -2.0 * cc;
+                a2 = 1.0;
+                b0 = 1.0 + alpha;
+                b1 = -2.0 * cc;
+                b2 = 1.0 - alpha;
+
+                break;
+            }
+
+            case FLT_DR_APO_ALLPASS:
+            {
+                double A = pow(10.0, fp->fGain / 20.0);
+
+                a0 = 1.0 - alpha;
+                a1 = -2.0 * cc;
+                a2 = 1.0 + alpha;
+                b0 = a2;
+                b1 = a1;
+                b2 = a0;
+
+                break;
+            }
+
+            case FLT_DR_APO_PEAKING:
+            {
+                double A = pow(10.0, fp->fGain / 40.0);
+
+                a0 = 1.0 + alpha * A;
+                a1 = -2.0 * cc;
+                a2 = 1.0 - alpha * A;
+                b0 = 1.0 + alpha / A;
+                b1 = -2.0 * cs;
+                b2 = 1.0 - alpha / A;
+
+                break;
+            }
+
+            case FLT_DR_APO_LOSHELF:
+            {
+                double A    = pow(10.0, fp->fGain / 40.0);
+                double beta = 2.0 * alpha * sqrt(A);
+
+                a0 = A * ((A + 1.0) - (A - 1.0) * cc + beta);
+                a1 = 2.0 * A * ((A - 1.0) - (A + 1.0) * cc);
+                a2 = A * ((A + 1.0) - (A - 1.0) * cc - beta);
+                b0 = (A + 1.0) + (A - 1.0) * cc + beta;
+                b1 = -2.0 * ((A - 1.0) + (A + 1.0) * cc);
+                b2 = (A + 1.0) + (A - 1.0) * cc - beta;
+
+                break;
+            }
+
+            case FLT_DR_APO_HISHELF:
+            {
+                double A    = pow(10.0, fp->fGain / 40.0);
+                double beta = 2.0 * alpha * sqrt(A);
+
+                a0 = A * ((A + 1.0) + (A - 1.0) * cc + beta);
+                a1 = -2.0 * A * ((A - 1.0) + (A + 1.0) * cc);
+                a2 = A * ((A + 1.0) + (A - 1.0) * cc - beta);
+                b0 = (A + 1.0) - (A - 1.0) * cc + beta;
+                b1 = 2.0 * ((A - 1.0) - (A + 1.0) * cc);
+                b2 = (A + 1.0) - (A - 1.0) * cc - beta;
+
+                break;
+            }
+        }
+
+        biquad_x1_t *f = pBank->add_chain();
+        if (f == NULL)
+            return;
+
+        f->a[0]         = a0 / b0;
+        f->a[1]         = f->a[0];
+        f->a[2]         = a1 / b0;
+        f->a[3]         = a2 / b0;
+
+        f->b[0]         = b1 / b0;
+        f->b[1]         = b2 / b0;
+        f->b[2]         = 0.0f;
+        f->b[3]         = 0.0f;
+
     }
 
     /*

@@ -68,7 +68,8 @@ namespace lsp
             EFM_BWC_BT,
             EFM_BWC_MT,
             EFM_LRX_BT,
-            EFM_LRX_MT
+            EFM_LRX_MT,
+            EFM_APO_DR
         };
 
         enum para_eq_mode_t

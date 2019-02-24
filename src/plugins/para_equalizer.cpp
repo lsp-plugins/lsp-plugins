@@ -75,6 +75,7 @@ namespace lsp
                     EQS(BWC_MT, FLT_MT_BWC_BELL, 1)
                     EQS(LRX_BT, FLT_BT_LRX_BELL, 1)
                     EQS(LRX_MT, FLT_MT_LRX_BELL, 1)
+                    EQS(APO_DR, FLT_DR_APO_PEAKING, 1)
                     EQDFL
                 }
                 break;
@@ -90,6 +91,7 @@ namespace lsp
                     EQS(BWC_MT, FLT_MT_BWC_HIPASS, 2)
                     EQS(LRX_BT, FLT_BT_LRX_HIPASS, 1)
                     EQS(LRX_MT, FLT_MT_LRX_HIPASS, 1)
+                    EQS(APO_DR, FLT_DR_APO_HIPASS, 1)
                     EQDFL
                 }
                 break;
@@ -105,6 +107,7 @@ namespace lsp
                     EQS(BWC_MT, FLT_MT_BWC_HISHELF, 1)
                     EQS(LRX_BT, FLT_BT_LRX_HISHELF, 1)
                     EQS(LRX_MT, FLT_MT_LRX_HISHELF, 1)
+                    EQS(APO_DR, FLT_DR_APO_HISHELF, 1)
                     EQDFL
                 }
                 break;
@@ -120,6 +123,7 @@ namespace lsp
                     EQS(BWC_MT, FLT_MT_BWC_LOPASS, 2)
                     EQS(LRX_BT, FLT_BT_LRX_LOPASS, 1)
                     EQS(LRX_MT, FLT_MT_LRX_LOPASS, 1)
+                    EQS(APO_DR, FLT_DR_APO_LOPASS, 1)
                     EQDFL
                 }
                 break;
@@ -135,6 +139,7 @@ namespace lsp
                     EQS(BWC_MT, FLT_MT_BWC_LOSHELF, 1)
                     EQS(LRX_BT, FLT_BT_LRX_LOSHELF, 1)
                     EQS(LRX_MT, FLT_MT_LRX_LOSHELF, 1)
+                    EQS(APO_DR, FLT_DR_APO_LOSHELF, 1)
                     EQDFL
                 }
                 break;
@@ -150,6 +155,7 @@ namespace lsp
                     EQS(BWC_MT, FLT_MT_RLC_NOTCH, 1)
                     EQS(LRX_BT, FLT_BT_RLC_NOTCH, 1)
                     EQS(LRX_MT, FLT_MT_RLC_NOTCH, 1)
+                    EQS(APO_DR, FLT_DR_APO_NOTCH, 1)
                     EQDFL
                 }
                 break;
@@ -226,6 +232,7 @@ namespace lsp
                     EQS(BWC_MT, FLT_MT_BWC_BANDPASS, 1)
                     EQS(LRX_BT, FLT_BT_LRX_BANDPASS, 1)
                     EQS(LRX_MT, FLT_MT_LRX_BANDPASS, 1)
+                    EQS(APO_DR, FLT_DR_APO_BANDPASS, 1)
                     EQDFL
                 }
                 break;
