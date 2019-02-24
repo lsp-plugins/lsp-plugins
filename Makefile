@@ -1,14 +1,14 @@
-# Estimate different pre-requisites before launching build
-include scripts/make/set_vars.mk
-include scripts/make/version.mk
-include scripts/make/configure.mk
-
 # Common definitions
 OBJDIR                  = ${CURDIR}/.build
 RELEASE_TEXT            = LICENSE.txt README.txt CHANGELOG.txt
 RELEASE_SRC             = $(RELEASE_TEXT) src build-*.sh include res Makefile release.sh
 RELEASE_SCRIPTS         = scripts/bash scripts/make
 INSTALL                 = install
+
+# Estimate different pre-requisites before launching build
+include scripts/make/set_vars.mk
+include scripts/make/version.mk
+include scripts/make/configure.mk
 
 # Installation locations
 BIN_PATH                = $(PREFIX)/bin
