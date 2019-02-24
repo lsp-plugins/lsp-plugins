@@ -40,6 +40,8 @@
 
     #define RT_TRACE(...)
 
+    #define RT_VALIDATE(...)
+
     #define RT_TRACE_BREAK(debug, action)
 
     #define RT_CALL_DEBUGGER(debug, xstep, ...)
