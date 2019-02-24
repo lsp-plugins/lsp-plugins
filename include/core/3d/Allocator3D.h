@@ -49,6 +49,10 @@ namespace lsp
         class Allocator3D: public BasicAllocator3D
         {
             public:
+                /**
+                 * Constructor
+                 * @param csize chunk size, will be rounded to be power of 2
+                 */
                 explicit Allocator3D(size_t csize): BasicAllocator3D(sizeof(T), csize) {}
 
             public:

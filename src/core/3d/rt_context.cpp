@@ -25,9 +25,9 @@ namespace lsp
 #define RT_FOREACH_END      } }
 
     rt_context_t::rt_context_t():
-        vertex(256),
-        edge(256),
-        triangle(256)
+        vertex(1024),
+        edge(1024),
+        triangle(1024)
     {
         this->state     = S_SCAN_OBJECTS;
         this->debug     = NULL;
@@ -46,9 +46,9 @@ namespace lsp
     }
     
     rt_context_t::rt_context_t(const rt_view_t *view):
-        vertex(256),
-        edge(256),
-        triangle(256)
+        vertex(1024),
+        edge(1024),
+        triangle(1024)
     {
         this->state     = S_SCAN_OBJECTS;
         this->debug     = NULL;
@@ -56,9 +56,9 @@ namespace lsp
     }
 
     rt_context_t::rt_context_t(const rt_view_t *view, rt_context_state_t state):
-        vertex(256),
-        edge(256),
-        triangle(256)
+        vertex(1024),
+        edge(1024),
+        triangle(1024)
     {
         this->state     = state;
         this->debug     = NULL;

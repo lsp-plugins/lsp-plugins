@@ -298,4 +298,117 @@ inline int64_t reverse_bits(int64_t v, size_t count)
     return hi | (int64_t(lo) << 32);
 }
 
+inline int __lsp_forced_inline     int_log2(uint8_t v)
+{
+    int res = v;
+    ARCH_ARM_ASM
+    (
+        __ASM_EMIT("tst             %[res], %[res]")
+        __ASM_EMIT("clzne           %[res], %[res]")
+        __ASM_EMIT("rsbne           %[res], %[res], $31")
+        : [res] "+r" (res)
+        : :
+    );
+    return res;
+}
+
+inline int __lsp_forced_inline     int_log2(int8_t v)
+{
+    int res = uint8_t(v);
+    ARCH_ARM_ASM
+    (
+        __ASM_EMIT("tst             %[res], %[res]")
+        __ASM_EMIT("clzne           %[res], %[res]")
+        __ASM_EMIT("rsbne           %[res], %[res], $31")
+        : [res] "+r" (res)
+        : :
+    );
+    return res;
+}
+
+inline int __lsp_forced_inline     int_log2(uint16_t v)
+{
+    int res = v;
+    ARCH_ARM_ASM
+    (
+        __ASM_EMIT("tst             %[res], %[res]")
+        __ASM_EMIT("clzne           %[res], %[res]")
+        __ASM_EMIT("rsbne           %[res], %[res], $31")
+        : [res] "+r" (res)
+        : :
+    );
+    return res;
+}
+
+inline int __lsp_forced_inline     int_log2(int16_t v)
+{
+    int res = uint16_t(v);
+    ARCH_ARM_ASM
+    (
+        __ASM_EMIT("tst             %[res], %[res]")
+        __ASM_EMIT("clzne           %[res], %[res]")
+        __ASM_EMIT("rsbne           %[res], %[res], $31")
+        : [res] "+r" (res)
+        : :
+    );
+    return res;
+}
+
+inline int __lsp_forced_inline     int_log2(uint32_t v)
+{
+    int res = int(v);
+    ARCH_ARM_ASM
+    (
+        __ASM_EMIT("tst             %[res], %[res]")
+        __ASM_EMIT("clzne           %[res], %[res]")
+        __ASM_EMIT("rsbne           %[res], %[res], $31")
+        : [res] "+r" (res)
+        : :
+    );
+    return res;
+}
+
+inline int __lsp_forced_inline     int_log2(int32_t v)
+{
+    int res = int(v);
+    ARCH_ARM_ASM
+    (
+        __ASM_EMIT("tst             %[res], %[res]")
+        __ASM_EMIT("clzne           %[res], %[res]")
+        __ASM_EMIT("rsbne           %[res], %[res], $31")
+        : [res] "+r" (res)
+        : :
+    );
+    return res;
+}
+
+inline int __lsp_forced_inline     int_log2(uint64_t v)
+{
+    int res = int(v >> 32);
+    ARCH_ARM_ASM
+    (
+        __ASM_EMIT("tst             %[res], %[res]")
+        __ASM_EMIT("clzne           %[res], %[res]")
+        __ASM_EMIT("rsbne           %[res], %[res], $31")
+        : [res] "+r" (res)
+        : :
+    );
+    return res;
+}
+
+inline int __lsp_forced_inline     int_log2(int64_t v)
+{
+    int res = int(uint64_t(v) >> 32);
+    ARCH_ARM_ASM
+    (
+        __ASM_EMIT("tst             %[res], %[res]")
+        __ASM_EMIT("clzne           %[res], %[res]")
+        __ASM_EMIT("rsbne           %[res], %[res], $31")
+        : [res] "+r" (res)
+        : :
+    );
+    return res;
+}
+
+
 #endif /* DSP_ARCH_ARM_BITS_H_ */
