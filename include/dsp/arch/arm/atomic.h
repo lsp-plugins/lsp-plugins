@@ -73,18 +73,19 @@ ATOMIC_CAS_DEF(uint32_t, "ex", volatile)
 #define ATOMIC_ADD_DEF(type, qsz, extra) \
     inline type atomic_add(extra type *ptr, type value) \
     {                                                   \
-        type tmp, retval; \
+        type tmp, sum, retval; \
         \
         ARCH_ARM_ASM                                    \
         (                                               \
             __ASM_EMIT("1:")    \
             __ASM_EMIT("dmb") \
             __ASM_EMIT("ldr" qsz "      %[ret], [%[ptr]]") \
-            __ASM_EMIT("add             %[tmp], %[ret], %[src]") \
-            __ASM_EMIT("str" qsz "      %[tmp], %[tmp], [%[ptr]]") \
+            __ASM_EMIT("add             %[sum], %[ret], %[src]") \
+            __ASM_EMIT("str" qsz "      %[tmp], %[sum], [%[ptr]]") \
             __ASM_EMIT("tst             %[tmp], %[tmp]") \
             __ASM_EMIT("bne             1b") \
             : [tmp] "=&r" (tmp), \
+              [sum] "=&r" (sum), \
               [ret] "=&r" (retval)  \
             : [ptr] "r" (ptr),  \
               [src] "r" (value) \
@@ -124,7 +125,7 @@ ATOMIC_ADD_DEF(uint32_t, "ex", volatile)
             : [tmp] "=&r" (tmp), \
               [ret] "=&r" (retval)  \
             : [ptr] "r" (ptr), \
-              [src] "r" (value), \
+              [src] "r" (value) \
             : "memory", "cc"                            \
         );                                              \
         return retval; \
