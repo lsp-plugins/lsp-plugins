@@ -200,7 +200,7 @@ namespace lsp
             if (pThis == NULL)
             {
                 req.tv_sec  = millis / 1000;
-                req.tv_nsec = millis % 1000;
+                req.tv_nsec = (millis % 1000) * 1000000;
 
                 while (nanosleep(&req, &rem) != 0)
                 {
