@@ -38,7 +38,7 @@ ATOMIC_CAS_DEF(uint32_t, "ex")
 #undef ATOMIC_CAS_DEF
 
 #define ATOMIC_CAS_DEF(type, qsz, extra)                        \
-    inline type atomic_cas(extra type *ptr, type exp, type rep) \
+    inline bool atomic_cas(extra type *ptr, type exp, type rep) \
     { \
         type tmp; \
         \
@@ -80,14 +80,51 @@ ATOMIC_CAS_DEF(uint32_t, "ex", volatile)
             __ASM_EMIT("1:")    \
             __ASM_EMIT("dmb") \
             __ASM_EMIT("ldr" qsz "      %[ret], [%[ptr]]") \
-            __ASM_EMIT("add             %[tmp], %[ret], %[value]") \
+            __ASM_EMIT("add             %[tmp], %[ret], %[src]") \
             __ASM_EMIT("str" qsz "      %[tmp], %[tmp], [%[ptr]]") \
             __ASM_EMIT("tst             %[tmp], %[tmp]") \
-            __ASM_EMIT("beq             1b") \
-            : [src] "+r" (value), \
-              [tmp] "=&r" (tmp) \
+            __ASM_EMIT("bne             1b") \
+            : [tmp] "=&r" (tmp), \
               [ret] "=&r" (retval)  \
-            : [ptr] "r" (ptr)                           \
+            : [ptr] "r" (ptr),  \
+              [src] "r" (value) \
+            : "memory", "cc"                            \
+        );                                              \
+        return retval; \
+    }
+
+ATOMIC_ADD_DEF(int8_t, "exb", )
+ATOMIC_ADD_DEF(int8_t, "exb", volatile)
+ATOMIC_ADD_DEF(uint8_t, "exb", )
+ATOMIC_ADD_DEF(uint8_t, "exb", volatile)
+ATOMIC_ADD_DEF(int16_t, "exh", )
+ATOMIC_ADD_DEF(int16_t, "exh", volatile)
+ATOMIC_ADD_DEF(uint16_t, "exh", )
+ATOMIC_ADD_DEF(uint16_t, "exh", volatile)
+ATOMIC_ADD_DEF(int32_t, "ex", )
+ATOMIC_ADD_DEF(int32_t, "ex", volatile)
+ATOMIC_ADD_DEF(uint32_t, "ex", )
+ATOMIC_ADD_DEF(uint32_t, "ex", volatile)
+
+#undef ATOMIC_ADD_DEF
+
+#define ATOMIC_SWAP_DEF(type, qsz, extra) \
+    inline type atomic_swap(extra type *ptr, type value) \
+    {                                                   \
+        type tmp, retval; \
+        \
+        ARCH_X86_ASM                                    \
+        (                                               \
+            __ASM_EMIT("1:")    \
+            __ASM_EMIT("dmb") \
+            __ASM_EMIT("ldr" qsz "      %[ret], [%[ptr]]") \
+            __ASM_EMIT("str" qsz "      %[tmp], %[src], [%[ptr]]") \
+            __ASM_EMIT("tst             %[tmp], %[tmp]") \
+            __ASM_EMIT("bne             1b") \
+            : [tmp] "=&r" (tmp), \
+              [ret] "=&r" (retval)  \
+            : [ptr] "r" (ptr), \
+              [src] "r" (value), \
             : "memory", "cc"                            \
         );                                              \
         return retval; \
