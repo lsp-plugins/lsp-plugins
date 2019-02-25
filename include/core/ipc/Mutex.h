@@ -87,25 +87,13 @@ namespace lsp
                 /** Wait until mutex is unlocked and lock it
                  *
                  */
-                void lock() const;
+                bool lock() const;
 
                 /** Try to lock mutex and return status of operation
                  *
                  * @return non-zero value if mutex was locked
                  */
-                inline bool try_lock() const
-                {
-                    // Perform test-and-set lock
-                    if (!nLock)
-                        return false;
-                    if (!atomic_swap(&nLock, 0))
-                        return false;
-
-                    // Update recursive counter
-                    if (!(nLocks++))
-                        nThreadId       = pthread_self(); // Save thread identifier
-                    return true;
-                }
+                bool try_lock() const;
 
                 /** Unlock mutex
                  *

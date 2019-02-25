@@ -84,7 +84,7 @@ namespace lsp
         }
 
 #elif defined(PLATFORM_LINUX)
-        void Mutex::lock() const
+        bool Mutex::lock() const
         {
             int res;
 
@@ -98,8 +98,15 @@ namespace lsp
                     {
                         if (!(nLocks++))
                             nThreadId       = pthread_self(); // Save thread identifier
-                        return;
+                        return true;
                     }
+                }
+
+                // Check that we already own the mutex
+                if (nThreadId == pthread_self())
+                {
+                    ++nLocks;
+                    return true;
                 }
 
                 // Increment number of waiters
@@ -117,6 +124,30 @@ namespace lsp
                 atomic_add(&nWaiters, -1);
             }
         }
+
+        bool Mutex::try_lock() const
+        {
+            if (nLock)
+            {
+                // Increment number of waiters
+                if (atomic_swap(&nLock, 0)) // Lock succeeded ?
+                {
+                    if (!(nLocks++))
+                        nThreadId       = pthread_self(); // Save thread identifier
+                    return true;
+                }
+            }
+
+            // Check that we already own the mutex
+            if (nThreadId == pthread_self())
+            {
+                ++nLocks;
+                return true;
+            }
+
+            return false;
+        }
+
 #else
         Mutex::Mutex()
         {
