@@ -8,7 +8,7 @@
 #ifndef DSP_ARCH_ARM_ATOMIC_H_
 #define DSP_ARCH_ARM_ATOMIC_H_
 
-#define ATOMIC_CAS_DEF(type)                            \
+#define ATOMIC_CAS_DEF(type, qsz)                      \
     inline type arm_compare_and_swap(type *ptr, type exp, type rep) \
     { \
         type tmp; \
@@ -16,11 +16,11 @@
         ARCH_ARM_ASM \
         ( \
             __ASM_EMIT("dmb") \
-            __ASM_EMIT("ldrex       %[tmp], [%[ptr]]") \
-            __ASM_EMIT("teq         %[tmp], %[exp]") \
-            __ASM_EMIT("strexeq     %[tmp], %[rep], [%[ptr]]") \
-            __ASM_EMIT("movne       %[tmp], #1") \
-            __ASM_EMIT("eor         %[tmp], #1") \
+            __ASM_EMIT("ldrex" qsz "    %[tmp], [%[ptr]]") \
+            __ASM_EMIT("teq             %[tmp], %[exp]") \
+            __ASM_EMIT("strex" qsz "eq  %[tmp], %[rep], [%[ptr]]") \
+            __ASM_EMIT("movne           %[tmp], $1") \
+            __ASM_EMIT("eor             %[tmp], $1") \
             : [tmp] "=&r" (tmp) \
             : [ptr] "r" (ptr), [exp] "r" (exp), [rep] "r" (rep) \
             : "cc", "memory" \
@@ -28,17 +28,49 @@
         return tmp; \
     }
 
-ATOMIC_CAS_DEF(int8_t)
-ATOMIC_CAS_DEF(uint8_t)
-ATOMIC_CAS_DEF(int16_t)
-ATOMIC_CAS_DEF(uint16_t)
-ATOMIC_CAS_DEF(int32_t)
-ATOMIC_CAS_DEF(uint32_t)
+ATOMIC_CAS_DEF(int8_t, "exb")
+ATOMIC_CAS_DEF(uint8_t, "exb")
+ATOMIC_CAS_DEF(int16_t, "exh")
+ATOMIC_CAS_DEF(uint16_t, "exh")
+ATOMIC_CAS_DEF(int32_t, "ex")
+ATOMIC_CAS_DEF(uint32_t, "ex")
 
-#ifdef ARCH_ARM8
-    ATOMIC_CAS_DEF(int64_t)
-    ATOMIC_CAS_DEF(uint64_t)
-#endif /* ARCH_ARM8 */
+#undef ATOMIC_CAS_DEF
+
+#define ATOMIC_CAS_DEF(type, qsz, extra)                        \
+    inline type atomic_cas(extra type *ptr, type exp, type rep) \
+    { \
+        type tmp; \
+        \
+        ARCH_ARM_ASM \
+        ( \
+            __ASM_EMIT("dmb") \
+            __ASM_EMIT("ldrex" qsz "    %[tmp], [%[ptr]]") \
+            __ASM_EMIT("teq             %[tmp], %[exp]") \
+            __ASM_EMIT("strex" qsz "eq  %[tmp], %[rep], [%[ptr]]") \
+            __ASM_EMIT("moveq           %[tmp], $1") \
+            __ASM_EMIT("movne           %[tmp], $0") \
+            : [tmp] "=&r" (tmp) \
+            : [ptr] "r" (ptr), [exp] "r" (exp), [rep] "r" (rep) \
+            : "cc", "memory" \
+        ); \
+        return bool(tmp); \
+    }
+
+ATOMIC_CAS_DEF(int8_t, "exb", )
+ATOMIC_CAS_DEF(int8_t, "exb", volatile)
+ATOMIC_CAS_DEF(uint8_t, "exb", )
+ATOMIC_CAS_DEF(uint8_t, "exb", volatile)
+ATOMIC_CAS_DEF(int16_t, "exh", )
+ATOMIC_CAS_DEF(int16_t, "exh", volatile)
+ATOMIC_CAS_DEF(uint16_t, "exh", )
+ATOMIC_CAS_DEF(uint16_t, "exh", volatile)
+ATOMIC_CAS_DEF(int32_t, "ex", )
+ATOMIC_CAS_DEF(int32_t, "ex", volatile)
+ATOMIC_CAS_DEF(uint32_t, "ex", )
+ATOMIC_CAS_DEF(uint32_t, "ex", volatile)
+
+#undef ATOMIC_CAS_DEF
 
 //-----------------------------------------------------------------------------
 // Atomic operations
