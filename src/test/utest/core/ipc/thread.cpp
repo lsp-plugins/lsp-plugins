@@ -29,6 +29,7 @@ UTEST_BEGIN("core.ipc", thread)
                 while (*res == 0)
                     Thread::sleep(100);
 
+                Thread::sleep(200);
                 *res    = 2;
                 Thread::sleep(100000000); // We need to leave sleep() on cancel() event
                 *res    = 3;
