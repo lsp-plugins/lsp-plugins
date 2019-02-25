@@ -37,6 +37,9 @@ namespace lsp
                 mutable DWORD                   nThreadId;  // Owner's thread identifier
                 mutable atomic_t                nLocks;     // Number of locks by current thread
 
+            private:
+                Mutex & operator = (const Mutex & m);       // Deny copying
+
             public:
                 explicit Mutex();
                 ~Mutex();
@@ -68,6 +71,9 @@ namespace lsp
                 mutable volatile atomic_t       nWaiters;   // Number of waiters
                 mutable pthread_t               nThreadId;  // Locked thread identifier
                 mutable atomic_t                nLocks;     // Number of locks by current thread
+
+            private:
+                Mutex & operator = (const Mutex & m);       // Deny copying
 
             public:
                 explicit Mutex()
@@ -126,6 +132,9 @@ namespace lsp
         {
             private:
                 mutable pthread_mutex_t     sMutex;
+
+            private:
+                Mutex & operator = (const Mutex & m);       // Deny copying
 
             public:
                 explicit Mutex();

@@ -23,6 +23,9 @@
             \
             class utest_ ## name: public UnitTest { \
                 public: \
+                    typedef utest_ ## name test_type_t;\
+                \
+                public: \
                     explicit utest_ ## name() : UnitTest(group, #name) {} \
                     \
                     virtual ~utest_ ## name() {}

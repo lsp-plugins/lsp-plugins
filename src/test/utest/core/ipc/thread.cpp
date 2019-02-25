@@ -24,7 +24,7 @@ UTEST_BEGIN("core.ipc", thread)
 
             void bind(volatile int *res, int exit_code) { this->res = res; this->exit_code = exit_code; }
 
-            int run()
+            virtual status_t run()
             {
                 while (*res == 0)
                     Thread::sleep(100);

@@ -16,7 +16,7 @@ namespace lsp
         Mutex::Mutex()
         {
             hMutex      = CreateMutexW(NULL, FALSE, NULL);
-            nThreadid   = -1;
+            nThreadId   = -1;
             nLocks      = 0;
         }
 
@@ -25,7 +25,7 @@ namespace lsp
             CloseHandle(hMutex);
         }
 
-        void Mutex::lock() const
+        bool Mutex::lock() const
         {
             if (nThreadId == GetCurrentThreadId())
             {
@@ -45,7 +45,7 @@ namespace lsp
 
         bool Mutex::try_lock() const
         {
-            if (nThreadId == -1)
+            if (nThreadId == DWORD(-1))
             {
                 DWORD res = WaitForSingleObject(hMutex, 0);
                 if (res == WAIT_OBJECT_0)
@@ -69,7 +69,7 @@ namespace lsp
             if (nThreadId != GetCurrentThreadId())
                 return false;
 
-            bool result;
+            bool result = true;
             if (!(--nLocks))
             {
                 nThreadId   = -1;

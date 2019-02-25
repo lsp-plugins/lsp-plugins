@@ -70,14 +70,14 @@ namespace lsp
             } while (!atomic_cas(&_this->enState, state, TS_FINISHED));
 
             _this->nResult  = res;
-            return NULL;
+            return 0;
         }
 
         status_t Thread::start()
         {
             DWORD tid;
             HANDLE thandle = CreateThread(NULL, 0, thread_launcher, this, 0, &tid);
-            if (thandle == INVALID_HANDLE)
+            if (thandle == INVALID_HANDLE_VALUE)
                 return STATUS_UNKNOWN_ERR;
 
             hThread     = thandle;
@@ -114,7 +114,7 @@ namespace lsp
                 while (millis > 0)
                 {
                     DWORD interval  = (millis > 500) ? 500 : millis;
-                    Sleep(interval)
+                    Sleep(interval);
                     millis         -= interval;
                 }
             }
@@ -129,7 +129,7 @@ namespace lsp
                         return STATUS_CANCELLED;
 
                     DWORD interval  = (millis > 100) ? 100 : millis;
-                    Sleep(interval)
+                    Sleep(interval);
                     millis         -= interval;
                 }
             }
