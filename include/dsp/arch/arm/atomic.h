@@ -16,9 +16,9 @@
         ARCH_ARM_ASM \
         ( \
             __ASM_EMIT("dmb") \
-            __ASM_EMIT("ldrex" qsz "    %[tmp], [%[ptr]]") \
+            __ASM_EMIT("ldr" qsz "      %[tmp], [%[ptr]]") \
             __ASM_EMIT("teq             %[tmp], %[exp]") \
-            __ASM_EMIT("strex" qsz "eq  %[tmp], %[rep], [%[ptr]]") \
+            __ASM_EMIT("str" qsz "eq    %[tmp], %[rep], [%[ptr]]") \
             __ASM_EMIT("movne           %[tmp], $1") \
             __ASM_EMIT("eor             %[tmp], $1") \
             : [tmp] "=&r" (tmp) \

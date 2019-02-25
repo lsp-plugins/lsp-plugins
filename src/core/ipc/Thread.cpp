@@ -9,6 +9,9 @@
 #include <dsp/atomic.h>
 #include <core/ipc/Thread.h>
 
+#include <time.h>
+#include <errno.h>
+
 namespace lsp
 {
     namespace ipc
@@ -34,8 +37,14 @@ namespace lsp
 
         status_t Thread::cancel()
         {
-            if (enState != TS_RUNNING)
-                return STATUS_BAD_STATE;
+            switch (enState)
+            {
+                case TS_PENDING:
+                case TS_RUNNING:
+                    break;
+                default:
+                    return STATUS_BAD_STATE;
+            }
 
             bCancelled  = true;
             return STATUS_OK;
@@ -97,11 +106,45 @@ namespace lsp
             }
             return STATUS_OK;
         }
+
+        status_t Thread::sleep(wsize_t millis)
+        {
+            if (pThis == NULL)
+            {
+                while (millis > 0)
+                {
+                    DWORD interval  = (millis > 500) ? 500 : millis;
+                    Sleep(interval)
+                    millis         -= interval;
+                }
+            }
+            else
+            {
+                if (pThis->bCancelled)
+                    return STATUS_CANCELLED;
+
+                while (millis > 0)
+                {
+                    if (pThis->bCancelled)
+                        return STATUS_CANCELLED;
+
+                    DWORD interval  = (millis > 100) ? 100 : millis;
+                    Sleep(interval)
+                    millis         -= interval;
+                }
+            }
+
+            return STATUS_OK;
+        }
 #else
         void *Thread::thread_launcher(void *arg)
         {
             Thread *_this   = reinterpret_cast<Thread *>(arg);
             pThis           = _this;
+
+            // Cleanup cancellation state
+            pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+            pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 
             // Wait until we are ready to launch
             while (!atomic_cas(&_this->enState, TS_PENDING, TS_RUNNING)) {}
@@ -147,6 +190,58 @@ namespace lsp
                 default:
                     return STATUS_BAD_STATE;
             }
+            return STATUS_OK;
+        }
+
+        status_t Thread::sleep(wsize_t millis)
+        {
+            struct timespec req, rem;
+
+            if (pThis == NULL)
+            {
+                req.tv_sec  = millis / 1000;
+                req.tv_nsec = millis % 1000;
+
+                do
+                {
+                    if (nanosleep(&req, &rem) != 0)
+                    {
+                        int code = errno;
+                        if (code != EINTR)
+                            return STATUS_UNKNOWN_ERR;
+                        req = rem;
+                    }
+                } while ((rem.tv_sec > 0) || (rem.tv_nsec > 0));
+            }
+            else
+            {
+                if (pThis->bCancelled)
+                    return STATUS_CANCELLED;
+
+                while (millis > 0)
+                {
+                    wsize_t interval  = (millis > 100) ? 100 : millis;
+                    req.tv_sec  = 0;
+                    req.tv_nsec = interval * 1000000;
+
+                    do
+                    {
+                        if (pThis->bCancelled)
+                            return STATUS_CANCELLED;
+
+                        if (nanosleep(&req, &rem) != 0)
+                        {
+                            int code = errno;
+                            if (code != EINTR)
+                                return STATUS_UNKNOWN_ERR;
+                            req = rem;
+                        }
+                    } while ((rem.tv_sec > 0) || (rem.tv_nsec > 0));
+
+                    millis     -= interval;
+                }
+            }
+
             return STATUS_OK;
         }
 #endif /* PLATFORM_WINDOWS */

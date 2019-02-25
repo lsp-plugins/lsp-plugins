@@ -8,6 +8,7 @@
 #ifndef INCLUDE_CORE_IPC_THREAD_H_
 #define INCLUDE_CORE_IPC_THREAD_H_
 
+#include <core/types.h>
 #include <core/status.h>
 
 #if defined(PLATFORM_WINDOWS)
@@ -77,6 +78,12 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t join();
+
+                /**
+                 * Force current thread to leep for amount of milliseconds
+                 * @param millis
+                 */
+                static status_t sleep(wsize_t millis);
 
                 /**
                  * Return the current thread

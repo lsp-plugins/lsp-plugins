@@ -48,6 +48,7 @@ namespace lsp
         STATUS_KILLED,
         STATUS_TIMED_OUT,
         STATUS_FAILED,
+        STATUS_CANCELLED,
 
         STATUS_TOTAL,
         STATUS_MAX = STATUS_TOTAL - 1,
