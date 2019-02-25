@@ -199,12 +199,6 @@ namespace lsp
             status_t        triangle_split(rt_context_t *out);
 
             /**
-             * Perform depth-test relative to the current triangle
-             * @return status of operation
-             */
-            status_t        depth_test();
-
-            /**
              * Perform depth-testing cullback of faces
              * @return status of operation
              */

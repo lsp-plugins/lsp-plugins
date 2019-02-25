@@ -1278,11 +1278,14 @@ namespace lsp
         RT_FOREACH(rt_vertex_t, v, vertex)
             float t         = v->x*pl->dx + v->y*pl->dy + v->z*pl->dz + pl->dw;
             v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
+            v->ptag         = NULL; // Cleanup tag pointer
 		RT_FOREACH_END
 
         // First step: split edges
         // Perform split of edges
 		RT_FOREACH(rt_edge_t, e, edge)
+		    e->ptag     = NULL; // Cleanup tag pointer
+
             // Analyze state of edge
             // 00 00    - edge is over the plane
             // 00 01    - edge is over the plane
@@ -1334,6 +1337,8 @@ namespace lsp
         // Toggle state of all triangles
 		size_t num_inside = 0;
 		RT_FOREACH(rt_triangle_t, st, triangle)
+		    st->ptag    = NULL; // Cleanup tag pointer
+
             // Detect position of triangle: over the plane or under the plane
             if (st->v[0]->itag != 1)
                 st->itag    = st->v[0]->itag;
@@ -1360,9 +1365,11 @@ namespace lsp
 		}
 
         // Now we can fetch triangles
-        res    = fetch_triangles_safe(&in, 2);
+        res    = fetch_triangles(&in, 2);
         if (res != STATUS_OK)
             return res;
+        complete_fetch(&in);
+        this->swap(&in);
 
         RT_VALIDATE(
             if (!in.validate())
@@ -1371,7 +1378,6 @@ namespace lsp
                 return STATUS_CORRUPTED;
         )
 
-        this->swap(&in);
         return STATUS_OK;
     }
 
@@ -1477,6 +1483,7 @@ namespace lsp
         RT_FOREACH(rt_vertex_t, v, vertex)
             float t         = v->x*pl->dx + v->y*pl->dy + v->z*pl->dz + pl->dw;
             v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
+            v->ptag         = NULL; // Cleanup tag pointer
         RT_FOREACH_END
 
         // Reset all flags of edges
@@ -1485,6 +1492,7 @@ namespace lsp
         // First step: split edges
         // Perform split of edges
         RT_FOREACH(rt_edge_t, e, edge)
+            e->ptag         = NULL; // Cleanup tag pointer
             if (e == ce) // Skip current edge
                 continue;
 
@@ -1538,6 +1546,7 @@ namespace lsp
 
         // Toggle state of all triangles
         RT_FOREACH(rt_triangle_t, st, triangle)
+            st->ptag        = NULL; // Cleanup tag pointer
             // Detect position of triangle: over the plane or under the plane
             if (st->v[0]->itag != 1)
                 st->itag    = st->v[0]->itag;
@@ -1550,9 +1559,14 @@ namespace lsp
         // Now we can fetch triangles
         rt_context_t in;
         RT_TRACE(debug, in.set_debug_context(debug); );
-        res    = fetch_triangles_safe(&in, 2);
+
+        // Fetch 'in' triangles in unsafe mode (we have cleaned up all tag pointers)
+        res     = fetch_triangles(&in, 2);
         if (res != STATUS_OK)
             return res;
+        complete_fetch(&in);
+
+        // Fetch 'out' triangles in safe mode
         res    = fetch_triangles_safe(out, 0);
         if (res != STATUS_OK)
             return res;
@@ -1885,14 +1899,25 @@ namespace lsp
 
     status_t rt_context_t::fetch_objects(rt_context_t *src, size_t n, const size_t *ids)
     {
+        status_t res;
         rt_context_t tmp;
         RT_TRACE(debug, tmp.set_debug_context(debug); );
 
         if (n > 0)
         {
+            // Cleanup tag pointers
+            RT_FOREACH(rt_vertex_t, v, src->vertex)
+                v->ptag = NULL;
+            RT_FOREACH_END
+
+            RT_FOREACH(rt_edge_t, e, src->edge)
+                e->ptag = NULL;
+            RT_FOREACH_END
+
             // Match triangles by object identifier
+            size_t fetched = 0;
             RT_FOREACH(rt_triangle_t, t, src->triangle)
-                t->itag         = 0; // Not matched
+                t->ptag         = NULL; // Clean ptag
 
                 // Skip triangles that should be ignored
                 if ((t->oid == view.oid) && (t->face == view.face))
@@ -1905,15 +1930,27 @@ namespace lsp
                 for (size_t i=0; i<n; ++i)
                     if (t->oid == ssize_t(ids[i]))
                     {
-                        t->itag     = 1;
+                        res     = src->fetch_triangle(&tmp, t);
+                        if (res != STATUS_OK)
+                            return res;
+                        ++fetched;
                         break;
                     }
             RT_FOREACH_END;
 
-            status_t res    = src->fetch_triangles_safe(&tmp, 1);
-            if (res != STATUS_OK)
-                return res;
+            // Complete fetch if there are any matched triangles
+            if (fetched > 0)
+                src->complete_fetch(&tmp);
         }
+
+        RT_VALIDATE(
+            if (!tmp.validate())
+                return STATUS_CORRUPTED;
+            if (!src->validate())
+                return STATUS_CORRUPTED;
+            if (!validate())
+                return STATUS_CORRUPTED;
+        );
 
         tmp.swap(this);
         return STATUS_OK;
