@@ -202,16 +202,13 @@ namespace lsp
                 req.tv_sec  = millis / 1000;
                 req.tv_nsec = millis % 1000;
 
-                do
+                while (nanosleep(&req, &rem) != 0)
                 {
-                    if (nanosleep(&req, &rem) != 0)
-                    {
-                        int code = errno;
-                        if (code != EINTR)
-                            return STATUS_UNKNOWN_ERR;
-                        req = rem;
-                    }
-                } while ((rem.tv_sec > 0) || (rem.tv_nsec > 0));
+                    int code = errno;
+                    if (code != EINTR)
+                        return STATUS_UNKNOWN_ERR;
+                    req = rem;
+                }
             }
             else
             {
@@ -220,23 +217,23 @@ namespace lsp
 
                 while (millis > 0)
                 {
+                    if (pThis->bCancelled)
+                        return STATUS_CANCELLED;
+
                     wsize_t interval  = (millis > 100) ? 100 : millis;
                     req.tv_sec  = 0;
                     req.tv_nsec = interval * 1000000;
 
-                    do
+                    while (nanosleep(&req, &rem) != 0)
                     {
+                        int code = errno;
+                        if (code != EINTR)
+                            return STATUS_UNKNOWN_ERR;
+
                         if (pThis->bCancelled)
                             return STATUS_CANCELLED;
-
-                        if (nanosleep(&req, &rem) != 0)
-                        {
-                            int code = errno;
-                            if (code != EINTR)
-                                return STATUS_UNKNOWN_ERR;
-                            req = rem;
-                        }
-                    } while ((rem.tv_sec > 0) || (rem.tv_nsec > 0));
+                        req = rem;
+                    }
 
                     millis     -= interval;
                 }

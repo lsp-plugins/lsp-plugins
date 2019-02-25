@@ -47,7 +47,7 @@ UTEST_BEGIN("core.ipc", thread)
         {
             res[i] = 0;
             t[i].bind(&res[i], i+1);
-            t[i].start();
+            UTEST_ASSERT(t[i].start() == STATUS_OK);
         }
 
         printf("Sleeping...\n");
@@ -78,7 +78,7 @@ UTEST_BEGIN("core.ipc", thread)
         for (size_t i=0; i<4; ++i)
         {
             UTEST_ASSERT(!t[i].cancelled());
-            t[i].cancel();
+            UTEST_ASSERT(t[i].cancel() == STATUS_OK);
         }
 
         printf("Waiting threads for termination...\n");
