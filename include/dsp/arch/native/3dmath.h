@@ -2866,8 +2866,11 @@ namespace native
 
         // There is an intersection with plane, we need to analyze it
         // Rotate triangle until vertex 0 is above the split plane
-        while (k[0] <= 0.0f)
+        if (k[0] > 0.0f)
+            { /* nothing */ }
+        else if (k[1] > 0.0f)
         {
+            // Rotate clockwise
             t[0]    = k[0];
             sp[0]   = p[0];
 
@@ -2878,6 +2881,31 @@ namespace native
             k[2]    = t[0];
             p[2]    = sp[0];
         }
+        else // k[2] > 0.0f
+        {
+            // Rotate counter-clockwise
+            t[0]    = k[0];
+            sp[0]   = p[0];
+
+            k[0]    = k[2];
+            p[0]    = p[2];
+            k[2]    = k[1];
+            p[2]    = p[1];
+            k[1]    = t[0];
+            p[1]    = sp[0];
+        }
+//        while (k[0] <= 0.0f)
+//        {
+//            t[0]    = k[0];
+//            sp[0]   = p[0];
+//
+//            k[0]    = k[1];
+//            p[0]    = p[1];
+//            k[1]    = k[2];
+//            p[1]    = p[2];
+//            k[2]    = t[0];
+//            p[2]    = sp[0];
+//        }
 
         // Now we have p[0] guaranteed to be above plane, analyze p[1] and p[2]
         if (k[1] < 0.0f) // k[1] < 0
