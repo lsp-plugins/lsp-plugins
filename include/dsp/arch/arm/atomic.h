@@ -75,7 +75,7 @@ ATOMIC_CAS_DEF(uint32_t, "ex", volatile)
     {                                                   \
         type tmp, retval; \
         \
-        ARCH_X86_ASM                                    \
+        ARCH_ARM_ASM                                    \
         (                                               \
             __ASM_EMIT("1:")    \
             __ASM_EMIT("dmb") \
@@ -113,7 +113,7 @@ ATOMIC_ADD_DEF(uint32_t, "ex", volatile)
     {                                                   \
         type tmp, retval; \
         \
-        ARCH_X86_ASM                                    \
+        ARCH_ARM_ASM                                    \
         (                                               \
             __ASM_EMIT("1:")    \
             __ASM_EMIT("dmb") \
@@ -130,20 +130,20 @@ ATOMIC_ADD_DEF(uint32_t, "ex", volatile)
         return retval; \
     }
 
-ATOMIC_ADD_DEF(int8_t, "exb", )
-ATOMIC_ADD_DEF(int8_t, "exb", volatile)
-ATOMIC_ADD_DEF(uint8_t, "exb", )
-ATOMIC_ADD_DEF(uint8_t, "exb", volatile)
-ATOMIC_ADD_DEF(int16_t, "exh", )
-ATOMIC_ADD_DEF(int16_t, "exh", volatile)
-ATOMIC_ADD_DEF(uint16_t, "exh", )
-ATOMIC_ADD_DEF(uint16_t, "exh", volatile)
-ATOMIC_ADD_DEF(int32_t, "ex", )
-ATOMIC_ADD_DEF(int32_t, "ex", volatile)
-ATOMIC_ADD_DEF(uint32_t, "ex", )
-ATOMIC_ADD_DEF(uint32_t, "ex", volatile)
+ATOMIC_SWAP_DEF(int8_t, "exb", )
+ATOMIC_SWAP_DEF(int8_t, "exb", volatile)
+ATOMIC_SWAP_DEF(uint8_t, "exb", )
+ATOMIC_SWAP_DEF(uint8_t, "exb", volatile)
+ATOMIC_SWAP_DEF(int16_t, "exh", )
+ATOMIC_SWAP_DEF(int16_t, "exh", volatile)
+ATOMIC_SWAP_DEF(uint16_t, "exh", )
+ATOMIC_SWAP_DEF(uint16_t, "exh", volatile)
+ATOMIC_SWAP_DEF(int32_t, "ex", )
+ATOMIC_SWAP_DEF(int32_t, "ex", volatile)
+ATOMIC_SWAP_DEF(uint32_t, "ex", )
+ATOMIC_SWAP_DEF(uint32_t, "ex", volatile)
 
-#undef ATOMIC_ADD_DEF
+#undef ATOMIC_SWAP_DEF
 
 //-----------------------------------------------------------------------------
 // Atomic operations
