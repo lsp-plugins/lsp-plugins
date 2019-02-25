@@ -30,7 +30,7 @@ UTEST_BEGIN("core.ipc", thread)
                     Thread::sleep(100);
 
                 *res    = 2;
-                Thread::sleep(5000);
+                Thread::sleep(100000000); // We need to leave sleep() on cancel() event
                 *res    = 3;
 
                 return exit_code;
@@ -51,7 +51,7 @@ UTEST_BEGIN("core.ipc", thread)
         }
 
         printf("Sleeping...\n");
-        ipc::Thread::sleep(1000);
+        ipc::Thread::sleep(500);
 
         printf("Waking threads...\n");
         for (size_t i=0; i<4; ++i)
