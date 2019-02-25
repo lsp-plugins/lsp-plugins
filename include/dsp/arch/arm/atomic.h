@@ -48,8 +48,6 @@ ATOMIC_CAS_DEF(uint32_t, "ex")
             __ASM_EMIT("ldr" qsz "      %[tmp], [%[ptr]]") \
             __ASM_EMIT("teq             %[tmp], %[exp]") \
             __ASM_EMIT("str" qsz "eq    %[tmp], %[rep], [%[ptr]]") \
-            __ASM_EMIT("moveq           %[tmp], $1") \
-            __ASM_EMIT("movne           %[tmp], $0") \
             : [tmp] "=&r" (tmp) \
             : [ptr] "r" (ptr), [exp] "r" (exp), [rep] "r" (rep) \
             : "cc", "memory" \
@@ -71,6 +69,44 @@ ATOMIC_CAS_DEF(uint32_t, "ex", )
 ATOMIC_CAS_DEF(uint32_t, "ex", volatile)
 
 #undef ATOMIC_CAS_DEF
+
+#define ATOMIC_ADD_DEF(type, qsz, extra) \
+    inline type atomic_add(extra type *ptr, type value) \
+    {                                                   \
+        type tmp, retval; \
+        \
+        ARCH_X86_ASM                                    \
+        (                                               \
+            __ASM_EMIT("1:")    \
+            __ASM_EMIT("dmb") \
+            __ASM_EMIT("ldr" qsz "      %[ret], [%[ptr]]") \
+            __ASM_EMIT("add             %[tmp], %[ret], %[value]") \
+            __ASM_EMIT("str" qsz "      %[tmp], %[tmp], [%[ptr]]") \
+            __ASM_EMIT("tst             %[tmp], %[tmp]") \
+            __ASM_EMIT("beq             1b") \
+            : [src] "+r" (value), \
+              [tmp] "=&r" (tmp) \
+              [ret] "=&r" (retval)  \
+            : [ptr] "r" (ptr)                           \
+            : "memory", "cc"                            \
+        );                                              \
+        return retval; \
+    }
+
+ATOMIC_ADD_DEF(int8_t, "exb", )
+ATOMIC_ADD_DEF(int8_t, "exb", volatile)
+ATOMIC_ADD_DEF(uint8_t, "exb", )
+ATOMIC_ADD_DEF(uint8_t, "exb", volatile)
+ATOMIC_ADD_DEF(int16_t, "exh", )
+ATOMIC_ADD_DEF(int16_t, "exh", volatile)
+ATOMIC_ADD_DEF(uint16_t, "exh", )
+ATOMIC_ADD_DEF(uint16_t, "exh", volatile)
+ATOMIC_ADD_DEF(int32_t, "ex", )
+ATOMIC_ADD_DEF(int32_t, "ex", volatile)
+ATOMIC_ADD_DEF(uint32_t, "ex", )
+ATOMIC_ADD_DEF(uint32_t, "ex", volatile)
+
+#undef ATOMIC_ADD_DEF
 
 //-----------------------------------------------------------------------------
 // Atomic operations
