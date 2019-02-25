@@ -20,6 +20,7 @@
     #include <pthread.h>
 #else
     #include <pthread.h>
+    #include <errno.h>
 #endif
 
 namespace lsp
@@ -158,7 +159,7 @@ namespace lsp
                  */
                 inline bool unlock() const
                 {
-                    pthread_mutex_unlock(&sMutex) == 0;
+                    return pthread_mutex_unlock(&sMutex) == 0;
                 }
         };
 #endif
