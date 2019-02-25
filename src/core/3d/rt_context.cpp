@@ -1112,7 +1112,7 @@ namespace lsp
         }
         return STATUS_OK;
     }
-
+#if 0
     status_t rt_context_t::cull_view()
     {
         vector3d_t pl[4]; // Split plane
@@ -1160,6 +1160,160 @@ namespace lsp
 
         return STATUS_OK;
     }
+#else
+    status_t rt_context_t::cull_view()
+    {
+        vector3d_t spl[4], *pl; // Split plane
+        status_t res;
+
+        // Mark all edges to be split
+        RT_FOREACH(rt_edge_t, e, edge)
+            e->itag        |= RT_EF_APPLY;
+        RT_FOREACH_END
+
+        dsp::calc_rev_oriented_plane_p3(&spl[0], &view.s, &view.p[0], &view.p[1], &view.p[2]);
+        dsp::calc_oriented_plane_p3(&spl[1], &view.p[2], &view.s, &view.p[0], &view.p[1]);
+        dsp::calc_oriented_plane_p3(&spl[2], &view.p[0], &view.s, &view.p[1], &view.p[2]);
+        dsp::calc_oriented_plane_p3(&spl[3], &view.p[1], &view.s, &view.p[2], &view.p[0]);
+
+        RT_TRACE_BREAK(debug,
+            lsp_trace("Culling space with planes (%d triangles)", int(triangle.size()));
+
+            for (size_t j=0, n=triangle.size(); j<n; ++j)
+               trace.add_triangle_1c(triangle.get(j), &C_DARKGREEN);
+
+            trace.add_plane_3pn1c(&view.p[0], &view.p[1], &view.p[2], &spl[0], &C_YELLOW);
+            trace.add_plane_3pn1c(&view.s, &view.p[0], &view.p[1], &spl[1], &C_RED);
+            trace.add_plane_3pn1c(&view.s, &view.p[1], &view.p[2], &spl[2], &C_GREEN);
+            trace.add_plane_3pn1c(&view.s, &view.p[2], &view.p[0], &spl[3], &C_BLUE);
+        )
+
+        RT_FOREACH(rt_triangle_t, t, triangle)
+            t->itag         = 2; // By default, triangle is 'inside'
+        RT_FOREACH_END
+
+        for (size_t pi=0; pi<4; ++pi)
+        {
+            pl  = &spl[pi];
+            // State of itag for vertex:
+            //  0   = triangle is 'out'
+            //  1   = triangle is 'on'
+            //  2   = triangle is 'in'
+            RT_FOREACH(rt_vertex_t, v, vertex)
+                float t         = v->x*pl->dx + v->y*pl->dy + v->z*pl->dz + pl->dw;
+                v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
+            RT_FOREACH_END
+
+            // First step: split edges
+            // Perform split of edges
+            RT_FOREACH(rt_edge_t, e, edge)
+                // Analyze state of edge
+                // 00 00    - edge is over the plane
+                // 00 01    - edge is over the plane
+                // 00 10    - edge is crossing the plane
+                // 01 00    - edge is over the plane
+                // 01 01    - edge is laying on the plane
+                // 01 10    - edge is under the plane
+                // 10 00    - edge is crossing the plane
+                // 10 01    - edge is under the plane
+                // 10 10    - edge is under the plane
+                switch ((e->v[0]->itag << 2) | e->v[1]->itag)
+                {
+                    case 0: case 1: case 4: // edge is over the plane, skip
+                    case 6: case 9: case 10: // edge is under the plane, skip
+                        break;
+                    case 5: // edge lays on the plane, mark as split edge and skip
+                        e->itag    |= RT_EF_PLANE;
+                        break;
+
+                    case 2: // edge is crossing the plane, v0 is over, v1 is under
+                    case 8: // edge is crossing the plane, v0 is under, v1 is over
+                    {
+                        // Allocate split point
+                        rt_vertex_t *sp     = vertex.alloc();
+                        if (sp == NULL)
+                            return STATUS_NO_MEM;
+                        dsp::calc_split_point_p2v1(sp, e->v[0], e->v[1], pl);
+
+    //                    sp->ve      = NULL;
+                        sp->ptag    = NULL;
+                        sp->itag    = 1;        // Split-point lays on the plane
+
+                        res         = split_edge(e, sp);
+                        if (res != STATUS_OK)
+                            return res;
+                        break;
+                    }
+
+                    default:
+                        return STATUS_BAD_STATE;
+                }
+            RT_FOREACH_END
+
+            RT_VALIDATE(
+                if (!validate())
+                    return STATUS_CORRUPTED;
+            )
+
+            size_t inside = 0;
+
+            // Toggle state of all triangles
+            RT_FOREACH(rt_triangle_t, st, triangle)
+                // Modify only state of 'inside' triangles
+                if (st->itag != 2)
+                    continue;
+
+                // Detect position of triangle: over the plane or under the plane
+                if (st->v[0]->itag != 1)
+                    st->itag    = st->v[0]->itag;
+                else if (st->v[1]->itag != 1)
+                    st->itag    = st->v[1]->itag;
+                else
+                    st->itag    = st->v[2]->itag;
+
+                if (st->itag == 2)
+                    ++inside; // Update number of triangles that are 'inside'
+
+                RT_TRACE(debug,
+                    if (st->itag != 2)
+                        ignore(st);
+                )
+            RT_FOREACH_END
+
+            if (inside <= 0)
+            {
+                vertex.destroy();
+                triangle.destroy();
+                edge.destroy();
+                return STATUS_OK;
+            }
+        }
+
+        // Now we can fetch triangles
+        rt_context_t in;
+        res    = fetch_triangles_safe(&in, 2);
+        if (res != STATUS_OK)
+            return res;
+
+        RT_VALIDATE(
+            if (!in.validate())
+                return STATUS_CORRUPTED;
+            if (!validate())
+                return STATUS_CORRUPTED;
+        )
+
+        this->swap(&in);
+
+        RT_TRACE_BREAK(debug,
+            lsp_trace("Data after culling (%d triangles)", int(triangle.size()));
+            trace.add_view_1c(&view, &C_MAGENTA);
+            for (size_t j=0,n=triangle.size(); j<n; ++j)
+                trace.add_triangle_3c(triangle.get(j), &C_CYAN, &C_MAGENTA, &C_YELLOW);
+        );
+
+        return STATUS_OK;
+    }
+#endif
 
     status_t rt_context_t::cutoff(const vector3d_t *pl)
     {
