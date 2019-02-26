@@ -37,7 +37,7 @@ namespace lsp
         triangle.flush();
     }
 
-    status_t rt_mesh_t::add_object(Object3D *obj, ssize_t oid, ssize_t face, const matrix3d_t *transform, rt_material_t *material)
+    status_t rt_mesh_t::add_object(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material)
     {
         // Reset tags
         obj->scene()->init_tags(NULL, 0);
@@ -52,9 +52,6 @@ namespace lsp
             if (st == NULL)
                 return STATUS_BAD_STATE;
             else if (st->ptag != NULL) // Skip already emitted triangle
-                continue;
-
-            if (face == st->face)
                 continue;
 
             // Allocate triangle and store pointer

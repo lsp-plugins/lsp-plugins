@@ -71,25 +71,23 @@ namespace lsp
              * Add object to context
              * @param obj object to add
              * @param oid unique id to identify the object
-             * @param face face to ignore
              * @param material material that describes behaviour of reflected rays
              * @return status of operation
              */
-            inline status_t add_object(Object3D *obj, ssize_t oid, ssize_t face, rt_material_t *material)
+            inline status_t add_object(Object3D *obj, ssize_t oid, rt_material_t *material)
             {
-                return add_object(obj, oid, face, obj->matrix(), material);
+                return add_object(obj, oid, obj->matrix(), material);
             }
 
             /**
              * Add object to context
              * @param obj object to add
              * @param oid unique id to identify the object
-             * @param face face to ignore
              * @param transform transformation matrix to apply to object
              * @param material material that describes behaviour of reflected rays
              * @return status of operation
              */
-            status_t        add_object(Object3D *obj, ssize_t oid, ssize_t face, const matrix3d_t *transform, rt_material_t *material);
+            status_t        add_object(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material);
 
             /**
              * Remove conflicts between triangles, does not modify the 'itag' field of
