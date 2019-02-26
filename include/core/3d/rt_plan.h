@@ -53,14 +53,14 @@ namespace lsp
              * @param pl cutting plane
              * @return status of operation
              */
-            status_t        split_out(const vector3d_t *pl);
+            status_t        cut_out(const vector3d_t *pl);
 
             /**
              * Split raytrace plan and keep the only edges that are above the cutting plane
              * @param pl cutting plane
              * @return status of operation
              */
-            status_t        split_in(const vector3d_t *pl);
+            status_t        cut_in(const vector3d_t *pl);
 
             /**
              * Split raytrace plan and keep the only edges that are below the cutting plane,

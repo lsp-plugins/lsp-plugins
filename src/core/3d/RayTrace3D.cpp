@@ -916,8 +916,8 @@ namespace lsp
         RT_TRACE_BREAK(pDebug,
             lsp_trace("Fetched %d objects", int(n_objs));
             ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
-//            for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-//                ctx->trace.add_triangle_3c(ctx->triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+            for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
+                ctx->trace.add_triangle_3c(ctx->triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
         )
 
         // Update state
@@ -928,96 +928,87 @@ namespace lsp
     status_t RayTrace3D::cull_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
     {
         ++sStats.calls_cull;
-        return STATUS_NOT_IMPLEMENTED; // TODO
 
-//        status_t res = ctx->cull_view();
-//        if (res != STATUS_OK)
-//            return res;
-//
-//        // Change state and submit to queue
-//        if (ctx->triangle.size() <= 1)
-//        {
-//            if (ctx->triangle.size() == 0)
-//            {
-//                delete ctx;
-//                return STATUS_OK;
-//            }
-//            ctx->state      = S_REFLECT;
-//        }
-//        else
-//        {
-//            res     = ctx->sort_edges();
-//            if (res != STATUS_OK)
-//                return res;
-//            ctx->state      = S_SPLIT;
-//        }
-//
-//        return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+        status_t res = ctx->cull_view();
+        if (res != STATUS_OK)
+            return res;
+
+        size_t n = ctx->triangle.size();
+        if (n <= 1)
+        {
+            if (n <= 0)
+            {
+                delete ctx;
+                return STATUS_OK;
+            }
+            ctx->state  = S_REFLECT;
+        }
+        else
+            ctx->state  = S_SPLIT;
+
+        return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
     status_t RayTrace3D::split_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
     {
         ++sStats.calls_split;
-        return STATUS_NOT_IMPLEMENTED;
-        // TODO
-//
-//        rt_context_t out;
-//        RT_TRACE(pDebug, out.set_debug_context(pDebug); );
-//
-//        // Perform binary split
-//        status_t res = ctx->edge_split(&out);
-//        if (res == STATUS_NOT_FOUND)
-//        {
-//            ctx->state      = S_CULL_BACK;
-//            return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
-//        }
-//        else if (res != STATUS_OK)
-//            return res;
-//
-//        // Analyze state of current and out context
-//        if (ctx->triangle.size() > 0)
-//        {
-//            // Analyze state of 'out' context
-//            if (out.triangle.size() > 0)
-//            {
-//                // Allocate additional context and add to task list
-//                rt_context_t *nctx = new rt_context_t(&ctx->view, (out.triangle.size() > 1) ? S_SPLIT : S_REFLECT);
-//                if (nctx == NULL)
-//                    return STATUS_NO_MEM;
-//                else if (!tasks->push(nctx))
-//                {
-//                    delete nctx;
-//                    return STATUS_NO_MEM;
-//                }
-//
-//                RT_TRACE(pDebug,
-//                    nctx->set_debug_context(pDebug);
-//
-//                    nctx->ignored.add_all(&ctx->ignored);
-//                    nctx->matched.add_all(&ctx->matched);
-//                    nctx->trace.add_all(&ctx->trace);
-//
-//                    for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-//                        nctx->ignore(ctx->triangle.get(i));
-//                    for (size_t i=0,n=out.triangle.size(); i<n; ++i)
-//                        ctx->ignore(out.triangle.get(i));
-//                );
-//
-//                nctx->swap(&out);
-//            }
-//
-//            return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
-//        }
-//        else if (out.triangle.size() > 0)
-//        {
-//            ctx->swap(&out);
-//            ctx->state  = (ctx->triangle.size() > 1) ? S_SPLIT : S_REFLECT;
-//
-//            return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
-//        }
-//
-//        delete ctx;
-//        return STATUS_OK;
+
+        rt_context_t out;
+        RT_TRACE(pDebug, out.set_debug_context(pDebug); );
+
+        // Perform binary split
+        status_t res = ctx->edge_split(&out);
+        if (res == STATUS_NOT_FOUND)
+        {
+            ctx->state      = S_CULL_BACK;
+            return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+        }
+        else if (res != STATUS_OK)
+            return res;
+
+        // Analyze state of current and out context
+        if (ctx->triangle.size() > 0)
+        {
+            // Analyze state of 'out' context
+            if (out.triangle.size() > 0)
+            {
+                // Allocate additional context and add to task list
+                rt_context_t *nctx = new rt_context_t(&ctx->view, (out.triangle.size() > 1) ? S_SPLIT : S_REFLECT);
+                if (nctx == NULL)
+                    return STATUS_NO_MEM;
+                else if (!tasks->push(nctx))
+                {
+                    delete nctx;
+                    return STATUS_NO_MEM;
+                }
+
+                RT_TRACE(pDebug,
+                    nctx->set_debug_context(pDebug);
+
+                    nctx->ignored.add_all(&ctx->ignored);
+                    nctx->trace.add_all(&ctx->trace);
+
+                    for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
+                        nctx->ignore(ctx->triangle.get(i));
+                    for (size_t i=0,n=out.triangle.size(); i<n; ++i)
+                        ctx->ignore(out.triangle.get(i));
+                );
+
+                nctx->swap(&out);
+            }
+
+            return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+        }
+        else if (out.triangle.size() > 0)
+        {
+            ctx->swap(&out);
+            ctx->state  = (ctx->triangle.size() > 1) ? S_SPLIT : S_REFLECT;
+
+            return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        delete ctx;
+        return STATUS_OK;
     }
 
     status_t RayTrace3D::cullback_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)

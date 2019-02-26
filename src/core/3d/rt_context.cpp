@@ -103,10 +103,11 @@ namespace lsp
 
     status_t rt_context_t::fetch_objects(rt_mesh_t *src, size_t n, const size_t *ids)
     {
-        rt_context_t tmp;
+        Allocator3D<rt_triangle_t> xtriangle(1024);
+        rt_plan_t   xplan;
+
         rt_split_t *spl;
         rt_triangle_t *dt;
-        RT_TRACE(debug, tmp.set_debug_context(debug); );
 
         if (n > 0)
         {
@@ -134,8 +135,7 @@ namespace lsp
                             if (t->e[k]->itag) // Add only unique edges
                             {
                                 t->e[k]->itag   = 0;
-                                spl             = plan.add_edge(t->e[k]->v[0], t->e[k]->v[1], &t->n);
-                                if (!spl)
+                                if (!(spl = xplan.add_edge(t->e[k]->v[0], t->e[k]->v[1], &t->n)))
                                     return STATUS_NO_MEM;
                             }
 
@@ -143,8 +143,7 @@ namespace lsp
                             spl->flags     |=   SF_CULLBACK;
 
                         // Add triangle to list
-                        dt  = triangle.alloc();
-                        if (!dt)
+                        if (!(dt = xtriangle.alloc()))
                             return STATUS_NO_MEM;
 
                         dt->v[0]    = *(t->v[0]);
@@ -163,7 +162,55 @@ namespace lsp
             return STATUS_CORRUPTED;
 //        );
 
-        tmp.swap(this);
+        xtriangle.swap(&this->triangle);
+        xplan.swap(&this->plan);
+
+        return STATUS_OK;
+    }
+
+    status_t rt_context_t::cull_view()
+    {
+        vector3d_t pl[4]; // Split plane
+        status_t res;
+
+        // Initialize cull planes
+        dsp::calc_rev_oriented_plane_p3(&pl[0], &view.s, &view.p[0], &view.p[1], &view.p[2]);
+        dsp::calc_oriented_plane_p3(&pl[1], &view.p[2], &view.s, &view.p[0], &view.p[1]);
+        dsp::calc_oriented_plane_p3(&pl[2], &view.p[0], &view.s, &view.p[1], &view.p[2]);
+        dsp::calc_oriented_plane_p3(&pl[3], &view.p[1], &view.s, &view.p[2], &view.p[0]);
+
+        RT_TRACE_BREAK(debug,
+            lsp_trace("Culling space with planes (%d triangles)", int(triangle.size()));
+
+            for (size_t j=0, n=triangle.size(); j<n; ++j)
+               trace.add_triangle_1c(triangle.get(j), &C_DARKGREEN);
+
+            trace.add_plane_3pn1c(&view.p[0], &view.p[1], &view.p[2], &pl[0], &C_YELLOW);
+            trace.add_plane_3pn1c(&view.s, &view.p[0], &view.p[1], &pl[1], &C_RED);
+            trace.add_plane_3pn1c(&view.s, &view.p[1], &view.p[2], &pl[2], &C_GREEN);
+            trace.add_plane_3pn1c(&view.s, &view.p[2], &view.p[0], &pl[3], &C_BLUE);
+        )
+
+        for (size_t pi=0; pi<4; ++pi)
+        {
+            res = cut(&pl[pi]);
+            if (res != STATUS_OK)
+                return res;
+
+            // Check that there is data for processing and take it for next iteration
+            if (triangle.size() <= 0)
+                break;
+        }
+
+        RT_TRACE_BREAK(debug,
+            lsp_trace("Data after culling (%d triangles)", int(triangle.size()));
+            trace.add_view_1c(&view, &C_MAGENTA);
+            for (size_t j=0,n=triangle.size(); j<n; ++j)
+                trace.add_triangle_1c(triangle.get(j), &C_YELLOW);
+            for (size_t j=0,n=plan.items.size(); j<n; ++j)
+                trace.add_segment(plan.items.get(j), &C_RED)
+        );
+
         return STATUS_OK;
     }
 
@@ -294,7 +341,7 @@ namespace lsp
         // Swap data and proceed
         in.swap(&this->triangle);
 
-        return plan.split_out(pl);
+        return plan.cut_out(pl);
     }
 
     status_t rt_context_t::cullback(const vector3d_t *pl)
@@ -426,7 +473,7 @@ namespace lsp
         // Swap data and proceed
         in.swap(&this->triangle);
 
-        return plan.split_out(pl);
+        return plan.cut_out(pl);
     }
 
     status_t rt_context_t::split(rt_context_t *out, const vector3d_t *pl)
@@ -585,6 +632,79 @@ namespace lsp
         xout.swap(&out->triangle);
 
         return plan.split(&out->plan, pl);
+    }
+
+    status_t rt_context_t::edge_split(rt_context_t *out)
+    {
+        // Find edge to apply split
+        if (plan.items.size() <= 0)
+            return STATUS_NOT_FOUND;
+
+        vector3d_t pl;
+
+        RT_FOREACH(rt_split_t, se, plan.items)
+            if (se->flags & SF_REMOVE)
+                continue;
+            se->flags      |= SF_REMOVE;        // Mark edge for removal
+
+            rt_split_t xe   = *se;
+
+            if (!(xe.flags & SF_APPLIED))
+            {
+                // Process split only with valid plane
+                if (dsp::calc_plane_p3(&pl, &view.s, &xe.p[0], &xe.p[1]) > DSP_3D_TOLERANCE)
+                {
+                    status_t res = split(out, &pl);
+                    if (res != STATUS_OK)
+                        return res;
+                    RT_TRACE_BREAK(debug,
+                        lsp_trace("Split context into triangles in(GREEN)/out(RED) = %d/%d",
+                                int(triangle.size()), int(out->triangle.size()));
+                        trace.add_view_1c(&view, &C_MAGENTA);
+                        trace.add_plane_3p1c(&view.s, &xe.p[0], &xe.p[1], &C_MAGENTA);
+
+                        for (size_t i=0, n=triangle.size(); i<n; ++i)
+                            trace.add_triangle_1c(triangle.get(i), &C_GREEN);
+                        for (size_t i=0, n=out->triangle.size(); i<n; ++i)
+                            trace.add_triangle_1c(out->triangle.get(i), &C_RED);
+
+                        for (size_t i=0, n=plan.items.size(); i<n; ++i)
+                            trace.add_segment(plan.items.get(i), &C_RED);
+                        for (size_t i=0, n=out->plan.items.size(); i<n; ++i)
+                            trace.add_segment(out->plan.items.get(i), &C_GREEN);
+                    )
+                }
+            }
+            if (xe.flags & SF_CULLBACK)
+            {
+                dsp::orient_plane_v1p1(&pl, &view.s, &xe.sp);
+                RT_TRACE_BREAK(debug,
+                    lsp_trace("Cullback context");
+                    trace.add_view_1c(&view, &C_MAGENTA);
+
+                    for (size_t i=0, n=triangle.size(); i<n; ++i)
+                        trace.add_triangle_1c(triangle.get(i), &C_GREEN);
+                    trace.add_plane_2pn1c(&xe.p[0], &xe.p[1], &pl, &C_YELLOW);
+                )
+
+                status_t res = cullback(&pl);
+                if (res != STATUS_OK)
+                    return res;
+
+                RT_TRACE_BREAK(debug,
+                    lsp_trace("Cullback context into triangles in(BLUE) = %d",
+                            int(triangle.size()));
+                    trace.add_view_1c(&view, &C_MAGENTA);
+
+                    for (size_t i=0, n=triangle.size(); i<n; ++i)
+                        trace.add_triangle_1c(triangle.get(i), &C_BLUE);
+                )
+            }
+
+            return STATUS_OK;
+        RT_FOREACH_END
+
+        return STATUS_NOT_FOUND;
     }
 
     status_t rt_context_t::depth_test(const point3d_t *sp)
@@ -1531,53 +1651,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t rt_context_t::cull_view()
-    {
-        vector3d_t pl[4]; // Split plane
-        status_t res;
 
-        // Mark all edges to be split
-        RT_FOREACH(rtm_edge_t, e, edge)
-            e->itag        |= RT_EF_APPLY;
-        RT_FOREACH_END
-
-        dsp::calc_rev_oriented_plane_p3(&pl[0], &view.s, &view.p[0], &view.p[1], &view.p[2]);
-        dsp::calc_oriented_plane_p3(&pl[1], &view.p[2], &view.s, &view.p[0], &view.p[1]);
-        dsp::calc_oriented_plane_p3(&pl[2], &view.p[0], &view.s, &view.p[1], &view.p[2]);
-        dsp::calc_oriented_plane_p3(&pl[3], &view.p[1], &view.s, &view.p[2], &view.p[0]);
-
-        RT_TRACE_BREAK(debug,
-            lsp_trace("Culling space with planes (%d triangles)", int(triangle.size()));
-
-            for (size_t j=0, n=triangle.size(); j<n; ++j)
-               trace.add_triangle_1c(triangle.get(j), &C_DARKGREEN);
-
-            trace.add_plane_3pn1c(&view.p[0], &view.p[1], &view.p[2], &pl[0], &C_YELLOW);
-            trace.add_plane_3pn1c(&view.s, &view.p[0], &view.p[1], &pl[1], &C_RED);
-            trace.add_plane_3pn1c(&view.s, &view.p[1], &view.p[2], &pl[2], &C_GREEN);
-            trace.add_plane_3pn1c(&view.s, &view.p[2], &view.p[0], &pl[3], &C_BLUE);
-        )
-
-        for (size_t pi=0; pi<4; ++pi)
-        {
-            res = cutoff(&pl[pi]);
-            if (res != STATUS_OK)
-                return res;
-
-            // Check that there is data for processing and take it for next iteration
-            if (triangle.size() <= 0)
-                break;
-        }
-
-        RT_TRACE_BREAK(debug,
-            lsp_trace("Data after culling (%d triangles)", int(triangle.size()));
-            trace.add_view_1c(&view, &C_MAGENTA);
-            for (size_t j=0,n=triangle.size(); j<n; ++j)
-                trace.add_triangle_3c(triangle.get(j), &C_CYAN, &C_MAGENTA, &C_YELLOW);
-        );
-
-        return STATUS_OK;
-    }
 
     status_t rt_context_t::cutoff(const vector3d_t *pl)
     {

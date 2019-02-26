@@ -124,6 +124,12 @@ namespace lsp
             status_t        fetch_objects(rt_mesh_t *src, size_t n, const size_t *ids);
 
             /**
+             * Cull view with the view planes
+             * @return status of operation
+             */
+            status_t        cull_view();
+
+            /**
              * Keep the only triangles below the specified plane
              * @param pl plane equation
              * @return status of operation
@@ -136,6 +142,13 @@ namespace lsp
              * @return status of operation
              */
             status_t        cullback(const vector3d_t *pl);
+
+            /**
+             * Perform context split by plan
+             * @param out output context
+             * @return status of operation
+             */
+            status_t        edge_split(rt_context_t *out);
 
             /**
              * Split context into two separate contexts

@@ -135,6 +135,8 @@ namespace lsp
              */
             bool add_segment(const point3d_t *p1, const point3d_t *p2, const color3d_t *c);
 
+            bool add_segment(const rt_split_t *s, const color3d_t *c);
+
             /**
              * Add triangle to scene
              * @param vi array of 3 elements indicating triangle corners
@@ -175,7 +177,11 @@ namespace lsp
 
             bool add_triangle_1c(const obj_triangle_t *t, const color3d_t *c);
 
+            bool add_triangle_1c(const rt_triangle_t *t, const color3d_t *c);
+
             bool add_triangle_3c(const rtm_triangle_t *t, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2);
+
+            bool add_triangle_3c(const rt_triangle_t *t, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2);
 
             bool add_triangle_1c(const rtm_triangle_t *t, const color3d_t *c);
 

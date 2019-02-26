@@ -101,6 +101,17 @@ namespace lsp
         return vSegments.append(&xs);
     }
 
+    bool View3D::add_segment(const rt_split_t *s, const color3d_t *c)
+    {
+        v_segment3d_t xs;
+        xs.p[0]     = s->p[0];
+        xs.p[1]     = s->p[1];
+        xs.c[0]     = *c;
+        xs.c[1]     = *c;
+
+        return vSegments.append(&xs);
+    }
+
     bool View3D::add_triangle(const v_vertex3d_t *vi)
     {
         v_vertex3d_t *v = vVertexes.append_n(3);
@@ -262,6 +273,30 @@ namespace lsp
         return true;
     }
 
+    bool View3D::add_triangle_1c(const rt_triangle_t *t, const color3d_t *c)
+    {
+        v_vertex3d_t *v = vVertexes.append_n(3);
+        if (v == NULL)
+            return false;
+
+        v[0].p          = t->v[0];
+        v[0].n          = t->n;
+        v[0].n.dw       = 0.0f;
+        v[0].c          = *c;
+
+        v[1].p          = t->v[1];
+        v[1].n          = t->n;
+        v[1].n.dw       = 0.0f;
+        v[1].c          = *c;
+
+        v[2].p          = t->v[2];
+        v[2].n          = t->n;
+        v[2].n.dw       = 0.0f;
+        v[2].c          = *c;
+
+        return true;
+    }
+
     bool View3D::add_triangle_3c(const rtm_triangle_t *t, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2)
     {
         v_vertex3d_t *v = vVertexes.append_n(3);
@@ -278,6 +313,30 @@ namespace lsp
 
         v[2].p          = *(t->v[2]);
         v[2].n          = t->n;
+        v[2].c          = *c2;
+
+        return true;
+    }
+
+    bool View3D::add_triangle_3c(const rt_triangle_t *t, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2)
+    {
+        v_vertex3d_t *v = vVertexes.append_n(3);
+        if (v == NULL)
+            return false;
+
+        v[0].p          = t->v[0];
+        v[0].n          = t->n;
+        v[0].n.dw       = 0.0f;
+        v[0].c          = *c0;
+
+        v[1].p          = t->v[1];
+        v[1].n          = t->n;
+        v[1].n.dw       = 0.0f;
+        v[1].c          = *c1;
+
+        v[2].p          = t->v[2];
+        v[2].n          = t->n;
+        v[2].n.dw       = 0.0f;
         v[2].c          = *c2;
 
         return true;
