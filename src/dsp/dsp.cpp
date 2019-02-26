@@ -407,6 +407,7 @@ namespace dsp
     float   (* calc_distance_v1)(const vector3d_t *v) = NULL;
     float   (* calc_sqr_distance_pv)(const point3d_t *pv) = NULL;
     void    (* calc_split_point_p2v1)(point3d_t *ip, const point3d_t *l0, const point3d_t *l1, const vector3d_t *pl) = NULL;
+    void    (* calc_split_point_pvv1)(point3d_t *ip, const point3d_t *lv, const vector3d_t *pl) = NULL;
 
     float   (* projection_length_p2)(const point3d_t *p0, const point3d_t *p1, const point3d_t *pp) = NULL;
     float   (* projection_length_v2)(const vector3d_t *v, const vector3d_t *pv) = NULL;

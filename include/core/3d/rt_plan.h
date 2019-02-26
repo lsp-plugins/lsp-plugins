@@ -13,6 +13,9 @@
 
 namespace lsp
 {
+    /**
+     * This is a space cutting plan for the raytracing algorithm
+     */
     typedef struct rt_plan_t
     {
         public:
@@ -22,23 +25,36 @@ namespace lsp
             explicit rt_plan_t();
             ~rt_plan_t();
 
-        protected:
-            status_t    perform_split(const vector3d_t *pl);
-
         public:
+            /**
+             * Clear plan: clear underlying structures
+             */
+            inline void     clear() { items.clear(); };
+
+            /**
+             * Flush plan: clear underlying structures and release memory
+             */
+            inline void     flush() { items.flush(); };
+
+            /**
+             * Check that the cutting plan is empty
+             * @return true if the cutting plan is empty
+             */
+            inline bool     is_empty() const { return items.size() == 0; }
+
             /**
              * Split raytrace plan and keep the only edges that are below the cutting plane
              * @param pl cutting plane
              * @return status of operation
              */
-            status_t    split_out(const vector3d_t *pl);
+            status_t        split_out(const vector3d_t *pl);
 
             /**
              * Split raytrace plan and keep the only edges that are above the cutting plane
              * @param pl cutting plane
              * @return status of operation
              */
-            status_t    split_in(const vector3d_t *pl);
+            status_t        split_in(const vector3d_t *pl);
 
             /**
              * Split raytrace plan and keep the only edges that are below the cutting plane,
@@ -47,23 +63,21 @@ namespace lsp
              * @param pl cutting plane
              * @return status of operation
              */
-            status_t    split(rt_plan_t *out, const vector3d_t *pl);
+            status_t        split(rt_plan_t *out, const vector3d_t *pl);
 
             /**
              * Add triangle to the plan
              * @param pv three triangle points
+             * @param sp the equation of split plane provided by triangle
              * @return status of operation
              */
-            status_t    add_triangle(const point3d_t *pv);
+            status_t        add_triangle(const point3d_t *pv, const vector3d_t *sp);
 
             /**
-             * Add edge to the plan
-             * @param pv array of two edge points
-             * @return status of operation
+             * Swap contents with another plan
+             * @param dst target plan to perform swap
              */
-            status_t    add_edge(const point3d_t *pv);
-
-            void        swap(rt_plan_t *dst);
+            void            swap(rt_plan_t *dst);
     } rt_plan_t;
 }
 

@@ -33,10 +33,86 @@ namespace lsp
         items.flush();
     }
 
-    status_t rt_plan_t::perform_split(const vector3d_t *pl)
+    status_t rt_plan_t::split_out(const vector3d_t *pl)
     {
+        rt_plan_t tmp;
+        float k[2];
+
+        RT_FOREACH(rt_split_t, s, items)
+            if (s->flags & SF_REMOVE) // Do not analyze the edge, it will be automatically removed
+                continue;
+
+            k[0] = s->p[0].x * pl->dx + s->p[0].y * pl->dy + s->p[0].z*pl->dz + pl->dw;
+            k[1] = s->p[0].x * pl->dx + s->p[0].y * pl->dy + s->p[0].z*pl->dz + pl->dw;
+
+            if (k[0] <= -DSP_3D_TOLERANCE) // p[0] is under the plane
+            {
+                if (k[1] >= DSP_3D_TOLERANCE) // p[1] is over the plane, cut p[1]
+                    dsp::calc_split_point_pvv1(&s->p[1], s->p, pl);
+                if (!tmp.items.alloc(s))
+                    return STATUS_NO_MEM;
+            }
+            else if (k[0] >= DSP_3D_TOLERANCE) // p[0] is over the plane
+            {
+                if (k[1] <= DSP_3D_TOLERANCE) // p[1] is under the plane, cut p[0]
+                    dsp::calc_split_point_pvv1(&s->p[0], s->p, pl);
+                if (!tmp.items.alloc(s))
+                    return STATUS_NO_MEM;
+            }
+            else // consider p[0] lays on the plane
+            {
+                if ((k[1] > -DSP_3D_TOLERANCE) && (k[1] < DSP_3D_TOLERANCE)) // p[1] also lies on the plane?
+                    s->flags   |= SF_APPLIED;
+            }
+        RT_FOREACH_END
+
+        tmp.swap(this);
+        return STATUS_OK;
+    }
+
+    status_t rt_plan_t::split_in(const vector3d_t *pl)
+    {
+        rt_plan_t tmp;
+        float k[2];
+
+        RT_FOREACH(rt_split_t, s, items)
+            if (s->flags & SF_REMOVE) // Do not analyze the edge, it will be automatically removed
+                continue;
+
+            k[0] = s->p[0].x * pl->dx + s->p[0].y * pl->dy + s->p[0].z*pl->dz + pl->dw;
+            k[1] = s->p[0].x * pl->dx + s->p[0].y * pl->dy + s->p[0].z*pl->dz + pl->dw;
+
+            if (k[0] <= -DSP_3D_TOLERANCE) // p[0] is under the plane
+            {
+                if (k[1] >= DSP_3D_TOLERANCE) // p[1] is over the plane, cut p[0]
+                    dsp::calc_split_point_pvv1(&s->p[0], s->p, pl);
+                if (!tmp.items.alloc(s))
+                    return STATUS_NO_MEM;
+            }
+            else if (k[0] >= DSP_3D_TOLERANCE) // p[0] is over the plane
+            {
+                if (k[1] <= DSP_3D_TOLERANCE) // p[1] is under the plane, cut p[1]
+                    dsp::calc_split_point_pvv1(&s->p[1], s->p, pl);
+                if (!tmp.items.alloc(s))
+                    return STATUS_NO_MEM;
+            }
+            else // consider p[0] lays on the plane
+            {
+                if ((k[1] > -DSP_3D_TOLERANCE) && (k[1] < DSP_3D_TOLERANCE)) // p[1] also lies on the plane?
+                    s->flags   |= SF_APPLIED;
+            }
+        RT_FOREACH_END
+
+        tmp.swap(this);
+        return STATUS_OK;
+    }
+
+    status_t rt_plan_t::split(rt_plan_t *out, const vector3d_t *pl)
+    {
+        rt_plan_t xin, xout;
+
         point3d_t sp;
-        rt_split_t *sx;
+        rt_split_t *si, *so;
         float k[2];
 
         RT_FOREACH(rt_split_t, s, items)
@@ -45,119 +121,92 @@ namespace lsp
 
             if (k[0] <= -DSP_3D_TOLERANCE) // p[0] is under the plane
             {
-                if (k[1] >= DSP_3D_TOLERANCE) // p[1] is over the plane
+                if (k[1] >= DSP_3D_TOLERANCE) // p[1] is over the plane, perform split
                 {
-                    sx          = items.alloc();
-                    if (sx == NULL)
+                    si          = xin.items.alloc();
+                    so          = xout.items.alloc();
+                    if ((!si) || (!so))
                         return STATUS_NO_MEM;
 
                     dsp::calc_split_point_p2v1(&sp, &s->p[0], &s->p[1], pl);
 
-                    sx->p[0]    = sp;
-                    sx->p[1]    = s->p[1];
-                    sx->itag    = 2;
-                    s->p[1]     = sp;
-                    s->itag     = 0;
+                    si->p[0]    = s->p[0];
+                    si->p[1]    = sp;
+                    si->flags   = s->flags;
+
+                    so->p[0]    = sp;
+                    so->p[1]    = s->p[1];
+                    so->flags   = s->flags;
                 }
-                else
-                    s->itag     = 2; // Edge is under the plane
+                else // Edge is under the plane, just copy to xin
+                {
+                    if (!xin.items.alloc(s))
+                        return STATUS_NO_MEM;
+                }
             }
             else if (k[0] >= DSP_3D_TOLERANCE) // p[0] is over the plane
             {
-                if (k[1] <= DSP_3D_TOLERANCE) // p[1] is under the plane
+                if (k[1] <= DSP_3D_TOLERANCE) // p[1] is under the plane, perform split
                 {
-                    sx          = items.alloc();
-                    if (sx == NULL)
+                    si          = xin.items.alloc();
+                    so          = xout.items.alloc();
+                    if ((!si) || (!so))
                         return STATUS_NO_MEM;
 
                     dsp::calc_split_point_p2v1(&sp, &s->p[0], &s->p[1], pl);
 
-                    sx->p[0]    = sp;
-                    sx->p[1]    = s->p[1];
-                    sx->itag    = 0;
-                    s->p[1]     = sp;
-                    s->itag     = 2;
+                    si->p[0]    = sp;
+                    si->p[1]    = s->p[1];
+                    si->flags   = s->flags;
+
+                    so->p[0]    = s->p[0];
+                    so->p[1]    = sp;
+                    so->flags   = s->flags;
                 }
-                else
-                    s->itag     = 2; // Edge is under the plane
+                else // Edge is over the plane, just copy to xout
+                {
+                    if (!xout.items.alloc(s))
+                        return STATUS_NO_MEM;
+                }
             }
             else // consider p[0] lays on the plane
             {
-                if (k[1] <= -DSP_3D_TOLERANCE)
-                    s->itag     = 2;
-                else if (k[1] >= DSP_3D_TOLERANCE)
-                    s->itag     = 0;
-                else
-                    s->itag     = 1;
+                if (k[1] <= -DSP_3D_TOLERANCE) // p[1] is under the plane
+                {
+                    if (!xin.items.alloc(s))
+                        return STATUS_NO_MEM;
+                }
+                else if (k[1] >= DSP_3D_TOLERANCE) // p[1] is over the plane
+                {
+                    if (!xout.items.alloc(s))
+                        return STATUS_NO_MEM;
+                }
+                else if (s->flags & SF_CULLBACK) // Edge lays on the plane, keep it only if has a SF_CULLBACK flag
+                {
+                    si          = xin.items.alloc();
+                    so          = xout.items.alloc();
+                    if ((!si) || (!so))
+                        return STATUS_NO_MEM;
+
+                    si->p[0]    = s->p[0];
+                    si->p[1]    = s->p[1];
+                    si->flags   = s->flags | SF_APPLIED;
+
+                    so->p[0]    = s->p[0];
+                    so->p[1]    = s->p[1];
+                    so->flags   = s->flags | SF_APPLIED;
+                }
             }
         RT_FOREACH_END
 
-        return STATUS_OK;
-    }
-
-    status_t rt_plan_t::split_out(const vector3d_t *pl)
-    {
-        status_t res = perform_split(pl);
-        if (res != STATUS_OK)
-            return res;
-
-        rt_plan_t tmp;
-        RT_FOREACH(rt_split_t, s, items)
-            if (s->itag != 2)
-                continue;
-            if (tmp.items.alloc(s) == NULL)
-                return STATUS_NO_MEM;
-        RT_FOREACH_END;
-
-        tmp.swap(this);
-        return STATUS_OK;
-    }
-
-    status_t rt_plan_t::split_in(const vector3d_t *pl)
-    {
-        status_t res = perform_split(pl);
-        if (res != STATUS_OK)
-            return res;
-
-        rt_plan_t tmp;
-        RT_FOREACH(rt_split_t, s, items)
-            if (s->itag != 0)
-                continue;
-            if (tmp.items.alloc(s) == NULL)
-                return STATUS_NO_MEM;
-        RT_FOREACH_END;
-
-        tmp.swap(this);
-        return STATUS_OK;
-    }
-
-    status_t rt_plan_t::split(rt_plan_t *out, const vector3d_t *pl)
-    {
-        status_t res = perform_split(pl);
-        if (res != STATUS_OK)
-            return res;
-
-        rt_plan_t xin, xout;
-        RT_FOREACH(rt_split_t, s, items)
-            if (s->itag == 2)
-            {
-                if (xin.items.alloc(s) == NULL)
-                    return STATUS_NO_MEM;
-            }
-            else if (s->itag == 0)
-            {
-                if (xout.items.alloc(s) == NULL)
-                    return STATUS_NO_MEM;
-            }
-        RT_FOREACH_END;
-
+        // Swap contents
         xin.swap(this);
         xout.swap(out);
 
         return STATUS_OK;
     }
 
-    status_t rt_plan_t::add_triangle(const point3d_t *pv)
+    status_t rt_plan_t::add_triangle(const point3d_t *pv, const vector3d_t *sp)
     {
         rt_split_t *asp[3];
         if (items.alloc_n(asp, 3) != 3)
@@ -165,28 +214,18 @@ namespace lsp
 
         asp[0]->p[0]    = pv[0];
         asp[0]->p[1]    = pv[1];
-        asp[0]->itag    = 0;
+        asp[0]->sp      = *sp;
+        asp[0]->flags   = 0;
 
         asp[1]->p[0]    = pv[1];
         asp[1]->p[1]    = pv[2];
-        asp[1]->itag    = 0;
+        asp[1]->sp      = *sp;
+        asp[1]->flags   = 0;
 
         asp[2]->p[0]    = pv[2];
         asp[2]->p[1]    = pv[0];
-        asp[2]->itag    = 0;
-
-        return STATUS_OK;
-    }
-
-    status_t rt_plan_t::add_edge(const point3d_t *pv)
-    {
-        rt_split_t *asp = items.alloc();
-        if (asp == NULL)
-            return STATUS_NO_MEM;
-
-        asp->p[0]       = pv[0];
-        asp->p[1]       = pv[1];
-        asp->itag       = 0;
+        asp[2]->sp      = *sp;
+        asp[2]->flags   = SF_CULLBACK;      // After split of this edge, we need to perform a cull-back
 
         return STATUS_OK;
     }

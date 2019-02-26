@@ -135,10 +135,18 @@ namespace lsp
     typedef status_t (*rt_progress_t)(float progress, void *data);
 
 #pragma pack(push, 1)
+    enum rt_split_flags_t
+    {
+        SF_CULLBACK         = 1 << 0,   // Need to perform cullback after split
+        SF_APPLIED          = 1 << 1,   // Already has been applied
+        SF_REMOVE           = 1 << 2,   // Remove the edge from the plan
+    };
+
     typedef struct rt_split_t
     {
         point3d_t       p[2];           // Split points
-        ssize_t         itag;           // Tag
+        vector3d_t      sp;             // The split plane that idicates cutting triangle
+        size_t          flags;          // Splitting flags
         __IF_64(uint64_t    __pad;)     // Alignment to be sizeof() multiple of 16
         __IF_32(uint32_t    __pad[3];)  // Alignment to be sizeof() multiple of 16
     } rt_split_t;

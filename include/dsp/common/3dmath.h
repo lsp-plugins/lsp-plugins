@@ -1012,13 +1012,23 @@ namespace dsp
     extern float (* calc_sqr_distance_pv)(const point3d_t *pv);
 
     /**
-     * Compute intersection point of line and plane
+     * Compute intersection point of line and plane,
+     * the method is safe from providing the same pointer of ip to l0 and/or l1
      * @param ip target point to store coordinates
      * @param l0 line point 0
      * @param l1 line point 1
      * @param pl vector containing plane equation
      */
     extern void  (* calc_split_point_p2v1)(point3d_t *ip, const point3d_t *l0, const point3d_t *l1, const vector3d_t *pl);
+
+    /**
+     * Compute intersection point of line and plane,
+     * the method is safe from providing the same pointer of ip to l0 and/or l1
+     * @param ip target point to store coordinates
+     * @param lv line points (2 elements)
+     * @param pl vector containing plane equation
+     */
+    extern void  (* calc_split_point_pvv1)(point3d_t *ip, const point3d_t *lv, const vector3d_t *pl);
 
     /**
      * Split raw triangle with plane, generates output set of triangles into out (triangles above split plane)
