@@ -229,10 +229,5 @@ namespace lsp
 
         return STATUS_OK;
     }
-
-    void rt_plan_t::swap(rt_plan_t *dst)
-    {
-        items.swap(&dst->items);
-    }
 }
 

@@ -105,6 +105,7 @@ namespace lsp
     struct rt_split_t;
     struct rt_material_t;
     struct rt_view_t;
+    struct rt_triangle_t;
 
     struct rtm_vertex_t;
     struct rtm_edge_t;
@@ -134,12 +135,21 @@ namespace lsp
 #pragma pack(push, 1)
     typedef struct rt_split_t
     {
-        point3d_t       p[2];           // Split points
-        vector3d_t      sp;             // The split plane that idicates cutting triangle
-        size_t          flags;          // Splitting flags
+        point3d_t           p[2];       // Split points
+        vector3d_t          sp;         // The split plane that idicates cutting triangle
+        size_t              flags;      // Splitting flags
         __IF_64(uint64_t    __pad;)     // Alignment to be sizeof() multiple of 16
         __IF_32(uint32_t    __pad[3];)  // Alignment to be sizeof() multiple of 16
     } rt_split_t;
+
+    typedef struct rt_triangle_t
+    {
+        point3d_t           p[3];       // Triangle points
+        vector3d_t          n;          // Normal
+        rt_material_t      *m;          // Material
+        __IF_64(uint64_t    __pad;)     // Alignment to be sizeof() multiple of 16
+        __IF_32(uint32_t    __pad[3];)  // Alignment to be sizeof() multiple of 16
+    } rt_triangle_t;
 
     typedef struct rtm_vertex_t: public point3d_t
     {

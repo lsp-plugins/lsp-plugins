@@ -43,6 +43,12 @@ namespace lsp
             inline bool     is_empty() const { return items.size() == 0; }
 
             /**
+             * Swap contents with another plan
+             * @param dst target plan to perform swap
+             */
+            inline void     swap(rt_plan_t *dst) { items.swap(&dst->items);  }
+
+            /**
              * Split raytrace plan and keep the only edges that are below the cutting plane
              * @param pl cutting plane
              * @return status of operation
@@ -73,11 +79,6 @@ namespace lsp
              */
             status_t        add_triangle(const point3d_t *pv, const vector3d_t *sp);
 
-            /**
-             * Swap contents with another plan
-             * @param dst target plan to perform swap
-             */
-            void            swap(rt_plan_t *dst);
     } rt_plan_t;
 }
 
