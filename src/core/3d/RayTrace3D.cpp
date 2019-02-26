@@ -276,7 +276,6 @@ namespace lsp
         RT_TRACE(pDebug,
             if (res == STATUS_BREAKPOINT)
             {
-                pDebug->matched.swap(&ctx->matched);
                 pDebug->ignored.swap(&ctx->ignored);
                 pDebug->trace.swap(&ctx->trace);
             }
@@ -319,7 +318,7 @@ namespace lsp
         );
 
         // Prepare root context
-        res         = generate_root_context();
+        res         = generate_root_mesh();
         if (res != STATUS_OK)
             return res;
         else if (bCancelled)
@@ -733,16 +732,13 @@ namespace lsp
         return (res) ? STATUS_OK : STATUS_SKIP;
     }
 
-    status_t RayTrace3D::generate_root_context()
+    status_t RayTrace3D::generate_root_mesh()
     {
         status_t res;
         size_t obj_id = 0;
 
         // Clear contents of the root context
         sRoot.clear();
-        RT_TRACE(pDebug, sRoot.set_debug_context(pDebug); )
-
-//        float max_volume    = 0.0f;
 
         // Add scene objects
         for (size_t i=0, n=pScene->num_objects(); i<n; ++i, ++obj_id)
@@ -920,8 +916,8 @@ namespace lsp
         RT_TRACE_BREAK(pDebug,
             lsp_trace("Fetched %d objects", int(n_objs));
             ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
-            for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-                ctx->trace.add_triangle_3c(ctx->triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+//            for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
+//                ctx->trace.add_triangle_3c(ctx->triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
         )
 
         // Update state
@@ -932,332 +928,339 @@ namespace lsp
     status_t RayTrace3D::cull_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
     {
         ++sStats.calls_cull;
-        status_t res = ctx->cull_view();
-        if (res != STATUS_OK)
-            return res;
+        return STATUS_NOT_IMPLEMENTED; // TODO
 
-        // Change state and submit to queue
-        if (ctx->triangle.size() <= 1)
-        {
-            if (ctx->triangle.size() == 0)
-            {
-                delete ctx;
-                return STATUS_OK;
-            }
-            ctx->state      = S_REFLECT;
-        }
-        else
-        {
-            res     = ctx->sort_edges();
-            if (res != STATUS_OK)
-                return res;
-            ctx->state      = S_SPLIT;
-        }
-
-        return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+//        status_t res = ctx->cull_view();
+//        if (res != STATUS_OK)
+//            return res;
+//
+//        // Change state and submit to queue
+//        if (ctx->triangle.size() <= 1)
+//        {
+//            if (ctx->triangle.size() == 0)
+//            {
+//                delete ctx;
+//                return STATUS_OK;
+//            }
+//            ctx->state      = S_REFLECT;
+//        }
+//        else
+//        {
+//            res     = ctx->sort_edges();
+//            if (res != STATUS_OK)
+//                return res;
+//            ctx->state      = S_SPLIT;
+//        }
+//
+//        return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
     status_t RayTrace3D::split_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
     {
         ++sStats.calls_split;
-
-        rt_context_t out;
-        RT_TRACE(pDebug, out.set_debug_context(pDebug); );
-
-        // Perform binary split
-        status_t res = ctx->edge_split(&out);
-        if (res == STATUS_NOT_FOUND)
-        {
-            ctx->state      = S_CULL_BACK;
-            return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
-        }
-        else if (res != STATUS_OK)
-            return res;
-
-        // Analyze state of current and out context
-        if (ctx->triangle.size() > 0)
-        {
-            // Analyze state of 'out' context
-            if (out.triangle.size() > 0)
-            {
-                // Allocate additional context and add to task list
-                rt_context_t *nctx = new rt_context_t(&ctx->view, (out.triangle.size() > 1) ? S_SPLIT : S_REFLECT);
-                if (nctx == NULL)
-                    return STATUS_NO_MEM;
-                else if (!tasks->push(nctx))
-                {
-                    delete nctx;
-                    return STATUS_NO_MEM;
-                }
-
-                RT_TRACE(pDebug,
-                    nctx->set_debug_context(pDebug);
-
-                    nctx->ignored.add_all(&ctx->ignored);
-                    nctx->matched.add_all(&ctx->matched);
-                    nctx->trace.add_all(&ctx->trace);
-
-                    for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-                        nctx->ignore(ctx->triangle.get(i));
-                    for (size_t i=0,n=out.triangle.size(); i<n; ++i)
-                        ctx->ignore(out.triangle.get(i));
-                );
-
-                nctx->swap(&out);
-            }
-
-            return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
-        }
-        else if (out.triangle.size() > 0)
-        {
-            ctx->swap(&out);
-            ctx->state  = (ctx->triangle.size() > 1) ? S_SPLIT : S_REFLECT;
-
-            return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
-        }
-
-        delete ctx;
-        return STATUS_OK;
+        return STATUS_NOT_IMPLEMENTED;
+        // TODO
+//
+//        rt_context_t out;
+//        RT_TRACE(pDebug, out.set_debug_context(pDebug); );
+//
+//        // Perform binary split
+//        status_t res = ctx->edge_split(&out);
+//        if (res == STATUS_NOT_FOUND)
+//        {
+//            ctx->state      = S_CULL_BACK;
+//            return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+//        }
+//        else if (res != STATUS_OK)
+//            return res;
+//
+//        // Analyze state of current and out context
+//        if (ctx->triangle.size() > 0)
+//        {
+//            // Analyze state of 'out' context
+//            if (out.triangle.size() > 0)
+//            {
+//                // Allocate additional context and add to task list
+//                rt_context_t *nctx = new rt_context_t(&ctx->view, (out.triangle.size() > 1) ? S_SPLIT : S_REFLECT);
+//                if (nctx == NULL)
+//                    return STATUS_NO_MEM;
+//                else if (!tasks->push(nctx))
+//                {
+//                    delete nctx;
+//                    return STATUS_NO_MEM;
+//                }
+//
+//                RT_TRACE(pDebug,
+//                    nctx->set_debug_context(pDebug);
+//
+//                    nctx->ignored.add_all(&ctx->ignored);
+//                    nctx->matched.add_all(&ctx->matched);
+//                    nctx->trace.add_all(&ctx->trace);
+//
+//                    for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
+//                        nctx->ignore(ctx->triangle.get(i));
+//                    for (size_t i=0,n=out.triangle.size(); i<n; ++i)
+//                        ctx->ignore(out.triangle.get(i));
+//                );
+//
+//                nctx->swap(&out);
+//            }
+//
+//            return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+//        }
+//        else if (out.triangle.size() > 0)
+//        {
+//            ctx->swap(&out);
+//            ctx->state  = (ctx->triangle.size() > 1) ? S_SPLIT : S_REFLECT;
+//
+//            return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+//        }
+//
+//        delete ctx;
+//        return STATUS_OK;
     }
 
     status_t RayTrace3D::cullback_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
     {
         ++sStats.calls_cullback;
+        return STATUS_NOT_IMPLEMENTED;
 
-        // Perform cullback
-        status_t res = ctx->depth_cullback();
-        if (res != STATUS_OK)
-            return res;
-        if (ctx->triangle.size() <= 0)
-        {
-            delete ctx;
-            return STATUS_OK;
-        }
-        ctx->state  = S_REFLECT;
-
-        return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+// TODO
+//        // Perform cullback
+//        status_t res = ctx->depth_cullback();
+//        if (res != STATUS_OK)
+//            return res;
+//        if (ctx->triangle.size() <= 0)
+//        {
+//            delete ctx;
+//            return STATUS_OK;
+//        }
+//        ctx->state  = S_REFLECT;
+//
+//        return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
     status_t RayTrace3D::reflect_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
     {
-        rt_context_t *rc;
-        rt_view_t sv, v, cv, rv, tv;    // source view, view, captured view, reflected view, transparent trace
-        vector3d_t vpl;                 // trace plane, split plane
-        point3d_t p[3];                 // Projection points
-        float d[3], t[3];               // distance
-        float a[3], A, kd;              // particular area, area, dispersion coefficient
-
         ++sStats.calls_reflect;
-
-        sv      = ctx->view;
-        A       = dsp::calc_area_pv(sv.p);
-        if (A <= fTolerance)
-        {
-            delete ctx;
-            return STATUS_OK;
-        }
-        float revA = 1.0f / A;
-
-        dsp::calc_plane_pv(&vpl, ctx->view.p);
-        status_t res    = STATUS_OK;
-
-        for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
-        {
-            rtm_triangle_t *ct = ctx->triangle.get(i);
-//            ctx->match(ctx->triangle.get(i));
-
-            // get material
-            rt_material_t *m    = ct->m;
-            if (m == NULL)
-                continue;
-
-            RT_TRACE_BREAK(pDebug,
-                lsp_trace("Reflecting triangle");
-                ctx->trace.add_triangle_1c(ct, &C_YELLOW);
-                ctx->trace.add_triangle_pvnc1(sv.p, &vpl, &C_MAGENTA);
-                ctx->trace.add_plane_3pn1c(ct->v[0], ct->v[1], ct->v[2], &ct->n, &C_MAGENTA);
-                ctx->trace.add_plane_3pn1c(&sv.p[0], &sv.p[1], &sv.p[2], &ct->n, &C_YELLOW);
-                ctx->trace.add_view_1c(&sv, &C_MAGENTA);
-            );
-
-            // Estimate the start time for each trace point using barycentric coordinates
-            for (size_t j=0; j<3; ++j)
-            {
-                dsp::calc_split_point_p2v1(&p[j], &sv.s, ct->v[j], &vpl);     // Project triangle point to trace point
-                d[j]        = dsp::calc_distance_p2(&p[j], ct->v[j]);         // Compute distance between projected point and triangle point
-
-                a[0]        = dsp::calc_area_p3(&p[j], &sv.p[1], &sv.p[2]);   // Compute area 0
-                a[1]        = dsp::calc_area_p3(&p[j], &sv.p[0], &sv.p[2]);   // Compute area 1
-                a[2]        = dsp::calc_area_p3(&p[j], &sv.p[0], &sv.p[1]);   // Compute area 2
-                t[j]        = (sv.time[0] * a[0] + sv.time[1] * a[1] + sv.time[2] * a[2]) * revA; // Compute projected point's time
-                v.time[j]   = t[j] + (d[j] / sv.speed);
-            }
-
-            // Compute area of projected triangle
-            float area  = dsp::calc_area_pv(p);
-            if (area <= fTolerance)
-                continue;
-
-            // Determine the direction from which came the wave front
-            v.oid       = ct->oid;
-            v.face      = ct->face;
-            v.s         = sv.s;
-            v.amplitude = sv.amplitude * sqrtf(area * revA);
-            v.speed     = sv.speed;
-            v.rnum      = sv.rnum;
-            v.p[0]      = *(ct->v[0]);
-            v.p[1]      = *(ct->v[1]);
-            v.p[2]      = *(ct->v[2]);
-
-            float distance  = sv.s.x * ct->n.dx + sv.s.y * ct->n.dy + sv.s.z * ct->n.dz + ct->n.dw;
-
-            RT_TRACE_BREAK(pDebug,
-                lsp_trace("Projection points distance: {%f, %f, %f}", d[0], d[1], d[2]);
-                lsp_trace("View points time: {%f, %f, %f}", sv.time[0], sv.time[1], sv.time[2]);
-                lsp_trace("Projection points time: {%f, %f, %f}", t[0], t[1], t[2]);
-                lsp_trace("Target points time: {%f, %f, %f}", v.time[0], v.time[1], v.time[2]);
-                lsp_trace("Amplitude: %e -> %e", sv.amplitude, v.amplitude);
-                lsp_trace("Distance between source point and triangle: %f", distance);
-
-                ctx->trace.add_triangle_1c(ct, &C_YELLOW);
-                ctx->trace.add_plane_3pn1c(ct->v[0], ct->v[1], ct->v[2], &ct->n, &C_GREEN);
-                ctx->trace.add_view_1c(&sv, &C_MAGENTA);
-                ctx->trace.add_segment(&p[0], ct->v[0], &C_RED);
-                ctx->trace.add_segment(&p[1], ct->v[1], &C_GREEN);
-                ctx->trace.add_segment(&p[2], ct->v[2], &C_BLUE);
-            )
-
-            cv          = v;
-            rv          = v;
-            tv          = v;
-
-            if (distance > 0.0f)
-            {
-                cv.amplitude    = v.amplitude * m->absorption[0];
-                v.amplitude    *= (1.0f - m->absorption[0]);
-
-                kd              = (1.0f + 1.0f / m->dispersion[0]) * distance;
-                rv.amplitude    = v.amplitude * (m->transparency[0] - 1.0f); // Sign negated
-                rv.s.x         -= kd * ct->n.dx;
-                rv.s.y         -= kd * ct->n.dy;
-                rv.s.z         -= kd * ct->n.dz;
-                rv.rnum         = v.rnum + 1;       // Increment reflection number
-
-                kd              = (m->permeability/m->dissipation[0] - 1.0f) * distance;
-                tv.amplitude    = v.amplitude * m->transparency[0];
-                tv.speed       *= m->permeability;
-                tv.s.x         += kd * ct->n.dx;
-                tv.s.y         += kd * ct->n.dy;
-                tv.s.z         += kd * ct->n.dz;
-
-                RT_TRACE_BREAK(pDebug,
-                    lsp_trace("Outside->inside reflect_view");
-                    lsp_trace("Amplitude: captured=%e, reflected=%e, refracted=%e", cv.amplitude, rv.amplitude, tv.amplitude);
-                    lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, dispersion=%f, dissipation=%f",
-                            m->absorption[0], m->transparency[0], m->permeability, m->dispersion[0], m->dissipation[0]);
-
-                    ctx->trace.add_view_1c(&sv, &C_RED);
-                    ctx->trace.add_view_1c(&rv, &C_GREEN);
-                    ctx->trace.add_view_1c(&tv, &C_CYAN);
-                )
-            }
-            else
-            {
-                cv.amplitude    = v.amplitude * m->absorption[1];
-                v.amplitude    *= (1.0f - m->absorption[1]);
-
-                kd              = (1.0f + 1.0f / m->dispersion[1]) * distance;
-                rv.amplitude    = v.amplitude * (m->transparency[1] - 1.0f); // Sign negated
-                rv.s.x         -= kd * ct->n.dx;
-                rv.s.y         -= kd * ct->n.dy;
-                rv.s.z         -= kd * ct->n.dz;
-                rv.rnum         = v.rnum + 1;       // Increment reflection number
-
-                kd              = (1.0f/(m->dissipation[1]*m->permeability) - 1.0f) * distance;
-                tv.amplitude    = v.amplitude * m->transparency[1];
-                tv.speed       /= m->permeability;
-                tv.s.x         += kd * ct->n.dx;
-                tv.s.y         += kd * ct->n.dy;
-                tv.s.z         += kd * ct->n.dz;
-
-                RT_TRACE_BREAK(pDebug,
-                    lsp_trace("Inside->outside reflect_view");
-                    lsp_trace("Amplitude: captured=%e, reflected=%e, refracted=%e", cv.amplitude, rv.amplitude, tv.amplitude);
-                    lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, dispersion=%f, dissipation=%f",
-                            m->absorption[1], m->transparency[1], m->permeability, m->dispersion[1], m->dissipation[1]);
-
-                    ctx->trace.add_view_1c(&sv, &C_RED);
-                    ctx->trace.add_view_1c(&rv, &C_GREEN);
-                    ctx->trace.add_view_1c(&tv, &C_CYAN);
-                )
-            }
-
-            // Perform capture
-            ssize_t capture_id = ct->oid - pScene->num_objects();
-            if (capture_id >= 0)
-            {
-                capture_t *cap  = vCaptures.get(capture_id);
-                if (cap == NULL)
-                    res = STATUS_CORRUPTED;
-                else if (cap->bindings.size() > 0)
-                    res = capture(cap, &cv, &ctx->trace);
-                else
-                    res = STATUS_OK;
-
-                if (res != STATUS_OK)
-                    break;
-            }
-
-            // Create reflection context
-            if ((rv.amplitude <= -fEnergyThresh) || (rv.amplitude >= fEnergyThresh))
-            {
-                // Revert the order of triangle because direction has changed to opposite
-                rv.p[1]     = v.p[2];
-                rv.p[2]     = v.p[1];
-
-                rc      = new rt_context_t(&rv, S_SCAN_OBJECTS);
-                if (rc == NULL)
-                {
-                    res = STATUS_NO_MEM;
-                    break;
-                }
-                if (!tasks->add(rc))
-                {
-                    delete rc;
-                    res = STATUS_NO_MEM;
-                    break;
-                }
-
-                RT_TRACE(pDebug,
-                    rc->set_debug_context(pDebug);
-                );
-            }
-
-            // Create refraction context
-            if ((tv.amplitude <= -fEnergyThresh) || (tv.amplitude >= fEnergyThresh))
-            {
-                rc      = new rt_context_t(&tv, S_SCAN_OBJECTS);
-                if (rc == NULL)
-                {
-                    res = STATUS_NO_MEM;
-                    break;
-                }
-                if (!tasks->add(rc))
-                {
-                    delete rc;
-                    res = STATUS_NO_MEM;
-                    break;
-                }
-
-                RT_TRACE(pDebug,
-                    rc->set_debug_context(pDebug);
-                );
-            }
-        }
-
-        if (res == STATUS_OK)
-            delete ctx;
-        return res;
+        return STATUS_NOT_IMPLEMENTED;
+// TODO
+//        rt_context_t *rc;
+//        rt_view_t sv, v, cv, rv, tv;    // source view, view, captured view, reflected view, transparent trace
+//        vector3d_t vpl;                 // trace plane, split plane
+//        point3d_t p[3];                 // Projection points
+//        float d[3], t[3];               // distance
+//        float a[3], A, kd;              // particular area, area, dispersion coefficient
+//
+//        sv      = ctx->view;
+//        A       = dsp::calc_area_pv(sv.p);
+//        if (A <= fTolerance)
+//        {
+//            delete ctx;
+//            return STATUS_OK;
+//        }
+//        float revA = 1.0f / A;
+//
+//        dsp::calc_plane_pv(&vpl, ctx->view.p);
+//        status_t res    = STATUS_OK;
+//
+//        for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
+//        {
+//            rt_triangle_t *ct = ctx->triangle.get(i);
+////            ctx->match(ctx->triangle.get(i));
+//
+//            // get material
+//            rt_material_t *m    = ct->m;
+//            if (m == NULL)
+//                continue;
+//
+//            RT_TRACE_BREAK(pDebug,
+//                lsp_trace("Reflecting triangle");
+//                ctx->trace.add_triangle_1c(ct, &C_YELLOW);
+//                ctx->trace.add_triangle_pvnc1(sv.p, &vpl, &C_MAGENTA);
+//                ctx->trace.add_plane_3pn1c(ct->v[0], ct->v[1], ct->v[2], &ct->n, &C_MAGENTA);
+//                ctx->trace.add_plane_3pn1c(&sv.p[0], &sv.p[1], &sv.p[2], &ct->n, &C_YELLOW);
+//                ctx->trace.add_view_1c(&sv, &C_MAGENTA);
+//            );
+//
+//            // Estimate the start time for each trace point using barycentric coordinates
+//            for (size_t j=0; j<3; ++j)
+//            {
+//                dsp::calc_split_point_p2v1(&p[j], &sv.s, ct->v[j], &vpl);     // Project triangle point to trace point
+//                d[j]        = dsp::calc_distance_p2(&p[j], ct->v[j]);         // Compute distance between projected point and triangle point
+//
+//                a[0]        = dsp::calc_area_p3(&p[j], &sv.p[1], &sv.p[2]);   // Compute area 0
+//                a[1]        = dsp::calc_area_p3(&p[j], &sv.p[0], &sv.p[2]);   // Compute area 1
+//                a[2]        = dsp::calc_area_p3(&p[j], &sv.p[0], &sv.p[1]);   // Compute area 2
+//                t[j]        = (sv.time[0] * a[0] + sv.time[1] * a[1] + sv.time[2] * a[2]) * revA; // Compute projected point's time
+//                v.time[j]   = t[j] + (d[j] / sv.speed);
+//            }
+//
+//            // Compute area of projected triangle
+//            float area  = dsp::calc_area_pv(p);
+//            if (area <= fTolerance)
+//                continue;
+//
+//            // Determine the direction from which came the wave front
+//            v.oid       = ct->oid;
+//            v.face      = ct->face;
+//            v.s         = sv.s;
+//            v.amplitude = sv.amplitude * sqrtf(area * revA);
+//            v.speed     = sv.speed;
+//            v.rnum      = sv.rnum;
+//            v.p[0]      = *(ct->v[0]);
+//            v.p[1]      = *(ct->v[1]);
+//            v.p[2]      = *(ct->v[2]);
+//
+//            float distance  = sv.s.x * ct->n.dx + sv.s.y * ct->n.dy + sv.s.z * ct->n.dz + ct->n.dw;
+//
+//            RT_TRACE_BREAK(pDebug,
+//                lsp_trace("Projection points distance: {%f, %f, %f}", d[0], d[1], d[2]);
+//                lsp_trace("View points time: {%f, %f, %f}", sv.time[0], sv.time[1], sv.time[2]);
+//                lsp_trace("Projection points time: {%f, %f, %f}", t[0], t[1], t[2]);
+//                lsp_trace("Target points time: {%f, %f, %f}", v.time[0], v.time[1], v.time[2]);
+//                lsp_trace("Amplitude: %e -> %e", sv.amplitude, v.amplitude);
+//                lsp_trace("Distance between source point and triangle: %f", distance);
+//
+//                ctx->trace.add_triangle_1c(ct, &C_YELLOW);
+//                ctx->trace.add_plane_3pn1c(ct->v[0], ct->v[1], ct->v[2], &ct->n, &C_GREEN);
+//                ctx->trace.add_view_1c(&sv, &C_MAGENTA);
+//                ctx->trace.add_segment(&p[0], ct->v[0], &C_RED);
+//                ctx->trace.add_segment(&p[1], ct->v[1], &C_GREEN);
+//                ctx->trace.add_segment(&p[2], ct->v[2], &C_BLUE);
+//            )
+//
+//            cv          = v;
+//            rv          = v;
+//            tv          = v;
+//
+//            if (distance > 0.0f)
+//            {
+//                cv.amplitude    = v.amplitude * m->absorption[0];
+//                v.amplitude    *= (1.0f - m->absorption[0]);
+//
+//                kd              = (1.0f + 1.0f / m->dispersion[0]) * distance;
+//                rv.amplitude    = v.amplitude * (m->transparency[0] - 1.0f); // Sign negated
+//                rv.s.x         -= kd * ct->n.dx;
+//                rv.s.y         -= kd * ct->n.dy;
+//                rv.s.z         -= kd * ct->n.dz;
+//                rv.rnum         = v.rnum + 1;       // Increment reflection number
+//
+//                kd              = (m->permeability/m->dissipation[0] - 1.0f) * distance;
+//                tv.amplitude    = v.amplitude * m->transparency[0];
+//                tv.speed       *= m->permeability;
+//                tv.s.x         += kd * ct->n.dx;
+//                tv.s.y         += kd * ct->n.dy;
+//                tv.s.z         += kd * ct->n.dz;
+//
+//                RT_TRACE_BREAK(pDebug,
+//                    lsp_trace("Outside->inside reflect_view");
+//                    lsp_trace("Amplitude: captured=%e, reflected=%e, refracted=%e", cv.amplitude, rv.amplitude, tv.amplitude);
+//                    lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, dispersion=%f, dissipation=%f",
+//                            m->absorption[0], m->transparency[0], m->permeability, m->dispersion[0], m->dissipation[0]);
+//
+//                    ctx->trace.add_view_1c(&sv, &C_RED);
+//                    ctx->trace.add_view_1c(&rv, &C_GREEN);
+//                    ctx->trace.add_view_1c(&tv, &C_CYAN);
+//                )
+//            }
+//            else
+//            {
+//                cv.amplitude    = v.amplitude * m->absorption[1];
+//                v.amplitude    *= (1.0f - m->absorption[1]);
+//
+//                kd              = (1.0f + 1.0f / m->dispersion[1]) * distance;
+//                rv.amplitude    = v.amplitude * (m->transparency[1] - 1.0f); // Sign negated
+//                rv.s.x         -= kd * ct->n.dx;
+//                rv.s.y         -= kd * ct->n.dy;
+//                rv.s.z         -= kd * ct->n.dz;
+//                rv.rnum         = v.rnum + 1;       // Increment reflection number
+//
+//                kd              = (1.0f/(m->dissipation[1]*m->permeability) - 1.0f) * distance;
+//                tv.amplitude    = v.amplitude * m->transparency[1];
+//                tv.speed       /= m->permeability;
+//                tv.s.x         += kd * ct->n.dx;
+//                tv.s.y         += kd * ct->n.dy;
+//                tv.s.z         += kd * ct->n.dz;
+//
+//                RT_TRACE_BREAK(pDebug,
+//                    lsp_trace("Inside->outside reflect_view");
+//                    lsp_trace("Amplitude: captured=%e, reflected=%e, refracted=%e", cv.amplitude, rv.amplitude, tv.amplitude);
+//                    lsp_trace("Material: absorption=%f, transparency=%f, permeability=%f, dispersion=%f, dissipation=%f",
+//                            m->absorption[1], m->transparency[1], m->permeability, m->dispersion[1], m->dissipation[1]);
+//
+//                    ctx->trace.add_view_1c(&sv, &C_RED);
+//                    ctx->trace.add_view_1c(&rv, &C_GREEN);
+//                    ctx->trace.add_view_1c(&tv, &C_CYAN);
+//                )
+//            }
+//
+//            // Perform capture
+//            ssize_t capture_id = ct->oid - pScene->num_objects();
+//            if (capture_id >= 0)
+//            {
+//                capture_t *cap  = vCaptures.get(capture_id);
+//                if (cap == NULL)
+//                    res = STATUS_CORRUPTED;
+//                else if (cap->bindings.size() > 0)
+//                    res = capture(cap, &cv, &ctx->trace);
+//                else
+//                    res = STATUS_OK;
+//
+//                if (res != STATUS_OK)
+//                    break;
+//            }
+//
+//            // Create reflection context
+//            if ((rv.amplitude <= -fEnergyThresh) || (rv.amplitude >= fEnergyThresh))
+//            {
+//                // Revert the order of triangle because direction has changed to opposite
+//                rv.p[1]     = v.p[2];
+//                rv.p[2]     = v.p[1];
+//
+//                rc      = new rt_context_t(&rv, S_SCAN_OBJECTS);
+//                if (rc == NULL)
+//                {
+//                    res = STATUS_NO_MEM;
+//                    break;
+//                }
+//                if (!tasks->add(rc))
+//                {
+//                    delete rc;
+//                    res = STATUS_NO_MEM;
+//                    break;
+//                }
+//
+//                RT_TRACE(pDebug,
+//                    rc->set_debug_context(pDebug);
+//                );
+//            }
+//
+//            // Create refraction context
+//            if ((tv.amplitude <= -fEnergyThresh) || (tv.amplitude >= fEnergyThresh))
+//            {
+//                rc      = new rt_context_t(&tv, S_SCAN_OBJECTS);
+//                if (rc == NULL)
+//                {
+//                    res = STATUS_NO_MEM;
+//                    break;
+//                }
+//                if (!tasks->add(rc))
+//                {
+//                    delete rc;
+//                    res = STATUS_NO_MEM;
+//                    break;
+//                }
+//
+//                RT_TRACE(pDebug,
+//                    rc->set_debug_context(pDebug);
+//                );
+//            }
+//        }
+//
+//        if (res == STATUS_OK)
+//            delete ctx;
+//        return res;
     }
 
     status_t RayTrace3D::capture(capture_t *capture, const rt_view_t *v, View3D *trace)

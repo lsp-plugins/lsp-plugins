@@ -144,7 +144,7 @@ namespace lsp
 
     typedef struct rt_triangle_t
     {
-        point3d_t           p[3];       // Triangle points
+        point3d_t           v[3];       // Triangle points
         vector3d_t          n;          // Normal
         rt_material_t      *m;          // Material
         __IF_64(uint64_t    __pad;)     // Alignment to be sizeof() multiple of 16

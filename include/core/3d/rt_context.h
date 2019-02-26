@@ -12,6 +12,8 @@
 #include <core/3d/Allocator3D.h>
 #include <core/3d/Scene3D.h>
 #include <core/3d/View3D.h>
+#include <core/3d/rt_plan.h>
+#include <core/3d/rt_mesh.h>
 #include <data/cstorage.h>
 
 namespace lsp
@@ -53,14 +55,14 @@ namespace lsp
             rt_view_t                   view;       // Ray tracing point of view
             rt_context_state_t          state;      // Context state
 
-            Allocator3D<rtm_vertex_t>   vertex;     // Collection of vertexes
-            Allocator3D<rtm_edge_t>     edge;       // Collection of edges
-            Allocator3D<rtm_triangle_t> triangle;   // Collection of triangles
+            rt_plan_t                   plan;       // Split plan
+            Allocator3D<rt_triangle_t>  triangle;   // Triangle for raytracint
 
-            rt_debug_t                 *debug;      // Debug context
-            cstorage<v_triangle3d_t>    matched;    // List of matched triangles (for debug)
-            cstorage<v_triangle3d_t>    ignored;    // List of ignored triangles (for debug)
-            View3D                      trace;      // The state of the context
+            IF_RT_TRACE_Y(
+                rt_debug_t                 *debug;      // Debug context
+                cstorage<v_triangle3d_t>    ignored;    // List of ignored triangles (for debug)
+                View3D                      trace;      // The state of the context
+            )
 
         public:
             // Construction/destruction
@@ -70,77 +72,47 @@ namespace lsp
 
             ~rt_context_t();
 
-            void            set_debug_context(rt_debug_t *debug);
-
-        protected:
-            static int      compare_edges(const void *p1, const void *p2);
-            static int      compare_triangles(const void *p1, const void *p2);
-
-            static status_t arrange_triangle(rtm_triangle_t *ct, rtm_edge_t *e);
-//            static bool     unlink_edge(rtm_edge_t *e, rtm_vertex_t *v);
-            static bool     unlink_triangle(rtm_triangle_t *t, rtm_edge_t *e);
-
-//            bool            validate_list(rtm_vertex_t *v);
-            bool            validate_list(rtm_edge_t *e);
-//            static ssize_t  linked_count(rtm_edge_t *e, rtm_vertex_t *v);
-            static ssize_t  linked_count(rtm_triangle_t *t, rtm_edge_t *e);
-
-            status_t        split_edge(rtm_edge_t* e, rtm_vertex_t* sp);
-            status_t        split_triangle(rtm_triangle_t* t, rtm_vertex_t* sp);
-
-            void            cleanup_tag_pointers();
-            status_t        fetch_triangle(rt_context_t *dst, rtm_triangle_t *st);
-            status_t        fetch_triangle_safe(rt_context_t *dst, rtm_triangle_t *st);
-            status_t        fetch_triangles(rt_context_t *dst, ssize_t itag);
-            status_t        vfetch_triangles(rt_context_t *dst, size_t n, const ssize_t *itag);
-            status_t        fetch_triangles_safe(rt_context_t *dst, ssize_t itag);
-            status_t        vfetch_triangles_safe(rt_context_t *dst, size_t n, const ssize_t *itag);
-            void            complete_fetch(rt_context_t *dst);
-
-            void            dump_edge_list(size_t lvl, rtm_edge_t *e);
-            void            dump_triangle_list(size_t lvl, rtm_triangle_t *t);
-
-            status_t        apply_edge_split(rt_context_t *out, rtm_edge_t *ce, const vector3d_t *pl);
+            IF_RT_TRACE_Y(
+                inline void            set_debug_context(rt_debug_t *debug) { this->debug     = debug; }
+            )
 
         public:
-            // Methods
-            void            init_view(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
-            void            init_view(const point3d_t *sp, const point3d_t *pv);
 
             /**
              * Clear context: clear underlying structures
              */
-            void            clear();
+            inline void     clear()
+            {
+                plan.clear();
+                triangle.clear();
+                IF_RT_TRACE_Y(
+                    ignored.clear();
+                    trace.clear_all();
+                )
+            }
 
             /**
              * Flush context: clear underlying structures and release memory
              */
-            void            flush();
+            inline void     flush()
+            {
+                plan.flush();
+                triangle.flush();
+                IF_RT_TRACE_Y(
+                    ignored.flush();
+                    trace.clear_all();
+                )
+            }
 
             /**
              * Swap internal mesh contents with another context
-             * @param src source context to perform swap
+             * @param dst target context to perform swap
              */
-            void            swap(rt_context_t *src);
-
-            /**
-             * Add object to context
-             * @param obj object to add
-             * @param oid unique id to identify the object
-             * @param material material that describes behaviour of reflected rays
-             * @return status of operation
-             */
-            status_t        add_object(Object3D *obj, ssize_t oid, rt_material_t *material);
-
-            /**
-             * Add object to context
-             * @param obj object to add
-             * @param oid unique id to identify the object
-             * @param transform transformation matrix to apply to object
-             * @param material material that describes behaviour of reflected rays
-             * @return status of operation
-             */
-            status_t        add_object(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material);
+            inline void     swap(rt_context_t *dst)
+            {
+                plan.swap(&dst->plan);
+                triangle.swap(&dst->triangle);
+            }
 
             /**
              * Fetch data for all objects identified by specified identifiers
@@ -149,85 +121,44 @@ namespace lsp
              * @param ids pointer to array that contains object identifiers
              * @return status of operation
              */
-            status_t        fetch_objects(rt_context_t *src, size_t n, const size_t *ids);
+            status_t        fetch_objects(rt_mesh_t *src, size_t n, const size_t *ids);
 
             /**
-             * Reorder edges according to the location relatively to point-of-view
-             * @return status of operation
-             */
-            status_t        sort_edges();
-
-            /**
-             * Reorder triangles according to the location relatively to point-of-view
-             * @return status of operation
-             */
-            status_t        sort_triangles();
-
-            /**
-             * Remove conflicts between triangles, does not modify the 'itag' field of
-             * triangle, so it can be used to identify objects of the scene
-             *
-             * @return status of operation
-             */
-            status_t        solve_conflicts();
-
-            /**
-             * Cut-off all triangles above the specified plane
+             * Keep the only triangles below the specified plane
              * @param pl plane equation
              * @return status of operation
              */
-            status_t        cutoff(const vector3d_t *pl);
+            status_t        cut(const vector3d_t *pl);
 
             /**
-             * Cull all triangles that do not match the view
+             * Keep the only triangles below the specified plane or on the plane
+             * @param pl plane equation
              * @return status of operation
              */
-            status_t        cull_view();
+            status_t        cullback(const vector3d_t *pl);
 
             /**
-             * Perform context splitting by the non-cutting edge of the first triangle in the list, keep the inside content
-             * @param dst destination storage
-             * @return status of operation (STATUS_NOT_FOUND if there is no more edge)
-             */
-            status_t        edge_split(rt_context_t *out);
-
-            /** Try to split context with first triangle's edge
-             *
-             * @param out output context containing data outside of triangle
-             * @return status of operation (STATUS_NOT_FOUND if there is no one edge of first triangle that can be processed)
-             */
-            status_t        triangle_split(rt_context_t *out);
-
-            /**
-             * Perform depth-testing cullback of faces
+             * Split context into two separate contexts
              * @return status of operation
              */
-            status_t        depth_cullback();
+            status_t        split(rt_context_t *out, const vector3d_t *pl);
 
             /**
-             * Check consistency of the context: that all stored pointers are valid
-             * @return true if context is in valid state
+             * Perform depth-testing cullback of faces and remove invalid faces
+             * @return status of operation
              */
-            bool            validate();
+            status_t        depth_test();
 
             /**
              * Add triangle to list of ignored
              * @param t triangle to add to list of ignored
              * @return status of operation
              */
-            status_t        ignore(const rtm_triangle_t *t);
+            IF_RT_TRACE_Y(
+                status_t        ignore(const rtm_triangle_t *t);
+                status_t        ignore(const rt_triangle_t *t);
+            )
 
-            /**
-             * Add triangle to list of matched
-             * @param t triangle to add to list of matched
-             * @return status of operation
-             */
-            status_t        match(const rtm_triangle_t *t);
-
-            /**
-             * Dump context
-             */
-            void            dump();
     } rt_context_t;
 
 } /* namespace mtest */

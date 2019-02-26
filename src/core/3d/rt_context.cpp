@@ -25,8 +25,6 @@ namespace lsp
 #define RT_FOREACH_END      } }
 
     rt_context_t::rt_context_t():
-        vertex(1024),
-        edge(1024),
         triangle(1024)
     {
         this->state     = S_SCAN_OBJECTS;
@@ -46,8 +44,6 @@ namespace lsp
     }
     
     rt_context_t::rt_context_t(const rt_view_t *view):
-        vertex(1024),
-        edge(1024),
         triangle(1024)
     {
         this->state     = S_SCAN_OBJECTS;
@@ -56,8 +52,6 @@ namespace lsp
     }
 
     rt_context_t::rt_context_t(const rt_view_t *view, rt_context_state_t state):
-        vertex(1024),
-        edge(1024),
         triangle(1024)
     {
         this->state     = state;
@@ -68,68 +62,531 @@ namespace lsp
     rt_context_t::~rt_context_t()
     {
         debug           = NULL;
-        flush();
+        plan.flush();
+        triangle.flush();
+
+        IF_RT_TRACE_Y(
+            ignored.flush();
+            trace.clear_all();
+        )
     }
 
-    void rt_context_t::set_debug_context(rt_debug_t *debug)
+#if defined(LSP_DEBUG) && defined(LSP_RT_TRACE)
+    status_t rt_context_t::ignore(const rtm_triangle_t *t)
     {
-        this->debug     = debug;
+        v_triangle3d_t vt;
+        vt.p[0]     = *(t->v[0]);
+        vt.p[1]     = *(t->v[1]);
+        vt.p[2]     = *(t->v[2]);
+
+        vt.n[0]     = t->n;
+        vt.n[1]     = t->n;
+        vt.n[2]     = t->n;
+
+        return (ignored.add(&vt)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
-    void rt_context_t::flush()
+    status_t rt_context_t::ignore(const rt_triangle_t *t)
     {
-        vertex.destroy();
-        edge.destroy();
-        triangle.destroy();
-        matched.flush();
-        ignored.flush();
-        trace.clear_all();
-    }
+        v_triangle3d_t vt;
+        vt.p[0]     = t->v[0];
+        vt.p[1]     = t->v[1];
+        vt.p[2]     = t->v[2];
 
-    void rt_context_t::init_view(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+        vt.n[0]     = t->n;
+        vt.n[1]     = t->n;
+        vt.n[2]     = t->n;
+
+        return (ignored.add(&vt)) ? STATUS_OK : STATUS_NO_MEM;
+    }
+#endif
+
+    status_t rt_context_t::fetch_objects(rt_mesh_t *src, size_t n, const size_t *ids)
     {
-        view.s          = *sp;
-        view.p[0]       = *p0;
-        view.p[1]       = *p1;
-        view.p[2]       = *p2;
-        view.face       = -1;
-        view.time[0]    = 0.0f;
-        view.time[1]    = 0.0f;
-        view.time[2]    = 0.0f;
-        view.amplitude  = 1.0f;
-        view.speed      = SOUND_SPEED_M_S;
-        view.rnum       = 0;
+        rt_context_t tmp;
+        rt_split_t *spl;
+        rt_triangle_t *dt;
+        RT_TRACE(debug, tmp.set_debug_context(debug); );
+
+        if (n > 0)
+        {
+            // Cleanup tag pointers
+            RT_FOREACH(rtm_edge_t, e, src->edge)
+                e->itag     = 1;
+            RT_FOREACH_END
+
+            // Match triangles by object identifier
+            RT_FOREACH(rtm_triangle_t, t, src->triangle)
+                // Skip triangles that should be ignored
+                if ((t->oid == view.oid) && (t->face == view.face))
+                {
+                    RT_TRACE(debug, ignore(t); );
+                    continue;
+                }
+
+                // Check that triangle matches specified object
+                for (size_t i=0; i<n; ++i)
+                    if (t->oid == ssize_t(ids[i]))
+                    {
+                        // Add edges to plan
+                        spl     = NULL;
+                        for (size_t k=0; k<3; ++k)
+                            if (t->e[k]->itag)
+                            {
+                                spl     = plan.add_edge(t->e[k]->v[0], t->e[k]->v[1], &t->n);
+                                if (!spl)
+                                    return STATUS_NO_MEM;
+                                t->e[k]->itag   = 0;
+                            }
+
+                        if (spl != NULL)
+                            spl->flags     |=   SF_CULLBACK;
+
+                        // Add triangle to list
+                        dt  = triangle.alloc();
+                        if (!dt)
+                            return STATUS_NO_MEM;
+
+                        dt->v[0]    = *(t->v[0]);
+                        dt->v[1]    = *(t->v[1]);
+                        dt->v[2]    = *(t->v[2]);
+                        dt->n       = t->n;
+                        dt->m       = t->m;
+                        break;
+                    }
+            RT_FOREACH_END;
+        }
+
+//        RT_VALIDATE(
+        if (!src->validate())
+            return STATUS_CORRUPTED;
+//        );
+
+        tmp.swap(this);
+        return STATUS_OK;
     }
 
-    void rt_context_t::init_view(const point3d_t *sp, const point3d_t *pv)
+    status_t rt_context_t::cut(const vector3d_t *pl)
     {
-        view.s          = *sp;
-        view.p[0]       = pv[0];
-        view.p[1]       = pv[1];
-        view.p[2]       = pv[2];
-        view.face       = -1;
-        view.time[0]    = 0.0f;
-        view.time[1]    = 0.0f;
-        view.time[2]    = 0.0f;
-        view.amplitude  = 1.0f;
-        view.speed      = SOUND_SPEED_M_S;
-        view.rnum       = 0;
+        Allocator3D<rt_triangle_t> in(1024);
+        rt_triangle_t *nt1, *nt2;
+        float k[3];
+
+        RT_FOREACH(rt_triangle_t, t, triangle)
+            k[0]    = t->v[0].x * pl->dx + t->v[0].y * pl->dy + t->v[0].z * pl->dz + pl->dw;
+            k[1]    = t->v[1].x * pl->dx + t->v[1].y * pl->dy + t->v[1].z * pl->dz + pl->dw;
+            k[2]    = t->v[2].x * pl->dx + t->v[2].y * pl->dy + t->v[2].z * pl->dz + pl->dw;
+
+            size_t tag  = (k[0] > DSP_3D_TOLERANCE) ? 0x00 : (k[0] < -DSP_3D_TOLERANCE) ? 0x02 : 0x01;
+            tag        |= (k[1] > DSP_3D_TOLERANCE) ? 0x00 : (k[1] < -DSP_3D_TOLERANCE) ? 0x08 : 0x04;
+            tag        |= (k[2] > DSP_3D_TOLERANCE) ? 0x00 : (k[2] < -DSP_3D_TOLERANCE) ? 0x20 : 0x10;
+
+            switch (tag)
+            {
+                case 0x00:  // 0 0 0
+                case 0x01:  // 0 0 1
+                case 0x04:  // 0 1 0
+                case 0x05:  // 0 1 1
+                case 0x10:  // 1 0 0
+                case 0x11:  // 1 0 1
+                case 0x14:  // 1 1 0
+                    // Triangle is above, skip
+                    break;
+
+                case 0x15:  // 1 1 1
+                    // Triangle is on the plane, skip
+                    break;
+
+                case 0x16:  // 1 1 2
+                case 0x19:  // 1 2 1
+                case 0x1a:  // 1 2 2
+                case 0x25:  // 2 1 1
+                case 0x26:  // 2 1 2
+                case 0x29:  // 2 2 1
+                case 0x2a:  // 2 2 2
+                    // Triangle is below, add and continue
+                    if (!in.alloc(t))
+                        return STATUS_NO_MEM;
+                    break;
+
+                case 0x06:  // 0 1 2
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[2], &t->v[0], &t->v[2], pl);
+                    break;
+                case 0x24:  // 2 1 0
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[0], &t->v[0], &t->v[2], pl);
+                    break;
+
+                case 0x12:  // 1 0 2
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[1], &t->v[0], &t->v[1], pl);
+                    break;
+                case 0x18:  // 1 2 0
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[0], &t->v[0], &t->v[1], pl);
+                    break;
+
+                case 0x09:  // 0 2 1
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[2], &t->v[1], &t->v[2], pl);
+                    break;
+                case 0x21:  // 2 0 1
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[1], &t->v[1], &t->v[2], pl);
+                    break;
+
+                case 0x02:  // 0 0 2
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[1], &t->v[0], &t->v[1], pl);
+                    dsp::calc_split_point_p2v1(&nt1->v[2], &t->v[0], &t->v[2], pl);
+                    break;
+                case 0x08:  // 0 2 0
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[0], &t->v[1], &t->v[0], pl);
+                    dsp::calc_split_point_p2v1(&nt1->v[2], &t->v[1], &t->v[2], pl);
+                    break;
+                case 0x20:  // 2 0 0
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[0], &t->v[2], &t->v[0], pl);
+                    dsp::calc_split_point_p2v1(&nt1->v[1], &t->v[2], &t->v[1], pl);
+                    break;
+
+                case 0x28:  // 2 2 0
+                    if ((!(nt1 = in.alloc(t))) || (!(nt2 = in.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[0], &t->v[0], &t->v[1], pl);
+                    dsp::calc_split_point_p2v1(&nt2->v[0], &t->v[0], &t->v[2], pl);
+                    nt2->v[1]   = nt1->v[0];
+                    break;
+
+                case 0x22:  // 2 0 2
+                    if ((!(nt1 = in.alloc(t))) || (!(nt2 = in.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[1], &t->v[1], &t->v[2], pl);
+                    dsp::calc_split_point_p2v1(&nt2->v[1], &t->v[1], &t->v[0], pl);
+                    nt2->v[2]   = nt1->v[1];
+                    break;
+
+                case 0x0a:  // 0 2 2
+                    if ((!(nt1 = in.alloc(t))) || (!(nt2 = in.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[2], &t->v[2], &t->v[0], pl);
+                    dsp::calc_split_point_p2v1(&nt2->v[2], &t->v[2], &t->v[1], pl);
+                    nt2->v[0]   = nt1->v[2];
+                    break;
+
+                default:
+                    return STATUS_UNKNOWN_ERR;
+            }
+        RT_FOREACH_END
+
+        // Swap data and proceed
+        in.swap(&this->triangle);
+
+        return plan.split_out(pl);
     }
 
-    void rt_context_t::clear()
+    status_t rt_context_t::cullback(const vector3d_t *pl)
     {
-        vertex.clear();
-        edge.clear();
-        triangle.clear();
+        Allocator3D<rt_triangle_t> in(1024);
+        rt_triangle_t *nt1, *nt2;
+        float k[3];
+
+        RT_FOREACH(rt_triangle_t, t, triangle)
+            k[0]    = t->v[0].x * pl->dx + t->v[0].y * pl->dy + t->v[0].z * pl->dz + pl->dw;
+            k[1]    = t->v[1].x * pl->dx + t->v[1].y * pl->dy + t->v[1].z * pl->dz + pl->dw;
+            k[2]    = t->v[2].x * pl->dx + t->v[2].y * pl->dy + t->v[2].z * pl->dz + pl->dw;
+
+            size_t tag  = (k[0] > DSP_3D_TOLERANCE) ? 0x00 : (k[0] < -DSP_3D_TOLERANCE) ? 0x02 : 0x01;
+            tag        |= (k[1] > DSP_3D_TOLERANCE) ? 0x00 : (k[1] < -DSP_3D_TOLERANCE) ? 0x08 : 0x04;
+            tag        |= (k[2] > DSP_3D_TOLERANCE) ? 0x00 : (k[2] < -DSP_3D_TOLERANCE) ? 0x20 : 0x10;
+
+            switch (tag)
+            {
+                case 0x00:  // 0 0 0
+                case 0x01:  // 0 0 1
+                case 0x04:  // 0 1 0
+                case 0x05:  // 0 1 1
+                case 0x10:  // 1 0 0
+                case 0x11:  // 1 0 1
+                case 0x14:  // 1 1 0
+                    // Triangle is above, skip
+                    break;
+
+                case 0x15:  // 1 1 1
+                    // Triangle is on the plane, add and continue
+                    if (!in.alloc(t))
+                        return STATUS_NO_MEM;
+                    break;
+
+                case 0x16:  // 1 1 2
+                case 0x19:  // 1 2 1
+                case 0x1a:  // 1 2 2
+                case 0x25:  // 2 1 1
+                case 0x26:  // 2 1 2
+                case 0x29:  // 2 2 1
+                case 0x2a:  // 2 2 2
+                    // Triangle is below, add and continue
+                    if (!in.alloc(t))
+                        return STATUS_NO_MEM;
+                    break;
+
+                case 0x06:  // 0 1 2
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[2], &t->v[0], &t->v[2], pl);
+                    break;
+                case 0x24:  // 2 1 0
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[0], &t->v[0], &t->v[2], pl);
+                    break;
+
+                case 0x12:  // 1 0 2
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[1], &t->v[0], &t->v[1], pl);
+                    break;
+                case 0x18:  // 1 2 0
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[0], &t->v[0], &t->v[1], pl);
+                    break;
+
+                case 0x09:  // 0 2 1
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[2], &t->v[1], &t->v[2], pl);
+                    break;
+                case 0x21:  // 2 0 1
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[1], &t->v[1], &t->v[2], pl);
+                    break;
+
+                case 0x02:  // 0 0 2
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[1], &t->v[0], &t->v[1], pl);
+                    dsp::calc_split_point_p2v1(&nt1->v[2], &t->v[0], &t->v[2], pl);
+                    break;
+                case 0x08:  // 0 2 0
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[0], &t->v[1], &t->v[0], pl);
+                    dsp::calc_split_point_p2v1(&nt1->v[2], &t->v[1], &t->v[2], pl);
+                    break;
+                case 0x20:  // 2 0 0
+                    if (!(nt1 = in.alloc(t)))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[0], &t->v[2], &t->v[0], pl);
+                    dsp::calc_split_point_p2v1(&nt1->v[1], &t->v[2], &t->v[1], pl);
+                    break;
+
+                case 0x28:  // 2 2 0
+                    if ((!(nt1 = in.alloc(t))) || (!(nt2 = in.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[0], &t->v[0], &t->v[1], pl);
+                    dsp::calc_split_point_p2v1(&nt2->v[0], &t->v[0], &t->v[2], pl);
+                    nt2->v[1]   = nt1->v[0];
+                    break;
+
+                case 0x22:  // 2 0 2
+                    if ((!(nt1 = in.alloc(t))) || (!(nt2 = in.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[1], &t->v[1], &t->v[2], pl);
+                    dsp::calc_split_point_p2v1(&nt2->v[1], &t->v[1], &t->v[0], pl);
+                    nt2->v[2]   = nt1->v[1];
+                    break;
+
+                case 0x0a:  // 0 2 2
+                    if ((!(nt1 = in.alloc(t))) || (!(nt2 = in.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[2], &t->v[2], &t->v[0], pl);
+                    dsp::calc_split_point_p2v1(&nt2->v[2], &t->v[2], &t->v[1], pl);
+                    nt2->v[0]   = nt1->v[2];
+                    break;
+
+                default:
+                    return STATUS_UNKNOWN_ERR;
+            }
+        RT_FOREACH_END
+
+        // Swap data and proceed
+        in.swap(&this->triangle);
+
+        return plan.split_out(pl);
     }
 
-    void rt_context_t::swap(rt_context_t *src)
+    status_t rt_context_t::split(rt_context_t *out, const vector3d_t *pl)
     {
-        vertex.swap(&src->vertex);
-        edge.swap(&src->edge);
-        triangle.swap(&src->triangle);
+        Allocator3D<rt_triangle_t> xin(1024), xout(1024);
+        rt_triangle_t *nt1, *nt2, *nt3;
+        float k[3];
+
+        RT_FOREACH(rt_triangle_t, t, triangle)
+            k[0]    = t->v[0].x * pl->dx + t->v[0].y * pl->dy + t->v[0].z * pl->dz + pl->dw;
+            k[1]    = t->v[1].x * pl->dx + t->v[1].y * pl->dy + t->v[1].z * pl->dz + pl->dw;
+            k[2]    = t->v[2].x * pl->dx + t->v[2].y * pl->dy + t->v[2].z * pl->dz + pl->dw;
+
+            size_t tag  = (k[0] > DSP_3D_TOLERANCE) ? 0x00 : (k[0] < -DSP_3D_TOLERANCE) ? 0x02 : 0x01;
+            tag        |= (k[1] > DSP_3D_TOLERANCE) ? 0x00 : (k[1] < -DSP_3D_TOLERANCE) ? 0x08 : 0x04;
+            tag        |= (k[2] > DSP_3D_TOLERANCE) ? 0x00 : (k[2] < -DSP_3D_TOLERANCE) ? 0x20 : 0x10;
+
+            switch (tag)
+            {
+                case 0x00:  // 0 0 0
+                case 0x01:  // 0 0 1
+                case 0x04:  // 0 1 0
+                case 0x05:  // 0 1 1
+                case 0x10:  // 1 0 0
+                case 0x11:  // 1 0 1
+                case 0x14:  // 1 1 0
+                    // Triangle is above, add to xout
+                    if (!xout.alloc(t))
+                        return STATUS_NO_MEM;
+                    break;
+
+                case 0x15:  // 1 1 1
+                    // Triangle is on the plane, skip
+                    break;
+
+                case 0x16:  // 1 1 2
+                case 0x19:  // 1 2 1
+                case 0x1a:  // 1 2 2
+                case 0x25:  // 2 1 1
+                case 0x26:  // 2 1 2
+                case 0x29:  // 2 2 1
+                case 0x2a:  // 2 2 2
+                    // Triangle is below, add to xin
+                    if (!xin.alloc(t))
+                        return STATUS_NO_MEM;
+                    break;
+
+                // Split into 2 triangles
+                case 0x06:  // 0 1 2
+                    if ((!(nt1 = xin.alloc(t))) || (!(nt2 = xout.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[2], &t->v[0], &t->v[2], pl);
+                    nt2->v[0]   = nt1->v[2];
+                    break;
+                case 0x24:  // 2 1 0
+                    if ((!(nt1 = xin.alloc(t))) || (!(nt2 = xout.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[0], &t->v[0], &t->v[2], pl);
+                    nt2->v[2]   = nt1->v[0];
+                    break;
+
+                case 0x12:  // 1 0 2
+                    if ((!(nt1 = xin.alloc(t))) || (!(nt2 = xout.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[1], &t->v[0], &t->v[1], pl);
+                    nt2->v[0]   = nt1->v[1];
+                    break;
+                case 0x18:  // 1 2 0
+                    if ((!(nt1 = xin.alloc(t))) || (!(nt2 = xout.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[0], &t->v[0], &t->v[1], pl);
+                    nt2->v[1]   = nt1->v[0];
+                    break;
+
+                case 0x09:  // 0 2 1
+                    if ((!(nt1 = xin.alloc(t))) || (!(nt2 = xout.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[2], &t->v[1], &t->v[2], pl);
+                    nt2->v[1]   = nt1->v[2];
+                    break;
+                case 0x21:  // 2 0 1
+                    if ((!(nt1 = xin.alloc(t))) || (!(nt2 = xout.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[1], &t->v[1], &t->v[2], pl);
+                    nt2->v[2]   = nt1->v[1];
+                    break;
+
+
+                // 2 triangles over the plane
+                case 0x02:  // 0 0 2
+                    if ((!(nt1 = xin.alloc(t))) || (!(nt2 = xout.alloc(t))) || (!(nt3 = xout.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[1], &t->v[0], &t->v[1], pl);
+                    dsp::calc_split_point_p2v1(&nt1->v[2], &t->v[0], &t->v[2], pl);
+                    nt2->v[0]   = nt1->v[2];
+                    nt3->v[0]   = nt1->v[1];
+                    nt3->v[2]   = nt1->v[2];
+                    break;
+                case 0x08:  // 0 2 0
+                    if ((!(nt1 = xin.alloc(t))) || (!(nt2 = xout.alloc(t))) || (!(nt3 = xout.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[0], &t->v[1], &t->v[0], pl);
+                    dsp::calc_split_point_p2v1(&nt1->v[2], &t->v[1], &t->v[2], pl);
+                    nt2->v[1]   = nt1->v[0];
+                    nt3->v[0]   = nt1->v[0];
+                    nt3->v[1]   = nt1->v[2];
+                    break;
+                case 0x20:  // 2 0 0
+                    if ((!(nt1 = xin.alloc(t))) || (!(nt2 = xout.alloc(t))) || (!(nt3 = xout.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[0], &t->v[2], &t->v[0], pl);
+                    dsp::calc_split_point_p2v1(&nt1->v[1], &t->v[2], &t->v[1], pl);
+                    nt2->v[2]   = nt1->v[0];
+                    nt3->v[0]   = nt1->v[0];
+                    nt3->v[2]   = nt1->v[1];
+                    break;
+
+                // 2 triangles under the plane
+                case 0x28:  // 2 2 0
+                    if ((!(nt1 = xout.alloc(t))) || (!(nt2 = xin.alloc(t))) || (!(nt3 = xin.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[1], &t->v[0], &t->v[1], pl);
+                    dsp::calc_split_point_p2v1(&nt1->v[2], &t->v[0], &t->v[2], pl);
+                    nt2->v[0]   = nt1->v[2];
+                    nt3->v[0]   = nt1->v[1];
+                    nt3->v[2]   = nt1->v[2];
+                    break;
+
+                case 0x22:  // 2 0 2
+                    if ((!(nt1 = xout.alloc(t))) || (!(nt2 = xin.alloc(t))) || (!(nt3 = xin.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[0], &t->v[1], &t->v[0], pl);
+                    dsp::calc_split_point_p2v1(&nt1->v[2], &t->v[1], &t->v[2], pl);
+                    nt2->v[1]   = nt1->v[0];
+                    nt3->v[0]   = nt1->v[0];
+                    nt3->v[1]   = nt1->v[2];
+                    break;
+
+                case 0x0a:  // 0 2 2
+                    if ((!(nt1 = xout.alloc(t))) || (!(nt2 = xin.alloc(t))) || (!(nt3 = xin.alloc(t))))
+                        return STATUS_NO_MEM;
+                    dsp::calc_split_point_p2v1(&nt1->v[0], &t->v[2], &t->v[0], pl);
+                    dsp::calc_split_point_p2v1(&nt1->v[1], &t->v[2], &t->v[1], pl);
+                    nt2->v[2]   = nt1->v[0];
+                    nt3->v[0]   = nt1->v[0];
+                    nt3->v[2]   = nt1->v[1];
+                    break;
+
+                default:
+                    return STATUS_UNKNOWN_ERR;
+            }
+        RT_FOREACH_END
+
+        // Swap data and proceed
+        xin.swap(&this->triangle);
+        xout.swap(&out->triangle);
+
+        return plan.split(&out->plan, pl);
     }
 
+#if 0
     bool rt_context_t::unlink_triangle(rtm_triangle_t *t, rtm_edge_t *e)
     {
         for (rtm_triangle_t **pcurr = &e->vt; *pcurr != NULL; )
@@ -1051,7 +1508,7 @@ namespace lsp
         }
         return STATUS_OK;
     }
-#if 1
+
     status_t rt_context_t::cull_view()
     {
         vector3d_t pl[4]; // Split plane
@@ -1099,161 +1556,6 @@ namespace lsp
 
         return STATUS_OK;
     }
-#else
-    // This is less-efficient implementation
-    status_t rt_context_t::cull_view()
-    {
-        vector3d_t spl[4], *pl; // Split plane
-        status_t res;
-
-        // Mark all edges to be split
-        RT_FOREACH(rtm_edge_t, e, edge)
-            e->itag        |= RT_EF_APPLY;
-        RT_FOREACH_END
-
-        dsp::calc_rev_oriented_plane_p3(&spl[0], &view.s, &view.p[0], &view.p[1], &view.p[2]);
-        dsp::calc_oriented_plane_p3(&spl[1], &view.p[2], &view.s, &view.p[0], &view.p[1]);
-        dsp::calc_oriented_plane_p3(&spl[2], &view.p[0], &view.s, &view.p[1], &view.p[2]);
-        dsp::calc_oriented_plane_p3(&spl[3], &view.p[1], &view.s, &view.p[2], &view.p[0]);
-
-        RT_TRACE_BREAK(debug,
-            lsp_trace("Culling space with planes (%d triangles)", int(triangle.size()));
-
-            for (size_t j=0, n=triangle.size(); j<n; ++j)
-               trace.add_triangle_1c(triangle.get(j), &C_DARKGREEN);
-
-            trace.add_plane_3pn1c(&view.p[0], &view.p[1], &view.p[2], &spl[0], &C_YELLOW);
-            trace.add_plane_3pn1c(&view.s, &view.p[0], &view.p[1], &spl[1], &C_RED);
-            trace.add_plane_3pn1c(&view.s, &view.p[1], &view.p[2], &spl[2], &C_GREEN);
-            trace.add_plane_3pn1c(&view.s, &view.p[2], &view.p[0], &spl[3], &C_BLUE);
-        )
-
-        RT_FOREACH(rtm_triangle_t, t, triangle)
-            t->itag         = 2; // By default, triangle is 'inside'
-        RT_FOREACH_END
-
-        for (size_t pi=0; pi<4; ++pi)
-        {
-            pl  = &spl[pi];
-            // State of itag for vertex:
-            //  0   = triangle is 'out'
-            //  1   = triangle is 'on'
-            //  2   = triangle is 'in'
-            RT_FOREACH(rtm_vertex_t, v, vertex)
-                float t         = v->x*pl->dx + v->y*pl->dy + v->z*pl->dz + pl->dw;
-                v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
-            RT_FOREACH_END
-
-            // First step: split edges
-            // Perform split of edges
-            RT_FOREACH(rtm_edge_t, e, edge)
-                // Analyze state of edge
-                // 00 00    - edge is over the plane
-                // 00 01    - edge is over the plane
-                // 00 10    - edge is crossing the plane
-                // 01 00    - edge is over the plane
-                // 01 01    - edge is laying on the plane
-                // 01 10    - edge is under the plane
-                // 10 00    - edge is crossing the plane
-                // 10 01    - edge is under the plane
-                // 10 10    - edge is under the plane
-                switch ((e->v[0]->itag << 2) | e->v[1]->itag)
-                {
-                    case 0: case 1: case 4: // edge is over the plane, skip
-                    case 6: case 9: case 10: // edge is under the plane, skip
-                        break;
-                    case 5: // edge lays on the plane, mark as split edge and skip
-                        e->itag    |= RT_EF_PLANE;
-                        break;
-
-                    case 2: // edge is crossing the plane, v0 is over, v1 is under
-                    case 8: // edge is crossing the plane, v0 is under, v1 is over
-                    {
-                        // Allocate split point
-                        rtm_vertex_t *sp     = vertex.alloc();
-                        if (sp == NULL)
-                            return STATUS_NO_MEM;
-                        dsp::calc_split_point_p2v1(sp, e->v[0], e->v[1], pl);
-
-    //                    sp->ve      = NULL;
-                        sp->ptag    = NULL;
-                        sp->itag    = 1;        // Split-point lays on the plane
-
-                        res         = split_edge(e, sp);
-                        if (res != STATUS_OK)
-                            return res;
-                        break;
-                    }
-
-                    default:
-                        return STATUS_BAD_STATE;
-                }
-            RT_FOREACH_END
-
-            RT_VALIDATE(
-                if (!validate())
-                    return STATUS_CORRUPTED;
-            )
-
-            size_t inside = 0;
-
-            // Toggle state of all triangles
-            RT_FOREACH(rtm_triangle_t, st, triangle)
-                // Modify only state of 'inside' triangles
-                if (st->itag != 2)
-                    continue;
-
-                // Detect position of triangle: over the plane or under the plane
-                if (st->v[0]->itag != 1)
-                    st->itag    = st->v[0]->itag;
-                else if (st->v[1]->itag != 1)
-                    st->itag    = st->v[1]->itag;
-                else
-                    st->itag    = st->v[2]->itag;
-
-                if (st->itag == 2)
-                    ++inside; // Update number of triangles that are 'inside'
-
-                RT_TRACE(debug,
-                    if (st->itag != 2)
-                        ignore(st);
-                )
-            RT_FOREACH_END
-
-            if (inside <= 0)
-            {
-                vertex.destroy();
-                triangle.destroy();
-                edge.destroy();
-                return STATUS_OK;
-            }
-        }
-
-        // Now we can fetch triangles
-        rt_context_t in;
-        res    = fetch_triangles_safe(&in, 2);
-        if (res != STATUS_OK)
-            return res;
-
-        RT_VALIDATE(
-            if (!in.validate())
-                return STATUS_CORRUPTED;
-            if (!validate())
-                return STATUS_CORRUPTED;
-        )
-
-        this->swap(&in);
-
-        RT_TRACE_BREAK(debug,
-            lsp_trace("Data after culling (%d triangles)", int(triangle.size()));
-            trace.add_view_1c(&view, &C_MAGENTA);
-            for (size_t j=0,n=triangle.size(); j<n; ++j)
-                trace.add_triangle_3c(triangle.get(j), &C_CYAN, &C_MAGENTA, &C_YELLOW);
-        );
-
-        return STATUS_OK;
-    }
-#endif
 
     status_t rt_context_t::cutoff(const vector3d_t *pl)
     {
@@ -1897,7 +2199,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t rt_context_t::fetch_objects(rt_context_t *src, size_t n, const size_t *ids)
+    status_t rt_context_t::fetch_objects(rt_mesh_t *src, size_t n, const size_t *ids)
     {
         status_t res;
         rt_context_t tmp;
@@ -2065,115 +2367,7 @@ namespace lsp
 
         return true;
     }
+#endif
 
-    status_t rt_context_t::ignore(const rtm_triangle_t *t)
-    {
-        v_triangle3d_t vt;
-        vt.p[0]     = *(t->v[0]);
-        vt.p[1]     = *(t->v[1]);
-        vt.p[2]     = *(t->v[2]);
-
-        vt.n[0]     = t->n;
-        vt.n[1]     = t->n;
-        vt.n[2]     = t->n;
-
-        return (ignored.add(&vt)) ? STATUS_OK : STATUS_NO_MEM;
-    }
-
-    status_t rt_context_t::match(const rtm_triangle_t *t)
-    {
-        v_triangle3d_t vt;
-        vt.p[0]     = *(t->v[0]);
-        vt.p[1]     = *(t->v[1]);
-        vt.p[2]     = *(t->v[2]);
-
-        vt.n[0]     = t->n;
-        vt.n[1]     = t->n;
-        vt.n[2]     = t->n;
-
-        return (matched.add(&vt)) ? STATUS_OK : STATUS_NO_MEM;
-    }
-
-    void rt_context_t::dump()
-    {
-        printf("Vertexes (%d items):\n", int(vertex.size()));
-        for (size_t i=0,n=vertex.size(); i<n; ++i)
-        {
-            rtm_vertex_t *vx = vertex.get(i);
-            printf("  [%3d]: %p\n"
-                   "    p:  (%.6f, %.6f, %.6f)\n",
-                    int(i), vx,
-                    vx->x, vx->y, vx->z
-                );
-//            dump_edge_list(4, vx->ve);
-        }
-
-        printf("Edges (%d items):\n", int(edge.size()));
-        for (size_t i=0,n=edge.size(); i<n; ++i)
-        {
-            rtm_edge_t *ex = edge.get(i);
-            printf("  [%3d]: %p\n"
-                   "    v:  [%d]-[%d]\n",
-                   int(i), ex,
-                   int(vertex.index_of(ex->v[0])),
-                   int(vertex.index_of(ex->v[1]))
-               );
-            dump_triangle_list(4, ex->vt);
-        }
-
-        printf("Triangles (%d items):\n", int(triangle.size()));
-        for (size_t i=0,n=triangle.size(); i<n; ++i)
-        {
-            rtm_triangle_t *vx = triangle.get(i);
-            printf("  [%3d]: %p\n"
-                   "    v:  [%d]-[%d]-[%d]\n"
-                   "    e:  [%d]-[%d]-[%d]\n"
-                   "    n:  (%.6f, %.6f, %.6f)\n"
-                   "    l:  [%d]-[%d]-[%d]\n",
-                    int(i), vx,
-                    int(vertex.index_of(vx->v[0])),
-                    int(vertex.index_of(vx->v[1])),
-                    int(vertex.index_of(vx->v[2])),
-                    int(edge.index_of(vx->e[0])),
-                    int(edge.index_of(vx->e[1])),
-                    int(edge.index_of(vx->e[2])),
-                    vx->n.dx, vx->n.dy, vx->n.dz,
-                    int(triangle.index_of(vx->elnk[0])),
-                    int(triangle.index_of(vx->elnk[1])),
-                    int(triangle.index_of(vx->elnk[2]))
-                );
-        }
-    }
-
-    void rt_context_t::dump_edge_list(size_t lvl, rtm_edge_t *e)
-    {
-        for (size_t i=0; i<lvl; ++i)
-            printf(" ");
-
-        if (e == NULL)
-        {
-            printf("-1\n");
-            return;
-        }
-        else
-            printf("e[%d]:\n", int(edge.index_of(e)));
-    }
-
-    void rt_context_t::dump_triangle_list(size_t lvl, rtm_triangle_t *t)
-    {
-        for (size_t i=0; i<lvl; ++i)
-            printf(" ");
-
-        if (t == NULL)
-        {
-            printf("-1\n");
-            return;
-        }
-        else
-            printf("t[%d]:\n", int(triangle.index_of(t)));
-        dump_triangle_list(lvl+2, t->elnk[0]);
-        dump_triangle_list(lvl+2, t->elnk[1]);
-        dump_triangle_list(lvl+2, t->elnk[2]);
-    }
 
 } /* namespace mtest */

@@ -13,6 +13,7 @@
 #include <data/cstorage.h>
 #include <core/sampling/Sample.h>
 #include <core/3d/common.h>
+#include <core/3d/rt_mesh.h>
 #include <core/3d/rt_context.h>
 #include <core/3d/RTObjectFactory.h>
 
@@ -84,7 +85,7 @@ namespace lsp
             Scene3D                    *pScene;
             RTObjectFactory             sFactory;
             rt_progress_t               pProgress;
-            rt_context_t                sRoot;
+            rt_mesh_t                   sRoot;
             void                       *pProgressData;
             size_t                      nSampleRate;
             float                       fEnergyThresh;
@@ -103,7 +104,7 @@ namespace lsp
             status_t    report_progress(float progress);
 
             // Main ray-tracing routines
-            status_t    generate_root_context();
+            status_t    generate_root_mesh();
             status_t    generate_tasks(cvector<rt_context_t> *tasks, float initial);
             status_t    check_object(rt_context_t *ctx, Object3D *obj, const matrix3d_t *m);
 

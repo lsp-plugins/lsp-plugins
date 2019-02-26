@@ -108,9 +108,8 @@ namespace lsp
                 dt->e[j]        = ex;
             }
 
-            // Update normals
-            dsp::apply_matrix3d_mv2(&dt->n, st->n[0], transform);
-            dt->n.dw    = - (dt->n.dx * dt->v[0]->x + dt->n.dy * dt->v[0]->y + dt->n.dz * dt->v[0]->z);
+            // Compute plane equation and store as normal
+            dsp::calc_plane_p3(&dt->n, dt->v[0], dt->v[1], dt->v[2]);
         }
 
         // Patch edge structures and link to vertexes
@@ -126,7 +125,7 @@ namespace lsp
         // Patch triangle structures and link to edges
         for (size_t i=start_t, n=triangle.size(); i<n; ++i)
         {
-            rtm_triangle_t *dt   = triangle.get(i);
+            rtm_triangle_t *dt  = triangle.get(i);
             obj_triangle_t *st  = reinterpret_cast<obj_triangle_t *>(dt->ptag);
 
             dt->v[0]            = reinterpret_cast<rtm_vertex_t *>(st->v[0]->ptag);
