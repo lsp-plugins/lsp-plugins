@@ -151,6 +151,7 @@ namespace lsp
                         dt->v[1]    = *(t->v[1]);
                         dt->v[2]    = *(t->v[2]);
                         dt->n       = t->n;
+                        dt->oid     = t->oid;
                         dt->m       = t->m;
                         break;
                     }
