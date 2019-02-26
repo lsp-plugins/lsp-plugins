@@ -130,12 +130,12 @@ namespace lsp
         triangle.swap(&src->triangle);
     }
 
-    bool rt_context_t::unlink_triangle(rt_triangle_t *t, rt_edge_t *e)
+    bool rt_context_t::unlink_triangle(rtm_triangle_t *t, rtm_edge_t *e)
     {
-        for (rt_triangle_t **pcurr = &e->vt; *pcurr != NULL; )
+        for (rtm_triangle_t **pcurr = &e->vt; *pcurr != NULL; )
         {
-            rt_triangle_t *curr = *pcurr;
-            rt_triangle_t **pnext = (curr->e[0] == e) ? &curr->elnk[0] :
+            rtm_triangle_t *curr = *pcurr;
+            rtm_triangle_t **pnext = (curr->e[0] == e) ? &curr->elnk[0] :
                                     (curr->e[1] == e) ? &curr->elnk[1] :
                                     (curr->e[2] == e) ? &curr->elnk[2] :
                                     NULL;
@@ -151,11 +151,11 @@ namespace lsp
         return false;
     }
 
-    status_t rt_context_t::arrange_triangle(rt_triangle_t *ct, rt_edge_t *e)
+    status_t rt_context_t::arrange_triangle(rtm_triangle_t *ct, rtm_edge_t *e)
     {
-        rt_vertex_t *tv;
-        rt_edge_t *te;
-        rt_triangle_t *tt;
+        rtm_vertex_t *tv;
+        rtm_edge_t *te;
+        rtm_triangle_t *tt;
 
         // Rotate triangle to make ct->e[0] == e
         if (ct->e[1] == e) // Rotate clockwise
@@ -198,15 +198,15 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t rt_context_t::split_edge(rt_edge_t* e, rt_vertex_t* sp)
+    status_t rt_context_t::split_edge(rtm_edge_t* e, rtm_vertex_t* sp)
     {
         status_t res;
-        rt_triangle_t *ct, *nt, *pt;
-        rt_edge_t *ne, *se;
+        rtm_triangle_t *ct, *nt, *pt;
+        rtm_edge_t *ne, *se;
 
 //        RT_TRACE_BREAK(this,
 //            lsp_trace("Splitting edge");
-//            for (rt_triangle_t *t = e->vt; t != NULL;)
+//            for (rtm_triangle_t *t = e->vt; t != NULL;)
 //            {
 //                trace.add_triangle_3c(t, &C_RED, &C_GREEN, &C_BLUE);
 //                t = (t->e[0] == e) ? t->elnk[0] :
@@ -395,7 +395,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t rt_context_t::split_triangle(rt_triangle_t* t, rt_vertex_t* sp)
+    status_t rt_context_t::split_triangle(rtm_triangle_t* t, rtm_vertex_t* sp)
     {
         // Unlink triangle from all it's edges
         unlink_triangle(t, t->e[0]);
@@ -403,10 +403,10 @@ namespace lsp
         unlink_triangle(t, t->e[2]);
 
         // Create additional edges and link them to vertexes
-        rt_edge_t *ne[3];
+        rtm_edge_t *ne[3];
         for (size_t i=0; i<3; ++i)
         {
-            rt_edge_t *e    = edge.alloc();
+            rtm_edge_t *e    = edge.alloc();
             if (e == NULL)
                 return STATUS_NO_MEM;
             ne[i]           = e;
@@ -419,7 +419,7 @@ namespace lsp
         }
 
         // Allocate additional triangles
-        rt_triangle_t *nt[3];
+        rtm_triangle_t *nt[3];
         nt[0]       = triangle.alloc();
         nt[1]       = triangle.alloc();
         nt[2]       = t;
@@ -468,7 +468,7 @@ namespace lsp
         // Re-link triangles to edges
         for (size_t i=0; i<3; ++i)
         {
-            rt_triangle_t *ct   = nt[i];
+            rtm_triangle_t *ct   = nt[i];
 
             ct->elnk[0]     = ct->e[0]->vt;
             ct->elnk[1]     = ct->e[1]->vt;
@@ -484,24 +484,24 @@ namespace lsp
     void rt_context_t::cleanup_tag_pointers()
     {
         // Cleanup pointers
-        RT_FOREACH(rt_vertex_t, v, vertex)
+        RT_FOREACH(rtm_vertex_t, v, vertex)
             v->ptag = NULL;
         RT_FOREACH_END
 
-        RT_FOREACH(rt_edge_t, e, edge)
+        RT_FOREACH(rtm_edge_t, e, edge)
             e->ptag = NULL;
         RT_FOREACH_END
 
-        RT_FOREACH(rt_triangle_t, t, triangle)
+        RT_FOREACH(rtm_triangle_t, t, triangle)
             t->ptag = NULL;
         RT_FOREACH_END
     }
 
-    status_t rt_context_t::fetch_triangle(rt_context_t *dst, rt_triangle_t *st)
+    status_t rt_context_t::fetch_triangle(rt_context_t *dst, rtm_triangle_t *st)
     {
-        rt_vertex_t *sv, *vx;
-        rt_edge_t *se, *ex;
-        rt_triangle_t *tx;
+        rtm_vertex_t *sv, *vx;
+        rtm_edge_t *se, *ex;
+        rtm_triangle_t *tx;
 
         // Allocate new triangle
         tx          = dst->triangle.alloc();
@@ -521,7 +521,7 @@ namespace lsp
         {
             // Allocate vertex if required
             sv      = st->v[j];
-            vx      = reinterpret_cast<rt_vertex_t *>(sv->ptag);
+            vx      = reinterpret_cast<rtm_vertex_t *>(sv->ptag);
 
             if (vx == NULL)
             {
@@ -543,7 +543,7 @@ namespace lsp
 
             // Allocate edge if required
             se      = st->e[j];
-            ex      = reinterpret_cast<rt_edge_t *>(se->ptag);
+            ex      = reinterpret_cast<rtm_edge_t *>(se->ptag);
             if (ex == NULL)
             {
                 ex              = dst->edge.alloc();
@@ -569,7 +569,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t rt_context_t::fetch_triangle_safe(rt_context_t *dst, rt_triangle_t *st)
+    status_t rt_context_t::fetch_triangle_safe(rt_context_t *dst, rtm_triangle_t *st)
     {
         if (dst == NULL)
             return STATUS_OK;
@@ -579,7 +579,7 @@ namespace lsp
     status_t rt_context_t::fetch_triangles(rt_context_t *dst, ssize_t itag)
     {
         // Iterate all triangles
-        RT_FOREACH(rt_triangle_t, st, triangle)
+        RT_FOREACH(rtm_triangle_t, st, triangle)
             if (st->itag != itag)
                 continue;
 
@@ -593,7 +593,7 @@ namespace lsp
 
     status_t rt_context_t::vfetch_triangles(rt_context_t *dst, size_t n, const ssize_t *itag)
     {
-        rt_triangle_t *st;
+        rtm_triangle_t *st;
         status_t res = STATUS_OK;
 
         // Iterate all triangles
@@ -622,18 +622,18 @@ namespace lsp
     void rt_context_t::complete_fetch(rt_context_t *dst)
     {
         // Patch edge structures and link to vertexes
-        RT_FOREACH(rt_edge_t, ex, dst->edge)
-            rt_edge_t *se   = reinterpret_cast<rt_edge_t *>(ex->ptag);
+        RT_FOREACH(rtm_edge_t, ex, dst->edge)
+            rtm_edge_t *se   = reinterpret_cast<rtm_edge_t *>(ex->ptag);
             if (se == NULL) // Edge does not need patching
                 continue;
 
             // Patch vertex pointers if needed
-            ex->v[0]        = (se->v[0]->ptag != NULL) ? reinterpret_cast<rt_vertex_t *>(se->v[0]->ptag) : se->v[0];
-            ex->v[1]        = (se->v[1]->ptag != NULL) ? reinterpret_cast<rt_vertex_t *>(se->v[1]->ptag) : se->v[1];
+            ex->v[0]        = (se->v[0]->ptag != NULL) ? reinterpret_cast<rtm_vertex_t *>(se->v[0]->ptag) : se->v[0];
+            ex->v[1]        = (se->v[1]->ptag != NULL) ? reinterpret_cast<rtm_vertex_t *>(se->v[1]->ptag) : se->v[1];
         RT_FOREACH_END
 
         // Link triangle structures to edges
-        RT_FOREACH(rt_triangle_t, tx, dst->triangle)
+        RT_FOREACH(rtm_triangle_t, tx, dst->triangle)
             if (tx->ptag == NULL) // Triangle does not need patching
                 continue;
 
@@ -715,7 +715,7 @@ namespace lsp
 
         // Prepare data for sorting
         size_t ei   = 0;
-        RT_FOREACH(rt_edge_t, ce, edge)
+        RT_FOREACH(rtm_edge_t, ce, edge)
             float d0    = dsp::calc_sqr_distance_p2(&view.s, ce->v[0]);
             float d1    = dsp::calc_sqr_distance_p2(&view.s, ce->v[1]);
 
@@ -744,11 +744,11 @@ namespace lsp
         // Call sorting function
         ::qsort(ve, ne, sizeof(rt_edge_sort_t), compare_edges);
 
-        Allocator3D<rt_edge_t> new_edges(edge.chunk_size());
+        Allocator3D<rtm_edge_t> new_edges(edge.chunk_size());
         for (size_t i=0; i<ne; ++i)
         {
-            rt_edge_t *se   = ve[i].e;
-            rt_edge_t *de   = new_edges.alloc(se);
+            rtm_edge_t *se   = ve[i].e;
+            rtm_edge_t *de   = new_edges.alloc(se);
             if (de == NULL)
             {
                 free(ve);
@@ -764,10 +764,10 @@ namespace lsp
         edge.swap(&new_edges);
 
         // Patch all triangle pointers
-        RT_FOREACH(rt_triangle_t, t, triangle)
-            t->e[0]         = reinterpret_cast<rt_edge_t *>(t->e[0]->ptag);
-            t->e[1]         = reinterpret_cast<rt_edge_t *>(t->e[1]->ptag);
-            t->e[2]         = reinterpret_cast<rt_edge_t *>(t->e[2]->ptag);
+        RT_FOREACH(rtm_triangle_t, t, triangle)
+            t->e[0]         = reinterpret_cast<rtm_edge_t *>(t->e[0]->ptag);
+            t->e[1]         = reinterpret_cast<rtm_edge_t *>(t->e[1]->ptag);
+            t->e[2]         = reinterpret_cast<rtm_edge_t *>(t->e[2]->ptag);
         RT_FOREACH_END
 
         RT_VALIDATE(
@@ -809,7 +809,7 @@ namespace lsp
 
         // Prepare data for sorting
         size_t ti   = 0;
-        RT_FOREACH(rt_triangle_t, ct, triangle)
+        RT_FOREACH(rtm_triangle_t, ct, triangle)
             vt[ti].t    = ct;
             vt[ti].w    = dsp::calc_avg_distance_p3(&view.s, ct->v[0], ct->v[1], ct->v[2]);
             ++ti;
@@ -835,11 +835,11 @@ namespace lsp
         // Call sorting function
         ::qsort(vt, nt, sizeof(rt_triangle_sort_t), compare_triangles);
 
-        Allocator3D<rt_triangle_t> new_triangles(triangle.chunk_size());
+        Allocator3D<rtm_triangle_t> new_triangles(triangle.chunk_size());
         for (size_t i=0; i<nt; ++i)
         {
-            rt_triangle_t *st   = vt[i].t;
-            rt_triangle_t *dt   = new_triangles.alloc(st);
+            rtm_triangle_t *st   = vt[i].t;
+            rtm_triangle_t *dt   = new_triangles.alloc(st);
             if (dt == NULL)
             {
                 free(vt);
@@ -854,15 +854,15 @@ namespace lsp
         triangle.swap(&new_triangles);
 
         // Patch all edge pointers
-        RT_FOREACH(rt_edge_t, e, edge)
-            e->vt           = (e->vt != NULL) ? reinterpret_cast<rt_triangle_t *>(e->vt->ptag) : NULL;
+        RT_FOREACH(rtm_edge_t, e, edge)
+            e->vt           = (e->vt != NULL) ? reinterpret_cast<rtm_triangle_t *>(e->vt->ptag) : NULL;
         RT_FOREACH_END
 
         // Patch all triangle pointers
-        RT_FOREACH(rt_triangle_t, t, triangle)
-            t->elnk[0]      = (t->elnk[0] != NULL) ? reinterpret_cast<rt_triangle_t *>(t->elnk[0]->ptag) : NULL;
-            t->elnk[1]      = (t->elnk[1] != NULL) ? reinterpret_cast<rt_triangle_t *>(t->elnk[1]->ptag) : NULL;
-            t->elnk[2]      = (t->elnk[2] != NULL) ? reinterpret_cast<rt_triangle_t *>(t->elnk[2]->ptag) : NULL;
+        RT_FOREACH(rtm_triangle_t, t, triangle)
+            t->elnk[0]      = (t->elnk[0] != NULL) ? reinterpret_cast<rtm_triangle_t *>(t->elnk[0]->ptag) : NULL;
+            t->elnk[1]      = (t->elnk[1] != NULL) ? reinterpret_cast<rtm_triangle_t *>(t->elnk[1]->ptag) : NULL;
+            t->elnk[2]      = (t->elnk[2] != NULL) ? reinterpret_cast<rtm_triangle_t *>(t->elnk[2]->ptag) : NULL;
         RT_FOREACH_END
 
         RT_VALIDATE(
@@ -899,7 +899,7 @@ namespace lsp
 
         for (size_t i=0; i<triangle.size(); ++i)
         {
-            rt_triangle_t *ct   = triangle.get(i);
+            rtm_triangle_t *ct   = triangle.get(i);
             dsp::calc_plane_p3(&pl, ct->v[0], ct->v[1], ct->v[2]);
             dsp::calc_plane_v1p2(&spl[0], &pl, ct->v[0], ct->v[1]);
             dsp::calc_plane_v1p2(&spl[1], &pl, ct->v[1], ct->v[2]);
@@ -910,7 +910,7 @@ namespace lsp
 //
 //                for (size_t i=0,n=triangle.size(); i<n; ++i)
 //                {
-//                    rt_triangle_t *t = triangle.get(i);
+//                    rtm_triangle_t *t = triangle.get(i);
 //                    trace.add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
 //                }
 //
@@ -921,13 +921,13 @@ namespace lsp
 //            )
 
             // Estimate location of each vertex relative to the plane
-            RT_FOREACH(rt_vertex_t, cv, vertex)
+            RT_FOREACH(rtm_vertex_t, cv, vertex)
                 float k = cv->x * pl.dx + cv->y * pl.dy + cv->z*pl.dz + pl.dw;
                 cv->itag = (k < -DSP_3D_TOLERANCE) ? 2 : (k > DSP_3D_TOLERANCE) ? 0 : 1;
             RT_FOREACH_END
 
             // Split each edge with triangle, do not process new edges
-            RT_FOREACH(rt_edge_t, ce, edge)
+            RT_FOREACH(rtm_edge_t, ce, edge)
                 if ((ce == ct->e[0]) || (ce == ct->e[1]) || (ce == ct->e[2]))
                     continue;
 
@@ -948,7 +948,7 @@ namespace lsp
 //
 //                    for (size_t i=0,n=triangle.size(); i<n; ++i)
 //                    {
-//                        rt_triangle_t *t = triangle.get(i);
+//                        rtm_triangle_t *t = triangle.get(i);
 //                        trace.add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
 //                    }
 //
@@ -961,7 +961,7 @@ namespace lsp
 //                )
 
                 // But now we need to check that intersection point lays on the triangle
-                rt_vertex_t sp, *spp;
+                rtm_vertex_t sp, *spp;
                 dsp::calc_split_point_p2v1(&sp, ce->v[0], ce->v[1], &pl);
                 sp.itag     = 0;
                 sp.ptag     = NULL;
@@ -1058,7 +1058,7 @@ namespace lsp
         status_t res;
 
         // Mark all edges to be split
-        RT_FOREACH(rt_edge_t, e, edge)
+        RT_FOREACH(rtm_edge_t, e, edge)
             e->itag        |= RT_EF_APPLY;
         RT_FOREACH_END
 
@@ -1107,7 +1107,7 @@ namespace lsp
         status_t res;
 
         // Mark all edges to be split
-        RT_FOREACH(rt_edge_t, e, edge)
+        RT_FOREACH(rtm_edge_t, e, edge)
             e->itag        |= RT_EF_APPLY;
         RT_FOREACH_END
 
@@ -1128,7 +1128,7 @@ namespace lsp
             trace.add_plane_3pn1c(&view.s, &view.p[2], &view.p[0], &spl[3], &C_BLUE);
         )
 
-        RT_FOREACH(rt_triangle_t, t, triangle)
+        RT_FOREACH(rtm_triangle_t, t, triangle)
             t->itag         = 2; // By default, triangle is 'inside'
         RT_FOREACH_END
 
@@ -1139,14 +1139,14 @@ namespace lsp
             //  0   = triangle is 'out'
             //  1   = triangle is 'on'
             //  2   = triangle is 'in'
-            RT_FOREACH(rt_vertex_t, v, vertex)
+            RT_FOREACH(rtm_vertex_t, v, vertex)
                 float t         = v->x*pl->dx + v->y*pl->dy + v->z*pl->dz + pl->dw;
                 v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
             RT_FOREACH_END
 
             // First step: split edges
             // Perform split of edges
-            RT_FOREACH(rt_edge_t, e, edge)
+            RT_FOREACH(rtm_edge_t, e, edge)
                 // Analyze state of edge
                 // 00 00    - edge is over the plane
                 // 00 01    - edge is over the plane
@@ -1170,7 +1170,7 @@ namespace lsp
                     case 8: // edge is crossing the plane, v0 is under, v1 is over
                     {
                         // Allocate split point
-                        rt_vertex_t *sp     = vertex.alloc();
+                        rtm_vertex_t *sp     = vertex.alloc();
                         if (sp == NULL)
                             return STATUS_NO_MEM;
                         dsp::calc_split_point_p2v1(sp, e->v[0], e->v[1], pl);
@@ -1198,7 +1198,7 @@ namespace lsp
             size_t inside = 0;
 
             // Toggle state of all triangles
-            RT_FOREACH(rt_triangle_t, st, triangle)
+            RT_FOREACH(rtm_triangle_t, st, triangle)
                 // Modify only state of 'inside' triangles
                 if (st->itag != 2)
                     continue;
@@ -1275,7 +1275,7 @@ namespace lsp
         //  0   = triangle is 'out'
         //  1   = triangle is 'on'
         //  2   = triangle is 'in'
-        RT_FOREACH(rt_vertex_t, v, vertex)
+        RT_FOREACH(rtm_vertex_t, v, vertex)
             float t         = v->x*pl->dx + v->y*pl->dy + v->z*pl->dz + pl->dw;
             v->ptag         = NULL; // Cleanup tag pointer
             v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
@@ -1283,7 +1283,7 @@ namespace lsp
 
         // First step: split edges
         // Perform split of edges
-		RT_FOREACH(rt_edge_t, e, edge)
+		RT_FOREACH(rtm_edge_t, e, edge)
 		    e->ptag     = NULL; // Cleanup tag pointer
 
             // Analyze state of edge
@@ -1309,7 +1309,7 @@ namespace lsp
                 case 8: // edge is crossing the plane, v0 is under, v1 is over
                 {
                     // Allocate split point
-                    rt_vertex_t *sp     = vertex.alloc();
+                    rtm_vertex_t *sp     = vertex.alloc();
                     if (sp == NULL)
                         return STATUS_NO_MEM;
                     dsp::calc_split_point_p2v1(sp, e->v[0], e->v[1], pl);
@@ -1336,7 +1336,7 @@ namespace lsp
 
         // Toggle state of all triangles
 		size_t num_inside = 0;
-		RT_FOREACH(rt_triangle_t, st, triangle)
+		RT_FOREACH(rtm_triangle_t, st, triangle)
 		    st->ptag    = NULL; // Cleanup tag pointer
 
             // Detect position of triangle: over the plane or under the plane
@@ -1392,9 +1392,9 @@ namespace lsp
 
         // Find edge to apply split
         vector3d_t pl;
-        rt_edge_t *ce = NULL;
+        rtm_edge_t *ce = NULL;
 
-        RT_FOREACH(rt_edge_t, se, edge)
+        RT_FOREACH(rtm_edge_t, se, edge)
             if (se->itag & RT_EF_PLANE)
                 continue;
             if (!(se->itag & RT_EF_APPLY))
@@ -1414,16 +1414,16 @@ namespace lsp
 
     status_t rt_context_t::triangle_split(rt_context_t *out)
     {
-        rt_triangle_t *ct = triangle.get(0);
+        rtm_triangle_t *ct = triangle.get(0);
         if (ct == NULL)
             return STATUS_NOT_FOUND;
 
         vector3d_t pl;
-        rt_edge_t *ce = NULL;
+        rtm_edge_t *ce = NULL;
 
         for (size_t i=0; i<3; ++i)
         {
-            rt_edge_t *se = ct->e[i];
+            rtm_edge_t *se = ct->e[i];
             if (se->itag & RT_EF_PLANE)
                 continue;
             if (!(se->itag & RT_EF_APPLY))
@@ -1441,7 +1441,7 @@ namespace lsp
         return (ce != NULL) ? apply_edge_split(out, ce, &pl) : STATUS_NOT_FOUND;
     }
 
-    status_t rt_context_t::apply_edge_split(rt_context_t *out, rt_edge_t *ce, const vector3d_t *pl)
+    status_t rt_context_t::apply_edge_split(rt_context_t *out, rtm_edge_t *ce, const vector3d_t *pl)
     {
         status_t res;
         if (out != NULL)
@@ -1459,7 +1459,7 @@ namespace lsp
 
             for (size_t i=0,n=edge.size(); i<n; ++i)
             {
-                rt_edge_t *se = edge.get(i);
+                rtm_edge_t *se = edge.get(i);
                 if (se->itag & RT_EF_PLANE)
                     trace.add_segment(se, &C_GREEN);
                 else if (se == ce)
@@ -1480,7 +1480,7 @@ namespace lsp
         //  0   = triangle is 'out'
         //  1   = triangle is 'on'
         //  2   = triangle is 'in'
-        RT_FOREACH(rt_vertex_t, v, vertex)
+        RT_FOREACH(rtm_vertex_t, v, vertex)
             float t         = v->x*pl->dx + v->y*pl->dy + v->z*pl->dz + pl->dw;
             v->ptag         = NULL; // Cleanup tag pointer
             v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
@@ -1491,7 +1491,7 @@ namespace lsp
 
         // First step: split edges
         // Perform split of edges
-        RT_FOREACH(rt_edge_t, e, edge)
+        RT_FOREACH(rtm_edge_t, e, edge)
             e->ptag         = NULL; // Cleanup tag pointer
             if (e == ce) // Skip current edge
                 continue;
@@ -1519,7 +1519,7 @@ namespace lsp
                 case 0x8: // edge is crossing the plane, v0 is under, v1 is over
                 {
                     // Allocate split point
-                    rt_vertex_t *sp     = vertex.alloc();
+                    rtm_vertex_t *sp     = vertex.alloc();
                     if (sp == NULL)
                         return STATUS_NO_MEM;
                     dsp::calc_split_point_p2v1(sp, e->v[0], e->v[1], pl);
@@ -1545,7 +1545,7 @@ namespace lsp
         )
 
         // Toggle state of all triangles
-        RT_FOREACH(rt_triangle_t, st, triangle)
+        RT_FOREACH(rtm_triangle_t, st, triangle)
             st->ptag        = NULL; // Cleanup tag pointer
             // Detect position of triangle: over the plane or under the plane
             if (st->v[0]->itag != 1)
@@ -1572,7 +1572,7 @@ namespace lsp
             return res;
 
         RT_TRACE(debug,
-            RT_FOREACH(rt_triangle_t, t, triangle)
+            RT_FOREACH(rtm_triangle_t, t, triangle)
                 if (t->itag == 1)
                     ignore(t);
             RT_FOREACH_END
@@ -1617,11 +1617,11 @@ namespace lsp
              1 = on the culling plane
              2 = in (below culling plane), default
          */
-        RT_FOREACH(rt_triangle_t, t, triangle)
+        RT_FOREACH(rtm_triangle_t, t, triangle)
             t->itag     = 2;
         RT_FOREACH_END
 
-        rt_triangle_t *ct;
+        rtm_triangle_t *ct;
         vector3d_t pl;
         size_t itag;
 
@@ -1639,7 +1639,7 @@ namespace lsp
             // Select triangle for culling
             ct = NULL;
 
-            RT_FOREACH(rt_triangle_t, st, triangle)
+            RT_FOREACH(rtm_triangle_t, st, triangle)
                 if (st->itag == 2)
                 {
                     ct = st;
@@ -1659,7 +1659,7 @@ namespace lsp
                 trace.add_view_1c(&view, &C_MAGENTA);
                 for (size_t j=0; j<triangle.size(); ++j)
                 {
-                    rt_triangle_t *t = triangle.get(j);
+                    rtm_triangle_t *t = triangle.get(j);
                     trace.add_triangle_1c(t, (t == ct) ? &C_ORANGE : &C_YELLOW);
                 }
                 for (size_t j=0; j<edge.size(); ++j)
@@ -1668,13 +1668,13 @@ namespace lsp
             )
 
             // Estimate location of each vertex relative to the plane
-            RT_FOREACH(rt_vertex_t, sv, vertex)
+            RT_FOREACH(rtm_vertex_t, sv, vertex)
                 float t         = sv->x*pl.dx + sv->y*pl.dy + sv->z*pl.dz + pl.dw;
                 sv->itag        = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
             RT_FOREACH_END
 
             // Now process all triangles
-            RT_FOREACH(rt_triangle_t, st, triangle)
+            RT_FOREACH(rtm_triangle_t, st, triangle)
                 if (st->itag == 0) // Triangle is already 'out', skip
                     continue;
                 else if (st->face == ct->face) // Triangles laying on the same face are always considered to be 'on'
@@ -1701,7 +1701,7 @@ namespace lsp
                 trace.add_view_1c(&view, &C_MAGENTA);
                 for (size_t j=0; j<triangle.size(); ++j)
                 {
-                    rt_triangle_t *t = triangle.get(j);
+                    rtm_triangle_t *t = triangle.get(j);
                     trace.add_triangle_1c(t,
                             (t->itag == 0) ? &C_RED :
                             (t->itag == 1) ? &C_BLUE : &C_GREEN
@@ -1713,7 +1713,7 @@ namespace lsp
 
         // Trace all ignored triangles
         RT_TRACE(debug,
-            RT_FOREACH(rt_triangle_t, t, triangle)
+            RT_FOREACH(rtm_triangle_t, t, triangle)
                 if (t->itag != 1)
                     ignore(t);
             RT_FOREACH_END
@@ -1732,7 +1732,7 @@ namespace lsp
             trace.add_view_1c(&view, &C_MAGENTA);
             for (size_t j=0; j<triangle.size(); ++j)
             {
-                rt_triangle_t *t = triangle.get(j);
+                rtm_triangle_t *t = triangle.get(j);
                 trace.add_triangle_1c(t, &C_GREEN);
             }
             for (size_t j=0; j<edge.size(); ++j)
@@ -1785,7 +1785,7 @@ namespace lsp
             }
 
             // Allocate triangle and store pointer
-            rt_triangle_t *dt = triangle.alloc();
+            rtm_triangle_t *dt = triangle.alloc();
             if (dt == NULL)
                 return STATUS_NO_MEM;
 
@@ -1805,7 +1805,7 @@ namespace lsp
             for (size_t j=0; j<3; ++j)
             {
                 // Allocate vertex
-                rt_vertex_t *vx     = reinterpret_cast<rt_vertex_t *>(st->v[j]->ptag);
+                rtm_vertex_t *vx     = reinterpret_cast<rtm_vertex_t *>(st->v[j]->ptag);
                 if (st->v[j]->ptag == NULL)
                 {
                     vx              = vertex.alloc();
@@ -1823,7 +1823,7 @@ namespace lsp
                 }
 
                 // Allocate edge
-                rt_edge_t *ex       = reinterpret_cast<rt_edge_t *>(st->e[j]->ptag);
+                rtm_edge_t *ex       = reinterpret_cast<rtm_edge_t *>(st->e[j]->ptag);
                 if (ex == NULL)
                 {
                     ex              = edge.alloc();
@@ -1852,29 +1852,29 @@ namespace lsp
         // Patch edge structures and link to vertexes
         for (size_t i=start_e, n=edge.size(); i<n; ++i)
         {
-            rt_edge_t *de       = edge.get(i);
+            rtm_edge_t *de       = edge.get(i);
             obj_edge_t *se      = reinterpret_cast<obj_edge_t *>(de->ptag);
 
 //            lsp_trace("patching rt_edge[%p] with obj_edge[%p]", de, se);
-            de->v[0]            = reinterpret_cast<rt_vertex_t *>(se->v[0]->ptag);
-            de->v[1]            = reinterpret_cast<rt_vertex_t *>(se->v[1]->ptag);
+            de->v[0]            = reinterpret_cast<rtm_vertex_t *>(se->v[0]->ptag);
+            de->v[1]            = reinterpret_cast<rtm_vertex_t *>(se->v[1]->ptag);
         }
 
         // Patch triangle structures and link to edges
         for (size_t i=start_t, n=triangle.size(); i<n; ++i)
         {
-            rt_triangle_t *dt   = triangle.get(i);
+            rtm_triangle_t *dt   = triangle.get(i);
             obj_triangle_t *st  = reinterpret_cast<obj_triangle_t *>(dt->ptag);
 
 //            lsp_trace("patching rt_triangle[%p] with obj_triangle[%p]", dt, st);
 
-            dt->v[0]            = reinterpret_cast<rt_vertex_t *>(st->v[0]->ptag);
-            dt->v[1]            = reinterpret_cast<rt_vertex_t *>(st->v[1]->ptag);
-            dt->v[2]            = reinterpret_cast<rt_vertex_t *>(st->v[2]->ptag);
+            dt->v[0]            = reinterpret_cast<rtm_vertex_t *>(st->v[0]->ptag);
+            dt->v[1]            = reinterpret_cast<rtm_vertex_t *>(st->v[1]->ptag);
+            dt->v[2]            = reinterpret_cast<rtm_vertex_t *>(st->v[2]->ptag);
 
-            dt->e[0]            = reinterpret_cast<rt_edge_t *>(st->e[0]->ptag);
-            dt->e[1]            = reinterpret_cast<rt_edge_t *>(st->e[1]->ptag);
-            dt->e[2]            = reinterpret_cast<rt_edge_t *>(st->e[2]->ptag);
+            dt->e[0]            = reinterpret_cast<rtm_edge_t *>(st->e[0]->ptag);
+            dt->e[1]            = reinterpret_cast<rtm_edge_t *>(st->e[1]->ptag);
+            dt->e[2]            = reinterpret_cast<rtm_edge_t *>(st->e[2]->ptag);
 
             // Link triangle to the edge
             dt->elnk[0]         = dt->e[0]->vt;
@@ -1906,17 +1906,17 @@ namespace lsp
         if (n > 0)
         {
             // Cleanup tag pointers
-            RT_FOREACH(rt_vertex_t, v, src->vertex)
+            RT_FOREACH(rtm_vertex_t, v, src->vertex)
                 v->ptag = NULL;
             RT_FOREACH_END
 
-            RT_FOREACH(rt_edge_t, e, src->edge)
+            RT_FOREACH(rtm_edge_t, e, src->edge)
                 e->ptag = NULL;
             RT_FOREACH_END
 
             // Match triangles by object identifier
             size_t fetched = 0;
-            RT_FOREACH(rt_triangle_t, t, src->triangle)
+            RT_FOREACH(rtm_triangle_t, t, src->triangle)
                 t->ptag         = NULL; // Clean ptag
 
                 // Skip triangles that should be ignored
@@ -1956,13 +1956,13 @@ namespace lsp
         return STATUS_OK;
     }
 
-    ssize_t rt_context_t::linked_count(rt_triangle_t *t, rt_edge_t *e)
+    ssize_t rt_context_t::linked_count(rtm_triangle_t *t, rtm_edge_t *e)
     {
         if ((t == NULL) || (e == NULL))
             return -1;
 
         size_t n = 0;
-        for (rt_triangle_t *p = e->vt; p != NULL; )
+        for (rtm_triangle_t *p = e->vt; p != NULL; )
         {
             if ((p->e[0] == p->e[1]) || (p->e[0] == p->e[2]) || (p->e[1] == p->e[2]))
                 return -1;
@@ -1983,9 +1983,9 @@ namespace lsp
         return n;
     }
 
-    bool rt_context_t::validate_list(rt_edge_t *e)
+    bool rt_context_t::validate_list(rtm_edge_t *e)
     {
-        rt_triangle_t *t = e->vt;
+        rtm_triangle_t *t = e->vt;
         size_t n = 0;
 
         while (t != NULL)
@@ -2016,7 +2016,7 @@ namespace lsp
     {
         for (size_t i=0, n=vertex.size(); i<n; ++i)
         {
-            rt_vertex_t *v      = vertex.get(i);
+            rtm_vertex_t *v      = vertex.get(i);
             if (v == NULL)
                 return false;
 //            if (!validate_list(v))
@@ -2025,7 +2025,7 @@ namespace lsp
 
         for (size_t i=0, n=edge.size(); i<n; ++i)
         {
-            rt_edge_t *e        = edge.get(i);
+            rtm_edge_t *e        = edge.get(i);
             if (e == NULL)
                 return false;
             if (!validate_list(e))
@@ -2042,7 +2042,7 @@ namespace lsp
 
         for (size_t i=0, n=triangle.size(); i<n; ++i)
         {
-            rt_triangle_t *t    = triangle.get(i);
+            rtm_triangle_t *t    = triangle.get(i);
             if (t == NULL)
                 return false;
 
@@ -2066,7 +2066,7 @@ namespace lsp
         return true;
     }
 
-    status_t rt_context_t::ignore(const rt_triangle_t *t)
+    status_t rt_context_t::ignore(const rtm_triangle_t *t)
     {
         v_triangle3d_t vt;
         vt.p[0]     = *(t->v[0]);
@@ -2080,7 +2080,7 @@ namespace lsp
         return (ignored.add(&vt)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
-    status_t rt_context_t::match(const rt_triangle_t *t)
+    status_t rt_context_t::match(const rtm_triangle_t *t)
     {
         v_triangle3d_t vt;
         vt.p[0]     = *(t->v[0]);
@@ -2099,7 +2099,7 @@ namespace lsp
         printf("Vertexes (%d items):\n", int(vertex.size()));
         for (size_t i=0,n=vertex.size(); i<n; ++i)
         {
-            rt_vertex_t *vx = vertex.get(i);
+            rtm_vertex_t *vx = vertex.get(i);
             printf("  [%3d]: %p\n"
                    "    p:  (%.6f, %.6f, %.6f)\n",
                     int(i), vx,
@@ -2111,7 +2111,7 @@ namespace lsp
         printf("Edges (%d items):\n", int(edge.size()));
         for (size_t i=0,n=edge.size(); i<n; ++i)
         {
-            rt_edge_t *ex = edge.get(i);
+            rtm_edge_t *ex = edge.get(i);
             printf("  [%3d]: %p\n"
                    "    v:  [%d]-[%d]\n",
                    int(i), ex,
@@ -2124,7 +2124,7 @@ namespace lsp
         printf("Triangles (%d items):\n", int(triangle.size()));
         for (size_t i=0,n=triangle.size(); i<n; ++i)
         {
-            rt_triangle_t *vx = triangle.get(i);
+            rtm_triangle_t *vx = triangle.get(i);
             printf("  [%3d]: %p\n"
                    "    v:  [%d]-[%d]-[%d]\n"
                    "    e:  [%d]-[%d]-[%d]\n"
@@ -2145,7 +2145,7 @@ namespace lsp
         }
     }
 
-    void rt_context_t::dump_edge_list(size_t lvl, rt_edge_t *e)
+    void rt_context_t::dump_edge_list(size_t lvl, rtm_edge_t *e)
     {
         for (size_t i=0; i<lvl; ++i)
             printf(" ");
@@ -2159,7 +2159,7 @@ namespace lsp
             printf("e[%d]:\n", int(edge.index_of(e)));
     }
 
-    void rt_context_t::dump_triangle_list(size_t lvl, rt_triangle_t *t)
+    void rt_context_t::dump_triangle_list(size_t lvl, rtm_triangle_t *t)
     {
         for (size_t i=0; i<lvl; ++i)
             printf(" ");

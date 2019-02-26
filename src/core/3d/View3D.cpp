@@ -68,7 +68,7 @@ namespace lsp
         return vSegments.append(s);
     }
 
-    bool View3D::add_segment(const rt_edge_t *s, const color3d_t *c)
+    bool View3D::add_segment(const rtm_edge_t *s, const color3d_t *c)
     {
         v_segment3d_t xs;
         xs.p[0]     = *(s->v[0]);
@@ -79,7 +79,7 @@ namespace lsp
         return vSegments.append(&xs);
     }
 
-    bool View3D::add_segment(const rt_edge_t *s, const color3d_t *c1, const color3d_t *c2)
+    bool View3D::add_segment(const rtm_edge_t *s, const color3d_t *c1, const color3d_t *c2)
     {
         v_segment3d_t xs;
         xs.p[0]     = *(s->v[0]);
@@ -262,7 +262,7 @@ namespace lsp
         return true;
     }
 
-    bool View3D::add_triangle_3c(const rt_triangle_t *t, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2)
+    bool View3D::add_triangle_3c(const rtm_triangle_t *t, const color3d_t *c0, const color3d_t *c1, const color3d_t *c2)
     {
         v_vertex3d_t *v = vVertexes.append_n(3);
         if (v == NULL)
@@ -283,7 +283,7 @@ namespace lsp
         return true;
     }
 
-    bool View3D::add_triangle_1c(const rt_triangle_t *t, const color3d_t *c)
+    bool View3D::add_triangle_1c(const rtm_triangle_t *t, const color3d_t *c)
     {
         v_vertex3d_t *v = vVertexes.append_n(3);
         if (v == NULL)

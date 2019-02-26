@@ -39,13 +39,13 @@ namespace lsp
         protected:
             typedef struct rt_edge_sort_t
             {
-                rt_edge_t          *e;          // Pointer to edge
+                rtm_edge_t         *e;          // Pointer to edge
                 float               w;          // Weight of edge
             } rt_edge_sort_t;
 
             typedef struct rt_triangle_sort_t
             {
-                rt_triangle_t      *t;          // Pointer to triangle
+                rtm_triangle_t     *t;          // Pointer to triangle
                 float               w;          // Weight of edge
             } rt_triangle_sort_t;
 
@@ -53,9 +53,9 @@ namespace lsp
             rt_view_t                   view;       // Ray tracing point of view
             rt_context_state_t          state;      // Context state
 
-            Allocator3D<rt_vertex_t>    vertex;     // Collection of vertexes
-            Allocator3D<rt_edge_t>      edge;       // Collection of edges
-            Allocator3D<rt_triangle_t>  triangle;   // Collection of triangles
+            Allocator3D<rtm_vertex_t>   vertex;     // Collection of vertexes
+            Allocator3D<rtm_edge_t>     edge;       // Collection of edges
+            Allocator3D<rtm_triangle_t> triangle;   // Collection of triangles
 
             rt_debug_t                 *debug;      // Debug context
             cstorage<v_triangle3d_t>    matched;    // List of matched triangles (for debug)
@@ -76,31 +76,31 @@ namespace lsp
             static int      compare_edges(const void *p1, const void *p2);
             static int      compare_triangles(const void *p1, const void *p2);
 
-            static status_t arrange_triangle(rt_triangle_t *ct, rt_edge_t *e);
-//            static bool     unlink_edge(rt_edge_t *e, rt_vertex_t *v);
-            static bool     unlink_triangle(rt_triangle_t *t, rt_edge_t *e);
+            static status_t arrange_triangle(rtm_triangle_t *ct, rtm_edge_t *e);
+//            static bool     unlink_edge(rtm_edge_t *e, rtm_vertex_t *v);
+            static bool     unlink_triangle(rtm_triangle_t *t, rtm_edge_t *e);
 
-//            bool            validate_list(rt_vertex_t *v);
-            bool            validate_list(rt_edge_t *e);
-//            static ssize_t  linked_count(rt_edge_t *e, rt_vertex_t *v);
-            static ssize_t  linked_count(rt_triangle_t *t, rt_edge_t *e);
+//            bool            validate_list(rtm_vertex_t *v);
+            bool            validate_list(rtm_edge_t *e);
+//            static ssize_t  linked_count(rtm_edge_t *e, rtm_vertex_t *v);
+            static ssize_t  linked_count(rtm_triangle_t *t, rtm_edge_t *e);
 
-            status_t        split_edge(rt_edge_t* e, rt_vertex_t* sp);
-            status_t        split_triangle(rt_triangle_t* t, rt_vertex_t* sp);
+            status_t        split_edge(rtm_edge_t* e, rtm_vertex_t* sp);
+            status_t        split_triangle(rtm_triangle_t* t, rtm_vertex_t* sp);
 
             void            cleanup_tag_pointers();
-            status_t        fetch_triangle(rt_context_t *dst, rt_triangle_t *st);
-            status_t        fetch_triangle_safe(rt_context_t *dst, rt_triangle_t *st);
+            status_t        fetch_triangle(rt_context_t *dst, rtm_triangle_t *st);
+            status_t        fetch_triangle_safe(rt_context_t *dst, rtm_triangle_t *st);
             status_t        fetch_triangles(rt_context_t *dst, ssize_t itag);
             status_t        vfetch_triangles(rt_context_t *dst, size_t n, const ssize_t *itag);
             status_t        fetch_triangles_safe(rt_context_t *dst, ssize_t itag);
             status_t        vfetch_triangles_safe(rt_context_t *dst, size_t n, const ssize_t *itag);
             void            complete_fetch(rt_context_t *dst);
 
-            void            dump_edge_list(size_t lvl, rt_edge_t *e);
-            void            dump_triangle_list(size_t lvl, rt_triangle_t *t);
+            void            dump_edge_list(size_t lvl, rtm_edge_t *e);
+            void            dump_triangle_list(size_t lvl, rtm_triangle_t *t);
 
-            status_t        apply_edge_split(rt_context_t *out, rt_edge_t *ce, const vector3d_t *pl);
+            status_t        apply_edge_split(rt_context_t *out, rtm_edge_t *ce, const vector3d_t *pl);
 
         public:
             // Methods
@@ -215,14 +215,14 @@ namespace lsp
              * @param t triangle to add to list of ignored
              * @return status of operation
              */
-            status_t        ignore(const rt_triangle_t *t);
+            status_t        ignore(const rtm_triangle_t *t);
 
             /**
              * Add triangle to list of matched
              * @param t triangle to add to list of matched
              * @return status of operation
              */
-            status_t        match(const rt_triangle_t *t);
+            status_t        match(const rtm_triangle_t *t);
 
             /**
              * Dump context

@@ -102,9 +102,13 @@ namespace lsp
     } obj_boundbox_t;
 
     // Raytracing structures
-    struct rt_vertex_t;
-    struct rt_edge_t;
-    struct rt_triangle_t;
+    struct rt_split_t;
+    struct rt_material_t;
+    struct rt_view_t;
+
+    struct rtm_vertex_t;
+    struct rtm_edge_t;
+    struct rtm_triangle_t;
 
     enum edge_flags_t
     {
@@ -112,19 +116,12 @@ namespace lsp
         RT_EF_APPLY         = 1 << 1,       // The flag that requires the edge to be applied
     };
 
-    struct rt_vertex_t;
-    struct rt_edge_t;
-    struct rt_triangle_t;
-    struct rt_view_t;
-    struct rt_material_t;
-
-    /**
-     * Capture function
-     * @param v the ray-tracing view that captured the energy
-     * @param data user data
-     * @return status of operation
-     */
-    typedef status_t (*rt_capture_t)(const rt_view_t *v, void *data);
+    enum rt_split_flags_t
+    {
+        SF_CULLBACK         = 1 << 0,   // Need to perform cullback after split
+        SF_APPLIED          = 1 << 1,   // Already has been applied
+        SF_REMOVE           = 1 << 2,   // Remove the edge from the plan
+    };
 
     /**
      * Progress reporting function
@@ -135,13 +132,6 @@ namespace lsp
     typedef status_t (*rt_progress_t)(float progress, void *data);
 
 #pragma pack(push, 1)
-    enum rt_split_flags_t
-    {
-        SF_CULLBACK         = 1 << 0,   // Need to perform cullback after split
-        SF_APPLIED          = 1 << 1,   // Already has been applied
-        SF_REMOVE           = 1 << 2,   // Remove the edge from the plan
-    };
-
     typedef struct rt_split_t
     {
         point3d_t       p[2];           // Split points
@@ -151,37 +141,36 @@ namespace lsp
         __IF_32(uint32_t    __pad[3];)  // Alignment to be sizeof() multiple of 16
     } rt_split_t;
 
-    typedef struct rt_vertex_t: public point3d_t
+    typedef struct rtm_vertex_t: public point3d_t
     {
         void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
         ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
         __IF_32(uint32_t    __pad[2];)  // Alignment to be sizeof() multiple of 16
-    } rt_vertex_t;
+    } rtm_vertex_t;
 
-    typedef struct rt_edge_t
+    typedef struct rtm_edge_t
     {
-        rt_vertex_t        *v[2];       // Pointers to vertexes
-        rt_triangle_t      *vt;         // List of linked triangles
+        rtm_vertex_t       *v[2];       // Pointers to vertexes
+        rtm_triangle_t     *vt;         // List of linked triangles
         void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
         ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
-//        rt_edge_t          *vlnk[2];    // Link to next edge for the vertex v[i]
         __IF_64(uint64_t    __pad;)     // Alignment to be sizeof() multiple of 16
         __IF_32(uint32_t    __pad[3];)  // Alignment to be sizeof() multiple of 16
-    } rt_edge_t;
+    } rtm_edge_t;
 
-    typedef struct rt_triangle_t
+    typedef struct rtm_triangle_t
     {
         vector3d_t          n;          // Normal
-        rt_vertex_t        *v[3];       // Vertexes
-        rt_edge_t          *e[3];       // Edges
-        rt_triangle_t      *elnk[3];    // Link to next triangle for the edge e[i]
+        rtm_vertex_t       *v[3];       // Vertexes
+        rtm_edge_t         *e[3];       // Edges
+        rtm_triangle_t     *elnk[3];    // Link to next triangle for the edge e[i]
         void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
         ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
         ssize_t             oid;        // Object identifier
         ssize_t             face;       // Object's face identifier
         rt_material_t      *m;          // Material
         __IF_32(uint32_t    __pad[2];)  // Alignment to be sizeof() multiple of 16
-    } rt_triangle_t;
+    } rtm_triangle_t;
 
     typedef struct rt_view_t
     {
@@ -192,7 +181,6 @@ namespace lsp
         float               speed;      // This value indicates the current sound speed [m/s]
         ssize_t             oid;        // Object identifier
         ssize_t             face;       // Object's face to ignore
-//        float               energy;     // The energy of the wave, can have both positive and negative signs (if reflected)
         ssize_t             rnum;       // The reflection number
     } rt_view_t;
 

@@ -22,9 +22,9 @@ MTEST_BEGIN("core.3d", raytrace)
     MTEST_MAIN
     {
         // Perform assertions
-        MTEST_ASSERT_MSG(!(sizeof(rt_vertex_t) & 0x0f), "sizeof(rt_vertex_t) = 0x%x", int(sizeof(rt_vertex_t)));
-        MTEST_ASSERT_MSG(!(sizeof(rt_edge_t) & 0x0f), "sizeof(rt_edge_t) = 0x%x", int(sizeof(rt_edge_t)));
-        MTEST_ASSERT_MSG(!(sizeof(rt_triangle_t) & 0x0f), "sizeof(rt_triangle_t) = 0x%x", int(sizeof(rt_triangle_t)));
+        MTEST_ASSERT_MSG(!(sizeof(rtm_vertex_t) & 0x0f), "sizeof(rt_vertex_t) = 0x%x", int(sizeof(rtm_vertex_t)));
+        MTEST_ASSERT_MSG(!(sizeof(rtm_edge_t) & 0x0f), "sizeof(rt_edge_t) = 0x%x", int(sizeof(rtm_edge_t)));
+        MTEST_ASSERT_MSG(!(sizeof(rtm_triangle_t) & 0x0f), "sizeof(rt_triangle_t) = 0x%x", int(sizeof(rtm_triangle_t)));
 
         // Load scene
         Scene3D scene;

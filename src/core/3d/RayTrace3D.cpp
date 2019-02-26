@@ -1063,7 +1063,7 @@ namespace lsp
 
         for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
         {
-            rt_triangle_t *ct = ctx->triangle.get(i);
+            rtm_triangle_t *ct = ctx->triangle.get(i);
 //            ctx->match(ctx->triangle.get(i));
 
             // get material
