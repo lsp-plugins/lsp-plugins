@@ -1294,12 +1294,12 @@ namespace lsp
         }
 
         // Estimate the culling sample number
-        ssize_t csn;
+        ssize_t csn, ssn;
         if ((tsn[0] < tsn[1]) && (tsn[0] < tsn[2]))
             csn     = tsn[0];
         else
             csn     = (tsn[1] < tsn[2]) ? tsn[1] : tsn[2];
-        ++csn;                                              // Culling sample number
+        ssn = csn++;                                        // Culling sample number
 
         // Perform integration
         vector3d_t spl;
@@ -1359,8 +1359,6 @@ namespace lsp
                 )
 
                 // Deploy energy value to the sample
-                lsp_trace("Sample %d -> amplitude=%e rnum=%d", int(csn-1), amplitude, int(v->rnum));
-
                 if (csn > 0)
                 {
                     // Append sample to each matching capture
@@ -1392,6 +1390,9 @@ namespace lsp
 
             ++csn; // Increment culling sample number for next iteration
         } while (n_out > 0);
+
+        lsp_trace("Samples %d-%d -> area=%e amplitude=%e rnum=%d",
+                int(ssn), int(csn-1), v_area, v->amplitude * capture->volume, int(v->rnum));
 
         return STATUS_OK;
     }

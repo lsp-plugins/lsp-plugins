@@ -1277,8 +1277,8 @@ namespace lsp
         //  2   = triangle is 'in'
         RT_FOREACH(rt_vertex_t, v, vertex)
             float t         = v->x*pl->dx + v->y*pl->dy + v->z*pl->dz + pl->dw;
-            v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
             v->ptag         = NULL; // Cleanup tag pointer
+            v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
 		RT_FOREACH_END
 
         // First step: split edges
@@ -1482,8 +1482,8 @@ namespace lsp
         //  2   = triangle is 'in'
         RT_FOREACH(rt_vertex_t, v, vertex)
             float t         = v->x*pl->dx + v->y*pl->dy + v->z*pl->dz + pl->dw;
-            v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
             v->ptag         = NULL; // Cleanup tag pointer
+            v->itag         = (t < -DSP_3D_TOLERANCE) ? 2 : (t > DSP_3D_TOLERANCE) ? 0 : 1;
         RT_FOREACH_END
 
         // Reset all flags of edges
