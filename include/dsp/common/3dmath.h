@@ -965,6 +965,16 @@ namespace dsp
     extern float (* calc_min_distance_p3)(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
 
     /**
+     * Estimate the shortest distance to triangle
+     * @param sp projection point
+     * @param p0 point 0 of triangle
+     * @param p1 point 1 of triangle
+     * @param p2 point 2 of triangle
+     * @return shortest distance
+     */
+    extern float (* calc_min_distance_pv)(const point3d_t *sp, const point3d_t *pv);
+
+    /**
      * Estimate the average distance to triangle
      * @param sp projection point
      * @param p0 point 0 of triangle

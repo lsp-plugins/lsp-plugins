@@ -2677,6 +2677,35 @@ namespace native
         return (d[1] <= d[2]) ? d[1] : d[2];
     }
 
+    float calc_min_distance_pv(const point3d_t *sp, const point3d_t *p)
+    {
+        vector3d_t v[3];
+        float d[3];
+
+        v[0].dx     = sp->x - p[0].x;
+        v[0].dy     = sp->y - p[0].y;
+        v[0].dz     = sp->z - p[0].z;
+        v[0].dw     = 0.0f;
+
+        v[1].dx     = sp->x - p[1].x;
+        v[1].dy     = sp->y - p[1].y;
+        v[1].dz     = sp->z - p[1].z;
+        v[1].dw     = 0.0f;
+
+        v[2].dx     = sp->x - p[2].x;
+        v[2].dy     = sp->y - p[2].y;
+        v[2].dz     = sp->z - p[2].z;
+        v[2].dw     = 0.0f;
+
+        d[0]        = sqrtf(v[0].dx*v[0].dx + v[0].dy*v[0].dy + v[0].dz * v[0].dz);
+        d[1]        = sqrtf(v[1].dx*v[1].dx + v[1].dy*v[1].dy + v[1].dz * v[1].dz);
+        d[2]        = sqrtf(v[2].dx*v[2].dx + v[2].dy*v[2].dy + v[2].dz * v[2].dz);
+
+        if ((d[0] <= d[1]) && (d[0] <= d[2]))
+            return d[0];
+        return (d[1] <= d[2]) ? d[1] : d[2];
+    }
+
     float calc_avg_distance_p3(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
     {
         point3d_t p;

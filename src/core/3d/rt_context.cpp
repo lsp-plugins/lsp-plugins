@@ -131,12 +131,12 @@ namespace lsp
                         // Add edges to plan
                         spl     = NULL;
                         for (size_t k=0; k<3; ++k)
-                            if (t->e[k]->itag)
+                            if (t->e[k]->itag) // Add only unique edges
                             {
-                                spl     = plan.add_edge(t->e[k]->v[0], t->e[k]->v[1], &t->n);
+                                t->e[k]->itag   = 0;
+                                spl             = plan.add_edge(t->e[k]->v[0], t->e[k]->v[1], &t->n);
                                 if (!spl)
                                     return STATUS_NO_MEM;
-                                t->e[k]->itag   = 0;
                             }
 
                         if (spl != NULL)
@@ -584,6 +584,27 @@ namespace lsp
         xout.swap(&out->triangle);
 
         return plan.split(&out->plan, pl);
+    }
+
+    status_t rt_context_t::depth_test(const point3d_t *sp)
+    {
+        if (triangle.size() <= 1)
+            return STATUS_OK;
+
+        // Find the nearest to the point of view triangle
+        rt_triangle_t *st = triangle.get(0);
+        float dmin = dsp::calc_min_distance_pv(sp, st->v);
+
+        RT_FOREACH(rt_triangle_t, t, triangle)
+            float d = dsp::calc_min_distance_pv(sp, t->v);
+            if (d < dmin)
+                st = t;
+        RT_FOREACH_END;
+
+        // Build plane equation and perform cull-back
+        vector3d_t v;
+        dsp::orient_plane_v1p1(&v, sp, &st->n);
+        return cullback(&v);
     }
 
 #if 0
