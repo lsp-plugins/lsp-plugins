@@ -1093,7 +1093,7 @@ namespace lsp
         double omega    = 2.0 * M_PI * fp->fFreq / double(nSampleRate);
         double cs       = sin(omega);
         double cc       = sqrt(1.0 - cs * cs); // cos(omega);
-        double alpha    = 0.5 * cs / fp->fQuality;
+        double alpha    = (fp->fQuality > 0.0f) ? 0.5 * cs / fp->fQuality : 1e-3; // Cannot afford Q == 0.0f
 
         // In LSP convention, the b coefficients are in the denominator. The a coefficients are in the
         // numerator. This is opposite to the most usual convention.
@@ -1103,10 +1103,10 @@ namespace lsp
         {
             case FLT_DR_APO_LOPASS:
             {
-                double A = pow(10.0, fp->fGain / 20.0);
+                double A = fp->fGain;
 
-                a0 = 0.5 * (1 - cc);
-                a1 = 1.0 - cc;
+                a0 = A * 0.5 * (1 - cc);
+                a1 = A * (1.0 - cc);
                 a2 = a0;
                 b0 = 1 + alpha;
                 b1 = -2.0 * cc;
@@ -1117,10 +1117,10 @@ namespace lsp
 
             case FLT_DR_APO_HIPASS:
             {
-                double A = pow(10.0, fp->fGain / 20.0);
+                double A = fp->fGain;
 
-                a0 = 0.5 * (1.0 + cc);
-                a1 = -1.0 - cc;
+                a0 = A * 0.5 * (1.0 + cc);
+                a1 = A * (-1.0 - cc);
                 a2 = a0;
                 b0 = 1.0 + alpha;
                 b1 = -2.0 * cc;
@@ -1131,11 +1131,11 @@ namespace lsp
 
             case FLT_DR_APO_BANDPASS:
             {
-                double A = pow(10.0, fp->fGain / 20.0);
+                double A = fp->fGain;
 
-                a0 = alpha;
+                a0 = A * alpha;
                 a1 = 0.0;
-                a2 = -alpha;
+                a2 = A * -alpha;
                 b0 = 1.0 + alpha;
                 b1 = -2.0 * cc;
                 b2 = 1 - alpha;
@@ -1145,11 +1145,11 @@ namespace lsp
 
             case FLT_DR_APO_NOTCH:
             {
-                double A = pow(10.0, fp->fGain / 20.0);
+                double A = fp->fGain;
 
-                a0 = 1.0;
-                a1 = -2.0 * cc;
-                a2 = 1.0;
+                a0 = A;
+                a1 = A * -2.0 * cc;
+                a2 = a0;
                 b0 = 1.0 + alpha;
                 b1 = -2.0 * cc;
                 b2 = 1.0 - alpha;
@@ -1159,11 +1159,11 @@ namespace lsp
 
             case FLT_DR_APO_ALLPASS:
             {
-                double A = pow(10.0, fp->fGain / 20.0);
+                double A = fp->fGain;
 
-                a0 = 1.0 - alpha;
-                a1 = -2.0 * cc;
-                a2 = 1.0 + alpha;
+                a0 = A * (1.0 - alpha);
+                a1 = A * -2.0 * cc;
+                a2 = A * (1.0 + alpha);
                 b0 = a2;
                 b1 = a1;
                 b2 = a0;
@@ -1173,13 +1173,13 @@ namespace lsp
 
             case FLT_DR_APO_PEAKING:
             {
-                double A = pow(10.0, fp->fGain / 40.0);
+                double A = sqrt(fp->fGain);
 
                 a0 = 1.0 + alpha * A;
                 a1 = -2.0 * cc;
                 a2 = 1.0 - alpha * A;
                 b0 = 1.0 + alpha / A;
-                b1 = -2.0 * cs;
+                b1 = a1;
                 b2 = 1.0 - alpha / A;
 
                 break;
@@ -1187,7 +1187,7 @@ namespace lsp
 
             case FLT_DR_APO_LOSHELF:
             {
-                double A    = pow(10.0, fp->fGain / 40.0);
+                double A    = sqrt(fp->fGain);
                 double beta = 2.0 * alpha * sqrt(A);
 
                 a0 = A * ((A + 1.0) - (A - 1.0) * cc + beta);
@@ -1202,7 +1202,7 @@ namespace lsp
 
             case FLT_DR_APO_HISHELF:
             {
-                double A    = pow(10.0, fp->fGain / 40.0);
+                double A    = sqrt(fp->fGain);
                 double beta = 2.0 * alpha * sqrt(A);
 
                 a0 = A * ((A + 1.0) + (A - 1.0) * cc + beta);
@@ -1220,15 +1220,17 @@ namespace lsp
         if (f == NULL)
             return;
 
-        f->a[0]         = a0 / b0;
-        f->a[1]         = f->a[0];
-        f->a[2]         = a1 / b0;
-        f->a[3]         = a2 / b0;
+        // Storing with appropriate normalisation and sign as required by biquad_process_x1().
 
-        f->b[0]         = b1 / b0;
-        f->b[1]         = b2 / b0;
-        f->b[2]         = 0.0f;
-        f->b[3]         = 0.0f;
+        f->a[0] = a0 / b0;
+        f->a[1] = f->a[0];
+        f->a[2] = a1 / b0;
+        f->a[3] = a2 / b0;
+
+        f->b[0] = -b1 / b0;
+        f->b[1] = -b2 / b0;
+        f->b[2] = 0.0f;
+        f->b[3] = 0.0f;
 
     }
 
