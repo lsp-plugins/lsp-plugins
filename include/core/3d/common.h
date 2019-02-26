@@ -135,6 +135,14 @@ namespace lsp
     typedef status_t (*rt_progress_t)(float progress, void *data);
 
 #pragma pack(push, 1)
+    typedef struct rt_split_t
+    {
+        point3d_t       p[2];           // Split points
+        ssize_t         itag;           // Tag
+        __IF_64(uint64_t    __pad;)     // Alignment to be sizeof() multiple of 16
+        __IF_32(uint32_t    __pad[3];)  // Alignment to be sizeof() multiple of 16
+    } rt_split_t;
+
     typedef struct rt_vertex_t: public point3d_t
     {
         void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose

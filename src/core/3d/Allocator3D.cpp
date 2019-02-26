@@ -86,6 +86,39 @@ namespace lsp
         return p;
     }
 
+    size_t BasicAllocator3D::do_alloc_n(void **ptr, size_t n)
+    {
+        size_t left = n;
+
+        while (left > 0)
+        {
+            // Try to allocate from current chunk
+            if (nLeft <= 0)
+            {
+                pCurr           = get_chunk(nAllocated >> nShift);
+                if (pCurr == NULL)
+                    break;
+                nLeft           = (1 << nShift);
+            }
+
+            // Allocate N items
+            size_t to_alloc = (nLeft > n) ? n : nLeft;
+            nLeft      -= to_alloc;
+            nAllocated += to_alloc;
+
+            uint8_t *p      = pCurr;
+            while (to_alloc--)
+            {
+                *(ptr++)        = p;
+                p              += nSizeOf;
+            }
+
+            pCurr       = p;
+        }
+
+        return n - left;
+    }
+
     ssize_t BasicAllocator3D::do_ialloc(void **p)
     {
         // Try to allocate from current chunk

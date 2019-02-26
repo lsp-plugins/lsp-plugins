@@ -35,7 +35,7 @@ namespace lsp
             ssize_t     do_ialloc(void **p);
             void       *do_get(size_t idx);
             void        do_destroy();
-            size_t     *do_alloc_n(void **ptr, size_t n);
+            size_t      do_alloc_n(void **ptr, size_t n);
             void        do_swap(BasicAllocator3D *alloc);
             bool        do_validate(const void *ptr) const;
             ssize_t     calc_index_of(const void *ptr) const;
@@ -118,11 +118,11 @@ namespace lsp
 
                 /**
                  * Allocate set of items
-                 * @param retval pointer to store results
+                 * @param retval pointer to store pointers to allocated elements
                  * @param n number of elements to allocate
                  * @return actual number of allocated items
                  */
-                inline size_t alloc_n(T **retval, size_t n) { return do_alloc_n(retval, n); }
+                inline size_t alloc_n(T **retval, size_t n) { return do_alloc_n(reinterpret_cast<void **>(retval), n); }
 
                 /**
                  * Get number of allocated items
