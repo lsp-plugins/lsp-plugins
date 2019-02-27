@@ -2724,7 +2724,7 @@ namespace native
         return sqrtf(d.dx * d.dx + d.dy * d.dy + d.dz * d.dz);
     }
 
-    void  calc_split_point_p2v1(point3d_t *sp, const point3d_t *l0, const point3d_t *l1, const vector3d_t *pl)
+    void calc_split_point_p2v1(point3d_t *sp, const point3d_t *l0, const point3d_t *l1, const vector3d_t *pl)
     {
         vector3d_t d;
         d.dx        = l1->x - l0->x;
@@ -2742,23 +2742,23 @@ namespace native
         sp->w       = 1.0f;
     }
 
-    void  calc_split_point_pvv1(point3d_t *sp, const point3d_t *lv, const vector3d_t *pl)
-        {
-            vector3d_t d;
-            d.dx        = lv[1].x - lv[0].x;
-            d.dy        = lv[1].y - lv[0].y;
-            d.dz        = lv[1].z - lv[0].z;
-            d.dw        = 0.0f;
+    void calc_split_point_pvv1(point3d_t *sp, const point3d_t *lv, const vector3d_t *pl)
+    {
+        vector3d_t d;
+        d.dx        = lv[1].x - lv[0].x;
+        d.dy        = lv[1].y - lv[0].y;
+        d.dz        = lv[1].z - lv[0].z;
+        d.dw        = 0.0f;
 
-            float t     = (lv[0].x*pl->dx + lv[0].y*pl->dy + lv[0].z*pl->dz + pl->dw) /
-                          (pl->dx*d.dx + pl->dy*d.dy + pl->dz*d.dz);
+        float t     = (lv[0].x*pl->dx + lv[0].y*pl->dy + lv[0].z*pl->dz + pl->dw) /
+                      (pl->dx*d.dx + pl->dy*d.dy + pl->dz*d.dz);
 
-            // Compute split point
-            sp->x       = lv[0].x - d.dx * t;
-            sp->y       = lv[0].y - d.dy * t;
-            sp->z       = lv[0].z - d.dz * t;
-            sp->w       = 1.0f;
-        }
+        // Compute split point
+        sp->x       = lv[0].x - d.dx * t;
+        sp->y       = lv[0].y - d.dy * t;
+        sp->z       = lv[0].z - d.dz * t;
+        sp->w       = 1.0f;
+    }
 
     float calc_distance_p2(const point3d_t *p1, const point3d_t *p2)
     {
