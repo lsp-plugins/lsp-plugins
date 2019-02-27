@@ -31,14 +31,14 @@ MTEST_BEGIN("core.3d", raytrace)
             const char *arg = argv[i++];
             if (!strcmp(arg, "--threads"))
             {
-                MTEST_ASSERT((++i) < argc);
-                nthreads = atoi(argv[i]);
+                MTEST_ASSERT(i < argc);
+                nthreads = atoi(argv[i++]);
                 MTEST_ASSERT(nthreads >= 0);
             }
             else if (!strcmp(arg, "--outfile"))
             {
-                MTEST_ASSERT((++i) < argc);
-                MTEST_ASSERT(path.set_native(argv[i]));
+                MTEST_ASSERT(i < argc);
+                MTEST_ASSERT(path.set_native(argv[i++]));
             }
             else
             {
