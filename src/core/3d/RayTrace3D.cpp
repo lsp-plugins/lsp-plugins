@@ -321,33 +321,6 @@ namespace lsp
         // Clear contents of the root context
         root.clear();
 
-        // Add scene objects
-        for (size_t i=0, n=trace->pScene->num_objects(); i<n; ++i, ++obj_id)
-        {
-            // Get object
-            Object3D *obj       = trace->pScene->object(i);
-            if (obj == NULL)
-                return STATUS_BAD_STATE;
-            else if (!obj->is_visible()) // Skip invisible objects
-                continue;
-
-            // Get material
-            rt_material_t *m    = trace->vMaterials.get(i);
-            if (m == NULL)
-                return STATUS_BAD_STATE;
-
-            // Add object to context
-            res         = root.add_object(obj, obj_id, obj->matrix(), m);
-            if (res != STATUS_OK)
-                return res;
-        }
-
-        RT_TRACE_BREAK(trace->pDebug,
-            lsp_trace("Prepared scene (%d triangles)", int(root.triangle.size()));
-            for (size_t i=0,n=root.triangle.size(); i<n; ++i)
-                trace->pDebug->trace.add_triangle_3c(root.triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
-        );
-
         // Add capture objects as fake icosphere objects
         for (size_t i=0, n=trace->vCaptures.size(); i<n; ++i, ++obj_id)
         {
@@ -382,6 +355,33 @@ namespace lsp
             if (res != STATUS_OK)
                 return res;
         }
+
+        // Add scene objects
+        for (size_t i=0, n=trace->pScene->num_objects(); i<n; ++i, ++obj_id)
+        {
+            // Get object
+            Object3D *obj       = trace->pScene->object(i);
+            if (obj == NULL)
+                return STATUS_BAD_STATE;
+            else if (!obj->is_visible()) // Skip invisible objects
+                continue;
+
+            // Get material
+            rt_material_t *m    = trace->vMaterials.get(i);
+            if (m == NULL)
+                return STATUS_BAD_STATE;
+
+            // Add object to context
+            res         = root.add_object(obj, obj_id, obj->matrix(), m);
+            if (res != STATUS_OK)
+                return res;
+        }
+
+        RT_TRACE_BREAK(trace->pDebug,
+            lsp_trace("Prepared scene (%d triangles)", int(root.triangle.size()));
+            for (size_t i=0,n=root.triangle.size(); i<n; ++i)
+                trace->pDebug->trace.add_triangle_3c(root.triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+        );
 
         // Normalize capture volume
 //        for (size_t i=0, n=vCaptures.size(); i<n; ++i, ++obj_id)
@@ -437,6 +437,27 @@ namespace lsp
         size_t n_objs       = 0;
         size_t obj_id       = 0;
 
+        // Add all captures
+        for (size_t i=0, n=trace->vCaptures.size(); i<n; ++i, ++obj_id)
+        {
+            capture_t *cap      = trace->vCaptures.get(i);
+            if (cap == NULL)
+                return STATUS_BAD_STATE;
+
+            Object3D *obj       = factory.buildIcosphere(1);
+            if (obj == NULL)
+                return STATUS_NO_MEM;
+
+            // Add capture identifier to list of visible objects
+            res     =  check_object(ctx, obj, &cap->matrix);
+            if (res == STATUS_OK)
+                objs[n_objs++]      = obj_id;
+            else if (res == STATUS_SKIP)
+                res                 = STATUS_OK;
+            else
+                return res;
+        }
+
         // Iterate all object and add to the context if the object is potentially participating the ray tracing algorithm
         for (size_t i=0, n=trace->pScene->num_objects(); i<n; ++i, ++obj_id)
         {
@@ -454,27 +475,6 @@ namespace lsp
 
             // Add object identifier to list of visible objects
             res     =  check_object(ctx, obj, obj->matrix());
-            if (res == STATUS_OK)
-                objs[n_objs++]      = obj_id;
-            else if (res == STATUS_SKIP)
-                res                 = STATUS_OK;
-            else
-                return res;
-        }
-
-        // Add all captures
-        for (size_t i=0, n=trace->vCaptures.size(); i<n; ++i)
-        {
-            capture_t *cap      = trace->vCaptures.get(i);
-            if (cap == NULL)
-                return STATUS_BAD_STATE;
-
-            Object3D *obj       = factory.buildIcosphere(1);
-            if (obj == NULL)
-                return STATUS_NO_MEM;
-
-            // Add capture identifier to list of visible objects
-            res     =  check_object(ctx, obj, &cap->matrix);
             if (res == STATUS_OK)
                 objs[n_objs++]      = obj_id;
             else if (res == STATUS_SKIP)
@@ -771,10 +771,9 @@ namespace lsp
             }
 
             // Perform capture
-            ssize_t capture_id = ct->oid - trace->pScene->num_objects();
-            if (capture_id >= 0)
+            if (ct->oid < trace->vCaptures.size())
             {
-                capture_t *cap  = trace->vCaptures.get(capture_id);
+                capture_t *cap  = trace->vCaptures.get(ct->oid);
                 if (cap == NULL)
                     res = STATUS_CORRUPTED;
                 else if (cap->bindings.size() > 0)
