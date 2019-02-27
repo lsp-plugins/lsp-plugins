@@ -1358,9 +1358,7 @@ namespace lsp
                 {
                     // Perform synchronized capturing
                     ++stats->calls_capture;
-                    lkCapture.lock();
                     res = capture(cap, &cv, &ctx->trace);
-                    lkCapture.unlock();
                 }
                 else
                     res = STATUS_OK;
@@ -1521,6 +1519,9 @@ namespace lsp
                 // Deploy energy value to the sample
                 if (csn > 0)
                 {
+                    // Lock capture data
+                    lkCapture.lock();
+
                     // Append sample to each matching capture
                     for (size_t ci=0, cn=capture->bindings.size(); ci<cn; ++ci)
                     {
@@ -1545,6 +1546,9 @@ namespace lsp
                         float *buf  = s->sample->getBuffer(s->channel);
                         buf[csn-1] += amplitude;
                     }
+
+                    // Unlock capture data
+                    lkCapture.unlock();
                 }
             }
 
