@@ -48,6 +48,126 @@ namespace lsp
         return res;
     }
 
+    status_t RayTrace3D::TaskThread::main_loop(cvector<rt_context_t> *tasks, stats_t *stats)
+    {
+        rt_context_t *ctx;
+        bool report         = false;
+        status_t res        = STATUS_OK;
+
+        // Perform main loop of raytracing
+        while (true)
+        {
+            // Check cancellation flag
+            if ((bCancelled) || (bFailed))
+            {
+                res = STATUS_CANCELLED;
+                break;
+            }
+
+            // Try to fetch new task from internal queue
+            if (!tasks->pop(&ctx))
+            {
+                // Check size of collection
+                if (tasks->size() > 0)
+                    return STATUS_CORRUPTED;
+
+                // We could not obtain new task from internal queue, steal if from common queue
+                lkTasks.lock();
+                if (!vTasks.pop(&ctx))
+                {
+                    if (vTasks.size() > 0)
+                        res = STATUS_CORRUPTED;
+                    lkTasks.unlock();
+                    break;
+                }
+
+                report      = true;
+                lkTasks.unlock();
+
+                // Update number of stolen tasks
+                ++stats->tasks_stolen;
+            }
+
+            // Process context state
+            res     = process_context(tasks, stats, ctx);
+
+            // Report status if required
+            if ((res == STATUS_OK) && (report))
+            {
+                report      = false;
+                lkTasks.lock();
+
+                float prg   = float(nProgressPoints) / float(nProgressMax);
+                lsp_trace("Reporting progress %d/%d = %.2f%%", int(nProgressPoints), int(nProgressMax), prg * 100.0f);
+                ++nProgressPoints;
+
+                res         = trace->report_progress(prg);
+
+                lkTasks.unlock();
+            }
+
+            if (res != STATUS_OK)
+            {
+                bFailed     = true; // Report fail status if at least one thread has failed
+                break;
+            }
+        }
+
+        return res;
+    }
+
+    status_t RayTrace3D::TaskThread::process_context(cvector<rt_context_t> *tasks, stats_t *stats, rt_context_t *ctx)
+    {
+        status_t res;
+
+        switch (ctx->state)
+        {
+            case S_SCAN_OBJECTS:
+                ++stats->calls_scan;
+                res     = scan_objects(tasks, ctx);
+                break;
+            case S_CULL_VIEW:
+                ++stats->calls_cull;
+                res     = cull_view(tasks, ctx);
+                break;
+            case S_SPLIT:
+                ++stats->calls_split;
+                res     = split_view(tasks, ctx);
+                break;
+            case S_CULL_BACK:
+                ++stats->calls_cullback;
+                res     = cullback_view(tasks, ctx);
+                break;
+            case S_REFLECT:
+                ++stats->calls_reflect;
+                res     = reflect_view(tasks, stats, ctx);
+                break;
+            default:
+                res = STATUS_BAD_STATE;
+                break;
+        }
+
+        // Analyze status
+        RT_TRACE(pDebug,
+            if (res == STATUS_BREAKPOINT)
+            {
+                pDebug->ignored.swap(&ctx->ignored);
+                pDebug->trace.swap(&ctx->trace);
+            }
+        )
+
+        // Force context to be deleted
+        if (res != STATUS_OK)
+            delete ctx;
+
+        return res;
+    }
+
+
+
+
+
+
     RayTrace3D::RayTrace3D()
     {
         pScene          = NULL;
@@ -311,53 +431,6 @@ namespace lsp
         return pProgress(progress, pProgressData);
     }
 
-    status_t RayTrace3D::process_context(cvector<rt_context_t> *tasks, stats_t *stats, rt_context_t *ctx)
-    {
-        status_t res;
-
-        switch (ctx->state)
-        {
-            case S_SCAN_OBJECTS:
-                ++stats->calls_scan;
-                res     = scan_objects(tasks, ctx);
-                break;
-            case S_CULL_VIEW:
-                ++stats->calls_cull;
-                res     = cull_view(tasks, ctx);
-                break;
-            case S_SPLIT:
-                ++stats->calls_split;
-                res     = split_view(tasks, ctx);
-                break;
-            case S_CULL_BACK:
-                ++stats->calls_cullback;
-                res     = cullback_view(tasks, ctx);
-                break;
-            case S_REFLECT:
-                ++stats->calls_reflect;
-                res     = reflect_view(tasks, stats, ctx);
-                break;
-            default:
-                res = STATUS_BAD_STATE;
-                break;
-        }
-
-        // Analyze status
-        RT_TRACE(pDebug,
-            if (res == STATUS_BREAKPOINT)
-            {
-                pDebug->ignored.swap(&ctx->ignored);
-                pDebug->trace.swap(&ctx->trace);
-            }
-        )
-
-        // Force context to be deleted
-        if (res != STATUS_OK)
-            delete ctx;
-
-        return res;
-    }
-
     status_t RayTrace3D::prepare_main_loop(float initial, stats_t *stats)
     {
         // Intialize
@@ -461,74 +534,6 @@ namespace lsp
         vTasks.swap_data(&tasks);
 
         return STATUS_OK;
-    }
-
-    status_t RayTrace3D::main_loop(cvector<rt_context_t> *tasks, stats_t *stats)
-    {
-        rt_context_t *ctx;
-        bool report         = false;
-        status_t res        = STATUS_OK;
-
-        // Perform main loop of raytracing
-        while (true)
-        {
-            // Check cancellation flag
-            if ((bCancelled) || (bFailed))
-            {
-                res = STATUS_CANCELLED;
-                break;
-            }
-
-            // Try to fetch new task from internal queue
-            if (!tasks->pop(&ctx))
-            {
-                // Check size of collection
-                if (tasks->size() > 0)
-                    return STATUS_CORRUPTED;
-
-                // We could not obtain new task from internal queue, steal if from common queue
-                lkTasks.lock();
-                if (!vTasks.pop(&ctx))
-                {
-                    if (vTasks.size() > 0)
-                        res = STATUS_CORRUPTED;
-                    lkTasks.unlock();
-                    break;
-                }
-
-                report      = true;
-                lkTasks.unlock();
-
-                // Update number of stolen tasks
-                ++stats->tasks_stolen;
-            }
-
-            // Process context state
-            res     = process_context(tasks, stats, ctx);
-
-            // Report status if required
-            if ((res == STATUS_OK) && (report))
-            {
-                report      = false;
-                lkTasks.lock();
-
-                float prg   = float(nProgressPoints) / float(nProgressMax);
-                lsp_trace("Reporting progress %d/%d = %.2f%%", int(nProgressPoints), int(nProgressMax), prg * 100.0f);
-                ++nProgressPoints;
-
-                res         = report_progress(prg);
-
-                lkTasks.unlock();
-            }
-
-            if (res != STATUS_OK)
-            {
-                bFailed     = true; // Report fail status if at least one thread has failed
-                break;
-            }
-        }
-
-        return res;
     }
 
     status_t RayTrace3D::process(size_t threads, float initial)

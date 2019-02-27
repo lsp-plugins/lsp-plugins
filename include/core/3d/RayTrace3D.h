@@ -88,6 +88,18 @@ namespace lsp
                     RayTrace3D             *trace;
                     stats_t                 stats;
                     cvector<rt_context_t>   tasks;
+                    rt_mesh_t               root;
+
+                protected:
+                    status_t    main_loop(cvector<rt_context_t> *tasks, stats_t *stats);
+                    status_t    process_context(cvector<rt_context_t> *tasks, stats_t *stats, rt_context_t *ctx);
+
+                    status_t    scan_objects(cvector<rt_context_t> *tasks, rt_context_t *ctx);
+                    status_t    cull_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
+                    status_t    split_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
+                    status_t    cullback_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
+                    status_t    reflect_view(cvector<rt_context_t> *tasks, stats_t *stats, rt_context_t *ctx);
+                    status_t    capture(capture_t *capture, const rt_view_t *v, View3D *trace);
 
                 public:
                     TaskThread(RayTrace3D *trace);
@@ -106,7 +118,6 @@ namespace lsp
             Scene3D                    *pScene;
             RTObjectFactory             sFactory;
             rt_progress_t               pProgress;
-            rt_mesh_t                   sRoot;
             void                       *pProgressData;
             size_t                      nSampleRate;
             float                       fEnergyThresh;
@@ -139,20 +150,10 @@ namespace lsp
             status_t    generate_tasks(cvector<rt_context_t> *tasks, float initial);
             status_t    check_object(rt_context_t *ctx, Object3D *obj, const matrix3d_t *m);
 
-            status_t    scan_objects(cvector<rt_context_t> *tasks, rt_context_t *ctx);
-            status_t    cull_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
-            status_t    split_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
-            status_t    cullback_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
-            status_t    reflect_view(cvector<rt_context_t> *tasks, stats_t *stats, rt_context_t *ctx);
-            status_t    capture(capture_t *capture, const rt_view_t *v, View3D *trace);
-
-            status_t    process_context(cvector<rt_context_t> *tasks, stats_t *stats, rt_context_t *ctx);
-
             void        normalize_output();
             bool        is_already_passed(const sample_t *bind);
 
             status_t    prepare_main_loop(float initial, stats_t *stats);
-            status_t    main_loop(cvector<rt_context_t> *tasks, stats_t *stats);
 
         public:
             /** Default constructor
