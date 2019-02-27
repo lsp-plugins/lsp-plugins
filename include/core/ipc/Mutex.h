@@ -18,6 +18,7 @@
     #include <sys/syscall.h>
     #include <unistd.h>
     #include <pthread.h>
+    #include <errno.h>
 #else
     #include <pthread.h>
     #include <errno.h>
@@ -106,7 +107,7 @@ namespace lsp
                     if (!(--nLocks))
                     {
                         nThreadId       = -1;
-                        nLock           = 1;
+                        atomic_swap(&nLock, 1);
                         if (nWaiters > 0)
                             syscall(SYS_futex, &nLock, FUTEX_WAKE, 1, NULL, 0, 0);
                     }

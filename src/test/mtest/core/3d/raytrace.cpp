@@ -54,6 +54,7 @@ MTEST_BEGIN("core.3d", raytrace)
         // Load scene
         Scene3D scene;
         MTEST_ASSERT(Model3DFile::load(&scene, "res/test/3d/empty-room-4x4x3.obj", true) == STATUS_OK);
+//        MTEST_ASSERT(Model3DFile::load(&scene, "res/test/3d/plane-8x.obj", true) == STATUS_OK);
 
         // Initialize sample
         Sample sample;

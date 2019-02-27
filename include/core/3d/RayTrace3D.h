@@ -89,23 +89,31 @@ namespace lsp
                     stats_t                 stats;
                     cvector<rt_context_t>   tasks;
                     rt_mesh_t               root;
+                    RTObjectFactory         factory;
 
                 protected:
-                    status_t    main_loop(cvector<rt_context_t> *tasks, stats_t *stats);
-                    status_t    process_context(cvector<rt_context_t> *tasks, stats_t *stats, rt_context_t *ctx);
+                    status_t    main_loop();
+                    status_t    process_context(cvector<rt_context_t> *tasks, rt_context_t *ctx);
 
                     status_t    scan_objects(cvector<rt_context_t> *tasks, rt_context_t *ctx);
                     status_t    cull_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
                     status_t    split_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
                     status_t    cullback_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
-                    status_t    reflect_view(cvector<rt_context_t> *tasks, stats_t *stats, rt_context_t *ctx);
+                    status_t    reflect_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
                     status_t    capture(capture_t *capture, const rt_view_t *v, View3D *trace);
+
+                    status_t    generate_root_mesh();
+                    status_t    generate_tasks(cvector<rt_context_t> *tasks, float initial);
+                    status_t    check_object(rt_context_t *ctx, Object3D *obj, const matrix3d_t *m);
 
                 public:
                     TaskThread(RayTrace3D *trace);
                     virtual ~TaskThread();
 
                 public:
+                    status_t    prepare_main_loop(cvector<rt_context_t> *tasks, float initial);
+                    status_t    prepare_supplementary_loop(TaskThread *t);
+
                     virtual status_t run();
 
                     inline stats_t *get_stats() { return &stats; }
@@ -116,7 +124,6 @@ namespace lsp
             cstorage<source_t>          vSources;
             cvector<capture_t>          vCaptures;
             Scene3D                    *pScene;
-            RTObjectFactory             sFactory;
             rt_progress_t               pProgress;
             void                       *pProgressData;
             size_t                      nSampleRate;
@@ -139,6 +146,7 @@ namespace lsp
             static void clear_stats(stats_t *stats);
             static void dump_stats(const char *label, const stats_t *stats);
             static void merge_stats(stats_t *dst, const stats_t *src);
+            static bool check_bound_box(const bound_box3d_t *bbox, const rt_view_t *view);
 
             void        remove_scene(bool destroy);
             status_t    resize_materials(size_t objects);
@@ -146,14 +154,8 @@ namespace lsp
             status_t    report_progress(float progress);
 
             // Main ray-tracing routines
-            status_t    generate_root_mesh();
-            status_t    generate_tasks(cvector<rt_context_t> *tasks, float initial);
-            status_t    check_object(rt_context_t *ctx, Object3D *obj, const matrix3d_t *m);
-
             void        normalize_output();
             bool        is_already_passed(const sample_t *bind);
-
-            status_t    prepare_main_loop(float initial, stats_t *stats);
 
         public:
             /** Default constructor

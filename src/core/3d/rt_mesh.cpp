@@ -638,6 +638,96 @@ namespace lsp
         return n > 0; // The edge should be linked at least to one triangle
     }
 
+    status_t rt_mesh_t::copy(rt_mesh_t *src)
+    {
+        Allocator3D<rtm_vertex_t>   vertex(1024);
+        Allocator3D<rtm_edge_t>     edge(1024);
+        Allocator3D<rtm_triangle_t> triangle(1024);
+
+        // Clone vertexes
+        RT_FOREACH(rtm_vertex_t, sv, src->vertex)
+            rtm_vertex_t *dv = vertex.alloc(sv);
+            if (dv == NULL)
+                return STATUS_NO_MEM;
+
+            sv->ptag    = dv;
+            dv->ptag    = sv;
+        RT_FOREACH_END
+
+        // Clone edges
+        RT_FOREACH(rtm_edge_t, se, src->edge)
+            rtm_edge_t *de = edge.alloc(se);
+            if (de == NULL)
+                return STATUS_NO_MEM;
+
+            se->ptag    = de;
+            de->ptag    = se;
+            de->vt      = NULL;
+        RT_FOREACH_END
+
+        // Clone triangles
+        RT_FOREACH(rtm_triangle_t, st, src->triangle)
+            rtm_triangle_t *dt = triangle.alloc(st);
+            if (dt == NULL)
+                return STATUS_NO_MEM;
+
+            st->ptag    = dt;
+            dt->ptag    = st;
+            dt->elnk[0] = NULL;
+            dt->elnk[1] = NULL;
+            dt->elnk[2] = NULL;
+        RT_FOREACH_END;
+
+        // Patch edge structures and link to vertexes
+        RT_FOREACH(rtm_edge_t, ex, edge)
+            rtm_edge_t *se   = reinterpret_cast<rtm_edge_t *>(ex->ptag);
+            if (se == NULL) // Edge does not need patching
+                continue;
+
+            // Patch vertex pointers if needed
+            ex->v[0]        = (se->v[0]->ptag != NULL) ? reinterpret_cast<rtm_vertex_t *>(se->v[0]->ptag) : se->v[0];
+            ex->v[1]        = (se->v[1]->ptag != NULL) ? reinterpret_cast<rtm_vertex_t *>(se->v[1]->ptag) : se->v[1];
+        RT_FOREACH_END
+
+        // Link triangle structures to edges
+        RT_FOREACH(rtm_triangle_t, tx, triangle)
+            rtm_triangle_t *st  = reinterpret_cast<rtm_triangle_t *>(tx->ptag);
+            if (st == NULL) // Triangle does not need patching
+                continue;
+
+            tx->v[0]            = reinterpret_cast<rtm_vertex_t *>(st->v[0]->ptag);
+            tx->v[1]            = reinterpret_cast<rtm_vertex_t *>(st->v[1]->ptag);
+            tx->v[2]            = reinterpret_cast<rtm_vertex_t *>(st->v[2]->ptag);
+
+            tx->e[0]            = reinterpret_cast<rtm_edge_t *>(st->e[0]->ptag);
+            tx->e[1]            = reinterpret_cast<rtm_edge_t *>(st->e[1]->ptag);
+            tx->e[2]            = reinterpret_cast<rtm_edge_t *>(st->e[2]->ptag);
+
+            // Link triangle to the edge
+            tx->elnk[0]         = tx->e[0]->vt;
+            tx->elnk[1]         = tx->e[1]->vt;
+            tx->elnk[2]         = tx->e[2]->vt;
+
+            tx->e[0]->vt        = tx;
+            tx->e[1]->vt        = tx;
+            tx->e[2]->vt        = tx;
+        RT_FOREACH_END
+
+        // Perform data swap
+        vertex.swap(&this->vertex);
+        edge.swap(&this->edge);
+        triangle.swap(&this->triangle);
+
+        RT_VALIDATE(
+            if (!src->validate())
+                return STATUS_CORRUPTED;
+            if (!validate())
+                return STATUS_CORRUPTED;
+        );
+
+        return STATUS_OK;
+    }
+
     bool rt_mesh_t::validate()
     {
         for (size_t i=0, n=vertex.size(); i<n; ++i)

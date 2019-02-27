@@ -102,6 +102,13 @@ namespace lsp
              * @return true if context is in valid state
              */
             bool            validate();
+
+            /**
+             * Copy all data from the source mesh
+             * @param src source mesh to copy
+             * @return status of operation
+             */
+            status_t        copy(rt_mesh_t *src);
     } rt_mesh_t;
 }
 

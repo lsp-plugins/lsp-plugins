@@ -88,6 +88,14 @@ namespace lsp
         {
             int res;
 
+            // Check that we already own the mutex
+            pthread_t tid   = pthread_self();
+            if (nThreadId == tid)
+            {
+                ++nLocks;
+                return true;
+            }
+
             while (true)
             {
                 if (nLock)
@@ -97,28 +105,18 @@ namespace lsp
                     if (res) // Lock succeeded ?
                     {
                         if (!(nLocks++))
-                            nThreadId       = pthread_self(); // Save thread identifier
+                            nThreadId       = tid; // Save thread identifier
                         return true;
                     }
-                }
-
-                // Check that we already own the mutex
-                if (nThreadId == pthread_self())
-                {
-                    ++nLocks;
-                    return true;
                 }
 
                 // Increment number of waiters
                 atomic_add(&nWaiters, 1);
 
                 // Issue wait
-                do
-                {
-                    res = syscall(SYS_futex, &nLock, FUTEX_WAIT, 1, NULL, 0, 0);
-                    if (res == ENOSYS)
-                        pthread_yield();
-                } while (res != 0);
+                res = syscall(SYS_futex, &nLock, FUTEX_WAIT, 1, NULL, 0, 0);
+                if ((res == ENOSYS) || (res == EAGAIN))
+                    pthread_yield();
 
                 // Decrement number of waiters
                 atomic_add(&nWaiters, -1);
