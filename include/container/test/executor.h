@@ -342,8 +342,24 @@ namespace lsp
         wait[1] = _this->hTimer;
 
         DWORD res   = WaitForMultipleObjects(2, wait, FALSE, INFINITE);
-        if (res != 0)
+        // Check wait result
+        if (res == WAIT_FAILED)
+        {
+            fprintf(stderr, "Test execution wait failed: error_code=%d\n", int(GetLastError()));
+            fflush(stdout);
+            fflush(stderr);
             ExitProcess(STATUS_TIMED_OUT);
+        }
+        else if (res >= WAIT_ABANDONED_0)
+            res    -= WAIT_ABANDONED_0;
+
+        if (res != 0) // Mutex object has triggered?
+        {
+            fprintf(stderr, "Test has timed out\n");
+            fflush(stdout);
+            fflush(stderr);
+            ExitProcess(STATUS_TIMED_OUT);
+        }
 
         return STATUS_OK;
     }

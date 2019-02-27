@@ -40,7 +40,7 @@
 
 namespace lsp
 {
-    static uint16_t UTF16_NULL = 0;
+    static lsp_utf16_t UTF16_NULL = 0;
 
     static bool is_space(lsp_wchar_t c)
     {
@@ -1353,7 +1353,7 @@ namespace lsp
         return true;
     }
 
-    bool LSPString::set_utf16(const uint16_t *s)
+    bool LSPString::set_utf16(const lsp_utf16_t *s)
     {
         size_t len = 0;
         while (s[len] != 0)
@@ -1369,7 +1369,7 @@ namespace lsp
         return true;
     }
 
-    bool LSPString::set_utf16(const uint16_t *s, size_t n)
+    bool LSPString::set_utf16(const lsp_utf16_t *s, size_t n)
     {
         drop_temp();
         if (!cap_reserve(n))
@@ -1553,7 +1553,7 @@ namespace lsp
         return pTemp->pData;
     }
 
-    const uint16_t *LSPString::get_utf16(ssize_t first, ssize_t last) const
+    const lsp_utf16_t *LSPString::get_utf16(ssize_t first, ssize_t last) const
     {
         XSAFE_TRANS(first, nLength, NULL);
         XSAFE_TRANS(last, nLength, NULL);
@@ -1568,7 +1568,7 @@ namespace lsp
         if (!append_temp(reinterpret_cast<char *>(&UTF16_NULL), sizeof(UTF16_NULL)))
             return NULL;
 
-        return reinterpret_cast<uint16_t *>(pTemp->pData);
+        return reinterpret_cast<lsp_utf16_t *>(pTemp->pData);
     }
 
     const char *LSPString::get_ascii() const

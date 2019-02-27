@@ -204,6 +204,7 @@ namespace lsp
             LSP_LV2_EMIT_OPTION(count, requirements & REQ_INSTANCE, "lv2ext:instance-access");
             fprintf(out, " ;\n");
         }
+        fprintf(out, "\tlv2:extensionData ui:idleInterface ;\n");
         fprintf(out, "\tui:binary <" LSP_ARTIFACT_ID "-lv2.so> ;\n");
         fprintf(out, "\n");
 
@@ -535,12 +536,13 @@ namespace lsp
             fprintf(out, " ;\n");
         }
 
-        if (requirements & REQ_STATE)
+        if (requirements & (REQ_STATE | REQ_WORKER))
         {
             size_t count = 0;
             fprintf(out, "\tlv2:extensionData ");
             LSP_LV2_EMIT_OPTION(count, requirements & REQ_STATE, "state:interface");
             LSP_LV2_EMIT_OPTION(count, requirements & REQ_WORKER, "work:interface");
+            LSP_LV2_EMIT_OPTION(count, 1, "hcid:interface");
             fprintf(out, " ;\n");
         }
 

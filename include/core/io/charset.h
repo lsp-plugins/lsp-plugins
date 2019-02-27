@@ -38,14 +38,14 @@ namespace lsp
      * @param str string to encode
      * @return pointer to allocated UTF-8 string that should be free()'d after use
      */
-    char               *utf16_to_utf8(const lsp_utf16_char_t *str);
+    char               *utf16_to_utf8(const lsp_utf16_t *str);
 
     /**
      * Encode UTF-8 string to UTF-16 string
      * @param str string to encode
      * @return pointer to allocated UTF-16 string that should be free()'d after use
      */
-    lsp_utf16_char_t   *utf8_to_utf16(const char *str);
+    lsp_utf16_t   *utf8_to_utf16(const char *str);
 }
 
 #endif /* INCLUDE_CORE_IO_CHARSET_H_ */

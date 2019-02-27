@@ -563,10 +563,10 @@ namespace lsp
     }
 #endif
 
-    uint32_t get_codepoint(const lsp_utf16_char_t **str)
+    uint32_t get_codepoint(const lsp_utf16_t **str)
     {
         uint32_t cp, sc;
-        const lsp_utf16_char_t *s = *str;
+        const lsp_utf16_t *s = *str;
 
         cp = *(s++);
         if (cp == 0)
@@ -670,11 +670,11 @@ namespace lsp
         return (cp < 0x10000) ? 2 : 4;
     }
 
-    char *utf16_to_utf8(const lsp_utf16_char_t *str)
+    char *utf16_to_utf8(const lsp_utf16_t *str)
     {
         // Estimate number of bytes
         size_t bytes = 0;
-        const lsp_utf16_char_t *p = str;
+        const lsp_utf16_t *p = str;
         while (true)
         {
             uint32_t cp = get_codepoint(&p);
@@ -732,7 +732,7 @@ namespace lsp
         return utf8;
     }
 
-    lsp_utf16_char_t *utf8_to_utf16(const char *str)
+    lsp_utf16_t *utf8_to_utf16(const char *str)
     {
         // Estimate number of bytes
         size_t bytes    = 0;
@@ -746,12 +746,12 @@ namespace lsp
         }
 
         // Allocate memory
-        lsp_utf16_char_t *utf16  = reinterpret_cast<lsp_utf16_char_t *>(malloc(bytes + 2));
+        lsp_utf16_t *utf16  = reinterpret_cast<lsp_utf16_t *>(malloc(bytes + 2));
         if (utf16 == NULL)
             return NULL;
 
         // Perform encoding
-        lsp_utf16_char_t *dst = utf16;
+        lsp_utf16_t *dst = utf16;
         p   = str;
         while (true)
         {

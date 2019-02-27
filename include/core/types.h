@@ -32,10 +32,12 @@ typedef int64_t         wssize_t;
     #include <windows.h>
 
     typedef WCHAR               lsp_wchar_t;
-    typedef WCHAR               lsp_utf16_char_t;
+    typedef WCHAR               lsp_utf16_t;
+    typedef HANDLE              lsp_fhandle_t;
 #else
     typedef uint16_t            lsp_wchar_t;
-    typedef uint16_t            lsp_utf16_char_t;
+    typedef uint16_t            lsp_utf16_t;
+    typedef int                 lsp_fhandle_t;
 #endif /* PLATFORM_WINDOWS */
 
 // Include units

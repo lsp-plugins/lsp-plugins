@@ -74,7 +74,7 @@ ifeq ($(BUILD_PROFILE),x86_64)
     LD_ARCH          = -m elf_x86_64
   endif
   ifeq ($(BUILD_PLATFORM), BSD)
-  	LD_ARCH          = -m elf_x86_64_fbsd
+    LD_ARCH          = -m elf_x86_64_fbsd
   endif
   LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
