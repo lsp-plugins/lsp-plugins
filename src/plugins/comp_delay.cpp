@@ -188,7 +188,7 @@ namespace lsp
     void comp_delay_mono::createBuffers()
     {
         vDelay.init(fSampleRate, vBuffer, BUFFER_SIZE);
-        vDelay.set_ports(vPorts[IN], vPorts[OUT]);
+        vDelay.set_ports(vPorts[A_IN], vPorts[A_OUT]);
     }
 
     void comp_delay_mono::dropBuffers()

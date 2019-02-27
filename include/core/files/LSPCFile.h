@@ -8,6 +8,8 @@
 #ifndef INCLUDE_CORE_FILES_LSPCFILE_H_
 #define INCLUDE_CORE_FILES_LSPCFILE_H_
 
+#include <core/LSPString.h>
+#include <core/io/Path.h>
 #include <core/files/lspc/LSPCChunkReader.h>
 #include <core/files/lspc/LSPCChunkWriter.h>
 
@@ -26,7 +28,7 @@ namespace lsp
             size_t              nHdrSize;   // Size of header
 
         protected:
-            LSPCResource       *create_resource(int fd);
+            LSPCResource       *create_resource(lsp_fhandle_t fd);
 
         public:
             LSPCFile();
@@ -40,12 +42,40 @@ namespace lsp
              */
             status_t    open(const char *path);
 
+            /** Open file for reading
+             *
+             * @param path location of the file
+             * @return status of operation
+             */
+            status_t    open(const LSPString *path);
+
+            /** Open file for reading
+             *
+             * @param path location of the file
+             * @return status of operation
+             */
+            status_t    open(const io::Path *path);
+
             /** Open file for writing
              *
              * @param path location of the file
              * @return status of operation
              */
             status_t    create(const char *path);
+
+            /** Open file for reading
+             *
+             * @param path location of the file
+             * @return status of operation
+             */
+            status_t    create(const LSPString *path);
+
+            /** Open file for reading
+             *
+             * @param path location of the file
+             * @return status of operation
+             */
+            status_t    create(const io::Path *path);
 
             /** Close the file
              *

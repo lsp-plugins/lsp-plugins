@@ -47,6 +47,7 @@ namespace lsp
         "Insufficient data",
         "Killed",
         "Timeout",
+        "Execution has been cancelled",
         "Failed",
         NULL
     };

@@ -58,10 +58,10 @@ namespace lsp
         enum ports
         {
             // Input Audio
-            IN,
+            A_IN,
 
             // Output Audio
-            OUT,
+            A_OUT,
 
             // Input controls
             BYPASS,

@@ -29,7 +29,7 @@
         return r;
     }
 
-    int asprintf(char *strp[], const char *fmt, ...)
+    int asprintf(char **strp, const char *fmt, ...)
     {
         va_list ap;
         va_start(ap, fmt);

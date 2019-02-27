@@ -30,7 +30,7 @@ namespace lsp
         close();
     }
 
-    LSPCResource *LSPCFile::create_resource(int fd)
+    LSPCResource *LSPCFile::create_resource(lsp_fhandle_t fd)
     {
         LSPCResource *res = new LSPCResource;
         if (res == NULL)
@@ -47,26 +47,49 @@ namespace lsp
 
     status_t LSPCFile::open(const char *path)
     {
-        if (pFile != NULL)
+        LSPString fpath;
+        if (!fpath.set_utf8(path))
+            return STATUS_NO_MEM;
+        return open(&fpath);
+    }
+
+    status_t LSPCFile::open(const io::Path *path)
+    {
+        LSPString fpath;
+        if (!path->get(&fpath))
+            return STATUS_NO_MEM;
+        return open(&fpath);
+    }
+
+    status_t LSPCFile::open(const LSPString *path)
+    {
+        lspc_root_header_t hdr;
+        if (path == NULL)
+            return STATUS_BAD_ARGUMENTS;
+        else if (pFile != NULL)
             return STATUS_BAD_STATE;
 
-        int fd          = ::open(path, O_RDONLY);
-        if (fd < 0)
+#if defined(PLATFORM_WINDOWS)
+        lsp_fhandle_t fd = CreateFileW(
+                path->get_utf16(), GENERIC_READ,
+                FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
+                NULL, OPEN_EXISTING,
+                FILE_ATTRIBUTE_NORMAL | FILE_FLAG_RANDOM_ACCESS,
+                NULL
+            );
+        if (fd == INVALID_HANDLE_VALUE)
             return STATUS_IO_ERROR;
 
-        lspc_root_header_t hdr;
-        read(fd, &hdr, sizeof(lspc_root_header_t));
-        if (BE_TO_CPU(hdr.magic) != LSPC_ROOT_MAGIC)
+        LSPCResource *res   = create_resource(fd);
+        if (res == NULL)
         {
-            ::close(fd);
-            return STATUS_BAD_FORMAT;
+            CloseHandle(fd);
+            return STATUS_NO_MEM;
         }
-        else if (BE_TO_CPU(hdr.version) != 1)
-        {
-            ::close(fd);
-            return STATUS_BAD_FORMAT;
-        }
-        nHdrSize            = BE_TO_CPU(hdr.size);
+#else
+        lsp_fhandle_t fd    = ::open(path->get_utf8(), O_RDONLY);
+        if (fd < 0)
+            return STATUS_IO_ERROR;
 
         LSPCResource *res   = create_resource(fd);
         if (res == NULL)
@@ -74,6 +97,21 @@ namespace lsp
             ::close(fd);
             return STATUS_NO_MEM;
         }
+#endif /* PLATFORM_WINDOWS */
+
+        ssize_t bytes = res->read(0, &hdr, sizeof(lspc_root_header_t));
+
+        if ((bytes < ssize_t(sizeof(lspc_root_header_t))) ||
+            (BE_TO_CPU(hdr.size) < sizeof(lspc_root_header_t)) ||
+            (BE_TO_CPU(hdr.magic) != LSPC_ROOT_MAGIC) ||
+            (BE_TO_CPU(hdr.version) != 1))
+        {
+            res->release();
+            delete res;
+            return STATUS_BAD_FORMAT;
+        }
+
+        nHdrSize            = BE_TO_CPU(hdr.size);
         pFile               = res;
         bWrite              = false;
 
@@ -82,12 +120,56 @@ namespace lsp
 
     status_t LSPCFile::create(const char *path)
     {
-        if (pFile != NULL)
+        LSPString fpath;
+        if (!fpath.set_utf8(path))
+            return STATUS_NO_MEM;
+        return create(&fpath);
+    }
+
+    status_t LSPCFile::create(const io::Path *path)
+    {
+        LSPString fpath;
+        if (!path->get(&fpath))
+            return STATUS_NO_MEM;
+        return create(&fpath);
+    }
+
+    status_t LSPCFile::create(const LSPString *path)
+    {
+        if (path == NULL)
+            return STATUS_BAD_ARGUMENTS;
+        else if (pFile != NULL)
             return STATUS_BAD_STATE;
 
-        int fd          = ::open(path, O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+#if defined(PLATFORM_WINDOWS)
+        lsp_fhandle_t fd = CreateFileW(
+                path->get_utf16(), GENERIC_READ | GENERIC_WRITE,
+                FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
+                NULL, CREATE_ALWAYS,
+                FILE_ATTRIBUTE_NORMAL | FILE_FLAG_RANDOM_ACCESS,
+                NULL
+            );
+        if (fd == INVALID_HANDLE_VALUE)
+            return STATUS_IO_ERROR;
+
+        LSPCResource *res   = create_resource(fd);
+        if (res == NULL)
+        {
+            CloseHandle(fd);
+            return STATUS_NO_MEM;
+        }
+#else
+        int fd          = ::open(path->get_utf8(), O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
         if (fd < 0)
             return STATUS_IO_ERROR;
+
+        LSPCResource *res   = create_resource(fd);
+        if (res == NULL)
+        {
+            ::close(fd);
+            return STATUS_NO_MEM;
+        }
+#endif /* PLATFORM_WINDOWS */
 
         lspc_root_header_t hdr;
         memset(&hdr, 0, sizeof(lspc_root_header_t));
@@ -99,14 +181,14 @@ namespace lsp
         hdr.version     = CPU_TO_BE(hdr.version);
         hdr.size        = CPU_TO_BE(hdr.size);
 
-        write(fd, &hdr, sizeof(lspc_root_header_t));
-
-        LSPCResource *res   = create_resource(fd);
-        if (res == NULL)
+        status_t io_res = res->write(&hdr, sizeof(lspc_root_header_t));
+        if (io_res != STATUS_OK)
         {
-            ::close(fd);
-            return STATUS_NO_MEM;
+            res->release();
+            delete res;
+            return io_res;
         }
+
         res->length         = sizeof(hdr);
         pFile               = res;
         bWrite              = true;
@@ -119,6 +201,8 @@ namespace lsp
         if (pFile == NULL)
             return STATUS_BAD_STATE;
         status_t res = pFile->release();
+        if (pFile->refs <= 0)
+            delete pFile;
         pFile   = NULL;
         return res;
     }

@@ -7,6 +7,8 @@
 
 #include <dsp/types.h>
 #include <dsp/dsp.h>
+
+#ifdef ARCH_ARM
 #include <test/test.h>
 
 #include <stdio.h>
@@ -318,3 +320,5 @@ IF_ARCH_ARM(
 
     }
 }
+
+#endif /* ARCH_ARM */

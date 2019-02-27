@@ -11,14 +11,14 @@
 #include <core/io/charset.h>
 
 // This strlen does not analyze surrogate pairs
-static size_t utf16_strlen(const lsp_utf16_char_t *s)
+static size_t utf16_strlen(const lsp_utf16_t *s)
 {
     size_t n = 0;
     for (; *s != 0; ++s, ++n) {}
     return n;
 }
 
-static size_t utf16_count_invalid(const lsp_utf16_char_t *s)
+static size_t utf16_count_invalid(const lsp_utf16_t *s)
 {
     size_t n = 0;
     for (; *s != 0; ++s) {
@@ -120,7 +120,7 @@ UTEST_BEGIN("core.io", charset)
 
     void check_utf8_to_utf16()
     {
-        lsp_utf16_char_t *s = NULL;
+        lsp_utf16_t *s = NULL;
         size_t len;
 
         printf("Testing check_utf8_to_utf16\n");
@@ -149,7 +149,7 @@ UTEST_BEGIN("core.io", charset)
         for (size_t i=0, n=sizeof(utf16_check)/sizeof(utf16_check_t); i<n; ++i)
         {
             utf16_check_t *ck = &utf16_check[i];
-            s   = lsp::utf16_to_utf8(reinterpret_cast<const lsp_utf16_char_t *>(ck->s));
+            s   = lsp::utf16_to_utf8(reinterpret_cast<const lsp_utf16_t *>(ck->s));
             UTEST_ASSERT(s != NULL);
             UTEST_ASSERT_MSG(((len = strlen(s)) == ck->strlen),
                     "Error checking line %d: strlen=%d, expected=%d",

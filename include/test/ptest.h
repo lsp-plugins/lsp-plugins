@@ -25,6 +25,9 @@
             \
             class ptest_ ## name: public PerformanceTest { \
                 public: \
+                    typedef ptest_ ## name test_type_t; \
+                \
+                public: \
                     explicit ptest_ ## name() : PerformanceTest(group, #name, time, iterations) {} \
                     \
                     virtual ~ptest_ ## name() {}

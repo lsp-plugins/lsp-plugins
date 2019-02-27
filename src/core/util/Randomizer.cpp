@@ -58,11 +58,18 @@ namespace lsp
 
     void Randomizer::init()
     {
+#if defined(PLATFORM_WINDOWS)
+        FILETIME clock;
+        GetSystemTimeAsFileTime(&clock);
+        init(clock.dwHighDateTime ^ clock.dwLowDateTime);
+#else
         struct timespec ts;
+
         if (clock_gettime(CLOCK_REALTIME, &ts) == 0)
             init(ts.tv_sec ^ ts.tv_nsec);
         else
             init(time(NULL));
+#endif /* PLATFORM_WINDOWS */
     }
 
     float Randomizer::random(random_function_t func)

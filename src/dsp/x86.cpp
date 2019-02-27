@@ -5,12 +5,13 @@
  *      Author: sadko
  */
 
-#include <string.h>
-
 #include <core/types.h>
 #include <core/debug.h>
 #include <dsp/dsp.h>
 #include <test/test.h>
+
+#include <core/stdlib/string.h>
+#include <core/stdlib/stdio.h>
 
 #include <dsp/arch/x86/features.h>
 #include <dsp/arch/x86/float.h>
