@@ -288,7 +288,7 @@ MTEST_BEGIN("3d", reflections)
                 if (res != STATUS_OK)
                     return res;
 
-                return trace->process(100.0f);
+                return trace->process(1, 100.0f);
             }
 
             status_t    update_view()

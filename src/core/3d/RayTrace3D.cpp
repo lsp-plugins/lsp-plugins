@@ -29,6 +29,25 @@ namespace lsp
         3, 7, 4
     };
 
+
+    RayTrace3D::TaskThread::TaskThread(RayTrace3D *trace)
+    {
+        this->trace     = trace;
+    }
+
+    RayTrace3D::TaskThread::~TaskThread()
+    {
+
+    }
+
+    status_t RayTrace3D::TaskThread::run()
+    {
+        clear_stats(&stats);
+        status_t res = this->trace->main_loop(&tasks, &stats);
+        destroy_tasks(&tasks);
+        return res;
+    }
+
     RayTrace3D::RayTrace3D()
     {
         pScene          = NULL;
@@ -40,11 +59,56 @@ namespace lsp
         fTolerance      = 1e-5f;
         bNormalize      = true;
         bCancelled      = false;
+        nProgressPoints = 0;
+        nProgressMax    = 0;
     }
 
     RayTrace3D::~RayTrace3D()
     {
         destroy(true);
+    }
+
+    void RayTrace3D::clear_stats(stats_t *stats)
+    {
+        stats->tasks_stolen     = 0;
+        stats->calls_scan       = 0;
+        stats->calls_cull       = 0;
+        stats->calls_split      = 0;
+        stats->calls_cullback   = 0;
+        stats->calls_reflect    = 0;
+        stats->calls_capture    = 0;
+    }
+
+    void RayTrace3D::dump_stats(const char *label, const stats_t *stats)
+    {
+        lsp_trace("%s:\n"
+                "  root tasks processed = %lld\n"
+                "  scan_objects         = %lld\n"
+                "  cull_view            = %lld\n"
+                "  split_view           = %lld\n"
+                "  cullback_view        = %lld\n"
+                "  reflect_view         = %lld\n"
+                "  capture              = %lld\n",
+            label,
+            (long long)stats->tasks_stolen,
+            (long long)stats->calls_scan,
+            (long long)stats->calls_cull,
+            (long long)stats->calls_split,
+            (long long)stats->calls_cullback,
+            (long long)stats->calls_reflect,
+            (long long)stats->calls_capture
+        );
+    }
+
+    void RayTrace3D::merge_stats(stats_t *dst, const stats_t *src)
+    {
+        dst->tasks_stolen    += src->tasks_stolen;
+        dst->calls_scan      += src->calls_scan;
+        dst->calls_cull      += src->calls_cull;
+        dst->calls_split     += src->calls_split;
+        dst->calls_cullback  += src->calls_cullback;
+        dst->calls_reflect   += src->calls_reflect;
+        dst->calls_capture   += src->calls_capture;
     }
 
     void RayTrace3D::destroy_tasks(cvector<rt_context_t> *tasks)
@@ -117,6 +181,7 @@ namespace lsp
 
     void RayTrace3D::destroy(bool recursive)
     {
+        destroy_tasks(&vTasks);
         clear_progress_callback();
         remove_scene(recursive);
 
@@ -246,26 +311,31 @@ namespace lsp
         return pProgress(progress, pProgressData);
     }
 
-    status_t RayTrace3D::process_context(cvector<rt_context_t> *tasks, rt_context_t *ctx)
+    status_t RayTrace3D::process_context(cvector<rt_context_t> *tasks, stats_t *stats, rt_context_t *ctx)
     {
         status_t res;
 
         switch (ctx->state)
         {
             case S_SCAN_OBJECTS:
+                ++stats->calls_scan;
                 res     = scan_objects(tasks, ctx);
                 break;
             case S_CULL_VIEW:
+                ++stats->calls_cull;
                 res     = cull_view(tasks, ctx);
                 break;
             case S_SPLIT:
+                ++stats->calls_split;
                 res     = split_view(tasks, ctx);
                 break;
             case S_CULL_BACK:
+                ++stats->calls_cullback;
                 res     = cullback_view(tasks, ctx);
                 break;
             case S_REFLECT:
-                res     = reflect_view(tasks, ctx);
+                ++stats->calls_reflect;
+                res     = reflect_view(tasks, stats, ctx);
                 break;
             default:
                 res = STATUS_BAD_STATE;
@@ -288,16 +358,12 @@ namespace lsp
         return res;
     }
 
-    status_t RayTrace3D::process(float initial)
+    status_t RayTrace3D::prepare_main_loop(float initial, stats_t *stats)
     {
         // Intialize
         bCancelled              = false;
-        sStats.calls_scan       = 0;
-        sStats.calls_cull       = 0;
-        sStats.calls_split      = 0;
-        sStats.calls_cullback   = 0;
-        sStats.calls_reflect    = 0;
-        sStats.calls_capture    = 0;
+        bFailed                 = false;
+        destroy_tasks(&vTasks);
 
         // Report progress as 0%
         status_t res    = report_progress(0.0f);
@@ -361,7 +427,7 @@ namespace lsp
                 }
 
                 // Process new task but store into
-                res     = process_context(&estimate, ctx);
+                res     = process_context(&estimate, stats, ctx);
                 if (res != STATUS_OK)
                 {
                     destroy_tasks(&tasks);
@@ -370,16 +436,16 @@ namespace lsp
                 }
             }
 
+            // Perform swap
             tasks.swap_data(&estimate);
         } while ((tasks.size() > 0) && (tasks.size() < 1000));
 
         // Values to report progress
-        size_t p_points     = 1;
-        size_t p_denom      = tasks.size() + 2; // Number of tasks + generate_tasks + prepare_root_context + final cleanup
-        size_t p_thresh     = tasks.size();
+        nProgressPoints         = 1;
+        nProgressMax            = tasks.size() + 2;
 
         // Report progress
-        res         = report_progress(float(p_points++) / float(p_denom));
+        res         = report_progress(float(nProgressPoints++) / float(nProgressMax));
         if (res != STATUS_OK)
         {
             destroy_tasks(&tasks);
@@ -391,45 +457,156 @@ namespace lsp
             return STATUS_CANCELLED;
         }
 
-        // Perform main loop of raytracing
-        res         = STATUS_OK;
+        // Store tasks in internal storage
+        vTasks.swap_data(&tasks);
 
-        while (tasks.size() > 0)
+        return STATUS_OK;
+    }
+
+    status_t RayTrace3D::main_loop(cvector<rt_context_t> *tasks, stats_t *stats)
+    {
+        rt_context_t *ctx;
+        bool report         = false;
+        status_t res        = STATUS_OK;
+
+        // Perform main loop of raytracing
+        while (true)
         {
             // Check cancellation flag
-            if (bCancelled)
+            if ((bCancelled) || (bFailed))
             {
                 res = STATUS_CANCELLED;
                 break;
             }
 
-            // Get next context from queue
-            if (!tasks.pop(&ctx))
+            // Try to fetch new task from internal queue
+            if (!tasks->pop(&ctx))
             {
-                res = STATUS_CORRUPTED;
+                // Check size of collection
+                if (tasks->size() > 0)
+                    return STATUS_CORRUPTED;
+
+                // We could not obtain new task from internal queue, steal if from common queue
+                lkTasks.lock();
+                if (!vTasks.pop(&ctx))
+                {
+                    if (vTasks.size() > 0)
+                        res = STATUS_CORRUPTED;
+                    lkTasks.unlock();
+                    break;
+                }
+
+                report      = true;
+                lkTasks.unlock();
+
+                // Update number of stolen tasks
+                ++stats->tasks_stolen;
+            }
+
+            // Process context state
+            res     = process_context(tasks, stats, ctx);
+
+            // Report status if required
+            if ((res == STATUS_OK) && (report))
+            {
+                report      = false;
+                lkTasks.lock();
+
+                float prg   = float(nProgressPoints) / float(nProgressMax);
+                lsp_trace("Reporting progress %d/%d = %.2f%%", int(nProgressPoints), int(nProgressMax), prg * 100.0f);
+                ++nProgressPoints;
+
+                res         = report_progress(prg);
+
+                lkTasks.unlock();
+            }
+
+            if (res != STATUS_OK)
+            {
+                bFailed     = true; // Report fail status if at least one thread has failed
+                break;
+            }
+        }
+
+        return res;
+    }
+
+    status_t RayTrace3D::process(size_t threads, float initial)
+    {
+        status_t res = STATUS_OK;
+
+        // Create main thread
+        TaskThread *root = new TaskThread(this);
+        if (root == NULL)
+            return STATUS_NO_MEM;
+
+        // Launch prepare_main_loop in root thread's context
+        res    = prepare_main_loop(initial, root->get_stats());
+        if (res != STATUS_OK)
+        {
+            delete root;
+            destroy_tasks(&vTasks);
+            return res;
+        }
+
+        // Launch supplementary threads
+        cvector<TaskThread> workers;
+        for (size_t i=1; i<threads; ++i)
+        {
+            // Create thread object
+            TaskThread *t   = new TaskThread(this);
+            if ((t == NULL) || (!workers.add(t)))
+            {
+                if (t != NULL)
+                    delete t;
+                res = STATUS_NO_MEM;
                 break;
             }
 
-            size_t t_size   = tasks.size(); // Remember size fo task stack
-            res     = process_context(&tasks, ctx);
-
-            // Report status if required
-            if ((res == STATUS_OK) && (t_size < p_thresh))
-            {
-                float prg   = float(p_points) / float(p_denom);
-                lsp_trace("Reporting progress %d/%d = %.2f%%", int(p_points), int(p_denom), prg * 100.0f);
-                res         = report_progress(prg);
-
-                p_points   += p_thresh - t_size;
-                p_thresh    = t_size;
-            }
-
+            // Launch thread
+            res = t->start();
             if (res != STATUS_OK)
                 break;
         }
 
+        // If successful status, perform main loop
+        if (res == STATUS_OK)
+            res     = root->run();
+        else
+            bFailed = true;
+
+        // Get root thread statistics
+        stats_t overall;
+        clear_stats(&overall);
+        merge_stats(&overall, root->get_stats());
+        dump_stats("Main thread statistics", root->get_stats());
+
+        // Now Wait all supplementary threads for termination
+        for (size_t i=0,n=workers.size(); i<n; ++i)
+        {
+            // Wait for thread completion
+            TaskThread *t = workers.get(i);
+            t->join();
+            if (res == STATUS_OK)
+                res     = t->get_result(); // Update execution status
+
+            // Merge and output statistics
+            LSPString s;
+            s.fmt_utf8("Supplementary thread %d statistics", int(i));
+            merge_stats(&overall, t->get_stats());
+            dump_stats(s.get_utf8(), t->get_stats());
+
+            // Detroy thread object
+            delete t;
+        }
+        delete root;
+        workers.flush();
+
+        // Dump overall statistics
+        dump_stats("Overall statistics", &overall);
+
         // Destroy all tasks
-        destroy_tasks(&tasks);
+        destroy_tasks(&vTasks);
         sRoot.flush();
         if (res != STATUS_OK)
             return res;
@@ -438,29 +615,11 @@ namespace lsp
         if (bNormalize)
             normalize_output();
 
-        // Report progress
-        {
-            float prg   = float(p_points) / float(p_denom);
-            lsp_trace("Reporting progress %d/%d = %.2f%%", int(p_points), int(p_denom), prg * 100.0f);
-        }
+        float prg   = float(nProgressPoints) / float(nProgressMax);
+        lsp_trace("Reporting progress %d/%d = %.2f%%", int(nProgressPoints), int(nProgressMax), prg * 100.0f);
+        ++nProgressPoints;
 
-        // Output statistics
-        lsp_trace("Overall statistics:\n"
-                "  scan_objects         = %lld\n"
-                "  cull_view            = %lld\n"
-                "  split_view           = %lld\n"
-                "  cullback_view        = %lld\n"
-                "  reflect_view         = %lld\n"
-                "  capture              = %lld\n",
-            (long long)sStats.calls_scan,
-            (long long)sStats.calls_cull,
-            (long long)sStats.calls_split,
-            (long long)sStats.calls_cullback,
-            (long long)sStats.calls_reflect,
-            (long long)sStats.calls_capture
-        );
-
-        return report_progress(float(p_points++) / float(p_denom));
+        return report_progress(prg);
     }
 
     bool RayTrace3D::is_already_passed(const sample_t *bind)
@@ -844,7 +1003,6 @@ namespace lsp
     status_t RayTrace3D::scan_objects(cvector<rt_context_t> *tasks, rt_context_t *ctx)
     {
         status_t res = STATUS_OK;
-        ++sStats.calls_scan;
 
         RT_TRACE_BREAK(pDebug,
             lsp_trace("Scanning objects...");
@@ -927,8 +1085,6 @@ namespace lsp
 
     status_t RayTrace3D::cull_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
     {
-        ++sStats.calls_cull;
-
         status_t res = ctx->cull_view();
         if (res != STATUS_OK)
             return res;
@@ -951,8 +1107,6 @@ namespace lsp
 
     status_t RayTrace3D::split_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
     {
-        ++sStats.calls_split;
-
         rt_context_t out;
         RT_TRACE(pDebug, out.set_debug_context(pDebug); );
 
@@ -1013,8 +1167,6 @@ namespace lsp
 
     status_t RayTrace3D::cullback_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
     {
-        ++sStats.calls_cullback;
-
         RT_TRACE_BREAK(pDebug,
             lsp_trace("Performing depth test...");
             ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
@@ -1044,10 +1196,8 @@ namespace lsp
         return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
-    status_t RayTrace3D::reflect_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
+    status_t RayTrace3D::reflect_view(cvector<rt_context_t> *tasks, stats_t *stats, rt_context_t *ctx)
     {
-        ++sStats.calls_reflect;
-
         rt_context_t *rc;
         rt_view_t sv, v, cv, rv, tv;    // source view, view, captured view, reflected view, transparent trace
         vector3d_t vpl;                 // trace plane, split plane
@@ -1205,7 +1355,13 @@ namespace lsp
                 if (cap == NULL)
                     res = STATUS_CORRUPTED;
                 else if (cap->bindings.size() > 0)
+                {
+                    // Perform synchronized capturing
+                    ++stats->calls_capture;
+                    lkCapture.lock();
                     res = capture(cap, &cv, &ctx->trace);
+                    lkCapture.unlock();
+                }
                 else
                     res = STATUS_OK;
 
@@ -1267,7 +1423,6 @@ namespace lsp
 
     status_t RayTrace3D::capture(capture_t *capture, const rt_view_t *v, View3D *trace)
     {
-        ++sStats.calls_capture;
 //        lsp_trace("Capture:\n"
 //                "  coord  = {{%f, %f, %f}, {%f, %f, %f}, {%f, %f, %f}}\n"
 //                "  time   = {%f, %f, %f}\n"

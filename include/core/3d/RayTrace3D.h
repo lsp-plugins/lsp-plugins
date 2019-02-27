@@ -16,6 +16,8 @@
 #include <core/3d/rt_mesh.h>
 #include <core/3d/rt_context.h>
 #include <core/3d/RTObjectFactory.h>
+#include <core/ipc/Thread.h>
+#include <core/ipc/Mutex.h>
 
 namespace lsp
 {
@@ -70,6 +72,7 @@ namespace lsp
 
             typedef struct stats_t
             {
+                uint64_t            tasks_stolen;
                 uint64_t            calls_scan;
                 uint64_t            calls_cull;
                 uint64_t            calls_split;
@@ -77,6 +80,24 @@ namespace lsp
                 uint64_t            calls_reflect;
                 uint64_t            calls_capture;
             } stats_t;
+
+        protected:
+            class TaskThread: public ipc::Thread
+            {
+                private:
+                    RayTrace3D             *trace;
+                    stats_t                 stats;
+                    cvector<rt_context_t>   tasks;
+
+                public:
+                    TaskThread(RayTrace3D *trace);
+                    virtual ~TaskThread();
+
+                public:
+                    virtual status_t run();
+
+                    inline stats_t *get_stats() { return &stats; }
+            };
 
         private:
             cstorage<rt_material_t>     vMaterials;
@@ -92,12 +113,22 @@ namespace lsp
             float                       fTolerance;
             bool                        bNormalize;
             volatile bool               bCancelled;
-            stats_t                     sStats;
+            volatile bool               bFailed;
 
             rt_debug_t                 *pDebug;
 
+            cvector<rt_context_t>       vTasks;
+            size_t                      nProgressPoints;
+            size_t                      nProgressMax;
+            ipc::Mutex                  lkTasks;
+            ipc::Mutex                  lkCapture;
+
         protected:
             static void destroy_tasks(cvector<rt_context_t> *tasks);
+            static void clear_stats(stats_t *stats);
+            static void dump_stats(const char *label, const stats_t *stats);
+            static void merge_stats(stats_t *dst, const stats_t *src);
+
             void        remove_scene(bool destroy);
             status_t    resize_materials(size_t objects);
 
@@ -112,13 +143,16 @@ namespace lsp
             status_t    cull_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
             status_t    split_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
             status_t    cullback_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
-            status_t    reflect_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
+            status_t    reflect_view(cvector<rt_context_t> *tasks, stats_t *stats, rt_context_t *ctx);
             status_t    capture(capture_t *capture, const rt_view_t *v, View3D *trace);
 
-            status_t    process_context(cvector<rt_context_t> *tasks, rt_context_t *ctx);
+            status_t    process_context(cvector<rt_context_t> *tasks, stats_t *stats, rt_context_t *ctx);
 
             void        normalize_output();
             bool        is_already_passed(const sample_t *bind);
+
+            status_t    prepare_main_loop(float initial, stats_t *stats);
+            status_t    main_loop(cvector<rt_context_t> *tasks, stats_t *stats);
 
         public:
             /** Default constructor
@@ -263,10 +297,11 @@ namespace lsp
 
             /**
              * Perform processing, non-RT-safe, should be launched in a thread
+             * @param threads number of threads used for processing
              * @param initial initial energy of the signal
              * @return status of operation
              */
-            status_t            process(float initial);
+            status_t            process(size_t threads, float initial);
     };
 
 } /* namespace lsp */

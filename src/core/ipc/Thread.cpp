@@ -28,6 +28,15 @@ namespace lsp
         
         Thread::~Thread()
         {
+#if defined(PLATFORM_WINDOWS)
+            if (hThread != INVALID_HANDLE_VALUE)
+            {
+                CloseHandle(hThread);
+                hThread     = INVALID_HANDLE_VALUE;
+            }
+#else
+            hThread     = 0;
+#endif /* PLATFORM_WINDOWS */
         }
 
         status_t Thread::run()

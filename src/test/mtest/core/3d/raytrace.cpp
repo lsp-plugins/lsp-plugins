@@ -21,6 +21,31 @@ MTEST_BEGIN("core.3d", raytrace)
 
     MTEST_MAIN
     {
+        ssize_t nthreads = 1;
+        LSPString path;
+
+        // Parse arguments
+        MTEST_ASSERT(path.fmt_utf8("tmp/utest-parallel-%s-4track.wav", this->full_name()));
+        for (int i=0; i<argc; )
+        {
+            const char *arg = argv[i++];
+            if (!strcmp(arg, "--threads"))
+            {
+                MTEST_ASSERT((++i) < argc);
+                nthreads = atoi(argv[i]);
+                MTEST_ASSERT(nthreads >= 0);
+            }
+            else if (!strcmp(arg, "--outfile"))
+            {
+                MTEST_ASSERT((++i) < argc);
+                MTEST_ASSERT(path.set_native(argv[i]));
+            }
+            else
+            {
+                MTEST_FAIL_MSG("Unknown argument: %s", arg);
+            }
+        }
+
         // Perform assertions
         MTEST_ASSERT_MSG(!(sizeof(rtm_vertex_t) & 0x0f), "sizeof(rt_vertex_t) = 0x%x", int(sizeof(rtm_vertex_t)));
         MTEST_ASSERT_MSG(!(sizeof(rtm_edge_t) & 0x0f), "sizeof(rt_edge_t) = 0x%x", int(sizeof(rtm_edge_t)));
@@ -63,13 +88,10 @@ MTEST_BEGIN("core.3d", raytrace)
         trace.bind_capture(0, &sample, 3, -1, -1);  // All reflections
 
         // Perform raytracing
-        MTEST_ASSERT(trace.process(1.0f) == STATUS_OK);
+        MTEST_ASSERT(trace.process(nthreads, 1.0f) == STATUS_OK);
 
         // Save sample to file
         AudioFile af;
-        LSPString path;
-
-        MTEST_ASSERT(path.fmt_utf8("tmp/utest-%s-4track-v4.wav", this->full_name()));
         MTEST_ASSERT(af.create(&sample, trace.get_sample_rate()) == STATUS_OK);
         MTEST_ASSERT(af.store(&path) == STATUS_OK);
 
