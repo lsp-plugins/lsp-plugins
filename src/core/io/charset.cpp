@@ -521,7 +521,7 @@ namespace lsp
         }
 
         // Open conversion
-        return iconv_open(__IF_LEBE("UTF-16LE", "UTF-16BE"), charset);
+        return iconv_open(__IF_LEBE("UTF-32LE", "UTF-32BE"), charset);
     }
 
     iconv_t init_iconv_from_wchar_t(const char *charset)
@@ -559,7 +559,7 @@ namespace lsp
         }
 
         // Open conversion
-        return iconv_open(charset, __IF_LEBE("UTF-16LE", "UTF-16BE"));
+        return iconv_open(charset, __IF_LEBE("UTF-32LE", "UTF-32BE"));
     }
 #endif
 
