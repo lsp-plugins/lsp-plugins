@@ -147,8 +147,10 @@ namespace lsp
         point3d_t           v[3];       // Triangle points
         vector3d_t          n;          // Normal
         size_t              oid;        // Object identifier
+        size_t              face;       // Face identifier
         rt_material_t      *m;          // Material
-        __IF_32(uint32_t    __pad[2];)  // Alignment to be sizeof() multiple of 16
+        __IF_64(uint64_t    __pad;)     // Alignment to be sizeof() multiple of 16
+        __IF_32(uint32_t    __pad[3];)  // Alignment to be sizeof() multiple of 16
     } rt_triangle_t;
 
     typedef struct rtm_vertex_t: public point3d_t

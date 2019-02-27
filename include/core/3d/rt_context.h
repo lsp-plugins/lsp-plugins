@@ -160,7 +160,7 @@ namespace lsp
              * Perform depth-testing cullback of faces and remove invalid faces
              * @return status of operation
              */
-            status_t        depth_test(const point3d_t *sp);
+            status_t        depth_test();
 
             /**
              * Add triangle to list of ignored

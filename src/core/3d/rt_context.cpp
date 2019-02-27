@@ -151,6 +151,7 @@ namespace lsp
                         dt->v[2]    = *(t->v[2]);
                         dt->n       = t->n;
                         dt->oid     = t->oid;
+                        dt->face    = t->face;
                         dt->m       = t->m;
                         break;
                     }
@@ -707,24 +708,27 @@ namespace lsp
         return STATUS_NOT_FOUND;
     }
 
-    status_t rt_context_t::depth_test(const point3d_t *sp)
+    status_t rt_context_t::depth_test()
     {
         if (triangle.size() <= 1)
             return STATUS_OK;
 
         // Find the nearest to the point of view triangle
         rt_triangle_t *st = triangle.get(0);
-        float dmin = dsp::calc_min_distance_pv(sp, st->v);
+        float dmin = dsp::calc_min_distance_pv(&view.s, st->v);
 
         RT_FOREACH(rt_triangle_t, t, triangle)
-            float d = dsp::calc_min_distance_pv(sp, t->v);
+            float d = dsp::calc_min_distance_pv(&view.s, t->v);
             if (d < dmin)
+            {
                 st = t;
+                dmin = d;
+            }
         RT_FOREACH_END;
 
         // Build plane equation and perform cull-back
         vector3d_t v;
-        dsp::orient_plane_v1p1(&v, sp, &st->n);
+        dsp::orient_plane_v1p1(&v, &view.s, &st->n);
         return cullback(&v);
     }
 
