@@ -158,10 +158,10 @@ namespace lsp
             RT_FOREACH_END;
         }
 
-//        RT_VALIDATE(
-        if (!src->validate())
-            return STATUS_CORRUPTED;
-//        );
+        RT_VALIDATE(
+            if (!src->validate())
+                return STATUS_CORRUPTED;
+        );
 
         xtriangle.swap(&this->triangle);
         xplan.swap(&this->plan);
