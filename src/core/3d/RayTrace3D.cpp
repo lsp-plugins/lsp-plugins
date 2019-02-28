@@ -211,8 +211,8 @@ namespace lsp
             // Generate sources
             for (size_t ti=0, n=obj->num_triangles(); ti<n; ++ti)
             {
-                if (ti != 6) // DEBUG
-                    continue;
+//                if (ti != 6) // TODO: DEBUG
+//                    continue;
 
                 obj_triangle_t *t   = obj->triangle(ti);
                 rt_context_t *ctx   = new rt_context_t();
@@ -1033,8 +1033,6 @@ namespace lsp
         }
 
         // Estimate the progress by doing set of steps
-        // TODO: uncomment it if not debugging
-        /*
         do
         {
             while (tasks->size() > 0)
@@ -1068,7 +1066,6 @@ namespace lsp
             // Perform swap
             tasks->swap_data(&estimate);
         } while ((tasks->size() > 0) && (tasks->size() < 1000));
-        */
 
         // Values to report progress
         trace->nProgressPoints  = 1;
