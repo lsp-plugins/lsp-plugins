@@ -847,6 +847,11 @@ namespace lsp
         return res;
     }
 
+    void resize_error_hook()
+    {
+        lsp_error("Could not resize sample");
+    }
+
     status_t RayTrace3D::TaskThread::capture(capture_t *capture, const rt_view_t *v, View3D *view)
     {
 //        lsp_trace("Capture:\n"
@@ -967,10 +972,22 @@ namespace lsp
                         {
                             len     = (csn + 1 + SAMPLE_QUANTITY) / SAMPLE_QUANTITY;
                             len    *= SAMPLE_QUANTITY;
-                            s->sample->resize(s->sample->channels(), len, len);
+
+                            lsp_trace("v->time = {%e, %e, %e}", v->time[0], v->time[1], v->time[2]);
+                            lsp_trace("ctime = %e, tsn = {%e, %e, %e}", ctime, tsn[0], tsn[1], tsn[2]);
+                            lsp_trace("spl = {%e, %e, %e, %e}",
+                                spl.dx, spl.dy, spl.dz, spl.dw);
+                            lsp_trace("Requesting sample resize: csn=0x%llx, len=0x%llx, channels=%d",
+                                (long long)csn, (long long)len, int(s->sample->channels())
+                                );
+                            if (!s->sample->resize(s->sample->channels(), len, len))
+                            {
+                                resize_error_hook();
+                                return STATUS_NO_MEM;
+                            }
                         }
 
-                        // Deploy sample to all channels of the sample
+                        // Deploy sample to curent channel
                         float *buf  = s->sample->getBuffer(s->channel);
                         buf[csn-1] += amplitude;
                     }

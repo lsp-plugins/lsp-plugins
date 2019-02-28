@@ -2381,15 +2381,13 @@ namespace native
         v->dw       = 0.0f;
 
         float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
-        if (w != 0.0f)
-        {
-            w           = 1.0f / w;
-            v->dx      *= w;
-            v->dy      *= w;
-            v->dz      *= w;
-            v->dw       = 0.0f;
-        }
+        if (w == 0.0f)
+            return w;
 
+        w           = 1.0f / w;
+        v->dx      *= w;
+        v->dy      *= w;
+        v->dz      *= w;
         v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
 
         // Set the valid orientation for the plane
@@ -2426,15 +2424,13 @@ namespace native
         v->dw       = 0.0f;
 
         float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
-        if (w != 0.0f)
-        {
-            w           = 1.0f / w;
-            v->dx      *= w;
-            v->dy      *= w;
-            v->dz      *= w;
-            v->dw       = 0.0f;
-        }
+        if (w == 0.0f)
+            return w;
 
+        w           = 1.0f / w;
+        v->dx      *= w;
+        v->dy      *= w;
+        v->dz      *= w;
         v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
 
         // Set the valid orientation for the plane
