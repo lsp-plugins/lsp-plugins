@@ -64,13 +64,14 @@ namespace lsp
             }
             else // consider p[0] lays on the plane
             {
-                // p[1] also lies on the plane?
-                if ((k[1] > -DSP_3D_TOLERANCE) && (k[1] < DSP_3D_TOLERANCE) && (s->flags & SF_CULLBACK))
-                {
-                    if (!(sp = tmp.items.alloc(s)))
-                        return STATUS_NO_MEM;
-                    sp->flags   = s->flags | SF_APPLIED;
-                }
+                // Skip this plane
+//                // p[1] also lies on the plane and edge is marked as cull-back?
+//                if ((k[1] > -DSP_3D_TOLERANCE) && (k[1] < DSP_3D_TOLERANCE) && (s->flags & SF_CULLBACK))
+//                {
+//                    if (!(sp = tmp.items.alloc(s)))
+//                        return STATUS_NO_MEM;
+//                    sp->flags   = s->flags | SF_APPLIED; // Mark edge as already applied
+//                }
             }
         RT_FOREACH_END
 
@@ -98,6 +99,7 @@ namespace lsp
                     if (!(sp = tmp.items.alloc(s)))
                         return STATUS_NO_MEM;
                     dsp::calc_split_point_pvv1(&sp->p[0], sp->p, pl);
+//                    sp->flags   &= ~SF_CULLBACK; // We should disable cullback flag for this edge
                 }
             }
             else if (k[0] >= DSP_3D_TOLERANCE) // p[0] is over the plane
@@ -106,15 +108,11 @@ namespace lsp
                     return STATUS_NO_MEM;
                 if (k[1] <= -DSP_3D_TOLERANCE) // p[1] is under the plane, cut p[1]
                     dsp::calc_split_point_pvv1(&sp->p[1], sp->p, pl);
+//                sp->flags   &= ~SF_CULLBACK;    // We should disable cullback flag for this edge
             }
             else // consider p[0] lays on the plane
             {
-                if ((k[1] > -DSP_3D_TOLERANCE) && (k[1] < DSP_3D_TOLERANCE) && (s->flags & SF_CULLBACK))
-                {
-                    if (!(sp = tmp.items.alloc(s)))
-                        return STATUS_NO_MEM;
-                    sp->flags   = s->flags | SF_APPLIED;
-                }
+                // Do nothing
             }
         RT_FOREACH_END
 
@@ -151,7 +149,7 @@ namespace lsp
 
                     so->p[0]    = sp;
                     so->p[1]    = s->p[1];
-                    so->flags   = s->flags;
+                    so->flags   = s->flags; // & ~SF_CULLBACK; // We should disable cullback flag for this edge
                 }
                 else // Edge is under the plane, just copy to xin
                 {
@@ -176,7 +174,7 @@ namespace lsp
 
                     so->p[0]    = s->p[0];
                     so->p[1]    = sp;
-                    so->flags   = s->flags;
+                    so->flags   = s->flags; // & ~SF_CULLBACK; // We should disable cullback flag for this edge
                 }
                 else // Edge is over the plane, just copy to xout
                 {
@@ -196,21 +194,14 @@ namespace lsp
                     if (!xout.items.alloc(s))
                         return STATUS_NO_MEM;
                 }
-                else if (s->flags & SF_CULLBACK) // Edge lays on the plane, keep it only if has a SF_CULLBACK flag
-                {
-                    si          = xin.items.alloc();
-                    so          = xout.items.alloc();
-                    if ((!si) || (!so))
-                        return STATUS_NO_MEM;
-
-                    si->p[0]    = s->p[0];
-                    si->p[1]    = s->p[1];
-                    si->flags   = s->flags | SF_APPLIED;
-
-                    so->p[0]    = s->p[0];
-                    so->p[1]    = s->p[1];
-                    so->flags   = s->flags | SF_APPLIED;
-                }
+//                else if (s->flags & SF_CULLBACK) // Edge lays on the plane, keep it only if has a SF_CULLBACK flag
+//                {
+//                    // Copy cullback ege only to 'in' data and mark as applied
+//                    if (!(si = xin.items.alloc(s)))
+//                        return STATUS_NO_MEM;
+//
+//                    si->flags  |= SF_APPLIED;
+//                }
             }
         RT_FOREACH_END
 
@@ -221,7 +212,33 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t rt_plan_t::add_triangle(const point3d_t *pv, const vector3d_t *sp)
+//    status_t rt_plan_t::add_triangle(const rtm_triangle_t *t, const vector3d_t *sp)
+    status_t rt_plan_t::add_triangle(const rtm_triangle_t *t)
+    {
+        rt_split_t *asp[3];
+        if (items.alloc_n(asp, 3) != 3)
+            return STATUS_NO_MEM;
+
+        asp[0]->p[0]    = *(t->v[0]);
+        asp[0]->p[1]    = *(t->v[1]);
+//        asp[0]->sp      = *sp;
+        asp[0]->flags   = 0;
+
+        asp[1]->p[0]    = *(t->v[1]);
+        asp[1]->p[1]    = *(t->v[2]);
+//        asp[1]->sp      = *sp;
+        asp[1]->flags   = 0;
+
+        asp[2]->p[0]    = *(t->v[2]);
+        asp[2]->p[1]    = *(t->v[0]);
+//        asp[2]->sp      = *sp;
+        asp[2]->flags   = 0; //SF_CULLBACK;      // After split of this edge, we need to perform a cull-back
+
+        return STATUS_OK;
+    }
+
+//    status_t rt_plan_t::add_triangle(const point3d_t *pv, const vector3d_t *sp)
+    status_t rt_plan_t::add_triangle(const point3d_t *pv)
     {
         rt_split_t *asp[3];
         if (items.alloc_n(asp, 3) != 3)
@@ -229,23 +246,24 @@ namespace lsp
 
         asp[0]->p[0]    = pv[0];
         asp[0]->p[1]    = pv[1];
-        asp[0]->sp      = *sp;
+//        asp[0]->sp      = *sp;
         asp[0]->flags   = 0;
 
         asp[1]->p[0]    = pv[1];
         asp[1]->p[1]    = pv[2];
-        asp[1]->sp      = *sp;
+//        asp[1]->sp      = *sp;
         asp[1]->flags   = 0;
 
         asp[2]->p[0]    = pv[2];
         asp[2]->p[1]    = pv[0];
-        asp[2]->sp      = *sp;
-        asp[2]->flags   = SF_CULLBACK;      // After split of this edge, we need to perform a cull-back
+//        asp[2]->sp      = *sp;
+        asp[2]->flags   = 0; //SF_CULLBACK;      // After split of this edge, we need to perform a cull-back
 
         return STATUS_OK;
     }
 
-    rt_split_t *rt_plan_t::add_edge(const point3d_t *pv, const vector3d_t *sp)
+//    rt_split_t *rt_plan_t::add_edge(const point3d_t *pv, const vector3d_t *sp)
+    rt_split_t *rt_plan_t::add_edge(const point3d_t *pv)
     {
         rt_split_t *asp     = items.alloc();
         if (asp == NULL)
@@ -253,13 +271,14 @@ namespace lsp
 
         asp->p[0]       = pv[0];
         asp->p[1]       = pv[1];
-        asp->sp         = *sp;
+//        asp->sp         = *sp;
         asp->flags      = 0;
 
         return asp;
     }
 
-    rt_split_t *rt_plan_t::add_edge(const point3d_t *p1, const point3d_t *p2, const vector3d_t *sp)
+//    rt_split_t *rt_plan_t::add_edge(const point3d_t *p1, const point3d_t *p2, const vector3d_t *sp)
+    rt_split_t *rt_plan_t::add_edge(const point3d_t *p1, const point3d_t *p2)
     {
         rt_split_t *asp     = items.alloc();
         if (asp == NULL)
@@ -267,7 +286,7 @@ namespace lsp
 
         asp->p[0]       = *p1;
         asp->p[1]       = *p2;
-        asp->sp         = *sp;
+//        asp->sp         = *sp;
         asp->flags      = 0;
 
         return asp;

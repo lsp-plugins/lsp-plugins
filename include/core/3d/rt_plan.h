@@ -77,7 +77,15 @@ namespace lsp
              * @param sp the equation of split plane provided by triangle
              * @return status of operation
              */
-            status_t        add_triangle(const point3d_t *pv, const vector3d_t *sp);
+            status_t        add_triangle(const point3d_t *pv);
+
+            /**
+             * Add triangle to the plan
+             * @param t triangle to add
+             * @param sp the equation of split plane provided by triangle
+             * @return status of operation
+             */
+            status_t        add_triangle(const rtm_triangle_t *t);
 
             /**
              * Add triangle to the plan
@@ -85,7 +93,7 @@ namespace lsp
              * @param sp the equation of split plane provided by triangle
              * @return status of operation
              */
-            rt_split_t     *add_edge(const point3d_t *pv, const vector3d_t *sp);
+            rt_split_t     *add_edge(const point3d_t *pv);
 
             /**
              * Add triangle to the plan
@@ -93,7 +101,7 @@ namespace lsp
              * @param sp the equation of split plane provided by triangle
              * @return status of operation
              */
-            rt_split_t     *add_edge(const point3d_t *p1, const point3d_t *p2, const vector3d_t *sp);
+            rt_split_t     *add_edge(const point3d_t *p1, const point3d_t *p2);
 
     } rt_plan_t;
 }

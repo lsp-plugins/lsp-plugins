@@ -211,6 +211,9 @@ namespace lsp
             // Generate sources
             for (size_t ti=0, n=obj->num_triangles(); ti<n; ++ti)
             {
+                if (ti != 6) // DEBUG
+                    continue;
+
                 obj_triangle_t *t   = obj->triangle(ti);
                 rt_context_t *ctx   = new rt_context_t();
                 if (ctx == NULL)
@@ -574,6 +577,8 @@ namespace lsp
                 nctx->swap(&out);
             }
 
+            // Update context state
+            ctx->state  = (ctx->triangle.size() > 1) ? S_SPLIT : S_REFLECT;
             return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
         }
         else if (out.triangle.size() > 0)
@@ -630,6 +635,7 @@ namespace lsp
 
         sv      = ctx->view;
         A       = dsp::calc_area_pv(sv.p);
+
         if (A <= trace->fTolerance)
         {
             delete ctx;
@@ -649,15 +655,6 @@ namespace lsp
             if (m == NULL)
                 continue;
 
-            RT_TRACE_BREAK(trace->pDebug,
-                lsp_trace("Reflecting triangle");
-                ctx->trace.add_triangle_1c(ct, &C_YELLOW);
-                ctx->trace.add_triangle_pvnc1(sv.p, &vpl, &C_MAGENTA);
-                ctx->trace.add_plane_3pn1c(&ct->v[0], &ct->v[1], &ct->v[2], &ct->n, &C_MAGENTA);
-                ctx->trace.add_plane_3pn1c(&sv.p[0], &sv.p[1], &sv.p[2], &ct->n, &C_YELLOW);
-                ctx->trace.add_view_1c(&sv, &C_MAGENTA);
-            );
-
             // Estimate the start time for each trace point using barycentric coordinates
             for (size_t j=0; j<3; ++j)
             {
@@ -673,7 +670,7 @@ namespace lsp
 
             // Compute area of projected triangle
             float area  = dsp::calc_area_pv(p);
-            if (area <= trace->fTolerance)
+            if (area <= 1e-10f)
                 continue;
 
             // Determine the direction from which came the wave front
@@ -687,6 +684,19 @@ namespace lsp
             v.p[1]      = ct->v[1];
             v.p[2]      = ct->v[2];
 
+            RT_TRACE_BREAK(trace->pDebug,
+                lsp_trace("Reflecting triangle area=%e amplitude=%e",
+                        area, v.amplitude);
+                ctx->trace.add_triangle_1c(ct, &C_YELLOW);
+                ctx->trace.add_triangle_pvnc1(sv.p, &vpl, &C_MAGENTA);
+                ctx->trace.add_plane_3pn1c(&ct->v[0], &ct->v[1], &ct->v[2], &ct->n, &C_MAGENTA);
+                ctx->trace.add_plane_3pn1c(&sv.p[0], &sv.p[1], &sv.p[2], &ct->n, &C_YELLOW);
+                ctx->trace.add_view_1c(&sv, &C_MAGENTA);
+                ctx->trace.add_segment(&v.p[0], &ct->v[0], &C_RED);
+                ctx->trace.add_segment(&v.p[1], &ct->v[1], &C_GREEN);
+                ctx->trace.add_segment(&v.p[2], &ct->v[2], &C_BLUE);
+            );
+
             float distance  = sv.s.x * ct->n.dx + sv.s.y * ct->n.dy + sv.s.z * ct->n.dz + ct->n.dw;
 
             RT_TRACE_BREAK(trace->pDebug,
@@ -696,6 +706,7 @@ namespace lsp
                 lsp_trace("Target points time: {%f, %f, %f}", v.time[0], v.time[1], v.time[2]);
                 lsp_trace("Amplitude: %e -> %e", sv.amplitude, v.amplitude);
                 lsp_trace("Distance between source point and triangle: %f", distance);
+                lsp_trace("oid = %d, caprues.size=%d", int(ct->oid), int(trace->vCaptures.size()));
 
                 ctx->trace.add_triangle_1c(ct, &C_YELLOW);
                 ctx->trace.add_plane_3pn1c(&ct->v[0], &ct->v[1], &ct->v[2], &ct->n, &C_GREEN);
@@ -774,16 +785,12 @@ namespace lsp
             if (ct->oid < trace->vCaptures.size())
             {
                 capture_t *cap  = trace->vCaptures.get(ct->oid);
-                if (cap == NULL)
-                    res = STATUS_CORRUPTED;
-                else if (cap->bindings.size() > 0)
+                //if (cap->bindings.size() > 0)
                 {
                     // Perform synchronized capturing
                     ++stats.calls_capture;
                     res = capture(cap, &cv, &ctx->trace);
                 }
-                else
-                    res = STATUS_OK;
 
                 if (res != STATUS_OK)
                     break;
@@ -856,7 +863,7 @@ namespace lsp
 
         // Compute the area of triangle
         float v_area = dsp::calc_area_pv(v->p);
-        if (v_area <= trace->fTolerance)
+        if (v_area <= 1e-10f) // Prevent from becoming NaNs
             return STATUS_OK;
 
         // Estimate distance and time parameters for source point
@@ -1026,6 +1033,8 @@ namespace lsp
         }
 
         // Estimate the progress by doing set of steps
+        // TODO: uncomment it if not debugging
+        /*
         do
         {
             while (tasks->size() > 0)
@@ -1059,6 +1068,7 @@ namespace lsp
             // Perform swap
             tasks->swap_data(&estimate);
         } while ((tasks->size() > 0) && (tasks->size() < 1000));
+        */
 
         // Values to report progress
         trace->nProgressPoints  = 1;
@@ -1410,7 +1420,8 @@ namespace lsp
         stats_t overall;
         clear_stats(&overall);
         merge_stats(&overall, root->get_stats());
-        dump_stats("Main thread statistics", root->get_stats());
+        if (res != STATUS_BREAKPOINT)
+            dump_stats("Main thread statistics", root->get_stats());
 
         // Output thread stats and destroy threads
         for (size_t i=0,n=workers.size(); i<n; ++i)
@@ -1422,7 +1433,8 @@ namespace lsp
             LSPString s;
             s.fmt_utf8("Supplementary thread %d statistics", int(i));
             merge_stats(&overall, t->get_stats());
-            dump_stats(s.get_utf8(), t->get_stats());
+            if (res != STATUS_BREAKPOINT)
+                dump_stats(s.get_utf8(), t->get_stats());
 
             // Detroy thread object
             delete t;
@@ -1431,7 +1443,8 @@ namespace lsp
         workers.flush();
 
         // Dump overall statistics
-        dump_stats("Overall statistics", &overall);
+        if (res != STATUS_BREAKPOINT)
+            dump_stats("Overall statistics", &overall);
 
         // Destroy all tasks
         destroy_tasks(&vTasks);
@@ -1512,63 +1525,63 @@ namespace lsp
     }
 
     bool RayTrace3D::check_bound_box(const bound_box3d_t *bbox, const rt_view_t *view)
+    {
+        vector3d_t pl[4];
+
+        dsp::calc_plane_p3(&pl[0], &view->s, &view->p[0], &view->p[1]);
+        dsp::calc_plane_p3(&pl[1], &view->s, &view->p[1], &view->p[2]);
+        dsp::calc_plane_p3(&pl[2], &view->s, &view->p[2], &view->p[0]);
+        dsp::calc_plane_p3(&pl[3], &view->p[0], &view->p[1], &view->p[2]);
+
+        raw_triangle_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
+        size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
+
+        // Cull each triangle of bounding box with four scissor planes
+        for (size_t j=0, m = sizeof(bbox_map)/sizeof(size_t); j < m; )
         {
-            vector3d_t pl[4];
+            // Initialize input and queue buffer
+            q = buf1, in = buf2;
+            n_q = &n_buf1, n_in = &n_buf2;
 
-            dsp::calc_plane_p3(&pl[0], &view->s, &view->p[0], &view->p[1]);
-            dsp::calc_plane_p3(&pl[1], &view->s, &view->p[1], &view->p[2]);
-            dsp::calc_plane_p3(&pl[2], &view->s, &view->p[2], &view->p[0]);
-            dsp::calc_plane_p3(&pl[3], &view->p[0], &view->p[1], &view->p[2]);
+            // Put to queue with updated matrix
+            *n_q        = 1;
+            n_out       = 0;
+            q->p[0]     = bbox->p[bbox_map[j++]];
+            q->p[1]     = bbox->p[bbox_map[j++]];
+            q->p[2]     = bbox->p[bbox_map[j++]];
 
-            raw_triangle_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
-            size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
-
-            // Cull each triangle of bounding box with four scissor planes
-            for (size_t j=0, m = sizeof(bbox_map)/sizeof(size_t); j < m; )
+            // Cull triangle with planes
+            for (size_t k=0; ; )
             {
-                // Initialize input and queue buffer
-                q = buf1, in = buf2;
-                n_q = &n_buf1, n_in = &n_buf2;
+                // Reset counters
+                *n_in   = 0;
 
-                // Put to queue with updated matrix
-                *n_q        = 1;
-                n_out       = 0;
-                q->p[0]     = bbox->p[bbox_map[j++]];
-                q->p[1]     = bbox->p[bbox_map[j++]];
-                q->p[2]     = bbox->p[bbox_map[j++]];
-
-                // Cull triangle with planes
-                for (size_t k=0; ; )
+                // Split all triangles:
+                // Put all triangles above the plane to out
+                // Put all triangles below the plane to in
+                for (size_t l=0; l < *n_q; ++l)
                 {
-                    // Reset counters
-                    *n_in   = 0;
-
-                    // Split all triangles:
-                    // Put all triangles above the plane to out
-                    // Put all triangles below the plane to in
-                    for (size_t l=0; l < *n_q; ++l)
-                    {
-                        dsp::split_triangle_raw(out, &n_out, in, n_in, &pl[k], &q[l]);
-                        if ((n_out > 16) || ((*n_in) > 16))
-                            lsp_trace("split overflow: n_out=%d, n_in=%d", int(n_out), int(*n_in));
-                    }
-
-                    // Interrupt cycle if there is no data to process
-                    if ((*n_in <= 0) || ((++k) >= 4))
-                       break;
-
-                    // Swap buffers buf0 <-> buf1
-                    n_tmp = n_in, tmp = in;
-                    n_in = n_q, in = q;
-                    n_q = n_tmp, q = tmp;
+                    dsp::split_triangle_raw(out, &n_out, in, n_in, &pl[k], &q[l]);
+                    if ((n_out > 16) || ((*n_in) > 16))
+                        lsp_trace("split overflow: n_out=%d, n_in=%d", int(n_out), int(*n_in));
                 }
 
-                if ((*n_in) > 0)
-                    break;
+                // Interrupt cycle if there is no data to process
+                if ((*n_in <= 0) || ((++k) >= 4))
+                   break;
+
+                // Swap buffers buf0 <-> buf1
+                n_tmp = n_in, tmp = in;
+                n_in = n_q, in = q;
+                n_q = n_tmp, q = tmp;
             }
 
-            return (*n_in) > 0;
+            if ((*n_in) > 0)
+                break;
         }
+
+        return (*n_in) > 0;
+    }
 
 
 } /* namespace lsp */

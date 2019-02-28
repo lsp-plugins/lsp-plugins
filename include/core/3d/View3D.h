@@ -9,6 +9,7 @@
 #define CORE_3D_VIEW3D_H_
 
 #include <core/3d/common.h>
+#include <core/3d/rt_plan.h>
 #include <data/cstorage.h>
 
 namespace lsp
@@ -273,6 +274,14 @@ namespace lsp
              * @return array of vertexes
              */
             inline v_vertex3d_t *get_vertexes() { return vVertexes.get_array(); }
+
+            /**
+             * Dump plan to view
+             * @param view view to dump
+             * @param c mesh color
+             * @return
+             */
+            void dump(rt_plan_t *plan, const color3d_t *c);
     };
 
 } /* namespace mtest */

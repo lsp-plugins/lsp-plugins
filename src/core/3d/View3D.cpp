@@ -694,4 +694,35 @@ namespace lsp
         return vVertexes.get(index);
     }
 
+    void View3D::dump(rt_plan_t *plan, const color3d_t *c)
+    {
+        v_segment3d_t *xs;
+        color3d_t xc;
+
+        size_t n = plan->items.size();
+        if (n == 0)
+            return;
+
+        float k = 0.75f / n;
+
+        for (size_t i=0; i<n; ++i)
+        {
+            rt_split_t *s = plan->items.get(i);
+            xs = vSegments.add();
+            if (xs == NULL)
+                return;
+
+            float d     = 0.25f + (n - i)*k;
+            xc.r        = c->r * d;
+            xc.g        = c->g * d;
+            xc.b        = c->b * d;
+            xc.a        = 0.0f;
+
+            xs->p[0]    = s->p[0];
+            xs->p[1]    = s->p[1];
+            xs->c[0]    = xc;
+            xs->c[1]    = xc;
+        }
+    }
+
 } /* namespace mtest */

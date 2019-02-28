@@ -101,62 +101,162 @@ namespace lsp
     }
 #endif
 
+    int rt_context_t::compare_triangles(const void *p1, const void *p2)
+    {
+        const rt_triangle_sort_t *t1 = reinterpret_cast<const rt_triangle_sort_t *>(p1);
+        const rt_triangle_sort_t *t2 = reinterpret_cast<const rt_triangle_sort_t *>(p2);
+
+        float x = t1->w - t2->w;
+        if (x < -DSP_3D_TOLERANCE)
+            return -1;
+        return (x > DSP_3D_TOLERANCE) ? 1 : 0;
+    }
+
     status_t rt_context_t::fetch_objects(rt_mesh_t *src, size_t n, const size_t *ids)
     {
-        Allocator3D<rt_triangle_t> xtriangle(1024);
-        rt_plan_t   xplan;
-
-        rt_split_t *spl;
-        rt_triangle_t *dt;
-
-        if (n > 0)
+        // Check size
+        if (n <= 0)
         {
-            // Cleanup tag pointers
-            RT_FOREACH(rtm_edge_t, e, src->edge)
-                e->itag     = 1;
-            RT_FOREACH_END
-
-            // Match triangles by object identifier
-            RT_FOREACH(rtm_triangle_t, t, src->triangle)
-                // Skip triangles that should be ignored
-                if ((t->oid == view.oid) && (t->face == view.face))
-                {
-                    RT_TRACE(debug, ignore(t); );
-                    continue;
-                }
-
-                // Check that triangle matches specified object
-                for (size_t i=0; i<n; ++i)
-                    if (t->oid == ssize_t(ids[i]))
-                    {
-                        // Add edges to plan
-                        spl     = NULL;
-                        for (size_t k=0; k<3; ++k)
-                            if (t->e[k]->itag) // Add only unique edges
-                            {
-                                t->e[k]->itag   = 0;
-                                if (!(spl = xplan.add_edge(t->e[k]->v[0], t->e[k]->v[1], &t->n)))
-                                    return STATUS_NO_MEM;
-                            }
-
-                        if (spl != NULL)
-                            spl->flags     |=   SF_CULLBACK;
-
-                        // Add triangle to list
-                        if (!(dt = xtriangle.alloc()))
-                            return STATUS_NO_MEM;
-
-                        dt->v[0]    = *(t->v[0]);
-                        dt->v[1]    = *(t->v[1]);
-                        dt->v[2]    = *(t->v[2]);
-                        dt->n       = t->n;
-                        dt->oid     = t->oid;
-                        dt->face    = t->face;
-                        dt->m       = t->m;
-                        break;
-                    }
-            RT_FOREACH_END;
+            triangle.flush();
+            plan.flush();
+            return STATUS_OK;
         }
+
+        //--------------------------------------------
+        // Prepare sorted list of matched triangles
+        size_t cap              = (src->triangle.size() + 0x3f) & (~0x3f);
+        size_t t_total          = 0;
+        rt_triangle_sort_t *vt  = reinterpret_cast<rt_triangle_sort_t *>(malloc(cap * sizeof(rt_triangle_sort_t)));
+        if (vt == NULL)
+            return STATUS_NO_MEM;
+
+        RT_FOREACH(rtm_triangle_t, t, src->triangle)
+            // Skip triangles that should be ignored
+            if ((t->oid == view.oid) && (t->face == view.face))
+            {
+                RT_TRACE(debug, ignore(t); );
+                continue;
+            }
+
+            // Check that triangle matches specified object
+            for (size_t i=0; i<n; ++i)
+                if (t->oid == ssize_t(ids[i]))
+                {
+                    // Mark edges as required to be added to the plan
+                    t->e[0]->itag       = 0;
+                    t->e[1]->itag       = 0;
+                    t->e[2]->itag       = 0;
+
+                    // Add triangle to list and increment total counter
+                    vt[t_total].t       = t;
+                    vt[t_total].w       = dsp::calc_min_distance_p3(&view.s, t->v[0], t->v[1], t->v[2]);
+                    ++t_total;
+                }
+        RT_FOREACH_END;
+
+        if (t_total <= 0)
+        {
+            free(vt);
+            triangle.flush();
+            plan.flush();
+            return STATUS_OK;
+        }
+
+        // Perform sort
+        RT_TRACE_BREAK(debug,
+            lsp_trace("Prepare sort (%d triangles)", int(t_total));
+            trace.add_view_1c(&view, &C_MAGENTA);
+
+            color3d_t c;
+            c.r     = 1.0f;
+            c.g     = 0.0f;
+            c.b     = 0.0f;
+            c.a     = 0.0f;
+
+            for (size_t i=0; i<t_total; ++i)
+            {
+                c.r = float(t_total - i)/t_total;
+                trace.add_triangle_1c(vt[i].t, &c);
+            }
+            free(vt);
+        )
+
+        ::qsort(vt, t_total, sizeof(rt_triangle_sort_t), compare_triangles);
+
+        RT_TRACE_BREAK(debug,
+            lsp_trace("After sort (%d triangles)", int(t_total));
+            trace.add_view_1c(&view, &C_MAGENTA);
+
+            color3d_t c;
+            c.r     = 0.0f;
+            c.g     = 1.0f;
+            c.b     = 0.0f;
+            c.a     = 0.0f;
+
+            for (size_t i=0; i<t_total; ++i)
+            {
+                c.g = float(t_total - i)/t_total;
+                trace.add_triangle_1c(vt[i].t, &c);
+            }
+            free(vt);
+        )
+
+        //--------------------------------------------
+        // Build the plan
+        rt_triangle_t *dt;
+        rt_plan_t   xplan;
+        Allocator3D<rt_triangle_t> xtriangle(1024);
+        status_t res = STATUS_OK;
+
+        for (size_t i=0; i<t_total; ++i)
+        {
+            rtm_triangle_t *t = vt[i].t;
+
+            // Add edges to plan
+            if (!(t->e[0]->itag++))
+            {
+                if (!xplan.add_edge(t->v[0], t->v[1]))
+                {
+                    res = STATUS_NO_MEM;
+                    break;
+                }
+            }
+            if (!(t->e[1]->itag++))
+            {
+                if (!xplan.add_edge(t->v[1], t->v[2]))
+                {
+                    res = STATUS_NO_MEM;
+                    break;
+                }
+            }
+            if (!(t->e[2]->itag++))
+            {
+                if (!xplan.add_edge(t->v[2], t->v[0]))
+                {
+                    res = STATUS_NO_MEM;
+                    break;
+                }
+            }
+
+            // Add triangle to list
+            if (!(dt = xtriangle.alloc()))
+            {
+                res     = STATUS_NO_MEM;
+                break;
+            }
+
+            dt->v[0]    = *(t->v[0]);
+            dt->v[1]    = *(t->v[1]);
+            dt->v[2]    = *(t->v[2]);
+            dt->n       = t->n;
+            dt->oid     = t->oid;
+            dt->face    = t->face;
+            dt->m       = t->m;
+        }
+
+        free(vt);
+        if (res != STATUS_OK)
+            return res;
 
         RT_VALIDATE(
             if (!src->validate())
@@ -208,8 +308,7 @@ namespace lsp
             trace.add_view_1c(&view, &C_MAGENTA);
             for (size_t j=0,n=triangle.size(); j<n; ++j)
                 trace.add_triangle_1c(triangle.get(j), &C_YELLOW);
-            for (size_t j=0,n=plan.items.size(); j<n; ++j)
-                trace.add_segment(plan.items.get(j), &C_RED)
+            trace.dump(&plan, &C_RED);
         );
 
         return STATUS_OK;
@@ -650,8 +749,8 @@ namespace lsp
 
             rt_split_t xe   = *se;
 
-            if (!(xe.flags & SF_APPLIED))
-            {
+//            if (!(xe.flags & SF_APPLIED))
+//            {
                 // Process split only with valid plane
                 if (dsp::calc_plane_p3(&pl, &view.s, &xe.p[0], &xe.p[1]) > DSP_3D_TOLERANCE)
                 {
@@ -669,38 +768,36 @@ namespace lsp
                         for (size_t i=0, n=out->triangle.size(); i<n; ++i)
                             trace.add_triangle_1c(out->triangle.get(i), &C_RED);
 
-                        for (size_t i=0, n=plan.items.size(); i<n; ++i)
-                            trace.add_segment(plan.items.get(i), &C_RED);
-                        for (size_t i=0, n=out->plan.items.size(); i<n; ++i)
-                            trace.add_segment(out->plan.items.get(i), &C_GREEN);
+                        trace.dump(&plan, &C_RED);
+                        trace.dump(&out->plan, &C_GREEN);
                     )
                 }
-            }
-            if (xe.flags & SF_CULLBACK)
-            {
-                dsp::orient_plane_v1p1(&pl, &view.s, &xe.sp);
-                RT_TRACE_BREAK(debug,
-                    lsp_trace("Cullback context");
-                    trace.add_view_1c(&view, &C_MAGENTA);
-
-                    for (size_t i=0, n=triangle.size(); i<n; ++i)
-                        trace.add_triangle_1c(triangle.get(i), &C_GREEN);
-                    trace.add_plane_2pn1c(&xe.p[0], &xe.p[1], &pl, &C_YELLOW);
-                )
-
-                status_t res = cullback(&pl);
-                if (res != STATUS_OK)
-                    return res;
-
-                RT_TRACE_BREAK(debug,
-                    lsp_trace("Cullback context into triangles in(BLUE) = %d",
-                            int(triangle.size()));
-                    trace.add_view_1c(&view, &C_MAGENTA);
-
-                    for (size_t i=0, n=triangle.size(); i<n; ++i)
-                        trace.add_triangle_1c(triangle.get(i), &C_BLUE);
-                )
-            }
+//            }
+//            if (xe.flags & SF_CULLBACK)
+//            {
+//                dsp::orient_plane_v1p1(&pl, &view.s, &xe.sp);
+//                RT_TRACE_BREAK(debug,
+//                    lsp_trace("Cullback context");
+//                    trace.add_view_1c(&view, &C_MAGENTA);
+//
+//                    for (size_t i=0, n=triangle.size(); i<n; ++i)
+//                        trace.add_triangle_1c(triangle.get(i), &C_GREEN);
+//                    trace.add_plane_2pn1c(&xe.p[0], &xe.p[1], &pl, &C_YELLOW);
+//                )
+//
+//                status_t res = cullback(&pl);
+//                if (res != STATUS_OK)
+//                    return res;
+//
+//                RT_TRACE_BREAK(debug,
+//                    lsp_trace("Cullback context into triangles in(BLUE) = %d",
+//                            int(triangle.size()));
+//                    trace.add_view_1c(&view, &C_MAGENTA);
+//
+//                    for (size_t i=0, n=triangle.size(); i<n; ++i)
+//                        trace.add_triangle_1c(triangle.get(i), &C_BLUE);
+//                )
+//            }
 
             return STATUS_OK;
         RT_FOREACH_END

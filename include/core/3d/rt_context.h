@@ -39,12 +39,6 @@ namespace lsp
     typedef struct rt_context_t
     {
         protected:
-            typedef struct rt_edge_sort_t
-            {
-                rtm_edge_t         *e;          // Pointer to edge
-                float               w;          // Weight of edge
-            } rt_edge_sort_t;
-
             typedef struct rt_triangle_sort_t
             {
                 rtm_triangle_t     *t;          // Pointer to triangle
@@ -63,6 +57,9 @@ namespace lsp
                 cstorage<v_triangle3d_t>    ignored;    // List of ignored triangles (for debug)
                 View3D                      trace;      // The state of the context
             )
+
+        protected:
+            static int      compare_triangles(const void *p1, const void *p2);
 
         public:
             // Construction/destruction
