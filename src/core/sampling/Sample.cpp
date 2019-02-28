@@ -51,6 +51,8 @@ namespace lsp
         if (channels <= 0)
             return false;
 
+        lsp_trace("Requested resize: channels=%d, max_length=%d, lenght=%d", int(channels), int(max_length), int(length));
+
         // Allocate new data
         max_length      = ALIGN_SIZE(max_length, DEFAULT_ALIGN);    // Make multiple of 4
         float *buf      = new float[max_length * channels];
@@ -68,20 +70,17 @@ namespace lsp
             // Copy channels
             for (size_t ch=0; ch < channels; ++ch)
             {
-                if (ch >= nChannels)
+                if (ch < nChannels)
                 {
-                    dsp::fill_zero(dptr, max_length);
-                    dptr           += max_length;
-                    continue;
+                    // Copy data and clear data
+                    dsp::copy(dptr, sptr, to_copy);
+                    dsp::fill_zero(&dptr[to_copy], max_length - to_copy);
+                    sptr           += nMaxLength;
                 }
+                else
+                    dsp::fill_zero(dptr, max_length);
 
-                // Copy data and clear data
-                dsp::copy(dptr, sptr, to_copy);
-                dsp::fill_zero(&dptr[to_copy], max_length - to_copy);
-
-                // Update pointers
                 dptr           += max_length;
-                sptr           += nMaxLength;
             }
 
             // Destroy previously allocated data
