@@ -28,6 +28,7 @@ namespace lsp
         nItems              = 0;
 
         vItems              = NULL;
+        pApoBiquad           = NULL;
         vData               = NULL;
         nFlags              = FF_REBUILD | FF_CLEAR;
     }
@@ -68,8 +69,9 @@ namespace lsp
         if (vData == NULL)
         {
             size_t cascade_size = ALIGN_SIZE(sizeof(cascade_t) * FILTER_CHAINS_MAX, DEFAULT_ALIGN);
+            size_t apo_bq_size  = ALIGN_SIZE(sizeof(apo_biquad_t), DEFAULT_ALIGN);
 
-            size_t allocate     = cascade_size + DEFAULT_ALIGN; // + filters_size;
+            size_t allocate     = cascade_size + apo_bq_size + DEFAULT_ALIGN; // + filters_size;
             vData               = new uint8_t[allocate];
             if (vData == NULL)
                 return false;
@@ -77,6 +79,8 @@ namespace lsp
             uint8_t *ptr        = ALIGN_PTR(vData, DEFAULT_ALIGN);
             vItems              = reinterpret_cast<cascade_t *>(ptr);
             ptr                += cascade_size;
+            pApoBiquad          = reinterpret_cast<apo_biquad_t *>(ptr);
+            ptr                += apo_bq_size;
         }
 
         update(48000, &fp);
@@ -90,8 +94,9 @@ namespace lsp
         if (vData != NULL)
         {
             delete  [] vData;
-            vItems  = NULL;
-            vData   = NULL;
+            vItems      = NULL;
+            pApoBiquad  = NULL;
+            vData       = NULL;
         }
 
         if (pBank != NULL)
@@ -363,6 +368,29 @@ namespace lsp
         *im             = r_im;
     }
 
+    void Filter::apo_complex_transfer_calc(float *re, float *im, double f)
+    {
+        // Calculating normalized frequency, wrapped for maximal accuracy:
+        double w = 2.0 * M_PI * (f / double(nSampleRate) - floor(f / double(nSampleRate)));
+
+        // Auxiliary variables:
+        double cw = cos(w);
+        double sw = sqrt(1.0 - cw * cw); // sin(w);
+
+        double c2w = cw * cw - sw * sw; // cos(2 * w)
+        double s2w = 2.0 * sw * cw; // sin(2 * w)
+
+        double alpha    = pApoBiquad->a[0] + pApoBiquad->a[1] * cw + pApoBiquad->a[2] * c2w;
+        double beta     = pApoBiquad->a[1] * sw + pApoBiquad->a[2] * s2w;
+        double gamma    = 1.0 + pApoBiquad->b[0] * cw + pApoBiquad->b[1] * c2w;
+        double delta    = pApoBiquad->b[0] * sw + pApoBiquad->b[1] * s2w;
+
+        double mag = 1.0 / (gamma * gamma + delta * delta);
+
+        *re = mag * (alpha * gamma - beta * delta);
+        *im = mag * (alpha * delta + beta * gamma);
+    }
+
     void Filter::freq_chart(float *re, float *im, const float *f, size_t count)
     {
         // Calculate frequency chart
@@ -387,7 +415,6 @@ namespace lsp
             }
 
             case FM_MATCHED:
-            case FM_APO:
             {
                 double kf   = 1.0 / sParams.fFreq;
 
@@ -401,10 +428,14 @@ namespace lsp
                 break;
             }
 
-//            case FM_APO:
-//            {
-//                break;
-//            }
+            case FM_APO:
+            {
+                while (count--)
+                {
+                    apo_complex_transfer_calc(re++, im++, *(f++));
+                }
+                break;
+            }
 
             case FM_BYPASS:
             default:
@@ -439,7 +470,6 @@ namespace lsp
             }
 
             case FM_MATCHED:
-            case FM_APO:
             {
                 double kf   = 1.0 / sParams.fFreq;
 
@@ -453,10 +483,14 @@ namespace lsp
                 break;
             }
 
-//            case FM_APO:
-//            {
-//                break;
-//            }
+            case FM_APO:
+            {
+                while (count--)
+                {
+                    apo_complex_transfer_calc(c, &c[1], *(f++));
+                }
+                break;
+            }
 
             case FM_BYPASS:
             default:
@@ -1232,6 +1266,13 @@ namespace lsp
         f->b[2] = 0.0f;
         f->b[3] = 0.0f;
 
+        // Storing the coefficient for future use
+        pApoBiquad->a[0] = f->a[0];
+        pApoBiquad->a[1] = f->a[2];
+        pApoBiquad->a[2] = f->a[3];
+
+        pApoBiquad->b[0] = -f->b[0];
+        pApoBiquad->b[1] = -f->b[1];
     }
 
     /*

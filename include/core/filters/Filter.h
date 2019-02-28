@@ -23,6 +23,11 @@ namespace lsp
                 double      t[4];       // Top part of polynom (zeros)
                 double      b[4];       // Bottom part of polynom (poles)
             } cascade_t;
+            typedef struct apo_biquad_t
+            {
+                double      a[3];       // Numerator polynomium coefficients. Storing a0, a1 and a3.
+                double      b[2];       // Denominator polynomium coefficients (b0 is 1, so it is not stored).
+            } apo_biquad_t;
             #pragma pack(pop)
 
             enum filter_mode_t
@@ -47,6 +52,7 @@ namespace lsp
             filter_mode_t       nMode;          // Filter mode
             size_t              nItems;         // Number of cascades
             cascade_t          *vItems;         // Filter cascades
+            apo_biquad_t       *pApoBiquad;     // APO Filter Biquad
             uint8_t            *vData;          // Allocated data
             size_t              nFlags;         // Filter flags
             size_t              nLatency;       // Filter latency
@@ -54,6 +60,7 @@ namespace lsp
         protected:
 
             void complex_transfer_calc(float *re, float *im, double f);
+            void apo_complex_transfer_calc(float *re, float *im, double f);
             cascade_t *add_cascade();
 
             void calc_rlc_filter(size_t type, const filter_params_t *fp);
