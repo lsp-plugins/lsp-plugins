@@ -624,13 +624,18 @@ namespace lsp
         return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
+    void invalid_state_hook()
+    {
+        lsp_error("Invalid state");
+    }
+
     status_t RayTrace3D::TaskThread::reflect_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
     {
         rt_context_t *rc;
         rt_view_t sv, v, cv, rv, tv;    // source view, view, captured view, reflected view, transparent trace
         vector3d_t vpl;                 // trace plane, split plane
         point3d_t p[3];                 // Projection points
-        float d[3], t[3];               // distance
+        float d[3], t[3];               // distance, time
         float a[3], A, kd;              // particular area, area, dispersion coefficient
 
         sv      = ctx->view;
@@ -666,6 +671,8 @@ namespace lsp
                 a[2]        = dsp::calc_area_p3(&p[j], &sv.p[0], &sv.p[1]);   // Compute area 2
                 t[j]        = (sv.time[0] * a[0] + sv.time[1] * a[1] + sv.time[2] * a[2]) * revA; // Compute projected point's time
                 v.time[j]   = t[j] + (d[j] / sv.speed);
+                if (v.time[j] > 1.0f)
+                    invalid_state_hook();
             }
 
             // Compute area of projected triangle
@@ -847,11 +854,6 @@ namespace lsp
         return res;
     }
 
-    void resize_error_hook()
-    {
-        lsp_error("Could not resize sample");
-    }
-
     status_t RayTrace3D::TaskThread::capture(capture_t *capture, const rt_view_t *v, View3D *view)
     {
 //        lsp_trace("Capture:\n"
@@ -981,10 +983,10 @@ namespace lsp
                                 (long long)csn, (long long)len, int(s->sample->channels())
                                 );
                             if (len > 0x100000) // TODO: This is currently impossible, added for debugging, remove in future
-                                resize_error_hook();
+                                invalid_state_hook();
                             if (!s->sample->resize(s->sample->channels(), len, len))
                             {
-                                resize_error_hook();
+                                invalid_state_hook();
                                 return STATUS_NO_MEM;
                             }
                         }
@@ -1269,7 +1271,7 @@ namespace lsp
         if (position == NULL)
             return STATUS_NO_MEM;
 
-        source_t *src   = vSources.add();
+        source_t *src       = vSources.add();
         if (src == NULL)
             return STATUS_NO_MEM;
 
