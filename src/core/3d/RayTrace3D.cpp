@@ -746,7 +746,9 @@ namespace lsp
                 tv.s.y         += kd * ct->n.dy;
                 tv.s.z         += kd * ct->n.dz;
 
-                if ((tv.speed > 5000.0f) || (tv.speed < 300.0f))
+                if (tv.speed > 5000.0f)
+                    invalid_state_hook();
+                else if (tv.speed < 300.0f)
                     invalid_state_hook();
 
                 RT_TRACE_BREAK(trace->pDebug,
@@ -779,7 +781,9 @@ namespace lsp
                 tv.s.y         += kd * ct->n.dy;
                 tv.s.z         += kd * ct->n.dz;
 
-                if ((tv.speed > 5000.0f) || (tv.speed < 300.0f))
+                if (tv.speed > 5000.0f)
+                    invalid_state_hook();
+                else if (tv.speed < 300.0f)
                     invalid_state_hook();
 
                 RT_TRACE_BREAK(trace->pDebug,
