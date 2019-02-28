@@ -785,15 +785,14 @@ namespace lsp
             if (ct->oid < trace->vCaptures.size())
             {
                 capture_t *cap  = trace->vCaptures.get(ct->oid);
-                //if (cap->bindings.size() > 0)
+                if (cap->bindings.size() > 0)
                 {
                     // Perform synchronized capturing
                     ++stats.calls_capture;
                     res = capture(cap, &cv, &ctx->trace);
+                    if (res != STATUS_OK)
+                        break;
                 }
-
-                if (res != STATUS_OK)
-                    break;
             }
 
             // Create reflection context
