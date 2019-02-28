@@ -746,6 +746,9 @@ namespace lsp
                 tv.s.y         += kd * ct->n.dy;
                 tv.s.z         += kd * ct->n.dz;
 
+                if ((tv.speed > 5000.0f) || (tv.speed < 300.0f))
+                    invalid_state_hook();
+
                 RT_TRACE_BREAK(trace->pDebug,
                     lsp_trace("Outside->inside reflect_view");
                     lsp_trace("Amplitude: captured=%e, reflected=%e, refracted=%e", cv.amplitude, rv.amplitude, tv.amplitude);
@@ -775,6 +778,9 @@ namespace lsp
                 tv.s.x         += kd * ct->n.dx;
                 tv.s.y         += kd * ct->n.dy;
                 tv.s.z         += kd * ct->n.dz;
+
+                if ((tv.speed > 5000.0f) || (tv.speed < 300.0f))
+                    invalid_state_hook();
 
                 RT_TRACE_BREAK(trace->pDebug,
                     lsp_trace("Inside->outside reflect_view");
