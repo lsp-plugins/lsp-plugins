@@ -980,6 +980,8 @@ namespace lsp
                             lsp_trace("Requesting sample resize: csn=0x%llx, len=0x%llx, channels=%d",
                                 (long long)csn, (long long)len, int(s->sample->channels())
                                 );
+                            if (len > 0x100000) // TODO: This is currently impossible, added for debugging, remove in future
+                                resize_error_hook();
                             if (!s->sample->resize(s->sample->channels(), len, len))
                             {
                                 resize_error_hook();
