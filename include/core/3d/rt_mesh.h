@@ -43,6 +43,7 @@ namespace lsp
             status_t        solve_conflicts_internal();
             status_t        split_edge_internal(rtm_edge_t* e, rtm_vertex_t* sp);
             status_t        split_triangle_internal(rtm_triangle_t* t, rtm_vertex_t* sp);
+            status_t        paint_triangles_internal();
 
         public:
             /**

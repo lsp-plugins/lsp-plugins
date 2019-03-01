@@ -570,6 +570,47 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t rt_mesh_t::paint_triangles_internal()
+    {
+        size_t total            = 0;
+        size_t pending          = (triangle.size() + 0x3f) & (~0x3f);
+        rtm_triangle_t **vt     = reinterpret_cast<rtm_triangle_t **>(::malloc(pending * sizeof(rtm_triangle_t *)));
+
+        // Fill the array with pointers
+        RT_FOREACH(rtm_triangle_t, t, triangle)
+            vt[total++]             = t;
+        RT_FOREACH_END
+
+        pending     = total;
+
+        while (total > 0)
+        {
+            for (size_t i=0; i<pending; )
+            {
+                rtm_triangle_t *ct  = vt[i];
+                if ((ct->e[0]->itag == 1) || (ct->e[1]->itag == 1) || (ct->e[2]->itag == 1))
+                {
+                    ct->e[0]->itag  = 1;
+                    ct->e[1]->itag  = 1;
+                    ct->e[2]->itag  = 1;
+                    ct->itag        = 1; // Paint the triangle
+                    vt[i]           = vt[--pending]; // remove from pending
+                }
+                else
+                    ++i;
+            }
+
+            if (pending >= total)   // Nothing has changed?
+                break;
+            total   = pending;
+        }
+
+        // Free the queue
+        ::free(vt);
+
+        return STATUS_OK;
+    }
+
     status_t rt_mesh_t::add_object_exclusive(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material)
     {
         status_t res;
@@ -580,6 +621,10 @@ namespace lsp
 
         // Now we need to solve all conflicts between edges and triangles
         if ((res = solve_conflicts_internal()) != STATUS_OK)
+            return res;
+
+        // Paint triangles
+        if ((res = paint_triangles_internal()) != STATUS_OK)
             return res;
 
         return STATUS_OK;
@@ -1188,9 +1233,9 @@ namespace lsp
 
     status_t rt_mesh_t::copy(rt_mesh_t *src)
     {
-        Allocator3D<rtm_vertex_t>   vertex(1024);
-        Allocator3D<rtm_edge_t>     edge(1024);
-        Allocator3D<rtm_triangle_t> triangle(1024);
+        Allocator3D<rtm_vertex_t>   vertex(vertex.chunk_size());
+        Allocator3D<rtm_edge_t>     edge(edge.chunk_size());
+        Allocator3D<rtm_triangle_t> triangle(triangle.chunk_size());
 
         // Clone vertexes
         RT_FOREACH(rtm_vertex_t, sv, src->vertex)
