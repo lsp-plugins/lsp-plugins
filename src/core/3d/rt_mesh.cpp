@@ -35,6 +35,238 @@ namespace lsp
         vertex.flush();
         edge.flush();
         triangle.flush();
+        material.flush();
+    }
+
+    rtm_vertex_t *rt_mesh_t::add_unique_vertex(const point3d_t *p)
+    {
+        // Try to find already existing vertex
+        RT_FOREACH(rtm_vertex_t, v, vertex)
+            float d = dsp::calc_distance_p2(p, v);
+            if (d < DSP_3D_TOLERANCE)
+            {
+                if (v->itag == 2)
+                    v->itag     = 1;    // Vertex is shared between objects
+                return v;
+            }
+        RT_FOREACH_END
+
+        // Vertex not found, allocate new one
+        rtm_vertex_t *v = vertex.alloc();
+        if (v != NULL)
+        {
+            v->x        = p->x;
+            v->y        = p->y;
+            v->z        = p->z;
+            v->w        = p->w;
+            v->ptag     = NULL;
+            v->itag     = 0;        // Vertex is part of new object
+        }
+
+        return v;
+    }
+
+    rtm_edge_t *rt_mesh_t::add_unique_edge(rtm_vertex_t *v1, rtm_vertex_t *v2)
+    {
+        // Try to find the same edge
+        RT_FOREACH(rtm_edge_t, e, edge)
+            if (e->v[0] == v1)
+            {
+                if (e->v[1] == v2)
+                {
+                    if (e->itag == 2)
+                        e->itag     = 1;
+                    return e;
+                }
+            }
+            else if (e->v[1] == v1)
+            {
+                if (e->v[0] == v2)
+                {
+                    if (e->itag == 2)
+                        e->itag     = 1;
+                    return e;
+                }
+            }
+        RT_FOREACH_END
+
+        // Allocate new edge
+        rtm_edge_t *e = edge.alloc();
+        if (e != NULL)
+        {
+            e->v[0]     = v1;
+            e->v[1]     = v2;
+            e->vt       = NULL;
+            e->ptag     = NULL;
+            e->itag     = 0;
+        }
+        return e;
+    }
+
+    status_t rt_mesh_t::copy_object_data(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material)
+    {
+        // Cleanup object tags to prevent data corruption
+        for (size_t i=0, n=obj->num_triangles(); i<n; ++i)
+        {
+            obj_triangle_t *ot  = obj->triangle(i);
+
+            ot->e[0]->ptag      = NULL;
+            ot->e[1]->ptag      = NULL;
+            ot->e[2]->ptag      = NULL;
+
+            ot->v[0]->ptag      = NULL;
+            ot->v[1]->ptag      = NULL;
+            ot->v[2]->ptag      = NULL;
+
+            ot->ptag            = NULL;
+        }
+
+        // Primitive states:
+        // 0 = pimitive is part of object
+        // 1 = primitive is common formesh and object
+        // 2 = primitive is part of mesh
+        RT_FOREACH(rtm_vertex_t, v, vertex)
+            v->itag     = 2;        // Vertex is part of the mesh
+        RT_FOREACH_END
+
+        RT_FOREACH(rtm_edge_t, e, edge)
+            e->itag     = 2;        // Edge is part of the mesh
+        RT_FOREACH_END
+
+        RT_FOREACH(rtm_triangle_t, t, triangle)
+            t->itag     = 2;        // Triangle is part of the mesh
+        RT_FOREACH_END
+
+        // Clone triangles and apply object matrix to vertexes
+        for (size_t i=0, n=obj->num_triangles(); i<n; ++i)
+        {
+            obj_triangle_t *st = obj->triangle(i);
+            if (st->ptag != NULL) // Skip already emitted triangle
+                continue;
+
+            // Allocate triangle and store pointer
+            rtm_triangle_t *dt = triangle.alloc();
+            if (dt == NULL)
+                return STATUS_NO_MEM;
+
+            dt->oid     = oid;
+            dt->face    = st->face;
+
+            dt->ptag    = st;
+            st->ptag    = dt;
+            dt->m       = material;
+
+            // Copy vertex data
+            for (size_t j=0; j<3; ++j)
+            {
+                rtm_vertex_t *vx     = reinterpret_cast<rtm_vertex_t *>(st->v[j]->ptag);
+                if (!vx)
+                {
+                    // Compute the location of vertex and add this vertex to unique list
+                    point3d_t vp;
+                    dsp::apply_matrix3d_mp2(&vp, st->v[j], transform);
+
+                    // Try to find already existing vertex
+                    RT_FOREACH(rtm_vertex_t, v, vertex)
+                        float d = dsp::calc_distance_p2(&vp, v);
+                        if (d > DSP_3D_TOLERANCE)
+                            continue;
+
+                        vx      = v;
+                        if (vx->itag == 2)
+                            vx->itag    = 1;    // Mark vertex as shared between objects
+                        RT_FOREACH_BREAK;
+                    RT_FOREACH_END
+
+                    // Need to allocate new one?
+                    if (vx == NULL)
+                    {
+                        if (!(vx = vertex.alloc()))
+                            return STATUS_NO_MEM;
+
+                        vx->x       = vp.x;
+                        vx->y       = vp.y;
+                        vx->z       = vp.z;
+                        vx->w       = vp.w;
+                        vx->ptag    = NULL;
+                        vx->itag    = 0;        // Vertex is part of new object
+                    }
+
+                    st->v[j]->ptag      = vx;
+                }
+
+                dt->v[j]        = vx;
+            }
+
+            // Copy edge data
+            for (size_t j=0; j<3; ++j)
+            {
+                rtm_edge_t *ex       = reinterpret_cast<rtm_edge_t *>(st->e[j]->ptag);
+                if (!ex)
+                {
+                    rtm_vertex_t   *v1 = reinterpret_cast<rtm_vertex_t *>(st->e[j]->v[0]->ptag);
+                    rtm_vertex_t   *v2 = reinterpret_cast<rtm_vertex_t *>(st->e[j]->v[1]->ptag);
+
+                    // Try to find the same edge
+                    RT_FOREACH(rtm_edge_t, e, edge)
+                        if ((e->v[0] == v1) && (e->v[1] == v2))
+                            ex      = e;
+                        else if ((e->v[0] == v2) && (e->v[1] == v1))
+                            ex      = e;
+                        if (ex == NULL)
+                            continue;
+
+                        if (ex->itag == 2) // Mark edge as shared between objects
+                            ex->itag     = 1;
+                        RT_FOREACH_BREAK;
+                    RT_FOREACH_END
+
+                    // Need to allocate new one?
+                    if (ex == NULL)
+                    {
+                        if (!(ex = edge.alloc()))
+                            return STATUS_NO_MEM;
+
+                        ex->v[0]    = v1;
+                        ex->v[1]    = v2;
+                        ex->vt      = NULL;
+                        ex->ptag    = NULL;
+                        ex->itag    = 0;
+                    }
+
+                    st->e[j]->ptag  = ex;
+                }
+
+                dt->e[j]        = ex;
+                dt->elnk[j]     = ex->vt;   // Link
+                ex->vt          = dt;       // Link
+            }
+
+            // Compute plane equation and store as normal
+            dsp::calc_plane_p3(&dt->n, dt->v[0], dt->v[1], dt->v[2]);
+
+            // Estimate the itag state of the triangle
+            if (dt->v[0]->itag != 1)
+                dt->itag    = dt->v[0]->itag;
+            else if (dt->v[1]->itag != 1)
+                dt->itag    = dt->v[1]->itag;
+            else
+                dt->itag    = dt->v[2]->itag;
+        }
+
+        return STATUS_OK;
+    }
+
+    status_t rt_mesh_t::add_object_exclusive(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material)
+    {
+        // First, copy all primitives and detect their locations
+        status_t res = copy_object_data(obj, oid, transform, material);
+        if (res != STATUS_OK)
+            return res;
+
+
+
+        return STATUS_OK;
     }
 
     status_t rt_mesh_t::add_object(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material)

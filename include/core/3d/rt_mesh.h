@@ -21,6 +21,7 @@ namespace lsp
             Allocator3D<rtm_vertex_t>   vertex;     // Collection of vertexes
             Allocator3D<rtm_edge_t>     edge;       // Collection of edges
             Allocator3D<rtm_triangle_t> triangle;   // Collection of triangles
+            cstorage<rt_material_t>     material;   // Additional materials
 
         public:
             explicit rt_mesh_t();
@@ -34,6 +35,11 @@ namespace lsp
             status_t        split_triangle(rtm_triangle_t* t, rtm_vertex_t* sp);
             static bool     unlink_triangle(rtm_triangle_t *t, rtm_edge_t *e);
             static status_t arrange_triangle(rtm_triangle_t *ct, rtm_edge_t *e);
+
+            rtm_vertex_t   *add_unique_vertex(const point3d_t *p);
+            rtm_edge_t     *add_unique_edge(rtm_vertex_t *v1, rtm_vertex_t *v2);
+
+            status_t        copy_object_data(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material);
 
         public:
             /**
@@ -88,6 +94,28 @@ namespace lsp
              * @return status of operation
              */
             status_t        add_object(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material);
+
+            /**
+             * Add object exclusively to context
+             * @param obj object to add
+             * @param oid unique id to identify the object
+             * @param material material that describes behaviour of reflected rays
+             * @return status of operation
+             */
+            inline status_t add_object_exclusive(Object3D *obj, ssize_t oid, rt_material_t *material)
+            {
+                return add_object_exclusive(obj, oid, obj->matrix(), material);
+            }
+
+            /**
+             * Add object exclusively to context
+             * @param obj object to add
+             * @param oid unique id to identify the object
+             * @param transform transformation matrix to apply to object
+             * @param material material that describes behaviour of reflected rays
+             * @return status of operation
+             */
+            status_t        add_object_exclusive(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material);
 
             /**
              * Remove conflicts between triangles, does not modify the 'itag' field of
