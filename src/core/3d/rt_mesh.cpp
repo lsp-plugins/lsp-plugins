@@ -44,11 +44,7 @@ namespace lsp
         RT_FOREACH(rtm_vertex_t, v, vertex)
             float d = dsp::calc_distance_p2(p, v);
             if (d < DSP_3D_TOLERANCE)
-            {
-                if (v->itag == 2)
-                    v->itag     = 1;    // Vertex is shared between objects
                 return v;
-            }
         RT_FOREACH_END
 
         // Vertex not found, allocate new one
@@ -60,7 +56,7 @@ namespace lsp
             v->z        = p->z;
             v->w        = p->w;
             v->ptag     = NULL;
-            v->itag     = 0;        // Vertex is part of new object
+            v->itag     = 0;        // Vertex state undefined
         }
 
         return v;
@@ -70,24 +66,10 @@ namespace lsp
     {
         // Try to find the same edge
         RT_FOREACH(rtm_edge_t, e, edge)
-            if (e->v[0] == v1)
-            {
-                if (e->v[1] == v2)
-                {
-                    if (e->itag == 2)
-                        e->itag     = 1;
-                    return e;
-                }
-            }
-            else if (e->v[1] == v1)
-            {
-                if (e->v[0] == v2)
-                {
-                    if (e->itag == 2)
-                        e->itag     = 1;
-                    return e;
-                }
-            }
+            if ((e->v[0] == v1) && (e->v[1] == v2))
+                return e;
+            else if ((e->v[1] == v1) && (e->v[0] == v2))
+                return e;
         RT_FOREACH_END
 
         // Allocate new edge
@@ -166,33 +148,11 @@ namespace lsp
                     point3d_t vp;
                     dsp::apply_matrix3d_mp2(&vp, st->v[j], transform);
 
-                    // Try to find already existing vertex
-                    RT_FOREACH(rtm_vertex_t, v, vertex)
-                        float d = dsp::calc_distance_p2(&vp, v);
-                        if (d > DSP_3D_TOLERANCE)
-                            continue;
+                    if (!(vx = add_unique_vertex(&vp)))
+                        return STATUS_NO_MEM;
 
-                        vx      = v;
-                        if (vx->itag == 2)
-                            vx->itag    = 1;    // Mark vertex as shared between objects
-                        RT_FOREACH_BREAK;
-                    RT_FOREACH_END
-
-                    // Need to allocate new one?
-                    if (vx == NULL)
-                    {
-                        if (!(vx = vertex.alloc()))
-                            return STATUS_NO_MEM;
-
-                        vx->x       = vp.x;
-                        vx->y       = vp.y;
-                        vx->z       = vp.z;
-                        vx->w       = vp.w;
-                        vx->ptag    = NULL;
-                        vx->itag    = 0;        // Vertex is part of new object
-                    }
-
-                    st->v[j]->ptag      = vx;
+                    vx->itag        = (vx->itag >= 1) ? 1 : 0;
+                    st->v[j]->ptag  = vx;
                 }
 
                 dt->v[j]        = vx;
@@ -207,33 +167,10 @@ namespace lsp
                     rtm_vertex_t   *v1 = reinterpret_cast<rtm_vertex_t *>(st->e[j]->v[0]->ptag);
                     rtm_vertex_t   *v2 = reinterpret_cast<rtm_vertex_t *>(st->e[j]->v[1]->ptag);
 
-                    // Try to find the same edge
-                    RT_FOREACH(rtm_edge_t, e, edge)
-                        if ((e->v[0] == v1) && (e->v[1] == v2))
-                            ex      = e;
-                        else if ((e->v[0] == v2) && (e->v[1] == v1))
-                            ex      = e;
-                        if (ex == NULL)
-                            continue;
+                    if (!(ex = add_unique_edge(v1, v2)))
+                        return STATUS_NO_MEM;
 
-                        if (ex->itag == 2) // Mark edge as shared between objects
-                            ex->itag     = 1;
-                        RT_FOREACH_BREAK;
-                    RT_FOREACH_END
-
-                    // Need to allocate new one?
-                    if (ex == NULL)
-                    {
-                        if (!(ex = edge.alloc()))
-                            return STATUS_NO_MEM;
-
-                        ex->v[0]    = v1;
-                        ex->v[1]    = v2;
-                        ex->vt      = NULL;
-                        ex->ptag    = NULL;
-                        ex->itag    = 0;
-                    }
-
+                    ex->itag        = (ex->itag >= 1) ? 1 : 0;
                     st->e[j]->ptag  = ex;
                 }
 
@@ -257,14 +194,393 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t rt_mesh_t::add_object_exclusive(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material)
+    status_t rt_mesh_t::split_edge_internal(rtm_edge_t* e, rtm_vertex_t* sp)
     {
-        // First, copy all primitives and detect their locations
-        status_t res = copy_object_data(obj, oid, transform, material);
+        status_t res;
+        rtm_triangle_t *ct, *nt, *pt;
+        rtm_edge_t *ne, *se;
+
+        // Rearrange first triangle
+        if ((ct = e->vt) == NULL)
+            return STATUS_OK;
+        res             = arrange_triangle(ct, e);
         if (res != STATUS_OK)
             return res;
 
+        // Allocate edges
+        if (!(ne = add_unique_edge(sp, e->v[1])))
+            return STATUS_NO_MEM;
 
+        // Initialize culled edge and link to corresponding vertexes
+        ne->itag        = (sp->itag == e->v[1]->itag) ? sp->itag : e->v[1]->itag;
+
+        RT_VALIDATE(
+            if ((ne->v[0] == NULL) || (ne->v[1] == NULL))
+                return STATUS_CORRUPTED;
+        )
+
+        // Process all triangles
+        while (true)
+        {
+            // Save pointer to triangle to move forward
+            pt              = ct->elnk[0];  // Save pointer to pending triangle, splitting edge is always rearranged to have index 0
+
+            // Allocate triangle and splitting edge
+            if (!(nt = triangle.alloc()))
+                return STATUS_NO_MEM;
+            if (!(se = add_unique_edge(ct->v[2], sp)))
+                return STATUS_NO_MEM;
+            se->itag        = (sp->itag == ct->v[2]->itag) ? sp->itag : ct->v[2]->itag;
+
+            // Unlink current triangle from all edges
+            if (!unlink_triangle(ct, ct->e[0]))
+                return STATUS_CORRUPTED;
+            if (!unlink_triangle(ct, ct->e[1]))
+                return STATUS_CORRUPTED;
+            if (!unlink_triangle(ct, ct->e[2]))
+                return STATUS_CORRUPTED;
+
+            // Perform triangle re-link
+            if (ct->v[0] == e->v[0])
+            {
+                // Initialize new triangle
+                nt->v[0]        = sp;
+                nt->v[1]        = ct->v[1];
+                nt->v[2]        = ct->v[2];
+                nt->e[0]        = ne;
+                nt->e[1]        = ct->e[1];
+                nt->e[2]        = se;
+                nt->n           = ct->n;
+                nt->ptag        = NULL;
+                nt->oid         = ct->oid;
+                nt->face        = ct->face;
+                nt->m           = ct->m;
+
+                // Update current triangle
+              //ct->v[0]        = ct->v[0];
+                ct->v[1]        = sp;
+              //ct->v[2]        = ct->v[2];
+              //ct->e[0]        = e;
+                ct->e[1]        = se;
+              //ct->e[2]        = ct->e[2];
+              //ct->n           = ct->n;
+              //ct->itag        = ct->itag;
+            }
+            else if (ct->v[0] == e->v[1])
+            {
+                // Initialize new triangle
+                nt->v[0]        = sp;
+                nt->v[1]        = ct->v[2];
+                nt->v[2]        = ct->v[0];
+                nt->e[0]        = se;
+                nt->e[1]        = ct->e[2];
+                nt->e[2]        = ne;
+                nt->n           = ct->n;
+                nt->ptag        = NULL;
+                nt->oid         = ct->oid;
+                nt->face        = ct->face;
+                nt->m           = ct->m;
+
+                // Update current triangle
+                ct->v[0]        = sp;
+              //ct->v[1]        = ct->v[1];
+              //ct->v[2]        = ct->v[2];
+              //ct->e[0]        = e;
+              //ct->e[1]        = ct->e[1];
+                ct->e[2]        = se;
+              //ct->n           = ct->n;
+              //ct->itag        = ct->itag;
+            }
+            else
+                return STATUS_BAD_STATE;
+
+            // Update triangle tags
+            if (ct->e[0]->itag != 1)
+                ct->itag        = ct->e[0]->itag;
+            else if (ct->e[1]->itag != 1)
+                ct->itag        = ct->e[1]->itag;
+            else
+                ct->itag        = ct->e[2]->itag;
+
+            if (nt->e[0]->itag != 1)
+                nt->itag        = nt->e[0]->itag;
+            else if (nt->e[1]->itag != 1)
+                nt->itag        = nt->e[1]->itag;
+            else
+                nt->itag        = nt->e[2]->itag;
+
+            // Link edges to new triangles
+            nt->elnk[0]     = nt->e[0]->vt;
+            nt->elnk[1]     = nt->e[1]->vt;
+            nt->elnk[2]     = nt->e[2]->vt;
+            nt->e[0]->vt    = nt;
+            nt->e[1]->vt    = nt;
+            nt->e[2]->vt    = nt;
+
+            ct->elnk[0]     = ct->e[0]->vt;
+            ct->elnk[1]     = ct->e[1]->vt;
+            ct->elnk[2]     = ct->e[2]->vt;
+            ct->e[0]->vt    = ct;
+            ct->e[1]->vt    = ct;
+            ct->e[2]->vt    = ct;
+
+            // Move to next triangle
+            if (pt == NULL)
+            {
+                // Re-link edge to vertexes and leave cycle
+              //e->v[0]         = e->v[0];
+                e->v[1]         = sp;
+
+                if ((e->v[0] == NULL) || (e->v[1] == NULL))
+                    return STATUS_CORRUPTED;
+                break;
+            }
+            else
+                ct = pt;
+
+            // Re-arrange next triangle and edges
+            res             = arrange_triangle(ct, e);
+            if (res != STATUS_OK)
+                return res;
+        }
+
+        // Now the edge 'e' is stored in context but not linked to any primitive
+        return STATUS_OK;
+    }
+
+    status_t rt_mesh_t::split_triangle_internal(rtm_triangle_t* t, rtm_vertex_t* sp)
+    {
+        // Unlink triangle from all it's edges
+        unlink_triangle(t, t->e[0]);
+        unlink_triangle(t, t->e[1]);
+        unlink_triangle(t, t->e[2]);
+
+        // Create additional edges and link them to vertexes
+        rtm_edge_t *ne[3];
+        for (size_t i=0; i<3; ++i)
+        {
+            if (!(ne[i] = add_unique_edge(t->v[i], sp)))
+                return STATUS_NO_MEM;
+            ne[i]->itag     = t->v[i]->itag;
+        }
+
+        // Allocate additional triangles
+        rtm_triangle_t *nt[3];
+        nt[0]       = triangle.alloc();
+        nt[1]       = triangle.alloc();
+        nt[2]       = t;
+        if ((nt[0] == NULL) || (nt[1] == NULL))
+            return STATUS_NO_MEM;
+
+        // Now bind edges and vertexes to triangles
+        nt[0]->v[0]     = t->v[1];
+        nt[0]->v[1]     = t->v[2];
+        nt[0]->v[2]     = sp;
+        nt[0]->e[0]     = t->e[1];
+        nt[0]->e[1]     = ne[2];
+        nt[0]->e[2]     = ne[1];
+        nt[0]->n        = t->n;
+        nt[0]->ptag     = NULL;
+        nt[0]->itag     = t->itag;
+        nt[0]->oid      = t->oid;
+        nt[0]->face     = t->face;
+        nt[0]->m        = t->m;
+
+        nt[1]->v[0]     = t->v[2];
+        nt[1]->v[1]     = t->v[0];
+        nt[1]->v[2]     = sp;
+        nt[1]->e[0]     = t->e[2];
+        nt[1]->e[1]     = ne[0];
+        nt[1]->e[2]     = ne[2];
+        nt[1]->n        = t->n;
+        nt[1]->ptag     = NULL;
+        nt[1]->itag     = t->itag;
+        nt[1]->oid      = t->oid;
+        nt[1]->face     = t->face;
+        nt[1]->m        = t->m;
+
+      //nt[2]->v[0]     = t->v[0];
+      //nt[2]->v[1]     = t->v[1];
+        nt[2]->v[2]     = sp;
+      //nt[2]->e[0]     = t->e[0];
+        nt[2]->e[1]     = ne[1];
+        nt[2]->e[2]     = ne[0];
+      //nt[2]->n        = t->n;
+      //nt[2]->ptag     = NULL;
+      //nt[2]->itag     = t->itag;
+      //nt[2]->oid      = t->oid;
+      //nt[2]->face     = t->face;
+
+        // Re-link triangles to edges
+        for (size_t i=0; i<3; ++i)
+        {
+            rtm_triangle_t *ct   = nt[i];
+
+            if (ct->e[0]->itag != 1)
+                ct->itag    = ct->e[0]->itag;
+            else if (ct->e[1]->itag != 1)
+                ct->itag    = ct->e[1]->itag;
+            else
+                ct->itag    = ct->e[2]->itag;
+
+            ct->elnk[0]     = ct->e[0]->vt;
+            ct->elnk[1]     = ct->e[1]->vt;
+            ct->elnk[2]     = ct->e[2]->vt;
+            ct->e[0]->vt    = ct;
+            ct->e[1]->vt    = ct;
+            ct->e[2]->vt    = ct;
+        }
+
+        return STATUS_OK;
+    }
+
+    status_t rt_mesh_t::solve_conflicts_internal()
+    {
+        status_t res;
+        vector3d_t pl;
+        vector3d_t spl[3]; // Scissor planes
+        float k[3];
+        ssize_t l[3];
+
+        for (size_t i=0; i<triangle.size(); ++i)
+        {
+            rtm_triangle_t *ct   = triangle.get(i);
+
+            dsp::calc_plane_p3(&pl, ct->v[0], ct->v[1], ct->v[2]);
+            dsp::calc_plane_v1p2(&spl[0], &pl, ct->v[0], ct->v[1]);
+            dsp::calc_plane_v1p2(&spl[1], &pl, ct->v[1], ct->v[2]);
+            dsp::calc_plane_v1p2(&spl[2], &pl, ct->v[2], ct->v[0]);
+
+            // Estimate location of each vertex relative to the plane
+            RT_FOREACH(rtm_vertex_t, cv, vertex)
+                float k = cv->x * pl.dx + cv->y * pl.dy + cv->z*pl.dz + pl.dw;
+                cv->itag = (k < -DSP_3D_TOLERANCE) ? 2 : (k > DSP_3D_TOLERANCE) ? 0 : 1;
+            RT_FOREACH_END
+
+            // Split each edge with triangle, do not process new edges
+            RT_FOREACH(rtm_edge_t, ce, edge)
+                // Skip edge of the current triangle
+                if ((ce == ct->e[0]) || (ce == ct->e[1]) || (ce == ct->e[2]))
+                    continue;
+
+                // Check co-location of edge points and triangle
+                k[0]        = ce->v[0]->x*spl[0].dx + ce->v[0]->y*spl[0].dy + ce->v[0]->z*spl[0].dz + spl[0].dw;
+                k[1]        = ce->v[1]->x*spl[0].dx + ce->v[1]->y*spl[0].dy + ce->v[1]->z*spl[0].dz + spl[0].dw;
+
+                l[0]        = (k[0] <= -DSP_3D_TOLERANCE) ? 2 : (k[0] > DSP_3D_TOLERANCE) ? 0 : 1;
+                l[1]        = (k[1] <= -DSP_3D_TOLERANCE) ? 2 : (k[1] > DSP_3D_TOLERANCE) ? 0 : 1;
+
+                // Ensure that edge intersects the plane
+                rtm_vertex_t sp, *spp;
+                switch ((l[1] << 2) | l[0])
+                {
+                    case 0x00: case 0x0a:   // Edge is over the plane or under the plane, skip
+                        continue;
+                    case 0x01: case 0x09:   // p[0] lies on the plane
+                        sp  = *(ce->v[0]);
+                        break;
+                    case 0x04: case 0x06:   // p[1] lies on the plane
+                        sp  = *(ce->v[1]);
+                        break;
+                    case 0x02: case 0x08:   // Edge is crossing the plane, compute split point
+                        dsp::calc_split_point_p2v1(&sp, ce->v[0], ce->v[1], &pl);
+                        break;
+                    case 0x05:              // Edge lays on the plane, skip
+                    default:
+                        continue;
+                }
+                sp.itag     = (ce->itag == ct->itag) ? ce->itag : 1;        // Common edge
+                sp.ptag     = NULL;
+
+                // Now we need to check that intersection point lays on the triangle
+                k[0]        = sp.x*spl[0].dx + sp.y*spl[0].dy + sp.z*spl[0].dz + spl[0].dw;
+                k[1]        = sp.x*spl[1].dx + sp.y*spl[1].dy + sp.z*spl[1].dz + spl[1].dw;
+                k[2]        = sp.x*spl[2].dx + sp.y*spl[2].dy + sp.z*spl[2].dz + spl[2].dw;
+
+                l[0]        = (k[0] <= -DSP_3D_TOLERANCE) ? 2 : (k[0] > DSP_3D_TOLERANCE) ? 0 : 1;
+                l[1]        = (k[1] <= -DSP_3D_TOLERANCE) ? 2 : (k[1] > DSP_3D_TOLERANCE) ? 0 : 1;
+                l[2]        = (k[2] <= -DSP_3D_TOLERANCE) ? 2 : (k[2] > DSP_3D_TOLERANCE) ? 0 : 1;
+
+                switch ((l[0]) | (l[1] << 2) | (l[2] << 4))
+                {
+                    case 0x16: // Point matches edges 1 and 2 (vertex 2)
+                        ct->v[2]->itag  = sp.itag;  // Update itag
+                        if ((res = split_edge_internal(ce, ct->v[2])) != STATUS_OK)  // Need to perform only split of crossing edge
+                            return res;
+                        continue;
+
+                    case 0x19: // Point matches edges 0 and 2 (vertex 0)
+                        ct->v[0]->itag  = sp.itag;  // Update itag
+                        if ((res = split_edge_internal(ce, ct->v[0])) != STATUS_OK)  // Need to perform only split of crossing edge
+                            return res;
+                        continue;
+
+                    case 0x25: // Point matches edges 0 and 1 (vertex 1)
+                        ct->v[1]->itag  = sp.itag;  // Update itag
+                        if ((res = split_edge_internal(ce, ct->v[1])) != STATUS_OK)  // Need to perform only split of crossing edge
+                            return res;
+                        continue;
+
+                    case 0x1a: // Point lays on edge 2, split triangle's edge
+                        if (!(spp = add_unique_vertex(&sp)))
+                            return STATUS_NO_MEM;
+                        spp->itag       = sp.itag;
+                        if ((res = split_edge_internal(ct->e[2], spp)) == STATUS_OK)
+                            res = split_edge_internal(ce, spp);
+                        break;
+
+                    case 0x26: // Point lays on edge 1, split triangle's edge
+                        if (!(spp = add_unique_vertex(&sp)))
+                            return STATUS_NO_MEM;
+                        spp->itag       = sp.itag;
+                        if ((res = split_edge_internal(ct->e[1], spp)) == STATUS_OK)
+                            res = split_edge_internal(ce, spp);
+                        break;
+
+                    case 0x29: // Point lays on edge 0, split triangle's edge
+                        if (!(spp = add_unique_vertex(&sp)))
+                            return STATUS_NO_MEM;
+                        spp->itag       = sp.itag;
+                        if ((res = split_edge_internal(ct->e[0], spp)) == STATUS_OK)
+                            res = split_edge_internal(ce, spp);
+                        break;
+
+                    case 0x2a: // Point lays inside of the triangle, split triangle's edge
+                        if (!(spp = add_unique_vertex(&sp)))
+                            return STATUS_NO_MEM;
+                        spp->itag       = sp.itag;
+                        if ((res = split_triangle_internal(ct, spp)) == STATUS_OK)
+                            res = split_edge_internal(ce, spp);
+                        break;
+
+                    default: // Point is not crossing triangle
+                        continue;
+                }
+
+                // Check final result
+                if (res != STATUS_OK)
+                    return res;
+
+                // Current triangle's structure has been modified, update split planes' equations
+                dsp::calc_plane_v1p2(&spl[0], &pl, ct->v[0], ct->v[1]);
+                dsp::calc_plane_v1p2(&spl[1], &pl, ct->v[1], ct->v[2]);
+                dsp::calc_plane_v1p2(&spl[2], &pl, ct->v[2], ct->v[0]);
+            RT_FOREACH_END
+        }
+        return STATUS_OK;
+    }
+
+    status_t rt_mesh_t::add_object_exclusive(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material)
+    {
+        status_t res;
+
+        // First, copy all primitives and detect their locations
+        if ((res = copy_object_data(obj, oid, transform, material)) != STATUS_OK)
+            return res;
+
+        // Now we need to solve all conflicts between edges and triangles
+        if ((res = solve_conflicts_internal()) != STATUS_OK)
+            return res;
 
         return STATUS_OK;
     }
