@@ -21,7 +21,7 @@ namespace lsp
             Allocator3D<rtm_vertex_t>   vertex;     // Collection of vertexes
             Allocator3D<rtm_edge_t>     edge;       // Collection of edges
             Allocator3D<rtm_triangle_t> triangle;   // Collection of triangles
-            cstorage<rt_material_t>     material;   // Additional materials
+            cstorage<rtm_material_t>    material;   // Additional materials
 
         public:
             explicit rt_mesh_t();
@@ -44,6 +44,9 @@ namespace lsp
             status_t        split_edge_internal(rtm_edge_t* e, rtm_vertex_t* sp);
             status_t        split_triangle_internal(rtm_triangle_t* t, rtm_vertex_t* sp);
             status_t        paint_triangles_internal();
+
+            rt_material_t  *build_material(rt_material_t *from, rt_material_t *to);
+            status_t        remove_obsolete_primitives();
 
         public:
             /**

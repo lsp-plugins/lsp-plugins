@@ -608,6 +608,40 @@ namespace lsp
         // Free the queue
         ::free(vt);
 
+        return (total < triangle.size()) ? STATUS_OK : STATUS_NOT_FOUND;
+    }
+
+    rt_material_t  *rt_mesh_t::build_material(rt_material_t *from, rt_material_t *to)
+    {
+        rtm_material_t *m;
+
+        for (size_t i=0, n=material.size(); i<n; ++i)
+        {
+            m   = material.get(i);
+            if ((m->from == from) && (m->to == to))
+                return m;
+        }
+
+        if ((m = material.add()))
+        {
+            m->absorption[0]    = from->absorption[1] * to->absorption[0];
+            m->absorption[1]    = from->absorption[0] * to->absorption[1];
+            m->dispersion[0]    = from->dispersion[1];
+            m->dispersion[1]    = to->dispersion[1];
+            m->dissipation[0]   = from->dissipation[1];
+            m->dissipation[1]   = to->dissipation[1];
+
+            m->transparency[0]  = (from->absorption[1] * from->transparency[1]) * to->transparency[0];
+            m->transparency[1]  = (to->absorption[1] * to->transparency[1]) * from->transparency[0];
+            m->permeability     = to->permeability / from->permeability;
+        }
+
+        return m;
+    }
+
+    status_t rt_mesh_t::remove_obsolete_primitives()
+    {
+        // TODO
         return STATUS_OK;
     }
 
@@ -625,9 +659,20 @@ namespace lsp
 
         // Paint triangles
         if ((res = paint_triangles_internal()) != STATUS_OK)
-            return res;
+            return (res == STATUS_NOT_FOUND) ? STATUS_OK : res;
 
-        return STATUS_OK;
+        // Now we need to update triangle tags and materials
+        RT_FOREACH(rtm_triangle_t, t, triangle)
+            if ((t->oid != oid) && (t->itag == 1))
+            {
+                t->itag     = 2;
+                t->m        = build_material(t->m, material);
+                if (!t->m)
+                    return STATUS_NO_MEM;
+            }
+        RT_FOREACH_END;
+
+        return remove_obsolete_primitives();
     }
 
     status_t rt_mesh_t::add_object(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material)

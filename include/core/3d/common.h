@@ -110,6 +110,7 @@ namespace lsp
     struct rtm_vertex_t;
     struct rtm_edge_t;
     struct rtm_triangle_t;
+    struct rtm_material_t;
 
     enum edge_flags_t
     {
@@ -152,6 +153,15 @@ namespace lsp
         __IF_64(uint64_t    __pad;)     // Alignment to be sizeof() multiple of 16
         __IF_32(uint32_t    __pad[3];)  // Alignment to be sizeof() multiple of 16
     } rt_triangle_t;
+
+    typedef struct rt_material_t
+    {
+        float           absorption[2];      // The amount of energy that will be absorpted
+        float           dispersion[2];      // The dispersion coefficients for reflected signal
+        float           dissipation[2];     // The dissipation coefficients for refracted signal
+        float           transparency[2];    // The amount of energy that will be passed-through the material
+        float           permeability;       // Sound permeability of the object (inner sound speed / outer sound speed)
+    } rt_material_t;
 
     typedef struct rtm_vertex_t: public point3d_t
     {
@@ -196,14 +206,11 @@ namespace lsp
         ssize_t             rnum;       // The reflection number
     } rt_view_t;
 
-    typedef struct rt_material_t
+    typedef struct rtm_material_t: public rt_material_t
     {
-        float           absorption[2];      // The amount of energy that will be absorpted
-        float           dispersion[2];      // The dispersion coefficients for reflected signal
-        float           dissipation[2];     // The dissipation coefficients for refracted signal
-        float           transparency[2];    // The amount of energy that will be passed-through the material
-        float           permeability;       // Sound permeability of the object (inner sound speed / outer sound speed)
-    } rt_material_t;
+        rt_material_t      *from;       // The material 'from'
+        rt_material_t      *to;         // The material 'to'
+    } rtm_material_t;
 
 #pragma pack(pop)
 
