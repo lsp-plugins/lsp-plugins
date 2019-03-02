@@ -323,7 +323,8 @@ namespace lsp
 
         // Clear contents of the root context
         root.clear();
-
+        RT_TRACE(trace->pDebug, root.set_debug_context(trace->pDebug, &trace->pDebug->trace); );
+/*
         // Add capture objects as fake icosphere objects
         for (size_t i=0, n=trace->vCaptures.size(); i<n; ++i, ++obj_id)
         {
@@ -354,11 +355,11 @@ namespace lsp
 //                max_volume      = cap->volume;
 
             // Add capture object to context
-            res     = root.add_object(obj, obj_id, &cap->matrix, &cap->material);
+            res     = root.add_object_exclusive(obj, obj_id, &cap->matrix, &cap->material);
             if (res != STATUS_OK)
                 return res;
         }
-
+*/
         // Add scene objects
         for (size_t i=0, n=trace->pScene->num_objects(); i<n; ++i, ++obj_id)
         {
@@ -375,7 +376,7 @@ namespace lsp
                 return STATUS_BAD_STATE;
 
             // Add object to context
-            res         = root.add_object(obj, obj_id, obj->matrix(), m);
+            res         = root.add_object_exclusive(obj, obj_id, obj->matrix(), m);
             if (res != STATUS_OK)
                 return res;
         }

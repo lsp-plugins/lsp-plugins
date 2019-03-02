@@ -12,9 +12,12 @@
 #include <core/3d/Allocator3D.h>
 #include <core/3d/Object3D.h>
 #include <core/3d/Scene3D.h>
+#include <core/3d/View3D.h>
 
 namespace lsp
 {
+    struct rt_debug_t;
+
     typedef struct rt_mesh_t
     {
         public:
@@ -23,9 +26,21 @@ namespace lsp
             Allocator3D<rtm_triangle_t> triangle;   // Collection of triangles
             cstorage<rtm_material_t>    material;   // Additional materials
 
+            IF_RT_TRACE_Y(
+                rt_debug_t             *debug;      // Debug context
+                View3D                 *view;       // Debug view
+            )
         public:
             explicit rt_mesh_t();
             ~rt_mesh_t();
+
+            IF_RT_TRACE_Y(
+                inline void            set_debug_context(rt_debug_t *debug, View3D *view)
+                {
+                    this->debug     = debug;
+                    this->view      = view;
+                }
+            )
 
         protected:
             bool            validate_list(rtm_edge_t *e);
@@ -43,7 +58,7 @@ namespace lsp
             status_t        solve_conflicts_internal();
             status_t        split_edge_internal(rtm_edge_t* e, rtm_vertex_t* sp);
             status_t        split_triangle_internal(rtm_triangle_t* t, rtm_vertex_t* sp);
-            status_t        paint_triangles_internal();
+            status_t        paint_triangles_internal(ssize_t oid);
 
             rt_material_t  *build_material(rt_material_t *from, rt_material_t *to);
             status_t        remove_obsolete_primitives();
