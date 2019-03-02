@@ -55,7 +55,7 @@ namespace lsp
             rtm_edge_t     *add_unique_edge(rtm_vertex_t *v1, rtm_vertex_t *v2);
 
             status_t        copy_object_data(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material);
-            status_t        solve_conflicts_internal();
+            status_t        solve_conflicts_internal(ssize_t oid);
             status_t        split_edge_internal(rtm_edge_t* e, rtm_vertex_t* sp);
             status_t        split_triangle_internal(rtm_triangle_t* t, rtm_vertex_t* sp);
             status_t        paint_triangles_internal(ssize_t oid);

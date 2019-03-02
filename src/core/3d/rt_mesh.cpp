@@ -62,7 +62,7 @@ namespace lsp
             v->z        = p->z;
             v->w        = p->w;
             v->ptag     = NULL;
-            v->itag     = 0;        // Vertex state undefined
+            v->itag     = 0;
         }
 
         return v;
@@ -91,6 +91,18 @@ namespace lsp
         return e;
     }
 
+    static const color3d_t *item_color(ssize_t itag)
+    {
+        switch (itag)
+        {
+            case 0x1: return &C_GREEN;  // Mesh
+            case 0x2: return &C_RED;    // Object
+            case 0x3: return &C_BLUE;   // Common
+            default: break;
+        }
+        return &C_CYAN;
+    }
+
     status_t rt_mesh_t::copy_object_data(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material)
     {
         // Cleanup object tags to prevent data corruption
@@ -109,20 +121,21 @@ namespace lsp
             ot->ptag            = NULL;
         }
 
-        // Primitive states:
-        // 0 = pimitive is part of object
-        // 1 = primitive is common formesh and object
-        // 2 = primitive is part of mesh
+        // Vertex states:
+        // 0 = vertex is common to the mesh and object
+        // 1 = vertex is part of the mesh
+        // 2 = vertex is part of the object
+        // 3 = vertex is common to the mesh and object
         RT_FOREACH(rtm_vertex_t, v, vertex)
-            v->itag     = 2;        // Vertex is part of the mesh
+            v->itag     = 1;    // Vertex is part of the mesh
         RT_FOREACH_END
 
         RT_FOREACH(rtm_edge_t, e, edge)
-            e->itag     = 2;        // Edge is part of the mesh
+            e->itag     = 1;    // Edge is part of the mesh
         RT_FOREACH_END
 
         RT_FOREACH(rtm_triangle_t, t, triangle)
-            t->itag     = 2;        // Triangle is part of the mesh
+            t->itag     = 1;    // Triangle is part of the mesh
         RT_FOREACH_END
 
         // Clone triangles and apply object matrix to vertexes
@@ -157,10 +170,9 @@ namespace lsp
                     if (!(vx = add_unique_vertex(&vp)))
                         return STATUS_NO_MEM;
 
-                    vx->itag        = (vx->itag >= 1) ? 1 : 0;
                     st->v[j]->ptag  = vx;
                 }
-
+                vx->itag       |= 0x2;  // Vertex is part of the object
                 dt->v[j]        = vx;
             }
 
@@ -176,10 +188,11 @@ namespace lsp
                     if (!(ex = add_unique_edge(v1, v2)))
                         return STATUS_NO_MEM;
 
-                    ex->itag        = (ex->itag >= 1) ? 1 : 0;
+//                    ex->itag        = (ex->itag >= 1) ? 1 : 0;
                     st->e[j]->ptag  = ex;
                 }
 
+                ex->itag       |= 0x2;      // Edge is part of the object
                 dt->e[j]        = ex;
                 dt->elnk[j]     = ex->vt;   // Link
                 ex->vt          = dt;       // Link
@@ -189,12 +202,13 @@ namespace lsp
             dsp::calc_plane_p3(&dt->n, dt->v[0], dt->v[1], dt->v[2]);
 
             // Estimate the itag state of the triangle
-            if (dt->v[0]->itag != 1)
-                dt->itag    = dt->v[0]->itag;
-            else if (dt->v[1]->itag != 1)
-                dt->itag    = dt->v[1]->itag;
-            else
-                dt->itag    = dt->v[2]->itag;
+            dt->itag   |= 0x2;
+//            if (dt->v[0]->itag != 1)
+//                dt->itag    = dt->v[0]->itag;
+//            else if (dt->v[1]->itag != 1)
+//                dt->itag    = dt->v[1]->itag;
+//            else
+//                dt->itag    = dt->v[2]->itag;
         }
 
 //        RT_VALIDATE(
@@ -206,31 +220,19 @@ namespace lsp
             for (size_t i=0,n=vertex.size(); i<n; ++i)
             {
                 rtm_vertex_t *v = vertex.get(i);
-                view->add_point(v,
-                        (v->itag == 0) ? &C_RED :
-                        (v->itag == 2) ? &C_GREEN :
-                        &C_BLUE
-                    );
+                view->add_point(v, item_color(v->itag));
             }
 
             for (size_t i=0,n=edge.size(); i<n; ++i)
             {
                 rtm_edge_t *e = edge.get(i);
-                view->add_segment(e,
-                        (e->itag == 0) ? &C_RED :
-                        (e->itag == 2) ? &C_GREEN :
-                        &C_BLUE
-                    );
+                view->add_segment(e, &C_YELLOW);
             }
 
             for (size_t i=0,n=triangle.size(); i<n; ++i)
             {
                 rtm_triangle_t *t = triangle.get(i);
-                view->add_triangle_1c(t,
-                        (t->itag == 0) ? &C_RED :
-                        (t->itag == 2) ? &C_GREEN :
-                        &C_BLUE
-                    );
+                view->add_triangle_1c(t, (t->oid == oid) ? &C_RED : &C_GREEN);
             }
         );
 
@@ -256,7 +258,7 @@ namespace lsp
             return STATUS_NO_MEM;
 
         // Initialize culled edge and link to corresponding vertexes
-        ne->itag        = (sp->itag == e->v[1]->itag) ? sp->itag : e->v[1]->itag;
+        ne->itag        = sp->itag;
 
         RT_VALIDATE(
             if ((ne->v[0] == NULL) || (ne->v[1] == NULL))
@@ -296,6 +298,7 @@ namespace lsp
                 nt->e[2]        = se;
                 nt->n           = ct->n;
                 nt->ptag        = NULL;
+                nt->itag        = ct->itag;
                 nt->oid         = ct->oid;
                 nt->face        = ct->face;
                 nt->m           = ct->m;
@@ -321,6 +324,7 @@ namespace lsp
                 nt->e[2]        = ne;
                 nt->n           = ct->n;
                 nt->ptag        = NULL;
+                nt->itag        = ct->itag;
                 nt->oid         = ct->oid;
                 nt->face        = ct->face;
                 nt->m           = ct->m;
@@ -460,12 +464,12 @@ namespace lsp
         {
             rtm_triangle_t *ct   = nt[i];
 
-            if (ct->e[0]->itag != 1)
-                ct->itag    = ct->e[0]->itag;
-            else if (ct->e[1]->itag != 1)
-                ct->itag    = ct->e[1]->itag;
-            else
-                ct->itag    = ct->e[2]->itag;
+//            if (ct->e[0]->itag != 1)
+//                ct->itag    = ct->e[0]->itag;
+//            else if (ct->e[1]->itag != 1)
+//                ct->itag    = ct->e[1]->itag;
+//            else
+//                ct->itag    = ct->e[2]->itag;
 
             ct->elnk[0]     = ct->e[0]->vt;
             ct->elnk[1]     = ct->e[1]->vt;
@@ -478,13 +482,14 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t rt_mesh_t::solve_conflicts_internal()
+    status_t rt_mesh_t::solve_conflicts_internal(ssize_t oid)
     {
         status_t res;
         vector3d_t pl;
         vector3d_t spl[3]; // Scissor planes
         float k[3];
         ssize_t l[3];
+        ssize_t itag[2];
 
         for (size_t i=0; i<triangle.size(); ++i)
         {
@@ -511,27 +516,105 @@ namespace lsp
 
                 l[0]        = (k[0] <= -DSP_3D_TOLERANCE) ? 2 : (k[0] > DSP_3D_TOLERANCE) ? 0 : 1;
                 l[1]        = (k[1] <= -DSP_3D_TOLERANCE) ? 2 : (k[1] > DSP_3D_TOLERANCE) ? 0 : 1;
+//                etag        = (ct->oid == oid) ? 0x2 : 0x1; // edge tag mask
 
                 // Ensure that edge intersects the plane
                 rtm_vertex_t sp, *spp;
+                itag[0]     = ce->v[0]->itag;
+                itag[1]     = ce->v[1]->itag;
+
                 switch ((l[1] << 2) | l[0])
                 {
                     case 0x00: case 0x0a:   // Edge is over the plane or under the plane, skip
                         continue;
-                    case 0x01: case 0x09:   // p[0] lies on the plane
-                        sp  = *(ce->v[0]);
+                    case 0x01:
+                        sp      = *(ce->v[0]);
+                        if ((ct->oid == oid) && (ce->itag & 0x1))
+                        {
+                            sp.itag         =  0x3;
+                            itag[1]        &= ~0x2;
+                        }
+                        else if ((ct->oid != oid) && (ce->itag & 0x2))
+                        {
+                            sp.itag         =  0x3;
+                            itag[1]        &= ~0x1;
+                        }
                         break;
-                    case 0x04: case 0x06:   // p[1] lies on the plane
-                        sp  = *(ce->v[1]);
+                    case 0x09: // Edge touches the plane with p[0]
+                        sp      = *(ce->v[0]);
+                        if ((ct->oid == oid) && (ce->itag & 0x1))
+                        {
+                            sp.itag         =  0x3;
+                            itag[1]        |=  0x2;
+                        }
+                        else if ((ct->oid != oid) && (ce->itag & 0x2))
+                        {
+                            sp.itag         =  0x3;
+                            itag[1]        |=  0x1;
+                        }
                         break;
-                    case 0x02: case 0x08:   // Edge is crossing the plane, compute split point
-                        dsp::calc_split_point_p2v1(&sp, ce->v[0], ce->v[1], &pl);
+                    case 0x04: // Edge touches the plane with p[1]
+                        sp      = *(ce->v[1]);
+                        if ((ct->oid == oid) && (ce->itag & 0x1))
+                        {
+                            sp.itag         =  0x3;
+                            itag[0]        &= ~0x2;
+                        }
+                        else if ((ct->oid != oid) && (ce->itag & 0x2))
+                        {
+                            sp.itag         =  0x3;
+                            itag[0]        &= ~0x1;
+                        }
                         break;
+                    case 0x06:
+                        sp      = *(ce->v[1]);
+                        if ((ct->oid == oid) && (ce->itag & 0x1))
+                        {
+                            sp.itag         =  0x3;
+                            itag[0]        |=  0x2;
+                        }
+                        else if ((ct->oid != oid) && (ce->itag & 0x2))
+                        {
+                            sp.itag         =  0x3;
+                            itag[0]        |=  0x1;
+                        }
+                        break;
+                    case 0x02: // Edge is crossing the plane
+                        dsp::calc_split_point_p2v1(&sp, ce->v[0], ce->v[1], &pl); // Compute split point
+                        if ((ct->oid == oid) && (ce->itag & 0x1))
+                        {
+                            sp.itag         =  0x3;
+                            itag[0]        |=  0x2;
+                            itag[1]        &= ~0x2;
+                        }
+                        else if ((ct->oid != oid) && (ce->itag & 0x2))
+                        {
+                            sp.itag         =  0x3;
+                            itag[0]        |=  0x1;
+                            itag[1]        &= ~0x1;
+                        }
+                        break;
+                    case 0x08: // Edge is crossing the plane
+                        dsp::calc_split_point_p2v1(&sp, ce->v[0], ce->v[1], &pl); // Compute split point
+                        if ((ct->oid == oid) && (ce->itag & 0x1))
+                        {
+                            sp.itag         =  0x3;
+                            itag[0]        &= ~0x2;
+                            itag[1]        |=  0x2;
+                        }
+                        else if ((ct->oid != oid) && (ce->itag & 0x2))
+                        {
+                            sp.itag         =  0x3;
+                            itag[0]        &= ~0x1;
+                            itag[1]        |=  0x1;
+                        }
+                        break;
+
                     case 0x05:              // Edge lays on the plane, skip
                     default:
                         continue;
                 }
-                sp.itag     = (ce->itag == ct->itag) ? ce->itag : 1;        // Common edge
+//                sp.itag     = (ce->itag == ct->itag) ? ce->itag : 1;        // Common edge
                 sp.ptag     = NULL;
 
                 // Now we need to check that intersection point lays on the triangle
@@ -551,20 +634,12 @@ namespace lsp
                     for (size_t i=0,n=vertex.size(); i<n; ++i) \
                     { \
                         rtm_vertex_t *v = vertex.get(i); \
-                        view->add_point(v, \
-                                (v->itag == 0) ? &C_RED : \
-                                (v->itag == 2) ? &C_GREEN : \
-                                &C_BLUE \
-                            ); \
+                        view->add_point(v, item_color(v->itag)); \
                     } \
                     for (size_t i=0,n=edge.size(); i<n; ++i) \
                     { \
                         rtm_edge_t *e = edge.get(i); \
-                        view->add_segment(e->v[0], e->v[1], \
-                                (e == ce) ? &C_YELLOW : \
-                                (e->itag == 0) ? &C_RED : \
-                                (e->itag == 2) ? &C_GREEN : \
-                                &C_BLUE); \
+                        view->add_segment(e->v[0], e->v[1], (e == ce) ? &C_YELLOW : item_color(ce->itag)); \
                     } \
                     view->add_point(&sp, &C_YELLOW); \
                 );
@@ -573,21 +648,21 @@ namespace lsp
                 {
                     case 0x16: // Point matches edges 1 and 2 (vertex 2)
                         TRACE_COMMON_STATE;
-                        ct->v[2]->itag  = sp.itag;  // Update itag
+                        ct->v[2]->itag = sp.itag;
                         if ((res = split_edge_internal(ce, ct->v[2])) != STATUS_OK)  // Need to perform only split of crossing edge
                             return res;
                         continue;
 
                     case 0x19: // Point matches edges 0 and 2 (vertex 0)
                         TRACE_COMMON_STATE;
-                        ct->v[0]->itag  = sp.itag;  // Update itag
+                        ct->v[0]->itag = sp.itag;
                         if ((res = split_edge_internal(ce, ct->v[0])) != STATUS_OK)  // Need to perform only split of crossing edge
                             return res;
                         continue;
 
                     case 0x25: // Point matches edges 0 and 1 (vertex 1)
                         TRACE_COMMON_STATE;
-                        ct->v[1]->itag  = sp.itag;  // Update itag
+                        ct->v[1]->itag = sp.itag;
                         if ((res = split_edge_internal(ce, ct->v[1])) != STATUS_OK)  // Need to perform only split of crossing edge
                             return res;
                         continue;
@@ -596,6 +671,8 @@ namespace lsp
                         TRACE_COMMON_STATE;
                         if (!(spp = add_unique_vertex(&sp)))
                             return STATUS_NO_MEM;
+                        ce->v[0]->itag  = itag[0];
+                        ce->v[1]->itag  = itag[1];
                         spp->itag       = sp.itag;
                         if ((res = split_edge_internal(ct->e[2], spp)) == STATUS_OK)
                             res = split_edge_internal(ce, spp);
@@ -605,6 +682,8 @@ namespace lsp
                         TRACE_COMMON_STATE;
                         if (!(spp = add_unique_vertex(&sp)))
                             return STATUS_NO_MEM;
+                        ce->v[0]->itag  = itag[0];
+                        ce->v[1]->itag  = itag[1];
                         spp->itag       = sp.itag;
                         if ((res = split_edge_internal(ct->e[1], spp)) == STATUS_OK)
                             res = split_edge_internal(ce, spp);
@@ -614,6 +693,8 @@ namespace lsp
                         TRACE_COMMON_STATE;
                         if (!(spp = add_unique_vertex(&sp)))
                             return STATUS_NO_MEM;
+                        ce->v[0]->itag  = itag[0];
+                        ce->v[1]->itag  = itag[1];
                         spp->itag       = sp.itag;
                         if ((res = split_edge_internal(ct->e[0], spp)) == STATUS_OK)
                             res = split_edge_internal(ce, spp);
@@ -623,6 +704,8 @@ namespace lsp
                         TRACE_COMMON_STATE;
                         if (!(spp = add_unique_vertex(&sp)))
                             return STATUS_NO_MEM;
+                        ce->v[0]->itag  = itag[0];
+                        ce->v[1]->itag  = itag[1];
                         spp->itag       = sp.itag;
                         if ((res = split_triangle_internal(ct, spp)) == STATUS_OK)
                             res = split_edge_internal(ce, spp);
@@ -637,31 +720,19 @@ namespace lsp
                     for (size_t i=0,n=vertex.size(); i<n; ++i)
                     {
                         rtm_vertex_t *v = vertex.get(i);
-                        view->add_point(v,
-                                (v->itag == 0) ? &C_RED :
-                                (v->itag == 2) ? &C_GREEN :
-                                &C_BLUE
-                            );
+                        view->add_point(v, item_color(v->itag));
                     }
 
                     for (size_t i=0,n=edge.size(); i<n; ++i)
                     {
                         rtm_edge_t *e = edge.get(i);
-                        view->add_segment(e,
-                                (e->itag == 0) ? &C_RED :
-                                (e->itag == 2) ? &C_GREEN :
-                                &C_BLUE
-                            );
+                        view->add_segment(e, item_color(e->itag));
                     }
 
                     for (size_t i=0,n=triangle.size(); i<n; ++i)
                     {
                         rtm_triangle_t *t = triangle.get(i);
-                        view->add_triangle_1c(t,
-                                (t->itag == 0) ? &C_RED :
-                                (t->itag == 2) ? &C_GREEN :
-                                &C_BLUE
-                            );
+                        view->add_triangle_1c(t, (t->oid == oid) ? &C_RED : &C_GREEN);
                     }
                 );
 
@@ -681,31 +752,19 @@ namespace lsp
             for (size_t i=0,n=vertex.size(); i<n; ++i)
             {
                 rtm_vertex_t *v = vertex.get(i);
-                view->add_point(v,
-                        (v->itag == 0) ? &C_RED :
-                        (v->itag == 2) ? &C_GREEN :
-                        &C_BLUE
-                    );
+                view->add_point(v, item_color(v->itag));
             }
 
             for (size_t i=0,n=edge.size(); i<n; ++i)
             {
                 rtm_edge_t *e = edge.get(i);
-                view->add_segment(e,
-                        (e->itag == 0) ? &C_RED :
-                        (e->itag == 2) ? &C_GREEN :
-                        &C_BLUE
-                    );
+                view->add_segment(e, item_color(e->itag));
             }
 
             for (size_t i=0,n=triangle.size(); i<n; ++i)
             {
                 rtm_triangle_t *t = triangle.get(i);
-                view->add_triangle_1c(t,
-                        (t->itag == 0) ? &C_RED :
-                        (t->itag == 2) ? &C_GREEN :
-                        &C_BLUE
-                    );
+                view->add_triangle_1c(t, (t->oid == oid) ? &C_RED : &C_GREEN);
             }
         );
 
@@ -714,14 +773,15 @@ namespace lsp
 
     status_t rt_mesh_t::paint_triangles_internal(ssize_t oid)
     {
+        return STATUS_OK;
+/*
         size_t total            = 0;
         size_t pending          = (triangle.size() + 0x3f) & (~0x3f);
         rtm_triangle_t **vt     = reinterpret_cast<rtm_triangle_t **>(::malloc(pending * sizeof(rtm_triangle_t *)));
 
         // Fill the array with pointers
         RT_FOREACH(rtm_triangle_t, t, triangle)
-            if (t->itag != 1)
-                vt[total++]             = t;
+            vt[total++]             = t;
         RT_FOREACH_END
 
         pending     = total;
@@ -731,23 +791,20 @@ namespace lsp
             for (size_t i=0; i<pending; )
             {
                 rtm_triangle_t *ct  = vt[i];
-                ssize_t itag        = (ct->oid == oid) ? 0 : 2;
+//                ssize_t itag        = (ct->oid == oid) ? 0 : 2;
 
-//                if ((ct->v[0]->itag == 1) && (ct->v[1]->itag == ct_itag))
-//                    ct->itag        = 1;
-//                else if ((ct->v[1]->itag == 1) && (ct->v[2]->itag == ct_itag))
-//                    ct->itag        = 1;
-//                else if ((ct->v[2]->itag == 1) && (ct->v[0]->itag == ct_itag))
-//                    ct->itag        = 1;
+                if ((ct->e[0]->itag == 0x3) && (ct->e[1]->itag == 0x3))
+                    ct->itag        = 0x3;
+                else if ((ct->e[1]->itag == 0x3) && (ct->e[2]->itag == 0x3))
+                    ct->itag        = 0x3;
+                else if ((ct->e[2]->itag == 0x3) && (ct->e[0]->itag == 0x3))
+                    ct->itag        = 0x3;
+                lsp_trace("ct[%d]->itag = { 0x%x, 0x%x, 0x%x } -> 0x%x",
+                        int(i), int(ct->e[0]->itag), int(ct->e[1]->itag), int(ct->e[2]->itag),
+                        int(ct->itag)
+                    );
 
-                if ((ct->v[0]->itag == itag) && (ct->v[1]->itag == 1) && (ct->v[2]->itag == 1))
-                    ct->itag        = 1;
-                else if ((ct->v[0]->itag == 1) && (ct->v[1]->itag == itag) && (ct->v[2]->itag == 1))
-                    ct->itag        = 1;
-                else if ((ct->v[0]->itag == 1) && (ct->v[1]->itag == 1) && (ct->v[2]->itag == itag))
-                    ct->itag        = 1;
-
-                if ((ct->itag == 1) && ((pending--) > 0))
+                if ((ct->itag == 0x3) && ((pending--) > 0))
                     vt[i]           = vt[pending]; // remove from pending
                 else
                     ++i;
@@ -766,35 +823,24 @@ namespace lsp
             for (size_t i=0,n=vertex.size(); i<n; ++i)
             {
                 rtm_vertex_t *v = vertex.get(i);
-                view->add_point(v,
-                        (v->itag == 0) ? &C_RED :
-                        (v->itag == 2) ? &C_GREEN :
-                        &C_BLUE
-                    );
+                view->add_point(v, item_color(v->itag));
             }
 
             for (size_t i=0,n=edge.size(); i<n; ++i)
             {
                 rtm_edge_t *e = edge.get(i);
-                view->add_segment(e,
-                        (e->itag == 0) ? &C_RED :
-                        (e->itag == 2) ? &C_GREEN :
-                        &C_BLUE
-                    );
+                view->add_segment(e, item_color(e->itag));
             }
 
             for (size_t i=0,n=triangle.size(); i<n; ++i)
             {
                 rtm_triangle_t *t = triangle.get(i);
-                view->add_triangle_1c(t,
-                        (t->itag == 0) ? &C_RED :
-                        (t->itag == 2) ? &C_GREEN :
-                        &C_BLUE
-                    );
+                view->add_triangle_1c(t, item_color(t->itag));
             }
         );
 
         return (total < triangle.size()) ? STATUS_OK : STATUS_NOT_FOUND;
+        */
     }
 
     rt_material_t  *rt_mesh_t::build_material(rt_material_t *from, rt_material_t *to)
@@ -840,7 +886,7 @@ namespace lsp
             return res;
 
         // Now we need to solve all conflicts between edges and triangles
-        if ((res = solve_conflicts_internal()) != STATUS_OK)
+        if ((res = solve_conflicts_internal(oid)) != STATUS_OK)
             return res;
 
         // Paint triangles
