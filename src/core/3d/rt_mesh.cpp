@@ -258,7 +258,7 @@ namespace lsp
             return STATUS_NO_MEM;
 
         // Initialize culled edge and link to corresponding vertexes
-        ne->itag        = sp->itag;
+        ne->itag        = e->itag;
 
         RT_VALIDATE(
             if ((ne->v[0] == NULL) || (ne->v[1] == NULL))
@@ -276,7 +276,7 @@ namespace lsp
                 return STATUS_NO_MEM;
             if (!(se = add_unique_edge(ct->v[2], sp)))
                 return STATUS_NO_MEM;
-            se->itag        = (sp->itag == ct->v[2]->itag) ? sp->itag : ct->v[2]->itag;
+            se->itag            = ct->itag;
 
             // Unlink current triangle from all edges
             if (!unlink_triangle(ct, ct->e[0]))
@@ -530,66 +530,40 @@ namespace lsp
                     case 0x01:
                         sp      = *(ce->v[0]);
                         if ((ct->oid == oid) && (ce->itag & 0x1))
-                        {
-                            sp.itag         =  0x3;
                             itag[1]        &= ~0x2;
-                        }
                         else if ((ct->oid != oid) && (ce->itag & 0x2))
-                        {
-                            sp.itag         =  0x3;
                             itag[1]        &= ~0x1;
-                        }
                         break;
                     case 0x09: // Edge touches the plane with p[0]
                         sp      = *(ce->v[0]);
                         if ((ct->oid == oid) && (ce->itag & 0x1))
-                        {
-                            sp.itag         =  0x3;
                             itag[1]        |=  0x2;
-                        }
                         else if ((ct->oid != oid) && (ce->itag & 0x2))
-                        {
-                            sp.itag         =  0x3;
                             itag[1]        |=  0x1;
-                        }
                         break;
                     case 0x04: // Edge touches the plane with p[1]
                         sp      = *(ce->v[1]);
                         if ((ct->oid == oid) && (ce->itag & 0x1))
-                        {
-                            sp.itag         =  0x3;
                             itag[0]        &= ~0x2;
-                        }
                         else if ((ct->oid != oid) && (ce->itag & 0x2))
-                        {
-                            sp.itag         =  0x3;
                             itag[0]        &= ~0x1;
-                        }
                         break;
                     case 0x06:
                         sp      = *(ce->v[1]);
                         if ((ct->oid == oid) && (ce->itag & 0x1))
-                        {
-                            sp.itag         =  0x3;
                             itag[0]        |=  0x2;
-                        }
                         else if ((ct->oid != oid) && (ce->itag & 0x2))
-                        {
-                            sp.itag         =  0x3;
                             itag[0]        |=  0x1;
-                        }
                         break;
                     case 0x02: // Edge is crossing the plane
                         dsp::calc_split_point_p2v1(&sp, ce->v[0], ce->v[1], &pl); // Compute split point
                         if ((ct->oid == oid) && (ce->itag & 0x1))
                         {
-                            sp.itag         =  0x3;
                             itag[0]        |=  0x2;
                             itag[1]        &= ~0x2;
                         }
                         else if ((ct->oid != oid) && (ce->itag & 0x2))
                         {
-                            sp.itag         =  0x3;
                             itag[0]        |=  0x1;
                             itag[1]        &= ~0x1;
                         }
@@ -598,13 +572,11 @@ namespace lsp
                         dsp::calc_split_point_p2v1(&sp, ce->v[0], ce->v[1], &pl); // Compute split point
                         if ((ct->oid == oid) && (ce->itag & 0x1))
                         {
-                            sp.itag         =  0x3;
                             itag[0]        &= ~0x2;
                             itag[1]        |=  0x2;
                         }
                         else if ((ct->oid != oid) && (ce->itag & 0x2))
                         {
-                            sp.itag         =  0x3;
                             itag[0]        &= ~0x1;
                             itag[1]        |=  0x1;
                         }
@@ -615,6 +587,7 @@ namespace lsp
                         continue;
                 }
 //                sp.itag     = (ce->itag == ct->itag) ? ce->itag : 1;        // Common edge
+                sp.itag     = 0x03;
                 sp.ptag     = NULL;
 
                 // Now we need to check that intersection point lays on the triangle
