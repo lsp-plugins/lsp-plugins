@@ -81,18 +81,16 @@ namespace lsp
             if ((idx < 0) && (!force))
                 return STATUS_EOF;
 
-            LSPString *res = pString->substring(nOffset, idx);
-            if (res == NULL)
+            if (!s->set(pString, nOffset, idx))
                 return nError = STATUS_NO_MEM;
 
-            ssize_t len = res->length();
-            if (len > 0)
+            ssize_t len = s->length();
+            if ((len--) > 0)
             {
-                if (res->char_at(len-1) == '\r')
-                    res->truncate(--len);
+                if (s->char_at(len) == '\r')
+                    s->set_length(len);
             }
 
-            s->take(res);
             return STATUS_OK;
         }
 
