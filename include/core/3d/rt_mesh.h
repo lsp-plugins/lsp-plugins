@@ -49,7 +49,7 @@ namespace lsp
             static ssize_t  linked_count(rtm_edge_t *e, rtm_vertex_t *v);
 
             static bool     unlink_edge(rtm_edge_t *e, rtm_vertex_t *v);
-            static bool     replace_edge(rtm_edge_t *e, rtm_edge_t *v);
+            static bool     replace_edge(rtm_edge_t *e, rtm_edge_t *re);
             static bool     unlink_triangle(rtm_triangle_t *t, rtm_edge_t *e);
             static status_t arrange_triangle(rtm_triangle_t *ct, rtm_edge_t *e);
 

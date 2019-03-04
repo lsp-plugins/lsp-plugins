@@ -776,9 +776,7 @@ namespace lsp
                     if (linked_count(ce, ce->v[1]) > 1)
                         return STATUS_CORRUPTED;
                 )
-                if (!unlink_edge(ce, ce->v[0]))
-                    return STATUS_CORRUPTED;
-                if (!unlink_edge(ce, ce->v[1]))
+                if (!replace_edge(ce, reinterpret_cast<rtm_edge_t *>(ce->ptag)))
                     return STATUS_CORRUPTED;
                 continue; // No not add CE to new list of edges
             }
@@ -787,6 +785,7 @@ namespace lsp
             rtm_edge_t *ne  = xedge.alloc(ce);
             if (!ne)
                 return STATUS_NO_MEM;
+            ne->ptag        = ne;
             ce->ptag        = ne;
         RT_FOREACH_END
 
@@ -800,7 +799,7 @@ namespace lsp
         RT_FOREACH_END
 
         // Patch edge pointers
-        RT_FOREACH(rtm_edge_t, e, edge)
+        RT_FOREACH(rtm_edge_t, e, xedge)
             e->vlnk[0]      = (e->vlnk[0] != NULL) ? reinterpret_cast<rtm_edge_t *>(e->vlnk[0]->ptag) : NULL;
             e->vlnk[1]      = (e->vlnk[1] != NULL) ? reinterpret_cast<rtm_edge_t *>(e->vlnk[1]->ptag) : NULL;
         RT_FOREACH_END
@@ -1116,6 +1115,44 @@ namespace lsp
             pcurr = pnext;
         }
         return false;
+    }
+
+    bool rt_mesh_t::replace_edge(rtm_edge_t *e, rtm_edge_t *re)
+    {
+        if (!unlink_edge(e, e->v[0]))
+            return false;
+        if (!unlink_edge(e, e->v[1]))
+            return false;
+
+        for (rtm_triangle_t *curr = e->vt; curr != NULL; )
+        {
+            rtm_triangle_t *next =
+                    (curr->e[0] == e) ? curr->elnk[0] :
+                    (curr->e[1] == e) ? curr->elnk[1] :
+                    curr->elnk[2];
+
+            if (!unlink_triangle(curr, e))
+                return false;
+            if (curr->e[0] == e)
+            {
+                curr->e[0]      = re;
+                curr->elnk[0]   = re->vt;
+            }
+            else if (curr->e[1] == e)
+            {
+                curr->e[1]      = re;
+                curr->elnk[1]   = re->vt;
+            }
+            else if (curr->e[2] == e)
+            {
+                curr->e[2]      = re;
+                curr->elnk[2]   = re->vt;
+            }
+            re->vt          = curr;
+            curr = next;
+        }
+
+        return true;
     }
 
     bool rt_mesh_t::unlink_triangle(rtm_triangle_t *t, rtm_edge_t *e)
