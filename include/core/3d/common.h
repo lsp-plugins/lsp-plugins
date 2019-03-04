@@ -165,9 +165,11 @@ namespace lsp
 
     typedef struct rtm_vertex_t: public point3d_t
     {
+        rtm_edge_t         *ve;         // List of linked edges
         void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
         ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
-        __IF_32(uint32_t    __pad[2];)  // Alignment to be sizeof() multiple of 16
+        __IF_64(uint64_t    __pad;)     // Alignment to be sizeof() multiple of 16
+        __IF_32(uint32_t    __pad;)     // Alignment to be sizeof() multiple of 16
     } rtm_vertex_t;
 
     typedef struct rtm_edge_t
@@ -176,8 +178,9 @@ namespace lsp
         rtm_triangle_t     *vt;         // List of linked triangles
         void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
         ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
+        rtm_edge_t         *vlnk[2];    // Link to the next edge for the vetex v[i]
         __IF_64(uint64_t    __pad;)     // Alignment to be sizeof() multiple of 16
-        __IF_32(uint32_t    __pad[3];)  // Alignment to be sizeof() multiple of 16
+        __IF_32(uint32_t    __pad;)     // Alignment to be sizeof() multiple of 16
     } rtm_edge_t;
 
     typedef struct rtm_triangle_t

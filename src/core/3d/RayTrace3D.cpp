@@ -376,7 +376,7 @@ namespace lsp
                 return STATUS_BAD_STATE;
 
             // Add object to context
-            res         = root.add_object_exclusive(obj, obj_id, obj->matrix(), m);
+            res         = root.add_object(obj, obj_id, obj->matrix(), m);
             if (res != STATUS_OK)
                 return res;
         }
@@ -408,17 +408,6 @@ namespace lsp
 
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("Added capture objects (%d triangles)", int(root.triangle.size()));
-            for (size_t i=0,n=root.triangle.size(); i<n; ++i)
-                trace->pDebug->trace.add_triangle_3c(root.triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
-        );
-
-        // Solve conflicts between all objects
-        res = root.solve_conflicts();
-        if (res != STATUS_OK)
-            return res;
-
-        RT_TRACE_BREAK(trace->pDebug,
-            lsp_trace("Solved conflicts (%d triangles)", int(root.triangle.size()));
             for (size_t i=0,n=root.triangle.size(); i<n; ++i)
                 trace->pDebug->trace.add_triangle_3c(root.triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
         );

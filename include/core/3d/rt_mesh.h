@@ -44,10 +44,11 @@ namespace lsp
 
         protected:
             bool            validate_list(rtm_edge_t *e);
+            bool            validate_list(rtm_vertex_t *v);
             static ssize_t  linked_count(rtm_triangle_t *t, rtm_edge_t *e);
+            static ssize_t  linked_count(rtm_edge_t *e, rtm_vertex_t *v);
 
-            status_t        split_edge(rtm_edge_t* e, rtm_vertex_t* sp);
-            status_t        split_triangle(rtm_triangle_t* t, rtm_vertex_t* sp);
+            static bool     unlink_edge(rtm_edge_t *e, rtm_vertex_t *v);
             static bool     unlink_triangle(rtm_triangle_t *t, rtm_edge_t *e);
             static status_t arrange_triangle(rtm_triangle_t *ct, rtm_edge_t *e);
 
@@ -55,9 +56,10 @@ namespace lsp
             rtm_edge_t     *add_unique_edge(rtm_vertex_t *v1, rtm_vertex_t *v2);
 
             status_t        copy_object_data(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material);
-            status_t        solve_conflicts_internal(ssize_t oid);
-            status_t        split_edge_internal(rtm_edge_t* e, rtm_vertex_t* sp);
-            status_t        split_triangle_internal(rtm_triangle_t* t, rtm_vertex_t* sp);
+            status_t        solve_conflicts(ssize_t oid);
+            status_t        split_colinear_edges();
+            status_t        split_edge(rtm_edge_t* e, rtm_vertex_t* sp);
+            status_t        split_triangle(rtm_triangle_t* t, rtm_vertex_t* sp);
             status_t        paint_triangles_internal(ssize_t oid);
 
             rt_material_t  *build_material(rt_material_t *from, rt_material_t *to);
@@ -96,7 +98,7 @@ namespace lsp
             }
 
             /**
-             * Add object to context
+             * Add object exclusively to context
              * @param obj object to add
              * @param oid unique id to identify the object
              * @param material material that describes behaviour of reflected rays
@@ -108,7 +110,7 @@ namespace lsp
             }
 
             /**
-             * Add object to context
+             * Add object exclusively to context
              * @param obj object to add
              * @param oid unique id to identify the object
              * @param transform transformation matrix to apply to object
@@ -116,36 +118,6 @@ namespace lsp
              * @return status of operation
              */
             status_t        add_object(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material);
-
-            /**
-             * Add object exclusively to context
-             * @param obj object to add
-             * @param oid unique id to identify the object
-             * @param material material that describes behaviour of reflected rays
-             * @return status of operation
-             */
-            inline status_t add_object_exclusive(Object3D *obj, ssize_t oid, rt_material_t *material)
-            {
-                return add_object_exclusive(obj, oid, obj->matrix(), material);
-            }
-
-            /**
-             * Add object exclusively to context
-             * @param obj object to add
-             * @param oid unique id to identify the object
-             * @param transform transformation matrix to apply to object
-             * @param material material that describes behaviour of reflected rays
-             * @return status of operation
-             */
-            status_t        add_object_exclusive(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material);
-
-            /**
-             * Remove conflicts between triangles, does not modify the 'itag' field of
-             * triangle, so it can be used to identify objects of the scene
-             *
-             * @return status of operation
-             */
-            status_t        solve_conflicts();
 
             /**
              * Check consistency of the context: that all stored pointers are valid
