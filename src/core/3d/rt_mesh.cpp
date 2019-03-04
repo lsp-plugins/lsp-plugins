@@ -674,7 +674,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t rt_mesh_t::split_colinear_edges()
+    status_t rt_mesh_t::solve_vertex_edge_conflicts()
     {
         // Step 1: split edges with points laying on them
         float el, d[2], xd;
@@ -736,6 +736,88 @@ namespace lsp
 
             RT_FOREACH_END
         }
+
+//        RT_VALIDATE(
+            if (!validate())
+                return STATUS_CORRUPTED;
+//        )
+
+        return STATUS_OK;
+    }
+
+    status_t rt_mesh_t::remove_duplicate_edges()
+    {
+        Allocator3D<rtm_edge_t> xedge(edge.chunk_size());
+
+//        RT_VALIDATE(
+            if (!validate())
+                return STATUS_CORRUPTED;
+//        )
+
+        // Generate unique set of non-duplicate edges
+        RT_FOREACH(rtm_edge_t, ce, edge)
+            ce->ptag    = NULL;
+
+            // Similar edge was already processed?
+            RT_FOREACH(rtm_edge_t, se, xedge)
+                if (((ce->v[0] == se->v[0]) && (ce->v[1] == se->v[1])) ||
+                    ((ce->v[1] == se->v[0]) && (ce->v[0] == se->v[1])))
+                {
+                    ce->ptag    = se;
+                    RT_FOREACH_BREAK;
+                }
+            RT_FOREACH_END
+
+            if (ce->ptag != NULL)
+            {
+                RT_VALIDATE(
+                    if (linked_count(ce, ce->v[0]) > 1)
+                        return STATUS_CORRUPTED;
+                    if (linked_count(ce, ce->v[1]) > 1)
+                        return STATUS_CORRUPTED;
+                )
+                if (!unlink_edge(ce, ce->v[0]))
+                    return STATUS_CORRUPTED;
+                if (!unlink_edge(ce, ce->v[1]))
+                    return STATUS_CORRUPTED;
+                continue; // No not add CE to new list of edges
+            }
+
+            // Allocate new edge and store as replacement
+            rtm_edge_t *ne  = xedge.alloc(ce);
+            if (!ne)
+                return STATUS_NO_MEM;
+            ce->ptag        = ne;
+        RT_FOREACH_END
+
+        // Nothing has changed?
+        if (xedge.size() >= edge.size())
+            return STATUS_OK;
+
+        // Patch vertex pointers
+        RT_FOREACH(rtm_vertex_t, v, vertex)
+            v->ve           = (v->ve != NULL) ? reinterpret_cast<rtm_edge_t *>(v->ve->ptag) : NULL;
+        RT_FOREACH_END
+
+        // Patch edge pointers
+        RT_FOREACH(rtm_edge_t, e, edge)
+            e->vlnk[0]      = (e->vlnk[0] != NULL) ? reinterpret_cast<rtm_edge_t *>(e->vlnk[0]->ptag) : NULL;
+            e->vlnk[1]      = (e->vlnk[1] != NULL) ? reinterpret_cast<rtm_edge_t *>(e->vlnk[1]->ptag) : NULL;
+        RT_FOREACH_END
+
+        // Patch triangle pointers
+        RT_FOREACH(rtm_triangle_t, t, triangle)
+            t->e[0]         = reinterpret_cast<rtm_edge_t *>(t->e[0]->ptag);
+            t->e[1]         = reinterpret_cast<rtm_edge_t *>(t->e[1]->ptag);
+            t->e[2]         = reinterpret_cast<rtm_edge_t *>(t->e[2]->ptag);
+        RT_FOREACH_END
+
+        xedge.swap(&edge);
+
+//        RT_VALIDATE(
+            if (!validate())
+                return STATUS_CORRUPTED;
+//        )
 
         return STATUS_OK;
     }
@@ -871,8 +953,12 @@ namespace lsp
         if ((res = copy_object_data(obj, oid, transform, material)) != STATUS_OK)
             return res;
 
-        // Remove colinear edges
-        if ((res = split_colinear_edges()) != STATUS_OK)
+        // Split edges with points laying on them
+        if ((res = solve_vertex_edge_conflicts()) != STATUS_OK)
+            return res;
+
+        // Remove duplicate edges
+        if ((res = remove_duplicate_edges()) != STATUS_OK)
             return res;
 
         // Now we need to solve all conflicts between edges and triangles

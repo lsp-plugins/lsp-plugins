@@ -49,6 +49,7 @@ namespace lsp
             static ssize_t  linked_count(rtm_edge_t *e, rtm_vertex_t *v);
 
             static bool     unlink_edge(rtm_edge_t *e, rtm_vertex_t *v);
+            static bool     replace_edge(rtm_edge_t *e, rtm_edge_t *v);
             static bool     unlink_triangle(rtm_triangle_t *t, rtm_edge_t *e);
             static status_t arrange_triangle(rtm_triangle_t *ct, rtm_edge_t *e);
 
@@ -57,7 +58,8 @@ namespace lsp
 
             status_t        copy_object_data(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material);
             status_t        solve_conflicts(ssize_t oid);
-            status_t        split_colinear_edges();
+            status_t        solve_vertex_edge_conflicts();
+            status_t        remove_duplicate_edges();
             status_t        split_edge(rtm_edge_t* e, rtm_vertex_t* sp);
             status_t        split_triangle(rtm_triangle_t* t, rtm_vertex_t* sp);
             status_t        paint_triangles_internal(ssize_t oid);
