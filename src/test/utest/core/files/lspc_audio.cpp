@@ -60,8 +60,9 @@ UTEST_BEGIN("core.files", lspc_audio)
         lspc_audio_parameters_t p;
 
         // Create LSPC file
-        UTEST_ASSERT(file_name.fmt_native("tmp/utest-%s.lspc", full_name()));
-        status_t res    = fd.create(file_name.get_native());
+        LSPString path;
+        UTEST_ASSERT(path.fmt_utf8("tmp/utest-%s.lspc", full_name()));
+        status_t res    = fd.create(&path);
         UTEST_ASSERT(res == STATUS_OK);
 
         // Write audio chunk
@@ -114,8 +115,9 @@ UTEST_BEGIN("core.files", lspc_audio)
         lspc_audio_parameters_t p;
 
         // Create LSPC file
-        UTEST_ASSERT(file_name.fmt_native("tmp/utest-%s.lspc", full_name()));
-        status_t res    = fd.open(file_name.get_native());
+        LSPString path;
+        UTEST_ASSERT(path.fmt_utf8("tmp/utest-%s.lspc", full_name()));
+        status_t res    = fd.open(&path);
         UTEST_ASSERT(res == STATUS_OK);
 
         // Read audio chunk
