@@ -1151,6 +1151,8 @@ namespace lsp
         return processed;
     }
 
+    //-------------------------------------------------------------------------
+    // UTF-32 streaming routines
     size_t utf32_to_utf8(char *dst, size_t *ndst, const lsp_utf32_t *src, size_t *nsrc, bool force)
     {
         lsp_utf32_t cp;
