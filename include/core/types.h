@@ -34,9 +34,11 @@ typedef uint32_t        lsp_wchar_t;
     #include <windows.h>
 
     typedef WCHAR               lsp_utf16_t;
+    typedef uint32_t            lsp_utf32_t;
     typedef HANDLE              lsp_fhandle_t;
 #else
     typedef uint16_t            lsp_utf16_t;
+    typedef uint32_t            lsp_utf32_t;
     typedef int                 lsp_fhandle_t;
 #endif /* PLATFORM_WINDOWS */
 

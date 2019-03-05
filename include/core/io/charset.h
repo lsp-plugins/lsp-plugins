@@ -34,18 +34,47 @@ namespace lsp
 #endif /* PLATFORM_WINDOWS */
 
     /**
-     * Encode UTF-16 string to UTF-8 string
-     * @param str string to encode
-     * @return pointer to allocated UTF-8 string that should be free()'d after use
-     */
-    char               *utf16_to_utf8(const lsp_utf16_t *str);
-
-    /**
      * Encode UTF-8 string to UTF-16 string
      * @param str string to encode
      * @return pointer to allocated UTF-16 string that should be free()'d after use
      */
     lsp_utf16_t   *utf8_to_utf16(const char *str);
+
+    /**
+     * Encode UTF-8 string to UTF-32 string
+     * @param str string to encode
+     * @return pointer to allocated UTF-32 string that should be free()'d after use
+     */
+    lsp_utf32_t   *utf8_to_utf32(const char *str);
+
+    /**
+     * Encode UTF-16 string to UTF-8 string
+     * @param str string to encode
+     * @return pointer to allocated UTF-8 string that should be free()'d after use
+     */
+    char *utf16_to_utf8(const lsp_utf16_t *str);
+
+    /**
+     * Encode UTF-16 string to UTF-32 string
+     * @param str string to encode
+     * @return pointer to allocated UTF-32 string that should be free()'d after use
+     */
+    lsp_utf32_t *utf16_to_utf32(const lsp_utf16_t *str);
+
+    /**
+     * Encode UTF-32 string to UTF-8 string
+     * @param str string to encode
+     * @return pointer to allocated UTF-16 string that should be free()'d after use
+     */
+    char *utf32_to_utf8(const lsp_utf32_t *str);
+
+    /**
+     * Encode UTF-32 string to UTF-16 string
+     * @param str string to encode
+     * @return pointer to allocated UTF-16 string that should be free()'d after use
+     */
+    lsp_utf16_t *utf32_to_utf16(const lsp_utf32_t *str);
+
 }
 
 #endif /* INCLUDE_CORE_IO_CHARSET_H_ */
