@@ -1564,18 +1564,29 @@ namespace lsp
             return NULL;
 
         // Estimate number of bytes required
-        const lsp_utf16_t *buf = get_utf16(first, last);
+        lsp_utf16_t *buf    = const_cast<lsp_utf16_t *>(get_utf16(first, last));
         if (buf == NULL)
             return NULL;
 
-        size_t n = WideCharToMultiByte(cp, 0, buf, length, NULL, 0, 0, 0) + 4; // + terminating 0
+        // Drop temporary data because it is stored in buf variable and can not be reused
+        pTemp->pData        = NULL;
+        pTemp->nLength      = 0;
+        pTemp->nOffset      = 0;
+
+        size_t n = WideCharToMultiByte(cp, 0, buf, length, NULL, 0, NULL, NULL) + 4; // + terminating 0
         if (!resize_temp(n))
+        {
+            free(buf);
             return NULL;
+        }
 
         // We have enough space for saving data
-        n = WideCharToMultiByte(cp, 0, buf, length, pTemp->pData, n, 0, 0);
+        n = WideCharToMultiByte(cp, 0, buf, length, pTemp->pData, n, NULL, NULL);
         if (n <= 0)
+        {
+            free(buf);
             return NULL;
+        }
 
         // Append terminating zero
         pTemp->pData[n++] = '\0';
@@ -1583,6 +1594,7 @@ namespace lsp
         pTemp->pData[n++] = '\0';
         pTemp->pData[n] = '\0';
 
+        free(buf);
         return pTemp->pData;
     }
 #else

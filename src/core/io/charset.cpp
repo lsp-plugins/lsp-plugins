@@ -476,8 +476,18 @@ namespace lsp
             return -1;
         }
 
+//        printf("LOCALE_CUSTOM_DEFAULT = %d\n", int(get_codepage(LOCALE_CUSTOM_DEFAULT)));
+//        printf("LOCALE_USER_DEFAULT = %d\n", int(get_codepage(LOCALE_USER_DEFAULT)));
+//        printf("LOCALE_SYSTEM_DEFAULT = %d\n", int(get_codepage(LOCALE_SYSTEM_DEFAULT)));
+//        printf("LOCALE_CUSTOM_UNSPECIFIED = %d\n", int(get_codepage(LOCALE_CUSTOM_UNSPECIFIED)));
+//        printf("LOCALE_CUSTOM_UI_DEFAULT = %d\n", int(get_codepage(LOCALE_CUSTOM_UI_DEFAULT)));
+//        printf("LOCALE_INVARIANT = %d\n", int(get_codepage(LOCALE_INVARIANT)));
+//        printf("GetConsoleWindow() = %d\n", int(GetConsoleWindow()));
+//        printf("GetConsoleOutputCP() = %d\n", int(GetConsoleOutputCP()));
+//        fflush(stdout);
+
         // Obtain system character set
-        ssize_t cp = get_codepage(LOCALE_CUSTOM_DEFAULT);
+        ssize_t cp = (GetConsoleWindow() != 0) ? GetConsoleOutputCP() : get_codepage(LOCALE_CUSTOM_DEFAULT);
         if (cp < 0)
             cp = get_codepage(LOCALE_USER_DEFAULT);
         if (cp < 0)
