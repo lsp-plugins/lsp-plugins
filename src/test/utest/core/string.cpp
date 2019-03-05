@@ -78,6 +78,28 @@ UTEST_BEGIN("core", string)
         UTEST_ASSERT(s2.equals(&s7));
         UTEST_ASSERT(s3.equals(&s6));
 
+        // Test data coding
+        UTEST_ASSERT(s6.set_utf8("涼宮ハルヒの憂鬱：第一章."));
+        UTEST_ASSERT(s7.set_utf16(s6.get_utf16()));
+        UTEST_ASSERT(s6.equals(&s7));
+        s7.clear();
+        UTEST_ASSERT(s7.set_utf8(s6.get_utf8()));
+        UTEST_ASSERT(s6.equals(&s7));
+
+        UTEST_ASSERT(s6.set_utf8("Всем привет!"));
+        UTEST_ASSERT(s7.set_utf16(s6.get_utf16()));
+        UTEST_ASSERT(s6.equals(&s7));
+        s7.clear();
+        UTEST_ASSERT(s7.set_utf8(s6.get_utf8()));
+        UTEST_ASSERT(s6.equals(&s7));
+
+        UTEST_ASSERT(s6.set_utf8("This is some text"));
+        UTEST_ASSERT(s7.set_utf16(s6.get_utf16()));
+        UTEST_ASSERT(s6.equals(&s7));
+        s7.clear();
+        UTEST_ASSERT(s7.set_utf8(s6.get_utf8()));
+        UTEST_ASSERT(s6.equals(&s7));
+
         // Test some invalid sequences
         UTEST_ASSERT(s6.set_utf8("涼宮ハルヒの憂鬱：第一章.\xff"));
         UTEST_ASSERT(s6.length() == 14);

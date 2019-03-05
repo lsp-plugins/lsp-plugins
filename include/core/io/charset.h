@@ -69,7 +69,21 @@ namespace lsp
      * @param force process data as there will be no future data on the input
      * @return parsed code point or LSP_UTF32_EOF as end of sequence
      */
-    lsp_utf32_t read_utf8_streaming(const char **str, size_t *nsrc, bool force);
+    lsp_utf32_t     read_utf8_streaming(const char **str, size_t *nsrc, bool force);
+
+    /**
+     * Write UTF-8 code point to buffer, buffer should be of enough size
+     * @param str pointer to target buffer
+     * @param cp code point to write
+     */
+    void            write_utf8_codepoint(char **str, lsp_utf32_t cp);
+
+    /**
+     * Write UTF-16 code point to buffer, buffer should be of enough size
+     * @param str pointer to target buffer
+     * @param cp code point to write
+     */
+    void            write_utf16_codepoint(lsp_utf16_t **str, lsp_utf32_t cp);
 
     /**
      * Encode NULL-terminated UTF-8 string to NULL-terminated UTF-16 string

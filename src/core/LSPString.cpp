@@ -1478,38 +1478,7 @@ namespace lsp
         for (ssize_t i=first; i<last; ++i)
         {
             lsp_wchar_t ch = pData[i];
-
-            if (ch < 0x800) // 1-2 bytes
-            {
-                if (ch < 0x80) // 1 byte
-                    *(th++) = ch;
-                else // 2 bytes
-                {
-                    th[0]   = (ch >> 6) | 0xc0;
-                    th[1]   = (ch & 0x3f) | 0x80;
-                    th     += 2;
-                }
-            }
-            else
-            {
-                if (ch < 0x10000) // 3 bytes
-                {
-                    th[0]   = (ch >> 12) | 0xe0;
-                    th[1]   = ((ch >> 6) & 0x3f) | 0x80;
-                    th[2]   = (ch & 0x3f) | 0x80;
-                    th     += 3;
-                }
-                else if (ch < 0x200000)// 4 bytes
-                {
-                    th[0]   = (ch >> 18) | 0xf0;
-                    th[1]   = ((ch >> 12) & 0x3f) | 0x80;
-                    th[2]   = ((ch >> 6) & 0x3f) | 0x80;
-                    th[3]   = (ch & 0x3f) | 0x80;
-                    th     += 4;
-                }
-                else
-                    return NULL; // Invalid code point
-            }
+            write_utf8_codepoint(&th, ch);
 
             if (th >= tt)
             {
@@ -1536,22 +1505,13 @@ namespace lsp
         if (pTemp != NULL)
             pTemp->nOffset      = 0;
 
-        lsp_utf16_t temp[BUF_SIZE + 16];
+        lsp_utf16_t temp[BUF_SIZE + 8];
         lsp_utf16_t *th = temp, *tt = &temp[BUF_SIZE];
 
         for (ssize_t i=first; i<last; ++i)
         {
             lsp_wchar_t ch = pData[i];
-
-            if (ch < 0x10000)
-                *(th++)     = ch;
-            else
-            {
-                ch     -= 0x10000;
-                th[0]   = 0xd800 | (ch >> 10);
-                th[1]   = 0xdc00 | (ch & 0x3ff);
-                th     += 2;
-            }
+            write_utf16_codepoint(&th, ch);
 
             if (th >= tt)
             {
@@ -1587,16 +1547,6 @@ namespace lsp
         pTemp->nOffset  = dst - pTemp->pData;
 
         return pTemp->pData;
-    }
-
-    const char *LSPString::get_native(const char *charset) const
-    {
-        return get_native(0, nLength, charset);
-    }
-
-    const char *LSPString::get_native(ssize_t first, const char *charset) const
-    {
-        return get_native(first, nLength, charset);
     }
 
 #if defined(PLATFORM_WINDOWS)

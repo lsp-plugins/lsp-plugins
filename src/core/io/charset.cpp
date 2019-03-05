@@ -662,7 +662,7 @@ namespace lsp
         return (cp < 0x10000) ? 1 : 2;
     }
 
-    inline void write_utf16_codepoint(lsp_utf16_t **str, lsp_utf32_t cp)
+    void write_utf16_codepoint(lsp_utf16_t **str, lsp_utf32_t cp)
     {
         lsp_utf16_t *dst = *str;
         if (cp < 0x10000)
@@ -836,7 +836,7 @@ namespace lsp
             return (cp >= 0x80) ? 2 : 1;
     }
 
-    inline void write_utf8_codepoint(char **str, lsp_utf32_t cp)
+    void write_utf8_codepoint(char **str, lsp_utf32_t cp)
     {
         char *dst = *str;
         if (cp >= 0x800) // 3-4 bytes

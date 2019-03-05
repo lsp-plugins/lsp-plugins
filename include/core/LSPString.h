@@ -257,9 +257,9 @@ namespace lsp
             const lsp_utf16_t *get_utf16() const { return get_utf16(0, nLength); };
 
             const char *get_ascii() const;
-            const char *get_native(const char *charset =  NULL) const;
-            const char *get_native(ssize_t first, const char *charset =  NULL) const;
             const char *get_native(ssize_t first, ssize_t last, const char *charset =  NULL) const;
+            inline const char *get_native(const char *charset = NULL) const { return get_native(0, nLength, charset); }
+            inline const char *get_native(ssize_t first, const char *charset =  NULL) const { return get_native(first, nLength, charset); }
 
             inline size_t temporal_size() const     { return (pTemp != NULL) ? pTemp->nOffset : 0; };
             inline size_t temporal_capacity() const { return (pTemp != NULL) ? pTemp->nLength : 0; };
