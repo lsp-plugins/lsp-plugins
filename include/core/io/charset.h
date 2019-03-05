@@ -34,46 +34,112 @@ namespace lsp
 #endif /* PLATFORM_WINDOWS */
 
     /**
-     * Encode UTF-8 string to UTF-16 string
+     * Encode NULL-terminated UTF-8 string to NULL-terminated UTF-16 string
      * @param str string to encode
      * @return pointer to allocated UTF-16 string that should be free()'d after use
      */
-    lsp_utf16_t   *utf8_to_utf16(const char *str);
+    lsp_utf16_t    *utf8_to_utf16(const char *str);
 
     /**
-     * Encode UTF-8 string to UTF-32 string
+     * Encode sequence of UTF-8 characters into sequence of UTF-16 characters
+     * @param dst target buffer to store characters
+     * @param ndst number of elements available in target buffer
+     * @param src source buffer to read characters
+     * @param nsrc number of elements available in source buffer
+     * @param force force flag that treats the input block as last in the character sequence
+     * @return number of processed code points
+     */
+    size_t          utf8_to_utf16(lsp_utf16_t *dst, size_t *ndst, const char *src, size_t *nsrc, bool force);
+
+    /**
+     * Encode NULL-terminated UTF-8 string to NULL-terminated UTF-32 string
      * @param str string to encode
      * @return pointer to allocated UTF-32 string that should be free()'d after use
      */
-    lsp_utf32_t   *utf8_to_utf32(const char *str);
+    lsp_utf32_t    *utf8_to_utf32(const char *str);
 
     /**
-     * Encode UTF-16 string to UTF-8 string
+     * Encode sequence of UTF-8 characters into sequence of UTF-32 characters
+     * @param dst target buffer to store characters
+     * @param ndst number of elements available in target buffer
+     * @param src source buffer to read characters
+     * @param nsrc number of elements available in source buffer
+     * @param force force flag that treats the input block as last in the character sequence
+     * @return number of processed code points
+     */
+    size_t          utf8_to_utf32(lsp_utf32_t *dst, size_t *ndst, const char *src, size_t *nsrc, bool force);
+
+    /**
+     * Encode NULL-terminated UTF-16 string to NULL-terminated UTF-8 string
      * @param str string to encode
      * @return pointer to allocated UTF-8 string that should be free()'d after use
      */
-    char *utf16_to_utf8(const lsp_utf16_t *str);
+    char           *utf16_to_utf8(const lsp_utf16_t *str);
 
     /**
-     * Encode UTF-16 string to UTF-32 string
+     * Encode sequence of UTF-16 characters into sequence of UTF-16 characters
+     * @param dst target buffer to store characters
+     * @param ndst number of elements available in target buffer
+     * @param src source buffer to read characters
+     * @param nsrc number of elements available in source buffer
+     * @param force force flag that treats the input block as last in the character sequence
+     * @return number of processed code points
+     */
+    size_t          utf16_to_utf8(char *dst, size_t *ndst, const lsp_utf16_t *src, size_t *nsrc, bool force);
+
+    /**
+     * Encode NULL-terminated UTF-16 string to NULL-terminated UTF-32 string
      * @param str string to encode
      * @return pointer to allocated UTF-32 string that should be free()'d after use
      */
-    lsp_utf32_t *utf16_to_utf32(const lsp_utf16_t *str);
+    lsp_utf32_t    *utf16_to_utf32(const lsp_utf16_t *str);
 
     /**
-     * Encode UTF-32 string to UTF-8 string
+     * Encode sequence of UTF-16 characters into sequence of UTF-32 characters
+     * @param dst target buffer to store characters
+     * @param ndst number of elements available in target buffer
+     * @param src source buffer to read characters
+     * @param nsrc number of elements available in source buffer
+     * @param force force flag that treats the input block as last in the character sequence
+     * @return number of processed code points
+     */
+    size_t          utf16_to_utf32(lsp_utf32_t *dst, size_t *ndst, const lsp_utf16_t *src, size_t *nsrc, bool force);
+
+    /**
+     * Encode NULL-terminated UTF-32 string to NULL-terminated UTF-8 string
      * @param str string to encode
      * @return pointer to allocated UTF-16 string that should be free()'d after use
      */
-    char *utf32_to_utf8(const lsp_utf32_t *str);
+    char           *utf32_to_utf8(const lsp_utf32_t *str);
 
     /**
-     * Encode UTF-32 string to UTF-16 string
+     * Encode sequence of UTF-8 characters into sequence of UTF-16 characters
+     * @param dst target buffer to store characters
+     * @param ndst number of elements available in target buffer
+     * @param src source buffer to read characters
+     * @param nsrc number of elements available in source buffer
+     * @param force force flag that treats the input block as last in the character sequence
+     * @return number of processed code points
+     */
+    size_t          utf32_to_utf8(char *dst, size_t *ndst, const lsp_utf32_t *src, size_t *nsrc, bool force);
+
+    /**
+     * Encode NULL-terminated UTF-32 string to NULL-terminated UTF-16 string
      * @param str string to encode
      * @return pointer to allocated UTF-16 string that should be free()'d after use
      */
-    lsp_utf16_t *utf32_to_utf16(const lsp_utf32_t *str);
+    lsp_utf16_t    *utf32_to_utf16(const lsp_utf32_t *str);
+
+    /**
+     * Encode sequence of UTF-8 characters into sequence of UTF-16 characters
+     * @param dst target buffer to store characters
+     * @param ndst number of elements available in target buffer
+     * @param src source buffer to read characters
+     * @param nsrc number of elements available in source buffer
+     * @param force force flag that treats the input block as last in the character sequence
+     * @return number of processed code points
+     */
+    size_t          utf32_to_utf8(lsp_utf16_t *dst, size_t *ndst, const lsp_utf32_t *src, size_t *nsrc, bool force);
 
 }
 

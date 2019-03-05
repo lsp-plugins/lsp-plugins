@@ -598,9 +598,60 @@ namespace lsp
         return cp;
     }
 
+    uint32_t read_utf16_streaming(const lsp_utf16_t **str, size_t *nsrc, bool force)
+    {
+        if (*nsrc <= 0)
+            return lsp_utf32_t(-1);
+
+        uint32_t cp, sc;
+        const lsp_utf16_t *s = *str;
+
+        cp = *(s++);
+        sc = cp & 0xdc00;
+        if (sc == 0xd800) // cp = Surrogate high
+        {
+            if (*nsrc > 1)
+                sc      = *s;
+            else if (force)
+                sc      = 0;
+            else
+                return lsp_utf32_t(-1);
+
+            if ((sc & 0xdc00) == 0xdc00)
+            {
+                ++s;
+                cp  = 0x10000 | ((cp & 0x3ff) << 10) | (sc & 0x3ff);
+            }
+        }
+        else if (sc == 0xdc00) // Surrogate low?
+        {
+            if (*nsrc > 1)
+                sc      = *s;
+            else if (force)
+                sc      = 0;
+            else
+                return lsp_utf32_t(-1);
+
+            if ((sc & 0xdc00) == 0xd800)
+            {
+                ++s;
+                cp  = 0x10000 | ((sc & 0x3ff) << 10) | (cp & 0x3ff);
+            }
+        }
+
+        *nsrc  -= (s - *str);
+        *str    = s;
+        return cp;
+    }
+
     inline size_t sizeof_utf16(lsp_utf32_t cp)
     {
         return (cp < 0x10000) ? 2 : 4;
+    }
+
+    inline size_t count_utf16(lsp_utf32_t cp)
+    {
+        return (cp < 0x10000) ? 1 : 2;
     }
 
     inline void write_utf16_codepoint(lsp_utf16_t **str, lsp_utf32_t cp)
@@ -620,9 +671,9 @@ namespace lsp
 
     //-------------------------------------------------------------------------
     // UTF-8 helper routines
-    uint32_t read_utf8_codepoint(const char **str)
+    lsp_utf32_t read_utf8_codepoint(const char **str)
     {
-        uint32_t cp, sp, bytes;
+        lsp_utf32_t cp, sp, bytes;
         const char *s = *str;
 
         // Decode primary byte
@@ -681,7 +732,96 @@ namespace lsp
         return cp;
     }
 
+    lsp_utf32_t read_utf8_streaming(const char **str, size_t *nsrc, bool force)
+    {
+        if (*nsrc <= 0)
+            return lsp_utf32_t(-1);
+
+        lsp_utf32_t cp, sp, bytes;
+        const char *s = *str;
+
+        // Decode primary byte
+        cp = uint8_t(*s);
+        if (cp <= 0x7f)
+        {
+            *str    = (cp == 0) ? s : s+1;
+            --(*nsrc);
+            return cp;
+        }
+
+        // Multi-byte sequence
+        ++s;
+        if ((cp & 0xe0) == 0xc0) // 2 bytes: 110xxxxx 10xxxxxx
+        {
+            cp     &= 0x1f;
+            bytes   = (cp >= 0x02) ? 1 : 0;
+        }
+        else if ((cp & 0xf0) == 0xe0) // 3 bytes: 1110xxxx 10xxxxxx 10xxxxxx
+        {
+            cp     &= 0x0f;
+            bytes   = (cp) ? 2 : 0;
+        }
+        else if ((cp & 0xf8) == 0xf0) // 4 bytes: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+        {
+            cp     &= 0x07;
+            bytes   = 3;
+        }
+        else
+            bytes   = 0;
+
+        // Invalid first byte sequence?
+        if (!bytes)
+        {
+            *str    = s;
+            --(*nsrc);
+            return 0xfffd;
+        }
+        else if (bytes > *nsrc)
+        {
+            if (force)
+            {
+                *nsrc   = 0;
+                return 0xfffd;
+            }
+            else
+                return lsp_utf32_t(-1);
+        }
+
+        // Decode extension bytes
+        for (size_t i=0; i<bytes; ++i)
+        {
+            sp  = uint8_t(*s);
+            if ((sp & 0xc0) != 0x80) // Invalid sequence?
+            {
+                if (sp == 0)
+                    ++s;
+                *nsrc  -= (s - *str);
+                *str    = s;
+                return 0xfffd;
+            }
+            cp     = (cp << 6) | (sp & 0x3f);
+            ++s;
+        }
+
+        if ((bytes == 3) && (cp < 0x10000)) // Check that 4-byte sequence is valid
+            cp      = 0xfffd;
+        else if ((cp >= 0xd800) && (cp < 0xe000)) // Check for surrogates
+            cp      = 0xfffd;
+
+        *nsrc      -= (s - *str);
+        *str        = s;
+        return cp;
+    }
+
     inline size_t sizeof_utf8(lsp_utf32_t cp)
+    {
+        if (cp >= 0x800)
+            return ((cp < 0x10000) || (cp >= 0x200000)) ? 3 : 4;
+        else
+            return (cp >= 0x80) ? 2 : 1;
+    }
+
+    inline size_t count_utf8(lsp_utf32_t cp)
     {
         if (cp >= 0x800)
             return ((cp < 0x10000) || (cp >= 0x200000)) ? 3 : 4;
@@ -901,5 +1041,167 @@ namespace lsp
         return utf16;
     }
 
+    //-------------------------------------------------------------------------
+    // UTF-8 streaming routines
+    size_t utf8_to_utf16(lsp_utf16_t *dst, size_t *ndst, const char *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
 
+        while (*ndst > 0)
+        {
+            // Read code point
+            size_t nin  = *nsrc;
+            cp          = read_utf8_streaming(&src, &nin, force);
+            if (cp == lsp_utf32_t(-1)) // No data ?
+                break;
+
+            // Encode code point
+            size_t nout = count_utf16(cp);
+            if (nout > *ndst)
+                break;
+            write_utf16_codepoint(&dst, cp);
+            *nsrc       = nin;
+            *ndst      -= nout;
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    size_t utf8_to_utf32(lsp_utf32_t *dst, size_t *ndst, const char *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            size_t nin  = *nsrc;
+            cp          = read_utf8_streaming(&src, &nin, force);
+            if (cp == lsp_utf32_t(-1)) // No data ?
+                break;
+
+            // Encode code point
+            *(dst++)    = cp;
+            *nsrc       = nin;
+            --(*ndst);
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    //-------------------------------------------------------------------------
+    // UTF-16 streaming routines
+    size_t utf16_to_utf8(char *dst, size_t *ndst, const lsp_utf16_t *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            size_t nin  = *nsrc;
+            cp          = read_utf16_streaming(&src, &nin, force);
+            if (cp == lsp_utf32_t(-1)) // No data ?
+                break;
+
+            // Encode code point
+            size_t nout = count_utf8(cp);
+            if (nout > *ndst)
+                break;
+            write_utf8_codepoint(&dst, cp);
+            *nsrc       = nin;
+            *ndst      -= nout;
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    size_t utf16_to_utf32(lsp_utf32_t *dst, size_t *ndst, const lsp_utf16_t *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            size_t nin  = *nsrc;
+            cp          = read_utf16_streaming(&src, &nin, force);
+            if (cp == lsp_utf32_t(-1)) // No data ?
+                break;
+
+            // Encode code point
+            *(dst++)    = cp;
+            *nsrc       = nin;
+            --(*ndst);
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    size_t utf32_to_utf8(char *dst, size_t *ndst, const lsp_utf32_t *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            if (*nsrc <= 0)
+                break;
+            cp          = *(src++);
+
+            // Encode code point
+            size_t nout = count_utf8(cp);
+            if (nout > *ndst)
+                break;
+            write_utf8_codepoint(&dst, cp);
+            --(*nsrc);
+            *ndst      -= nout;
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    size_t utf32_to_utf8(lsp_utf16_t *dst, size_t *ndst, const lsp_utf32_t *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            if (*nsrc <= 0)
+                break;
+            cp          = *(src++);
+
+            // Encode code point
+            size_t nout = count_utf16(cp);
+            if (nout > *ndst)
+                break;
+            write_utf16_codepoint(&dst, cp);
+            --(*nsrc);
+            *ndst      -= nout;
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
 }
