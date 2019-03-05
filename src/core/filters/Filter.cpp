@@ -28,7 +28,6 @@ namespace lsp
         nItems              = 0;
 
         vItems              = NULL;
-        pApoBiquad           = NULL;
         vData               = NULL;
         nFlags              = FF_REBUILD | FF_CLEAR;
     }
@@ -69,9 +68,8 @@ namespace lsp
         if (vData == NULL)
         {
             size_t cascade_size = ALIGN_SIZE(sizeof(cascade_t) * FILTER_CHAINS_MAX, DEFAULT_ALIGN);
-            size_t apo_bq_size  = ALIGN_SIZE(sizeof(apo_biquad_t), DEFAULT_ALIGN);
 
-            size_t allocate     = cascade_size + apo_bq_size + DEFAULT_ALIGN; // + filters_size;
+            size_t allocate     = cascade_size + DEFAULT_ALIGN; // + filters_size;
             vData               = new uint8_t[allocate];
             if (vData == NULL)
                 return false;
@@ -79,8 +77,6 @@ namespace lsp
             uint8_t *ptr        = ALIGN_PTR(vData, DEFAULT_ALIGN);
             vItems              = reinterpret_cast<cascade_t *>(ptr);
             ptr                += cascade_size;
-            pApoBiquad          = reinterpret_cast<apo_biquad_t *>(ptr);
-            ptr                += apo_bq_size;
         }
 
         update(48000, &fp);
@@ -95,7 +91,6 @@ namespace lsp
         {
             delete  [] vData;
             vItems      = NULL;
-            pApoBiquad  = NULL;
             vData       = NULL;
         }
 
@@ -375,20 +370,29 @@ namespace lsp
 
         // Auxiliary variables:
         double cw = cos(w);
-        double sw = sqrt(1.0 - cw * cw); // sin(w);
+        double sw = sin(w);
 
-        double c2w = cw * cw - sw * sw; // cos(2 * w)
-        double s2w = 2.0 * sw * cw; // sin(2 * w)
+        double c2w = cos(2.0 * w);
+        double s2w = sin(2.0 * w); // Have to use trig functions for both to have correct sign
 
-        double alpha    = pApoBiquad->a[0] + pApoBiquad->a[1] * cw + pApoBiquad->a[2] * c2w;
-        double beta     = pApoBiquad->a[1] * sw + pApoBiquad->a[2] * s2w;
-        double gamma    = 1.0 + pApoBiquad->b[0] * cw + pApoBiquad->b[1] * c2w;
-        double delta    = pApoBiquad->b[0] * sw + pApoBiquad->b[1] * s2w;
+        // Apo will be just one biquad, but let's write this to be able to calculate any digital biquads cascade.
+        *re = 1.0f;
+        *im = 1.0f;
 
-        double mag = 1.0 / (gamma * gamma + delta * delta);
+        for (size_t i=0; i<nItems; ++i)
+        {
+            cascade_t *c    = &vItems[i];
 
-        *re = mag * (alpha * gamma - beta * delta);
-        *im = mag * (alpha * delta + beta * gamma);
+            double alpha    = c->t[0] + c->t[1] * cw + c->t[2] * c2w;
+            double beta     = c->t[1] * sw + c->t[2] * s2w;
+            double gamma    = c->b[0] + c->b[1] * cw + c->b[2] * c2w;
+            double delta    = c->b[1] * sw + c->b[2] * s2w;
+
+            double mag = 1.0 / (gamma * gamma + delta * delta);
+
+            *re *= mag * (alpha * gamma - beta * delta);
+            *im *= mag * (alpha * delta + beta * gamma);
+        }
     }
 
     void Filter::freq_chart(float *re, float *im, const float *f, size_t count)
@@ -1126,7 +1130,7 @@ namespace lsp
 
         double omega    = 2.0 * M_PI * fp->fFreq / double(nSampleRate);
         double cs       = sin(omega);
-        double cc       = sqrt(1.0 - cs * cs); // cos(omega);
+        double cc       = cos(omega); // Have to use trig functions for both to have correct sign
         double alpha    = (fp->fQuality > 0.0f) ? 0.5 * cs / fp->fQuality : 1e-3; // Cannot afford Q == 0.0f
 
         // In LSP convention, the b coefficients are in the denominator. The a coefficients are in the
@@ -1266,13 +1270,14 @@ namespace lsp
         f->b[2] = 0.0f;
         f->b[3] = 0.0f;
 
-        // Storing the coefficient for future use
-        pApoBiquad->a[0] = f->a[0];
-        pApoBiquad->a[1] = f->a[2];
-        pApoBiquad->a[2] = f->a[3];
-
-        pApoBiquad->b[0] = -f->b[0];
-        pApoBiquad->b[1] = -f->b[1];
+        // Storing the coefficient for plotting
+        cascade_t *c = add_cascade();
+        c->t[0] = f->a[0];
+        c->t[1] = f->a[2];
+        c->t[2] = f->a[3];
+        c->b[0] = 1.0;
+        c->b[1] = -f->b[0];
+        c->b[2] = -f->b[1];
     }
 
     /*
