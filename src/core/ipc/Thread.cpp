@@ -11,6 +11,7 @@
 
 #include <time.h>
 #include <errno.h>
+#include <unistd.h>
 
 namespace lsp
 {
@@ -149,6 +150,14 @@ namespace lsp
 
             return STATUS_OK;
         }
+
+        size_t Thread::system_cores()
+        {
+            SYSTEM_INFO     os_sysinfo;
+            GetSystemInfo(&os_sysinfo);
+
+            return os_sysinfo.dwNumberOfProcessors;
+        }
 #else
         void *Thread::thread_launcher(void *arg)
         {
@@ -253,6 +262,11 @@ namespace lsp
             }
 
             return STATUS_OK;
+        }
+
+        size_t Thread::system_cores()
+        {
+            return sysconf(_SC_NPROCESSORS_ONLN);
         }
 #endif /* PLATFORM_WINDOWS */
 

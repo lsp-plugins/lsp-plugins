@@ -118,6 +118,12 @@ namespace lsp
                  * @return execution result of the thread
                  */
                 status_t get_result() const { return (enState == TS_FINISHED) ? nResult : STATUS_BAD_STATE; };
+
+                /**
+                 * Return number of execution cores supported by the system
+                 * @return number of logical CPUs in the system available for processing
+                 */
+                static size_t system_cores();
         };
     
     } /* namespace ipc */
