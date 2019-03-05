@@ -12,7 +12,7 @@
 #include <data/chashmap.h>
 
 #include <core/IWrapper.h>
-#include <core/NativeExecutor.h>
+#include <core/ipc/NativeExecutor.h>
 #include <container/CairoCanvas.h>
 
 namespace lsp
@@ -34,7 +34,7 @@ namespace lsp
 
             plugin_t           *pPlugin;
             LV2Extensions      *pExt;
-            IExecutor          *pExecutor;      // Executor service
+            ipc::IExecutor     *pExecutor;      // Executor service
             void               *pAtomIn;        // Atom input port
             void               *pAtomOut;       // Atom output port
             float              *pLatency;       // Latency output port
@@ -134,7 +134,7 @@ namespace lsp
             );
 
             // Job part
-            virtual IExecutor *get_executor();
+            virtual ipc::IExecutor *get_executor();
 
             inline void job_run(
                 LV2_Worker_Respond_Handle   handle,
@@ -1140,7 +1140,7 @@ namespace lsp
             *pLatency   = pPlugin->get_latency();
     }
 
-    IExecutor *LV2Wrapper::get_executor()
+    ipc::IExecutor *LV2Wrapper::get_executor()
     {
         lsp_trace("executor = %p", reinterpret_cast<void *>(pExecutor));
         if (pExecutor != NULL)
@@ -1155,7 +1155,7 @@ namespace lsp
         else
         {
             lsp_trace("Creating native executor service");
-            pExecutor       = new NativeExecutor();
+            pExecutor       = new ipc::NativeExecutor();
         }
         return pExecutor;
     }

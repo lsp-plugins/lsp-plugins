@@ -233,7 +233,7 @@ namespace lsp
             return;
 
         // Get executor
-        IExecutor *executor = wrapper->get_executor();
+        ipc::IExecutor *executor = wrapper->get_executor();
 
         // Initialize audio channels
         for (size_t i=0; i<trigger_base_metadata::TRACKS_MAX; ++i)

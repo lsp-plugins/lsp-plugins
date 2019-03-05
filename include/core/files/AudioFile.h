@@ -9,8 +9,6 @@
 #define CORE_FILES_AUDIOFILE_H_
 
 #include <core/types.h>
-#include <core/IExecutor.h>
-#include <core/ITask.h>
 
 namespace lsp
 {
@@ -154,48 +152,6 @@ namespace lsp
              *
              */
             void destroy();
-    };
-
-    class LoadAudioFileTask: public ITask
-    {
-        protected:
-            char            sPath[PATH_MAX];
-            AudioFile      *pAF;
-            bool            bTaken;
-
-        public:
-            LoadAudioFileTask();
-            virtual ~LoadAudioFileTask();
-
-        public:
-            /** Configure task
-             *
-             * @param filename file name
-             */
-            void    configure(const char *filename);
-
-            /** Get audio file object
-             *
-             * @return audio file object
-             */
-            AudioFile   *file();
-
-            /** Get file name
-             *
-             * @return file name
-             */
-            inline const char *path() const { return sPath; };
-
-            /** Execute task
-             *
-             * @return status of operation
-             */
-            virtual int run();
-
-            /**
-             *
-             */
-            virtual void destroy();
     };
 
 } /* namespace lsp */

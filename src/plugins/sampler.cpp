@@ -29,7 +29,7 @@ namespace lsp
         pFile       = NULL;
     }
 
-    int sampler_kernel::AFLoader::run()
+    status_t sampler_kernel::AFLoader::run()
     {
         return pCore->load_file(pFile);
     };
@@ -187,7 +187,7 @@ namespace lsp
         fFadeout        = length;
     }
 
-    bool sampler_kernel::init(IExecutor *executor, size_t files, size_t channnels)
+    bool sampler_kernel::init(ipc::IExecutor *executor, size_t files, size_t channnels)
     {
         // Validate parameters
         if (channnels > TRACKS_MAX)
@@ -1167,7 +1167,7 @@ namespace lsp
         sMute.init();
 
         // Initialize samplers
-        IExecutor *executor     = wrapper->get_executor();
+        ipc::IExecutor *executor    = wrapper->get_executor();
 
         for (size_t i=0; i<nSamplers; ++i)
         {

@@ -20,7 +20,7 @@ namespace lsp
     {
         protected:
             // Class to handle loading of nonlinear measurements
-            class Loader: public ITask
+            class Loader: public ipc::ITask
             {
                 private:
                     nonlinear_convolver_mono *pCore;
@@ -30,11 +30,11 @@ namespace lsp
                     virtual ~Loader();
 
                 public:
-                    virtual int run();
+                    virtual status_t run();
             };
 
             // Class to prepare the modelling DSP structure from measurement data
-            class Preparator: public ITask
+            class Preparator: public ipc::ITask
             {
                 private:
                     nonlinear_convolver_mono *pCore;
@@ -44,7 +44,7 @@ namespace lsp
                     virtual ~Preparator();
 
                 public:
-                    virtual int run();
+                    virtual status_t run();
             };
 
             // Object state descriptor
@@ -77,7 +77,7 @@ namespace lsp
                 state_t                 nState;
                 dsp_t                   nDSP;
 
-                IExecutor              *pExecutor;
+                ipc::IExecutor         *pExecutor;
                 Loader                 *pLoader;
                 Preparator             *pPreparator;
 

@@ -8,11 +8,11 @@
 #ifndef CONTAINER_LV2_EXECUTOR_H_
 #define CONTAINER_LV2_EXECUTOR_H_
 
-#include <core/IExecutor.h>
+#include <core/ipc/IExecutor.h>
 
 namespace lsp
 {
-    class LV2Executor: public IExecutor
+    class LV2Executor: public ipc::IExecutor
     {
         private:
             static const uint32_t magic = (uint32_t('L') << 24) | (uint32_t('V') << 16) | (uint32_t('2') << 8) | (uint32_t('E') << 0);
@@ -21,8 +21,8 @@ namespace lsp
 
             typedef struct task_descriptor_t
             {
-                uint32_t    magic;
-                ITask      *task;
+                uint32_t        magic;
+                ipc::ITask     *task;
             } task_descriptor_t;
 
         public:
@@ -37,7 +37,7 @@ namespace lsp
             }
 
         public:
-            virtual bool submit(ITask *task)
+            virtual bool submit(ipc::ITask *task)
             {
                 // Check state of task
                 if (!task->idle())
@@ -45,12 +45,12 @@ namespace lsp
 
                 // Try to submit task
                 task_descriptor_t descr = { magic, task };
-                change_task_state(task, ITask::TS_SUBMITTED);
+                change_task_state(task, ipc::ITask::TS_SUBMITTED);
                 if (sched->schedule_work(sched->handle, sizeof(task_descriptor_t), &descr) == LV2_WORKER_SUCCESS)
                     return true;
 
                 // Failed to submit task, return status back
-                change_task_state(task, ITask::TS_IDLE);
+                change_task_state(task, ipc::ITask::TS_IDLE);
                 return false;
             }
 

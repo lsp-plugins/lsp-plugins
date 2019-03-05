@@ -9,7 +9,7 @@
 #define CONTAINER_VST_WRAPPER_H_
 
 #include <container/vst/defs.h>
-#include <core/NativeExecutor.h>
+#include <core/ipc/NativeExecutor.h>
 
 namespace lsp
 {
@@ -26,7 +26,7 @@ namespace lsp
             plugin_ui                  *pUI;
             ERect                       sRect;
             audioMasterCallback         pMaster;
-            IExecutor                  *pExecutor;
+            ipc::IExecutor             *pExecutor;
             vst_state_buffer           *pState;
             bool                        bUpdateSettings;
             float                       fLatency;
@@ -116,14 +116,14 @@ namespace lsp
             void resize_ui(const realize_t *r);
             ERect *get_ui_rect();
 
-            virtual IExecutor *get_executor()
+            virtual ipc::IExecutor *get_executor()
             {
                 lsp_trace("executor = %p", reinterpret_cast<void *>(pExecutor));
                 if (pExecutor != NULL)
                     return pExecutor;
 
                 lsp_trace("Creating native executor service");
-                pExecutor       = new NativeExecutor();
+                pExecutor       = new ipc::NativeExecutor();
                 return pExecutor;
             }
 

@@ -29,7 +29,7 @@ namespace lsp
         protected:
             struct afile_t;
 
-            class AFLoader: public ITask
+            class AFLoader: public ipc::ITask
             {
                 private:
                     sampler_kernel         *pCore;
@@ -40,7 +40,7 @@ namespace lsp
                     virtual ~AFLoader();
 
                 public:
-                    virtual int run();
+                    virtual status_t run();
             };
 
         protected:
@@ -101,7 +101,7 @@ namespace lsp
             };
 
         protected:
-            IExecutor          *pExecutor;                  // Executor service
+            ipc::IExecutor     *pExecutor;                  // Executor service
             afile_t           **vFiles;                     // List of audio files
             afile_t           **vActive;                    // List of active audio files
             SamplePlayer        vChannels[TRACKS_MAX];      // List of channels
@@ -155,7 +155,7 @@ namespace lsp
             void    set_fadeout(bool enabled, float length);
 
         public:
-            bool    init(IExecutor *executor, size_t files, size_t channels);
+            bool    init(ipc::IExecutor *executor, size_t files, size_t channels);
             size_t  bind(cvector<IPort> &ports, size_t port_id, bool dynamics);
             void    bind_activity(IPort *activity);
             void    destroy();
