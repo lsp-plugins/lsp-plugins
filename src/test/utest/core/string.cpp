@@ -34,7 +34,7 @@ static const lsp_utf16_t utf16_ru_inv[] =
     0xD800, 0
 };
 
-UTEST_BEGIN("core", lspstring)
+UTEST_BEGIN("core", string)
     UTEST_MAIN
     {
         LSPString s1, s2, s3, s4, s5, s6, s7;

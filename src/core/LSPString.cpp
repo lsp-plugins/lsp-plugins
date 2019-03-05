@@ -1361,14 +1361,14 @@ namespace lsp
             return false;
 
         // Perform native -> utf-16 encoding
-        lsp_wchar_t *buf = malloc(slen * sizeof(WCHAR));
+        WCHAR *buf = reinterpret_cast<WCHAR *>(malloc(slen * sizeof(WCHAR)));
         if (buf == NULL)
             return false;
 
         slen = MultiByteToWideChar(cp, 0, const_cast<CHAR *>(s), n, buf, slen);
         if (slen == 0)
         {
-            xfree(buf);
+            free(buf);
             return false;
         }
 
@@ -1614,12 +1614,16 @@ namespace lsp
             return NULL;
 
         // Estimate number of bytes required
-        size_t n = WideCharToMultiByte(cp, 0, &pData[first], length, NULL, 0, 0, 0) + 4; // + terminating 0
+        const lsp_utf16_t *buf = get_utf16(first, last);
+        if (buf == NULL)
+            return NULL;
+
+        size_t n = WideCharToMultiByte(cp, 0, buf, length, NULL, 0, 0, 0) + 4; // + terminating 0
         if (!resize_temp(n))
             return NULL;
 
         // We have enough space for saving data
-        n = WideCharToMultiByte(cp, 0, &pData[first], length, pTemp->pData, pTemp->nLength, 0, 0);
+        n = WideCharToMultiByte(cp, 0, buf, length, pTemp->pData, n, 0, 0);
         if (n <= 0)
             return NULL;
 
