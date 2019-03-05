@@ -49,8 +49,11 @@ namespace lsp
                 dsp::finish(&ctx);
             }
 
+        private:
+            IExecutor &operator = (const IExecutor &src);       // Deny copying
+
         public:
-            IExecutor();
+            explicit IExecutor();
             virtual ~IExecutor();
 
         public:

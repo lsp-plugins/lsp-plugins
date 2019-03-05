@@ -10,29 +10,17 @@
 
 namespace lsp
 {
-    NativeExecutor::NativeExecutor()
+    NativeExecutor::NativeExecutor():
+        hThread(execute, this)
     {
         // Initialize list
         pHead       = NULL;
         pTail       = NULL;
         atomic_init(nLock);
-
-        // Initialize condition variable
-        pthread_condattr_t cattr;
-        pthread_condattr_init(&cattr);
-        pthread_cond_init(&hCond, &cattr);
-        pthread_condattr_destroy(&cattr);
-
-        // Initialize thread
-        pthread_attr_t pattr;
-        pthread_attr_init(&pattr);
-        pthread_create(&hThread, &pattr, execute, this);
-        pthread_attr_destroy(&pattr);
     }
 
     NativeExecutor::~NativeExecutor()
     {
-        pthread_cond_destroy(&hCond);
     }
 
     bool NativeExecutor::submit(ITask *task)
@@ -65,8 +53,8 @@ namespace lsp
     void NativeExecutor::shutdown()
     {
         lsp_trace("start shutdown");
+
         // Wait until the queue is empty
-        struct timespec spec = { 0, 100 * 1000 * 1000 }; // 100 msec
         while (true)
         {
             // Try to acquire critical section
@@ -79,26 +67,26 @@ namespace lsp
                 atomic_unlock(nLock);
             }
 
-            nanosleep(&spec, NULL);
+            ipc::Thread::sleep(100);
         }
 
         // Now there are no pending tasks, terminate thread
-        pthread_cancel(hThread);
-        pthread_join(hThread, NULL);
-        hThread = 0;
+        hThread.cancel();
+        hThread.join();
 
         lsp_trace("shutdown complete");
     }
 
     void NativeExecutor::run()
     {
-        struct timespec spec = { 0, 100 * 1000 * 1000 }; // 100 msec
-
-        while (true)
+        while (!ipc::Thread::is_cancelled())
         {
             // Sleep until critical section is acquired
             while (!atomic_trylock(nLock))
-                nanosleep(&spec, NULL);
+            {
+                if (ipc::Thread::sleep(100) == STATUS_CANCELLED)
+                    return;
+            }
 
             // Try to get task
             ITask  *task    = pHead;
@@ -108,7 +96,8 @@ namespace lsp
                 atomic_unlock(nLock);
 
                 // Wait for a while
-                nanosleep(&spec, NULL);
+                if (ipc::Thread::sleep(100) == STATUS_CANCELLED)
+                    return;
             }
             else
             {
@@ -128,10 +117,10 @@ namespace lsp
         }
     }
 
-    void *NativeExecutor::execute(void *params)
+    status_t NativeExecutor::execute(void *params)
     {
         NativeExecutor *_this = reinterpret_cast<NativeExecutor *>(params);
         _this->run();
-        return NULL;
+        return STATUS_OK;
     }
 }

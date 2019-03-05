@@ -10,25 +10,27 @@
 
 #include <core/IExecutor.h>
 #include <core/ITask.h>
+#include <core/ipc/Thread.h>
 #include <dsp/atomic.h>
-#include <pthread.h>
 
 namespace lsp
 {
     class NativeExecutor: public IExecutor
     {
         private:
-            pthread_t           hThread;
-            pthread_cond_t      hCond;
+            ipc::Thread         hThread;
             ITask              *pHead;
             ITask              *pTail;
             atomic_t            nLock;
 
-            static void *execute(void *params);
+            static status_t     execute(void *params);
             void    run();
 
+        private:
+            NativeExecutor &operator = (const NativeExecutor &src); // Deny copying
+
         public:
-            NativeExecutor();
+            explicit NativeExecutor();
             virtual ~NativeExecutor();
 
         public:
