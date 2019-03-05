@@ -17,6 +17,8 @@
     #include <locale.h>
 #endif /* PLATFORM_WINDOWS */
 
+#define LSP_UTF32_EOF       lsp_utf32_t(-1)
+
 namespace lsp
 {
 #if defined(PLATFORM_WINDOWS)
@@ -32,6 +34,42 @@ namespace lsp
     iconv_t init_iconv_from_wchar_t(const char *charset);
 
 #endif /* PLATFORM_WINDOWS */
+
+    /**
+     * Read UTF-16 codepoint from the NULL-terminated UTF-16 string, replace invalid
+     * code sequence by 0xfffd code point
+     * @param str pointer to the NULL-terminated UTF-16 string
+     * @return code point
+     */
+    lsp_utf32_t     read_utf16_codepoint(const lsp_utf16_t **str);
+
+    /**
+     * Read UTF-16 codepoint from the NULL-terminated UTF-16 string in streaming mode,
+     * replace invalid code sequence by 0xfffd code point
+     * @param str pointer to the pointer to the NULL-terminated UTF-16 string
+     * @param nsrc counter containing number of unread array elements
+     * @param force process data as there will be no future data on the input
+     * @return parsed code point or LSP_UTF32_EOF as end of sequence
+     */
+    lsp_utf32_t     read_utf16_streaming(const lsp_utf16_t **str, size_t *nsrc, bool force);
+
+    /**
+     * Read UTF-16 codepoint from the NULL-terminated UTF-8 string, replace invalid
+     * code sequence by 0xfffd code point
+     * @param str pointer to the NULL-terminated UTF-8 string
+     * @return code point
+     */
+    lsp_utf32_t     read_utf8_codepoint(const char **str);
+
+    /**
+     * Read UTF-8 codepoint from the NULL-terminated UTF-8 string in streaming mode,
+     * replace invalid code sequence by 0xfffd code point
+     * @param str pointer to the pointer to the NULL-terminated UTF-8 string
+     * @param nsrc counter containing number of unread array elements
+     * @param force process data as there will be no future data on the input
+     * @return parsed code point or LSP_UTF32_EOF as end of sequence
+     */
+    lsp_utf32_t read_utf8_streaming(const char **str, size_t *nsrc, bool force);
 
     /**
      * Encode NULL-terminated UTF-8 string to NULL-terminated UTF-16 string

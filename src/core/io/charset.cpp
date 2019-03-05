@@ -565,7 +565,7 @@ namespace lsp
 
     //-------------------------------------------------------------------------
     // UTF-16 helper routines
-    uint32_t read_utf16_codepoint(const lsp_utf16_t **str)
+    lsp_utf32_t read_utf16_codepoint(const lsp_utf16_t **str)
     {
         uint32_t cp, sc;
         const lsp_utf16_t *s = *str;
@@ -574,40 +574,44 @@ namespace lsp
         if (cp == 0)
             return cp;
 
-        sc = cp & 0xdc00;
+        sc = cp & 0xfc00;
         if (sc == 0xd800) // cp = Surrogate high
         {
             sc = *s;
-            if ((sc & 0xdc00) == 0xdc00)
+            if ((sc & 0xfc00) == 0xdc00)
             {
                 ++s;
                 cp  = 0x10000 | ((cp & 0x3ff) << 10) | (sc & 0x3ff);
             }
+            else
+                cp  = 0xfffd;
         }
         else if (sc == 0xdc00) // Surrogate low?
         {
             sc = *s;
-            if ((sc & 0xdc00) == 0xd800)
+            if ((sc & 0xfc00) == 0xd800)
             {
                 ++s;
                 cp  = 0x10000 | ((sc & 0x3ff) << 10) | (cp & 0x3ff);
             }
+            else
+                cp  = 0xfffd;
         }
 
         *str = s;
         return cp;
     }
 
-    uint32_t read_utf16_streaming(const lsp_utf16_t **str, size_t *nsrc, bool force)
+    lsp_utf32_t read_utf16_streaming(const lsp_utf16_t **str, size_t *nsrc, bool force)
     {
         if (*nsrc <= 0)
-            return lsp_utf32_t(-1);
+            return LSP_UTF32_EOF;
 
         uint32_t cp, sc;
         const lsp_utf16_t *s = *str;
 
         cp = *(s++);
-        sc = cp & 0xdc00;
+        sc = cp & 0xfc00;
         if (sc == 0xd800) // cp = Surrogate high
         {
             if (*nsrc > 1)
@@ -615,13 +619,15 @@ namespace lsp
             else if (force)
                 sc      = 0;
             else
-                return lsp_utf32_t(-1);
+                return LSP_UTF32_EOF;
 
-            if ((sc & 0xdc00) == 0xdc00)
+            if ((sc & 0xfc00) == 0xdc00)
             {
                 ++s;
                 cp  = 0x10000 | ((cp & 0x3ff) << 10) | (sc & 0x3ff);
             }
+            else
+                cp  = 0xfffd;
         }
         else if (sc == 0xdc00) // Surrogate low?
         {
@@ -630,13 +636,15 @@ namespace lsp
             else if (force)
                 sc      = 0;
             else
-                return lsp_utf32_t(-1);
+                return LSP_UTF32_EOF;
 
-            if ((sc & 0xdc00) == 0xd800)
+            if ((sc & 0xfc00) == 0xd800)
             {
                 ++s;
                 cp  = 0x10000 | ((sc & 0x3ff) << 10) | (cp & 0x3ff);
             }
+            else
+                cp  = 0xfffd;
         }
 
         *nsrc  -= (s - *str);
@@ -735,7 +743,7 @@ namespace lsp
     lsp_utf32_t read_utf8_streaming(const char **str, size_t *nsrc, bool force)
     {
         if (*nsrc <= 0)
-            return lsp_utf32_t(-1);
+            return LSP_UTF32_EOF;
 
         lsp_utf32_t cp, sp, bytes;
         const char *s = *str;
@@ -776,15 +784,14 @@ namespace lsp
             --(*nsrc);
             return 0xfffd;
         }
-        else if (bytes > *nsrc)
+        else if (bytes >= *nsrc)
         {
             if (force)
             {
                 *nsrc   = 0;
                 return 0xfffd;
             }
-            else
-                return lsp_utf32_t(-1);
+            return LSP_UTF32_EOF;
         }
 
         // Decode extension bytes

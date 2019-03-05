@@ -97,7 +97,7 @@ namespace lsp
     void LSPString::acopy(lsp_wchar_t *dst, const char *src, size_t n)
     {
         while (n--)
-            *(dst++) = *(src++);
+            *(dst++) = uint8_t(*(src++));
     }
 
     void LSPString::drop_temp()
@@ -1296,70 +1296,19 @@ namespace lsp
 
     bool LSPString::set_utf8(const char *s, size_t n)
     {
-        const char *l   = &s[n];
-        lsp_wchar_t ch, v;
         LSPString   tmp;
+        lsp_wchar_t ch;
 
-        while (s < l)
+        while ((ch = read_utf8_streaming(&s, &n, true)) != LSP_UTF32_EOF)
         {
-            // Decode code point
-            v   = uint8_t(*(s++));
-            if (v <= 0x7f) // 1 byte: 0xxxxxxx
-                ch  = v;
-            else if ((v & 0xe0) == 0xc0) // 2 bytes: 110xxxxx 10xxxxxx
-            {
-                ch  = (v & 0x1f) << 6;
-                v   = (s < l) ? *(s++) : 0xff;
-                if ((v & 0xc0) == 0x80) // byte 1
-                {
-                    v  &= 0x3f;
-                    ch  = (v >= 0x02) ? (ch | v) : 0xfffd;
-                }
-                else
-                    ch  = 0xfffd;
-            }
-            else if ((v & 0xf0) == 0xe0) // 3 bytes: 1110xxxx 10xxxxxx 10xxxxxx
-            {
-                ch  = (v & 0x1f) << 12;
-                v   = (s < l) ? *(s++) : 0xff;
-                if (((v & 0xc0) == 0x80) || (!(v & 0x3f))) // byte 1
-                {
-                    ch |= ((v & 0x3f) << 6);
-                    v   = (s < l) ? *(s++) : 0xff;
-                    ch  = ((v & 0xc0) == 0x80) ? ch | (v & 0x3f) : 0xfffd; // byte 2
-                }
-                else
-                    ch  = 0xfffd;
-            }
-            else if ((v & 0xf8) == 0xf0) // 4 bytes: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-            {
-                ch  = (v & 0x1f) << 18;
-                v   = (s < l) ? *(s++) : 0xff;
-                if ((v&0xc0) == 0x80) // byte 1
-                {
-                    ch |= ((v & 0x3f) << 12);
-                    v   = (s < l) ? *(s++) : 0xff;
-                    if ((v&0xc0) == 0x80) // byte 2
-                    {
-                        ch |= ((v & 0x3f) << 6);
-                        v   = (s < l) ? *(s++) : 0xff;
-                        ch  = ((v & 0xc0) == 0x80) ? ch | (v & 0x3f) : 0xfffd; // byte 3
-                    }
-                    else
-                        ch  = 0xfffd;
-                }
-                else
-                    ch  = 0xfffd;
-            }
-            else // Invalid character
-                ch  = 0xfffd;
-
             // Append code point
             if (!tmp.append(ch))
                 return false;
         }
+        if (n > 0)
+            return false;
 
-        take(&tmp);
+        tmp.swap(this);
         return true;
     }
 
@@ -1375,57 +1324,18 @@ namespace lsp
     bool LSPString::set_utf16(const lsp_utf16_t *s, size_t n)
     {
         LSPString   tmp;
-        lsp_wchar_t ch, v;
-        const lsp_utf16_t *l   = &s[n];
+        lsp_wchar_t ch;
 
-        while (s < l)
+        while ((ch = read_utf16_streaming(&s, &n, true)) != LSP_UTF32_EOF)
         {
-            // Decode code point
-            ch      = *(s++);
-            v       = ch & 0xdc00;
-
-            // Check for surrogates
-            if (v == 0xd800) // cp = Surrogate high
-            {
-                if (s < l)
-                {
-                    ch      = 0x10000 | ((ch & 0x3ff) << 10);
-                    v       = *s;
-                    if ((v & 0xdc00) == 0xdc00) // Surrogate low?
-                    {
-                        ++s;
-                        ch     |= (v & 0x3ff);
-                    }
-                    else
-                        ch      = 0xfffd;
-                }
-                else
-                    ch      = 0xfffd;
-            }
-            else if (v == 0xdc00) // Surrogate low?
-            {
-                if (s < l)
-                {
-                    ch      = 0x10000 | (ch & 0x3ff);
-                    v       = *s;
-                    if ((v & 0xdc00) == 0xd800) // Surrogate high?
-                    {
-                        ++s;
-                        ch     |= ((v & 0x3ff) << 10);
-                    }
-                    else
-                        ch      = 0xfffd;
-                }
-                else
-                    ch      = 0xfffd;
-            }
-
             // Append code point
             if (!tmp.append(ch))
                 return false;
         }
+        if (n > 0)
+            return false;
 
-        take(&tmp);
+        tmp.swap(this);
         return true;
     }
 
@@ -1768,7 +1678,8 @@ namespace lsp
             size_t nconv = iconv(cd, &inbuf, &insize, &outbuf, &outsize);
             if (nconv == (size_t) -1)
             {
-                switch (errno)
+                int err_code = errno;
+                switch (err_code)
                 {
                     case E2BIG:
                     case EINVAL:
