@@ -366,18 +366,20 @@ namespace lsp
     void Filter::apo_complex_transfer_calc(float *re, float *im, double f)
     {
         // Calculating normalized frequency, wrapped for maximal accuracy:
-        double w = 2.0 * M_PI * (f / double(nSampleRate) - floor(f / double(nSampleRate)));
+        double kf   = f / float(nSampleRate);
+        double w    = 2.0 * M_PI * (kf - floor(kf));
 
         // Auxiliary variables:
-        double cw = cos(w);
-        double sw = sin(w);
+        double cw   = cos(w);
+        double sw   = sin(w);
 
-        double c2w = cos(2.0 * w);
-        double s2w = sin(2.0 * w); // Have to use trig functions for both to have correct sign
+        // These equations are valid since sw has valid sign
+        double c2w  = cw * cw - sw * sw;    // cos(2 * w)
+        double s2w  = 2.0 * sw * cw;        // sin(2 * w)
 
         // Apo will be just one biquad, but let's write this to be able to calculate any digital biquads cascade.
-        *re = 1.0f;
-        *im = 1.0f;
+        double r_re = 1.0f, r_im = 0.0f;    // The result complex number
+        double b_re, b_im;                  // Temporary values for computing complex multiplication
 
         for (size_t i=0; i<nItems; ++i)
         {
@@ -388,11 +390,24 @@ namespace lsp
             double gamma    = c->b[0] + c->b[1] * cw + c->b[2] * c2w;
             double delta    = c->b[1] * sw + c->b[2] * s2w;
 
-            double mag = 1.0 / (gamma * gamma + delta * delta);
+            double mag      = 1.0 / (gamma * gamma + delta * delta);
 
-            *re *= mag * (alpha * gamma - beta * delta);
-            *im *= mag * (alpha * delta + beta * gamma);
+            // Compute current biquad's tranfer function
+            double w_re     = mag * (alpha * gamma - beta * delta);
+            double w_im     = mag * (alpha * delta + beta * gamma);
+
+            // Compute common transfer function as a product between current biquad's
+            // transfer function and previous value
+            b_re            = r_re*w_re - r_im*w_im;
+            b_im            = r_re*w_im + r_im*w_re;
+
+            // Commit changes to the result complex number
+            r_re            = b_re;
+            r_im            = b_im;
         }
+
+        *re     = r_re;
+        *im     = r_im;
     }
 
     void Filter::freq_chart(float *re, float *im, const float *f, size_t count)
