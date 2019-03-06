@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <core/io/charset.h>
 #include <core/io/Reader.h>
+#include <core/io/Path.h>
 #include <core/types.h>
 
 namespace lsp
@@ -75,6 +76,24 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t open(const char *path, const char *charset = NULL);
+
+                /** Open input stream associated with file. Before open currently open stream is closed and it's
+                 * state is reset.
+                 *
+                 * @param path file location path
+                 * @param charset character set to use, system charset if NULL
+                 * @return status of operation
+                 */
+                status_t open(const LSPString *path, const char *charset = NULL);
+
+                /** Open input stream associated with file. Before open currently open stream is closed and it's
+                 * state is reset.
+                 *
+                 * @param path file location path
+                 * @param charset character set to use, system charset if NULL
+                 * @return status of operation
+                 */
+                status_t open(const Path *path, const char *charset = NULL);
 
                 virtual ssize_t     read(lsp_wchar_t *dst, size_t count);
 

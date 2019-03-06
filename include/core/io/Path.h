@@ -92,6 +92,8 @@ namespace lsp
                 bool        equals(const Path *path) const;
                 bool        equals(const LSPString *path) const;
                 bool        equals(const char *path) const;
+
+                inline const LSPString *as_string() const { return &sPath; }
         };
     }
 } /* namespace lsp */

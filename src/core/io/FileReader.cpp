@@ -147,12 +147,20 @@ namespace lsp
 
         status_t FileReader::open(const char *path, const char *charset)
         {
+            LSPString tmp;
+            if (!tmp.set_utf8(path))
+                return STATUS_NO_MEM;
+            return open(&tmp, charset);
+        }
+
+        status_t FileReader::open(const LSPString *path, const char *charset)
+        {
             do_destroy();
 
             #if defined(PLATFORM_WINDOWS)
-                FILE *fd        = fopen(path, "rb");
+                FILE *fd        = fopen(path->get_utf8(), "rb");
             #else
-                FILE *fd        = fopen(path, "r");
+                FILE *fd        = fopen(path->get_utf8(), "r");
             #endif /* PLATFORM_WINDOWS */
             if (fd == NULL)
                 return nError = STATUS_IO_ERROR;
@@ -161,6 +169,11 @@ namespace lsp
             if (res != STATUS_OK)
                 fclose(fd);
             return res;
+        }
+
+        status_t FileReader::open(const Path *path, const char *charset)
+        {
+            return open(path->as_string(), charset);
         }
 
 #if defined(PLATFORM_WINDOWS)
