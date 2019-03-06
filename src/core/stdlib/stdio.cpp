@@ -6,6 +6,7 @@
  */
 
 #include <core/stdlib/stdio.h>
+#include <unistd.h>
 
 #if defined(PLATFORM_WINDOWS)
     int vasprintf(char **res, const char *fmt, va_list ap)
