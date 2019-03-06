@@ -88,7 +88,9 @@ namespace lsp
         FLT_DR_APO_ALLPASS,
         FLT_DR_APO_PEAKING,
         FLT_DR_APO_LOSHELF,
-        FLT_DR_APO_HISHELF
+        FLT_DR_APO_HISHELF,
+        FLT_DR_APO_LADDERPASS,
+        FLT_DR_APO_LADDERREJ,
     };
 
     typedef struct filter_params_t

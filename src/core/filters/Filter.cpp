@@ -311,6 +311,25 @@ namespace lsp
                 break;
             }
 
+            case FLT_DR_APO_LADDERPASS:
+            {
+                calc_apo_filter(FLT_DR_APO_HISHELF, &fp);
+                fp.fFreq            = sParams.fFreq2;
+                fp.fGain            = 1.0f / sParams.fGain;
+                calc_apo_filter(FLT_DR_APO_HISHELF, &fp);
+                nMode               = FM_APO;
+                break;
+            }
+
+            case FLT_DR_APO_LADDERREJ:
+            {
+                calc_apo_filter(FLT_DR_APO_LOSHELF, &fp);
+                fp.fFreq            = sParams.fFreq2;
+                calc_apo_filter(FLT_DR_APO_HISHELF, &fp);
+                nMode               = FM_APO;
+                break;
+            }
+
             case FLT_NONE:
             default:
                 nMode               = FM_BYPASS;
@@ -1159,10 +1178,10 @@ namespace lsp
             {
                 double A = fp->fGain;
 
-                a0 = A * 0.5 * (1 - cc);
+                a0 = A * 0.5 * (1.0 - cc);
                 a1 = A * (1.0 - cc);
                 a2 = a0;
-                b0 = 1 + alpha;
+                b0 = 1.0 + alpha;
                 b1 = -2.0 * cc;
                 b2 = 1.0 - alpha;
 
@@ -1275,7 +1294,6 @@ namespace lsp
             return;
 
         // Storing with appropriate normalisation and sign as required by biquad_process_x1().
-
         f->a[0] = a0 / b0;
         f->a[1] = f->a[0];
         f->a[2] = a1 / b0;
