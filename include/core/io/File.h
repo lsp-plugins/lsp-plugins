@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef INCLUDE_CORE_IO_IFILE_H_
-#define INCLUDE_CORE_IO_IFILE_H_
+#ifndef INCLUDE_CORE_IO_FILE_H_
+#define INCLUDE_CORE_IO_FILE_H_
 
 #include <core/types.h>
 #include <core/status.h>
@@ -18,26 +18,34 @@ namespace lsp
         /**
          * Binary file interface
          */
-        class IFile
+        class File
         {
             public:
                 enum seek_t {
                     FSK_SET,
-                    FSK_CURR,
+                    FSK_CUR,
                     FSK_END
                 };
 
-            private:
-                IFile & operator = (const IFile &);       // Deny copying
+                enum mode_t {
+                    FM_READ     = 1 << 0,       // Open for reading
+                    FM_WRITE    = 1 << 1,       // Open for writing
+                    FM_CREATE   = 1 << 2,       // Create file if not exists
+                    FM_TRUNC    = 1 << 3,       // Truncate file
+                };
 
             protected:
                 status_t    nErrorCode;
 
+            protected:
                 inline status_t set_error(status_t error) { return nErrorCode = error; }
 
+            private:
+                File & operator = (const File &);       // Deny copying
+
             public:
-                explicit IFile();
-                virtual ~IFile();
+                explicit File();
+                virtual ~File();
                 
             public:
                 /**
@@ -63,7 +71,7 @@ namespace lsp
                  * @param count number of bytes to write
                  * @return status of operation
                  */
-                virtual status_t write(const void *src, size_t count);
+                virtual ssize_t write(const void *src, size_t count);
 
                 /**
                  * Perform positioned write of binary file
@@ -72,7 +80,7 @@ namespace lsp
                  * @param count number of bytes to write
                  * @return status of operation
                  */
-                virtual status_t write(wsize_t pos, const void *src, size_t count);
+                virtual ssize_t pwrite(wsize_t pos, const void *src, size_t count);
 
                 /**
                  * Perform seek to the specified position
@@ -89,6 +97,13 @@ namespace lsp
                 virtual wssize_t position();
 
                 /**
+                 * Truncate the file
+                 * @param length the final file length
+                 * @return status of operation
+                 */
+                virtual status_t truncate(wsize_t length);
+
+                /**
                  * Return last error code
                  * @return last error code
                  */
@@ -101,10 +116,16 @@ namespace lsp
                 inline bool eof() const { return nErrorCode == STATUS_EOF; };
 
                 /**
-                 * Flush file buffer to underlying storage
+                 * Flush usespace file buffer
                  * @return status of operation
                  */
                 virtual status_t flush();
+
+                /**
+                 * Sync file with the underlying storage
+                 * @return status of operation
+                 */
+                virtual status_t sync();
 
                 /**
                  * Close file
@@ -116,4 +137,4 @@ namespace lsp
     } /* namespace io */
 } /* namespace lsp */
 
-#endif /* INCLUDE_CORE_IO_IFILE_H_ */
+#endif /* INCLUDE_CORE_IO_FILE_H_ */

@@ -5,59 +5,69 @@
  *      Author: sadko
  */
 
-#include <core/io/IFile.h>
+#include <core/io/File.h>
 
 namespace lsp
 {
     namespace io
     {
         
-        IFile::IFile()
+        File::File()
         {
             nErrorCode  = STATUS_OK;
         }
         
-        IFile::~IFile()
+        File::~File()
         {
             close();
         }
 
-        ssize_t IFile::read(void *dst, size_t count)
+        ssize_t File::read(void *dst, size_t count)
         {
             return -set_error(STATUS_NOT_SUPPORTED);
         }
 
-        ssize_t IFile::pread(wsize_t pos, void *dst, size_t count)
+        ssize_t File::pread(wsize_t pos, void *dst, size_t count)
         {
             return -set_error(STATUS_NOT_SUPPORTED);
         }
 
-        status_t IFile::write(const void *src, size_t count)
+        ssize_t File::write(const void *src, size_t count)
         {
             return set_error(STATUS_NOT_SUPPORTED);
         }
 
-        status_t IFile::write(wsize_t pos, const void *src, size_t count)
+        ssize_t File::pwrite(wsize_t pos, const void *src, size_t count)
         {
             return set_error(STATUS_NOT_SUPPORTED);
         }
 
-        status_t IFile::seek(wssize_t pos, size_t type)
+        status_t File::seek(wssize_t pos, size_t type)
         {
             return set_error(STATUS_NOT_SUPPORTED);
         }
 
-        wssize_t IFile::position()
+        wssize_t File::position()
         {
             return -set_error(STATUS_NOT_SUPPORTED);
         }
 
-        status_t IFile::flush()
+        status_t File::truncate(wsize_t length)
         {
             return set_error(STATUS_NOT_SUPPORTED);
         }
 
-        status_t IFile::close()
+        status_t File::flush()
+        {
+            return set_error(STATUS_NOT_SUPPORTED);
+        }
+
+        status_t File::sync()
+        {
+            return set_error(STATUS_NOT_SUPPORTED);
+        }
+
+        status_t File::close()
         {
             return set_error(STATUS_OK);
         }
