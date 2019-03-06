@@ -17,6 +17,12 @@
 
     int asprintf(char **strp, const char *fmt, ...);
 
+    int fdsync(FILE *fd);
+
+#elif defined(PLATFORM_UNIX_COMPATIBLE)
+
+    int fdsync(FILE *fd);
+
 #endif /* PLATFORM_WINDOWS */
 
 #endif /* INCLUDE_CORE_STDLIB_STDIO_H_ */

@@ -40,5 +40,18 @@
         return r;
     }
 
+    int fdsync(FILE *fd)
+    {
+        return (FlushFileBuffers((HANDLE)_fileno(fd))) ? 0 : -1;
+    }
+
 #endif /* PLATFORM_WINDOWS */
 
+#if defined(PLATFORM_UNIX_COMPATIBLE)
+
+    int fdsync(FILE *fd)
+    {
+        return fsync(fileno(fd));
+    }
+
+#endif

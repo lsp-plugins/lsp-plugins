@@ -385,8 +385,9 @@ namespace lsp
 
             if (fflush(pFD) != 0)
                 return set_error(STATUS_IO_ERROR);
-            if (fsync(fileno(pFD)) != 0)
+            if (fdsync(pFD) != 0)
                 return set_error(STATUS_IO_ERROR);
+
             return set_error(STATUS_OK);
         }
 
