@@ -507,6 +507,7 @@ namespace lsp
                 while (count--)
                 {
                     apo_complex_transfer_calc(c, &c[1], *(f++));
+                    c += 2; // Don't forget to move the pointer
                 }
                 break;
             }
