@@ -1,54 +1,91 @@
 /*
- * File.h
+ * NativeFile.h
  *
- *  Created on: 6 мар. 2019 г.
+ *  Created on: 7 мар. 2019 г.
  *      Author: sadko
  */
 
-#ifndef INCLUDE_CORE_IO_FILE_H_
-#define INCLUDE_CORE_IO_FILE_H_
+#ifndef CORE_IO_NATIVEFILE_H_
+#define CORE_IO_NATIVEFILE_H_
 
 #include <core/types.h>
-#include <core/status.h>
+#include <core/LSPString.h>
+#include <core/io/Path.h>
+#include <core/io/File.h>
 
 namespace lsp
 {
     namespace io
     {
         /**
-         * Binary file interface
+         * This class provides file interface that uses low-level file functions
+         * at the backend for file operations. Also this class allows to
+         * wrap native file descriptor into an object instance.
          */
-        class File
+        class NativeFile: public File
         {
-            public:
-                enum seek_t {
-                    FSK_SET,
-                    FSK_CUR,
-                    FSK_END
-                };
-
-                enum mode_t {
-                    FM_READ     = 1 << 0,       // Open for reading
-                    FM_WRITE    = 1 << 1,       // Open for writing
-                    FM_CREATE   = 1 << 2,       // Create file if not exists
-                    FM_TRUNC    = 1 << 3,       // Truncate file
-                    FM_DIRECT   = 1 << 4,       // Do not use buffered input/output if possible
+            private:
+                enum flags_t
+                {
+                    SF_READ     = 1 << 0,
+                    SF_WRITE    = 1 << 1,
+                    SF_CLOSE    = 1 << 2
                 };
 
             protected:
-                status_t    nErrorCode;
-
-            protected:
-                inline status_t set_error(status_t error) { return nErrorCode = error; }
+                lsp_fhandle_t   hFD;
+                size_t          nFlags;
 
             private:
-                File & operator = (const File &);       // Deny copying
+                NativeFile &operator = (const NativeFile &fd);        // Deny copying
 
             public:
-                explicit File();
-                virtual ~File();
-                
+                explicit NativeFile();
+                virtual ~NativeFile();
+
             public:
+                /**
+                 * Open file
+                 * @param path file location
+                 * @param mode open mode
+                 * @return status of operation
+                 */
+                status_t    open(const char *path, size_t mode);
+
+                /**
+                 * Open file
+                 * @param path file location
+                 * @param mode open mode
+                 * @return status of operation
+                 */
+                status_t    open(const LSPString *path, size_t mode);
+
+                /**
+                 * Open file
+                 * @param path file location
+                 * @param mode open mode
+                 * @return status of operation
+                 */
+                status_t    open(const Path *path, size_t mode);
+
+                /**
+                 * Wrap the standard file descriptor and allow both read
+                 * and write operations
+                 * @param fd file descriptor to wrap
+                 * @param close close the file descriptor on close() call
+                 * @return status of operation
+                 */
+                status_t    wrap(lsp_fhandle_t fd, bool close);
+
+                /**
+                 * Wrap the standard file descriptor
+                 * @param fd file descriptor to wrap
+                 * @param mode allowed access modes (read, write or both)
+                 * @param close close the file descriptor on close() call
+                 * @return status of operation
+                 */
+                status_t    wrap(lsp_fhandle_t fd, size_t mode, bool close);
+
                 /**
                  * Read binary file
                  * @param dst target buffer to perform read
@@ -70,7 +107,7 @@ namespace lsp
                  * Write binary file
                  * @param dst source buffer to perform write
                  * @param count number of bytes to write
-                 * @return status of operation
+                 * @return number of bytes written or negative status of operation
                  */
                 virtual ssize_t write(const void *src, size_t count);
 
@@ -111,19 +148,7 @@ namespace lsp
                 virtual status_t truncate(wsize_t length);
 
                 /**
-                 * Return last error code
-                 * @return last error code
-                 */
-                inline status_t last_error() const  { return nErrorCode; };
-
-                /**
-                 * Return true if last read operations reached end of file
-                 * @return true if last read operations reached end of file
-                 */
-                inline bool eof() const { return nErrorCode == STATUS_EOF; };
-
-                /**
-                 * Flush usespace file buffer
+                 * Flush file buffer to underlying storage
                  * @return status of operation
                  */
                 virtual status_t flush();
@@ -144,4 +169,4 @@ namespace lsp
     } /* namespace io */
 } /* namespace lsp */
 
-#endif /* INCLUDE_CORE_IO_FILE_H_ */
+#endif /* CORE_IO_NATIVEFILE_H_ */

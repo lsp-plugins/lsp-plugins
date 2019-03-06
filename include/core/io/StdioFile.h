@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef INCLUDE_CORE_IO_STDIOFILE_H_
-#define INCLUDE_CORE_IO_STDIOFILE_H_
+#ifndef CORE_IO_STDIOFILE_H_
+#define CORE_IO_STDIOFILE_H_
 
 #include <core/io/File.h>
 #include <core/types.h>
@@ -17,6 +17,11 @@ namespace lsp
 {
     namespace io
     {
+        /**
+         * This class provides file interface that uses <stdio.h> file functions
+         * at the backend for file operations. Also this class allows to
+         * wrap standard FILE * pointer into an object instance.
+         */
         class StdioFile: public File
         {
             private:
@@ -130,6 +135,12 @@ namespace lsp
                 virtual wssize_t position();
 
                 /**
+                 * Obtain current file's size
+                 * @return current file's size or negative error code
+                 */
+                virtual wssize_t size();
+
+                /**
                  * Truncate the file
                  * @param length the final file length
                  * @return status of operation
@@ -158,4 +169,4 @@ namespace lsp
     } /* namespace io */
 } /* namespace lsp */
 
-#endif /* INCLUDE_CORE_IO_STDIOFILE_H_ */
+#endif /* CORE_IO_STDIOFILE_H_ */

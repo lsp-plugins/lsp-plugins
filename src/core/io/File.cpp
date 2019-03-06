@@ -34,12 +34,12 @@ namespace lsp
 
         ssize_t File::write(const void *src, size_t count)
         {
-            return set_error(STATUS_NOT_SUPPORTED);
+            return -set_error(STATUS_NOT_SUPPORTED);
         }
 
         ssize_t File::pwrite(wsize_t pos, const void *src, size_t count)
         {
-            return set_error(STATUS_NOT_SUPPORTED);
+            return -set_error(STATUS_NOT_SUPPORTED);
         }
 
         status_t File::seek(wssize_t pos, size_t type)
@@ -48,6 +48,11 @@ namespace lsp
         }
 
         wssize_t File::position()
+        {
+            return -set_error(STATUS_NOT_SUPPORTED);
+        }
+
+        wssize_t File::size()
         {
             return -set_error(STATUS_NOT_SUPPORTED);
         }

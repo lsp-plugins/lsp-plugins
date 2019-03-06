@@ -7,6 +7,7 @@
 
 #include <core/io/StdioFile.h>
 #include <errno.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 namespace lsp
@@ -347,6 +348,27 @@ namespace lsp
             return pos;
         }
 
+        wssize_t StdioFile::size()
+        {
+            if (pFD == NULL)
+                return -set_error(STATUS_BAD_STATE);
+
+            #ifdef PLATFORM_WINDOWS
+                LARGE_INTEGER sizebuf;
+                if (!GetFileSizeEx((HANDLE)_fileno(pFD), &sizebuf))
+                    return -set_error(STATUS_IO_ERROR);
+                wssize_t pos    = sizebuf.QuadPart;
+            #else
+                struct stat statbuf;
+                if (fstat(fileno(pFD), &statbuf) != 0)
+                    return -set_error(STATUS_IO_ERROR);
+                wssize_t pos    = statbuf.st_size;
+            #endif
+
+            set_error(STATUS_OK);
+            return pos;
+        }
+
         status_t StdioFile::truncate(wsize_t length)
         {
             // Check state
@@ -385,8 +407,13 @@ namespace lsp
 
             if (fflush(pFD) != 0)
                 return set_error(STATUS_IO_ERROR);
-            if (fdsync(pFD) != 0)
-                return set_error(STATUS_IO_ERROR);
+            #ifdef PLATFORM_WINDOWS
+                if (_commit(_fileno(pFD)) != 0)
+                    return set_error(STATUS_IO_ERROR);
+            #else
+                if (fsync(fileno(pFD)) != 0)
+                    return set_error(STATUS_IO_ERROR);
+            #endif
 
             return set_error(STATUS_OK);
         }
@@ -397,7 +424,7 @@ namespace lsp
             {
                 if (nFlags & SF_CLOSE)
                 {
-                    if (fclose(pFD) != STATUS_OK)
+                    if (fclose(pFD) != 0)
                         return set_error(STATUS_IO_ERROR);
                 }
 
