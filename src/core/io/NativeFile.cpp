@@ -84,23 +84,17 @@ namespace lsp
             else
                 return set_error(STATUS_INVALID_VALUE);
 
-            if (mode & O_CREATE)
-                cmode       = (mode & O_TRUNC) ? CREATE_ALWAYS : CREATE_NEW;
-            else if (mode & O_TRUNC)
+            if (mode & FM_CREATE)
+                cmode       = (mode & FM_TRUNC) ? CREATE_ALWAYS : CREATE_NEW;
+            else if (mode & FM_TRUNC)
                 cmode       = TRUNCATE_EXISTING;
             else
                 cmode       = OPEN_EXISTING;
 
-            if (mode & O_DIRECT)
+            if (mode & FM_DIRECT)
                 atts           |= FILE_FLAG_NO_BUFFERING;
 
-            lsp_fhandle_t fd = CreateFileW(
-                    path->get_utf16(), cmode,
-                    FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE,
-                    NULL, CREATE_ALWAYS,
-                    FILE_ATTRIBUTE_NORMAL | FILE_FLAG_RANDOM_ACCESS,
-                    NULL
-                );
+            lsp_fhandle_t fd = CreateFileW(path->get_utf16(), oflags, shflags, NULL, cmode, atts, NULL);
             if (fd == INVALID_HANDLE_VALUE)
                 return set_error(STATUS_IO_ERROR);
 
@@ -262,12 +256,11 @@ namespace lsp
                 // Obtrain current file pointer
                 if (!SetFilePointerEx(hFD, off, &save, FILE_CURRENT))
                     return -set_error(STATUS_IO_ERROR);
-                if (save.QuadPart != pos)
-                {
-                    off.QuadPart = pos;
-                    if (!SetFilePointerEx(hFD, off, &save, FILE_CURRENT))
-                        return -set_error(STATUS_IO_ERROR);
-                }
+
+                // Change file pointer
+                off.QuadPart = pos;
+                if (!SetFilePointerEx(hFD, off, NULL, FILE_BEGIN))
+                    return -set_error(STATUS_IO_ERROR);
 
                 // Perform positioned read
                 while (bread < count)
@@ -290,12 +283,8 @@ namespace lsp
                 }
 
                 // Restore position
-                if (save.QuadPart != pos)
-                {
-                    off.QuadPart = pos;
-                    if (!SetFilePointerEx(hFD, save, NULL, FILE_CURRENT))
-                        return -set_error(STATUS_IO_ERROR);
-                }
+                if (!SetFilePointerEx(hFD, save, NULL, FILE_BEGIN))
+                    return -set_error(STATUS_IO_ERROR);
             #else
                 // Perform positioned read
                 while (bread < count)
@@ -390,12 +379,11 @@ namespace lsp
                 // Obtrain current file pointer
                 if (!SetFilePointerEx(hFD, off, &save, FILE_CURRENT))
                     return -set_error(STATUS_IO_ERROR);
-                if (save.QuadPart != pos)
-                {
-                    off.QuadPart = pos;
-                    if (!SetFilePointerEx(hFD, off, &save, FILE_CURRENT))
-                        return -set_error(STATUS_IO_ERROR);
-                }
+
+                // Change file pointer
+                off.QuadPart = pos;
+                if (!SetFilePointerEx(hFD, off, NULL, FILE_BEGIN))
+                    return -set_error(STATUS_IO_ERROR);
 
                 // Perform positioned write
                 while (bwritten < count)
@@ -413,12 +401,8 @@ namespace lsp
                 }
 
                 // Restore position
-                if (save.QuadPart != pos)
-                {
-                    off.QuadPart = pos;
-                    if (!SetFilePointerEx(hFD, save, NULL, FILE_CURRENT))
-                        return -set_error(STATUS_IO_ERROR);
-                }
+                if (!SetFilePointerEx(hFD, save, NULL, FILE_BEGIN))
+                    return -set_error(STATUS_IO_ERROR);
             #else
                 // Perform positioned write
                 while (bwritten < count)
@@ -455,8 +439,8 @@ namespace lsp
                 switch (type)
                 {
                     case FSK_SET: method  = FILE_BEGIN; break;
-                    case FCK_CUR: method  = FILE_CURRENT; break;
-                    case FCK_END: method  = FILE_END; break;
+                    case FSK_CUR: method  = FILE_CURRENT; break;
+                    case FSK_END: method  = FILE_END; break;
                     default: return set_error(STATUS_INVALID_VALUE);
                 }
                 off.QuadPart = pos;
@@ -581,7 +565,7 @@ namespace lsp
                 return set_error(STATUS_PERMISSION_DENIED);
 
             #ifdef PLATFORM_WINDOWS
-                if (FlushFileBuffers(hFD) != 0)
+                if (!FlushFileBuffers(hFD))
                     return set_error(STATUS_IO_ERROR);
             #else
                 if (fsync(hFD) != 0)
