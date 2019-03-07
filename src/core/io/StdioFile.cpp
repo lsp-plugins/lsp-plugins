@@ -168,7 +168,7 @@ namespace lsp
                 bread  += n_read;
             }
 
-            if ((bread > 0) || (!eof))
+            if ((bread > 0) || (count <= 0) || (!eof))
             {
                 set_error(STATUS_OK);
                 return bread;
@@ -217,13 +217,13 @@ namespace lsp
             }
 
             // Restore position
-            if ((pos != save) && (bread > 0))
+            if (pos != save)
             {
                 if (fseeko(pFD, save, SEEK_SET) != 0)
                     return -set_error(STATUS_IO_ERROR);
             }
 
-            if ((bread > 0) || (!eof))
+            if ((bread > 0) || (count <= 0) || (!eof))
             {
                 set_error(STATUS_OK);
                 return bread;
@@ -255,12 +255,12 @@ namespace lsp
                 bwritten   += n_written;
             }
 
-            if (bwritten > 0)
+            if ((bwritten > 0) || (count <= 0))
             {
                 set_error(STATUS_OK);
                 return bwritten;
             }
-            return (count > 0) ? count : -set_error(STATUS_IO_ERROR);
+            return  -set_error(STATUS_IO_ERROR);
         }
 
         ssize_t StdioFile::pwrite(wsize_t pos, const void *src, size_t count)
@@ -299,20 +299,20 @@ namespace lsp
                 bwritten   += n_written;
             }
 
-            if (bwritten > 0)
+            // Restore position
+            if (pos != save)
             {
-                // Restore position
-                if (pos != save)
-                {
-                    if (fseeko(pFD, save, SEEK_SET) != 0)
-                        return -set_error(STATUS_IO_ERROR);
-                }
+                if (fseeko(pFD, save, SEEK_SET) != 0)
+                    return -set_error(STATUS_IO_ERROR);
+            }
 
+            if ((bwritten > 0) || (count <= 0))
+            {
                 set_error(STATUS_OK);
                 return bwritten;
             }
 
-            return (count > 0) ? count : -set_error(STATUS_IO_ERROR);
+            return -set_error(STATUS_IO_ERROR);
         }
 
         status_t StdioFile::seek(wssize_t pos, size_t type)

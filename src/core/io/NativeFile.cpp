@@ -58,7 +58,7 @@ namespace lsp
             return open(&tmp, mode);
         }
 
-#if defined(PLATFORM_WINDOWS)
+    #if defined(PLATFORM_WINDOWS)
         status_t NativeFile::open(const LSPString *path, size_t mode)
         {
             if (path == NULL)
@@ -109,7 +109,7 @@ namespace lsp
 
             return set_error(STATUS_OK);
         }
-#else
+    #else
         status_t NativeFile::open(const LSPString *path, size_t mode)
         {
             if (path == NULL)
@@ -148,7 +148,7 @@ namespace lsp
 
             return set_error(STATUS_OK);
         }
-#endif /* PLATFORM_WINDOWS */
+    #endif /* PLATFORM_WINDOWS */
 
         status_t NativeFile::open(const Path *path, size_t mode)
         {
@@ -188,22 +188,260 @@ namespace lsp
 
         ssize_t NativeFile::read(void *dst, size_t count)
         {
-            return -set_error(STATUS_NOT_IMPLEMENTED);
+            // Check state
+            if (hFD == BAD_FD)
+                return -set_error(STATUS_BAD_STATE);
+            else if (!(nFlags & SF_READ))
+                return -set_error(STATUS_PERMISSION_DENIED);
+
+            uint8_t *ptr    = reinterpret_cast<uint8_t *>(dst);
+            size_t bread    = 0;
+            bool eof        = false;
+
+            // Perofrm read
+            #ifdef PLATFORM_WINDOWS
+                while (bread < count)
+                {
+                    size_t to_read      = count - bread;
+                    if (to_read >= 0x40000000)
+                        to_read             = 0x40000000;
+                    DWORD n_read        = 0;
+
+                    if (!ReadFile(hFD, ptr, DWORD(to_read), &n_read, NULL))
+                        break;
+                    if (n_read <= 0)
+                    {
+                        eof = true;
+                        break;
+                    }
+
+                    ptr    += n_read;
+                    bread  += n_read;
+                }
+            #else
+                while (bread < count)
+                {
+                    size_t to_read  = count - bread;
+                    size_t n_read   = ::read(hFD, ptr, to_read);
+
+                    if (n_read <= 0)
+                    {
+                        eof = true;
+                        break;
+                    }
+
+                    ptr    += n_read;
+                    bread  += n_read;
+                }
+
+            #endif
+            if ((bread > 0) || (count <= 0) || (!eof))
+            {
+                set_error(STATUS_OK);
+                return bread;
+            }
+            return -set_error(STATUS_EOF);
         }
 
         ssize_t NativeFile::pread(wsize_t pos, void *dst, size_t count)
         {
-            return -set_error(STATUS_NOT_IMPLEMENTED);
+            // Check state
+            if (hFD == BAD_FD)
+                return -set_error(STATUS_BAD_STATE);
+            else if (!(nFlags & SF_READ))
+                return -set_error(STATUS_PERMISSION_DENIED);
+
+            uint8_t *ptr    = reinterpret_cast<uint8_t *>(dst);
+            size_t bread    = 0;
+            bool eof        = false;
+
+            #ifdef PLATFORM_WINDOWS
+                LARGE_INTEGER off, save;
+                off.QuadPart = 0;
+
+                // Obtrain current file pointer
+                if (!SetFilePointerEx(hFD, off, &save, FILE_CURRENT))
+                    return -set_error(STATUS_IO_ERROR);
+                if (save.QuadPart != pos)
+                {
+                    off.QuadPart = pos;
+                    if (!SetFilePointerEx(hFD, off, &save, FILE_CURRENT))
+                        return -set_error(STATUS_IO_ERROR);
+                }
+
+                // Perform positioned read
+                while (bread < count)
+                {
+                    size_t to_read      = count - bread;
+                    if (to_read >= 0x40000000)
+                        to_read             = 0x40000000;
+                    DWORD n_read        = 0;
+
+                    if (!ReadFile(hFD, ptr, DWORD(to_read), &n_read, NULL))
+                        break;
+                    if (n_read <= 0)
+                    {
+                        eof = true;
+                        break;
+                    }
+
+                    ptr    += n_read;
+                    bread  += n_read;
+                }
+
+                // Restore position
+                if (save.QuadPart != pos)
+                {
+                    off.QuadPart = pos;
+                    if (!SetFilePointerEx(hFD, save, NULL, FILE_CURRENT))
+                        return -set_error(STATUS_IO_ERROR);
+                }
+            #else
+                // Perform positioned read
+                while (bread < count)
+                {
+                    size_t to_read  = count - bread;
+                    size_t n_read   = ::pread(hFD, ptr, to_read, pos);
+
+                    if (n_read <= 0)
+                    {
+                        eof = true;
+                        break;
+                    }
+
+                    ptr    += n_read;
+                    bread  += n_read;
+                    pos    += n_read;
+                }
+            #endif
+
+            if ((bread > 0) || (count <= 0) || (!eof))
+            {
+                set_error(STATUS_OK);
+                return bread;
+            }
+            return -set_error(STATUS_EOF);
         }
 
         ssize_t NativeFile::write(const void *src, size_t count)
         {
-            return -set_error(STATUS_NOT_IMPLEMENTED);
+            // Check state
+            if (hFD == BAD_FD)
+                return -set_error(STATUS_BAD_STATE);
+            else if (!(nFlags & SF_WRITE))
+                return -set_error(STATUS_PERMISSION_DENIED);
+
+            const uint8_t *ptr  = reinterpret_cast<const uint8_t *>(src);
+            size_t bwritten     = 0;
+
+            // Perform write
+            #ifdef PLATFORM_WINDOWS
+                while (bwritten < count)
+                {
+                    size_t to_write     = count - bwritten;
+                    if (to_write >= 0x40000000)
+                        to_write            = 0x40000000;
+                    DWORD n_written     = 0;
+
+                    if (!WriteFile(hFD, ptr, to_write, &n_written, NULL))
+                        break;
+
+                    ptr        += n_written;
+                    bwritten   += n_written;
+                }
+            #else
+                while (bwritten < count)
+                {
+                    size_t to_write     = count - bwritten;
+                    size_t n_written    = ::write(hFD, ptr, to_write);
+
+                    if (n_written <= 0)
+                        break;
+
+                    ptr        += n_written;
+                    bwritten   += n_written;
+                }
+            #endif
+
+            if ((bwritten > 0) || (count <= 0))
+            {
+                set_error(STATUS_OK);
+                return bwritten;
+            }
+
+            return -set_error(STATUS_IO_ERROR);
         }
 
         ssize_t NativeFile::pwrite(wsize_t pos, const void *src, size_t count)
         {
-            return -set_error(STATUS_NOT_IMPLEMENTED);
+            // Check state
+            if (hFD == BAD_FD)
+                return -set_error(STATUS_BAD_STATE);
+            else if (!(nFlags & SF_WRITE))
+                return -set_error(STATUS_PERMISSION_DENIED);
+
+            const uint8_t *ptr  = reinterpret_cast<const uint8_t *>(src);
+            size_t bwritten     = 0;
+
+            #ifdef PLATFORM_WINDOWS
+                LARGE_INTEGER off, save;
+                off.QuadPart = 0;
+
+                // Obtrain current file pointer
+                if (!SetFilePointerEx(hFD, off, &save, FILE_CURRENT))
+                    return -set_error(STATUS_IO_ERROR);
+                if (save.QuadPart != pos)
+                {
+                    off.QuadPart = pos;
+                    if (!SetFilePointerEx(hFD, off, &save, FILE_CURRENT))
+                        return -set_error(STATUS_IO_ERROR);
+                }
+
+                // Perform positioned write
+                while (bwritten < count)
+                {
+                    size_t to_write     = count - bwritten;
+                    if (to_write >= 0x40000000)
+                        to_write            = 0x40000000;
+                    DWORD n_written     = 0;
+
+                    if (!WriteFile(hFD, ptr, to_write, &n_written, NULL))
+                        break;
+
+                    ptr        += n_written;
+                    bwritten   += n_written;
+                }
+
+                // Restore position
+                if (save.QuadPart != pos)
+                {
+                    off.QuadPart = pos;
+                    if (!SetFilePointerEx(hFD, save, NULL, FILE_CURRENT))
+                        return -set_error(STATUS_IO_ERROR);
+                }
+            #else
+                // Perform positioned write
+                while (bwritten < count)
+                {
+                    size_t to_write     = count - bwritten;
+                    size_t n_written    = ::pwrite(hFD, ptr, to_write, pos);
+
+                    if (n_written <= 0)
+                        break;
+
+                    ptr        += n_written;
+                    bwritten   += n_written;
+                    pos        += n_written;
+                }
+            #endif
+
+            if ((bwritten > 0) || (count <= 0))
+            {
+                set_error(STATUS_OK);
+                return bwritten;
+            }
+
+            return -set_error(STATUS_IO_ERROR);
         }
 
         status_t NativeFile::seek(wssize_t pos, size_t type)
@@ -245,7 +483,7 @@ namespace lsp
         wssize_t NativeFile::position()
         {
             if (hFD == BAD_FD)
-                return set_error(STATUS_BAD_STATE);
+                return -set_error(STATUS_BAD_STATE);
 
             #ifdef PLATFORM_WINDOWS
                 LARGE_INTEGER off, pos;
