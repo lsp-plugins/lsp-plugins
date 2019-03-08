@@ -81,13 +81,17 @@ namespace lsp
         {
 #if defined(PLATFORM_WINDOWS)
             nCodePage   = UINT(-1);
-            if (vBuffer != NULL)
+            if (bBuffer != NULL)
             {
-                free(vBuffer);
+                free(bBuffer);
 
-                vBuffer     = NULL;
-                pBufHead    = NULL;
-                pBufTail    = NULL;
+                bBuffer     = NULL;
+                bBufHead    = NULL;
+                bBufTail    = NULL;
+
+                cBuffer     = NULL;
+                cBufHead    = NULL;
+                cBufTail    = NULL;
             }
 #else
             if (hIconv != iconv_t(-1))
@@ -115,7 +119,7 @@ namespace lsp
                 {
                     if (nbuf > xoutleft)
                         nbuf        = xoutleft;
-                    ::memcpy(xoutbuf, inbuf, nbuf);
+                    ::memcpy(xoutbuf, bBufHead, nbuf);
 
                     nconv          += nbuf;
                     xoutbuf        += nbuf;

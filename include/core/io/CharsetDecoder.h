@@ -22,10 +22,9 @@ namespace lsp
         {
             protected:
 #if defined(PLATFORM_WINDOWS)
-                UINT            nCodePage;      // Code page
-                WCHAR          *vBuffer;        // Temporary buffer for storing UTF-16 code points
-                WCHAR          *pBufTail;       // End of buffer
-                WCHAR          *pBufHead;       // Head of buffer
+                lsp_utf16_t    *cBuffer;        // Temporary buffer for storing UTF-16 code points
+                lsp_utf16_t    *cBufHead;       // Head of buffer
+                lsp_utf16_t    *cBufTail;       // End of buffer
 #else
                 iconv_t         hIconv;         // iconv handle
 #endif /* PLATFORM_WINDOWS */
@@ -58,7 +57,7 @@ namespace lsp
                  * @param inleft number of bytes left unread in input buffer
                  * @return number of code points decoded or negative error code
                  */
-                ssize_t     decode(lsp_wchar_t **outbuf, size_t *outleft, const void **inbuf, size_t *inleft);
+                ssize_t     decode(lsp_wchar_t **outbuf, size_t *outleft, void **inbuf, size_t *inleft);
         };
     
     } /* namespace io */

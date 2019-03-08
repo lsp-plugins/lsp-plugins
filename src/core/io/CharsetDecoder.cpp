@@ -19,9 +19,10 @@ namespace lsp
         {
 #if defined(PLATFORM_WINDOWS)
             nCodePage       = UINT(-1);
-            vBuffer         = NULL;
-            pBufTail        = NULL;
-            pBufHead        = NULL;
+
+            cBuffer         = NULL;
+            cBufHead        = NULL;
+            cBufTail        = NULL;
 #else
             hIconv          = iconv_t(-1);
 #endif /* PLATFORM_WINDOWS */
@@ -43,13 +44,15 @@ namespace lsp
                 return STATUS_BAD_LOCALE;
 
             // Allocate buffer
-            vBuffer     = malloc(sizeof(WCHAR) * DATA_BUFSIZE);
-            if (vBuffer == NULL)
+            uint8_t *buf= reinterpret_cast<uint8_t *>(::malloc(
+                        sizeof(lsp_utf16_t) * DATA_BUFSIZE * 2
+                    );
+            if (buf == NULL)
                 return STATUS_NO_MEM;
 
-            pBufHead    = vBuffer;
-            pBufTail    = vBuffer;
-            nCodePage   = cp;
+            cBuffer         = reinterpret_cast<lsp_utf16_t *>(buf);
+            cBufHead        = cBuffer;
+            cBufTail        = cBuffer;
 #else
             if (hIconv != iconv_t(-1))
                 return STATUS_BAD_STATE;
@@ -67,13 +70,17 @@ namespace lsp
         {
 #if defined(PLATFORM_WINDOWS)
             nCodePage   = UINT(-1);
-            if (vBuffer != NULL)
+            if (bBuffer != NULL)
             {
-                free(vBuffer);
+                free(bBuffer);
 
-                vBuffer     = NULL;
-                pBufHead    = NULL;
-                pBufTail    = NULL;
+                bBuffer     = NULL;
+                bBufHead    = NULL;
+                bBufTail    = NULL;
+
+                cBuffer     = NULL;
+                cBufHead    = NULL;
+                cBufTail    = NULL;
             }
 #else
             if (hIconv != iconv_t(-1))
@@ -84,14 +91,14 @@ namespace lsp
 #endif /* PLATFORM_WINDOWS */
         }
 
-        ssize_t CharsetDecoder::decode(lsp_wchar_t **outbuf, size_t *outleft, const void **inbuf, size_t *inleft)
+        ssize_t CharsetDecoder::decode(lsp_wchar_t **outbuf, size_t *outleft, void **inbuf, size_t *inleft)
         {
             size_t nconv;
 
 #if defined(PLATFORM_WINDOWS)
             lsp_utf32_t cp;
 
-            const CHAR *xinbuf  = reinterpret_cast<const CHAR *>(*inbuf);
+            CHAR *xinbuf        = reinterpret_cast<CHAR *>(*inbuf);
             lsp_wchar_t *xoutbuf= *outbuf;
             size_t xinleft      = *inleft;
             size_t xoutleft     = *outleft;
@@ -99,77 +106,66 @@ namespace lsp
 
             while (xoutleft > 0)
             {
-                size_t nbuf     = pBufTail - pBufHead;
-                cp              = read_utf16_streaming(pBufTail, &nbuf, false);
-
-                if (cp == LSP_UTF32_EOF)
+                // Is there a data in wchar_t buffer?
+                size_t nbuf     = cBufTail - cBufHead;
+                if (nbuf > 0)
                 {
-                    // Move the buffer data from the tail to the head (if there is one)
-                    if (nbuf > 0)
-                    {
-                        ::memmove(vBuffer, pBufHead, nbuf * sizeof(WCHAR));
-                        pBufHead    = vBuffer;
-                        pBufTail    = &vBuffer[nbuf];
-                    }
-
-                    // Fill the rest space with converted UTF-16 data
-                    // Each input character can take up to 2 UTF-16 characters, prevent from buffer overflows
-                    // We can manipulate only with input buffer size because otherwise we will
-                    // get a conversion error from dump MultiByteToWideChar routine
-                    size_t amount   = nbuf >> 2;
-                    if (amount > xinleft)
-                        amount          = xinleft;
-                    if (amount <= 0)
+                    size_t nsrc = nbuf;
+                    nbuf        = utf16_to_utf32(xoutbuf, &xoutleft, cBufHead, &nsrc);
+                    if (nbuf <= 0)
                         break;
 
-                    ssize_t nchars  = MultiByteToWideChar(nCodePage, 0,
-                            xinbuf, amount,
-                            pBufTail, vBuffer + DATA_BUFSIZE - pBufTail);
-                    if (nchars == 0)
-                    {
-                        if (nconv > 0)
-                            break;
-                        switch (GetLastError())
-                        {
-                            case ERROR_INSUFFICIENT_BUFFER:
-                                return -STATUS_NO_MEM;
-                            case ERROR_INVALID_FLAGS:
-                            case ERROR_INVALID_PARAMETER:
-                                return -STATUS_BAD_STATE;
-                            case ERROR_NO_UNICODE_TRANSLATION:
-                                return -STATUS_BAD_LOCALE;
-                            default:
-                                return -STATUS_UNKNOWN_ERR;
-                        }
-                    }
-
-                    // If function meets invalid sequence, it replaces the code point with such magic value
-                    // We should know if function has failed
-                    if (pBufTail[nchars-1] == 0xfffd)
-                        --nchars;
-
-                    // Estimate number of bytes decoded (yep, this is dumb but no way...)
-                    ssize_t nbytes  = WideCharToMultiByte(nCodePage, 0, pBufTail, nchars, NULL, 0, 0, 0);
-                    if (nbytes <= 0)
-                    {
-                        if (nconv > 0)
-                            break;
-                        return -STATUS_IO_ERROR;
-                    }
-
-                    // Update pointers and data
-                    pBufTail       += nchars;
-                    xinbuf         += nbytes;
-                    xinleft        -= nbytes;
+                    nconv          += nbuf;
+                    xoutbuf        += nbuf;
+                    cBufHead       += nbuf;
+                    continue;
                 }
-                else
+
+                // Fill the rest space with converted UTF-16 data
+                // Each input character can take up to 2 UTF-16 characters, prevent from buffer overflows
+                // We can manipulate only with input buffer size because otherwise we will
+                // get a conversion error from dump MultiByteToWideChar routine
+                // character buffer is guaranteed to be empty
+                size_t xinamount    = (xinleft > DATA_BUFSIZE) ? DATA_BUFSIZE : xinleft;
+
+                ssize_t nchars  = MultiByteToWideChar(nCodePage, 0, xinbuf, xinamount, cBuffer, DATA_BUFSIZE);
+                if (nchars == 0)
                 {
-                    // Store the code point to the output buffer
-                    pBufHead        = &vBuffer[nbuf];
-                    xoutleft       -= 1;
-                    *(xoutbuf++)    = cp;
-                    nconv          += 1;
+                    if (nconv > 0)
+                        break;
+                    switch (GetLastError())
+                    {
+                        case ERROR_INSUFFICIENT_BUFFER:
+                            return -STATUS_NO_MEM;
+                        case ERROR_INVALID_FLAGS:
+                        case ERROR_INVALID_PARAMETER:
+                            return -STATUS_BAD_STATE;
+                        case ERROR_NO_UNICODE_TRANSLATION:
+                            return -STATUS_BAD_LOCALE;
+                        default:
+                            return -STATUS_UNKNOWN_ERR;
+                    }
                 }
+
+                // If function meets invalid sequence, it replaces the code point with such magic value
+                // We should know if function has failed
+                if (pBufTail[nchars-1] == 0xfffd)
+                    --nchars;
+
+                // Estimate number of bytes decoded (yep, this is dumb but no way...)
+                ssize_t nbytes  = WideCharToMultiByte(nCodePage, 0, cBuffer, nchars, NULL, 0, 0, 0);
+                if (nbytes <= 0)
+                {
+                    if (nconv > 0)
+                        break;
+                    return -STATUS_IO_ERROR;
+                }
+
+                // Update pointers and data
+                cBufHead        = cBuffer;
+                cBufTail        = &cBuffer[nchars];
+                xinbuf         += nbytes;
+                xinleft        -= nbytes;
             }
 
             // Update pointers and values
@@ -178,7 +174,7 @@ namespace lsp
             *inbuf              = reinterpret_cast<const void *>(xinbuf);
             *inleft             = xinleft;
 #else
-            char *xinbuf        = const_cast<char *>(reinterpret_cast<const char *>(*inbuf));
+            char *xinbuf        = reinterpret_cast<char *>(*inbuf);
             char *xoutbuf       = reinterpret_cast<char *>(*outbuf);
             size_t xinleft      = *inleft;
             size_t xoutleft     = *outleft * sizeof(lsp_wchar_t);
@@ -201,7 +197,7 @@ namespace lsp
             // Update pointers and values
             *outbuf             = reinterpret_cast<lsp_wchar_t *>(xoutbuf);
             *outleft            = xoutleft / sizeof(lsp_wchar_t);
-            *inbuf              = reinterpret_cast<const void *>(xinbuf);
+            *inbuf              = reinterpret_cast<void *>(xinbuf);
             *inleft             = xinleft;
 #endif /* PLATFORM_WINDOWS */
 
