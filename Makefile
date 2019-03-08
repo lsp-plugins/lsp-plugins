@@ -11,9 +11,9 @@ RELEASE_SCRIPTS         = scripts/bash scripts/make
 INSTALL                 = install
 
 # Installation locations
-BIN_PATH                = $(PREFIX)/bin
-LIB_PATH                = $(PREFIX)/lib
-DOC_PATH                = $(PREFIX)/share/doc
+BIN_PATH                ?= $(PREFIX)/bin
+LIB_PATH                ?= $(PREFIX)/lib
+DOC_PATH                ?= $(PREFIX)/share/doc
 LADSPA_PATH             = $(LIB_PATH)/ladspa
 LV2_PATH                = $(LIB_PATH)/lv2
 VST_PATH                = $(LIB_PATH)/vst
