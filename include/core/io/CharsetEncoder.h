@@ -63,7 +63,7 @@ namespace lsp
                  * @param inleft
                  * @return
                  */
-                ssize_t     encode(void **outbuf, size_t *outleft, const lsp_wchar_t **inbuf, size_t *inleft);
+                ssize_t     encode(void **outbuf, size_t *outleft, lsp_wchar_t **inbuf, size_t *inleft);
         };
     
     } /* namespace io */

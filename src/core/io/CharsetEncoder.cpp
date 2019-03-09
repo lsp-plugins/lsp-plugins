@@ -102,7 +102,7 @@ namespace lsp
 #endif /* PLATFORM_WINDOWS */
         }
 
-        ssize_t CharsetEncoder::encode(void **outbuf, size_t *outleft, const lsp_wchar_t **inbuf, size_t *inleft)
+        ssize_t CharsetEncoder::encode(void **outbuf, size_t *outleft, lsp_wchar_t **inbuf, size_t *inleft)
         {
             size_t nconv;
 #if defined(PLATFORM_WINDOWS)
@@ -179,7 +179,7 @@ namespace lsp
             *inbuf              = reinterpret_cast<lsp_wchar_t *>(xinbuf);
             *inleft             = xinleft;
 #else
-            char *xinbuf        = const_cast<char *>(reinterpret_cast<const char *>(*inbuf));
+            char *xinbuf        = reinterpret_cast<char *>(*inbuf);
             char *xoutbuf       = reinterpret_cast<char *>(*outbuf);
             size_t xinleft      = *inleft * sizeof(lsp_wchar_t);
             size_t xoutleft     = *outleft;
