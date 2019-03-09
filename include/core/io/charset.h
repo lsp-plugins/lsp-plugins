@@ -37,7 +37,7 @@ namespace lsp
      * @param ndst number of bytes in destination buffer
      * @return number of characters converted or negative error code
      */
-    ssize_t multibyte_to_widechar(UINT cp, LPCCH src, size_t nsrc, LPWSTR dst, size_t ndst);
+    ssize_t multibyte_to_widechar(size_t cp, LPCCH src, size_t *nsrc, LPWSTR dst, size_t *ndst);
 
 #else
 
@@ -63,7 +63,12 @@ namespace lsp
      * @param force process data as there will be no future data on the input
      * @return parsed code point or LSP_UTF32_EOF as end of sequence
      */
-    lsp_utf32_t     read_utf16_streaming(const lsp_utf16_t **str, size_t *nsrc, bool force);
+    lsp_utf32_t         read_utf16le_streaming(const lsp_utf16_t **str, size_t *nsrc, bool force);
+    lsp_utf32_t         read_utf16be_streaming(const lsp_utf16_t **str, size_t *nsrc, bool force);
+    inline lsp_utf32_t  read_utf16_streaming(const lsp_utf16_t **str, size_t *nsrc, bool force)
+    {
+        return __IF_LEBE(read_utf16le_streaming, read_utf16be_streaming)(str, nsrc, force);
+    }
 
     /**
      * Read UTF-16 codepoint from the NULL-terminated UTF-8 string, replace invalid

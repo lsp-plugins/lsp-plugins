@@ -45,7 +45,7 @@ namespace lsp
 
             // Allocate buffer
             uint8_t *buf= reinterpret_cast<uint8_t *>(::malloc(
-                        sizeof(lsp_utf16_t) * DATA_BUFSIZE * 4
+                        sizeof(lsp_utf16_t) * DATA_BUFSIZE * 2
                     ));
             if (buf == NULL)
                 return STATUS_NO_MEM;
@@ -123,34 +123,23 @@ namespace lsp
                 // get a conversion error from dump MultiByteToWideChar routine
                 // character buffer is guaranteed to be empty
                 size_t xinamount    = (xinleft > DATA_BUFSIZE) ? DATA_BUFSIZE : xinleft;
+                size_t bufcw        = DATA_BUFSIZE*2;
+                size_t xincw        = xinamount;
 
-                ssize_t nchars      = multibyte_to_widechar(nCodePage, xinbuf, xinamount, cBuffer, DATA_BUFSIZE*4);
+                ssize_t nchars      = multibyte_to_widechar(nCodePage, xinbuf, &xincw, cBuffer, &bufcw);
                 if (nchars <= 0)
                 {
-                    if (nconv > 0)
-                        break;
-                    return nchars;
-                }
-
-                // If function meets invalid sequence, it replaces the code point with such magic value
-                // We should know if function has failed
-                if (cBuffer[nchars-1] == 0xfffd)
-                    --nchars;
-
-                // Estimate number of bytes decoded (yep, this is dumb but no way...)
-                ssize_t nbytes  = WideCharToMultiByte(nCodePage, 0, cBuffer, nchars, NULL, 0, 0, 0);
-                if (nbytes <= 0)
-                {
-                    if (nconv > 0)
-                        break;
-                    return -STATUS_IO_ERROR;
+                    if (nconv <= 0)
+                        return nchars;
+                    break;
                 }
 
                 // Update pointers and data
+                xinamount      -= xincw;
                 cBufHead        = cBuffer;
                 cBufTail        = &cBuffer[nchars];
-                xinbuf         += nbytes;
-                xinleft        -= nbytes;
+                xinbuf         += xinamount;
+                xinleft        -= xinamount;
             }
 
             // Update pointers and values
