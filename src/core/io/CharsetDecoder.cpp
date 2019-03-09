@@ -18,11 +18,11 @@ namespace lsp
         CharsetDecoder::CharsetDecoder()
         {
 #if defined(PLATFORM_WINDOWS)
-            nCodePage       = UINT(-1);
-
             cBuffer         = NULL;
             cBufHead        = NULL;
             cBufTail        = NULL;
+
+            nCodePage       = UINT(-1);
 #else
             hIconv          = iconv_t(-1);
 #endif /* PLATFORM_WINDOWS */
@@ -45,14 +45,15 @@ namespace lsp
 
             // Allocate buffer
             uint8_t *buf= reinterpret_cast<uint8_t *>(::malloc(
-                        sizeof(lsp_utf16_t) * DATA_BUFSIZE * 2
-                    );
+                        sizeof(lsp_utf16_t) * DATA_BUFSIZE * 4
+                    ));
             if (buf == NULL)
                 return STATUS_NO_MEM;
 
             cBuffer         = reinterpret_cast<lsp_utf16_t *>(buf);
             cBufHead        = cBuffer;
             cBufTail        = cBuffer;
+            nCodePage       = cp;
 #else
             if (hIconv != iconv_t(-1))
                 return STATUS_BAD_STATE;
@@ -69,19 +70,16 @@ namespace lsp
         void CharsetDecoder::close()
         {
 #if defined(PLATFORM_WINDOWS)
-            nCodePage   = UINT(-1);
-            if (bBuffer != NULL)
+            if (cBuffer != NULL)
             {
-                free(bBuffer);
-
-                bBuffer     = NULL;
-                bBufHead    = NULL;
-                bBufTail    = NULL;
+                free(cBuffer);
 
                 cBuffer     = NULL;
                 cBufHead    = NULL;
                 cBufTail    = NULL;
             }
+
+            nCodePage   = UINT(-1);
 #else
             if (hIconv != iconv_t(-1))
             {
@@ -96,8 +94,6 @@ namespace lsp
             size_t nconv;
 
 #if defined(PLATFORM_WINDOWS)
-            lsp_utf32_t cp;
-
             CHAR *xinbuf        = reinterpret_cast<CHAR *>(*inbuf);
             lsp_wchar_t *xoutbuf= *outbuf;
             size_t xinleft      = *inleft;
@@ -111,7 +107,7 @@ namespace lsp
                 if (nbuf > 0)
                 {
                     size_t nsrc = nbuf;
-                    nbuf        = utf16_to_utf32(xoutbuf, &xoutleft, cBufHead, &nsrc);
+                    nbuf        = utf16_to_utf32(xoutbuf, &xoutleft, cBufHead, &nsrc, false);
                     if (nbuf <= 0)
                         break;
 
@@ -128,28 +124,17 @@ namespace lsp
                 // character buffer is guaranteed to be empty
                 size_t xinamount    = (xinleft > DATA_BUFSIZE) ? DATA_BUFSIZE : xinleft;
 
-                ssize_t nchars  = MultiByteToWideChar(nCodePage, 0, xinbuf, xinamount, cBuffer, DATA_BUFSIZE);
-                if (nchars == 0)
+                ssize_t nchars      = multibyte_to_widechar(nCodePage, xinbuf, xinamount, cBuffer, DATA_BUFSIZE*4);
+                if (nchars <= 0)
                 {
                     if (nconv > 0)
                         break;
-                    switch (GetLastError())
-                    {
-                        case ERROR_INSUFFICIENT_BUFFER:
-                            return -STATUS_NO_MEM;
-                        case ERROR_INVALID_FLAGS:
-                        case ERROR_INVALID_PARAMETER:
-                            return -STATUS_BAD_STATE;
-                        case ERROR_NO_UNICODE_TRANSLATION:
-                            return -STATUS_BAD_LOCALE;
-                        default:
-                            return -STATUS_UNKNOWN_ERR;
-                    }
+                    return nchars;
                 }
 
                 // If function meets invalid sequence, it replaces the code point with such magic value
                 // We should know if function has failed
-                if (pBufTail[nchars-1] == 0xfffd)
+                if (cBuffer[nchars-1] == 0xfffd)
                     --nchars;
 
                 // Estimate number of bytes decoded (yep, this is dumb but no way...)
@@ -171,7 +156,7 @@ namespace lsp
             // Update pointers and values
             *outbuf             = xoutbuf;
             *outleft            = xoutleft;
-            *inbuf              = reinterpret_cast<const void *>(xinbuf);
+            *inbuf              = reinterpret_cast<void *>(xinbuf);
             *inleft             = xinleft;
 #else
             char *xinbuf        = reinterpret_cast<char *>(*inbuf);

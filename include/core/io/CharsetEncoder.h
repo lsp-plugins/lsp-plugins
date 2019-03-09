@@ -22,9 +22,9 @@ namespace lsp
         {
             protected:
 #if defined(PLATFORM_WINDOWS)
-                uint8_t        *bBuffer;        // Byte buffer
-                uint8_t        *bBufHead;       // Byte buffer head
-                uint8_t        *bBufTail;       // Byte buffer tail
+                CHAR           *bBuffer;        // Byte buffer
+                CHAR           *bBufHead;       // Byte buffer head
+                CHAR           *bBufTail;       // Byte buffer tail
 
                 lsp_utf16_t    *cBuffer;        // Temporary buffer for storing UTF-16 code points
                 lsp_utf16_t    *cBufHead;       // Head of buffer

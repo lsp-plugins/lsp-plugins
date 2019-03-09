@@ -25,6 +25,8 @@ namespace lsp
                 lsp_utf16_t    *cBuffer;        // Temporary buffer for storing UTF-16 code points
                 lsp_utf16_t    *cBufHead;       // Head of buffer
                 lsp_utf16_t    *cBufTail;       // End of buffer
+
+                UINT            nCodePage;      // Code page
 #else
                 iconv_t         hIconv;         // iconv handle
 #endif /* PLATFORM_WINDOWS */

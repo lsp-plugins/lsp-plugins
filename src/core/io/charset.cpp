@@ -1197,7 +1197,7 @@ namespace lsp
         return processed;
     }
 
-    size_t utf32_to_utf8(lsp_utf16_t *dst, size_t *ndst, const lsp_utf32_t *src, size_t *nsrc, bool force)
+    size_t utf32_to_utf16(lsp_utf16_t *dst, size_t *ndst, const lsp_utf32_t *src, size_t *nsrc, bool force)
     {
         lsp_utf32_t cp;
         size_t processed = 0;
@@ -1223,4 +1223,47 @@ namespace lsp
 
         return processed;
     }
+
+#if defined(PLATFORM_WINDOWS)
+    ssize_t multibyte_to_widechar(UINT cp, LPCCH src, size_t nsrc, LPWSTR dst, size_t ndst)
+    {
+        ssize_t nconv = 0;
+
+        switch (cp)
+        {
+            case 1200:  // UTF-16LE
+                // TODO
+                break;
+            case 1201:  // UTF-16BE
+                // TODO
+                break;
+            case 12000: // UTF-32LE
+                // TODO
+                break;
+            case 12001: // UTF-32BE
+                // TODO
+                break;
+            default:
+                nconv = ::MultiByteToWideChar(cp, 0, src, nsrc, dst, ndst);
+                if (nconv == 0)
+                {
+                    switch (GetLastError())
+                    {
+                        case ERROR_INSUFFICIENT_BUFFER:
+                            return -STATUS_NO_MEM;
+                        case ERROR_INVALID_FLAGS:
+                        case ERROR_INVALID_PARAMETER:
+                            return -STATUS_BAD_STATE;
+                        case ERROR_NO_UNICODE_TRANSLATION:
+                            return -STATUS_BAD_LOCALE;
+                        default:
+                            return -STATUS_UNKNOWN_ERR;
+                    }
+                }
+                break;
+        }
+
+        return nconv;
+    }
+#endif /* PLATFORM_WINDOWS */
 }

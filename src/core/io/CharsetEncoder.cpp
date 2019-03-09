@@ -51,11 +51,11 @@ namespace lsp
             uint8_t *buf= reinterpret_cast<uint8_t *>(::malloc(
                         sizeof(lsp_utf16_t) * DATA_BUFSIZE +
                         sizeof(lsp_utf32_t) * DATA_BUFSIZE
-                    );
+                    ));
             if (buf == NULL)
                 return STATUS_NO_MEM;
 
-            bBuffer         = buf;
+            bBuffer         = reinterpret_cast<CHAR *>(buf);
             bBufHead        = bBuffer;
             bBufTail        = bBuffer;
 
@@ -106,8 +106,8 @@ namespace lsp
         {
             size_t nconv;
 #if defined(PLATFORM_WINDOWS)
-            const lsp_wchar_t *xinbuf    = *inbuf;
-            uint8_t *xoutbuf    = reinterpret_cast<uint8_t *>(*outbuf);
+            lsp_wchar_t *xinbuf = *inbuf;
+            CHAR *xoutbuf       = reinterpret_cast<CHAR *>(*outbuf);
             size_t xinleft      = *inleft;
             size_t xoutleft     = *outleft;
 
@@ -134,7 +134,11 @@ namespace lsp
                 if (nbuf > 0)
                 {
                     // Perform UTF-16 -> native encoding
-                    size_t bytes    = WideCharToMultiByte(nCodePage, 0, bBuffer, DATA_BUFSIZE*sizeof(lsp_wchar_t), cBufHead, nbuf, 0, FALSE);
+                    size_t bytes    = WideCharToMultiByte(
+                            nCodePage, 0,
+                            cBufHead, nbuf,
+                            bBuffer, DATA_BUFSIZE*sizeof(lsp_wchar_t),
+                            0, FALSE);
                     if (bytes == 0)
                     {
                         if (nconv > 0)
@@ -163,7 +167,7 @@ namespace lsp
                 // Perform UTF-32 -> UTF-16 encoding
                 // Character and byte buffers are guaranteed to be empty
                 size_t ndst = DATA_BUFSIZE;
-                nbuf        = utf32_to_utf16(cBuffer, &ndst, inbuf, &xinleft, false);
+                nbuf        = utf32_to_utf16(cBuffer, &ndst, xinbuf, &xinleft, false);
                 if (nbuf <= 0)
                     break;
 
@@ -172,6 +176,7 @@ namespace lsp
                 bBufTail    = bBuffer;
                 cBufHead    = cBuffer;
                 cBufTail    = &cBuffer[DATA_BUFSIZE - ndst];
+                xinbuf     += nbuf;
             }
 
             *outbuf             = xoutbuf;

@@ -27,6 +27,18 @@ namespace lsp
 
     ssize_t codepage_from_name(const char *charset);
 
+    /**
+     * This is a MultiByteToWideChar wrapping function that handles additional cases
+     * for non-MBCS encodings
+     * @param cp code page
+     * @param src source buffer
+     * @param nsrc number of bytes in source buffer
+     * @param dst destination buffer
+     * @param ndst number of bytes in destination buffer
+     * @return number of characters converted or negative error code
+     */
+    ssize_t multibyte_to_widechar(UINT cp, LPCCH src, size_t nsrc, LPWSTR dst, size_t ndst);
+
 #else
 
     iconv_t init_iconv_to_wchar_t(const char *charset);
@@ -191,7 +203,7 @@ namespace lsp
      * @param force force flag that treats the input block as last in the character sequence
      * @return number of processed code points
      */
-    size_t          utf32_to_utf8(lsp_utf16_t *dst, size_t *ndst, const lsp_utf32_t *src, size_t *nsrc, bool force);
+    size_t          utf32_to_utf16(lsp_utf16_t *dst, size_t *ndst, const lsp_utf32_t *src, size_t *nsrc, bool force);
 
 }
 
