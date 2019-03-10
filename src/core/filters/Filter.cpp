@@ -1290,6 +1290,8 @@ namespace lsp
 
                 break;
             }
+            default:
+                return;
         }
 
         biquad_x1_t *f = pBank->add_chain();
