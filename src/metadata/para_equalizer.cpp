@@ -62,7 +62,7 @@ namespace lsp
         "BWC (MT)",
         "LRX (BT)",
         "LRX (MT)",
-        "APO",
+        "APO (DR)",
         NULL
     };
 

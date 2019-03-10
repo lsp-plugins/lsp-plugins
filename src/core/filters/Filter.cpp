@@ -10,6 +10,8 @@
 #include <core/debug.h>
 #include <core/filters/Filter.h>
 
+#define MIN_APO_Q   0.1f // Minimum Q for APO cannot be 0
+
 namespace lsp
 {
     Filter::Filter()
@@ -1166,7 +1168,8 @@ namespace lsp
         double omega    = 2.0 * M_PI * fp->fFreq / double(nSampleRate);
         double cs       = sin(omega);
         double cc       = cos(omega); // Have to use trig functions for both to have correct sign
-        double alpha    = (fp->fQuality > 0.0f) ? 0.5 * cs / fp->fQuality : 1e-3; // Cannot afford Q == 0.0f
+        double Q        = (fp->fQuality > MIN_APO_Q) ? fp->fQuality : MIN_APO_Q;
+        double alpha    = 0.5 * cs / Q;
 
         // In LSP convention, the b coefficients are in the denominator. The a coefficients are in the
         // numerator. This is opposite to the most usual convention.

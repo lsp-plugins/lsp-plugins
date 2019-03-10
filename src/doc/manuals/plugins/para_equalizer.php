@@ -24,6 +24,7 @@
 	</li>
 	<li><b>Matched Z Transform (MT) filters</b> are probably the best choice when cutting out individual short range of frequencies.</li>
 	<li><b>Bilinear Transform (BT) filters</b> are good when cutting-out high frequencies because they have -INF dB amplification at the Nyquist frequency.</li>
+    <li><b>Direct Design (DR) filters</b> add alterantive implementations for the various supperted filter types, and may be chosen whenever their frequency response is best suited.</li>
 </ul>
 <p>
 	This plugin performs parametric equalization of <?= $cc ?> channel<?php 
@@ -96,8 +97,10 @@
 		<li><b>RLC</b> - Very smooth filters based on similar cascades of RLC contours.</li>
 		<li><b>BWC</b> - Butterworth-Chebyshev-type-1 based filters. Does not affect <b>Resonance</b> and <b>Notch</b> filters.</li>
 		<li><b>LRX</b> - Linkwitz-Riley based filters. Does not affect <b>Resonance</b> and <b>Notch</b> filters.</li>
+        <li><b>APO</b> - Digital biquad filters derived from canonic analog biquad prototypes digitalized through Bilinear transform. These are textbook filters which are implemented as in the EqualizerAPO software.</li>
 		<li><b>BT</b> - Bilinear Z-transform is used for pole/zero mapping.</li>
 		<li><b>MT</b> - Matched Z-transform is used for pole/zero mapping.</li>
+        <li><b>DR</b> - Direct design is used to serve the digital filter coefficients directly in the digital domain, without performing transforms.</li>
 	</ul>
 	<li><b>Slope</b> - the slope of the filter characteristics.</li>
 	<li><b>S</b> - the soloing button, allows to inspect selected filters.</li>
