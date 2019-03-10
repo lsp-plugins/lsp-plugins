@@ -29,7 +29,8 @@ namespace lsp
             {
                 FM_BYPASS,          // Bypass filter
                 FM_BILINEAR,        // Bilinear Z-transform
-                FM_MATCHED          // Matched Z-transform
+                FM_MATCHED,         // Matched Z-transform
+                FM_APO              // APO single biquad filter implementation, based on textbook bilinar transforms
             };
 
             enum filter_flags_t
@@ -53,11 +54,13 @@ namespace lsp
         protected:
 
             void complex_transfer_calc(float *re, float *im, double f);
+            void apo_complex_transfer_calc(float *re, float *im, double f);
             cascade_t *add_cascade();
 
             void calc_rlc_filter(size_t type, const filter_params_t *fp);
             void calc_bwc_filter(size_t type, const filter_params_t *fp);
             void calc_lrx_filter(size_t type, const filter_params_t *fp);
+            void calc_apo_filter(size_t type, const filter_params_t *fp);
             float bilinear_relative(float f1, float f2);
             void bilinear_transform();
             void matched_transform();

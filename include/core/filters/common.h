@@ -78,7 +78,19 @@ namespace lsp
         FLT_BT_LRX_LADDERREJ,
         FLT_MT_LRX_LADDERREJ,
         FLT_BT_LRX_BANDPASS,
-        FLT_MT_LRX_BANDPASS
+        FLT_MT_LRX_BANDPASS,
+
+        // APO (textbook) Style digital biquad filters (DR stands for direct design: coefficient served directly in digital domain)
+        FLT_DR_APO_LOPASS,
+        FLT_DR_APO_HIPASS,
+        FLT_DR_APO_BANDPASS,
+        FLT_DR_APO_NOTCH,
+        FLT_DR_APO_ALLPASS,
+        FLT_DR_APO_PEAKING,
+        FLT_DR_APO_LOSHELF,
+        FLT_DR_APO_HISHELF,
+        FLT_DR_APO_LADDERPASS,
+        FLT_DR_APO_LADDERREJ,
     };
 
     typedef struct filter_params_t
