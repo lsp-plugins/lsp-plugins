@@ -488,7 +488,10 @@ namespace lsp
             virtual ~ui_root_handler()
             {
                 if (pChild != NULL)
+                {
+                    delete pChild;
                     pChild = NULL;
+                }
             }
 
         public:
@@ -518,8 +521,7 @@ namespace lsp
                     }
 
                     // Create handler
-                    pChild = new ui_widget_handler(pBuilder, widget);
-                    return pChild;
+                    return pChild = new ui_widget_handler(pBuilder, widget);
                 }
 
                 lsp_error("expected root tag <%s>", root_tag);

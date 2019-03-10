@@ -39,6 +39,12 @@ namespace lsp
 
         LSPSaveFile::~LSPSaveFile()
         {
+            if (pDisk != NULL)
+            {
+                pDisk->destroy();
+                delete pDisk;
+                pDisk = NULL;
+            }
         }
 
         status_t LSPSaveFile::slot_on_submit(LSPWidget *sender, void *ptr, void *data)

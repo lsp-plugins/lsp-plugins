@@ -88,6 +88,8 @@ namespace lsp
 
         void Font::set(const Font *s)
         {
+            if (sName != NULL)
+                free(sName);
             sName       = (s->sName != NULL) ? strdup(s->sName) : NULL;
             fSize       = s->fSize;
             nFlags      = s->nFlags;

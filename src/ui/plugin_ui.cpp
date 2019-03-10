@@ -108,7 +108,7 @@ namespace lsp
         CtlRegistry::destroy();
 
         // Destroy widgets
-        for (size_t i=0; i<vWidgets.size(); ++i)
+        for (size_t i=0, n=vWidgets.size(); i<n; ++i)
         {
             LSPWidget *widget = vWidgets.at(i);
             if (widget != NULL)
@@ -118,11 +118,11 @@ namespace lsp
             }
         }
 
-        vWidgets.clear();
+        vWidgets.flush();
         pRoot     = NULL;
 
         // Destroy switched ports
-        for (size_t i=0; i<vSwitched.size(); ++i)
+        for (size_t i=0, n=vSwitched.size(); i<n; ++i)
         {
             CtlSwitchedPort *p = vSwitched.at(i);
             if (p != NULL)
@@ -133,7 +133,7 @@ namespace lsp
         }
 
         // Destroy config ports
-        for (size_t i=0; i<vConfigPorts.size(); ++i)
+        for (size_t i=0, n=vConfigPorts.size(); i<n; ++i)
         {
             CtlPort *p = vConfigPorts.at(i);
             if (p != NULL)
@@ -144,7 +144,7 @@ namespace lsp
         }
 
         // Destroy time ports
-        for (size_t i=0; i<vTimePorts.size(); ++i)
+        for (size_t i=0, n=vTimePorts.size(); i<n; ++i)
         {
             CtlPort *p = vTimePorts.at(i);
             if (p != NULL)

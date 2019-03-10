@@ -45,6 +45,7 @@ namespace lsp
                 w->destroy();
                 delete w;
             }
+            vWidgets.flush();
         }
 
         status_t CtlPluginWindow::slot_window_close(LSPWidget *sender, void *ptr, void *data)
@@ -136,6 +137,7 @@ namespace lsp
 
                     LSPMountStud *mstud = new LSPMountStud(dpy);
                     vMStud[0] = mstud;
+                    vWidgets.add(mstud);
                     mstud->init();
                     mstud->set_angle(2);
                     mstud->set_text(buf);
@@ -145,6 +147,7 @@ namespace lsp
 
                     mstud   = new LSPMountStud(dpy);
                     vMStud[1] = mstud;
+                    vWidgets.add(mstud);
                     mstud->init();
                     mstud->set_angle(1);
                     mstud->set_text(LSP_ACRONYM);
@@ -197,6 +200,7 @@ namespace lsp
                     }
 
                     pBox    = new LSPBox(dpy);
+                    vWidgets.add(pBox);
                     pBox->init();
                     pBox->set_expand(true);
                     pBox->set_fill(true);
@@ -205,6 +209,7 @@ namespace lsp
 
                     mstud   = new LSPMountStud(dpy);
                     vMStud[2] = mstud;
+                    vWidgets.add(mstud);
                     mstud->init();
                     mstud->set_angle(0);
                     mstud->set_text(meta->acronym);
