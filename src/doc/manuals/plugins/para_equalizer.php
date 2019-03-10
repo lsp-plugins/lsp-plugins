@@ -97,7 +97,9 @@
 		<li><b>RLC</b> - Very smooth filters based on similar cascades of RLC contours.</li>
 		<li><b>BWC</b> - Butterworth-Chebyshev-type-1 based filters. Does not affect <b>Resonance</b> and <b>Notch</b> filters.</li>
 		<li><b>LRX</b> - Linkwitz-Riley based filters. Does not affect <b>Resonance</b> and <b>Notch</b> filters.</li>
-        <li><b>APO</b> - Digital biquad filters derived from canonic analog biquad prototypes digitalized through Bilinear transform. These are textbook filters which are implemented as in the EqualizerAPO software.</li>
+        <li><b>APO</b> - Digital biquad filters derived from canonic analog biquad prototypes digitalized through
+        				Bilinear transform. These are <a href="https://shepazu.github.io/Audio-EQ-Cookbook/audio-eq-cookbook.html">textbook filters</a> 
+        				which are implemented as in the <a href="https://equalizerapo.com/">EqualizerAPO</a> software.</li>
 		<li><b>BT</b> - Bilinear Z-transform is used for pole/zero mapping.</li>
 		<li><b>MT</b> - Matched Z-transform is used for pole/zero mapping.</li>
         <li><b>DR</b> - Direct design is used to serve the digital filter coefficients directly in the digital domain, without performing transforms.</li>
