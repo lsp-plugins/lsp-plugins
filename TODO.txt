@@ -24,6 +24,7 @@
 * Multiband compressor now properly handles the 'Bypass' button.
 * Fixed return of improper extension pointers when requested extension is different to
   the ui:idleInterface.
+* Fixed bug in dynamic processor plugin that could issue invalid metering values.
 - Implemented 3D reverb simulator.
 - Implemented sampler plugin series with stereo outputs
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.

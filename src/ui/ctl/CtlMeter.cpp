@@ -422,7 +422,9 @@ namespace lsp
             // Now we are able to format values
             char buf[40];
 
-            if (avalue < 10.0f)
+            if (isnan(avalue))
+                strcpy(buf, "nan");
+            else if (avalue < 10.0f)
                 snprintf(buf, sizeof(buf), "%.2f", value);
             else if (avalue < 100.0f)
                 snprintf(buf, sizeof(buf), "%.1f", value);
