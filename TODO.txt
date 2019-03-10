@@ -24,6 +24,10 @@
 * Multiband compressor now properly handles the 'Bypass' button.
 * Fixed return of improper extension pointers when requested extension is different to
   the ui:idleInterface.
+* Fixed bug in dynamic processor plugin that could issue invalid metering values.
+* Fixed UI size issue for VST plugins in Cockos Reaper.
+* Fixed numerous memory leakage issues in UI components.
+* Fixed spontaneous crashes when destroying the Profiler Mono/Stereo plugin.
 - Implemented 3D reverb simulator.
 - Implemented sampler plugin series with stereo outputs
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.

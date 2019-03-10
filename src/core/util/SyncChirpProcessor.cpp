@@ -180,6 +180,7 @@ namespace lsp
 
         if (pConvResult != NULL)
         {
+            pConvResult->destroy();
             delete pConvResult;
             pConvResult = NULL;
         }
