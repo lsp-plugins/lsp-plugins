@@ -766,7 +766,7 @@ namespace lsp
     {
         lsp_utf16_t *dst = *str;
         if (cp < 0x10000)
-            *(dst++)        = cp;
+            *(dst++)        = CPU_TO_LE(lsp_utf16_t(cp));
         else
         {
             cp     -= 0x10000;
@@ -781,7 +781,7 @@ namespace lsp
     {
         lsp_utf16_t *dst = *str;
         if (cp < 0x10000)
-            *(dst++)        = cp;
+            *(dst++)        = CPU_TO_BE(lsp_utf16_t(cp));
         else
         {
             cp     -= 0x10000;

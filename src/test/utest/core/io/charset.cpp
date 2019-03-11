@@ -7,23 +7,18 @@
 
 #include <core/types.h>
 #include <test/utest.h>
+#include <dsp/endian.h>
 
 #include <core/io/charset.h>
 
 // This strlen does not analyze surrogate pairs
-static size_t utf16_strlen(const lsp_utf16_t *s)
-{
-    size_t n = 0;
-    for (; *s != 0; ++s, ++n) {}
-    return n;
-}
-
-static size_t utf32_strlen(const lsp_utf32_t *s)
-{
-    size_t n = 0;
-    for (; *s != 0; ++s, ++n) {}
-    return n;
-}
+template <class char_t>
+    static size_t strlen_test(const char_t *s)
+    {
+        size_t n = 0;
+        for (; *s != 0; ++s, ++n) {}
+        return n;
+    }
 
 static size_t utf16_count_invalid(const lsp_utf16_t *s)
 {
@@ -57,6 +52,71 @@ static size_t utf8_count_invalid(const char *s)
     }
     return n;
 }
+
+template <class char_t>
+    static char_t *strdup_bswap(const char_t *src, bool le)
+    {
+        // Estimate string length
+        size_t len = 0;
+        for (const char_t *p = src; *p != 0; ++p)
+            ++len;
+
+        // Allocate memory
+        char_t *dst = reinterpret_cast<char_t *>(::malloc(sizeof(char_t) * (len + 1)));
+        if (dst == NULL)
+            return NULL;
+
+        // Do byte-reversed copy (if required)
+        bool swap = __IF_LEBE(!le, le);
+        char_t *p = dst;
+
+        if (swap)
+        {
+            while (*src != 0)
+                *(p++) = byte_swap(*(src++));
+        }
+        else
+        {
+            while (*src != 0)
+            *(p++) = *(src++);
+        }
+        *p = 0;
+
+        return dst;
+    }
+
+template <class char_t>
+    static ssize_t strcmp_test(const char_t *s1, const char_t *s2)
+    {
+        ssize_t diff;
+        do {
+            diff = ssize_t(*s1) - ssize_t(*s2);
+        } while ((diff == 0) && (*(s1++) != 0) && (*(s2++) != 0));
+
+        return diff;
+    }
+
+template <class char_t>
+    static ssize_t strcmp_bswap(const char_t *s1, const char_t *s2, bool le)
+    {
+        ssize_t diff;
+
+        bool swap = __IF_LEBE(!le, le);
+        if (swap)
+        {
+            do {
+                diff = ssize_t(*s1) - ssize_t(byte_swap(*s2));
+            } while ((diff == 0) && (*(s1++) != 0) && (*(s2++) != 0));
+        }
+        else
+        {
+            do {
+                diff = ssize_t(*s1) - ssize_t(*s2);
+            } while ((diff == 0) && (*(s1++) != 0) && (*(s2++) != 0));
+        }
+
+        return diff;
+    }
 
 typedef struct utf8_check_t
 {
@@ -151,81 +211,169 @@ static utf16_check_t utf16_check[] =
 
 UTEST_BEGIN("core.io", charset)
 
-    void check_utf8_to_utf16()
+    void check_utf8_to_utfX()
     {
-        lsp_utf16_t *s = NULL;
-        lsp_utf32_t *s32 = NULL;
+        lsp_utf16_t *s_na = NULL, *s_le = NULL, *s_be = NULL;
+        lsp_utf32_t *s32_na = NULL, *s32_le = NULL, *s32_be = NULL;
         size_t len;
 
-        printf("Testing check_utf8_to_utf16\n");
+        printf("Testing check_utf8_to_utfX\n");
 
         for (size_t i=0, n=sizeof(utf8_check)/sizeof(utf8_check_t); i<n; ++i)
         {
+            printf("  checking test line %d...\n", int(i));
+
             utf8_check_t *ck = &utf8_check[i];
 
             // UTF8 -> UTF16
-            s   = lsp::utf8_to_utf16(ck->s);
-            UTEST_ASSERT(s != NULL);
-            UTEST_ASSERT_MSG(((len = utf16_strlen(s)) == ck->u16strlen),
+            s_na   = lsp::utf8_to_utf16(ck->s);
+            s_le   = lsp::utf8_to_utf16le(ck->s);
+            s_be   = lsp::utf8_to_utf16be(ck->s);
+
+            UTEST_ASSERT(s_na != NULL);
+            UTEST_ASSERT(s_le != NULL);
+            UTEST_ASSERT(s_be != NULL);
+
+            UTEST_ASSERT_MSG(((len = strlen_test(s_na)) == ck->u16strlen),
                     "Error checking line %d: utf16_strlen=%d, expected=%d",
                     int(i), int(len), int(ck->u16strlen));
-            UTEST_ASSERT_MSG(((len = utf16_count_invalid(s)) == ck->invalid),
+            UTEST_ASSERT_MSG(((len = utf16_count_invalid(s_na)) == ck->invalid),
                     "Error checking line %d: utf16_count_invalid=%d, expected=%d",
                     int(i), int(len), int(ck->invalid));
-            free(s);
+
+            UTEST_ASSERT(strcmp_bswap(s_na, s_le, true) == 0);
+            UTEST_ASSERT(strcmp_bswap(s_na, s_be, false) == 0);
+            if (len > 0)
+                UTEST_ASSERT(strcmp_test(s_le, s_be) != 0);
+
+            free(s_na);
 
             // UTF8 -> UTF32
-            s32 = lsp::utf8_to_utf32(ck->s);
-            UTEST_ASSERT(s32 != NULL);
-            UTEST_ASSERT_MSG(((len = utf32_strlen(s32)) == ck->u32strlen),
+            s32_na = lsp::utf8_to_utf32(ck->s);
+            s32_le = lsp::utf8_to_utf32le(ck->s);
+            s32_be = lsp::utf8_to_utf32be(ck->s);
+
+            UTEST_ASSERT(s32_na != NULL);
+            UTEST_ASSERT(s32_le != NULL);
+            UTEST_ASSERT(s32_be != NULL);
+
+            UTEST_ASSERT_MSG(((len = strlen_test(s32_na)) == ck->u32strlen),
                     "Error checking line %d: utf32_strlen=%d, expected=%d",
                     int(i), int(len), int(ck->u32strlen));
-            UTEST_ASSERT_MSG(((len = utf32_count_invalid(s32)) == ck->invalid),
+            UTEST_ASSERT_MSG(((len = utf32_count_invalid(s32_na)) == ck->invalid),
                     "Error checking line %d: utf32_count_invalid=%d, expected=%d",
                     int(i), int(len), int(ck->invalid));
-            free(s32);
+
+            UTEST_ASSERT(strcmp_bswap(s32_na, s32_le, true) == 0);
+            UTEST_ASSERT(strcmp_bswap(s32_na, s32_be, false) == 0);
+            if (len > 0)
+                UTEST_ASSERT(strcmp_test(s32_le, s32_be) != 0);
+
+            free(s32_na);
         }
     }
 
-    void check_utf16_to_utf8()
+    void check_utf16_to_utfX()
     {
-        char *s = NULL;
-        lsp_utf32_t *s32 = NULL;
+        lsp_utf16_t *le = NULL, *be = NULL;
+        const lsp_utf16_t *na = NULL;
+        char *s_na = NULL, *s_le = NULL, *s_be = NULL;
+        lsp_utf32_t *s32[9];
         size_t len;
-        printf("Testing check_utf16_to_utf8\n");
+        printf("Testing check_utf16_to_utfX\n");
 
         for (size_t i=0, n=sizeof(utf16_check)/sizeof(utf16_check_t); i<n; ++i)
         {
+            printf("  checking test line %d...\n", int(i));
+
             utf16_check_t *ck = &utf16_check[i];
 
+            // Obtain native string and it's LE and BE copies
+            na  = reinterpret_cast<const lsp_utf16_t *>(ck->s);
+            le  = strdup_bswap(ck->s, true);
+            be  = strdup_bswap(ck->s, false);
+
+            len = strlen_test(na);
+            UTEST_ASSERT(le != NULL);
+            UTEST_ASSERT(be != NULL);
+            if (len > 0)
+                UTEST_ASSERT(strcmp_test(le, be) != 0);
+
             // UTF16 -> UTF8
-            s   = lsp::utf16_to_utf8(reinterpret_cast<const lsp_utf16_t *>(ck->s));
-            UTEST_ASSERT(s != NULL);
-            UTEST_ASSERT_MSG(((len = strlen(s)) == ck->u8strlen),
+            s_na    = lsp::utf16_to_utf8(na);
+            s_le    = lsp::utf16le_to_utf8(le);
+            s_be    = lsp::utf16be_to_utf8(be);
+
+            UTEST_ASSERT(s_na != NULL);
+            UTEST_ASSERT(s_le != NULL);
+            UTEST_ASSERT(s_be != NULL);
+
+            UTEST_ASSERT_MSG(((len = strlen_test(s_na)) == ck->u8strlen),
                     "Error checking line %d: strlen=%d, expected=%d",
                     int(i), int(len), int(ck->u8strlen));
-            UTEST_ASSERT_MSG(((len = utf8_count_invalid(s)) == ck->invalid),
+            UTEST_ASSERT_MSG(((len = utf8_count_invalid(s_na)) == ck->invalid),
                     "Error checking line %d: utf8_count_invalid=%d, expected=%d",
                     int(i), int(len), int(ck->invalid));
-            free(s);
+
+            UTEST_ASSERT(strcmp_test(s_le, s_be) == 0);
+            UTEST_ASSERT(strcmp_test(s_na, s_le) == 0);
+            UTEST_ASSERT(strcmp_test(s_na, s_be) == 0);
+
+            free(s_na);
+            free(s_le);
+            free(s_be);
 
             // UTF16 -> UTF32
-            s32 = lsp::utf16_to_utf32(reinterpret_cast<const lsp_utf16_t *>(ck->s));
-            UTEST_ASSERT(s32 != NULL);
-            UTEST_ASSERT_MSG(((len = utf32_strlen(s32)) == ck->u32strlen),
+            s32[0]  = lsp::utf16_to_utf32(na);
+            s32[1]  = lsp::utf16le_to_utf32(le);
+            s32[2]  = lsp::utf16be_to_utf32(be);
+            s32[3]  = lsp::utf16_to_utf32le(na);
+            s32[4]  = lsp::utf16le_to_utf32le(le);
+            s32[5]  = lsp::utf16be_to_utf32le(be);
+            s32[6]  = lsp::utf16_to_utf32be(na);
+            s32[7]  = lsp::utf16le_to_utf32be(le);
+            s32[8]  = lsp::utf16be_to_utf32be(be);
+
+            for (size_t i=0; i<9; ++i)
+                UTEST_ASSERT(s32[i] != NULL);
+
+            UTEST_ASSERT_MSG(((len = strlen_test(s32[0])) == ck->u32strlen),
                     "Error checking line %d: strlen=%d, expected=%d",
                     int(i), int(len), int(ck->u32strlen));
-            UTEST_ASSERT_MSG(((len = utf32_count_invalid(s32)) == ck->invalid),
+            UTEST_ASSERT_MSG(((len = utf32_count_invalid(s32[0])) == ck->invalid),
                     "Error checking line %d: utf32_count_invalid=%d, expected=%d",
                     int(i), int(len), int(ck->invalid));
-            free(s32);
+
+            UTEST_ASSERT(strcmp_test(s32[0], s32[1]) == 0);
+            UTEST_ASSERT(strcmp_test(s32[0], s32[2]) == 0);
+            UTEST_ASSERT(strcmp_bswap(s32[0], s32[3], true) == 0);
+            UTEST_ASSERT(strcmp_bswap(s32[0], s32[4], true) == 0);
+            UTEST_ASSERT(strcmp_bswap(s32[0], s32[5], true) == 0);
+            UTEST_ASSERT(strcmp_bswap(s32[0], s32[6], false) == 0);
+            UTEST_ASSERT(strcmp_bswap(s32[0], s32[7], false) == 0);
+            UTEST_ASSERT(strcmp_bswap(s32[0], s32[8], false) == 0);
+
+            if (len > 0)
+            {
+                UTEST_ASSERT(strcmp_test(s32[4], s32[7]) != 0);
+                UTEST_ASSERT(strcmp_test(s32[5], s32[7]) != 0);
+                UTEST_ASSERT(strcmp_test(s32[4], s32[8]) != 0);
+                UTEST_ASSERT(strcmp_test(s32[5], s32[8]) != 0);
+            }
+
+            for (size_t i=0; i<9; ++i)
+                free(s32[i]);
+
+            // Free LE and BE copies
+            free(le);
+            free(be);
         }
     }
 
     UTEST_MAIN
     {
-        check_utf8_to_utf16();
-        check_utf16_to_utf8();
+        check_utf8_to_utfX();
+        check_utf16_to_utfX();
     }
 UTEST_END;
 
