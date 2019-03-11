@@ -2144,6 +2144,166 @@ namespace lsp
         return nconv;
     }
 
+    static ssize_t widechar_to_multibyte_utf16le(const lsp_wchar_t *src, size_t *nsrc, char *dst, size_t *ndst)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv = 0;
+        size_t nin  = *nsrc;
+        size_t nout = *ndst;
+        lsp_utf16_t *xdst = reinterpret_cast<lsp_utf16_t *>(dst);
+
+        while (nin > 0)
+        {
+            size_t xin  = nin;
+            cp          = read_utf16_streaming(&src, &xin, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Check that we have enough space
+            size_t len = sizeof_utf16(cp);
+            if (nout < len)
+                break;
+
+            // Write code point
+            write_utf16le_codepoint(&xdst, cp);
+            nin         = xin;
+            nout       -= len;
+            nconv      += len;
+        }
+
+        *nsrc   = nin;
+        *ndst   = nout;
+        return nconv;
+    }
+
+    static ssize_t widechar_to_multibyte_utf16be(const lsp_wchar_t *src, size_t *nsrc, char *dst, size_t *ndst)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv = 0;
+        size_t nin  = *nsrc;
+        size_t nout = *ndst;
+        lsp_utf16_t *xdst = reinterpret_cast<lsp_utf16_t *>(dst);
+
+        while (nin > 0)
+        {
+            size_t xin  = nin;
+            cp          = read_utf16_streaming(&src, &xin, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Check that we have enough space
+            size_t len = sizeof_utf16(cp);
+            if (nout < len)
+                break;
+
+            // Write code point
+            write_utf16be_codepoint(&xdst, cp);
+            nin         = xin;
+            nout       -= len;
+            nconv      += len;
+        }
+
+        *nsrc   = nin;
+        *ndst   = nout;
+        return nconv;
+    }
+
+    static ssize_t est_widechar_to_multibyte_utf16(const lsp_wchar_t *src, size_t nsrc)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv = 0;
+
+        while (nin > 0)
+        {
+            cp      = read_utf16_streaming(src, &nsrc, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Check that we have enough space
+            nconv  += sizeof_utf16(cp);
+        }
+
+        return nconv;
+    }
+
+    static ssize_t widechar_to_multibyte_utf32le(const lsp_wchar_t *src, size_t *nsrc, char *dst, size_t *ndst)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv = 0;
+        size_t nin  = *nsrc;
+        size_t nout = *ndst;
+        lsp_utf32_t *xdst = reinterpret_cast<lsp_utf32_t *>(dst);
+
+        while (nin > 0)
+        {
+            size_t xin  = nin;
+            cp          = read_utf16_streaming(&src, &xin, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Check that we have enough space
+            if (nout < sizeof(lsp_utf32_t))
+                break;
+
+            // Write code point
+            *(xdst++)   = CPU_TO_LE(cp);
+            nin         = xin;
+            nout       -= sizeof(lsp_utf32_t);
+            nconv      += sizeof(lsp_utf32_t);
+        }
+
+        *nsrc   = nin;
+        *ndst   = nout;
+        return nconv;
+    }
+
+    static ssize_t widechar_to_multibyte_utf32be(const lsp_wchar_t *src, size_t *nsrc, char *dst, size_t *ndst)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv = 0;
+        size_t nin  = *nsrc;
+        size_t nout = *ndst;
+        lsp_utf32_t *xdst = reinterpret_cast<lsp_utf32_t *>(dst);
+
+        while (nin > 0)
+        {
+            size_t xin  = nin;
+            cp          = read_utf16_streaming(&src, &xin, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Check that we have enough space
+            if (nout < sizeof(lsp_utf32_t))
+                break;
+
+            // Write code point
+            *(xdst++)   = CPU_TO_BE(cp);
+            nin         = xin;
+            nout       -= sizeof(lsp_utf32_t);
+            nconv      += sizeof(lsp_utf32_t);
+        }
+
+        *nsrc   = nin;
+        *ndst   = nout;
+        return nconv;
+    }
+
+    static ssize_t est_widechar_to_multibyte_utf32(const lsp_wchar_t *src, size_t nsrc)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv = 0;
+
+        while (nin > 0)
+        {
+            cp          = read_utf16_streaming(&src, &nsrc, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+            nconv      += sizeof(lsp_utf32_t);
+        }
+
+        return nconv;
+    }
+
     ssize_t widechar_to_multibyte(size_t cp, LPCWCH src, size_t *nsrc, LPSTR dst, size_t *ndst)
     {
         ssize_t nconv;
@@ -2152,23 +2312,23 @@ namespace lsp
         {
             case 1200:  // UTF-16LE
                 nconv = ((dst == NULL) || (ndst == NULL) || (ssize_t(*ndst) <= 0)) ?
-                        est_widechar_to_multibyte_utf16le(src, *nsrc) :
+                        est_widechar_to_multibyte_utf16(src, *nsrc) :
                         widechar_to_multibyte_utf16le(src, nsrc, dst, ndst);
                 break;
             case 1201:  // UTF-16BE
                 nconv = ((dst == NULL) || (ndst == NULL) || (ssize_t(*ndst) <= 0)) ?
-                        est_widechar_to_multibyte_utf16be(src, *nsrc) :
+                        est_widechar_to_multibyte_utf16(src, *nsrc) :
                         widechar_to_multibyte_utf16be(src, nsrc, dst, ndst);
                 break;
             case 12000: // UTF-32LE
                 nconv = ((dst == NULL) || (ndst == NULL) || (ssize_t(*ndst) <= 0)) ?
-                        est_widechar_to_multibyte_utf32le(src, *nsrc) :
+                        est_widechar_to_multibyte_utf32(src, *nsrc) :
                         widechar_to_multibyte_utf32le(src, nsrc, dst, ndst);
                 break;
             case 12001: // UTF-32BE
                 nconv = ((dst == NULL) || (ndst == NULL) || (ssize_t(*ndst) <= 0)) ?
-                        est_multibyte_to_widechar_utf32be(src, *nsrc) :
-                        multibyte_to_widechar_utf32be(src, nsrc, dst, ndst);
+                        est_widechar_to_multibyte_utf32(src, *nsrc) :
+                        widechar_to_multibyte_utf32be(src, nsrc, dst, ndst);
                 break;
             default:
                 if ((dst == NULL) || (ndst == NULL) || (ssize_t(*ndst) <= 0))

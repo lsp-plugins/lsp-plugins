@@ -36,7 +36,7 @@ namespace lsp
      * @param dst destination buffer (can be NULL for just estimating the length)
      * @param ndst number of characters in destination buffer (will be updated on exit,
      *        can be NULL or point to zero value for just estimating the length)
-     * @return number of UTF-16 characters converted or negative error code
+     * @return number of UTF-16 characters written to destination buffer or negative error code
      */
     ssize_t multibyte_to_widechar(size_t cp, LPCCH src, size_t *nsrc, LPWSTR dst, size_t *ndst);
 
@@ -49,7 +49,7 @@ namespace lsp
      * @param dst target string to perform encoding (can be NULL for just estimating the length)
      * @param ndst number of bytes in destination buffer (will be updated on exit,
      *        can be NULL or point to zero value for just estimating the length)
-     * @return number of bytes converted or negative error code
+     * @return number of bytes written to destination buffer or negative error code
      */
     ssize_t widechar_to_multibyte(size_t cp, LPCWCH src, size_t *nsrc, LPSTR dst, size_t *ndst);
 #else
