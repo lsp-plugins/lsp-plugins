@@ -1356,24 +1356,25 @@ namespace lsp
             return false;
 
         // Estimate size of string in memory
-        ssize_t slen = MultiByteToWideChar(cp, 0, const_cast<CHAR *>(s), n, NULL, 0);
-        if (slen == 0)
+        ssize_t slen = multibyte_to_widechar(cp, const_cast<CHAR *>(s), &n, NULL, NULL);
+        if (slen <= 0)
             return false;
 
         // Perform native -> utf-16 encoding
-        WCHAR *buf = reinterpret_cast<WCHAR *>(malloc(slen * sizeof(WCHAR)));
+        WCHAR *buf = reinterpret_cast<WCHAR *>(::malloc(slen * sizeof(WCHAR)));
         if (buf == NULL)
             return false;
 
-        slen = MultiByteToWideChar(cp, 0, const_cast<CHAR *>(s), n, buf, slen);
-        if (slen == 0)
+        size_t bytes  = slen;
+        slen    = multibyte_to_widechar(cp, 0, const_cast<CHAR *>(s), &n, buf, &bytes);
+        if (slen <= 0)
         {
             free(buf);
             return false;
         }
 
         // Set encoded utf-16 values
-        bool res = set_utf16(buf);
+        bool res = set_utf16(buf, slen >> 1);
         free(buf);
 
         return res;
@@ -1573,26 +1574,27 @@ namespace lsp
         pTemp->nLength      = 0;
         pTemp->nOffset      = 0;
 
-        size_t n = WideCharToMultiByte(cp, 0, buf, length, NULL, 0, NULL, NULL) + 4; // + terminating 0
-        if (!resize_temp(n))
+        size_t res = widechar_to_multibyte(cp, buf, &length, NULL, NULL) + 4; // + terminating 0
+        if ((res <= 0) || (!resize_temp(res)))
         {
             free(buf);
             return NULL;
         }
 
         // We have enough space for saving data
-        n = WideCharToMultiByte(cp, 0, buf, length, pTemp->pData, n, NULL, NULL);
-        if (n <= 0)
+        size_t n = re;
+        res = widechar_to_multibyte(cp, buf, &length, pTemp->pData, &n);
+        if (res <= 0)
         {
             free(buf);
             return NULL;
         }
 
         // Append terminating zero
-        pTemp->pData[n++] = '\0';
-        pTemp->pData[n++] = '\0';
-        pTemp->pData[n++] = '\0';
-        pTemp->pData[n] = '\0';
+        pTemp->pData[res++] = '\0';
+        pTemp->pData[res++] = '\0';
+        pTemp->pData[res++] = '\0';
+        pTemp->pData[res]   = '\0';
 
         free(buf);
         return pTemp->pData;
