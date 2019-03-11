@@ -409,8 +409,8 @@ namespace lsp
             float x     = *(in++);
             if (x < 0.0f)
                 x       = -x;
-            if (x < FLOAT_SAT_N_INF)
-                x       = FLOAT_SAT_N_INF;
+            if (x < GAIN_AMP_MIN)
+                x       = GAIN_AMP_MIN;
             else if (x > FLOAT_SAT_P_INF)
                 x       = FLOAT_SAT_P_INF;
 

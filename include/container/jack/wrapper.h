@@ -632,10 +632,19 @@ namespace lsp
         pUI     = NULL;
         pPlugin = NULL;
 
+        // Drop canvas
+        if (pCanvas != NULL)
+        {
+            pCanvas->destroy();
+            delete pCanvas;
+            pCanvas     = NULL;
+        }
+
         // Destroy executor service
         if (pExecutor != NULL)
         {
             pExecutor->shutdown();
+            delete pExecutor;
             pExecutor   = NULL;
         }
     }

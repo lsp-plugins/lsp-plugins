@@ -32,10 +32,10 @@
 </p>
 
 <p>
-	All filters are build by using well-known methods of analog filter design (complex polynomials in top and bottom). So, first of all plugins calculate
-	parameters of ideal analog filter by using Laplace transform and then digitalize it by applying analog-to-digital transform also known as Z Transform.
-	Each filter implements it's own set of poles and zeros, the configuration of poles and zeros can be controlled by using <b>quality factor</b> and
-	<b>slope parameters</b>.
+	All filters are build by using well-known methods of analog filter design (complex polynomials in top and bottom) or directly as digital filters.
+    When the filters are build from analog designs, plugins first of all calculate parameters of ideal analog filter by using Laplace transform and then digitalize
+    it by applying analog-to-digital transform also known as Z Transform. Each filter implements it's own set of poles and zeros, the configuration of poles and zeros
+    can be controlled by using <b>quality factor</b> and <b>slope parameters</b>.
 </p>
 <p>
 	There are set of rules to perform Laplace to Z-space transformation, for example Simpson rule etc. In LSP plugins, two types of rules are used: the most
@@ -51,6 +51,11 @@
 	Completely different is the behaviour of filters transformed by <b>Matched Z Transform</b>. These filters have identical to the analog filters frequency and
 	phase graph but have another disadvantage: they have aliasing at high frequencies that is caused by reflecting high frequencies from the range limited by
 	Nyquist Frequency.
+</p>
+<p>
+    Digital filters can also be generated directly in the digital domain, without needing to convert an analog prototype or by using design equations availble in
+    literature, often coming from digitalization of canonic analog filter prototypes, but with the advantage of not having to perform digitalization in real-time.
+    This is the case of Direct design IIR filters.
 </p>
 <p>
 	Additional attention should be given to FIR filters because <b>Bilinear Transform</b> and <b>Matched Z Transform</b> advantages and disadvantages are only
