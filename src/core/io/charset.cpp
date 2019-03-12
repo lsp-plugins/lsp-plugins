@@ -490,7 +490,8 @@ namespace lsp
 //        fflush(stdout);
 
         // Obtain system character set
-        ssize_t cp = (GetConsoleWindow() != 0) ? GetConsoleOutputCP() : get_codepage(LOCALE_CUSTOM_DEFAULT);
+        //ssize_t cp = (GetConsoleWindow() != 0) ? GetConsoleOutputCP() : get_codepage(LOCALE_CUSTOM_DEFAULT);
+        ssize_t cp = get_codepage(LOCALE_CUSTOM_DEFAULT);
         if (cp < 0)
             cp = get_codepage(LOCALE_USER_DEFAULT);
         if (cp < 0)
@@ -2144,7 +2145,7 @@ namespace lsp
         return nconv;
     }
 
-    static ssize_t widechar_to_multibyte_utf16le(const lsp_wchar_t *src, size_t *nsrc, char *dst, size_t *ndst)
+    static ssize_t widechar_to_multibyte_utf16le(const lsp_utf16_t *src, size_t *nsrc, char *dst, size_t *ndst)
     {
         lsp_wchar_t cp;
         ssize_t nconv = 0;
@@ -2176,7 +2177,7 @@ namespace lsp
         return nconv;
     }
 
-    static ssize_t widechar_to_multibyte_utf16be(const lsp_wchar_t *src, size_t *nsrc, char *dst, size_t *ndst)
+    static ssize_t widechar_to_multibyte_utf16be(const lsp_utf16_t *src, size_t *nsrc, char *dst, size_t *ndst)
     {
         lsp_wchar_t cp;
         ssize_t nconv = 0;
@@ -2208,14 +2209,14 @@ namespace lsp
         return nconv;
     }
 
-    static ssize_t est_widechar_to_multibyte_utf16(const lsp_wchar_t *src, size_t nsrc)
+    static ssize_t est_widechar_to_multibyte_utf16(const lsp_utf16_t *src, size_t nsrc)
     {
         lsp_wchar_t cp;
         ssize_t nconv = 0;
 
-        while (nin > 0)
+        while (nsrc > 0)
         {
-            cp      = read_utf16_streaming(src, &nsrc, false);
+            cp      = read_utf16_streaming(&src, &nsrc, false);
             if (cp == LSP_UTF32_EOF) // No data ?
                 break;
 
@@ -2226,7 +2227,7 @@ namespace lsp
         return nconv;
     }
 
-    static ssize_t widechar_to_multibyte_utf32le(const lsp_wchar_t *src, size_t *nsrc, char *dst, size_t *ndst)
+    static ssize_t widechar_to_multibyte_utf32le(const lsp_utf16_t *src, size_t *nsrc, char *dst, size_t *ndst)
     {
         lsp_wchar_t cp;
         ssize_t nconv = 0;
@@ -2257,7 +2258,7 @@ namespace lsp
         return nconv;
     }
 
-    static ssize_t widechar_to_multibyte_utf32be(const lsp_wchar_t *src, size_t *nsrc, char *dst, size_t *ndst)
+    static ssize_t widechar_to_multibyte_utf32be(const lsp_utf16_t *src, size_t *nsrc, char *dst, size_t *ndst)
     {
         lsp_wchar_t cp;
         ssize_t nconv = 0;
@@ -2288,12 +2289,12 @@ namespace lsp
         return nconv;
     }
 
-    static ssize_t est_widechar_to_multibyte_utf32(const lsp_wchar_t *src, size_t nsrc)
+    static ssize_t est_widechar_to_multibyte_utf32(const lsp_utf16_t *src, size_t nsrc)
     {
         lsp_wchar_t cp;
         ssize_t nconv = 0;
 
-        while (nin > 0)
+        while (nsrc > 0)
         {
             cp          = read_utf16_streaming(&src, &nsrc, false);
             if (cp == LSP_UTF32_EOF) // No data ?
@@ -2332,7 +2333,7 @@ namespace lsp
                 break;
             default:
                 if ((dst == NULL) || (ndst == NULL) || (ssize_t(*ndst) <= 0))
-                    return ::WideCharToMultiByte(cp, 0, src, *nsrc, 0, NULL, 0, FALSE);
+                    return ::WideCharToMultiByte(cp, 0, src, *nsrc, NULL, 0, 0, FALSE);
 
                 nconv = ::WideCharToMultiByte(cp, 0, src, *nsrc, dst, *ndst, 0, FALSE);
                 if (nconv == 0)

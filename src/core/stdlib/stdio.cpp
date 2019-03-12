@@ -43,7 +43,7 @@
 
     int fdsync(FILE *fd)
     {
-        return (_commit(_fileno(fd))) ? 0 : -1;
+        return (FlushFileBuffers((HANDLE)_fileno(fd))) ? 0 : -1;
     }
 
 #endif /* PLATFORM_WINDOWS */

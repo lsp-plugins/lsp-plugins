@@ -1340,9 +1340,9 @@ namespace lsp
     }
 
 #if defined(PLATFORM_WINDOWS)
-    bool LSPString::set_native(const char *s, ssize_t n, const char *charset)
+    bool LSPString::set_native(const char *s, size_t n, const char *charset)
     {
-        if (n < 0)
+        if (s == NULL)
             return false;
         else if (n == 0)
         {
@@ -1366,7 +1366,7 @@ namespace lsp
             return false;
 
         size_t bytes  = slen;
-        slen    = multibyte_to_widechar(cp, 0, const_cast<CHAR *>(s), &n, buf, &bytes);
+        slen    = multibyte_to_widechar(cp, const_cast<CHAR *>(s), &n, buf, &bytes);
         if (slen <= 0)
         {
             free(buf);
@@ -1380,10 +1380,15 @@ namespace lsp
         return res;
     }
 #else
-    bool LSPString::set_native(const char *s, ssize_t n, const char *charset)
+    bool LSPString::set_native(const char *s, size_t n, const char *charset)
     {
-        if (n < 0)
+        if (s == NULL)
             return false;
+        else if (n == 0)
+        {
+            nLength = 0;
+            return true;
+        }
 
         char buf[BUF_SIZE];
         LSPString temp;
@@ -1574,7 +1579,8 @@ namespace lsp
         pTemp->nLength      = 0;
         pTemp->nOffset      = 0;
 
-        size_t res = widechar_to_multibyte(cp, buf, &length, NULL, NULL) + 4; // + terminating 0
+        size_t slen         = length;
+        size_t res = widechar_to_multibyte(cp, buf, &slen, NULL, NULL) + 4; // + terminating 0
         if ((res <= 0) || (!resize_temp(res)))
         {
             free(buf);
@@ -1582,8 +1588,8 @@ namespace lsp
         }
 
         // We have enough space for saving data
-        size_t n = re;
-        res = widechar_to_multibyte(cp, buf, &length, pTemp->pData, &n);
+        size_t n = res;
+        res = widechar_to_multibyte(cp, buf, &slen, pTemp->pData, &n);
         if (res <= 0)
         {
             free(buf);

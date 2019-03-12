@@ -290,8 +290,8 @@ UTEST_BEGIN("core.io", charset)
 
             // Obtain native string and it's LE and BE copies
             na  = reinterpret_cast<const lsp_utf16_t *>(ck->s);
-            le  = strdup_bswap(ck->s, true);
-            be  = strdup_bswap(ck->s, false);
+            le  = strdup_bswap(na, true);
+            be  = strdup_bswap(na, false);
 
             len = strlen_test(na);
             UTEST_ASSERT(le != NULL);
@@ -334,8 +334,8 @@ UTEST_BEGIN("core.io", charset)
             s32[7]  = lsp::utf16le_to_utf32be(le);
             s32[8]  = lsp::utf16be_to_utf32be(be);
 
-            for (size_t i=0; i<9; ++i)
-                UTEST_ASSERT(s32[i] != NULL);
+            for (size_t j=0; j<9; ++j)
+                UTEST_ASSERT(s32[j] != NULL);
 
             UTEST_ASSERT_MSG(((len = strlen_test(s32[0])) == ck->u32strlen),
                     "Error checking line %d: strlen=%d, expected=%d",
@@ -361,8 +361,8 @@ UTEST_BEGIN("core.io", charset)
                 UTEST_ASSERT(strcmp_test(s32[5], s32[8]) != 0);
             }
 
-            for (size_t i=0; i<9; ++i)
-                free(s32[i]);
+            for (size_t j=0; j<9; ++j)
+                free(s32[j]);
 
             // Free LE and BE copies
             free(le);

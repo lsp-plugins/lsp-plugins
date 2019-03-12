@@ -147,4 +147,16 @@ inline void __lsp_forced_inline byte_swap(double *v, size_t n)
     }
 }
 
+#ifdef PLATFORM_WINDOWS
+    inline wchar_t byte_swap(wchar_t v)
+    {
+        return wchar_t(byte_swap(uint16_t(v)));
+    }
+#else
+    inline wchar_t byte_swap(wchar_t v)
+    {
+        return wchar_t(byte_swap(uint32_t(v)));
+    }
+#endif /* PLATFORM_WINDOWS */
+
 #endif /* DSP_ARCH_NATIVE_BSWAP_H_ */
