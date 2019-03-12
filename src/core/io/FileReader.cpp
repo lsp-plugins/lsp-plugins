@@ -7,6 +7,8 @@
 
 #include <errno.h>
 #include <core/io/charset.h>
+#include <core/io/StdioFile.h>
+#include <core/io/NativeFile.h>
 #include <core/io/FileReader.h>
 
 #if 1
@@ -43,53 +45,120 @@ namespace lsp
             cBufSize    = 0;
             cBufPos     = 0;
             pFD         = NULL;
-            nError      = STATUS_OK;
-            bClose      = false;
-            #if defined(PLATFORM_WINDOWS)
-                nCodePage   = UINT(-1);
-            #else
-                hIconv      = iconv_t(-1);
-            #endif /* PLATFORM_WINDOWS */
+            nWrapFlags  = 0;
         }
 
         FileReader::~FileReader()
         {
-            do_destroy();
-        }
-    
-        void FileReader::do_destroy()
-        {
-            if ((bClose) && (pFD != NULL))
+            // Close file descriptor
+            if (pFD != NULL)
             {
-                fclose(pFD);
+                if (nWrapFlags & WRAP_CLOSE)
+                    pFD->close();
+                if (nWrapFlags & WRAP_DELETE)
+                    delete pFD;
                 pFD         = NULL;
             }
+            nWrapFlags  = 0;
+
+            // Drop buffer data
             if (bBuf != NULL)
-                free(bBuf);
-            #if defined(PLATFORM_WINDOWS)
-                nCodePage   = UINT(-1);
-            #else
-                if (hIconv != iconv_t(-1))
-                {
-                    iconv_close(hIconv);
-                    hIconv      = iconv_t(-1);
-                }
-            #endif /* PLATFORM_WINDOWS */
-            bBuf        = NULL;
-            cBuf        = NULL;
-            bClose      = false;
+            {
+                ::free(bBuf);
+                bBuf        = NULL;
+                cBuf        = NULL;
+            }
+
+            // Close decoder
+            sDecoder.close();
         }
 
-        status_t FileReader::init_buffers()
+        status_t FileReader::close()
         {
+            status_t res = STATUS_OK;
+
+            // Close file descriptor
+            if (pFD != NULL)
+            {
+                if (nWrapFlags & WRAP_CLOSE)
+                    res = pFD->close();
+                if (nWrapFlags & WRAP_DELETE)
+                    delete pFD;
+                pFD         = NULL;
+            }
+            nWrapFlags  = 0;
+
+            // Drop buffer data
+            if (bBuf != NULL)
+            {
+                ::free(bBuf);
+                bBuf        = NULL;
+                cBuf        = NULL;
+            }
+
+            // Close decoder
+            sDecoder.close();
+
+            // Return result
+            return set_error(res);
+        }
+    
+        status_t FileReader::wrap(FILE *fd, bool close, const char *charset)
+        {
+            if (pFD != NULL)
+                return set_error(STATUS_BAD_STATE);
+            else if (fd == NULL)
+                return set_error(STATUS_BAD_ARGUMENTS);
+
+            StdioFile *f = new StdioFile();
+            if (f == NULL)
+                return set_error(STATUS_NO_MEM);
+            status_t res = f->wrap(fd, File::FM_READ, close);
+            if (res != STATUS_OK)
+            {
+                f->close();
+                delete f;
+                return set_error(res);
+            }
+
+            return wrap(f, WRAP_DELETE, charset);
+        }
+
+        status_t FileReader::wrap(lsp_fhandle_t fd, bool close, const char *charset)
+        {
+            if (pFD != NULL)
+                return set_error(STATUS_BAD_STATE);
+
+            NativeFile *f = new NativeFile();
+            if (f == NULL)
+                return set_error(STATUS_NO_MEM);
+            status_t res = f->wrap(fd, File::FM_READ, close);
+            if (res != STATUS_OK)
+            {
+                f->close();
+                delete f;
+                return set_error(res);
+            }
+
+            return wrap(f, WRAP_DELETE, charset);
+        }
+
+        status_t FileReader::wrap(File *fd, size_t flags, const char *charset)
+        {
+            if (pFD != NULL)
+                return set_error(STATUS_BAD_STATE);
+            else if (fd == NULL)
+                return set_error(STATUS_BAD_ARGUMENTS);
+
+            // Allocate buffers
             if (bBuf == NULL)
             {
-                uint8_t *ptr    = reinterpret_cast<uint8_t *>(malloc(
+                uint8_t *ptr    = reinterpret_cast<uint8_t *>(::malloc(
                                 CBUF_SIZE * sizeof(lsp_wchar_t) +
                                 BBUF_SIZE * sizeof(uint8_t)
                         ));
                 if (ptr == NULL)
-                    return nError = STATUS_NO_MEM;
+                    return set_error(STATUS_NO_MEM);
                 bBuf            = ptr;
                 cBuf            = reinterpret_cast<lsp_wchar_t *>(&bBuf[BBUF_SIZE * sizeof(uint8_t)]);
             }
@@ -99,76 +168,56 @@ namespace lsp
             cBufSize    = 0;
             cBufPos     = 0;
 
-            return nError   = STATUS_OK;
-        }
-
-        status_t FileReader::initialize(FILE *fd, const char *charset, bool close)
-        {
-            status_t res= init_buffers();
+            // Initialize decoder
+            status_t res = sDecoder.init(charset);
             if (res != STATUS_OK)
             {
-                do_destroy();
-                return res;
+                sDecoder.close();
+                ::free(bBuf);
+                bBuf        = NULL;
+                cBuf        = NULL;
+                return set_error(res);
             }
 
-            #if defined(PLATFORM_WINDOWS)
-                ssize_t cp  = codepage_from_name(charset);
-                if (cp < 0)
-                {
-                    do_destroy();
-                    return STATUS_BAD_LOCALE;
-                }
-                nCodePage   = cp;
-            #else
-                hIconv      = init_iconv_to_wchar_t(charset);
-                if (hIconv == iconv_t(-1))
-                {
-                    do_destroy();
-                    return STATUS_BAD_LOCALE;
-                }
-            #endif /* PLATFORM_WINDOWS */
-
+            // Store pointers
             pFD         = fd;
-            bClose      = close;
+            nWrapFlags  = flags;
+
             return STATUS_OK;
-        }
-
-        status_t FileReader::attach(FILE *fd, const char *charset)
-        {
-            do_destroy();
-            return initialize(fd, charset, false);
-        }
-
-        status_t FileReader::open(FILE *fd, const char *charset)
-        {
-            do_destroy();
-            return initialize(fd, charset, true);
         }
 
         status_t FileReader::open(const char *path, const char *charset)
         {
+            if (pFD != NULL)
+                return set_error(STATUS_BAD_STATE);
+            else if (path == NULL)
+                return set_error(STATUS_BAD_ARGUMENTS);
+
             LSPString tmp;
             if (!tmp.set_utf8(path))
-                return STATUS_NO_MEM;
+                return set_error(STATUS_NO_MEM);
             return open(&tmp, charset);
         }
 
         status_t FileReader::open(const LSPString *path, const char *charset)
         {
-            do_destroy();
+            if (pFD != NULL)
+                return set_error(STATUS_BAD_STATE);
+            else if (path == NULL)
+                return set_error(STATUS_BAD_ARGUMENTS);
 
-            #if defined(PLATFORM_WINDOWS)
-                FILE *fd        = fopen(path->get_utf8(), "rb");
-            #else
-                FILE *fd        = fopen(path->get_utf8(), "r");
-            #endif /* PLATFORM_WINDOWS */
-            if (fd == NULL)
-                return nError = STATUS_IO_ERROR;
+            NativeFile *f = new NativeFile();
+            if (f == NULL)
+                return set_error(STATUS_NO_MEM);
 
-            status_t res = initialize(fd, charset, true);
+            status_t res = f->open(path, File::FM_READ);
             if (res != STATUS_OK)
-                fclose(fd);
-            return res;
+            {
+                f->close();
+                return set_error(res);
+            }
+
+            return wrap(f, WRAP_CLOSE | WRAP_DELETE, charset);
         }
 
         status_t FileReader::open(const Path *path, const char *charset)
@@ -176,70 +225,6 @@ namespace lsp
             return open(path->as_string(), charset);
         }
 
-#if defined(PLATFORM_WINDOWS)
-        status_t FileReader::fill_char_buf()
-        {
-            // Move memory buffers
-            if (bBufPos > 0)
-            {
-                bBufSize   -= bBufPos;
-                if (bBufSize > 0)
-                    ::memmove(bBuf, &bBuf[bBufPos], bBufSize);
-                bBufPos     = 0;
-            }
-            if (cBufPos > 0)
-            {
-                cBufSize   -= cBufPos;
-                if (cBufSize > 0)
-                    ::memmove(cBuf, &cBuf[cBufPos], cBufSize * sizeof(lsp_wchar_t));
-                cBufPos     = 0;
-            }
-
-            // Try to read new portion of data into buffer
-            size_t nbytes   = fread(&bBuf[bBufSize], sizeof(uint8_t), BBUF_SIZE - bBufSize, pFD);
-            if ((nbytes <= 0) && (bBufPos >= bBufSize))
-                return nError = STATUS_EOF;
-            else if (nbytes > 0)
-                bBufSize       += nbytes;
-
-            // Do the conversion
-            CHAR *inbuf     = reinterpret_cast<CHAR *>(&bBuf[bBufPos]);
-            WCHAR *outbuf   = reinterpret_cast<WCHAR *>(&cBuf[cBufSize]);
-
-            ssize_t nchars  = MultiByteToWideChar(nCodePage, 0, inbuf, bBufSize-bBufPos, outbuf, CBUF_SIZE - cBufSize);
-            if (nchars == 0)
-            {
-                switch (GetLastError())
-                {
-                    case ERROR_INSUFFICIENT_BUFFER:
-                        return nError = STATUS_NO_MEM;
-                    case ERROR_INVALID_FLAGS:
-                    case ERROR_INVALID_PARAMETER:
-                        return nError = STATUS_BAD_STATE;
-                    case ERROR_NO_UNICODE_TRANSLATION:
-                        return nError = STATUS_BAD_LOCALE;
-                    default:
-                        return nError = STATUS_UNKNOWN_ERR;
-                }
-            }
-
-            // If function meets invalid sequence, it replaces the code point with such magic value
-            // We should know if function has failed
-            if (outbuf[nchars-1] == 0xfffd)
-                --nchars;
-
-            // Estimate number of bytes decoded (yep, this is dumb but no way...)
-            nbytes = WideCharToMultiByte(nCodePage, 0, outbuf, nchars, NULL, 0, 0, 0);
-            if ((nbytes <= 0) || (nbytes > (bBufSize - bBufPos)))
-                return nError = STATUS_IO_ERROR;
-
-            // Update state of buffers
-            cBufSize       += nchars;
-            bBufPos        += nbytes;
-
-            return nError = STATUS_OK;
-        }
-#else
         status_t FileReader::fill_char_buf()
         {
             // If there is data at the tail of buffer, move it to beginning
@@ -268,9 +253,9 @@ namespace lsp
                 bBufPos     = 0;
 
                 // Try to additionally read data
-                size_t nbytes       = fread(&bBuf[bBufSize], sizeof(uint8_t), BBUF_SIZE - bBufSize, pFD);
+                ssize_t nbytes      = pFD->read(&bBuf[bBufSize], BBUF_SIZE - bBufSize);
                 if ((nbytes <= 0) && (left <= 0))
-                    return nError = STATUS_EOF;
+                    return set_error((nbytes < 0) ? -nbytes : STATUS_EOF);
                 else if (nbytes > 0)
                     bBufSize       += nbytes;
 
@@ -282,38 +267,23 @@ namespace lsp
             size_t xb_left  = left;
             size_t xc_left  = c_left;
 
-            char *inbuf     = reinterpret_cast<char *>(&bBuf[bBufPos]);
-            char *outbuf    = reinterpret_cast<char *>(&cBuf[cBufSize]);
-            size_t nconv    = iconv(hIconv, &inbuf, &xb_left, &outbuf, &xc_left);
-
-            if (nconv == size_t(-1))
-            {
-                int code = errno;
-                switch (code)
-                {
-                    case E2BIG:
-                    case EINVAL:
-                        break;
-                    default:
-                        return nError = STATUS_BAD_FORMAT;
-                }
-            }
+            void *inbuf         = &bBuf[bBufPos];
+            lsp_wchar_t *outbuf = &cBuf[cBufSize];
+            ssize_t nconv       = sDecoder.decode(&outbuf, &xc_left, &inbuf, &xb_left);
+            if (nconv < 0)
+                return set_error(-nconv);
 
             // Update state of buffers
             cBufSize       += (c_left - xc_left) / sizeof(lsp_wchar_t);
             bBufPos        += (left - xb_left);
 
-            return nError = (cBufSize > cBufPos) ? STATUS_OK : STATUS_EOF;
+            return set_error((cBufSize > cBufPos) ? STATUS_OK : STATUS_EOF);
         }
-#endif /* PLATFORM_WINDOWS */
 
         ssize_t FileReader::read(lsp_wchar_t *dst, size_t count)
         {
             if (pFD == NULL)
-            {
-                nError = STATUS_CLOSED;
-                return -1;
-            }
+                return -set_error(STATUS_CLOSED);
 
             // Clear line buffer
             sLine.clear();
@@ -355,10 +325,7 @@ namespace lsp
         int FileReader::read()
         {
             if (pFD == NULL)
-            {
-                nError = STATUS_CLOSED;
-                return -1;
-            }
+                return -set_error(STATUS_CLOSED);
 
             // Clear line buffer
             sLine.clear();
@@ -381,7 +348,7 @@ namespace lsp
         status_t FileReader::read_line(LSPString *s, bool force)
         {
             if (pFD == NULL)
-                return nError = STATUS_CLOSED;
+                return set_error(STATUS_CLOSED);
 
             while (true)
             {
@@ -417,7 +384,7 @@ namespace lsp
                     if (last > cBufPos)
                     {
                         if (!sLine.append(&cBuf[cBufPos], cBufSize - cBufPos))
-                            return nError = STATUS_NO_MEM;
+                            return set_error(STATUS_NO_MEM);
                     }
 
                     // Clear buffer
@@ -438,7 +405,7 @@ namespace lsp
                     if (last > cBufPos)
                     {
                         if (!sLine.append(&cBuf[cBufPos], last - cBufPos))
-                            return nError = STATUS_NO_MEM;
+                            return set_error(STATUS_NO_MEM);
                     }
 
                     // Update buffer state
@@ -446,7 +413,7 @@ namespace lsp
 
                     // Break the loop because line was completed
                     s->take(&sLine);
-                    return nError = STATUS_OK;
+                    return set_error(STATUS_OK);
                 }
             }
 
@@ -454,11 +421,10 @@ namespace lsp
             if ((force) && (sLine.length() > 0))
             {
                 s->take(&sLine);
-                return nError = STATUS_OK;
+                return set_error(STATUS_OK);
             }
 
-            nError = STATUS_OK;
-            return STATUS_EOF;
+            return set_error(STATUS_EOF);
         }
 
         ssize_t FileReader::skip(size_t count)
@@ -467,15 +433,5 @@ namespace lsp
             return Reader::skip(count);
         }
 
-        status_t FileReader::error()
-        {
-            return nError;
-        }
-
-        status_t FileReader::close()
-        {
-            do_destroy();
-            return STATUS_OK;
-        }
     }
 } /* namespace lsp */

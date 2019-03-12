@@ -478,7 +478,7 @@ namespace lsp
         status_t load(FILE *fd, IConfigHandler *h)
         {
             io::FileReader fis;
-            status_t res = fis.attach(fd);
+            status_t res = fis.wrap(fd, WRAP_NONE);
             if (res != STATUS_OK)
             {
                 fis.close();

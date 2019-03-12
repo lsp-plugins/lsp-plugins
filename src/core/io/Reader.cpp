@@ -15,6 +15,7 @@ namespace lsp
 
         Reader::Reader()
         {
+            nErrorCode      = STATUS_OK;
         }
 
         Reader::~Reader()
@@ -54,11 +55,6 @@ namespace lsp
             return skipped;
         }
 
-        status_t Reader::error()
-        {
-            return STATUS_EOF;
-        }
-    
         status_t Reader::close()
         {
             return STATUS_OK;

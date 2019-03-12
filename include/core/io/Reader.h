@@ -19,11 +19,23 @@ namespace lsp
     {
         class Reader
         {
+            protected:
+                status_t        nErrorCode;
+
+            protected:
+                inline status_t set_error(status_t error) { return nErrorCode = error; }
+
             public:
                 Reader();
                 virtual ~Reader();
 
             public:
+                /**
+                 * Return last error code
+                 * @return last error code
+                 */
+                inline status_t last_error() const  { return nErrorCode; };
+
                 /**
                  * Read amount of characters
                  * @param dst target buffer to read
@@ -51,12 +63,6 @@ namespace lsp
                  * @return number of skipped characters
                  */
                 virtual ssize_t     skip(size_t count);
-
-                /**
-                 * Return last error code
-                 * @return last error code, STATUS_OK on success
-                 */
-                virtual status_t    error();
 
                 /**
                  * Close input stream

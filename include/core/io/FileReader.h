@@ -9,10 +9,12 @@
 #define CORE_IO_FILEREADER_H_
 
 #include <stdio.h>
+#include <core/types.h>
 #include <core/io/charset.h>
 #include <core/io/Reader.h>
 #include <core/io/Path.h>
-#include <core/types.h>
+#include <core/io/File.h>
+#include <core/io/CharsetDecoder.h>
 
 namespace lsp
 {
@@ -27,20 +29,12 @@ namespace lsp
                 size_t          bBufPos;
                 size_t          cBufSize;
                 size_t          cBufPos;
-                FILE           *pFD;
-                bool            bClose;
-                status_t        nError;
+                File           *pFD;
+                size_t          nWrapFlags;
+                CharsetDecoder  sDecoder;
                 LSPString       sLine;
-#if defined(PLATFORM_WINDOWS)
-                UINT            nCodePage;
-#else
-                iconv_t         hIconv;
-#endif /* PLATFORM_WINDOWS */
     
             protected:
-                void            do_destroy();
-                status_t        initialize(FILE *fd, const char *charset, bool close);
-                status_t        init_buffers();
                 status_t        fill_char_buf();
 
             public:
@@ -48,28 +42,34 @@ namespace lsp
                 virtual ~FileReader();
 
             public:
-                /** Attach input stream to descriptor. When stream is closed, file descriptor
-                 * keeps to be opened. Before attach currently open stream is closed and it's
-                 * state is reset.
+                /** Wrap stdio file descriptor. The Reader should be in closed state.
                  *
                  * @param fd file descriptor
+                 * @param close close file descriptor on close()
                  * @param charset character set to use, system charset if NULL
                  * @return status of operation
                  */
-                status_t attach(FILE *fd, const char *charset = NULL);
+                status_t wrap(FILE *fd, bool close, const char *charset = NULL);
 
-                /** Open input stream as wrapper of file descriptor. When stream is closed, it automatically
-                 * closes file descriptor. Before open currently open stream is closed and it's
-                 * state is reset.
+                /** Wrap native file descriptor. The Reader should be in closed state.
                  *
                  * @param fd file descriptor
+                 * @param close close file descriptor on close()
                  * @param charset character set to use, system charset if NULL
                  * @return status of operation
                  */
-                status_t open(FILE *fd, const char *charset = NULL);
+                status_t wrap(lsp_fhandle_t fd, bool close, const char *charset = NULL);
 
-                /** Open input stream associated with file. Before open currently open stream is closed and it's
-                 * state is reset.
+                /** Wrap file descriptor. The Reader should be in closed state.
+                 *
+                 * @param fd file descriptor
+                 * @param flags wrapping flags
+                 * @param charset character set to use, system charset if NULL
+                 * @return status of operation
+                 */
+                status_t wrap(File *fd, size_t flags, const char *charset = NULL);
+
+                /** Open input stream associated with file. The Reader should be in closed state.
                  *
                  * @param path file location path
                  * @param charset character set to use, system charset if NULL
@@ -77,8 +77,7 @@ namespace lsp
                  */
                 status_t open(const char *path, const char *charset = NULL);
 
-                /** Open input stream associated with file. Before open currently open stream is closed and it's
-                 * state is reset.
+                /** Open input stream associated with file. The Reader should be in closed state.
                  *
                  * @param path file location path
                  * @param charset character set to use, system charset if NULL
@@ -102,8 +101,6 @@ namespace lsp
                 virtual status_t    read_line(LSPString *s, bool force = false);
 
                 virtual ssize_t     skip(size_t count);
-
-                virtual status_t    error();
 
                 virtual status_t    close();
         };

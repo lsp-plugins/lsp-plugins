@@ -29,6 +29,7 @@ typedef int64_t         wssize_t;
  *
  */
 typedef uint32_t        lsp_wchar_t;
+typedef int32_t         lsp_swchar_t;
 
 #if defined(PLATFORM_WINDOWS)
     #include <windows.h>
@@ -51,6 +52,14 @@ typedef uint32_t        lsp_wchar_t;
 
 namespace lsp
 {
+    enum lsp_wrap_flatgs_t
+    {
+        WRAP_NONE       = 0,
+
+        WRAP_CLOSE      = 1 << 0,
+        WRAP_DELETE     = 1 << 1
+    };
+
     enum mesh_state_t
     {
         M_WAIT,         // Mesh is waiting for data request
