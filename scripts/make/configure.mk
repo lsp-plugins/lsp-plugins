@@ -11,6 +11,8 @@ ifndef BUILD_MODULES
   BUILD_MODULES          := $(shell cat "$(OBJDIR)/$(MODULES_FILE)" 2>/dev/null || echo "ladspa lv2 vst jack profile src doc")
 endif
 
+BUILD_COMPILER         := $(shell $(CC) --version | head -n 1 || echo "unknown")
+
 export BUILD_MODULES
 
 # Configure list of targets to execute
