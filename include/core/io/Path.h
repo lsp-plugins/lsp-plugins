@@ -20,6 +20,9 @@ namespace lsp
             private:
                 LSPString   sPath;
 
+            private:
+                Path & operator = (const Path &);
+
             public:
                 explicit Path();
                 ~Path();

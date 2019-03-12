@@ -639,7 +639,7 @@ namespace lsp
                 if (count <= 0)
                 {
                     delete [] buf;
-                    return is->error_code();
+                    return is->last_error();
                 }
                 dst    += count;
                 avail  -= count;

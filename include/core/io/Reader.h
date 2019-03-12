@@ -25,8 +25,11 @@ namespace lsp
             protected:
                 inline status_t set_error(status_t error) { return nErrorCode = error; }
 
+            private:
+                Reader & operator = (const Reader &);
+
             public:
-                Reader();
+                explicit Reader();
                 virtual ~Reader();
 
             public:

@@ -21,8 +21,14 @@ namespace lsp
          */
         class IInputStream
         {
+            private:
+                IInputStream & operator = (const IInputStream &);
+
             protected:
-                status_t        nError;
+                status_t        nErrorCode;
+
+            protected:
+                inline status_t set_error(status_t error) { return nErrorCode = error; }
 
             public:
                 explicit IInputStream();
@@ -33,7 +39,7 @@ namespace lsp
                  *
                  * @return last I/O error code
                  */
-                inline status_t     error_code() const { return nError; };
+                inline status_t     last_error() const { return nErrorCode; };
 
                 /** The number of bytes available
                  *

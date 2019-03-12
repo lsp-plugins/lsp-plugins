@@ -36,7 +36,7 @@ namespace lsp
             wssize_t X11Clipboard::InputStream::avail()
             {
                 if (bClosed)
-                    return nError = STATUS_CLOSED;
+                    return nErrorCode = STATUS_CLOSED;
 
                 return pCB->nAvail - nPosition;
             }
@@ -44,14 +44,14 @@ namespace lsp
             wssize_t X11Clipboard::InputStream::position()
             {
                 if (bClosed)
-                    return nError = STATUS_CLOSED;
+                    return nErrorCode = STATUS_CLOSED;
                 return nPosition;
             }
 
             ssize_t X11Clipboard::InputStream::read(void *dst, size_t count)
             {
                 if (bClosed)
-                    return nError = STATUS_CLOSED;
+                    return nErrorCode = STATUS_CLOSED;
 
                 ssize_t tot_read = 0;
                 uint8_t *ptr = static_cast<uint8_t *>(dst);
@@ -60,7 +60,7 @@ namespace lsp
                 {
                     if (pCurr == NULL)
                     {
-                        nError = STATUS_OK;
+                        nErrorCode = STATUS_OK;
                         return tot_read;
                     }
 
@@ -82,14 +82,14 @@ namespace lsp
                     }
                 }
 
-                nError = STATUS_OK;
+                nErrorCode = STATUS_OK;
                 return tot_read;
             }
 
             wssize_t X11Clipboard::InputStream::seek(wsize_t position)
             {
                 if (bClosed)
-                    return nError = STATUS_CLOSED;
+                    return nErrorCode = STATUS_CLOSED;
 
                 if ((nPosition - nOffset) > position)
                 {
@@ -101,7 +101,7 @@ namespace lsp
                 {
                     nOffset        -= (nPosition - position);
                     nPosition       = position;
-                    nError          = STATUS_OK;
+                    nErrorCode          = STATUS_OK;
                     return STATUS_OK;
                 }
 
@@ -110,7 +110,7 @@ namespace lsp
                 {
                     if (pCurr == NULL)
                     {
-                        nError = STATUS_OK;
+                        nErrorCode = STATUS_OK;
                         return nPosition;
                     }
 
@@ -134,10 +134,10 @@ namespace lsp
             status_t X11Clipboard::InputStream::close()
             {
                 if (bClosed)
-                    return nError = STATUS_CLOSED;
+                    return nErrorCode = STATUS_CLOSED;
 
                 bClosed         = true;
-                return nError   = pCB->close();
+                return nErrorCode   = pCB->close();
             }
 
             //-----------------------------------------------------------------

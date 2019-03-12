@@ -27,24 +27,24 @@ namespace lsp
         wssize_t LSPTextClipboard::InputStream::avail()
         {
             if (pData == NULL)
-                return - (nError = STATUS_CLOSED);
-            nError = STATUS_OK;
+                return - (nErrorCode = STATUS_CLOSED);
+            nErrorCode = STATUS_OK;
             return nTotal - nPosition;
         }
 
         wssize_t LSPTextClipboard::InputStream::position()
         {
             if (pData == NULL)
-                return - (nError = STATUS_CLOSED);
-            nError = STATUS_OK;
+                return - (nErrorCode = STATUS_CLOSED);
+            nErrorCode = STATUS_OK;
             return nPosition;
         }
 
         ssize_t LSPTextClipboard::InputStream::read(void *dst, size_t count)
         {
             if (pData == NULL)
-                return - (nError = STATUS_CLOSED);
-            nError = STATUS_OK;
+                return - (nErrorCode = STATUS_CLOSED);
+            nErrorCode = STATUS_OK;
 
             size_t can_read = nTotal - nPosition;
             if (count > can_read)
@@ -59,21 +59,21 @@ namespace lsp
         wssize_t LSPTextClipboard::InputStream::seek(wsize_t position)
         {
             if (pData == NULL)
-                return - (nError = STATUS_CLOSED);
-            nError = STATUS_OK;
+                return - (nErrorCode = STATUS_CLOSED);
+            nErrorCode = STATUS_OK;
             return nPosition = (position <= nTotal) ? position : nTotal;
         }
 
         status_t LSPTextClipboard::InputStream::close()
         {
             if (pData == NULL)
-                return - (nError = STATUS_CLOSED);
+                return - (nErrorCode = STATUS_CLOSED);
 
             delete [] pData;
             pData       = NULL;
             nPosition   = 0;
             nTotal      = 0;
-            return nError = STATUS_OK;
+            return nErrorCode = STATUS_OK;
         };
 
         const char *LSPTextClipboard::x_targets[] =

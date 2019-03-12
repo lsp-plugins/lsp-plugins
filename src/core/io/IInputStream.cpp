@@ -15,37 +15,37 @@ namespace lsp
         
         IInputStream::IInputStream()
         {
-            nError      = STATUS_OK;
+            nErrorCode      = STATUS_OK;
         }
         
         IInputStream::~IInputStream()
         {
-            nError      = STATUS_OK;
+            nErrorCode      = STATUS_OK;
         }
     
         wssize_t IInputStream::avail()
         {
-            return - (nError = STATUS_NOT_IMPLEMENTED);
+            return - (nErrorCode = STATUS_NOT_IMPLEMENTED);
         }
 
         wssize_t IInputStream::position()
         {
-            return - (nError = STATUS_NOT_IMPLEMENTED);
+            return - (nErrorCode = STATUS_NOT_IMPLEMENTED);
         }
 
         ssize_t IInputStream::read(void *dst, size_t count)
         {
-            return - (nError = STATUS_NOT_IMPLEMENTED);
+            return - (nErrorCode = STATUS_NOT_IMPLEMENTED);
         }
 
         wssize_t IInputStream::seek(wsize_t position)
         {
-            return - (nError = STATUS_NOT_IMPLEMENTED);
+            return - (nErrorCode = STATUS_NOT_IMPLEMENTED);
         }
 
         status_t IInputStream::close()
         {
-            return nError      = STATUS_OK;
+            return nErrorCode      = STATUS_OK;
         }
 
     } /* namespace ws */

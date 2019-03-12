@@ -26,8 +26,11 @@ namespace lsp
             protected:
                 void    do_close();
 
+            private:
+                StringReader & operator = (const StringReader &);
+
             public:
-                StringReader(const LSPString *s, bool destroy = false);
+                explicit StringReader(const LSPString *s, bool destroy = false);
                 virtual ~StringReader();
 
             public:

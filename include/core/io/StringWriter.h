@@ -19,8 +19,11 @@ namespace lsp
             private:
                 LSPString   *pOut;
 
+            private:
+                StringWriter & operator = (const StringWriter &);
+
             public:
-                StringWriter(LSPString *out);
+                explicit StringWriter(LSPString *out);
                 virtual ~StringWriter();
     
             public:

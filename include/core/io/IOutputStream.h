@@ -17,8 +17,14 @@ namespace lsp
     {
         class IOutputStream
         {
+            private:
+                IOutputStream & operator = (const IOutputStream &);
+
             protected:
-                status_t        nError;
+                status_t        nErrorCode;
+
+            protected:
+                inline status_t set_error(status_t error) { return nErrorCode = error; }
 
             public:
                 IOutputStream();
@@ -29,7 +35,7 @@ namespace lsp
                  *
                  * @return last I/O error code
                  */
-                inline status_t     error_code() const { return nError; };
+                inline status_t     last_error() const { return nErrorCode; };
 
                 /** The current read position
                  *

@@ -15,32 +15,32 @@ namespace lsp
         
         IOutputStream::IOutputStream()
         {
-            nError      = STATUS_OK;
+            nErrorCode      = STATUS_OK;
         }
         
         IOutputStream::~IOutputStream()
         {
-            nError      = STATUS_OK;
+            nErrorCode      = STATUS_OK;
         }
 
         wssize_t IOutputStream::position()
         {
-            return - (nError = STATUS_NOT_IMPLEMENTED);
+            return - (nErrorCode = STATUS_NOT_IMPLEMENTED);
         }
 
         ssize_t IOutputStream::write(const void *buf, size_t count)
         {
-            return - (nError = STATUS_NOT_IMPLEMENTED);
+            return - (nErrorCode = STATUS_NOT_IMPLEMENTED);
         }
 
         wssize_t IOutputStream::seek(wsize_t position)
         {
-            return - (nError = STATUS_NOT_IMPLEMENTED);
+            return - (nErrorCode = STATUS_NOT_IMPLEMENTED);
         }
 
         status_t IOutputStream::close()
         {
-            return nError      = STATUS_OK;
+            return nErrorCode      = STATUS_OK;
         }
     
     } /* namespace ws */

@@ -18,11 +18,26 @@ namespace lsp
     {
         class Writer
         {
+            protected:
+                status_t        nErrorCode;
+
+            protected:
+                inline status_t set_error(status_t error) { return nErrorCode = error; }
+
+            private:
+                Writer & operator = (const Writer &);
+
             public:
-                Writer();
+                explicit Writer();
                 virtual ~Writer();
 
             public:
+                /**
+                 * Return last error code
+                 * @return last error code
+                 */
+                inline status_t last_error() const  { return nErrorCode; };
+
                 /**
                  * Write single character to output stream
                  * @param c character to write

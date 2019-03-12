@@ -37,8 +37,11 @@ namespace lsp
             protected:
                 status_t        fill_char_buf();
 
+            private:
+                FileReader & operator = (const FileReader &);
+
             public:
-                FileReader();
+                explicit FileReader();
                 virtual ~FileReader();
 
             public:
