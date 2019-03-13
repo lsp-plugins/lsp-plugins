@@ -62,7 +62,7 @@ namespace lsp
                  * @param charset character set to use, system charset if NULL
                  * @return status of operation
                  */
-                status_t wrap(lsp_fhandle_t fd, bool close, const char *charset = NULL);
+                status_t wrap_native(lsp_fhandle_t fd, bool close, const char *charset = NULL);
 
                 /** Wrap file descriptor. The Sequence should be in closed state.
                  *

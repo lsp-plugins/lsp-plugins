@@ -115,14 +115,14 @@ namespace lsp
             return set_error(res);
         }
 
-        status_t InSequence::wrap(lsp_fhandle_t fd, bool close, const char *charset)
+        status_t InSequence::wrap_native(lsp_fhandle_t fd, bool close, const char *charset)
         {
             if (pIS != NULL)
                 return set_error(STATUS_BAD_STATE);
 
             // Create input file stream
             InFileStream *is = new InFileStream();
-            status_t res = is->wrap(fd, close, charset);
+            status_t res = is->wrap_native(fd, close, charset);
             if (res != STATUS_OK)
             {
                 is->close();

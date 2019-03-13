@@ -123,7 +123,7 @@ namespace lsp
             return set_error(STATUS_OK);
         }
 
-        status_t OutSequence::wrap(lsp_fhandle_t fd, bool close, const char *charset)
+        status_t OutSequence::wrap_native(lsp_fhandle_t fd, bool close, const char *charset)
         {
             if (pOS != NULL)
                 return set_error(STATUS_BAD_STATE);
@@ -131,7 +131,7 @@ namespace lsp
             OutFileStream *f = new OutFileStream();
             if (f == NULL)
                 return set_error(STATUS_NO_MEM);
-            status_t res = f->wrap(fd, close, charset);
+            status_t res = f->wrap_native(fd, close, charset);
             if (res != STATUS_OK)
             {
                 f->close();

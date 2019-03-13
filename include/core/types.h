@@ -10,6 +10,10 @@
 
 #include <dsp/types.h>
 
+#if defined(PLATFORM_WINDOWS)
+    #include <windows.h>
+#endif /* PLATFORM_WINDOWS */
+
 // For IDEs: define this symbol in IDE to properly compile and debug
 #ifdef LSP_IDE_DEBUG
     #ifdef PLATFORM_WINDOWS
@@ -40,8 +44,6 @@ typedef int32_t         lsp_swchar_t;
 #endif
 
 #if defined(PLATFORM_WINDOWS)
-    #include <windows.h>
-
     typedef HANDLE              lsp_fhandle_t;
 #else
     typedef int                 lsp_fhandle_t;

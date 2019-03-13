@@ -46,7 +46,7 @@ namespace lsp
             public:
                 status_t wrap(FILE *fd, bool close, const char *charset = NULL);
 
-                status_t wrap(lsp_fhandle_t fd, bool close, const char *charset = NULL);
+                status_t wrap_native(lsp_fhandle_t fd, bool close, const char *charset = NULL);
 
                 status_t wrap(File *fd, size_t flags, const char *charset = NULL);
 
