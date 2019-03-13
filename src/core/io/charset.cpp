@@ -2307,6 +2307,27 @@ namespace lsp
         return nconv;
     }
 
+    static size_t widechar_to_multibyte_split(const lsp_utf16_t *src, size_t limit)
+    {
+        // Estimate the middle of an array
+        size_t half     = limit >> 1;
+        if (half <= 0)
+            return half;
+
+        // Now scan valid code points until we reach the end of array
+        lsp_wchar_t cp;
+        limit           = half;
+        while (true)
+        {
+            cp          = read_utf16_streaming(&src, &limit, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+        }
+
+        // Return the result as middle of array without remained points in limit
+        return half - limit;
+    }
+
     ssize_t widechar_to_multibyte(size_t cp, LPCWCH src, size_t *nsrc, LPSTR dst, size_t *ndst)
     {
         ssize_t nconv;
@@ -2334,18 +2355,45 @@ namespace lsp
                         widechar_to_multibyte_utf32be(src, nsrc, dst, ndst);
                 break;
             default:
+            {
+                // Just estimate number of characters?
                 if ((dst == NULL) || (ndst == NULL) || (ssize_t(*ndst) <= 0))
-                    return ::WideCharToMultiByte(cp, 0, src, *nsrc, NULL, 0, 0, FALSE);
-
-                nconv = ::WideCharToMultiByte(cp, 0, src, *nsrc, dst, *ndst, 0, FALSE);
-                if (nconv == 0)
                 {
+                    nconv           = ::WideCharToMultiByte(cp, 0, src, *nsrc, NULL, 0, 0, FALSE);
+                    if (nconv == 0)
+                    {
+                        switch (::GetLastError())
+                        {
+                            case ERROR_SUCCESS:
+                                return 0;
+                            case ERROR_INSUFFICIENT_BUFFER:
+                                return -STATUS_NO_MEM;
+                            case ERROR_INVALID_FLAGS:
+                            case ERROR_INVALID_PARAMETER:
+                                return -STATUS_BAD_STATE;
+                            case ERROR_NO_UNICODE_TRANSLATION:
+                                return -STATUS_BAD_LOCALE;
+                            default:
+                                return -STATUS_UNKNOWN_ERR;
+                        }
+                    }
+                    return nconv;
+                }
+
+                // Perform first try
+                size_t xnsrc    = *nsrc;
+                nconv = ::WideCharToMultiByte(cp, 0, src, xnsrc, dst, *ndst, 0, FALSE);
+
+                // Do while conversion is unsuccessful
+                while (nconv <= 0)
+                {
+                    // There was a fail, analyze it
                     switch (::GetLastError())
                     {
                         case ERROR_SUCCESS:
                             return 0;
                         case ERROR_INSUFFICIENT_BUFFER:
-                            return -STATUS_NO_MEM;
+                            break;  // Will retry with twice lesser input buffer
                         case ERROR_INVALID_FLAGS:
                         case ERROR_INVALID_PARAMETER:
                             return -STATUS_BAD_STATE;
@@ -2354,8 +2402,20 @@ namespace lsp
                         default:
                             return -STATUS_UNKNOWN_ERR;
                     }
+
+                    // Try to twice reduce the buffer size, validate data for surrogates
+                    xnsrc = widechar_to_multibyte_split(src, xnsrc);
+                    if (xnsrc <= 0)
+                        break;
+
+                    // Perform next conversion try with lesser buffer
+                    nconv = ::WideCharToMultiByte(cp, 0, src, xnsrc, dst, *ndst, 0, FALSE);
                 }
-                break;
+
+                *ndst      -= nconv;
+                *nsrc      -= xnsrc;
+            }
+            break;
         }
 
         return nconv;

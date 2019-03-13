@@ -22,14 +22,7 @@ namespace lsp
         {
             protected:
 #if defined(PLATFORM_WINDOWS)
-                CHAR           *bBuffer;        // Byte buffer
-                CHAR           *bBufHead;       // Byte buffer head
-                CHAR           *bBufTail;       // Byte buffer tail
-
                 lsp_utf16_t    *cBuffer;        // Temporary buffer for storing UTF-16 code points
-                lsp_utf16_t    *cBufHead;       // Head of buffer
-                lsp_utf16_t    *cBufTail;       // End of buffer
-
                 UINT            nCodePage;      // Code page
 #else
                 iconv_t         hIconv;         // iconv handle
@@ -60,8 +53,8 @@ namespace lsp
                  * @param outbuf pointer to output buffer to store data
                  * @param outleft number of bytes in output buffer
                  * @param inbuf pointer to the input buffer
-                 * @param inleft
-                 * @return
+                 * @param inleft number of characters left in input buffer
+                 * @return sumber of characters processed or negative error code
                  */
                 ssize_t     encode(void **outbuf, size_t *outleft, lsp_wchar_t **inbuf, size_t *inleft);
         };
