@@ -300,7 +300,7 @@ inline void __lsp_forced_inline    byte_swap(float *v, size_t n)
     }
 #endif /* ARCH_X86_64 */
 
-#ifdef PLATFORM_WINDOWS
+#if defined(WCHART_16BIT)
     inline wchar_t __lsp_forced_inline    byte_swap(wchar_t v)
     {
         ARCH_X86_ASM (
@@ -310,7 +310,7 @@ inline void __lsp_forced_inline    byte_swap(float *v, size_t n)
         );
         return v;
     }
-#else
+#elif defined(WCHART_32BIT)
     inline wchar_t __lsp_forced_inline    byte_swap(wchar_t v)
     {
         ARCH_X86_ASM (

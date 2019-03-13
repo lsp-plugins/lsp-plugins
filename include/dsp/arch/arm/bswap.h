@@ -254,7 +254,7 @@ inline void __lsp_forced_inline    byte_swap(double *v, size_t n)
     );
 }
 
-#ifdef PLATFORM_WINDOWS
+#if defined(WCHART_16BIT)
     inline wchar_t __lsp_forced_inline    byte_swap(wchar_t v)
     {
         ARCH_ARM_ASM (
@@ -264,7 +264,7 @@ inline void __lsp_forced_inline    byte_swap(double *v, size_t n)
         );
         return v;
     }
-#else
+#elif defined(WCHART_32BIT)
     inline wchar_t __lsp_forced_inline    byte_swap(wchar_t v)
     {
         ARCH_ARM_ASM (
@@ -274,6 +274,6 @@ inline void __lsp_forced_inline    byte_swap(double *v, size_t n)
         );
         return v;
     }
-#endif /* PLATFORM_WINDOWS */
+#endif
 
 #endif /* DSP_ARCH_ARM_BSWAP_H_ */
