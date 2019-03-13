@@ -198,6 +198,7 @@ namespace lsp
                 {
                     case E2BIG:
                     case EINVAL:
+                        nconv   = *inleft - (xinleft / sizeof(lsp_wchar_t));
                         break;
                     default:
                         return -STATUS_BAD_FORMAT;

@@ -276,7 +276,7 @@ namespace lsp
 
             // Update state of buffers
             cBufSize        = CBUF_SIZE - xc_left;
-            bBufPos         = bBufSize - left;
+            bBufPos         = bBufSize - xb_left;
 
             return set_error((cBufSize > cBufPos) ? STATUS_OK : STATUS_EOF);
         }
