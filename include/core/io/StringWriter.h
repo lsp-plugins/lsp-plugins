@@ -17,16 +17,19 @@ namespace lsp
         class StringWriter: public Writer
         {
             private:
-                LSPString   *pOut;
+                LSPString  *pOut;
+                bool        bDelete;
 
             private:
                 StringWriter & operator = (const StringWriter &);
 
             public:
-                explicit StringWriter(LSPString *out);
+                explicit StringWriter(LSPString *out, bool del = false);
                 virtual ~StringWriter();
     
             public:
+                status_t wrap(LSPString *out, bool del);
+
                 virtual status_t    write(lsp_wchar_t c);
 
                 virtual status_t    write(const lsp_wchar_t *c, size_t count);

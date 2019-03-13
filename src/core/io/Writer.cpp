@@ -13,6 +13,7 @@ namespace lsp
     {
         Writer::Writer()
         {
+            nErrorCode      = STATUS_OK;
         }
 
         Writer::~Writer()
@@ -21,17 +22,17 @@ namespace lsp
 
         status_t Writer::write(lsp_wchar_t c)
         {
-            return STATUS_OK;
+            return set_error(STATUS_NOT_IMPLEMENTED);
         }
 
         status_t Writer::write(const lsp_wchar_t *c, size_t count)
         {
-            return STATUS_OK;
+            return set_error(STATUS_NOT_IMPLEMENTED);
         }
 
         status_t Writer::write_ascii(const char *s)
         {
-            return STATUS_OK;
+            return set_error(STATUS_NOT_IMPLEMENTED);
         }
 
         status_t Writer::write(const LSPString *s)
@@ -45,10 +46,10 @@ namespace lsp
             if (first < 0)
             {
                 if ((first += len) < 0)
-                    return STATUS_OVERFLOW;
+                    return set_error(STATUS_OVERFLOW);
             }
             else if (first >= len)
-                return (first > len) ? STATUS_OVERFLOW : STATUS_OK;
+                return set_error((first > len) ? STATUS_OVERFLOW : STATUS_OK);
     
             const lsp_wchar_t *v = s->characters();
             return write(&v[first], len - first);
@@ -60,22 +61,22 @@ namespace lsp
             if (first < 0)
             {
                 if ((first += len) < 0)
-                    return STATUS_OVERFLOW;
+                    return set_error(STATUS_OVERFLOW);
             }
             else if (first >= len)
-                return (first > len) ? STATUS_OVERFLOW : STATUS_OK;
+                return set_error((first > len) ? STATUS_OVERFLOW : STATUS_OK);
 
             if (last < 0)
             {
                 if ((last += len) < 0)
-                    return STATUS_OVERFLOW;
+                    return set_error(STATUS_OVERFLOW);
             }
             else if (last >= len)
-                return (last > len) ? STATUS_OVERFLOW : STATUS_OK;
+                return set_error((last > len) ? STATUS_OVERFLOW : STATUS_OK);
 
             ssize_t count = last - first;
             if (count <= 0)
-                return (count < 0) ? STATUS_OVERFLOW : STATUS_OK;
+                return set_error((count < 0) ? STATUS_OVERFLOW : STATUS_OK);
 
             const lsp_wchar_t *v = s->characters();
             return write(&v[first], count);
@@ -121,12 +122,12 @@ namespace lsp
 
         status_t Writer::Writer::flush()
         {
-            return STATUS_OK;
+            return set_error(STATUS_NOT_IMPLEMENTED);
         }
 
         status_t Writer::close()
         {
-            return STATUS_OK;
+            return set_error(STATUS_OK);
         }
     }
 

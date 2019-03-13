@@ -16,7 +16,8 @@ namespace lsp
     namespace io
     {
         /**
-         * Binary file interface
+         * Binary file interface, allows to perform read/write access
+         * to the file on local file system
          */
         class File
         {

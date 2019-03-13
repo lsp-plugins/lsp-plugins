@@ -51,7 +51,7 @@ namespace lsp
                  * Read single character
                  * @return code of single character or negative value on end of stream
                  */
-                virtual int         read();
+                virtual lsp_swchar_t    read();
 
                 /**
                  * Read single line

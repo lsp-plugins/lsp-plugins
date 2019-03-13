@@ -24,17 +24,17 @@ namespace lsp
 
         ssize_t Reader::read(lsp_wchar_t *dst, size_t count)
         {
-            return -1;
+            return -set_error(STATUS_EOF);
         }
 
-        int Reader::read()
+        lsp_swchar_t Reader::read()
         {
-            return -1;
+            return -set_error(STATUS_EOF);
         }
 
         status_t Reader::read_line(LSPString *s, bool force)
         {
-            return STATUS_EOF;
+            return set_error(STATUS_EOF);
         }
 
         ssize_t Reader::skip(size_t count)
@@ -57,7 +57,7 @@ namespace lsp
 
         status_t Reader::close()
         {
-            return STATUS_OK;
+            return set_error(STATUS_OK);
         }
 
     }

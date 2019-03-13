@@ -382,7 +382,7 @@ namespace lsp
         status_t save(FILE *fd, IConfigSource *s, bool comments)
         {
             io::FileWriter fos;
-            status_t res = fos.attach(fd);
+            status_t res = fos.wrap(fd, WRAP_NONE);
             if (res != STATUS_OK)
             {
                 fos.close();
@@ -402,7 +402,7 @@ namespace lsp
         status_t save(const char *path, IConfigSource *s, bool comments)
         {
             io::FileWriter fos;
-            status_t res = fos.open(path);
+            status_t res = fos.open(path, io::File::FM_CREATE | io::File::FM_TRUNC);
             if (res != STATUS_OK)
             {
                 fos.close();

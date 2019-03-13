@@ -11,26 +11,8 @@
 #include <core/io/NativeFile.h>
 #include <core/io/FileReader.h>
 
-#if 1
-    #if defined(PLATFORM_WINDOWS)
-        // Character buffer should have enough space to decode characters
-        #define CBUF_SIZE        0x4000
-        #define BBUF_SIZE        0x1000
-    #else
-        // We economy of I/O operations
-        #define CBUF_SIZE        0x1000
-        #define BBUF_SIZE        0x4000
-    #endif /* PLATFORM_WINDOWS */
-#else
-    // Values for tests
-    #if defined(PLATFORM_WINDOWS)
-        #define BBUF_SIZE       16
-        #define CBUF_SIZE       (BBUF_SIZE * 4)
-    #else
-        #define CBUF_SIZE       32
-        #define BBUF_SIZE       (CBUF_SIZE * 4)
-    #endif
-#endif
+#define CBUF_SIZE        0x1000
+#define BBUF_SIZE        0x4000
 
 namespace lsp
 {
@@ -121,7 +103,13 @@ namespace lsp
                 return set_error(res);
             }
 
-            return wrap(f, WRAP_DELETE, charset);
+            res = wrap(f, WRAP_DELETE, charset);
+            if (res != STATUS_OK)
+            {
+                f->close();
+                delete f;
+            }
+            return set_error(res);
         }
 
         status_t FileReader::wrap(lsp_fhandle_t fd, bool close, const char *charset)
@@ -140,7 +128,13 @@ namespace lsp
                 return set_error(res);
             }
 
-            return wrap(f, WRAP_DELETE, charset);
+            res = wrap(f, WRAP_DELETE, charset);
+            if (res != STATUS_OK)
+            {
+                f->close();
+                delete f;
+            }
+            return set_error(res);
         }
 
         status_t FileReader::wrap(File *fd, size_t flags, const char *charset)
@@ -183,7 +177,7 @@ namespace lsp
             pFD         = fd;
             nWrapFlags  = flags;
 
-            return STATUS_OK;
+            return set_error(STATUS_OK);
         }
 
         status_t FileReader::open(const char *path, const char *charset)
@@ -214,10 +208,18 @@ namespace lsp
             if (res != STATUS_OK)
             {
                 f->close();
+                delete f;
                 return set_error(res);
             }
 
-            return wrap(f, WRAP_CLOSE | WRAP_DELETE, charset);
+            res = wrap(f, WRAP_CLOSE | WRAP_DELETE, charset);
+            if (res != STATUS_OK)
+            {
+                f->close();
+                delete f;
+            }
+
+            return set_error(res);
         }
 
         status_t FileReader::open(const Path *path, const char *charset)
@@ -263,9 +265,8 @@ namespace lsp
             }
 
             // Do the conversion
-            size_t c_left   = (CBUF_SIZE - cBufSize) * sizeof(lsp_wchar_t);
             size_t xb_left  = left;
-            size_t xc_left  = c_left;
+            size_t xc_left  = CBUF_SIZE - cBufSize;
 
             void *inbuf         = &bBuf[bBufPos];
             lsp_wchar_t *outbuf = &cBuf[cBufSize];
@@ -274,8 +275,8 @@ namespace lsp
                 return set_error(-nconv);
 
             // Update state of buffers
-            cBufSize       += (c_left - xc_left) / sizeof(lsp_wchar_t);
-            bBufPos        += (left - xb_left);
+            cBufSize        = CBUF_SIZE - xc_left;
+            bBufPos         = bBufSize - left;
 
             return set_error((cBufSize > cBufPos) ? STATUS_OK : STATUS_EOF);
         }

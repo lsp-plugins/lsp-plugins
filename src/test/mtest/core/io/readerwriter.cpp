@@ -32,7 +32,7 @@ MTEST_BEGIN("core.io", readerwriter)
         MTEST_ASSERT(in.close());
 
         MTEST_ASSERT(in.open(src, "UTF-8"));
-        MTEST_ASSERT(out.open(dst, "UTF-8"));
+        MTEST_ASSERT(out.open(dst, io::File::FM_CREATE | io::File::FM_TRUNC, "UTF-8"));
 
         while (in.read_line(&s, true) == STATUS_OK)
             out.writeln(&s);

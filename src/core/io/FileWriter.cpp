@@ -7,15 +7,12 @@
 
 #include <errno.h>
 #include <core/io/charset.h>
+#include <core/io/StdioFile.h>
+#include <core/io/NativeFile.h>
 #include <core/io/FileWriter.h>
 
-#if 1
-    #define CBUF_SIZE        0x1000
-    #define BBUF_SIZE        0x4000
-#else
-    #define CBUF_SIZE       32
-    #define BBUF_SIZE       (CBUF_SIZE * 4)
-#endif
+#define CBUF_SIZE        0x1000
+#define BBUF_SIZE        0x4000
 
 namespace lsp
 {
@@ -28,54 +25,143 @@ namespace lsp
             bBufPos     = 0;
             cBufPos     = 0;
             pFD         = NULL;
-            bClose      = false;
-            #if defined(PLATFORM_WINDOWS)
-                nCodePage   = UINT(-1);
-            #else
-                hIconv      = iconv_t(-1);
-            #endif
+            nWrapFlags  = 0;
         }
 
         FileWriter::~FileWriter()
         {
-            do_destroy();
-        }
-
-        void FileWriter::do_destroy()
-        {
-            if ((bClose) && (pFD != NULL))
+            // Close file descriptor
+            if (pFD != NULL)
             {
-                fclose(pFD);
+                flush_buffer(true);
+
+
+                if (nWrapFlags & WRAP_CLOSE)
+                    pFD->close();
+                if (nWrapFlags & WRAP_DELETE)
+                    delete pFD;
                 pFD         = NULL;
             }
+            nWrapFlags  = 0;
+
+            // Drop buffer data
             if (bBuf != NULL)
             {
-                free(bBuf);
+                ::free(bBuf);
                 bBuf        = NULL;
+                cBuf        = NULL;
             }
-            #if defined(PLATFORM_WINDOWS)
-                nCodePage   = UINT(-1);
-            #else
-                if (hIconv != iconv_t(-1))
+
+            // Close encoder
+            sEncoder.close();
+        }
+
+        status_t FileWriter::close()
+        {
+            status_t res = STATUS_OK, tres;
+
+            // Close file descriptor
+            if (pFD != NULL)
+            {
+                // Flush buffers
+                res = flush();
+
+                // Perform close
+                if (nWrapFlags & WRAP_CLOSE)
                 {
-                    iconv_close(hIconv);
-                    hIconv      = iconv_t(-1);
+                    tres = pFD->close();
+                    if (res == STATUS_OK)
+                        res = tres;
                 }
-            #endif /* PLATFORM_WINDOWS */
-            cBuf        = NULL;
-            bClose      = false;
+                if (nWrapFlags & WRAP_DELETE)
+                    delete pFD;
+                pFD         = NULL;
+            }
+            nWrapFlags  = 0;
+
+            // Drop buffer data
+            if (bBuf != NULL)
+            {
+                ::free(bBuf);
+                bBuf        = NULL;
+                cBuf        = NULL;
+            }
+
+            // Close encoder
+            sEncoder.close();
+
+            // Return result
+            return set_error(res);
         }
     
-        status_t FileWriter::init_buffers()
+        status_t FileWriter::wrap(FILE *fd, bool close, const char *charset)
         {
+            if (pFD != NULL)
+                return set_error(STATUS_BAD_STATE);
+            else if (fd == NULL)
+                return set_error(STATUS_BAD_ARGUMENTS);
+
+            StdioFile *f = new StdioFile();
+            if (f == NULL)
+                return set_error(STATUS_NO_MEM);
+            status_t res = f->wrap(fd, File::FM_WRITE, close);
+            if (res != STATUS_OK)
+            {
+                f->close();
+                delete f;
+                return set_error(res);
+            }
+
+            res = wrap(f, WRAP_DELETE, charset);
+            if (res != STATUS_OK)
+            {
+                f->close();
+                delete f;
+            }
+            return set_error(res);
+        }
+
+        status_t FileWriter::wrap(lsp_fhandle_t fd, bool close, const char *charset)
+        {
+            if (pFD != NULL)
+                return set_error(STATUS_BAD_STATE);
+
+            NativeFile *f = new NativeFile();
+            if (f == NULL)
+                return set_error(STATUS_NO_MEM);
+            status_t res = f->wrap(fd, File::FM_WRITE, close);
+            if (res != STATUS_OK)
+            {
+                f->close();
+                delete f;
+                return set_error(res);
+            }
+
+            res = wrap(f, WRAP_DELETE, charset);
+            if (res != STATUS_OK)
+            {
+                f->close();
+                delete f;
+            }
+            return set_error(res);
+        }
+
+        status_t FileWriter::wrap(File *fd, size_t flags, const char *charset)
+        {
+            if (pFD != NULL)
+                return set_error(STATUS_BAD_STATE);
+            else if (fd == NULL)
+                return set_error(STATUS_BAD_ARGUMENTS);
+
+            // Allocate buffers
             if (bBuf == NULL)
             {
-                uint8_t *ptr    = reinterpret_cast<uint8_t *>(malloc(
-                            BBUF_SIZE * sizeof(uint8_t) +
-                            CBUF_SIZE * sizeof(lsp_wchar_t)
+                uint8_t *ptr    = reinterpret_cast<uint8_t *>(::malloc(
+                                CBUF_SIZE * sizeof(lsp_wchar_t) +
+                                BBUF_SIZE * sizeof(uint8_t)
                         ));
                 if (ptr == NULL)
-                    return STATUS_NO_MEM;
+                    return set_error(STATUS_NO_MEM);
                 bBuf            = ptr;
                 cBuf            = reinterpret_cast<lsp_wchar_t *>(&bBuf[BBUF_SIZE * sizeof(uint8_t)]);
             }
@@ -83,82 +169,62 @@ namespace lsp
             bBufPos     = 0;
             cBufPos     = 0;
 
-            return STATUS_OK;
-        }
-    
-        status_t FileWriter::initialize(FILE *fd, const char *charset, bool close)
-        {
-            status_t res= init_buffers();
+            // Initialize decoder
+            status_t res = sEncoder.init(charset);
             if (res != STATUS_OK)
             {
-                do_destroy();
-                return res;
+                sEncoder.close();
+                ::free(bBuf);
+                bBuf        = NULL;
+                cBuf        = NULL;
+                return set_error(res);
             }
 
-            #if defined(PLATFORM_WINDOWS)
-                ssize_t cp  = codepage_from_name(charset);
-                if (cp < 0)
-                {
-                    do_destroy();
-                    return STATUS_BAD_LOCALE;
-                }
-                nCodePage   = cp;
-            #else
-                hIconv      = init_iconv_from_wchar_t(charset);
-                if (hIconv == iconv_t(-1))
-                {
-                    do_destroy();
-                    return STATUS_BAD_LOCALE;
-                }
-            #endif /* PLATFORM_WINDOWS */
-
+            // Store pointers
             pFD         = fd;
-            bClose      = close;
+            nWrapFlags  = flags;
+
             return STATUS_OK;
         }
 
-        status_t FileWriter::attach(FILE *fd, const char *charset)
+        status_t FileWriter::open(const char *path, size_t mode, const char *charset)
         {
-            do_destroy();
-            return initialize(fd, charset, false);
+            if (pFD != NULL)
+                return set_error(STATUS_BAD_STATE);
+            else if (path == NULL)
+                return set_error(STATUS_BAD_ARGUMENTS);
+
+            LSPString tmp;
+            if (!tmp.set_utf8(path))
+                return set_error(STATUS_NO_MEM);
+            return open(&tmp, mode, charset);
         }
 
-        status_t FileWriter::open(FILE *fd, const char *charset)
+        status_t FileWriter::open(const LSPString *path, size_t mode, const char *charset)
         {
-            do_destroy();
-            return initialize(fd, charset, true);
-        }
+            if (pFD != NULL)
+                return set_error(STATUS_BAD_STATE);
+            else if (path == NULL)
+                return set_error(STATUS_BAD_ARGUMENTS);
 
-        status_t FileWriter::open(const char *path, const char *charset)
-        {
-            do_destroy();
+            NativeFile *f = new NativeFile();
+            if (f == NULL)
+                return set_error(STATUS_NO_MEM);
 
-            #if defined(PLATFORM_WINDOWS)
-                FILE *fd        = fopen(path, "wb");
-            #else
-                FILE *fd        = fopen(path, "w");
-            #endif /* PLATFORM_WINDOWS */
-            if (fd == NULL)
-                return STATUS_IO_ERROR;
-
-            status_t res = initialize(fd, charset, true);
+            status_t res = f->open(path, mode | File::FM_WRITE);
             if (res != STATUS_OK)
-                fclose(fd);
-            return res;
+            {
+                f->close();
+                delete f;
+                return set_error(res);
+            }
+
+            return wrap(f, WRAP_CLOSE | WRAP_DELETE, charset);
         }
 
-        status_t FileWriter::append(const char *path, const char *charset)
+        status_t FileWriter::open(const Path *path, size_t mode, const char *charset)
         {
-            do_destroy();
-
-            FILE *fd        = fopen(path, "a");
-            if (fd == NULL)
-                return STATUS_IO_ERROR;
-
-            status_t res = initialize(fd, charset, true);
-            if (res != STATUS_OK)
-                fclose(fd);
-            return res;
+            return open(path->as_string(), mode, charset);
         }
 
         status_t FileWriter::flush_byte_buffer()
@@ -169,18 +235,15 @@ namespace lsp
             for (size_t pos=0; pos < bBufPos; )
             {
                 size_t k = bBufPos - pos;
-                size_t n = fwrite(&bBuf[pos], sizeof(uint8_t), k, pFD);
+                size_t n = pFD->write(&bBuf[pos], k);
                 pos     += n;
 
                 if (n < k)
                 {
-                    if (feof(pFD))
-                        return STATUS_EOF;
+                    if (pFD->eof())
+                        return set_error(STATUS_EOF);
                 }
             }
-
-            // Flush underlying device
-            fflush(pFD);
 
             // Reset byte buffer size
             bBufPos     = 0;
@@ -188,41 +251,6 @@ namespace lsp
             return STATUS_OK;
         }
 
-#if defined(PLATFORM_WINDOWS)
-        status_t FileWriter::flush_buffer(bool force)
-        {
-            status_t res = flush_byte_buffer();
-            if (res != STATUS_OK)
-                return res;
-            if (cBufPos <= 0)
-                return STATUS_OK;
-
-            WCHAR *inbuf    = reinterpret_cast<WCHAR *>(cBuf);
-            CHAR *outbuf    = reinterpret_cast<CHAR *>(bBuf);
-            size_t bytes    = WideCharToMultiByte(nCodePage, 0, inbuf, cBufPos, outbuf, BBUF_SIZE-bBufPos, 0, FALSE);
-
-            if (bytes == 0)
-            {
-                switch (GetLastError())
-                {
-                    case ERROR_INSUFFICIENT_BUFFER:
-                        return STATUS_NO_MEM;
-                    case ERROR_INVALID_FLAGS:
-                    case ERROR_INVALID_PARAMETER:
-                        return STATUS_BAD_STATE;
-                    case ERROR_NO_UNICODE_TRANSLATION:
-                        return STATUS_BAD_LOCALE;
-                    default:
-                        return STATUS_UNKNOWN_ERR;
-                }
-            }
-
-            bBufPos        += bytes;
-            cBufPos         = 0;
-
-            return (force) ? flush_byte_buffer() : STATUS_OK;
-        }
-#else
         status_t FileWriter::flush_buffer(bool force)
         {
             for (size_t pos=0; pos < cBufPos; )
@@ -231,33 +259,23 @@ namespace lsp
                 {
                     status_t res = flush_byte_buffer();
                     if (res != STATUS_OK)
-                        return res;
+                        return set_error(res);
                 }
 
                 // Do the conversion
-                size_t xc_left  = (cBufPos - pos) * sizeof(lsp_wchar_t);
+                size_t xc_left  = cBufPos - pos;
                 size_t xb_left  = BBUF_SIZE - bBufPos;
 
-                char *inbuf     = reinterpret_cast<char *>(&cBuf[pos]);
-                char *outbuf    = reinterpret_cast<char *>(&bBuf[bBufPos]);
-                size_t nconv    = iconv(hIconv, &inbuf, &xc_left, &outbuf, &xb_left);
+                lsp_wchar_t *inbuf  = &cBuf[pos];
+                void *outbuf        = &bBuf[bBufPos];
+                ssize_t nconv       = sEncoder.encode(&outbuf, &xb_left, &inbuf, &xc_left);
 
-                if (nconv == size_t(-1))
-                {
-                    int code = errno;
-                    switch (code)
-                    {
-                        case E2BIG:
-                        case EINVAL:
-                            break;
-                        default:
-                            return STATUS_BAD_FORMAT;
-                    }
-                }
+                if (nconv < 0)
+                    return set_error(-nconv);
 
                 // Update pointers
                 bBufPos         = BBUF_SIZE - xb_left;
-                pos             = cBufPos - xc_left/sizeof(lsp_wchar_t);
+                pos             = cBufPos - xc_left;
             }
 
             // Reset character buffer size
@@ -265,12 +283,11 @@ namespace lsp
 
             return (force) ? flush_byte_buffer() : STATUS_OK;
         }
-#endif /* PLATFORM_WINDOWS */
 
         status_t FileWriter::write(lsp_wchar_t c)
         {
             if (pFD == NULL)
-                return STATUS_CLOSED;
+                return set_error(STATUS_CLOSED);
 
             if (cBufPos >= CBUF_SIZE)
             {
@@ -286,7 +303,7 @@ namespace lsp
         status_t FileWriter::write(const lsp_wchar_t *c, size_t count)
         {
             if (pFD == NULL)
-                return STATUS_CLOSED;
+                return set_error(STATUS_CLOSED);
 
             while (count > 0)
             {
@@ -314,7 +331,7 @@ namespace lsp
         status_t FileWriter::write_ascii(const char *s)
         {
             if (pFD == NULL)
-                return STATUS_CLOSED;
+                return set_error(STATUS_CLOSED);
             size_t count = strlen(s);
 
             while (count > 0)
@@ -333,7 +350,7 @@ namespace lsp
 
                 count   -= avail;
                 while (avail--)
-                    cBuf[cBufPos++] = *(s++);
+                    cBuf[cBufPos++] = uint8_t(*(s++));
             }
 
             return STATUS_OK;
@@ -356,14 +373,17 @@ namespace lsp
 
         status_t FileWriter::flush()
         {
-            return flush_buffer(true);
-        }
+            if (pFD == NULL)
+                return set_error(STATUS_CLOSED);
 
-        status_t FileWriter::close()
-        {
+            // First, flush byte buffer
             status_t res = flush_buffer(true);
-            do_destroy();
-            return res;
+
+            // Seconds, flush underlying storage on success
+            if (res == STATUS_OK)
+                res     = pFD->flush();
+
+            return set_error(res);
         }
     }
 
