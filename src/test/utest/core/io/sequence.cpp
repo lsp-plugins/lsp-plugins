@@ -20,7 +20,7 @@
 using namespace lsp;
 using namespace lsp::io;
 
-UTEST_BEGIN("core.io", readwrite)
+UTEST_BEGIN("core.io", sequence)
 
     void testDecodeFile(const LSPString *src, const LSPString *dst, const char *charset)
     {
