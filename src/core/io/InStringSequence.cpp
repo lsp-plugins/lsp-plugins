@@ -107,6 +107,7 @@ namespace lsp
             if (count > avail)
                 count = avail;
             nOffset    += count;
+            set_error(STATUS_OK);
             return count;
         }
 

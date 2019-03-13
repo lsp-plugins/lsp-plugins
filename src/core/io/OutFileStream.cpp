@@ -163,8 +163,7 @@ namespace lsp
             if (pFD == NULL)
                 return set_error(STATUS_CLOSED);
             wssize_t pos = pFD->position();
-            if (pos < 0)
-                set_error(status_t(-pos));
+            set_error((pos < 0) ? status_t(-pos) : STATUS_OK);
             return pos;
         }
 
@@ -173,8 +172,7 @@ namespace lsp
             if (pFD == NULL)
                 return set_error(STATUS_CLOSED);
             ssize_t res = pFD->write(buf, count);
-            if (res < 0)
-                set_error(-res);
+            set_error((res < 0) ? status_t(-res) : STATUS_OK);
             return res;
         }
 
@@ -186,8 +184,7 @@ namespace lsp
             if (res != STATUS_OK)
                 return -set_error(res);
             wssize_t pos = pFD->position();
-            if (pos < 0)
-                set_error(status_t(-pos));
+            set_error((pos < 0) ? status_t(-pos) : STATUS_OK);
             return pos;
         }
 
@@ -195,7 +192,6 @@ namespace lsp
         {
             if (pFD == NULL)
                 return set_error(STATUS_CLOSED);
-
             return set_error(pFD->flush());
         }
 

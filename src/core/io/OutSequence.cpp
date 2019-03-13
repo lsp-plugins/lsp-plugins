@@ -120,7 +120,7 @@ namespace lsp
                 delete f;
             }
 
-            return STATUS_OK;
+            return set_error(STATUS_OK);
         }
 
         status_t OutSequence::wrap(lsp_fhandle_t fd, bool close, const char *charset)
@@ -146,7 +146,7 @@ namespace lsp
                 delete f;
             }
 
-            return STATUS_OK;
+            return set_error(STATUS_OK);
         }
 
         status_t OutSequence::wrap(File *fd, size_t flags, const char *charset)
@@ -174,7 +174,7 @@ namespace lsp
                 delete f;
             }
 
-            return STATUS_OK;
+            return set_error(STATUS_OK);
         }
 
         status_t OutSequence::wrap(IOutStream *os, size_t flags, const char *charset)
@@ -215,7 +215,7 @@ namespace lsp
             pOS         = os;
             nWrapFlags  = flags;
 
-            return STATUS_OK;
+            return set_error(STATUS_OK);
         }
 
         status_t OutSequence::open(const char *path, size_t mode, const char *charset)
@@ -268,7 +268,7 @@ namespace lsp
         status_t OutSequence::flush_byte_buffer()
         {
             if (bBufPos <= 0)
-                return STATUS_OK;
+                return set_error(STATUS_OK);
 
             for (size_t pos=0; pos < bBufPos; )
             {
@@ -283,7 +283,7 @@ namespace lsp
             // Reset byte buffer size
             bBufPos     = 0;
 
-            return STATUS_OK;
+            return set_error(STATUS_OK);
         }
 
         status_t OutSequence::flush_buffer(bool force)
@@ -332,7 +332,7 @@ namespace lsp
             }
 
             cBuf[cBufPos++] = c;
-            return STATUS_OK;
+            return set_error(STATUS_OK);
         }
 
         status_t OutSequence::write(const lsp_wchar_t *c, size_t count)
@@ -360,7 +360,7 @@ namespace lsp
                 count   -= avail;
             }
 
-            return STATUS_OK;
+            return set_error(STATUS_OK);
         }
 
         status_t OutSequence::write_ascii(const char *s)
@@ -388,7 +388,7 @@ namespace lsp
                     cBuf[cBufPos++] = uint8_t(*(s++));
             }
 
-            return STATUS_OK;
+            return set_error(STATUS_OK);
         }
 
         status_t OutSequence::write(const LSPString *s)
