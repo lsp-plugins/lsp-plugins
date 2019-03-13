@@ -618,13 +618,13 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t LSPEdit::clipboard_handler(void *arg, status_t s, io::IInputStream *is)
+        status_t LSPEdit::clipboard_handler(void *arg, status_t s, io::IInStream *is)
         {
             LSPEdit *_this = widget_ptrcast<LSPEdit>(arg);
             return ((s == STATUS_OK) && (_this != NULL) && (is != NULL)) ? _this->paste_data(is) : STATUS_BAD_STATE;
         }
 
-        status_t LSPEdit::paste_data(io::IInputStream *is)
+        status_t LSPEdit::paste_data(io::IInStream *is)
         {
             LSPString s;
             size_t avail = is->avail();

@@ -87,7 +87,7 @@ namespace lsp
              * This method is unsafe and is provided only for low-level optimizations
              * You should know what you're doing when calling this method
              *
-             * @return pointer to internal to internal non-zero-terminated characters array
+             * @return pointer to internal to internal non-null-terminated characters array
              */
             inline const lsp_wchar_t *characters() const { return pData; }
 

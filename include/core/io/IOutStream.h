@@ -1,12 +1,12 @@
 /*
- * IOutputStream.h
+ * IOutStream.h
  *
  *  Created on: 14 нояб. 2017 г.
  *      Author: sadko
  */
 
-#ifndef CORE_IO_IOUTPUTSTREAM_H_
-#define CORE_IO_IOUTPUTSTREAM_H_
+#ifndef CORE_IO_IOUTSTREAM_H_
+#define CORE_IO_IOUTSTREAM_H_
 
 #include <core/types.h>
 #include <core/status.h>
@@ -15,10 +15,10 @@ namespace lsp
 {
     namespace io
     {
-        class IOutputStream
+        class IOutStream
         {
             private:
-                IOutputStream & operator = (const IOutputStream &);
+                IOutStream & operator = (const IOutStream &);
 
             protected:
                 status_t        nErrorCode;
@@ -27,8 +27,8 @@ namespace lsp
                 inline status_t set_error(status_t error) { return nErrorCode = error; }
 
             public:
-                IOutputStream();
-                virtual ~IOutputStream();
+                IOutStream();
+                virtual ~IOutStream();
 
             public:
                 /** Get last I/O error code
@@ -58,6 +58,12 @@ namespace lsp
                  */
                 virtual wssize_t    seek(wsize_t position);
 
+                /**
+                 * Flush buffers to underlying storage
+                 * @return status of operation
+                 */
+                virtual status_t    flush();
+
                 /** Close the clip data stream
                  *
                  * @return status of operation
@@ -68,4 +74,4 @@ namespace lsp
     } /* namespace ws */
 } /* namespace lsp */
 
-#endif /* CORE_IO_IOUTPUTSTREAM_H_ */
+#endif /* CORE_IO_IOUTSTREAM_H_ */

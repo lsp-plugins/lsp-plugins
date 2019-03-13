@@ -1,12 +1,12 @@
 /*
- * Reader.h
+ * IInSequence.h
  *
  *  Created on: 14 июн. 2018 г.
  *      Author: sadko
  */
 
-#ifndef CORE_IO_READER_H_
-#define CORE_IO_READER_H_
+#ifndef CORE_IO_IINSEQUENCE_H_
+#define CORE_IO_IINSEQUENCE_H_
 
 #include <core/types.h>
 #include <core/status.h>
@@ -17,7 +17,7 @@ namespace lsp
 {
     namespace io
     {
-        class Reader
+        class IInSequence
         {
             protected:
                 status_t        nErrorCode;
@@ -26,11 +26,11 @@ namespace lsp
                 inline status_t set_error(status_t error) { return nErrorCode = error; }
 
             private:
-                Reader & operator = (const Reader &);
+                IInSequence & operator = (const IInSequence &);
 
             public:
-                explicit Reader();
-                virtual ~Reader();
+                explicit IInSequence();
+                virtual ~IInSequence();
 
             public:
                 /**
@@ -77,4 +77,4 @@ namespace lsp
     
 } /* namespace lsp */
 
-#endif /* CORE_IO_READER_H_ */
+#endif /* CORE_IO_IINSEQUENCE_H_ */

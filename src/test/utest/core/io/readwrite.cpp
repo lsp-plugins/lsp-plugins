@@ -5,14 +5,14 @@
  *      Author: sadko
  */
 
+#include <core/io/InSequence.h>
 #include <test/utest.h>
 #include <core/status.h>
 
 #include <string.h>
 
 #include <core/io/NativeFile.h>
-#include <core/io/FileReader.h>
-#include <core/io/FileWriter.h>
+#include <core/io/OutSequence.h>
 
 // Test buffer size is a simple number, more than 0x1000
 #define BUFFER_SIZE         4567
@@ -24,7 +24,7 @@ UTEST_BEGIN("core.io", readwrite)
 
     void testDecodeFile(const LSPString *src, const LSPString *dst, const char *charset)
     {
-        FileReader in;
+        InSequence in;
         NativeFile out;
 
         printf("  decoding %s (%s) -> %s (UTF-32)\n", src->get_native(), charset, dst->get_native());
@@ -60,7 +60,7 @@ UTEST_BEGIN("core.io", readwrite)
     void testEncodeFile(const LSPString *src, const LSPString *dst, const char *charset)
     {
         NativeFile in;
-        FileWriter out;
+        OutSequence out;
 
         printf("  encoding %s (UTF-32) -> %s (%s)\n", src->get_native(), dst->get_native(), charset);
 

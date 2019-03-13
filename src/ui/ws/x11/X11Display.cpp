@@ -631,7 +631,7 @@ namespace lsp
 
                         // Now get content type
                         char *ctype             = XGetAtomName(pDisplay, sr->target);
-                        io::IInputStream *is    = (ctype != NULL) ? cb->read(ctype) : NULL;
+                        io::IInStream *is    = (ctype != NULL) ? cb->read(ctype) : NULL;
                         lsp_trace("requested content type: %s", ctype);
                         if (ctype != NULL)
                             XFree(ctype);
@@ -764,7 +764,7 @@ namespace lsp
                         // Check status
                         if (status == STATUS_OK)
                         {
-                            io::IInputStream *is = req->pCB->read(NULL);
+                            io::IInStream *is = req->pCB->read(NULL);
                             if (is == NULL)
                                 req->pHandler(req->pArgument, req->pCB->error_code(), NULL);
                             else
@@ -1362,7 +1362,7 @@ namespace lsp
                 if (wnd == hClipWnd)
                 {
                     IClipboard *cb          = pClipboard[id];
-                    io::IInputStream *is    = (cb != NULL) ? cb->read(ctype) : NULL;
+                    io::IInStream *is    = (cb != NULL) ? cb->read(ctype) : NULL;
                     if (is != NULL)
                         return handler(arg, STATUS_OK, is);
                     else

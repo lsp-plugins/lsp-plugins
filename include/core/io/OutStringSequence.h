@@ -8,27 +8,27 @@
 #ifndef CORE_IO_STRINWRITER_H_
 #define CORE_IO_STRINWRITER_H_
 
-#include <core/io/Writer.h>
+#include <core/io/IOutSequence.h>
 
 namespace lsp
 {
     namespace io
     {
-        class StringWriter: public Writer
+        class OutStringSequence: public IOutSequence
         {
             private:
                 LSPString  *pOut;
                 bool        bDelete;
 
             private:
-                StringWriter & operator = (const StringWriter &);
+                OutStringSequence & operator = (const OutStringSequence &);
 
             public:
-                explicit StringWriter(LSPString *out, bool del = false);
-                virtual ~StringWriter();
+                explicit OutStringSequence(LSPString *out, bool del = false);
+                virtual ~OutStringSequence();
     
             public:
-                status_t wrap(LSPString *out, bool del);
+                status_t            wrap(LSPString *out, bool del);
 
                 virtual status_t    write(lsp_wchar_t c);
 

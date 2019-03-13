@@ -5,9 +5,9 @@
  *      Author: sadko
  */
 
+#include <core/io/InSequence.h>
+#include <core/io/OutSequence.h>
 #include <test/mtest.h>
-#include <core/io/FileReader.h>
-#include <core/io/FileWriter.h>
 
 using namespace lsp;
 
@@ -21,8 +21,8 @@ MTEST_BEGIN("core.io", readerwriter)
         const char *src = (argc >= 1) ? SRC_FILE : argv[0];
         const char *dst = (argc >= 2) ? DST_FILE : argv[1];
 
-        io::FileReader in;
-        io::FileWriter out;
+        io::InSequence in;
+        io::OutSequence out;
         LSPString s;
 
         MTEST_ASSERT(in.open(src, "UTF-8") == STATUS_OK);

@@ -5,40 +5,45 @@
  *      Author: sadko
  */
 
+#include <core/io/IOutStream.h>
 #include <core/status.h>
-#include <core/io/IOutputStream.h>
 
 namespace lsp
 {
     namespace io
     {
         
-        IOutputStream::IOutputStream()
+        IOutStream::IOutStream()
         {
             nErrorCode      = STATUS_OK;
         }
         
-        IOutputStream::~IOutputStream()
+        IOutStream::~IOutStream()
         {
             nErrorCode      = STATUS_OK;
         }
 
-        wssize_t IOutputStream::position()
+        wssize_t IOutStream::position()
         {
             return - set_error(STATUS_NOT_IMPLEMENTED);
         }
 
-        ssize_t IOutputStream::write(const void *buf, size_t count)
+        ssize_t IOutStream::write(const void *buf, size_t count)
         {
             return - set_error(STATUS_NOT_IMPLEMENTED);
         }
 
-        wssize_t IOutputStream::seek(wsize_t position)
+        wssize_t IOutStream::seek(wsize_t position)
         {
             return - set_error(STATUS_NOT_IMPLEMENTED);
         }
 
-        status_t IOutputStream::close()
+        status_t IOutStream::flush()
+        {
+            return - set_error(STATUS_NOT_IMPLEMENTED);
+        }
+
+        status_t IOutStream::close()
         {
             return set_error(STATUS_OK);
         }

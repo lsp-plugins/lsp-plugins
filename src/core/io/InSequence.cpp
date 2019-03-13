@@ -9,7 +9,8 @@
 #include <core/io/charset.h>
 #include <core/io/StdioFile.h>
 #include <core/io/NativeFile.h>
-#include <core/io/FileReader.h>
+#include <core/io/InFileStream.h>
+#include <core/io/InSequence.h>
 
 #define CBUF_SIZE        0x1000
 #define BBUF_SIZE        0x4000
@@ -18,7 +19,7 @@ namespace lsp
 {
     namespace io
     {
-        FileReader::FileReader()
+        InSequence::InSequence()
         {
             bBuf        = NULL;
             cBuf        = NULL;
@@ -26,20 +27,20 @@ namespace lsp
             bBufPos     = 0;
             cBufSize    = 0;
             cBufPos     = 0;
-            pFD         = NULL;
+            pIS         = NULL;
             nWrapFlags  = 0;
         }
 
-        FileReader::~FileReader()
+        InSequence::~InSequence()
         {
             // Close file descriptor
-            if (pFD != NULL)
+            if (pIS != NULL)
             {
                 if (nWrapFlags & WRAP_CLOSE)
-                    pFD->close();
+                    pIS->close();
                 if (nWrapFlags & WRAP_DELETE)
-                    delete pFD;
-                pFD         = NULL;
+                    delete pIS;
+                pIS         = NULL;
             }
             nWrapFlags  = 0;
 
@@ -55,18 +56,18 @@ namespace lsp
             sDecoder.close();
         }
 
-        status_t FileReader::close()
+        status_t InSequence::close()
         {
             status_t res = STATUS_OK;
 
             // Close file descriptor
-            if (pFD != NULL)
+            if (pIS != NULL)
             {
                 if (nWrapFlags & WRAP_CLOSE)
-                    res = pFD->close();
+                    res = pIS->close();
                 if (nWrapFlags & WRAP_DELETE)
-                    delete pFD;
-                pFD         = NULL;
+                    delete pIS;
+                pIS         = NULL;
             }
             nWrapFlags  = 0;
 
@@ -85,63 +86,96 @@ namespace lsp
             return set_error(res);
         }
     
-        status_t FileReader::wrap(FILE *fd, bool close, const char *charset)
+        status_t InSequence::wrap(FILE *fd, bool close, const char *charset)
         {
-            if (pFD != NULL)
+            if (pIS != NULL)
                 return set_error(STATUS_BAD_STATE);
             else if (fd == NULL)
                 return set_error(STATUS_BAD_ARGUMENTS);
 
-            StdioFile *f = new StdioFile();
-            if (f == NULL)
-                return set_error(STATUS_NO_MEM);
-            status_t res = f->wrap(fd, File::FM_READ, close);
+            // Create input file stream
+            InFileStream *is = new InFileStream();
+            status_t res = is->wrap(fd, close, charset);
             if (res != STATUS_OK)
             {
-                f->close();
-                delete f;
+                is->close();
+                delete is;
                 return set_error(res);
             }
 
-            res = wrap(f, WRAP_DELETE, charset);
+            // Wrap input file stream
+            res = wrap(is, WRAP_CLOSE | WRAP_DELETE, charset);
             if (res != STATUS_OK)
             {
-                f->close();
-                delete f;
+                is->close();
+                delete is;
+                return set_error(res);
             }
+
             return set_error(res);
         }
 
-        status_t FileReader::wrap(lsp_fhandle_t fd, bool close, const char *charset)
+        status_t InSequence::wrap(lsp_fhandle_t fd, bool close, const char *charset)
         {
-            if (pFD != NULL)
+            if (pIS != NULL)
                 return set_error(STATUS_BAD_STATE);
 
-            NativeFile *f = new NativeFile();
-            if (f == NULL)
-                return set_error(STATUS_NO_MEM);
-            status_t res = f->wrap(fd, File::FM_READ, close);
+            // Create input file stream
+            InFileStream *is = new InFileStream();
+            status_t res = is->wrap(fd, close, charset);
             if (res != STATUS_OK)
             {
-                f->close();
-                delete f;
+                is->close();
+                delete is;
                 return set_error(res);
             }
 
-            res = wrap(f, WRAP_DELETE, charset);
+            // Wrap input file stream
+            res = wrap(is, WRAP_CLOSE | WRAP_DELETE, charset);
             if (res != STATUS_OK)
             {
-                f->close();
-                delete f;
+                is->close();
+                delete is;
+                return set_error(res);
             }
+
             return set_error(res);
         }
 
-        status_t FileReader::wrap(File *fd, size_t flags, const char *charset)
+        status_t InSequence::wrap(File *fd, size_t flags, const char *charset)
         {
-            if (pFD != NULL)
+            if (pIS != NULL)
                 return set_error(STATUS_BAD_STATE);
             else if (fd == NULL)
+                return set_error(STATUS_BAD_ARGUMENTS);
+
+            // Create input file stream
+            InFileStream *is = new InFileStream();
+            status_t res = is->wrap(fd, flags, charset);
+            if (res != STATUS_OK)
+            {
+                is->close();
+                delete is;
+                return set_error(res);
+            }
+
+            // Wrap input file stream
+            res = wrap(is, WRAP_CLOSE | WRAP_DELETE, charset);
+            if (res != STATUS_OK)
+            {
+                is->close();
+                delete is;
+                return set_error(res);
+            }
+
+            return set_error(res);
+        }
+
+        status_t InSequence::wrap(IInStream *is, size_t flags, const char *charset)
+        {
+            if (pIS != NULL)
+                return set_error(STATUS_BAD_STATE);
+            else if (is == NULL)
                 return set_error(STATUS_BAD_ARGUMENTS);
 
             // Allocate buffers
@@ -174,15 +208,15 @@ namespace lsp
             }
 
             // Store pointers
-            pFD         = fd;
+            pIS         = is;
             nWrapFlags  = flags;
 
             return set_error(STATUS_OK);
         }
 
-        status_t FileReader::open(const char *path, const char *charset)
+        status_t InSequence::open(const char *path, const char *charset)
         {
-            if (pFD != NULL)
+            if (pIS != NULL)
                 return set_error(STATUS_BAD_STATE);
             else if (path == NULL)
                 return set_error(STATUS_BAD_ARGUMENTS);
@@ -193,41 +227,41 @@ namespace lsp
             return open(&tmp, charset);
         }
 
-        status_t FileReader::open(const LSPString *path, const char *charset)
+        status_t InSequence::open(const LSPString *path, const char *charset)
         {
-            if (pFD != NULL)
+            if (pIS != NULL)
                 return set_error(STATUS_BAD_STATE);
             else if (path == NULL)
                 return set_error(STATUS_BAD_ARGUMENTS);
 
-            NativeFile *f = new NativeFile();
-            if (f == NULL)
-                return set_error(STATUS_NO_MEM);
-
-            status_t res = f->open(path, File::FM_READ);
+            // Create input file stream
+            InFileStream *is = new InFileStream();
+            status_t res = is->open(path, charset);
             if (res != STATUS_OK)
             {
-                f->close();
-                delete f;
+                is->close();
+                delete is;
                 return set_error(res);
             }
 
-            res = wrap(f, WRAP_CLOSE | WRAP_DELETE, charset);
+            // Wrap input file stream
+            res = wrap(is, WRAP_CLOSE | WRAP_DELETE, charset);
             if (res != STATUS_OK)
             {
-                f->close();
-                delete f;
+                is->close();
+                delete is;
+                return set_error(res);
             }
 
             return set_error(res);
         }
 
-        status_t FileReader::open(const Path *path, const char *charset)
+        status_t InSequence::open(const Path *path, const char *charset)
         {
             return open(path->as_string(), charset);
         }
 
-        status_t FileReader::fill_char_buf()
+        status_t InSequence::fill_char_buf()
         {
             // If there is data at the tail of buffer, move it to beginning
             ssize_t left    = cBufSize - cBufPos;
@@ -255,7 +289,7 @@ namespace lsp
                 bBufPos     = 0;
 
                 // Try to additionally read data
-                ssize_t nbytes      = pFD->read(&bBuf[bBufSize], BBUF_SIZE - bBufSize);
+                ssize_t nbytes      = pIS->read(&bBuf[bBufSize], BBUF_SIZE - bBufSize);
                 if ((nbytes <= 0) && (left <= 0))
                     return set_error((nbytes < 0) ? -nbytes : STATUS_EOF);
                 else if (nbytes > 0)
@@ -281,9 +315,9 @@ namespace lsp
             return set_error((cBufSize > cBufPos) ? STATUS_OK : STATUS_EOF);
         }
 
-        ssize_t FileReader::read(lsp_wchar_t *dst, size_t count)
+        ssize_t InSequence::read(lsp_wchar_t *dst, size_t count)
         {
-            if (pFD == NULL)
+            if (pIS == NULL)
                 return -set_error(STATUS_CLOSED);
 
             // Clear line buffer
@@ -323,9 +357,9 @@ namespace lsp
             return n_read;
         }
 
-        int FileReader::read()
+        int InSequence::read()
         {
-            if (pFD == NULL)
+            if (pIS == NULL)
                 return -set_error(STATUS_CLOSED);
 
             // Clear line buffer
@@ -346,9 +380,9 @@ namespace lsp
             return cBuf[cBufPos++];
         }
 
-        status_t FileReader::read_line(LSPString *s, bool force)
+        status_t InSequence::read_line(LSPString *s, bool force)
         {
-            if (pFD == NULL)
+            if (pIS == NULL)
                 return set_error(STATUS_CLOSED);
 
             while (true)
@@ -428,10 +462,10 @@ namespace lsp
             return set_error(STATUS_EOF);
         }
 
-        ssize_t FileReader::skip(size_t count)
+        ssize_t InSequence::skip(size_t count)
         {
             sLine.clear();
-            return Reader::skip(count);
+            return IInSequence::skip(count);
         }
 
     }

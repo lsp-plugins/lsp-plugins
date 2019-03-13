@@ -5,45 +5,45 @@
  *      Author: sadko
  */
 
+#include <core/io/IInStream.h>
 #include <core/status.h>
-#include <core/io/IInputStream.h>
 
 namespace lsp
 {
     namespace io
     {
         
-        IInputStream::IInputStream()
+        IInStream::IInStream()
         {
             nErrorCode      = STATUS_OK;
         }
         
-        IInputStream::~IInputStream()
+        IInStream::~IInStream()
         {
             nErrorCode      = STATUS_OK;
         }
     
-        wssize_t IInputStream::avail()
+        wssize_t IInStream::avail()
         {
             return - set_error(STATUS_NOT_IMPLEMENTED);
         }
 
-        wssize_t IInputStream::position()
+        wssize_t IInStream::position()
         {
             return - set_error(STATUS_NOT_IMPLEMENTED);
         }
 
-        ssize_t IInputStream::read(void *dst, size_t count)
+        ssize_t IInStream::read(void *dst, size_t count)
         {
             return - set_error(STATUS_NOT_IMPLEMENTED);
         }
 
-        wssize_t IInputStream::seek(wsize_t position)
+        wssize_t IInStream::seek(wsize_t position)
         {
             return - set_error(STATUS_NOT_IMPLEMENTED);
         }
 
-        status_t IInputStream::close()
+        status_t IInStream::close()
         {
             return set_error(nErrorCode);
         }

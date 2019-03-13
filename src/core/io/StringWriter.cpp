@@ -5,19 +5,19 @@
  *      Author: sadko
  */
 
-#include <core/io/StringWriter.h>
+#include <core/io/OutStringSequence.h>
 
 namespace lsp
 {
     namespace io
     {
-        StringWriter::StringWriter(LSPString *out, bool del)
+        OutStringSequence::OutStringSequence(LSPString *out, bool del)
         {
             pOut = out;
             bDelete = del;
         }
 
-        StringWriter::~StringWriter()
+        OutStringSequence::~OutStringSequence()
         {
             if (pOut == NULL)
                 return;
@@ -29,7 +29,7 @@ namespace lsp
             bDelete = false;
         }
 
-        status_t StringWriter::close()
+        status_t OutStringSequence::close()
         {
             if (pOut != NULL)
             {
@@ -41,7 +41,7 @@ namespace lsp
             return set_error(STATUS_OK);
         }
 
-        status_t StringWriter::wrap(LSPString *out, bool del)
+        status_t OutStringSequence::wrap(LSPString *out, bool del)
         {
             if (pOut != NULL)
                 return set_error(STATUS_BAD_STATE);
@@ -53,7 +53,7 @@ namespace lsp
             return set_error(STATUS_OK);
         }
 
-        status_t StringWriter::write(lsp_wchar_t c)
+        status_t OutStringSequence::write(lsp_wchar_t c)
         {
             if (pOut == NULL)
                 return set_error(STATUS_CLOSED);
@@ -61,7 +61,7 @@ namespace lsp
             return set_error((pOut->append(c)) ? STATUS_OK : STATUS_NO_MEM);
         }
 
-        status_t StringWriter::write(const lsp_wchar_t *c, size_t count)
+        status_t OutStringSequence::write(const lsp_wchar_t *c, size_t count)
         {
             if (pOut == NULL)
                 return set_error(STATUS_CLOSED);
@@ -69,7 +69,7 @@ namespace lsp
             return set_error((pOut->append(c, count)) ? STATUS_OK : STATUS_NO_MEM);
         }
 
-        status_t StringWriter::write_ascii(const char *s)
+        status_t OutStringSequence::write_ascii(const char *s)
         {
             if (pOut == NULL)
                 return set_error(STATUS_CLOSED);
@@ -77,7 +77,7 @@ namespace lsp
             return set_error((pOut->append_ascii(s)) ? STATUS_OK : STATUS_NO_MEM);
         }
 
-        status_t StringWriter::write(const LSPString *s)
+        status_t OutStringSequence::write(const LSPString *s)
         {
             if (pOut == NULL)
                 return set_error(STATUS_CLOSED);
@@ -85,7 +85,7 @@ namespace lsp
             return set_error((pOut->append(s)) ? STATUS_OK : STATUS_NO_MEM);
         }
 
-        status_t StringWriter::write(const LSPString *s, ssize_t first)
+        status_t OutStringSequence::write(const LSPString *s, ssize_t first)
         {
             if (pOut == NULL)
                 return set_error(STATUS_CLOSED);
@@ -93,7 +93,7 @@ namespace lsp
             return set_error((pOut->append(s, first)) ? STATUS_OK : STATUS_NO_MEM);
         }
 
-        status_t StringWriter::write(const LSPString *s, ssize_t first, ssize_t last)
+        status_t OutStringSequence::write(const LSPString *s, ssize_t first, ssize_t last)
         {
             if (pOut == NULL)
                 return set_error(STATUS_CLOSED);
@@ -101,7 +101,7 @@ namespace lsp
             return set_error((pOut->append(s, first, last)) ? STATUS_OK : STATUS_NO_MEM);
         }
 
-        status_t StringWriter::flush()
+        status_t OutStringSequence::flush()
         {
             return set_error(STATUS_OK);
         }

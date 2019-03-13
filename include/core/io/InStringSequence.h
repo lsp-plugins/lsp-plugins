@@ -8,32 +8,33 @@
 #ifndef CORE_IO_STRINGREADER_H_
 #define CORE_IO_STRINGREADER_H_
 
-#include <core/io/Reader.h>
+#include <core/io/IInSequence.h>
 #include <core/LSPString.h>
 
 namespace lsp
 {
     namespace io
     {
-        class StringReader: public Reader
+        class InStringSequence: public IInSequence
         {
             private:
                 const LSPString    *pString;
                 size_t              nOffset;
-                bool                bDestroy;
-                status_t            nError;
+                bool                bDelete;
 
             protected:
                 void    do_close();
 
             private:
-                StringReader & operator = (const StringReader &);
+                InStringSequence & operator = (const InStringSequence &);
 
             public:
-                explicit StringReader(const LSPString *s, bool destroy = false);
-                virtual ~StringReader();
+                explicit InStringSequence(const LSPString *s, bool del = false);
+                virtual ~InStringSequence();
 
             public:
+                status_t            wrap(const LSPString *in, bool del);
+
                 virtual ssize_t     read(lsp_wchar_t *dst, size_t count);
 
                 virtual int         read();
@@ -43,8 +44,6 @@ namespace lsp
                 virtual ssize_t     skip(size_t count);
 
                 virtual status_t    close();
-
-                virtual status_t    error();
         };
     }
 } /* namespace lsp */

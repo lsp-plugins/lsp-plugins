@@ -15,10 +15,10 @@
 
 #include <core/files/config/IConfigHandler.h>
 #include <core/files/config/IConfigSource.h>
+#include <core/io/IInSequence.h>
+#include <core/io/IInStream.h>
 
-#include <core/io/Reader.h>
-#include <core/io/Writer.h>
-#include <core/io/IInputStream.h>
+#include <core/io/IOutSequence.h>
 
 namespace lsp
 {
@@ -46,7 +46,7 @@ namespace lsp
          * @param h configuration parameter handler
          * @return status of operation
          */
-        status_t load(io::Reader *is, IConfigHandler *h);
+        status_t load(io::IInSequence *is, IConfigHandler *h);
 
         /**
          * Load configuration from character input stream
@@ -54,7 +54,7 @@ namespace lsp
          * @param h configuration parameter handler
          * @return status of operation
          */
-        status_t load(io::IInputStream *is, IConfigHandler *h);
+        status_t load(io::IInStream *is, IConfigHandler *h);
 
         /**
          * Deserialize configuration from string instance
@@ -89,7 +89,7 @@ namespace lsp
          * @param comments add comments
          * @return status of operation
          */
-        status_t save(io::Writer *os, IConfigSource *s, bool comments = true);
+        status_t save(io::IOutSequence *os, IConfigSource *s, bool comments = true);
 
         /**
          * Serialize configuration to string instance

@@ -95,7 +95,7 @@ namespace lsp
         {
         }
         
-        io::IInputStream *LSPTextClipboard::read(const char *ctype)
+        io::IInStream *LSPTextClipboard::read(const char *ctype)
         {
             if (ctype == NULL)
             {

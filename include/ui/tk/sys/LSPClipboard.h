@@ -8,8 +8,8 @@
 #ifndef UI_TK_SYS_LSPCLIPBOARD_H_
 #define UI_TK_SYS_LSPCLIPBOARD_H_
 
-#include <core/io/IInputStream.h>
-#include <core/io/IOutputStream.h>
+#include <core/io/IInStream.h>
+#include <core/io/IOutStream.h>
 
 namespace lsp
 {
@@ -38,7 +38,7 @@ namespace lsp
                 bool            bClosed;            // Closed flag
 
             protected:
-                class LSPInputStream: public io::IInputStream
+                class LSPInputStream: public io::IInStream
                 {
                     protected:
                         LSPClipboard       *pCB;
@@ -58,7 +58,7 @@ namespace lsp
                         virtual status_t    close();
                 };
 
-                class LSPOutputStream: public io::IOutputStream
+                class LSPOutputStream: public io::IOutStream
                 {
                     protected:
                         LSPClipboard       *pCB;
@@ -120,7 +120,7 @@ namespace lsp
                  * @param ctype content type
                  * @return pointer to the opened clipboard stream or NULL if content type or character set is not supported
                  */
-                virtual io::IInputStream   *read(const char *ctype);
+                virtual io::IInStream   *read(const char *ctype);
 
                 /** Write data to the clipboard
                  *
@@ -128,7 +128,7 @@ namespace lsp
                  * @param charset
                  * @return
                  */
-                virtual io::IOutputStream  *write(const char *ctype);
+                virtual io::IOutStream  *write(const char *ctype);
         };
     
     } /* namespace tk */

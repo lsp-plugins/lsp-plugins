@@ -1,26 +1,27 @@
 /*
- * FileCharInputStream.h
+ * InSequence.h
  *
  *  Created on: 16 июн. 2018 г.
  *      Author: sadko
  */
 
-#ifndef CORE_IO_FILEREADER_H_
-#define CORE_IO_FILEREADER_H_
+#ifndef CORE_IO_INSEQUENCE_H_
+#define CORE_IO_INSEQUENCE_H_
 
 #include <stdio.h>
 #include <core/types.h>
 #include <core/io/charset.h>
-#include <core/io/Reader.h>
 #include <core/io/Path.h>
 #include <core/io/File.h>
 #include <core/io/CharsetDecoder.h>
+#include <core/io/IInSequence.h>
+#include <core/io/IInStream.h>
 
 namespace lsp
 {
     namespace io
     {
-        class FileReader: public Reader
+        class InSequence: public IInSequence
         {
             protected:
                 uint8_t        *bBuf;
@@ -29,7 +30,7 @@ namespace lsp
                 size_t          bBufPos;
                 size_t          cBufSize;
                 size_t          cBufPos;
-                File           *pFD;
+                IInStream      *pIS;
                 size_t          nWrapFlags;
                 CharsetDecoder  sDecoder;
                 LSPString       sLine;
@@ -38,14 +39,14 @@ namespace lsp
                 status_t        fill_char_buf();
 
             private:
-                FileReader & operator = (const FileReader &);
+                InSequence & operator = (const InSequence &);
 
             public:
-                explicit FileReader();
-                virtual ~FileReader();
+                explicit InSequence();
+                virtual ~InSequence();
 
             public:
-                /** Wrap stdio file descriptor. The Reader should be in closed state.
+                /** Wrap stdio file descriptor. The Sequence should be in closed state.
                  *
                  * @param fd file descriptor
                  * @param close close file descriptor on close()
@@ -54,7 +55,7 @@ namespace lsp
                  */
                 status_t wrap(FILE *fd, bool close, const char *charset = NULL);
 
-                /** Wrap native file descriptor. The Reader should be in closed state.
+                /** Wrap native file descriptor. The Sequence should be in closed state.
                  *
                  * @param fd file descriptor
                  * @param close close file descriptor on close()
@@ -63,7 +64,7 @@ namespace lsp
                  */
                 status_t wrap(lsp_fhandle_t fd, bool close, const char *charset = NULL);
 
-                /** Wrap file descriptor. The Reader should be in closed state.
+                /** Wrap file descriptor. The Sequence should be in closed state.
                  *
                  * @param fd file descriptor
                  * @param flags wrapping flags
@@ -72,7 +73,16 @@ namespace lsp
                  */
                 status_t wrap(File *fd, size_t flags, const char *charset = NULL);
 
-                /** Open input stream associated with file. The Reader should be in closed state.
+                /** Wrap input stream. The Sequence should be in closed state.
+                 *
+                 * @param is input stream to wrap
+                 * @param flags wrapping flags
+                 * @param charset character set to use, system charset if NULL
+                 * @return status of operation
+                 */
+                status_t wrap(IInStream *is, size_t flags, const char *charset = NULL);
+
+                /** Open input stream associated with file. The Sequence should be in closed state.
                  *
                  * @param path file location path
                  * @param charset character set to use, system charset if NULL
@@ -80,7 +90,7 @@ namespace lsp
                  */
                 status_t open(const char *path, const char *charset = NULL);
 
-                /** Open input stream associated with file. The Reader should be in closed state.
+                /** Open input stream associated with file. The Sequence should be in closed state.
                  *
                  * @param path file location path
                  * @param charset character set to use, system charset if NULL
@@ -110,4 +120,4 @@ namespace lsp
     }
 } /* namespace lsp */
 
-#endif /* CORE_IO_FILEREADER_H_ */
+#endif /* CORE_IO_INSEQUENCE_H_ */

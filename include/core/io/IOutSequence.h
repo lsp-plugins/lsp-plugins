@@ -1,12 +1,12 @@
 /*
- * Writer.h
+ * IOutSequence.h
  *
  *  Created on: 14 июн. 2018 г.
  *      Author: sadko
  */
 
-#ifndef CORE_IO_WRITER_H_
-#define CORE_IO_WRITER_H_
+#ifndef CORE_IO_IOUTSEQUENCE_H_
+#define CORE_IO_IOUTSEQUENCE_H_
 
 #include <core/types.h>
 #include <core/status.h>
@@ -16,7 +16,7 @@ namespace lsp
 {
     namespace io
     {
-        class Writer
+        class IOutSequence
         {
             protected:
                 status_t        nErrorCode;
@@ -25,11 +25,11 @@ namespace lsp
                 inline status_t set_error(status_t error) { return nErrorCode = error; }
 
             private:
-                Writer & operator = (const Writer &);
+                IOutSequence & operator = (const IOutSequence &);
 
             public:
-                explicit Writer();
-                virtual ~Writer();
+                explicit IOutSequence();
+                virtual ~IOutSequence();
 
             public:
                 /**
@@ -123,7 +123,6 @@ namespace lsp
                  */
                 virtual status_t    write(const LSPString *s, ssize_t first, ssize_t last);
 
-
                 /**
                  * Write substring to output stream and end-of-line
                  * @param s string to write
@@ -149,4 +148,4 @@ namespace lsp
 
 } /* namespace lsp */
 
-#endif /* CORE_IO_WRITER_H_ */
+#endif /* CORE_IO_IOUTSEQUENCE_H_ */

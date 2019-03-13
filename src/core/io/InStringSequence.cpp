@@ -5,42 +5,47 @@
  *      Author: sadko
  */
 
-#include <core/io/StringReader.h>
+#include <core/io/InStringSequence.h>
 
 namespace lsp
 {
     namespace io
     {
-        StringReader::StringReader(const LSPString *s, bool destroy):
+        InStringSequence::InStringSequence(const LSPString *s, bool destroy):
                 pString(s)
         {
-            bDestroy    = destroy;
+            bDelete    = destroy;
             nOffset     = 0;
-            nError      = STATUS_OK;
         }
 
-        StringReader::~StringReader()
+        InStringSequence::~InStringSequence()
         {
             do_close();
         }
 
-        void StringReader::do_close()
+        status_t InStringSequence::wrap(const LSPString *in, bool del)
+        {
+            if (pString != NULL)
+                return set_error(STATUS_BAD_STATE);
+            pString     = in;
+            bDelete     = del;
+            return set_error(STATUS_OK);
+        }
+
+        void InStringSequence::do_close()
         {
             if (pString == NULL)
                 return;
-            if (bDestroy)
+            if (bDelete)
                 delete const_cast<LSPString *>(pString);
             pString     = NULL;
-            bDestroy    = false;
+            bDelete     = false;
         }
 
-        ssize_t StringReader::read(lsp_wchar_t *dst, size_t count)
+        ssize_t InStringSequence::read(lsp_wchar_t *dst, size_t count)
         {
             if (pString == NULL)
-            {
-                nError = STATUS_CLOSED;
-                return -1;
-            }
+                return set_error(STATUS_CLOSED);
 
             size_t avail = pString->length() - nOffset;
             if (count > avail)
@@ -52,37 +57,36 @@ namespace lsp
             const lsp_wchar_t *v = pString->characters();
             v       += nOffset;
             nOffset += count;
-            memcpy(dst, v, avail * sizeof(lsp_wchar_t));
+            ::memcpy(dst, v, avail * sizeof(lsp_wchar_t));
 
+            set_error(STATUS_OK);
             return count;
         }
     
-        int StringReader::read()
+        int InStringSequence::read()
         {
             if (pString == NULL)
-            {
-                nError = STATUS_CLOSED;
-                return -1;
-            }
+                return set_error(STATUS_CLOSED);
 
-            return (nOffset < pString->length()) ?
-                pString->char_at(nOffset++) : -1;
+            if (nOffset < pString->length())
+            {
+                set_error(STATUS_OK);
+                return pString->char_at(nOffset++);
+            }
+            return set_error(STATUS_EOF);
         }
 
-        status_t StringReader::read_line(LSPString *s, bool force)
+        status_t InStringSequence::read_line(LSPString *s, bool force)
         {
             if (pString == NULL)
-            {
-                nError = STATUS_CLOSED;
-                return -1;
-            }
+                return set_error(STATUS_CLOSED);
 
             ssize_t idx = pString->index_of(nOffset, '\n');
             if ((idx < 0) && (!force))
-                return STATUS_EOF;
+                return set_error(STATUS_EOF);
 
             if (!s->set(pString, nOffset, idx))
-                return nError = STATUS_NO_MEM;
+                return set_error(STATUS_NO_MEM);
 
             ssize_t len = s->length();
             if ((len--) > 0)
@@ -91,16 +95,13 @@ namespace lsp
                     s->set_length(len);
             }
 
-            return STATUS_OK;
+            return set_error(STATUS_OK);
         }
 
-        ssize_t StringReader::skip(size_t count)
+        ssize_t InStringSequence::skip(size_t count)
         {
             if (pString == NULL)
-            {
-                nError = STATUS_CLOSED;
-                return -1;
-            }
+                return set_error(STATUS_CLOSED);
 
             size_t avail = pString->length() - nOffset;
             if (count > avail)
@@ -109,15 +110,10 @@ namespace lsp
             return count;
         }
 
-        status_t StringReader::error()
-        {
-            return nError;
-        }
-
-        status_t StringReader::close()
+        status_t InStringSequence::close()
         {
             do_close();
-            return nError;
+            return set_error(STATUS_OK);
         }
     }
 } /* namespace lsp */

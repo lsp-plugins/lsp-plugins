@@ -1,12 +1,12 @@
 /*
- * IInputStream.h
+ * IInStream.h
  *
  *  Created on: 14 нояб. 2017 г.
  *      Author: sadko
  */
 
-#ifndef CORE_IO_IINPUTSTREAM_H_
-#define CORE_IO_IINPUTSTREAM_H_
+#ifndef CORE_IO_IINSTREAM_H_
+#define CORE_IO_IINSTREAM_H_
 
 #include <core/types.h>
 #include <core/status.h>
@@ -19,10 +19,10 @@ namespace lsp
         /** This is data stream available to be read from clipboard
          *
          */
-        class IInputStream
+        class IInStream
         {
             private:
-                IInputStream & operator = (const IInputStream &);
+                IInStream & operator = (const IInStream &);
 
             protected:
                 status_t        nErrorCode;
@@ -31,8 +31,8 @@ namespace lsp
                 inline status_t set_error(status_t error) { return nErrorCode = error; }
 
             public:
-                explicit IInputStream();
-                virtual ~IInputStream();
+                explicit IInStream();
+                virtual ~IInStream();
 
             public:
                 /** Get last I/O error code
@@ -78,4 +78,4 @@ namespace lsp
     } /* namespace ws */
 } /* namespace lsp */
 
-#endif /* CORE_IO_IINPUTSTREAM_H_ */
+#endif /* CORE_IO_IINSTREAM_H_ */

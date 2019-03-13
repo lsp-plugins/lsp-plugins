@@ -5,7 +5,7 @@
  *      Author: sadko
  */
 
-#include <core/io/Reader.h>
+#include <core/io/IInSequence.h>
 
 namespace lsp
 {
@@ -13,31 +13,31 @@ namespace lsp
     {
         static lsp_wchar_t skip_buf[0x1000];
 
-        Reader::Reader()
+        IInSequence::IInSequence()
         {
             nErrorCode      = STATUS_OK;
         }
 
-        Reader::~Reader()
+        IInSequence::~IInSequence()
         {
         }
 
-        ssize_t Reader::read(lsp_wchar_t *dst, size_t count)
-        {
-            return -set_error(STATUS_EOF);
-        }
-
-        lsp_swchar_t Reader::read()
+        ssize_t IInSequence::read(lsp_wchar_t *dst, size_t count)
         {
             return -set_error(STATUS_EOF);
         }
 
-        status_t Reader::read_line(LSPString *s, bool force)
+        lsp_swchar_t IInSequence::read()
+        {
+            return -set_error(STATUS_EOF);
+        }
+
+        status_t IInSequence::read_line(LSPString *s, bool force)
         {
             return set_error(STATUS_EOF);
         }
 
-        ssize_t Reader::skip(size_t count)
+        ssize_t IInSequence::skip(size_t count)
         {
             ssize_t skipped = 0;
 
@@ -55,7 +55,7 @@ namespace lsp
             return skipped;
         }
 
-        status_t Reader::close()
+        status_t IInSequence::close()
         {
             return set_error(STATUS_OK);
         }

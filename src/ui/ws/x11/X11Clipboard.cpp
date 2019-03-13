@@ -180,12 +180,12 @@ namespace lsp
                 return IClipboard::close();
             }
 
-            io::IInputStream *X11Clipboard::read(const char *ctype)
+            io::IInStream *X11Clipboard::read(const char *ctype)
             {
                 // Content-Type is ignored
 
                 // Create stream
-                io::IInputStream *strm = new InputStream(this);
+                io::IInStream *strm = new InputStream(this);
                 if (strm == NULL)
                 {
                     nError      = STATUS_NO_MEM;
