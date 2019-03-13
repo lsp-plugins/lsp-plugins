@@ -25,27 +25,27 @@ namespace lsp
     
         wssize_t IInputStream::avail()
         {
-            return - (nErrorCode = STATUS_NOT_IMPLEMENTED);
+            return - set_error(STATUS_NOT_IMPLEMENTED);
         }
 
         wssize_t IInputStream::position()
         {
-            return - (nErrorCode = STATUS_NOT_IMPLEMENTED);
+            return - set_error(STATUS_NOT_IMPLEMENTED);
         }
 
         ssize_t IInputStream::read(void *dst, size_t count)
         {
-            return - (nErrorCode = STATUS_NOT_IMPLEMENTED);
+            return - set_error(STATUS_NOT_IMPLEMENTED);
         }
 
         wssize_t IInputStream::seek(wsize_t position)
         {
-            return - (nErrorCode = STATUS_NOT_IMPLEMENTED);
+            return - set_error(STATUS_NOT_IMPLEMENTED);
         }
 
         status_t IInputStream::close()
         {
-            return nErrorCode      = STATUS_OK;
+            return set_error(nErrorCode);
         }
 
     } /* namespace ws */
