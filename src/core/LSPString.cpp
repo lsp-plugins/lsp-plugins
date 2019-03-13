@@ -1299,7 +1299,7 @@ namespace lsp
         LSPString   tmp;
         lsp_wchar_t ch;
 
-        while ((ch = read_utf8_streaming(&s, &n, true)) != LSP_UTF32_EOF)
+        while (lsp_utf32_t(ch = read_utf8_streaming(&s, &n, true)) != LSP_UTF32_EOF)
         {
             // Append code point
             if (!tmp.append(ch))
@@ -1326,7 +1326,7 @@ namespace lsp
         LSPString   tmp;
         lsp_wchar_t ch;
 
-        while ((ch = read_utf16_streaming(&s, &n, true)) != LSP_UTF32_EOF)
+        while (lsp_utf32_t(ch = read_utf16_streaming(&s, &n, true)) != LSP_UTF32_EOF)
         {
             // Append code point
             if (!tmp.append(ch))

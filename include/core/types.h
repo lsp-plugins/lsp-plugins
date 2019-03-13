@@ -31,15 +31,19 @@ typedef int64_t         wssize_t;
 typedef uint32_t        lsp_wchar_t;
 typedef int32_t         lsp_swchar_t;
 
+#if defined(WCHART_16BIT)
+    typedef WCHAR               lsp_utf16_t;
+    typedef uint32_t            lsp_utf32_t;
+#else
+    typedef uint16_t            lsp_utf16_t;
+    typedef wchar_t             lsp_utf32_t;
+#endif
+
 #if defined(PLATFORM_WINDOWS)
     #include <windows.h>
 
-    typedef WCHAR               lsp_utf16_t;
-    typedef uint32_t            lsp_utf32_t;
     typedef HANDLE              lsp_fhandle_t;
 #else
-    typedef uint16_t            lsp_utf16_t;
-    typedef uint32_t            lsp_utf32_t;
     typedef int                 lsp_fhandle_t;
 #endif /* PLATFORM_WINDOWS */
 

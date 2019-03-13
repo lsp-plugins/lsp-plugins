@@ -797,7 +797,8 @@ namespace lsp
     // UTF-8 helper routines
     lsp_utf32_t read_utf8_codepoint(const char **str)
     {
-        lsp_utf32_t cp, sp, bytes;
+        lsp_utf32_t cp, sp;
+        size_t bytes;
         const char *s = *str;
 
         // Decode primary byte
@@ -861,7 +862,8 @@ namespace lsp
         if (*nsrc <= 0)
             return LSP_UTF32_EOF;
 
-        lsp_utf32_t cp, sp, bytes;
+        lsp_utf32_t cp, sp;
+        size_t bytes;
         const char *s = *str;
 
         // Decode primary byte
