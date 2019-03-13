@@ -28,6 +28,7 @@
 * Fixed UI size issue for VST plugins in Cockos Reaper.
 * Fixed numerous memory leakage issues in UI components.
 * Fixed spontaneous crashes when destroying the Profiler Mono/Stereo plugin.
+* Fixed embedded resource generation tool that had invalid behaviour for several file systems.
 - Implemented 3D reverb simulator.
 - Implemented sampler plugin series with stereo outputs
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
