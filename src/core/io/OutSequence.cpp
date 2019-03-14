@@ -21,10 +21,6 @@ namespace lsp
     {
         OutSequence::OutSequence()
         {
-            bBuf        = NULL;
-            cBuf        = NULL;
-            bBufPos     = 0;
-            cBufPos     = 0;
             pOS         = NULL;
             nWrapFlags  = 0;
         }
@@ -34,8 +30,7 @@ namespace lsp
             // Close file descriptor
             if (pOS != NULL)
             {
-                flush_buffer(true);
-
+                flush_buffer_internal(true);
 
                 if (nWrapFlags & WRAP_CLOSE)
                     pOS->close();
@@ -44,14 +39,6 @@ namespace lsp
                 pOS         = NULL;
             }
             nWrapFlags  = 0;
-
-            // Drop buffer data
-            if (bBuf != NULL)
-            {
-                ::free(bBuf);
-                bBuf        = NULL;
-                cBuf        = NULL;
-            }
 
             // Close encoder
             sEncoder.close();
@@ -79,14 +66,6 @@ namespace lsp
                 pOS         = NULL;
             }
             nWrapFlags  = 0;
-
-            // Drop buffer data
-            if (bBuf != NULL)
-            {
-                ::free(bBuf);
-                bBuf        = NULL;
-                cBuf        = NULL;
-            }
 
             // Close encoder
             sEncoder.close();
@@ -184,30 +163,11 @@ namespace lsp
             else if (os == NULL)
                 return set_error(STATUS_BAD_ARGUMENTS);
 
-            // Allocate buffers
-            if (bBuf == NULL)
-            {
-                uint8_t *ptr    = reinterpret_cast<uint8_t *>(::malloc(
-                                CBUF_SIZE * sizeof(lsp_wchar_t) +
-                                BBUF_SIZE * sizeof(uint8_t)
-                        ));
-                if (ptr == NULL)
-                    return set_error(STATUS_NO_MEM);
-                bBuf            = ptr;
-                cBuf            = reinterpret_cast<lsp_wchar_t *>(&bBuf[BBUF_SIZE * sizeof(uint8_t)]);
-            }
-
-            bBufPos     = 0;
-            cBufPos     = 0;
-
             // Initialize decoder
             status_t res = sEncoder.init(charset);
             if (res != STATUS_OK)
             {
                 sEncoder.close();
-                ::free(bBuf);
-                bBuf        = NULL;
-                cBuf        = NULL;
                 return set_error(res);
             }
 
@@ -265,58 +225,19 @@ namespace lsp
             return open(path->as_string(), mode, charset);
         }
 
-        status_t OutSequence::flush_byte_buffer()
+        status_t OutSequence::flush_buffer_internal(bool force)
         {
-            if (bBufPos <= 0)
-                return set_error(STATUS_OK);
-
-            for (size_t pos=0; pos < bBufPos; )
+            // Flush all character data to stream
+            ssize_t fetch;
+            do
             {
-                size_t k = bBufPos - pos;
-                size_t n = pOS->write(&bBuf[pos], k);
-                pos     += n;
+                fetch = sEncoder.fetch(pOS);
+            } while (fetch > 0);
 
-                if (n < k)
-                    return set_error(STATUS_EOF);
-            }
+            if ((fetch < 0) && (fetch != -STATUS_EOF))
+                return set_error(-fetch);
 
-            // Reset byte buffer size
-            bBufPos     = 0;
-
-            return set_error(STATUS_OK);
-        }
-
-        status_t OutSequence::flush_buffer(bool force)
-        {
-            for (size_t pos=0; pos < cBufPos; )
-            {
-                if (bBufPos >= (BBUF_SIZE/2))
-                {
-                    status_t res = flush_byte_buffer();
-                    if (res != STATUS_OK)
-                        return set_error(res);
-                }
-
-                // Do the conversion
-                size_t xc_left  = cBufPos - pos;
-                size_t xb_left  = BBUF_SIZE - bBufPos;
-
-                lsp_wchar_t *inbuf  = &cBuf[pos];
-                void *outbuf        = &bBuf[bBufPos];
-                ssize_t nconv       = sEncoder.encode(&outbuf, &xb_left, &inbuf, &xc_left);
-
-                if (nconv < 0)
-                    return set_error(-nconv);
-
-                // Update pointers
-                bBufPos         = BBUF_SIZE - xb_left;
-                pos             = cBufPos - xc_left;
-            }
-
-            // Reset character buffer size
-            cBufPos     = 0;
-
-            return (force) ? flush_byte_buffer() : STATUS_OK;
+            return set_error((force) ? pOS->flush() : STATUS_OK);
         }
 
         status_t OutSequence::write(lsp_wchar_t c)
@@ -324,15 +245,16 @@ namespace lsp
             if (pOS == NULL)
                 return set_error(STATUS_CLOSED);
 
-            if (cBufPos >= CBUF_SIZE)
-            {
-                status_t res = flush_buffer(false);
-                if (res != STATUS_OK)
-                    return res;
-            }
+            ssize_t filled = sEncoder.fill(c);
+            if (filled > 0)
+                return set_error(STATUS_OK);
 
-            cBuf[cBufPos++] = c;
-            return set_error(STATUS_OK);
+            status_t res = flush_buffer_internal(false);
+            if (res != STATUS_OK)
+                return set_error(res);
+
+            filled = sEncoder.fill(c);
+            return set_error((filled > 0) ? STATUS_OK : STATUS_UNKNOWN_ERR);
         }
 
         status_t OutSequence::write(const lsp_wchar_t *c, size_t count)
@@ -340,70 +262,77 @@ namespace lsp
             if (pOS == NULL)
                 return set_error(STATUS_CLOSED);
 
-            while (count > 0)
+            size_t written = 0;
+
+            while (written < count)
             {
-                size_t avail = CBUF_SIZE - cBufPos;
-                if (avail <= 0)
+                // Try to fill data
+                ssize_t filled = sEncoder.fill(c, count - written);
+                if (filled > 0)
                 {
-                    status_t res = flush_buffer(false);
-                    if (res != STATUS_OK)
-                        return res;
-                    avail = CBUF_SIZE;
+                    c          += filled;
+                    written    += filled;
+                    continue;
                 }
 
-                if (avail > count)
-                    avail = count;
+                // Try to fetch data
+                ssize_t fetched = sEncoder.fetch(pOS);
+                if (fetched > 0)
+                    continue;
 
-                ::memcpy(&cBuf[cBufPos], c, avail * sizeof(lsp_wchar_t));
-                cBufPos += avail;
-                c       += avail;
-                count   -= avail;
+                // Nothing to do more? Skip any errors if there was data processed
+                if (written > 0)
+                    break;
+
+                // Analyze errors
+                if (filled < 0)
+                    return -set_error(-filled);
+                else if (fetched < 0)
+                    return -set_error(-fetched);
+
+                break;
             }
 
             return set_error(STATUS_OK);
         }
 
-        status_t OutSequence::write_ascii(const char *s)
+        status_t OutSequence::write_ascii(const char *s, size_t count)
         {
             if (pOS == NULL)
                 return set_error(STATUS_CLOSED);
-            size_t count = strlen(s);
 
-            while (count > 0)
+            size_t written = 0;
+
+            while (written < count)
             {
-                size_t avail = CBUF_SIZE - cBufPos;
-                if (avail <= 0)
+                // Try to fill data
+                ssize_t filled = sEncoder.fill(s, count - written);
+                if (filled > 0)
                 {
-                    status_t res = flush_buffer(false);
-                    if (res != STATUS_OK)
-                        return res;
-                    avail = CBUF_SIZE;
+                    s          += filled;
+                    written    += filled;
+                    continue;
                 }
 
-                if (avail > count)
-                    avail = count;
+                // Try to fetch data
+                ssize_t fetched = sEncoder.fetch(pOS);
+                if (fetched > 0)
+                    continue;
 
-                count   -= avail;
-                while (avail--)
-                    cBuf[cBufPos++] = uint8_t(*(s++));
+                // Nothing to do more? Skip any errors if there was data processed
+                if (written > 0)
+                    break;
+
+                // Analyze errors
+                if (filled < 0)
+                    return -set_error(-filled);
+                else if (fetched < 0)
+                    return -set_error(-fetched);
+
+                break;
             }
 
             return set_error(STATUS_OK);
-        }
-
-        status_t OutSequence::write(const LSPString *s)
-        {
-            return IOutSequence::write(s);
-        }
-
-        status_t OutSequence::write(const LSPString *s, ssize_t first)
-        {
-            return IOutSequence::write(s, first);
-        }
-
-        status_t OutSequence::write(const LSPString *s, ssize_t first, ssize_t last)
-        {
-            return IOutSequence::write(s, first, last);
         }
 
         status_t OutSequence::flush()
@@ -411,14 +340,7 @@ namespace lsp
             if (pOS == NULL)
                 return set_error(STATUS_CLOSED);
 
-            // First, flush byte buffer
-            status_t res = flush_buffer(true);
-
-            // Seconds, flush underlying storage on success
-            if (res == STATUS_OK)
-                res     = pOS->flush();
-
-            return set_error(res);
+            return flush_buffer_internal(true);
         }
     }
 

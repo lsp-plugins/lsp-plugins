@@ -69,12 +69,20 @@ namespace lsp
                 virtual status_t    writeln(const lsp_wchar_t *c, size_t count);
     
                 /**
-                 * Write zero-terminated ASCII string to output
+                 * Write null-terminated ASCII string to output
                  * @param s ASCII string to write
                  * @param count number of characters to write
                  * @return status of operation
                  */
                 virtual status_t    write_ascii(const char *s);
+
+                /**
+                 * Write ASCII character sequence to output
+                 * @param s ASCII string to write
+                 * @param count number of characters to write
+                 * @return status of operation
+                 */
+                virtual status_t    write_ascii(const char *s, size_t count);
 
                 /**
                  * Write zero-terminated ASCII string to output and end-of-line

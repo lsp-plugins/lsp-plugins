@@ -81,17 +81,24 @@ namespace lsp
 
         void CharsetEncoder::close()
         {
+            if (bBuffer != NULL)
+            {
+                free(bBuffer);
+
+                bBuffer         = NULL;
+                bBufHead        = NULL;
+                bBufTail        = NULL;
+                cBuffer         = NULL;
+                cBufHead        = NULL;
+                cBufTail        = NULL;
+            }
+
 #if defined(PLATFORM_WINDOWS)
             nCodePage   = UINT(-1);
-            if (cBuffer != NULL)
-            {
-                free(cBuffer);
-                cBuffer     = NULL;
-            }
 #else
             if (hIconv != iconv_t(-1))
             {
-                iconv_close(hIconv);
+                ::iconv_close(hIconv);
                 hIconv      = iconv_t(-1);
             }
 #endif /* PLATFORM_WINDOWS */
@@ -178,11 +185,66 @@ namespace lsp
 
         size_t CharsetEncoder::prepare_buffer()
         {
+            size_t bufsz = cBufTail - cBufHead;
+            if (bufsz > (DATA_BUFSIZE >> 1))
+                return 0;
+            else if (cBufHead != cBuffer)
+            {
+                if (bufsz > 0)
+                    ::memmove(cBuffer, cBufHead, bufsz * sizeof(lsp_wchar_t));
+
+                cBufHead    = cBuffer;
+                cBufTail    = &cBuffer[bufsz];
+            }
+            return DATA_BUFSIZE - bufsz;
         }
 
         ssize_t CharsetEncoder::encode_buffer()
         {
+            // Prepare buffer
+            size_t bufsz = bBufTail - bBufHead;
+            if (bufsz > DATA_BUFSIZE * sizeof(lsp_utf32_t))
+                return bufsz;
+            else if (bBufHead != bBuffer)
+            {
+                if (bufsz > 0)
+                    ::memmove(bBuffer, bBufHead, bufsz);
 
+                bBufHead    = bBuffer;
+                bBufTail    = &bBuffer[bufsz];
+            }
+
+            // Is there any data in byte buffer?
+            size_t xinleft      = (cBufTail - cBufHead) * sizeof(lsp_wchar_t);
+            if (!xinleft)
+                return bufsz;
+
+#ifdef PLATFORM_WINDOWS
+            // TODO: implement these rakes
+#else
+            char *xinbuf        = reinterpret_cast<char *>(cBufHead);
+            char *xoutbuf       = reinterpret_cast<char *>(bBufTail);
+            bufsz               = DATA_BUFSIZE * sizeof(lsp_utf32_t);
+
+            // Perform conversion
+            size_t nconv        = ::iconv(hIconv, &xinbuf, &xinleft, &xoutbuf, &bufsz);
+            if (nconv == size_t(-1))
+            {
+                int code = errno;
+                switch (code)
+                {
+                    case E2BIG:
+                    case EINVAL:
+                        break;
+                    default:
+                        return -STATUS_BAD_FORMAT;
+                }
+            }
+
+            cBufHead            = reinterpret_cast<lsp_wchar_t *>(xinbuf);
+            bBufTail            = reinterpret_cast<uint8_t *>(xoutbuf);
+#endif
+            return bBufTail - bBufHead;
         }
 
         ssize_t CharsetEncoder::fill(lsp_wchar_t ch)
@@ -209,8 +271,27 @@ namespace lsp
 
             if (count > bufsz)
                 count   = bufsz;
-            ::memcpy(&cBufTail, buf, count * sizeof(lsp_wchar_t));
-            bBufTail       += count;
+            ::memcpy(cBufTail, buf, count * sizeof(lsp_wchar_t));
+            cBufTail       += count;
+            return count;
+        }
+
+        ssize_t CharsetEncoder::fill(const char *buf, size_t count)
+        {
+            if (bBuffer == NULL)
+                return -STATUS_CLOSED;
+            else if (buf == NULL)
+                return -STATUS_BAD_ARGUMENTS;
+
+            // Is there a space in the buffer for reading?
+            size_t bufsz = prepare_buffer();
+            if (bufsz <= 0)
+                return bufsz;
+
+            if (count > bufsz)
+                count   = bufsz;
+            while (count--) // Copy ASCII data
+                *(cBufTail++)   = uint8_t(*(buf++));
             return count;
         }
 
@@ -230,12 +311,12 @@ namespace lsp
             const lsp_wchar_t *buf = in->characters();
             if (count > bufsz)
                 count   = bufsz;
-            ::memcpy(&cBufTail, &buf[first], count * sizeof(lsp_wchar_t));
-            bBufTail       += count;
+            ::memcpy(cBufTail, &buf[first], count * sizeof(lsp_wchar_t));
+            cBufTail       += count;
             return count;
         }
 
-        ssize_t CharsetEncoder::fill(IInSequence *in, size_t count = 0)
+        ssize_t CharsetEncoder::fill(IInSequence *in, size_t count)
         {
             if (bBuffer == NULL)
                 return -STATUS_CLOSED;
@@ -263,7 +344,7 @@ namespace lsp
                     return nread;
                 }
 
-                bBufTail       += nread;
+                cBufTail       += nread;
                 read           += nread;
             }
             while (read < count);
@@ -313,7 +394,7 @@ namespace lsp
             return processed;
         }
 
-        ssize_t CharsetEncoder::fetch(File *out, size_t count = 0)
+        ssize_t CharsetEncoder::fetch(File *out, size_t count)
         {
             if (bBuffer == NULL)
                 return -STATUS_CLOSED;
@@ -357,7 +438,7 @@ namespace lsp
             return processed;
         }
 
-        ssize_t CharsetEncoder::fetch(IOutStream *out, size_t count = 0)
+        ssize_t CharsetEncoder::fetch(IOutStream *out, size_t count)
         {
             if (bBuffer == NULL)
                 return -STATUS_CLOSED;

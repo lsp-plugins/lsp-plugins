@@ -81,60 +81,45 @@ UTEST_BEGIN("core.io", encdec)
 
         lsp_wchar_t *ibuf = new lsp_wchar_t[BUFFER_SIZE];
         UTEST_ASSERT(ibuf != NULL);
-        uint8_t *obuf = new uint8_t[BUFFER_SIZE];
-        UTEST_ASSERT(obuf != NULL);
-
         lsp_wchar_t *ibufh = ibuf, *ibuft = ibuf;
 
-        while (true)
+        ssize_t fetched, filled;
+
+        do
         {
-            // Do we need to shift the buffer?
-            if (ibufh > ibuf)
+            // Is there any data on output?
+            fetched = encoder.fetch(&out, BUFFER_SIZE);
+            if ((fetched < 0) && (fetched != -STATUS_EOF))
+                UTEST_FAIL_MSG("decoder.fetch() failed with error %d", int(-fetched));
+
+            // Do we need to fill the buffer with new data?
+            size_t count = ibuft - ibufh;
+            if (count < (BUFFER_SIZE >> 1))
             {
-                size_t count = ibuft-ibufh;
-                ::memmove(ibuf, ibufh, count * sizeof(lsp_wchar_t));
+                if (count > 0)
+                    ::memmove(ibuf, ibufh, count * sizeof(lsp_wchar_t));
                 ibufh   = ibuf;
                 ibuft   = &ibuf[count];
-            }
 
-            // Do we need to read any data ?
-            if (ibuft < &ibuf[BUFFER_SIZE])
-            {
-                ssize_t read = in.read(ibuft, (ibuf + BUFFER_SIZE - ibuft) * sizeof(lsp_wchar_t));
-                if (read <= 0)
+                // Try to perform additional read
+                size_t to_read = BUFFER_SIZE - count;
+                filled = in.read(ibuft, to_read * sizeof(lsp_wchar_t));
+                if (filled > 0)
                 {
-                    if ((read != 0) && (read != (-STATUS_EOF)))
-                        UTEST_FAIL_MSG("read returned %d", int(read));
-
-                    // Is there any data to process?
-                    if (ibuft == ibuf)
-                        break; // No, leave the cycle
-                }
-                else // (read > 0), perform encode
-                {
-                    UTEST_ASSERT((read % sizeof(lsp_wchar_t)) == 0);
-                    ibuft       += read / sizeof(lsp_wchar_t);
+                    UTEST_ASSERT((filled % sizeof(lsp_wchar_t)) == 0);
+                    count  += filled / sizeof(lsp_wchar_t) ;
+                    ibuft   = &ibufh[count];
                 }
             }
 
-            size_t inleft = ibuft - ibufh;
-            if (inleft > 0)
-            {
-                uint8_t *xobuf  = obuf;
-                size_t outleft  = BUFFER_SIZE;
-                void *vxobuf    = xobuf;
-                encoder.encode(&vxobuf, &outleft, &ibufh, &inleft);
-                xobuf           = reinterpret_cast<uint8_t *>(vxobuf);
+            // Is there any data on input?
+            filled  = encoder.fill(ibufh, count);
+            if (filled > 0)
+                ibufh      += filled;
+            else if ((filled < 0) && (filled != -STATUS_EOF))
+                UTEST_FAIL_MSG("decoder.fill() failed with error %d", int(-filled));
 
-                // Is there any data to output?
-                if (xobuf > obuf)
-                {
-                    ssize_t to_write = xobuf - obuf;
-                    ssize_t written = out.write(obuf, to_write);
-                    UTEST_ASSERT(written == to_write);
-                }
-            }
-        }
+        } while ((fetched > 0) || (filled > 0));
 
         encoder.close();
         UTEST_ASSERT(out.flush() == STATUS_OK);
@@ -143,7 +128,6 @@ UTEST_BEGIN("core.io", encdec)
         UTEST_ASSERT(in.close() == STATUS_OK);
 
         delete [] ibuf;
-        delete [] obuf;
     }
     
     void compareFiles(const LSPString *src, const LSPString *dst)

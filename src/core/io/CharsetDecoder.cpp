@@ -96,7 +96,7 @@ namespace lsp
 #else
             if (hIconv != iconv_t(-1))
             {
-                iconv_close(hIconv);
+                ::iconv_close(hIconv);
                 hIconv      = iconv_t(-1);
             }
 #endif /* PLATFORM_WINDOWS */

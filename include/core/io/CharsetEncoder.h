@@ -64,22 +64,20 @@ namespace lsp
                 void        close();
 
                 /**
-                 * Encode characters to the output buffer
-                 * @param outbuf pointer to output buffer to store data
-                 * @param outleft number of bytes in output buffer
-                 * @param inbuf pointer to the input buffer
-                 * @param inleft number of characters left in input buffer
-                 * @return sumber of characters processed or negative error code
-                 */
-                ssize_t     encode(void **outbuf, size_t *outleft, lsp_wchar_t **inbuf, size_t *inleft);
-
-                /**
                  * Fill internal buffer with character data
                  * @param buf source buffer
                  * @param count buffer size
                  * @return number of characters processed or negative error code
                  */
                 ssize_t     fill(const lsp_wchar_t *buf, size_t count);
+
+                /**
+                 * Fill internal buffer with ASCII character data
+                 * @param buf source buffer
+                 * @param count buffer size
+                 * @return number of characters processed or negative error code
+                 */
+                ssize_t     fill(const char *buf, size_t count);
 
                 /**
                  * Fill internal buffer with character data from sequence

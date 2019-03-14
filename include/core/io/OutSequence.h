@@ -24,17 +24,12 @@ namespace lsp
         class OutSequence: public IOutSequence
         {
             protected:
-                uint8_t        *bBuf;
-                lsp_wchar_t    *cBuf;
-                size_t          bBufPos;
-                size_t          cBufPos;
                 IOutStream     *pOS;
                 size_t          nWrapFlags;
                 CharsetEncoder  sEncoder;
     
             protected:
-                status_t        flush_buffer(bool force);
-                status_t        flush_byte_buffer();
+                status_t        flush_buffer_internal(bool force);
 
             private:
                 OutSequence & operator = (const OutSequence &);
@@ -62,13 +57,7 @@ namespace lsp
 
                 virtual status_t write(const lsp_wchar_t *c, size_t count);
 
-                virtual status_t write_ascii(const char *s);
-
-                virtual status_t write(const LSPString *s);
-
-                virtual status_t write(const LSPString *s, ssize_t first);
-
-                virtual status_t write(const LSPString *s, ssize_t first, ssize_t last);
+                virtual status_t write_ascii(const char *s, size_t count);
 
                 virtual status_t flush();
 

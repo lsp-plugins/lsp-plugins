@@ -1,5 +1,5 @@
 /*
- * Writer.cpp
+ * IOutSequence.cpp
  *
  *  Created on: 14 июн. 2018 г.
  *      Author: sadko
@@ -32,16 +32,28 @@ namespace lsp
 
         status_t IOutSequence::write_ascii(const char *s)
         {
+            if (s == NULL)
+                return set_error(STATUS_BAD_ARGUMENTS);
+            return write_ascii(s, ::strlen(s));
+        }
+
+        status_t IOutSequence::write_ascii(const char *s, size_t count)
+        {
             return set_error(STATUS_NOT_IMPLEMENTED);
         }
 
         status_t IOutSequence::write(const LSPString *s)
         {
+            if (s == NULL)
+                return set_error(STATUS_BAD_ARGUMENTS);
             return write(s->characters(), s->length());
         }
 
         status_t IOutSequence::write(const LSPString *s, ssize_t first)
         {
+            if (s == NULL)
+                return set_error(STATUS_BAD_ARGUMENTS);
+
             ssize_t len = s->length();
             if (first < 0)
             {
@@ -57,6 +69,9 @@ namespace lsp
     
         status_t IOutSequence::write(const LSPString *s, ssize_t first, ssize_t last)
         {
+            if (s == NULL)
+                return set_error(STATUS_BAD_ARGUMENTS);
+
             ssize_t len = s->length();
             if (first < 0)
             {
