@@ -25,6 +25,7 @@ namespace lsp
             cBufTail        = NULL;
 
 #if defined(PLATFORM_WINDOWS)
+            xBuffer         = NULL;
             nCodePage       = UINT(-1);
 #else
             hIconv          = iconv_t(-1);
@@ -58,8 +59,11 @@ namespace lsp
 
             // Allocate buffer
             uint8_t *buf= reinterpret_cast<uint8_t *>(::malloc(
-                        DATA_BUFSIZE +    // The byte buffer size
-                        sizeof(lsp_wchar_t) * DATA_BUFSIZE * 2 // The temporary buffer size
+                        DATA_BUFSIZE    // The byte buffer size
+                        + sizeof(lsp_wchar_t) * DATA_BUFSIZE * 2 // The temporary buffer size
+#if defined(PLATFORM_WINDOWS)
+                        + sizeof(lsp_utf16_t) * DATA_BUFSIZE * 2
+#endif /* PLATFORM_WINDOWS */
                     ));
             if (buf == NULL)
             {
@@ -70,9 +74,15 @@ namespace lsp
             bBuffer         = buf;
             bBufHead        = bBuffer;
             bBufTail        = bBuffer;
-            cBuffer         = reinterpret_cast<lsp_wchar_t *>(&buf[DATA_BUFSIZE]);
+            buf            += DATA_BUFSIZE;
+            cBuffer         = reinterpret_cast<lsp_wchar_t *>(buf);
             cBufHead        = cBuffer;
             cBufTail        = cBuffer;
+
+#if defined(PLATFORM_WINDOWS)
+            buf            += sizeof(lsp_wchar_t) * DATA_BUFSIZE * 2;
+            xBuffer         = reinterpret_cast<lsp_utf16_t *>(buf);
+#endif /* PLATFORM_WINDOWS */
 
             return STATUS_OK;
         }
@@ -92,6 +102,7 @@ namespace lsp
             }
 
 #ifdef PLATFORM_WINDOWS
+            xBuffer     = NULL;
             nCodePage   = UINT(-1);
 #else
             if (hIconv != iconv_t(-1))
@@ -231,7 +242,24 @@ namespace lsp
 
             // Now we can surely decode DATA_BUFSIZE characters
 #ifdef PLATFORM_WINDOWS
-            // TODO: implement these rakes
+            // Round 1: Perform native -> UTF-16 decoding
+            CHAR *xinbuf        = reinterpret_cast<CHAR *>(bBufHead);
+            size_t nsrc         = xinleft;
+            size_t ndst         = DATA_BUFSIZE*2;
+            ssize_t nbytes      = multibyte_to_widechar(nCodePage, xinbuf, &nsrc, xBuffer, &ndst);
+            if (nbytes <= 0)
+                return nbytes;
+            uint8_t *bhead      = &bBufHead[xinleft - nsrc];
+
+            // Round 2: Perform UTF-16 -> UTF-32 decoding
+            nsrc                = DATA_BUFSIZE*2 - ndst;
+            ndst                = DATA_BUFSIZE;
+            ssize_t nchars      = utf16_to_utf32(cBufTail, &ndst, xBuffer, &nsrc, false);
+            if (nchars <= 0)
+                return nchars;
+
+            bBufHead            = bhead;
+            cBufTail           += DATA_BUFSIZE - ndst;
 #else
             char *xinbuf        = reinterpret_cast<char *>(bBufHead);
             char *xoutbuf       = reinterpret_cast<char *>(cBufTail);

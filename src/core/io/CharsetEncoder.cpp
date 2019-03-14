@@ -26,6 +26,7 @@ namespace lsp
             cBufTail        = NULL;
 
 #if defined(PLATFORM_WINDOWS)
+            xBuffer         = NULL;
             nCodePage       = UINT(-1);
 #else
             hIconv          = iconv_t(-1);
@@ -59,8 +60,11 @@ namespace lsp
 
             // Allocate buffer
             uint8_t *buf= reinterpret_cast<uint8_t *>(::malloc(
-                        sizeof(lsp_utf32_t) * DATA_BUFSIZE * 2 + // Byte buffer size
-                        sizeof(lsp_wchar_t) * DATA_BUFSIZE // wchar_t buffer size
+                        sizeof(lsp_utf32_t) * DATA_BUFSIZE * 2 // Byte buffer size
+                        + sizeof(lsp_wchar_t) * DATA_BUFSIZE // wchar_t buffer size
+#if defined(PLATFORM_WINDOWS)
+                        + sizeof(lsp_utf16_t) * DATA_BUFSIZE * 2
+#endif /* PLATFORM_WINDOWS */
                     ));
             if (buf == NULL)
             {
@@ -72,9 +76,15 @@ namespace lsp
             bBufHead        = bBuffer;
             bBufTail        = bBuffer;
 
-            cBuffer         = reinterpret_cast<lsp_wchar_t *>(&buf[sizeof(lsp_utf32_t) * DATA_BUFSIZE * 2]);
+            buf            += sizeof(lsp_utf32_t) * DATA_BUFSIZE * 2;
+            cBuffer         = reinterpret_cast<lsp_wchar_t *>(buf);
             cBufHead        = cBuffer;
             cBufTail        = cBuffer;
+
+#if defined(PLATFORM_WINDOWS)
+            buf            += sizeof(lsp_wchar_t) * DATA_BUFSIZE;
+            xBuffer         = reinterpret_cast<lsp_utf16_t *>(buf);
+#endif /* PLATFORM_WINDOWS */
 
             return STATUS_OK;
         }
@@ -94,6 +104,7 @@ namespace lsp
             }
 
 #if defined(PLATFORM_WINDOWS)
+            xBuffer     = NULL;
             nCodePage   = UINT(-1);
 #else
             if (hIconv != iconv_t(-1))
@@ -215,16 +226,34 @@ namespace lsp
             }
 
             // Is there any data in byte buffer?
-            size_t xinleft      = (cBufTail - cBufHead) * sizeof(lsp_wchar_t);
+            size_t xinleft      = cBufTail - cBufHead;
             if (!xinleft)
                 return bufsz;
 
 #ifdef PLATFORM_WINDOWS
-            // TODO: implement these rakes
+            // Round 1: encode UTF-32 -> UTF-16
+            size_t nsrc     = xinleft;
+            size_t ndst     = DATA_BUFSIZE*2;
+            ssize_t nchars  = utf32_to_utf16(xBuffer, &ndst, cBufHead, &nsrc, false);
+            if (nchars <= 0)
+                return nchars;
+            lsp_wchar_t *bhead  = &cBufHead[xinleft - nsrc];
+
+            // Round 2: encode UTF-16 -> native charset
+            nsrc            = DATA_BUFSIZE*2 - ndst;
+            ndst            = DATA_BUFSIZE * sizeof(lsp_utf32_t);
+            CHAR *xoutbuf   = reinterpret_cast<CHAR *>(bBufTail);
+            ssize_t nbytes  = widechar_to_multibyte(nCodePage, xBuffer, &nsrc, xoutbuf, &ndst);
+            if (nbytes <= 0)
+                return nbytes;
+
+            cBufHead        = bhead;
+            bBufTail       += nbytes;
 #else
             char *xinbuf        = reinterpret_cast<char *>(cBufHead);
             char *xoutbuf       = reinterpret_cast<char *>(bBufTail);
             bufsz               = DATA_BUFSIZE * sizeof(lsp_utf32_t);
+            xinleft            *= sizeof(lsp_wchar_t);
 
             // Perform conversion
             size_t nconv        = ::iconv(hIconv, &xinbuf, &xinleft, &xoutbuf, &bufsz);

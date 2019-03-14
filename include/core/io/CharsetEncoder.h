@@ -35,6 +35,7 @@ namespace lsp
                 lsp_wchar_t    *cBufTail;       // Character buffer tail
 
 #if defined(PLATFORM_WINDOWS)
+                lsp_utf16_t    *xBuffer;        // Additional translation buffer
                 UINT            nCodePage;      // Code page
 #else
                 iconv_t         hIconv;         // iconv handle
