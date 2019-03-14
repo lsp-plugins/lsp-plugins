@@ -64,16 +64,6 @@ namespace lsp
                 void        close();
 
                 /**
-                 * Decode characters from input buffer
-                 * @param outbuf pointer to output buffer to store data
-                 * @param outleft number of code points left unread in output buffer
-                 * @param inbuf pointer to the input buffer
-                 * @param inleft number of bytes left unread in input buffer
-                 * @return number of code points decoded or negative error code
-                 */
-                ssize_t     decode(lsp_wchar_t **outbuf, size_t *outleft, void **inbuf, size_t *inleft);
-
-                /**
                  * Fetch a single character
                  * @return single character to fetch
                  */
@@ -90,7 +80,7 @@ namespace lsp
                 /**
                  * Fetch decoded characters directly into string
                  * @param out output string to perform fetch
-                 * @param count the maximum possible amount of characters to fetch, 0 means no limit
+                 * @param count the maximum possible amount of characters to fetch, 0 means maximum possible value
                  * @return number of characters fetched or negative error code
                  */
                 ssize_t     fetch(LSPString *out, size_t count = 0);
@@ -98,7 +88,7 @@ namespace lsp
                 /**
                  * Fetch decoded characters directly into output sequence
                  * @param out output sequence
-                 * @param count maximum number of characters to fetch, 0 means no limit
+                 * @param count maximum number of characters to fetch, 0 means maximum possible value
                  * @return number of characters fetched or negative status of operation
                  */
                 ssize_t     fetch(IOutSequence *out, size_t count = 0);
@@ -109,12 +99,12 @@ namespace lsp
                  * @param count size of the buffer
                  * @return number of bytes added to internal buffer
                  */
-                ssize_t     fill(const void *buf, size_t count = 0);
+                ssize_t     fill(const void *buf, size_t count);
 
                 /**
                  * Fill the internal byte buffer with additional data directly from file
                  * @param fd file to read data
-                 * @param count maximum number of bytes to read, 0 means no limit
+                 * @param count maximum number of bytes to read, 0 means maximum possible value
                  * @return number of bytes read into internal buffer
                  */
                 ssize_t     fill(File *fd, size_t count = 0);
@@ -122,7 +112,7 @@ namespace lsp
                 /**
                  * Fill the internal byte buffer with additional data directly from input stream
                  * @param fd file to read data
-                 * @param count maximum number of bytes to read, 0 means no limit
+                 * @param count maximum number of bytes to read, 0 means maximum possible value
                  * @return number of bytes read into internal buffer
                  */
                 ssize_t     fill(IInStream *is, size_t count = 0);

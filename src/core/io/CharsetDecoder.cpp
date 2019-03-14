@@ -45,7 +45,6 @@ namespace lsp
             ssize_t cp  = codepage_from_name(charset);
             if (cp < 0)
                 return STATUS_BAD_LOCALE;
-
             nCodePage       = cp;
 #else
             if (hIconv != iconv_t(-1))
@@ -283,8 +282,6 @@ namespace lsp
 
             // Compute the amount of data to read
             size_t processed = 0;
-            if (!count)
-                count   = DATA_BUFSIZE*2;
 
             // Perform read
             while (processed < count)
@@ -307,6 +304,7 @@ namespace lsp
                 // Update state
                 cBufHead       += nchars;
                 processed      += nchars;
+                outbuf         += nchars;
             }
 
             return processed;
@@ -406,7 +404,7 @@ namespace lsp
             if (bufsz <= 0)
                 return bufsz;
 
-            if ((!count) || (count > bufsz))
+            if (count > bufsz)
                 count   = bufsz;
             ::memcpy(&bBufTail, buf, count);
             bBufTail       += count;

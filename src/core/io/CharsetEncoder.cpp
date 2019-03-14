@@ -17,8 +17,15 @@ namespace lsp
         
         CharsetEncoder::CharsetEncoder()
         {
-#if defined(PLATFORM_WINDOWS)
+            bBuffer         = NULL;
+            bBufHead        = NULL;
+            bBufTail        = NULL;
+
             cBuffer         = NULL;
+            cBufHead        = NULL;
+            cBufTail        = NULL;
+
+#if defined(PLATFORM_WINDOWS)
             nCodePage       = UINT(-1);
 #else
             hIconv          = iconv_t(-1);
@@ -39,15 +46,6 @@ namespace lsp
             ssize_t cp  = codepage_from_name(charset);
             if (cp < 0)
                 return STATUS_BAD_LOCALE;
-
-            // Allocate buffer
-            uint8_t *buf= reinterpret_cast<uint8_t *>(::malloc(
-                        sizeof(lsp_utf32_t) * DATA_BUFSIZE
-                    ));
-            if (buf == NULL)
-                return STATUS_NO_MEM;
-
-            cBuffer         = reinterpret_cast<lsp_utf16_t *>(buf);
             nCodePage       = cp;
 #else
             if (hIconv != iconv_t(-1))
@@ -58,6 +56,25 @@ namespace lsp
                 return STATUS_BAD_LOCALE;
             hIconv      = handle;
 #endif /* PLATFORM_WINDOWS */
+
+            // Allocate buffer
+            uint8_t *buf= reinterpret_cast<uint8_t *>(::malloc(
+                        sizeof(lsp_utf32_t) * DATA_BUFSIZE * 2 + // Byte buffer size
+                        sizeof(lsp_wchar_t) * DATA_BUFSIZE // wchar_t buffer size
+                    ));
+            if (buf == NULL)
+            {
+                close();
+                return STATUS_NO_MEM;
+            }
+
+            bBuffer         = buf;
+            bBufHead        = bBuffer;
+            bBufTail        = bBuffer;
+
+            cBuffer         = reinterpret_cast<lsp_wchar_t *>(&buf[sizeof(lsp_utf32_t) * DATA_BUFSIZE * 2]);
+            cBufHead        = cBuffer;
+            cBufTail        = cBuffer;
 
             return STATUS_OK;
         }
@@ -80,6 +97,7 @@ namespace lsp
 #endif /* PLATFORM_WINDOWS */
         }
 
+#if 0
         ssize_t CharsetEncoder::encode(void **outbuf, size_t *outleft, lsp_wchar_t **inbuf, size_t *inleft)
         {
             size_t nconv;
@@ -155,6 +173,233 @@ namespace lsp
 
             return nconv;
         }
-    
+
+#endif
+
+        size_t CharsetEncoder::prepare_buffer()
+        {
+        }
+
+        ssize_t CharsetEncoder::encode_buffer()
+        {
+
+        }
+
+        ssize_t CharsetEncoder::fill(lsp_wchar_t ch)
+        {
+            if (bBuffer == NULL)
+                return -STATUS_CLOSED;
+            if (cBufTail >= &cBuffer[DATA_BUFSIZE])
+                return 0;
+            *(cBufTail++)   = ch;
+            return 1;
+        }
+
+        ssize_t CharsetEncoder::fill(const lsp_wchar_t *buf, size_t count)
+        {
+            if (bBuffer == NULL)
+                return -STATUS_CLOSED;
+            else if (buf == NULL)
+                return -STATUS_BAD_ARGUMENTS;
+
+            // Is there a space in the buffer for reading?
+            size_t bufsz = prepare_buffer();
+            if (bufsz <= 0)
+                return bufsz;
+
+            if (count > bufsz)
+                count   = bufsz;
+            ::memcpy(&cBufTail, buf, count * sizeof(lsp_wchar_t));
+            bBufTail       += count;
+            return count;
+        }
+
+        ssize_t CharsetEncoder::fill(const LSPString *in, size_t first, size_t last)
+        {
+            if (bBuffer == NULL)
+                return -STATUS_CLOSED;
+            else if ((in == NULL) || (first > last) || (last > in->length()))
+                return -STATUS_BAD_ARGUMENTS;
+
+            // Is there a space in the buffer for reading?
+            size_t bufsz = prepare_buffer();
+            if (bufsz <= 0)
+                return bufsz;
+
+            size_t count = last - first;
+            const lsp_wchar_t *buf = in->characters();
+            if (count > bufsz)
+                count   = bufsz;
+            ::memcpy(&cBufTail, &buf[first], count * sizeof(lsp_wchar_t));
+            bBufTail       += count;
+            return count;
+        }
+
+        ssize_t CharsetEncoder::fill(IInSequence *in, size_t count = 0)
+        {
+            if (bBuffer == NULL)
+                return -STATUS_CLOSED;
+            else if (in == NULL)
+                return -STATUS_BAD_ARGUMENTS;
+
+            // Is there a space in the buffer for reading?
+            size_t bufsz = prepare_buffer();
+            if (bufsz <= 0)
+                return bufsz;
+
+            // Compute the amount of data to read
+            size_t read = 0;
+            if ((!count) || (count > bufsz))
+                count   = bufsz;
+
+            // Perform read
+            do
+            {
+                ssize_t nread   = in->read(cBufTail, count - read);
+                if (nread <= 0)
+                {
+                    if (read > 0) // Ignore error if there is data on the input
+                        break;
+                    return nread;
+                }
+
+                bBufTail       += nread;
+                read           += nread;
+            }
+            while (read < count);
+
+            return read;
+        }
+
+
+        ssize_t CharsetEncoder::fetch(void *buf, size_t count)
+        {
+            if (bBuffer == NULL)
+                return -STATUS_CLOSED;
+            else if (buf == NULL)
+                return -STATUS_BAD_ARGUMENTS;
+
+            // Compute the amount of data to read
+            size_t processed = 0;
+            if (!count)
+                count   = DATA_BUFSIZE*2;
+
+            // Perform read
+            uint8_t *dst = reinterpret_cast<uint8_t *>(buf);
+
+            while (processed < count)
+            {
+                // Perform decoding
+                ssize_t nbytes  = encode_buffer();
+                if (nbytes <= 0)
+                {
+                    if (processed > 0)
+                        break;
+                    return nbytes;
+                }
+
+                // Write data to output sequence
+                ssize_t to_copy = count - processed;
+                if (nbytes > to_copy)
+                    nbytes          = to_copy;
+                ::memcpy(dst, bBufHead, nbytes);
+
+                // Update state
+                bBufHead       += nbytes;
+                processed      += nbytes;
+                dst            += nbytes;
+            }
+
+            return processed;
+        }
+
+        ssize_t CharsetEncoder::fetch(File *out, size_t count = 0)
+        {
+            if (bBuffer == NULL)
+                return -STATUS_CLOSED;
+            else if (out == NULL)
+                return -STATUS_BAD_ARGUMENTS;
+
+            // Compute the amount of data to read
+            size_t processed = 0;
+            if (!count)
+                count   = DATA_BUFSIZE*2;
+
+            // Perform read
+            while (processed < count)
+            {
+                // Perform decoding
+                ssize_t nbytes  = encode_buffer();
+                if (nbytes <= 0)
+                {
+                    if (processed > 0)
+                        break;
+                    return nbytes;
+                }
+
+                // Write data to output sequence
+                ssize_t to_copy = count - processed;
+                if (nbytes > to_copy)
+                    nbytes          = to_copy;
+                nbytes = out->write(bBufHead, nbytes);
+                if (nbytes < 0)
+                {
+                    if (processed > 0)
+                        break;
+                    return nbytes;
+                }
+
+                // Update state
+                bBufHead       += nbytes;
+                processed      += nbytes;
+            }
+
+            return processed;
+        }
+
+        ssize_t CharsetEncoder::fetch(IOutStream *out, size_t count = 0)
+        {
+            if (bBuffer == NULL)
+                return -STATUS_CLOSED;
+            else if (out == NULL)
+                return -STATUS_BAD_ARGUMENTS;
+
+            // Compute the amount of data to read
+            size_t processed = 0;
+            if (!count)
+                count   = DATA_BUFSIZE*2;
+
+            // Perform read
+            while (processed < count)
+            {
+                // Perform decoding
+                ssize_t nbytes  = encode_buffer();
+                if (nbytes <= 0)
+                {
+                    if (processed > 0)
+                        break;
+                    return nbytes;
+                }
+
+                // Write data to output sequence
+                ssize_t to_copy = count - processed;
+                if (nbytes > to_copy)
+                    nbytes          = to_copy;
+                nbytes = out->write(bBufHead, nbytes);
+                if (nbytes < 0)
+                {
+                    if (processed > 0)
+                        break;
+                    return nbytes;
+                }
+
+                // Update state
+                bBufHead       += nbytes;
+                processed      += nbytes;
+            }
+
+            return processed;
+        }
+
     } /* namespace io */
 } /* namespace lsp */
