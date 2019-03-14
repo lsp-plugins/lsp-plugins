@@ -34,66 +34,37 @@ UTEST_BEGIN("core.io", encdec)
         UTEST_ASSERT(out.open(dst, File::FM_WRITE | File::FM_CREATE | File::FM_TRUNC) == STATUS_OK);
         UTEST_ASSERT(decoder.init(charset) == STATUS_OK);
 
-        uint8_t *ibuf = new uint8_t[BUFFER_SIZE];
-        UTEST_ASSERT(ibuf != NULL);
         lsp_wchar_t *obuf = new lsp_wchar_t[BUFFER_SIZE];
         UTEST_ASSERT(obuf != NULL);
 
-        uint8_t *ibufh = ibuf, *ibuft = ibuf;
+        ssize_t fetched, filled;
 
-        while (true)
+        do
         {
-            // Do we need to shift the buffer?
-            if (ibufh > ibuf)
+            // Is there any data on output?
+            fetched = decoder.fetch(obuf, BUFFER_SIZE);
+            if (fetched > 0)
             {
-                size_t count = ibuft-ibufh;
-                ::memmove(ibuf, ibufh, count);
-                ibufh   = ibuf;
-                ibuft   = &ibuf[count];
+                ssize_t to_write = fetched * sizeof(lsp_wchar_t);
+                ssize_t written = out.write(obuf, to_write);
+                UTEST_ASSERT(written == to_write);
             }
+            else if (fetched < 0)
+                UTEST_FAIL_MSG("decoder.fetch() failed with error %d", int(-fetched));
 
-            // Do we need to read any data ?
-            if (ibuft < &ibuf[BUFFER_SIZE])
-            {
-                ssize_t read = in.read(ibuft, ibuf + BUFFER_SIZE - ibuft);
-                if (read <= 0)
-                {
-                    if ((read != 0) && (read != (-STATUS_EOF)))
-                        UTEST_FAIL_MSG("read returned %d", int(read));
+            // Is there any data on input?
+            filled = decoder.fill(&in);
+            if ((filled < 0) && (filled != -STATUS_EOF))
+                UTEST_FAIL_MSG("decoder.fill() failed with error %d", int(-filled));
 
-                    // Is there any data to process?
-                    if (ibuft == ibuf)
-                        break; // No, leave the cycle
-                }
-                else // (read > 0), perform encode
-                    ibuft       += read;
-            }
-
-            size_t inleft = ibuft - ibufh;
-            if (inleft > 0)
-            {
-                lsp_wchar_t *xobuf = obuf;
-                size_t outleft  = BUFFER_SIZE;
-                void *src       = ibufh;
-                decoder.decode(&xobuf, &outleft, &src, &inleft);
-                ibufh           = reinterpret_cast<uint8_t *>(src);
-
-                // Is there any data to output?
-                if (xobuf > obuf)
-                {
-                    ssize_t to_write = (xobuf - obuf) * sizeof(lsp_wchar_t);
-                    ssize_t written = out.write(obuf, to_write);
-                    UTEST_ASSERT(written == to_write);
-                }
-            }
-        }
+        } while ((fetched > 0) || (filled > 0));
 
         decoder.close();
         UTEST_ASSERT(out.flush() == STATUS_OK);
+        UTEST_ASSERT(out.size() > 0);
         UTEST_ASSERT(out.close() == STATUS_OK);
         UTEST_ASSERT(in.close() == STATUS_OK);
 
-        delete [] ibuf;
         delete [] obuf;
     }
 
@@ -167,6 +138,7 @@ UTEST_BEGIN("core.io", encdec)
 
         encoder.close();
         UTEST_ASSERT(out.flush() == STATUS_OK);
+        UTEST_ASSERT(out.size() > 0);
         UTEST_ASSERT(out.close() == STATUS_OK);
         UTEST_ASSERT(in.close() == STATUS_OK);
 

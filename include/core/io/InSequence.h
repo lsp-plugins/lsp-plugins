@@ -24,22 +24,15 @@ namespace lsp
         class InSequence: public IInSequence
         {
             protected:
-                uint8_t        *bBuf;
-                lsp_wchar_t    *cBuf;
-                size_t          bBufSize;
-                size_t          bBufPos;
-                size_t          cBufSize;
-                size_t          cBufPos;
                 IInStream      *pIS;
                 size_t          nWrapFlags;
                 CharsetDecoder  sDecoder;
                 LSPString       sLine;
     
-            protected:
-                status_t        fill_char_buf();
-
             private:
                 InSequence & operator = (const InSequence &);
+
+                lsp_swchar_t read_internal();
 
             public:
                 explicit InSequence();
@@ -109,7 +102,7 @@ namespace lsp
 
                 virtual ssize_t     read(lsp_wchar_t *dst, size_t count);
 
-                virtual int         read();
+                virtual lsp_swchar_t read();
 
                 virtual status_t    read_line(LSPString *s, bool force = false);
 
