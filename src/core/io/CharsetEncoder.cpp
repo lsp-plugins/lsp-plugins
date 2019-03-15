@@ -319,8 +319,9 @@ namespace lsp
 
             if (count > bufsz)
                 count   = bufsz;
-            while (count--) // Copy ASCII data
-                *(cBufTail++)   = uint8_t(*(buf++));
+            for (size_t i=0; i<count; ++i) // Copy ASCII data
+                cBufTail[i]     = uint8_t(buf[i]);
+            cBufTail       += count;
             return count;
         }
 
