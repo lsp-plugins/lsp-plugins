@@ -316,7 +316,8 @@ namespace lsp
                 {
                     if (sLine.last() == '\r')
                         sLine.set_length(sLine.length() - 1);
-                    break;
+                    s->take(&sLine);
+                    return set_error(STATUS_OK);
                 }
 
                 // Append character

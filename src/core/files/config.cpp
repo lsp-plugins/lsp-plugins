@@ -439,6 +439,7 @@ namespace lsp
                         result = STATUS_OK;
                     break;
                 }
+                //lsp_trace("Config line: %s", line.get_native());
 
                 // Parse the line
                 result = parse_line(&line, &key, &value);
