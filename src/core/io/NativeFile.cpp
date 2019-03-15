@@ -342,7 +342,7 @@ namespace lsp
                 while (bwritten < count)
                 {
                     size_t to_write     = count - bwritten;
-                    size_t n_written    = ::write(hFD, ptr, to_write);
+                    ssize_t n_written   = ::write(hFD, ptr, to_write);
 
                     if (n_written <= 0)
                         break;

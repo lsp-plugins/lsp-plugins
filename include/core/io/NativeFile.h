@@ -126,7 +126,7 @@ namespace lsp
                  * @param type seek type
                  * @return status of operation
                  */
-                virtual status_t seek(wssize_t pos, size_t type);
+                virtual status_t seek(wssize_t pos, size_t type = FSK_SET);
 
                 /**
                  * Obtain current file's position

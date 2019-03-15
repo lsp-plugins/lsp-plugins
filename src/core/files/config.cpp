@@ -399,6 +399,46 @@ namespace lsp
             return fos.close();
         }
 
+        status_t save(io::File *fd, IConfigSource *s, bool comments)
+        {
+            io::OutSequence fos;
+            status_t res = fos.wrap(fd, WRAP_NONE);
+            if (res != STATUS_OK)
+            {
+                fos.close();
+                return res;
+            }
+
+            res = save(&fos, s, comments);
+            if (res != STATUS_OK)
+            {
+                fos.close();
+                return res;
+            }
+
+            return fos.close();
+        }
+
+        status_t save(io::IOutStream *os, IConfigSource *s, bool comments)
+        {
+            io::OutSequence fos;
+            status_t res = fos.wrap(os, WRAP_NONE);
+            if (res != STATUS_OK)
+            {
+                fos.close();
+                return res;
+            }
+
+            res = save(&fos, s, comments);
+            if (res != STATUS_OK)
+            {
+                fos.close();
+                return res;
+            }
+
+            return fos.close();
+        }
+
         status_t save(const char *path, IConfigSource *s, bool comments)
         {
             io::OutSequence fos;
@@ -460,6 +500,26 @@ namespace lsp
         {
             io::InSequence isr;
             status_t res = isr.wrap(is, false);
+            if (res != STATUS_OK)
+            {
+                isr.close();
+                return res;
+            }
+
+            res = load(&isr, h);
+            if (res != STATUS_OK)
+            {
+                isr.close();
+                return res;
+            }
+
+            return isr.close();
+        }
+
+        status_t load(io::File *fd, IConfigHandler *h)
+        {
+            io::InSequence isr;
+            status_t res = isr.wrap(fd, false);
             if (res != STATUS_OK)
             {
                 isr.close();

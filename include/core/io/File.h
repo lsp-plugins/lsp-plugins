@@ -34,6 +34,8 @@ namespace lsp
                     FM_CREATE   = 1 << 2,       // Create file if not exists
                     FM_TRUNC    = 1 << 3,       // Truncate file
                     FM_DIRECT   = 1 << 4,       // Do not use buffered input/output if possible
+
+                    FM_READWRITE = FM_READ | FM_WRITE
                 };
 
             protected:
