@@ -185,13 +185,13 @@ UTEST_BEGIN("core.io", encdec)
 
     UTEST_MAIN
     {
-        testFileCoding("res/test/io/iconv/01-de-utf16le.txt", "utf16le");
-        testFileCoding("res/test/io/iconv/01-de-utf8.txt", "utf8");
-        testFileCoding("res/test/io/iconv/02-ja-utf16le.txt", "utf16le");
-        testFileCoding("res/test/io/iconv/02-ja-utf8.txt", "utf8");
-        testFileCoding("res/test/io/iconv/03-ru-cp1251.txt", "cp1251");
-        testFileCoding("res/test/io/iconv/03-ru-utf16le.txt", "utf16le");
-        testFileCoding("res/test/io/iconv/03-ru-utf8.txt", "utf8");
+        testFileCoding("res/test/io/iconv/01-de-utf16le.txt", "UTF-16LE");
+        testFileCoding("res/test/io/iconv/01-de-utf8.txt", "UTF-8");
+        testFileCoding("res/test/io/iconv/02-ja-utf16le.txt", "UTF-16LE");
+        testFileCoding("res/test/io/iconv/02-ja-utf8.txt", "UTF-8");
+        testFileCoding("res/test/io/iconv/03-ru-cp1251.txt", "CP1251");
+        testFileCoding("res/test/io/iconv/03-ru-utf16le.txt", "UTF-16LE");
+        testFileCoding("res/test/io/iconv/03-ru-utf8.txt", "UTF-8");
     }
 
 UTEST_END
