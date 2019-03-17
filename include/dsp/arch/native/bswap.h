@@ -134,4 +134,16 @@ inline void __lsp_forced_inline byte_swap(double *v, size_t n)
     }
 }
 
+#if defined(WCHART_16BIT)
+    inline wchar_t byte_swap(wchar_t v)
+    {
+        return wchar_t(byte_swap(uint16_t(v)));
+    }
+#elif defined(WCHART_32BIT)
+    inline wchar_t byte_swap(wchar_t v)
+    {
+        return wchar_t(byte_swap(uint32_t(v)));
+    }
+#endif
+
 #endif /* DSP_ARCH_NATIVE_BSWAP_H_ */

@@ -17,6 +17,8 @@
     #include <pthread.h>
 #endif /* PLATFORM_WINDOWS */
 
+#include <core/ipc/IRunnable.h>
+
 namespace lsp
 {
     namespace ipc
@@ -29,8 +31,29 @@ namespace lsp
             TS_FINISHED
         };
 
-        class Thread
+        /**
+         * Thread procedure that can be launched
+         * @param arg
+         * @return
+         */
+        typedef status_t (* thread_proc_t)(void *arg);
+
+        /**
+         * Thread class
+         */
+        class Thread: public IRunnable
         {
+            protected:
+                typedef struct binding_t
+                {
+                    thread_proc_t   proc;
+                    union
+                    {
+                        IRunnable      *runnable;
+                        void           *arg;
+                    };
+                } binding_t;
+
             private:
                 static __thread Thread     *pThis;
                 volatile int                enState;
@@ -43,6 +66,9 @@ namespace lsp
                 pthread_t                   hThread;        // POSIX threads
 #endif  /* PLATFORM_WINDOWS */
 
+            protected:
+                binding_t                   sBinding;
+
             private:
 #if defined(PLATFORM_WINDOWS)
                 static DWORD WINAPI thread_launcher(_In_ LPVOID lpParameter);
@@ -50,8 +76,14 @@ namespace lsp
                 static void *thread_launcher(void *arg);
 #endif /* PLATFORM_WINDOWS */
 
+                Thread & operator = (const Thread &src);    // Deny copying
+
             public:
                 explicit Thread();
+                explicit Thread(thread_proc_t proc);
+                explicit Thread(thread_proc_t proc, void *arg);
+                explicit Thread(IRunnable *runnable);
+
                 virtual ~Thread();
 
             public:
@@ -118,6 +150,12 @@ namespace lsp
                  * @return execution result of the thread
                  */
                 status_t get_result() const { return (enState == TS_FINISHED) ? nResult : STATUS_BAD_STATE; };
+
+                /**
+                 * Return number of execution cores supported by the system
+                 * @return number of logical CPUs in the system available for processing
+                 */
+                static size_t system_cores();
         };
     
     } /* namespace ipc */

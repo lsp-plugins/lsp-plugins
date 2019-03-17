@@ -37,6 +37,8 @@ typedef void (* fft_t)(float *dst_re, float *dst_im, const float *src_re, const 
 
 UTEST_BEGIN("dsp.fft", fft)
 
+    UTEST_TIMELIMIT(30)
+
     void call(const char *label, size_t align, fft_t func1, fft_t func2)
     {
         if (!UTEST_SUPPORTED(func1))

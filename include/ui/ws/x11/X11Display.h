@@ -42,7 +42,7 @@ namespace lsp
                         Atom                hSelection;
                         Time                nTime;
                         X11Clipboard       *pCB;
-                        io::IInputStream   *pIn;
+                        io::IInStream   *pIn;
                         clipboard_handler_t pHandler;
                         void               *pArgument;
                     } cb_request_t;

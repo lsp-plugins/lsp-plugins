@@ -20,6 +20,9 @@ namespace lsp
             private:
                 LSPString   sPath;
 
+            private:
+                Path & operator = (const Path &);
+
             public:
                 explicit Path();
                 ~Path();
@@ -92,6 +95,8 @@ namespace lsp
                 bool        equals(const Path *path) const;
                 bool        equals(const LSPString *path) const;
                 bool        equals(const char *path) const;
+
+                inline const LSPString *as_string() const { return &sPath; }
         };
     }
 } /* namespace lsp */

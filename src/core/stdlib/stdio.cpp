@@ -6,6 +6,7 @@
  */
 
 #include <core/stdlib/stdio.h>
+#include <unistd.h>
 
 #if defined(PLATFORM_WINDOWS)
     int vasprintf(char **res, const char *fmt, va_list ap)
@@ -40,5 +41,18 @@
         return r;
     }
 
+    int fdsync(FILE *fd)
+    {
+        return (FlushFileBuffers((HANDLE)_fileno(fd))) ? 0 : -1;
+    }
+
 #endif /* PLATFORM_WINDOWS */
 
+#if defined(PLATFORM_UNIX_COMPATIBLE)
+
+    int fdsync(FILE *fd)
+    {
+        return fsync(fileno(fd));
+    }
+
+#endif

@@ -30,8 +30,8 @@
                     \
                     virtual ~utest_ ## name() {}
 
-#define UTEST_TIMELIMIT(value) \
-        virtual double time_limit() const { return double(value); }
+#define UTEST_TIMELIMIT(seconds) \
+        virtual double time_limit() const { return double(seconds); }
 
 #define UTEST_IGNORE \
         virtual bool ignore() const { return true; }

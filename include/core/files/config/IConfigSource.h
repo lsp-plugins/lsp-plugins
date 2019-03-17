@@ -28,8 +28,11 @@ namespace lsp
             private:
                 buffer_t sBuf;
 
+            private:
+                IConfigSource & operator = (const IConfigSource &);
+
             public:
-                IConfigSource();
+                explicit IConfigSource();
                 virtual ~IConfigSource();
 
             public:

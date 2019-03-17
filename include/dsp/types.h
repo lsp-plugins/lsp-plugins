@@ -393,4 +393,12 @@ __IF_64( typedef        int64_t             smword_t );
     #include <linux/limits.h>
 #endif /* __linux__ */
 
+//-----------------------------------------------------------------------------
+// Character type sizes
+#if (WCHAR_MAX >= 0x10000ul)
+    #define WCHART_32BIT
+#else
+    #define WCHART_16BIT
+#endif /* WCHAR_MAX */
+
 #endif /* DSP_TYPES_H_ */

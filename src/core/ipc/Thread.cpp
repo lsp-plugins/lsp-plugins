@@ -11,6 +11,7 @@
 
 #include <time.h>
 #include <errno.h>
+#include <unistd.h>
 
 namespace lsp
 {
@@ -18,20 +19,72 @@ namespace lsp
     {
         __thread Thread *Thread::pThis = NULL;
         
+#if defined(PLATFORM_WINDOWS)
+    #define CLR_HANDLE(hThread) hThread     = INVALID_HANDLE_VALUE;
+#else
+    #define CLR_HANDLE(hThread) hThread     = 0;
+#endif
+
         Thread::Thread()
         {
-            enState     = TS_CREATED;
-            nResult     = STATUS_OK;
-            bCancelled  = false;
-            hThread     = 0;
+            enState             = TS_CREATED;
+            nResult             = STATUS_OK;
+            bCancelled          = false;
+            CLR_HANDLE(hThread);
+            sBinding.proc       = NULL;
+            sBinding.arg        = NULL;
+            sBinding.runnable   = NULL;
         }
         
+        Thread::Thread(thread_proc_t proc)
+        {
+            enState             = TS_CREATED;
+            nResult             = STATUS_OK;
+            bCancelled          = false;
+            CLR_HANDLE(hThread);
+            sBinding.proc       = proc;
+            sBinding.arg        = NULL;
+            sBinding.runnable   = NULL;
+        }
+
+        Thread::Thread(thread_proc_t proc, void *arg)
+        {
+            enState             = TS_CREATED;
+            nResult             = STATUS_OK;
+            bCancelled          = false;
+            CLR_HANDLE(hThread);
+            sBinding.proc       = proc;
+            sBinding.runnable   = NULL;
+            sBinding.arg        = arg;
+        }
+
+        Thread::Thread(IRunnable *runnable)
+        {
+            enState             = TS_CREATED;
+            nResult             = STATUS_OK;
+            bCancelled          = false;
+            CLR_HANDLE(hThread);
+            sBinding.proc       = NULL;
+            sBinding.arg        = NULL;
+            sBinding.runnable   = runnable;
+        }
+
         Thread::~Thread()
         {
+#if defined(PLATFORM_WINDOWS)
+            if (hThread != INVALID_HANDLE_VALUE)
+                CloseHandle(hThread);
+#endif /* PLATFORM_WINDOWS */
+
+            CLR_HANDLE(hThread);
         }
 
         status_t Thread::run()
         {
+            if (sBinding.proc != NULL)
+                return sBinding.proc(sBinding.arg);
+            else if (sBinding.runnable != NULL)
+                return sBinding.runnable->run();
             return STATUS_OK;
         }
 
@@ -135,6 +188,14 @@ namespace lsp
             }
 
             return STATUS_OK;
+        }
+
+        size_t Thread::system_cores()
+        {
+            SYSTEM_INFO     os_sysinfo;
+            GetSystemInfo(&os_sysinfo);
+
+            return os_sysinfo.dwNumberOfProcessors;
         }
 #else
         void *Thread::thread_launcher(void *arg)
@@ -240,6 +301,11 @@ namespace lsp
             }
 
             return STATUS_OK;
+        }
+
+        size_t Thread::system_cores()
+        {
+            return sysconf(_SC_NPROCESSORS_ONLN);
         }
 #endif /* PLATFORM_WINDOWS */
 

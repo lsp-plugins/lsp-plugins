@@ -7,14 +7,14 @@
 
 #include <core/files/config.h>
 #include <core/debug.h>
+#include <core/io/IInSequence.h>
 #include <stdio.h>
 #include <locale.h>
 
-#include <core/io/FileReader.h>
-#include <core/io/FileWriter.h>
-#include <core/io/StringReader.h>
-#include <core/io/StringWriter.h>
-#include <core/io/InputStreamReader.h>
+#include <core/io/InSequence.h>
+#include <core/io/InStringSequence.h>
+#include <core/io/OutSequence.h>
+#include <core/io/OutStringSequence.h>
 
 namespace lsp
 {
@@ -232,7 +232,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        static status_t serialize_comment(io::Writer *os, const LSPString *comment)
+        static status_t serialize_comment(io::IOutSequence *os, const LSPString *comment)
         {
             size_t first = 0;
             while (true)
@@ -254,7 +254,7 @@ namespace lsp
             }
         }
 
-        static status_t serialize_value(io::Writer *os, const LSPString *value, int flags)
+        static status_t serialize_value(io::IOutSequence *os, const LSPString *value, int flags)
         {
             size_t n = value->length();
             if (n > 0)
@@ -296,7 +296,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t save(io::Writer *os, IConfigSource *s, bool comments)
+        status_t save(io::IOutSequence *os, IConfigSource *s, bool comments)
         {
             LSPString key, value, comment;
             status_t res;
@@ -381,8 +381,48 @@ namespace lsp
 
         status_t save(FILE *fd, IConfigSource *s, bool comments)
         {
-            io::FileWriter fos;
-            status_t res = fos.attach(fd);
+            io::OutSequence fos;
+            status_t res = fos.wrap(fd, WRAP_NONE);
+            if (res != STATUS_OK)
+            {
+                fos.close();
+                return res;
+            }
+
+            res = save(&fos, s, comments);
+            if (res != STATUS_OK)
+            {
+                fos.close();
+                return res;
+            }
+
+            return fos.close();
+        }
+
+        status_t save(io::File *fd, IConfigSource *s, bool comments)
+        {
+            io::OutSequence fos;
+            status_t res = fos.wrap(fd, WRAP_NONE);
+            if (res != STATUS_OK)
+            {
+                fos.close();
+                return res;
+            }
+
+            res = save(&fos, s, comments);
+            if (res != STATUS_OK)
+            {
+                fos.close();
+                return res;
+            }
+
+            return fos.close();
+        }
+
+        status_t save(io::IOutStream *os, IConfigSource *s, bool comments)
+        {
+            io::OutSequence fos;
+            status_t res = fos.wrap(os, WRAP_NONE);
             if (res != STATUS_OK)
             {
                 fos.close();
@@ -401,8 +441,8 @@ namespace lsp
 
         status_t save(const char *path, IConfigSource *s, bool comments)
         {
-            io::FileWriter fos;
-            status_t res = fos.open(path);
+            io::OutSequence fos;
+            status_t res = fos.open(path, io::File::FM_CREATE | io::File::FM_TRUNC);
             if (res != STATUS_OK)
             {
                 fos.close();
@@ -419,7 +459,7 @@ namespace lsp
             return fos.close();
         }
 
-        status_t load(io::Reader *is, IConfigHandler *h)
+        status_t load(io::IInSequence *is, IConfigHandler *h)
         {
             status_t result = STATUS_OK;
             LSPString line, key, value;
@@ -439,6 +479,7 @@ namespace lsp
                         result = STATUS_OK;
                     break;
                 }
+                //lsp_trace("Config line: %s", line.get_native());
 
                 // Parse the line
                 result = parse_line(&line, &key, &value);
@@ -455,10 +496,30 @@ namespace lsp
             return result;
         }
 
-        status_t load(io::IInputStream *is, IConfigHandler *h)
+        status_t load(io::IInStream *is, IConfigHandler *h)
         {
-            io::InputStreamReader isr;
-            status_t res = isr.attach(is);
+            io::InSequence isr;
+            status_t res = isr.wrap(is, false);
+            if (res != STATUS_OK)
+            {
+                isr.close();
+                return res;
+            }
+
+            res = load(&isr, h);
+            if (res != STATUS_OK)
+            {
+                isr.close();
+                return res;
+            }
+
+            return isr.close();
+        }
+
+        status_t load(io::File *fd, IConfigHandler *h)
+        {
+            io::InSequence isr;
+            status_t res = isr.wrap(fd, false);
             if (res != STATUS_OK)
             {
                 isr.close();
@@ -477,8 +538,8 @@ namespace lsp
 
         status_t load(FILE *fd, IConfigHandler *h)
         {
-            io::FileReader fis;
-            status_t res = fis.attach(fd);
+            io::InSequence fis;
+            status_t res = fis.wrap(fd, WRAP_NONE);
             if (res != STATUS_OK)
             {
                 fis.close();
@@ -497,7 +558,7 @@ namespace lsp
 
         status_t load(const char *path, IConfigHandler *h)
         {
-            io::FileReader fis;
+            io::InSequence fis;
             status_t res = fis.open(path);
             if (res != STATUS_OK)
             {
@@ -517,7 +578,7 @@ namespace lsp
 
         status_t serialize(LSPString *cfg, IConfigSource *s, bool comments)
         {
-            io::StringWriter sos(cfg);
+            io::OutStringSequence sos(cfg);
             status_t res = save(&sos, s, comments);
             if (res != STATUS_OK)
             {
@@ -530,7 +591,7 @@ namespace lsp
 
         status_t deserialize(const LSPString *cfg, IConfigHandler *h)
         {
-            io::StringReader sis(cfg, false);
+            io::InStringSequence sis(cfg, false);
             status_t res = load(&sis, h);
             if (res != STATUS_OK)
             {

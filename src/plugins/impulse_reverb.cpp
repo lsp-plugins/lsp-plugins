@@ -44,7 +44,7 @@ namespace lsp
         pDescr      = NULL;
     }
 
-    int impulse_reverb_base::IRLoader::run()
+    status_t impulse_reverb_base::IRLoader::run()
     {
         return pCore->load(pDescr);
     }
@@ -67,7 +67,7 @@ namespace lsp
         pCore       = NULL;
     }
 
-    int impulse_reverb_base::IRConfigurator::run()
+    status_t impulse_reverb_base::IRConfigurator::run()
     {
         return pCore->reconfigure(&sReconfig);
     }

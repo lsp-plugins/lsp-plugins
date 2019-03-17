@@ -29,7 +29,7 @@ namespace lsp
         pCore = NULL;
     }
 
-    int profiler_base::PreProcessor::run()
+    status_t profiler_base::PreProcessor::run()
     {
         // reconfigure() will call update_settings() if needed.
         status_t  returnValue = pCore->sSyncChirpProcessor.reconfigure();
@@ -56,7 +56,7 @@ namespace lsp
         pCore = NULL;
     }
 
-    int profiler_base::Convolver::run()
+    status_t profiler_base::Convolver::run()
     {
     	for (size_t ch = 0; ch < pCore->nChannels; ++ch)
     	{
@@ -97,7 +97,7 @@ namespace lsp
         enAlgo = algo;
     }
 
-    int profiler_base::PostProcessor::run()
+    status_t profiler_base::PostProcessor::run()
     {
     	for (size_t ch = 0; ch < pCore->nChannels; ++ch)
     	{
@@ -149,7 +149,7 @@ namespace lsp
         return sFile[0] != '\0';
     }
 
-    int profiler_base::Saver::run()
+    status_t profiler_base::Saver::run()
     {
         // Doing Checks:
         if (pCore->bIRMeasured)

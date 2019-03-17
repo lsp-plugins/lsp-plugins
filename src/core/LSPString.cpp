@@ -70,13 +70,26 @@ namespace lsp
         truncate();
     }
 
+#ifndef ARCH_LE
+    int LSPString::xcmp(const lsp_wchar_t *a, const lsp_wchar_t *b, size_t n);
+    {
+        while (n--)
+        {
+            int32_t retval = int32_t(*(a++)) - int32_t(*(b++));
+            if (retval != 0)
+                return (retval > 0) ? 1 : -1;
+        }
+        return 0;
+    }
+#endif /* ARCH_LE */
+
     int LSPString::xcasecmp(const lsp_wchar_t *a, const lsp_wchar_t *b, size_t n)
     {
         while (n--)
         {
-            int retval = int(towlower(*(a++))) - int(towlower(*(b++)));
+            int32_t retval = int32_t(towlower(*(a++))) - int32_t(towlower(*(b++)));
             if (retval != 0)
-                return retval;
+                return (retval > 0) ? 1 : -1;
         }
         return 0;
     }
@@ -84,7 +97,7 @@ namespace lsp
     void LSPString::acopy(lsp_wchar_t *dst, const char *src, size_t n)
     {
         while (n--)
-            *(dst++) = *(src++);
+            *(dst++) = uint8_t(*(src++));
     }
 
     void LSPString::drop_temp()
@@ -664,11 +677,6 @@ namespace lsp
         return (nLength > 0) ? pData[nLength-1] == ch : false;
     }
 
-    bool LSPString::ends_with(char ch) const
-    {
-        return (nLength > 0) ? pData[nLength-1] == ch : false;
-    }
-
     bool LSPString::ends_with_nocase(lsp_wchar_t ch) const
     {
         if (nLength <= 0)
@@ -701,11 +709,6 @@ namespace lsp
     }
 
     bool LSPString::starts_with(lsp_wchar_t ch) const
-    {
-        return (nLength > 0) ? pData[0] == ch : false;
-    }
-
-    bool LSPString::starts_with(char ch) const
     {
         return (nLength > 0) ? pData[0] == ch : false;
     }
@@ -1042,16 +1045,6 @@ namespace lsp
         return -1;
     }
 
-    ssize_t LSPString::index_of(char ch) const
-    {
-        for (size_t start = 0; start < nLength; ++start)
-        {
-            if (pData[start] == ch)
-                return start;
-        }
-        return -1;
-    }
-
     ssize_t LSPString::rindex_of(ssize_t start, const LSPString *str) const
     {
         XSAFE_ITRANS(start, nLength, -1);
@@ -1098,16 +1091,6 @@ namespace lsp
     }
 
     ssize_t LSPString::rindex_of(lsp_wchar_t ch) const
-    {
-        for (ssize_t start=nLength-1; start >= 0; --start)
-        {
-            if (pData[start] == ch)
-                return start;
-        }
-        return -1;
-    }
-
-    ssize_t LSPString::rindex_of(char ch) const
     {
         for (ssize_t start=nLength-1; start >= 0; --start)
         {
@@ -1313,43 +1296,19 @@ namespace lsp
 
     bool LSPString::set_utf8(const char *s, size_t n)
     {
-        const char *l   = &s[n];
         LSPString   tmp;
+        lsp_wchar_t ch;
 
-        while (s < l)
+        while (lsp_utf32_t(ch = read_utf8_streaming(&s, &n, true)) != LSP_UTF32_EOF)
         {
-            uint8_t v   = *(s++);
-            if (v <= 0x7f) // 1 byte: 0xxxxxxx
-            {
-                if (!tmp.append(lsp_wchar_t(v)))
-                    return false;
-            }
-            else if ((v & 0xe0) == 0xc0) // 2 bytes: 110xxxxx 10xxxxxx
-            {
-                if (s >= l)
-                    return false;
-
-                lsp_wchar_t ch  = ((v & 0x1f) << 6);
-                ch             |= ((*(s++)) & 0x3f);
-                if (!tmp.append(ch))
-                    return false;
-            }
-            else if ((v & 0xf0) == 0xe0) // 3 bytes: 1110xxxx 10xxxxxx 10xxxxxx
-            {
-                if ((l - s) < 2)
-                    return false;
-
-                lsp_wchar_t ch  = ((v & 0x0f) << 12);
-                ch             |= ((*(s++)) & 0x3f) << 6;
-                ch             |= ((*(s++)) & 0x3f);
-                if (!tmp.append(ch))
-                    return false;
-            }
-            else
+            // Append code point
+            if (!tmp.append(ch))
                 return false;
         }
+        if (n > 0)
+            return false;
 
-        take(&tmp);
+        tmp.swap(this);
         return true;
     }
 
@@ -1359,32 +1318,31 @@ namespace lsp
         while (s[len] != 0)
             ++len;
 
-        drop_temp();
-        if (!cap_reserve(len))
-            return false;
-
-        for (size_t i=0; i<len; ++i)
-            pData[i] = s[i];
-        nLength     = len;
-        return true;
+        return set_utf16(s, len);
     }
 
     bool LSPString::set_utf16(const lsp_utf16_t *s, size_t n)
     {
-        drop_temp();
-        if (!cap_reserve(n))
+        LSPString   tmp;
+        lsp_wchar_t ch;
+
+        while (lsp_utf32_t(ch = read_utf16_streaming(&s, &n, true)) != LSP_UTF32_EOF)
+        {
+            // Append code point
+            if (!tmp.append(ch))
+                return false;
+        }
+        if (n > 0)
             return false;
 
-        for (size_t i=0; i<n; ++i)
-            pData[i] = s[i];
-        nLength     = n;
+        tmp.swap(this);
         return true;
     }
 
 #if defined(PLATFORM_WINDOWS)
-    bool LSPString::set_native(const char *s, ssize_t n, const char *charset)
+    bool LSPString::set_native(const char *s, size_t n, const char *charset)
     {
-        if (n < 0)
+        if (s == NULL)
             return false;
         else if (n == 0)
         {
@@ -1398,34 +1356,39 @@ namespace lsp
             return false;
 
         // Estimate size of string in memory
-        ssize_t slen = MultiByteToWideChar(cp, 0, const_cast<CHAR *>(s), n, NULL, 0);
-        if (slen == 0)
+        ssize_t slen = multibyte_to_widechar(cp, const_cast<CHAR *>(s), &n, NULL, NULL);
+        if (slen <= 0)
             return false;
 
-        lsp_wchar_t *buf = xmalloc(slen);
+        // Perform native -> utf-16 encoding
+        WCHAR *buf = reinterpret_cast<WCHAR *>(::malloc(slen * sizeof(WCHAR)));
         if (buf == NULL)
             return false;
 
-        slen = MultiByteToWideChar(cp, 0, const_cast<CHAR *>(s), n, buf, slen);
-        if (slen == 0)
+        size_t bytes  = slen;
+        slen    = multibyte_to_widechar(cp, const_cast<CHAR *>(s), &n, buf, &bytes);
+        if (slen <= 0)
         {
-            xfree(buf);
+            free(buf);
             return false;
         }
 
-        if (pData != NULL)
-            xfree(pData);
-        pData = buf;
-        nLength = slen;
-        nCapacity = slen;
+        // Set encoded utf-16 values
+        bool res = set_utf16(buf, slen >> 1);
+        free(buf);
 
-        return true;
+        return res;
     }
 #else
-    bool LSPString::set_native(const char *s, ssize_t n, const char *charset)
+    bool LSPString::set_native(const char *s, size_t n, const char *charset)
     {
-        if (n < 0)
+        if (s == NULL)
             return false;
+        else if (n == 0)
+        {
+            nLength = 0;
+            return true;
+        }
 
         char buf[BUF_SIZE];
         LSPString temp;
@@ -1521,22 +1484,7 @@ namespace lsp
         for (ssize_t i=first; i<last; ++i)
         {
             lsp_wchar_t ch = pData[i];
-
-            if (ch < 0x80) // 1 byte
-                *(th++) = ch;
-            else if (ch >= 0x800) // 3 bytes
-            {
-                th[0]   = (ch >> 12) | 0xe0;
-                th[1]   = ((ch >> 6) & 0x3f) | 0x80;
-                th[2]   = (ch & 0x3f) | 0x80;
-                th += 3;
-            }
-            else // 2 bytes
-            {
-                th[0]   = (ch >> 6) | 0xc0;
-                th[1]   = (ch & 0x3f) | 0x80;
-                th += 2;
-            }
+            write_utf8_codepoint(&th, ch);
 
             if (th >= tt)
             {
@@ -1563,9 +1511,24 @@ namespace lsp
         if (pTemp != NULL)
             pTemp->nOffset      = 0;
 
-        if (!append_temp(reinterpret_cast<char *>(&pData[first]), (last - first)*sizeof(uint16_t)))
-            return NULL;
-        if (!append_temp(reinterpret_cast<char *>(&UTF16_NULL), sizeof(UTF16_NULL)))
+        lsp_utf16_t temp[BUF_SIZE + 8];
+        lsp_utf16_t *th = temp, *tt = &temp[BUF_SIZE];
+
+        for (ssize_t i=first; i<last; ++i)
+        {
+            lsp_wchar_t ch = pData[i];
+            write_utf16_codepoint(&th, ch);
+
+            if (th >= tt)
+            {
+                if (!append_temp(reinterpret_cast<char *>(temp), (th - temp) * sizeof(lsp_utf16_t)))
+                    return NULL;
+                th  = temp;
+            }
+        }
+
+        *(th++) = '\0';
+        if (!append_temp(reinterpret_cast<char *>(temp), (th - temp) * sizeof(lsp_utf16_t)))
             return NULL;
 
         return reinterpret_cast<lsp_utf16_t *>(pTemp->pData);
@@ -1592,16 +1555,6 @@ namespace lsp
         return pTemp->pData;
     }
 
-    const char *LSPString::get_native(const char *charset) const
-    {
-        return get_native(0, nLength, charset);
-    }
-
-    const char *LSPString::get_native(ssize_t first, const char *charset) const
-    {
-        return get_native(first, nLength, charset);
-    }
-
 #if defined(PLATFORM_WINDOWS)
     const char *LSPString::get_native(ssize_t first, ssize_t last, const char *charset) const
     {
@@ -1617,21 +1570,39 @@ namespace lsp
             return NULL;
 
         // Estimate number of bytes required
-        size_t n = WideCharToMultiByte(cp, 0, &pData[first], length, NULL, 0, 0, 0) + 4; // + terminating 0
-        if (!resize_temp(n))
+        lsp_utf16_t *buf    = const_cast<lsp_utf16_t *>(get_utf16(first, last));
+        if (buf == NULL)
             return NULL;
+
+        // Drop temporary data because it is stored in buf variable and can not be reused
+        pTemp->pData        = NULL;
+        pTemp->nLength      = 0;
+        pTemp->nOffset      = 0;
+
+        size_t slen         = length;
+        size_t res = widechar_to_multibyte(cp, buf, &slen, NULL, NULL) + 4; // + terminating 0
+        if ((res <= 0) || (!resize_temp(res)))
+        {
+            free(buf);
+            return NULL;
+        }
 
         // We have enough space for saving data
-        n = WideCharToMultiByte(cp, 0, &pData[first], length, pTemp->pData, pTemp->nLength, 0, 0);
-        if (n <= 0)
+        size_t n = res;
+        res = widechar_to_multibyte(cp, buf, &slen, pTemp->pData, &n);
+        if (res <= 0)
+        {
+            free(buf);
             return NULL;
+        }
 
         // Append terminating zero
-        pTemp->pData[n++] = '\0';
-        pTemp->pData[n++] = '\0';
-        pTemp->pData[n++] = '\0';
-        pTemp->pData[n] = '\0';
+        pTemp->pData[res++] = '\0';
+        pTemp->pData[res++] = '\0';
+        pTemp->pData[res++] = '\0';
+        pTemp->pData[res]   = '\0';
 
+        free(buf);
         return pTemp->pData;
     }
 #else
@@ -1681,7 +1652,8 @@ namespace lsp
             size_t nconv = iconv(cd, &inbuf, &insize, &outbuf, &outsize);
             if (nconv == (size_t) -1)
             {
-                switch (errno)
+                int err_code = errno;
+                switch (err_code)
                 {
                     case E2BIG:
                     case EINVAL:

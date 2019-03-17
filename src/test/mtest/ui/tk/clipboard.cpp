@@ -5,10 +5,10 @@
  *      Author: sadko
  */
 
+#include <core/io/IInStream.h>
+#include <core/io/IOutStream.h>
 #include <test/mtest.h>
 #include <ui/tk/tk.h>
-#include <core/io/IInputStream.h>
-#include <core/io/IOutputStream.h>
 
 using namespace lsp::tk;
 using namespace lsp::io;
@@ -23,7 +23,7 @@ MTEST_BEGIN("ui.tk", clipboard)
         uint8_t buf[4096], *ptr;
 
         // Write to stream
-        IOutputStream *os = clip->write("application/octet-stream");
+        IOutStream *os = clip->write("application/octet-stream");
         printf("Stream position: %d", int(os->position()));
 
         while (true)
@@ -71,7 +71,7 @@ MTEST_BEGIN("ui.tk", clipboard)
         fclose(fd);
 
         fd = fopen("output.bin", "w");
-        IInputStream *is = clip->read("text/html");
+        IInStream *is = clip->read("text/html");
         MTEST_ASSERT_MSG(is == NULL, "Invalid content type accepted");
 
         is = clip->read("application/octet-stream");

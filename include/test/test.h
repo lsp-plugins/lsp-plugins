@@ -18,6 +18,13 @@
     #define TEST_SUPPORTED(ptr)     false
 #endif /* LSP_TESTING */
 
+#define TEST_ASSERT(code) \
+        if (!(code)) { \
+            fprintf(stderr, "Test assertion has failed at file %s, line %d:\n  %s\n", \
+                    __FILE__, __LINE__, # code); \
+            exit(2); \
+        }
+
 namespace test
 {
     class Test
