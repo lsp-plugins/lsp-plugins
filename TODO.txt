@@ -13,6 +13,7 @@
 * Implemented fully compatible with EqualizerAPO software digital filters that are
   now part of the Parametric Equalizer plugin series.
 * Fixed issue that caused VST plugins not to load from cusom user-defined path.
+* Some code parts rewritten for better compatibility with WindowsNT platform.
 * Fixed file listing in the file dialog that caused improper reading of remote directories
   mounted on the local file system.
 * Changed implementation of LV2 MIDI transport so now plugins utilize only one
@@ -29,6 +30,7 @@
 * Fixed numerous memory leakage issues in UI components.
 * Fixed spontaneous crashes when destroying the Profiler Mono/Stereo plugin.
 * Fixed embedded resource generation tool that had invalid behaviour for several file systems.
+* Reimplemented I/O subsystem.
 - Implemented 3D reverb simulator.
 - Implemented sampler plugin series with stereo outputs
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
