@@ -14,6 +14,7 @@
 
 #include <ui/ws/ws.h>
 #include <core/files/config.h>
+#include <core/io/IInStream.h>
 
 namespace lsp
 {
@@ -74,12 +75,12 @@ namespace lsp
         protected:
             size_t          rebuild_sorted_ports();
             CtlWidget      *build_widget(widget_ctl_t w_class);
-            FILE           *open_config_file(bool write);
+            io::File       *open_config_file(bool write);
             bool            create_directory(const char *path);
             bool            apply_changes(const char *key, const char *value, cvector<CtlPort> &ports);
 
         public:
-            plugin_ui(const plugin_metadata_t *mdata, void *root_widget);
+            explicit plugin_ui(const plugin_metadata_t *mdata, void *root_widget);
             virtual ~plugin_ui();
 
             virtual void destroy();

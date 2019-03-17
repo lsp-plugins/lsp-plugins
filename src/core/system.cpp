@@ -24,11 +24,36 @@ namespace lsp
             if (name == NULL)
                 return STATUS_BAD_ARGUMENTS;
 
-#ifdef PLATFORM_WINDOWS
-#else
             const char *nname = name->get_native();
             if (nname == NULL)
                 return STATUS_NO_MEM;
+
+#ifdef PLATFORM_WINDOWS
+            DWORD bufsize = GetEnvironmentVariable(nname, NULL, 0);
+            if (bufsize == 0)
+            {
+                if (GetLastError() == ERROR_ENVVAR_NOT_FOUND)
+                    return STATUS_NOT_FOUND;
+                return STATUS_UNKNOWN_ERR;
+            }
+            else if (dst == NULL)
+                return STATUS_OK;
+
+            char *buf = reinterpret_cast<char *>(::malloc(bufsize));
+            if (buf == NULL)
+                return STATUS_NO_MEM;
+            bufsize = GetEnvironmentVariable(nname, buf, bufsize);
+            if (bufsize == 0)
+            {
+                ::free(buf);
+                return STATUS_UNKNOWN_ERR;
+            }
+
+            bool res = dst->set_native(buf, bufsize);
+            ::free(buf);
+            return (res) ? STATUS_OK : STATUS_NO_MEM;
+#else
+
 #ifdef _GNU_SOURCE
             char *var = secure_getenv(nname);
 #else
@@ -57,12 +82,26 @@ namespace lsp
 
         status_t set_env_var(const LSPString *name, const LSPString *value)
         {
-#ifdef PLATFORM_WINDOWS
-#else
             const char *nname = name->get_native();
             if (nname == NULL)
                 return STATUS_NO_MEM;
 
+#ifdef PLATFORM_WINDOWS
+            if (value != NULL)
+            {
+                const char *nvalue = value->get_native();
+                if (nvalue == NULL)
+                    return STATUS_NO_MEM;
+                if (SetEnvironmentVariable(nname, nvalue))
+                    return STATUS_OK;
+            }
+            else
+            {
+                if (SetEnvironmentVariable(nname, NULL))
+                    return STATUS_OK;
+            }
+            return STATUS_UNKNOWN_ERR;
+#else
             int res;
             if (value != NULL)
             {
@@ -114,11 +153,15 @@ namespace lsp
 
         status_t remove_env_var(const LSPString *name)
         {
-#ifdef PLATFORM_WINDOWS
-#else
             const char *nname = name->get_native();
             if (nname == NULL)
                 return STATUS_NO_MEM;
+
+#ifdef PLATFORM_WINDOWS
+            if (SetEnvironmentVariable(nname, NULL))
+                return STATUS_OK;
+            return STATUS_UNKNOWN_ERR;
+#else
             int res = ::unsetenv(nname);
             if (res == 0)
                 return STATUS_OK;
@@ -129,7 +172,7 @@ namespace lsp
                 default: break;
             }
             return STATUS_UNKNOWN_ERR;
-#endif
+#endif /* PLATFORM_WINDOWS */
         }
 
         status_t remove_env_var(const char *name)
@@ -140,6 +183,39 @@ namespace lsp
             if (!sname.set_utf8(name))
                 return STATUS_NO_MEM;
             return remove_env_var(&sname);
+        }
+
+        status_t get_home_directory(LSPString *homedir)
+        {
+            if (homedir == NULL)
+                return STATUS_BAD_ARGUMENTS;
+#ifdef PLATFORM_WINDOWS
+            LSPString drv, path;
+            status_t res = get_env_var("HOMEDRIVE", &drv);
+            if (res != STATUS_OK)
+                return res;
+            res = get_env_var("HOMEPATH", &path);
+            if (res != STATUS_OK)
+                return res;
+            if (!drv.append(&path))
+                return STATUS_NO_MEM;
+
+            homedir->take(drv);
+            return STATUS_OK;
+#else
+            return get_env_var("HOME", homedir);
+#endif /* PLATFORM_WINDOWS */
+        }
+
+        status_t get_home_directory(io::Path *homedir)
+        {
+            if (homedir == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            LSPString path;
+            status_t res = get_home_directory(&path);
+            if (res != STATUS_OK)
+                return res;
+            return homedir->set(&path);
         }
     }
 }

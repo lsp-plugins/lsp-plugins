@@ -10,6 +10,7 @@
 
 #include <core/status.h>
 #include <core/LSPString.h>
+#include <core/io/Path.h>
 
 namespace lsp
 {
@@ -18,7 +19,7 @@ namespace lsp
         /**
          * Get environment variable
          * @param name environment variable name
-         * @param dst string to store environment variable value
+         * @param dst string to store environment variable value, NULL for check-only
          * @return status of operation or STATUS_NOT_FOUND if there is no environment variable
          */
         status_t get_env_var(const LSPString *name, LSPString *dst);
@@ -26,7 +27,7 @@ namespace lsp
         /**
          * Get environment variable
          * @param name environment variable name in UTF-8
-         * @param dst string to store environment variable value
+         * @param dst string to store environment variable value, NULL for check-only
          * @return status of operation or STATUS_NOT_FOUND if there is no environment variable
          */
         status_t get_env_var(const char *name, LSPString *dst);
@@ -68,6 +69,20 @@ namespace lsp
          * @return status of operation
          */
         status_t remove_env_var(const LSPString *name);
+
+        /**
+         * Get current user's home directory
+         * @param homedir pointer to string to store home directory path
+         * @return status of operation
+         */
+        status_t get_home_directory(LSPString *homedir);
+
+        /**
+         * Get current user's home directory
+         * @param homedir pointer to string to store home directory path
+         * @return status of operation
+         */
+        status_t get_home_directory(io::Path *homedir);
     }
 }
 
