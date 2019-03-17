@@ -300,4 +300,26 @@ inline void __lsp_forced_inline    byte_swap(float *v, size_t n)
     }
 #endif /* ARCH_X86_64 */
 
+#if defined(WCHART_16BIT)
+    inline wchar_t __lsp_forced_inline    byte_swap(wchar_t v)
+    {
+        ARCH_X86_ASM (
+            __ASM_EMIT("ror $8, %[v]")
+            : [v] "+r"(v)
+            : : "cc"
+        );
+        return v;
+    }
+#elif defined(WCHART_32BIT)
+    inline wchar_t __lsp_forced_inline    byte_swap(wchar_t v)
+    {
+        ARCH_X86_ASM (
+            __ASM_EMIT("bswap %[v]")
+            : [v] "+r"(v)
+            : :
+        );
+        return v;
+    }
+#endif /* PLATFORM_WINDOWS */
+
 #endif /* DSP_ARCH_X86_BSWAP_H_ */

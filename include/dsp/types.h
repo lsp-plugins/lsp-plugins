@@ -54,6 +54,9 @@
 #elif defined(__arm__)
     #define ARCH_ARM
     #define IF_ARCH_ARM(...)        __VA_ARGS__
+#elif defined(__aarch64__)
+    #define ARCH_AARCH64
+    #define IF_ARCH_AARCH64(...)    __VA_ARGS__
 #else
     #warning "Unsupported archtecture"
 #endif
@@ -83,27 +86,34 @@
 #endif /* defined(ARCH_I386) || defined(ARCH_X86_64) */
 
 #if defined(ARCH_ARM)
+    #define ARCH_32BIT
     #define ARCH_LE
     #define ARCH_ARM_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
 
-    #if (__ARM_ARCH == 8)
-        #define ARCH_64BIT
-        #define ARCH_ARM8
-        #define ARCH_STRING "armv8a"
-        #define IF_ARCH_ARM8(...)        __VA_ARGS__
-    #elif (__ARM_ARCH == 7)
-        #define ARCH_32BIT
+    #if (__ARM_ARCH == 7)
         #define ARCH_ARM7
-        #define ARCH_STRING "armv7a"
+        #define ARCH_STRING             "armv7a"
         #define IF_ARCH_ARM7(...)        __VA_ARGS__
     #elif (__ARM_ARCH == 6)
-        #define ARCH_32BIT
         #define ARCH_ARM6
-        #define ARCH_STRING "armv6a"
+        #define ARCH_STRING             "armv6a"
         #define IF_ARCH_ARM6(...)        __VA_ARGS__
     #else
-        #define ARCH_32BIT
         #define ARCH_STRING "arm-generic"
+    #endif
+#endif /* defined(ARCH_ARM) */
+
+#if defined(ARCH_AARCH64)
+    #define ARCH_64BIT
+    #define ARCH_LE
+    #define ARCH_AARCH64_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
+
+    #if (__ARM_ARCH == 8)
+        #define ARCH_ARM8
+        #define ARCH_STRING             "aarch64"
+        #define IF_ARCH_ARM8(...)        __VA_ARGS__
+    #else
+        #define ARCH_STRING             "aarch64-generic"
     #endif
 #endif /* defined(ARCH_ARM) */
 
@@ -382,5 +392,13 @@ __IF_64( typedef        int64_t             smword_t );
 #ifdef PLATFORM_LINUX
     #include <linux/limits.h>
 #endif /* __linux__ */
+
+//-----------------------------------------------------------------------------
+// Character type sizes
+#if (WCHAR_MAX >= 0x10000ul)
+    #define WCHART_32BIT
+#else
+    #define WCHART_16BIT
+#endif /* WCHAR_MAX */
 
 #endif /* DSP_TYPES_H_ */

@@ -45,6 +45,13 @@ namespace lsp
             }
 
             sColors.flush();
+
+            // Destroy font
+            if (pFont != NULL)
+            {
+                delete pFont;
+                pFont = NULL;
+            }
         }
 
         bool LSPTheme::find_color(const char *name, Color *dst)

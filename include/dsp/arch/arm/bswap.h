@@ -254,4 +254,26 @@ inline void __lsp_forced_inline    byte_swap(double *v, size_t n)
     );
 }
 
+#if defined(WCHART_16BIT)
+    inline wchar_t __lsp_forced_inline    byte_swap(wchar_t v)
+    {
+        ARCH_ARM_ASM (
+            __ASM_EMIT("rev16   %[v], %[v]")
+            : [v] "+r"(v)
+            : :
+        );
+        return v;
+    }
+#elif defined(WCHART_32BIT)
+    inline wchar_t __lsp_forced_inline    byte_swap(wchar_t v)
+    {
+        ARCH_ARM_ASM (
+            __ASM_EMIT("rev     %[v], %[v]")
+            : [v] "+r"(v)
+            : :
+        );
+        return v;
+    }
+#endif
+
 #endif /* DSP_ARCH_ARM_BSWAP_H_ */

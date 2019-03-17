@@ -144,6 +144,13 @@ namespace lsp
             }
 
             vItems.flush();
+
+            if (pWindow != NULL)
+            {
+                pWindow->destroy();
+                delete pWindow;
+                pWindow = NULL;
+            }
         }
 
 //        LSPWidget *LSPMenu::find_widget(ssize_t x, ssize_t y)

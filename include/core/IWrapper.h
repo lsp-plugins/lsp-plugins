@@ -8,8 +8,8 @@
 #ifndef CORE_IWRAPPER_H_
 #define CORE_IWRAPPER_H_
 
-#include <core/ITask.h>
-#include <core/IExecutor.h>
+#include <core/ipc/ITask.h>
+#include <core/ipc/IExecutor.h>
 #include <core/ICanvas.h>
 
 namespace lsp
@@ -25,7 +25,7 @@ namespace lsp
              *
              * @return executor service
              */
-            virtual IExecutor *get_executor();
+            virtual ipc::IExecutor *get_executor();
 
             /** Query for inline display drawing
              *

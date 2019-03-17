@@ -11,6 +11,8 @@ ifndef BUILD_MODULES
   BUILD_MODULES          := $(shell cat "$(OBJDIR)/$(MODULES_FILE)" 2>/dev/null || echo "ladspa lv2 vst jack profile src doc")
 endif
 
+BUILD_COMPILER         := $(shell $(CC) --version | head -n 1 || echo "unknown")
+
 export BUILD_MODULES
 
 # Configure list of targets to execute
@@ -89,7 +91,7 @@ ifeq ($(BUILD_PROFILE),armv7a)
   LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
-ifeq ($(BUILD_PROFILE),armv8a)
+ifeq ($(BUILD_PROFILE),aarch64)
   CC_ARCH          = -march=armv8-a
   LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif

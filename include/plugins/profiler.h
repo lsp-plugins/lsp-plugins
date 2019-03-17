@@ -22,7 +22,7 @@ namespace lsp
     {
         protected:
             // Class to handle profiling time series generation task
-            class PreProcessor: public ITask
+            class PreProcessor: public ipc::ITask
             {
                 private:
             		profiler_base *pCore;
@@ -32,11 +32,11 @@ namespace lsp
                     virtual ~PreProcessor();
 
                 public:
-                    virtual int run();
+                    virtual status_t run();
             };
 
             // Task to handle generation of the convolution result
-            class Convolver: public ITask
+            class Convolver: public ipc::ITask
             {
                 private:
             		profiler_base *pCore;
@@ -46,11 +46,11 @@ namespace lsp
                     virtual ~Convolver();
 
                 public:
-                    virtual int run();
+                    virtual status_t run();
             };
 
             // Class to handle post processing of the convolution result
-            class PostProcessor: public ITask
+            class PostProcessor: public ipc::ITask
             {
                 private:
             		profiler_base  *pCore;
@@ -67,11 +67,11 @@ namespace lsp
 
                     void set_rt_algo(scp_rtcalc_t algo);
 
-                    virtual int run();
+                    virtual status_t run();
             };
 
             // Class to handle saving of the convolution result
-            class Saver: public ITask
+            class Saver: public ipc::ITask
             {
                 private:
             		profiler_base  *pCore;
@@ -89,7 +89,7 @@ namespace lsp
 
                     bool is_file_set() const;
 
-                    virtual int run();
+                    virtual status_t run();
             };
 
             // Object state descriptor
@@ -181,7 +181,7 @@ namespace lsp
 
             SyncChirpProcessor  sSyncChirpProcessor;    // To handle Synch Chirp profiling signal and related operations
 
-            IExecutor          *pExecutor;              // Executor Service
+            ipc::IExecutor     *pExecutor;              // Executor Service
             PreProcessor       *pPreProcessor;          // Pre Processor Task
             Convolver          *pConvolver;             // Convolver Task
             PostProcessor      *pPostProcessor;         // Post Processor Task

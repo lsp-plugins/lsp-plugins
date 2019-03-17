@@ -6,6 +6,7 @@
  */
 
 #include <core/io/charset.h>
+#include <dsp/endian.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -332,6 +333,7 @@ namespace lsp
             { "unicodefffe", 1201 },
             { "us-ascii", 20127 },
             { "utf-16", 1200 },
+            { "utf-16be", 1201 },
             { "utf-16le", 1200 },
             { "utf-32", 12000 },
             { "utf-32be", 12001 },
@@ -339,6 +341,7 @@ namespace lsp
             { "utf-7", 65000 },
             { "utf-8", 65001 },
             { "utf16", 1200 },
+            { "utf16be", 1201 },
             { "utf16le", 1200 },
             { "utf32", 12000 },
             { "utf32be", 12001 },
@@ -476,7 +479,18 @@ namespace lsp
             return -1;
         }
 
+//        printf("LOCALE_CUSTOM_DEFAULT = %d\n", int(get_codepage(LOCALE_CUSTOM_DEFAULT)));
+//        printf("LOCALE_USER_DEFAULT = %d\n", int(get_codepage(LOCALE_USER_DEFAULT)));
+//        printf("LOCALE_SYSTEM_DEFAULT = %d\n", int(get_codepage(LOCALE_SYSTEM_DEFAULT)));
+//        printf("LOCALE_CUSTOM_UNSPECIFIED = %d\n", int(get_codepage(LOCALE_CUSTOM_UNSPECIFIED)));
+//        printf("LOCALE_CUSTOM_UI_DEFAULT = %d\n", int(get_codepage(LOCALE_CUSTOM_UI_DEFAULT)));
+//        printf("LOCALE_INVARIANT = %d\n", int(get_codepage(LOCALE_INVARIANT)));
+//        printf("GetConsoleWindow() = %d\n", int(GetConsoleWindow()));
+//        printf("GetConsoleOutputCP() = %d\n", int(GetConsoleOutputCP()));
+//        fflush(stdout);
+
         // Obtain system character set
+        //ssize_t cp = (GetConsoleWindow() != 0) ? GetConsoleOutputCP() : get_codepage(LOCALE_CUSTOM_DEFAULT);
         ssize_t cp = get_codepage(LOCALE_CUSTOM_DEFAULT);
         if (cp < 0)
             cp = get_codepage(LOCALE_USER_DEFAULT);
@@ -497,7 +511,7 @@ namespace lsp
                 return iconv_t(-1);
             size_t len = strlen(current) + 1;
             char *psaved = static_cast<char *>(alloca(len));
-            memcpy(psaved, current, len);
+            ::memcpy(psaved, current, len);
             charset = psaved;
 
             // Get system locale
@@ -510,7 +524,7 @@ namespace lsp
             {
                 len = strlen(current);
                 psaved = static_cast<char *>(alloca(len));
-                memcpy(psaved, &current[1], len);
+                ::memcpy(psaved, &current[1], len);
             }
 
             // Restore saved locale
@@ -521,7 +535,7 @@ namespace lsp
         }
 
         // Open conversion
-        return iconv_open(__IF_LEBE("UTF-16LE", "UTF-16BE"), charset);
+        return iconv_open(__IF_LEBE("UTF-32LE", "UTF-32BE"), charset);
     }
 
     iconv_t init_iconv_from_wchar_t(const char *charset)
@@ -535,7 +549,7 @@ namespace lsp
                 return iconv_t(-1);
             size_t len = strlen(current) + 1;
             char *psaved = static_cast<char *>(alloca(len));
-            memcpy(psaved, current, len);
+            ::memcpy(psaved, current, len);
             charset = psaved;
 
             // Get system locale
@@ -548,7 +562,7 @@ namespace lsp
             {
                 len = strlen(current);
                 psaved = static_cast<char *>(alloca(len));
-                memcpy(psaved, &current[1], len);
+                ::memcpy(psaved, &current[1], len);
             }
 
             // Restore saved locale
@@ -559,46 +573,232 @@ namespace lsp
         }
 
         // Open conversion
-        return iconv_open(charset, __IF_LEBE("UTF-16LE", "UTF-16BE"));
+        return iconv_open(charset, __IF_LEBE("UTF-32LE", "UTF-32BE"));
     }
 #endif
 
-    uint32_t get_codepoint(const lsp_utf16_t **str)
+    //-------------------------------------------------------------------------
+    // UTF-16 helper routines
+    lsp_utf32_t read_utf16le_codepoint(const lsp_utf16_t **str)
     {
         uint32_t cp, sc;
         const lsp_utf16_t *s = *str;
 
-        cp = *(s++);
+        cp = LE_TO_CPU(*(s++));
         if (cp == 0)
             return cp;
 
-        sc = cp & 0xdc00;
+        sc = cp & 0xfc00;
         if (sc == 0xd800) // cp = Surrogate high
         {
-            sc = *s;
-            if ((sc & 0xdc00) == 0xdc00)
+            sc = LE_TO_CPU(*s);
+            if ((sc & 0xfc00) == 0xdc00)
             {
                 ++s;
                 cp  = 0x10000 | ((cp & 0x3ff) << 10) | (sc & 0x3ff);
             }
+            else
+                cp  = 0xfffd;
         }
         else if (sc == 0xdc00) // Surrogate low?
         {
-            sc = *s;
-            if ((sc & 0xdc00) == 0xd800)
+            sc = LE_TO_CPU(*s);
+            if ((sc & 0xfc00) == 0xd800)
             {
                 ++s;
                 cp  = 0x10000 | ((sc & 0x3ff) << 10) | (cp & 0x3ff);
             }
+            else
+                cp  = 0xfffd;
         }
 
         *str = s;
         return cp;
     }
 
-    uint32_t get_codepoint(const char **str)
+    lsp_utf32_t read_utf16be_codepoint(const lsp_utf16_t **str)
     {
-        uint32_t cp, sp, bytes;
+        uint32_t cp, sc;
+        const lsp_utf16_t *s = *str;
+
+        cp = BE_TO_CPU(*(s++));
+        if (cp == 0)
+            return cp;
+
+        sc = cp & 0xfc00;
+        if (sc == 0xd800) // cp = Surrogate high
+        {
+            sc = BE_TO_CPU(*s);
+            if ((sc & 0xfc00) == 0xdc00)
+            {
+                ++s;
+                cp  = 0x10000 | ((cp & 0x3ff) << 10) | (sc & 0x3ff);
+            }
+            else
+                cp  = 0xfffd;
+        }
+        else if (sc == 0xdc00) // Surrogate low?
+        {
+            sc = BE_TO_CPU(*s);
+            if ((sc & 0xfc00) == 0xd800)
+            {
+                ++s;
+                cp  = 0x10000 | ((sc & 0x3ff) << 10) | (cp & 0x3ff);
+            }
+            else
+                cp  = 0xfffd;
+        }
+
+        *str = s;
+        return cp;
+    }
+
+    lsp_utf32_t read_utf16le_streaming(const lsp_utf16_t **str, size_t *nsrc, bool force)
+    {
+        if (*nsrc <= 0)
+            return LSP_UTF32_EOF;
+
+        uint32_t cp, sc;
+        const lsp_utf16_t *s = *str;
+
+        cp = LE_TO_CPU(*(s++));
+        sc = cp & 0xfc00;
+        if (sc == 0xd800) // cp = Surrogate high
+        {
+            if (*nsrc > 1)
+                sc      = LE_TO_CPU(*s);
+            else if (force)
+                sc      = 0;
+            else
+                return LSP_UTF32_EOF;
+
+            if ((sc & 0xfc00) == 0xdc00)
+            {
+                ++s;
+                cp  = 0x10000 | ((cp & 0x3ff) << 10) | (sc & 0x3ff);
+            }
+            else
+                cp  = 0xfffd;
+        }
+        else if (sc == 0xdc00) // Surrogate low?
+        {
+            if (*nsrc > 1)
+                sc      = LE_TO_CPU(*s);
+            else if (force)
+                sc      = 0;
+            else
+                return LSP_UTF32_EOF;
+
+            if ((sc & 0xfc00) == 0xd800)
+            {
+                ++s;
+                cp  = 0x10000 | ((sc & 0x3ff) << 10) | (cp & 0x3ff);
+            }
+            else
+                cp  = 0xfffd;
+        }
+
+        *nsrc  -= (s - *str);
+        *str    = s;
+        return cp;
+    }
+
+    lsp_utf32_t read_utf16be_streaming(const lsp_utf16_t **str, size_t *nsrc, bool force)
+    {
+        if (*nsrc <= 0)
+            return LSP_UTF32_EOF;
+
+        uint32_t cp, sc;
+        const lsp_utf16_t *s = *str;
+
+        cp = BE_TO_CPU(*(s++));
+        sc = cp & 0xfc00;
+        if (sc == 0xd800) // cp = Surrogate high
+        {
+            if (*nsrc > 1)
+                sc      = BE_TO_CPU(*s);
+            else if (force)
+                sc      = 0;
+            else
+                return LSP_UTF32_EOF;
+
+            if ((sc & 0xfc00) == 0xdc00)
+            {
+                ++s;
+                cp  = 0x10000 | ((cp & 0x3ff) << 10) | (sc & 0x3ff);
+            }
+            else
+                cp  = 0xfffd;
+        }
+        else if (sc == 0xdc00) // Surrogate low?
+        {
+            if (*nsrc > 1)
+                sc      = BE_TO_CPU(*s);
+            else if (force)
+                sc      = 0;
+            else
+                return LSP_UTF32_EOF;
+
+            if ((sc & 0xfc00) == 0xd800)
+            {
+                ++s;
+                cp  = 0x10000 | ((sc & 0x3ff) << 10) | (cp & 0x3ff);
+            }
+            else
+                cp  = 0xfffd;
+        }
+
+        *nsrc  -= (s - *str);
+        *str    = s;
+        return cp;
+    }
+
+    inline size_t sizeof_utf16(lsp_utf32_t cp)
+    {
+        return (cp < 0x10000) ? 2 : 4;
+    }
+
+    inline size_t count_utf16(lsp_utf32_t cp)
+    {
+        return (cp < 0x10000) ? 1 : 2;
+    }
+
+    void write_utf16le_codepoint(lsp_utf16_t **str, lsp_utf32_t cp)
+    {
+        lsp_utf16_t *dst = *str;
+        if (cp < 0x10000)
+            *(dst++)        = CPU_TO_LE(lsp_utf16_t(cp));
+        else
+        {
+            cp     -= 0x10000;
+            dst[0]  = CPU_TO_LE(lsp_utf16_t(0xd800 | (cp >> 10)));
+            dst[1]  = CPU_TO_LE(lsp_utf16_t(0xdc00 | (cp & 0x3ff)));
+            dst    += 2;
+        }
+        *str    = dst;
+    }
+
+    void write_utf16be_codepoint(lsp_utf16_t **str, lsp_utf32_t cp)
+    {
+        lsp_utf16_t *dst = *str;
+        if (cp < 0x10000)
+            *(dst++)        = CPU_TO_BE(lsp_utf16_t(cp));
+        else
+        {
+            cp     -= 0x10000;
+            dst[0]  = CPU_TO_BE(lsp_utf16_t(0xd800 | (cp >> 10)));
+            dst[1]  = CPU_TO_BE(lsp_utf16_t(0xdc00 | (cp & 0x3ff)));
+            dst    += 2;
+        }
+        *str    = dst;
+    }
+
+    //-------------------------------------------------------------------------
+    // UTF-8 helper routines
+    lsp_utf32_t read_utf8_codepoint(const char **str)
+    {
+        lsp_utf32_t cp, sp;
+        size_t bytes;
         const char *s = *str;
 
         // Decode primary byte
@@ -657,122 +857,1568 @@ namespace lsp
         return cp;
     }
 
-    inline size_t utf8_bytes(uint32_t cp)
+    lsp_utf32_t read_utf8_streaming(const char **str, size_t *nsrc, bool force)
+    {
+        if (*nsrc <= 0)
+            return LSP_UTF32_EOF;
+
+        lsp_utf32_t cp, sp;
+        size_t bytes;
+        const char *s = *str;
+
+        // Decode primary byte
+        cp = uint8_t(*s);
+        if (cp <= 0x7f)
+        {
+            *str    = (cp == 0) ? s : s+1;
+            --(*nsrc);
+            return cp;
+        }
+
+        // Multi-byte sequence
+        ++s;
+        if ((cp & 0xe0) == 0xc0) // 2 bytes: 110xxxxx 10xxxxxx
+        {
+            cp     &= 0x1f;
+            bytes   = (cp >= 0x02) ? 1 : 0;
+        }
+        else if ((cp & 0xf0) == 0xe0) // 3 bytes: 1110xxxx 10xxxxxx 10xxxxxx
+        {
+            cp     &= 0x0f;
+            bytes   = (cp) ? 2 : 0;
+        }
+        else if ((cp & 0xf8) == 0xf0) // 4 bytes: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+        {
+            cp     &= 0x07;
+            bytes   = 3;
+        }
+        else
+            bytes   = 0;
+
+        // Invalid first byte sequence?
+        if (!bytes)
+        {
+            *str    = s;
+            --(*nsrc);
+            return 0xfffd;
+        }
+        else if (bytes >= *nsrc)
+        {
+            if (force)
+            {
+                *nsrc   = 0;
+                return 0xfffd;
+            }
+            return LSP_UTF32_EOF;
+        }
+
+        // Decode extension bytes
+        for (size_t i=0; i<bytes; ++i)
+        {
+            sp  = uint8_t(*s);
+            if ((sp & 0xc0) != 0x80) // Invalid sequence?
+            {
+                if (sp == 0)
+                    ++s;
+                *nsrc  -= (s - *str);
+                *str    = s;
+                return 0xfffd;
+            }
+            cp     = (cp << 6) | (sp & 0x3f);
+            ++s;
+        }
+
+        if ((bytes == 3) && (cp < 0x10000)) // Check that 4-byte sequence is valid
+            cp      = 0xfffd;
+        else if ((cp >= 0xd800) && (cp < 0xe000)) // Check for surrogates
+            cp      = 0xfffd;
+
+        *nsrc      -= (s - *str);
+        *str        = s;
+        return cp;
+    }
+
+    inline size_t sizeof_utf8(lsp_utf32_t cp)
     {
         if (cp >= 0x800)
-            return (cp >= 0x10000) ? 4 : 3;
+            return ((cp < 0x10000) || (cp >= 0x200000)) ? 3 : 4;
         else
             return (cp >= 0x80) ? 2 : 1;
     }
 
-    inline size_t utf16_bytes(uint32_t cp)
+    inline size_t count_utf8(lsp_utf32_t cp)
     {
-        return (cp < 0x10000) ? 2 : 4;
+        if (cp >= 0x800)
+            return ((cp < 0x10000) || (cp >= 0x200000)) ? 3 : 4;
+        else
+            return (cp >= 0x80) ? 2 : 1;
     }
 
-    char *utf16_to_utf8(const lsp_utf16_t *str)
+    void write_utf8_codepoint(char **str, lsp_utf32_t cp)
     {
-        // Estimate number of bytes
-        size_t bytes = 0;
-        const lsp_utf16_t *p = str;
-        while (true)
+        char *dst = *str;
+        if (cp >= 0x800) // 3-4 bytes
         {
-            uint32_t cp = get_codepoint(&p);
-            if (cp == 0)
-                break;
-            bytes      += utf8_bytes(cp);
-        }
-
-        // Allocate memory
-        char *utf8  = reinterpret_cast<char *>(malloc(bytes + 1));
-        if (utf8 == NULL)
-            return NULL;
-
-        // Now perform encoding
-        char *dst   = utf8;
-        p   = str;
-        while (true)
-        {
-            uint32_t cp = get_codepoint(&p);
-            if (cp == 0)
-                break;
-
-            if (cp >= 0x800) // 3-4 bytes
+            if (cp < 0x10000) // 3 bytes
             {
-                if (cp >= 0x10000) // 4 bytes
-                {
-                    dst[0]      = (cp >> 16) | 0xf0;
-                    dst[1]      = ((cp >> 12) & 0x3f) | 0x80;
-                    dst[2]      = ((cp >> 6) & 0x3f) | 0x80;
-                    dst[3]      = (cp & 0x3f) | 0x80;
-                    dst        += 4;
-                }
-                else // 3 bytes
-                {
-                    dst[0]      = (cp >> 12) | 0xe0;
-                    dst[1]      = ((cp >> 6) & 0x3f) | 0x80;
-                    dst[2]      = (cp & 0x3f) | 0x80;
-                    dst        += 3;
-                }
+                dst[0]      = (cp >> 12) | 0xe0;
+                dst[1]      = ((cp >> 6) & 0x3f) | 0x80;
+                dst[2]      = (cp & 0x3f) | 0x80;
+                dst        += 3;
             }
-            else // 1-2 bytes
+            else if (cp < 0x200000) // 4 bytes
             {
-                if (cp >= 0x80) // 2 bytes
-                {
-                    dst[0]      = (cp >> 6) | 0xc0;
-                    dst[1]      = (cp & 0x3f) | 0x80;
-                    dst        += 2;
-                }
-                else // 1 byte
-                    *dst++      = char(cp);
+                dst[0]      = (cp >> 16) | 0xf0;
+                dst[1]      = ((cp >> 12) & 0x3f) | 0x80;
+                dst[2]      = ((cp >> 6) & 0x3f) | 0x80;
+                dst[3]      = (cp & 0x3f) | 0x80;
+                dst        += 4;
+            }
+            else // Invalid character, emit 3 bytes of 0xfffd code point value
+            {
+                dst[0]      = 0xef;
+                dst[1]      = 0xbf;
+                dst[2]      = 0xbd;
+                dst        += 3;
             }
         }
-        *dst = '\0';
-
-        return utf8;
+        else // 1-2 bytes
+        {
+            if (cp >= 0x80) // 2 bytes
+            {
+                dst[0]      = (cp >> 6) | 0xc0;
+                dst[1]      = (cp & 0x3f) | 0x80;
+                dst        += 2;
+            }
+            else // 1 byte
+                *(dst++)    = char(cp);
+        }
+        *str    = dst;
     }
 
-    lsp_utf16_t *utf8_to_utf16(const char *str)
+    //-------------------------------------------------------------------------
+    // UTF-8 non-streaming routines
+    lsp_utf16_t *utf8_to_utf16le(const char *str)
     {
         // Estimate number of bytes
+        lsp_utf32_t cp;
         size_t bytes    = 0;
         const char *p = str;
-        while (true)
+        do
         {
-            uint32_t cp     = get_codepoint(&p);
-            if (cp == 0)
-                break;
-            bytes          += utf16_bytes(cp);
-        }
+            cp      = read_utf8_codepoint(&p);
+            bytes  += sizeof_utf16(cp);
+        } while (cp != 0);
 
         // Allocate memory
-        lsp_utf16_t *utf16  = reinterpret_cast<lsp_utf16_t *>(malloc(bytes + 2));
+        lsp_utf16_t *utf16  = reinterpret_cast<lsp_utf16_t *>(::malloc(bytes));
         if (utf16 == NULL)
             return NULL;
 
         // Perform encoding
         lsp_utf16_t *dst = utf16;
-        p   = str;
-        while (true)
-        {
-            uint32_t cp = get_codepoint(&p);
-            if (cp < 0x10000)
-            {
-                if (cp == 0)
-                    break;
-                *(dst++)    = cp;
-            }
-            else
-            {
-                cp     -= 0x10000;
-                dst[0]  = 0xd800 | (cp >> 10);
-                dst[1]  = 0xdc00 | (cp & 0x3ff);
-                dst += 2;
-            }
-        }
-
-        *dst = 0;
+        p               = str;
+        while ((cp = read_utf8_codepoint(&p)) != 0)
+            write_utf16le_codepoint(&dst, cp);
+        *dst        = 0;
 
         return utf16;
     }
+
+    lsp_utf16_t *utf8_to_utf16be(const char *str)
+    {
+        // Estimate number of bytes
+        lsp_utf32_t cp;
+        size_t bytes    = 0;
+        const char *p = str;
+        do
+        {
+            cp      = read_utf8_codepoint(&p);
+            bytes  += sizeof_utf16(cp);
+        } while (cp != 0);
+
+        // Allocate memory
+        lsp_utf16_t *utf16  = reinterpret_cast<lsp_utf16_t *>(::malloc(bytes));
+        if (utf16 == NULL)
+            return NULL;
+
+        // Perform encoding
+        lsp_utf16_t *dst = utf16;
+        p               = str;
+        while ((cp = read_utf8_codepoint(&p)) != 0)
+            write_utf16be_codepoint(&dst, cp);
+        *dst        = 0;
+
+        return utf16;
+    }
+
+    lsp_utf32_t *utf8_to_utf32le(const char *str)
+    {
+        // Estimate number of bytes
+        lsp_utf32_t cp;
+        size_t bytes    = 0;
+        const char *p = str;
+        do
+        {
+            cp      = read_utf8_codepoint(&p);
+            bytes  += sizeof(lsp_utf32_t);
+        } while (cp != 0);
+
+        // Allocate memory
+        lsp_utf32_t *utf32  = reinterpret_cast<lsp_utf32_t *>(::malloc(bytes));
+        if (utf32 == NULL)
+            return NULL;
+
+        // Perform encoding
+        lsp_utf32_t *dst = utf32;
+        p               = str;
+        while ((cp = read_utf8_codepoint(&p)) != 0)
+            *(dst++)    = CPU_TO_LE(cp);
+        *dst        = 0;
+
+        return utf32;
+    }
+
+    lsp_utf32_t *utf8_to_utf32be(const char *str)
+    {
+        // Estimate number of bytes
+        lsp_utf32_t cp;
+        size_t bytes    = 0;
+        const char *p = str;
+        do
+        {
+            cp      = read_utf8_codepoint(&p);
+            bytes  += sizeof(lsp_utf32_t);
+        } while (cp != 0);
+
+        // Allocate memory
+        lsp_utf32_t *utf32  = reinterpret_cast<lsp_utf32_t *>(::malloc(bytes));
+        if (utf32 == NULL)
+            return NULL;
+
+        // Perform encoding
+        lsp_utf32_t *dst = utf32;
+        p               = str;
+        while ((cp = read_utf8_codepoint(&p)) != 0)
+            *(dst++)    = CPU_TO_BE(cp);
+        *dst        = 0;
+
+        return utf32;
+    }
+
+    //-------------------------------------------------------------------------
+    // UTF-16 non-streaming routines
+    char *utf16le_to_utf8(const lsp_utf16_t *str)
+    {
+        // Estimate number of bytes
+        lsp_utf32_t cp;
+        size_t bytes = 0;
+        const lsp_utf16_t *p = str;
+        do
+        {
+            cp          = read_utf16le_codepoint(&p);
+            bytes      += sizeof_utf8(cp);
+        } while (cp != 0);
+
+        // Allocate memory
+        char *utf8  = reinterpret_cast<char *>(::malloc(bytes));
+        if (utf8 == NULL)
+            return NULL;
+
+        // Now perform encoding
+        char *dst   = utf8;
+        p           = str;
+        while ((cp = read_utf16le_codepoint(&p)) != 0)
+            write_utf8_codepoint(&dst, cp);
+        *dst = '\0';
+
+        return utf8;
+    }
+
+    char *utf16be_to_utf8(const lsp_utf16_t *str)
+    {
+        // Estimate number of bytes
+        lsp_utf32_t cp;
+        size_t bytes = 0;
+        const lsp_utf16_t *p = str;
+        do
+        {
+            cp          = read_utf16be_codepoint(&p);
+            bytes      += sizeof_utf8(cp);
+        } while (cp != 0);
+
+        // Allocate memory
+        char *utf8  = reinterpret_cast<char *>(::malloc(bytes));
+        if (utf8 == NULL)
+            return NULL;
+
+        // Now perform encoding
+        char *dst   = utf8;
+        p           = str;
+        while ((cp = read_utf16be_codepoint(&p)) != 0)
+            write_utf8_codepoint(&dst, cp);
+        *dst = '\0';
+
+        return utf8;
+    }
+
+    lsp_utf32_t *utf16le_to_utf32le(const lsp_utf16_t *str)
+    {
+        // Estimate number of bytes
+        lsp_utf32_t cp;
+        size_t bytes = 0;
+        const lsp_utf16_t *p = str;
+        do
+        {
+            cp          = read_utf16le_codepoint(&p);
+            bytes      += sizeof(lsp_utf32_t);
+        } while (cp != 0);
+
+        // Allocate memory
+        lsp_utf32_t *utf32  = reinterpret_cast<lsp_utf32_t *>(::malloc(bytes));
+        if (utf32 == NULL)
+            return NULL;
+
+        // Perform encoding
+        p               = str;
+        lsp_utf32_t *dst= utf32;
+        while ((cp = read_utf16le_codepoint(&p)) != 0)
+            *(dst++)        = CPU_TO_LE(cp);
+        *dst            = 0;
+
+        return utf32;
+    }
+
+    lsp_utf32_t *utf16le_to_utf32be(const lsp_utf16_t *str)
+    {
+        // Estimate number of bytes
+        lsp_utf32_t cp;
+        size_t bytes = 0;
+        const lsp_utf16_t *p = str;
+        do
+        {
+            cp          = read_utf16le_codepoint(&p);
+            bytes      += sizeof(lsp_utf32_t);
+        } while (cp != 0);
+
+        // Allocate memory
+        lsp_utf32_t *utf32  = reinterpret_cast<lsp_utf32_t *>(::malloc(bytes));
+        if (utf32 == NULL)
+            return NULL;
+
+        // Perform encoding
+        p               = str;
+        lsp_utf32_t *dst= utf32;
+        while ((cp = read_utf16le_codepoint(&p)) != 0)
+            *(dst++)        = CPU_TO_BE(cp);
+        *dst            = 0;
+
+        return utf32;
+    }
+
+    lsp_utf32_t *utf16be_to_utf32le(const lsp_utf16_t *str)
+    {
+        // Estimate number of bytes
+        lsp_utf32_t cp;
+        size_t bytes = 0;
+        const lsp_utf16_t *p = str;
+        do
+        {
+            cp          = read_utf16be_codepoint(&p);
+            bytes      += sizeof(lsp_utf32_t);
+        } while (cp != 0);
+
+        // Allocate memory
+        lsp_utf32_t *utf32  = reinterpret_cast<lsp_utf32_t *>(::malloc(bytes));
+        if (utf32 == NULL)
+            return NULL;
+
+        // Perform encoding
+        p               = str;
+        lsp_utf32_t *dst= utf32;
+        while ((cp = read_utf16be_codepoint(&p)) != 0)
+            *(dst++)        = CPU_TO_LE(cp);
+        *dst            = 0;
+
+        return utf32;
+    }
+
+    lsp_utf32_t *utf16be_to_utf32be(const lsp_utf16_t *str)
+    {
+        // Estimate number of bytes
+        lsp_utf32_t cp;
+        size_t bytes = 0;
+        const lsp_utf16_t *p = str;
+        do
+        {
+            cp          = read_utf16be_codepoint(&p);
+            bytes      += sizeof(lsp_utf32_t);
+        } while (cp != 0);
+
+        // Allocate memory
+        lsp_utf32_t *utf32  = reinterpret_cast<lsp_utf32_t *>(::malloc(bytes));
+        if (utf32 == NULL)
+            return NULL;
+
+        // Perform encoding
+        p               = str;
+        lsp_utf32_t *dst= utf32;
+        while ((cp = read_utf16be_codepoint(&p)) != 0)
+            *(dst++)        = CPU_TO_BE(cp);
+        *dst            = 0;
+
+        return utf32;
+    }
+
+    //-------------------------------------------------------------------------
+    // UTF-32 non-streaming routines
+    char *utf32le_to_utf8(const lsp_utf32_t *str)
+    {
+        lsp_utf32_t cp;
+        size_t bytes = 0;
+        const lsp_utf32_t *p = str;
+
+        // Estimate length
+        do
+        {
+            cp          = LE_TO_CPU(*(p++));
+            bytes      += sizeof_utf8(cp);
+        } while (cp != 0);
+
+        // Allocate memory
+        char *utf8      = reinterpret_cast<char *>(::malloc(bytes));
+        if (utf8 == NULL)
+            return NULL;
+
+        // Perform encoding
+        p               = str;
+        char *dst       = utf8;
+        while ((cp = *(p++)) != 0)
+            write_utf8_codepoint(&dst, cp);
+
+        *dst = 0;
+        return utf8;
+    }
+
+    char *utf32be_to_utf8(const lsp_utf32_t *str)
+    {
+        lsp_utf32_t cp;
+        size_t bytes = 0;
+        const lsp_utf32_t *p = str;
+
+        // Estimate length
+        do
+        {
+            cp          = BE_TO_CPU(*(p++));
+            bytes      += sizeof_utf8(cp);
+        } while (cp != 0);
+
+        // Allocate memory
+        char *utf8      = reinterpret_cast<char *>(::malloc(bytes));
+        if (utf8 == NULL)
+            return NULL;
+
+        // Perform encoding
+        p               = str;
+        char *dst       = utf8;
+        while ((cp = *(p++)) != 0)
+            write_utf8_codepoint(&dst, cp);
+
+        *dst = 0;
+        return utf8;
+    }
+
+    lsp_utf16_t *utf32le_to_utf16le(const lsp_utf32_t *str)
+    {
+        lsp_utf32_t cp;
+        size_t bytes = 0;
+        const lsp_utf32_t *p = str;
+
+        // Estimate length
+        do
+        {
+            cp          = LE_TO_CPU(*(p++));
+            bytes      += sizeof_utf16(cp);
+        } while (cp != 0);
+
+        // Allocate memory
+        lsp_utf16_t *utf16  = reinterpret_cast<lsp_utf16_t *>(::malloc(bytes));
+        if (utf16 == NULL)
+            return NULL;
+
+        // Perform encoding
+        p               = str;
+        lsp_utf16_t *dst= utf16;
+        while ((cp = *(p++)) != 0)
+            write_utf16le_codepoint(&dst, cp);
+
+        *dst = 0;
+        return utf16;
+    }
+
+    lsp_utf16_t *utf32le_to_utf16be(const lsp_utf32_t *str)
+    {
+        lsp_utf32_t cp;
+        size_t bytes = 0;
+        const lsp_utf32_t *p = str;
+
+        // Estimate length
+        do
+        {
+            cp          = LE_TO_CPU(*(p++));
+            bytes      += sizeof_utf16(cp);
+        } while (cp != 0);
+
+        // Allocate memory
+        lsp_utf16_t *utf16  = reinterpret_cast<lsp_utf16_t *>(::malloc(bytes));
+        if (utf16 == NULL)
+            return NULL;
+
+        // Perform encoding
+        p               = str;
+        lsp_utf16_t *dst= utf16;
+        while ((cp = *(p++)) != 0)
+            write_utf16be_codepoint(&dst, cp);
+
+        *dst = 0;
+        return utf16;
+    }
+
+    lsp_utf16_t *utf32be_to_utf16le(const lsp_utf32_t *str)
+    {
+        lsp_utf32_t cp;
+        size_t bytes = 0;
+        const lsp_utf32_t *p = str;
+
+        // Estimate length
+        do
+        {
+            cp          = BE_TO_CPU(*(p++));
+            bytes      += sizeof_utf16(cp);
+        } while (cp != 0);
+
+        // Allocate memory
+        lsp_utf16_t *utf16  = reinterpret_cast<lsp_utf16_t *>(::malloc(bytes));
+        if (utf16 == NULL)
+            return NULL;
+
+        // Perform encoding
+        p               = str;
+        lsp_utf16_t *dst= utf16;
+        while ((cp = *(p++)) != 0)
+            write_utf16le_codepoint(&dst, cp);
+
+        *dst = 0;
+        return utf16;
+    }
+
+    lsp_utf16_t *utf32be_to_utf16be(const lsp_utf32_t *str)
+    {
+        lsp_utf32_t cp;
+        size_t bytes = 0;
+        const lsp_utf32_t *p = str;
+
+        // Estimate length
+        do
+        {
+            cp          = BE_TO_CPU(*(p++));
+            bytes      += sizeof_utf16(cp);
+        } while (cp != 0);
+
+        // Allocate memory
+        lsp_utf16_t *utf16  = reinterpret_cast<lsp_utf16_t *>(::malloc(bytes));
+        if (utf16 == NULL)
+            return NULL;
+
+        // Perform encoding
+        p               = str;
+        lsp_utf16_t *dst= utf16;
+        while ((cp = *(p++)) != 0)
+            write_utf16be_codepoint(&dst, cp);
+
+        *dst = 0;
+        return utf16;
+    }
+
+    //-------------------------------------------------------------------------
+    // UTF-8 streaming routines
+    size_t utf8_to_utf16le(lsp_utf16_t *dst, size_t *ndst, const char *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            size_t nin  = *nsrc;
+            cp          = read_utf8_streaming(&src, &nin, force);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Encode code point
+            size_t nout = count_utf16(cp);
+            if (nout > *ndst)
+                break;
+            write_utf16le_codepoint(&dst, cp);
+            *nsrc       = nin;
+            *ndst      -= nout;
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    size_t utf8_to_utf16be(lsp_utf16_t *dst, size_t *ndst, const char *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            size_t nin  = *nsrc;
+            cp          = read_utf8_streaming(&src, &nin, force);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Encode code point
+            size_t nout = count_utf16(cp);
+            if (nout > *ndst)
+                break;
+            write_utf16be_codepoint(&dst, cp);
+            *nsrc       = nin;
+            *ndst      -= nout;
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    size_t utf8_to_utf32le(lsp_utf32_t *dst, size_t *ndst, const char *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            size_t nin  = *nsrc;
+            cp          = read_utf8_streaming(&src, &nin, force);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Encode code point
+            *(dst++)    = CPU_TO_LE(cp);
+            *nsrc       = nin;
+            --(*ndst);
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    size_t utf8_to_utf32be(lsp_utf32_t *dst, size_t *ndst, const char *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            size_t nin  = *nsrc;
+            cp          = read_utf8_streaming(&src, &nin, force);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Encode code point
+            *(dst++)    = CPU_TO_BE(cp);
+            *nsrc       = nin;
+            --(*ndst);
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    //-------------------------------------------------------------------------
+    // UTF-16 streaming routines
+    size_t utf16le_to_utf8(char *dst, size_t *ndst, const lsp_utf16_t *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            size_t nin  = *nsrc;
+            cp          = read_utf16le_streaming(&src, &nin, force);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Encode code point
+            size_t nout = count_utf8(cp);
+            if (nout > *ndst)
+                break;
+            write_utf8_codepoint(&dst, cp);
+            *nsrc       = nin;
+            *ndst      -= nout;
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    size_t utf16be_to_utf8(char *dst, size_t *ndst, const lsp_utf16_t *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            size_t nin  = *nsrc;
+            cp          = read_utf16be_streaming(&src, &nin, force);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Encode code point
+            size_t nout = count_utf8(cp);
+            if (nout > *ndst)
+                break;
+            write_utf8_codepoint(&dst, cp);
+            *nsrc       = nin;
+            *ndst      -= nout;
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    size_t utf16le_to_utf32le(lsp_utf32_t *dst, size_t *ndst, const lsp_utf16_t *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            size_t nin  = *nsrc;
+            cp          = read_utf16le_streaming(&src, &nin, force);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Encode code point
+            *(dst++)    = CPU_TO_LE(cp);
+            *nsrc       = nin;
+            --(*ndst);
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    size_t utf16be_to_utf32le(lsp_utf32_t *dst, size_t *ndst, const lsp_utf16_t *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            size_t nin  = *nsrc;
+            cp          = read_utf16be_streaming(&src, &nin, force);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Encode code point
+            *(dst++)    = CPU_TO_LE(cp);
+            *nsrc       = nin;
+            --(*ndst);
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    size_t utf16le_to_utf32be(lsp_utf32_t *dst, size_t *ndst, const lsp_utf16_t *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            size_t nin  = *nsrc;
+            cp          = read_utf16le_streaming(&src, &nin, force);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Encode code point
+            *(dst++)    = CPU_TO_BE(cp);
+            *nsrc       = nin;
+            --(*ndst);
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    size_t utf16be_to_utf32be(lsp_utf32_t *dst, size_t *ndst, const lsp_utf16_t *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            size_t nin  = *nsrc;
+            cp          = read_utf16be_streaming(&src, &nin, force);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Encode code point
+            *(dst++)    = CPU_TO_BE(cp);
+            *nsrc       = nin;
+            --(*ndst);
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    //-------------------------------------------------------------------------
+    // UTF-32 streaming routines
+    size_t utf32le_to_utf8(char *dst, size_t *ndst, const lsp_utf32_t *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            if (*nsrc <= 0)
+                break;
+            cp          = LE_TO_CPU(*(src++));
+
+            // Encode code point
+            size_t nout = count_utf8(cp);
+            if (nout > *ndst)
+                break;
+            write_utf8_codepoint(&dst, cp);
+            --(*nsrc);
+            *ndst      -= nout;
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    size_t utf32be_to_utf8(char *dst, size_t *ndst, const lsp_utf32_t *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            if (*nsrc <= 0)
+                break;
+            cp          = BE_TO_CPU(*(src++));
+
+            // Encode code point
+            size_t nout = count_utf8(cp);
+            if (nout > *ndst)
+                break;
+            write_utf8_codepoint(&dst, cp);
+            --(*nsrc);
+            *ndst      -= nout;
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    size_t utf32le_to_utf16le(lsp_utf16_t *dst, size_t *ndst, const lsp_utf32_t *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            if (*nsrc <= 0)
+                break;
+            cp          = LE_TO_CPU(*(src++));
+
+            // Encode code point
+            size_t nout = count_utf16(cp);
+            if (nout > *ndst)
+                break;
+            write_utf16le_codepoint(&dst, cp);
+            --(*nsrc);
+            *ndst      -= nout;
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    size_t utf32le_to_utf16be(lsp_utf16_t *dst, size_t *ndst, const lsp_utf32_t *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            if (*nsrc <= 0)
+                break;
+            cp          = LE_TO_CPU(*(src++));
+
+            // Encode code point
+            size_t nout = count_utf16(cp);
+            if (nout > *ndst)
+                break;
+            write_utf16be_codepoint(&dst, cp);
+            --(*nsrc);
+            *ndst      -= nout;
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    size_t utf32be_to_utf16le(lsp_utf16_t *dst, size_t *ndst, const lsp_utf32_t *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            if (*nsrc <= 0)
+                break;
+            cp          = BE_TO_CPU(*(src++));
+
+            // Encode code point
+            size_t nout = count_utf16(cp);
+            if (nout > *ndst)
+                break;
+            write_utf16le_codepoint(&dst, cp);
+            --(*nsrc);
+            *ndst      -= nout;
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+    size_t utf32be_to_utf16be(lsp_utf16_t *dst, size_t *ndst, const lsp_utf32_t *src, size_t *nsrc, bool force)
+    {
+        lsp_utf32_t cp;
+        size_t processed = 0;
+
+        while (*ndst > 0)
+        {
+            // Read code point
+            if (*nsrc <= 0)
+                break;
+            cp          = BE_TO_CPU(*(src++));
+
+            // Encode code point
+            size_t nout = count_utf16(cp);
+            if (nout > *ndst)
+                break;
+            write_utf16be_codepoint(&dst, cp);
+            --(*nsrc);
+            *ndst      -= nout;
+
+            // Update statistics
+            ++processed;
+        }
+
+        return processed;
+    }
+
+#if defined(PLATFORM_WINDOWS)
+    static ssize_t multibyte_to_widechar_utf16le(LPCCH src, size_t *nsrc, LPWSTR dst, size_t *ndst)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv   = 0;
+        const lsp_utf16_t *xsrc = reinterpret_cast<const lsp_utf16_t *>(src);
+        size_t nin  = (*nsrc) >> 1;
+        size_t nout = *ndst;
+
+        while (nin > 0)
+        {
+            // Read code point
+            size_t xin  = nin;
+            cp          = read_utf16le_streaming(&xsrc, &xin, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Check that we have enough space
+            size_t len = count_utf16(cp);
+            if (nout < len)
+                break;
+
+            // Write code point
+            write_utf16_codepoint(&dst, cp);
+            nin         = xin;
+            nout       -= len;
+            nconv      += len;
+        }
+
+        *nsrc       = ((*nsrc) & 1) + (nin << 1);
+        *ndst       = nout;
+        return nconv;
+    }
+
+    static ssize_t multibyte_to_widechar_utf16be(LPCCH src, size_t *nsrc, LPWSTR dst, size_t *ndst)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv   = 0;
+        const lsp_utf16_t *xsrc = reinterpret_cast<const lsp_utf16_t *>(src);
+        size_t nin  = (*nsrc) >> 1;
+        size_t nout = *ndst;
+
+        while (nin > 0)
+        {
+            // Read code point
+            size_t xin  = nin;
+            cp          = read_utf16be_streaming(&xsrc, &xin, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Check that we have enough space
+            size_t len = count_utf16(cp);
+            if (nout < len)
+                break;
+
+            // Write code point
+            write_utf16_codepoint(&dst, cp);
+            nin         = xin;
+            nout       -= len;
+            nconv      += len;
+        }
+
+        *nsrc       = ((*nsrc) & 1) + (nin << 1);
+        *ndst       = nout;
+        return nconv;
+    }
+
+    static ssize_t est_multibyte_to_widechar_utf16le(LPCCH src, size_t nsrc)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv   = 0;
+        const lsp_utf16_t *xsrc = reinterpret_cast<const lsp_utf16_t *>(src);
+        nsrc >>= 1;
+
+        while (nsrc > 0)
+        {
+            // Read code point
+            cp         = read_utf16le_streaming(&xsrc, &nsrc, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Check that we have enough space
+            nconv      += count_utf16(cp);
+        }
+
+        return nconv;
+    }
+
+    static ssize_t est_multibyte_to_widechar_utf16be(LPCCH src, size_t nsrc)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv   = 0;
+        const lsp_utf16_t *xsrc = reinterpret_cast<const lsp_utf16_t *>(src);
+        nsrc >>= 1;
+
+        while (nsrc > 0)
+        {
+            // Read code point
+            cp         = read_utf16le_streaming(&xsrc, &nsrc, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Check that we have enough space
+            nconv      += count_utf16(cp);
+        }
+
+        return nconv;
+    }
+
+    static ssize_t multibyte_to_widechar_utf32le(LPCCH src, size_t *nsrc, LPWSTR dst, size_t *ndst)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv   = 0;
+        const lsp_utf32_t *xsrc = reinterpret_cast<const lsp_utf32_t *>(src);
+        size_t nin  = (*nsrc) >> 2;
+        size_t nout = *ndst;
+
+        while (nin > 0)
+        {
+            // Read code point
+            cp          = LE_TO_CPU(*(xsrc++));
+
+            // Check that we have enough space
+            size_t len = count_utf16(cp);
+            if (nout < len)
+                break;
+
+            // Write code point
+            write_utf16_codepoint(&dst, cp);
+            nin        -= 1;
+            nout       -= len;
+            nconv      += len;
+        }
+
+        *nsrc       = ((*nsrc) & 3) + (nin << 2);
+        *ndst       = nout;
+        return nconv;
+    }
+
+    static ssize_t multibyte_to_widechar_utf32be(LPCCH src, size_t *nsrc, LPWSTR dst, size_t *ndst)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv   = 0;
+        const lsp_utf32_t *xsrc = reinterpret_cast<const lsp_utf32_t *>(src);
+        size_t nin  = (*nsrc) >> 2;
+        size_t nout = *ndst;
+
+        while (nin > 0)
+        {
+            // Read code point
+            cp          = BE_TO_CPU(*(xsrc++));
+
+            // Check that we have enough space
+            size_t len = count_utf16(cp);
+            if (nout < len)
+                break;
+
+            // Write code point
+            write_utf16_codepoint(&dst, cp);
+            nin        -= 1;
+            nout       -= len;
+            nconv      += len;
+        }
+
+        *nsrc       = ((*nsrc) & 3) + (nin << 2);
+        *ndst       = nout;
+        return nconv;
+    }
+
+    static ssize_t est_multibyte_to_widechar_utf32le(LPCCH src, size_t nsrc)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv   = 0;
+        const lsp_utf32_t *xsrc = reinterpret_cast<const lsp_utf32_t *>(src);
+        nsrc           >>= 2;
+
+        while (nsrc > 0)
+        {
+            // Read code point
+            cp          = LE_TO_CPU(*(xsrc++));
+            nconv      += count_utf16(cp);
+        }
+
+        return nconv;
+    }
+
+    static ssize_t est_multibyte_to_widechar_utf32be(LPCCH src, size_t nsrc)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv   = 0;
+        const lsp_utf32_t *xsrc = reinterpret_cast<const lsp_utf32_t *>(src);
+        nsrc           >>= 2;
+
+        while (nsrc > 0)
+        {
+            // Read code point
+            cp          = BE_TO_CPU(*(xsrc++));
+            nconv      += count_utf16(cp);
+        }
+
+        return nconv;
+    }
+
+    ssize_t multibyte_to_widechar(size_t cp, LPCCH src, size_t *nsrc, LPWSTR dst, size_t *ndst)
+    {
+        ssize_t nconv;
+
+        switch (cp)
+        {
+            case 1200:  // UTF-16LE
+                nconv = ((dst == NULL) || (ndst == NULL) || (ssize_t(*ndst) <= 0)) ?
+                        est_multibyte_to_widechar_utf16le(src, *nsrc) :
+                        multibyte_to_widechar_utf16le(src, nsrc, dst, ndst);
+                break;
+            case 1201:  // UTF-16BE
+                nconv = ((dst == NULL) || (ndst == NULL) || (ssize_t(*ndst) <= 0)) ?
+                        est_multibyte_to_widechar_utf16be(src, *nsrc) :
+                        multibyte_to_widechar_utf16be(src, nsrc, dst, ndst);
+                break;
+            case 12000: // UTF-32LE
+                nconv = ((dst == NULL) || (ndst == NULL) || (ssize_t(*ndst) <= 0)) ?
+                        est_multibyte_to_widechar_utf32le(src, *nsrc) :
+                        multibyte_to_widechar_utf32le(src, nsrc, dst, ndst);
+                break;
+            case 12001: // UTF-32BE
+                nconv = ((dst == NULL) || (ndst == NULL) || (ssize_t(*ndst) <= 0)) ?
+                        est_multibyte_to_widechar_utf32be(src, *nsrc) :
+                        multibyte_to_widechar_utf32be(src, nsrc, dst, ndst);
+                break;
+            default:
+                // We need just to estimate the size?
+                if ((dst == NULL) || (ndst == NULL) || (ssize_t(*ndst) <= 0))
+                    return ::MultiByteToWideChar(cp, 0, src, *nsrc, 0, 0);
+
+                // Do the conversion
+                nconv = ::MultiByteToWideChar(cp, 0, src, *nsrc, dst, *ndst);
+                if (nconv == 0)
+                {
+                    switch (GetLastError())
+                    {
+                        case ERROR_SUCCESS:
+                            return 0;
+                        case ERROR_INSUFFICIENT_BUFFER:
+                            return -STATUS_NO_MEM;
+                        case ERROR_INVALID_FLAGS:
+                        case ERROR_INVALID_PARAMETER:
+                            return -STATUS_BAD_STATE;
+                        case ERROR_NO_UNICODE_TRANSLATION:
+                            return -STATUS_BAD_LOCALE;
+                        default:
+                            return -STATUS_UNKNOWN_ERR;
+                    }
+                }
+
+                // There are converted characters, analyze output
+                // If function meets invalid sequence, it replaces the code point with such magic value
+                // We should know if function has failed
+                if (dst[nconv-1] == 0xfffd)
+                    --nconv;
+
+                if (nconv > 0)
+                {
+                    // Estimate number of bytes decoded (yep, this is dumb but no way...)
+                    ssize_t nbytes  = ::WideCharToMultiByte(cp, 0, dst, nconv, NULL, 0, 0, 0);
+                    if (nbytes <= 0)
+                        return -STATUS_IO_ERROR;
+
+                    *nsrc  -= nbytes;
+                    *ndst  -= nconv;
+                }
+
+                break;
+        }
+
+        return nconv;
+    }
+
+    static ssize_t widechar_to_multibyte_utf16le(const lsp_utf16_t *src, size_t *nsrc, char *dst, size_t *ndst)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv = 0;
+        size_t nin  = *nsrc;
+        size_t nout = *ndst;
+        lsp_utf16_t *xdst = reinterpret_cast<lsp_utf16_t *>(dst);
+
+        while (nin > 0)
+        {
+            size_t xin  = nin;
+            cp          = read_utf16_streaming(&src, &xin, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Check that we have enough space
+            size_t len = sizeof_utf16(cp);
+            if (nout < len)
+                break;
+
+            // Write code point
+            write_utf16le_codepoint(&xdst, cp);
+            nin         = xin;
+            nout       -= len;
+            nconv      += len;
+        }
+
+        *nsrc   = nin;
+        *ndst   = nout;
+        return nconv;
+    }
+
+    static ssize_t widechar_to_multibyte_utf16be(const lsp_utf16_t *src, size_t *nsrc, char *dst, size_t *ndst)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv = 0;
+        size_t nin  = *nsrc;
+        size_t nout = *ndst;
+        lsp_utf16_t *xdst = reinterpret_cast<lsp_utf16_t *>(dst);
+
+        while (nin > 0)
+        {
+            size_t xin  = nin;
+            cp          = read_utf16_streaming(&src, &xin, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Check that we have enough space
+            size_t len = sizeof_utf16(cp);
+            if (nout < len)
+                break;
+
+            // Write code point
+            write_utf16be_codepoint(&xdst, cp);
+            nin         = xin;
+            nout       -= len;
+            nconv      += len;
+        }
+
+        *nsrc   = nin;
+        *ndst   = nout;
+        return nconv;
+    }
+
+    static ssize_t est_widechar_to_multibyte_utf16(const lsp_utf16_t *src, size_t nsrc)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv = 0;
+
+        while (nsrc > 0)
+        {
+            cp      = read_utf16_streaming(&src, &nsrc, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Check that we have enough space
+            nconv  += sizeof_utf16(cp);
+        }
+
+        return nconv;
+    }
+
+    static ssize_t widechar_to_multibyte_utf32le(const lsp_utf16_t *src, size_t *nsrc, char *dst, size_t *ndst)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv = 0;
+        size_t nin  = *nsrc;
+        size_t nout = *ndst;
+        lsp_utf32_t *xdst = reinterpret_cast<lsp_utf32_t *>(dst);
+
+        while (nin > 0)
+        {
+            size_t xin  = nin;
+            cp          = read_utf16_streaming(&src, &xin, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Check that we have enough space
+            if (nout < sizeof(lsp_utf32_t))
+                break;
+
+            // Write code point
+            *(xdst++)   = CPU_TO_LE(cp);
+            nin         = xin;
+            nout       -= sizeof(lsp_utf32_t);
+            nconv      += sizeof(lsp_utf32_t);
+        }
+
+        *nsrc   = nin;
+        *ndst   = nout;
+        return nconv;
+    }
+
+    static ssize_t widechar_to_multibyte_utf32be(const lsp_utf16_t *src, size_t *nsrc, char *dst, size_t *ndst)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv = 0;
+        size_t nin  = *nsrc;
+        size_t nout = *ndst;
+        lsp_utf32_t *xdst = reinterpret_cast<lsp_utf32_t *>(dst);
+
+        while (nin > 0)
+        {
+            size_t xin  = nin;
+            cp          = read_utf16_streaming(&src, &xin, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+
+            // Check that we have enough space
+            if (nout < sizeof(lsp_utf32_t))
+                break;
+
+            // Write code point
+            *(xdst++)   = CPU_TO_BE(cp);
+            nin         = xin;
+            nout       -= sizeof(lsp_utf32_t);
+            nconv      += sizeof(lsp_utf32_t);
+        }
+
+        *nsrc   = nin;
+        *ndst   = nout;
+        return nconv;
+    }
+
+    static ssize_t est_widechar_to_multibyte_utf32(const lsp_utf16_t *src, size_t nsrc)
+    {
+        lsp_wchar_t cp;
+        ssize_t nconv = 0;
+
+        while (nsrc > 0)
+        {
+            cp          = read_utf16_streaming(&src, &nsrc, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+            nconv      += sizeof(lsp_utf32_t);
+        }
+
+        return nconv;
+    }
+
+    static size_t widechar_to_multibyte_split(const lsp_utf16_t *src, size_t limit)
+    {
+        // Estimate the middle of an array
+        size_t half     = limit >> 1;
+        if (half <= 0)
+            return half;
+
+        // Now scan valid code points until we reach the end of array
+        lsp_wchar_t cp;
+        limit           = half;
+        while (true)
+        {
+            cp          = read_utf16_streaming(&src, &limit, false);
+            if (cp == LSP_UTF32_EOF) // No data ?
+                break;
+        }
+
+        // Return the result as middle of array without remained points in limit
+        return half - limit;
+    }
+
+    ssize_t widechar_to_multibyte(size_t cp, LPCWCH src, size_t *nsrc, LPSTR dst, size_t *ndst)
+    {
+        ssize_t nconv;
+
+        switch (cp)
+        {
+            case 1200:  // UTF-16LE
+                nconv = ((dst == NULL) || (ndst == NULL) || (ssize_t(*ndst) <= 0)) ?
+                        est_widechar_to_multibyte_utf16(src, *nsrc) :
+                        widechar_to_multibyte_utf16le(src, nsrc, dst, ndst);
+                break;
+            case 1201:  // UTF-16BE
+                nconv = ((dst == NULL) || (ndst == NULL) || (ssize_t(*ndst) <= 0)) ?
+                        est_widechar_to_multibyte_utf16(src, *nsrc) :
+                        widechar_to_multibyte_utf16be(src, nsrc, dst, ndst);
+                break;
+            case 12000: // UTF-32LE
+                nconv = ((dst == NULL) || (ndst == NULL) || (ssize_t(*ndst) <= 0)) ?
+                        est_widechar_to_multibyte_utf32(src, *nsrc) :
+                        widechar_to_multibyte_utf32le(src, nsrc, dst, ndst);
+                break;
+            case 12001: // UTF-32BE
+                nconv = ((dst == NULL) || (ndst == NULL) || (ssize_t(*ndst) <= 0)) ?
+                        est_widechar_to_multibyte_utf32(src, *nsrc) :
+                        widechar_to_multibyte_utf32be(src, nsrc, dst, ndst);
+                break;
+            default:
+            {
+                // Just estimate number of characters?
+                if ((dst == NULL) || (ndst == NULL) || (ssize_t(*ndst) <= 0))
+                {
+                    nconv           = ::WideCharToMultiByte(cp, 0, src, *nsrc, NULL, 0, 0, FALSE);
+                    if (nconv == 0)
+                    {
+                        switch (::GetLastError())
+                        {
+                            case ERROR_SUCCESS:
+                                return 0;
+                            case ERROR_INSUFFICIENT_BUFFER:
+                                return -STATUS_NO_MEM;
+                            case ERROR_INVALID_FLAGS:
+                            case ERROR_INVALID_PARAMETER:
+                                return -STATUS_BAD_STATE;
+                            case ERROR_NO_UNICODE_TRANSLATION:
+                                return -STATUS_BAD_LOCALE;
+                            default:
+                                return -STATUS_UNKNOWN_ERR;
+                        }
+                    }
+                    return nconv;
+                }
+
+                // Perform first try
+                size_t xnsrc    = *nsrc;
+                nconv = ::WideCharToMultiByte(cp, 0, src, xnsrc, dst, *ndst, 0, FALSE);
+
+                // Do while conversion is unsuccessful
+                while (nconv <= 0)
+                {
+                    // There was a fail, analyze it
+                    switch (::GetLastError())
+                    {
+                        case ERROR_SUCCESS:
+                            return 0;
+                        case ERROR_INSUFFICIENT_BUFFER:
+                            break;  // Will retry with twice lesser input buffer
+                        case ERROR_INVALID_FLAGS:
+                        case ERROR_INVALID_PARAMETER:
+                            return -STATUS_BAD_STATE;
+                        case ERROR_NO_UNICODE_TRANSLATION:
+                            return -STATUS_BAD_LOCALE;
+                        default:
+                            return -STATUS_UNKNOWN_ERR;
+                    }
+
+                    // Try to twice reduce the buffer size, validate data for surrogates
+                    xnsrc = widechar_to_multibyte_split(src, xnsrc);
+                    if (xnsrc <= 0)
+                        break;
+
+                    // Perform next conversion try with lesser buffer
+                    nconv = ::WideCharToMultiByte(cp, 0, src, xnsrc, dst, *ndst, 0, FALSE);
+                }
+
+                *ndst      -= nconv;
+                *nsrc      -= xnsrc;
+            }
+            break;
+        }
+
+        return nconv;
+    }
+#endif /* PLATFORM_WINDOWS */
 }

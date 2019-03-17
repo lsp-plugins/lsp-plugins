@@ -43,7 +43,7 @@ namespace lsp
         pDescr      = NULL;
     }
 
-    int impulse_responses_base::IRLoader::run()
+    status_t impulse_responses_base::IRLoader::run()
     {
         return pCore->load(pDescr);
     }
@@ -64,7 +64,7 @@ namespace lsp
         pCore       = NULL;
     }
 
-    int impulse_responses_base::IRConfigurator::run()
+    status_t impulse_responses_base::IRConfigurator::run()
     {
         return pCore->reconfigure(sReconfig);
     }

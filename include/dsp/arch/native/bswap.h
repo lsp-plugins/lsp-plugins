@@ -8,11 +8,6 @@
 #ifndef DSP_ARCH_NATIVE_BSWAP_H_
 #define DSP_ARCH_NATIVE_BSWAP_H_
 
-inline uint8_t __lsp_forced_inline      byte_swap(uint8_t v)
-{
-    return v;
-}
-
 inline uint16_t __lsp_forced_inline     byte_swap(uint16_t v)
 {
     return (v >> 8) | (v << 8);
@@ -51,14 +46,6 @@ inline double __lsp_forced_inline byte_swap(double v)
     tmp.fValue      = v;
     tmp.uValue      = byte_swap(tmp.uValue);
     return tmp.fValue;
-}
-
-inline void __lsp_forced_inline byte_swap(uint8_t *v, size_t n)
-{
-}
-
-inline void __lsp_forced_inline byte_swap(int8_t *v, size_t n)
-{
 }
 
 inline void __lsp_forced_inline byte_swap(uint16_t *v, size_t n)
@@ -146,5 +133,17 @@ inline void __lsp_forced_inline byte_swap(double *v, size_t n)
         p           ++;
     }
 }
+
+#if defined(WCHART_16BIT)
+    inline wchar_t byte_swap(wchar_t v)
+    {
+        return wchar_t(byte_swap(uint16_t(v)));
+    }
+#elif defined(WCHART_32BIT)
+    inline wchar_t byte_swap(wchar_t v)
+    {
+        return wchar_t(byte_swap(uint32_t(v)));
+    }
+#endif
 
 #endif /* DSP_ARCH_NATIVE_BSWAP_H_ */

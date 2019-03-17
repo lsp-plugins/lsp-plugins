@@ -7,7 +7,7 @@
 #include <core/types.h>
 #include <core/lib.h>
 #include <core/debug.h>
-#include <core/NativeExecutor.h>
+#include <core/ipc/NativeExecutor.h>
 #include <plugins/plugins.h>
 
 #ifdef PLATFORM_WINDOWS

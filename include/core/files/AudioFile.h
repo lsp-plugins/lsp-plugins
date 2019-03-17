@@ -9,11 +9,6 @@
 #define CORE_FILES_AUDIOFILE_H_
 
 #include <core/types.h>
-#include <core/IExecutor.h>
-#include <core/ITask.h>
-#include <core/sampling/Sample.h>
-#include <core/LSPString.h>
-#include <core/io/Path.h>
 
 namespace lsp
 {
@@ -71,14 +66,6 @@ namespace lsp
              */
             status_t create_samples(size_t channels, size_t sample_rate, size_t count);
 
-            /** Create file from sample
-             *
-             * @param sample audio sample to create file
-             * @param sample_rate sample rate
-             * @return status of operation
-             */
-            status_t create(const Sample *sample, size_t sample_rate);
-
             /** Create file
              *
              * @param channels number of channels
@@ -96,22 +83,6 @@ namespace lsp
              */
             status_t load(const char *path, float max_duration = -1);
 
-            /** Load file
-             *
-             * @param path path to the file
-             * @param max_duration maximum duration of the file to load (in seconds)
-             * @return status of operation
-             */
-            status_t load(const LSPString *path, float max_duration = -1);
-
-            /** Load file
-             *
-             * @param path path to the file
-             * @param max_duration maximum duration of the file to load (in seconds)
-             * @return status of operation
-             */
-            status_t load(const io::Path *path, float max_duration = -1);
-
             /** Save file
              *
              * @param path path to the file
@@ -124,24 +95,6 @@ namespace lsp
             /** Save file
              *
              * @param path path to the file
-             * @param from offset sample from which store the data
-             * @param max_count maximum duration of the file to store (in samples)
-             * @return status of operation
-             */
-            status_t store_samples(const io::Path *path, size_t from, size_t max_count);
-
-            /** Save file
-             *
-             * @param path path to the file
-             * @param from offset sample from which store the data
-             * @param max_count maximum duration of the file to store (in samples)
-             * @return status of operation
-             */
-            status_t store_samples(const LSPString *path, size_t from, size_t max_count);
-
-            /** Save file
-             *
-             * @param path path to the file
              * @param max_count maximum duration of the file to store (in samples)
              * @return status of operation
              */
@@ -150,42 +103,10 @@ namespace lsp
             /** Save file
              *
              * @param path path to the file
-             * @param max_count maximum duration of the file to store (in samples)
-             * @return status of operation
-             */
-            status_t store_samples(const io::Path *path, size_t max_count);
-
-            /** Save file
-             *
-             * @param path path to the file
-             * @param max_count maximum duration of the file to store (in samples)
-             * @return status of operation
-             */
-            status_t store_samples(const LSPString *path, size_t max_count);
-
-            /** Save file
-             *
-             * @param path path to the file
              * @param max_duration maximum duration of the file to store (in seconds)
              * @return status of operation
              */
             status_t store(const char *path, float max_duration = -1);
-
-            /** Save file
-             *
-             * @param path path to the file
-             * @param max_duration maximum duration of the file to store (in seconds)
-             * @return status of operation
-             */
-            status_t store(const LSPString *path, float max_duration = -1);
-
-            /** Save file
-             *
-             * @param path path to the file
-             * @param max_duration maximum duration of the file to store (in seconds)
-             * @return status of operation
-             */
-            status_t store(const io::Path *path, float max_duration = -1);
 
             /** Return number of channels
              *
@@ -212,13 +133,6 @@ namespace lsp
              */
             float *channel(size_t track);
 
-            /**
-             * Convert data to sample data
-             * @param dst destination sample to store data
-             * @return status of operation
-             */
-            status_t convert_to_sample(Sample *dst);
-
             /** Reverse track(s)
              *
              * @param track_id ID of track, track_id < 0 - all tracks
@@ -238,48 +152,6 @@ namespace lsp
              *
              */
             void destroy();
-    };
-
-    class LoadAudioFileTask: public ITask
-    {
-        protected:
-            char            sPath[PATH_MAX];
-            AudioFile      *pAF;
-            bool            bTaken;
-
-        public:
-            LoadAudioFileTask();
-            virtual ~LoadAudioFileTask();
-
-        public:
-            /** Configure task
-             *
-             * @param filename file name
-             */
-            void    configure(const char *filename);
-
-            /** Get audio file object
-             *
-             * @return audio file object
-             */
-            AudioFile   *file();
-
-            /** Get file name
-             *
-             * @return file name
-             */
-            inline const char *path() const { return sPath; };
-
-            /** Execute task
-             *
-             * @return status of operation
-             */
-            virtual int run();
-
-            /**
-             *
-             */
-            virtual void destroy();
     };
 
 } /* namespace lsp */

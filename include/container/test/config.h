@@ -139,7 +139,7 @@ namespace lsp
         argc        = utf8_argc;
         argv        = const_cast<const char **>(utf8_argv);
 #else
-        threads     = sysconf(_SC_NPROCESSORS_ONLN) * 2;
+        threads     = sysconf(_SC_NPROCESSORS_ONLN);
 #endif /* PLATFORM_WINDOWS */
 
         if (argc < 2)
@@ -215,12 +215,13 @@ namespace lsp
 
                 errno           = 0;
                 char *end       = NULL;
-                threads         = strtol(argv[i], &end, 10);
-                if ((errno != 0) || ((*end) != '\0'))
+                long jobs       = strtol(argv[i], &end, 10);
+                if ((errno != 0) || ((*end) != '\0') || (jobs <= 0))
                 {
-                    fprintf(stderr, "Invalid value for --threads parameter: %s\n", argv[i]);
+                    fprintf(stderr, "Invalid value for --jobs parameter: %s\n", argv[i]);
                     return STATUS_INVALID_VALUE;
                 }
+                threads         = size_t(jobs);
             }
             else if ((!strcmp(argv[i], "--help")) || ((!strcmp(argv[i], "-h"))))
                 return print_usage(out, true);

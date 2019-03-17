@@ -29,7 +29,7 @@ namespace lsp
         pCore = NULL;
     }
 
-    int profiler_base::PreProcessor::run()
+    status_t profiler_base::PreProcessor::run()
     {
         // reconfigure() will call update_settings() if needed.
         status_t  returnValue = pCore->sSyncChirpProcessor.reconfigure();
@@ -56,7 +56,7 @@ namespace lsp
         pCore = NULL;
     }
 
-    int profiler_base::Convolver::run()
+    status_t profiler_base::Convolver::run()
     {
     	for (size_t ch = 0; ch < pCore->nChannels; ++ch)
     	{
@@ -97,7 +97,7 @@ namespace lsp
         enAlgo = algo;
     }
 
-    int profiler_base::PostProcessor::run()
+    status_t profiler_base::PostProcessor::run()
     {
     	for (size_t ch = 0; ch < pCore->nChannels; ++ch)
     	{
@@ -149,7 +149,7 @@ namespace lsp
         return sFile[0] != '\0';
     }
 
-    int profiler_base::Saver::run()
+    status_t profiler_base::Saver::run()
     {
         // Doing Checks:
         if (pCore->bIRMeasured)
@@ -351,10 +351,18 @@ namespace lsp
         if (vChannels != NULL)
         {
             for (size_t ch = 0; ch < nChannels; ++ch)
-                vChannels[ch].vBuffer = NULL;
+            {
+                channel_t *c = &vChannels[ch];
+                c->sLatencyDetector.destroy();
+                c->sResponseTaker.destroy();
+                c->vBuffer = NULL;
+            }
             delete [] vChannels;
             vChannels = NULL;
         }
+
+        sSyncChirpProcessor.destroy();
+        sCalOscillator.destroy();
     }
 
     void profiler_base::update_pre_processing_info()
@@ -503,7 +511,9 @@ namespace lsp
 		lsp_assert(ptr <= &save[samples]);
 
         // Allocate array of pointers to Samples objects for convolution.
-        sResponseData.vResponses = new Sample*[nChannels];
+        sResponseData.vResponses = new Sample* [nChannels];
+        for (size_t i=0; i<nChannels; ++i)
+            sResponseData.vResponses[i]     = NULL;
 
         // Allocate vector of chirp responses offsets. Long as the number of channels
         size_t *sRDptr = alloc_aligned<size_t>(sResponseData.pData, nChannels);

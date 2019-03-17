@@ -18,7 +18,7 @@ namespace lsp
     {
     }
 
-    IExecutor *IWrapper::get_executor()
+    ipc::IExecutor *IWrapper::get_executor()
     {
         return NULL;
     }

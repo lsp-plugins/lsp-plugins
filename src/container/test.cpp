@@ -17,6 +17,7 @@
 #include <dsp/dsp.h>
 #include <metadata/metadata.h>
 #include <core/stdlib/stdio.h>
+#include <core/init.h>
 #include <sys/stat.h>
 
 using namespace lsp;
@@ -240,6 +241,7 @@ int main(int argc, const char **argv)
 //        fprintf(stderr, "Installing mcheck() failed\n");
 //        return -4;
 //    }
+    lsp::init();
 
     config_t cfg;
     status_t res = cfg.parse(stdout, argc, argv);

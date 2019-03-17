@@ -33,7 +33,7 @@ namespace lsp
         wssize_t LSPClipboard::LSPInputStream::avail()
         {
             if (bClosed)
-                return - (nError = STATUS_CLOSED);
+                return - (nErrorCode = STATUS_CLOSED);
             wsize_t tail    = (pCB->nUsedChunks > 1) ? (pCB->nUsedChunks - 1) * CHUNK_SIZE + pCB->nLastChunkSize : pCB->nLastChunkSize;
             wsize_t pos     = nChunk * CHUNK_SIZE + nOffset;
             return tail - pos;
@@ -42,14 +42,14 @@ namespace lsp
         wssize_t LSPClipboard::LSPInputStream::position()
         {
             if (bClosed)
-                return - (nError = STATUS_CLOSED);
+                return - (nErrorCode = STATUS_CLOSED);
             return nChunk * CHUNK_SIZE + nOffset;
         }
 
         ssize_t LSPClipboard::LSPInputStream::read(void *dst, size_t count)
         {
             if (bClosed)
-                return - (nError = STATUS_CLOSED);
+                return - (nErrorCode = STATUS_CLOSED);
 
             size_t tot_read = 0;
             uint8_t *ptr = static_cast<uint8_t *>(dst);
@@ -92,14 +92,14 @@ namespace lsp
                 }
             }
 
-            nError      = STATUS_OK;
+            nErrorCode      = STATUS_OK;
             return tot_read;
         }
 
         wssize_t LSPClipboard::LSPInputStream::seek(wsize_t position)
         {
             if (bClosed)
-                return nError = STATUS_CLOSED;
+                return nErrorCode = STATUS_CLOSED;
 
             size_t chunk_id     = position / CHUNK_SIZE;
             if (chunk_id >= pCB->nUsedChunks)
@@ -114,7 +114,7 @@ namespace lsp
 
             nChunk          = chunk_id;
             nOffset         = chunk_off;
-            nError          = STATUS_OK;
+            nErrorCode          = STATUS_OK;
 
             return nChunk * CHUNK_SIZE + nOffset;
         }
@@ -122,7 +122,7 @@ namespace lsp
         status_t LSPClipboard::LSPInputStream::close()
         {
             if (bClosed)
-                return nError = STATUS_CLOSED;
+                return nErrorCode = STATUS_CLOSED;
 
             bClosed         = true;
             if ((--pCB->nReferences) <= 0)
@@ -132,7 +132,7 @@ namespace lsp
                 pCB = NULL;
             }
 
-            return nError = STATUS_OK;
+            return nErrorCode = STATUS_OK;
         }
 
         //-------------------------------------------------------------------------------
@@ -156,14 +156,14 @@ namespace lsp
         wssize_t LSPClipboard::LSPOutputStream::position()
         {
             if (bClosed)
-                return - (nError = STATUS_CLOSED);
+                return - set_error(STATUS_CLOSED);
             return nChunk * CHUNK_SIZE + nOffset;
         }
 
         ssize_t LSPClipboard::LSPOutputStream::write(const void *buf, size_t count)
         {
             if (bClosed)
-                return - (nError = STATUS_CLOSED);
+                return - set_error(STATUS_CLOSED);
             else if (count <= 0)
                 return count;
             else if (pCB->nTotalChunks <= 0)
@@ -171,14 +171,14 @@ namespace lsp
                 // There is no data, need to allocate chunk map
                 uint8_t **ccnk      = static_cast<uint8_t **>(malloc(sizeof(uint8_t *) * CHUNK_EXT));
                 if (ccnk == NULL)
-                    return - (nError = STATUS_NO_MEM);
+                    return - set_error(STATUS_NO_MEM);
                 pCB->nTotalChunks   = CHUNK_EXT;
                 pCB->vChunks        = ccnk;
 
                 // Now we need to allocate new chunk
                 uint8_t *chunk      = static_cast<uint8_t *>(malloc(sizeof(uint8_t) * CHUNK_SIZE));
                 if (chunk == NULL)
-                    return - (nError = STATUS_NO_MEM);
+                    return - set_error(STATUS_NO_MEM);
 
                 pCB->vChunks[pCB->nUsedChunks++]    = chunk;
             }
@@ -228,7 +228,7 @@ namespace lsp
                             {
                                 if (tot_written > 0)
                                     break;
-                                return - (nError = STATUS_NO_MEM);
+                                return - set_error(STATUS_NO_MEM);
                             }
                             pCB->nTotalChunks   = new_chunks;
                             pCB->vChunks        = ccnk;
@@ -240,7 +240,7 @@ namespace lsp
                         {
                             if (tot_written > 0)
                                 break;
-                            return - (nError = STATUS_NO_MEM);
+                            return - set_error(STATUS_NO_MEM);
                         }
 
                         // Store pointer to the chunk and update position
@@ -258,7 +258,7 @@ namespace lsp
         wssize_t LSPClipboard::LSPOutputStream::seek(wsize_t position)
         {
             if (bClosed)
-                return nError = STATUS_CLOSED;
+                return set_error(STATUS_CLOSED);
 
             size_t chunk_id     = position / CHUNK_SIZE;
             if (chunk_id >= pCB->nUsedChunks)
@@ -273,15 +273,15 @@ namespace lsp
 
             nChunk          = chunk_id;
             nOffset         = chunk_off;
-            nError          = STATUS_OK;
 
+            set_error(STATUS_OK);
             return nChunk * CHUNK_SIZE + nOffset;
         }
 
         status_t LSPClipboard::LSPOutputStream::close()
         {
             if (bClosed)
-                return nError = STATUS_CLOSED;
+                return set_error(STATUS_CLOSED);
 
             bClosed         = true;
             if ((--pCB->nReferences) <= 0)
@@ -291,7 +291,7 @@ namespace lsp
                 pCB = NULL;
             }
 
-            return nError = STATUS_OK;
+            return set_error(STATUS_OK);
         }
 
         //-------------------------------------------------------------------------------
@@ -356,7 +356,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        io::IInputStream *LSPClipboard::read(const char *ctype)
+        io::IInStream *LSPClipboard::read(const char *ctype)
         {
             // Check arguments and state
             if (ctype == NULL)
@@ -378,7 +378,7 @@ namespace lsp
             }
 
             // Create stream
-            io::IInputStream *strm = new LSPInputStream(this);
+            io::IInStream *strm = new LSPInputStream(this);
             if (strm == NULL)
             {
                 nError      = STATUS_NO_MEM;
@@ -392,7 +392,7 @@ namespace lsp
             return strm;
         }
 
-        io::IOutputStream *LSPClipboard::write(const char *ctype)
+        io::IOutStream *LSPClipboard::write(const char *ctype)
         {
             // Data can be written only once
             if (sCType != NULL)
@@ -415,7 +415,7 @@ namespace lsp
             }
 
             // Create stream
-            io::IOutputStream *strm = new LSPOutputStream(this);
+            io::IOutStream *strm = new LSPOutputStream(this);
             if (strm == NULL)
             {
                 lsp_free(sCType);

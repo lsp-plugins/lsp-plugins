@@ -15,7 +15,7 @@ namespace lsp
         private:
             cvector<LADSPAPort>     vPorts;
             plugin_t               *pPlugin;
-            IExecutor              *pExecutor;      // Executor service
+            ipc::IExecutor         *pExecutor;      // Executor service
             size_t                  nLatencyID;     // ID of Latency port
             LADSPA_Data            *pLatency;       // Latency pointer
             bool                    bUpdateSettings;// Settings update
@@ -217,12 +217,12 @@ namespace lsp
                 sNewPosition.tick   = ((sNewPosition.frame % spb) * sNewPosition.ticksPerBeat) / spb;
             }
 
-            virtual IExecutor *get_executor()
+            virtual ipc::IExecutor *get_executor()
             {
                 if (pExecutor == NULL)
                 {
                     lsp_trace("Creating native executor service");
-                    pExecutor       = new NativeExecutor();
+                    pExecutor       = new ipc::NativeExecutor();
                 }
                 return pExecutor;
             }

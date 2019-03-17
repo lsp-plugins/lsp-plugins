@@ -13,7 +13,7 @@
 #include <core/alloc.h>
 #include <core/IWrapper.h>
 #include <core/IPort.h>
-#include <core/NativeExecutor.h>
+#include <core/ipc/NativeExecutor.h>
 #include <core/ICanvas.h>
 #include <container/CairoCanvas.h>
 
@@ -46,7 +46,7 @@ namespace lsp
         private:
             plugin_t               *pPlugin;
             plugin_ui              *pUI;
-            IExecutor              *pExecutor;
+            ipc::IExecutor         *pExecutor;
             jack_client_t          *pClient;
             atomic_t                nQueryDraw;
             atomic_t                nQueryDrawLast;
@@ -106,7 +106,7 @@ namespace lsp
             void create_port(const port_t *port, const char *postfix);
 
         public:
-            virtual IExecutor *get_executor();
+            virtual ipc::IExecutor *get_executor();
 
         public:
             inline jack_client_t *client() { return pClient; };
@@ -632,10 +632,19 @@ namespace lsp
         pUI     = NULL;
         pPlugin = NULL;
 
+        // Drop canvas
+        if (pCanvas != NULL)
+        {
+            pCanvas->destroy();
+            delete pCanvas;
+            pCanvas     = NULL;
+        }
+
         // Destroy executor service
         if (pExecutor != NULL)
         {
             pExecutor->shutdown();
+            delete pExecutor;
             pExecutor   = NULL;
         }
     }
@@ -700,14 +709,14 @@ namespace lsp
         return true;
     }
 
-    IExecutor *JACKWrapper::get_executor()
+    ipc::IExecutor *JACKWrapper::get_executor()
     {
         lsp_trace("executor = %p", reinterpret_cast<void *>(pExecutor));
         if (pExecutor != NULL)
             return pExecutor;
 
         lsp_trace("Creating native executor service");
-        pExecutor       = new NativeExecutor();
+        pExecutor       = new ipc::NativeExecutor();
         return pExecutor;
     }
 

@@ -9,7 +9,7 @@
 #define CONTAINER_VST_WRAPPER_H_
 
 #include <container/vst/defs.h>
-#include <core/NativeExecutor.h>
+#include <core/ipc/NativeExecutor.h>
 
 namespace lsp
 {
@@ -26,7 +26,7 @@ namespace lsp
             plugin_ui                  *pUI;
             ERect                       sRect;
             audioMasterCallback         pMaster;
-            IExecutor                  *pExecutor;
+            ipc::IExecutor             *pExecutor;
             vst_state_buffer           *pState;
             bool                        bUpdateSettings;
             float                       fLatency;
@@ -116,14 +116,14 @@ namespace lsp
             void resize_ui(const realize_t *r);
             ERect *get_ui_rect();
 
-            virtual IExecutor *get_executor()
+            virtual ipc::IExecutor *get_executor()
             {
                 lsp_trace("executor = %p", reinterpret_cast<void *>(pExecutor));
                 if (pExecutor != NULL)
                     return pExecutor;
 
                 lsp_trace("Creating native executor service");
-                pExecutor       = new NativeExecutor();
+                pExecutor       = new ipc::NativeExecutor();
                 return pExecutor;
             }
 
@@ -655,17 +655,23 @@ namespace lsp
         sRect.right         = r->nWidth;
         sRect.bottom        = r->nHeight;
 
-        size_request_t sr;
-        wnd->size_request(&sr);
-        lsp_trace("Size request width=%d, height=%d", int(sr.nMinWidth), int(sr.nMinHeight));
+        realize_t rr;
+        wnd->get_geometry(&rr);
+        lsp_trace("Get geometry: width=%d, height=%d", int(rr.nWidth), int(rr.nHeight));
 
-        ssize_t r_width     = sr.nMinWidth;
-        ssize_t r_height    = sr.nMinHeight;
+        if ((rr.nWidth <= 0) || (rr.nHeight <= 0))
+        {
+            size_request_t sr;
+            wnd->size_request(&sr);
+            lsp_trace("Size request: width=%d, height=%d", int(sr.nMinWidth), int(sr.nMinHeight));
+            rr.nWidth   = sr.nMinWidth;
+            rr.nHeight  = sr.nMinHeight;
+        }
 
-        lsp_trace("audioMasterSizeWindow width=%d, height=%d", int(r_width), int(r_height));
-        if (((sRect.right - sRect.left) != r_width) ||
-              ((sRect.bottom - sRect.top) != r_height))
-            pMaster(pEffect, audioMasterSizeWindow, r_width, r_height, 0, 0);
+        lsp_trace("audioMasterSizeWindow width=%d, height=%d", int(rr.nWidth), int(rr.nHeight));
+        if (((sRect.right - sRect.left) != rr.nWidth) ||
+              ((sRect.bottom - sRect.top) != rr.nHeight))
+            pMaster(pEffect, audioMasterSizeWindow, rr.nWidth, rr.nHeight, 0, 0);
     }
 
     void VSTWrapper::hide_ui()

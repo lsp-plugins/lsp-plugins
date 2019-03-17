@@ -162,6 +162,7 @@ my @codepages = (
 # Additional 'patching' codepages
 push @codepages, (
     ['1200', 'utf-16le'],
+    ['1201', 'utf-16be'],
     ['12000', 'utf-32le']
 );
 

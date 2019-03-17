@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <dirent.h>
+#include <sys/stat.h>
 
 #include <core/types.h>
 
@@ -425,6 +426,7 @@ namespace lsp
         }
 
         int result      = STATUS_OK;
+        struct stat st;
 
         while (true)
         {
@@ -433,14 +435,27 @@ namespace lsp
             if (ent == NULL)
                 break;
 
-            // Check file extension
-            if (ent->d_type == DT_DIR)
+            // Skip dot and dot-dot
+            if (!strcmp(ent->d_name, "."))
+                continue;
+            else if (!strcmp(ent->d_name, ".."))
+                continue;
+
+            // Obtain file type
+            char *fname = NULL;
+            asprintf(&fname, "%s" FILE_SEPARATOR_S "%s", realpath, ent->d_name);
+            if (fname == NULL)
+                continue;
+            if (stat(fname, &st) < 0)
             {
-                // Skip dot and dot-dot
-                if (!strcmp(ent->d_name, "."))
-                    continue;
-                else if (!strcmp(ent->d_name, ".."))
-                    continue;
+                free(fname);
+                continue;
+            }
+            free(fname);
+
+            // Check file extension
+            if (S_ISDIR(st.st_mode))
+            {
             #ifdef LSP_NO_EXPERIMENTAL
                 if ((path == NULL) && (!strcmp(ent->d_name, "experimental")))
                     continue;
@@ -462,7 +477,7 @@ namespace lsp
                 if (result != STATUS_OK)
                     break;
             }
-            else if (ent->d_type == DT_REG)
+            else if (S_ISREG(st.st_mode))
             {
                 char *dot = strrchr(ent->d_name, '.');
                 if (dot == NULL)
@@ -485,6 +500,7 @@ namespace lsp
                     result = -STATUS_NO_MEM;
                     break;
                 }
+                printf("Found resource: %s" FILE_SEPARATOR_S "%s\n", path, ent->d_name);
             }
         }
 
@@ -538,6 +554,7 @@ namespace lsp
         int result      = 0;
 
         // Try to scan directory
+        printf("Scanning resources in path: %s\n", path);
         result          = scan_directory(path, NULL, resources);
         if (result != STATUS_SUCCESS)
             return result;
