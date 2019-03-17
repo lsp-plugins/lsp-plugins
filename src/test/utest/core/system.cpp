@@ -22,12 +22,19 @@ UTEST_BEGIN("core", system)
         UTEST_ASSERT(name.set_utf8("LSP_TEST_ENVIRONMENT_VARIABLE"));
         UTEST_ASSERT(value.set_utf8("LSP_TEST_ENVIRONMENT_VALUE"));
 
+        printf("Cleaning env variable %s\n", name.get_native());
         UTEST_ASSERT(system::set_env_var(&name, snull) == STATUS_OK);
+        printf("Checking env variable %s not set\n", name.get_native());
         UTEST_ASSERT(system::get_env_var(&name, snull) == STATUS_NOT_FOUND);
+        printf("Setting env variable %s to %s\n", name.get_native(), value.get_native());
         UTEST_ASSERT(system::set_env_var(&name, &value) == STATUS_OK);
+        printf("Reading env variable %s\n", name.get_native());
         UTEST_ASSERT(system::get_env_var(&name, &rvalue) == STATUS_OK);
+        printf("Read env variable %s as %s\n", name.get_native(), rvalue.get_native());
         UTEST_ASSERT(value.equals(&rvalue));
+        printf("Cleaning env variable %s\n", name.get_native());
         UTEST_ASSERT(system::set_env_var(&name, snull) == STATUS_OK);
+        printf("Checking env variable %s not set\n", name.get_native());
         UTEST_ASSERT(system::get_env_var(&name, snull) == STATUS_NOT_FOUND);
 
         // Test home directory

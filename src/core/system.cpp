@@ -5,219 +5,44 @@
  *      Author: sadko
  */
 
-
+#include <test/utest.h>
 #include <core/system.h>
+#include <core/LSPString.h>
+#include <core/io/Path.h>
 
-#ifdef PLATFORM_WINDOWS
-    #include <winbase.h>
-#else
-    #include <stdlib.h>
-    #include <errno.h>
-#endif /* PLATFORM_WINDOWS */
+using namespace lsp;
 
-namespace lsp
-{
-    namespace system
+UTEST_BEGIN("core", system)
+    UTEST_MAIN
     {
-        status_t get_env_var(const LSPString *name, LSPString *dst)
-        {
-            if (name == NULL)
-                return STATUS_BAD_ARGUMENTS;
+        LSPString name, value, rvalue;
+        LSPString *snull = NULL;
 
-            const char *nname = name->get_native();
-            if (nname == NULL)
-                return STATUS_NO_MEM;
+        // Test environment variables
+        UTEST_ASSERT(name.set_utf8("LSP_TEST_ENVIRONMENT_VARIABLE"));
+        UTEST_ASSERT(value.set_utf8("LSP_TEST_ENVIRONMENT_VALUE"));
 
-#ifdef PLATFORM_WINDOWS
-            DWORD bufsize = GetEnvironmentVariable(nname, NULL, 0);
-            if (bufsize == 0)
-            {
-                if (GetLastError() == ERROR_ENVVAR_NOT_FOUND)
-                    return STATUS_NOT_FOUND;
-                return STATUS_UNKNOWN_ERR;
-            }
-            else if (dst == NULL)
-                return STATUS_OK;
+        printf("Cleaning env variable %s\n", name.get_native());
+        UTEST_ASSERT(system::set_env_var(&name, snull) == STATUS_OK);
+        printf("Checking env variable %s not set\n", name.get_native());
+        UTEST_ASSERT(system::get_env_var(&name, snull) == STATUS_NOT_FOUND);
+        printf("Setting env variable %s to %s\n", name.get_native(), value.get_native());
+        UTEST_ASSERT(system::set_env_var(&name, &value) == STATUS_OK);
+        printf("Reading env variable %s\n", name.get_native());
+        UTEST_ASSERT(system::get_env_var(&name, &rvalue) == STATUS_OK);
+        printf("Read env variable %s as %s\n", name.get_native(), rvalue.get_native());
+        UTEST_ASSERT(value.equals(&rvalue));
+        printf("Cleaning env variable %s\n", name.get_native());
+        UTEST_ASSERT(system::set_env_var(&name, snull) == STATUS_OK);
+        printf("Checking env variable %s not set\n", name.get_native());
+        UTEST_ASSERT(system::get_env_var(&name, snull) == STATUS_NOT_FOUND);
 
-            char *buf = reinterpret_cast<char *>(::malloc(bufsize));
-            if (buf == NULL)
-                return STATUS_NO_MEM;
-            bufsize = GetEnvironmentVariable(nname, buf, bufsize);
-            if (bufsize == 0)
-            {
-                ::free(buf);
-                return STATUS_UNKNOWN_ERR;
-            }
-
-            bool res = dst->set_native(buf, bufsize);
-            ::free(buf);
-            return (res) ? STATUS_OK : STATUS_NO_MEM;
-#else
-
-#ifdef _GNU_SOURCE
-            char *var = secure_getenv(nname);
-#else
-            char *var = getenv(nname);
-#endif
-            if (var == NULL)
-                return STATUS_NOT_FOUND;
-            if (dst != NULL)
-            {
-                if (!dst->set_native(var))
-                    return STATUS_NO_MEM;
-            }
-            return STATUS_OK;
-#endif /* PLATFORM_WINDOWS */
-        }
-
-        status_t get_env_var(const char *name, LSPString *dst)
-        {
-            if (name == NULL)
-                return STATUS_BAD_ARGUMENTS;
-            LSPString sname;
-            if (!sname.set_utf8(name))
-                return STATUS_NO_MEM;
-            return get_env_var(&sname, dst);
-        }
-
-        status_t set_env_var(const LSPString *name, const LSPString *value)
-        {
-            const char *nname = name->get_native();
-            if (nname == NULL)
-                return STATUS_NO_MEM;
-
-#ifdef PLATFORM_WINDOWS
-            if (value != NULL)
-            {
-                const char *nvalue = value->get_native();
-                if (nvalue == NULL)
-                    return STATUS_NO_MEM;
-                if (SetEnvironmentVariable(nname, nvalue))
-                    return STATUS_OK;
-            }
-            else
-            {
-                if (SetEnvironmentVariable(nname, NULL))
-                    return STATUS_OK;
-            }
-            return STATUS_UNKNOWN_ERR;
-#else
-            int res;
-            if (value != NULL)
-            {
-                const char *nvalue = value->get_native();
-                if (nvalue == NULL)
-                    return STATUS_NO_MEM;
-                res = ::setenv(nname, nvalue, 1);
-            }
-            else
-                res = ::unsetenv(nname);
-
-            if (res == 0)
-                return STATUS_OK;
-            switch (res)
-            {
-                case EINVAL: return STATUS_INVALID_VALUE;
-                case ENOMEM: return STATUS_NO_MEM;
-                default: break;
-            }
-            return STATUS_UNKNOWN_ERR;
-#endif /* PLATFORM_WINDOWS */
-        }
-
-        status_t set_env_var(const char *name, const char *value)
-        {
-            if (name == NULL)
-                return STATUS_BAD_ARGUMENTS;
-            LSPString sname;
-            if (!sname.set_utf8(name))
-                return STATUS_NO_MEM;
-            if (value == NULL)
-                return set_env_var(&sname, NULL);
-
-            LSPString svalue;
-            if (!svalue.set_utf8(value))
-                return STATUS_NO_MEM;
-            return set_env_var(&sname, &svalue);
-        }
-
-        status_t set_env_var(const char *name, const LSPString *value)
-        {
-            if (name == NULL)
-                return STATUS_BAD_ARGUMENTS;
-            LSPString sname;
-            if (!sname.set_utf8(name))
-                return STATUS_NO_MEM;
-            return set_env_var(&sname, value);
-        }
-
-        status_t remove_env_var(const LSPString *name)
-        {
-            const char *nname = name->get_native();
-            if (nname == NULL)
-                return STATUS_NO_MEM;
-
-#ifdef PLATFORM_WINDOWS
-            if (SetEnvironmentVariable(nname, NULL))
-                return STATUS_OK;
-            return STATUS_UNKNOWN_ERR;
-#else
-            int res = ::unsetenv(nname);
-            if (res == 0)
-                return STATUS_OK;
-            switch (res)
-            {
-                case EINVAL: return STATUS_INVALID_VALUE;
-                case ENOMEM: return STATUS_NO_MEM;
-                default: break;
-            }
-            return STATUS_UNKNOWN_ERR;
-#endif /* PLATFORM_WINDOWS */
-        }
-
-        status_t remove_env_var(const char *name)
-        {
-            if (name == NULL)
-                return STATUS_BAD_ARGUMENTS;
-            LSPString sname;
-            if (!sname.set_utf8(name))
-                return STATUS_NO_MEM;
-            return remove_env_var(&sname);
-        }
-
-        status_t get_home_directory(LSPString *homedir)
-        {
-            if (homedir == NULL)
-                return STATUS_BAD_ARGUMENTS;
-#ifdef PLATFORM_WINDOWS
-            LSPString drv, path;
-            status_t res = get_env_var("HOMEDRIVE", &drv);
-            if (res != STATUS_OK)
-                return res;
-            res = get_env_var("HOMEPATH", &path);
-            if (res != STATUS_OK)
-                return res;
-            if (!drv.append(&path))
-                return STATUS_NO_MEM;
-
-            homedir->take(drv);
-            return STATUS_OK;
-#else
-            return get_env_var("HOME", homedir);
-#endif /* PLATFORM_WINDOWS */
-        }
-
-        status_t get_home_directory(io::Path *homedir)
-        {
-            if (homedir == NULL)
-                return STATUS_BAD_ARGUMENTS;
-            LSPString path;
-            status_t res = get_home_directory(&path);
-            if (res != STATUS_OK)
-                return res;
-            return homedir->set(&path);
-        }
+        // Test home directory
+        LSPString homedir;
+        io::Path path;
+        UTEST_ASSERT(system::get_home_directory(&homedir) == STATUS_OK);
+        UTEST_ASSERT(path.set(&homedir) == STATUS_OK);
+        UTEST_ASSERT(path.is_absolute());
+        printf("Home directory is: %s\n", path.as_native());
     }
-}
-
-
+UTEST_END
