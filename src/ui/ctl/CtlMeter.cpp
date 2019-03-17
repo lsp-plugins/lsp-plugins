@@ -6,6 +6,7 @@
  */
 
 #include <ui/ctl/ctl.h>
+#include <stdio.h>
 
 #define METER_ATT       0.1f
 #define METER_REL       0.5f
@@ -421,7 +422,9 @@ namespace lsp
             // Now we are able to format values
             char buf[40];
 
-            if (avalue < 10.0f)
+            if (isnan(avalue))
+                strcpy(buf, "nan");
+            else if (avalue < 10.0f)
                 snprintf(buf, sizeof(buf), "%.2f", value);
             else if (avalue < 100.0f)
                 snprintf(buf, sizeof(buf), "%.1f", value);

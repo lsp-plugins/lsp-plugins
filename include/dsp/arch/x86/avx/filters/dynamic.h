@@ -152,7 +152,7 @@ namespace avx
 
             // Store delay buffer
             __ASM_EMIT("vmovups         %%ymm6, 0x00(%[d])")                            // *d0      = %%ymm6
-            __ASM_EMIT("vmovups         %%ymm7, 0x20(%[d])")                            // *d1      = &&ymm7
+            __ASM_EMIT("vmovups         %%ymm7, 0x20(%[d])")                            // *d1      = %%ymm7
 
             // Exit label
             __ASM_EMIT("vzeroupper")
@@ -213,6 +213,7 @@ namespace avx
             __ASM_EMIT("vblendps        $0x11, %%ymm0, %%ymm1, %%ymm1")                 // ymm1     = s2[7] s2[0] s2[1] s2[2] s2[3] s2[4] s2[5] s2[6]
 
             // Repeat loop
+            __ASM_EMIT("add          $" DYN_BIQUAD_X8_SSIZE ", %[f]")                   // f++
             __ASM_EMIT("dec             %[count]")
             __ASM_EMIT("jz              4f")                                            // jump to completion
             __ASM_EMIT("lea             0x01(,%[mask], 2), %[mask]")                    // mask     = (mask << 1) | 1
@@ -273,6 +274,7 @@ namespace avx
             __ASM_EMIT("vblendvps       %%ymm8, %%ymm3, %%ymm7, %%ymm7")                // ymm7     = (p2 & MASK) | (d1 & ~MASK)
 
             // Rotate buffer and mask, AVX2 has better option for it
+            __ASM_EMIT("add          $" DYN_BIQUAD_X8_SSIZE ", %[f]")                   // f++
             __ASM_EMIT("vpermilps       $0x93, %%ymm1, %%ymm1")                         // ymm1     = s2[3] s2[0] s2[1] s2[2] s2[7] s2[4] s2[5] s2[6]
             __ASM_EMIT("vpermilps       $0x93, %%ymm8, %%ymm8")                         // ymm8     =  m[3]  m[0]  m[1]  m[2]  m[7]  m[4]  m[5]  m[6]
             __ASM_EMIT("vextractf128    $0x01, %%ymm1, %%xmm0")                         // ymm0     = s2[7] s2[4] s2[5] s2[6] ? ? ? ?

@@ -8,7 +8,7 @@
 #include <core/lib.h>
 #include <core/debug.h>
 #include <core/status.h>
-#include <core/NativeExecutor.h>
+#include <core/ipc/NativeExecutor.h>
 
 #include <dsp/dsp.h>
 

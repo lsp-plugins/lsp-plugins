@@ -63,6 +63,8 @@ UTEST_BEGIN("dsp.3d", triplet)
         )
             return;
 
+        printf("Launching %s implementation\n", label);
+
         triangle3d_t t[3];
         dsp::calc_triangle3d_xyz(&t[0], 1.0f, 1.0f, 1.0f, 2.0f, 2.0f, 1.0f, -3.0f, 3.0f, 1.0f);
         dsp::calc_triangle3d_xyz(&t[1], 1.0f, 2.0f, 2.0f, 1.0f, 1.0f, 1.0f, 1.0f, 3.0f, -3.0f);
@@ -74,7 +76,7 @@ UTEST_BEGIN("dsp.3d", triplet)
 
         for (size_t i=0; i<3; ++i)
         {
-            printf("Checking triangle %d", int(i));
+            printf("Checking triangle %d\n", int(i));
 
             UTEST_ASSERT(check_triplet3d_t(&t[i]) >= 0.0f);
             UTEST_ASSERT(check_triplet3d_tn(&t[i], &n1) >= 0.0f);
@@ -88,21 +90,21 @@ UTEST_BEGIN("dsp.3d", triplet)
             vector3d_t v[3];
             dsp::init_vector_p2(&v[0], &t->p[0], &t->p[1]);
             dsp::init_vector_p2(&v[1], &t->p[1], &t->p[2]);
-            dsp::init_vector_p2(&v[3], &t->p[2], &t->p[0]);
+            dsp::init_vector_p2(&v[2], &t->p[2], &t->p[0]);
 
-            UTEST_ASSERT(check_triplet3d_v2n(&v[0], &v[1], &n1) >= 0);
-            UTEST_ASSERT(check_triplet3d_v2n(&v[1], &v[2], &n1) >= 0);
-            UTEST_ASSERT(check_triplet3d_v2n(&v[2], &v[0], &n1) >= 0);
+            UTEST_ASSERT(check_triplet3d_v2n(&v[0], &v[1], &n1) >= 0.0f);
+            UTEST_ASSERT(check_triplet3d_v2n(&v[1], &v[2], &n1) >= 0.0f);
+            UTEST_ASSERT(check_triplet3d_v2n(&v[2], &v[0], &n1) >= 0.0f);
 
-            UTEST_ASSERT(check_triplet3d_v2n(&v[0], &v[1], &n2) <= 0);
-            UTEST_ASSERT(check_triplet3d_v2n(&v[1], &v[2], &n2) <= 0);
-            UTEST_ASSERT(check_triplet3d_v2n(&v[2], &v[0], &n2) <= 0);
+            UTEST_ASSERT(check_triplet3d_v2n(&v[0], &v[1], &n2) <= 0.0f);
+            UTEST_ASSERT(check_triplet3d_v2n(&v[1], &v[2], &n2) <= 0.0f);
+            UTEST_ASSERT(check_triplet3d_v2n(&v[2], &v[0], &n2) <= 0.0f);
 
             dsp::init_vector(&v[2], &n1);
-            UTEST_ASSERT(check_triplet3d_vv(v) >= 0);
+            UTEST_ASSERT(check_triplet3d_vv(v) >= 0.0f);
 
             dsp::init_vector(&v[2], &n2);
-            UTEST_ASSERT(check_triplet3d_vv(v) <= 0);
+            UTEST_ASSERT(check_triplet3d_vv(v) <= 0.0f);
         }
     }
 

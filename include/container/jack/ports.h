@@ -228,6 +228,7 @@ namespace lsp
                             lsp_warn("Could not append MIDI event #%d at timestamp %d due to buffer overflow", int(i), int(midi_event.time));
                     }
                 }
+                // All events ARE ordered chronologically, we do not need to perform sort
 
                 return false;
             }
@@ -240,23 +241,11 @@ namespace lsp
                     jack_midi_clear_buffer(pBuffer);
 
                     // Transfer MIDI events
+                    pMidi->sort();  // All events SHOULD be ordered chonologically
+
                     size_t events = pMidi->nEvents;
                     if (events > 0)
                     {
-                        // Sort events by their time
-                        if (events > 1)
-                        {
-                            // Simple bubble sort...
-                            for (size_t i=0; i<(events-1); ++i)
-                                for (size_t j=i+1; j<events; ++j)
-                                    if (pMidi->vEvents[i].timestamp > pMidi->vEvents[j].timestamp)
-                                    {
-                                        midi_event_t tmp    = pMidi->vEvents[i];
-                                        pMidi->vEvents[i]   = pMidi->vEvents[j];
-                                        pMidi->vEvents[j]   = tmp;
-                                    }
-                        }
-
                         // Transport all events
                         for (size_t i=0; i<events; ++i)
                         {

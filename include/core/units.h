@@ -8,7 +8,7 @@
 #ifndef CORE_UNITS_H_
 #define CORE_UNITS_H_
 
-#include <core/math.h>
+#include <core/stdlib/math.h>
 
 // Some physical constants
 #define MAX_SAMPLE_RATE                     192000              /* Maximum supported sample rate [samples / s]      */
@@ -28,7 +28,7 @@
 #define BPM_MAX                             1000.0f             /* Maximum BPM                                      */
 #define BPM_DEFAULT                         120.0f              /* Default BPM                                      */
 #define DEFAULT_TICKS_PER_BEAT              1920.0f             /* Default tick per beat resolution                 */
-#define MIDI_EVENTS_MAX                     1024                /* Maximum number of MIDI events per buffer         */
+#define MIDI_EVENTS_MAX                     4096                /* Maximum number of MIDI events per buffer         */
 #define GOLDEN_RATIO                        1.618               /* Golden ratio                                     */
 #define R_GOLDEN_RATIO                      0.618               /* Reverse golden ratio                             */
 

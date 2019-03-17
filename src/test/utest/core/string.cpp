@@ -5,16 +5,39 @@
  *      Author: sadko
  */
 
-#include <dsp/dsp.h>
 #include <core/LSPString.h>
 #include <test/utest.h>
 
 using namespace lsp;
 
-UTEST_BEGIN("core", lspstring)
+static const lsp_utf16_t utf16_ja[] =
+{
+    0x6DBC, 0x5BAE, 0x30CF, 0x30EB, 0x30D2, 0x306E, 0x6182, 0x9B31, 0xFF1A, 0x7B2C, 0x4E00, 0x7AE0, 0x002E,
+    0
+};
+
+static const lsp_utf16_t utf16_ru[] =
+{
+    0x0412, 0x0441, 0x0435, 0x043C, 0x0020, 0x043F, 0x0440, 0x0438, 0x0432, 0x0435, 0x0442, 0x0021,
+    0
+};
+
+static const lsp_utf16_t utf16_ja_inv[] =
+{
+    0x6DBC, 0x5BAE, 0x30CF, 0x30EB, 0x30D2, 0x306E, 0x6182, 0x9B31, 0xFF1A, 0x7B2C, 0x4E00, 0x7AE0, 0x002E,
+    0xDC00, 0
+};
+
+static const lsp_utf16_t utf16_ru_inv[] =
+{
+    0x0412, 0x0441, 0x0435, 0x043C, 0x0020, 0x043F, 0x0440, 0x0438, 0x0432, 0x0435, 0x0442, 0x0021,
+    0xD800, 0
+};
+
+UTEST_BEGIN("core", string)
     UTEST_MAIN
     {
-        LSPString s1, s2, s3, s4, s5;
+        LSPString s1, s2, s3, s4, s5, s6, s7;
 
         // Settings
         UTEST_ASSERT(s1.set_ascii("This is some text"));
@@ -37,13 +60,66 @@ UTEST_BEGIN("core", lspstring)
         UTEST_ASSERT(s5.get_native() != NULL);
         printf("s5 = %s\n", s5.get_native());
 
+        UTEST_ASSERT(s6.set_utf16(utf16_ja));
+        UTEST_ASSERT(s6.get_native() != NULL);
+        printf("s6 = %s\n", s6.get_native());
+
+        UTEST_ASSERT(s7.set_utf16(utf16_ru));
+        UTEST_ASSERT(s7.get_native() != NULL);
+        printf("s7 = %s\n", s7.get_native());
 
         UTEST_ASSERT(s1.length() == 17);
         UTEST_ASSERT(s2.length() == 12);
         UTEST_ASSERT(s3.length() == 13);
         UTEST_ASSERT(s4.length() == 22);
         UTEST_ASSERT(s5.length() == s1.length());
+        UTEST_ASSERT(s6.length() == 13);
+        UTEST_ASSERT(s7.length() == 12);
+        UTEST_ASSERT(s2.equals(&s7));
+        UTEST_ASSERT(s3.equals(&s6));
 
+        // Test data coding
+        UTEST_ASSERT(s6.set_utf8("涼宮ハルヒの憂鬱：第一章."));
+        UTEST_ASSERT(s7.set_utf16(s6.get_utf16()));
+        UTEST_ASSERT(s6.equals(&s7));
+        s7.clear();
+        UTEST_ASSERT(s7.set_utf8(s6.get_utf8()));
+        UTEST_ASSERT(s6.equals(&s7));
+
+        UTEST_ASSERT(s6.set_utf8("Всем привет!"));
+        UTEST_ASSERT(s7.set_utf16(s6.get_utf16()));
+        UTEST_ASSERT(s6.equals(&s7));
+        s7.clear();
+        UTEST_ASSERT(s7.set_utf8(s6.get_utf8()));
+        UTEST_ASSERT(s6.equals(&s7));
+
+        UTEST_ASSERT(s6.set_utf8("This is some text"));
+        UTEST_ASSERT(s7.set_utf16(s6.get_utf16()));
+        UTEST_ASSERT(s6.equals(&s7));
+        s7.clear();
+        UTEST_ASSERT(s7.set_utf8(s6.get_utf8()));
+        UTEST_ASSERT(s6.equals(&s7));
+
+        // Test some invalid sequences
+        UTEST_ASSERT(s6.set_utf8("涼宮ハルヒの憂鬱：第一章.\xff"));
+        UTEST_ASSERT(s6.length() == 14);
+        UTEST_ASSERT(s6.last() == 0xfffd);
+        UTEST_ASSERT(s6.get_native() != NULL);
+        printf("s6 = %s\n", s6.get_native());
+
+        UTEST_ASSERT(s6.set_utf16(utf16_ja_inv));
+        UTEST_ASSERT(s6.length() == 14);
+        UTEST_ASSERT(s6.last() == 0xfffd);
+        UTEST_ASSERT(s6.get_native() != NULL);
+        printf("s6 = %s\n", s6.get_native());
+
+        UTEST_ASSERT(s6.set_utf16(utf16_ru_inv));
+        UTEST_ASSERT(s6.length() == 13);
+        UTEST_ASSERT(s6.last() == 0xfffd);
+        UTEST_ASSERT(s6.get_native() != NULL);
+        printf("s6 = %s\n", s6.get_native());
+
+        // Perform operations
         UTEST_ASSERT(s3.set(&s1, 8, 12)); // "some"
         UTEST_ASSERT(s3.get_native() != NULL);
         printf("s3 = %s\n", s3.get_native());

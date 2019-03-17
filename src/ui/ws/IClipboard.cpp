@@ -38,7 +38,7 @@ namespace lsp
             return STATUS_OK;
         }
 
-        io::IInputStream *IClipboard::read(const char *ctype)
+        io::IInStream *IClipboard::read(const char *ctype)
         {
             nError      = STATUS_NOT_IMPLEMENTED;
             return NULL;

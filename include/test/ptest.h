@@ -8,12 +8,12 @@
 #ifndef TEST_PTEST_H_
 #define TEST_PTEST_H_
 
-#include <stdio.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
 #include <core/types.h>
+#include <core/stdlib/stdio.h>
 #include <data/cstorage.h>
 #include <test/test.h>
 
@@ -24,6 +24,9 @@
             using namespace ::test; \
             \
             class ptest_ ## name: public PerformanceTest { \
+                public: \
+                    typedef ptest_ ## name test_type_t; \
+                \
                 public: \
                     explicit ptest_ ## name() : PerformanceTest(group, #name, time, iterations) {} \
                     \

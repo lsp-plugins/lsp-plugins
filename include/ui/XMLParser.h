@@ -10,13 +10,15 @@
 
 #include <core/types.h>
 
-#ifdef LSP_USE_EXPAT
+#if defined(LSP_USE_EXPAT)
     #include <expat.h>
+#elif defined(LSP_USE_MSXML)
+    #include <msxml.h>
 #endif /* LSP_USE_EXPAT */
 
 namespace lsp
 {
-    #ifdef LSP_USE_EXPAT
+    #if defined(LSP_USE_EXPAT)
         typedef XML_Char            xml_char_t;
     #else
         typedef char                xml_char_t;
@@ -28,9 +30,11 @@ namespace lsp
             typedef struct node_t
             {
                 XMLHandler *handler;
-            #ifdef LSP_USE_EXPAT
+            #if defined(LSP_USE_EXPAT)
                 xml_char_t *tag;
-            #else
+            #elif defined(LSP_USE_MSXML)
+                // TODO
+            #elif defined(LSP_XML_BUILTIN)
                 const char *tag;
             #endif /* LSP_USE_EXPAT */
             } node_t;
@@ -47,9 +51,9 @@ namespace lsp
             static void startElementHandler(void *userData, const xml_char_t *name, const xml_char_t **atts);
             static void endElementHandler(void *userData, const xml_char_t *);
 
-#ifndef LSP_USE_EXPAT
+#if defined(LSP_XML_BUILTIN)
             static const char *fetch_string(const char * &text);
-#endif /* LSP_USE_EXPAT */
+#endif /* LSP_XML_BUILTIN */
         private:
             bool push(const xml_char_t *tag, XMLHandler *handler);
             node_t  *pop();

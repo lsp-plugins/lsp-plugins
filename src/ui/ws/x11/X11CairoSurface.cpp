@@ -94,15 +94,15 @@ namespace lsp
 
             void X11CairoSurface::destroy_context()
             {
-                if (pCR != NULL)
-                {
-                    cairo_destroy(pCR);
-                    pCR             = NULL;
-                }
                 if (pSurface != NULL)
                 {
                     cairo_surface_destroy(pSurface);
                     pSurface        = NULL;
+                }
+                if (pCR != NULL)
+                {
+                    cairo_destroy(pCR);
+                    pCR             = NULL;
                 }
             }
 

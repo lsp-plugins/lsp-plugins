@@ -273,6 +273,9 @@ namespace lsp
             result = wUp.slots()->bind(LSPSLOT_SUBMIT, slot_on_up, self());
             if (result < 0)
                 return -result;
+            result = sWPath.slots()->bind(LSPSLOT_KEY_UP, slot_on_path_key_up, self());
+            if (result < 0)
+                return -result;
 
             padding()->set_all(8);
             set_border_style(BS_DIALOG);
@@ -521,10 +524,32 @@ namespace lsp
                     if (item->d_type == DT_DIR) // Directory?
                         nflags      |= F_ISDIR;
                     else if (item->d_type == DT_LNK) // Symbolic link?
-                    {
                         nflags      |= F_ISLINK;
+                    else if (item->d_type == DT_REG)
+                        nflags      |= F_ISREG;
 
+                    if ((nflags & (F_ISDIR | F_ISLINK | F_ISREG)) == 0)
+                    {
                         snprintf(srcpath, sizeof(srcpath)/sizeof(char), "%s%s%s", cpath, FILE_SEPARATOR_S, item->d_name);
+                        srcpath[PATH_MAX-1] = '\0';
+
+                        if (stat(srcpath, &st) >= 0)
+                        {
+                            if (S_ISDIR(st.st_mode))
+                                nflags     |= F_ISDIR;
+                            else if (S_ISLNK(st.st_mode))
+                                nflags     |= F_ISLINK;
+                            else if (S_ISREG(st.st_mode))
+                                nflags     |= F_ISREG;
+                            else
+                                nflags     |= F_ISOTHER;
+                        }
+                    }
+
+                    if (nflags & F_ISLINK)
+                    {
+                        snprintf(srcpath, sizeof(srcpath)/sizeof(char), "%s%s%s", cpath, FILE_SEPARATOR_S, item->d_name);
+                        srcpath[PATH_MAX-1] = '\0';
 
                         do
                         {
@@ -548,13 +573,15 @@ namespace lsp
                         if (!(nFlags & F_ISINVALID))
                         {
                             if (S_ISDIR(st.st_mode))
-                                nflags      |= F_ISDIR;
-                            else if (!S_ISREG(st.st_mode))
-                                nflags      |= F_ISOTHER;
+                                nflags     |= F_ISDIR;
+                            else if (S_ISLNK(st.st_mode))
+                                nflags     |= F_ISLINK;
+                            else if (S_ISREG(st.st_mode))
+                                nflags     |= F_ISREG;
+                            else
+                                nflags     |= F_ISOTHER;
                         }
                     }
-                    else if (item->d_type != DT_REG)
-                        nflags      |= F_ISOTHER;
 
                     // Add entry to list of found files
                     if ((xres = add_file_entry(&scanned, item->d_name, nflags)) != STATUS_OK)
@@ -792,6 +819,13 @@ namespace lsp
             return (dlg != NULL) ? dlg->on_dlg_up(data) : STATUS_BAD_STATE;
         }
 
+        status_t LSPFileDialog::slot_on_path_key_up(LSPWidget *sender, void *ptr, void *data)
+        {
+            LSPFileDialog *dlg = widget_ptrcast<LSPFileDialog>(ptr);
+            ws_event_t *ev  = static_cast<ws_event_t *>(data);
+            return (dlg != NULL) ? dlg->on_path_key_up(ev) : STATUS_BAD_STATE;
+        }
+
         status_t LSPFileDialog::on_dlg_go(void *data)
         {
             LSPString path;
@@ -810,6 +844,15 @@ namespace lsp
             if (path.length() <= 0)
                 path.append(FILE_SEPARATOR_C);
             return set_path(&path);
+        }
+
+        status_t LSPFileDialog::on_path_key_up(ws_event_t *e)
+        {
+            lsp_trace("Path key code released=%x, modifiers=%x", int(e->nCode), int(e->nState));
+            ws_code_t key = LSPKeyboardHandler::translate_keypad(e->nCode);
+            if (key == WSK_RETURN)
+                return on_dlg_go(e);
+            return STATUS_OK;
         }
 
         status_t LSPFileDialog::on_dlg_mouse_dbl_click(void *data)

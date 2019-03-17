@@ -26,6 +26,7 @@ namespace lsp
         "Disconnected",
         "Bad arguments",
         "Not bound",
+        "Bad state",
         "Not implemented",
         "Already exists",
         "Overflow",
@@ -34,9 +35,20 @@ namespace lsp
         "Too big",
         "Permission denied",
         "I/O error",
+        "No file",
         "End of file",
         "The resource is closed",
         "The feature is not supported",
+        "Invalid value",
+        "Bad locale",
+        "No device",
+        "Opened",
+        "Bad type",
+        "Insufficient data",
+        "Killed",
+        "Timeout",
+        "Execution has been cancelled",
+        "Failed",
         NULL
     };
 

@@ -16,12 +16,14 @@
 // OS-specific windowing system selection
 #if defined(PLATFORM_LINUX) || defined(PLATFORM_BSD)
     #define USE_X11_DISPLAY
+#elif defined(PLATFORM_WINDOWS)
+    #define USE_WINAPI_DISPLAY
 #else
     #error "Unsupported platform"
 #endif
 
-#include <core/io/IInputStream.h>
-#include <core/io/IOutputStream.h>
+#include <core/io/IInStream.h>
+#include <core/io/IOutStream.h>
 
 namespace lsp
 {
@@ -321,7 +323,7 @@ namespace lsp
          * @param is clipboard input stream object
          * @return status of operation
          */
-        typedef status_t    (* clipboard_handler_t)(void *arg, status_t s, io::IInputStream *is);
+        typedef status_t    (* clipboard_handler_t)(void *arg, status_t s, io::IInStream *is);
 
         /** Display task identifier
          *

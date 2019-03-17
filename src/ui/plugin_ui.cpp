@@ -8,6 +8,9 @@
 #include <core/debug.h>
 #include <core/alloc.h>
 #include <core/buffer.h>
+#include <core/system.h>
+#include <core/io/Path.h>
+#include <core/io/NativeFile.h>
 
 #include <ui/ui.h>
 
@@ -108,7 +111,7 @@ namespace lsp
         CtlRegistry::destroy();
 
         // Destroy widgets
-        for (size_t i=0; i<vWidgets.size(); ++i)
+        for (size_t i=0, n=vWidgets.size(); i<n; ++i)
         {
             LSPWidget *widget = vWidgets.at(i);
             if (widget != NULL)
@@ -118,11 +121,11 @@ namespace lsp
             }
         }
 
-        vWidgets.clear();
+        vWidgets.flush();
         pRoot     = NULL;
 
         // Destroy switched ports
-        for (size_t i=0; i<vSwitched.size(); ++i)
+        for (size_t i=0, n=vSwitched.size(); i<n; ++i)
         {
             CtlSwitchedPort *p = vSwitched.at(i);
             if (p != NULL)
@@ -133,7 +136,7 @@ namespace lsp
         }
 
         // Destroy config ports
-        for (size_t i=0; i<vConfigPorts.size(); ++i)
+        for (size_t i=0, n=vConfigPorts.size(); i<n; ++i)
         {
             CtlPort *p = vConfigPorts.at(i);
             if (p != NULL)
@@ -144,7 +147,7 @@ namespace lsp
         }
 
         // Destroy time ports
-        for (size_t i=0; i<vTimePorts.size(); ++i)
+        for (size_t i=0, n=vTimePorts.size(); i<n; ++i)
         {
             CtlPort *p = vTimePorts.at(i);
             if (p != NULL)
@@ -680,23 +683,35 @@ namespace lsp
         return S_ISDIR(fattr.st_mode);
     }
 
-    FILE *plugin_ui::open_config_file(bool write)
+    io::File *plugin_ui::open_config_file(bool write)
     {
-        char fname[PATH_MAX];
-        const char *homedir     = getenv("HOME");
-        if (homedir == NULL)
+        io::Path cfg;
+        system::get_home_directory(&cfg);
+        cfg.append_child(".config");
+
+        if (!create_directory(cfg.as_native()))
             return NULL;
 
-        snprintf(fname, PATH_MAX-1, "%s/.config", homedir);
-        if (!create_directory(fname))
+        cfg.append_child(LSP_ARTIFACT_ID);
+        if (!create_directory(cfg.as_native()))
             return NULL;
 
-        snprintf(fname, PATH_MAX-1, "%s/.config/%s", homedir, LSP_ARTIFACT_ID);
-        if (!create_directory(fname))
-            return NULL;
+        cfg.append_child(LSP_ARTIFACT_ID);
+        cfg.concat(".cfg");
 
-        snprintf(fname, PATH_MAX-1, "%s/.config/%s/%s.cfg", homedir, LSP_ARTIFACT_ID, LSP_ARTIFACT_ID);
-        return fopen(fname, (write) ? "w" : "r");
+        io::NativeFile *fd = new io::NativeFile();
+        if (fd == NULL)
+            return NULL;
+        status_t res = fd->open(&cfg, (write) ?
+                io::File::FM_WRITE | io::File::FM_TRUNC | io::File::FM_CREATE :
+                io::File::FM_READ);
+
+        if (res == STATUS_OK)
+            return fd;
+
+        fd->close();
+        delete fd;
+        return NULL;
     }
 
     status_t plugin_ui::export_settings(const char *filename)
@@ -733,9 +748,9 @@ namespace lsp
 
     status_t plugin_ui::save_global_config()
     {
-        FILE *fd    = open_config_file(true);
+        io::File *fd    = open_config_file(true);
         if (fd == NULL)
-            return false;
+            return STATUS_UNKNOWN_ERR;
 
         LSPString c;
 
@@ -749,22 +764,24 @@ namespace lsp
         status_t status = config::save(fd, &cfg, true);
 
         // Close file
-        fclose(fd);
+        fd->close();
+        delete fd;
 
         return status;
     }
 
     status_t plugin_ui::load_global_config()
     {
-        FILE *fd    = open_config_file(false);
+        io::File *fd    = open_config_file(false);
         if (fd == NULL)
-            return false;
+            return STATUS_UNKNOWN_ERR;
 
         ConfigHandler handler(this, vConfigPorts);
         status_t status = config::load(fd, &handler);
 
         // Close file
-        fclose(fd);
+        fd->close();
+        delete fd;
 
         return status;
     }

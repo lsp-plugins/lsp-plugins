@@ -177,7 +177,7 @@ PTEST_BEGIN("dsp.filters", static, 30, 10000)
         printf("Testing %s static filters on input buffer of %d samples ...\n", text, int(count));
 
         biquad_t f __lsp_aligned64;
-        bzero(&f, sizeof(biquad_t));
+        memset(&f, 0, sizeof(biquad_t));
 
         // Filters x 8
         f.x8.a0[0]     = 1.0f;

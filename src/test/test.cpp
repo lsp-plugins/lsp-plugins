@@ -5,7 +5,7 @@
  *      Author: vsadovnikov
  */
 
-#include <stdio.h>
+#include <core/stdlib/stdio.h>
 #include <test/test.h>
 
 namespace test

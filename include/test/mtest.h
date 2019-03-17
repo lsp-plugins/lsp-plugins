@@ -23,6 +23,9 @@
             \
             class mtest_ ## name: public ManualTest { \
                 public: \
+                    typedef mtest_ ## name test_type_t; \
+                \
+                public: \
                     explicit mtest_ ## name() : ManualTest(group, #name) {} \
                     \
                     virtual ~mtest_ ## name() {}

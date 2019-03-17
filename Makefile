@@ -1,8 +1,3 @@
-# Estimate different pre-requisites before launching build
-include scripts/make/set_vars.mk
-include scripts/make/version.mk
-include scripts/make/configure.mk
-
 # Common definitions
 OBJDIR                  = ${CURDIR}/.build
 RELEASE_TEXT            = LICENSE.txt README.txt CHANGELOG.txt
@@ -10,10 +5,16 @@ RELEASE_SRC             = $(RELEASE_TEXT) src build-*.sh include res Makefile re
 RELEASE_SCRIPTS         = scripts/bash scripts/make
 INSTALL                 = install
 
+# Estimate different pre-requisites before launching build
+include scripts/make/tools.mk
+include scripts/make/set_vars.mk
+include scripts/make/version.mk
+include scripts/make/configure.mk
+
 # Installation locations
-BIN_PATH                = $(PREFIX)/bin
-LIB_PATH                = $(PREFIX)/lib
-DOC_PATH                = $(PREFIX)/share/doc
+BIN_PATH               ?= $(PREFIX)/bin
+LIB_PATH               ?= $(PREFIX)/lib
+DOC_PATH               ?= $(PREFIX)/share/doc
 LADSPA_PATH             = $(LIB_PATH)/ladspa
 LV2_PATH                = $(LIB_PATH)/lv2
 VST_PATH                = $(LIB_PATH)/vst
@@ -33,16 +34,7 @@ INC_FLAGS               = -I"${CURDIR}/include"
 # Location
 export BASEDIR          = ${CURDIR}
 export INCLUDE          = ${INC_FLAGS}
-export MAKE_OPTS        = -s
-export CFLAGS           = $(CC_ARCH) -std=c++98 -fdata-sections -pthread -ffunction-sections -fno-exceptions -fno-asynchronous-unwind-tables -Wall -pipe -fno-rtti $(CC_FLAGS) -DLSP_MAIN_VERSION=\"$(VERSION)\" -DLSP_INSTALL_PREFIX=\"$(PREFIX)\"
-export CC               = g++
-export PHP              = php
-export LD               = ld
-export LDFLAGS          = $(LD_ARCH) -L$(LD_PATH)
-export SO_FLAGS         = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections -shared -Llibrary -lc -fPIC
-export MERGE_FLAGS      = $(LD_ARCH) -r
-export EXE_TEST_FLAGS   = $(CC_ARCH) -Wl,-rpath,$(LD_PATH)
-export EXE_FLAGS        = $(CC_ARCH) -Wl,-rpath,$(LD_PATH) -Wl,-z,relro,-z,now -Wl,--gc-sections
+
 
 # Objects
 export OBJ_CORE         = $(OBJDIR)/core.o
@@ -105,7 +97,8 @@ all: compile
 experimental: export CFLAGS += -O2
 experimental: compile
 
-trace: export CFLAGS        += -O2 -DLSP_TRACE
+trace: export CFLAGS        += -O2 -DLSP_TRACE -g3
+trace: export EXE_FLAGS     += -g3
 trace: compile
 
 test: export CFLAGS         += -O2 -DLSP_TESTING -DLSP_TRACE -g3
@@ -136,6 +129,7 @@ compile:
 	@echo "  target architecture : $(BUILD_PROFILE)"
 	@echo "  target platform     : $(BUILD_PLATFORM)"
 	@echo "  target system       : $(BUILD_SYSTEM)"
+	@echo "  compiler            : $(BUILD_COMPILER)"
 	@echo "  modules             : $(BUILD_MODULES)"
 	@echo "-------------------------------------------------------------------------------"
 	@mkdir -p $(OBJDIR)/src

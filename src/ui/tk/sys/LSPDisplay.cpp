@@ -49,16 +49,17 @@ namespace lsp
             }
             sWidgets.flush();
 
+            // Execute slot
+            sSlots.execute(LSPSLOT_DESTROY, NULL);
+            sSlots.destroy();
+
             // Destroy display
             if (pDisplay != NULL)
             {
                 pDisplay->destroy();
+                delete pDisplay;
                 pDisplay = NULL;
             }
-
-            // Execute slot
-            sSlots.execute(LSPSLOT_DESTROY, NULL);
-            sSlots.destroy();
         }
 
         status_t LSPDisplay::init(int argc, const char **argv)

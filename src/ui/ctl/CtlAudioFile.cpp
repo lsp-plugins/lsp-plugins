@@ -407,7 +407,7 @@ namespace lsp
             return af->display()->fetch_clipboard(CBUF_CLIPBOARD, "UTF8_STRING", clipboard_handler, ctl);
         }
 
-        status_t CtlAudioFile::clipboard_handler(void *arg, status_t s, io::IInputStream *is)
+        status_t CtlAudioFile::clipboard_handler(void *arg, status_t s, io::IInStream *is)
         {
             if (s != STATUS_OK)
                 return s;

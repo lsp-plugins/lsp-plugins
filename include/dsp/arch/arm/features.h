@@ -9,7 +9,10 @@
 #define DSP_ARCH_ARM_FEATURES_H_
 
 #include <dsp/types.h>
-#include <sys/auxv.h>
+
+#ifdef PLATFORM_POSIX
+    #include <sys/auxv.h>
+#endif /* PLATFORM_UNIX */
 
 #ifndef ARCH_ARM
     /* This is feature definition taken from ARM headers for non-ARM architecture

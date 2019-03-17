@@ -23,12 +23,15 @@
             \
             class utest_ ## name: public UnitTest { \
                 public: \
+                    typedef utest_ ## name test_type_t;\
+                \
+                public: \
                     explicit utest_ ## name() : UnitTest(group, #name) {} \
                     \
                     virtual ~utest_ ## name() {}
 
-#define UTEST_TIMELIMIT(value) \
-        virtual double time_limit() const { return double(value); }
+#define UTEST_TIMELIMIT(seconds) \
+        virtual double time_limit() const { return double(seconds); }
 
 #define UTEST_IGNORE \
         virtual bool ignore() const { return true; }

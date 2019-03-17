@@ -10,6 +10,8 @@
 #include <core/debug.h>
 #include <core/filters/Filter.h>
 
+#define MIN_APO_Q   0.1f // Minimum Q for APO cannot be 0
+
 namespace lsp
 {
     Filter::Filter()
@@ -90,8 +92,8 @@ namespace lsp
         if (vData != NULL)
         {
             delete  [] vData;
-            vItems  = NULL;
-            vData   = NULL;
+            vItems      = NULL;
+            vData       = NULL;
         }
 
         if (pBank != NULL)
@@ -297,9 +299,42 @@ namespace lsp
                 break;
             }
 
+            case FLT_DR_APO_LOPASS:
+            case FLT_DR_APO_HIPASS:
+            case FLT_DR_APO_BANDPASS:
+            case FLT_DR_APO_NOTCH:
+            case FLT_DR_APO_ALLPASS:
+            case FLT_DR_APO_PEAKING:
+            case FLT_DR_APO_LOSHELF:
+            case FLT_DR_APO_HISHELF:
+            {
+                calc_apo_filter(sParams.nType, &fp);
+                nMode               = FM_APO;
+                break;
+            }
+
+            case FLT_DR_APO_LADDERPASS:
+            {
+                calc_apo_filter(FLT_DR_APO_HISHELF, &fp);
+                fp.fFreq            = sParams.fFreq2;
+                fp.fGain            = 1.0f / sParams.fGain;
+                calc_apo_filter(FLT_DR_APO_HISHELF, &fp);
+                nMode               = FM_APO;
+                break;
+            }
+
+            case FLT_DR_APO_LADDERREJ:
+            {
+                calc_apo_filter(FLT_DR_APO_LOSHELF, &fp);
+                fp.fFreq            = sParams.fFreq2;
+                calc_apo_filter(FLT_DR_APO_HISHELF, &fp);
+                nMode               = FM_APO;
+                break;
+            }
+
             case FLT_NONE:
             default:
-                nMode           = FM_BYPASS;
+                nMode               = FM_BYPASS;
                 break;
         }
 
@@ -349,6 +384,53 @@ namespace lsp
         *im             = r_im;
     }
 
+    void Filter::apo_complex_transfer_calc(float *re, float *im, double f)
+    {
+        // Calculating normalized frequency, wrapped for maximal accuracy:
+        double kf   = f / float(nSampleRate);
+        double w    = 2.0 * M_PI * (kf - floor(kf));
+
+        // Auxiliary variables:
+        double cw   = cos(w);
+        double sw   = sin(w);
+
+        // These equations are valid since sw has valid sign
+        double c2w  = cw * cw - sw * sw;    // cos(2 * w)
+        double s2w  = 2.0 * sw * cw;        // sin(2 * w)
+
+        // Apo will be just one biquad, but let's write this to be able to calculate any digital biquads cascade.
+        double r_re = 1.0f, r_im = 0.0f;    // The result complex number
+        double b_re, b_im;                  // Temporary values for computing complex multiplication
+
+        for (size_t i=0; i<nItems; ++i)
+        {
+            cascade_t *c    = &vItems[i];
+
+            double alpha    = c->t[0] + c->t[1] * cw + c->t[2] * c2w;
+            double beta     = c->t[1] * sw + c->t[2] * s2w;
+            double gamma    = c->b[0] + c->b[1] * cw + c->b[2] * c2w;
+            double delta    = c->b[1] * sw + c->b[2] * s2w;
+
+            double mag      = 1.0 / (gamma * gamma + delta * delta);
+
+            // Compute current biquad's tranfer function
+            double w_re     = mag * (alpha * gamma - beta * delta);
+            double w_im     = mag * (alpha * delta + beta * gamma);
+
+            // Compute common transfer function as a product between current biquad's
+            // transfer function and previous value
+            b_re            = r_re*w_re - r_im*w_im;
+            b_im            = r_re*w_im + r_im*w_re;
+
+            // Commit changes to the result complex number
+            r_re            = b_re;
+            r_im            = b_im;
+        }
+
+        *re     = r_re;
+        *im     = r_im;
+    }
+
     void Filter::freq_chart(float *re, float *im, const float *f, size_t count)
     {
         // Calculate frequency chart
@@ -382,6 +464,15 @@ namespace lsp
                     double w    = *(f++) * kf;
 
                     complex_transfer_calc(re++, im++, w);
+                }
+                break;
+            }
+
+            case FM_APO:
+            {
+                while (count--)
+                {
+                    apo_complex_transfer_calc(re++, im++, *(f++));
                 }
                 break;
             }
@@ -428,6 +519,16 @@ namespace lsp
                     double w    = *(f++) * kf;
                     complex_transfer_calc(c, &c[1], w);
                     c += 2;
+                }
+                break;
+            }
+
+            case FM_APO:
+            {
+                while (count--)
+                {
+                    apo_complex_transfer_calc(c, &c[1], *(f++));
+                    c += 2; // Don't forget to move the pointer
                 }
                 break;
             }
@@ -1053,6 +1154,169 @@ namespace lsp
         // Calculate two similar chains
         calc_bwc_filter(type, &bfp);
         calc_bwc_filter(type, &bfp);
+    }
+
+    void Filter::calc_apo_filter(size_t type, const filter_params_t *fp)
+    {
+        double a0;
+        double a1;
+        double a2;
+        double b0;
+        double b1;
+        double b2;
+
+        double omega    = 2.0 * M_PI * fp->fFreq / double(nSampleRate);
+        double cs       = sin(omega);
+        double cc       = cos(omega); // Have to use trig functions for both to have correct sign
+        double Q        = (fp->fQuality > MIN_APO_Q) ? fp->fQuality : MIN_APO_Q;
+        double alpha    = 0.5 * cs / Q;
+
+        // In LSP convention, the b coefficients are in the denominator. The a coefficients are in the
+        // numerator. This is opposite to the most usual convention.
+        // Coefficients are normalised so that b0 = 1
+
+        switch (type)
+        {
+            case FLT_DR_APO_LOPASS:
+            {
+                double A = fp->fGain;
+
+                a0 = A * 0.5 * (1.0 - cc);
+                a1 = A * (1.0 - cc);
+                a2 = a0;
+                b0 = 1.0 + alpha;
+                b1 = -2.0 * cc;
+                b2 = 1.0 - alpha;
+
+                break;
+            }
+
+            case FLT_DR_APO_HIPASS:
+            {
+                double A = fp->fGain;
+
+                a0 = A * 0.5 * (1.0 + cc);
+                a1 = A * (-1.0 - cc);
+                a2 = a0;
+                b0 = 1.0 + alpha;
+                b1 = -2.0 * cc;
+                b2 = 1.0 - alpha;
+
+                break;
+            }
+
+            case FLT_DR_APO_BANDPASS:
+            {
+                double A = fp->fGain;
+
+                a0 = A * alpha;
+                a1 = 0.0;
+                a2 = A * -alpha;
+                b0 = 1.0 + alpha;
+                b1 = -2.0 * cc;
+                b2 = 1 - alpha;
+
+                break;
+            }
+
+            case FLT_DR_APO_NOTCH:
+            {
+                double A = fp->fGain;
+
+                a0 = A;
+                a1 = A * -2.0 * cc;
+                a2 = a0;
+                b0 = 1.0 + alpha;
+                b1 = -2.0 * cc;
+                b2 = 1.0 - alpha;
+
+                break;
+            }
+
+            case FLT_DR_APO_ALLPASS:
+            {
+                double A = fp->fGain;
+
+                a0 = A * (1.0 - alpha);
+                a1 = A * -2.0 * cc;
+                a2 = A * (1.0 + alpha);
+                b0 = a2;
+                b1 = a1;
+                b2 = a0;
+
+                break;
+            }
+
+            case FLT_DR_APO_PEAKING:
+            {
+                double A = sqrt(fp->fGain);
+
+                a0 = 1.0 + alpha * A;
+                a1 = -2.0 * cc;
+                a2 = 1.0 - alpha * A;
+                b0 = 1.0 + alpha / A;
+                b1 = a1;
+                b2 = 1.0 - alpha / A;
+
+                break;
+            }
+
+            case FLT_DR_APO_LOSHELF:
+            {
+                double A    = sqrt(fp->fGain);
+                double beta = 2.0 * alpha * sqrt(A);
+
+                a0 = A * ((A + 1.0) - (A - 1.0) * cc + beta);
+                a1 = 2.0 * A * ((A - 1.0) - (A + 1.0) * cc);
+                a2 = A * ((A + 1.0) - (A - 1.0) * cc - beta);
+                b0 = (A + 1.0) + (A - 1.0) * cc + beta;
+                b1 = -2.0 * ((A - 1.0) + (A + 1.0) * cc);
+                b2 = (A + 1.0) + (A - 1.0) * cc - beta;
+
+                break;
+            }
+
+            case FLT_DR_APO_HISHELF:
+            {
+                double A    = sqrt(fp->fGain);
+                double beta = 2.0 * alpha * sqrt(A);
+
+                a0 = A * ((A + 1.0) + (A - 1.0) * cc + beta);
+                a1 = -2.0 * A * ((A - 1.0) + (A + 1.0) * cc);
+                a2 = A * ((A + 1.0) + (A - 1.0) * cc - beta);
+                b0 = (A + 1.0) - (A - 1.0) * cc + beta;
+                b1 = 2.0 * ((A - 1.0) - (A + 1.0) * cc);
+                b2 = (A + 1.0) - (A - 1.0) * cc - beta;
+
+                break;
+            }
+            default:
+                return;
+        }
+
+        biquad_x1_t *f = pBank->add_chain();
+        if (f == NULL)
+            return;
+
+        // Storing with appropriate normalisation and sign as required by biquad_process_x1().
+        f->a[0] = a0 / b0;
+        f->a[1] = f->a[0];
+        f->a[2] = a1 / b0;
+        f->a[3] = a2 / b0;
+
+        f->b[0] = -b1 / b0;
+        f->b[1] = -b2 / b0;
+        f->b[2] = 0.0f;
+        f->b[3] = 0.0f;
+
+        // Storing the coefficient for plotting
+        cascade_t *c = add_cascade();
+        c->t[0] = f->a[0];
+        c->t[1] = f->a[2];
+        c->t[2] = f->a[3];
+        c->b[0] = 1.0;
+        c->b[1] = -f->b[0];
+        c->b[2] = -f->b[1];
     }
 
     /*

@@ -54,6 +54,9 @@
 #elif defined(__arm__)
     #define ARCH_ARM
     #define IF_ARCH_ARM(...)        __VA_ARGS__
+#elif defined(__aarch64__)
+    #define ARCH_AARCH64
+    #define IF_ARCH_AARCH64(...)    __VA_ARGS__
 #else
     #warning "Unsupported archtecture"
 #endif
@@ -83,27 +86,34 @@
 #endif /* defined(ARCH_I386) || defined(ARCH_X86_64) */
 
 #if defined(ARCH_ARM)
+    #define ARCH_32BIT
     #define ARCH_LE
     #define ARCH_ARM_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
 
-    #if (__ARM_ARCH == 8)
-        #define ARCH_64BIT
-        #define ARCH_ARM8
-        #define ARCH_STRING "armv8a"
-        #define IF_ARCH_ARM8(...)        __VA_ARGS__
-    #elif (__ARM_ARCH == 7)
-        #define ARCH_32BIT
+    #if (__ARM_ARCH == 7)
         #define ARCH_ARM7
-        #define ARCH_STRING "armv7a"
+        #define ARCH_STRING             "armv7a"
         #define IF_ARCH_ARM7(...)        __VA_ARGS__
     #elif (__ARM_ARCH == 6)
-        #define ARCH_32BIT
         #define ARCH_ARM6
-        #define ARCH_STRING "armv6a"
+        #define ARCH_STRING             "armv6a"
         #define IF_ARCH_ARM6(...)        __VA_ARGS__
     #else
-        #define ARCH_32BIT
         #define ARCH_STRING "arm-generic"
+    #endif
+#endif /* defined(ARCH_ARM) */
+
+#if defined(ARCH_AARCH64)
+    #define ARCH_64BIT
+    #define ARCH_LE
+    #define ARCH_AARCH64_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
+
+    #if (__ARM_ARCH == 8)
+        #define ARCH_ARM8
+        #define ARCH_STRING             "aarch64"
+        #define IF_ARCH_ARM8(...)        __VA_ARGS__
+    #else
+        #define ARCH_STRING             "aarch64-generic"
     #endif
 #endif /* defined(ARCH_ARM) */
 
@@ -132,27 +142,34 @@
 // Detect build platform
 #if defined(__unix__) || defined(unix) || defined(__unix)
     #define PLATFORM_UNIX
+    #define IF_PLATFORM_UNIX(...)       __VA_ARGS__
 #endif /* __unix__ */
 
 #if defined(__linux__) || defined(__linux) || defined(linux)
     #define PLATFORM_LINUX
+    #define IF_PLATFORM_LINUX(...)      __VA_ARGS__
 #endif /* __linux__ */
 
 #if defined(__bsd__) || defined(__bsd) || defined(__FreeBSD__) || defined(freebsd) || defined(openbsd) || defined(bsdi) || defined(__darwin__)
     #define PLATFORM_BSD
+    #define IF_PLATFORM_BSD(...)        __VA_ARGS__
 #endif /* __bsd__ */
 
 #if defined(__macosx__) || defined(__APPLE__) || defined(__MACH__)
     #define PLATFORM_MACOSX
+    #define IF_PLATFORM_MACOSX(...)     __VA_ARGS__
 #endif /* __macosx__ */
 
 #if defined(PLATFORM_UNIX) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOSX) || defined(PLATFORM_BSD)
     #define PLATFORM_UNIX_COMPATIBLE
     #define PLATFORM_POSIX
+
+    #define IF_PLATFORM_POSIX(...)      __VA_ARGS__
 #endif /* unix-compatible platforms */
 
 #if defined(__WINDOWS__) || defined(__WIN32__) || defined(__WIN64__) || defined(_WIN64) || defined(_WIN32) || defined(__WINNT) || defined(__WINNT__)
     #define PLATFORM_WINDOWS
+    #define IF_PLATFORM_WINDOWS(...)    __VA_ARGS__
 #endif /* __macosx__ */
 
 // File separators for platform tuning
@@ -328,6 +345,32 @@
 #endif /* IF_ARCH_ARM8 */
 
 //-----------------------------------------------------------------------------
+// Default platform
+#ifndef IF_PLATFORM_UNIX
+    #define IF_PLATFORM_UNIX(...)
+#endif /* IF_PLATFORM_UNIX */
+
+#ifndef IF_PLATFORM_LINUX
+    #define IF_PLATFORM_LINUX(...)
+#endif /* IF_PLATFORM_LINUX */
+
+#ifndef IF_PLATFORM_BSD
+    #define IF_PLATFORM_BSD(...)
+#endif /* IF_PLATFORM_BSD */
+
+#ifndef IF_PLATFORM_MACOSX
+    #define IF_PLATFORM_MACOSX(...)
+#endif /* IF_PLATFORM_MACOSX */
+
+#ifndef IF_PLATFORM_POSIX
+    #define IF_PLATFORM_POSIX(...)
+#endif /* IF_PLATFORM_POSIX */
+
+#ifndef IF_PLATFORM_WINDOWS
+    #define IF_PLATFORM_WINDOWS(...)
+#endif /* IF_PLATFORM_WINDOWS */
+
+//-----------------------------------------------------------------------------
 // Optimizations
 #ifdef ARCH_X86
     #define DEFAULT_ALIGN                   0x10
@@ -349,5 +392,13 @@ __IF_64( typedef        int64_t             smword_t );
 #ifdef PLATFORM_LINUX
     #include <linux/limits.h>
 #endif /* __linux__ */
+
+//-----------------------------------------------------------------------------
+// Character type sizes
+#if (WCHAR_MAX >= 0x10000ul)
+    #define WCHART_32BIT
+#else
+    #define WCHART_16BIT
+#endif /* WCHAR_MAX */
 
 #endif /* DSP_TYPES_H_ */
