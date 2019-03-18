@@ -16,6 +16,7 @@
         \
         ARCH_AARCH64_ASM \
         ( \
+            __ASM_EMIT("dmb st") \
             __ASM_EMIT("mov             %[tmp], %[exp]") \
             __ASM_EMIT("casa" qsz "     %[tmp], %[rep], [%[ptr]]") \
             __ASM_EMIT("cmp             %[tmp], %[exp]") \
@@ -32,15 +33,16 @@
     inline type atomic_cas(extra type *ptr, type exp, type rep) \
     { \
         type tmp; \
+        uint32_t res; \
         \
         ARCH_AARCH64_ASM \
         ( \
-            __ASM_EMIT("dmb") \
+            __ASM_EMIT("dmb st") \
             __ASM_EMIT("ldaxr" qsz "    %[tmp], [%[ptr]]") \
             __ASM_EMIT("eor             %[tmp], %[exp]")    /* ret == 0 on success */ \
             __ASM_EMIT("cbnz            %[tmp], 2f")        /* jump if failed */ \
-            __ASM_EMIT("stxr" qsz "     %[tmp], %[rep], [%[ptr]]") /* try to store rep as replacement */ \
-            __ASM_EMIT("tst             %[tmp], %[tmp]")    /* ret == 0 on success */ \
+            __ASM_EMIT("stxr" qsz "     %[res], %[rep], [%[ptr]]") /* try to store rep as replacement */ \
+            __ASM_EMIT("tst             %[res], %[res]")    /* ret == 0 on success */ \
             __ASM_EMIT("2:") \
             __ASM_EMIT("cset            %[tmp], eq") \
             : [tmp] "=&r" (tmp) \
@@ -72,12 +74,13 @@ ATOMIC_CAS_DEF(uint64_t, "", volatile)
 #define ATOMIC_ADD_DEF(type, qsz, extra) \
     inline type atomic_add(extra type *ptr, type value) \
     {                                                   \
-        type tmp, sum, retval; \
+        uint32_t tmp; \
+        type sum, retval; \
         \
         ARCH_AARCH64_ASM                                \
         (                                               \
             __ASM_EMIT("1:")    \
-            __ASM_EMIT("dmb") \
+            __ASM_EMIT("dmb st") \
             __ASM_EMIT("ldaxr" qsz "    %[ret], [%[ptr]]") \
             __ASM_EMIT("add             %[sum], %[ret], %[src]") \
             __ASM_EMIT("stxr" qsz "     %[tmp], %[sum], [%[ptr]]") \
@@ -114,12 +117,13 @@ ATOMIC_ADD_DEF(uint64_t, "", volatile)
 #define ATOMIC_SWAP_DEF(type, qsz, extra) \
     inline type atomic_swap(extra type *ptr, type value) \
     {                                                   \
-        type tmp, retval; \
+        uint32_t tmp; \
+        type retval; \
         \
         ARCH_AARCH64_ASM                                \
         (                                               \
             __ASM_EMIT("1:")    \
-            __ASM_EMIT("dmb") \
+            __ASM_EMIT("dmb st") \
             __ASM_EMIT("ldaxr" qsz "    %[ret], [%[ptr]]") \
             __ASM_EMIT("stxr" qsz "     %[tmp], %[value], [%[ptr]]") \
             __ASM_EMIT("cbnz            %[tmp], 1b") /* repeat if failed */ \
