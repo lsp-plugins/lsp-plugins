@@ -10,6 +10,7 @@
 
 === 1.1.8 ===
 
+- Research the work of plugins under Audacity.
 - Implemented 3D reverb simulator.
 - Implemented sampler plugin series with stereo outputs
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
