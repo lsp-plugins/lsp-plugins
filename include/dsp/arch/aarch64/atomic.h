@@ -39,13 +39,13 @@
         ( \
             __ASM_EMIT("dmb st") \
             __ASM_EMIT("ldaxr" qsz "    %[tmp], [%[ptr]]") \
-            __ASM_EMIT("eor             %[tmp], %[exp]")    /* ret == 0 on success */ \
+            __ASM_EMIT("eor             %[tmp], %[tmp], %[exp]")    /* ret == 0 on success */ \
             __ASM_EMIT("cbnz            %[tmp], 2f")        /* jump if failed */ \
-            __ASM_EMIT("stxr" qsz "     %[res], %[rep], [%[ptr]]") /* try to store rep as replacement */ \
-            __ASM_EMIT("tst             %[res], %[res]")    /* ret == 0 on success */ \
+            __ASM_EMIT("stxr" qsz "     %w[res], %[rep], [%[ptr]]") /* try to store rep as replacement */ \
+            __ASM_EMIT("tst             %w[res], %w[res]")    /* ret == 0 on success */ \
             __ASM_EMIT("2:") \
             __ASM_EMIT("cset            %[tmp], eq") \
-            : [tmp] "=&r" (tmp) \
+            : [tmp] "=&r" (tmp), [res] "=&r" (res) \
             : [ptr] "r" (ptr), [exp] "r" (exp), [rep] "r" (rep) \
             : "cc", "memory" \
         ); \
@@ -83,8 +83,8 @@ ATOMIC_CAS_DEF(uint64_t, "", volatile)
             __ASM_EMIT("dmb st") \
             __ASM_EMIT("ldaxr" qsz "    %[ret], [%[ptr]]") \
             __ASM_EMIT("add             %[sum], %[ret], %[src]") \
-            __ASM_EMIT("stxr" qsz "     %[tmp], %[sum], [%[ptr]]") \
-            __ASM_EMIT("cbnz            %[tmp], 1b") /* repeat if failed */ \
+            __ASM_EMIT("stxr" qsz "     %w[tmp], %[sum], [%[ptr]]") \
+            __ASM_EMIT("cbnz            %w[tmp], 1b") /* repeat if failed */ \
             : [tmp] "=&r" (tmp), \
               [sum] "=&r" (sum), \
               [ret] "=&r" (retval)  \
@@ -125,8 +125,8 @@ ATOMIC_ADD_DEF(uint64_t, "", volatile)
             __ASM_EMIT("1:")    \
             __ASM_EMIT("dmb st") \
             __ASM_EMIT("ldaxr" qsz "    %[ret], [%[ptr]]") \
-            __ASM_EMIT("stxr" qsz "     %[tmp], %[value], [%[ptr]]") \
-            __ASM_EMIT("cbnz            %[tmp], 1b") /* repeat if failed */ \
+            __ASM_EMIT("stxr" qsz "     %w[tmp], %[value], [%[ptr]]") \
+            __ASM_EMIT("cbnz            %w[tmp], 1b") /* repeat if failed */ \
             : [tmp] "=&r" (tmp), \
               [ret] "=&r" (retval)  \
             : [ptr] "r" (ptr),  \
