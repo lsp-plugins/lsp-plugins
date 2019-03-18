@@ -57,7 +57,7 @@ ATOMIC_CAS_DEF(uint64_t, "", volatile)
             __ASM_EMIT("ldaxr" qsz "    %[ret], [%[ptr]]") \
             __ASM_EMIT("add             %[sum], %[ret], %[src]") \
             __ASM_EMIT("stxr" qsz "     %[tmp], %[sum], [%[ptr]]") \
-            __ASM_EMIT("cbnz            1b") /* repeat if failed */ \
+            __ASM_EMIT("cbnz            %[tmp], 1b") /* repeat if failed */ \
             : [tmp] "=&r" (tmp), \
               [sum] "=&r" (sum), \
               [ret] "=&r" (retval)  \
@@ -98,11 +98,11 @@ ATOMIC_ADD_DEF(uint64_t, "", volatile)
             __ASM_EMIT("dmb") \
             __ASM_EMIT("ldaxr" qsz "    %[ret], [%[ptr]]") \
             __ASM_EMIT("stxr" qsz "     %[tmp], %[value], [%[ptr]]") \
-            __ASM_EMIT("cbnz            1b") /* repeat if failed */ \
+            __ASM_EMIT("cbnz            %[tmp], 1b") /* repeat if failed */ \
             : [tmp] "=&r" (tmp), \
               [ret] "=&r" (retval)  \
             : [ptr] "r" (ptr),  \
-              [src] "r" (value) \
+              [value] "r" (value) \
             : "memory", "cc"                            \
         );                                              \
         return retval; \
