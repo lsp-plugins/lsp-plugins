@@ -8,7 +8,7 @@
 #ifndef DSP_ARCH_AARCH64_FEATURES_H_
 #define DSP_ARCH_AARCH64_FEATURES_H_
 
-#ifndef ARCH_AARCH64
+#ifdef ARCH_AARCH64
     /* This is feature definition taken from ARM headers for non-ARM architecture
      * to simply compile from IDE
      */
