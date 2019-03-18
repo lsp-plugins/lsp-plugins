@@ -35,12 +35,12 @@
         \
         ARCH_AARCH64_ASM \
         ( \
-            __ASM_EMIT("mov             %[tmp], %[exp]") \
-            __ASM_EMIT("ldaxr" qsz "    %[ret], [%[ptr]]") \
-            __ASM_EMIT("eor             %[ret], %[exp]")    /* ret == 0 on success */ \
-            __ASM_EMIT("cbnz            %[ret], 2f")        /* jump if failed */ \
-            __ASM_EMIT("stxr" qsz "     %[ret], %[rep], [%[ptr]]") /* try to store rep as replacement */ \
-            __ASM_EMIT("tst             %[ret], %[ret]")    /* ret == 0 on success */ \
+            __ASM_EMIT("dmb") \
+            __ASM_EMIT("ldaxr" qsz "    %[tmp], [%[ptr]]") \
+            __ASM_EMIT("eor             %[tmp], %[exp]")    /* ret == 0 on success */ \
+            __ASM_EMIT("cbnz            %[tmp], 2f")        /* jump if failed */ \
+            __ASM_EMIT("stxr" qsz "     %[tmp], %[rep], [%[ptr]]") /* try to store rep as replacement */ \
+            __ASM_EMIT("tst             %[tmp], %[tmp]")    /* ret == 0 on success */ \
             __ASM_EMIT("2:") \
             __ASM_EMIT("cset            %[tmp], eq") \
             : [tmp] "=&r" (tmp) \
