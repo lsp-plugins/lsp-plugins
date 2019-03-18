@@ -60,153 +60,148 @@ inline double __lsp_forced_inline    byte_swap(double v)
 
 inline void __lsp_forced_inline    byte_swap(uint16_t *v, size_t n)
 {
-    uint64_t xtmp;
-    uint32_t wtmp;
+    uint64_t tmp;
 
     ARCH_AARCH64_ASM (
-        __ASM_EMIT("subs        %[n], $4")
+        __ASM_EMIT("subs        %[n], %[n], #4")
         __ASM_EMIT("b.lo        2f")
 
         __ASM_EMIT("1:")
-        __ASM_EMIT("ldr         %[xtmp], [%[v]]")
-        __ASM_EMIT("rev16       %[xtmp], %[xtmp]")
-        __ASM_EMIT("str         %[xtmp], [%[v]], $8")
-        __ASM_EMIT("subs        %[n], $4")
+        __ASM_EMIT("ldr         %[tmp], [%[v]]")
+        __ASM_EMIT("rev16       %[tmp], %[tmp]")
+        __ASM_EMIT("str         %[tmp], [%[v]], #8")
+        __ASM_EMIT("subs        %[n], %[n], #4")
         __ASM_EMIT("b.ge        1b")
 
         __ASM_EMIT("2:")
-        __ASM_EMIT("adds        %[n], $3")
+        __ASM_EMIT("adds        %[n], %[n], #3")
         __ASM_EMIT("b.lt        4f")
 
         __ASM_EMIT("3:")
-        __ASM_EMIT("ldrh        %[wtmp], [%[v]]")
-        __ASM_EMIT("rev16       %[wtmp], %[wtmp]")
-        __ASM_EMIT("strh        %[wtmp], [%[v]], $2")
-        __ASM_EMIT("subs        %[n], $1")
+        __ASM_EMIT("ldrh        %w[tmp], [%[v]]")
+        __ASM_EMIT("rev16       %w[tmp], %w[tmp]")
+        __ASM_EMIT("strh        %w[tmp], [%[v]], #2")
+        __ASM_EMIT("subs        %[n], %[n], #1")
         __ASM_EMIT("b.ge        3b")
 
         __ASM_EMIT("4:")
-        : [v] "+r"(v), [n] "+r" (n), [xtmp] "=&r"(xtmp), [wtmp] "=&r"(wtmp)
+        : [v] "+r"(v), [n] "+r" (n), [tmp] "=&r"(tmp)
         : : "cc", "memory"
     );
 }
 
 inline void __lsp_forced_inline    byte_swap(int16_t *v, size_t n)
 {
-    uint64_t xtmp;
-    uint32_t wtmp;
+    uint64_t tmp;
 
     ARCH_AARCH64_ASM (
-        __ASM_EMIT("subs        %[n], $4")
+        __ASM_EMIT("subs        %[n], %[n], #4")
         __ASM_EMIT("b.lo        2f")
 
         __ASM_EMIT("1:")
-        __ASM_EMIT("ldr         %[xtmp], [%[v]]")
-        __ASM_EMIT("rev16       %[xtmp], %[xtmp]")
-        __ASM_EMIT("str         %[xtmp], [%[v]], $8")
-        __ASM_EMIT("subs        %[n], $4")
+        __ASM_EMIT("ldr         %[tmp], [%[v]]")
+        __ASM_EMIT("rev16       %[tmp], %[tmp]")
+        __ASM_EMIT("str         %[tmp], [%[v]], #8")
+        __ASM_EMIT("subs        %[n], %[n], #4")
         __ASM_EMIT("b.ge        1b")
 
         __ASM_EMIT("2:")
-        __ASM_EMIT("adds        %[n], $3")
+        __ASM_EMIT("adds        %[n], %[n], #3")
         __ASM_EMIT("b.lt        4f")
 
         __ASM_EMIT("3:")
-        __ASM_EMIT("ldrh        %[wtmp], [%[v]]")
-        __ASM_EMIT("rev16       %[wtmp], %[wtmp]")
-        __ASM_EMIT("strh        %[wtmp], [%[v]], $2")
-        __ASM_EMIT("subs        %[n], $1")
+        __ASM_EMIT("ldrh        %w[tmp], [%[v]]")
+        __ASM_EMIT("rev16       %w[tmp], %w[tmp]")
+        __ASM_EMIT("strh        %w[tmp], [%[v]], #2")
+        __ASM_EMIT("subs        %[n], %[n], #1")
         __ASM_EMIT("b.ge        3b")
 
         __ASM_EMIT("4:")
-        : [v] "+r"(v), [n] "+r" (n), [xtmp] "=&r"(xtmp), [wtmp] "=&r"(wtmp)
+        : [v] "+r"(v), [n] "+r" (n), [tmp] "=&r"(tmp)
         : : "cc", "memory"
     );
 }
 
 inline void __lsp_forced_inline    byte_swap(uint32_t *v, size_t n)
 {
-    uint64_t xtmp;
-    uint32_t wtmp;
+    uint64_t tmp;
 
     ARCH_AARCH64_ASM (
-        __ASM_EMIT("subs        %[n], $2")
+        __ASM_EMIT("subs        %[n], %[n], #2")
         __ASM_EMIT("b.lo        2f")
 
         __ASM_EMIT("1:")
-        __ASM_EMIT("ldr         %[xtmp], [%[v]]")
-        __ASM_EMIT("rev32       %[xtmp], %[xtmp]")
-        __ASM_EMIT("str         %[xtmp], [%[v]], $8")
-        __ASM_EMIT("subs        %[n], $2")
+        __ASM_EMIT("ldr         %[tmp], [%[v]]")
+        __ASM_EMIT("rev32       %[tmp], %[tmp]")
+        __ASM_EMIT("str         %[tmp], [%[v]], #8")
+        __ASM_EMIT("subs        %[n], %[n], #2")
         __ASM_EMIT("b.ge        1b")
 
         __ASM_EMIT("2:")
-        __ASM_EMIT("adds        %[n], $1")
+        __ASM_EMIT("adds        %[n], %[n], #1")
         __ASM_EMIT("b.lt        4f")
-        __ASM_EMIT("ldr         %[wtmp], [%[v]]")
-        __ASM_EMIT("rev32       %[wtmp], %[wtmp]")
-        __ASM_EMIT("str         %[wtmp], [%[v]], $2")
+        __ASM_EMIT("ldr         %w[tmp], [%[v]]")
+        __ASM_EMIT("rev32       %w[tmp], %w[tmp]")
+        __ASM_EMIT("str         %w[tmp], [%[v]], #2")
 
         __ASM_EMIT("4:")
-        : [v] "+r"(v), [n] "+r" (n), [xtmp] "=&r"(xtmp), [wtmp] "=&r"(wtmp)
+        : [v] "+r"(v), [n] "+r" (n), [tmp] "=&r"(tmp)
         : : "cc", "memory"
     );
 }
 
 inline void __lsp_forced_inline    byte_swap(int32_t *v, size_t n)
 {
-    uint64_t xtmp;
-    uint32_t wtmp;
+    uint64_t tmp;
 
     ARCH_AARCH64_ASM (
-        __ASM_EMIT("subs        %[n], $2")
+        __ASM_EMIT("subs        %[n], %[n], #2")
         __ASM_EMIT("b.lo        2f")
 
         __ASM_EMIT("1:")
-        __ASM_EMIT("ldr         %[xtmp], [%[v]]")
-        __ASM_EMIT("rev32       %[xtmp], %[xtmp]")
-        __ASM_EMIT("str         %[xtmp], [%[v]], $8")
-        __ASM_EMIT("subs        %[n], $2")
+        __ASM_EMIT("ldr         %[tmp], [%[v]]")
+        __ASM_EMIT("rev32       %[tmp], %[tmp]")
+        __ASM_EMIT("str         %[tmp], [%[v]], #8")
+        __ASM_EMIT("subs        %[n], %[n], #2")
         __ASM_EMIT("b.ge        1b")
 
         __ASM_EMIT("2:")
-        __ASM_EMIT("adds        %[n], $1")
+        __ASM_EMIT("adds        %[n], %[n], #1")
         __ASM_EMIT("b.lt        4f")
-        __ASM_EMIT("ldr         %[wtmp], [%[v]]")
-        __ASM_EMIT("rev32       %[wtmp], %[wtmp]")
-        __ASM_EMIT("str         %[wtmp], [%[v]], $2")
+        __ASM_EMIT("ldr         %w[tmp], [%[v]]")
+        __ASM_EMIT("rev32       %w[tmp], %w[tmp]")
+        __ASM_EMIT("str         %w[tmp], [%[v]], #2")
 
         __ASM_EMIT("4:")
-        : [v] "+r"(v), [n] "+r" (n), [xtmp] "=&r"(xtmp), [wtmp] "=&r"(wtmp)
+        : [v] "+r"(v), [n] "+r" (n), [tmp] "=&r"(tmp)
         : : "cc", "memory"
     );
 }
 
 inline void __lsp_forced_inline    byte_swap(float *v, size_t n)
 {
-    uint64_t xtmp;
-    uint32_t wtmp;
+    uint64_t tmp;
 
     ARCH_AARCH64_ASM (
-        __ASM_EMIT("subs        %[n], $2")
+        __ASM_EMIT("subs        %[n], %[n], #2")
         __ASM_EMIT("b.lo        2f")
 
         __ASM_EMIT("1:")
-        __ASM_EMIT("ldr         %[xtmp], [%[v]]")
-        __ASM_EMIT("rev32       %[xtmp], %[xtmp]")
-        __ASM_EMIT("str         %[xtmp], [%[v]], $8")
-        __ASM_EMIT("subs        %[n], $2")
+        __ASM_EMIT("ldr         %[tmp], [%[v]]")
+        __ASM_EMIT("rev32       %[tmp], %[tmp]")
+        __ASM_EMIT("str         %[tmp], [%[v]], #8")
+        __ASM_EMIT("subs        %[n], %[n], #2")
         __ASM_EMIT("b.ge        1b")
 
         __ASM_EMIT("2:")
-        __ASM_EMIT("adds        %[n], $1")
+        __ASM_EMIT("adds        %[n], %[n], #1")
         __ASM_EMIT("b.lt        4f")
-        __ASM_EMIT("ldr         %[wtmp], [%[v]]")
-        __ASM_EMIT("rev32       %[wtmp], %[wtmp]")
-        __ASM_EMIT("str         %[wtmp], [%[v]], $2")
+        __ASM_EMIT("ldr         %w[tmp], [%[v]]")
+        __ASM_EMIT("rev32       %w[tmp], %w[tmp]")
+        __ASM_EMIT("str         %w[tmp], [%[v]], #2")
 
         __ASM_EMIT("4:")
-        : [v] "+r"(v), [n] "+r" (n), [xtmp] "=&r"(xtmp), [wtmp] "=&r"(wtmp)
+        : [v] "+r"(v), [n] "+r" (n), [tmp] "=&r"(tmp)
         : : "cc", "memory"
     );
 }
@@ -216,13 +211,13 @@ inline void __lsp_forced_inline    byte_swap(uint64_t *v, size_t n)
     uint64_t xtmp;
 
     ARCH_AARCH64_ASM (
-        __ASM_EMIT("cbz         %[n], 2f")
+        __ASM_EMIT("cbz         %[n], %[n], 2f")
 
         __ASM_EMIT("1:")
         __ASM_EMIT("ldr         %[xtmp], [%[v]]")
         __ASM_EMIT("rev         %[xtmp], %[xtmp]")
-        __ASM_EMIT("str         %[xtmp], [%[v]], $8")
-        __ASM_EMIT("subs        %[n], $1")
+        __ASM_EMIT("str         %[xtmp], [%[v]], #8")
+        __ASM_EMIT("subs        %[n], %[n], #1")
         __ASM_EMIT("b.ne        1b")
 
         __ASM_EMIT("2:")
@@ -236,13 +231,13 @@ inline void __lsp_forced_inline    byte_swap(int64_t *v, size_t n)
     uint64_t xtmp;
 
     ARCH_AARCH64_ASM (
-        __ASM_EMIT("cbz         %[n], 2f")
+        __ASM_EMIT("cbz         %[n], %[n], 2f")
 
         __ASM_EMIT("1:")
         __ASM_EMIT("ldr         %[xtmp], [%[v]]")
         __ASM_EMIT("rev         %[xtmp], %[xtmp]")
-        __ASM_EMIT("str         %[xtmp], [%[v]], $8")
-        __ASM_EMIT("subs        %[n], $1")
+        __ASM_EMIT("str         %[xtmp], [%[v]], #8")
+        __ASM_EMIT("subs        %[n], %[n], #1")
         __ASM_EMIT("b.ne        1b")
 
         __ASM_EMIT("2:")
@@ -256,13 +251,13 @@ inline void __lsp_forced_inline    byte_swap(double *v, size_t n)
     uint64_t xtmp;
 
     ARCH_AARCH64_ASM (
-        __ASM_EMIT("cbz         %[n], 2f")
+        __ASM_EMIT("cbz         %[n], %[n], 2f")
 
         __ASM_EMIT("1:")
         __ASM_EMIT("ldr         %[xtmp], [%[v]]")
         __ASM_EMIT("rev         %[xtmp], %[xtmp]")
-        __ASM_EMIT("str         %[xtmp], [%[v]], $8")
-        __ASM_EMIT("subs        %[n], $1")
+        __ASM_EMIT("str         %[xtmp], [%[v]], #8")
+        __ASM_EMIT("subs        %[n], %[n], #1")
         __ASM_EMIT("b.ne        1b")
 
         __ASM_EMIT("2:")
