@@ -88,7 +88,7 @@ ATOMIC_ADD_DEF(uint64_t, "", volatile)
 #undef ATOMIC_ADD_DEF
 
 #define ATOMIC_SWAP_DEF(type, qsz, extra) \
-    inline type atomic_add(extra type *ptr, type value) \
+    inline type atomic_swap(extra type *ptr, type value) \
     {                                                   \
         type tmp, retval; \
         \
