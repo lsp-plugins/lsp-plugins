@@ -8,6 +8,7 @@
 #ifndef DSP_ARCH_AARCH64_ATOMIC_H_
 #define DSP_ARCH_AARCH64_ATOMIC_H_
 
+#if 0
 #define ATOMIC_CAS_DEF(type, qsz, extra)                        \
     inline type atomic_cas(extra type *ptr, type exp, type rep) \
     { \
@@ -18,6 +19,29 @@
             __ASM_EMIT("mov             %[tmp], %[exp]") \
             __ASM_EMIT("casa" qsz "     %[tmp], %[rep], [%[ptr]]") \
             __ASM_EMIT("cmp             %[tmp], %[exp]") \
+            __ASM_EMIT("cset            %[tmp], eq") \
+            : [tmp] "=&r" (tmp) \
+            : [ptr] "r" (ptr), [exp] "r" (exp), [rep] "r" (rep) \
+            : "cc", "memory" \
+        ); \
+        return tmp; \
+    }
+#endif
+
+#define ATOMIC_CAS_DEF(type, qsz, extra)                        \
+    inline type atomic_cas(extra type *ptr, type exp, type rep) \
+    { \
+        type tmp; \
+        \
+        ARCH_AARCH64_ASM \
+        ( \
+            __ASM_EMIT("mov             %[tmp], %[exp]") \
+            __ASM_EMIT("ldaxr" qsz "    %[ret], [%[ptr]]") \
+            __ASM_EMIT("eor             %[ret], %[exp]")    /* ret == 0 on success */ \
+            __ASM_EMIT("cbnz            %[ret], 2f")        /* jump if failed */ \
+            __ASM_EMIT("stxr" qsz "     %[ret], %[rep], [%[ptr]]") /* try to store rep as replacement */ \
+            __ASM_EMIT("tst             %[ret], %[ret]")    /* ret == 0 on success */ \
+            __ASM_EMIT("2:") \
             __ASM_EMIT("cset            %[tmp], eq") \
             : [tmp] "=&r" (tmp) \
             : [ptr] "r" (ptr), [exp] "r" (exp), [rep] "r" (rep) \
