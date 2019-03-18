@@ -141,7 +141,7 @@ inline void __lsp_forced_inline    byte_swap(uint32_t *v, size_t n)
         __ASM_EMIT("adds        %[n], %[n], #1")
         __ASM_EMIT("b.lt        4f")
         __ASM_EMIT("ldr         %w[tmp], [%[v]]")
-        __ASM_EMIT("rev32       %w[tmp], %w[tmp]")
+        __ASM_EMIT("rev32       %[tmp], %[tmp]")
         __ASM_EMIT("str         %w[tmp], [%[v]], #2")
 
         __ASM_EMIT("4:")
@@ -169,7 +169,7 @@ inline void __lsp_forced_inline    byte_swap(int32_t *v, size_t n)
         __ASM_EMIT("adds        %[n], %[n], #1")
         __ASM_EMIT("b.lt        4f")
         __ASM_EMIT("ldr         %w[tmp], [%[v]]")
-        __ASM_EMIT("rev32       %w[tmp], %w[tmp]")
+        __ASM_EMIT("rev32       %[tmp], %[tmp]")
         __ASM_EMIT("str         %w[tmp], [%[v]], #2")
 
         __ASM_EMIT("4:")
@@ -197,7 +197,7 @@ inline void __lsp_forced_inline    byte_swap(float *v, size_t n)
         __ASM_EMIT("adds        %[n], %[n], #1")
         __ASM_EMIT("b.lt        4f")
         __ASM_EMIT("ldr         %w[tmp], [%[v]]")
-        __ASM_EMIT("rev32       %w[tmp], %w[tmp]")
+        __ASM_EMIT("rev32       %[tmp], %[tmp]")
         __ASM_EMIT("str         %w[tmp], [%[v]], #2")
 
         __ASM_EMIT("4:")
@@ -211,7 +211,7 @@ inline void __lsp_forced_inline    byte_swap(uint64_t *v, size_t n)
     uint64_t xtmp;
 
     ARCH_AARCH64_ASM (
-        __ASM_EMIT("cbz         %[n], %[n], 2f")
+        __ASM_EMIT("cbz         %[n], 2f")
 
         __ASM_EMIT("1:")
         __ASM_EMIT("ldr         %[xtmp], [%[v]]")
@@ -231,7 +231,7 @@ inline void __lsp_forced_inline    byte_swap(int64_t *v, size_t n)
     uint64_t xtmp;
 
     ARCH_AARCH64_ASM (
-        __ASM_EMIT("cbz         %[n], %[n], 2f")
+        __ASM_EMIT("cbz         %[n], 2f")
 
         __ASM_EMIT("1:")
         __ASM_EMIT("ldr         %[xtmp], [%[v]]")
@@ -251,7 +251,7 @@ inline void __lsp_forced_inline    byte_swap(double *v, size_t n)
     uint64_t xtmp;
 
     ARCH_AARCH64_ASM (
-        __ASM_EMIT("cbz         %[n], %[n], 2f")
+        __ASM_EMIT("cbz         %[n], 2f")
 
         __ASM_EMIT("1:")
         __ASM_EMIT("ldr         %[xtmp], [%[v]]")
