@@ -502,6 +502,38 @@ namespace lsp
 #endif
         }
 
+        bool Path::is_dot() const
+        {
+            ssize_t idx = sPath.rindex_of(FILE_SEPARATOR_C);
+            if (idx > 0)
+            {
+                ssize_t len = sPath.length() - 2;
+                if (idx != len)
+                    return false;
+            }
+            else if (sPath.length() != 1)
+                return false;
+            return sPath.last() == '.';
+        }
+
+        bool Path::is_dotdot() const
+        {
+            ssize_t idx = sPath.rindex_of(FILE_SEPARATOR_C);
+            if (idx > 0)
+            {
+                ssize_t len = sPath.length() - 3;
+                if (idx != len)
+                    return false;
+
+                return (sPath.char_at(len + 1) == '.') &&
+                        (sPath.char_at(len + 2) == '.');
+            }
+            else if (sPath.length() != 2)
+                return false;
+
+            return (sPath.first() == '.') && (sPath.last() == '.');
+        }
+
         bool Path::is_relative() const
         {
             if (sPath.length() <= 0)

@@ -74,6 +74,8 @@ namespace lsp
                 bool        is_relative() const;
                 bool        is_canonical() const;
                 bool        is_root() const;
+                bool        is_dot() const;
+                bool        is_dotdot() const;
                 inline bool is_empty() const                        { return sPath.is_empty();  }
 
                 inline void clear()                                 { sPath.clear();    }
@@ -98,6 +100,8 @@ namespace lsp
 
                 inline const LSPString *as_string() const { return &sPath; }
                 inline const char *as_native(const char *charset = NULL) const { return sPath.get_native(charset); }
+                inline void take(Path *src) { sPath.take(&src->sPath); }
+                inline void take(LSPString *src) { sPath.take(src); }
         };
     }
 } /* namespace lsp */

@@ -1181,6 +1181,20 @@ namespace lsp
         return 0;
     }
 
+    int LSPString::compare_to_ascii(const char *src) const
+    {
+        size_t i=0;
+        for ( ; i<nLength; ++i)
+        {
+            int retval = lsp_swchar_t(pData[i]) - uint8_t(src[i]);
+            if (retval != 0)
+                return retval;
+            else if (src[i] == '\0')
+                return nLength - i - 1;
+        }
+        return -int(uint8_t(src[i]));
+    }
+
     int LSPString::compare_to_nocase(const LSPString *src) const
     {
         ssize_t n = (nLength > src->nLength) ? src->nLength : nLength;

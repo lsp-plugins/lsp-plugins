@@ -339,6 +339,7 @@ namespace lsp
              * @return result of comparison
              */
             int compare_to(const LSPString *src) const;
+            int compare_to_ascii(const char *src) const;
             int compare_to_nocase(const LSPString *src) const;
 
             size_t tolower();
@@ -355,6 +356,7 @@ namespace lsp
              * @return true if equals
              */
             bool equals(const LSPString *src) const;
+            inline bool equals_ascii(const char *src) const { return compare_to_ascii(src) == 0; };
             bool equals_nocase(const LSPString *src) const;
 
             /** Calculate number of character occurences
