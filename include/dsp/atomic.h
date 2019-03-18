@@ -21,6 +21,10 @@ typedef signed int      atomic_t;
     #include <dsp/arch/arm/atomic.h>
 #endif /* ARCH_ARM */
 
+#ifdef ARCH_AARCH64
+    #include <dsp/arch/aarch64/atomic.h>
+#endif /* ARCH_AARCH64 */
+
 //-----------------------------------------------------------------------------
 // Require macro definitions for target architecture
 #ifndef atomic_init

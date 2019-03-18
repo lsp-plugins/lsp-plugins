@@ -13,6 +13,8 @@
 // Include unsigned functions definition
 #if defined(ARCH_X86)
     #include <dsp/arch/x86/bswap.h>
+#elif defined(ARCH_AARCH64)
+    #include <dsp/arch/aarch64/bswap.h>
 #elif defined(ARCH_ARM)
     #include <dsp/arch/arm/bswap.h>
 #else

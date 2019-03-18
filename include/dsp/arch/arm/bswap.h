@@ -73,7 +73,7 @@ inline double __lsp_forced_inline    byte_swap(double v)
 
 inline void __lsp_forced_inline    byte_swap(uint16_t *v, size_t n)
 {
-    uint16_t tmp;
+    uint32_t tmp;
     ARCH_ARM_ASM (
         __ASM_EMIT("subs        %[n], #2")
         __ASM_EMIT("blo         2f")
@@ -100,7 +100,7 @@ inline void __lsp_forced_inline    byte_swap(uint16_t *v, size_t n)
 
 inline void __lsp_forced_inline    byte_swap(int16_t *v, size_t n)
 {
-    uint16_t tmp;
+    uint32_t tmp;
     ARCH_ARM_ASM (
         __ASM_EMIT("subs        %[n], #2")
         __ASM_EMIT("blo         2f")
