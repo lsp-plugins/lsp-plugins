@@ -150,13 +150,14 @@ inline uint16_t reverse_bits(uint16_t src)
 inline uint16_t reverse_bits(uint16_t src, size_t count)
 {
     uint16_t res;
+    uint64_t tmp;
 
     ARCH_AARCH64_ASM (
         __ASM_EMIT("mov     %[tmp], #64")
         __ASM_EMIT("sub     %[count], %[tmp], %[count]")
         __ASM_EMIT("rbit    %[res], %[src]")
         __ASM_EMIT("lsr     %[res], %[res], %[count]")
-        : [res] "=r" (res), [count] "+r" (count)
+        : [res] "=r" (res), [count] "+r" (count), [tmp] "=&r" (tmp)
         : [src] "r" (src)
         :
     );
@@ -182,13 +183,14 @@ inline int16_t reverse_bits(int16_t src)
 inline int16_t reverse_bits(int16_t src, size_t count)
 {
     int16_t res;
+    uint64_t tmp;
 
     ARCH_AARCH64_ASM (
         __ASM_EMIT("mov     %[tmp], #64")
         __ASM_EMIT("sub     %[count], %[tmp], %[count]")
         __ASM_EMIT("rbit    %[res], %[src]")
         __ASM_EMIT("lsr     %[res], %[res], %[count]")
-        : [res] "=r" (res), [count] "+r" (count)
+        : [res] "=r" (res), [count] "+r" (count), [tmp] "=&r" (tmp)
         : [src] "r" (src)
         :
     );
@@ -214,13 +216,14 @@ inline uint8_t reverse_bits(uint8_t src)
 inline uint8_t reverse_bits(uint8_t src, size_t count)
 {
     uint8_t res;
+    uint64_t tmp;
 
     ARCH_AARCH64_ASM (
         __ASM_EMIT("mov     %[tmp], #64")
         __ASM_EMIT("sub     %[count], %[tmp], %[count]")
         __ASM_EMIT("rbit    %[res], %[src]")
         __ASM_EMIT("lsr     %[res], %[res], %[count]")
-        : [res] "=r" (res), [count] "+r" (count)
+        : [res] "=r" (res), [count] "+r" (count), [tmp] "=&r" (tmp)
         : [src] "r" (src)
         :
     );
@@ -246,13 +249,14 @@ inline int8_t reverse_bits(int8_t src)
 inline int8_t reverse_bits(int8_t src, size_t count)
 {
     int8_t res;
+    uint64_t tmp;
 
     ARCH_AARCH64_ASM (
         __ASM_EMIT("mov     %[tmp], #64")
         __ASM_EMIT("sub     %[count], %[tmp], %[count]")
         __ASM_EMIT("rbit    %[res], %[src]")
         __ASM_EMIT("lsr     %[res], %[res], %[count]")
-        : [res] "=r" (res), [count] "+r" (count)
+        : [res] "=r" (res), [count] "+r" (count), [tmp] "=&r" (tmp)
         : [src] "r" (src)
         :
     );
