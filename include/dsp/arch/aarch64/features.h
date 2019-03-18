@@ -8,6 +8,12 @@
 #ifndef DSP_ARCH_AARCH64_FEATURES_H_
 #define DSP_ARCH_AARCH64_FEATURES_H_
 
+#include <dsp/types.h>
+
+#ifdef PLATFORM_POSIX
+    #include <sys/auxv.h>
+#endif /* PLATFORM_UNIX */
+
 #ifdef ARCH_AARCH64
     /* This is feature definition taken from ARM headers for non-ARM architecture
      * to simply compile from IDE
