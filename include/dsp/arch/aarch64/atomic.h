@@ -39,10 +39,10 @@
         ( \
             __ASM_EMIT("dmb st") \
             __ASM_EMIT("ldaxr" qsz "    %" M "[tmp], [%[ptr]]") \
-            __ASM_EMIT("eor             %" M "[tmp], %" M "[tmp], %" M "[exp]")    /* ret == 0 on success */ \
-            __ASM_EMIT("cbnz            %" M "[tmp], 2f")        /* jump if failed */ \
-            __ASM_EMIT("stxr" qsz "     %w[res], %" M "[rep], [%[ptr]]") /* try to store rep as replacement */ \
-            __ASM_EMIT("tst             %w[res], %w[res]")    /* ret == 0 on success */ \
+            __ASM_EMIT("subs            %" M "[tmp], %" M "[tmp], %" M "[exp]")    /* tmp == 0 on success */ \
+            __ASM_EMIT("b.ne            2f")                                       /* jump if failed */ \
+            __ASM_EMIT("stxr" qsz "     %w[res], %" M "[rep], [%[ptr]]")            /* try to store replacement */ \
+            __ASM_EMIT("tst             %w[res], %w[res]")                          /* ret == 0 on success */ \
             __ASM_EMIT("2:") \
             __ASM_EMIT("cset            %[tmp], eq") \
             : [tmp] "=&r" (tmp), [res] "=&r" (res) \

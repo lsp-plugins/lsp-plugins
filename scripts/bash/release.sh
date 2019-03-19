@@ -34,6 +34,9 @@ elif [[ "$ARCH" == "i586" ]]; then
 elif [[ "$ARCH" == "armv7a" ]]; then
     export THREADS=$((THREADS/2)) # Raspberry may overheat, we use twice lower number of threads
     do_release 'armv7a'
+elif [[ "$ARCH" == "aarch64" ]]; then
+    export THREADS=$((THREADS/2)) # Raspberry may overheat, we use twice lower number of threads
+    do_release 'aarch64'
 else
     echo "Don't know how to build release"
 fi
