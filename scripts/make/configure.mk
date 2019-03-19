@@ -82,12 +82,12 @@ ifeq ($(BUILD_PROFILE),x86_64)
 endif
 
 ifeq ($(BUILD_PROFILE),armv6a)
-  CC_ARCH          = -march=armv6-a
+  CC_ARCH          = -march=armv6-a -marm
   LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
 ifeq ($(BUILD_PROFILE),armv7a)
-  CC_ARCH          = -march=armv7-a
+  CC_ARCH          = -march=armv7-a -marm
   LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
