@@ -60,12 +60,14 @@ inline double __lsp_forced_inline    byte_swap(double v)
         double d;
     } x;
     #pragma pack(pop)
+    uint32_t tmp;
 
     x.d = v;
     ARCH_ARM_ASM (
-        __ASM_EMIT("rev     %[lo], %[lo]")
-        __ASM_EMIT("rev     %[hi], %[hi]")
-        : [lo] "+r"(x.w.lo), [hi] "+r"(x.w.hi)
+        __ASM_EMIT("rev     %[tmp], %[lo]")
+        __ASM_EMIT("rev     %[lo], %[hi]")
+        __ASM_EMIT("mov     %[hi], %[tmp]")
+        : [lo] "+r"(x.w.lo), [hi] "+r"(x.w.hi), [tmp] "=&r" (tmp)
         : :
     );
     return x.d;
