@@ -123,7 +123,7 @@ ATOMIC_SWAP_DEF(uint32_t, "ex", volatile)
 // Atomic operations
 #define atomic_init(lk)         lk = 1
 #define atomic_trylock(lk)      atomic_cas(&lk, 1, 0)
-#define atomic_unlock(lk)       atomic_cas(&lk, 0, 1)
+#define atomic_unlock(lk)       atomic_swap(&lk, 1)
 
 
 #endif /* DSP_ARCH_ARM_ATOMIC_H_ */
