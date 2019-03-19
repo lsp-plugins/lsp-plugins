@@ -39,9 +39,9 @@
         ( \
             __ASM_EMIT("dmb st") \
             __ASM_EMIT("ldaxr" qsz "    %" M "[tmp], [%[ptr]]") \
-            __ASM_EMIT("eor             %" M "[tmp], %" M "[tmp], %[exp]")    /* ret == 0 on success */ \
+            __ASM_EMIT("eor             %" M "[tmp], %" M "[tmp], %" M "[exp]")    /* ret == 0 on success */ \
             __ASM_EMIT("cbnz            %" M "[tmp], 2f")        /* jump if failed */ \
-            __ASM_EMIT("stxr" qsz "     %w[res], %[rep], [%[ptr]]") /* try to store rep as replacement */ \
+            __ASM_EMIT("stxr" qsz "     %w[res], %" M "[rep], [%[ptr]]") /* try to store rep as replacement */ \
             __ASM_EMIT("tst             %w[res], %w[res]")    /* ret == 0 on success */ \
             __ASM_EMIT("2:") \
             __ASM_EMIT("cset            %[tmp], eq") \
@@ -143,7 +143,7 @@ ATOMIC_SWAP_DEF(uint8_t, "b", "", volatile)
 ATOMIC_SWAP_DEF(int16_t, "h", "", )
 ATOMIC_SWAP_DEF(int16_t, "h", "", volatile)
 ATOMIC_SWAP_DEF(uint16_t, "h", "", )
-ATOMIC_SWAP_DEF(uint16_t, "h", volatile)
+ATOMIC_SWAP_DEF(uint16_t, "h", "", volatile)
 ATOMIC_SWAP_DEF(int32_t, "", "w", )
 ATOMIC_SWAP_DEF(int32_t, "", "w", volatile)
 ATOMIC_SWAP_DEF(uint32_t, "", "w", )
