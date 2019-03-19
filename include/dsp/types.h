@@ -51,12 +51,12 @@
     #define ARCH_I386
     #define ARCH_STRING "i586"
     #define IF_ARCH_I386(...)       __VA_ARGS__
-#elif defined(__arm__)
-    #define ARCH_ARM
-    #define IF_ARCH_ARM(...)        __VA_ARGS__
 #elif defined(__aarch64__)
     #define ARCH_AARCH64
     #define IF_ARCH_AARCH64(...)    __VA_ARGS__
+#elif defined(__arm__)
+    #define ARCH_ARM
+    #define IF_ARCH_ARM(...)        __VA_ARGS__
 #else
     #warning "Unsupported archtecture"
 #endif
@@ -342,6 +342,10 @@
 
 #ifndef IF_ARCH_ARM8
     #define IF_ARCH_ARM8(...)
+#endif /* IF_ARCH_ARM8 */
+
+#ifndef IF_ARCH_AARCH64
+    #define IF_ARCH_AARCH64(...)
 #endif /* IF_ARCH_ARM8 */
 
 //-----------------------------------------------------------------------------

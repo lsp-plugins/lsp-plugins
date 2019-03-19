@@ -27,14 +27,24 @@ For more information about licensing, please read LICENSE.txt.
 
 ==== SYSTEM REQUIREMENTS ====
 
-Currently supported platforms:
-  * GNU/Linux;
-  * FreeBSD (experimental).
+Current matrix of architecture and platform support is:
+  ┌──────────┬──────┬────────┬──────────┬─────────┐
+  │Platform  │ i586 │ x86_64 │ armv7-ar │ aarch64 │
+  ╞══════════╪══════╪════════╪══════════╪═════════╡
+  │GNU/Linux │  F   │   F    │    E     │    E    │
+  ├──────────┼──────┼────────┼──────────┼─────────┤
+  │FreeBSD   │  E   │   E    │    U     │    U    │
+  └──────────┴──────┴────────┴──────────┴─────────┘
+    F - Full support
+    E - Experimental support, not enough feedback from users
+    U - Unknown, the code may build but it's work is not tested
+    N - No support, the code does not compile and does not work
 
-Currently supported architectures are:
-  * i586 (Intel IA-32 architecture, legacy support);
-  * x86_64 (Intel EM64T/AMD64 architecture, full support);
-  * ARMv7-AR (experimental, tested on Raspberry Pi 3 Model B).
+Details about architectures supported in experimental mode:
+  * ARMv7-AR support has been tested on Raspberry Pi 3 Model B under Raspbian OS.
+    There is not enough feedback from users about correct work of all plugins.
+  * AArch64 support has been tested on Raspberry Pi 3 Model B+ under Arch Linux OS.
+    There is not enough feedback from users about correct work of all plugins.
 
 Supported plugin formats:
   * LADSPA (partial support: not supported by plugins that use MIDI or file loading due to LADSPA plugin format restrictions);

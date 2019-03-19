@@ -59,6 +59,13 @@ IF_ARCH_ARM(
 	}
 )
 
+IF_ARCH_AARCH64(
+    namespace aarch64
+    {
+        extern void dsp_init();
+    }
+)
+
 // Declare static variables
 namespace dsp
 {
@@ -448,5 +455,6 @@ namespace dsp
         // Initialize architecture-dependent functions that utilize architecture-specific features
         IF_ARCH_X86(x86::dsp_init());
         IF_ARCH_ARM(arm::dsp_init());
+        IF_ARCH_AARCH64(aarch64::dsp_init());
     }
 }
