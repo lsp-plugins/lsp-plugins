@@ -29,7 +29,7 @@
     }
 #endif
 
-#define ATOMIC_CAS_DEF(type, qsz, extra)                        \
+#define ATOMIC_CAS_DEF(type, qsz, M, extra)                     \
     inline type atomic_cas(extra type *ptr, type exp, type rep) \
     { \
         type tmp; \
@@ -38,9 +38,9 @@
         ARCH_AARCH64_ASM \
         ( \
             __ASM_EMIT("dmb st") \
-            __ASM_EMIT("ldaxr" qsz "    %[tmp], [%[ptr]]") \
-            __ASM_EMIT("eor             %[tmp], %[tmp], %[exp]")    /* ret == 0 on success */ \
-            __ASM_EMIT("cbnz            %[tmp], 2f")        /* jump if failed */ \
+            __ASM_EMIT("ldaxr" qsz "    %" M "[tmp], [%[ptr]]") \
+            __ASM_EMIT("eor             %" M "[tmp], %" M "[tmp], %[exp]")    /* ret == 0 on success */ \
+            __ASM_EMIT("cbnz            %" M "[tmp], 2f")        /* jump if failed */ \
             __ASM_EMIT("stxr" qsz "     %w[res], %[rep], [%[ptr]]") /* try to store rep as replacement */ \
             __ASM_EMIT("tst             %w[res], %w[res]")    /* ret == 0 on success */ \
             __ASM_EMIT("2:") \
@@ -52,26 +52,26 @@
         return tmp; \
     }
 
-ATOMIC_CAS_DEF(int8_t, "b", )
-ATOMIC_CAS_DEF(int8_t, "b", volatile)
-ATOMIC_CAS_DEF(uint8_t, "b", )
-ATOMIC_CAS_DEF(uint8_t, "b", volatile)
-ATOMIC_CAS_DEF(int16_t, "h", )
-ATOMIC_CAS_DEF(int16_t, "h", volatile)
-ATOMIC_CAS_DEF(uint16_t, "h", )
-ATOMIC_CAS_DEF(uint16_t, "h", volatile)
-ATOMIC_CAS_DEF(int32_t, "", )
-ATOMIC_CAS_DEF(int32_t, "", volatile)
-ATOMIC_CAS_DEF(uint32_t, "", )
-ATOMIC_CAS_DEF(uint32_t, "", volatile)
-ATOMIC_CAS_DEF(int64_t, "", )
-ATOMIC_CAS_DEF(int64_t, "", volatile)
-ATOMIC_CAS_DEF(uint64_t, "", )
-ATOMIC_CAS_DEF(uint64_t, "", volatile)
+ATOMIC_CAS_DEF(int8_t, "b", "", )
+ATOMIC_CAS_DEF(int8_t, "b", "", volatile)
+ATOMIC_CAS_DEF(uint8_t, "b", "", )
+ATOMIC_CAS_DEF(uint8_t, "b", "", volatile)
+ATOMIC_CAS_DEF(int16_t, "h", "", )
+ATOMIC_CAS_DEF(int16_t, "h", "", volatile)
+ATOMIC_CAS_DEF(uint16_t, "h", "", )
+ATOMIC_CAS_DEF(uint16_t, "h", "", volatile)
+ATOMIC_CAS_DEF(int32_t, "", "w", )
+ATOMIC_CAS_DEF(int32_t, "", "w", volatile)
+ATOMIC_CAS_DEF(uint32_t, "", "w", )
+ATOMIC_CAS_DEF(uint32_t, "", "w", volatile)
+ATOMIC_CAS_DEF(int64_t, "", "", )
+ATOMIC_CAS_DEF(int64_t, "", "", volatile)
+ATOMIC_CAS_DEF(uint64_t, "", "", )
+ATOMIC_CAS_DEF(uint64_t, "", "", volatile)
 
 #undef ATOMIC_CAS_DEF
 
-#define ATOMIC_ADD_DEF(type, qsz, extra) \
+#define ATOMIC_ADD_DEF(type, qsz, M, extra) \
     inline type atomic_add(extra type *ptr, type value) \
     {                                                   \
         uint32_t tmp; \
@@ -81,9 +81,9 @@ ATOMIC_CAS_DEF(uint64_t, "", volatile)
         (                                               \
             __ASM_EMIT("1:")    \
             __ASM_EMIT("dmb st") \
-            __ASM_EMIT("ldaxr" qsz "    %[ret], [%[ptr]]") \
-            __ASM_EMIT("add             %[sum], %[ret], %[src]") \
-            __ASM_EMIT("stxr" qsz "     %w[tmp], %[sum], [%[ptr]]") \
+            __ASM_EMIT("ldaxr" qsz "    %" M "[ret], [%[ptr]]") \
+            __ASM_EMIT("add             %" M "[sum], %" M "[ret], %" M "[src]") \
+            __ASM_EMIT("stxr" qsz "     %w[tmp], %" M "[sum], [%[ptr]]") \
             __ASM_EMIT("cbnz            %w[tmp], 1b") /* repeat if failed */ \
             : [tmp] "=&r" (tmp), \
               [sum] "=&r" (sum), \
@@ -95,26 +95,26 @@ ATOMIC_CAS_DEF(uint64_t, "", volatile)
         return retval; \
     }
 
-ATOMIC_ADD_DEF(int8_t, "b", )
-ATOMIC_ADD_DEF(int8_t, "b", volatile)
-ATOMIC_ADD_DEF(uint8_t, "b", )
-ATOMIC_ADD_DEF(uint8_t, "b", volatile)
-ATOMIC_ADD_DEF(int16_t, "h", )
-ATOMIC_ADD_DEF(int16_t, "h", volatile)
-ATOMIC_ADD_DEF(uint16_t, "h", )
-ATOMIC_ADD_DEF(uint16_t, "h", volatile)
-ATOMIC_ADD_DEF(int32_t, "", )
-ATOMIC_ADD_DEF(int32_t, "", volatile)
-ATOMIC_ADD_DEF(uint32_t, "", )
-ATOMIC_ADD_DEF(uint32_t, "", volatile)
-ATOMIC_ADD_DEF(int64_t, "", )
-ATOMIC_ADD_DEF(int64_t, "", volatile)
-ATOMIC_ADD_DEF(uint64_t, "", )
-ATOMIC_ADD_DEF(uint64_t, "", volatile)
+ATOMIC_ADD_DEF(int8_t, "b", "", )
+ATOMIC_ADD_DEF(int8_t, "b", "", volatile)
+ATOMIC_ADD_DEF(uint8_t, "b", "", )
+ATOMIC_ADD_DEF(uint8_t, "b", "", volatile)
+ATOMIC_ADD_DEF(int16_t, "h", "", )
+ATOMIC_ADD_DEF(int16_t, "h", "", volatile)
+ATOMIC_ADD_DEF(uint16_t, "h", "", )
+ATOMIC_ADD_DEF(uint16_t, "h", "", volatile)
+ATOMIC_ADD_DEF(int32_t, "", "w", )
+ATOMIC_ADD_DEF(int32_t, "", "w", volatile)
+ATOMIC_ADD_DEF(uint32_t, "", "w", )
+ATOMIC_ADD_DEF(uint32_t, "", "w", volatile)
+ATOMIC_ADD_DEF(int64_t, "", "", )
+ATOMIC_ADD_DEF(int64_t, "", "", volatile)
+ATOMIC_ADD_DEF(uint64_t, "", "", )
+ATOMIC_ADD_DEF(uint64_t, "", "", volatile)
 
 #undef ATOMIC_ADD_DEF
 
-#define ATOMIC_SWAP_DEF(type, qsz, extra) \
+#define ATOMIC_SWAP_DEF(type, qsz, M, extra) \
     inline type atomic_swap(extra type *ptr, type value) \
     {                                                   \
         uint32_t tmp; \
@@ -124,8 +124,8 @@ ATOMIC_ADD_DEF(uint64_t, "", volatile)
         (                                               \
             __ASM_EMIT("1:")    \
             __ASM_EMIT("dmb st") \
-            __ASM_EMIT("ldaxr" qsz "    %[ret], [%[ptr]]") \
-            __ASM_EMIT("stxr" qsz "     %w[tmp], %[value], [%[ptr]]") \
+            __ASM_EMIT("ldaxr" qsz "    %" M "[ret], [%[ptr]]") \
+            __ASM_EMIT("stxr" qsz "     %w[tmp], %" M "[value], [%[ptr]]") \
             __ASM_EMIT("cbnz            %w[tmp], 1b") /* repeat if failed */ \
             : [tmp] "=&r" (tmp), \
               [ret] "=&r" (retval)  \
@@ -136,22 +136,22 @@ ATOMIC_ADD_DEF(uint64_t, "", volatile)
         return retval; \
     }
 
-ATOMIC_SWAP_DEF(int8_t, "b", )
-ATOMIC_SWAP_DEF(int8_t, "b", volatile)
-ATOMIC_SWAP_DEF(uint8_t, "b", )
-ATOMIC_SWAP_DEF(uint8_t, "b", volatile)
-ATOMIC_SWAP_DEF(int16_t, "h", )
-ATOMIC_SWAP_DEF(int16_t, "h", volatile)
-ATOMIC_SWAP_DEF(uint16_t, "h", )
+ATOMIC_SWAP_DEF(int8_t, "b", "", )
+ATOMIC_SWAP_DEF(int8_t, "b", "", volatile)
+ATOMIC_SWAP_DEF(uint8_t, "b", "", )
+ATOMIC_SWAP_DEF(uint8_t, "b", "", volatile)
+ATOMIC_SWAP_DEF(int16_t, "h", "", )
+ATOMIC_SWAP_DEF(int16_t, "h", "", volatile)
+ATOMIC_SWAP_DEF(uint16_t, "h", "", )
 ATOMIC_SWAP_DEF(uint16_t, "h", volatile)
-ATOMIC_SWAP_DEF(int32_t, "", )
-ATOMIC_SWAP_DEF(int32_t, "", volatile)
-ATOMIC_SWAP_DEF(uint32_t, "", )
-ATOMIC_SWAP_DEF(uint32_t, "", volatile)
-ATOMIC_SWAP_DEF(int64_t, "", )
-ATOMIC_SWAP_DEF(int64_t, "", volatile)
-ATOMIC_SWAP_DEF(uint64_t, "", )
-ATOMIC_SWAP_DEF(uint64_t, "", volatile)
+ATOMIC_SWAP_DEF(int32_t, "", "w", )
+ATOMIC_SWAP_DEF(int32_t, "", "w", volatile)
+ATOMIC_SWAP_DEF(uint32_t, "", "w", )
+ATOMIC_SWAP_DEF(uint32_t, "", "w", volatile)
+ATOMIC_SWAP_DEF(int64_t, "", "", )
+ATOMIC_SWAP_DEF(int64_t, "", "", volatile)
+ATOMIC_SWAP_DEF(uint64_t, "", "", )
+ATOMIC_SWAP_DEF(uint64_t, "", "", volatile)
 
 #undef ATOMIC_SWAP_DEF
 

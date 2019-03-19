@@ -75,7 +75,7 @@ inline uint32_t reverse_bits(uint32_t src)
     uint32_t res;
 
     ARCH_AARCH64_ASM (
-        __ASM_EMIT("rbit    %[res], %[src]")
+        __ASM_EMIT("rbit    %w[res], %w[src]")
         : [res] "=r" (res)
         : [src] "r" (src)
         :
@@ -106,7 +106,7 @@ inline int32_t reverse_bits(int32_t src)
     int32_t res;
 
     ARCH_AARCH64_ASM (
-        __ASM_EMIT("rbit    %[res], %[src]")
+        __ASM_EMIT("rbit    %w[res], %w[src]")
         : [res] "=r" (res)
         : [src] "r" (src)
         :
@@ -171,7 +171,7 @@ inline int16_t reverse_bits(int16_t src)
 
     ARCH_AARCH64_ASM (
         __ASM_EMIT("rbit    %[res], %[src]")
-        __ASM_EMIT("lsr     %[res], %[res], #16")
+        __ASM_EMIT("lsr     %[res], %[res], #48")
         : [res] "=r" (res)
         : [src] "r" (src)
         :
