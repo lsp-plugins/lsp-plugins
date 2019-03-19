@@ -11,7 +11,7 @@
 #include <dsp/types.h>
 
 // Declare array only for specific architectures
-#if !defined(ARCH_ARM)
+#if (!defined(ARCH_ARM)) && (!defined(ARCH_AARCH64))
     extern const uint8_t    __rb[];
 #endif
 
