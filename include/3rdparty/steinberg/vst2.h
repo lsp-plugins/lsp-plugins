@@ -43,6 +43,8 @@
             #define __cdecl
         #elif defined(__arm__)
             #define __cdecl
+        #elif defined(__aarch64__)
+            #define __cdecl
         #endif /* __cdecl */
     #endif /* __cdecl */
 #endif /* __GNUC__ */

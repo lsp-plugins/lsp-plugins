@@ -11,6 +11,7 @@ NEON_D32_IMPL           = $(OBJDIR)/neon-d32.o
 DSP_IMPL                = $(OBJDIR)/dsp.o
 BITS_IMPL               = $(OBJDIR)/bits.o
 ARM_IMPL                = $(OBJDIR)/arm.o
+AARCH64_IMPL            = $(OBJDIR)/aarch64.o
 
 SSE_INSTR_SET           = -mmmx -m3dnow -msse -msse2
 SSE2_INSTR_SET          = -mmmx -m3dnow -msse -msse2
@@ -33,6 +34,9 @@ endif
 ifeq ($(BUILD_PROFILE), armv7a)
 LINK_OBJECTS           += $(ARM_IMPL) $(NEON_D32_IMPL)
 endif
+ifeq ($(BUILD_PROFILE), aarch64)
+LINK_OBJECTS           += $(AARCH64_IMPL)
+endif
 
 .PHONY: all target
 
@@ -44,7 +48,7 @@ $(OBJ_DSP): $(LINK_OBJECTS)
 	@echo "  $(LD) $(notdir $(OBJ_DSP))"
 	@$(LD) -o $(OBJ_DSP) -r $(LDFLAGS) $(LINK_OBJECTS)
 
-$(DSP_IMPL) $(BITS_IMPL) $(NATIVE_IMPL) $(X86_IMPL) $(ARM_IMPL):
+$(DSP_IMPL) $(BITS_IMPL) $(NATIVE_IMPL) $(X86_IMPL) $(ARM_IMPL) $(AARCH64_IMPL):
 	@echo "  $(CC) $(FILE)"
 	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE) 
 	
