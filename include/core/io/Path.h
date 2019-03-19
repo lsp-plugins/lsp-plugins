@@ -23,6 +23,8 @@ namespace lsp
             private:
                 Path & operator = (const Path &);
 
+                inline void fixup_path();
+
             public:
                 explicit Path();
                 ~Path();

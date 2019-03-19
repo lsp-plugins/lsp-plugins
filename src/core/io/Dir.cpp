@@ -63,27 +63,31 @@ namespace lsp
 #ifdef PLATFORM_WINDOWS
             // Create search mask
             Path mask;
-            bool s_mask = mask.set(path);
-            s_mask    &&= mask.append_child("*");
-            if (!s_mask)
+            status_t res = mask.set(path);
+            if (res == STATUS_OK)
+                res = mask.append_child("*");
+            if (res != STATUS_OK)
             {
                 sPath.clear();
-                return set_error(STATUS_NO_MEM);
+                return set_error(res);
             }
 
             // Call API for FindFirst
             status_t pending    = STATUS_OK;
-            HANDLE dh           = ::FindFirstFileW(s_mask.as_string()->to_utf16(), &sData);
+            HANDLE dh           = ::FindFirstFileW(mask.as_string()->get_utf16(), &sData);
             if (dh == INVALID_HANDLE_VALUE)
             {
-                DWORD err = GetLastError();
-                if (err == ERROR_FILE_NOT_FOUND)
+                DWORD err = ::GetLastError();
+                switch (err)
                 {
-                    dh          = FAKE_HANDLE;
-                    pending     = STATUS_EOF;
+                    case ERROR_NO_MORE_FILES:
+                    case ERROR_FILE_NOT_FOUND:
+                        dh          = FAKE_HANDLE;
+                        pending     = STATUS_EOF;
+                        break;
+                    default:
+                        return set_error(STATUS_UNKNOWN_ERR);
                 }
-                else
-                    return set_error(STATUS_UNKNOWN_ERR);
             }
 
             nPending        = pending;
@@ -130,32 +134,36 @@ namespace lsp
 #ifdef PLATFORM_WINDOWS
             // Create search mask
             Path mask;
-            bool s_mask = mask.set(path);
-            s_mask    &&= mask.append_child("*");
-            if (!s_mask)
+            status_t res = mask.set(&sPath);
+            if (res == STATUS_OK)
+                res = mask.append_child("*");
+            if (res != STATUS_OK)
             {
                 sPath.clear();
-                return set_error(STATUS_NO_MEM);
+                return set_error(res);
             }
 
             // Call API for FindFirst
             status_t pending    = STATUS_OK;
-            HANDLE dh   = ::FindFirstFileW(s_mask.as_string().to_utf16(), &sData);
+            HANDLE dh   = ::FindFirstFileW(mask.as_string()->get_utf16(), &sData);
             if (dh == INVALID_HANDLE_VALUE)
             {
-                DWORD err = GetLastError();
-                if (err == ERROR_FILE_NOT_FOUND)
+                DWORD err = ::GetLastError();
+                switch (err)
                 {
-                    dh          = FAKE_HANDLE;
-                    pending     = STATUS_EOF;
+                    case ERROR_NO_MORE_FILES:
+                    case ERROR_FILE_NOT_FOUND:
+                        dh          = FAKE_HANDLE;
+                        pending     = STATUS_EOF;
+                        break;
+                    default:
+                        return set_error(STATUS_UNKNOWN_ERR);
                 }
-                else
-                    return set_error(STATUS_UNKNOWN_ERR);
             }
 
             // Close current  handle
             if (hDir != FAKE_HANDLE)
-                ::FindCloseW(hDir);
+                ::FindClose(hDir);
 
             // Replace closed handle by new handle
             hDir        = dh;
@@ -182,17 +190,23 @@ namespace lsp
                 return set_error(STATUS_BAD_STATE);
 
             // Set result
-            if (!path->set_utf16(&sData.cFileName))
+            if (!path->set_utf16(sData.cFileName))
                 return set_error(STATUS_NO_MEM);
 
             // Perform next iteration
             if (!::FindNextFileW(hDir, &sData))
             {
-                DWORD err = GetLastError();
-                if (err == ERROR_FILE_NOT_FOUND)
-                    nPending    = STATUS_EOF;
-                else
-                    nPending    = STATUS_UNKNOWN_ERR;
+                DWORD err = ::GetLastError();
+                switch (err)
+                {
+                    case ERROR_NO_MORE_FILES:
+                    case ERROR_FILE_NOT_FOUND:
+                        nPending    = STATUS_EOF;
+                        break;
+                    default:
+                        nPending    = STATUS_UNKNOWN_ERR;
+                        break;
+                }
             }
 #else
             // Read directory

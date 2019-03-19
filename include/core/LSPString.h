@@ -225,7 +225,7 @@ namespace lsp
              * @param src source string
              */
             bool set(lsp_wchar_t ch);
-            inline bool set(char ch)        { return set(lsp_wchar_t(ch)); };
+            inline bool set(char ch)        { return set(lsp_wchar_t(uint8_t(ch))); };
             bool set(ssize_t pos, lsp_wchar_t ch);
             bool set(const lsp_wchar_t *arr, size_t n);
             bool set(const LSPString *src);
@@ -279,22 +279,32 @@ namespace lsp
             bool replace(ssize_t first, ssize_t last, const LSPString *src, ssize_t sfirst);
             bool replace(ssize_t first, ssize_t last, const LSPString *src, ssize_t sfirst, ssize_t slast);
 
+            /**
+             * Replace all characters in the string with the replacement
+             * @param ch character to replace
+             * @param rep replacement character
+             * @return number of replacements
+             */
+            size_t replace_all(lsp_wchar_t ch, lsp_wchar_t rep);
+            inline size_t replace_all(char ch, char rep) { return replace_all(lsp_wchar_t(uint8_t(ch)), lsp_wchar_t(uint8_t(rep))); };
+            inline size_t replace_all(char ch, lsp_wchar_t rep) { return replace_all(lsp_wchar_t(uint8_t(ch)), rep); };
+            inline size_t replace_all(lsp_wchar_t ch, char rep) { return replace_all(ch, lsp_wchar_t(uint8_t(rep))); };
 
             /** Check ending and start
              *
              */
             bool ends_with(lsp_wchar_t ch) const;
-            inline bool ends_with(char ch) const { return ends_with(lsp_wchar_t(ch)); };
+            inline bool ends_with(char ch) const { return ends_with(lsp_wchar_t(uint8_t(ch))); };
             bool ends_with(const LSPString *src) const;
             bool ends_with_nocase(lsp_wchar_t ch) const;
-            inline bool ends_with_nocase(char ch) const { return ends_with(lsp_wchar_t(ch)); };
+            inline bool ends_with_nocase(char ch) const { return ends_with(lsp_wchar_t(uint8_t(ch))); };
             bool ends_with_nocase(const LSPString *src) const;
 
             bool starts_with(lsp_wchar_t ch) const;
-            inline bool starts_with(char ch) const { return starts_with(lsp_wchar_t(ch)); };
+            inline bool starts_with(char ch) const { return starts_with(lsp_wchar_t(uint8_t(ch))); };
             bool starts_with(const LSPString *src) const;
             bool starts_with_nocase(lsp_wchar_t ch) const;
-            inline bool starts_with_nocase(char ch) const { return starts_with_nocase(lsp_wchar_t(ch)); };
+            inline bool starts_with_nocase(char ch) const { return starts_with_nocase(lsp_wchar_t(uint8_t(ch))); };
             bool starts_with_nocase(const LSPString *src) const;
 
             /** Delete character sequence from the string
@@ -316,13 +326,13 @@ namespace lsp
             ssize_t rindex_of(const LSPString *str) const;
 
             ssize_t index_of(ssize_t start, lsp_wchar_t ch) const;
-            inline ssize_t index_of(ssize_t start, char ch) const { return index_of(start, lsp_wchar_t(ch)); };
+            inline ssize_t index_of(ssize_t start, char ch) const { return index_of(start, lsp_wchar_t(uint8_t(ch))); };
             ssize_t index_of(lsp_wchar_t ch) const;
-            inline ssize_t index_of(char ch) const { return index_of(lsp_wchar_t(ch)); };
+            inline ssize_t index_of(char ch) const { return index_of(lsp_wchar_t(uint8_t(ch))); };
             ssize_t rindex_of(ssize_t start, lsp_wchar_t ch) const;
-            inline ssize_t rindex_of(ssize_t start, char ch) const { return rindex_of(start, lsp_wchar_t(ch)); };
+            inline ssize_t rindex_of(ssize_t start, char ch) const { return rindex_of(start, lsp_wchar_t(uint8_t(ch))); };
             ssize_t rindex_of(lsp_wchar_t ch) const;
-            inline ssize_t rindex_of(char ch) const { return rindex_of(lsp_wchar_t(ch)); };
+            inline ssize_t rindex_of(char ch) const { return rindex_of(lsp_wchar_t(uint8_t(ch))); };
 
             /** Produce new object as substring of a string
              *

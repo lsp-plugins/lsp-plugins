@@ -30,8 +30,8 @@ namespace lsp
                 Path            sPath;
 #ifdef PLATFORM_WINDOWS
                 HANDLE          hDir;           // Directory handle
-                LPWIN32_FIND_DATAW sData;       // Last data read
-                status_t        nPending        // Pending error code
+                WIN32_FIND_DATAW sData;         // Last data read
+                status_t        nPending;       // Pending error code
 #else
                 DIR            *hDir;           // Directory handle
 #endif /* PLATFORM_WINDOWS */

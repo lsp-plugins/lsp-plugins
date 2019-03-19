@@ -25,25 +25,43 @@ namespace lsp
         {
         }
 
+        inline void Path::fixup_path()
+        {
+#ifdef PLATFORM_WINDOWS
+            sPath.replace_all('/', '\\');
+#else
+            sPath.replace_all('\\', '/');
+#endif /* PLATFORM_WINDOWS */
+        }
+
         status_t Path::set(const char *path)
         {
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            return (sPath.set_utf8(path)) ? STATUS_OK : STATUS_NO_MEM;
+            if (!sPath.set_utf8(path))
+                return STATUS_NO_MEM;
+            fixup_path();
+            return STATUS_OK;
         }
 
         status_t Path::set(const LSPString *path)
         {
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            return (sPath.set(path)) ? STATUS_OK : STATUS_NO_MEM;
+            if (!sPath.set(path))
+                return STATUS_NO_MEM;
+            fixup_path();
+            return STATUS_OK;
         }
 
         status_t Path::set(const Path *path)
         {
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            return (sPath.set(&path->sPath)) ? STATUS_OK : STATUS_NO_MEM;
+            if (!sPath.set(&path->sPath))
+                return STATUS_NO_MEM;
+            fixup_path();
+            return STATUS_OK;
         }
 
         status_t Path::get(char *path, size_t maxlen) const
@@ -91,7 +109,10 @@ namespace lsp
             idx             = (idx < 0) ? 0 : idx + 1;
             sPath.set_length(idx);
             if (sPath.append_utf8(path))
+            {
+                fixup_path();
                 return STATUS_OK;
+            }
 
             sPath.set_length(len);
             return STATUS_NO_MEM;
@@ -109,7 +130,10 @@ namespace lsp
             idx             = (idx < 0) ? 0 : idx + 1;
             sPath.set_length(idx);
             if (sPath.append(path))
+            {
+                fixup_path();
                 return STATUS_OK;
+            }
 
             sPath.set_length(len);
             return STATUS_NO_MEM;
@@ -127,7 +151,10 @@ namespace lsp
             idx             = (idx < 0) ? 0 : idx + 1;
             sPath.set_length(idx);
             if (sPath.append(&path->sPath))
+            {
+                fixup_path();
                 return STATUS_OK;
+            }
 
             sPath.set_length(len);
             return STATUS_NO_MEM;
@@ -243,7 +270,10 @@ namespace lsp
             if (success)
                 success = tmp.append(&sPath);
             if (success)
+            {
                 sPath.swap(&tmp);
+                fixup_path();
+            }
             return (success) ? STATUS_OK : STATUS_NO_MEM;
         }
 
@@ -264,7 +294,10 @@ namespace lsp
             if (success)
                 success = tmp.append(&sPath);
             if (success)
+            {
                 sPath.swap(&tmp);
+                fixup_path();
+            }
             return (success) ? STATUS_OK : STATUS_NO_MEM;
         }
 
@@ -285,7 +318,10 @@ namespace lsp
             if (success)
                 success = tmp.append(&sPath);
             if (success)
+            {
                 sPath.swap(&tmp);
+                fixup_path();
+            }
             return (success) ? STATUS_OK : STATUS_NO_MEM;
         }
 
@@ -293,21 +329,30 @@ namespace lsp
         {
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            return (sPath.append_utf8(path)) ? STATUS_OK : STATUS_NO_MEM;
+            if (!sPath.append_utf8(path))
+                return STATUS_NO_MEM;
+            fixup_path();
+            return STATUS_OK;
         }
 
         status_t Path::concat(LSPString *path)
         {
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            return (sPath.append(path)) ? STATUS_OK : STATUS_NO_MEM;
+            if (!sPath.append(path))
+                return STATUS_NO_MEM;
+            fixup_path();
+            return STATUS_OK;
         }
 
         status_t Path::concat(Path *path)
         {
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            return (sPath.append(&path->sPath)) ? STATUS_OK : STATUS_NO_MEM;
+            if (!sPath.append(&path->sPath))
+                return STATUS_NO_MEM;
+            fixup_path();
+            return STATUS_OK;
         }
 
         status_t Path::append_child(const char *path)
@@ -325,8 +370,11 @@ namespace lsp
             bool success = (sPath.ends_with(FILE_SEPARATOR_C)) ? true : sPath.append(FILE_SEPARATOR_C);
             if (success)
                 success = sPath.append(&tmp.sPath);
-            if (!success)
+            if (success)
+                fixup_path();
+            else
                 sPath.set_length(len);
+
             return (success) ? STATUS_OK : STATUS_NO_MEM;
         }
 
@@ -345,8 +393,11 @@ namespace lsp
             bool success = (sPath.ends_with(FILE_SEPARATOR_C)) ? true : sPath.append(FILE_SEPARATOR_C);
             if (success)
                 success = sPath.append(&tmp.sPath);
-            if (!success)
+            if (success)
+                fixup_path();
+            else
                 sPath.set_length(len);
+
             return (success) ? STATUS_OK : STATUS_NO_MEM;
         }
 
@@ -365,7 +416,9 @@ namespace lsp
             bool success = (sPath.ends_with(FILE_SEPARATOR_C)) ? true : sPath.append(FILE_SEPARATOR_C);
             if (success)
                 success = sPath.append(&tmp.sPath);
-            if (!success)
+            if (success)
+                fixup_path();
+            else
                 sPath.set_length(len);
             return (success) ? STATUS_OK : STATUS_NO_MEM;
         }
@@ -539,7 +592,7 @@ namespace lsp
             if (sPath.length() <= 0)
                 return true;
 #if defined(PLATFORM_WINDOWS)
-            return PathIsRelativeW(reinterpret_cast<LPCWSTR>(sPath.get_utf16()));
+            return ::PathIsRelativeW(reinterpret_cast<LPCWSTR>(sPath.get_utf16()));
 #else
             return (sPath.first() != FILE_SEPARATOR_C);
 #endif
@@ -607,7 +660,7 @@ namespace lsp
         bool Path::is_root() const
         {
 #if defined(PLATFORM_WINDOWS)
-            return PathIsRootW(reinterpret_cast<LPCWSTR>(sPath.get_utf16()));
+            return ::PathIsRootW(reinterpret_cast<LPCWSTR>(sPath.get_utf16()));
 #else
             return (sPath.length() == 1) &&
                     (sPath.first() == FILE_SEPARATOR_C);

@@ -497,7 +497,7 @@ namespace lsp
     {
         if (!cap_reserve(nLength + 1))
             return false;
-        pData[nLength++] = ch;
+        pData[nLength++] = uint8_t(ch);
         return true;
     }
 
@@ -987,6 +987,20 @@ namespace lsp
             xcopy(&pData[first], &src->pData[sfirst], scount);
         nLength = nLength - count + scount;
         return true;
+    }
+
+    size_t LSPString::replace_all(lsp_wchar_t ch, lsp_wchar_t rep)
+    {
+        size_t n = 0;
+        for (size_t i=0; i<nLength; ++i)
+        {
+            if (pData[i] == ch)
+            {
+                pData[i] = rep;
+                ++n;
+            }
+        }
+        return n;
     }
 
     ssize_t LSPString::index_of(ssize_t start, const LSPString *str) const
