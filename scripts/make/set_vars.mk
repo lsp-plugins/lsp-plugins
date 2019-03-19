@@ -49,6 +49,9 @@ else # BUILD_PLATFORM != Windows
     ifeq ($(patsubst armv8%,armv8,$(BUILD_ARCH)), armv8)
       BUILD_PROFILE           = armv8a
     endif
+	ifeq ($(patsubst aarch64%,aarch64,$(BUILD_ARCH)), aarch64)
+      BUILD_PROFILE           = aarch64
+    endif
     ifeq ($(BUILD_ARCH),x86_64)
       BUILD_PROFILE           = x86_64
     endif
