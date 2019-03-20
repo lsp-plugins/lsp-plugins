@@ -141,6 +141,13 @@ namespace lsp
                 virtual wssize_t size();
 
                 /**
+                 * Get file attributes
+                 * @param attr file attributes
+                 * @return
+                 */
+                virtual status_t stat(fattr_t *attr);
+
+                /**
                  * Truncate the file
                  * @param length the final file length
                  * @return status of operation

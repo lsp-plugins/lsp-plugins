@@ -11,6 +11,7 @@
 #include <core/status.h>
 #include <core/LSPString.h>
 #include <core/io/Path.h>
+#include <core/io/File.h>
 
 #ifdef PLATFORM_WINDOWS
     #include <fileapi.h>
@@ -89,6 +90,22 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t    read(Path *path, bool full = false);
+
+                /**
+                 * Read and stat the record from directory
+                 * @param path pointer to string to store new record
+                 * @param full retrieve full path instead of relative
+                 * @return status of operation
+                 */
+                status_t    reads(LSPString *path, fattr_t *attr, bool full = false);
+
+                /**
+                 * Read and stat the record from directory
+                 * @param path pointer to string to store new record
+                 * @param full retrieve full path instead of relative
+                 * @return status of operation
+                 */
+                status_t    reads(Path *path, fattr_t *attr, bool full = false);
 
                 /**
                  * Close current directory

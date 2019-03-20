@@ -48,6 +48,35 @@ UTEST_BEGIN("core.io", dir)
         }
         UTEST_ASSERT(dh.last_error() == STATUS_EOF);
         UTEST_ASSERT(n_read1 == n_read2);
+
+        // Try to re-read non-empty directory
+        n_read2 = 0;
+        io::fattr_t attr;
+        UTEST_ASSERT(dh.rewind() == STATUS_OK);
+        printf("Re-reading directory with stat %s...\n", xdir.get_native());
+        while (dh.reads(&path, &attr, full) == STATUS_OK)
+        {
+            if (path.is_dot() || path.is_dotdot())
+                continue;
+            const char *type = "unknown";
+
+            switch (attr.type)
+            {
+                case io::fattr_t::FT_BLOCK: type = "block"; break;
+                case io::fattr_t::FT_CHARACTER: type = "char"; break;
+                case io::fattr_t::FT_DIRECTORY: type = "dir"; break;
+                case io::fattr_t::FT_FIFO: type = "fifo"; break;
+                case io::fattr_t::FT_SYMLINK: type = "symlink"; break;
+                case io::fattr_t::FT_REGULAR: type = "regular"; break;
+                case io::fattr_t::FT_SOCKET: type = "socket"; break;
+                default: type = "unknown"; break;
+            }
+
+            printf("  found file: %s, type=%s, size=%ld\n", path.as_native(), type, long(attr.size));
+            ++n_read2;
+        }
+        UTEST_ASSERT(dh.last_error() == STATUS_EOF);
+
         UTEST_ASSERT(dh.close() == STATUS_OK);
     }
 

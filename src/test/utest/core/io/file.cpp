@@ -58,6 +58,13 @@ UTEST_BEGIN("core.io", file)
             UTEST_ASSERT(fd.write(tmpbuf, sizeof(tmpbuf)) == sizeof(tmpbuf));
             written += sizeof(tmpbuf);
         }
+        UTEST_ASSERT(fd.flush() == STATUS_OK)
+
+        // Get status
+        io::fattr_t attr;
+        UTEST_ASSERT(fd.stat(&attr) == STATUS_OK);
+        UTEST_ASSERT(attr.type == io::fattr_t::FT_REGULAR);
+        UTEST_ASSERT(attr.size == wsize_t(written));
 
         // Obtain position and change it
         UTEST_ASSERT(fd.position() == written);
@@ -125,6 +132,12 @@ UTEST_BEGIN("core.io", file)
         UTEST_ASSERT(::memcmp(tmpbuf, ckbuf, sizeof(tmpbuf)) == 0);
         read += sizeof(tmpbuf);
         UTEST_ASSERT(fd.read(tmpbuf, sizeof(tmpbuf)) == (-STATUS_EOF));
+
+        // Get status
+        io::fattr_t attr;
+        UTEST_ASSERT(fd.stat(&attr) == STATUS_OK);
+        UTEST_ASSERT(attr.type == io::fattr_t::FT_REGULAR);
+        UTEST_ASSERT(attr.size == wsize_t(read));
 
         // Obtain position and change it
         UTEST_ASSERT(fd.position() == read);

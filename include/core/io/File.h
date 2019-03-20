@@ -10,11 +10,36 @@
 
 #include <core/types.h>
 #include <core/status.h>
+#include <core/LSPString.h>
+#include <core/io/Path.h>
+#include <core/stdlib/stdio.h>
 
 namespace lsp
 {
     namespace io
     {
+        typedef struct fattr_t
+        {
+            enum ftype_t {
+                FT_BLOCK,
+                FT_CHARACTER,
+                FT_DIRECTORY,
+                FT_FIFO,
+                FT_SYMLINK,
+                FT_REGULAR,
+                FT_SOCKET,
+                FT_UNKNOWN
+            };
+
+            ftype_t     type;       // File type
+            size_t      blk_size;   // Block size
+            wsize_t     size;       // File size
+            wsize_t     inode;      // Index node
+            wsize_t     ctime;      // Creation time in milliseconds
+            wsize_t     mtime;      // Modification time in milliseconds
+            wsize_t     atime;      // Access time in milliseconds
+        } fattr_t;
+
         /**
          * Binary file interface, allows to perform read/write access
          * to the file on local file system
@@ -107,6 +132,13 @@ namespace lsp
                 virtual wssize_t size();
 
                 /**
+                 * Get file attributes
+                 * @param attr file attributes
+                 * @return
+                 */
+                virtual status_t stat(fattr_t *attr);
+
+                /**
                  * Truncate the file
                  * @param length the final file length
                  * @return status of operation
@@ -142,6 +174,48 @@ namespace lsp
                  * @return status of operation
                  */
                 virtual status_t close();
+
+            public:
+
+                /**
+                 * Obtain file information
+                 * @param path UTF-8 encoded path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                static status_t stat(const char *path, fattr_t *attr);
+
+                /**
+                 * Obtain file information
+                 * @param path path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                static status_t stat(const LSPString *path, fattr_t *attr);
+
+                /**
+                 * Obtain file information
+                 * @param path path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                static status_t stat(const Path *path, fattr_t *attr);
+
+                /**
+                 * Obtain file information
+                 * @param fd native file descriptor
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                static status_t stat(lsp_fhandle_t fd, fattr_t *attr);
+
+                /**
+                 * Obtain file information
+                 * @param fd stdio file descriptor
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                static status_t stat(FILE *fd, fattr_t *attr);
         };
     
     } /* namespace io */
