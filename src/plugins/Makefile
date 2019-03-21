@@ -12,4 +12,4 @@ $(OBJ_PLUGINS): $(FILES) $(SUBDIRS)
 
 $(FILES):
 	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE)
+	@$(CC) -o $(@) -c -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(FILE)

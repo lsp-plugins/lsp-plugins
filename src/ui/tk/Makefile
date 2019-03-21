@@ -7,7 +7,7 @@ FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 $(FILES):
 	@echo "  $(CC) $(FILE)"
 	@mkdir -p $(dir $@)
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE)
+	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE)
 
 $(OBJ_TK_CORE): $(FILES)
 	@echo "  $(LD) $(notdir $(@))"

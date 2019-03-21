@@ -38,7 +38,7 @@ $(SUBDIRS):
 
 $(FILES):
 	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(FILE) $(CPPFLAGS) -fPIC $(CFLAGS) $(INCLUDE)
+	@$(CC) -o $(@) -c $(FILE) $(CPPFLAGS) -fPIC $(CXXFLAGS) $(INCLUDE)
 
 # Rules for each utility
 $(UTL_GENTTL): $(FILES) $(SUBDIRS)

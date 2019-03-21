@@ -91,34 +91,43 @@ DOC_ID                 := $(ARTIFACT_ID)-doc-$(VERSION)
 default: all
 
 all: export CFLAGS          += -O2 -DLSP_NO_EXPERIMENTAL
+all: export CXXFLAGS        += -O2 -DLSP_NO_EXPERIMENTAL
 all: export EXE_FLAGS       += -pie -fPIE
 all: compile
 
 experimental: export CFLAGS += -O2
+experimental: export CXXFLAGS += -O2
 experimental: compile
 
 trace: export CFLAGS        += -O2 -DLSP_TRACE -g3
+trace: export CXXFLAGS      += -O2 -DLSP_TRACE -g3
 trace: export EXE_FLAGS     += -g3
 trace: compile
 
 test: export CFLAGS         += -O2 -DLSP_TESTING -DLSP_TRACE -g3
+test: export CXXFLAGS       += -O2 -DLSP_TESTING -DLSP_TRACE -g3
 test: export EXE_TEST_FLAGS += -g3
 test: export MAKE_OPTS      += LSP_TESTING=1
 test: compile
 
 tracefile: export CFLAGS    += -DLSP_TRACEFILE
+tracefile: export CXXFLAGS  += -DLSP_TRACEFILE
 tracefile: trace
 
 debug: export CFLAGS        += -O2 -DLSP_DEBUG
+debug: export CXXFLAGS      += -O2 -DLSP_DEBUG
 debug: compile
 
 debugfile: export CFLAGS    += -DLSP_TRACEFILE
+debugfile: export CXXFLAGS  += -DLSP_TRACEFILE
 debugfile: debug
 
 gdb: export CFLAGS          += -O0 -g3 -DLSP_TRACE
+gdb: export CXXFLAGS        += -O0 -g3 -DLSP_TRACE
 gdb: compile
 
 profile: export CFLAGS      += -g -pg -DLSP_PROFILING -no-pie
+profile: export CXXFLAGS    += -g -pg -DLSP_PROFILING -no-pie
 profile: export EXE_FLAGS   += -g -pg -no-pie
 profile: compile
 
@@ -196,6 +205,7 @@ install_doc: all
 
 # Release targets
 dbg_release: export CFLAGS        += -DLSP_TRACE -O2
+dbg_release: export CXXFLAGS      += -DLSP_TRACE -O2
 dbg_release: $(RELEASES)
 	@echo "Debug Release OK"
 

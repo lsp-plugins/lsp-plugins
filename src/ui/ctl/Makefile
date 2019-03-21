@@ -6,7 +6,7 @@ SUBDIRS					=
 
 $(FILES):
 	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE)  
+	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE)  
 
 $(OBJ_CTL_CORE): $(FILES)
 	@echo "  $(LD) $(notdir $(@))"
