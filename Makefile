@@ -135,6 +135,7 @@ compile:
 	@mkdir -p $(OBJDIR)/src
 	@test -f $(OBJDIR)/$(PREFIX_FILE) || echo -n "$(PREFIX)" > $(OBJDIR)/$(PREFIX_FILE)
 	@test -f $(OBJDIR)/$(MODULES_FILE) || echo -n "$(BUILD_MODULES)" > $(OBJDIR)/$(MODULES_FILE)
+	@test -f $(OBJDIR)/$(BUILD_PROFILE) || echo -n "$(BUILD_PROFILE)" > $(OBJDIR)/$(BUILD_PROFILE_FILE)
 	@$(MAKE) $(MAKE_OPTS) -C src all OBJDIR=$(OBJDIR)/src
 	@echo "Build OK"
 

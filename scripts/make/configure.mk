@@ -1,6 +1,3 @@
-PREFIX_FILE            := .install-prefix.txt
-MODULES_FILE           := .install-modules.txt
-
 # Determine installation prefix
 ifndef PREFIX
   PREFIX                 := $(shell cat "$(OBJDIR)/$(PREFIX_FILE)" 2>/dev/null || echo "/usr/local")
