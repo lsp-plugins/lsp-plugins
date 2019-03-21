@@ -1,4 +1,5 @@
-export CC               = g++
+export CC               = gcc
+export CXX              = g++
 export PHP              = php
 export LD               = ld
 

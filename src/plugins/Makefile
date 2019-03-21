@@ -11,5 +11,5 @@ $(OBJ_PLUGINS): $(FILES) $(SUBDIRS)
 	@$(LD) -o $(OBJ_PLUGINS) -r $(LDFLAGS) $(FILES) 
 
 $(FILES):
-	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(FILE)
+	@echo "  $(CXX) $(FILE)"
+	@$(CXX) -o $(@) -c -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(FILE)

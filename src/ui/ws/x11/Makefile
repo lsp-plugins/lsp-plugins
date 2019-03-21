@@ -11,6 +11,6 @@ $(OBJ_WS_X11_CORE): $(FILES)
 	@$(LD) -o $(OBJ_WS_X11_CORE) $(LDFLAGS) -r $(FILES)
 
 $(FILES):
-	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) 
+	@echo "  $(CXX) $(FILE)"
+	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) 
 
