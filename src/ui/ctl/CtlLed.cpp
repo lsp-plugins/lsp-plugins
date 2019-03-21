@@ -117,8 +117,8 @@ namespace lsp
             if ((!bActivitySet) && (pPort != NULL))
             {
                 char *str = NULL;
-                asprintf(&str, ":%s ieq %d", pPort->id(), int(fKey));
-                if (str != NULL)
+                int n = asprintf(&str, ":%s ieq %d", pPort->id(), int(fKey));
+                if ((n >= 0) && (str != NULL))
                 {
                     sActivity.parse(str);
                     free(str);

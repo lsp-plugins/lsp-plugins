@@ -100,7 +100,9 @@ namespace test
             for (size_t i=first; i<count; ++i)
             {
                 stats = __test_stats.at(i);
-                asprintf(&stats->rel, "%.2f", 100.0 * (cost_max / stats->cost));
+                int n = asprintf(&stats->rel, "%.2f", 100.0 * (cost_max / stats->cost));
+                if (n < 0)
+                    return;
             }
 
             return;
@@ -108,14 +110,20 @@ namespace test
 
         stats->key      = strdup(key);
         stats->cost     = time / iterations;
-        asprintf(&stats->time, "%.2f", time);
-        asprintf(&stats->n_time, "%.2f", __test_time);
-        asprintf(&stats->iterations, "%lld", (long long)(iterations));
-        asprintf(&stats->n_iterations, "%lld", (long long)((iterations * __test_time) / time));
-        asprintf(&stats->performance, "%.2f", (iterations / time));
-        asprintf(&stats->time_cost, "%.4f", (1000000.0 * time) / iterations);
+        int n = asprintf(&stats->time, "%.2f", time);
+        if (n >= 0)
+            n = asprintf(&stats->n_time, "%.2f", __test_time);
+        if (n >= 0)
+            n = asprintf(&stats->iterations, "%lld", (long long)(iterations));
+        if (n >= 0)
+            n = asprintf(&stats->n_iterations, "%lld", (long long)((iterations * __test_time) / time));
+        if (n >= 0)
+            n = asprintf(&stats->performance, "%.2f", (iterations / time));
+        if (n >= 0)
+            n = asprintf(&stats->time_cost, "%.4f", (1000000.0 * time) / iterations);
 
-        if ((stats->key == NULL) ||
+        if ((n < 0) ||
+            (stats->key == NULL) ||
             (stats->time == NULL) ||
             (stats->n_time == NULL) ||
             (stats->iterations == NULL) ||

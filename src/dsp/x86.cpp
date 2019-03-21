@@ -386,8 +386,8 @@ namespace x86
         detect_options(&f);
 
         char *model     = NULL;
-        asprintf(&model, "vendor=%s, family=0x%x, model=0x%x", cpu_vendors[f.vendor], int(f.family), int(f.model));
-        if (model == NULL)
+        int n = asprintf(&model, "vendor=%s, family=0x%x, model=0x%x", cpu_vendors[f.vendor], int(f.family), int(f.model));
+        if ((n < 0) || (model == NULL))
             return NULL;
 
         size_t size     = sizeof(dsp::info_t);

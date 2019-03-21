@@ -5,8 +5,8 @@
  *      Author: sadko
  */
 
-#ifndef INCLUDE_CONTAINER_VST_MAIN_POSIX_H_
-#define INCLUDE_CONTAINER_VST_MAIN_POSIX_H_
+#ifndef CONTAINER_VST_MAIN_POSIX_H_
+#define CONTAINER_VST_MAIN_POSIX_H_
 
 #ifndef VST_MAIN_IMPL
     #error "This header should not be included directly"
@@ -71,8 +71,8 @@ namespace lsp
 
             // Allocate path string
             ptr = NULL;
-            asprintf(&ptr, "%s" FILE_SEPARATOR_S "%s", path, de->d_name);
-            if (ptr == NULL)
+            int n = asprintf(&ptr, "%s" FILE_SEPARATOR_S "%s", path, de->d_name);
+            if ((n < 0) || (ptr == NULL))
                 continue;
 
             // Scan symbolic link if present
@@ -303,4 +303,4 @@ VST_MAIN(callback)
     return effect;
 }
 
-#endif /* INCLUDE_CONTAINER_VST_MAIN_POSIX_H_ */
+#endif /* CONTAINER_VST_MAIN_POSIX_H_ */
