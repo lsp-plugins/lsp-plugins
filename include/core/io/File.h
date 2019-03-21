@@ -178,7 +178,7 @@ namespace lsp
             public:
 
                 /**
-                 * Obtain file information
+                 * Obtain file information, do not follow symlinks
                  * @param path UTF-8 encoded path to file
                  * @param attr structure to return file attributes
                  * @return status of operation
@@ -186,7 +186,7 @@ namespace lsp
                 static status_t stat(const char *path, fattr_t *attr);
 
                 /**
-                 * Obtain file information
+                 * Obtain file information, do not follow symlinks
                  * @param path path to file
                  * @param attr structure to return file attributes
                  * @return status of operation
@@ -194,7 +194,7 @@ namespace lsp
                 static status_t stat(const LSPString *path, fattr_t *attr);
 
                 /**
-                 * Obtain file information
+                 * Obtain file information, do not follow symlinks
                  * @param path path to file
                  * @param attr structure to return file attributes
                  * @return status of operation
@@ -216,6 +216,30 @@ namespace lsp
                  * @return status of operation
                  */
                 static status_t stat(FILE *fd, fattr_t *attr);
+
+                /**
+                 * Obtain file information, follow symlinks
+                 * @param path UTF-8 encoded path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                static status_t sym_stat(const char *path, fattr_t *attr);
+
+                /**
+                 * Obtain file information, follow symlinks
+                 * @param path path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                static status_t sym_stat(const LSPString *path, fattr_t *attr);
+
+                /**
+                 * Obtain file information, follow symlinks
+                 * @param path path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                static status_t sym_stat(const Path *path, fattr_t *attr);
         };
     
     } /* namespace io */

@@ -218,7 +218,7 @@ namespace lsp
 #else
             // Read directory
             errno = 0;
-            struct dirent *dent = readdir(hDir);
+            struct dirent *dent = ::readdir(hDir);
             if (dent == NULL)
             {
                 if (errno == 0)
@@ -325,7 +325,7 @@ namespace lsp
             // Stat the record
             struct stat sb;
 #if ((_POSIX_C_SOURCE >= 200809L) || defined(_ATFILE_SOURCE))
-            int code = ::fstatat(::dirfd(hDir), dent->d_name, &sb, 0);
+            int code = ::fstatat(::dirfd(hDir), dent->d_name, &sb, AT_SYMLINK_NOFOLLOW);
 #else
             LSPString xpath, xname;
             if (!xname.set_native(dent->d_name))
@@ -336,7 +336,7 @@ namespace lsp
                 return set_error(STATUS_NO_MEM);
             if (!xpath.append(&xname))
                 return set_error(STATUS_NO_MEM);
-            int code = ::stat(xpath.get_native(), &sb);
+            int code = ::lstat(xpath.get_native(), &sb);
 #endif
             if (code != 0)
             {
@@ -435,6 +435,102 @@ namespace lsp
 
             nPosition = 0;
             return set_error(STATUS_OK);
+        }
+
+        status_t Dir::stat(const char *path, fattr_t *attr)
+        {
+            if ((path == NULL) || (attr == NULL))
+                return set_error(STATUS_BAD_ARGUMENTS);
+            if (check_closed(hDir))
+                return set_error(STATUS_BAD_STATE);
+
+            Path xpath;
+            status_t res = xpath.set(&sPath);
+            if (res == STATUS_OK)
+                res = xpath.append_child(path);
+            if (res != STATUS_OK)
+                return set_error(res);
+            return set_error(File::stat(xpath.as_string(), attr));
+        }
+
+        status_t Dir::stat(const LSPString *path, fattr_t *attr)
+        {
+            if ((path == NULL) || (attr == NULL))
+                return set_error(STATUS_BAD_ARGUMENTS);
+            if (check_closed(hDir))
+                return set_error(STATUS_BAD_STATE);
+
+            Path xpath;
+            status_t res = xpath.set(&sPath);
+            if (res == STATUS_OK)
+                res = xpath.append_child(path);
+            if (res != STATUS_OK)
+                return set_error(res);
+            return set_error(File::stat(&xpath, attr));
+        }
+
+        status_t Dir::stat(const Path *path, fattr_t *attr)
+        {
+            if ((path == NULL) || (attr == NULL))
+                return set_error(STATUS_BAD_ARGUMENTS);
+            if (check_closed(hDir))
+                return set_error(STATUS_BAD_STATE);
+
+            Path xpath;
+            status_t res = xpath.set(&sPath);
+            if (res == STATUS_OK)
+                res = xpath.append_child(path);
+            if (res != STATUS_OK)
+                return set_error(res);
+            return set_error(File::stat(xpath.as_string(), attr));
+        }
+
+        status_t Dir::sym_stat(const char *path, fattr_t *attr)
+        {
+            if ((path == NULL) || (attr == NULL))
+                return set_error(STATUS_BAD_ARGUMENTS);
+            if (check_closed(hDir))
+                return set_error(STATUS_BAD_STATE);
+
+            Path xpath;
+            status_t res = xpath.set(&sPath);
+            if (res == STATUS_OK)
+                res = xpath.append_child(path);
+            if (res != STATUS_OK)
+                return set_error(res);
+            return set_error(File::sym_stat(xpath.as_string(), attr));
+        }
+
+        status_t Dir::sym_stat(const LSPString *path, fattr_t *attr)
+        {
+            if ((path == NULL) || (attr == NULL))
+                return set_error(STATUS_BAD_ARGUMENTS);
+            if (check_closed(hDir))
+                return set_error(STATUS_BAD_STATE);
+
+            Path xpath;
+            status_t res = xpath.set(&sPath);
+            if (res == STATUS_OK)
+                res = xpath.append_child(path);
+            if (res != STATUS_OK)
+                return set_error(res);
+            return set_error(File::sym_stat(xpath.as_string(), attr));
+        }
+
+        status_t Dir::sym_stat(const Path *path, fattr_t *attr)
+        {
+            if ((path == NULL) || (attr == NULL))
+                return set_error(STATUS_BAD_ARGUMENTS);
+            if (check_closed(hDir))
+                return set_error(STATUS_BAD_STATE);
+
+            Path xpath;
+            status_t res = xpath.set(&sPath);
+            if (res == STATUS_OK)
+                res = xpath.append_child(path);
+            if (res != STATUS_OK)
+                return set_error(res);
+            return set_error(File::sym_stat(xpath.as_string(), attr));
         }
     
     } /* namespace io */

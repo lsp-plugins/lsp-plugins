@@ -378,7 +378,7 @@ namespace lsp
             return (success) ? STATUS_OK : STATUS_NO_MEM;
         }
 
-        status_t Path::append_child(LSPString *path)
+        status_t Path::append_child(const LSPString *path)
         {
             Path tmp;
             status_t res = tmp.set(path);
@@ -401,21 +401,17 @@ namespace lsp
             return (success) ? STATUS_OK : STATUS_NO_MEM;
         }
 
-        status_t Path::append_child(Path *path)
+        status_t Path::append_child(const Path *path)
         {
-            Path tmp;
-            status_t res = tmp.set(path);
-            if (res != STATUS_OK)
-                return res;
-            else if (tmp.is_empty())
+            if (path->is_empty())
                 return STATUS_OK;
-            else if (tmp.is_absolute())
+            else if (path->is_absolute())
                 return STATUS_INVALID_VALUE;
 
             size_t len = sPath.length();
             bool success = (sPath.ends_with(FILE_SEPARATOR_C)) ? true : sPath.append(FILE_SEPARATOR_C);
             if (success)
-                success = sPath.append(&tmp.sPath);
+                success = sPath.append(&path->sPath);
             if (success)
                 fixup_path();
             else

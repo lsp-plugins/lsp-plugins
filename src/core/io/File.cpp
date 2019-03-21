@@ -100,6 +100,44 @@ namespace lsp
             return stat(&spath, attr);
         }
 
+
+        status_t File::stat(const Path *path, fattr_t *attr)
+        {
+            if ((path == NULL) || (attr == NULL))
+                return STATUS_BAD_ARGUMENTS;
+            return stat(path->as_string(), attr);
+        }
+
+        status_t File::sym_stat(const char *path, fattr_t *attr)
+        {
+            if ((path == NULL) || (attr == NULL))
+                return STATUS_BAD_ARGUMENTS;
+
+            LSPString spath;
+            if (!spath.set_utf8(path))
+                return STATUS_NO_MEM;
+            return sym_stat(&spath, attr);
+        }
+
+        status_t File::sym_stat(const Path *path, fattr_t *attr)
+        {
+            if ((path == NULL) || (attr == NULL))
+                return STATUS_BAD_ARGUMENTS;
+            return sym_stat(path->as_string(), attr);
+        }
+
+        status_t File::stat(FILE *fd, fattr_t *attr)
+        {
+            if (fd == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            #ifdef PLATFORM_WINDOWS
+                return stat((HANDLE)_fileno(pFD), attr);
+            #else
+                return stat(fileno(fd), attr);
+            #endif
+        }
+
         status_t File::stat(const LSPString *path, fattr_t *attr)
         {
             if ((path == NULL) || (attr == NULL))
@@ -144,7 +182,7 @@ namespace lsp
                 attr->atime     = (wsize_t(hfi.ftLastAccessTime.dwHighDateTime) << 32) | hfi.ftLastAccessTime.dwLowDateTime) / 10000;
             #else
                 struct stat sb;
-                if (::stat(path->get_native(), &sb) != 0)
+                if (::lstat(path->get_native(), &sb) != 0)
                 {
                     int code = errno;
                     switch (code)
@@ -181,13 +219,6 @@ namespace lsp
             #endif /* PLATFORM_WINDOWS */
 
             return STATUS_OK;
-        }
-
-        status_t File::stat(const Path *path, fattr_t *attr)
-        {
-            if ((path == NULL) || (attr == NULL))
-                return STATUS_BAD_ARGUMENTS;
-            return stat(path->as_string(), attr);
         }
 
         status_t File::stat(lsp_fhandle_t fd, fattr_t *attr)
@@ -261,16 +292,88 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t File::stat(FILE *fd, fattr_t *attr)
+        status_t File::sym_stat(const LSPString *path, fattr_t *attr)
         {
-            if (fd == NULL)
+            if ((path == NULL) || (attr == NULL))
                 return STATUS_BAD_ARGUMENTS;
 
             #ifdef PLATFORM_WINDOWS
-                return stat((HANDLE)_fileno(pFD), attr);
+                WIN32_FIND_DATAW hfi;
+
+                HANDLE dh   = ::FindFirstFileW(path->get_utf16(), &hfi);
+                if (dh == INVALID_HANDLE_VALUE)
+                {
+                    DWORD err = ::GetLastError();
+                    switch (err)
+                    {
+                        case ERROR_NO_MORE_FILES:
+                        case ERROR_FILE_NOT_FOUND:
+                            return STATUS_NOT_FOUND;
+                        default:
+                            return STATUS_IO_ERR;
+                    }
+                }
+                ::FindClose(dh);
+
+                // Decode file type
+                attr->type      = fattr_t::FT_UNKNOWN;
+                if (hfi.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                    attr->type      = fattr_t::FT_DIRECTORY;
+                else if (hfi.dwFileAttributes & FILE_ATTRIBUTE_NORMAL)
+                    attr->type      = fattr_t::FT_REGULAR;
+
+                if (hfi.dwFileAttributes & FILE_ATTRIBUTE_SPARSE_FILE)
+                {
+                    if (hfi.dwReserved0 & IO_REPARSE_TAG_SYMLINK)
+                        attr->type = fattr_t::FT_SYMLINK;
+                }
+
+                attr->blk_size  = 4096;
+                attr->size      = (wsize_t(hfi.nFileSizeHigh) << 32) | hfi.nFileSizeLow;
+                attr->inode     = (wsize_t(hfi.nFileIndexHigh) << 32) | hfi.nFileIndexLow;
+                attr->ctime     = (wsize_t(hfi.ftCreationTime.dwHighDateTime) << 32) | hfi.ftCreationTime.dwLowDateTime) / 10000;
+                attr->mtime     = (wsize_t(hfi.ftLastWriteTime.dwHighDateTime) << 32) | hfi.ftLastWriteTime.dwLowDateTime) / 10000;
+                attr->atime     = (wsize_t(hfi.ftLastAccessTime.dwHighDateTime) << 32) | hfi.ftLastAccessTime.dwLowDateTime) / 10000;
             #else
-                return stat(fileno(fd), attr);
-            #endif
+                struct stat sb;
+                const char *s = path->get_native();
+                if (::stat(s, &sb) != 0)
+                {
+                    int code = errno;
+                    switch (code)
+                    {
+                        case EACCES: return STATUS_PERMISSION_DENIED;
+                        case EBADF: return STATUS_INVALID_VALUE;
+                        case ENAMETOOLONG: return STATUS_OVERFLOW;
+                        case EOVERFLOW: return STATUS_OVERFLOW;
+                        case ENOENT: return STATUS_NOT_FOUND;
+                        case ENOMEM: return STATUS_NO_MEM;
+                        default: break;
+                    }
+                    return STATUS_IO_ERROR;
+                }
+
+                // Decode file type
+                switch (sb.st_mode & S_IFMT) {
+                    case S_IFBLK:  attr->type = fattr_t::FT_BLOCK;      break;
+                    case S_IFCHR:  attr->type = fattr_t::FT_CHARACTER;  break;
+                    case S_IFDIR:  attr->type = fattr_t::FT_DIRECTORY;  break;
+                    case S_IFIFO:  attr->type = fattr_t::FT_FIFO;       break;
+                    case S_IFLNK:  attr->type = fattr_t::FT_SYMLINK;    break;
+                    case S_IFREG:  attr->type = fattr_t::FT_REGULAR;    break;
+                    case S_IFSOCK: attr->type = fattr_t::FT_SOCKET;     break;
+                    default:       attr->type = fattr_t::FT_UNKNOWN;    break;
+                }
+
+                attr->blk_size  = sb.st_blksize;
+                attr->size      = sb.st_size;
+                attr->inode     = sb.st_ino;
+                attr->ctime     = (sb.st_ctim.tv_sec * 1000L) + (sb.st_ctim.tv_nsec / 1000000);
+                attr->mtime     = (sb.st_mtim.tv_sec * 1000L) + (sb.st_mtim.tv_nsec / 1000000);
+                attr->atime     = (sb.st_atim.tv_sec * 1000L) + (sb.st_atim.tv_nsec / 1000000);
+            #endif /* PLATFORM_WINDOWS */
+
+            return STATUS_OK;
         }
 
     } /* namespace io */

@@ -60,8 +60,8 @@ namespace lsp
                 status_t    concat(Path *path);
 
                 status_t    append_child(const char *path);
-                status_t    append_child(LSPString *path);
-                status_t    append_child(Path *path);
+                status_t    append_child(const LSPString *path);
+                status_t    append_child(const Path *path);
 
                 status_t    remove_last();
                 status_t    remove_last(char *path, size_t maxlen);
