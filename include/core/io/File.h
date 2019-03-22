@@ -18,28 +18,6 @@ namespace lsp
 {
     namespace io
     {
-        typedef struct fattr_t
-        {
-            enum ftype_t {
-                FT_BLOCK,
-                FT_CHARACTER,
-                FT_DIRECTORY,
-                FT_FIFO,
-                FT_SYMLINK,
-                FT_REGULAR,
-                FT_SOCKET,
-                FT_UNKNOWN
-            };
-
-            ftype_t     type;       // File type
-            size_t      blk_size;   // Block size
-            wsize_t     size;       // File size
-            wsize_t     inode;      // Index node
-            wsize_t     ctime;      // Creation time in milliseconds
-            wsize_t     mtime;      // Modification time in milliseconds
-            wsize_t     atime;      // Access time in milliseconds
-        } fattr_t;
-
         /**
          * Binary file interface, allows to perform read/write access
          * to the file on local file system

@@ -198,6 +198,27 @@ namespace lsp
                  * @return status of operation
                  */
                 status_t sym_stat(const Path *path, fattr_t *attr);
+
+                /**
+                 * Create directory
+                 * @param path path to the directory
+                 * @return status of operation
+                 */
+                static status_t create(const char *path);
+
+                /**
+                 * Create directory
+                 * @param path path to the directory
+                 * @return status of operation
+                 */
+                static status_t create(const LSPString *path);
+
+                /**
+                 * Create directory
+                 * @param path path to the directory
+                 * @return status of operation
+                 */
+                static status_t create(const Path *path);
         };
     
     } /* namespace io */

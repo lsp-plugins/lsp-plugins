@@ -532,6 +532,67 @@ namespace lsp
                 return set_error(res);
             return set_error(File::sym_stat(xpath.as_string(), attr));
         }
+
+        status_t Dir::create(const char *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            LSPString spath;
+            if (!spath.set_utf8(path))
+                return STATUS_NO_MEM;
+            return create(&spath);
+        }
+
+        status_t Dir::create(const LSPString *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            fattr_t attr;
+
+#ifdef PLATFORM_WINDOWS
+            // TODO
+#else
+            // Try to create directory
+            if (::mkdir(path->get_native(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == 0)
+                return STATUS_OK;
+
+            // Analyze error code
+            int code = errno;
+            switch (code)
+            {
+                case EACCES:
+                case EPERM:
+                    return STATUS_PERMISSION_DENIED;
+                case EDQUOT:
+                case ENOSPC:
+                    return STATUS_OVERFLOW;
+                case ENOTDIR:
+                    return STATUS_BAD_HIERARCHY;
+                case EFAULT:
+                case EINVAL:
+                case ENAMETOOLONG:
+                    return STATUS_BAD_ARGUMENTS;
+                case EEXIST: // pathname already exists (not necessarily as a directory).  This includes the case where pathname is a symbolic link, dangling or not.
+                    File::sym_stat(path, &attr);
+                    if (attr.type == fattr_t::FT_DIRECTORY)
+                        return STATUS_OK;
+                    return STATUS_ALREADY_EXISTS;
+                case ENOENT: // A directory component in pathname does not exist or is a dangling symbolic link.
+                    return STATUS_NOT_FOUND;
+                default:
+                    return STATUS_IO_ERROR;
+            }
+#endif /* PLATFORM_WINDOWS */
+            return STATUS_OK;
+        }
+
+        status_t Dir::create(const Path *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            return create(path->as_string());
+        }
     
     } /* namespace io */
 } /* namespace lsp */
