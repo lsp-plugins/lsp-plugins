@@ -13,6 +13,7 @@
 * Added experimental support of AArch64 architecture (DSP code is not optimized yet).
 * Fixed regression in VST and Standalone plugin formats that caused offline tasks to
   not to be launched.
+* Additional I/O improvements for better WindowsNT support.
 - Research the work of plugins under Audacity.
 - Implemented 3D reverb simulator.
 - Implemented sampler plugin series with stereo outputs
