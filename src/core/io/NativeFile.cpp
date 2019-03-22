@@ -505,6 +505,14 @@ namespace lsp
             return pos;
         }
 
+        status_t NativeFile::stat(fattr_t *attr)
+        {
+            if (hFD == BAD_FD)
+                return -set_error(STATUS_BAD_STATE);
+
+            return set_error(File::stat(hFD, attr));
+        }
+
         status_t NativeFile::truncate(wsize_t length)
         {
             // Check state

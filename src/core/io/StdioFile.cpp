@@ -369,6 +369,13 @@ namespace lsp
             return pos;
         }
 
+        status_t StdioFile::stat(fattr_t *attr)
+        {
+            if (pFD == NULL)
+                return -set_error(STATUS_BAD_STATE);
+            return set_error(File::stat(pFD, attr));
+        }
+
         status_t StdioFile::truncate(wsize_t length)
         {
             // Check state

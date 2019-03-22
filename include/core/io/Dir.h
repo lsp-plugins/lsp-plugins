@@ -11,6 +11,7 @@
 #include <core/status.h>
 #include <core/LSPString.h>
 #include <core/io/Path.h>
+#include <core/io/File.h>
 
 #ifdef PLATFORM_WINDOWS
     #include <fileapi.h>
@@ -91,6 +92,22 @@ namespace lsp
                 status_t    read(Path *path, bool full = false);
 
                 /**
+                 * Read and stat the record from directory
+                 * @param path pointer to string to store new record
+                 * @param full retrieve full path instead of relative
+                 * @return status of operation
+                 */
+                status_t    reads(LSPString *path, fattr_t *attr, bool full = false);
+
+                /**
+                 * Read and stat the record from directory
+                 * @param path pointer to string to store new record
+                 * @param full retrieve full path instead of relative
+                 * @return status of operation
+                 */
+                status_t    reads(Path *path, fattr_t *attr, bool full = false);
+
+                /**
                  * Close current directory
                  * @return status of operation
                  */
@@ -133,6 +150,110 @@ namespace lsp
                  * @return pointer to UTF-8 string or NULL
                  */
                 inline const char *get_path() const { return sPath.as_string()->get_utf8(); }
+
+                /**
+                 * Obtain file information, do not follow symlinks
+                 * @param path UTF-8 encoded path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                status_t stat(const char *path, fattr_t *attr);
+
+                /**
+                 * Obtain file information, do not follow symlinks
+                 * @param path path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                status_t stat(const LSPString *path, fattr_t *attr);
+
+                /**
+                 * Obtain file information, do not follow symlinks
+                 * @param path path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                status_t stat(const Path *path, fattr_t *attr);
+
+                /**
+                 * Obtain file information, follow symlinks
+                 * @param path UTF-8 encoded path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                status_t sym_stat(const char *path, fattr_t *attr);
+
+                /**
+                 * Obtain file information, follow symlinks
+                 * @param path path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                status_t sym_stat(const LSPString *path, fattr_t *attr);
+
+                /**
+                 * Obtain file information, follow symlinks
+                 * @param path path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                status_t sym_stat(const Path *path, fattr_t *attr);
+
+                /**
+                 * Create directory
+                 * @param path path to the directory
+                 * @return status of operation
+                 */
+                static status_t create(const char *path);
+
+                /**
+                 * Create directory
+                 * @param path path to the directory
+                 * @return status of operation
+                 */
+                static status_t create(const LSPString *path);
+
+                /**
+                 * Create directory
+                 * @param path path to the directory
+                 * @return status of operation
+                 */
+                static status_t create(const Path *path);
+
+                /**
+                 * Delete directory
+                 * @param path path to directory
+                 * @return status of operation
+                 */
+                static status_t remove(const char *path);
+
+                /**
+                 * Delete directory
+                 * @param path path to directory
+                 * @return status of operation
+                 */
+                static status_t remove(const LSPString *path);
+
+                /**
+                 * Delete directory
+                 * @param path path to directory
+                 * @return status of operation
+                 */
+                static status_t remove(const Path *path);
+
+                /**
+                 * Delete directory
+                 * @param path path to directory
+                 * @return status of operation
+                 */
+                static status_t get_current(LSPString *path);
+
+                /**
+                 * Delete directory
+                 * @param path path to directory
+                 * @return status of operation
+                 */
+                static status_t get_current(Path *path);
         };
     
     } /* namespace io */

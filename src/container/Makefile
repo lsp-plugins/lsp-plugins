@@ -79,4 +79,4 @@ $(BIN_TEST): $(LIB_JACK)
 	@echo "  $(CXX) test.cpp"
 	@$(CXX) -o $(OBJDIR)/test.o -c test.cpp -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(JACK_HEADERS) 
 	@echo "  $(CXX) $(notdir $(BIN_TEST))"
-	@$(CXX) -o $(BIN_TEST) $(OBJDIR)/jack.o $(OBJDIR)/test.o $(OBJ_HELPERS) $(UI_OBJFILES) $(EXE_TEST_FLAGS) $(UI_LIBS) $(JACK_LIBS) $(OPENGL_LIBS)   
+	@$(CXX) -o $(BIN_TEST) $(OBJDIR)/jack.o $(OBJDIR)/test.o $(OBJ_HELPERS) $(UI_OBJFILES) $(EXE_TEST_FLAGS) $(UI_LIBS) $(JACK_LIBS) $(OPENGL_LIBS) $(DL_LIBS)   

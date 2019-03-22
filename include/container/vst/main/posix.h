@@ -241,6 +241,16 @@ namespace lsp
         // Try to lookup additional directories obtained from file mapping
         if (factory == NULL)
         {
+            char *libpath = get_library_path();
+            if (libpath != NULL)
+            {
+                factory         = lookup_factory(hInstance, libpath);
+                ::free(libpath);
+            }
+        }
+
+        if (factory == NULL)
+        {
             char **paths = get_library_paths(vst_core_paths);
             if (paths != NULL)
             {

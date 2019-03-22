@@ -241,6 +241,16 @@ namespace lsp
         // Try to lookup additional directories obtained from file mapping
         if (jack_main == NULL)
         {
+            char *libpath = get_library_path();
+            if (libpath != NULL)
+            {
+                jack_main     = lookup_jack_main(hInstance, libpath);
+                ::free(libpath);
+            }
+        }
+
+        if (jack_main == NULL)
+        {
             char **paths = get_library_paths(jack_core_paths);
             if (paths != NULL)
             {

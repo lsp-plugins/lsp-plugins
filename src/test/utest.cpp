@@ -38,6 +38,7 @@ namespace test
         va_start(vl, fmt);
         int res = vprintf(fmt, vl);
         va_end(vl);
+        fflush(stdout);
         return res;
     }
 
