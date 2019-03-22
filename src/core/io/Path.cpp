@@ -373,7 +373,7 @@ namespace lsp
                 return STATUS_INVALID_VALUE;
 
             size_t len = sPath.length();
-            bool success = (sPath.ends_with(FILE_SEPARATOR_C)) ? true : sPath.append(FILE_SEPARATOR_C);
+            bool success = ((len <= 0) || (sPath.ends_with(FILE_SEPARATOR_C))) ? true : sPath.append(FILE_SEPARATOR_C);
             if (success)
                 success = sPath.append(&tmp.sPath);
             if (success)
@@ -396,7 +396,7 @@ namespace lsp
                 return STATUS_INVALID_VALUE;
 
             size_t len = sPath.length();
-            bool success = (sPath.ends_with(FILE_SEPARATOR_C)) ? true : sPath.append(FILE_SEPARATOR_C);
+            bool success = ((len <= 0) || (sPath.ends_with(FILE_SEPARATOR_C))) ? true : sPath.append(FILE_SEPARATOR_C);
             if (success)
                 success = sPath.append(&tmp.sPath);
             if (success)
@@ -409,13 +409,15 @@ namespace lsp
 
         status_t Path::append_child(const Path *path)
         {
-            if (path->is_empty())
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            else if (path->is_empty())
                 return STATUS_OK;
             else if (path->is_absolute())
                 return STATUS_INVALID_VALUE;
 
             size_t len = sPath.length();
-            bool success = (sPath.ends_with(FILE_SEPARATOR_C)) ? true : sPath.append(FILE_SEPARATOR_C);
+            bool success = ((len <= 0) || (sPath.ends_with(FILE_SEPARATOR_C))) ? true : sPath.append(FILE_SEPARATOR_C);
             if (success)
                 success = sPath.append(&path->sPath);
             if (success)
@@ -941,12 +943,12 @@ namespace lsp
             }
 
             // Perform iterative directory creation
-            while (off > 0)
+            while (off >= 0)
             {
                 if (!tmp.set(&path.sPath, 0, off))
                     return STATUS_NO_MEM;
 
-                res = Dir::create(&sPath);
+                res = Dir::create(&tmp);
                 if (res != STATUS_OK)
                     return res;
 
@@ -954,7 +956,7 @@ namespace lsp
                 off     = path.sPath.index_of(off+1, FILE_SEPARATOR_C);
             }
 
-            return STATUS_OK;
+            return Dir::create(&sPath);
         }
 
         status_t Path::remove() const

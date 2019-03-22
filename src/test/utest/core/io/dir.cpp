@@ -91,7 +91,7 @@ UTEST_BEGIN("core.io", dir)
         }
 
         UTEST_ASSERT(p.append_child("tmp") == STATUS_OK);
-        UTEST_ASSERT(bp.set(&p))
+        UTEST_ASSERT(bp.set(&p) == STATUS_OK)
         printf("Temporary path is: %s\n", p.as_native());
 
         UTEST_ASSERT(p.append_child(full_name()) == STATUS_OK);
@@ -100,7 +100,7 @@ UTEST_BEGIN("core.io", dir)
         UTEST_ASSERT(p.mkdir() == STATUS_OK);
         UTEST_ASSERT(p.mkdir() == STATUS_OK);
 
-        UTEST_ASSERT(xp.set(path));
+        UTEST_ASSERT(xp.set(path) == STATUS_OK);
         UTEST_ASSERT(p.append_child(&xp) == STATUS_OK);
         printf("Will try to create subpath: %s\n", p.as_native());
         UTEST_ASSERT(p.mkdir(true) == STATUS_OK);
@@ -111,12 +111,12 @@ UTEST_BEGIN("core.io", dir)
         UTEST_ASSERT(io::Dir::remove(&bp) == STATUS_NOT_EMPTY);
 
         // Recursively remove directory until we reach the base path
-        UTEST_ASSERT(p.parent());
+        UTEST_ASSERT(p.parent() == STATUS_OK);
         while (!p.equals(&bp))
         {
             printf("Removing: %s\n", p.as_native());
             UTEST_ASSERT(io::Dir::remove(&p) == STATUS_OK);
-            UTEST_ASSERT(p.parent());
+            UTEST_ASSERT(p.parent() == STATUS_OK);
         }
     }
 
