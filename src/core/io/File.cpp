@@ -9,6 +9,7 @@
 
 #ifdef PLATFORM_WINDOWS
     #include <fileapi.h>
+    #include <io.h>
 #else
     #include <sys/stat.h>
     #include <errno.h>
@@ -133,7 +134,7 @@ namespace lsp
                 return STATUS_BAD_ARGUMENTS;
 
             #ifdef PLATFORM_WINDOWS
-                return stat((HANDLE)_fileno(pFD), attr);
+                return stat((HANDLE)::_get_osfhandle(::_fileno(fd)), attr);
             #else
                 return stat(fileno(fd), attr);
             #endif
@@ -157,30 +158,24 @@ namespace lsp
                         case ERROR_FILE_NOT_FOUND:
                             return STATUS_NOT_FOUND;
                         default:
-                            return STATUS_IO_ERR;
+                            return STATUS_IO_ERROR;
                     }
                 }
                 ::FindClose(dh);
 
                 // Decode file type
-                attr->type      = fattr_t::FT_UNKNOWN;
+                attr->type      = fattr_t::FT_REGULAR;
                 if (hfi.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
                     attr->type      = fattr_t::FT_DIRECTORY;
-                else if (hfi.dwFileAttributes & FILE_ATTRIBUTE_NORMAL)
-                    attr->type      = fattr_t::FT_REGULAR;
-
-                if (hfi.dwFileAttributes & FILE_ATTRIBUTE_SPARSE_FILE)
-                {
-                    if (hfi.dwReserved0 & IO_REPARSE_TAG_SYMLINK)
-                        attr->type = fattr_t::FT_SYMLINK;
-                }
+                else if (hfi.dwFileAttributes & FILE_ATTRIBUTE_DEVICE)
+                    attr->type      = fattr_t::FT_BLOCK;
 
                 attr->blk_size  = 4096;
                 attr->size      = (wsize_t(hfi.nFileSizeHigh) << 32) | hfi.nFileSizeLow;
-                attr->inode     = (wsize_t(hfi.nFileIndexHigh) << 32) | hfi.nFileIndexLow;
-                attr->ctime     = (wsize_t(hfi.ftCreationTime.dwHighDateTime) << 32) | hfi.ftCreationTime.dwLowDateTime) / 10000;
-                attr->mtime     = (wsize_t(hfi.ftLastWriteTime.dwHighDateTime) << 32) | hfi.ftLastWriteTime.dwLowDateTime) / 10000;
-                attr->atime     = (wsize_t(hfi.ftLastAccessTime.dwHighDateTime) << 32) | hfi.ftLastAccessTime.dwLowDateTime) / 10000;
+                attr->inode     = 0;
+                attr->ctime     = ((wsize_t(hfi.ftCreationTime.dwHighDateTime) << 32) | hfi.ftCreationTime.dwLowDateTime) / 10000;
+                attr->mtime     = ((wsize_t(hfi.ftLastWriteTime.dwHighDateTime) << 32) | hfi.ftLastWriteTime.dwLowDateTime) / 10000;
+                attr->atime     = ((wsize_t(hfi.ftLastAccessTime.dwHighDateTime) << 32) | hfi.ftLastAccessTime.dwLowDateTime) / 10000;
             #else
                 struct stat sb;
                 if (::lstat(path->get_native(), &sb) != 0)
@@ -234,24 +229,18 @@ namespace lsp
                 return STATUS_IO_ERROR;
 
             // Decode file type
-            attr->type      = fattr_t::FT_UNKNOWN;
+            attr->type      = fattr_t::FT_REGULAR;
             if (hfi.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
                 attr->type      = fattr_t::FT_DIRECTORY;
-            else if (hfi.dwFileAttributes & FILE_ATTRIBUTE_NORMAL)
-                attr->type      = fattr_t::FT_REGULAR;
-
-            if (hfi.dwFileAttributes & FILE_ATTRIBUTE_SPARSE_FILE)
-            {
-                if (hfi.dwReserved0 & IO_REPARSE_TAG_SYMLINK)
-                    attr->type = fattr_t::FT_SYMLINK;
-            }
+            else if (hfi.dwFileAttributes & FILE_ATTRIBUTE_DEVICE)
+                attr->type      = fattr_t::FT_BLOCK;
 
             attr->blk_size  = 4096;
             attr->size      = (wsize_t(hfi.nFileSizeHigh) << 32) | hfi.nFileSizeLow;
             attr->inode     = (wsize_t(hfi.nFileIndexHigh) << 32) | hfi.nFileIndexLow;
-            attr->ctime     = (wsize_t(hfi.ftCreationTime.dwHighDateTime) << 32) | hfi.ftCreationTime.dwLowDateTime) / 10000;
-            attr->mtime     = (wsize_t(hfi.ftLastWriteTime.dwHighDateTime) << 32) | hfi.ftLastWriteTime.dwLowDateTime) / 10000;
-            attr->atime     = (wsize_t(hfi.ftLastAccessTime.dwHighDateTime) << 32) | hfi.ftLastAccessTime.dwLowDateTime) / 10000;
+            attr->ctime     = ((wsize_t(hfi.ftCreationTime.dwHighDateTime) << 32) | hfi.ftCreationTime.dwLowDateTime) / 10000;
+            attr->mtime     = ((wsize_t(hfi.ftLastWriteTime.dwHighDateTime) << 32) | hfi.ftLastWriteTime.dwLowDateTime) / 10000;
+            attr->atime     = ((wsize_t(hfi.ftLastAccessTime.dwHighDateTime) << 32) | hfi.ftLastAccessTime.dwLowDateTime) / 10000;
         #else
             struct stat sb;
             if (::fstat(fd, &sb) != 0)
@@ -311,30 +300,24 @@ namespace lsp
                         case ERROR_FILE_NOT_FOUND:
                             return STATUS_NOT_FOUND;
                         default:
-                            return STATUS_IO_ERR;
+                            return STATUS_IO_ERROR;
                     }
                 }
                 ::FindClose(dh);
 
                 // Decode file type
-                attr->type      = fattr_t::FT_UNKNOWN;
+                attr->type      = fattr_t::FT_REGULAR;
                 if (hfi.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
                     attr->type      = fattr_t::FT_DIRECTORY;
-                else if (hfi.dwFileAttributes & FILE_ATTRIBUTE_NORMAL)
-                    attr->type      = fattr_t::FT_REGULAR;
-
-                if (hfi.dwFileAttributes & FILE_ATTRIBUTE_SPARSE_FILE)
-                {
-                    if (hfi.dwReserved0 & IO_REPARSE_TAG_SYMLINK)
-                        attr->type = fattr_t::FT_SYMLINK;
-                }
+                else if (hfi.dwFileAttributes & FILE_ATTRIBUTE_DEVICE)
+                    attr->type      = fattr_t::FT_BLOCK;
 
                 attr->blk_size  = 4096;
                 attr->size      = (wsize_t(hfi.nFileSizeHigh) << 32) | hfi.nFileSizeLow;
-                attr->inode     = (wsize_t(hfi.nFileIndexHigh) << 32) | hfi.nFileIndexLow;
-                attr->ctime     = (wsize_t(hfi.ftCreationTime.dwHighDateTime) << 32) | hfi.ftCreationTime.dwLowDateTime) / 10000;
-                attr->mtime     = (wsize_t(hfi.ftLastWriteTime.dwHighDateTime) << 32) | hfi.ftLastWriteTime.dwLowDateTime) / 10000;
-                attr->atime     = (wsize_t(hfi.ftLastAccessTime.dwHighDateTime) << 32) | hfi.ftLastAccessTime.dwLowDateTime) / 10000;
+                attr->inode     = 0;
+                attr->ctime     = ((wsize_t(hfi.ftCreationTime.dwHighDateTime) << 32) | hfi.ftCreationTime.dwLowDateTime) / 10000;
+                attr->mtime     = ((wsize_t(hfi.ftLastWriteTime.dwHighDateTime) << 32) | hfi.ftLastWriteTime.dwLowDateTime) / 10000;
+                attr->atime     = ((wsize_t(hfi.ftLastAccessTime.dwHighDateTime) << 32) | hfi.ftLastAccessTime.dwLowDateTime) / 10000;
             #else
                 struct stat sb;
                 const char *s = path->get_native();
@@ -401,13 +384,21 @@ namespace lsp
                 return STATUS_BAD_ARGUMENTS;
 
 #ifdef PLATFORM_WINDOWS
-            if (::RemoveFileW(path->get_utf16()))
+            if (::DeleteFileW(path->get_utf16()))
                 return STATUS_OK;
 
             // Analyze error code
             DWORD code = ::GetLastError();
             switch (code)
             {
+                case ERROR_ACCESS_DENIED:
+                {
+                    fattr_t attr;
+                    status_t res = stat(path, &attr);
+                    if ((res == STATUS_OK) && (attr.type == fattr_t::FT_DIRECTORY))
+                        return STATUS_IS_DIRECTORY;
+                    return STATUS_PERMISSION_DENIED;
+                }
                 case ERROR_PATH_NOT_FOUND:
                     return STATUS_NOT_FOUND;
                 default:

@@ -9,6 +9,7 @@
 
 #ifdef PLATFORM_WINDOWS
     #include <fileapi.h>
+    #include <winbase.h>
 #else
     #include <sys/stat.h>
     #include <errno.h>
@@ -294,24 +295,18 @@ namespace lsp
 
             // Decode file state
             // Decode file type
-            attr->type      = fattr_t::FT_UNKNOWN;
+            attr->type      = fattr_t::FT_REGULAR;
             if (sData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
                 attr->type      = fattr_t::FT_DIRECTORY;
-            else if (sData.dwFileAttributes & FILE_ATTRIBUTE_NORMAL)
-                attr->type      = fattr_t::FT_REGULAR;
-
-            if (sData.dwFileAttributes & FILE_ATTRIBUTE_SPARSE_FILE)
-            {
-                if (sData.dwReserved0 & IO_REPARSE_TAG_SYMLINK)
-                    attr->type = fattr_t::FT_SYMLINK;
-            }
+            else if (sData.dwFileAttributes & FILE_ATTRIBUTE_DEVICE)
+                attr->type      = fattr_t::FT_BLOCK;
 
             attr->blk_size  = 4096;
             attr->size      = (wsize_t(sData.nFileSizeHigh) << 32) | sData.nFileSizeLow;
-            attr->inode     = (wsize_t(sData.nFileIndexHigh) << 32) | sData.nFileIndexLow;
-            attr->ctime     = (wsize_t(sData.ftCreationTime.dwHighDateTime) << 32) | sData.ftCreationTime.dwLowDateTime) / 10000;
-            attr->mtime     = (wsize_t(sData.ftLastWriteTime.dwHighDateTime) << 32) | sData.ftLastWriteTime.dwLowDateTime) / 10000;
-            attr->atime     = (wsize_t(sData.ftLastAccessTime.dwHighDateTime) << 32) | sData.ftLastAccessTime.dwLowDateTime) / 10000;
+            attr->inode     = 0;
+            attr->ctime     = ((wsize_t(sData.ftCreationTime.dwHighDateTime) << 32) | sData.ftCreationTime.dwLowDateTime) / 10000;
+            attr->mtime     = ((wsize_t(sData.ftLastWriteTime.dwHighDateTime) << 32) | sData.ftLastWriteTime.dwLowDateTime) / 10000;
+            attr->atime     = ((wsize_t(sData.ftLastAccessTime.dwHighDateTime) << 32) | sData.ftLastAccessTime.dwLowDateTime) / 10000;
 #else
             // Read directory
             errno = 0;
@@ -556,10 +551,10 @@ namespace lsp
         {
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            fattr_t attr;
 
 #ifdef PLATFORM_WINDOWS
-            if (::CreateDirectoryW(path->get_utf16(), NULL))
+            const WCHAR *xp = path->get_utf16();
+            if (::CreateDirectoryW(xp, NULL))
                 return STATUS_OK;
 
             // Analyze error code
@@ -595,10 +590,13 @@ namespace lsp
                 case ENAMETOOLONG:
                     return STATUS_BAD_ARGUMENTS;
                 case EEXIST: // pathname already exists (not necessarily as a directory).  This includes the case where pathname is a symbolic link, dangling or not.
+                {
+                    fattr_t attr;
                     File::sym_stat(path, &attr);
                     if (attr.type == fattr_t::FT_DIRECTORY)
                         return STATUS_OK;
                     return STATUS_ALREADY_EXISTS;
+                }
                 case ENOENT: // A directory component in pathname does not exist or is a dangling symbolic link.
                     return STATUS_NOT_FOUND;
                 default:
@@ -683,6 +681,26 @@ namespace lsp
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
 
+#ifdef PLATFORM_WINDOWS
+            DWORD len = ::GetCurrentDirectoryW(0, NULL);
+            if (len == 0)
+                return STATUS_UNKNOWN_ERR;
+
+            WCHAR *buf = reinterpret_cast<WCHAR *>(::malloc(sizeof(WCHAR) * (len + 1)));
+            if (buf == NULL)
+                return STATUS_NO_MEM;
+
+            len = ::GetCurrentDirectoryW(len, buf);
+            if (len == 0)
+            {
+                ::free(buf);
+                return STATUS_UNKNOWN_ERR;
+            }
+
+            status_t res = (path->set_utf16(buf, len)) ? STATUS_OK : STATUS_NO_MEM;
+            ::free(buf);
+            return res;
+#else
             char spath[PATH_MAX];
             char *p = ::getcwd(spath, PATH_MAX);
             if (p == NULL)
@@ -705,6 +723,7 @@ namespace lsp
             }
 
             return (path->set_native(p)) ? STATUS_OK : STATUS_NO_MEM;
+#endif /* PLATFORM_WINDOWS */
         }
 
         status_t Dir::get_current(Path *path)
