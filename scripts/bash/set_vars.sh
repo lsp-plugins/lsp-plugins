@@ -20,6 +20,9 @@ else
     MAKE=make
 fi
 
+export CC=gcc
+export CXX=g++
+
 # Update architecture
 if [[ ( "$ARCH" =~ ^x86_64 ) || ( "$ARCH" =~ ^amd64 ) ]]; then
     ARCH=x86_64
