@@ -94,7 +94,7 @@ ifeq ($(BUILD_PROFILE),armv8a)
 endif
 
 ifeq ($(BUILD_PROFILE),aarch64)
-  CC_ARCH          = -march=aarch64
+  CC_ARCH          = -march=armv8-a
   LD_PATH          = /usr/lib:/lib:/usr/local/lib
 endif
 
