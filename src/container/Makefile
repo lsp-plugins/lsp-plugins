@@ -65,7 +65,7 @@ $(LIB_VST):
 
 $(LIB_JACK): $(OBJ_HELPERS)
 	@echo "  $(CXX) jack.cpp"
-	@$(CXX) -o $(OBJDIR)/jack.o -c jack.cpp -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(JACK_HEADERS) 
+	@$(CXX) -o $(OBJDIR)/jack.o -c jack.cpp -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(JACK_HEADERS) $(CAIRO_HEADERS)
 	@echo "  $(CXX) $(notdir $(LIB_JACK))"
 	@$(CXX) -o $(LIB_JACK) $(OBJDIR)/jack.o $(OBJ_HELPERS) $(UI_OBJFILES) $(SO_FLAGS) $(UI_LIBS) $(JACK_LIBS)
 
