@@ -13,6 +13,7 @@
     #include <sys/stat.h>
     #include <errno.h>
     #include <fcntl.h>
+    #include <unistd.h>
 #endif /* PLATFORM_WINDOWS */
 
 #ifdef PLATFORM_WINDOWS
@@ -544,6 +545,13 @@ namespace lsp
             return create(&spath);
         }
 
+        status_t Dir::create(const Path *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            return create(path->as_string());
+        }
+
         status_t Dir::create(const LSPString *path)
         {
             if (path == NULL)
@@ -551,7 +559,20 @@ namespace lsp
             fattr_t attr;
 
 #ifdef PLATFORM_WINDOWS
-            // TODO
+            if (::CreateDirectoryW(path->get_utf16(), NULL))
+                return STATUS_OK;
+
+            // Analyze error code
+            DWORD code = ::GetLastError();
+            switch (code)
+            {
+                case ERROR_ALREADY_EXISTS:
+                    return STATUS_OK;
+                case ERROR_PATH_NOT_FOUND:
+                    return STATUS_NOT_FOUND;
+                default:
+                    return STATUS_IO_ERROR;
+            }
 #else
             // Try to create directory
             if (::mkdir(path->get_native(), S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) == 0)
@@ -587,11 +608,114 @@ namespace lsp
             return STATUS_OK;
         }
 
-        status_t Dir::create(const Path *path)
+        status_t Dir::remove(const char *path)
         {
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            return create(path->as_string());
+
+            LSPString spath;
+            if (!spath.set_utf8(path))
+                return STATUS_NO_MEM;
+            return remove(&spath);
+        }
+
+        status_t Dir::remove(const Path *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            return remove(path->as_string());
+        }
+
+        status_t Dir::remove(const LSPString *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+#ifdef PLATFORM_WINDOWS
+            if (::RemoveDirectoryW(path->get_utf16()))
+                return STATUS_OK;
+
+            // Analyze error code
+            DWORD code = ::GetLastError();
+            switch (code)
+            {
+                case ERROR_PATH_NOT_FOUND:
+                    return STATUS_NOT_FOUND;
+                case ERROR_DIR_NOT_EMPTY:
+                    return STATUS_NOT_EMPTY;
+                default:
+                    return STATUS_IO_ERROR;
+            }
+#else
+            // Try to remove directory
+            if (::rmdir(path->get_native()) == 0)
+                return STATUS_OK;
+
+            // Analyze error code
+            int code = errno;
+            switch (code)
+            {
+                case EACCES:
+                case EPERM:
+                    return STATUS_PERMISSION_DENIED;
+                case EDQUOT:
+                case ENOSPC:
+                    return STATUS_OVERFLOW;
+                case EFAULT:
+                case EINVAL:
+                case ENAMETOOLONG:
+                    return STATUS_BAD_ARGUMENTS;
+                case ENOTDIR:
+                    return STATUS_NOT_DIRECTORY;
+                case ENOENT:
+                    return STATUS_NOT_FOUND;
+                case ENOTEMPTY:
+                    return STATUS_NOT_EMPTY;
+                default:
+                    return STATUS_IO_ERROR;
+            }
+#endif /* PLATFORM_WINDOWS */
+            return STATUS_OK;
+        }
+
+        status_t Dir::get_current(LSPString *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            char spath[PATH_MAX];
+            char *p = ::getcwd(spath, PATH_MAX);
+            if (p == NULL)
+            {
+                int code = errno;
+                switch (code)
+                {
+                    case EACCES:
+                    case EPERM:
+                        return STATUS_PERMISSION_DENIED;
+                    case ENOENT:
+                        return STATUS_REMOVED;
+                    case ENAMETOOLONG:
+                        return STATUS_OVERFLOW;
+                    case ENOMEM:
+                        return STATUS_NO_MEM;
+                    default:
+                        return STATUS_IO_ERROR;
+                }
+            }
+
+            return (path->set_native(p)) ? STATUS_OK : STATUS_NO_MEM;
+        }
+
+        status_t Dir::get_current(Path *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            LSPString tmp;
+            status_t res = get_current(&tmp);
+            if (res == STATUS_OK)
+                path->take(&tmp);
+            return res;
         }
     
     } /* namespace io */

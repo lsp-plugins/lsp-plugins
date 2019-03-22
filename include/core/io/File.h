@@ -218,6 +218,27 @@ namespace lsp
                  * @return status of operation
                  */
                 static status_t sym_stat(const Path *path, fattr_t *attr);
+
+                /**
+                 * Delete file
+                 * @param path path to file
+                 * @return status of operation
+                 */
+                static status_t remove(const char *path);
+
+                /**
+                 * Delete file
+                 * @param path path to file
+                 * @return status of operation
+                 */
+                static status_t remove(const LSPString *path);
+
+                /**
+                 * Delete file
+                 * @param path path to file
+                 * @return status of operation
+                 */
+                static status_t remove(const Path *path);
         };
     
     } /* namespace io */

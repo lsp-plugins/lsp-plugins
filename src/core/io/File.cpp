@@ -12,6 +12,7 @@
 #else
     #include <sys/stat.h>
     #include <errno.h>
+    #include <unistd.h>
 #endif /* PLATFORM_WINDOWS */
 
 namespace lsp
@@ -373,6 +374,76 @@ namespace lsp
                 attr->atime     = (sb.st_atim.tv_sec * 1000L) + (sb.st_atim.tv_nsec / 1000000);
             #endif /* PLATFORM_WINDOWS */
 
+            return STATUS_OK;
+        }
+
+        status_t File::remove(const char *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+            LSPString spath;
+            if (!spath.set_utf8(path))
+                return STATUS_NO_MEM;
+            return remove(&spath);
+        }
+
+        status_t File::remove(const Path *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            return remove(path->as_string());
+        }
+
+        status_t File::remove(const LSPString *path)
+        {
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+
+#ifdef PLATFORM_WINDOWS
+            if (::RemoveFileW(path->get_utf16()))
+                return STATUS_OK;
+
+            // Analyze error code
+            DWORD code = ::GetLastError();
+            switch (code)
+            {
+                case ERROR_PATH_NOT_FOUND:
+                    return STATUS_NOT_FOUND;
+                default:
+                    return STATUS_IO_ERROR;
+            }
+#else
+            // Try to remove file
+            if (::unlink(path->get_native()) == 0)
+                return STATUS_OK;
+
+            // Analyze error code
+            int code = errno;
+            switch (code)
+            {
+                case EACCES:
+                case EPERM:
+                    return STATUS_PERMISSION_DENIED;
+                case EDQUOT:
+                case ENOSPC:
+                    return STATUS_OVERFLOW;
+                case EISDIR:
+                    return STATUS_IS_DIRECTORY;
+                case EFAULT:
+                case EINVAL:
+                case ENAMETOOLONG:
+                    return STATUS_BAD_ARGUMENTS;
+                case ENOTDIR:
+                    return STATUS_BAD_TYPE;
+                case ENOENT:
+                    return STATUS_NOT_FOUND;
+                case ENOTEMPTY:
+                    return STATUS_NOT_EMPTY;
+                default:
+                    return STATUS_IO_ERROR;
+            }
+#endif /* PLATFORM_WINDOWS */
             return STATUS_OK;
         }
 

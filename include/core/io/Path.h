@@ -125,7 +125,7 @@ namespace lsp
                 inline const LSPString *as_string() const { return &sPath; }
                 inline const char *as_native(const char *charset = NULL) const { return sPath.get_native(charset); }
                 inline void take(Path *src) { sPath.take(&src->sPath); }
-                inline void take(LSPString *src) { sPath.take(src); }
+                void take(LSPString *src);
 
             public:
                 status_t    stat(fattr_t *attr) const;
@@ -141,6 +141,8 @@ namespace lsp
                 wssize_t    is_socket() const;
                 status_t    mkdir() const;
                 status_t    mkdir(bool recursive) const;
+                status_t    remove() const;
+                status_t    current();
         };
     }
 } /* namespace lsp */

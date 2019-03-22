@@ -945,5 +945,27 @@ namespace lsp
 
             return STATUS_OK;
         }
+
+        status_t Path::remove() const
+        {
+            status_t res = File::remove(&sPath);
+            if (res == STATUS_IS_DIRECTORY)
+                res = Dir::remove(&sPath);
+            return (res == STATUS_NOT_DIRECTORY) ? STATUS_IO_ERROR : res;
+        }
+
+        void Path::take(LSPString *src)
+        {
+            sPath.take(src);
+            fixup_path();
+        }
+
+        status_t Path::current()
+        {
+            status_t res = Dir::get_current(&sPath);
+            if (res == STATUS_OK)
+                fixup_path();
+            return res;
+        }
     }
 } /* namespace lsp */

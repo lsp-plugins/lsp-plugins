@@ -219,6 +219,41 @@ namespace lsp
                  * @return status of operation
                  */
                 static status_t create(const Path *path);
+
+                /**
+                 * Delete directory
+                 * @param path path to directory
+                 * @return status of operation
+                 */
+                static status_t remove(const char *path);
+
+                /**
+                 * Delete directory
+                 * @param path path to directory
+                 * @return status of operation
+                 */
+                static status_t remove(const LSPString *path);
+
+                /**
+                 * Delete directory
+                 * @param path path to directory
+                 * @return status of operation
+                 */
+                static status_t remove(const Path *path);
+
+                /**
+                 * Delete directory
+                 * @param path path to directory
+                 * @return status of operation
+                 */
+                static status_t get_current(LSPString *path);
+
+                /**
+                 * Delete directory
+                 * @param path path to directory
+                 * @return status of operation
+                 */
+                static status_t get_current(Path *path);
         };
     
     } /* namespace io */

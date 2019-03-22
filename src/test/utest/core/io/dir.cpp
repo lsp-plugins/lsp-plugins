@@ -7,6 +7,7 @@
 
 #include <test/utest.h>
 #include <core/io/Dir.h>
+#include <core/io/File.h>
 
 using namespace lsp;
 
@@ -80,10 +81,33 @@ UTEST_BEGIN("core.io", dir)
         UTEST_ASSERT(dh.close() == STATUS_OK);
     }
 
+    void testCreateDir(const char *path, bool cwd)
+    {
+        io::Path p, xp;
+        if (cwd)
+        {
+            UTEST_ASSERT(p.current() == STATUS_OK);
+            printf("Current path is: %s\n", p.as_native());
+        }
+
+        UTEST_ASSERT(p.append_child("tmp") == STATUS_OK);
+        printf("Temporary path is: %s\n", p.as_native());
+
+        UTEST_ASSERT(p.mkdir() == STATUS_OK);
+        UTEST_ASSERT(xp.set(path));
+        UTEST_ASSERT(p.append_child(&xp) == STATUS_OK);
+        printf("Will try to create subpath: %s\n", p.as_native());
+
+        UTEST_ASSERT(p.mkdir(true) == STATUS_OK);
+        UTEST_ASSERT(io::File::remove(&p) == STATUS_IS_DIRECTORY);
+    }
+
     UTEST_MAIN
     {
         testReadDir("res/test/io/iconv", false);
         testReadDir("res/test/io/iconv", true);
+        testCreateDir("some/long/path", true);
+        testCreateDir("another/long/path", false);
     }
 
 UTEST_END
