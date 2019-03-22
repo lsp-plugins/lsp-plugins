@@ -46,7 +46,7 @@ all: $(OBJ_DSP)
 
 $(OBJ_DSP): $(LINK_OBJECTS)
 	@echo "  $(LD) $(notdir $(OBJ_DSP))"
-	@$(LD) -o $(OBJ_DSP) -r $(LDFLAGS) $(LINK_OBJECTS)
+	@$(LD) -o $(OBJ_DSP) -r $(MERGE_FLAGS) $(LINK_OBJECTS)
 
 $(DSP_IMPL) $(BITS_IMPL) $(NATIVE_IMPL) $(X86_IMPL) $(ARM_IMPL) $(AARCH64_IMPL):
 	@echo "  $(CXX) $(FILE)"

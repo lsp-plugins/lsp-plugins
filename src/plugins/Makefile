@@ -8,7 +8,7 @@ all:  $(OBJ_PLUGINS)
 
 $(OBJ_PLUGINS): $(FILES) $(SUBDIRS)
 	@echo "  $(LD) $(notdir $(OBJ_PLUGINS))"
-	@$(LD) -o $(OBJ_PLUGINS) -r $(LDFLAGS) $(FILES) 
+	@$(LD) -o $(OBJ_PLUGINS) -r $(MERGE_FLAGS) $(FILES) 
 
 $(FILES):
 	@echo "  $(CXX) $(FILE)"
