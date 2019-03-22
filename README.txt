@@ -183,7 +183,7 @@ have to type:
 By default, all supported formats of plugins are built. You may control
 list of built plugin formats by specifying BUILD_MODULES variable:
   make clean
-  make BULD_MODULES='lv2 vst doc'
+  make BUILD_MODULES='lv2 vst doc'
   make install
 
 Available modules are:
