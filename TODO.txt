@@ -13,6 +13,7 @@
 * Added experimental support of AArch64 architecture (DSP code is not optimized yet).
 * Fixed regression in VST and Standalone plugin formats that caused offline tasks to
   not to be launched.
+* Improved build system to make source code possible to build for KXStudio repository.
 - Research the work of plugins under Audacity.
 - Implemented 3D reverb simulator.
 - Implemented sampler plugin series with stereo outputs

@@ -262,9 +262,9 @@ IF_ARCH_ARM(
 
         const char *cpu = find_cpu_name(f.part);
         char *model     = NULL;
-        asprintf(&model, "vendor=0x%x, architecture=%d, variant=%d, part=0x%x, revision=%d",
+        int n = asprintf(&model, "vendor=0x%x, architecture=%d, variant=%d, part=0x%x, revision=%d",
                 int(f.implementer), int(f.architecture), int(f.variant), int(f.part), int(f.revision));
-        if (model == NULL)
+        if ((n < 0) || (model == NULL))
             return NULL;
 
         size_t size     = sizeof(dsp::info_t);

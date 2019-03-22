@@ -140,8 +140,8 @@ namespace lsp
                     if ((p != NULL) && (p->unit == U_BOOL))
                         nVisibilityKey = 1.0f;
                 }
-                asprintf(&str, ":%s ieq %d", pVisibilityID, int(nVisibilityKey));
-                if (str != NULL)
+                int n = asprintf(&str, ":%s ieq %d", pVisibilityID, int(nVisibilityKey));
+                if ((n >= 0) && (str != NULL))
                 {
                     sVisibility.parse(str);
                     free(str);

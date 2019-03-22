@@ -75,8 +75,8 @@ namespace lsp
 
             // Allocate path string
             ptr = NULL;
-            asprintf(&ptr, "%s" FILE_SEPARATOR_S "%s", path, de->d_name);
-            if (ptr == NULL)
+            int n = asprintf(&ptr, "%s" FILE_SEPARATOR_S "%s", path, de->d_name);
+            if ((n < 0) || (ptr == NULL))
                 continue;
 
             // Scan symbolic link if present

@@ -34,7 +34,11 @@ namespace test
         if (__full_name == NULL)
         {
             if ((__test_group != NULL) && (strlen(__test_group) > 0))
-                asprintf(&__full_name, "%s.%s", __test_group, __test_name);
+            {
+                int n = asprintf(&__full_name, "%s.%s", __test_group, __test_name);
+                if (n < 0)
+                    return NULL;
+            }
             if (__full_name == NULL)
                 __full_name         = const_cast<char *>(__test_name);
         }
