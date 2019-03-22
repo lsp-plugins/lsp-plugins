@@ -6,6 +6,7 @@
  */
 
 #include <core/io/File.h>
+#include <core/debug.h>
 
 #ifdef PLATFORM_WINDOWS
     #include <fileapi.h>
@@ -411,11 +412,19 @@ namespace lsp
 
             // Analyze error code
             int code = errno;
+            lsp_trace("code=%d", int(code));
             switch (code)
             {
                 case EACCES:
-                case EPERM:
                     return STATUS_PERMISSION_DENIED;
+                case EPERM:
+                {
+                    fattr_t attr;
+                    status_t res = stat(path, &attr);
+                    if ((res == STATUS_OK) && (attr.type == fattr_t::FT_DIRECTORY))
+                        return STATUS_IS_DIRECTORY;
+                    return STATUS_PERMISSION_DENIED;
+                }
                 case EDQUOT:
                 case ENOSPC:
                     return STATUS_OVERFLOW;
