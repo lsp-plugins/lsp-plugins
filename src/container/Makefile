@@ -53,7 +53,7 @@ $(LIB_LADSPA):
 
 $(LIB_LV2): $(OBJ_HELPERS)
 	@echo "  $(CXX) lv2.cpp"
-	@$(CXX) -o $(OBJDIR)/lv2.o -c lv2.cpp -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) 
+	@$(CXX) -o $(OBJDIR)/lv2.o -c lv2.cpp -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(CAIRO_HEADERS)
 	@echo "  $(CXX) $(notdir $(LIB_LV2))"
 	@$(CXX) -o $(LIB_LV2) $(OBJDIR)/lv2.o $(OBJ_HELPERS) $(UI_OBJFILES) $(SO_FLAGS) $(UI_LIBS)
 
