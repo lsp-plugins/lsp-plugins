@@ -1,5 +1,5 @@
 /*
- * old_plugin_ui.h
+ * plugin_ui.h
  *
  *  Created on: 20 окт. 2015 г.
  *      Author: sadko
@@ -76,7 +76,6 @@ namespace lsp
             size_t          rebuild_sorted_ports();
             CtlWidget      *build_widget(widget_ctl_t w_class);
             io::File       *open_config_file(bool write);
-            bool            create_directory(const char *path);
             bool            apply_changes(const char *key, const char *value, cvector<CtlPort> &ports);
 
         public:

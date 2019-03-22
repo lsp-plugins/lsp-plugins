@@ -467,24 +467,18 @@ namespace lsp
             status_t xres;
 //            char srcpath[PATH_MAX], dstpath[PATH_MAX];
 
-            // Store current path to variable
-            const char *cpath = sWPath.text();
-            if ((cpath == NULL) || (strlen(cpath) <= 0))
-            {
-                char cwd[PATH_MAX];
-                if (getcwd(cwd, sizeof(cwd)) != NULL)
-                    sWPath.set_text(cwd);
-                cpath = sWPath.text();
-                if (cpath == NULL)
-                    return STATUS_NO_MEM;
-            }
-
-            // Obtain current directory name
+            // Obtain the path to working directory
             io::Path xpath;
             xres = sWPath.get_text(&path);
-            if (xres == STATUS_OK)
-                xres = xpath.set(&path);
-            if (!xpath.is_root()) // Need to add dotdot entry?
+            if ((xres == STATUS_OK) && (path.length() > 0))
+                xres = xpath.set(&path); // Directory is specified, use it
+            else
+            {
+                xres = xpath.current(); // Directory is not specified, use curren
+                if (xres == STATUS_OK)
+                    sWPath.set_text(xpath.as_string());
+            }
+            if ((xres == STATUS_OK) && (!xpath.is_root())) // Need to add dotdot entry?
                 xres = add_file_entry(&scanned, "..", F_DOTDOT);
 
             if (xres != STATUS_OK) // Check result
