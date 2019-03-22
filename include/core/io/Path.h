@@ -109,6 +109,8 @@ namespace lsp
                 status_t    canonicalize();
 
                 status_t    root();
+                status_t    current();
+                status_t    parent();
 
                 status_t    get_canonical(char *path, size_t maxlen) const;
                 status_t    get_canonical(LSPString *path) const;
@@ -142,7 +144,6 @@ namespace lsp
                 status_t    mkdir() const;
                 status_t    mkdir(bool recursive) const;
                 status_t    remove() const;
-                status_t    current();
         };
     }
 } /* namespace lsp */

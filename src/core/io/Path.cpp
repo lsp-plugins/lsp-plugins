@@ -497,6 +497,17 @@ namespace lsp
 #endif
         }
 
+        status_t Path::parent()
+        {
+            if (is_root())
+                return STATUS_OK;
+            ssize_t idx = sPath.rindex_of(FILE_SEPARATOR_C);
+            if (idx < 0)
+                idx = 0;
+            sPath.set_length(idx);
+            return STATUS_OK;
+        }
+
         status_t Path::remove_base(const char *path)
         {
             if (path == NULL)
