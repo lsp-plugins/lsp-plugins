@@ -74,6 +74,12 @@ UTEST_BEGIN("dsp", endian)
 
     UTEST_MAIN
     {
+#pragma pack(push, 1)
+        union { float fv; uint32_t iv; } fh;
+        union { double fv; uint64_t iv; } dh;
+#pragma pack(pop)
+
+        // Test integer swap
         UTEST_ASSERT(byte_swap(uint8_t(0xa5)) == uint8_t(0xa5));
         UTEST_ASSERT(byte_swap(int8_t(0xa5)) == int8_t(0xa5));
         UTEST_ASSERT(byte_swap(uint16_t(0xa55a)) == uint16_t(0x5aa5));
@@ -83,6 +89,16 @@ UTEST_BEGIN("dsp", endian)
         UTEST_ASSERT(byte_swap(uint64_t(0x0102030405060708LL)) == uint64_t(0x0807060504030201LL));
         UTEST_ASSERT(byte_swap(int64_t(0x0102030405060708LL)) == int64_t(0x0807060504030201LL));
 
+        // Test floating-point swap
+        fh.iv = 0x12345678;
+        fh.fv = byte_swap(fh.fv);
+        UTEST_ASSERT(fh.iv == 0x78563412);
+
+        dh.iv = 0x123456789abcdef0ULL;
+        dh.fv = byte_swap(dh.fv);
+        UTEST_ASSERT(dh.iv == 0xf0debc9a78563412);
+
+        // Test bulk operations
         call<uint8_t>("bswap u8", u8_ex);
         call<int8_t>("bswap i8", u8_ex);
         call<uint16_t>("bswap u16", u16_ex);

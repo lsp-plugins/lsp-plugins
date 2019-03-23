@@ -852,10 +852,11 @@ namespace lsp
         if (requirements & REQ_LV2UI)
         {
             char *ui_uri = NULL, *plugin_uri = NULL;
-            asprintf(&ui_uri, LSP_PLUGIN_UI_URI(lv2, "%s"), m.lv2_uid);
-            asprintf(&plugin_uri, LSP_PLUGIN_URI(lv2, "%s"), m.lv2_uid);
+            int n = asprintf(&ui_uri, LSP_PLUGIN_UI_URI(lv2, "%s"), m.lv2_uid);
+            if (n >= 0)
+                n = asprintf(&plugin_uri, LSP_PLUGIN_URI(lv2, "%s"), m.lv2_uid);
 
-            if ((ui_uri != NULL) && (plugin_uri != NULL))
+            if ((n >= 0) && (ui_uri != NULL) && (plugin_uri != NULL))
                 gen_plugin_ui_ttl(out, requirements, m, m.lv2_uid, ui_uri, plugin_uri);
 
             if (ui_uri != NULL)

@@ -20,4 +20,5 @@
 /Release AVX/
 *.log
 /gmon.out
+**/*.gmon
 *.svg

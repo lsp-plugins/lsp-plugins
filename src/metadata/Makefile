@@ -10,8 +10,8 @@ target: all
 
 $(OBJ_METADATA): $(FILES)
 	@echo "  $(LD) $(notdir $(OBJ_METADATA))"
-	@$(LD) -o $(OBJ_METADATA) -r $(LDFLAGS) $(FILES) 
+	@$(LD) -o $(OBJ_METADATA) -r $(MERGE_FLAGS) $(FILES) 
 
 $(FILES):
-	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE) 
+	@echo "  $(CXX) $(FILE)"
+	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) 

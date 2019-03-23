@@ -1,5 +1,5 @@
 /*
- * pluginui.cpp
+ * plugin_ui.cpp
  *
  *  Created on: 20 окт. 2015 г.
  *      Author: sadko
@@ -19,10 +19,8 @@
 #include <metadata/metadata.h>
 #include <metadata/ports.h>
 
-#include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include <sys/stat.h>
 
 namespace lsp
 {
@@ -666,43 +664,26 @@ namespace lsp
         return STATUS_OK;
     }
 
-    bool plugin_ui::create_directory(const char *path)
-    {
-        struct stat fattr;
-        if (stat(path, &fattr) != 0)
-        {
-            int code = errno;
-            if (code != ENOENT)
-                return false;
-            if (mkdir(path, S_IRWXU | S_IRWXG | S_IRWXO) == 0)
-                return true;
-
-            lsp_error("Error while trying to create configuration directory %s", path);
-            return false;
-        }
-        return S_ISDIR(fattr.st_mode);
-    }
-
     io::File *plugin_ui::open_config_file(bool write)
     {
         io::Path cfg;
-        system::get_home_directory(&cfg);
-        cfg.append_child(".config");
+        status_t res = system::get_home_directory(&cfg);
+        if (res == STATUS_OK)
+            res = cfg.append_child(".config");
+        if (res == STATUS_OK)
+            res = cfg.append_child(LSP_ARTIFACT_ID);
+        if (res == STATUS_OK)
+            res = cfg.mkdir(true);
+        if (res == STATUS_OK)
+            res = cfg.append_child(LSP_ARTIFACT_ID ".cfg");
 
-        if (!create_directory(cfg.as_native()))
+        if (res != STATUS_OK)
             return NULL;
-
-        cfg.append_child(LSP_ARTIFACT_ID);
-        if (!create_directory(cfg.as_native()))
-            return NULL;
-
-        cfg.append_child(LSP_ARTIFACT_ID);
-        cfg.concat(".cfg");
 
         io::NativeFile *fd = new io::NativeFile();
         if (fd == NULL)
             return NULL;
-        status_t res = fd->open(&cfg, (write) ?
+        res = fd->open(&cfg, (write) ?
                 io::File::FM_WRITE | io::File::FM_TRUNC | io::File::FM_CREATE :
                 io::File::FM_READ);
 

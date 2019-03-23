@@ -51,14 +51,22 @@
     #define ARCH_I386
     #define ARCH_STRING "i586"
     #define IF_ARCH_I386(...)       __VA_ARGS__
-#elif defined(__arm__)
-    #define ARCH_ARM
-    #define IF_ARCH_ARM(...)        __VA_ARGS__
 #elif defined(__aarch64__)
     #define ARCH_AARCH64
     #define IF_ARCH_AARCH64(...)    __VA_ARGS__
+#elif defined(__arm__)
+    #define ARCH_ARM
+    #define IF_ARCH_ARM(...)        __VA_ARGS__
 #else
     #warning "Unsupported archtecture"
+#endif
+
+//-----------------------------------------------------------------------------
+// Detect endianess
+#if (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+    #define ARCH_LE
+#elif (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+    #define ARCH_BE
 #endif
 
 //-----------------------------------------------------------------------------
@@ -82,12 +90,21 @@
     #endif /* ARCH_I386 */
 
     #define ARCH_X86
-    #define ARCH_LE
+
+    #ifdef ARCH_BE
+        #undef ARCH_BE
+    #endif /* ARCH_BE */
+    #ifndef ARCH_LE
+        #define ARCH_LE
+    #endif /* ARCH_LE */
 #endif /* defined(ARCH_I386) || defined(ARCH_X86_64) */
 
 #if defined(ARCH_ARM)
     #define ARCH_32BIT
-    #define ARCH_LE
+    #if !defined(ARCH_BE) && !defined(ARCH_BE)
+        #define ARCH_LE
+    #endif
+
     #define ARCH_ARM_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
 
     #if (__ARM_ARCH == 7)
@@ -105,7 +122,10 @@
 
 #if defined(ARCH_AARCH64)
     #define ARCH_64BIT
-    #define ARCH_LE
+    #if !defined(ARCH_BE) && !defined(ARCH_BE)
+        #define ARCH_LE
+    #endif
+
     #define ARCH_AARCH64_ASM(...)       __asm__ __volatile__ ( __VA_ARGS__ )
 
     #if (__ARM_ARCH == 8)
@@ -117,14 +137,14 @@
     #endif
 #endif /* defined(ARCH_ARM) */
 
-#ifdef ARCH_LE
+#if defined(ARCH_LE)
     #define __IF_LEBE(le, be)   le
     #define __IF_LE(le)         le
     #define __IF_BE(be)
     #ifdef ARCH_BE
         #undef ARCH_BE
     #endif /* ARCH_BE */
-#else /* ARCH_BE */
+#elif defined(ARCH_BE) /* ARCH_BE */
     #define __IF_LEBE(le, be)   be
     #define __IF_LE(le)
     #define __IF_BE(be)         be
@@ -132,6 +152,8 @@
     #ifndef ARCH_LE
         #define ARCH_LE
     #endif /* ARCH_LE */
+#else
+    #warning "Could not detect endianess of the target architecture"
 #endif /* ARCH_LE */
 
 #ifndef ARCH_STRING
@@ -343,6 +365,10 @@
 #ifndef IF_ARCH_ARM8
     #define IF_ARCH_ARM8(...)
 #endif /* IF_ARCH_ARM8 */
+
+#ifndef IF_ARCH_AARCH64
+    #define IF_ARCH_AARCH64(...)
+#endif /* IF_ARCH_AARCH64 */
 
 //-----------------------------------------------------------------------------
 // Default platform

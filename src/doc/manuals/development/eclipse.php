@@ -102,6 +102,15 @@ and enter into the <b>Other flags</b> field the following string:</p>
 	<img src="<?= $IMG ?>eclipse-project-linker-general.png">
 </div>
 
+<p>Select <b>GCC C++ Linker</b> &rarr; <b>Libraries</b> settings and add the following libraries to the list:
+<ul>
+	<li>pthread</li>
+	<li>dl</li>
+</ul>
+<div class="images">
+	<img src="<?= $IMG ?>eclipse-project-linker-libraries.png">
+</div>
+
 <p>Select <b>GCC C++ Linker</b> &rarr; <b>Miscellaneous</b> settings and enter the following string to <b>Linker flags</b> field
 to enable linkage with external libraries:<p>
 <pre>

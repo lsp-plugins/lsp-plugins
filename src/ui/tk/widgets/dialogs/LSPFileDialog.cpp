@@ -6,10 +6,8 @@
  */
 
 #include <ui/tk/tk.h>
+#include <core/io/Dir.h>
 #include <unistd.h>
-#include <dirent.h>
-#include <errno.h>
-#include <sys/stat.h>
 
 namespace lsp
 {
@@ -465,142 +463,89 @@ namespace lsp
         {
             cvector<file_entry_t> scanned;
             LSPString str, path;
-            struct stat st;
+//            struct stat st;
             status_t xres;
-            char srcpath[PATH_MAX], dstpath[PATH_MAX];
+//            char srcpath[PATH_MAX], dstpath[PATH_MAX];
 
-            // Store current path to variable
-            const char *cpath = sWPath.text();
-            if ((cpath == NULL) || (strlen(cpath) <= 0))
+            // Obtain the path to working directory
+            io::Path xpath;
+            xres = sWPath.get_text(&path);
+            if ((xres == STATUS_OK) && (path.length() > 0))
+                xres = xpath.set(&path); // Directory is specified, use it
+            else
             {
-                char cwd[PATH_MAX];
-                if (getcwd(cwd, sizeof(cwd)) != NULL)
-                    sWPath.set_text(cwd);
-                cpath = sWPath.text();
-                if (cpath == NULL)
-                    return STATUS_NO_MEM;
+                xres = xpath.current(); // Directory is not specified, use curren
+                if (xres == STATUS_OK)
+                    sWPath.set_text(xpath.as_string());
+            }
+            if ((xres == STATUS_OK) && (!xpath.is_root())) // Need to add dotdot entry?
+                xres = add_file_entry(&scanned, "..", F_DOTDOT);
+
+            if (xres != STATUS_OK) // Check result
+            {
+                destroy_file_entries(&scanned);
+                return xres;
             }
 
-            // Try to open directory
-            errno       = 0;
-            DIR *fd     = opendir(cpath);
-            int errcode = errno;
-
-            // Add dotdot entry
-            if (strcmp(cpath, FILE_SEPARATOR_S) != 0)
-            {
-                if ((xres = add_file_entry(&scanned, "..", F_DOTDOT)) != STATUS_OK)
-                {
-                    destroy_file_entries(&scanned);
-                    return xres;
-                }
-            }
-
-            // If directory is opened, scan directory
-            if (fd != NULL)
+            // Open directory for reading
+            io::Dir dir;
+            xres = dir.open(&xpath);
+            if (xres == STATUS_OK)
             {
                 sWWarning.hide();
 
                 // Read directory
-                dirent *item;
+                io::fattr_t fattr;
+                io::Path fname;
 
-                while (true)
+                while (dir.reads(&fname, &fattr, false) == STATUS_OK)
                 {
-                    // Read next entry
-                    if (!(item = readdir(fd)))
-                        break;
-
                     // Reject dot and dotdot from search
-                    if (!strcmp(item->d_name, "."))
-                        continue;
-                    else if (!strcmp(item->d_name, ".."))
+                    if ((fname.is_dot()) || (fname.is_dotdot()))
                         continue;
 
                     // Analyze file flags
                     size_t nflags = 0;
-                    if (item->d_name[0] == '.')
+                    if (fname.as_string()->first() == '.')
                         nflags      |= F_ISHIDDEN;
 
-                    if (item->d_type == DT_DIR) // Directory?
+                    if (fattr.type == io::fattr_t::FT_DIRECTORY) // Directory?
                         nflags      |= F_ISDIR;
-                    else if (item->d_type == DT_LNK) // Symbolic link?
+                    else if (fattr.type == io::fattr_t::FT_SYMLINK) // Symbolic link?
                         nflags      |= F_ISLINK;
-                    else if (item->d_type == DT_REG)
+                    else if (fattr.type == io::fattr_t::FT_REGULAR)
                         nflags      |= F_ISREG;
-
-                    if ((nflags & (F_ISDIR | F_ISLINK | F_ISREG)) == 0)
-                    {
-                        snprintf(srcpath, sizeof(srcpath)/sizeof(char), "%s%s%s", cpath, FILE_SEPARATOR_S, item->d_name);
-                        srcpath[PATH_MAX-1] = '\0';
-
-                        if (stat(srcpath, &st) >= 0)
-                        {
-                            if (S_ISDIR(st.st_mode))
-                                nflags     |= F_ISDIR;
-                            else if (S_ISLNK(st.st_mode))
-                                nflags     |= F_ISLINK;
-                            else if (S_ISREG(st.st_mode))
-                                nflags     |= F_ISREG;
-                            else
-                                nflags     |= F_ISOTHER;
-                        }
-                    }
+                    else
+                        nflags      |= F_ISOTHER;
 
                     if (nflags & F_ISLINK)
                     {
-                        snprintf(srcpath, sizeof(srcpath)/sizeof(char), "%s%s%s", cpath, FILE_SEPARATOR_S, item->d_name);
-                        srcpath[PATH_MAX-1] = '\0';
+                        // Stat a file associated with symbolic link
+                        xres = dir.sym_stat(&fname, &fattr);
 
-                        do
-                        {
-                            // Try to read link
-                            ssize_t len = readlink(srcpath, dstpath, sizeof(srcpath)/sizeof(char) - 1);
-
-                            // Analyze file
-                            dstpath[len] = '\0';
-                            if (len < 0)
-                            {
-                                nflags |= F_ISINVALID;
-                                break;
-                            }
-                            if (stat(dstpath, &st) != 0)
-                            {
-                                nflags |= F_ISINVALID;
-                                break;
-                            }
-                        } while (S_ISLNK(st.st_mode));
-
-                        if (!(nFlags & F_ISINVALID))
-                        {
-                            if (S_ISDIR(st.st_mode))
-                                nflags     |= F_ISDIR;
-                            else if (S_ISLNK(st.st_mode))
-                                nflags     |= F_ISLINK;
-                            else if (S_ISREG(st.st_mode))
-                                nflags     |= F_ISREG;
-                            else
-                                nflags     |= F_ISOTHER;
-                        }
+                        if (xres != STATUS_OK)
+                            nflags      |= F_ISINVALID;
+                        else if (fattr.type == io::fattr_t::FT_DIRECTORY) // Directory?
+                            nflags      |= F_ISDIR;
+                        else if (fattr.type == io::fattr_t::FT_SYMLINK) // Symbolic link?
+                            nflags      |= F_ISLINK;
+                        else if (fattr.type == io::fattr_t::FT_REGULAR)
+                            nflags      |= F_ISREG;
+                        else
+                            nflags      |= F_ISOTHER;
                     }
 
                     // Add entry to list of found files
-                    if ((xres = add_file_entry(&scanned, item->d_name, nflags)) != STATUS_OK)
+                    if ((xres = add_file_entry(&scanned, fname.as_native(), nflags)) != STATUS_OK)
                     {
-                        closedir(fd);
+                        dir.close();
                         destroy_file_entries(&scanned);
                         return xres;
                     }
                 }
 
                 // Close directory
-                if (closedir(fd) != 0)
-                {
-                    destroy_file_entries(&scanned);
-                    return STATUS_IO_ERROR;
-                }
-
-                // Readdir on successful end of directory should return result = NULL
-                if (item != NULL)
+                if (dir.close() != STATUS_OK)
                 {
                     destroy_file_entries(&scanned);
                     return STATUS_IO_ERROR;
@@ -609,15 +554,11 @@ namespace lsp
             else // Analyze errcode
             {
                 const char *text = "unknown I/O error";
-                switch (errcode)
+                switch (xres)
                 {
-                    case EACCES:    text = "permission denied"; break;
-                    case EBADF:     text = "not a valid file descriptor"; break;
-                    case EMFILE:    text = "too many files opened"; break;
-                    case ENFILE:    text = "too many files opened by system"; break;
-                    case ENOENT:    text = "directory does not exist"; break;
-                    case ENOMEM:    text = "not enough memory"; break;
-                    case ENOTDIR:   text = "not a directory"; break;
+                    case STATUS_PERMISSION_DENIED:    text = "permission denied"; break;
+                    case STATUS_NOT_FOUND:    text = "directory does not exist"; break;
+                    case STATUS_NO_MEM:    text = "not enough memory"; break;
                     default: break;
                 }
 
@@ -717,13 +658,15 @@ namespace lsp
                     bool ok = true;
                     if (ent->nFlags & F_ISOTHER)
                         ok = ok && psrc->prepend('*');
-                    if (ent->nFlags & (F_ISLINK | F_ISINVALID))
-                        ok = ok && psrc->prepend((nFlags & F_ISINVALID) ? '!' : '~');
+                    else if (ent->nFlags & (F_ISLINK | F_ISINVALID))
+                        ok = ok && psrc->prepend((ent->nFlags & F_ISINVALID) ? '!' : '~');
+
                     if (ent->nFlags & F_ISDIR)
                     {
                         ok = ok && psrc->prepend('[');
                         ok = ok && psrc->append(']');
                     }
+
                     if (!ok)
                     {
                         lst->clear();
@@ -1005,8 +948,8 @@ namespace lsp
             }
 
             // Special case for saving file
-            struct stat st;
-            int stat_result = stat(sSelected.get_native(), &st);
+            io::fattr_t fattr;
+            status_t stat_result = io::File::sym_stat(&sSelected, &fattr);
 
             if (enMode == FDM_SAVE_FILE)
             {
@@ -1015,7 +958,7 @@ namespace lsp
 
                 // Check that file exists and avoid confirmation if it doesn't
                 lsp_trace("Checking file: %s", sSelected.get_native());
-                if (stat_result != 0)
+                if (stat_result != STATUS_OK)
                     return on_dlg_confirm(data);
             }
             else

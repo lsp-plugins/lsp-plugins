@@ -1155,7 +1155,16 @@ namespace lsp
         else
         {
             lsp_trace("Creating native executor service");
-            pExecutor       = new ipc::NativeExecutor();
+            ipc::NativeExecutor *exec = new ipc::NativeExecutor();
+            if (exec == NULL)
+                return NULL;
+            status_t res = exec->start();
+            if (res != STATUS_OK)
+            {
+                delete exec;
+                return NULL;
+            }
+            pExecutor   = exec;
         }
         return pExecutor;
     }

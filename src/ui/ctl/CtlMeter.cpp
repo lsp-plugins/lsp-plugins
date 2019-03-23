@@ -226,8 +226,8 @@ namespace lsp
                     continue;
 
                 char *str = NULL;
-                asprintf(&str, ":%s >= 0.5", pActivityID[i]);
-                if (str != NULL)
+                int n = asprintf(&str, ":%s >= 0.5", pActivityID[i]);
+                if ((n >= 0) && (str != NULL))
                 {
                     sActivity[i].parse(str);
                     free(str);

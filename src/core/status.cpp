@@ -49,6 +49,10 @@ namespace lsp
         "Timeout",
         "Execution has been cancelled",
         "Failed",
+        "Not empty",
+        "Is a directory",
+        "Not a directory",
+        "Removed",
         NULL
     };
 

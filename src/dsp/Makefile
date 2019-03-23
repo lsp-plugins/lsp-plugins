@@ -11,6 +11,7 @@ NEON_D32_IMPL           = $(OBJDIR)/neon-d32.o
 DSP_IMPL                = $(OBJDIR)/dsp.o
 BITS_IMPL               = $(OBJDIR)/bits.o
 ARM_IMPL                = $(OBJDIR)/arm.o
+AARCH64_IMPL            = $(OBJDIR)/aarch64.o
 
 SSE_INSTR_SET           = -mmmx -m3dnow -msse -msse2
 SSE2_INSTR_SET          = -mmmx -m3dnow -msse -msse2
@@ -33,6 +34,9 @@ endif
 ifeq ($(BUILD_PROFILE), armv7a)
 LINK_OBJECTS           += $(ARM_IMPL) $(NEON_D32_IMPL)
 endif
+ifeq ($(BUILD_PROFILE), aarch64)
+LINK_OBJECTS           += $(AARCH64_IMPL)
+endif
 
 .PHONY: all target
 
@@ -42,36 +46,36 @@ all: $(OBJ_DSP)
 
 $(OBJ_DSP): $(LINK_OBJECTS)
 	@echo "  $(LD) $(notdir $(OBJ_DSP))"
-	@$(LD) -o $(OBJ_DSP) -r $(LDFLAGS) $(LINK_OBJECTS)
+	@$(LD) -o $(OBJ_DSP) -r $(MERGE_FLAGS) $(LINK_OBJECTS)
 
-$(DSP_IMPL) $(BITS_IMPL) $(NATIVE_IMPL) $(X86_IMPL) $(ARM_IMPL):
-	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE) 
+$(DSP_IMPL) $(BITS_IMPL) $(NATIVE_IMPL) $(X86_IMPL) $(ARM_IMPL) $(AARCH64_IMPL):
+	@echo "  $(CXX) $(FILE)"
+	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) 
 	
 $(SSE_IMPL):
-	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(SSE_INSTR_SET) $(INCLUDE)
+	@echo "  $(CXX) $(FILE)"
+	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(SSE_INSTR_SET) $(INCLUDE)
 	
 $(SSE2_IMPL):
-	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(SSE2_INSTR_SET) $(INCLUDE)
+	@echo "  $(CXX) $(FILE)"
+	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(SSE2_INSTR_SET) $(INCLUDE)
 	
 $(SSE3_IMPL):
-	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(SSE3_INSTR_SET) $(INCLUDE)
+	@echo "  $(CXX) $(FILE)"
+	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(SSE3_INSTR_SET) $(INCLUDE)
 	
 $(SSE4_IMPL):
-	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(SSE4_INSTR_SET) $(INCLUDE)
+	@echo "  $(CXX) $(FILE)"
+	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(SSE4_INSTR_SET) $(INCLUDE)
 
 $(AVX_IMPL):
-	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(AVX_INSTR_SET) $(INCLUDE)
+	@echo "  $(CXX) $(FILE)"
+	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(AVX_INSTR_SET) $(INCLUDE)
 
 $(AVX2_IMPL):
-	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(AVX2_INSTR_SET) $(INCLUDE)
+	@echo "  $(CXX) $(FILE)"
+	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(AVX2_INSTR_SET) $(INCLUDE)
 	
 $(NEON_D32_IMPL):
-	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(NEON_D32_INSTR_SET) $(INCLUDE)
+	@echo "  $(CXX) $(FILE)"
+	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(NEON_D32_INSTR_SET) $(INCLUDE)

@@ -6,11 +6,17 @@
  */
 
 #include <core/io/Path.h>
+#include <core/io/File.h>
+#include <core/io/Dir.h>
 #include <string.h>
 
 #if defined(PLATFORM_WINDOWS)
     #include <windows.h>
     #include <shlwapi.h>
+#else
+    #include <fcntl.h>
+    #include <sys/stat.h>
+    #include <errno.h>
 #endif /* defined(PLATFORM_WINDOWS) */
 
 namespace lsp
@@ -25,25 +31,43 @@ namespace lsp
         {
         }
 
+        inline void Path::fixup_path()
+        {
+#ifdef PLATFORM_WINDOWS
+            sPath.replace_all('/', '\\');
+#else
+            sPath.replace_all('\\', '/');
+#endif /* PLATFORM_WINDOWS */
+        }
+
         status_t Path::set(const char *path)
         {
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            return (sPath.set_utf8(path)) ? STATUS_OK : STATUS_NO_MEM;
+            if (!sPath.set_utf8(path))
+                return STATUS_NO_MEM;
+            fixup_path();
+            return STATUS_OK;
         }
 
         status_t Path::set(const LSPString *path)
         {
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            return (sPath.set(path)) ? STATUS_OK : STATUS_NO_MEM;
+            if (!sPath.set(path))
+                return STATUS_NO_MEM;
+            fixup_path();
+            return STATUS_OK;
         }
 
         status_t Path::set(const Path *path)
         {
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            return (sPath.set(&path->sPath)) ? STATUS_OK : STATUS_NO_MEM;
+            if (!sPath.set(&path->sPath))
+                return STATUS_NO_MEM;
+            fixup_path();
+            return STATUS_OK;
         }
 
         status_t Path::get(char *path, size_t maxlen) const
@@ -91,7 +115,10 @@ namespace lsp
             idx             = (idx < 0) ? 0 : idx + 1;
             sPath.set_length(idx);
             if (sPath.append_utf8(path))
+            {
+                fixup_path();
                 return STATUS_OK;
+            }
 
             sPath.set_length(len);
             return STATUS_NO_MEM;
@@ -109,7 +136,10 @@ namespace lsp
             idx             = (idx < 0) ? 0 : idx + 1;
             sPath.set_length(idx);
             if (sPath.append(path))
+            {
+                fixup_path();
                 return STATUS_OK;
+            }
 
             sPath.set_length(len);
             return STATUS_NO_MEM;
@@ -127,7 +157,10 @@ namespace lsp
             idx             = (idx < 0) ? 0 : idx + 1;
             sPath.set_length(idx);
             if (sPath.append(&path->sPath))
+            {
+                fixup_path();
                 return STATUS_OK;
+            }
 
             sPath.set_length(len);
             return STATUS_NO_MEM;
@@ -243,7 +276,10 @@ namespace lsp
             if (success)
                 success = tmp.append(&sPath);
             if (success)
+            {
                 sPath.swap(&tmp);
+                fixup_path();
+            }
             return (success) ? STATUS_OK : STATUS_NO_MEM;
         }
 
@@ -264,7 +300,10 @@ namespace lsp
             if (success)
                 success = tmp.append(&sPath);
             if (success)
+            {
                 sPath.swap(&tmp);
+                fixup_path();
+            }
             return (success) ? STATUS_OK : STATUS_NO_MEM;
         }
 
@@ -285,7 +324,10 @@ namespace lsp
             if (success)
                 success = tmp.append(&sPath);
             if (success)
+            {
                 sPath.swap(&tmp);
+                fixup_path();
+            }
             return (success) ? STATUS_OK : STATUS_NO_MEM;
         }
 
@@ -293,21 +335,30 @@ namespace lsp
         {
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            return (sPath.append_utf8(path)) ? STATUS_OK : STATUS_NO_MEM;
+            if (!sPath.append_utf8(path))
+                return STATUS_NO_MEM;
+            fixup_path();
+            return STATUS_OK;
         }
 
         status_t Path::concat(LSPString *path)
         {
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            return (sPath.append(path)) ? STATUS_OK : STATUS_NO_MEM;
+            if (!sPath.append(path))
+                return STATUS_NO_MEM;
+            fixup_path();
+            return STATUS_OK;
         }
 
         status_t Path::concat(Path *path)
         {
             if (path == NULL)
                 return STATUS_BAD_ARGUMENTS;
-            return (sPath.append(&path->sPath)) ? STATUS_OK : STATUS_NO_MEM;
+            if (!sPath.append(&path->sPath))
+                return STATUS_NO_MEM;
+            fixup_path();
+            return STATUS_OK;
         }
 
         status_t Path::append_child(const char *path)
@@ -322,15 +373,18 @@ namespace lsp
                 return STATUS_INVALID_VALUE;
 
             size_t len = sPath.length();
-            bool success = (sPath.ends_with(FILE_SEPARATOR_C)) ? true : sPath.append(FILE_SEPARATOR_C);
+            bool success = ((len <= 0) || (sPath.ends_with(FILE_SEPARATOR_C))) ? true : sPath.append(FILE_SEPARATOR_C);
             if (success)
                 success = sPath.append(&tmp.sPath);
-            if (!success)
+            if (success)
+                fixup_path();
+            else
                 sPath.set_length(len);
+
             return (success) ? STATUS_OK : STATUS_NO_MEM;
         }
 
-        status_t Path::append_child(LSPString *path)
+        status_t Path::append_child(const LSPString *path)
         {
             Path tmp;
             status_t res = tmp.set(path);
@@ -342,30 +396,33 @@ namespace lsp
                 return STATUS_INVALID_VALUE;
 
             size_t len = sPath.length();
-            bool success = (sPath.ends_with(FILE_SEPARATOR_C)) ? true : sPath.append(FILE_SEPARATOR_C);
+            bool success = ((len <= 0) || (sPath.ends_with(FILE_SEPARATOR_C))) ? true : sPath.append(FILE_SEPARATOR_C);
             if (success)
                 success = sPath.append(&tmp.sPath);
-            if (!success)
+            if (success)
+                fixup_path();
+            else
                 sPath.set_length(len);
+
             return (success) ? STATUS_OK : STATUS_NO_MEM;
         }
 
-        status_t Path::append_child(Path *path)
+        status_t Path::append_child(const Path *path)
         {
-            Path tmp;
-            status_t res = tmp.set(path);
-            if (res != STATUS_OK)
-                return res;
-            else if (tmp.is_empty())
+            if (path == NULL)
+                return STATUS_BAD_ARGUMENTS;
+            else if (path->is_empty())
                 return STATUS_OK;
-            else if (tmp.is_absolute())
+            else if (path->is_absolute())
                 return STATUS_INVALID_VALUE;
 
             size_t len = sPath.length();
-            bool success = (sPath.ends_with(FILE_SEPARATOR_C)) ? true : sPath.append(FILE_SEPARATOR_C);
+            bool success = ((len <= 0) || (sPath.ends_with(FILE_SEPARATOR_C))) ? true : sPath.append(FILE_SEPARATOR_C);
             if (success)
-                success = sPath.append(&tmp.sPath);
-            if (!success)
+                success = sPath.append(&path->sPath);
+            if (success)
+                fixup_path();
+            else
                 sPath.set_length(len);
             return (success) ? STATUS_OK : STATUS_NO_MEM;
         }
@@ -442,6 +499,17 @@ namespace lsp
 #endif
         }
 
+        status_t Path::parent()
+        {
+            if (is_root())
+                return STATUS_OK;
+            ssize_t idx = sPath.rindex_of(FILE_SEPARATOR_C);
+            if (idx < 0)
+                idx = 0;
+            sPath.set_length(idx);
+            return STATUS_OK;
+        }
+
         status_t Path::remove_base(const char *path)
         {
             if (path == NULL)
@@ -502,12 +570,44 @@ namespace lsp
 #endif
         }
 
+        bool Path::is_dot() const
+        {
+            ssize_t idx = sPath.rindex_of(FILE_SEPARATOR_C);
+            if (idx > 0)
+            {
+                ssize_t len = sPath.length() - 2;
+                if (idx != len)
+                    return false;
+            }
+            else if (sPath.length() != 1)
+                return false;
+            return sPath.last() == '.';
+        }
+
+        bool Path::is_dotdot() const
+        {
+            ssize_t idx = sPath.rindex_of(FILE_SEPARATOR_C);
+            if (idx > 0)
+            {
+                ssize_t len = sPath.length() - 3;
+                if (idx != len)
+                    return false;
+
+                return (sPath.char_at(len + 1) == '.') &&
+                        (sPath.char_at(len + 2) == '.');
+            }
+            else if (sPath.length() != 2)
+                return false;
+
+            return (sPath.first() == '.') && (sPath.last() == '.');
+        }
+
         bool Path::is_relative() const
         {
             if (sPath.length() <= 0)
                 return true;
 #if defined(PLATFORM_WINDOWS)
-            return PathIsRelativeW(reinterpret_cast<LPCWSTR>(sPath.get_utf16()));
+            return ::PathIsRelativeW(reinterpret_cast<LPCWSTR>(sPath.get_utf16()));
 #else
             return (sPath.first() != FILE_SEPARATOR_C);
 #endif
@@ -575,7 +675,7 @@ namespace lsp
         bool Path::is_root() const
         {
 #if defined(PLATFORM_WINDOWS)
-            return PathIsRootW(reinterpret_cast<LPCWSTR>(sPath.get_utf16()));
+            return ::PathIsRootW(reinterpret_cast<LPCWSTR>(sPath.get_utf16()));
 #else
             return (sPath.length() == 1) &&
                     (sPath.first() == FILE_SEPARATOR_C);
@@ -735,6 +835,150 @@ namespace lsp
 
             LSPString tmp;
             return (tmp.set_utf8(path)) ? tmp.equals(&sPath) : false;
+        }
+
+        status_t Path::stat(fattr_t *attr) const
+        {
+            return File::stat(&sPath, attr);
+        }
+
+        status_t Path::sym_stat(fattr_t *attr) const
+        {
+            return File::sym_stat(&sPath, attr);
+        }
+
+        wssize_t Path::size() const
+        {
+            fattr_t attr;
+            status_t res = File::stat(&sPath, &attr);
+            return (res != STATUS_OK) ? attr.size : -res;
+        }
+
+        wssize_t Path::exists() const
+        {
+            fattr_t attr;
+            status_t res = File::stat(&sPath, &attr);
+            return res == STATUS_OK;
+        }
+
+        wssize_t Path::is_reg() const
+        {
+            fattr_t attr;
+            status_t res = File::stat(&sPath, &attr);
+            return (res != STATUS_OK) ? attr.type == fattr_t::FT_BLOCK : -res;
+        }
+
+        wssize_t Path::is_dir() const
+        {
+            fattr_t attr;
+            status_t res = File::stat(&sPath, &attr);
+            return (res != STATUS_OK) ? attr.type == fattr_t::FT_DIRECTORY : -res;
+        }
+
+        wssize_t Path::is_block_dev() const
+        {
+            fattr_t attr;
+            status_t res = File::stat(&sPath, &attr);
+            return (res != STATUS_OK) ? attr.type == fattr_t::FT_BLOCK : -res;
+        }
+
+        wssize_t Path::is_char_dev() const
+        {
+            fattr_t attr;
+            status_t res = File::stat(&sPath, &attr);
+            return (res != STATUS_OK) ? attr.type == fattr_t::FT_CHARACTER : -res;
+        }
+
+        wssize_t Path::is_fifo() const
+        {
+            fattr_t attr;
+            status_t res = File::stat(&sPath, &attr);
+            return (res != STATUS_OK) ? attr.type == fattr_t::FT_FIFO : -res;
+        }
+
+        wssize_t Path::is_symlink() const
+        {
+            fattr_t attr;
+            status_t res = File::stat(&sPath, &attr);
+            return (res != STATUS_OK) ? attr.type == fattr_t::FT_SYMLINK : -res;
+        }
+
+        wssize_t Path::is_socket() const
+        {
+            fattr_t attr;
+            status_t res = File::stat(&sPath, &attr);
+            return (res != STATUS_OK) ? attr.type == fattr_t::FT_SOCKET : -res;
+        }
+
+        status_t Path::mkdir() const
+        {
+            return Dir::create(&sPath);
+        }
+
+        status_t Path::mkdir(bool recursive) const
+        {
+            // Try to create directory
+            status_t res = Dir::create(&sPath);
+            if ((res == STATUS_OK) || (!recursive))
+                return res;
+
+            // No success?
+            // First, canonicalize path
+            Path path;
+            path.set(this);
+            res = path.canonicalize();
+            if (res != STATUS_OK)
+                return res;
+
+            // Prepare the loopp
+            LSPString tmp;
+            ssize_t off = path.sPath.index_of(0, FILE_SEPARATOR_C);
+            if (off < 0)
+                return STATUS_INVALID_VALUE;
+            else if (path.is_absolute())
+            {
+                off = path.sPath.index_of(off+1, FILE_SEPARATOR_C);
+                if (off < 0) // Tried to create root directory?
+                    return STATUS_OK;
+            }
+
+            // Perform iterative directory creation
+            while (off >= 0)
+            {
+                if (!tmp.set(&path.sPath, 0, off))
+                    return STATUS_NO_MEM;
+
+                res = Dir::create(&tmp);
+                if (res != STATUS_OK)
+                    return res;
+
+                // Lookup for next separator
+                off     = path.sPath.index_of(off+1, FILE_SEPARATOR_C);
+            }
+
+            return Dir::create(&sPath);
+        }
+
+        status_t Path::remove() const
+        {
+            status_t res = File::remove(&sPath);
+            if (res == STATUS_IS_DIRECTORY)
+                res = Dir::remove(&sPath);
+            return (res == STATUS_NOT_DIRECTORY) ? STATUS_IO_ERROR : res;
+        }
+
+        void Path::take(LSPString *src)
+        {
+            sPath.take(src);
+            fixup_path();
+        }
+
+        status_t Path::current()
+        {
+            status_t res = Dir::get_current(&sPath);
+            if (res == STATUS_OK)
+                fixup_path();
+            return res;
         }
     }
 } /* namespace lsp */

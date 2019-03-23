@@ -15,6 +15,28 @@ namespace lsp
 {
     namespace io
     {
+        typedef struct fattr_t
+        {
+            enum ftype_t {
+                FT_BLOCK,
+                FT_CHARACTER,
+                FT_DIRECTORY,
+                FT_FIFO,
+                FT_SYMLINK,
+                FT_REGULAR,
+                FT_SOCKET,
+                FT_UNKNOWN
+            };
+
+            ftype_t     type;       // File type
+            size_t      blk_size;   // Block size
+            wsize_t     size;       // File size
+            wsize_t     inode;      // Index node
+            wsize_t     ctime;      // Creation time in milliseconds
+            wsize_t     mtime;      // Modification time in milliseconds
+            wsize_t     atime;      // Access time in milliseconds
+        } fattr_t;
+
         class Path
         {
             private:
@@ -22,6 +44,8 @@ namespace lsp
 
             private:
                 Path & operator = (const Path &);
+
+                inline void fixup_path();
 
             public:
                 explicit Path();
@@ -58,8 +82,8 @@ namespace lsp
                 status_t    concat(Path *path);
 
                 status_t    append_child(const char *path);
-                status_t    append_child(LSPString *path);
-                status_t    append_child(Path *path);
+                status_t    append_child(const LSPString *path);
+                status_t    append_child(const Path *path);
 
                 status_t    remove_last();
                 status_t    remove_last(char *path, size_t maxlen);
@@ -74,6 +98,8 @@ namespace lsp
                 bool        is_relative() const;
                 bool        is_canonical() const;
                 bool        is_root() const;
+                bool        is_dot() const;
+                bool        is_dotdot() const;
                 inline bool is_empty() const                        { return sPath.is_empty();  }
 
                 inline void clear()                                 { sPath.clear();    }
@@ -83,6 +109,8 @@ namespace lsp
                 status_t    canonicalize();
 
                 status_t    root();
+                status_t    current();
+                status_t    parent();
 
                 status_t    get_canonical(char *path, size_t maxlen) const;
                 status_t    get_canonical(LSPString *path) const;
@@ -98,6 +126,24 @@ namespace lsp
 
                 inline const LSPString *as_string() const { return &sPath; }
                 inline const char *as_native(const char *charset = NULL) const { return sPath.get_native(charset); }
+                inline void take(Path *src) { sPath.take(&src->sPath); }
+                void take(LSPString *src);
+
+            public:
+                status_t    stat(fattr_t *attr) const;
+                status_t    sym_stat(fattr_t *attr) const;
+                wssize_t    size() const;
+                wssize_t    exists() const;
+                wssize_t    is_reg() const;
+                wssize_t    is_dir() const;
+                wssize_t    is_block_dev() const;
+                wssize_t    is_char_dev() const;
+                wssize_t    is_fifo() const;
+                wssize_t    is_symlink() const;
+                wssize_t    is_socket() const;
+                status_t    mkdir() const;
+                status_t    mkdir(bool recursive) const;
+                status_t    remove() const;
         };
     }
 } /* namespace lsp */

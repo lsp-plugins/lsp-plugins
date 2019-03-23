@@ -75,8 +75,8 @@ namespace lsp
 
             // Allocate path string
             ptr = NULL;
-            asprintf(&ptr, "%s" FILE_SEPARATOR_S "%s", path, de->d_name);
-            if (ptr == NULL)
+            int n = asprintf(&ptr, "%s" FILE_SEPARATOR_S "%s", path, de->d_name);
+            if ((n < 0) || (ptr == NULL))
                 continue;
 
             // Scan symbolic link if present
@@ -239,6 +239,16 @@ namespace lsp
         }
 
         // Try to lookup additional directories obtained from file mapping
+        if (jack_main == NULL)
+        {
+            char *libpath = get_library_path();
+            if (libpath != NULL)
+            {
+                jack_main     = lookup_jack_main(hInstance, libpath);
+                ::free(libpath);
+            }
+        }
+
         if (jack_main == NULL)
         {
             char **paths = get_library_paths(jack_core_paths);

@@ -36,6 +36,8 @@ namespace lsp
                 virtual ~NativeExecutor();
 
             public:
+                status_t start();
+
                 virtual bool submit(ITask *task);
 
                 virtual void shutdown();
