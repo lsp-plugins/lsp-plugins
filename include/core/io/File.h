@@ -10,6 +10,9 @@
 
 #include <core/types.h>
 #include <core/status.h>
+#include <core/LSPString.h>
+#include <core/io/Path.h>
+#include <core/stdlib/stdio.h>
 
 namespace lsp
 {
@@ -107,6 +110,13 @@ namespace lsp
                 virtual wssize_t size();
 
                 /**
+                 * Get file attributes
+                 * @param attr file attributes
+                 * @return
+                 */
+                virtual status_t stat(fattr_t *attr);
+
+                /**
                  * Truncate the file
                  * @param length the final file length
                  * @return status of operation
@@ -142,6 +152,93 @@ namespace lsp
                  * @return status of operation
                  */
                 virtual status_t close();
+
+            public:
+
+                /**
+                 * Obtain file information, do not follow symlinks
+                 * @param path UTF-8 encoded path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                static status_t stat(const char *path, fattr_t *attr);
+
+                /**
+                 * Obtain file information, do not follow symlinks
+                 * @param path path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                static status_t stat(const LSPString *path, fattr_t *attr);
+
+                /**
+                 * Obtain file information, do not follow symlinks
+                 * @param path path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                static status_t stat(const Path *path, fattr_t *attr);
+
+                /**
+                 * Obtain file information
+                 * @param fd native file descriptor
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                static status_t stat(lsp_fhandle_t fd, fattr_t *attr);
+
+                /**
+                 * Obtain file information
+                 * @param fd stdio file descriptor
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                static status_t stat(FILE *fd, fattr_t *attr);
+
+                /**
+                 * Obtain file information, follow symlinks
+                 * @param path UTF-8 encoded path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                static status_t sym_stat(const char *path, fattr_t *attr);
+
+                /**
+                 * Obtain file information, follow symlinks
+                 * @param path path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                static status_t sym_stat(const LSPString *path, fattr_t *attr);
+
+                /**
+                 * Obtain file information, follow symlinks
+                 * @param path path to file
+                 * @param attr structure to return file attributes
+                 * @return status of operation
+                 */
+                static status_t sym_stat(const Path *path, fattr_t *attr);
+
+                /**
+                 * Delete file
+                 * @param path path to file
+                 * @return status of operation
+                 */
+                static status_t remove(const char *path);
+
+                /**
+                 * Delete file
+                 * @param path path to file
+                 * @return status of operation
+                 */
+                static status_t remove(const LSPString *path);
+
+                /**
+                 * Delete file
+                 * @param path path to file
+                 * @return status of operation
+                 */
+                static status_t remove(const Path *path);
         };
     
     } /* namespace io */

@@ -1,3 +1,7 @@
+PREFIX_FILE            := .install-prefix.txt
+MODULES_FILE           := .install-modules.txt
+BUILD_PROFILE_FILE     := .install-build-profile.txt
+
 # Detect operating system
 ifndef BUILD_SYSTEM
   ifeq ($(findstring Windows,$(OS)),Windows)
@@ -26,19 +30,21 @@ export BUILD_PLATFORM
 
 # Detect processor architecture
 ifeq ($(BUILD_PLATFORM),Windows)
-  BUILD_ARCH                = i586
-  BUILD_PROFILE             = i586
-  ifeq ($(PROCESSOR_ARCHITECTURE),x86)
+  ifndef BUILD_PROFILE
     BUILD_ARCH                = i586
     BUILD_PROFILE             = i586
-  endif
-  ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
-    BUILD_ARCH                = x86_64
-    BUILD_PROFILE             = x86_64
+    ifeq ($(PROCESSOR_ARCHITECTURE),x86)
+      BUILD_ARCH                = i586
+      BUILD_PROFILE             = i586
+    endif
+    ifeq ($(PROCESSOR_ARCHITECTURE),AMD64)
+      BUILD_ARCH                = x86_64
+      BUILD_PROFILE             = x86_64
+    endif
   endif
 else # BUILD_PLATFORM != Windows
   ifndef BUILD_PROFILE
-    BUILD_ARCH              = $(shell uname -m)
+    BUILD_ARCH              = $(shell cat "$(OBJDIR)/$(BUILD_PROFILE_FILE)" 2>/dev/null || uname -m)
     BUILD_PROFILE           = $(BUILD_ARCH)
     ifeq ($(patsubst armv6%,armv6,$(BUILD_ARCH)), armv6)
       BUILD_PROFILE           = armv6a

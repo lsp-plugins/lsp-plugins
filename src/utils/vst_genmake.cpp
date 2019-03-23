@@ -88,8 +88,8 @@ namespace lsp
         fprintf(out, "all: $(FILES)\n\n");
 
         fprintf(out, "$(FILES):\n");
-        fprintf(out, "\t@echo \"  $(CC) $(FILE)\"\n");
-        fprintf(out, "\t@$(CC) -o $(@) $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE) $(SO_FLAGS) $(DL_LIBS)\n\n");
+        fprintf(out, "\t@echo \"  $(CXX) $(FILE)\"\n");
+        fprintf(out, "\t@$(CXX) -o $(@) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(FILE) $(SO_FLAGS) $(DL_LIBS)\n\n");
 
         // Close file
         fclose(out);

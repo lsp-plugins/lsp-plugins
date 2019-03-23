@@ -8,9 +8,8 @@
 - Refactored and optimized filter transfer function calculation. 
 - Migrated to CMake build system.
 
-=== 1.1.8 ===
+=== 1.1.10 ===
 
-* Added experimental support of AArch64 architecture (DSP code is not optimized yet).
 - Research the work of plugins under Audacity.
 - Implemented 3D reverb simulator.
 - Implemented sampler plugin series with stereo outputs

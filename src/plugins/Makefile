@@ -8,8 +8,8 @@ all:  $(OBJ_PLUGINS)
 
 $(OBJ_PLUGINS): $(FILES) $(SUBDIRS)
 	@echo "  $(LD) $(notdir $(OBJ_PLUGINS))"
-	@$(LD) -o $(OBJ_PLUGINS) -r $(LDFLAGS) $(FILES) 
+	@$(LD) -o $(OBJ_PLUGINS) -r $(MERGE_FLAGS) $(FILES) 
 
 $(FILES):
-	@echo "  $(CC) $(FILE)"
-	@$(CC) -o $(@) -c -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(FILE)
+	@echo "  $(CXX) $(FILE)"
+	@$(CXX) -o $(@) -c -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(FILE)

@@ -2,6 +2,16 @@
 * RECENT CHANGES
 *******************************************************************************
 
+=== 1.1.9 ===
+
+* Added experimental support of AArch64 architecture (DSP code is not optimized yet).
+* Fixed regression in VST and Standalone plugin formats that caused offline tasks to
+  not to be launched.
+* Improved build system to make source code possible to build for KXStudio repository.
+  Distribution builders should ensure that the GNU C++ compiler is selected at the build
+  stage. 
+* Additional I/O improvements for better WindowsNT support.
+
 === 1.1.7 ===
 
 * Implemented fully compatible with EqualizerAPO software digital filters that are

@@ -25,6 +25,11 @@ namespace lsp
         {
         }
 
+        status_t NativeExecutor::start()
+        {
+            return hThread.start();
+        }
+
         bool NativeExecutor::submit(ITask *task)
         {
             lsp_trace("submit task=%p", task);

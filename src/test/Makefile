@@ -7,11 +7,11 @@ FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 all: $(OBJ_TEST_CORE)
 
 $(FILES):
-	@echo "  $(CC) $(FILE)"
+	@echo "  $(CXX) $(FILE)"
 	@mkdir -p $(dir $@)
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE) $(OPENGL_HEADERS) 
+	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) $(OPENGL_HEADERS) 
 
 $(OBJ_TEST_CORE): $(FILES)
 	@echo "  $(LD) $(notdir $(OBJ_TEST_CORE))"
-	@$(LD) -o $(OBJ_TEST_CORE) -r $(LDFLAGS) $(FILES)  
+	@$(LD) -o $(OBJ_TEST_CORE) -r $(MERGE_FLAGS) $(FILES)  
 

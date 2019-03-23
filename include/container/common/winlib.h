@@ -21,27 +21,27 @@ namespace lsp
 {
     WCHAR *get_library_path()
     {
-        WCHAR *path = reinterpret_cast<WCHAR *>(malloc((PATH_MAX + 1) * sizeof(WCHAR)));
+        WCHAR *path = reinterpret_cast<WCHAR *>(::malloc((PATH_MAX + 1) * sizeof(WCHAR)));
         if (path == NULL)
             return NULL;
 
         HMODULE hm = NULL;
 
-        if (!GetModuleHandleEx(
+        if (!::GetModuleHandleEx(
                 GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                 GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                 reinterpret_cast<LPCSTR>(&get_library_path),
                 &hm)
            )
         {
-            int ret = GetLastError();
+            int ret = ::GetLastError();
             fprintf(stderr, "GetModuleHandle failed, error = %d\n", ret);
             return NULL;
         }
 
-        if (GetModuleFileNameW(hm, path, sizeof(path)) == 0)
+        if (::GetModuleFileNameW(hm, path, sizeof(path)) == 0)
         {
-            int ret = GetLastError();
+            int ret = ::GetLastError();
             fprintf(stderr, "GetModuleFileName failed, error = %d\n", ret);
             return NULL;
         }

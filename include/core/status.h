@@ -51,6 +51,10 @@ namespace lsp
         STATUS_FAILED,
         STATUS_SKIP,
         STATUS_CANCELLED,
+        STATUS_NOT_EMPTY,
+        STATUS_IS_DIRECTORY,
+        STATUS_NOT_DIRECTORY,
+        STATUS_REMOVED,
         STATUS_BREAKPOINT, // This is special status for step-by-step tracing algorithms
 
         STATUS_TOTAL,

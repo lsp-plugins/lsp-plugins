@@ -716,8 +716,15 @@ namespace lsp
             return pExecutor;
 
         lsp_trace("Creating native executor service");
-        pExecutor       = new ipc::NativeExecutor();
-        return pExecutor;
+        ipc::NativeExecutor *exec = new ipc::NativeExecutor();
+        if (exec == NULL)
+            return NULL;
+        if (exec->start() != STATUS_OK)
+        {
+            delete exec;
+            return NULL;
+        }
+        return pExecutor = exec;
     }
 
     canvas_data_t *JACKWrapper::render_inline_display(size_t width, size_t height)

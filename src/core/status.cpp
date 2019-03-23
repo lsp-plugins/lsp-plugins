@@ -51,6 +51,10 @@ namespace lsp
         "Failed",
         "Skip",
         "Cancelled execution",
+        "Not empty",
+        "Is a directory",
+        "Not a directory",
+        "Removed",
         "Debugging breakpoint",
         NULL
     };

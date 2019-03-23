@@ -5,9 +5,9 @@ FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 .PHONY: all
 
 $(FILES):
-	@echo "  $(CC) $(FILE)"
+	@echo "  $(CXX) $(FILE)"
 	@mkdir -p $(dir $@)
-	@$(CC) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CFLAGS) $(INCLUDE)
+	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE)
 
 $(OBJ_TK_CORE): $(FILES)
 	@echo "  $(LD) $(notdir $(@))"

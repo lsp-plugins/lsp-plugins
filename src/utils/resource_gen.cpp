@@ -328,12 +328,13 @@ namespace lsp
         if (res == NULL)
             return NULL;
 
+        int n = 0;
         char *ptr = NULL;
         if (path != NULL)
-            asprintf(&ptr, "%s" FILE_SEPARATOR_S "%s", path, name);
+            n = asprintf(&ptr, "%s" FILE_SEPARATOR_S "%s", path, name);
         else
             ptr     = strdup(name);
-        if (ptr == NULL)
+        if ((n < 0) || (ptr == NULL))
         {
             delete res;
             return NULL;
@@ -341,8 +342,8 @@ namespace lsp
         res->id     = ptr;
 
         char *dst   = NULL;
-        asprintf(&dst, "%08x", int(id));
-        if (dst == NULL)
+        n = asprintf(&dst, "%08x", int(id));
+        if ((n < 0) || (dst == NULL))
         {
             free(const_cast<char *>(res->id));
             delete res;
@@ -410,11 +411,14 @@ namespace lsp
 
     int scan_directory(const char *basedir, const char *path, cvector<resource_t> &resources)
     {
+        int n = 0;
         char *realpath = NULL;
         if (path != NULL)
-            asprintf(&realpath, "%s" FILE_SEPARATOR_S "%s", basedir, path);
+            n = asprintf(&realpath, "%s" FILE_SEPARATOR_S "%s", basedir, path);
         else
             realpath = strdup(basedir);
+        if ((n < 0) || (realpath == NULL))
+            return -STATUS_NO_MEM;
 
         // Try to scan directory
         DIR *dirhdl     = opendir(realpath);
@@ -443,8 +447,8 @@ namespace lsp
 
             // Obtain file type
             char *fname = NULL;
-            asprintf(&fname, "%s" FILE_SEPARATOR_S "%s", realpath, ent->d_name);
-            if (fname == NULL)
+            n = asprintf(&fname, "%s" FILE_SEPARATOR_S "%s", realpath, ent->d_name);
+            if ((n < 0) || (fname == NULL))
                 continue;
             if (stat(fname, &st) < 0)
             {
@@ -464,10 +468,10 @@ namespace lsp
                 // Generate subdirectory name
                 char *subdir = NULL;
                 if (path != NULL)
-                    asprintf(&subdir, "%s" FILE_SEPARATOR_S "%s", path, ent->d_name);
+                    n = asprintf(&subdir, "%s" FILE_SEPARATOR_S "%s", path, ent->d_name);
                 else
                     subdir = strdup(ent->d_name);
-                if (subdir == NULL)
+                if ((n < 0) || (subdir == NULL))
                     return -STATUS_NO_MEM;
 
                 result = scan_directory(basedir, subdir, resources);

@@ -497,7 +497,7 @@ namespace lsp
     {
         if (!cap_reserve(nLength + 1))
             return false;
-        pData[nLength++] = ch;
+        pData[nLength++] = uint8_t(ch);
         return true;
     }
 
@@ -989,6 +989,20 @@ namespace lsp
         return true;
     }
 
+    size_t LSPString::replace_all(lsp_wchar_t ch, lsp_wchar_t rep)
+    {
+        size_t n = 0;
+        for (size_t i=0; i<nLength; ++i)
+        {
+            if (pData[i] == ch)
+            {
+                pData[i] = rep;
+                ++n;
+            }
+        }
+        return n;
+    }
+
     ssize_t LSPString::index_of(ssize_t start, const LSPString *str) const
     {
         XSAFE_TRANS(start, nLength, -1);
@@ -1179,6 +1193,20 @@ namespace lsp
             return -int(*b);
 
         return 0;
+    }
+
+    int LSPString::compare_to_ascii(const char *src) const
+    {
+        size_t i=0;
+        for ( ; i<nLength; ++i)
+        {
+            int retval = lsp_swchar_t(pData[i]) - uint8_t(src[i]);
+            if (retval != 0)
+                return retval;
+            else if (src[i] == '\0')
+                return nLength - i - 1;
+        }
+        return -int(uint8_t(src[i]));
     }
 
     int LSPString::compare_to_nocase(const LSPString *src) const

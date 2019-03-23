@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <dlfcn.h>
 #include <unistd.h>
 
 namespace lsp
@@ -416,6 +417,25 @@ namespace lsp
             *p = NULL;
         }
         free(paths);
+    }
+
+    char *get_library_path()
+    {
+        Dl_info dli;
+        int res = ::dladdr(reinterpret_cast<void *>(get_library_path), &dli);
+        if ((res == 0) || (dli.dli_fname == NULL))
+            return NULL;
+        char *path = ::strdup(dli.dli_fname);
+        if (path == NULL)
+            return NULL;
+        char *p = strchr(path, '\0');
+        while ((--p) > path)
+            if (*p == FILE_SEPARATOR_C)
+            {
+                *p = '\0';
+                break;
+            }
+        return path;
     }
 }
 

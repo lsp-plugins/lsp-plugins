@@ -1,6 +1,3 @@
-PREFIX_FILE            := .install-prefix.txt
-MODULES_FILE           := .install-modules.txt
-
 # Determine installation prefix
 ifndef PREFIX
   PREFIX                 := $(shell cat "$(OBJDIR)/$(PREFIX_FILE)" 2>/dev/null || echo "/usr/local")
@@ -82,12 +79,17 @@ ifeq ($(BUILD_PROFILE),x86_64)
 endif
 
 ifeq ($(BUILD_PROFILE),armv6a)
-  CC_ARCH          = -march=armv6-a
+  CC_ARCH          = -march=armv6-a -marm
   LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
 ifeq ($(BUILD_PROFILE),armv7a)
-  CC_ARCH          = -march=armv7-a
+  CC_ARCH          = -march=armv7-a -marm
+  LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
+endif
+
+ifeq ($(BUILD_PROFILE),armv8a)
+  CC_ARCH          = -march=armv7-a -marm
   LD_PATH          = /usr/lib64:/lib64:/usr/local/lib64
 endif
 
