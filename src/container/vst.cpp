@@ -683,7 +683,7 @@ namespace lsp
         const char *plugin_name     = NULL;
         plugin_t *p                 = NULL;
 
-        #define MOD_PLUGIN(plugin) \
+        #define MOD_PLUGIN(plugin, ui) \
             if ((!p) && (plugin::metadata.vst_uid != NULL) && (uid == vst_cconst(plugin::metadata.vst_uid))) \
             { \
                 p   = new plugin(); \

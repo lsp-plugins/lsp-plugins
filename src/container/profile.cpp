@@ -15,9 +15,9 @@ namespace lsp
         cvector<const char> plugin_ids;
 
         // Generate the list of plugins
-        #define MOD_PLUGIN(x) \
-            if (x::metadata.ui_resource != NULL) \
-                plugin_ids.add(x::metadata.lv2_uid);
+        #define MOD_PLUGIN(plugin, ui) \
+            if (plugin::metadata.ui_resource != NULL) \
+                plugin_ids.add(plugin::metadata.lv2_uid);
         #include <metadata/modules.h>
 
         // Sort the list of plugins
@@ -51,7 +51,7 @@ int main(int argc, const char**argv)
 
     // Find the plugin
     const plugin_metadata_t *m = NULL;
-    #define MOD_PLUGIN(x) if (!strcmp(argv[1], #x)) m = &x::metadata;
+    #define MOD_PLUGIN(plugin, ui) if (!strcmp(argv[1], #plugin)) m = &plugin::metadata;
     #include <metadata/modules.h>
     if (m == NULL)
         return profile_plugin_not_found(argv[1]);

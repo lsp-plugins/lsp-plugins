@@ -883,7 +883,7 @@ namespace lsp
         fprintf(out, "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n");
         fprintf(out, "@prefix " LSP_PREFIX ":   <" LSP_URI(lv2) "> .\n\n");
 
-        #define MOD_PLUGIN(plugin) \
+        #define MOD_PLUGIN(plugin, ui) \
             if (plugin::metadata.lv2_uid != NULL) \
             { \
                 fprintf(out, LSP_PREFIX ":" #plugin "\n"); \
@@ -901,7 +901,7 @@ namespace lsp
 
         // Output plugins
         size_t id = 0;
-        #define MOD_PLUGIN(plugin) \
+        #define MOD_PLUGIN(plugin, ui) \
         if (plugin::metadata.lv2_uid != NULL) \
         { \
             gen_plugin_ttl(path, plugin::metadata, LSP_PLUGIN_URI(lv2, plugin)); \

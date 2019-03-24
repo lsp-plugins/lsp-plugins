@@ -551,9 +551,13 @@ namespace lsp
 
         if (pUI == NULL)
         {
-            // Create UI pointer
+            // Create custom UI object
             lsp_trace("create ui");
-            pUI                         = new plugin_ui(m, root_widget);
+            #define MOD_PLUGIN(plugin, ui) \
+                if ((!pUI) && (!strcmp(plugin::metadata.vst_uid, m->vst_uid))) \
+                    pUI = new ui(m, root_widget);
+            #include <metadata/modules.h>
+
             if (pUI == NULL)
                 return false;
 
