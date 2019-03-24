@@ -1,3 +1,14 @@
+lsp-plugins (1.1.9-4) unstable; urgency=medium
+
+  * Imported from KXStudio
+  * Seperate packages for different types of plugins
+  * Removed strange custom build options and CFLAGS
+  * Switch to shared libraries from static ones
+  * Dropped package epoch
+  * Enabled building on non-x86
+
+ -- Mikhail Novosyolov <mikhailnov@dumalogiya.ru>  Sun, 24 Mar 2019 09:11:00 +0300
+
 lsp-plugins (2:1.1.9-1kxstudio1) trusty; urgency=medium
 
   * Update

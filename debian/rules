@@ -1,18 +1,14 @@
 #!/usr/bin/make -f
-
-FLAGS=-O3 -pipe -ffast-math -mtune=generic -msse -msse2 -mfpmath=sse -fPIC -DPIC -fvisibility=hidden -Wno-unused-result
-
-export CFLAGS=$(FLAGS)
-export CXXFLAGS=$(FLAGS) -fvisibility-inlines-hidden
-export CPPFLAGS=
-export LDFLAGS=-Wl,-O1 -Wl,-z,relro,-z,now -Wl,--no-undefined -Wl,--strip-all -Wl,--as-needed
-export PATH:=/opt/kxstudio/bin:$(PATH)
-export PKG_CONFIG_PATH=/opt/kxstudio/lib/pkgconfig
+export DH_VERBOSE=1
 
 ifeq ($(DEB_HOST_ARCH_CPU),$(filter $(DEB_HOST_ARCH_CPU),amd64))
 	export BUILD_PROFILE=x86_64
-else
+else ifeq ($(DEB_HOST_ARCH_CPU),$(filter $(DEB_HOST_ARCH_CPU),i386))
 	export BUILD_PROFILE=i586
+else ifeq ($(DEB_HOST_ARCH_CPU),$(filter $(DEB_HOST_ARCH_CPU),armhf))
+	export BUILD_PROFILE=armv7a
+else ifeq ($(DEB_HOST_ARCH_CPU),$(filter $(DEB_HOST_ARCH_CPU),arm64))
+	export BUILD_PROFILE=aarch64
 endif
 
 export PREFIX=/usr
@@ -22,3 +18,6 @@ export PREFIX=/usr
 
 override_dh_auto_test:
 	# FIXME tests are failing to build
+
+override_dh_missing:
+	dh_missing --fail-missing

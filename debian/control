@@ -1,8 +1,7 @@
 Source: lsp-plugins
 Section: sound
 Priority: optional
-Maintainer: Équipe LibraZiK <librazik@tuxfamily.org>
-Uploaders: Olivier Humbert <trebmuh@tuxfamily.org>
+Maintainer: Mikhail Novosyolov <mikhailnov@dumalogiya.ru>
 Build-Depends:
  debhelper (>= 9),
  ladspa-sdk,
@@ -11,24 +10,22 @@ Build-Depends:
  libglu1-mesa-dev,
  libjack-jackd2-dev | libjack-dev,
  lv2-dev,
- php7.0-cli | php5-cli,
- cairo-static,
- libsndfile-static
+ php-cli,
+ libcairo2-dev,
+ libsndfile-dev
 Standards-Version: 3.9.8
 Homepage: http://lsp-plug.in/
 
 Package: lsp-plugins
-Provides:
- lv2-plugin,
- ladspa-plugin,
-Architecture: any
-Depends:
- ${misc:Depends},
- ${shlibs:Depends},
-Suggests:
- dgedit,
+Architecture: all
+Recommends:
+ lsp-plugins-jack,
+ lsp-plugins-ladspa,
+ lsp-plugins-lv2,
+ lsp-plugins-vst
 Description: LSP (Linux Studio Plugins) audio-plugins package
- This package provide 91 plugins.
+ This is a meta-package that pulls all packages with
+ LSP (Linux Studio Plugins) plugins.
  .
  Audio effects: limiters, dynamic processors, expanders, gates,
  graphic equalisers, impulse responses, impulse reverbs, compressors,
@@ -43,7 +40,40 @@ Description: LSP (Linux Studio Plugins) audio-plugins package
  and MIDI triggers
  .
  Available as LV2, LADSPA and jack-standalone.
- .
- Documentation page : http://librazik.tuxfamily.org/doc2/paquets
- .
- KXStudio package imported from LibraZiK
+
+Package: lsp-plugins-jack
+Architecture: i386 amd64 armhf arm64
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends}
+Description: LSP (Linux Studio Plugins) JACK plugins
+ LSP (Linux Studio Plugins) JACK plugins
+
+Package: lsp-plugins-ladspa
+Architecture: i386 amd64 armhf arm64
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends}
+Description: LSP (Linux Studio Plugins) LADSPA plugins
+ LSP (Linux Studio Plugins) LADSPA plugins
+
+Package: lsp-plugins-lv2
+Architecture: i386 amd64 armhf arm64
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends}
+Description: LSP (Linux Studio Plugins) LV2 plugins
+ LSP (Linux Studio Plugins) LV2 plugins
+
+Package: lsp-plugins-vst
+Architecture: i386 amd64 armhf arm64
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends}
+Description: LSP (Linux Studio Plugins) VST plugins
+ LSP (Linux Studio Plugins) VST plugins
+
+Package: lsp-plugins-doc
+Architecture: all
+Description: LSP (Linux Studio Plugins) plugins docs
+ LSP (Linux Studio Plugins) VST plugins documentation

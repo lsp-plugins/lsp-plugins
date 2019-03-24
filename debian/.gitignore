@@ -1,0 +1,9 @@
+.debhelper/
+files
+*.substvars
+lsp-plugins-jack/
+lsp-plugins-ladspa/
+lsp-plugins-lv2/
+lsp-plugins-vst/
+lsp-plugins/
+tmp/
