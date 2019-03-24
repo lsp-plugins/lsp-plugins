@@ -1,0 +1,98 @@
+lsp-plugins (2:1.1.9-1kxstudio1) trusty; urgency=medium
+
+  * Update
+
+ -- falkTX <falktx@gmail.com>  Sat, 23 Mar 2019 17:24:15 +0100
+
+lsp-plugins (1.1.7-0kxstudio4) trusty; urgency=medium
+
+  * Import package
+  * Build with static libs
+  * Build with our custom flags
+
+ -- falkTX <falktx@gmail.com>  Thu, 21 Mar 2019 15:42:04 +0100
+
+lsp-plugins (1.1.4-0librazik2) stretch; urgency=medium
+
+  * Reconstruction avec pbuilder pour LibraZiK2.
+    - construction pour le 32 bits également.
+  * debian/rules :
+    - ajout d'un traitement différencié s'il s'agit d'une construction 64 ou 32
+      bits.
+
+ -- Olivier Humbert <trebmuh@tuxfamily.org>  Thu, 01 Nov 2018 12:24:51 +0100
+
+lsp-plugins (1.1.4-0librazik1) stretch; urgency=medium
+
+  * Reconstruction avec pbuilder pour LibraZiK2.
+    - nouvelle version amont.
+  * debian/control :
+    - dépendances de construction :
+      + ajout de "libglu1-mesa-dev" et de "libgl1-mesa-dev".
+    - description :
+      + 2017 -> 2018.
+      + ajout d'une ligne signifiant qu'il y a d'autres greffons inclus à
+        présent.
+  * debian/copyright :
+    - Vladimir Sadovnikov : 2016-2017 -> 2016-2018.
+    - Olivier Humbert : 2016-2017 -> 2016-2018.
+  * debian/patches/3000-build_fixes.patch :
+    - mise à jour de la rustine (à la main).
+  * debian/patches/series :
+    - mise en commentaire des rustines :
+      + 3010-traduction_FR_communs.patch
+      + 3011-traduction_FR_comp_delay_mono.patch
+      + 3012-traduction_FR_comp_delay_stereo.patch
+      + 3013-traduction_FR_comp_delay_x2_stereo.patch
+      + 3014-traduction_FR_phase_detector.patch
+  * debian/watch :
+    - création du fichier.
+
+ -- Olivier Humbert <trebmuh@tuxfamily.org>  Wed, 31 Oct 2018 19:18:17 +0100
+
+lsp-plugins (1.0.2-0librazik1) stretch; urgency=medium
+
+  * Reconstruction avec pbuilder pour LibraZiK2.
+  * debian/compat :
+    - passage de 9 à 10
+  * debian/control :
+    - dépendance de construction :
+      + debhelper : passage de (>= 9) à (>= 10).
+      + passage de "libjack-dev," à "libjack-jackd2-dev | libjack-dev".
+      + ajout de "libstdc++-6-dev".
+      + ajout de "php7.0-cli".
+      + ajout de "libgtk-3-dev".
+    - description :
+      + lien de documentation : adaptation pour LZK2.
+      + 2016 -> 2017.
+      + ajout de "Phase Detector".
+  * debian/copyright :
+    - Olivier Humbert : 2016 -> 2016-2017
+    - Vladimir Sadovnikov : 2016 -> 2016-2017.
+  * debian/rules :
+    - suppression du "--parallel" inutile avec debhelper 10.
+  * debian/patches/3000-build_fixes.patch :
+    - mise à jour de la rustine (à la main).
+  * debian/patches/301X-traductions_FR* :
+    - séparation de la rustine "pour tous" en "une rustine par greffon".
+    - mise à jour des rustines de traductions.
+    - ajout d'une rustine de traduction pour le détecteur de phase.
+
+ -- Olivier Humbert <trebmuh@tuxfamily.org>  Wed, 06 Sep 2017 16:56:55 +0200
+
+lsp-plugins (1.0.0-0librazik2) jessie; urgency=medium
+
+  * Reconstruction avec pbuilder pour LibraZiK.
+    - traduction de l'interface graphique.
+  * debian/patches/3001-traduction_FR.patch :
+    - création de la rustine (avec dquilt).
+  * debian/patches/series :
+    - création du fichier (avec dquilt).
+
+ -- Olivier Humbert <trebmuh@tuxfamily.org>  Wed, 23 Nov 2016 23:48:01 +0100
+
+lsp-plugins (1.0.0-0librazik1) jessie; urgency=medium
+
+  * Construction initiale avec pbuilder pour LibraZiK.
+
+ -- Olivier Humbert <trebmuh@tuxfamily.org>  Wed, 23 Nov 2016 03:02:47 +0100

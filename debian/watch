@@ -1,0 +1,3 @@
+version=3
+opts=filenamemangle=s/.+\/release-?(\d\S*)\.tar\.gz/lsp-plugins-$1\.tar\.gz/ \
+  https://github.com/sadko4u/lsp-plugins/tags .*/release-?(\d\S*)\.tar\.gz

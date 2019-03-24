@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+
+FLAGS=-O3 -pipe -ffast-math -mtune=generic -msse -msse2 -mfpmath=sse -fPIC -DPIC -fvisibility=hidden -Wno-unused-result
+
+export CFLAGS=$(FLAGS)
+export CXXFLAGS=$(FLAGS) -fvisibility-inlines-hidden
+export CPPFLAGS=
+export LDFLAGS=-Wl,-O1 -Wl,-z,relro,-z,now -Wl,--no-undefined -Wl,--strip-all -Wl,--as-needed
+export PATH:=/opt/kxstudio/bin:$(PATH)
+export PKG_CONFIG_PATH=/opt/kxstudio/lib/pkgconfig
+
+ifeq ($(DEB_HOST_ARCH_CPU),$(filter $(DEB_HOST_ARCH_CPU),amd64))
+	export BUILD_PROFILE=x86_64
+else
+	export BUILD_PROFILE=i586
+endif
+
+export PREFIX=/usr
+
+%:
+	dh $@
+
+override_dh_auto_test:
+	# FIXME tests are failing to build

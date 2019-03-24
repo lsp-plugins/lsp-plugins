@@ -1,0 +1,49 @@
+Source: lsp-plugins
+Section: sound
+Priority: optional
+Maintainer: Équipe LibraZiK <librazik@tuxfamily.org>
+Uploaders: Olivier Humbert <trebmuh@tuxfamily.org>
+Build-Depends:
+ debhelper (>= 9),
+ ladspa-sdk,
+ libexpat1-dev,
+ libgl1-mesa-dev,
+ libglu1-mesa-dev,
+ libjack-jackd2-dev | libjack-dev,
+ lv2-dev,
+ php7.0-cli | php5-cli,
+ cairo-static,
+ libsndfile-static
+Standards-Version: 3.9.8
+Homepage: http://lsp-plug.in/
+
+Package: lsp-plugins
+Provides:
+ lv2-plugin,
+ ladspa-plugin,
+Architecture: any
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends},
+Suggests:
+ dgedit,
+Description: LSP (Linux Studio Plugins) audio-plugins package
+ This package provide 91 plugins.
+ .
+ Audio effects: limiters, dynamic processors, expanders, gates,
+ graphic equalisers, impulse responses, impulse reverbs, compressors,
+ multiband compressors, parametric equalisers, phase detector,
+ sidechain multiband compressors, sidechain limiters,
+ sidechain dynamic processors, sidechain expanders, sidechain gates,
+ sidechain compressors, slapback delays, delay compensators, triggers.
+ .
+ Synths: samplers, and multisamplers.
+ .
+ Tools: latency meters, oscillators, profiler, spectrum analyzers,
+ and MIDI triggers
+ .
+ Available as LV2, LADSPA and jack-standalone.
+ .
+ Documentation page : http://librazik.tuxfamily.org/doc2/paquets
+ .
+ KXStudio package imported from LibraZiK
