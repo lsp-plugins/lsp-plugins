@@ -109,7 +109,7 @@ namespace lsp
         return &C_CYAN;
     }
 
-    status_t rt_mesh_t::copy_object_data(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material)
+    status_t rt_mesh_t::copy_object_data(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material, size_t itag)
     {
         // Cleanup object tags to prevent data corruption
         for (size_t i=0, n=obj->num_triangles(); i<n; ++i)
@@ -160,7 +160,7 @@ namespace lsp
 
                     st->v[j]->ptag  = vx;
                 }
-                vx->itag       |= 0x2;  // Vertex is part of the object
+                vx->itag       |= itag;  // Vertex is part of the object
                 dt->v[j]        = vx;
             }
 
@@ -176,11 +176,10 @@ namespace lsp
                     if (!(ex = add_unique_edge(v1, v2)))
                         return STATUS_NO_MEM;
 
-//                    ex->itag        = (ex->itag >= 1) ? 1 : 0;
                     st->e[j]->ptag  = ex;
                 }
 
-                ex->itag       |= 0x2;              // Edge is part of the object
+                ex->itag       |= itag;             // Edge is part of the object
                 dt->e[j]        = ex;
                 dt->elnk[j]     = ex->vt;           // Link
                 ex->vt          = dt;               // Link
@@ -190,19 +189,13 @@ namespace lsp
             dsp::calc_plane_p3(&dt->n, dt->v[0], dt->v[1], dt->v[2]);
 
             // Estimate the itag state of the triangle
-            dt->itag   |= 0x2;
-//            if (dt->v[0]->itag != 1)
-//                dt->itag    = dt->v[0]->itag;
-//            else if (dt->v[1]->itag != 1)
-//                dt->itag    = dt->v[1]->itag;
-//            else
-//                dt->itag    = dt->v[2]->itag;
+            dt->itag    = itag;
         }
 
-//        RT_VALIDATE(
+        RT_VALIDATE(
             if (!this->validate())
                 return STATUS_BAD_STATE;
-//        )
+        )
         RT_TRACE_BREAK(debug,
             lsp_trace("State of triangles after copy()");
             for (size_t i=0,n=vertex.size(); i<n; ++i)
@@ -224,8 +217,20 @@ namespace lsp
             }
         );
 
-
         return STATUS_OK;
+    }
+
+    status_t rt_mesh_t::init(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material)
+    {
+        // Temporary collections
+        rt_mesh_t tmp;
+
+        RT_TRACE(debug, tmp.set_debug_context(debug, view); );
+        status_t res = tmp.copy_object_data(obj, oid, transform, material, 0x01);
+        if (res == STATUS_OK)
+            this->swap(&tmp);
+
+        return res;
     }
 
     status_t rt_mesh_t::split_edge(rtm_edge_t* e, rtm_vertex_t* sp)
@@ -927,6 +932,46 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t rt_mesh_t::subtract(Object3D *obj, ssize_t oid, const matrix3d_t *transform)
+    {
+        status_t res;
+
+        // Vertex states:
+        // 0 = vertex is common to the mesh and object
+        // 1 = vertex is part of the mesh
+        // 2 = vertex is part of the object
+        // 3 = vertex is common to the mesh and object
+        RT_FOREACH(rtm_vertex_t, v, vertex)
+            v->itag     = 1;    // Vertex is part of the mesh
+        RT_FOREACH_END
+
+        RT_FOREACH(rtm_edge_t, e, edge)
+            e->itag     = 1;    // Edge is part of the mesh
+        RT_FOREACH_END
+
+        RT_FOREACH(rtm_triangle_t, t, triangle)
+            t->itag     = 1;    // Triangle is part of the mesh
+        RT_FOREACH_END
+
+        // First, copy all primitives and detect their locations
+        if ((res = copy_object_data(obj, oid, transform, NULL, 0x02)) != STATUS_OK)
+            return res;
+
+        // Split edges with points laying on them
+        if ((res = solve_vertex_edge_conflicts()) != STATUS_OK)
+            return res;
+
+        // Remove duplicate edges
+        if ((res = remove_duplicate_edges()) != STATUS_OK)
+            return res;
+
+        // Now we need to solve all conflicts between edges and triangles
+        if ((res = solve_conflicts(oid)) != STATUS_OK)
+            return res;
+
+        return STATUS_OK;
+    }
+
     status_t rt_mesh_t::add_object(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material)
     {
         status_t res;
@@ -949,7 +994,7 @@ namespace lsp
         RT_FOREACH_END
 
         // First, copy all primitives and detect their locations
-        if ((res = copy_object_data(obj, oid, transform, material)) != STATUS_OK)
+        if ((res = copy_object_data(obj, oid, transform, material, 0x02)) != STATUS_OK)
             return res;
 
         // Split edges with points laying on them

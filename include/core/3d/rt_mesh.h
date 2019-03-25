@@ -56,7 +56,7 @@ namespace lsp
             rtm_vertex_t   *add_unique_vertex(const point3d_t *p);
             rtm_edge_t     *add_unique_edge(rtm_vertex_t *v1, rtm_vertex_t *v2);
 
-            status_t        copy_object_data(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material);
+            status_t        copy_object_data(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material, size_t itag);
             status_t        solve_conflicts(ssize_t oid);
             status_t        solve_vertex_edge_conflicts();
             status_t        remove_duplicate_edges();
@@ -100,6 +100,14 @@ namespace lsp
             }
 
             /**
+             * Initialize mesh contents with object contents
+             * @param obj object to initialize
+             * @param oid unique object identifier
+             * @return status of operation
+             */
+            status_t        init(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material = NULL);
+
+            /**
              * Add object exclusively to context
              * @param obj object to add
              * @param oid unique id to identify the object
@@ -120,6 +128,13 @@ namespace lsp
              * @return status of operation
              */
             status_t        add_object(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material);
+
+            /**
+             * Subtract object obj from mesh
+             * @param obj object to subtract
+             * @return status of operation
+             */
+            status_t        subtract(Object3D *obj, ssize_t oid, const matrix3d_t *transform);
 
             /**
              * Check consistency of the context: that all stored pointers are valid
