@@ -73,20 +73,10 @@ namespace lsp
         {
 #if defined(PLATFORM_WINDOWS)
             if (hThread != INVALID_HANDLE_VALUE)
-<<<<<<< HEAD
-            {
-                CloseHandle(hThread);
-                hThread     = INVALID_HANDLE_VALUE;
-            }
-#else
-            hThread     = 0;
-#endif /* PLATFORM_WINDOWS */
-=======
                 CloseHandle(hThread);
 #endif /* PLATFORM_WINDOWS */
 
             CLR_HANDLE(hThread);
->>>>>>> origin/winnt-port
         }
 
         status_t Thread::run()

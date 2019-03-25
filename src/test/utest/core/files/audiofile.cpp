@@ -9,6 +9,7 @@
 #include <test/utest.h>
 #include <test/FloatBuffer.h>
 #include <core/sampling/Sample.h>
+#include <core/LSPString.h>
 #include <core/files/AudioFile.h>
 
 using namespace lsp;
