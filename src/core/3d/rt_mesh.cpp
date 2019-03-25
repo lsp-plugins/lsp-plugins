@@ -690,11 +690,11 @@ namespace lsp
                 if ((cv == ce->v[0]) || (cv == ce->v[1]))
                     continue;
 
-                RT_TRACE_BREAK(debug,
-                    lsp_trace("Testing remove_colinear_edges()");
-                    view->add_point(cv, &C_YELLOW);
-                    view->add_segment(ce, &C_YELLOW);
-                );
+//                RT_TRACE_BREAK(debug,
+//                    lsp_trace("Testing remove_colinear_edges()");
+//                    view->add_point(cv, &C_YELLOW);
+//                    view->add_segment(ce, &C_YELLOW);
+//                );
 
                 d[0]    = dsp::calc_distance_p2(cv, ce->v[0]);
                 d[1]    = dsp::calc_distance_p2(cv, ce->v[1]);
@@ -719,20 +719,20 @@ namespace lsp
                 else
                     continue;
 
-                RT_TRACE_BREAK(debug,
-                    lsp_trace("After remove_colinear_edges()");
-                    for (size_t i=0,n=vertex.size(); i<n; ++i)
-                    {
-                        rtm_vertex_t *v = vertex.get(i);
-                        view->add_point(v, item_color(v->itag));
-                    }
-
-                    for (size_t i=0,n=edge.size(); i<n; ++i)
-                    {
-                        rtm_edge_t *e = edge.get(i);
-                        view->add_segment(e, item_color(e->itag));
-                    }
-                );
+//                RT_TRACE_BREAK(debug,
+//                    lsp_trace("After remove_colinear_edges()");
+//                    for (size_t i=0,n=vertex.size(); i<n; ++i)
+//                    {
+//                        rtm_vertex_t *v = vertex.get(i);
+//                        view->add_point(v, item_color(v->itag));
+//                    }
+//
+//                    for (size_t i=0,n=edge.size(); i<n; ++i)
+//                    {
+//                        rtm_edge_t *e = edge.get(i);
+//                        view->add_segment(e, item_color(e->itag));
+//                    }
+//                );
 
             RT_FOREACH_END
         }
@@ -749,10 +749,10 @@ namespace lsp
     {
         Allocator3D<rtm_edge_t> xedge(edge.chunk_size());
 
-//        RT_VALIDATE(
+        RT_VALIDATE(
             if (!validate())
                 return STATUS_CORRUPTED;
-//        )
+        )
 
         // Generate unique set of non-duplicate edges
         RT_FOREACH(rtm_edge_t, ce, edge)
@@ -813,10 +813,10 @@ namespace lsp
 
         xedge.swap(&edge);
 
-//        RT_VALIDATE(
+        RT_VALIDATE(
             if (!validate())
                 return STATUS_CORRUPTED;
-//        )
+        )
 
         return STATUS_OK;
     }
