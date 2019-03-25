@@ -22,6 +22,7 @@
 - Added bookmarks to file opening dialog.
 - Added audio preview to file open dialog.
 - Added subsystem for loading missed files. 
+- Implement drag&drop function for the file dialog/file widget.
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
  
