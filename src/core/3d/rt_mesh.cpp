@@ -942,7 +942,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t walk_edge(rt_spline_t *spline, rtm_edge_t *xe, rtm_vertex_t *v)
+    status_t rt_mesh_t::walk_edge(rt_spline_t *spline, rtm_edge_t *xe, rtm_vertex_t *v)
     {
         // Walk the edge forward
         status_t res = STATUS_OK;
@@ -978,7 +978,7 @@ namespace lsp
             }
 
             if (res == STATUS_CLOSED)
-                return res;
+                break;
         }
 
         return res;
@@ -1039,7 +1039,34 @@ namespace lsp
 
         // Now 've' contains all common edges
         rt_spline_t tmp;
+        for (size_t i=0, n=ve.size(); i<n; ++i)
+        {
+            rtm_edge_t *ce = ve.at(i);
+            if (ce->ptag) // Already processed edge?
+                continue;
 
+            ce->ptag    = ce; // Mark edge as processed
+            status_t res = walk_edge(&tmp, ce, ce->v[0]);
+            if (res == STATUS_OK)
+                res = walk_edge(&tmp, ce, ce->v[1]);
+
+            // Analyze state
+            if ((res != STATUS_OK) && (res != STATUS_CLOSED))
+                return res;
+
+            // Add spline to list
+            rt_spline_t *spline = new rt_spline_t();
+            if (spline == NULL)
+                return STATUS_NO_MEM;
+            else if (!splines.add(spline))
+            {
+                delete spline;
+                return STATUS_NO_MEM;
+            }
+
+            // Take data from temporary spline
+            spline->take(&tmp);
+        }
 
         return STATUS_OK;
     }
