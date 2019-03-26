@@ -9,7 +9,7 @@
 #define CORE_3D_RT_SPLINE_H_
 
 #include <core/3d/common.h>
-#include <data/cstorage.h>
+#include <data/cvector.h>
 
 namespace lsp
 {
@@ -20,7 +20,7 @@ namespace lsp
         public:
             rtm_vertex_t   *start;
             rtm_vertex_t   *end;
-            cstorage<rtm_edge_t> edges;
+            cvector<rtm_vertex_t> vertex;
 
         public:
             explicit rt_spline_t();
@@ -59,10 +59,11 @@ namespace lsp
 
             /**
              * Add edge to the spline
-             * @param edge edge to add
+             * @param v0 vertex 0 of the edge
+             * @param v1 vertex 1 of the edge
              * @return status of operation: STATUS_OK if added, STATUS_CLOSED if the spline has been closed, error otherwise
              */
-            status_t add(rtm_edge_t *edge);
+            status_t add(rtm_vertex_t *v0, rtm_vertex_t *v1);
 
             /**
              * Test triangle for clockwise order and apply it to the spline
