@@ -136,7 +136,7 @@ namespace lsp
         }
         else if (end == edge->v[1]) // [start ... end] + [v[1] .. v[0]]
         {
-            if (!edges.add(edge))
+            if (!(e = edges.add(edge)))
                 return STATUS_NO_MEM;
 
             // Change orientation of the edge
