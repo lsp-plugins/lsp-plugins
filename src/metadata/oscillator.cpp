@@ -95,6 +95,7 @@ namespace lsp
         LSP_OSCILLATOR_BASE + 0,
         LSP_VERSION(1, 0, 0),
         oscillator_classes,
+        E_INLINE_DISPLAY,
         oscillator_ports,
         "util/oscillator_mono.xml",
         mono_plugin_port_groups

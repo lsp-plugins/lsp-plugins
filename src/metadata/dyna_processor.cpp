@@ -263,6 +263,7 @@ namespace lsp
         LSP_DYNAMIC_PROCESSOR_BASE + 0,
         LSP_VERSION(1, 0, 1),
         dyna_processor_classes,
+        E_INLINE_DISPLAY,
         dyna_processor_mono_ports,
         "dynamics/processor/single/mono.xml",
         mono_plugin_port_groups
@@ -279,6 +280,7 @@ namespace lsp
         LSP_DYNAMIC_PROCESSOR_BASE + 1,
         LSP_VERSION(1, 0, 1),
         dyna_processor_classes,
+        E_INLINE_DISPLAY,
         dyna_processor_stereo_ports,
         "dynamics/processor/single/stereo.xml",
         stereo_plugin_port_groups
@@ -295,6 +297,7 @@ namespace lsp
         LSP_DYNAMIC_PROCESSOR_BASE + 2,
         LSP_VERSION(1, 0, 1),
         dyna_processor_classes,
+        E_INLINE_DISPLAY,
         dyna_processor_lr_ports,
         "dynamics/processor/single/lr.xml",
         stereo_plugin_port_groups
@@ -311,6 +314,7 @@ namespace lsp
         LSP_DYNAMIC_PROCESSOR_BASE + 3,
         LSP_VERSION(1, 0, 1),
         dyna_processor_classes,
+        E_INLINE_DISPLAY,
         dyna_processor_ms_ports,
         "dynamics/processor/single/ms.xml",
         stereo_plugin_port_groups
@@ -328,6 +332,7 @@ namespace lsp
         LSP_DYNAMIC_PROCESSOR_BASE + 4,
         LSP_VERSION(1, 0, 1),
         dyna_processor_classes,
+        E_INLINE_DISPLAY,
         sc_dyna_processor_mono_ports,
         "dynamics/processor/single/mono.xml",
         mono_plugin_sidechain_port_groups
@@ -344,6 +349,7 @@ namespace lsp
         LSP_DYNAMIC_PROCESSOR_BASE + 5,
         LSP_VERSION(1, 0, 1),
         dyna_processor_classes,
+        E_INLINE_DISPLAY,
         sc_dyna_processor_stereo_ports,
         "dynamics/processor/single/stereo.xml",
         stereo_plugin_sidechain_port_groups
@@ -360,6 +366,7 @@ namespace lsp
         LSP_DYNAMIC_PROCESSOR_BASE + 6,
         LSP_VERSION(1, 0, 1),
         dyna_processor_classes,
+        E_INLINE_DISPLAY,
         sc_dyna_processor_lr_ports,
         "dynamics/processor/single/lr.xml",
         stereo_plugin_sidechain_port_groups
@@ -376,6 +383,7 @@ namespace lsp
         LSP_DYNAMIC_PROCESSOR_BASE + 7,
         LSP_VERSION(1, 0, 1),
         dyna_processor_classes,
+        E_INLINE_DISPLAY,
         sc_dyna_processor_ms_ports,
         "dynamics/processor/single/ms.xml",
         stereo_plugin_sidechain_port_groups

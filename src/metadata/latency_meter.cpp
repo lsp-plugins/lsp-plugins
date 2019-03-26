@@ -41,6 +41,7 @@ namespace lsp
         LSP_LATENCY_METER_BASE + 0,
         LSP_VERSION(1, 0, 0),
         latency_meter_classes,
+        E_NONE,
         latency_meter_ports,
         "util/latency_meter.xml",
         mono_plugin_port_groups

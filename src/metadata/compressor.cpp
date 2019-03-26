@@ -241,6 +241,7 @@ namespace lsp
         LSP_COMPRESSOR_BASE + 0,
         LSP_VERSION(1, 0, 1),
         compressor_classes,
+        E_INLINE_DISPLAY,
         compressor_mono_ports,
         "dynamics/compressor/single/mono.xml",
         mono_plugin_port_groups
@@ -257,6 +258,7 @@ namespace lsp
         LSP_COMPRESSOR_BASE + 1,
         LSP_VERSION(1, 0, 1),
         compressor_classes,
+        E_INLINE_DISPLAY,
         compressor_stereo_ports,
         "dynamics/compressor/single/stereo.xml",
         stereo_plugin_port_groups
@@ -273,6 +275,7 @@ namespace lsp
         LSP_COMPRESSOR_BASE + 2,
         LSP_VERSION(1, 0, 1),
         compressor_classes,
+        E_INLINE_DISPLAY,
         compressor_lr_ports,
         "dynamics/compressor/single/lr.xml",
         stereo_plugin_port_groups
@@ -289,6 +292,7 @@ namespace lsp
         LSP_COMPRESSOR_BASE + 3,
         LSP_VERSION(1, 0, 1),
         compressor_classes,
+        E_INLINE_DISPLAY,
         compressor_ms_ports,
         "dynamics/compressor/single/ms.xml",
         stereo_plugin_port_groups
@@ -306,6 +310,7 @@ namespace lsp
         LSP_COMPRESSOR_BASE + 4,
         LSP_VERSION(1, 0, 1),
         compressor_classes,
+        E_INLINE_DISPLAY,
         sc_compressor_mono_ports,
         "dynamics/compressor/single/mono.xml",
         mono_plugin_sidechain_port_groups
@@ -322,6 +327,7 @@ namespace lsp
         LSP_COMPRESSOR_BASE + 5,
         LSP_VERSION(1, 0, 1),
         compressor_classes,
+        E_INLINE_DISPLAY,
         sc_compressor_stereo_ports,
         "dynamics/compressor/single/stereo.xml",
         stereo_plugin_sidechain_port_groups
@@ -338,6 +344,7 @@ namespace lsp
         LSP_COMPRESSOR_BASE + 6,
         LSP_VERSION(1, 0, 1),
         compressor_classes,
+        E_INLINE_DISPLAY,
         sc_compressor_lr_ports,
         "dynamics/compressor/single/lr.xml",
         stereo_plugin_sidechain_port_groups
@@ -354,6 +361,7 @@ namespace lsp
         LSP_COMPRESSOR_BASE + 7,
         LSP_VERSION(1, 0, 1),
         compressor_classes,
+        E_INLINE_DISPLAY,
         sc_compressor_ms_ports,
         "dynamics/compressor/single/ms.xml",
         stereo_plugin_sidechain_port_groups

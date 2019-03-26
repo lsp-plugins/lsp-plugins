@@ -10,6 +10,7 @@
 
 === 1.1.10 ===
 
+* Fixed improper InlineDisplay feature support in LV2 TTL files.
 - Implemented 3D reverb simulator.
 - Added 3D scene rendeding support in the UI.
 - Additional code updates to get compatibility with WindowsNT platform.

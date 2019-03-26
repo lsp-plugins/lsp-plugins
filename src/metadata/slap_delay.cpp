@@ -130,6 +130,7 @@ namespace lsp
         LSP_SLAP_DELAY_BASE + 0,
         LSP_VERSION(1, 0, 1),
         slap_delay_classes,
+        E_NONE,
         slap_delay_mono_ports,
         "delay/slap_delay/mono.xml",
         mono_to_stereo_plugin_port_groups
@@ -146,6 +147,7 @@ namespace lsp
         LSP_SLAP_DELAY_BASE + 1,
         LSP_VERSION(1, 0, 1),
         slap_delay_classes,
+        E_NONE,
         slap_delay_stereo_ports,
         "delay/slap_delay/stereo.xml",
         stereo_plugin_port_groups

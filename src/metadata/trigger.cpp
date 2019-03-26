@@ -186,6 +186,7 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 0),
         trigger_classes,
+        E_INLINE_DISPLAY,
         trigger_mono_ports,
         "trigger/single/mono.xml",
         mono_plugin_port_groups
@@ -202,6 +203,7 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 0),
         trigger_classes,
+        E_INLINE_DISPLAY,
         trigger_stereo_ports,
         "trigger/single/stereo.xml",
         stereo_plugin_port_groups
@@ -218,6 +220,7 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 0),
         trigger_classes,
+        E_INLINE_DISPLAY,
         trigger_mono_midi_ports,
         "trigger/single/mono.xml",
         mono_plugin_port_groups
@@ -234,6 +237,7 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 0),
         trigger_classes,
+        E_INLINE_DISPLAY,
         trigger_stereo_midi_ports,
         "trigger/single/stereo.xml",
         stereo_plugin_port_groups

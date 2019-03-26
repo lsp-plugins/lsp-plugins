@@ -145,6 +145,7 @@ namespace lsp
         LSP_COMP_DELAY_BASE + 0,
         LSP_VERSION(1, 0, 2),
         comp_delay_classes,
+        E_NONE,
         comp_delay_mono_ports,
         "delay/comp/mono.xml",
         mono_plugin_port_groups
@@ -161,6 +162,7 @@ namespace lsp
         LSP_COMP_DELAY_BASE + 1,
         LSP_VERSION(1, 0, 2),
         comp_delay_classes,
+        E_NONE,
         comp_delay_stereo_ports,
         "delay/comp/stereo.xml",
         stereo_plugin_port_groups
@@ -177,6 +179,7 @@ namespace lsp
         LSP_COMP_DELAY_BASE + 2,
         LSP_VERSION(1, 0, 2),
         comp_delay_classes,
+        E_NONE,
         comp_delay_x2_stereo_ports,
         "delay/comp/x2_stereo.xml",
         stereo_plugin_port_groups
