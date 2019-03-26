@@ -109,6 +109,16 @@ namespace lsp
         return &C_CYAN;
     }
 
+    static const color3d_t *loop_color(ssize_t itag)
+    {
+        if (itag == 0x0)
+            return &C_GRAY;   // Neutral
+        if (itag & 1) // Non-finite
+            return (itag > 1) ? &C_YELLOW : &C_ORANGE;
+
+        return (itag > 2) ? &C_CYAN: &C_BLUE;
+    }
+
     status_t rt_mesh_t::copy_object_data(Object3D *obj, ssize_t oid, const matrix3d_t *transform, rt_material_t *material, size_t itag)
     {
         // Cleanup object tags to prevent data corruption
@@ -932,6 +942,108 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t walk_edge(rt_spline_t *spline, rtm_edge_t *xe, rtm_vertex_t *v)
+    {
+        // Walk the edge forward
+        status_t res = STATUS_OK;
+
+        while (v->itag == 2)
+        {
+            for (rtm_edge_t *se = v->ve; se != NULL; )
+            {
+                if ((se->ptag) || (se->itag != 0x3)) // Ignore processed edges and non-common edges
+                    continue;
+                if (se->v[0] == v)
+                {
+                    res = spline->add(v, se->v[1]);
+                    if ((res == STATUS_OK) || (res == STATUS_CLOSED))
+                    {
+                        v           = se->v[1];
+                        se->ptag    = se;
+                        break;
+                    }
+                }
+                else if (se->v[1] == v)
+                {
+                    res = spline->add(v, se->v[0]);
+                    if ((res == STATUS_OK) || (res == STATUS_CLOSED))
+                    {
+                        v           = se->v[0];
+                        se->ptag    = se;
+                        break;
+                    }
+                }
+
+                return STATUS_CORRUPTED; // Shit happens
+            }
+
+            if (res == STATUS_CLOSED)
+                return res;
+        }
+
+        return res;
+    }
+
+    status_t rt_mesh_t::slice_data(cvector<rt_spline_t> &splines)
+    {
+        // Mark all edges that have common triangles as common
+        cvector<rtm_edge_t> ve;
+
+        RT_FOREACH(rtm_edge_t, e, edge)
+            if ((e->v[0]->itag == 0x3) && (e->v[1]->itag == 0x3))
+            {
+                // Test that edge is common for both object
+                ssize_t itag = 0;
+                for (rtm_triangle_t *t = e->vt; t!= NULL; )
+                {
+                    itag |= t->itag;
+                    if (itag == 0x3)
+                    {
+                        e->itag     = itag;
+                        e->ptag     = NULL;
+                        if (!ve.add(e))
+                            return STATUS_NO_MEM;
+                        break;
+                    }
+                    t = (t->e[0] == e) ? t->elnk[0] :
+                        (t->e[1] == e) ? t->elnk[1] :
+                        t->elnk[2];
+                }
+            }
+        RT_FOREACH_END
+
+        // Now estimate number of links for each vertex
+        RT_FOREACH(rtm_vertex_t, v, vertex)
+            v->itag = 0;
+            for (rtm_edge_t *e=v->ve; e != NULL; )
+            {
+                if (e->itag == 0x03)
+                    ++v->itag;
+                e = (e->v[0] == v) ? e->vlnk[0] : e->vlnk[1];
+            }
+        RT_FOREACH_END
+
+        RT_TRACE_BREAK(debug,
+            lsp_trace("Painted all common edges with BLUE(), updated point colors");
+            for (size_t i=0,n=vertex.size(); i<n; ++i)
+            {
+                rtm_vertex_t *v = vertex.get(i);
+                view->add_point(v, loop_color(v->itag));
+            }
+            for (size_t i=0,n=edge.size(); i<n; ++i)
+            {
+                rtm_edge_t *e = edge.get(i);
+                view->add_segment(e, item_color(e->itag));
+            }
+        );
+
+        // Now 've' contains all common edges
+        rt_spline_t tmp;
+
+
+        return STATUS_OK;
+    }
+
     status_t rt_mesh_t::subtract(Object3D *obj, ssize_t oid, const matrix3d_t *transform)
     {
         status_t res;
@@ -967,6 +1079,11 @@ namespace lsp
 
         // Now we need to solve all conflicts between edges and triangles
         if ((res = solve_conflicts(oid)) != STATUS_OK)
+            return res;
+
+        // Build list of splines
+        cvector<rt_spline_t> splines;
+        if ((res = slice_data(splines)) != STATUS_OK)
             return res;
 
         return STATUS_OK;

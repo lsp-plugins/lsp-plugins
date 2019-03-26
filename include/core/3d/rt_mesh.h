@@ -13,6 +13,7 @@
 #include <core/3d/Object3D.h>
 #include <core/3d/Scene3D.h>
 #include <core/3d/View3D.h>
+#include <core/3d/rt_spline.h>
 
 namespace lsp
 {
@@ -66,6 +67,10 @@ namespace lsp
 
             rt_material_t  *build_material(rt_material_t *from, rt_material_t *to);
             status_t        remove_obsolete_primitives();
+
+            status_t        slice_data(cvector<rt_spline_t> &splines);
+
+            status_t        walk_edge(rt_spline_t *spline, rtm_edge_t *xe, rtm_vertex_t *v);
 
         public:
             /**

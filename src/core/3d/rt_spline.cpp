@@ -22,6 +22,24 @@ namespace lsp
         vertex.flush();
     }
 
+    void rt_spline_t::clear()
+    {
+        start   = NULL;
+        end     = NULL;
+        vertex.flush();
+    }
+
+    /**
+     * Take all data from source spline and clear source spline
+     * @param src source spline
+     */
+    void rt_spline_t::take(rt_spline_t *src)
+    {
+        start   = src->start;
+        end     = src->end;
+        vertex.take_from(&src->vertex);
+    }
+
     void rt_spline_t::swap(rt_spline_t *dst)
     {
         ::swap(start, dst->start);
@@ -112,8 +130,6 @@ namespace lsp
 
     status_t rt_spline_t::add(rtm_vertex_t *v0, rtm_vertex_t *v1)
     {
-        rtm_edge_t *e;
-
         // Empty state?
         if ((start == NULL) && (end == NULL))
         {
@@ -187,80 +203,39 @@ namespace lsp
         return (end == start) ? STATUS_CLOSED : STATUS_OK;
     }
 
+    ssize_t rt_spline_t::find_matching_edge(rtm_vertex_t *v0, rtm_vertex_t *v1)
+    {
+        size_t n = vertex.size();
+
+        rtm_vertex_t *x0 = vertex.at(0);
+        for (size_t i=1; i<=n; ++i)
+        {
+            rtm_vertex_t *x1 = vertex.at((i < n) ? i : i-n);
+            if ((x0 == v0) && (x1 == v1))
+                return i-1;
+        }
+
+        return -1;
+    }
+
     status_t rt_spline_t::test(rtm_triangle_t *t)
     {
-#if 0 // TODO
-        size_t n = edges.size();
+        // Check state of spline
+        if (!closed())
+            return STATUS_BAD_STATE;
+        size_t n = vertex.size();
         if (n < 3)
             return STATUS_BAD_STATE;
 
-        // Check size of spline
-        rtm_triangle_t tt;
-        tt = *t;
+        ssize_t ei[3], ni = 0;
+        if ((ei[ni] = find_matching_edge(t->v[0], t->v[1])) >= 0)
+            ++ni;
+        if ((ei[ni] = find_matching_edge(t->v[1], t->v[2])) >= 0)
+            ++ni;
+        if ((ei[ni] = find_matching_edge(t->v[2], t->v[0])) >= 0)
+            ++ni;
 
-        for (size_t i=0; i<n; ++i)
-        {
-            rtm_edge_t *e = edges.at(i);
 
-            if ((e->v[0] == tt.v[1]) && (e->v[1] == tt.v[2])) // edge matches edge 1 of triangle
-            {
-                // Rotate clockwise
-                rtm_vertex_t *vt = tt.v[0];
-                tt.v[0]     = tt.v[1];
-                tt.v[1]     = tt.v[2];
-                tt.v[2]     = vt;
-
-                rtm_edge_t *et = tt.e[0];
-                tt.e[0]     = tt.e[1];
-                tt.e[1]     = tt.e[2];
-                tt.e[2]     = et;
-            }
-            else if ((e->v[0] == tt.v[2]) && (e->v[1] == tt.v[0])) // edge matches edge 2 of triangle
-            {
-                // Rotate counter-clockwise
-                rtm_vertex_t *vt = tt.v[0];
-                tt.v[0]     = tt.v[2];
-                tt.v[2]     = tt.v[1];
-                tt.v[1]     = vt;
-
-                rtm_edge_t *et = tt.e[0];
-                tt.e[0]     = tt.e[2];
-                tt.e[2]     = tt.e[1];
-                tt.e[1]     = et;
-            }
-            else if ((e->v[0] != tt.v[0]) || (e->v[1] != tt.v[1])) // edge matches edge 0 of triangle
-                continue;
-
-            // Now edge 0 of tt is guaranteed to be matching the current edge
-            // Perform heuristics
-//            size_t i1       =
-//            rtm_edge_t *e1  = edges.at((i + 1) % n);
-//            if (e1->v[1] == tt.v[2])
-//            {
-//                rtm_edge_t *e2  = edges.at((i + 2) % n);
-//                if (e2->v[1] == tt.v[0])
-//                {
-//
-//                }
-//            }
-//
-//            if ((i+1) < n)
-//            {
-//                rtm_edge_t *ne  = edges.at(i+1);
-//                if ((ne->v[1] == tt.v[1]) || (ne->v[1] == tt.v[0]))
-//                    return STATUS_CORRUPTED;
-//                else if (ne->v[1] == tt.v[2]) // next edge matches the triangle's edge
-//                {
-//                    e->v[1]     = tt.v[2];
-//                    edges.remove(i+1);  // Remove the edge
-//                    continue;
-//                }
-//            }
-//
-//            // Only one edge matches the triangle, we need to replace it and add new one
-//            e->v[1]     = tt.v[2];
-        }
-#endif
 
         return STATUS_NOT_FOUND;
     }

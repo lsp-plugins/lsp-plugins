@@ -22,9 +22,23 @@ namespace lsp
             rtm_vertex_t   *end;
             cvector<rtm_vertex_t> vertex;
 
+        protected:
+            ssize_t        find_matching_edge(rtm_vertex_t *v0, rtm_vertex_t *v1);
+
         public:
             explicit rt_spline_t();
             ~rt_spline_t();
+
+            /**
+             * Clear spline
+             */
+            void clear();
+
+            /**
+             * Take all data from source spline and clear source spline
+             * @param src source spline
+             */
+            void take(rt_spline_t *src);
 
             /**
              * Swap contents with another spline
@@ -66,7 +80,7 @@ namespace lsp
             status_t add(rtm_vertex_t *v0, rtm_vertex_t *v1);
 
             /**
-             * Test triangle for clockwise order and apply it to the spline
+             * Test triangle for clockwise order
              * @param t triangle to test
              * @return status of operation: STATUS_OK if matched, STATUS_NOT_FOUND if not matched, error otherwise
              */
