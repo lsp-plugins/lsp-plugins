@@ -187,6 +187,7 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 1),
         impulse_reverb_classes,
+        E_NONE,
         impulse_reverb_mono_ports,
         "convolution/impulse_reverb/mono.xml",
         mono_to_stereo_plugin_port_groups
@@ -203,6 +204,7 @@ namespace lsp
         0,
         LSP_VERSION(1, 0, 1),
         impulse_reverb_classes,
+        E_NONE,
         impulse_reverb_stereo_ports,
         "convolution/impulse_reverb/stereo.xml",
         stereo_plugin_port_groups

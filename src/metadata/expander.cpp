@@ -232,6 +232,7 @@ namespace lsp
         LSP_EXPANDER_BASE + 0,
         LSP_VERSION(1, 0, 1),
         expander_classes,
+        E_INLINE_DISPLAY,
         expander_mono_ports,
         "dynamics/expander/single/mono.xml",
         mono_plugin_port_groups
@@ -248,6 +249,7 @@ namespace lsp
         LSP_EXPANDER_BASE + 1,
         LSP_VERSION(1, 0, 1),
         expander_classes,
+        E_INLINE_DISPLAY,
         expander_stereo_ports,
         "dynamics/expander/single/stereo.xml",
         stereo_plugin_port_groups
@@ -264,6 +266,7 @@ namespace lsp
         LSP_EXPANDER_BASE + 2,
         LSP_VERSION(1, 0, 1),
         expander_classes,
+        E_INLINE_DISPLAY,
         expander_lr_ports,
         "dynamics/expander/single/lr.xml",
         stereo_plugin_port_groups
@@ -280,6 +283,7 @@ namespace lsp
         LSP_EXPANDER_BASE + 3,
         LSP_VERSION(1, 0, 1),
         expander_classes,
+        E_INLINE_DISPLAY,
         expander_ms_ports,
         "dynamics/expander/single/ms.xml",
         stereo_plugin_port_groups
@@ -297,6 +301,7 @@ namespace lsp
         LSP_EXPANDER_BASE + 4,
         LSP_VERSION(1, 0, 1),
         expander_classes,
+        E_INLINE_DISPLAY,
         sc_expander_mono_ports,
         "dynamics/expander/single/mono.xml",
         mono_plugin_sidechain_port_groups
@@ -313,6 +318,7 @@ namespace lsp
         LSP_EXPANDER_BASE + 5,
         LSP_VERSION(1, 0, 1),
         expander_classes,
+        E_INLINE_DISPLAY,
         sc_expander_stereo_ports,
         "dynamics/expander/single/stereo.xml",
         stereo_plugin_sidechain_port_groups
@@ -329,6 +335,7 @@ namespace lsp
         LSP_EXPANDER_BASE + 6,
         LSP_VERSION(1, 0, 1),
         expander_classes,
+        E_INLINE_DISPLAY,
         sc_expander_lr_ports,
         "dynamics/expander/single/lr.xml",
         stereo_plugin_sidechain_port_groups
@@ -345,6 +352,7 @@ namespace lsp
         LSP_EXPANDER_BASE + 7,
         LSP_VERSION(1, 0, 1),
         expander_classes,
+        E_INLINE_DISPLAY,
         sc_expander_ms_ports,
         "dynamics/expander/single/ms.xml",
         stereo_plugin_sidechain_port_groups

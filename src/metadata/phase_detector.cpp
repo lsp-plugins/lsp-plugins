@@ -74,6 +74,7 @@ namespace lsp
         LSP_PHASE_DETECTOR_BASE,
         LSP_VERSION(1, 0, 0),
         phase_detector_classes,
+        E_INLINE_DISPLAY,
         phase_detector_ports,
         "util/phase_detector.xml",
         NULL
