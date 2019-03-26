@@ -38,11 +38,24 @@ namespace lsp
             void reverse();
 
             /**
+             * check if spline is closed
+             * @return true if spline is closed
+             */
+            inline bool closed() const { return (start == end) && (start != NULL); }
+
+            /**
              * Copy contents of the spline
              * @param src source spline to copy
              * @return status of operation
              */
             status_t copy(rt_spline_t *src);
+
+            /**
+             * Link data from another spline to the current spline
+             * @param src source spline to link
+             * @return status of operation: STATUS_OK if linked, STATUS_CLOSED if the spline has been closed, STATUS_FAILED if can not link
+             */
+            status_t link(rt_spline_t *src);
 
             /**
              * Add edge to the spline

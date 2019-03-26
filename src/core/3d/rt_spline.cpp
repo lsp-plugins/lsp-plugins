@@ -49,9 +49,56 @@ namespace lsp
     void rt_spline_t::reverse()
     {
         ::swap(start, end);
-        rtm_edge_t **e = edges.get_array();
+        rtm_edge_t *e = edges.get_array();
         for (size_t i=0, n=edges.size(); i<n; ++i)
-            ::swap(e[i]->v[0], e[i]->v[1]);
+            ::swap(e[i].v[0], e[i].v[1]);
+    }
+
+    status_t rt_spline_t::link(rt_spline_t *src)
+    {
+        status_t res;
+        rt_spline_t tmp;
+
+        if ((start == src->start) || (start == src->end))
+        {
+            res = tmp.copy(src);
+            if (res != STATUS_OK)
+                return res;
+            if (start == src->start)
+                tmp.reverse();
+
+            for (size_t i=0, n=edges.size(); i<n; ++i)
+            {
+                if (res == STATUS_CLOSED)
+                    return STATUS_FAILED;
+                res = tmp.add(edges.at(i));
+                if ((res != STATUS_OK) && (res != STATUS_CLOSED))
+                    return res;
+            }
+        }
+        else if ((end == src->start) || (end == src->end))
+        {
+            res = tmp.copy(this);
+            if (res != STATUS_OK)
+                return res;
+            if (end == src->end)
+                tmp.reverse();
+            for (size_t i=0, n=src->edges.size(); i<n; ++i)
+            {
+                if (res == STATUS_CLOSED)
+                    return STATUS_FAILED;
+                res = tmp.add(src->edges.at(i));
+                if ((res != STATUS_OK) && (res != STATUS_CLOSED))
+                    return res;
+            }
+        }
+        else
+            return STATUS_FAILED;
+
+        if ((res == STATUS_OK) || (res == STATUS_CLOSED))
+            tmp.swap(this);
+
+        return res;
     }
 
     status_t rt_spline_t::add(rtm_edge_t *edge)
@@ -66,6 +113,16 @@ namespace lsp
             start   = e->v[0];
             end     = e->v[1];
             return STATUS_OK;
+        }
+
+        // Check for duplicated edges
+        for (size_t i=0, n=edges.size(); i<n; ++i)
+        {
+            rtm_edge_t *se = edges.at(i);
+            if ((se->v[0] == edge->v[0]) && (se->v[1] == edge->v[1]))
+                return STATUS_DUPLICATED;
+            if ((se->v[0] == edge->v[1]) && (se->v[1] == edge->v[0]))
+                return STATUS_DUPLICATED;
         }
 
         // Analyze edge state
