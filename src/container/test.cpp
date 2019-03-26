@@ -350,5 +350,7 @@ int main(int argc, const char **argv)
     fflush(stdout);
     fflush(stderr);
 
+    lsp::finalize();
+
     return res;
 }

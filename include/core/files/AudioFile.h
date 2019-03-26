@@ -37,12 +37,14 @@ namespace lsp
 
             file_content_t *pData;
 
+        private:
+            AudioFile & operator = (const AudioFile &);     // Deny copying
+
         protected:
             static file_content_t *create_file_content(size_t channels, size_t samples);
             static void destroy_file_content(file_content_t *content);
 
             static temporary_buffer_t *create_temporary_buffer(file_content_t *content, size_t from = 0);
-//            static temporary_buffer_t *create_temporary_buffer(file_content_t *content);
             static void flush_temporary_buffer(temporary_buffer_t *buffer);
             static size_t fill_temporary_buffer(temporary_buffer_t *buffer, size_t max_samples);
             static void destroy_temporary_buffer(temporary_buffer_t *buffer);
@@ -53,10 +55,15 @@ namespace lsp
             status_t complex_downsample(size_t new_sample_rate);
 
             status_t load_lspc(const char *path, float max_duration);
+
+        #ifdef PLATFORM_WINDOWS
+            status_t load_mfapi(const WCHAR *path, float max_duration);
+        #else
             status_t load_sndfile(const char *path, float max_duration);
+        #endif /* PLATFORM_WINDOWS */
 
         public:
-            AudioFile();
+            explicit AudioFile();
             ~AudioFile();
 
         public:

@@ -14,7 +14,18 @@
 #include <core/files/lspc/LSPCAudioReader.h>
 #include <core/alloc.h>
 
-#include <sndfile.h>
+#ifdef PLATFORM_WINDOWS
+    #include <windows.h>
+    #include <guiddef.h>
+    #include <propidl.h>
+    #include <propvarutil.h>
+    #include <mfapi.h>
+    #include <mfidl.h>
+    #include <mferror.h>
+    #include <mfreadwrite.h>
+#else
+    #include <sndfile.h>
+#endif /* PLATFORM_WINDOWS */
 
 #define TMP_BUFFER_SIZE         1024
 #define RESAMPLING_PERIODS      8
@@ -32,23 +43,6 @@ namespace lsp
         return a;
     }
 
-    static status_t decode_sf_error(SNDFILE *fd)
-    {
-        switch (sf_error(NULL))
-        {
-            case SF_ERR_NO_ERROR:
-                return STATUS_OK;
-            case SF_ERR_UNRECOGNISED_FORMAT:
-                return STATUS_BAD_FORMAT;
-            case SF_ERR_MALFORMED_FILE:
-                return STATUS_CORRUPTED_FILE;
-            case SF_ERR_UNSUPPORTED_ENCODING:
-                return STATUS_BAD_FORMAT;
-            default:
-                return STATUS_UNKNOWN_ERR;
-        }
-    }
-
     AudioFile::AudioFile()
     {
         pData       = NULL;
@@ -57,6 +51,16 @@ namespace lsp
     AudioFile::~AudioFile()
     {
         destroy();
+    }
+
+    void AudioFile::destroy()
+    {
+        lsp_trace("Destroy this=%p, pData=%p", this, pData);
+        if (pData != NULL)
+        {
+            destroy_file_content(pData);
+            pData       = NULL;
+        }
     }
 
     AudioFile::file_content_t *AudioFile::create_file_content(size_t channels, size_t samples)
@@ -470,89 +474,6 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t AudioFile::load_sndfile(const char *path, float max_duration)
-    {
-        // Load sound file
-        SNDFILE *sf_obj;
-        SF_INFO sf_info;
-
-        // Open sound file
-        lsp_trace("loading file: %s\n", path);
-        if ((sf_obj = sf_open(path, SFM_READ, &sf_info)) == NULL)
-            return decode_sf_error(sf_obj);
-
-        // Read sample file
-        ssize_t max_samples     = (max_duration >= 0.0f) ? seconds_to_samples(sf_info.samplerate, max_duration) : -1;
-        lsp_trace("file parameters: frames=%d, channels=%d, sample_rate=%d max_duration=%.3f\n, max_samples=%d",
-            int(sf_info.frames), int(sf_info.channels), int(sf_info.samplerate), max_duration, int(max_samples));
-
-        // Patch sf_info
-        if ((max_samples >= 0) && (sf_info.frames > sf_count_t(max_samples)))
-            sf_info.frames  = max_samples;
-
-        // Create file content
-        file_content_t *fc      = create_file_content(sf_info.channels, sf_info.frames);
-        if (fc == NULL)
-        {
-            sf_close(sf_obj);
-            return STATUS_NO_MEM;
-        }
-        fc->nSampleRate         = sf_info.samplerate;
-
-        // Allocate temporary buffer
-        temporary_buffer_t *tb  = create_temporary_buffer(fc);
-        if (tb == NULL)
-        {
-            destroy_file_content(fc);
-            sf_close(sf_obj);
-            return STATUS_NO_MEM;
-        }
-
-        size_t count = sf_info.frames;
-        while (count > 0)
-        {
-            // Determine how many data is available to read
-            size_t can_read     = tb->nCapacity - tb->nSize;
-            if (can_read <= 0)
-            {
-                flush_temporary_buffer(tb);
-                can_read            = tb->nCapacity - tb->nSize;
-            }
-
-            // Calculate amount of samples to read
-            size_t to_read      = (count > can_read) ? can_read : count;
-            sf_count_t amount   = sf_readf_float(sf_obj, &tb->vData[tb->nSize * tb->nChannels], to_read);
-            if (amount <= 0)
-            {
-                status_t status     = decode_sf_error(sf_obj);
-
-                destroy_temporary_buffer(tb);
-                destroy_file_content(fc);
-                sf_close(sf_obj);
-
-                return status;
-            }
-
-            // Update counters
-            tb->nSize          += amount;
-            count              -= amount;
-        }
-
-        // Flush last read data (if present)
-        flush_temporary_buffer(tb);
-
-        // Free allocated resources
-        destroy_temporary_buffer(tb);
-        sf_close(sf_obj);
-
-        // Destroy previously used content and store new
-        if (pData != NULL)
-            destroy_file_content(pData);
-        pData               = fc;
-
-        return STATUS_OK;
-    }
-
     status_t AudioFile::load(const char *path, float max_duration)
     {
         if (path == NULL)
@@ -573,7 +494,13 @@ namespace lsp
         const char *npath = path->get_native();
         status_t res = load_lspc(npath, max_duration);
         if (res != STATUS_OK)
-            res = load_sndfile(npath, max_duration);
+        {
+            #ifdef PLATFORM_WINDOWS
+                res = load_mfapi(path->get_utf16(), max_duration);
+            #else
+                res = load_sndfile(npath, max_duration);
+            #endif /* PLATFORM_WINDOWS */
+        }
         return res;
     }
 
@@ -598,73 +525,6 @@ namespace lsp
         if (!spath.set_utf8(path))
             return STATUS_NO_MEM;
         return store_samples(path, from, max_count);
-    }
-
-    status_t AudioFile::store_samples(const LSPString *path, size_t from, size_t max_count)
-    {
-        if (pData == NULL)
-            return STATUS_NO_DATA;
-
-        // Load sound file
-        SNDFILE *sf_obj;
-        SF_INFO sf_info;
-
-        sf_info.frames      = max_count;
-        sf_info.samplerate  = pData->nSampleRate;
-        sf_info.channels    = pData->nChannels;
-        sf_info.format      = SF_FORMAT_WAV | SF_FORMAT_FLOAT | SF_ENDIAN_LITTLE;
-        sf_info.sections    = 0;
-        sf_info.seekable    = 0;
-
-        if (sf_info.frames > sf_count_t(pData->nSamples - from))
-            sf_info.frames      = pData->nSamples - from;
-
-        // Open sound file
-        lsp_trace("storing file: %s\n", path->get_native());
-        if ((sf_obj = sf_open(path->get_native(), SFM_WRITE, &sf_info)) == NULL)
-        {
-            lsp_trace("Error: %s", sf_strerror(sf_obj));
-            return decode_sf_error(NULL);
-        }
-
-        // Allocate temporary buffer
-        temporary_buffer_t *tb  = create_temporary_buffer(pData, from);
-        if (tb == NULL)
-            return STATUS_NO_MEM;
-
-        while ((max_count > 0) || (tb->nSize > 0))
-        {
-            // Fill buffer
-            max_count   -=  fill_temporary_buffer(tb, max_count);
-
-            // Flush buffer
-            if (tb->nSize > 0)
-            {
-                // Write buffer to file
-                size_t offset = 0;
-                while (offset < tb->nSize)
-                {
-                    sf_count_t written  = sf_writef_float(sf_obj, tb->vData, tb->nSize - offset);
-                    if (written < 0)
-                    {
-                        status_t status     = decode_sf_error(sf_obj);
-                        sf_close(sf_obj);
-                        destroy_temporary_buffer(tb);
-                        return status;
-                    }
-                    offset +=  written;
-                }
-
-                // Clear buffer size
-                tb->nSize   = 0;
-            }
-        }
-
-        // Free allocated resources
-        sf_close(sf_obj);
-        destroy_temporary_buffer(tb);
-
-        return STATUS_OK;
     }
 
     status_t AudioFile::store_samples(const char *path, size_t max_count)
@@ -1148,13 +1008,286 @@ namespace lsp
         return STATUS_OK;
     }
 
-    void AudioFile::destroy()
+#ifdef PLATFORM_WINDOWS
+    typedef struct media_type_t
     {
-        lsp_trace("Destroy this=%p, pData=%p", this, pData);
-        if (pData != NULL)
+        UINT32  srate;
+        UINT32  channels;
+    } media_type_t;
+
+    static IMFMediaType *copy_media_type(IMFMediaType *src, media_type_t *cfg)
+    {
+        // Obtain media type
+        HRESULT hr = src->GetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, &cfg->srate);
+        if (SUCCEEDED(hr))
+            hr = src->GetUINT32(MF_MT_AUDIO_NUM_CHANNELS, &cfg->channels);
+        if (!SUCCEEDED(hr))
+            return NULL;
+
+        // Create target media type
+        IMFMediaType *dst = NULL;
+        hr = ::MFCreateMediaType(&dst);
+        if (!SUCCEEDED(hr))
+            return NULL;
+
+        // Configure and set media type for reader
+        hr = dst->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
+        if (SUCCEEDED(hr))
+            hr = dst->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_Float);
+        if (SUCCEEDED(hr))
+            hr = dst->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, sizeof(float) * 8);
+        if (SUCCEEDED(hr))
+            hr = dst->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, cfg->srate);
+        if (SUCCEEDED(hr))
+            hr = dst->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, cfg->channels);
+
+        // Check the final result
+        if (SUCCEEDED(hr))
+            return dst;
+
+        // Return error
+        dst->Release();
+        return NULL;
+    }
+
+    status_t AudioFile::load_mfapi(const WCHAR *path, float max_duration)
+    {
+        // Create source reader
+        IMFSourceReader *pReader = NULL;
+        HRESULT hr = ::MFCreateSourceReaderFromURL(path, NULL, &pReader);
+        if ((!SUCCEEDED(hr)) || (pReader == NULL))
+            return STATUS_UNKNOWN_ERR;
+
+        // Obtain the length of stream in nanoseconds
+        INT64 nsDuration;
+        PROPVARIANT var;
+        HRESULT hr = pReader->GetPresentationAttribute(MF_SOURCE_READER_MEDIASOURCE,
+            MF_PD_DURATION, &var);
+        if (SUCCEEDED(hr))
         {
-            destroy_file_content(pData);
-            pData       = NULL;
+            hr = ::PropVariantToInt64(var, &nsDuration);
+            ::PropVariantClear(&var);
+        }
+
+        if (!SUCCEEDED(hr))
+        {
+            pReader->Release();
+            return STATUS_UNKNOWN_ERR;
+        }
+
+        // Find the audio stream
+        IMFMediaType *pNativeType = NULL;
+        DWORD dwStreamIndex = 0;
+
+        while (true)
+        {
+            hr = pReader->GetNativeMediaType(dwStreamIndex, 0, &pNativeType);
+            if (hr == MF_E_NO_MORE_TYPES)
+            {
+                pReader->Release();
+                return STATUS_BAD_FORMAT;
+            }
+            else if (SUCCEEDED(hr))
+            {
+                GUID guid;
+                hr = pNativeType->GetGUID(MF_MT_MAJOR_TYPE, &guid);
+                if ((SUCCEEDED(hr)) && (::IsEqualGUID(guid, MFMediaType_Audio)))
+                    break;
+                pNativeType->Release();
+            }
+            ++dwStreamIndex;
+        }
+
+        // Create media type for decoding
+        media_type_t cfg;
+        IMFMediaType *pMediaType = copy_media_type(pNativeType, &cfg);
+        pNativeType->Release();
+        if (pMediaType == NULL)
+        {
+            pReader->Release();
+            return STATUS_UNKNOWN_ERR;
+        }
+
+
+        // Release reader
+        pMediaType->Release();
+        pReader->Release();
+        return STATUS_OK;
+    }
+
+    status_t AudioFile::store_samples(const LSPString *path, size_t from, size_t max_count)
+    {
+
+    }
+
+#else
+
+    static status_t decode_sf_error(SNDFILE *fd)
+    {
+        switch (sf_error(NULL))
+        {
+            case SF_ERR_NO_ERROR:
+                return STATUS_OK;
+            case SF_ERR_UNRECOGNISED_FORMAT:
+                return STATUS_BAD_FORMAT;
+            case SF_ERR_MALFORMED_FILE:
+                return STATUS_CORRUPTED_FILE;
+            case SF_ERR_UNSUPPORTED_ENCODING:
+                return STATUS_BAD_FORMAT;
+            default:
+                return STATUS_UNKNOWN_ERR;
         }
     }
+
+    status_t AudioFile::load_sndfile(const char *path, float max_duration)
+    {
+        // Load sound file
+        SNDFILE *sf_obj;
+        SF_INFO sf_info;
+
+        // Open sound file
+        lsp_trace("loading file: %s\n", path);
+        if ((sf_obj = sf_open(path, SFM_READ, &sf_info)) == NULL)
+            return decode_sf_error(sf_obj);
+
+        // Read sample file
+        ssize_t max_samples     = (max_duration >= 0.0f) ? seconds_to_samples(sf_info.samplerate, max_duration) : -1;
+        lsp_trace("file parameters: frames=%d, channels=%d, sample_rate=%d max_duration=%.3f\n, max_samples=%d",
+            int(sf_info.frames), int(sf_info.channels), int(sf_info.samplerate), max_duration, int(max_samples));
+
+        // Patch sf_info
+        if ((max_samples >= 0) && (sf_info.frames > sf_count_t(max_samples)))
+            sf_info.frames  = max_samples;
+
+        // Create file content
+        file_content_t *fc      = create_file_content(sf_info.channels, sf_info.frames);
+        if (fc == NULL)
+        {
+            sf_close(sf_obj);
+            return STATUS_NO_MEM;
+        }
+        fc->nSampleRate         = sf_info.samplerate;
+
+        // Allocate temporary buffer
+        temporary_buffer_t *tb  = create_temporary_buffer(fc);
+        if (tb == NULL)
+        {
+            destroy_file_content(fc);
+            sf_close(sf_obj);
+            return STATUS_NO_MEM;
+        }
+
+        size_t count = sf_info.frames;
+        while (count > 0)
+        {
+            // Determine how many data is available to read
+            size_t can_read     = tb->nCapacity - tb->nSize;
+            if (can_read <= 0)
+            {
+                flush_temporary_buffer(tb);
+                can_read            = tb->nCapacity - tb->nSize;
+            }
+
+            // Calculate amount of samples to read
+            size_t to_read      = (count > can_read) ? can_read : count;
+            sf_count_t amount   = sf_readf_float(sf_obj, &tb->vData[tb->nSize * tb->nChannels], to_read);
+            if (amount <= 0)
+            {
+                status_t status     = decode_sf_error(sf_obj);
+
+                destroy_temporary_buffer(tb);
+                destroy_file_content(fc);
+                sf_close(sf_obj);
+
+                return status;
+            }
+
+            // Update counters
+            tb->nSize          += amount;
+            count              -= amount;
+        }
+
+        // Flush last read data (if present)
+        flush_temporary_buffer(tb);
+
+        // Free allocated resources
+        destroy_temporary_buffer(tb);
+        sf_close(sf_obj);
+
+        // Destroy previously used content and store new
+        if (pData != NULL)
+            destroy_file_content(pData);
+        pData               = fc;
+
+        return STATUS_OK;
+    }
+
+    status_t AudioFile::store_samples(const LSPString *path, size_t from, size_t max_count)
+    {
+        if (pData == NULL)
+            return STATUS_NO_DATA;
+
+        // Load sound file
+        SNDFILE *sf_obj;
+        SF_INFO sf_info;
+
+        sf_info.frames      = max_count;
+        sf_info.samplerate  = pData->nSampleRate;
+        sf_info.channels    = pData->nChannels;
+        sf_info.format      = SF_FORMAT_WAV | SF_FORMAT_FLOAT | SF_ENDIAN_LITTLE;
+        sf_info.sections    = 0;
+        sf_info.seekable    = 0;
+
+        if (sf_info.frames > sf_count_t(pData->nSamples - from))
+            sf_info.frames      = pData->nSamples - from;
+
+        // Open sound file
+        lsp_trace("storing file: %s\n", path->get_native());
+        if ((sf_obj = sf_open(path->get_native(), SFM_WRITE, &sf_info)) == NULL)
+        {
+            lsp_trace("Error: %s", sf_strerror(sf_obj));
+            return decode_sf_error(NULL);
+        }
+
+        // Allocate temporary buffer
+        temporary_buffer_t *tb  = create_temporary_buffer(pData, from);
+        if (tb == NULL)
+            return STATUS_NO_MEM;
+
+        while ((max_count > 0) || (tb->nSize > 0))
+        {
+            // Fill buffer
+            max_count   -=  fill_temporary_buffer(tb, max_count);
+
+            // Flush buffer
+            if (tb->nSize > 0)
+            {
+                // Write buffer to file
+                size_t offset = 0;
+                while (offset < tb->nSize)
+                {
+                    sf_count_t written  = sf_writef_float(sf_obj, tb->vData, tb->nSize - offset);
+                    if (written < 0)
+                    {
+                        status_t status     = decode_sf_error(sf_obj);
+                        sf_close(sf_obj);
+                        destroy_temporary_buffer(tb);
+                        return status;
+                    }
+                    offset +=  written;
+                }
+
+                // Clear buffer size
+                tb->nSize   = 0;
+            }
+        }
+
+        // Free allocated resources
+        sf_close(sf_obj);
+        destroy_temporary_buffer(tb);
+
+        return STATUS_OK;
+    }
+#endif /* PLATFORM_WINDOWS */
+
 } /* namespace lsp */
