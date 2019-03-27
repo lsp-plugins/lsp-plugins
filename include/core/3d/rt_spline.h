@@ -20,10 +20,7 @@ namespace lsp
         public:
             rtm_vertex_t   *start;
             rtm_vertex_t   *end;
-            cvector<rtm_vertex_t> vertex;
-
-        protected:
-            ssize_t        find_matching_edge(rtm_vertex_t *v0, rtm_vertex_t *v1);
+            cvector<rtm_edge_t> edge;
 
         public:
             explicit rt_spline_t();
@@ -47,15 +44,28 @@ namespace lsp
             void swap(rt_spline_t *dst);
 
             /**
-             * Reverse direction of the spline
+             * Arrange edges of the spline
              */
             void reverse();
+
+            /**
+             * Arrange all edges to have the right orientation
+             */
+            void arrange();
 
             /**
              * check if spline is closed
              * @return true if spline is closed
              */
             inline bool closed() const { return (start == end) && (start != NULL); }
+
+            /**
+             * Check that the spline contains an edge
+             * @param v0 edge vertex 0
+             * @param v1 edge vertex 1
+             * @return true if contains
+             */
+            bool contains(rtm_edge_t *e);
 
             /**
              * Copy contents of the spline
@@ -77,14 +87,7 @@ namespace lsp
              * @param v1 vertex 1 of the edge
              * @return status of operation: STATUS_OK if added, STATUS_CLOSED if the spline has been closed, error otherwise
              */
-            status_t add(rtm_vertex_t *v0, rtm_vertex_t *v1);
-
-            /**
-             * Test triangle for clockwise order
-             * @param t triangle to test
-             * @return status of operation: STATUS_OK if matched, STATUS_NOT_FOUND if not matched, error otherwise
-             */
-            status_t test(rtm_triangle_t *t);
+            status_t add(rtm_edge_t *e);
 
     } rt_spline_t;
 }

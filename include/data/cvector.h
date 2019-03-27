@@ -64,13 +64,14 @@ namespace lsp
                 {
                     if (idx > nItems)
                         return false;
-                    pvItems[nItems++]   = const_cast<void *>(ptr);
+                    pvItems[nItems] = const_cast<void *>(ptr);
                 }
                 else
                 {
                     memmove(&pvItems[idx+1], &pvItems[idx], (nItems - idx) * sizeof(void *));
                     pvItems[idx]    = const_cast<void *>(ptr);
                 }
+                ++nItems;
                 return true;
             }
 

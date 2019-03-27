@@ -946,36 +946,85 @@ namespace lsp
     {
         // Walk the edge forward
         status_t res = STATUS_OK;
+        rtm_vertex_t *sv = v;
+
+        RT_TRACE_BREAK(debug,
+            lsp_trace("walk_edge start");
+            for (size_t i=0,n=vertex.size(); i<n; ++i)
+            {
+                rtm_vertex_t *xv = vertex.get(i);
+                view->add_point(xv,
+                        (xv == sv) ? &C_GREEN :
+                        (xv == v) ? &C_GREEN :
+                        loop_color(v->itag)
+                    );
+            }
+            for (size_t i=0,n=edge.size(); i<n; ++i)
+            {
+                rtm_edge_t *e = edge.get(i);
+                if (e->itag != 0x03)
+                    continue;
+                const color3d_t *c = &C_BLUE;
+                if (e->ptag)
+                    c = (spline->contains(e)) ? &C_GREEN : &C_RED;
+
+                view->add_segment(e, c);
+            }
+        );
 
         while (v->itag == 2)
         {
             for (rtm_edge_t *se = v->ve; se != NULL; )
             {
                 if ((se->ptag) || (se->itag != 0x3)) // Ignore processed edges and non-common edges
+                {
+                    se  = (se->v[0] == v) ? se->vlnk[0] : se->vlnk[1];
                     continue;
+                }
+
                 if (se->v[0] == v)
                 {
-                    res = spline->add(v, se->v[1]);
+                    v           = se->v[1];
+                    se->ptag    = se;
+                    res         = spline->add(se);
                     if ((res == STATUS_OK) || (res == STATUS_CLOSED))
-                    {
-                        v           = se->v[1];
-                        se->ptag    = se;
                         break;
-                    }
                 }
                 else if (se->v[1] == v)
                 {
-                    res = spline->add(v, se->v[0]);
+                    v           = se->v[0];
+                    se->ptag    = se;
+                    res         = spline->add(se);
                     if ((res == STATUS_OK) || (res == STATUS_CLOSED))
-                    {
-                        v           = se->v[0];
-                        se->ptag    = se;
                         break;
-                    }
                 }
 
                 return STATUS_CORRUPTED; // Shit happens
             }
+
+            RT_TRACE_BREAK(debug,
+                lsp_trace("walk_edge step after");
+                for (size_t i=0,n=vertex.size(); i<n; ++i)
+                {
+                    rtm_vertex_t *xv = vertex.get(i);
+                    view->add_point(xv,
+                            (xv == sv) ? &C_GREEN :
+                            (xv == v) ? &C_GREEN :
+                            loop_color(v->itag)
+                        );
+                }
+                for (size_t i=0,n=edge.size(); i<n; ++i)
+                {
+                    rtm_edge_t *e = edge.get(i);
+                    if (e->itag != 0x03)
+                        continue;
+                    const color3d_t *c = &C_BLUE;
+                    if (e->ptag)
+                        c = (spline->contains(e)) ? &C_GREEN : &C_RED;
+
+                    view->add_segment(e, c);
+                }
+            );
 
             if (res == STATUS_CLOSED)
                 break;
@@ -1039,14 +1088,19 @@ namespace lsp
 
         // Now 've' contains all common edges
         rt_spline_t tmp;
+        status_t res;
+
         for (size_t i=0, n=ve.size(); i<n; ++i)
         {
             rtm_edge_t *ce = ve.at(i);
             if (ce->ptag) // Already processed edge?
                 continue;
+            res = tmp.add(ce);
+            if (res != STATUS_OK)
+                return res;
 
             ce->ptag    = ce; // Mark edge as processed
-            status_t res = walk_edge(&tmp, ce, ce->v[0]);
+            res = walk_edge(&tmp, ce, ce->v[0]);
             if (res == STATUS_OK)
                 res = walk_edge(&tmp, ce, ce->v[1]);
 
