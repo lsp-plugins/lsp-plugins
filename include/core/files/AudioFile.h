@@ -28,11 +28,16 @@ namespace lsp
 
             typedef struct temporary_buffer_t
             {
-                size_t      nSize;          // Size in frames
+                size_t      nSize;          // Size in bytes
+                size_t      nCapacity;      // Capacity in bytes
+                size_t      nFrameSize;     // Frame size in bytes
                 size_t      nChannels;      // Total number of channels
-                size_t      nCapacity;      // Capacity in frames
-                float      *vData;
-                float      *vChannels[];
+                union
+                {
+                    uint8_t    *bData;          // Data for reading/writing (byte pointer)
+                    float      *fData;          // Data for reading/writing (float pointer)
+                };
+                float      *vChannels[];    // Pointer to deploy samples to channels
             } temporary_buffer_t;
 
             file_content_t *pData;
@@ -57,7 +62,7 @@ namespace lsp
             status_t load_lspc(const char *path, float max_duration);
 
         #ifdef PLATFORM_WINDOWS
-            status_t load_mfapi(const WCHAR *path, float max_duration);
+            status_t load_mfapi(const LSPString *path, float max_duration);
         #else
             status_t load_sndfile(const char *path, float max_duration);
         #endif /* PLATFORM_WINDOWS */

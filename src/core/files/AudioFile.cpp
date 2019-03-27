@@ -105,8 +105,8 @@ namespace lsp
     AudioFile::temporary_buffer_t *AudioFile::create_temporary_buffer(file_content_t *content, size_t from)
     {
         // Make number of samples multiple of 0x20 bytes
-        size_t buffer_samples   = content->nChannels * TMP_BUFFER_SIZE;
-        size_t buffer_size      = ALIGN_SIZE(buffer_samples * sizeof(float), 0x20);
+        size_t buffer_bytes     = content->nChannels * TMP_BUFFER_SIZE * sizeof(float);
+        size_t buffer_size      = ALIGN_SIZE(buffer_bytes, 0x20);
         // Make header size multiple of 0x20 bytes
         size_t header_size      = ALIGN_SIZE(sizeof(temporary_buffer_t) + sizeof(float *) * content->nChannels, 0x20);
         // Calculate total size
@@ -122,9 +122,10 @@ namespace lsp
         ptr                    += header_size;
 
         tb->nSize               = 0;
+        tb->nCapacity           = buffer_bytes;
+        tb->nFrameSize          = content->nChannels * sizeof(float);
         tb->nChannels           = content->nChannels;
-        tb->nCapacity           = TMP_BUFFER_SIZE;
-        tb->vData               = reinterpret_cast<float *>(ptr);
+        tb->bData               = ptr;
         for (size_t i=0; i<content->nChannels; ++i)
         {
             float *chPtr            = content->vChannels[i];
@@ -136,57 +137,41 @@ namespace lsp
 
     void AudioFile::flush_temporary_buffer(temporary_buffer_t *tb)
     {
-        // Decode frames, buffer->nSize = number of frames
-        for (size_t j=0; j<tb->nChannels; ++j)
+        // Estimate number of bytes in buffer
+        size_t avail    = tb->nSize;
+        float *src      = tb->fData;
+
+        // Process all fully-read frames
+        while (avail >= tb->nFrameSize)
         {
-            const float *src    = &tb->vData[j];
-            float *dst          = tb->vChannels[j];
-
-            // Copy frame data
-            for (size_t i=0; i<tb->nSize; ++i)
-            {
-                *dst            = *src;
-
-                // Move pointers
-                src             += tb->nChannels;
-                dst             ++;
-            }
-
-            // Update data pointer
-            tb->vChannels[j]    = dst;
+            // Decode frame
+            for (size_t i=0; i<tb->nChannels; ++i)
+                *(tb->vChannels[i]++)   = *(src++);
+            avail  -= tb->nFrameSize;
         }
 
-        // Clear buffer size
-        tb->nSize           = 0;
+        // Update buffer contents
+        if (avail > 0)
+            ::memmove(tb->fData, src, avail);
+        tb->nSize           = avail;
     }
 
     size_t AudioFile::fill_temporary_buffer(temporary_buffer_t *tb, size_t max_samples)
     {
-        size_t count    = tb->nCapacity - tb->nSize;
-        if (count > max_samples)
-            count = max_samples;
+        size_t avail    = tb->nCapacity - tb->nSize;
+        size_t count    = 0;
+        float *dst      = tb->fData;
 
-        // Decode frames, buffer->nSize = number of frames
-        for (size_t j=0; j<tb->nChannels; ++j)
+        while ((avail >= tb->nFrameSize) && (count < max_samples))
         {
-            float *src          = tb->vChannels[j];
-            float *dst          = &tb->vData[j];
-
-            // Copy frame data
-            for (size_t i=0; i < count; ++i)
-            {
-                *dst            = *src;
-
-                // Move pointers
-                src             ++;
-                dst             += tb->nChannels;
-            }
-
-            // Update data pointer
-            tb->vChannels[j]    = src;
+            // Encode frame
+            for (size_t i=0; i<tb->nChannels; ++i)
+                *(dst++)    = *(tb->vChannels[i]++);
+            avail      -= tb->nFrameSize;
+            ++count;
         }
-        tb->nSize          += count;
 
+        tb->nSize  += count * tb->nFrameSize;
         return count;
     }
 
@@ -422,7 +407,7 @@ namespace lsp
             // Calculate amount of samples to read
             size_t to_read      = (skip > can_read) ? can_read : skip;
 
-            ssize_t n           = ar.read_frames(&tb->vData[tb->nSize  * tb->nChannels], to_read);
+            ssize_t n           = ar.read_frames(reinterpret_cast<float *>(&tb->bData[tb->nSize]), to_read);
             if (n < 0)
             {
                 destroy_temporary_buffer(tb);
@@ -433,8 +418,8 @@ namespace lsp
             }
 
             // Update counters
-            tb->nSize          += to_read;
-            skip               -= to_read;
+            tb->nSize          += n * tb->nFrameSize;
+            skip               -= n;
         }
 
         // Flush last read data (if present)
@@ -496,7 +481,7 @@ namespace lsp
         if (res != STATUS_OK)
         {
             #ifdef PLATFORM_WINDOWS
-                res = load_mfapi(path->get_utf16(), max_duration);
+                res = load_mfapi(path, max_duration);
             #else
                 res = load_sndfile(npath, max_duration);
             #endif /* PLATFORM_WINDOWS */
@@ -1009,13 +994,15 @@ namespace lsp
     }
 
 #ifdef PLATFORM_WINDOWS
-    typedef struct media_type_t
+    typedef struct stream_info_t
     {
-        UINT32  srate;
-        UINT32  channels;
-    } media_type_t;
+        UINT64  frames;     // Number of frames
+        UINT32  srate;      // Sample rate
+        UINT32  channels;   // Number of channels
+        DWORD   stream;     // Identifier of the stream
+    } stream_info_t;
 
-    static IMFMediaType *copy_media_type(IMFMediaType *src, media_type_t *cfg)
+    static IMFMediaType *copy_media_type(IMFMediaType *src, stream_info_t *cfg)
     {
         // Obtain media type
         HRESULT hr = src->GetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, &cfg->srate);
@@ -1050,7 +1037,7 @@ namespace lsp
         return NULL;
     }
 
-    status_t AudioFile::load_mfapi(const WCHAR *path, float max_duration)
+    status_t open_mfapi_reader(const WCHAR *path, stream_info_t *info, IMFSourceReader **reader)
     {
         // Create source reader
         IMFSourceReader *pReader = NULL;
@@ -1099,8 +1086,7 @@ namespace lsp
         }
 
         // Create media type for decoding
-        media_type_t cfg;
-        IMFMediaType *pMediaType = copy_media_type(pNativeType, &cfg);
+        IMFMediaType *pMediaType = copy_media_type(pNativeType, info);
         pNativeType->Release();
         if (pMediaType == NULL)
         {
@@ -1108,10 +1094,146 @@ namespace lsp
             return STATUS_UNKNOWN_ERR;
         }
 
-
-        // Release reader
+        // Set current media type for decoding
+        hr = pReader->SetCurrentMediaType(dwStreamIndex, NULL, pMediaType);
         pMediaType->Release();
+
+        if (!SUCCEEDED(hr))
+        {
+            pReader->Release();
+            return STATUS_UNKNOWN_ERR;
+        }
+
+        // Return success status
+        info->frames    = (nsDuration * info->srate) / 10000000;
+        info->stream    = dwStreamIndex;
+        *reader         = pReader;
+        return STATUS_OK;
+    }
+
+    status_t AudioFile::load_mfapi(const LSPString *path, float max_duration)
+    {
+        stream_info_t sf_info;
+        IMFSourceReader *pReader = NULL;
+
+        // Open sound file
+        lsp_trace("loading file: %s\n", path->get_native());
+        status_t res = open_mfapi_reader(path->get_utf16(), &sf_info, &pReader);
+        if (res != STATUS_OK)
+            return res;
+
+        // Read sample file
+        ssize_t max_samples     = (max_duration >= 0.0f) ? seconds_to_samples(sf_info.srate, max_duration) : -1;
+        lsp_trace("file parameters: frames=%d, channels=%d, sample_rate=%d max_duration=%.3f\n, max_samples=%d",
+            int(sf_info.frames), int(sf_info.channels), int(sf_info.srate), max_duration, int(max_samples));
+
+        // Patch sf_info
+        if ((max_samples >= 0) && (sf_info.frames > UINT64(max_samples)))
+            sf_info.frames  = max_samples;
+
+        // Create file content
+        file_content_t *fc      = create_file_content(sf_info.channels, sf_info.frames);
+        if (fc == NULL)
+        {
+            pReader->Release();
+            return STATUS_NO_MEM;
+        }
+        fc->nSampleRate         = sf_info.srate;
+
+        // Allocate temporary buffer
+        temporary_buffer_t *tb  = create_temporary_buffer(fc);
+        if (tb == NULL)
+        {
+            destroy_file_content(fc);
+            pReader->Release();
+            return STATUS_NO_MEM;
+        }
+
+        size_t count = sf_info.frames;
+        while (count > 0)
+        {
+            // Read sample
+            IMFSample *pSample = NULL;
+            DWORD streamIndex, flags;
+            LONGLONG llTimeStamp;
+
+            HRESULT hr = pReader->ReadSample(
+                sf_info.stream,                 // Stream index.
+                0,                              // Flags.
+                &streamIndex,                   // Receives the actual stream index.
+                &flags,                         // Receives status flags.
+                &llTimeStamp,                   // Receives the time stamp.
+                &pSample                        // Receives the sample or NULL.
+                );
+
+            if (!SUCCEEDED(hr))
+            {
+                destroy_temporary_buffer(tb);
+                destroy_file_content(fc);
+                pReader->Release();
+                return STATUS_CORRUPTED_FILE;
+            }
+
+            // Obtain number of buffers
+            DWORD cBuffers = 0;
+            hr = pSample->GetBufferCount(&cBuffers);
+            if (!SUCCEEDED(hr))
+            {
+                destroy_temporary_buffer(tb);
+                destroy_file_content(fc);
+                pSample->Release();
+                pReader->Release();
+                return STATUS_CORRUPTED_FILE;
+            }
+
+            // Iterate each buffer
+            for (DWORD i = 0; (i < cBuffers) && (count > 0); i++)
+            {
+                IMFMediaBuffer *pBuffer = NULL;
+                hr = pSample->GetBufferByIndex(i, &pBuffer);
+                if (!SUCCEEDED(hr))
+                {
+                    destroy_temporary_buffer(tb);
+                    destroy_file_content(fc);
+                    pSample->Release();
+                    pReader->Release();
+                    return STATUS_CORRUPTED_FILE;
+                }
+
+                // Use buffer
+                BYTE *pData = NULL;
+                DWORD nCurrLength = 0;
+                hr = pBuffer->Lock(&pData, NULL, &nCurrLength);
+                if (SUCCEEDED(hr))
+                {
+                    while ((count > 0) && (nCurrLength > 0))
+                    {
+
+                    }
+                }
+                if (SUCCEEDED(hr))
+                    hr = pBuffer->Unlock();
+
+                // Release buffer
+                pBuffer->Release();
+            }
+
+            // Release sample
+            pSample->Release();
+        }
+
+        // Flush last read data (if present)
+        flush_temporary_buffer(tb);
+
+        // Free allocated resources
+        destroy_temporary_buffer(tb);
         pReader->Release();
+
+        // Destroy previously used content and store new
+        if (pData != NULL)
+            destroy_file_content(pData);
+        pData               = fc;
+
         return STATUS_OK;
     }
 
@@ -1190,7 +1312,7 @@ namespace lsp
 
             // Calculate amount of samples to read
             size_t to_read      = (count > can_read) ? can_read : count;
-            sf_count_t amount   = sf_readf_float(sf_obj, &tb->vData[tb->nSize * tb->nChannels], to_read);
+            sf_count_t amount   = sf_readf_float(sf_obj, reinterpret_cast<float *>(&tb->bData[tb->nSize]), to_read);
             if (amount <= 0)
             {
                 status_t status     = decode_sf_error(sf_obj);
@@ -1203,7 +1325,7 @@ namespace lsp
             }
 
             // Update counters
-            tb->nSize          += amount;
+            tb->nSize          += amount * tb->nFrameSize;
             count              -= amount;
         }
 
@@ -1264,9 +1386,10 @@ namespace lsp
             {
                 // Write buffer to file
                 size_t offset = 0;
+                size_t frames = tb->nSize / tb->nFrameSize;
                 while (offset < tb->nSize)
                 {
-                    sf_count_t written  = sf_writef_float(sf_obj, tb->vData, tb->nSize - offset);
+                    sf_count_t written  = sf_writef_float(sf_obj, reinterpret_cast<float *>(&tb->bData[offset]), frames);
                     if (written < 0)
                     {
                         status_t status     = decode_sf_error(sf_obj);
@@ -1274,11 +1397,15 @@ namespace lsp
                         destroy_temporary_buffer(tb);
                         return status;
                     }
-                    offset +=  written;
+                    offset +=  written * tb->nFrameSize;
+                    frames -=  written;
                 }
 
-                // Clear buffer size
-                tb->nSize   = 0;
+                // Update buffer contents
+                frames  = tb->nSize - offset;
+                if (frames > 0)
+                    ::memmove(tb->bdata, &tb->bData[offset], frames);
+                tb->nSize   = frames;
             }
         }
 
