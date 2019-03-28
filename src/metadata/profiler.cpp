@@ -11,7 +11,7 @@
 
 namespace lsp
 {
-    static const int profiler_classes[] = {C_ANALYSER, C_UTILITY, -1};
+    static const int profiler_classes[] = { C_UTILITY, -1};
 
     static const char *profiler_states[] =
     {

@@ -14,7 +14,7 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Expander
-    static const int expander_classes[] = { C_DYNAMICS, C_EXPANDER, -1 };
+    static const int expander_classes[] = { C_EXPANDER, -1 };
 
     static const char *exp_sc_modes[] =
     {

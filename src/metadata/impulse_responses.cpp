@@ -134,7 +134,7 @@ namespace lsp
         PORTS_END
     };
 
-    static const int impulse_responses_classes[] = { C_CONVERTER, C_SPECTRAL, -1 };
+    static const int impulse_responses_classes[] = { C_REVERB, -1 };
 
     const plugin_metadata_t  impulse_responses_mono_metadata::metadata =
     {

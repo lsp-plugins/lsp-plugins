@@ -171,7 +171,7 @@ namespace lsp
         PORTS_END
     };
 
-    static const int trigger_classes[] = { C_CONVERTER, C_UTILITY, -1 };
+    static const int trigger_classes[] = { C_DYNAMICS, -1 };
 
     //-------------------------------------------------------------------------
     // Define plugin metadata

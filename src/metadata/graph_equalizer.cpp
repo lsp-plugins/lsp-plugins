@@ -14,7 +14,7 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Graphic Equalizer
-    static const int graph_equalizer_classes[] = { C_FILTER, C_EQ, C_MULTI_EQ, -1 };
+    static const int graph_equalizer_classes[] = { C_MULTI_EQ, -1 };
 
     static const char *band_slopes[] =
     {

@@ -14,7 +14,7 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Limiter
-    static const int limiter_classes[] = { C_DYNAMICS, C_LIMITER, -1 };
+    static const int limiter_classes[] = { C_LIMITER, -1 };
 
     static const char *limiter_oper_modes[] =
     {

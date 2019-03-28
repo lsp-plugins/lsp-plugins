@@ -11,7 +11,7 @@
 
 namespace lsp
 {
-    static const int oscillator_classes[] = {C_OSCILLATOR, -1};
+    static const int oscillator_classes[] = { C_OSCILLATOR, -1};
 
     static const char *sc_func[] =
     {

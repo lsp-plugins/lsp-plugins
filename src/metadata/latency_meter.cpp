@@ -11,7 +11,7 @@
 
 namespace lsp
 {
-    static const int latency_meter_classes[] = {C_ANALYSER, C_UTILITY, -1};
+    static const int latency_meter_classes[] = { C_ANALYSER, -1};
 
     static const port_t latency_meter_ports[] =
     {
