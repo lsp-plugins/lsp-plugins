@@ -261,20 +261,31 @@ namespace lsp
         // Rearrange first triangle
         if ((ct = e->vt) == NULL)
             return STATUS_OK;
-        res             = arrange_triangle(ct, e);
-        if (res != STATUS_OK)
+        if ((res = arrange_triangle(ct, e)) != STATUS_OK)
             return res;
+
+        RT_TRACE_BREAK(debug, \
+            lsp_trace("split point={%f, %f, %f, %f}", sp->x, sp->y, sp->z, sp->w); \
+            view->add_triangle_1c(ct, &C_GREEN); \
+            view->add_segment(ct->e[0], &C_RED); \
+            view->add_segment(ct->e[1], &C_GREEN); \
+            view->add_segment(ct->e[2], &C_BLUE); \
+            \
+            view->add_segment(e, &C_YELLOW); \
+            view->add_point(sp, &C_YELLOW); \
+        );
+        RT_CALL_DEBUGGER(debug, 136, debug_break());
 
         // Allocate additional edge
         if (!(ne = add_unique_edge(sp, e->v[1])))
             return STATUS_NO_MEM;
 
-        // Re-link v[1] of current edge to the sp (split point)
+        // Unlink v[1] from current edge
         if (!unlink_edge(e, e->v[1]))
             return STATUS_CORRUPTED;
         e->v[1]         = sp;
-        e->vlnk[1]      = sp->ve;       // Link
-        sp->ve          = e;            // Link
+        e->vlnk[1]      = sp->ve;
+        sp->ve          = e;
 
         RT_VALIDATE(
             if ((ne->v[0] == NULL) || (ne->v[1] == NULL))
@@ -544,19 +555,25 @@ namespace lsp
                 RT_TRACE_BREAK(debug, \
                     lsp_trace("split point={%f, %f, %f, %f}", sp->x, sp->y, sp->z, sp->w); \
                     view->add_triangle_1c(ct, &C_GREEN); \
+                    view->add_segment(ct->e[0], &C_RED); \
+                    view->add_segment(ct->e[1], &C_GREEN); \
+                    view->add_segment(ct->e[2], &C_BLUE); \
                     \
-                    for (size_t i=0,n=vertex.size(); i<n; ++i) \
-                    { \
-                        rtm_vertex_t *v = vertex.get(i); \
-                        view->add_point(v, item_color(v->itag)); \
-                    } \
-                    for (size_t i=0,n=edge.size(); i<n; ++i) \
-                    { \
-                        rtm_edge_t *e = edge.get(i); \
-                        view->add_segment(e->v[0], e->v[1], (e == ce) ? &C_YELLOW : item_color(ce->itag)); \
-                    } \
+                    view->add_segment(ce, &C_YELLOW); \
                     view->add_point(sp, &C_YELLOW); \
                 );
+                /*
+                for (size_t i=0,n=vertex.size(); i<n; ++i) \
+                                    { \
+                                        rtm_vertex_t *v = vertex.get(i); \
+                                        view->add_point(v, item_color(v->itag)); \
+                                    } \
+                                    for (size_t i=0,n=edge.size(); i<n; ++i) \
+                                    { \
+                                        rtm_edge_t *e = edge.get(i); \
+                                        view->add_segment(e->v[0], e->v[1], (e == ce) ? &C_YELLOW : item_color(ce->itag)); \
+                                    } \
+                                    */
 
                 switch ((l[0]) | (l[1] << 2) | (l[2] << 4))
                 {
@@ -621,6 +638,13 @@ namespace lsp
                         continue;
                 }
 
+                // Check final result
+                if (res != STATUS_OK)
+                    return res;
+
+                if (!validate())
+                    return STATUS_CORRUPTED;
+
                 RT_TRACE_BREAK(debug,
                     lsp_trace("State of triangles after solve_conflicts()");
                     for (size_t i=0,n=vertex.size(); i<n; ++i)
@@ -641,10 +665,6 @@ namespace lsp
                         view->add_triangle_1c(t, (t->oid == oid) ? &C_RED : &C_GREEN);
                     }
                 );
-
-                // Check final result
-                if (res != STATUS_OK)
-                    return res;
 
                 // Current triangle's structure has been modified, update split planes' equations
                 dsp::calc_plane_v1p2(&spl[0], &pl, ct->v[0], ct->v[1]);
@@ -1094,7 +1114,7 @@ namespace lsp
         );
 
         // Now 've' contains all common edges
-        rt_spline_t tmp;
+        rt_spline_t tmp, *spline;
         status_t res;
 
         for (size_t i=0, n=ve.size(); i<n; ++i)
@@ -1113,19 +1133,52 @@ namespace lsp
             if ((res != STATUS_OK) && (res != STATUS_CLOSED))
                 return res;
 
-            // Add spline to list
-            rt_spline_t *spline = new rt_spline_t();
-            if (spline == NULL)
-                return STATUS_NO_MEM;
-            else if (!splines.add(spline))
+            // Try to link spline to another spline
+            spline  = NULL;
+            for (size_t j=0, m=splines.size(); j<m; ++j)
             {
-                delete spline;
-                return STATUS_NO_MEM;
+                spline = splines.at(j);
+                res = spline->link(&tmp);
+                if ((res == STATUS_OK) || (res == STATUS_CLOSED))
+                    break;
+                else if (res != STATUS_FAILED)
+                    return res;
+                else
+                    spline = NULL;
             }
 
-            // Take data from temporary spline
-            spline->take(&tmp);
+            // Add spline to list if not linked
+            if (spline == NULL)
+            {
+                spline = new rt_spline_t();
+                if (spline == NULL)
+                    return STATUS_NO_MEM;
+                else if (!splines.add(spline))
+                {
+                    delete spline;
+                    return STATUS_NO_MEM;
+                }
+
+                // Take data from temporary spline
+                spline->take(&tmp);
+            }
+            else
+                tmp.clear();
         }
+
+        RT_TRACE_BREAK(debug,
+            lsp_trace("Final number of splines: %d", int(splines.size()));
+
+            for (size_t i=0,n=splines.size(); i<n; ++i)
+            {
+                rt_spline_t *s = splines.get(i);
+                for (size_t j=0, m=s->edge.size(); j<m; ++j)
+                {
+                    rtm_edge_t *e = s->edge.get(j);
+                    view->add_segment(e, &C_GREEN);
+                }
+            }
+        )
 
         return STATUS_OK;
     }

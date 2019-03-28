@@ -26,7 +26,7 @@ namespace lsp
     {
         start   = NULL;
         end     = NULL;
-        edge.flush();
+        edge.clear();
     }
 
     /**
@@ -35,8 +35,10 @@ namespace lsp
      */
     void rt_spline_t::take(rt_spline_t *src)
     {
-        start   = src->start;
-        end     = src->end;
+        start       = src->start;
+        end         = src->end;
+        src->start  = NULL;
+        src->end    = NULL;
         edge.take_from(&src->edge);
     }
 
@@ -63,14 +65,14 @@ namespace lsp
 
     void rt_spline_t::reverse()
     {
-        ::swap(start, end);
+        if (edge.size() <= 0)
+            return;
 
-        for (size_t i=0, n=edge.size(); i<n; ++i)
-        {
-            rtm_edge_t *ce = edge.at(i);
-            ::swap(ce->v[0], ce->v[1]);
-            ::swap(ce->vlnk[0], ce->vlnk[1]);
-        }
+        ::swap(start, end);
+        ssize_t first = 0, last = edge.size() - 1;
+
+        while (first < last)
+            edge.swap_unsafe(first++, last--);
     }
 
     void rt_spline_t::arrange()
@@ -99,7 +101,7 @@ namespace lsp
 
         // Need to reverse source spline?
         if ((start == src->start) && (end == src->end))
-            src->reverse();
+            reverse();
 
         // The source spline continues current spline?
         if ((start == src->end) && (end == src->start))
@@ -147,17 +149,13 @@ namespace lsp
         {
             if (!edge.add(e))
                 return STATUS_NO_MEM;
-            ::swap(e->v[0], e->v[1]);
-            ::swap(e->vlnk[0], e->vlnk[1]);
-            end = e->v[1];
+            end = e->v[0];
         }
         else if (start == e->v[0]) // [v[1] .. v[0]] + [start ... end]
         {
             if (!edge.insert(e, 0))
                 return STATUS_NO_MEM;
-            ::swap(e->v[0], e->v[1]);
-            ::swap(e->vlnk[0], e->vlnk[1]);
-            start = e->v[0];
+            start = e->v[1];
         }
         else if (start == e->v[1]) // [v[0] .. v[1]] + [start ... end]
         {

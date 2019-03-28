@@ -77,7 +77,7 @@ namespace lsp
             /**
              * Link data from another spline to the current spline
              * @param src source spline to link
-             * @return status of operation: STATUS_OK if linked, STATUS_CLOSED if the spline has been closed, STATUS_FAILED if can not link
+             * @return status of operation: STATUS_OK if linked, STATUS_FAILED if can not link, otherwise error code
              */
             status_t link(rt_spline_t *src);
 
