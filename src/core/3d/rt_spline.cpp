@@ -69,6 +69,7 @@ namespace lsp
         {
             rtm_edge_t *ce = edge.at(i);
             ::swap(ce->v[0], ce->v[1]);
+            ::swap(ce->vlnk[0], ce->vlnk[1]);
         }
     }
 
@@ -83,7 +84,10 @@ namespace lsp
         {
             rtm_edge_t *ne = edge.get(i);
             if (ne->v[1] == e->v[1]) // Need to reorder edge?
+            {
                 ::swap(ne->v[0], ne->v[1]);
+                ::swap(ne->vlnk[0], ne->vlnk[1]);
+            }
             e = ne;
         }
     }
@@ -144,6 +148,7 @@ namespace lsp
             if (!edge.add(e))
                 return STATUS_NO_MEM;
             ::swap(e->v[0], e->v[1]);
+            ::swap(e->vlnk[0], e->vlnk[1]);
             end = e->v[1];
         }
         else if (start == e->v[0]) // [v[1] .. v[0]] + [start ... end]
@@ -151,6 +156,7 @@ namespace lsp
             if (!edge.insert(e, 0))
                 return STATUS_NO_MEM;
             ::swap(e->v[0], e->v[1]);
+            ::swap(e->vlnk[0], e->vlnk[1]);
             start = e->v[0];
         }
         else if (start == e->v[1]) // [v[0] .. v[1]] + [start ... end]

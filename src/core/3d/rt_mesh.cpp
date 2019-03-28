@@ -44,6 +44,11 @@ namespace lsp
         material.flush();
     }
 
+    void debug_break()
+    {
+        lsp_trace("breakpoint");
+    }
+
     rtm_vertex_t *rt_mesh_t::add_unique_vertex(const point3d_t *p)
     {
         // Try to find already existing vertex
@@ -202,10 +207,10 @@ namespace lsp
             dt->itag    = itag;
         }
 
-        RT_VALIDATE(
+//        RT_VALIDATE(
             if (!this->validate())
                 return STATUS_BAD_STATE;
-        )
+//        )
         RT_TRACE_BREAK(debug,
             lsp_trace("State of triangles after copy()");
             for (size_t i=0,n=vertex.size(); i<n; ++i)
@@ -271,9 +276,6 @@ namespace lsp
         e->vlnk[1]      = sp->ve;       // Link
         sp->ve          = e;            // Link
 
-        // Initialize culled edge and link to corresponding vertexes
-        ne->itag        = e->itag;
-
         RT_VALIDATE(
             if ((ne->v[0] == NULL) || (ne->v[1] == NULL))
                 return STATUS_CORRUPTED;
@@ -283,6 +285,7 @@ namespace lsp
         while (true)
         {
             // Save pointer to triangle to move forward
+            ne->itag       |= ct->itag;
             pt              = ct->elnk[0];  // Save pointer to pending triangle, splitting edge is always rearranged to have index 0
 
             // Allocate triangle and splitting edge
@@ -290,7 +293,7 @@ namespace lsp
                 return STATUS_NO_MEM;
             if (!(se = add_unique_edge(ct->v[2], sp)))
                 return STATUS_NO_MEM;
-            se->itag            = ct->itag;
+            se->itag           |= ct->itag;
 
             // Unlink current triangle from all edges
             if (!unlink_triangle(ct, ct->e[0]))
@@ -354,21 +357,6 @@ namespace lsp
               //ct->itag        = ct->itag;
             }
 
-            // Update triangle tags
-            if (ct->e[0]->itag != 1)
-                ct->itag        = ct->e[0]->itag;
-            else if (ct->e[1]->itag != 1)
-                ct->itag        = ct->e[1]->itag;
-            else
-                ct->itag        = ct->e[2]->itag;
-
-            if (nt->e[0]->itag != 1)
-                nt->itag        = nt->e[0]->itag;
-            else if (nt->e[1]->itag != 1)
-                nt->itag        = nt->e[1]->itag;
-            else
-                nt->itag        = nt->e[2]->itag;
-
             // Link edges to new triangles
             nt->elnk[0]     = nt->e[0]->vt;
             nt->elnk[1]     = nt->e[1]->vt;
@@ -416,7 +404,7 @@ namespace lsp
         {
             if (!(ne[i] = add_unique_edge(t->v[i], sp)))
                 return STATUS_NO_MEM;
-            ne[i]->itag     = t->v[i]->itag;
+            ne[i]->itag    |= t->itag;
         }
 
         // Allocate additional triangles
@@ -686,6 +674,11 @@ namespace lsp
             }
         );
 
+//        RT_VALIDATE(
+            if (!validate())
+                return STATUS_CORRUPTED;
+//        )
+
         return STATUS_OK;
     }
 
@@ -764,10 +757,10 @@ namespace lsp
     {
         Allocator3D<rtm_edge_t> xedge(edge.chunk_size());
 
-        RT_VALIDATE(
+//        RT_VALIDATE(
             if (!validate())
                 return STATUS_CORRUPTED;
-        )
+//        )
 
         // Generate unique set of non-duplicate edges
         RT_FOREACH(rtm_edge_t, ce, edge)
@@ -828,10 +821,10 @@ namespace lsp
 
         xedge.swap(&edge);
 
-        RT_VALIDATE(
+//        RT_VALIDATE(
             if (!validate())
                 return STATUS_CORRUPTED;
-        )
+//        )
 
         return STATUS_OK;
     }
@@ -956,7 +949,7 @@ namespace lsp
                 view->add_point(xv,
                         (xv == sv) ? &C_GREEN :
                         (xv == v) ? &C_GREEN :
-                        loop_color(v->itag)
+                        loop_color(xv->itag)
                     );
             }
             for (size_t i=0,n=edge.size(); i<n; ++i)
@@ -974,6 +967,35 @@ namespace lsp
 
         while (v->itag == 2)
         {
+            RT_TRACE_BREAK(debug,
+                lsp_trace("walk_edge step");
+                for (size_t i=0,n=vertex.size(); i<n; ++i)
+                {
+                    rtm_vertex_t *xv = vertex.get(i);
+                    view->add_point(xv,
+                            (xv == sv) ? &C_GREEN :
+                            (xv == v) ? &C_GREEN :
+                            loop_color(xv->itag)
+                        );
+                }
+                for (size_t i=0,n=edge.size(); i<n; ++i)
+                {
+                    rtm_edge_t *e = edge.get(i);
+                    if (e->itag != 0x03)
+                        continue;
+                    const color3d_t *c = &C_BLUE;
+                    if (e->ptag)
+                        c = (spline->contains(e)) ? &C_GREEN : &C_RED;
+                    else if ((e->v[0] == v) || (e->v[1] == v))
+                    {
+                        c = (linked_count(e, v) == 1) ? &C_YELLOW : &C_MAGENTA;
+                    }
+
+                    view->add_segment(e, c);
+                }
+            );
+//            RT_CALL_DEBUGGER(debug, 95, debug_break())
+
             for (rtm_edge_t *se = v->ve; se != NULL; )
             {
                 if ((se->ptag) || (se->itag != 0x3)) // Ignore processed edges and non-common edges
@@ -1010,7 +1032,7 @@ namespace lsp
                     view->add_point(xv,
                             (xv == sv) ? &C_GREEN :
                             (xv == v) ? &C_GREEN :
-                            loop_color(v->itag)
+                            loop_color(xv->itag)
                         );
                 }
                 for (size_t i=0,n=edge.size(); i<n; ++i)
@@ -1035,33 +1057,18 @@ namespace lsp
 
     status_t rt_mesh_t::slice_data(cvector<rt_spline_t> &splines)
     {
-        // Mark all edges that have common triangles as common
+        // Obtain list of common edges
         cvector<rtm_edge_t> ve;
 
         RT_FOREACH(rtm_edge_t, e, edge)
-            if ((e->v[0]->itag == 0x3) && (e->v[1]->itag == 0x3))
-            {
-                // Test that edge is common for both object
-                ssize_t itag = 0;
-                for (rtm_triangle_t *t = e->vt; t!= NULL; )
-                {
-                    itag |= t->itag;
-                    if (itag == 0x3)
-                    {
-                        e->itag     = itag;
-                        e->ptag     = NULL;
-                        if (!ve.add(e))
-                            return STATUS_NO_MEM;
-                        break;
-                    }
-                    t = (t->e[0] == e) ? t->elnk[0] :
-                        (t->e[1] == e) ? t->elnk[1] :
-                        t->elnk[2];
-                }
-            }
+            if (e->itag != 0x3)
+                continue;
+            e->ptag = NULL;
+            if (!ve.add(e))
+                return STATUS_NO_MEM;
         RT_FOREACH_END
 
-        // Now estimate number of links for each vertex
+        // Estimate number of links for each vertex
         RT_FOREACH(rtm_vertex_t, v, vertex)
             v->itag = 0;
             for (rtm_edge_t *e=v->ve; e != NULL; )
@@ -1095,13 +1102,11 @@ namespace lsp
             rtm_edge_t *ce = ve.at(i);
             if (ce->ptag) // Already processed edge?
                 continue;
-            res = tmp.add(ce);
-            if (res != STATUS_OK)
+            if ((res = tmp.add(ce)) != STATUS_OK)
                 return res;
 
             ce->ptag    = ce; // Mark edge as processed
-            res = walk_edge(&tmp, ce, ce->v[0]);
-            if (res == STATUS_OK)
+            if ((res = walk_edge(&tmp, ce, ce->v[0])) == STATUS_OK)
                 res = walk_edge(&tmp, ce, ce->v[1]);
 
             // Analyze state
@@ -1360,6 +1365,25 @@ namespace lsp
         return false;
     }
 
+    void rt_mesh_t::link_edge(rtm_edge_t *e, rtm_vertex_t *v)
+    {
+        // Check that already not linked
+        rtm_edge_t *ce = v->ve;
+        while (ce != NULL)
+        {
+            if (ce == e)
+                return; // Already linked, nothing to do
+            ce = (ce->v[0] == v) ? ce->vlnk[0] : ce->vlnk[1];
+        }
+
+        // Edge is not linked, link it
+        if (e->v[0] == v)
+            e->vlnk[0] = v->ve;
+        else
+            e->vlnk[1] = v->ve;
+        v->ve = e;
+    }
+
     bool rt_mesh_t::replace_edge(rtm_edge_t *e, rtm_edge_t *re)
     {
         if (!unlink_edge(e, e->v[0]))
@@ -1602,12 +1626,12 @@ namespace lsp
         edge.swap(&this->edge);
         triangle.swap(&this->triangle);
 
-        RT_VALIDATE(
+//        RT_VALIDATE(
             if (!src->validate())
                 return STATUS_CORRUPTED;
             if (!validate())
                 return STATUS_CORRUPTED;
-        );
+//        );
 
         return STATUS_OK;
     }
