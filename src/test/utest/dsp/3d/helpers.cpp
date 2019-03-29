@@ -27,6 +27,15 @@ namespace test
             (float_equals_relative(p1->w, p2->w));
     }
 
+    bool point3d_ack(const point3d_t *p1, const point3d_t *p2, float tolerance)
+    {
+        return
+            (float_equals_adaptive(p1->x, p2->x, tolerance)) &&
+            (float_equals_adaptive(p1->y, p2->y, tolerance)) &&
+            (float_equals_adaptive(p1->z, p2->z, tolerance)) &&
+            (float_equals_adaptive(p1->w, p2->w, tolerance));
+    }
+
     bool vector3d_sck(const vector3d_t *v1, const vector3d_t *v2)
     {
         return

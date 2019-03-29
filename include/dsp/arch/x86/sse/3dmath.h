@@ -2892,6 +2892,86 @@ namespace sse
 
         return x0;
     }
+
+    void calc_split_point_p2v1(point3d_t *sp, const point3d_t *l0, const point3d_t *l1, const vector3d_t *pl)
+    {
+        float x0, x1, x2, x3, x4, x5, x6;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[l0]), %[x1]")        /* xmm1 = l0 = lx0 ly0 lz0 ? */
+            __ASM_EMIT("movups      (%[l1]), %[x0]")        /* xmm0 = l1 = lx1 ly1 lz1 ? */
+            __ASM_EMIT("movups      (%[pl]), %[x2]")        /* xmm2 = pl = nx ny nz nw */
+            __ASM_EMIT("subps       %[x1], %[x0]")          /* xmm0 = d = l1 - l0 = dx dy dz ? */
+            __ASM_EMIT("movaps      %[x2], %[x3]")          /* xmm3 = pl */
+            __ASM_EMIT("movaps      %[x2], %[x4]")          /* xmm4 = pl */
+            __ASM_EMIT("mulps       %[x1], %[x2]")          /* xmm2 = l0 * pl = lx0*nx ly0*ny lz0*nz ? */
+            __ASM_EMIT("mulps       %[x0], %[x3]")          /* xmm3 = d * pl = dx*nx dy*ny dz*nz ? */
+            __ASM_EMIT("movhlps     %[x2], %[x5]")          /* xmm5 = lz0*nz ? */
+            __ASM_EMIT("shufps      $0xff, %[x4], %[x4]")   /* xmm4 = nw nw nw nw */
+            __ASM_EMIT("addss       %[x2], %[x5]")          /* xmm5 = lz0*nz + lx0*nx */
+            __ASM_EMIT("movhlps     %[x3], %[x6]")          /* xmm6 = dz*nz ? */
+            __ASM_EMIT("shufps      $0x55, %[x2], %[x2]")   /* xmm2 = ly0*ny ly0*ny ly0*ny ly0*ny */
+            __ASM_EMIT("addss       %[x3], %[x6]")          /* xmm6 = dz*nz + dx*nx */
+            __ASM_EMIT("addss       %[x5], %[x2]")          /* xmm2 = lx0*nx + ly0*ny + lz0*nz */
+            __ASM_EMIT("shufps      $0x55, %[x3], %[x3]")   /* xmm3 = dy*ny dy*ny dy*ny dy*ny */
+            __ASM_EMIT("addss       %[x4], %[x2]")          /* xmm2 = lx0*nx + ly0*ny + lz0*nz + nw */
+            __ASM_EMIT("addss       %[x6], %[x3]")          /* xmm3 = dx*nx + dy*ny + dz*nz */
+            __ASM_EMIT("divss       %[x3], %[x2]")          /* xmm2 = t = (lx0*nx + ly0*ny + lz0*nz + nw) / (dx*nx + dy*ny + dz*nz) */
+            __ASM_EMIT("shufps      $0x00, %[x2], %[x2]")   /* xmm2 = t t t t */
+            __ASM_EMIT("mulps       %[x2], %[x0]")          /* xmm0 = dx*t dy*t dz*t ? */
+            __ASM_EMIT("subps       %[x0], %[x1]")          /* xmm1 = l0 - d*t */
+            __ASM_EMIT("andps       %[X_3DMASK], %[x1]")
+            __ASM_EMIT("orps        %[X_3DPOINT], %[x1]")
+            __ASM_EMIT("movups      %[x1], (%[sp])")
+            : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
+              [x4] "=&x" (x4), [x5] "=&x" (x5), [x6] "=&x" (x6)
+            : [sp] "r" (sp), [l0] "r" (l0), [l1] "r" (l1), [pl] "r" (pl),
+              [X_3DMASK] "m" (X_3DMASK),
+              [X_3DPOINT] "m" (X_3DPOINT)
+            : "memory"
+        );
+    }
+
+    void calc_split_point_pvv1(point3d_t *sp, const point3d_t *lv, const vector3d_t *pl)
+    {
+        float x0, x1, x2, x3, x4, x5, x6;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      0x00(%[lv]), %[x1]")    /* xmm1 = l0 = lx0 ly0 lz0 ? */
+            __ASM_EMIT("movups      0x10(%[lv]), %[x0]")    /* xmm0 = l1 = lx1 ly1 lz1 ? */
+            __ASM_EMIT("movups      (%[pl]), %[x2]")        /* xmm2 = pl = nx ny nz nw */
+            __ASM_EMIT("subps       %[x1], %[x0]")          /* xmm0 = d = l1 - l0 = dx dy dz ? */
+            __ASM_EMIT("movaps      %[x2], %[x3]")          /* xmm3 = pl */
+            __ASM_EMIT("movaps      %[x2], %[x4]")          /* xmm4 = pl */
+            __ASM_EMIT("mulps       %[x1], %[x2]")          /* xmm2 = l0 * pl = lx0*nx ly0*ny lz0*nz ? */
+            __ASM_EMIT("mulps       %[x0], %[x3]")          /* xmm3 = d * pl = dx*nx dy*ny dz*nz ? */
+            __ASM_EMIT("movhlps     %[x2], %[x5]")          /* xmm5 = lz0*nz ? */
+            __ASM_EMIT("shufps      $0xff, %[x4], %[x4]")   /* xmm4 = nw nw nw nw */
+            __ASM_EMIT("addss       %[x2], %[x5]")          /* xmm5 = lz0*nz + lx0*nx */
+            __ASM_EMIT("movhlps     %[x3], %[x6]")          /* xmm6 = dz*nz ? */
+            __ASM_EMIT("shufps      $0x55, %[x2], %[x2]")   /* xmm2 = ly0*ny ly0*ny ly0*ny ly0*ny */
+            __ASM_EMIT("addss       %[x3], %[x6]")          /* xmm6 = dz*nz + dx*nx */
+            __ASM_EMIT("addss       %[x5], %[x2]")          /* xmm2 = lx0*nx + ly0*ny + lz0*nz */
+            __ASM_EMIT("shufps      $0x55, %[x3], %[x3]")   /* xmm3 = dy*ny dy*ny dy*ny dy*ny */
+            __ASM_EMIT("addss       %[x4], %[x2]")          /* xmm2 = lx0*nx + ly0*ny + lz0*nz + nw */
+            __ASM_EMIT("addss       %[x6], %[x3]")          /* xmm3 = dx*nx + dy*ny + dz*nz */
+            __ASM_EMIT("divss       %[x3], %[x2]")          /* xmm2 = t = (lx0*nx + ly0*ny + lz0*nz + nw) / (dx*nx + dy*ny + dz*nz) */
+            __ASM_EMIT("shufps      $0x00, %[x2], %[x2]")   /* xmm2 = t t t t */
+            __ASM_EMIT("mulps       %[x2], %[x0]")          /* xmm0 = dx*t dy*t dz*t ? */
+            __ASM_EMIT("subps       %[x0], %[x1]")          /* xmm1 = l0 - d*t */
+            __ASM_EMIT("andps       %[X_3DMASK], %[x1]")
+            __ASM_EMIT("orps        %[X_3DPOINT], %[x1]")
+            __ASM_EMIT("movups      %[x1], (%[sp])")
+            : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
+              [x4] "=&x" (x4), [x5] "=&x" (x5), [x6] "=&x" (x6)
+            : [sp] "r" (sp), [lv] "r" (lv), [pl] "r" (pl),
+              [X_3DMASK] "m" (X_3DMASK),
+              [X_3DPOINT] "m" (X_3DPOINT)
+            : "memory"
+        );
+    }
 }
 
 #undef SCALAR_MUL

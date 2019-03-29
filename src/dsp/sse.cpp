@@ -363,6 +363,8 @@ namespace sse
 
         EXPORT1(move_point3d_p2);
         EXPORT1(move_point3d_pv);
+        EXPORT1(calc_split_point_p2v1);
+        EXPORT1(calc_split_point_pvv1);
 
         EXPORT1(check_octant3d_rv);
 
