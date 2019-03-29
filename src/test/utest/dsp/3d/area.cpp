@@ -1,7 +1,7 @@
 /*
- * point.cpp
+ * area.cpp
  *
- *  Created on: 30 авг. 2018 г.
+ *  Created on: 29 мар. 2019 г.
  *      Author: sadko
  */
 

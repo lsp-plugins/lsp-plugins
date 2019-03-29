@@ -366,6 +366,10 @@ namespace sse
 
         EXPORT1(check_octant3d_rv);
 
+        EXPORT1(calc_plane_p3);
+        EXPORT1(calc_plane_pv);
+        EXPORT1(calc_plane_v1p2);
+
         EXPORT1(calc_area_p3);
         EXPORT1(calc_area_pv);
 

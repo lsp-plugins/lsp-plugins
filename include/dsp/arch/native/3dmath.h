@@ -2284,11 +2284,10 @@ namespace native
         float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
         if (w != 0.0f)
         {
-            w           = 1.0f / w;
-            v->dx      *= w;
-            v->dy      *= w;
-            v->dz      *= w;
-            v->dw       = 0.0f;
+            float kw    = 1.0f / w;
+            v->dx      *= kw;
+            v->dy      *= kw;
+            v->dz      *= kw;
         }
 
         v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
@@ -2318,11 +2317,10 @@ namespace native
         float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
         if (w != 0.0f)
         {
-            w           = 1.0f / w;
-            v->dx      *= w;
-            v->dy      *= w;
-            v->dz      *= w;
-            v->dw       = 0.0f;
+            float kw    = 1.0f / w;
+            v->dx      *= kw;
+            v->dy      *= kw;
+            v->dz      *= kw;
         }
 
         v->dw       = - ( v->dx * pv[0].x + v->dy * pv[0].y + v->dz * pv[0].z); // Parameter for the plane equation
@@ -2348,11 +2346,10 @@ namespace native
         float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
         if (w != 0.0f)
         {
-            w           = 1.0f / w;
-            v->dx      *= w;
-            v->dy      *= w;
-            v->dz      *= w;
-            v->dw       = 0.0f;
+            float kw    = 1.0f / w;
+            v->dx      *= kw;
+            v->dy      *= kw;
+            v->dz      *= kw;
         }
 
         v->dw       = - ( v->dx * p0->x + v->dy * p0->y + v->dz * p0->z); // Parameter for the plane equation
