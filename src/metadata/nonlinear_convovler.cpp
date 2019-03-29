@@ -11,7 +11,7 @@
 
 namespace lsp
 {
-    static const int nonlinear_convolver_classes[] = {C_DISTORTION, C_SIMULATOR, -1};
+    static const int nonlinear_convolver_classes[] = { C_SIMULATOR, -1};
 
     static const char *nc_order[] =
     {

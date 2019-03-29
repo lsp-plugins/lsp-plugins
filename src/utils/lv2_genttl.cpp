@@ -521,7 +521,7 @@ namespace lsp
         fprintf(out, "\ta lv2:Plugin, doap:Project");
         print_additional_groups(out, m.classes);
         fprintf(out, " ;\n");
-        fprintf(out, "\tdoap:name \"%s - %s\" ;\n", m.description, m.name);
+        fprintf(out, "\tdoap:name \"" LSP_ACRONYM " %s\", \"" LSP_ACRONYM " %s\"@de ;\n", m.description, m.name);
         fprintf(out, "\tlv2:minorVersion %d ;\n", int(LSP_VERSION_MINOR(m.version)));
         fprintf(out, "\tlv2:microVersion %d ;\n", int(LSP_VERSION_MICRO(m.version)));
         if ((dev != NULL) && (dev->uid != NULL))

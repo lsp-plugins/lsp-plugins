@@ -14,7 +14,7 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Gate
-    static const int gate_classes[] = { C_DYNAMICS, C_GATE, -1 };
+    static const int gate_classes[] = { C_GATE, -1 };
 
     static const char *gate_sc_modes[] =
     {

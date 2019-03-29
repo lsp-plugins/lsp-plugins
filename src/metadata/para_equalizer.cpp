@@ -14,7 +14,7 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Parametric Equalizer
-    static const int para_equalizer_classes[] = { C_FILTER, C_EQ, C_PARA_EQ, C_ANALYSER, -1 };
+    static const int para_equalizer_classes[] = { C_PARA_EQ, -1 };
 
     static const char *filter_slopes[] =
     {

@@ -16,7 +16,7 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Multiband compressor
-    static const int mb_compressor_classes[] = { C_DYNAMICS, C_COMPRESSOR, -1 };
+    static const int mb_compressor_classes[] = { C_COMPRESSOR, -1 };
 
     static const char *mb_comp_modes[] =
     {

@@ -14,7 +14,7 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Compressor
-    static const int compressor_classes[] = { C_DYNAMICS, C_COMPRESSOR, -1 };
+    static const int compressor_classes[] = { C_COMPRESSOR, -1 };
 
     static const char *comp_sc_modes[] =
     {

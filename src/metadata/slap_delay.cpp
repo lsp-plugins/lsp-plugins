@@ -117,7 +117,7 @@ namespace lsp
         PORTS_END
     };
 
-    static const int slap_delay_classes[] = { C_DELAY, C_SPATIAL, -1 };
+    static const int slap_delay_classes[] = { C_DELAY, -1 };
 
     const plugin_metadata_t  slap_delay_mono_metadata::metadata =
     {

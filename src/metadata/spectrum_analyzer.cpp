@@ -13,7 +13,7 @@ namespace lsp
 {
     //-------------------------------------------------------------------------
     // Spectrum analyser: x1, x8, x12, x16, x24, x32
-    static const int spectrum_analyzer_classes[] = { C_ANALYSER, C_UTILITY, C_SPECTRAL, -1 };
+    static const int spectrum_analyzer_classes[] = { C_ANALYSER, -1 };
 
     static const char *fft_tolerance[] =
     {

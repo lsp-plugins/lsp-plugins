@@ -313,7 +313,7 @@ namespace lsp
         PORTS_END
     };
 
-    static const int sampler_classes[] = { C_INSTRUMENT, C_SIMULATOR, -1 };
+    static const int sampler_classes[] = { C_INSTRUMENT, -1 };
 
     // Define port lists for each plugin
     static const port_t sampler_mono_ports[] =

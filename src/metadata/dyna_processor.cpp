@@ -16,7 +16,7 @@ namespace lsp
     // Dynamic Processor
     static const int dyna_processor_classes[] =
     {
-        C_DYNAMICS, C_COMPRESSOR, C_ENVELOPE, C_EXPANDER, C_GATE, C_LIMITER, -1
+        C_DYNAMICS, -1
     };
 
     static const char *dyna_proc_sc_modes[] =
