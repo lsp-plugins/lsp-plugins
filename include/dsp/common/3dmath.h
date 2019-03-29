@@ -922,13 +922,20 @@ namespace dsp
     extern float (* calc_parallel_plane_p2p2)(vector3d_t *v, const point3d_t *sp, const point3d_t *pp, const point3d_t *p0, const point3d_t *p1);
 
     /**
-     * Estimate the area of parallelogram formed by triangle
-     * @param p0 point 0 of triangle
-     * @param p1 point 1 of triangle
-     * @param p2 point 2 of triangle
-     * @return area of triangle
+     * Estimate the area of parallelogram formed by three points
+     * @param p0 point 0
+     * @param p1 point 1
+     * @param p2 point 2
+     * @return area of parallelogram
      */
     extern float (* calc_area_p3)(const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Estimate the area of parallelogram formed by three points
+     * @param pv array of three points that form prarallelogram
+     * @return area of parallelogram
+     */
+    extern float (* calc_area_pv)(const point3d_t *pv);
 
     /**
      * Return length of the projection of the point on the line
@@ -946,13 +953,6 @@ namespace dsp
      * @return length of the projection of the vector on another vector
      */
     extern float (* projection_length_v2)(const vector3d_t *v, const vector3d_t *pv);
-
-    /**
-     * Estimate the area of parallelogram formed by triangle
-     * @param pv array of triangle edges
-     * @return area of triangle
-     */
-    extern float (* calc_area_pv)(const point3d_t *pv);
 
     /**
      * Estimate the shortest distance to triangle

@@ -17,6 +17,8 @@ namespace test
     bool point3d_sck(const point3d_t *p1, const point3d_t *p2);
     bool vector3d_sck(const vector3d_t *v1, const vector3d_t *v2);
     bool matrix3d_ck(const matrix3d_t *m1, const matrix3d_t *m2);
+
+    void dump_point(const char *text, const point3d_t *p);
 }
 
 #endif /* TEST_UTEST_3D_HELPERS_H_ */

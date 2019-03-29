@@ -27,6 +27,7 @@ namespace test
 
     void printf_buffer(const float *buf, size_t count, const char *fmt, ...);
 
+    float randf(float min, float max);
 }
 
 #endif /* TEST_HELPERS_H_ */

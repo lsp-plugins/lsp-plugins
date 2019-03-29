@@ -43,5 +43,10 @@ namespace test
                 return false;
         return true;
     }
+
+    void dump_point(const char *text, const point3d_t *p)
+    {
+        printf("%s: { %e, %e, %e, %e }\n", text, p->x, p->y, p->z, p->w);
+    }
 }
 

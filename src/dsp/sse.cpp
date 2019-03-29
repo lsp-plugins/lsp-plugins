@@ -366,6 +366,9 @@ namespace sse
 
         EXPORT1(check_octant3d_rv);
 
+        EXPORT1(calc_area_p3);
+        EXPORT1(calc_area_pv);
+
         EXPORT1(convolve);
     }
 

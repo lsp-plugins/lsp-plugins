@@ -67,6 +67,39 @@
     __ASM_EMIT("unpcklps    %" x0 ", %" x0)      /* xmm0 = r0 r0 r1 r1 */ \
     __ASM_EMIT("movhlps     %" x0 ", %" x1)      /* xmm1 = r1 r1 ? ? */
 
+/* 1x scalar multiplication of 3 coordinates
+ * Input:
+ *   x0 = vector1 [dx dy dz ? ]
+ *   x1 = vector2 [dx dy dz ? ]
+ *   x2 = temporary
+ *
+ * Output:
+ *   x0 = result (scalar)
+ */
+#define VECTOR_DPPS3(x0, x1, x2) \
+    __ASM_EMIT("mulps       %" x1 ", %" x0)         /* xmm0 = dx0*dx1 dy0*dy1 dz0*dz1 ? */ \
+    __ASM_EMIT("movhlps     %" x0 ", %" x2)         /* xmm2 = dz0*dz1 ? ? ? */ \
+    __ASM_EMIT("addss       %" x0 ", %" x2)         /* xmm2 = dz0*dz1 + dx0*dx1 */ \
+    __ASM_EMIT("shufps      $0x55, %" x0 ", %" x0)  /* xmm0 = dy0*dy1 dy0*dy1 dy0*dy1 dy0*dy1 */ \
+    __ASM_EMIT("addss       %" x2 ", %" x0)         /* xmm0 = dz0*dz1 + dx0*dx1 */ \
+
+/* 1x scalar multiplication of 4 coordinates
+ * Input:
+ *   x0 = vector1 [dx dy dz dw ]
+ *   x1 = vector2 [dx dy dz dw ]
+ *   x2 = temporary
+ *
+ * Output:
+ *   x0 = result (scalar)
+ */
+#define VECTOR_DPPS4(x0, x1, x2) \
+    __ASM_EMIT("mulps       %" x1 ", %" x0)         /* xmm0 = dx0*dx1 dy0*dy1 dz0*dz1 dw0*dw1 = A B C D */ \
+    __ASM_EMIT("movhlps     %" x0 ", %" x2)         /* xmm2 = C D  */ \
+    __ASM_EMIT("addps       %" x2 ", %" x0)         /* xmm0 = A+C B+D */ \
+    __ASM_EMIT("unpcklps    %" x0 ", %" x0)         /* xmm0 = A+C A+C B+D B+D */ \
+    __ASM_EMIT("movhlps     %" x0 ", %" x2)         /* xmm2 = B+D B+D  */ \
+    __ASM_EMIT("addps       %" x2 ", %" x0)         /* xmm0 = A+C+B+D  */
+
 /* Get cosine of angle between two vectors
  * Input:
  *   x0 = vector1 [dx dy dz ? ]
@@ -148,11 +181,12 @@
     __ASM_EMIT("subps       %" x4 ", %" x1)          /* xmm1 = nz1 nx1 ny1 nw1 */ \
     __ASM_EMIT("subps       %" x5 ", %" x2)          /* xmm2 = nz2 nx2 ny2 nw2 */
 
-/* 3x vector multiplication
+/* 1x vector multiplication
  * Input:
  *   x0 = vector1 [dx dy dz ? ]
  *   x1 = vector2 [dx dy dz ? ]
- *   x2 = vector3 [dx dy dz ? ]
+ *   x2 = temporary
+ *   x3 = temporary
  *
  * Output:
  *   x0 = vector1 * vector2 [ vz vx vy ? ]
@@ -2698,6 +2732,52 @@ namespace sse
         );
 
         return result;
+    }
+
+    float calc_area_p3(const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    {
+        float x0, x1, x2, x3;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[p0]), %[x2]")        /* xmm0 = x0 y0 z0 w0 */
+            __ASM_EMIT("movups      (%[p1]), %[x0]")        /* xmm1 = x1 y1 z1 w1 */
+            __ASM_EMIT("movups      (%[p2]), %[x1]")        /* xmm2 = x2 y2 z2 w2 */
+            __ASM_EMIT("subps       %[x2], %[x0]")          /* xmm0 = p1 - p0 = dx1 dy1 dz1 dw1 */
+            __ASM_EMIT("subps       %[x2], %[x1]")          /* xmm1 = p2 - p0 = dx2 dy2 dz2 dw2 */
+            VECTOR_MUL("[x0]", "[x1]", "[x2]", "[x3]")      /* xmm0 = NZ NX NY NW */
+            VECTOR_DPPS3("[x0]", "[x0]", "[x2]")            /* xmm0 = NX*NX + NY*NY + NZ*NZ */
+            __ASM_EMIT("sqrtss      %[x0], %[x0]")          /* xmm0 = sqrtf(NX*NX + NY*NY + NZ*NZ) */
+
+            : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3)
+            : [p0] "r" (p0), [p1] "r" (p1), [p2] "r" (p2)
+            : "cc" , "memory"
+        );
+
+        return x0;
+    }
+
+    float calc_area_pv(const point3d_t *pv)
+    {
+        float x0, x1, x2, x3;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      0x00(%[pv]), %[x2]")    /* xmm0 = x0 y0 z0 w0 */
+            __ASM_EMIT("movups      0x10(%[pv]), %[x0]")    /* xmm1 = x1 y1 z1 w1 */
+            __ASM_EMIT("movups      0x20(%[pv]), %[x1]")    /* xmm2 = x2 y2 z2 w2 */
+            __ASM_EMIT("subps       %[x2], %[x0]")          /* xmm0 = p1 - p0 = dx1 dy1 dz1 dw1 */
+            __ASM_EMIT("subps       %[x2], %[x1]")          /* xmm1 = p2 - p0 = dx2 dy2 dz2 dw2 */
+            VECTOR_MUL("[x0]", "[x1]", "[x2]", "[x3]")      /* xmm0 = NZ NX NY NW */
+            VECTOR_DPPS3("[x0]", "[x0]", "[x2]")            /* xmm0 = NX*NX + NY*NY + NZ*NZ */
+            __ASM_EMIT("sqrtss      %[x0], %[x0]")          /* xmm0 = sqrtf(NX*NX + NY*NY + NZ*NZ) */
+
+            : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3)
+            : [pv] "r" (pv)
+            : "cc" , "memory"
+        );
+
+        return x0;
     }
 }
 
