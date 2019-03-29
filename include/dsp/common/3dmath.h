@@ -1046,9 +1046,9 @@ namespace dsp
      * lay on the split plane, the first triangle ALWAYS has 2 common points with plane (1 and 2)
      *
      * @param out array of vertexes above plane
-     * @param n_out counter of vertexes above plane (multiple of 3), should be initialized
+     * @param n_out counter of triangles above plane, should be initialized
      * @param in array of vertexes below plane
-     * @param n_in counter of vertexes below plane (multiple of 3), should be initialized
+     * @param n_in counter of triangles below plane, should be initialized
      * @param pl plane equation
      * @param pv triangle to perform the split
      */

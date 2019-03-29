@@ -226,6 +226,7 @@ namespace lsp
                 dsp::apply_matrix3d_mp2(&ctx->view.p[1], t->v[2], &tm);
                 dsp::apply_matrix3d_mp2(&ctx->view.p[2], t->v[1], &tm);
 
+                ctx->view.location  = 1.0f;
                 ctx->view.oid       = -1;
                 ctx->view.face      = -1;
                 ctx->view.speed     = SOUND_SPEED_M_S;
@@ -643,6 +644,7 @@ namespace lsp
 
         for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
         {
+            // Get current triangle to perform reflection
             rt_triangle_t *ct = ctx->triangle.get(i);
 
             // get material
@@ -650,7 +652,30 @@ namespace lsp
             if (m == NULL)
                 continue;
 
+            // Estimate co-location of source point and reflecting triangle
+            float distance  = sv.s.x * ct->n.dx + sv.s.y * ct->n.dy + sv.s.z * ct->n.dz + ct->n.dw;
+
+            // We need to skip the interaction with triangle due two reasons:
+            //   1. The ray group reaches the face with non-matching normal
+            //   2. The ray group reaches the face with matching normal but invalid object identifier
+            if (distance > 0.0f) // we're entering from outside the object inside the object
+            {
+                // The source point should be above the triangle
+                if (sv.location <= 0.0f)
+                    continue;
+            }
+            else if (distance < 0.0f)
+            {
+                // The source point should be below triangle and match the object identifier
+                if ((sv.location >= 0.0f) || (sv.oid != ct->oid))
+                    continue;
+            }
+            else
+                continue;
+
             // Estimate the start time for each trace point using barycentric coordinates
+            // Additionally filter invalid triangles
+            bool valid = true;
             for (size_t j=0; j<3; ++j)
             {
                 dsp::calc_split_point_p2v1(&p[j], &sv.s, &ct->v[j], &vpl);    // Project triangle point to trace point
@@ -659,11 +684,22 @@ namespace lsp
                 a[0]        = dsp::calc_area_p3(&p[j], &sv.p[1], &sv.p[2]);   // Compute area 0
                 a[1]        = dsp::calc_area_p3(&p[j], &sv.p[0], &sv.p[2]);   // Compute area 1
                 a[2]        = dsp::calc_area_p3(&p[j], &sv.p[0], &sv.p[1]);   // Compute area 2
+
+                float dA    = A - (a[0] + a[1] + a[2]); // Point should lay within the view
+                if ((dA <= -DSP_3D_TOLERANCE) || (dA >= DSP_3D_TOLERANCE))
+                {
+                    valid = false;
+                    break;
+                }
+
                 t[j]        = (sv.time[0] * a[0] + sv.time[1] * a[1] + sv.time[2] * a[2]) * revA; // Compute projected point's time
                 v.time[j]   = t[j] + (d[j] / sv.speed);
                 if (v.time[j] > 1.0f)
                     invalid_state_hook();
             }
+
+            if (!valid)
+                continue;
 
             // Compute area of projected triangle
             float area  = dsp::calc_area_pv(p);
@@ -675,26 +711,12 @@ namespace lsp
             v.face      = ct->face;
             v.s         = sv.s;
             v.amplitude = sv.amplitude * sqrtf(area * revA);
+            v.location  = sv.location;
             v.speed     = sv.speed;
             v.rnum      = sv.rnum;
             v.p[0]      = ct->v[0];
             v.p[1]      = ct->v[1];
             v.p[2]      = ct->v[2];
-
-            RT_TRACE_BREAK(trace->pDebug,
-                lsp_trace("Reflecting triangle area=%e amplitude=%e",
-                        area, v.amplitude);
-                ctx->trace.add_triangle_1c(ct, &C_YELLOW);
-                ctx->trace.add_triangle_pvnc1(sv.p, &vpl, &C_MAGENTA);
-                ctx->trace.add_plane_3pn1c(&ct->v[0], &ct->v[1], &ct->v[2], &ct->n, &C_MAGENTA);
-                ctx->trace.add_plane_3pn1c(&sv.p[0], &sv.p[1], &sv.p[2], &ct->n, &C_YELLOW);
-                ctx->trace.add_view_1c(&sv, &C_MAGENTA);
-                ctx->trace.add_segment(&v.p[0], &ct->v[0], &C_RED);
-                ctx->trace.add_segment(&v.p[1], &ct->v[1], &C_GREEN);
-                ctx->trace.add_segment(&v.p[2], &ct->v[2], &C_BLUE);
-            );
-
-            float distance  = sv.s.x * ct->n.dx + sv.s.y * ct->n.dy + sv.s.z * ct->n.dz + ct->n.dw;
 
             RT_TRACE_BREAK(trace->pDebug,
                 lsp_trace("Projection points distance: {%f, %f, %f}", d[0], d[1], d[2]);
@@ -735,6 +757,7 @@ namespace lsp
                 tv.s.x         += kd * ct->n.dx;
                 tv.s.y         += kd * ct->n.dy;
                 tv.s.z         += kd * ct->n.dz;
+                tv.location     = - v.location;     // Invert location of transparent trace
 
                 if (tv.speed > 5000.0f)
                     invalid_state_hook();
@@ -770,6 +793,7 @@ namespace lsp
                 tv.s.x         += kd * ct->n.dx;
                 tv.s.y         += kd * ct->n.dy;
                 tv.s.z         += kd * ct->n.dz;
+                tv.location     = - v.location;     // Invert location of transparent trace
 
                 if (tv.speed > 5000.0f)
                     invalid_state_hook();
@@ -789,7 +813,7 @@ namespace lsp
             }
 
             // Perform capture
-            if (ct->oid < trace->vCaptures.size())
+            if (size_t(ct->oid) < trace->vCaptures.size())
             {
                 capture_t *cap  = trace->vCaptures.get(ct->oid);
                 if (cap->bindings.size() > 0)
@@ -1550,8 +1574,8 @@ namespace lsp
         dsp::calc_plane_p3(&pl[2], &view->s, &view->p[2], &view->p[0]);
         dsp::calc_plane_p3(&pl[3], &view->p[0], &view->p[1], &view->p[2]);
 
-        raw_triangle_t out[16], buf1[16], buf2[16], *q, *in, *tmp;
-        size_t n_out, n_buf1, n_buf2, *n_q, *n_in, *n_tmp;
+        raw_triangle_t out[16], buf1[16], buf2[16], *q, *in;
+        size_t n_out, n_buf1, n_buf2, *n_q, *n_in;
 
         // Cull each triangle of bounding box with four scissor planes
         for (size_t j=0, m = sizeof(bbox_map)/sizeof(size_t); j < m; )
@@ -1561,8 +1585,8 @@ namespace lsp
             n_q = &n_buf1, n_in = &n_buf2;
 
             // Put to queue with updated matrix
-            *n_q        = 1;
-            n_out       = 0;
+            n_buf1      = 1;    // One triangle in buffer 1
+            n_buf2      = 0;    // No triangles in buffer 2
             q->p[0]     = bbox->p[bbox_map[j++]];
             q->p[1]     = bbox->p[bbox_map[j++]];
             q->p[2]     = bbox->p[bbox_map[j++]];
@@ -1572,6 +1596,7 @@ namespace lsp
             {
                 // Reset counters
                 *n_in   = 0;
+                n_out   = 0;
 
                 // Split all triangles:
                 // Put all triangles above the plane to out
@@ -1580,7 +1605,10 @@ namespace lsp
                 {
                     dsp::split_triangle_raw(out, &n_out, in, n_in, &pl[k], &q[l]);
                     if ((n_out > 16) || ((*n_in) > 16))
+                    {
                         lsp_trace("split overflow: n_out=%d, n_in=%d", int(n_out), int(*n_in));
+//                        check_bound_box(bbox, view); // DEBUG: replay
+                    }
                 }
 
                 // Interrupt cycle if there is no data to process
@@ -1588,9 +1616,8 @@ namespace lsp
                    break;
 
                 // Swap buffers buf0 <-> buf1
-                n_tmp = n_in, tmp = in;
-                n_in = n_q, in = q;
-                n_q = n_tmp, q = tmp;
+                ::swap(n_q, n_in);
+                ::swap(in, q);
             }
 
             if ((*n_in) > 0)

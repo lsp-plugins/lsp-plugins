@@ -32,6 +32,7 @@ namespace lsp
 
         // Initialize point of view
         view.amplitude  = 0.0f;
+        view.location   = 0.0f; // Undefined
         view.face       = -1;
         view.oid        = -1;
         view.speed      = SOUND_SPEED_M_S;

@@ -5,6 +5,8 @@
  *      Author: sadko
  */
 
+#if 0
+
 #include <test/mtest.h>
 #include <test/mtest/3d/common/X11Renderer.h>
 #include <core/files/Model3DFile.h>
@@ -234,3 +236,4 @@ MTEST_BEGIN("3d", boolean)
 
 MTEST_END
 
+#endif

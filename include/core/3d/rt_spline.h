@@ -8,6 +8,8 @@
 #ifndef CORE_3D_RT_SPLINE_H_
 #define CORE_3D_RT_SPLINE_H_
 
+#if 0
+
 #include <core/3d/common.h>
 #include <data/cvector.h>
 
@@ -91,5 +93,7 @@ namespace lsp
 
     } rt_spline_t;
 }
+
+#endif
 
 #endif /* INCLUDE_CORE_3D_RT_SPLINE_T_H_ */

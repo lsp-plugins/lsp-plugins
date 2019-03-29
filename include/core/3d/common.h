@@ -147,7 +147,7 @@ namespace lsp
     {
         point3d_t           v[3];       // Triangle points
         vector3d_t          n;          // Normal
-        size_t              oid;        // Object identifier
+        ssize_t             oid;        // Object identifier
         size_t              face;       // Face identifier
         rt_material_t      *m;          // Material
         __IF_64(uint64_t    __pad;)     // Alignment to be sizeof() multiple of 16
@@ -163,6 +163,14 @@ namespace lsp
         float           permeability;       // Sound permeability of the object (inner sound speed / outer sound speed)
     } rt_material_t;
 
+#if 1
+    typedef struct rtm_vertex_t: public point3d_t
+    {
+        void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
+        ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
+        __IF_32(uint32_t    __pad[2];)  // Alignment to be sizeof() multiple of 16
+    } rtm_vertex_t;
+#else
     typedef struct rtm_vertex_t: public point3d_t
     {
         rtm_edge_t         *ve;         // List of linked edges
@@ -170,7 +178,8 @@ namespace lsp
         ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
         __IF_64(uint64_t    __pad;)     // Alignment to be sizeof() multiple of 16
         __IF_32(uint32_t    __pad;)     // Alignment to be sizeof() multiple of 16
-    } rtm_vertex_t;
+    }rtm_vertex_t;
+#endif
 
     typedef struct rtm_edge_t
     {
@@ -204,8 +213,9 @@ namespace lsp
         float               time[3];    // The corresponding start time for each source point
         float               amplitude;  // The amplitude of the signal
         float               speed;      // This value indicates the current sound speed [m/s]
-        ssize_t             oid;        // Object identifier
-        ssize_t             face;       // Object's face to ignore
+        float               location;   // The expected co-location to the next surface
+        ssize_t             oid;        // Last interacted object identifier
+        ssize_t             face;       // Last interacted object's face identifier
         ssize_t             rnum;       // The reflection number
     } rt_view_t;
 

@@ -5,6 +5,8 @@
  *      Author: sadko
  */
 
+#if 0
+
 #include <core/3d/rt_spline.h>
 
 namespace lsp
@@ -187,4 +189,4 @@ namespace lsp
 
 }
 
-
+#endif
