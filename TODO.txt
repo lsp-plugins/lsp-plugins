@@ -11,6 +11,7 @@
 === 1.1.10 ===
 
 * Fixed improper InlineDisplay feature support in LV2 TTL files.
+* Plugin names now have 'LSP' prefix for the LV2 format.
 - Implemented 3D reverb simulator.
 - Added 3D scene rendeding support in the UI.
 - Additional code updates to get compatibility with WindowsNT platform.
