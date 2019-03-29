@@ -1881,7 +1881,7 @@ namespace native
         return wl;
     }
 
-    inline void calc_normal3d_v2(vector3d_t *n, const vector3d_t *v1, const vector3d_t *v2)
+    void calc_normal3d_v2(vector3d_t *n, const vector3d_t *v1, const vector3d_t *v2)
     {
         // Calculate vector multiplication
         n->dx       = v1->dy * v2->dz - v1->dz * v2->dy;
@@ -1898,7 +1898,7 @@ namespace native
         }
     }
 
-    inline void calc_normal3d_vv(vector3d_t *n, const vector3d_t *vv)
+    void calc_normal3d_vv(vector3d_t *n, const vector3d_t *vv)
     {
         // Calculate vector multiplication
         n->dx       = vv[0].dy * vv[1].dz - vv[0].dz * vv[1].dy;
@@ -1945,7 +1945,7 @@ namespace native
         calc_normal3d_vv(n, d);
     }
 
-    inline void vector_mul_v2(vector3d_t *r, const vector3d_t *v1, const vector3d_t *v2)
+    void vector_mul_v2(vector3d_t *r, const vector3d_t *v1, const vector3d_t *v2)
     {
         vector3d_t x;
         x.dx        = v1->dy * v2->dz - v1->dz * v2->dy;
@@ -1954,7 +1954,7 @@ namespace native
         *r          = x;
     }
 
-    inline void vector_mul_vv(vector3d_t *r, const vector3d_t *vv)
+    void vector_mul_vv(vector3d_t *r, const vector3d_t *vv)
     {
         vector3d_t x;
         x.dx        = vv[0].dy * vv[1].dz - vv[0].dz * vv[1].dy;
