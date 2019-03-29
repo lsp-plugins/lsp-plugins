@@ -327,17 +327,10 @@ namespace sse
         EXPORT1(apply_matrix3d_mm1);
         EXPORT1(transpose_matrix3d1);
         EXPORT1(transpose_matrix3d2);
-
-//            EXPORT1(check_point3d_location_tp);
-//            EXPORT1(check_point3d_location_pvp);
-//            EXPORT1(check_point3d_location_p3p);
-
+        
         EXPORT1(check_point3d_on_triangle_p3p);
         EXPORT1(check_point3d_on_triangle_pvp);
         EXPORT1(check_point3d_on_triangle_tp);
-
-        EXPORT1(check_point3d_on_edge_p2p);
-        EXPORT1(check_point3d_on_edge_pvp);
 
         EXPORT1(longest_edge3d_p3);
         EXPORT1(longest_edge3d_pv);
@@ -350,7 +343,6 @@ namespace sse
         EXPORT1(check_triplet3d_t);
         EXPORT1(check_triplet3d_tn);
 
-        EXPORT1(find_intersection3d_rt);
 //            EXPORT1(reflect_ray);
 
         EXPORT1(calc_angle3d_v2);

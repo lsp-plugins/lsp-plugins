@@ -691,22 +691,6 @@ namespace dsp
      */
     extern float (* check_point3d_on_triangle_p3p)(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p);
 
-    /** Check that point lies on the edge
-     *
-     * @param p1 edge point 1
-     * @param p2 edge point 2
-     * @param p point to check
-     * @return value >= 0 if point lies within edge
-     */
-    extern float (* check_point3d_on_edge_p2p)(const point3d_t *p1, const point3d_t *p2, const point3d_t *p);
-
-    /** Check that point lies on the edge
-     *
-     * @param p array of two edges
-     * @param p point to check
-     * @return value >= 0 if point lies within edge
-     */
-    extern float (* check_point3d_on_edge_pvp)(const point3d_t *pv, const point3d_t *p);
 
     /** Return the index of longest edge between three points
      *

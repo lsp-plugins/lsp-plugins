@@ -360,20 +360,12 @@ namespace dsp
     float   (* check_triplet3d_t)(const triangle3d_t *t) = NULL;
     float   (* check_triplet3d_tn)(const triangle3d_t *t, const vector3d_t *n) = NULL;
 
-    float   (* check_point3d_location_tp)(const triangle3d_t *t, const point3d_t *p) = NULL;
-    float   (* check_point3d_location_pvp)(const point3d_t *t, const point3d_t *p) = NULL;
-    float   (* check_point3d_location_p3p)(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p) = NULL;
-
-    float   (* check_point3d_on_edge_p2p)(const point3d_t *p1, const point3d_t *p2, const point3d_t *p) = NULL;
-    float   (* check_point3d_on_edge_pvp)(const point3d_t *pv, const point3d_t *p) = NULL;
-
     float   (* check_point3d_on_triangle_p3p)(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const point3d_t *p) = NULL;
     float   (* check_point3d_on_triangle_pvp)(const point3d_t *pv, const point3d_t *p) = NULL;
     float   (* check_point3d_on_triangle_tp)(const triangle3d_t *t, const point3d_t *p) = NULL;
 
     size_t  (* longest_edge3d_p3)(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3) = NULL;
     size_t  (* longest_edge3d_pv)(const point3d_t *p) = NULL;
-    float   (* find_intersection3d_rt)(point3d_t *ip, const ray3d_t *l, const triangle3d_t *t) = NULL;
 
     void    (* reflect_ray)(raytrace3d_t *rt, raytrace3d_t *rf, const intersection3d_t *ix) = NULL;
 
