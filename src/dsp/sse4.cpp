@@ -73,6 +73,9 @@ namespace sse4
         EXPORT1(scale_vector1);
         EXPORT1(scale_vector2);
 
+//        EXPORT1(colocation_v1p3);
+//        EXPORT1(colocation_v1pv);
+
         EXPORT1(check_point3d_on_triangle_p3p);
         EXPORT1(check_point3d_on_triangle_pvp);
         EXPORT1(check_point3d_on_triangle_tp);

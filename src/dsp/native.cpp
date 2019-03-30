@@ -403,6 +403,8 @@ namespace native
         EXPORT1(projection_length_v2);
 
         EXPORT1(split_triangle_raw);
+        EXPORT1(colocation_v1p3);
+        EXPORT1(colocation_v1pv);
 
         EXPORT1(convolve);
     }

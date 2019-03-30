@@ -319,16 +319,9 @@ namespace lsp
     {
         Allocator3D<rt_triangle_t> in(1024);
         rt_triangle_t *nt1, *nt2;
-        float k[3];
 
         RT_FOREACH(rt_triangle_t, t, triangle)
-            k[0]    = t->v[0].x * pl->dx + t->v[0].y * pl->dy + t->v[0].z * pl->dz + pl->dw;
-            k[1]    = t->v[1].x * pl->dx + t->v[1].y * pl->dy + t->v[1].z * pl->dz + pl->dw;
-            k[2]    = t->v[2].x * pl->dx + t->v[2].y * pl->dy + t->v[2].z * pl->dz + pl->dw;
-
-            size_t tag  = (k[0] > DSP_3D_TOLERANCE) ? 0x00 : (k[0] < -DSP_3D_TOLERANCE) ? 0x02 : 0x01;
-            tag        |= (k[1] > DSP_3D_TOLERANCE) ? 0x00 : (k[1] < -DSP_3D_TOLERANCE) ? 0x08 : 0x04;
-            tag        |= (k[2] > DSP_3D_TOLERANCE) ? 0x00 : (k[2] < -DSP_3D_TOLERANCE) ? 0x20 : 0x10;
+            size_t tag  = dsp::colocation_v1pv(pl, t->v);
 
             switch (tag)
             {
@@ -449,16 +442,9 @@ namespace lsp
     {
         Allocator3D<rt_triangle_t> in(1024);
         rt_triangle_t *nt1, *nt2;
-        float k[3];
 
         RT_FOREACH(rt_triangle_t, t, triangle)
-            k[0]    = t->v[0].x * pl->dx + t->v[0].y * pl->dy + t->v[0].z * pl->dz + pl->dw;
-            k[1]    = t->v[1].x * pl->dx + t->v[1].y * pl->dy + t->v[1].z * pl->dz + pl->dw;
-            k[2]    = t->v[2].x * pl->dx + t->v[2].y * pl->dy + t->v[2].z * pl->dz + pl->dw;
-
-            size_t tag  = (k[0] > DSP_3D_TOLERANCE) ? 0x00 : (k[0] < -DSP_3D_TOLERANCE) ? 0x02 : 0x01;
-            tag        |= (k[1] > DSP_3D_TOLERANCE) ? 0x00 : (k[1] < -DSP_3D_TOLERANCE) ? 0x08 : 0x04;
-            tag        |= (k[2] > DSP_3D_TOLERANCE) ? 0x00 : (k[2] < -DSP_3D_TOLERANCE) ? 0x20 : 0x10;
+            size_t tag  = dsp::colocation_v1pv(pl, t->v);
 
             switch (tag)
             {
@@ -581,16 +567,9 @@ namespace lsp
     {
         Allocator3D<rt_triangle_t> xin(1024), xout(1024);
         rt_triangle_t *nt1, *nt2, *nt3;
-        float k[3];
 
         RT_FOREACH(rt_triangle_t, t, triangle)
-            k[0]    = t->v[0].x * pl->dx + t->v[0].y * pl->dy + t->v[0].z * pl->dz + pl->dw;
-            k[1]    = t->v[1].x * pl->dx + t->v[1].y * pl->dy + t->v[1].z * pl->dz + pl->dw;
-            k[2]    = t->v[2].x * pl->dx + t->v[2].y * pl->dy + t->v[2].z * pl->dz + pl->dw;
-
-            size_t tag  = (k[0] > DSP_3D_TOLERANCE) ? 0x00 : (k[0] < -DSP_3D_TOLERANCE) ? 0x02 : 0x01;
-            tag        |= (k[1] > DSP_3D_TOLERANCE) ? 0x00 : (k[1] < -DSP_3D_TOLERANCE) ? 0x08 : 0x04;
-            tag        |= (k[2] > DSP_3D_TOLERANCE) ? 0x00 : (k[2] < -DSP_3D_TOLERANCE) ? 0x20 : 0x10;
+            size_t tag  = dsp::colocation_v1pv(pl, t->v);
 
             switch (tag)
             {
