@@ -89,29 +89,32 @@ namespace lsp
                     stats_t                 stats;
                     cvector<rt_context_t>   tasks;
                     rt_mesh_t               root;
+                    ssize_t                 heavy_state;
                     RTObjectFactory         factory;
 
                 protected:
                     status_t    main_loop();
-                    status_t    process_context(cvector<rt_context_t> *tasks, rt_context_t *ctx);
+                    status_t    process_context(rt_context_t *ctx);
 
-                    status_t    scan_objects(cvector<rt_context_t> *tasks, rt_context_t *ctx);
-                    status_t    cull_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
-                    status_t    split_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
-                    status_t    cullback_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
-                    status_t    reflect_view(cvector<rt_context_t> *tasks, rt_context_t *ctx);
+                    status_t    scan_objects(rt_context_t *ctx);
+                    status_t    cull_view(rt_context_t *ctx);
+                    status_t    split_view(rt_context_t *ctx);
+                    status_t    cullback_view(rt_context_t *ctx);
+                    status_t    reflect_view(rt_context_t *ctx);
                     status_t    capture(capture_t *capture, const rt_view_t *v, View3D *trace);
 
                     status_t    generate_root_mesh();
                     status_t    generate_tasks(cvector<rt_context_t> *tasks, float initial);
                     status_t    check_object(rt_context_t *ctx, Object3D *obj, const matrix3d_t *m);
 
+                    status_t    submit_task(rt_context_t *ctx);
+
                 public:
                     TaskThread(RayTrace3D *trace);
                     virtual ~TaskThread();
 
                 public:
-                    status_t    prepare_main_loop(cvector<rt_context_t> *tasks, float initial);
+                    status_t    prepare_main_loop(float initial);
                     status_t    prepare_supplementary_loop(TaskThread *t);
 
                     virtual status_t run();
@@ -136,6 +139,7 @@ namespace lsp
             rt_debug_t                 *pDebug;
 
             cvector<rt_context_t>       vTasks;
+            size_t                      nQueueSize;
             size_t                      nProgressPoints;
             size_t                      nProgressMax;
             ipc::Mutex                  lkTasks;

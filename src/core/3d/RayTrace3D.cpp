@@ -33,6 +33,7 @@ namespace lsp
     RayTrace3D::TaskThread::TaskThread(RayTrace3D *trace)
     {
         this->trace     = trace;
+        heavy_state     = S_SCAN_OBJECTS;
     }
 
     RayTrace3D::TaskThread::~TaskThread()
@@ -67,33 +68,29 @@ namespace lsp
             // Try to fetch new task from internal queue
             if (!tasks.pop(&ctx))
             {
-                // Check size of collection
-                if (tasks.size() > 0)
-                    return STATUS_CORRUPTED;
-
-                // We could not obtain new task from internal queue, steal if from common queue
+                // Are there any tasks left in global space?
                 trace->lkTasks.lock();
                 if (!trace->vTasks.pop(&ctx))
                 {
-                    if (trace->vTasks.size() > 0)
-                        res = STATUS_CORRUPTED;
-                    else
-                        ctx = NULL;
-                }
-                trace->lkTasks.unlock();
-                if (res != STATUS_OK)
+                    trace->lkTasks.unlock();
                     break;
+                }
 
                 // Update statistics
-                report      = true;
+                if (trace->nQueueSize > trace->vTasks.size())
+                {
+                    report      = true;
+                    trace->nQueueSize  = trace->vTasks.size();
+                }
                 ++stats.tasks_stolen;
+                trace->lkTasks.unlock();
             }
 
             if (ctx == NULL)
                 break;
 
             // Process context state
-            res     = process_context(&tasks, ctx);
+            res     = process_context(ctx);
 
             // Report status if required
             if ((res == STATUS_OK) && (report))
@@ -118,7 +115,20 @@ namespace lsp
         return res;
     }
 
-    status_t RayTrace3D::TaskThread::process_context(cvector<rt_context_t> *tasks, rt_context_t *ctx)
+    status_t RayTrace3D::TaskThread::submit_task(rt_context_t *ctx)
+    {
+        // 'Leightweight' state ?
+        if (ctx->state != heavy_state)
+            return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+
+        // This is 'heavy' state, submit it to global queue
+        trace->lkTasks.lock();
+        status_t res = (trace->vTasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+        trace->lkTasks.unlock();
+        return res;
+    }
+
+    status_t RayTrace3D::TaskThread::process_context(rt_context_t *ctx)
     {
         status_t res;
 
@@ -126,23 +136,23 @@ namespace lsp
         {
             case S_SCAN_OBJECTS:
                 ++stats.calls_scan;
-                res     = scan_objects(tasks, ctx);
+                res     = scan_objects(ctx);
                 break;
             case S_CULL_VIEW:
                 ++stats.calls_cull;
-                res     = cull_view(tasks, ctx);
+                res     = cull_view(ctx);
                 break;
             case S_SPLIT:
                 ++stats.calls_split;
-                res     = split_view(tasks, ctx);
+                res     = split_view(ctx);
                 break;
             case S_CULL_BACK:
                 ++stats.calls_cullback;
-                res     = cullback_view(tasks, ctx);
+                res     = cullback_view(ctx);
                 break;
             case S_REFLECT:
                 ++stats.calls_reflect;
-                res     = reflect_view(tasks,ctx);
+                res     = reflect_view(ctx);
                 break;
             default:
                 res = STATUS_BAD_STATE;
@@ -226,6 +236,7 @@ namespace lsp
                 dsp::apply_matrix3d_mp2(&ctx->view.p[1], t->v[2], &tm);
                 dsp::apply_matrix3d_mp2(&ctx->view.p[2], t->v[1], &tm);
 
+                ctx->state          = S_SCAN_OBJECTS;
                 ctx->view.location  = 1.0f;
                 ctx->view.oid       = -1;
                 ctx->view.face      = -1;
@@ -417,7 +428,7 @@ namespace lsp
     }
 
 
-    status_t RayTrace3D::TaskThread::scan_objects(cvector<rt_context_t> *tasks, rt_context_t *ctx)
+    status_t RayTrace3D::TaskThread::scan_objects(rt_context_t *ctx)
     {
         status_t res = STATUS_OK;
 
@@ -497,10 +508,10 @@ namespace lsp
 
         // Update state
         ctx->state      = S_CULL_VIEW;
-        return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+        return submit_task(ctx);
     }
 
-    status_t RayTrace3D::TaskThread::cull_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
+    status_t RayTrace3D::TaskThread::cull_view(rt_context_t *ctx)
     {
         status_t res = ctx->cull_view();
         if (res != STATUS_OK)
@@ -519,10 +530,10 @@ namespace lsp
         else
             ctx->state  = S_SPLIT;
 
-        return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+        return submit_task(ctx);
     }
 
-    status_t RayTrace3D::TaskThread::split_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
+    status_t RayTrace3D::TaskThread::split_view(rt_context_t *ctx)
     {
         rt_context_t out;
         RT_TRACE(trace->pDebug, out.set_debug_context(trace->pDebug); );
@@ -532,7 +543,7 @@ namespace lsp
         if (res == STATUS_NOT_FOUND)
         {
             ctx->state      = S_CULL_BACK;
-            return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+            return submit_task(ctx);
         }
         else if (res != STATUS_OK)
             return res;
@@ -547,11 +558,6 @@ namespace lsp
                 rt_context_t *nctx = new rt_context_t(&ctx->view, (out.triangle.size() > 1) ? S_SPLIT : S_REFLECT);
                 if (nctx == NULL)
                     return STATUS_NO_MEM;
-                else if (!tasks->push(nctx))
-                {
-                    delete nctx;
-                    return STATUS_NO_MEM;
-                }
 
                 RT_TRACE(trace->pDebug,
                     nctx->set_debug_context(trace->pDebug);
@@ -566,25 +572,33 @@ namespace lsp
                 );
 
                 nctx->swap(&out);
+
+                // Submit task
+                res = submit_task(nctx);
+                if (res != STATUS_OK)
+                {
+                    delete nctx;
+                    return res;
+                }
             }
 
             // Update context state
             ctx->state  = (ctx->triangle.size() > 1) ? S_SPLIT : S_REFLECT;
-            return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+            return submit_task(ctx);
         }
         else if (out.triangle.size() > 0)
         {
             ctx->swap(&out);
             ctx->state  = (ctx->triangle.size() > 1) ? S_SPLIT : S_REFLECT;
 
-            return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+            return submit_task(ctx);
         }
 
         delete ctx;
         return STATUS_OK;
     }
 
-    status_t RayTrace3D::TaskThread::cullback_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
+    status_t RayTrace3D::TaskThread::cullback_view(rt_context_t *ctx)
     {
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("Performing depth test...");
@@ -612,7 +626,7 @@ namespace lsp
         }
         ctx->state  = S_REFLECT;
 
-        return (tasks->push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+        return submit_task(ctx);
     }
 
     void invalid_state_hook()
@@ -620,7 +634,7 @@ namespace lsp
         lsp_error("Invalid state");
     }
 
-    status_t RayTrace3D::TaskThread::reflect_view(cvector<rt_context_t> *tasks, rt_context_t *ctx)
+    status_t RayTrace3D::TaskThread::reflect_view(rt_context_t *ctx)
     {
         rt_context_t *rc;
         rt_view_t sv, v, cv, rv, tv;    // source view, view, captured view, reflected view, transparent trace
@@ -839,16 +853,17 @@ namespace lsp
                     res = STATUS_NO_MEM;
                     break;
                 }
-                if (!tasks->add(rc))
-                {
-                    delete rc;
-                    res = STATUS_NO_MEM;
-                    break;
-                }
 
                 RT_TRACE(trace->pDebug,
                     rc->set_debug_context(trace->pDebug);
                 );
+
+                res = submit_task(rc);
+                if (res != STATUS_OK)
+                {
+                    delete rc;
+                    break;
+                }
             }
 
             // Create refraction context
@@ -860,16 +875,17 @@ namespace lsp
                     res = STATUS_NO_MEM;
                     break;
                 }
-                if (!tasks->add(rc))
-                {
-                    delete rc;
-                    res = STATUS_NO_MEM;
-                    break;
-                }
 
                 RT_TRACE(trace->pDebug,
                     rc->set_debug_context(trace->pDebug);
                 );
+
+                res = submit_task(rc);
+                if (res != STATUS_OK)
+                {
+                    delete rc;
+                    break;
+                }
             }
         }
 
@@ -1034,7 +1050,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t RayTrace3D::TaskThread::prepare_main_loop(cvector<rt_context_t> *tasks, float initial)
+    status_t RayTrace3D::TaskThread::prepare_main_loop(float initial)
     {
         // Report progress as 0%
         status_t res    = trace->report_progress(0.0f);
@@ -1064,67 +1080,72 @@ namespace lsp
         // Generate ray-tracing tasks
         rt_context_t *ctx = NULL;
         cvector<rt_context_t> estimate;
-        res         = generate_tasks(tasks, initial);
+        res         = generate_tasks(&estimate, initial);
         if (res != STATUS_OK)
         {
-            destroy_tasks(tasks);
+            destroy_tasks(&estimate);
             return res;
         }
         else if (trace->bCancelled)
         {
-            destroy_tasks(tasks);
+            destroy_tasks(&estimate);
             return STATUS_CANCELLED;
         }
 
         // Estimate the progress by doing set of steps
+        heavy_state = -1; // This guarantees that all tasks will be submitted to local task queue
         do
         {
-            while (tasks->size() > 0)
+            while (estimate.size() > 0)
             {
                 // Check cancellation flag
                 if (trace->bCancelled)
                 {
-                    destroy_tasks(tasks);
+                    destroy_tasks(&tasks);
                     destroy_tasks(&estimate);
                     return STATUS_CANCELLED;
                 }
 
                 // Get new task
-                if (!tasks->pop(&ctx))
+                if (!estimate.pop(&ctx))
                 {
-                    destroy_tasks(tasks);
+                    destroy_tasks(&tasks);
                     destroy_tasks(&estimate);
                     return STATUS_CORRUPTED;
                 }
 
                 // Process new task but store into
-                res     = process_context(&estimate, ctx);
+                res     = process_context(ctx);
                 if (res != STATUS_OK)
                 {
-                    destroy_tasks(tasks);
+                    destroy_tasks(&tasks);
                     destroy_tasks(&estimate);
                     return res;
                 }
             }
 
-            // Perform swap
-            tasks->swap_data(&estimate);
-        } while ((tasks->size() > 0) && (tasks->size() < 1000));
+            // Perform swap: empty local tasks, fill 'estimate' with them
+            estimate.swap_data(&tasks);
+        } while ((estimate.size() > 0) && (estimate.size() < 1000));
+
+        heavy_state         = S_SCAN_OBJECTS; // Enable global task queue for this thread
+        trace->vTasks.swap_data(&estimate); // Now all generated tasks are global
 
         // Values to report progress
         trace->nProgressPoints  = 1;
-        trace->nProgressMax     = tasks->size() + 2;
+        trace->nQueueSize       = trace->vTasks.size();
+        trace->nProgressMax     = trace->nQueueSize + 2;
 
         // Report progress
         res         = trace->report_progress(float(trace->nProgressPoints++) / float(trace->nProgressMax));
         if (res != STATUS_OK)
         {
-            destroy_tasks(tasks);
+            destroy_tasks(&trace->vTasks);
             return res;
         }
         else if (trace->bCancelled)
         {
-            destroy_tasks(tasks);
+            destroy_tasks(&trace->vTasks);
             return STATUS_CANCELLED;
         }
 
@@ -1148,6 +1169,7 @@ namespace lsp
         fTolerance      = 1e-5f;
         bNormalize      = true;
         bCancelled      = false;
+        nQueueSize      = 0;
         nProgressPoints = 0;
         nProgressMax    = 0;
     }
@@ -1270,7 +1292,7 @@ namespace lsp
 
     void RayTrace3D::destroy(bool recursive)
     {
-//        destroy_tasks(&vTasks);
+        destroy_tasks(&vTasks);
         clear_progress_callback();
         remove_scene(recursive);
 
@@ -1409,7 +1431,7 @@ namespace lsp
             return STATUS_NO_MEM;
 
         // Launch prepare_main_loop in root thread's context
-        res    = root->prepare_main_loop(&vTasks, initial);
+        res    = root->prepare_main_loop(initial);
         if (res != STATUS_OK)
         {
             delete root;
