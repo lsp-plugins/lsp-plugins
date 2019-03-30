@@ -358,8 +358,6 @@ namespace sse
         EXPORT1(calc_split_point_p2v1);
         EXPORT1(calc_split_point_pvv1);
 
-        EXPORT1(check_octant3d_rv);
-
         EXPORT1(colocation_v1p3);
         EXPORT1(colocation_v1pv);
 
@@ -369,6 +367,8 @@ namespace sse
 
         EXPORT1(calc_area_p3);
         EXPORT1(calc_area_pv);
+        EXPORT1(calc_min_distance_p3);
+        EXPORT1(calc_min_distance_pv);
 
         EXPORT1(convolve);
     }

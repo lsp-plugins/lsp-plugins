@@ -1809,157 +1809,6 @@ namespace sse
         return x0;
     }
 
-    void reflect_ray(raytrace3d_t *rt, raytrace3d_t *rf, const intersection3d_t *ix)
-    {
-        // TODO: update algorithm
-        void *p1, *p2;
-        size_t tmp;
-
-        material3d_t m __lsp_aligned16;
-        const material3d_t **mp     = const_cast<const material3d_t **>(ix->m);
-        const triangle3d_t **tp     = const_cast<const triangle3d_t **>(ix->t);
-        size_t n                    = ix->n;
-
-        ARCH_X86_ASM
-        (
-            __ASM_EMIT("mov         (%[m]), %[p1]")
-            __ASM_EMIT("mov         (%[t]), %[p2]")
-            __ASM_EMIT("movups      0x00(%[p1]), %%xmm1")       // xmm1 = material[0..3]
-            __ASM_EMIT("movups      0x10(%[p1]), %%xmm2")       // xmm2 = material[4..7]
-            __ASM_EMIT("movups      0x30(%[p2]), %%xmm0")       // xmm0 = nx ny nz nw
-            __ASM_EMIT("dec         %[n]")                      // n--
-            __ASM_EMIT("jz          3f")
-            __ASM_EMIT("mov         %[n], %[tmp]")              // store N-1
-            __ASM_EMIT("1:")
-
-            // Calculate average normal and material
-            __ASM_EMIT("add         %[step], %[m]")             // p1++
-            __ASM_EMIT("add         %[step], %[t]")             // p2++
-            __ASM_EMIT("mov         (%[m]), %[p1]")
-            __ASM_EMIT("mov         (%[t]), %[p2]")
-            __ASM_EMIT("movups      0x00(%[p1]), %%xmm4")       // xmm4 = material[0..3]
-            __ASM_EMIT("movups      0x10(%[p1]), %%xmm5")       // xmm5 = material[4..7]
-            __ASM_EMIT("movups      0x00(%[p2]), %%xmm3")       // xmm3 = nx ny nz nw
-            __ASM_EMIT("addps       %%xmm4, %%xmm1")
-            __ASM_EMIT("addps       %%xmm5, %%xmm2")
-            __ASM_EMIT("addps       %%xmm3, %%xmm0")
-            __ASM_EMIT("dec         %[n]")                      // n--
-            __ASM_EMIT("jnz         1b")
-
-            // Normalize normal
-            __ASM_EMIT("mov         %[tmp], %[n]")              // restore N-1
-            NORMALIZE("%xmm0", "%xmm3", "%xmm4")
-            __ASM_EMIT("inc         %[n]")
-            __ASM_EMIT("cvtsi2ss    %[n], %%xmm3")
-            __ASM_EMIT("shufps      $0x00, %%xmm3, %%xmm3")
-            __ASM_EMIT("divps       %%xmm3, %%xmm1")
-            __ASM_EMIT("divps       %%xmm3, %%xmm2")
-
-            __ASM_EMIT("3:")
-
-            // Store material
-            __ASM_EMIT("lea         %[mat], %[p1]")
-            __ASM_EMIT("movaps      %%xmm1, 0x00(%[p1])")
-            __ASM_EMIT("movaps      %%xmm2, 0x10(%[p1])")
-
-            : [m] "+r" (mp), [t] "+r" (tp), [n] "+r" (n), __IF_64([tmp] "=&r" (tmp), )
-              [p1] "=&r" (p1), [p2] "=&r" (p2)
-            : __IF_32([tmp] "m" (tmp), )
-              [step] "i" (sizeof(void *)),
-              [mat] "m" (m)
-            : "cc", "memory",
-                "%xmm0", "%xmm1", "%xmm2", "%xmm3", "%xmm4", "%xmm5"
-        );
-
-        float x0, x1, x2, x3;
-
-        ARCH_X86_ASM
-        (
-            // Calculate the tangent and normal vectors
-            __ASM_EMIT("movups      0x10(%[rt]), %%xmm4")       // xmm4 = dx1 dy1 dz1 dw1
-            __ASM_EMIT("movaps      %%xmm4, %%xmm3")            // xmm3 = dx1 dy1 dz1 dw1
-            SCALAR_MUL("%xmm4", "%xmm0", "%xmm5")               // xmm4 = dx1*nx + dy1*ny + dz1*nz = proj
-            __ASM_EMIT("shufps      $0x00, %%xmm4, %%xmm4")     // xmm4 = proj proj proj proj
-            __ASM_EMIT("mulps       %%xmm4, %%xmm0")            // xmm0 = nx*proj ny*proj nz*proj nw*proj = vnx vny vnz vnw
-            __ASM_EMIT("subps       %%xmm0, %%xmm3")            // xmm3 = dx1-vnx dy1-vny dz1-vnz dw1-vnw = vtx vty vtz vtw
-
-            // Form the reflected and refracted ray parameters
-            __ASM_EMIT("movaps      %%xmm2, %%xmm5")            // xmm5 = reflection refraction diffuse ?
-            __ASM_EMIT("movaps      %%xmm0, %%xmm6")            // xmm6 = vnx vny vnz vnw
-            __ASM_EMIT("movaps      %%xmm3, %%xmm7")            // xmm7 = vtx vty vtz vtw
-            __ASM_EMIT("shufps      $0x00, %%xmm2, %%xmm2")     // xmm2 = reflection reflection reflection reflection
-            __ASM_EMIT("shufps      $0x55, %%xmm5, %%xmm5")     // xmm5 = refraction refraction refraction refraction
-            __ASM_EMIT("mulps       %%xmm2, %%xmm0")            // xmm0 = vnx*refl vny*refl vnz*refl vnw*refl
-            __ASM_EMIT("mulps       %%xmm5, %%xmm6")            // xmm6 = vnx*refr vny*refr vnz*refr vnw*refr
-            __ASM_EMIT("divps       %%xmm2, %%xmm3")            // xmm3 = vtx/refl vty/refl vtz/refl vtw/refl
-            __ASM_EMIT("divps       %%xmm5, %%xmm7")            // xmm7 = vtx/refr vty/refr vtz/refr vtw/refr
-            __ASM_EMIT("subps       %%xmm0, %%xmm3")            // xmm3 = vtx/refl-vnx*refl vty/refl-vny*refl vtz/refl-vnz*refl vtw/refl-vnw*refl
-            __ASM_EMIT("addps       %%xmm6, %%xmm7")            // xmm7 = vtx/refr+vnx*refr vty/refr+vny*refr vtz/refr+vnz*refr vtw/refr+vnw*refr
-            __ASM_EMIT("movups      %%xmm3, 0x10(%[rt])")
-            __ASM_EMIT("movups      %%xmm7, 0x10(%[rf])")
-
-            // Update energy parameters
-            __ASM_EMIT("movups      0x00(%[rt]), %[x0]")        // xmm0 = zx1 zy1 zz1 zw1
-            __ASM_EMIT("movups      0x00(%[ix]), %[x1]")        // xmm1 = ix iy iz iw
-            __ASM_EMIT("subps       %[x1], %[x0]")              // xmm0 = zx1-ix zy1-iy zz1-iz zw1-iw = dvx dvy dvz dvw
-            __ASM_EMIT("movups      %[x1], 0x00(%[rt])")
-            __ASM_EMIT("movups      %[x1], 0x00(%[rf])")
-            SCALAR_MUL("[x0]", "[x0]", "[x1]")                  // xmm0 = dvx*dvx + dvy*dvy + dvz*dvz = dist^2
-            __ASM_EMIT("sqrtss      %[x0], %[x0]")              // xmm0 = sqrtf(dvx*dvx + dvy*dvy + dvz*dvz) = dist
-
-            : [x0] "=&x" (x0), [x1] "=&x" (x1)
-            : [rt] "r" (rt), [rf] "r" (rf), [ix] "r" (ix)
-            : "memory"
-        );
-
-        x1      = expf(m.damping * x0);
-
-        ARCH_X86_ASM
-        (
-            __ASM_EMIT("movss       0x20(%[rt]), %[x2]")        // xmm2 = amplitude
-            __ASM_EMIT("mulss       0x08(%[m]), %[x1]")         // xmm1 = absorption * exp
-            __ASM_EMIT("mulss       %[x2], %[x1]")              // xmm1 = amplitude * absorption * exp = ampl
-            __ASM_EMIT("movaps      %[x1], %[x2]")              // xmm2 = ampl
-            __ASM_EMIT("mulss       0x0c(%[m]), %[x1]")         // xmm1 = ampl * transparency
-            __ASM_EMIT("divss       0x00(%[m]), %[x0]")         // xmm0 = dist / speed
-            __ASM_EMIT("movaps      %[x1], %[x3]")              // xmm3 = ampl * transparency
-            __ASM_EMIT("subss       %[x2], %[x3]")              // xmm2 = ampl * transparency - ampl
-
-            // Store
-            __ASM_EMIT("movss       %[x1], 0x20(%[rf])")
-            __ASM_EMIT("movss       %[x0], 0x24(%[rf])")
-            __ASM_EMIT("movss       %[x3], 0x20(%[rt])")
-            __ASM_EMIT("movss       %[x0], 0x24(%[rt])")
-
-            : [x0] "+&x" (x0), [x1] "+&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3)
-            : [m] "r" (&m), [rt] "r" (rt), [rf] "r" (rf)
-            : "memory"
-        );
-
-        n = sizeof(intersection3d_t)/sizeof(size_t);
-        ARCH_X86_ASM
-        (
-            __ASM_EMIT("mov         %[ix], %[src]")
-            __ASM_EMIT("lea         0x30(%[dst]), %[dst]")
-            __ASM_EMIT32("rep;      movsd")
-            __ASM_EMIT64("rep;      movsq")
-            : [dst] "+D" (rt), [src] "+S" (p1), [n] "+c" (n)
-            : [ix] "r" (ix)
-            : "cc", "memory"
-        );
-
-        n = sizeof(intersection3d_t)/sizeof(size_t);
-        ARCH_X86_ASM
-        (
-            __ASM_EMIT("lea         0x30(%[dst]), %[dst]")
-            __ASM_EMIT32("rep;      movsd")
-            __ASM_EMIT64("rep;      movsq")
-            : [dst] "+D" (rf), [src] "+S" (ix), [n] "+c" (n)
-            :
-            : "cc", "memory"
-        );
-    }
-
     float calc_angle3d_v2(const vector3d_t *v1, const vector3d_t *v2)
     {
         float x0, x1, x2, x3, x4;
@@ -2176,34 +2025,6 @@ namespace sse
               [omask] "m" (X_3DPOINT)
             : "memory"
         );
-    }
-
-    bool check_octant3d_rv(const octant3d_t *o, const ray3d_t *r)
-    {
-        size_t index;
-        bool result;
-        float x0, x1, x2;
-
-        ARCH_X86_ASM
-        (
-            __ASM_EMIT("movups      0x00(%[r]), %[x0]")     // xmm0 = zx zy zz zw
-            __ASM_EMIT("movups      0x10(%[r]), %[x1]")     // xmm1 = rdx rdy rdz rdw
-            __ASM_EMIT("movmskps    %[x1], %[index]")
-            __ASM_EMIT("lea         0x10(,%[index], 8), %[index]")  // index = (index*8 + 16)
-            __ASM_EMIT("movups      (%[o],%[index],2), %[x2]")  // xmm2 = bounds[index*2]
-            __ASM_EMIT("subps       %[x0], %[x2]")          // xmm2 = dx dy dz dw
-            __ASM_EMIT("mulps       %[x1], %[x2]")          // xmm2 = dx*rdz dy*rdy dz*rdz dw*rdw
-            __ASM_EMIT("movmskps    %[x2], %[index]")
-            __ASM_EMIT32("and       $0x07, %[index]")
-            __ASM_EMIT64("and       $0x07, %b[index]")
-            __ASM_EMIT("setz        %[result]")
-            : [index] "=&r" (index), [result] "=r" (result),
-              [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2)
-            : [o] "r" (o), [r] "r" (r)
-            : "cc"
-        );
-
-        return result;
     }
 
     float calc_area_p3(const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
@@ -2552,6 +2373,88 @@ namespace sse
         );
 
         return k0;
+    }
+
+    float calc_min_distance_p3(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    {
+        float x0, x1, x2, x3, x4;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[sp]), %[x3]")        /* xmm3 = pl    */
+            __ASM_EMIT("movups      (%[p0]), %[x0]")        /* xmm0 = p0    */
+            __ASM_EMIT("movups      (%[p1]), %[x1]")        /* xmm1 = p1    */
+            __ASM_EMIT("movups      (%[p2]), %[x2]")        /* xmm2 = p2    */
+
+            __ASM_EMIT("subps       %[x3], %[x0]")          /* xmm0 = d0 */
+            __ASM_EMIT("subps       %[x3], %[x1]")          /* xmm1 = d1 */
+            __ASM_EMIT("mulps       %[x0], %[x0]")          /* xmm0 = d0 * d0 */
+            __ASM_EMIT("subps       %[x3], %[x2]")          /* xmm2 = d2 */
+            __ASM_EMIT("mulps       %[x1], %[x1]")          /* xmm1 = d1 * d1 */
+            __ASM_EMIT("mulps       %[x2], %[x2]")          /* xmm2 = d2 * d2 */
+            MAT4_TRANSPOSE("[x0]", "[x1]", "[x2]", "[x3]", "[x4]")
+            /* xmm0 = x0 x1 x2 ? */
+            /* xmm1 = y0 y1 y2 ? */
+            /* xmm2 = z0 z1 z2 ? */
+            /* xmm3 = w0 w1 w2 ? */
+            __ASM_EMIT("addps       %[x1], %[x0]")
+            __ASM_EMIT("addps       %[x3], %[x2]")
+            __ASM_EMIT("addps       %[x2], %[x0]")          /* xmm0 = k0 k1 k2 ? */
+            __ASM_EMIT("sqrtps      %[x0], %[x0]")          /* xmm0 = sqrtf(k0) sqrtf(k1) sqrtf(k2) ? */
+            __ASM_EMIT("movhlps     %[x0], %[x1]")          /* xmm1 = sqrtf(k2) */
+            __ASM_EMIT("unpcklps    %[x0], %[x0]")          /* xmm0 = sqrtf(k0) sqrtf(k0) sqrtf(k1) sqrtf(k1) */
+            __ASM_EMIT("movhlps     %[x0], %[x2]")          /* xmm1 = sqrtf(k2) */
+            __ASM_EMIT("minss       %[x1], %[x0]")
+            __ASM_EMIT("minss       %[x2], %[x0]")
+
+            : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
+              [x4] "=&x" (x4)
+            : [sp] "r" (sp), [p0] "r" (p0), [p1] "r" (p1), [p2] "r" (p2)
+            :
+        );
+
+        return x0;
+    }
+
+    float calc_min_distance_pv(const point3d_t *sp, const point3d_t *pv)
+    {
+        float x0, x1, x2, x3, x4;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[sp]), %[x3]")        /* xmm3 = pl    */
+            __ASM_EMIT("movups      0x00(%[pv]), %[x0]")    /* xmm0 = p0    */
+            __ASM_EMIT("movups      0x10(%[pv]), %[x1]")    /* xmm1 = p1    */
+            __ASM_EMIT("movups      0x20(%[pv]), %[x2]")    /* xmm2 = p2    */
+
+            __ASM_EMIT("subps       %[x3], %[x0]")          /* xmm0 = d0 */
+            __ASM_EMIT("subps       %[x3], %[x1]")          /* xmm1 = d1 */
+            __ASM_EMIT("mulps       %[x0], %[x0]")          /* xmm0 = d0 * d0 */
+            __ASM_EMIT("subps       %[x3], %[x2]")          /* xmm2 = d2 */
+            __ASM_EMIT("mulps       %[x1], %[x1]")          /* xmm1 = d1 * d1 */
+            __ASM_EMIT("mulps       %[x2], %[x2]")          /* xmm2 = d2 * d2 */
+            MAT4_TRANSPOSE("[x0]", "[x1]", "[x2]", "[x3]", "[x4]")
+            /* xmm0 = x0 x1 x2 ? */
+            /* xmm1 = y0 y1 y2 ? */
+            /* xmm2 = z0 z1 z2 ? */
+            /* xmm3 = w0 w1 w2 ? */
+            __ASM_EMIT("addps       %[x1], %[x0]")
+            __ASM_EMIT("addps       %[x3], %[x2]")
+            __ASM_EMIT("addps       %[x2], %[x0]")          /* xmm0 = k0 k1 k2 ? */
+            __ASM_EMIT("sqrtps      %[x0], %[x0]")          /* xmm0 = sqrtf(k0) sqrtf(k1) sqrtf(k2) ? */
+            __ASM_EMIT("movhlps     %[x0], %[x1]")          /* xmm1 = sqrtf(k2) */
+            __ASM_EMIT("unpcklps    %[x0], %[x0]")          /* xmm0 = sqrtf(k0) sqrtf(k0) sqrtf(k1) sqrtf(k1) */
+            __ASM_EMIT("movhlps     %[x0], %[x2]")          /* xmm1 = sqrtf(k2) */
+            __ASM_EMIT("minss       %[x1], %[x0]")
+            __ASM_EMIT("minss       %[x2], %[x0]")
+
+            : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
+              [x4] "=&x" (x4)
+            : [sp] "r" (sp), [pv] "r" (pv)
+            :
+        );
+
+        return x0;
     }
 }
 

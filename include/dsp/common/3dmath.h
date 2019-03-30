@@ -13,7 +13,6 @@
 #endif /* __DSP_DSP_DEFS */
 
 #include <dsp/common/3dmath/types.h>
-#include <dsp/common/3dmath/tetra3d.h>
 
 //-----------------------------------------------------------------------
 // DSP 3D mathematic functions
@@ -573,34 +572,6 @@ namespace dsp
      */
     extern void (* calc_triangle3d)(triangle3d_t *dst, const triangle3d_t *src);
 
-    /** Clear intersection primitive
-     *
-     * @param is pointer to intersection primitive
-     */
-    extern void (* init_intersection3d)(intersection3d_t *is);
-
-    /** Initialize raytrace primitive
-     *
-     * @param rt raytrace primitive
-     * @param r source raytrace
-     */
-    extern void (* init_raytrace3d)(raytrace3d_t *rt, const raytrace3d_t *r);
-
-    /** Initialize raytrace primitive
-     *
-     * @param rt raytrace primitive
-     * @param r ray
-     */
-    extern void (* init_raytrace3d_r)(raytrace3d_t *rt, const ray3d_t *r);
-
-    /** Initialize raytrace primitive
-     *
-     * @param rt raytrace primitive
-     * @param r ray
-     * @param ix last instersection
-     */
-    extern void (* init_raytrace3d_ix)(raytrace3d_t *rt, const ray3d_t *r, const intersection3d_t *ix);
-
     /** Analyze that two vectors and the normal vector organize the left triplet
      *
      * @param p1 start point of the first vector
@@ -718,14 +689,6 @@ namespace dsp
      */
     extern float (* find_intersection3d_rt)(point3d_t *ip, const ray3d_t *l, const triangle3d_t *t);
 
-    /** Reflect the ray from the surface specified by the intersection and update raytrace object
-     *
-     * @param rt raytrace object, will contain the information about reflected raytrace after call
-     * @param rf ray object, will contain the information about refracted raytrace after call
-     * @param ix intersection primitive
-     */
-    extern void (* reflect_ray)(raytrace3d_t *rt, raytrace3d_t *rf, const intersection3d_t *ix);
-
     /** Calculate angle between two vectors
      *
      * @param v1 vector 1
@@ -788,22 +751,6 @@ namespace dsp
      * @param k movement
      */
     extern void (* move_point3d_pv)(point3d_t *p, const point3d_t *pv, float k);
-
-    /** Initialize octant
-     *
-     * @param o octant to initialize
-     * @param t list of points to analyze bounds
-     * @param n number of points
-     */
-    extern void (* init_octant3d_v)(octant3d_t *o, const point3d_t *t, size_t n);
-
-    /** Check that
-     *
-     * @param o octant to check
-     * @param r ray to check
-     * @return true if intersection of ray with object in octant is possible
-     */
-    extern bool (* check_octant3d_rv)(const octant3d_t *o, const ray3d_t *r);
 
     /**
      * Compute bounding box around object

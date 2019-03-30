@@ -334,11 +334,6 @@ namespace native
         EXPORT1(calc_triangle3d_pv);
         EXPORT1(calc_triangle3d);
 
-        EXPORT1(init_intersection3d);
-        EXPORT1(init_raytrace3d);
-        EXPORT1(init_raytrace3d_r);
-        EXPORT1(init_raytrace3d_ix);
-
         EXPORT1(check_triplet3d_p3n);
         EXPORT1(check_triplet3d_pvn);
         EXPORT1(check_triplet3d_v2n);
@@ -354,8 +349,6 @@ namespace native
         EXPORT1(longest_edge3d_p3);
         EXPORT1(longest_edge3d_pv);
 
-        EXPORT1(reflect_ray);
-
         EXPORT1(calc_angle3d_v2);
         EXPORT1(calc_angle3d_vv);
 
@@ -366,13 +359,6 @@ namespace native
 
         EXPORT1(move_point3d_p2);
         EXPORT1(move_point3d_pv);
-
-        EXPORT1(init_octant3d_v);
-        EXPORT1(check_octant3d_rv);
-
-        EXPORT1(calc_tetra3d_pv);
-        EXPORT1(calc_tetra3d_pv3);
-        EXPORT1(calc_tetra3d_pvv);
 
         EXPORT1(calc_bound_box);
 

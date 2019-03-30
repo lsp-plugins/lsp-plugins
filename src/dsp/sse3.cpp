@@ -54,6 +54,7 @@ namespace sse3
 #include <dsp/arch/x86/sse3/filters/dynamic.h>
 #include <dsp/arch/x86/sse3/filters/transform.h>
 #include <dsp/arch/x86/sse3/complex.h>
+#include <dsp/arch/x86/sse3/3dmath.h>
 
 #undef DSP_ARCH_X86_SSE3_IMPL
 
@@ -96,6 +97,12 @@ namespace sse3
         EXPORT2_X64(pcomplex_mul3, x64_pcomplex_mul3);
 
         EXPORT2_X64(rgba32_to_bgra32, x64_rgba32_to_bgra32);
+
+        EXPORT1(colocation_v1p3);
+        EXPORT1(colocation_v1pv);
+
+        EXPORT1(calc_min_distance_p3);
+        EXPORT1(calc_min_distance_pv);
     }
 
     #undef EXPORT2

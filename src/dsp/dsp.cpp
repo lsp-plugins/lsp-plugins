@@ -347,11 +347,6 @@ namespace dsp
     void    (* calc_triangle3d_pv)(triangle3d_t *t, const point3d_t *p) = NULL;
     void    (* calc_triangle3d)(triangle3d_t *dst, const triangle3d_t *src) = NULL;
 
-    void    (* init_intersection3d)(intersection3d_t *is) = NULL;
-    void    (* init_raytrace3d)(raytrace3d_t *rt, const raytrace3d_t *r) = NULL;
-    void    (* init_raytrace3d_r)(raytrace3d_t *rt, const ray3d_t *r) = NULL;
-    void    (* init_raytrace3d_ix)(raytrace3d_t *rt, const ray3d_t *r, const intersection3d_t *ix) = NULL;
-
     float   (* check_triplet3d_p3n)(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3, const vector3d_t *n) = NULL;
     float   (* check_triplet3d_pvn)(const point3d_t *pv, const vector3d_t *n) = NULL;
     float   (* check_triplet3d_v2n)(const vector3d_t *v1, const vector3d_t *v2, const vector3d_t *n) = NULL;
@@ -367,8 +362,6 @@ namespace dsp
     size_t  (* longest_edge3d_p3)(const point3d_t *p1, const point3d_t *p2, const point3d_t *p3) = NULL;
     size_t  (* longest_edge3d_pv)(const point3d_t *p) = NULL;
 
-    void    (* reflect_ray)(raytrace3d_t *rt, raytrace3d_t *rf, const intersection3d_t *ix) = NULL;
-
     float   (* calc_angle3d_v2)(const vector3d_t *v1, const vector3d_t *v2) = NULL;
     float   (* calc_angle3d_vv)(const vector3d_t *v) = NULL;
 
@@ -379,9 +372,6 @@ namespace dsp
 
     void    (* move_point3d_p2)(point3d_t *p, const point3d_t *p1, const point3d_t *p2, float k) = NULL;
     void    (* move_point3d_pv)(point3d_t *p, const point3d_t *pv, float k) = NULL;
-
-    void    (* init_octant3d_v)(octant3d_t *o, const point3d_t *t, size_t n) = NULL;
-    bool    (* check_octant3d_rv)(const octant3d_t *o, const ray3d_t *r) = NULL;
 
     void    (* calc_bound_box)(bound_box3d_t *b, const point3d_t *p, size_t n) = NULL;
 
@@ -418,11 +408,6 @@ namespace dsp
 
     void    (* vector_mul_v2)(vector3d_t *r, const vector3d_t *v1, const vector3d_t *v2) = NULL;
     void    (* vector_mul_vv)(vector3d_t *r, const vector3d_t *vv) = NULL;
-
-    void    (* calc_tetra3d_pv)(tetra3d_t *t, const point3d_t *p) = NULL;
-    void    (* calc_tetra3d_pv3)(tetra3d_t *t, const point3d_t *p, const vector3d_t *v1, const vector3d_t *v2, const vector3d_t *v3) = NULL;
-    void    (* calc_tetra3d_pvv)(tetra3d_t *t, const point3d_t *p, const vector3d_t *v) = NULL;
-    float   (* find_tetra3d_intersections)(ray3d_t *r, const tetra3d_t *t, const triangle3d_t *tr) = NULL;
 
     void    (* convolve)(float *dst, const float *src, const float *conv, size_t length, size_t count) = NULL;
 }
