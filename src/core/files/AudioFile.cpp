@@ -1048,7 +1048,7 @@ namespace lsp
         // Obtain the length of stream in nanoseconds
         INT64 nsDuration;
         PROPVARIANT var;
-        HRESULT hr = pReader->GetPresentationAttribute(MF_SOURCE_READER_MEDIASOURCE,
+        hr = pReader->GetPresentationAttribute(MF_SOURCE_READER_MEDIASOURCE,
             MF_PD_DURATION, &var);
         if (SUCCEEDED(hr))
         {
@@ -1202,19 +1202,36 @@ namespace lsp
 
                 // Use buffer
                 BYTE *pData = NULL;
-                DWORD nCurrLength = 0;
-                hr = pBuffer->Lock(&pData, NULL, &nCurrLength);
-                if (SUCCEEDED(hr))
+                DWORD nBufLength = 0;
+                hr = pBuffer->Lock(&pData, NULL, &nBufLength);
+                if (!SUCCEEDED(hr))
                 {
-                    while ((count > 0) && (nCurrLength > 0))
-                    {
-
-                    }
+                    destroy_temporary_buffer(tb);
+                    destroy_file_content(fc);
+                    pSample->Release();
+                    pReader->Release();
+                    return STATUS_CORRUPTED_FILE;
                 }
-                if (SUCCEEDED(hr))
-                    hr = pBuffer->Unlock();
+
+                while ((count > 0) && (nBufLength > 0))
+                {
+                    // Determine how many data is available to read
+                    size_t can_read     = tb->nCapacity - tb->nSize;
+                    if (can_read <= 0)
+                    {
+                        flush_temporary_buffer(tb);
+                        can_read            = tb->nCapacity - tb->nSize;
+                    }
+                    if (can_read > nBufLength)
+                        can_read        = nBufLength;
+                    ::memcpy(&tb->bData[tb->nSize], pData, can_read);
+                    pData      += can_read;
+                    tb->nSize  += can_read;
+                    nBufLength -= can_read;
+                }
 
                 // Release buffer
+                pBuffer->Unlock();
                 pBuffer->Release();
             }
 
@@ -1239,7 +1256,7 @@ namespace lsp
 
     status_t AudioFile::store_samples(const LSPString *path, size_t from, size_t max_count)
     {
-
+        return STATUS_OK;
     }
 
 #else
