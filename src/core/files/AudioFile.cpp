@@ -15,7 +15,16 @@
 #include <core/alloc.h>
 
 #ifdef PLATFORM_WINDOWS
-    #include <windows.h>
+    #include <shtypes.h>
+    #include <shlwapi.h>
+    #ifdef __cplusplus
+        extern "C" {
+    #endif
+            #include <propvarutil.h>
+    #ifdef __cplusplus
+        }
+    #endif
+
     #include <guiddef.h>
     #include <propidl.h>
     #include <propvarutil.h>
@@ -23,6 +32,8 @@
     #include <mfidl.h>
     #include <mferror.h>
     #include <mfreadwrite.h>
+
+
 #else
     #include <sndfile.h>
 #endif /* PLATFORM_WINDOWS */
