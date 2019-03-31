@@ -32,11 +32,7 @@ namespace lsp
                 size_t      nCapacity;      // Capacity in bytes
                 size_t      nFrameSize;     // Frame size in bytes
                 size_t      nChannels;      // Total number of channels
-                union
-                {
-                    uint8_t    *bData;          // Data for reading/writing (byte pointer)
-                    float      *fData;          // Data for reading/writing (float pointer)
-                };
+                uint8_t    *bData;          // Data for reading/writing (byte pointer)
                 float      *vChannels[];    // Pointer to deploy samples to channels
             } temporary_buffer_t;
 

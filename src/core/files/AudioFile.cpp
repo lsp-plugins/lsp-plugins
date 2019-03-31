@@ -139,7 +139,7 @@ namespace lsp
     {
         // Estimate number of bytes in buffer
         size_t avail    = tb->nSize;
-        float *src      = tb->fData;
+        float *src      = reinterpret_cast<float *>(tb->bData);
 
         // Process all fully-read frames
         while (avail >= tb->nFrameSize)
@@ -152,7 +152,7 @@ namespace lsp
 
         // Update buffer contents
         if (avail > 0)
-            ::memmove(tb->fData, src, avail);
+            ::memmove(tb->bData, src, avail);
         tb->nSize           = avail;
     }
 
@@ -160,7 +160,7 @@ namespace lsp
     {
         size_t avail    = tb->nCapacity - tb->nSize;
         size_t count    = 0;
-        float *dst      = tb->fData;
+        float *dst      = reinterpret_cast<float *>(&tb->bData[tb->nSize]);
 
         while ((avail >= tb->nFrameSize) && (count < max_samples))
         {
@@ -171,7 +171,7 @@ namespace lsp
             ++count;
         }
 
-        tb->nSize  += count * tb->nFrameSize;
+        tb->nSize       = tb->nCapacity - avail;
         return count;
     }
 
@@ -397,11 +397,11 @@ namespace lsp
         while (skip > 0)
         {
             // Determine how many data is available to read
-            size_t can_read     = tb->nCapacity - tb->nSize;
+            size_t can_read     = (tb->nCapacity - tb->nSize)/tb->nFrameSize;
             if (can_read <= 0)
             {
                 flush_temporary_buffer(tb);
-                can_read            = tb->nCapacity - tb->nSize;
+                can_read            = (tb->nCapacity - tb->nSize)/tb->nFrameSize;
             }
 
             // Calculate amount of samples to read
@@ -1320,11 +1320,11 @@ namespace lsp
         while (count > 0)
         {
             // Determine how many data is available to read
-            size_t can_read     = tb->nCapacity - tb->nSize;
+            size_t can_read     = (tb->nCapacity - tb->nSize) / tb->nFrameSize;
             if (can_read <= 0)
             {
                 flush_temporary_buffer(tb);
-                can_read            = tb->nCapacity - tb->nSize;
+                can_read            = (tb->nCapacity - tb->nSize) / tb->nFrameSize;
             }
 
             // Calculate amount of samples to read
@@ -1421,7 +1421,7 @@ namespace lsp
                 // Update buffer contents
                 frames  = tb->nSize - offset;
                 if (frames > 0)
-                    ::memmove(tb->bdata, &tb->bData[offset], frames);
+                    ::memmove(tb->bData, &tb->bData[offset], frames);
                 tb->nSize   = frames;
             }
         }
