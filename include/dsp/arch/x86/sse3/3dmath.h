@@ -41,8 +41,7 @@ namespace sse3
             __ASM_EMIT32("movl      0x04 + %[res], %[p1]")
             __ASM_EMIT64("movl      0x00 + %[res], %k[p0]")
             __ASM_EMIT64("movl      0x04 + %[res], %k[p1]")
-            __ASM_EMIT("shl         $2, %[p1]")
-            __ASM_EMIT("or          %[p1], %[p0]")
+            __ASM_EMIT("lea         (%[p0], %[p1], 4), %[p0]")
             : [p0] "+r" (p0), [p1] "+r" (p1),
               [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2)
             : [pl] "r" (pl),
@@ -84,8 +83,7 @@ namespace sse3
             __ASM_EMIT32("movl      0x04 + %[res], %[k1]")
             __ASM_EMIT64("movl      0x00 + %[res], %k[k0]")
             __ASM_EMIT64("movl      0x04 + %[res], %k[k1]")
-            __ASM_EMIT("shl         $2, %[k1]")
-            __ASM_EMIT("or          %[k1], %[k0]")
+            __ASM_EMIT("lea         (%[k0], %[k1], 4), %[k0]")
             : [k0] "=&r" (k0), [k1] "=&r" (k1),
               [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2)
             : [pl] "r" (pl), [pv] "r" (pv),
@@ -130,10 +128,8 @@ namespace sse3
             __ASM_EMIT64("movl      0x00 + %[res], %k[p0]")
             __ASM_EMIT64("movl      0x04 + %[res], %k[p1]")
             __ASM_EMIT64("movl      0x08 + %[res], %k[p2]")
-            __ASM_EMIT("shl         $2, %[p1]")
-            __ASM_EMIT("shl         $4, %[p2]")
-            __ASM_EMIT("or          %[p1], %[p0]")
-            __ASM_EMIT("or          %[p2], %[p0]")
+            __ASM_EMIT("lea         (%[p1], %[p2], 4), %[p1]")
+            __ASM_EMIT("lea         (%[p0], %[p1], 4), %[p0]")
             : [p0] "+r" (p0), [p1] "+r" (p1), [p2] "+r" (p2),
               [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
               [x4] "=&x" (x4)
@@ -180,10 +176,8 @@ namespace sse3
             __ASM_EMIT64("movl      0x00 + %[res], %k[k0]")
             __ASM_EMIT64("movl      0x04 + %[res], %k[k1]")
             __ASM_EMIT64("movl      0x08 + %[res], %k[k2]")
-            __ASM_EMIT("shl         $2, %[k1]")
-            __ASM_EMIT("shl         $4, %[k2]")
-            __ASM_EMIT("or          %[k1], %[k0]")
-            __ASM_EMIT("or          %[k2], %[k0]")
+            __ASM_EMIT("lea         (%[k1], %[k2], 4), %[k1]")
+            __ASM_EMIT("lea         (%[k0], %[k1], 4), %[k0]")
             : [k0] "=&r" (k0), [k1] "=&r" (k1), [k2] "=&r" (k2),
               [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
               [x4] "=&x" (x4)
