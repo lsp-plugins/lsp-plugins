@@ -127,7 +127,7 @@ namespace lsp
         // Prepare sorted list of matched triangles
         size_t cap              = (src->triangle.size() + 0x3f) & (~0x3f);
         size_t t_total          = 0;
-        rt_triangle_sort_t *vt  = reinterpret_cast<rt_triangle_sort_t *>(malloc(cap * sizeof(rt_triangle_sort_t)));
+        rt_triangle_sort_t *vt  = reinterpret_cast<rt_triangle_sort_t *>(::malloc(cap * sizeof(rt_triangle_sort_t)));
         if (vt == NULL)
             return STATUS_NO_MEM;
 
@@ -152,12 +152,13 @@ namespace lsp
                     vt[t_total].t       = t;
                     vt[t_total].w       = dsp::calc_min_distance_p3(&view.s, t->v[0], t->v[1], t->v[2]);
                     ++t_total;
+                    break;
                 }
         RT_FOREACH_END;
 
         if (t_total <= 0)
         {
-            free(vt);
+            ::free(vt);
             triangle.flush();
             plan.flush();
             return STATUS_OK;
@@ -182,7 +183,8 @@ namespace lsp
             free(vt);
         )
 
-        ::qsort(vt, t_total, sizeof(rt_triangle_sort_t), compare_triangles);
+        // Temporarily disabled
+        //::qsort(vt, t_total, sizeof(rt_triangle_sort_t), compare_triangles);
 
         RT_TRACE_BREAK(debug,
             lsp_trace("After sort (%d triangles)", int(t_total));
@@ -214,24 +216,27 @@ namespace lsp
             rtm_triangle_t *t = vt[i].t;
 
             // Add edges to plan
-            if (!(t->e[0]->itag++))
+            if (!t->e[0]->itag)
             {
+                t->e[0]->itag = 1;
                 if (!xplan.add_edge(t->v[0], t->v[1]))
                 {
                     res = STATUS_NO_MEM;
                     break;
                 }
             }
-            if (!(t->e[1]->itag++))
+            if (!t->e[1]->itag)
             {
+                t->e[1]->itag = 1;
                 if (!xplan.add_edge(t->v[1], t->v[2]))
                 {
                     res = STATUS_NO_MEM;
                     break;
                 }
             }
-            if (!(t->e[2]->itag++))
+            if (!t->e[2]->itag)
             {
+                t->e[2]->itag = 1;
                 if (!xplan.add_edge(t->v[2], t->v[0]))
                 {
                     res = STATUS_NO_MEM;
@@ -255,7 +260,7 @@ namespace lsp
             dt->m       = t->m;
         }
 
-        free(vt);
+        ::free(vt);
         if (res != STATUS_OK)
             return res;
 
