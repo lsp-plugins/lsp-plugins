@@ -94,16 +94,12 @@ namespace lsp
 
             virtual status_t add_vertex(const point3d_t *p)
             {
-                if (pObject == NULL)
-                    return STATUS_BAD_STATE;
                 ssize_t idx = pScene->add_vertex(p);
                 return (idx < 0)? status_t(-idx) : STATUS_OK;
             }
 
             virtual status_t add_normal(const vector3d_t *v)
             {
-                if (pObject == NULL)
-                    return STATUS_BAD_STATE;
                 ssize_t idx = pScene->add_normal(v);
                 return (idx < 0)? status_t(-idx) : STATUS_OK;
             }
@@ -263,6 +259,28 @@ namespace lsp
 
     status_t Model3DFile::load(Scene3D **scene, const char *path)
     {
+        if ((path == NULL) || (scene == NULL))
+            return STATUS_BAD_ARGUMENTS;
+        LSPString spath;
+        if (!spath.set_utf8(path))
+            return STATUS_NO_MEM;
+
+        return load(scene, &spath);
+    }
+
+    status_t Model3DFile::load(Scene3D *scene, const char *path, bool clear)
+    {
+        if ((path == NULL) || (scene == NULL))
+            return STATUS_BAD_ARGUMENTS;
+        LSPString spath;
+        if (!spath.set_utf8(path))
+            return STATUS_NO_MEM;
+
+        return load(scene, &spath, clear);
+    }
+
+    status_t Model3DFile::load(Scene3D **scene, const LSPString *path)
+    {
         Scene3D *s = new Scene3D();
         if (s == NULL)
             return STATUS_NO_MEM;
@@ -279,7 +297,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t Model3DFile::load(Scene3D *scene, const char *path, bool clear)
+    status_t Model3DFile::load(Scene3D *scene, const LSPString *path, bool clear)
     {
         if (clear)
             scene->clear();
@@ -293,5 +311,19 @@ namespace lsp
 
         fh.reset_state();
         return status;
+    }
+
+    status_t Model3DFile::load(Scene3D **scene, const io::Path *path)
+    {
+        if ((path == NULL) || (scene == NULL))
+            return STATUS_BAD_ARGUMENTS;
+        return load(scene, path->as_string());
+    }
+
+    status_t Model3DFile::load(Scene3D *scene, const io::Path *path, bool clear)
+    {
+        if ((path == NULL) || (scene == NULL))
+            return STATUS_BAD_ARGUMENTS;
+        return load(scene, path->as_string(), clear);
     }
 } /* namespace lsp */
