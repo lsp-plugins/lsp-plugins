@@ -1013,7 +1013,7 @@ namespace lsp
         DWORD   stream;     // Identifier of the stream
     } stream_info_t;
 
-    static IMFMediaType *copy_media_type(IMFMediaType *src, stream_info_t *cfg)
+    static IMFMediaType *mfapi_copy_media_type(IMFMediaType *src, stream_info_t *cfg)
     {
         // Obtain media type
         HRESULT hr = src->GetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, &cfg->srate);
@@ -1037,7 +1037,7 @@ namespace lsp
         if (SUCCEEDED(hr))
             hr = dst->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, cfg->srate);
         if (SUCCEEDED(hr))
-            hr = dst->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, cfg->channels);
+            hr = dst->SetUINT32(MF_MT_FRAME_SIZE, cfg->channels);
 
         // Check the final result
         if (SUCCEEDED(hr))
@@ -1097,7 +1097,7 @@ namespace lsp
         }
 
         // Create media type for decoding
-        IMFMediaType *pMediaType = copy_media_type(pNativeType, info);
+        IMFMediaType *pMediaType = mfapi_copy_media_type(pNativeType, info);
         pNativeType->Release();
         if (pMediaType == NULL)
         {
@@ -1265,9 +1265,159 @@ namespace lsp
         return STATUS_OK;
     }
 
+
+    static IMFSample *mfapi_create_sample(void *data, size_t bytes)
+    {
+        // Create media buffer
+        IMFMediaBuffer *pBuffer = NULL;
+        HRESULT hr = ::MFCreateMemoryBuffer(bytes, &pBuffer);
+        if (!SUCCEEDED(hr))
+            return NULL;
+
+        // Lock the buffer and copy the video frame to the buffer.
+        BYTE *pData = NULL;
+        if (SUCCEEDED(hr))
+            hr = pBuffer->Lock(&pData, NULL, NULL);
+        if (SUCCEEDED(hr))
+        {
+            ::memcpy(pData, data, bytes);
+            hr = pBuffer->Unlock();
+        }
+        if (SUCCEEDED(hr))
+            hr = pBuffer->SetCurrentLength(bytes);
+
+        if (!SUCCEEDED(hr))
+        {
+            pBuffer->Release();
+            return NULL;
+        }
+
+        // Create sample
+        IMFSample *pSample = NULL;
+        hr = ::MFCreateSample(&pSample);
+        if (!SUCCEEDED(hr))
+        {
+            pBuffer->Release();
+            return NULL;
+        }
+
+        // Bind buffer to sample and set sample parameters
+        hr = pSample->AddBuffer(pBuffer);
+        pBuffer->Release();
+        if (!SUCCEEDED(hr))
+        {
+            pSample->Release();
+            return NULL;
+        }
+
+        return pSample;
+    }
+
     status_t AudioFile::store_samples(const LSPString *path, size_t from, size_t max_count)
     {
-        return STATUS_OK;
+        // Create SinkWriter
+        IMFSinkWriter *pSinkWriter = NULL;
+        HRESULT hr = ::MFCreateSinkWriterFromURL(L"output.wmv", NULL, NULL, &pSinkWriter);
+        if (!SUCCEEDED(hr))
+            return STATUS_UNKNOWN_ERR;
+
+        // Initialize media type
+        IMFMediaType    *pMediaType = NULL;
+        hr = ::MFCreateMediaType(&pMediaType);
+        if (SUCCEEDED(hr))
+            hr = pMediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
+        if (SUCCEEDED(hr))
+            hr = pMediaType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_Float);
+        if (SUCCEEDED(hr))
+            hr = pMediaType->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, sizeof(float) * 8);
+        if (SUCCEEDED(hr))
+            hr = pMediaType->SetUINT32(MF_MT_FRAME_SIZE, pData->nChannels);
+
+        // Initialize output stream and input data format
+        DWORD           streamIndex;
+        if (SUCCEEDED(hr))
+            hr = pSinkWriter->AddStream(pMediaType, &streamIndex);
+        if (SUCCEEDED(hr))
+            hr = pSinkWriter->SetInputMediaType(streamIndex, pMediaType, NULL);
+        if (pMediaType != NULL)
+            pMediaType->Release();
+
+        // Start writing
+        if (SUCCEEDED(hr))
+            hr = pSinkWriter->BeginWriting();
+
+        if (!SUCCEEDED(hr))
+        {
+            pSinkWriter->Release();
+            return STATUS_BAD_FORMAT;
+        }
+
+        // Allocate temporary buffer
+        temporary_buffer_t *tb  = create_temporary_buffer(pData, from);
+        if (tb == NULL)
+        {
+            pSinkWriter->Release();
+            return STATUS_NO_MEM;
+        }
+
+        wsize_t frame_id = 0;
+        while ((max_count > 0) || (tb->nSize > 0))
+        {
+            // Fill buffer
+            max_count   -=  fill_temporary_buffer(tb, max_count);
+
+            // Flush buffer
+            if (tb->nSize > 0)
+            {
+                // Write buffer to file
+                size_t offset = 0;
+                size_t frames = tb->nSize / tb->nFrameSize;
+                while (offset < tb->nSize)
+                {
+                    // Create audio sample for writing
+                    IMFSample *sample = mfapi_create_sample(&tb->bData[offset], frames * tb->nFrameSize);
+                    if (sample == NULL)
+                    {
+                        pSinkWriter->Release();
+                        destroy_temporary_buffer(tb);
+                        return STATUS_UNKNOWN_ERR;
+                    }
+
+                    // Update sample parameters
+                    hr = sample->SetSampleTime((frame_id * 100000000)/pData->nSampleRate);
+                    if (SUCCEEDED(hr))
+                        hr = sample->SetSampleDuration((frames * 100000000)/pData->nSampleRate);
+                    if (SUCCEEDED(hr))
+                        hr = pSinkWriter->WriteSample(streamIndex, sample);
+                    sample->Release();
+
+                    // Send the sample to the Sink Writer.
+                    if (!SUCCEEDED(hr))
+                    {
+                        pSinkWriter->Release();
+                        destroy_temporary_buffer(tb);
+                        return STATUS_UNKNOWN_ERR;
+                    }
+
+                    // Update offsets
+                    offset     += frames * tb->nFrameSize;
+                    frames     -= frames;
+                    frame_id   += frames;
+                }
+
+                // Update buffer contents
+                frames  = tb->nSize - offset;
+                if (frames > 0)
+                    ::memmove(tb->bData, &tb->bData[offset], frames);
+                tb->nSize   = frames;
+            }
+        }
+
+        // Free allocated resources
+        hr = pSinkWriter->Release();
+        destroy_temporary_buffer(tb);
+
+        return (SUCCEEDED(hr)) ? STATUS_OK : STATUS_UNKNOWN_ERR;
     }
 
 #else
