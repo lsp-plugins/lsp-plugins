@@ -77,37 +77,37 @@ namespace lsp
     status_t rt_plan_t::cut_in(const vector3d_t *pl)
     {
         rt_plan_t tmp;
-        float k[2];
         rt_split_t *sp;
 
         RT_FOREACH(rt_split_t, s, items)
             if (s->flags & SF_REMOVE) // Do not analyze the edge, it will be automatically removed
                 continue;
 
-            k[0] = s->p[0].x * pl->dx + s->p[0].y * pl->dy + s->p[0].z*pl->dz + pl->dw;
-            k[1] = s->p[1].x * pl->dx + s->p[1].y * pl->dy + s->p[1].z*pl->dz + pl->dw;
+            size_t tag = dsp::colocation_x2_v1pv(pl, s->p);
 
-            if (k[0] <= -DSP_3D_TOLERANCE) // p[0] is under the plane
+            switch (tag)
             {
-                if (k[1] >= DSP_3D_TOLERANCE) // p[1] is over the plane, cut p[0]
-                {
+                case 0x04: // 1 0
+                case 0x01: // 0 1
+                case 0x00: // 0 0
+                    if (!tmp.items.alloc(s)) // Just copy segment to output
+                        return STATUS_NO_MEM;
+                    break;
+
+                case 0x02: // 0 2 -- p[0] is under the plane, p[1] is over the plane, cut p[0]
                     if (!(sp = tmp.items.alloc(s)))
                         return STATUS_NO_MEM;
                     dsp::calc_split_point_pvv1(&sp->p[0], sp->p, pl);
-//                    sp->flags   &= ~SF_CULLBACK; // We should disable cullback flag for this edge
-                }
-            }
-            else if (k[0] >= DSP_3D_TOLERANCE) // p[0] is over the plane
-            {
-                if (!(sp = tmp.items.alloc(s)))
-                    return STATUS_NO_MEM;
-                if (k[1] <= -DSP_3D_TOLERANCE) // p[1] is under the plane, cut p[1]
+                    break;
+
+                case 0x08: // 2 0 -- p[1] is under the plane, p[0] is over the plane, cut p[1]
+                    if (!(sp = tmp.items.alloc(s)))
+                        return STATUS_NO_MEM;
                     dsp::calc_split_point_pvv1(&sp->p[1], sp->p, pl);
-//                sp->flags   &= ~SF_CULLBACK;    // We should disable cullback flag for this edge
-            }
-            else // consider p[0] lays on the plane
-            {
-                // Do nothing
+                    break;
+
+                default:
+                    break;
             }
         RT_FOREACH_END
 
@@ -121,47 +121,53 @@ namespace lsp
 
         point3d_t sp;
         rt_split_t *si, *so;
-        float k[2];
 
         RT_FOREACH(rt_split_t, s, items)
-            k[0] = s->p[0].x * pl->dx + s->p[0].y * pl->dy + s->p[0].z*pl->dz + pl->dw;
-            k[1] = s->p[1].x * pl->dx + s->p[1].y * pl->dy + s->p[1].z*pl->dz + pl->dw;
+            size_t tag = dsp::colocation_x2_v1pv(pl, s->p);
 
-            if (k[0] <= -DSP_3D_TOLERANCE) // p[0] is under the plane
+            switch (tag)
             {
-                if (k[1] >= DSP_3D_TOLERANCE) // p[1] is over the plane, perform split
-                {
+                case 0x00: // 0 0
+                case 0x01: // 0 1
+                case 0x04: // 1 0
+                    // Edge is over the plane
+                    if (!xout.items.alloc(s))
+                        return STATUS_NO_MEM;
+                    break;
+
+                case 0x06: // 1 2
+                case 0x09: // 2 1
+                case 0x0a: // 2 2
+                    // Edge is under the plane
+                    if (!xin.items.alloc(s))
+                        return STATUS_NO_MEM;
+                    break;
+
+                case 0x02: // 0 2
+                    // p[1] is over the plane, p[0] is under
                     si          = xin.items.alloc();
                     so          = xout.items.alloc();
                     if ((!si) || (!so))
                         return STATUS_NO_MEM;
 
-                    dsp::calc_split_point_p2v1(&sp, &s->p[0], &s->p[1], pl);
-
+                    dsp::calc_split_point_pvv1(&sp, s->p, pl);
                     si->p[0]    = s->p[0];
                     si->p[1]    = sp;
                     si->flags   = s->flags;
 
                     so->p[0]    = sp;
                     so->p[1]    = s->p[1];
-                    so->flags   = s->flags; // & ~SF_CULLBACK; // We should disable cullback flag for this edge
-                }
-                else // Edge is under the plane, just copy to xin
-                {
-                    if (!xin.items.alloc(s))
-                        return STATUS_NO_MEM;
-                }
-            }
-            else if (k[0] >= DSP_3D_TOLERANCE) // p[0] is over the plane
-            {
-                if (k[1] <= -DSP_3D_TOLERANCE) // p[1] is under the plane, perform split
-                {
+                    so->flags   = s->flags;
+                    break;
+
+                case 0x08: // 2 0
+                    // p[0] is over the plane, p[1] is under
                     si          = xin.items.alloc();
                     so          = xout.items.alloc();
                     if ((!si) || (!so))
                         return STATUS_NO_MEM;
 
-                    dsp::calc_split_point_p2v1(&sp, &s->p[0], &s->p[1], pl);
+                    dsp::calc_split_point_pvv1(&sp, s->p, pl);
 
                     si->p[0]    = sp;
                     si->p[1]    = s->p[1];
@@ -169,34 +175,11 @@ namespace lsp
 
                     so->p[0]    = s->p[0];
                     so->p[1]    = sp;
-                    so->flags   = s->flags; // & ~SF_CULLBACK; // We should disable cullback flag for this edge
-                }
-                else // Edge is over the plane, just copy to xout
-                {
-                    if (!xout.items.alloc(s))
-                        return STATUS_NO_MEM;
-                }
-            }
-            else // consider p[0] lays on the plane
-            {
-                if (k[1] <= -DSP_3D_TOLERANCE) // p[1] is under the plane
-                {
-                    if (!xin.items.alloc(s))
-                        return STATUS_NO_MEM;
-                }
-                else if (k[1] >= DSP_3D_TOLERANCE) // p[1] is over the plane
-                {
-                    if (!xout.items.alloc(s))
-                        return STATUS_NO_MEM;
-                }
-//                else if (s->flags & SF_CULLBACK) // Edge lays on the plane, keep it only if has a SF_CULLBACK flag
-//                {
-//                    // Copy cullback ege only to 'in' data and mark as applied
-//                    if (!(si = xin.items.alloc(s)))
-//                        return STATUS_NO_MEM;
-//
-//                    si->flags  |= SF_APPLIED;
-//                }
+                    so->flags   = s->flags;
+                    break;
+
+                default:
+                    break;
             }
         RT_FOREACH_END
 
