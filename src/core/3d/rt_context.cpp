@@ -122,7 +122,74 @@ namespace lsp
             plan.flush();
             return STATUS_OK;
         }
+#if 1
+        rt_triangle_t *dt;
+        rt_plan_t   xplan;
+        Allocator3D<rt_triangle_t> xtriangle(triangle.chunk_size());
 
+        // Build set of triangles
+        RT_FOREACH(rtm_triangle_t, t, src->triangle)
+            // Skip triangles that should be ignored
+            if ((t->oid == view.oid) && (t->face == view.face))
+            {
+                RT_TRACE(debug, ignore(t); );
+                continue;
+            }
+
+            // Check that triangle matches specified object
+            for (size_t i=0; i<n; ++i)
+                if (t->oid == ssize_t(ids[i]))
+                {
+                    // Mark edges as required to be added to the plan
+                    t->e[0]->itag       = 0;
+                    t->e[1]->itag       = 0;
+                    t->e[2]->itag       = 0;
+
+                    // Add triangle to list and increment total counter
+                    // Add triangle to list
+                    if (!(dt = xtriangle.alloc()))
+                        return STATUS_NO_MEM;
+
+                    dt->v[0]    = *(t->v[0]);
+                    dt->v[1]    = *(t->v[1]);
+                    dt->v[2]    = *(t->v[2]);
+                    dt->n       = t->n;
+                    dt->oid     = t->oid;
+                    dt->face    = t->face;
+                    dt->m       = t->m;
+                    dt->ptag    = t;
+
+                    break;
+                }
+        RT_FOREACH_END;
+
+        // Build plan
+        RT_FOREACH(rt_triangle_t, t, xtriangle)
+            rtm_triangle_t *st  = reinterpret_cast<rtm_triangle_t *>(t->ptag);
+            t->ptag = NULL;
+
+            // Add edges to plan
+            if (!st->e[0]->itag)
+            {
+                st->e[0]->itag = 1;
+                if (!xplan.add_edge(st->v[0], st->v[1]))
+                    return STATUS_NO_MEM;
+            }
+            if (!st->e[1]->itag)
+            {
+                st->e[1]->itag = 1;
+                if (!xplan.add_edge(st->v[1], st->v[2]))
+                    return STATUS_NO_MEM;
+            }
+            if (!st->e[2]->itag)
+            {
+                st->e[2]->itag = 1;
+                if (!xplan.add_edge(st->v[2], st->v[0]))
+                    return STATUS_NO_MEM;
+            }
+        RT_FOREACH_END;
+
+#else
         //--------------------------------------------
         // Prepare sorted list of matched triangles
         size_t cap              = (src->triangle.size() + 0x3f) & (~0x3f);
@@ -183,8 +250,7 @@ namespace lsp
             free(vt);
         )
 
-        // Temporarily disabled
-        //::qsort(vt, t_total, sizeof(rt_triangle_sort_t), compare_triangles);
+        ::qsort(vt, t_total, sizeof(rt_triangle_sort_t), compare_triangles);
 
         RT_TRACE_BREAK(debug,
             lsp_trace("After sort (%d triangles)", int(t_total));
@@ -263,7 +329,7 @@ namespace lsp
         ::free(vt);
         if (res != STATUS_OK)
             return res;
-
+#endif
         RT_VALIDATE(
             if (!src->validate())
                 return STATUS_CORRUPTED;

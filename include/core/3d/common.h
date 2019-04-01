@@ -150,8 +150,8 @@ namespace lsp
         ssize_t             oid;        // Object identifier
         size_t              face;       // Face identifier
         rt_material_t      *m;          // Material
-        __IF_64(uint64_t    __pad;)     // Alignment to be sizeof() multiple of 16
-        __IF_32(uint32_t    __pad[3];)  // Alignment to be sizeof() multiple of 16
+        void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
+        __IF_32(uint32_t    __pad[2];)  // Alignment to be sizeof() multiple of 16
     } rt_triangle_t;
 
     typedef struct rt_material_t
