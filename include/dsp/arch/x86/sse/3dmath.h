@@ -2266,7 +2266,7 @@ namespace sse
         );
     }
 
-    size_t colocation_v1p3(const vector3d_t *pl, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    size_t colocation_x3_v1p3(const vector3d_t *pl, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
     {
         float x0, x1, x2, x3, x4;
         float res[4] __lsp_aligned16;
@@ -2320,7 +2320,7 @@ namespace sse
         return size_t(p0);
     }
 
-    size_t colocation_v1pv(const vector3d_t *pl, const point3d_t *pv)
+    size_t colocation_x3_v1pv(const vector3d_t *pl, const point3d_t *pv)
     {
         float x0, x1, x2, x3, x4;
         float res[4] __lsp_aligned16;

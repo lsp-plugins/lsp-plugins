@@ -98,8 +98,8 @@ namespace sse3
 
         EXPORT2_X64(rgba32_to_bgra32, x64_rgba32_to_bgra32);
 
-        EXPORT1(colocation_v1p3);
-        EXPORT1(colocation_v1pv);
+        EXPORT1(colocation_x3_v1p3);
+        EXPORT1(colocation_x3_v1pv);
 
         EXPORT1(calc_min_distance_p3);
         EXPORT1(calc_min_distance_pv);

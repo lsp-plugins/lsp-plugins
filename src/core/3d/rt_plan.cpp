@@ -36,42 +36,37 @@ namespace lsp
     status_t rt_plan_t::cut_out(const vector3d_t *pl)
     {
         rt_plan_t tmp;
-        float k[2];
         rt_split_t *sp;
 
         RT_FOREACH(rt_split_t, s, items)
             if (s->flags & SF_REMOVE) // Do not analyze the edge, it will be automatically removed
                 continue;
 
-            k[0] = s->p[0].x * pl->dx + s->p[0].y * pl->dy + s->p[0].z*pl->dz + pl->dw;
-            k[1] = s->p[1].x * pl->dx + s->p[1].y * pl->dy + s->p[1].z*pl->dz + pl->dw;
+            size_t tag = dsp::colocation_x2_v1pv(pl, s->p);
 
-            if (k[0] <= -DSP_3D_TOLERANCE) // p[0] is under the plane
+            switch (tag)
             {
-                if (!(sp = tmp.items.alloc(s)))
-                    return STATUS_NO_MEM;
-                if (k[1] >= DSP_3D_TOLERANCE) // p[1] is over the plane, cut p[1]
+                case 0x06: // 1 2
+                case 0x09: // 2 1
+                case 0x0a: // 2 2
+                    if (!tmp.items.alloc(s)) // Just copy segment to output
+                        return STATUS_NO_MEM;
+                    break;
+
+                case 0x02: // 0 2 -- p[0] is under the plane, p[1] is over the plane, cut p[1]
+                    if (!(sp = tmp.items.alloc(s)))
+                        return STATUS_NO_MEM;
                     dsp::calc_split_point_pvv1(&sp->p[1], sp->p, pl);
-            }
-            else if (k[0] >= DSP_3D_TOLERANCE) // p[0] is over the plane
-            {
-                if (k[1] <= -DSP_3D_TOLERANCE) // p[1] is under the plane, cut p[0]
-                {
+                    break;
+
+                case 0x08: // 2 0 -- p[1] is under the plane, p[0] is over the plane, cut p[0]
                     if (!(sp = tmp.items.alloc(s)))
                         return STATUS_NO_MEM;
                     dsp::calc_split_point_pvv1(&sp->p[0], sp->p, pl);
-                }
-            }
-            else // consider p[0] lays on the plane
-            {
-                // Skip this plane
-//                // p[1] also lies on the plane and edge is marked as cull-back?
-//                if ((k[1] > -DSP_3D_TOLERANCE) && (k[1] < DSP_3D_TOLERANCE) && (s->flags & SF_CULLBACK))
-//                {
-//                    if (!(sp = tmp.items.alloc(s)))
-//                        return STATUS_NO_MEM;
-//                    sp->flags   = s->flags | SF_APPLIED; // Mark edge as already applied
-//                }
+                    break;
+
+                default:
+                    break;
             }
         RT_FOREACH_END
 

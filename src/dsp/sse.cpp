@@ -358,8 +358,8 @@ namespace sse
         EXPORT1(calc_split_point_p2v1);
         EXPORT1(calc_split_point_pvv1);
 
-        EXPORT1(colocation_v1p3);
-        EXPORT1(colocation_v1pv);
+        EXPORT1(colocation_x3_v1p3);
+        EXPORT1(colocation_x3_v1pv);
 
         EXPORT1(calc_plane_p3);
         EXPORT1(calc_plane_pv);

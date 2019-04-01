@@ -392,7 +392,7 @@ namespace lsp
         rt_triangle_t *nt1, *nt2;
 
         RT_FOREACH(rt_triangle_t, t, triangle)
-            size_t tag  = dsp::colocation_v1pv(pl, t->v);
+            size_t tag  = dsp::colocation_x3_v1pv(pl, t->v);
 
             switch (tag)
             {
@@ -515,7 +515,7 @@ namespace lsp
         rt_triangle_t *nt1, *nt2;
 
         RT_FOREACH(rt_triangle_t, t, triangle)
-            size_t tag  = dsp::colocation_v1pv(pl, t->v);
+            size_t tag  = dsp::colocation_x3_v1pv(pl, t->v);
 
             switch (tag)
             {
@@ -640,7 +640,7 @@ namespace lsp
         rt_triangle_t *nt1, *nt2, *nt3;
 
         RT_FOREACH(rt_triangle_t, t, triangle)
-            size_t tag  = dsp::colocation_v1pv(pl, t->v);
+            size_t tag  = dsp::colocation_x3_v1pv(pl, t->v);
 
             switch (tag)
             {

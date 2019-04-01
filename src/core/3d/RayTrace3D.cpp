@@ -120,7 +120,7 @@ namespace lsp
     status_t RayTrace3D::TaskThread::submit_task(rt_context_t *ctx)
     {
         // 'Heavy' state and pretty high number of pending tasks - submit task to global queue
-        if ((ctx->state == heavy_state) && (trace->vTasks.size() < TASK_HI_THRESH))
+        if ((ctx->state == heavy_state) && (trace->vTasks.size() < TASK_LO_THRESH))
         {
             trace->lkTasks.lock();
             status_t res = (trace->vTasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;

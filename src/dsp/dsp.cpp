@@ -403,8 +403,10 @@ namespace dsp
     float   (* projection_length_v2)(const vector3d_t *v, const vector3d_t *pv) = NULL;
 
     void    (* split_triangle_raw)(raw_triangle_t *out, size_t *n_out, raw_triangle_t *in, size_t *n_in, const vector3d_t *pl, const raw_triangle_t *pv) = NULL;
-    size_t  (* colocation_v1p3)(const vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
-    size_t  (* colocation_v1pv)(const vector3d_t *v, const point3d_t *pv) = NULL;
+    size_t  (* colocation_x2_v1p2)(const vector3d_t *v, const point3d_t *p0, const point3d_t *p1);
+    size_t  (* colocation_x2_v1pv)(const vector3d_t *v, const point3d_t *pv);
+    size_t  (* colocation_x3_v1p3)(const vector3d_t *v, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
+    size_t  (* colocation_x3_v1pv)(const vector3d_t *v, const point3d_t *pv) = NULL;
 
     void    (* vector_mul_v2)(vector3d_t *r, const vector3d_t *v1, const vector3d_t *v2) = NULL;
     void    (* vector_mul_vv)(vector3d_t *r, const vector3d_t *vv) = NULL;
