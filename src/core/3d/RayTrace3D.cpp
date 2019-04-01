@@ -10,6 +10,8 @@
 #include <core/3d/RayTrace3D.h>
 
 #define SAMPLE_QUANTITY     512
+#define TASK_LO_THRESH      1024
+#define TASK_HI_THRESH      8192
 
 namespace lsp
 {
@@ -117,15 +119,17 @@ namespace lsp
 
     status_t RayTrace3D::TaskThread::submit_task(rt_context_t *ctx)
     {
-        // 'Leightweight' state ?
-        if (ctx->state != heavy_state)
-            return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+        // 'Heavy' state and pretty high number of pending tasks - submit task to global queue
+        if ((ctx->state == heavy_state) && (trace->vTasks.size() < TASK_HI_THRESH))
+        {
+            trace->lkTasks.lock();
+            status_t res = (trace->vTasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
+            trace->lkTasks.unlock();
+            return res;
+        }
 
-        // This is 'heavy' state, submit it to global queue
-        trace->lkTasks.lock();
-        status_t res = (trace->vTasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
-        trace->lkTasks.unlock();
-        return res;
+        // Otherwise, submit to local task queue
+        return (tasks.push(ctx)) ? STATUS_OK : STATUS_NO_MEM;
     }
 
     status_t RayTrace3D::TaskThread::process_context(rt_context_t *ctx)
@@ -1126,7 +1130,7 @@ namespace lsp
 
             // Perform swap: empty local tasks, fill 'estimate' with them
             estimate.swap_data(&tasks);
-        } while ((estimate.size() > 0) && (estimate.size() < 1000));
+        } while ((estimate.size() > 0) && (estimate.size() < TASK_LO_THRESH));
 
         heavy_state         = S_SCAN_OBJECTS; // Enable global task queue for this thread
         trace->vTasks.swap_data(&estimate); // Now all generated tasks are global
