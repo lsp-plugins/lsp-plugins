@@ -274,7 +274,7 @@ namespace lsp
         // Build the plan
         rt_triangle_t *dt;
         rt_plan_t   xplan;
-        Allocator3D<rt_triangle_t> xtriangle(1024);
+        Allocator3D<rt_triangle_t> xtriangle(triangle.chunk_size());
         status_t res = STATUS_OK;
 
         for (size_t i=0; i<t_total; ++i)
@@ -388,7 +388,7 @@ namespace lsp
 
     status_t rt_context_t::cut(const vector3d_t *pl)
     {
-        Allocator3D<rt_triangle_t> in(1024);
+        Allocator3D<rt_triangle_t> in(triangle.chunk_size());
         rt_triangle_t *nt1, *nt2;
 
         RT_FOREACH(rt_triangle_t, t, triangle)
@@ -511,7 +511,7 @@ namespace lsp
 
     status_t rt_context_t::cullback(const vector3d_t *pl)
     {
-        Allocator3D<rt_triangle_t> in(1024);
+        Allocator3D<rt_triangle_t> in(triangle.chunk_size());
         rt_triangle_t *nt1, *nt2;
 
         RT_FOREACH(rt_triangle_t, t, triangle)
@@ -636,7 +636,7 @@ namespace lsp
 
     status_t rt_context_t::split(rt_context_t *out, const vector3d_t *pl)
     {
-        Allocator3D<rt_triangle_t> xin(1024), xout(1024);
+        Allocator3D<rt_triangle_t> xin(triangle.chunk_size()), xout(triangle.chunk_size());
         rt_triangle_t *nt1, *nt2, *nt3;
 
         RT_FOREACH(rt_triangle_t, t, triangle)
