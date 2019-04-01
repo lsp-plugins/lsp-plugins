@@ -98,6 +98,9 @@ namespace sse3
 
         EXPORT2_X64(rgba32_to_bgra32, x64_rgba32_to_bgra32);
 
+        EXPORT1(calc_split_point_p2v1);
+        EXPORT1(calc_split_point_pvv1);
+
         EXPORT1(colocation_x2_v1p2);
         EXPORT1(colocation_x2_v1pv);
         EXPORT1(colocation_x3_v1p3);

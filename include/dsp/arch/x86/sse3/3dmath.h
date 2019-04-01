@@ -14,6 +14,71 @@
 
 namespace sse3
 {
+    void calc_split_point_p2v1(point3d_t *sp, const point3d_t *l0, const point3d_t *l1, const vector3d_t *pl)
+    {
+        float x0, x1, x2, x3, x4, x5, x6;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[l0]), %[x1]")        /* xmm1 = l0 = lx0 ly0 lz0 1 */
+            __ASM_EMIT("movups      (%[l1]), %[x0]")        /* xmm0 = l1 = lx1 ly1 lz1 1 */
+            __ASM_EMIT("movaps      %[x1], %[x4]")          /* xmm4 = lx0 ly0 lz0 1 */
+            __ASM_EMIT("movups      (%[pl]), %[x2]")        /* xmm2 = pl = nx ny nz nw */
+            __ASM_EMIT("subps       %[x1], %[x0]")          /* xmm0 = d = l1 - l0 = dx dy dz 0 */
+
+            __ASM_EMIT("mulps       %[x2], %[x1]")          /* xmm1 = nx*lx0 ny*ly0 nz*lz0 nw */
+            __ASM_EMIT("mulps       %[x0], %[x2]")          /* xmm2 = nx*dx ny*dy nz*dz 0 */
+            __ASM_EMIT("haddps      %[x1], %[x2]")          /* xmm2 = nx*dx+ny*dy nz*dz nx*lx0+ny*ly0 nz*lz0+nw */
+            __ASM_EMIT("haddps      %[x2], %[x2]")          /* xmm2 = nx*dx+ny*dy+nz*dz nx*lx0+ny*ly0+nz*lz0+nw = B T B T */
+            __ASM_EMIT("movaps      %[x2], %[x3]")          /* xmm3 = B T B T */
+            __ASM_EMIT("shufps      $0x00, %[x2], %[x2]")   /* xmm2 = B B B B */
+            __ASM_EMIT("shufps      $0x55, %[x3], %[x3]")   /* xmm3 = T T T T */
+            __ASM_EMIT("divps       %[x2], %[x3]")          /* xmm3 = T/B T/B T/B T/B = W */
+
+            __ASM_EMIT("mulps       %[x3], %[x0]")          /* xmm0 = dx*W dy*W dz*W 0 */
+            __ASM_EMIT("subps       %[x0], %[x4]")          /* xmm0 = lx0-dx*W ly0-dy*W lz0-dz*W 1 */
+
+            __ASM_EMIT("movups      %[x4], (%[sp])")
+            : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
+              [x4] "=&x" (x4), [x5] "=&x" (x5), [x6] "=&x" (x6)
+            : [sp] "r" (sp), [l0] "r" (l0), [l1] "r" (l1), [pl] "r" (pl)
+            : "memory"
+        );
+    }
+
+    void calc_split_point_pvv1(point3d_t *sp, const point3d_t *lv, const vector3d_t *pl)
+    {
+        float x0, x1, x2, x3, x4, x5, x6;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      0x00(%[lv]), %[x1]")    /* xmm1 = l0 = lx0 ly0 lz0 ? */
+            __ASM_EMIT("movups      0x10(%[lv]), %[x0]")    /* xmm0 = l1 = lx1 ly1 lz1 ? */
+            __ASM_EMIT("movaps      %[x1], %[x4]")          /* xmm4 = lx0 ly0 lz0 1 */
+            __ASM_EMIT("movups      (%[pl]), %[x2]")        /* xmm2 = pl = nx ny nz nw */
+            __ASM_EMIT("subps       %[x1], %[x0]")          /* xmm0 = d = l1 - l0 = dx dy dz 0 */
+
+            __ASM_EMIT("mulps       %[x2], %[x1]")          /* xmm1 = nx*lx0 ny*ly0 nz*lz0 nw */
+            __ASM_EMIT("mulps       %[x0], %[x2]")          /* xmm2 = nx*dx ny*dy nz*dz 0 */
+            __ASM_EMIT("haddps      %[x1], %[x2]")          /* xmm2 = nx*dx+ny*dy nz*dz nx*lx0+ny*ly0 nz*lz0+nw */
+            __ASM_EMIT("haddps      %[x2], %[x2]")          /* xmm2 = nx*dx+ny*dy+nz*dz nx*lx0+ny*ly0+nz*lz0+nw = B T B T */
+            __ASM_EMIT("movaps      %[x2], %[x3]")          /* xmm3 = B T B T */
+            __ASM_EMIT("shufps      $0x00, %[x2], %[x2]")   /* xmm2 = B B B B */
+            __ASM_EMIT("shufps      $0x55, %[x3], %[x3]")   /* xmm3 = T T T T */
+            __ASM_EMIT("divps       %[x2], %[x3]")          /* xmm3 = T/B T/B T/B T/B = W */
+
+            __ASM_EMIT("mulps       %[x3], %[x0]")          /* xmm0 = dx*W dy*W dz*W 0 */
+            __ASM_EMIT("subps       %[x0], %[x4]")          /* xmm0 = lx0-dx*W ly0-dy*W lz0-dz*W 1 */
+
+            __ASM_EMIT("movups      %[x4], (%[sp])")
+
+            : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
+              [x4] "=&x" (x4), [x5] "=&x" (x5), [x6] "=&x" (x6)
+            : [sp] "r" (sp), [lv] "r" (lv), [pl] "r" (pl)
+            : "memory"
+        );
+    }
+
     size_t colocation_x2_v1p2(const vector3d_t *pl, const point3d_t *p0, const point3d_t *p1)
     {
         float x0, x1, x2;
