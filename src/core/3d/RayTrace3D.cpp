@@ -950,8 +950,8 @@ namespace lsp
         vector3d_t spl;
         raw_triangle_t in[2], out[2];
         size_t n_in, n_out;
-        float prev_area     = 0.0f;                                                     // The area of polygon at previous step
-        float afactor       = v->amplitude * capture->volume / sqrtf(v_area);           // The norming energy factor
+        float prev_area     = 0.0f;                             // The area of polygon at previous step
+        float afactor       = v->amplitude / sqrtf(v_area);     // The norming energy factor
         point3d_t p[3];
 
         do {
@@ -1057,7 +1057,7 @@ namespace lsp
         } while (n_out > 0);
 
         lsp_trace("Samples %d-%d -> area=%e amplitude=%e rnum=%d",
-                int(ssn), int(csn-1), v_area, v->amplitude * capture->volume, int(v->rnum));
+                int(ssn), int(csn-1), v_area, v->amplitude, int(v->rnum));
 
         return STATUS_OK;
     }
@@ -1324,7 +1324,7 @@ namespace lsp
         vCaptures.flush();
     }
 
-    status_t RayTrace3D::add_source(const ray3d_t *position, rt_audio_source_t type, float volume)
+    status_t RayTrace3D::add_source(const ray3d_t *position, rt_audio_source_t type)
     {
         if (position == NULL)
             return STATUS_NO_MEM;
@@ -1335,12 +1335,11 @@ namespace lsp
 
         src->position       = *position;
         src->type           = type;
-        src->volume         = volume;
 
         return STATUS_OK;
     }
 
-    ssize_t RayTrace3D::add_capture(const ray3d_t *position, rt_audio_capture_t type, float gain)
+    ssize_t RayTrace3D::add_capture(const ray3d_t *position, rt_audio_capture_t type)
     {
         capture_t *cap      = new capture_t();
         if (cap == NULL)
@@ -1355,8 +1354,6 @@ namespace lsp
 
         cap->position       = *position;
         cap->type           = type;
-        cap->gain           = gain;
-        cap->volume         = 1.0f;
 
         dsp::calc_matrix3d_transform_r1(&cap->matrix, position);
 

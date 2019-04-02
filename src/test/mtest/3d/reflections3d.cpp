@@ -281,10 +281,10 @@ MTEST_BEGIN("3d", reflections)
 //                if (res != STATUS_OK)
 //                    return res;
 
-                res     = trace->add_source(&sSource, RT_AS_OMNI, 1.0f);
+                res     = trace->add_source(&sSource, RT_AS_OMNI);
                 if (res != STATUS_OK)
                     return res;
-                res     = trace->add_capture(&sCapture, RT_AC_OMNIDIRECTIONAL, 1.0f);
+                res     = trace->add_capture(&sCapture, RT_AC_OMNI);
                 if (res != STATUS_OK)
                     return res;
 

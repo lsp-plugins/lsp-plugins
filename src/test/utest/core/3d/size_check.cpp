@@ -23,6 +23,8 @@ UTEST_BEGIN("core.3d", size_check)
         // All these structures should be multiple of 16-byte
         CHECK_SIZE(rt_split_t, 0x10);
         CHECK_SIZE(rt_triangle_t, 0x10);
+        CHECK_SIZE(rt_material_t, 0x10);
+        CHECK_SIZE(rt_view_t, 0x10);
 
         CHECK_SIZE(rtm_vertex_t, 0x10);
         CHECK_SIZE(rtm_edge_t, 0x10);

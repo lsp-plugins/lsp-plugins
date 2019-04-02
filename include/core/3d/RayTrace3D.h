@@ -31,11 +31,11 @@ namespace lsp
 
     enum rt_audio_capture_t
     {
-        RT_AC_CARDIOID,
-        RT_AC_SUPERCARDIOID,
-        RT_AC_HYPERCARDIOID,
-        RT_AC_BIDIRECTIONAL,
-        RT_AC_OMNIDIRECTIONAL
+        RT_AC_CARDIO,
+        RT_AC_SCARDIO,
+        RT_AC_HCARDIO,
+        RT_AC_BIDIR,
+        RT_AC_OMNI
     };
 
     /** Ray tracing storage implemented as a stack
@@ -48,7 +48,6 @@ namespace lsp
             {
                 ray3d_t             position;
                 rt_audio_source_t   type;
-                float               volume;
             } source_t;
 
             typedef struct sample_t
@@ -66,8 +65,6 @@ namespace lsp
                 rt_material_t       material;
                 rt_audio_capture_t  type;
                 cstorage<sample_t>  bindings;
-                float               gain;
-                float               volume;
             } capture_t;
 
             typedef struct stats_t
@@ -242,7 +239,7 @@ namespace lsp
              * @param volume audio source volume
              * @return status of operation
              */
-            status_t add_source(const ray3d_t *position, rt_audio_source_t type, float volume);
+            status_t add_source(const ray3d_t *position, rt_audio_source_t type);
 
             /**
              * Add audio capture
@@ -250,10 +247,9 @@ namespace lsp
              * @param position audio capture position, direction and size
              * @param sample sample object to store captured data
              * @param channel the sample channel to store captured data
-             * @param gain capture gain
              * @return non-negative capture identifier or negative error status code
              */
-            ssize_t add_capture(const ray3d_t *position, rt_audio_capture_t type, float gain);
+            ssize_t add_capture(const ray3d_t *position, rt_audio_capture_t type);
 
             /**
              * Bind audio sample to capture

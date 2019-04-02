@@ -76,13 +76,13 @@ MTEST_BEGIN("core.3d", raytrace)
         ray3d_t source;
         dsp::init_point_xyz(&source.z, -1.0f, 0.0f, 0.0f);
         dsp::init_vector_dxyz(&source.v, 0.0f, 0.0f, 0.3048f); // 12" speaker source
-        MTEST_ASSERT(trace.add_source(&source, RT_AS_OMNI, 1.0f) == STATUS_OK);
+        MTEST_ASSERT(trace.add_source(&source, RT_AS_OMNI) == STATUS_OK);
 
         // Add capture
         ray3d_t capture;
         dsp::init_point_xyz(&capture.z, 1.0f, 0.0f, 0.0f);
         dsp::init_vector_dxyz(&capture.v, 0.0f, 0.0f, 0.0508f); // 2" microphone diaphragm
-        MTEST_ASSERT(trace.add_capture(&capture, RT_AC_OMNIDIRECTIONAL, 1.0f) == 0);
+        MTEST_ASSERT(trace.add_capture(&capture, RT_AC_OMNI) == 0);
         trace.bind_capture(0, &sample, 0, 0, 0);    // Direct reflections
         trace.bind_capture(0, &sample, 1, 1, 3);    // Early reflections
         trace.bind_capture(0, &sample, 2, 4, -1);   // Late reflections

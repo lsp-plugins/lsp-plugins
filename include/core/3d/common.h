@@ -112,7 +112,6 @@ namespace lsp
     struct rtm_vertex_t;
     struct rtm_edge_t;
     struct rtm_triangle_t;
-    struct rtm_material_t;
 
     enum edge_flags_t
     {
@@ -139,7 +138,6 @@ namespace lsp
     typedef struct rt_split_t
     {
         point3d_t           p[2];       // Split points
-//        vector3d_t          sp;         // The split plane that idicates cutting triangle
         size_t              flags;      // Splitting flags
         __IF_64(uint64_t    __pad;)     // Alignment to be sizeof() multiple of 16
         __IF_32(uint32_t    __pad[3];)  // Alignment to be sizeof() multiple of 16
@@ -163,7 +161,22 @@ namespace lsp
         float           dissipation[2];     // The dissipation coefficients for refracted signal
         float           transparency[2];    // The amount of energy that will be passed-through the material
         float           permeability;       // Sound permeability of the object (inner sound speed / outer sound speed)
+        float           __pad[3];           // Padding
     } rt_material_t;
+
+    typedef struct rt_view_t
+    {
+        point3d_t           s;          // Source point
+        point3d_t           p[3];       // View points
+        float               time[3];    // The corresponding start time for each source point
+        float               amplitude;  // The amplitude of the signal
+        float               speed;      // This value indicates the current sound speed [m/s]
+        float               location;   // The expected co-location to the next surface
+        ssize_t             oid;        // Last interacted object identifier
+        ssize_t             face;       // Last interacted object's face identifier
+        ssize_t             rnum;       // The reflection number
+        __IF_32(uint32_t    __pad[3];)  // Alignment to be sizeof() multiple of 16
+    } rt_view_t;
 
 #if 1
     typedef struct rtm_vertex_t: public point3d_t
@@ -207,25 +220,6 @@ namespace lsp
         rt_material_t      *m;          // Material
         __IF_32(uint32_t    __pad[2];)  // Alignment to be sizeof() multiple of 16
     } rtm_triangle_t;
-
-    typedef struct rt_view_t
-    {
-        point3d_t           s;          // Source point
-        point3d_t           p[3];       // View points
-        float               time[3];    // The corresponding start time for each source point
-        float               amplitude;  // The amplitude of the signal
-        float               speed;      // This value indicates the current sound speed [m/s]
-        float               location;   // The expected co-location to the next surface
-        ssize_t             oid;        // Last interacted object identifier
-        ssize_t             face;       // Last interacted object's face identifier
-        ssize_t             rnum;       // The reflection number
-    } rt_view_t;
-
-    typedef struct rtm_material_t: public rt_material_t
-    {
-        rt_material_t      *from;       // The material 'from'
-        rt_material_t      *to;         // The material 'to'
-    } rtm_material_t;
 
 #pragma pack(pop)
 
