@@ -137,13 +137,6 @@ namespace lsp
 
         // Build set of triangles
         RT_FOREACH(rtm_triangle_t, t, src->triangle)
-            // Skip triangles that should be ignored
-            if ((t->oid == view.oid) && (t->face == view.face))
-            {
-                RT_TRACE(debug, ignore(t); );
-                continue;
-            }
-
             // Check that triangle matches specified object
             tag = 1;
             for (size_t i=0; i<n; ++i)
@@ -153,8 +146,11 @@ namespace lsp
                     break;
                 };
 
-            if (tag)
+            if ((tag) || ((t->oid == view.oid) && (t->face == view.face)))
+            {
+                RT_TRACE(debug, ignore(t); );
                 continue;
+            }
 
             // We consider that the context view is pretty small (which is true for most cases)
             // and we can filter a lot of triangles before adding them to list
