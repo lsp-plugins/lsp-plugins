@@ -127,6 +127,14 @@ namespace lsp
         rt_plan_t   xplan;
         Allocator3D<rt_triangle_t> xtriangle(triangle.chunk_size());
 
+        // Initialize cull planes
+        size_t tag;
+        vector3d_t pl[4]; // Split plane
+        dsp::calc_rev_oriented_plane_p3(&pl[0], &view.s, &view.p[0], &view.p[1], &view.p[2]);
+        dsp::calc_oriented_plane_p3(&pl[1], &view.p[2], &view.s, &view.p[0], &view.p[1]);
+        dsp::calc_oriented_plane_p3(&pl[2], &view.p[0], &view.s, &view.p[1], &view.p[2]);
+        dsp::calc_oriented_plane_p3(&pl[3], &view.p[1], &view.s, &view.p[2], &view.p[0]);
+
         // Build set of triangles
         RT_FOREACH(rtm_triangle_t, t, src->triangle)
             // Skip triangles that should be ignored
@@ -137,30 +145,59 @@ namespace lsp
             }
 
             // Check that triangle matches specified object
+            tag = 1;
             for (size_t i=0; i<n; ++i)
                 if (t->oid == ssize_t(ids[i]))
                 {
-                    // Mark edges as required to be added to the plan
-                    t->e[0]->itag       = 0;
-                    t->e[1]->itag       = 0;
-                    t->e[2]->itag       = 0;
-
-                    // Add triangle to list and increment total counter
-                    // Add triangle to list
-                    if (!(dt = xtriangle.alloc()))
-                        return STATUS_NO_MEM;
-
-                    dt->v[0]    = *(t->v[0]);
-                    dt->v[1]    = *(t->v[1]);
-                    dt->v[2]    = *(t->v[2]);
-                    dt->n       = t->n;
-                    dt->oid     = t->oid;
-                    dt->face    = t->face;
-                    dt->m       = t->m;
-                    dt->ptag    = t;
-
+                    tag = 0;
                     break;
+                };
+
+            if (tag)
+                continue;
+
+            // We consider that the context view is pretty small (which is true for most cases)
+            // and we can filter a lot of triangles before adding them to list
+            for (size_t i=0; i<4; ++i)
+            {
+                tag = dsp::colocation_x3_v1p3(&pl[i], t->v[0], t->v[1], t->v[2]);
+                switch (tag)
+                {
+                    // Skip all triangles that lay 'outside' the culling plane
+                    case 0x00: // 0 0 0
+                    case 0x01: // 0 0 1
+                    case 0x04: // 0 1 0
+                    case 0x05: // 0 1 1
+                    case 0x10: // 1 0 0
+                    case 0x11: // 1 0 1
+                    case 0x14: // 1 1 0
+                    case 0x15: // 1 1 1
+                        goto continue_loop;
+                    default: break;
                 }
+            }
+
+            // Mark edges as required to be added to the plan
+            t->e[0]->itag       = 0;
+            t->e[1]->itag       = 0;
+            t->e[2]->itag       = 0;
+
+            // Add triangle to list and increment total counter
+            // Add triangle to list
+            if (!(dt = xtriangle.alloc()))
+                return STATUS_NO_MEM;
+
+            dt->v[0]    = *(t->v[0]);
+            dt->v[1]    = *(t->v[1]);
+            dt->v[2]    = *(t->v[2]);
+            dt->n       = t->n;
+            dt->oid     = t->oid;
+            dt->face    = t->face;
+            dt->m       = t->m;
+            dt->ptag    = t;
+
+        continue_loop: ;
+
         RT_FOREACH_END;
 
         // Build plan

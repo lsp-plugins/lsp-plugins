@@ -1024,9 +1024,9 @@ namespace dsp
     /**
      * Check colocation of three points and a plane
      * @param v vector that contains plane equation
+     * @param p0 point 0
      * @param p1 point 1
      * @param p2 point 2
-     * @param p3 point 3
      * @return bit mask: 3 groups of 2 bits, describing state of each point, proper values are:
      *   00 - if point is above the plane
      *   01 - if point is on the plane
@@ -1052,11 +1052,11 @@ namespace dsp
     extern size_t (* colocation_x3_v1pv)(const vector3d_t *v, const point3d_t *pv);
 
     /**
-     * Check colocation of three points and a plane
-     * @param v vector that contains plane equation
-     * @param p1 point 1
-     * @param p2 point 2
-     * @param p3 point 3
+     * Check colocation of three planes and a point
+     * @param v0 plane 0
+     * @param v1 plane 1
+     * @param v2 plane 2
+     * @param p point
      * @return bit mask: 3 groups of 2 bits, describing state of point relative to each plane, proper values are:
      *   00 - if point is above the plane
      *   01 - if point is on the plane
@@ -1068,7 +1068,7 @@ namespace dsp
     extern size_t (* colocation_x3_v3p1)(const vector3d_t *v0, const vector3d_t *v1, const vector3d_t *v2, const point3d_t *p);
 
     /**
-     * Check colocation of three points and a plane
+     * Check colocation of three planes and a point
      * @param vv array of three vectors
      * @param p point
      * @return bit mask: 3 groups of 2 bits, describing state of point relative to each plane, proper values are:
@@ -1080,6 +1080,7 @@ namespace dsp
      *   100100 - point lays above the plane 0, on the plane 1 and below the plane 2
      */
     extern size_t (* colocation_x3_vvp1)(const vector3d_t *vv, const point3d_t *p);
+
 } // dsp
 
 #endif /* DSP_COMMON_3DMATH_H_ */
