@@ -465,8 +465,7 @@ namespace lsp
         status_t res;
         vector3d_t pl;
         vector3d_t spl[3]; // Scissor planes
-        float k[3];
-        ssize_t l[3];
+        size_t tag;
 
         for (size_t i=0; i<triangle.size(); ++i)
         {
@@ -476,99 +475,83 @@ namespace lsp
             dsp::calc_plane_v1p2(&spl[1], &pl, ct->v[1], ct->v[2]);
             dsp::calc_plane_v1p2(&spl[2], &pl, ct->v[2], ct->v[0]);
 
-            // Estimate location of each vertex relative to the plane
-            RT_FOREACH(rtm_vertex_t, cv, vertex)
-                float k = cv->x * pl.dx + cv->y * pl.dy + cv->z*pl.dz + pl.dw;
-                cv->itag = (k < -DSP_3D_TOLERANCE) ? 2 : (k > DSP_3D_TOLERANCE) ? 0 : 1;
-            RT_FOREACH_END
-
             // Split each edge with triangle, do not process new edges
             RT_FOREACH(rtm_edge_t, ce, edge)
                 if ((ce == ct->e[0]) || (ce == ct->e[1]) || (ce == ct->e[2]))
                     continue;
-
-                ssize_t x1      = ce->v[0]->itag;
-                ssize_t x2      = ce->v[1]->itag;
+                if ((ce->v[0] == ct->v[0]) || (ce->v[0] == ct->v[1]) || (ce->v[0] == ct->v[2]))
+                    continue;
+                if ((ce->v[1] == ct->v[0]) || (ce->v[1] == ct->v[1]) || (ce->v[1] == ct->v[2]))
+                    continue;
 
                 // Ensure that edge intersects the plane
-                if ((x1 <= 1) && (x2 <= 1))
-                    continue;
-                else if ((x1 >= 1) && (x2 >=1))
-                    continue;
+                rtm_vertex_t *spp, sp;
+                tag         = dsp::colocation_x2_v1p2(&pl, ce->v[0], ce->v[1]);
 
-                // But now we need to check that intersection point lays on the triangle
-                rtm_vertex_t sp, *spp;
-                dsp::calc_split_point_p2v1(&sp, ce->v[0], ce->v[1], &pl);
-                sp.itag     = 0;
-                sp.ptag     = NULL;
-//                sp.ve       = NULL;
+                switch (tag)
+                {
+                    case 0x00: case 0x0a:   // Edge is over the plane or under the plane, skip
+                        continue;
+                    case 0x01: case 0x09: // Edge touches the plane with p[0]
+                        sp      = *(ce->v[0]);
+                        break;
+                    case 0x04: case 0x06: // Edge touches the plane with p[1]
+                        sp      = *(ce->v[1]);
+                        break;
+                    case 0x02: case 0x08: // Edge is crossing the plane
+                        dsp::calc_split_point_p2v1(&sp, ce->v[0], ce->v[1], &pl); // Compute split point
+                        break;
 
-                k[0]        = sp.x*spl[0].dx + sp.y*spl[0].dy + sp.z*spl[0].dz + spl[0].dw;
-                k[1]        = sp.x*spl[1].dx + sp.y*spl[1].dy + sp.z*spl[1].dz + spl[1].dw;
-                k[2]        = sp.x*spl[2].dx + sp.y*spl[2].dy + sp.z*spl[2].dz + spl[2].dw;
+                    case 0x05:              // Edge lays on the plane, skip
+                    default:
+                        continue;
+                }
 
-                l[0]        = (k[0] <= -DSP_3D_TOLERANCE) ? 2 : (k[0] > DSP_3D_TOLERANCE) ? 0 : 1;
-                l[1]        = (k[1] <= -DSP_3D_TOLERANCE) ? 2 : (k[1] > DSP_3D_TOLERANCE) ? 0 : 1;
-                l[2]        = (k[2] <= -DSP_3D_TOLERANCE) ? 2 : (k[2] > DSP_3D_TOLERANCE) ? 0 : 1;
-
-                switch ((l[0]) | (l[1] << 2) | (l[2] << 4))
+                // Now, analyze co-location of split point and triangle
+                tag      = dsp::colocation_x3_vvp1(spl, &sp);
+                switch (tag)
                 {
                     case 0x16: // Point matches edges 1 and 2 (vertex 2)
-                        res     = split_edge(ce, ct->v[2]); // Need to perform only split of crossing edge
-                        if (res != STATUS_OK)
+                        if ((res = split_edge(ce, ct->v[2])) != STATUS_OK) // Need to perform only split of crossing edge
                             return res;
                         continue;
 
                     case 0x19: // Point matches edges 0 and 2 (vertex 0)
-                        res     = split_edge(ce, ct->v[0]); // Need to perform only split of crossing edge
-                        if (res != STATUS_OK)
+                        if ((res = split_edge(ce, ct->v[0])) != STATUS_OK) // Need to perform only split of crossing edge
                             return res;
                         continue;
 
                     case 0x25: // Point matches edges 0 and 1 (vertex 1)
-                        res     = split_edge(ce, ct->v[1]); // Need to perform only split of crossing edge
-                        if (res != STATUS_OK)
+                        if ((res = split_edge(ce, ct->v[1])) != STATUS_OK) // Need to perform only split of crossing edge
                             return res;
                         continue;
 
                     case 0x1a: // Point lays on edge 2, split triangle's edge
-                        spp         = vertex.alloc(&sp);
-                        if (spp == NULL)
+                        if ((spp = vertex.alloc(&sp)) == NULL)
                             return STATUS_NO_MEM;
-//                        spp->d      = dsp::calc_sqr_distance_p2(spp, &view.s);
-                        res         = split_edge(ct->e[2], spp);
-                        if (res == STATUS_OK)
-                            res         = split_edge(ce, spp);
+                        if ((res = split_edge(ct->e[2], spp)) == STATUS_OK)
+                            res     = split_edge(ce, spp);
                         break;
 
                     case 0x26: // Point lays on edge 1, split triangle's edge
-                        spp         = vertex.alloc(&sp);
-                        if (spp == NULL)
+                        if ((spp = vertex.alloc(&sp)) == NULL)
                             return STATUS_NO_MEM;
-//                        spp->d      = dsp::calc_sqr_distance_p2(spp, &view.s);
-                        res         = split_edge(ct->e[1], spp);
-                        if (res == STATUS_OK)
-                            res         = split_edge(ce, spp);
+                        if ((res = split_edge(ct->e[1], spp)) == STATUS_OK)
+                            res     = split_edge(ce, spp);
                         break;
 
                     case 0x29: // Point lays on edge 0, split triangle's edge
-                        spp         = vertex.alloc(&sp);
-                        if (spp == NULL)
+                        if ((spp = vertex.alloc(&sp)) == NULL)
                             return STATUS_NO_MEM;
-//                        spp->d      = dsp::calc_sqr_distance_p2(spp, &view.s);
-                        res         = split_edge(ct->e[0], spp);
-                        if (res == STATUS_OK)
-                            res         = split_edge(ce, spp);
+                        if ((res = split_edge(ct->e[0], spp)) == STATUS_OK)
+                            res     = split_edge(ce, spp);
                         break;
 
                     case 0x2a: // Point lays inside of the triangle, split triangle's edge
-                        spp         = vertex.alloc(&sp);
-                        if (spp == NULL)
+                        if ((spp = vertex.alloc(&sp)) == NULL)
                             return STATUS_NO_MEM;
-//                        spp->d      = dsp::calc_sqr_distance_p2(spp, &view.s);
-                        res         = split_triangle(ct, spp);
-                        if (res == STATUS_OK)
-                            res         = split_edge(ce, spp);
+                        if ((res = split_triangle(ct, spp)) == STATUS_OK)
+                            res     = split_edge(ce, spp);
                         break;
 
                     default: // Point is not crossing triangle

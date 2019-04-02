@@ -251,6 +251,103 @@ namespace sse3
         return k0;
     }
 
+    size_t colocation_x3_v3p1(const vector3d_t *v0, const vector3d_t *v1, const vector3d_t *v2, const point3d_t *p)
+    {
+        float x0, x1, x2, x3, x4;
+        float res[4] __lsp_aligned16;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[p]), %[x3]")         /* xmm3 = p     */
+            __ASM_EMIT("movups      (%[v0]), %[x0]")        /* xmm0 = v0    */
+            __ASM_EMIT("movups      (%[v1]), %[x1]")        /* xmm1 = v1    */
+            __ASM_EMIT("movups      (%[v2]), %[x2]")        /* xmm2 = v2    */
+
+            __ASM_EMIT("mulps       %[x3], %[x0]")          /* xmm0 = p0 * pl */
+            __ASM_EMIT("mulps       %[x3], %[x1]")          /* xmm1 = p1 * pl */
+            __ASM_EMIT("mulps       %[x3], %[x2]")          /* xmm2 = p2 * pl */
+            __ASM_EMIT("haddps      %[x1], %[x0]")
+            __ASM_EMIT("haddps      %[x3], %[x2]")
+            __ASM_EMIT("haddps      %[x2], %[x0]")          /* xmm0 = k0 k1 k2 ? */
+            __ASM_EMIT("movaps      %[x0], %[x1]")          /* xmm1 = k0 k1 k2 ? */
+            __ASM_EMIT("cmpps       $2, %[PTOL], %[x0]")    /* xmm0 = k0 <= +TOL k1 <= +TOL k2 <= +TOL ? */
+            __ASM_EMIT("cmpps       $1, %[MTOL], %[x1]")    /* xmm1 = k0 < -TOL  k1 < -TOL k2 < -TOL ? */
+            __ASM_EMIT("andps       %[IONE], %[x0]")        /* xmm0 = 1*[k0 <= +TOL] 1*[k1 <= +TOL] 1*[k2 <= +TOL] ? */
+            __ASM_EMIT("andps       %[IONE], %[x1]")        /* xmm1 = 1*[k0 < -TOL] 1*[k1 < -TOL] 1*[k2 < -TOL] ? */
+            __ASM_EMIT("paddd       %[x1], %[x0]")
+            __ASM_EMIT("movdqa      %[x0], %[res]")
+            __ASM_EMIT32("movl      0x00 + %[res], %[v0]")
+            __ASM_EMIT32("movl      0x04 + %[res], %[v1]")
+            __ASM_EMIT32("movl      0x08 + %[res], %[v2]")
+            __ASM_EMIT64("movl      0x00 + %[res], %k[v0]")
+            __ASM_EMIT64("movl      0x04 + %[res], %k[v1]")
+            __ASM_EMIT64("movl      0x08 + %[res], %k[v2]")
+            __ASM_EMIT("lea         (%[v1], %[v2], 4), %[v1]")
+            __ASM_EMIT("lea         (%[v0], %[v1], 4), %[v0]")
+
+            : [v0] "+r" (v0), [v1] "+r" (v1), [v2] "+r" (v2),
+              [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
+              [x4] "=&x" (x4)
+            : [p] "r" (p),
+              [res] "o" (res),
+              [PTOL] "m" (X_3D_TOLERANCE),
+              [MTOL] "m" (X_3D_MTOLERANCE),
+              [IONE] "m" (IONE)
+            : "cc"
+        );
+
+        return size_t(v0);
+    }
+
+    size_t colocation_x3_vvp1(const vector3d_t *vv, const point3d_t *p)
+    {
+        float x0, x1, x2, x3, x4;
+        float res[4] __lsp_aligned16;
+        size_t k0, k1, k2;
+
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[p]), %[x3]")         /* xmm3 = p     */
+            __ASM_EMIT("movups      0x00(%[vv]), %[x0]")    /* xmm0 = v0    */
+            __ASM_EMIT("movups      0x10(%[vv]), %[x1]")    /* xmm1 = v1    */
+            __ASM_EMIT("movups      0x20(%[vv]), %[x2]")    /* xmm2 = v2    */
+
+            __ASM_EMIT("mulps       %[x3], %[x0]")          /* xmm0 = p0 * pl */
+            __ASM_EMIT("mulps       %[x3], %[x1]")          /* xmm1 = p1 * pl */
+            __ASM_EMIT("mulps       %[x3], %[x2]")          /* xmm2 = p2 * pl */
+            __ASM_EMIT("haddps      %[x1], %[x0]")
+            __ASM_EMIT("haddps      %[x3], %[x2]")
+            __ASM_EMIT("haddps      %[x2], %[x0]")          /* xmm0 = k0 k1 k2 ? */
+            __ASM_EMIT("movaps      %[x0], %[x1]")          /* xmm1 = k0 k1 k2 ? */
+            __ASM_EMIT("cmpps       $2, %[PTOL], %[x0]")    /* xmm0 = k0 <= +TOL k1 <= +TOL k2 <= +TOL ? */
+            __ASM_EMIT("cmpps       $1, %[MTOL], %[x1]")    /* xmm1 = k0 < -TOL  k1 < -TOL k2 < -TOL ? */
+            __ASM_EMIT("andps       %[IONE], %[x0]")        /* xmm0 = 1*[k0 <= +TOL] 1*[k1 <= +TOL] 1*[k2 <= +TOL] ? */
+            __ASM_EMIT("andps       %[IONE], %[x1]")        /* xmm1 = 1*[k0 < -TOL] 1*[k1 < -TOL] 1*[k2 < -TOL] ? */
+            __ASM_EMIT("paddd       %[x1], %[x0]")
+            __ASM_EMIT("movdqa      %[x0], %[res]")
+            __ASM_EMIT32("movl      0x00 + %[res], %[k0]")
+            __ASM_EMIT32("movl      0x04 + %[res], %[k1]")
+            __ASM_EMIT32("movl      0x08 + %[res], %[k2]")
+            __ASM_EMIT64("movl      0x00 + %[res], %k[k0]")
+            __ASM_EMIT64("movl      0x04 + %[res], %k[k1]")
+            __ASM_EMIT64("movl      0x08 + %[res], %k[k2]")
+            __ASM_EMIT("lea         (%[k1], %[k2], 4), %[k1]")
+            __ASM_EMIT("lea         (%[k0], %[k1], 4), %[k0]")
+
+            : [k0] "=&r" (k0), [k1] "=&r" (k1), [k2] "=&r" (k2),
+              [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
+              [x4] "=&x" (x4)
+            : [p] "r" (p), [vv] "r" (vv),
+              [res] "o" (res),
+              [PTOL] "m" (X_3D_TOLERANCE),
+              [MTOL] "m" (X_3D_MTOLERANCE),
+              [IONE] "m" (IONE)
+            : "cc"
+        );
+
+        return k0;
+    }
+
     float calc_min_distance_p3(const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
     {
         float x0, x1, x2, x3, x4;

@@ -2597,6 +2597,36 @@ namespace native
 
         return tag;
     }
+
+    size_t colocation_x3_v3p1(const vector3d_t *v0, const vector3d_t *v1, const vector3d_t *v2, const point3d_t *p)
+    {
+        float k[3];
+
+        k[0]        = p->x*v0->dx + p->y*v0->dy + p->z*v0->dz + v0->dw;
+        k[1]        = p->x*v1->dx + p->y*v1->dy + p->z*v1->dz + v1->dw;
+        k[2]        = p->x*v2->dx + p->y*v2->dy + p->z*v2->dz + v2->dw;
+
+        size_t tag  = (k[0] > DSP_3D_TOLERANCE) ? 0x00 : (k[0] < -DSP_3D_TOLERANCE) ? 0x02 : 0x01;
+        tag        |= (k[1] > DSP_3D_TOLERANCE) ? 0x00 : (k[1] < -DSP_3D_TOLERANCE) ? 0x08 : 0x04;
+        tag        |= (k[2] > DSP_3D_TOLERANCE) ? 0x00 : (k[2] < -DSP_3D_TOLERANCE) ? 0x20 : 0x10;
+
+        return tag;
+    }
+
+    size_t colocation_x3_vvp1(const vector3d_t *vv, const point3d_t *p)
+    {
+        float k[3];
+
+        k[0]        = p->x*vv[0].dx + p->y*vv[0].dy + p->z*vv[0].dz + vv[0].dw;
+        k[1]        = p->x*vv[1].dx + p->y*vv[1].dy + p->z*vv[1].dz + vv[1].dw;
+        k[2]        = p->x*vv[2].dx + p->y*vv[2].dy + p->z*vv[2].dz + vv[2].dw;
+
+        size_t tag  = (k[0] > DSP_3D_TOLERANCE) ? 0x00 : (k[0] < -DSP_3D_TOLERANCE) ? 0x02 : 0x01;
+        tag        |= (k[1] > DSP_3D_TOLERANCE) ? 0x00 : (k[1] < -DSP_3D_TOLERANCE) ? 0x08 : 0x04;
+        tag        |= (k[2] > DSP_3D_TOLERANCE) ? 0x00 : (k[2] < -DSP_3D_TOLERANCE) ? 0x20 : 0x10;
+
+        return tag;
+    }
 }
 
 #endif /* DSP_ARCH_NATIVE_3DMATH_H_ */

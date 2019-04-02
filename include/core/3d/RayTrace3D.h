@@ -69,7 +69,8 @@ namespace lsp
 
             typedef struct stats_t
             {
-                uint64_t            tasks_stolen;
+                uint64_t            root_tasks;
+                uint64_t            local_tasks;
                 uint64_t            calls_scan;
                 uint64_t            calls_cull;
                 uint64_t            calls_split;

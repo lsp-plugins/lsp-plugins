@@ -84,9 +84,11 @@ namespace lsp
                     report      = true;
                     trace->nQueueSize  = trace->vTasks.size();
                 }
-                ++stats.tasks_stolen;
+                ++stats.root_tasks;
                 trace->lkTasks.unlock();
             }
+            else
+                ++stats.local_tasks;
 
             if (ctx == NULL)
                 break;
@@ -416,6 +418,11 @@ namespace lsp
 //            rt_context_t *ct    = vTasks.get(i);
 //            ct->view.energy    *= max_volume;
 //        }
+
+        // Solve conflicts between all objects
+        res = root.solve_conflicts();
+        if (res != STATUS_OK)
+            return res;
 
         RT_TRACE(trace->pDebug,
             if (!trace->pScene->validate())
@@ -1193,7 +1200,8 @@ namespace lsp
 
     void RayTrace3D::clear_stats(stats_t *stats)
     {
-        stats->tasks_stolen     = 0;
+        stats->root_tasks       = 0;
+        stats->local_tasks      = 0;
         stats->calls_scan       = 0;
         stats->calls_cull       = 0;
         stats->calls_split      = 0;
@@ -1205,15 +1213,17 @@ namespace lsp
     void RayTrace3D::dump_stats(const char *label, const stats_t *stats)
     {
         lsp_trace("%s:\n"
-                "  root tasks processed = %lld\n"
-                "  scan_objects         = %lld\n"
-                "  cull_view            = %lld\n"
-                "  split_view           = %lld\n"
-                "  cullback_view        = %lld\n"
-                "  reflect_view         = %lld\n"
-                "  capture              = %lld\n",
+                "  root tasks processed     : %lld\n"
+                "  local tasks processed    : %lld\n"
+                "  scan_objects             : %lld\n"
+                "  cull_view                : %lld\n"
+                "  split_view               : %lld\n"
+                "  cullback_view            : %lld\n"
+                "  reflect_view             : %lld\n"
+                "  capture                  : %lld\n",
             label,
-            (long long)stats->tasks_stolen,
+            (long long)stats->root_tasks,
+            (long long)stats->local_tasks,
             (long long)stats->calls_scan,
             (long long)stats->calls_cull,
             (long long)stats->calls_split,
@@ -1225,13 +1235,14 @@ namespace lsp
 
     void RayTrace3D::merge_stats(stats_t *dst, const stats_t *src)
     {
-        dst->tasks_stolen    += src->tasks_stolen;
-        dst->calls_scan      += src->calls_scan;
-        dst->calls_cull      += src->calls_cull;
-        dst->calls_split     += src->calls_split;
-        dst->calls_cullback  += src->calls_cullback;
-        dst->calls_reflect   += src->calls_reflect;
-        dst->calls_capture   += src->calls_capture;
+        dst->root_tasks        += src->root_tasks;
+        dst->local_tasks       += src->local_tasks;
+        dst->calls_scan        += src->calls_scan;
+        dst->calls_cull        += src->calls_cull;
+        dst->calls_split       += src->calls_split;
+        dst->calls_cullback    += src->calls_cullback;
+        dst->calls_reflect     += src->calls_reflect;
+        dst->calls_capture     += src->calls_capture;
     }
 
     void RayTrace3D::destroy_tasks(cvector<rt_context_t> *tasks)
