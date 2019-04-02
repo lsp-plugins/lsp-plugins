@@ -53,6 +53,9 @@ namespace lsp
                 printf("Available parameters:\n");
                 printf("  -c, --config <file>   Load settings file on startup\n");
                 printf("  -h, --help            Output help\n");
+                printf("\n");
+
+                return STATUS_CANCELLED;
             }
             else if ((!::strcmp(arg, "--config")) || (!::strcmp(arg, "-c")))
             {
@@ -65,7 +68,7 @@ namespace lsp
             }
             else
             {
-                fprintf(stderr, "Unknown parameter: %s\n", argv[i]);
+                fprintf(stderr, "Unknown parameter: %s\n", arg);
                 return STATUS_BAD_ARGUMENTS;
             }
         }
