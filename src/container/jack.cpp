@@ -13,6 +13,7 @@
 #include <dsp/dsp.h>
 
 #include <ui/ui_locale.h>
+#include <core/stdlib/string.h>
 
 #include <plugins/plugins.h>
 #include <metadata/plugins.h>
@@ -30,6 +31,47 @@ namespace lsp
 //        LSPMessageBox  *pDialog;
         timespec        nLastReconnect;
     } jack_wrapper_t;
+
+    typedef struct jack_config_t
+    {
+        const char *cfg_file;
+    } jack_config_t;
+
+    status_t jack_parse_config(jack_config_t *cfg, int argc, const char **argv)
+    {
+        // Initialize config with default values
+        cfg->cfg_file       = NULL;
+
+        // Parse arguments
+        int i = 1;
+        while (i < argc)
+        {
+            const char *arg = argv[i++];
+            if ((!::strcmp(arg, "--help")) || (!::strcmp(arg, "-h")))
+            {
+                printf("Usage: %s [parameters]\n\n", argv[0]);
+                printf("Available parameters:\n");
+                printf("  -c, --config <file>   Load settings file on startup\n");
+                printf("  -h, --help            Output help\n");
+            }
+            else if ((!::strcmp(arg, "--config")) || (!::strcmp(arg, "-c")))
+            {
+                if (i >= argc)
+                {
+                    fprintf(stderr, "Not specified file name for '%s' parameter\n", arg);
+                    return STATUS_BAD_ARGUMENTS;
+                }
+                cfg->cfg_file = argv[i++];
+            }
+            else
+            {
+                fprintf(stderr, "Unknown parameter: %s\n", argv[i]);
+                return STATUS_BAD_ARGUMENTS;
+            }
+        }
+
+        return STATUS_OK;
+    }
 
     static status_t jack_ui_sync(timestamp_t time, void *arg)
     {
@@ -106,6 +148,12 @@ namespace lsp
         int status                      = STATUS_OK;
         jack_wrapper_t  wrapper;
 
+        // Parse command-line arguments
+        jack_config_t cfg;
+        status_t res = jack_parse_config(&cfg, argc, argv);
+        if (res != STATUS_OK)
+            return (res == STATUS_CANCELLED) ? 0 : res;
+
         // Get metadata
         const plugin_metadata_t *meta   = (plugin != NULL) ? plugin->get_metadata() : NULL;
 
@@ -126,6 +174,16 @@ namespace lsp
             // Initialize
             lsp_trace("Initializing wrapper");
             status                  = w.init(argc, argv);
+
+            // Load configuration (if specified in parameters)
+            if ((status == STATUS_OK) && (cfg.cfg_file != NULL))
+            {
+                status = ui.import_settings(cfg.cfg_file);
+                if (status != STATUS_OK)
+                    fprintf(stderr, "Error loading configuration file: %s\n", get_status(status));
+            }
+
+            // Enter the main lifecycle
             if (status == STATUS_OK)
             {
                 dsp::context_t ctx;

@@ -12,7 +12,8 @@
 
 * Fixed improper InlineDisplay feature support in LV2 TTL files.
 * Plugin names now have 'LSP' prefix for the LV2 format.
-- Implemented automatic configuration loading on plugin startup for standalone JACK plugins.
+* Added command-line option to pass configuration file name for standalone JACK plugins.
+  The settings stored in configuration file will be automatically loaded at startup.
 - Implemented 3D reverb simulator.
 - Added 3D scene rendeding support in the UI.
 - Additional code updates to get compatibility with WindowsNT platform.

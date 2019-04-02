@@ -53,6 +53,7 @@ namespace lsp
         STATUS_IS_DIRECTORY,
         STATUS_NOT_DIRECTORY,
         STATUS_REMOVED,
+        STATUS_READONLY,
 
         STATUS_TOTAL,
         STATUS_MAX = STATUS_TOTAL - 1,
