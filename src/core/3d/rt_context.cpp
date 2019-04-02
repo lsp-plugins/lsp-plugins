@@ -28,7 +28,7 @@ namespace lsp
         triangle(1024)
     {
         this->state     = S_SCAN_OBJECTS;
-        this->debug     = NULL;
+        IF_RT_TRACE_Y( this->debug     = NULL; )
 
         // Initialize point of view
         view.amplitude  = 0.0f;
@@ -48,7 +48,7 @@ namespace lsp
         triangle(1024)
     {
         this->state     = S_SCAN_OBJECTS;
-        this->debug     = NULL;
+        IF_RT_TRACE_Y(this->debug     = NULL;)
         this->view      = *view;
     }
 
@@ -56,13 +56,13 @@ namespace lsp
         triangle(1024)
     {
         this->state     = state;
-        this->debug     = NULL;
+        IF_RT_TRACE_Y(this->debug     = NULL;)
         this->view      = *view;
     }
 
     rt_context_t::~rt_context_t()
     {
-        debug           = NULL;
+        IF_RT_TRACE_Y(debug           = NULL;)
         plan.flush();
         triangle.flush();
 

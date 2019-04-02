@@ -101,7 +101,11 @@ namespace lsp
                     status_t    split_view(rt_context_t *ctx);
                     status_t    cullback_view(rt_context_t *ctx);
                     status_t    reflect_view(rt_context_t *ctx);
+                #ifdef LSP_RT_TRACE
                     status_t    capture(capture_t *capture, const rt_view_t *v, View3D *trace);
+                #else
+                    status_t    capture(capture_t *capture, const rt_view_t *v);
+                #endif
 
                     status_t    generate_root_mesh();
                     status_t    generate_tasks(cvector<rt_context_t> *tasks, float initial);

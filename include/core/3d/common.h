@@ -12,9 +12,11 @@
 #include <dsp/dsp.h>
 #include <core/debug.h>
 
-#define LSP_RT_TRACE
+#if defined(LSP_DEBUG)
+    #define LSP_RT_TRACE
+#endif /* LSP_DEBUG */
 
-#if defined(LSP_DEBUG) && defined(LSP_RT_TRACE)
+#if defined(LSP_RT_TRACE)
     #define IF_RT_TRACE_Y(...)          __VA_ARGS__
     #define IF_RT_TRACE_N(...)
 

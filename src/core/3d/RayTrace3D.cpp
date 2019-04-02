@@ -838,7 +838,11 @@ namespace lsp
                 {
                     // Perform synchronized capturing
                     ++stats.calls_capture;
-                    res = capture(cap, &cv, &ctx->trace);
+                    #ifdef LSP_RT_TRACE
+                        res = capture(cap, &cv, &ctx->trace);
+                    #else
+                        res = capture(cap, &cv);
+                    #endif /* LSP_RT_TRACE */
                     if (res != STATUS_OK)
                         break;
                 }
@@ -898,7 +902,11 @@ namespace lsp
         return res;
     }
 
+#ifdef LSP_RT_TRACE
     status_t RayTrace3D::TaskThread::capture(capture_t *capture, const rt_view_t *v, View3D *view)
+#else
+    status_t RayTrace3D::TaskThread::capture(capture_t *capture, const rt_view_t *v)
+#endif /* LSP_RT_TRACE */
     {
 //        lsp_trace("Capture:\n"
 //                "  coord  = {{%f, %f, %f}, {%f, %f, %f}, {%f, %f, %f}}\n"
