@@ -244,13 +244,13 @@ namespace lsp
     rt_split_t *rt_plan_t::add_edge(const point3d_t *pv)
     {
         rt_split_t *asp     = items.alloc();
-        if (asp == NULL)
-            return NULL;
-
-        asp->p[0]       = pv[0];
-        asp->p[1]       = pv[1];
-//        asp->sp         = *sp;
-        asp->flags      = 0;
+        if (asp != NULL)
+        {
+            asp->p[0]       = pv[0];
+            asp->p[1]       = pv[1];
+//            asp->sp         = *sp;
+            asp->flags      = 0;
+        }
 
         return asp;
     }
@@ -259,13 +259,13 @@ namespace lsp
     rt_split_t *rt_plan_t::add_edge(const point3d_t *p1, const point3d_t *p2)
     {
         rt_split_t *asp     = items.alloc();
-        if (asp == NULL)
-            return NULL;
-
-        asp->p[0]       = *p1;
-        asp->p[1]       = *p2;
-//        asp->sp         = *sp;
-        asp->flags      = 0;
+        if (asp != NULL)
+        {
+            asp->p[0]       = *p1;
+            asp->p[1]       = *p2;
+//            asp->sp         = *sp;
+            asp->flags      = 0;
+        }
 
         return asp;
     }

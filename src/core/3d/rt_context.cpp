@@ -113,19 +113,280 @@ namespace lsp
         return (x > DSP_3D_TOLERANCE) ? 1 : 0;
     }
 
+    status_t rt_context_t::add_triangle(const vector3d_t *pl, const rtm_triangle_t *t)
+    {
+        size_t tag;
+        point3d_t sp[2];
+
+        // Add data to split plan
+        for (size_t i=0; i<3; ++i)
+        {
+            // Get current edge
+            rtm_edge_t *e = t->e[i];
+            if (e->itag)
+                continue;
+            e->itag     = 0;
+
+            // Cut the split edge
+            sp[0]       = *(e->v[0]);
+            sp[1]       = *(e->v[1]);
+
+            // Process each plane
+            const vector3d_t *xpl = pl;
+            for (size_t j=0; j<4; ++j, ++xpl)
+            {
+                size_t tag = dsp::colocation_x2_v1pv(xpl, sp);
+
+                switch (tag)
+                {
+                    case 0x06: // 1 2
+                    case 0x09: // 2 1
+                    case 0x0a: // 2 2
+                        // Split edge is under the plane
+                        break;
+
+                    case 0x02: // 0 2 -- p[0] is under the plane, p[1] is over the plane, cut p[1]
+                        dsp::calc_split_point_pvv1(&sp[1], sp, xpl);
+                        break;
+
+                    case 0x08: // 2 0 -- p[1] is under the plane, p[0] is over the plane, cut p[0]
+                        dsp::calc_split_point_pvv1(&sp[0], sp, xpl);
+                        break;
+
+                    default: // Split edge is over the plane or on the plane
+                        goto continue_edge;
+                }
+            }
+
+            // Add split plane to plan
+            if (!plan.add_edge(sp))
+                return STATUS_NO_MEM;
+
+            continue_edge: ;
+        }
+
+        // Initialize data structures
+        raw_triangle_t buf1[16], buf2[16];
+        raw_triangle_t *in=buf1, *out=buf2;
+        size_t nin = 1, nout;
+        in->p[0]    = *(t->v[0]);
+        in->p[1]    = *(t->v[1]);
+        in->p[2]    = *(t->v[2]);
+
+        for (size_t i=0; i<4; ++i, ++pl)
+        {
+            // Spit each triangle
+            nout = 0;
+
+            for (size_t j=0; j<nin; ++j, ++in)
+            {
+                tag = dsp::colocation_x3_v1pv(pl, in->p);
+
+                switch (tag)
+                {
+                    // 0 intersections, 0 triangles
+                    case 0x00:  // 0 0 0
+                    case 0x01:  // 0 0 1
+                    case 0x04:  // 0 1 0
+                    case 0x05:  // 0 1 1
+                    case 0x10:  // 1 0 0
+                    case 0x11:  // 1 0 1
+                    case 0x14:  // 1 1 0
+                        // Triangle is above, skip
+                        break;
+
+                    case 0x15:  // 1 1 1
+                        // Triangle is on the plane, skip
+                        break;
+
+                    // 0 intersections, 1 triangle
+                    case 0x16:  // 1 1 2
+                    case 0x19:  // 1 2 1
+                    case 0x1a:  // 1 2 2
+                    case 0x25:  // 2 1 1
+                    case 0x26:  // 2 1 2
+                    case 0x29:  // 2 2 1
+                    case 0x2a:  // 2 2 2
+                        *out    = *in; // Triangle is below the plane, copy and continue
+                        ++out;
+                        ++nout;
+                        break;
+
+                    // 1 intersection, 1 triangle
+                    case 0x06:  // 0 1 2
+                        out->p[0]   = in->p[0];
+                        out->p[1]   = in->p[1];
+                      //out->p[2]   = in->p[2];
+                        dsp::calc_split_point_p2v1(&out->p[2], &in->p[0], &in->p[2], pl);
+                        ++out;
+                        ++nout;
+                        break;
+                    case 0x24:  // 2 1 0
+                      //out->p[0]   = in->p[0];
+                        out->p[1]   = in->p[1];
+                        out->p[2]   = in->p[2];
+                        dsp::calc_split_point_p2v1(&out->p[0], &in->p[0], &in->p[2], pl);
+                        ++out;
+                        ++nout;
+                        break;
+
+                    case 0x12:  // 1 0 2
+                        out->p[0]   = in->p[0];
+                      //out->p[1]   = in->p[1];
+                        out->p[2]   = in->p[2];
+                        dsp::calc_split_point_p2v1(&out->p[1], &in->p[0], &in->p[1], pl);
+                        ++out;
+                        ++nout;
+                        break;
+                    case 0x18:  // 1 2 0
+                      //out->p[0]   = in->p[0];
+                        out->p[1]   = in->p[1];
+                        out->p[2]   = in->p[2];
+                        dsp::calc_split_point_p2v1(&out->p[0], &in->p[0], &in->p[1], pl);
+                        ++out;
+                        ++nout;
+                        break;
+
+                    case 0x09:  // 0 2 1
+                        out->p[0]   = in->p[0];
+                        out->p[1]   = in->p[1];
+                      //out->p[2]   = in->p[2];
+                        dsp::calc_split_point_p2v1(&out->p[2], &in->p[1], &in->p[2], pl);
+                        ++out;
+                        ++nout;
+                        break;
+                    case 0x21:  // 2 0 1
+                        out->p[0]   = in->p[0];
+                      //out->p[1]   = in->p[1];
+                        out->p[2]   = in->p[2];
+                        dsp::calc_split_point_p2v1(&out->p[1], &in->p[1], &in->p[2], pl);
+                        ++out; ++nout;
+                        break;
+
+                    // 2 intersections, 1 triangle
+                    case 0x02:  // 0 0 2
+                        out->p[0]   = in->p[0];
+                      //out->p[1]   = in->p[1];
+                      //out->p[2]   = in->p[2];
+                        dsp::calc_split_point_p2v1(&out->p[1], &in->p[0], &in->p[1], pl);
+                        dsp::calc_split_point_p2v1(&out->p[2], &in->p[0], &in->p[2], pl);
+                        ++out;
+                        ++nout;
+                        break;
+                    case 0x08:  // 0 2 0
+                      //out->p[0]   = in->p[0];
+                        out->p[1]   = in->p[1];
+                      //out->p[2]   = in->p[2];
+                        dsp::calc_split_point_p2v1(&out->p[0], &in->p[1], &in->p[0], pl);
+                        dsp::calc_split_point_p2v1(&out->p[2], &in->p[1], &in->p[2], pl);
+                        ++out;
+                        ++nout;
+                        break;
+                    case 0x20:  // 2 0 0
+                      //out->p[0]   = in->p[0];
+                      //out->p[1]   = in->p[1];
+                        out->p[2]   = in->p[2];
+                        dsp::calc_split_point_p2v1(&out->p[0], &in->p[2], &in->p[0], pl);
+                        dsp::calc_split_point_p2v1(&out->p[1], &in->p[2], &in->p[1], pl);
+                        ++out;
+                        ++nout;
+                        break;
+
+                    // 2 intersections, 2 triangles
+                    case 0x28:  // 2 2 0
+                        dsp::calc_split_point_p2v1(&sp[0], &in->p[0], &in->p[1], pl);
+                        dsp::calc_split_point_p2v1(&sp[1], &in->p[0], &in->p[2], pl);
+
+                        out->p[0]   = sp[0];
+                        out->p[1]   = in->p[1];
+                        out->p[2]   = in->p[2];
+                        ++out;
+
+                        out->p[0]   = sp[1];
+                        out->p[1]   = sp[0];
+                        out->p[2]   = in->p[2];
+                        ++out;
+
+                        nout += 2;
+                        break;
+
+                    case 0x22:  // 2 0 2
+                        dsp::calc_split_point_p2v1(&sp[0], &in->p[1], &in->p[2], pl);
+                        dsp::calc_split_point_p2v1(&sp[1], &in->p[1], &in->p[0], pl);
+
+                        out->p[0]   = in->p[0];
+                        out->p[1]   = sp[0];
+                        out->p[2]   = in->p[2];
+                        ++out;
+
+                        out->p[0]   = in->p[0];
+                        out->p[1]   = sp[1];
+                        out->p[2]   = sp[0];
+                        ++out;
+
+                        nout += 2;
+                        break;
+
+                    case 0x0a:  // 0 2 2
+                        dsp::calc_split_point_p2v1(&sp[0], &in->p[2], &in->p[0], pl);
+                        dsp::calc_split_point_p2v1(&sp[1], &in->p[2], &in->p[1], pl);
+
+                        out->p[0]   = in->p[0];
+                        out->p[1]   = in->p[1];
+                        out->p[2]   = sp[0];
+                        ++out;
+
+                        out->p[0]   = sp[0];
+                        out->p[1]   = in->p[1];
+                        out->p[2]   = sp[1];
+                        ++out;
+
+                        nout += 2;
+                        break;
+
+                    default:
+                        return STATUS_UNKNOWN_ERR;
+                }
+            }
+
+            if (!nout)
+                return STATUS_OK;
+
+            // Update state
+            nin     = nout;
+            if (i & 1)
+                in = buf1, out = buf2;
+            else
+                in = buf2, out = buf1;
+        }
+
+        // Now we are able to allocate new triangles
+        rt_triangle_t *nt;
+        for (size_t i=0; i<nin; ++i, ++in)
+        {
+            if (!(nt = triangle.alloc()))
+                return STATUS_NO_MEM;
+            nt->v[0]    = in->p[0];
+            nt->v[1]    = in->p[1];
+            nt->v[2]    = in->p[2];
+            nt->n       = t->n;
+            nt->oid     = t->oid;
+            nt->face    = t->face;
+            nt->m       = t->m;
+            nt->ptag    = NULL;
+        }
+
+        return STATUS_OK;
+    }
+
     status_t rt_context_t::fetch_objects(rt_mesh_t *src, size_t n, const size_t *ids)
     {
-        // Check size
-        if (n <= 0)
-        {
-            triangle.flush();
-            plan.flush();
-            return STATUS_OK;
-        }
 #if 1
-        rt_triangle_t *dt;
-        rt_plan_t   xplan;
-        Allocator3D<rt_triangle_t> xtriangle(triangle.chunk_size());
+        // Clean state
+        triangle.clear();
+        plan.clear();
+        if (n <= 0) // Check size
+            return STATUS_OK;
 
         // Initialize cull planes
         size_t tag;
@@ -135,7 +396,13 @@ namespace lsp
         dsp::calc_oriented_plane_p3(&pl[2], &view.p[0], &view.s, &view.p[1], &view.p[2]);
         dsp::calc_oriented_plane_p3(&pl[3], &view.p[1], &view.s, &view.p[2], &view.p[0]);
 
+        // Initialize itag
+        RT_FOREACH(rtm_edge_t, e, src->edge)
+            e->itag     = 0;
+        RT_FOREACH_END;
+
         // Build set of triangles
+        status_t res;
         RT_FOREACH(rtm_triangle_t, t, src->triangle)
             // Check that triangle matches specified object
             tag = 1;
@@ -152,77 +419,26 @@ namespace lsp
                 continue;
             }
 
-            // We consider that the context view is pretty small (which is true for most cases)
-            // and we can filter a lot of triangles before adding them to list
-            for (size_t i=0; i<4; ++i)
-            {
-                tag = dsp::colocation_x3_v1p3(&pl[i], t->v[0], t->v[1], t->v[2]);
-                switch (tag)
-                {
-                    // Skip all triangles that lay 'outside' the culling plane
-                    case 0x00: // 0 0 0
-                    case 0x01: // 0 0 1
-                    case 0x04: // 0 1 0
-                    case 0x05: // 0 1 1
-                    case 0x10: // 1 0 0
-                    case 0x11: // 1 0 1
-                    case 0x14: // 1 1 0
-                    case 0x15: // 1 1 1
-                        goto continue_loop;
-                    default: break;
-                }
-            }
-
-            // Mark edges as required to be added to the plan
-            t->e[0]->itag       = 0;
-            t->e[1]->itag       = 0;
-            t->e[2]->itag       = 0;
-
-            // Add triangle to list and increment total counter
-            // Add triangle to list
-            if (!(dt = xtriangle.alloc()))
-                return STATUS_NO_MEM;
-
-            dt->v[0]    = *(t->v[0]);
-            dt->v[1]    = *(t->v[1]);
-            dt->v[2]    = *(t->v[2]);
-            dt->n       = t->n;
-            dt->oid     = t->oid;
-            dt->face    = t->face;
-            dt->m       = t->m;
-            dt->ptag    = t;
-
-        continue_loop: ;
-
+            // Add triangle
+            if ((res = add_triangle(pl, t)) != STATUS_OK)
+                return res;
         RT_FOREACH_END;
 
-        // Build plan
-        RT_FOREACH(rt_triangle_t, t, xtriangle)
-            rtm_triangle_t *st  = reinterpret_cast<rtm_triangle_t *>(t->ptag);
-            t->ptag = NULL;
+        RT_VALIDATE(
+            if (!src->validate())
+                return STATUS_CORRUPTED;
+        );
 
-            // Add edges to plan
-            if (!st->e[0]->itag)
-            {
-                st->e[0]->itag = 1;
-                if (!xplan.add_edge(st->v[0], st->v[1]))
-                    return STATUS_NO_MEM;
-            }
-            if (!st->e[1]->itag)
-            {
-                st->e[1]->itag = 1;
-                if (!xplan.add_edge(st->v[1], st->v[2]))
-                    return STATUS_NO_MEM;
-            }
-            if (!st->e[2]->itag)
-            {
-                st->e[2]->itag = 1;
-                if (!xplan.add_edge(st->v[2], st->v[0]))
-                    return STATUS_NO_MEM;
-            }
-        RT_FOREACH_END;
-
+        return STATUS_OK;
 #else
+        // Check size
+        if (n <= 0)
+        {
+            triangle.flush();
+            plan.flush();
+            return STATUS_OK;
+        }
+        
         //--------------------------------------------
         // Prepare sorted list of matched triangles
         size_t cap              = (src->triangle.size() + 0x3f) & (~0x3f);
@@ -362,7 +578,7 @@ namespace lsp
         ::free(vt);
         if (res != STATUS_OK)
             return res;
-#endif
+            
         RT_VALIDATE(
             if (!src->validate())
                 return STATUS_CORRUPTED;
@@ -372,6 +588,7 @@ namespace lsp
         xplan.swap(&this->plan);
 
         return STATUS_OK;
+#endif
     }
 
     status_t rt_context_t::cull_view()

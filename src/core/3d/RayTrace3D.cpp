@@ -147,10 +147,10 @@ namespace lsp
                 ++stats.calls_scan;
                 res     = scan_objects(ctx);
                 break;
-            case S_CULL_VIEW:
-                ++stats.calls_cull;
-                res     = cull_view(ctx);
-                break;
+//            case S_CULL_VIEW:
+//                ++stats.calls_cull;
+//                res     = cull_view(ctx);
+//                break;
             case S_SPLIT:
                 ++stats.calls_split;
                 res     = split_view(ctx);
@@ -518,10 +518,26 @@ namespace lsp
             ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
             for (size_t i=0,n=ctx->triangle.size(); i<n; ++i)
                 ctx->trace.add_triangle_3c(ctx->triangle.get(i), &C_RED, &C_GREEN, &C_BLUE);
+
+            for (size_t i=0, n=ctx->plan.items.size(); i<n; ++i)
+                ctx->trace.add_segment(ctx->plan.items.get(i), &C_YELLOW);
         )
 
         // Update state
-        ctx->state      = S_CULL_VIEW;
+        //ctx->state      = S_CULL_VIEW;
+        size_t n = ctx->triangle.size();
+        if (n <= 1)
+        {
+            if (n <= 0)
+            {
+                delete ctx;
+                return STATUS_OK;
+            }
+            ctx->state  = S_REFLECT;
+        }
+        else
+            ctx->state  = S_SPLIT;
+
         return submit_task(ctx);
     }
 

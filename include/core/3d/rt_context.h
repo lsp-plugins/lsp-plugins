@@ -30,7 +30,7 @@ namespace lsp
     enum rt_context_state_t
     {
         S_SCAN_OBJECTS,
-        S_CULL_VIEW,
+//        S_CULL_VIEW,
         S_SPLIT,
         S_CULL_BACK,
         S_REFLECT
@@ -60,6 +60,7 @@ namespace lsp
 
         protected:
             static int      compare_triangles(const void *p1, const void *p2);
+            status_t        add_triangle(const vector3d_t *pl, const rtm_triangle_t *t);
 
         public:
             // Construction/destruction
