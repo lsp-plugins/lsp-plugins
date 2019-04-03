@@ -2662,7 +2662,7 @@ namespace sse
             const raw_triangle_t *pv
         )
     {
-        float    x0, x1, x2, x3, x4;
+        float    x0, x1, x2, x3, x4, x5, x6, x7;
         float    k[4] __lsp_aligned16;
         uint32_t t[4] __lsp_aligned16;
         size_t   t0, t1, t2;
@@ -2714,7 +2714,7 @@ namespace sse
             : "cc"
         );
 
-        #define COPY_TO(out, n_out) \
+        #define STR_COPY_TO(out, n_out) \
             ARCH_X86_ASM( \
                 __ASM_EMIT("movups      0x00(%[src]), %[x0]") \
                 __ASM_EMIT("movups      0x10(%[src]), %[x1]") \
@@ -2730,8 +2730,90 @@ namespace sse
                 : "cc", "memory" \
             );
 
-        #define SPLIT_X2 \
+        #define STR_SPLIT_1P(off0, off1, koff, store) \
+            ARCH_X86_ASM( \
+                __ASM_EMIT("movups      0x" off0 "(%[st]), %[x0]")      /* xmm0 = p0 = lx0 ly0 lz0 1 */ \
+                __ASM_EMIT("movups      0x" off1 "(%[st]), %[x1]")      /* xmm1 = p1 = lx1 ly1 lz1 1 */ \
+                __ASM_EMIT("movups      (%[pl]), %[x2]")                /* xmm2 = pl = nx ny nz nw */ \
+                \
+                __ASM_EMIT("subps       %[x0], %[x1]")                  /* xmm1 = d = p1 - p0 = dx dy dz 0 */ \
+                __ASM_EMIT("movss       0x" koff " + %[k], %[x3]")      /* xmm3 = k 0 0 0 */ \
+                __ASM_EMIT("mulps       %[x1], %[x2]")                  /* xmm2 = dx*nx dy*ny dz*nz 0 */ \
+                __ASM_EMIT("shufps      $0x00, %[x3], %[x3]")           /* xmm3 = k k k k */ \
+                __ASM_EMIT("movhlps     %[x2], %[x4]")                  /* xmm4 = dz*nz 0 ? ? */ \
+                __ASM_EMIT("addps       %[x4], %[x2]")                  /* xmm2 = dx*nx+dz*nz dy*ny ? ? */ \
+                __ASM_EMIT("unpcklps    %[x2], %[x2]")                  /* xmm2 = dx*nx+dz*nz dx*nx+dz*nz dy*ny dy*ny */ \
+                __ASM_EMIT("mulps       %[x3], %[x1]")                  /* xmm1 = k*dx k*dy k*dz 0 */ \
+                __ASM_EMIT("movhlps     %[x2], %[x4]")                  /* xmm4 = dy*ny dy*ny ? ? */ \
+                __ASM_EMIT("addps       %[x4], %[x2]")                  /* xmm2 = dx*nx+dy*ny+dw*nw dx*nx+dy*ny+dw*nw ? ? = b b ? ? */ \
+                __ASM_EMIT("unpcklps    %[x2], %[x2]")                  /* xmm2 = b b b b */ \
+                __ASM_EMIT("divps       %[x2], %[x1]")                  /* xmm1 = k*dx/b k*dy/b k*dz/b 0 */ \
+                __ASM_EMIT("subps       %[x1], %[x0]")                  /* xmm0 = lx0-k*dx/b ly0-k*dy/b lz0-k*dz/b 1 */ \
+                __ASM_EMIT32("incl      (%[n_out])") \
+                __ASM_EMIT32("incl      (%[n_in])") \
+                __ASM_EMIT64("incq      (%[n_out])") \
+                __ASM_EMIT64("incq      (%[n_in])") \
+                __ASM_EMIT("movups      0x00(%[st]), %[x1]") \
+                __ASM_EMIT("movups      0x10(%[st]), %[x2]") \
+                __ASM_EMIT("movups      0x20(%[st]), %[x3]") \
+                \
+                store \
+                \
+                : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3), [x4] "=&x" (x4) \
+                : [st] "r" (pv), [pl] "r" (pl), [out] "r" (out), [in] "r" (in), \
+                  [k] "o" (k) \
+                : "cc", "memory" \
+            );
 
+        #define STR_SPLIT_2P(off0, off1, off2, koff, store, nin, nout) \
+            ARCH_X86_ASM( \
+                __ASM_EMIT("movups      0x" off0 "(%[st]), %[x0]")      /* xmm0 = p0 = lx0 ly0 lz0 1 */ \
+                __ASM_EMIT("movups      0x" off1 "(%[st]), %[x2]")      /* xmm2 = p1 = lx1 ly1 lz1 1 */ \
+                __ASM_EMIT("movups      0x" off2 "(%[st]), %[x3]")      /* xmm3 = p2 = lx2 ly2 lz2 1 */ \
+                __ASM_EMIT("movups      (%[pl]), %[x4]")                /* xmm4 = pl = nx ny nz nw */ \
+                \
+                __ASM_EMIT("movaps      %[x0], %[x1]")                  /* xmm1 = pl = nx ny nz nw */ \
+                __ASM_EMIT("movaps      %[x4], %[x5]")                  /* xmm5 = pl = nx ny nz nw */ \
+                __ASM_EMIT("subps       %[x0], %[x2]")                  /* xmm2 = d1 = p1 - p0 = dx1 dy1 dz1 0 */ \
+                __ASM_EMIT("subps       %[x1], %[x3]")                  /* xmm3 = d2 = p2 - p0 = dx2 dy2 dz2 0 */ \
+                __ASM_EMIT("mulps       %[x2], %[x4]")                  /* xmm4 = dx1*nx dy1*ny dz1*nz 0 */ \
+                __ASM_EMIT("mulps       %[x3], %[x5]")                  /* xmm5 = dx2*nx dy2*ny dz2*nz 0 */ \
+                __ASM_EMIT("movhlps     %[x4], %[x6]")                  /* xmm6 = dz1*nz 0 ? ? */ \
+                __ASM_EMIT("movhlps     %[x5], %[x7]")                  /* xmm7 = dz2*nz 0 ? ? */ \
+                __ASM_EMIT("addps       %[x6], %[x4]")                  /* xmm4 = dx1*nx+dz1*nz dy1*ny ? ? */ \
+                __ASM_EMIT("addps       %[x7], %[x5]")                  /* xmm5 = dx1*nx+dz1*nz dy1*ny ? ? */ \
+                __ASM_EMIT("unpcklps    %[x4], %[x4]")                  /* xmm4 = dx1*nx+dz1*nz dx1*nx+dz1*nz dy1*ny dy1*ny */ \
+                __ASM_EMIT("unpcklps    %[x5], %[x5]")                  /* xmm5 = dx2*nx+dz2*nz dx2*nx+dz2*nz dy2*ny dy2*ny */ \
+                __ASM_EMIT("movhlps     %[x4], %[x6]")                  /* xmm6 = dy1*ny dy1*ny ? ? */ \
+                __ASM_EMIT("movhlps     %[x5], %[x7]")                  /* xmm7 = dy2*ny dy2*ny ? ? */ \
+                __ASM_EMIT("addps       %[x6], %[x4]")                  /* xmm4 = dx1*nx+dy1*ny+dz1*nz dx1*nx+dy1*ny+dz1*nz ? ? = b1 b1 ? ? */ \
+                __ASM_EMIT("addps       %[x7], %[x5]")                  /* xmm5 = dx2*nx+dy2*ny+dz2*nz dx2*nx+dy2*ny+dz2*nz ? ? = b2 b2 ? ? */ \
+                __ASM_EMIT("unpcklps    %[x4], %[x4]")                  /* xmm4 = b1 b1 b1 b1 */ \
+                __ASM_EMIT("unpcklps    %[x5], %[x5]")                  /* xmm5 = b2 b2 b2 b2 */ \
+                __ASM_EMIT("movss       0x" off " + %[k], %[x6]")       /* xmm6 = k */ \
+                __ASM_EMIT("divps       %[x4], %[x2]")                  /* xmm2 = dx1/b1 dy1/b1 dz1/b1 0 */ \
+                __ASM_EMIT("shufps      $0x00, %[x6], %[x6]")           /* xmm6 = k k k k */ \
+                __ASM_EMIT("divps       %[x5], %[x3]")                  /* xmm3 = dx2/b2 dy2/b2 dz2/b2 0 */ \
+                __ASM_EMIT("mulps       %[x6], %[x2]")                  /* xmm2 = k*dx1/b1 k*dy1/b1 k*dz1/b1 0 */ \
+                __ASM_EMIT("mulps       %[x6], %[x3]")                  /* xmm3 = k*dx2/b2 k*dy2/b2 k*dz2/b2 0 */ \
+                __ASM_EMIT("subps       %[x2], %[x0]")                  /* xmm0 = lx0-k*dx1/b1 ly0-k*dy1/b1 lz0-k*dz1/b1 1 */ \
+                __ASM_EMIT("subps       %[x3], %[x1]")                  /* xmm1 = lx1-k*dx2/b2 ly1-k*dy2/b2 lz1-k*dz2/b2 1 */ \
+                __ASM_EMIT32("addl      $" nout ", (%[n_out])") \
+                __ASM_EMIT32("addl      $" nin  ", (%[n_in])") \
+                __ASM_EMIT32("addq      $" nout ", (%[n_out])") \
+                __ASM_EMIT32("addq      $" nin  ", (%[n_in])") \
+                __ASM_EMIT("movups      0x00(%[st]), %[x2]") \
+                __ASM_EMIT("movups      0x10(%[st]), %[x3]") \
+                __ASM_EMIT("movups      0x20(%[st]), %[x4]") \
+                \
+                store \
+                \
+                : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3), \
+                  [x4] "=&x" (x4), [x5] "=&x" (x5), [x6] "=&x" (x6), [x7] "=&x" (x7) \
+                : [st] "r" (pv), [pl] "r" (pl), [out] "r" (out), [in] "r" (in), \
+                  [k] "o" (k) \
+                : "cc", "memory" \
+            );
 
         switch (t0)
         {
@@ -2744,7 +2826,7 @@ namespace sse
             case 0x11:  // 1 0 1
             case 0x14:  // 1 1 0
             case 0x15:  // 1 1 1
-                COPY_TO(out, n_out);
+                STR_COPY_TO(out, n_out);
                 break;
 
             // 0 intersections, triangle is below
@@ -2755,72 +2837,77 @@ namespace sse
             case 0x26:  // 2 1 2
             case 0x29:  // 2 2 1
             case 0x2a:  // 2 2 2
-                COPY_TO(in, n_in);
+                STR_COPY_TO(in, n_in);
                 break;
 
-            // 1 intersection, 1 triangle above, 1 triangle below
+            // 1 intersection, 1 triangle above, 1 triangle below, counter-clockwise
             case 0x06:  // 0 1 2
-            case 0x24:  // 2 1 0
-            case 0x12:  // 1 0 2
-            case 0x18:  // 1 2 0
-            case 0x09:  // 0 2 1
-            case 0x21:  // 2 0 1
+                STR_SPLIT_1P("00", "20", "00",
+                    __ASM_EMIT("movups  %[x1], 0x00(%[in])")
+                    __ASM_EMIT("movups  %[x2], 0x10(%[in])")
+                    __ASM_EMIT("movups  %[x0], 0x20(%[in])")
+                    __ASM_EMIT("movups  %[x2], 0x00(%[out])")
+                    __ASM_EMIT("movups  %[x3], 0x10(%[out])")
+                    __ASM_EMIT("movups  %[x0], 0x20(%[out])")
+                )
                 break;
+            case 0x21:  // 2 0 1
+                STR_SPLIT_1P("00", "10", "00",
+                    __ASM_EMIT("movups  %[x3], 0x00(%[in])")
+                    __ASM_EMIT("movups  %[x1], 0x10(%[in])")
+                    __ASM_EMIT("movups  %[x0], 0x20(%[in])")
+                    __ASM_EMIT("movups  %[x2], 0x00(%[out])")
+                    __ASM_EMIT("movups  %[x0], 0x10(%[out])")
+                    __ASM_EMIT("movups  %[x1], 0x20(%[out])")
+                )
+                break;
+            case 0x18:  // 1 2 0
+                STR_SPLIT_1P("10", "20", "04",
+                    __ASM_EMIT("movups  %[x2], 0x00(%[in])")
+                    __ASM_EMIT("movups  %[x3], 0x10(%[in])")
+                    __ASM_EMIT("movups  %[x0], 0x20(%[in])")
+                    __ASM_EMIT("movups  %[x1], 0x00(%[out])")
+                    __ASM_EMIT("movups  %[x0], 0x10(%[out])")
+                    __ASM_EMIT("movups  %[x3], 0x20(%[out])")
+                )
+                break;
+
+            // 1 intersection, 1 triangle above, 1 triangle below, clockwise
+            case 0x24:  // 2 1 0
+                STR_SPLIT_1P("00", "20", "00",
+                    __ASM_EMIT("movups  %[x3], 0x00(%[in])")
+                    __ASM_EMIT("movups  %[x0], 0x10(%[in])")
+                    __ASM_EMIT("movups  %[x1], 0x20(%[in])")
+                    __ASM_EMIT("movups  %[x1], 0x00(%[out])")
+                    __ASM_EMIT("movups  %[x2], 0x10(%[out])")
+                    __ASM_EMIT("movups  %[x0], 0x20(%[out])")
+                )
+                break;
+            case 0x12:  // 1 0 2
+                STR_SPLIT_1P("00", "10", "00",
+                    __ASM_EMIT("movups  %[x1], 0x00(%[in])")
+                    __ASM_EMIT("movups  %[x0], 0x10(%[in])")
+                    __ASM_EMIT("movups  %[x3], 0x20(%[in])")
+                    __ASM_EMIT("movups  %[x2], 0x00(%[out])")
+                    __ASM_EMIT("movups  %[x3], 0x10(%[out])")
+                    __ASM_EMIT("movups  %[x0], 0x20(%[out])")
+                )
+                break;
+            case 0x09:  // 0 2 1
+                STR_SPLIT_1P("10", "20", "04",
+                    __ASM_EMIT("movups  %[x2], 0x00(%[in])")
+                    __ASM_EMIT("movups  %[x0], 0x10(%[in])")
+                    __ASM_EMIT("movups  %[x1], 0x20(%[in])")
+                    __ASM_EMIT("movups  %[x3], 0x00(%[out])")
+                    __ASM_EMIT("movups  %[x1], 0x10(%[out])")
+                    __ASM_EMIT("movups  %[x0], 0x20(%[out])")
+                )
+                break;
+
+
 
             // TODO
 /*
-            // 1 intersection, 1 triangle
-            case 0x06:  // 0 1 2
-                out->p[0]   = in->p[0];
-                out->p[1]   = in->p[1];
-              //out->p[2]   = in->p[2];
-                dsp::calc_split_point_p2v1(&out->p[2], &in->p[0], &in->p[2], pl);
-                ++out;
-                ++nout;
-                break;
-            case 0x24:  // 2 1 0
-              //out->p[0]   = in->p[0];
-                out->p[1]   = in->p[1];
-                out->p[2]   = in->p[2];
-                dsp::calc_split_point_p2v1(&out->p[0], &in->p[0], &in->p[2], pl);
-                ++out;
-                ++nout;
-                break;
-
-            case 0x12:  // 1 0 2
-                out->p[0]   = in->p[0];
-              //out->p[1]   = in->p[1];
-                out->p[2]   = in->p[2];
-                dsp::calc_split_point_p2v1(&out->p[1], &in->p[0], &in->p[1], pl);
-                ++out;
-                ++nout;
-                break;
-            case 0x18:  // 1 2 0
-              //out->p[0]   = in->p[0];
-                out->p[1]   = in->p[1];
-                out->p[2]   = in->p[2];
-                dsp::calc_split_point_p2v1(&out->p[0], &in->p[0], &in->p[1], pl);
-                ++out;
-                ++nout;
-                break;
-
-            case 0x09:  // 0 2 1
-                out->p[0]   = in->p[0];
-                out->p[1]   = in->p[1];
-              //out->p[2]   = in->p[2];
-                dsp::calc_split_point_p2v1(&out->p[2], &in->p[1], &in->p[2], pl);
-                ++out;
-                ++nout;
-                break;
-            case 0x21:  // 2 0 1
-                out->p[0]   = in->p[0];
-              //out->p[1]   = in->p[1];
-                out->p[2]   = in->p[2];
-//                        *out        = *in;
-                dsp::calc_split_point_p2v1(&out->p[1], &in->p[1], &in->p[2], pl);
-                ++out; ++nout;
-                break;
-
             // 2 intersections, 1 triangle
             case 0x02:  // 0 0 2
                 out->p[0]   = in->p[0];
@@ -2905,255 +2992,10 @@ namespace sse
             default:
                 break;
         }
-/*
-        point3d_t sp[2];    // Split point
-        vector3d_t d[2];    // Delta vector
-        point3d_t p[3];     // Triangle sources
-        float k[3];         // Co-location of points
-        float t[2];
 
+        #undef STR_COPY_TO
+        #undef STR_SPLIT_1P
 
-
-        p[0]    = pv->p[0];
-        p[1]    = pv->p[1];
-        p[2]    = pv->p[2];
-
-        k[0]    = pl->dx*p[0].x + pl->dy*p[0].y + pl->dz*p[0].z + pl->dw;
-        k[1]    = pl->dx*p[1].x + pl->dy*p[1].y + pl->dz*p[1].z + pl->dw;
-        k[2]    = pl->dx*p[2].x + pl->dy*p[2].y + pl->dz*p[2].z + pl->dw;
-
-        // Check that the whole triangle lies above the plane or below the plane
-        if (k[0] < 0.0f)
-        {
-            if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
-            {
-                in->p[0]        = p[0];
-                in->p[1]        = p[1];
-                in->p[2]        = p[2];
-                ++*n_in;
-                return;
-            }
-        }
-        else if (k[0] > 0.0f)
-        {
-            if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
-            {
-                out->p[0]       = p[0];
-                out->p[1]       = p[1];
-                out->p[2]       = p[2];
-                ++*n_out;
-                return;
-            }
-        }
-        else // (k[0] == 0)
-        {
-            if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
-            {
-                out->p[0]       = p[0];
-                out->p[1]       = p[1];
-                out->p[2]       = p[2];
-                ++*n_out;
-                return;
-            }
-            else if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
-            {
-                in->p[0]        = p[0];
-                in->p[1]        = p[1];
-                in->p[2]        = p[2];
-                ++*n_in;
-                return;
-            }
-        }
-
-        // There is an intersection with plane, we need to analyze it
-        // Rotate triangle until vertex 0 is above the split plane
-        if (k[0] > 0.0f)
-            {  }
-        else if (k[1] > 0.0f)
-        {
-            // Rotate clockwise
-            t[0]    = k[0];
-            sp[0]   = p[0];
-
-            k[0]    = k[1];
-            p[0]    = p[1];
-            k[1]    = k[2];
-            p[1]    = p[2];
-            k[2]    = t[0];
-            p[2]    = sp[0];
-        }
-        else // k[2] > 0.0f
-        {
-            // Rotate counter-clockwise
-            t[0]    = k[0];
-            sp[0]   = p[0];
-
-            k[0]    = k[2];
-            p[0]    = p[2];
-            k[2]    = k[1];
-            p[2]    = p[1];
-            k[1]    = t[0];
-            p[1]    = sp[0];
-        }
-//        while (k[0] <= 0.0f)
-//        {
-//            t[0]    = k[0];
-//            sp[0]   = p[0];
-//
-//            k[0]    = k[1];
-//            p[0]    = p[1];
-//            k[1]    = k[2];
-//            p[1]    = p[2];
-//            k[2]    = t[0];
-//            p[2]    = sp[0];
-//        }
-
-        // Now we have p[0] guaranteed to be above plane, analyze p[1] and p[2]
-        if (k[1] < 0.0f) // k[1] < 0
-        {
-            d[0].dx = p[0].x - p[1].x;
-            d[0].dy = p[0].y - p[1].y;
-            d[0].dz = p[0].z - p[1].z;
-
-            t[0]    = -k[0] / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz);
-
-            sp[0].x = p[0].x + d[0].dx * t[0];
-            sp[0].y = p[0].y + d[0].dy * t[0];
-            sp[0].z = p[0].z + d[0].dz * t[0];
-            sp[0].w = 1.0f;
-
-            if (k[2] < 0.0f) // (k[1] < 0) && (k[2] < 0)
-            {
-                d[1].dx = p[0].x - p[2].x;
-                d[1].dy = p[0].y - p[2].y;
-                d[1].dz = p[0].z - p[2].z;
-
-                t[1]    = -k[0] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
-
-                sp[1].x = p[0].x + d[1].dx * t[1];
-                sp[1].y = p[0].y + d[1].dy * t[1];
-                sp[1].z = p[0].z + d[1].dz * t[1];
-                sp[1].w = 1.0f;
-
-                // 1 triangle above plane, 2 below
-                out->p[0]       = p[0];
-                out->p[1]       = sp[0];
-                out->p[2]       = sp[1];
-                ++*n_out;
-                ++out;
-
-                in->p[0]        = p[1];
-                in->p[1]        = sp[1];
-                in->p[2]        = sp[0];
-                ++*n_in;
-                ++in;
-
-                in->p[0]        = p[2];
-                in->p[1]        = sp[1];
-                in->p[2]        = p[1];
-                ++*n_in;
-            }
-            else if (k[2] > 0.0f) // (k[1] < 0) && (k[2] > 0)
-            {
-                d[1].dx = p[2].x - p[1].x;
-                d[1].dy = p[2].y - p[1].y;
-                d[1].dz = p[2].z - p[1].z;
-
-                t[1]    = -k[2] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
-
-                sp[1].x = p[2].x + d[1].dx * t[1];
-                sp[1].y = p[2].y + d[1].dy * t[1];
-                sp[1].z = p[2].z + d[1].dz * t[1];
-                sp[1].w = 1.0f;
-
-                // 2 triangles above plane, 1 below
-                out->p[0]       = p[2];
-                out->p[1]       = sp[0];
-                out->p[2]       = sp[1];
-                ++*n_out;
-                ++out;
-
-                out->p[0]       = p[0];
-                out->p[1]       = sp[0];
-                out->p[2]       = p[2];
-                ++*n_out;
-
-                in->p[0]        = p[1];
-                in->p[1]        = sp[1];
-                in->p[2]        = sp[0];
-                ++*n_in;
-            }
-            else // (k[1] < 0) && (k[2] == 0)
-            {
-                // 1 triangle above plane, 1 below
-                out->p[0]       = p[0];
-                out->p[1]       = sp[0];
-                out->p[2]       = p[2];
-                ++*n_out;
-
-                in->p[0]        = p[1];
-                in->p[1]        = p[2];
-                in->p[2]        = sp[0];
-                ++*n_in;
-            }
-        }
-        else // (k[1] >= 0) && (k[2] < 0)
-        {
-            d[0].dx = p[0].x - p[2].x;
-            d[0].dy = p[0].y - p[2].y;
-            d[0].dz = p[0].z - p[2].z;
-
-            t[0]    = -k[0] / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz);
-
-            sp[0].x = p[0].x + d[0].dx * t[0];
-            sp[0].y = p[0].y + d[0].dy * t[0];
-            sp[0].z = p[0].z + d[0].dz * t[0];
-            sp[0].w = 1.0f;
-
-            if (k[1] > 0.0f) // (k[1] > 0) && (k[2] < 0)
-            {
-                d[1].dx = p[1].x - p[2].x;
-                d[1].dy = p[1].y - p[2].y;
-                d[1].dz = p[1].z - p[2].z;
-
-                t[1]    = -k[1] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
-
-                sp[1].x = p[1].x + d[1].dx * t[1];
-                sp[1].y = p[1].y + d[1].dy * t[1];
-                sp[1].z = p[1].z + d[1].dz * t[1];
-                sp[1].w = 1.0f;
-
-                // 2 triangles above plane, 1 below
-                out->p[0]       = p[0];
-                out->p[1]       = sp[1];
-                out->p[2]       = sp[0];
-                ++*n_out;
-                ++out;
-
-                out->p[0]       = p[1];
-                out->p[1]       = sp[1];
-                out->p[2]       = p[0];
-                ++*n_out;
-
-                in->p[0]        = p[2];
-                in->p[1]        = sp[0];
-                in->p[2]        = sp[1];
-                ++*n_in;
-            }
-            else // (k[1] == 0) && (k[2] < 0)
-            {
-                // 1 triangle above plane, 1 triangle below plane
-                out->p[0]       = p[0];
-                out->p[1]       = p[1];
-                out->p[2]       = sp[0];
-                ++*n_out;
-
-                in->p[0]        = p[2];
-                in->p[1]        = sp[0];
-                in->p[2]        = p[1];
-                ++*n_in;
-            }
-        }*/
     }
 }
 
