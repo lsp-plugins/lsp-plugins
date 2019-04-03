@@ -8,6 +8,7 @@
 #if 1
 
 #include <core/3d/rt_mesh.h>
+#include <core/3d/rt_context.h>
 
 #define RT_FOREACH(type, var, collection) \
     for (size_t __ci=0,__ne=collection.size(), __nc=collection.chunks(); (__ci<__nc) && (__ne>0); ++__ci) \
@@ -467,6 +468,17 @@ namespace lsp
         vector3d_t spl[3]; // Scissor planes
         size_t tag;
 
+        RT_FOREACH(rtm_edge_t, e, edge)
+            e->itag     = -1;
+        RT_FOREACH_END;
+
+        // Intialize triangles
+        for (size_t i=0; i<triangle.size(); ++i)
+        {
+            rtm_triangle_t *ct  = triangle.get(i);
+            ct->itag            = i;
+        }
+
         for (size_t i=0; i<triangle.size(); ++i)
         {
             rtm_triangle_t *ct   = triangle.get(i);
@@ -477,16 +489,33 @@ namespace lsp
 
             // Split each edge with triangle, do not process new edges
             RT_FOREACH(rtm_edge_t, ce, edge)
+                // Interact only ONCE with a specific triangle
+                if (ce->itag >= ct->itag)
+                    continue;
+                ce->itag = ct->itag;
+
                 if ((ce == ct->e[0]) || (ce == ct->e[1]) || (ce == ct->e[2]))
+                    continue;
+                else if ((ce->v[0] == ct->v[0]) || (ce->v[0] == ct->v[1]) || (ce->v[0] == ct->v[2]))
+                    continue;
+                else if ((ce->v[1] == ct->v[0]) || (ce->v[1] == ct->v[1]) || (ce->v[1] == ct->v[2]))
                     continue;
 
                 // Ensure that edge intersects the plane
                 rtm_vertex_t sp, *spp;
                 tag         = dsp::colocation_x2_v1p2(&pl, ce->v[0], ce->v[1]);
+                bool touch  = true;
 
                 switch (tag)
                 {
+                    case 0x01: case 0x09: // Edge touches the plane with p[0]
+                        sp      = *(ce->v[0]);
+                        break;
+                    case 0x04: case 0x06: // Edge touches the plane with p[1]
+                        sp      = *(ce->v[1]);
+                        break;
                     case 0x02: case 0x08: // Edge is crossing the plane
+                        touch   = false;
                         dsp::calc_split_point_p2v1(&sp, ce->v[0], ce->v[1], &pl); // Compute split point
                         break;
 
@@ -494,26 +523,48 @@ namespace lsp
                         continue;
                 }
 
+            #define TRACE_COMMON_STATE \
+                RT_TRACE_BREAK(debug, \
+                    lsp_trace("split point={%f, %f, %f, %f}", sp.x, sp.y, sp.z, sp.w); \
+                    view->add_triangle_1c(ct, &C_GREEN); \
+                    view->add_segment(ct->e[0], &C_RED); \
+                    view->add_segment(ct->e[1], &C_GREEN); \
+                    view->add_segment(ct->e[2], &C_BLUE); \
+                    \
+                    view->add_segment(ce, &C_YELLOW); \
+                    view->add_point(&sp, &C_YELLOW); \
+                );
+
                 // Now, analyze co-location of split point and triangle
                 tag      = dsp::colocation_x3_vvp1(spl, &sp);
                 switch (tag)
                 {
                     case 0x16: // Point matches edges 1 and 2 (vertex 2)
+                        TRACE_COMMON_STATE;
+                        if (touch)
+                            continue;
                         if ((res = split_edge(ce, ct->v[2])) != STATUS_OK) // Need to perform only split of crossing edge
                             return res;
                         continue;
 
                     case 0x19: // Point matches edges 0 and 2 (vertex 0)
+                        TRACE_COMMON_STATE;
+                        if (touch)
+                            continue;
                         if ((res = split_edge(ce, ct->v[0])) != STATUS_OK) // Need to perform only split of crossing edge
                             return res;
                         continue;
 
                     case 0x25: // Point matches edges 0 and 1 (vertex 1)
+                        TRACE_COMMON_STATE;
+                        if (touch)
+                            continue;
                         if ((res = split_edge(ce, ct->v[1])) != STATUS_OK) // Need to perform only split of crossing edge
                             return res;
                         continue;
 
                     case 0x1a: // Point lays on edge 2, split triangle's edge
+                        TRACE_COMMON_STATE;
                         if ((spp = vertex.alloc(&sp)) == NULL)
                             return STATUS_NO_MEM;
                         if ((res = split_edge(ct->e[2], spp)) == STATUS_OK)
@@ -521,6 +572,7 @@ namespace lsp
                         break;
 
                     case 0x26: // Point lays on edge 1, split triangle's edge
+                        TRACE_COMMON_STATE;
                         if ((spp = vertex.alloc(&sp)) == NULL)
                             return STATUS_NO_MEM;
                         if ((res = split_edge(ct->e[1], spp)) == STATUS_OK)
@@ -528,6 +580,7 @@ namespace lsp
                         break;
 
                     case 0x29: // Point lays on edge 0, split triangle's edge
+                        TRACE_COMMON_STATE;
                         if ((spp = vertex.alloc(&sp)) == NULL)
                             return STATUS_NO_MEM;
                         if ((res = split_edge(ct->e[0], spp)) == STATUS_OK)
@@ -535,6 +588,7 @@ namespace lsp
                         break;
 
                     case 0x2a: // Point lays inside of the triangle, split triangle's edge
+                        TRACE_COMMON_STATE;
                         if ((spp = vertex.alloc(&sp)) == NULL)
                             return STATUS_NO_MEM;
                         if ((res = split_triangle(ct, spp)) == STATUS_OK)
