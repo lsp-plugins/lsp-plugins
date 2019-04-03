@@ -479,30 +479,17 @@ namespace lsp
             RT_FOREACH(rtm_edge_t, ce, edge)
                 if ((ce == ct->e[0]) || (ce == ct->e[1]) || (ce == ct->e[2]))
                     continue;
-                if ((ce->v[0] == ct->v[0]) || (ce->v[0] == ct->v[1]) || (ce->v[0] == ct->v[2]))
-                    continue;
-                if ((ce->v[1] == ct->v[0]) || (ce->v[1] == ct->v[1]) || (ce->v[1] == ct->v[2]))
-                    continue;
 
                 // Ensure that edge intersects the plane
-                rtm_vertex_t *spp, sp;
+                rtm_vertex_t sp, *spp;
                 tag         = dsp::colocation_x2_v1p2(&pl, ce->v[0], ce->v[1]);
 
                 switch (tag)
                 {
-                    case 0x00: case 0x0a:   // Edge is over the plane or under the plane, skip
-                        continue;
-                    case 0x01: case 0x09: // Edge touches the plane with p[0]
-                        sp      = *(ce->v[0]);
-                        break;
-                    case 0x04: case 0x06: // Edge touches the plane with p[1]
-                        sp      = *(ce->v[1]);
-                        break;
                     case 0x02: case 0x08: // Edge is crossing the plane
                         dsp::calc_split_point_p2v1(&sp, ce->v[0], ce->v[1], &pl); // Compute split point
                         break;
 
-                    case 0x05:              // Edge lays on the plane, skip
                     default:
                         continue;
                 }

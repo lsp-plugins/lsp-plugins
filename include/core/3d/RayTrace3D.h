@@ -118,9 +118,12 @@ namespace lsp
 
                 public:
                     status_t    prepare_main_loop(float initial);
+                    status_t    prepare_captures();
                     status_t    prepare_supplementary_loop(TaskThread *t);
 
                     virtual status_t run();
+
+                    status_t    merge_result();
 
                     inline stats_t *get_stats() { return &stats; }
             };

@@ -452,6 +452,9 @@ namespace lsp
         if (res != STATUS_OK)
             return res;
 
+        lsp_trace("Overall mesh statistics: %d vertexes, %d edges, %d triangles",
+                int(root.vertex.size()), int(root.edge.size()), int(root.triangle.size()));
+
         RT_TRACE(trace->pDebug,
             if (!trace->pScene->validate())
                 return STATUS_CORRUPTED;
@@ -1207,14 +1210,11 @@ namespace lsp
             return STATUS_CANCELLED;
         }
 
-        return STATUS_OK;
+        return prepare_captures();
     }
 
-    status_t RayTrace3D::TaskThread::prepare_supplementary_loop(TaskThread *t)
+    status_t RayTrace3D::TaskThread::prepare_captures()
     {
-        // Cleanup statistics
-        clear_stats(&stats);
-
         // Copy capture state
         for (size_t i=0; i<trace->vCaptures.size(); ++i)
         {
@@ -1258,7 +1258,75 @@ namespace lsp
             }
         }
 
-        return root.copy(&t->root);
+        return STATUS_OK;
+    }
+
+    status_t RayTrace3D::TaskThread::prepare_supplementary_loop(TaskThread *t)
+    {
+        // Cleanup statistics
+        clear_stats(&stats);
+        status_t res = root.copy(&t->root);
+        if (res == STATUS_OK)
+            res = prepare_captures();
+        return res;
+    }
+
+    status_t RayTrace3D::TaskThread::merge_result()
+    {
+        cvector<capture_t> &dst = trace->vCaptures;
+        if (dst.size() != captures.size())
+            return STATUS_CORRUPTED;
+
+        for (size_t i=0; i<dst.size(); ++i)
+        {
+            capture_t *csrc = captures.at(i);
+            capture_t *cdst = dst.at(i);
+
+            if (csrc->bindings.size() != cdst->bindings.size())
+                return STATUS_CORRUPTED;
+
+            for (size_t j=0; j<csrc->bindings.size(); ++j)
+            {
+                sample_t *ssrc  = csrc->bindings.at(j);
+                sample_t *sdst  = cdst->bindings.at(j);
+
+                if ((ssrc->sample == NULL) || (sdst->sample == NULL))
+                    return STATUS_CORRUPTED;
+
+                // Compute new sample size
+                size_t nc = ssrc->sample->channels();
+                if (nc != sdst->sample->channels())
+                    return STATUS_CORRUPTED;
+
+                bool resize = false;
+                size_t maxlen = ssrc->sample->max_length();
+                if (maxlen < sdst->sample->max_length())
+                {
+                    maxlen  = sdst->sample->max_length();
+                    resize  = true;
+                }
+
+                size_t len = ssrc->sample->length();
+                if (len < sdst->sample->length())
+                {
+                    len     = sdst->sample->length();
+                    resize  = true;
+                }
+
+                // Check that we need resize
+                if (resize)
+                {
+                    if (!sdst->sample->resize(nc, maxlen, len))
+                        return STATUS_NO_MEM;
+                }
+
+                // Apply changes to the target sample
+                for (size_t k=0; k<nc; ++k)
+                    dsp::add2(sdst->sample->getBuffer(k), ssrc->sample->getBuffer(k), len);
+            }
+        }
+
+        return STATUS_OK;
     }
 
     RayTrace3D::RayTrace3D()
@@ -1587,14 +1655,16 @@ namespace lsp
         stats_t overall;
         clear_stats(&overall);
         merge_stats(&overall, root->get_stats());
+        root->merge_result();
         if (res != STATUS_BREAKPOINT)
             dump_stats("Main thread statistics", root->get_stats());
 
         // Output thread stats and destroy threads
         for (size_t i=0,n=workers.size(); i<n; ++i)
         {
-            // Wait for thread completion
+            // Post-process each thread
             TaskThread *t = workers.get(i);
+            t->merge_result();
 
             // Merge and output statistics
             LSPString s;
