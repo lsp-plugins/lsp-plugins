@@ -770,7 +770,7 @@ namespace lsp
 
             // Compute area of projected triangle
             float area  = dsp::calc_area_pv(p);
-            if (area <= 1e-10f)
+            if (area <= trace->fDetalization)
                 continue;
 
             // Determine the direction from which came the wave front
@@ -970,7 +970,7 @@ namespace lsp
 
         // Compute the area of triangle
         float v_area = dsp::calc_area_pv(v->p);
-        if (v_area <= 1e-10f) // Prevent from becoming NaNs
+        if (v_area <= trace->fDetalization) // Prevent from becoming NaNs
             return STATUS_OK;
 
         // Estimate distance and time parameters for source point
@@ -1299,19 +1299,22 @@ namespace lsp
                     return STATUS_CORRUPTED;
 
                 bool resize = false;
-                size_t maxlen = ssrc->sample->max_length();
-                if (maxlen < sdst->sample->max_length())
+                size_t maxlen = sdst->sample->max_length();
+                if (maxlen < ssrc->sample->max_length())
                 {
-                    maxlen  = sdst->sample->max_length();
+                    maxlen  = ssrc->sample->max_length();
                     resize  = true;
                 }
 
-                size_t len = ssrc->sample->length();
-                if (len < sdst->sample->length())
+                size_t len = sdst->sample->length();
+                if (len < ssrc->sample->length())
                 {
-                    len     = sdst->sample->length();
+                    len     = ssrc->sample->length();
                     resize  = true;
                 }
+
+                if (maxlen < len)
+                    maxlen  = len;
 
                 // Check that we need resize
                 if (resize)
@@ -1338,6 +1341,7 @@ namespace lsp
         pDebug          = NULL;
         fEnergyThresh   = 1e-6f;
         fTolerance      = 1e-5f;
+        fDetalization   = 1e-10f;
         bNormalize      = true;
         bCancelled      = false;
         nQueueSize      = 0;

@@ -138,6 +138,7 @@ namespace lsp
             size_t                      nSampleRate;
             float                       fEnergyThresh;
             float                       fTolerance;
+            float                       fDetalization;
             bool                        bNormalize;
             volatile bool               bCancelled;
             volatile bool               bFailed;
@@ -288,8 +289,10 @@ namespace lsp
             void                set_energy_threshold(float thresh) { fEnergyThresh = thresh; }
 
             inline float        get_tolerance() const { return fTolerance; }
+            inline float        get_detalization() const { return fDetalization; }
 
             void                set_tolerance(float tolerance) { fTolerance = tolerance; }
+            void                set_detalization(float detail) { fDetalization = detail; }
 
             inline bool         get_normalize() const { return bNormalize; };
             inline void         set_normalize(bool normalize) { bNormalize = normalize; };

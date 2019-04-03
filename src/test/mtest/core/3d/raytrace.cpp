@@ -66,9 +66,14 @@ MTEST_BEGIN("core.3d", raytrace)
         RayTrace3D trace;
         MTEST_ASSERT(trace.init() == STATUS_OK);
         trace.set_sample_rate(48000);
+
         trace.set_energy_threshold(1e-6f);
+
         trace.set_tolerance(1e-5f);
 //        trace.set_tolerance(1e-10f);
+
+        trace.set_detalization(1e-9f);
+//        trace.set_detalization(1e-10f);
 
 //        trace.set_energy_threshold(1e-4f);
 //        trace.set_tolerance(1e-4f);
