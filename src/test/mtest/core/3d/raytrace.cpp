@@ -67,7 +67,8 @@ MTEST_BEGIN("core.3d", raytrace)
         MTEST_ASSERT(trace.init() == STATUS_OK);
         trace.set_sample_rate(48000);
 
-        trace.set_energy_threshold(1e-6f);
+//        trace.set_energy_threshold(1e-6f);
+        trace.set_energy_threshold(1e-5f);
 
         trace.set_tolerance(1e-5f);
 //        trace.set_tolerance(1e-10f);
@@ -97,6 +98,7 @@ MTEST_BEGIN("core.3d", raytrace)
 
         // Perform raytracing
         MTEST_ASSERT(trace.process(nthreads, 1.0f) == STATUS_OK);
+        lsp_trace("Sample parameters: channels=%d, length=%d", int(sample.channels()), int(sample.length()));
 
         // Save sample to file
         AudioFile af;
