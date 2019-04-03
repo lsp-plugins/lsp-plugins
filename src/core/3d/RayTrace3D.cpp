@@ -41,6 +41,31 @@ namespace lsp
     RayTrace3D::TaskThread::~TaskThread()
     {
         factory.clear();
+
+        // Cleanup capture state
+        for (size_t i=0; i<captures.size(); ++i)
+        {
+            capture_t *cap = captures.get(i);
+
+            // Cleanup bindings
+            for (size_t j=0; j<cap->bindings.size(); ++j)
+            {
+                // Cleanup sample
+                sample_t *samp  = cap->bindings.get(j);
+
+                if (samp->sample != NULL)
+                {
+                    samp->sample->destroy();
+                    delete samp->sample;
+                    samp->sample = NULL;
+                }
+            }
+
+            cap->bindings.first();
+            delete cap;
+        }
+
+        captures.flush();
     }
 
     status_t RayTrace3D::TaskThread::run()
@@ -507,11 +532,6 @@ namespace lsp
         res     = ctx->fetch_objects(&root, n_objs, objs);
         if (res != STATUS_OK) // Some error occurred
             return res;
-        else if (ctx->triangle.size() <= 0) // Empty context
-        {
-            delete ctx;
-            return STATUS_OK;
-        }
 
         RT_TRACE_BREAK(trace->pDebug,
             lsp_trace("Fetched %d objects", int(n_objs));
@@ -525,10 +545,10 @@ namespace lsp
 
         // Update state
         //ctx->state      = S_CULL_VIEW;
-        size_t n = ctx->triangle.size();
-        if (n <= 1)
+        n_objs = ctx->triangle.size();
+        if (n_objs <= 1)
         {
-            if (n <= 0)
+            if (n_objs <= 0)
             {
                 delete ctx;
                 return STATUS_OK;
@@ -857,9 +877,9 @@ namespace lsp
             }
 
             // Perform capture
-            if (size_t(ct->oid) < trace->vCaptures.size())
+            if (size_t(ct->oid) < captures.size())
             {
-                capture_t *cap  = trace->vCaptures.get(ct->oid);
+                capture_t *cap  = captures.get(ct->oid);
                 if (cap->bindings.size() > 0)
                 {
                     // Perform synchronized capturing
@@ -1033,7 +1053,7 @@ namespace lsp
                 if (csn > 0)
                 {
                     // Lock capture data
-                    trace->lkCapture.lock();
+//                    trace->lkCapture.lock();
 
                     // Append sample to each matching capture
                     for (size_t ci=0, cn=capture->bindings.size(); ci<cn; ++ci)
@@ -1075,7 +1095,7 @@ namespace lsp
                     }
 
                     // Unlock capture data
-                    trace->lkCapture.unlock();
+//                    trace->lkCapture.unlock();
                 }
             }
 
@@ -1192,7 +1212,52 @@ namespace lsp
 
     status_t RayTrace3D::TaskThread::prepare_supplementary_loop(TaskThread *t)
     {
+        // Cleanup statistics
         clear_stats(&stats);
+
+        // Copy capture state
+        for (size_t i=0; i<trace->vCaptures.size(); ++i)
+        {
+            // Allocate capture
+            capture_t *scap = trace->vCaptures.get(i);
+            capture_t *dcap = new capture_t();
+            if (dcap == NULL)
+                return STATUS_NO_MEM;
+            else if (!captures.add(dcap))
+            {
+                delete dcap;
+                return STATUS_NO_MEM;
+            }
+
+            // Copy bindings
+            for (size_t j=0; j<scap->bindings.size(); ++j)
+            {
+                // Allocate binding
+                sample_t *ssamp = scap->bindings.get(j);
+                sample_t *dsamp = dcap->bindings.add();
+                if (dsamp == NULL)
+                    return STATUS_NO_MEM;
+
+                dsamp->sample   = NULL;
+                dsamp->channel  = ssamp->channel;
+                dsamp->r_min    = ssamp->r_min;
+                dsamp->r_max    = ssamp->r_max;
+
+                // Allocate sample and link
+                Sample *xsamp   = ssamp->sample;
+                Sample *tsamp   = new Sample();
+                if (tsamp == NULL)
+                    return STATUS_NO_MEM;
+                else if (!tsamp->init(xsamp->channels(), xsamp->max_length(), xsamp->length()))
+                {
+                    tsamp->destroy();
+                    delete tsamp;
+                    return STATUS_NO_MEM;
+                }
+                dsamp->sample   = tsamp;
+            }
+        }
+
         return root.copy(&t->root);
     }
 

@@ -86,6 +86,7 @@ namespace lsp
                     RayTrace3D             *trace;
                     stats_t                 stats;
                     cvector<rt_context_t>   tasks;
+                    cvector<capture_t>      captures;
                     rt_mesh_t               root;
                     ssize_t                 heavy_state;
                     RTObjectFactory         factory;
@@ -145,7 +146,7 @@ namespace lsp
             size_t                      nProgressPoints;
             size_t                      nProgressMax;
             ipc::Mutex                  lkTasks;
-            ipc::Mutex                  lkCapture;
+//            ipc::Mutex                  lkCapture;
 
         protected:
             static void destroy_tasks(cvector<rt_context_t> *tasks);

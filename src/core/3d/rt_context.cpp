@@ -125,7 +125,7 @@ namespace lsp
             rtm_edge_t *e = t->e[i];
             if (e->itag)
                 continue;
-            e->itag     = 0;
+            e->itag     = 1;
 
             // Cut the split edge
             sp[0]       = *(e->v[0]);
@@ -193,11 +193,11 @@ namespace lsp
                     case 0x11:  // 1 0 1
                     case 0x14:  // 1 1 0
                         // Triangle is above, skip
-                        break;
+                        continue;
 
                     case 0x15:  // 1 1 1
                         // Triangle is on the plane, skip
-                        break;
+                        continue;
 
                     // 0 intersections, 1 triangle
                     case 0x16:  // 1 1 2
@@ -259,6 +259,7 @@ namespace lsp
                         out->p[0]   = in->p[0];
                       //out->p[1]   = in->p[1];
                         out->p[2]   = in->p[2];
+//                        *out        = *in;
                         dsp::calc_split_point_p2v1(&out->p[1], &in->p[1], &in->p[2], pl);
                         ++out; ++nout;
                         break;
