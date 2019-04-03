@@ -2652,6 +2652,509 @@ namespace sse
 
         return x0;
     }
+
+    void split_triangle_raw(
+            raw_triangle_t *out,
+            size_t *n_out,
+            raw_triangle_t *in,
+            size_t *n_in,
+            const vector3d_t *pl,
+            const raw_triangle_t *pv
+        )
+    {
+        float    x0, x1, x2, x3, x4;
+        float    k[4] __lsp_aligned16;
+        uint32_t t[4] __lsp_aligned16;
+        size_t   t0, t1, t2;
+
+        in     += *n_in;
+        out    += *n_out;
+
+        // Estimate co-location of triangle and point
+        ARCH_X86_ASM
+        (
+            __ASM_EMIT("movups      (%[pl]), %[x3]")        /* xmm3 = pl    */
+            __ASM_EMIT("movups      0x00(%[pv]), %[x0]")    /* xmm0 = p0    */
+            __ASM_EMIT("movups      0x10(%[pv]), %[x1]")    /* xmm1 = p1    */
+            __ASM_EMIT("movups      0x20(%[pv]), %[x2]")    /* xmm2 = p2    */
+
+            __ASM_EMIT("mulps       %[x3], %[x0]")          /* xmm0 = p0 * pl */
+            __ASM_EMIT("mulps       %[x3], %[x1]")          /* xmm1 = p1 * pl */
+            __ASM_EMIT("mulps       %[x3], %[x2]")          /* xmm2 = p2 * pl */
+            MAT4_TRANSPOSE("[x0]", "[x1]", "[x2]", "[x3]", "[x4]")
+
+            __ASM_EMIT("addps       %[x1], %[x0]")
+            __ASM_EMIT("addps       %[x3], %[x2]")
+            __ASM_EMIT("addps       %[x2], %[x0]")          /* xmm0 = k0 k1 k2 ? */
+            __ASM_EMIT("movaps      %[x0], %[x1]")          /* xmm1 = k0 k1 k2 ? */
+            __ASM_EMIT("movaps      %[x0], %[k]")           /* *k   = xmm0 */
+            __ASM_EMIT("cmpps       $2, %[PTOL], %[x0]")    /* xmm0 = k0 <= +TOL k1 <= +TOL k2 <= +TOL ? */
+            __ASM_EMIT("cmpps       $1, %[MTOL], %[x1]")    /* xmm1 = k0 < -TOL  k1 < -TOL k2 < -TOL ? */
+            __ASM_EMIT("andps       %[IONE], %[x0]")        /* xmm0 = 1*[k0 <= +TOL] 1*[k1 <= +TOL] 1*[k2 <= +TOL] ? */
+            __ASM_EMIT("andps       %[IONE], %[x1]")        /* xmm1 = 1*[k0 < -TOL] 1*[k1 < -TOL] 1*[k2 < -TOL] ? */
+            __ASM_EMIT("paddd       %[x1], %[x0]")
+            __ASM_EMIT("movdqa      %[x0], %[t]")
+            __ASM_EMIT32("movl      0x00 + %[t], %[t0]")
+            __ASM_EMIT32("movl      0x04 + %[t], %[t1]")
+            __ASM_EMIT32("movl      0x08 + %[t], %[t2]")
+            __ASM_EMIT64("movl      0x00 + %[t], %k[t0]")
+            __ASM_EMIT64("movl      0x04 + %[t], %k[t1]")
+            __ASM_EMIT64("movl      0x08 + %[t], %k[t2]")
+            __ASM_EMIT("lea         (%[t1], %[t2], 4), %[t1]")
+            __ASM_EMIT("lea         (%[t0], %[t1], 4), %[t0]")
+            : [t0] "=&r" (t0), [t1] "=&r" (t1), [t2] "=&r" (t2),
+              [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2), [x3] "=&x" (x3),
+              [x4] "=&x" (x4)
+            : [pl] "r" (pl), [pv] "r" (pv),
+              [t] "o" (t),
+              [k] "o" (k),
+              [PTOL] "m" (X_3D_TOLERANCE),
+              [MTOL] "m" (X_3D_MTOLERANCE),
+              [IONE] "m" (IONE)
+            : "cc"
+        );
+
+        #define COPY_TO(out, n_out) \
+            ARCH_X86_ASM( \
+                __ASM_EMIT("movups      0x00(%[src]), %[x0]") \
+                __ASM_EMIT("movups      0x10(%[src]), %[x1]") \
+                __ASM_EMIT("movups      0x20(%[src]), %[x2]") \
+                __ASM_EMIT("movups      %[x0], 0x00(%[dst])") \
+                __ASM_EMIT("movups      %[x1], 0x10(%[dst])") \
+                __ASM_EMIT("movups      %[x2], 0x20(%[dst])") \
+                __ASM_EMIT32("incl      (%[n_dst])") \
+                __ASM_EMIT64("incq      (%[n_dst])") \
+                : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2) \
+                : [dst] "r" (out), [n_dst] "r" (nout), \
+                  [src] "r" (pv) \
+                : "cc", "memory" \
+            );
+
+        #define SPLIT_X2 \
+
+
+        switch (t0)
+        {
+            // 0 intersections, triangle is above
+            case 0x00:  // 0 0 0
+            case 0x01:  // 0 0 1
+            case 0x04:  // 0 1 0
+            case 0x05:  // 0 1 1
+            case 0x10:  // 1 0 0
+            case 0x11:  // 1 0 1
+            case 0x14:  // 1 1 0
+            case 0x15:  // 1 1 1
+                COPY_TO(out, n_out);
+                break;
+
+            // 0 intersections, triangle is below
+            case 0x16:  // 1 1 2
+            case 0x19:  // 1 2 1
+            case 0x1a:  // 1 2 2
+            case 0x25:  // 2 1 1
+            case 0x26:  // 2 1 2
+            case 0x29:  // 2 2 1
+            case 0x2a:  // 2 2 2
+                COPY_TO(in, n_in);
+                break;
+
+            // 1 intersection, 1 triangle above, 1 triangle below
+            case 0x06:  // 0 1 2
+            case 0x24:  // 2 1 0
+            case 0x12:  // 1 0 2
+            case 0x18:  // 1 2 0
+            case 0x09:  // 0 2 1
+            case 0x21:  // 2 0 1
+                break;
+
+            // TODO
+/*
+            // 1 intersection, 1 triangle
+            case 0x06:  // 0 1 2
+                out->p[0]   = in->p[0];
+                out->p[1]   = in->p[1];
+              //out->p[2]   = in->p[2];
+                dsp::calc_split_point_p2v1(&out->p[2], &in->p[0], &in->p[2], pl);
+                ++out;
+                ++nout;
+                break;
+            case 0x24:  // 2 1 0
+              //out->p[0]   = in->p[0];
+                out->p[1]   = in->p[1];
+                out->p[2]   = in->p[2];
+                dsp::calc_split_point_p2v1(&out->p[0], &in->p[0], &in->p[2], pl);
+                ++out;
+                ++nout;
+                break;
+
+            case 0x12:  // 1 0 2
+                out->p[0]   = in->p[0];
+              //out->p[1]   = in->p[1];
+                out->p[2]   = in->p[2];
+                dsp::calc_split_point_p2v1(&out->p[1], &in->p[0], &in->p[1], pl);
+                ++out;
+                ++nout;
+                break;
+            case 0x18:  // 1 2 0
+              //out->p[0]   = in->p[0];
+                out->p[1]   = in->p[1];
+                out->p[2]   = in->p[2];
+                dsp::calc_split_point_p2v1(&out->p[0], &in->p[0], &in->p[1], pl);
+                ++out;
+                ++nout;
+                break;
+
+            case 0x09:  // 0 2 1
+                out->p[0]   = in->p[0];
+                out->p[1]   = in->p[1];
+              //out->p[2]   = in->p[2];
+                dsp::calc_split_point_p2v1(&out->p[2], &in->p[1], &in->p[2], pl);
+                ++out;
+                ++nout;
+                break;
+            case 0x21:  // 2 0 1
+                out->p[0]   = in->p[0];
+              //out->p[1]   = in->p[1];
+                out->p[2]   = in->p[2];
+//                        *out        = *in;
+                dsp::calc_split_point_p2v1(&out->p[1], &in->p[1], &in->p[2], pl);
+                ++out; ++nout;
+                break;
+
+            // 2 intersections, 1 triangle
+            case 0x02:  // 0 0 2
+                out->p[0]   = in->p[0];
+              //out->p[1]   = in->p[1];
+              //out->p[2]   = in->p[2];
+                dsp::calc_split_point_p2v1(&out->p[1], &in->p[0], &in->p[1], pl);
+                dsp::calc_split_point_p2v1(&out->p[2], &in->p[0], &in->p[2], pl);
+                ++out;
+                ++nout;
+                break;
+            case 0x08:  // 0 2 0
+              //out->p[0]   = in->p[0];
+                out->p[1]   = in->p[1];
+              //out->p[2]   = in->p[2];
+                dsp::calc_split_point_p2v1(&out->p[0], &in->p[1], &in->p[0], pl);
+                dsp::calc_split_point_p2v1(&out->p[2], &in->p[1], &in->p[2], pl);
+                ++out;
+                ++nout;
+                break;
+            case 0x20:  // 2 0 0
+              //out->p[0]   = in->p[0];
+              //out->p[1]   = in->p[1];
+                out->p[2]   = in->p[2];
+                dsp::calc_split_point_p2v1(&out->p[0], &in->p[2], &in->p[0], pl);
+                dsp::calc_split_point_p2v1(&out->p[1], &in->p[2], &in->p[1], pl);
+                ++out;
+                ++nout;
+                break;
+
+            // 2 intersections, 2 triangles
+            case 0x28:  // 2 2 0
+                dsp::calc_split_point_p2v1(&sp[0], &in->p[0], &in->p[1], pl);
+                dsp::calc_split_point_p2v1(&sp[1], &in->p[0], &in->p[2], pl);
+
+                out->p[0]   = sp[0];
+                out->p[1]   = in->p[1];
+                out->p[2]   = in->p[2];
+                ++out;
+
+                out->p[0]   = sp[1];
+                out->p[1]   = sp[0];
+                out->p[2]   = in->p[2];
+                ++out;
+
+                nout += 2;
+                break;
+
+            case 0x22:  // 2 0 2
+                dsp::calc_split_point_p2v1(&sp[0], &in->p[1], &in->p[2], pl);
+                dsp::calc_split_point_p2v1(&sp[1], &in->p[1], &in->p[0], pl);
+
+                out->p[0]   = in->p[0];
+                out->p[1]   = sp[0];
+                out->p[2]   = in->p[2];
+                ++out;
+
+                out->p[0]   = in->p[0];
+                out->p[1]   = sp[1];
+                out->p[2]   = sp[0];
+                ++out;
+
+                nout += 2;
+                break;
+
+            case 0x0a:  // 0 2 2
+                dsp::calc_split_point_p2v1(&sp[0], &in->p[2], &in->p[0], pl);
+                dsp::calc_split_point_p2v1(&sp[1], &in->p[2], &in->p[1], pl);
+
+                out->p[0]   = in->p[0];
+                out->p[1]   = in->p[1];
+                out->p[2]   = sp[0];
+                ++out;
+
+                out->p[0]   = sp[0];
+                out->p[1]   = in->p[1];
+                out->p[2]   = sp[1];
+                ++out;
+
+                nout += 2;
+                break;
+        */
+            default:
+                break;
+        }
+/*
+        point3d_t sp[2];    // Split point
+        vector3d_t d[2];    // Delta vector
+        point3d_t p[3];     // Triangle sources
+        float k[3];         // Co-location of points
+        float t[2];
+
+
+
+        p[0]    = pv->p[0];
+        p[1]    = pv->p[1];
+        p[2]    = pv->p[2];
+
+        k[0]    = pl->dx*p[0].x + pl->dy*p[0].y + pl->dz*p[0].z + pl->dw;
+        k[1]    = pl->dx*p[1].x + pl->dy*p[1].y + pl->dz*p[1].z + pl->dw;
+        k[2]    = pl->dx*p[2].x + pl->dy*p[2].y + pl->dz*p[2].z + pl->dw;
+
+        // Check that the whole triangle lies above the plane or below the plane
+        if (k[0] < 0.0f)
+        {
+            if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
+            {
+                in->p[0]        = p[0];
+                in->p[1]        = p[1];
+                in->p[2]        = p[2];
+                ++*n_in;
+                return;
+            }
+        }
+        else if (k[0] > 0.0f)
+        {
+            if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
+            {
+                out->p[0]       = p[0];
+                out->p[1]       = p[1];
+                out->p[2]       = p[2];
+                ++*n_out;
+                return;
+            }
+        }
+        else // (k[0] == 0)
+        {
+            if ((k[1] >= 0.0f) && (k[2] >= 0.0f))
+            {
+                out->p[0]       = p[0];
+                out->p[1]       = p[1];
+                out->p[2]       = p[2];
+                ++*n_out;
+                return;
+            }
+            else if ((k[1] <= 0.0f) && (k[2] <= 0.0f))
+            {
+                in->p[0]        = p[0];
+                in->p[1]        = p[1];
+                in->p[2]        = p[2];
+                ++*n_in;
+                return;
+            }
+        }
+
+        // There is an intersection with plane, we need to analyze it
+        // Rotate triangle until vertex 0 is above the split plane
+        if (k[0] > 0.0f)
+            {  }
+        else if (k[1] > 0.0f)
+        {
+            // Rotate clockwise
+            t[0]    = k[0];
+            sp[0]   = p[0];
+
+            k[0]    = k[1];
+            p[0]    = p[1];
+            k[1]    = k[2];
+            p[1]    = p[2];
+            k[2]    = t[0];
+            p[2]    = sp[0];
+        }
+        else // k[2] > 0.0f
+        {
+            // Rotate counter-clockwise
+            t[0]    = k[0];
+            sp[0]   = p[0];
+
+            k[0]    = k[2];
+            p[0]    = p[2];
+            k[2]    = k[1];
+            p[2]    = p[1];
+            k[1]    = t[0];
+            p[1]    = sp[0];
+        }
+//        while (k[0] <= 0.0f)
+//        {
+//            t[0]    = k[0];
+//            sp[0]   = p[0];
+//
+//            k[0]    = k[1];
+//            p[0]    = p[1];
+//            k[1]    = k[2];
+//            p[1]    = p[2];
+//            k[2]    = t[0];
+//            p[2]    = sp[0];
+//        }
+
+        // Now we have p[0] guaranteed to be above plane, analyze p[1] and p[2]
+        if (k[1] < 0.0f) // k[1] < 0
+        {
+            d[0].dx = p[0].x - p[1].x;
+            d[0].dy = p[0].y - p[1].y;
+            d[0].dz = p[0].z - p[1].z;
+
+            t[0]    = -k[0] / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz);
+
+            sp[0].x = p[0].x + d[0].dx * t[0];
+            sp[0].y = p[0].y + d[0].dy * t[0];
+            sp[0].z = p[0].z + d[0].dz * t[0];
+            sp[0].w = 1.0f;
+
+            if (k[2] < 0.0f) // (k[1] < 0) && (k[2] < 0)
+            {
+                d[1].dx = p[0].x - p[2].x;
+                d[1].dy = p[0].y - p[2].y;
+                d[1].dz = p[0].z - p[2].z;
+
+                t[1]    = -k[0] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
+
+                sp[1].x = p[0].x + d[1].dx * t[1];
+                sp[1].y = p[0].y + d[1].dy * t[1];
+                sp[1].z = p[0].z + d[1].dz * t[1];
+                sp[1].w = 1.0f;
+
+                // 1 triangle above plane, 2 below
+                out->p[0]       = p[0];
+                out->p[1]       = sp[0];
+                out->p[2]       = sp[1];
+                ++*n_out;
+                ++out;
+
+                in->p[0]        = p[1];
+                in->p[1]        = sp[1];
+                in->p[2]        = sp[0];
+                ++*n_in;
+                ++in;
+
+                in->p[0]        = p[2];
+                in->p[1]        = sp[1];
+                in->p[2]        = p[1];
+                ++*n_in;
+            }
+            else if (k[2] > 0.0f) // (k[1] < 0) && (k[2] > 0)
+            {
+                d[1].dx = p[2].x - p[1].x;
+                d[1].dy = p[2].y - p[1].y;
+                d[1].dz = p[2].z - p[1].z;
+
+                t[1]    = -k[2] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
+
+                sp[1].x = p[2].x + d[1].dx * t[1];
+                sp[1].y = p[2].y + d[1].dy * t[1];
+                sp[1].z = p[2].z + d[1].dz * t[1];
+                sp[1].w = 1.0f;
+
+                // 2 triangles above plane, 1 below
+                out->p[0]       = p[2];
+                out->p[1]       = sp[0];
+                out->p[2]       = sp[1];
+                ++*n_out;
+                ++out;
+
+                out->p[0]       = p[0];
+                out->p[1]       = sp[0];
+                out->p[2]       = p[2];
+                ++*n_out;
+
+                in->p[0]        = p[1];
+                in->p[1]        = sp[1];
+                in->p[2]        = sp[0];
+                ++*n_in;
+            }
+            else // (k[1] < 0) && (k[2] == 0)
+            {
+                // 1 triangle above plane, 1 below
+                out->p[0]       = p[0];
+                out->p[1]       = sp[0];
+                out->p[2]       = p[2];
+                ++*n_out;
+
+                in->p[0]        = p[1];
+                in->p[1]        = p[2];
+                in->p[2]        = sp[0];
+                ++*n_in;
+            }
+        }
+        else // (k[1] >= 0) && (k[2] < 0)
+        {
+            d[0].dx = p[0].x - p[2].x;
+            d[0].dy = p[0].y - p[2].y;
+            d[0].dz = p[0].z - p[2].z;
+
+            t[0]    = -k[0] / (pl->dx*d[0].dx + pl->dy*d[0].dy + pl->dz*d[0].dz);
+
+            sp[0].x = p[0].x + d[0].dx * t[0];
+            sp[0].y = p[0].y + d[0].dy * t[0];
+            sp[0].z = p[0].z + d[0].dz * t[0];
+            sp[0].w = 1.0f;
+
+            if (k[1] > 0.0f) // (k[1] > 0) && (k[2] < 0)
+            {
+                d[1].dx = p[1].x - p[2].x;
+                d[1].dy = p[1].y - p[2].y;
+                d[1].dz = p[1].z - p[2].z;
+
+                t[1]    = -k[1] / (pl->dx*d[1].dx + pl->dy*d[1].dy + pl->dz*d[1].dz);
+
+                sp[1].x = p[1].x + d[1].dx * t[1];
+                sp[1].y = p[1].y + d[1].dy * t[1];
+                sp[1].z = p[1].z + d[1].dz * t[1];
+                sp[1].w = 1.0f;
+
+                // 2 triangles above plane, 1 below
+                out->p[0]       = p[0];
+                out->p[1]       = sp[1];
+                out->p[2]       = sp[0];
+                ++*n_out;
+                ++out;
+
+                out->p[0]       = p[1];
+                out->p[1]       = sp[1];
+                out->p[2]       = p[0];
+                ++*n_out;
+
+                in->p[0]        = p[2];
+                in->p[1]        = sp[0];
+                in->p[2]        = sp[1];
+                ++*n_in;
+            }
+            else // (k[1] == 0) && (k[2] < 0)
+            {
+                // 1 triangle above plane, 1 triangle below plane
+                out->p[0]       = p[0];
+                out->p[1]       = p[1];
+                out->p[2]       = sp[0];
+                ++*n_out;
+
+                in->p[0]        = p[2];
+                in->p[1]        = sp[0];
+                in->p[2]        = p[1];
+                ++*n_in;
+            }
+        }*/
+    }
 }
 
 #undef SCALAR_MUL
