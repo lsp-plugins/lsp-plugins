@@ -60,7 +60,8 @@ namespace lsp
 
         protected:
             static int      compare_triangles(const void *p1, const void *p2);
-            status_t        add_triangle(const vector3d_t *pl, const rtm_triangle_t *t);
+            static status_t add_triangle(Allocator3D<rt_triangle_t> &triangle, const rtm_triangle_t *t, const vector3d_t *pl);
+            static status_t add_edge(rt_plan_t &plan, rtm_edge_t *e, const vector3d_t *pl);
 
         public:
             // Construction/destruction
