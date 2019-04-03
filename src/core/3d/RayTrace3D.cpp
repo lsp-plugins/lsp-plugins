@@ -370,7 +370,7 @@ namespace lsp
         // Clear contents of the root context
         root.clear();
         RT_TRACE(trace->pDebug, root.set_debug_context(trace->pDebug, &trace->pDebug->trace); );
-/*
+
         // Add capture objects as fake icosphere objects
         for (size_t i=0, n=trace->vCaptures.size(); i<n; ++i, ++obj_id)
         {
@@ -382,30 +382,12 @@ namespace lsp
             if (obj == NULL)
                 return STATUS_NO_MEM;
 
-            // Estimate the area of the source
-            float area = 0.0f;
-
-            point3d_t p[3];
-            for (size_t i=0, n=obj->num_triangles(); i<n; ++i)
-            {
-                obj_triangle_t *t = obj->triangle(i);
-                dsp::apply_matrix3d_mp2(&p[0], t->v[0], &cap->matrix);
-                dsp::apply_matrix3d_mp2(&p[1], t->v[1], &cap->matrix);
-                dsp::apply_matrix3d_mp2(&p[2], t->v[2], &cap->matrix);
-
-                area += dsp::calc_area_pv(p);
-            }
-            cap->volume     = 1.0f;
-//            cap->volume     = cap->gain / sqrtf(area);
-//            if (cap->volume > max_volume)
-//                max_volume      = cap->volume;
-
             // Add capture object to context
-            res     = root.add_object_exclusive(obj, obj_id, &cap->matrix, &cap->material);
+            res     = root.add_object(obj, obj_id, &cap->matrix, &cap->material);
             if (res != STATUS_OK)
                 return res;
         }
-*/
+
         // Add scene objects
         for (size_t i=0, n=trace->pScene->num_objects(); i<n; ++i, ++obj_id)
         {
