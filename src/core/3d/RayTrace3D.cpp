@@ -1307,7 +1307,15 @@ namespace lsp
 
                 // Apply changes to the target sample
                 for (size_t k=0; k<nc; ++k)
+                {
+                    lsp_trace("Merge %p -> %p (%lld samples), channel=%d/%d",
+                            ssrc->sample->getBuffer(k),
+                            sdst->sample->getBuffer(k),
+                            (long long)(len),
+                            int(k), int(nc)
+                            );
                     dsp::add2(sdst->sample->getBuffer(k), ssrc->sample->getBuffer(k), len);
+                }
             }
         }
 
