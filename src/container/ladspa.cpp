@@ -338,13 +338,11 @@ namespace lsp
     static StaticFinalizer ladspa_finalizer(ladspa_drop_descriptors);
 }
 
+#ifdef __cplusplus
 extern "C"
 {
-    #ifdef PLATFORM_WINDOWS
-    __declspec(dllexport)
-    #else
-    __attribute__ ((visibility ("default")))
-    #endif
+#endif
+    LSP_LIBRARY_EXPORT
     const LADSPA_Descriptor * ladspa_descriptor(unsigned long index)
     {
         using namespace lsp;
@@ -352,4 +350,6 @@ extern "C"
         ladspa_gen_descriptors();
         return (index < ladspa_descriptors_count) ? &ladspa_descriptors[index] : NULL;
     }
+#ifdef __cplusplus
 }
+#endif

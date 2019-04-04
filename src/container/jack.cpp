@@ -249,7 +249,8 @@ namespace lsp
 extern "C"
 {
 #endif /* __cplusplus */
-    extern int JACK_MAIN_FUNCTION(const char *plugin_id, int argc, const char **argv)
+    LSP_LIBRARY_EXPORT
+    int JACK_MAIN_FUNCTION(const char *plugin_id, int argc, const char **argv)
     {
         lsp_debug_init("jack");
 
@@ -275,7 +276,8 @@ extern "C"
         return -STATUS_INVALID_UID;
     }
 
-    extern const char *JACK_GET_VERSION()
+    LSP_LIBRARY_EXPORT
+    const char *JACK_GET_VERSION()
     {
         return LSP_MAIN_VERSION;
     }
