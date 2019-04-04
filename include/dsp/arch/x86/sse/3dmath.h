@@ -2714,7 +2714,7 @@ namespace sse
             : "cc"
         );
 
-        #define STR_COPY_TO(out, n_out) \
+        #define STR_COPY_TO(tgt, n_tgt) \
             ARCH_X86_ASM( \
                 __ASM_EMIT("movups      0x00(%[src]), %[x0]") \
                 __ASM_EMIT("movups      0x10(%[src]), %[x1]") \
@@ -2725,7 +2725,7 @@ namespace sse
                 __ASM_EMIT32("incl      (%[n_dst])") \
                 __ASM_EMIT64("incq      (%[n_dst])") \
                 : [x0] "=&x" (x0), [x1] "=&x" (x1), [x2] "=&x" (x2) \
-                : [dst] "r" (out), [n_dst] "r" (nout), \
+                : [dst] "r" (tgt), [n_dst] "r" (n_tgt), \
                   [src] "r" (pv) \
                 : "cc", "memory" \
             );
@@ -2749,10 +2749,6 @@ namespace sse
                 __ASM_EMIT("unpcklps    %[x2], %[x2]")                  /* xmm2 = b b b b */ \
                 __ASM_EMIT("divps       %[x2], %[x1]")                  /* xmm1 = k*dx/b k*dy/b k*dz/b 0 */ \
                 __ASM_EMIT("subps       %[x1], %[x0]")                  /* xmm0 = lx0-k*dx/b ly0-k*dy/b lz0-k*dz/b 1 */ \
-                __ASM_EMIT32("incl      (%[n_out])") \
-                __ASM_EMIT32("incl      (%[n_in])") \
-                __ASM_EMIT64("incq      (%[n_out])") \
-                __ASM_EMIT64("incq      (%[n_in])") \
                 __ASM_EMIT("movups      0x00(%[st]), %[x1]") \
                 __ASM_EMIT("movups      0x10(%[st]), %[x2]") \
                 __ASM_EMIT("movups      0x20(%[st]), %[x3]") \
@@ -2765,7 +2761,7 @@ namespace sse
                 : "cc", "memory" \
             );
 
-        #define STR_SPLIT_2P(off0, off1, off2, koff, store, nin, nout) \
+        #define STR_SPLIT_2P(off0, off1, off2, koff, store) \
             ARCH_X86_ASM( \
                 __ASM_EMIT("movups      0x" off0 "(%[st]), %[x0]")      /* xmm0 = p0 = lx0 ly0 lz0 1 */ \
                 __ASM_EMIT("movups      0x" off1 "(%[st]), %[x2]")      /* xmm2 = p1 = lx1 ly1 lz1 1 */ \
@@ -2790,7 +2786,7 @@ namespace sse
                 __ASM_EMIT("addps       %[x7], %[x5]")                  /* xmm5 = dx2*nx+dy2*ny+dz2*nz dx2*nx+dy2*ny+dz2*nz ? ? = b2 b2 ? ? */ \
                 __ASM_EMIT("unpcklps    %[x4], %[x4]")                  /* xmm4 = b1 b1 b1 b1 */ \
                 __ASM_EMIT("unpcklps    %[x5], %[x5]")                  /* xmm5 = b2 b2 b2 b2 */ \
-                __ASM_EMIT("movss       0x" off " + %[k], %[x6]")       /* xmm6 = k */ \
+                __ASM_EMIT("movss       0x" koff " + %[k], %[x6]")      /* xmm6 = k */ \
                 __ASM_EMIT("divps       %[x4], %[x2]")                  /* xmm2 = dx1/b1 dy1/b1 dz1/b1 0 */ \
                 __ASM_EMIT("shufps      $0x00, %[x6], %[x6]")           /* xmm6 = k k k k */ \
                 __ASM_EMIT("divps       %[x5], %[x3]")                  /* xmm3 = dx2/b2 dy2/b2 dz2/b2 0 */ \
@@ -2798,10 +2794,6 @@ namespace sse
                 __ASM_EMIT("mulps       %[x6], %[x3]")                  /* xmm3 = k*dx2/b2 k*dy2/b2 k*dz2/b2 0 */ \
                 __ASM_EMIT("subps       %[x2], %[x0]")                  /* xmm0 = lx0-k*dx1/b1 ly0-k*dy1/b1 lz0-k*dz1/b1 1 */ \
                 __ASM_EMIT("subps       %[x3], %[x1]")                  /* xmm1 = lx1-k*dx2/b2 ly1-k*dy2/b2 lz1-k*dz2/b2 1 */ \
-                __ASM_EMIT32("addl      $" nout ", (%[n_out])") \
-                __ASM_EMIT32("addl      $" nin  ", (%[n_in])") \
-                __ASM_EMIT32("addq      $" nout ", (%[n_out])") \
-                __ASM_EMIT32("addq      $" nin  ", (%[n_in])") \
                 __ASM_EMIT("movups      0x00(%[st]), %[x2]") \
                 __ASM_EMIT("movups      0x10(%[st]), %[x3]") \
                 __ASM_EMIT("movups      0x20(%[st]), %[x4]") \
@@ -2827,6 +2819,7 @@ namespace sse
             case 0x14:  // 1 1 0
             case 0x15:  // 1 1 1
                 STR_COPY_TO(out, n_out);
+                ++(*n_out);
                 break;
 
             // 0 intersections, triangle is below
@@ -2838,6 +2831,7 @@ namespace sse
             case 0x29:  // 2 2 1
             case 0x2a:  // 2 2 2
                 STR_COPY_TO(in, n_in);
+                ++(*n_in);
                 break;
 
             // 1 intersection, 1 triangle above, 1 triangle below, counter-clockwise
@@ -2849,7 +2843,8 @@ namespace sse
                     __ASM_EMIT("movups  %[x2], 0x00(%[out])")
                     __ASM_EMIT("movups  %[x3], 0x10(%[out])")
                     __ASM_EMIT("movups  %[x0], 0x20(%[out])")
-                )
+                );
+                ++(*n_out); ++(*n_in);
                 break;
             case 0x21:  // 2 0 1
                 STR_SPLIT_1P("00", "10", "00",
@@ -2859,7 +2854,8 @@ namespace sse
                     __ASM_EMIT("movups  %[x2], 0x00(%[out])")
                     __ASM_EMIT("movups  %[x0], 0x10(%[out])")
                     __ASM_EMIT("movups  %[x1], 0x20(%[out])")
-                )
+                );
+                ++(*n_out); ++(*n_in);
                 break;
             case 0x18:  // 1 2 0
                 STR_SPLIT_1P("10", "20", "04",
@@ -2869,7 +2865,8 @@ namespace sse
                     __ASM_EMIT("movups  %[x1], 0x00(%[out])")
                     __ASM_EMIT("movups  %[x0], 0x10(%[out])")
                     __ASM_EMIT("movups  %[x3], 0x20(%[out])")
-                )
+                );
+                ++(*n_out); ++(*n_in);
                 break;
 
             // 1 intersection, 1 triangle above, 1 triangle below, clockwise
@@ -2881,7 +2878,8 @@ namespace sse
                     __ASM_EMIT("movups  %[x1], 0x00(%[out])")
                     __ASM_EMIT("movups  %[x2], 0x10(%[out])")
                     __ASM_EMIT("movups  %[x0], 0x20(%[out])")
-                )
+                );
+                ++(*n_out); ++(*n_in);
                 break;
             case 0x12:  // 1 0 2
                 STR_SPLIT_1P("00", "10", "00",
@@ -2891,7 +2889,8 @@ namespace sse
                     __ASM_EMIT("movups  %[x2], 0x00(%[out])")
                     __ASM_EMIT("movups  %[x3], 0x10(%[out])")
                     __ASM_EMIT("movups  %[x0], 0x20(%[out])")
-                )
+                );
+                ++(*n_out); ++(*n_in);
                 break;
             case 0x09:  // 0 2 1
                 STR_SPLIT_1P("10", "20", "04",
@@ -2901,101 +2900,107 @@ namespace sse
                     __ASM_EMIT("movups  %[x3], 0x00(%[out])")
                     __ASM_EMIT("movups  %[x1], 0x10(%[out])")
                     __ASM_EMIT("movups  %[x0], 0x20(%[out])")
-                )
+                );
+                ++(*n_out); ++(*n_in);
                 break;
 
-
-
-            // TODO
-/*
-            // 2 intersections, 1 triangle
+            // 2 intersections, 1 triangle below, 2 triangles above
             case 0x02:  // 0 0 2
-                out->p[0]   = in->p[0];
-              //out->p[1]   = in->p[1];
-              //out->p[2]   = in->p[2];
-                dsp::calc_split_point_p2v1(&out->p[1], &in->p[0], &in->p[1], pl);
-                dsp::calc_split_point_p2v1(&out->p[2], &in->p[0], &in->p[2], pl);
-                ++out;
-                ++nout;
+                STR_SPLIT_2P("00", "10", "20", "00",
+                    __ASM_EMIT("movups  %[x2], 0x00(%[in])")
+                    __ASM_EMIT("movups  %[x0], 0x10(%[in])")
+                    __ASM_EMIT("movups  %[x1], 0x20(%[in])")
+                    __ASM_EMIT("movups  %[x3], 0x00(%[out])")
+                    __ASM_EMIT("movups  %[x1], 0x10(%[out])")
+                    __ASM_EMIT("movups  %[x0], 0x20(%[out])")
+                    __ASM_EMIT("movups  %[x4], 0x30(%[out])")
+                    __ASM_EMIT("movups  %[x1], 0x40(%[out])")
+                    __ASM_EMIT("movups  %[x3], 0x50(%[out])")
+                );
+                (*n_out) += 2; ++(*n_in);
                 break;
             case 0x08:  // 0 2 0
-              //out->p[0]   = in->p[0];
-                out->p[1]   = in->p[1];
-              //out->p[2]   = in->p[2];
-                dsp::calc_split_point_p2v1(&out->p[0], &in->p[1], &in->p[0], pl);
-                dsp::calc_split_point_p2v1(&out->p[2], &in->p[1], &in->p[2], pl);
-                ++out;
-                ++nout;
+                STR_SPLIT_2P("10", "00", "20", "04",
+                    __ASM_EMIT("movups  %[x3], 0x00(%[in])")
+                    __ASM_EMIT("movups  %[x1], 0x10(%[in])")
+                    __ASM_EMIT("movups  %[x0], 0x20(%[in])")
+                    __ASM_EMIT("movups  %[x4], 0x00(%[out])")
+                    __ASM_EMIT("movups  %[x0], 0x10(%[out])")
+                    __ASM_EMIT("movups  %[x1], 0x20(%[out])")
+                    __ASM_EMIT("movups  %[x2], 0x30(%[out])")
+                    __ASM_EMIT("movups  %[x0], 0x40(%[out])")
+                    __ASM_EMIT("movups  %[x4], 0x50(%[out])")
+                );
+                (*n_out) += 2; ++(*n_in);
                 break;
             case 0x20:  // 2 0 0
-              //out->p[0]   = in->p[0];
-              //out->p[1]   = in->p[1];
-                out->p[2]   = in->p[2];
-                dsp::calc_split_point_p2v1(&out->p[0], &in->p[2], &in->p[0], pl);
-                dsp::calc_split_point_p2v1(&out->p[1], &in->p[2], &in->p[1], pl);
-                ++out;
-                ++nout;
+                STR_SPLIT_2P("20", "00", "10", "08",
+                    __ASM_EMIT("movups  %[x4], 0x00(%[in])")
+                    __ASM_EMIT("movups  %[x0], 0x10(%[in])")
+                    __ASM_EMIT("movups  %[x1], 0x20(%[in])")
+                    __ASM_EMIT("movups  %[x2], 0x00(%[out])")
+                    __ASM_EMIT("movups  %[x1], 0x10(%[out])")
+                    __ASM_EMIT("movups  %[x0], 0x20(%[out])")
+                    __ASM_EMIT("movups  %[x3], 0x30(%[out])")
+                    __ASM_EMIT("movups  %[x1], 0x40(%[out])")
+                    __ASM_EMIT("movups  %[x2], 0x50(%[out])")
+                );
+                (*n_out) += 2; ++(*n_in);
                 break;
 
-            // 2 intersections, 2 triangles
+            // 2 intersections, 1 triangle above, 2 triangles below
             case 0x28:  // 2 2 0
-                dsp::calc_split_point_p2v1(&sp[0], &in->p[0], &in->p[1], pl);
-                dsp::calc_split_point_p2v1(&sp[1], &in->p[0], &in->p[2], pl);
-
-                out->p[0]   = sp[0];
-                out->p[1]   = in->p[1];
-                out->p[2]   = in->p[2];
-                ++out;
-
-                out->p[0]   = sp[1];
-                out->p[1]   = sp[0];
-                out->p[2]   = in->p[2];
-                ++out;
-
-                nout += 2;
+                STR_SPLIT_2P("00", "10", "20", "00",
+                    __ASM_EMIT("movups  %[x3], 0x00(%[in])")
+                    __ASM_EMIT("movups  %[x1], 0x10(%[in])")
+                    __ASM_EMIT("movups  %[x0], 0x20(%[in])")
+                    __ASM_EMIT("movups  %[x4], 0x00(%[in])")
+                    __ASM_EMIT("movups  %[x1], 0x10(%[in])")
+                    __ASM_EMIT("movups  %[x3], 0x20(%[in])")
+                    __ASM_EMIT("movups  %[x2], 0x00(%[out])")
+                    __ASM_EMIT("movups  %[x0], 0x10(%[out])")
+                    __ASM_EMIT("movups  %[x1], 0x20(%[out])")
+                );
+                ++(*n_out); (*n_in) += 2;
                 break;
 
             case 0x22:  // 2 0 2
-                dsp::calc_split_point_p2v1(&sp[0], &in->p[1], &in->p[2], pl);
-                dsp::calc_split_point_p2v1(&sp[1], &in->p[1], &in->p[0], pl);
-
-                out->p[0]   = in->p[0];
-                out->p[1]   = sp[0];
-                out->p[2]   = in->p[2];
-                ++out;
-
-                out->p[0]   = in->p[0];
-                out->p[1]   = sp[1];
-                out->p[2]   = sp[0];
-                ++out;
-
-                nout += 2;
+                STR_SPLIT_2P("10", "00", "20", "04",
+                    __ASM_EMIT("movups  %[x4], 0x00(%[in])")
+                    __ASM_EMIT("movups  %[x0], 0x10(%[in])")
+                    __ASM_EMIT("movups  %[x1], 0x20(%[in])")
+                    __ASM_EMIT("movups  %[x2], 0x00(%[in])")
+                    __ASM_EMIT("movups  %[x0], 0x10(%[in])")
+                    __ASM_EMIT("movups  %[x4], 0x20(%[in])")
+                    __ASM_EMIT("movups  %[x3], 0x00(%[out])")
+                    __ASM_EMIT("movups  %[x1], 0x10(%[out])")
+                    __ASM_EMIT("movups  %[x0], 0x20(%[out])")
+                );
+                ++(*n_out); (*n_in) += 2;
                 break;
 
             case 0x0a:  // 0 2 2
-                dsp::calc_split_point_p2v1(&sp[0], &in->p[2], &in->p[0], pl);
-                dsp::calc_split_point_p2v1(&sp[1], &in->p[2], &in->p[1], pl);
-
-                out->p[0]   = in->p[0];
-                out->p[1]   = in->p[1];
-                out->p[2]   = sp[0];
-                ++out;
-
-                out->p[0]   = sp[0];
-                out->p[1]   = in->p[1];
-                out->p[2]   = sp[1];
-                ++out;
-
-                nout += 2;
+                STR_SPLIT_2P("20", "00", "10", "08",
+                    __ASM_EMIT("movups  %[x2], 0x00(%[in])")
+                    __ASM_EMIT("movups  %[x1], 0x10(%[in])")
+                    __ASM_EMIT("movups  %[x0], 0x20(%[in])")
+                    __ASM_EMIT("movups  %[x3], 0x00(%[in])")
+                    __ASM_EMIT("movups  %[x1], 0x10(%[in])")
+                    __ASM_EMIT("movups  %[x2], 0x20(%[in])")
+                    __ASM_EMIT("movups  %[x4], 0x00(%[out])")
+                    __ASM_EMIT("movups  %[x0], 0x10(%[out])")
+                    __ASM_EMIT("movups  %[x1], 0x20(%[out])")
+                );
+                ++(*n_out); (*n_in) += 2;
                 break;
-        */
+
             default:
                 break;
         }
 
         #undef STR_COPY_TO
         #undef STR_SPLIT_1P
-
+        #undef STR_SPLIT_2P
     }
 }
 
