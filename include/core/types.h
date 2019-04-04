@@ -29,7 +29,7 @@
 #ifdef __cplusplus
     #define LSP_LIBRARY_EXTERN  extern "C"
 #else
-    #define LSP_LIBRARY_EXTERN  extern
+    #define LSP_LIBRARY_EXTERN
 #endif /* __cplusplus */
 
 #ifdef PLATFORM_WINDOWS
