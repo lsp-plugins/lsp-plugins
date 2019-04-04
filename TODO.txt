@@ -14,6 +14,8 @@
 * Plugin names now have 'LSP' prefix for the LV2 format.
 * Added command-line option to pass configuration file name for standalone JACK plugins.
   The settings stored in configuration file will be automatically loaded at startup.
+* Updated function signatures for libraries which now support '-fvisibility=hidden'
+  compilation flag.
 - Implemented 3D reverb simulator.
 - Added 3D scene rendeding support in the UI.
 - Additional code updates to get compatibility with WindowsNT platform.

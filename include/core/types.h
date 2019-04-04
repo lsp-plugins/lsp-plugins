@@ -26,6 +26,18 @@
     #define LSP_XML_BUILTIN
 #endif /* LSP_IDE_DEBUG */
 
+#ifdef __cplusplus
+    #define LSP_LIBRARY_EXTERN  extern "C"
+#else
+    #define LSP_LIBRARY_EXTERN  extern
+#endif /* __cplusplus */
+
+#ifdef PLATFORM_WINDOWS
+    #define LSP_LIBRARY_EXPORT LSP_LIBRARY_EXTERN __declspec(dllexport)
+#else
+    #define LSP_LIBRARY_EXPORT LSP_LIBRARY_EXTERN __attribute__ ((visibility ("default")))
+#endif
+
 typedef uint64_t        wsize_t;
 typedef int64_t         wssize_t;
 
