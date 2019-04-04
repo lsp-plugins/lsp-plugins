@@ -1308,13 +1308,13 @@ namespace lsp
                 // Apply changes to the target sample
                 for (size_t k=0; k<nc; ++k)
                 {
-                    lsp_trace("Merge %p (%lld samples) -> %p (%lld samples), channel=%d/%d",
-                            ssrc->sample->getBuffer(k),
-                            (long long)(ssrc->sample->length()),
-                            sdst->sample->getBuffer(k),
-                            (long long)(sdst->sample->length()),
-                            int(k), int(nc)
-                            );
+//                    lsp_trace("Merge %p (%lld samples) -> %p (%lld samples), channel=%d/%d",
+//                            ssrc->sample->getBuffer(k),
+//                            (long long)(ssrc->sample->length()),
+//                            sdst->sample->getBuffer(k),
+//                            (long long)(sdst->sample->length()),
+//                            int(k), int(nc)
+//                            );
                     dsp::add2(
                             sdst->sample->getBuffer(k),
                             ssrc->sample->getBuffer(k),
@@ -1762,64 +1762,53 @@ namespace lsp
 
     bool RayTrace3D::check_bound_box(const bound_box3d_t *bbox, const rt_view_t *view)
     {
-        vector3d_t pl[4];
+        vector3d_t spl[4], *pl;
+        raw_triangle_t buf1[16], buf2[16], *in, *out;
+        size_t nin, nout;
 
-        dsp::calc_plane_p3(&pl[0], &view->s, &view->p[0], &view->p[1]);
-        dsp::calc_plane_p3(&pl[1], &view->s, &view->p[1], &view->p[2]);
-        dsp::calc_plane_p3(&pl[2], &view->s, &view->p[2], &view->p[0]);
-        dsp::calc_plane_p3(&pl[3], &view->p[0], &view->p[1], &view->p[2]);
-
-        raw_triangle_t out[16], buf1[16], buf2[16], *q, *in;
-        size_t n_out, n_buf1, n_buf2, *n_q, *n_in;
+        dsp::calc_plane_p3(&spl[0], &view->s, &view->p[0], &view->p[1]);
+        dsp::calc_plane_p3(&spl[1], &view->s, &view->p[1], &view->p[2]);
+        dsp::calc_plane_p3(&spl[2], &view->s, &view->p[2], &view->p[0]);
+        dsp::calc_plane_p3(&spl[3], &view->p[0], &view->p[1], &view->p[2]);
 
         // Cull each triangle of bounding box with four scissor planes
-        for (size_t j=0, m = sizeof(bbox_map)/sizeof(size_t); j < m; )
+        for (size_t i=0, m = sizeof(bbox_map)/sizeof(size_t); i < m; )
         {
-            // Initialize input and queue buffer
-            q = buf1, in = buf2;
-            n_q = &n_buf1, n_in = &n_buf2;
+            // Initialize input
+            in          = buf1;
+            out         = buf2;
+            nin         = 1;
 
-            // Put to queue with updated matrix
-            n_buf1      = 1;    // One triangle in buffer 1
-            n_buf2      = 0;    // No triangles in buffer 2
-            q->p[0]     = bbox->p[bbox_map[j++]];
-            q->p[1]     = bbox->p[bbox_map[j++]];
-            q->p[2]     = bbox->p[bbox_map[j++]];
+            in->p[0]    = bbox->p[bbox_map[i++]];
+            in->p[1]    = bbox->p[bbox_map[i++]];
+            in->p[2]    = bbox->p[bbox_map[i++]];
+            pl          = spl;
 
             // Cull triangle with planes
-            for (size_t k=0; ; )
+            for (size_t j=0; j<4; ++j, ++pl)
             {
                 // Reset counters
-                *n_in   = 0;
-                n_out   = 0;
-
-                // Split all triangles:
-                // Put all triangles above the plane to out
-                // Put all triangles below the plane to in
-                for (size_t l=0; l < *n_q; ++l)
-                {
-                    dsp::split_triangle_raw(out, &n_out, in, n_in, &pl[k], &q[l]);
-                    if ((n_out > 16) || ((*n_in) > 16))
-                    {
-                        lsp_trace("split overflow: n_out=%d, n_in=%d", int(n_out), int(*n_in));
-//                        check_bound_box(bbox, view); // DEBUG: replay
-                    }
-                }
+                nout    = 0;
+                for (size_t k=0; k < nin; ++k, ++in)
+                    dsp::cull_triangle_raw(out, &nout, pl, in);
 
                 // Interrupt cycle if there is no data to process
-                if ((*n_in <= 0) || ((++k) >= 4))
-                   break;
+                if (!nout)
+                    break;
 
-                // Swap buffers buf0 <-> buf1
-                ::swap(n_q, n_in);
-                ::swap(in, q);
+                // Update state
+                nin     = nout;
+                if (j & 1)
+                    in = buf1, out = buf2;
+                else
+                    in = buf2, out = buf1;
             }
 
-            if ((*n_in) > 0)
+            if (nout)
                 break;
         }
 
-        return (*n_in) > 0;
+        return nout;
     }
 
 
