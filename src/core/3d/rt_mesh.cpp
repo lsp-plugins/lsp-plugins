@@ -249,6 +249,8 @@ namespace lsp
         ne->ptag        = NULL;
         ne->itag        = e->itag;
 
+        e->v[1]         = sp;
+
         RT_VALIDATE(
             if ((ne->v[0] == NULL) || (ne->v[1] == NULL))
                 return STATUS_CORRUPTED;
@@ -257,6 +259,11 @@ namespace lsp
         // Process all triangles
         while (true)
         {
+//            RT_TRACE_BREAK(debug,
+//                view->add_triangle_1c(ct, &C_RED);
+//                view->add_point(sp, &C_YELLOW);
+//            );
+
             // Save pointer to triangle to move forward
             pt              = ct->elnk[0];  // Save pointer to pending triangle, splitting edge is always rearranged to have index 0
 
@@ -271,7 +278,7 @@ namespace lsp
             se->v[1]        = sp;
             se->vt          = NULL;
             se->ptag        = NULL;
-            se->itag        = 0;
+            se->itag        = e->itag;
 
             // Unlink current triangle from all edges
             if (!unlink_triangle(ct, ct->e[0]))
@@ -281,7 +288,7 @@ namespace lsp
             if (!unlink_triangle(ct, ct->e[2]))
                 return STATUS_CORRUPTED;
 
-            if (ct->v[0] == e->v[0])
+            if (e->v[0] == ct->v[0])
             {
                 // Initialize new triangle
                 nt->v[0]        = sp;
@@ -307,7 +314,7 @@ namespace lsp
               //ct->n           = ct->n;
               //ct->itag        = ct->itag;
             }
-            else if (ct->v[0] == e->v[1])
+            else if (e->v[0] == ct->v[1])
             {
                 // Initialize new triangle
                 nt->v[0]        = sp;
@@ -336,6 +343,15 @@ namespace lsp
             else
                 return STATUS_BAD_STATE;
 
+//            RT_TRACE_BREAK(debug,
+//                view->add_triangle_1c(ct, &C_GREEN);
+//                view->add_triangle_1c(nt, &C_BLUE);
+//                view->add_point(sp, &C_YELLOW);
+//                view->add_segment(se, &C_YELLOW);
+//                view->add_segment(ne, &C_CYAN);
+//                view->add_segment(e, &C_MAGENTA);
+//            );
+
             // Link edges to new triangles
             nt->elnk[0]     = nt->e[0]->vt;
             nt->elnk[1]     = nt->e[1]->vt;
@@ -353,19 +369,10 @@ namespace lsp
 
             // Move to next triangle
             if (pt == NULL)
-            {
-                // Re-link edge to vertexes and leave cycle
-              //e->v[0]         = e->v[0];
-                e->v[1]         = sp;
-
-                if ((e->v[0] == NULL) || (e->v[1] == NULL))
-                    return STATUS_CORRUPTED;
                 break;
-            }
-            else
-                ct = pt;
 
             // Re-arrange next triangle and edges
+            ct              = pt;
             res             = arrange_triangle(ct, e);
             if (res != STATUS_OK)
                 return res;
@@ -468,14 +475,14 @@ namespace lsp
         vector3d_t spl[3]; // Scissor planes
         size_t tag;
 
+        // Intialize tags
         RT_FOREACH(rtm_edge_t, e, edge)
-            e->itag     = -1;
+            e->itag     = 0;
         RT_FOREACH_END;
 
-        // Intialize triangles
-        for (size_t i=0; i<triangle.size(); ++i)
+        for (size_t i=0; i<triangle.size(); )
         {
-            rtm_triangle_t *ct  = triangle.get(i);
+            rtm_triangle_t *ct  = triangle.get(i++);
             ct->itag            = i;
         }
 
@@ -492,7 +499,6 @@ namespace lsp
                 // Interact only ONCE with a specific triangle
                 if (ce->itag >= ct->itag)
                     continue;
-                ce->itag = ct->itag;
 
                 if ((ce == ct->e[0]) || (ce == ct->e[1]) || (ce == ct->e[2]))
                     continue;
@@ -523,7 +529,9 @@ namespace lsp
                         continue;
                 }
 
-            #define TRACE_COMMON_STATE \
+            #define TRACE_CONFLICT_BEFORE \
+
+            #define TRACE_CONFLICT_BEFORE1 \
                 RT_TRACE_BREAK(debug, \
                     lsp_trace("split point={%f, %f, %f, %f}", sp.x, sp.y, sp.z, sp.w); \
                     view->add_triangle_1c(ct, &C_GREEN); \
@@ -535,64 +543,90 @@ namespace lsp
                     view->add_point(&sp, &C_YELLOW); \
                 );
 
+            #define TRACE_CONFLICT_AFTER \
+
+            #define TRACE_CONFLICT_AFTER1 \
+                RT_TRACE_BREAK(debug, \
+                    lsp_trace("Prepare solve conflicts step (%d triangles)", int(triangle.size())); \
+                    for (size_t i=0,n=triangle.size(); i<n; ++i) \
+                        debug->trace.add_triangle_3c(triangle.get(i), &C_RED, &C_GREEN, &C_BLUE); \
+                );
+
                 // Now, analyze co-location of split point and triangle
                 tag      = dsp::colocation_x3_vvp1(spl, &sp);
                 switch (tag)
                 {
                     case 0x16: // Point matches edges 1 and 2 (vertex 2)
-                        TRACE_COMMON_STATE;
-                        if (touch)
-                            continue;
-                        if ((res = split_edge(ce, ct->v[2])) != STATUS_OK) // Need to perform only split of crossing edge
-                            return res;
+                        TRACE_CONFLICT_BEFORE;
+                        ce->itag    = ct->itag;
+                        if (!touch)
+                        {
+                            if ((res = split_edge(ce, ct->v[2])) != STATUS_OK) // Need to perform only split of crossing edge
+                                return res;
+                        }
+                        TRACE_CONFLICT_AFTER;
                         continue;
 
                     case 0x19: // Point matches edges 0 and 2 (vertex 0)
-                        TRACE_COMMON_STATE;
-                        if (touch)
-                            continue;
-                        if ((res = split_edge(ce, ct->v[0])) != STATUS_OK) // Need to perform only split of crossing edge
-                            return res;
+                        TRACE_CONFLICT_BEFORE;
+                        ce->itag    = ct->itag;
+                        if (!touch)
+                        {
+                            if ((res = split_edge(ce, ct->v[0])) != STATUS_OK) // Need to perform only split of crossing edge
+                                return res;
+                        }
+                        TRACE_CONFLICT_AFTER;
                         continue;
 
                     case 0x25: // Point matches edges 0 and 1 (vertex 1)
-                        TRACE_COMMON_STATE;
-                        if (touch)
-                            continue;
-                        if ((res = split_edge(ce, ct->v[1])) != STATUS_OK) // Need to perform only split of crossing edge
-                            return res;
+                        TRACE_CONFLICT_BEFORE;
+                        ce->itag    = ct->itag;
+                        if (!touch)
+                        {
+                            if ((res = split_edge(ce, ct->v[1])) != STATUS_OK) // Need to perform only split of crossing edge
+                                return res;
+                        }
+                        TRACE_CONFLICT_AFTER;
                         continue;
 
                     case 0x1a: // Point lays on edge 2, split triangle's edge
-                        TRACE_COMMON_STATE;
+                        TRACE_CONFLICT_BEFORE;
+                        ce->itag    = ct->itag;
                         if ((spp = vertex.alloc(&sp)) == NULL)
                             return STATUS_NO_MEM;
                         if ((res = split_edge(ct->e[2], spp)) == STATUS_OK)
                             res     = split_edge(ce, spp);
+                        TRACE_CONFLICT_AFTER;
                         break;
 
                     case 0x26: // Point lays on edge 1, split triangle's edge
-                        TRACE_COMMON_STATE;
+                        TRACE_CONFLICT_BEFORE;
+                        ce->itag    = ct->itag;
                         if ((spp = vertex.alloc(&sp)) == NULL)
                             return STATUS_NO_MEM;
                         if ((res = split_edge(ct->e[1], spp)) == STATUS_OK)
                             res     = split_edge(ce, spp);
+                        TRACE_CONFLICT_AFTER;
                         break;
 
                     case 0x29: // Point lays on edge 0, split triangle's edge
-                        TRACE_COMMON_STATE;
+                        TRACE_CONFLICT_BEFORE;
+                        ce->itag    = ct->itag;
                         if ((spp = vertex.alloc(&sp)) == NULL)
                             return STATUS_NO_MEM;
                         if ((res = split_edge(ct->e[0], spp)) == STATUS_OK)
                             res     = split_edge(ce, spp);
+                        TRACE_CONFLICT_AFTER;
                         break;
 
                     case 0x2a: // Point lays inside of the triangle, split triangle's edge
-                        TRACE_COMMON_STATE;
+                        ce->itag    = ct->itag;
+                        TRACE_CONFLICT_BEFORE;
                         if ((spp = vertex.alloc(&sp)) == NULL)
                             return STATUS_NO_MEM;
                         if ((res = split_triangle(ct, spp)) == STATUS_OK)
                             res     = split_edge(ce, spp);
+                        TRACE_CONFLICT_AFTER;
                         break;
 
                     default: // Point is not crossing triangle
@@ -1359,7 +1393,7 @@ namespace lsp
                 l[1]        = (k[1] <= -DSP_3D_TOLERANCE) ? 2 : (k[1] > DSP_3D_TOLERANCE) ? 0 : 1;
                 l[2]        = (k[2] <= -DSP_3D_TOLERANCE) ? 2 : (k[2] > DSP_3D_TOLERANCE) ? 0 : 1;
 
-#define TRACE_COMMON_STATE \
+#define TRACE_CONFLICT_BEFORE \
                 RT_TRACE_BREAK(debug, \
                     lsp_trace("split point={%f, %f, %f, %f}", sp->x, sp->y, sp->z, sp->w); \
                     view->add_triangle_1c(ct, &C_GREEN); \
@@ -1393,21 +1427,21 @@ namespace lsp
                         continue;
 
                     case 0x19: // Point matches edges 0 and 2 (vertex 0)
-                        TRACE_COMMON_STATE;
+                        TRACE_CONFLICT_BEFORE;
                         ct->v[0]->itag = xsp.itag;
                         if ((res = split_edge(ce, ct->v[0])) != STATUS_OK)  // Need to perform only split of crossing edge
                             return res;
                         continue;
 
                     case 0x25: // Point matches edges 0 and 1 (vertex 1)
-                        TRACE_COMMON_STATE;
+                        TRACE_CONFLICT_BEFORE;
                         ct->v[1]->itag = xsp.itag;
                         if ((res = split_edge(ce, ct->v[1])) != STATUS_OK)  // Need to perform only split of crossing edge
                             return res;
                         continue;
 
                     case 0x1a: // Point lays on edge 2, split triangle's edge
-                        TRACE_COMMON_STATE;
+                        TRACE_CONFLICT_BEFORE;
                         if (!(sp = add_unique_vertex(sp)))
                             return STATUS_NO_MEM;
                         sp->itag        = xsp.itag;
@@ -1416,7 +1450,7 @@ namespace lsp
                         break;
 
                     case 0x26: // Point lays on edge 1, split triangle's edge
-                        TRACE_COMMON_STATE;
+                        TRACE_CONFLICT_BEFORE;
                         if (!(sp = add_unique_vertex(sp)))
                             return STATUS_NO_MEM;
                         sp->itag        = xsp.itag;
@@ -1425,7 +1459,7 @@ namespace lsp
                         break;
 
                     case 0x29: // Point lays on edge 0, split triangle's edge
-                        TRACE_COMMON_STATE;
+                        TRACE_CONFLICT_BEFORE;
                         if (!(sp = add_unique_vertex(sp)))
                             return STATUS_NO_MEM;
                         sp->itag        = xsp.itag;
@@ -1434,7 +1468,7 @@ namespace lsp
                         break;
 
                     case 0x2a: // Point lays inside of the triangle, split triangle's edge
-                        TRACE_COMMON_STATE;
+                        TRACE_CONFLICT_BEFORE;
                         if (!(sp = add_unique_vertex(sp)))
                             return STATUS_NO_MEM;
                         sp->itag        = xsp.itag;

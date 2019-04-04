@@ -133,6 +133,10 @@ namespace lsp
             nout = 0;
 
             for (size_t j=0; j<nin; ++j, ++in)
+                dsp::cull_triangle_raw(out, &nout, pl, in);
+
+
+/*            for (size_t j=0; j<nin; ++j, ++in)
             {
                 tag = dsp::colocation_x3_v1pv(pl, in->p);
 
@@ -303,6 +307,7 @@ namespace lsp
                         return STATUS_UNKNOWN_ERR;
                 }
             }
+            */
 
             if (!nout)
                 return STATUS_SKIP;

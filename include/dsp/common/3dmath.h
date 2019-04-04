@@ -993,6 +993,23 @@ namespace dsp
         );
 
     /**
+     * Cull raw triangle with plane, generates set of triangles below the split plane.
+     * For every triangle, points 1 and 2 are the points that lay on the split plane,
+     * the first triangle ALWAYS has 2 common points with split plane (1 and 2)
+     *
+     * @param in array of vertexes below plane
+     * @param n_in counter of triangles below plane, should be initialized
+     * @param pl plane equation
+     * @param pv triangle to perform the split
+     */
+    extern void  (* cull_triangle_raw)(
+            raw_triangle_t *in,
+            size_t *n_in,
+            const vector3d_t *pl,
+            const raw_triangle_t *pv
+        );
+
+    /**
      * Check colocation of two points and a plane
      * @param v vector that contains plane equation
      * @param p1 point 1
