@@ -643,6 +643,13 @@ namespace lsp
                 dsp::calc_plane_v1p2(&spl[2], &pl, ct->v[2], ct->v[0]);
             RT_FOREACH_END
         }
+
+        RT_VALIDATE
+        (
+            if (!validate())
+                return STATUS_CORRUPTED;
+        );
+
         return STATUS_OK;
     }
 
