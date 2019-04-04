@@ -57,7 +57,7 @@ MTEST_BEGIN("", standalone)
             plugin_not_found(argv[0]);
 
         printf("Preparing to call JACK_MAIN_FUNCION\n");
-        const char ** args = new const char *[argc];
+        const char ** args = reinterpret_cast<const char **>(alloca(argc * sizeof(const char *)));
         MTEST_ASSERT(args != NULL);
 
         args[0] = "utest.standalone";
@@ -69,9 +69,6 @@ MTEST_BEGIN("", standalone)
         // Call the main function
         int result = JACK_MAIN_FUNCTION(argv[0], argc, args);
         MTEST_ASSERT(result == 0);
-
-        // Free data and return result
-        delete [] args;
     }
 
 MTEST_END

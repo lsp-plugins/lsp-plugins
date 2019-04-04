@@ -132,6 +132,8 @@ namespace lsp
             virtual void process(size_t samples);
 
             /** Draw inline display on canvas
+             * This feature will not work unless E_INLINE_DISPLAY extension is
+             * specified in plugin's metadata
              *
              * @param cv canvas
              * @param width maximum canvas width

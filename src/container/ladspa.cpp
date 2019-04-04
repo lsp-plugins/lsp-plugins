@@ -338,10 +338,18 @@ namespace lsp
     static StaticFinalizer ladspa_finalizer(ladspa_drop_descriptors);
 }
 
-const LADSPA_Descriptor * ladspa_descriptor(unsigned long index)
+#ifdef __cplusplus
+extern "C"
 {
-    using namespace lsp;
+#endif
+    LSP_LIBRARY_EXPORT
+    const LADSPA_Descriptor * ladspa_descriptor(unsigned long index)
+    {
+        using namespace lsp;
 
-    ladspa_gen_descriptors();
-    return (index < ladspa_descriptors_count) ? &ladspa_descriptors[index] : NULL;
+        ladspa_gen_descriptors();
+        return (index < ladspa_descriptors_count) ? &ladspa_descriptors[index] : NULL;
+    }
+#ifdef __cplusplus
 }
+#endif

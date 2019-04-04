@@ -17,7 +17,7 @@ namespace lsp
         "Loading",
         "Unknown error",
         "Not enough memory",
-        "Not found",
+        "Not found or does not exist",
         "Bad format",
         "Unsupported format",
         "Corrupted file",
@@ -53,6 +53,7 @@ namespace lsp
         "Is a directory",
         "Not a directory",
         "Removed",
+        "Read-only device or file system",
         NULL
     };
 

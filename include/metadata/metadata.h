@@ -193,6 +193,12 @@ namespace lsp
             C_MIXER
     };
 
+    enum plugin_extension_t
+    {
+        E_NONE                  = 0,
+        E_INLINE_DISPLAY        = 1 << 0
+    };
+
     enum port_group_type_t
     {
         GRP_MONO,                       // Mono
@@ -284,6 +290,7 @@ namespace lsp
         const uint32_t          ladspa_id;      // LADSPA ID of the plugin
         const uint32_t          version;        // Version of the plugin
         const int              *classes;        // List of plugin classes terminated by negative value
+        const int               extensions;     // Additional extensions
         const port_t           *ports;          // List of all ports
         const char             *ui_resource;    // Location of the UI file resource
         const port_group_t     *port_groups;    // List of all port groups

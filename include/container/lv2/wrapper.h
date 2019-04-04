@@ -1220,6 +1220,11 @@ namespace lsp
 
     inline LV2_Inline_Display_Image_Surface *LV2Wrapper::render_inline_display(size_t width, size_t height)
     {
+        // Check for Inline display support
+        const plugin_metadata_t *meta = pPlugin->get_metadata();
+        if ((meta == NULL) || (!(meta->extensions & E_INLINE_DISPLAY)))
+            return NULL;
+
         // Lazy initialization
 //        lsp_trace("pCanvas = %p", pCanvas);
         if (pCanvas == NULL)

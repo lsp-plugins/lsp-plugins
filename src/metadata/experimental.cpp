@@ -126,6 +126,7 @@ namespace lsp
         LSP_LADSPA_BASE + 1001,
         LSP_VERSION(1, 0, 0),
         test_classes,
+        E_INLINE_DISPLAY,
         test_ports,
         "experimental/test_plugin.xml",
         stereo_plugin_port_groups
