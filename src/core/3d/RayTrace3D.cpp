@@ -177,10 +177,6 @@ namespace lsp
                 ++stats.calls_scan;
                 res     = scan_objects(ctx);
                 break;
-//            case S_CULL_VIEW:
-//                ++stats.calls_cull;
-//                res     = cull_view(ctx);
-//                break;
             case S_SPLIT:
                 ++stats.calls_split;
                 res     = split_view(ctx);
@@ -466,6 +462,10 @@ namespace lsp
             ctx->trace.add_view_1c(&ctx->view, &C_MAGENTA);
         )
 
+        // Initialize context's view
+        ctx->init_view();
+
+        // Initialize scan variables
         size_t max_objs     = trace->pScene->num_objects() + trace->vCaptures.size();
         size_t *objs        = reinterpret_cast<size_t *>(alloca(sizeof(size_t) * max_objs));
         size_t n_objs       = 0;
@@ -1770,14 +1770,14 @@ namespace lsp
 
     bool RayTrace3D::check_bound_box(const bound_box3d_t *bbox, const rt_view_t *view)
     {
-        vector3d_t spl[4], *pl;
+        const vector3d_t *pl;
         raw_triangle_t buf1[16], buf2[16], *in, *out;
         size_t nin, nout;
 
-        dsp::calc_plane_p3(&spl[0], &view->s, &view->p[0], &view->p[1]);
-        dsp::calc_plane_p3(&spl[1], &view->s, &view->p[1], &view->p[2]);
-        dsp::calc_plane_p3(&spl[2], &view->s, &view->p[2], &view->p[0]);
-        dsp::calc_plane_p3(&spl[3], &view->p[0], &view->p[1], &view->p[2]);
+//        dsp::calc_plane_p3(&spl[0], &view->s, &view->p[0], &view->p[1]);
+//        dsp::calc_plane_p3(&spl[1], &view->s, &view->p[1], &view->p[2]);
+//        dsp::calc_plane_p3(&spl[2], &view->s, &view->p[2], &view->p[0]);
+//        dsp::calc_plane_p3(&spl[3], &view->p[0], &view->p[1], &view->p[2]);
 
         // Cull each triangle of bounding box with four scissor planes
         for (size_t i=0, m = sizeof(bbox_map)/sizeof(size_t); i < m; )
@@ -1790,7 +1790,7 @@ namespace lsp
             in->p[0]    = bbox->p[bbox_map[i++]];
             in->p[1]    = bbox->p[bbox_map[i++]];
             in->p[2]    = bbox->p[bbox_map[i++]];
-            pl          = spl;
+            pl          = view->pl;
 
             // Cull triangle with planes
             for (size_t j=0; j<4; ++j, ++pl)

@@ -113,7 +113,7 @@ namespace lsp
         return (x > DSP_3D_TOLERANCE) ? 1 : 0;
     }
 
-    status_t rt_context_t::add_triangle(Allocator3D<rt_triangle_t> &triangle, const rtm_triangle_t *t, const vector3d_t *pl)
+    status_t rt_context_t::add_triangle(const rtm_triangle_t *t)
     {
         size_t tag;
         point3d_t sp[2];
@@ -126,6 +126,8 @@ namespace lsp
         in->p[0]    = *(t->v[0]);
         in->p[1]    = *(t->v[1]);
         in->p[2]    = *(t->v[2]);
+
+        const vector3d_t *pl = view.pl;
 
         for (size_t i=0; i<3; ++i, ++pl)
         {
@@ -691,7 +693,7 @@ namespace lsp
         return (nout) ? STATUS_OK : STATUS_SKIP;
     }
 
-    status_t rt_context_t::add_edge(rt_plan_t &plan, rtm_edge_t *e, const vector3d_t *pl)
+    status_t rt_context_t::add_edge(rtm_edge_t *e)
     {
         size_t tag;
         point3d_t sp[2];
@@ -703,6 +705,8 @@ namespace lsp
         sp[1]       = *(e->v[1]);
 
         // Process each plane
+        const vector3d_t *pl    = view.pl;
+
         for (size_t j=0; j<4; ++j, ++pl)
         {
             tag = dsp::colocation_x2_v1pv(pl, sp);
@@ -743,11 +747,11 @@ namespace lsp
 
         // Initialize cull planes
         size_t tag;
-        vector3d_t pl[4]; // Split plane
-        dsp::calc_rev_oriented_plane_p3(&pl[0], &view.s, &view.p[0], &view.p[1], &view.p[2]);
-        dsp::calc_oriented_plane_p3(&pl[1], &view.p[2], &view.s, &view.p[0], &view.p[1]);
-        dsp::calc_oriented_plane_p3(&pl[2], &view.p[0], &view.s, &view.p[1], &view.p[2]);
-        dsp::calc_oriented_plane_p3(&pl[3], &view.p[1], &view.s, &view.p[2], &view.p[0]);
+//        vector3d_t pl[4]; // Split plane
+//        dsp::calc_rev_oriented_plane_p3(&pl[0], &view.s, &view.p[0], &view.p[1], &view.p[2]);
+//        dsp::calc_oriented_plane_p3(&pl[1], &view.p[2], &view.s, &view.p[0], &view.p[1]);
+//        dsp::calc_oriented_plane_p3(&pl[2], &view.p[0], &view.s, &view.p[1], &view.p[2]);
+//        dsp::calc_oriented_plane_p3(&pl[3], &view.p[1], &view.s, &view.p[2], &view.p[0]);
 
         // Initialize itag
         RT_FOREACH(rtm_edge_t, e, src->edge)
@@ -773,7 +777,7 @@ namespace lsp
             }
 
             // Add triangle
-            res = add_triangle(triangle, t, pl);
+            res = add_triangle(t);
             if (res == STATUS_SKIP)
                 continue;
             else if (res != STATUS_OK)
@@ -782,17 +786,17 @@ namespace lsp
             // Add edges to plan
             if (t->e[0]->itag)
             {
-                if ((res = add_edge(plan, t->e[0], pl)) != STATUS_OK)
+                if ((res = add_edge(t->e[0])) != STATUS_OK)
                     return res;
             }
             if (t->e[1]->itag)
             {
-                if ((res = add_edge(plan, t->e[1], pl)) != STATUS_OK)
+                if ((res = add_edge(t->e[1])) != STATUS_OK)
                     return res;
             }
             if (t->e[2]->itag)
             {
-                if ((res = add_edge(plan, t->e[2], pl)) != STATUS_OK)
+                if ((res = add_edge(t->e[2])) != STATUS_OK)
                     return res;
             }
         RT_FOREACH_END;

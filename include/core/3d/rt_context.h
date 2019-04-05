@@ -60,8 +60,8 @@ namespace lsp
 
         protected:
             static int      compare_triangles(const void *p1, const void *p2);
-            static status_t add_triangle(Allocator3D<rt_triangle_t> &triangle, const rtm_triangle_t *t, const vector3d_t *pl);
-            static status_t add_edge(rt_plan_t &plan, rtm_edge_t *e, const vector3d_t *pl);
+            status_t        add_triangle(const rtm_triangle_t *t);
+            status_t        add_edge(rtm_edge_t *e);
 
         public:
             // Construction/destruction
@@ -76,6 +76,13 @@ namespace lsp
             )
 
         public:
+            inline void init_view()
+            {
+                dsp::calc_rev_oriented_plane_p3(&view.pl[0], &view.s, &view.p[0], &view.p[1], &view.p[2]);
+                dsp::calc_oriented_plane_p3(&view.pl[1], &view.p[2], &view.s, &view.p[0], &view.p[1]);
+                dsp::calc_oriented_plane_p3(&view.pl[2], &view.p[0], &view.s, &view.p[1], &view.p[2]);
+                dsp::calc_oriented_plane_p3(&view.pl[3], &view.p[1], &view.s, &view.p[2], &view.p[0]);
+            }
 
             /**
              * Clear context: clear underlying structures

@@ -168,6 +168,7 @@ namespace lsp
     {
         point3d_t           s;          // Source point
         point3d_t           p[3];       // View points
+        vector3d_t          pl[4];      // Culling planes
         float               time[3];    // The corresponding start time for each source point
         float               amplitude;  // The amplitude of the signal
         float               speed;      // This value indicates the current sound speed [m/s]
