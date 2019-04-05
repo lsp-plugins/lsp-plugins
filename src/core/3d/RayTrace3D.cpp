@@ -970,12 +970,15 @@ namespace lsp
         }
 
         // Estimate the culling sample number
-        ssize_t csn, ssn;
+        ssize_t csn;
         if ((tsn[0] < tsn[1]) && (tsn[0] < tsn[2]))
             csn     = tsn[0];
         else
             csn     = (tsn[1] < tsn[2]) ? tsn[1] : tsn[2];
-        ssn = csn++;                                        // Culling sample number
+#ifdef LSP_TRACE
+        ssize_t ssn = csn;                                      // Start culling sample number
+#endif
+        ++csn;
 
         // Perform integration
         vector3d_t spl;

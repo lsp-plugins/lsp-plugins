@@ -110,6 +110,9 @@ namespace sse3
 
         EXPORT1(calc_min_distance_p3);
         EXPORT1(calc_min_distance_pv);
+
+        EXPORT1(split_triangle_raw);
+        EXPORT1(cull_triangle_raw);
     }
 
     #undef EXPORT2
