@@ -123,9 +123,9 @@ namespace lsp
         raw_triangle_t *in=buf1, *out=buf2;
         size_t nin = 1, nout;
 
-        in->p[0]    = *(t->v[0]);
-        in->p[1]    = *(t->v[1]);
-        in->p[2]    = *(t->v[2]);
+        in->v[0]    = *(t->v[0]);
+        in->v[1]    = *(t->v[1]);
+        in->v[2]    = *(t->v[2]);
 
         const vector3d_t *pl = view.pl;
 
@@ -140,7 +140,7 @@ namespace lsp
 #else
             for (size_t j=0; j<nin; ++j, ++in)
             {
-                tag = dsp::colocation_x3_v1pv(pl, in->p);
+                tag = dsp::colocation_x3_v1pv(pl, in->v);
 
                 switch (tag)
                 {
@@ -174,132 +174,132 @@ namespace lsp
 
                     // 1 intersection, 1 triangle
                     case 0x06:  // 0 1 2
-                        out->p[0]   = in->p[0];
-                        out->p[1]   = in->p[1];
-                      //out->p[2]   = in->p[2];
-                        dsp::calc_split_point_p2v1(&out->p[2], &in->p[0], &in->p[2], pl);
+                        out->v[0]   = in->v[0];
+                        out->v[1]   = in->v[1];
+                      //out->v[2]   = in->v[2];
+                        dsp::calc_split_point_p2v1(&out->v[2], &in->v[0], &in->v[2], pl);
                         ++out;
                         ++nout;
                         break;
                     case 0x24:  // 2 1 0
-                      //out->p[0]   = in->p[0];
-                        out->p[1]   = in->p[1];
-                        out->p[2]   = in->p[2];
-                        dsp::calc_split_point_p2v1(&out->p[0], &in->p[0], &in->p[2], pl);
+                      //out->v[0]   = in->v[0];
+                        out->v[1]   = in->v[1];
+                        out->v[2]   = in->v[2];
+                        dsp::calc_split_point_p2v1(&out->v[0], &in->v[0], &in->v[2], pl);
                         ++out;
                         ++nout;
                         break;
 
                     case 0x12:  // 1 0 2
-                        out->p[0]   = in->p[0];
-                      //out->p[1]   = in->p[1];
-                        out->p[2]   = in->p[2];
-                        dsp::calc_split_point_p2v1(&out->p[1], &in->p[0], &in->p[1], pl);
+                        out->v[0]   = in->v[0];
+                      //out->v[1]   = in->v[1];
+                        out->v[2]   = in->v[2];
+                        dsp::calc_split_point_p2v1(&out->v[1], &in->v[0], &in->v[1], pl);
                         ++out;
                         ++nout;
                         break;
                     case 0x18:  // 1 2 0
-                      //out->p[0]   = in->p[0];
-                        out->p[1]   = in->p[1];
-                        out->p[2]   = in->p[2];
-                        dsp::calc_split_point_p2v1(&out->p[0], &in->p[0], &in->p[1], pl);
+                      //out->v[0]   = in->v[0];
+                        out->v[1]   = in->v[1];
+                        out->v[2]   = in->v[2];
+                        dsp::calc_split_point_p2v1(&out->v[0], &in->v[0], &in->v[1], pl);
                         ++out;
                         ++nout;
                         break;
 
                     case 0x09:  // 0 2 1
-                        out->p[0]   = in->p[0];
-                        out->p[1]   = in->p[1];
-                      //out->p[2]   = in->p[2];
-                        dsp::calc_split_point_p2v1(&out->p[2], &in->p[1], &in->p[2], pl);
+                        out->v[0]   = in->v[0];
+                        out->v[1]   = in->v[1];
+                      //out->v[2]   = in->v[2];
+                        dsp::calc_split_point_p2v1(&out->v[2], &in->v[1], &in->v[2], pl);
                         ++out;
                         ++nout;
                         break;
                     case 0x21:  // 2 0 1
-                        out->p[0]   = in->p[0];
-                      //out->p[1]   = in->p[1];
-                        out->p[2]   = in->p[2];
+                        out->v[0]   = in->v[0];
+                      //out->v[1]   = in->v[1];
+                        out->v[2]   = in->v[2];
 //                        *out        = *in;
-                        dsp::calc_split_point_p2v1(&out->p[1], &in->p[1], &in->p[2], pl);
+                        dsp::calc_split_point_p2v1(&out->v[1], &in->v[1], &in->v[2], pl);
                         ++out; ++nout;
                         break;
 
                     // 2 intersections, 1 triangle
                     case 0x02:  // 0 0 2
-                        out->p[0]   = in->p[0];
-                      //out->p[1]   = in->p[1];
-                      //out->p[2]   = in->p[2];
-                        dsp::calc_split_point_p2v1(&out->p[1], &in->p[0], &in->p[1], pl);
-                        dsp::calc_split_point_p2v1(&out->p[2], &in->p[0], &in->p[2], pl);
+                        out->v[0]   = in->v[0];
+                      //out->v[1]   = in->v[1];
+                      //out->v[2]   = in->v[2];
+                        dsp::calc_split_point_p2v1(&out->v[1], &in->v[0], &in->v[1], pl);
+                        dsp::calc_split_point_p2v1(&out->v[2], &in->v[0], &in->v[2], pl);
                         ++out;
                         ++nout;
                         break;
                     case 0x08:  // 0 2 0
-                      //out->p[0]   = in->p[0];
-                        out->p[1]   = in->p[1];
-                      //out->p[2]   = in->p[2];
-                        dsp::calc_split_point_p2v1(&out->p[0], &in->p[1], &in->p[0], pl);
-                        dsp::calc_split_point_p2v1(&out->p[2], &in->p[1], &in->p[2], pl);
+                      //out->v[0]   = in->v[0];
+                        out->v[1]   = in->v[1];
+                      //out->v[2]   = in->v[2];
+                        dsp::calc_split_point_p2v1(&out->v[0], &in->v[1], &in->v[0], pl);
+                        dsp::calc_split_point_p2v1(&out->v[2], &in->v[1], &in->v[2], pl);
                         ++out;
                         ++nout;
                         break;
                     case 0x20:  // 2 0 0
-                      //out->p[0]   = in->p[0];
-                      //out->p[1]   = in->p[1];
-                        out->p[2]   = in->p[2];
-                        dsp::calc_split_point_p2v1(&out->p[0], &in->p[2], &in->p[0], pl);
-                        dsp::calc_split_point_p2v1(&out->p[1], &in->p[2], &in->p[1], pl);
+                      //out->v[0]   = in->v[0];
+                      //out->v[1]   = in->v[1];
+                        out->v[2]   = in->v[2];
+                        dsp::calc_split_point_p2v1(&out->v[0], &in->v[2], &in->v[0], pl);
+                        dsp::calc_split_point_p2v1(&out->v[1], &in->v[2], &in->v[1], pl);
                         ++out;
                         ++nout;
                         break;
 
                     // 2 intersections, 2 triangles
                     case 0x28:  // 2 2 0
-                        dsp::calc_split_point_p2v1(&sp[0], &in->p[0], &in->p[1], pl);
-                        dsp::calc_split_point_p2v1(&sp[1], &in->p[0], &in->p[2], pl);
+                        dsp::calc_split_point_p2v1(&sp[0], &in->v[0], &in->v[1], pl);
+                        dsp::calc_split_point_p2v1(&sp[1], &in->v[0], &in->v[2], pl);
 
-                        out->p[0]   = sp[0];
-                        out->p[1]   = in->p[1];
-                        out->p[2]   = in->p[2];
+                        out->v[0]   = sp[0];
+                        out->v[1]   = in->v[1];
+                        out->v[2]   = in->v[2];
                         ++out;
 
-                        out->p[0]   = sp[1];
-                        out->p[1]   = sp[0];
-                        out->p[2]   = in->p[2];
+                        out->v[0]   = sp[1];
+                        out->v[1]   = sp[0];
+                        out->v[2]   = in->v[2];
                         ++out;
 
                         nout += 2;
                         break;
 
                     case 0x22:  // 2 0 2
-                        dsp::calc_split_point_p2v1(&sp[0], &in->p[1], &in->p[2], pl);
-                        dsp::calc_split_point_p2v1(&sp[1], &in->p[1], &in->p[0], pl);
+                        dsp::calc_split_point_p2v1(&sp[0], &in->v[1], &in->v[2], pl);
+                        dsp::calc_split_point_p2v1(&sp[1], &in->v[1], &in->v[0], pl);
 
-                        out->p[0]   = in->p[0];
-                        out->p[1]   = sp[0];
-                        out->p[2]   = in->p[2];
+                        out->v[0]   = in->v[0];
+                        out->v[1]   = sp[0];
+                        out->v[2]   = in->v[2];
                         ++out;
 
-                        out->p[0]   = in->p[0];
-                        out->p[1]   = sp[1];
-                        out->p[2]   = sp[0];
+                        out->v[0]   = in->v[0];
+                        out->v[1]   = sp[1];
+                        out->v[2]   = sp[0];
                         ++out;
 
                         nout += 2;
                         break;
 
                     case 0x0a:  // 0 2 2
-                        dsp::calc_split_point_p2v1(&sp[0], &in->p[2], &in->p[0], pl);
-                        dsp::calc_split_point_p2v1(&sp[1], &in->p[2], &in->p[1], pl);
+                        dsp::calc_split_point_p2v1(&sp[0], &in->v[2], &in->v[0], pl);
+                        dsp::calc_split_point_p2v1(&sp[1], &in->v[2], &in->v[1], pl);
 
-                        out->p[0]   = in->p[0];
-                        out->p[1]   = in->p[1];
-                        out->p[2]   = sp[0];
+                        out->v[0]   = in->v[0];
+                        out->v[1]   = in->v[1];
+                        out->v[2]   = sp[0];
                         ++out;
 
-                        out->p[0]   = sp[0];
-                        out->p[1]   = in->p[1];
-                        out->p[2]   = sp[1];
+                        out->v[0]   = sp[0];
+                        out->v[1]   = in->v[1];
+                        out->v[2]   = sp[1];
                         ++out;
 
                         nout += 2;
@@ -328,7 +328,7 @@ namespace lsp
 
         for (size_t j=0; j<nin; ++j, ++in)
         {
-            tag = dsp::colocation_x3_v1pv(pl, in->p);
+            tag = dsp::colocation_x3_v1pv(pl, in->v);
 
             switch (tag)
             {
@@ -359,14 +359,13 @@ namespace lsp
                     if (!(nt = triangle.alloc()))
                         return STATUS_NO_MEM;
 
-                    nt->v[0]    = in->p[0];
-                    nt->v[1]    = in->p[1];
-                    nt->v[2]    = in->p[2];
+                    nt->v[0]    = in->v[0];
+                    nt->v[1]    = in->v[1];
+                    nt->v[2]    = in->v[2];
                     nt->n       = t->n;
                     nt->oid     = t->oid;
                     nt->face    = t->face;
                     nt->m       = t->m;
-                    nt->ptag    = NULL;
 
                     ++out;
                     ++nout;
@@ -377,19 +376,15 @@ namespace lsp
                     if (!(nt = triangle.alloc()))
                         return STATUS_NO_MEM;
 
-                    nt->v[0]    = in->p[0];
-                    nt->v[1]    = in->p[1];
-                  //nt->v[2]    = in->p[2];
+                    nt->v[0]    = in->v[0];
+                    nt->v[1]    = in->v[1];
+                  //nt->v[2]    = in->v[2];
                     nt->n       = t->n;
                     nt->oid     = t->oid;
                     nt->face    = t->face;
                     nt->m       = t->m;
-                    nt->ptag    = NULL;
 
-//                    out->p[0]   = in->p[0];
-//                    out->p[1]   = in->p[1];
-//                  //out->p[2]   = in->p[2];
-                    dsp::calc_split_point_p2v1(&nt->v[2], &in->p[0], &in->p[2], pl);
+                    dsp::calc_split_point_p2v1(&nt->v[2], &in->v[0], &in->v[2], pl);
                     ++out;
                     ++nout;
                     break;
@@ -397,19 +392,15 @@ namespace lsp
                     if (!(nt = triangle.alloc()))
                         return STATUS_NO_MEM;
 
-                  //nt->v[0]    = in->p[0];
-                    nt->v[1]    = in->p[1];
-                    nt->v[2]    = in->p[2];
+                  //nt->v[0]    = in->v[0];
+                    nt->v[1]    = in->v[1];
+                    nt->v[2]    = in->v[2];
                     nt->n       = t->n;
                     nt->oid     = t->oid;
                     nt->face    = t->face;
                     nt->m       = t->m;
-                    nt->ptag    = NULL;
 
-//                  //out->p[0]   = in->p[0];
-//                    out->p[1]   = in->p[1];
-//                    out->p[2]   = in->p[2];
-                    dsp::calc_split_point_p2v1(&nt->v[0], &in->p[0], &in->p[2], pl);
+                    dsp::calc_split_point_p2v1(&nt->v[0], &in->v[0], &in->v[2], pl);
                     ++out;
                     ++nout;
                     break;
@@ -418,19 +409,15 @@ namespace lsp
                     if (!(nt = triangle.alloc()))
                         return STATUS_NO_MEM;
 
-                    nt->v[0]    = in->p[0];
-                  //nt->v[1]    = in->p[1];
-                    nt->v[2]    = in->p[2];
+                    nt->v[0]    = in->v[0];
+                  //nt->v[1]    = in->v[1];
+                    nt->v[2]    = in->v[2];
                     nt->n       = t->n;
                     nt->oid     = t->oid;
                     nt->face    = t->face;
                     nt->m       = t->m;
-                    nt->ptag    = NULL;
 
-//                    out->p[0]   = in->p[0];
-//                  //out->p[1]   = in->p[1];
-//                    out->p[2]   = in->p[2];
-                    dsp::calc_split_point_p2v1(&nt->v[1], &in->p[0], &in->p[1], pl);
+                    dsp::calc_split_point_p2v1(&nt->v[1], &in->v[0], &in->v[1], pl);
                     ++out;
                     ++nout;
                     break;
@@ -438,19 +425,15 @@ namespace lsp
                     if (!(nt = triangle.alloc()))
                         return STATUS_NO_MEM;
 
-                  //nt->v[0]    = in->p[0];
-                    nt->v[1]    = in->p[1];
-                    nt->v[2]    = in->p[2];
+                  //nt->v[0]    = in->v[0];
+                    nt->v[1]    = in->v[1];
+                    nt->v[2]    = in->v[2];
                     nt->n       = t->n;
                     nt->oid     = t->oid;
                     nt->face    = t->face;
                     nt->m       = t->m;
-                    nt->ptag    = NULL;
 
-//                  //out->p[0]   = in->p[0];
-//                    out->p[1]   = in->p[1];
-//                    out->p[2]   = in->p[2];
-                    dsp::calc_split_point_p2v1(&nt->v[0], &in->p[0], &in->p[1], pl);
+                    dsp::calc_split_point_p2v1(&nt->v[0], &in->v[0], &in->v[1], pl);
                     ++out;
                     ++nout;
                     break;
@@ -459,19 +442,15 @@ namespace lsp
                     if (!(nt = triangle.alloc()))
                         return STATUS_NO_MEM;
 
-                    nt->v[0]    = in->p[0];
-                    nt->v[1]    = in->p[1];
-                  //nt->v[2]    = in->p[2];
+                    nt->v[0]    = in->v[0];
+                    nt->v[1]    = in->v[1];
+                  //nt->v[2]    = in->v[2];
                     nt->n       = t->n;
                     nt->oid     = t->oid;
                     nt->face    = t->face;
                     nt->m       = t->m;
-                    nt->ptag    = NULL;
 
-//                    out->p[0]   = in->p[0];
-//                    out->p[1]   = in->p[1];
-//                  //out->p[2]   = in->p[2];
-                    dsp::calc_split_point_p2v1(&nt->v[2], &in->p[1], &in->p[2], pl);
+                    dsp::calc_split_point_p2v1(&nt->v[2], &in->v[1], &in->v[2], pl);
                     ++out;
                     ++nout;
                     break;
@@ -479,20 +458,15 @@ namespace lsp
                     if (!(nt = triangle.alloc()))
                         return STATUS_NO_MEM;
 
-                    nt->v[0]    = in->p[0];
-                  //nt->v[1]    = in->p[1];
-                    nt->v[2]    = in->p[2];
+                    nt->v[0]    = in->v[0];
+                  //nt->v[1]    = in->v[1];
+                    nt->v[2]    = in->v[2];
                     nt->n       = t->n;
                     nt->oid     = t->oid;
                     nt->face    = t->face;
                     nt->m       = t->m;
-                    nt->ptag    = NULL;
 
-//                    out->p[0]   = in->p[0];
-//                  //out->p[1]   = in->p[1];
-//                    out->p[2]   = in->p[2];
-//                        *out        = *in;
-                    dsp::calc_split_point_p2v1(&nt->v[1], &in->p[1], &in->p[2], pl);
+                    dsp::calc_split_point_p2v1(&nt->v[1], &in->v[1], &in->v[2], pl);
                     ++out; ++nout;
                     break;
 
@@ -501,20 +475,16 @@ namespace lsp
                     if (!(nt = triangle.alloc()))
                         return STATUS_NO_MEM;
 
-                    nt->v[0]    = in->p[0];
-                  //nt->v[1]    = in->p[1];
-                  //nt->v[2]    = in->p[2];
+                    nt->v[0]    = in->v[0];
+                  //nt->v[1]    = in->v[1];
+                  //nt->v[2]    = in->v[2];
                     nt->n       = t->n;
                     nt->oid     = t->oid;
                     nt->face    = t->face;
                     nt->m       = t->m;
-                    nt->ptag    = NULL;
 
-//                    out->p[0]   = in->p[0];
-//                  //out->p[1]   = in->p[1];
-//                  //out->p[2]   = in->p[2];
-                    dsp::calc_split_point_p2v1(&nt->v[1], &in->p[0], &in->p[1], pl);
-                    dsp::calc_split_point_p2v1(&nt->v[2], &in->p[0], &in->p[2], pl);
+                    dsp::calc_split_point_p2v1(&nt->v[1], &in->v[0], &in->v[1], pl);
+                    dsp::calc_split_point_p2v1(&nt->v[2], &in->v[0], &in->v[2], pl);
                     ++out;
                     ++nout;
                     break;
@@ -522,20 +492,16 @@ namespace lsp
                     if (!(nt = triangle.alloc()))
                         return STATUS_NO_MEM;
 
-                  //nt->v[0]    = in->p[0];
-                    nt->v[1]    = in->p[1];
-                  //nt->v[2]    = in->p[2];
+                  //nt->v[0]    = in->v[0];
+                    nt->v[1]    = in->v[1];
+                  //nt->v[2]    = in->v[2];
                     nt->n       = t->n;
                     nt->oid     = t->oid;
                     nt->face    = t->face;
                     nt->m       = t->m;
-                    nt->ptag    = NULL;
 
-//                  //out->p[0]   = in->p[0];
-//                    out->p[1]   = in->p[1];
-//                  //out->p[2]   = in->p[2];
-                    dsp::calc_split_point_p2v1(&nt->v[0], &in->p[1], &in->p[0], pl);
-                    dsp::calc_split_point_p2v1(&nt->v[2], &in->p[1], &in->p[2], pl);
+                    dsp::calc_split_point_p2v1(&nt->v[0], &in->v[1], &in->v[0], pl);
+                    dsp::calc_split_point_p2v1(&nt->v[2], &in->v[1], &in->v[2], pl);
                     ++out;
                     ++nout;
                     break;
@@ -543,144 +509,104 @@ namespace lsp
                     if (!(nt = triangle.alloc()))
                         return STATUS_NO_MEM;
 
-                  //nt->v[0]    = in->p[0];
-                  //nt->v[1]    = in->p[1];
-                    nt->v[2]    = in->p[2];
+                  //nt->v[0]    = in->v[0];
+                  //nt->v[1]    = in->v[1];
+                    nt->v[2]    = in->v[2];
                     nt->n       = t->n;
                     nt->oid     = t->oid;
                     nt->face    = t->face;
                     nt->m       = t->m;
-                    nt->ptag    = NULL;
 
-//                  //out->p[0]   = in->p[0];
-//                  //out->p[1]   = in->p[1];
-//                    out->p[2]   = in->p[2];
-                    dsp::calc_split_point_p2v1(&nt->v[0], &in->p[2], &in->p[0], pl);
-                    dsp::calc_split_point_p2v1(&nt->v[1], &in->p[2], &in->p[1], pl);
+                    dsp::calc_split_point_p2v1(&nt->v[0], &in->v[2], &in->v[0], pl);
+                    dsp::calc_split_point_p2v1(&nt->v[1], &in->v[2], &in->v[1], pl);
                     ++out;
                     ++nout;
                     break;
 
                 // 2 intersections, 2 triangles
                 case 0x28:  // 2 2 0
-                    dsp::calc_split_point_p2v1(&sp[0], &in->p[0], &in->p[1], pl);
-                    dsp::calc_split_point_p2v1(&sp[1], &in->p[0], &in->p[2], pl);
+                    dsp::calc_split_point_p2v1(&sp[0], &in->v[0], &in->v[1], pl);
+                    dsp::calc_split_point_p2v1(&sp[1], &in->v[0], &in->v[2], pl);
 
                     if (!(nt = triangle.alloc()))
                         return STATUS_NO_MEM;
 
                     nt->v[0]    = sp[0];
-                    nt->v[1]    = in->p[1];
-                    nt->v[2]    = in->p[2];
+                    nt->v[1]    = in->v[1];
+                    nt->v[2]    = in->v[2];
                     nt->n       = t->n;
                     nt->oid     = t->oid;
                     nt->face    = t->face;
                     nt->m       = t->m;
-                    nt->ptag    = NULL;
 
                     if (!(nt = triangle.alloc()))
                         return STATUS_NO_MEM;
 
                     nt->v[0]    = sp[1];
                     nt->v[1]    = sp[0];
-                    nt->v[2]    = in->p[2];
+                    nt->v[2]    = in->v[2];
                     nt->n       = t->n;
                     nt->oid     = t->oid;
                     nt->face    = t->face;
                     nt->m       = t->m;
-                    nt->ptag    = NULL;
-
-//                    out->p[0]   = sp[0];
-//                    out->p[1]   = in->p[1];
-//                    out->p[2]   = in->p[2];
-//                    ++out;
-//
-//                    out->p[0]   = sp[1];
-//                    out->p[1]   = sp[0];
-//                    out->p[2]   = in->p[2];
-//                    ++out;
 
                     nout += 2;
                     break;
 
                 case 0x22:  // 2 0 2
-                    dsp::calc_split_point_p2v1(&sp[0], &in->p[1], &in->p[2], pl);
-                    dsp::calc_split_point_p2v1(&sp[1], &in->p[1], &in->p[0], pl);
+                    dsp::calc_split_point_p2v1(&sp[0], &in->v[1], &in->v[2], pl);
+                    dsp::calc_split_point_p2v1(&sp[1], &in->v[1], &in->v[0], pl);
 
                     if (!(nt = triangle.alloc()))
                         return STATUS_NO_MEM;
 
-                    nt->v[0]    = in->p[0];
+                    nt->v[0]    = in->v[0];
                     nt->v[1]    = sp[0];
-                    nt->v[2]    = in->p[2];
+                    nt->v[2]    = in->v[2];
                     nt->n       = t->n;
                     nt->oid     = t->oid;
                     nt->face    = t->face;
                     nt->m       = t->m;
-                    nt->ptag    = NULL;
 
                     if (!(nt = triangle.alloc()))
                         return STATUS_NO_MEM;
 
-                    nt->v[0]    = in->p[0];
+                    nt->v[0]    = in->v[0];
                     nt->v[1]    = sp[1];
                     nt->v[2]    = sp[0];
                     nt->n       = t->n;
                     nt->oid     = t->oid;
                     nt->face    = t->face;
                     nt->m       = t->m;
-                    nt->ptag    = NULL;
-
-//                    out->p[0]   = in->p[0];
-//                    out->p[1]   = sp[0];
-//                    out->p[2]   = in->p[2];
-//                    ++out;
-//
-//                    out->p[0]   = in->p[0];
-//                    out->p[1]   = sp[1];
-//                    out->p[2]   = sp[0];
-//                    ++out;
 
                     nout += 2;
                     break;
 
                 case 0x0a:  // 0 2 2
-                    dsp::calc_split_point_p2v1(&sp[0], &in->p[2], &in->p[0], pl);
-                    dsp::calc_split_point_p2v1(&sp[1], &in->p[2], &in->p[1], pl);
+                    dsp::calc_split_point_p2v1(&sp[0], &in->v[2], &in->v[0], pl);
+                    dsp::calc_split_point_p2v1(&sp[1], &in->v[2], &in->v[1], pl);
 
                     if (!(nt = triangle.alloc()))
                         return STATUS_NO_MEM;
 
-                    nt->v[0]    = in->p[0];
-                    nt->v[1]    = in->p[1];
+                    nt->v[0]    = in->v[0];
+                    nt->v[1]    = in->v[1];
                     nt->v[2]    = sp[0];
                     nt->n       = t->n;
                     nt->oid     = t->oid;
                     nt->face    = t->face;
                     nt->m       = t->m;
-                    nt->ptag    = NULL;
 
                     if (!(nt = triangle.alloc()))
                         return STATUS_NO_MEM;
 
                     nt->v[0]    = sp[0];
-                    nt->v[1]    = in->p[1];
+                    nt->v[1]    = in->v[1];
                     nt->v[2]    = sp[1];
                     nt->n       = t->n;
                     nt->oid     = t->oid;
                     nt->face    = t->face;
                     nt->m       = t->m;
-                    nt->ptag    = NULL;
-
-//                    out->p[0]   = in->p[0];
-//                    out->p[1]   = in->p[1];
-//                    out->p[2]   = sp[0];
-//                    ++out;
-//
-//                    out->p[0]   = sp[0];
-//                    out->p[1]   = in->p[1];
-//                    out->p[2]   = sp[1];
-//                    ++out;
 
                     nout += 2;
                     break;
@@ -2950,9 +2876,9 @@ namespace lsp
             {
                 RT_TRACE(debug,
                     v_triangle3d_t it;
-                    it.p[0] = *(st->v[0]);
-                    it.p[1] = *(st->v[1]);
-                    it.p[2] = *(st->v[2]);
+                    it.v[0] = *(st->v[0]);
+                    it.v[1] = *(st->v[1]);
+                    it.v[2] = *(st->v[2]);
                     it.n[0] = *(st->n[0]);
                     it.n[1] = *(st->n[1]);
                     it.n[2] = *(st->n[2]);
@@ -3139,20 +3065,20 @@ namespace lsp
             return -1;
 
         size_t n = 0;
-        for (rtm_triangle_t *p = e->vt; p != NULL; )
+        for (rtm_triangle_t *v = e->vt; v != NULL; )
         {
-            if ((p->e[0] == p->e[1]) || (p->e[0] == p->e[2]) || (p->e[1] == p->e[2]))
+            if ((v->e[0] == v->e[1]) || (v->e[0] == v->e[2]) || (v->e[1] == v->e[2]))
                 return -1;
 
-            if (p == t)
+            if (v == t)
                 ++n;
 
-            if (p->e[0] == e)
-                p = p->elnk[0];
-            else if (p->e[1] == e)
-                p = p->elnk[1];
-            else if (p->e[2] == e)
-                p = p->elnk[2];
+            if (v->e[0] == e)
+                v = v->elnk[0];
+            else if (v->e[1] == e)
+                v = v->elnk[1];
+            else if (v->e[2] == e)
+                v = v->elnk[2];
             else
                 return -1;
         }

@@ -143,15 +143,13 @@ namespace lsp
         __IF_32(uint32_t    __pad[3];)  // Alignment to be sizeof() multiple of 16
     } rt_split_t;
 
-    typedef struct rt_triangle_t
+    typedef struct rt_triangle_t: public raw_triangle_t
     {
-        point3d_t           v[3];       // Triangle points
         vector3d_t          n;          // Normal
         ssize_t             oid;        // Object identifier
         size_t              face;       // Face identifier
         rt_material_t      *m;          // Material
-        void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
-        __IF_32(uint32_t    __pad[2];)  // Alignment to be sizeof() multiple of 16
+        size_t              __pad;      // Alignment to be sizeof() multiple of 16
     } rt_triangle_t;
 
     typedef struct rt_material_t
@@ -210,10 +208,10 @@ namespace lsp
 
     typedef struct rtm_triangle_t
     {
-        vector3d_t          n;          // Normal
         rtm_vertex_t       *v[3];       // Vertexes
         rtm_edge_t         *e[3];       // Edges
         rtm_triangle_t     *elnk[3];    // Link to next triangle for the edge e[i]
+        vector3d_t          n;          // Normal
         void               *ptag;       // Pointer tag, may be used by user for any data manipulation purpose
         ssize_t             itag;       // Integer tag, may be used by user for any data manipulation purpose
         ssize_t             oid;        // Object identifier

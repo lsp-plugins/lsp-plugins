@@ -63,7 +63,7 @@ typedef struct matrix3d_t
 
 typedef struct raw_triangle_t
 {
-    point3d_t           p[3];
+    point3d_t           v[3];
 } raw_triangle_t;
 
 #pragma pack(pop)

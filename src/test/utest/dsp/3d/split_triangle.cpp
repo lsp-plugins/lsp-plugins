@@ -39,9 +39,9 @@ UTEST_BEGIN("dsp.3d", split_triangle)
     {
         raw_triangle_t rt, in[2], out[2];
         size_t nin, nout;
-        rt.p[0] = p0;
-        rt.p[1] = p1;
-        rt.p[2] = p2;
+        rt.v[0] = p0;
+        rt.v[1] = p1;
+        rt.v[2] = p2;
 
         nin  = 0;
         nout = 0;

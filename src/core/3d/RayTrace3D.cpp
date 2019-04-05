@@ -967,8 +967,8 @@ namespace lsp
 
         for (size_t i=0; i<3; ++i)
         {
-            src.p[i]    = v->p[i];
-            dsp::init_vector_p2(&ds[i], &v->s, &src.p[i]);  // Delta vector
+            src.v[i]    = v->p[i];
+            dsp::init_vector_p2(&ds[i], &v->s, &src.v[i]);  // Delta vector
             float dist  = dsp::calc_distance_v1(&ds[i]);
             ts[i]       = v->time[i] - dist / v->speed;     // Time at the source point
             tsn[i]      = v->time[i] * trace->nSampleRate;  // Sample number
@@ -1011,7 +1011,7 @@ namespace lsp
             RT_TRACE_BREAK(trace->pDebug,
                 lsp_trace("Integrating triangle...");
                 view->add_view_1c(v, &C_MAGENTA);
-                view->add_triangle_pv1c(src.p, &C_ORANGE);
+                view->add_triangle_pv1c(src.v, &C_ORANGE);
                 view->add_plane_pvn1c(p, &spl, &C_YELLOW);
             )
 
@@ -1022,7 +1022,7 @@ namespace lsp
             // Compute the area of triangle and ensure that it is greater than previous value
             float in_area       = 0.0f;
             for (size_t i=0; i<n_in; ++i)
-                in_area          += dsp::calc_area_pv(in[i].p);
+                in_area          += dsp::calc_area_pv(in[i].v);
             if (in_area > prev_area)
             {
                 // Compute the amplitude
@@ -1037,9 +1037,9 @@ namespace lsp
                     view->add_view_1c(v, &C_MAGENTA);
                     view->add_plane_pvn1c(p, &spl, &C_YELLOW);
                     for (size_t i=0; i<n_in; ++i)
-                        view->add_triangle_pv1c(in[i].p, &C_GREEN);
+                        view->add_triangle_pv1c(in[i].v, &C_GREEN);
                     for (size_t i=0; i<n_out; ++i)
-                        view->add_triangle_pv1c(out[i].p, &C_RED);
+                        view->add_triangle_pv1c(out[i].v, &C_RED);
                 )
 
                 // Deploy energy value to the sample
@@ -1787,9 +1787,9 @@ namespace lsp
             out         = buf2;
             nin         = 1;
 
-            in->p[0]    = bbox->p[bbox_map[i++]];
-            in->p[1]    = bbox->p[bbox_map[i++]];
-            in->p[2]    = bbox->p[bbox_map[i++]];
+            in->v[0]    = bbox->p[bbox_map[i++]];
+            in->v[1]    = bbox->p[bbox_map[i++]];
+            in->v[2]    = bbox->p[bbox_map[i++]];
             pl          = view->pl;
 
             // Cull triangle with planes

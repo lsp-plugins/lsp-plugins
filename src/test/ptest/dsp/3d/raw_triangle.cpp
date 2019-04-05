@@ -116,9 +116,9 @@ PTEST_BEGIN("dsp.3d", raw_triangle, 5, 1000)
         // Initialize triangles
         for (size_t i=0; i < N_TRIANGLES; ++i)
         {
-            dsp::init_point_xyz(&triangles[i].p[0], randf(-10.0f, 10.0f), randf(-10.0f, 10.0f), randf(-10.0f, 10.0f));
-            dsp::init_point_xyz(&triangles[i].p[1], randf(-10.0f, 10.0f), randf(-10.0f, 10.0f), randf(-10.0f, 10.0f));
-            dsp::init_point_xyz(&triangles[i].p[2], randf(-10.0f, 10.0f), randf(-10.0f, 10.0f), randf(-10.0f, 10.0f));
+            dsp::init_point_xyz(&triangles[i].v[0], randf(-10.0f, 10.0f), randf(-10.0f, 10.0f), randf(-10.0f, 10.0f));
+            dsp::init_point_xyz(&triangles[i].v[1], randf(-10.0f, 10.0f), randf(-10.0f, 10.0f), randf(-10.0f, 10.0f));
+            dsp::init_point_xyz(&triangles[i].v[2], randf(-10.0f, 10.0f), randf(-10.0f, 10.0f), randf(-10.0f, 10.0f));
         }
 
         call("native::split_triangle_raw", planes, triangles, native::split_triangle_raw);
