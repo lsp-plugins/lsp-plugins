@@ -22,6 +22,11 @@ IF_ARCH_X86(
     {
         void split_triangle_raw(raw_triangle_t *out, size_t *n_out, raw_triangle_t *in, size_t *n_in, const vector3d_t *pl, const raw_triangle_t *pv);
     }
+
+    namespace sse3
+    {
+        void split_triangle_raw(raw_triangle_t *out, size_t *n_out, raw_triangle_t *in, size_t *n_in, const vector3d_t *pl, const raw_triangle_t *pv);
+    }
 )
 
 typedef void (* split_triangle_raw_t)(raw_triangle_t *out, size_t *n_out, raw_triangle_t *in, size_t *n_in, const vector3d_t *pl, const raw_triangle_t *pv);
@@ -159,6 +164,7 @@ UTEST_BEGIN("dsp.3d", split_triangle)
     {
         test_func("native::split_triangle_raw", native::split_triangle_raw);
         IF_ARCH_X86(test_func("sse::split_triangle_raw", sse::split_triangle_raw));
+        IF_ARCH_X86(test_func("sse3::split_triangle_raw", sse3::split_triangle_raw));
     }
 UTEST_END;
 
