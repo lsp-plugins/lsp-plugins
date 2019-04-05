@@ -110,6 +110,21 @@ namespace native
         v->dw       = 0.0f;
     }
 
+    void normalize_vector2(vector3d_t *v, const vector3d_t *src)
+    {
+        float w     = sqrtf(src->dx * src->dx + src->dy * src->dy + src->dz * src->dz);
+        if (w != 0.0f)
+        {
+            w           = 1.0f / w;
+            v->dx       = src->dx * w;
+            v->dy       = src->dy * w;
+            v->dz       = src->dz * w;
+            v->dw       = 0.0f;
+        }
+        else
+            *v      = *src;
+    }
+
     void scale_vector1(vector3d_t *v, float r)
     {
         float w     = sqrtf(v->dx * v->dx + v->dy * v->dy + v->dz * v->dz);
@@ -3069,12 +3084,12 @@ namespace native
         p.y     = (p0->y + p1->y + p2->y) / 3.0f;
         p.z     = (p0->z + p1->z + p2->z) / 3.0f;
 
-        v->dx   = p.x - sp;
-        v->dy   = p.y - sp;
-        v->dz   = p.z = sp;
+        v->dx   = p.x - sp->x;
+        v->dy   = p.y - sp->y;
+        v->dz   = p.z = sp->z;
         v->dw   = 0.0f;
 
-        float   w = v->dx*v->dx + v->dy*v->dy + v->dz*v->dz;
+        float   w = sqrtf(v->dx*v->dx + v->dy*v->dy + v->dz*v->dz);
         if (w != 0.0f)
         {
             w           = 1.0f / w;
@@ -3092,12 +3107,12 @@ namespace native
         p.y     = (pv[0].y + pv[1].y + pv[2].y) / 3.0f;
         p.z     = (pv[0].z + pv[1].z + pv[2].z) / 3.0f;
 
-        v->dx   = p.x - sp;
-        v->dy   = p.y - sp;
-        v->dz   = p.z = sp;
+        v->dx   = p.x - sp->x;
+        v->dy   = p.y - sp->y;
+        v->dz   = p.z = sp->z;
         v->dw   = 0.0f;
 
-        float   w = v->dx*v->dx + v->dy*v->dy + v->dz*v->dz;
+        float   w = sqrtf(v->dx*v->dx + v->dy*v->dy + v->dz*v->dz);
         if (w != 0.0f)
         {
             w           = 1.0f / w;

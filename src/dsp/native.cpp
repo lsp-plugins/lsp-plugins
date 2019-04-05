@@ -274,6 +274,7 @@ namespace native
         EXPORT1(init_vector_p2);
         EXPORT1(init_vector_pv);
         EXPORT1(normalize_vector);
+        EXPORT1(normalize_vector2);
         EXPORT1(scale_vector1);
         EXPORT1(scale_vector2);
 
@@ -396,6 +397,9 @@ namespace native
         EXPORT1(colocation_x3_v1pv);
         EXPORT1(colocation_x3_v3p1);
         EXPORT1(colocation_x3_vvp1);
+
+        EXPORT1(unit_vector_p1p3);
+        EXPORT1(unit_vector_p1pv);
 
         EXPORT1(convolve);
     }

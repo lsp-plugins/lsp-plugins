@@ -960,24 +960,11 @@ namespace lsp
         if (v_area <= trace->fDetalization) // Prevent from becoming NaNs
             return STATUS_OK;
 
-        vector3d_t cv, *pv  = &capture->position.v;
+        vector3d_t cv, pv;
         float afactor       = v->amplitude / sqrtf(v_area); // The norming energy factor
-        dsp::unit_vector_p1pv(&cv, v->s, v->p);
-        float kcos          = cv.dx*pv->dx + cv.dy*pv->dy + cv.dz * pv->dz; // -cos(a)
-
-        /*
- clf;
- k = 0.75;
- theta = linspace (0, 2*pi, 1000);
- for i=1:1000
-   rho(i) = k*0.5*(1+co) + (1-k)*abs(1-2*co*co*co);
-   co     = cos(theta(i));
-   rho(i) = 2*abs(0.5+co)/3;
-   rho(i) = abs(co*co*co);
- endfor
- plot(theta, rho);
-
-         */
+        dsp::unit_vector_p1pv(&cv, &v->s, v->p);
+        dsp::normalize_vector2(&pv, &capture->position.v);
+        float kcos          = cv.dx*pv.dx + cv.dy*pv.dy + cv.dz * pv.dz; // -cos(a)
 
         // Analyze capture type
         switch (capture->type)
@@ -991,16 +978,16 @@ namespace lsp
                 break;
 
             case RT_AC_HCARDIO:
-            {
+                afactor    *= 0.8*fabs(0.25 - kcos); // 4*(0.25 + cos(a)) / 5
                 break;
-            }
 
             case RT_AC_BIDIR:
-            {
-                float k     = cv.dx*pv->dx + cv.dy*pv->dy + cv.dz * pv->dz; // -cos(a)
-                afactor    *= k*k;  // factor = factor * cos(a)^2
+                afactor    *= kcos;    // factor = factor * cos(a)
                 break;
-            }
+
+            case RT_AC_EIGHT:
+                afactor    *= kcos*kcos;  // factor = factor * cos(a)^2
+                break;
 
             case RT_AC_OMNI: // fatctor = factor * 1
             default:
@@ -1265,6 +1252,11 @@ namespace lsp
                 delete dcap;
                 return STATUS_NO_MEM;
             }
+
+            dcap->matrix    = scap->matrix;
+            dcap->position  = scap->position;
+            dcap->material  = scap->material;
+            dcap->type      = scap->type;
 
             // Copy bindings
             for (size_t j=0; j<scap->bindings.size(); ++j)

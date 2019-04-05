@@ -120,6 +120,13 @@ namespace dsp
      */
     extern void (* normalize_vector)(vector3d_t *m);
 
+    /** Normalize vector
+     *
+     * @param v vector to store normalized value
+     * @param src source vector to normalize
+     */
+    extern void (* normalize_vector2)(vector3d_t *v, const vector3d_t *src);
+
     /** Scale vector coordinates to match specified radius-vector length
      *
      * @param v vector to scale

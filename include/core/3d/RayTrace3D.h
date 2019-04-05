@@ -35,6 +35,7 @@ namespace lsp
         RT_AC_SCARDIO,
         RT_AC_HCARDIO,
         RT_AC_BIDIR,
+        RT_AC_EIGHT,
         RT_AC_OMNI
     };
 
