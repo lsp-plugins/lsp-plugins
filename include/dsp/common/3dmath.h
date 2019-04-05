@@ -1098,6 +1098,23 @@ namespace dsp
      */
     extern size_t (* colocation_x3_vvp1)(const vector3d_t *vv, const point3d_t *p);
 
+    /**
+     * Compute unit vector from source point to center of triangle
+     * @param v target to store vector
+     * @param sp source point
+     * @param p0 point 0
+     * @param p1 point 1
+     * @param p2 point 2
+     */
+    extern void (* unit_vector_p1p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2);
+
+    /**
+     * Compute unit vector from source point to center of triangle
+     * @param v target to store vector
+     * @param sp source point
+     * @param pv array of three points
+     */
+    extern void (* unit_vector_p1pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv);
 } // dsp
 
 #endif /* DSP_COMMON_3DMATH_H_ */

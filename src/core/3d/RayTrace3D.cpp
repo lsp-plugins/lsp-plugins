@@ -960,6 +960,54 @@ namespace lsp
         if (v_area <= trace->fDetalization) // Prevent from becoming NaNs
             return STATUS_OK;
 
+        vector3d_t cv, *pv  = &capture->position.v;
+        float afactor       = v->amplitude / sqrtf(v_area); // The norming energy factor
+        dsp::unit_vector_p1pv(&cv, v->s, v->p);
+        float kcos          = cv.dx*pv->dx + cv.dy*pv->dy + cv.dz * pv->dz; // -cos(a)
+
+        /*
+ clf;
+ k = 0.75;
+ theta = linspace (0, 2*pi, 1000);
+ for i=1:1000
+   rho(i) = k*0.5*(1+co) + (1-k)*abs(1-2*co*co*co);
+   co     = cos(theta(i));
+   rho(i) = 2*abs(0.5+co)/3;
+   rho(i) = abs(co*co*co);
+ endfor
+ plot(theta, rho);
+
+         */
+
+        // Analyze capture type
+        switch (capture->type)
+        {
+            case RT_AC_CARDIO:
+                afactor    *= 0.5f * (1.0f - kcos); // 0.5 * (1 + cos(a))
+                break;
+
+            case RT_AC_SCARDIO:
+                afactor    *= 2*fabs(0.5 - kcos)/3.0f; // 2*(0.5 + cos(a)) / 3
+                break;
+
+            case RT_AC_HCARDIO:
+            {
+                break;
+            }
+
+            case RT_AC_BIDIR:
+            {
+                float k     = cv.dx*pv->dx + cv.dy*pv->dy + cv.dz * pv->dz; // -cos(a)
+                afactor    *= k*k;  // factor = factor * cos(a)^2
+                break;
+            }
+
+            case RT_AC_OMNI: // fatctor = factor * 1
+            default:
+                break;
+        }
+
+
         // Estimate distance and time parameters for source point
         vector3d_t ds[3];
         raw_triangle_t src;
@@ -990,7 +1038,6 @@ namespace lsp
         raw_triangle_t in[2], out[2];
         size_t n_in, n_out;
         float prev_area     = 0.0f;                             // The area of polygon at previous step
-        float afactor       = v->amplitude / sqrtf(v_area);     // The norming energy factor
         point3d_t p[3];
 
         do {

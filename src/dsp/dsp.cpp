@@ -410,6 +410,8 @@ namespace dsp
     size_t  (* colocation_x3_v1pv)(const vector3d_t *v, const point3d_t *pv) = NULL;
     size_t  (* colocation_x3_v3p1)(const vector3d_t *v0, const vector3d_t *v1, const vector3d_t *v2, const point3d_t *p) = NULL;
     size_t  (* colocation_x3_vvp1)(const vector3d_t *vv, const point3d_t *p) = NULL;
+    void    (* unit_vector_p1p3)(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2) = NULL;
+    void    (* unit_vector_p1pv)(vector3d_t *v, const point3d_t *sp, const point3d_t *pv) = NULL;
 
     void    (* vector_mul_v2)(vector3d_t *r, const vector3d_t *v1, const vector3d_t *v2) = NULL;
     void    (* vector_mul_vv)(vector3d_t *r, const vector3d_t *vv) = NULL;

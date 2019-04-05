@@ -3061,6 +3061,52 @@ namespace native
 
         return tag;
     }
+
+    void unit_vector_p1p3(vector3d_t *v, const point3d_t *sp, const point3d_t *p0, const point3d_t *p1, const point3d_t *p2)
+    {
+        point3d_t p;
+        p.x     = (p0->x + p1->x + p2->x) / 3.0f;
+        p.y     = (p0->y + p1->y + p2->y) / 3.0f;
+        p.z     = (p0->z + p1->z + p2->z) / 3.0f;
+
+        v->dx   = p.x - sp;
+        v->dy   = p.y - sp;
+        v->dz   = p.z = sp;
+        v->dw   = 0.0f;
+
+        float   w = v->dx*v->dx + v->dy*v->dy + v->dz*v->dz;
+        if (w != 0.0f)
+        {
+            w           = 1.0f / w;
+            v->dx      *= w;
+            v->dy      *= w;
+            v->dz      *= w;
+            v->dw       = 0.0f;
+        }
+    }
+
+    void unit_vector_p1pv(vector3d_t *v, const point3d_t *sp, const point3d_t *pv)
+    {
+        point3d_t p;
+        p.x     = (pv[0].x + pv[1].x + pv[2].x) / 3.0f;
+        p.y     = (pv[0].y + pv[1].y + pv[2].y) / 3.0f;
+        p.z     = (pv[0].z + pv[1].z + pv[2].z) / 3.0f;
+
+        v->dx   = p.x - sp;
+        v->dy   = p.y - sp;
+        v->dz   = p.z = sp;
+        v->dw   = 0.0f;
+
+        float   w = v->dx*v->dx + v->dy*v->dy + v->dz*v->dz;
+        if (w != 0.0f)
+        {
+            w           = 1.0f / w;
+            v->dx      *= w;
+            v->dy      *= w;
+            v->dz      *= w;
+            v->dw       = 0.0f;
+        }
+    }
 }
 
 #endif /* DSP_ARCH_NATIVE_3DMATH_H_ */
