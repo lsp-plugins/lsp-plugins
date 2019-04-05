@@ -70,9 +70,14 @@ namespace lsp
 
     status_t RayTrace3D::TaskThread::run()
     {
+        dsp::context_t ctx;
+        dsp::start(&ctx);
+
         clear_stats(&stats);
         status_t res = main_loop();
         destroy_tasks(&tasks);
+
+        dsp::finish(&ctx);
         return res;
     }
 
