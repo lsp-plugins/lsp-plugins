@@ -1094,26 +1094,33 @@ namespace lsp
                             continue;
 
                         // Ensure that we need to resize sample
-                        size_t len = s->sample->max_length();
+                        size_t len = s->sample->length();
                         if (len <= size_t(csn))
                         {
-                            len     = (csn + 1 + SAMPLE_QUANTITY) / SAMPLE_QUANTITY;
-                            len    *= SAMPLE_QUANTITY;
-
-                            lsp_trace("v->time = {%e, %e, %e}", v->time[0], v->time[1], v->time[2]);
-                            lsp_trace("ctime = %e, tsn = {%e, %e, %e}", ctime, tsn[0], tsn[1], tsn[2]);
-                            lsp_trace("spl = {%e, %e, %e, %e}",
-                                spl.dx, spl.dy, spl.dz, spl.dw);
-                            lsp_trace("Requesting sample resize: csn=0x%llx, len=0x%llx, channels=%d",
-                                (long long)csn, (long long)len, int(s->sample->channels())
-                                );
-                            if (len > 0x100000) // TODO: This is currently impossible, added for debugging, remove in future
-                                invalid_state_hook();
-                            if (!s->sample->resize(s->sample->channels(), len, len))
+                            // Need to resize sample?
+                            if (s->sample->max_length() <= size_t(csn))
                             {
-                                invalid_state_hook();
-                                return STATUS_NO_MEM;
+                                len     = (csn + 1 + SAMPLE_QUANTITY) / SAMPLE_QUANTITY;
+                                len    *= SAMPLE_QUANTITY;
+
+                                lsp_trace("v->time = {%e, %e, %e}", v->time[0], v->time[1], v->time[2]);
+                                lsp_trace("ctime = %e, tsn = {%e, %e, %e}", ctime, tsn[0], tsn[1], tsn[2]);
+                                lsp_trace("spl = {%e, %e, %e, %e}",
+                                    spl.dx, spl.dy, spl.dz, spl.dw);
+                                lsp_trace("Requesting sample resize: csn=0x%llx, len=0x%llx, channels=%d",
+                                    (long long)csn, (long long)len, int(s->sample->channels())
+                                    );
+                                if (len > 0x100000) // TODO: This is currently impossible, added for debugging, remove in future
+                                    invalid_state_hook();
+                                if (!s->sample->resize(s->sample->channels(), len, len))
+                                {
+                                    invalid_state_hook();
+                                    return STATUS_NO_MEM;
+                                }
                             }
+
+                            // Update sample length
+                            s->sample->setLength(csn + 1);
                         }
 
                         // Deploy sample to curent channel
@@ -1129,8 +1136,8 @@ namespace lsp
             ++csn; // Increment culling sample number for next iteration
         } while (n_out > 0);
 
-        lsp_trace("Samples %d-%d -> area=%e amplitude=%e rnum=%d",
-                int(ssn), int(csn-1), v_area, v->amplitude, int(v->rnum));
+        lsp_trace("Samples %d-%d -> area=%e amplitude=%e kcos=%f rnum=%d",
+                int(ssn), int(csn-1), v_area, v->amplitude, kcos, int(v->rnum));
 
         return STATUS_OK;
     }
