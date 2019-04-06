@@ -56,6 +56,7 @@ namespace lsp
         STATUS_NOT_DIRECTORY,
         STATUS_REMOVED,
         STATUS_BREAKPOINT, // This is special status for step-by-step tracing algorithms
+        STATUS_READONLY,
 
         STATUS_TOTAL,
         STATUS_MAX = STATUS_TOTAL - 1,
