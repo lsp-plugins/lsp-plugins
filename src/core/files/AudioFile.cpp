@@ -33,6 +33,26 @@
     #include <mferror.h>
     #include <mfreadwrite.h>
 
+// Define some missing values from GNU <mfidl.h>
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
+    EXTERN_GUID( MF_TRANSCODE_CONTAINERTYPE, 0x150ff23f, 0x4abc, 0x478b, 0xac, 0x4f, 0xe1, 0x91, 0x6f, 0xba, 0x1c, 0xca );
+    EXTERN_GUID( MFTranscodeContainerType_ASF, 0x430f6f6e, 0xb6bf, 0x4fc1, 0xa0, 0xbd, 0x9e, 0xe4, 0x6e, 0xee, 0x2a, 0xfb );
+    EXTERN_GUID( MFTranscodeContainerType_MPEG4, 0xdc6cd05d, 0xb9d0, 0x40ef, 0xbd, 0x35, 0xfa, 0x62, 0x2c, 0x1a, 0xb2, 0x8a );
+    EXTERN_GUID( MFTranscodeContainerType_MP3, 0xe438b912, 0x83f1, 0x4de6, 0x9e, 0x3a, 0x9f, 0xfb, 0xc6, 0xdd, 0x24, 0xd1 );
+    EXTERN_GUID( MFTranscodeContainerType_FLAC, 0x31344aa3, 0x05a9, 0x42b5, 0x90, 0x1b, 0x8e, 0x9d, 0x42, 0x57, 0xf7, 0x5e );
+    EXTERN_GUID( MFTranscodeContainerType_3GP, 0x34c50167, 0x4472, 0x4f34, 0x9e, 0xa0, 0xc4, 0x9f, 0xba, 0xcf, 0x03, 0x7d );
+    EXTERN_GUID( MFTranscodeContainerType_AC3, 0x6d8d91c3, 0x8c91, 0x4ed1, 0x87, 0x42, 0x8c, 0x34, 0x7d, 0x5b, 0x44, 0xd0 );
+    EXTERN_GUID( MFTranscodeContainerType_ADTS, 0x132fd27d, 0x0f02, 0x43de, 0xa3, 0x01, 0x38, 0xfb, 0xbb, 0xb3, 0x83, 0x4e );
+    EXTERN_GUID( MFTranscodeContainerType_MPEG2, 0xbfc2dbf9, 0x7bb4, 0x4f8f, 0xaf, 0xde, 0xe1, 0x12, 0xc4, 0x4b, 0xa8, 0x82 );
+    EXTERN_GUID( MFTranscodeContainerType_WAVE, 0x64c3453c, 0x0f26, 0x4741, 0xbe, 0x63, 0x87, 0xbd, 0xf8, 0xbb, 0x93, 0x5b );
+    EXTERN_GUID( MFTranscodeContainerType_AVI, 0x7edfe8af, 0x402f, 0x4d76, 0xa3, 0x3c, 0x61, 0x9f, 0xd1, 0x57, 0xd0, 0xf1 );
+
+    #if (WINVER >= _WIN32_WINNT_WIN8)
+        EXTERN_GUID( MFTranscodeContainerType_FMPEG4, 0x9ba876f1, 0x419f, 0x4b77, 0xa1, 0xe0, 0x35, 0x95, 0x9d, 0x9d, 0x40, 0x4 );
+    #endif // (WINVER >= _WIN32_WINNT_WIN8)
+
+    EXTERN_GUID( MFTranscodeContainerType_AMR, 0x25d5ad3, 0x621a, 0x475b, 0x96, 0x4d, 0x66, 0xb1, 0xc8, 0x24, 0xf0, 0x79 );
+#endif /* WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP) */
 
 #else
     #include <sndfile.h>
@@ -1316,8 +1336,27 @@ namespace lsp
     status_t AudioFile::store_samples(const LSPString *path, size_t from, size_t max_count)
     {
         // Create SinkWriter
+        HRESULT hr;
         IMFSinkWriter *pSinkWriter = NULL;
-        HRESULT hr = ::MFCreateSinkWriterFromURL(L"output.wmv", NULL, NULL, &pSinkWriter);
+        const WCHAR *wpath = path->get_utf16();
+
+        // Create attributes
+        IMFAttributes *pAttributes = NULL;
+        hr = ::MFCreateAttributes(&pAttributes, 16);
+        if (!SUCCEEDED(hr))
+            return STATUS_UNKNOWN_ERR;
+
+        if (SUCCEEDED(hr))
+            hr = pAttributes->SetGUID(MF_TRANSCODE_CONTAINERTYPE, MFTranscodeContainerType_WAVE);
+        if (!SUCCEEDED(hr))
+        {
+            pAttributes->Release();
+            return STATUS_UNKNOWN_ERR;
+        }
+
+        // Create sink writer
+        hr = ::MFCreateSinkWriterFromURL(wpath, NULL, pAttributes, &pSinkWriter);
+        pAttributes->Release();
         if (!SUCCEEDED(hr))
             return STATUS_UNKNOWN_ERR;
 
@@ -1331,7 +1370,19 @@ namespace lsp
         if (SUCCEEDED(hr))
             hr = pMediaType->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, sizeof(float) * 8);
         if (SUCCEEDED(hr))
-            hr = pMediaType->SetUINT32(MF_MT_FRAME_SIZE, pData->nChannels);
+            hr = pMediaType->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, pData->nChannels);
+        if (SUCCEEDED(hr))
+            hr = pMediaType->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, pData->nSampleRate);
+        if (SUCCEEDED(hr))
+            hr = pMediaType->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, pData->nChannels * sizeof(float) * pData->nSampleRate);
+
+        //        hr = mt_aud_speech_in->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
+        //        hr = mt_aud_speech_in->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
+        //        hr = mt_aud_speech_in->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, 2);
+        //        hr = mt_aud_speech_in->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, 16);
+        //        hr = mt_aud_speech_in->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, 4);
+        //        hr = mt_aud_speech_in->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, 44100);
+        //        hr = mt_aud_speech_in->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, 44100*2*2);
 
         // Initialize output stream and input data format
         DWORD           streamIndex;
