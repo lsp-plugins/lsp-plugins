@@ -38,6 +38,8 @@
     #include <mferror.h>
     #include <mfreadwrite.h>
 
+    #include <msystem.h>
+
 // Define some missing values from GNU <mfidl.h>
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
     EXTERN_GUID( MF_TRANSCODE_CONTAINERTYPE, 0x150ff23f, 0x4abc, 0x478b, 0xac, 0x4f, 0xe1, 0x91, 0x6f, 0xba, 0x1c, 0xca );
@@ -267,10 +269,10 @@ namespace lsp
         return create_samples(channels, sample_rate, count);
     }
 
-    status_t AudioFile::load_lspc(const char *path, float max_duration)
+    status_t AudioFile::load_lspc(const LSPString *path, float max_duration)
     {
         LSPCFile fd;
-        status_t res = fd.open(path);
+        status_t res = fd.open(path->get_native());
         if (res != STATUS_OK)
         {
             fd.close();
@@ -512,16 +514,31 @@ namespace lsp
         if (path == NULL)
             return STATUS_BAD_ARGUMENTS;
 
-        const char *npath = path->get_native();
-        status_t res = load_lspc(npath, max_duration);
+        status_t res = load_lspc(path, max_duration);
         if (res != STATUS_OK)
         {
             #ifdef PLATFORM_WINDOWS
                 res = load_mfapi(path, max_duration);
             #else
-                res = load_sndfile(npath, max_duration);
+                res = load_sndfile(path, max_duration);
             #endif /* PLATFORM_WINDOWS */
         }
+        return res;
+    }
+
+    status_t AudioFile::store_samples(const LSPString *path, size_t from, size_t max_count)
+    {
+        if (pData == NULL)
+            return STATUS_NO_DATA;
+
+        #ifdef PLATFORM_WINDOWS
+            status_t res = save_mfapi(path, from, max_count);
+            if (res != STATUS_OK)
+                res = save_mmio(path, from, max_count);
+        #else
+            status_t res = save_sndfile(path, from, max_count);
+        #endif
+
         return res;
     }
 
@@ -1038,6 +1055,138 @@ namespace lsp
         DWORD   stream;     // Identifier of the stream
     } stream_info_t;
 
+    status_t create_riff_file(
+            const WCHAR *path,
+            WAVEFORMATEX *pwfxDest,
+            HMMIO *phmmioOut,
+            MMCKINFO *pckOut,
+            MMCKINFO *pckOutRIFF
+        )
+    {
+        int code;
+        size_t written;
+        MMCKINFO ckOut1;
+        DWORD dwFactChunk = DWORD(-1);
+
+        HMMIO fd = ::mmioOpenW(path, NULL, MMIO_ALLOCBUF | MMIO_READWRITE | MMIO_CREATE);
+        if (fd == NULL)
+            return STATUS_IO_ERROR;
+
+        // Create the output file RIFF chunk of form type 'WAVE'
+        pckOutRIFF->fccType    = ::mmioFOURCC('W', 'A', 'V', 'E');
+        pckOutRIFF->cksize     = 0;
+        if ((code = ::mmioCreateChunk(*phmmioOut, pckOutRIFF, MMIO_CREATERIFF)) != 0)
+        {
+            ::mmioClose(fd);
+            return STATUS_IO_ERROR;
+        }
+
+        // Now create the 'fmt ' chunk. Since we know the size of this chunk,
+        pckOut->ckid    = ::mmioFOURCC('f', 'm', 't', ' ');
+        pckOut->cksize  = sizeof(PCMWAVEFORMAT);   // we know the size of this ck.
+        if ((code = mmioCreateChunk(*phmmioOut, pckOut, 0)) != 0)
+        {
+            ::mmioClose(fd);
+            return STATUS_IO_ERROR;
+        }
+
+        // Write the PCMWAVEFORMAT structure to the 'fmt ' chunk
+        written = ::mmioWrite(*phmmioOut, reinterpret_cast<HPSTR>(pwfxDest), sizeof(PCMWAVEFORMAT));
+        if (written != sizeof(PCMWAVEFORMAT))
+        {
+            ::mmioClose(fd);
+            return STATUS_IO_ERROR;
+        }
+
+        // Ascend out of the 'fmt ' chunk, back into the 'RIFF' chunk.
+        if ((code = ::mmioAscend(*phmmioOut, pckOut, 0)) != 0)
+        {
+            ::mmioClose(fd);
+            return STATUS_IO_ERROR;
+        }
+
+        // Now create the fact chunk, not required for PCM but nice to have.
+        ckOut1.ckid     = ::mmioFOURCC('f', 'a', 'c', 't');
+        ckOut1.cksize   = 0;
+        if ((code = ::mmioCreateChunk(*phmmioOut, &ckOut1, 0)) != 0)
+        {
+            ::mmioClose(fd);
+            return STATUS_IO_ERROR;
+        }
+
+        written = ::mmioWrite(*phmmioOut, reinterpret_cast<HPSTR>(&dwFactChunk), sizeof(dwFactChunk));
+        if (written != sizeof(dwFactChunk))
+        {
+            ::mmioClose(fd);
+            return STATUS_IO_ERROR;
+        }
+
+        // Now ascend out of the fact chunk...
+        if ((code = ::mmioAscend(*phmmioOut, &ckOut1, 0)) != 0)
+        {
+            ::mmioClose(fd);
+            return STATUS_IO_ERROR;
+        }
+
+        // Save pointer and return success status
+        *phmmioOut = fd;
+
+        return STATUS_OK;
+    }
+
+    status_t complete_riff_file(
+            HMMIO *phmmioOut,
+            MMCKINFO *pckOut,
+            MMCKINFO *pckOutRIFF,
+            MMIOINFO *pmmioinfoOut,
+            size_t samples
+        )
+    {
+        int code;
+
+        // Ascend the output file out of the 'data' chunk
+        // this will cause the chunk size of the 'data' chunk to be written.
+        if ((code = ::mmioAscend(*phmmioOut, pckOut, 0)) != 0)
+        {
+            ::mmioClose(*phmmioOut);
+            return STATUS_IO_ERROR;
+        }
+
+        // Do this here instead...
+        if ((code = ::mmioAscend(*phmmioOut, pckOutRIFF, 0)) != 0)
+        {
+            ::mmioClose(*phmmioOut);
+            return STATUS_IO_ERROR;
+        }
+
+        // Seek to the beginning of the file
+        code = ::mmioSeek(*phmmioOut, 0, SEEK_SET);
+        if ((code = int(::mmioDescend(*phmmioOut, pckOutRIFF, NULL, 0))) != 0)
+        {
+            ::mmioClose(*phmmioOut);
+            return STATUS_IO_ERROR;
+        }
+
+        // Update fact
+        pckOut->ckid = ::mmioFOURCC('f', 'a', 'c', 't');
+        if ((code = ::mmioDescend(*phmmioOut, pckOut, pckOutRIFF, MMIO_FINDCHUNK)) == 0)
+        {
+            DWORD cSamples = CPU_TO_LE(DWORD(samples));
+            ::mmioWrite(*phmmioOut, reinterpret_cast<HPSTR>(&cSamples), sizeof(DWORD));
+            ::mmioAscend(*phmmioOut, pckOut, 0);
+        }
+
+        if ((code = ::mmioAscend(*phmmioOut, pckOutRIFF, 0)) != 0)
+        {
+            ::mmioClose(*phmmioOut);
+            return STATUS_IO_ERROR;
+        }
+
+        // Close MMIO and return
+        ::mmioClose(*phmmioOut);
+        return STATUS_OK;
+    }
+
     static IMFMediaType *mfapi_copy_media_type(IMFMediaType *src, stream_info_t *cfg)
     {
         // Obtain media type
@@ -1338,7 +1487,7 @@ namespace lsp
         return pSample;
     }
 
-    status_t AudioFile::store_samples(const LSPString *path, size_t from, size_t max_count)
+    status_t AudioFile::save_mfapi(const LSPString *path, size_t from, size_t max_count)
     {
         // Create SinkWriter
         HRESULT hr;
@@ -1423,50 +1572,50 @@ namespace lsp
             max_count   -=  fill_temporary_buffer(tb, max_count);
 
             // Flush buffer
-            if (tb->nSize > 0)
+            if (tb->nSize <= 0)
+                continue;
+
+            // Write buffer to file
+            size_t offset = 0;
+            size_t frames = tb->nSize / tb->nFrameSize;
+            while (offset < tb->nSize)
             {
-                // Write buffer to file
-                size_t offset = 0;
-                size_t frames = tb->nSize / tb->nFrameSize;
-                while (offset < tb->nSize)
+                // Create audio sample for writing
+                IMFSample *sample = mfapi_create_sample(&tb->bData[offset], frames * tb->nFrameSize);
+                if (sample == NULL)
                 {
-                    // Create audio sample for writing
-                    IMFSample *sample = mfapi_create_sample(&tb->bData[offset], frames * tb->nFrameSize);
-                    if (sample == NULL)
-                    {
-                        pSinkWriter->Release();
-                        destroy_temporary_buffer(tb);
-                        return STATUS_UNKNOWN_ERR;
-                    }
-
-                    // Update sample parameters
-                    hr = sample->SetSampleTime((frame_id * 100000000)/pData->nSampleRate);
-                    if (SUCCEEDED(hr))
-                        hr = sample->SetSampleDuration((frames * 100000000)/pData->nSampleRate);
-                    if (SUCCEEDED(hr))
-                        hr = pSinkWriter->WriteSample(streamIndex, sample);
-                    sample->Release();
-
-                    // Send the sample to the Sink Writer.
-                    if (!SUCCEEDED(hr))
-                    {
-                        pSinkWriter->Release();
-                        destroy_temporary_buffer(tb);
-                        return STATUS_UNKNOWN_ERR;
-                    }
-
-                    // Update offsets
-                    offset     += frames * tb->nFrameSize;
-                    frames     -= frames;
-                    frame_id   += frames;
+                    pSinkWriter->Release();
+                    destroy_temporary_buffer(tb);
+                    return STATUS_UNKNOWN_ERR;
                 }
 
-                // Update buffer contents
-                frames  = tb->nSize - offset;
-                if (frames > 0)
-                    ::memmove(tb->bData, &tb->bData[offset], frames);
-                tb->nSize   = frames;
+                // Update sample parameters
+                hr = sample->SetSampleTime((frame_id * 100000000)/pData->nSampleRate);
+                if (SUCCEEDED(hr))
+                    hr = sample->SetSampleDuration((frames * 100000000)/pData->nSampleRate);
+                if (SUCCEEDED(hr))
+                    hr = pSinkWriter->WriteSample(streamIndex, sample);
+                sample->Release();
+
+                // Send the sample to the Sink Writer.
+                if (!SUCCEEDED(hr))
+                {
+                    pSinkWriter->Release();
+                    destroy_temporary_buffer(tb);
+                    return STATUS_UNKNOWN_ERR;
+                }
+
+                // Update offsets
+                offset     += frames * tb->nFrameSize;
+                frames     -= frames;
+                frame_id   += frames;
             }
+
+            // Update buffer contents
+            frames  = tb->nSize - offset;
+            if (frames > 0)
+                ::memmove(tb->bData, &tb->bData[offset], frames);
+            tb->nSize   = frames;
         }
 
         // Free allocated resources
@@ -1476,6 +1625,119 @@ namespace lsp
         return (SUCCEEDED(hr)) ? STATUS_OK : STATUS_UNKNOWN_ERR;
     }
 
+    status_t AudioFile::save_mmio(const LSPString *path, size_t from, size_t max_count)
+    {
+        WAVEFORMATEX    fmt;
+        HMMIO           hmmioOut;
+        MMCKINFO        ckOut;
+        MMCKINFO        ckOutRIFF;
+        MMIOINFO        mmioinfoOut;
+        UINT            cbActualWrite;
+        int             code;
+
+        // Initialize format descriptor
+        fmt.wFormatTag      = WAVE_FORMAT_PCM;
+        fmt.nChannels       = pData->nChannels;
+        fmt.nSamplesPerSec  = pData->nSampleRate;
+        fmt.nAvgBytesPerSec = pData->nChannels * pData->nSampleRate * sizeof(float);
+        fmt.nBlockAlign     = pData->nChannels * sizeof(float);
+        fmt.wBitsPerSample  = sizeof(float) * 8;
+        fmt.cbSize          = 0;
+
+        fmt.wFormatTag      = CPU_TO_LE(fmt.wFormatTag);
+        fmt.nChannels       = CPU_TO_LE(fmt.nChannels);
+        fmt.nSamplesPerSec  = CPU_TO_LE(fmt.nSamplesPerSec);
+        fmt.nAvgBytesPerSec = CPU_TO_LE(fmt.nAvgBytesPerSec);
+        fmt.nBlockAlign     = CPU_TO_LE(fmt.nBlockAlign);
+        fmt.wBitsPerSample  = CPU_TO_LE(fmt.wBitsPerSample);
+        fmt.cbSize          = CPU_TO_LE(fmt.cbSize);
+
+        // Create RIFF file
+        status_t res    = create_riff_file(path->get_utf16(), &fmt, &hmmioOut, &ckOut, &ckOutRIFF);
+        if (res != STATUS_OK)
+            return res;
+
+        // Create the 'data' chunk that holds the waveform samples.
+        ckOut.ckid          = ::mmioFOURCC('d', 'a', 't', 'a');
+        ckOut.cksize        = 0;
+        code    = ::mmioCreateChunk(hmmioOut, &ckOut, 0)
+        if (code == 0)
+            code    = ::mmioGetInfo(hmmioOut, &mmioinfoOut, 0);
+        if (code != 0)
+        {
+            ::mmioClose(hmmioOut);
+            return STATUS_IO_ERROR;
+        }
+
+        // Allocate temporary buffer
+        temporary_buffer_t *tb  = create_temporary_buffer(pData, from);
+        if (tb == NULL)
+        {
+            ::mmioClose(hmmioOut);
+            return STATUS_NO_MEM;
+        }
+
+        // Write file contents
+        wsize_t frames = max_count;
+        if (from >= pData->nSamples)
+            max_count = 0;
+        else if (max_count > (pData->nSamples - from))
+            max_count = pData->nSamples - from;
+
+        while ((max_count > 0) || (tb->nSize > 0))
+        {
+            // Fill buffer
+            max_count   -=  fill_temporary_buffer(tb, max_count);
+            if (tb->nSize <= 0)
+                continue;
+
+            // Write temporary buffer
+            size_t offset = 0;
+            while (offset < tb->nSize)
+            {
+                // Write buffer to file
+                size_t to_write     = reinterpret_cast<uint8_t *>(pmmioinfoOut->pchEndWrite)
+                                        - reinterpret_cast<uint8_t *>(pmmioinfoOut->pchNext);
+                if (to_write <= 0) // We need to flush output buffer ?
+                {
+                    pmmioinfoOut->dwFlags |= MMIO_DIRTY;
+                    code    = ::mmioAdvance(hmmioOut, &mmioinfoOut, MMIO_WRITE);
+                    if (code != 0)
+                    {
+                        destroy_temporary_buffer(tb);
+                        ::mmioClose(hmmioOut);
+                        return STATUS_IO_ERROR;
+                    }
+
+                    to_write     = pmmioinfoOut->pchEndWrite - pmmioinfoOut->pchNext;
+                }
+
+                // Fill buffer with new data
+                size_t bytes    = tb->nSize - offset;
+                if (to_write > bytes)
+                    to_write        = bytes;
+                uint8_t *dst    = reinterpret_cast<uint8_t *>(pmmioinfoOut->pchNext);
+                ::memcpy(pmmioinfoOut->pchNext, &tb->bData[offset], to_write);
+                pmmioinfoOut->pchNext       = reinterpret_cast<HPSTR>(dst + to_write);
+                offset         += to_write;
+            }
+
+            // Clear size of temporary buffer
+            tb->nSize   = 0;
+        }
+
+        // Destroy temporary buffer and flush file contents
+        destroy_temporary_buffer(tb);
+        pmmioinfoOut->dwFlags |= MMIO_DIRTY;
+        if ((code = ::mmioSetInfo(*phmmioOut, &mmioinfoOut, 0)) != 0)
+        {
+            ::mmioClose(hmmioOut);
+            return STATUS_IO_ERROR;
+        }
+
+        // Close file and complete write
+        return complete_riff_file(&hmmioOut, &ckOut, &ckOutRIFF, &mmioinfoOut, max_count);
+    }
 #else
 
     static status_t decode_sf_error(SNDFILE *fd)
@@ -1495,15 +1757,15 @@ namespace lsp
         }
     }
 
-    status_t AudioFile::load_sndfile(const char *path, float max_duration)
+    status_t AudioFile::load_sndfile(const LSPString *path, float max_duration)
     {
         // Load sound file
         SNDFILE *sf_obj;
         SF_INFO sf_info;
 
         // Open sound file
-        lsp_trace("loading file: %s\n", path);
-        if ((sf_obj = sf_open(path, SFM_READ, &sf_info)) == NULL)
+        lsp_trace("loading file: %s\n", path->get_native());
+        if ((sf_obj = sf_open(path->get_native(), SFM_READ, &sf_info)) == NULL)
             return decode_sf_error(sf_obj);
 
         // Read sample file
@@ -1578,7 +1840,7 @@ namespace lsp
         return STATUS_OK;
     }
 
-    status_t AudioFile::store_samples(const LSPString *path, size_t from, size_t max_count)
+    status_t AudioFile::save_sndfile(const LSPString *path, size_t from, size_t max_count)
     {
         if (pData == NULL)
             return STATUS_NO_DATA;

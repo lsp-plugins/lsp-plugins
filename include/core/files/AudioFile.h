@@ -55,12 +55,16 @@ namespace lsp
             status_t complex_upsample(size_t new_sample_rate);
             status_t complex_downsample(size_t new_sample_rate);
 
-            status_t load_lspc(const char *path, float max_duration);
+            status_t load_lspc(const LSPString *path, float max_duration);
 
         #ifdef PLATFORM_WINDOWS
             status_t load_mfapi(const LSPString *path, float max_duration);
+            status_t save_mfapi(const LSPString *path, size_t from, size_t max_count);
+            status_t load_mmio(const LSPString *path, float max_duration);
+            status_t save_mmio(const LSPString *path, size_t from, size_t max_count);
         #else
-            status_t load_sndfile(const char *path, float max_duration);
+            status_t load_sndfile(const LSPString *path, float max_duration);
+            status_t save_sndfile(const LSPString *path, size_t from, size_t max_count);
         #endif /* PLATFORM_WINDOWS */
 
         public:
