@@ -1636,7 +1636,7 @@ namespace lsp
         int             code;
 
         // Initialize format descriptor
-        fmt.wFormatTag      = WAVE_FORMAT_PCM;
+        fmt.wFormatTag      = WAVE_FORMAT_IEEE_FLOAT;
         fmt.nChannels       = pData->nChannels;
         fmt.nSamplesPerSec  = pData->nSampleRate;
         fmt.nAvgBytesPerSec = pData->nChannels * pData->nSampleRate * sizeof(float);
