@@ -1691,6 +1691,9 @@ namespace lsp
             if (tb->nSize <= 0)
                 continue;
 
+            // Data is little-endian
+            IF_ARCH_BE( byte_swap(reinterpret_cast<uint32_t *>(tb->bData), tb->nSize/sizeof(float)); )
+
             // Write temporary buffer
             size_t offset = 0;
             while (offset < tb->nSize)
