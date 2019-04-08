@@ -15,6 +15,11 @@
 #include <core/alloc.h>
 
 #ifdef PLATFORM_WINDOWS
+/*
+  Need to implement MMIO support
+  https://github.com/Microsoft/Windows-classic-samples/blob/master/Samples/Win7Samples/multimedia/directshow/dmo/dmodemo/wave.c
+ */
+
     #include <shtypes.h>
     #include <shlwapi.h>
     #ifdef __cplusplus
