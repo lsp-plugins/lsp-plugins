@@ -38,7 +38,7 @@
     #include <mferror.h>
     #include <mfreadwrite.h>
 
-    #include <msystem.h>
+    #include <mmsystem.h>
 
 // Define some missing values from GNU <mfidl.h>
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
@@ -533,7 +533,7 @@ namespace lsp
 
         #ifdef PLATFORM_WINDOWS
             status_t res = save_mfapi(path, from, max_count);
-            if (res != STATUS_OK)
+            if (res == STATUS_BAD_FORMAT)
                 res = save_mmio(path, from, max_count);
         #else
             status_t res = save_sndfile(path, from, max_count);
@@ -1068,69 +1068,68 @@ namespace lsp
         MMCKINFO ckOut1;
         DWORD dwFactChunk = DWORD(-1);
 
-        HMMIO fd = ::mmioOpenW(path, NULL, MMIO_ALLOCBUF | MMIO_READWRITE | MMIO_CREATE);
+        HMMIO fd = ::mmioOpenW(const_cast<WCHAR *>(path), NULL, MMIO_ALLOCBUF | MMIO_READWRITE | MMIO_CREATE);
         if (fd == NULL)
             return STATUS_IO_ERROR;
 
         // Create the output file RIFF chunk of form type 'WAVE'
-        pckOutRIFF->fccType    = ::mmioFOURCC('W', 'A', 'V', 'E');
+        pckOutRIFF->fccType    = mmioFOURCC('W', 'A', 'V', 'E');
         pckOutRIFF->cksize     = 0;
-        if ((code = ::mmioCreateChunk(*phmmioOut, pckOutRIFF, MMIO_CREATERIFF)) != 0)
+        if ((code = ::mmioCreateChunk(fd, pckOutRIFF, MMIO_CREATERIFF)) != 0)
         {
-            ::mmioClose(fd);
+            ::mmioClose(fd, 0);
             return STATUS_IO_ERROR;
         }
 
         // Now create the 'fmt ' chunk. Since we know the size of this chunk,
-        pckOut->ckid    = ::mmioFOURCC('f', 'm', 't', ' ');
+        pckOut->ckid    = mmioFOURCC('f', 'm', 't', ' ');
         pckOut->cksize  = sizeof(PCMWAVEFORMAT);   // we know the size of this ck.
-        if ((code = mmioCreateChunk(*phmmioOut, pckOut, 0)) != 0)
+        if ((code = mmioCreateChunk(fd, pckOut, 0)) != 0)
         {
-            ::mmioClose(fd);
+            ::mmioClose(fd, 0);
             return STATUS_IO_ERROR;
         }
 
         // Write the PCMWAVEFORMAT structure to the 'fmt ' chunk
-        written = ::mmioWrite(*phmmioOut, reinterpret_cast<HPSTR>(pwfxDest), sizeof(PCMWAVEFORMAT));
+        written = ::mmioWrite(fd, reinterpret_cast<HPSTR>(pwfxDest), sizeof(PCMWAVEFORMAT));
         if (written != sizeof(PCMWAVEFORMAT))
         {
-            ::mmioClose(fd);
+            ::mmioClose(fd, 0);
             return STATUS_IO_ERROR;
         }
 
         // Ascend out of the 'fmt ' chunk, back into the 'RIFF' chunk.
-        if ((code = ::mmioAscend(*phmmioOut, pckOut, 0)) != 0)
+        if ((code = ::mmioAscend(fd, pckOut, 0)) != 0)
         {
-            ::mmioClose(fd);
+            ::mmioClose(fd, 0);
             return STATUS_IO_ERROR;
         }
 
         // Now create the fact chunk, not required for PCM but nice to have.
-        ckOut1.ckid     = ::mmioFOURCC('f', 'a', 'c', 't');
+        ckOut1.ckid     = mmioFOURCC('f', 'a', 'c', 't');
         ckOut1.cksize   = 0;
-        if ((code = ::mmioCreateChunk(*phmmioOut, &ckOut1, 0)) != 0)
+        if ((code = ::mmioCreateChunk(fd, &ckOut1, 0)) != 0)
         {
-            ::mmioClose(fd);
+            ::mmioClose(fd, 0);
             return STATUS_IO_ERROR;
         }
 
-        written = ::mmioWrite(*phmmioOut, reinterpret_cast<HPSTR>(&dwFactChunk), sizeof(dwFactChunk));
+        written = ::mmioWrite(fd, reinterpret_cast<HPSTR>(&dwFactChunk), sizeof(dwFactChunk));
         if (written != sizeof(dwFactChunk))
         {
-            ::mmioClose(fd);
+            ::mmioClose(fd, 0);
             return STATUS_IO_ERROR;
         }
 
         // Now ascend out of the fact chunk...
-        if ((code = ::mmioAscend(*phmmioOut, &ckOut1, 0)) != 0)
+        if ((code = ::mmioAscend(fd, &ckOut1, 0)) != 0)
         {
-            ::mmioClose(fd);
+            ::mmioClose(fd, 0);
             return STATUS_IO_ERROR;
         }
 
         // Save pointer and return success status
         *phmmioOut = fd;
-
         return STATUS_OK;
     }
 
@@ -1148,14 +1147,14 @@ namespace lsp
         // this will cause the chunk size of the 'data' chunk to be written.
         if ((code = ::mmioAscend(*phmmioOut, pckOut, 0)) != 0)
         {
-            ::mmioClose(*phmmioOut);
+            ::mmioClose(*phmmioOut, 0);
             return STATUS_IO_ERROR;
         }
 
         // Do this here instead...
         if ((code = ::mmioAscend(*phmmioOut, pckOutRIFF, 0)) != 0)
         {
-            ::mmioClose(*phmmioOut);
+            ::mmioClose(*phmmioOut, 0);
             return STATUS_IO_ERROR;
         }
 
@@ -1163,12 +1162,12 @@ namespace lsp
         code = ::mmioSeek(*phmmioOut, 0, SEEK_SET);
         if ((code = int(::mmioDescend(*phmmioOut, pckOutRIFF, NULL, 0))) != 0)
         {
-            ::mmioClose(*phmmioOut);
+            ::mmioClose(*phmmioOut, 0);
             return STATUS_IO_ERROR;
         }
 
         // Update fact
-        pckOut->ckid = ::mmioFOURCC('f', 'a', 'c', 't');
+        pckOut->ckid = mmioFOURCC('f', 'a', 'c', 't');
         if ((code = ::mmioDescend(*phmmioOut, pckOut, pckOutRIFF, MMIO_FINDCHUNK)) == 0)
         {
             DWORD cSamples = CPU_TO_LE(DWORD(samples));
@@ -1178,12 +1177,12 @@ namespace lsp
 
         if ((code = ::mmioAscend(*phmmioOut, pckOutRIFF, 0)) != 0)
         {
-            ::mmioClose(*phmmioOut);
+            ::mmioClose(*phmmioOut, 0);
             return STATUS_IO_ERROR;
         }
 
         // Close MMIO and return
-        ::mmioClose(*phmmioOut);
+        ::mmioClose(*phmmioOut, 0);
         return STATUS_OK;
     }
 
@@ -1512,7 +1511,7 @@ namespace lsp
         hr = ::MFCreateSinkWriterFromURL(wpath, NULL, pAttributes, &pSinkWriter);
         pAttributes->Release();
         if (!SUCCEEDED(hr))
-            return STATUS_UNKNOWN_ERR;
+            return STATUS_BAD_FORMAT;
 
         // Initialize media type
         IMFMediaType    *pMediaType = NULL;
@@ -1632,7 +1631,6 @@ namespace lsp
         MMCKINFO        ckOut;
         MMCKINFO        ckOutRIFF;
         MMIOINFO        mmioinfoOut;
-        UINT            cbActualWrite;
         int             code;
 
         // Initialize format descriptor
@@ -1658,14 +1656,14 @@ namespace lsp
             return res;
 
         // Create the 'data' chunk that holds the waveform samples.
-        ckOut.ckid          = ::mmioFOURCC('d', 'a', 't', 'a');
+        ckOut.ckid          = mmioFOURCC('d', 'a', 't', 'a');
         ckOut.cksize        = 0;
-        code    = ::mmioCreateChunk(hmmioOut, &ckOut, 0)
+        code    = ::mmioCreateChunk(hmmioOut, &ckOut, 0);
         if (code == 0)
             code    = ::mmioGetInfo(hmmioOut, &mmioinfoOut, 0);
         if (code != 0)
         {
-            ::mmioClose(hmmioOut);
+            ::mmioClose(hmmioOut, 0);
             return STATUS_IO_ERROR;
         }
 
@@ -1673,73 +1671,72 @@ namespace lsp
         temporary_buffer_t *tb  = create_temporary_buffer(pData, from);
         if (tb == NULL)
         {
-            ::mmioClose(hmmioOut);
+            ::mmioClose(hmmioOut, 0);
             return STATUS_NO_MEM;
         }
 
         // Write file contents
-        wsize_t frames = max_count;
-        if (from >= pData->nSamples)
-            max_count = 0;
-        else if (max_count > (pData->nSamples - from))
-            max_count = pData->nSamples - from;
+        size_t samples = 0;
 
         while ((max_count > 0) || (tb->nSize > 0))
         {
             // Fill buffer
-            max_count   -=  fill_temporary_buffer(tb, max_count);
+            size_t frames   = fill_temporary_buffer(tb, max_count);
+            max_count      -= frames;
             if (tb->nSize <= 0)
                 continue;
 
             // Data is little-endian
-            IF_ARCH_BE( byte_swap(reinterpret_cast<uint32_t *>(tb->bData), tb->nSize/sizeof(float)); )
+            __IF_BE( byte_swap(reinterpret_cast<uint32_t *>(tb->bData), tb->nSize/sizeof(float)); )
 
             // Write temporary buffer
             size_t offset = 0;
             while (offset < tb->nSize)
             {
                 // Write buffer to file
-                size_t to_write     = reinterpret_cast<uint8_t *>(pmmioinfoOut->pchEndWrite)
-                                        - reinterpret_cast<uint8_t *>(pmmioinfoOut->pchNext);
+                size_t to_write     = reinterpret_cast<uint8_t *>(mmioinfoOut.pchEndWrite)
+                                    - reinterpret_cast<uint8_t *>(mmioinfoOut.pchNext);
                 if (to_write <= 0) // We need to flush output buffer ?
                 {
-                    pmmioinfoOut->dwFlags |= MMIO_DIRTY;
+                    mmioinfoOut.dwFlags |= MMIO_DIRTY;
                     code    = ::mmioAdvance(hmmioOut, &mmioinfoOut, MMIO_WRITE);
                     if (code != 0)
                     {
                         destroy_temporary_buffer(tb);
-                        ::mmioClose(hmmioOut);
+                        ::mmioClose(hmmioOut, 0);
                         return STATUS_IO_ERROR;
                     }
 
-                    to_write     = pmmioinfoOut->pchEndWrite - pmmioinfoOut->pchNext;
+                    to_write            = reinterpret_cast<uint8_t *>(mmioinfoOut.pchEndWrite)
+                                        - reinterpret_cast<uint8_t *>(mmioinfoOut.pchNext);
                 }
 
                 // Fill buffer with new data
                 size_t bytes    = tb->nSize - offset;
                 if (to_write > bytes)
                     to_write        = bytes;
-                uint8_t *dst    = reinterpret_cast<uint8_t *>(pmmioinfoOut->pchNext);
-                ::memcpy(pmmioinfoOut->pchNext, &tb->bData[offset], to_write);
-                pmmioinfoOut->pchNext       = reinterpret_cast<HPSTR>(dst + to_write);
+                uint8_t *dst    = reinterpret_cast<uint8_t *>(mmioinfoOut.pchNext);
+                ::memcpy(dst, &tb->bData[offset], to_write);
+                mmioinfoOut.pchNext = reinterpret_cast<HPSTR>(dst + to_write);
                 offset         += to_write;
             }
 
             // Clear size of temporary buffer
+            samples    += frames;
             tb->nSize   = 0;
         }
 
         // Destroy temporary buffer and flush file contents
         destroy_temporary_buffer(tb);
-        pmmioinfoOut->dwFlags |= MMIO_DIRTY;
-        if ((code = ::mmioSetInfo(*phmmioOut, &mmioinfoOut, 0)) != 0)
+        mmioinfoOut.dwFlags |= MMIO_DIRTY;
+        if ((code = ::mmioSetInfo(hmmioOut, &mmioinfoOut, 0)) != 0)
         {
-            ::mmioClose(hmmioOut);
+            ::mmioClose(hmmioOut, 0);
             return STATUS_IO_ERROR;
         }
 
         // Close file and complete write
-        return complete_riff_file(&hmmioOut, &ckOut, &ckOutRIFF, &mmioinfoOut, max_count);
+        return complete_riff_file(&hmmioOut, &ckOut, &ckOutRIFF, &mmioinfoOut, samples);
     }
 #else
 
