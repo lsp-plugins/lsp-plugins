@@ -518,7 +518,9 @@ namespace lsp
         if (res != STATUS_OK)
         {
             #ifdef PLATFORM_WINDOWS
-                res = load_mfapi(path, max_duration);
+//                res = load_mfapi(path, max_duration);
+//                if (res == STATUS_BAD_FORMAT)
+                    res = load_mmio(path, max_duration);
             #else
                 res = load_sndfile(path, max_duration);
             #endif /* PLATFORM_WINDOWS */
@@ -1133,6 +1135,122 @@ namespace lsp
         return STATUS_OK;
     }
 
+    status_t open_riff_file(
+            const WCHAR *path,
+            HMMIO *phmmioIn,
+            WAVEFORMATEX **ppwfxInfo,
+            MMCKINFO *pckInRIFF
+        )
+    {
+        HMMIO           hmmioIn;
+        MMCKINFO        ckIn;
+        PCMWAVEFORMAT   pcmWaveFormat;
+        int             error;
+
+        if ((hmmioIn = ::mmioOpenW(const_cast<WCHAR *>(path), NULL, MMIO_ALLOCBUF | MMIO_READ)) == NULL)
+            return STATUS_PERMISSION_DENIED;
+
+        if ((error = int(::mmioDescend(hmmioIn, pckInRIFF, NULL, 0))) != 0)
+        {
+            ::mmioClose(hmmioIn, 0);
+            return STATUS_BAD_FORMAT;
+        }
+
+        if ((pckInRIFF->ckid != FOURCC_RIFF) || (pckInRIFF->fccType != mmioFOURCC('W', 'A', 'V', 'E')))
+        {
+            ::mmioClose(hmmioIn, 0);
+            return STATUS_BAD_FORMAT;
+        }
+
+        ckIn.ckid = mmioFOURCC('f', 'm', 't', ' ');
+        if ((error = int(::mmioDescend(hmmioIn, &ckIn, pckInRIFF, MMIO_FINDCHUNK))) != 0)
+        {
+            ::mmioClose(hmmioIn, 0);
+            return STATUS_BAD_FORMAT;
+        }
+
+        // Expect the 'fmt' chunk to be at least as large as sizeof(PCMWAVEFORMAT)
+        if (ckIn.cksize < sizeof(PCMWAVEFORMAT))
+        {
+            ::mmioClose(hmmioIn, 0);
+            return STATUS_BAD_FORMAT;
+        }
+
+        // Read the 'fmt ' chunk
+        size_t bytes = ::mmioRead(hmmioIn, (HPSTR) &pcmWaveFormat, sizeof(PCMWAVEFORMAT));
+        if (bytes != sizeof(PCMWAVEFORMAT))
+        {
+            ::mmioClose(hmmioIn, 0);
+            return STATUS_BAD_FORMAT;
+        }
+
+        // Estimate number of bytes to allocate for the format descriptor
+        WAVEFORMATEX *wfex = NULL;
+
+        if (LE_TO_CPU(pcmWaveFormat.wf.wFormatTag) != WAVE_FORMAT_PCM)
+        {
+            WORD cbSize;
+            size_t alloc = sizeof(WAVEFORMATEX);
+
+            // Read in length of extra bytes.
+            bytes = ::mmioRead(hmmioIn, reinterpret_cast<HPSTR>(&cbSize), sizeof(WORD));
+            if (bytes != sizeof(WORD))
+            {
+                ::mmioClose(hmmioIn, 0);
+                return STATUS_BAD_FORMAT;
+            }
+            alloc += LE_TO_CPU(cbSize);
+
+            // Allocate memory
+            wfex = reinterpret_cast<WAVEFORMATEX *>(::malloc(alloc));
+            if (wfex == NULL)
+            {
+                ::mmioClose(hmmioIn, 0);
+                return STATUS_BAD_FORMAT;
+            }
+
+            // Return back to 'fmt ' chunk
+            if ((error = int(::mmioDescend(hmmioIn, &ckIn, pckInRIFF, MMIO_FINDCHUNK))) != 0)
+            {
+                ::mmioClose(hmmioIn, 0);
+                return STATUS_BAD_FORMAT;
+            }
+
+            // Read the whole structure again
+            bytes = ::mmioRead(hmmioIn, reinterpret_cast<HPSTR>(wfex), alloc);
+            if (bytes != alloc)
+            {
+                ::mmioClose(hmmioIn, 0);
+                return STATUS_BAD_FORMAT;
+            }
+        }
+        else
+        {
+            // Allocate memory
+            wfex = reinterpret_cast<WAVEFORMATEX *>(::malloc(sizeof(WAVEFORMATEX)));
+            if (wfex == NULL)
+            {
+                ::mmioClose(hmmioIn, 0);
+                return STATUS_BAD_FORMAT;
+            }
+            ::memcpy(wfex, &pcmWaveFormat, sizeof(PCMWAVEFORMAT));
+            wfex->cbSize = 0;
+        }
+
+        /* Ascend the input file out of the 'fmt ' chunk. */
+        if ((error = ::mmioAscend(hmmioIn, &ckIn, 0)) != 0)
+        {
+            ::mmioClose(hmmioIn, 0);
+            return STATUS_BAD_FORMAT;
+        }
+
+        // Return success result
+        *phmmioIn   = hmmioIn;
+        *ppwfxInfo  = wfex;
+
+        return STATUS_OK;
+    }
+
     status_t complete_riff_file(
             HMMIO *phmmioOut,
             MMCKINFO *pckOut,
@@ -1738,6 +1856,33 @@ namespace lsp
         // Close file and complete write
         return complete_riff_file(&hmmioOut, &ckOut, &ckOutRIFF, &mmioinfoOut, samples);
     }
+
+    status_t AudioFile::load_mmio(const LSPString *path, float max_duration)
+    {
+        HMMIO               hmmioIn;
+        MMCKINFO            ckInRiff;
+//        MMCKINFO            ckIn;
+        status_t            res;
+        WAVEFORMATEX       *pwfxInfo;
+
+        // Open RIFF file
+        res = open_riff_file(path->get_utf16(), &hmmioIn, &pwfxInfo, &ckInRiff);
+        if (res != STATUS_OK)
+            return res;
+
+        /* TODO:
+        if ((nError = WaveStartDataRead(&hmmioIn, &ckIn, &ckInRiff)) != 0)
+        {
+        }
+
+        if ((nError = WaveReadFile(hmmioIn, ckIn.cksize, *ppbData, &ckIn, &cbActualRead)) != 0)
+        {
+        }
+        */
+
+        return STATUS_OK;
+    }
+
 #else
 
     static status_t decode_sf_error(SNDFILE *fd)
