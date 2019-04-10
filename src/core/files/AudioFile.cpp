@@ -1900,14 +1900,15 @@ namespace lsp
         }
 
         // Some magic with computing
-        size_t bytes    = LE_TO_CPU(ckIn.cksize);
+        size_t bytes            = LE_TO_CPU(ckIn.cksize);
+        size_t channels         = LE_TO_CPU(pwfxInfo->nChannels);
         if (bytes > LE_TO_CPU(ckIn.cksize))
-            bytes = LE_TO_CPU(ckIn.cksize);
-        ckIn.cksize     = CPU_TO_LE(cbDataIn - LE_TO_CPU(bytes));
+            bytes       = LE_TO_CPU(ckIn.cksize);
+        ckIn.cksize             = CPU_TO_LE(cbDataIn - LE_TO_CPU(bytes));
 
         // We are ready to read but first initialize ACM stream
         dstInfo.wFormatTag      = WAVE_FORMAT_IEEE_FLOAT;
-        dstInfo.nChannels       = LE_TO_CPU(pwfxInfo->nChannels);
+        dstInfo.nChannels       = channels;
         dstInfo.nSamplesPerSec  = LE_TO_CPU(pwfxInfo->nSamplesPerSec);
         dstInfo.nAvgBytesPerSec = dstInfo.nSamplesPerSec * dstInfo.nChannels * sizeof(float);
         dstInfo.nBlockAlign     = dstInfo.nCannels * sizeof(float);
@@ -1942,6 +1943,7 @@ namespace lsp
         streamHead.pbSrc            = reinterpret_cast<PBYTE>(::malloc(streamHead.cbSrcLength));
         if (streamHead.pbSrc == NULL)
         {
+            ::acmStreamClose(acmStream, 0);
             ::mmioClose(hmmioIn, 0);
             return STATUS_NO_MEM;
         }
@@ -1950,6 +1952,7 @@ namespace lsp
         if ((error != 0) || (streamHead.cbDstLength <= 0))
         {
             ::free(streamHead.pbSrc);
+            ::acmStreamClose(acmStream, 0);
             ::mmioClose(hmmioIn, 0);
             return STATUS_UNKNOWN_ERR;
         }
@@ -1958,6 +1961,7 @@ namespace lsp
         if (streamHead.pbDstrc == NULL)
         {
             ::free(streamHead.pbSrc);
+            ::acmStreamClose(acmStream, 0);
             ::mmioClose(hmmioIn, 0);
             return STATUS_NO_MEM;
         }
@@ -1966,6 +1970,7 @@ namespace lsp
         {
             ::free(streamHead.pbSrc);
             ::free(streamHead.pbDst);
+            ::acmStreamClose(acmStream, 0);
             ::mmioClose(hmmioIn, 0);
             return STATUS_BAD_FORMAT;
         }
@@ -1973,7 +1978,8 @@ namespace lsp
         // Perform read + decode
         // https://gist.github.com/dweekly/633367
         size_t bread = 0, fread = 0; // Number of bytes read, number of frames read
-        bool eof    = false;
+        bool eof     = false;
+        file_content_t *data;
 
         while (true)
         {
@@ -1981,14 +1987,8 @@ namespace lsp
             if ((max_duration >= 0.0f) && (fread >= samples))
                 break;
 
-            // Is there converted data?
-            if (streamHead.cbDstLengthUsed > 0)
-            {
-
-            }
-
             // Try to maximize input buffer size
-            if (streamHead.cbSrcLength < ACM_INPUT_BUFSIZE)
+            if ((streamHead.cbSrcLength < ACM_INPUT_BUFSIZE) && (!eof))
             {
                 size_t avail    = reinterpret_cast<uint8_t *>(mmioinfoIn.pchEndRead)
                                 - reinterpret_cast<uint8_t *>(mmioinfoIn.pchNext);
@@ -2004,7 +2004,7 @@ namespace lsp
                 }
                 else if (bread >= bytes)
                 {
-                    eof = true;
+                    eof     = true;
                     continue;
                 }
 
@@ -2015,6 +2015,7 @@ namespace lsp
                     ::free(streamHead.pbSrc);
                     ::free(streamHead.pbDst);
                     ::acmStreamUnprepareHeader(acmStream, &streamHead, 0);
+                    ::acmStreamClose(acmStream, 0);
                     ::mmioClose(hmmioIn, 0);
                     return STATUS_BAD_FORMAT;
                 }
@@ -2023,50 +2024,84 @@ namespace lsp
                 bread      += reinterpret_cast<uint8_t *>(mmioinfoIn.pchEndRead)
                             - reinterpret_cast<uint8_t *>(mmioinfoIn.pchNext);
             }
-            else
-            {
-
-            }
-
-            // Is there data in output buffer?
-            if (bsrc < streamHead.cbSrcLength) // Is there data to convert in ACM stream?
+            else if (streamHead.cbSrcLength > 0)
             {
                 // Perform conversion
-                if ((error = ::acmStreamConvert(acmStream, &streamHead, ACM_STREAMCONVERTF_BLOCKALIGN)) != 0)
+                size_t flags = (eof) ? 0 : ACM_STREAMCONVERTF_BLOCKALIGN;
+                if ((error = ::acmStreamConvert(acmStream, &streamHead, flags)) != 0)
                 {
                     ::free(streamHead.pbSrc);
                     ::free(streamHead.pbDst);
+                    ::acmStreamUnprepareHeader(acmStream, &streamHead, 0);
+                    ::acmStreamClose(acmStream, 0);
                     ::mmioClose(hmmioIn, 0);
                     return STATUS_UNKNOWN_ERR;
                 }
-                streamHead.cbSrcLenghtUsed  = 0; // Mark input buffer as empty
+
+                // Advance the input buffer pointer
+                size_t delta = streamHead.cbSrcLength - streamHead.cbSrcUsed;
+                if (delta > 0)
+                    ::memmove(streamHead.cbSrc, &streamHead.cbSrc[streamHead.cbSrcUsed], delta);
+                streamHead.cbSrcLength   = delta;
+                streamHead.cbSrcUsed     = 0;
+
+                // Invalid data at output?
+                size_t frames   = streamHead.cbDstUsed / (sizeof(float) * channels);
+                if ((frames * sizeof(float) * channels) != streamHead.cbDstUsed)
+                {
+                    ::free(streamHead.pbSrc);
+                    ::free(streamHead.pbDst);
+                    ::acmStreamUnprepareHeader(acmStream, &streamHead, 0);
+                    ::acmStreamClose(acmStream, 0);
+                    ::mmioClose(hmmioIn, 0);
+                    return STATUS_CORRUPTED_FILE;
+                }
+
+                // TODO: Commit decoded data to the output file
+                float *samples = reinterpret_cast<float *>(streamHead.cbDst);
+                __IF_BE( dsp::swap_bytes(samples, frames * channels) );
+
+
+
+                // Advance the output buffer pointer
+                size_t delta = streamHead.cbDstUsed - frames * (sizeof(float) * channels);
+                if (delta > 0)
+                    ::memmove(streamHead.cbDst, &streamHead.cbSrc[streamHead.cbSrcUsed], delta);
+                streamHead.cbSrcLength   = delta;
+                streamHead.cbSrcUsed     = 0;
             }
-            else if (streamHead.cbDstLengthUsed > 0) // Is there data for output in ACM stream?
+            else // No more data to convert?
             {
-                streamHead.cbDstLengthUsed = 0; // TODO
-            }
-            else // There is no data in ACM stream, try to read from MMIO stream?
-            {
-                // We have reached end of input?
-                if (bread >= bytes)
-                    break;
-
-
+                eof     = true;
+                break;
             }
         }
 
-        if ((nError = mmioSetInfo(hmmioIn, &mmioinfoIn, 0)) != 0)
+        // Free ACM headers and close ACM stream
+        ::free(streamHead.pbSrc);
+        ::free(streamHead.pbDst);
+        if ((error = ::acmStreamUnprepareHeader(acmStream, &streamHead, 0)) != 0)
         {
-            goto ERROR_CANNOT_READ;
+            ::acmStreamClose(acmStream, 0);
+            ::mmioClose(hmmioIn, 0);
+            return STATUS_UNKNOWN_ERR;
+        }
+        if ((error = ::acmStreamUnprepareHeader(acmStream, &streamHead, 0)) != 0)
+        {
+            ::mmioClose(hmmioIn, 0);
+            return STATUS_UNKNOWN_ERR;
         }
 
-
-        /*
-        if ((nError = WaveReadFile(hmmioIn, ckIn.cksize, *ppbData, &ckIn, &cbActualRead)) != 0)
+        // Complete reading
+        if ((error = ::mmioSetInfo(hmmioIn, &mmioinfoIn, 0)) != 0)
         {
+            ::mmioClose(hmmioIn, 0);
+            return STATUS_IO_ERROR;
         }
-        */
+        if ((error = ::mmioClose(hmmioIn, 0)) != 0)
+            return STATUS_IO_ERROR;
 
+        // Success read, TODO: update state to valid
         return STATUS_OK;
     }
 
