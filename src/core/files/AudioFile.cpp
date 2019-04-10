@@ -67,6 +67,7 @@
 
 #define TMP_BUFFER_SIZE         1024
 #define RESAMPLING_PERIODS      8
+#define ACM_INPUT_BUFSIZE       0x1000
 
 namespace lsp
 {
@@ -1860,21 +1861,207 @@ namespace lsp
     status_t AudioFile::load_mmio(const LSPString *path, float max_duration)
     {
         HMMIO               hmmioIn;
+        MMIOINFO            mmioInfoIn;
         MMCKINFO            ckInRiff;
-//        MMCKINFO            ckIn;
+        MMCKINFO            ckIn;
+        int                 error;
         status_t            res;
         WAVEFORMATEX       *pwfxInfo;
+        WAVEFORMATEX        dstInfo;
+        HACMSTREAM          acmStream;
 
         // Open RIFF file
         res = open_riff_file(path->get_utf16(), &hmmioIn, &pwfxInfo, &ckInRiff);
         if (res != STATUS_OK)
             return res;
 
-        /* TODO:
-        if ((nError = WaveStartDataRead(&hmmioIn, &ckIn, &ckInRiff)) != 0)
+        // Estimate maximum number of samples to read
+        size_t srate        = LE_TO_CPU(pwfxInfo->nSamplesPerSec);
+        size_t samples      = (max_duration >= 0.0f) ? seconds_to_samples(srate, max_duration) : size_t(-1);
+        lsp_trace("file parameters: frames=%d, channels=%d, sample_rate=%d max_duration=%.3f\n, max_samples=%d",
+            int(sf_info.frames), int(sf_info.channels), int(sf_info.samplerate), max_duration, int(max_samples));
+
+        // Perform a seek to data
+        if ((error = ::mmioSeek(hmmioIn, pckInRIFF->dwDataOffset + sizeof(FOURCC), SEEK_SET)) == -1)
         {
+            ::mmioClose(hmmioIn, 0);
+            return STATUS_BAD_FORMAT;
+        }
+        ckIn.ckid   = mmioFOURCC('d', 'a', 't', 'a');
+        if ((error = ::mmioDescend(hmmioIn, &ckIn, &ckInRIFF, MMIO_FINDCHUNK)) != 0)
+        {
+            ::mmioClose(hmmioIn, 0);
+            return STATUS_BAD_FORMAT;
+        }
+        if ((error = ::mmioGetInfo(hmmioIn, &mmioinfoIn, 0)) != 0)
+        {
+            ::mmioClose(hmmioIn, 0);
+            return STATUS_IO_ERROR;
         }
 
+        // Some magic with computing
+        size_t bytes    = LE_TO_CPU(ckIn.cksize);
+        if (bytes > LE_TO_CPU(ckIn.cksize))
+            bytes = LE_TO_CPU(ckIn.cksize);
+        ckIn.cksize     = CPU_TO_LE(cbDataIn - LE_TO_CPU(bytes));
+
+        // We are ready to read but first initialize ACM stream
+        dstInfo.wFormatTag      = WAVE_FORMAT_IEEE_FLOAT;
+        dstInfo.nChannels       = LE_TO_CPU(pwfxInfo->nChannels);
+        dstInfo.nSamplesPerSec  = LE_TO_CPU(pwfxInfo->nSamplesPerSec);
+        dstInfo.nAvgBytesPerSec = dstInfo.nSamplesPerSec * dstInfo.nChannels * sizeof(float);
+        dstInfo.nBlockAlign     = dstInfo.nCannels * sizeof(float);
+        dstInfo.nBitsPerSample  = sizeof(float) * 8;
+        dstInfo.cbSize          = 0;
+
+        dstInfo.wFormatTag      = CPU_TO_LE(dstInfo.wFormatTag);
+        dstInfo.nChannels       = CPU_TO_LE(dstInfo.nChannels);
+        dstInfo.nSamplesPerSec  = CPU_TO_LE(dstInfo.nSamplesPerSec);
+        dstInfo.nAvgBytesPerSec = CPU_TO_LE(dstInfo.nAvgBytesPerSec);
+        dstInfo.nBlockAlign     = CPU_TO_LE(dstInfo.nBlockAlign);
+        dstInfo.wBitsPerSample  = CPU_TO_LE(dstInfo.wBitsPerSample);
+        dstInfo.cbSize          = CPU_TO_LE(dstInfo.cbSize);
+
+        // Open and configure ACM stream
+        if ((error = ::acmStreamOpen(&acmStream, NULL, pwfxInfo, &dstInfo, NULL, NULL, NULL, ACM_STREAMOPENF_NONREALTIME)) != 0)
+        {
+            ::mmioClose(hmmioIn, 0);
+            switch (error)
+            {
+                case ACMERR_NOTPOSSIBLE: return STATUS_BAD_FORMAT;
+                case STATUS_NO_MEM: return STATUS_NO_MEM;
+                default: return STATUS_UNKNOWN_ERR;
+            }
+        }
+
+        ACMSTREAMHEADER streamHead;
+        ::memset(&streamHead, sizeof(ACMSTREAMHEADER));
+
+        streamHead.cbStruct         = sizeof(ACMSTREAMHEADER);
+        streamHead.cbSrcLength      = ACM_INPUT_BUFSIZE;
+        streamHead.pbSrc            = reinterpret_cast<PBYTE>(::malloc(streamHead.cbSrcLength));
+        if (streamHead.pbSrc == NULL)
+        {
+            ::mmioClose(hmmioIn, 0);
+            return STATUS_NO_MEM;
+        }
+
+        error = ::acmStreamSize(acmStream, ACM_INPUT_BUFSIZE, &streamHead.cbDstLength, ACM_STREAMSIZEF_SOURCE);
+        if ((error != 0) || (streamHead.cbDstLength <= 0))
+        {
+            ::free(streamHead.pbSrc);
+            ::mmioClose(hmmioIn, 0);
+            return STATUS_UNKNOWN_ERR;
+        }
+
+        streamHead.pbDst            = reinterpret_cast<PBYTE>(::malloc(streamHead.cbDstLength));
+        if (streamHead.pbDstrc == NULL)
+        {
+            ::free(streamHead.pbSrc);
+            ::mmioClose(hmmioIn, 0);
+            return STATUS_NO_MEM;
+        }
+
+        if ((error = acmStreamPrepareHeader( acmStream, &streamHead, 0 )) != 0)
+        {
+            ::free(streamHead.pbSrc);
+            ::free(streamHead.pbDst);
+            ::mmioClose(hmmioIn, 0);
+            return STATUS_BAD_FORMAT;
+        }
+
+        // Perform read + decode
+        // https://gist.github.com/dweekly/633367
+        size_t bread = 0, fread = 0; // Number of bytes read, number of frames read
+        bool eof    = false;
+
+        while (true)
+        {
+            // We have read enough data?
+            if ((max_duration >= 0.0f) && (fread >= samples))
+                break;
+
+            // Is there converted data?
+            if (streamHead.cbDstLengthUsed > 0)
+            {
+
+            }
+
+            // Try to maximize input buffer size
+            if (streamHead.cbSrcLength < ACM_INPUT_BUFSIZE)
+            {
+                size_t avail    = reinterpret_cast<uint8_t *>(mmioinfoIn.pchEndRead)
+                                - reinterpret_cast<uint8_t *>(mmioinfoIn.pchNext);
+                if (avail > 0)
+                {
+                    // Fill buffer
+                    size_t to_copy      = ACM_INPUT_BUFSIZE - acmStream.cbSrcLength;
+                    if (to_copy > avail)
+                        to_copy     = avail;
+                    ::memcpy(&acmStream.pbSrc[acmStream.cbSrcLength], mmioInfoIn.pchNext, to_copy);
+                    mmioInfoIn.pchNext  = reinterpret_cast<HPSTR>(reinterpret_cast<uint8_t *>(mmioinfoIn.pchNext) + to_copy);
+                    continue;
+                }
+                else if (bread >= bytes)
+                {
+                    eof = true;
+                    continue;
+                }
+
+                // Try to read from MMIO
+                error = ::mmioAdvance(hmmioIn, &mmioInfoIn, MMIO_READ);
+                if ((error != 0) || (mmioinfoIn.pchNext == mmioinfoIn.pchEndRead))
+                {
+                    ::free(streamHead.pbSrc);
+                    ::free(streamHead.pbDst);
+                    ::acmStreamUnprepareHeader(acmStream, &streamHead, 0);
+                    ::mmioClose(hmmioIn, 0);
+                    return STATUS_BAD_FORMAT;
+                }
+
+                // Update number of bytes read from RIFF file
+                bread      += reinterpret_cast<uint8_t *>(mmioinfoIn.pchEndRead)
+                            - reinterpret_cast<uint8_t *>(mmioinfoIn.pchNext);
+            }
+            else
+            {
+
+            }
+
+            // Is there data in output buffer?
+            if (bsrc < streamHead.cbSrcLength) // Is there data to convert in ACM stream?
+            {
+                // Perform conversion
+                if ((error = ::acmStreamConvert(acmStream, &streamHead, ACM_STREAMCONVERTF_BLOCKALIGN)) != 0)
+                {
+                    ::free(streamHead.pbSrc);
+                    ::free(streamHead.pbDst);
+                    ::mmioClose(hmmioIn, 0);
+                    return STATUS_UNKNOWN_ERR;
+                }
+                streamHead.cbSrcLenghtUsed  = 0; // Mark input buffer as empty
+            }
+            else if (streamHead.cbDstLengthUsed > 0) // Is there data for output in ACM stream?
+            {
+                streamHead.cbDstLengthUsed = 0; // TODO
+            }
+            else // There is no data in ACM stream, try to read from MMIO stream?
+            {
+                // We have reached end of input?
+                if (bread >= bytes)
+                    break;
+
+
+            }
+        }
+
+        if ((nError = mmioSetInfo(hmmioIn, &mmioinfoIn, 0)) != 0)
+        {
+            goto ERROR_CANNOT_READ;
+        }
+
+
+        /*
         if ((nError = WaveReadFile(hmmioIn, ckIn.cksize, *ppbData, &ckIn, &cbActualRead)) != 0)
         {
         }
