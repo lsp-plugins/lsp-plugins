@@ -43,6 +43,7 @@ namespace lsp
 
         protected:
             static file_content_t *create_file_content(size_t channels, size_t samples);
+            static file_content_t *grow_file_content(file_content_t *src, size_t samples);
             static void destroy_file_content(file_content_t *content);
 
             static temporary_buffer_t *create_temporary_buffer(file_content_t *content, size_t from = 0);

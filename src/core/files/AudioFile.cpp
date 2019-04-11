@@ -135,6 +135,29 @@ namespace lsp
         return ct;
     }
 
+    AudioFile::file_content_t *AudioFile::grow_file_content(file_content_t *src, size_t samples)
+    {
+        // We have enough space to store samples?
+        if (src->nSamples >= samples)
+            return src;
+
+        // Allocate new file content
+        size_t new_cap = src->nSamples + (src->nSamples >> 1);
+        if (new_cap < samples)
+            new_cap     = samples + (samples >> 1);
+        file_content_t *dst = create_file_content(src->nSamples, new_cap);
+        if (dst == NULL)
+            return NULL;
+
+        // Copy data from previous file content
+        for (size_t i=0; i < src->nChannels; ++i)
+            dsp::copy(dst->vChannels[i], src->vChannels[i], src->nSamples);
+
+        // Drop previously used content and return new content
+        destroy_file_content(src);
+        return dst;
+    }
+
     void AudioFile::destroy_file_content(file_content_t *content)
     {
         if (content != NULL)
@@ -1975,11 +1998,21 @@ namespace lsp
             return STATUS_BAD_FORMAT;
         }
 
+        // Create file content for storage
+        file_content_t *data = create_file_content(data, channels, 1024);
+        if (!data)
+        {
+            ::free(streamHead.pbSrc);
+            ::free(streamHead.pbDst);
+            ::acmStreamClose(acmStream, 0);
+            ::mmioClose(hmmioIn, 0);
+            return STATUS_NO_MEM;
+        }
+
         // Perform read + decode
         // https://gist.github.com/dweekly/633367
         size_t bread = 0, fread = 0; // Number of bytes read, number of frames read
         bool eof     = false;
-        file_content_t *data;
 
         while (true)
         {
@@ -2012,6 +2045,7 @@ namespace lsp
                 error = ::mmioAdvance(hmmioIn, &mmioInfoIn, MMIO_READ);
                 if ((error != 0) || (mmioinfoIn.pchNext == mmioinfoIn.pchEndRead))
                 {
+                    destroy_file_content(data);
                     ::free(streamHead.pbSrc);
                     ::free(streamHead.pbDst);
                     ::acmStreamUnprepareHeader(acmStream, &streamHead, 0);
@@ -2030,6 +2064,7 @@ namespace lsp
                 size_t flags = (eof) ? 0 : ACM_STREAMCONVERTF_BLOCKALIGN;
                 if ((error = ::acmStreamConvert(acmStream, &streamHead, flags)) != 0)
                 {
+                    destroy_file_content(data);
                     ::free(streamHead.pbSrc);
                     ::free(streamHead.pbDst);
                     ::acmStreamUnprepareHeader(acmStream, &streamHead, 0);
@@ -2049,6 +2084,7 @@ namespace lsp
                 size_t frames   = streamHead.cbDstUsed / (sizeof(float) * channels);
                 if ((frames * sizeof(float) * channels) != streamHead.cbDstUsed)
                 {
+                    destroy_file_content(data);
                     ::free(streamHead.pbSrc);
                     ::free(streamHead.pbDst);
                     ::acmStreamUnprepareHeader(acmStream, &streamHead, 0);
@@ -2057,11 +2093,36 @@ namespace lsp
                     return STATUS_CORRUPTED_FILE;
                 }
 
-                // TODO: Commit decoded data to the output file
-                float *samples = reinterpret_cast<float *>(streamHead.cbDst);
-                __IF_BE( dsp::swap_bytes(samples, frames * channels) );
+                // Commit decoded data to the output file
+                float *fsamples = reinterpret_cast<float *>(streamHead.cbDst);
+                __IF_BE( dsp::swap_bytes(fsamples, frames * channels) );
+                if ((max_duration >= 0.0f) && (frames > samples))
+                    frames      = samples;
+                size_t nfread       = fread + frames;
 
+                // Ensure that we have enough space for growing
+                file_content_t *ndata   = grow_file_content(data, nfread);
+                if (ndata == NULL)
+                {
+                    destroy_file_content(data);
+                    ::free(streamHead.pbSrc);
+                    ::free(streamHead.pbDst);
+                    ::acmStreamUnprepareHeader(acmStream, &streamHead, 0);
+                    ::acmStreamClose(acmStream, 0);
+                    ::mmioClose(hmmioIn, 0);
+                    return STATUS_NO_MEM;
+                }
+                data        = ndata;
 
+                // Process each frame (de-interleave)
+                for (size_t i=0; i<channels; ++i)
+                {
+                    const float *src = &fsamples[i];
+                    float *dst = data->vChannels[i];
+                    for (size_t j=0; j<frames; ++j, src += channels, ++dst)
+                        *dst = *src;
+                }
+                fread       = nfread; // Update number of read frames
 
                 // Advance the output buffer pointer
                 size_t delta = streamHead.cbDstUsed - frames * (sizeof(float) * channels);
@@ -2082,12 +2143,14 @@ namespace lsp
         ::free(streamHead.pbDst);
         if ((error = ::acmStreamUnprepareHeader(acmStream, &streamHead, 0)) != 0)
         {
+            destroy_file_content(data);
             ::acmStreamClose(acmStream, 0);
             ::mmioClose(hmmioIn, 0);
             return STATUS_UNKNOWN_ERR;
         }
         if ((error = ::acmStreamUnprepareHeader(acmStream, &streamHead, 0)) != 0)
         {
+            destroy_file_content(data);
             ::mmioClose(hmmioIn, 0);
             return STATUS_UNKNOWN_ERR;
         }
@@ -2095,13 +2158,21 @@ namespace lsp
         // Complete reading
         if ((error = ::mmioSetInfo(hmmioIn, &mmioinfoIn, 0)) != 0)
         {
+            destroy_file_content(data);
             ::mmioClose(hmmioIn, 0);
             return STATUS_IO_ERROR;
         }
         if ((error = ::mmioClose(hmmioIn, 0)) != 0)
+        {
+            destroy_file_content(data);
             return STATUS_IO_ERROR;
+        }
 
-        // Success read, TODO: update state to valid
+        // Success read, destroy previously used content and store new
+        if (pData != NULL)
+            destroy_file_content(pData);
+        pData               = fc;
+
         return STATUS_OK;
     }
 
