@@ -48,7 +48,7 @@ namespace asimd // TODO: make constants common for all architectures
 
 #include <dsp/arch/aarch64/asimd/copy.h>
 
-#define EXPORT2(function, export)           dsp::function = neon_d32::export; TEST_EXPORT(neon_d32::export);
+#define EXPORT2(function, export)           dsp::function = asimd::export; TEST_EXPORT(asimd::export);
 #define EXPORT1(function)                   EXPORT2(function, function)
 
 #undef DSP_ARCH_AARCH64_ASIMD_IMPL

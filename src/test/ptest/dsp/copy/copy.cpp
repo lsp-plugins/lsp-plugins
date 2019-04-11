@@ -121,7 +121,7 @@ PTEST_BEGIN("dsp.copy", copy, 5, 1000)
             IF_ARCH_ARM(call("neon_d32::move", out, in, count, neon_d32::move));
 
             IF_ARCH_AARCH64(call("asimd::copy", out, in, count, asimd::copy));
-            IF_ARCH_AARCH64(call("asimd::move", out, in, count, asimd::move));
+//            IF_ARCH_AARCH64(call("asimd::move", out, in, count, asimd::move));
 
             PTEST_SEPARATOR;
         }

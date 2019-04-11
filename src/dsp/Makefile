@@ -21,7 +21,7 @@ SSE4_INSTR_SET          = $(SSE_INSTR_SET) -msse4.1 -msse4.2
 AVX_INSTR_SET           = -mavx
 AVX2_INSTR_SET          = -mavx -mavx2
 NEON_D32_INSTR_SET      = -mfpu=neon-vfpv4
-ASIMD_INSTR_SET      	= -march=simd
+ASIMD_INSTR_SET      	= -march=armv8-a+simd
 
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 LINK_OBJECTS            = $(DSP_IMPL) $(BITS_IMPL) $(NATIVE_IMPL)
