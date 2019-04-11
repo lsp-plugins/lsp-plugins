@@ -23,13 +23,13 @@ namespace asimd
         (
             __ASM_EMIT("cmp         %[dst1], %[src1]")
             __ASM_EMIT("b.eq        16f")
-            __ASM_EMIT("subs        %[count], %[count], #0x08")
-            __ASM_EMIT("b.ls        8f")
+            __ASM_EMIT("subs        %[count], %[count], #0x10")
+            __ASM_EMIT("b.lt        8f")
             __ASM_EMIT("add         %[dst2], %[dst1], #0x20")
             __ASM_EMIT("add         %[src2], %[src1], #0x20")
 
             /* 128x block */
-            __ASM_EMIT("adds        %[count], %[count], #0x78") // - 0x80 + 0x08
+            __ASM_EMIT("subs        %[count], %[count], #0x70") // 0x80 - 0x10
             __ASM_EMIT("b.lt        2f")
             __ASM_EMIT("1:")
             __ASM_EMIT("ldp         q0, q1, [%[src1]], #0x40")
