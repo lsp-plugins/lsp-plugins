@@ -12,6 +12,7 @@ DSP_IMPL                = $(OBJDIR)/dsp.o
 BITS_IMPL               = $(OBJDIR)/bits.o
 ARM_IMPL                = $(OBJDIR)/arm.o
 AARCH64_IMPL            = $(OBJDIR)/aarch64.o
+ASIMD_IMPL              = $(OBJDIR)/asimd.o
 
 SSE_INSTR_SET           = -mmmx -m3dnow -msse -msse2
 SSE2_INSTR_SET          = -mmmx -m3dnow -msse -msse2
@@ -20,6 +21,7 @@ SSE4_INSTR_SET          = $(SSE_INSTR_SET) -msse4.1 -msse4.2
 AVX_INSTR_SET           = -mavx
 AVX2_INSTR_SET          = -mavx -mavx2
 NEON_D32_INSTR_SET      = -mfpu=neon-vfpv4
+ASIMD_INSTR_SET      	= -march=simd
 
 FILE                    = $(@:$(OBJDIR)/%.o=%.cpp)
 LINK_OBJECTS            = $(DSP_IMPL) $(BITS_IMPL) $(NATIVE_IMPL)
@@ -35,7 +37,7 @@ ifeq ($(BUILD_PROFILE), armv7a)
 LINK_OBJECTS           += $(ARM_IMPL) $(NEON_D32_IMPL)
 endif
 ifeq ($(BUILD_PROFILE), aarch64)
-LINK_OBJECTS           += $(AARCH64_IMPL)
+LINK_OBJECTS           += $(AARCH64_IMPL) $(ASIMD_IMPL)
 endif
 
 .PHONY: all target
@@ -79,3 +81,8 @@ $(AVX2_IMPL):
 $(NEON_D32_IMPL):
 	@echo "  $(CXX) $(FILE)"
 	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(NEON_D32_INSTR_SET) $(INCLUDE)
+	
+$(ASIMD_IMPL):
+	@echo "  $(CXX) $(FILE)"
+	@$(CXX) -o $(@) -c $(FILE) -fPIC $(CPPFLAGS) $(CXXFLAGS) $(ASIMD_INSTR_SET) $(INCLUDE)
+

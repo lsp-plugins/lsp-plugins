@@ -47,6 +47,14 @@ IF_ARCH_ARM(
     }
 )
 
+IF_ARCH_AARCH64(
+    namespace asimd
+    {
+//        void move(float *dst, const float *src, size_t count);
+        void copy(float *dst, const float *src, size_t count);
+    }
+)
+
 typedef void (* copy_t)(float *dst, const float *src, size_t count);
 
 UTEST_BEGIN("dsp.copy", copy)
@@ -99,15 +107,18 @@ UTEST_BEGIN("dsp.copy", copy)
 
     UTEST_MAIN
     {
-        IF_ARCH_X86(call("copy_movs", 16, native::copy, x86::copy));
-        IF_ARCH_X86(call("copy_sse", 16, native::copy, sse::copy));
-        IF_ARCH_X86(call("copy_movntps", 16, native::copy, sse::copy_movntps));
-        IF_ARCH_X86(call("move_sse", 16, native::move, sse::move));
-        IF_ARCH_X86(call("copy_sse3", 16, native::copy, sse3::copy));
-        IF_ARCH_X86(call("copy_avx", 16, native::copy, avx::copy));
+        IF_ARCH_X86(call("x86::copy", 16, native::copy, x86::copy));
+        IF_ARCH_X86(call("sse::copy", 16, native::copy, sse::copy));
+        IF_ARCH_X86(call("sse::copy_movntps", 16, native::copy, sse::copy_movntps));
+        IF_ARCH_X86(call("sse::move", 16, native::move, sse::move));
+        IF_ARCH_X86(call("sse3::copy", 16, native::copy, sse3::copy));
+        IF_ARCH_X86(call("avx::copy", 16, native::copy, avx::copy));
 
-        IF_ARCH_ARM(call("copy_neon_d32", 16, native::move, neon_d32::copy));
-        IF_ARCH_ARM(call("move_neon_d32", 16, native::move, neon_d32::move));
+        IF_ARCH_ARM(call("neon_d32::copy", 16, native::move, neon_d32::copy));
+        IF_ARCH_ARM(call("neon_d32::move", 16, native::move, neon_d32::move));
+
+        IF_ARCH_AARCH64(call("asimd::copy", 16, native::move, asimd::copy));
+        IF_ARCH_AARCH64(call("asimd::move", 16, native::move, asimd::move));
     }
 
 UTEST_END;

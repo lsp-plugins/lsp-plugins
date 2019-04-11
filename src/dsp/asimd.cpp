@@ -8,7 +8,8 @@
 #include <dsp/dsp.h>
 #include <core/types.h>
 
-//#ifdef ARCH_AARCH64
+#ifdef ARCH_AARCH64
+
 #include <test/test.h>
 #include <dsp/arch/aarch64/features.h>
 
@@ -63,4 +64,6 @@ namespace asimd
         EXPORT1(copy);
     }
 }
+
+#endif /* ARCH_AARCH64 */
 
