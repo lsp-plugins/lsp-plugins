@@ -14,7 +14,7 @@
     #include <sys/auxv.h>
 #endif /* PLATFORM_UNIX */
 
-#ifdef ARCH_AARCH64
+#ifndef ARCH_AARCH64
     /* This is feature definition taken from ARM headers for non-ARM architecture
      * to simply compile from IDE
      */
