@@ -258,6 +258,17 @@ namespace lsp
 
 #pragma pack(pop)
 
+#pragma pack(push, 1)
+    typedef struct bsp_triangle_t: public raw_triangle_t
+    {
+        vector3d_t          n[3];       // Normals
+        color3d_t           c[3];       // Color
+        ssize_t             oid;        // Object identifier
+        size_t              face;       // Face identifier
+        __IF_32(uint32_t    __pad[2];)  // Alignment to be sizeof() multiple of 16
+    } bsp_triangle_t;
+#pragma pack(pop)
+
 #ifdef LSP_DEBUG
     extern const color3d_t C_RED;
     extern const color3d_t C_GREEN;
