@@ -354,55 +354,55 @@ namespace asimd
             __ASM_EMIT("adds        %[count], %[count], #0x20") // + 0x60 - 0x40
             __ASM_EMIT("b.lt        4f")
 
-            __ASM_EMIT("ldp         q0, q1, [%[src1]], #0x40")
-            __ASM_EMIT("ldp         q2, q3, [%[src2]], #0x40")
-            __ASM_EMIT("ldp         q4, q5, [%[src1]], #0x40")
-            __ASM_EMIT("ldp         q6, q7, [%[src2]], #0x40")
-            __ASM_EMIT("ldp         q16, q17, [%[src1]], #0x40")
-            __ASM_EMIT("ldp         q18, q19, [%[src2]], #0x40")
-            __ASM_EMIT("ldp         q20, q21, [%[src1]], #0x40")
-            __ASM_EMIT("ldp         q22, q23, [%[src2]], #0x40")
+            __ASM_EMIT("ldp         q0, q1, [%[src1]], #-0x40")
+            __ASM_EMIT("ldp         q2, q3, [%[src2]], #-0x40")
+            __ASM_EMIT("ldp         q4, q5, [%[src1]], #-0x40")
+            __ASM_EMIT("ldp         q6, q7, [%[src2]], #-0x40")
+            __ASM_EMIT("ldp         q16, q17, [%[src1]], #-0x40")
+            __ASM_EMIT("ldp         q18, q19, [%[src2]], #-0x40")
+            __ASM_EMIT("ldp         q20, q21, [%[src1]], #-0x40")
+            __ASM_EMIT("ldp         q22, q23, [%[src2]], #-0x40")
 
             __ASM_EMIT("sub         %[count], %[count], #0x40")
 
-            __ASM_EMIT("stp         q0, q1, [%[dst1]], #0x40")
-            __ASM_EMIT("stp         q2, q3, [%[dst2]], #0x40")
-            __ASM_EMIT("stp         q4, q5, [%[dst1]], #0x40")
-            __ASM_EMIT("stp         q6, q7, [%[dst2]], #0x40")
-            __ASM_EMIT("stp         q16, q17, [%[dst1]], #0x40")
-            __ASM_EMIT("stp         q18, q19, [%[dst2]], #0x40")
-            __ASM_EMIT("stp         q20, q21, [%[dst1]], #0x40")
-            __ASM_EMIT("stp         q22, q23, [%[dst2]], #0x40")
+            __ASM_EMIT("stp         q0, q1, [%[dst1]], #-0x40")
+            __ASM_EMIT("stp         q2, q3, [%[dst2]], #-0x40")
+            __ASM_EMIT("stp         q4, q5, [%[dst1]], #-0x40")
+            __ASM_EMIT("stp         q6, q7, [%[dst2]], #-0x40")
+            __ASM_EMIT("stp         q16, q17, [%[dst1]], #-0x40")
+            __ASM_EMIT("stp         q18, q19, [%[dst2]], #-0x40")
+            __ASM_EMIT("stp         q20, q21, [%[dst1]], #-0x40")
+            __ASM_EMIT("stp         q22, q23, [%[dst2]], #-0x40")
 
             /* 32x block */
             __ASM_EMIT("4:")
             __ASM_EMIT("adds        %[count], %[count], #0x20") // + 0x40 - 0x20
             __ASM_EMIT("b.lt        6f")
 
-            __ASM_EMIT("ldp         q0, q1, [%[src1]], #0x40")
-            __ASM_EMIT("ldp         q2, q3, [%[src2]], #0x40")
-            __ASM_EMIT("ldp         q4, q5, [%[src1]], #0x40")
-            __ASM_EMIT("ldp         q6, q7, [%[src2]], #0x40")
+            __ASM_EMIT("ldp         q0, q1, [%[src1]], #-0x40")
+            __ASM_EMIT("ldp         q2, q3, [%[src2]], #-0x40")
+            __ASM_EMIT("ldp         q4, q5, [%[src1]], #-0x40")
+            __ASM_EMIT("ldp         q6, q7, [%[src2]], #-0x40")
 
             __ASM_EMIT("sub         %[count], %[count], #0x20")
 
-            __ASM_EMIT("stp         q0, q1, [%[dst1]], #0x40")
-            __ASM_EMIT("stp         q2, q3, [%[dst2]], #0x40")
-            __ASM_EMIT("stp         q4, q5, [%[dst1]], #0x40")
-            __ASM_EMIT("stp         q6, q7, [%[dst2]], #0x40")
+            __ASM_EMIT("stp         q0, q1, [%[dst1]], #-0x40")
+            __ASM_EMIT("stp         q2, q3, [%[dst2]], #-0x40")
+            __ASM_EMIT("stp         q4, q5, [%[dst1]], #-0x40")
+            __ASM_EMIT("stp         q6, q7, [%[dst2]], #-0x40")
 
             /* 16x block */
             __ASM_EMIT("6:")
             __ASM_EMIT("adds        %[count], %[count], #0x10") // + 0x20 - 0x10
-            __ASM_EMIT("b.lt        9f")
+            __ASM_EMIT("b.lt        8f")
 
-            __ASM_EMIT("ldp         q0, q1, [%[src1]], #0x40")
-            __ASM_EMIT("ldp         q2, q3, [%[src2]], #0x40")
+            __ASM_EMIT("ldp         q0, q1, [%[src1]], #-0x40")
+            __ASM_EMIT("ldp         q2, q3, [%[src2]], #-0x40")
 
             __ASM_EMIT("sub         %[count], %[count], #0x10")
 
-            __ASM_EMIT("stp         q0, q1, [%[dst1]], #0x40")
-            __ASM_EMIT("stp         q2, q3, [%[dst2]], #0x40")
+            __ASM_EMIT("stp         q0, q1, [%[dst1]], #-0x40")
+            __ASM_EMIT("stp         q2, q3, [%[dst2]], #-0x40")
 
             /* 8x block */
             __ASM_EMIT("8:")
