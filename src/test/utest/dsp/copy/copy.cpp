@@ -50,7 +50,7 @@ IF_ARCH_ARM(
 IF_ARCH_AARCH64(
     namespace asimd
     {
-//        void move(float *dst, const float *src, size_t count);
+        void move(float *dst, const float *src, size_t count);
         void copy(float *dst, const float *src, size_t count);
     }
 )
@@ -118,7 +118,7 @@ UTEST_BEGIN("dsp.copy", copy)
         IF_ARCH_ARM(call("neon_d32::move", 16, native::move, neon_d32::move));
 
         IF_ARCH_AARCH64(call("asimd::copy", 16, native::move, asimd::copy));
-//        IF_ARCH_AARCH64(call("asimd::move", 16, native::move, asimd::move));
+        IF_ARCH_AARCH64(call("asimd::move", 16, native::move, asimd::move));
     }
 
 UTEST_END;
