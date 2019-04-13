@@ -208,8 +208,8 @@ MTEST_BEGIN("core.util", sync_chirp)
 
     void test_nonlinear_processing(SyncChirpProcessor &sc, size_t order, bool doInnerSmoothing, size_t nFadeIn, size_t nFadeOut, windows::window_t windowType, size_t nWindowRank)
     {
-        status_t readStatus = sc.load_from_lspc("tmp/allData.lspc");
-//        status_t readStatus = sc.load_from_lspc("tmp/test.lspc");
+//        status_t readStatus = sc.load_from_lspc("tmp/allData.lspc");
+        status_t readStatus = sc.load_from_lspc("tmp/test.lspc");
         MTEST_ASSERT(readStatus == STATUS_OK);
 
         if (readStatus != STATUS_OK)
