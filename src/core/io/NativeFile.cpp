@@ -15,6 +15,7 @@
     #include <unistd.h>
     #include <sys/stat.h>
     #include <fcntl.h>
+    #include <errno.h>
 #endif /* PLATFORM_UNIX_COMPATIBLE */
 
 #define BAD_FD      lsp_fhandle_t(-1)
@@ -135,7 +136,26 @@ namespace lsp
 
             lsp_fhandle_t fd    = ::open(path->get_native(), oflags, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
             if (fd < 0)
-                return set_error(STATUS_IO_ERROR);
+            {
+                int code = errno;
+                status_t res = STATUS_IO_ERROR;
+
+                switch (code)
+                {
+                    case EPERM: case EACCES: res = STATUS_PERMISSION_DENIED; break;
+                    case EEXIST: res = STATUS_ALREADY_EXISTS; break;
+                    case EINVAL: res = STATUS_INVALID_VALUE; break;
+                    case EISDIR: res = STATUS_IS_DIRECTORY; break;
+                    case ENAMETOOLONG: res = STATUS_OVERFLOW; break;
+                    case ENOENT: res = STATUS_NOT_FOUND; break;
+                    case ENOMEM: res = STATUS_NO_MEM; break;
+                    case ENOTDIR: res = STATUS_NOT_DIRECTORY; break;
+                    case EROFS: res = STATUS_READONLY; break;
+                    default: break;
+                }
+
+                return set_error(res);
+            }
 
             hFD         = fd;
             nFlags      = fflags | SF_CLOSE;

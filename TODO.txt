@@ -10,16 +10,25 @@
 
 === 1.1.10 ===
 
-- Research the work of plugins under Audacity.
+* Fixed improper InlineDisplay feature support in LV2 TTL files.
+* Plugin names now have 'LSP' prefix for the LV2 format.
+* Added command-line option to pass configuration file name for standalone JACK plugins.
+  The settings stored in configuration file will be automatically loaded at startup.
+* Updated function signatures for libraries which now support '-fvisibility=hidden'
+  compilation flag.
 - Implemented 3D reverb simulator.
-- Implemented sampler plugin series with stereo outputs
+- Added 3D scene rendeding support in the UI.
+- Additional code updates to get compatibility with WindowsNT platform.
+- Research the work of plugins under Audacity.
+- Implemented sampler plugin series with stereo outputs.
 - Added possibility to place direct output to the pre-mixer/post-mixer position in the sampler.
-- Ported all DSP code to support AArch64 architecture.
-- Additionally ptimized DSP code with AVX, AVX2 and FMA3 instruction set.
+- Optimize DSP for AArch64 architecture.
+- Additionally optimized DSP code with AVX, AVX2 and FMA3 instruction set.
 - Added possibility to double-click the parameter's value number and enter it manually with keyboard.
 - Added bookmarks to file opening dialog.
 - Added audio preview to file open dialog.
 - Added subsystem for loading missed files. 
+- Implement drag&drop function for the file dialog/file widget.
 - Added frequency-domain spectral analysis to convolver plugin series.
 - Added frequency-domain spectral analysis to profiler plugin series.
  

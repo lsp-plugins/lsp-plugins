@@ -754,11 +754,13 @@ namespace lsp
 extern "C"
 {
 #endif /* __cplusplus */
+    VST_EXPORT
     AEffect *VST_CREATE_INSTANCE_NAME(VstInt32 uid, audioMasterCallback callback)
     {
         return lsp::vst_instantiate(uid, callback);
     }
 
+    LSP_LIBRARY_EXPORT
     const char *VST_GET_VERSION_NAME()
     {
         return LSP_MAIN_VERSION;
