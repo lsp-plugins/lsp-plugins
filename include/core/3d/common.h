@@ -265,7 +265,8 @@ namespace lsp
         color3d_t           c[3];       // Color
         ssize_t             oid;        // Object identifier
         size_t              face;       // Face identifier
-        __IF_32(uint32_t    __pad[2];)  // Alignment to be sizeof() multiple of 16
+        bsp_triangle_t     *next;       // Pointer to next triangle
+        size_t              __pad;      // Alignment to be sizeof() multiple of 16
     } bsp_triangle_t;
 #pragma pack(pop)
 

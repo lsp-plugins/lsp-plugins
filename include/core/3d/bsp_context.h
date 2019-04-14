@@ -8,6 +8,7 @@
 #ifndef CORE_3D_BSP_CONTEXT_H_
 #define CORE_3D_BSP_CONTEXT_H_
 
+#include <core/types.h>
 #include <core/sugar.h>
 #include <core/3d/common.h>
 #include <core/3d/Allocator3D.h>
@@ -18,16 +19,10 @@ namespace lsp
     typedef struct bsp_node_t
     {
         vector3d_t      pl;
-        bsp_node_t     *over;
-        bsp_node_t     *under;
-        Allocator3D<bsp_triangle_t> match;
+        bsp_node_t     *in;
+        bsp_node_t     *out;
+        bsp_triangle_t *on;
     } bsp_node_t;
-
-    typedef struct bsp_task_t
-    {
-        bsp_node_t     *node;
-        Allocator3D<bsp_triangle_t> mesh;
-    } bsp_task_t;
 
     typedef struct bsp_context_t
     {
@@ -44,7 +39,7 @@ namespace lsp
             ~bsp_context_t();
 
         protected:
-            status_t split(cvector<bsp_task_t> &queue, bsp_task_t *task);
+            status_t split(cvector<bsp_node_t> &queue, bsp_node_t *task);
 
         public:
             void clear();
@@ -84,7 +79,8 @@ namespace lsp
              * @return status of operation
              */
             status_t build_tree();
-    };
+
+    } bsp_context_t;
 }
 
 
