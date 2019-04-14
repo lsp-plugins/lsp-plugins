@@ -13,6 +13,7 @@
 #include <core/3d/common.h>
 #include <core/3d/Allocator3D.h>
 #include <core/3d/Object3D.h>
+#include <data/cstorage.h>
 
 namespace lsp
 {
@@ -79,6 +80,14 @@ namespace lsp
              * @return status of operation
              */
             status_t build_tree();
+
+            /**
+             * Build the final mesh according to the viewer's plane
+             * @param dst collection to store the mesh
+             * @param pl the viewer's plane
+             * @return status of operation
+             */
+            status_t build_mesh(cstorage<v_vertex3d_t> *dst, const vector3d_t *pov);
 
     } bsp_context_t;
 }

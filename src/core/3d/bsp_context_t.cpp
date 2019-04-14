@@ -64,6 +64,8 @@ namespace lsp
             dsp::apply_matrix3d_mv2(&dt->n[0], st->n[0], transform);
             dsp::apply_matrix3d_mv2(&dt->n[1], st->n[1], transform);
             dsp::apply_matrix3d_mv2(&dt->n[2], st->n[2], transform);
+
+            dt->c               = *col;
             dt->oid             = oid;
             dt->face            = st->face;
         }
@@ -384,6 +386,52 @@ namespace lsp
             tin->in            = NULL;
             tin->out           = NULL;
             tin->on            = in;
+        }
+
+        return STATUS_OK;
+    }
+
+    status_t bsp_context_t::build_mesh(cstorage<v_vertex3d_t> *dst, const vector3d_t *pov)
+    {
+        enum bsp_cmd_t
+        {
+            CHECK,
+            OUT,
+            IN,
+            ON
+        };
+
+        typedef struct bsp_build_t
+        {
+            bsp_node_t *node;
+            bsp_cmd_t   cmd;
+        } bsp_build_t;
+
+        if (root == NULL)
+            return STATUS_OK;
+
+        // Create queue
+        cstorage<bsp_build_t> queue;
+
+        bsp_build_t curr;
+        curr.node       = root;
+        curr.cmd        = CHECK;
+
+        if (!queue.add(&curr))
+            return STATUS_NO_MEM;
+
+        while (queue.size() > 0)
+        {
+            // Get next task
+            if (!queue.pop(&curr))
+                return STATUS_NO_MEM;
+
+            switch (curr.cmd)
+            {
+                case CHECK:
+                case OUT:
+                case IN:
+            }
         }
 
         return STATUS_OK;

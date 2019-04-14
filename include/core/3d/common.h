@@ -262,7 +262,7 @@ namespace lsp
     typedef struct bsp_triangle_t: public raw_triangle_t
     {
         vector3d_t          n[3];       // Normals
-        color3d_t           c[3];       // Color
+        color3d_t           c;          // Color
         ssize_t             oid;        // Object identifier
         size_t              face;       // Face identifier
         bsp_triangle_t     *next;       // Pointer to next triangle
